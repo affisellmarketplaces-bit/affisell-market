@@ -51,5 +51,5 @@ export async function POST(
     },
   })
 
-  return NextResponse.json({ ok: true, newDeliverableAt })
+  return NextResponse.json({ success: true, newDeliverableAt })
 }

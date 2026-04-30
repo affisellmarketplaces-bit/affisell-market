@@ -158,14 +158,15 @@ model StoreProduct {
 model Order {
   id                      String   @id @default(cuid())
   userId                  String?
-  total                   Float
-  status                  String   @default("PENDING")
+  productId               String?
+  affiliateId             String?
   stripePaymentIntentId   String?  @unique
   supplierStripeAccountId String?
-  returnWindowEndsAt      DateTime?
+  status                  String
+  amount                  Int
+  currency                String   @default("usd")
   deliverableAt           DateTime?
   confirmedAt             DateTime?
-  deliveredAt             DateTime?
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
 }
