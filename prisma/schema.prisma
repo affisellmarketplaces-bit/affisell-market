@@ -164,6 +164,7 @@ model Order {
   supplierStripeAccountId String?
   returnWindowEndsAt      DateTime?
   deliverableAt           DateTime?
+  confirmedAt             DateTime?
   deliveredAt             DateTime?
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt

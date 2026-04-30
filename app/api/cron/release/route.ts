@@ -1,8 +1,26 @@
-import { NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { stripe } from "@/lib/stripe"
 
-export async function POST() {
+function assertCronAuthorized(req: NextRequest): NextResponse | null {
+  const secret = process.env.CRON_SECRET
+  if (!secret) {
+    return null
+  }
+  const auth = req.headers.get("authorization")
+  const expected = `Bearer ${secret}`
+  if (auth !== expected) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+  return null
+}
+
+export async function POST(req: NextRequest) {
+  const unauthorized = assertCronAuthorized(req)
+  if (unauthorized) {
+    return unauthorized
+  }
+
   const now = new Date()
 
   const orders = await prisma.order.findMany({
@@ -31,6 +49,6 @@ export async function POST() {
   return NextResponse.json({ released, checked: orders.length })
 }
 
-export async function GET() {
-  return POST()
+export async function GET(req: NextRequest) {
+  return POST(req)
 }

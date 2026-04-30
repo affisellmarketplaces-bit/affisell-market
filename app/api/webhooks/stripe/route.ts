@@ -33,6 +33,7 @@ export async function POST(req: NextRequest) {
 
     await prisma.order.create({
       data: {
+        ...({ buyerId: session.metadata?.userId || null } as object),
         total: session.amount_total! / 100,
         status: "PAID",
         stripePaymentIntentId: session.payment_intent as string,
