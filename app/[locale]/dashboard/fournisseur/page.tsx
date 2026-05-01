@@ -22,8 +22,9 @@ export default async function FournisseurDashboardPage({
     where: { supplierId: user.id },
     orderBy: { createdAt: "desc" },
   })
+  type SupplierProduct = (typeof products)[number]
 
-  const productIds = products.map((p) => p.id)
+  const productIds = products.map((p: SupplierProduct) => p.id)
 
   const orders =
     productIds.length > 0
