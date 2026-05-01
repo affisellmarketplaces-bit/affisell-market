@@ -41,7 +41,7 @@ export default async function AdminHoldsPage() {
       ? prisma.orderItem.findMany({
           where: { orderId: { in: orderIds } },
           include: {
-            product: { select: { title: true } },
+            product: { select: { name: true } },
           },
         })
       : Promise.resolve([]),
@@ -63,7 +63,7 @@ export default async function AdminHoldsPage() {
 
   const productLabelByOrderId = new Map<string, string>()
   for (const row of orderItems) {
-    const title = row.product.title
+    const title = row.product.name
     const prev = productLabelByOrderId.get(row.orderId)
     productLabelByOrderId.set(
       row.orderId,

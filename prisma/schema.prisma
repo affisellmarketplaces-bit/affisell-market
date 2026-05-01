@@ -65,6 +65,7 @@ model User {
   supplierProfile SupplierProfile?
   affiliateProfile AffiliateProfile?
   wallet Wallet?
+  products Product[]
   createdAt DateTime @default(now())
 }
 
@@ -107,7 +108,6 @@ model SupplierProfile {
   companyName String?
   plan Plan @default(GRATUIT)
   stripeAccountId String?
-  products Product[]
 }
 
 model AffiliateProfile {
@@ -131,18 +131,18 @@ model Store {
 
 model Product {
   id String @id @default(cuid())
-  supplierId String
-  supplier SupplierProfile @relation(fields: [supplierId], references: [id])
-  title String
-  description String? @db.Text
-  price Float
-  costPrice Float
-  commissionOffered Float
-  category Category @default(AUTRE)
+  name String
+  description String?
+  price Int
   imageUrl String?
-  isActive Boolean @default(true)
+  commissionPercent Int @default(30)
+  supplierId String
+  active Boolean @default(true)
+  createdAt DateTime @default(now())
+  supplier User @relation(fields: [supplierId], references: [id])
   storeProducts StoreProduct[]
   orderItems OrderItem[]
+  orders Order[]
 }
 
 model StoreProduct {
@@ -159,6 +159,7 @@ model Order {
   id                      String   @id @default(cuid())
   userId                  String?
   productId               String?
+  product                 Product? @relation(fields: [productId], references: [id])
   affiliateId             String?
   stripePaymentIntentId   String?  @unique
   supplierStripeAccountId String?
