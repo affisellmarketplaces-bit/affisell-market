@@ -114,17 +114,15 @@ export function AffiliateDashboard({ catalog, listings: initialListings }: Props
         <section className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {catalog.map((p) => (
             <article key={p.id} className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-              <div className="relative aspect-[4/3] bg-zinc-100 dark:bg-zinc-800">
-                {p.image ? (
-                  <Image
-                    src={p.image}
-                    alt=""
-                    fill
-                    className="object-cover"
-                    sizes="320px"
-                    unoptimized={p.image.startsWith("http")}
-                  />
-                ) : null}
+              <div className="overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+                <img
+                  src={p.image || "/placeholder.png"}
+                  alt={p.name}
+                  className="h-48 w-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = "/placeholder.png"
+                  }}
+                />
               </div>
               <div className="p-4">
                 <p className="font-semibold">{p.name}</p>

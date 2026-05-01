@@ -1,6 +1,5 @@
 "use client"
 
-import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
@@ -19,6 +18,7 @@ export function SupplierDashboard() {
   const [products, setProducts] = useState<Row[]>([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [image, setImage] = useState("")
 
   async function load() {
     const res = await fetch("/api/supplier/products", {
@@ -122,6 +122,7 @@ export function SupplierDashboard() {
             name="image"
             placeholder="Image URL"
             className="rounded-md border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
+            onChange={(e) => setImage(e.target.value.trim())}
           />
           <textarea
             name="description"
@@ -129,6 +130,18 @@ export function SupplierDashboard() {
             rows={3}
             className="md:col-span-2 rounded-md border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
           />
+          <div className="md:col-span-2">
+            {image ? (
+              <img
+                src={image}
+                alt="preview"
+                className="mb-2 h-20 w-20 rounded object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = "/placeholder.png"
+                }}
+              />
+            ) : null}
+          </div>
           <button
             type="submit"
             disabled={busy}
@@ -148,17 +161,15 @@ export function SupplierDashboard() {
           ) : (
             products.map((p) => (
               <article key={p.id} className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-                <div className="relative aspect-square bg-zinc-100 dark:bg-zinc-800">
-                  {p.image ? (
-                    <Image
-                      src={p.image}
-                      alt=""
-                      fill
-                      className="object-cover"
-                      sizes="280px"
-                      unoptimized={p.image.startsWith("http")}
-                    />
-                  ) : null}
+                <div className="overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+                  <img
+                    src={p.image || "/placeholder.png"}
+                    alt={p.name}
+                    className="h-48 w-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = "/placeholder.png"
+                    }}
+                  />
                 </div>
                 <div className="p-4">
                   <p className="font-semibold">{p.name}</p>
