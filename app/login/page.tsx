@@ -3,10 +3,9 @@
 import { FormEvent, useState } from "react"
 import { signIn } from "next-auth/react"
 import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 
 export default function LoginPage() {
-  const router = useRouter()
   const search = useSearchParams()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -19,9 +18,13 @@ export default function LoginPage() {
     const callbackUrl = search.get("callbackUrl") ?? "/dashboard"
     const res = await signIn("credentials", { email, password, redirect: false, callbackUrl })
     setLoading(false)
-    if (res?.ok && res.url) router.push(res.url)
-    else if (res?.ok) router.push(callbackUrl)
-    else setError("Invalid email or password.")
+    if (res?.ok && res?.url) {
+      window.location.href = res.url
+    } else if (res?.ok) {
+      window.location.href = callbackUrl || "/dashboard"
+    } else {
+      setError("Invalid email or password.")
+    }
   }
 
   return (
