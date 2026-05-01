@@ -18,7 +18,7 @@ export function SupplierDashboard() {
   const [products, setProducts] = useState<Row[]>([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [image, setImage] = useState("")
+  const [form, setForm] = useState({ image: "" })
 
   async function load() {
     const res = await fetch("/api/supplier/products", {
@@ -93,6 +93,16 @@ export function SupplierDashboard() {
 
       <section className="mt-8 rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
         <h2 className="text-lg font-medium">Add product</h2>
+        {form.image && (
+          <img
+            src={form.image}
+            alt=""
+            className="h-20 w-20 object-cover rounded mb-2"
+            onError={(e) => {
+              e.currentTarget.src = "/placeholder.png"
+            }}
+          />
+        )}
         <form action={createProduct} className="mt-4 grid gap-3 md:grid-cols-2">
           <input
             required
@@ -122,7 +132,7 @@ export function SupplierDashboard() {
             name="image"
             placeholder="Image URL"
             className="rounded-md border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-            onChange={(e) => setImage(e.target.value.trim())}
+            onChange={(e) => setForm((f) => ({ ...f, image: e.target.value.trim() }))}
           />
           <textarea
             name="description"
@@ -130,18 +140,6 @@ export function SupplierDashboard() {
             rows={3}
             className="md:col-span-2 rounded-md border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
           />
-          <div className="md:col-span-2">
-            {image ? (
-              <img
-                src={image}
-                alt="preview"
-                className="mb-2 h-20 w-20 rounded object-cover"
-                onError={(e) => {
-                  e.currentTarget.src = "/placeholder.png"
-                }}
-              />
-            ) : null}
-          </div>
           <button
             type="submit"
             disabled={busy}
@@ -165,7 +163,7 @@ export function SupplierDashboard() {
                   <img
                     src={p.image || "/placeholder.png"}
                     alt={p.name}
-                    className="h-48 w-full object-cover"
+                    className="w-full h-48 object-cover"
                     onError={(e) => {
                       e.currentTarget.src = "/placeholder.png"
                     }}
