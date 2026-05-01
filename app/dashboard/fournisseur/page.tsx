@@ -5,45 +5,49 @@ import { FournisseurLiveDashboard } from "./live-dashboard"
 
 export default async function FournisseurDashboardPage() {
   const session = await auth()
-  const user =
-    session?.user ?? {
-      id: "seed-supplier",
-      name: "Fournisseur Test",
-      email: "fournisseur@test.dev",
-    }
+  const user = session?.user?? { id: "seed-supplier", email: "fournisseur@test.dev", name: "Test" };
   await prisma.user.upsert({
-    where: { id: user.id },
-    update: {},
-    create: { id: user.id, email: user.email!, name: user.name },
-  })
+  where:{id:user.id},
+  update:{},
+  create:{ id:user.id, email:user.email!, name:user.name }
+});
 
-  const [products, stats, salesByProductRaw, topAffiliatesRaw] = await Promise.all([
-    prisma.product.findMany({
-      where: { supplierId: user.id },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.order.aggregate({
-      _sum: { amount: true },
-      _count: { id: true },
-      where: { product: { supplierId: user.id } },
-    }),
-    prisma.order.groupBy({
-      by: ["productId"],
-      where: { product: { supplierId: user.id }, productId: { not: null } },
-      _count: { id: true },
-    }),
-    prisma.order.groupBy({
-      by: ["affiliateId"],
-      where: {
-        product: { supplierId: user.id },
-        affiliateId: { not: null },
-      },
-      _count: { id: true },
-      _sum: { amount: true },
-      orderBy: { _sum: { amount: "desc" } },
-      take: 5,
-    }),
-  ])
+  const products = await prisma.product.findMany({
+    where: { supplierId: user.id },
+    orderBy: { createdAt: "desc" },
+  })
+  const productIds = products.map((p) => p.id)
+
+  const [stats, salesByProductRaw, topAffiliatesRaw] =
+    productIds.length > 0
+      ? await Promise.all([
+          prisma.order.aggregate({
+            _sum: { amount: true },
+            _count: { id: true },
+            where: { productId: { in: productIds } },
+          }),
+          prisma.order.groupBy({
+            by: ["productId"],
+            where: { productId: { in: productIds } },
+            _count: { id: true },
+          }),
+          prisma.order.groupBy({
+            by: ["affiliateId"],
+            where: {
+              productId: { in: productIds },
+              affiliateId: { not: null },
+            },
+            _count: { id: true },
+            _sum: { amount: true },
+            orderBy: { _sum: { amount: "desc" } },
+            take: 5,
+          }),
+        ])
+      : [
+          { _sum: { amount: 0 }, _count: { id: 0 } },
+          [],
+          [],
+        ]
 
   const ids = salesByProductRaw.map((row) => row.productId).filter(Boolean) as string[]
   const affiliateIds = topAffiliatesRaw
