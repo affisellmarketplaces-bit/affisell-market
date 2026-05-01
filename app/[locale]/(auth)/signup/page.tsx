@@ -1,13 +1,15 @@
 "use client"
 
-import { FormEvent, useState } from "react"
+import { FormEvent, useEffect, useState } from "react"
 import { signIn } from "next-auth/react"
 import { useTranslations } from "next-intl"
+import { useSearchParams } from "next/navigation"
 
 import { Link, useRouter } from "@/i18n/navigation"
 
 export default function SignupPage() {
   const router = useRouter()
+  const search = useSearchParams()
   const t = useTranslations("auth")
 
   const [email, setEmail] = useState("")
@@ -15,6 +17,12 @@ export default function SignupPage() {
   const [role, setRole] = useState<"SUPPLIER" | "AFFILIATE">("AFFILIATE")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const r = search.get("role")
+    if (r === "SUPPLIER") setRole("SUPPLIER")
+    else if (r === "AFFILIATE") setRole("AFFILIATE")
+  }, [search])
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
@@ -39,7 +47,7 @@ export default function SignupPage() {
       email,
       password,
       redirect: false,
-      callbackUrl: role === "SUPPLIER" ? "/dashboard/fournisseur" : "/dashboard/affiliate",
+      callbackUrl: role === "SUPPLIER" ? "/dashboard/supplier" : "/dashboard/affiliate",
     })
 
     setLoading(false)

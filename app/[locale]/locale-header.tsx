@@ -1,13 +1,10 @@
 "use client"
 
-import { useLocale, useTranslations } from "next-intl"
+import { useTranslations } from "next-intl"
 
-import { Link, usePathname } from "@/i18n/navigation"
-import { routing } from "@/i18n/routing"
+import { Link } from "@/i18n/navigation"
 
 export function LocaleHeader() {
-  const locale = useLocale()
-  const pathname = usePathname()
   const t = useTranslations("nav")
 
   return (
@@ -17,31 +14,21 @@ export function LocaleHeader() {
           <Link href="/" className="font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
             {t("brand")}
           </Link>
-          <Link href="/" className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
-            {t("home")}
+          <Link href="/marketplace" className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
+            {t("marketplace")}
           </Link>
           <Link href="/dashboard" className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
             {t("dashboard")}
           </Link>
-          <Link href="/dashboard/affiliate" className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
-            {t("affiliateArea")}
+          <Link href="/login" className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
+            {t("login")}
           </Link>
-        </div>
-        <div className="flex flex-wrap items-center gap-2" aria-label={t("language")}>
-          {routing.locales.map((loc) => (
-            <Link
-              key={loc}
-              href={pathname || "/"}
-              locale={loc}
-              className={
-                locale === loc
-                  ? "rounded-md bg-zinc-900 px-3 py-1 font-medium uppercase text-white dark:bg-zinc-100 dark:text-zinc-900"
-                  : "rounded-md px-3 py-1 uppercase text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-              }
-            >
-              {loc}
-            </Link>
-          ))}
+          <Link
+            href="/signup"
+            className="rounded-md bg-zinc-900 px-3 py-1.5 font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
+          >
+            {t("signup")}
+          </Link>
         </div>
       </nav>
     </header>

@@ -1,32 +1,29 @@
 import { NextResponse } from "next/server"
 
-import { auth } from "@/auth"
-import { routing } from "@/i18n/routing"
 import { prisma } from "@/lib/prisma"
 import { stripe } from "@/lib/stripe"
 
-/** Stripe Checkout marketplace (EUR, affiliation metadata). */
+/** Stripe Checkout for an AffiliateProduct listing (EUR). */
 export async function marketplaceCheckoutPOST(request: Request) {
-  const session = await auth()
   const body = (await request.json().catch(() => ({}))) as {
-    productId?: string
-    affiliateId?: string
+    affiliateProductId?: string
     cancelPath?: string
     successPath?: string
   }
 
-  if (!body.productId?.trim()) {
-    return NextResponse.json({ error: "Missing productId" }, { status: 400 })
+  const affiliateProductId = body.affiliateProductId?.trim()
+  if (!affiliateProductId) {
+    return NextResponse.json({ error: "Missing affiliateProductId" }, { status: 400 })
   }
 
-  const product = await prisma.product.findUnique({
-    where: { id: body.productId },
+  const listing = await prisma.affiliateProduct.findFirst({
+    where: { id: affiliateProductId, active: true },
+    include: { product: true },
   })
-  if (!product || !product.active) {
-    return NextResponse.json({ error: "Product not found or inactive" }, { status: 404 })
-  }
 
-  const affiliateId = body.affiliateId?.trim() || ""
+  if (!listing || !listing.product.active || !listing.product.supplierId) {
+    return NextResponse.json({ error: "Listing not found or inactive" }, { status: 404 })
+  }
 
   const baseUrl = (
     process.env.NEXT_PUBLIC_SITE_URL ??
@@ -36,15 +33,12 @@ export async function marketplaceCheckoutPOST(request: Request) {
   ).replace(/\/$/, "")
 
   const cancelPath =
-    typeof body.cancelPath === "string" && body.cancelPath.startsWith("/")
-      ? body.cancelPath
-      : "/"
+    typeof body.cancelPath === "string" && body.cancelPath.startsWith("/") ? body.cancelPath : "/"
 
-  const successPathDefault = `/${routing.defaultLocale}/success`
   const successPath =
     typeof body.successPath === "string" && body.successPath.startsWith("/")
       ? body.successPath
-      : successPathDefault
+      : "/success"
 
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "payment",
@@ -53,27 +47,28 @@ export async function marketplaceCheckoutPOST(request: Request) {
       {
         price_data: {
           currency: "eur",
-          unit_amount: product.priceCents,
-          product_data: { name: product.name },
+          unit_amount: listing.sellingPriceCents,
+          product_data: {
+            name: listing.product.name,
+            images: listing.product.image ? [listing.product.image] : undefined,
+          },
         },
         quantity: 1,
       },
     ],
     success_url: `${baseUrl}${successPath}`,
     cancel_url: `${baseUrl}${cancelPath}`,
-    metadata: {
-      productId: product.id,
-      affiliateId,
-      supplierId: product.supplierId,
-      userId: session?.user?.id ?? "",
+    customer_creation: "always",
+    billing_address_collection: "required",
+    shipping_address_collection: {
+      allowed_countries: ["US", "CA", "GB", "FR", "DE", "ES", "IT", "PT", "BE", "NL", "CH"],
     },
-    payment_intent_data: {
-      metadata: {
-        productId: product.id,
-        affiliateId,
-        supplierId: product.supplierId,
-        userId: session?.user?.id ?? "",
-      },
+    phone_number_collection: { enabled: true },
+    metadata: {
+      affiliateProductId: listing.id,
+      productId: listing.productId,
+      supplierId: listing.product.supplierId,
+      affiliateId: listing.affiliateId,
     },
   })
 

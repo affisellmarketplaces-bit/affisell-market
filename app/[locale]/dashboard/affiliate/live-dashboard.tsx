@@ -1,9 +1,9 @@
 "use client"
 
 import Image from "next/image"
-import { useLocale, useTranslations } from "next-intl"
+import { useTranslations } from "next-intl"
 import { useRouter } from "@/i18n/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   Area,
   AreaChart,
@@ -14,59 +14,69 @@ import {
   YAxis,
 } from "recharts"
 
-type MarketProduct = {
+type CatalogProduct = {
   id: string
   name: string
-  description: string | null
-  priceCents: number
-  image: string | null
-  commissionPercent: number
-  supplier: { name: string | null; email: string }
+  description: string
+  basePriceCents: number
+  commissionRate: number
+  image: string
+  supplier: { email: string }
+}
+
+type ListingRow = {
+  id: string
+  sellingPriceCents: number
+  active: boolean
+  product: CatalogProduct | null
 }
 
 type Props = {
-  user: { id: string; name?: string | null; email?: string | null }
-  boutiquePublicLabel: string | null
+  user: { id: string; email?: string | null }
   boutiqueHref: string | null
-  kpis: {
-    commissionsMois: number
-    clics: number
-    conversions: number
-    taux: number
-  }
+  storefrontSlug: string | null
+  kpis: { payoutsCents: number; orders: number }
   revenus30j: { day: string; revenus: number }[]
-  ventesRecentes: { date: string; produit: string; commission: number }[]
-  products: MarketProduct[]
-  selection: MarketProduct[]
-}
-
-function formatEur(value: number, locale: string) {
-  return (value / 100).toLocaleString(locale === "fr" ? "fr-FR" : locale === "es" ? "es-ES" : "en-US", {
-    style: "currency",
-    currency: "EUR",
-  })
+  recentSales: { date: string; produit: string; payout: number }[]
+  products: CatalogProduct[]
+  listings: ListingRow[]
 }
 
 export function AffiliateLiveDashboard({
   user,
-  boutiquePublicLabel,
   boutiqueHref,
+  storefrontSlug,
   kpis,
   revenus30j,
-  ventesRecentes,
+  recentSales,
   products,
-  selection,
+  listings,
 }: Props) {
   const router = useRouter()
-  const locale = useLocale()
   const t = useTranslations("affiliate")
   const [toast, setToast] = useState<string | null>(null)
+  const [addForId, setAddForId] = useState<string | null>(null)
+  const [sellEur, setSellEur] = useState<string>("")
+  const [localListings, setLocalListings] = useState(listings)
 
-  async function addToMyStore(productId: string) {
+  useEffect(() => setLocalListings(listings), [listings])
+
+  function fmtEurCents(c: number) {
+    return (c / 100).toLocaleString("en-US", { style: "currency", currency: "EUR" })
+  }
+
+  async function submitAdd(productId: string, basePriceCents: number) {
+    const euros = Number(sellEur.replace(",", "."))
+    if (!Number.isFinite(euros) || euros * 100 < basePriceCents) {
+      setToast(t("addFailedToast"))
+      setTimeout(() => setToast(null), 2400)
+      return
+    }
+    const sellingPriceCents = Math.round(euros * 100)
     const res = await fetch("/api/affiliate/add", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ productId }),
+      body: JSON.stringify({ productId, sellingPriceCents }),
     })
     const data = (await res.json().catch(() => ({}))) as { error?: string }
     if (!res.ok) {
@@ -76,6 +86,23 @@ export function AffiliateLiveDashboard({
     }
     setToast(t("addedToast"))
     setTimeout(() => setToast(null), 1800)
+    setAddForId(null)
+    setSellEur("")
+    router.refresh()
+  }
+
+  async function patchListing(listingId: string, body: Record<string, boolean | number>) {
+    const res = await fetch(`/api/affiliate/listings/${listingId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    })
+    if (!res.ok) {
+      const data = (await res.json().catch(() => ({}))) as { error?: string }
+      setToast(data.error || t("addFailedToast"))
+      setTimeout(() => setToast(null), 2400)
+      return
+    }
     router.refresh()
   }
 
@@ -86,32 +113,26 @@ export function AffiliateLiveDashboard({
           <div>
             <p className="text-sm text-zinc-500 dark:text-zinc-400">{t("dashboardTagline")}</p>
             <h1 className="text-3xl font-semibold">
-              {t("hello")}{" "}
-              {user.name ?? user.email ?? t("guestName")}
+              {t("hello")} {user.email ?? t("guestName")}
             </h1>
-            {boutiquePublicLabel && boutiqueHref ? (
+            {boutiqueHref && storefrontSlug ? (
               <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
                 <span>{t("publicStoreLead")} </span>
                 <a href={boutiqueHref} className="font-medium underline" target="_blank" rel="noreferrer">
-                  {boutiquePublicLabel}
+                  {boutiqueHref.replace(/^https?:\/\//, "")}
                 </a>
               </p>
             ) : null}
           </div>
         </header>
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <KpiCard
-            label={t("kCommission")}
-            value={`${kpis.commissionsMois.toLocaleString(locale)} ${locale === "en" ? "EUR" : "€"}`}
-          />
-          <KpiCard label={t("kClicks")} value={kpis.clics.toLocaleString(locale)} />
-          <KpiCard label={t("kConv")} value={kpis.conversions.toLocaleString(locale)} />
-          <KpiCard label={t("kRate")} value={`${kpis.taux.toFixed(2)}%`} />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <KpiCard label={t("sales") + " · " + t("kPayoutMonth")} value={fmtEurCents(kpis.payoutsCents)} />
+          <KpiCard label={t("kOrders")} value={kpis.orders.toLocaleString("en-US")} />
         </div>
 
         <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-          <h2 className="mb-3 text-lg font-semibold">{t("marketplaceCatalog")}</h2>
+          <h2 className="mb-3 text-lg font-semibold">{t("supplierCatalog")}</h2>
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {products.map((p) => (
               <article key={p.id} className="flex flex-col overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800">
@@ -135,18 +156,53 @@ export function AffiliateLiveDashboard({
                     {p.description || t("catalogNoDescription")}
                   </p>
                   <p className="text-sm">
-                    {formatEur(p.priceCents, locale)} · {p.commissionPercent}%
+                    {fmtEurCents(p.basePriceCents)} · {t("marginNote", { rate: p.commissionRate })}
                   </p>
-                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                    {t("supplierPrefix")}: {p.supplier.name || p.supplier.email}
+                  <p className="text-xs text-zinc-500">
+                    {t("supplierPrefix")}: {p.supplier.email}
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => addToMyStore(p.id)}
-                    className="mt-auto rounded-md bg-black px-3 py-2 text-xs font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
-                  >
-                    {t("addToStore")}
-                  </button>
+                  {addForId === p.id ? (
+                    <div className="mt-2 space-y-2 rounded-md border border-zinc-200 p-2 dark:border-zinc-700">
+                      <label className="block text-xs text-zinc-500">
+                        {t("sellingPriceLabel")}
+                        <input
+                          type="number"
+                          min={(p.basePriceCents / 100).toFixed(2)}
+                          step="0.01"
+                          value={sellEur}
+                          onChange={(e) => setSellEur(e.target.value)}
+                          className="mt-1 w-full rounded border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-600 dark:bg-zinc-950"
+                        />
+                      </label>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => submitAdd(p.id, p.basePriceCents)}
+                          className="flex-1 rounded-md bg-black px-2 py-1.5 text-xs font-medium text-white dark:bg-zinc-100 dark:text-zinc-900"
+                        >
+                          {t("addToStore")}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAddForId(null)}
+                          className="rounded-md border px-2 py-1.5 text-xs dark:border-zinc-600"
+                        >
+                          {t("cancel")}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAddForId(p.id)
+                        setSellEur((p.basePriceCents / 100).toFixed(2))
+                      }}
+                      className="mt-auto rounded-md bg-black px-3 py-2 text-xs font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
+                    >
+                      {t("addToStore")}
+                    </button>
+                  )}
                 </div>
               </article>
             ))}
@@ -155,30 +211,49 @@ export function AffiliateLiveDashboard({
 
         <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
           <h2 className="mb-4 text-lg font-semibold">{t("mySelection")}</h2>
-          {selection.length === 0 ? (
+          {localListings.filter((row) => row.product).length === 0 ? (
             <p className="text-sm text-zinc-500 dark:text-zinc-400">{t("selectionHint")}</p>
           ) : (
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {selection.map((p) => (
-                <article key={p.id} className="flex overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800">
-                  <div className="relative h-28 w-28 shrink-0 bg-zinc-100 dark:bg-zinc-900">
-                    {p.image ? (
-                      <Image
-                        src={p.image}
-                        alt=""
-                        fill
-                        className="object-cover"
-                        unoptimized={p.image.startsWith("http")}
-                        sizes="112px"
-                      />
-                    ) : null}
-                  </div>
-                  <div className="flex flex-col justify-center p-3 text-sm">
-                    <p className="font-semibold">{p.name}</p>
-                    <p className="text-zinc-600 dark:text-zinc-400">{formatEur(p.priceCents, locale)}</p>
-                  </div>
-                </article>
-              ))}
+              {localListings
+                .filter((row): row is ListingRow & { product: CatalogProduct } =>
+                  Boolean(row.product)
+                )
+                .map((row) => (
+                  <article key={row.id} className="flex gap-3 overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800">
+                    <div className="relative h-28 w-28 shrink-0 bg-zinc-100 dark:bg-zinc-900">
+                      {row.product!.image ? (
+                        <Image
+                          src={row.product!.image}
+                          alt=""
+                          fill
+                          className="object-cover"
+                          unoptimized={row.product!.image.startsWith("http")}
+                          sizes="112px"
+                        />
+                      ) : null}
+                    </div>
+                    <div className="flex min-w-0 flex-1 flex-col justify-center py-3 pr-3 text-sm">
+                      <p className="truncate font-semibold">{row.product!.name}</p>
+                      <p className="text-zinc-600 dark:text-zinc-400">{fmtEurCents(row.sellingPriceCents)}</p>
+                      <label className="mt-2 flex items-center gap-2 text-xs">
+                        <input
+                          type="checkbox"
+                          checked={row.active}
+                          onChange={(e) => {
+                            const next = e.target.checked
+                            setLocalListings((prev) =>
+                              prev.map((l) => (l.id === row.id ? { ...l, active: next } : l))
+                            )
+                            void patchListing(row.id, { active: next })
+                          }}
+                        />
+                        <span>{row.active ? t("toggleListing") : t("hideListing")}</span>
+                      </label>
+                      <p className="text-[11px] text-zinc-400">{t("listingActiveHelp")}</p>
+                    </div>
+                  </article>
+                ))}
             </div>
           )}
         </section>
@@ -190,7 +265,7 @@ export function AffiliateLiveDashboard({
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={revenus30j}>
                 <defs>
-                  <linearGradient id="affRevenue" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id="affRev" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#18181b" stopOpacity={0.35} />
                     <stop offset="95%" stopColor="#18181b" stopOpacity={0.03} />
                   </linearGradient>
@@ -198,17 +273,15 @@ export function AffiliateLiveDashboard({
                 <CartesianGrid strokeDasharray="3 3" stroke="#d4d4d8" />
                 <XAxis dataKey="day" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip
-                  formatter={(value) => [`${Number(value ?? 0).toLocaleString(locale)} EUR`, t("revenueLabel")]}
-                />
-                <Area type="monotone" dataKey="revenus" stroke="#18181b" fill="url(#affRevenue)" />
+                <Tooltip formatter={(value) => [Number(value ?? 0).toLocaleString("en-US"), t("revenueLabel")]} />
+                <Area type="monotone" dataKey="revenus" stroke="#18181b" fill="url(#affRev)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </section>
 
         {toast ? (
-          <div className="fixed bottom-6 right-6 z-50 rounded-md bg-black px-4 py-2 text-sm text-white shadow-lg">
+          <div className="fixed bottom-6 right-6 z-50 max-w-sm rounded-md bg-black px-4 py-2 text-sm text-white shadow-lg">
             {toast}
           </div>
         ) : null}
@@ -221,15 +294,17 @@ export function AffiliateLiveDashboard({
                 <tr>
                   <th className="py-2 pr-4">{t("dateCol")}</th>
                   <th className="py-2 pr-4">{t("productCol")}</th>
-                  <th className="py-2">{t("commissionCol")}</th>
+                  <th className="py-2">{t("payoutCol")}</th>
                 </tr>
               </thead>
               <tbody>
-                {ventesRecentes.map((row) => (
-                  <tr key={`${row.date}-${row.produit}`} className="border-t border-zinc-100 dark:border-zinc-800">
+                {recentSales.map((row, i) => (
+                  <tr key={`${row.date}-${row.produit}-${i}`} className="border-t border-zinc-100 dark:border-zinc-800">
                     <td className="py-2 pr-4">{row.date}</td>
                     <td className="py-2 pr-4">{row.produit}</td>
-                    <td className="py-2 font-medium">{row.commission.toLocaleString(locale)} EUR</td>
+                    <td className="py-2 font-medium">
+                      {(row.payout / 100).toLocaleString("en-US", { style: "currency", currency: "EUR" })}
+                    </td>
                   </tr>
                 ))}
               </tbody>

@@ -12,16 +12,17 @@ export async function GET() {
   if (session?.user?.role === "SUPPLIER") {
     const products = await prisma.product.findMany({
       where: { supplierId: session.user.id },
-      include: { supplier: true },
-      orderBy: { createdAt: "desc" },
+      orderBy: { name: "asc" },
     })
     return NextResponse.json(products)
   }
 
   const products = await prisma.product.findMany({
     where: { active: true },
-    include: { supplier: true },
-    orderBy: { createdAt: "desc" },
+    include: {
+      supplier: { select: { email: true } },
+    },
+    orderBy: { name: "asc" },
   })
   return NextResponse.json(products)
 }
@@ -32,42 +33,45 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  if (session.user.role !== "SUPPLIER" && session.user.role !== "ADMIN") {
+  if (session.user.role !== "SUPPLIER") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
   const body = (await request.json()) as {
     name?: string
     description?: string
-    price?: number
-    priceCents?: number
-    commissionPercent?: number
+    basePrice?: number
+    basePriceCents?: number
+    commissionRate?: number
     image?: string
     imageUrl?: string
-    stock?: number
   }
 
-  const priceInput =
-    typeof body.priceCents === "number" ? body.priceCents : body.price
+  const cents =
+    typeof body.basePriceCents === "number"
+      ? Math.round(body.basePriceCents)
+      : typeof body.basePrice === "number"
+        ? Math.round(body.basePrice * 100)
+        : NaN
 
-  if (!body.name || typeof priceInput !== "number") {
-    return NextResponse.json({ error: "Missing name or price (cents EUR)" }, { status: 400 })
+  if (!body.name?.trim() || !Number.isFinite(cents)) {
+    return NextResponse.json({ error: "Missing name or base price (EUR)" }, { status: 400 })
   }
 
-  const imageFromBody = body.image ?? body.imageUrl
+  const imageRaw = body.image ?? body.imageUrl ?? ""
+  const commissionRate = Math.min(
+    99,
+    Math.max(1, Math.round(Number.isFinite(body.commissionRate ?? NaN) ? body.commissionRate! : 20))
+  )
 
   const product = await prisma.product.create({
     data: {
-      name: body.name,
-      description: body.description?.trim() || null,
-      priceCents: Math.max(100, Math.round(priceInput)),
-      commissionPercent: Math.min(
-        90,
-        Math.max(1, Math.round(body.commissionPercent ?? 30))
-      ),
-      image: imageFromBody?.trim() || null,
-      stock: Math.max(0, Math.round(Number.isFinite(body.stock) ? Number(body.stock) : 999)),
       supplierId: session.user.id,
+      name: body.name.trim(),
+      description: (body.description ?? "").trim(),
+      image: imageRaw.trim() || "https://placehold.co/600x600?text=Product",
+      basePriceCents: Math.max(100, cents),
+      commissionRate,
       active: true,
     },
   })

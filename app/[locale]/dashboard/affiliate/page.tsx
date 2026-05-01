@@ -6,6 +6,8 @@ import { getTranslations } from "next-intl/server"
 
 import { AffiliateLiveDashboard } from "./live-dashboard"
 
+export const dynamic = "force-dynamic"
+
 export default async function AffiliateDashboardPage({
   params,
 }: {
@@ -16,100 +18,62 @@ export default async function AffiliateDashboardPage({
   if (!sess?.user?.id || !sess.user.email) {
     redirect({ href: "/login", locale })
   }
-  const user = sess!.user
-  const tAff = await getTranslations({ locale, namespace: "affiliate" })
+  if (sess.user.role !== "AFFILIATE") {
+    redirect({ href: "/dashboard/supplier", locale })
+  }
 
-  const email = sess!.user.email as string
-  const store =
-    sess!.user.role === "AFFILIATE" || sess!.user.role === "ADMIN"
-      ? await ensureAffiliateStore(user.id, email)
-      : null
+  const user = sess.user
+  const tAff = await getTranslations({ locale, namespace: "affiliate" })
+  await ensureAffiliateStore(user.id, user.email)
+
+  const store = await prisma.affiliateStore.findUnique({ where: { userId: user.id } })
 
   const siteBase = (
     process.env.NEXT_PUBLIC_SITE_URL ??
     process.env.NEXT_PUBLIC_BASE_URL ??
     "http://localhost:3000"
   ).replace(/\/$/, "")
-  const boutiqueHostDisplay = siteBase.replace(/^https?:\/\//, "")
-  const boutiquePublicLabel = store
-    ? `${boutiqueHostDisplay}/${locale}/boutique/${store.slug}`
-    : null
-  const boutiqueHref = store ? `${siteBase}/${locale}/boutique/${store.slug}` : null
+  const boutiqueHref = store ? `${siteBase}/boutique/${store.slug}` : null
 
-  const products = await prisma.product.findMany({
+  const catalog = await prisma.product.findMany({
     where: { active: true },
     include: { supplier: true },
-    orderBy: { createdAt: "desc" },
+    orderBy: { name: "asc" },
   })
-  type CatalogProduct = (typeof products)[number]
 
-  const selectionRows = await prisma.affiliateProduct.findMany({
+  const listingRows = await prisma.affiliateProduct.findMany({
     where: { affiliateId: user.id },
     include: {
       product: { include: { supplier: true } },
     },
-    orderBy: { addedAt: "desc" },
+    orderBy: { id: "desc" },
   })
-  type SelRow = (typeof selectionRows)[number]
-  type SelProduct = NonNullable<SelRow["product"]>
-
-  const selection = selectionRows
-    .map((r: SelRow) => r.product)
-    .filter((p: SelProduct | null): p is SelProduct => Boolean(p) && p.active)
-
-  const commissionByProductId = new Map(
-    products.map((p: CatalogProduct) => [p.id, p.commissionPercent] as const)
-  )
+  type LRow = (typeof listingRows)[number]
 
   const myOrders = await prisma.order.findMany({
     where: { affiliateId: user.id },
-    include: { product: { select: { commissionPercent: true } } },
     orderBy: { createdAt: "desc" },
-    take: 100,
+    take: 80,
+    include: { product: true },
   })
-  type OrderRow = (typeof myOrders)[number]
+  type ORow = (typeof myOrders)[number]
 
-  const commissions = myOrders.reduce((sum: number, o: OrderRow) => {
-    const percent =
-      o.product?.commissionPercent ??
-      commissionByProductId.get(o.productId ?? "") ??
-      30
-    return sum + (o.amount * percent) / 100
-  }, 0)
+  const totalPayoutCents = myOrders.reduce((s: number, o: ORow) => s + o.affiliatePayoutCents, 0)
 
-  const now = new Date()
-  const last30 = Array.from({ length: 30 }, (_, idx) => {
-    const d = new Date(now)
-    d.setDate(now.getDate() - (29 - idx))
-    const dayKey = d.toISOString().slice(0, 10)
-    const dayOrders = myOrders.filter((o: OrderRow) => o.createdAt.toISOString().slice(0, 10) === dayKey)
-    const revenus = dayOrders.reduce((sum: number, o: OrderRow) => {
-      const percent =
-        o.product?.commissionPercent ??
-        commissionByProductId.get(o.productId ?? "") ??
-        30
-      return sum + (o.amount * percent) / 100
-    }, 0)
-    return { day: d.getDate().toString(), revenus }
+  const payoutByDayRaw = Array.from({ length: 30 }, (_, idx) => {
+    const d = new Date()
+    d.setDate(d.getDate() - (29 - idx))
+    return d.toISOString().slice(0, 10)
+  }).map((dayKey) => {
+    const slice = myOrders.filter((o: ORow) => o.createdAt.toISOString().slice(0, 10) === dayKey)
+    const cents = slice.reduce((s: number, o: ORow) => s + o.affiliatePayoutCents, 0)
+    return { day: dayKey.slice(8), revenus: cents }
   })
 
-  const conversions = myOrders.length
-  const clics = myOrders.length * 10
-  const taux = clics ? (conversions / clics) * 100 : 0
-
-  const ventesRecentes = myOrders.slice(0, 8).map((o: OrderRow) => ({
-    date: o.createdAt.toLocaleDateString(locale === "fr" ? "fr-FR" : locale === "es" ? "es-ES" : "en-US"),
-    produit:
-      products.find((p: CatalogProduct) => p.id === o.productId)?.name ??
-      selection.find((p: SelProduct) => p.id === o.productId)?.name ??
-      tAff("orderSnippet", { id: o.id.slice(0, 8) }),
-    commission: Math.round(
-      (o.amount *
-        (o.product?.commissionPercent ??
-          commissionByProductId.get(o.productId ?? "") ??
-          30)) /
-        100
-    ),
+  const recentSales = myOrders.slice(0, 15).map((o: ORow) => ({
+    date: o.createdAt.toLocaleDateString("en-US"),
+    produit: o.product.name,
+    payout: Math.round(o.affiliatePayoutCents),
   }))
 
   return (
@@ -118,19 +82,17 @@ export default async function AffiliateDashboardPage({
         <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">{tAff("myStore")}</p>
       </div>
       <AffiliateLiveDashboard
-        user={user}
-        boutiquePublicLabel={boutiquePublicLabel}
+        user={{ id: user.id, email: user.email ?? null }}
         boutiqueHref={boutiqueHref}
+        storefrontSlug={store?.slug ?? null}
         kpis={{
-          commissionsMois: Math.round(commissions),
-          clics,
-          conversions,
-          taux,
+          payoutsCents: totalPayoutCents,
+          orders: myOrders.length,
         }}
-        revenus30j={last30}
-        ventesRecentes={ventesRecentes}
-        products={products}
-        selection={selection}
+        revenus30j={payoutByDayRaw}
+        recentSales={recentSales}
+        products={catalog}
+        listings={listingRows}
       />
     </>
   )

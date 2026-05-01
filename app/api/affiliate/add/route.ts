@@ -11,20 +11,40 @@ export async function POST(request: Request) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
-  if (session.user.role !== "AFFILIATE" && session.user.role !== "ADMIN") {
+  if (session.user.role !== "AFFILIATE") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  const body = (await request.json().catch(() => ({}))) as { productId?: string }
-  if (!body.productId?.trim()) {
+  const body = (await request.json().catch(() => ({}))) as {
+    productId?: string
+    sellingPriceCents?: number
+  }
+
+  const productId = body.productId?.trim()
+  if (!productId) {
     return NextResponse.json({ error: "Missing productId" }, { status: 400 })
   }
 
+  const sellingRaw = Number(body.sellingPriceCents)
+  if (!Number.isFinite(sellingRaw)) {
+    return NextResponse.json({ error: "Missing or invalid sellingPriceCents" }, { status: 400 })
+  }
+  const sellingPriceCents = Math.round(sellingRaw)
+
   const product = await prisma.product.findFirst({
-    where: { id: body.productId, active: true },
+    where: { id: productId, active: true },
   })
   if (!product) {
     return NextResponse.json({ error: "Product not found or inactive" }, { status: 404 })
+  }
+
+  if (sellingPriceCents < product.basePriceCents) {
+    return NextResponse.json(
+      {
+        error: `Selling price must be at least base price (${product.basePriceCents}¢)`,
+      },
+      { status: 400 }
+    )
   }
 
   const row = await prisma.affiliateProduct.upsert({
@@ -37,8 +57,13 @@ export async function POST(request: Request) {
     create: {
       affiliateId: session.user.id,
       productId: product.id,
+      sellingPriceCents,
+      active: true,
     },
-    update: {},
+    update: {
+      sellingPriceCents,
+      active: true,
+    },
   })
 
   return NextResponse.json(row, { status: 201 })

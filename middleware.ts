@@ -8,33 +8,20 @@ import { routing } from "@/i18n/routing"
 const intlMiddleware = createMiddleware(routing)
 
 export default auth((req) => {
-  const p = req.nextUrl.pathname
+  const pathname = req.nextUrl.pathname
 
   if (
-    p.startsWith("/api") ||
-    p.startsWith("/_next") ||
-    p.startsWith("/_vercel") ||
-    /\.[^/]+$/.test(p)
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/_vercel") ||
+    /\.[^/]+$/.test(pathname)
   ) {
     return NextResponse.next()
   }
 
-  const segments = p.split("/").filter(Boolean)
-  const first = segments[0]
-  const hasLocale = Boolean(
-    first && (routing.locales as readonly string[]).includes(first)
-  )
-
-  if (!hasLocale) {
-    return intlMiddleware(req as unknown as NextRequest)
-  }
-
-  const locale = first as string
-  const subpath = "/" + segments.slice(1).join("/") || "/"
-
-  if (subpath.startsWith("/dashboard") && !req.auth) {
-    const loginUrl = new URL(`/${locale}/login`, req.url)
-    loginUrl.searchParams.set("callbackUrl", p)
+  if (pathname.startsWith("/dashboard") && !req.auth) {
+    const loginUrl = new URL("/login", req.url)
+    loginUrl.searchParams.set("callbackUrl", `${pathname}${req.nextUrl.search}`)
     return NextResponse.redirect(loginUrl)
   }
 

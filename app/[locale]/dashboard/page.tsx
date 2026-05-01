@@ -12,9 +12,9 @@ export default async function DashboardRootPage({
     redirect({ href: "/login", locale })
   }
 
-  const role = sess!.user.role
-  if (role === "SUPPLIER" || role === "ADMIN") {
-    redirect({ href: "/dashboard/fournisseur", locale })
+  const role = sess.user.role
+  if (role === "SUPPLIER") {
+    redirect({ href: "/dashboard/supplier", locale })
   }
 
   redirect({ href: "/dashboard/affiliate", locale })

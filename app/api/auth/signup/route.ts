@@ -13,22 +13,22 @@ export async function POST(req: Request) {
       password?: string
       role?: string
     }
-    if (!email || !password) {
+    const emailNormalized = typeof email === "string" ? email.toLowerCase().trim() : ""
+    if (!emailNormalized || !password) {
       return NextResponse.json({ error: "Missing email or password" }, { status: 400 })
     }
 
-    const exists = await prisma.user.findUnique({ where: { email } })
+    const exists = await prisma.user.findUnique({ where: { email: emailNormalized } })
     if (exists) {
       return NextResponse.json({ error: "Email already in use" }, { status: 400 })
     }
 
     const hash = await bcrypt.hash(password, 10)
-    const resolvedRole =
-      role === "SUPPLIER" || role === "FOURNISSEUR" ? "SUPPLIER" : "AFFILIATE"
+    const resolvedRole = role === "SUPPLIER" ? "SUPPLIER" : "AFFILIATE"
 
     await prisma.user.create({
       data: {
-        email,
+        email: emailNormalized,
         password: hash,
         role: resolvedRole,
       },

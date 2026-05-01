@@ -3,13 +3,15 @@
 import { useTranslations } from "next-intl"
 import { useState } from "react"
 
-type Props = {
+export function MarketplaceCheckoutButton({
+  affiliateProductId,
+  cancelPath,
+  successPath,
+}: {
   affiliateProductId: string
   cancelPath: string
   successPath: string
-}
-
-export function BoutiqueBuyButton({ affiliateProductId, cancelPath, successPath }: Props) {
+}) {
   const [loading, setLoading] = useState(false)
   const t = useTranslations("boutique")
 
@@ -36,7 +38,7 @@ export function BoutiqueBuyButton({ affiliateProductId, cancelPath, successPath 
       type="button"
       disabled={loading}
       onClick={checkout}
-      className="mt-4 w-full rounded-md bg-black py-3 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60 dark:bg-white dark:text-black"
+      className="mt-6 w-full rounded-md bg-black py-3 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900"
     >
       {loading ? "…" : t("buy")}
     </button>
