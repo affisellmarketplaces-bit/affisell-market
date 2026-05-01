@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { stripe } from "@/lib/stripe"
 
 export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
 
 const AMOUNT_CENTS = 500
 const DELIVERABLE_DAYS = 7

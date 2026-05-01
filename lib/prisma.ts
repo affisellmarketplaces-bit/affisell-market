@@ -55,7 +55,8 @@ export const prisma =
 globalForPrisma.prisma = prisma
 
 const CONNECT_RETRIES = 3
-const CONNECT_BASE_DELAY_MS = 400
+/** Attente fixe entre deux essais (Neon “endormi”, E57P01, etc.). */
+const CONNECT_RETRY_DELAY_MS = 2000
 
 /** Appelé depuis `instrumentation.ts` au démarrage (Neon peut être en veille). */
 export async function connectPrismaWithRetry(): Promise<void> {
@@ -77,9 +78,7 @@ export async function connectPrismaWithRetry(): Promise<void> {
         /* ignore */
       }
       if (attempt < CONNECT_RETRIES) {
-        await new Promise((r) =>
-          setTimeout(r, CONNECT_BASE_DELAY_MS * attempt)
-        )
+        await new Promise((r) => setTimeout(r, CONNECT_RETRY_DELAY_MS))
       }
     }
   }
