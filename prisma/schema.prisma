@@ -1,87 +1,89 @@
-datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
-}
+// This is your Prisma schema file
 
 generator client {
   provider = "prisma-client-js"
 }
 
+datasource db {
+  provider = "sqlite"
+  url = env("DATABASE_URL")
+}
+
 model User {
-  id                   String             @id @default(cuid())
-  email                String             @unique
-  password             String?
-  role                 String // SUPPLIER or AFFILIATE
-  createdAt            DateTime           @default(now())
-  products             Product[]          @relation("SupplierProducts")
-  affiliateProducts    AffiliateProduct[]
-  affiliateStore       AffiliateStore?
-  supplierOrders       Order[]            @relation("SupplierOrders")
-  affiliateOrders      Order[]            @relation("AffiliateOrders")
-  notifications        Notification[]
+  id String @id @default(cuid())
+  email String @unique
+  password String?
+  role String
+  createdAt DateTime @default(now())
+  products Product[] @relation("SupplierProducts")
+  affiliateProducts AffiliateProduct[]
+  affiliateStore AffiliateStore?
+  supplierOrders Order[] @relation("SupplierOrders")
+  affiliateOrders Order[] @relation("AffiliateOrders")
+  notifications Notification[]
 }
 
 model AffiliateStore {
-  id     String @id @default(cuid())
+  id String @id @default(cuid())
   userId String @unique
-  slug   String @unique
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slug String @unique
+  user User @relation(fields: [userId], references: [id])
 }
 
 model Product {
-  id               String             @id @default(cuid())
-  supplierId       String
-  name             String
-  description      String
-  image            String
-  basePriceCents   Int
-  commissionRate   Int // 20 = 20%
-  active           Boolean            @default(true)
-  supplier         User               @relation("SupplierProducts", fields: [supplierId], references: [id], onDelete: Cascade)
-  listings         AffiliateProduct[]
-  orders           Order[]
+  id String @id @default(cuid())
+  supplierId String
+  name String
+  description String
+  image String
+  basePriceCents Int
+  commissionRate Int
+  active Boolean @default(true)
+  supplier User @relation("SupplierProducts", fields: [supplierId], references: [id])
+  listings AffiliateProduct[]
+  orders Order[]
 }
 
 model AffiliateProduct {
-  id                  String    @id @default(cuid())
-  affiliateId         String
-  productId           String
-  sellingPriceCents   Int
-  active              Boolean   @default(true)
-  affiliate           User      @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
-  product             Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  id String @id @default(cuid())
+  affiliateId String
+  productId String
+  sellingPriceCents Int
+  active Boolean @default(true)
+  affiliate User @relation(fields: [affiliateId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
 
   @@unique([affiliateId, productId])
 }
 
 model Order {
-  id                   String   @id @default(cuid())
-  productId            String
-  affiliateProductId   String
-  supplierId           String
-  affiliateId          String
-  customerEmail        String
-  shippingAddress      Json
-  basePriceCents       Int
-  sellingPriceCents    Int
-  commissionCents      Int
-  marginCents          Int
+  id String @id @default(cuid())
+  productId String
+  affiliateProductId String
+  supplierId String
+  affiliateId String
+  customerEmail String
+  shippingAddress Json
+  basePriceCents Int
+  sellingPriceCents Int
+  commissionCents Int
+  marginCents Int
   affiliatePayoutCents Int
-  status               String   @default("paid")
-  stripeSessionId      String   @unique
-  createdAt            DateTime @default(now())
-  product              Product  @relation(fields: [productId], references: [id])
-  supplier             User     @relation("SupplierOrders", fields: [supplierId], references: [id])
-  affiliate            User     @relation("AffiliateOrders", fields: [affiliateId], references: [id])
+  status String @default("paid")
+  stripeSessionId String @unique
+  createdAt DateTime @default(now())
+  product Product @relation(fields: [productId], references: [id])
+  supplier User @relation("SupplierOrders", fields: [supplierId], references: [id])
+  affiliate User @relation("AffiliateOrders", fields: [affiliateId], references: [id])
 }
 
 model Notification {
-  id        String   @id @default(cuid())
-  userId    String
-  type      String
-  message   String
-  orderId   String?
-  read      Boolean  @default(false)
+  id String @id @default(cuid())
+  userId String
+  type String
+  message String
+  orderId String?
+  read Boolean @default(false)
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
 }

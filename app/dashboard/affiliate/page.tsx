@@ -1,72 +1,34 @@
-import { auth } from "@/auth"
-import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 
-import { AffiliateLiveDashboard } from "./live-dashboard"
+import { auth } from "@/auth"
+import { prisma } from "@/lib/prisma"
+
+import { AffiliateDashboard } from "./affiliate-dashboard"
+
+export const dynamic = "force-dynamic"
 
 export default async function AffiliateDashboardPage() {
   const session = await auth()
-  if (!session?.user?.id) {
-    redirect("/login")
-  }
-  const user = session.user
+  if (!session?.user?.id) redirect("/login?callbackUrl=/dashboard/affiliate")
+  if (session.user.role !== "AFFILIATE") redirect("/dashboard/supplier")
 
-  const products = await prisma.product.findMany({
-    where: { active: true },
-    include: { supplier: true },
-    orderBy: { createdAt: "desc" },
-  })
-  const commissionByProductId = new Map(
-    products.map((p) => [p.id, p.commissionPercent] as const)
-  )
-
-  const myOrders = await prisma.order.findMany({
-    where: { affiliateId: user.id },
-    include: { product: { select: { commissionPercent: true } } },
-    orderBy: { createdAt: "desc" },
-    take: 100,
-  })
-
-  const commissions = myOrders.reduce((sum, o) => {
-    const percent = o.product?.commissionPercent ?? commissionByProductId.get(o.productId ?? "") ?? 30
-    return sum + (o.amount * percent) / 100
-  }, 0)
-
-  const now = new Date()
-  const last30 = Array.from({ length: 30 }, (_, idx) => {
-    const d = new Date(now)
-    d.setDate(now.getDate() - (29 - idx))
-    const day = d.toISOString().slice(0, 10)
-    const dayOrders = myOrders.filter(
-      (o) => o.createdAt.toISOString().slice(0, 10) === day
-    )
-    const revenus = dayOrders.reduce((sum, o) => {
-      const percent = o.product?.commissionPercent ?? commissionByProductId.get(o.productId ?? "") ?? 30
-      return sum + (o.amount * percent) / 100
-    }, 0)
-    return { day: d.getDate().toString(), revenus }
-  })
-
-  const conversions = myOrders.length
-  const clics = myOrders.length * 10
-  const taux = clics ? (conversions / clics) * 100 : 0
-
-  const ventesRecentes = myOrders.slice(0, 8).map((o) => ({
-    date: o.createdAt.toLocaleDateString("fr-FR"),
-    produit:
-      products.find((p) => p.id === o.productId)?.name ?? `Commande ${o.id.slice(0, 8)}`,
-    commission: Math.round(
-      (o.amount * (o.product?.commissionPercent ?? commissionByProductId.get(o.productId ?? "") ?? 30)) / 100
-    ),
-  }))
+  const [catalog, listings] = await Promise.all([
+    prisma.product.findMany({
+      where: { active: true },
+      include: { supplier: { select: { email: true } } },
+      orderBy: { name: "asc" },
+    }),
+    prisma.affiliateProduct.findMany({
+      where: { affiliateId: session.user.id },
+      include: { product: true },
+      orderBy: { id: "desc" },
+    }),
+  ])
 
   return (
-    <AffiliateLiveDashboard
-      user={user}
-      kpis={{ commissionsMois: Math.round(commissions), clics, conversions, taux }}
-      revenus30j={last30}
-      ventesRecentes={ventesRecentes}
-      products={products}
+    <AffiliateDashboard
+      catalog={JSON.parse(JSON.stringify(catalog))}
+      listings={JSON.parse(JSON.stringify(listings))}
     />
   )
 }

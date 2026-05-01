@@ -7,7 +7,10 @@ import { stripe } from "@/lib/stripe"
 export const runtime = "nodejs"
 
 function addressFromSession(session: Stripe.Checkout.Session): Record<string, unknown> {
-  const ship = session.shipping_details ?? null
+  const extended = session as Stripe.Checkout.Session & {
+    shipping_details?: { address?: Stripe.Address | null; name?: string | null } | null
+  }
+  const ship = extended.shipping_details ?? null
   if (ship?.address) return { ...(ship.address as object), name: ship.name }
   const bill = session.customer_details
   if (bill?.address) return { ...(bill.address as object), name: bill.name }
