@@ -61,12 +61,6 @@ export function AffiliateLiveDashboard({
             </p>
             <h1 className="text-3xl font-semibold">Bonjour {user.name ?? "Affilie"}</h1>
           </div>
-          <div className="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-            <p className="text-zinc-500 dark:text-zinc-400">Mon lien d'affiliation</p>
-            <code className="mt-1 block rounded bg-zinc-100 px-2 py-1 text-xs dark:bg-zinc-800">
-              {`${baseUrl}/p/<id>?ref=${user.id}`}
-            </code>
-          </div>
         </header>
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -76,6 +70,33 @@ export function AffiliateLiveDashboard({
           <KpiCard label="Taux" value={`${kpis.taux.toFixed(2)}%`} />
         </div>
 
+        <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <h2 className="mb-3 text-lg font-semibold">Marketplace</h2>
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {products.map((p) => (
+              <article key={p.id} className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
+                <h3 className="font-semibold">{p.name}</h3>
+                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                  {p.description || "Sans description"}
+                </p>
+                <p className="mt-2 text-sm">
+                  {(p.price / 100).toLocaleString("fr-FR")} EUR - commission {p.commissionPercent}%
+                </p>
+                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                  Fournisseur : {p.supplier.name || p.supplier.email}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => copyAffiliateLink(p.id)}
+                  className="mt-3 rounded-md bg-black px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
+                >
+                  Copier mon lien
+                </button>
+              </article>
+            ))}
+          </div>
+        </section>
+        
         <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
           <h2 className="text-lg font-semibold">Revenus 30 jours</h2>
           <p className="mb-3 text-sm text-zinc-500 dark:text-zinc-400">
@@ -102,33 +123,6 @@ export function AffiliateLiveDashboard({
                 <Area type="monotone" dataKey="revenus" stroke="#18181b" fill="url(#affRevenue)" />
               </AreaChart>
             </ResponsiveContainer>
-          </div>
-        </section>
-
-        <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-          <h2 className="mb-3 text-lg font-semibold">Marketplace</h2>
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {products.map((p) => (
-              <article key={p.id} className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
-                <h3 className="font-semibold">{p.name}</h3>
-                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                  {p.description || "Sans description"}
-                </p>
-                <p className="mt-2 text-sm">
-                  {(p.price / 100).toLocaleString("fr-FR")} EUR - commission {p.commissionPercent}%
-                </p>
-                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                  Fournisseur : {p.supplier.name || p.supplier.email}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => copyAffiliateLink(p.id)}
-                  className="mt-3 rounded-md bg-black px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
-                >
-                  Copier mon lien
-                </button>
-              </article>
-            ))}
           </div>
         </section>
         {toast ? (
