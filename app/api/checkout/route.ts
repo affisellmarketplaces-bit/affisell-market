@@ -1,22 +1,74 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
+import { prisma } from "@/lib/prisma"
 import { stripe } from "@/lib/stripe"
 
+const AMOUNT_CENTS = 500
+const DELIVERABLE_DAYS = 7
+
 export async function POST() {
-  const productId = ""
-  const affiliateId = ""
-  const session = await stripe.checkout.sessions.create({
+  const session = await auth()
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Non authentifié" }, { status: 401 })
+  }
+  const userId = session.user.id
+  const baseUrl = (process.env.AUTH_URL ?? "http://localhost:3000").replace(/\/$/, "")
+
+  const checkoutSession = await stripe.checkout.sessions.create({
     mode: "payment",
     payment_method_types: ["card"],
-    line_items: [{ price_data: { currency: "eur", product_data: { name: "Test HOLD" }, unit_amount: 2000 }, quantity: 1 }],
-    success_url: "http://localhost:3000/success",
-    cancel_url: "http://localhost:3000/cancel",
-    metadata: {
-      userId: (await auth())?.user?.id || "",
-      productId: productId,
-      affiliateId: affiliateId || "",
-    },
-    payment_intent_data: { capture_method: "manual" }
+    line_items: [
+      {
+        price_data: {
+          currency: "eur",
+          unit_amount: AMOUNT_CENTS,
+          product_data: { name: "Paiement test 5€" },
+        },
+        quantity: 1,
+      },
+    ],
+    success_url: `${baseUrl}/orders`,
+    cancel_url: `${baseUrl}/test`,
+    metadata: { userId },
+    payment_intent_data: { metadata: { userId } },
   })
-  return NextResponse.json({ url: session.url })
+
+  let paymentIntentId =
+    typeof checkoutSession.payment_intent === "string"
+      ? checkoutSession.payment_intent
+      : checkoutSession.payment_intent?.id
+
+  if (!paymentIntentId) {
+    const refreshed = await stripe.checkout.sessions.retrieve(checkoutSession.id, {
+      expand: ["payment_intent"],
+    })
+    paymentIntentId =
+      typeof refreshed.payment_intent === "string"
+        ? refreshed.payment_intent
+        : refreshed.payment_intent?.id
+  }
+
+  if (!paymentIntentId || !checkoutSession.url) {
+    return NextResponse.json(
+      { error: "Stripe Checkout incomplet (PaymentIntent ou URL manquant)" },
+      { status: 502 }
+    )
+  }
+
+  const deliverableAt = new Date(
+    Date.now() + DELIVERABLE_DAYS * 24 * 60 * 60 * 1000
+  )
+
+  await prisma.order.create({
+    data: {
+      userId,
+      amount: AMOUNT_CENTS,
+      currency: "eur",
+      deliverableAt,
+      stripePaymentIntentId: paymentIntentId,
+      status: "PENDING",
+    },
+  })
+
+  return NextResponse.json({ url: checkoutSession.url })
 }

@@ -28,22 +28,33 @@ export async function POST(req: NextRequest) {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session
     const now = new Date()
-    const deliverableAt = new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000)
+    const fallbackDeliverableAt = new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000)
     const paymentIntentId =
       typeof session.payment_intent === "string"
         ? session.payment_intent
         : session.payment_intent?.id
 
-    await prisma.order.create({
-      data: {
-        userId: session.metadata?.userId || null,
-        amount: session.amount_total ?? 0,
-        currency: session.currency ?? "eur",
-        status: "PAID",
-        stripePaymentIntentId: paymentIntentId ?? undefined,
-        deliverableAt,
-      },
+    if (!paymentIntentId) {
+      return NextResponse.json({ received: true })
+    }
+
+    const updated = await prisma.order.updateMany({
+      where: { stripePaymentIntentId: paymentIntentId },
+      data: { status: "PAID" },
     })
+
+    if (updated.count === 0) {
+      await prisma.order.create({
+        data: {
+          userId: session.metadata?.userId || null,
+          amount: session.amount_total ?? 0,
+          currency: session.currency ?? "eur",
+          status: "PAID",
+          stripePaymentIntentId: paymentIntentId,
+          deliverableAt: fallbackDeliverableAt,
+        },
+      })
+    }
   }
 
   return NextResponse.json({ received: true })

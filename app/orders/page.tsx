@@ -11,36 +11,47 @@ export default async function OrdersPage() {
   const userId = session.user.id
 
   const orders = await prisma.order.findMany({
-    where: { userId, status: 'PAID' },
-    orderBy: { createdAt: 'desc' }
+    where: { userId, status: { in: ["PAID", "PENDING"] } },
+    orderBy: { createdAt: "desc" },
   })
 
   return (
     <div className="p-8 max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Mes commandes</h1>
       {orders.length === 0 ? (
-        <p>Aucune commande payée</p>
+        <p>Aucune commande</p>
       ) : (
         orders.map((o) => (
           <div key={o.id} className="border p-4 mb-4 rounded-lg">
             <div className="flex justify-between items-center">
               <div>
-                <p className="font-medium">{(o.amount/100).toFixed(2)} {o.currency.toUpperCase()}</p>
+                <p className="font-medium">
+                  {(o.amount / 100).toFixed(2)} {o.currency.toUpperCase()}
+                  {o.status === "PENDING" ? (
+                    <span className="ml-2 text-sm font-normal text-amber-600">
+                      (en attente de confirmation)
+                    </span>
+                  ) : null}
+                </p>
                 <p className="text-sm text-gray-600">
-                  {o.confirmedAt
-                    ? `Confirmée le ${new Date(o.confirmedAt).toLocaleDateString()} - libération ${
-                        o.deliverableAt
-                          ? new Date(o.deliverableAt).toLocaleDateString()
-                          : "—"
-                      }`
-                    : `Non confirmée - libération prévue ${
-                        o.deliverableAt
-                          ? new Date(o.deliverableAt).toLocaleDateString()
-                          : "—"
-                      } (J+10)`}
+                  {o.status === "PENDING"
+                    ? "Le statut passe à « payé » après confirmation Stripe (webhook)."
+                    : o.confirmedAt
+                      ? `Confirmée le ${new Date(o.confirmedAt).toLocaleDateString()} - libération ${
+                          o.deliverableAt
+                            ? new Date(o.deliverableAt).toLocaleDateString()
+                            : "—"
+                        }`
+                      : `Non confirmée - libération prévue ${
+                          o.deliverableAt
+                            ? new Date(o.deliverableAt).toLocaleDateString()
+                            : "—"
+                        } (libération prévue après confirmation)`}
                 </p>
               </div>
-              {!o.confirmedAt && <ConfirmButton orderId={o.id} />}
+              {o.status === "PAID" && !o.confirmedAt ? (
+                <ConfirmButton orderId={o.id} />
+              ) : null}
             </div>
           </div>
         ))
