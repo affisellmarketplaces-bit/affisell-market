@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import {
   Area,
   AreaChart,
@@ -21,6 +21,7 @@ type Props = {
   }
   revenus30j: { day: string; revenus: number }[]
   ventesRecentes: { date: string; produit: string; commission: number }[]
+  products: MarketProduct[]
 }
 
 type MarketProduct = {
@@ -38,30 +39,16 @@ export function AffiliateLiveDashboard({
   kpis,
   revenus30j,
   ventesRecentes,
+  products,
 }: Props) {
-  const [products, setProducts] = useState<MarketProduct[]>([])
-
-  useEffect(() => {
-    let mounted = true
-    fetch("/api/products")
-      .then((r) => r.json())
-      .then((data: MarketProduct[]) => {
-        if (mounted) setProducts(data)
-      })
-      .catch(() => {
-        if (mounted) setProducts([])
-      })
-
-    return () => {
-      mounted = false
-    }
-  }, [])
-
-  const origin = typeof window !== "undefined" ? window.location.origin : ""
+  const [toast, setToast] = useState<string | null>(null)
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
 
   async function copyAffiliateLink(productId: string) {
-    const link = `${origin}/p/${productId}?ref=${user.id}`
+    const link = `${baseUrl}/p/${productId}?ref=${user.id}`
     await navigator.clipboard.writeText(link)
+    setToast("Lien copié")
+    setTimeout(() => setToast(null), 1800)
   }
 
   return (
@@ -77,7 +64,7 @@ export function AffiliateLiveDashboard({
           <div className="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
             <p className="text-zinc-500 dark:text-zinc-400">Mon lien d'affiliation</p>
             <code className="mt-1 block rounded bg-zinc-100 px-2 py-1 text-xs dark:bg-zinc-800">
-              {`${origin || "https://ton-domaine"}/p/<id>?ref=${user.id}`}
+              {`${baseUrl}/p/<id>?ref=${user.id}`}
             </code>
           </div>
         </header>
@@ -130,6 +117,9 @@ export function AffiliateLiveDashboard({
                 <p className="mt-2 text-sm">
                   {(p.price / 100).toLocaleString("fr-FR")} EUR - commission {p.commissionPercent}%
                 </p>
+                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                  Fournisseur : {p.supplier.name || p.supplier.email}
+                </p>
                 <button
                   type="button"
                   onClick={() => copyAffiliateLink(p.id)}
@@ -141,6 +131,11 @@ export function AffiliateLiveDashboard({
             ))}
           </div>
         </section>
+        {toast ? (
+          <div className="fixed bottom-6 right-6 rounded-md bg-black px-4 py-2 text-sm text-white shadow-lg">
+            {toast}
+          </div>
+        ) : null}
 
         <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
           <h2 className="mb-3 text-lg font-semibold">Ventes recentes</h2>

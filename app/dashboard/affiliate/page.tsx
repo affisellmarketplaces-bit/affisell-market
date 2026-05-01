@@ -3,67 +3,64 @@ import { prisma } from "@/lib/prisma"
 
 import { AffiliateLiveDashboard } from "./live-dashboard"
 
-const MOCK_USER = {
-  id: "mock-affiliate",
-  name: "Affilie Demo",
-  email: "affilie.demo@affisell.local",
-}
-
 export default async function AffiliateDashboardPage() {
   const session = await auth()
   const user =
-    session?.user?.id
-      ? {
-          id: session.user.id,
-          name: session.user.name,
-          email: session.user.email,
-        }
-      : MOCK_USER
+    session?.user ?? {
+      id: "seed-affiliate",
+      email: "affilie@test.dev",
+      name: "Affilié Test",
+    }
 
-  const orders = await prisma.order.findMany({
+  await prisma.user.upsert({
+    where: { id: user.id },
+    update: {},
+    create: { id: user.id, email: user.email!, name: user.name },
+  })
+
+  const products = await prisma.product.findMany({
+    where: { active: true },
+    include: { supplier: true },
+    orderBy: { createdAt: "desc" },
+  })
+
+  const myOrders = await prisma.order.findMany({
     where: { affiliateId: user.id },
-    include: {
-      product: {
-        select: { name: true, commissionPercent: true },
-      },
-    },
     orderBy: { createdAt: "desc" },
     take: 100,
   })
+
+  const commissions = myOrders.reduce((sum, o) => sum + o.amount * 0.3, 0)
 
   const now = new Date()
   const last30 = Array.from({ length: 30 }, (_, idx) => {
     const d = new Date(now)
     d.setDate(now.getDate() - (29 - idx))
     const day = d.toISOString().slice(0, 10)
-    const dayOrders = orders.filter(
+    const dayOrders = myOrders.filter(
       (o) => o.createdAt.toISOString().slice(0, 10) === day
     )
-    const revenus = dayOrders.reduce(
-      (sum, o) =>
-        sum + Math.round((o.amount * (o.product?.commissionPercent ?? 30)) / 10000),
-      0
-    )
+    const revenus = dayOrders.reduce((sum, o) => sum + o.amount * 0.3, 0)
     return { day: d.getDate().toString(), revenus }
   })
 
-  const commissionsMois = last30.reduce((s, d) => s + d.revenus, 0)
-  const conversions = orders.length
-  const clics = conversions * 12
+  const conversions = myOrders.length
+  const clics = myOrders.length * 10
   const taux = clics ? (conversions / clics) * 100 : 0
 
-  const ventesRecentes = orders.slice(0, 8).map((o) => ({
+  const ventesRecentes = myOrders.slice(0, 8).map((o) => ({
     date: o.createdAt.toLocaleDateString("fr-FR"),
-    produit: o.product?.name ?? "Produit",
-    commission: Math.round((o.amount * (o.product?.commissionPercent ?? 30)) / 10000),
+    produit: `Commande ${o.id.slice(0, 8)}`,
+    commission: Math.round(o.amount * 0.3),
   }))
 
   return (
     <AffiliateLiveDashboard
       user={user}
-      kpis={{ commissionsMois, clics, conversions, taux }}
+      kpis={{ commissionsMois: Math.round(commissions), clics, conversions, taux }}
       revenus30j={last30}
       ventesRecentes={ventesRecentes}
+      products={products}
     />
   )
 }
