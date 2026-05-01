@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
 import {
   Bar,
   BarChart,
@@ -11,136 +12,137 @@ import {
   YAxis,
 } from "recharts"
 
-type DashboardUser = {
-  name?: string | null
-  email?: string | null
+type ProductRow = {
+  id: string
+  name: string
+  price: number
+  active: boolean
+  imageUrl: string | null
 }
 
-type ProductSales = {
-  produit: string
-  ventes: number
+type Props = {
+  user: { id: string; name?: string | null; email?: string | null }
+  kpis: {
+    ventesTotales: number
+    revenus: number
+    affiliesActifs: number
+    commissionsAPayer: number
+  }
+  salesByProduct: { produit: string; ventes: number }[]
+  topAffiliates: { nom: string; ventes: number; commission: number }[]
+  products: ProductRow[]
 }
 
-type AffiliateTop = {
-  nom: string
-  ventes: number
-  commission: number
-}
-
-type ProductItem = {
-  nom: string
-  prix: number
-  stock: string
-}
-
-type SupplierState = {
-  ventesTotales: number
-  revenus: number
-  affiliesActifs: number
-  commissionsAPayer: number
-  ventesParProduit: ProductSales[]
-  topAffilies: AffiliateTop[]
-  produits: ProductItem[]
-}
-
-const initialState: SupplierState = {
-  ventesTotales: 1248,
-  revenus: 45780,
-  affiliesActifs: 38,
-  commissionsAPayer: 6250,
-  ventesParProduit: [
-    { produit: "Formation Ads Pro", ventes: 410 },
-    { produit: "Template Tunnel SaaS", ventes: 320 },
-    { produit: "Pack Creatifs Meta", ventes: 265 },
-    { produit: "Guide Emailing B2B", ventes: 180 },
-    { produit: "Bundle Notion Sales", ventes: 125 },
-  ],
-  topAffilies: [
-    { nom: "Lea Martin", ventes: 145, commission: 1880 },
-    { nom: "Sofiane Kh", ventes: 132, commission: 1710 },
-    { nom: "Maya T.", ventes: 118, commission: 1530 },
-    { nom: "Nina Dubois", ventes: 96, commission: 1290 },
-  ],
-  produits: [
-    { nom: "Formation Ads Pro", prix: 149, stock: "Illimite (digital)" },
-    { nom: "Template Tunnel SaaS", prix: 99, stock: "Illimite (digital)" },
-    { nom: "Pack Creatifs Meta", prix: 79, stock: "Illimite (digital)" },
-    { nom: "Guide Emailing B2B", prix: 49, stock: "Illimite (digital)" },
-  ],
-}
-
-function vary(value: number, ratio = 0.05): number {
-  const delta = value * ratio
-  const next = value + (Math.random() * 2 - 1) * delta
-  return Math.max(1, Math.round(next))
-}
-
-export function FournisseurLiveDashboard({ user }: { user: DashboardUser }) {
-  const [state, setState] = useState<SupplierState>(initialState)
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      setState((prev) => ({
-        ...prev,
-        ventesTotales: vary(prev.ventesTotales),
-        revenus: vary(prev.revenus),
-        affiliesActifs: vary(prev.affiliesActifs),
-        commissionsAPayer: vary(prev.commissionsAPayer),
-        ventesParProduit: prev.ventesParProduit.map((item) => ({
-          ...item,
-          ventes: vary(item.ventes),
-        })),
-        topAffilies: prev.topAffilies.map((item) => ({
-          ...item,
-          ventes: vary(item.ventes),
-          commission: vary(item.commission),
-        })),
-      }))
-    }, 3000)
-
-    return () => clearInterval(id)
-  }, [])
+export function FournisseurLiveDashboard({
+  user,
+  kpis,
+  salesByProduct,
+  topAffiliates,
+  products,
+}: Props) {
+  const router = useRouter()
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const panierMoyen = useMemo(() => {
-    if (state.ventesTotales === 0) return "0 EUR"
-    return `${Math.round(state.revenus / state.ventesTotales).toLocaleString("fr-FR")} EUR`
-  }, [state.revenus, state.ventesTotales])
+    if (kpis.ventesTotales === 0) return "0 EUR"
+    return `${Math.round(kpis.revenus / kpis.ventesTotales).toLocaleString("fr-FR")} EUR`
+  }, [kpis.revenus, kpis.ventesTotales])
+
+  async function onCreateProduct(formData: FormData) {
+    setSaving(true)
+    setError(null)
+    try {
+      const payload = {
+        name: String(formData.get("name") || "").trim(),
+        description: String(formData.get("description") || "").trim(),
+        price: Math.round(Number(formData.get("price") || 0) * 100),
+        commissionPercent: Number(formData.get("commissionPercent") || 30),
+        imageUrl: String(formData.get("imageUrl") || "").trim(),
+      }
+      const res = await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) {
+        const data = (await res.json()) as { error?: string }
+        throw new Error(data.error || "Creation impossible")
+      }
+      router.refresh()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function toggleProduct(id: string, active: boolean) {
+    setSaving(true)
+    setError(null)
+    try {
+      const res = await fetch(`/api/products/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active: !active }),
+      })
+      if (!res.ok) {
+        const data = (await res.json()) as { error?: string }
+        throw new Error(data.error || "Mise a jour impossible")
+      }
+      router.refresh()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur")
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white p-6 text-zinc-900 md:p-10 dark:from-zinc-950 dark:to-zinc-900 dark:text-zinc-100">
       <section className="mx-auto max-w-7xl space-y-6">
         <header>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Dashboard fournisseur - Donnees mock en temps reel (3s)
+            Dashboard fournisseur - Donnees Prisma en temps reel
           </p>
           <h1 className="text-3xl font-semibold">Bonjour {user.name ?? "Fournisseur"}</h1>
         </header>
 
+        <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <h2 className="mb-3 text-lg font-semibold">Nouveau produit</h2>
+          <form action={onCreateProduct} className="grid gap-3 md:grid-cols-2">
+            <input name="name" required placeholder="Nom du produit" className="rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950" />
+            <input name="price" required type="number" min="1" step="0.01" placeholder="Prix EUR" className="rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950" />
+            <input name="commissionPercent" type="number" min="1" max="90" defaultValue={30} placeholder="Commission %" className="rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950" />
+            <input name="imageUrl" placeholder="URL image" className="rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950" />
+            <textarea name="description" placeholder="Description" className="md:col-span-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950" />
+            <button disabled={saving} className="md:col-span-2 rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white">
+              {saving ? "Enregistrement..." : "Ajouter le produit"}
+            </button>
+          </form>
+          {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
+        </section>
+
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <KpiCard label="Ventes totales" value={state.ventesTotales.toLocaleString("fr-FR")} />
-          <KpiCard label="Revenus" value={`${state.revenus.toLocaleString("fr-FR")} EUR`} />
-          <KpiCard label="Affilies actifs" value={state.affiliesActifs.toLocaleString("fr-FR")} />
-          <KpiCard label="Commissions a payer" value={`${state.commissionsAPayer.toLocaleString("fr-FR")} EUR`} />
+          <KpiCard label="Ventes totales" value={kpis.ventesTotales.toLocaleString("fr-FR")} />
+          <KpiCard label="Revenus" value={`${kpis.revenus.toLocaleString("fr-FR")} EUR`} />
+          <KpiCard label="Affilies actifs" value={kpis.affiliesActifs.toLocaleString("fr-FR")} />
+          <KpiCard label="Commissions a payer" value={`${kpis.commissionsAPayer.toLocaleString("fr-FR")} EUR`} />
         </div>
 
         <div className="grid gap-6 xl:grid-cols-5">
           <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm xl:col-span-3 dark:border-zinc-800 dark:bg-zinc-900">
             <h2 className="text-lg font-semibold">Ventes par produit</h2>
             <p className="mb-3 text-sm text-zinc-500 dark:text-zinc-400">
-              Vue live de la distribution des ventes.
+              Distribution des commandes reliees a vos produits.
             </p>
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={state.ventesParProduit}>
+                <BarChart data={salesByProduct}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#d4d4d8" />
                   <XAxis dataKey="produit" tick={{ fontSize: 12 }} interval={0} angle={-15} textAnchor="end" height={65} />
                   <YAxis tick={{ fontSize: 12 }} />
-                  <Tooltip
-                    formatter={(value) => [
-                      Number(value ?? 0).toLocaleString("fr-FR"),
-                      "Ventes",
-                    ]}
-                  />
+                  <Tooltip formatter={(value) => [Number(value ?? 0).toLocaleString("fr-FR"), "Ventes"]} />
                   <Bar dataKey="ventes" fill="#18181b" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -156,11 +158,11 @@ export function FournisseurLiveDashboard({ user }: { user: DashboardUser }) {
               </li>
               <li className="flex justify-between">
                 <span className="text-zinc-500 dark:text-zinc-400">Marge estimee</span>
-                <strong>{Math.round(state.revenus * 0.42).toLocaleString("fr-FR")} EUR</strong>
+                <strong>{Math.round(kpis.revenus * 0.42).toLocaleString("fr-FR")} EUR</strong>
               </li>
               <li className="flex justify-between">
-                <span className="text-zinc-500 dark:text-zinc-400">Taux activation affilies</span>
-                <strong>{Math.min(100, Math.round((state.affiliesActifs / 50) * 100))}%</strong>
+                <span className="text-zinc-500 dark:text-zinc-400">Produits actifs</span>
+                <strong>{products.filter((p) => p.active).length}</strong>
               </li>
             </ul>
           </section>
@@ -179,7 +181,7 @@ export function FournisseurLiveDashboard({ user }: { user: DashboardUser }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {state.topAffilies.map((row) => (
+                  {topAffiliates.map((row) => (
                     <tr key={row.nom} className="border-t border-zinc-100 dark:border-zinc-800">
                       <td className="py-2 pr-4">{row.nom}</td>
                       <td className="py-2 pr-4">{row.ventes.toLocaleString("fr-FR")}</td>
@@ -194,12 +196,23 @@ export function FournisseurLiveDashboard({ user }: { user: DashboardUser }) {
           <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
             <h2 className="mb-3 text-lg font-semibold">Mes produits</h2>
             <ul className="space-y-2 text-sm">
-              {state.produits.map((p) => (
-                <li key={p.nom} className="rounded-lg border border-zinc-100 px-3 py-2 dark:border-zinc-800">
-                  <p className="font-medium">{p.nom}</p>
-                  <p className="text-zinc-500 dark:text-zinc-400">
-                    {p.prix.toLocaleString("fr-FR")} EUR - {p.stock}
-                  </p>
+              {products.map((p) => (
+                <li key={p.id} className="rounded-lg border border-zinc-100 px-3 py-2 dark:border-zinc-800">
+                  <div className="flex items-center justify-between gap-2">
+                    <div>
+                      <p className="font-medium">{p.name}</p>
+                      <p className="text-zinc-500 dark:text-zinc-400">
+                        {(p.price / 100).toLocaleString("fr-FR")} EUR - {p.active ? "Actif" : "Inactif"}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => toggleProduct(p.id, p.active)}
+                      className="rounded-md border border-zinc-300 px-2 py-1 text-xs hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+                    >
+                      {p.active ? "Desactiver" : "Activer"}
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>

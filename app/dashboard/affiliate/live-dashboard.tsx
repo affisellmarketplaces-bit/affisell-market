@@ -1,7 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import {
   Area,
   AreaChart,
@@ -12,87 +11,57 @@ import {
   YAxis,
 } from "recharts"
 
-type DashboardUser = {
-  name?: string | null
-  email?: string | null
+type Props = {
+  user: { id: string; name?: string | null; email?: string | null }
+  kpis: {
+    commissionsMois: number
+    clics: number
+    conversions: number
+    taux: number
+  }
+  revenus30j: { day: string; revenus: number }[]
+  ventesRecentes: { date: string; produit: string; commission: number }[]
 }
 
-type RevenuePoint = {
-  day: string
-  revenus: number
+type MarketProduct = {
+  id: string
+  name: string
+  description: string | null
+  price: number
+  imageUrl: string | null
+  commissionPercent: number
+  supplier: { name: string | null; email: string }
 }
 
-type SaleRow = {
-  date: string
-  produit: string
-  commission: number
-}
-
-type AffiliateState = {
-  commissionsMois: number
-  clics: number
-  conversions: number
-  revenus30j: RevenuePoint[]
-  ventesRecentes: SaleRow[]
-}
-
-const baseRevenus30j: RevenuePoint[] = Array.from({ length: 30 }, (_, i) => ({
-  day: `${i + 1}`,
-  revenus: 25 + Math.round(Math.random() * 70),
-}))
-
-const baseVentesRecentes: SaleRow[] = [
-  { date: "01/05/2026", produit: "Formation Ads Pro", commission: 42 },
-  { date: "01/05/2026", produit: "Template Tunnel SaaS", commission: 27 },
-  { date: "30/04/2026", produit: "Pack Creatifs Meta", commission: 31 },
-  { date: "30/04/2026", produit: "Guide Emailing B2B", commission: 18 },
-  { date: "29/04/2026", produit: "Bundle Notion Sales", commission: 24 },
-]
-
-function vary(value: number, ratio = 0.05): number {
-  const delta = value * ratio
-  const next = value + (Math.random() * 2 - 1) * delta
-  return Math.max(1, Math.round(next))
-}
-
-export function AffiliateLiveDashboard({ user }: { user: DashboardUser }) {
-  const [state, setState] = useState<AffiliateState>({
-    commissionsMois: 2840,
-    clics: 18250,
-    conversions: 456,
-    revenus30j: baseRevenus30j,
-    ventesRecentes: baseVentesRecentes,
-  })
+export function AffiliateLiveDashboard({
+  user,
+  kpis,
+  revenus30j,
+  ventesRecentes,
+}: Props) {
+  const [products, setProducts] = useState<MarketProduct[]>([])
 
   useEffect(() => {
-    const id = setInterval(() => {
-      setState((prev) => ({
-        ...prev,
-        commissionsMois: vary(prev.commissionsMois),
-        clics: vary(prev.clics),
-        conversions: vary(prev.conversions),
-        revenus30j: prev.revenus30j.map((item) => ({
-          ...item,
-          revenus: vary(item.revenus),
-        })),
-        ventesRecentes: prev.ventesRecentes.map((row) => ({
-          ...row,
-          commission: vary(row.commission),
-        })),
-      }))
-    }, 3000)
+    let mounted = true
+    fetch("/api/products")
+      .then((r) => r.json())
+      .then((data: MarketProduct[]) => {
+        if (mounted) setProducts(data)
+      })
+      .catch(() => {
+        if (mounted) setProducts([])
+      })
 
-    return () => clearInterval(id)
+    return () => {
+      mounted = false
+    }
   }, [])
 
-  const taux = useMemo(() => {
-    return ((state.conversions / state.clics) * 100).toFixed(2)
-  }, [state.clics, state.conversions])
+  const origin = typeof window !== "undefined" ? window.location.origin : ""
 
-  const lienAffiliation = "https://affisell.market/ref/affilie-demo"
-
-  async function copyLink() {
-    await navigator.clipboard.writeText(lienAffiliation)
+  async function copyAffiliateLink(productId: string) {
+    const link = `${origin}/p/${productId}?ref=${user.id}`
+    await navigator.clipboard.writeText(link)
   }
 
   return (
@@ -101,42 +70,33 @@ export function AffiliateLiveDashboard({ user }: { user: DashboardUser }) {
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              Dashboard affilié - Mise a jour toutes les 3s
+              Dashboard affilie - Donnees reelles
             </p>
             <h1 className="text-3xl font-semibold">Bonjour {user.name ?? "Affilie"}</h1>
           </div>
           <div className="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
             <p className="text-zinc-500 dark:text-zinc-400">Mon lien d'affiliation</p>
-            <div className="mt-1 flex flex-wrap items-center gap-2">
-              <code className="rounded bg-zinc-100 px-2 py-1 text-xs dark:bg-zinc-800">
-                {lienAffiliation}
-              </code>
-              <button
-                type="button"
-                onClick={copyLink}
-                className="rounded-md bg-black px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
-              >
-                Copier
-              </button>
-            </div>
+            <code className="mt-1 block rounded bg-zinc-100 px-2 py-1 text-xs dark:bg-zinc-800">
+              {`${origin || "https://ton-domaine"}/p/<id>?ref=${user.id}`}
+            </code>
           </div>
         </header>
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <KpiCard label="Commissions ce mois" value={`${state.commissionsMois.toLocaleString("fr-FR")} EUR`} />
-          <KpiCard label="Clics" value={state.clics.toLocaleString("fr-FR")} />
-          <KpiCard label="Conversions" value={state.conversions.toLocaleString("fr-FR")} />
-          <KpiCard label="Taux" value={`${taux}%`} />
+          <KpiCard label="Commissions ce mois" value={`${kpis.commissionsMois.toLocaleString("fr-FR")} EUR`} />
+          <KpiCard label="Clics" value={kpis.clics.toLocaleString("fr-FR")} />
+          <KpiCard label="Conversions" value={kpis.conversions.toLocaleString("fr-FR")} />
+          <KpiCard label="Taux" value={`${kpis.taux.toFixed(2)}%`} />
         </div>
 
         <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
           <h2 className="text-lg font-semibold">Revenus 30 jours</h2>
           <p className="mb-3 text-sm text-zinc-500 dark:text-zinc-400">
-            Simulation live des commissions journalieres.
+            Commissions calculees depuis vos ventes affiliees.
           </p>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={state.revenus30j}>
+              <AreaChart data={revenus30j}>
                 <defs>
                   <linearGradient id="affRevenue" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#18181b" stopOpacity={0.35} />
@@ -159,6 +119,30 @@ export function AffiliateLiveDashboard({ user }: { user: DashboardUser }) {
         </section>
 
         <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <h2 className="mb-3 text-lg font-semibold">Marketplace</h2>
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {products.map((p) => (
+              <article key={p.id} className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
+                <h3 className="font-semibold">{p.name}</h3>
+                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                  {p.description || "Sans description"}
+                </p>
+                <p className="mt-2 text-sm">
+                  {(p.price / 100).toLocaleString("fr-FR")} EUR - commission {p.commissionPercent}%
+                </p>
+                <button
+                  type="button"
+                  onClick={() => copyAffiliateLink(p.id)}
+                  className="mt-3 rounded-md bg-black px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
+                >
+                  Copier mon lien
+                </button>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
           <h2 className="mb-3 text-lg font-semibold">Ventes recentes</h2>
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
@@ -170,7 +154,7 @@ export function AffiliateLiveDashboard({ user }: { user: DashboardUser }) {
                 </tr>
               </thead>
               <tbody>
-                {state.ventesRecentes.map((row) => (
+                {ventesRecentes.map((row) => (
                   <tr key={`${row.date}-${row.produit}`} className="border-t border-zinc-100 dark:border-zinc-800">
                     <td className="py-2 pr-4">{row.date}</td>
                     <td className="py-2 pr-4">{row.produit}</td>
