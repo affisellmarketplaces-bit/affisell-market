@@ -21,7 +21,10 @@ export function SupplierDashboard() {
   const [error, setError] = useState<string | null>(null)
 
   async function load() {
-    const res = await fetch("/api/products", { cache: "no-store" })
+    const res = await fetch("/api/supplier/products", {
+      cache: "no-store",
+      credentials: "include",
+    })
     if (!res.ok) return
     const data = (await res.json()) as Row[]
     if (Array.isArray(data)) setProducts(data)
@@ -35,17 +38,19 @@ export function SupplierDashboard() {
     setBusy(true)
     setError(null)
     try {
-      const payload = {
+      const basePrice = Number(formData.get("basePrice"))
+      const data = {
         name: String(formData.get("name") ?? "").trim(),
         description: String(formData.get("description") ?? "").trim(),
-        basePrice: Number(formData.get("basePrice")),
+        basePriceCents: Math.round(basePrice * 100),
         commissionRate: Number(formData.get("commissionRate") ?? 20),
         image: String(formData.get("image") ?? "").trim(),
       }
-      const res = await fetch("/api/products", {
+      const res = await fetch("/api/supplier/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(data),
+        credentials: "include",
       })
       const json = (await res.json()) as { error?: string }
       if (!res.ok) throw new Error(json.error ?? "Failed")
