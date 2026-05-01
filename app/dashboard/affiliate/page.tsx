@@ -7,7 +7,7 @@ import { AffiliateLiveDashboard } from "./live-dashboard"
 export default async function AffiliateDashboardPage() {
   const session = await auth()
   if (!session?.user?.id) {
-    redirect("/api/auth/signin")
+    redirect("/login")
   }
   const user = session.user
 
