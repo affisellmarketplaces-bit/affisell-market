@@ -11,7 +11,7 @@ export function BuyButton({ productId }: { productId: string }) {
     const match = document.cookie
       .split(";")
       .map((p) => p.trim())
-      .find((p) => p.startsWith("affiliate_ref="))
+      .find((p) => p.startsWith("aff_ref="))
     return match ? decodeURIComponent(match.split("=")[1]) : ""
   }, [])
 
@@ -19,10 +19,9 @@ export function BuyButton({ productId }: { productId: string }) {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch("/api/checkout", {
+      const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ productId, affiliateId }),
       })
       const data = (await res.json()) as { url?: string; error?: string }
@@ -44,7 +43,7 @@ export function BuyButton({ productId }: { productId: string }) {
         disabled={loading}
         className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
       >
-        {loading ? "Redirection..." : "Acheter"}
+        {loading ? "Redirection..." : "Acheter maintenant"}
       </button>
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
     </div>

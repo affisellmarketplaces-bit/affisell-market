@@ -16,38 +16,32 @@ export default async function FournisseurDashboardPage() {
     where: { supplierId: user.id },
     orderBy: { createdAt: "desc" },
   })
+  const orders = await prisma.order.findMany({
+    where: { product: { supplierId: user.id } },
+  })
+
   const productIds = products.map((p) => p.id)
 
-  const [stats, salesByProductRaw, topAffiliatesRaw] =
+  const salesByProductRaw =
     productIds.length > 0
-      ? await Promise.all([
-          prisma.order.aggregate({
-            _sum: { amount: true },
-            _count: { id: true },
-            where: { productId: { in: productIds } },
-          }),
-          prisma.order.groupBy({
-            by: ["productId"],
-            where: { productId: { in: productIds } },
-            _count: { id: true },
-          }),
-          prisma.order.groupBy({
-            by: ["affiliateId"],
-            where: {
-              productId: { in: productIds },
-              affiliateId: { not: null },
-            },
-            _count: { id: true },
-            _sum: { amount: true },
-            orderBy: { _sum: { amount: "desc" } },
-            take: 5,
-          }),
-        ])
-      : [
-          { _sum: { amount: 0 }, _count: { id: 0 } },
-          [],
-          [],
-        ]
+      ? await prisma.order.groupBy({
+          by: ["productId"],
+          where: { productId: { in: productIds } },
+          _count: { id: true },
+        })
+      : []
+
+  const topAffiliatesRaw = await prisma.order.groupBy({
+    by: ["affiliateId"],
+    where: {
+      product: { supplierId: user.id },
+      affiliateId: { not: null },
+    },
+    _count: { id: true },
+    _sum: { amount: true },
+    orderBy: { _sum: { amount: "desc" } },
+    take: 5,
+  })
 
   const ids = salesByProductRaw.map((row) => row.productId).filter(Boolean) as string[]
   const affiliateIds = topAffiliatesRaw
@@ -91,8 +85,8 @@ export default async function FournisseurDashboardPage() {
     <FournisseurLiveDashboard
       user={user}
       kpis={{
-        ventesTotales: stats._count.id,
-        revenus: Math.round((stats._sum.amount ?? 0) / 100),
+        ventesTotales: orders.length,
+        revenus: Math.round(orders.reduce((sum, o) => sum + o.amount, 0) / 100),
         affiliesActifs: topAffiliates.length,
         commissionsAPayer,
       }}

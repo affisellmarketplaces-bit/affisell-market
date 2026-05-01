@@ -64,14 +64,18 @@ model Product {
   supplier          User     @relation(fields: [supplierId], references: [id], onDelete: Cascade)
   active            Boolean  @default(true)
   createdAt         DateTime @default(now())
+  orders            Order[]
 }
 
 model Order {
   id                    String   @id @default(cuid())
   userId                String?
   productId             String?
+  product               Product? @relation(fields: [productId], references: [id])
   affiliateId           String?
+  supplierId            String?
   stripePaymentIntentId String?  @unique
+  stripeSessionId       String?  @unique
   status                String
   amount                Int
   currency              String   @default("usd")
