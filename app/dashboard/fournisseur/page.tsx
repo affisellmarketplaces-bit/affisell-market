@@ -5,15 +5,17 @@ import { FournisseurLiveDashboard } from "./live-dashboard"
 
 export default async function FournisseurDashboardPage() {
   const session = await auth()
-  const user = session?.user ?? { id: "seed-supplier", email: "test@local.dev", name: "Test" }
-
-  if (user.id === "seed-supplier") {
-    await prisma.user.upsert({
-      where: { id: "seed-supplier" },
-      update: {},
-      create: { id: "seed-supplier", email: "test@local.dev", name: "Test" },
-    })
-  }
+  const user =
+    session?.user ?? {
+      id: "seed-supplier",
+      name: "Fournisseur Test",
+      email: "fournisseur@test.dev",
+    }
+  await prisma.user.upsert({
+    where: { id: user.id },
+    update: {},
+    create: { id: user.id, email: user.email!, name: user.name },
+  })
 
   const [products, stats, salesByProductRaw, topAffiliatesRaw] = await Promise.all([
     prisma.product.findMany({
