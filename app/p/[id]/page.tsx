@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation"
+import { cookies } from "next/headers"
 
 import { prisma } from "@/lib/prisma"
 
 import { BuyButton } from "./buy-button"
-import { RefCookieSetter } from "./ref-cookie"
 
 export default async function ProductPage({
   params,
@@ -14,6 +14,14 @@ export default async function ProductPage({
 }) {
   const { id } = await params
   const { ref } = await searchParams
+  if (ref) {
+    const store = await cookies()
+    store.set("aff_ref", ref, {
+      maxAge: 60 * 60 * 24 * 7,
+      path: "/",
+      sameSite: "lax",
+    })
+  }
 
   const product = await prisma.product.findUnique({
     where: { id },
@@ -26,7 +34,6 @@ export default async function ProductPage({
 
   return (
     <main className="mx-auto max-w-2xl p-8">
-      <RefCookieSetter refId={ref} />
       <h1 className="text-2xl font-semibold">{product.name}</h1>
       <p className="mt-2 text-sm text-zinc-600">{product.description || "Aucune description"}</p>
       <p className="mt-4 text-lg font-medium">{(product.price / 100).toLocaleString("fr-FR")} EUR</p>

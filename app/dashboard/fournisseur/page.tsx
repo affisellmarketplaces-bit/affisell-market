@@ -1,16 +1,15 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { redirect } from "next/navigation"
 
 import { FournisseurLiveDashboard } from "./live-dashboard"
 
 export default async function FournisseurDashboardPage() {
   const session = await auth()
-  const user = session?.user?? { id: "seed-supplier", email: "fournisseur@test.dev", name: "Test" };
-  await prisma.user.upsert({
-  where:{id:user.id},
-  update:{},
-  create:{ id:user.id, email:user.email!, name:user.name }
-});
+  if (!session?.user?.id) {
+    redirect("/api/auth/signin")
+  }
+  const user = session.user
 
   const products = await prisma.product.findMany({
     where: { supplierId: user.id },

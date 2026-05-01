@@ -1,22 +1,15 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { redirect } from "next/navigation"
 
 import { AffiliateLiveDashboard } from "./live-dashboard"
 
 export default async function AffiliateDashboardPage() {
   const session = await auth()
-  const user =
-    session?.user ?? {
-      id: "seed-affiliate",
-      email: "affilie@test.dev",
-      name: "Affilié Test",
-    }
-
-  await prisma.user.upsert({
-    where: { id: user.id },
-    update: {},
-    create: { id: user.id, email: user.email!, name: user.name },
-  })
+  if (!session?.user?.id) {
+    redirect("/api/auth/signin")
+  }
+  const user = session.user
 
   const products = await prisma.product.findMany({
     where: { active: true },
@@ -29,12 +22,13 @@ export default async function AffiliateDashboardPage() {
 
   const myOrders = await prisma.order.findMany({
     where: { affiliateId: user.id },
+    include: { product: { select: { commissionPercent: true } } },
     orderBy: { createdAt: "desc" },
     take: 100,
   })
 
   const commissions = myOrders.reduce((sum, o) => {
-    const percent = commissionByProductId.get(o.productId ?? "") ?? 30
+    const percent = o.product?.commissionPercent ?? commissionByProductId.get(o.productId ?? "") ?? 30
     return sum + (o.amount * percent) / 100
   }, 0)
 
@@ -47,7 +41,7 @@ export default async function AffiliateDashboardPage() {
       (o) => o.createdAt.toISOString().slice(0, 10) === day
     )
     const revenus = dayOrders.reduce((sum, o) => {
-      const percent = commissionByProductId.get(o.productId ?? "") ?? 30
+      const percent = o.product?.commissionPercent ?? commissionByProductId.get(o.productId ?? "") ?? 30
       return sum + (o.amount * percent) / 100
     }, 0)
     return { day: d.getDate().toString(), revenus }
@@ -62,7 +56,7 @@ export default async function AffiliateDashboardPage() {
     produit:
       products.find((p) => p.id === o.productId)?.name ?? `Commande ${o.id.slice(0, 8)}`,
     commission: Math.round(
-      (o.amount * (commissionByProductId.get(o.productId ?? "") ?? 30)) / 100
+      (o.amount * (o.product?.commissionPercent ?? commissionByProductId.get(o.productId ?? "") ?? 30)) / 100
     ),
   }))
 
