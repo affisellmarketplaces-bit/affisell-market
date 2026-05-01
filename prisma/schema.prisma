@@ -35,7 +35,7 @@ model Product {
   description      String
   image            String
   basePriceCents   Int
-  commissionRate   Int // 20 = 20% of margin to affiliate
+  commissionRate   Int // 20 = 20%
   active           Boolean            @default(true)
   supplier         User               @relation("SupplierProducts", fields: [supplierId], references: [id], onDelete: Cascade)
   listings         AffiliateProduct[]
