@@ -3,6 +3,8 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { stripe } from "@/lib/stripe"
 
+export const runtime = "nodejs"
+
 const AMOUNT_CENTS = 500
 const DELIVERABLE_DAYS = 7
 
@@ -59,16 +61,33 @@ export async function POST() {
     Date.now() + DELIVERABLE_DAYS * 24 * 60 * 60 * 1000
   )
 
-  await prisma.order.create({
-    data: {
-      userId,
-      amount: AMOUNT_CENTS,
-      currency: "eur",
-      deliverableAt,
-      stripePaymentIntentId: paymentIntentId,
-      status: "PENDING",
-    },
-  })
+  try {
+    await prisma.order.create({
+      data: {
+        userId,
+        amount: AMOUNT_CENTS,
+        currency: "eur",
+        deliverableAt,
+        stripePaymentIntentId: paymentIntentId,
+        status: "PENDING",
+      },
+    })
+  } catch (dbError) {
+    console.error("[checkout] prisma.order.create échec (détail) :", dbError)
+    try {
+      await stripe.checkout.sessions.expire(checkoutSession.id)
+    } catch (expireErr) {
+      console.error("[checkout] expire session Stripe :", expireErr)
+    }
+    return NextResponse.json(
+      {
+        error:
+          "Impossible d’enregistrer la commande en base (Neon / PostgreSQL). Réessaie dans quelques secondes si la base venait de se réveiller.",
+        code: "DATABASE_ORDER_CREATE_FAILED",
+      },
+      { status: 500 }
+    )
+  }
 
   return NextResponse.json({ url: checkoutSession.url })
 }
