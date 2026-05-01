@@ -137,12 +137,12 @@ model Product {
   imageUrl String?
   commissionPercent Int @default(30)
   supplierId String
+  supplier User @relation(fields: [supplierId], references: [id], onDelete: Cascade)
   active Boolean @default(true)
   createdAt DateTime @default(now())
-  supplier User @relation(fields: [supplierId], references: [id])
   storeProducts StoreProduct[]
-  orderItems OrderItem[]
   orders Order[]
+  orderItems OrderItem[]
 }
 
 model StoreProduct {

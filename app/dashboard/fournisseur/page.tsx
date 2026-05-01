@@ -3,22 +3,17 @@ import { prisma } from "@/lib/prisma"
 
 import { FournisseurLiveDashboard } from "./live-dashboard"
 
-const MOCK_USER = {
-  id: "mock-supplier",
-  name: "Fournisseur Demo",
-  email: "fournisseur.demo@affisell.local",
-}
-
 export default async function FournisseurDashboardPage() {
   const session = await auth()
-  const user =
-    session?.user?.id
-      ? {
-          id: session.user.id,
-          name: session.user.name,
-          email: session.user.email,
-        }
-      : MOCK_USER
+  const user = session?.user ?? { id: "seed-supplier", email: "test@local.dev", name: "Test" }
+
+  if (user.id === "seed-supplier") {
+    await prisma.user.upsert({
+      where: { id: "seed-supplier" },
+      update: {},
+      create: { id: "seed-supplier", email: "test@local.dev", name: "Test" },
+    })
+  }
 
   const [products, stats, salesByProductRaw, topAffiliatesRaw] = await Promise.all([
     prisma.product.findMany({
