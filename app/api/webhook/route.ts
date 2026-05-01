@@ -27,17 +27,27 @@ export async function POST(req: Request) {
   }
 
   if (event.type === "checkout.session.completed") {
-    const session = event.data.object as Stripe.Checkout.Session
-    const metadata = session.metadata || {}
+    const s = event.data.object as Stripe.Checkout.Session
+    const metadata = s.metadata || {}
 
+    const existing = await prisma.order.findUnique({
+      where: { stripeSessionId: s.id },
+    })
+    if (existing) {
+      return NextResponse.json({ received: true })
+    }
+
+    const userIdRaw = metadata.userId?.trim()
     await prisma.order.create({
       data: {
-        productId: metadata.productId,
-        affiliateId: metadata.affiliateId || null,
-        supplierId: metadata.supplierId,
-        amount: session.amount_total ?? 0,
-        status: "paid",
-        stripeSessionId: session.id,
+        userId: userIdRaw || null,
+        productId: metadata.productId || undefined,
+        affiliateId: metadata.affiliateId?.trim() || null,
+        supplierId: metadata.supplierId?.trim() || null,
+        amount: s.amount_total ?? 0,
+        currency: s.currency ?? "eur",
+        status: "PAID",
+        stripeSessionId: s.id,
       },
     })
   }

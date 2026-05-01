@@ -24,7 +24,7 @@ export async function PATCH(
   })
 
   if (!existing) {
-    return NextResponse.json({ error: "Produit introuvable" }, { status: 404 })
+    return NextResponse.json({ error: "Product not found" }, { status: 404 })
   }
 
   if (existing.supplierId !== session.user.id) {

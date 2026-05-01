@@ -1,36 +1,42 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
+
+import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 export async function POST(req: Request) {
   try {
-    const { email, password, role } = await req.json()
+    const { email, password, role } = (await req.json()) as {
+      email?: string
+      password?: string
+      role?: string
+    }
     if (!email || !password) {
-      return NextResponse.json({ error: "Champs manquants" }, { status: 400 })
+      return NextResponse.json({ error: "Missing email or password" }, { status: 400 })
     }
 
     const exists = await prisma.user.findUnique({ where: { email } })
     if (exists) {
-      return NextResponse.json({ error: "Email déjà utilisé" }, { status: 400 })
+      return NextResponse.json({ error: "Email already in use" }, { status: 400 })
     }
 
     const hash = await bcrypt.hash(password, 10)
+    const resolvedRole =
+      role === "SUPPLIER" || role === "FOURNISSEUR" ? "SUPPLIER" : "AFFILIATE"
+
     await prisma.user.create({
       data: {
         email,
         password: hash,
-        role: role === "FOURNISSEUR" ? "SUPPLIER" : "AFFILIATE",
+        role: resolvedRole,
       },
     })
     return NextResponse.json({ ok: true }, { status: 201 })
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[signup]", e)
-    return NextResponse.json(
-      { error: e.message || "Erreur serveur" },
-      { status: 500 }
-    )
+    const message = e instanceof Error ? e.message : "Server error"
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
