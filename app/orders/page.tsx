@@ -1,14 +1,14 @@
+import { redirect } from "next/navigation"
 import { auth } from "@/auth"
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 import { ConfirmButton } from "./confirm-button"
 
 export default async function OrdersPage() {
   const session = await auth()
-  const userId = session?.user?.id
-  
-  if (!userId) {
-    return <div className="p-8">Connecte-toi pour voir tes commandes</div>
+  if (!session?.user?.id) {
+    redirect("/api/auth/signin")
   }
+  const userId = session.user.id
 
   const orders = await prisma.order.findMany({
     where: { userId, status: 'PAID' },
@@ -27,10 +27,17 @@ export default async function OrdersPage() {
               <div>
                 <p className="font-medium">{(o.amount/100).toFixed(2)} {o.currency.toUpperCase()}</p>
                 <p className="text-sm text-gray-600">
-                  {o.confirmedAt 
-                    ? `Confirmée le ${new Date(o.confirmedAt).toLocaleDateString()} - libération ${new Date(o.deliverableAt).toLocaleDateString()}`
-                    : `Non confirmée - libération prévue ${new Date(o.deliverableAt).toLocaleDateString()} (J+10)`
-                  }
+                  {o.confirmedAt
+                    ? `Confirmée le ${new Date(o.confirmedAt).toLocaleDateString()} - libération ${
+                        o.deliverableAt
+                          ? new Date(o.deliverableAt).toLocaleDateString()
+                          : "—"
+                      }`
+                    : `Non confirmée - libération prévue ${
+                        o.deliverableAt
+                          ? new Date(o.deliverableAt).toLocaleDateString()
+                          : "—"
+                      } (J+10)`}
                 </p>
               </div>
               {!o.confirmedAt && <ConfirmButton orderId={o.id} />}

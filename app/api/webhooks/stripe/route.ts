@@ -28,16 +28,19 @@ export async function POST(req: NextRequest) {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session
     const now = new Date()
-    const returnWindowEndsAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
     const deliverableAt = new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000)
+    const paymentIntentId =
+      typeof session.payment_intent === "string"
+        ? session.payment_intent
+        : session.payment_intent?.id
 
     await prisma.order.create({
       data: {
         userId: session.metadata?.userId || null,
-        total: session.amount_total! / 100,
+        amount: session.amount_total ?? 0,
+        currency: session.currency ?? "eur",
         status: "PAID",
-        stripePaymentIntentId: session.payment_intent as string,
-        returnWindowEndsAt,
+        stripePaymentIntentId: paymentIntentId ?? undefined,
         deliverableAt,
       },
     })

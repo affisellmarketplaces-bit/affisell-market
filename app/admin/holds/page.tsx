@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 
 import { ForceReleaseHoldsButton } from "./force-release-button"
 
@@ -155,7 +155,7 @@ export default async function AdminHoldsPage() {
                     {productLabelByOrderId.get(order.id) ?? "—"}
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 tabular-nums">
-                    {money.format(order.total)}
+                    {money.format(order.amount / 100)}
                   </td>
                   <td className="max-w-[180px] truncate px-4 py-3 text-muted-foreground">
                     {order.userId

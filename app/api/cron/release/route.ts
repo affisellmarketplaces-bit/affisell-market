@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       await stripe.paymentIntents.capture(order.stripePaymentIntentId!)
       await prisma.order.update({
         where: { id: order.id },
-        data: { status: "DELIVERED", deliveredAt: now },
+        data: { status: "DELIVERED" },
       })
       released++
     } catch (e) {
