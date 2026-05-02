@@ -57,7 +57,7 @@ export function MarketplaceListingCard({
               })
               alert("Added to cart")
             }}
-            className="flex-1 border rounded-lg px-3 py-2 text-sm hover:bg-zinc-50"
+            className="flex-1 px-3 py-2 border rounded-lg text-sm hover:bg-zinc-50"
           >
             Add to cart
           </button>
@@ -73,7 +73,7 @@ export function MarketplaceListingCard({
               const data = (await res.json()) as { url?: string; error?: string }
               if (data.url) window.location.href = data.url
             }}
-            className="flex-1 rounded-lg bg-black px-3 py-2 text-sm text-white hover:opacity-90"
+            className="flex-1 px-3 py-2 bg-black text-white rounded-lg text-sm hover:opacity-90"
           >
             Buy
           </button>
