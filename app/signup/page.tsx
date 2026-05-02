@@ -6,19 +6,21 @@ import { signIn } from "next-auth/react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 
+type AccountType = "AFFILIATE" | "SUPPLIER"
+
 export default function SignupPage() {
   const router = useRouter()
   const search = useSearchParams()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [role, setRole] = useState<"SUPPLIER" | "AFFILIATE">("AFFILIATE")
+  const [accountType, setAccountType] = useState<AccountType>("AFFILIATE")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const r = search.get("role")
-    if (r === "SUPPLIER") setRole("SUPPLIER")
-    else if (r === "AFFILIATE") setRole("AFFILIATE")
+    if (r === "SUPPLIER") setAccountType("SUPPLIER")
+    else if (r === "AFFILIATE") setAccountType("AFFILIATE")
   }, [search])
 
   async function onSubmit(e: FormEvent) {
@@ -28,7 +30,7 @@ export default function SignupPage() {
     const res = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, role }),
+      body: JSON.stringify({ email, password, role: accountType }),
     })
     const data = (await res.json()) as { error?: string }
     if (!res.ok) {
@@ -40,7 +42,7 @@ export default function SignupPage() {
       email,
       password,
       redirect: false,
-      callbackUrl: role === "SUPPLIER" ? "/dashboard/supplier" : "/dashboard/affiliate",
+      callbackUrl: accountType === "SUPPLIER" ? "/dashboard/supplier" : "/dashboard/affiliate",
     })
     setLoading(false)
     if (login?.error) setError("Account created — try signing in.")
@@ -57,6 +59,40 @@ export default function SignupPage() {
 
         <div className="rounded-2xl bg-white p-8 shadow-sm">
           <form onSubmit={onSubmit} className="space-y-5">
+            <div className="mb-6">
+              <label className="mb-3 block text-sm font-medium text-gray-700">I want to</label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setAccountType("AFFILIATE")}
+                  className={`rounded-xl border-2 p-4 text-left transition-all ${
+                    accountType === "AFFILIATE"
+                      ? "border-blue-600 bg-blue-50"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <div className="mb-1 text-2xl">💼</div>
+                  <div className="font-medium text-gray-900">Join as Affiliate</div>
+                  <div className="mt-1 text-xs text-gray-500">Promote & earn commissions</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAccountType("SUPPLIER")}
+                  className={`rounded-xl border-2 p-4 text-left transition-all ${
+                    accountType === "SUPPLIER"
+                      ? "border-blue-600 bg-blue-50"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <div className="mb-1 text-2xl">📦</div>
+                  <div className="font-medium text-gray-900">Join as Supplier</div>
+                  <div className="mt-1 text-xs text-gray-500">Sell your products</div>
+                </button>
+              </div>
+              <input type="hidden" name="accountType" value={accountType} />
+            </div>
+
             <div>
               <label htmlFor="signup-email" className="mb-1.5 block text-sm font-medium text-gray-700">
                 Email
@@ -86,20 +122,6 @@ export default function SignupPage() {
                 placeholder="••••••••"
                 className="w-full rounded-xl border border-gray-300 px-4 py-2.5 outline-none transition focus:border-transparent focus:ring-2 focus:ring-blue-500"
               />
-            </div>
-            <div>
-              <label htmlFor="signup-role" className="mb-1.5 block text-sm font-medium text-gray-700">
-                Account type
-              </label>
-              <select
-                id="signup-role"
-                value={role}
-                onChange={(e) => setRole(e.target.value as "SUPPLIER" | "AFFILIATE")}
-                className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 outline-none transition focus:border-transparent focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="AFFILIATE">Affiliate</option>
-                <option value="SUPPLIER">Supplier</option>
-              </select>
             </div>
             <button
               type="submit"
