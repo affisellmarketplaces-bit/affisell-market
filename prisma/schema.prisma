@@ -23,6 +23,7 @@ model User {
   affiliateOrders Order[] @relation("AffiliateOrders")
   notifications Notification[]
   cart Cart?
+  storeFollowRelations Follow[] @relation("UserFollowsStore")
 }
 
 model Store {
@@ -38,6 +39,22 @@ model Store {
   domainVerified   Boolean   @default(false)
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
+
+  instagram            String?
+  tiktok               String?
+  youtube              String?
+  twitch               String?
+  twitter              String?
+  followers            Json?
+  showSocialsOnStore   Boolean   @default(true)
+  autoSyncFollowersDaily Boolean @default(false)
+  isLive               Boolean   @default(false)
+  livePlatform         String?
+  liveUrl              String?
+  lastSyncAt           DateTime?
+
+  communityPosts CommunityPost[]
+  followerRelations Follow[] @relation("StoreFollowers")
 }
 
 model Product {
@@ -70,6 +87,30 @@ model Product {
   supplier User @relation("SupplierProducts", fields: [supplierId], references: [id])
   affiliateProducts AffiliateProduct[]
   orders Order[]
+  communityPosts CommunityPost[]
+}
+
+model CommunityPost {
+  id        String   @id @default(cuid())
+  storeId   String
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  content   String
+  images    String[] @default([])
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  likes     Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model Follow {
+  id        String   @id @default(cuid())
+  userId    String
+  storeId   String
+  user      User     @relation("UserFollowsStore", fields: [userId], references: [id], onDelete: Cascade)
+  store     Store    @relation("StoreFollowers", fields: [storeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, storeId])
 }
 
 model AffiliateProduct {

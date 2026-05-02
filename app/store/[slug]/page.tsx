@@ -2,7 +2,12 @@ import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
+import type { StoreFeedPost } from "@/components/community/StoreFeed"
+import { StoreFeed } from "@/components/community/StoreFeed"
+import { StoreSocialBar } from "@/components/store-social-bar"
+import { auth } from "@/auth"
 import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
+import { parseFollowersJson } from "@/lib/format-followers"
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
 
@@ -12,6 +17,8 @@ export const dynamic = "force-dynamic"
 
 export default async function PublicStorefrontPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
+  const session = await auth()
+
   const store = await prisma.store.findUnique({
     where: { slug },
     include: {
@@ -22,6 +29,66 @@ export default async function PublicStorefrontPage({ params }: { params: Promise
   if (!store) notFound()
 
   const role = store.user.role
+
+  const [followCount, communityPosts] = await Promise.all([
+    prisma.follow.count({ where: { storeId: store.id } }),
+    prisma.communityPost.findMany({
+      where: { storeId: store.id },
+      include: { product: { select: { id: true, name: true, images: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 40,
+    }),
+  ])
+
+  let initialFollowing = false
+  if (session?.user?.id) {
+    const f = await prisma.follow.findUnique({
+      where: {
+        userId_storeId: { userId: session.user.id, storeId: store.id },
+      },
+    })
+    initialFollowing = Boolean(f)
+  }
+
+  const followers = parseFollowersJson(store.followers)
+  const feedPosts: StoreFeedPost[] = communityPosts.map((p) => ({
+    id: p.id,
+    content: p.content,
+    images: p.images ?? [],
+    likes: p.likes,
+    createdAt: p.createdAt.toISOString(),
+    productId: p.productId,
+    product: p.product
+      ? { id: p.product.id, name: p.product.name, images: p.product.images ?? [] }
+      : null,
+  }))
+
+  const socialBar =
+    store.showSocialsOnStore ? (
+      <StoreSocialBar
+        storeSlug={store.slug}
+        instagram={store.instagram}
+        tiktok={store.tiktok}
+        youtube={store.youtube}
+        twitch={store.twitch}
+        followers={followers}
+        isLive={store.isLive}
+        liveUrl={store.liveUrl}
+        followCount={followCount}
+        initialFollowing={initialFollowing}
+        viewerLoggedIn={Boolean(session?.user?.id)}
+      />
+    ) : null
+
+  const communitySection = (
+    <section id="community" className="mt-14">
+      <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Community</h2>
+      <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Updates, drops, and reactions from this store.</p>
+      <div className="mt-6">
+        <StoreFeed storeSlug={slug} posts={feedPosts} />
+      </div>
+    </section>
+  )
 
   if (role === "AFFILIATE") {
     const listings = await prisma.affiliateProduct.findMany({
@@ -58,6 +125,8 @@ export default async function PublicStorefrontPage({ params }: { params: Promise
             )}
           </div>
         </header>
+
+        {socialBar}
 
         {store.description ? (
           <p className="mt-4 max-w-2xl text-sm text-zinc-600">{store.description}</p>
@@ -106,6 +175,8 @@ export default async function PublicStorefrontPage({ params }: { params: Promise
               ))
           )}
         </ul>
+
+        {communitySection}
       </main>
     )
   }
@@ -142,6 +213,8 @@ export default async function PublicStorefrontPage({ params }: { params: Promise
           <p className="text-sm text-zinc-500">Supplier catalog</p>
         </div>
       </header>
+
+      {socialBar}
 
       {store.description ? (
         <p className="mt-4 max-w-2xl text-sm text-zinc-600">{store.description}</p>
@@ -182,6 +255,8 @@ export default async function PublicStorefrontPage({ params }: { params: Promise
           )}
         </ul>
       </section>
+
+      {communitySection}
     </main>
   )
 }

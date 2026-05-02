@@ -141,6 +141,12 @@ export function SupplierDashboard() {
           >
             Store profile →
           </Link>
+          <Link
+            href="/dashboard/settings/social"
+            className="mt-2 block text-sm font-medium text-teal-700 hover:text-teal-800 dark:text-teal-400 dark:hover:text-teal-300"
+          >
+            Social &amp; community hub →
+          </Link>
         </div>
         <button
           type="button"

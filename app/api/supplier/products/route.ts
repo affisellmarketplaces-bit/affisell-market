@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client"
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { createNewDropCommunityPost } from "@/lib/community-new-drop"
 import { parseProductAttributesBody } from "@/lib/supplier-product-attributes"
 import { parseSupplierProductShippingBody } from "@/lib/supplier-product-shipping"
 import { parseSupplierProductImages } from "@/lib/supplier-product-images"
@@ -109,6 +110,22 @@ export async function POST(req: Request) {
       shippingCost: ship.shippingCost,
     },
   })
+
+  const supplierStore = await prisma.store.findUnique({
+    where: { userId: (session.user as { id: string }).id },
+    select: { id: true },
+  })
+  if (supplierStore) {
+    try {
+      await createNewDropCommunityPost({
+        storeId: supplierStore.id,
+        productId: product.id,
+        productName: product.name,
+      })
+    } catch {
+      /* non-fatal */
+    }
+  }
 
   return Response.json(product, { status: 201 })
 }
