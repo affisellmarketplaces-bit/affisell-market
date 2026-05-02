@@ -201,7 +201,7 @@ export function SupplierDashboard() {
       <h1 className="text-2xl font-semibold">Supplier · My products</h1>
 
       <section className="mt-8 rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-        <h2 className="mb-4 text-lg font-semibold">{editing ? "Edit Product" : "Add Product"}</h2>
+        <h2>{editing ? "Edit Product" : "Add Product"}</h2>
         {form.image ? (
           <img
             src={form.image}
@@ -289,11 +289,11 @@ export function SupplierDashboard() {
                 key={p.id}
                 className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900"
               >
-                <div className="aspect-[4/3] w-full overflow-hidden rounded-t-xl bg-zinc-100 dark:bg-zinc-800">
+                <div className="aspect-[4/3] w-full overflow-hidden rounded-t-xl bg-zinc-100">
                   <img
                     src={p.image || "/placeholder.png"}
                     alt={p.name}
-                    className="h-full w-full object-cover"
+                    className="w-full h-full object-cover"
                     onError={(e) => {
                       e.currentTarget.src = "/placeholder.png"
                     }}
@@ -313,18 +313,18 @@ export function SupplierDashboard() {
                   >
                     Toggle active
                   </button>
-                  <div className="mt-3 flex gap-2">
+                  <div className="flex gap-2 mt-3">
                     <button
                       type="button"
                       onClick={() => openEdit(p)}
-                      className="rounded-lg border px-3 py-1.5 text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                      className="rounded-lg border px-3 py-1.5 text-sm hover:bg-zinc-50"
                     >
                       Edit
                     </button>
                     <button
                       type="button"
-                      onClick={() => void handleDelete(p.id)}
-                      className="rounded-lg border px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                      onClick={() => handleDelete(p.id)}
+                      className="rounded-lg border px-3 py-1.5 text-sm text-red-600 hover:bg-red-50"
                     >
                       Delete
                     </button>
