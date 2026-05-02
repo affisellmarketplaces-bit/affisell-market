@@ -49,13 +49,13 @@ export function MarketplaceListingCard({
           <button
             type="button"
             onClick={async () => {
-              await fetch("/api/cart/add", {
+              const res = await fetch("/api/cart/add", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ productId: product.id, qty: 1 }),
                 credentials: "include",
               })
-              alert("Added to cart")
+              console.log("Add to cart", res.ok ? "ok" : await res.text())
             }}
             className="flex-1 px-3 py-2 border rounded-lg text-sm hover:bg-zinc-50"
           >

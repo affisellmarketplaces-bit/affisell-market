@@ -41,6 +41,87 @@ export async function POST(req: NextRequest) {
     const session = event.data.object as Stripe.Checkout.Session
     const sessionId = session.id
 
+    const customerEmail =
+      session.customer_email ||
+      session.customer_details?.email ||
+      session.customer_details?.phone ||
+      "unknown@checkout"
+
+    const shippingAddress = addressFromSession(session)
+
+    const cartLinesRaw = session.metadata?.cartLines?.trim()
+    if (cartLinesRaw) {
+      let lines: { affiliateProductId: string; qty: number }[] = []
+      try {
+        lines = JSON.parse(cartLinesRaw) as { affiliateProductId: string; qty: number }[]
+      } catch {
+        return NextResponse.json({ received: true })
+      }
+      if (!Array.isArray(lines) || lines.length === 0) {
+        return NextResponse.json({ received: true })
+      }
+
+      const stripeIds = lines.map((l) => `${sessionId}:${l.affiliateProductId}`)
+      const already = await prisma.order.findMany({
+        where: { stripeSessionId: { in: stripeIds } },
+      })
+      if (already.length >= lines.length) {
+        return NextResponse.json({ received: true })
+      }
+
+      for (const line of lines) {
+        const stripeSessionId = `${sessionId}:${line.affiliateProductId}`
+        const dup = await prisma.order.findUnique({ where: { stripeSessionId } })
+        if (dup) continue
+
+        const qty = Math.max(1, Math.round(Number(line.qty)) || 1)
+        const listing = await prisma.affiliateProduct.findUnique({
+          where: { id: line.affiliateProductId },
+          include: { product: true },
+        })
+
+        if (!listing?.product || !listing.active || !listing.product.active) {
+          continue
+        }
+
+        const sellingPriceCents = listing.sellingPriceCents * qty
+        const basePriceCents = listing.product.basePriceCents * qty
+        const marginCents = Math.max(0, sellingPriceCents - basePriceCents)
+        const rate = listing.product.commissionRate
+        const affiliatePayoutCents = Math.floor((marginCents * rate) / 100)
+        const commissionCents = affiliatePayoutCents
+
+        const order = await prisma.order.create({
+          data: {
+            stripeSessionId,
+            productId: listing.productId,
+            affiliateProductId: listing.id,
+            supplierId: listing.product.supplierId,
+            affiliateId: listing.affiliateId,
+            customerEmail,
+            shippingAddress,
+            basePriceCents,
+            sellingPriceCents,
+            commissionCents,
+            marginCents,
+            affiliatePayoutCents,
+            status: "paid",
+          },
+        })
+
+        await prisma.notification.create({
+          data: {
+            userId: listing.product.supplierId,
+            type: "NEW_ORDER",
+            message: `New order · ${listing.product.name} ×${qty} · ship to ${customerEmail}`,
+            orderId: order.id,
+          },
+        })
+      }
+
+      return NextResponse.json({ received: true })
+    }
+
     const existing = await prisma.order.findUnique({ where: { stripeSessionId: sessionId } })
     if (existing) {
       return NextResponse.json({ received: true })
@@ -66,14 +147,6 @@ export async function POST(req: NextRequest) {
     const rate = listing.product.commissionRate
     const affiliatePayoutCents = Math.floor((marginCents * rate) / 100)
     const commissionCents = affiliatePayoutCents
-
-    const customerEmail =
-      session.customer_email ||
-      session.customer_details?.email ||
-      session.customer_details?.phone ||
-      "unknown@checkout"
-
-    const shippingAddress = addressFromSession(session)
 
     const order = await prisma.order.create({
       data: {

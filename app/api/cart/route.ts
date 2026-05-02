@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-export type CartLineJson = {
+type CartLineJson = {
   id: string
   qty: number
   product: {
@@ -19,7 +19,7 @@ export type CartLineJson = {
 export async function GET() {
   const session = await auth()
   if (!session?.user?.id) {
-    return Response.json([] satisfies CartLineJson[])
+    return Response.json([] as CartLineJson[])
   }
 
   const cart = await prisma.cart.findFirst({
@@ -36,7 +36,7 @@ export async function GET() {
   })
 
   if (!cart?.items.length) {
-    return Response.json([] satisfies CartLineJson[])
+    return Response.json([] as CartLineJson[])
   }
 
   const lines: CartLineJson[] = cart.items.map((row) => {

@@ -1,36 +1,10 @@
 import { NextResponse } from "next/server"
+import type Stripe from "stripe"
 
 import { prisma } from "@/lib/prisma"
 import { stripe } from "@/lib/stripe"
 
-/** Stripe Checkout for an AffiliateProduct listing (EUR). */
-export async function marketplaceCheckoutPOST(request: Request) {
-  const body = (await request.json().catch(() => ({}))) as {
-    affiliateProductId?: string
-    /** Alias for `affiliateProductId` (marketplace listing id). */
-    productId?: string
-    qty?: number
-    cancelPath?: string
-    successPath?: string
-  }
-
-  const affiliateProductId =
-    body.affiliateProductId?.trim() || body.productId?.trim() || ""
-  if (!affiliateProductId) {
-    return NextResponse.json({ error: "Missing affiliateProductId" }, { status: 400 })
-  }
-
-  const qty = Math.max(1, Math.min(99, Math.round(Number(body.qty)) || 1))
-
-  const listing = await prisma.affiliateProduct.findFirst({
-    where: { id: affiliateProductId, active: true },
-    include: { product: true },
-  })
-
-  if (!listing || !listing.product.active || !listing.product.supplierId) {
-    return NextResponse.json({ error: "Listing not found or inactive" }, { status: 404 })
-  }
-
+function checkoutBaseUrls(body: { cancelPath?: string; successPath?: string }) {
   const baseUrl = (
     process.env.NEXT_PUBLIC_SITE_URL ??
     process.env.NEXT_PUBLIC_BASE_URL ??
@@ -42,9 +16,111 @@ export async function marketplaceCheckoutPOST(request: Request) {
     typeof body.cancelPath === "string" && body.cancelPath.startsWith("/") ? body.cancelPath : "/"
 
   const successPath =
-    typeof body.successPath === "string" && body.successPath.startsWith("/")
-      ? body.successPath
-      : "/success"
+    typeof body.successPath === "string" && body.successPath.startsWith("/") ? body.successPath : "/success"
+
+  return { baseUrl, cancelPath, successPath }
+}
+
+type CartLineInput = { productId?: string; qty?: number }
+
+async function loadListing(id: string) {
+  return prisma.affiliateProduct.findFirst({
+    where: { id, active: true },
+    include: { product: true },
+  })
+}
+
+/** Stripe Checkout for multiple marketplace lines (EUR). */
+async function checkoutFromItems(lines: CartLineInput[], opts: { cancelPath?: string; successPath?: string }) {
+  const normalized: { affiliateProductId: string; qty: number }[] = []
+  for (const row of lines) {
+    const affiliateProductId = typeof row.productId === "string" ? row.productId.trim() : ""
+    if (!affiliateProductId) continue
+    const qty = Math.max(1, Math.min(99, Math.round(Number(row.qty)) || 1))
+    normalized.push({ affiliateProductId, qty })
+  }
+
+  if (normalized.length === 0) {
+    return NextResponse.json({ error: "No valid items" }, { status: 400 })
+  }
+
+  const stripeLineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = []
+
+  for (const { affiliateProductId, qty } of normalized) {
+    const listing = await loadListing(affiliateProductId)
+    if (!listing || !listing.product.active || !listing.product.supplierId) {
+      return NextResponse.json({ error: "Listing not found or inactive" }, { status: 404 })
+    }
+    stripeLineItems!.push({
+      price_data: {
+        currency: "eur",
+        unit_amount: listing.sellingPriceCents,
+        product_data: {
+          name: listing.product.name,
+          images: listing.product.image ? [listing.product.image] : undefined,
+        },
+      },
+      quantity: qty,
+    })
+  }
+
+  const { baseUrl, cancelPath, successPath } = checkoutBaseUrls(opts)
+
+  const checkoutSession = await stripe.checkout.sessions.create({
+    mode: "payment",
+    payment_method_types: ["card"],
+    line_items: stripeLineItems,
+    success_url: `${baseUrl}${successPath}`,
+    cancel_url: `${baseUrl}${cancelPath}`,
+    customer_creation: "always",
+    billing_address_collection: "required",
+    shipping_address_collection: {
+      allowed_countries: ["US", "CA", "GB", "FR", "DE", "ES", "IT", "PT", "BE", "NL", "CH"],
+    },
+    phone_number_collection: { enabled: true },
+    metadata: {
+      cartLines: JSON.stringify(normalized),
+    },
+  })
+
+  if (!checkoutSession.url) {
+    return NextResponse.json({ error: "Stripe URL unavailable" }, { status: 502 })
+  }
+
+  return NextResponse.json({ url: checkoutSession.url })
+}
+
+/** Stripe Checkout for an AffiliateProduct listing (EUR). */
+export async function marketplaceCheckoutPOST(request: Request) {
+  const body = (await request.json().catch(() => ({}))) as {
+    affiliateProductId?: string
+    /** Alias for `affiliateProductId` (marketplace listing id). */
+    productId?: string
+    qty?: number
+    items?: CartLineInput[]
+    cancelPath?: string
+    successPath?: string
+  }
+
+  if (Array.isArray(body.items) && body.items.length > 0) {
+    return checkoutFromItems(body.items, body)
+  }
+
+  const affiliateProductId =
+    body.affiliateProductId?.trim() || body.productId?.trim() || ""
+  if (!affiliateProductId) {
+    return NextResponse.json({ error: "Missing affiliateProductId" }, { status: 400 })
+  }
+
+  const qty = Math.max(1, Math.min(99, Math.round(Number(body.qty)) || 1))
+
+  const listing = await loadListing(affiliateProductId)
+
+  if (!listing || !listing.product.active || !listing.product.supplierId) {
+    return NextResponse.json({ error: "Listing not found or inactive" }, { status: 404 })
+  }
+
+  const { baseUrl, cancelPath, successPath } = checkoutBaseUrls(body)
 
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "payment",
