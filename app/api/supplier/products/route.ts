@@ -21,39 +21,58 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const session = await auth()
-  console.log("DEBUG session", session?.user)
 
   if (!session?.user) {
     return Response.json({ error: "Not authenticated" }, { status: 401 })
   }
-  if ((session.user as any).role !== "SUPPLIER") {
-    return Response.json(
-      { error: "Forbidden - not supplier", role: (session.user as any).role },
-      { status: 403 }
-    )
+  if ((session.user as { role?: string }).role !== "SUPPLIER") {
+    return Response.json({ error: "Forbidden - not supplier" }, { status: 403 })
   }
 
-  const { name, basePriceCents, commissionRate, image, description } = await req.json()
-  if (!name || !basePriceCents) {
-    return Response.json({ error: "Missing name or price" }, { status: 400 })
+  const body = await req.json()
+  const {
+    name,
+    basePriceCents: basePriceCentsRaw,
+    commissionRate,
+    commission,
+    image,
+    description,
+    price,
+    stock,
+  } = body as Record<string, unknown>
+
+  const nameStr = typeof name === "string" ? name.trim() : ""
+  if (!nameStr) {
+    return Response.json({ error: "Missing name" }, { status: 400 })
   }
 
+  let cents: number
+  if (Number.isFinite(Number(price))) {
+    cents = Math.round(Number(price) * 100)
+  } else if (basePriceCentsRaw != null) {
+    cents = Math.round(Number(basePriceCentsRaw))
+  } else {
+    return Response.json({ error: "Missing price" }, { status: 400 })
+  }
+
+  const commRaw = commission ?? commissionRate
   const rate = Math.min(
     99,
-    Math.max(1, Math.round(Number.isFinite(Number(commissionRate)) ? Number(commissionRate) : 20))
+    Math.max(1, Math.round(Number.isFinite(Number(commRaw)) ? Number(commRaw) : 20))
   )
-  const cents = Math.round(Number(basePriceCents))
   const imageRaw = typeof image === "string" ? image.trim() : ""
   const desc = typeof description === "string" ? description.trim() : ""
+  const stockN = Math.max(0, Math.round(Number.isFinite(Number(stock)) ? Number(stock) : 0))
 
   const product = await prisma.product.create({
     data: {
       supplierId: (session.user as { id: string }).id,
-      name: String(name).trim(),
+      name: nameStr,
       description: desc,
-      image: imageRaw || "https://placehold.co/600x600?text=Product",
+      image: imageRaw,
       basePriceCents: Math.max(100, cents),
       commissionRate: rate,
+      stock: stockN,
       active: true,
     },
   })
