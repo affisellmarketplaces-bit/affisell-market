@@ -12,6 +12,7 @@ import {
 import { arrayMove, rectSortingStrategy, SortableContext, useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import {
+  Check,
   Eye,
   GripVertical,
   Pencil,
@@ -22,7 +23,7 @@ import Image from "next/image"
 import { signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import type { CSSProperties } from "react"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 import {
   ListingBuilderModal,
@@ -43,7 +44,9 @@ type CatalogProduct = {
   variants?: unknown
   basePriceCents: number
   commissionRate: number
-  supplier: { email: string }
+  /** Present on Supplier Catalog query; may be absent on nested `listing.product`. */
+  affiliateProducts?: { id: string; isListed: boolean }[]
+  supplier: { email: string; store?: { name: string; slug: string } | null }
 }
 
 type Listing = SerializedListing & {
@@ -177,12 +180,6 @@ export function AffiliateDashboard({ catalog: initialCatalog, listings: initialL
     setListings([...initialListings].sort(sortAffiliateListingByPosition))
   }, [initialListings])
 
-  const listedIds = useMemo(() => new Set(initialListings.map((l) => l.productId)), [initialListings])
-  const catalogTabProducts = useMemo(
-    () => initialCatalog.filter((p) => !listedIds.has(p.id)),
-    [initialCatalog, listedIds]
-  )
-
   const reorderPersist = useCallback(
     async (next: Listing[]) => {
       await fetch("/api/affiliate/products/reorder", {
@@ -251,6 +248,12 @@ export function AffiliateDashboard({ catalog: initialCatalog, listings: initialL
   function openCreate(p: CatalogProduct) {
     setModalProduct(p)
     setModalListing(null)
+  }
+
+  function openEditModal(productId: string) {
+    const listingRow = listings.find((l) => l.productId === productId)
+    const p = initialCatalog.find((x) => x.id === productId)
+    if (listingRow && p) openEdit(listingRow, p)
   }
 
   function openEdit(listing: Listing, p: CatalogProduct) {
@@ -336,63 +339,94 @@ export function AffiliateDashboard({ catalog: initialCatalog, listings: initialL
 
       {tab === "catalog" ? (
         <section className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {catalogTabProducts.map((p) => (
-            <article
-              key={p.id}
-              className="flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100"
-            >
-              <div className="relative aspect-square bg-gray-50 p-4">
-                <Image
-                  src={primaryProductImage(p.images) || "/placeholder.png"}
-                  alt=""
-                  fill
-                  className="object-contain p-2"
-                  sizes="320px"
-                  unoptimized={primaryProductImage(p.images).startsWith("http")}
-                />
-              </div>
-              <div className="flex flex-1 flex-col gap-3 p-5">
-                <p className="font-semibold text-gray-900">{p.name}</p>
-                {(p.categories?.length ?? 0) > 0 ? (
-                  <p className="line-clamp-1 text-[11px] text-blue-700">
-                    {(p.categories ?? []).slice(0, 2).join(" · ")}
-                  </p>
-                ) : null}
-                {(p.colors?.length ?? 0) > 0 ? (
-                  <div className="flex flex-wrap gap-1">
-                    {(p.colors ?? []).slice(0, 8).map((cn) => {
-                      const meta = COLORS.find((c) => c.name === cn)
-                      const mc = meta ? isMulticolorSwatch(meta) : false
-                      return (
-                        <span
-                          key={cn}
-                          title={cn}
-                          className="inline-flex h-5 w-5 rounded-full shadow ring-1 ring-black/15"
-                          style={
-                            mc
-                              ? {
-                                  background:
-                                    "conic-gradient(at 50%_50%,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)",
-                                }
-                              : { backgroundColor: meta?.hex || "#cbd5e1" }
-                          }
-                        />
-                      )
-                    })}
+          {initialCatalog.map((p) => {
+            const isAdded = (p.affiliateProducts?.length ?? 0) > 0
+            const thumb = primaryProductImage(p.images) || "/placeholder.png"
+            return (
+              <article
+                key={p.id}
+                className={`relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 ${
+                  isAdded ? "opacity-60" : ""
+                }`}
+              >
+                {isAdded ? (
+                  <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-full bg-green-600 px-2 py-1 text-xs text-white">
+                    <Check className="h-3 w-3" aria-hidden />
+                    Added
                   </div>
                 ) : null}
-                <p className="mt-auto text-sm text-gray-500">Supplier: {fmtEUR(p.basePriceCents)}</p>
-                <p className="text-xs text-gray-400">{p.supplier.email}</p>
-                <button
-                  type="button"
-                  className="w-full rounded-2xl bg-gray-900 py-3 text-sm font-semibold text-white hover:bg-gray-800"
-                  onClick={() => openCreate(p)}
-                >
-                  Add to My Store
-                </button>
-              </div>
-            </article>
-          ))}
+                <div className="relative aspect-square bg-gray-50 p-4">
+                  <Image
+                    src={thumb}
+                    alt=""
+                    fill
+                    className="object-contain p-2"
+                    sizes="320px"
+                    unoptimized={thumb.startsWith("http")}
+                  />
+                </div>
+                <div className="flex flex-1 flex-col gap-3 p-5">
+                  <p className="font-semibold text-gray-900">{p.name}</p>
+                  {(p.categories?.length ?? 0) > 0 ? (
+                    <p className="line-clamp-1 text-[11px] text-blue-700">
+                      {(p.categories ?? []).slice(0, 2).join(" · ")}
+                    </p>
+                  ) : null}
+                  {(p.colors?.length ?? 0) > 0 ? (
+                    <div className="flex flex-wrap gap-1">
+                      {(p.colors ?? []).slice(0, 8).map((cn) => {
+                        const meta = COLORS.find((c) => c.name === cn)
+                        const mc = meta ? isMulticolorSwatch(meta) : false
+                        return (
+                          <span
+                            key={cn}
+                            title={cn}
+                            className="inline-flex h-5 w-5 rounded-full shadow ring-1 ring-black/15"
+                            style={
+                              mc
+                                ? {
+                                    background:
+                                      "conic-gradient(at 50%_50%,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)",
+                                  }
+                                : { backgroundColor: meta?.hex || "#cbd5e1" }
+                            }
+                          />
+                        )
+                      })}
+                    </div>
+                  ) : null}
+                  <p className="mt-auto text-sm text-gray-500">Supplier: {fmtEUR(p.basePriceCents)}</p>
+                  <p className="text-xs text-gray-400">{p.supplier.email}</p>
+                  {isAdded ? (
+                    <>
+                      <button
+                        type="button"
+                        disabled
+                        className="mt-3 w-full cursor-not-allowed rounded-2xl bg-gray-100 py-3 text-sm font-semibold text-gray-500"
+                      >
+                        Already in your store
+                      </button>
+                      <button
+                        type="button"
+                        className="mt-2 w-full text-sm text-green-600 hover:text-green-700"
+                        onClick={() => openEditModal(p.id)}
+                      >
+                        Edit listing →
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      className="mt-3 w-full rounded-2xl bg-black py-3 text-sm font-semibold text-white hover:bg-zinc-900"
+                      onClick={() => openCreate(p)}
+                    >
+                      Add to My Store
+                    </button>
+                  )}
+                </div>
+              </article>
+            )
+          })}
         </section>
       ) : (
         <section className="mt-8">
