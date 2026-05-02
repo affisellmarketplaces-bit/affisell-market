@@ -10,6 +10,7 @@ export default function AffiliateSignupPage() {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [displayName, setDisplayName] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -52,6 +53,20 @@ export default function AffiliateSignupPage() {
 
         <div className="rounded-2xl bg-white p-8 shadow-sm">
           <form onSubmit={onSubmit} className="space-y-5">
+            <div>
+              <label htmlFor="affiliate-name" className="mb-1.5 block text-sm font-medium text-gray-700">
+                Your name (optional)
+              </label>
+              <input
+                id="affiliate-name"
+                type="text"
+                autoComplete="name"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="e.g. Alex — used for your default store name"
+                className="w-full rounded-xl border border-gray-300 px-4 py-2.5 outline-none transition focus:border-transparent focus:ring-2 focus:ring-blue-600"
+              />
+            </div>
             <div>
               <label htmlFor="affiliate-email" className="mb-1.5 block text-sm font-medium text-gray-700">
                 Email

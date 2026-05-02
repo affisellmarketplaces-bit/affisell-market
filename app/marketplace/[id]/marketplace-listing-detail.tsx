@@ -14,11 +14,20 @@ import {
 import type { ProductColorImageRow } from "@/lib/product-color-images"
 import type { ProductVariantsJson } from "@/lib/product-variants"
 
+type StorefrontInfo = {
+  name: string
+  slug: string
+  logoUrl: string | null
+  showTrustedSoldBy: boolean
+}
+
 type Props = {
   listingId: string
   name: string
   description: string
   sellerLabel: string
+  /** Affiliate store — logo and link */
+  storefront: StorefrontInfo | null
   priceDisplay: string
   gallery: string[]
   categories: string[]
@@ -35,6 +44,7 @@ export function MarketplaceListingDetail({
   name,
   description,
   sellerLabel,
+  storefront,
   priceDisplay,
   gallery,
   categories,
@@ -246,6 +256,39 @@ export function MarketplaceListingDetail({
 
         {/* Info + actions */}
         <div className="w-full lg:w-[40%]">
+          {storefront ? (
+            <Link
+              href={`/store/${storefront.slug}`}
+              className="group mb-4 flex items-center gap-3 rounded-xl border border-zinc-100 p-3 transition hover:border-zinc-200 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:border-zinc-600 dark:hover:bg-zinc-950"
+            >
+              {storefront.logoUrl ? (
+                <Image
+                  src={storefront.logoUrl}
+                  alt=""
+                  width={48}
+                  height={48}
+                  className="h-12 w-12 shrink-0 rounded-lg border border-zinc-200 object-contain dark:border-zinc-600"
+                  unoptimized={
+                    storefront.logoUrl.startsWith("http") || storefront.logoUrl.startsWith("/uploads")
+                  }
+                />
+              ) : (
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-xs text-zinc-400 dark:border-zinc-700 dark:bg-zinc-900">
+                  shop
+                </span>
+              )}
+              <span className="font-semibold text-zinc-900 underline-offset-4 group-hover:underline dark:text-zinc-100">
+                {storefront.name}
+              </span>
+            </Link>
+          ) : null}
+
+          {storefront?.showTrustedSoldBy ? (
+            <p className="-mt-2 mb-3 text-sm font-medium text-green-700 dark:text-green-400">
+              Sold by {storefront.name}
+            </p>
+          ) : null}
+
           <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">{name}</h1>
           <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">{description}</p>
 
@@ -332,7 +375,14 @@ export function MarketplaceListingDetail({
           <p className="mt-2 text-xs text-gray-500 dark:text-zinc-500">Free shipping • 30-day returns</p>
 
           <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-400">
-            by <span className="font-medium text-zinc-700 dark:text-zinc-300">{sellerLabel}</span>
+            by{" "}
+            {storefront ? (
+              <Link href={`/store/${storefront.slug}`} className="font-medium text-zinc-700 underline dark:text-zinc-300">
+                {sellerLabel}
+              </Link>
+            ) : (
+              <span className="font-medium text-zinc-700 dark:text-zinc-300">{sellerLabel}</span>
+            )}
           </p>
 
           <div className="mt-6 space-y-3">

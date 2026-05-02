@@ -135,6 +135,12 @@ export function SupplierDashboard() {
           >
             Open full-screen product wizard →
           </Link>
+          <Link
+            href="/dashboard/supplier/settings/store"
+            className="mt-2 inline-block text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+          >
+            Store profile →
+          </Link>
         </div>
         <button
           type="button"
@@ -191,7 +197,7 @@ export function SupplierDashboard() {
                   <button
                     type="button"
                     disabled={busy}
-                    onClick={() => toggleActive(p.id, p.active)}
+                    onClick={() => toggleActive(p.id, Boolean(p.active))}
                     className="mt-3 text-xs underline"
                   >
                     Toggle active

@@ -91,8 +91,17 @@ export function AffiliateDashboard({ catalog, listings: initialListings }: Props
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-10 md:px-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold">Affiliate dashboard</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <div>
+          <h1 className="text-2xl font-semibold">Affiliate dashboard</h1>
+          <button
+            type="button"
+            onClick={() => router.push("/dashboard/affiliate/settings/store")}
+            className="mt-2 text-sm font-medium text-blue-600 hover:text-blue-800"
+          >
+            Store profile →
+          </button>
+        </div>
         <button
           type="button"
           onClick={() => signOut({ callbackUrl: "/" })}
@@ -101,6 +110,7 @@ export function AffiliateDashboard({ catalog, listings: initialListings }: Props
           Logout
         </button>
       </div>
+
 
       <div className="mt-6 flex gap-2 border-b border-zinc-200 dark:border-zinc-800">
         <button

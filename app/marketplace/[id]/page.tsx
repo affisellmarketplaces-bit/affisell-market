@@ -14,13 +14,22 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
     where: { id, active: true, product: { active: true } },
     include: {
       product: true,
-      affiliate: { include: { affiliateStore: { select: { slug: true } } } },
+      affiliate: { include: { store: true } },
     },
   })
 
   if (!listing?.product) notFound()
 
-  const sellerLabel = listing.affiliate.affiliateStore?.slug ?? listing.affiliate.email
+  const st = listing.affiliate.store
+  const storefront = st
+    ? {
+        name: st.name,
+        slug: st.slug,
+        logoUrl: st.logoUrl,
+        showTrustedSoldBy: Boolean(st.customDomain && st.domainVerified),
+      }
+    : null
+  const sellerLabel = st?.name ?? listing.affiliate.name?.trim() ?? listing.affiliate.email
   const gallery = (listing.product.images ?? []).map((s) => s.trim()).filter(Boolean)
   const categories = Array.isArray(listing.product.categories)
     ? listing.product.categories.filter((c): c is string => typeof c === "string" && Boolean(c.trim()))
@@ -46,6 +55,7 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
         name={listing.product.name}
         description={listing.product.description}
         sellerLabel={sellerLabel}
+        storefront={storefront}
         priceDisplay={priceDisplay}
         gallery={gallery}
         categories={categories}

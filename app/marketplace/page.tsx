@@ -12,7 +12,7 @@ export default async function MarketplacePage() {
       product: true,
       affiliate: {
         include: {
-          affiliateStore: { select: { slug: true } },
+          store: { select: { name: true, slug: true, logoUrl: true } },
         },
       },
     },
@@ -40,7 +40,8 @@ export default async function MarketplacePage() {
                     currency: "EUR",
                   })}
                   sellerDisplay={
-                    item.affiliate.name?.trim() ? item.affiliate.name.trim() : "Verified Seller"
+                    item.affiliate.store?.name ??
+                    (item.affiliate.name?.trim() ? item.affiliate.name.trim() : "Verified Seller")
                   }
                   product={{ id: item.id }}
                 />
