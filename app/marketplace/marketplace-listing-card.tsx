@@ -1,6 +1,5 @@
 "use client"
 
-import Image from "next/image"
 import Link from "next/link"
 
 type Props = {
@@ -21,7 +20,11 @@ export function MarketplaceListingCard({
   sellerDisplay,
   product,
 }: Props) {
-  const listing = { id: product.id }
+  const listing = {
+    id: product.id,
+    image: imageUrl || "/placeholder.png",
+    title: name,
+  }
 
   async function addToCart(listingId: string) {
     const res = await fetch("/api/cart/add", {
@@ -47,17 +50,15 @@ export function MarketplaceListingCard({
   return (
     <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-600">
       <Link href={detailHref} className="block">
-        <div className="relative aspect-[4/5] bg-zinc-100 dark:bg-zinc-800">
-          {imageUrl ? (
-            <Image
-              src={imageUrl}
-              alt=""
-              fill
-              className="object-cover"
-              sizes="(max-width:768px) 100vw, 33vw"
-              unoptimized={imageUrl.startsWith("http")}
-            />
-          ) : null}
+        <div className="aspect-[4/3] bg-gray-50 rounded-t-xl overflow-hidden flex items-center justify-center p-3">
+          <img
+            src={listing.image}
+            alt={listing.title}
+            className="max-h-full max-w-full object-contain"
+            onError={(e) => {
+              e.currentTarget.src = "/placeholder.png"
+            }}
+          />
         </div>
         <div className="p-4">
           <p className="font-semibold leading-snug">{name}</p>
