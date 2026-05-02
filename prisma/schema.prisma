@@ -21,6 +21,7 @@ model User {
   supplierOrders Order[] @relation("SupplierOrders")
   affiliateOrders Order[] @relation("AffiliateOrders")
   notifications Notification[]
+  cart Cart?
 }
 
 model AffiliateStore {
@@ -53,8 +54,28 @@ model AffiliateProduct {
   active Boolean @default(true)
   affiliate User @relation(fields: [affiliateId], references: [id])
   product Product @relation(fields: [productId], references: [id])
+  cartItems CartItem[]
 
   @@unique([affiliateId, productId])
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  updatedAt DateTime   @updatedAt
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+}
+
+model CartItem {
+  id                 String           @id @default(cuid())
+  cartId             String
+  affiliateProductId String
+  quantity           Int              @default(1)
+  cart               Cart             @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  affiliateProduct   AffiliateProduct @relation(fields: [affiliateProductId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, affiliateProductId])
 }
 
 model Order {

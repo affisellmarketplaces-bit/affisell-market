@@ -7,14 +7,20 @@ import { stripe } from "@/lib/stripe"
 export async function marketplaceCheckoutPOST(request: Request) {
   const body = (await request.json().catch(() => ({}))) as {
     affiliateProductId?: string
+    /** Alias for `affiliateProductId` (marketplace listing id). */
+    productId?: string
+    qty?: number
     cancelPath?: string
     successPath?: string
   }
 
-  const affiliateProductId = body.affiliateProductId?.trim()
+  const affiliateProductId =
+    body.affiliateProductId?.trim() || body.productId?.trim() || ""
   if (!affiliateProductId) {
     return NextResponse.json({ error: "Missing affiliateProductId" }, { status: 400 })
   }
+
+  const qty = Math.max(1, Math.min(99, Math.round(Number(body.qty)) || 1))
 
   const listing = await prisma.affiliateProduct.findFirst({
     where: { id: affiliateProductId, active: true },
@@ -53,7 +59,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
             images: listing.product.image ? [listing.product.image] : undefined,
           },
         },
-        quantity: 1,
+        quantity: qty,
       },
     ],
     success_url: `${baseUrl}${successPath}`,
