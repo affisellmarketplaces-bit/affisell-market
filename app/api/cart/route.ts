@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic"
 type CartLineJson = {
   id: string
   qty: number
+  sellerName: string | null
   product: {
     id: string
     title: string
@@ -28,7 +29,10 @@ export async function GET() {
       items: {
         include: {
           affiliateProduct: {
-            include: { product: true },
+            include: {
+              product: true,
+              affiliate: { select: { name: true } },
+            },
           },
         },
       },
@@ -45,6 +49,7 @@ export async function GET() {
     return {
       id: row.id,
       qty: row.quantity,
+      sellerName: listing.affiliate.name?.trim() || null,
       product: {
         id: listing.id,
         title: p.name,
