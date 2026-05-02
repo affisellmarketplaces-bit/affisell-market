@@ -51,6 +51,11 @@ type Listing = SerializedListing & {
   product: CatalogProduct | null
 }
 
+function sortAffiliateListingByPosition(a: Listing, b: Listing) {
+  if (a.position !== b.position) return a.position - b.position
+  return a.id.localeCompare(b.id)
+}
+
 function fmtEUR(cents: number) {
   return (cents / 100).toLocaleString("en-US", {
     style: "currency",
@@ -67,6 +72,11 @@ function SortableStoreCard(props: {
 }) {
   const { listing, selected, onSelect, onEdit, onToggleList } = props
   const p = listing.product
+
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: listing.id,
+  })
+
   if (!p) return null
 
   const title = listingDisplayTitle(listing.customTitle ?? null, p.name)
@@ -74,10 +84,6 @@ function SortableStoreCard(props: {
     listingPrimaryImageUrl(listing.customImages ?? [], p.images ?? []) ||
     primaryProductImage(p.images) ||
     ""
-
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: listing.id,
-  })
 
   const style: CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -130,7 +136,7 @@ function SortableStoreCard(props: {
         </div>
         <p className="text-lg font-semibold text-green-600">{fmtEUR(listing.sellingPriceCents)}</p>
         <p className="text-xs text-gray-500">
-          {listing.clicks ?? 0} clicks · {(listing.conversions ?? 0) as number} sales
+          {listing.clicks ?? 0} clicks · {listing.conversions ?? 0} sales
         </p>
         <label className="mt-2 flex items-center gap-2 text-xs text-gray-600">
           <input type="checkbox" checked={listing.isListed} onChange={() => void onToggleList()} />
@@ -157,19 +163,18 @@ type Props = {
 export function AffiliateDashboard({ catalog: initialCatalog, listings: initialListings, storeSlug }: Props) {
   const router = useRouter()
   const [tab, setTab] = useState<"catalog" | "store">("catalog")
-  const [listings, setListings] = useState<Listing[]>(() => [...initialListings].sort(sortByPosition))
+  const [listings, setListings] = useState<Listing[]>(() =>
+    [...initialListings].sort(sortAffiliateListingByPosition)
+  )
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [toast, setToast] = useState<string | null>(null)
   const [modalProduct, setModalProduct] = useState<CatalogProduct | null>(null)
   const [modalListing, setModalListing] = useState<SerializedListing | null>(null)
 
-  function sortByPosition(a: Listing, b: Listing) {
-    if (a.position !== b.position) return a.position - b.position
-    return a.id.localeCompare(b.id)
-  }
-
   useEffect(() => {
-    setListings([...initialListings].sort(sortByPosition))
+    // Sync when RSC refetches after reorder/save — local state otherwise holds DnD order.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional sync from server props
+    setListings([...initialListings].sort(sortAffiliateListingByPosition))
   }, [initialListings])
 
   const listedIds = useMemo(() => new Set(initialListings.map((l) => l.productId)), [initialListings])
@@ -221,7 +226,7 @@ export function AffiliateDashboard({ catalog: initialCatalog, listings: initialL
       body: JSON.stringify({ isListed: !cur }),
     })
     setListings((prev) =>
-      prev.map((l) => (l.id === listingId ? { ...l, isListed: !cur } : l)).sort(sortByPosition)
+      prev.map((l) => (l.id === listingId ? { ...l, isListed: !cur } : l)).sort(sortAffiliateListingByPosition)
     )
     router.refresh()
   }
@@ -420,7 +425,7 @@ export function AffiliateDashboard({ catalog: initialCatalog, listings: initialL
               <SortableContext items={ids} strategy={rectSortingStrategy}>
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                   {[...listings]
-                    .sort(sortByPosition)
+                    .sort(sortAffiliateListingByPosition)
                     .filter((l): l is Listing & { product: CatalogProduct } => Boolean(l.product))
                     .map((l) => (
                       <SortableStoreCard

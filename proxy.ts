@@ -1,4 +1,4 @@
-import type { NextFetchEvent, NextRequest } from "next/server"
+import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
@@ -24,8 +24,8 @@ const nextAuthHandler = auth((req) => {
   return NextResponse.next()
 })
 
-export function proxy(request: NextRequest, event: NextFetchEvent) {
-  return nextAuthHandler(request, event)
+export function proxy(request: NextRequest) {
+  return nextAuthHandler(request, { params: Promise.resolve({}) })
 }
 
 export const config = {

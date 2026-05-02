@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client"
 import { NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
 
@@ -47,7 +48,7 @@ export async function POST(req: NextRequest) {
       session.customer_details?.phone ||
       "unknown@checkout"
 
-    const shippingAddress = addressFromSession(session)
+    const shippingAddress = addressFromSession(session) as Prisma.InputJsonValue
 
     const cartLinesRaw = session.metadata?.cartLines?.trim()
     if (cartLinesRaw) {

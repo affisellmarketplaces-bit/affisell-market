@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server"
-import type Stripe from "stripe"
 
 import {
   listingDisplayTitle,
@@ -49,7 +48,14 @@ async function checkoutFromItems(lines: CartLineInput[], opts: { cancelPath?: st
     return NextResponse.json({ error: "No valid items" }, { status: 400 })
   }
 
-  const stripeLineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = []
+  const stripeLineItems: {
+    price_data: {
+      currency: "eur"
+      unit_amount: number
+      product_data: { name: string; images: string[] }
+    }
+    quantity: number
+  }[] = []
 
   for (const { affiliateProductId, qty } of normalized) {
     const listing = await loadListing(affiliateProductId)
@@ -64,7 +70,7 @@ async function checkoutFromItems(lines: CartLineInput[], opts: { cancelPath?: st
         unit_amount: listing.sellingPriceCents,
         product_data: {
           name: displayName,
-          images: stripeProductImages(gallery),
+          images: stripeProductImages(gallery) ?? [],
         },
       },
       quantity: qty,
