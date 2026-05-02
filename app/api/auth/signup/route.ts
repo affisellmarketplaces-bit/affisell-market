@@ -24,7 +24,8 @@ export async function POST(req: Request) {
     }
 
     const hash = await bcrypt.hash(password, 10)
-    const resolvedRole = role === "SUPPLIER" ? "SUPPLIER" : "AFFILIATE"
+    const resolvedRole =
+      role === "SUPPLIER" ? "SUPPLIER" : role === "CUSTOMER" ? "CUSTOMER" : "AFFILIATE"
 
     await prisma.user.create({
       data: {

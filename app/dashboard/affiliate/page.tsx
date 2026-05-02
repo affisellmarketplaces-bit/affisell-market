@@ -10,7 +10,8 @@ export const dynamic = "force-dynamic"
 export default async function AffiliateDashboardPage() {
   const session = await auth()
   if (!session?.user?.id) redirect("/login?callbackUrl=/dashboard/affiliate")
-  if (session.user.role !== "AFFILIATE") redirect("/dashboard/supplier")
+  if (session.user.role === "SUPPLIER") redirect("/dashboard/supplier")
+  if (session.user.role !== "AFFILIATE") redirect("/marketplace")
 
   const [catalog, listings] = await Promise.all([
     prisma.product.findMany({
