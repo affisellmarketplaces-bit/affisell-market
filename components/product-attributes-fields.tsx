@@ -7,6 +7,7 @@ import {
   COLORS,
   VARIANT_GROUP_LABELS,
   VARIANT_PRESETS,
+  isMulticolorSwatch,
   type VariantGroupKey,
 } from "@/lib/product-catalog-constants"
 import type { ProductVariantsJson } from "@/lib/product-variants"
@@ -150,16 +151,16 @@ export function ProductAttributesFields({
     <div className="md:col-span-2 space-y-8 border-t border-zinc-200 pt-6 dark:border-zinc-700">
       {/* Categories */}
       <div>
-        <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">Catégories (max 3)</label>
+        <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">Categories (max 3)</label>
         <input
           type="search"
           value={catQuery}
           onChange={(e) => setCatQuery(e.target.value)}
-          placeholder="Rechercher une catégorie…"
+          placeholder="Search categories..."
           className="mt-2 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950"
         />
         <p className="mt-1 text-xs text-zinc-500">
-          Sélection : {categories.length}/3{categories.length ? ` — ${categories.join(" · ")}` : ""}
+          Selected: {categories.length}/3{categories.length ? ` — ${categories.join(" · ")}` : ""}
         </p>
         <div className="mt-3 grid max-h-52 grid-cols-1 gap-2 overflow-y-auto sm:grid-cols-3">
           {filteredCategories.map((c) => (
@@ -182,11 +183,12 @@ export function ProductAttributesFields({
 
       {/* Colors */}
       <div>
-        <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">Couleurs disponibles</label>
+        <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">Available Colors</label>
         <div className="mt-3 flex flex-wrap gap-3">
           {COLORS.map((c) => {
             const sel = colors.includes(c.name)
-            const isLight = !c.multicolor && (c.hex === "#FFFFFF" || c.hex === "#F5E6D3" || c.hex === "#FFD700")
+            const mc = isMulticolorSwatch(c)
+            const isLight = !mc && (c.hex === "#FFFFFF" || c.hex === "#F5E6D3" || c.hex === "#FFD700")
             return (
               <label
                 key={c.name}
@@ -202,11 +204,9 @@ export function ProductAttributesFields({
                 />
                 <span
                   className={`h-10 w-10 rounded-full shadow-inner ring-1 ring-black/15 ${
-                    c.multicolor
-                      ? "bg-[conic-gradient(at_50%_50%,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)]"
-                      : ""
+                    mc ? "bg-[conic-gradient(at_50%_50%,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)]" : ""
                   }`}
-                  style={c.multicolor ? undefined : { backgroundColor: c.hex }}
+                  style={mc ? undefined : { backgroundColor: c.hex }}
                   title={c.name}
                 />
                 <span className={`max-w-[4.5rem] text-center ${isLight ? "text-zinc-800 dark:text-zinc-200" : ""}`}>
@@ -222,7 +222,7 @@ export function ProductAttributesFields({
       <div>
         <div className="flex flex-wrap items-end gap-2">
           <div className="min-w-[200px] flex-1">
-            <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">Variantes</label>
+            <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">Variants</label>
             <select
               defaultValue=""
               className="mt-2 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950"
@@ -234,7 +234,7 @@ export function ProductAttributesFields({
                 }
               }}
             >
-              <option value="">+ Ajouter un type de variante…</option>
+              <option value="">+ Add variant type...</option>
               {VARIANT_KEYS.filter((k) => !activeVariantKeys.includes(k)).map((k) => (
                 <option key={k} value={k}>
                   {VARIANT_GROUP_LABELS[k]}
@@ -257,7 +257,7 @@ export function ProductAttributesFields({
                     onClick={() => removeVariantGroup(key)}
                     className="text-xs text-red-600 hover:underline dark:text-red-400"
                   >
-                    Retirer
+                    Remove
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -282,7 +282,7 @@ export function ProductAttributesFields({
                     value={customByGroup[key] ?? ""}
                     onChange={(e) => setCustomByGroup((prev) => ({ ...prev, [key]: e.target.value }))}
                     onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCustomVariant(key))}
-                    placeholder="Valeur personnalisée…"
+                    placeholder="Custom value..."
                     className="min-w-[8rem] flex-1 rounded-lg border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-600 dark:bg-zinc-950"
                   />
                   <button
@@ -290,7 +290,7 @@ export function ProductAttributesFields({
                     onClick={() => addCustomVariant(key)}
                     className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-600"
                   >
-                    Ajouter
+                    Add
                   </button>
                 </div>
                 {list.length > 0 ? (
@@ -325,23 +325,23 @@ export function ProductAttributesFields({
           })}
 
           <div>
-            <label className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Modèle / version</label>
+            <label className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Model / Version</label>
             <input
               type="text"
               value={v.model ?? ""}
               onChange={(e) =>
                 onVariantsChange(mergeVariants(variants, { model: e.target.value }))
               }
-              placeholder="Ex. iPhone 15 Pro – édition 2025"
+              placeholder="Ex. iPhone 15 Pro – 2025 edition"
               className="mt-2 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950"
             />
           </div>
 
           {colors.length > 0 ? (
             <div>
-              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Image par couleur (optionnel)</p>
+              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Image per color (optional)</p>
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                URL d’image affichée quand le client sélectionne la couleur sur la fiche produit.
+                Image URL shown on the product page when the shopper selects this color.
               </p>
               <div className="mt-2 space-y-2">
                 {colors.map((colorName) => (
@@ -361,7 +361,7 @@ export function ProductAttributesFields({
                           })
                         )
                       }}
-                      placeholder="https://…"
+                      placeholder="https://..."
                       className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950"
                     />
                   </div>
@@ -398,7 +398,7 @@ export function ProductAttributesFields({
             value={tagInput}
             onChange={(e) => setTagInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), commitTag())}
-            placeholder="Ajouter un tag (Entrée)"
+            placeholder="Add a tag (Enter)"
             className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950"
           />
           <button
@@ -406,7 +406,7 @@ export function ProductAttributesFields({
             onClick={commitTag}
             className="rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600"
           >
-            Ajouter
+            Add
           </button>
         </div>
       </div>

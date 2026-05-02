@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 
-import { COLORS } from "@/lib/product-catalog-constants"
+import { COLORS, isMulticolorSwatch } from "@/lib/product-catalog-constants"
 import { primaryProductImage } from "@/lib/product-images"
 import { signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
@@ -152,13 +152,14 @@ export function AffiliateDashboard({ catalog, listings: initialListings }: Props
                   <div className="mt-1 flex flex-wrap gap-1">
                     {(p.colors ?? []).slice(0, 8).map((cn) => {
                       const meta = COLORS.find((c) => c.name === cn)
+                      const mc = meta ? isMulticolorSwatch(meta) : false
                       return (
                         <span
                           key={cn}
                           title={cn}
                           className="inline-flex h-5 w-5 rounded-full shadow ring-1 ring-black/15"
                           style={
-                            meta?.multicolor
+                            mc
                               ? {
                                   background:
                                     "conic-gradient(at 50% 50%,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)",

@@ -19,7 +19,7 @@ export default async function AffiliateProductsNewPage() {
         marketplace.
       </p>
       <div className="mt-8 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Category taxonomy you’ll see on listings</p>
+        <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Category taxonomy you will see on listings</p>
         <ul className="mt-4 grid grid-cols-1 gap-x-8 gap-y-1 text-xs text-zinc-600 dark:text-zinc-400 sm:grid-cols-2">
           {CATEGORIES.map((c) => (
             <li key={c}>• {c}</li>

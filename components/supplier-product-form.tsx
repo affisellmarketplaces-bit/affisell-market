@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import type { FormEvent } from "react"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import { ProductAttributesFields } from "@/components/product-attributes-fields"
 import { variantsFromDb, type ProductVariantsJson } from "@/lib/product-variants"
@@ -65,6 +65,7 @@ export function SupplierProductForm({
   const [variants, setVariants] = useState<ProductVariantsJson | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (!initial) {
@@ -233,14 +234,18 @@ export function SupplierProductForm({
             </button>
           ) : null}
           <div className="border-t border-zinc-200 pt-2 dark:border-zinc-700">
-            <label className="mb-1 block text-xs text-zinc-600 dark:text-zinc-400">
-              Or upload manually:
-            </label>
+            <p className="mb-2 text-xs text-zinc-600 dark:text-zinc-400">
+              Upload from your device for local preview only. Use HTTPS image URLs above to publish images to
+              shoppers.
+            </p>
             <input
+              ref={fileInputRef}
               type="file"
               accept="image/*"
               multiple
               disabled={uploading || busy}
+              className="sr-only"
+              aria-label="Choose image files"
               onChange={(e) => {
                 const cap = Math.max(0, 10 - imageUrls.filter(Boolean).length)
                 const files = Array.from(e.target.files || []).slice(0, cap)
@@ -255,8 +260,15 @@ export function SupplierProductForm({
                   e.target.value = ""
                 }
               }}
-              className="text-sm"
             />
+            <button
+              type="button"
+              disabled={uploading || busy}
+              onClick={() => fileInputRef.current?.click()}
+              className="rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50 disabled:opacity-60 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:bg-zinc-900"
+            >
+              Choose files
+            </button>
           </div>
           {imageUrls.filter(Boolean).length > 0 ? (
             <div className="mt-3 grid grid-cols-5 gap-2">

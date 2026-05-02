@@ -5,7 +5,12 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
-import { COLORS, VARIANT_GROUP_LABELS, type VariantGroupKey } from "@/lib/product-catalog-constants"
+import {
+  COLORS,
+  VARIANT_GROUP_LABELS,
+  isMulticolorSwatch,
+  type VariantGroupKey,
+} from "@/lib/product-catalog-constants"
 import type { ProductVariantsJson } from "@/lib/product-variants"
 
 type Props = {
@@ -149,7 +154,7 @@ export function MarketplaceListingDetail({
       {categories.length > 0 ? (
         <nav className="mt-4 flex flex-wrap items-center gap-1 text-sm text-zinc-500 dark:text-zinc-400">
           <Link href="/marketplace" className="hover:text-zinc-800 dark:hover:text-zinc-200">
-            Boutique
+            Store
           </Link>
           {categories.map((c) => (
             <span key={c} className="flex items-center gap-1">
@@ -239,13 +244,14 @@ export function MarketplaceListingDetail({
 
           {colorNames.length > 0 ? (
             <div className="mt-4">
-              <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Couleur</p>
+              <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Color</p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {colorMeta.map(({ name: cn, meta }) => {
                   const sel = selectedColor === cn
+                  const mc = meta ? isMulticolorSwatch(meta) : false
                   const isLight =
                     meta &&
-                    !meta.multicolor &&
+                    !mc &&
                     (meta.hex === "#FFFFFF" || meta.hex === "#F5E6D3" || meta.hex === "#FFD700")
                   return (
                     <button
@@ -259,11 +265,11 @@ export function MarketplaceListingDetail({
                     >
                       <span
                         className={`h-9 w-9 rounded-full shadow-inner ring-1 ring-black/15 ${
-                          meta?.multicolor
+                          mc
                             ? "bg-[conic-gradient(at_50%_50%,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)]"
                             : ""
                         }`}
-                        style={meta?.multicolor || !meta ? undefined : { backgroundColor: meta.hex }}
+                        style={mc || !meta ? undefined : { backgroundColor: meta.hex }}
                       />
                       <span
                         className={
@@ -294,7 +300,7 @@ export function MarketplaceListingDetail({
                     setVariantPick((prev) => ({ ...prev, [key]: e.target.value || undefined }))
                   }
                 >
-                  <option value="">Choisir…</option>
+                  <option value="">Choose...</option>
                   {opts.map((o) => (
                     <option key={o} value={o}>
                       {o}
@@ -307,7 +313,7 @@ export function MarketplaceListingDetail({
 
           {v.model ? (
             <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
-              <span className="font-medium text-zinc-800 dark:text-zinc-200">Modèle&nbsp;: </span>
+              <span className="font-medium text-zinc-800 dark:text-zinc-200">Model: </span>
               {v.model}
             </p>
           ) : null}
