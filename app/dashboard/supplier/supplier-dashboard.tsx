@@ -289,7 +289,10 @@ export function SupplierDashboard() {
                 {imageUrls.length > 1 ? (
                   <button
                     type="button"
-                    onClick={() => setImageUrls(imageUrls.filter((_, i) => i !== index))}
+                    onClick={() => {
+                      const next = imageUrls.filter((_, i) => i !== index)
+                      setImageUrls(next.length ? next : [""])
+                    }}
                     className="rounded-lg px-3 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
                   >
                     ×
