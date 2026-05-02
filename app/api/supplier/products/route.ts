@@ -1,5 +1,6 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { parseSupplierProductImages } from "@/lib/supplier-product-images"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -35,7 +36,6 @@ export async function POST(req: Request) {
     basePriceCents: basePriceCentsRaw,
     commissionRate,
     commission,
-    image,
     description,
     price,
     stock,
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
     99,
     Math.max(1, Math.round(Number.isFinite(Number(commRaw)) ? Number(commRaw) : 20))
   )
-  const imageRaw = typeof image === "string" ? image.trim() : ""
+  const images = parseSupplierProductImages(body as Record<string, unknown>)
   const desc = typeof description === "string" ? description.trim() : ""
   const stockN = Math.max(0, Math.round(Number.isFinite(Number(stock)) ? Number(stock) : 0))
 
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
       supplierId: (session.user as { id: string }).id,
       name: nameStr,
       description: desc,
-      image: imageRaw,
+      images,
       basePriceCents: Math.max(100, cents),
       commissionRate: rate,
       stock: stockN,

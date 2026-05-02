@@ -1,5 +1,6 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { parseSupplierProductImages } from "@/lib/supplier-product-images"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -34,6 +35,7 @@ export async function PUT(
     name?: string
     description?: string
     image?: string
+    images?: unknown
     price?: number
     commission?: number
     stock?: number
@@ -57,14 +59,14 @@ export async function PUT(
 
   const stock = Math.max(0, Math.round(Number.isFinite(Number(body.stock)) ? Number(body.stock) : 0))
   const desc = typeof body.description === "string" ? body.description.trim() : ""
-  const imageRaw = typeof body.image === "string" ? body.image.trim() : ""
+  const images = parseSupplierProductImages(body as unknown as Record<string, unknown>)
 
   const updated = await prisma.product.update({
     where: { id },
     data: {
       name,
       description: desc,
-      image: imageRaw,
+      images,
       basePriceCents: Math.max(100, Math.round(price * 100)),
       commissionRate: rate,
       stock,

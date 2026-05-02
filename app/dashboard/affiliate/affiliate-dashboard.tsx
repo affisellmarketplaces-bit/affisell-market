@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import { primaryProductImage } from "@/lib/product-images"
 import { signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -9,7 +10,7 @@ type CatalogProduct = {
   id: string
   name: string
   description: string
-  image: string
+  images: string[]
   basePriceCents: number
   commissionRate: number
   supplier: { email: string }
@@ -126,12 +127,12 @@ export function AffiliateDashboard({ catalog, listings: initialListings }: Props
             <article key={p.id} className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
               <div className="relative aspect-square w-full overflow-hidden rounded-t-xl bg-gray-50 dark:bg-zinc-800">
                 <Image
-                  src={p.image || "/placeholder.png"}
+                  src={primaryProductImage(p.images) || "/placeholder.png"}
                   alt={p.name}
                   fill
                   className="object-contain p-2"
                   sizes="(max-width: 768px) 50vw, 25vw"
-                  unoptimized={(p.image || "").startsWith("http")}
+                  unoptimized={primaryProductImage(p.images).startsWith("http")}
                 />
               </div>
               <div className="p-4">
@@ -195,12 +196,12 @@ export function AffiliateDashboard({ catalog, listings: initialListings }: Props
                 >
                   <div className="relative aspect-square w-16 shrink-0 overflow-hidden rounded-xl bg-gray-50 dark:bg-zinc-800">
                     <Image
-                      src={l.product.image || "/placeholder.png"}
+                      src={primaryProductImage(l.product.images) || "/placeholder.png"}
                       alt={l.product.name}
                       fill
                       className="object-contain p-2"
                       sizes="64px"
-                      unoptimized={(l.product.image || "").startsWith("http")}
+                      unoptimized={primaryProductImage(l.product.images).startsWith("http")}
                     />
                   </div>
                   <div className="min-w-0 flex-1">
