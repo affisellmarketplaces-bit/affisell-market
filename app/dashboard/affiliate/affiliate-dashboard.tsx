@@ -21,6 +21,7 @@ import {
 import Image from "next/image"
 import { signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
+import type { CSSProperties } from "react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
 import {
@@ -78,12 +79,12 @@ function SortableStoreCard(props: {
     id: listing.id,
   })
 
-  const style = {
+  const style: CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
     zIndex: isDragging ? 20 : undefined,
     opacity: isDragging ? 0.9 : undefined,
-  } as React.CSSProperties
+  }
 
   return (
     <article
@@ -99,7 +100,7 @@ function SortableStoreCard(props: {
         </span>
       ) : null}
       <label className="absolute left-3 top-3 z-10 flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg bg-white/90 shadow ring-1 ring-gray-100">
-        <input type="checkbox" checked={selected} onChange={onSelect} className="h-4 w-4 accent-gray-900" />
+        <input type="checkbox" checked={selected} onChange={() => onSelect()} className="h-4 w-4 accent-gray-900" />
       </label>
       <button
         type="button"
@@ -192,22 +193,19 @@ export function AffiliateDashboard({ catalog: initialCatalog, listings: initialL
     useSensor(KeyboardSensor, {})
   )
 
-  const onDragEnd = useCallback(
-    (evt: DragEndEvent) => {
-      const { active, over } = evt
-      if (!over || active.id === over.id) return
-      setListings((prev) => {
-        const ids = prev.map((l) => l.id)
-        const oi = ids.indexOf(active.id as string)
-        const ni = ids.indexOf(over.id as string)
-        if (oi < 0 || ni < 0) return prev
-        const next = arrayMove(prev, oi, ni).map((l, idx) => ({ ...l, position: idx }))
-        void reorderPersist(next)
-        return next
-      })
-    },
-    []
-  )
+  const onDragEnd = useCallback((evt: DragEndEvent) => {
+    const { active, over } = evt
+    if (!over || active.id === over.id) return
+    setListings((prev) => {
+      const ids = prev.map((l) => l.id)
+      const oi = ids.indexOf(active.id as string)
+      const ni = ids.indexOf(over.id as string)
+      if (oi < 0 || ni < 0) return prev
+      const next = arrayMove(prev, oi, ni).map((l, idx) => ({ ...l, position: idx }))
+      void reorderPersist(next)
+      return next
+    })
+  }, [])
 
   async function toggleList(listingId: string, cur: boolean) {
     await fetch(`/api/affiliate/listings/${listingId}`, {
@@ -222,12 +220,10 @@ export function AffiliateDashboard({ catalog: initialCatalog, listings: initialL
     router.refresh()
   }
 
-  async function bulk(isFeatured?: boolean, isListed?: boolean) {
-    const ids = [...selected]
-    if (!ids.length) return
-    const body: Record<string, unknown> = { ids }
-    if (typeof isFeatured === "boolean") body.isFeatured = isFeatured
-    if (typeof isListed === "boolean") body.isListed = isListed
+  async function bulkPatch(opts: { isFeatured?: boolean; isListed?: boolean }) {
+    const idsSel = [...selected]
+    if (!idsSel.length) return
+    const body: Record<string, unknown> = { ids: idsSel, ...opts }
     await fetch("/api/affiliate/products/bulk", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -235,14 +231,10 @@ export function AffiliateDashboard({ catalog: initialCatalog, listings: initialL
       body: JSON.stringify(body),
     })
     setSelected(new Set())
-    setToast(typeLabel(isListed, isFeatured))
+    if (opts.isListed === false) setToast("Unlisted selections")
+    else if (opts.isFeatured === true) setToast("Featured selections")
+    else setToast("Updated selections")
     router.refresh()
-  }
-
-  function typeLabel(isListed?: boolean, isFeatured?: boolean) {
-    if (typeof isListed === "boolean" && !isListed) return "Unlisted selections"
-    if (isFeatured === true) return "Marked as featured"
-    return "Updated selections"
   }
 
   function openCreate(p: CatalogProduct) {
@@ -398,7 +390,7 @@ export function AffiliateDashboard({ catalog: initialCatalog, listings: initialL
             <button
               type="button"
               disabled={selected.size === 0}
-              onClick={() => void bulk(true)}
+              onClick={() => void bulkPatch({ isFeatured: true })}
               className="inline-flex items-center gap-1 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-gray-50 disabled:opacity-40"
             >
               Feature selected
@@ -406,7 +398,7 @@ export function AffiliateDashboard({ catalog: initialCatalog, listings: initialL
             <button
               type="button"
               disabled={selected.size === 0}
-              onClick={() => void bulk(undefined, false)}
+              onClick={() => void bulkPatch({ isListed: false })}
               className="inline-flex items-center gap-1 rounded-xl border border-red-100 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-40"
             >
               <Trash2 className="h-3.5 w-3.5" /> Unlist selected
@@ -421,7 +413,7 @@ export function AffiliateDashboard({ catalog: initialCatalog, listings: initialL
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
               <SortableContext items={ids} strategy={rectSortingStrategy}>
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {listings
+                  {[...listings]
                     .sort(sortByPosition)
                     .filter((l): l is Listing & { product: CatalogProduct } => Boolean(l.product))
                     .map((l) => (
