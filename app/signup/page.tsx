@@ -36,7 +36,7 @@ export default function SignupChooser() {
             <div className="h-full rounded-2xl border-2 border-green-600 bg-white p-8 shadow-sm transition-all hover:border-green-700 hover:shadow-md">
               <div className="mb-4 text-4xl">📦</div>
               <h2 className="mb-2 text-xl font-semibold text-gray-900">Join as Supplier</h2>
-              <p className="mb-6 text-gray-600">Sell to thousands of affiliates instantly</p>
+              <p className="mb-6 text-gray-600">Get thousands of affiliates selling for you instantly</p>
               <div className="flex items-center gap-1 font-medium text-green-600 group-hover:gap-2">
                 Get started <span>→</span>
               </div>

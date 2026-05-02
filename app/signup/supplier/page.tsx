@@ -50,8 +50,8 @@ export default function SupplierSignupPage() {
 
         <div className="mb-8 text-center">
           <div className="mb-3 text-4xl">📦</div>
-          <h1 className="text-2xl font-bold text-gray-900">Create supplier account</h1>
-          <p className="mt-2 text-gray-600">List products and reach affiliates across Affisell</p>
+          <h1 className="text-3xl font-bold text-gray-900">Get Thousands of Affiliates Selling For You</h1>
+          <p className="mt-2 text-gray-600">Affiliates promote your products — you keep the profit</p>
         </div>
 
         <div className="rounded-2xl border-2 border-green-600/30 bg-white p-8 shadow-sm">
@@ -99,7 +99,13 @@ export default function SupplierSignupPage() {
           <div className="mt-6 border-t border-gray-100 pt-6">
             <div className="space-y-2.5 text-sm text-gray-600">
               <div className="flex items-center gap-2">
-                <span className="text-green-600">✓</span> Affiliates sell for you — no outreach needed
+                <span className="text-green-600">✓</span> Affiliates sell for you — zero outreach needed
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-green-600">✓</span> Zero upfront fees — pay only per sale
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-green-600">✓</span> We handle tracking, payouts & support
               </div>
             </div>
           </div>
