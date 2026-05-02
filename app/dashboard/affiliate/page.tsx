@@ -13,7 +13,7 @@ export default async function AffiliateDashboardPage() {
   if (session.user.role === "SUPPLIER") redirect("/dashboard/supplier")
   if (session.user.role !== "AFFILIATE") redirect("/marketplace")
 
-  const [catalog, listings] = await Promise.all([
+  const [catalog, listings, store] = await Promise.all([
     prisma.product.findMany({
       where: { active: true },
       include: { supplier: { select: { email: true } } },
@@ -22,7 +22,11 @@ export default async function AffiliateDashboardPage() {
     prisma.affiliateProduct.findMany({
       where: { affiliateId: session.user.id },
       include: { product: true },
-      orderBy: { id: "desc" },
+      orderBy: [{ position: "asc" }, { id: "asc" }],
+    }),
+    prisma.store.findUnique({
+      where: { userId: session.user.id },
+      select: { slug: true },
     }),
   ])
 
@@ -30,6 +34,7 @@ export default async function AffiliateDashboardPage() {
     <AffiliateDashboard
       catalog={JSON.parse(JSON.stringify(catalog))}
       listings={JSON.parse(JSON.stringify(listings))}
+      storeSlug={store?.slug ?? null}
     />
   )
 }

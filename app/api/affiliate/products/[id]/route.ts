@@ -104,8 +104,8 @@ export async function PATCH(
   const cols = parseCollections(body.collections)
   if (cols !== undefined) data.collections = cols
 
-  if (typeof body.isListed === "boolean") data.isListed = body.isListed
   if (typeof body.listInStore === "boolean") data.isListed = body.listInStore
+  if (typeof body.isListed === "boolean") data.isListed = body.isListed
   if (typeof body.isFeatured === "boolean") data.isFeatured = body.isFeatured
 
   try {

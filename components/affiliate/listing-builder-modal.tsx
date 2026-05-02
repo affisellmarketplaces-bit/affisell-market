@@ -86,7 +86,7 @@ export function ListingBuilderModal({ open, product, listing, storeSlug, onClose
     setSeoDesc(L?.seoDescription ?? "")
     setListInStore(L ? L.isListed : true)
     setError(null)
-  }, [open, product, listing, supplierUrls])
+  }, [open, product, listing])
 
   const marginEUR = useMemo(() => {
     const p = Number(String(priceEUR).replace(",", "."))

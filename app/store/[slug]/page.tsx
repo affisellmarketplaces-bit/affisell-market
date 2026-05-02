@@ -2,6 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
+import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
 
@@ -24,9 +25,9 @@ export default async function PublicStorefrontPage({ params }: { params: Promise
 
   if (role === "AFFILIATE") {
     const listings = await prisma.affiliateProduct.findMany({
-      where: { affiliateId: store.user.id, active: true, product: { active: true } },
+      where: { affiliateId: store.user.id, isListed: true, product: { active: true } },
       include: { product: true },
-      orderBy: { id: "desc" },
+      orderBy: [{ position: "asc" }, { id: "asc" }],
     })
 
     return (
@@ -85,13 +86,19 @@ export default async function PublicStorefrontPage({ params }: { params: Promise
                 <li key={item.id}>
                   <MarketplaceListingCard
                     detailHref={`/marketplace/${item.id}`}
-                    imageUrl={primaryProductImage(item.product!.images) || null}
-                    name={item.product!.name}
+                    imageUrl={
+                      listingPrimaryImageUrl(item.customImages, item.product!.images) ||
+                      primaryProductImage(item.product!.images) ||
+                      null
+                    }
+                    name={listingDisplayTitle(item.customTitle, item.product!.name)}
                     priceDisplay={(item.sellingPriceCents / 100).toLocaleString("en-US", {
                       style: "currency",
                       currency: "EUR",
                     })}
                     sellerDisplay={store.name}
+                    soldByAffiliate={store.name}
+                    trackClicks
                     product={{ id: item.id }}
                   />
                 </li>

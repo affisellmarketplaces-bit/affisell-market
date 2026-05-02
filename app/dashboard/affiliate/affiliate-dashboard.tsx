@@ -178,34 +178,40 @@ export function AffiliateDashboard({ catalog: initialCatalog, listings: initialL
     [initialCatalog, listedIds]
   )
 
-  async function reorderPersist(next: Listing[]) {
-    await fetch("/api/affiliate/products/reorder", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ orderedIds: next.map((l) => l.id) }),
-    }).catch(() => null)
-    router.refresh()
-  }
+  const reorderPersist = useCallback(
+    async (next: Listing[]) => {
+      await fetch("/api/affiliate/products/reorder", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ orderedIds: next.map((l) => l.id) }),
+      }).catch(() => null)
+      router.refresh()
+    },
+    [router]
+  )
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, {})
   )
 
-  const onDragEnd = useCallback((evt: DragEndEvent) => {
-    const { active, over } = evt
-    if (!over || active.id === over.id) return
-    setListings((prev) => {
-      const ids = prev.map((l) => l.id)
-      const oi = ids.indexOf(active.id as string)
-      const ni = ids.indexOf(over.id as string)
-      if (oi < 0 || ni < 0) return prev
-      const next = arrayMove(prev, oi, ni).map((l, idx) => ({ ...l, position: idx }))
-      void reorderPersist(next)
-      return next
-    })
-  }, [])
+  const onDragEnd = useCallback(
+    (evt: DragEndEvent) => {
+      const { active, over } = evt
+      if (!over || active.id === over.id) return
+      setListings((prev) => {
+        const ids = prev.map((l) => l.id)
+        const oi = ids.indexOf(active.id as string)
+        const ni = ids.indexOf(over.id as string)
+        if (oi < 0 || ni < 0) return prev
+        const next = arrayMove(prev, oi, ni).map((l, idx) => ({ ...l, position: idx }))
+        void reorderPersist(next)
+        return next
+      })
+    },
+    [reorderPersist]
+  )
 
   async function toggleList(listingId: string, cur: boolean) {
     await fetch(`/api/affiliate/listings/${listingId}`, {
