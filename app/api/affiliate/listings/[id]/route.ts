@@ -14,7 +14,9 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 
   const { id } = await context.params
   const body = (await request.json().catch(() => ({}))) as {
+    /** @deprecated use isListed */
     active?: boolean
+    isListed?: boolean
     sellingPriceCents?: number
   }
 
@@ -43,7 +45,8 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   const updated = await prisma.affiliateProduct.update({
     where: { id },
     data: {
-      ...(typeof body.active === "boolean" ? { active: body.active } : {}),
+      ...(typeof body.isListed === "boolean" ? { isListed: body.isListed } : {}),
+      ...(typeof body.active === "boolean" ? { isListed: body.active } : {}),
       ...(nextSelling !== undefined ? { sellingPriceCents: nextSelling } : {}),
     },
   })

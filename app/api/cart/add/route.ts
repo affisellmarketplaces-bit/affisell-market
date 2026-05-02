@@ -21,7 +21,7 @@ export async function POST(req: Request) {
   const qty = Math.max(1, Math.min(99, Math.round(Number(rawQty)) || 1))
 
   const listing = await prisma.affiliateProduct.findFirst({
-    where: { id: affiliateProductId, active: true, product: { active: true } },
+    where: { id: affiliateProductId, isListed: true, product: { active: true } },
   })
   if (!listing) {
     return Response.json({ error: "Listing not found" }, { status: 404 })

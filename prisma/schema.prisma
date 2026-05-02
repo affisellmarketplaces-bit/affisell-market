@@ -65,13 +65,33 @@ model AffiliateProduct {
   id String @id @default(cuid())
   affiliateId String
   productId String
-  sellingPriceCents Int
-  active Boolean @default(true)
   affiliate User @relation(fields: [affiliateId], references: [id])
   product Product @relation(fields: [productId], references: [id])
   cartItems CartItem[]
 
+  sellingPriceCents Int
+
+  customTitle       String?
+  customDescription String?
+  customImages      String[] @default([])
+
+  customSlug      String?
+  seoTitle        String?
+  seoDescription  String?
+  collections     String[] @default([])
+
+  isListed   Boolean @default(true)
+  isFeatured Boolean @default(false)
+  position   Int     @default(0)
+
+  clicks       Int @default(0)
+  conversions  Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
   @@unique([affiliateId, productId])
+  @@unique([affiliateId, customSlug])
 }
 
 model Cart {

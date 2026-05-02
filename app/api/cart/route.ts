@@ -1,6 +1,6 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import { primaryProductImage } from "@/lib/product-images"
+import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -53,9 +53,9 @@ export async function GET() {
       sellerName: listing.affiliate.name?.trim() || null,
       product: {
         id: listing.id,
-        title: p.name,
+        title: listingDisplayTitle(listing.customTitle, p.name),
         price: listing.sellingPriceCents / 100,
-        imageUrl: primaryProductImage(p.images) || "",
+        imageUrl: listingPrimaryImageUrl(listing.customImages, p.images) || "",
       },
     }
   })

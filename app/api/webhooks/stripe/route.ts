@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
           include: { product: true },
         })
 
-        if (!listing?.product || !listing.active || !listing.product.active) {
+        if (!listing?.product || !listing.isListed || !listing.product.active) {
           continue
         }
 
@@ -107,6 +107,11 @@ export async function POST(req: NextRequest) {
             affiliatePayoutCents,
             status: "paid",
           },
+        })
+
+        await prisma.affiliateProduct.update({
+          where: { id: listing.id },
+          data: { conversions: { increment: qty } },
         })
 
         await prisma.notification.create({
@@ -137,7 +142,7 @@ export async function POST(req: NextRequest) {
       include: { product: true },
     })
 
-    if (!listing?.product || !listing.active || !listing.product.active) {
+    if (!listing?.product || !listing.isListed || !listing.product.active) {
       return NextResponse.json({ received: true })
     }
 
@@ -164,6 +169,11 @@ export async function POST(req: NextRequest) {
         affiliatePayoutCents,
         status: "paid",
       },
+    })
+
+    await prisma.affiliateProduct.update({
+      where: { id: listing.id },
+      data: { conversions: { increment: 1 } },
     })
 
     await prisma.notification.create({

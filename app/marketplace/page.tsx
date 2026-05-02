@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic"
 
 export default async function MarketplacePage() {
   const listings = await prisma.affiliateProduct.findMany({
-    where: { active: true, product: { active: true } },
+    where: { isListed: true, product: { active: true } },
     include: {
       product: true,
       affiliate: {

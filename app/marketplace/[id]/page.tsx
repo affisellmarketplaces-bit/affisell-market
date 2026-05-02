@@ -1,5 +1,10 @@
 import { notFound } from "next/navigation"
 
+import {
+  listingDisplayDescription,
+  listingDisplayTitle,
+  listingGalleryUrls,
+} from "@/lib/affiliate-listing-display"
 import { parseProductColorImagesFromDb } from "@/lib/product-color-images"
 import { prisma } from "@/lib/prisma"
 import { variantsFromDb } from "@/lib/product-variants"
@@ -11,7 +16,7 @@ export const dynamic = "force-dynamic"
 export default async function MarketplaceListingPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const listing = await prisma.affiliateProduct.findFirst({
-    where: { id, active: true, product: { active: true } },
+    where: { id, isListed: true, product: { active: true } },
     include: {
       product: true,
       affiliate: { include: { store: true } },
@@ -30,7 +35,7 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
       }
     : null
   const sellerLabel = st?.name ?? listing.affiliate.name?.trim() ?? listing.affiliate.email
-  const gallery = (listing.product.images ?? []).map((s) => s.trim()).filter(Boolean)
+  const gallery = listingGalleryUrls(listing.customImages, listing.product.images ?? [])
   const categories = Array.isArray(listing.product.categories)
     ? listing.product.categories.filter((c): c is string => typeof c === "string" && Boolean(c.trim()))
     : []
@@ -52,8 +57,11 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
     <main className="mx-auto max-w-6xl px-4 py-10 md:px-8">
       <MarketplaceListingDetail
         listingId={listing.id}
-        name={listing.product.name}
-        description={listing.product.description}
+        name={listingDisplayTitle(listing.customTitle, listing.product.name)}
+        description={listingDisplayDescription(
+          listing.customDescription,
+          listing.product.description
+        )}
         sellerLabel={sellerLabel}
         storefront={storefront}
         priceDisplay={priceDisplay}

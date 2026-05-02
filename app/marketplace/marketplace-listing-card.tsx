@@ -8,6 +8,10 @@ type Props = {
   name: string
   priceDisplay: string
   sellerDisplay: string
+  /** Shown between title and price on affiliate storefront grids */
+  soldByAffiliate?: string | null
+  /** When true POST /click before navigation (ignored if falsy listing id below) */
+  trackClicks?: boolean
   /** Listing id (`AffiliateProduct.id`) — sent as `productId` to cart and checkout APIs. */
   product: { id: string }
 }
@@ -18,6 +22,8 @@ export function MarketplaceListingCard({
   name,
   priceDisplay,
   sellerDisplay,
+  soldByAffiliate,
+  trackClicks,
   product,
 }: Props) {
   const listing = {
@@ -36,6 +42,11 @@ export function MarketplaceListingCard({
     console.log("Add to cart", res.ok ? "ok" : await res.text())
   }
 
+  function recordClick() {
+    if (!trackClicks || !product.id) return
+    void fetch(`/api/affiliate/products/${product.id}/click`, { method: "POST", keepalive: true })
+  }
+
   async function buyNow(listingId: string) {
     const res = await fetch("/api/checkout", {
       method: "POST",
@@ -49,7 +60,7 @@ export function MarketplaceListingCard({
 
   return (
     <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-600">
-      <Link href={detailHref} className="block">
+      <Link href={detailHref} className="block" onPointerDown={() => recordClick()}>
         <div className="aspect-[4/3] bg-gray-50 rounded-t-xl overflow-hidden flex items-center justify-center p-3">
           <img
             src={listing.image}
@@ -62,7 +73,14 @@ export function MarketplaceListingCard({
         </div>
         <div className="p-4">
           <p className="font-semibold leading-snug">{name}</p>
-          <p className="mt-2 text-lg font-medium">{priceDisplay}</p>
+          {soldByAffiliate ? (
+            <p className="mt-1 text-xs font-medium text-green-700">Sold by {soldByAffiliate}</p>
+          ) : null}
+          <p
+            className={`mt-2 text-lg font-medium ${soldByAffiliate ? "text-green-600" : "text-zinc-900 dark:text-zinc-100"}`}
+          >
+            {priceDisplay}
+          </p>
           <p className="mt-1 text-xs text-zinc-500">
             by <span className="font-medium text-zinc-700 dark:text-zinc-300">{sellerDisplay}</span>
           </p>

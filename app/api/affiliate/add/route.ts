@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
+/** Legacy minimal add — publishes listing at default markup. Prefer POST /api/affiliate/products/add */
 export async function POST(request: Request) {
   const session = await auth()
   if (!session?.user?.id) {
@@ -47,6 +48,13 @@ export async function POST(request: Request) {
     )
   }
 
+  const maxPos = await prisma.affiliateProduct.aggregate({
+    where: { affiliateId: session.user.id },
+    _max: { position: true },
+  })
+  const maxP = maxPos._max.position
+  const position = (maxP == null ? -1 : maxP) + 1
+
   const row = await prisma.affiliateProduct.upsert({
     where: {
       affiliateId_productId: {
@@ -58,11 +66,15 @@ export async function POST(request: Request) {
       affiliateId: session.user.id,
       productId: product.id,
       sellingPriceCents,
-      active: true,
+      customImages: [],
+      collections: [],
+      isListed: true,
+      isFeatured: false,
+      position,
     },
     update: {
       sellingPriceCents,
-      active: true,
+      isListed: true,
     },
   })
 

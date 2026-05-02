@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server"
 import type Stripe from "stripe"
 
+import {
+  listingDisplayTitle,
+  listingGalleryUrls,
+} from "@/lib/affiliate-listing-display"
 import { prisma } from "@/lib/prisma"
 import { stripeProductImages } from "@/lib/product-images"
 import { stripe } from "@/lib/stripe"
@@ -26,7 +30,7 @@ type CartLineInput = { productId?: string; qty?: number }
 
 async function loadListing(id: string) {
   return prisma.affiliateProduct.findFirst({
-    where: { id, active: true },
+    where: { id, isListed: true, product: { active: true } },
     include: { product: true },
   })
 }
@@ -52,13 +56,15 @@ async function checkoutFromItems(lines: CartLineInput[], opts: { cancelPath?: st
     if (!listing || !listing.product.active || !listing.product.supplierId) {
       return NextResponse.json({ error: "Listing not found or inactive" }, { status: 404 })
     }
+    const displayName = listingDisplayTitle(listing.customTitle, listing.product.name)
+    const gallery = listingGalleryUrls(listing.customImages, listing.product.images)
     stripeLineItems!.push({
       price_data: {
         currency: "eur",
         unit_amount: listing.sellingPriceCents,
         product_data: {
-          name: listing.product.name,
-          images: stripeProductImages(listing.product.images),
+          name: displayName,
+          images: stripeProductImages(gallery),
         },
       },
       quantity: qty,
@@ -132,8 +138,8 @@ export async function marketplaceCheckoutPOST(request: Request) {
           currency: "eur",
           unit_amount: listing.sellingPriceCents,
           product_data: {
-            name: listing.product.name,
-            images: stripeProductImages(listing.product.images),
+            name: listingDisplayTitle(listing.customTitle, listing.product.name),
+            images: stripeProductImages(listingGalleryUrls(listing.customImages, listing.product.images)),
           },
         },
         quantity: qty,

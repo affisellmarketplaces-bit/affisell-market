@@ -56,7 +56,7 @@ export async function GET() {
   const listings = await prisma.affiliateProduct.findMany({
     where: {
       productId: { in: productIds },
-      active: true,
+      isListed: true,
       product: { active: true },
     },
     select: { id: true, productId: true },
