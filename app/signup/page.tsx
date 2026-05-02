@@ -1,6 +1,7 @@
 "use client"
 
-import { FormEvent, useEffect, useState } from "react"
+import type { FormEvent } from "react"
+import { useEffect, useState } from "react"
 import { signIn } from "next-auth/react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -47,46 +48,85 @@ export default function SignupPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md items-center px-6">
-      <form onSubmit={onSubmit} className="w-full rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <h1 className="text-xl font-semibold">Create account</h1>
-        <input
-          type="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
-          className="mt-4 w-full rounded-md border px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-        />
-        <input
-          type="password"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          className="mt-3 w-full rounded-md border px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-        />
-        <select
-          value={role}
-          onChange={(e) => setRole(e.target.value as "SUPPLIER" | "AFFILIATE")}
-          className="mt-3 w-full rounded-md border px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-        >
-          <option value="AFFILIATE">Affiliate</option>
-          <option value="SUPPLIER">Supplier</option>
-        </select>
-        <button
-          disabled={loading}
-          className="mt-4 w-full rounded-md bg-zinc-900 py-2 text-sm font-medium text-white disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900"
-        >
-          {loading ? "…" : "Create account"}
-        </button>
-        {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
-        <p className="mt-4 text-sm">
-          <Link href="/login" className="underline">
-            Sign in
-          </Link>
-        </p>
-      </form>
-    </main>
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-8">
+      <div className="w-full max-w-md">
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold text-gray-900">Affisell</h1>
+          <p className="mt-2 text-gray-600">Create your seller or affiliate account</p>
+        </div>
+
+        <div className="rounded-2xl bg-white p-8 shadow-sm">
+          <form onSubmit={onSubmit} className="space-y-5">
+            <div>
+              <label htmlFor="signup-email" className="mb-1.5 block text-sm font-medium text-gray-700">
+                Email
+              </label>
+              <input
+                id="signup-email"
+                type="email"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="w-full rounded-xl border border-gray-300 px-4 py-2.5 outline-none transition focus:border-transparent focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label htmlFor="signup-password" className="mb-1.5 block text-sm font-medium text-gray-700">
+                Password
+              </label>
+              <input
+                id="signup-password"
+                type="password"
+                required
+                autoComplete="new-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full rounded-xl border border-gray-300 px-4 py-2.5 outline-none transition focus:border-transparent focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label htmlFor="signup-role" className="mb-1.5 block text-sm font-medium text-gray-700">
+                Account type
+              </label>
+              <select
+                id="signup-role"
+                value={role}
+                onChange={(e) => setRole(e.target.value as "SUPPLIER" | "AFFILIATE")}
+                className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 outline-none transition focus:border-transparent focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="AFFILIATE">Affiliate</option>
+                <option value="SUPPLIER">Supplier</option>
+              </select>
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-xl bg-blue-600 py-2.5 font-medium text-white shadow-sm transition-colors hover:bg-blue-700 disabled:opacity-60"
+            >
+              {loading ? "Creating account…" : "Create account"}
+            </button>
+            {error ? <p className="text-center text-sm text-red-600">{error}</p> : null}
+          </form>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="bg-white px-3 text-gray-500">Already have an account?</span>
+            </div>
+          </div>
+
+          <p className="text-center text-sm text-gray-600">
+            <Link href="/login" className="font-medium text-blue-600 hover:text-blue-700">
+              Sign in
+            </Link>
+          </p>
+        </div>
+      </div>
+    </div>
   )
 }
