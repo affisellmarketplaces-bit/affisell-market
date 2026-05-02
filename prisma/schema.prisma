@@ -45,6 +45,7 @@ model Product {
   supplierId String
   name String
   description String
+  createdAt DateTime @default(now())
   images String[] @default([])
   colorImages Json?
   categories String[] @default([])
