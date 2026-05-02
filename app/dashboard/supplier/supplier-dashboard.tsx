@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import type { FormEvent } from "react"
 import { signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
@@ -213,14 +214,16 @@ export function SupplierDashboard() {
       <section className="mt-8 rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
         <h2>{editing ? "Edit Product" : "Add Product"}</h2>
         {form.image ? (
-          <img
-            src={form.image}
-            alt=""
-            className="mb-2 h-20 w-20 rounded object-cover"
-            onError={(e) => {
-              e.currentTarget.src = "/placeholder.png"
-            }}
-          />
+          <div className="relative mb-2 aspect-square w-20 overflow-hidden rounded-xl bg-gray-50 dark:bg-zinc-800">
+            <Image
+              src={form.image}
+              alt={form.name || "Preview"}
+              fill
+              className="object-contain p-2"
+              sizes="80px"
+              unoptimized={form.image.startsWith("http")}
+            />
+          </div>
         ) : null}
         <form onSubmit={handleSubmit} className="mt-4 grid gap-3 md:grid-cols-2">
           <input
@@ -299,14 +302,14 @@ export function SupplierDashboard() {
                 key={p.id}
                 className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900"
               >
-                <div className="aspect-[4/3] w-full overflow-hidden rounded-t-xl bg-zinc-100">
-                  <img
+                <div className="relative aspect-square w-full overflow-hidden rounded-t-xl bg-gray-50 dark:bg-zinc-800">
+                  <Image
                     src={p.image || "/placeholder.png"}
                     alt={p.name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src = "/placeholder.png"
-                    }}
+                    fill
+                    className="object-contain p-2"
+                    sizes="(max-width: 768px) 50vw, 25vw"
+                    unoptimized={(p.image || "").startsWith("http")}
                   />
                 </div>
                 <div className="p-4">

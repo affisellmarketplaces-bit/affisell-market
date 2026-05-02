@@ -124,14 +124,14 @@ export function AffiliateDashboard({ catalog, listings: initialListings }: Props
         <section className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {catalog.map((p) => (
             <article key={p.id} className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-              <div className="overflow-hidden bg-zinc-100 dark:bg-zinc-800">
-                <img
+              <div className="relative aspect-square w-full overflow-hidden rounded-t-xl bg-gray-50 dark:bg-zinc-800">
+                <Image
                   src={p.image || "/placeholder.png"}
                   alt={p.name}
-                  className="h-48 w-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.src = "/placeholder.png"
-                  }}
+                  fill
+                  className="object-contain p-2"
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                  unoptimized={(p.image || "").startsWith("http")}
                 />
               </div>
               <div className="p-4">
@@ -193,10 +193,15 @@ export function AffiliateDashboard({ catalog, listings: initialListings }: Props
                   key={l.id}
                   className="flex flex-wrap items-center gap-4 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
                 >
-                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded bg-zinc-100 dark:bg-zinc-800">
-                    {l.product.image ? (
-                      <Image src={l.product.image} alt="" fill className="object-cover" unoptimized={l.product.image.startsWith("http")} />
-                    ) : null}
+                  <div className="relative aspect-square w-16 shrink-0 overflow-hidden rounded-xl bg-gray-50 dark:bg-zinc-800">
+                    <Image
+                      src={l.product.image || "/placeholder.png"}
+                      alt={l.product.name}
+                      fill
+                      className="object-contain p-2"
+                      sizes="64px"
+                      unoptimized={(l.product.image || "").startsWith("http")}
+                    />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="font-medium">{l.product.name}</p>
