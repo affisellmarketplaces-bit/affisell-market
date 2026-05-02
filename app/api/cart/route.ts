@@ -1,5 +1,6 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { primaryProductImage } from "@/lib/product-images"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -54,7 +55,7 @@ export async function GET() {
         id: listing.id,
         title: p.name,
         price: listing.sellingPriceCents / 100,
-        imageUrl: p.image || "",
+        imageUrl: primaryProductImage(p.images) || "",
       },
     }
   })

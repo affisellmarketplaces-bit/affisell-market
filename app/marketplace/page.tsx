@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { primaryProductImage } from "@/lib/product-images"
 
 import { MarketplaceListingCard } from "./marketplace-listing-card"
 
@@ -32,7 +33,7 @@ export default async function MarketplacePage() {
               <li key={item.id}>
                 <MarketplaceListingCard
                   detailHref={`/marketplace/${item.id}`}
-                  imageUrl={item.product.image || null}
+                  imageUrl={primaryProductImage(item.product.images) || null}
                   name={item.product.name}
                   priceDisplay={(item.sellingPriceCents / 100).toLocaleString("en-US", {
                     style: "currency",

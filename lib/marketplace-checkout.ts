@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import type Stripe from "stripe"
 
 import { prisma } from "@/lib/prisma"
+import { stripeProductImages } from "@/lib/product-images"
 import { stripe } from "@/lib/stripe"
 
 function checkoutBaseUrls(body: { cancelPath?: string; successPath?: string }) {
@@ -57,7 +58,7 @@ async function checkoutFromItems(lines: CartLineInput[], opts: { cancelPath?: st
         unit_amount: listing.sellingPriceCents,
         product_data: {
           name: listing.product.name,
-          images: listing.product.image ? [listing.product.image] : undefined,
+          images: stripeProductImages(listing.product.images),
         },
       },
       quantity: qty,
@@ -132,7 +133,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
           unit_amount: listing.sellingPriceCents,
           product_data: {
             name: listing.product.name,
-            images: listing.product.image ? [listing.product.image] : undefined,
+            images: stripeProductImages(listing.product.images),
           },
         },
         quantity: qty,
