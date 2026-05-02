@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation"
 
+import { parseProductColorImagesFromDb } from "@/lib/product-color-images"
 import { prisma } from "@/lib/prisma"
 import { variantsFromDb } from "@/lib/product-variants"
 
@@ -31,6 +32,7 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
     ? listing.product.tags.filter((t): t is string => typeof t === "string" && Boolean(t.trim()))
     : []
   const variants = variantsFromDb(listing.product.variants)
+  const colorImages = parseProductColorImagesFromDb(listing.product.colorImages) ?? []
 
   const priceDisplay = (listing.sellingPriceCents / 100).toLocaleString("en-US", {
     style: "currency",
@@ -50,6 +52,7 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
         colorNames={colorNames}
         tags={tags}
         variants={variants}
+        colorImages={colorImages}
       />
     </main>
   )

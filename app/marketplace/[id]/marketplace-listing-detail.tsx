@@ -11,6 +11,7 @@ import {
   isMulticolorSwatch,
   type VariantGroupKey,
 } from "@/lib/product-catalog-constants"
+import type { ProductColorImageRow } from "@/lib/product-color-images"
 import type { ProductVariantsJson } from "@/lib/product-variants"
 
 type Props = {
@@ -24,6 +25,7 @@ type Props = {
   colorNames: string[]
   tags: string[]
   variants: ProductVariantsJson | null
+  colorImages: ProductColorImageRow[]
 }
 
 const VARIANT_KEYS: VariantGroupKey[] = ["size", "storage", "ram", "material"]
@@ -39,6 +41,7 @@ export function MarketplaceListingDetail({
   colorNames,
   tags,
   variants,
+  colorImages,
 }: Props) {
   const router = useRouter()
   const urls = gallery
@@ -58,9 +61,13 @@ export function MarketplaceListingDetail({
     setSelectedImage((i) => Math.min(i, idxMax))
   }, [idxMax])
 
-  const heroFromColor = selectedColor ? v.imageByColor?.[selectedColor] : undefined
+  const colorRowImage =
+    selectedColor != null ? colorImages.find((c) => c.color === selectedColor)?.image?.trim() : ""
+  const legacyColorImage =
+    selectedColor != null ? (v.imageByColor?.[selectedColor]?.trim() ?? "") : ""
+  const colorHero = (colorRowImage || legacyColorImage).trim()
   const carouselSrc = safeUrls[selectedImage] ?? "/placeholder.png"
-  const heroSrc = heroFromColor?.trim() || carouselSrc
+  const heroSrc = colorHero || carouselSrc
 
   const goPrev = useCallback(() => {
     setSelectedImage((i) => (i <= 0 ? idxMax : i - 1))
@@ -258,7 +265,10 @@ export function MarketplaceListingDetail({
                       key={cn}
                       type="button"
                       title={cn}
-                      onClick={() => setSelectedColor(cn)}
+                      onClick={() => {
+                        setSelectedColor(cn)
+                        setSelectedImage(0)
+                      }}
                       className={`flex flex-col items-center gap-1 rounded-xl border px-2 py-1.5 text-[10px] ${
                         sel ? "border-blue-500 ring-2 ring-blue-400" : "border-zinc-200 dark:border-zinc-600"
                       }`}

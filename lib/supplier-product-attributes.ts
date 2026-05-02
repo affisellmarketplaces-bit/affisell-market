@@ -1,4 +1,5 @@
 import { CATEGORIES } from "@/lib/product-catalog-constants"
+import { parseProductColorImagesFromBody, type ProductColorImageRow } from "@/lib/product-color-images"
 import { parseVariantsPayload, type ProductVariantsJson } from "@/lib/product-variants"
 
 const CATEGORY_SET = new Set(CATEGORIES as readonly string[])
@@ -38,6 +39,7 @@ export type ParsedProductAttributes = {
   colors: string[]
   tags: string[]
   variants: ProductVariantsJson | null
+  colorImages: ProductColorImageRow[] | null
 }
 
 export function parseProductAttributesBody(body: Record<string, unknown>): ParsedProductAttributes {
@@ -47,5 +49,6 @@ export function parseProductAttributesBody(body: Record<string, unknown>): Parse
     colors: parseProductColors(body.colors),
     tags: parseProductTags(body.tags),
     variants,
+    colorImages: parseProductColorImagesFromBody(body.colorImages),
   }
 }

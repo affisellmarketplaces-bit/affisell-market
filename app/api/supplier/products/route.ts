@@ -1,3 +1,5 @@
+import { Prisma } from "@prisma/client"
+
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { parseProductAttributesBody } from "@/lib/supplier-product-attributes"
@@ -72,10 +74,17 @@ export async function POST(req: Request) {
       name: nameStr,
       description: desc,
       images,
+      colorImages:
+        attr.colorImages === null
+          ? Prisma.DbNull
+          : (attr.colorImages as unknown as Prisma.InputJsonValue),
       categories: attr.categories,
       colors: attr.colors,
       tags: attr.tags,
-      variants: attr.variants === null ? null : attr.variants,
+      variants:
+        attr.variants === null
+          ? Prisma.DbNull
+          : (attr.variants as unknown as Prisma.InputJsonValue),
       basePriceCents: Math.max(100, cents),
       commissionRate: rate,
       stock: stockN,

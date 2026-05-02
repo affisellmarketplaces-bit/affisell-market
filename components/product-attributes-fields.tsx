@@ -10,6 +10,7 @@ import {
   isMulticolorSwatch,
   type VariantGroupKey,
 } from "@/lib/product-catalog-constants"
+import { catalogHexForColorName, type ProductColorImageRow } from "@/lib/product-color-images"
 import type { ProductVariantsJson } from "@/lib/product-variants"
 
 export type ProductAttributesFieldsProps = {
@@ -17,6 +18,8 @@ export type ProductAttributesFieldsProps = {
   onCategoriesChange: (next: string[]) => void
   colors: string[]
   onColorsChange: (next: string[]) => void
+  colorImages: ProductColorImageRow[]
+  onColorImagesChange: (next: ProductColorImageRow[]) => void
   tags: string[]
   onTagsChange: (next: string[]) => void
   variants: ProductVariantsJson | null
@@ -72,6 +75,8 @@ export function ProductAttributesFields({
   onCategoriesChange,
   colors,
   onColorsChange,
+  colorImages,
+  onColorImagesChange,
   tags,
   onTagsChange,
   variants,
@@ -99,15 +104,28 @@ export function ProductAttributesFields({
   function toggleColorName(name: string) {
     if (colors.includes(name)) {
       onColorsChange(colors.filter((x) => x !== name))
-      const ibc = v.imageByColor
-      if (ibc && ibc[name]) {
-        const next = { ...ibc }
-        delete next[name]
-        onVariantsChange(mergeVariants(variants, { imageByColor: Object.keys(next).length ? next : undefined }))
-      }
       return
     }
     onColorsChange([...colors, name])
+  }
+
+  function rowForColor(colorName: string): ProductColorImageRow {
+    return (
+      colorImages.find((r) => r.color === colorName) ?? {
+        color: colorName,
+        hex: catalogHexForColorName(colorName),
+        image: "",
+      }
+    )
+  }
+
+  function patchColorRow(colorName: string, patch: Partial<ProductColorImageRow>) {
+    onColorImagesChange(
+      colors.map((c) => {
+        const base = rowForColor(c)
+        return c === colorName ? { ...base, ...patch } : base
+      })
+    )
   }
 
   function commitTag() {
@@ -216,6 +234,80 @@ export function ProductAttributesFields({
             )
           })}
         </div>
+
+        {colors.length > 0 ? (
+          <div className="mt-4">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Optional: Add image per color</p>
+            <div className="mt-3 space-y-3">
+              {colors.map((colorName) => {
+                const row = rowForColor(colorName)
+                const meta = COLORS.find((c) => c.name === colorName)
+                const mc = meta ? isMulticolorSwatch(meta) : row.hex === "multicolor"
+                const uploadId = `color-upload-${colorName.replace(/\s+/g, "-")}`
+                const img = row.image.trim()
+                return (
+                  <div
+                    key={colorName}
+                    className="mt-2 rounded-lg border border-zinc-200 p-4 dark:border-zinc-700"
+                  >
+                    <div className="mb-3 flex items-center gap-3">
+                      <span
+                        className={`h-6 w-6 shrink-0 rounded-full ring-1 ring-black/15 ${
+                          mc
+                            ? "bg-[conic-gradient(at_50%_50%,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)]"
+                            : ""
+                        }`}
+                        style={mc ? undefined : { backgroundColor: row.hex }}
+                      />
+                      <span className="font-medium text-zinc-900 dark:text-zinc-100">{colorName}</span>
+                    </div>
+
+                    <label className="text-sm text-zinc-700 dark:text-zinc-300">Image for {colorName}</label>
+                    <div className="mt-1 flex flex-wrap items-center gap-2">
+                      <input
+                        type="url"
+                        value={row.image}
+                        onChange={(e) => patchColorRow(colorName, { image: e.target.value })}
+                        placeholder={`https://... image URL for ${colorName}`}
+                        className="min-w-[12rem] flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950"
+                      />
+                      <span className="text-sm text-zinc-400">or</span>
+                      <label
+                        htmlFor={uploadId}
+                        className="cursor-pointer rounded-lg border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50 dark:border-zinc-600 dark:hover:bg-zinc-800"
+                      >
+                        Upload
+                        <input
+                          id={uploadId}
+                          type="file"
+                          accept="image/*"
+                          className="sr-only"
+                          onChange={(e) => {
+                            const f = e.target.files?.[0]
+                            e.target.value = ""
+                            if (!f) return
+                            const prev = row.image
+                            if (prev.startsWith("blob:")) URL.revokeObjectURL(prev)
+                            patchColorRow(colorName, { image: URL.createObjectURL(f) })
+                          }}
+                        />
+                      </label>
+                    </div>
+
+                    {img ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={img}
+                        alt=""
+                        className="mt-2 h-20 w-20 rounded border border-zinc-200 object-contain dark:border-zinc-600"
+                      />
+                    ) : null}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        ) : null}
       </div>
 
       {/* Variants */}
@@ -337,38 +429,6 @@ export function ProductAttributesFields({
             />
           </div>
 
-          {colors.length > 0 ? (
-            <div>
-              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Image per color (optional)</p>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                Image URL shown on the product page when the shopper selects this color.
-              </p>
-              <div className="mt-2 space-y-2">
-                {colors.map((colorName) => (
-                  <div key={colorName} className="flex flex-col gap-1 sm:flex-row sm:items-center">
-                    <span className="w-32 shrink-0 text-sm text-zinc-600 dark:text-zinc-400">{colorName}</span>
-                    <input
-                      type="url"
-                      value={(v.imageByColor ?? {})[colorName] ?? ""}
-                      onChange={(e) => {
-                        const url = e.target.value.trim()
-                        const cur = { ...(v.imageByColor ?? {}) }
-                        if (url) cur[colorName] = url
-                        else delete cur[colorName]
-                        onVariantsChange(
-                          mergeVariants(variants, {
-                            imageByColor: Object.keys(cur).length ? cur : undefined,
-                          })
-                        )
-                      }}
-                      placeholder="https://..."
-                      className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : null}
         </div>
       </div>
 

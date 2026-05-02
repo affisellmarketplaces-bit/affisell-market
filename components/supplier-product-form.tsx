@@ -5,6 +5,12 @@ import type { FormEvent } from "react"
 import { useEffect, useRef, useState } from "react"
 
 import { ProductAttributesFields } from "@/components/product-attributes-fields"
+import {
+  buildColorImagesFromLegacy,
+  catalogHexForColorName,
+  parseProductColorImagesFromDb,
+  type ProductColorImageRow,
+} from "@/lib/product-color-images"
 import { variantsFromDb, type ProductVariantsJson } from "@/lib/product-variants"
 
 export type SupplierProductRecord = {
@@ -16,6 +22,7 @@ export type SupplierProductRecord = {
   colors?: string[]
   tags?: string[]
   variants?: unknown
+  colorImages?: unknown
   basePriceCents: number
   commissionRate: number
   stock: number
@@ -38,6 +45,11 @@ function emptyForm(): FormState {
     commission: "20",
     stock: "0",
   }
+}
+
+function mergeColorImageRows(colors: string[], prev: ProductColorImageRow[]): ProductColorImageRow[] {
+  const map = new Map(prev.map((r) => [r.color, r]))
+  return colors.map((c) => map.get(c) ?? { color: c, hex: catalogHexForColorName(c), image: "" })
 }
 
 type Props = {
@@ -63,6 +75,7 @@ export function SupplierProductForm({
   const [colors, setColors] = useState<string[]>([])
   const [tags, setTags] = useState<string[]>([])
   const [variants, setVariants] = useState<ProductVariantsJson | null>(null)
+  const [colorImages, setColorImages] = useState<ProductColorImageRow[]>([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -75,6 +88,7 @@ export function SupplierProductForm({
       setColors([])
       setTags([])
       setVariants(null)
+      setColorImages([])
       return
     }
     const imgs = (initial.images ?? []).map((u) => u.trim()).filter(Boolean)
@@ -90,6 +104,13 @@ export function SupplierProductForm({
     setColors(Array.isArray(initial.colors) ? initial.colors : [])
     setTags(Array.isArray(initial.tags) ? initial.tags : [])
     setVariants(variantsFromDb(initial.variants))
+    const colorsArr = Array.isArray(initial.colors) ? initial.colors : []
+    const fromDb = parseProductColorImagesFromDb(initial.colorImages)
+    if (fromDb?.length) {
+      setColorImages(mergeColorImageRows(colorsArr, fromDb))
+    } else {
+      setColorImages(buildColorImagesFromLegacy(colorsArr, initial.variants))
+    }
   }, [resetKey, initial])
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -102,6 +123,11 @@ export function SupplierProductForm({
         .filter(Boolean)
         .filter((s) => !s.startsWith("blob:"))
         .slice(0, 10)
+      const rows = mergeColorImageRows(colors, colorImages).map((r) => ({
+        color: r.color,
+        hex: r.hex,
+        image: r.image.startsWith("blob:") ? "" : r.image.trim(),
+      }))
       const body = {
         name: form.name.trim(),
         description: form.description.trim(),
@@ -110,6 +136,7 @@ export function SupplierProductForm({
         colors,
         tags,
         variants: variants ?? undefined,
+        colorImages: rows.length ? rows : [],
         price: Number(form.price),
         commission: Number(form.commission),
         stock: Number(form.stock),
@@ -140,6 +167,9 @@ export function SupplierProductForm({
 
       imageUrls.forEach((u) => {
         if (u.startsWith("blob:")) URL.revokeObjectURL(u)
+      })
+      colorImages.forEach((r) => {
+        if (r.image.startsWith("blob:")) URL.revokeObjectURL(r.image)
       })
       onSuccess()
     } catch (err) {
@@ -297,7 +327,12 @@ export function SupplierProductForm({
           categories={categories}
           onCategoriesChange={setCategories}
           colors={colors}
-          onColorsChange={setColors}
+          onColorsChange={(next) => {
+            setColors(next)
+            setColorImages((prev) => mergeColorImageRows(next, prev))
+          }}
+          colorImages={colorImages}
+          onColorImagesChange={setColorImages}
           tags={tags}
           onTagsChange={setTags}
           variants={variants}
