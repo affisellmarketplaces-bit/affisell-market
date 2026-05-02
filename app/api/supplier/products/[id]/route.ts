@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { parseProductAttributesBody } from "@/lib/supplier-product-attributes"
+import { parseSupplierProductShippingBody } from "@/lib/supplier-product-shipping"
 import { parseSupplierProductImages } from "@/lib/supplier-product-images"
 
 export const runtime = "nodejs"
@@ -64,6 +65,7 @@ export async function PUT(
   const desc = typeof body.description === "string" ? body.description.trim() : ""
   const images = parseSupplierProductImages(body as unknown as Record<string, unknown>)
   const attr = parseProductAttributesBody(body as unknown as Record<string, unknown>)
+  const ship = parseSupplierProductShippingBody(body as unknown as Record<string, unknown>)
 
   const updated = await prisma.product.update({
     where: { id },
@@ -85,6 +87,15 @@ export async function PUT(
       basePriceCents: Math.max(100, Math.round(price * 100)),
       commissionRate: rate,
       stock,
+      shippingCountry: ship.shippingCountry,
+      warehouseType: ship.warehouseType,
+      warehouseCity: ship.warehouseCity,
+      processingTime: ship.processingTime,
+      deliveryMin: ship.deliveryMin,
+      deliveryMax: ship.deliveryMax,
+      shippingMethods: ship.shippingMethods,
+      freeShippingThreshold: ship.freeShippingThreshold,
+      shippingCost: ship.shippingCost,
     },
   })
 

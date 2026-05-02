@@ -99,6 +99,7 @@ export default async function PublicStorefrontPage({ params }: { params: Promise
                     sellerDisplay={store.name}
                     soldByAffiliate={store.name}
                     trackClicks
+                    fastShipping={(item.product!.deliveryMax ?? 99) <= 3}
                     product={{ id: item.id }}
                   />
                 </li>

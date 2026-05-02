@@ -44,6 +44,7 @@ type CatalogProduct = {
   variants?: unknown
   basePriceCents: number
   commissionRate: number
+  deliveryMax?: number | null
   /** Present on Supplier Catalog query; may be absent on nested `listing.product`. */
   affiliateProducts?: { id: string; isListed: boolean }[]
   supplier: { email: string; store?: { name: string; slug: string } | null }
@@ -103,11 +104,18 @@ function SortableStoreCard(props: {
         selected ? "ring-2 ring-green-600" : "ring-gray-100 hover:shadow-md hover:ring-gray-200"
       }`}
     >
-      {listing.isFeatured ? (
-        <span className="absolute right-3 top-3 z-10 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-900">
-          Featured
-        </span>
-      ) : null}
+      <div className="absolute right-3 top-3 z-10 flex flex-col items-end gap-1">
+        {(listing.product?.deliveryMax ?? 99) <= 3 ? (
+          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-900">
+            Fast Shipping
+          </span>
+        ) : null}
+        {listing.isFeatured ? (
+          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-900">
+            Featured
+          </span>
+        ) : null}
+      </div>
       <label className="absolute left-3 top-3 z-10 flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg bg-white/90 shadow ring-1 ring-gray-100">
         <input type="checkbox" checked={selected} onChange={() => onSelect()} className="h-4 w-4 accent-gray-900" />
       </label>

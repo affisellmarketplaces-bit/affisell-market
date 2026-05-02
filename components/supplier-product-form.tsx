@@ -27,6 +27,15 @@ export type SupplierProductRecord = {
   commissionRate: number
   stock: number
   active?: boolean
+  shippingCountry?: string | null
+  warehouseType?: string | null
+  warehouseCity?: string | null
+  processingTime?: number | null
+  deliveryMin?: number | null
+  deliveryMax?: number | null
+  shippingMethods?: string[] | null
+  freeShippingThreshold?: number | null
+  shippingCost?: number | null
 }
 
 type FormState = {
@@ -76,12 +85,24 @@ export function SupplierProductForm({
   const [tags, setTags] = useState<string[]>([])
   const [variants, setVariants] = useState<ProductVariantsJson | null>(null)
   const [colorImages, setColorImages] = useState<ProductColorImageRow[]>([])
+  const [shippingCountry, setShippingCountry] = useState("")
+  const [warehouseType, setWarehouseType] = useState<"local" | "regional" | "international">("local")
+  const [warehouseCity, setWarehouseCity] = useState("")
+  const [processingTime, setProcessingTime] = useState("1")
+  const [deliveryMin, setDeliveryMin] = useState("2")
+  const [deliveryMax, setDeliveryMax] = useState("5")
+  const [methodStandard, setMethodStandard] = useState(true)
+  const [methodExpress, setMethodExpress] = useState(false)
+  const [methodPickup, setMethodPickup] = useState(false)
+  const [freeShippingEUR, setFreeShippingEUR] = useState("")
+  const [shippingCostEUR, setShippingCostEUR] = useState("0")
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (!initial) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset entire form when not editing a product
       setForm(emptyForm())
       setImageUrls([""])
       setCategories([])
@@ -89,6 +110,17 @@ export function SupplierProductForm({
       setTags([])
       setVariants(null)
       setColorImages([])
+      setShippingCountry("FR")
+      setWarehouseType("local")
+      setWarehouseCity("")
+      setProcessingTime("1")
+      setDeliveryMin("2")
+      setDeliveryMax("5")
+      setMethodStandard(true)
+      setMethodExpress(false)
+      setMethodPickup(false)
+      setFreeShippingEUR("")
+      setShippingCostEUR("0")
       return
     }
     const imgs = (initial.images ?? []).map((u) => u.trim()).filter(Boolean)
@@ -111,6 +143,29 @@ export function SupplierProductForm({
     } else {
       setColorImages(buildColorImagesFromLegacy(colorsArr, initial.variants))
     }
+    setShippingCountry((initial.shippingCountry ?? "FR").toUpperCase())
+    const wt = initial.warehouseType?.toLowerCase()
+    setWarehouseType(
+      wt === "regional" || wt === "international" ? wt : "local"
+    )
+    setWarehouseCity(initial.warehouseCity ?? "")
+    setProcessingTime(String(initial.processingTime ?? 1))
+    setDeliveryMin(String(initial.deliveryMin ?? 2))
+    setDeliveryMax(String(initial.deliveryMax ?? 5))
+    const m = initial.shippingMethods ?? []
+    setMethodStandard(m.includes("standard") || m.length === 0)
+    setMethodExpress(m.includes("express"))
+    setMethodPickup(m.includes("pickup"))
+    setFreeShippingEUR(
+      initial.freeShippingThreshold != null && Number(initial.freeShippingThreshold) > 0
+        ? String(Number(initial.freeShippingThreshold))
+        : ""
+    )
+    setShippingCostEUR(
+      initial.shippingCost != null && Number(initial.shippingCost) > 0
+        ? String(Number(initial.shippingCost))
+        : "0"
+    )
   }, [resetKey, initial])
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -128,6 +183,11 @@ export function SupplierProductForm({
         hex: r.hex,
         image: r.image.startsWith("blob:") ? "" : r.image.trim(),
       }))
+      const shippingMethods: string[] = []
+      if (methodStandard) shippingMethods.push("standard")
+      if (methodExpress) shippingMethods.push("express")
+      if (methodPickup) shippingMethods.push("pickup")
+
       const body = {
         name: form.name.trim(),
         description: form.description.trim(),
@@ -140,6 +200,15 @@ export function SupplierProductForm({
         price: Number(form.price),
         commission: Number(form.commission),
         stock: Number(form.stock),
+        shippingCountry: shippingCountry.trim() || undefined,
+        warehouseType,
+        warehouseCity: warehouseCity.trim(),
+        processingTime: Math.round(Number(processingTime)) || 1,
+        deliveryMin: Math.round(Number(deliveryMin)) || 2,
+        deliveryMax: Math.round(Number(deliveryMax)) || 5,
+        shippingMethods,
+        freeShippingThresholdEUR: freeShippingEUR.trim() === "" ? null : Number(freeShippingEUR),
+        shippingCostEUR: Number(shippingCostEUR) || 0,
       }
 
       if (!body.name) throw new Error("Name is required")
@@ -322,6 +391,191 @@ export function SupplierProductForm({
           onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
           className="md:col-span-2 rounded-md border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
         />
+
+        <div className="md:col-span-2 rounded-xl border border-zinc-200 bg-zinc-50/80 p-5 dark:border-zinc-700 dark:bg-zinc-900/50">
+          <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">Shipping &amp; Delivery</h3>
+          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+            Accurate shipping settings help affiliates and buyers trust delivery times.
+          </p>
+
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-zinc-800 dark:text-zinc-200">Ship from country</label>
+            <select
+              value={shippingCountry}
+              onChange={(e) => setShippingCountry(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950"
+            >
+              <option value="FR">🇫🇷 FR — France</option>
+              <option value="DE">🇩🇪 DE — Germany</option>
+              <option value="ES">🇪🇸 ES — Spain</option>
+              <option value="IT">🇮🇹 IT — Italy</option>
+              <option value="US">🇺🇸 US — United States</option>
+              <option value="CN">🇨🇳 CN — China</option>
+              <option value="UK">🇬🇧 UK — United Kingdom</option>
+            </select>
+          </div>
+
+          <div className="mt-4">
+            <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">Warehouse type</p>
+            <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950">
+                <input
+                  type="radio"
+                  name="warehouseType"
+                  checked={warehouseType === "local"}
+                  onChange={() => setWarehouseType("local")}
+                />
+                <span>Local (same country)</span>
+                <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-800">
+                  Local
+                </span>
+              </label>
+              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950">
+                <input
+                  type="radio"
+                  name="warehouseType"
+                  checked={warehouseType === "regional"}
+                  onChange={() => setWarehouseType("regional")}
+                />
+                <span>Regional (EU)</span>
+                <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-800">
+                  EU
+                </span>
+              </label>
+              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950">
+                <input
+                  type="radio"
+                  name="warehouseType"
+                  checked={warehouseType === "international"}
+                  onChange={() => setWarehouseType("international")}
+                />
+                <span>International</span>
+                <span className="rounded-full bg-zinc-200 px-2 py-0.5 text-[10px] font-semibold text-zinc-700">
+                  Global
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-zinc-800 dark:text-zinc-200">Warehouse city</label>
+            <input
+              type="text"
+              placeholder="Paris"
+              value={warehouseCity}
+              onChange={(e) => setWarehouseCity(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950"
+            />
+          </div>
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-zinc-800 dark:text-zinc-200">Processing time</label>
+              <p className="mt-1 text-xs text-zinc-500">Ships within the number of days below.</p>
+              <input
+                type="number"
+                min={1}
+                max={30}
+                value={processingTime}
+                onChange={(e) => setProcessingTime(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950"
+              />
+              <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
+                Ships within{" "}
+                <span className="font-semibold text-zinc-900 dark:text-zinc-100">{processingTime || "1"}</span>{" "}
+                {Number(processingTime) === 1 ? "day" : "days"}
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-zinc-800 dark:text-zinc-200">Delivery estimate</label>
+              <p className="mt-1 text-xs text-zinc-500">Business days after dispatch.</p>
+              <div className="mt-1 flex gap-2">
+                <input
+                  type="number"
+                  min={1}
+                  max={60}
+                  value={deliveryMin}
+                  onChange={(e) => setDeliveryMin(e.target.value)}
+                  className="w-full rounded-lg border border-zinc-300 px-2 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950"
+                />
+                <input
+                  type="number"
+                  min={1}
+                  max={90}
+                  value={deliveryMax}
+                  onChange={(e) => setDeliveryMax(e.target.value)}
+                  className="w-full rounded-lg border border-zinc-300 px-2 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950"
+                />
+              </div>
+              <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
+                Delivers in{" "}
+                <span className="font-semibold text-zinc-900 dark:text-zinc-100">{deliveryMin || "2"}</span> to{" "}
+                <span className="font-semibold text-zinc-900 dark:text-zinc-100">{deliveryMax || "5"}</span> business
+                days
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">Shipping methods</p>
+            <div className="mt-2 flex flex-wrap gap-4">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={methodStandard}
+                  onChange={(e) => setMethodStandard(e.target.checked)}
+                />
+                Standard
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={methodExpress}
+                  onChange={(e) => setMethodExpress(e.target.checked)}
+                />
+                Express (24h)
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={methodPickup}
+                  onChange={(e) => setMethodPickup(e.target.checked)}
+                />
+                Local Pickup
+              </label>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                Free shipping over (€)
+              </label>
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                placeholder="50"
+                value={freeShippingEUR}
+                onChange={(e) => setFreeShippingEUR(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                Default shipping cost (€)
+              </label>
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                value={shippingCostEUR}
+                onChange={(e) => setShippingCostEUR(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950"
+              />
+            </div>
+          </div>
+        </div>
 
         <ProductAttributesFields
           categories={categories}

@@ -56,6 +56,17 @@ model Product {
   commissionRate Int
   stock Int @default(0)
   active Boolean @default(true)
+
+  shippingCountry        String?
+  warehouseType          String?
+  warehouseCity          String?
+  processingTime         Int      @default(1)
+  deliveryMin            Int      @default(2)
+  deliveryMax            Int      @default(5)
+  shippingMethods        String[] @default([])
+  freeShippingThreshold  Decimal?
+  shippingCost           Decimal  @default(0)
+
   supplier User @relation("SupplierProducts", fields: [supplierId], references: [id])
   affiliateProducts AffiliateProduct[]
   orders Order[]

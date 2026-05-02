@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
+import { Truck } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
@@ -21,6 +22,16 @@ type StorefrontInfo = {
   showTrustedSoldBy: boolean
 }
 
+export type ListingShippingBlock = {
+  deliveryMin: number
+  deliveryMax: number
+  processingTime: number
+  warehouseType: string | null
+  warehouseCity: string | null
+  shippingCountryLabel: string
+  freeShippingThresholdEUR: number | null
+}
+
 type Props = {
   listingId: string
   name: string
@@ -35,6 +46,7 @@ type Props = {
   tags: string[]
   variants: ProductVariantsJson | null
   colorImages: ProductColorImageRow[]
+  shipping: ListingShippingBlock
 }
 
 const VARIANT_KEYS: VariantGroupKey[] = ["size", "storage", "ram", "material"]
@@ -52,6 +64,7 @@ export function MarketplaceListingDetail({
   tags,
   variants,
   colorImages,
+  shipping,
 }: Props) {
   const router = useRouter()
   const urls = gallery
@@ -68,6 +81,7 @@ export function MarketplaceListingDetail({
   const idxMax = safeUrls.length - 1
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- clamp index when gallery length changes
     setSelectedImage((i) => Math.min(i, idxMax))
   }, [idxMax])
 
@@ -372,7 +386,27 @@ export function MarketplaceListingDetail({
           ) : null}
 
           <div className="mt-4 text-3xl font-bold text-green-600">{priceDisplay}</div>
-          <p className="mt-2 text-xs text-gray-500 dark:text-zinc-500">Free shipping • 30-day returns</p>
+
+          <div className="mt-4 space-y-2 rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
+            <div className="flex flex-wrap items-center gap-2">
+              <Truck className="h-4 w-4 shrink-0 text-green-600" aria-hidden />
+              <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                {shipping.deliveryMin}-{shipping.deliveryMax} business days
+              </span>
+              {shipping.warehouseType === "local" ? (
+                <span className="rounded bg-green-100 px-2 py-0.5 text-xs text-green-700">Local Stock</span>
+              ) : null}
+            </div>
+            <p className="text-sm text-gray-600 dark:text-zinc-400">
+              Ships from {shipping.warehouseCity?.trim() || "—"}, {shipping.shippingCountryLabel} • Processes in{" "}
+              {shipping.processingTime} {shipping.processingTime === 1 ? "day" : "days"}
+            </p>
+            {shipping.freeShippingThresholdEUR != null && shipping.freeShippingThresholdEUR > 0 ? (
+              <p className="text-sm text-green-600 dark:text-green-400">
+                Free shipping over €{shipping.freeShippingThresholdEUR.toFixed(0)}
+              </p>
+            ) : null}
+          </div>
 
           <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-400">
             by{" "}

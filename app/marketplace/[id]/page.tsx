@@ -5,6 +5,7 @@ import {
   listingDisplayTitle,
   listingGalleryUrls,
 } from "@/lib/affiliate-listing-display"
+import { shippingCountryLabel } from "@/lib/product-shipping-display"
 import { parseProductColorImagesFromDb } from "@/lib/product-color-images"
 import { prisma } from "@/lib/prisma"
 import { variantsFromDb } from "@/lib/product-variants"
@@ -53,6 +54,22 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
     currency: "EUR",
   })
 
+  const p = listing.product
+  const freeThresh =
+    p.freeShippingThreshold != null && Number(p.freeShippingThreshold) > 0
+      ? Number(p.freeShippingThreshold)
+      : null
+
+  const shipping = {
+    deliveryMin: p.deliveryMin ?? 2,
+    deliveryMax: p.deliveryMax ?? 5,
+    processingTime: p.processingTime ?? 1,
+    warehouseType: p.warehouseType ?? null,
+    warehouseCity: p.warehouseCity ?? null,
+    shippingCountryLabel: shippingCountryLabel(p.shippingCountry),
+    freeShippingThresholdEUR: freeThresh,
+  }
+
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 md:px-8">
       <MarketplaceListingDetail
@@ -71,6 +88,7 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
         tags={tags}
         variants={variants}
         colorImages={colorImages}
+        shipping={shipping}
       />
     </main>
   )

@@ -14,6 +14,8 @@ type Props = {
   trackClicks?: boolean
   /** Listing id (`AffiliateProduct.id`) — sent as `productId` to cart and checkout APIs. */
   product: { id: string }
+  /** When product `deliveryMax` is 3 days or less */
+  fastShipping?: boolean
 }
 
 export function MarketplaceListingCard({
@@ -25,6 +27,7 @@ export function MarketplaceListingCard({
   soldByAffiliate,
   trackClicks,
   product,
+  fastShipping,
 }: Props) {
   const listing = {
     id: product.id,
@@ -73,6 +76,13 @@ export function MarketplaceListingCard({
         </div>
         <div className="p-4">
           <p className="font-semibold leading-snug">{name}</p>
+          {fastShipping ? (
+            <p className="mt-1.5">
+              <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-800">
+                Fast Shipping
+              </span>
+            </p>
+          ) : null}
           {soldByAffiliate ? (
             <p className="mt-1 text-xs font-medium text-green-700">Sold by {soldByAffiliate}</p>
           ) : null}
