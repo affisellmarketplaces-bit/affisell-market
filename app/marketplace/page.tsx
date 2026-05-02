@@ -21,7 +21,7 @@ export default async function MarketplacePage() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 md:px-8">
       <h1 className="text-2xl font-semibold">Marketplace</h1>
-      <p className="mt-2 text-sm text-zinc-500">Active storefront listings</p>
+      <p className="mt-1 text-gray-600">Discover curated products from verified sellers</p>
 
       <ul className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
         {listings.length === 0 ? (
@@ -38,7 +38,9 @@ export default async function MarketplacePage() {
                     style: "currency",
                     currency: "EUR",
                   })}
-                  sellerDisplay={item.affiliate.affiliateStore?.slug ?? item.affiliate.email}
+                  sellerDisplay={
+                    item.affiliate.name?.trim() ? item.affiliate.name.trim() : "Verified Seller"
+                  }
                   product={{ id: item.id }}
                 />
               </li>
