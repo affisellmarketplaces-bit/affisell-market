@@ -21,6 +21,29 @@ export function MarketplaceListingCard({
   sellerDisplay,
   product,
 }: Props) {
+  const listing = { id: product.id }
+
+  async function addToCart(listingId: string) {
+    const res = await fetch("/api/cart/add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ productId: listingId, qty: 1 }),
+      credentials: "include",
+    })
+    console.log("Add to cart", res.ok ? "ok" : await res.text())
+  }
+
+  async function buyNow(listingId: string) {
+    const res = await fetch("/api/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ productId: listingId, qty: 1 }),
+      credentials: "include",
+    })
+    const data = (await res.json()) as { url?: string; error?: string }
+    if (data.url) window.location.href = data.url
+  }
+
   return (
     <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-600">
       <Link href={detailHref} className="block">
@@ -48,32 +71,15 @@ export function MarketplaceListingCard({
         <div className="flex gap-2 mt-3">
           <button
             type="button"
-            onClick={async () => {
-              const res = await fetch("/api/cart/add", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ productId: product.id, qty: 1 }),
-                credentials: "include",
-              })
-              console.log("Add to cart", res.ok ? "ok" : await res.text())
-            }}
-            className="flex-1 px-3 py-2 border rounded-lg text-sm hover:bg-zinc-50"
+            onClick={() => void addToCart(listing.id)}
+            className="flex-1 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-medium rounded-xl px-4 py-2.5 transition-colors shadow-sm"
           >
             Add to cart
           </button>
           <button
             type="button"
-            onClick={async () => {
-              const res = await fetch("/api/checkout", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ productId: product.id, qty: 1 }),
-                credentials: "include",
-              })
-              const data = (await res.json()) as { url?: string; error?: string }
-              if (data.url) window.location.href = data.url
-            }}
-            className="flex-1 px-3 py-2 bg-black text-white rounded-lg text-sm hover:opacity-90"
+            onClick={() => void buyNow(listing.id)}
+            className="flex-1 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-medium rounded-xl px-4 py-2.5 transition-colors shadow-sm"
           >
             Buy
           </button>
