@@ -43,8 +43,8 @@ export default function CustomerSignupPage() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-10">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-900">Shop & Get Paid Back</h1>
-          <p className="mt-2 text-gray-600">Get cashback and bonuses on every purchase</p>
+          <h1 className="text-3xl font-bold text-gray-900">Shop & Get Up to 20% Back</h1>
+          <p className="mt-2 text-gray-600">Get up to 20% cashback on every purchase</p>
         </div>
 
         <div className="rounded-2xl bg-white p-8 shadow-sm">
@@ -92,7 +92,7 @@ export default function CustomerSignupPage() {
           <div className="mt-6 border-t border-gray-100 pt-6">
             <div className="space-y-2.5 text-sm text-gray-600">
               <div className="flex items-center gap-2">
-                <span className="text-green-600">✓</span> 5% cashback credited instantly
+                <span className="text-green-600">✓</span> Up to 20% cashback credited instantly
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-green-600">✓</span> Bonus credits for reviews & referrals

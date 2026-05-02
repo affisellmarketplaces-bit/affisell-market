@@ -96,6 +96,14 @@ export default function SupplierSignupPage() {
             {error ? <p className="text-center text-sm text-red-600">{error}</p> : null}
           </form>
 
+          <div className="mt-6 border-t border-gray-100 pt-6">
+            <div className="space-y-2.5 text-sm text-gray-600">
+              <div className="flex items-center gap-2">
+                <span className="text-green-600">✓</span> Affiliates sell for you — no outreach needed
+              </div>
+            </div>
+          </div>
+
           <p className="mt-6 text-center text-sm text-gray-600">
             Want to promote instead?{" "}
             <Link href="/signup/affiliate" className="font-medium text-blue-600 hover:text-blue-700">

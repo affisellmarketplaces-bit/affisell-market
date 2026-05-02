@@ -25,7 +25,7 @@ export default function SignupChooser() {
             <div className="h-full rounded-2xl border-2 border-violet-500 bg-white p-8 shadow-sm transition-all hover:border-violet-600 hover:shadow-md">
               <div className="mb-4 text-4xl">🛒</div>
               <h2 className="mb-2 text-xl font-semibold text-gray-900">Join as Customer</h2>
-              <p className="mb-6 text-gray-600">Shop and get 5% cashback on every order</p>
+              <p className="mb-6 text-gray-600">Shop and get up to 20% cashback on every order</p>
               <div className="flex items-center gap-1 font-medium text-violet-600 group-hover:gap-2">
                 Get started <span>→</span>
               </div>
