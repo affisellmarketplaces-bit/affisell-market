@@ -10,12 +10,18 @@ datasource db {
 }
 
 model User {
-  id String @id @default(cuid())
-  email String @unique
-  name String?
-  password String?
-  role String
-  createdAt DateTime @default(now())
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
+  image         String?
+  password      String?
+  role          String    @default("CUSTOMER")
+  createdAt     DateTime  @default(now())
+
+  accounts Account[]
+  sessions Session[]
+
   products Product[] @relation("SupplierProducts")
   affiliateProducts AffiliateProduct[]
   supplierOrders Order[] @relation("SupplierOrders")
@@ -44,6 +50,7 @@ model Store {
   tiktok               String?
   youtube              String?
   twitch               String?
+  facebook             String?
   twitter              String?
   followers            Json?
   showSocialsOnStore   Boolean   @default(true)
@@ -195,4 +202,39 @@ model Notification {
   read Boolean @default(false)
   createdAt DateTime @default(now())
   user User @relation(fields: [userId], references: [id])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }

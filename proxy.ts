@@ -16,7 +16,7 @@ const nextAuthHandler = auth((req) => {
   }
 
   if (pathname.startsWith("/dashboard") && !req.auth) {
-    const loginUrl = new URL("/login", req.url)
+    const loginUrl = new URL("/auth/signin", req.url)
     loginUrl.searchParams.set("callbackUrl", `${pathname}${req.nextUrl.search}`)
     return NextResponse.redirect(loginUrl)
   }

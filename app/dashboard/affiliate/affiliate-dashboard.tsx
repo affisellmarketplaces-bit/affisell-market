@@ -312,6 +312,13 @@ export function AffiliateDashboard({ catalog: initialCatalog, listings: initialL
           >
             Social &amp; community hub →
           </button>
+          <button
+            type="button"
+            onClick={() => router.push("/dashboard/settings/account")}
+            className="mt-2 block text-sm font-medium text-gray-700 hover:text-gray-900"
+          >
+            Account &amp; connected logins →
+          </button>
         </div>
         <div className="flex flex-wrap gap-2">
           <button
