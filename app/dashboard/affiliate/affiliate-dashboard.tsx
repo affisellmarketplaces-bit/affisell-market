@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import { signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
@@ -83,7 +84,16 @@ export function AffiliateDashboard({ catalog, listings: initialListings }: Props
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-10 md:px-8">
-      <h1 className="text-2xl font-semibold">Affiliate dashboard</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-semibold">Affiliate dashboard</h1>
+        <button
+          type="button"
+          onClick={() => signOut({ callbackUrl: "/" })}
+          className="px-3 py-1.5 text-sm border rounded-lg hover:bg-zinc-50"
+        >
+          Logout
+        </button>
+      </div>
 
       <div className="mt-6 flex gap-2 border-b border-zinc-200 dark:border-zinc-800">
         <button

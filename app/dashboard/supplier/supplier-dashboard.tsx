@@ -1,6 +1,7 @@
 "use client"
 
 import type { FormEvent } from "react"
+import { signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
@@ -198,7 +199,16 @@ export function SupplierDashboard() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-10 md:px-8">
-      <h1 className="text-2xl font-semibold">Supplier · My products</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-semibold">Supplier · My products</h1>
+        <button
+          type="button"
+          onClick={() => signOut({ callbackUrl: "/" })}
+          className="px-3 py-1.5 text-sm border rounded-lg hover:bg-zinc-50"
+        >
+          Logout
+        </button>
+      </div>
 
       <section className="mt-8 rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
         <h2>{editing ? "Edit Product" : "Add Product"}</h2>
