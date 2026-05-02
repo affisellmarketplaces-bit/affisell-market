@@ -317,14 +317,14 @@ export function SupplierDashboard() {
                     <button
                       type="button"
                       onClick={() => openEdit(p)}
-                      className="rounded-lg border px-3 py-1.5 text-sm hover:bg-zinc-50"
+                      className="px-3 py-1.5 text-sm border rounded-lg hover:bg-zinc-50"
                     >
                       Edit
                     </button>
                     <button
                       type="button"
                       onClick={() => handleDelete(p.id)}
-                      className="rounded-lg border px-3 py-1.5 text-sm text-red-600 hover:bg-red-50"
+                      className="px-3 py-1.5 text-sm border rounded-lg text-red-600 hover:bg-red-50"
                     >
                       Delete
                     </button>
