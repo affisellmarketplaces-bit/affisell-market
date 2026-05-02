@@ -1,5 +1,6 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { parseProductAttributesBody } from "@/lib/supplier-product-attributes"
 import { parseSupplierProductImages } from "@/lib/supplier-product-images"
 
 export const runtime = "nodejs"
@@ -60,6 +61,7 @@ export async function PUT(
   const stock = Math.max(0, Math.round(Number.isFinite(Number(body.stock)) ? Number(body.stock) : 0))
   const desc = typeof body.description === "string" ? body.description.trim() : ""
   const images = parseSupplierProductImages(body as unknown as Record<string, unknown>)
+  const attr = parseProductAttributesBody(body as unknown as Record<string, unknown>)
 
   const updated = await prisma.product.update({
     where: { id },
@@ -67,6 +69,10 @@ export async function PUT(
       name,
       description: desc,
       images,
+      categories: attr.categories,
+      colors: attr.colors,
+      tags: attr.tags,
+      variants: attr.variants === null ? null : attr.variants,
       basePriceCents: Math.max(100, Math.round(price * 100)),
       commissionRate: rate,
       stock,

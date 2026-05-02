@@ -1,6 +1,8 @@
 "use client"
 
 import Image from "next/image"
+
+import { COLORS } from "@/lib/product-catalog-constants"
 import { primaryProductImage } from "@/lib/product-images"
 import { signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
@@ -11,6 +13,10 @@ type CatalogProduct = {
   name: string
   description: string
   images: string[]
+  categories?: string[]
+  colors?: string[]
+  tags?: string[]
+  variants?: unknown
   basePriceCents: number
   commissionRate: number
   supplier: { email: string }
@@ -137,6 +143,33 @@ export function AffiliateDashboard({ catalog, listings: initialListings }: Props
               </div>
               <div className="p-4">
                 <p className="font-semibold">{p.name}</p>
+                {(p.categories?.length ?? 0) > 0 ? (
+                  <p className="mt-1 line-clamp-1 text-[11px] text-blue-700 dark:text-blue-400">
+                    {(p.categories ?? []).slice(0, 2).join(" · ")}
+                  </p>
+                ) : null}
+                {(p.colors?.length ?? 0) > 0 ? (
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {(p.colors ?? []).slice(0, 8).map((cn) => {
+                      const meta = COLORS.find((c) => c.name === cn)
+                      return (
+                        <span
+                          key={cn}
+                          title={cn}
+                          className="inline-flex h-5 w-5 rounded-full shadow ring-1 ring-black/15"
+                          style={
+                            meta?.multicolor
+                              ? {
+                                  background:
+                                    "conic-gradient(at 50% 50%,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)",
+                                }
+                              : { backgroundColor: meta?.hex || "#cbd5e1" }
+                          }
+                        />
+                      )
+                    })}
+                  </div>
+                ) : null}
                 <p className="mt-1 line-clamp-2 text-xs text-zinc-500">{p.description}</p>
                 <p className="mt-2 text-sm">{fmtEUR(p.basePriceCents)} · {p.commissionRate}% of margin</p>
                 <p className="text-xs text-zinc-400">Supplier: {p.supplier.email}</p>

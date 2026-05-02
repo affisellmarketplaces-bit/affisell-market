@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 
 import { prisma } from "@/lib/prisma"
+import { variantsFromDb } from "@/lib/product-variants"
 
 import { MarketplaceListingDetail } from "./marketplace-listing-detail"
 
@@ -20,6 +21,17 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
 
   const sellerLabel = listing.affiliate.affiliateStore?.slug ?? listing.affiliate.email
   const gallery = (listing.product.images ?? []).map((s) => s.trim()).filter(Boolean)
+  const categories = Array.isArray(listing.product.categories)
+    ? listing.product.categories.filter((c): c is string => typeof c === "string" && Boolean(c.trim()))
+    : []
+  const colorNames = Array.isArray(listing.product.colors)
+    ? listing.product.colors.filter((c): c is string => typeof c === "string" && Boolean(c.trim()))
+    : []
+  const tags = Array.isArray(listing.product.tags)
+    ? listing.product.tags.filter((t): t is string => typeof t === "string" && Boolean(t.trim()))
+    : []
+  const variants = variantsFromDb(listing.product.variants)
+
   const priceDisplay = (listing.sellingPriceCents / 100).toLocaleString("en-US", {
     style: "currency",
     currency: "EUR",
@@ -34,6 +46,10 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
         sellerLabel={sellerLabel}
         priceDisplay={priceDisplay}
         gallery={gallery}
+        categories={categories}
+        colorNames={colorNames}
+        tags={tags}
+        variants={variants}
       />
     </main>
   )

@@ -38,6 +38,10 @@ model Product {
   name String
   description String
   images String[] @default([])
+  categories String[] @default([])
+  colors String[] @default([])
+  variants Json?
+  tags String[] @default([])
   basePriceCents Int
   commissionRate Int
   stock Int @default(0)
