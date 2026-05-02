@@ -11,13 +11,14 @@ export async function POST(req: Request) {
     return Response.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const body = (await req.json().catch(() => ({}))) as { productId?: string; qty?: number }
+  const body = (await req.json().catch(() => ({}))) as { productId?: string; qty?: number; quantity?: number }
   const affiliateProductId = typeof body.productId === "string" ? body.productId.trim() : ""
   if (!affiliateProductId) {
     return Response.json({ error: "Missing productId" }, { status: 400 })
   }
 
-  const qty = Math.max(1, Math.min(99, Math.round(Number(body.qty)) || 1))
+  const rawQty = body.qty ?? body.quantity
+  const qty = Math.max(1, Math.min(99, Math.round(Number(rawQty)) || 1))
 
   const listing = await prisma.affiliateProduct.findFirst({
     where: { id: affiliateProductId, active: true, product: { active: true } },
