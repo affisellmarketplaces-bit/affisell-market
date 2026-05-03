@@ -6,7 +6,7 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { signIn } from "next-auth/react"
 import Image from "next/image"
-import { useState } from "react"
+import { useState, Suspense } from "react"
 
 function FacebookLogo({ className }: { className?: string }) {
   return (
@@ -19,7 +19,7 @@ function FacebookLogo({ className }: { className?: string }) {
   )
 }
 
-export default function SignInPage() {
+function SignInContent() {
   const search = useSearchParams()
   const router = useRouter()
   const [email, setEmail] = useState("")
@@ -181,5 +181,13 @@ export default function SignInPage() {
         </p>
       </div>
     </div>
+  )
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Loading...</div>}>
+      <SignInContent />
+    </Suspense>
   )
 }
