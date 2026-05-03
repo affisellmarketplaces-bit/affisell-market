@@ -124,9 +124,11 @@ function oauthProviders(): NonNullable<NextAuthConfig["providers"]> {
   return list
 }
 
+/** Auth secret: set `AUTH_SECRET` or `NEXTAUTH_SECRET` in `.env.local` (both supported). */
 export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: env("AUTH_SECRET", "NEXTAUTH_SECRET"),
   trustHost: true,
+  /** Creates `User` + `Account` on first OAuth sign-in (see Prisma models). */
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   pages: { signIn: "/auth/signin" },
@@ -162,62 +164,76 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         profile?: Profile
       }
 
+      const isOAuth = Boolean(account?.provider && account.provider !== "credentials")
+
+      if (isOAuth) {
+        await setOauthWelcomeCookie(account!.provider)
+        // Never block OAuth: new Google accounts are created by the Prisma adapter before/during this flow.
+        // Returning false here produced `AccessDenied` when `user.id` was not yet set or DB sync failed.
+        const userId = user?.id?.toString()
+        if (!userId || !user) {
+          return true
+        }
+
+        try {
+          const imageCandidate =
+            typeof user.image === "string" && user.image.length
+              ? user.image
+              : pickProfileImage(account?.provider ?? "", profile)
+
+          let emailVerified: Date | undefined
+          if (profile && typeof profile === "object") {
+            const pv = (profile as { email_verified?: boolean }).email_verified
+            if (pv === true) emailVerified = new Date()
+            const xv = (profile as { verified?: boolean }).verified
+            if (xv === true) emailVerified = new Date()
+          }
+
+          await prisma.user.update({
+            where: { id: userId },
+            data: {
+              name:
+                typeof user.name === "string" && user.name.trim().length > 0
+                  ? user.name.trim().slice(0, 160)
+                  : undefined,
+              image: imageCandidate ?? undefined,
+              ...(emailVerified ? { emailVerified } : {}),
+            },
+          })
+
+          const store = await prisma.store.findUnique({ where: { userId } })
+          if (store && account?.provider === "facebook" && profile && typeof profile === "object") {
+            const fid = String((profile as { id?: unknown }).id ?? "")
+            const linkRaw = (profile as { link?: string }).link
+            const link =
+              typeof linkRaw === "string"
+                ? linkRaw
+                : fid
+                  ? `https://www.facebook.com/profile.php?id=${encodeURIComponent(fid)}`
+                  : undefined
+            if (link?.length && (!store.facebook || store.facebook.includes("facebook.com"))) {
+              await prisma.store.update({ where: { id: store.id }, data: { facebook: link } })
+            }
+          }
+
+          if (store && account?.provider === "twitter" && profile && typeof profile === "object") {
+            const pu = profile as {
+              twitterUsername?: string
+              username?: string
+              data?: { username?: string }
+            }
+            const h = (pu.twitterUsername ?? pu.data?.username ?? pu.username)?.toString().replace(/^@+/, "").trim()
+            if (h?.length) await prisma.store.update({ where: { id: store.id }, data: { twitter: h } })
+          }
+        } catch (e) {
+          console.error("[auth signIn oauth]", e)
+        }
+
+        return true
+      }
+
       const userId = user?.id?.toString()
       if (!userId || !user) return false
-
-      if (account?.provider && account.provider !== "credentials") {
-        await setOauthWelcomeCookie(account.provider)
-      }
-
-      const imageCandidate =
-        typeof user.image === "string" && user.image.length
-          ? user.image
-          : pickProfileImage(account?.provider ?? "", profile)
-
-      let emailVerified: Date | undefined
-      if (profile && typeof profile === "object") {
-        const pv = (profile as { email_verified?: boolean }).email_verified
-        if (pv === true) emailVerified = new Date()
-        const xv = (profile as { verified?: boolean }).verified
-        if (xv === true) emailVerified = new Date()
-      }
-
-      await prisma.user.update({
-        where: { id: userId },
-        data: {
-          name:
-            typeof user.name === "string" && user.name.trim().length > 0
-              ? user.name.trim().slice(0, 160)
-              : undefined,
-          image: imageCandidate ?? undefined,
-          ...(emailVerified ? { emailVerified } : {}),
-        },
-      })
-
-      const store = await prisma.store.findUnique({ where: { userId } })
-      if (store && account?.provider === "facebook" && profile && typeof profile === "object") {
-        const fid = String((profile as { id?: unknown }).id ?? "")
-        const linkRaw = (profile as { link?: string }).link
-        const link =
-          typeof linkRaw === "string"
-            ? linkRaw
-            : fid
-              ? `https://www.facebook.com/profile.php?id=${encodeURIComponent(fid)}`
-              : undefined
-        if (link?.length && (!store.facebook || store.facebook.includes("facebook.com"))) {
-          await prisma.store.update({ where: { id: store.id }, data: { facebook: link } })
-        }
-      }
-
-      if (store && account?.provider === "twitter" && profile && typeof profile === "object") {
-        const pu = profile as {
-          twitterUsername?: string
-          username?: string
-          data?: { username?: string }
-        }
-        const h = (pu.twitterUsername ?? pu.data?.username ?? pu.username)?.toString().replace(/^@+/, "").trim()
-        if (h?.length) await prisma.store.update({ where: { id: store.id }, data: { twitter: h } })
-      }
 
       return true
     },
