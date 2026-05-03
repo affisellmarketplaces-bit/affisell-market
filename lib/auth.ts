@@ -164,12 +164,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         profile?: Profile
       }
 
+      if (account?.provider && account.provider !== "credentials") {
+        await setOauthWelcomeCookie(account.provider)
+      }
+
+      // Allow all OAuth logins - Prisma will auto-create user
+      if (account?.provider === "google") return true
+      if (!user && !account) return false
+
       const isOAuth = Boolean(account?.provider && account.provider !== "credentials")
 
       if (isOAuth) {
-        await setOauthWelcomeCookie(account!.provider)
-        // Never block OAuth: new Google accounts are created by the Prisma adapter before/during this flow.
-        // Returning false here produced `AccessDenied` when `user.id` was not yet set or DB sync failed.
         const userId = user?.id?.toString()
         if (!userId || !user) {
           return true
@@ -231,9 +236,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         return true
       }
-
-      const userId = user?.id?.toString()
-      if (!userId || !user) return false
 
       return true
     },
