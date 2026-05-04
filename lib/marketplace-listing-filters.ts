@@ -19,6 +19,7 @@ export function marketplaceProductFilterFromSearchParams(
       OR: [
         { shippingCountry: { in: Array.from(EU_COUNTRIES) } },
         { warehouseType: "regional" },
+        { shipsFrom: { equals: "EU", mode: "insensitive" } },
       ],
     })
   } else if (shipsFrom === "worldwide") {
@@ -32,8 +33,12 @@ export function marketplaceProductFilterFromSearchParams(
   }
 
   if (freeOnly) {
-    parts.push({ freeShippingThreshold: { not: null } })
-    parts.push({ freeShippingThreshold: { gt: 0 } })
+    parts.push({
+      OR: [
+        { AND: [{ freeShippingThreshold: { not: null } }, { freeShippingThreshold: { gt: 0 } }] },
+        { freeShipping: true },
+      ],
+    })
   }
 
   if (parts.length === 0) return null

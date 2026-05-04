@@ -91,6 +91,13 @@ model Product {
   freeShippingThreshold  Decimal?
   shippingCost           Decimal  @default(0)
 
+  /** Marketplace display / API (e.g. "EU", "FR"). Distinct from `shippingCountry` filter fields. */
+  shipsFrom     String?
+  deliveryDays  Int?
+  freeShipping  Boolean @default(false)
+  /** Display source label (e.g. "seed"); API may expose as `supplier` string. */
+  supplierTag   String?
+
   supplier User @relation("SupplierProducts", fields: [supplierId], references: [id])
   affiliateProducts AffiliateProduct[]
   orders Order[]

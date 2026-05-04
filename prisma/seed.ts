@@ -1,22 +1,36 @@
 /**
- * Seed 15 marketplace-style products (French copy).
- * Run: npx prisma db seed
+ * Peuple Neon / Postgres avec la boutique « Boutique Affisell » et 18 produits de test.
+ * `npx prisma db seed`
  */
 
-import { PrismaClient, type Prisma } from "@prisma/client"
+import { createHash } from "node:crypto"
+
+import { config } from "dotenv"
+import { Prisma, PrismaClient } from "@prisma/client"
+
+config({ path: ".env.local" })
+config({ path: ".env" })
 
 const prisma = new PrismaClient()
 
-const SEED_SUPPLIER_EMAIL = "seed-boutique-test@affisell.local"
+const BOUTIQUE_SLUG = "boutique-affisell"
+const BOUTIQUE_NAME = "Boutique Affisell"
+const SEED_EMAIL = "seed-boutique-affisell@affisell.local"
+const SEED_TAG = "seed-neon"
 
-const CATS = ["Fashion", "Home", "Tech", "Beauty"] as const
+const CATS = ["Mode", "Maison", "Tech", "Beauté", "Sport"] as const
 
 function eurosToCents(euros: number): number {
   return Math.round(euros * 100)
 }
 
-function unsplash(path: string): string {
-  return `https://images.unsplash.com/${path}?w=800&q=80`
+function unsplash(photoId: string): string {
+  return `https://images.unsplash.com/${photoId}?w=800&q=80`
+}
+
+/** ID stable par slug pour upsert idempotent. */
+function seedProductId(slug: string): string {
+  return `aff_${createHash("sha256").update(`affisell:${slug}`).digest("hex").slice(0, 28)}`
 }
 
 type SeedItem = {
@@ -24,172 +38,259 @@ type SeedItem = {
   slug: string
   description: string
   priceEur: number
-  imagePath: string
+  photoId: string
 }
 
 const ITEMS: SeedItem[] = [
   {
-    name: "Sac à main cuir",
-    slug: "sac-a-main-cuir",
-    description: "Sac structuré en cuir véritable, bandoulière ajustable. Idéal jour & soirée.",
-    priceEur: 64.99,
-    imagePath: "photo-1590874103328-eac38a683ce7",
-  },
-  {
-    name: "Montre minimaliste",
-    slug: "montre-minimaliste",
-    description: "Boîtier fin, bracelet mesh : look épuré pour le quotidien.",
-    priceEur: 49.5,
-    imagePath: "photo-1524592094714-0f0654e20314",
-  },
-  {
-    name: "Bougie parfumée",
-    slug: "bougie-parfumee",
-    description: "Cire végétale, senteur vanille & figue. Brûle jusqu’à 45 h.",
-    priceEur: 24.9,
-    imagePath: "photo-1602600839334-199fe60f8f25",
-  },
-  {
-    name: "Casque Bluetooth",
-    slug: "casque-bluetooth",
-    description: "Réduction de bruit, autonomie 30 h. Pliable pour le transport.",
-    priceEur: 79.99,
-    imagePath: "photo-1505740420928-5e560c06d30e",
-  },
-  {
-    name: "Lampe de bureau LED",
-    slug: "lampe-bureau-led",
-    description: "Lumière réglable, port USB intégré. Design scandinave.",
-    priceEur: 36.0,
-    imagePath: "photo-1507473885765-e6ed057f782c",
-  },
-  {
-    name: "T-shirt coton bio",
-    slug: "t-shirt-coton-bio",
-    description: "Coupe regular, tissu doux certifié. Plusieurs coloris.",
-    priceEur: 29.99,
-    imagePath: "photo-1521572163474-6864f9cf17ab",
-  },
-  {
-    name: "Bouteille isotherme",
-    slug: "bouteille-isotherme",
-    description: "Garde 12 h chaud / 24 h froid. Inox 500 ml, anti-fuite.",
-    priceEur: 32.5,
-    imagePath: "photo-1602143407151-7111540de16e",
-  },
-  {
-    name: "Chargeur sans fil",
-    slug: "chargeur-sans-fil",
-    description: "15 W compatible Qi. Surface antidérapante, compact.",
-    priceEur: 27.9,
-    imagePath: "photo-1586953208448-b95a79798f07",
-  },
-  {
-    name: "Trousse maquillage",
-    slug: "trousse-maquillage",
-    description: "Compartiments multiples, fermeture zip métal. Format voyage.",
-    priceEur: 19.99,
-    imagePath: "photo-1596462502278-27bfdc403348",
-  },
-  {
-    name: "Oreiller mémoire de forme",
-    slug: "oreiller-memoire-forme",
-    description: "Soutien cervical, housse hypoallergénique lavable.",
-    priceEur: 54.0,
-    imagePath: "photo-1584100936591-c59d91143a14",
-  },
-  {
-    name: "Enceinte portable",
-    slug: "enceinte-portable",
-    description: "Bluetooth 5.3, basses renforcées. Étanche IPX6.",
-    priceEur: 45.0,
-    imagePath: "photo-1608043152269-423dbba4e7e2",
-  },
-  {
-    name: "Set de couteaux cuisine",
-    slug: "set-couteaux-cuisine",
-    description: "5 pièces acier inox, bloc bois. Affûtage précis.",
-    priceEur: 69.0,
-    imagePath: "photo-1593618998160-e34014e67546",
-  },
-  {
-    name: "Masque visage hydratant",
-    slug: "masque-visage-hydratant",
-    description: "Texture gel-crème, acide hyaluronique. Lot de 6 sachets.",
-    priceEur: 22.5,
-    imagePath: "photo-1556228578-0d85b1a4d571",
-  },
-  {
-    name: "Sac à dos urbain",
-    slug: "sac-a-dos-urbain",
-    description: "Compartiment laptop 15\", dos matelassé, toile résistante.",
-    priceEur: 59.99,
-    imagePath: "photo-1622560480605-d83c853bc5c3",
+    name: "Sac bandoulière cuir",
+    slug: "sac-bandouliere-cuir",
+    description:
+      "Sac en cuir pleine fleur avec bandoulière ajustable et poche zippée intérieure. Parfait pour le quotidien comme pour les sorties.",
+    priceEur: 72.5,
+    photoId: "photo-1590874103328-eac38a683ce7",
   },
   {
     name: "Montre connectée",
     slug: "montre-connectee",
-    description: "Suivi activité, SpO2, notifications. Bracelet silicone.",
+    description:
+      "Écran AMOLED, suivi du sommeil et du rythme cardiaque, étanche 5 ATM. Autonomie plusieurs jours selon l’usage.",
+    priceEur: 84.99,
+    photoId: "photo-1579586337278-3befd40fd17a",
+  },
+  {
+    name: "Diffuseur huiles essentielles",
+    slug: "diffuseur-huiles-essentielles",
+    description:
+      "Brumisation à froid, minuterie et arrêt automatique. Silencieux, idéal pour chambre ou bureau.",
+    priceEur: 39.9,
+    photoId: "photo-1608571423902-eed4a5ad8108",
+  },
+  {
+    name: "Tapis yoga",
+    slug: "tapis-yoga",
+    description:
+      "Surface antidérapante, épaisseur confortable pour les articulations. Facile à rouler et à transporter.",
+    priceEur: 45.0,
+    photoId: "photo-1601925260368-ae2f83cf8b7f",
+  },
+  {
+    name: "Sérum anti-âge",
+    slug: "serum-anti-age",
+    description:
+      "Formule concentrée en peptides et vitamine C pour lisser le grain de peau. Texture légère, absorption rapide.",
+    priceEur: 52.0,
+    photoId: "photo-1620916566398-39f1143ab7be",
+  },
+  {
+    name: "Casque audio",
+    slug: "casque-audio",
+    description:
+      "Son stéréo équilibré, arceau réglable et coussinets moelleux. Câble détachable pour usage nomade.",
+    priceEur: 69.0,
+    photoId: "photo-1505740420928-5e560c06d30e",
+  },
+  {
+    name: "Gourde isotherme",
+    slug: "gourde-isotherme",
+    description:
+      "Double paroi inox, conserve le froid ou le chaud pendant des heures. Bec verseur anti-fuite, 750 ml.",
+    priceEur: 31.5,
+    photoId: "photo-1602143407151-7111540de16e",
+  },
+  {
+    name: "Lampe de chevet",
+    slug: "lampe-chevet",
+    description:
+      "Lumière tamisée réglable, base stable en bois. Interrupteur tactile sur le pied, design minimaliste.",
+    priceEur: 42.0,
+    photoId: "photo-1507473885765-e6ed057f782c",
+  },
+  {
+    name: "Crème mains",
+    slug: "creme-mains",
+    description:
+      "Beurre de karité et glycérine pour réparer les peaux sèches. Tube pratique, parfum discret fleuri.",
+    priceEur: 19.99,
+    photoId: "photo-1556228578-0d85b1a4d571",
+  },
+  {
+    name: "Basket running",
+    slug: "basket-running",
+    description:
+      "Semelle amortissante et mesh respirant pour la route ou le tapis. Maintien du pied renforcé au talon.",
     priceEur: 89.99,
-    imagePath: "photo-1579586337278-3befd40fd17a",
+    photoId: "photo-1542291026-7eec264c27ff",
+  },
+  {
+    name: "Lunettes de soleil polarisées",
+    slug: "lunettes-soleil-polarisees",
+    description:
+      "Verres polarisés anti-reflets, monture légère en métal. Étui rigide et chiffon microfibre inclus.",
+    priceEur: 48.0,
+    photoId: "photo-1572635196237-14b3f281503f",
+  },
+  {
+    name: "Parfum mixte 50 ml",
+    slug: "parfum-mixte-50ml",
+    description:
+      "Notes boisées et agrumes pour une signature élégante. Flacon vaporisateur, tenue longue durée sur la peau.",
+    priceEur: 59.0,
+    photoId: "photo-1541643600914-78b084683601",
+  },
+  {
+    name: "Housse de couette coton",
+    slug: "housse-couette-coton",
+    description:
+      "Percale 100 % coton, fermeture par boutons ou zip selon modèle. Teintes naturelles, respirant toute saison.",
+    priceEur: 64.0,
+    photoId: "photo-1584100936591-c59d91143a14",
+  },
+  {
+    name: "Enceinte Bluetooth waterproof",
+    slug: "enceinte-bluetooth-waterproof",
+    description:
+      "Certification IPX7, accroche mousqueton pour outdoor. Basses renforcées, autonomie jusqu’à 12 h.",
+    priceEur: 55.0,
+    photoId: "photo-1608043152269-423dbba4e7e2",
+  },
+  {
+    name: "Kit résistances fitness",
+    slug: "kit-resistances-fitness",
+    description:
+      "Bandes élastiques graduées en résistance, poignées confortables. Guide d’exercices imprimé fourni.",
+    priceEur: 28.9,
+    photoId: "photo-1571019613454-1cb2f99b2d8b",
+  },
+  {
+    name: "Huile à barbe",
+    slug: "huile-barbe",
+    description:
+      "Mélange d’huiles végétales et vitamine E pour adoucir et discipliner la barbe. Flacon compte-gouttes.",
+    priceEur: 24.5,
+    photoId: "photo-1621607512214-703b1a6e432a",
+  },
+  {
+    name: "Chaise de plage pliable",
+    slug: "chaise-plage-pliable",
+    description:
+      "Structure aluminium, toile résistante UV. Pliage compact, sac de transport inclus pour les escapades.",
+    priceEur: 49.99,
+    photoId: "photo-1504280390367-361c6d9f38f4",
+  },
+  {
+    name: "Stylo connecté",
+    slug: "stylo-connecte",
+    description:
+      "Synchronise vos notes manuscrites vers l’application mobile. Recharge USB-C, autonomie plusieurs jours.",
+    priceEur: 76.0,
+    photoId: "photo-1517842645767-c96b00f050e7",
   },
 ]
 
-async function resolveSupplierId(): Promise<string> {
-  let store = await prisma.store.findFirst({ orderBy: { createdAt: "asc" } })
+async function ensureBoutique(): Promise<string> {
+  const bySlug = await prisma.store.findUnique({ where: { slug: BOUTIQUE_SLUG } })
+  if (bySlug) return bySlug.userId
 
-  if (!store) {
-    let user = await prisma.user.findUnique({ where: { email: SEED_SUPPLIER_EMAIL } })
-    if (!user) {
-      user = await prisma.user.create({
-        data: {
-          email: SEED_SUPPLIER_EMAIL,
-          name: "Boutique Test",
-          role: "SUPPLIER",
-        },
-      })
-    }
+  const user = await prisma.user.upsert({
+    where: { email: SEED_EMAIL },
+    create: {
+      email: SEED_EMAIL,
+      name: BOUTIQUE_NAME,
+      role: "SUPPLIER",
+    },
+    update: { name: BOUTIQUE_NAME, role: "SUPPLIER" },
+  })
 
-    store = await prisma.store.findUnique({ where: { userId: user.id } })
-    if (!store) {
-      store = await prisma.store.create({
-        data: {
-          userId: user.id,
-          name: "Boutique Test",
-          slug: `boutique-test-seed-${Date.now()}`,
-        },
-      })
+  const byUser = await prisma.store.findUnique({ where: { userId: user.id } })
+  if (byUser) {
+    if (byUser.slug !== BOUTIQUE_SLUG) {
+      try {
+        await prisma.store.update({
+          where: { id: byUser.id },
+          data: { name: BOUTIQUE_NAME, slug: BOUTIQUE_SLUG },
+        })
+      } catch {
+        /* slug déjà pris ailleurs : on garde le store existant */
+      }
     }
+    return user.id
   }
 
-  return store.userId
+  await prisma.store.create({
+    data: {
+      userId: user.id,
+      name: BOUTIQUE_NAME,
+      slug: BOUTIQUE_SLUG,
+    },
+  })
+
+  return user.id
 }
 
 async function main() {
-  const supplierId = await resolveSupplierId()
+  if (!process.env.DATABASE_URL?.trim()) {
+    console.error("DATABASE_URL manquant (.env.local ou .env).")
+    process.exit(1)
+  }
+
+  const supplierId = await ensureBoutique()
+  let count = 0
 
   for (let i = 0; i < ITEMS.length; i++) {
     const item = ITEMS[i]!
-    const category = CATS[i % CATS.length]!
+    const cat = CATS[i % CATS.length]!
+    const id = seedProductId(item.slug)
     const variants: Prisma.InputJsonValue = { slug: item.slug }
+    const tags = [SEED_TAG, item.slug]
 
-    await prisma.product.create({
-      data: {
+    const marketplaceShipping = {
+      shipsFrom: "EU",
+      deliveryDays: 5,
+      freeShipping: true,
+      supplierTag: "seed",
+      shippingCountry: "FR",
+      warehouseType: "regional",
+      deliveryMin: 3,
+      deliveryMax: 5,
+      freeShippingThreshold: new Prisma.Decimal("0.01"),
+    } as const
+
+    await prisma.product.upsert({
+      where: { id },
+      create: {
+        id,
         supplierId,
         name: item.name,
         description: item.description,
-        images: [unsplash(item.imagePath)],
-        categories: [category],
+        images: [unsplash(item.photoId)],
+        categories: [cat],
+        tags,
         basePriceCents: eurosToCents(item.priceEur),
         commissionRate: 15,
-        stock: 50,
+        stock: 100,
         active: true,
         variants,
+        ...marketplaceShipping,
+      },
+      update: {
+        name: item.name,
+        description: item.description,
+        images: [unsplash(item.photoId)],
+        categories: [cat],
+        tags,
+        basePriceCents: eurosToCents(item.priceEur),
+        commissionRate: 15,
+        stock: 100,
+        active: true,
+        variants,
+        ...marketplaceShipping,
       },
     })
+    count++
   }
 
-  console.log("✅ 15 produits ajoutés")
+  console.log(`✅ ${count} produits ajoutés dans Neon`)
 }
 
 main()
