@@ -1,36 +1,7 @@
-/** Professional category taxonomy — English */
+import { AFFISELL_CATEGORIES } from "@/lib/affisell-categories"
 
-export const CATEGORIES = [
-  "Electronics",
-  "Computers",
-  "Smartphones",
-  "Tablets",
-  "Audio & Headphones",
-  "TV & Video",
-  "Cameras & Photo",
-  "Home & Kitchen",
-  "Appliances",
-  "DIY & Tools",
-  "Garden & Outdoor",
-  "Women's Fashion",
-  "Men's Fashion",
-  "Kids' Fashion",
-  "Shoes",
-  "Jewelry & Watches",
-  "Beauty & Personal Care",
-  "Health & Wellness",
-  "Sports & Outdoors",
-  "Toys & Games",
-  "Baby",
-  "Pet Supplies",
-  "Automotive",
-  "Office Products",
-  "Books",
-  "Video Games",
-  "Music",
-  "Grocery",
-  "Luggage & Bags",
-] as const
+/** Affisell marketplace category taxonomy (aligned with seed + marketplace filters). */
+export const CATEGORIES = AFFISELL_CATEGORIES
 
 export type CatalogColorSwatch = { name: string; hex: string; multicolor?: boolean }
 

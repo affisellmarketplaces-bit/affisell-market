@@ -1,6 +1,9 @@
 import type { Prisma } from "@prisma/client"
 
+import { AFFISELL_CATEGORIES } from "@/lib/affisell-categories"
 import { EU_COUNTRIES } from "@/lib/supplier-product-shipping"
+
+const AFFISELL_CATEGORY_SET = new Set<string>(AFFISELL_CATEGORIES as readonly string[])
 
 /** Build extra `Product` conditions from marketplace URL filters (AND with `active: true`). */
 export function marketplaceProductFilterFromSearchParams(
@@ -9,8 +12,17 @@ export function marketplaceProductFilterFromSearchParams(
   const shipsFrom = typeof sp.shipsFrom === "string" ? sp.shipsFrom : ""
   const delivery = typeof sp.delivery === "string" ? sp.delivery : ""
   const freeOnly = sp.freeShipping === "1" || sp.freeShipping === "true"
+  const categoryRaw = typeof sp.category === "string" ? sp.category.trim() : ""
 
   const parts: Prisma.ProductWhereInput[] = []
+
+  if (
+    categoryRaw &&
+    categoryRaw !== "All Departments" &&
+    AFFISELL_CATEGORY_SET.has(categoryRaw)
+  ) {
+    parts.push({ categories: { has: categoryRaw } })
+  }
 
   if (shipsFrom === "fr") {
     parts.push({ shippingCountry: "FR" })

@@ -8,6 +8,8 @@ import { createHash } from "node:crypto"
 import { config } from "dotenv"
 import { Prisma, PrismaClient } from "@prisma/client"
 
+import { AFFISELL_CATEGORIES } from "@/lib/affisell-categories"
+
 config({ path: ".env.local" })
 config({ path: ".env" })
 
@@ -18,7 +20,8 @@ const BOUTIQUE_NAME = "Boutique Affisell"
 const SEED_EMAIL = "seed-boutique-affisell@affisell.local"
 const SEED_TAG = "seed-neon"
 
-const CATS = ["Mode", "Maison", "Tech", "Beauté", "Sport"] as const
+/** Same taxonomy as `@/lib/affisell-categories.ts` (single source of truth). */
+const affisellCategories = AFFISELL_CATEGORIES
 
 function eurosToCents(euros: number): number {
   return Math.round(euros * 100)
@@ -36,6 +39,7 @@ function seedProductId(slug: string): string {
 type SeedItem = {
   name: string
   slug: string
+  category: string
   description: string
   priceEur: number
   photoId: string
@@ -43,150 +47,170 @@ type SeedItem = {
 
 const ITEMS: SeedItem[] = [
   {
-    name: "Sac bandoulière cuir",
-    slug: "sac-bandouliere-cuir",
+    name: "Vegan Leather Handbag",
+    slug: "vegan-leather-handbag",
+    category: "Clothing, Shoes & Jewelry",
     description:
-      "Sac en cuir pleine fleur avec bandoulière ajustable et poche zippée intérieure. Parfait pour le quotidien comme pour les sorties.",
+      "Structured tote in high-quality vegan leather with adjustable strap and zip interior pocket. Everyday polish without animal materials.",
     priceEur: 72.5,
     photoId: "photo-1590874103328-eac38a683ce7",
   },
   {
-    name: "Montre connectée",
-    slug: "montre-connectee",
+    name: "Minimalist Watch",
+    slug: "minimalist-watch",
+    category: "Clothing, Shoes & Jewelry",
     description:
-      "Écran AMOLED, suivi du sommeil et du rythme cardiaque, étanche 5 ATM. Autonomie plusieurs jours selon l’usage.",
+      "Slim case, clean dial, and quick-release straps. Water-resistant build and reliable quartz movement for daily wear.",
     priceEur: 84.99,
     photoId: "photo-1579586337278-3befd40fd17a",
   },
   {
-    name: "Diffuseur huiles essentielles",
-    slug: "diffuseur-huiles-essentielles",
+    name: "Lavender Candle",
+    slug: "lavender-candle",
+    category: "Home & Kitchen",
     description:
-      "Brumisation à froid, minuterie et arrêt automatique. Silencieux, idéal pour chambre ou bureau.",
-    priceEur: 39.9,
+      "Soy wax blend with calming lavender notes. Cotton wick, long, even burn—ideal for unwinding after work.",
+    priceEur: 24.9,
     photoId: "photo-1608571423902-eed4a5ad8108",
   },
   {
-    name: "Tapis yoga",
-    slug: "tapis-yoga",
+    name: "Bluetooth Headphones",
+    slug: "bluetooth-headphones",
+    category: "Electronics",
     description:
-      "Surface antidérapante, épaisseur confortable pour les articulations. Facile à rouler et à transporter.",
-    priceEur: 45.0,
-    photoId: "photo-1601925260368-ae2f83cf8b7f",
-  },
-  {
-    name: "Sérum anti-âge",
-    slug: "serum-anti-age",
-    description:
-      "Formule concentrée en peptides et vitamine C pour lisser le grain de peau. Texture légère, absorption rapide.",
-    priceEur: 52.0,
-    photoId: "photo-1620916566398-39f1143ab7be",
-  },
-  {
-    name: "Casque audio",
-    slug: "casque-audio",
-    description:
-      "Son stéréo équilibré, arceau réglable et coussinets moelleux. Câble détachable pour usage nomade.",
+      "Balanced stereo sound, padded headband, and fold-flat ear cups. Detachable cable when you want a wired fallback.",
     priceEur: 69.0,
     photoId: "photo-1505740420928-5e560c06d30e",
   },
   {
-    name: "Gourde isotherme",
-    slug: "gourde-isotherme",
+    name: "Vitamin C Serum",
+    slug: "vitamin-c-serum",
+    category: "Beauty & Personal Care",
     description:
-      "Double paroi inox, conserve le froid ou le chaud pendant des heures. Bec verseur anti-fuite, 750 ml.",
-    priceEur: 31.5,
-    photoId: "photo-1602143407151-7111540de16e",
+      "Brightening serum with stabilized vitamin C and hyaluronic acid. Lightweight, fast-absorbing, suitable for morning routines.",
+    priceEur: 52.0,
+    photoId: "photo-1620916566398-39f1143ab7be",
   },
   {
-    name: "Lampe de chevet",
-    slug: "lampe-chevet",
+    name: "Yoga Mat",
+    slug: "yoga-mat",
+    category: "Sports & Outdoors",
     description:
-      "Lumière tamisée réglable, base stable en bois. Interrupteur tactile sur le pied, design minimaliste.",
-    priceEur: 42.0,
-    photoId: "photo-1507473885765-e6ed057f782c",
+      "Non-slip surface with cushioned support for joints. Rolls tight and includes a carry strap for studio or home practice.",
+    priceEur: 45.0,
+    photoId: "photo-1601925260368-ae2f83cf8b7f",
   },
   {
-    name: "Crème mains",
-    slug: "creme-mains",
+    name: "Polarized Sunglasses",
+    slug: "polarized-sunglasses",
+    category: "Clothing, Shoes & Jewelry",
     description:
-      "Beurre de karité et glycérine pour réparer les peaux sèches. Tube pratique, parfum discret fleuri.",
-    priceEur: 19.99,
-    photoId: "photo-1556228578-0d85b1a4d571",
-  },
-  {
-    name: "Basket running",
-    slug: "basket-running",
-    description:
-      "Semelle amortissante et mesh respirant pour la route ou le tapis. Maintien du pied renforcé au talon.",
-    priceEur: 89.99,
-    photoId: "photo-1542291026-7eec264c27ff",
-  },
-  {
-    name: "Lunettes de soleil polarisées",
-    slug: "lunettes-soleil-polarisees",
-    description:
-      "Verres polarisés anti-reflets, monture légère en métal. Étui rigide et chiffon microfibre inclus.",
+      "Polarized lenses cut road and water glare. Lightweight metal frame with hard case and microfiber cloth included.",
     priceEur: 48.0,
     photoId: "photo-1572635196237-14b3f281503f",
   },
   {
-    name: "Parfum mixte 50 ml",
-    slug: "parfum-mixte-50ml",
+    name: "Portable Speaker",
+    slug: "portable-speaker",
+    category: "Electronics",
     description:
-      "Notes boisées et agrumes pour une signature élégante. Flacon vaporisateur, tenue longue durée sur la peau.",
-    priceEur: 59.0,
-    photoId: "photo-1541643600914-78b084683601",
-  },
-  {
-    name: "Housse de couette coton",
-    slug: "housse-couette-coton",
-    description:
-      "Percale 100 % coton, fermeture par boutons ou zip selon modèle. Teintes naturelles, respirant toute saison.",
-    priceEur: 64.0,
-    photoId: "photo-1584100936591-c59d91143a14",
-  },
-  {
-    name: "Enceinte Bluetooth waterproof",
-    slug: "enceinte-bluetooth-waterproof",
-    description:
-      "Certification IPX7, accroche mousqueton pour outdoor. Basses renforcées, autonomie jusqu’à 12 h.",
+      "IPX7 waterproofing, carabiner loop, and punchy bass tuning. Up to 12 hours playback for hikes and poolside sessions.",
     priceEur: 55.0,
     photoId: "photo-1608043152269-423dbba4e7e2",
   },
   {
-    name: "Kit résistances fitness",
-    slug: "kit-resistances-fitness",
+    name: "Organic Tea",
+    slug: "organic-tea",
+    category: "Grocery & Gourmet Food",
     description:
-      "Bandes élastiques graduées en résistance, poignées confortables. Guide d’exercices imprimé fourni.",
-    priceEur: 28.9,
-    photoId: "photo-1571019613454-1cb2f99b2d8b",
+      "Certified organic loose-leaf blend with floral and honey notes. Resealable pouch keeps aroma fresh between brews.",
+    priceEur: 18.5,
+    photoId: "photo-1564890369139-c6cdc9057111",
   },
   {
-    name: "Huile à barbe",
-    slug: "huile-barbe",
+    name: "Hydrating Cream",
+    slug: "hydrating-cream",
+    category: "Premium Beauty",
     description:
-      "Mélange d’huiles végétales et vitamine E pour adoucir et discipliner la barbe. Flacon compte-gouttes.",
+      "Rich day-and-night cream with ceramides and glycerin to lock in moisture. Fragrance-aware formula for sensitive skin types.",
+    priceEur: 42.0,
+    photoId: "photo-1556228578-0d85b1a4d571",
+  },
+  {
+    name: "Urban Backpack",
+    slug: "urban-backpack",
+    category: "Luggage & Travel Gear",
+    description:
+      "Laptop sleeve, anti-theft pocket, and weather-resistant shell. Ergonomic straps for commutes and weekend trips.",
+    priceEur: 79.0,
+    photoId: "photo-1553062407-98eeb64c46a7",
+  },
+  {
+    name: "LED Desk Lamp",
+    slug: "led-desk-lamp",
+    category: "Tools & Home Improvement",
+    description:
+      "Dimmable LED bar with color temperature control. Stable base and touch controls for focused desk or bedside lighting.",
+    priceEur: 42.0,
+    photoId: "photo-1507473885765-e6ed057f782c",
+  },
+  {
+    name: "Wireless Charger",
+    slug: "wireless-charger",
+    category: "Cell Phones & Accessories",
+    description:
+      "Fast wireless charging pad with foreign-object detection and non-slip ring. USB-C power input, case-friendly surface.",
+    priceEur: 34.99,
+    photoId: "photo-1591290616108-4a6128a64704",
+  },
+  {
+    name: "Beard Oil",
+    slug: "beard-oil",
+    category: "Health & Household",
+    description:
+      "Plant oils plus vitamin E to soften coarse hair and reduce itch. Dropper bottle for precise, low-waste application.",
     priceEur: 24.5,
     photoId: "photo-1621607512214-703b1a6e432a",
   },
   {
-    name: "Chaise de plage pliable",
-    slug: "chaise-plage-pliable",
+    name: "Memory Foam Pillow",
+    slug: "memory-foam-pillow",
+    category: "Home & Kitchen",
     description:
-      "Structure aluminium, toile résistante UV. Pliage compact, sac de transport inclus pour les escapades.",
-    priceEur: 49.99,
-    photoId: "photo-1504280390367-361c6d9f38f4",
+      "Contoured memory foam supports neck alignment. Breathable cover removes for washing; ideal for side and back sleepers.",
+    priceEur: 59.0,
+    photoId: "photo-1629946832027-a6d24c5636e3",
   },
   {
-    name: "Stylo connecté",
-    slug: "stylo-connecte",
+    name: "Gaming Mouse",
+    slug: "gaming-mouse",
+    category: "Video Games",
     description:
-      "Synchronise vos notes manuscrites vers l’application mobile. Recharge USB-C, autonomie plusieurs jours.",
-    priceEur: 76.0,
-    photoId: "photo-1517842645767-c96b00f050e7",
+      "Precision sensor, programmable side buttons, and durable switches. Lightweight shell with PTFE feet for smooth glides.",
+    priceEur: 49.99,
+    photoId: "photo-1527814050087-89be033b2b5f",
+  },
+  {
+    name: "Mechanical Keyboard",
+    slug: "mechanical-keyboard",
+    category: "Computers",
+    description:
+      "Hot-swappable sockets, pre-lubed stabilizers, and doubleshot keycaps. USB-C detachable cable for tidy setups.",
+    priceEur: 119.0,
+    photoId: "photo-158782514070380-d0ec2f14aaf8",
+  },
+  {
+    name: "Garden Tool Set",
+    slug: "garden-tool-set",
+    category: "Garden & Outdoor",
+    description:
+      "Ergonomic handles with rust-resistant heads for digging, weeding, and transplanting. Canvas roll keeps tools organized.",
+    priceEur: 46.0,
+    photoId: "photo-1416879595882-3373a9d0a42c",
   },
 ]
+
+const allowedCategory = new Set<string>(affisellCategories as readonly string[])
 
 async function ensureBoutique(): Promise<string> {
   const bySlug = await prisma.store.findUnique({ where: { slug: BOUTIQUE_SLUG } })
@@ -234,12 +258,22 @@ async function main() {
     process.exit(1)
   }
 
+  if (ITEMS.length !== 18) {
+    console.error(`Expected 18 seed products, got ${ITEMS.length}`)
+    process.exit(1)
+  }
+
+  for (const item of ITEMS) {
+    if (!allowedCategory.has(item.category)) {
+      console.error(`Unknown category for ${item.slug}: ${item.category}`)
+      process.exit(1)
+    }
+  }
+
   const supplierId = await ensureBoutique()
   let count = 0
 
-  for (let i = 0; i < ITEMS.length; i++) {
-    const item = ITEMS[i]!
-    const cat = CATS[i % CATS.length]!
+  for (const item of ITEMS) {
     const id = seedProductId(item.slug)
     const variants: Prisma.InputJsonValue = { slug: item.slug }
     const tags = [SEED_TAG, item.slug]
@@ -264,7 +298,7 @@ async function main() {
         name: item.name,
         description: item.description,
         images: [unsplash(item.photoId)],
-        categories: [cat],
+        categories: [item.category],
         tags,
         basePriceCents: eurosToCents(item.priceEur),
         commissionRate: 15,
@@ -277,7 +311,7 @@ async function main() {
         name: item.name,
         description: item.description,
         images: [unsplash(item.photoId)],
-        categories: [cat],
+        categories: [item.category],
         tags,
         basePriceCents: eurosToCents(item.priceEur),
         commissionRate: 15,

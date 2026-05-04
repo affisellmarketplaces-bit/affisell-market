@@ -22,6 +22,7 @@ export default async function MarketplacePage({
     shipsFrom: pickString(sp, "shipsFrom"),
     delivery: pickString(sp, "delivery"),
     freeShipping: pickString(sp, "freeShipping"),
+    category: pickString(sp, "category"),
   }
 
   const listings = await prisma.affiliateProduct.findMany({

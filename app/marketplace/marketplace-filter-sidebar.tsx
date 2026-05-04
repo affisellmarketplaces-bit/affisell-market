@@ -1,9 +1,12 @@
 import Link from "next/link"
 
+import { AFFISELL_CATEGORIES } from "@/lib/affisell-categories"
+
 export type MarketplaceFilterParams = {
   shipsFrom?: string
   delivery?: string
   freeShipping?: string
+  category?: string
 }
 
 function href(next: MarketplaceFilterParams): string {
@@ -11,6 +14,7 @@ function href(next: MarketplaceFilterParams): string {
   if (next.shipsFrom) sp.set("shipsFrom", next.shipsFrom)
   if (next.delivery) sp.set("delivery", next.delivery)
   if (next.freeShipping) sp.set("freeShipping", next.freeShipping)
+  if (next.category && next.category !== "All Departments") sp.set("category", next.category)
   const q = sp.toString()
   return q ? `/marketplace?${q}` : "/marketplace"
 }
@@ -28,6 +32,33 @@ export function MarketplaceFilterSidebar({ current }: { current: MarketplaceFilt
 
   return (
     <aside className="w-full shrink-0 space-y-6 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900 lg:w-56">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Category</p>
+        <div className="mt-2 max-h-64 space-y-1 overflow-y-auto pr-1">
+          {AFFISELL_CATEGORIES.map((cat) => {
+            const isAll = cat === "All Departments"
+            const active = isAll ? !c.category : c.category === cat
+            return (
+              <Link
+                key={cat}
+                href={
+                  isAll
+                    ? href({ ...c, category: undefined })
+                    : href({ ...c, category: c.category === cat ? undefined : cat })
+                }
+                className={`block truncate rounded-lg px-2 py-1 text-xs transition ${
+                  active
+                    ? "bg-zinc-900 font-medium text-white dark:bg-zinc-100 dark:text-zinc-900"
+                    : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                }`}
+              >
+                {cat}
+              </Link>
+            )
+          })}
+        </div>
+      </div>
+
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Ships from</p>
         <div className="mt-2 flex flex-wrap gap-2">
@@ -84,7 +115,7 @@ export function MarketplaceFilterSidebar({ current }: { current: MarketplaceFilt
         </Link>
       </div>
 
-      {(c.shipsFrom || c.delivery || c.freeShipping) && (
+      {(c.shipsFrom || c.delivery || c.freeShipping || c.category) && (
         <Link
           href="/marketplace"
           className="block text-center text-xs font-medium text-zinc-500 underline hover:text-zinc-800 dark:hover:text-zinc-200"
