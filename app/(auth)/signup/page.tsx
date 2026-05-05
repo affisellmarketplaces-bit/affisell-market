@@ -2,7 +2,7 @@ import Link from "next/link"
 import { ArrowRight, Briefcase, Check, DollarSign, Globe, Package, Shield, ShieldCheck, Store } from "lucide-react"
 
 export default function SignupChooser() {
-  const affiliateBenefits = ["70% commissions", "No inventory", "Worldwide payouts (PayPal, Wise, Bank)", "Marketing tools"]
+  const affiliateBenefits = ["Up to 100% commission", "No inventory", "Worldwide payouts (PayPal, Wise, Bank)", "Marketing tools"]
   const supplierBenefits = ["Access to affiliates", "Zero upfront cost", "Global shipping network", "Analytics dashboard"]
 
   return (
