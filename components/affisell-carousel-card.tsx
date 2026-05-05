@@ -6,7 +6,6 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { trackAffisellEvent } from "@/lib/affisell-track-client"
 import type { CarouselItemJson } from "@/lib/carousel-types"
 import { addGuestCartItem } from "@/lib/guest-cart"
-import { useLiveStats } from "@/lib/live-stats"
 import { cn } from "@/lib/utils"
 import { WishlistHeart } from "@/components/wishlist-heart"
 
@@ -29,9 +28,8 @@ export function AffisellCarouselCard({
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const viewSent = useRef(false)
   const rootRef = useRef<HTMLDivElement>(null)
-  const live = useLiveStats(item.productId || item.listingId)
 
-  const displayViews = Math.max(item.viewsToday, live.viewsToday)
+  const displayViews = item.viewsToday
 
   useEffect(() => {
     if (!showTimer) return
@@ -224,10 +222,6 @@ export function AffisellCarouselCard({
             >
               {subline}
             </p>
-            <div className="mt-1 flex items-center gap-1 rounded bg-zinc-50 px-1 py-0.5 text-[10px] text-zinc-600">
-              <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
-              {live.viewersNow} personnes regardent
-            </div>
           </div>
         </div>
       </Link>

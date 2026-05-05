@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useState } from "react"
 
 import { addGuestCartItem } from "@/lib/guest-cart"
 import { WishlistHeart } from "@/components/wishlist-heart"
@@ -29,12 +28,6 @@ export function PremiumMarketplaceCard({
   priceValue,
   showPremiumBadge = false,
 }: Props) {
-  const [watchingCount, setWatchingCount] = useState(12)
-
-  useEffect(() => {
-    setWatchingCount(Math.floor(Math.random() * 20) + 5)
-  }, [])
-
   return (
     <Link
       href={detailHref}
@@ -98,14 +91,6 @@ export function PremiumMarketplaceCard({
           <span className="shrink-0 pt-0.5 font-medium text-zinc-900">{priceDisplay}</span>
         </div>
         <p className="mt-1 line-clamp-2 text-sm text-zinc-500">by {sellerDisplay}</p>
-
-        <div className="mt-2 flex items-center gap-2">
-          <div className="flex -space-x-1">
-            <div className="h-5 w-5 rounded-full border-2 border-white bg-violet-500" />
-            <div className="h-5 w-5 rounded-full border-2 border-white bg-pink-500" />
-          </div>
-          <span className="text-xs text-zinc-500">{watchingCount} regardent</span>
-        </div>
       </div>
     </Link>
   )

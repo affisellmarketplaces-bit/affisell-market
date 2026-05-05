@@ -11,6 +11,17 @@ function pickString(sp: Record<string, string | string[] | undefined>, key: stri
   return typeof v === "string" ? v : undefined
 }
 
+function categoryLabel(name: string) {
+  const map: Record<string, string> = {
+    Tous: "All",
+    Mode: "Fashion",
+    Maison: "Home",
+    Beauté: "Beauty",
+    Sport: "Sports",
+  }
+  return map[name] ?? name
+}
+
 export default async function MarketplacePage({
   searchParams,
 }: {
@@ -97,7 +108,7 @@ export default async function MarketplacePage({
                   !activeCategory ? "bg-black text-white" : "text-zinc-700 hover:bg-zinc-100"
                 }`}
               >
-                Tous
+                All
               </a>
               {categories.map((c) => (
                 <a
@@ -107,7 +118,7 @@ export default async function MarketplacePage({
                     activeCategory === c.name ? "bg-black text-white" : "text-zinc-700 hover:bg-zinc-100"
                   }`}
                 >
-                  {c.name}{" "}
+                  {categoryLabel(c.name)}{" "}
                   <span className={activeCategory === c.name ? "text-zinc-300" : "text-zinc-400"}>({c.count})</span>
                 </a>
               ))}

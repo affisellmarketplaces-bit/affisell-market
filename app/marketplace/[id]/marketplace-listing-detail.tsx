@@ -15,7 +15,6 @@ import {
 import { addGuestCartItem } from "@/lib/guest-cart"
 import type { ProductColorImageRow } from "@/lib/product-color-images"
 import type { ProductVariantsJson } from "@/lib/product-variants"
-import { useLiveStats } from "@/lib/live-stats"
 
 type StorefrontInfo = {
   name: string
@@ -79,7 +78,6 @@ export function MarketplaceListingDetail({
   const [buyBusy, setBuyBusy] = useState(false)
   const [selectedColor, setSelectedColor] = useState<string | null>(colorNames[0] ?? null)
   const [variantPick, setVariantPick] = useState<Partial<Record<VariantGroupKey, string>>>({})
-  const live = useLiveStats(listingId)
 
   const idxMax = safeUrls.length - 1
 
@@ -396,15 +394,6 @@ export function MarketplaceListingDetail({
           ) : null}
 
           <div className="mt-4 text-3xl font-bold text-green-600">{priceDisplay}</div>
-          <div className="mt-2 inline-flex items-center gap-3 rounded-lg bg-zinc-50 px-3 py-1.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
-            <span className="inline-flex items-center gap-1">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
-              {live.viewersNow} personnes regardent
-            </span>
-            <span>•</span>
-            <span>{live.cartsLastHour} ajouts panier cette heure</span>
-          </div>
-
           <div className="mt-4 space-y-2 rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
             <div className="flex flex-wrap items-center gap-2">
               <Truck className="h-4 w-4 shrink-0 text-green-600" aria-hidden />

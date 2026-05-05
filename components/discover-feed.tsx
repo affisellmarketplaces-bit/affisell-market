@@ -5,7 +5,6 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 
 import { addGuestCartItem } from "@/lib/guest-cart"
-import { useLiveStats } from "@/lib/live-stats"
 import { WishlistHeart } from "@/components/wishlist-heart"
 
 export type DiscoverItem = {
@@ -20,7 +19,6 @@ export type DiscoverItem = {
 
 function DiscoverCard({ item }: { item: DiscoverItem }) {
   const router = useRouter()
-  const live = useLiveStats(item.productId)
   const videoRef = useRef<HTMLVideoElement>(null)
   const [cartBusy, setCartBusy] = useState(false)
   const [checkoutBusy, setCheckoutBusy] = useState(false)
@@ -138,7 +136,6 @@ function DiscoverCard({ item }: { item: DiscoverItem }) {
         ) : null}
         <h2 className="line-clamp-2 text-lg font-semibold">{item.name}</h2>
         <p className="mt-1 text-2xl font-bold text-emerald-300">{price}</p>
-        <p className="mt-1 text-sm text-zinc-100">{live.viewersNow} regardent</p>
         <div className="mt-3 flex gap-2">
           <button
             type="button"

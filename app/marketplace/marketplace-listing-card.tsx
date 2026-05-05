@@ -74,9 +74,9 @@ export function MarketplaceListingCard({
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-600">
+    <div className="group overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-600">
       <Link href={detailHref} className="block" onPointerDown={() => recordClick()}>
-        <div className="aspect-[4/3] bg-gray-50 rounded-t-xl overflow-hidden flex items-center justify-center p-3">
+        <div className="relative aspect-[4/3] overflow-hidden rounded-t-xl bg-gray-50 p-3 flex items-center justify-center">
           <img
             src={listing.image}
             alt={listing.title}
@@ -85,6 +85,17 @@ export function MarketplaceListingCard({
               e.currentTarget.src = "/placeholder.png"
             }}
           />
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              void addToCart(listing.id)
+            }}
+            className="absolute bottom-3 left-1/2 z-10 -translate-x-1/2 rounded-full bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
+          >
+            Add to cart
+          </button>
         </div>
         <div className="p-4">
           <div className="min-w-0 flex-1">
