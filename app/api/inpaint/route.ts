@@ -4,7 +4,7 @@ export const runtime = 'nodejs';
 export const maxDuration = 60;
 
 const HF_TOKEN = process.env.HF_TOKEN;
-const MODEL = 'runwayml/stable-diffusion-inpainting';
+const MODEL = 'stabilityai/stable-diffusion-2-inpainting';
 
 export async function POST(req: NextRequest) {
   try {
