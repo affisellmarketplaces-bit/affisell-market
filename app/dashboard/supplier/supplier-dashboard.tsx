@@ -136,6 +136,12 @@ export function SupplierDashboard() {
             Open full-screen product wizard →
           </Link>
           <Link
+            href="/seller/photo-studio"
+            className="mt-2 block text-sm font-medium text-violet-700 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-200"
+          >
+            Enhance Photos in Affisell Studio →
+          </Link>
+          <Link
             href="/dashboard/supplier/settings/store"
             className="mt-2 inline-block text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
           >

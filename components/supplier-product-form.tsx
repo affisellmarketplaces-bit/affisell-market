@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import Link from "next/link"
 import type { FormEvent } from "react"
 import { useEffect, useRef, useState } from "react"
 
@@ -60,6 +61,8 @@ function mergeColorImageRows(colors: string[], prev: ProductColorImageRow[]): Pr
   const map = new Map(prev.map((r) => [r.color, r]))
   return colors.map((c) => map.get(c) ?? { color: c, hex: catalogHexForColorName(c), image: "" })
 }
+
+const STUDIO_STORAGE_KEY = "affisellStudioProcessedImages"
 
 type Props = {
   /** When this id changes, form resets from `initial` */
@@ -121,6 +124,28 @@ export function SupplierProductForm({
       setMethodPickup(false)
       setFreeShippingEUR("")
       setShippingCostEUR("0")
+      if (typeof window !== "undefined") {
+        const raw = sessionStorage.getItem(STUDIO_STORAGE_KEY)
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw) as unknown
+            if (Array.isArray(parsed)) {
+              const studioUrls = parsed
+                .filter((u): u is string => typeof u === "string")
+                .map((u) => u.trim())
+                .filter(Boolean)
+                .slice(0, 10)
+              if (studioUrls.length) {
+                setImageUrls(studioUrls.length < 10 ? [...studioUrls, ""] : studioUrls)
+              }
+            }
+          } catch {
+            // ignore malformed studio payload
+          } finally {
+            sessionStorage.removeItem(STUDIO_STORAGE_KEY)
+          }
+        }
+      }
       return
     }
     const imgs = (initial.images ?? []).map((u) => u.trim()).filter(Boolean)
@@ -296,6 +321,12 @@ export function SupplierProductForm({
           <label className="block text-sm font-medium text-zinc-800 dark:text-zinc-200">
             Product Images (up to 10)
           </label>
+          <Link
+            href="/seller/photo-studio"
+            className="inline-flex items-center rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-700 hover:bg-violet-100 dark:border-violet-700/60 dark:bg-violet-950/50 dark:text-violet-200 dark:hover:bg-violet-900/60"
+          >
+            Enhance Photos in Affisell Studio
+          </Link>
           {imageUrls.map((url, index) => (
             <div key={index} className="flex gap-2">
               <input
