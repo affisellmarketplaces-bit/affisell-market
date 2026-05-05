@@ -3,6 +3,13 @@
 import Link from "next/link"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
+import {
+  readGuestCart,
+  removeGuestCartItem,
+  setGuestCartQuantity,
+  type GuestCartItem,
+} from "@/lib/guest-cart"
+
 type CartLine = {
   id: string
   qty: number
@@ -14,6 +21,10 @@ type CartLine = {
     imageUrl: string
   }
 }
+
+type AuthSession = {
+  user?: { id?: string; role?: string | null } | null
+} | null
 
 function formatEur(n: number) {
   return new Intl.NumberFormat("en-IE", {
@@ -30,8 +41,29 @@ async function fetchCart(signal?: AbortSignal): Promise<CartLine[]> {
   return Array.isArray(data) ? data : []
 }
 
+function guestToLine(item: GuestCartItem): CartLine {
+  return {
+    id: `guest-${item.productId}`,
+    qty: item.qty,
+    sellerName: item.sellerName ?? null,
+    product: {
+      id: item.productId,
+      title: item.title || "Product",
+      price: Number.isFinite(Number(item.price)) ? Number(item.price) : 0,
+      imageUrl: item.imageUrl || "/placeholder.png",
+    },
+  }
+}
+
+async function fetchSession(signal?: AbortSignal): Promise<AuthSession> {
+  const res = await fetch("/api/auth/session", { credentials: "include", cache: "no-store", signal })
+  if (!res.ok) return null
+  return (await res.json().catch(() => null)) as AuthSession
+}
+
 export default function CartPage() {
   const [lines, setLines] = useState<CartLine[]>([])
+  const [isAuthed, setIsAuthed] = useState(false)
   const [loading, setLoading] = useState(true)
   const [checkoutBusy, setCheckoutBusy] = useState(false)
 
@@ -39,10 +71,17 @@ export default function CartPage() {
     const ac = new AbortController()
     ;(async () => {
       try {
-        const data = await fetchCart(ac.signal)
-        if (!ac.signal.aborted) setLines(data)
+        const [session, serverLines] = await Promise.all([
+          fetchSession(ac.signal),
+          fetchCart(ac.signal),
+        ])
+        if (ac.signal.aborted) return
+        const authed = Boolean(session?.user?.id)
+        setIsAuthed(authed)
+        const guestLines = readGuestCart().map(guestToLine)
+        setLines(authed ? [...serverLines, ...guestLines] : guestLines)
       } catch {
-        if (!ac.signal.aborted) setLines([])
+        if (!ac.signal.aborted) setLines(readGuestCart().map(guestToLine))
       } finally {
         if (!ac.signal.aborted) setLoading(false)
       }
@@ -52,10 +91,13 @@ export default function CartPage() {
 
   const refreshCart = useCallback(async () => {
     try {
-      const data = await fetchCart()
-      setLines(data)
+      const [session, serverLines] = await Promise.all([fetchSession(), fetchCart()])
+      const authed = Boolean(session?.user?.id)
+      setIsAuthed(authed)
+      const guestLines = readGuestCart().map(guestToLine)
+      setLines(authed ? [...serverLines, ...guestLines] : guestLines)
     } catch {
-      setLines([])
+      setLines(readGuestCart().map(guestToLine))
     }
   }, [])
 
@@ -67,6 +109,11 @@ export default function CartPage() {
   const itemCount = useMemo(() => lines.reduce((n, row) => n + row.qty, 0), [lines])
 
   async function removeItem(itemId: string) {
+    if (itemId.startsWith("guest-")) {
+      removeGuestCartItem(itemId.replace("guest-", ""))
+      await refreshCart()
+      return
+    }
     await fetch("/api/cart/remove", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -77,6 +124,11 @@ export default function CartPage() {
   }
 
   async function setQty(lineId: string, next: number) {
+    if (lineId.startsWith("guest-")) {
+      setGuestCartQuantity(lineId.replace("guest-", ""), next)
+      await refreshCart()
+      return
+    }
     await fetch(`/api/cart/items/${lineId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -88,6 +140,10 @@ export default function CartPage() {
 
   async function checkout() {
     if (lines.length === 0) return
+    if (!isAuthed) {
+      window.location.href = `/auth/signin?callbackUrl=${encodeURIComponent("/cart")}`
+      return
+    }
     setCheckoutBusy(true)
     try {
       const res = await fetch("/api/checkout", {

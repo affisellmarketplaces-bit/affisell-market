@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useEffect, useState } from "react"
 
+import { addGuestCartItem } from "@/lib/guest-cart"
 import { WishlistHeart } from "@/components/wishlist-heart"
 
 type Props = {
@@ -13,6 +14,7 @@ type Props = {
   name: string
   sellerDisplay: string
   priceDisplay: string
+  priceValue: number
 }
 
 export function PremiumMarketplaceCard({
@@ -23,6 +25,7 @@ export function PremiumMarketplaceCard({
   name,
   sellerDisplay,
   priceDisplay,
+  priceValue,
 }: Props) {
   const [watchingCount, setWatchingCount] = useState(12)
 
@@ -64,7 +67,16 @@ export function PremiumMarketplaceCard({
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ productId: listingId, qty: 1 }),
               }).then((r) => {
-                if (r.status === 401) window.location.href = `/login?callbackUrl=${encodeURIComponent("/marketplace")}`
+                if (r.status === 401) {
+                  addGuestCartItem({
+                    productId: listingId,
+                    qty: 1,
+                    title: name,
+                    price: priceValue,
+                    imageUrl: imageUrl || "/placeholder.png",
+                    sellerName: sellerDisplay,
+                  })
+                }
               })
             }}
             className="w-full rounded-xl bg-white py-2.5 text-sm font-medium text-black shadow-lg transition hover:bg-zinc-100"

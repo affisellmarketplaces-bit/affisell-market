@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 
 import { trackAffisellEvent } from "@/lib/affisell-track-client"
 import type { CarouselItemJson } from "@/lib/carousel-types"
+import { addGuestCartItem } from "@/lib/guest-cart"
 import { useLiveStats } from "@/lib/live-stats"
 import { cn } from "@/lib/utils"
 import { WishlistHeart } from "@/components/wishlist-heart"
@@ -191,7 +192,13 @@ export function AffisellCarouselCard({
                 body: JSON.stringify({ productId: item.listingId, qty: 1 }),
               }).then((r) => {
                 if (r.status === 401) {
-                  window.location.href = `/login?callbackUrl=${encodeURIComponent(`/marketplace/${item.listingId}`)}`
+                  addGuestCartItem({
+                    productId: item.listingId,
+                    qty: 1,
+                    title: item.name,
+                    price: item.priceCents / 100,
+                    imageUrl: item.imageUrl || "/placeholder.png",
+                  })
                 }
               })
             }}

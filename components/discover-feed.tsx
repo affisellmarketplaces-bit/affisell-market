@@ -4,6 +4,7 @@ import { motion } from "framer-motion"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 
+import { addGuestCartItem } from "@/lib/guest-cart"
 import { useLiveStats } from "@/lib/live-stats"
 import { WishlistHeart } from "@/components/wishlist-heart"
 
@@ -58,7 +59,13 @@ function DiscoverCard({ item }: { item: DiscoverItem }) {
         body: JSON.stringify({ productId: item.listingId, qty: 1 }),
       })
       if (res.status === 401) {
-        router.push(`/login?callbackUrl=${encodeURIComponent("/discover")}`)
+        addGuestCartItem({
+          productId: item.listingId,
+          qty: 1,
+          title: item.name,
+          price: item.priceCents / 100,
+          imageUrl: item.mediaUrl || "/placeholder.png",
+        })
       }
     } finally {
       setCartBusy(false)

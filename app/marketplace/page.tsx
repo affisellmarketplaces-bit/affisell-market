@@ -126,6 +126,7 @@ export default async function MarketplacePage({
                         style: "currency",
                         currency: "EUR",
                       })}
+                      priceValue={item.sellingPriceCents / 100}
                       sellerDisplay={
                         item.affiliate?.store?.name ??
                         item.affiliate?.name?.trim() ??

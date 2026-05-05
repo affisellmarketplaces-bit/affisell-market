@@ -2,6 +2,8 @@
 
 import Link from "next/link"
 
+import { addGuestCartItem } from "@/lib/guest-cart"
+
 type Props = {
   detailHref: string
   imageUrl: string | null
@@ -42,6 +44,16 @@ export function MarketplaceListingCard({
       body: JSON.stringify({ productId: listingId, qty: 1 }),
       credentials: "include",
     })
+    if (res.status === 401) {
+      addGuestCartItem({
+        productId: listingId,
+        qty: 1,
+        title: name,
+        imageUrl: listing.image,
+        sellerName: sellerDisplay,
+      })
+      return
+    }
     console.log("Add to cart", res.ok ? "ok" : await res.text())
   }
 

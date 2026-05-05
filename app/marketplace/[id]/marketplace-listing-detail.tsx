@@ -12,6 +12,7 @@ import {
   isMulticolorSwatch,
   type VariantGroupKey,
 } from "@/lib/product-catalog-constants"
+import { addGuestCartItem } from "@/lib/guest-cart"
 import type { ProductColorImageRow } from "@/lib/product-color-images"
 import type { ProductVariantsJson } from "@/lib/product-variants"
 import { useLiveStats } from "@/lib/live-stats"
@@ -130,7 +131,14 @@ export function MarketplaceListingDetail({
         credentials: "include",
       })
       if (res.status === 401) {
-        router.push(`/login?callbackUrl=${encodeURIComponent(`/marketplace/${productId}`)}`)
+        addGuestCartItem({
+          productId,
+          qty: 1,
+          title: name,
+          imageUrl: heroSrc || "/placeholder.png",
+          sellerName: sellerLabel,
+        })
+        setToast("Added to cart")
         return
       }
       if (!res.ok) {
