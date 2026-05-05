@@ -42,6 +42,7 @@ export default async function AffiliateDashboardPage() {
       catalog={JSON.parse(JSON.stringify(catalogProducts))}
       listings={JSON.parse(JSON.stringify(listings))}
       storeSlug={store?.slug ?? null}
+      storeId={session.user.id}
     />
   )
 }

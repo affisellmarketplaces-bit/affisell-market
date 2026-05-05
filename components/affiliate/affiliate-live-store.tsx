@@ -1,39 +1,15 @@
 "use client"
 
 import { MessageCircle, Radio, Send, Tag, X } from "lucide-react"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
-type VisitorActivity =
-  | { type: "viewing"; product: string }
-  | { type: "cart"; product: string; secondsLeft: number }
-  | { type: "homepage" }
-
-type LiveVisitor = {
-  id: string
-  displayName: string
-  anonymous: boolean
-  activity: VisitorActivity
-  /** minutes since "last action" for label */
-  minutesAgo: number
+export type DemoVisitor = {
+  id: number
+  name: string
+  action: string
+  time: string
+  left: string | null
 }
-
-const FALLBACK_PRODUCTS = [
-  "Water Bottle",
-  "Wireless Keyboard",
-  "Desk Lamp",
-  "Running Shoes",
-  "Face Serum",
-]
-
-const DISPLAY_NAMES = [
-  "Sarah M.",
-  "Marc D.",
-  "Alex L.",
-  "Emma R.",
-  "Julien P.",
-  "Lina K.",
-  "Thomas B.",
-]
 
 function initials(name: string) {
   if (name.startsWith("Anonymous")) return "?"
@@ -43,112 +19,90 @@ function initials(name: string) {
   return (a + b).toUpperCase()
 }
 
-function pickProduct(pool: string[]) {
-  const p = pool.length ? pool : FALLBACK_PRODUCTS
-  return p[Math.floor(Math.random() * p.length)]!
+function activityLine(v: DemoVisitor) {
+  return `${v.name} • ${v.action}`
 }
 
-function formatRelativeMinutes(m: number) {
-  if (m <= 0) return "just now"
-  if (m < 60) return `${m}m ago`
-  const h = Math.floor(m / 60)
-  return `${h}h ago`
-}
-
-function formatCountdown(sec: number) {
-  const s = Math.max(0, sec)
-  const m = Math.floor(s / 60)
-  const r = s % 60
+function formatCartLeft(seconds: number | null) {
+  if (seconds === null || seconds <= 0) return null
+  const m = Math.floor(seconds / 60)
+  const r = seconds % 60
   return `${m}:${String(r).padStart(2, "0")} left`
 }
 
-function simulateVisitors(pool: string[], prev: LiveVisitor[]): LiveVisitor[] {
-  const n = Math.min(6, Math.max(2, 2 + Math.floor(Math.random() * 5)))
-  const next: LiveVisitor[] = []
-
-  for (let i = 0; i < n; i++) {
-    const anonymous = Math.random() < 0.22
-    const displayName = anonymous ? "Anonymous" : DISPLAY_NAMES[(i + Math.floor(Math.random() * 5)) % DISPLAY_NAMES.length]!
-    let activity: VisitorActivity
-    const r = Math.random()
-    if (r < 0.35) activity = { type: "homepage" }
-    else if (r < 0.7) activity = { type: "viewing", product: pickProduct(pool) }
-    else {
-      const carry = prev.find((x) => x.displayName === displayName && x.activity.type === "cart")
-      activity = {
-        type: "cart",
-        product: carry?.activity.type === "cart" ? carry.activity.product : pickProduct(pool),
-        secondsLeft:
-          carry?.activity.type === "cart" ? carry.activity.secondsLeft : 180 + Math.floor(Math.random() * 480),
-      }
-    }
-
-    const reuse = prev.find((x) => x.displayName === displayName)
-    next.push({
-      id: reuse?.id ?? `v-${Date.now()}-${i}-${Math.random().toString(36).slice(2, 7)}`,
-      displayName,
-      anonymous,
-      activity: reuse != null && activity.type !== "cart" && Math.random() < 0.45 ? reuse.activity : activity,
-      minutesAgo:
-        reuse != null ? Math.min(45, reuse.minutesAgo + (Math.random() < 0.55 ? 0 : 1)) : Math.floor(Math.random() * 8),
-    })
-  }
-  return next
+/** Parse MM:SS countdown; only call from effects, not render. */
+function parseCountdownMmSs(s: string | null): number | null {
+  if (!s || !s.includes(":")) return null
+  const [mm, ss] = s.trim().split(":")
+  const m = Number(mm)
+  const sec = Number(ss)
+  if (!Number.isFinite(m) || !Number.isFinite(sec)) return null
+  return m * 60 + sec
 }
 
-/** Deterministic-ish hourly demo bars for the session */
-function hourlyBars(seed: number) {
+function hourlyBarsFromStoreId(storeId: string): number[] {
+  let h = 0
+  for (let i = 0; i < storeId.length; i++) {
+    h = (Math.imul(31, h) + storeId.charCodeAt(i)) >>> 0
+  }
+  let s = h || 7
   const out: number[] = []
-  let s = seed
-  for (let h = 0; h < 24; h++) {
+  for (let i = 0; i < 24; i++) {
     s = (Math.imul(s, 1664525) + 1013904223) >>> 0
-    out.push(8 + (s % 75))
+    out.push(10 + (s % 70))
   }
   return out
 }
 
-function slugSeed(slug: string | null): number {
-  if (!slug) return 424242
-  let h = 0
-  for (let i = 0; i < slug.length; i++) h = (Math.imul(31, h) + slug.charCodeAt(i)) >>> 0
-  return h || 424242
-}
+export default function AffiliateLiveStore({ storeId }: { storeId: string }) {
+  const [visitors, setVisitors] = useState<DemoVisitor[]>([])
+  const [cartSeconds, setCartSeconds] = useState<Record<number, number | null>>({})
+  const [hourlyTraffic, setHourlyTraffic] = useState<number[]>([])
+  const [isClient, setIsClient] = useState(false)
+  const [liveCount, setLiveCount] = useState(0)
 
-type Props = {
-  productNames: string[]
-  /** Stable per-store seed for demo hourly chart */
-  storeSlug?: string | null
-}
-
-export function AffiliateLiveStore({ productNames, storeSlug = null }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const pool = useMemo(
-    () => (productNames.length ? productNames : FALLBACK_PRODUCTS),
-    [productNames]
-  )
-  const chartSeed = useMemo(() => slugSeed(storeSlug), [storeSlug])
-  const hourlyTraffic = useMemo(() => hourlyBars(chartSeed), [chartSeed])
-  const [visitors, setVisitors] = useState<LiveVisitor[]>(() => simulateVisitors(pool, []))
-  const [chatForId, setChatForId] = useState<string | null>(null)
+  const [chatForId, setChatForId] = useState<number | null>(null)
   const [toast, setToast] = useState<string | null>(null)
 
   useEffect(() => {
-    const id = window.setInterval(() => {
-      setVisitors((prev) => simulateVisitors(pool, prev))
-    }, 5200 + Math.floor(Math.random() * 2600))
-    return () => window.clearInterval(id)
-  }, [pool])
+    const id = window.requestAnimationFrame(() => {
+      setIsClient(true)
 
-  /** Cart countdown ticker */
+      const demoVisitors: DemoVisitor[] = [
+        { id: 1, name: "Emma R.", action: "cart: Lavender Candle", time: "8m ago", left: "6:13" },
+        { id: 2, name: "Julien P.", action: "cart: Portable Speaker", time: "6m ago", left: "9:10" },
+        { id: 3, name: "Anonymous", action: "homepage", time: "2m ago", left: null },
+        { id: 4, name: "Lina K.", action: "viewing Sac bandoulière cuir", time: "3m ago", left: null },
+      ]
+      setVisitors(demoVisitors)
+      setLiveCount(demoVisitors.length)
+
+      const nextCart: Record<number, number | null> = {}
+      for (const v of demoVisitors) {
+        nextCart[v.id] = parseCountdownMmSs(v.left)
+      }
+      setCartSeconds(nextCart)
+
+      setHourlyTraffic(hourlyBarsFromStoreId(storeId))
+    })
+    return () => window.cancelAnimationFrame(id)
+  }, [storeId])
+
   useEffect(() => {
     const id = window.setInterval(() => {
-      setVisitors((prev) =>
-        prev.map((v) => {
-          if (v.activity.type !== "cart") return v
-          const ns = Math.max(0, v.activity.secondsLeft - 1)
-          return { ...v, activity: { ...v.activity, secondsLeft: ns } }
-        })
-      )
+      setCartSeconds((prev) => {
+        const next = { ...prev }
+        let changed = false
+        for (const k of Object.keys(next)) {
+          const key = Number(k)
+          const v = next[key]
+          if (typeof v !== "number" || v <= 0) continue
+          next[key] = v - 1
+          changed = true
+        }
+        return changed ? next : prev
+      })
     }, 1000)
     return () => window.clearInterval(id)
   }, [])
@@ -174,13 +128,11 @@ export function AffiliateLiveStore({ productNames, storeSlug = null }: Props) {
     return () => window.clearTimeout(t)
   }, [toast, dismissToast])
 
-  function activityLine(v: LiveVisitor) {
-    if (v.activity.type === "homepage") return `${v.displayName} • homepage`
-    if (v.activity.type === "viewing") return `${v.displayName} • viewing ${v.activity.product}`
-    return `${v.displayName} • cart: ${v.activity.product}`
-  }
+  const maxBar = hourlyTraffic.length ? Math.max(...hourlyTraffic, 1) : 1
 
-  const maxBar = Math.max(...hourlyTraffic, 1)
+  if (!isClient) {
+    return <div className="w-0" aria-hidden />
+  }
 
   return (
     <>
@@ -196,7 +148,7 @@ export function AffiliateLiveStore({ productNames, storeSlug = null }: Props) {
         </span>
         <Radio className="h-3.5 w-3.5 opacity-80" aria-hidden />
         <span>
-          LIVE • {visitors.length} {visitors.length === 1 ? "visitor" : "visitors"}
+          LIVE • {liveCount} {liveCount === 1 ? "visitor" : "visitors"}
         </span>
       </button>
 
@@ -232,80 +184,84 @@ export function AffiliateLiveStore({ productNames, storeSlug = null }: Props) {
         <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-4">
           <section>
             <h3 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Active now</h3>
-            <p className="mt-0.5 text-[11px] text-zinc-600">Streaming demo session — refreshed every few seconds</p>
+            <p className="mt-0.5 text-[11px] text-zinc-600">Demo visitors (client-only)</p>
             <ul className="mt-4 space-y-3">
-              {visitors.map((v) => (
-                <li
-                  key={v.id}
-                  className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-3 shadow-inner shadow-black/20"
-                >
-                  <div className="flex gap-3">
-                    <div
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500/30 to-teal-600/40 text-xs font-bold text-emerald-100 ring-1 ring-white/10"
-                      aria-hidden
-                    >
-                      {initials(v.displayName)}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm leading-snug text-white">{activityLine(v)}</p>
-                      <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-zinc-500">
-                        <span>{formatRelativeMinutes(v.minutesAgo)}</span>
-                        {v.activity.type === "cart" && v.activity.secondsLeft > 0 ? (
-                          <span className="rounded-md bg-amber-500/15 px-1.5 py-0.5 font-mono text-amber-200/90">
-                            {formatCountdown(v.activity.secondsLeft)}
-                          </span>
-                        ) : null}
+              {visitors.map((v) => {
+                const cartLabel =
+                  v.left != null && v.action.startsWith("cart:")
+                    ? formatCartLeft(cartSeconds[v.id] ?? null)
+                    : null
+                return (
+                  <li
+                    key={v.id}
+                    className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-3 shadow-inner shadow-black/20"
+                  >
+                    <div className="flex gap-3">
+                      <div
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500/30 to-teal-600/40 text-xs font-bold text-emerald-100 ring-1 ring-white/10"
+                        aria-hidden
+                      >
+                        {initials(v.name)}
                       </div>
-                      {chatForId === v.id ? (
-                        <div className="mt-2 flex gap-2">
-                          <input
-                            type="text"
-                            placeholder="Type a message…"
-                            className="min-w-0 flex-1 rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs text-white placeholder:text-zinc-600 focus:border-emerald-500/40 focus:outline-none"
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                setToast(`Demo: message queued for ${v.displayName}`)
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm leading-snug text-white">{activityLine(v)}</p>
+                        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-zinc-500">
+                          <span>{v.time}</span>
+                          {cartLabel ? (
+                            <span className="rounded-md bg-amber-500/15 px-1.5 py-0.5 font-mono text-amber-200/90">
+                              {cartLabel}
+                            </span>
+                          ) : null}
+                        </div>
+                        {chatForId === v.id ? (
+                          <div className="mt-2 flex gap-2">
+                            <input
+                              type="text"
+                              placeholder="Type a message…"
+                              className="min-w-0 flex-1 rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs text-white placeholder:text-zinc-600 focus:border-emerald-500/40 focus:outline-none"
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  setToast(`Demo: message queued for ${v.name}`)
+                                  setChatForId(null)
+                                }
+                              }}
+                            />
+                            <button
+                              type="button"
+                              className="rounded-xl bg-emerald-600 px-2 py-2 text-white hover:bg-emerald-500"
+                              title="Send"
+                              onClick={() => {
+                                setToast(`Demo: message queued for ${v.name}`)
                                 setChatForId(null)
-                              }
-                            }}
-                          />
+                              }}
+                            >
+                              <Send className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ) : null}
+                        <div className="mt-2 flex flex-wrap gap-2">
                           <button
                             type="button"
-                            className="rounded-xl bg-emerald-600 px-2 py-2 text-white hover:bg-emerald-500"
-                            title="Send"
-                            onClick={() => {
-                              setToast(`Demo: message queued for ${v.displayName}`)
-                              setChatForId(null)
-                            }}
+                            onClick={() => setToast(`10% off popup triggered for ${v.name} (visitor screen)`)}
+                            className="inline-flex items-center gap-1 rounded-full border border-emerald-500/35 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-100 transition hover:bg-emerald-500/20"
                           >
-                            <Send className="h-4 w-4" />
+                            <Tag className="h-3 w-3" />
+                            Send 10% off
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setChatForId(chatForId === v.id ? null : v.id)}
+                            className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-zinc-200 hover:bg-white/10"
+                          >
+                            <MessageCircle className="h-3 w-3" />
+                            Start chat
                           </button>
                         </div>
-                      ) : null}
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setToast(`10% off popup triggered for ${v.displayName} (visitor screen)`)
-                          }
-                          className="inline-flex items-center gap-1 rounded-full border border-emerald-500/35 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-100 transition hover:bg-emerald-500/20"
-                        >
-                          <Tag className="h-3 w-3" />
-                          Send 10% off
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setChatForId(chatForId === v.id ? null : v.id)}
-                          className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-zinc-200 hover:bg-white/10"
-                        >
-                          <MessageCircle className="h-3 w-3" />
-                          Start chat
-                        </button>
                       </div>
                     </div>
-                  </div>
-                </li>
-              ))}
+                  </li>
+                )
+              })}
             </ul>
           </section>
 

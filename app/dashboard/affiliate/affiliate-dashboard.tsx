@@ -23,9 +23,9 @@ import Image from "next/image"
 import { signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import type { CSSProperties } from "react"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
-import { AffiliateLiveStore } from "@/components/affiliate/affiliate-live-store"
+import AffiliateLiveStore from "@/components/affiliate/affiliate-live-store"
 import {
   ListingBuilderModal,
   type SerializedListing,
@@ -170,9 +170,15 @@ type Props = {
   catalog: CatalogProduct[]
   listings: Listing[]
   storeSlug: string | null
+  storeId: string
 }
 
-export function AffiliateDashboard({ catalog: initialCatalog, listings: initialListings, storeSlug }: Props) {
+export function AffiliateDashboard({
+  catalog: initialCatalog,
+  listings: initialListings,
+  storeSlug,
+  storeId,
+}: Props) {
   const router = useRouter()
   const [tab, setTab] = useState<"catalog" | "store">("catalog")
   const [listings, setListings] = useState<Listing[]>(() =>
@@ -293,14 +299,6 @@ export function AffiliateDashboard({ catalog: initialCatalog, listings: initialL
 
   const ids = listings.map((l) => l.id)
 
-  const liveProductNames = useMemo(() => {
-    const fromListings = listings
-      .filter((l) => l.product)
-      .map((l) => listingDisplayTitle(l.customTitle ?? null, l.product!.name))
-    const fromCatalog = initialCatalog.map((p) => p.name)
-    return [...new Set([...fromListings, ...fromCatalog])]
-  }, [listings, initialCatalog])
-
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 md:px-8">
       <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
@@ -330,7 +328,7 @@ export function AffiliateDashboard({ catalog: initialCatalog, listings: initialL
           </button>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">
-          <AffiliateLiveStore productNames={liveProductNames} storeSlug={storeSlug} />
+          <AffiliateLiveStore storeId={storeId} />
           <button
             type="button"
             onClick={() => viewStore()}
