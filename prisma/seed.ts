@@ -15,10 +15,16 @@ config({ path: ".env" })
 
 const prisma = new PrismaClient()
 
-const BOUTIQUE_SLUG = "boutique-affisell"
-const BOUTIQUE_NAME = "Boutique Affisell"
-const SEED_EMAIL = "seed-boutique-affisell@affisell.local"
+const SUPPLIER_SLUG = "boutique-affisell"
+const SUPPLIER_NAME = "Boutique Affisell"
+const SUPPLIER_EMAIL = "seed-boutique-affisell@affisell.local"
 const SEED_TAG = "seed-neon"
+const AFFILIATE_SELLERS = [
+  { name: "Inovgadgets Store", slug: "inovgadgets-store", email: "seed-inovgadgets@affisell.local" },
+  { name: "Maison Luxe", slug: "maison-luxe", email: "seed-maison-luxe@affisell.local" },
+  { name: "TechPro", slug: "techpro", email: "seed-techpro@affisell.local" },
+  { name: "Aura Beauty", slug: "aura-beauty", email: "seed-aura-beauty@affisell.local" },
+] as const
 
 /** Same taxonomy as `@/lib/affisell-categories.ts` (single source of truth). */
 const affisellCategories = AFFISELL_CATEGORIES
@@ -212,27 +218,32 @@ const ITEMS: SeedItem[] = [
 
 const allowedCategory = new Set<string>(affisellCategories as readonly string[])
 
-async function ensureBoutique(): Promise<string> {
-  const bySlug = await prisma.store.findUnique({ where: { slug: BOUTIQUE_SLUG } })
+async function ensureStoreUser(input: {
+  slug: string
+  name: string
+  email: string
+  role: "SUPPLIER" | "AFFILIATE"
+}): Promise<string> {
+  const bySlug = await prisma.store.findUnique({ where: { slug: input.slug } })
   if (bySlug) return bySlug.userId
 
   const user = await prisma.user.upsert({
-    where: { email: SEED_EMAIL },
+    where: { email: input.email },
     create: {
-      email: SEED_EMAIL,
-      name: BOUTIQUE_NAME,
-      role: "SUPPLIER",
+      email: input.email,
+      name: input.name,
+      role: input.role,
     },
-    update: { name: BOUTIQUE_NAME, role: "SUPPLIER" },
+    update: { name: input.name, role: input.role },
   })
 
   const byUser = await prisma.store.findUnique({ where: { userId: user.id } })
   if (byUser) {
-    if (byUser.slug !== BOUTIQUE_SLUG) {
+    if (byUser.slug !== input.slug) {
       try {
         await prisma.store.update({
           where: { id: byUser.id },
-          data: { name: BOUTIQUE_NAME, slug: BOUTIQUE_SLUG },
+          data: { name: input.name, slug: input.slug },
         })
       } catch {
         /* slug déjà pris ailleurs : on garde le store existant */
@@ -244,8 +255,8 @@ async function ensureBoutique(): Promise<string> {
   await prisma.store.create({
     data: {
       userId: user.id,
-      name: BOUTIQUE_NAME,
-      slug: BOUTIQUE_SLUG,
+      name: input.name,
+      slug: input.slug,
     },
   })
 
@@ -270,10 +281,25 @@ async function main() {
     }
   }
 
-  const supplierId = await ensureBoutique()
+  const supplierId = await ensureStoreUser({
+    slug: SUPPLIER_SLUG,
+    name: SUPPLIER_NAME,
+    email: SUPPLIER_EMAIL,
+    role: "SUPPLIER",
+  })
+  const affiliateIds = await Promise.all(
+    AFFILIATE_SELLERS.map((seller) =>
+      ensureStoreUser({
+        slug: seller.slug,
+        name: seller.name,
+        email: seller.email,
+        role: "AFFILIATE",
+      })
+    )
+  )
   let count = 0
 
-  for (const item of ITEMS) {
+  for (const [index, item] of ITEMS.entries()) {
     const id = seedProductId(item.slug)
     const variants: Prisma.InputJsonValue = { slug: item.slug }
     const tags = [SEED_TAG, item.slug]
@@ -319,6 +345,30 @@ async function main() {
         active: true,
         variants,
         ...marketplaceShipping,
+      },
+    })
+
+    const affiliateId =
+      index < Math.floor(ITEMS.length / 2)
+        ? affiliateIds[1 + (index % (affiliateIds.length - 1))]
+        : affiliateIds[0]
+    await prisma.affiliateProduct.upsert({
+      where: {
+        affiliateId_productId: {
+          affiliateId,
+          productId: id,
+        },
+      },
+      create: {
+        affiliateId,
+        productId: id,
+        sellingPriceCents: eurosToCents(item.priceEur),
+        isListed: true,
+        customTitle: null,
+      },
+      update: {
+        sellingPriceCents: eurosToCents(item.priceEur),
+        isListed: true,
       },
     })
     count++

@@ -4,7 +4,6 @@ import { motion } from "framer-motion"
 import Link from "next/link"
 
 import type { AgentProductCard } from "@/lib/agent-product-card-types"
-import { useLiveStats } from "@/lib/live-stats"
 import { WishlistHeart } from "@/components/wishlist-heart"
 
 type Props = {
@@ -15,7 +14,6 @@ type Props = {
 }
 
 function AgentProductCardItem({ p }: { p: AgentProductCard }) {
-  const live = useLiveStats(p.id)
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -27,9 +25,6 @@ function AgentProductCardItem({ p }: { p: AgentProductCard }) {
       className="group flex h-full flex-col overflow-hidden rounded-3xl border border-white/10 bg-zinc-900 transition-all hover:-translate-y-1 hover:border-violet-500/50 hover:shadow-2xl hover:shadow-violet-900/20"
     >
       <div className="relative aspect-square w-full bg-zinc-950">
-        <div className="absolute left-3 top-3 z-20 rounded-full bg-red-500/90 px-2.5 py-1 text-xs font-medium text-white backdrop-blur animate-pulse">
-          {live.viewersNow} regardent
-        </div>
         <WishlistHeart productId={p.id} className="absolute right-3 top-3 z-20" />
         {p.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- remote Unsplash/supplier URLs; agent cards need plain img
