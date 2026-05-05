@@ -74,7 +74,7 @@ export function SupplierStorefrontEditor({ previewHref }: Props) {
       })
       const json = (await res.json()) as { error?: string }
       if (!res.ok) throw new Error(json.error ?? "Could not save")
-      setMessage("Vitrine sauvegardée.")
+      setMessage("Storefront saved.")
       await hydrate()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error")
@@ -86,7 +86,7 @@ export function SupplierStorefrontEditor({ previewHref }: Props) {
   if (loading && !name) {
     return (
       <div className="mx-auto max-w-4xl p-8">
-        <p className="text-zinc-500">Chargement…</p>
+        <p className="text-zinc-500">Loading…</p>
       </div>
     )
   }
@@ -94,14 +94,14 @@ export function SupplierStorefrontEditor({ previewHref }: Props) {
   return (
     <div className="mx-auto max-w-4xl p-8">
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-zinc-900">Personnaliser ma vitrine</h1>
+        <h1 className="text-2xl font-bold text-zinc-900">Customize my storefront</h1>
         <Link
           href={previewHref}
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-lg bg-black px-4 py-2 text-white transition hover:bg-zinc-800"
         >
-          Prévisualiser →
+          Preview →
         </Link>
       </div>
 
@@ -111,7 +111,7 @@ export function SupplierStorefrontEditor({ previewHref }: Props) {
       <form onSubmit={onSubmit} className="space-y-6 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
         <div>
           <label htmlFor="sf-name" className="mb-2 block text-sm font-medium text-zinc-800">
-            Nom de la boutique
+            Store name
           </label>
           <input
             id="sf-name"
@@ -125,7 +125,7 @@ export function SupplierStorefrontEditor({ previewHref }: Props) {
 
         <div>
           <label htmlFor="sf-banner" className="mb-2 block text-sm font-medium text-zinc-800">
-            Bannière (URL, 1920×400 recommandé)
+            Banner (URL, 1920×400 recommended)
           </label>
           <div className="rounded-xl border-2 border-dashed border-zinc-200 bg-zinc-50 px-4 py-8 text-center">
             <input
@@ -133,11 +133,11 @@ export function SupplierStorefrontEditor({ previewHref }: Props) {
               type="url"
               value={bannerUrl}
               onChange={(e) => setBannerUrl(e.target.value)}
-              placeholder="https://… ou glisser/déposer équivalent (URL pour l’instant)"
+              placeholder="https://… paste an image URL for now"
               className="mx-auto w-full max-w-lg rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm"
             />
             <p className="mt-3 text-xs text-zinc-500">
-              Collez une URL HTTPS. Upload fichier via la page Store profile pour le logo ou une URL CDN.
+              Paste an HTTPS URL. For logo files or CDN URLs, use Store profile or a hosted image link.
             </p>
           </div>
         </div>
@@ -152,14 +152,14 @@ export function SupplierStorefrontEditor({ previewHref }: Props) {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className="w-full rounded-lg border border-zinc-200 px-4 py-2 outline-none focus:ring-2 focus:ring-zinc-900"
-            placeholder="Présentez votre marque..."
+            placeholder="Tell customers about your brand…"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label htmlFor="sf-ac1" className="mb-2 block text-sm font-medium text-zinc-800">
-              Couleur principale
+              Primary color
             </label>
             <input
               id="sf-ac1"
@@ -171,7 +171,7 @@ export function SupplierStorefrontEditor({ previewHref }: Props) {
           </div>
           <div>
             <label htmlFor="sf-ac2" className="mb-2 block text-sm font-medium text-zinc-800">
-              Couleur accent
+              Accent color
             </label>
             <input
               id="sf-ac2"
@@ -180,7 +180,7 @@ export function SupplierStorefrontEditor({ previewHref }: Props) {
               onChange={(e) => setAccent(e.target.value)}
               className="h-10 w-full cursor-pointer rounded-lg border border-zinc-200 bg-white"
             />
-            <p className="mt-1 text-[10px] text-zinc-400">Demo UI — persist via thème futur.</p>
+            <p className="mt-1 text-[10px] text-zinc-400">Demo UI — theme persistence coming later.</p>
           </div>
         </div>
 
@@ -189,7 +189,7 @@ export function SupplierStorefrontEditor({ previewHref }: Props) {
           disabled={saving}
           className="w-full rounded-xl bg-black py-3 font-medium text-white transition hover:bg-zinc-800 disabled:opacity-60"
         >
-          {saving ? "Sauvegarde…" : "Sauvegarder"}
+          {saving ? "Saving…" : "Save"}
         </button>
       </form>
     </div>

@@ -134,7 +134,7 @@ export function SupplierDashboard({ storeSlug, stats }: SupplierDashboardProps) 
     return (cents / 100).toLocaleString("en-US", { style: "currency", currency: "EUR" })
   }
 
-  const boutiqueHref = storeSlug
+  const storePreviewHref = storeSlug
     ? `/store/supplier/${encodeURIComponent(storeSlug)}`
     : "/dashboard/supplier/storefront"
 
@@ -160,7 +160,7 @@ export function SupplierDashboard({ storeSlug, stats }: SupplierDashboardProps) 
         </div>
         <div className="flex flex-shrink-0 items-center gap-3">
           <Link
-            href={boutiqueHref}
+            href={storePreviewHref}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-white transition hover:bg-zinc-800"
