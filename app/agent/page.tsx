@@ -1,5 +1,7 @@
 import { AgentChat } from "@/components/AgentChat"
 
+export const dynamic = "force-dynamic"
+
 export const metadata = {
   title: "Shopping Agent | Affisell",
   description: "Affisell Personal Shopping Agent — discover products from our marketplace.",
