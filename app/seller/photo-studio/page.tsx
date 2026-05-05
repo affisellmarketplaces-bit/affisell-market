@@ -63,6 +63,104 @@ function canvasToDataUrl(canvas: HTMLCanvasElement, quality = 0.92): string {
   return canvas.toDataURL("image/jpeg", quality)
 }
 
+async function localInpaintFromMask(sourceUrl: string, maskUrl: string): Promise<string> {
+  const sourceImg = await loadImage(sourceUrl)
+  const maskImg = await loadImage(maskUrl)
+
+  const workCanvas = document.createElement("canvas")
+  workCanvas.width = sourceImg.naturalWidth
+  workCanvas.height = sourceImg.naturalHeight
+  const workCtx = workCanvas.getContext("2d")
+  if (!workCtx) return sourceUrl
+
+  workCtx.drawImage(sourceImg, 0, 0)
+
+  const maskCanvas = document.createElement("canvas")
+  maskCanvas.width = workCanvas.width
+  maskCanvas.height = workCanvas.height
+  const maskCtx = maskCanvas.getContext("2d")
+  if (!maskCtx) return sourceUrl
+  maskCtx.drawImage(maskImg, 0, 0, maskCanvas.width, maskCanvas.height)
+
+  // Step 1: erase masked zone from image.
+  workCtx.save()
+  workCtx.globalCompositeOperation = "destination-out"
+  workCtx.drawImage(maskCanvas, 0, 0)
+  workCtx.restore()
+
+  const originalCanvas = await canvasFromImage(sourceUrl)
+  const originalCtx = originalCanvas.getContext("2d")
+  if (!originalCtx) return sourceUrl
+  const originalData = originalCtx.getImageData(0, 0, workCanvas.width, workCanvas.height)
+  const filledData = workCtx.getImageData(0, 0, workCanvas.width, workCanvas.height)
+  const maskData = maskCtx.getImageData(0, 0, workCanvas.width, workCanvas.height)
+
+  const width = workCanvas.width
+  const height = workCanvas.height
+  const radius = 10
+
+  // Step 2: fill erased pixels with local neighborhood average.
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const idx = (y * width + x) * 4
+      if (maskData.data[idx + 3] < 12) continue
+
+      let rs = 0
+      let gs = 0
+      let bs = 0
+      let count = 0
+
+      for (let oy = -radius; oy <= radius; oy++) {
+        const ny = y + oy
+        if (ny < 0 || ny >= height) continue
+        for (let ox = -radius; ox <= radius; ox++) {
+          const nx = x + ox
+          if (nx < 0 || nx >= width) continue
+          const dist = ox * ox + oy * oy
+          if (dist > radius * radius) continue
+          const nIdx = (ny * width + nx) * 4
+          if (maskData.data[nIdx + 3] >= 12) continue
+          rs += originalData.data[nIdx]
+          gs += originalData.data[nIdx + 1]
+          bs += originalData.data[nIdx + 2]
+          count++
+        }
+      }
+
+      if (count > 0) {
+        filledData.data[idx] = Math.round(rs / count)
+        filledData.data[idx + 1] = Math.round(gs / count)
+        filledData.data[idx + 2] = Math.round(bs / count)
+        filledData.data[idx + 3] = 255
+      }
+    }
+  }
+
+  workCtx.putImageData(filledData, 0, 0)
+
+  // Step 3: blur only masked area for softer transitions.
+  const blurCanvas = document.createElement("canvas")
+  blurCanvas.width = workCanvas.width
+  blurCanvas.height = workCanvas.height
+  const blurCtx = blurCanvas.getContext("2d")
+  if (!blurCtx) return canvasToDataUrl(workCanvas, 0.95)
+  blurCtx.filter = "blur(2px)"
+  blurCtx.drawImage(workCanvas, 0, 0)
+  const blurData = blurCtx.getImageData(0, 0, blurCanvas.width, blurCanvas.height)
+  const finalData = workCtx.getImageData(0, 0, workCanvas.width, workCanvas.height)
+
+  for (let i = 0; i < maskData.data.length; i += 4) {
+    if (maskData.data[i + 3] < 12) continue
+    finalData.data[i] = blurData.data[i]
+    finalData.data[i + 1] = blurData.data[i + 1]
+    finalData.data[i + 2] = blurData.data[i + 2]
+    finalData.data[i + 3] = 255
+  }
+
+  workCtx.putImageData(finalData, 0, 0)
+  return canvasToDataUrl(workCanvas, 0.95)
+}
+
 function getTodayUsage() {
   if (typeof window === "undefined") return 0
   const key = `affisellStudioUsage:${new Date().toISOString().slice(0, 10)}`
@@ -209,19 +307,7 @@ export default function PhotoStudioPage() {
       if (mode === "erase-text") {
         const mask = masksById[item.id]
         if (!mask) throw new Error("Paint over text/watermark first.")
-        const inpaintRes = await fetch("/api/inpaint", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            image: sourceUrl,
-            mask,
-          }),
-        })
-        const inpaintJson = (await inpaintRes.json().catch(() => ({}))) as { image?: string; detail?: string; error?: string }
-        if (!inpaintRes.ok || !inpaintJson.image) {
-          throw new Error(inpaintJson.detail || inpaintJson.error || "Inpaint failed")
-        }
-        result = inpaintJson.image
+        result = await localInpaintFromMask(sourceUrl, mask)
       }
 
       setItems((prev) =>
@@ -438,7 +524,7 @@ export default function PhotoStudioPage() {
             />
             {isEraseMode ? (
               <p className="mt-2 text-xs text-rose-300">
-                Paint over text/watermarks in red, then click Process to run AI inpainting.
+                Paint over text/watermarks in red, then click Process for instant local content-aware fill.
               </p>
             ) : null}
             <div className="mt-3 grid grid-cols-4 gap-2">
