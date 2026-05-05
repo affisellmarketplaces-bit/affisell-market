@@ -61,6 +61,12 @@ export default async function MarketplacePage({
     .slice(0, 20)
     .map(([name, count]) => ({ name, count }))
   const activeCategory = filterParams.category?.trim() || ""
+  const premiumListingIds = new Set(
+    listings
+      .filter((item) => item.sellingPriceCents > 10_000 && (item.product?.stock ?? 0) > 10)
+      .slice(0, 3)
+      .map((item) => item.id)
+  )
 
   function categoryHref(category: string | null) {
     const usp = new URLSearchParams()
@@ -127,6 +133,7 @@ export default async function MarketplacePage({
                         currency: "EUR",
                       })}
                       priceValue={item.sellingPriceCents / 100}
+                      showPremiumBadge={premiumListingIds.has(item.id)}
                       sellerDisplay={
                         item.affiliate?.store?.name ??
                         item.affiliate?.name?.trim() ??

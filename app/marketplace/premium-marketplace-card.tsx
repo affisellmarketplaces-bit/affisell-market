@@ -15,6 +15,7 @@ type Props = {
   sellerDisplay: string
   priceDisplay: string
   priceValue: number
+  showPremiumBadge?: boolean
 }
 
 export function PremiumMarketplaceCard({
@@ -26,6 +27,7 @@ export function PremiumMarketplaceCard({
   sellerDisplay,
   priceDisplay,
   priceValue,
+  showPremiumBadge = false,
 }: Props) {
   const [watchingCount, setWatchingCount] = useState(12)
 
@@ -52,9 +54,11 @@ export function PremiumMarketplaceCard({
         )}
 
         <WishlistHeart productId={productId} className="absolute right-3 top-3 z-20" />
-        <span className="absolute left-3 top-3 z-20 rounded-full bg-gradient-to-r from-violet-500 to-pink-500 px-2.5 py-1 text-[11px] font-semibold text-white shadow">
-          Premium
-        </span>
+        {showPremiumBadge ? (
+          <span className="absolute left-3 top-3 z-20 rounded-full bg-gradient-to-r from-violet-500 to-pink-500 px-2.5 py-1 text-[11px] font-semibold text-white shadow">
+            Premium
+          </span>
+        ) : null}
 
         <div className="absolute bottom-3 left-3 right-3 translate-y-2 opacity-0 transition group-hover:translate-y-0 group-hover:opacity-100">
           <button

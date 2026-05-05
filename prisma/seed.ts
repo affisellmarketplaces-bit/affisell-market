@@ -130,7 +130,7 @@ const ITEMS: SeedItem[] = [
   {
     name: "Hydrating Cream",
     slug: "hydrating-cream",
-    category: "Premium Beauty",
+    category: "Beauty & Personal Care",
     description:
       "Rich day-and-night cream with ceramides and glycerin to lock in moisture. Fragrance-aware formula for sensitive skin types.",
     priceEur: 42.0,
