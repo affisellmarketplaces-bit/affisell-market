@@ -33,17 +33,17 @@ export function PremiumMarketplaceCard({
       href={detailHref}
       className="group relative block rounded-2xl transition-shadow hover:shadow-xl hover:shadow-zinc-200/50"
     >
-      <div className="relative mb-4 aspect-[3/4] overflow-hidden rounded-2xl bg-zinc-100">
+      <div className="relative mb-4 flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl bg-[#ffffff] p-4">
         {imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={imageUrl}
             alt={name}
-            className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+            className="max-h-full max-w-full object-contain"
             loading="lazy"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-sm text-zinc-400">Image</div>
+          <div className="flex h-full min-h-0 w-full flex-1 items-center justify-center text-sm text-zinc-400">Image</div>
         )}
 
         <WishlistHeart productId={productId} className="absolute right-3 top-3 z-20" />

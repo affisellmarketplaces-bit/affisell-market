@@ -76,7 +76,7 @@ export function MarketplaceListingCard({
   return (
     <div className="group overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-600">
       <Link href={detailHref} className="block" onPointerDown={() => recordClick()}>
-        <div className="relative aspect-[4/3] overflow-hidden rounded-t-xl bg-gray-50 p-3 flex items-center justify-center">
+        <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-t-xl bg-[#ffffff] p-4">
           <img
             src={listing.image}
             alt={listing.title}

@@ -94,9 +94,9 @@ export function ProductCard({
   return (
     <article className="flex h-full flex-col rounded-lg border border-[#e5e7eb] bg-white transition-shadow hover:border-gray-400 hover:shadow-md">
       <Link href={href} className="flex min-h-0 flex-1 flex-col">
-        <div className="relative aspect-square w-full shrink-0 bg-white p-2">
+        <div className="relative aspect-square w-full shrink-0 bg-[#ffffff] p-4">
           {badgeLabel ? (
-            <span className="absolute left-2 top-2 z-10 rounded bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-700">
+            <span className="absolute left-4 top-4 z-10 rounded bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-700">
               {badgeLabel}
             </span>
           ) : null}

@@ -220,12 +220,12 @@ export function MarketplaceListingDetail({
       <div className="mt-6 flex flex-col gap-8 lg:flex-row lg:gap-10 lg:items-start">
         {/* Gallery */}
         <div className="w-full lg:w-[60%] lg:max-w-none">
-          <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-gray-50 dark:bg-zinc-800">
+          <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-[#ffffff] dark:bg-zinc-900">
             <Image
               src={heroSrc}
               alt={name}
               fill
-              className="object-contain p-2"
+              className="object-contain p-4"
               sizes="(max-width: 1024px) 100vw, 58vw"
               priority
               unoptimized={heroSrc.startsWith("http") || heroSrc.startsWith("blob:")}
@@ -258,7 +258,7 @@ export function MarketplaceListingDetail({
                   key={`${url}-${i}`}
                   type="button"
                   onClick={() => setSelectedImage(i)}
-                  className={`relative aspect-square overflow-hidden rounded-lg bg-gray-50 ring-offset-2 dark:bg-zinc-800 ${
+                  className={`relative aspect-square overflow-hidden rounded-lg bg-[#ffffff] ring-offset-2 dark:bg-zinc-900 ${
                     selectedImage === i ? "ring-2 ring-blue-500" : "ring-0 hover:opacity-90"
                   }`}
                 >
@@ -266,7 +266,7 @@ export function MarketplaceListingDetail({
                     src={url}
                     alt=""
                     fill
-                    className="object-contain p-1"
+                    className="object-contain p-2"
                     sizes="72px"
                     unoptimized={url.startsWith("http")}
                   />
