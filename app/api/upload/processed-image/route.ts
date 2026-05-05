@@ -55,17 +55,33 @@ async function readImagePayload(req: Request): Promise<{ mime: string; bytes: Ui
 
 export async function POST(req: Request) {
   const session = await auth()
-  if (!session?.user?.id) {
+  const bypassDevAuth = process.env.NODE_ENV !== "production" && process.env.PHOTO_STUDIO_DEV_BYPASS === "1"
+  const effectiveUserId = session?.user?.id || (bypassDevAuth ? "dev-local" : "")
+  const effectiveRole = session?.user?.role || (bypassDevAuth ? "SUPPLIER" : "")
+
+  if (!effectiveUserId) {
+    console.error("[upload/processed-image] auth missing session", {
+      hasSession: Boolean(session),
+      role: session?.user?.role ?? null,
+    })
     return Response.json(
       {
         error: "Not authenticated",
-        detail: "You must be logged in as a supplier (cookies/session required).",
+        detail:
+          "You must be logged in as a supplier (cookies/session required). For local debug, set PHOTO_STUDIO_DEV_BYPASS=1.",
       },
       { status: 401 }
     )
   }
-  if (session.user.role !== "SUPPLIER") {
-    return Response.json({ error: "Forbidden", detail: "Only suppliers can upload processed images." }, { status: 403 })
+  if (effectiveRole !== "SUPPLIER") {
+    console.error("[upload/processed-image] wrong role", { role: effectiveRole })
+    return Response.json(
+      {
+        error: "Forbidden",
+        detail: `Only suppliers can upload processed images. Current role: ${effectiveRole || "unknown"}.`,
+      },
+      { status: 403 }
+    )
   }
 
   try {
@@ -107,7 +123,7 @@ export async function POST(req: Request) {
     const ext =
       mime === "image/png" ? "png" : mime === "image/webp" ? "webp" : mime === "image/gif" ? "gif" : "jpg"
     const date = new Date().toISOString().slice(0, 10)
-    const path = `${session.user.id}/${date}/${Date.now()}-${filename}.${ext}`
+    const path = `${effectiveUserId}/${date}/${Date.now()}-${filename}.${ext}`
 
     const uploaded = await supabase.storage.from(BUCKET).upload(path, bytes, {
       contentType: mime,
