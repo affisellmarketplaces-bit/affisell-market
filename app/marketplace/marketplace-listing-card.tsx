@@ -75,7 +75,9 @@ export function MarketplaceListingCard({
           />
         </div>
         <div className="p-4">
-          <p className="font-semibold leading-snug">{name}</p>
+          <div className="min-w-0 flex-1">
+            <h3 className="line-clamp-2 min-h-[2.75rem] break-words font-semibold leading-snug">{name}</h3>
+          </div>
           {fastShipping ? (
             <p className="mt-1.5">
               <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-800">

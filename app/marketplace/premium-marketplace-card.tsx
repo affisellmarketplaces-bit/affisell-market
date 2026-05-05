@@ -45,6 +45,9 @@ export function PremiumMarketplaceCard({
         )}
 
         <WishlistHeart productId={productId} className="absolute right-3 top-3 z-20" />
+        <span className="absolute left-3 top-3 z-20 rounded-full bg-gradient-to-r from-violet-500 to-pink-500 px-2.5 py-1 text-[11px] font-semibold text-white shadow">
+          Premium
+        </span>
 
         <div className="absolute bottom-3 left-3 right-3 translate-y-2 opacity-0 transition group-hover:translate-y-0 group-hover:opacity-100">
           <button
@@ -67,14 +70,14 @@ export function PremiumMarketplaceCard({
         </div>
       </div>
 
-      <div>
-        <div className="flex items-start justify-between gap-2">
+      <div className="min-h-[8rem] pb-1">
+        <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <h3 className="truncate font-medium leading-snug text-zinc-900">{name}</h3>
-            <p className="mt-0.5 text-sm text-zinc-500">by {sellerDisplay}</p>
+            <h3 className="line-clamp-2 min-h-[2.75rem] break-words font-semibold leading-snug text-zinc-900">{name}</h3>
           </div>
-          <span className="font-medium text-zinc-900">{priceDisplay}</span>
+          <span className="shrink-0 pt-0.5 font-medium text-zinc-900">{priceDisplay}</span>
         </div>
+        <p className="mt-1 line-clamp-2 text-sm text-zinc-500">by {sellerDisplay}</p>
 
         <div className="mt-2 flex items-center gap-2">
           <div className="flex -space-x-1">
