@@ -33,6 +33,7 @@ export default async function MarketplacePage({
     delivery: pickString(sp, "delivery"),
     freeShipping: pickString(sp, "freeShipping"),
     category: pickString(sp, "category"),
+    q: pickString(sp, "q"),
   }
 
   const listings = await prisma.affiliateProduct.findMany({
@@ -81,6 +82,7 @@ export default async function MarketplacePage({
 
   function categoryHref(category: string | null) {
     const usp = new URLSearchParams()
+    if (filterParams.q) usp.set("q", filterParams.q)
     if (filterParams.shipsFrom) usp.set("shipsFrom", filterParams.shipsFrom)
     if (filterParams.delivery) usp.set("delivery", filterParams.delivery)
     if (filterParams.freeShipping) usp.set("freeShipping", filterParams.freeShipping)

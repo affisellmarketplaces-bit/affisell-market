@@ -61,6 +61,13 @@ export function productWhereForMarketplace(
   sp: Record<string, string | string[] | undefined>
 ): Prisma.ProductWhereInput {
   const extra = marketplaceProductFilterFromSearchParams(sp)
-  if (!extra) return { active: true }
-  return { AND: [{ active: true }, extra] }
+  const qRaw = typeof sp.q === "string" ? sp.q.trim() : ""
+  const qFilter: Prisma.ProductWhereInput | undefined =
+    qRaw.length > 0 ? { name: { contains: qRaw, mode: "insensitive" } } : undefined
+
+  const parts: Prisma.ProductWhereInput[] = [{ active: true }]
+  if (qFilter) parts.push(qFilter)
+  if (extra) parts.push(extra)
+  if (parts.length === 1) return parts[0]!
+  return { AND: parts }
 }
