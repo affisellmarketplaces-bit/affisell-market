@@ -42,6 +42,10 @@ type Props = {
 
 const COLLECTIONS = ["Featured", "Black Friday", "Tech Deals"] as const
 
+function clampNumber(n: number, lo: number, hi: number) {
+  return Math.min(hi, Math.max(lo, n))
+}
+
 type FormFields = {
   step: 1 | 2
   customTitle: string
@@ -107,6 +111,8 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
   const [error, setError] = useState<string | null>(null)
   const [uploadBusy, setUploadBusy] = useState(false)
   const [pricingAiToast, setPricingAiToast] = useState<string | null>(null)
+  const [pricingGreenToast, setPricingGreenToast] = useState<string | null>(null)
+  const [pricePulse, setPricePulse] = useState(false)
 
   const marginEUR = useMemo(() => {
     const pp = Number(String(form.priceEUR).replace(",", "."))
@@ -125,6 +131,24 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
     const t = window.setTimeout(() => setPricingAiToast(null), 4000)
     return () => window.clearTimeout(t)
   }, [pricingAiToast])
+
+  useEffect(() => {
+    if (!pricingGreenToast) return
+    const t = window.setTimeout(() => setPricingGreenToast(null), 3000)
+    return () => window.clearTimeout(t)
+  }, [pricingGreenToast])
+
+  function marginPercentFromPrice(price: number): number | null {
+    const sup = product.basePriceCents / 100
+    if (sup <= 0 || !Number.isFinite(price)) return null
+    return ((price - sup) / sup) * 100
+  }
+
+  function priceFromMarginPercent(pct: number): number {
+    const sup = product.basePriceCents / 100
+    const raw = sup * (1 + pct / 100)
+    return Math.round(Math.max(raw, sup + 0.01) * 100) / 100
+  }
 
   function toggleCollection(c: string) {
     setForm((f) => ({
@@ -383,29 +407,98 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
                   onPriceChange={(nextEUR) =>
                     setForm((f) => ({ ...f, priceEUR: nextEUR.toFixed(2) }))
                   }
-                  onNotify={(msg) => setPricingAiToast(msg)}
+                  onNotify={(msg) => {
+                    setPricingAiToast(msg)
+                    if (msg.startsWith("AI price applied")) setPricingGreenToast(msg)
+                  }}
+                  onApplyComplete={() => {
+                    setPricePulse(true)
+                    window.setTimeout(() => setPricePulse(false), 1000)
+                  }}
                 />
 
                 <label className="block text-sm font-medium text-gray-800">Custom Price (EUR)</label>
-                <div className="rounded-xl border border-gray-200 p-4">
-                  <p className="text-sm text-gray-600">
-                    Supplier: €{baseEUR.toFixed(2)} | Your price:{" "}
+                <div className="space-y-3 rounded-xl border border-gray-200 p-4">
+                  <p className="flex flex-wrap items-center gap-x-1 gap-y-2 text-sm text-gray-600">
+                    <span>Supplier: €{baseEUR.toFixed(2)}</span>
+                    <span className="text-gray-400">|</span>
+                    <label htmlFor="selling-price" className="font-medium text-gray-800">
+                      Your selling price
+                    </label>
                     <input
+                      id="selling-price"
+                      name="sellingPrice"
                       type="number"
                       step={0.01}
                       min={baseEUR}
                       value={form.priceEUR}
                       onChange={(e) => setForm((f) => ({ ...f, priceEUR: e.target.value }))}
-                      className="w-28 rounded border border-gray-200 px-2 py-1 text-green-700"
-                    />{" "}
-                    | Margin:{" "}
-                    <span className="font-semibold text-green-600">
-                      {marginEUR != null && Number.isFinite(marginEUR) ? `€${marginEUR.toFixed(2)}` : "—"}
+                      className={`w-28 rounded border border-gray-200 px-2 py-1 text-green-700 transition [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${pricePulse ? "pulse-green ring-2 ring-green-500 ring-offset-2" : ""}`}
+                    />
+                    <span className="text-gray-400">|</span>
+                    <span>
+                      Margin:{" "}
+                      <span className="font-semibold text-green-600">
+                        {marginEUR != null && Number.isFinite(marginEUR) ? `€${marginEUR.toFixed(2)}` : "—"}
+                      </span>
+                      {marginPct != null ? (
+                        <span className="text-gray-500"> ({marginPct.toFixed(1)}% markup)</span>
+                      ) : null}
                     </span>
-                    {marginPct != null ? (
-                      <span className="text-gray-500"> ({marginPct.toFixed(1)}% markup)</span>
-                    ) : null}
                   </p>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="margin-percent" className="block text-xs font-medium text-gray-600">
+                        Margin markup %
+                      </label>
+                      <input
+                        id="margin-percent"
+                        name="margin"
+                        type="number"
+                        step={1}
+                        min={0}
+                        max={250}
+                        value={((): number => {
+                          const euro = Number(String(form.priceEUR).replace(",", "."))
+                          if (!Number.isFinite(euro)) return 0
+                          const pct = marginPercentFromPrice(euro)
+                          return pct != null ? Math.round(pct) : 0
+                        })()}
+                        onChange={(e) => {
+                          const pct = clampNumber(Number(e.target.value), 0, 250)
+                          if (!Number.isFinite(pct)) return
+                          const next = priceFromMarginPercent(pct)
+                          setForm((f) => ({ ...f, priceEUR: next.toFixed(2) }))
+                        }}
+                        className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-500"
+                      />
+                    </div>
+                    <div className="sm:pt-6">
+                      <label htmlFor="margin-slider" className="sr-only">
+                        Margin markup slider
+                      </label>
+                      <input
+                        id="margin-slider"
+                        type="range"
+                        name="marginSlider"
+                        min={0}
+                        max={120}
+                        step={1}
+                        value={clampNumber(Math.round(marginPct ?? 0), 0, 120)}
+                        onChange={(e) => {
+                          const pct = Number(e.target.value)
+                          const next = priceFromMarginPercent(pct)
+                          setForm((f) => ({ ...f, priceEUR: next.toFixed(2) }))
+                        }}
+                        className="w-full accent-violet-600"
+                      />
+                      <div className="mt-1 flex justify-between text-[10px] text-gray-400">
+                        <span>0%</span>
+                        <span>120%</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -506,6 +599,15 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
           </button>
         </div>
       </form>
+
+      {pricingGreenToast ? (
+        <div
+          className="pointer-events-none fixed bottom-4 right-4 z-[200] rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-lg"
+          role="status"
+        >
+          {pricingGreenToast}
+        </div>
+      ) : null}
     </div>
   )
 }
