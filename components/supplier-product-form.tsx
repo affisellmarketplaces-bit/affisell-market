@@ -622,6 +622,9 @@ export function SupplierProductForm({
           onTagsChange={setTags}
           variants={variants}
           onVariantsChange={setVariants}
+          productTitle={form.name}
+          basePriceEUR={form.price}
+          defaultCommission={form.commission}
         />
 
         <button

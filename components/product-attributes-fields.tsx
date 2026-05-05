@@ -2,15 +2,9 @@
 
 import { useMemo, useState } from "react"
 
-import {
-  CATEGORIES,
-  COLORS,
-  VARIANT_GROUP_LABELS,
-  VARIANT_PRESETS,
-  isMulticolorSwatch,
-  type VariantGroupKey,
-} from "@/lib/product-catalog-constants"
+import { CATEGORIES, COLORS, isMulticolorSwatch } from "@/lib/product-catalog-constants"
 import { catalogHexForColorName, type ProductColorImageRow } from "@/lib/product-color-images"
+import { ProductVariantsAdvanced } from "@/components/product-variants-advanced"
 import type { ProductVariantsJson } from "@/lib/product-variants"
 
 export type ProductAttributesFieldsProps = {
@@ -24,50 +18,10 @@ export type ProductAttributesFieldsProps = {
   onTagsChange: (next: string[]) => void
   variants: ProductVariantsJson | null
   onVariantsChange: (next: ProductVariantsJson | null) => void
-}
-
-const VARIANT_KEYS: VariantGroupKey[] = ["size", "storage", "ram", "material"]
-
-function toggleInList(list: string[], value: string): string[] {
-  const i = list.indexOf(value)
-  if (i >= 0) {
-    return list.filter((_, j) => j !== i)
-  }
-  return [...list, value]
-}
-
-function mergeVariants(
-  prev: ProductVariantsJson | null,
-  patch: Partial<{ [K in keyof ProductVariantsJson]: ProductVariantsJson[K] | undefined }>
-): ProductVariantsJson | null {
-  const base: ProductVariantsJson = { ...(prev ?? {}) }
-  for (const [k, val] of Object.entries(patch) as [keyof ProductVariantsJson, unknown][]) {
-    if (val === undefined) {
-      delete (base as Record<string, unknown>)[k as string]
-      continue
-    }
-    if (
-      (k === "size" || k === "storage" || k === "ram" || k === "material") &&
-      Array.isArray(val)
-    ) {
-      ;(base as Record<string, unknown>)[k] = val
-      continue
-    }
-    if (k === "model") {
-      if (typeof val === "string") {
-        const t = val.trim()
-        if (!t) delete base.model
-        else base.model = t
-      }
-      continue
-    }
-    if (k === "imageByColor" && val && typeof val === "object") {
-      const keys = Object.keys(val as object)
-      if (!keys.length) delete base.imageByColor
-      else base.imageByColor = val as Record<string, string>
-    }
-  }
-  return Object.keys(base).length ? base : null
+  /** Pass-through for advanced variants / AI (product form) */
+  productTitle?: string
+  basePriceEUR?: string
+  defaultCommission?: string
 }
 
 export function ProductAttributesFields({
@@ -81,11 +35,12 @@ export function ProductAttributesFields({
   onTagsChange,
   variants,
   onVariantsChange,
+  productTitle = "",
+  basePriceEUR = "",
+  defaultCommission = "20",
 }: ProductAttributesFieldsProps) {
-  const v = variants ?? {}
   const [catQuery, setCatQuery] = useState("")
   const [tagInput, setTagInput] = useState("")
-  const [customByGroup, setCustomByGroup] = useState<Partial<Record<VariantGroupKey, string>>>({})
 
   const filteredCategories = useMemo(
     () => CATEGORIES.filter((c) => c.toLowerCase().includes(catQuery.trim().toLowerCase())),
@@ -138,32 +93,6 @@ export function ProductAttributesFields({
     onTagsChange([...tags, t].slice(0, 40))
     setTagInput("")
   }
-
-  function addVariantGroup(key: VariantGroupKey) {
-    if (Array.isArray(v[key])) return
-    onVariantsChange(mergeVariants(variants, { [key]: [] }))
-  }
-
-  function removeVariantGroup(key: VariantGroupKey) {
-    onVariantsChange(mergeVariants(variants, { [key]: undefined }))
-  }
-
-  function togglePreset(key: VariantGroupKey, value: string) {
-    const cur = v[key] ?? []
-    const nextList = toggleInList([...cur], value)
-    onVariantsChange(mergeVariants(variants, { [key]: nextList }))
-  }
-
-  function addCustomVariant(key: VariantGroupKey) {
-    const raw = (customByGroup[key] ?? "").trim()
-    if (!raw) return
-    const cur = v[key] ?? []
-    if (cur.includes(raw)) return
-    onVariantsChange(mergeVariants(variants, { [key]: [...cur, raw] }))
-    setCustomByGroup((prev) => ({ ...prev, [key]: "" }))
-  }
-
-  const activeVariantKeys = VARIANT_KEYS.filter((k) => Array.isArray(v[k]))
 
   return (
     <div className="md:col-span-2 space-y-8 border-t border-zinc-200 pt-6 dark:border-zinc-700">
@@ -310,127 +239,16 @@ export function ProductAttributesFields({
         ) : null}
       </div>
 
-      {/* Variants */}
-      <div>
-        <div className="flex flex-wrap items-end gap-2">
-          <div className="min-w-[200px] flex-1">
-            <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">Variants</label>
-            <select
-              defaultValue=""
-              className="mt-2 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950"
-              onChange={(e) => {
-                const key = e.target.value as VariantGroupKey
-                e.target.value = ""
-                if (VARIANT_KEYS.includes(key) && !activeVariantKeys.includes(key)) {
-                  addVariantGroup(key)
-                }
-              }}
-            >
-              <option value="">+ Add variant type...</option>
-              {VARIANT_KEYS.filter((k) => !activeVariantKeys.includes(k)).map((k) => (
-                <option key={k} value={k}>
-                  {VARIANT_GROUP_LABELS[k]}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div className="mt-4 space-y-5">
-          {activeVariantKeys.map((key) => {
-            const list = v[key] ?? []
-            const presets = VARIANT_PRESETS[key]
-            return (
-              <div key={key} className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-sm font-medium">{VARIANT_GROUP_LABELS[key]}</span>
-                  <button
-                    type="button"
-                    onClick={() => removeVariantGroup(key)}
-                    className="text-xs text-red-600 hover:underline dark:text-red-400"
-                  >
-                    Remove
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {presets.map((p) => (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => togglePreset(key, p)}
-                      className={`rounded-full border px-3 py-1 text-xs transition ${
-                        list.includes(p)
-                          ? "border-blue-600 bg-blue-50 text-blue-800 dark:bg-blue-950 dark:text-blue-100"
-                          : "border-zinc-200 hover:border-zinc-400 dark:border-zinc-600"
-                      }`}
-                    >
-                      {p}
-                    </button>
-                  ))}
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <input
-                    type="text"
-                    value={customByGroup[key] ?? ""}
-                    onChange={(e) => setCustomByGroup((prev) => ({ ...prev, [key]: e.target.value }))}
-                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCustomVariant(key))}
-                    placeholder="Custom value..."
-                    className="min-w-[8rem] flex-1 rounded-lg border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-600 dark:bg-zinc-950"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => addCustomVariant(key)}
-                    className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-600"
-                  >
-                    Add
-                  </button>
-                </div>
-                {list.length > 0 ? (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {list.map((val) => (
-                      <span
-                        key={val}
-                        className="inline-flex items-center gap-1 rounded-md bg-zinc-100 px-2 py-0.5 text-xs dark:bg-zinc-800"
-                      >
-                        {val}
-                        <button
-                          type="button"
-                          className="text-zinc-500 hover:text-red-600"
-                          onClick={() =>
-                            onVariantsChange(
-                              mergeVariants(variants, {
-                                [key]: list.filter((x) => x !== val).length
-                                  ? list.filter((x) => x !== val)
-                                  : undefined,
-                              })
-                            )
-                          }
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-            )
-          })}
-
-          <div>
-            <label className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Model / Version</label>
-            <input
-              type="text"
-              value={v.model ?? ""}
-              onChange={(e) =>
-                onVariantsChange(mergeVariants(variants, { model: e.target.value }))
-              }
-              placeholder="Ex. iPhone 15 Pro – 2025 edition"
-              className="mt-2 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950"
-            />
-          </div>
-
-        </div>
-      </div>
+      <ProductVariantsAdvanced
+        variants={variants}
+        onVariantsChange={onVariantsChange}
+        productTitle={productTitle}
+        basePriceEUR={basePriceEUR}
+        defaultCommission={defaultCommission}
+        categories={categories}
+        colors={colors}
+        tags={tags}
+      />
 
       {/* Tags */}
       <div>
