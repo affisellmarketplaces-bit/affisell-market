@@ -19,7 +19,9 @@ export default function SignupChooser() {
             The global marketplace where suppliers and creators scale together — with local payouts, multi-currency,
             and worldwide fulfillment.
           </p>
-          <p className="mt-3 text-sm font-medium text-zinc-500">English • USD • Worldwide shipping</p>
+          <p className="mt-3 text-sm font-medium text-zinc-500">
+            Available in 150+ countries with local currency payouts
+          </p>
         </div>
 
         <div className="mx-auto mt-8 grid max-w-4xl grid-cols-1 gap-3 sm:grid-cols-3">
@@ -28,6 +30,7 @@ export default function SignupChooser() {
               <DollarSign className="h-4 w-4 text-violet-600" />
               $2.4M+ paid out
             </p>
+            <p className="mt-0.5 text-center text-xs text-zinc-500">in 20+ currencies</p>
           </div>
           <div className="rounded-2xl border border-zinc-200 bg-white px-4 py-3 shadow-sm">
             <p className="flex items-center justify-center gap-2 text-sm font-semibold text-zinc-800">
