@@ -1,56 +1,48 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest, NextResponse } from 'next/server';
 
-export const runtime = "nodejs"
-export const dynamic = "force-dynamic"
+export const runtime = 'nodejs';
+export const maxDuration = 60;
+
+const HF_TOKEN = process.env.HF_TOKEN;
+const MODEL = 'runwayml/stable-diffusion-inpainting';
 
 export async function POST(req: NextRequest) {
   try {
-    const { image, mask } = (await req.json()) as { image?: string; mask?: string }
-
-    if (!process.env.HF_TOKEN) {
-      return NextResponse.json({ error: "HF_TOKEN not configured" }, { status: 500 })
+    if (!HF_TOKEN) {
+      return NextResponse.json({ error: 'HF_TOKEN manquant' }, { status: 500 });
     }
+    const { image, mask, prompt = 'remove text, clean background' } = await req.json();
+    const imageBlob = await fetch(image).then(r => r.blob());
+    const maskBlob = await fetch(mask).then(r => r.blob());
+    const formData = new FormData();
+    formData.append('image', imageBlob, 'image.png');
+    formData.append('mask_image', maskBlob, 'mask.png');
+    formData.append('inputs', prompt);
+    
+    let response = await fetch(`https://api-inference.huggingface.co/models/${MODEL}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${HF_TOKEN}` },
+      body: formData,
+    });
 
-    if (!image || !mask) {
-      return NextResponse.json({ error: "Missing image or mask" }, { status: 400 })
+    if (response.status === 503) {
+      await new Promise(r => setTimeout(r, 20000));
+      response = await fetch(`https://api-inference.huggingface.co/models/${MODEL}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${HF_TOKEN}` },
+        body: formData,
+      });
     }
-
-    // Convert base64 to blob for HF API
-    const imageBase64 = image.split(",")[1]
-    const maskBase64 = mask.split(",")[1]
-
-    if (!imageBase64 || !maskBase64) {
-      return NextResponse.json({ error: "Invalid image or mask (expected data URLs)" }, { status: 400 })
-    }
-
-    const response = await fetch("https://api-inference.huggingface.co/models/frank-xwang/lama-cleaner", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.HF_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        inputs: {
-          image: imageBase64,
-          mask: maskBase64,
-        },
-      }),
-    })
 
     if (!response.ok) {
-      const error = await response.text()
-      return NextResponse.json({ error }, { status: response.status })
+      const error = await response.text();
+      return NextResponse.json({ error }, { status: 500 });
     }
 
-    const result = await response.arrayBuffer()
-    const base64 = Buffer.from(result).toString("base64")
-    const dataUrl = `data:image/png;base64,${base64}`
-
-    return NextResponse.json({ image: dataUrl })
-  } catch (error: unknown) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
-    )
+    const buffer = await response.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString('base64');
+    return NextResponse.json({ image: `data:image/png;base64,${base64}`, success: true });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
