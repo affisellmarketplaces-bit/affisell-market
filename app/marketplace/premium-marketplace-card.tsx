@@ -73,7 +73,7 @@ export function PremiumMarketplaceCard({
       <div className="min-h-[8rem] pb-1">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <h3 className="line-clamp-2 min-h-[2.75rem] break-words font-semibold leading-snug text-zinc-900">{name}</h3>
+            <h3 className="line-clamp-3 min-h-[4.125rem] break-words font-semibold leading-snug text-zinc-900">{name}</h3>
           </div>
           <span className="shrink-0 pt-0.5 font-medium text-zinc-900">{priceDisplay}</span>
         </div>

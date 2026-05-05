@@ -46,7 +46,7 @@ export function MarketplaceFilterSidebar({ current }: { current: MarketplaceFilt
                     ? href({ ...c, category: undefined })
                     : href({ ...c, category: c.category === cat ? undefined : cat })
                 }
-                className={`block truncate rounded-lg px-2 py-1 text-xs transition ${
+                className={`block line-clamp-3 min-h-[2.25rem] break-words rounded-lg px-2 py-1 text-xs leading-snug transition ${
                   active
                     ? "bg-zinc-900 font-medium text-white dark:bg-zinc-100 dark:text-zinc-900"
                     : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"

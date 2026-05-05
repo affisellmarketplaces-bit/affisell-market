@@ -76,7 +76,7 @@ export function MarketplaceListingCard({
         </div>
         <div className="p-4">
           <div className="min-w-0 flex-1">
-            <h3 className="line-clamp-2 min-h-[2.75rem] break-words font-semibold leading-snug">{name}</h3>
+            <h3 className="line-clamp-3 min-h-[4.125rem] break-words font-semibold leading-snug">{name}</h3>
           </div>
           {fastShipping ? (
             <p className="mt-1.5">
