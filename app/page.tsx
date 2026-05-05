@@ -1,5 +1,6 @@
 import Link from "next/link"
 
+import { HomeAffisellCarousels } from "@/components/home-affisell-carousels"
 import { BestSellers } from "@/components/trends/BestSellers"
 import { NewArrivals } from "@/components/trends/NewArrivals"
 import { SalesBarometer } from "@/components/trends/SalesBarometer"
@@ -38,6 +39,7 @@ export default function HomePage() {
       </main>
 
       <section className="mx-auto max-w-7xl space-y-16 px-4 py-12">
+        <HomeAffisellCarousels />
         <BestSellers />
         <NewArrivals />
         <SalesBarometer />

@@ -2,8 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { productWhereForMarketplace } from "@/lib/marketplace-listing-filters"
 import { primaryProductImage } from "@/lib/product-images"
 
-import { MarketplaceFilterSidebar } from "./marketplace-filter-sidebar"
-import { MarketplaceListingCard } from "./marketplace-listing-card"
+import { PremiumMarketplaceCard } from "./premium-marketplace-card"
 
 export const dynamic = "force-dynamic"
 
@@ -41,23 +40,86 @@ export default async function MarketplacePage({
     orderBy: { id: "desc" },
   })
 
+  const categoryRows = await prisma.product.findMany({
+    where: { active: true },
+    take: 250,
+    select: { categories: true },
+  })
+  const categoryCountMap = new Map<string, number>()
+  for (const row of categoryRows) {
+    const seenInProduct = new Set<string>()
+    for (const rawCategory of row.categories) {
+      if (typeof rawCategory !== "string") continue
+      const category = rawCategory.trim()
+      if (!category || seenInProduct.has(category)) continue
+      seenInProduct.add(category)
+      categoryCountMap.set(category, (categoryCountMap.get(category) ?? 0) + 1)
+    }
+  }
+  const categories = [...categoryCountMap.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 20)
+    .map(([name, count]) => ({ name, count }))
+  const activeCategory = filterParams.category?.trim() || ""
+
+  function categoryHref(category: string | null) {
+    const usp = new URLSearchParams()
+    if (filterParams.shipsFrom) usp.set("shipsFrom", filterParams.shipsFrom)
+    if (filterParams.delivery) usp.set("delivery", filterParams.delivery)
+    if (filterParams.freeShipping) usp.set("freeShipping", filterParams.freeShipping)
+    if (category) usp.set("category", category)
+    const s = usp.toString()
+    return `/marketplace${s ? `?${s}` : ""}`
+  }
+
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10 md:px-8">
-      <h1 className="text-2xl font-semibold">Marketplace</h1>
-      <p className="mt-1 text-gray-600">Discover curated products from verified sellers</p>
+    <main className="min-h-screen bg-[#FCFCFC]">
+      <div className="mx-auto max-w-7xl px-4 py-10 md:px-8">
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold tracking-tight">Marketplace</h1>
+        <p className="mt-1 text-zinc-500">Produits vérifiés • Livraison 48h</p>
+      </div>
 
       <div className="mt-10 flex flex-col gap-8 lg:flex-row lg:items-start">
-        <MarketplaceFilterSidebar current={filterParams} />
+        <aside className="w-64 shrink-0">
+          <div className="sticky top-6 rounded-2xl border border-zinc-200 bg-white p-6">
+            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">Category</h2>
+            <div className="space-y-1">
+              <a
+                href={categoryHref(null)}
+                className={`block w-full rounded-lg px-3 py-2 text-left text-sm transition ${
+                  !activeCategory ? "bg-black text-white" : "text-zinc-700 hover:bg-zinc-100"
+                }`}
+              >
+                Tous
+              </a>
+              {categories.map((c) => (
+                <a
+                  key={c.name}
+                  href={categoryHref(c.name)}
+                  className={`block w-full rounded-lg px-3 py-2 text-left text-sm transition ${
+                    activeCategory === c.name ? "bg-black text-white" : "text-zinc-700 hover:bg-zinc-100"
+                  }`}
+                >
+                  {c.name}{" "}
+                  <span className={activeCategory === c.name ? "text-zinc-300" : "text-zinc-400"}>({c.count})</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        </aside>
         <div className="min-w-0 flex-1">
-          <ul className="grid gap-8 sm:grid-cols-2 xl:grid-cols-3">
+          <ul className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {listings.length === 0 ? (
               <li className="col-span-full text-center text-zinc-500">No listings match your filters.</li>
             ) : (
               listings.map((item) =>
                 item.product ? (
                   <li key={item.id}>
-                    <MarketplaceListingCard
+                    <PremiumMarketplaceCard
                       detailHref={`/marketplace/${item.id}`}
+                      listingId={item.id}
+                      productId={item.product.id}
                       imageUrl={primaryProductImage(item.product.images) || null}
                       name={item.product.name}
                       priceDisplay={(item.sellingPriceCents / 100).toLocaleString("en-US", {
@@ -65,11 +127,10 @@ export default async function MarketplacePage({
                         currency: "EUR",
                       })}
                       sellerDisplay={
-                        item.affiliate.store?.name ??
-                        (item.affiliate.name?.trim() ? item.affiliate.name.trim() : "Verified Seller")
+                        item.affiliate?.store?.name ??
+                        item.affiliate?.name?.trim() ??
+                        "Boutique vérifiée"
                       }
-                      fastShipping={(item.product.deliveryMax ?? 99) <= 3}
-                      product={{ id: item.id }}
                     />
                   </li>
                 ) : null
@@ -77,6 +138,7 @@ export default async function MarketplacePage({
             )}
           </ul>
         </div>
+      </div>
       </div>
     </main>
   )

@@ -1,0 +1,82 @@
+import { Resend } from "resend"
+
+import { prisma } from "@/lib/prisma"
+
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
+
+function dropPercent(current: number, previous: number | null): number {
+  if (!previous || previous <= 0 || current >= previous) return 0
+  return Math.max(1, Math.round(((previous - current) / previous) * 100))
+}
+
+export async function GET(req: Request) {
+  const secret = process.env.CRON_SECRET?.trim()
+  if (secret) {
+    const authHeader = req.headers.get("authorization") || ""
+    if (authHeader !== `Bearer ${secret}`) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 })
+    }
+  }
+
+  const rows = await prisma.wishlist.findMany({
+    take: 500,
+    include: {
+      user: { select: { email: true, name: true } },
+      product: {
+        select: {
+          id: true,
+          name: true,
+          affiliateProducts: {
+            where: { isListed: true, product: { active: true } },
+            take: 1,
+            orderBy: { id: "asc" },
+            select: { id: true, sellingPriceCents: true },
+          },
+        },
+      },
+    },
+  })
+
+  const from = process.env.RESEND_FROM_EMAIL || "Affisell <alerts@affisell.com>"
+  let emailsSent = 0
+  let updates = 0
+
+  for (const w of rows) {
+    const listing = w.product.affiliateProducts[0]
+    if (!listing) continue
+    const current = listing.sellingPriceCents
+    const sinceYesterday = dropPercent(current, w.previousPriceCents)
+    const reachedTarget = w.targetPriceCents != null && current <= w.targetPriceCents
+    const shouldAlert = sinceYesterday > 0 || reachedTarget
+
+    if (shouldAlert && resend && w.user.email) {
+      const pct = sinceYesterday > 0 ? ` (-${sinceYesterday}% depuis hier)` : ""
+      const targetLine =
+        w.targetPriceCents != null
+          ? `<p>Votre prix cible: <strong>${(w.targetPriceCents / 100).toFixed(2)} EUR</strong></p>`
+          : ""
+      await resend.emails.send({
+        from,
+        to: w.user.email,
+        subject: `Baisse de prix: ${w.product.name}`,
+        html: `<p>Bonjour ${w.user.name?.trim() || ""},</p>
+<p>Le produit <strong>${w.product.name}</strong> a baissé${pct}.</p>
+<p>Prix actuel: <strong>${(current / 100).toFixed(2)} EUR</strong></p>
+${targetLine}
+<p><a href="${process.env.NEXT_PUBLIC_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3001"}/marketplace/${listing.id}">Voir le produit</a></p>`,
+      })
+      emailsSent++
+    }
+
+    await prisma.wishlist.update({
+      where: { userId_productId: { userId: w.userId, productId: w.productId } },
+      data: { previousPriceCents: current },
+    })
+    updates++
+  }
+
+  return Response.json({ ok: true, updates, emailsSent })
+}

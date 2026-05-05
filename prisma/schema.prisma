@@ -30,6 +30,8 @@ model User {
   notifications Notification[]
   cart Cart?
   storeFollowRelations Follow[] @relation("UserFollowsStore")
+  searchHistory      SearchHistory[]
+  wishlists          Wishlist[]
 }
 
 model Store {
@@ -102,6 +104,55 @@ model Product {
   affiliateProducts AffiliateProduct[]
   orders Order[]
   communityPosts CommunityPost[]
+  wishlists Wishlist[]
+}
+
+model Wishlist {
+  id                 String   @id @default(cuid())
+  userId             String
+  productId          String
+  /** Optional target alert threshold chosen by shopper (in cents). */
+  targetPriceCents   Int?
+  /** Last daily seen price, used for "depuis hier" drop computation. */
+  previousPriceCents Int?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId, updatedAt])
+  @@index([productId, updatedAt])
+}
+
+model SearchHistory {
+  id         String   @id @default(cuid())
+  userId     String?
+  sessionId  String?
+  query      String
+  productId  String?
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([sessionId, createdAt])
+}
+
+/** Homepage carousel analytics (view / hover / add-to-cart). */
+model AffisellTrackEvent {
+  id         String   @id @default(cuid())
+  eventType  String
+  productId  String?
+  sessionId  String?
+  userId     String?
+  durationMs Int?
+  createdAt  DateTime @default(now())
+
+  @@index([productId, createdAt])
+  @@index([eventType, createdAt])
+  @@index([sessionId, createdAt])
 }
 
 model CommunityPost {
