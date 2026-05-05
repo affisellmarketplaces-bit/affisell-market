@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Camera, Search, ShoppingCart } from "lucide-react"
 import type { FormEvent } from "react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useSyncExternalStore } from "react"
 
 import {
   guestCartCount,
@@ -13,6 +13,16 @@ import {
   setGuestCartQuantity,
   type CartAddedEventDetail,
 } from "@/lib/guest-cart"
+
+function subscribeGuestCart(listener: () => void) {
+  if (typeof window === "undefined") return () => {}
+  window.addEventListener("affisell:cart-updated", listener)
+  window.addEventListener("affisell:cart-added", listener)
+  return () => {
+    window.removeEventListener("affisell:cart-updated", listener)
+    window.removeEventListener("affisell:cart-added", listener)
+  }
+}
 import { VisualSearchModal } from "@/components/visual-search-modal"
 
 type ToastState = {
@@ -25,26 +35,22 @@ export function SiteNav() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const urlSyncedQuery = pathname === "/marketplace" ? (searchParams.get("q") ?? "") : ""
+  const marketplaceSearchKey =
+    pathname === "/marketplace" ? `marketplace-${searchParams.toString()}` : `nav-${pathname}`
 
-  const [count, setCount] = useState(0)
+  const count = useSyncExternalStore(subscribeGuestCart, guestCartCount, () => 0)
   const [bounce, setBounce] = useState(false)
   const [toast, setToast] = useState<ToastState>(null)
   const toastTimerRef = useRef<number | null>(null)
   const [visualOpen, setVisualOpen] = useState(false)
-  const [headerQuery, setHeaderQuery] = useState(urlSyncedQuery)
 
   useEffect(() => {
-    setHeaderQuery(urlSyncedQuery)
-  }, [urlSyncedQuery])
+    let bounceTimer = 0
 
-  useEffect(() => {
-    setCount(guestCartCount())
-
-    function onUpdated() {
-      setCount(guestCartCount())
+    function onCartChanged() {
+      if (bounceTimer) window.clearTimeout(bounceTimer)
       setBounce(true)
-      window.setTimeout(() => setBounce(false), 420)
+      bounceTimer = window.setTimeout(() => setBounce(false), 420)
     }
 
     function onAdded(ev: Event) {
@@ -59,12 +65,15 @@ export function SiteNav() {
       toastTimerRef.current = window.setTimeout(() => setToast(null), 3000)
     }
 
-    window.addEventListener("affisell:cart-updated", onUpdated)
+    window.addEventListener("affisell:cart-updated", onCartChanged)
+    window.addEventListener("affisell:cart-added", onCartChanged)
     window.addEventListener("affisell:cart-added", onAdded as EventListener)
     return () => {
-      window.removeEventListener("affisell:cart-updated", onUpdated)
+      window.removeEventListener("affisell:cart-updated", onCartChanged)
+      window.removeEventListener("affisell:cart-added", onCartChanged)
       window.removeEventListener("affisell:cart-added", onAdded as EventListener)
       if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current)
+      if (bounceTimer) window.clearTimeout(bounceTimer)
     }
   }, [])
 
@@ -84,7 +93,8 @@ export function SiteNav() {
 
   function submitHeaderSearch(ev: FormEvent<HTMLFormElement>) {
     ev.preventDefault()
-    const q = headerQuery.trim()
+    const fd = new FormData(ev.currentTarget)
+    const q = String(fd.get("q") ?? "").trim()
     const params = new URLSearchParams(searchParams.toString())
     if (pathname === "/marketplace") {
       if (q) params.set("q", q)
@@ -117,10 +127,10 @@ export function SiteNav() {
             <Search className="pointer-events-none absolute left-3 h-4 w-4 text-zinc-400" aria-hidden />
             <input
               id="header-search-q"
+              key={marketplaceSearchKey}
               name="q"
               type="search"
-              value={headerQuery}
-              onChange={(e) => setHeaderQuery(e.target.value)}
+              defaultValue={pathname === "/marketplace" ? (searchParams.get("q") ?? "") : ""}
               placeholder="Search marketplace…"
               autoComplete="off"
               className="h-10 w-full min-w-0 rounded-full border border-zinc-200 bg-zinc-50 py-2 pl-9 pr-12 text-zinc-900 shadow-sm outline-none placeholder:text-zinc-400 focus:border-zinc-300 focus:bg-white dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:border-zinc-500 md:max-w-xl lg:max-w-2xl"
