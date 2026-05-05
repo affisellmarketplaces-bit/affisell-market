@@ -11,6 +11,12 @@ export type GuestCartItem = {
   sellerName?: string
 }
 
+export type CartAddedEventDetail = {
+  productId: string
+  productName: string
+  qtyAdded: number
+}
+
 function sanitizeQty(input: number) {
   return Math.max(1, Math.min(99, Math.round(Number(input)) || 1))
 }
@@ -46,6 +52,11 @@ export function readGuestCart(): GuestCartItem[] {
 export function writeGuestCart(items: GuestCartItem[]) {
   if (typeof window === "undefined") return
   localStorage.setItem(GUEST_CART_KEY, JSON.stringify(items))
+  window.dispatchEvent(new CustomEvent("affisell:cart-updated"))
+}
+
+export function guestCartCount() {
+  return readGuestCart().reduce((sum, item) => sum + sanitizeQty(item.qty), 0)
 }
 
 export function addGuestCartItem(input: GuestCartItem) {
@@ -64,6 +75,17 @@ export function addGuestCartItem(input: GuestCartItem) {
     })
   }
   writeGuestCart(cart)
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent<CartAddedEventDetail>("affisell:cart-added", {
+        detail: {
+          productId: input.productId,
+          productName: input.title || "Product",
+          qtyAdded: sanitizeQty(input.qty),
+        },
+      })
+    )
+  }
   return cart
 }
 
