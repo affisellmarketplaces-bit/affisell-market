@@ -1,7 +1,9 @@
 "use client"
 
 import type { FormEvent, MouseEvent } from "react"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
+
+import { AiPricingOptimizer } from "@/components/affiliate/ai-pricing-optimizer"
 
 type CatalogProduct = {
   id: string
@@ -104,12 +106,25 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [uploadBusy, setUploadBusy] = useState(false)
+  const [pricingAiToast, setPricingAiToast] = useState<string | null>(null)
 
   const marginEUR = useMemo(() => {
     const pp = Number(String(form.priceEUR).replace(",", "."))
     if (!Number.isFinite(pp)) return null
     return pp - product.basePriceCents / 100
   }, [form.priceEUR, product])
+
+  const marginPct = useMemo(() => {
+    const sup = product.basePriceCents / 100
+    if (marginEUR == null || !Number.isFinite(marginEUR) || sup <= 0) return null
+    return (marginEUR / sup) * 100
+  }, [marginEUR, product])
+
+  useEffect(() => {
+    if (!pricingAiToast) return
+    const t = window.setTimeout(() => setPricingAiToast(null), 4000)
+    return () => window.clearTimeout(t)
+  }, [pricingAiToast])
 
   function toggleCollection(c: string) {
     setForm((f) => ({
@@ -355,9 +370,24 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
                 </label>
               </div>
 
-              <div>
-                <label className="text-sm font-medium text-gray-800">Custom Price (EUR)</label>
-                <div className="mt-1 rounded-xl border border-gray-200 p-4">
+              <div className="space-y-4">
+                {pricingAiToast ? (
+                  <p className="rounded-xl bg-violet-50 px-3 py-2 text-sm font-medium text-violet-900 ring-1 ring-violet-200 dark:bg-violet-950/40 dark:text-violet-100 dark:ring-violet-800">
+                    {pricingAiToast}
+                  </p>
+                ) : null}
+
+                <AiPricingOptimizer
+                  supplierPriceEUR={baseEUR}
+                  currentPriceEUR={form.priceEUR}
+                  onPriceChange={(nextEUR) =>
+                    setForm((f) => ({ ...f, priceEUR: nextEUR.toFixed(2) }))
+                  }
+                  onNotify={(msg) => setPricingAiToast(msg)}
+                />
+
+                <label className="block text-sm font-medium text-gray-800">Custom Price (EUR)</label>
+                <div className="rounded-xl border border-gray-200 p-4">
                   <p className="text-sm text-gray-600">
                     Supplier: €{baseEUR.toFixed(2)} | Your price:{" "}
                     <input
@@ -372,6 +402,9 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
                     <span className="font-semibold text-green-600">
                       {marginEUR != null && Number.isFinite(marginEUR) ? `€${marginEUR.toFixed(2)}` : "—"}
                     </span>
+                    {marginPct != null ? (
+                      <span className="text-gray-500"> ({marginPct.toFixed(1)}% markup)</span>
+                    ) : null}
                   </p>
                 </div>
               </div>
