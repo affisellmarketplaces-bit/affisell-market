@@ -83,7 +83,7 @@ export default async function MarketplacePage({
       <div className="mx-auto max-w-7xl px-4 py-10 md:px-8">
       <div className="mb-8">
         <h1 className="text-4xl font-bold tracking-tight">Marketplace</h1>
-        <p className="mt-1 text-zinc-500">Produits vérifiés • Livraison 48h</p>
+        <p className="mt-1 text-zinc-500">Curated products from trusted sellers</p>
       </div>
 
       <div className="mt-10 flex flex-col gap-8 lg:flex-row lg:items-start">
