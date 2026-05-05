@@ -131,7 +131,7 @@ export function SupplierDashboard({ storeSlug, stats }: SupplierDashboardProps) 
   }
 
   function fmtEUR(cents: number) {
-    return (cents / 100).toLocaleString("fr-FR", { style: "currency", currency: "EUR" })
+    return (cents / 100).toLocaleString("en-US", { style: "currency", currency: "EUR" })
   }
 
   const boutiqueHref = storeSlug
@@ -163,7 +163,7 @@ export function SupplierDashboard({ storeSlug, stats }: SupplierDashboardProps) 
             href={boutiqueHref}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-white transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+            className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-white transition hover:bg-zinc-800"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -174,7 +174,7 @@ export function SupplierDashboard({ storeSlug, stats }: SupplierDashboardProps) 
                 d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
               />
             </svg>
-            Voir ma boutique
+            View my store
           </Link>
           <button
             type="button"
@@ -187,33 +187,31 @@ export function SupplierDashboard({ storeSlug, stats }: SupplierDashboardProps) 
       </div>
 
       <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
-        <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-          <p className="mb-1 text-sm text-zinc-500">Produits actifs</p>
-          <p className="text-3xl font-semibold text-zinc-900 dark:text-zinc-50">{stats.activeProducts}</p>
+        <div className="rounded-2xl border border-zinc-200 bg-white p-5">
+          <p className="mb-1 text-sm text-zinc-500">Active products</p>
+          <p className="text-3xl font-semibold">{stats.activeProducts}</p>
           <p className="mt-1 text-xs text-zinc-400">
-            {stats.draftProducts} en brouillon
+            {stats.draftProducts} {stats.draftProducts === 1 ? "draft" : "drafts"}
           </p>
         </div>
-        <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-          <p className="mb-1 text-sm text-zinc-500">Affiliés actifs</p>
-          <p className="text-3xl font-semibold text-zinc-900 dark:text-zinc-50">{stats.affiliateCount}</p>
+        <div className="rounded-2xl border border-zinc-200 bg-white p-5">
+          <p className="mb-1 text-sm text-zinc-500">Active affiliates</p>
+          <p className="text-3xl font-semibold">{stats.affiliateCount}</p>
           <p
             className={
               stats.affiliatesThisWeek > 0 ? "mt-1 text-xs text-green-600" : "mt-1 text-xs text-zinc-400"
             }
           >
             {stats.affiliatesThisWeek > 0
-              ? `+${stats.affiliatesThisWeek} cette semaine`
-              : "Aucun nouveau cette semaine"}
+              ? `+${stats.affiliatesThisWeek} this week`
+              : "No new affiliates this week"}
           </p>
         </div>
-        <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-          <p className="mb-1 text-sm text-zinc-500">Ventes ce mois</p>
-          <p className="text-3xl font-semibold text-zinc-900 dark:text-zinc-50">
-            {fmtEUR(stats.monthRevenueCents)}
-          </p>
+        <div className="rounded-2xl border border-zinc-200 bg-white p-5">
+          <p className="mb-1 text-sm text-zinc-500">Sales this month</p>
+          <p className="text-3xl font-semibold">{fmtEUR(stats.monthRevenueCents)}</p>
           <p className="mt-1 text-xs text-zinc-400">
-            {stats.monthOrderCount} commandes
+            {stats.monthOrderCount} {stats.monthOrderCount === 1 ? "order" : "orders"}
             {stats.orderMonthDeltaPct !== null ? (
               <span
                 className={
@@ -222,17 +220,17 @@ export function SupplierDashboard({ storeSlug, stats }: SupplierDashboardProps) 
               >
                 {" "}
                 · {stats.orderMonthDeltaPct >= 0 ? "+" : ""}
-                {stats.orderMonthDeltaPct}% vs mois dernier
+                {stats.orderMonthDeltaPct}% vs last month
               </span>
             ) : null}
           </p>
         </div>
-        <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-          <p className="mb-1 text-sm text-zinc-500">Vues boutique</p>
-          <p className="text-3xl font-semibold text-zinc-900 dark:text-zinc-50">
-            {stats.storefrontClicks.toLocaleString("fr-FR")}
+        <div className="rounded-2xl border border-zinc-200 bg-white p-5">
+          <p className="mb-1 text-sm text-zinc-500">Store views</p>
+          <p className="text-3xl font-semibold">
+            {stats.storefrontClicks.toLocaleString("en-US")}
           </p>
-          <p className="mt-1 text-xs text-zinc-400">Clics cumulés sur les fiches affiliées</p>
+          <p className="mt-1 text-xs text-zinc-400">Total clicks on affiliate listings</p>
         </div>
       </div>
 
