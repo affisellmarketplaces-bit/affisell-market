@@ -132,7 +132,7 @@ export default async function MarketplacePage({
             ) : (
               listings.map((item) =>
                 item.product ? (
-                  <li key={item.id}>
+                  <li key={item.id} className="flex h-full">
                     <PremiumMarketplaceCard
                       detailHref={`/marketplace/${item.id}`}
                       listingId={item.id}

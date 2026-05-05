@@ -31,19 +31,19 @@ export function PremiumMarketplaceCard({
   return (
     <Link
       href={detailHref}
-      className="group relative block rounded-2xl transition-shadow hover:shadow-xl hover:shadow-zinc-200/50"
+      className="group flex h-full w-full flex-col rounded-2xl transition-shadow hover:shadow-xl hover:shadow-zinc-200/50"
     >
-      <div className="relative mb-4 flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl bg-[#ffffff] p-4">
+      <div className="relative mb-3 flex h-72 w-full shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white p-4">
         {imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={imageUrl}
             alt={name}
-            className="max-h-full max-w-full object-contain"
+            className="mx-auto block max-h-full max-w-full object-contain"
             loading="lazy"
           />
         ) : (
-          <div className="flex h-full min-h-0 w-full flex-1 items-center justify-center text-sm text-zinc-400">Image</div>
+          <div className="flex h-full w-full items-center justify-center text-sm text-zinc-400">Image</div>
         )}
 
         <WishlistHeart productId={productId} className="absolute right-3 top-3 z-20" />
@@ -53,44 +53,42 @@ export function PremiumMarketplaceCard({
           </span>
         ) : null}
 
-        <div className="absolute bottom-3 left-3 right-3 translate-y-2 opacity-0 transition group-hover:translate-y-0 group-hover:opacity-100">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              void fetch("/api/cart/add", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ productId: listingId, qty: 1 }),
-              }).then((r) => {
-                if (r.status === 401) {
-                  addGuestCartItem({
-                    productId: listingId,
-                    qty: 1,
-                    title: name,
-                    price: priceValue,
-                    imageUrl: imageUrl || "/placeholder.png",
-                    sellerName: sellerDisplay,
-                  })
-                }
-              })
-            }}
-            className="w-full rounded-xl bg-white py-2.5 text-sm font-medium text-black shadow-lg transition hover:bg-zinc-100"
-          >
-            Ajout rapide
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            void fetch("/api/cart/add", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ productId: listingId, qty: 1 }),
+            }).then((r) => {
+              if (r.status === 401) {
+                addGuestCartItem({
+                  productId: listingId,
+                  qty: 1,
+                  title: name,
+                  price: priceValue,
+                  imageUrl: imageUrl || "/placeholder.png",
+                  sellerName: sellerDisplay,
+                })
+              }
+            })
+          }}
+          className="absolute bottom-2 left-2 right-2 z-20 rounded-xl bg-white py-2.5 text-sm font-medium text-black opacity-0 shadow-lg transition-opacity hover:bg-zinc-100 group-hover:opacity-100"
+        >
+          Ajout rapide
+        </button>
       </div>
 
-      <div className="min-h-[8rem] pb-1">
+      <div className="flex flex-1 flex-col pb-1 pt-0">
         <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <h3 className="line-clamp-3 min-h-[4.125rem] break-words font-semibold leading-snug text-zinc-900">{name}</h3>
+          <div className="min-h-0 min-w-0 flex-1">
+            <h3 className="line-clamp-3 h-[4.125rem] break-words font-semibold leading-snug text-zinc-900">{name}</h3>
           </div>
           <span className="shrink-0 pt-0.5 font-medium text-zinc-900">{priceDisplay}</span>
         </div>
-        <p className="mt-1 line-clamp-2 text-sm text-zinc-500">by {sellerDisplay}</p>
+        <p className="mt-1 line-clamp-2 h-10 text-sm leading-5 text-zinc-500">by {sellerDisplay}</p>
       </div>
     </Link>
   )

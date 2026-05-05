@@ -74,9 +74,9 @@ export function MarketplaceListingCard({
   }
 
   return (
-    <div className="group overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-600">
+    <div className="group flex h-full w-full flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-600">
       <Link href={detailHref} className="block" onPointerDown={() => recordClick()}>
-        <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-t-xl bg-[#ffffff] p-4">
+        <div className="relative flex h-72 w-full items-center justify-center overflow-hidden rounded-t-xl bg-white p-4">
           <img
             src={listing.image}
             alt={listing.title}
@@ -92,14 +92,14 @@ export function MarketplaceListingCard({
               e.stopPropagation()
               void addToCart(listing.id)
             }}
-            className="absolute bottom-3 left-1/2 z-10 -translate-x-1/2 rounded-full bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
+            className="absolute bottom-2 left-2 right-2 z-10 rounded-full bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
           >
             Add to cart
           </button>
         </div>
         <div className="p-4">
           <div className="min-w-0 flex-1">
-            <h3 className="line-clamp-3 min-h-[4.125rem] break-words font-semibold leading-snug">{name}</h3>
+            <h3 className="line-clamp-3 h-[4.125rem] break-words font-semibold leading-snug">{name}</h3>
           </div>
           {fastShipping ? (
             <p className="mt-1.5">

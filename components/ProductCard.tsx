@@ -41,7 +41,7 @@ function StarRow({ rating, count }: { rating: number; count: number }) {
   const full = Math.min(5, Math.max(0, Math.floor(rating + 1e-6)))
   const empty = 5 - full
   return (
-    <div className="flex flex-wrap items-center gap-1 text-xs">
+    <div className="flex items-center gap-1 text-xs whitespace-nowrap">
       <span className="leading-none tracking-tighter" aria-hidden>
         <span style={{ color: "#ff9900" }}>{"★".repeat(full)}</span>
         <span className="text-gray-300">{"★".repeat(empty)}</span>
@@ -93,62 +93,67 @@ export function ProductCard({
 
   return (
     <article className="flex h-full flex-col rounded-lg border border-[#e5e7eb] bg-white transition-shadow hover:border-gray-400 hover:shadow-md">
-      <Link href={href} className="flex min-h-0 flex-1 flex-col">
-        <div className="relative aspect-square w-full shrink-0 bg-[#ffffff] p-4">
+      <Link href={href} className="flex flex-1 flex-col">
+        <div className="relative h-72 w-full shrink-0 overflow-hidden bg-white p-4">
           {badgeLabel ? (
             <span className="absolute left-4 top-4 z-10 rounded bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-700">
               {badgeLabel}
             </span>
           ) : null}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={img}
-            alt=""
-            className="h-full w-full object-contain"
-            loading="lazy"
-            onError={(e) => {
-              e.currentTarget.src = "/placeholder.png"
-            }}
-          />
+          <div className="flex h-full w-full items-center justify-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={img}
+              alt=""
+              className="max-h-full max-w-full object-contain"
+              loading="lazy"
+              onError={(e) => {
+                e.currentTarget.src = "/placeholder.png"
+              }}
+            />
+          </div>
+          <button
+            type="button"
+            onClick={handleAddToCart}
+            className="absolute bottom-2 left-2 right-2 z-20 rounded-full bg-[#ffd814] py-2 text-sm font-medium text-black transition-colors hover:bg-[#f7ca00]"
+          >
+            Ajouter au panier
+          </button>
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col gap-1 px-2 pb-2 pt-0.5">
-          <h3 className="line-clamp-2 text-left text-sm font-medium text-gray-900 hover:underline">{title}</h3>
+        <div className="flex flex-1 flex-col gap-1 px-2 pb-3 pt-2">
+          <h3 className="line-clamp-2 h-10 text-left text-sm font-medium leading-5 text-gray-900 hover:underline">
+            {title}
+          </h3>
 
-          <StarRow rating={rating} count={reviewCount} />
+          <div className="h-5 shrink-0 overflow-hidden">
+            <StarRow rating={rating} count={reviewCount} />
+          </div>
 
-          <div className="flex flex-wrap items-baseline gap-2">
-            <span className="text-left text-lg font-bold text-gray-900">{formatEur(price)}</span>
+          <div className="flex h-7 flex-wrap items-baseline gap-2 overflow-hidden">
+            <span className="text-left text-lg font-bold leading-7 text-gray-900">{formatEur(price)}</span>
             {originalPrice != null && originalPrice > price ? (
-              <span className="text-sm text-gray-500 line-through">{formatEur(originalPrice)}</span>
+              <span className="text-sm leading-7 text-gray-500 line-through">{formatEur(originalPrice)}</span>
             ) : null}
           </div>
 
-          {isPrime ? (
-            <span className="inline-flex w-fit rounded-sm bg-[#246bb3] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
-              Prime
-            </span>
-          ) : freeDeliveryTomorrow ? (
-            <p className="text-xs text-gray-600">Livraison GRATUITE demain</p>
-          ) : (
-            <p className="text-xs text-gray-600">Livraison suivie</p>
-          )}
+          <div className="h-4 shrink-0 overflow-hidden">
+            {isPrime ? (
+              <span className="inline-flex rounded-sm bg-[#246bb3] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+                Prime
+              </span>
+            ) : freeDeliveryTomorrow ? (
+              <p className="truncate text-xs leading-4 text-gray-600">Livraison GRATUITE demain</p>
+            ) : (
+              <p className="truncate text-xs leading-4 text-gray-600">Livraison suivie</p>
+            )}
+          </div>
 
-          <p className="text-xs text-gray-500">
+          <p className="h-4 shrink-0 truncate text-xs leading-4 text-gray-500">
             Vendu par <span className="text-gray-600">{sellerName}</span>
           </p>
         </div>
       </Link>
-
-      <div className="mt-auto px-2 pb-2">
-        <button
-          type="button"
-          onClick={handleAddToCart}
-          className="w-full rounded-full bg-[#ffd814] py-2 text-sm font-medium text-black transition-colors hover:bg-[#f7ca00]"
-        >
-          Ajouter au panier
-        </button>
-      </div>
     </article>
   )
 }

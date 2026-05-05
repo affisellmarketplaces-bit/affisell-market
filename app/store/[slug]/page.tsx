@@ -152,7 +152,7 @@ export default async function PublicStorefrontPage({ params }: { params: Promise
             listings
               .filter((item) => item.product)
               .map((item) => (
-                <li key={item.id}>
+                <li key={item.id} className="flex h-full">
                   <MarketplaceListingCard
                     detailHref={`/marketplace/${item.id}`}
                     imageUrl={
