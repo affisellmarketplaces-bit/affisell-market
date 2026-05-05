@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useMemo } from "react"
+import { useEffect, useState } from "react"
 
 import { WishlistHeart } from "@/components/wishlist-heart"
 
@@ -24,7 +24,11 @@ export function PremiumMarketplaceCard({
   sellerDisplay,
   priceDisplay,
 }: Props) {
-  const watchingCount = useMemo(() => Math.floor(Math.random() * 20) + 5, [])
+  const [watchingCount, setWatchingCount] = useState(12)
+
+  useEffect(() => {
+    setWatchingCount(Math.floor(Math.random() * 20) + 5)
+  }, [])
 
   return (
     <Link
