@@ -9,7 +9,23 @@ import { useEffect, useState } from "react"
 import { SupplierProductForm, type SupplierProductRecord } from "@/components/supplier-product-form"
 import { primaryProductImage } from "@/lib/product-images"
 
-export function SupplierDashboard() {
+export type SupplierDashboardStats = {
+  activeProducts: number
+  draftProducts: number
+  affiliateCount: number
+  affiliatesThisWeek: number
+  monthRevenueCents: number
+  monthOrderCount: number
+  orderMonthDeltaPct: number | null
+  storefrontClicks: number
+}
+
+type SupplierDashboardProps = {
+  storeSlug: string | null
+  stats: SupplierDashboardStats
+}
+
+export function SupplierDashboard({ storeSlug, stats }: SupplierDashboardProps) {
   const router = useRouter()
   const [products, setProducts] = useState<SupplierProductRecord[]>([])
   const [busy, setBusy] = useState(false)
@@ -115,8 +131,12 @@ export function SupplierDashboard() {
   }
 
   function fmtEUR(cents: number) {
-    return (cents / 100).toLocaleString("en-US", { style: "currency", currency: "EUR" })
+    return (cents / 100).toLocaleString("fr-FR", { style: "currency", currency: "EUR" })
   }
+
+  const boutiqueHref = storeSlug
+    ? `/store/supplier/${encodeURIComponent(storeSlug)}`
+    : "/dashboard/supplier/storefront"
 
   async function handleFormSuccess() {
     await load()
@@ -128,45 +148,107 @@ export function SupplierDashboard() {
     <main className="mx-auto max-w-5xl px-4 py-10 md:px-8">
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">Supplier · My products</h1>
-          <Link
-            href="/supplier/products/new"
-            className="mt-1 inline-block text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
-          >
-            Open full-screen product wizard →
-          </Link>
-          <Link
-            href="/seller/photo-studio"
-            className="mt-2 block text-sm font-medium text-violet-700 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-200"
-          >
-            Enhance Photos in Affisell Studio →
-          </Link>
-          <Link
-            href="/dashboard/supplier/settings/store"
-            className="mt-2 inline-block text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-          >
-            Store profile →
-          </Link>
-          <Link
-            href="/dashboard/settings/social"
-            className="mt-2 block text-sm font-medium text-teal-700 hover:text-teal-800 dark:text-teal-400 dark:hover:text-teal-300"
-          >
-            Social &amp; community hub →
-          </Link>
-          <Link
-            href="/dashboard/settings/account"
-            className="mt-2 block text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-          >
-            Account &amp; connected logins →
-          </Link>
+          <h1 className="text-2xl font-bold">Supplier · My products</h1>
+          <div className="mt-2 flex flex-wrap gap-4 text-sm">
+            <Link href="/supplier/products/new" className="text-blue-600 hover:underline dark:text-blue-400">
+              Open full-screen product wizard →
+            </Link>
+            <Link href="/seller/photo-studio" className="text-purple-600 hover:underline dark:text-purple-400">
+              Enhance Photos in Affisell Studio →
+            </Link>
+          </div>
         </div>
-        <button
-          type="button"
-          onClick={() => signOut({ callbackUrl: "/" })}
-          className="rounded-lg border px-3 py-1.5 text-sm hover:bg-zinc-50 dark:hover:bg-zinc-900"
+        <div className="flex flex-shrink-0 items-center gap-3">
+          <Link
+            href={boutiqueHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-white transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+              />
+            </svg>
+            Voir ma boutique
+          </Link>
+          <button
+            type="button"
+            onClick={() => signOut({ callbackUrl: "/" })}
+            className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+
+      <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+          <p className="mb-1 text-sm text-zinc-500">Produits actifs</p>
+          <p className="text-3xl font-semibold text-zinc-900 dark:text-zinc-50">{stats.activeProducts}</p>
+          <p className="mt-1 text-xs text-zinc-400">
+            {stats.draftProducts} en brouillon
+          </p>
+        </div>
+        <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+          <p className="mb-1 text-sm text-zinc-500">Affiliés actifs</p>
+          <p className="text-3xl font-semibold text-zinc-900 dark:text-zinc-50">{stats.affiliateCount}</p>
+          <p
+            className={
+              stats.affiliatesThisWeek > 0 ? "mt-1 text-xs text-green-600" : "mt-1 text-xs text-zinc-400"
+            }
+          >
+            {stats.affiliatesThisWeek > 0
+              ? `+${stats.affiliatesThisWeek} cette semaine`
+              : "Aucun nouveau cette semaine"}
+          </p>
+        </div>
+        <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+          <p className="mb-1 text-sm text-zinc-500">Ventes ce mois</p>
+          <p className="text-3xl font-semibold text-zinc-900 dark:text-zinc-50">
+            {fmtEUR(stats.monthRevenueCents)}
+          </p>
+          <p className="mt-1 text-xs text-zinc-400">
+            {stats.monthOrderCount} commandes
+            {stats.orderMonthDeltaPct !== null ? (
+              <span
+                className={
+                  stats.orderMonthDeltaPct >= 0 ? "text-green-600" : "text-amber-700 dark:text-amber-500"
+                }
+              >
+                {" "}
+                · {stats.orderMonthDeltaPct >= 0 ? "+" : ""}
+                {stats.orderMonthDeltaPct}% vs mois dernier
+              </span>
+            ) : null}
+          </p>
+        </div>
+        <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+          <p className="mb-1 text-sm text-zinc-500">Vues boutique</p>
+          <p className="text-3xl font-semibold text-zinc-900 dark:text-zinc-50">
+            {stats.storefrontClicks.toLocaleString("fr-FR")}
+          </p>
+          <p className="mt-1 text-xs text-zinc-400">Clics cumulés sur les fiches affiliées</p>
+        </div>
+      </div>
+
+      <div className="mb-6 flex flex-wrap gap-4 text-sm">
+        <Link href="/dashboard/supplier/storefront" className="text-zinc-700 hover:text-black dark:text-zinc-300 dark:hover:text-white">
+          Store profile →
+        </Link>
+        <Link href="/dashboard/settings/social" className="text-teal-600 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300">
+          Social &amp; community hub →
+        </Link>
+        <Link
+          href="/dashboard/settings/account"
+          className="text-zinc-600 hover:text-black dark:text-zinc-400 dark:hover:text-white"
         >
-          Logout
-        </button>
+          Account &amp; connected logins →
+        </Link>
       </div>
 
       <SupplierProductForm

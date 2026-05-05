@@ -327,11 +327,13 @@ export default function PhotoStudioPage() {
         throw new Error(uploadJson.error ?? "Upload failed")
       }
 
+      const uploadedUrl: string = uploadJson.url
+
       incrementTodayUsage()
       setItems((prev) =>
         prev.map((p) =>
           p.id === item.id
-            ? { ...p, processedUrl: result, uploadedUrl: uploadJson.url, status: "done", progress: 100 }
+            ? { ...p, processedUrl: result, uploadedUrl, status: "done", progress: 100 }
             : p
         )
       )

@@ -28,22 +28,22 @@ export function readGuestCart(): GuestCartItem[] {
     if (!raw) return []
     const parsed = JSON.parse(raw) as unknown
     if (!Array.isArray(parsed)) return []
-    return parsed
-      .map((row) => {
-        if (!row || typeof row !== "object") return null
-        const item = row as Partial<GuestCartItem>
-        const productId = typeof item.productId === "string" ? item.productId.trim() : ""
-        if (!productId) return null
-        return {
+    return parsed.flatMap((row): GuestCartItem[] => {
+      if (!row || typeof row !== "object") return []
+      const item = row as Partial<GuestCartItem>
+      const productId = typeof item.productId === "string" ? item.productId.trim() : ""
+      if (!productId) return []
+      return [
+        {
           productId,
           qty: sanitizeQty(Number(item.qty)),
           title: typeof item.title === "string" ? item.title : undefined,
           price: Number.isFinite(Number(item.price)) ? Number(item.price) : undefined,
           imageUrl: typeof item.imageUrl === "string" ? item.imageUrl : undefined,
           sellerName: typeof item.sellerName === "string" ? item.sellerName : undefined,
-        }
-      })
-      .filter((row): row is GuestCartItem => Boolean(row))
+        },
+      ]
+    })
   } catch {
     return []
   }
