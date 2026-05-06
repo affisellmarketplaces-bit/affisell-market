@@ -33,7 +33,6 @@ export async function GET() {
             },
           },
         },
-        where: { products: { some: {} } },
         orderBy: { order: "asc" },
       }),
 
