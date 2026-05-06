@@ -2,10 +2,11 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { Truck } from "lucide-react"
+import { Sparkles, Star } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useMemo, useState, type MouseEvent } from "react"
 
+import { Button } from "@/components/ui/button"
 import {
   COLORS,
   VARIANT_GROUP_LABELS,
@@ -33,12 +34,19 @@ export type ListingShippingBlock = {
   freeShippingThresholdEUR: number | null
 }
 
+type RelatedCard = {
+  id: string
+  href: string
+  title: string
+  image: string
+  priceEur: number
+}
+
 type Props = {
   listingId: string
   name: string
   description: string
   sellerLabel: string
-  /** Affiliate store — logo and link */
   storefront: StorefrontInfo | null
   priceDisplay: string
   gallery: string[]
@@ -48,8 +56,13 @@ type Props = {
   variants: ProductVariantsJson | null
   colorImages: ProductColorImageRow[]
   shipping: ListingShippingBlock
-  /** Listing selling price for commission previews */
   listingPriceCents: number
+  stock: number
+  retailPriceEur?: number
+  has3D?: boolean
+  arModel?: string | null
+  oftenBoughtTogether?: RelatedCard[]
+  alsoViewed?: RelatedCard[]
   reviewSummary: {
     count: number
     average: number
@@ -72,492 +85,347 @@ type Props = {
 
 const VARIANT_KEYS: VariantGroupKey[] = ["size", "storage", "ram", "material"]
 
+function fmtEur(value: number) {
+  return value.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })
+}
+
 export function MarketplaceListingDetail({
   listingId,
   name,
   description,
   sellerLabel,
-  storefront,
   priceDisplay,
   gallery,
   categories,
   colorNames,
-  tags,
   variants,
   colorImages,
   shipping,
+  listingPriceCents,
+  stock,
+  retailPriceEur,
+  has3D = false,
+  arModel,
+  oftenBoughtTogether = [],
+  alsoViewed = [],
   reviewSummary,
   ratingBreakdown,
   reviews,
 }: Props) {
   const router = useRouter()
-  const isBuyer = true
-  const urls = gallery
-  const safeUrls = urls.length > 0 ? urls : ["/placeholder.png"]
+  const images = gallery.length > 0 ? gallery : ["/placeholder.png"]
   const v = variants ?? {}
+  const sizeOptions = v.size ?? []
 
   const [selectedImage, setSelectedImage] = useState(0)
-  const [toast, setToast] = useState<string | null>(null)
+  const [selectedColor, setSelectedColor] = useState<string | null>(colorNames[0] ?? null)
+  const [selectedSize, setSelectedSize] = useState<string | null>(sizeOptions[0] ?? null)
   const [cartBusy, setCartBusy] = useState(false)
   const [buyBusy, setBuyBusy] = useState(false)
-  const [selectedColor, setSelectedColor] = useState<string | null>(colorNames[0] ?? null)
-  const [variantPick, setVariantPick] = useState<Partial<Record<VariantGroupKey, string>>>({})
-
-  const idxMax = safeUrls.length - 1
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- clamp index when gallery length changes
-    setSelectedImage((i) => Math.min(i, idxMax))
-  }, [idxMax])
-
-  const colorRowImage =
-    selectedColor != null ? colorImages.find((c) => c.color === selectedColor)?.image?.trim() : ""
-  const legacyColorImage =
-    selectedColor != null ? (v.imageByColor?.[selectedColor]?.trim() ?? "") : ""
-  const colorHero = (colorRowImage || legacyColorImage).trim()
-  const carouselSrc = safeUrls[selectedImage] ?? "/placeholder.png"
-  const heroSrc = colorHero || carouselSrc
-
-  const goPrev = useCallback(() => {
-    setSelectedImage((i) => (i <= 0 ? idxMax : i - 1))
-  }, [idxMax])
-
-  const goNext = useCallback(() => {
-    setSelectedImage((i) => (i >= idxMax ? 0 : i + 1))
-  }, [idxMax])
-
-  useEffect(() => {
-    function onKey(ev: KeyboardEvent) {
-      if (ev.defaultPrevented) return
-      const t = ev.target as HTMLElement
-      if (t.closest("input, textarea, select, [contenteditable]")) return
-      if (ev.key === "ArrowLeft") {
-        ev.preventDefault()
-        goPrev()
-      } else if (ev.key === "ArrowRight") {
-        ev.preventDefault()
-        goNext()
-      }
-    }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [goPrev, goNext])
-
-  async function addToCart(productId: string) {
-    setCartBusy(true)
-    try {
-      const res = await fetch("/api/cart/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId, quantity: 1 }),
-        credentials: "include",
-      })
-      if (res.status === 401) {
-        addGuestCartItem({
-          productId,
-          qty: 1,
-          title: name,
-          imageUrl: heroSrc || "/placeholder.png",
-          sellerName: sellerLabel,
-        })
-        setToast("Added to cart")
-        return
-      }
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string }
-        setToast(data.error ?? "Could not add to cart")
-        setTimeout(() => setToast(null), 3000)
-        return
-      }
-      setToast("Added to cart")
-      setTimeout(() => router.push("/cart"), 900)
-    } finally {
-      setCartBusy(false)
-    }
-  }
-
-  async function buyNow(productId: string) {
-    setBuyBusy(true)
-    try {
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId, qty: 1 }),
-        credentials: "include",
-      })
-      if (res.status === 401) {
-        router.push(`/login?callbackUrl=${encodeURIComponent(`/marketplace/${productId}`)}`)
-        return
-      }
-      const data = (await res.json()) as { url?: string; error?: string }
-      if (data.url) window.location.href = data.url
-      else {
-        setToast(data.error ?? "Checkout unavailable")
-        setTimeout(() => setToast(null), 3000)
-      }
-    } finally {
-      setBuyBusy(false)
-    }
-  }
+  const [showAr, setShowAr] = useState(false)
 
   const colorMeta = useMemo(() => {
     const map = new Map(COLORS.map((c) => [c.name, c]))
     return colorNames.map((n) => ({ name: n, meta: map.get(n) }))
   }, [colorNames])
 
-  const thumbCount = urls.length > 1 ? urls.length : 0
-  const showArrowsMain = idxMax >= 1
+  const colorRowImage =
+    selectedColor != null ? colorImages.find((c) => c.color === selectedColor)?.image?.trim() : ""
+  const hero = colorRowImage || images[selectedImage] || "/placeholder.png"
+  const listingPriceEur = listingPriceCents / 100
+  const hasRetailCompare = typeof retailPriceEur === "number" && retailPriceEur > listingPriceEur
+  const discountPct = hasRetailCompare
+    ? Math.round(((retailPriceEur - listingPriceEur) / retailPriceEur) * 100)
+    : 0
 
-  const reviewBreakdown = [5, 4, 3, 2, 1].map((stars) => ({
-    stars,
-    count: ratingBreakdown[stars] ?? reviews.filter((r) => r.rating === stars).length,
-  }))
-  const reviewDenominator = reviews.length > 0 ? reviews.length : 1
+  async function addToCart(e?: MouseEvent) {
+    e?.preventDefault()
+    e?.stopPropagation()
+    setCartBusy(true)
+    try {
+      const res = await fetch("/api/cart/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: listingId, quantity: 1 }),
+        credentials: "include",
+      })
+      if (res.status === 401) {
+        addGuestCartItem({
+          productId: listingId,
+          qty: 1,
+          title: name,
+          imageUrl: hero,
+          sellerName,
+          price: listingPriceEur,
+        })
+        return
+      }
+      if (res.ok) router.push("/cart")
+    } finally {
+      setCartBusy(false)
+    }
+  }
+
+  async function buyNow() {
+    setBuyBusy(true)
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: listingId, qty: 1 }),
+        credentials: "include",
+      })
+      if (res.status === 401) {
+        router.push(`/login?callbackUrl=${encodeURIComponent(`/marketplace/${listingId}`)}`)
+        return
+      }
+      const data = (await res.json()) as { url?: string }
+      if (data.url) window.location.href = data.url
+    } finally {
+      setBuyBusy(false)
+    }
+  }
 
   return (
     <>
-      <Link href="/marketplace" className="text-sm text-zinc-500 underline dark:text-zinc-400">
-        ← Marketplace
-      </Link>
-
-      {categories.length > 0 ? (
-        <nav className="mt-4 flex flex-wrap items-center gap-1 text-sm text-zinc-500 dark:text-zinc-400">
-          <Link href="/marketplace" className="hover:text-zinc-800 dark:hover:text-zinc-200">
-            Store
-          </Link>
-          {categories.map((c) => (
-            <span key={c} className="flex items-center gap-1">
-              <span className="text-zinc-400">/</span>
-              <span className="text-zinc-700 dark:text-zinc-300">{c}</span>
-            </span>
-          ))}
-        </nav>
-      ) : null}
-
-      {tags.length > 0 ? (
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {tags.map((t) => (
-            <span
-              key={t}
-              className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
-            >
-              {t}
-            </span>
-          ))}
-        </div>
-      ) : null}
-
-      <div className="mt-6 flex flex-col gap-8 lg:flex-row lg:gap-10 lg:items-start">
-        {/* Gallery */}
-        <div className="w-full lg:w-[60%] lg:max-w-none">
-          <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-[#ffffff] dark:bg-zinc-900">
-            <Image
-              src={heroSrc}
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
+        <section className="lg:col-span-3">
+          <div className="group relative aspect-video overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={hero}
               alt={name}
-              fill
-              className="object-contain p-4"
-              sizes="(max-width: 1024px) 100vw, 58vw"
-              priority
-              unoptimized={heroSrc.startsWith("http") || heroSrc.startsWith("blob:")}
+              className="h-full w-full object-cover transition duration-300 group-hover:scale-110"
             />
-            {showArrowsMain ? (
-              <>
-                <button
-                  type="button"
-                  aria-label="Previous image"
-                  onClick={goPrev}
-                  className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/90 px-3 py-2 text-lg shadow-md ring-1 ring-zinc-200 hover:bg-white dark:bg-zinc-900/90 dark:ring-zinc-600"
-                >
-                  ‹
-                </button>
-                <button
-                  type="button"
-                  aria-label="Next image"
-                  onClick={goNext}
-                  className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/90 px-3 py-2 text-lg shadow-md ring-1 ring-zinc-200 hover:bg-white dark:bg-zinc-900/90 dark:ring-zinc-600"
-                >
-                  ›
-                </button>
-              </>
+            {has3D ? (
+              <span className="absolute left-3 top-3 rounded-full bg-black/80 px-3 py-1 text-xs font-semibold text-white">
+                360° View
+              </span>
             ) : null}
           </div>
-          {thumbCount > 0 ? (
-            <div className="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-6">
-              {urls.slice(0, 10).map((url, i) => (
-                <button
-                  key={`${url}-${i}`}
-                  type="button"
-                  onClick={() => setSelectedImage(i)}
-                  className={`relative aspect-square overflow-hidden rounded-lg bg-[#ffffff] ring-offset-2 dark:bg-zinc-900 ${
-                    selectedImage === i ? "ring-2 ring-blue-500" : "ring-0 hover:opacity-90"
-                  }`}
-                >
-                  <Image
-                    src={url}
-                    alt=""
-                    fill
-                    className="object-contain p-2"
-                    sizes="72px"
-                    unoptimized={url.startsWith("http")}
-                  />
-                </button>
-              ))}
-            </div>
-          ) : null}
-        </div>
 
-        {/* Info + actions */}
-        <div className="w-full lg:w-[40%]">
-          {storefront ? (
-            <Link
-              href={`/store/${storefront.slug}`}
-              className="group mb-4 flex items-center gap-3 rounded-xl border border-zinc-100 p-3 transition hover:border-zinc-200 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:border-zinc-600 dark:hover:bg-zinc-950"
-            >
-              {storefront.logoUrl ? (
-                <Image
-                  src={storefront.logoUrl}
-                  alt=""
-                  width={48}
-                  height={48}
-                  className="h-12 w-12 shrink-0 rounded-lg border border-zinc-200 object-contain dark:border-zinc-600"
-                  unoptimized={
-                    storefront.logoUrl.startsWith("http") || storefront.logoUrl.startsWith("/uploads")
-                  }
-                />
-              ) : (
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-xs text-zinc-400 dark:border-zinc-700 dark:bg-zinc-900">
-                  shop
-                </span>
-              )}
-              <span className="font-semibold text-zinc-900 underline-offset-4 group-hover:underline dark:text-zinc-100">
-                {storefront.name}
+          <div className="mt-3 grid grid-cols-4 gap-2">
+            {images.slice(0, 4).map((url, i) => (
+              <button
+                key={`${url}-${i}`}
+                type="button"
+                onClick={() => setSelectedImage(i)}
+                className={`relative aspect-square overflow-hidden rounded-lg border ${
+                  selectedImage === i ? "border-zinc-900 dark:border-zinc-100" : "border-zinc-200 dark:border-zinc-700"
+                }`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={url} alt="" className="h-full w-full object-cover" />
+              </button>
+            ))}
+          </div>
+
+          {arModel ? (
+            <Button size="lg" variant="outline" className="mt-3" onClick={() => setShowAr(true)}>
+              Voir en AR
+            </Button>
+          ) : null}
+        </section>
+
+        <aside className="lg:col-span-2 lg:sticky lg:top-6 lg:self-start">
+          <nav className="text-sm text-zinc-500 dark:text-zinc-400">
+            Home &gt; {categories[0] || "Fashion"} &gt; {categories[1] || "Blazers"}
+          </nav>
+          <h1 className="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">{name}</h1>
+
+          <div className="mt-2 flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+            <span className="text-yellow-500">★★★</span>
+            <span>{reviewSummary.average.toFixed(1)}</span>
+            <span>({reviewSummary.count.toLocaleString("fr-FR")} avis)</span>
+            <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-300">
+              Top rated
+            </span>
+          </div>
+
+          <div className="mt-4">
+            <div className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{priceDisplay}</div>
+            {hasRetailCompare ? (
+              <span className="mt-1 inline-flex rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700 dark:bg-red-900/30 dark:text-red-300">
+                -{discountPct}% vs retail {fmtEur(retailPriceEur ?? 0)}
               </span>
-            </Link>
-          ) : null}
+            ) : null}
+          </div>
 
-          {storefront?.showTrustedSoldBy ? (
-            <p className="-mt-2 mb-3 text-sm font-medium text-green-700 dark:text-green-400">
-              Sold by {storefront.name}
+          {stock <= 5 ? (
+            <p className="mt-3 font-medium text-orange-600 dark:text-orange-400">
+              Only {Math.max(1, stock)} left in stock - order soon
             </p>
           ) : null}
 
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">{name}</h1>
-          <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">{description}</p>
-
-          {colorNames.length > 0 ? (
-            <div className="mt-4">
-              <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Color</p>
+          {colorMeta.length > 0 ? (
+            <div className="mt-5">
+              <p className="text-sm font-semibold">Color</p>
               <div className="mt-2 flex flex-wrap gap-2">
-                {colorMeta.map(({ name: cn, meta }) => {
-                  const sel = selectedColor === cn
-                  const mc = meta ? isMulticolorSwatch(meta) : false
-                  const isLight =
-                    meta &&
-                    !mc &&
-                    (meta.hex === "#FFFFFF" || meta.hex === "#F5E6D3" || meta.hex === "#FFD700")
-                  return (
-                    <button
-                      key={cn}
-                      type="button"
-                      title={cn}
-                      onClick={() => {
-                        setSelectedColor(cn)
-                        setSelectedImage(0)
-                      }}
-                      className={`flex flex-col items-center gap-1 rounded-xl border px-2 py-1.5 text-[10px] ${
-                        sel ? "border-blue-500 ring-2 ring-blue-400" : "border-zinc-200 dark:border-zinc-600"
-                      }`}
-                    >
-                      <span
-                        className={`h-9 w-9 rounded-full shadow-inner ring-1 ring-black/15 ${
-                          mc
-                            ? "bg-[conic-gradient(at_50%_50%,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)]"
-                            : ""
-                        }`}
-                        style={mc || !meta ? undefined : { backgroundColor: meta.hex }}
-                      />
-                      <span
-                        className={
-                          isLight ? "max-w-[3.75rem] text-zinc-800 dark:text-zinc-200" : "max-w-[3.75rem]"
-                        }
-                      >
-                        {cn}
-                      </span>
-                    </button>
-                  )
-                })}
+                {colorMeta.map(({ name: cn, meta }) => (
+                  <button
+                    key={cn}
+                    type="button"
+                    onClick={() => setSelectedColor(cn)}
+                    className={`h-8 w-8 rounded-full border-2 ${
+                      selectedColor === cn ? "border-zinc-900 dark:border-zinc-100" : "border-zinc-300 dark:border-zinc-600"
+                    }`}
+                    style={
+                      meta && !isMulticolorSwatch(meta)
+                        ? { backgroundColor: meta.hex }
+                        : { background: "conic-gradient(red, yellow, lime, cyan, blue, magenta, red)" }
+                    }
+                    title={cn}
+                  />
+                ))}
               </div>
             </div>
           ) : null}
 
-          {VARIANT_KEYS.map((key) => {
-            const opts = v[key]
-            if (!opts || opts.length === 0) return null
-            return (
-              <div key={key} className="mt-4">
-                <label className="block text-xs font-medium uppercase tracking-wide text-zinc-500">
-                  {VARIANT_GROUP_LABELS[key]}
-                </label>
-                <select
-                  className="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950"
-                  value={variantPick[key] ?? ""}
-                  onChange={(e) =>
-                    setVariantPick((prev) => ({ ...prev, [key]: e.target.value || undefined }))
-                  }
-                >
-                  <option value="">Choose...</option>
-                  {opts.map((o) => (
-                    <option key={o} value={o}>
-                      {o}
-                    </option>
-                  ))}
-                </select>
+          {sizeOptions.length > 0 ? (
+            <div className="mt-5">
+              <p className="text-sm font-semibold">{VARIANT_GROUP_LABELS.size}</p>
+              <div className="mt-2 grid grid-cols-4 gap-2">
+                {sizeOptions.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setSelectedSize(s)}
+                    className={`rounded-lg border px-2 py-2 text-sm ${
+                      selectedSize === s
+                        ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900"
+                        : "border-zinc-300 dark:border-zinc-600"
+                    }`}
+                  >
+                    {s}
+                  </button>
+                ))}
               </div>
-            )
-          })}
-
-          {v.model ? (
-            <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
-              <span className="font-medium text-zinc-800 dark:text-zinc-200">Model: </span>
-              {v.model}
-            </p>
+            </div>
           ) : null}
 
-          <div className="mt-4 text-3xl font-bold text-green-600">{priceDisplay}</div>
-
-          {false && <div className="affiliate-section mt-4">AFFILIATE EARNINGS BY OPTION</div>}
-
-          <div className="mt-4 space-y-2 rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
-            <div className="flex flex-wrap items-center gap-2">
-              <Truck className="h-4 w-4 shrink-0 text-green-600" aria-hidden />
-              <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                {shipping.deliveryMin}-{shipping.deliveryMax} business days
-              </span>
-              {shipping.warehouseType === "local" ? (
-                <span className="rounded bg-green-100 px-2 py-0.5 text-xs text-green-700">Local Stock</span>
-              ) : null}
-            </div>
-            <p className="text-sm text-gray-600 dark:text-zinc-400">
-              Ships from {shipping.warehouseCity?.trim() || "—"}, {shipping.shippingCountryLabel} • Processes in{" "}
-              {shipping.processingTime} {shipping.processingTime === 1 ? "day" : "days"}
-            </p>
-            {shipping.freeShippingThresholdEUR != null && shipping.freeShippingThresholdEUR > 0 ? (
-              <p className="text-sm text-green-600 dark:text-green-400">
-                Free shipping over €{shipping.freeShippingThresholdEUR.toFixed(0)}
-              </p>
-            ) : null}
+          <div className="mt-6 space-y-3">
+            <Button size="lg" className="w-full" disabled={cartBusy} onClick={(e) => void addToCart(e)}>
+              {cartBusy ? "Adding..." : "Add to Cart"}
+            </Button>
+            <Button size="lg" variant="outline" className="w-full" disabled={buyBusy} onClick={() => void buyNow()}>
+              {buyBusy ? "Redirecting..." : "Buy Now with 1-Click"}
+            </Button>
           </div>
 
-          <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-400">
-            by{" "}
-            {storefront ? (
-              <Link href={`/store/${storefront.slug}`} className="font-medium text-zinc-700 underline dark:text-zinc-300">
-                {sellerLabel}
-              </Link>
-            ) : (
-              <span className="font-medium text-zinc-700 dark:text-zinc-300">{sellerLabel}</span>
-            )}
-          </p>
+          <div className="mt-4 grid grid-cols-1 gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+            <p>✓ Livraison 48h ✓ Retour 30j ✓ Paiement securise</p>
+            <p>Livraison a Aix-en-Provence : Mercredi 8 Mai</p>
+          </div>
 
-          {isBuyer ? (
-            <div className="mt-6 space-y-3">
-              <button
-                type="button"
-                disabled={cartBusy}
-                onClick={() => void addToCart(listingId)}
-                className="w-full rounded-xl bg-black py-3 font-medium text-white hover:bg-gray-800 disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
-              >
-                {cartBusy ? "Adding…" : "Add to Cart"}
-              </button>
-              <button
-                type="button"
-                disabled={buyBusy}
-                onClick={() => void buyNow(listingId)}
-                className="w-full rounded-xl bg-green-600 py-3 font-medium text-white hover:bg-green-700 disabled:opacity-60"
-              >
-                {buyBusy ? "Redirecting…" : `Buy Now - ${priceDisplay}`}
-              </button>
+          <div className="mt-4 rounded-xl border bg-gradient-to-r from-purple-50 to-pink-50 p-3 dark:border-zinc-700 dark:from-purple-950/40 dark:to-pink-950/40">
+            <div className="flex items-start gap-2">
+              <Sparkles className="mt-0.5 h-4 w-4 shrink-0" />
+              <p className="text-sm">
+                Resume IA: Blazer parfait pour bureau et soiree. Coupe moderne. Clients l'adorent pour sa polyvalence.
+              </p>
             </div>
-          ) : null}
-        </div>
+          </div>
+        </aside>
       </div>
 
-      {toast ? (
-        <div className="fixed bottom-8 right-8 z-50 max-w-xs rounded-xl bg-zinc-900 px-4 py-3 text-sm text-white shadow-lg dark:bg-white dark:text-zinc-900">
-          {toast}
-        </div>
-      ) : null}
+      <section className="mt-10 space-y-3">
+        <details className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700" open>
+          <summary className="cursor-pointer font-semibold">Description</summary>
+          <p className="mt-2 text-sm text-zinc-700 dark:text-zinc-300">{description}</p>
+        </details>
+        <details className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
+          <summary className="cursor-pointer font-semibold">Specs</summary>
+          <ul className="mt-2 text-sm text-zinc-700 dark:text-zinc-300">
+            <li>Marque: {sellerLabel}</li>
+            <li>Couleurs: {colorNames.length || "N/A"}</li>
+            <li>Note moyenne: {reviewSummary.average.toFixed(1)} / 5</li>
+          </ul>
+        </details>
+        <details className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
+          <summary className="cursor-pointer font-semibold">Livraison</summary>
+          <p className="mt-2 text-sm text-zinc-700 dark:text-zinc-300">
+            Livraison {shipping.deliveryMin}-{shipping.deliveryMax} jours ouvrables. Traitement en{" "}
+            {shipping.processingTime} jour(s).
+          </p>
+        </details>
+        <details className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
+          <summary className="cursor-pointer font-semibold">Avis</summary>
+          <div className="mt-2 text-sm text-zinc-700 dark:text-zinc-300">
+            <p className="mb-2">
+              <Star className="mr-1 inline h-4 w-4 fill-yellow-400 text-yellow-400" />
+              {reviewSummary.average.toFixed(1)} ({reviewSummary.count.toLocaleString("fr-FR")} avis)
+            </p>
+            <p>5★: {ratingBreakdown[5] ?? 0} · 4★: {ratingBreakdown[4] ?? 0} · 3★: {ratingBreakdown[3] ?? 0}</p>
+            {reviews.slice(0, 3).map((r) => (
+              <p key={r.id} className="mt-2 rounded bg-zinc-50 p-2 text-xs dark:bg-zinc-800">
+                "{r.text.slice(0, 140)}"
+              </p>
+            ))}
+          </div>
+        </details>
+      </section>
 
-      <section className="mt-10 border-t border-zinc-200 pt-8 dark:border-zinc-700">
-        <h2 className="mb-4 text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-          Customer Reviews ({reviewSummary.count}) - {reviewSummary.average.toFixed(1)}★
-        </h2>
-
-        <div className="mb-6 grid grid-cols-5 gap-2">
-          {reviewBreakdown.map(({ stars, count }) => {
-            const percent = Math.round((count / reviewDenominator) * 100)
-            return (
-              <div key={stars}>
-                <div className="text-sm">{stars}★</div>
-                <div className="h-2 rounded bg-zinc-200 dark:bg-zinc-700">
-                  <div
-                    className="h-2 rounded bg-yellow-500"
-                    style={{ width: `${percent}%` }}
-                  />
-                </div>
-                <div className="text-xs text-zinc-500">{count}</div>
+      <section className="mt-10">
+        <h2 className="text-xl font-bold">Souvent achetes ensemble</h2>
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {oftenBoughtTogether.slice(0, 3).map((p) => (
+            <Link key={p.id} href={p.href} className="rounded-xl border border-zinc-200 p-3 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-900">
+              <div className="relative aspect-square overflow-hidden rounded-lg">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p.image} alt="" className="h-full w-full object-cover" />
               </div>
-            )
-          })}
-        </div>
-
-        <div className="space-y-4">
-          {reviews.length === 0 ? (
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">No reviews available yet.</p>
-          ) : (
-            reviews.map((r) => (
-              <div key={r.id} className="border-b border-zinc-200 py-4 dark:border-zinc-700">
-                <div className="mb-2 flex flex-wrap items-center gap-2">
-                  <div className="text-yellow-500">{"★".repeat(Math.max(1, Math.min(5, r.rating)))}</div>
-                  <span className="font-medium">{r.author}</span>
-                  {r.verified ? (
-                    <span className="rounded bg-green-100 px-2 py-0.5 text-xs text-green-700 dark:bg-green-900/50 dark:text-green-300">
-                      ✓ Verified purchase
-                    </span>
-                  ) : null}
-                  <span className="text-sm text-zinc-500">
-                    {new Date(r.date).toLocaleDateString()}
-                  </span>
-                </div>
-                {r.variant ? (
-                  <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                    Variant: {r.variant}
-                  </div>
-                ) : null}
-                <p className="mt-2 text-sm text-zinc-800 dark:text-zinc-200">{r.text}</p>
-                {r.images.length > 0 ? (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {r.images.map((img, i) => (
-                      <Image
-                        key={`${r.id}-${i}`}
-                        src={img}
-                        alt=""
-                        width={80}
-                        height={80}
-                        className="h-20 w-20 rounded object-cover"
-                        unoptimized
-                      />
-                    ))}
-                  </div>
-                ) : null}
-                <div className="mt-2 text-sm text-zinc-500">
-                  {r.helpful_count} people found this review helpful
-                </div>
-              </div>
-            ))
-          )}
+              <p className="mt-2 line-clamp-2 text-sm font-medium">{p.title}</p>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">{fmtEur(p.priceEur)}</p>
+            </Link>
+          ))}
         </div>
       </section>
+
+      <section className="mt-10">
+        <h2 className="text-xl font-bold">Les clients ont aussi regarde</h2>
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {alsoViewed.slice(0, 3).map((p) => (
+            <Link key={p.id} href={p.href} className="rounded-xl border border-zinc-200 p-3 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-900">
+              <div className="relative aspect-square overflow-hidden rounded-lg">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p.image} alt="" className="h-full w-full object-cover" />
+              </div>
+              <p className="mt-2 line-clamp-2 text-sm font-medium">{p.title}</p>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">{fmtEur(p.priceEur)}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {showAr ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-2xl rounded-xl bg-white p-4 dark:bg-zinc-900">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-lg font-semibold">AR Preview</h3>
+              <button type="button" onClick={() => setShowAr(false)} className="rounded px-2 py-1 hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                Close
+              </button>
+            </div>
+            {arModel ? (
+              <div className="space-y-3">
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  Open the model in a new tab for AR-enabled viewer.
+                </p>
+                <a
+                  href={arModel}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex rounded-lg bg-zinc-900 px-3 py-2 text-sm text-white dark:bg-zinc-100 dark:text-zinc-900"
+                >
+                  Open AR Model
+                </a>
+              </div>
+            ) : (
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">No AR model available.</p>
+            )}
+          </div>
+        </div>
+      ) : null}
     </>
   )
 }

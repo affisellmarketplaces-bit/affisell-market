@@ -46,6 +46,8 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
   const tags = Array.isArray(listing.product.tags)
     ? listing.product.tags.filter((t): t is string => typeof t === "string" && Boolean(t.trim()))
     : []
+  const has3D = tags.some((t) => /(?:\b3d\b|\b360\b)/i.test(t))
+  const arModel = tags.find((t) => t.toLowerCase().startsWith("ar:"))?.slice(3) ?? null
   const variants = variantsFromDb(listing.product.variants)
   const colorImages = parseProductColorImagesFromDb(listing.product.colorImages) ?? []
 
@@ -108,6 +110,66 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
     console.error("Review fetch failed:", e)
   }
 
+  const relatedBaseSelect = {
+    id: true,
+    sellingPriceCents: true,
+    customTitle: true,
+    customImages: true,
+    product: {
+      select: {
+        name: true,
+        images: true,
+      },
+    },
+  } as const
+
+  const oftenRaw = await prisma.affiliateProduct.findMany({
+    where: {
+      isListed: true,
+      id: { not: listing.id },
+      product: {
+        active: true,
+        ...(categories.length > 0 ? { categories: { hasSome: categories.slice(0, 3) } } : {}),
+      },
+    },
+    select: relatedBaseSelect,
+    take: 3,
+  })
+
+  const fallbackRaw =
+    oftenRaw.length >= 3
+      ? []
+      : await prisma.affiliateProduct.findMany({
+          where: {
+            isListed: true,
+            id: { notIn: [listing.id, ...oftenRaw.map((r) => r.id)] },
+            product: { active: true },
+          },
+          orderBy: { createdAt: "desc" },
+          select: relatedBaseSelect,
+          take: 3,
+        })
+
+  const mapRelated = (
+    rows: Array<{
+      id: string
+      sellingPriceCents: number
+      customTitle: string | null
+      customImages: string[]
+      product: { name: string; images: string[] }
+    }>
+  ) =>
+    rows.map((r) => ({
+      id: r.id,
+      href: `/marketplace/${r.id}`,
+      title: listingDisplayTitle(r.customTitle, r.product.name),
+      image: listingGalleryUrls(r.customImages, r.product.images ?? [])[0] ?? "/placeholder.png",
+      priceEur: r.sellingPriceCents / 100,
+    }))
+
+  const oftenBoughtTogether = mapRelated(oftenRaw).slice(0, 3)
+  const alsoViewed = mapRelated([...fallbackRaw, ...oftenRaw]).slice(0, 3)
+
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 md:px-8">
       <MarketplaceListingDetail
@@ -128,6 +190,12 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
         colorImages={colorImages}
         shipping={shipping}
         listingPriceCents={listing.sellingPriceCents}
+        stock={listing.product.stock}
+        retailPriceEur={listing.product.basePriceCents / 100}
+        has3D={has3D}
+        arModel={arModel}
+        oftenBoughtTogether={oftenBoughtTogether}
+        alsoViewed={alsoViewed}
         reviewSummary={{
           count: listing.product.reviewCount,
           average: listing.product.averageRating,
