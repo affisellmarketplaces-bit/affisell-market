@@ -12,11 +12,9 @@ import {
   isMulticolorSwatch,
   type VariantGroupKey,
 } from "@/lib/product-catalog-constants"
-import { AffiliateCommissionCard } from "@/components/affiliate-commission-card"
 import { addGuestCartItem } from "@/lib/guest-cart"
 import type { ProductColorImageRow } from "@/lib/product-color-images"
 import type { ProductVariantsJson } from "@/lib/product-variants"
-import { useUserRole } from "@/hooks/useUserRole"
 
 type StorefrontInfo = {
   name: string
@@ -88,14 +86,12 @@ export function MarketplaceListingDetail({
   variants,
   colorImages,
   shipping,
-  listingPriceCents,
   reviewSummary,
   ratingBreakdown,
   reviews,
 }: Props) {
   const router = useRouter()
-  const role = useUserRole()
-  const isBuyer = role === "buyer"
+  const isBuyer = true
   const urls = gallery
   const safeUrls = urls.length > 0 ? urls : ["/placeholder.png"]
   const v = variants ?? {}
@@ -212,8 +208,6 @@ export function MarketplaceListingDetail({
   const thumbCount = urls.length > 1 ? urls.length : 0
   const showArrowsMain = idxMax >= 1
 
-  const variantRows = variants?.variantRows ?? []
-  const listingPriceEur = listingPriceCents / 100
   const reviewBreakdown = [5, 4, 3, 2, 1].map((stars) => ({
     stars,
     count: ratingBreakdown[stars] ?? reviews.filter((r) => r.rating === stars).length,
@@ -431,16 +425,7 @@ export function MarketplaceListingDetail({
 
           <div className="mt-4 text-3xl font-bold text-green-600">{priceDisplay}</div>
 
-          {!isBuyer && variantRows.length > 0 ? (
-            <div className="affiliate-section mt-4 space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                AFFILIATE EARNINGS BY OPTION
-              </p>
-              {variantRows.map((row) => (
-                <AffiliateCommissionCard key={row.id} variant={row} basePriceEur={listingPriceEur} />
-              ))}
-            </div>
-          ) : null}
+          {false && <div className="affiliate-section mt-4">AFFILIATE EARNINGS BY OPTION</div>}
 
           <div className="mt-4 space-y-2 rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
             <div className="flex flex-wrap items-center gap-2">
@@ -493,22 +478,7 @@ export function MarketplaceListingDetail({
                 {buyBusy ? "Redirecting…" : `Buy Now - ${priceDisplay}`}
               </button>
             </div>
-          ) : (
-            <div className="mt-6 space-y-3">
-              <Link
-                href={`/affiliate/products/new?listing=${listingId}`}
-                className="block w-full rounded-xl border border-zinc-300 py-3 text-center font-medium text-zinc-800 hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-100 dark:hover:bg-zinc-900"
-              >
-                Promote
-              </Link>
-              <Link
-                href={`/dashboard/supplier/products/new?edit=${listingId}`}
-                className="block w-full rounded-xl bg-zinc-900 py-3 text-center font-medium text-white hover:bg-black dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
-              >
-                Edit
-              </Link>
-            </div>
-          )}
+          ) : null}
         </div>
       </div>
 
