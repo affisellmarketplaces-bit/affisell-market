@@ -14,37 +14,56 @@ import useSWR from "swr"
 
 import { cn } from "@/lib/utils"
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json())
-
-type FiltersPayload = {
-  categories: Array<{ id: string; name: string; icon: string; count: number }>
-  styles: Array<{ name: string | null; count: number }>
-  priceRanges: Array<{ name: string; min: number; max: number | null; count: number }>
-  delivery: Array<{ type: string; count: number; label: string }>
+const EMPTY_FILTERS = {
+  categories: [] as Array<{ id: string; name: string; icon: string; count: number }>,
+  styles: [] as Array<{ name: string | null; count: number }>,
+  priceRanges: [] as Array<{ name: string; min: number; max: number | null; count: number }>,
+  delivery: [] as Array<{ type: string; count: number; label: string }>,
   offers: {
-    onSale: number
-    newArrivals: number
-    bestSellers: number
-    refurbished: number
-    hasCoupon: number
-    ecoFriendly: number
-  }
+    onSale: 0,
+    newArrivals: 0,
+    bestSellers: 0,
+    refurbished: 0,
+    hasCoupon: 0,
+    ecoFriendly: 0,
+  },
 }
 
-function formatCount(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
-  if (n > 999) return `${(n / 1000).toFixed(1)}k`
-  return String(n)
+const fetcher = async (url: string) => {
+  try {
+    const r = await fetch(url)
+    const j = (await r.json()) as Record<string, unknown>
+    if (!r.ok || (j.error && !Array.isArray(j.categories))) {
+      return EMPTY_FILTERS
+    }
+    return {
+      categories: Array.isArray(j.categories) ? j.categories : [],
+      styles: Array.isArray(j.styles) ? j.styles : [],
+      priceRanges: Array.isArray(j.priceRanges) ? j.priceRanges : [],
+      delivery: Array.isArray(j.delivery) ? j.delivery : [],
+      offers: {
+        ...EMPTY_FILTERS.offers,
+        ...(typeof j.offers === "object" && j.offers !== null ? j.offers : {}),
+      } as typeof EMPTY_FILTERS.offers,
+    }
+  } catch {
+    return EMPTY_FILTERS
+  }
 }
 
 export function Sidebar() {
   const [expanded, setExpanded] = useState<string[]>(["category"])
-  const { data: filters, error, isLoading } = useSWR<FiltersPayload>("/api/filters", fetcher, {
+  const { data, isLoading } = useSWR("/api/filters", fetcher, {
     refreshInterval: 30_000,
+    fallbackData: EMPTY_FILTERS,
   })
 
+  const filters = data ?? EMPTY_FILTERS
+
   const toggle = (section: string) => {
-    setExpanded((prev) => (prev.includes(section) ? prev.filter((s) => s !== section) : [...prev, section]))
+    setExpanded((prev) =>
+      prev.includes(section) ? prev.filter((s) => s !== section) : [...prev, section]
+    )
   }
 
   if (isLoading) {
@@ -55,18 +74,18 @@ export function Sidebar() {
     )
   }
 
-  if (error || !filters) {
-    return (
-      <aside className="h-[calc(100vh-80px)] w-[19rem] shrink-0 self-start overflow-y-auto border-r border-gray-200 bg-white p-4 lg:sticky lg:top-[5.25rem]">
-        <p className="text-sm text-red-600">Could not load filters.</p>
-      </aside>
-    )
-  }
+  const fmt = (n: number) => (n > 999 ? `${(n / 1000).toFixed(1)}k` : String(n))
 
-  const hasCategoryStock = filters.categories.some((c) => c.count > 0)
+  const offers = filters.offers
+  const noOffers =
+    (offers?.onSale ?? 0) === 0 &&
+    (offers?.newArrivals ?? 0) === 0 &&
+    (offers?.bestSellers ?? 0) === 0 &&
+    (offers?.hasCoupon ?? 0) === 0 &&
+    (offers?.ecoFriendly ?? 0) === 0
 
   return (
-    <aside className="h-[calc(100vh-80px)] w-[19rem] shrink-0 self-start overflow-y-auto border-r border-gray-200 bg-white lg:sticky lg:top-[5.25rem]">
+    <aside className="sticky top-[5.25rem] h-[calc(100vh-80px)] w-[19rem] shrink-0 self-start overflow-y-auto border-r border-gray-200 bg-white lg:self-start">
       {/* CATEGORY */}
       <button
         type="button"
@@ -85,9 +104,13 @@ export function Sidebar() {
         />
       </button>
       {expanded.includes("category") ? (
-        <div className="max-h-[min(420px,55vh)] overflow-y-auto overscroll-contain bg-white">
-          {!hasCategoryStock ? (
-            <div className="px-4 py-8 text-center text-sm text-gray-400">No products yet</div>
+        <div className="max-h-[min(420px,55vh)] overflow-y-auto bg-white">
+          {!filters?.categories?.length ? (
+            <div className="px-4 py-8 text-center text-sm text-gray-400">
+              No categories yet.
+              <br />
+              Products will appear here.
+            </div>
           ) : (
             filters.categories.map((cat) => (
               <button
@@ -100,7 +123,7 @@ export function Sidebar() {
                   <span className="truncate font-medium">{cat.name}</span>
                 </span>
                 <span className="shrink-0 pl-2 text-xs font-bold text-gray-400 group-hover:text-gray-600">
-                  {formatCount(cat.count)}
+                  {fmt(typeof cat.count === "number" ? cat.count : 0)}
                 </span>
               </button>
             ))
@@ -126,18 +149,22 @@ export function Sidebar() {
         />
       </button>
       {expanded.includes("style") ? (
-        <div className="grid max-h-[min(360px,50vh)] grid-cols-2 gap-2 overflow-y-auto overscroll-contain px-3 py-4">
-          {filters.styles.length === 0 ? (
-            <div className="col-span-2 py-4 text-center text-sm text-gray-400">No styles yet</div>
+        <div className="grid max-h-[min(360px,50vh)] grid-cols-2 gap-2 overflow-y-auto px-3 py-4">
+          {!filters?.styles?.length ? (
+            <div className="col-span-2 py-4 text-center text-sm text-gray-400">
+              Styles appear as suppliers add them
+            </div>
           ) : (
             filters.styles.map((style) => (
               <button
-                key={style.name ?? "unknown"}
+                key={style.name ?? `idx-${style.count}`}
                 type="button"
                 className="rounded-lg border-2 border-gray-200 px-3 py-2.5 text-left text-xs font-semibold text-gray-700 transition-all hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-700"
               >
-                <div className="capitalize">{style.name}</div>
-                <div className="mt-0.5 text-[11px] text-gray-400">{formatCount(style.count)} items</div>
+                <div className="capitalize">{style.name ?? ""}</div>
+                <div className="mt-0.5 text-[11px] text-gray-400">
+                  {typeof style.count === "number" ? style.count : 0} items
+                </div>
               </button>
             ))
           )}
@@ -163,8 +190,10 @@ export function Sidebar() {
       </button>
       {expanded.includes("price") ? (
         <div className="space-y-3 px-4 py-4">
-          {filters.priceRanges.length === 0 ? (
-            <p className="text-center text-sm text-gray-400">No matching price bands</p>
+          {!filters?.priceRanges?.length ? (
+            <div className="py-4 text-center text-sm text-gray-400">
+              Price ranges will show when products are added
+            </div>
           ) : (
             filters.priceRanges.map((range) => (
               <label
@@ -173,11 +202,11 @@ export function Sidebar() {
               >
                 <div className="flex items-center gap-3">
                   <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-amber-600" readOnly />
-                  <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
-                    {range.name}
-                  </span>
+                  <span className="text-sm font-medium text-gray-700">{range.name}</span>
                 </div>
-                <span className="text-xs font-bold text-gray-400">{formatCount(range.count)}</span>
+                <span className="text-xs font-bold text-gray-400">
+                  {typeof range.count === "number" ? range.count : 0}
+                </span>
               </label>
             ))
           )}
@@ -202,9 +231,11 @@ export function Sidebar() {
         />
       </button>
       {expanded.includes("delivery") ? (
-        <div className="max-h-[min(320px,45vh)] space-y-2 overflow-y-auto overscroll-contain px-4 py-4">
-          {filters.delivery.length === 0 ? (
-            <p className="text-center text-sm text-gray-400">No delivery options yet</p>
+        <div className="space-y-2 px-4 py-4">
+          {!filters?.delivery?.length ? (
+            <div className="py-4 text-center text-sm text-gray-400">
+              Delivery options appear with products
+            </div>
           ) : (
             filters.delivery.map((opt) => (
               <label
@@ -213,11 +244,11 @@ export function Sidebar() {
               >
                 <div className="flex items-center gap-3">
                   <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-blue-600" readOnly />
-                  <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
-                    {opt.label}
-                  </span>
+                  <span className="text-sm font-medium text-gray-700">{opt.label}</span>
                 </div>
-                <span className="text-xs font-bold text-gray-400">{formatCount(opt.count)}</span>
+                <span className="text-xs font-bold text-gray-400">
+                  {typeof opt.count === "number" ? opt.count : 0}
+                </span>
               </label>
             ))
           )}
@@ -243,7 +274,7 @@ export function Sidebar() {
       </button>
       {expanded.includes("offers") ? (
         <div className="space-y-2 px-3 py-4">
-          {filters.offers.onSale > 0 ? (
+          {(offers?.onSale ?? 0) > 0 ? (
             <button
               type="button"
               className="flex w-full items-center justify-between rounded-xl border-2 border-red-200 px-4 py-3 text-sm font-semibold text-red-700 transition-all hover:border-red-500 hover:bg-red-50"
@@ -252,10 +283,10 @@ export function Sidebar() {
                 <span className="text-xl">🏷️</span>
                 On Sale
               </span>
-              <span className="text-xs font-bold">{formatCount(filters.offers.onSale)}</span>
+              <span className="text-xs">{offers.onSale}</span>
             </button>
           ) : null}
-          {filters.offers.newArrivals > 0 ? (
+          {(offers?.newArrivals ?? 0) > 0 ? (
             <button
               type="button"
               className="flex w-full items-center justify-between rounded-xl border-2 border-emerald-200 px-4 py-3 text-sm font-semibold text-emerald-700 transition-all hover:border-emerald-500 hover:bg-emerald-50"
@@ -264,10 +295,10 @@ export function Sidebar() {
                 <span className="text-xl">✨</span>
                 New Arrivals
               </span>
-              <span className="text-xs font-bold">{formatCount(filters.offers.newArrivals)}</span>
+              <span className="text-xs">{offers.newArrivals}</span>
             </button>
           ) : null}
-          {filters.offers.bestSellers > 0 ? (
+          {(offers?.bestSellers ?? 0) > 0 ? (
             <button
               type="button"
               className="flex w-full items-center justify-between rounded-xl border-2 border-amber-200 px-4 py-3 text-sm font-semibold text-amber-700 transition-all hover:border-amber-500 hover:bg-amber-50"
@@ -276,22 +307,10 @@ export function Sidebar() {
                 <span className="text-xl">🔥</span>
                 Best Sellers
               </span>
-              <span className="text-xs font-bold">{formatCount(filters.offers.bestSellers)}</span>
+              <span className="text-xs">{offers.bestSellers}</span>
             </button>
           ) : null}
-          {filters.offers.refurbished > 0 ? (
-            <button
-              type="button"
-              className="flex w-full items-center justify-between rounded-xl border-2 border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition-all hover:border-slate-500 hover:bg-slate-50"
-            >
-              <span className="flex items-center gap-2">
-                <span className="text-xl">🔧</span>
-                Refurbished
-              </span>
-              <span className="text-xs font-bold">{formatCount(filters.offers.refurbished)}</span>
-            </button>
-          ) : null}
-          {filters.offers.hasCoupon > 0 ? (
+          {(offers?.hasCoupon ?? 0) > 0 ? (
             <button
               type="button"
               className="flex w-full items-center justify-between rounded-xl border-2 border-blue-200 px-4 py-3 text-sm font-semibold text-blue-700 transition-all hover:border-blue-500 hover:bg-blue-50"
@@ -300,20 +319,23 @@ export function Sidebar() {
                 <span className="text-xl">🎟️</span>
                 Coupon Available
               </span>
-              <span className="text-xs font-bold">{formatCount(filters.offers.hasCoupon)}</span>
+              <span className="text-xs">{offers.hasCoupon}</span>
             </button>
           ) : null}
-          {filters.offers.ecoFriendly > 0 ? (
+          {(offers?.ecoFriendly ?? 0) > 0 ? (
             <button
               type="button"
-              className="flex w-full items-center justify-between rounded-xl border-2 border-green-200 px-4 py-3 text-sm font-semibold text-green-800 transition-all hover:border-green-500 hover:bg-green-50"
+              className="flex w-full items-center justify-between rounded-xl border-2 border-green-200 px-4 py-3 text-sm font-semibold text-green-700 transition-all hover:border-green-500 hover:bg-green-50"
             >
               <span className="flex items-center gap-2">
-                <span className="text-xl">🌿</span>
-                Eco-friendly
+                <span className="text-xl">🌍</span>
+                Eco-Friendly
               </span>
-              <span className="text-xs font-bold">{formatCount(filters.offers.ecoFriendly)}</span>
+              <span className="text-xs">{offers.ecoFriendly}</span>
             </button>
+          ) : null}
+          {noOffers ? (
+            <div className="py-4 text-center text-sm text-gray-400">No active offers yet</div>
           ) : null}
         </div>
       ) : null}
