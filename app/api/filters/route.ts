@@ -21,16 +21,23 @@ export async function GET() {
   try {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
 
-    const [categories, styles, priceRanges, delivery, offers] = await Promise.all([
+    const [categoryRows, styles, priceRanges, delivery, offers] = await Promise.all([
       prisma.category.findMany({
+        where: { parentId: null },
         select: {
           id: true,
           name: true,
           icon: true,
-          _count: {
+          order: true,
+          _count: { select: { products: true } },
+          subcategories: {
             select: {
-              products: true,
+              id: true,
+              name: true,
+              slug: true,
+              _count: { select: { products: true } },
             },
+            orderBy: { name: "asc" },
           },
         },
         orderBy: { order: "asc" },
@@ -83,14 +90,28 @@ export async function GET() {
       ]),
     ])
 
-    return NextResponse.json({
-      categories:
-        categories?.map((c) => ({
+    const categories =
+      categoryRows?.map((c) => {
+        const subs =
+          c.subcategories?.map((s) => ({
+            id: s.id,
+            name: s.name,
+            slug: s.slug,
+            count: s._count?.products ?? 0,
+          })) ?? []
+        const nestedSum = subs.reduce((a, s) => a + s.count, 0)
+        const direct = c._count?.products ?? 0
+        return {
           id: c.id,
           name: c.name,
           icon: c.icon || "📦",
-          count: c._count?.products ?? 0,
-        })) ?? [],
+          count: direct + nestedSum,
+          subcategories: subs,
+        }
+      }) ?? []
+
+    return NextResponse.json({
+      categories,
 
       styles:
         styles

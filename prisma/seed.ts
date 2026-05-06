@@ -102,7 +102,7 @@ async function upsertMarketplaceCategories(): Promise<void> {
       continue
     }
 
-    const byName = await prisma.category.findUnique({ where: { name: row.name } })
+    const byName = await prisma.category.findFirst({ where: { name: row.name, parentId: null } })
     if (byName) {
       try {
         await prisma.category.update({
@@ -129,7 +129,7 @@ async function upsertMarketplaceCategories(): Promise<void> {
   }
 
   async function ensureCategoryForSeedName(name: string): Promise<void> {
-    const byName = await prisma.category.findUnique({ where: { name } })
+    const byName = await prisma.category.findFirst({ where: { name } })
     if (byName) return
 
     const base = categorySlug(name)

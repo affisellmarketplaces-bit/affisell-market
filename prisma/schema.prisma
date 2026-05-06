@@ -67,17 +67,22 @@ model Store {
 }
 
 model Category {
-  id       String @id @default(cuid())
-  name     String @unique
-  slug     String @unique
-  icon     String    @default("📦")
-  order    Int       @default(0)
-  parentId String?
-  parent   Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
-  children Category[] @relation("CategoryHierarchy")
+  id   String @id @default(cuid())
+  /** Not unique: leaf rows can share labels (e.g. "Clothing") under different parents. */
+  name String
+  slug String @unique
+  icon String @default("📦")
+  order Int    @default(0)
 
-  products       Product[]
-  subcategories Subcategory[]
+  parentId String?
+  parent   Category?  @relation("CategoryToSubcategory", fields: [parentId], references: [id])
+  /** Nested browse nodes (same model — distinct from `tabularSubcategories` legacy table). */
+  subcategories Category[] @relation("CategoryToSubcategory")
+
+  products Product[]
+
+  /** Legacy per-department table (CSV/import); distinct from nested `subcategories` above. */
+  tabularSubcategories Subcategory[] @relation("CategoryTabularSubcategory")
 }
 
 model Subcategory {
@@ -85,7 +90,7 @@ model Subcategory {
   name       String
   slug       String
   categoryId String
-  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  category   Category @relation("CategoryTabularSubcategory", fields: [categoryId], references: [id], onDelete: Cascade)
   products   Product[]
 
   @@unique([categoryId, slug])

@@ -1,5 +1,5 @@
 /**
- * Seed 12 base navigation categories (idempotent).
+ * Seed 12 parent categories + nested subcategories (Category.parentId tree).
  *   npx tsx prisma/seed-categories.ts
  */
 
@@ -11,20 +11,151 @@ config({ path: ".env" })
 
 const prisma = new PrismaClient()
 
-const categories = [
-  { name: "Electronics", slug: "electronics", icon: "📱", order: 1 },
-  { name: "Computers", slug: "computers", icon: "💻", order: 2 },
-  { name: "Home & Kitchen", slug: "home-kitchen", icon: "🏡", order: 3 },
-  { name: "Beauty & Personal Care", slug: "beauty", icon: "💄", order: 4 },
-  { name: "Sports & Outdoors", slug: "sports", icon: "⚽", order: 5 },
-  { name: "Men's Fashion", slug: "mens-fashion", icon: "👔", order: 6 },
-  { name: "Women's Fashion", slug: "womens-fashion", icon: "👗", order: 7 },
-  { name: "Toys & Games", slug: "toys", icon: "🧸", order: 8 },
-  { name: "Books", slug: "books", icon: "📚", order: 9 },
-  { name: "Automotive", slug: "automotive", icon: "🚗", order: 10 },
-  { name: "Pet Supplies", slug: "pet-supplies", icon: "🐕", order: 11 },
-  { name: "Office Products", slug: "office", icon: "📎", order: 12 },
-]
+const CATEGORIES_TREE = [
+  {
+    name: "Electronics",
+    slug: "electronics",
+    icon: "📱",
+    order: 1,
+    subcategories: [
+      { name: "Cell Phones & Accessories", slug: "cell-phones" },
+      { name: "Computers & Tablets", slug: "computers" },
+      { name: "TV & Video", slug: "tv-video" },
+      { name: "Audio & Headphones", slug: "audio" },
+      { name: "Camera & Photo", slug: "camera" },
+      { name: "Video Games", slug: "video-games" },
+    ],
+  },
+  {
+    name: "Home & Kitchen",
+    slug: "home-kitchen",
+    icon: "🏡",
+    order: 2,
+    subcategories: [
+      { name: "Furniture", slug: "furniture" },
+      { name: "Kitchen & Dining", slug: "kitchen" },
+      { name: "Bedding & Bath", slug: "bedding" },
+      { name: "Home Decor", slug: "decor" },
+      { name: "Storage & Organization", slug: "storage" },
+      { name: "Patio, Lawn & Garden", slug: "garden" },
+    ],
+  },
+  {
+    name: "Beauty & Personal Care",
+    slug: "beauty",
+    icon: "💄",
+    order: 3,
+    subcategories: [
+      { name: "Makeup", slug: "makeup" },
+      { name: "Skin Care", slug: "skincare" },
+      { name: "Hair Care", slug: "haircare" },
+      { name: "Fragrance", slug: "fragrance" },
+      { name: "Personal Care", slug: "personal-care" },
+    ],
+  },
+  {
+    name: "Men's Fashion",
+    slug: "mens-fashion",
+    icon: "👔",
+    order: 4,
+    subcategories: [
+      { name: "Clothing", slug: "mens-clothing" },
+      { name: "Shoes", slug: "mens-shoes" },
+      { name: "Watches", slug: "mens-watches" },
+      { name: "Accessories", slug: "mens-accessories" },
+    ],
+  },
+  {
+    name: "Women's Fashion",
+    slug: "womens-fashion",
+    icon: "👗",
+    order: 5,
+    subcategories: [
+      { name: "Clothing", slug: "womens-clothing" },
+      { name: "Shoes", slug: "womens-shoes" },
+      { name: "Handbags", slug: "handbags" },
+      { name: "Jewelry", slug: "jewelry" },
+    ],
+  },
+  {
+    name: "Sports & Outdoors",
+    slug: "sports",
+    icon: "⚽",
+    order: 6,
+    subcategories: [
+      { name: "Exercise & Fitness", slug: "fitness" },
+      { name: "Outdoor Recreation", slug: "outdoor" },
+      { name: "Team Sports", slug: "team-sports" },
+      { name: "Cycling", slug: "cycling" },
+    ],
+  },
+  {
+    name: "Toys & Games",
+    slug: "toys",
+    icon: "🧸",
+    order: 7,
+    subcategories: [
+      { name: "Action Figures", slug: "action-figures" },
+      { name: "Board Games", slug: "board-games" },
+      { name: "Dolls & Accessories", slug: "dolls" },
+    ],
+  },
+  {
+    name: "Books",
+    slug: "books",
+    icon: "📚",
+    order: 8,
+    subcategories: [
+      { name: "Fiction", slug: "fiction" },
+      { name: "Non-Fiction", slug: "non-fiction" },
+      { name: "Children Books", slug: "children-books" },
+    ],
+  },
+  {
+    name: "Automotive",
+    slug: "automotive",
+    icon: "🚗",
+    order: 9,
+    subcategories: [
+      { name: "Car Care", slug: "car-care" },
+      { name: "Car Electronics", slug: "car-electronics" },
+      { name: "Tools & Equipment", slug: "auto-tools" },
+    ],
+  },
+  {
+    name: "Pet Supplies",
+    slug: "pet-supplies",
+    icon: "🐕",
+    order: 10,
+    subcategories: [
+      { name: "Dog Supplies", slug: "dog" },
+      { name: "Cat Supplies", slug: "cat" },
+      { name: "Fish & Aquatic Pets", slug: "fish" },
+    ],
+  },
+  {
+    name: "Office Products",
+    slug: "office",
+    icon: "📎",
+    order: 11,
+    subcategories: [
+      { name: "Office Electronics", slug: "office-electronics" },
+      { name: "School Supplies", slug: "school" },
+      { name: "Office Furniture", slug: "office-furniture" },
+    ],
+  },
+  {
+    name: "Health & Household",
+    slug: "health",
+    icon: "💊",
+    order: 12,
+    subcategories: [
+      { name: "Vitamins & Supplements", slug: "vitamins" },
+      { name: "Household Supplies", slug: "household" },
+      { name: "Medical Supplies", slug: "medical" },
+    ],
+  },
+] as const
 
 async function main() {
   if (!process.env.DATABASE_URL?.trim()) {
@@ -32,36 +163,47 @@ async function main() {
     process.exit(1)
   }
 
-  for (const cat of categories) {
-    const bySlug = await prisma.category.findUnique({ where: { slug: cat.slug } })
-    if (bySlug) {
-      // Avoid @unique(name) collisions when taxonomy already has the same slug with another label.
-      await prisma.category.update({
-        where: { id: bySlug.id },
-        data: { icon: cat.icon, order: cat.order },
-      })
-      continue
-    }
+  let subTotal = 0
 
-    const byName = await prisma.category.findUnique({ where: { name: cat.name } })
-    if (byName) {
-      try {
+  for (const cat of CATEGORIES_TREE) {
+    const parent = await prisma.category.upsert({
+      where: { slug: cat.slug },
+      update: { icon: cat.icon, order: cat.order, name: cat.name, parentId: null },
+      create: {
+        name: cat.name,
+        slug: cat.slug,
+        icon: cat.icon,
+        order: cat.order,
+        parentId: null,
+      },
+    })
+
+    for (const sub of cat.subcategories) {
+      const bySlug = await prisma.category.findUnique({ where: { slug: sub.slug } })
+      if (bySlug) {
         await prisma.category.update({
-          where: { id: byName.id },
-          data: { slug: cat.slug, icon: cat.icon, order: cat.order },
+          where: { id: bySlug.id },
+          data: {
+            name: sub.name,
+            parentId: parent.id,
+            order: 0,
+          },
         })
-      } catch {
-        await prisma.category.update({
-          where: { id: byName.id },
-          data: { icon: cat.icon, order: cat.order },
+      } else {
+        await prisma.category.create({
+          data: {
+            name: sub.name,
+            slug: sub.slug,
+            parentId: parent.id,
+            order: 0,
+          },
         })
       }
-      continue
+      subTotal += 1
     }
-
-    await prisma.category.create({ data: cat })
   }
-  console.log("✅ Seeded 12 categories")
+
+  console.log(`✅ Seeded ${CATEGORIES_TREE.length} categories + ${subTotal} subcategories (${CATEGORIES_TREE.length + subTotal} Category rows)`)
 }
 
 main()

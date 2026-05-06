@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  ChevronDown,
   ChevronRight,
   DollarSign,
   Grid3x3,
@@ -14,8 +15,16 @@ import useSWR from "swr"
 
 import { cn } from "@/lib/utils"
 
+type CategoryNav = {
+  id: string
+  name: string
+  icon: string
+  count: number
+  subcategories: Array<{ id: string; name: string; slug: string; count: number }>
+}
+
 const EMPTY_FILTERS = {
-  categories: [] as Array<{ id: string; name: string; icon: string; count: number }>,
+  categories: [] as CategoryNav[],
   styles: [] as Array<{ name: string | null; count: number }>,
   priceRanges: [] as Array<{ name: string; min: number; max: number | null; count: number }>,
   delivery: [] as Array<{ type: string; count: number; label: string }>,
@@ -37,7 +46,25 @@ const fetcher = async (url: string) => {
       return EMPTY_FILTERS
     }
     return {
-      categories: Array.isArray(j.categories) ? j.categories : [],
+      categories: Array.isArray(j.categories)
+        ? (j.categories as unknown[]).map((raw) => {
+            const c = raw as Record<string, unknown>
+            return {
+              id: String(c.id ?? ""),
+              name: String(c.name ?? ""),
+              icon: String(c.icon ?? "📦"),
+              count: typeof c.count === "number" ? c.count : 0,
+              subcategories: Array.isArray(c.subcategories)
+                ? (c.subcategories as Record<string, unknown>[]).map((s) => ({
+                    id: String(s.id ?? ""),
+                    name: String(s.name ?? ""),
+                    slug: String(s.slug ?? ""),
+                    count: typeof s.count === "number" ? s.count : 0,
+                  }))
+                : [],
+            } satisfies CategoryNav
+          })
+        : [],
       styles: Array.isArray(j.styles) ? j.styles : [],
       priceRanges: Array.isArray(j.priceRanges) ? j.priceRanges : [],
       delivery: Array.isArray(j.delivery) ? j.delivery : [],
@@ -53,6 +80,7 @@ const fetcher = async (url: string) => {
 
 export function Sidebar() {
   const [expanded, setExpanded] = useState<string[]>(["category"])
+  const [expandedCats, setExpandedCats] = useState<string[]>([])
   const { data, isLoading } = useSWR("/api/filters", fetcher, {
     refreshInterval: 30_000,
     fallbackData: EMPTY_FILTERS,
@@ -63,6 +91,12 @@ export function Sidebar() {
   const toggle = (section: string) => {
     setExpanded((prev) =>
       prev.includes(section) ? prev.filter((s) => s !== section) : [...prev, section]
+    )
+  }
+
+  const toggleCategory = (catId: string) => {
+    setExpandedCats((prev) =>
+      prev.includes(catId) ? prev.filter((c) => c !== catId) : [...prev, catId]
     )
   }
 
@@ -104,30 +138,47 @@ export function Sidebar() {
         />
       </button>
       {expanded.includes("category") ? (
-        <div className="max-h-[min(420px,55vh)] overflow-y-auto bg-white">
-          {!filters?.categories?.length ? (
-            <div className="px-4 py-8 text-center text-sm text-gray-400">
-              No categories yet.
-              <br />
-              Products will appear here.
-            </div>
-          ) : (
-            filters.categories.map((cat) => (
+        <div className="max-h-[min(560px,65vh)] overflow-y-auto bg-white">
+          {filters.categories.map((cat) => (
+            <div key={cat.id} className="border-b border-gray-100">
               <button
-                key={cat.id}
                 type="button"
-                className="group flex w-full items-center justify-between border-b border-gray-50 px-4 py-2.5 text-left text-sm text-gray-700 transition-all hover:translate-x-1 hover:bg-slate-50"
+                onClick={() => toggleCategory(cat.id)}
+                className="group flex w-full items-center justify-between px-4 py-3 text-left text-sm text-gray-800 transition-all hover:bg-slate-50"
               >
                 <span className="flex min-w-0 items-center gap-2">
-                  <span className="shrink-0 text-base">{cat.icon ?? "📦"}</span>
-                  <span className="truncate font-medium">{cat.name}</span>
+                  <span className="shrink-0 text-lg">{cat.icon ?? "📦"}</span>
+                  <span className="font-semibold">{cat.name}</span>
                 </span>
-                <span className="shrink-0 pl-2 text-xs font-bold text-gray-400 group-hover:text-gray-600">
-                  {fmt(typeof cat.count === "number" ? cat.count : 0)}
-                </span>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className="text-xs font-bold text-gray-400">
+                    {(cat.count ?? 0) > 0 ? fmt(cat.count) : ""}
+                  </span>
+                  {(cat.subcategories?.length ?? 0) > 0 ? (
+                    expandedCats.includes(cat.id) ? (
+                      <ChevronDown className="h-4 w-4 text-gray-400" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4 text-gray-400" />
+                    )
+                  ) : null}
+                </div>
               </button>
-            ))
-          )}
+
+              {expandedCats.includes(cat.id) &&
+                (cat.subcategories ?? []).map((sub) => (
+                  <button
+                    key={sub.id}
+                    type="button"
+                    className="flex w-full items-center justify-between py-2 pl-12 pr-4 text-left text-sm text-gray-600 transition-all hover:bg-slate-50 hover:text-gray-900"
+                  >
+                    <span className="min-w-0 truncate">{sub.name}</span>
+                    <span className="shrink-0 text-xs font-semibold text-gray-400">
+                      {(sub.count ?? 0) > 0 ? sub.count : ""}
+                    </span>
+                  </button>
+                ))}
+            </div>
+          ))}
         </div>
       ) : null}
 
