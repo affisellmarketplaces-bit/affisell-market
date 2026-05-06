@@ -10,6 +10,21 @@ export type ImportedVariantDraft = {
   image: string
   price: number
   stock: number
+  type?: string
+  sku?: string
+}
+
+export type ImportedColorDraft = {
+  name: string
+  hex: string
+  image: string
+}
+
+export type ImportShippingDraft = {
+  from_country: string
+  delivery_time: string
+  shipping_cost: number
+  processing_time: string
 }
 
 /** Precision import preview row (URL scrape or normalized CSV mock). */
@@ -19,12 +34,18 @@ export type ImportPreviewRow = {
   original_price: number
   suggested_price: number
   suggested_commission: number
+  profit_per_sale: string
   currency: string
   images: string[]
   image: string
   description: string
   variants: ImportedVariantDraft[]
   variants_count: number
+  colors: ImportedColorDraft[]
+  sizes: string[]
+  shipping: ImportShippingDraft
+  specs: Record<string, string>
+  tags: string[]
   stock: number
   sku: string
   source_url: string
@@ -40,6 +61,9 @@ const TAB_ICONS: Record<ImportMethod, typeof CloudUpload> = {
   shopify: ShoppingBag,
   aliexpress: Box,
 }
+
+const DEFAULT_IMPORT_MARKUP = 1.6
+const DEFAULT_IMPORT_COMMISSION = 25
 
 function num(raw: unknown, fallback = 0): number {
   if (typeof raw === "number" && Number.isFinite(raw)) return raw
@@ -58,23 +82,29 @@ function normalizeImportPreviewRow(raw: Record<string, unknown>): ImportPreviewR
   const priceBase = num(raw.price, 0)
   let suggestedPrice = num(raw.suggested_price, 0)
   if (!(suggestedPrice > 0) && priceBase > 0) {
-    suggestedPrice = Math.round(priceBase * 1.5 * 100) / 100
+    suggestedPrice = Math.round(priceBase * DEFAULT_IMPORT_MARKUP * 100) / 100
   }
 
   let variants: ImportedVariantDraft[] = []
   if (Array.isArray(raw.variants)) {
     variants = raw.variants
-      .map((item) => {
+      .map((item): ImportedVariantDraft | null => {
         if (!item || typeof item !== "object" || Array.isArray(item)) return null
         const v = item as Record<string, unknown>
-        const name = typeof v.name === "string" ? v.name.trim().slice(0, 200) : ""
-        if (!name) return null
-        return {
-          name,
+        const nm = typeof v.name === "string" ? v.name.trim().slice(0, 200) : ""
+        if (!nm) return null
+        const vtRaw = typeof v.type === "string" ? v.type.trim().slice(0, 120) : ""
+        const display = vtRaw ? `${vtRaw}: ${nm}`.slice(0, 200) : nm
+        const line: ImportedVariantDraft = {
+          name: display,
           image: typeof v.image === "string" ? v.image.trim() : "",
           price: num(v.price, priceBase),
           stock: Math.max(0, Math.round(num(v.stock, num(raw.stock, 99)))),
         }
+        if (vtRaw) line.type = vtRaw
+        const sku = typeof v.sku === "string" ? v.sku.trim().slice(0, 120) : ""
+        if (sku) line.sku = sku
+        return line
       })
       .filter((x): x is ImportedVariantDraft => x !== null)
   }
@@ -97,22 +127,112 @@ function normalizeImportPreviewRow(raw: Record<string, unknown>): ImportPreviewR
   const desc =
     typeof raw.description === "string" ? raw.description : ""
 
+  let colors: ImportedColorDraft[] = []
+  if (Array.isArray(raw.colors)) {
+    colors = raw.colors
+      .map((c): ImportedColorDraft | null => {
+        if (typeof c === "string" && c.trim()) {
+          const n = c.trim().slice(0, 120)
+          return { name: n, hex: "#CCCCCC", image: "" }
+        }
+        if (!c || typeof c !== "object" || Array.isArray(c)) return null
+        const o = c as Record<string, unknown>
+        const n = typeof o.name === "string" ? o.name.trim().slice(0, 120) : ""
+        if (!n) return null
+        return {
+          name: n,
+          hex:
+            typeof o.hex === "string" ? o.hex.trim().slice(0, 24) : "#CCCCCC",
+          image: typeof o.image === "string" ? o.image.trim().slice(0, 2000) : "",
+        }
+      })
+      .filter((x): x is ImportedColorDraft => x !== null)
+  }
+
+  let sizes: string[] = []
+  if (Array.isArray(raw.sizes))
+    sizes = raw.sizes
+      .filter((x): x is string => typeof x === "string" && x.trim().length > 0)
+      .map((s) => s.trim().slice(0, 120))
+
+  let shipping: ImportShippingDraft = {
+    from_country: "China",
+    delivery_time: "15–25 days",
+    shipping_cost: 0,
+    processing_time: "1–3 days",
+  }
+  const shRaw = raw.shipping
+  if (shRaw && typeof shRaw === "object" && !Array.isArray(shRaw)) {
+    const o = shRaw as Record<string, unknown>
+    shipping = {
+      from_country:
+        typeof o.from_country === "string" ? o.from_country.trim().slice(0, 160) : shipping.from_country,
+      delivery_time:
+        typeof o.delivery_time === "string"
+          ? o.delivery_time.trim().slice(0, 200)
+          : shipping.delivery_time,
+      shipping_cost: num(o.shipping_cost, 0),
+      processing_time:
+        typeof o.processing_time === "string"
+          ? o.processing_time.trim().slice(0, 200)
+          : shipping.processing_time,
+    }
+  }
+
+  let specs: Record<string, string> = {}
+  const specsRaw = raw.specs
+  if (
+    specsRaw &&
+    typeof specsRaw === "object" &&
+    !Array.isArray(specsRaw)
+  ) {
+    for (const [k, val] of Object.entries(specsRaw as Record<string, unknown>))
+      specs[k.slice(0, 200)] = String(val ?? "").slice(0, 800)
+    if (Object.keys(specs).length > 240) specs = Object.fromEntries(Object.entries(specs).slice(0, 240))
+  }
+
+  const tagsRaw = raw.tags
+  const tags: string[] = Array.isArray(tagsRaw)
+    ? tagsRaw
+        .filter((x): x is string => typeof x === "string" && x.trim().length > 0)
+        .map((x) => x.trim().slice(0, 40))
+    : []
+
+  const suggested_commission = Math.min(
+    50,
+    Math.max(1, Math.round(num(raw.suggested_commission, DEFAULT_IMPORT_COMMISSION)))
+  )
+
+  const profitParsed =
+    typeof raw.profit_per_sale === "string"
+      ? raw.profit_per_sale.trim()
+      : ""
+  const profit_per_sale =
+    profitParsed ||
+    Math.max(
+      suggestedPrice - priceBase,
+      0
+    ).toFixed(2)
+
   return {
     title: title.trim().slice(0, 500),
     price: parseFloat(priceBase.toFixed(4)),
     original_price: parseFloat(Math.max(priceBase, num(raw.original_price, priceBase)).toFixed(4)),
     suggested_price: parseFloat(suggestedPrice.toFixed(4)),
-    suggested_commission: Math.min(
-      50,
-      Math.max(1, Math.round(num(raw.suggested_commission, 20)))
-    ),
+    suggested_commission,
+    profit_per_sale,
     currency:
       typeof raw.currency === "string" ? raw.currency.slice(0, 12) : "EUR",
     images: imgs.slice(0, 20),
     image,
-    description: desc.slice(0, 4000),
+    description: desc.slice(0, 5500),
     variants,
     variants_count,
+    colors,
+    sizes,
+    shipping,
+    specs,
+    tags,
     stock: Math.max(0, Math.round(num(raw.stock, 99))),
     sku: typeof raw.sku === "string" ? raw.sku.slice(0, 120) : "",
     source_url: typeof raw.source_url === "string" ? raw.source_url.trim() : "",
@@ -465,6 +585,26 @@ export function SupplierProductImport() {
                         }
                         className="w-full rounded-lg border border-zinc-300 px-3 py-2 font-medium text-zinc-900 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100"
                       />
+                      <p className="text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+                        <span className="font-medium text-zinc-700 dark:text-zinc-300">Ship:&nbsp;</span>
+                        {(p.shipping?.from_country || "—") +
+                          ` · ${p.shipping?.delivery_time ?? ""}` +
+                          ` · processing ${p.shipping?.processing_time ?? ""}`}
+                        {(p.shipping?.shipping_cost ?? 0) > 0 ? (
+                          <span className="ml-1 font-medium">
+                            · freight {p.currency === "EUR" ? "€" : ""}
+                            {typeof p.shipping?.shipping_cost === "number"
+                              ? p.shipping.shipping_cost.toFixed(2)
+                              : "0"}
+                            {p.currency !== "EUR" ? ` ${p.currency}` : ""}
+                          </span>
+                        ) : (
+                          ""
+                        )}
+                        {" · "}
+                        {p.colors.length} colors, {p.sizes.length} sizes,{" "}
+                        {Object.keys(p.specs).length} spec lines · {p.images.length} images staged
+                      </p>
                       <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                         <div>
                           <label className="text-xs text-zinc-500 dark:text-zinc-400">Cost price</label>
@@ -514,7 +654,11 @@ export function SupplierProductImport() {
                                 "suggested_commission",
                                 Math.min(
                                   50,
-                                  Math.max(1, parseInt(e.target.value, 10) || 20)
+                                  Math.max(
+                                    1,
+                                    parseInt(e.target.value, 10) ||
+                                      DEFAULT_IMPORT_COMMISSION
+                                  )
                                 )
                               )
                             }

@@ -37,6 +37,10 @@ export type SupplierProductRecord = {
   shippingMethods?: string[] | null
   freeShippingThreshold?: number | null
   shippingCost?: number | null
+  /** Import pipeline: fulfillment region label when set */
+  shipsFrom?: string | null
+  deliveryDays?: number | null
+  supplierTag?: string | null
 }
 
 type FormState = {
@@ -191,6 +195,34 @@ export function SupplierProductForm({
         ? String(Number(initial.shippingCost))
         : "0"
     )
+
+    const isImport =
+      (initial.supplierTag ?? "").toLowerCase() === "import" ||
+      (Array.isArray(initial.tags) &&
+        initial.tags.some((t) => (t ?? "").toLowerCase() === "imported"))
+
+    if (isImport) {
+      const from = (initial.shipsFrom ?? "").trim().toLowerCase()
+
+      if (
+        /\bchina\b|^cn\b|hong kong|aliexpress|cny\b/.test(from) ||
+        /\bchina\b|aliexpress/i.test((initial.description ?? "").toLowerCase())
+      ) {
+        setShippingCountry("CN")
+        setWarehouseType("international")
+      } else if (/\bunited states\b|usa|^us\b|amazon\b/.test(from)) {
+        setShippingCountry("US")
+        setWarehouseType("international")
+      } else if (from.length > 0 && !/^france|fr\b/.test(from)) {
+        setWarehouseType("international")
+      }
+
+      const days = typeof initial.deliveryDays === "number" ? initial.deliveryDays : 0
+      if (days > 0 && days < 365) {
+        setDeliveryMin(String(Math.max(1, Math.floor(days * 0.85))))
+        setDeliveryMax(String(Math.ceil(days * 1.15)))
+      }
+    }
   }, [resetKey, initial])
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -296,6 +328,26 @@ export function SupplierProductForm({
           onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
           className="rounded-md border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
         />
+        {initial &&
+        ((initial.supplierTag ?? "").toLowerCase() === "import" ||
+          (initial.tags ?? []).some(
+            (t) => String(t ?? "").toLowerCase() === "imported"
+          )) ? (
+          <p className="md:col-span-2 rounded-md border border-purple-200 bg-purple-50 px-3 py-2 text-xs text-purple-900 dark:border-purple-800 dark:bg-purple-950/60 dark:text-purple-100">
+            <span className="font-medium">Imported listing.</span>{" "}
+            {typeof initial.shipsFrom === "string" && initial.shipsFrom.trim()
+              ? `Ship region: ${initial.shipsFrom.trim()}. `
+              : null}
+            {typeof initial.description === "string"
+              ? (() => {
+                  const raw = initial.description.split("\n")
+                  const clip = raw.find((l) => /supplier cost reference/i.test(l))
+                  return clip ? `${clip.trim()}. ` : ""
+                })()
+              : null}
+            Refine logistics below if needed — values were estimated from import.
+          </p>
+        ) : null}
         <div className="flex flex-col">
           <label className="flex flex-wrap items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400">
             Offered Commission

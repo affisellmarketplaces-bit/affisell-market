@@ -4,15 +4,12 @@ import { type NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { createNewDropCommunityPost } from "@/lib/community-new-drop"
 import {
-  type ProductVariantLine,
-  type ProductVariantsJson,
-  newVariantRowId,
-} from "@/lib/product-variants"
+  catalogHexForColorName,
+  type ProductColorImageRow,
+} from "@/lib/product-color-images"
+import { type ProductVariantLine, newVariantRowId } from "@/lib/product-variants"
 import { prisma } from "@/lib/prisma"
-import {
-  parseProductCategories,
-  parseProductTags,
-} from "@/lib/supplier-product-attributes"
+import { parseProductAttributesBody } from "@/lib/supplier-product-attributes"
 import { parseSupplierProductImages } from "@/lib/supplier-product-images"
 import { parseSupplierProductShippingBody } from "@/lib/supplier-product-shipping"
 
@@ -20,6 +17,8 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 const MAX_BATCH = 30
+const DEFAULT_MARKUP = 1.6
+const DEFAULT_COMMISSION_HINT = 25
 
 function variantSkuSlug(name: string, index: number, baseSku: string): string {
   const slug =
@@ -28,6 +27,102 @@ function variantSkuSlug(name: string, index: number, baseSku: string): string {
       .replace(/[^a-zA-Z0-9-_]/g, "")
       .slice(0, 28) || `v${index}`
   return `${baseSku}-${slug}`.slice(0, 80)
+}
+
+function num(raw: unknown): number {
+  if (typeof raw === "number" && Number.isFinite(raw)) return raw
+  const n = parseFloat(String(raw ?? "").replace(/\s+/g, "").replace(",", "."))
+  return Number.isFinite(n) ? n : 0
+}
+
+/** "15–25 days" → { lo: 15, hi: 25 } */
+function parseHumanRangeInts(s: string): { lo: number; hi: number } | null {
+  const t = s.replace(/–/g, "-").replace(/days?/gi, "").trim()
+  const m = t.match(/(\d+)\s*-\s*(\d+)/)
+  if (m) {
+    const lo = parseInt(m[1], 10)
+    const hi = parseInt(m[2], 10)
+    if (Number.isFinite(lo) && Number.isFinite(hi)) return { lo, hi }
+  }
+  const one = s.match(/(\d+)/)
+  if (one) {
+    const n = parseInt(one[1], 10)
+    return Number.isFinite(n) ? { lo: n, hi: n } : null
+  }
+  return null
+}
+
+function countryCodeGuess(label: string): string | undefined {
+  const l = label.toLowerCase().trim()
+  const map: Record<string, string> = {
+    china: "CN",
+    france: "FR",
+    germany: "DE",
+    spain: "ES",
+    italy: "IT",
+    usa: "US",
+    uk: "GB",
+    "united kingdom": "GB",
+    "united states": "US",
+  }
+  for (const [word, cc] of Object.entries(map)) {
+    if (l.includes(word)) return cc
+  }
+  if (/^[a-z]{2}$/i.test(label.trim())) return label.trim().toUpperCase()
+  return undefined
+}
+
+function colorRowsFromImport(raw: unknown): ProductColorImageRow[] {
+  if (!Array.isArray(raw)) return []
+  const rows: ProductColorImageRow[] = []
+  for (const item of raw) {
+    if (typeof item === "string") {
+      const c = item.trim()
+      if (c.length)
+        rows.push({
+          color: c.slice(0, 80),
+          hex: catalogHexForColorName(c),
+          image: "",
+        })
+      continue
+    }
+    if (!item || typeof item !== "object" || Array.isArray(item)) continue
+    const o = item as Record<string, unknown>
+    const nm = typeof o.name === "string" ? o.name.trim() : ""
+    if (!nm.length) continue
+    const hex =
+      typeof o.hex === "string" && o.hex.trim()
+        ? o.hex.trim().slice(0, 32)
+        : catalogHexForColorName(nm)
+    const img =
+      typeof o.image === "string" ? o.image.trim().slice(0, 2000) : ""
+    rows.push({
+      color: nm.slice(0, 120),
+      hex,
+      image: img.startsWith("blob:") ? "" : img,
+    })
+    if (rows.length >= 40) break
+  }
+  return rows
+}
+
+function mergeImportTags(extra: unknown): string[] {
+  const merged = ["imported"]
+  if (Array.isArray(extra)) {
+    for (const x of extra) {
+      if (typeof x === "string" && x.trim()) merged.push(x.trim())
+    }
+  }
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const t of merged) {
+    const s = t.length > 40 ? t.slice(0, 40) : t
+    if (!s || seen.has(s)) continue
+    seen.add(s)
+    out.push(s)
+    if (out.length >= 40) break
+  }
+  return out
 }
 
 export async function POST(req: NextRequest) {
@@ -66,8 +161,12 @@ export async function POST(req: NextRequest) {
     select: { id: true },
   })
 
-  const ship = parseSupplierProductShippingBody({})
-  const createdIds: string[] = []
+  let createdCount = 0
+
+  const bodyDraft =
+    typeof body.status === "string"
+      ? body.status.toLowerCase() === "draft"
+      : false
 
   for (const raw of productsRaw) {
     if (!raw || typeof raw !== "object" || Array.isArray(raw)) continue
@@ -76,20 +175,24 @@ export async function POST(req: NextRequest) {
     const nameStr = typeof p.title === "string" ? p.title.trim() : ""
     if (!nameStr) continue
 
-    const suggestedEur = Number(p.suggested_price)
-    const costEur = Number(p.price)
-    const priceEur = Number.isFinite(suggestedEur)
-      ? suggestedEur
-      : Number.isFinite(costEur)
-        ? costEur * 1.5
-        : 0
+    const suggestedEur = num(p.suggested_price)
+    const costEur = num(p.price)
+    const priceEur =
+      suggestedEur > 0 ? suggestedEur : costEur > 0 ? costEur * DEFAULT_MARKUP : 0
+
     const basePriceCents = Math.max(100, Math.round(priceEur * 100))
 
-    const commRaw = Number(p.suggested_commission)
+    const commRaw = num(p.suggested_commission)
     const commissionRate = Math.min(
       50,
-      Math.max(1, Math.round(Number.isFinite(commRaw) ? commRaw : 20))
+      Math.max(1, Math.round(commRaw > 0 ? commRaw : DEFAULT_COMMISSION_HINT))
     )
+
+    const statusRaw =
+      typeof p.status === "string" ? p.status.toLowerCase() : ""
+    const asDraft =
+      statusRaw === "draft" || p.active === false || bodyDraft
+    const active = !asDraft
 
     const stockN = Math.max(
       0,
@@ -100,18 +203,116 @@ export async function POST(req: NextRequest) {
 
     const categoryStr =
       typeof p.category === "string" ? p.category.trim() : ""
-    const categories = parseProductCategories(
-      categoryStr ? [categoryStr] : []
-    )
-    const tags = parseProductTags(["imported"])
+
+    const shippingObj = p.shipping
+    const shipGuess: Record<string, unknown> = {}
+
+    let shipsFromText: string | null = null
+
+    let deliveryMid: number | undefined
+    let deliveryLo = 5
+    let deliveryHi = 14
+
+    if (
+      shippingObj &&
+      typeof shippingObj === "object" &&
+      !Array.isArray(shippingObj)
+    ) {
+      const sh = shippingObj as Record<string, unknown>
+      const from =
+        typeof sh.from_country === "string"
+          ? sh.from_country.trim()
+          : ""
+
+      if (from) shipsFromText = from.slice(0, 120)
+
+      const cc = from ? countryCodeGuess(from) : undefined
+      if (cc) shipGuess.shippingCountry = cc
+
+      const shipCostNum = num(sh.shipping_cost)
+      if (shipCostNum >= 0) shipGuess.shippingCostEUR = shipCostNum
+
+      const dt =
+        typeof sh.delivery_time === "string" ? sh.delivery_time : ""
+      const dr = parseHumanRangeInts(dt)
+      if (dr) {
+        deliveryLo = dr.lo
+        deliveryHi = dr.hi
+        deliveryMid = Math.round((dr.lo + dr.hi) / 2)
+      }
+      shipGuess.deliveryMin = deliveryLo
+      shipGuess.deliveryMax = deliveryHi
+
+      const pt =
+        typeof sh.processing_time === "string" ? sh.processing_time : ""
+      const pr = parseHumanRangeInts(pt)
+      shipGuess.processingTime = pr
+        ? Math.max(1, Math.round((pr.lo + pr.hi) / 2))
+        : 2
+
+      const fl = from.toLowerCase()
+      if (/china|hong kong|aliexpress/i.test(fl) || cc === "CN")
+        shipGuess.warehouseType = "international"
+      else if (/united states|usa\b|amazon\b/i.test(fl) || cc === "US")
+        shipGuess.warehouseType = "international"
+      else if (/warehouse|dropship/i.test(fl))
+        shipGuess.warehouseType = "international"
+      else if (fl.includes("shop /") || /^shop\b/i.test(fl))
+        shipGuess.warehouseType = "international"
+      else shipGuess.warehouseType = cc === "FR" || cc === undefined ? "local" : "regional"
+
+      shipGuess.shippingMethods = ["standard"]
+    }
+
+    const ship = parseSupplierProductShippingBody(shipGuess)
+
+    const colorRowsAll = colorRowsFromImport(p.colors).slice()
+    const colorMap = new Map<string, ProductColorImageRow>()
+    for (const r of colorRowsAll) {
+      if (!colorMap.has(r.color))
+        colorMap.set(r.color, r)
+    }
+    const mergedColorRows = [...colorMap.values()].slice(0, 40)
+    const colorNames =
+      mergedColorRows.length > 0
+        ? mergedColorRows.map((r) => r.color).slice(0, 24)
+        : []
 
     let desc = typeof p.description === "string" ? p.description.trim() : ""
     const src =
       typeof p.source_url === "string" ? p.source_url.trim() : ""
-    if (src) {
+    if (src)
       desc = desc ? `${desc}\n\nImported from ${src}` : `Imported from ${src}`
+
+    const specs = p.specs
+    if (specs && typeof specs === "object" && !Array.isArray(specs)) {
+      const entries = Object.entries(specs as Record<string, unknown>).slice(
+        0,
+        80
+      )
+      if (entries.length) {
+        desc += `\n\nSpecifications\n`
+        for (const [k, v] of entries) desc += `- ${String(k)}: ${String(v)}\n`
+      }
     }
-    if (!desc) desc = "—"
+
+    const sizesUnknown = p.sizes
+    if (
+      Array.isArray(sizesUnknown) &&
+      sizesUnknown.some((x) => typeof x === "string")
+    ) {
+      const sl = sizesUnknown
+        .filter((x): x is string => typeof x === "string")
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .slice(0, 40)
+      if (sl.length) desc += `\n\nSizes available: ${sl.join(", ")}`
+    }
+
+    if (costEur > 0 && !/Supplier cost reference/i.test(desc))
+      desc += `\n\nSupplier cost reference: €${costEur.toFixed(2)}`
+
+    if (!desc.trim()) desc = "—"
 
     const baseSku =
       typeof p.sku === "string" && p.sku.trim()
@@ -119,45 +320,80 @@ export async function POST(req: NextRequest) {
         : `imp-${Date.now().toString(36)}`
 
     const variantInputs = Array.isArray(p.variants) ? p.variants : []
-    let variantsJson: ProductVariantsJson | null = null
+    const variantRowsFiltered: ProductVariantLine[] = []
 
-    if (variantInputs.length > 0) {
-      const variantRows = variantInputs
-        .map((v, index) => {
-          if (!v || typeof v !== "object" || Array.isArray(v)) return null
-          const row = v as Record<string, unknown>
-          const vname =
-            typeof row.name === "string" ? row.name.trim().slice(0, 160) : ""
-          if (!vname) return null
-          const vPriceEur = Number(row.price)
-          const lineEur = Number.isFinite(vPriceEur)
-            ? vPriceEur
-            : priceEur
-          const vStock = Math.max(
-            0,
-            Math.round(
-              Number.isFinite(Number(row.stock)) ? Number(row.stock) : stockN
-            )
-          )
-          const vimg =
-            typeof row.image === "string" ? row.image.trim().slice(0, 2000) : ""
-          const line: ProductVariantLine = {
-            id: newVariantRowId(),
-            name: vname,
-            sku: variantSkuSlug(vname, index, baseSku),
-            priceCents: Math.max(0, Math.round(lineEur * 100)),
-            stock: vStock,
-            commission: commissionRate,
-            sales: 0,
-          }
-          if (vimg) line.image = vimg
-          return line
-        })
-        .filter((x): x is NonNullable<typeof x> => x !== null)
-        .slice(0, 500)
+    const priceEuroForLines = suggestedEur > 0 ? suggestedEur : priceEur
 
-      if (variantRows.length > 0) variantsJson = { variantRows }
+    for (let index = 0; index < variantInputs.length; index++) {
+      const v = variantInputs[index]
+      if (!v || typeof v !== "object" || Array.isArray(v)) continue
+      const row = v as Record<string, unknown>
+      const vType =
+        typeof row.type === "string" ? row.type.trim().slice(0, 120) : ""
+      const nm =
+        typeof row.name === "string" ? row.name.trim().slice(0, 160) : ""
+      if (!nm.length) continue
+      const labeled =
+        vType && nm ? `${vType}: ${nm}`.slice(0, 200) : nm
+      const vPrice = num(row.price)
+      const lineEur =
+        vPrice > 0 ? vPrice : priceEuroForLines > 0 ? priceEuroForLines : priceEur
+
+      const vs = Number(row.stock)
+      const vStock =
+        Number.isFinite(vs) && vs >= 0 ? Math.round(vs) : stockN
+
+      let lineSku = ""
+      if (typeof row.sku === "string" && row.sku.trim())
+        lineSku = row.sku.trim().slice(0, 80)
+      else lineSku = variantSkuSlug(labeled.replace(/[:/\s]+/g, "-"), index, baseSku)
+
+      const vimgRaw =
+        typeof row.image === "string" ? row.image.trim().slice(0, 2000) : ""
+
+      const line: ProductVariantLine = {
+        id: newVariantRowId(),
+        name: labeled,
+        sku: lineSku,
+        priceCents: Math.max(0, Math.round(lineEur * 100)),
+        stock: Math.max(0, vStock),
+        commission: commissionRate,
+        sales: 0,
+      }
+      if (vimgRaw && !vimgRaw.startsWith("blob:")) line.image = vimgRaw
+      variantRowsFiltered.push(line)
     }
+
+    const sizesStr = Array.isArray(p.sizes)
+      ? (p.sizes as unknown[])
+          .filter((x): x is string => typeof x === "string")
+          .map((s) => s.trim())
+          .filter(Boolean)
+          .slice(0, 40)
+      : []
+
+    const variantsPayload: Record<string, unknown> = {}
+    if (variantRowsFiltered.length > 0)
+      variantsPayload.variantRows = variantRowsFiltered.slice(0, 500)
+    if (sizesStr.length > 0) variantsPayload.size = sizesStr
+
+    const tagsForAttr = mergeImportTags(p.tags)
+
+    const attrBody: Record<string, unknown> = {
+      categories: categoryStr ? [categoryStr] : [],
+      colors: colorNames,
+      tags: tagsForAttr,
+    }
+    if (mergedColorRows.length > 0)
+      attrBody.colorImages = mergedColorRows.map((r) => ({
+        color: r.color,
+        hex: r.hex,
+        image: r.image,
+      }))
+    if (Object.keys(variantsPayload).length > 0)
+      attrBody.variants = variantsPayload
+
+    const attr = parseProductAttributesBody(attrBody)
 
     const product = await prisma.product.create({
       data: {
@@ -165,18 +401,21 @@ export async function POST(req: NextRequest) {
         name: nameStr.slice(0, 500),
         description: desc.slice(0, 8000),
         images,
-        colorImages: Prisma.DbNull,
-        categories,
-        colors: [],
-        tags,
-        variants:
-          variantsJson === null
+        colorImages:
+          attr.colorImages === null
             ? Prisma.DbNull
-            : (variantsJson as unknown as Prisma.InputJsonValue),
+            : (attr.colorImages as unknown as Prisma.InputJsonValue),
+        categories: attr.categories,
+        colors: attr.colors.length > 0 ? attr.colors : colorNames.slice(0, 24),
+        tags: attr.tags,
+        variants:
+          attr.variants === null
+            ? Prisma.DbNull
+            : (attr.variants as unknown as Prisma.InputJsonValue),
         basePriceCents,
         commissionRate,
         stock: stockN,
-        active: true,
+        active,
         shippingCountry: ship.shippingCountry,
         warehouseType: ship.warehouseType,
         warehouseCity: ship.warehouseCity,
@@ -186,12 +425,15 @@ export async function POST(req: NextRequest) {
         shippingMethods: ship.shippingMethods,
         freeShippingThreshold: ship.freeShippingThreshold,
         shippingCost: ship.shippingCost,
+        shipsFrom: shipsFromText ?? undefined,
+        deliveryDays: deliveryMid ?? undefined,
+        supplierTag: "import",
       },
     })
 
-    createdIds.push(product.id)
+    createdCount++
 
-    if (supplierStore) {
+    if (active && supplierStore) {
       try {
         await createNewDropCommunityPost({
           storeId: supplierStore.id,
@@ -204,12 +446,12 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  if (createdIds.length === 0) {
+  if (createdCount === 0) {
     return NextResponse.json(
       { error: "No valid products to create" },
       { status: 400 }
     )
   }
 
-  return NextResponse.json({ success: true, count: createdIds.length })
+  return NextResponse.json({ success: true, count: createdCount })
 }

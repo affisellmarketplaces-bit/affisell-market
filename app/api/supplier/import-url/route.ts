@@ -5,21 +5,79 @@ import { auth } from "@/auth"
 
 export const runtime = "nodejs"
 
-type VariantRow = { name: string; image: string; price: number; stock: number }
+/** One selectable option/value from a PDP (color chip, size, etc.). */
+type ScrapedVariant = {
+  name: string
+  image: string
+  price: number
+  stock: number
+  /** e.g. "Color", "Shoe Size" */
+  type?: string
+  /** Platform-specific option id where available */
+  sku?: string
+}
+
+type ScrapedColor = { name: string; hex: string; image: string }
+
+type ScrapedShipping = {
+  from_country: string
+  delivery_time: string
+  shipping_cost: number
+  processing_time: string
+}
 
 type ScrapedProduct = {
   title: string
+  description: string
   price: number
   original_price: number
   currency: string
   image: string
   images: string[]
-  description: string
   category: string
-  variants: VariantRow[]
+  variants: ScrapedVariant[]
+  colors: ScrapedColor[]
+  sizes: string[]
   sku: string
   stock: number
+  shipping: ScrapedShipping
+  specs: Record<string, string>
   source_url: string
+}
+
+const IMPORT_MARKUP = 1.6
+const IMPORT_COMMISSION_HINT = 25
+
+function defaultShipping(): ScrapedShipping {
+  return {
+    from_country: "China",
+    delivery_time: "15–25 days",
+    shipping_cost: 0,
+    processing_time: "1–3 days",
+  }
+}
+
+function numUnknown(v: unknown): number {
+  if (typeof v === "number" && Number.isFinite(v)) return v
+  const n = parseFloat(String(v ?? "").replace(/\s+/g, "").replace(",", "."))
+  return Number.isFinite(n) ? n : 0
+}
+
+function uniqStrings(items: string[], cap = 80): string[] {
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const s of items) {
+    const t = typeof s === "string" ? s.trim() : ""
+    if (!t || seen.has(t)) continue
+    seen.add(t)
+    out.push(t.slice(0, 240))
+    if (out.length >= cap) break
+  }
+  return out
+}
+
+function aeHexPlaceholder(): string {
+  return "#CCCCCC"
 }
 
 function normalizeLdImages(raw: unknown): string[] {
@@ -90,35 +148,74 @@ function extractAliExpressRunParams(html: string): Record<string, unknown> | nul
   return null
 }
 
+function pickAeFields(run: Record<string, unknown>): Record<string, unknown> | null {
+  const d = run.data
+  if (d && typeof d === "object" && !Array.isArray(d)) {
+    const data = d as Record<string, unknown>
+    const root = data.root
+    if (root && typeof root === "object") {
+      const fields = (root as { fields?: unknown }).fields
+      if (fields && typeof fields === "object" && !Array.isArray(fields))
+        return fields as Record<string, unknown>
+    }
+    const pic = data.productInfoComponent
+    if (pic && typeof pic === "object" && !Array.isArray(pic))
+      return pic as Record<string, unknown>
+  }
+  return null
+}
+
 function mergeAliExpressRunParams(html: string, product: ScrapedProduct): void {
   const data = extractAliExpressRunParams(html)
   if (!data) return
 
   try {
-    const root = data as { data?: { root?: { fields?: Record<string, unknown> } } }
-    const fields = root?.data?.root?.fields
-    if (!fields || typeof fields !== "object") return
+    const fields = pickAeFields(data)
+    if (!fields) return
 
     const subject =
-      typeof fields.subject === "string" ? fields.subject.trim() : ""
+      typeof fields.subject === "string"
+        ? fields.subject.trim()
+        : typeof fields.title === "string"
+          ? fields.title.trim()
+          : ""
     if (subject) product.title = subject
+
+    const descRaw = fields.description
+    if (
+      typeof descRaw === "string" &&
+      descRaw.trim().length > (product.description?.length ?? 0)
+    ) {
+      product.description = descRaw.trim()
+    }
 
     const priceBlock = fields.price as Record<string, unknown> | undefined
     if (priceBlock && typeof priceBlock === "object") {
-      const min =
-        (priceBlock.minAmount as { value?: unknown } | undefined)?.value ??
-        (priceBlock.salePrice as { value?: unknown } | undefined)?.value
-      const max = (priceBlock.maxAmount as { value?: unknown } | undefined)?.value
-      const pMin = typeof min === "number" ? min : parseFloat(String(min ?? ""))
-      const pMax = typeof max === "number" ? max : parseFloat(String(max ?? ""))
-      if (Number.isFinite(pMin) && pMin > 0) product.price = pMin
-      if (Number.isFinite(pMax) && pMax > 0 && pMax !== pMin)
-        product.original_price = pMax
+      const act = priceBlock.minActivityAmount as { value?: unknown } | undefined
+      const mn = priceBlock.minAmount as { value?: unknown } | undefined
+      const sale = priceBlock.salePrice as { value?: unknown } | undefined
+      const mx = priceBlock.maxAmount as { value?: unknown } | undefined
+
+      const pSale =
+        numUnknown(act?.value) ||
+        numUnknown(mn?.value) ||
+        numUnknown(sale?.value)
+
+      const pOrig = numUnknown(mx?.value)
+
+      if (pSale > 0) {
+        product.price = pSale
+        if (!(pOrig > 0)) product.original_price = pSale
+        else product.original_price = Math.max(pOrig, pSale)
+      } else if (pOrig > 0) {
+        product.original_price = pOrig
+        product.price = pOrig
+      }
     }
 
-    const imgList = fields.imagePathList ?? fields.images
-    if (Array.isArray(imgList)) {
-      const strs = imgList
+    const imgSrcs = fields.imagePathList ?? fields.images
+    if (Array.isArray(imgSrcs)) {
+      const strs = imgSrcs
         .map((x) => (typeof x === "string" ? x.trim() : ""))
         .filter(Boolean)
       if (strs.length > 0) product.images = strs
@@ -129,22 +226,86 @@ function mergeAliExpressRunParams(html: string, product: ScrapedProduct): void {
       const total = qty.totalAvailable
       const ta =
         typeof total === "number" ? total : parseInt(String(total ?? ""), 10)
-      if (Number.isFinite(ta) && ta > 0) product.stock = ta
+      if (Number.isFinite(ta) && ta > 0) product.stock = Math.min(Math.max(ta, 1), 999_999)
     }
+
+    /* Shipping */
+    const del = fields.delivery as Record<string, unknown> | undefined
+    if (del && typeof del === "object") {
+      const shipFromRaw = del.shipFrom
+      if (typeof shipFromRaw === "string" && shipFromRaw.trim())
+        product.shipping.from_country = shipFromRaw.trim()
+      const dd = del.deliveryTimeDesc
+      if (typeof dd === "string" && dd.trim())
+        product.shipping.delivery_time = dd.trim()
+      const pt = del.processingTime
+      if (typeof pt === "string" && pt.trim())
+        product.shipping.processing_time = pt.trim()
+    }
+
+    const freight = fields.freightAmount as Record<string, unknown> | undefined
+    if (freight && freight.value != null)
+      product.shipping.shipping_cost = numUnknown(freight.value)
+
+    /* Specs table */
+    const propList = fields.productPropList
+    if (Array.isArray(propList)) {
+      for (const raw of propList) {
+        if (!raw || typeof raw !== "object") continue
+        const row = raw as Record<string, unknown>
+        const k =
+          typeof row.attrName === "string"
+            ? row.attrName.trim()
+            : typeof row.name === "string"
+              ? row.name.trim()
+              : ""
+        if (!k || k.length > 200) continue
+        const aval = row.attrValue
+        let v = ""
+        if (typeof aval === "string") v = aval.trim()
+        else if (Array.isArray(aval))
+          v = aval
+            .filter((x): x is string => typeof x === "string")
+            .map((s) => s.trim())
+            .filter(Boolean)
+            .join(", ")
+        else if (aval != null) v = String(aval).trim()
+        if (v) product.specs[k.slice(0, 200)] = v.slice(0, 1200)
+      }
+    }
+
+    const catNm = fields.categoryName
+    if (typeof catNm === "string" && catNm.trim())
+      product.category = catNm.trim().slice(0, 240)
+
+    const pidRaw = fields.productId
+    const productId =
+      typeof pidRaw === "number"
+        ? String(pidRaw)
+        : typeof pidRaw === "string"
+          ? pidRaw.trim()
+          : ""
 
     const skuProps = fields.skuPropertyList
     if (Array.isArray(skuProps)) {
       product.variants = []
+      product.colors = []
+      const sizeAcc: string[] = []
       const basePrice =
         typeof product.price === "number" && product.price > 0 ? product.price : 0
       for (const prop of skuProps) {
         if (!prop || typeof prop !== "object") continue
-        const values =
-          (
-            prop as {
-              skuPropertyValues?: Array<Record<string, unknown>>
-            }
-          ).skuPropertyValues ?? []
+        const typed = prop as {
+          skuPropertyName?: unknown
+          skuPropertyValues?: Array<Record<string, unknown>>
+        }
+        const propName =
+          typeof typed.skuPropertyName === "string"
+            ? typed.skuPropertyName.trim()
+            : ""
+        const pl = propName.toLowerCase()
+
+        const values = typed.skuPropertyValues ?? []
         for (const val of values) {
           const nameRaw =
             (val.propertyValueDisplayName as string | undefined) ??
@@ -152,18 +313,51 @@ function mergeAliExpressRunParams(html: string, product: ScrapedProduct): void {
           const displayName =
             typeof nameRaw === "string" ? nameRaw.trim() : ""
           if (!displayName) continue
-          const imgPathRaw = val.skuPropertyImagePath
-          let vimg =
-            typeof imgPathRaw === "string" ? imgPathRaw.trim().slice(0, 2000) : ""
-          if (vimg && !/^https?:/i.test(vimg)) vimg = `https:${vimg}`
+          const vid = val.propertyValueId ?? val.variationId ?? val.definitionId
+
+          let vimgRaw =
+            typeof val.skuPropertyImagePath === "string"
+              ? val.skuPropertyImagePath.trim().slice(0, 2000)
+              : ""
+          if (vimgRaw && !/^https?:/i.test(vimgRaw)) vimgRaw = `https:${vimgRaw}`
+
+          const lineSku =
+            productId && vid != null
+              ? `${productId}-${String(vid)}`.slice(0, 120)
+              : undefined
+
           product.variants.push({
             name: displayName.slice(0, 200),
-            image: vimg,
+            image: vimgRaw,
             price: basePrice,
             stock: 50,
+            type: propName || undefined,
+            sku: lineSku,
           })
+
+          if (/(color|colour)/i.test(pl)) {
+            product.colors.push({
+              name: displayName.slice(0, 120),
+              hex: aeHexPlaceholder(),
+              image: vimgRaw,
+            })
+          } else if (/(size|shoe\s*size|length|capacity)/i.test(pl)) {
+            sizeAcc.push(displayName)
+          }
         }
       }
+      product.sizes = uniqStrings(sizeAcc, 120)
+      if (!product.colors.length && sizeAcc.length) {
+        /* only sizes */
+      }
+
+      const seenColor = new Set<string>()
+      product.colors = product.colors.filter((c) => {
+        if (seenColor.has(c.name)) return false
+        seenColor.add(c.name)
+        return true
+      })
+      if (productId && !product.sku) product.sku = `AE-${productId}`
     }
   } catch {
     /* ignore malformed runParams */
@@ -283,8 +477,17 @@ function scrapeJsonLd($: cheerio.CheerioAPI): {
     for (const node of nodes) {
       if (!isProductLd(node)) continue
       if (typeof node.name === "string" && node.name) out.title = node.name
-      if (typeof node.description === "string" && node.description)
-        out.description = node.description
+      if (typeof node.description === "string" && node.description) {
+        const d = node.description.trim()
+        if (d.includes("<")) {
+          const dh = cheerio.load(d)
+          out.description = dh
+            .root()
+            .text()
+            .replace(/\s+/g, " ")
+            .trim()
+        } else out.description = d
+      }
 
       const imgs = normalizeLdImages(node.image)
       if (imgs.length > 0) {
@@ -338,11 +541,27 @@ function toPreviewResponse(
       : p.image
         ? [p.image]
         : []
-  imgList = mapImagesHd(imgList)
+  imgList = mapImagesHd(uniqStrings(imgList, 30)).slice(0, 10)
   const leadImage = imgList[0] ?? p.image ?? ""
 
   const variantCount = p.variants.length > 0 ? p.variants.length : 1
-  const suggested = parseFloat((priceNum * 1.5).toFixed(2))
+
+  const suggested = parseFloat((priceNum * IMPORT_MARKUP).toFixed(2))
+  const profit_per_sale = (suggested - priceNum).toFixed(2)
+
+  const extracted_fields: string[] = []
+  if ((p.title || "").trim()) extracted_fields.push("title")
+  if ((p.description || "").trim()) extracted_fields.push("description")
+  if (priceNum > 0) extracted_fields.push("price")
+  if (orig > priceNum + 1e-6) extracted_fields.push("original_price")
+  if (imgList.length > 0) extracted_fields.push("images")
+  if (p.variants.length > 0) extracted_fields.push("variants")
+  if (p.colors.length > 0) extracted_fields.push("colors")
+  if (p.sizes.length > 0) extracted_fields.push("sizes")
+  extracted_fields.push("shipping")
+  if (Object.keys(p.specs).length > 0) extracted_fields.push("specs")
+  if ((p.sku || "").trim()) extracted_fields.push("sku")
+  if ((p.category || "").trim()) extracted_fields.push("category")
 
   return NextResponse.json({
     success: true,
@@ -354,20 +573,27 @@ function toPreviewResponse(
         currency: (p.currency || "EUR").slice(0, 12),
         images: imgList,
         image: leadImage,
-        description: typeof p.description === "string" ? p.description.slice(0, 2000) : "",
+        description:
+          typeof p.description === "string" ? p.description.slice(0, 5000) : "",
         variants: p.variants,
         variants_count: variantCount,
+        colors: p.colors,
+        sizes: p.sizes,
+        shipping: p.shipping,
+        specs: p.specs,
         stock: p.stock || 99,
         sku: (p.sku || "").slice(0, 120),
         source_url: p.source_url,
         category: typeof p.category === "string" ? p.category.slice(0, 200) : "",
         suggested_price: suggested,
-        suggested_commission: 20,
+        suggested_commission: IMPORT_COMMISSION_HINT,
+        profit_per_sale,
         selected: true as const,
       },
     ],
     precision,
     extraction_method,
+    extracted_fields,
   })
 }
 
@@ -426,16 +652,20 @@ export async function POST(req: NextRequest) {
 
     const product: ScrapedProduct = {
       title: "",
+      description: "",
       price: 0,
       original_price: 0,
       currency: "EUR",
       image: "",
       images: [],
-      description: "",
       category: "",
       variants: [],
+      colors: [],
+      sizes: [],
       sku: "",
       stock: 0,
+      shipping: defaultShipping(),
+      specs: {},
       source_url: url,
     }
 
@@ -505,15 +735,18 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      const imageUrls = new Set<string>()
+      const domImgs: string[] = []
       $("img.detail-gallery-turn-image, img.magnifier-image").each((_, el) => {
         let src = $(el).attr("src") ?? $(el).attr("data-src")
         if (src) {
           if (!src.startsWith("http")) src = `https:${src}`
-          imageUrls.add(src.replace(/_\d+x\d+\./, "_960x960."))
+          domImgs.push(src.replace(/_\d+x\d+\./, "_960x960."))
         }
       })
-      product.images = Array.from(imageUrls)
+      product.images = uniqStrings([...(product.images ?? []), ...domImgs], 40).slice(
+        0,
+        20
+      )
       if (product.images[0]) product.image = product.images[0]
 
       if (product.variants.length === 0) {
@@ -560,6 +793,63 @@ export async function POST(req: NextRequest) {
       const landing = $("#landingImage").attr("src")
       if (landing) product.image = landing
 
+      if (!product.description?.trim()) {
+        const bullets = $(
+          "#feature-bullets ul li, #featurebullets_feature_div ul li, #productFactsDesktopExpander ul li"
+        )
+          .map((_, el) => $(el).text().trim())
+          .get()
+          .filter(Boolean)
+          .slice(0, 40)
+
+        const proseBlocks = $('#productDescription, #productDescription_feature_div').text().trim()
+
+        const built = bullets.length
+          ? `• ${bullets.join("\n• ")}${proseBlocks ? `\n\n${proseBlocks}` : ""}`
+          : proseBlocks
+        if (built.trim()) product.description = built.trim()
+      }
+
+      const amzImgs: string[] = []
+      if (landing?.trim())
+        amzImgs.push(landing.trim())
+
+      $("li[data-csa-c-action='image-block-alt-image'] img, #altImages li img").each(
+        (_, el) => {
+          const src =
+            $(el).attr("data-src") ??
+            $(el).attr("data-old-hires") ??
+            $(el).attr("src")
+          let s = typeof src === "string" ? src.trim().split(/\s+/)[0] ?? "" : ""
+          if (!s.startsWith("http")) s = s ? `https:${s}` : ""
+          if (s.length > 8) amzImgs.push(s)
+        }
+      )
+      product.images = uniqStrings(
+        [...(product.images.length ? product.images : []), ...amzImgs],
+        40
+      ).slice(0, 20)
+      if (product.images[0]) product.image = product.images[0]
+
+      product.shipping = {
+        from_country: "United States",
+        delivery_time: "3–10 days",
+        shipping_cost: 0,
+        processing_time: "1–2 days",
+      }
+
+      $("#variation_color_name li, #variation_color_name .selection").each((_, el) => {
+        const t = $(el).text().trim()
+        if (!t || t.length > 80) return
+        if (!product.colors.some((c) => c.name === t))
+          product.colors.push({ name: t, hex: aeHexPlaceholder(), image: "" })
+      })
+
+      $("#variation_size_name li, #native_dropdown_selected_size_name").each((_, el) => {
+        const t = $(el).text().trim()
+        if (t && t.length < 64) product.sizes = uniqStrings([...product.sizes, t], 120)
+      })
+
       try {
         const asinMatch = url.match(/\/(?:dp|gp\/product)\/([A-Z0-9]{10})/)
         if (asinMatch?.[1] && !product.sku) product.sku = asinMatch[1]
@@ -584,36 +874,136 @@ export async function POST(req: NextRequest) {
 
       if (themeJsonRaw) {
         try {
-          const data = JSON.parse(themeJsonRaw) as {
+          type ShopifyThemeProduct = {
             title?: string
-            price?: number
-            images?: string[]
-            variants?: Array<{
-              title?: string
-              price?: number
-              sku?: string
-              inventory_quantity?: number
-            }>
+            price?: number | string
+            compare_at_price?: number | string | null
+            body_html?: string
+            description?: string
+            images?: Array<string | Record<string, unknown>>
+            options?: Array<{ name?: string; values?: string[] | unknown }>
+            variants?: Array<Record<string, unknown>>
           }
+          const data = JSON.parse(themeJsonRaw) as ShopifyThemeProduct
+
           if (data.title) product.title = data.title
-          if (typeof data.price === "number" && data.price > 0)
-            product.price = data.price / 100
+
+          const baseCents = numUnknown(data.price)
+          if (baseCents > 0) product.price = baseCents / 100
+          const cmp = numUnknown(data.compare_at_price ?? 0)
+          if (cmp > 0 && cmp / 100 > (product.price ?? 0) + 1e-6)
+            product.original_price = cmp / 100
+
+          if (
+            !(product.price > 0) &&
+            Array.isArray(data.variants) &&
+            data.variants[0]
+          ) {
+            const c0 = numUnknown(data.variants[0].price)
+            if (c0 > 0) product.price = c0 / 100
+          }
+
+          const htmlDesc =
+            typeof data.body_html === "string" ? data.body_html.trim() : ""
+          if (!product.description?.trim() && htmlDesc) {
+            const hs = cheerio.load(htmlDesc)
+            product.description = hs
+              .root()
+              .text()
+              .replace(/\s+/g, " ")
+              .trim()
+          } else if (
+            !product.description?.trim() &&
+            typeof data.description === "string"
+          ) {
+            product.description = data.description.trim()
+          }
+
           if (Array.isArray(data.images) && data.images.length > 0) {
-            product.images = data.images
-            product.image = data.images[0] ?? product.image
+            const imgs = data.images
+              .map((im) => {
+                if (typeof im === "string") return im.trim()
+                if (!im || typeof im !== "object") return ""
+                const rec = im as Record<string, unknown>
+                const u =
+                  typeof rec.src === "string"
+                    ? rec.src.trim()
+                    : typeof rec.url === "string"
+                      ? rec.url.trim()
+                      : ""
+                return u
+              })
+              .filter(Boolean)
+            product.images = uniqStrings([...imgs, ...product.images], 60).slice(
+              0,
+              20
+            )
+            product.image = product.images[0] ?? product.image
           }
+
+          if (Array.isArray(data.options)) {
+            for (const opt of data.options) {
+              const nm =
+                typeof opt?.name === "string" ? opt.name.trim() : ""
+              const vals = Array.isArray(opt.values)
+                ? opt.values.filter((x): x is string => typeof x === "string")
+                : []
+              const pl = nm.toLowerCase()
+              if (/(color|colour)/i.test(pl)) {
+                for (const v of vals)
+                  if (!product.colors.some((c) => c.name === v))
+                    product.colors.push({
+                      name: v.slice(0, 120),
+                      hex: aeHexPlaceholder(),
+                      image: "",
+                    })
+              } else if (/(size)/i.test(pl))
+                product.sizes = uniqStrings([...product.sizes, ...vals], 120)
+              else if (
+                /(material|style|pattern)/i.test(pl) &&
+                vals.length &&
+                product.sizes.length === 0
+              )
+                product.sizes = uniqStrings([...product.sizes, ...vals], 120)
+            }
+          }
+
           if (Array.isArray(data.variants)) {
-            product.variants = data.variants.map((v) => ({
-              name: v.title ?? v.sku ?? "",
-              image: "",
-              price:
-                typeof v.price === "number" ? v.price / 100 : product.price,
-              stock:
-                typeof v.inventory_quantity === "number"
-                  ? v.inventory_quantity
-                  : 0,
-            }))
+            product.variants = data.variants.map((v) => {
+              const o1 = typeof v.option1 === "string" ? v.option1.trim() : ""
+              const o2 = typeof v.option2 === "string" ? v.option2.trim() : ""
+              const o3 = typeof v.option3 === "string" ? v.option3.trim() : ""
+              const parts = [o1, o2, o3].filter(Boolean)
+              const title =
+                typeof v.title === "string" ? v.title.trim() : ""
+              const nameLabel =
+                parts.length > 0 ? parts.join(" / ") : title || "Variant"
+              const cents = numUnknown(v.price)
+              const inv = v.inventory_quantity
+              const st =
+                typeof inv === "number"
+                  ? inv
+                  : parseInt(String(inv ?? ""), 10)
+
+              const line: ScrapedVariant = {
+                name: nameLabel.slice(0, 200),
+                image: "",
+                price: cents > 0 ? cents / 100 : product.price,
+                stock: Number.isFinite(st) && st >= 0 ? st : 0,
+              }
+              if (typeof v.sku === "string" && v.sku.trim())
+                line.sku = v.sku.trim().slice(0, 120)
+              return line
+            })
           }
+
+          product.shipping = {
+            from_country: "Shop / warehouse",
+            delivery_time: "3–14 days",
+            shipping_cost: 0,
+            processing_time: "1–3 days",
+          }
+
           extraction_method =
             extraction_method.startsWith("json-ld") || extraction_method.includes("+")
               ? `${extraction_method}+shopify`
@@ -635,8 +1025,8 @@ export async function POST(req: NextRequest) {
     }
 
     if (typeof product.description !== "string") product.description = ""
-    else if (product.description.length > 2000)
-      product.description = product.description.slice(0, 2000)
+    else if (product.description.length > 5000)
+      product.description = product.description.slice(0, 5000)
 
     product.stock = product.stock || 99
 
