@@ -42,17 +42,40 @@ function seedProductId(slug: string): string {
   return `aff_${createHash("sha256").update(`affisell:${slug}`).digest("hex").slice(0, 28)}`
 }
 
-const NAV_MARKETPLACE_CATEGORIES = [
-  { name: "Electronics", slug: "electronics", icon: "📱" },
-  { name: "Computers & Accessories", slug: "computers", icon: "💻" },
-  { name: "Smart Home", slug: "smart-home", icon: "🏠" },
-  { name: "Women's Fashion", slug: "womens-fashion", icon: "👗" },
-  { name: "Men's Fashion", slug: "mens-fashion", icon: "👔" },
-  { name: "Home & Kitchen", slug: "home-kitchen", icon: "🏡" },
-  { name: "Beauty & Personal Care", slug: "beauty", icon: "💄" },
-  { name: "Sports & Outdoors", slug: "sports", icon: "⚽" },
-  { name: "Toys & Games", slug: "toys", icon: "🧸" },
-  { name: "Books", slug: "books", icon: "📚" },
+/** Legal Amazon-style department nav (order = sidebar sort). */
+const LEGAL_MARKET_NAV = [
+  { name: "Electronics", slug: "electronics", icon: "📱", order: 1 },
+  { name: "Computers & Accessories", slug: "computers", icon: "💻", order: 2 },
+  { name: "Smart Home", slug: "smart-home", icon: "🏠", order: 3 },
+  { name: "Cell Phones", slug: "cell-phones", icon: "📞", order: 4 },
+  { name: "Video Games", slug: "video-games", icon: "🎮", order: 5 },
+  { name: "Women's Fashion", slug: "womens-fashion", icon: "👗", order: 6 },
+  { name: "Men's Fashion", slug: "mens-fashion", icon: "👔", order: 7 },
+  { name: "Kids' Fashion", slug: "kids-fashion", icon: "👶", order: 8 },
+  { name: "Shoes & Footwear", slug: "shoes", icon: "👟", order: 9 },
+  { name: "Jewelry & Watches", slug: "jewelry", icon: "💎", order: 10 },
+  { name: "Luggage & Bags", slug: "bags", icon: "👜", order: 11 },
+  { name: "Home & Kitchen", slug: "home-kitchen", icon: "🏡", order: 12 },
+  { name: "Furniture", slug: "furniture", icon: "🛋️", order: 13 },
+  { name: "Home Decor", slug: "home-decor", icon: "🖼️", order: 14 },
+  { name: "Tools & Home Improvement", slug: "tools", icon: "🔨", order: 15 },
+  { name: "Patio, Lawn & Garden", slug: "garden", icon: "🌱", order: 16 },
+  { name: "Beauty & Personal Care", slug: "beauty", icon: "💄", order: 17 },
+  { name: "Health & Household", slug: "health", icon: "💊", order: 18 },
+  { name: "Grocery & Gourmet Food", slug: "grocery", icon: "🛒", order: 19 },
+  { name: "Pet Supplies", slug: "pet-supplies", icon: "🐕", order: 20 },
+  { name: "Baby Products", slug: "baby", icon: "🍼", order: 21 },
+  { name: "Sports & Outdoors", slug: "sports", icon: "⚽", order: 22 },
+  { name: "Automotive", slug: "automotive", icon: "🚗", order: 23 },
+  { name: "Industrial & Scientific", slug: "industrial", icon: "⚙️", order: 24 },
+  { name: "Books", slug: "books", icon: "📚", order: 25 },
+  { name: "Music, Movies & TV", slug: "music", icon: "🎵", order: 26 },
+  { name: "Toys & Games", slug: "toys", icon: "🧸", order: 27 },
+  { name: "Arts, Crafts & Sewing", slug: "arts-crafts", icon: "🎨", order: 28 },
+  { name: "Collectibles & Fine Art", slug: "collectibles", icon: "🖼️", order: 29 },
+  { name: "Office Products", slug: "office", icon: "📎", order: 30 },
+  { name: "Handmade & Artisan", slug: "handmade", icon: "✋", order: 31 },
+  { name: "Digital Services", slug: "digital-services", icon: "⚡", order: 32 },
 ] as const
 
 const STYLE_ROTATION = ["minimalist", "vintage", "modern", "boho"] as const
@@ -69,14 +92,38 @@ function categorySlug(name: string): string {
 }
 
 async function upsertMarketplaceCategories(): Promise<void> {
-  for (const row of NAV_MARKETPLACE_CATEGORIES) {
-    await prisma.category.upsert({
-      where: { slug: row.slug },
-      update: { name: row.name, icon: row.icon },
-      create: {
+  for (const row of LEGAL_MARKET_NAV) {
+    const bySlug = await prisma.category.findUnique({ where: { slug: row.slug } })
+    if (bySlug) {
+      await prisma.category.update({
+        where: { id: bySlug.id },
+        data: { name: row.name, icon: row.icon, order: row.order },
+      })
+      continue
+    }
+
+    const byName = await prisma.category.findUnique({ where: { name: row.name } })
+    if (byName) {
+      try {
+        await prisma.category.update({
+          where: { id: byName.id },
+          data: { slug: row.slug, icon: row.icon, order: row.order },
+        })
+      } catch {
+        await prisma.category.update({
+          where: { id: byName.id },
+          data: { icon: row.icon, order: row.order },
+        })
+      }
+      continue
+    }
+
+    await prisma.category.create({
+      data: {
         name: row.name,
         slug: row.slug,
         icon: row.icon,
+        order: row.order,
       },
     })
   }
@@ -95,7 +142,7 @@ async function upsertMarketplaceCategories(): Promise<void> {
     }
 
     await prisma.category.create({
-      data: { name, slug, icon: "📦" },
+      data: { name, slug, icon: "📦", order: 999 },
     })
   }
 
@@ -103,6 +150,8 @@ async function upsertMarketplaceCategories(): Promise<void> {
   for (const name of unique) {
     await ensureCategoryForSeedName(name)
   }
+
+  console.log(`✅ Seeded ${LEGAL_MARKET_NAV.length} legal categories`)
 }
 
 type SeedItem = {
@@ -417,6 +466,7 @@ async function main() {
         isBestSeller: index % 5 === 0,
         isRefurbished: index % 11 === 0,
         hasCoupon: index % 7 === 0,
+        isEcoFriendly: index % 13 === 0,
         ...marketplaceShipping,
       },
       update: {
@@ -440,6 +490,7 @@ async function main() {
         isBestSeller: index % 5 === 0,
         isRefurbished: index % 11 === 0,
         hasCoupon: index % 7 === 0,
+        isEcoFriendly: index % 13 === 0,
         ...marketplaceShipping,
       },
     })

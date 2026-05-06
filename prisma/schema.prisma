@@ -70,7 +70,8 @@ model Category {
   id       String @id @default(cuid())
   name     String @unique
   slug     String @unique
-  icon     String?
+  icon     String    @default("📦")
+  order    Int       @default(0)
   parentId String?
   parent   Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
   children Category[] @relation("CategoryHierarchy")
@@ -96,6 +97,7 @@ model Product {
   name String
   description String
   createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
   images String[] @default([])
   colorImages Json?
   categories String[] @default([])
@@ -129,6 +131,7 @@ model Product {
   isBestSeller  Boolean @default(false)
   isRefurbished Boolean @default(false)
   hasCoupon     Boolean @default(false)
+  isEcoFriendly Boolean @default(false)
 
   shippingCountry        String?
   warehouseType          String?
@@ -161,6 +164,8 @@ model Product {
   @@index([style])
   @@index([shippingType])
   @@index([basePriceCents])
+  @@index([isOnSale])
+  @@index([createdAt])
 }
 
 model Review {
@@ -180,7 +185,7 @@ model Review {
   sentiment    String   @default("neutral")
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@index([productId])
   @@index([rating])
