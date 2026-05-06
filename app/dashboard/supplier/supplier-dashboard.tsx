@@ -176,6 +176,21 @@ export function SupplierDashboard({ storeSlug, stats }: SupplierDashboardProps) 
             </svg>
             View my store
           </Link>
+          <Link
+            href="/dashboard/supplier/import"
+            className="ml-2 flex items-center gap-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-2.5 font-medium text-white shadow-lg hover:from-purple-700 hover:to-pink-700"
+          >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
+              />
+            </svg>
+            Import Products
+            <span className="rounded bg-white/20 px-2 py-0.5 text-xs">AI</span>
+          </Link>
           <button
             type="button"
             onClick={() => signOut({ callbackUrl: "/" })}
