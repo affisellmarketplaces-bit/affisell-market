@@ -7,18 +7,26 @@ import { ChevronDown, ChevronRight, Grid3x3, Loader2 } from "lucide-react"
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
-type ApiCategory = {
+type Sub = { id: string; name: string; slug: string; count: number }
+type Cat = {
   id: string
   name: string
   icon: string
   slug: string
   order: number
-  subcategories: Array<{ id: string; name: string; slug: string }>
+  count: number
+  subcategories: Sub[]
 }
 
-export function Sidebar() {
+interface SidebarProps {
+  onCategoryClick?: (catId: string, subId?: string) => void
+}
+
+export function Sidebar({ onCategoryClick }: SidebarProps) {
   const [expandedCats, setExpandedCats] = useState<string[]>([])
-  const { data, isLoading, error } = useSWR<{ categories: ApiCategory[] }>("/api/categories", fetcher)
+  const { data, isLoading } = useSWR<{ categories: Cat[] }>("/api/categories", fetcher, {
+    refreshInterval: 30_000,
+  })
 
   const toggleCategory = (catId: string) => {
     setExpandedCats((prev) =>
@@ -34,10 +42,10 @@ export function Sidebar() {
     )
   }
 
-  if (error || !data?.categories?.length) {
+  if (!data?.categories?.length) {
     return (
-      <aside className="h-[calc(100vh-80px)] w-[19rem] shrink-0 self-start overflow-y-auto border-r border-gray-200 bg-white p-4 lg:sticky lg:top-[5.25rem]">
-        <p className="text-sm text-red-600">Could not load categories.</p>
+      <aside className="h-[calc(100vh-80px)] w-[19rem] shrink-0 border-r border-gray-200 bg-white p-4 lg:sticky lg:top-[5.25rem]">
+        <p className="text-sm text-gray-500">No categories</p>
       </aside>
     )
   }
@@ -56,18 +64,26 @@ export function Sidebar() {
           <div key={cat.id} className="border-b border-gray-100">
             <button
               type="button"
-              onClick={() => toggleCategory(cat.id)}
-              className="flex w-full items-center justify-between px-4 py-3 text-left text-sm text-gray-800 transition-colors hover:bg-slate-50"
+              onClick={() => {
+                toggleCategory(cat.id)
+                onCategoryClick?.(cat.id)
+              }}
+              className="group flex w-full items-center justify-between px-4 py-3 text-left text-sm text-gray-800 transition-colors hover:bg-slate-50"
             >
               <span className="flex min-w-0 items-center gap-2">
                 <span className="shrink-0 text-lg">{cat.icon}</span>
                 <span className="font-semibold">{cat.name}</span>
               </span>
-              {expandedCats.includes(cat.id) ? (
-                <ChevronDown className="h-4 w-4 shrink-0 text-gray-400" />
-              ) : (
-                <ChevronRight className="h-4 w-4 shrink-0 text-gray-400" />
-              )}
+              <div className="flex shrink-0 items-center gap-2">
+                <span className="text-xs font-bold text-gray-400">
+                  {cat.count > 0 ? cat.count : ""}
+                </span>
+                {expandedCats.includes(cat.id) ? (
+                  <ChevronDown className="h-4 w-4 text-gray-400" />
+                ) : (
+                  <ChevronRight className="h-4 w-4 text-gray-400" />
+                )}
+              </div>
             </button>
 
             {expandedCats.includes(cat.id) &&
@@ -75,9 +91,13 @@ export function Sidebar() {
                 <button
                   key={sub.id}
                   type="button"
-                  className="w-full py-2 pl-12 pr-4 text-left text-sm text-gray-600 hover:bg-slate-50 hover:text-gray-900"
+                  onClick={() => onCategoryClick?.(cat.id, sub.id)}
+                  className="flex w-full items-center justify-between py-2 pl-12 pr-4 text-left text-sm text-gray-600 hover:bg-slate-50 hover:text-gray-900"
                 >
-                  {sub.name}
+                  <span className="min-w-0 truncate">{sub.name}</span>
+                  <span className="shrink-0 text-xs font-semibold text-gray-400">
+                    {sub.count > 0 ? sub.count : ""}
+                  </span>
                 </button>
               ))}
           </div>
