@@ -8,8 +8,6 @@ export const revalidate = 0
 /** USD price buckets use `basePriceCents` (schema has no `price` field). */
 const USD = (d: number) => Math.round(d * 100)
 
-const inStock = { stock: { gt: 0 } } as const
-
 function deliveryLabel(shippingType: string): string {
   if (shippingType === "free") return "Free Shipping"
   if (shippingType === "prime") return "Affisell Prime"
@@ -31,18 +29,17 @@ export async function GET() {
           icon: true,
           _count: {
             select: {
-              products: { where: inStock },
+              products: true,
             },
           },
         },
-        where: { products: { some: inStock } },
+        where: { products: { some: {} } },
         orderBy: { order: "asc" },
       }),
 
       prisma.product.groupBy({
         by: ["style"],
         where: {
-          ...inStock,
           style: { not: null },
         },
         _count: { id: true },
@@ -50,41 +47,40 @@ export async function GET() {
       }),
 
       Promise.all([
-        prisma.product.count({ where: { ...inStock, basePriceCents: { lt: USD(25) } } }),
+        prisma.product.count({ where: { basePriceCents: { lt: USD(25) } } }),
         prisma.product.count({
-          where: { ...inStock, basePriceCents: { gte: USD(25), lt: USD(50) } },
+          where: { basePriceCents: { gte: USD(25), lt: USD(50) } },
         }),
         prisma.product.count({
-          where: { ...inStock, basePriceCents: { gte: USD(50), lt: USD(100) } },
+          where: { basePriceCents: { gte: USD(50), lt: USD(100) } },
         }),
         prisma.product.count({
-          where: { ...inStock, basePriceCents: { gte: USD(100), lt: USD(200) } },
+          where: { basePriceCents: { gte: USD(100), lt: USD(200) } },
         }),
         prisma.product.count({
-          where: { ...inStock, basePriceCents: { gte: USD(200), lt: USD(500) } },
+          where: { basePriceCents: { gte: USD(200), lt: USD(500) } },
         }),
         prisma.product.count({
-          where: { ...inStock, basePriceCents: { gte: USD(500), lt: USD(1000) } },
+          where: { basePriceCents: { gte: USD(500), lt: USD(1000) } },
         }),
-        prisma.product.count({ where: { ...inStock, basePriceCents: { gte: USD(1000) } } }),
+        prisma.product.count({ where: { basePriceCents: { gte: USD(1000) } } }),
       ]),
 
       prisma.product.groupBy({
         by: ["shippingType"],
-        where: inStock,
         _count: { id: true },
         orderBy: { shippingType: "asc" },
       }),
 
       Promise.all([
-        prisma.product.count({ where: { ...inStock, isOnSale: true } }),
+        prisma.product.count({ where: { isOnSale: true } }),
         prisma.product.count({
-          where: { ...inStock, createdAt: { gte: thirtyDaysAgo } },
+          where: { createdAt: { gte: thirtyDaysAgo } },
         }),
-        prisma.product.count({ where: { ...inStock, isBestSeller: true } }),
-        prisma.product.count({ where: { ...inStock, isRefurbished: true } }),
-        prisma.product.count({ where: { ...inStock, hasCoupon: true } }),
-        prisma.product.count({ where: { ...inStock, isEcoFriendly: true } }),
+        prisma.product.count({ where: { isBestSeller: true } }),
+        prisma.product.count({ where: { isRefurbished: true } }),
+        prisma.product.count({ where: { hasCoupon: true } }),
+        prisma.product.count({ where: { isEcoFriendly: true } }),
       ]),
     ])
 
