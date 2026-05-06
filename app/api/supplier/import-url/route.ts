@@ -3,9 +3,14 @@ import * as cheerio from "cheerio"
 
 import { prisma } from "@/lib/prisma"
 
-const SCRAPINGBEE_API_KEY = process.env.SCRAPINGBEE_API_KEY
-
 type ReviewSentiment = "positive" | "neutral" | "negative"
+type Platform =
+  | "aliexpress"
+  | "amazon"
+  | "shopify"
+  | "shein"
+  | "temu"
+  | "universal"
 
 type ImportedReview = {
   rating: number
@@ -95,12 +100,13 @@ function hdImage(raw: string): string {
   return withProto.replace(/_\d+x\d+\./, "_960x960.")
 }
 
-function detectPlatform(url: string): string {
-  if (url.includes("aliexpress.com")) return "aliexpress"
-  if (url.includes("amazon.")) return "amazon"
-  if (url.includes("/products/") || url.includes("myshopify.com")) return "shopify"
-  if (url.includes("shein.com")) return "shein"
-  if (url.includes("temu.com")) return "temu"
+function detectPlatform(url: string): Platform {
+  const host = url.toLowerCase()
+  if (host.includes("aliexpress.com")) return "aliexpress"
+  if (host.includes("amazon.")) return "amazon"
+  if (host.includes("/products/") || host.includes("myshopify.com")) return "shopify"
+  if (host.includes("shein.com")) return "shein"
+  if (host.includes("temu.com")) return "temu"
   return "universal"
 }
 
@@ -122,46 +128,7 @@ function globalSentiment(avg: number): ReviewSentiment {
   return "negative"
 }
 
-function extractJsonAfterKey(
-  content: string,
-  keyRx: RegExp
-): Record<string, unknown> | null {
-  const m = keyRx.exec(content)
-  if (!m || m.index === undefined) return null
-  const start = content.indexOf("{", m.index)
-  if (start === -1) return null
-  let depth = 0
-  for (let i = start; i < content.length; i++) {
-    const c = content[i]
-    if (c === "{") depth++
-    else if (c === "}") {
-      depth--
-      if (depth === 0) {
-        try {
-          return JSON.parse(content.slice(start, i + 1)) as Record<string, unknown>
-        } catch {
-          return null
-        }
-      }
-    }
-  }
-  return null
-}
-
-function extractAERData(html: string): Record<string, unknown> | null {
-  const $ = cheerio.load(html)
-  for (const script of $("script").toArray()) {
-    const content = $(script).html() || ""
-    if (!content.includes("__AER_DATA__")) continue
-    const parsed =
-      extractJsonAfterKey(content, /window\.__AER_DATA__\s*=/) ??
-      extractJsonAfterKey(content, /window\[['"]__AER_DATA__['"]\]\s*=/)
-    if (parsed) return parsed
-  }
-  return null
-}
-
-function baselineProduct(url: string, platform: string): ImportedProduct {
+function baselineProduct(url: string, platform: Platform): ImportedProduct {
   return {
     title: "",
     description: "",
@@ -211,118 +178,154 @@ export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as {
       url?: string
-      ai_rewrite?: boolean
-      markup_calc?: boolean
+      options?: { markup?: number; aiRewrite?: boolean }
     }
-    const url = typeof body.url === "string" ? body.url.trim() : ""
-    if (!url) {
-      return NextResponse.json({ error: "Missing URL" }, { status: 400 })
-    }
-
-    const ai_rewrite = body.ai_rewrite === true
-    const markup_calc = body.markup_calc !== false
+    const url = txt(body.url)
+    if (!url) return NextResponse.json({ error: "Missing URL" }, { status: 400 })
 
     const platform = detectPlatform(url)
+    let product: ImportedProduct | null = null
+    let method = "direct"
 
-    let product: ImportedProduct
-    if (platform === "aliexpress") {
-      product = await scrapeAliExpressRobust(url)
-    } else if (platform === "amazon") {
-      product = await scrapeAmazon(url)
-    } else if (platform === "shopify") {
-      product = await scrapeShopify(url)
-    } else {
-      product = await scrapeUniversal(url)
+    try {
+      product =
+        platform === "shopify"
+          ? await scrapeShopify(url)
+          : await scrapeWithDirectFetch(url, platform)
+    } catch (error) {
+      console.warn("Tier 1 failed:", error)
     }
 
-    if (!product.title) throw new Error("Failed to extract product data")
+    if (!product?.title && process.env.SCRAPINGBEE_API_KEY) {
+      method = "scrapingbee"
+      product = await scrapeWithScrapingBee(url, platform)
+    }
+
+    if (!product?.title) {
+      throw new Error(
+        "Import failed. For AliExpress: Add SCRAPINGBEE_API_KEY to .env.local. Get free key at scrapingbee.com"
+      )
+    }
 
     product.quality_score = calculateQualityScore(product)
-    product.is_duplicate = await checkDuplicate(product)
-    product.seo_keywords = generateSEOKeywords(product.title, product.reviews.items)
+    product.seo_keywords = generateSEO(product.title, product.category)
+    product.is_duplicate = await checkDuplicate(product.title, product.images[0] ?? "")
 
-    if (markup_calc) {
-      product.suggested_price = Math.ceil(product.price * 2.5 * 100) / 100
-      product.suggested_commission = 25
-      product.profit_per_sale = product.suggested_price - product.price
-      product.roi =
-        product.price > 0
-          ? Math.round((product.profit_per_sale / product.price) * 100)
-          : 0
-      product.basePrice = product.suggested_price
-      product.costPrice = product.price
+    const markup =
+      typeof body.options?.markup === "number" && body.options.markup > 0
+        ? body.options.markup
+        : 2.5
+    product.suggested_price = parseFloat((product.price * markup).toFixed(2))
+    product.profit_per_sale = parseFloat(
+      (product.suggested_price - product.price).toFixed(2)
+    )
+    product.roi =
+      product.price > 0
+        ? Math.round((product.profit_per_sale / product.price) * 100)
+        : 0
+    product.basePrice = product.suggested_price
+    product.costPrice = product.price
+
+    if (body.options?.aiRewrite && process.env.OPENAI_API_KEY) {
+      product.description = await rewriteWithAI(product.description)
+      product.ai_description = product.description
     }
 
-    if (ai_rewrite) {
-      product.ai_title = await rewriteTitle(product.title)
-      product.ai_description = await rewriteDescription(product.description)
-    }
-
-    return NextResponse.json({ products: [product], success: true, platform })
+    return NextResponse.json({
+      products: [product],
+      success: true,
+      platform,
+      method,
+      innovations: {
+        quality_score: product.quality_score,
+        duplicate: product.is_duplicate,
+        profit: `$${product.profit_per_sale.toFixed(2)}/sale`,
+        roi: `${product.roi}%`,
+      },
+    })
   } catch (error: unknown) {
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : "Import failed",
-        fallback:
-          "Try using a VPN or contact support. AliExpress may be blocking your IP.",
+        success: false,
       },
       { status: 422 }
     )
   }
 }
 
-async function fetchDirect(url: string): Promise<string> {
+async function scrapeWithScrapingBee(
+  url: string,
+  platform: Platform
+): Promise<ImportedProduct> {
+  const apiKey = process.env.SCRAPINGBEE_API_KEY
+  if (!apiKey) throw new Error("SCRAPINGBEE_API_KEY is missing")
+  const params = new URLSearchParams({
+    api_key: apiKey,
+    url,
+    render_js: "true",
+    premium_proxy: "true",
+    country_code: "us",
+  })
+  const res = await fetch(`https://app.scrapingbee.com/api/v1/?${params}`, {
+    signal: AbortSignal.timeout(45000),
+  })
+  if (!res.ok) throw new Error("ScrapingBee failed")
+  const html = await res.text()
+  return parseProductHTML(html, url, platform)
+}
+
+async function scrapeWithDirectFetch(
+  url: string,
+  platform: Platform
+): Promise<ImportedProduct> {
   const res = await fetch(url, {
     headers: {
       "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
-      Accept:
-        "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0.0.0 Safari/537.36",
       "Accept-Language": "en-US,en;q=0.9",
-      "Sec-Ch-Ua":
-        '"Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"',
-      "Sec-Ch-Ua-Mobile": "?0",
-      "Sec-Ch-Ua-Platform": '"Windows"',
-      "Sec-Fetch-Dest": "document",
-      "Sec-Fetch-Mode": "navigate",
-      "Sec-Fetch-Site": "none",
-      "Upgrade-Insecure-Requests": "1",
-      "Cache-Control": "max-age=0",
     },
     signal: AbortSignal.timeout(30000),
   })
   if (!res.ok) throw new Error(`Blocked: ${res.status}`)
-  return res.text()
+  const html = await res.text()
+  return parseProductHTML(html, url, platform)
 }
 
-async function scrapeAliExpressRobust(url: string): Promise<ImportedProduct> {
-  try {
-    const html = await fetchDirect(url)
-    const data = extractAERData(html)
-    if (data) return parseAERData(data, url)
-  } catch {
-    /* fallback to ScrapingBee */
+function parseProductHTML(
+  html: string,
+  url: string,
+  platform: Platform
+): ImportedProduct {
+  const $ = cheerio.load(html)
+
+  if (platform === "aliexpress") {
+    let aerData: Record<string, unknown> | null = null
+    $("script").each((_, el) => {
+      const content = $(el).html() || ""
+      if (!content.includes("__AER_DATA__")) return
+      const m = content.match(/window\.__AER_DATA__\s*=\s*({[\s\S]*?});/m)
+      if (!m?.[1]) return
+      try {
+        aerData = JSON.parse(m[1]) as Record<string, unknown>
+      } catch {
+        /* noop */
+      }
+    })
+    if (!aerData) throw new Error("__AER_DATA__ not found")
+    return parseAERData(aerData, url)
   }
 
-  if (!SCRAPINGBEE_API_KEY) {
-    throw new Error(
-      "AliExpress blocked. Add SCRAPINGBEE_API_KEY to .env.local to bypass. Free tier: 1000 calls/month"
-    )
+  if (platform === "amazon") {
+    return parseAmazonHTML(html, url)
   }
 
-  const beeUrl =
-    `https://app.scrapingbee.com/api/v1/?api_key=${encodeURIComponent(
-      SCRAPINGBEE_API_KEY
-    )}` +
-    `&url=${encodeURIComponent(url)}&render_js=true&premium_proxy=true&country_code=us`
+  if (platform === "shein" || platform === "temu" || platform === "universal") {
+    const fromSchema = parseSchemaProduct($, url, platform)
+    if (fromSchema.title) return fromSchema
+  }
 
-  const res = await fetch(beeUrl, { signal: AbortSignal.timeout(45000) })
-  if (!res.ok) throw new Error(`ScrapingBee failed: ${res.status}`)
-
-  const html = await res.text()
-  const data = extractAERData(html)
-  if (!data) throw new Error("__AER_DATA__ not found even with proxy")
-  return parseAERData(data, url)
+  throw new Error("Platform not supported yet")
 }
 
 function parseAERData(aerData: Record<string, unknown>, url: string): ImportedProduct {
@@ -332,8 +335,8 @@ function parseAERData(aerData: Record<string, unknown>, url: string): ImportedPr
   const reviewModule = asRec(asRec(p.reviewComponent).reviewModule)
   const shippingModule = asRec(asRec(p.shippingComponent).shippingModule)
   const freightInfo = asRec(shippingModule.generalFreightInfo)
-
   const out = baselineProduct(url, "aliexpress")
+
   const skuPriceList = Array.isArray(skuModule.skuPriceList)
     ? skuModule.skuPriceList
     : []
@@ -351,17 +354,22 @@ function parseAERData(aerData: Record<string, unknown>, url: string): ImportedPr
   out.description = txt(productInfo.description)
   out.price = prices.length ? Math.min(...prices) : 0
   out.original_price = prices.length ? Math.max(...prices) : out.price
-  out.currency = "USD"
   out.images = (Array.isArray(productInfo.imagePathList)
     ? productInfo.imagePathList
     : []
   )
     .filter((i): i is string => typeof i === "string")
     .map((i) => hdImage(i))
-    .slice(0, 10)
+    .slice(0, 12)
   out.brand = txt(productInfo.storeName)
   out.sku = `AE-${url.match(/item\/(\d+)\.html/)?.[1] ?? ""}`
   out.stock = num(productInfo.totalAvailQuantity) || 999
+  out.shipping = {
+    from_country: txt(freightInfo.shipFrom) || "China",
+    delivery_time: txt(freightInfo.deliveryTimeDesc) || "15-25 days",
+    shipping_cost: 0,
+    carrier: "Standard",
+  }
 
   const variants = (Array.isArray(skuModule.productSKUPropertyList)
     ? skuModule.productSKUPropertyList
@@ -375,15 +383,12 @@ function parseAERData(aerData: Record<string, unknown>, url: string): ImportedPr
     return values.map((vRaw) => {
       const v = asRec(vRaw)
       const name = txt(v.propertyValueDisplayName)
-      const image = txt(v.skuPropertyImagePath)
-        ? hdImage(txt(v.skuPropertyImagePath))
-        : ""
       return {
         name,
         type: propName,
-        image,
+        image: txt(v.skuPropertyImagePath) ? hdImage(txt(v.skuPropertyImagePath)) : "",
         price: prices[0] || 0,
-        stock: 999,
+        stock: 50,
         sku: `AE-${txt(v.propertyValueId)}`,
         attributes: { [propName]: name },
       }
@@ -397,19 +402,12 @@ function parseAERData(aerData: Record<string, unknown>, url: string): ImportedPr
     .filter((v) => v.type.toLowerCase().includes("size"))
     .map((v) => ({ name: v.name, value: v.name }))
 
-  out.shipping = {
-    from_country: txt(freightInfo.shipFrom) || "China",
-    delivery_time: txt(freightInfo.deliveryTimeDesc) || "15-25 days",
-    shipping_cost: 0,
-    carrier: "Standard",
-  }
-
   const starLevel = asRec(reviewModule.starLevel)
   const avg = num(reviewModule.averageStar)
   const reviewItemsRaw = Array.isArray(reviewModule.reviewList)
     ? reviewModule.reviewList
     : []
-  const reviewItems: ImportedReview[] = reviewItemsRaw.map((raw) => {
+  const reviewItems: ImportedReview[] = reviewItemsRaw.slice(0, 50).map((raw) => {
     const r = asRec(raw)
     const rating = Math.max(1, Math.min(5, Math.round(num(r.star) || 5)))
     return {
@@ -438,43 +436,88 @@ function parseAERData(aerData: Record<string, unknown>, url: string): ImportedPr
       2: Math.max(0, Math.round(num(starLevel.twoStarNum))),
       1: Math.max(0, Math.round(num(starLevel.oneStarNum))),
     },
-    items: reviewItems.slice(0, 50),
+    items: reviewItems,
     sentiment: globalSentiment(avg),
   }
 
-  out.tags = generateSEOKeywords(out.title, reviewItems).slice(0, 6)
+  out.category = "AliExpress Product"
+  out.tags = generateSEO(out.title, out.category)
   return out
 }
 
-async function scrapeAmazon(url: string): Promise<ImportedProduct> {
-  const html = await fetchDirect(url)
+function parseAmazonHTML(html: string, url: string): ImportedProduct {
   const $ = cheerio.load(html)
   const out = baselineProduct(url, "amazon")
   out.title = $("#productTitle").text().trim()
   out.description = $("#feature-bullets").text().trim()
-  out.price = num(
-    $(".a-price .a-offscreen").first().text().replace(/[^\d.,]/g, "")
-  )
+  out.price = num($(".a-price .a-offscreen").first().text().replace(/[^\d.,]/g, ""))
   out.original_price = num(
     $(".a-text-price .a-offscreen").first().text().replace(/[^\d.,]/g, "")
   )
   out.images = [$("#landingImage").attr("src") ?? ""].filter(Boolean)
   out.brand = $("#bylineInfo").text().trim()
-  out.currency = "USD"
   out.shipping = {
     from_country: "USA",
     delivery_time: "2-5 days",
     shipping_cost: 0,
     carrier: "",
   }
-  out.reviews.total = parseInt(
-    $("#acrCustomerReviewText").text().replace(/[^\d]/g, ""),
-    10
-  ) || 0
-  out.reviews.average_rating = num(
-    $(".a-icon-alt").first().text().split(" ")[0] || 0
-  )
+  out.reviews.total =
+    parseInt($("#acrCustomerReviewText").text().replace(/[^\d]/g, ""), 10) || 0
+  out.reviews.average_rating = num($(".a-icon-alt").first().text().split(" ")[0])
   out.reviews.sentiment = globalSentiment(out.reviews.average_rating)
+  out.category = "Amazon Product"
+  out.tags = generateSEO(out.title, out.category)
+  return out
+}
+
+function parseSchemaProduct(
+  $: cheerio.CheerioAPI,
+  url: string,
+  platform: Platform
+): ImportedProduct {
+  const out = baselineProduct(url, platform)
+  let ldProduct: Record<string, unknown> | null = null
+
+  $('script[type="application/ld+json"]').each((_, el) => {
+    const text = $(el).html() || ""
+    if (!text.trim()) return
+    try {
+      const parsed = JSON.parse(text) as unknown
+      const candidates = Array.isArray(parsed) ? parsed : [parsed]
+      for (const candidateRaw of candidates) {
+        const candidate = asRec(candidateRaw)
+        const type = candidate["@type"]
+        if (type === "Product" || (Array.isArray(type) && type.includes("Product"))) {
+          ldProduct = candidate
+          break
+        }
+      }
+    } catch {
+      /* ignore malformed jsonld */
+    }
+  })
+
+  const p = asRec(ldProduct)
+  const offers = asRec(p.offers)
+  out.title = txt(p.name) || txt($('meta[property="og:title"]').attr("content"))
+  out.description =
+    txt(p.description) || txt($('meta[property="og:description"]').attr("content"))
+  out.price = num(offers.price || offers.lowPrice)
+  out.original_price = num(offers.highPrice || offers.price) || out.price
+  out.currency = txt(offers.priceCurrency) || "USD"
+
+  const images = p.image
+  if (typeof images === "string") out.images = [images]
+  else if (Array.isArray(images)) {
+    out.images = images.filter((i): i is string => typeof i === "string")
+  }
+
+  out.brand = txt(asRec(p.brand).name)
+  out.sku = txt(p.sku)
+  out.stock = txt(offers.availability).includes("InStock") ? 999 : 0
+  out.category = txt(p.category) || "General"
+  out.tags = generateSEO(out.title, out.category)
   return out
 }
 
@@ -508,136 +551,87 @@ async function scrapeShopify(url: string): Promise<ImportedProduct> {
   out.sku = txt(asRec(variants[0]).sku)
   out.stock = Math.max(0, Math.round(num(asRec(variants[0]).inventory_quantity)))
   out.brand = txt(p.vendor)
-  out.category = txt(p.product_type)
-  out.currency = "USD"
-  out.shipping = {
-    from_country: "Unknown",
-    delivery_time: "3-7 days",
-    shipping_cost: 0,
-    carrier: "",
-  }
-  return out
-}
-
-async function scrapeUniversal(url: string): Promise<ImportedProduct> {
-  const html = await fetchDirect(url)
-  const $ = cheerio.load(html)
-  const out = baselineProduct(url, "universal")
-
-  let ldProduct: Record<string, unknown> | null = null
-  $('script[type="application/ld+json"]').each((_, el) => {
-    try {
-      const parsed = JSON.parse($(el).html() || "{}") as unknown
-      const candidates = Array.isArray(parsed) ? parsed : [parsed]
-      for (const cRaw of candidates) {
-        const c = asRec(cRaw)
-        const t = c["@type"]
-        if (t === "Product" || (Array.isArray(t) && t.includes("Product"))) {
-          ldProduct = c
-          break
-        }
-      }
-    } catch {
-      /* ignore malformed jsonld */
-    }
-  })
-
-  const p = asRec(ldProduct)
-  const offers = asRec(p.offers)
-  out.title =
-    txt(p.name) || $('meta[property="og:title"]').attr("content") || ""
-  out.description =
-    txt(p.description) ||
-    $('meta[property="og:description"]').attr("content") ||
-    ""
-  out.price = num(offers.price || offers.lowPrice)
-  out.original_price = num(offers.highPrice || offers.price) || out.price
-  out.currency = txt(offers.priceCurrency) || "USD"
-  const images = p.image
-  if (typeof images === "string") out.images = [images]
-  else if (Array.isArray(images))
-    out.images = images.filter((i): i is string => typeof i === "string")
-  out.brand = txt(asRec(p.brand).name)
-  out.sku = txt(p.sku)
-  out.stock = txt(offers.availability).includes("InStock") ? 999 : 0
+  out.category = txt(p.product_type) || "Shopify Product"
+  out.tags = generateSEO(out.title, out.category)
   return out
 }
 
 function calculateQualityScore(p: ImportedProduct): number {
   let score = 0
-  if (p.images.length >= 5) score += 20
-  else if (p.images.length >= 3) score += 12
-  if (p.reviews.total >= 500) score += 20
-  else if (p.reviews.total >= 100) score += 12
-  if (p.reviews.average_rating >= 4.5) score += 20
-  else if (p.reviews.average_rating >= 4) score += 12
-  if (p.variants.length >= 5) score += 15
-  else if (p.variants.length >= 2) score += 8
-  const days = parseInt(p.shipping.delivery_time.match(/\d+/)?.[0] ?? "14", 10)
-  if (days <= 7) score += 15
-  else if (days <= 14) score += 8
-  if (p.description.length >= 400) score += 10
-  else if (p.description.length >= 150) score += 6
-  return Math.min(100, score)
+  if (p.images.length >= 5) score += 25
+  if (p.reviews.total > 100) score += 25
+  if (p.reviews.average_rating >= 4) score += 25
+  if (p.variants.length > 0) score += 25
+  return score
 }
 
-async function checkDuplicate(product: ImportedProduct): Promise<boolean> {
-  const sku = product.sku.trim()
-  const title = product.title.trim()
-  const whereByTitle =
-    title.length > 0
-      ? {
-          name: { contains: title.slice(0, 40), mode: "insensitive" as const },
-        }
-      : undefined
+function generateSEO(title: string, category: string): string[] {
+  const words = title.toLowerCase().split(/\W+/).filter((w) => w.length > 3)
+  return [...new Set([...words, category.toLowerCase(), "buy online", "best price"])].slice(
+    0,
+    10
+  )
+}
 
-  const existing = await prisma.product.findFirst({
+async function checkDuplicate(title: string, image: string): Promise<boolean> {
+  const normalizedTitle = title.trim()
+  const normalizedImage = image.trim()
+  const candidate = await prisma.product.findFirst({
     where: {
       OR: [
-        ...(whereByTitle ? [whereByTitle] : []),
-        ...(sku
+        ...(normalizedTitle
           ? [
               {
-                tags: {
-                  has: sku,
+                name: {
+                  contains: normalizedTitle.slice(0, 40),
+                  mode: "insensitive" as const,
                 },
               },
             ]
           : []),
+        ...(normalizedImage ? [{ tags: { has: normalizedImage.slice(0, 120) } }] : []),
       ],
     },
     select: { id: true },
   })
-  return Boolean(existing)
+  return Boolean(candidate)
 }
 
-function generateSEOKeywords(title: string, reviews: ImportedReview[]): string[] {
-  const reviewWords = reviews
-    .slice(0, 20)
-    .flatMap((r) => r.text.toLowerCase().split(/\W+/))
-    .filter((w) => w.length >= 4)
-  const titleWords = title.toLowerCase().split(/\W+/).filter((w) => w.length >= 3)
-  const bag = [...titleWords, ...reviewWords]
-  const freq = new Map<string, number>()
-  for (const w of bag) freq.set(w, (freq.get(w) ?? 0) + 1)
-  return [...freq.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .map(([word]) => word)
-    .slice(0, 12)
-}
+async function rewriteWithAI(text: string): Promise<string> {
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey || !text.trim()) return text
+  const prompt = `Rewrite the following product description to be clearer, concise, SEO-friendly, and conversion-oriented. Keep factual claims only.\n\n${text.slice(
+    0,
+    3500
+  )}`
 
-async function rewriteTitle(title: string): Promise<string> {
-  return title
-    .replace(/AliExpress|Amazon|Hot Sale|New Arrival|2026/gi, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 90)
-}
-
-async function rewriteDescription(description: string): Promise<string> {
-  const clean = description
-    .replace(/[\u200B-\u200D\uFEFF]/g, "")
-    .replace(/\s+/g, " ")
-    .trim()
-  return clean.slice(0, 3000)
+  try {
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        temperature: 0.4,
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are an ecommerce copywriter. Return plain text only, no markdown.",
+          },
+          { role: "user", content: prompt },
+        ],
+      }),
+      signal: AbortSignal.timeout(30000),
+    })
+    if (!res.ok) return text
+    const payload = (await res.json()) as {
+      choices?: Array<{ message?: { content?: string } }>
+    }
+    return payload.choices?.[0]?.message?.content?.trim() || text
+  } catch {
+    return text
+  }
 }

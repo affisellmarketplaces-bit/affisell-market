@@ -73,6 +73,10 @@ export type ImportPreviewRow = {
   sku: string
   source_url: string
   category: string
+  quality_score?: number
+  roi?: number
+  is_duplicate?: boolean
+  seo_keywords?: string[]
   selected?: boolean
 }
 
@@ -374,6 +378,14 @@ function normalizeImportPreviewRow(raw: Record<string, unknown>): ImportPreviewR
     source_url: typeof raw.source_url === "string" ? raw.source_url.trim() : "",
     category:
       typeof raw.category === "string" ? raw.category.trim().slice(0, 200) : "",
+    quality_score: num(raw.quality_score, 0),
+    roi: num(raw.roi, 0),
+    is_duplicate: Boolean(raw.is_duplicate),
+    seo_keywords: Array.isArray(raw.seo_keywords)
+      ? raw.seo_keywords
+          .filter((x): x is string => typeof x === "string" && x.trim().length > 0)
+          .map((x) => x.trim().slice(0, 40))
+      : [],
     selected: raw.selected !== false,
   }
 }
@@ -390,6 +402,8 @@ export function SupplierProductImport() {
   >([])
   const [productUrl, setProductUrl] = useState("")
   const [aliExpressUrl, setAliExpressUrl] = useState("")
+  const [aiRewrite, setAiRewrite] = useState(false)
+  const [markupMultiplier, setMarkupMultiplier] = useState(2.5)
 
   const updateImportedProduct = useCallback(
     (index: number, field: keyof ImportPreviewRow, value: unknown) => {
@@ -452,7 +466,13 @@ export function SupplierProductImport() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ url: u }),
+        body: JSON.stringify({
+          url: u,
+          options: {
+            aiRewrite,
+            markup: markupMultiplier,
+          },
+        }),
       })
       const data = (await res.json()) as { products?: unknown[]; error?: string }
       if (!res.ok) throw new Error(data.error ?? "Import failed")
@@ -468,7 +488,7 @@ export function SupplierProductImport() {
     } finally {
       setIsImporting(false)
     }
-  }, [])
+  }, [aiRewrite, markupMultiplier])
 
   const handleSelectAll = useCallback(() => {
     setImportedProducts((prev) => prev.map((p) => ({ ...p, selected: true })))
@@ -675,6 +695,30 @@ export function SupplierProductImport() {
           <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
             Scrapes structured data plus storefront-specific fallbacks — edit pricing before publishing
           </p>
+          <div className="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
+            <label className="flex items-center gap-2 rounded-lg border border-zinc-200 px-3 py-2 dark:border-zinc-700">
+              <input
+                type="checkbox"
+                checked={aiRewrite}
+                onChange={(e) => setAiRewrite(e.target.checked)}
+                className="accent-purple-600"
+              />
+              AI rewrite description
+            </label>
+            <label className="flex items-center gap-2 rounded-lg border border-zinc-200 px-3 py-2 dark:border-zinc-700">
+              <span>Markup</span>
+              <input
+                type="number"
+                min={1}
+                max={10}
+                step={0.1}
+                value={markupMultiplier}
+                onChange={(e) => setMarkupMultiplier(Math.max(1, parseFloat(e.target.value) || 2.5))}
+                className="w-24 rounded border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-600 dark:bg-zinc-900"
+              />
+              <span>x</span>
+            </label>
+          </div>
         </div>
       ) : null}
 
@@ -723,14 +767,16 @@ export function SupplierProductImport() {
             <button
               type="button"
               className="rounded-lg border border-zinc-300 px-4 py-2.5 text-sm hover:bg-zinc-50 dark:border-zinc-600 dark:hover:bg-zinc-800"
+              onClick={() => setAiRewrite((v) => !v)}
             >
-              + AI Rewrite Description
+              {aiRewrite ? "AI Rewrite: On" : "AI Rewrite: Off"}
             </button>
             <button
               type="button"
               className="rounded-lg border border-zinc-300 px-4 py-2.5 text-sm hover:bg-zinc-50 dark:border-zinc-600 dark:hover:bg-zinc-800"
+              onClick={() => setMarkupMultiplier((v) => (v === 2.5 ? 3 : 2.5))}
             >
-              + Markup Calculator
+              Markup: {markupMultiplier}x
             </button>
           </div>
         </div>
@@ -771,6 +817,13 @@ export function SupplierProductImport() {
               const profitPretty = Number.isFinite(profit)
                 ? profit.toFixed(2)
                 : "0.00"
+              const quality = Math.round(num(p.quality_score, 0))
+              const qualityTone =
+                quality >= 80
+                  ? "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300"
+                  : quality >= 50
+                    ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300"
+                    : "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300"
               return (
                 <div
                   key={`${p.sku || "sku"}-${i}`}
@@ -947,6 +1000,9 @@ export function SupplierProductImport() {
                         />
                       </details>
                       <div className="flex flex-wrap gap-2 text-xs">
+                        <span className={`rounded-md px-2 py-1 ${qualityTone}`}>
+                          Quality: {quality}/100
+                        </span>
                         <span className="rounded-md bg-green-100 px-2 py-1 text-green-700 dark:bg-green-950 dark:text-green-300">
                           {variantLabel} variants
                         </span>
@@ -959,7 +1015,33 @@ export function SupplierProductImport() {
                             ? `€${profitPretty}`
                             : `${profitPretty} ${p.currency}`}
                         </span>
+                        <span className="rounded-md bg-indigo-100 px-2 py-1 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                          ROI: {Math.round(num(p.roi, 0))}%
+                        </span>
+                        {p.is_duplicate ? (
+                          <span className="rounded-md bg-red-100 px-2 py-1 text-red-700 dark:bg-red-950 dark:text-red-300">
+                            Possible duplicate
+                          </span>
+                        ) : null}
                       </div>
+                      <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                        Sell at {p.currency === "EUR" ? "€" : "$"}
+                        {num(p.suggested_price, 0).toFixed(2)} ={" "}
+                        {p.currency === "EUR" ? "€" : "$"}
+                        {profitPretty} profit = {Math.round(num(p.roi, 0))}% ROI
+                      </p>
+                      {Array.isArray(p.seo_keywords) && p.seo_keywords.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {p.seo_keywords.slice(0, 10).map((keyword) => (
+                            <span
+                              key={`${keyword}-${i}`}
+                              className="rounded-full bg-zinc-100 px-2 py-1 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
+                            >
+                              {keyword}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
                       {p.reviews?.items?.length ? (
                         <div className="mt-3 rounded-lg border border-zinc-200 p-3 dark:border-zinc-700">
                           <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
@@ -977,7 +1059,7 @@ export function SupplierProductImport() {
                             ))}
                           </div>
                           <div className="max-h-44 space-y-2 overflow-y-auto">
-                            {p.reviews.items.slice(0, 5).map((r, ri) => (
+                            {p.reviews.items.slice(0, 3).map((r, ri) => (
                               <div
                                 key={`${r.author}-${ri}`}
                                 className="rounded border border-zinc-200 p-2 text-xs dark:border-zinc-700"
