@@ -17,7 +17,7 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 const MAX_BATCH = 30
-const DEFAULT_MARKUP = 1.6
+const DEFAULT_MARKUP = 1.7
 const DEFAULT_COMMISSION_HINT = 25
 
 function variantSkuSlug(name: string, index: number, baseSku: string): string {

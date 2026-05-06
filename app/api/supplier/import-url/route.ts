@@ -24,6 +24,26 @@ type ScrapedShipping = {
   delivery_time: string
   shipping_cost: number
   processing_time: string
+  carrier: string
+}
+
+type ReviewItemDraft = {
+  rating: number
+  author: string
+  country: string
+  date: string
+  text: string
+  images: string[]
+  variant: string
+  helpful_count: number
+  verified: boolean
+}
+
+type ScrapedReviews = {
+  total: number
+  average_rating: number
+  breakdown: { 5: number; 4: number; 3: number; 2: number; 1: number }
+  items: ReviewItemDraft[]
 }
 
 type ScrapedProduct = {
@@ -38,15 +58,27 @@ type ScrapedProduct = {
   variants: ScrapedVariant[]
   colors: ScrapedColor[]
   sizes: string[]
+  /** AliExpress SKU option rows `{ name, value }` (often identical) */
+  sizes_objects: Array<{ name: string; value: string }>
   sku: string
   stock: number
   shipping: ScrapedShipping
   specs: Record<string, string>
+  reviews: ScrapedReviews
   source_url: string
 }
 
-const IMPORT_MARKUP = 1.6
+const IMPORT_MARKUP = 1.7
 const IMPORT_COMMISSION_HINT = 25
+
+function emptyReviews(): ScrapedReviews {
+  return {
+    total: 0,
+    average_rating: 0,
+    breakdown: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
+    items: [],
+  }
+}
 
 function defaultShipping(): ScrapedShipping {
   return {
@@ -54,6 +86,7 @@ function defaultShipping(): ScrapedShipping {
     delivery_time: "15–25 days",
     shipping_cost: 0,
     processing_time: "1–3 days",
+    carrier: "Colissimo",
   }
 }
 
@@ -165,6 +198,119 @@ function pickAeFields(run: Record<string, unknown>): Record<string, unknown> | n
   return null
 }
 
+function mergeAeReviewsFromFields(
+  fields: Record<string, unknown>,
+  into: ScrapedReviews
+): void {
+  const evo = fields.evo
+  const evoRev =
+    evo && typeof evo === "object" && !Array.isArray(evo)
+      ? (evo as Record<string, unknown>).review
+      : undefined
+  const fb = fields.feedback
+  const reviewData =
+    evoRev && typeof evoRev === "object" && !Array.isArray(evoRev)
+      ? (evoRev as Record<string, unknown>)
+      : fb && typeof fb === "object" && !Array.isArray(fb)
+        ? (fb as Record<string, unknown>)
+        : null
+
+  if (!reviewData) return
+
+  const totalNum =
+    reviewData.totalValidNum ?? reviewData.totalNum ?? reviewData.total
+  const ta =
+    typeof totalNum === "number" ? totalNum : parseInt(String(totalNum ?? ""), 10)
+  if (Number.isFinite(ta) && ta >= 0) into.total = ta
+
+  const avgRaw =
+    reviewData.averageStar ??
+    reviewData.averageStarRating ??
+    reviewData.ratingValue
+  const avg =
+    typeof avgRaw === "number" ? avgRaw : parseFloat(String(avgRaw ?? ""))
+  if (Number.isFinite(avg) && avg > 0) into.average_rating = avg
+
+  const starLevel = reviewData.starLevel
+  if (starLevel && typeof starLevel === "object" && !Array.isArray(starLevel)) {
+    const sl = starLevel as Record<string, unknown>
+    const n5 = sl.fiveStarNum ?? sl["5"]
+    const n4 = sl.fourStarNum ?? sl["4"]
+    const n3 = sl.threeStarNum ?? sl["3"]
+    const n2 = sl.twoStarNum ?? sl["2"]
+    const n1 = sl.oneStarNum ?? sl["1"]
+    into.breakdown = {
+      5: typeof n5 === "number" ? n5 : parseInt(String(n5 ?? 0), 10) || 0,
+      4: typeof n4 === "number" ? n4 : parseInt(String(n4 ?? 0), 10) || 0,
+      3: typeof n3 === "number" ? n3 : parseInt(String(n3 ?? 0), 10) || 0,
+      2: typeof n2 === "number" ? n2 : parseInt(String(n2 ?? 0), 10) || 0,
+      1: typeof n1 === "number" ? n1 : parseInt(String(n1 ?? 0), 10) || 0,
+    }
+  }
+
+  const list = reviewData.reviewList
+  if (!Array.isArray(list)) return
+
+  const items: ReviewItemDraft[] = []
+  for (const raw of list.slice(0, 20)) {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) continue
+    const r = raw as Record<string, unknown>
+    const starRaw = r.star ?? r.rating
+    const rating =
+      typeof starRaw === "number"
+        ? starRaw
+        : parseInt(String(starRaw ?? 5), 10) || 5
+    const author =
+      typeof r.buyerName === "string" ? r.buyerName.trim() : "Anonymous"
+    const country =
+      typeof r.buyerCountry === "string" ? r.buyerCountry.trim() : ""
+    const date =
+      typeof r.reviewDate === "string"
+        ? r.reviewDate.trim()
+        : typeof r.gmtCreate === "string"
+          ? r.gmtCreate.trim()
+          : ""
+    const text =
+      typeof r.reviewContent === "string"
+        ? r.reviewContent.trim()
+        : typeof r.buyerFeedback === "string"
+          ? r.buyerFeedback.trim()
+          : ""
+    const variant =
+      typeof r.skuInfo === "string" ? r.skuInfo.trim() : ""
+    const helpful =
+      r.thumbUpNum != null
+        ? typeof r.thumbUpNum === "number"
+          ? r.thumbUpNum
+          : parseInt(String(r.thumbUpNum), 10) || 0
+        : 0
+
+    const imgsRaw = r.images
+    const images: string[] = []
+    if (Array.isArray(imgsRaw)) {
+      for (const im of imgsRaw) {
+        if (typeof im !== "string" || !im.trim()) continue
+        let u = im.trim()
+        if (!/^https?:/i.test(u)) u = `https:${u}`
+        images.push(u.slice(0, 2000))
+      }
+    }
+
+    items.push({
+      rating: Math.min(5, Math.max(1, Math.round(rating))),
+      author: author.slice(0, 120),
+      country: country.slice(0, 80),
+      date: date.slice(0, 80),
+      text: text.slice(0, 4000),
+      images: images.slice(0, 8),
+      variant: variant.slice(0, 200),
+      helpful_count: helpful,
+      verified: true,
+    })
+  }
+  into.items = items
+}
+
 function mergeAliExpressRunParams(html: string, product: ScrapedProduct): void {
   const data = extractAliExpressRunParams(html)
   if (!data) return
@@ -181,25 +327,32 @@ function mergeAliExpressRunParams(html: string, product: ScrapedProduct): void {
           : ""
     if (subject) product.title = subject
 
-    const descRaw = fields.description
+    const descRaw =
+      typeof fields.description === "string"
+        ? fields.description.trim()
+        : ""
+    const productDesc =
+      typeof fields.productDesc === "string" ? fields.productDesc.trim() : ""
+    const bestDesc =
+      [descRaw, productDesc].filter(Boolean).sort((a, b) => b.length - a.length)[0] ??
+      ""
     if (
-      typeof descRaw === "string" &&
-      descRaw.trim().length > (product.description?.length ?? 0)
-    ) {
-      product.description = descRaw.trim()
-    }
+      typeof bestDesc === "string" &&
+      bestDesc.trim().length > (product.description?.length ?? 0)
+    )
+      product.description = bestDesc.trim()
 
     const priceBlock = fields.price as Record<string, unknown> | undefined
     if (priceBlock && typeof priceBlock === "object") {
       const act = priceBlock.minActivityAmount as { value?: unknown } | undefined
-      const mn = priceBlock.minAmount as { value?: unknown } | undefined
       const sale = priceBlock.salePrice as { value?: unknown } | undefined
+      const mn = priceBlock.minAmount as { value?: unknown } | undefined
       const mx = priceBlock.maxAmount as { value?: unknown } | undefined
 
       const pSale =
         numUnknown(act?.value) ||
-        numUnknown(mn?.value) ||
-        numUnknown(sale?.value)
+        numUnknown(sale?.value) ||
+        numUnknown(mn?.value)
 
       const pOrig = numUnknown(mx?.value)
 
@@ -218,36 +371,74 @@ function mergeAliExpressRunParams(html: string, product: ScrapedProduct): void {
       const strs = imgSrcs
         .map((x) => (typeof x === "string" ? x.trim() : ""))
         .filter(Boolean)
-      if (strs.length > 0) product.images = strs
+      if (strs.length > 0) product.images = strs.slice(0, 10)
     }
 
-    const qty = fields.quantity as Record<string, unknown> | undefined
-    if (qty && typeof qty === "object") {
-      const total = qty.totalAvailable
-      const ta =
-        typeof total === "number" ? total : parseInt(String(total ?? ""), 10)
-      if (Number.isFinite(ta) && ta > 0) product.stock = Math.min(Math.max(ta, 1), 999_999)
-    }
+    const qtyBlock = fields.quantity as Record<string, unknown> | undefined
+    let stockN = 0
+    const totalAvail =
+      qtyBlock && typeof qtyBlock === "object"
+        ? (qtyBlock.totalAvailable ?? qtyBlock.total_avail_quantity)
+        : undefined
+    const ta =
+      typeof totalAvail === "number"
+        ? totalAvail
+        : parseInt(String(totalAvail ?? ""), 10)
+    if (Number.isFinite(ta) && ta > 0) stockN = ta
 
-    /* Shipping */
+    const totalAvailQty = fields.totalAvailQuantity
+    if (!stockN) {
+      const tq =
+        typeof totalAvailQty === "number"
+          ? totalAvailQty
+          : parseInt(String(totalAvailQty ?? ""), 10)
+      if (Number.isFinite(tq) && tq > 0) stockN = tq
+    }
+    if (stockN > 0)
+      product.stock = Math.min(Math.max(stockN, 1), 999_999)
+
     const del = fields.delivery as Record<string, unknown> | undefined
     if (del && typeof del === "object") {
-      const shipFromRaw = del.shipFrom
-      if (typeof shipFromRaw === "string" && shipFromRaw.trim())
-        product.shipping.from_country = shipFromRaw.trim()
-      const dd = del.deliveryTimeDesc
-      if (typeof dd === "string" && dd.trim())
-        product.shipping.delivery_time = dd.trim()
-      const pt = del.processingTime
-      if (typeof pt === "string" && pt.trim())
-        product.shipping.processing_time = pt.trim()
+      const w =
+        typeof del.warehouseCountry === "string" ? del.warehouseCountry.trim() : ""
+      if (w) product.shipping.from_country = w
+      const shipFrom =
+        typeof del.shipFrom === "string" ? del.shipFrom.trim() : ""
+      if (!w && shipFrom) product.shipping.from_country = shipFrom
+
+      const edt =
+        typeof del.estimatedDeliveryTime === "string"
+          ? del.estimatedDeliveryTime.trim()
+          : ""
+      const dtd =
+        typeof del.deliveryTimeDesc === "string" ? del.deliveryTimeDesc.trim() : ""
+      if (edt) product.shipping.delivery_time = edt
+      else if (dtd) product.shipping.delivery_time = dtd
+
+      const pt =
+        typeof del.processingTime === "string" ? del.processingTime.trim() : ""
+      if (pt) product.shipping.processing_time = pt
+
+      const comp =
+        typeof del.shippingCompany === "string" ? del.shippingCompany.trim() : ""
+      if (comp) product.shipping.carrier = comp
+
+      const fee = del.shippingFee
+      if (fee != null && product.shipping.shipping_cost <= 0) {
+        const fn = typeof fee === "number" ? fee : numUnknown(fee)
+        if (fn > 0) product.shipping.shipping_cost = fn
+      }
     }
 
     const freight = fields.freightAmount as Record<string, unknown> | undefined
     if (freight && freight.value != null)
-      product.shipping.shipping_cost = numUnknown(freight.value)
+      product.shipping.shipping_cost = Math.max(
+        product.shipping.shipping_cost,
+        numUnknown(freight.value)
+      )
 
-    /* Specs table */
+    mergeAeReviewsFromFields(fields, product.reviews)
+
     const propList = fields.productPropList
     if (Array.isArray(propList)) {
       for (const raw of propList) {
@@ -290,6 +481,7 @@ function mergeAliExpressRunParams(html: string, product: ScrapedProduct): void {
     if (Array.isArray(skuProps)) {
       product.variants = []
       product.colors = []
+      product.sizes_objects = []
       const sizeAcc: string[] = []
       const basePrice =
         typeof product.price === "number" && product.price > 0 ? product.price : 0
@@ -313,7 +505,11 @@ function mergeAliExpressRunParams(html: string, product: ScrapedProduct): void {
           const displayName =
             typeof nameRaw === "string" ? nameRaw.trim() : ""
           if (!displayName) continue
-          const vid = val.propertyValueId ?? val.variationId ?? val.definitionId
+          const vid =
+            val.propertyValueId ??
+            val.variationId ??
+            val.definitionId ??
+            val.skuAttr
 
           let vimgRaw =
             typeof val.skuPropertyImagePath === "string"
@@ -321,10 +517,9 @@ function mergeAliExpressRunParams(html: string, product: ScrapedProduct): void {
               : ""
           if (vimgRaw && !/^https?:/i.test(vimgRaw)) vimgRaw = `https:${vimgRaw}`
 
-          const lineSku =
-            productId && vid != null
-              ? `${productId}-${String(vid)}`.slice(0, 120)
-              : undefined
+          let lineSku: string | undefined
+          if (productId && vid != null && String(vid).length > 0)
+            lineSku = `${productId}-${String(vid)}`.slice(0, 120)
 
           product.variants.push({
             name: displayName.slice(0, 200),
@@ -335,26 +530,45 @@ function mergeAliExpressRunParams(html: string, product: ScrapedProduct): void {
             sku: lineSku,
           })
 
-          if (/(color|colour)/i.test(pl)) {
+          if (
+            pl.includes("color") ||
+            pl.includes("colour") ||
+            pl.includes("couleur")
+          ) {
             product.colors.push({
               name: displayName.slice(0, 120),
               hex: aeHexPlaceholder(),
               image: vimgRaw,
             })
-          } else if (/(size|shoe\s*size|length|capacity)/i.test(pl)) {
+          }
+
+          if (
+            pl.includes("size") ||
+            pl.includes("length") ||
+            pl.includes("capacity") ||
+            pl.includes("taille")
+          ) {
             sizeAcc.push(displayName)
+            product.sizes_objects.push({
+              name: displayName.slice(0, 160),
+              value: displayName.slice(0, 160),
+            })
           }
         }
       }
       product.sizes = uniqStrings(sizeAcc, 120)
-      if (!product.colors.length && sizeAcc.length) {
-        /* only sizes */
-      }
 
       const seenColor = new Set<string>()
       product.colors = product.colors.filter((c) => {
         if (seenColor.has(c.name)) return false
         seenColor.add(c.name)
+        return true
+      })
+      const seenSz = new Set<string>()
+      product.sizes_objects = product.sizes_objects.filter((row) => {
+        const key = `${row.value}`
+        if (seenSz.has(key)) return false
+        seenSz.add(key)
         return true
       })
       if (productId && !product.sku) product.sku = `AE-${productId}`
@@ -509,6 +723,21 @@ function scrapeJsonLd($: cheerio.CheerioAPI): {
       if (typeof node.mpn === "string" && node.mpn?.trim())
         out.sku = out.sku || node.mpn.trim()
 
+      const agg = node.aggregateRating
+      if (agg && typeof agg === "object" && !Array.isArray(agg)) {
+        const rec = agg as Record<string, unknown>
+        const rv = numUnknown(rec.ratingValue)
+        const rcRaw = rec.reviewCount ?? rec.ratingCount ?? rec.ratingQuantity
+        const ri =
+          typeof rcRaw === "number" ? rcRaw : parseInt(String(rcRaw ?? ""), 10)
+        const total = Number.isFinite(ri) && ri >= 0 ? ri : 0
+        if (total > 0 || (Number.isFinite(rv) && rv > 0)) {
+          out.reviews = emptyReviews()
+          out.reviews.total = total
+          out.reviews.average_rating = Number.isFinite(rv) ? rv : 0
+        }
+      }
+
       if (
         out.title ||
         out.description ||
@@ -549,19 +778,32 @@ function toPreviewResponse(
   const suggested = parseFloat((priceNum * IMPORT_MARKUP).toFixed(2))
   const profit_per_sale = (suggested - priceNum).toFixed(2)
 
-  const extracted_fields: string[] = []
-  if ((p.title || "").trim()) extracted_fields.push("title")
-  if ((p.description || "").trim()) extracted_fields.push("description")
-  if (priceNum > 0) extracted_fields.push("price")
-  if (orig > priceNum + 1e-6) extracted_fields.push("original_price")
-  if (imgList.length > 0) extracted_fields.push("images")
-  if (p.variants.length > 0) extracted_fields.push("variants")
-  if (p.colors.length > 0) extracted_fields.push("colors")
-  if (p.sizes.length > 0) extracted_fields.push("sizes")
-  extracted_fields.push("shipping")
-  if (Object.keys(p.specs).length > 0) extracted_fields.push("specs")
-  if ((p.sku || "").trim()) extracted_fields.push("sku")
-  if ((p.category || "").trim()) extracted_fields.push("category")
+  const dt =
+    typeof p.shipping?.delivery_time === "string"
+      ? p.shipping.delivery_time.trim()
+      : ""
+
+  const extracted_fields = {
+    title: Boolean((p.title || "").trim()),
+    price: priceNum > 0,
+    images: imgList.length,
+    variants: p.variants.length,
+    colors: p.colors.length,
+    sizes: p.sizes.length + p.sizes_objects.length,
+    reviews: p.reviews.total,
+    shipping: Boolean(dt.length > 0),
+    specs_count: Object.keys(p.specs).length,
+    carrier:
+      typeof p.shipping?.carrier === "string" && (p.shipping.carrier ?? "").trim().length >
+      0,
+  }
+
+  const reviewsOut = {
+    total: p.reviews.total,
+    average_rating: p.reviews.average_rating,
+    breakdown: p.reviews.breakdown,
+    items: p.reviews.items.slice(0, 20),
+  }
 
   return NextResponse.json({
     success: true,
@@ -579,15 +821,20 @@ function toPreviewResponse(
         variants_count: variantCount,
         colors: p.colors,
         sizes: p.sizes,
-        shipping: p.shipping,
+        sizes_objects: p.sizes_objects.slice(0, 40),
+        shipping: {
+          ...p.shipping,
+        },
         specs: p.specs,
-        stock: p.stock || 99,
+        reviews: reviewsOut,
+        stock: Math.min(Math.max(1, Math.round(Number(p.stock) || 0)), 999_999),
         sku: (p.sku || "").slice(0, 120),
         source_url: p.source_url,
         category: typeof p.category === "string" ? p.category.slice(0, 200) : "",
         suggested_price: suggested,
         suggested_commission: IMPORT_COMMISSION_HINT,
         profit_per_sale,
+        basePrice: suggested,
         selected: true as const,
       },
     ],
@@ -662,10 +909,12 @@ export async function POST(req: NextRequest) {
       variants: [],
       colors: [],
       sizes: [],
+      sizes_objects: [],
       sku: "",
       stock: 0,
       shipping: defaultShipping(),
       specs: {},
+      reviews: emptyReviews(),
       source_url: url,
     }
 
@@ -836,6 +1085,7 @@ export async function POST(req: NextRequest) {
         delivery_time: "3–10 days",
         shipping_cost: 0,
         processing_time: "1–2 days",
+        carrier: "",
       }
 
       $("#variation_color_name li, #variation_color_name .selection").each((_, el) => {
@@ -1002,6 +1252,7 @@ export async function POST(req: NextRequest) {
             delivery_time: "3–14 days",
             shipping_cost: 0,
             processing_time: "1–3 days",
+            carrier: "",
           }
 
           extraction_method =
@@ -1028,7 +1279,10 @@ export async function POST(req: NextRequest) {
     else if (product.description.length > 5000)
       product.description = product.description.slice(0, 5000)
 
-    product.stock = product.stock || 99
+    if (!(Number.isFinite(product.stock) && product.stock > 0)) {
+      product.stock =
+        /aliexpress\./i.test(parsedUrl.hostname) ? 999 : 99
+    }
 
     if ((!product.images || product.images.length === 0) && product.image.trim())
       product.images = [product.image]

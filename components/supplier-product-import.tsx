@@ -25,9 +25,29 @@ export type ImportShippingDraft = {
   delivery_time: string
   shipping_cost: number
   processing_time: string
+  carrier?: string
 }
 
 /** Precision import preview row (URL scrape or normalized CSV mock). */
+export type ImportReviewItemDraft = {
+  rating: number
+  author: string
+  country: string
+  date: string
+  text: string
+  images: string[]
+  variant: string
+  helpful_count: number
+  verified: boolean
+}
+
+export type ImportReviewsDraft = {
+  total: number
+  average_rating: number
+  breakdown: { 5: number; 4: number; 3: number; 2: number; 1: number }
+  items: ImportReviewItemDraft[]
+}
+
 export type ImportPreviewRow = {
   title: string
   price: number
@@ -35,6 +55,7 @@ export type ImportPreviewRow = {
   suggested_price: number
   suggested_commission: number
   profit_per_sale: string
+  basePrice?: number
   currency: string
   images: string[]
   image: string
@@ -43,8 +64,10 @@ export type ImportPreviewRow = {
   variants_count: number
   colors: ImportedColorDraft[]
   sizes: string[]
+  sizes_objects: Array<{ name: string; value: string }>
   shipping: ImportShippingDraft
   specs: Record<string, string>
+  reviews?: ImportReviewsDraft
   tags: string[]
   stock: number
   sku: string
@@ -62,7 +85,7 @@ const TAB_ICONS: Record<ImportMethod, typeof CloudUpload> = {
   aliexpress: Box,
 }
 
-const DEFAULT_IMPORT_MARKUP = 1.6
+const DEFAULT_IMPORT_MARKUP = 1.7
 const DEFAULT_IMPORT_COMMISSION = 25
 
 function num(raw: unknown, fallback = 0): number {
@@ -149,17 +172,48 @@ function normalizeImportPreviewRow(raw: Record<string, unknown>): ImportPreviewR
       .filter((x): x is ImportedColorDraft => x !== null)
   }
 
-  let sizes: string[] = []
-  if (Array.isArray(raw.sizes))
-    sizes = raw.sizes
-      .filter((x): x is string => typeof x === "string" && x.trim().length > 0)
-      .map((s) => s.trim().slice(0, 120))
+  const sizes: string[] = []
+  const sizes_objects: Array<{ name: string; value: string }> = []
+  const seenSizeVal = new Set<string>()
+
+  const pushSize = (nameRaw: string, valueRaw?: string) => {
+    const name = nameRaw.trim().slice(0, 120)
+    const value = (valueRaw ?? name).trim().slice(0, 120)
+    if (!name && !value) return
+    const key = `${value}:${name}`
+    if (seenSizeVal.has(key)) return
+    seenSizeVal.add(key)
+    sizes.push(value || name)
+    sizes_objects.push({
+      name: name || value,
+      value: value || name,
+    })
+  }
+
+  const mergeSizesArrays = (arr: unknown[]) => {
+    for (const x of arr) {
+      if (typeof x === "string") {
+        pushSize(x, x)
+        continue
+      }
+      if (!x || typeof x !== "object" || Array.isArray(x)) continue
+      const o = x as Record<string, unknown>
+      const nm = typeof o.name === "string" ? o.name : ""
+      const val = typeof o.value === "string" ? o.value : ""
+      if (nm || val) pushSize(nm || val, val || nm)
+    }
+  }
+
+  if (Array.isArray(raw.sizes)) mergeSizesArrays(raw.sizes as unknown[])
+  if (Array.isArray(raw.sizes_objects))
+    mergeSizesArrays(raw.sizes_objects as unknown[])
 
   let shipping: ImportShippingDraft = {
     from_country: "China",
     delivery_time: "15–25 days",
     shipping_cost: 0,
     processing_time: "1–3 days",
+    carrier: "Colissimo",
   }
   const shRaw = raw.shipping
   if (shRaw && typeof shRaw === "object" && !Array.isArray(shRaw)) {
@@ -176,6 +230,10 @@ function normalizeImportPreviewRow(raw: Record<string, unknown>): ImportPreviewR
         typeof o.processing_time === "string"
           ? o.processing_time.trim().slice(0, 200)
           : shipping.processing_time,
+      carrier:
+        typeof o.carrier === "string" && o.carrier.trim().length > 0
+          ? o.carrier.trim().slice(0, 120)
+          : shipping.carrier,
     }
   }
 
@@ -214,6 +272,72 @@ function normalizeImportPreviewRow(raw: Record<string, unknown>): ImportPreviewR
       0
     ).toFixed(2)
 
+  let reviews: ImportReviewsDraft | undefined
+  const revRaw = raw.reviews
+  if (
+    revRaw &&
+    typeof revRaw === "object" &&
+    !Array.isArray(revRaw)
+  ) {
+    const R = revRaw as Record<string, unknown>
+    const bd = R.breakdown
+    let breakdown = {
+      5: 0,
+      4: 0,
+      3: 0,
+      2: 0,
+      1: 0,
+    }
+    if (bd && typeof bd === "object" && !Array.isArray(bd)) {
+      const b = bd as Record<string, unknown>
+      breakdown = {
+        5: Math.round(Number(b[5]) || 0),
+        4: Math.round(Number(b[4]) || 0),
+        3: Math.round(Number(b[3]) || 0),
+        2: Math.round(Number(b[2]) || 0),
+        1: Math.round(Number(b[1]) || 0),
+      }
+    }
+    const itemsRaw = R.items
+    const items: ImportReviewItemDraft[] = []
+    if (Array.isArray(itemsRaw)) {
+      for (const it of itemsRaw.slice(0, 25)) {
+        if (!it || typeof it !== "object" || Array.isArray(it)) continue
+        const q = it as Record<string, unknown>
+        const imgsR = q.images
+        const imOut: string[] = []
+        if (Array.isArray(imgsR))
+          for (const u of imgsR)
+            if (typeof u === "string" && u.trim()) imOut.push(u.trim().slice(0, 2000))
+        items.push({
+          rating: Math.min(5, Math.max(1, Math.round(num(q.rating, 5)))),
+          author:
+            typeof q.author === "string" ? q.author.trim().slice(0, 120) : "Anonymous",
+          country:
+            typeof q.country === "string" ? q.country.trim().slice(0, 80) : "",
+          date: typeof q.date === "string" ? q.date.trim().slice(0, 80) : "",
+          text: typeof q.text === "string" ? q.text.trim().slice(0, 4000) : "",
+          images: imOut.slice(0, 8),
+          variant:
+            typeof q.variant === "string" ? q.variant.trim().slice(0, 200) : "",
+          helpful_count: Math.max(0, Math.round(num(q.helpful_count, 0))),
+          verified: Boolean(q.verified),
+        })
+      }
+    }
+    reviews = {
+      total: Math.max(0, Math.round(num(R.total, 0))),
+      average_rating: num(R.average_rating, 0),
+      breakdown,
+      items,
+    }
+  }
+
+  const basePrice =
+    num(raw.basePrice, 0) > 0
+      ? parseFloat(num(raw.basePrice, 0).toFixed(4))
+      : parseFloat(suggestedPrice.toFixed(4))
+
   return {
     title: title.trim().slice(0, 500),
     price: parseFloat(priceBase.toFixed(4)),
@@ -221,6 +345,7 @@ function normalizeImportPreviewRow(raw: Record<string, unknown>): ImportPreviewR
     suggested_price: parseFloat(suggestedPrice.toFixed(4)),
     suggested_commission,
     profit_per_sale,
+    basePrice,
     currency:
       typeof raw.currency === "string" ? raw.currency.slice(0, 12) : "EUR",
     images: imgs.slice(0, 20),
@@ -230,8 +355,10 @@ function normalizeImportPreviewRow(raw: Record<string, unknown>): ImportPreviewR
     variants_count,
     colors,
     sizes,
+    sizes_objects,
     shipping,
     specs,
+    reviews,
     tags,
     stock: Math.max(0, Math.round(num(raw.stock, 99))),
     sku: typeof raw.sku === "string" ? raw.sku.slice(0, 120) : "",
@@ -598,6 +725,23 @@ export function SupplierProductImport() {
                               : "0"}
                             {p.currency !== "EUR" ? ` ${p.currency}` : ""}
                           </span>
+                        ) : (
+                          ""
+                        )}
+                        {(p.shipping.carrier ?? "").trim() ? (
+                          <>
+                            {" · carrier "}
+                            {(p.shipping.carrier ?? "").slice(0, 48)}
+                          </>
+                        ) : (
+                          ""
+                        )}
+                        {(p.reviews?.total ?? 0) > 0 ? (
+                          <>
+                            {" · ★"}
+                            {(p.reviews!.average_rating ?? 0).toFixed(1)} (
+                            {p.reviews!.total})
+                          </>
                         ) : (
                           ""
                         )}
