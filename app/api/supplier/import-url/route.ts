@@ -15,6 +15,8 @@ type ScrapedVariant = {
   type?: string
   /** Platform-specific option id where available */
   sku?: string
+  /** Option display name keyed by dimension label (AliExpress combos) */
+  attributes?: Record<string, string>
 }
 
 type ScrapedColor = { name: string; hex: string; image: string }
@@ -181,6 +183,12 @@ function extractAliExpressRunParams(html: string): Record<string, unknown> | nul
   return null
 }
 
+function pickAeRootData(run: Record<string, unknown>): Record<string, unknown> | null {
+  const d = run.data
+  if (d && typeof d === "object" && !Array.isArray(d)) return d as Record<string, unknown>
+  return null
+}
+
 function pickAeFields(run: Record<string, unknown>): Record<string, unknown> | null {
   const d = run.data
   if (d && typeof d === "object" && !Array.isArray(d)) {
@@ -311,6 +319,100 @@ function mergeAeReviewsFromFields(
   into.items = items
 }
 
+function asObjectRecord(v: unknown): Record<string, unknown> | null {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return null
+  return v as Record<string, unknown>
+}
+
+/** AliExpress `skuPropIds` / combo keys: split and sort segments for map lookup */
+function skuPropIdsLookupKeys(raw: unknown): string[] {
+  const s = typeof raw === "string" ? raw.trim() : String(raw ?? "").trim()
+  if (!s) return []
+  const segments = s
+    .split(/[;,+#]+/)
+    .map((x) => x.trim().replace(/^#/, ""))
+    .filter((x) => x.length > 0 && x.includes(":"))
+  if (segments.length === 0) return [s]
+  const sortedSemi = [...segments].sort().join(";")
+  const sortedComma = [...segments].sort().join(",")
+  const joinSemi = segments.join(";")
+  return uniqStrings([s, sortedSemi, sortedComma, joinSemi], 24)
+}
+
+type AeComboPiece = {
+  name: string
+  type: string
+  image: string
+  propId: string | number
+  propNameId: string | number
+}
+
+function aeSkuScalarId(raw: unknown): string | number {
+  if (raw == null) return ""
+  if (typeof raw === "number" && Number.isFinite(raw)) return raw
+  if (typeof raw === "string") return raw.trim()
+  return ""
+}
+
+function comboToSkuLookupKeys(combo: AeComboPiece[]): string[] {
+  const parts = combo.map(
+    (v) => `${String(v.propNameId).trim()}:${String(v.propId).trim()}`
+  )
+  return uniqStrings(
+    [
+      [...parts].sort().join(";"),
+      [...parts].sort().join(","),
+      parts.join(";"),
+      parts.join(","),
+    ],
+    16
+  )
+}
+
+function buildAeSkuPriceMap(
+  skuPriceList: Record<string, unknown>[],
+  fallbackPrice: number
+): Map<string, { price: number; stock: number }> {
+  const skuMap = new Map<string, { price: number; stock: number }>()
+  for (const sku of skuPriceList) {
+    const skuVal = asObjectRecord(sku.skuVal)
+    const act = asObjectRecord(skuVal?.skuActivityAmount)
+    const amt = asObjectRecord(skuVal?.skuAmount)
+    const price =
+      numUnknown(act?.value) || numUnknown(amt?.value) || fallbackPrice
+    const aq = skuVal?.availQuantity
+    const parsed =
+      typeof aq === "number"
+        ? aq
+        : parseInt(String(aq ?? ""), 10)
+    const stockN =
+      Number.isFinite(parsed) && parsed >= 0 ? Math.round(parsed) : 50
+
+    const row = {
+      price: price > 0 ? price : fallbackPrice,
+      stock: stockN,
+    }
+    for (const k of skuPropIdsLookupKeys(sku.skuPropIds)) {
+      if (k) skuMap.set(k, row)
+    }
+  }
+  return skuMap
+}
+
+function cartesianAeCombos(
+  propValues: AeComboPiece[][]
+): AeComboPiece[][] {
+  if (propValues.length === 0) return []
+  if (propValues.some((a) => a.length === 0)) return []
+  return propValues.reduce<AeComboPiece[][]>(
+    (acc, curr) =>
+      acc.length === 0
+        ? curr.map((v) => [v])
+        : acc.flatMap((a) => curr.map((b) => [...a, b])),
+    []
+  )
+}
+
 function mergeAliExpressRunParams(html: string, product: ScrapedProduct): void {
   const data = extractAliExpressRunParams(html)
   if (!data) return
@@ -318,6 +420,16 @@ function mergeAliExpressRunParams(html: string, product: ScrapedProduct): void {
   try {
     const fields = pickAeFields(data)
     if (!fields) return
+
+    const rootData = pickAeRootData(data)
+    const skuModule = rootData ? asObjectRecord(rootData.skuModule) : null
+    const skuPriceListRaw = skuModule?.skuPriceList
+    const skuPriceList = Array.isArray(skuPriceListRaw)
+      ? skuPriceListRaw.filter(
+          (x): x is Record<string, unknown> =>
+            Boolean(x) && typeof x === "object" && !Array.isArray(x)
+        )
+      : []
 
     const subject =
       typeof fields.subject === "string"
@@ -343,27 +455,50 @@ function mergeAliExpressRunParams(html: string, product: ScrapedProduct): void {
       product.description = bestDesc.trim()
 
     const priceBlock = fields.price as Record<string, unknown> | undefined
+    let rootSale = 0
+    let rootList = 0
     if (priceBlock && typeof priceBlock === "object") {
       const act = priceBlock.minActivityAmount as { value?: unknown } | undefined
       const sale = priceBlock.salePrice as { value?: unknown } | undefined
       const mn = priceBlock.minAmount as { value?: unknown } | undefined
       const mx = priceBlock.maxAmount as { value?: unknown } | undefined
 
-      const pSale =
+      rootSale =
         numUnknown(act?.value) ||
         numUnknown(sale?.value) ||
         numUnknown(mn?.value)
 
-      const pOrig = numUnknown(mx?.value)
+      rootList = numUnknown(mx?.value)
+    }
 
-      if (pSale > 0) {
-        product.price = pSale
-        if (!(pOrig > 0)) product.original_price = pSale
-        else product.original_price = Math.max(pOrig, pSale)
-      } else if (pOrig > 0) {
-        product.original_price = pOrig
-        product.price = pOrig
+    if (skuPriceList.length > 0) {
+      const prices = skuPriceList
+        .map((sku) => {
+          const skuVal = asObjectRecord(sku.skuVal)
+          const act = asObjectRecord(skuVal?.skuActivityAmount)
+          const amt = asObjectRecord(skuVal?.skuAmount)
+          return (
+            numUnknown(act?.value) ||
+            numUnknown(amt?.value) ||
+            0
+          )
+        })
+        .filter((p) => p > 0)
+      if (prices.length > 0) {
+        product.price = Math.min(...prices)
+        product.original_price = Math.max(...prices)
+        if (rootList > 0)
+          product.original_price = Math.max(product.original_price, rootList)
       }
+    }
+
+    if (!(product.price > 0) && rootSale > 0) {
+      product.price = rootSale
+      product.original_price = rootList > 0 ? Math.max(rootList, rootSale) : rootSale
+    } else if (!(product.original_price > 0) && rootList > 0) {
+      product.original_price = Math.max(rootList, product.price)
+    } else if (!(product.original_price > 0) && product.price > 0) {
+      product.original_price = product.price
     }
 
     const imgSrcs = fields.imagePathList ?? fields.images
@@ -477,85 +612,148 @@ function mergeAliExpressRunParams(html: string, product: ScrapedProduct): void {
           ? pidRaw.trim()
           : ""
 
-    const skuProps = fields.skuPropertyList
-    if (Array.isArray(skuProps)) {
-      product.variants = []
-      product.colors = []
-      product.sizes_objects = []
-      const sizeAcc: string[] = []
-      const basePrice =
-        typeof product.price === "number" && product.price > 0 ? product.price : 0
-      for (const prop of skuProps) {
-        if (!prop || typeof prop !== "object") continue
-        const typed = prop as {
-          skuPropertyName?: unknown
-          skuPropertyValues?: Array<Record<string, unknown>>
-        }
-        const propName =
-          typeof typed.skuPropertyName === "string"
-            ? typed.skuPropertyName.trim()
-            : ""
-        const pl = propName.toLowerCase()
+    const skuPropsRaw =
+      skuModule?.productSKUPropertyList ?? fields.skuPropertyList
+    const skuProps = Array.isArray(skuPropsRaw) ? skuPropsRaw : []
 
-        const values = typed.skuPropertyValues ?? []
+    const baseFallback =
+      typeof product.price === "number" && product.price > 0 ? product.price : rootSale
+
+    const skuMap = buildAeSkuPriceMap(skuPriceList, baseFallback)
+
+    product.variants = []
+    product.colors = []
+    product.sizes = []
+    product.sizes_objects = []
+    const sizeAcc: string[] = []
+
+    if (skuProps.length > 0) {
+      const propValues: AeComboPiece[][] = []
+
+      for (const prop of skuProps) {
+        if (!prop || typeof prop !== "object" || Array.isArray(prop)) continue
+        const p = prop as Record<string, unknown>
+        const propName =
+          typeof p.skuPropertyName === "string" ? p.skuPropertyName.trim() : ""
+        const propNameId = aeSkuScalarId(
+          p.skuPropertyId ?? p.skuPropertyIdLong ?? ""
+        )
+        const values = p.skuPropertyValues
+        if (!Array.isArray(values)) continue
+
+        const rowVals: AeComboPiece[] = []
         for (const val of values) {
+          if (!val || typeof val !== "object" || Array.isArray(val)) continue
+          const v = val as Record<string, unknown>
           const nameRaw =
-            (val.propertyValueDisplayName as string | undefined) ??
-            (val.propertyValueDefinitionName as string | undefined)
-          const displayName =
-            typeof nameRaw === "string" ? nameRaw.trim() : ""
+            (typeof v.propertyValueDisplayName === "string"
+              ? v.propertyValueDisplayName
+              : null) ??
+            (typeof v.propertyValueDefinitionName === "string"
+              ? v.propertyValueDefinitionName
+              : "")
+          const displayName = nameRaw.trim()
           if (!displayName) continue
-          const vid =
-            val.propertyValueId ??
-            val.variationId ??
-            val.definitionId ??
-            val.skuAttr
+          const propId = aeSkuScalarId(
+            v.propertyValueId ??
+              v.variationId ??
+              v.definitionId ??
+              v.skuAttr ??
+              ""
+          )
 
           let vimgRaw =
-            typeof val.skuPropertyImagePath === "string"
-              ? val.skuPropertyImagePath.trim().slice(0, 2000)
+            typeof v.skuPropertyImagePath === "string"
+              ? v.skuPropertyImagePath.trim().slice(0, 2000)
               : ""
           if (vimgRaw && !/^https?:/i.test(vimgRaw)) vimgRaw = `https:${vimgRaw}`
 
-          let lineSku: string | undefined
-          if (productId && vid != null && String(vid).length > 0)
-            lineSku = `${productId}-${String(vid)}`.slice(0, 120)
-
-          product.variants.push({
+          rowVals.push({
             name: displayName.slice(0, 200),
+            type: propName.slice(0, 120) || "Option",
             image: vimgRaw,
-            price: basePrice,
-            stock: 50,
-            type: propName || undefined,
-            sku: lineSku,
+            propId,
+            propNameId,
           })
+        }
+        if (rowVals.length > 0) propValues.push(rowVals)
+      }
 
-          if (
-            pl.includes("color") ||
-            pl.includes("colour") ||
-            pl.includes("couleur")
-          ) {
-            product.colors.push({
-              name: displayName.slice(0, 120),
-              hex: aeHexPlaceholder(),
-              image: vimgRaw,
-            })
+      const combinations = cartesianAeCombos(propValues)
+      const leadImg = product.images[0] ?? product.image ?? ""
+
+      for (const combo of combinations) {
+        let skuData: { price: number; stock: number } | undefined
+        for (const k of comboToSkuLookupKeys(combo)) {
+          const hit = skuMap.get(k)
+          if (hit) {
+            skuData = hit
+            break
+          }
+        }
+        if (!skuData)
+          skuData = {
+            price: product.price > 0 ? product.price : baseFallback,
+            stock: 50,
           }
 
+        const variantName = combo.map((v) => v.name).join(" - ")
+        const variantType = combo.map((v) => v.type).join(" / ")
+        const variantImage =
+          combo.find((v) => v.image.trim().length > 0)?.image ?? leadImg
+
+        const skuKeyForId = comboToSkuLookupKeys(combo)[0] ?? variantName
+        const skuSuffix = skuKeyForId.replace(/[:;,#]+/g, "-").slice(0, 100)
+
+        const attributes: Record<string, string> = {}
+        for (const v of combo) {
+          if (v.type) attributes[v.type] = v.name
+        }
+
+        product.variants.push({
+          name: variantName.slice(0, 240),
+          type: variantType.slice(0, 200),
+          image: variantImage,
+          price: skuData.price,
+          stock: skuData.stock,
+          sku: productId
+            ? `AE-${productId}-${skuSuffix}`.slice(0, 120)
+            : skuSuffix.slice(0, 120),
+          attributes,
+        })
+
+        for (const v of combo) {
+          const tl = v.type.toLowerCase()
           if (
-            pl.includes("size") ||
-            pl.includes("length") ||
-            pl.includes("capacity") ||
-            pl.includes("taille")
+            tl.includes("color") ||
+            tl.includes("colour") ||
+            tl.includes("couleur")
           ) {
-            sizeAcc.push(displayName)
-            product.sizes_objects.push({
-              name: displayName.slice(0, 160),
-              value: displayName.slice(0, 160),
-            })
+            if (!product.colors.some((c) => c.name === v.name)) {
+              product.colors.push({
+                name: v.name.slice(0, 120),
+                hex: aeHexPlaceholder(),
+                image: v.image,
+              })
+            }
+          }
+          if (
+            tl.includes("size") ||
+            tl.includes("length") ||
+            tl.includes("capacity") ||
+            tl.includes("taille")
+          ) {
+            if (!product.sizes_objects.some((s) => s.name === v.name)) {
+              product.sizes_objects.push({
+                name: v.name.slice(0, 160),
+                value: v.name.slice(0, 160),
+              })
+              sizeAcc.push(v.name)
+            }
           }
         }
       }
+
       product.sizes = uniqStrings(sizeAcc, 120)
 
       const seenColor = new Set<string>()
@@ -566,13 +764,33 @@ function mergeAliExpressRunParams(html: string, product: ScrapedProduct): void {
       })
       const seenSz = new Set<string>()
       product.sizes_objects = product.sizes_objects.filter((row) => {
-        const key = `${row.value}`
+        const key = row.value
         if (seenSz.has(key)) return false
         seenSz.add(key)
         return true
       })
-      if (productId && !product.sku) product.sku = `AE-${productId}`
     }
+
+    if (product.variants.length === 0) {
+      const fallbackStock =
+        stockN > 0
+          ? Math.min(Math.max(stockN, 1), 999_999)
+          : qtyBlock &&
+              typeof qtyBlock.totalAvailable === "number" &&
+              qtyBlock.totalAvailable > 0
+            ? Math.min(Math.max(qtyBlock.totalAvailable, 1), 999_999)
+            : 999
+      product.variants.push({
+        name: "Default",
+        type: "Default",
+        image: product.images[0] ?? "",
+        price: product.price > 0 ? product.price : rootSale,
+        stock: fallbackStock,
+        sku: productId ? `AE-${productId}` : "",
+      })
+    }
+
+    if (productId && !product.sku) product.sku = `AE-${productId}`
   } catch {
     /* ignore malformed runParams */
   }

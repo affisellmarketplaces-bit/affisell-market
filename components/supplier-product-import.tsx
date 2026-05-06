@@ -12,6 +12,7 @@ export type ImportedVariantDraft = {
   stock: number
   type?: string
   sku?: string
+  attributes?: Record<string, string>
 }
 
 export type ImportedColorDraft = {
@@ -127,6 +128,15 @@ function normalizeImportPreviewRow(raw: Record<string, unknown>): ImportPreviewR
         if (vtRaw) line.type = vtRaw
         const sku = typeof v.sku === "string" ? v.sku.trim().slice(0, 120) : ""
         if (sku) line.sku = sku
+        if (v.attributes && typeof v.attributes === "object" && !Array.isArray(v.attributes)) {
+          const attrs: Record<string, string> = {}
+          for (const [k, val] of Object.entries(v.attributes as Record<string, unknown>)) {
+            if (!k.trim()) continue
+            if (typeof val === "string" && val.trim())
+              attrs[k.trim().slice(0, 80)] = val.trim().slice(0, 200)
+          }
+          if (Object.keys(attrs).length > 0) line.attributes = attrs
+        }
         return line
       })
       .filter((x): x is ImportedVariantDraft => x !== null)
