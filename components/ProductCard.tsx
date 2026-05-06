@@ -33,7 +33,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <div className="group">
-      <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-[#F5F5F5]">
+      <div className="relative aspect-square w-full rounded-2xl bg-[#F5F5F5] overflow-hidden">
         {hasDiscount ? (
           <div className="absolute left-3 top-3 z-10 rounded-full bg-red-500 px-3 py-1.5 text-xs font-black text-white">
             SAVE {discount}%
@@ -49,7 +49,7 @@ export function ProductCard({ product }: ProductCardProps) {
         <img
           src={product.image?.trim() || "/placeholder.png"}
           alt={product.title}
-          className="absolute inset-0 h-full w-full object-contain p-4 transition-transform duration-300 group-hover:scale-105"
+          className="absolute inset-0 w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-300"
           loading="lazy"
           onError={(e) => {
             e.currentTarget.src = "/placeholder.png"
