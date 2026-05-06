@@ -16,6 +16,7 @@ import { AffiliateCommissionCard } from "@/components/affiliate-commission-card"
 import { addGuestCartItem } from "@/lib/guest-cart"
 import type { ProductColorImageRow } from "@/lib/product-color-images"
 import type { ProductVariantsJson } from "@/lib/product-variants"
+import { useUserRole } from "@/hooks/useUserRole"
 
 type StorefrontInfo = {
   name: string
@@ -93,6 +94,8 @@ export function MarketplaceListingDetail({
   reviews,
 }: Props) {
   const router = useRouter()
+  const role = useUserRole()
+  const isBuyer = role === "buyer"
   const urls = gallery
   const safeUrls = urls.length > 0 ? urls : ["/placeholder.png"]
   const v = variants ?? {}
@@ -428,10 +431,10 @@ export function MarketplaceListingDetail({
 
           <div className="mt-4 text-3xl font-bold text-green-600">{priceDisplay}</div>
 
-          {variantRows.length > 0 ? (
-            <div className="mt-4 space-y-3">
+          {!isBuyer && variantRows.length > 0 ? (
+            <div className="affiliate-section mt-4 space-y-3">
               <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                Affiliate earnings by option
+                AFFILIATE EARNINGS BY OPTION
               </p>
               {variantRows.map((row) => (
                 <AffiliateCommissionCard key={row.id} variant={row} basePriceEur={listingPriceEur} />
@@ -471,24 +474,41 @@ export function MarketplaceListingDetail({
             )}
           </p>
 
-          <div className="mt-6 space-y-3">
-            <button
-              type="button"
-              disabled={cartBusy}
-              onClick={() => void addToCart(listingId)}
-              className="w-full rounded-xl bg-black py-3 font-medium text-white hover:bg-gray-800 disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
-            >
-              {cartBusy ? "Adding…" : "Add to Cart"}
-            </button>
-            <button
-              type="button"
-              disabled={buyBusy}
-              onClick={() => void buyNow(listingId)}
-              className="w-full rounded-xl bg-green-600 py-3 font-medium text-white hover:bg-green-700 disabled:opacity-60"
-            >
-              {buyBusy ? "Redirecting…" : `Buy Now - ${priceDisplay}`}
-            </button>
-          </div>
+          {isBuyer ? (
+            <div className="mt-6 space-y-3">
+              <button
+                type="button"
+                disabled={cartBusy}
+                onClick={() => void addToCart(listingId)}
+                className="w-full rounded-xl bg-black py-3 font-medium text-white hover:bg-gray-800 disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
+              >
+                {cartBusy ? "Adding…" : "Add to Cart"}
+              </button>
+              <button
+                type="button"
+                disabled={buyBusy}
+                onClick={() => void buyNow(listingId)}
+                className="w-full rounded-xl bg-green-600 py-3 font-medium text-white hover:bg-green-700 disabled:opacity-60"
+              >
+                {buyBusy ? "Redirecting…" : `Buy Now - ${priceDisplay}`}
+              </button>
+            </div>
+          ) : (
+            <div className="mt-6 space-y-3">
+              <Link
+                href={`/affiliate/products/new?listing=${listingId}`}
+                className="block w-full rounded-xl border border-zinc-300 py-3 text-center font-medium text-zinc-800 hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-100 dark:hover:bg-zinc-900"
+              >
+                Promote
+              </Link>
+              <Link
+                href={`/dashboard/supplier/products/new?edit=${listingId}`}
+                className="block w-full rounded-xl bg-zinc-900 py-3 text-center font-medium text-white hover:bg-black dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
+              >
+                Edit
+              </Link>
+            </div>
+          )}
         </div>
       </div>
 
