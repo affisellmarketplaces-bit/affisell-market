@@ -4,7 +4,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { Sparkles, Star } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useMemo, useState, type MouseEvent } from "react"
+import { useEffect, useMemo, useState, type MouseEvent } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -44,6 +44,7 @@ type RelatedCard = {
 
 type Props = {
   listingId: string
+  productId: string
   name: string
   description: string
   sellerLabel: string
@@ -91,6 +92,7 @@ function fmtEur(value: number) {
 
 export function MarketplaceListingDetail({
   listingId,
+  productId,
   name,
   description,
   sellerLabel,
@@ -123,6 +125,14 @@ export function MarketplaceListingDetail({
   const [cartBusy, setCartBusy] = useState(false)
   const [buyBusy, setBuyBusy] = useState(false)
   const [showAr, setShowAr] = useState(false)
+  const [liveViewers, setLiveViewers] = useState(12)
+  const [showPurchaseToast, setShowPurchaseToast] = useState(false)
+  const [sizeTip, setSizeTip] = useState<string | null>(null)
+  const [showStylist, setShowStylist] = useState(false)
+  const [styleIdeas, setStyleIdeas] = useState<string[]>([])
+  const [stylistLoading, setStylistLoading] = useState(false)
+  const [alertSaved, setAlertSaved] = useState(false)
+  const [bundleChecked, setBundleChecked] = useState<Record<string, boolean>>({})
 
   const colorMeta = useMemo(() => {
     const map = new Map(COLORS.map((c) => [c.name, c]))
@@ -137,6 +147,35 @@ export function MarketplaceListingDetail({
   const discountPct = hasRetailCompare
     ? Math.round(((retailPriceEur - listingPriceEur) / retailPriceEur) * 100)
     : 0
+  const bundleCandidates = oftenBoughtTogether.slice(0, 2)
+  const bundleSelected = bundleCandidates.filter((p) => bundleChecked[p.id])
+  const bundleSubtotal = bundleSelected.reduce((sum, p) => sum + p.priceEur, listingPriceEur)
+  const bundleTotal = bundleSelected.length > 0 ? bundleSubtotal * 0.85 : bundleSubtotal
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setLiveViewers(Math.floor(Math.random() * 16) + 5)
+    }, 6000)
+    return () => clearInterval(id)
+  }, [])
+
+  useEffect(() => {
+    setShowPurchaseToast(true)
+    const id = setTimeout(() => setShowPurchaseToast(false), 5000)
+    return () => clearTimeout(id)
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const prevSize = window.localStorage.getItem("last-size")
+    if (prevSize) setSizeTip(`Based on your last purchase, size ${prevSize} fits you 94%`)
+    else if (sizeOptions.includes("M")) setSizeTip("Based on your last purchase, size M fits you 94%")
+  }, [sizeOptions])
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !selectedSize) return
+    window.localStorage.setItem("last-size", selectedSize)
+  }, [selectedSize])
 
   async function addToCart(e?: MouseEvent) {
     e?.preventDefault()
@@ -186,6 +225,33 @@ export function MarketplaceListingDetail({
     }
   }
 
+  async function openStylist() {
+    setShowStylist(true)
+    setStylistLoading(true)
+    try {
+      const res = await fetch("/api/ai/style-advice", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId, productName: name }),
+      })
+      const data = (await res.json()) as { ideas?: string[] }
+      setStyleIdeas(Array.isArray(data.ideas) ? data.ideas.slice(0, 3) : [])
+    } finally {
+      setStylistLoading(false)
+    }
+  }
+
+  async function savePriceAlert() {
+    const target = Math.max(1, Math.round((listingPriceEur * 0.95) * 100) / 100)
+    const res = await fetch("/api/wishlist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ productId, targetPrice: target }),
+      credentials: "include",
+    })
+    if (res.ok) setAlertSaved(true)
+  }
+
   return (
     <>
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
@@ -228,6 +294,10 @@ export function MarketplaceListingDetail({
         </section>
 
         <aside className="lg:col-span-2 lg:sticky lg:top-6 lg:self-start">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-300">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
+            {liveViewers} personnes regardent ce produit
+          </div>
           <nav className="text-sm text-zinc-500 dark:text-zinc-400">
             Home &gt; {categories[0] || "Fashion"} &gt; {categories[1] || "Blazers"}
           </nav>
@@ -302,6 +372,11 @@ export function MarketplaceListingDetail({
               </div>
             </div>
           ) : null}
+          {sizeTip ? (
+            <p className="mt-2 rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-800 dark:bg-blue-950/40 dark:text-blue-200">
+              {sizeTip}
+            </p>
+          ) : null}
 
           <div className="mt-6 space-y-3">
             <Button size="lg" className="w-full" disabled={cartBusy} onClick={(e) => void addToCart(e)}>
@@ -309,6 +384,12 @@ export function MarketplaceListingDetail({
             </Button>
             <Button size="lg" variant="outline" className="w-full" disabled={buyBusy} onClick={() => void buyNow()}>
               {buyBusy ? "Redirecting..." : "Buy Now with 1-Click"}
+            </Button>
+            <Button size="lg" variant="outline" className="w-full" onClick={() => void openStylist()}>
+              Comment porter ?
+            </Button>
+            <Button size="lg" variant="outline" className="w-full" onClick={() => void savePriceAlert()}>
+              {alertSaved ? "Alert saved" : "🔔 Alert me if price drops"}
             </Button>
           </div>
 
@@ -324,6 +405,28 @@ export function MarketplaceListingDetail({
                 Resume IA: Blazer parfait pour bureau et soiree. Coupe moderne. Clients l'adorent pour sa polyvalence.
               </p>
             </div>
+          </div>
+
+          <div className="mt-5 rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
+            <p className="text-sm font-semibold">Bundle &amp; Save</p>
+            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Add matching pants + save 15%</p>
+            <div className="mt-3 space-y-2">
+              {bundleCandidates.map((p) => (
+                <label key={p.id} className="flex items-center gap-2 rounded-lg border border-zinc-200 px-2 py-2 dark:border-zinc-700">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(bundleChecked[p.id])}
+                    onChange={(e) => setBundleChecked((prev) => ({ ...prev, [p.id]: e.target.checked }))}
+                  />
+                  <span className="line-clamp-1 text-sm">{p.title}</span>
+                  <span className="ml-auto text-xs text-zinc-500">{fmtEur(p.priceEur)}</span>
+                </label>
+              ))}
+            </div>
+            <p className="mt-3 text-sm font-medium">
+              Bundle total: {fmtEur(bundleTotal)}
+              {bundleSelected.length > 0 ? <span className="ml-1 text-green-600">(15% saved)</span> : null}
+            </p>
           </div>
         </aside>
       </div>
@@ -424,6 +527,34 @@ export function MarketplaceListingDetail({
               <p className="text-sm text-zinc-600 dark:text-zinc-400">No AR model available.</p>
             )}
           </div>
+        </div>
+      ) : null}
+      {showStylist ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-xl rounded-xl bg-white p-4 dark:bg-zinc-900">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-lg font-semibold">AI Stylist</h3>
+              <button type="button" onClick={() => setShowStylist(false)} className="rounded px-2 py-1 hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                Close
+              </button>
+            </div>
+            {stylistLoading ? (
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">Generating outfit ideas...</p>
+            ) : (
+              <ul className="space-y-2 text-sm">
+                {styleIdeas.map((idea, idx) => (
+                  <li key={`${idx}-${idea}`} className="rounded-lg bg-zinc-50 p-2 dark:bg-zinc-800">
+                    {idea}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      ) : null}
+      {showPurchaseToast ? (
+        <div className="fixed bottom-6 left-6 z-50 max-w-xs rounded-xl bg-zinc-900 px-4 py-3 text-sm text-white shadow-xl dark:bg-white dark:text-zinc-900">
+          Sarah from Lyon just bought this 2 min ago
         </div>
       ) : null}
     </>

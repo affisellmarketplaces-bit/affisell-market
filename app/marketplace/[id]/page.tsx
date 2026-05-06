@@ -174,6 +174,7 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
     <main className="mx-auto max-w-6xl px-4 py-10 md:px-8">
       <MarketplaceListingDetail
         listingId={listing.id}
+        productId={listing.product.id}
         name={listingDisplayTitle(listing.customTitle, listing.product.name)}
         description={listingDisplayDescription(
           listing.customDescription,
