@@ -77,7 +77,7 @@ export function PremiumMarketplaceCard({
           }}
           className="absolute bottom-2 left-2 right-2 z-20 rounded-xl bg-white py-2.5 text-sm font-medium text-black opacity-0 shadow-lg transition-opacity hover:bg-zinc-100 group-hover:opacity-100"
         >
-          Ajout rapide
+          Quick add
         </button>
       </div>
 

@@ -1,6 +1,7 @@
 import Link from "next/link"
 
 import { SmartFilters } from "@/components/marketplace/SmartFilters"
+import messages from "@/messages/en.json"
 import { AFFISELL_CATEGORIES } from "@/lib/affisell-categories"
 
 export type MarketplaceFilterParams = {
@@ -39,36 +40,37 @@ function chipClass(active: boolean) {
 
 export function MarketplaceFilterSidebar({ current }: { current: MarketplaceFilterParams }) {
   const c = current
+  const t = messages.Filters
 
   return (
     <aside className="w-full shrink-0 space-y-6 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900 lg:w-56">
-      <FilterGroup title="Smart Filters">
+      <FilterGroup title={t.smartFilters}>
         <SmartFilters
           items={[
             {
               id: "trending",
-              label: "Trending Now",
+              label: t.trendingNow,
               icon: "🔥",
               href: href({ ...c, delivery: c.delivery === "under3" ? undefined : "under3" }),
               active: c.delivery === "under3",
             },
             {
               id: "ships24h",
-              label: "Ships in 24h",
+              label: t.ships24h,
               icon: "⚡",
               href: href({ ...c, shipsFrom: c.shipsFrom === "fr" ? undefined : "fr" }),
               active: c.shipsFrom === "fr",
             },
             {
               id: "under100",
-              label: "Under €100",
+              label: t.under100,
               icon: "💎",
               href: href({ ...c }),
               active: false,
             },
             {
               id: "topRated",
-              label: "Top Rated 4.5+",
+              label: t.topRated45,
               icon: "⭐",
               href: href({ ...c }),
               active: false,
@@ -78,7 +80,7 @@ export function MarketplaceFilterSidebar({ current }: { current: MarketplaceFilt
       </FilterGroup>
 
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Category</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{t.category}</p>
         <div className="mt-2 max-h-64 space-y-1 overflow-y-auto pr-1">
           {AFFISELL_CATEGORIES.map((cat) => {
             const isAll = cat === "All Departments"
@@ -97,7 +99,7 @@ export function MarketplaceFilterSidebar({ current }: { current: MarketplaceFilt
                     : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
                 }`}
               >
-                {cat}
+              {cat === "All Departments" ? t.allDepartments : cat}
               </Link>
             )
           })}
@@ -122,8 +124,8 @@ export function MarketplaceFilterSidebar({ current }: { current: MarketplaceFilt
       <FilterGroup title="Price">
         <input type="range" min={0} max={500} defaultValue={250} className="w-full accent-violet-600" />
         <div className="flex justify-between text-xs text-zinc-500">
-          <span>€0</span>
-          <span>€500</span>
+          <span>$0</span>
+          <span>$500</span>
         </div>
       </FilterGroup>
 

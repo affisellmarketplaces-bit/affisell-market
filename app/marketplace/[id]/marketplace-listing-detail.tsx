@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation"
 import { useEffect, useMemo, useState, type MouseEvent } from "react"
 
 import { Button } from "@/components/ui/button"
+import messages from "@/messages/en.json"
 import {
   COLORS,
   VARIANT_GROUP_LABELS,
@@ -88,7 +89,15 @@ type Props = {
 const VARIANT_KEYS: VariantGroupKey[] = ["size", "storage", "ram", "material"]
 
 function fmtEur(value: number) {
-  return value.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })
+  return value.toLocaleString("en-US", { style: "currency", currency: "USD" })
+}
+
+function t(template: string, vars?: Record<string, string | number>) {
+  if (!vars) return template
+  return Object.entries(vars).reduce(
+    (acc, [key, value]) => acc.replaceAll(`{${key}}`, String(value)),
+    template
+  )
 }
 
 export function MarketplaceListingDetail({
@@ -115,6 +124,8 @@ export function MarketplaceListingDetail({
   ratingBreakdown,
   reviews,
 }: Props) {
+  const productT = messages.Product
+  const breadcrumbT = messages.Breadcrumb
   const router = useRouter()
   const images = gallery.length > 0 ? gallery : ["/placeholder.png"]
   const v = variants ?? {}
@@ -128,7 +139,9 @@ export function MarketplaceListingDetail({
   const [showAr, setShowAr] = useState(false)
   const [liveViewers, setLiveViewers] = useState(12)
   const [showPurchaseToast, setShowPurchaseToast] = useState(false)
-  const [purchaseToastText, setPurchaseToastText] = useState("Sarah from Lyon just bought this 2 min ago")
+  const [purchaseToastText, setPurchaseToastText] = useState(
+    "Sarah from Lyon just bought this 2 min ago"
+  )
   const [sizeTip, setSizeTip] = useState<string | null>(null)
   const [showStylist, setShowStylist] = useState(false)
   const [styleIdeas, setStyleIdeas] = useState<string[]>([])
@@ -288,7 +301,7 @@ export function MarketplaceListingDetail({
             />
             {has3D ? (
               <span className="absolute left-3 top-3 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 px-3 py-1 text-xs font-semibold text-white">
-                360° View
+                {productT.view360}
               </span>
             ) : null}
           </div>
@@ -316,7 +329,7 @@ export function MarketplaceListingDetail({
               className="mt-3 border-slate-300 text-slate-900 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95"
               onClick={() => setShowAr(true)}
             >
-              Voir en AR
+              {productT.viewInAR}
             </Button>
           ) : null}
         </section>
@@ -324,19 +337,20 @@ export function MarketplaceListingDetail({
         <aside className="lg:col-span-2 lg:sticky lg:top-6 lg:self-start">
           <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-300">
             <span className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
-            {liveViewers} personnes regardent ce produit
+            {t(productT.liveViewers, { count: liveViewers })}
           </div>
           <nav className="text-sm text-zinc-500 dark:text-zinc-400">
-            Home &gt; {categories[0] || "Fashion"} &gt; {categories[1] || "Blazers"}
+            {breadcrumbT.home} &gt; {categories[0] || breadcrumbT.fashion} &gt;{" "}
+            {categories[1] || breadcrumbT.blazers}
           </nav>
           <h1 className="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">{name}</h1>
 
           <div className="mt-2 flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
             <span className="text-yellow-500">★★★</span>
             <span>{reviewSummary.average.toFixed(1)}</span>
-            <span>({reviewSummary.count.toLocaleString("fr-FR")} avis)</span>
+            <span>{t(productT.reviews, { count: reviewSummary.count.toLocaleString("en-US") })}</span>
             <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
-              Top rated
+              {productT.topVentes}
             </span>
           </div>
 
@@ -351,7 +365,7 @@ export function MarketplaceListingDetail({
 
           {stock <= 5 ? (
             <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1 font-medium text-amber-700">
-              Only {Math.max(1, stock)} left in stock - order soon
+              {t(productT.onlyLeft, { count: Math.max(1, stock) })}
             </p>
           ) : null}
 
@@ -413,7 +427,7 @@ export function MarketplaceListingDetail({
               disabled={cartBusy}
               onClick={(e) => void addToCart(e)}
             >
-              {cartBusy ? "Adding..." : "Add to Cart"}
+              {cartBusy ? "Adding..." : productT.addToCart}
             </Button>
             <Button
               size="lg"
@@ -422,7 +436,7 @@ export function MarketplaceListingDetail({
               disabled={buyBusy}
               onClick={() => void buyNow()}
             >
-              {buyBusy ? "Redirecting..." : "Buy Now with 1-Click"}
+              {buyBusy ? "Redirecting..." : productT.buyNowOneClick}
             </Button>
             <Button
               size="lg"
@@ -431,7 +445,7 @@ export function MarketplaceListingDetail({
               onClick={() => void openStylist()}
             >
               <Sparkles className="mr-2 h-4 w-4" />
-              Comment porter ?
+              {productT.howToWear}
             </Button>
             <Button
               size="lg"
@@ -439,20 +453,31 @@ export function MarketplaceListingDetail({
               className="w-full text-slate-700 transition-all hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95"
               onClick={() => void savePriceAlert()}
             >
-              {alertSaved ? "Alert saved" : "🔔 Alert me if price drops"}
+              {alertSaved ? "Alert saved" : productT.alertPriceDrop}
             </Button>
           </div>
 
           <div className="mt-4 grid grid-cols-1 gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-            <p>✓ Livraison 48h ✓ Retour 30j ✓ Paiement securise</p>
-            <p>Livraison a Aix-en-Provence : Mercredi 8 Mai</p>
+            <p>
+              ✓ {productT.delivery48h} ✓ {productT.return30d} ✓ {productT.securePayment}
+            </p>
+            <p>
+              {t(productT.deliveryTo, {
+                city: "Aix-en-Provence",
+                date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                }),
+              })}
+            </p>
           </div>
 
           <div className="mt-4 rounded-xl border bg-gradient-to-r from-purple-50 to-pink-50 p-3 dark:border-zinc-700 dark:from-purple-950/40 dark:to-pink-950/40">
             <div className="flex items-start gap-2">
               <Sparkles className="mt-0.5 h-4 w-4 shrink-0" />
               <p className="text-sm">
-                Resume IA: Blazer parfait pour bureau et soiree. Coupe moderne. Clients l'adorent pour sa polyvalence.
+                {productT.aiSummary}: Perfect blazer for office and evening. Modern cut. Customers love its versatility.
               </p>
             </div>
           </div>
@@ -488,6 +513,9 @@ export function MarketplaceListingDetail({
               ) : null}
             </motion.p>
           </div>
+          <p className="mt-3 text-sm text-zinc-500">
+            {t(productT.byStore, { store: sellerLabel })}
+          </p>
         </aside>
       </div>
 
@@ -499,24 +527,24 @@ export function MarketplaceListingDetail({
         <details className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
           <summary className="cursor-pointer font-semibold">Specs</summary>
           <ul className="mt-2 text-sm text-zinc-700 dark:text-zinc-300">
-            <li>Marque: {sellerLabel}</li>
-            <li>Couleurs: {colorNames.length || "N/A"}</li>
-            <li>Note moyenne: {reviewSummary.average.toFixed(1)} / 5</li>
+            <li>Brand: {sellerLabel}</li>
+            <li>Colors: {colorNames.length || "N/A"}</li>
+            <li>Average rating: {reviewSummary.average.toFixed(1)} / 5</li>
           </ul>
         </details>
         <details className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
-          <summary className="cursor-pointer font-semibold">Livraison</summary>
+          <summary className="cursor-pointer font-semibold">Shipping</summary>
           <p className="mt-2 text-sm text-zinc-700 dark:text-zinc-300">
-            Livraison {shipping.deliveryMin}-{shipping.deliveryMax} jours ouvrables. Traitement en{" "}
-            {shipping.processingTime} jour(s).
+            Delivery {shipping.deliveryMin}-{shipping.deliveryMax} business days. Processing in{" "}
+            {shipping.processingTime} day(s).
           </p>
         </details>
         <details className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
-          <summary className="cursor-pointer font-semibold">Avis</summary>
+          <summary className="cursor-pointer font-semibold">Reviews</summary>
           <div className="mt-2 text-sm text-zinc-700 dark:text-zinc-300">
             <p className="mb-2">
               <Star className="mr-1 inline h-4 w-4 fill-yellow-400 text-yellow-400" />
-              {reviewSummary.average.toFixed(1)} ({reviewSummary.count.toLocaleString("fr-FR")} avis)
+              {reviewSummary.average.toFixed(1)} ({reviewSummary.count.toLocaleString("en-US")} reviews)
             </p>
             <p>5★: {ratingBreakdown[5] ?? 0} · 4★: {ratingBreakdown[4] ?? 0} · 3★: {ratingBreakdown[3] ?? 0}</p>
             {reviews.slice(0, 3).map((r) => (
@@ -529,7 +557,7 @@ export function MarketplaceListingDetail({
       </section>
 
       <section className="mt-10">
-        <h2 className="text-xl font-bold">Souvent achetes ensemble</h2>
+        <h2 className="text-xl font-bold">Frequently bought together</h2>
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
           {oftenBoughtTogether.slice(0, 3).map((p) => (
             <Link key={p.id} href={p.href} className="rounded-xl border border-zinc-200 p-3 transition-all duration-300 hover:-translate-y-1 hover:bg-zinc-50 hover:shadow-2xl dark:border-zinc-700 dark:hover:bg-zinc-900">
@@ -545,7 +573,7 @@ export function MarketplaceListingDetail({
       </section>
 
       <section className="mt-10">
-        <h2 className="text-xl font-bold">Les clients ont aussi regarde</h2>
+        <h2 className="text-xl font-bold">Customers also viewed</h2>
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
           {alsoViewed.slice(0, 3).map((p) => (
             <Link key={p.id} href={p.href} className="rounded-xl border border-zinc-200 p-3 transition-all duration-300 hover:-translate-y-1 hover:bg-zinc-50 hover:shadow-2xl dark:border-zinc-700 dark:hover:bg-zinc-900">

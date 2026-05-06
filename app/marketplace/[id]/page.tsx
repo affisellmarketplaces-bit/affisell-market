@@ -53,7 +53,7 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
 
   const priceDisplay = (listing.sellingPriceCents / 100).toLocaleString("en-US", {
     style: "currency",
-    currency: "EUR",
+    currency: "USD",
   })
 
   const p = listing.product

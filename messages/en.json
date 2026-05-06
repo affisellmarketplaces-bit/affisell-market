@@ -125,5 +125,38 @@
     "title": "Checkout cancelled",
     "body": "No charge was made. You can return to browse listings.",
     "backMarketplace": "Marketplace"
+  },
+  "Product": {
+    "view360": "360° View",
+    "premium": "Premium",
+    "addToCart": "Add to Cart",
+    "buyNowOneClick": "Buy Now with 1-Click",
+    "howToWear": "How to style",
+    "alertPriceDrop": "Alert me if price drops",
+    "topVentes": "Top rated",
+    "liveViewers": "{count} people are viewing this",
+    "onlyLeft": "Only {count} left in stock",
+    "delivery48h": "2-day delivery",
+    "return30d": "30-day returns",
+    "securePayment": "Secure payment",
+    "deliveryTo": "Delivery to {city}: {date}",
+    "aiSummary": "AI Summary",
+    "reviews": "{count} reviews",
+    "byStore": "by {store}",
+    "viewInAR": "View in AR"
+  },
+  "Filters": {
+    "smartFilters": "Smart Filters",
+    "trendingNow": "Trending Now",
+    "ships24h": "Ships in 24h",
+    "under100": "Under $100",
+    "topRated45": "Top Rated 4.5+",
+    "category": "Category",
+    "allDepartments": "All Departments"
+  },
+  "Breadcrumb": {
+    "home": "Home",
+    "fashion": "Fashion",
+    "blazers": "Blazers"
   }
 }

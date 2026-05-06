@@ -129,14 +129,14 @@ export default async function MarketplacePage({
                       name={item.product.name}
                       priceDisplay={(item.sellingPriceCents / 100).toLocaleString("en-US", {
                         style: "currency",
-                        currency: "EUR",
+                        currency: "USD",
                       })}
                       priceValue={item.sellingPriceCents / 100}
                       showPremiumBadge={premiumListingIds.has(item.id)}
                       sellerDisplay={
                         item.affiliate?.store?.name ??
                         item.affiliate?.name?.trim() ??
-                        "Boutique vérifiée"
+                        "Verified Store"
                       }
                     />
                   </li>

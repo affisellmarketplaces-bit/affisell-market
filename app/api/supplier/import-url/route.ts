@@ -207,6 +207,10 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    if (platform === "aliexpress" || url.toLowerCase().includes("mango")) {
+      product.title = await translateTitleToEnglish(product.title)
+    }
+
     product.quality_score = calculateQualityScore(product)
     product.seo_keywords = generateSEO(product.title, product.category)
     product.is_duplicate = await checkDuplicate(product.title, product.images[0] ?? "")
@@ -633,5 +637,37 @@ async function rewriteWithAI(text: string): Promise<string> {
     return payload.choices?.[0]?.message?.content?.trim() || text
   } catch {
     return text
+  }
+}
+
+async function translateTitleToEnglish(scrapedTitle: string): Promise<string> {
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey || !scrapedTitle.trim()) return scrapedTitle
+  try {
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "user",
+            content: `Translate to English commercial product title, max 60 chars, remove country names: "${scrapedTitle}"`,
+          },
+        ],
+        temperature: 0.2,
+      }),
+      signal: AbortSignal.timeout(20000),
+    })
+    if (!res.ok) return scrapedTitle
+    const payload = (await res.json()) as {
+      choices?: Array<{ message?: { content?: string } }>
+    }
+    return payload.choices?.[0]?.message?.content?.trim() || scrapedTitle
+  } catch {
+    return scrapedTitle
   }
 }
