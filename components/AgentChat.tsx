@@ -459,7 +459,7 @@ export function AgentChat() {
                 disabled={busy || visionBusy || listening}
                 className="h-12 w-12 rounded-2xl bg-white/10 text-lg text-zinc-200 transition hover:bg-white/20 disabled:opacity-50"
                 aria-label="Recherche visuelle"
-                title="Ajouter une photo"
+                title="Add a photo"
               >
                 📷
               </button>

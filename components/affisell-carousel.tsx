@@ -142,7 +142,7 @@ export function AffisellCarousel({
             href={voirPlusHref}
             className="shrink-0 text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline"
           >
-            Voir plus
+            See more
           </Link>
         </div>
         <div className="relative min-h-0 flex-1">
@@ -150,7 +150,7 @@ export function AffisellCarousel({
             <>
               <button
                 type="button"
-                aria-label="Précédent"
+                aria-label="Previous"
                 onClick={() => go(-1)}
                 disabled={!canPrev}
                 className={cn(
@@ -162,7 +162,7 @@ export function AffisellCarousel({
               </button>
               <button
                 type="button"
-                aria-label="Suivant"
+                aria-label="Next"
                 onClick={() => go(1)}
                 disabled={!canNext}
                 className={cn(

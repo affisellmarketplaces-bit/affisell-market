@@ -28,7 +28,7 @@ export type ProductCardProps = {
   amazonBadge?: ProductCardBadge
   /** Show Prime line instead of free delivery tomorrow */
   isPrime?: boolean
-  /** When true and not Prime: "Livraison GRATUITE demain" */
+  /** When true and not Prime: show fast delivery hint */
   freeDeliveryTomorrow?: boolean
   secondaryImageUrl?: string | null
   previewVideoUrl?: string | null
@@ -44,10 +44,10 @@ export type ProductCardProps = {
   isFavorite?: boolean
 }
 
-function formatEur(value: number) {
-  return value.toLocaleString("fr-FR", {
+function formatUsd(value: number) {
+  return value.toLocaleString("en-US", {
     style: "currency",
-    currency: "EUR",
+    currency: "USD",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })
@@ -230,10 +230,10 @@ export function ProductCard({
           </div>
 
           <div className="flex items-baseline gap-2">
-            <span className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{formatEur(price)}</span>
+            <span className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{formatUsd(price)}</span>
             {compare != null && compare > price ? (
               <span className="text-sm text-zinc-500 line-through dark:text-zinc-400">
-                {formatEur(compare)}
+                {formatUsd(compare)}
               </span>
             ) : null}
           </div>

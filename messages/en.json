@@ -158,5 +158,20 @@
     "home": "Home",
     "fashion": "Fashion",
     "blazers": "Blazers"
+  },
+  "AI": {
+    "pickedForYou": "Picked for you by Affisell AI",
+    "trending": "Trending",
+    "views": "{count} views",
+    "add": "Add",
+    "whyRecommended": "Why recommended? Affisell AI selection based on trends and your activity.",
+    "offerEndsIn": "Offer ends in {time}"
+  },
+  "ProductCommon": {
+    "addToCart": "Add to Cart",
+    "buyNow": "Buy Now",
+    "delivery": "Delivery {days} days",
+    "premium": "Premium",
+    "topRated": "Top rated"
   }
 }

@@ -57,7 +57,7 @@ export function WishlistHeart({ productId, className }: Props) {
     <div className={className}>
       <button
         type="button"
-        aria-label={wished ? "Retirer de la wishlist" : "Ajouter à la wishlist"}
+        aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
         onClick={(e) => {
           e.preventDefault()
           e.stopPropagation()
@@ -74,7 +74,7 @@ export function WishlistHeart({ productId, className }: Props) {
       </button>
       {wished && dropPercent > 0 ? (
         <p className="mt-1 rounded bg-emerald-600/90 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-          🔔 -{dropPercent}% depuis hier
+          🔔 -{dropPercent}% since yesterday
         </p>
       ) : null}
     </div>

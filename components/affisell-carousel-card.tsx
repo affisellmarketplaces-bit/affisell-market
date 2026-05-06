@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 import { useCallback, useEffect, useRef, useState } from "react"
 
 import { trackAffisellEvent } from "@/lib/affisell-track-client"
@@ -22,6 +23,8 @@ export function AffisellCarouselCard({
   endAtMs,
   recommendationQuery,
 }: Props) {
+  const tAI = useTranslations("AI")
+  const tProduct = useTranslations("ProductCommon")
   const [now, setNow] = useState(() => Date.now())
   const hoverStart = useRef<number | null>(null)
   const hoverSent = useRef(false)
@@ -90,30 +93,30 @@ export function AffisellCarouselCard({
   const h = Math.floor(leftMs / 3_600_000)
   const m = Math.floor((leftMs % 3_600_000) / 60_000)
 
-  const priceEur = (item.priceCents / 100).toLocaleString("fr-FR", {
+  const priceEur = (item.priceCents / 100).toLocaleString("en-US", {
     style: "currency",
-    currency: "EUR",
+    currency: "USD",
   })
   const oldEur =
     item.compareAtCents != null && item.compareAtCents > item.priceCents
-      ? (item.compareAtCents / 100).toLocaleString("fr-FR", {
+      ? (item.compareAtCents / 100).toLocaleString("en-US", {
           style: "currency",
-          currency: "EUR",
+          currency: "USD",
         })
       : null
 
   const subline =
     item.stock <= 3
-      ? `Plus que ${item.stock}`
+      ? `Only ${item.stock} left`
       : item.deliveryMax <= 1
-        ? "Livraison demain"
-        : `Livraison ${item.deliveryMin}–${item.deliveryMax} j.`
+        ? "Delivery tomorrow"
+        : tProduct("delivery", { days: `${item.deliveryMin}-${item.deliveryMax}` })
 
   const tooltip = recommendationQuery
-    ? `Pourquoi recommandé ? Vous avez cherché « ${recommendationQuery} »`
+    ? `Why recommended? You searched for "${recommendationQuery}"`
     : item.aiPick
-      ? "Pourquoi recommandé ? Sélection Affisell AI (tendances et votre activité)."
-      : "Pourquoi recommandé ? Basé sur vos consultations récentes."
+      ? tAI("whyRecommended")
+      : "Why recommended? Based on your recent views."
 
   const badgeTrend = item.isTrending && item.viewsToday >= 5
   const badgePromo = item.promoPercent != null && item.promoPercent > 0
@@ -132,7 +135,7 @@ export function AffisellCarouselCard({
         <WishlistHeart productId={item.productId} className="absolute right-1 top-1 z-30" />
         {showTimer ? (
           <div className="absolute right-0 top-0 z-20 max-w-[90%] rounded-bl-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-900">
-            Offre se termine dans {h}h{m.toString().padStart(2, "0")}
+            {tAI("offerEndsIn", { time: `${h}h${m.toString().padStart(2, "0")}` })}
           </div>
         ) : null}
 
@@ -146,7 +149,7 @@ export function AffisellCarouselCard({
           <div className="absolute left-1 top-1 z-10 flex max-w-[92%] flex-col gap-0.5">
             {badgeTrend ? (
               <span className="inline-flex animate-pulse rounded bg-orange-500 px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-sm">
-                🔥 Tendance
+                🔥 {tAI("trending")}
               </span>
             ) : null}
             {badgePromo ? (
@@ -155,7 +158,7 @@ export function AffisellCarouselCard({
               </span>
             ) : null}
             <span className="w-fit rounded bg-zinc-800/85 px-1.5 py-0.5 text-[10px] text-white">
-              👁 {displayViews} vues
+              👁 {tAI("views", { count: displayViews })}
             </span>
           </div>
 
@@ -201,7 +204,7 @@ export function AffisellCarouselCard({
               })
             }}
           >
-            Ajouter
+            {tAI("add")}
           </button>
         </div>
 

@@ -1,12 +1,14 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 
 import { AffisellCarousel } from "@/components/affisell-carousel"
 import { getOrCreateAgentSessionId } from "@/lib/agent-session"
 import type { CarouselItemJson } from "@/lib/carousel-types"
 
 export function HomeAffisellCarousels() {
+  const tAI = useTranslations("AI")
   const [consultation, setConsultation] = useState<{
     items: CarouselItemJson[]
     recommendationQuery: string | null
@@ -63,7 +65,7 @@ export function HomeAffisellCarousels() {
     <div className="grid gap-8">
       {consultation.items.length > 0 ? (
         <AffisellCarousel
-          title="En lien avec vos consultations"
+          title="Related to your views"
           voirPlusHref="/marketplace"
           items={consultation.items}
           recommendationQuery={consultation.recommendationQuery}
@@ -71,7 +73,7 @@ export function HomeAffisellCarousels() {
       ) : null}
       {aiPicks.items.length > 0 ? (
         <AffisellCarousel
-          title="Choisi pour vous par Affisell AI"
+          title={tAI("pickedForYou")}
           voirPlusHref="/marketplace"
           items={aiPicks.items}
           recommendationQuery={aiPicks.recommendationQuery}

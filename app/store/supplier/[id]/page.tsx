@@ -73,19 +73,19 @@ export default async function SupplierStorePreviewPage({ params }: { params: Pro
               {store.description ? (
                 <p className="mt-2 max-w-2xl text-zinc-600">{store.description}</p>
               ) : (
-                <p className="mt-2 text-zinc-500">Fournisseur Affisell — catalogue en direct.</p>
+                <p className="mt-2 text-zinc-500">Affisell supplier - live catalog.</p>
               )}
               <div className="mt-4 flex flex-wrap gap-6 text-sm text-zinc-700">
                 <span>
-                  <strong>{affiliateCount}</strong> affiliés actifs
+                  <strong>{affiliateCount}</strong> active affiliates
                 </span>
                 <span>
-                  <strong>{products.length}</strong> produits
+                  <strong>{products.length}</strong> products
                 </span>
-                <span className="text-green-600">✓ Vérifié</span>
+                <span className="text-green-600">✓ Verified</span>
                 {viewHint > 0 ? (
                   <span className="text-zinc-500">
-                    <strong>{viewHint.toLocaleString("fr-FR")}</strong> vues listings
+                    <strong>{viewHint.toLocaleString("en-US")}</strong> listing views
                   </span>
                 ) : null}
               </div>
@@ -102,7 +102,7 @@ export default async function SupplierStorePreviewPage({ params }: { params: Pro
         </nav>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3 lg:grid-cols-4">
           {products.length === 0 ? (
-            <p className="col-span-full text-center text-zinc-500">Aucun produit actif pour le moment.</p>
+            <p className="col-span-full text-center text-zinc-500">No active products yet.</p>
           ) : (
             products.map((p) => {
               const img = primaryProductImage(p.images) || "/placeholder.png"
@@ -125,14 +125,14 @@ export default async function SupplierStorePreviewPage({ params }: { params: Pro
                   <div className="p-4">
                     <h3 className="mb-1 font-medium text-zinc-900">{p.name}</h3>
                     <p className="text-2xl font-bold text-zinc-900">
-                      {price.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
+                      {price.toLocaleString("en-US", { style: "currency", currency: "USD" })}
                     </p>
-                    <p className="mt-1 text-xs text-zinc-500">{p.stock} en stock</p>
+                    <p className="mt-1 text-xs text-zinc-500">{p.stock} in stock</p>
                     <Link
                       href={`/marketplace/${p.id}`}
                       className="mt-3 block w-full rounded-lg bg-zinc-900 py-2 text-center text-sm text-white transition hover:bg-zinc-800"
                     >
-                      Ajouter à ma boutique
+                      Add to my store
                     </Link>
                   </div>
                 </div>

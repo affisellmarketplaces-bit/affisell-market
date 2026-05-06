@@ -40,9 +40,9 @@ function DiscoverCard({ item }: { item: DiscoverItem }) {
 
   const price = useMemo(
     () =>
-      (item.priceCents / 100).toLocaleString("fr-FR", {
+      (item.priceCents / 100).toLocaleString("en-US", {
         style: "currency",
-        currency: "EUR",
+        currency: "USD",
       }),
     [item.priceCents]
   )
@@ -123,7 +123,7 @@ function DiscoverCard({ item }: { item: DiscoverItem }) {
         )
       ) : (
         <div className="flex h-[100dvh] w-full items-center justify-center bg-zinc-900 text-zinc-500">
-          Pas de média
+          No media
         </div>
       )}
 
@@ -131,7 +131,7 @@ function DiscoverCard({ item }: { item: DiscoverItem }) {
         <WishlistHeart productId={item.productId} className="absolute right-4 top-[-38px] z-20" />
         {item.boosted ? (
           <span className="mb-2 inline-flex rounded-full bg-violet-500/90 px-2 py-1 text-[11px] font-semibold text-white">
-            Recommandé pour vous
+            Recommended for you
           </span>
         ) : null}
         <h2 className="line-clamp-2 text-lg font-semibold">{item.name}</h2>
@@ -143,7 +143,7 @@ function DiscoverCard({ item }: { item: DiscoverItem }) {
             onClick={() => void oneTapAdd()}
             className="rounded-xl bg-white/90 px-4 py-2 text-sm font-semibold text-zinc-900 disabled:opacity-50"
           >
-            {cartBusy ? "Ajout..." : "Ajouter"}
+            {cartBusy ? "Adding..." : "Add"}
           </button>
           <button
             type="button"
@@ -151,7 +151,7 @@ function DiscoverCard({ item }: { item: DiscoverItem }) {
             onClick={() => void oneTapCheckout()}
             className="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
           >
-            {checkoutBusy ? "..." : "Acheter"}
+            {checkoutBusy ? "..." : "Buy"}
           </button>
         </div>
       </div>
