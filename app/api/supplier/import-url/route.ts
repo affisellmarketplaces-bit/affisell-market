@@ -10,13 +10,164 @@ type VariantRow = { name: string; image: string; price: number; stock: number }
 type ScrapedProduct = {
   title: string
   price: number
+  original_price: number
+  currency: string
   image: string
   images: string[]
   description: string
+  category: string
   variants: VariantRow[]
   sku: string
   stock: number
   source_url: string
+}
+
+function normalizeLdImages(raw: unknown): string[] {
+  if (!raw) return []
+  if (typeof raw === "string" && raw.trim()) return [raw.trim()]
+  if (Array.isArray(raw)) {
+    const urls: string[] = []
+    for (const item of raw) {
+      if (typeof item === "string" && item.trim()) urls.push(item.trim())
+      else if (item && typeof item === "object" && "url" in item) {
+        const u = String((item as { url: unknown }).url).trim()
+        if (u) urls.push(u)
+      }
+    }
+    return urls
+  }
+  if (typeof raw === "object" && raw !== null && "url" in raw) {
+    const u = String((raw as { url: unknown }).url).trim()
+    return u ? [u] : []
+  }
+  return []
+}
+
+function ldCategory(raw: unknown): string {
+  if (typeof raw === "string" && raw.trim()) return raw.trim().slice(0, 200)
+  if (Array.isArray(raw) && raw.length > 0) return ldCategory(raw[0])
+  if (raw && typeof raw === "object" && "name" in raw) {
+    const n = (raw as { name?: unknown }).name
+    return typeof n === "string" ? n.trim().slice(0, 200) : ""
+  }
+  return ""
+}
+
+function mapImagesHd(urls: string[]): string[] {
+  return urls
+    .filter(Boolean)
+    .map((img) => {
+      let x = typeof img === "string" ? img.trim() : ""
+      if (!x) return ""
+      if (!/^https?:/i.test(x)) x = `https:${x}`
+      return x.replace(/_\d+x\d+\./, "_960x960.")
+    })
+    .filter(Boolean)
+}
+
+/** Balanced-json slice after `window.runParams =`. Best-effort for AliExpress PDP. */
+function extractAliExpressRunParams(html: string): Record<string, unknown> | null {
+  const rx = /window\.runParams\s*=/
+  const m = rx.exec(html)
+  if (!m || m.index === undefined) return null
+  const startBrace = html.indexOf("{", m.index)
+  if (startBrace === -1) return null
+  let depth = 0
+  for (let i = startBrace; i < html.length; i++) {
+    const c = html[i]
+    if (c === "{") depth++
+    else if (c === "}") {
+      depth--
+      if (depth === 0) {
+        try {
+          return JSON.parse(html.slice(startBrace, i + 1)) as Record<string, unknown>
+        } catch {
+          return null
+        }
+      }
+    }
+  }
+  return null
+}
+
+function mergeAliExpressRunParams(html: string, product: ScrapedProduct): void {
+  const data = extractAliExpressRunParams(html)
+  if (!data) return
+
+  try {
+    const root = data as { data?: { root?: { fields?: Record<string, unknown> } } }
+    const fields = root?.data?.root?.fields
+    if (!fields || typeof fields !== "object") return
+
+    const subject =
+      typeof fields.subject === "string" ? fields.subject.trim() : ""
+    if (subject) product.title = subject
+
+    const priceBlock = fields.price as Record<string, unknown> | undefined
+    if (priceBlock && typeof priceBlock === "object") {
+      const min =
+        (priceBlock.minAmount as { value?: unknown } | undefined)?.value ??
+        (priceBlock.salePrice as { value?: unknown } | undefined)?.value
+      const max = (priceBlock.maxAmount as { value?: unknown } | undefined)?.value
+      const pMin = typeof min === "number" ? min : parseFloat(String(min ?? ""))
+      const pMax = typeof max === "number" ? max : parseFloat(String(max ?? ""))
+      if (Number.isFinite(pMin) && pMin > 0) product.price = pMin
+      if (Number.isFinite(pMax) && pMax > 0 && pMax !== pMin)
+        product.original_price = pMax
+    }
+
+    const imgList = fields.imagePathList ?? fields.images
+    if (Array.isArray(imgList)) {
+      const strs = imgList
+        .map((x) => (typeof x === "string" ? x.trim() : ""))
+        .filter(Boolean)
+      if (strs.length > 0) product.images = strs
+    }
+
+    const qty = fields.quantity as Record<string, unknown> | undefined
+    if (qty && typeof qty === "object") {
+      const total = qty.totalAvailable
+      const ta =
+        typeof total === "number" ? total : parseInt(String(total ?? ""), 10)
+      if (Number.isFinite(ta) && ta > 0) product.stock = ta
+    }
+
+    const skuProps = fields.skuPropertyList
+    if (Array.isArray(skuProps)) {
+      product.variants = []
+      const basePrice =
+        typeof product.price === "number" && product.price > 0 ? product.price : 0
+      for (const prop of skuProps) {
+        if (!prop || typeof prop !== "object") continue
+        const values =
+          (
+            prop as {
+              skuPropertyValues?: Array<Record<string, unknown>>
+            }
+          ).skuPropertyValues ?? []
+        for (const val of values) {
+          const nameRaw =
+            (val.propertyValueDisplayName as string | undefined) ??
+            (val.propertyValueDefinitionName as string | undefined)
+          const displayName =
+            typeof nameRaw === "string" ? nameRaw.trim() : ""
+          if (!displayName) continue
+          const imgPathRaw = val.skuPropertyImagePath
+          let vimg =
+            typeof imgPathRaw === "string" ? imgPathRaw.trim().slice(0, 2000) : ""
+          if (vimg && !/^https?:/i.test(vimg)) vimg = `https:${vimg}`
+          product.variants.push({
+            name: displayName.slice(0, 200),
+            image: vimg,
+            price: basePrice,
+            stock: 50,
+          })
+        }
+      }
+    }
+  } catch {
+    /* ignore malformed runParams */
+  }
 }
 
 function collectLdNodes(parsed: unknown): Record<string, unknown>[] {
@@ -38,23 +189,16 @@ function isProductLd(node: Record<string, unknown>): boolean {
   return false
 }
 
-function normalizeLdImage(raw: unknown): string {
-  if (typeof raw === "string") return raw
-  if (Array.isArray(raw) && raw.length > 0) {
-    const first = raw[0]
-    if (typeof first === "string") return first
-    if (typeof first === "object" && first !== null && "url" in first)
-      return String((first as { url: unknown }).url)
-  }
-  if (typeof raw === "object" && raw !== null && "url" in raw)
-    return String((raw as { url: unknown }).url)
-  return ""
-}
-
 function pickPriceFromOffers(
   offers: unknown
-): { price: number; inStockGuess: number } {
-  if (!offers) return { price: 0, inStockGuess: 99 }
+): { price: number; inStockGuess: number; currency: string; referencePrice: number } {
+  if (!offers)
+    return {
+      price: 0,
+      inStockGuess: 99,
+      currency: "EUR",
+      referencePrice: 0,
+    }
 
   const list = Array.isArray(offers)
     ? offers
@@ -68,28 +212,46 @@ function pickPriceFromOffers(
         })
       : [offers]
 
-  let price = 0
+  let salePrice = 0
+  let referencePrice = 0
+  let currency = "EUR"
   let anyInStock = false
   let anyOut = false
+
+  const num = (v: unknown): number =>
+    parseFloat(String(v ?? "").replace(/\s+/g, "").replace(",", ".")) || 0
 
   for (const o of list) {
     if (typeof o !== "object" || !o) continue
     const obj = o as Record<string, unknown>
-    const cand =
-      parseFloat(String(obj.price ?? "").replace(",", ".")) ||
-      parseFloat(String(obj.lowPrice ?? "").replace(",", ".")) ||
-      parseFloat(String(obj.highPrice ?? "").replace(",", "."))
-    if (Number.isFinite(cand) && cand > 0) price = cand
+    const py = num(obj.price)
+    const low = num(obj.lowPrice)
+    const high = num(obj.highPrice)
+
+    let rowSale = py || low
+    if (!(rowSale > 0)) rowSale = high
+
+    if (rowSale > 0)
+      salePrice = salePrice === 0 ? rowSale : Math.min(salePrice, rowSale)
+
+    if (high > referencePrice) referencePrice = high
+
+    const cy = obj.priceCurrency
+    if (typeof cy === "string" && /^[A-Z]{3}$/i.test(cy.trim()))
+      currency = cy.trim().toUpperCase()
+
     const avail = String(obj.availability ?? "")
     if (/InStock|PreOrder/i.test(avail)) anyInStock = true
     if (/OutOfStock|SoldOut|Discontinued/i.test(avail)) anyOut = true
   }
 
+  const price = salePrice
+
   let inStockGuess = 99
   if (anyOut && !anyInStock) inStockGuess = 0
   else if (anyOut) inStockGuess = anyInStock ? 50 : 0
 
-  return { price, inStockGuess }
+  return { price, inStockGuess, currency, referencePrice }
 }
 
 function parseEuNumber(text: string): number {
@@ -123,19 +285,32 @@ function scrapeJsonLd($: cheerio.CheerioAPI): {
       if (typeof node.name === "string" && node.name) out.title = node.name
       if (typeof node.description === "string" && node.description)
         out.description = node.description
-      const img = normalizeLdImage(node.image)
-      if (img) {
-        out.image = img
-        out.images = [img]
+
+      const imgs = normalizeLdImages(node.image)
+      if (imgs.length > 0) {
+        out.images = imgs
+        out.image = imgs[0] ?? ""
       }
-      const { price, inStockGuess } = pickPriceFromOffers(node.offers)
+
+      const cat = ldCategory(node.category)
+      if (cat) out.category = cat
+
+      const { price, inStockGuess, currency, referencePrice } =
+        pickPriceFromOffers(node.offers)
       if (price > 0) out.price = price
+      if (referencePrice > 0 && referencePrice >= (out.price ?? 0))
+        out.original_price = Math.max(out.original_price ?? 0, referencePrice)
       out.stock = inStockGuess
+      if (currency) out.currency = currency
       if (typeof node.sku === "string" && node.sku) out.sku = node.sku
+      if (typeof node.mpn === "string" && node.mpn?.trim())
+        out.sku = out.sku || node.mpn.trim()
+
       if (
         out.title ||
         out.description ||
         (out.price !== undefined && out.price > 0) ||
+        (out.images && out.images.length > 0) ||
         out.image
       )
         used = true
@@ -150,21 +325,45 @@ function toPreviewResponse(
   precision: string,
   extraction_method: string
 ) {
-  const variantCount =
-    p.variants.length > 0 ? p.variants.length : 1
-
   const priceNum = Number.isFinite(p.price) ? p.price : 0
+  let orig =
+    Number.isFinite(p.original_price) && p.original_price > 0
+      ? p.original_price
+      : priceNum
+  if (orig < priceNum) orig = priceNum
+
+  let imgList =
+    Array.isArray(p.images) && p.images.length > 0
+      ? p.images
+      : p.image
+        ? [p.image]
+        : []
+  imgList = mapImagesHd(imgList)
+  const leadImage = imgList[0] ?? p.image ?? ""
+
+  const variantCount = p.variants.length > 0 ? p.variants.length : 1
+  const suggested = parseFloat((priceNum * 1.5).toFixed(2))
 
   return NextResponse.json({
+    success: true,
     products: [
       {
         title: p.title.slice(0, 200),
-        price: priceNum.toFixed(2),
-        image: p.image,
-        description: p.description.slice(0, 2000),
-        variants: variantCount,
+        price: parseFloat(priceNum.toFixed(4)),
+        original_price: parseFloat(orig.toFixed(4)),
+        currency: (p.currency || "EUR").slice(0, 12),
+        images: imgList,
+        image: leadImage,
+        description: typeof p.description === "string" ? p.description.slice(0, 2000) : "",
+        variants: p.variants,
+        variants_count: variantCount,
         stock: p.stock || 99,
-        sku: p.sku,
+        sku: (p.sku || "").slice(0, 120),
+        source_url: p.source_url,
+        category: typeof p.category === "string" ? p.category.slice(0, 200) : "",
+        suggested_price: suggested,
+        suggested_commission: 20,
+        selected: true as const,
       },
     ],
     precision,
@@ -228,9 +427,12 @@ export async function POST(req: NextRequest) {
     const product: ScrapedProduct = {
       title: "",
       price: 0,
+      original_price: 0,
+      currency: "EUR",
       image: "",
       images: [],
       description: "",
+      category: "",
       variants: [],
       sku: "",
       stock: 0,
@@ -272,6 +474,8 @@ export async function POST(req: NextRequest) {
       extraction_method =
         extraction_method === "json-ld" ? "json-ld+aliexpress" : "aliexpress"
 
+      mergeAliExpressRunParams(html, product)
+
       const productIdMatch = url.match(/\/item\/(?:\d+\.)?(\d+)\.html/)
       if (productIdMatch?.[1] && !product.sku)
         product.sku = `AE-${productIdMatch[1]}`
@@ -312,20 +516,22 @@ export async function POST(req: NextRequest) {
       product.images = Array.from(imageUrls)
       if (product.images[0]) product.image = product.images[0]
 
-      $(".sku-property-list.sku-property-item").each((_, el) => {
-        const name = $(el).find(".sku-property-text").text().trim()
-        const imgRaw = $(el).find("img").attr("src")
-        let vimg = imgRaw ?? ""
-        if (vimg && !vimg.startsWith("http")) vimg = `https:${vimg}`
-        if (name) {
-          product.variants.push({
-            name,
-            image: vimg,
-            price: product.price || 0,
-            stock: 50,
-          })
-        }
-      })
+      if (product.variants.length === 0) {
+        $(".sku-property-list.sku-property-item").each((_, el) => {
+          const name = $(el).find(".sku-property-text").text().trim()
+          const imgRaw = $(el).find("img").attr("src")
+          let vimg = imgRaw ?? ""
+          if (vimg && !/^https?:/i.test(vimg)) vimg = `https:${vimg}`
+          if (name) {
+            product.variants.push({
+              name,
+              image: vimg,
+              price: product.price || 0,
+              stock: 50,
+            })
+          }
+        })
+      }
     }
 
     /* Amazon */
@@ -428,10 +634,21 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (typeof product.description === "string" && product.description.length > 2000)
+    if (typeof product.description !== "string") product.description = ""
+    else if (product.description.length > 2000)
       product.description = product.description.slice(0, 2000)
 
     product.stock = product.stock || 99
+
+    if ((!product.images || product.images.length === 0) && product.image.trim())
+      product.images = [product.image]
+
+    product.images = mapImagesHd(product.images ?? [])
+
+    if (product.images[0]) product.image = product.images[0]
+
+    if (!product.original_price || product.original_price < product.price)
+      product.original_price = product.price
 
     return toPreviewResponse(product, "high", extraction_method)
   } catch (error) {

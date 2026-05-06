@@ -27,21 +27,41 @@ export async function POST(req: NextRequest) {
   const products = [
     {
       title: "Product 1",
-      price: "99.99",
+      price: 99.99,
+      original_price: 99.99,
+      currency: "EUR",
+      images: [],
       image: "",
-      variants: 2,
+      description: "",
+      variants: [],
+      variants_count: 2,
       stock: 100,
       sku: "P1",
+      source_url: "",
+      category: "",
+      suggested_price: 149.99,
+      suggested_commission: 20,
+      selected: true,
     },
     {
       title: "Product 2",
-      price: "149.99",
+      price: 149.99,
+      original_price: 149.99,
+      currency: "EUR",
+      images: [],
       image: "",
-      variants: 1,
+      description: "",
+      variants: [],
+      variants_count: 1,
       stock: 50,
       sku: "P2",
+      source_url: "",
+      category: "",
+      suggested_price: 224.99,
+      suggested_commission: 20,
+      selected: true,
     },
   ]
 
-  return NextResponse.json({ products })
+  return NextResponse.json({ products, success: true })
 }
