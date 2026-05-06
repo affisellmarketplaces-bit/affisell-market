@@ -159,6 +159,10 @@
     "fashion": "Fashion",
     "blazers": "Blazers"
   },
+  "Menu": {
+    "helloSignin": "Hello, sign in",
+    "searchAskAi": "Search or ask AI..."
+  },
   "AI": {
     "pickedForYou": "Picked for you by Affisell AI",
     "trending": "Trending",
