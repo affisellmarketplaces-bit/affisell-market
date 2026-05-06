@@ -42,6 +42,69 @@ function seedProductId(slug: string): string {
   return `aff_${createHash("sha256").update(`affisell:${slug}`).digest("hex").slice(0, 28)}`
 }
 
+const NAV_MARKETPLACE_CATEGORIES = [
+  { name: "Electronics", slug: "electronics", icon: "📱" },
+  { name: "Computers & Accessories", slug: "computers", icon: "💻" },
+  { name: "Smart Home", slug: "smart-home", icon: "🏠" },
+  { name: "Women's Fashion", slug: "womens-fashion", icon: "👗" },
+  { name: "Men's Fashion", slug: "mens-fashion", icon: "👔" },
+  { name: "Home & Kitchen", slug: "home-kitchen", icon: "🏡" },
+  { name: "Beauty & Personal Care", slug: "beauty", icon: "💄" },
+  { name: "Sports & Outdoors", slug: "sports", icon: "⚽" },
+  { name: "Toys & Games", slug: "toys", icon: "🧸" },
+  { name: "Books", slug: "books", icon: "📚" },
+] as const
+
+const STYLE_ROTATION = ["minimalist", "vintage", "modern", "boho"] as const
+
+function categorySlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/,/g, " ")
+    .trim()
+    .replace(/\s*&\s*/g, "-and-")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 64)
+}
+
+async function upsertMarketplaceCategories(): Promise<void> {
+  for (const row of NAV_MARKETPLACE_CATEGORIES) {
+    await prisma.category.upsert({
+      where: { slug: row.slug },
+      update: { name: row.name, icon: row.icon },
+      create: {
+        name: row.name,
+        slug: row.slug,
+        icon: row.icon,
+      },
+    })
+  }
+
+  async function ensureCategoryForSeedName(name: string): Promise<void> {
+    const byName = await prisma.category.findUnique({ where: { name } })
+    if (byName) return
+
+    const base = categorySlug(name)
+    let slug = base
+    let i = 0
+    // Avoid slug collisions with nav rows or other dept names ("Computers" vs "Computers & Accessories")
+    while (await prisma.category.findUnique({ where: { slug } })) {
+      i += 1
+      slug = `${base}-${i}`
+    }
+
+    await prisma.category.create({
+      data: { name, slug, icon: "📦" },
+    })
+  }
+
+  const unique = [...new Set(ITEMS.map((item) => item.category))]
+  for (const name of unique) {
+    await ensureCategoryForSeedName(name)
+  }
+}
+
 type SeedItem = {
   name: string
   slug: string
@@ -281,6 +344,8 @@ async function main() {
     }
   }
 
+  await upsertMarketplaceCategories()
+
   const supplierId = await ensureStoreUser({
     slug: SUPPLIER_SLUG,
     name: SUPPLIER_NAME,
@@ -316,6 +381,17 @@ async function main() {
       freeShippingThreshold: new Prisma.Decimal("0.01"),
     } as const
 
+    const slugGuess = categorySlug(item.category)
+    const catRow =
+      (await prisma.category.findFirst({
+        where: {
+          OR: [{ name: item.category }, { slug: slugGuess }],
+        },
+      })) ?? null
+
+    const isPromoBucket = index % 4 === 0
+    const compareAtUsd = isPromoBucket ? new Prisma.Decimal((item.priceEur * 1.22).toFixed(2)) : null
+
     await prisma.product.upsert({
       where: { id },
       create: {
@@ -327,10 +403,20 @@ async function main() {
         categories: [item.category],
         tags,
         basePriceCents: eurosToCents(item.priceEur),
+        compareAt: compareAtUsd,
         commissionRate: 15,
         stock: 100,
         active: true,
         variants,
+        categoryId: catRow?.id,
+        style: STYLE_ROTATION[index % STYLE_ROTATION.length],
+        shippingType: marketplaceShipping.freeShipping ? "free" : "standard",
+        handlingDays: Math.max(1, Math.round(marketplaceShipping.deliveryMin / 3) || 1),
+        isOnSale: isPromoBucket,
+        isNewArrival: index >= ITEMS.length - 4,
+        isBestSeller: index % 5 === 0,
+        isRefurbished: index % 11 === 0,
+        hasCoupon: index % 7 === 0,
         ...marketplaceShipping,
       },
       update: {
@@ -340,10 +426,20 @@ async function main() {
         categories: [item.category],
         tags,
         basePriceCents: eurosToCents(item.priceEur),
+        compareAt: compareAtUsd,
         commissionRate: 15,
         stock: 100,
         active: true,
         variants,
+        categoryId: catRow?.id,
+        style: STYLE_ROTATION[index % STYLE_ROTATION.length],
+        shippingType: marketplaceShipping.freeShipping ? "free" : "standard",
+        handlingDays: Math.max(1, Math.round(marketplaceShipping.deliveryMin / 3) || 1),
+        isOnSale: isPromoBucket,
+        isNewArrival: index >= ITEMS.length - 4,
+        isBestSeller: index % 5 === 0,
+        isRefurbished: index % 11 === 0,
+        hasCoupon: index % 7 === 0,
         ...marketplaceShipping,
       },
     })

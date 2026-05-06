@@ -66,6 +66,30 @@ model Store {
   followerRelations Follow[] @relation("StoreFollowers")
 }
 
+model Category {
+  id       String @id @default(cuid())
+  name     String @unique
+  slug     String @unique
+  icon     String?
+  parentId String?
+  parent   Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryHierarchy")
+
+  products       Product[]
+  subcategories Subcategory[]
+}
+
+model Subcategory {
+  id         String @id @default(cuid())
+  name       String
+  slug       String
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  products   Product[]
+
+  @@unique([categoryId, slug])
+}
+
 model Product {
   id String @id @default(cuid())
   supplierId String
@@ -83,6 +107,28 @@ model Product {
   commissionRate Int
   stock Int @default(0)
   active Boolean @default(true)
+
+  /** Normalized taxonomy (optional — legacy rows still match via `categories[]` in counts). */
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  subcategoryId String?
+  subcategory    Subcategory? @relation(fields: [subcategoryId], references: [id], onDelete: SetNull)
+
+  /** Marketplace filter: minimalist, vintage, etc. */
+  style String?
+
+  /** Filter bucket: standard | free | prime | same-day | next-day — see counts API */
+  shippingType String @default("standard")
+
+  /** Processing / handling lag (supplier → ship), used beside delivery windows */
+  handlingDays Int @default(1)
+
+  isOnSale      Boolean @default(false)
+  isNewArrival  Boolean @default(false)
+  isBestSeller  Boolean @default(false)
+  isRefurbished Boolean @default(false)
+  hasCoupon     Boolean @default(false)
 
   shippingCountry        String?
   warehouseType          String?
@@ -110,6 +156,11 @@ model Product {
   communityPosts CommunityPost[]
   wishlists Wishlist[]
   reviews Review[]
+
+  @@index([categoryId])
+  @@index([style])
+  @@index([shippingType])
+  @@index([basePriceCents])
 }
 
 model Review {
