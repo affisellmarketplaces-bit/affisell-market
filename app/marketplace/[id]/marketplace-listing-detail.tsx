@@ -225,7 +225,7 @@ export function MarketplaceListingDetail({
           qty: 1,
           title: name,
           imageUrl: hero,
-          sellerName,
+          sellerName: sellerLabel,
           price: listingPriceEur,
         })
         return
