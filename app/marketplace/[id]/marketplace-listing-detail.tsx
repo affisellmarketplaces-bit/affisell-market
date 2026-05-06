@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
+import { motion } from "framer-motion"
 import { Sparkles, Star } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useMemo, useState, type MouseEvent } from "react"
@@ -127,6 +128,7 @@ export function MarketplaceListingDetail({
   const [showAr, setShowAr] = useState(false)
   const [liveViewers, setLiveViewers] = useState(12)
   const [showPurchaseToast, setShowPurchaseToast] = useState(false)
+  const [purchaseToastText, setPurchaseToastText] = useState("Sarah from Lyon just bought this 2 min ago")
   const [sizeTip, setSizeTip] = useState<string | null>(null)
   const [showStylist, setShowStylist] = useState(false)
   const [styleIdeas, setStyleIdeas] = useState<string[]>([])
@@ -151,6 +153,7 @@ export function MarketplaceListingDetail({
   const bundleSelected = bundleCandidates.filter((p) => bundleChecked[p.id])
   const bundleSubtotal = bundleSelected.reduce((sum, p) => sum + p.priceEur, listingPriceEur)
   const bundleTotal = bundleSelected.length > 0 ? bundleSubtotal * 0.85 : bundleSubtotal
+  const bundleSaved = bundleSelected.length > 0 ? bundleSubtotal - bundleTotal : 0
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -163,6 +166,21 @@ export function MarketplaceListingDetail({
     setShowPurchaseToast(true)
     const id = setTimeout(() => setShowPurchaseToast(false), 5000)
     return () => clearTimeout(id)
+  }, [])
+
+  useEffect(() => {
+    const people = ["Sarah", "Emma", "Nina", "Lina", "Chloe", "Camille"]
+    const cities = ["Lyon", "Marseille", "Toulouse", "Nice", "Lille", "Nantes"]
+    const mins = [1, 2, 3, 4, 5, 6]
+    const rotate = setInterval(() => {
+      const person = people[Math.floor(Math.random() * people.length)]
+      const city = cities[Math.floor(Math.random() * cities.length)]
+      const min = mins[Math.floor(Math.random() * mins.length)]
+      setPurchaseToastText(`${person} from ${city} just bought this ${min} min ago`)
+      setShowPurchaseToast(true)
+      window.setTimeout(() => setShowPurchaseToast(false), 5000)
+    }, 18000)
+    return () => clearInterval(rotate)
   }, [])
 
   useEffect(() => {
@@ -232,7 +250,12 @@ export function MarketplaceListingDetail({
       const res = await fetch("/api/ai/style-advice", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId, productName: name }),
+        body: JSON.stringify({
+          productId,
+          productName: name,
+          selectedColor,
+          selectedSize,
+        }),
       })
       const data = (await res.json()) as { ideas?: string[] }
       setStyleIdeas(Array.isArray(data.ideas) ? data.ideas.slice(0, 3) : [])
@@ -423,10 +446,20 @@ export function MarketplaceListingDetail({
                 </label>
               ))}
             </div>
-            <p className="mt-3 text-sm font-medium">
+            <motion.p
+              key={`${bundleTotal}-${bundleSelected.length}`}
+              initial={{ opacity: 0.5, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+              className="mt-3 text-sm font-medium"
+            >
               Bundle total: {fmtEur(bundleTotal)}
-              {bundleSelected.length > 0 ? <span className="ml-1 text-green-600">(15% saved)</span> : null}
-            </p>
+              {bundleSelected.length > 0 ? (
+                <span className="ml-1 text-green-600">
+                  (15% saved - {fmtEur(bundleSaved)})
+                </span>
+              ) : null}
+            </motion.p>
           </div>
         </aside>
       </div>
@@ -542,6 +575,9 @@ export function MarketplaceListingDetail({
               <p className="text-sm text-zinc-600 dark:text-zinc-400">Generating outfit ideas...</p>
             ) : (
               <ul className="space-y-2 text-sm">
+                <li className="rounded-lg border border-purple-200 bg-purple-50 p-2 text-xs text-purple-700 dark:border-purple-800 dark:bg-purple-950/40 dark:text-purple-200">
+                  Personalized for {selectedColor ?? "your selected color"} / size {selectedSize ?? "your selected size"}
+                </li>
                 {styleIdeas.map((idea, idx) => (
                   <li key={`${idx}-${idea}`} className="rounded-lg bg-zinc-50 p-2 dark:bg-zinc-800">
                     {idea}
@@ -554,7 +590,7 @@ export function MarketplaceListingDetail({
       ) : null}
       {showPurchaseToast ? (
         <div className="fixed bottom-6 left-6 z-50 max-w-xs rounded-xl bg-zinc-900 px-4 py-3 text-sm text-white shadow-xl dark:bg-white dark:text-zinc-900">
-          Sarah from Lyon just bought this 2 min ago
+          {purchaseToastText}
         </div>
       ) : null}
     </>
