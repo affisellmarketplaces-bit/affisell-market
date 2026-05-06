@@ -1,11 +1,22 @@
 "use client"
 
 import Link from "next/link"
-import { Flame, Sparkles, Zap, TrendingUp } from "lucide-react"
+import {
+  DollarSign,
+  Grid3x3,
+  Palette,
+  Sparkles,
+  Tag,
+  Truck,
+  Zap,
+} from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
+
+const subItemClass =
+  "group flex w-full items-center justify-between text-left text-sm text-gray-700 hover:bg-gray-50 py-2 px-2 rounded transition-transform hover:translate-x-1"
 
 export function Sidebar({ activeCategory }: { activeCategory?: string }) {
   const categories = [
@@ -43,67 +54,37 @@ export function Sidebar({ activeCategory }: { activeCategory?: string }) {
           </div>
         </div>
 
-        <div className="border-b border-gray-100">
-          <div className="bg-gradient-to-r from-orange-500 to-red-500 px-4 py-3">
-            <h2 className="flex items-center gap-2 text-base font-black uppercase tracking-wider text-white">
-              <Flame className="h-5 w-5" />
-              Trending Now
+        <div className="border-b border-gray-100 px-4 pb-4">
+          <div className="bg-gradient-to-r from-violet-600 to-fuchsia-600 -mx-4 px-4 py-3 mb-3">
+            <h2 className="text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
+              <Zap className="w-5 h-5" />
+              SMART FILTERS
             </h2>
           </div>
-          <div className="py-2">
-            {[
-              { name: "Flash Deals", badge: "-70%", hot: true },
-              { name: "Viral on TikTok", badge: "2.3M", hot: true },
-              { name: "Last Chance", badge: "2h left", hot: false },
-            ].map((item) => (
-              <Link
-                key={item.name}
-                href="#"
-                className="group flex items-center justify-between px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50"
-              >
-                <span className="transition-transform group-hover:translate-x-1">{item.name}</span>
-                <Badge
-                  variant={item.hot ? "secondary" : "outline"}
-                  className={cn("text-xs", item.hot ? "bg-red-500 text-white hover:bg-red-500" : "")}
-                >
-                  {item.badge}
-                </Badge>
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        <div className="border-b border-gray-100">
-          <div className="bg-gradient-to-r from-violet-600 to-purple-600 px-4 py-3">
-            <h2 className="flex items-center gap-2 text-base font-black uppercase tracking-wider text-white">
-              <Zap className="h-5 w-5" />
-              Smart Filters
-            </h2>
-          </div>
-          <div className="space-y-2 p-3">
+          <div className="space-y-1">
             {[
               { icon: "🔥", label: "Trending Now", count: "1.2k" },
               { icon: "⚡", label: "Ships in 24h", count: "892" },
               { icon: "💎", label: "Under $100", count: "4.3k" },
               { icon: "⭐", label: "Top Rated 4.5+", count: "2.1k" },
             ].map((filter) => (
-              <button
-                key={filter.label}
-                className="group flex w-full items-center gap-3 rounded-lg border border-gray-200 px-3 py-2.5 text-left transition-all hover:border-violet-400 hover:bg-violet-50"
-              >
-                <span className="text-xl">{filter.icon}</span>
-                <span className="flex-1 text-sm font-medium text-gray-700">{filter.label}</span>
+              <button key={filter.label} type="button" className={subItemClass}>
+                <span className="flex items-center gap-2">
+                  <span className="text-lg leading-none">{filter.icon}</span>
+                  {filter.label}
+                </span>
                 <span className="text-xs text-gray-400">{filter.count}</span>
               </button>
             ))}
           </div>
-        </div>
 
-        <div className="border-b border-gray-100">
-          <div className="bg-gradient-to-r from-slate-700 to-slate-900 px-4 py-3">
-            <h2 className="text-base font-black uppercase tracking-wider text-white">Shop by Department</h2>
+          <div className="bg-gradient-to-r from-slate-800 to-slate-900 -mx-4 px-4 py-3 mb-3 mt-6">
+            <h2 className="text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
+              <Grid3x3 className="w-5 h-5 shrink-0" />
+              CATEGORY
+            </h2>
           </div>
-          <div className="py-2">
+          <div className="space-y-1">
             {categories.map((cat) => {
               const isActive =
                 (activeCategory ? activeCategory.toLowerCase() : "") === cat.slug || (!activeCategory && cat.active)
@@ -112,11 +93,11 @@ export function Sidebar({ activeCategory }: { activeCategory?: string }) {
                   key={cat.name}
                   href={`/category/${cat.slug}`}
                   className={cn(
-                    "group flex items-center justify-between px-4 py-2.5 text-sm transition-all",
-                    isActive ? "bg-slate-900 font-semibold text-white" : "text-gray-700 hover:bg-slate-50"
+                    subItemClass,
+                    isActive && "bg-slate-900 font-semibold text-white hover:bg-slate-900"
                   )}
                 >
-                  <span className="flex items-center gap-2 transition-transform group-hover:translate-x-1">
+                  <span className="flex items-center gap-2">
                     {cat.name}
                     {cat.isNew ? (
                       <Badge className="bg-emerald-500 px-1.5 py-0 text-xs text-white hover:bg-emerald-500">
@@ -129,39 +110,76 @@ export function Sidebar({ activeCategory }: { activeCategory?: string }) {
               )
             })}
           </div>
-        </div>
 
-        <div className="border-b border-gray-100">
-          <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-3">
-            <h2 className="text-base font-black uppercase tracking-wider text-white">Shop by Style</h2>
+          <div className="bg-gradient-to-r from-emerald-600 to-teal-600 -mx-4 px-4 py-3 mb-3 mt-6">
+            <h2 className="text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
+              <Palette className="w-5 h-5 shrink-0" />
+              STYLE
+            </h2>
           </div>
-          <div className="grid grid-cols-2 gap-2 p-3">
+          <div className="grid grid-cols-2 gap-1">
             {["Minimalist", "Streetwear", "Business", "Boho"].map((style) => (
-              <button
-                key={style}
-                className="rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:border-emerald-400 hover:bg-emerald-50"
-              >
+              <button key={style} type="button" className={subItemClass}>
                 {style}
               </button>
             ))}
           </div>
-        </div>
 
-        <div>
-          <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-3">
-            <h2 className="text-base font-black uppercase tracking-wider text-white">Price Range</h2>
+          <div className="bg-gradient-to-r from-amber-500 to-orange-500 -mx-4 px-4 py-3 mb-3 mt-6">
+            <h2 className="text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
+              <DollarSign className="w-5 h-5 shrink-0" />
+              PRICE
+            </h2>
           </div>
-          <div className="p-4">
-            <div className="mb-3 flex gap-2">
-              {["$0-50", "$50-100", "$100-200", "$200+"].map((range) => (
-                <button
-                  key={range}
-                  className="flex-1 rounded border border-gray-200 px-2 py-1.5 text-xs font-medium transition-all hover:border-amber-400 hover:bg-amber-50"
+          <div className="grid grid-cols-2 gap-1">
+            {["$0-50", "$50-100", "$100-200", "$200+"].map((range) => (
+              <button key={range} type="button" className={subItemClass}>
+                {range}
+              </button>
+            ))}
+          </div>
+
+          <div className="bg-gradient-to-r from-blue-600 to-cyan-600 -mx-4 px-4 py-3 mb-3 mt-6">
+            <h2 className="text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
+              <Truck className="w-5 h-5 shrink-0" />
+              DELIVERY
+            </h2>
+          </div>
+          <div className="space-y-1">
+            {[
+              "Free shipping",
+              "Ships in 24h",
+              "Express delivery",
+              "Local pickup",
+            ].map((label) => (
+              <button key={label} type="button" className={subItemClass}>
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <div className="bg-gradient-to-r from-rose-600 to-pink-600 -mx-4 px-4 py-3 mb-3 mt-6">
+            <h2 className="text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
+              <Tag className="w-5 h-5 shrink-0" />
+              OFFERS
+            </h2>
+          </div>
+          <div className="space-y-1 pb-2">
+            {[
+              { name: "Flash Deals", badge: "-70%", hot: true },
+              { name: "Viral on TikTok", badge: "2.3M", hot: true },
+              { name: "Last Chance", badge: "2h left", hot: false },
+            ].map((item) => (
+              <Link key={item.name} href="#" className={subItemClass}>
+                <span>{item.name}</span>
+                <Badge
+                  variant={item.hot ? "secondary" : "outline"}
+                  className={cn("text-xs", item.hot ? "bg-red-500 text-white hover:bg-red-500" : "")}
                 >
-                  {range}
-                </button>
-              ))}
-            </div>
+                  {item.badge}
+                </Badge>
+              </Link>
+            ))}
           </div>
         </div>
       </ScrollArea>
