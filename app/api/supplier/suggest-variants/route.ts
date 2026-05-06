@@ -1,84 +1,105 @@
-import { groq } from "@ai-sdk/groq"
-import { generateObject } from "ai"
-import { z } from "zod"
+import { type NextRequest, NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { newVariantRowId, type ProductVariantLine } from "@/lib/product-variants"
 
 export const runtime = "nodejs"
-export const maxDuration = 30
 
-const BodySchema = z.object({
-  productName: z.string().max(240).optional(),
-  categories: z.array(z.string()).optional(),
-  colors: z.array(z.string()).optional(),
-  tags: z.array(z.string()).optional(),
-  basePriceEur: z.number().nonnegative().optional(),
-  commission: z.number().min(0).max(99).optional(),
-})
+type SuggestionSeed = {
+  name: string
+  price: string
+  stock: string
+  sku: string
+}
 
-export async function POST(req: Request) {
-  const session = await auth()
-  const role = (session?.user as { role?: string } | undefined)?.role
-  if (!session?.user?.id || role !== "SUPPLIER") {
-    return Response.json({ error: "Forbidden" }, { status: 403 })
+function parseBasePrice(body: Record<string, unknown>): number {
+  const raw = body.basePrice ?? body.basePriceEur
+  if (typeof raw === "number" && Number.isFinite(raw)) return raw
+  if (typeof raw === "string") {
+    const n = Number.parseFloat(raw)
+    return Number.isFinite(n) ? n : 0
   }
+  return 0
+}
 
-  let raw: unknown
-  try {
-    raw = await req.json()
-  } catch {
-    return Response.json({ error: "Invalid JSON" }, { status: 400 })
+function parseCommission(body: Record<string, unknown>): number {
+  const raw = body.commission
+  if (typeof raw === "number" && Number.isFinite(raw)) return Math.min(99, Math.max(0, Math.round(raw)))
+  if (typeof raw === "string") {
+    const n = Number.parseFloat(raw)
+    return Number.isFinite(n) ? Math.min(99, Math.max(0, Math.round(n))) : 20
   }
+  return 20
+}
 
-  const parsed = BodySchema.safeParse(raw)
-  if (!parsed.success) {
-    return Response.json({ error: "Invalid body" }, { status: 400 })
-  }
-
-  const { productName, categories, colors, tags, basePriceEur, commission } = parsed.data
-  const baseCents = Math.round((basePriceEur ?? 0) * 100)
-  const comm = commission ?? 20
-
-  if (!process.env.GROQ_API_KEY?.trim()) {
-    return Response.json({ error: "GROQ_API_KEY is not configured", rows: [] }, { status: 503 })
-  }
-
-  const ctxName = (productName ?? "").trim() || "Product"
-  const ctx =
-    `Product: ${ctxName}\n` +
-    `Categories: ${(categories ?? []).join(", ") || "(none)"}\n` +
-    `Colors: ${(colors ?? []).join(", ") || "(none)"}\n` +
-    `Tags: ${(tags ?? []).join(", ") || "(none)"}`
-
-  try {
-    const { object } = await generateObject({
-      model: groq("llama-3.3-70b-versatile"),
-      schema: z.object({
-        variants: z
-          .array(
-            z.object({
-              name: z.string().max(160),
-              sku: z.string().max(80),
-            })
-          )
-          .max(16),
-      }),
-      prompt: `${ctx}\n\nSuggest up to 12 distinct commercial SKU variants (combinations of options where sensible). Each needs a short buyer-facing name and a compact SKU code (uppercase, alphanumeric and dashes). Respond only via schema.`,
-    })
-
-    const rows: ProductVariantLine[] = object.variants.map((v) => ({
+function seedsToRows(seeds: SuggestionSeed[], commission: number): ProductVariantLine[] {
+  return seeds.map((s) => {
+    const priceNum = Number.parseFloat(String(s.price))
+    const priceCents = Number.isFinite(priceNum) ? Math.max(0, Math.round(priceNum * 100)) : 0
+    const stockNum = Number.parseInt(String(s.stock), 10)
+    const stock = Number.isFinite(stockNum) ? Math.max(0, stockNum) : 0
+    return {
       id: newVariantRowId(),
-      name: v.name.trim().slice(0, 160),
-      sku: v.sku.trim().slice(0, 80),
-      priceCents: Math.max(0, baseCents),
-      stock: 0,
-      commission: Math.round(comm),
+      name: s.name.slice(0, 160),
+      sku: (s.sku ?? "").slice(0, 80),
+      priceCents,
+      stock,
+      commission,
       sales: 0,
-    }))
+    }
+  })
+}
 
-    return Response.json({ rows })
+export async function POST(req: NextRequest) {
+  try {
+    const session = await auth()
+    const role = (session?.user as { role?: string } | undefined)?.role
+    if (!session?.user?.id || role !== "SUPPLIER") {
+      return NextResponse.json({ error: "Forbidden", variants: [] }, { status: 403 })
+    }
+
+    let body: Record<string, unknown>
+    try {
+      body = (await req.json()) as Record<string, unknown>
+    } catch {
+      return NextResponse.json({ variants: [] }, { status: 400 })
+    }
+
+    const productNameRaw = body.productName
+    const productName =
+      typeof productNameRaw === "string" ? productNameRaw : String(productNameRaw ?? "")
+    const basePrice = parseBasePrice(body)
+    const commission = parseCommission(body)
+
+    const suggestions: SuggestionSeed[] = []
+    const name = productName.toLowerCase()
+
+    if (name.includes("tondeuse") || name.includes("mower") || name.includes("robot")) {
+      const base = basePrice || 498.98
+      suggestions.push(
+        { name: "Standard", price: String(basePrice || 498.98), stock: "15", sku: "" },
+        { name: "Pro Max", price: String(base * 1.3), stock: "8", sku: "" },
+        { name: "Compact", price: String(base * 0.8), stock: "20", sku: "" }
+      )
+    } else if (name.includes("phone") || name.includes("iphone") || name.includes("samsung")) {
+      const base = basePrice || 0
+      suggestions.push(
+        { name: "128GB Black", price: String(basePrice || 0), stock: "10", sku: "" },
+        { name: "256GB Black", price: String(base + 100), stock: "10", sku: "" },
+        { name: "128GB White", price: String(basePrice || 0), stock: "8", sku: "" }
+      )
+    } else {
+      const base = basePrice || 0
+      suggestions.push(
+        { name: "Black", price: String(basePrice || 0), stock: "10", sku: "" },
+        { name: "White", price: String(basePrice || 0), stock: "10", sku: "" },
+        { name: "Premium", price: String(base * 1.2), stock: "5", sku: "" }
+      )
+    }
+
+    const variants = seedsToRows(suggestions, commission)
+    return NextResponse.json({ variants })
   } catch {
-    return Response.json({ error: "AI suggestion failed", rows: [] }, { status: 503 })
+    return NextResponse.json({ variants: [] }, { status: 200 })
   }
 }

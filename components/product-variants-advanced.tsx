@@ -100,10 +100,11 @@ export function ProductVariantsAdvanced({
           commission: Number.parseFloat(defaultCommission) || 20,
         }),
       })
-      const data = (await res.json()) as { rows?: ProductVariantLine[]; error?: string }
-      if (Array.isArray(data.rows) && data.rows.length > 0) {
-        setRows(data.rows)
-        setAiNote("Variants generated with AI.")
+      const data = (await res.json()) as { variants?: ProductVariantLine[]; rows?: ProductVariantLine[]; error?: string }
+      const fromApi = Array.isArray(data.variants) ? data.variants : data.rows
+      if (Array.isArray(fromApi) && fromApi.length > 0) {
+        setRows(fromApi)
+        setAiNote("Variants suggested.")
         return
       }
       setRows(heuristicRows())
