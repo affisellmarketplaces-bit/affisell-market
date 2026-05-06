@@ -1,14 +1,9 @@
-import { existsSync } from "node:fs"
-
-import chromium from "@sparticuz/chromium"
-import puppeteer from "puppeteer-core"
 import { type NextRequest, NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
-export const maxDuration = 60
 
 const IMPORT_MARKUP = 1.7
 const IMPORT_COMMISSION_HINT = 25
@@ -37,548 +32,110 @@ function uniqStrings(items: string[], cap = 120): string[] {
   return out
 }
 
-function parseSkuPropPairs(skuPropIds: string): Array<{ propId: string; valId: string }> {
-  const s = skuPropIds.trim()
+/** AliExpress `skuPropIds` → several normalized keys for map lookup */
+function skuPropIdsLookupKeys(raw: unknown): string[] {
+  const s = typeof raw === "string" ? raw.trim() : String(raw ?? "").trim()
   if (!s) return []
-  const out: Array<{ propId: string; valId: string }> = []
-  for (const part of s.split(/[,;#+]+/)) {
-    const seg = part.trim().replace(/^#/, "")
-    if (!seg) continue
-    const idx = seg.indexOf(":")
-    if (idx === -1) continue
-    const propId = seg.slice(0, idx).trim()
-    const valId = seg.slice(idx + 1).trim()
-    if (propId && valId) out.push({ propId, valId })
-  }
-  return out
+  const segments = s
+    .split(/[,;#+]+/)
+    .map((x) => x.trim().replace(/^#/, ""))
+    .filter((x) => x.length > 0 && x.includes(":"))
+  if (segments.length === 0) return [s]
+  const sortedSemi = [...segments].sort().join(";")
+  const sortedComma = [...segments].sort().join(",")
+  const joinSemi = segments.join(";")
+  return uniqStrings([s, sortedSemi, sortedComma, joinSemi], 24)
 }
 
-async function resolveExecutablePath(): Promise<string> {
-  const fromEnv = process.env.PUPPETEER_EXECUTABLE_PATH ?? process.env.CHROME_PATH
-  if (fromEnv && existsSync(fromEnv)) return fromEnv
-  if (process.platform === "darwin") {
-    const mac =
-      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-    if (existsSync(mac)) return mac
-  }
-  return chromium.executablePath()
-}
-
-function isLikelySystemChrome(executablePath: string): boolean {
-  return (
-    executablePath.includes("Google Chrome") ||
-    executablePath.includes("Chromium") ||
-    executablePath.includes("microsoft-edge")
-  )
-}
-
-type AePropVal = {
-  type: string
+type AeComboPiece = {
   name: string
+  type: string
   image: string
+  propId: string | number
+  propNameId: string | number
 }
 
-function resolvePropValue(
-  skuPropList: Record<string, unknown>[],
-  propId: string,
-  valId: string
-): AePropVal | null {
-  const prop = skuPropList.find(
-    (p) => String(p.skuPropertyId ?? p.skuPropertyIdLong ?? "") === propId
+function aeSkuScalarId(raw: unknown): string | number {
+  if (raw == null) return ""
+  if (typeof raw === "number" && Number.isFinite(raw)) return raw
+  if (typeof raw === "string") return raw.trim()
+  return ""
+}
+
+function comboToSkuLookupKeys(combo: AeComboPiece[]): string[] {
+  const parts = combo.map(
+    (v) => `${String(v.propNameId).trim()}:${String(v.propId).trim()}`
   )
-  if (!prop) return null
-  const type =
-    typeof prop.skuPropertyName === "string"
-      ? prop.skuPropertyName.trim()
-      : ""
-  const vals = prop.skuPropertyValues
-  if (!Array.isArray(vals)) return null
-  const val = vals.find(
-    (x) =>
-      x &&
-      typeof x === "object" &&
-      String((x as Record<string, unknown>).propertyValueId ?? "") === valId
-  ) as Record<string, unknown> | undefined
-  if (!val) return null
-  const nameRaw =
-    (typeof val.propertyValueDisplayName === "string"
-      ? val.propertyValueDisplayName
-      : "") ||
-    (typeof val.propertyValueDefinitionName === "string"
-      ? val.propertyValueDefinitionName
-      : "")
-  const name = nameRaw.trim()
-  if (!name) return null
-  let image = ""
-  if (typeof val.skuPropertyImagePath === "string") {
-    image = val.skuPropertyImagePath.trim()
-    if (image && !/^https?:/i.test(image)) image = `https:${image}`
-  }
-  return { type: type || "Option", name, image }
+  return uniqStrings(
+    [
+      [...parts].sort().join(";"),
+      [...parts].sort().join(","),
+      parts.join(";"),
+      parts.join(","),
+    ],
+    16
+  )
 }
 
-function buildFromAeState(
-  productData: Record<string, unknown>,
-  sourceUrl: string
-) {
-  const data = asRec(productData.data) ?? {}
-  const root = asRec(data.root)
-  const fieldsFromRoot =
-    root?.fields &&
-    typeof root.fields === "object" &&
-    !Array.isArray(root.fields)
-      ? (root.fields as Record<string, unknown>)
-      : null
-  const fields =
-    fieldsFromRoot ?? asRec(data.productInfoComponent) ?? {}
+function buildSkuPriceMap(
+  skuPriceList: Record<string, unknown>[],
+  fallbackPrice: number
+): Map<string, { price: number; stock: number }> {
+  const skuMap = new Map<string, { price: number; stock: number }>()
+  for (const sku of skuPriceList) {
+    const skuVal = asRec(sku.skuVal)
+    const act = asRec(skuVal?.skuActivityAmount)
+    const amt = asRec(skuVal?.skuAmount)
+    const price =
+      num(act?.value) || num(amt?.value) || fallbackPrice
+    const aq = skuVal?.availQuantity
+    const parsed =
+      typeof aq === "number"
+        ? aq
+        : parseInt(String(aq ?? ""), 10)
+    const stockN =
+      Number.isFinite(parsed) && parsed >= 0 ? Math.round(parsed) : 50
 
-  const skuModule = asRec(data.skuModule) ?? {}
-  const skuPriceList = Array.isArray(skuModule.skuPriceList)
-    ? (skuModule.skuPriceList as Record<string, unknown>[])
-    : []
-  const skuPropList = Array.isArray(skuModule.productSKUPropertyList)
-    ? (skuModule.productSKUPropertyList as Record<string, unknown>[])
-    : Array.isArray(fields.skuPropertyList)
-      ? (fields.skuPropertyList as Record<string, unknown>[])
-      : []
-
-  const pidRaw = fields.productId
-  const productIdStr =
-    typeof pidRaw === "number"
-      ? String(pidRaw)
-      : typeof pidRaw === "string"
-        ? pidRaw.trim()
-        : ""
-
-  const subject =
-    typeof fields.subject === "string"
-      ? fields.subject.trim()
-      : typeof fields.title === "string"
-        ? fields.title.trim()
-        : ""
-
-  const descA =
-    typeof fields.description === "string" ? fields.description.trim() : ""
-  const descB =
-    typeof fields.productDesc === "string" ? fields.productDesc.trim() : ""
-  const description =
-    [descA, descB].filter(Boolean).sort((a, b) => b.length - a.length)[0] ?? ""
-
-  const priceRoot = asRec(fields.price)
-  const rootList = num(priceRoot?.maxAmount && asRec(priceRoot.maxAmount)?.value)
-
-  const variants: Array<{
-    name: string
-    image: string
-    price: number
-    stock: number
-    type?: string
-    sku?: string
-    attributes?: Record<string, string>
-  }> = []
-
-  const colors: Array<{ name: string; hex: string; image: string }> = []
-  const sizes: string[] = []
-  const sizes_objects: Array<{ name: string; value: string }> = []
-  const seenColor = new Set<string>()
-  const seenSize = new Set<string>()
-
-  let price = 0
-  let original_price = 0
-
-  if (skuPriceList.length > 0) {
-    const allPrices = skuPriceList
-      .map((s) => {
-        const sv = asRec(s.skuVal)
-        const act = asRec(sv?.skuActivityAmount)
-        const amt = asRec(sv?.skuAmount)
-        return num(act?.value) || num(amt?.value)
-      })
-      .filter((p) => p > 0)
-    if (allPrices.length > 0) {
-      price = Math.min(...allPrices)
-      original_price = Math.max(...allPrices)
+    const row = {
+      price: price > 0 ? price : fallbackPrice,
+      stock: stockN,
     }
-    if (rootList > 0) original_price = Math.max(original_price, rootList)
-
-    for (const sku of skuPriceList) {
-      const skuIdRaw = sku.skuPropIds
-      const skuId =
-        typeof skuIdRaw === "number"
-          ? String(skuIdRaw)
-          : typeof skuIdRaw === "string"
-            ? skuIdRaw.trim()
-            : ""
-      const sv = asRec(sku.skuVal)
-      const act = asRec(sv?.skuActivityAmount)
-      const amt = asRec(sv?.skuAmount)
-      const linePrice = num(act?.value) || num(amt?.value) || price
-      const aq = sv?.availQuantity
-      const stock =
-        typeof aq === "number" && Number.isFinite(aq)
-          ? Math.max(0, Math.round(aq))
-          : parseInt(String(aq ?? ""), 10)
-      const stockN = Number.isFinite(stock) && stock >= 0 ? stock : 50
-
-      const pairs = parseSkuPropPairs(skuId)
-      const props: AePropVal[] = []
-      for (const { propId, valId } of pairs) {
-        const hit = resolvePropValue(skuPropList, propId, valId)
-        if (hit) props.push(hit)
-      }
-
-      const name =
-        props.length > 0
-          ? props.map((p) => p.name).join(" - ")
-          : skuId || "Variant"
-      const attributes: Record<string, string> = {}
-      for (const p of props) {
-        if (p.type) attributes[p.type] = p.name
-      }
-      const image = props.find((p) => p.image)?.image ?? ""
-      const type = props.map((p) => p.type).join(" / ").slice(0, 200)
-
-      variants.push({
-        name: name.slice(0, 240),
-        attributes: Object.keys(attributes).length ? attributes : undefined,
-        image,
-        price: linePrice,
-        stock: stockN,
-        type: type || undefined,
-        sku: productIdStr
-          ? `AE-${productIdStr}-${skuId.replace(/[:;,#+]+/g, "-")}`.slice(0, 120)
-          : skuId.replace(/[:;,#+]+/g, "-").slice(0, 120),
-      })
-
-      for (const p of props) {
-        const tl = p.type.toLowerCase()
-        if (
-          tl.includes("color") ||
-          tl.includes("colour") ||
-          tl.includes("couleur")
-        ) {
-          if (!seenColor.has(p.name)) {
-            seenColor.add(p.name)
-            colors.push({
-              name: p.name.slice(0, 120),
-              hex: "#CCCCCC",
-              image: p.image,
-            })
-          }
-        }
-        if (
-          tl.includes("size") ||
-          tl.includes("length") ||
-          tl.includes("taille")
-        ) {
-          if (!seenSize.has(p.name)) {
-            seenSize.add(p.name)
-            sizes_objects.push({
-              name: p.name.slice(0, 160),
-              value: p.name.slice(0, 160),
-            })
-            sizes.push(p.name)
-          }
-        }
-      }
+    for (const k of skuPropIdsLookupKeys(sku.skuPropIds)) {
+      if (k) skuMap.set(k, row)
     }
   }
+  return skuMap
+}
 
-  if (!(price > 0) && priceRoot) {
-    const act = asRec(priceRoot.minActivityAmount)
-    const sale = asRec(priceRoot.salePrice)
-    const mn = asRec(priceRoot.minAmount)
-    price =
-      num(act?.value) || num(sale?.value) || num(mn?.value) || rootList || 0
-    original_price =
-      rootList > 0 ? Math.max(rootList, price) : price > 0 ? price : 0
+function cartesianAeCombos(
+  propValues: AeComboPiece[][]
+): AeComboPiece[][] {
+  if (propValues.length === 0) return []
+  if (propValues.some((a) => a.length === 0)) return []
+  return propValues.reduce<AeComboPiece[][]>(
+    (acc, curr) =>
+      acc.length === 0
+        ? curr.map((v) => [v])
+        : acc.flatMap((a) => curr.map((b) => [...a, b])),
+    []
+  )
+}
+
+/** AliExpress item id from common URL shapes */
+function extractAliExpressProductId(rawUrl: string): string | null {
+  const u = rawUrl.trim()
+  const patterns = [
+    /\/item\/(?:\d+\.)?(\d+)\.html/i,
+    /\/item\/(\d{6,})\.html/i,
+    /\/i\/(\d{6,})\.html/i,
+    /[?&]item_id=(\d+)/i,
+    /[?&]productId=(\d+)/i,
+  ]
+  for (const rx of patterns) {
+    const m = u.match(rx)
+    if (m?.[1] && /^\d+$/.test(m[1])) return m[1]
   }
-
-  const imgSrc = fields.imagePathList ?? fields.images
-  const imagesRaw = Array.isArray(imgSrc)
-    ? imgSrc.filter((x): x is string => typeof x === "string" && x.trim().length > 0)
-    : []
-  const images = imagesRaw
-    .map((img) => {
-      let x = img.trim()
-      if (!/^https?:/i.test(x)) x = `https:${x}`
-      return x.replace(/_\d+x\d+\./, "_960x960.")
-    })
-    .slice(0, 10)
-
-  const qty = asRec(fields.quantity)
-  let stockTotal = 999
-  const t1 = qty?.totalAvailable ?? qty?.total_avail_quantity
-  const t2 = fields.totalAvailQuantity
-  const parseStock = (v: unknown) => {
-    const n = typeof v === "number" ? v : parseInt(String(v ?? ""), 10)
-    return Number.isFinite(n) && n > 0
-      ? Math.min(Math.max(Math.round(n), 1), 999_999)
-      : 0
-  }
-  const s1 = parseStock(t1)
-  const s2 = parseStock(t2)
-  if (s1) stockTotal = s1
-  else if (s2) stockTotal = s2
-
-  if (variants.length === 0) {
-    variants.push({
-      name: "Default",
-      type: "Default",
-      image: images[0] ?? "",
-      price: price > 0 ? price : 0,
-      stock: stockTotal,
-      sku: productIdStr ? `AE-${productIdStr}` : "",
-    })
-  }
-
-  const shipping = {
-    from_country: "China",
-    delivery_time: "15–25 days",
-    shipping_cost: 0,
-    processing_time: "1–3 days",
-    carrier: "Colissimo",
-  }
-
-  const del = asRec(fields.delivery)
-  if (del) {
-    const w =
-      typeof del.warehouseCountry === "string"
-        ? del.warehouseCountry.trim()
-        : ""
-    const shipFrom =
-      typeof del.shipFrom === "string" ? del.shipFrom.trim() : ""
-    shipping.from_country = w || shipFrom || shipping.from_country
-    const ed =
-      typeof del.estimatedDeliveryTime === "string"
-        ? del.estimatedDeliveryTime.trim()
-        : ""
-    const dd =
-      typeof del.deliveryTimeDesc === "string"
-        ? del.deliveryTimeDesc.trim()
-        : ""
-    shipping.delivery_time = ed || dd || shipping.delivery_time
-    const pt =
-      typeof del.processingTime === "string"
-        ? del.processingTime.trim()
-        : ""
-    if (pt) shipping.processing_time = pt
-    const comp =
-      typeof del.shippingCompany === "string"
-        ? del.shippingCompany.trim()
-        : ""
-    if (comp) shipping.carrier = comp
-    const fee = del.shippingFee
-    if (fee != null) {
-      const fn = typeof fee === "number" ? fee : num(fee)
-      if (fn > 0) shipping.shipping_cost = fn
-    }
-  }
-  const freight = asRec(fields.freightAmount)
-  if (freight?.value != null) {
-    const fn = num(freight.value)
-    if (fn > 0)
-      shipping.shipping_cost = Math.max(shipping.shipping_cost, fn)
-  }
-
-  const specs: Record<string, string> = {}
-  const propList = fields.productPropList
-  if (Array.isArray(propList)) {
-    for (const raw of propList) {
-      const row = asRec(raw)
-      if (!row) continue
-      const k =
-        typeof row.attrName === "string"
-          ? row.attrName.trim()
-          : typeof row.name === "string"
-            ? row.name.trim()
-            : ""
-      if (!k) continue
-      const aval = row.attrValue
-      let v = ""
-      if (typeof aval === "string") v = aval.trim()
-      else if (Array.isArray(aval))
-        v = aval
-          .filter((x): x is string => typeof x === "string")
-          .map((s) => s.trim())
-          .filter(Boolean)
-          .join(", ")
-      else if (aval != null) v = String(aval).trim()
-      if (v) specs[k.slice(0, 200)] = v.slice(0, 1200)
-    }
-  }
-
-  const breakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
-  let reviewTotal = 0
-  let average_rating = 0
-  const reviewItems: Array<{
-    rating: number
-    author: string
-    country: string
-    date: string
-    text: string
-    images: string[]
-    variant: string
-    helpful_count: number
-    verified: boolean
-  }> = []
-
-  const evo = asRec(fields.evo)?.review ?? fields.feedback
-  const revBlock = evo && typeof evo === "object" && !Array.isArray(evo)
-    ? (evo as Record<string, unknown>)
-    : null
-
-  if (revBlock) {
-    const totalNum =
-      revBlock.totalValidNum ?? revBlock.totalNum ?? revBlock.total
-    const tn =
-      typeof totalNum === "number"
-        ? totalNum
-        : parseInt(String(totalNum ?? ""), 10)
-    if (Number.isFinite(tn) && tn >= 0) reviewTotal = tn
-    const avgRaw =
-      revBlock.averageStar ??
-      revBlock.averageStarRating ??
-      revBlock.ratingValue
-    const av =
-      typeof avgRaw === "number"
-        ? avgRaw
-        : parseFloat(String(avgRaw ?? ""))
-    if (Number.isFinite(av) && av > 0) average_rating = av
-    const sl = asRec(revBlock.starLevel)
-    if (sl) {
-      breakdown[5] =
-        typeof sl.fiveStarNum === "number" ? sl.fiveStarNum : num(sl["5"]) || 0
-      breakdown[4] =
-        typeof sl.fourStarNum === "number" ? sl.fourStarNum : num(sl["4"]) || 0
-      breakdown[3] =
-        typeof sl.threeStarNum === "number" ? sl.threeStarNum : num(sl["3"]) || 0
-      breakdown[2] =
-        typeof sl.twoStarNum === "number" ? sl.twoStarNum : num(sl["2"]) || 0
-      breakdown[1] =
-        typeof sl.oneStarNum === "number" ? sl.oneStarNum : num(sl["1"]) || 0
-    }
-    const list = revBlock.reviewList
-    if (Array.isArray(list)) {
-      for (const raw of list.slice(0, 20)) {
-        const r = asRec(raw)
-        if (!r) continue
-        const ratingRaw = r.star ?? r.rating
-        const rating =
-          typeof ratingRaw === "number"
-            ? ratingRaw
-            : parseInt(String(ratingRaw ?? 5), 10) || 5
-        const author =
-          typeof r.buyerName === "string" ? r.buyerName.trim() : "Anonymous"
-        const country =
-          typeof r.buyerCountry === "string" ? r.buyerCountry.trim() : ""
-        const date =
-          typeof r.reviewDate === "string"
-            ? r.reviewDate.trim()
-            : typeof r.gmtCreate === "string"
-              ? r.gmtCreate.trim()
-              : ""
-        const text =
-          typeof r.reviewContent === "string"
-            ? r.reviewContent.trim()
-            : typeof r.buyerFeedback === "string"
-              ? r.buyerFeedback.trim()
-              : ""
-        const variant =
-          typeof r.skuInfo === "string" ? r.skuInfo.trim() : ""
-        const helpful =
-          r.thumbUpNum != null
-            ? typeof r.thumbUpNum === "number"
-              ? r.thumbUpNum
-              : parseInt(String(r.thumbUpNum), 10) || 0
-            : 0
-        const imgsRaw = r.images
-        const imagesRev: string[] = []
-        if (Array.isArray(imgsRaw)) {
-          for (const im of imgsRaw) {
-            if (typeof im !== "string" || !im.trim()) continue
-            let u = im.trim()
-            if (!/^https?:/i.test(u)) u = `https:${u}`
-            imagesRev.push(u.slice(0, 2000))
-          }
-        }
-        reviewItems.push({
-          rating: Math.min(5, Math.max(1, Math.round(rating))),
-          author: author.slice(0, 120),
-          country: country.slice(0, 80),
-          date: date.slice(0, 80),
-          text: text.slice(0, 4000),
-          images: imagesRev.slice(0, 8),
-          variant: variant.slice(0, 200),
-          helpful_count: helpful,
-          verified: true,
-        })
-      }
-    }
-  }
-
-  const category =
-    typeof fields.categoryName === "string" ? fields.categoryName.trim() : ""
-
-  let currency = "EUR"
-  const cur = priceRoot?.currency ?? fields.currency
-  if (typeof cur === "string" && /^[A-Z]{3}$/i.test(cur.trim()))
-    currency = cur.trim().toUpperCase()
-
-  const suggested_price = parseFloat((price * IMPORT_MARKUP).toFixed(2))
-  const profit_per_sale = (suggested_price - price).toFixed(2)
-
-  const leadImage = images[0] ?? ""
-
-  return {
-    title: subject.slice(0, 200),
-    description: description.slice(0, 5000),
-    price,
-    original_price: original_price > 0 ? original_price : price,
-    currency,
-    images,
-    image: leadImage,
-    variants,
-    variants_count: Math.max(variants.length, 1),
-    colors,
-    sizes: uniqStrings(sizes, 120),
-    sizes_objects,
-    sku: productIdStr ? `AE-${productIdStr}` : "",
-    stock: stockTotal,
-    shipping,
-    reviews: {
-      total: reviewTotal,
-      average_rating,
-      breakdown,
-      items: reviewItems,
-    },
-    specs,
-    category: category.slice(0, 200),
-    source_url: sourceUrl,
-    suggested_price,
-    suggested_commission: IMPORT_COMMISSION_HINT,
-    profit_per_sale,
-    basePrice: suggested_price,
-    costPrice: price,
-    extracted_fields: {
-      title: Boolean(subject.trim()),
-      price: price > 0,
-      images: images.length,
-      variants: variants.length,
-      colors: colors.length,
-      sizes: sizes.length + sizes_objects.length,
-      reviews: reviewTotal,
-      shipping: Boolean((shipping.delivery_time ?? "").trim().length > 0),
-      specs_count: Object.keys(specs).length,
-      carrier: Boolean((shipping.carrier ?? "").trim().length > 0),
-    },
-    debug: {
-      variants_found: variants.length,
-      images_found: images.length,
-      price_found: price,
-      reviews_found: reviewTotal,
-    },
-  }
+  return null
 }
 
 export async function POST(req: NextRequest) {
@@ -613,116 +170,587 @@ export async function POST(req: NextRequest) {
 
   if (!/aliexpress\./i.test(parsedUrl.hostname)) {
     return NextResponse.json(
-      {
-        error: "URL import supports AliExpress only",
-        suggestion: "Use an aliexpress.com product link or CSV import.",
-      },
+      { error: "Only AliExpress URLs are supported" },
       { status: 400 }
     )
   }
 
-  let browser: Awaited<ReturnType<typeof puppeteer.launch>> | null = null
+  const productId = extractAliExpressProductId(url)
+  if (!productId) {
+    return NextResponse.json(
+      { error: "Invalid AliExpress URL (no product id)" },
+      { status: 400 }
+    )
+  }
+
+  const apiUrl =
+    `https://www.aliexpress.com/aeglodetailweb/api/store/product/query` +
+    `?productId=${encodeURIComponent(productId)}` +
+    `&language=fr_FR&currency=EUR`
 
   try {
-    const executablePath = await resolveExecutablePath()
-    const systemChrome = isLikelySystemChrome(executablePath)
-
-    browser = await puppeteer.launch({
-      executablePath,
-      headless: systemChrome ? true : "shell",
-      args: systemChrome
-        ? ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
-        : puppeteer.defaultArgs({
-            args: chromium.args,
-            headless: "shell",
-          }),
-      defaultViewport: { width: 1280, height: 800, deviceScaleFactor: 1 },
+    const response = await fetch(apiUrl, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        Accept: "application/json",
+        Referer: parsedUrl.href,
+        "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",
+      },
+      redirect: "follow",
+      signal: AbortSignal.timeout(25_000),
     })
 
-    const page = await browser.newPage()
-    await page.setUserAgent(
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    )
-    await page.setExtraHTTPHeaders({
-      "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",
-    })
+    if (!response.ok) {
+      return NextResponse.json(
+        {
+          error: "AliExpress API request failed",
+          details: `HTTP ${response.status}`,
+        },
+        { status: 422 }
+      )
+    }
 
-    await page.goto(parsedUrl.href, {
-      waitUntil: "networkidle2",
-      timeout: 45_000,
-    })
+    const data = (await response.json()) as Record<string, unknown>
+    const root = asRec(data.data)
+    if (!root) {
+      return NextResponse.json(
+        {
+          error: "Unexpected API response",
+          details: "Missing data root",
+        },
+        { status: 422 }
+      )
+    }
 
-    await new Promise((r) => setTimeout(r, 3000))
+    const productInfo =
+      asRec(root.productInfoComponent) ?? asRec(root.productInfo) ?? {}
+    const skuModule = asRec(root.skuModule) ?? {}
+    const priceModule = asRec(root.priceModule) ?? {}
+    const shippingModule = asRec(root.shippingModule) ?? {}
+    const reviewModule = asRec(root.reviewModule) ?? {}
 
-    const productData = await page.evaluate(() => {
-      const w = window as unknown as {
-        __AER_DATA__?: unknown
-        runParams?: unknown
+    const title =
+      typeof productInfo.subject === "string"
+        ? productInfo.subject.trim()
+        : typeof productInfo.title === "string"
+          ? productInfo.title.trim()
+          : ""
+
+    const descA =
+      typeof productInfo.description === "string"
+        ? productInfo.description.trim()
+        : ""
+    const descB =
+      typeof productInfo.productDesc === "string"
+        ? productInfo.productDesc.trim()
+        : ""
+    const description =
+      [descA, descB].filter(Boolean).sort((a, b) => b.length - a.length)[0] ?? ""
+
+    const skuPriceList = Array.isArray(skuModule.skuPriceList)
+      ? (skuModule.skuPriceList as Record<string, unknown>[])
+      : []
+
+    const minAct = asRec(priceModule.minActivityAmount)
+    const minAmt = asRec(priceModule.minAmount)
+    const maxAmt = asRec(priceModule.maxAmount)
+
+    let price = 0
+    let original_price = 0
+
+    if (skuPriceList.length > 0) {
+      const prices = skuPriceList
+        .map((s) => {
+          const sv = asRec(s.skuVal)
+          const act = asRec(sv?.skuActivityAmount)
+          const amt = asRec(sv?.skuAmount)
+          return num(act?.value) || num(amt?.value)
+        })
+        .filter((p) => p > 0)
+      if (prices.length > 0) {
+        price = Math.min(...prices)
+        original_price = Math.max(...prices)
       }
-      if (w.__AER_DATA__ != null) return w.__AER_DATA__
-      if (w.runParams != null) return w.runParams
-      return null
-    })
+    }
 
-    await browser.close()
-    browser = null
+    const rootList = num(maxAmt?.value)
+    if (!(price > 0)) {
+      price = num(minAct?.value) || num(minAmt?.value)
+    }
+    if (rootList > 0) original_price = Math.max(original_price, rootList, price)
+    else if (!(original_price > 0) && price > 0) original_price = price
 
-    const rec = asRec(productData)
-    if (!rec) {
+    let currency = "EUR"
+    const curRaw = minAct?.currency ?? priceModule.currency ?? productInfo.currency
+    if (typeof curRaw === "string" && /^[A-Z]{3}$/i.test(curRaw.trim()))
+      currency = curRaw.trim().toUpperCase()
+
+    const imgSrc =
+      productInfo.imagePathList ??
+      productInfo.images ??
+      productInfo.imageList
+    const imagesRaw = Array.isArray(imgSrc)
+      ? imgSrc.filter((x): x is string => typeof x === "string" && x.trim().length > 0)
+      : []
+    const images = imagesRaw
+      .map((img) => {
+        let x = img.trim()
+        if (!/^https?:/i.test(x)) x = `https:${x}`
+        return x.replace(/_\d+x\d+\./, "_960x960.")
+      })
+      .slice(0, 10)
+
+    const leadImage = images[0] ?? ""
+
+    const specs: Record<string, string> = {}
+    const plist = productInfo.productPropList
+    if (Array.isArray(plist)) {
+      for (const raw of plist) {
+        const row = asRec(raw)
+        if (!row) continue
+        const k =
+          typeof row.attrName === "string"
+            ? row.attrName.trim()
+            : typeof row.name === "string"
+              ? row.name.trim()
+              : ""
+        if (!k) continue
+        const aval = row.attrValue
+        let v = ""
+        if (typeof aval === "string") v = aval.trim()
+        else if (Array.isArray(aval))
+          v = aval
+            .filter((x): x is string => typeof x === "string")
+            .map((s) => s.trim())
+            .filter(Boolean)
+            .join(", ")
+        else if (aval != null) v = String(aval).trim()
+        if (v) specs[k.slice(0, 200)] = v.slice(0, 1200)
+      }
+    }
+
+    const skuPropsRaw = skuModule.productSKUPropertyList
+    const skuProps = Array.isArray(skuPropsRaw)
+      ? skuPropsRaw.filter(
+          (x): x is Record<string, unknown> =>
+            Boolean(x) && typeof x === "object" && !Array.isArray(x)
+        )
+      : []
+
+    const skuMap = buildSkuPriceMap(
+      skuPriceList,
+      price > 0 ? price : 0
+    )
+
+    const variants: Array<{
+      name: string
+      image: string
+      price: number
+      stock: number
+      type?: string
+      sku?: string
+      attributes?: Record<string, string>
+    }> = []
+
+    const colors: Array<{ name: string; hex: string; image: string }> = []
+    const sizes: string[] = []
+    const sizes_objects: Array<{ name: string; value: string }> = []
+    const seenColor = new Set<string>()
+    const seenSize = new Set<string>()
+
+    if (skuProps.length > 0) {
+      const propValues: AeComboPiece[][] = []
+
+      for (const prop of skuProps) {
+        const propName =
+          typeof prop.skuPropertyName === "string"
+            ? prop.skuPropertyName.trim()
+            : ""
+        const propNameId = aeSkuScalarId(
+          prop.skuPropertyId ?? prop.skuPropertyIdLong ?? ""
+        )
+        const vals = prop.skuPropertyValues
+        if (!Array.isArray(vals)) continue
+
+        const rowVals: AeComboPiece[] = []
+        for (const val of vals) {
+          if (!val || typeof val !== "object" || Array.isArray(val)) continue
+          const v = val as Record<string, unknown>
+          const nameRaw =
+            (typeof v.propertyValueDisplayName === "string"
+              ? v.propertyValueDisplayName
+              : "") ||
+            (typeof v.propertyValueDefinitionName === "string"
+              ? v.propertyValueDefinitionName
+              : "")
+          const displayName = nameRaw.trim()
+          if (!displayName) continue
+          const pid = aeSkuScalarId(
+            v.propertyValueId ??
+              v.variationId ??
+              v.definitionId ??
+              v.skuAttr ??
+              ""
+          )
+
+          let vimg = ""
+          if (typeof v.skuPropertyImagePath === "string") {
+            vimg = v.skuPropertyImagePath.trim()
+            if (vimg && !/^https?:/i.test(vimg)) vimg = `https:${vimg}`
+          }
+
+          rowVals.push({
+            name: displayName.slice(0, 200),
+            type: propName.slice(0, 120) || "Option",
+            image: vimg,
+            propId: pid,
+            propNameId,
+          })
+        }
+        if (rowVals.length > 0) propValues.push(rowVals)
+      }
+
+      const combinations = cartesianAeCombos(propValues)
+
+      for (const combo of combinations) {
+        let skuData: { price: number; stock: number } | undefined
+        for (const k of comboToSkuLookupKeys(combo)) {
+          const hit = skuMap.get(k)
+          if (hit) {
+            skuData = hit
+            break
+          }
+        }
+        if (!skuData)
+          skuData = {
+            price: price > 0 ? price : 0,
+            stock: 50,
+          }
+
+        const variantName = combo.map((c) => c.name).join(" - ")
+        const variantType = combo.map((c) => c.type).join(" / ")
+        const variantImage =
+          combo.find((c) => c.image.trim().length > 0)?.image ?? leadImage
+
+        const skuSuffix =
+          comboToSkuLookupKeys(combo)[0]?.replace(/[:;,#+]+/g, "-").slice(0, 100) ??
+          ""
+
+        const attributes: Record<string, string> = {}
+        for (const c of combo) {
+          if (c.type) attributes[c.type] = c.name
+        }
+
+        variants.push({
+          name: variantName.slice(0, 240),
+          type: variantType.slice(0, 200),
+          image: variantImage,
+          price: skuData.price,
+          stock: skuData.stock,
+          sku: `AE-${productId}-${skuSuffix}`.slice(0, 120),
+          attributes:
+            Object.keys(attributes).length > 0 ? attributes : undefined,
+        })
+
+        for (const c of combo) {
+          const tl = c.type.toLowerCase()
+          if (
+            tl.includes("color") ||
+            tl.includes("colour") ||
+            tl.includes("couleur")
+          ) {
+            if (!seenColor.has(c.name)) {
+              seenColor.add(c.name)
+              colors.push({
+                name: c.name.slice(0, 120),
+                hex: "#CCCCCC",
+                image: c.image,
+              })
+            }
+          }
+          if (
+            tl.includes("size") ||
+            tl.includes("length") ||
+            tl.includes("taille")
+          ) {
+            if (!seenSize.has(c.name)) {
+              seenSize.add(c.name)
+              sizes_objects.push({
+                name: c.name.slice(0, 160),
+                value: c.name.slice(0, 160),
+              })
+              sizes.push(c.name)
+            }
+          }
+        }
+      }
+    }
+
+    if (variants.length === 0) {
+      const tq = productInfo.totalAvailQuantity
+      const st =
+        typeof tq === "number"
+          ? tq
+          : parseInt(String(tq ?? ""), 10)
+      const fallbackStock =
+        Number.isFinite(st) && st > 0
+          ? Math.min(Math.max(Math.round(st), 1), 999_999)
+          : 999
+      variants.push({
+        name: "Default",
+        type: "Default",
+        image: leadImage,
+        price: price > 0 ? price : 0,
+        stock: fallbackStock,
+        sku: `AE-${productId}`,
+      })
+    }
+
+    let stockTotal = 999
+    const tq = productInfo.totalAvailQuantity ?? productInfo.totalAvailable
+    const stParse =
+      typeof tq === "number"
+        ? tq
+        : parseInt(String(tq ?? ""), 10)
+    if (Number.isFinite(stParse) && stParse > 0)
+      stockTotal = Math.min(Math.max(Math.round(stParse), 1), 999_999)
+
+    const shipping = {
+      from_country: "China",
+      delivery_time: "15–25 days",
+      shipping_cost: 0,
+      processing_time: "1–3 days",
+      carrier: "Colissimo",
+    }
+
+    const gfi = asRec(shippingModule.generalFreightInfo)
+    if (gfi) {
+      const sf =
+        typeof gfi.shipFrom === "string" ? gfi.shipFrom.trim() : ""
+      const wc =
+        typeof gfi.warehouseCountry === "string"
+          ? gfi.warehouseCountry.trim()
+          : ""
+      shipping.from_country = sf || wc || shipping.from_country
+      const dd =
+        typeof gfi.deliveryTimeDesc === "string"
+          ? gfi.deliveryTimeDesc.trim()
+          : ""
+      const ed =
+        typeof gfi.estimatedDeliveryTime === "string"
+          ? gfi.estimatedDeliveryTime.trim()
+          : ""
+      shipping.delivery_time = ed || dd || shipping.delivery_time
+      const comp =
+        typeof gfi.shippingCompany === "string"
+          ? gfi.shippingCompany.trim()
+          : ""
+      if (comp) shipping.carrier = comp
+      const fa = asRec(gfi.freightAmount)
+      if (fa?.value != null) {
+        const fn = num(fa.value)
+        if (fn > 0) shipping.shipping_cost = fn
+      }
+    }
+
+    const breakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+    let reviewTotal = 0
+    let average_rating = 0
+    const reviewItems: Array<{
+      rating: number
+      author: string
+      country: string
+      date: string
+      text: string
+      images: string[]
+      variant: string
+      helpful_count: number
+      verified: boolean
+    }> = []
+
+    if (Object.keys(reviewModule).length > 0) {
+      const totalNum =
+        reviewModule.totalValidNum ??
+        reviewModule.totalNum ??
+        reviewModule.total
+      const tn =
+        typeof totalNum === "number"
+          ? totalNum
+          : parseInt(String(totalNum ?? ""), 10)
+      if (Number.isFinite(tn) && tn >= 0) reviewTotal = tn
+
+      const avgRaw = reviewModule.averageStar ?? reviewModule.averageStarRating
+      const av =
+        typeof avgRaw === "number"
+          ? avgRaw
+          : parseFloat(String(avgRaw ?? ""))
+      if (Number.isFinite(av) && av > 0) average_rating = av
+
+      const sl = asRec(reviewModule.starLevel)
+      if (sl) {
+        breakdown[5] =
+          typeof sl.fiveStarNum === "number" ? sl.fiveStarNum : num(sl["5"]) || 0
+        breakdown[4] =
+          typeof sl.fourStarNum === "number" ? sl.fourStarNum : num(sl["4"]) || 0
+        breakdown[3] =
+          typeof sl.threeStarNum === "number"
+            ? sl.threeStarNum
+            : num(sl["3"]) || 0
+        breakdown[2] =
+          typeof sl.twoStarNum === "number" ? sl.twoStarNum : num(sl["2"]) || 0
+        breakdown[1] =
+          typeof sl.oneStarNum === "number" ? sl.oneStarNum : num(sl["1"]) || 0
+      }
+
+      const list = reviewModule.reviewList
+      if (Array.isArray(list)) {
+        for (const raw of list.slice(0, 20)) {
+          const r = asRec(raw)
+          if (!r) continue
+          const ratingRaw = r.star ?? r.rating
+          const rating =
+            typeof ratingRaw === "number"
+              ? ratingRaw
+              : parseInt(String(ratingRaw ?? 5), 10) || 5
+          const author =
+            typeof r.buyerName === "string" ? r.buyerName.trim() : "Anonymous"
+          const country =
+            typeof r.buyerCountry === "string" ? r.buyerCountry.trim() : ""
+          const date =
+            typeof r.reviewDate === "string"
+              ? r.reviewDate.trim()
+              : typeof r.gmtCreate === "string"
+                ? r.gmtCreate.trim()
+                : ""
+          const text =
+            typeof r.reviewContent === "string"
+              ? r.reviewContent.trim()
+              : typeof r.buyerFeedback === "string"
+                ? r.buyerFeedback.trim()
+                : ""
+          const variant =
+            typeof r.skuInfo === "string" ? r.skuInfo.trim() : ""
+          const helpful =
+            r.thumbUpNum != null
+              ? typeof r.thumbUpNum === "number"
+                ? r.thumbUpNum
+                : parseInt(String(r.thumbUpNum), 10) || 0
+              : 0
+          const imgsRaw = r.images
+          const rimgs: string[] = []
+          if (Array.isArray(imgsRaw)) {
+            for (const im of imgsRaw) {
+              if (typeof im !== "string" || !im.trim()) continue
+              let u = im.trim()
+              if (!/^https?:/i.test(u)) u = `https:${u}`
+              rimgs.push(u.slice(0, 2000))
+            }
+          }
+          reviewItems.push({
+            rating: Math.min(5, Math.max(1, Math.round(rating))),
+            author: author.slice(0, 120),
+            country: country.slice(0, 80),
+            date: date.slice(0, 80),
+            text: text.slice(0, 4000),
+            images: rimgs.slice(0, 8),
+            variant: variant.slice(0, 200),
+            helpful_count: helpful,
+            verified: true,
+          })
+        }
+      }
+    }
+
+    const category =
+      typeof productInfo.categoryName === "string"
+        ? productInfo.categoryName.trim().slice(0, 200)
+        : ""
+
+    if (!title) {
       return NextResponse.json(
         {
-          error: "Could not extract product data",
-          details: "AliExpress did not expose __AER_DATA__ or runParams",
-          suggestion:
-            "Try again, another item, or CSV import. The page may have blocked automation.",
+          error: "Could not extract product",
+          details: "Empty title in API response",
         },
         { status: 422 }
       )
     }
 
-    const row = buildFromAeState(rec, url)
+    const suggested_price = parseFloat((price * IMPORT_MARKUP).toFixed(2))
+    const profit_per_sale = (suggested_price - price).toFixed(2)
 
-    if (!row.title.trim()) {
-      return NextResponse.json(
-        {
-          error: "Could not extract product data",
-          details: "Missing product title",
-          suggestion: "Try CSV import or another URL.",
-        },
-        { status: 422 }
-      )
+    const extracted_fields = {
+      title: Boolean(title.trim()),
+      price: price > 0,
+      images: images.length,
+      variants: variants.length,
+      colors: colors.length,
+      sizes: sizes.length + sizes_objects.length,
+      reviews: reviewTotal,
+      shipping: Boolean((shipping.delivery_time ?? "").trim().length > 0),
+      specs_count: Object.keys(specs).length,
+      carrier:
+        typeof shipping.carrier === "string" &&
+        (shipping.carrier ?? "").trim().length > 0,
     }
 
-    const { extracted_fields, debug, ...productBody } = row
+    const debug = {
+      variants: variants.length,
+      images: images.length,
+      price,
+      reviews: reviewTotal,
+    }
 
     return NextResponse.json({
       success: true,
       products: [
         {
-          ...productBody,
+          title: title.slice(0, 200),
+          description: description.slice(0, 5000),
+          price: parseFloat(price.toFixed(4)),
+          original_price: parseFloat(
+            (original_price > 0 ? original_price : price).toFixed(4)
+          ),
+          currency,
+          images,
+          image: leadImage,
+          variants,
+          variants_count: Math.max(variants.length, 1),
+          colors,
+          sizes: uniqStrings(sizes, 120),
+          sizes_objects: sizes_objects.slice(0, 40),
+          shipping,
+          specs,
+          reviews: {
+            total: reviewTotal,
+            average_rating,
+            breakdown,
+            items: reviewItems,
+          },
+          stock: stockTotal,
+          sku: `AE-${productId}`,
+          source_url: url,
+          category,
+          suggested_price,
+          suggested_commission: IMPORT_COMMISSION_HINT,
+          profit_per_sale,
+          basePrice: suggested_price,
+          costPrice: price,
           selected: true as const,
         },
       ],
       precision: "high",
-      extraction_method: "puppeteer-aliexpress",
+      extraction_method: "aliexpress-api",
       extracted_fields,
       debug,
     })
   } catch (error) {
-    if (browser) {
-      try {
-        await browser.close()
-      } catch {
-        /* ignore */
-      }
-    }
     console.error("Import error:", error)
     return NextResponse.json(
       {
         error: "Import failed",
         details: error instanceof Error ? error.message : "Unknown error",
-        suggestion:
-          "AliExpress may be blocking automation. Set PUPPETEER_EXECUTABLE_PATH to Chrome on macOS, or try CSV import.",
       },
       { status: 500 }
     )
