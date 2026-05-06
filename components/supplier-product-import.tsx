@@ -1,7 +1,6 @@
 "use client"
 
-import { Box, CloudUpload, Link2, ShoppingBag } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { Box, CloudUpload, Link2, ShoppingBag, Star } from "lucide-react"
 import type { ChangeEvent } from "react"
 import { useCallback, useState } from "react"
 
@@ -380,12 +379,15 @@ function normalizeImportPreviewRow(raw: Record<string, unknown>): ImportPreviewR
 }
 
 export function SupplierProductImport() {
-  const router = useRouter()
   const [importMethod, setImportMethod] = useState<ImportMethod>("csv")
   const [isImporting, setIsImporting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
   const [importedProducts, setImportedProducts] = useState<ImportPreviewRow[]>([])
+  const [savedProducts, setSavedProducts] = useState<
+    Array<{ id: string; name: string; sku: string }>
+  >([])
   const [productUrl, setProductUrl] = useState("")
   const [aliExpressUrl, setAliExpressUrl] = useState("")
 
@@ -444,6 +446,7 @@ export function SupplierProductImport() {
     }
     setIsImporting(true)
     setError(null)
+    setNotice(null)
     try {
       const res = await fetch("/api/supplier/import-url", {
         method: "POST",
@@ -479,6 +482,7 @@ export function SupplierProductImport() {
     }
     setIsSaving(true)
     setError(null)
+    setNotice(null)
     try {
       const res = await fetch("/api/supplier/products/import", {
         method: "POST",
@@ -486,15 +490,75 @@ export function SupplierProductImport() {
         credentials: "include",
         body: JSON.stringify({ products: picked }),
       })
-      const body = (await res.json()) as { error?: string }
+      const body = (await res.json()) as {
+        error?: string
+        products?: Array<{ id?: string; name?: string; sku?: string }>
+      }
       if (!res.ok) throw new Error(body.error ?? "Save failed")
-      router.push("/dashboard/supplier")
+      const saved = Array.isArray(body.products)
+        ? body.products
+            .map((p) => ({
+              id: typeof p.id === "string" ? p.id : "",
+              name: typeof p.name === "string" ? p.name : "",
+              sku: typeof p.sku === "string" ? p.sku : "",
+            }))
+            .filter((p) => p.id)
+        : []
+      setSavedProducts(saved)
+      setNotice(
+        saved.length > 0
+          ? `${saved.length} products saved. You can import reviews now.`
+          : "Products saved."
+      )
     } catch (err) {
       setError(err instanceof Error ? err.message : "Save failed")
     } finally {
       setIsSaving(false)
     }
-  }, [importedProducts, router])
+  }, [importedProducts])
+
+  const resolveSavedProductId = useCallback(
+    (row: ImportPreviewRow): string | null => {
+      const bySku = row.sku
+        ? savedProducts.find((p) => p.sku === row.sku)?.id
+        : undefined
+      if (bySku) return bySku
+      const byName = savedProducts.find((p) => p.name === row.title)?.id
+      return byName ?? null
+    },
+    [savedProducts]
+  )
+
+  const handleImportReviews = useCallback(
+    async (row: ImportPreviewRow) => {
+      const productId = resolveSavedProductId(row)
+      if (!productId) {
+        setError("Save product first, then import reviews.")
+        return
+      }
+      const reviews = row.reviews?.items ?? []
+      if (reviews.length === 0) {
+        setError("No reviews to import.")
+        return
+      }
+      setError(null)
+      setNotice(null)
+      try {
+        const res = await fetch(`/api/supplier/products/${productId}/import-reviews`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ reviews }),
+        })
+        const body = (await res.json()) as { error?: string; imported?: number }
+        if (!res.ok) throw new Error(body.error ?? "Review import failed")
+        setNotice(`${body.imported ?? reviews.length} reviews imported successfully.`)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Review import failed")
+      }
+    },
+    [resolveSavedProductId]
+  )
 
   const tabs: { id: ImportMethod; label: string }[] = [
     { id: "csv", label: "CSV Upload" },
@@ -522,6 +586,11 @@ export function SupplierProductImport() {
       {error ? (
         <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/50 dark:text-red-200">
           {error}
+        </p>
+      ) : null}
+      {notice ? (
+        <p className="mb-4 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800 dark:border-green-900 dark:bg-green-950/40 dark:text-green-200">
+          {notice}
         </p>
       ) : null}
 
@@ -891,6 +960,46 @@ export function SupplierProductImport() {
                             : `${profitPretty} ${p.currency}`}
                         </span>
                       </div>
+                      {p.reviews?.items?.length ? (
+                        <div className="mt-3 rounded-lg border border-zinc-200 p-3 dark:border-zinc-700">
+                          <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                            <Star className="h-4 w-4 text-yellow-500" />
+                            {p.reviews.total} Reviews - {p.reviews.average_rating.toFixed(1)}★
+                          </h4>
+                          <div className="mb-3 flex gap-3 text-xs">
+                            {[5, 4, 3, 2, 1].map((stars) => (
+                              <div key={stars} className="text-center">
+                                <div>{stars}★</div>
+                                <div className="font-semibold">
+                                  {p.reviews?.breakdown?.[stars as 5 | 4 | 3 | 2 | 1] ?? 0}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="max-h-44 space-y-2 overflow-y-auto">
+                            {p.reviews.items.slice(0, 5).map((r, ri) => (
+                              <div
+                                key={`${r.author}-${ri}`}
+                                className="rounded border border-zinc-200 p-2 text-xs dark:border-zinc-700"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span>{"★".repeat(Math.max(1, Math.min(5, r.rating)))}</span>
+                                  <span className="font-medium">{r.author || "Anonymous"}</span>
+                                  <span className="text-zinc-500">{r.country || ""}</span>
+                                </div>
+                                <p className="mt-1 line-clamp-2">{r.text}</p>
+                              </div>
+                            ))}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => void handleImportReviews(p)}
+                            className="mt-3 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50 dark:border-zinc-600 dark:hover:bg-zinc-800"
+                          >
+                            Import {p.reviews.items.length} reviews
+                          </button>
+                        </div>
+                      ) : null}
                     </div>
                     <input
                       type="checkbox"

@@ -51,6 +51,23 @@ type Props = {
   shipping: ListingShippingBlock
   /** Listing selling price for commission previews */
   listingPriceCents: number
+  reviewSummary: {
+    count: number
+    average: number
+    sentiment: string
+  }
+  reviews: Array<{
+    id: string
+    rating: number
+    author: string
+    country: string | null
+    date: string
+    text: string
+    images: string[]
+    variant: string | null
+    helpful_count: number
+    verified: boolean
+  }>
 }
 
 const VARIANT_KEYS: VariantGroupKey[] = ["size", "storage", "ram", "material"]
@@ -70,6 +87,8 @@ export function MarketplaceListingDetail({
   colorImages,
   shipping,
   listingPriceCents,
+  reviewSummary,
+  reviews,
 }: Props) {
   const router = useRouter()
   const urls = gallery
@@ -190,6 +209,11 @@ export function MarketplaceListingDetail({
 
   const variantRows = variants?.variantRows ?? []
   const listingPriceEur = listingPriceCents / 100
+  const reviewBreakdown = [5, 4, 3, 2, 1].map((stars) => ({
+    stars,
+    count: reviews.filter((r) => r.rating === stars).length,
+  }))
+  const reviewDenominator = reviews.length > 0 ? reviews.length : 1
 
   return (
     <>
@@ -471,6 +495,77 @@ export function MarketplaceListingDetail({
           {toast}
         </div>
       ) : null}
+
+      <section className="mt-10 border-t border-zinc-200 pt-8 dark:border-zinc-700">
+        <h2 className="mb-4 text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+          Customer Reviews ({reviewSummary.count}) - {reviewSummary.average.toFixed(1)}★
+        </h2>
+
+        <div className="mb-6 grid grid-cols-5 gap-2">
+          {reviewBreakdown.map(({ stars, count }) => {
+            const percent = Math.round((count / reviewDenominator) * 100)
+            return (
+              <div key={stars}>
+                <div className="text-sm">{stars}★</div>
+                <div className="h-2 rounded bg-zinc-200 dark:bg-zinc-700">
+                  <div
+                    className="h-2 rounded bg-yellow-500"
+                    style={{ width: `${percent}%` }}
+                  />
+                </div>
+                <div className="text-xs text-zinc-500">{count}</div>
+              </div>
+            )
+          })}
+        </div>
+
+        <div className="space-y-4">
+          {reviews.length === 0 ? (
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">No reviews available yet.</p>
+          ) : (
+            reviews.map((r) => (
+              <div key={r.id} className="border-b border-zinc-200 py-4 dark:border-zinc-700">
+                <div className="mb-2 flex flex-wrap items-center gap-2">
+                  <div className="text-yellow-500">{"★".repeat(Math.max(1, Math.min(5, r.rating)))}</div>
+                  <span className="font-medium">{r.author}</span>
+                  {r.verified ? (
+                    <span className="rounded bg-green-100 px-2 py-0.5 text-xs text-green-700 dark:bg-green-900/50 dark:text-green-300">
+                      ✓ Verified purchase
+                    </span>
+                  ) : null}
+                  <span className="text-sm text-zinc-500">
+                    {new Date(r.date).toLocaleDateString()}
+                  </span>
+                </div>
+                {r.variant ? (
+                  <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                    Variant: {r.variant}
+                  </div>
+                ) : null}
+                <p className="mt-2 text-sm text-zinc-800 dark:text-zinc-200">{r.text}</p>
+                {r.images.length > 0 ? (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {r.images.map((img, i) => (
+                      <Image
+                        key={`${r.id}-${i}`}
+                        src={img}
+                        alt=""
+                        width={80}
+                        height={80}
+                        className="h-20 w-20 rounded object-cover"
+                        unoptimized
+                      />
+                    ))}
+                  </div>
+                ) : null}
+                <div className="mt-2 text-sm text-zinc-500">
+                  {r.helpful_count} people found this review helpful
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </section>
     </>
   )
 }

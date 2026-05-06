@@ -162,6 +162,7 @@ export async function POST(req: NextRequest) {
   })
 
   let createdCount = 0
+  const createdProducts: Array<{ id: string; name: string; sku: string }> = []
 
   const bodyDraft =
     typeof body.status === "string"
@@ -432,6 +433,11 @@ export async function POST(req: NextRequest) {
     })
 
     createdCount++
+    createdProducts.push({
+      id: product.id,
+      name: product.name,
+      sku: baseSku,
+    })
 
     if (active && supplierStore) {
       try {
@@ -453,5 +459,9 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  return NextResponse.json({ success: true, count: createdCount })
+  return NextResponse.json({
+    success: true,
+    count: createdCount,
+    products: createdProducts,
+  })
 }

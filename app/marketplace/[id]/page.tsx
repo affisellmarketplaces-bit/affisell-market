@@ -70,6 +70,12 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
     freeShippingThresholdEUR: freeThresh,
   }
 
+  const reviews = await prisma.review.findMany({
+    where: { productId: listing.product.id },
+    orderBy: { helpful_count: "desc" },
+    take: 20,
+  })
+
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 md:px-8">
       <MarketplaceListingDetail
@@ -90,6 +96,23 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
         colorImages={colorImages}
         shipping={shipping}
         listingPriceCents={listing.sellingPriceCents}
+        reviewSummary={{
+          count: listing.product.reviewCount,
+          average: listing.product.averageRating,
+          sentiment: listing.product.reviewSentiment,
+        }}
+        reviews={reviews.map((r) => ({
+          id: r.id,
+          rating: r.rating,
+          author: r.author,
+          country: r.country,
+          date: r.date.toISOString(),
+          text: r.text,
+          images: r.images,
+          variant: r.variant,
+          helpful_count: r.helpful_count,
+          verified: r.verified,
+        }))}
       />
     </main>
   )

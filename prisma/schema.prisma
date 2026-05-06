@@ -99,12 +99,39 @@ model Product {
   freeShipping  Boolean @default(false)
   /** Display source label (e.g. "seed"); API may expose as `supplier` string. */
   supplierTag   String?
+  reviewCount   Int      @default(0)
+  averageRating Float    @default(0)
+  reviewSentiment String @default("neutral")
 
   supplier User @relation("SupplierProducts", fields: [supplierId], references: [id])
   affiliateProducts AffiliateProduct[]
   orders Order[]
   communityPosts CommunityPost[]
   wishlists Wishlist[]
+  reviews Review[]
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  rating       Int
+  author       String
+  country      String?
+  date         DateTime
+  text         String   @db.Text
+  images       String[] @default([])
+  variant      String?
+  helpful_count Int     @default(0)
+  verified     Boolean  @default(true)
+  sentiment    String   @default("neutral")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId])
+  @@index([rating])
 }
 
 model Wishlist {

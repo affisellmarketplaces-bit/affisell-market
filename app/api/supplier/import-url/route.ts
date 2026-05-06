@@ -4,8 +4,14 @@ import * as cheerio from "cheerio"
 interface ReviewItem {
   rating?: number
   author?: string
+  country?: string
+  date?: string
   text?: string
   images?: string[]
+  variant?: string
+  helpful_count?: number
+  verified?: boolean
+  sentiment?: "positive" | "neutral" | "negative"
 }
 
 interface UniversalProduct {
@@ -360,6 +366,14 @@ function parseAliExpressMobile(data: Record<string, unknown>, url: string, produ
     .map((v) => ({ name: v.name, value: v.name }))
 
   const reviewList = Array.isArray(review.reviewList) ? review.reviewList : []
+  const breakdown = {
+    5: num(asObject(review.starLevel)[5] ?? asObject(review.starLevel).fiveStarNum),
+    4: num(asObject(review.starLevel)[4] ?? asObject(review.starLevel).fourStarNum),
+    3: num(asObject(review.starLevel)[3] ?? asObject(review.starLevel).threeStarNum),
+    2: num(asObject(review.starLevel)[2] ?? asObject(review.starLevel).twoStarNum),
+    1: num(asObject(review.starLevel)[1] ?? asObject(review.starLevel).oneStarNum),
+  }
+  const avgRating = num(review.averageStar) || 0
 
   return {
     title: safeText(p.subject),
@@ -388,10 +402,28 @@ function parseAliExpressMobile(data: Record<string, unknown>, url: string, produ
     },
     reviews: {
       total: num(review.totalValidNum) || 0,
-      average_rating: num(review.averageStar) || 0,
-      breakdown: {},
-      items: reviewList.slice(0, 20).map((r) => asObject(r) as ReviewItem),
-      sentiment: "neutral",
+      average_rating: avgRating,
+      breakdown,
+      items: reviewList.slice(0, 50).map((raw) => {
+        const r = asObject(raw)
+        const rating = Math.max(1, Math.min(5, Math.round(num(r.star) || 5)))
+        const imgs = Array.isArray(r.images) ? r.images : []
+        return {
+          rating,
+          author: safeText(r.buyerName) || "Anonymous",
+          country: safeText(r.buyerCountry),
+          date: safeText(r.reviewDate) || new Date().toISOString(),
+          text: safeText(r.reviewContent) || safeText(r.buyerFeedback),
+          images: imgs
+            .filter((i): i is string => typeof i === "string")
+            .map((i) => toHdImage(i)),
+          variant: safeText(r.skuInfo),
+          helpful_count: Math.max(0, Math.round(num(r.thumbUpNum) || 0)),
+          verified: true,
+          sentiment: rating >= 4 ? "positive" : rating >= 3 ? "neutral" : "negative",
+        } as ReviewItem
+      }),
+      sentiment: avgRating >= 4 ? "positive" : avgRating >= 3 ? "neutral" : "negative",
     },
     specs: {},
     source_platform: "aliexpress",
