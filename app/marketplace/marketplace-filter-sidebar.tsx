@@ -1,6 +1,6 @@
 import Link from "next/link"
 
-import { Button } from "@/components/ui/button"
+import { SmartFilters } from "@/components/marketplace/SmartFilters"
 import { AFFISELL_CATEGORIES } from "@/lib/affisell-categories"
 
 export type MarketplaceFilterParams = {
@@ -43,32 +43,38 @@ export function MarketplaceFilterSidebar({ current }: { current: MarketplaceFilt
   return (
     <aside className="w-full shrink-0 space-y-6 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900 lg:w-56">
       <FilterGroup title="Smart Filters">
-        <Button
-          asChild
-          size="sm"
-          variant={c.delivery === "under3" ? "default" : "outline"}
-          className="w-full justify-start"
-        >
-          <Link href={href({ ...c, delivery: c.delivery === "under3" ? undefined : "under3" })}>
-            🔥 Trending Now
-          </Link>
-        </Button>
-        <Button
-          asChild
-          size="sm"
-          variant={c.shipsFrom === "fr" ? "default" : "outline"}
-          className="w-full justify-start"
-        >
-          <Link href={href({ ...c, shipsFrom: c.shipsFrom === "fr" ? undefined : "fr" })}>
-            ⚡ Ships in 24h
-          </Link>
-        </Button>
-        <Button asChild size="sm" variant="outline" className="w-full justify-start">
-          <Link href={href({ ...c })}>💎 Under €100</Link>
-        </Button>
-        <Button asChild size="sm" variant="outline" className="w-full justify-start">
-          <Link href={href({ ...c })}>⭐ Top Rated 4.5+</Link>
-        </Button>
+        <SmartFilters
+          items={[
+            {
+              id: "trending",
+              label: "Trending Now",
+              icon: "🔥",
+              href: href({ ...c, delivery: c.delivery === "under3" ? undefined : "under3" }),
+              active: c.delivery === "under3",
+            },
+            {
+              id: "ships24h",
+              label: "Ships in 24h",
+              icon: "⚡",
+              href: href({ ...c, shipsFrom: c.shipsFrom === "fr" ? undefined : "fr" }),
+              active: c.shipsFrom === "fr",
+            },
+            {
+              id: "under100",
+              label: "Under €100",
+              icon: "💎",
+              href: href({ ...c }),
+              active: false,
+            },
+            {
+              id: "topRated",
+              label: "Top Rated 4.5+",
+              icon: "⭐",
+              href: href({ ...c }),
+              active: false,
+            },
+          ]}
+        />
       </FilterGroup>
 
       <div>
@@ -100,21 +106,21 @@ export function MarketplaceFilterSidebar({ current }: { current: MarketplaceFilt
 
       <FilterGroup title="Style">
         <label className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
-          <input type="checkbox" className="accent-zinc-900" />
+          <input type="checkbox" className="accent-violet-600" />
           Minimalist
         </label>
         <label className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
-          <input type="checkbox" className="accent-zinc-900" />
+          <input type="checkbox" className="accent-violet-600" />
           Streetwear
         </label>
         <label className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
-          <input type="checkbox" className="accent-zinc-900" />
+          <input type="checkbox" className="accent-violet-600" />
           Business
         </label>
       </FilterGroup>
 
       <FilterGroup title="Price">
-        <input type="range" min={0} max={500} defaultValue={250} className="w-full accent-zinc-900" />
+        <input type="range" min={0} max={500} defaultValue={250} className="w-full accent-violet-600" />
         <div className="flex justify-between text-xs text-zinc-500">
           <span>€0</span>
           <span>€500</span>
@@ -126,19 +132,19 @@ export function MarketplaceFilterSidebar({ current }: { current: MarketplaceFilt
         <div className="mt-2 flex flex-wrap gap-2">
           <Link
             href={href({ ...c, shipsFrom: c.shipsFrom === "fr" ? undefined : "fr" })}
-            className={chipClass(c.shipsFrom === "fr")}
+            className={`${chipClass(c.shipsFrom === "fr")} focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95`}
           >
             France
           </Link>
           <Link
             href={href({ ...c, shipsFrom: c.shipsFrom === "eu" ? undefined : "eu" })}
-            className={chipClass(c.shipsFrom === "eu")}
+            className={`${chipClass(c.shipsFrom === "eu")} focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95`}
           >
             EU
           </Link>
           <Link
             href={href({ ...c, shipsFrom: c.shipsFrom === "worldwide" ? undefined : "worldwide" })}
-            className={chipClass(c.shipsFrom === "worldwide")}
+            className={`${chipClass(c.shipsFrom === "worldwide")} focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95`}
           >
             Worldwide
           </Link>
@@ -150,13 +156,13 @@ export function MarketplaceFilterSidebar({ current }: { current: MarketplaceFilt
         <div className="mt-2 flex flex-wrap gap-2">
           <Link
             href={href({ ...c, delivery: c.delivery === "under3" ? undefined : "under3" })}
-            className={chipClass(c.delivery === "under3")}
+            className={`${chipClass(c.delivery === "under3")} focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95`}
           >
             Under 3 days
           </Link>
           <Link
             href={href({ ...c, delivery: c.delivery === "under7" ? undefined : "under7" })}
-            className={chipClass(c.delivery === "under7")}
+            className={`${chipClass(c.delivery === "under7")} focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95`}
           >
             Under 7 days
           </Link>
@@ -167,7 +173,7 @@ export function MarketplaceFilterSidebar({ current }: { current: MarketplaceFilt
         <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Offers</p>
         <Link
           href={href({ ...c, freeShipping: c.freeShipping === "1" ? undefined : "1" })}
-          className={`mt-2 flex w-full items-center justify-center rounded-xl px-3 py-2 text-sm font-medium ${
+          className={`mt-2 flex w-full items-center justify-center rounded-xl px-3 py-2 text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95 ${
             c.freeShipping === "1"
               ? "bg-green-600 text-white hover:bg-green-700"
               : "bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"

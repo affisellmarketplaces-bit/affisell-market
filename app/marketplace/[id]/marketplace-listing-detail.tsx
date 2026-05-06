@@ -287,7 +287,7 @@ export function MarketplaceListingDetail({
               className="h-full w-full object-cover transition duration-300 group-hover:scale-110"
             />
             {has3D ? (
-              <span className="absolute left-3 top-3 rounded-full bg-black/80 px-3 py-1 text-xs font-semibold text-white">
+              <span className="absolute left-3 top-3 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 px-3 py-1 text-xs font-semibold text-white">
                 360° View
               </span>
             ) : null}
@@ -310,7 +310,12 @@ export function MarketplaceListingDetail({
           </div>
 
           {arModel ? (
-            <Button size="lg" variant="outline" className="mt-3" onClick={() => setShowAr(true)}>
+            <Button
+              size="lg"
+              variant="outline"
+              className="mt-3 border-slate-300 text-slate-900 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95"
+              onClick={() => setShowAr(true)}
+            >
               Voir en AR
             </Button>
           ) : null}
@@ -330,7 +335,7 @@ export function MarketplaceListingDetail({
             <span className="text-yellow-500">★★★</span>
             <span>{reviewSummary.average.toFixed(1)}</span>
             <span>({reviewSummary.count.toLocaleString("fr-FR")} avis)</span>
-            <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-300">
+            <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
               Top rated
             </span>
           </div>
@@ -338,14 +343,14 @@ export function MarketplaceListingDetail({
           <div className="mt-4">
             <div className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{priceDisplay}</div>
             {hasRetailCompare ? (
-              <span className="mt-1 inline-flex rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700 dark:bg-red-900/30 dark:text-red-300">
+              <span className="mt-1 inline-flex rounded-full bg-red-500 px-2.5 py-1 text-xs font-semibold text-white">
                 -{discountPct}% vs retail {fmtEur(retailPriceEur ?? 0)}
               </span>
             ) : null}
           </div>
 
           {stock <= 5 ? (
-            <p className="mt-3 font-medium text-orange-600 dark:text-orange-400">
+            <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1 font-medium text-amber-700">
               Only {Math.max(1, stock)} left in stock - order soon
             </p>
           ) : null}
@@ -402,16 +407,38 @@ export function MarketplaceListingDetail({
           ) : null}
 
           <div className="mt-6 space-y-3">
-            <Button size="lg" className="w-full" disabled={cartBusy} onClick={(e) => void addToCart(e)}>
+            <Button
+              size="lg"
+              className="w-full bg-violet-600 font-semibold text-white shadow-lg transition-all hover:bg-violet-700 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95"
+              disabled={cartBusy}
+              onClick={(e) => void addToCart(e)}
+            >
               {cartBusy ? "Adding..." : "Add to Cart"}
             </Button>
-            <Button size="lg" variant="outline" className="w-full" disabled={buyBusy} onClick={() => void buyNow()}>
+            <Button
+              size="lg"
+              variant="outline"
+              className="w-full border-2 border-slate-900 text-slate-900 transition-all hover:bg-slate-900 hover:text-white focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95"
+              disabled={buyBusy}
+              onClick={() => void buyNow()}
+            >
               {buyBusy ? "Redirecting..." : "Buy Now with 1-Click"}
             </Button>
-            <Button size="lg" variant="outline" className="w-full" onClick={() => void openStylist()}>
+            <Button
+              size="lg"
+              variant="ghost"
+              className="w-full text-slate-700 transition-all hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95"
+              onClick={() => void openStylist()}
+            >
+              <Sparkles className="mr-2 h-4 w-4" />
               Comment porter ?
             </Button>
-            <Button size="lg" variant="outline" className="w-full" onClick={() => void savePriceAlert()}>
+            <Button
+              size="lg"
+              variant="ghost"
+              className="w-full text-slate-700 transition-all hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95"
+              onClick={() => void savePriceAlert()}
+            >
               {alertSaved ? "Alert saved" : "🔔 Alert me if price drops"}
             </Button>
           </div>
@@ -505,7 +532,7 @@ export function MarketplaceListingDetail({
         <h2 className="text-xl font-bold">Souvent achetes ensemble</h2>
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
           {oftenBoughtTogether.slice(0, 3).map((p) => (
-            <Link key={p.id} href={p.href} className="rounded-xl border border-zinc-200 p-3 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-900">
+            <Link key={p.id} href={p.href} className="rounded-xl border border-zinc-200 p-3 transition-all duration-300 hover:-translate-y-1 hover:bg-zinc-50 hover:shadow-2xl dark:border-zinc-700 dark:hover:bg-zinc-900">
               <div className="relative aspect-square overflow-hidden rounded-lg">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={p.image} alt="" className="h-full w-full object-cover" />
@@ -521,7 +548,7 @@ export function MarketplaceListingDetail({
         <h2 className="text-xl font-bold">Les clients ont aussi regarde</h2>
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
           {alsoViewed.slice(0, 3).map((p) => (
-            <Link key={p.id} href={p.href} className="rounded-xl border border-zinc-200 p-3 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-900">
+            <Link key={p.id} href={p.href} className="rounded-xl border border-zinc-200 p-3 transition-all duration-300 hover:-translate-y-1 hover:bg-zinc-50 hover:shadow-2xl dark:border-zinc-700 dark:hover:bg-zinc-900">
               <div className="relative aspect-square overflow-hidden rounded-lg">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={p.image} alt="" className="h-full w-full object-cover" />
