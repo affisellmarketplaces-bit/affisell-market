@@ -17,12 +17,44 @@ function slugPart(s: string) {
     .toUpperCase() || "SKU"
 }
 
+type ColorOption = {
+  name: string
+  hex: string
+  custom?: boolean
+}
+
+const PRESET_COLORS: ColorOption[] = [
+  { name: "Black", hex: "#000000" },
+  { name: "White", hex: "#FFFFFF" },
+  { name: "Space Gray", hex: "#8E8E93" },
+  { name: "Silver", hex: "#C7C7CC" },
+  { name: "Gold", hex: "#FFD700" },
+  { name: "Blue", hex: "#007AFF" },
+  { name: "Midnight", hex: "#1C1C1E" },
+  { name: "Red", hex: "#FF3B30" },
+  { name: "Green", hex: "#34C759" },
+  { name: "Pink", hex: "#FF2D92" },
+  { name: "Purple", hex: "#AF52DE" },
+  { name: "Yellow", hex: "#FFCC02" },
+  { name: "Orange", hex: "#FF9500" },
+  { name: "Brown", hex: "#A2845E" },
+  { name: "Beige", hex: "#F5E6D3" },
+  { name: "Turquoise", hex: "#5AC8FA" },
+]
+
+const CUSTOMER_REQUESTS = [
+  { name: "Rose Gold", hex: "#B76E79", count: 12 },
+  { name: "Teal", hex: "#008080", count: 8 },
+  { name: "Lavender", hex: "#E6E6FA", count: 5 },
+] as const
+
 export type ProductVariantsAdvancedProps = {
   variants: ProductVariantsJson | null
   onVariantsChange: (next: ProductVariantsJson | null) => void
   productTitle: string
   basePriceEUR: string
   defaultCommission: string
+  mainImage: string
   categories: string[]
   colors: string[]
   tags: string[]
@@ -34,6 +66,7 @@ export function ProductVariantsAdvanced({
   productTitle,
   basePriceEUR,
   defaultCommission,
+  mainImage,
   categories,
   colors,
   tags,
@@ -44,6 +77,15 @@ export function ProductVariantsAdvanced({
   const [bulkAttr2, setBulkAttr2] = useState("")
   const [aiBusy, setAiBusy] = useState(false)
   const [aiNote, setAiNote] = useState<string | null>(null)
+
+  const [previewColor, setPreviewColor] = useState<string | null>(null)
+  const [showCustomColor, setShowCustomColor] = useState(false)
+  const [customColors, setCustomColors] = useState<ColorOption[]>([])
+  const [selectedColors, setSelectedColors] = useState<string[]>([])
+  const [customHex, setCustomHex] = useState("#ff6b6b")
+  const [customName, setCustomName] = useState("")
+
+  const allColors = useMemo(() => [...PRESET_COLORS, ...customColors], [customColors])
 
   const baseCents = useMemo(() => {
     const n = Number.parseFloat(basePriceEUR)
@@ -61,6 +103,78 @@ export function ProductVariantsAdvanced({
     },
     [onVariantsChange, variants]
   )
+
+  const getColorHex = useCallback(
+    (name: string) => allColors.find((c) => c.name === name)?.hex ?? "#CCCCCC",
+    [allColors]
+  )
+
+  const getVariantForColor = useCallback(
+    (colorName: string) =>
+      rows.find((v) => v.name.toLowerCase().includes(colorName.toLowerCase())),
+    [rows]
+  )
+
+  const handleColorClick = useCallback((colorName: string) => {
+    setPreviewColor(colorName)
+    setSelectedColors((prev) => (prev.includes(colorName) ? prev : [...prev, colorName]))
+  }, [])
+
+  const addCustomColor = useCallback(() => {
+    const hex = customHex || "#888888"
+    const name = customName.trim() || `Custom ${customColors.length + 1}`
+    if (customColors.some((c) => c.name.toLowerCase() === name.toLowerCase())) {
+      setShowCustomColor(false)
+      return
+    }
+    const newColor: ColorOption = { name, hex, custom: true }
+    setCustomColors((prev) => [...prev, newColor])
+    setSelectedColors((prev) => (prev.includes(name) ? prev : [...prev, name]))
+    setShowCustomColor(false)
+    setCustomName("")
+    setCustomHex("#ff6b6b")
+  }, [customColors.length, customHex, customName])
+
+  const createVariantFromColor = useCallback(
+    (colorName: string) => {
+      if (getVariantForColor(colorName)) return
+      const title = productTitle.trim() || "PRD"
+      const sku = `${title.substring(0, 3).toUpperCase()}-${colorName.replace(/\s+/g, "").substring(0, 4).toUpperCase()}-${Math.random().toString(36).substring(2, 5).toUpperCase()}`
+      const line: ProductVariantLine = {
+        id: newVariantRowId(),
+        name: colorName,
+        sku,
+        priceCents: baseCents,
+        stock: 10,
+        commission: defaultComm,
+        sales: 0,
+        image: "",
+        priceType: "fixed",
+      }
+      setRows([...rows, line])
+    },
+    [rows, setRows, productTitle, baseCents, defaultComm, getVariantForColor]
+  )
+
+  const scrollToVariantForColor = useCallback(
+    (colorName: string) => {
+      const v = getVariantForColor(colorName)
+      if (!v) return
+      const el = document.querySelector(`[data-variant-id="${v.id}"]`)
+      el?.scrollIntoView({ behavior: "smooth", block: "center" })
+    },
+    [getVariantForColor]
+  )
+
+  const previewImgSrc = (colorName: string | null) => {
+    if (!colorName) return mainImage
+    const v = getVariantForColor(colorName)
+    const u = v?.image?.trim()
+    return u || mainImage
+  }
+
+  const formatEur = (cents: number) =>
+    cents <= 0 ? "—" : (cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
   const heuristicRows = useCallback((): ProductVariantLine[] => {
     const cols = colors.length ? colors : ["Default"]
@@ -100,7 +214,11 @@ export function ProductVariantsAdvanced({
           commission: Number.parseFloat(defaultCommission) || 20,
         }),
       })
-      const data = (await res.json()) as { variants?: ProductVariantLine[]; rows?: ProductVariantLine[]; error?: string }
+      const data = (await res.json()) as {
+        variants?: ProductVariantLine[]
+        rows?: ProductVariantLine[]
+        error?: string
+      }
       const fromApi = Array.isArray(data.variants) ? data.variants : data.rows
       if (Array.isArray(fromApi) && fromApi.length > 0) {
         setRows(fromApi)
@@ -152,6 +270,8 @@ export function ProductVariantsAdvanced({
           if (field === "sales") return { ...r, sales: typeof value === "number" ? value : r.sales }
           if (field === "name") return { ...r, name: String(value).slice(0, 160) }
           if (field === "sku") return { ...r, sku: String(value).slice(0, 80) }
+          if (field === "image") return { ...r, image: String(value).slice(0, 2000) }
+          if (field === "priceType") return { ...r, priceType: String(value).slice(0, 32) }
           return r
         })
       )
@@ -212,6 +332,244 @@ export function ProductVariantsAdvanced({
 
   return (
     <div className="mt-8 border-t border-zinc-200 pt-6 dark:border-zinc-700">
+      {/* —— Advanced Color System —— */}
+      <div className="mb-10">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Available Colors</h3>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">Click a color to preview its variant</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowCustomColor(!showCustomColor)}
+            className="rounded-lg border border-purple-200 px-3 py-1.5 text-sm text-purple-600 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-300 dark:hover:bg-purple-950/50"
+          >
+            + Custom Color
+          </button>
+        </div>
+
+        {previewColor ? (
+          <div className="mb-4 rounded-xl bg-zinc-900 p-4 text-white">
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="relative shrink-0">
+                <div className="relative h-20 w-20 overflow-hidden rounded-lg bg-white">
+                  {previewImgSrc(previewColor) ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- blob / external URLs
+                    <img
+                      src={previewImgSrc(previewColor)}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-xs text-zinc-400">No image</div>
+                  )}
+                </div>
+                <div
+                  className="absolute -right-1 -bottom-1 h-6 w-6 rounded-full border-2 border-white shadow"
+                  style={{ backgroundColor: getColorHex(previewColor) }}
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-medium">
+                  {productTitle || "Product"} — {previewColor}
+                </p>
+                <div className="mt-1.5 flex flex-wrap items-center gap-3 text-sm">
+                  <span className="text-xl font-semibold">
+                    €
+                    {formatEur(getVariantForColor(previewColor)?.priceCents ?? baseCents)}
+                  </span>
+                  <span className="rounded bg-white/20 px-2 py-0.5 text-xs">
+                    {getVariantForColor(previewColor)
+                      ? `${getVariantForColor(previewColor)?.stock ?? 0} in stock`
+                      : "No variant"}
+                  </span>
+                  {getVariantForColor(previewColor)?.sales ? (
+                    <span className="rounded bg-green-500 px-2 py-0.5 text-xs">
+                      {getVariantForColor(previewColor)?.sales} sold
+                    </span>
+                  ) : null}
+                </div>
+                <div className="mt-3">
+                  {getVariantForColor(previewColor) ? (
+                    <button
+                      type="button"
+                      onClick={() => scrollToVariantForColor(previewColor)}
+                      className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-zinc-200"
+                    >
+                      Edit Variant
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => createVariantFromColor(previewColor)}
+                      className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700"
+                    >
+                      Create Variant
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {showCustomColor ? (
+          <div className="mb-4 rounded-xl border border-purple-200 bg-purple-50 p-4 dark:border-purple-800 dark:bg-purple-950/30">
+            <div className="flex flex-wrap items-end gap-3">
+              <div>
+                <label className="mb-1 block text-xs text-zinc-600 dark:text-zinc-400">Color</label>
+                <input
+                  type="color"
+                  value={customHex}
+                  onChange={(e) => setCustomHex(e.target.value)}
+                  className="h-10 w-14 cursor-pointer rounded-lg border border-zinc-300 dark:border-zinc-600"
+                />
+              </div>
+              <div className="min-w-[12rem] flex-1">
+                <label className="mb-1 block text-xs text-zinc-600 dark:text-zinc-400">Name</label>
+                <input
+                  type="text"
+                  value={customName}
+                  onChange={(e) => setCustomName(e.target.value)}
+                  placeholder="e.g. Sunset Orange"
+                  className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={addCustomColor}
+                className="rounded-lg bg-purple-600 px-4 py-2 text-sm text-white hover:bg-purple-700"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        <div className="grid grid-cols-6 gap-2.5 sm:grid-cols-8 md:grid-cols-12">
+          {allColors.map((color) => {
+            const variant = getVariantForColor(color.name)
+            const isSelected = selectedColors.includes(color.name)
+            const isPreview = previewColor === color.name
+            const lightSwatch =
+              color.hex.toUpperCase() === "#FFFFFF" || color.hex.toUpperCase() === "#F5E6D3"
+
+            return (
+              <button
+                key={`${color.name}-${color.hex}`}
+                type="button"
+                onClick={() => handleColorClick(color.name)}
+                className={`group relative flex flex-col items-center rounded-xl border-2 p-2.5 transition-all ${
+                  isPreview
+                    ? "z-10 scale-105 border-black bg-black text-white shadow-xl dark:border-white dark:bg-zinc-800"
+                    : isSelected
+                      ? "border-zinc-900 bg-zinc-50 dark:border-zinc-100 dark:bg-zinc-800"
+                      : "border-zinc-200 hover:-translate-y-0.5 hover:border-zinc-400 dark:border-zinc-700"
+                }`}
+              >
+                <div className="relative">
+                  <div
+                    className={`h-11 w-11 rounded-full border-2 border-white shadow-md ring-1 ring-zinc-200 dark:ring-zinc-600 ${
+                      lightSwatch ? "ring-2 ring-zinc-300" : ""
+                    }`}
+                    style={{ backgroundColor: color.hex }}
+                  />
+                  {variant ? (
+                    <div className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-green-500 shadow-lg">
+                      <svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                  ) : null}
+                  {color.custom ? (
+                    <div className="absolute -bottom-1 -left-1 rounded px-1 py-0.5 text-[10px] font-bold text-white bg-purple-600">
+                      C
+                    </div>
+                  ) : null}
+                </div>
+                <span
+                  className={`mt-1.5 text-center text-[11px] font-medium leading-tight ${
+                    isPreview ? "text-white" : "text-zinc-700 dark:text-zinc-300"
+                  }`}
+                >
+                  {color.name}
+                </span>
+                {variant ? (
+                  <span className={`text-[10px] ${isPreview ? "text-zinc-300" : "text-zinc-500"}`}>
+                    €{formatEur(variant.priceCents)}
+                  </span>
+                ) : null}
+              </button>
+            )
+          })}
+        </div>
+
+        <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
+          <div className="mb-2.5 flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <p className="flex items-center gap-1.5 text-sm font-semibold text-amber-900 dark:text-amber-100">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0.538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                  />
+                </svg>
+                Customer Color Requests
+              </p>
+              <p className="text-xs text-amber-700 dark:text-amber-300">Add these to boost sales</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {CUSTOMER_REQUESTS.map((req) => (
+              <button
+                key={req.name}
+                type="button"
+                onClick={() => {
+                  if (customColors.some((c) => c.name === req.name) || PRESET_COLORS.some((c) => c.name === req.name)) {
+                    handleColorClick(req.name)
+                    return
+                  }
+                  setCustomColors((prev) => [...prev, { name: req.name, hex: req.hex, custom: true }])
+                  setSelectedColors((prev) => (prev.includes(req.name) ? prev : [...prev, req.name]))
+                  handleColorClick(req.name)
+                }}
+                className="group flex items-center gap-1.5 rounded-full border border-amber-300 bg-white px-3 py-1.5 text-xs transition hover:border-amber-400 hover:bg-amber-100 dark:border-amber-700 dark:bg-zinc-900 dark:hover:bg-amber-950/50"
+              >
+                <div
+                  className="h-3.5 w-3.5 rounded-full border border-zinc-300"
+                  style={{ backgroundColor: req.hex }}
+                />
+                <span className="font-medium">+ {req.name}</span>
+                <span className="rounded-full bg-amber-200 px-1.5 py-0.5 text-[10px] font-bold text-amber-900 dark:bg-amber-800 dark:text-amber-100">
+                  {req.count}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+          <div className="flex flex-wrap items-center gap-4">
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
+              Black: 47% of sales
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-blue-500" />
+              Blue trending +23%
+            </span>
+          </div>
+          <span className="text-zinc-400">{selectedColors.length} colors selected</span>
+        </div>
+      </div>
+
+      {/* —— Product variants (matrix) —— */}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="flex items-center gap-2 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
@@ -293,6 +651,7 @@ export function ProductVariantsAdvanced({
           {rows.map((variant) => (
             <div
               key={variant.id}
+              data-variant-id={variant.id}
               className="group relative rounded-xl border border-zinc-200 bg-white p-4 transition hover:shadow-sm dark:border-zinc-700 dark:bg-zinc-950"
             >
               {variant.sales > 0 ? (
@@ -301,7 +660,7 @@ export function ProductVariantsAdvanced({
                 </div>
               ) : null}
 
-              <div className="grid grid-cols-12 gap-3 items-end">
+              <div className="grid grid-cols-12 items-end gap-3">
                 <div className="col-span-12 sm:col-span-4 lg:col-span-3">
                   <label className="text-xs text-zinc-500 dark:text-zinc-400">Variant</label>
                   <input
@@ -339,6 +698,17 @@ export function ProductVariantsAdvanced({
                       </svg>
                     </button>
                   </div>
+                </div>
+
+                <div className="col-span-12 md:col-span-6 lg:col-span-4">
+                  <label className="text-xs text-zinc-500 dark:text-zinc-400">Variant image URL</label>
+                  <input
+                    type="url"
+                    value={variant.image ?? ""}
+                    onChange={(e) => updateVariant(variant.id, "image", e.target.value)}
+                    placeholder="https://… optional colorway image"
+                    className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950"
+                  />
                 </div>
 
                 <div className="col-span-6 sm:col-span-4 lg:col-span-2">

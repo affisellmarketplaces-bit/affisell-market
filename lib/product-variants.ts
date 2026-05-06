@@ -17,6 +17,10 @@ export type ProductVariantLine = {
   commission: number
   /** Display-only sales hint for supplier dashboard */
   sales: number
+  /** Optional hero image URL for this variant (e.g. colorway) */
+  image?: string
+  /** Pricing mode label for supplier UI */
+  priceType?: string
 }
 
 export type ProductVariantsJson = {
@@ -53,7 +57,12 @@ function parseVariantLine(raw: unknown): ProductVariantLine | null {
       : 20
   const sales =
     typeof r.sales === "number" && Number.isFinite(r.sales) ? Math.max(0, Math.round(r.sales)) : 0
-  return { id, name, sku, priceCents, stock, commission, sales }
+  const imageRaw = typeof r.image === "string" ? r.image.trim().slice(0, 2000) : ""
+  const priceTypeRaw = typeof r.priceType === "string" ? r.priceType.trim().slice(0, 32) : ""
+  const line: ProductVariantLine = { id, name, sku, priceCents, stock, commission, sales }
+  if (imageRaw) line.image = imageRaw
+  if (priceTypeRaw) line.priceType = priceTypeRaw
+  return line
 }
 
 export function parseVariantsPayload(raw: unknown): ProductVariantsJson | null {

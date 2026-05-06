@@ -612,12 +612,6 @@ export function SupplierProductForm({
           categories={categories}
           onCategoriesChange={setCategories}
           colors={colors}
-          onColorsChange={(next) => {
-            setColors(next)
-            setColorImages((prev) => mergeColorImageRows(next, prev))
-          }}
-          colorImages={colorImages}
-          onColorImagesChange={setColorImages}
           tags={tags}
           onTagsChange={setTags}
           variants={variants}
@@ -625,6 +619,7 @@ export function SupplierProductForm({
           productTitle={form.name}
           basePriceEUR={form.price}
           defaultCommission={form.commission}
+          mainImage={imageUrls.map((s) => s.trim()).find(Boolean) ?? ""}
         />
 
         <button
