@@ -70,27 +70,43 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
     freeShippingThresholdEUR: freeThresh,
   }
 
-  const reviews =
-    (await prisma.review?.findMany({
+  let reviews: Array<{
+    id: string
+    rating: number
+    author: string
+    country: string | null
+    date: Date
+    text: string
+    images: string[]
+    variant: string | null
+    helpful_count: number
+    verified: boolean
+  }> = []
+  let ratingBreakdown: Record<number, number> = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+  try {
+    reviews =
+      (await prisma.review?.findMany({
+        where: { productId: listing.product.id },
+        orderBy: { helpful_count: "desc" },
+        take: 20,
+      })) || []
+
+    const stats = await prisma.review.groupBy({
+      by: ["rating"],
       where: { productId: listing.product.id },
-      orderBy: { helpful_count: "desc" },
-      take: 20,
-    })) || []
+      _count: { rating: true },
+    })
 
-  const reviewStats = await prisma.review.groupBy({
-    by: ["rating"],
-    where: { productId: listing.product.id },
-    _count: { rating: true },
-  })
-
-  const ratingBreakdown = [5, 4, 3, 2, 1].reduce(
-    (acc, star) => {
-      acc[star] =
-        reviewStats.find((s) => s.rating === star)?._count.rating || 0
-      return acc
-    },
-    {} as Record<number, number>
-  )
+    ratingBreakdown = [5, 4, 3, 2, 1].reduce(
+      (acc, star) => {
+        acc[star] = stats.find((s) => s.rating === star)?._count.rating || 0
+        return acc
+      },
+      {} as Record<number, number>
+    )
+  } catch (e) {
+    console.error("Review fetch failed:", e)
+  }
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 md:px-8">
