@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react"
 
+import ImageUpload from "./ImageUpload"
+
 type PricingSuggestion = {
   id: string
   label: string
@@ -30,6 +32,7 @@ export default function NewProductPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [suggestions, setSuggestions] = useState<PricingSuggestion[]>([])
+  const [productImages, setProductImages] = useState<string[]>([])
 
   const priceValue = Number(price)
   const compareAtValue = Number(compareAt)
@@ -100,7 +103,7 @@ export default function NewProductPage() {
         compareAt: compareAt.trim() ? Number(compareAt) : null,
         commission: 15,
         stock: Number(stock) || 0,
-        images: [],
+        images: productImages,
       }
       const res = await fetch("/api/supplier/products", {
         method: "POST",
@@ -213,6 +216,8 @@ export default function NewProductPage() {
             </p>
           ) : null}
         </section>
+
+        <ImageUpload onImagesChange={setProductImages} />
 
         <section className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-950">
           <div className="flex items-center justify-between">
