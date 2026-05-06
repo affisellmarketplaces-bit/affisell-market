@@ -56,6 +56,7 @@ type Props = {
     average: number
     sentiment: string
   }
+  ratingBreakdown: Record<number, number>
   reviews: Array<{
     id: string
     rating: number
@@ -88,6 +89,7 @@ export function MarketplaceListingDetail({
   shipping,
   listingPriceCents,
   reviewSummary,
+  ratingBreakdown,
   reviews,
 }: Props) {
   const router = useRouter()
@@ -211,7 +213,7 @@ export function MarketplaceListingDetail({
   const listingPriceEur = listingPriceCents / 100
   const reviewBreakdown = [5, 4, 3, 2, 1].map((stars) => ({
     stars,
-    count: reviews.filter((r) => r.rating === stars).length,
+    count: ratingBreakdown[stars] ?? reviews.filter((r) => r.rating === stars).length,
   }))
   const reviewDenominator = reviews.length > 0 ? reviews.length : 1
 

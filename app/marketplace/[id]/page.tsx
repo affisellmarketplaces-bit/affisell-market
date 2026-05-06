@@ -70,11 +70,27 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
     freeShippingThresholdEUR: freeThresh,
   }
 
-  const reviews = await prisma.review.findMany({
+  const reviews =
+    (await prisma.review?.findMany({
+      where: { productId: listing.product.id },
+      orderBy: { helpful_count: "desc" },
+      take: 20,
+    })) || []
+
+  const reviewStats = await prisma.review.groupBy({
+    by: ["rating"],
     where: { productId: listing.product.id },
-    orderBy: { helpful_count: "desc" },
-    take: 20,
+    _count: { rating: true },
   })
+
+  const ratingBreakdown = [5, 4, 3, 2, 1].reduce(
+    (acc, star) => {
+      acc[star] =
+        reviewStats.find((s) => s.rating === star)?._count.rating || 0
+      return acc
+    },
+    {} as Record<number, number>
+  )
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 md:px-8">
@@ -101,6 +117,7 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
           average: listing.product.averageRating,
           sentiment: listing.product.reviewSentiment,
         }}
+        ratingBreakdown={ratingBreakdown}
         reviews={reviews.map((r) => ({
           id: r.id,
           rating: r.rating,
