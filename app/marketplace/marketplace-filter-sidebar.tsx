@@ -1,5 +1,6 @@
 import Link from "next/link"
 
+import { Button } from "@/components/ui/button"
 import { AFFISELL_CATEGORIES } from "@/lib/affisell-categories"
 
 export type MarketplaceFilterParams = {
@@ -7,6 +8,15 @@ export type MarketplaceFilterParams = {
   delivery?: string
   freeShipping?: string
   category?: string
+}
+
+function FilterGroup({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{title}</p>
+      <div className="mt-2 space-y-2">{children}</div>
+    </div>
+  )
 }
 
 function href(next: MarketplaceFilterParams): string {
@@ -32,6 +42,35 @@ export function MarketplaceFilterSidebar({ current }: { current: MarketplaceFilt
 
   return (
     <aside className="w-full shrink-0 space-y-6 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900 lg:w-56">
+      <FilterGroup title="Smart Filters">
+        <Button
+          asChild
+          size="sm"
+          variant={c.delivery === "under3" ? "default" : "outline"}
+          className="w-full justify-start"
+        >
+          <Link href={href({ ...c, delivery: c.delivery === "under3" ? undefined : "under3" })}>
+            🔥 Trending Now
+          </Link>
+        </Button>
+        <Button
+          asChild
+          size="sm"
+          variant={c.shipsFrom === "fr" ? "default" : "outline"}
+          className="w-full justify-start"
+        >
+          <Link href={href({ ...c, shipsFrom: c.shipsFrom === "fr" ? undefined : "fr" })}>
+            ⚡ Ships in 24h
+          </Link>
+        </Button>
+        <Button asChild size="sm" variant="outline" className="w-full justify-start">
+          <Link href={href({ ...c })}>💎 Under €100</Link>
+        </Button>
+        <Button asChild size="sm" variant="outline" className="w-full justify-start">
+          <Link href={href({ ...c })}>⭐ Top Rated 4.5+</Link>
+        </Button>
+      </FilterGroup>
+
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Category</p>
         <div className="mt-2 max-h-64 space-y-1 overflow-y-auto pr-1">
@@ -58,6 +97,29 @@ export function MarketplaceFilterSidebar({ current }: { current: MarketplaceFilt
           })}
         </div>
       </div>
+
+      <FilterGroup title="Style">
+        <label className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+          <input type="checkbox" className="accent-zinc-900" />
+          Minimalist
+        </label>
+        <label className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+          <input type="checkbox" className="accent-zinc-900" />
+          Streetwear
+        </label>
+        <label className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+          <input type="checkbox" className="accent-zinc-900" />
+          Business
+        </label>
+      </FilterGroup>
+
+      <FilterGroup title="Price">
+        <input type="range" min={0} max={500} defaultValue={250} className="w-full accent-zinc-900" />
+        <div className="flex justify-between text-xs text-zinc-500">
+          <span>€0</span>
+          <span>€500</span>
+        </div>
+      </FilterGroup>
 
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Ships from</p>

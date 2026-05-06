@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { productWhereForMarketplace } from "@/lib/marketplace-listing-filters"
 import { primaryProductImage } from "@/lib/product-images"
 
+import { MarketplaceFilterSidebar } from "./marketplace-filter-sidebar"
 import { PremiumMarketplaceCard } from "./premium-marketplace-card"
 
 export const dynamic = "force-dynamic"
@@ -100,33 +101,18 @@ export default async function MarketplacePage({
       </div>
 
       <div className="mt-10 flex flex-col gap-8 lg:flex-row lg:items-start">
-        <aside className="w-64 shrink-0">
-          <div className="sticky top-6 rounded-2xl border border-zinc-200 bg-white p-6">
-            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">Category</h2>
-            <div className="space-y-1">
-              <a
-                href={categoryHref(null)}
-                className={`block w-full rounded-lg px-3 py-2 text-left text-sm transition ${
-                  !activeCategory ? "bg-black text-white" : "text-zinc-700 hover:bg-zinc-100"
-                }`}
-              >
-                All
-              </a>
-              {categories.map((c) => (
-                <a
-                  key={c.name}
-                  href={categoryHref(c.name)}
-                  className={`block w-full rounded-lg px-3 py-2 text-left text-sm transition ${
-                    activeCategory === c.name ? "bg-black text-white" : "text-zinc-700 hover:bg-zinc-100"
-                  }`}
-                >
-                  {categoryLabel(c.name)}{" "}
-                  <span className={activeCategory === c.name ? "text-zinc-300" : "text-zinc-400"}>({c.count})</span>
-                </a>
-              ))}
+        <div className="w-64 shrink-0">
+          <div className="sticky top-6">
+            <MarketplaceFilterSidebar current={filterParams} />
+            <div className="mt-3 rounded-xl border border-zinc-200 bg-white p-3 text-xs text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900">
+              Top categories:{" "}
+              {categories
+                .slice(0, 3)
+                .map((c) => categoryLabel(c.name))
+                .join(", ") || "All"}
             </div>
           </div>
-        </aside>
+        </div>
         <div className="min-w-0 flex-1">
           <ul className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {listings.length === 0 ? (
