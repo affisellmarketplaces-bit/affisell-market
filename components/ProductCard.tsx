@@ -21,6 +21,7 @@ export type ProductCardProps = {
   /** Optional strikethrough original price in EUR */
   originalPrice?: number
   comparePrice?: number
+  compareAt?: number
   rating?: number
   reviewCount?: number
   sellerName: string
@@ -81,6 +82,7 @@ export function ProductCard({
   price,
   originalPrice,
   comparePrice,
+  compareAt,
   rating = 4.5,
   sellerName,
   secondaryImageUrl,
@@ -100,7 +102,9 @@ export function ProductCard({
   const img = imageUrl || "/placeholder.png"
   const secondImg = secondaryImageUrl?.trim() || null
   const shouldUseFashionRatio = String(category).toLowerCase().includes("fashion")
-  const compare = comparePrice ?? originalPrice
+  const compare = compareAt ?? comparePrice ?? originalPrice
+  const savePercent =
+    compare != null && compare > price ? Math.round(((compare - price) / compare) * 100) : 0
   const ratioClass = shouldUseFashionRatio ? "aspect-[3/4]" : "aspect-square"
 
   const displayMedia = useMemo(() => {
@@ -234,6 +238,11 @@ export function ProductCard({
             {compare != null && compare > price ? (
               <span className="text-sm text-zinc-500 line-through dark:text-zinc-400">
                 {formatUsd(compare)}
+              </span>
+            ) : null}
+            {savePercent > 0 ? (
+              <span className="rounded bg-red-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                SAVE {savePercent}%
               </span>
             ) : null}
           </div>

@@ -41,6 +41,7 @@ export async function PUT(
     image?: string
     images?: unknown
     price?: number
+    compareAt?: number | string | null
     commission?: number
     stock?: number
   }
@@ -53,6 +54,24 @@ export async function PUT(
   const price = Number(body.price)
   if (!Number.isFinite(price) || price < 0) {
     return Response.json({ error: "Invalid price" }, { status: 400 })
+  }
+  const priceCents = Math.max(100, Math.round(price * 100))
+
+  let compareAt: Prisma.Decimal | null = null
+  if (body.compareAt != null && String(body.compareAt).trim() !== "") {
+    const compareAtNumber = Number(body.compareAt)
+    if (!Number.isFinite(compareAtNumber) || compareAtNumber <= 0) {
+      return Response.json({ error: "Invalid compare-at price" }, { status: 400 })
+    }
+    const compareAtCents = Math.round(compareAtNumber * 100)
+    if (compareAtCents <= priceCents) {
+      return Response.json({ error: "Compare-at price must be greater than price" }, { status: 400 })
+    }
+    const discountPct = ((compareAtCents - priceCents) / compareAtCents) * 100
+    if (discountPct > 70) {
+      return Response.json({ error: "Discount cannot exceed 70%" }, { status: 400 })
+    }
+    compareAt = new Prisma.Decimal(compareAtNumber.toFixed(2))
   }
 
   const commission = Number(body.commission)
@@ -84,7 +103,8 @@ export async function PUT(
         attr.variants === null
           ? Prisma.DbNull
           : (attr.variants as unknown as Prisma.InputJsonValue),
-      basePriceCents: Math.max(100, Math.round(price * 100)),
+      basePriceCents: priceCents,
+      compareAt,
       commissionRate: rate,
       stock,
       shippingCountry: ship.shippingCountry,

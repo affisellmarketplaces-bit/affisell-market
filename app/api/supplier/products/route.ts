@@ -25,6 +25,7 @@ export async function GET() {
   return Response.json(
     products.map((p) => ({
       ...p,
+      compareAt: p.compareAt != null ? Number(p.compareAt) : null,
       freeShippingThreshold:
         p.freeShippingThreshold != null ? Number(p.freeShippingThreshold) : null,
       shippingCost: Number(p.shippingCost),
@@ -46,6 +47,7 @@ export async function POST(req: Request) {
   const {
     name,
     basePriceCents: basePriceCentsRaw,
+    compareAt: compareAtRaw,
     commissionRate,
     commission,
     description,
@@ -65,6 +67,23 @@ export async function POST(req: Request) {
     cents = Math.round(Number(basePriceCentsRaw))
   } else {
     return Response.json({ error: "Missing price" }, { status: 400 })
+  }
+  const normalizedPriceCents = Math.max(100, cents)
+  let compareAt: Prisma.Decimal | null = null
+  if (compareAtRaw != null && String(compareAtRaw).trim() !== "") {
+    const compareAtNumber = Number(compareAtRaw)
+    if (!Number.isFinite(compareAtNumber) || compareAtNumber <= 0) {
+      return Response.json({ error: "Invalid compare-at price" }, { status: 400 })
+    }
+    const compareAtCents = Math.round(compareAtNumber * 100)
+    if (compareAtCents <= normalizedPriceCents) {
+      return Response.json({ error: "Compare-at price must be greater than price" }, { status: 400 })
+    }
+    const discountPct = ((compareAtCents - normalizedPriceCents) / compareAtCents) * 100
+    if (discountPct > 70) {
+      return Response.json({ error: "Discount cannot exceed 70%" }, { status: 400 })
+    }
+    compareAt = new Prisma.Decimal(compareAtNumber.toFixed(2))
   }
 
   const commRaw = commission ?? commissionRate
@@ -95,7 +114,8 @@ export async function POST(req: Request) {
         attr.variants === null
           ? Prisma.DbNull
           : (attr.variants as unknown as Prisma.InputJsonValue),
-      basePriceCents: Math.max(100, cents),
+      basePriceCents: normalizedPriceCents,
+      compareAt,
       commissionRate: rate,
       stock: stockN,
       active: true,

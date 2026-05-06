@@ -25,6 +25,7 @@ export type SupplierProductRecord = {
   variants?: unknown
   colorImages?: unknown
   basePriceCents: number
+  compareAt?: number | null
   commissionRate: number
   stock: number
   active?: boolean
@@ -47,6 +48,7 @@ type FormState = {
   name: string
   description: string
   price: string
+  compareAt: string
   commission: string
   stock: string
 }
@@ -56,6 +58,7 @@ function emptyForm(): FormState {
     name: "",
     description: "",
     price: "",
+    compareAt: "",
     commission: "15",
     stock: "0",
   }
@@ -158,6 +161,10 @@ export function SupplierProductForm({
       name: initial.name,
       description: initial.description ?? "",
       price: (initial.basePriceCents / 100).toFixed(2),
+      compareAt:
+        typeof initial.compareAt === "number" && Number.isFinite(initial.compareAt) && initial.compareAt > 0
+          ? initial.compareAt.toFixed(2)
+          : "",
       commission: String(initial.commissionRate),
       stock: String(typeof initial.stock === "number" ? initial.stock : 0),
     })
@@ -255,6 +262,7 @@ export function SupplierProductForm({
         variants: variants ?? undefined,
         colorImages: rows.length ? rows : [],
         price: Number(form.price),
+        compareAt: form.compareAt.trim() === "" ? null : Number(form.compareAt),
         commission: Number(form.commission),
         stock: Number(form.stock),
         shippingCountry: shippingCountry.trim() || undefined,
@@ -270,6 +278,18 @@ export function SupplierProductForm({
 
       if (!body.name) throw new Error("Name is required")
       if (!Number.isFinite(body.price) || body.price < 0) throw new Error("Invalid price")
+      if (body.compareAt != null) {
+        if (!Number.isFinite(body.compareAt) || body.compareAt <= 0) {
+          throw new Error("Invalid compare-at price")
+        }
+        if (body.compareAt <= body.price) {
+          throw new Error("Compare-at price must be greater than price")
+        }
+        const discountPct = ((body.compareAt - body.price) / body.compareAt) * 100
+        if (discountPct > 70) {
+          throw new Error("Discount cannot exceed 70%")
+        }
+      }
 
       if (initial) {
         const res = await fetch(`/api/supplier/products/${initial.id}`, {
@@ -326,6 +346,16 @@ export function SupplierProductForm({
           placeholder="Base price (EUR)"
           value={form.price}
           onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
+          className="rounded-md border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
+        />
+        <input
+          name="compareAt"
+          type="number"
+          step="0.01"
+          min="0"
+          placeholder="Compare-at price (optional)"
+          value={form.compareAt}
+          onChange={(e) => setForm((f) => ({ ...f, compareAt: e.target.value }))}
           className="rounded-md border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
         />
         {initial &&

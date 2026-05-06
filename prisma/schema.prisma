@@ -79,6 +79,7 @@ model Product {
   variants Json?
   tags String[] @default([])
   basePriceCents Int
+  compareAt Decimal?
   commissionRate Int
   stock Int @default(0)
   active Boolean @default(true)
