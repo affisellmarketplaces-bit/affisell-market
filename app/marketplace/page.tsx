@@ -2,7 +2,8 @@ import { prisma } from "@/lib/prisma"
 import { productWhereForMarketplace } from "@/lib/marketplace-listing-filters"
 import { primaryProductImage } from "@/lib/product-images"
 
-import { MarketplaceFilterSidebar } from "./marketplace-filter-sidebar"
+import { Sidebar } from "@/components/marketplace/Sidebar"
+
 import { PremiumMarketplaceCard } from "./premium-marketplace-card"
 
 export const dynamic = "force-dynamic"
@@ -101,16 +102,14 @@ export default async function MarketplacePage({
       </div>
 
       <div className="mt-10 flex flex-col gap-8 lg:flex-row lg:items-start">
-        <div className="w-64 shrink-0">
-          <div className="sticky top-6">
-            <MarketplaceFilterSidebar current={filterParams} />
-            <div className="mt-3 rounded-xl border border-zinc-200 bg-white p-3 text-xs text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900">
-              Top categories:{" "}
-              {categories
-                .slice(0, 3)
-                .map((c) => categoryLabel(c.name))
-                .join(", ") || "All"}
-            </div>
+        <div className="shrink-0 lg:sticky lg:top-[5.25rem] lg:self-start">
+          <Sidebar />
+          <div className="mt-3 max-w-[19rem] rounded-xl border border-zinc-200 bg-white p-3 text-xs text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900">
+            Top categories:{" "}
+            {categories
+              .slice(0, 3)
+              .map((c) => categoryLabel(c.name))
+              .join(", ") || "All"}
           </div>
         </div>
         <div className="min-w-0 flex-1">
@@ -127,6 +126,9 @@ export default async function MarketplacePage({
                       productId={item.product.id}
                       imageUrl={primaryProductImage(item.product.images) || null}
                       name={item.product.name}
+                      compareAt={
+                        item.product.compareAt != null ? Number(item.product.compareAt) : null
+                      }
                       priceDisplay={(item.sellingPriceCents / 100).toLocaleString("en-US", {
                         style: "currency",
                         currency: "USD",

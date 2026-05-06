@@ -2,8 +2,8 @@
 
 import Link from "next/link"
 
-import { addGuestCartItem } from "@/lib/guest-cart"
 import { WishlistHeart } from "@/components/wishlist-heart"
+import { addGuestCartItem } from "@/lib/guest-cart"
 
 type Props = {
   detailHref: string
@@ -14,6 +14,7 @@ type Props = {
   sellerDisplay: string
   priceDisplay: string
   priceValue: number
+  compareAt?: number | null
   showPremiumBadge?: boolean
 }
 
@@ -26,20 +27,39 @@ export function PremiumMarketplaceCard({
   sellerDisplay,
   priceDisplay,
   priceValue,
+  compareAt,
   showPremiumBadge = false,
 }: Props) {
+  const compareN = typeof compareAt === "number" && Number.isFinite(compareAt) ? compareAt : NaN
+  const hasDiscount = Number.isFinite(compareN) && compareN > priceValue
+  const savePct =
+    hasDiscount ? Math.round(((compareN - priceValue) / compareN) * 100) : 0
+  const compareDisplay = hasDiscount
+    ? compareN.toLocaleString("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
+    : null
+
   return (
     <Link
       href={detailHref}
       className="group flex h-full w-full flex-col rounded-2xl transition-shadow hover:shadow-xl hover:shadow-zinc-200/50"
     >
-      <div className="relative mb-3 flex h-72 w-full shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white p-4">
+      <div className="relative mb-3 aspect-square w-full shrink-0 overflow-hidden rounded-2xl bg-[#F5F5F5]">
+        {hasDiscount ? (
+          <span className="absolute left-3 top-3 z-20 rounded-full bg-red-500 px-2.5 py-1 text-[11px] font-black text-white shadow">
+            SAVE {savePct}%
+          </span>
+        ) : null}
         {imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={imageUrl}
             alt={name}
-            className="mx-auto block max-h-full max-w-full object-contain"
+            className="absolute inset-0 h-full w-full object-contain p-4 transition-transform duration-300 group-hover:scale-105"
             loading="lazy"
           />
         ) : (
@@ -48,7 +68,11 @@ export function PremiumMarketplaceCard({
 
         <WishlistHeart productId={productId} className="absolute right-3 top-3 z-20" />
         {showPremiumBadge ? (
-          <span className="absolute left-3 top-3 z-20 rounded-full bg-gradient-to-r from-violet-500 to-pink-500 px-2.5 py-1 text-[11px] font-semibold text-white shadow">
+          <span
+            className={`absolute left-3 z-[19] rounded-full bg-gradient-to-r from-violet-500 to-pink-500 px-2.5 py-1 text-[11px] font-semibold text-white shadow ${
+              hasDiscount ? "top-11" : "top-3"
+            }`}
+          >
             Premium
           </span>
         ) : null}
@@ -86,7 +110,12 @@ export function PremiumMarketplaceCard({
           <div className="min-h-0 min-w-0 flex-1">
             <h3 className="line-clamp-3 h-[4.125rem] break-words font-semibold leading-snug text-zinc-900">{name}</h3>
           </div>
-          <span className="shrink-0 pt-0.5 font-medium text-zinc-900">{priceDisplay}</span>
+          <div className="shrink-0 pt-0.5 text-right">
+            <span className="font-medium text-zinc-900">{priceDisplay}</span>
+            {compareDisplay ? (
+              <p className="text-xs font-medium text-zinc-400 line-through">{compareDisplay}</p>
+            ) : null}
+          </div>
         </div>
         <p className="mt-1 line-clamp-2 h-10 text-sm leading-5 text-zinc-500">by {sellerDisplay}</p>
       </div>

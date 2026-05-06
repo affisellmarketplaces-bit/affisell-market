@@ -1,28 +1,20 @@
 "use client"
 
-import Image from "next/image"
 import { Loader2, Upload, X } from "lucide-react"
 import type { ChangeEvent } from "react"
-import { useCallback, useState } from "react"
+import { useState } from "react"
 import { toast } from "sonner"
+
+const CANVAS = 1200
+const PAD = 120
 
 type ImageUploadProps = {
   onImagesChange: (urls: string[]) => void
 }
 
-const CANVAS = 1200
-const PADDING = Math.round(CANVAS * 0.1)
-
 export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
   const [images, setImages] = useState<string[]>([])
   const [processing, setProcessing] = useState(false)
-
-  const notifyParent = useCallback(
-    (urls: string[]) => {
-      onImagesChange(urls)
-    },
-    [onImagesChange]
-  )
 
   const processImage = async (file: File): Promise<string> => {
     const { removeBackground } = await import("@imgly/background-removal")
@@ -38,14 +30,14 @@ export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
           canvas.height = CANVAS
           const ctx = canvas.getContext("2d")
           if (!ctx) {
-            reject(new Error("Canvas not supported"))
+            reject(new Error("No canvas"))
             return
           }
 
           ctx.fillStyle = "#F5F5F5"
           ctx.fillRect(0, 0, CANVAS, CANVAS)
 
-          const maxSize = CANVAS - PADDING * 2
+          const maxSize = CANVAS - PAD * 2
           const scale = Math.min(maxSize / img.width, maxSize / img.height)
           const width = img.width * scale
           const height = img.height * scale
@@ -60,19 +52,19 @@ export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
       }
       img.onerror = () => {
         URL.revokeObjectURL(blobUrl)
-        reject(new Error("Failed to decode processed image"))
+        reject(new Error("decode"))
       }
       img.src = blobUrl
     })
   }
 
-  async function measureDimensions(file: File): Promise<{ width: number; height: number }> {
+  async function measureFile(file: File): Promise<{ width: number; height: number }> {
     const url = URL.createObjectURL(file)
     try {
       return await new Promise((resolve, reject) => {
         const el = new window.Image()
         el.onload = () => resolve({ width: el.width, height: el.height })
-        el.onerror = () => reject(new Error("Failed to read image dimensions"))
+        el.onerror = () => reject(new Error("dim"))
         el.src = url
       })
     } finally {
@@ -86,9 +78,11 @@ export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
     if (files.length === 0) return
 
     setProcessing(true)
+
     try {
       for (const file of files) {
-        const dimensions = await measureDimensions(file)
+        const dimensions = await measureFile(file)
+
         if (dimensions.width < 800 || dimensions.height < 800) {
           toast.error(`${file.name}: Minimum 800x800px required`)
           continue
@@ -96,15 +90,14 @@ export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
 
         const processed = await processImage(file)
         setImages((prev) => {
-          const next = [...prev, processed].slice(0, 10)
-          notifyParent(next)
-          return next
+          const updated = [...prev, processed].slice(0, 10)
+          onImagesChange(updated)
+          return updated
         })
         toast.success(`${file.name} processed`)
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to process image")
-      console.error(error)
     } finally {
       setProcessing(false)
     }
@@ -113,7 +106,7 @@ export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
   const removeAt = (i: number) => {
     setImages((prev) => {
       const next = prev.filter((_, idx) => idx !== i)
-      notifyParent(next)
+      onImagesChange(next)
       return next
     })
   }
@@ -123,7 +116,7 @@ export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
       <div className="rounded-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-3">
         <h3 className="text-sm font-black uppercase tracking-wider text-white">PRODUCT IMAGES</h3>
         <p className="mt-1 text-xs text-white/80">
-          Auto-converted to {CANVAS}×{CANVAS} with #F5F5F5 background
+          Auto-converted to {CANVAS}x{CANVAS} with #F5F5F5 background
         </p>
       </div>
 
@@ -133,7 +126,8 @@ export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
             key={i}
             className="relative aspect-square overflow-hidden rounded-xl border-2 border-gray-200 bg-[#F5F5F5]"
           >
-            <Image src={img} alt="" fill unoptimized className="object-contain p-2" sizes="160px" />
+            {/* eslint-disable-next-line @next/next/no-img-element -- local data URLs */}
+            <img src={img} alt="" className="h-full w-full object-contain p-2" />
             <button
               type="button"
               onClick={() => removeAt(i)}
