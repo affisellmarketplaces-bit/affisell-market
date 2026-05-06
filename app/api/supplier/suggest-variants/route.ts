@@ -24,10 +24,10 @@ function parseBasePrice(body: Record<string, unknown>): number {
 
 function parseCommission(body: Record<string, unknown>): number {
   const raw = body.commission
-  if (typeof raw === "number" && Number.isFinite(raw)) return Math.min(99, Math.max(0, Math.round(raw)))
+  if (typeof raw === "number" && Number.isFinite(raw)) return Math.min(50, Math.max(1, Math.round(raw)))
   if (typeof raw === "string") {
     const n = Number.parseFloat(raw)
-    return Number.isFinite(n) ? Math.min(99, Math.max(0, Math.round(n))) : 20
+    return Number.isFinite(n) ? Math.min(50, Math.max(1, Math.round(n))) : 20
   }
   return 20
 }

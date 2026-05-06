@@ -52,7 +52,7 @@ function emptyForm(): FormState {
     name: "",
     description: "",
     price: "",
-    commission: "20",
+    commission: "15",
     stock: "0",
   }
 }
@@ -296,16 +296,25 @@ export function SupplierProductForm({
           onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
           className="rounded-md border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
         />
-        <input
-          name="commission"
-          type="number"
-          min="1"
-          max="99"
-          placeholder="Commission % of margin"
-          value={form.commission}
-          onChange={(e) => setForm((f) => ({ ...f, commission: e.target.value }))}
-          className="rounded-md border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-        />
+        <div className="flex flex-col">
+          <label className="flex flex-wrap items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400">
+            Offered Commission
+            <span className="rounded-full bg-green-100 px-1.5 py-0.5 text-[10px] font-medium text-green-700 dark:bg-green-950 dark:text-green-300">
+              For Affiliates
+            </span>
+          </label>
+          <input
+            name="commission"
+            type="number"
+            min={1}
+            max={50}
+            placeholder="15"
+            value={form.commission}
+            onChange={(e) => setForm((f) => ({ ...f, commission: e.target.value }))}
+            className="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+          />
+          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Affiliates earn this % per sale</p>
+        </div>
         <input
           name="stock"
           type="number"

@@ -57,7 +57,7 @@ export async function PUT(
 
   const commission = Number(body.commission)
   const rate = Math.min(
-    99,
+    50,
     Math.max(1, Math.round(Number.isFinite(commission) ? commission : 20))
   )
 

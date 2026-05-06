@@ -12,6 +12,7 @@ import {
   isMulticolorSwatch,
   type VariantGroupKey,
 } from "@/lib/product-catalog-constants"
+import { AffiliateCommissionCard } from "@/components/affiliate-commission-card"
 import { addGuestCartItem } from "@/lib/guest-cart"
 import type { ProductColorImageRow } from "@/lib/product-color-images"
 import type { ProductVariantsJson } from "@/lib/product-variants"
@@ -48,6 +49,8 @@ type Props = {
   variants: ProductVariantsJson | null
   colorImages: ProductColorImageRow[]
   shipping: ListingShippingBlock
+  /** Listing selling price for commission previews */
+  listingPriceCents: number
 }
 
 const VARIANT_KEYS: VariantGroupKey[] = ["size", "storage", "ram", "material"]
@@ -66,6 +69,7 @@ export function MarketplaceListingDetail({
   variants,
   colorImages,
   shipping,
+  listingPriceCents,
 }: Props) {
   const router = useRouter()
   const urls = gallery
@@ -183,6 +187,9 @@ export function MarketplaceListingDetail({
 
   const thumbCount = urls.length > 1 ? urls.length : 0
   const showArrowsMain = idxMax >= 1
+
+  const variantRows = variants?.variantRows ?? []
+  const listingPriceEur = listingPriceCents / 100
 
   return (
     <>
@@ -394,6 +401,18 @@ export function MarketplaceListingDetail({
           ) : null}
 
           <div className="mt-4 text-3xl font-bold text-green-600">{priceDisplay}</div>
+
+          {variantRows.length > 0 ? (
+            <div className="mt-4 space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                Affiliate earnings by option
+              </p>
+              {variantRows.map((row) => (
+                <AffiliateCommissionCard key={row.id} variant={row} basePriceEur={listingPriceEur} />
+              ))}
+            </div>
+          ) : null}
+
           <div className="mt-4 space-y-2 rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
             <div className="flex flex-wrap items-center gap-2">
               <Truck className="h-4 w-4 shrink-0 text-green-600" aria-hidden />

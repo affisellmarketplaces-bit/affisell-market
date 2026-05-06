@@ -53,7 +53,7 @@ function parseVariantLine(raw: unknown): ProductVariantLine | null {
     typeof r.stock === "number" && Number.isFinite(r.stock) ? Math.max(0, Math.round(r.stock)) : 0
   const commission =
     typeof r.commission === "number" && Number.isFinite(r.commission)
-      ? Math.min(99, Math.max(0, Math.round(r.commission)))
+      ? Math.min(50, Math.max(1, Math.round(r.commission)))
       : 20
   const sales =
     typeof r.sales === "number" && Number.isFinite(r.sales) ? Math.max(0, Math.round(r.sales)) : 0

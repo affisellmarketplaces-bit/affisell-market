@@ -69,7 +69,7 @@ export async function POST(req: Request) {
 
   const commRaw = commission ?? commissionRate
   const rate = Math.min(
-    99,
+    50,
     Math.max(1, Math.round(Number.isFinite(Number(commRaw)) ? Number(commRaw) : 20))
   )
   const images = parseSupplierProductImages(body as Record<string, unknown>)

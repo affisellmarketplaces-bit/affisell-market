@@ -89,6 +89,7 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
         variants={variants}
         colorImages={colorImages}
         shipping={shipping}
+        listingPriceCents={listing.sellingPriceCents}
       />
     </main>
   )

@@ -94,7 +94,7 @@ export function ProductVariantsAdvanced({
 
   const defaultComm = useMemo(() => {
     const n = Number.parseFloat(defaultCommission)
-    return Number.isFinite(n) ? Math.min(99, Math.max(0, Math.round(n))) : 20
+    return Number.isFinite(n) ? Math.min(50, Math.max(1, Math.round(n))) : 15
   }, [defaultCommission])
 
   const setRows = useCallback(
@@ -266,7 +266,14 @@ export function ProductVariantsAdvanced({
           if (r.id !== id) return r
           if (field === "priceCents") return { ...r, priceCents: typeof value === "number" ? value : r.priceCents }
           if (field === "stock") return { ...r, stock: typeof value === "number" ? value : r.stock }
-          if (field === "commission") return { ...r, commission: typeof value === "number" ? value : r.commission }
+          if (field === "commission")
+            return {
+              ...r,
+              commission:
+                typeof value === "number"
+                  ? Math.min(50, Math.max(1, Math.round(value)))
+                  : r.commission,
+            }
           if (field === "sales") return { ...r, sales: typeof value === "number" ? value : r.sales }
           if (field === "name") return { ...r, name: String(value).slice(0, 160) }
           if (field === "sku") return { ...r, sku: String(value).slice(0, 80) }
@@ -579,7 +586,7 @@ export function ProductVariantsAdvanced({
             </span>
           </h3>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            Different versions with own price, stock, and commission
+            Different versions with price, stock, and offered affiliate commission
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -744,23 +751,32 @@ export function ProductVariantsAdvanced({
                   />
                 </div>
 
-                <div className="col-span-3 sm:col-span-2 lg:col-span-1">
-                  <label className="text-xs text-zinc-500 dark:text-zinc-400">Comm. %</label>
+                <div className="col-span-12 sm:col-span-6 lg:col-span-3">
+                  <label className="flex flex-wrap items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400">
+                    Offered Commission
+                    <span className="rounded-full bg-green-100 px-1.5 py-0.5 text-[10px] font-medium text-green-700 dark:bg-green-950 dark:text-green-300">
+                      For Affiliates
+                    </span>
+                  </label>
                   <input
                     type="number"
-                    min={0}
-                    max={99}
+                    min={1}
+                    max={50}
                     step={1}
-                    value={variant.commission}
+                    value={variant.commission || 15}
+                    placeholder="15"
                     onChange={(e) =>
                       updateVariant(
                         variant.id,
                         "commission",
-                        Math.min(99, Math.max(0, Math.round(Number(e.target.value) || 0)))
+                        Math.min(50, Math.max(1, Math.round(Number(e.target.value) || 15)))
                       )
                     }
                     className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950"
                   />
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                    Affiliates earn this % per sale
+                  </p>
                 </div>
 
                 <div className="col-span-12 flex justify-end lg:col-span-2">
@@ -777,6 +793,44 @@ export function ProductVariantsAdvanced({
           ))}
         </div>
       )}
+
+      {rows.length > 0 ? (
+        <div className="mt-4 rounded-xl border border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 p-4 dark:border-green-900 dark:from-green-950/40 dark:to-emerald-950/40">
+          <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold text-green-900 dark:text-green-100">
+            <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            Affiliate Earnings Preview
+          </h4>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {rows.slice(0, 3).map((v) => {
+              const priceEur = v.priceCents > 0 ? v.priceCents / 100 : baseCents / 100
+              const comm = typeof v.commission === "number" ? v.commission : 15
+              const earning = ((priceEur * comm) / 100).toFixed(2)
+              return (
+                <div
+                  key={v.id}
+                  className="rounded-lg border border-green-100 bg-white p-2.5 dark:border-green-900 dark:bg-zinc-950"
+                >
+                  <p className="truncate text-xs text-zinc-600 dark:text-zinc-400">{v.name}</p>
+                  <p className="text-lg font-bold text-green-700 dark:text-green-400">€{earning}</p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    per sale ({comm}%)
+                  </p>
+                </div>
+              )
+            })}
+          </div>
+          <p className="mt-2 text-xs text-green-700 dark:text-green-300">
+            Tip: Higher commission attracts more affiliates to promote your listings.
+          </p>
+        </div>
+      ) : null}
 
       <div className="mt-6">
         <label className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Model / Version</label>
