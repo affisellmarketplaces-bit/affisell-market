@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
@@ -16,6 +16,10 @@ export default function AddProductPage() {
   const [specs, setSpecs] = useState<Record<string, string>>({})
   const [images, setImages] = useState<string[]>([])
   const router = useRouter()
+
+  useEffect(() => {
+    setSpecs({})
+  }, [categoryId])
 
   const handleSubmit = async () => {
     if (!productTitle || !categoryId || !price) {
@@ -61,12 +65,12 @@ export default function AddProductPage() {
 
         <div>
           <label className="text-sm font-medium">Category *</label>
-          <Select value={categoryId} onValueChange={setCategoryId}>
+          <Select value={categoryId} onValueChange={(value) => setCategoryId(value)}>
             <SelectTrigger className="mt-1">
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="cmoumgx890003thk6x057t2la">Electronics / Cell Phones / Smartphones</SelectItem>
+              <SelectItem value="slow_cooker_id">Home & Kitchen → Kitchen & Dining → Slow Cookers</SelectItem>
             </SelectContent>
           </Select>
         </div>
