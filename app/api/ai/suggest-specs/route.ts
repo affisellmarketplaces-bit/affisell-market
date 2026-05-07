@@ -5,45 +5,50 @@ import { prisma } from '@/lib/prisma'
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
 export async function POST(req: NextRequest) {
-  const { title, categoryId, imageUrl } = await req.json()
-  
-  const attributes = await prisma.categoryAttribute.findMany({
-    where: { categoryId, aiSuggest: true },
-    orderBy: { order: 'asc' }
-  })
-  
-  const schema = attributes.map(a => ({
-    key: a.key,
-    label: a.label,
-    type: a.type,
-    unit: a.unit,
-    options: a.options
-  }))
-  
-  const prompt = `Extract product specifications from this product.
-Title: "${title}"
-Required specs: ${JSON.stringify(schema)}
+  const { productTitle, imageUrl }: { productTitle?: string; imageUrl?: string } = await req.json()
 
-Rules:
-1. Return ONLY valid JSON with keys matching the schema
-2. For select/multiselect, use exact values from options
-3. For numbers, extract numeric value only
-4. If unknown, use null
-Example: {"brand":"Apple","color":"Black","storage_capacity":"256GB"}`
+  if (!productTitle && !imageUrl) {
+    throw new Error('Either productTitle or imageUrl is required')
+  }
+
+  const categories = await prisma.category.findMany({
+    include: { attributes: true },
+  })
+
+  const messages: any[] = [
+    {
+      role: 'system',
+      content:
+        'You are a product data extractor. Given a product title and/or image, and a list of categories with attributes, return JSON: {categoryId: string, categoryName: string, specs: {key: value}}. Only use categoryId and attribute keys from the provided list. If image provided, extract brand, color, material from it.',
+    },
+  ]
+
+  const userContent: any[] = [
+    {
+      type: 'text',
+      text: `Categories: ${categories
+        .map((c) => `${c.id}:${c.name} ATTRS:${c.attributes.map((a) => a.key).join(',')}`)
+        .join(' | ')}`,
+    },
+  ]
+
+  if (productTitle) userContent.push({ type: 'text', text: `Title: ${productTitle}` })
+  if (imageUrl) userContent.push({ type: 'image_url', image_url: { url: imageUrl } })
+
+  messages.push({ role: 'user', content: userContent })
 
   const completion = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
-    messages: [
-      { role: 'system', content: 'You extract product specs as JSON only.' },
-      { role: 'user', content: imageUrl? [
-        { type: 'text', text: prompt },
-        { type: 'image_url', image_url: { url: imageUrl } }
-      ] : prompt }
-    ],
+    messages,
     response_format: { type: 'json_object' },
-    temperature: 0.1
+    temperature: 0.1,
   })
 
-  const suggestions = JSON.parse(completion.choices[0].message.content || '{}')
-  return NextResponse.json({ suggestions, attributes })
+  const parsed = JSON.parse(completion.choices[0].message.content || '{}')
+  const categoryId = typeof parsed?.categoryId === 'string' ? parsed.categoryId : ''
+  const categoryName = categories.find((c) => c.id === categoryId)?.name || ''
+  const specs =
+    parsed?.specs && typeof parsed.specs === 'object' ? (parsed.specs as Record<string, string>) : {}
+
+  return NextResponse.json({ categoryId, categoryName, specs })
 }
