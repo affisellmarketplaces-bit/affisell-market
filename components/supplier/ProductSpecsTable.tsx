@@ -14,10 +14,12 @@ type Attribute = {
 export default function ProductSpecsTable({ 
   categoryId, 
   productTitle,
+  images,
   onSpecsChange 
 }: { 
   categoryId: string
   productTitle: string 
+  images?: string[]
   onSpecsChange?: (specs: Record<string, string>) => void
 }) {
   const [attributes, setAttributes] = useState<Attribute[]>([])
