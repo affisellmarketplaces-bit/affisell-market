@@ -3,8 +3,6 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import ProductSpecsTable from '@/components/supplier/ProductSpecsTable'
 import ImageUpload from '@/app/dashboard/products/new/ImageUpload'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
@@ -12,13 +10,14 @@ import { useRouter } from 'next/navigation'
 export default function AddProductPage() {
   const [productTitle, setProductTitle] = useState('')
   const [categoryId, setCategoryId] = useState<string>('')
+  const [categoryName, setCategoryName] = useState<string>('')
   const [attributes, setAttributes] = useState<any[]>([])
+  const [specs, setSpecs] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
+  const [imageUrls, setImageUrls] = useState<string[]>([])
   const [price, setPrice] = useState('')
   const [quantity, setQuantity] = useState('')
-  const [specs, setSpecs] = useState<Record<string, string>>({})
   const [images, setImages] = useState<string[]>([])
-  const [imageUrl, setImageUrl] = useState<string>('')
   const router = useRouter()
 
   useEffect(() => {
@@ -33,21 +32,26 @@ export default function AddProductPage() {
   }, [categoryId])
 
   const handleAutoFill = async () => {
-    if (!productTitle && !imageUrl) return toast.error('Enter product title first')
+    if (!productTitle && imageUrls.length === 0) return toast.error('Add title or image first')
     setLoading(true)
     try {
-      const res = await fetch('/api/ai/fill-specs', {
+      const res = await fetch('/api/ai/suggest-specs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productTitle, imageUrl: imageUrl || undefined })
+        body: JSON.stringify({ 
+          productTitle: productTitle || undefined, 
+          imageUrl: imageUrls[0] || undefined 
+        })
       })
       const data = await res.json()
       if (data.categoryId) {
         setCategoryId(data.categoryId)
-        toast.success('Category detected')
+        setCategoryName(data.categoryName)
+        toast.success(`Detected: ${data.categoryName}`)
       }
       setSpecs(data.specs || {})
     } catch (e) {
+      console.error(e)
       toast.error('AI fill failed')
     } finally {
       setLoading(false)
@@ -95,41 +99,51 @@ export default function AddProductPage() {
             className="mt-1"
           />
         </div>
-
-        <div>
-          <label className="text-sm font-medium">Category *</label>
-          <Select value={categoryId} onValueChange={setCategoryId}>
-            <SelectTrigger className="mt-1">
-              <SelectValue placeholder="Select category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="slow_cooker_id">Home & Kitchen → Kitchen & Dining → Slow Cookers</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium">Price *</label>
+            <Input type="number" value={price} onChange={(e) => setPrice(e.target.value)} className="mt-1" />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Quantity *</label>
+            <Input type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} className="mt-1" />
+          </div>
         </div>
 
-        {!categoryId && (
+        <ImageUpload
+          onImagesChange={(urls) => {
+            setImages(urls)
+            setImageUrls(urls)
+          }}
+        />
+
+        {!categoryId ? (
           <div className="border rounded-lg p-8 text-center space-y-4">
             <p className="text-muted-foreground">Enter product title or upload an image to detect specifications</p>
             <Button 
               type="button"
               onClick={handleAutoFill}
-              disabled={(!productTitle && !imageUrl) || loading}
+              disabled={(!productTitle && imageUrls.length === 0) || loading}
             >
               {loading ? 'Detecting...' : 'Auto-fill with AI'}
             </Button>
           </div>
-        )}
-        
-        <Button type="button" variant="outline" onClick={handleAutoFill} disabled={loading}>
-          {loading ? 'Filling...' : 'Auto-fill with AI'}
-        </Button>
-
-        {attributes.length > 0 && (
-          <div className="space-y-4">
-            <div className="flex justify-between">
-              <h3>Technical Specifications</h3>
-              <p>{Object.values(specs).filter(Boolean).length}/{attributes.length} filled</p>
+        ) : (
+          <div className="space-y-4 border rounded-lg p-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="font-semibold">Technical Specifications</h3>
+                <p className="text-sm text-muted-foreground">Category: {categoryName}</p>
+              </div>
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm"
+                onClick={handleAutoFill}
+                disabled={loading}
+              >
+                {loading ? 'Filling...' : 'Re-run AI'}
+              </Button>
             </div>
             {attributes.map((attr) => (
               <div key={attr.key}>
@@ -143,31 +157,6 @@ export default function AddProductPage() {
             ))}
           </div>
         )}
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="text-sm font-medium">Price *</label>
-            <Input type="number" value={price} onChange={(e) => setPrice(e.target.value)} className="mt-1" />
-          </div>
-          <div>
-            <label className="text-sm font-medium">Quantity *</label>
-            <Input type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} className="mt-1" />
-          </div>
-        </div>
-
-        <ProductSpecsTable 
-          categoryId={categoryId}
-          productTitle={productTitle}
-          images={images}
-          onSpecsChange={setSpecs}
-        />
-
-        <ImageUpload
-          onImagesChange={(urls) => {
-            setImages(urls)
-            setImageUrl(urls[0] || '')
-          }}
-        />
 
         <Button onClick={handleSubmit} className="w-full" size="lg">
           Create Product Listing
