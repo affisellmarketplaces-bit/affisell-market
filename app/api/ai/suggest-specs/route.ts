@@ -21,21 +21,20 @@ export async function POST(req: NextRequest) {
   }))
   
   const prompt = `Extract product specifications from this product.
-  
-Product: "${title}"
+Title: "${title}"
 Required specs: ${JSON.stringify(schema)}
 
 Rules:
 1. Return ONLY valid JSON with keys matching the schema
-2. For select/multiselect, use exact values from options if possible
+2. For select/multiselect, use exact values from options
 3. For numbers, extract numeric value only
 4. If unknown, use null
-5. Be accurate. Example: {"brand":"Apple","color":"Black","storage_capacity":"256GB"}`
+Example: {"brand":"Apple","color":"Black","storage_capacity":"256GB"}`
 
   const completion = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [
-      { role: 'system', content: 'You are a product data expert. Extract specs as JSON only.' },
+      { role: 'system', content: 'You extract product specs as JSON only.' },
       { role: 'user', content: imageUrl? [
         { type: 'text', text: prompt },
         { type: 'image_url', image_url: { url: imageUrl } }
@@ -46,6 +45,5 @@ Rules:
   })
 
   const suggestions = JSON.parse(completion.choices[0].message.content || '{}')
-  
   return NextResponse.json({ suggestions, attributes })
 }
