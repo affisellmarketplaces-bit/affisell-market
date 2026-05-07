@@ -7,6 +7,7 @@ type Attr = {
   label: string
   required: boolean
   type: 'text'
+  order?: number
 }
 
 type CategorySeed = {
@@ -86,6 +87,17 @@ const CATEGORIES: CategorySeed[] = [
       { key: 'material', label: 'Material', required: true, type: 'text' },
     ],
   },
+  {
+    name: 'Printers',
+    slug: 'printers',
+    attributes: [
+      { key: 'brand', label: 'Brand', type: 'text', required: true, order: 1 },
+      { key: 'type', label: 'Printer Type', type: 'text', required: true, order: 2 },
+      { key: 'color', label: 'Color', type: 'text', required: false, order: 3 },
+      { key: 'connectivity', label: 'Connectivity', type: 'text', required: false, order: 4 },
+      { key: 'print_tech', label: 'Print Technology', type: 'text', required: false, order: 5 },
+    ],
+  },
 ]
 
 async function main() {
@@ -100,6 +112,7 @@ async function main() {
     })
 
     for (const [idx, attr] of categorySeed.attributes.entries()) {
+      const order = attr.order ?? idx + 1
       await prisma.categoryAttribute.upsert({
         where: {
           categoryId_key: {
@@ -111,7 +124,7 @@ async function main() {
           label: attr.label,
           required: attr.required,
           type: attr.type,
-          order: idx + 1,
+          order,
         },
         create: {
           categoryId: category.id,
@@ -119,13 +132,13 @@ async function main() {
           label: attr.label,
           required: attr.required,
           type: attr.type,
-          order: idx + 1,
+          order,
         },
       })
     }
   }
 
-  console.log('Seeded 6 categories with attributes using upsert')
+  console.log('Seeded 7 categories with attributes using upsert')
 }
 
 main()
