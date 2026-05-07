@@ -1,7 +1,8 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
 import ImageUpload from '@/app/dashboard/products/new/ImageUpload'
 import { toast } from 'sonner'
@@ -13,48 +14,41 @@ export default function AddProductPage() {
   const [categoryName, setCategoryName] = useState<string>('')
   const [attributes, setAttributes] = useState<any[]>([])
   const [specs, setSpecs] = useState<Record<string, string>>({})
-  const [loading, setLoading] = useState(false)
+  const [loadingAI, setLoadingAI] = useState(false)
   const [imageUrls, setImageUrls] = useState<string[]>([])
   const [price, setPrice] = useState('')
   const [quantity, setQuantity] = useState('')
   const [images, setImages] = useState<string[]>([])
+  const productName = productTitle
   const router = useRouter()
 
   useEffect(() => {
-    if (!categoryId) {
-      setAttributes([])
-      return
-    }
-    fetch(`/api/categories/${categoryId}/attributes`)
-    .then(res => res.json())
-    .then(data => setAttributes(data))
+    if (!categoryId) return setAttributes([])
+    fetch(`/api/categories/${categoryId}/attributes`).then(r=>r.json()).then(setAttributes)
     setSpecs({})
   }, [categoryId])
 
   const handleAutoFill = async () => {
-    if (!productTitle && imageUrls.length === 0) return toast.error('Add title or image first')
-    setLoading(true)
+    const imageUrl = imageUrls[0]?.startsWith('http') ? imageUrls[0] : undefined
+    if (!productName && !imageUrl) return toast.error('Add title or image first')
+    setLoadingAI(true)
     try {
       const res = await fetch('/api/ai/suggest-specs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          productTitle: productTitle || undefined, 
-          imageUrl: imageUrls[0] || undefined 
-        })
+        body: JSON.stringify({ productTitle: productName || undefined, imageUrl })
       })
       const data = await res.json()
-      if (data.categoryId) {
-        setCategoryId(data.categoryId)
-        setCategoryName(data.categoryName)
-        toast.success(`Detected: ${data.categoryName}`)
-      }
+      if (!res.ok) throw new Error(data.error || 'Failed')
+      setCategoryId(data.categoryId)
+      setCategoryName(data.categoryName)
       setSpecs(data.specs || {})
+      toast.success(`Detected: ${data.categoryName}`)
     } catch (e) {
       console.error(e)
-      toast.error('AI fill failed')
+      toast.error((e as Error).message)
     } finally {
-      setLoading(false)
+      setLoadingAI(false)
     }
   }
 
@@ -118,14 +112,14 @@ export default function AddProductPage() {
         />
 
         {!categoryId ? (
-          <div className="border rounded-lg p-8 text-center space-y-4">
-            <p className="text-muted-foreground">Enter product title or upload an image to detect specifications</p>
+          <div className="border-2 border-dashed rounded-lg p-8 text-center space-y-4">
+            <p className="text-sm text-muted-foreground">Upload image or enter name, then detect category</p>
             <Button 
               type="button"
               onClick={handleAutoFill}
-              disabled={(!productTitle && imageUrls.length === 0) || loading}
+              disabled={loadingAI || (!productName && !imageUrls.length)}
             >
-              {loading ? 'Detecting...' : 'Auto-fill with AI'}
+              {loadingAI ? 'Detecting...' : 'Auto-fill with AI'}
             </Button>
           </div>
         ) : (
@@ -135,22 +129,16 @@ export default function AddProductPage() {
                 <h3 className="font-semibold">Technical Specifications</h3>
                 <p className="text-sm text-muted-foreground">Category: {categoryName}</p>
               </div>
-              <Button 
-                type="button" 
-                variant="outline" 
-                size="sm"
-                onClick={handleAutoFill}
-                disabled={loading}
-              >
-                {loading ? 'Filling...' : 'Re-run AI'}
+              <Button type="button" variant="outline" size="sm" onClick={handleAutoFill} disabled={loadingAI}>
+                {loadingAI ? 'Filling...' : 'Re-run AI'}
               </Button>
             </div>
             {attributes.map((attr) => (
               <div key={attr.key}>
-                <label>{attr.label} {attr.required && '*'}</label>
+                <Label>{attr.label}{attr.required && ' *'}</Label>
                 <Input
                   value={specs[attr.key] || ''}
-                  onChange={(e) => setSpecs({...specs, [attr.key]: e.target.value})}
+                  onChange={e => setSpecs({...specs, [attr.key]: e.target.value})}
                   required={attr.required}
                 />
               </div>
