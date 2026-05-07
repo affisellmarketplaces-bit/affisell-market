@@ -11,7 +11,6 @@ import { useRouter } from 'next/navigation'
 export default function AddProductPage() {
   const [productTitle, setProductTitle] = useState('')
   const [categoryId, setCategoryId] = useState('cmoumgx890003thk6x057t2la')
-  const [brand, setBrand] = useState('')
   const [price, setPrice] = useState('')
   const [quantity, setQuantity] = useState('')
   const [specs, setSpecs] = useState<Record<string, string>>({})
@@ -30,7 +29,6 @@ export default function AddProductPage() {
       body: JSON.stringify({ 
         title: productTitle, 
         categoryId, 
-        brand,
         price: parseFloat(price), 
         quantity: parseInt(quantity), 
         specs, 
@@ -71,16 +69,6 @@ export default function AddProductPage() {
               <SelectItem value="cmoumgx890003thk6x057t2la">Electronics / Cell Phones / Smartphones</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-
-        <div>
-          <label className="text-sm font-medium">Brand</label>
-          <Input 
-            value={brand} 
-            onChange={(e) => setBrand(e.target.value)}
-            placeholder="Apple"
-            className="mt-1"
-          />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
