@@ -2,17 +2,19 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function main() {
-  const slowCooker = await prisma.category.upsert({
-    where: { slug: 'slow-cookers' },
-    update: {},
-    create: {
-      name: 'Slow Cookers',
-      slug: 'slow-cookers',
-      parentSlug: 'kitchen-dining',
-      fullPath: 'Home & Kitchen → Kitchen & Dining → Slow Cookers'
-    }
+  // 1. Check if Slow Cookers category exists by name
+  let slowCooker = await prisma.category.findFirst({
+    where: { name: 'Slow Cookers' }
   })
 
+  // 2. Create it if missing
+  if (!slowCooker) {
+    slowCooker = await prisma.category.create({
+      data: { name: 'Slow Cookers' }
+    })
+  }
+
+  // 3. Seed attributes
   const attrs = [
     { key: 'brand', label: 'Brand', required: true, type: 'text' },
     { key: 'color', label: 'Color', required: true, type: 'text' },
@@ -27,13 +29,20 @@ async function main() {
 
   for (const attr of attrs) {
     await prisma.categoryAttribute.upsert({
-      where: { categoryId_key: { categoryId: slowCooker.id, key: attr.key } },
+      where: { 
+        categoryId_key: { 
+          categoryId: slowCooker.id, 
+          key: attr.key 
+        } 
+      },
       update: {},
       create: { ...attr, categoryId: slowCooker.id }
     })
   }
   
-  console.log('Slow Cookers category + 9 attributes seeded')
+  console.log('✅ Slow Cookers + 9 attributes seeded. Category ID:', slowCooker.id)
 }
 
-main().finally(() => prisma.$disconnect())
+main()
+ .catch(e => console.error(e))
+ .finally(() => prisma.$disconnect())
