@@ -1,151 +1,120 @@
 import { PrismaClient } from '@prisma/client'
-
 const prisma = new PrismaClient()
 
-type Attr = {
-  key: string
-  label: string
-  required: boolean
-  type: 'text'
-  order?: number
-}
-
-type CategorySeed = {
-  name: string
-  slug: string
-  attributes: Attr[]
-}
-
-const CATEGORIES: CategorySeed[] = [
-  {
-    name: 'Smartphones',
-    slug: 'smartphones',
-    attributes: [
-      { key: 'brand', label: 'Brand', required: true, type: 'text' },
-      { key: 'model', label: 'Model', required: true, type: 'text' },
-      { key: 'storage', label: 'Storage', required: true, type: 'text' },
-      { key: 'color', label: 'Color', required: true, type: 'text' },
-      { key: 'ram', label: 'RAM', required: false, type: 'text' },
-      { key: 'screen_size', label: 'Screen Size', required: false, type: 'text' },
-    ],
-  },
-  {
-    name: 'Laptops',
-    slug: 'laptops',
-    attributes: [
-      { key: 'brand', label: 'Brand', required: true, type: 'text' },
-      { key: 'cpu', label: 'CPU', required: true, type: 'text' },
-      { key: 'ram', label: 'RAM', required: true, type: 'text' },
-      { key: 'storage', label: 'Storage', required: true, type: 'text' },
-      { key: 'screen_size', label: 'Screen Size', required: false, type: 'text' },
-      { key: 'gpu', label: 'GPU', required: false, type: 'text' },
-    ],
-  },
-  {
-    name: 'T-Shirts',
-    slug: 't-shirts',
-    attributes: [
-      { key: 'brand', label: 'Brand', required: true, type: 'text' },
-      { key: 'size', label: 'Size', required: true, type: 'text' },
-      { key: 'color', label: 'Color', required: true, type: 'text' },
-      { key: 'material', label: 'Material', required: false, type: 'text' },
-      { key: 'gender', label: 'Gender', required: false, type: 'text' },
-      { key: 'fit', label: 'Fit', required: false, type: 'text' },
-    ],
-  },
-  {
-    name: 'Slow Cookers',
-    slug: 'slow-cookers',
-    attributes: [
-      { key: 'brand', label: 'Brand', required: true, type: 'text' },
-      { key: 'capacity', label: 'Capacity', required: true, type: 'text' },
-      { key: 'color', label: 'Color', required: true, type: 'text' },
-      { key: 'voltage', label: 'Voltage', required: false, type: 'text' },
-      { key: 'dishwasher_safe', label: 'Dishwasher Safe', required: false, type: 'text' },
-      { key: 'material', label: 'Material', required: false, type: 'text' },
-      { key: 'dimensions', label: 'Dimensions', required: false, type: 'text' },
-      { key: 'number_of_items', label: 'Number of Items', required: false, type: 'text' },
-    ],
-  },
-  {
-    name: 'Headphones',
-    slug: 'headphones',
-    attributes: [
-      { key: 'brand', label: 'Brand', required: true, type: 'text' },
-      { key: 'form_factor', label: 'Form Factor', required: true, type: 'text' },
-      { key: 'connectivity', label: 'Connectivity', required: true, type: 'text' },
-      { key: 'color', label: 'Color', required: true, type: 'text' },
-    ],
-  },
-  {
-    name: 'Shoes',
-    slug: 'shoes',
-    attributes: [
-      { key: 'brand', label: 'Brand', required: true, type: 'text' },
-      { key: 'size', label: 'Size', required: true, type: 'text' },
-      { key: 'color', label: 'Color', required: true, type: 'text' },
-      { key: 'material', label: 'Material', required: true, type: 'text' },
-    ],
-  },
-  {
-    name: 'Printers',
-    slug: 'printers',
-    attributes: [
-      { key: 'brand', label: 'Brand', type: 'text', required: true, order: 1 },
-      { key: 'type', label: 'Printer Type', type: 'text', required: true, order: 2 },
-      { key: 'color', label: 'Color', type: 'text', required: false, order: 3 },
-      { key: 'connectivity', label: 'Connectivity', type: 'text', required: false, order: 4 },
-      { key: 'print_tech', label: 'Print Technology', type: 'text', required: false, order: 5 },
-    ],
-  },
+const CATEGORIES = [
+  // Electronics
+  { name: 'Smartphones', slug: 'smartphones', attributes: [
+    { key: 'brand', label: 'Brand', type: 'text', required: true, order: 1 },
+    { key: 'storage', label: 'Storage', type: 'text', required: false, order: 2 },
+    { key: 'color', label: 'Color', type: 'text', required: false, order: 3 }
+  ]},
+  { name: 'Laptops', slug: 'laptops', attributes: [
+    { key: 'brand', label: 'Brand', type: 'text', required: true, order: 1 },
+    { key: 'ram', label: 'RAM', type: 'text', required: false, order: 2 },
+    { key: 'storage', label: 'Storage', type: 'text', required: false, order: 3 }
+  ]},
+  { name: 'Headphones', slug: 'headphones', attributes: [
+    { key: 'brand', label: 'Brand', type: 'text', required: true, order: 1 },
+    { key: 'form_factor', label: 'Form Factor', type: 'text', required: false, order: 2 },
+    { key: 'connectivity', label: 'Connectivity', type: 'text', required: false, order: 3 }
+  ]},
+  { name: 'Cameras', slug: 'cameras', attributes: [
+    { key: 'brand', label: 'Brand', type: 'text', required: true, order: 1 },
+    { key: 'type', label: 'Type', type: 'text', required: false, order: 2 },
+    { key: 'megapixels', label: 'Megapixels', type: 'text', required: false, order: 3 }
+  ]},
+  { name: 'Printers', slug: 'printers', attributes: [
+    { key: 'brand', label: 'Brand', type: 'text', required: true, order: 1 },
+    { key: 'type', label: 'Printer Type', type: 'text', required: false, order: 2 },
+    { key: 'connectivity', label: 'Connectivity', type: 'text', required: false, order: 3 }
+  ]},
+  { name: 'TVs', slug: 'tvs', attributes: [
+    { key: 'brand', label: 'Brand', type: 'text', required: true, order: 1 },
+    { key: 'size', label: 'Screen Size', type: 'text', required: false, order: 2 },
+    { key: 'resolution', label: 'Resolution', type: 'text', required: false, order: 3 }
+  ]},
+  
+  // Fashion
+  { name: 'T-Shirts', slug: 'tshirts', attributes: [
+    { key: 'brand', label: 'Brand', type: 'text', required: false, order: 1 },
+    { key: 'size', label: 'Size', type: 'text', required: true, order: 2 },
+    { key: 'color', label: 'Color', type: 'text', required: false, order: 3 }
+  ]},
+  { name: 'Shoes', slug: 'shoes', attributes: [
+    { key: 'brand', label: 'Brand', type: 'text', required: false, order: 1 },
+    { key: 'size', label: 'Size', type: 'text', required: true, order: 2 },
+    { key: 'color', label: 'Color', type: 'text', required: false, order: 3 }
+  ]},
+  { name: 'Jeans', slug: 'jeans', attributes: [
+    { key: 'brand', label: 'Brand', type: 'text', required: false, order: 1 },
+    { key: 'size', label: 'Size', type: 'text', required: true, order: 2 },
+    { key: 'color', label: 'Color', type: 'text', required: false, order: 3 }
+  ]},
+  { name: 'Watches', slug: 'watches', attributes: [
+    { key: 'brand', label: 'Brand', type: 'text', required: true, order: 1 },
+    { key: 'type', label: 'Type', type: 'text', required: false, order: 2 },
+    { key: 'color', label: 'Color', type: 'text', required: false, order: 3 }
+  ]},
+  
+  // Home
+  { name: 'Slow Cookers', slug: 'slow-cookers', attributes: [
+    { key: 'brand', label: 'Brand', type: 'text', required: false, order: 1 },
+    { key: 'capacity', label: 'Capacity', type: 'text', required: false, order: 2 }
+  ]},
+  { name: 'Coffee Makers', slug: 'coffee-makers', attributes: [
+    { key: 'brand', label: 'Brand', type: 'text', required: false, order: 1 },
+    { key: 'type', label: 'Type', type: 'text', required: false, order: 2 }
+  ]},
+  { name: 'Furniture', slug: 'furniture', attributes: [
+    { key: 'brand', label: 'Brand', type: 'text', required: false, order: 1 },
+    { key: 'material', label: 'Material', type: 'text', required: false, order: 2 },
+    { key: 'color', label: 'Color', type: 'text', required: false, order: 3 }
+  ]},
+  
+  // Beauty
+  { name: 'Skincare', slug: 'skincare', attributes: [
+    { key: 'brand', label: 'Brand', type: 'text', required: true, order: 1 },
+    { key: 'type', label: 'Product Type', type: 'text', required: false, order: 2 },
+    { key: 'volume', label: 'Volume', type: 'text', required: false, order: 3 }
+  ]},
+  { name: 'Makeup', slug: 'makeup', attributes: [
+    { key: 'brand', label: 'Brand', type: 'text', required: true, order: 1 },
+    { key: 'type', label: 'Product Type', type: 'text', required: false, order: 2 },
+    { key: 'shade', label: 'Shade', type: 'text', required: false, order: 3 }
+  ]},
+  
+  // Sports
+  { name: 'Fitness Equipment', slug: 'fitness-equipment', attributes: [
+    { key: 'brand', label: 'Brand', type: 'text', required: false, order: 1 },
+    { key: 'type', label: 'Equipment Type', type: 'text', required: false, order: 2 }
+  ]},
+  
+  // Fallback pour tout le reste
+  { name: 'Other', slug: 'other', attributes: [
+    { key: 'brand', label: 'Brand', type: 'text', required: false, order: 1 },
+    { key: 'type', label: 'Product Type', type: 'text', required: false, order: 2 },
+    { key: 'material', label: 'Material', type: 'text', required: false, order: 3 },
+    { key: 'color', label: 'Color', type: 'text', required: false, order: 4 }
+  ]}
 ]
 
 async function main() {
-  for (const categorySeed of CATEGORIES) {
+  for (const cat of CATEGORIES) {
     const category = await prisma.category.upsert({
-      where: { slug: categorySeed.slug },
-      update: { name: categorySeed.name },
-      create: {
-        name: categorySeed.name,
-        slug: categorySeed.slug,
-      },
+      where: { slug: cat.slug },
+      update: {},
+      create: { name: cat.name, slug: cat.slug }
     })
-
-    for (const [idx, attr] of categorySeed.attributes.entries()) {
-      const order = attr.order ?? idx + 1
+    
+    for (const attr of cat.attributes) {
       await prisma.categoryAttribute.upsert({
-        where: {
-          categoryId_key: {
-            categoryId: category.id,
-            key: attr.key,
-          },
-        },
-        update: {
-          label: attr.label,
-          required: attr.required,
-          type: attr.type,
-          order,
-        },
-        create: {
-          categoryId: category.id,
-          key: attr.key,
-          label: attr.label,
-          required: attr.required,
-          type: attr.type,
-          order,
-        },
+        where: { categoryId_key: { categoryId: category.id, key: attr.key } },
+        update: {},
+        create: { ...attr, categoryId: category.id }
       })
     }
+    console.log(`Seeded: ${cat.name}`)
   }
-
-  console.log('Seeded 7 categories with attributes using upsert')
 }
 
-main()
-  .catch((e) => {
-    console.error(e)
-    process.exit(1)
-  })
-  .finally(async () => {
-    await prisma.$disconnect()
-  })
+main().finally(() => prisma.$disconnect())
