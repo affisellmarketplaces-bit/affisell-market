@@ -423,7 +423,7 @@ export function SupplierProductForm({
           className="rounded-md border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
         />
         <div className="md:col-span-2 grid gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950/40">
-          <p className="text-sm font-semibold">Amazon-style specifications</p>
+          <p className="text-sm font-semibold">Technical Specifications</p>
           <select
             value={taxonomyCategoryId}
             onChange={(e) => setTaxonomyCategoryId(e.target.value)}
