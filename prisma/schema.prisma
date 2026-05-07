@@ -81,8 +81,29 @@ model Category {
 
   products Product[]
 
+  attributes CategoryAttribute[]
+
   /** Legacy per-department table (CSV/import); distinct from nested `subcategories` above. */
   tabularSubcategories Subcategory[] @relation("CategoryTabularSubcategory")
+}
+
+model CategoryAttribute {
+  id String @id @default(cuid())
+  categoryId String
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  key String
+  label String
+  type String
+  unit String?
+  options String[] @default([])
+  required Boolean @default(false)
+  order Int @default(0)
+  aiSuggest Boolean @default(true)
+  showInFilter Boolean @default(true)
+
+  @@unique([categoryId, key])
+  @@index([categoryId])
 }
 
 model Subcategory {
@@ -160,6 +181,7 @@ model Product {
 
   supplier User @relation("SupplierProducts", fields: [supplierId], references: [id])
   affiliateProducts AffiliateProduct[]
+  attributes ProductAttribute[]
   orders Order[]
   communityPosts CommunityPost[]
   wishlists Wishlist[]
@@ -171,6 +193,19 @@ model Product {
   @@index([basePriceCents])
   @@index([isOnSale])
   @@index([createdAt])
+}
+
+model ProductAttribute {
+  id String @id @default(cuid())
+  productId String
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  key String
+  value String
+  label String
+
+  @@unique([productId, key])
+  @@index([productId])
 }
 
 model Review {

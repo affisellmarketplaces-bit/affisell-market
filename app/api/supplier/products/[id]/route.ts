@@ -44,6 +44,8 @@ export async function PUT(
     compareAt?: number | string | null
     commission?: number
     stock?: number
+    categoryId?: string | null
+    productAttributes?: Array<{ key?: unknown; label?: unknown; value?: unknown }>
   }
 
   const name = typeof body.name === "string" ? body.name.trim() : ""
@@ -85,38 +87,67 @@ export async function PUT(
   const images = parseSupplierProductImages(body as unknown as Record<string, unknown>)
   const attr = parseProductAttributesBody(body as unknown as Record<string, unknown>)
   const ship = parseSupplierProductShippingBody(body as unknown as Record<string, unknown>)
+  const categoryId =
+    typeof body.categoryId === "string" && body.categoryId.trim().length ? body.categoryId.trim() : null
+  const productAttributes = Array.isArray(body.productAttributes)
+    ? body.productAttributes
+        .map((row) => (row && typeof row === "object" ? (row as Record<string, unknown>) : null))
+        .filter((row): row is Record<string, unknown> => row != null)
+        .map((row) => ({
+          key: String(row.key ?? "").trim(),
+          label: String(row.label ?? row.key ?? "").trim(),
+          value: String(row.value ?? "").trim(),
+        }))
+        .filter((r) => r.key.length > 0 && r.value.length > 0)
+    : []
 
-  const updated = await prisma.product.update({
-    where: { id },
-    data: {
-      name,
-      description: desc,
-      images,
-      colorImages:
-        attr.colorImages === null
-          ? Prisma.DbNull
-          : (attr.colorImages as unknown as Prisma.InputJsonValue),
-      categories: attr.categories,
-      colors: attr.colors,
-      tags: attr.tags,
-      variants:
-        attr.variants === null
-          ? Prisma.DbNull
-          : (attr.variants as unknown as Prisma.InputJsonValue),
-      basePriceCents: priceCents,
-      compareAt,
-      commissionRate: rate,
-      stock,
-      shippingCountry: ship.shippingCountry,
-      warehouseType: ship.warehouseType,
-      warehouseCity: ship.warehouseCity,
-      processingTime: ship.processingTime,
-      deliveryMin: ship.deliveryMin,
-      deliveryMax: ship.deliveryMax,
-      shippingMethods: ship.shippingMethods,
-      freeShippingThreshold: ship.freeShippingThreshold,
-      shippingCost: ship.shippingCost,
-    },
+  const updated = await prisma.$transaction(async (tx) => {
+    const p = await tx.product.update({
+      where: { id },
+      data: {
+        name,
+        description: desc,
+        images,
+        colorImages:
+          attr.colorImages === null
+            ? Prisma.DbNull
+            : (attr.colorImages as unknown as Prisma.InputJsonValue),
+        categories: attr.categories,
+        colors: attr.colors,
+        tags: attr.tags,
+        variants:
+          attr.variants === null
+            ? Prisma.DbNull
+            : (attr.variants as unknown as Prisma.InputJsonValue),
+        basePriceCents: priceCents,
+        compareAt,
+        commissionRate: rate,
+        stock,
+        categoryId,
+        shippingCountry: ship.shippingCountry,
+        warehouseType: ship.warehouseType,
+        warehouseCity: ship.warehouseCity,
+        processingTime: ship.processingTime,
+        deliveryMin: ship.deliveryMin,
+        deliveryMax: ship.deliveryMax,
+        shippingMethods: ship.shippingMethods,
+        freeShippingThreshold: ship.freeShippingThreshold,
+        shippingCost: ship.shippingCost,
+      },
+    })
+
+    await tx.productAttribute.deleteMany({ where: { productId: id } })
+    if (productAttributes.length) {
+      await tx.productAttribute.createMany({
+        data: productAttributes.map((a) => ({
+          productId: id,
+          key: a.key,
+          label: a.label || a.key,
+          value: a.value,
+        })),
+      })
+    }
+    return p
   })
 
   return Response.json(updated)
