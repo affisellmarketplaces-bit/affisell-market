@@ -6,6 +6,7 @@ import type { FormEvent } from "react"
 import { useEffect, useRef, useState } from "react"
 
 import { ProductAttributesFields } from "@/components/product-attributes-fields"
+import { ProductSpecsTable } from "@/components/supplier/ProductSpecsTable"
 import {
   buildColorImagesFromLegacy,
   catalogHexForColorName,
@@ -116,7 +117,6 @@ export function SupplierProductForm({
   const [taxonomyCategoryId, setTaxonomyCategoryId] = useState<string>("")
   const [specs, setSpecs] = useState<CategoryAttributeRow[]>([])
   const [specValues, setSpecValues] = useState<Record<string, unknown>>({})
-  const [aiBusy, setAiBusy] = useState(false)
   const [variants, setVariants] = useState<ProductVariantsJson | null>(null)
   const [colorImages, setColorImages] = useState<ProductColorImageRow[]>([])
   const [shippingCountry, setShippingCountry] = useState("")
@@ -285,32 +285,6 @@ export function SupplierProductForm({
       .catch(() => setSpecs([]))
   }, [taxonomyCategoryId])
 
-  async function handleAISuggest() {
-    if (!form.name.trim() || !taxonomyCategoryId) return
-    setAiBusy(true)
-    try {
-      const imageUrl =
-        imageUrls.find((u) => typeof u === "string" && u.startsWith("http")) ?? null
-      const res = await fetch("/api/ai/suggest-specs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: form.name.trim(),
-          categoryId: taxonomyCategoryId,
-          imageUrl,
-        }),
-      })
-      const json = (await res.json()) as { suggestions?: Record<string, unknown> }
-      if (json && typeof json.suggestions === "object" && json.suggestions) {
-        setSpecValues(json.suggestions)
-      }
-    } catch {
-      // ignore AI failures (manual entry still works)
-    } finally {
-      setAiBusy(false)
-    }
-  }
-
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setBusy(true)
@@ -449,18 +423,7 @@ export function SupplierProductForm({
           className="rounded-md border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
         />
         <div className="md:col-span-2 grid gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950/40">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-sm font-semibold">Amazon-style specifications</p>
-            <button
-              type="button"
-              onClick={handleAISuggest}
-              disabled={aiBusy || !taxonomyCategoryId || !form.name.trim()}
-              className="rounded-md bg-black px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"
-            >
-              {aiBusy ? "AI analyzing…" : "Auto-fill specs with AI"}
-            </button>
-          </div>
-
+          <p className="text-sm font-semibold">Amazon-style specifications</p>
           <select
             value={taxonomyCategoryId}
             onChange={(e) => setTaxonomyCategoryId(e.target.value)}
@@ -475,87 +438,15 @@ export function SupplierProductForm({
               ))
             )}
           </select>
-
-          {specs.length ? (
-            <div className="overflow-hidden rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-              <table className="w-full text-sm">
-                <tbody>
-                  {specs.map((attr) => (
-                    <tr key={attr.key} className="border-t border-zinc-100 dark:border-zinc-900">
-                      <td className="w-[38%] bg-zinc-50 px-3 py-3 font-medium dark:bg-zinc-950/40">
-                        {attr.label}{" "}
-                        {attr.required ? <span className="text-red-500">*</span> : null}
-                      </td>
-                      <td className="px-3 py-3">
-                        {attr.type === "select" ? (
-                          <select
-                            value={String(specValues[attr.key] ?? "")}
-                            onChange={(e) =>
-                              setSpecValues((prev) => ({ ...prev, [attr.key]: e.target.value }))
-                            }
-                            className="w-full rounded-md border border-zinc-300 px-2 py-1.5 dark:border-zinc-700 dark:bg-zinc-950"
-                          >
-                            <option value="">Select…</option>
-                            {attr.options.map((opt) => (
-                              <option key={opt} value={opt}>
-                                {opt}
-                              </option>
-                            ))}
-                          </select>
-                        ) : attr.type === "multiselect" ? (
-                          <select
-                            multiple
-                            value={
-                              Array.isArray(specValues[attr.key]) ? (specValues[attr.key] as string[]) : []
-                            }
-                            onChange={(e) =>
-                              setSpecValues((prev) => ({
-                                ...prev,
-                                [attr.key]: Array.from(e.target.selectedOptions).map((o) => o.value),
-                              }))
-                            }
-                            className="h-24 w-full rounded-md border border-zinc-300 px-2 py-1.5 dark:border-zinc-700 dark:bg-zinc-950"
-                          >
-                            {attr.options.map((opt) => (
-                              <option key={opt} value={opt}>
-                                {opt}
-                              </option>
-                            ))}
-                          </select>
-                        ) : attr.type === "boolean" ? (
-                          <label className="inline-flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              checked={Boolean(specValues[attr.key])}
-                              onChange={(e) =>
-                                setSpecValues((prev) => ({ ...prev, [attr.key]: e.target.checked }))
-                              }
-                            />
-                            <span className="text-xs text-zinc-600 dark:text-zinc-400">Yes</span>
-                          </label>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <input
-                              type={attr.type === "number" ? "number" : "text"}
-                              value={String(specValues[attr.key] ?? "")}
-                              onChange={(e) =>
-                                setSpecValues((prev) => ({ ...prev, [attr.key]: e.target.value }))
-                              }
-                              className="w-full rounded-md border border-zinc-300 px-2 py-1.5 dark:border-zinc-700 dark:bg-zinc-950"
-                              placeholder={attr.aiSuggest ? "AI will suggest…" : ""}
-                            />
-                            {attr.unit ? (
-                              <span className="shrink-0 text-xs text-zinc-500">{attr.unit}</span>
-                            ) : null}
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : taxonomyCategoryId ? (
+          {taxonomyCategoryId ? (
+            <ProductSpecsTable
+              categoryId={taxonomyCategoryId}
+              title={form.name}
+              imageUrl={imageUrls.find((u) => u.startsWith("http")) || undefined}
+              onChange={(next) => setSpecValues(next)}
+            />
+          ) : null}
+          {taxonomyCategoryId && specs.length === 0 ? (
             <p className="text-xs text-zinc-500">No spec schema seeded for this subcategory yet.</p>
           ) : null}
         </div>
