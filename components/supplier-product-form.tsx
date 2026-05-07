@@ -6,7 +6,7 @@ import type { FormEvent } from "react"
 import { useEffect, useRef, useState } from "react"
 
 import { ProductAttributesFields } from "@/components/product-attributes-fields"
-import { ProductSpecsTable } from "@/components/supplier/ProductSpecsTable"
+import ProductSpecsTable from "@/components/supplier/ProductSpecsTable"
 import {
   buildColorImagesFromLegacy,
   catalogHexForColorName,
@@ -441,9 +441,8 @@ export function SupplierProductForm({
           {taxonomyCategoryId ? (
             <ProductSpecsTable
               categoryId={taxonomyCategoryId}
-              title={form.name}
-              imageUrl={imageUrls.find((u) => u.startsWith("http")) || undefined}
-              onChange={(next) => setSpecValues(next)}
+              productTitle={form.name}
+              onSpecsChange={setSpecValues}
             />
           ) : null}
           {taxonomyCategoryId && specs.length === 0 ? (
