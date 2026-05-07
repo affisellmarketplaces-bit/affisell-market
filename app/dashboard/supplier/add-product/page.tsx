@@ -68,7 +68,7 @@ export default function AddProductPage() {
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="cmoumgx890003thk6x057t2la">Electronics &gt; Cell Phones &gt; Smartphones</SelectItem>
+              <SelectItem value="cmoumgx890003thk6x057t2la">Electronics / Cell Phones / Smartphones</SelectItem>
             </SelectContent>
           </Select>
         </div>
