@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import ProductSpecsTable from '@/components/supplier/ProductSpecsTable'
+import ImageUpload from '@/app/dashboard/products/new/ImageUpload'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 
@@ -17,6 +18,7 @@ export default function AddProductPage() {
   const [quantity, setQuantity] = useState('')
   const [specs, setSpecs] = useState<Record<string, string>>({})
   const [images, setImages] = useState<string[]>([])
+  const [imageUrl, setImageUrl] = useState<string>('')
   const router = useRouter()
 
   useEffect(() => {
@@ -31,13 +33,13 @@ export default function AddProductPage() {
   }, [categoryId])
 
   const handleAutoFill = async () => {
-    if (!productTitle) return toast.error('Enter product title first')
+    if (!productTitle && !imageUrl) return toast.error('Enter product title first')
     setLoading(true)
     try {
       const res = await fetch('/api/ai/fill-specs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productTitle })
+        body: JSON.stringify({ productTitle, imageUrl: imageUrl || undefined })
       })
       const data = await res.json()
       if (data.categoryId) {
@@ -105,6 +107,19 @@ export default function AddProductPage() {
             </SelectContent>
           </Select>
         </div>
+
+        {!categoryId && (
+          <div className="border rounded-lg p-8 text-center space-y-4">
+            <p className="text-muted-foreground">Enter product title or upload an image to detect specifications</p>
+            <Button 
+              type="button"
+              onClick={handleAutoFill}
+              disabled={(!productTitle && !imageUrl) || loading}
+            >
+              {loading ? 'Detecting...' : 'Auto-fill with AI'}
+            </Button>
+          </div>
+        )}
         
         <Button type="button" variant="outline" onClick={handleAutoFill} disabled={loading}>
           {loading ? 'Filling...' : 'Auto-fill with AI'}
@@ -145,6 +160,13 @@ export default function AddProductPage() {
           productTitle={productTitle}
           images={images}
           onSpecsChange={setSpecs}
+        />
+
+        <ImageUpload
+          onImagesChange={(urls) => {
+            setImages(urls)
+            setImageUrl(urls[0] || '')
+          }}
         />
 
         <Button onClick={handleSubmit} className="w-full" size="lg">
