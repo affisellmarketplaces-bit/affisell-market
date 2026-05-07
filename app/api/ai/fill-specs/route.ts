@@ -1,49 +1,47 @@
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+import { prisma } from '@/lib/prisma'
 
 export async function POST(req: Request) {
-  const { productTitle, attributes, imageUrl } = await req.json()
-  
-  if (!attributes?.length) {
-    return NextResponse.json({ specs: {} })
+  if (!process.env.OPENAI_API_KEY) {
+    return NextResponse.json({ error: 'Missing OPENAI_API_KEY' }, { status: 500 })
   }
 
-  const attrList = attributes.map(a => `${a.key}: ${a.label}`).join('\n')
-  
-  const prompt = `Extract product specifications from this title: "${productTitle}"
-  
-Return ONLY a JSON object matching these keys:
-${attrList}
-
-Rules:
-- Use exact keys from the list
-- If info not in title, leave empty string ""
-- For iPhone: Brand=Apple, OS=iOS
-- For storage in title like "256GB": Storage Capacity=256GB
-- For color in title like "Natural Titanium": Color=Natural Titanium
-
-JSON only, no explanation.`
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
   try {
+    const { productTitle } = await req.json()
+    const categories = await prisma.category.findMany({
+      include: { attributes: true },
+    })
+
+    const categoryList = categories
+      .map((c) => {
+        const attrs = c.attributes.map((a) => `${a.key}:${a.label}`).join(',')
+        return `${c.id}:${c.name} ATTRS:${attrs}`
+      })
+      .join('\n')
+
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
-        { 
-          role: 'user', 
-          content: imageUrl 
-           ? [{ type: 'text', text: prompt }, { type: 'image_url', image_url: { url: imageUrl } }]
-            : prompt 
-        }
+        {
+          role: 'system',
+          content:
+            'You are a product data extractor. Given a product title and list of categories with their attributes, return JSON: {categoryId: string, specs: {key: value}}. Only use categoryId and attribute keys that exist in the provided list.',
+        },
+        {
+          role: 'user',
+          content: `productTitle: ${productTitle}\ncategories:\n${categoryList}`,
+        },
       ],
       response_format: { type: 'json_object' },
-      temperature: 0
+      temperature: 0,
     })
 
-    const specs = JSON.parse(completion.choices[0].message.content || '{}')
-    return NextResponse.json({ specs })
+    const parsed = JSON.parse(completion.choices[0].message.content || '{}')
+    return NextResponse.json(parsed)
   } catch (e) {
-    return NextResponse.json({ error: 'AI failed', specs: {} }, { status: 500 })
+    return NextResponse.json({ error: 'AI failed' }, { status: 500 })
   }
 }

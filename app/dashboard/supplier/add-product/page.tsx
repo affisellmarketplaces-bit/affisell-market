@@ -10,7 +10,9 @@ import { useRouter } from 'next/navigation'
 
 export default function AddProductPage() {
   const [productTitle, setProductTitle] = useState('')
-  const [categoryId, setCategoryId] = useState('cmoumgx890003thk6x057t2la')
+  const [categoryId, setCategoryId] = useState<string>('')
+  const [attributes, setAttributes] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
   const [price, setPrice] = useState('')
   const [quantity, setQuantity] = useState('')
   const [specs, setSpecs] = useState<Record<string, string>>({})
@@ -18,8 +20,37 @@ export default function AddProductPage() {
   const router = useRouter()
 
   useEffect(() => {
+    if (!categoryId) {
+      setAttributes([])
+      return
+    }
+    fetch(`/api/categories/${categoryId}/attributes`)
+    .then(res => res.json())
+    .then(data => setAttributes(data))
     setSpecs({})
   }, [categoryId])
+
+  const handleAutoFill = async () => {
+    if (!productTitle) return toast.error('Enter product title first')
+    setLoading(true)
+    try {
+      const res = await fetch('/api/ai/fill-specs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productTitle })
+      })
+      const data = await res.json()
+      if (data.categoryId) {
+        setCategoryId(data.categoryId)
+        toast.success('Category detected')
+      }
+      setSpecs(data.specs || {})
+    } catch (e) {
+      toast.error('AI fill failed')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleSubmit = async () => {
     if (!productTitle || !categoryId || !price) {
@@ -65,7 +96,7 @@ export default function AddProductPage() {
 
         <div>
           <label className="text-sm font-medium">Category *</label>
-          <Select value={categoryId} onValueChange={(value) => setCategoryId(value)}>
+          <Select value={categoryId} onValueChange={setCategoryId}>
             <SelectTrigger className="mt-1">
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
@@ -74,6 +105,29 @@ export default function AddProductPage() {
             </SelectContent>
           </Select>
         </div>
+        
+        <Button type="button" variant="outline" onClick={handleAutoFill} disabled={loading}>
+          {loading ? 'Filling...' : 'Auto-fill with AI'}
+        </Button>
+
+        {attributes.length > 0 && (
+          <div className="space-y-4">
+            <div className="flex justify-between">
+              <h3>Technical Specifications</h3>
+              <p>{Object.values(specs).filter(Boolean).length}/{attributes.length} filled</p>
+            </div>
+            {attributes.map((attr) => (
+              <div key={attr.key}>
+                <label>{attr.label} {attr.required && '*'}</label>
+                <Input
+                  value={specs[attr.key] || ''}
+                  onChange={(e) => setSpecs({...specs, [attr.key]: e.target.value})}
+                  required={attr.required}
+                />
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-4">
           <div>
