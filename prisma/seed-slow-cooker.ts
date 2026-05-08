@@ -10,7 +10,7 @@ async function main() {
   // 2. Create it if missing
   if (!slowCooker) {
     slowCooker = await prisma.category.create({
-      data: { name: 'Slow Cookers' }
+      data: { name: 'Slow Cookers', slug: 'slow-cookers' }
     })
   }
 
