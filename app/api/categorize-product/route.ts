@@ -2,9 +2,33 @@ export const dynamic = "force-dynamic"
 
 import OpenAI from "openai"
 
-import { AFFISELL_CATEGORIES } from "@/lib/affisell-categories"
-
-const ALL_CATEGORIES = [...AFFISELL_CATEGORIES]
+const ALL_CATEGORIES: string[] = [
+  "Clothing, Shoes & Jewelry",
+  "Collectibles & Fine Art",
+  "Computers",
+  "Daily Deals",
+  "Digital Music",
+  "Electronics",
+  "Garden & Outdoor",
+  "Gift Cards",
+  "Grocery & Gourmet Food",
+  "Handmade",
+  "Health & Household",
+  "Home & Kitchen",
+  "Industrial & Scientific",
+  "Luggage & Travel Gear",
+  "Luxury Stores",
+  "Movies & TV",
+  "Musical Instruments",
+  "Office Products",
+  "Pet Supplies",
+  "Premium Beauty",
+  "Sports & Outdoors",
+  "Tools & Home Improvement",
+  "Toys & Games",
+  "Video Games",
+  // ... keep all other categories you have
+]
 
 export async function POST(req: Request) {
   if (!process.env.OPENAI_API_KEY) {
@@ -39,7 +63,10 @@ Return only JSON in this shape: {"categories":["Electronics","Computers"]} using
   const content = completion.choices?.[0]?.message?.content ?? "{}"
   const result = JSON.parse(content) as { categories?: unknown }
   const categories = Array.isArray(result.categories)
-    ? result.categories.filter((x): x is string => typeof x === "string" && ALL_CATEGORIES.includes(x))
+    ? result.categories.filter((x): x is string => typeof x === "string")
     : []
-  return Response.json({ categories })
+  const validCategories = (categories || []).filter((x: string) => 
+    ALL_CATEGORIES.includes(x)
+  )
+  return Response.json({ categories: validCategories })
 }
