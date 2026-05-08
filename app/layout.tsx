@@ -5,6 +5,9 @@ import { Providers } from "@/app/providers"
 
 import "./globals.css"
 
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 function HeaderFallback() {
   return <div className="mx-auto flex h-12 max-w-7xl items-center px-1" aria-hidden />
 }
