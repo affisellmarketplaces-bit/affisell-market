@@ -82,104 +82,166 @@ export default function SupplierDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="max-w-3xl mx-auto bg-white rounded-lg shadow p-6">
-        <h1 className="text-2xl font-bold mb-6">Add new product</h1>
-
-        {/* Product name */}
-        <div className="mb-6">
-          <label className="block font-medium mb-2">Product name *</label>
-          <input
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-base focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            placeholder="e.g. Wireless Bluetooth Headphones"
-          />
-          {isCategorizing && <p className="text-sm text-purple-600 mt-2">AI is analyzing your product...</p>}
+    <div className="min-h-screen bg-[#f2f2f2] p-4 md:p-6">
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-4 flex items-center justify-between">
+          <h1 className="text-4xl font-semibold tracking-tight text-zinc-900">Ajouter un produit</h1>
+          <div className="flex items-center gap-2">
+            <button className="rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm text-zinc-700">
+              Enregistrer comme brouillon
+            </button>
+            <button className="rounded-md bg-[#0c9f9f] px-4 py-2 text-sm font-medium text-white">
+              Soumettre pour examen
+            </button>
+          </div>
         </div>
 
-        {/* Images - TikTok style */}
-        <div className="mb-6">
-          <label className="block font-medium mb-2">Product photos and videos *</label>
-          <p className="text-sm text-gray-500 mb-3">Upload up to 10 images. First image will be the cover.</p>
-          <label className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-purple-500 block">
-            <input type="file" className="hidden" onChange={handleImageUpload} accept="image/*" />
-            <div className="text-gray-500">Click to upload or drag and drop</div>
-          </label>
-          <div className="flex gap-3 mt-3 flex-wrap">
-            {images.map((img, i) => (
-              <div key={i} className="relative">
-                <img src={img} className="w-24 h-24 object-cover rounded-lg" alt={`upload-${i}`} />
-                {i === 0 && <span className="absolute top-1 left-1 bg-black text-white text-xs px-2 py-0.5 rounded">Cover</span>}
+        <div className="mb-4 rounded-md border border-[#f0dca7] bg-[#fff6dc] px-4 py-3 text-sm text-[#7a5f23]">
+          Ta boutique est actuellement en période probatoire. Conformément à ton niveau de période probatoire,
+          tu ne peux actuellement publier que 20 annonces produit au total.
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)]">
+          <aside className="space-y-4">
+            <div className="rounded-lg bg-white p-4">
+              <h3 className="text-2xl font-medium text-zinc-900">Suggestions</h3>
+              <p className="mt-2 text-sm text-zinc-500">
+                Des informations complètes sur ton produit peuvent t'aider à en augmenter la visibilité.
+              </p>
+            </div>
+            <div className="rounded-lg bg-white p-4">
+              <h3 className="text-2xl font-medium text-zinc-900">Aperçu</h3>
+              <div className="mt-3 rounded-md border border-zinc-100 bg-zinc-50 p-3">
+                <p className="text-sm font-medium text-zinc-700">Détails produit</p>
+                <div className="mt-4 h-56 rounded bg-zinc-100" />
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
+          </aside>
 
-        {/* Categories - Auto-filled like TikTok */}
-        <div className="mb-6">
-          <label className="block font-medium mb-2">
-            Category *
-            <span className="text-sm font-normal text-gray-500 ml-2">Auto-selected by AI, you can edit</span>
-          </label>
-          <div className="border border-gray-300 rounded-lg p-4 max-h-60 overflow-y-auto">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {ALL_CATEGORIES.map(cat => (
-                <label key={cat} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded">
-                  <input
-                    type="checkbox"
-                    className="rounded text-purple-600"
-                    checked={selectedCategories.includes(cat)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedCategories(prev => [...prev, cat].slice(0, 3))
-                      } else {
-                        setSelectedCategories(prev => prev.filter(c => c !== cat))
-                      }
-                    }}
-                  />
-                  <span>{cat}</span>
+          <section className="space-y-4">
+            <div className="rounded-lg bg-white p-5">
+              <h2 className="mb-4 text-2xl font-semibold text-zinc-900">Informations de base</h2>
+
+              <div className="mb-5">
+                <label className="mb-2 block text-sm font-medium text-zinc-800">Images *</label>
+                <p className="mb-3 text-xs text-zinc-500">
+                  Nous recommandons d'ajouter au moins 5 images pour bien représenter ton produit.
+                </p>
+                <label className="block cursor-pointer rounded-md border border-dashed border-zinc-300 bg-zinc-50 p-6 text-center text-sm text-zinc-500 hover:border-zinc-500">
+                  <input type="file" className="hidden" onChange={handleImageUpload} accept="image/*" />
+                  Importer l'image principale
                 </label>
-              ))}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {images.map((img, i) => (
+                    <div key={i} className="relative">
+                      <img src={img} alt={`upload-${i}`} className="h-20 w-20 rounded-md object-cover" />
+                      {i === 0 ? (
+                        <span className="absolute left-1 top-1 rounded bg-black px-1.5 py-0.5 text-[10px] text-white">
+                          Cover
+                        </span>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-5">
+                <label className="mb-2 block text-sm font-medium text-zinc-800">Nom du produit *</label>
+                <input
+                  className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                  value={title}
+                  onChange={e => setTitle(e.target.value)}
+                  placeholder="Saisis le nom du produit"
+                />
+                {isCategorizing ? (
+                  <p className="mt-1 text-xs text-[#7c3aed]">AI analyse ton produit...</p>
+                ) : null}
+              </div>
+
+              <div className="mb-4">
+                <label className="mb-2 block text-sm font-medium text-zinc-800">
+                  Catégorie * <span className="font-normal text-zinc-500">· 3 suggestions</span>
+                </label>
+                <div className="max-h-60 overflow-y-auto rounded-md border border-zinc-300 p-3">
+                  <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
+                    {ALL_CATEGORIES.map(cat => (
+                      <label key={cat} className="flex items-center gap-2 text-xs text-zinc-700">
+                        <input
+                          type="checkbox"
+                          checked={selectedCategories.includes(cat)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedCategories(prev => [...prev, cat].slice(0, 3))
+                            } else {
+                              setSelectedCategories(prev => prev.filter(c => c !== cat))
+                            }
+                          }}
+                        />
+                        <span>{cat}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <p className="mt-2 text-xs text-zinc-500">Sélectionné: {selectedCategories.length}/3</p>
+              </div>
             </div>
-          </div>
-          <p className="text-sm mt-2">Selected: <span className="font-medium">{selectedCategories.length}/3</span></p>
-          <div className="flex gap-2 mt-2 flex-wrap">
-            {selectedCategories.map(cat => (
-              <span key={cat} className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm">{cat}</span>
-            ))}
-          </div>
-        </div>
 
-        {/* Price + Stock */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div>
-            <label className="block font-medium mb-2">Price *</label>
-            <div className="relative">
-              <span className="absolute left-3 top-3 text-gray-500">EUR</span>
-              <input type="number" className="w-full border border-gray-300 rounded-lg pl-12 pr-4 py-3" value={price} onChange={e => setPrice(e.target.value)} placeholder="0.00" />
+            <div className="rounded-lg bg-white p-5">
+              <h2 className="mb-3 text-2xl font-semibold text-zinc-900">Détails du produit</h2>
+              <label className="mb-2 block text-sm font-medium text-zinc-800">Description</label>
+              <textarea
+                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                rows={8}
+                value={description}
+                onChange={e => setDescription(e.target.value)}
+              />
             </div>
-          </div>
-          <div>
-            <label className="block font-medium mb-2">Quantity *</label>
-            <input type="number" className="w-full border border-gray-300 rounded-lg px-4 py-3" value={stock} onChange={e => setStock(e.target.value)} placeholder="0" />
-          </div>
+
+            <div className="rounded-lg bg-white p-5">
+              <h2 className="mb-3 text-2xl font-semibold text-zinc-900">Informations sur les ventes</h2>
+              <div className="grid gap-3 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-zinc-800">Prix *</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2 text-sm text-zinc-500">EUR</span>
+                    <input
+                      type="number"
+                      className="w-full rounded-md border border-zinc-300 py-2 pl-12 pr-3 text-sm"
+                      value={price}
+                      onChange={e => setPrice(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-zinc-800">Stock *</label>
+                  <input
+                    type="number"
+                    className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                    value={stock}
+                    onChange={e => setStock(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="mt-3">
+                <label className="mb-2 block text-sm font-medium text-zinc-800">Commission affiliation (%)</label>
+                <input
+                  type="number"
+                  className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                  value={commission}
+                  onChange={e => setCommission(Number(e.target.value))}
+                />
+              </div>
+            </div>
+
+            <div className="rounded-lg bg-white p-5">
+              <h2 className="text-2xl font-semibold text-zinc-900">Expédition</h2>
+              <p className="mt-1 text-sm text-zinc-500">Choisis d'abord une catégorie</p>
+            </div>
+          </section>
         </div>
 
-        {/* Description */}
-        <div className="mb-6">
-          <label className="block font-medium mb-2">Description</label>
-          <textarea className="w-full border border-gray-300 rounded-lg px-4 py-3" rows={5} value={description} onChange={e => setDescription(e.target.value)} placeholder="Describe your product..." />
-        </div>
-
-        {/* Commission */}
-        <div className="mb-6">
-          <label className="block font-medium mb-2">Affiliate Commission (%)</label>
-          <input type="number" className="w-full border border-gray-300 rounded-lg px-4 py-3" value={commission} onChange={e => setCommission(Number(e.target.value))} />
-        </div>
-
-        <button className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 rounded-lg">
-          Publish Product
+        <button className="mt-4 w-full rounded-md bg-[#0c9f9f] py-3 text-sm font-medium text-white hover:bg-[#0b8a8a]">
+          Publier le produit
         </button>
       </div>
     </div>
