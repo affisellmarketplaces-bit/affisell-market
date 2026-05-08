@@ -15,10 +15,8 @@ const ALL_CATEGORIES = [
 
 export default function SupplierDashboard() {
   const router = useRouter()
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   const [title, setTitle] = useState('')
   const [images, setImages] = useState<string[]>([])
@@ -33,10 +31,21 @@ export default function SupplierDashboard() {
 
   // Auth check
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) router.push('/login')
-    })
-  }, [router, supabase])
+    const checkAuth = async () => {
+      if (supabaseUrl && supabaseAnonKey) {
+        const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey)
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session) router.push('/login')
+        return
+      }
+
+      const res = await fetch('/api/auth/session', { credentials: 'include' })
+      const session = await res.json().catch(() => null)
+      if (!session?.user) router.push('/login')
+    }
+
+    void checkAuth()
+  }, [router, supabaseUrl, supabaseAnonKey])
 
   // TikTok Shop behavior: auto-categorize on title OR first image
   const runAutoCategorize = async (currentTitle: string, imageUrl?: string) => {
