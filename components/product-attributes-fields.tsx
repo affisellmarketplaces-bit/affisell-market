@@ -8,6 +8,8 @@ import type { ProductVariantsJson } from "@/lib/product-variants"
 
 export type ProductAttributesFieldsProps = {
   categories: string[]
+  selectedCategories?: string[]
+  onSelectedCategoriesChange?: (next: string[]) => void
   onCategoriesChange: (next: string[]) => void
   colors: string[]
   tags: string[]
@@ -24,6 +26,8 @@ export type ProductAttributesFieldsProps = {
 
 export function ProductAttributesFields({
   categories,
+  selectedCategories,
+  onSelectedCategoriesChange,
   onCategoriesChange,
   colors,
   tags,
@@ -42,14 +46,16 @@ export function ProductAttributesFields({
     () => CATEGORIES.filter((c) => c.toLowerCase().includes(catQuery.trim().toLowerCase())),
     [catQuery]
   )
+  const currentSelected = selectedCategories ?? categories
+  const onSelectedChange = onSelectedCategoriesChange ?? onCategoriesChange
 
   function toggleCategory(c: string) {
-    if (categories.includes(c)) {
-      onCategoriesChange(categories.filter((x) => x !== c))
+    if (currentSelected.includes(c)) {
+      onSelectedChange(currentSelected.filter((x) => x !== c))
       return
     }
-    if (categories.length >= 3) return
-    onCategoriesChange([...categories, c])
+    if (currentSelected.length >= 3) return
+    onSelectedChange([...currentSelected, c])
   }
 
   function commitTag() {
@@ -76,7 +82,7 @@ export function ProductAttributesFields({
           className="mt-2 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950"
         />
         <p className="mt-1 text-xs text-zinc-500">
-          Selected: {categories.length}/3{categories.length ? ` — ${categories.join(" · ")}` : ""}
+          Selected: {currentSelected.length}/3{currentSelected.length ? ` — ${currentSelected.join(" · ")}` : ""}
         </p>
         <div className="mt-3 grid max-h-52 grid-cols-1 gap-2 overflow-y-auto sm:grid-cols-3">
           {filteredCategories.map((c) => (
@@ -86,8 +92,8 @@ export function ProductAttributesFields({
             >
               <input
                 type="checkbox"
-                checked={categories.includes(c)}
-                disabled={!categories.includes(c) && categories.length >= 3}
+                checked={currentSelected.includes(c)}
+                disabled={!currentSelected.includes(c) && currentSelected.length >= 3}
                 onChange={() => toggleCategory(c)}
                 className="mt-0.5"
               />

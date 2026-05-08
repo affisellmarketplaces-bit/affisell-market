@@ -111,6 +111,7 @@ export function SupplierProductForm({
   const [imageUrls, setImageUrls] = useState<string[]>([""])
   const [uploading, setUploading] = useState(false)
   const [categories, setCategories] = useState<string[]>([])
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [colors, setColors] = useState<string[]>([])
   const [tags, setTags] = useState<string[]>([])
   const [taxonomy, setTaxonomy] = useState<TaxonomyParent[]>([])
@@ -140,6 +141,7 @@ export function SupplierProductForm({
       setForm(emptyForm())
       setImageUrls([""])
       setCategories([])
+      setSelectedCategories([])
       setColors([])
       setTags([])
       setVariants(null)
@@ -196,6 +198,7 @@ export function SupplierProductForm({
       stock: String(typeof initial.stock === "number" ? initial.stock : 0),
     })
     setCategories(Array.isArray(initial.categories) ? initial.categories : [])
+    setSelectedCategories(Array.isArray(initial.categories) ? initial.categories : [])
     setColors(Array.isArray(initial.colors) ? initial.colors : [])
     setTags(Array.isArray(initial.tags) ? initial.tags : [])
     setVariants(variantsFromDb(initial.variants))
@@ -284,6 +287,53 @@ export function SupplierProductForm({
       })
       .catch(() => setSpecs([]))
   }, [taxonomyCategoryId])
+
+  useEffect(() => {
+    const name = form.name.trim()
+    if (!name || name.length < 3) return
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch("/api/categorize-product", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: name }),
+        })
+        const data = (await res.json()) as { categories?: string[] }
+        const next = Array.isArray(data.categories) ? data.categories.slice(0, 3) : []
+        if (next.length > 0) {
+          setSelectedCategories(next)
+          setCategories(next)
+        }
+      } catch {
+        // non-blocking suggestion feature
+      }
+    }, 800)
+    return () => clearTimeout(timer)
+  }, [form.name])
+
+  useEffect(() => {
+    const firstImageUrl = imageUrls.map((u) => u.trim()).find((u) => /^https?:\/\//i.test(u))
+    if (!firstImageUrl) return
+    const name = form.name.trim()
+    const run = async () => {
+      try {
+        const res = await fetch("/api/categorize-product", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: name, imageUrl: firstImageUrl }),
+        })
+        const data = (await res.json()) as { categories?: string[] }
+        const next = Array.isArray(data.categories) ? data.categories.slice(0, 3) : []
+        if (next.length > 0) {
+          setSelectedCategories(next)
+          setCategories(next)
+        }
+      } catch {
+        // non-blocking suggestion feature
+      }
+    }
+    void run()
+  }, [imageUrls, form.name])
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -792,7 +842,15 @@ export function SupplierProductForm({
 
         <ProductAttributesFields
           categories={categories}
-          onCategoriesChange={setCategories}
+          selectedCategories={selectedCategories}
+          onSelectedCategoriesChange={(next) => {
+            setSelectedCategories(next)
+            setCategories(next)
+          }}
+          onCategoriesChange={(next) => {
+            setSelectedCategories(next)
+            setCategories(next)
+          }}
           colors={colors}
           tags={tags}
           onTagsChange={setTags}
