@@ -22,7 +22,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@imgly/background-removal": "^1.7.0",
     "@prisma/client": "^6.19.3",
-    "@supabase/auth-helpers-nextjs": "^0.15.0",
+    "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.105.0",
     "ai": "^6.0.175",
     "bcryptjs": "^3.0.3",
