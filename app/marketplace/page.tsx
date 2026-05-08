@@ -3,6 +3,7 @@ import { Suspense } from "react"
 import { MarketplaceView } from "./marketplace-view"
 
 export const dynamic = "force-dynamic"
+export const revalidate = 0
 
 export default function MarketplacePage() {
   return (

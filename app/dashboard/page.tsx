@@ -2,6 +2,9 @@ import { redirect } from "next/navigation"
 
 import { auth } from "@/auth"
 
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 export default async function DashboardRootPage() {
   const session = await auth()
   if (!session?.user) redirect("/login")
