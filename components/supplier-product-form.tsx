@@ -5,7 +5,6 @@ import Link from "next/link"
 import type { FormEvent } from "react"
 import { useEffect, useRef, useState } from "react"
 
-import { ProductAttributesFields } from "@/components/product-attributes-fields"
 import ProductSpecsTable from "@/components/supplier/ProductSpecsTable"
 import {
   buildColorImagesFromLegacy,
@@ -839,28 +838,6 @@ export function SupplierProductForm({
             </div>
           </div>
         </div>
-
-        <ProductAttributesFields
-          categories={categories}
-          selectedCategories={selectedCategories}
-          onSelectedCategoriesChange={(next) => {
-            setSelectedCategories(next)
-            setCategories(next)
-          }}
-          onCategoriesChange={(next) => {
-            setSelectedCategories(next)
-            setCategories(next)
-          }}
-          colors={colors}
-          tags={tags}
-          onTagsChange={setTags}
-          variants={variants}
-          onVariantsChange={setVariants}
-          productTitle={form.name}
-          basePriceEUR={form.price}
-          defaultCommission={form.commission}
-          mainImage={imageUrls.map((s) => s.trim()).find(Boolean) ?? ""}
-        />
 
         <button
           type="submit"
