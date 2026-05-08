@@ -4,12 +4,12 @@ import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 
 const ALL_CATEGORIES = [
-  "Clothing, Shoes & Jewelry", "Collectibles & Fine Art", "Computers", "Daily Deals",
-  "Digital Music", "Electronics", "Garden & Outdoor", "Gift Cards", "Grocery & Gourmet Food",
-  "Handmade", "Health & Household", "Home & Kitchen", "Industrial & Scientific",
-  "Luggage & Travel Gear", "Luxury Stores", "Magazine Subscriptions", "Movies & TV",
-  "Musical Instruments", "Office Products", "Pet Supplies", "Prime Video", "Smart Home",
-  "Software", "Sports & Outdoors", "Tools & Home Improvement", "Toys & Games",
+  "Clothing, Shoes & Jewelry", "Collectibles & Fine Art", "Computers", "Daily Deals", 
+  "Digital Music", "Electronics", "Garden & Outdoor", "Gift Cards", "Grocery & Gourmet Food", 
+  "Handmade", "Health & Household", "Home & Kitchen", "Industrial & Scientific", 
+  "Luggage & Travel Gear", "Luxury Stores", "Magazine Subscriptions", "Movies & TV", 
+  "Musical Instruments", "Office Products", "Pet Supplies", "Prime Video", "Smart Home", 
+  "Software", "Sports & Outdoors", "Tools & Home Improvement", "Toys & Games", 
   "Vehicles", "Video Games"
 ]
 
@@ -17,7 +17,7 @@ export default function SupplierDashboard() {
   const router = useRouter()
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
+  
   const [title, setTitle] = useState('')
   const [images, setImages] = useState<string[]>([])
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
@@ -26,10 +26,8 @@ export default function SupplierDashboard() {
   const [price, setPrice] = useState('')
   const [stock, setStock] = useState('')
   const [commission, setCommission] = useState(15)
+  const debounceRef = useRef<NodeJS.Timeout>()
 
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-
-  // Auth check
   useEffect(() => {
     const checkAuth = async () => {
       if (supabaseUrl && supabaseAnonKey) {
@@ -38,18 +36,15 @@ export default function SupplierDashboard() {
         if (!session) router.push('/login')
         return
       }
-
       const res = await fetch('/api/auth/session', { credentials: 'include' })
       const session = await res.json().catch(() => null)
       if (!session?.user) router.push('/login')
     }
-
     void checkAuth()
   }, [router, supabaseUrl, supabaseAnonKey])
 
-  // TikTok Shop behavior: auto-categorize on title OR first image
   const runAutoCategorize = async (currentTitle: string, imageUrl?: string) => {
-    if (currentTitle.length < 3 && !imageUrl) return
+    if (currentTitle.length < 3 &&!imageUrl) return
     setIsCategorizing(true)
     try {
       const res = await fetch('/api/categorize-product', {
@@ -58,17 +53,14 @@ export default function SupplierDashboard() {
         body: JSON.stringify({ title: currentTitle, imageUrl: imageUrl || images[0] })
       })
       const data = await res.json()
-      if (data.categories?.length) setSelectedCategories(data.categories.slice(0, 3))
-    } catch (e) {
-      console.error(e)
-    }
+      if (data.categories?.length) setSelectedCategories(data.categories.slice(0,3))
+    } catch (e) { console.error(e) }
     setIsCategorizing(false)
   }
 
-  // Debounce title input
   useEffect(() => {
     clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => void runAutoCategorize(title), 800)
+    debounceRef.current = setTimeout(() => runAutoCategorize(title), 800)
     return () => clearTimeout(debounceRef.current)
   }, [title])
 
@@ -78,171 +70,126 @@ export default function SupplierDashboard() {
     const url = URL.createObjectURL(file)
     const newImages = [...images, url]
     setImages(newImages)
-    if (newImages.length === 1) void runAutoCategorize(title, url) // Trigger on first image like TikTok
+    if (newImages.length === 1) runAutoCategorize(title, url)
   }
 
   return (
-    <div className="min-h-screen bg-[#f2f2f2] p-4 md:p-6">
-      <div className="mx-auto max-w-6xl">
-        <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-4xl font-semibold tracking-tight text-zinc-900">Ajouter un produit</h1>
-          <div className="flex items-center gap-2">
-            <button className="rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm text-zinc-700">
-              Enregistrer comme brouillon
-            </button>
-            <button className="rounded-md bg-[#0c9f9f] px-4 py-2 text-sm font-medium text-white">
-              Soumettre pour examen
-            </button>
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+      <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-sm p-6 md:p-8">
+        <h1 className="text-3xl font-bold mb-8">Add new product</h1>
+        
+        <div className="space-y-6">
+          {/* Product name */}
+          <div>
+            <label className="block text-sm font-semibold mb-2">Product name *</label>
+            <input 
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 text-base focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              placeholder="e.g. Wireless Bluetooth Headphones"
+            />
+            {isCategorizing && (
+              <div className="flex items-center gap-2 mt-2 text-purple-600">
+                <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-sm font-medium">AI is analyzing your product...</span>
+              </div>
+            )}
           </div>
-        </div>
 
-        <div className="mb-4 rounded-md border border-[#f0dca7] bg-[#fff6dc] px-4 py-3 text-sm text-[#7a5f23]">
-          Ta boutique est actuellement en période probatoire. Conformément à ton niveau de période probatoire,
-          tu ne peux actuellement publier que 20 annonces produit au total.
-        </div>
-
-        <div className="grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)]">
-          <aside className="space-y-4">
-            <div className="rounded-lg bg-white p-4">
-              <h3 className="text-2xl font-medium text-zinc-900">Suggestions</h3>
-              <p className="mt-2 text-sm text-zinc-500">
-                Des informations complètes sur ton produit peuvent t'aider à en augmenter la visibilité.
-              </p>
-            </div>
-            <div className="rounded-lg bg-white p-4">
-              <h3 className="text-2xl font-medium text-zinc-900">Aperçu</h3>
-              <div className="mt-3 rounded-md border border-zinc-100 bg-zinc-50 p-3">
-                <p className="text-sm font-medium text-zinc-700">Détails produit</p>
-                <div className="mt-4 h-56 rounded bg-zinc-100" />
+          {/* Images */}
+          <div>
+            <label className="block text-sm font-semibold mb-2">Product photos and videos *</label>
+            <p className="text-sm text-gray-500 mb-3">Add up to 10 images. The first image will be the cover.</p>
+            <label className="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center cursor-pointer hover:border-purple-500 hover:bg-purple-50 transition block">
+              <input type="file" className="hidden" onChange={handleImageUpload} accept="image/*" multiple />
+              <div className="text-gray-400">
+                <svg className="mx-auto h-12 w-12 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                <p className="font-medium">Click to upload or drag and drop</p>
+                <p className="text-xs mt-1">PNG, JPG up to 10MB</p>
               </div>
-            </div>
-          </aside>
-
-          <section className="space-y-4">
-            <div className="rounded-lg bg-white p-5">
-              <h2 className="mb-4 text-2xl font-semibold text-zinc-900">Informations de base</h2>
-
-              <div className="mb-5">
-                <label className="mb-2 block text-sm font-medium text-zinc-800">Images *</label>
-                <p className="mb-3 text-xs text-zinc-500">
-                  Nous recommandons d'ajouter au moins 5 images pour bien représenter ton produit.
-                </p>
-                <label className="block cursor-pointer rounded-md border border-dashed border-zinc-300 bg-zinc-50 p-6 text-center text-sm text-zinc-500 hover:border-zinc-500">
-                  <input type="file" className="hidden" onChange={handleImageUpload} accept="image/*" />
-                  Importer l'image principale
-                </label>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {images.map((img, i) => (
-                    <div key={i} className="relative">
-                      <img src={img} alt={`upload-${i}`} className="h-20 w-20 rounded-md object-cover" />
-                      {i === 0 ? (
-                        <span className="absolute left-1 top-1 rounded bg-black px-1.5 py-0.5 text-[10px] text-white">
-                          Cover
-                        </span>
-                      ) : null}
-                    </div>
-                  ))}
+            </label>
+            <div className="flex gap-3 mt-4 flex-wrap">
+              {images.map((img, i) => (
+                <div key={i} className="relative group">
+                  <img src={img} className="w-24 h-24 object-cover rounded-lg border-2 border-gray-200" />
+                  {i === 0 && <span className="absolute top-1 left-1 bg-black/80 text-white text-xs px-2 py-0.5 rounded">Cover</span>}
+                  <button onClick={() => setImages(images.filter((_, idx) => idx!== i))} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 opacity-0 group-hover:opacity-100">×</button>
                 </div>
-              </div>
-
-              <div className="mb-5">
-                <label className="mb-2 block text-sm font-medium text-zinc-800">Nom du produit *</label>
-                <input
-                  className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
-                  value={title}
-                  onChange={e => setTitle(e.target.value)}
-                  placeholder="Saisis le nom du produit"
-                />
-                {isCategorizing ? (
-                  <p className="mt-1 text-xs text-[#7c3aed]">AI analyse ton produit...</p>
-                ) : null}
-              </div>
-
-              <div className="mb-4">
-                <label className="mb-2 block text-sm font-medium text-zinc-800">
-                  Catégorie * <span className="font-normal text-zinc-500">· 3 suggestions</span>
-                </label>
-                <div className="max-h-60 overflow-y-auto rounded-md border border-zinc-300 p-3">
-                  <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
-                    {ALL_CATEGORIES.map(cat => (
-                      <label key={cat} className="flex items-center gap-2 text-xs text-zinc-700">
-                        <input
-                          type="checkbox"
-                          checked={selectedCategories.includes(cat)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedCategories(prev => [...prev, cat].slice(0, 3))
-                            } else {
-                              setSelectedCategories(prev => prev.filter(c => c !== cat))
-                            }
-                          }}
-                        />
-                        <span>{cat}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                <p className="mt-2 text-xs text-zinc-500">Sélectionné: {selectedCategories.length}/3</p>
-              </div>
+              ))}
             </div>
+          </div>
 
-            <div className="rounded-lg bg-white p-5">
-              <h2 className="mb-3 text-2xl font-semibold text-zinc-900">Détails du produit</h2>
-              <label className="mb-2 block text-sm font-medium text-zinc-800">Description</label>
-              <textarea
-                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
-                rows={8}
-                value={description}
-                onChange={e => setDescription(e.target.value)}
-              />
-            </div>
-
-            <div className="rounded-lg bg-white p-5">
-              <h2 className="mb-3 text-2xl font-semibold text-zinc-900">Informations sur les ventes</h2>
-              <div className="grid gap-3 md:grid-cols-2">
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-800">Prix *</label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-2 text-sm text-zinc-500">EUR</span>
-                    <input
-                      type="number"
-                      className="w-full rounded-md border border-zinc-300 py-2 pl-12 pr-3 text-sm"
-                      value={price}
-                      onChange={e => setPrice(e.target.value)}
+          {/* Categories - TikTok style */}
+          <div>
+            <label className="block text-sm font-semibold mb-2">
+              Category * 
+              <span className="text-sm font-normal text-gray-500 ml-2">AI will auto-select, you can edit</span>
+            </label>
+            <div className="border border-gray-300 rounded-lg p-4 max-h-72 overflow-y-auto">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {ALL_CATEGORIES.map(cat => (
+                  <label key={cat} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 p-2 rounded">
+                    <input 
+                      type="checkbox"
+                      className="rounded text-purple-600 w-4 h-4"
+                      checked={selectedCategories.includes(cat)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedCategories(prev => [...prev, cat].slice(0,3))
+                        } else {
+                          setSelectedCategories(prev => prev.filter(c => c!== cat))
+                        }
+                      }}
                     />
-                  </div>
-                </div>
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-800">Stock *</label>
-                  <input
-                    type="number"
-                    className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
-                    value={stock}
-                    onChange={e => setStock(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="mt-3">
-                <label className="mb-2 block text-sm font-medium text-zinc-800">Commission affiliation (%)</label>
-                <input
-                  type="number"
-                  className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
-                  value={commission}
-                  onChange={e => setCommission(Number(e.target.value))}
-                />
+                    <span>{cat}</span>
+                  </label>
+                ))}
               </div>
             </div>
+            <div className="flex items-center justify-between mt-3">
+              <div className="flex gap-2 flex-wrap">
+                {selectedCategories.map(cat => (
+                  <span key={cat} className="bg-purple-100 text-purple-800 px-3 py-1.5 rounded-full text-sm font-medium">{cat}</span>
+                ))}
+              </div>
+              <span className="text-sm text-gray-500">{selectedCategories.length}/3 selected</span>
+            </div>
+          </div>
 
-            <div className="rounded-lg bg-white p-5">
-              <h2 className="text-2xl font-semibold text-zinc-900">Expédition</h2>
-              <p className="mt-1 text-sm text-zinc-500">Choisis d'abord une catégorie</p>
+          {/* Price + Stock */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold mb-2">Price *</label>
+              <div className="relative">
+                <span className="absolute left-3 top-3.5 text-gray-500">€</span>
+                <input type="number" step="0.01" className="w-full border border-gray-300 rounded-lg pl-8 pr-4 py-3" value={price} onChange={e => setPrice(e.target.value)} placeholder="0.00" />
+              </div>
             </div>
-          </section>
+            <div>
+              <label className="block text-sm font-semibold mb-2">Quantity *</label>
+              <input type="number" className="w-full border border-gray-300 rounded-lg px-4 py-3" value={stock} onChange={e => setStock(e.target.value)} placeholder="0" />
+            </div>
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-sm font-semibold mb-2">Description</label>
+            <textarea className="w-full border border-gray-300 rounded-lg px-4 py-3" rows={5} value={description} onChange={e => setDescription(e.target.value)} placeholder="Describe your product in detail..." />
+          </div>
+
+          {/* Commission */}
+          <div>
+            <label className="block text-sm font-semibold mb-2">Affiliate Commission (%)</label>
+            <input type="number" className="w-full border border-gray-300 rounded-lg px-4 py-3" value={commission} onChange={e => setCommission(Number(e.target.value))} />
+            <p className="text-xs text-gray-500 mt-1">Commission offered to affiliates for each sale</p>
+          </div>
+
+          <button className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3.5 rounded-lg text-base transition">
+            Publish Product
+          </button>
         </div>
-
-        <button className="mt-4 w-full rounded-md bg-[#0c9f9f] py-3 text-sm font-medium text-white hover:bg-[#0b8a8a]">
-          Publier le produit
-        </button>
       </div>
     </div>
   )

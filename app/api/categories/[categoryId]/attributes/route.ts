@@ -8,9 +8,13 @@ export async function GET(
   { params }: { params: Promise<{ categoryId: string }> }
 ) {
   const { categoryId } = await params
-  const attributes = await prisma.categoryAttribute.findMany({
-    where: { categoryId },
-    orderBy: { order: 'asc' }
-  })
-  return NextResponse.json(attributes)
+  try {
+    const attributes = await prisma.categoryAttribute.findMany({
+      where: { categoryId },
+      orderBy: { order: 'asc' }
+    })
+    return NextResponse.json({ attributes })
+  } catch (e) {
+    return NextResponse.json({ attributes: [] })
+  }
 }
