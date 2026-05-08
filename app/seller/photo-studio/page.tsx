@@ -368,7 +368,7 @@ export default function PhotoStudioPage() {
     const urls = items.map((i) => i.uploadedUrl).filter((u): u is string => Boolean(u)).slice(0, 10)
     if (!urls.length) return
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(urls))
-    window.location.href = "/supplier/products/new?fromStudio=1"
+    window.location.href = "/supplier/dashboard?fromStudio=1"
   }
 
   return (
@@ -380,7 +380,7 @@ export default function PhotoStudioPage() {
             <h1 className="mt-1 text-3xl font-semibold">AI Photo Studio for Sellers</h1>
             <p className="mt-1 text-sm text-zinc-400">Upload, enhance, and publish product visuals in minutes.</p>
           </div>
-          <Link href="/supplier/products/new" className="text-sm text-zinc-300 hover:text-white">
+          <Link href="/supplier/dashboard" className="text-sm text-zinc-300 hover:text-white">
             Back to product wizard
           </Link>
         </div>

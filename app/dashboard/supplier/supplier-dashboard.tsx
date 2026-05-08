@@ -150,7 +150,7 @@ export function SupplierDashboard({ storeSlug, stats }: SupplierDashboardProps) 
         <div>
           <h1 className="text-2xl font-bold">Supplier · My products</h1>
           <div className="mt-2 flex flex-wrap gap-4 text-sm">
-            <Link href="/supplier/products/new" className="text-blue-600 hover:underline dark:text-blue-400">
+            <Link href="/supplier/dashboard" className="text-blue-600 hover:underline dark:text-blue-400">
               Open full-screen product wizard →
             </Link>
             <Link href="/seller/photo-studio" className="text-purple-600 hover:underline dark:text-purple-400">
