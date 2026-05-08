@@ -1,23 +1,56 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Save, Send, HelpCircle, Upload } from 'lucide-react'
+import { ArrowLeft, Save, Send, HelpCircle, Upload, Sparkles } from 'lucide-react'
 
 export default function CreateProductPage() {
   const router = useRouter()
   const [title, setTitle] = useState('')
   const [images, setImages] = useState<string[]>([])
+  const [categorySuggestions, setCategorySuggestions] = useState<string[]>([])
+  const [selectedCategory, setSelectedCategory] = useState('')
+  const [isCategorizing, setIsCategorizing] = useState(false)
+  const debounceRef = useRef<NodeJS.Timeout>()
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, isMain = false) => {
     const files = Array.from(e.target.files || [])
     const urls = files.map(f => URL.createObjectURL(f))
     const newImages = isMain? [urls[0],...images] : [...images,...urls]
     setImages(newImages.slice(0, 9))
+    if (isMain || images.length === 0) runAutoCategorize(title, urls[0])
   }
 
   const removeImage = (index: number) => {
     setImages(images.filter((_, i) => i!== index))
   }
+
+  const runAutoCategorize = async (currentTitle: string, imageUrl?: string) => {
+    if (currentTitle.length < 3 &&!imageUrl) return
+    setIsCategorizing(true)
+    setCategorySuggestions([])
+    try {
+      const res = await fetch('/api/categorize-product', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: currentTitle, imageUrl: imageUrl || images[0] })
+      })
+      const data = await res.json()
+      if (data.categories?.length) {
+        const suggestions = data.categories.slice(0,3)
+        setCategorySuggestions(suggestions)
+        setSelectedCategory(suggestions[0])
+      }
+    } catch (e) { 
+      console.error('Categorization failed:', e) 
+    }
+    setIsCategorizing(false)
+  }
+
+  useEffect(() => {
+    clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => runAutoCategorize(title), 800)
+    return () => clearTimeout(debounceRef.current)
+  }, [title])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -63,6 +96,7 @@ export default function CreateProductPage() {
               </div>
               <div className="p-3">
                 <p className="font-medium text-sm truncate">{title || 'Nom du produit'}</p>
+                <p className="text-xs text-gray-500 mt-1">{selectedCategory || 'Catégorie'}</p>
               </div>
             </div>
           </div>
@@ -108,7 +142,7 @@ export default function CreateProductPage() {
             </div>
 
             {/* Nom */}
-            <div>
+            <div className="mb-6">
               <label className="block text-sm font-semibold mb-2 flex items-center gap-1">
                 <span className="text-red-500">*</span> Nom du produit <HelpCircle className="w-4 h-4 text-gray-400" />
               </label>
@@ -122,6 +156,33 @@ export default function CreateProductPage() {
                 />
                 <span className="absolute right-3 top-3 text-sm text-gray-400">{title.length}/255</span>
               </div>
+              {isCategorizing && (
+                <div className="flex items-center gap-2 mt-2 text-purple-600">
+                  <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-sm font-medium">L'IA analyse ton produit...</span>
+                </div>
+              )}
+            </div>
+
+            {/* Catégorie IA */}
+            <div>
+              <label className="block text-sm font-semibold mb-2 flex items-center gap-1">
+                <span className="text-red-500">*</span> Catégorie <HelpCircle className="w-4 h-4 text-gray-400" />
+              </label>
+              {categorySuggestions.length > 0 && (
+                <div className="flex items-center gap-2 mb-2 text-purple-600">
+                  <Sparkles className="w-4 h-4" />
+                  <span className="text-sm font-medium">{categorySuggestions.length} suggestions</span>
+                </div>
+              )}
+              <select 
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-teal-500"
+                value={selectedCategory}
+                onChange={e => setSelectedCategory(e.target.value)}
+              >
+                <option value="">Sélectionner une catégorie</option>
+                {categorySuggestions.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+              </select>
             </div>
           </div>
         </div>
