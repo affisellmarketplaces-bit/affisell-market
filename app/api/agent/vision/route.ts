@@ -3,16 +3,17 @@ import Groq from "groq-sdk"
 import { searchCatalogForAgent } from "@/lib/agent-catalog-search"
 import { prisma } from "@/lib/prisma"
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
-
 export const runtime = "nodejs"
 export const maxDuration = 60
+export const dynamic = "force-dynamic"
+export const revalidate = 0
 
 export async function POST(req: Request) {
   try {
     if (!process.env.GROQ_API_KEY?.trim()) {
       return Response.json({ error: "GROQ_API_KEY is not configured." }, { status: 503 })
     }
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
     const contentType = req.headers.get("content-type") ?? ""
     let image = ""

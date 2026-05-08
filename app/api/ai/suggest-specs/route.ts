@@ -2,9 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { prisma } from '@/lib/prisma'
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export async function POST(req: NextRequest) {
+  if (!process.env.OPENAI_API_KEY) {
+    return NextResponse.json({ error: 'Missing OPENAI_API_KEY' }, { status: 500 })
+  }
+
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   const { productTitle, imageUrl }: { productTitle?: string; imageUrl?: string } = await req.json()
 
   if (!productTitle && !imageUrl) {

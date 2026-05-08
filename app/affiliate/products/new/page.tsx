@@ -4,6 +4,9 @@ import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import { CATEGORIES } from "@/lib/product-catalog-constants"
 
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 export default async function AffiliateProductsNewPage() {
   const session = await auth()
   if (!session?.user?.id) redirect("/login?callbackUrl=/affiliate/products/new")

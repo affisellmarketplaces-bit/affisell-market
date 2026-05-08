@@ -21,6 +21,8 @@ const db: PrismaClient = prisma
 
 export const runtime = "nodejs"
 export const maxDuration = 60
+export const dynamic = "force-dynamic"
+export const revalidate = 0
 
 /** Encode one catalog row as JSON string (Groq tool output = string[] only). */
 function encodeRow(p: AgentProductCard, group: 0 | 1): string {

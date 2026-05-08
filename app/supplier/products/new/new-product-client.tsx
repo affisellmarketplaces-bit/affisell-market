@@ -26,7 +26,7 @@ export function NewSupplierProductClient() {
     if (!productName && !imageUrl) return toast.error("Add title or image first")
     setLoadingAI(true)
     try {
-      const res = await fetch("/api/ai/suggest-specs", {
+      const res = await fetch("/api/generate-product", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productTitle: productName || undefined, imageUrl })

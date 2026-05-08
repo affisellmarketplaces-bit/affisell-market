@@ -1,6 +1,6 @@
 import { listingDisplayTitle, listingGalleryUrls } from "@/lib/affiliate-listing-display"
 import { prisma } from "@/lib/prisma"
-import { stripe } from "@/lib/stripe"
+import { getStripeClient } from "@/lib/stripe"
 import { stripeProductImages } from "@/lib/product-images"
 
 function baseUrl(): string {
@@ -14,6 +14,7 @@ function baseUrl(): string {
 }
 
 export async function createCheckoutSession(productId: string, userId?: string) {
+  const stripe = getStripeClient()
   const id = productId.trim()
   if (!id) return null
 

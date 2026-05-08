@@ -3,9 +3,11 @@ import { NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
 
 import { prisma } from "@/lib/prisma"
-import { stripe } from "@/lib/stripe"
+import { getStripeClient } from "@/lib/stripe"
 
 export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+export const revalidate = 0
 
 function addressFromSession(session: Stripe.Checkout.Session): Record<string, unknown> {
   const extended = session as Stripe.Checkout.Session & {
@@ -19,6 +21,7 @@ function addressFromSession(session: Stripe.Checkout.Session): Record<string, un
 }
 
 export async function POST(req: NextRequest) {
+  const stripe = getStripeClient()
   const signature = req.headers.get("stripe-signature")
   if (!signature) {
     return NextResponse.json({ error: "Missing stripe-signature header" }, { status: 400 })

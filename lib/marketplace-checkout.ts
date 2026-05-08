@@ -6,7 +6,7 @@ import {
 } from "@/lib/affiliate-listing-display"
 import { prisma } from "@/lib/prisma"
 import { stripeProductImages } from "@/lib/product-images"
-import { stripe } from "@/lib/stripe"
+import { getStripeClient } from "@/lib/stripe"
 
 function checkoutBaseUrls(body: { cancelPath?: string; successPath?: string }) {
   const baseUrl = (
@@ -36,6 +36,7 @@ async function loadListing(id: string) {
 
 /** Stripe Checkout for multiple marketplace lines (EUR). */
 async function checkoutFromItems(lines: CartLineInput[], opts: { cancelPath?: string; successPath?: string }) {
+  const stripe = getStripeClient()
   const normalized: { affiliateProductId: string; qty: number }[] = []
   for (const row of lines) {
     const affiliateProductId = typeof row.productId === "string" ? row.productId.trim() : ""
@@ -105,6 +106,7 @@ async function checkoutFromItems(lines: CartLineInput[], opts: { cancelPath?: st
 
 /** Stripe Checkout for an AffiliateProduct listing (EUR). */
 export async function marketplaceCheckoutPOST(request: Request) {
+  const stripe = getStripeClient()
   const body = (await request.json().catch(() => ({}))) as {
     affiliateProductId?: string
     /** Alias for `affiliateProductId` (marketplace listing id). */
