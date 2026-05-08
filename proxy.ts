@@ -1,21 +1,33 @@
+import type { NextRequest } from "next/server"
+import { NextResponse } from "next/server"
+
 import { auth } from "@/auth"
 
-export const runtime = "nodejs"
+const nextAuthHandler = auth((req) => {
+  const pathname = req.nextUrl.pathname
 
-export default auth((req) => {
-  const { nextUrl } = req
-  const isLoggedIn = !!req.auth
-
-  const isPublicRoute = ["/", "/login", "/api/auth"].some((route) =>
-    nextUrl.pathname.startsWith(route)
-  )
-
-  if (!isLoggedIn && !isPublicRoute) {
-    return Response.redirect(new URL("/login", nextUrl))
+  if (
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/_vercel") ||
+    /\.[^/]+$/.test(pathname)
+  ) {
+    return NextResponse.next()
   }
-  return undefined
+
+  if (pathname.startsWith("/dashboard") && !req.auth) {
+    const loginUrl = new URL("/auth/signin", req.url)
+    loginUrl.searchParams.set("callbackUrl", `${pathname}${req.nextUrl.search}`)
+    return NextResponse.redirect(loginUrl)
+  }
+
+  return NextResponse.next()
 })
 
+export function proxy(request: NextRequest) {
+  return nextAuthHandler(request, { params: Promise.resolve({}) })
+}
+
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api|_next|_vercel|.*\\..*).*)"],
 }
