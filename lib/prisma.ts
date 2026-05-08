@@ -1,12 +1,8 @@
 import { PrismaClient } from "@prisma/client"
 
-const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient }
-
-/** In development, avoid a singleton so HMR does not keep a stale engine after `prisma generate` / provider changes. */
-export const prisma =
-  process.env.NODE_ENV === "production"
-    ? (globalForPrisma.prisma ??= new PrismaClient())
-    : new PrismaClient()
+const globalForPrisma = global as unknown as { prisma: PrismaClient }
+export const prisma = globalForPrisma.prisma || new PrismaClient()
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma
 
 /** Pour `instrumentation.ts`. */
 export async function connectPrismaWithRetry(): Promise<void> {
