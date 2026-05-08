@@ -22,7 +22,7 @@ export default function ProductSpecsTable({
 }: {
   categoryId: string
   productTitle: string
-  images: string[]
+  images?: string[]
   onSpecsChange: (specs: Record<string, string>) => void
 }) {
   const [attributes, setAttributes] = useState<Attribute[]>([])
@@ -53,7 +53,7 @@ export default function ProductSpecsTable({
         body: JSON.stringify({ 
           productTitle, 
           attributes,
-          imageUrl: images[0] || null 
+          imageUrl: images?.[0] || null 
         })
       })
       const data = await res.json()
