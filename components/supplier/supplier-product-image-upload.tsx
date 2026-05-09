@@ -5,10 +5,13 @@ import type { ChangeEvent, CSSProperties } from "react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { measureImageFile, processProductImageToDataUrl } from "@/lib/product-image-upload"
 import { cn } from "@/lib/utils"
 
-const SLOT_COUNT = 9 /** 1 principale + 8 emplacements */
+const SLOT_COUNT = 9 /** cover + 8 thumbnails */
 
 type Props = {
   onImagesChange: (urls: string[]) => void
@@ -20,6 +23,55 @@ function slotsToOrderedUrls(slots: (string | null)[]): string[] {
     if (u) acc.push(u)
     return acc
   }, [])
+}
+
+const MAX_HTTP_IMAGE_URL_LEN = 8000
+const MAX_DATA_IMAGE_URL_LEN = 5_000_000
+
+function normalizePastedUrl(raw: string): string {
+  let u = raw
+    .trim()
+    .replace(/^\uFEFF/, "")
+    .replace(/^['"<]+|['">]+$/g, "")
+  const md = u.match(/\]\((https?:\/\/[^)\s]+|\/\/[^)\s]+)\)/i)
+  if (md) u = md[1]
+  return u.trim().replace(/[\)\]]+$/g, "")
+}
+
+const BLOCKED_NON_IMAGE = /\.(pdf|zip|7z|rar|tar|gz|html?|json|csv|txt|docx?|xlsx?|pptx?|exe|dmg|pkg)(\?|#|$)/i
+
+function resolveImageLinkUrl(raw: string): string | null {
+  const n = normalizePastedUrl(raw)
+  if (n.startsWith("data:image/")) {
+    if (n.length > MAX_DATA_IMAGE_URL_LEN) return null
+    if (n.includes(";base64,") || /^data:image\/svg\+xml[,;]/i.test(n)) return n
+    return null
+  }
+
+  let u = n.replace(/\r?\n/g, "").trim()
+  if (!u) return null
+
+  if (u.startsWith("//")) u = `https:${u}`
+  else if (/^www\./i.test(u)) u = `https://${u}`
+  else if (!/^[a-z][a-z0-9+.-]*:/i.test(u)) {
+    const hostPart = u.split("/")[0]?.split("?")[0] ?? ""
+    const domainLike =
+      /^([a-z0-9]([a-z0-9-]*\.)+[a-z]{2,})(:\d+)?$/i.test(hostPart) || /^localhost(:\d+)?$/i.test(hostPart)
+    if (domainLike) u = `https://${u}`
+  }
+
+  if (u.length > MAX_HTTP_IMAGE_URL_LEN) return null
+
+  try {
+    const parsed = new URL(u)
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null
+    if (!parsed.hostname) return null
+    const full = `${parsed.pathname}${parsed.search}`.toLowerCase()
+    if (BLOCKED_NON_IMAGE.test(full)) return null
+    return parsed.href
+  } catch {
+    return null
+  }
 }
 
 function BoxPlaceholder({ variant }: { variant: number }) {
@@ -93,13 +145,14 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
     Array.from({ length: SLOT_COUNT }, (_, i) => initialUrls?.[i] ?? null)
   )
   const [busySlot, setBusySlot] = useState<number | null>(null)
+  const [imageUrlDraft, setImageUrlDraft] = useState("")
 
   useEffect(() => {
     const seed = initialUrls?.filter(Boolean) ?? []
     if (seed.length === 0) return
     const next = Array.from({ length: SLOT_COUNT }, (_, i) => initialUrls?.[i] ?? null)
     setSlots(next)
-    onImagesChange(slotsToOrderedUrls(next))
+    queueMicrotask(() => onImagesChange(slotsToOrderedUrls(next)))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialUrls?.join("|")])
 
@@ -112,19 +165,19 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
     try {
       const dimensions = await measureImageFile(file)
       if (dimensions.width < 800 || dimensions.height < 800) {
-        toast.error(`${file.name} : minimum 800×800 px requis.`)
+        toast.error(`${file.name}: images must be at least 800×800 px.`)
         return
       }
       const processed = await processProductImageToDataUrl(file)
       setSlots((prev) => {
         const next = [...prev]
         next[slotIndex] = processed
-        onImagesChange(slotsToOrderedUrls(next))
+        queueMicrotask(() => onImagesChange(slotsToOrderedUrls(next)))
         return next
       })
-      toast.success(`Image ajoutée (${file.name})`)
+      toast.success(`Added ${file.name}`)
     } catch {
-      toast.error("Impossible de traiter l’image.")
+      toast.error("Could not process this image.")
     } finally {
       setBusySlot(null)
     }
@@ -134,7 +187,31 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
     setSlots((prev) => {
       const next = [...prev]
       next[slotIndex] = null
-      onImagesChange(slotsToOrderedUrls(next))
+      queueMicrotask(() => onImagesChange(slotsToOrderedUrls(next)))
+      return next
+    })
+  }
+
+  const applyImageUrl = () => {
+    const resolved = resolveImageLinkUrl(imageUrlDraft)
+    if (!resolved) {
+      toast.error("Enter a valid http(s) image link.")
+      return
+    }
+    setSlots((prev) => {
+      const emptyIdx = prev.findIndex((s) => !s)
+      if (emptyIdx < 0) {
+        queueMicrotask(() => toast.error("All slots are full. Remove an image first."))
+        return prev
+      }
+      const next = [...prev]
+      next[emptyIdx] = resolved
+      const urls = slotsToOrderedUrls(next)
+      queueMicrotask(() => {
+        onImagesChange(urls)
+        setImageUrlDraft("")
+        toast.success("Image added from link.")
+      })
       return next
     })
   }
@@ -146,8 +223,9 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
   }
 
   return (
-    <div className="flex flex-wrap items-start gap-3" style={cellVars}>
-      {/* Principale : hauteur = 2 rangées + gap */}
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-start gap-3" style={cellVars}>
+      {/* Cover image: height matches two thumbnail rows */}
       <div
         className="relative shrink-0"
         style={{ width: "var(--main)", height: "var(--main)", minWidth: "var(--main)" }}
@@ -160,7 +238,7 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
               type="button"
               onClick={() => removeAt(0)}
               className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-white shadow hover:bg-red-600"
-              aria-label="Retirer l’image principale"
+              aria-label="Remove cover image"
             >
               <X className="h-4 w-4" />
             </button>
@@ -173,7 +251,7 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
               <>
                 <Upload className="h-8 w-8 text-zinc-400" aria-hidden />
                 <span className="px-2 text-center text-xs font-medium text-zinc-600 dark:text-zinc-300">
-                  Importer l’image principale
+                  Import cover image
                 </span>
               </>
             )}
@@ -210,7 +288,7 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
                     type="button"
                     onClick={() => removeAt(slotIndex)}
                     className="absolute right-0.5 top-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600"
-                    aria-label="Retirer l’image"
+                    aria-label="Remove image"
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
@@ -222,7 +300,7 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
                   ) : (
                     <BoxPlaceholder variant={idx} />
                   )}
-                  <span className="sr-only">Ajouter une image</span>
+                  <span className="sr-only">Add image</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -235,6 +313,35 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
             </div>
           )
         })}
+      </div>
+      </div>
+
+      <div className="rounded-lg border border-zinc-200 bg-zinc-50/80 px-3 py-3 dark:border-zinc-700 dark:bg-zinc-900/50">
+        <Label htmlFor="supplier-image-url" className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+          Image URL
+        </Label>
+        <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">Uses the next empty slot.</p>
+        <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
+          <Input
+            id="supplier-image-url"
+            type="url"
+            inputMode="url"
+            autoComplete="off"
+            placeholder="https://cdn.example.com/photo.jpg"
+            value={imageUrlDraft}
+            onChange={(e) => setImageUrlDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault()
+                applyImageUrl()
+              }
+            }}
+            className="sm:flex-1"
+          />
+          <Button type="button" variant="secondary" className="shrink-0 sm:w-auto" onClick={() => applyImageUrl()}>
+            Add
+          </Button>
+        </div>
       </div>
     </div>
   )

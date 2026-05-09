@@ -99,6 +99,109 @@ async function upsertMarketplaceCategories(): Promise<void> {
   console.log(`✅ Seeded EN marketplace taxonomy (${total} category rows)`)
 }
 
+/** Example `CategoryAttribute` rows for a few leaf slugs (supplier “Characteristics” demo). */
+async function seedSampleCategoryAttributes(): Promise<void> {
+  const samples: {
+    slug: string
+    rows: Array<{
+      key: string
+      label: string
+      type: string
+      required: boolean
+      order: number
+      unit?: string | null
+      options?: string[]
+    }>
+  }[] = [
+    {
+      slug: "electronics-audio-over-ear-headphones",
+      rows: [
+        { key: "brand", label: "Brand", type: "TEXT", required: true, order: 1 },
+        { key: "model", label: "Model", type: "TEXT", required: true, order: 2 },
+        {
+          key: "connectivity",
+          label: "Connectivity",
+          type: "SELECT",
+          required: true,
+          order: 3,
+          options: ["Bluetooth", "Wired", "Bluetooth + wired"],
+        },
+        {
+          key: "noise_cancelling",
+          label: "Noise cancelling",
+          type: "SELECT",
+          required: false,
+          order: 4,
+          options: ["Yes", "No"],
+        },
+        { key: "battery_hours", label: "Battery life", type: "NUMBER", unit: "h", required: false, order: 5 },
+      ],
+    },
+    {
+      slug: "home-kitchen-lighting-desk-lamps",
+      rows: [
+        { key: "brand", label: "Brand", type: "TEXT", required: true, order: 1 },
+        { key: "wattage_max", label: "Max power", type: "NUMBER", unit: "W", required: false, order: 2 },
+        {
+          key: "bulb_type",
+          label: "Bulb type",
+          type: "SELECT",
+          required: true,
+          order: 3,
+          options: ["LED", "Halogen", "CFL", "Smart"],
+        },
+        {
+          key: "color_temperature",
+          label: "Color temperature",
+          type: "SELECT",
+          required: false,
+          order: 4,
+          options: ["2700K", "4000K", "6500K", "Adjustable"],
+        },
+        {
+          key: "warranty",
+          label: "Warranty type",
+          type: "SELECT",
+          required: false,
+          order: 5,
+          options: ["1 year", "2 years", "5 years", "None"],
+        },
+      ],
+    },
+    {
+      slug: "womens-wear-and-underwear-bags-and-handbags-tote-bags",
+      rows: [
+        { key: "brand", label: "Brand", type: "TEXT", required: true, order: 1 },
+        { key: "material", label: "Material", type: "TEXT", required: false, order: 2 },
+        { key: "dimensions_cm", label: "Dimensions (cm)", type: "TEXT", required: false, order: 3 },
+      ],
+    },
+  ]
+
+  let count = 0
+  for (const sample of samples) {
+    const cat = await prisma.category.findUnique({ where: { slug: sample.slug } })
+    if (!cat) continue
+    await prisma.categoryAttribute.deleteMany({ where: { categoryId: cat.id } })
+    await prisma.categoryAttribute.createMany({
+      data: sample.rows.map((r) => ({
+        categoryId: cat.id,
+        key: r.key,
+        label: r.label,
+        type: r.type,
+        required: r.required,
+        order: r.order,
+        unit: r.unit ?? null,
+        options: r.options ?? [],
+      })),
+    })
+    count += sample.rows.length
+  }
+  if (count > 0) {
+    console.log(`✅ Seeded ${count} sample category attributes (demo leaf categories)`)
+  }
+}
+
 type SeedItem = {
   name: string
   slug: string
@@ -340,6 +443,7 @@ async function main() {
   }
 
   await upsertMarketplaceCategories()
+  await seedSampleCategoryAttributes()
 
   const supplierId = await ensureStoreUser({
     slug: SUPPLIER_SLUG,

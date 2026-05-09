@@ -24,6 +24,11 @@ import {
   type RecentCategoryEntry,
 } from "@/lib/category-browse"
 import { SupplierCategoryPicker, type BrowsePayload } from "@/components/supplier/supplier-category-picker"
+import {
+  CategoryAttributeFields,
+  missingRequiredCategorySpecs,
+  type CategoryAttrRow,
+} from "@/components/supplier/category-attribute-fields"
 import { cn } from "@/lib/utils"
 
 const LISTING_LABELS: Record<ListingKind, string> = {
@@ -73,6 +78,9 @@ export function SupplierAddProductForm() {
   const [deliveryMin, setDeliveryMin] = useState("2")
   const [deliveryMax, setDeliveryMax] = useState("5")
   const [shippingCost, setShippingCost] = useState("0")
+  const [categoryAttrs, setCategoryAttrs] = useState<CategoryAttrRow[]>([])
+  const [specValues, setSpecValues] = useState<Record<string, string>>({})
+  const [attrsLoading, setAttrsLoading] = useState(false)
 
   const commissionMax = affiliateCommissionMaxPct(listingKind)
 
@@ -178,6 +186,31 @@ export function SupplierAddProductForm() {
   }, [])
 
   useEffect(() => {
+    if (!categoryId.trim()) {
+      setCategoryAttrs([])
+      setAttrsLoading(false)
+      return
+    }
+    let cancelled = false
+    setAttrsLoading(true)
+    fetch(`/api/attributes/by-category?categoryId=${encodeURIComponent(categoryId)}`)
+      .then((r) => r.json())
+      .then((j: { attributes?: CategoryAttrRow[] }) => {
+        if (cancelled) return
+        setCategoryAttrs(Array.isArray(j.attributes) ? j.attributes : [])
+      })
+      .catch(() => {
+        if (!cancelled) setCategoryAttrs([])
+      })
+      .finally(() => {
+        if (!cancelled) setAttrsLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [categoryId])
+
+  useEffect(() => {
     if (!browse || !categoryId) return
     const p = pathFromLeafId(categoryId, browse.nodes)
     if (p?.length) setCategoryPath(p)
@@ -211,6 +244,20 @@ export function SupplierAddProductForm() {
       setDeliveryMax(String(data.deliveryMax ?? 5))
       const sc = data.shippingCost
       setShippingCost(sc != null ? String(Number(sc)) : "0")
+      const attrs = data.attributes
+      if (Array.isArray(attrs)) {
+        const next: Record<string, string> = {}
+        for (const row of attrs) {
+          if (!row || typeof row !== "object") continue
+          const r = row as Record<string, unknown>
+          const key = typeof r.key === "string" ? r.key : ""
+          if (!key) continue
+          next[key] = typeof r.value === "string" ? r.value : String(r.value ?? "")
+        }
+        setSpecValues(next)
+      } else {
+        setSpecValues({})
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to load product")
       router.replace("/dashboard/supplier/products/new")
@@ -247,6 +294,19 @@ export function SupplierAddProductForm() {
       toast.error("Please select a category.")
       return
     }
+    const missingSpecs = missingRequiredCategorySpecs(categoryAttrs, specValues)
+    if (missingSpecs.length > 0) {
+      toast.error(`Fill required fields: ${missingSpecs.map((m) => m.label).join(", ")}`)
+      return
+    }
+
+    const productAttributes = categoryAttrs
+      .map((a) => ({
+        key: a.key,
+        label: a.label,
+        value: (specValues[a.key] ?? "").trim(),
+      }))
+      .filter((row) => row.value.length > 0)
 
     const payload: Record<string, unknown> = {
       name: name.trim(),
@@ -265,6 +325,7 @@ export function SupplierAddProductForm() {
       deliveryMax: Math.round(Number(deliveryMax) || 5),
       shippingCostEUR: Number(shippingCost) || 0,
       shippingMethods: ["standard"],
+      productAttributes,
     }
 
     setSaving(true)
@@ -386,6 +447,7 @@ export function SupplierAddProductForm() {
                 onChange={(leafId, path) => {
                   setCategoryId(leafId)
                   setCategoryPath(path)
+                  setSpecValues({})
                 }}
                 keywordSuggestions={keywordCategorySuggestions}
                 aiSuggestions={aiCategorySuggestions}
@@ -393,6 +455,14 @@ export function SupplierAddProductForm() {
                 loading={loadingBrowse}
               />
             </div>
+          </div>
+          <div>
+            <CategoryAttributeFields
+              attributes={categoryAttrs}
+              loading={attrsLoading}
+              values={specValues}
+              onChange={setSpecValues}
+            />
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-1.5">
@@ -403,14 +473,14 @@ export function SupplierAddProductForm() {
               <button
                 type="button"
                 className="rounded-full p-0.5 text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-                title="Nous recommandons d’ajouter au moins 5 images pour bien représenter ton produit."
-                aria-label="Aide : nombre d’images recommandé"
+                title="At least 5 images is best for buyers."
+                aria-label="Image count tip"
               >
                 <CircleHelp className="h-4 w-4 shrink-0" aria-hidden />
               </button>
             </div>
             <p className="mt-1 max-w-xl text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-              Nous recommandons d’ajouter au moins 5 images pour bien représenter ton produit.
+              Add several angles if you can — five or more is ideal.
             </p>
             <div className="mt-3">
               <SupplierProductImageUpload initialUrls={images} onImagesChange={setImages} />
@@ -422,6 +492,11 @@ export function SupplierAddProductForm() {
             onClick={() => {
               if (!categoryId.trim()) {
                 toast.error("Please select a category.")
+                return
+              }
+              const miss = missingRequiredCategorySpecs(categoryAttrs, specValues)
+              if (miss.length > 0) {
+                toast.error(`Fill required fields: ${miss.map((m) => m.label).join(", ")}`)
                 return
               }
               setStep(2)

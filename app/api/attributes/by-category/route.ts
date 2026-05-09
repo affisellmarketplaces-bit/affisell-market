@@ -11,7 +11,7 @@ export async function GET(req: Request) {
 
   const attributes = await prisma.categoryAttribute.findMany({
     where: { categoryId },
-    orderBy: { label: 'asc' }
+    orderBy: [{ order: "asc" }, { label: "asc" }],
   })
 
   return NextResponse.json({ attributes })
