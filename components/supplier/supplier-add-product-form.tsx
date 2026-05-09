@@ -16,14 +16,15 @@ import {
   type ListingKind,
   LISTING_KINDS,
 } from "@/lib/supplier-commission"
+import {
+  pathFromLeafId,
+  suggestLeafCategoriesFromTitle,
+  type CategoryPathSegment,
+  type LeafPath,
+  type RecentCategoryEntry,
+} from "@/lib/category-browse"
+import { SupplierCategoryPicker, type BrowsePayload } from "@/components/supplier/supplier-category-picker"
 import { cn } from "@/lib/utils"
-
-type CategoryRow = {
-  id: string
-  name: string
-  icon?: string
-  subcategories?: { id: string; name: string }[]
-}
 
 const LISTING_LABELS: Record<ListingKind, string> = {
   PHYSICAL: "Physical goods",
@@ -52,6 +53,7 @@ export function SupplierAddProductForm() {
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [categoryId, setCategoryId] = useState("")
+  const [categoryPath, setCategoryPath] = useState<CategoryPathSegment[]>([])
   const [images, setImages] = useState<string[]>([])
   const [price, setPrice] = useState("")
   const [compareAt, setCompareAt] = useState("")
@@ -59,7 +61,12 @@ export function SupplierAddProductForm() {
   const [listingKind, setListingKind] = useState<ListingKind>("PHYSICAL")
   const [commission, setCommission] = useState("15")
 
-  const [categories, setCategories] = useState<CategoryRow[]>([])
+  const [browse, setBrowse] = useState<BrowsePayload | null>(null)
+  const [recentCategories, setRecentCategories] = useState<RecentCategoryEntry[]>([])
+  const [loadingBrowse, setLoadingBrowse] = useState(true)
+  const [debouncedTitle, setDebouncedTitle] = useState("")
+  const [aiCategorySuggestions, setAiCategorySuggestions] = useState<LeafPath[]>([])
+  const [aiSuggestLoading, setAiSuggestLoading] = useState(false)
   const [shippingCountry, setShippingCountry] = useState("")
   const [warehouseType, setWarehouseType] = useState<"" | "local" | "regional" | "international">("")
   const [processingTime, setProcessingTime] = useState("1")
@@ -104,11 +111,77 @@ export function SupplierAddProductForm() {
   }, [commission, commissionMax, listingKind])
 
   useEffect(() => {
-    fetch("/api/categories")
+    const t = setTimeout(() => setDebouncedTitle(name), 420)
+    return () => clearTimeout(t)
+  }, [name])
+
+  const keywordCategorySuggestions = useMemo(() => {
+    if (!browse || debouncedTitle.trim().length < 3) return []
+    return suggestLeafCategoriesFromTitle(debouncedTitle, browse.leafPaths, 3)
+  }, [browse, debouncedTitle])
+
+  useEffect(() => {
+    if (!browse || debouncedTitle.trim().length < 3) {
+      setAiCategorySuggestions([])
+      setAiSuggestLoading(false)
+      return
+    }
+    const ac = new AbortController()
+    setAiSuggestLoading(true)
+    fetch("/api/supplier/suggest-categories-ai", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      signal: ac.signal,
+      body: JSON.stringify({ title: debouncedTitle, description: description.trim() || undefined }),
+    })
       .then((r) => r.json())
-      .then((j: { categories?: CategoryRow[] }) => setCategories(j.categories ?? []))
-      .catch(() => toast.error("Could not load categories"))
+      .then((j: { suggestions?: LeafPath[] }) => {
+        setAiCategorySuggestions(Array.isArray(j.suggestions) ? j.suggestions.slice(0, 3) : [])
+      })
+      .catch(() => {
+        if (!ac.signal.aborted) setAiCategorySuggestions([])
+      })
+      .finally(() => {
+        if (!ac.signal.aborted) setAiSuggestLoading(false)
+      })
+    return () => ac.abort()
+  }, [browse, debouncedTitle, description])
+
+  useEffect(() => {
+    let cancelled = false
+    setLoadingBrowse(true)
+    Promise.all([
+      fetch("/api/categories/browse").then((r) => r.json()),
+      fetch("/api/supplier/recent-categories", { credentials: "include" }).then((r) =>
+        r.ok ? r.json() : Promise.resolve({ recent: [] })
+      ),
+    ])
+      .then(([b, rec]) => {
+        if (cancelled) return
+        if (b && typeof b === "object" && Array.isArray((b as BrowsePayload).rootIds)) {
+          setBrowse(b as BrowsePayload)
+        } else {
+          setBrowse(null)
+        }
+        setRecentCategories(Array.isArray(rec?.recent) ? rec.recent : [])
+      })
+      .catch(() => {
+        if (!cancelled) toast.error("Could not load categories")
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingBrowse(false)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [])
+
+  useEffect(() => {
+    if (!browse || !categoryId) return
+    const p = pathFromLeafId(categoryId, browse.nodes)
+    if (p?.length) setCategoryPath(p)
+  }, [browse, categoryId])
 
   const loadProduct = useCallback(async (id: string) => {
     setLoadingProduct(true)
@@ -170,6 +243,10 @@ export function SupplierAddProductForm() {
       toast.error("Add at least one product image.")
       return
     }
+    if (!categoryId.trim()) {
+      toast.error("Please select a category.")
+      return
+    }
 
     const payload: Record<string, unknown> = {
       name: name.trim(),
@@ -180,7 +257,7 @@ export function SupplierAddProductForm() {
       commission: Math.round(Number(commission)),
       listingKind,
       images,
-      categoryId: categoryId || undefined,
+      categoryId: categoryId.trim(),
       shippingCountry: shippingCountry.trim().toUpperCase().slice(0, 2) || undefined,
       warehouseType: warehouseType || undefined,
       processingTime: Math.round(Number(processingTime) || 1),
@@ -203,6 +280,19 @@ export function SupplierAddProductForm() {
       if (!res.ok) {
         throw new Error(json.error ?? "Save failed")
       }
+      if (categoryId && categoryPath.length) {
+        void fetch("/api/supplier/recent-categories", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ leafId: categoryId, path: categoryPath }),
+        })
+          .then((r) => r.json())
+          .then((j: { recent?: RecentCategoryEntry[] }) => {
+            if (Array.isArray(j.recent)) setRecentCategories(j.recent)
+          })
+          .catch(() => {})
+      }
       toast.success(editId ? "Product updated." : "Product created.")
       router.push("/dashboard/supplier/products")
       router.refresh()
@@ -223,7 +313,7 @@ export function SupplierAddProductForm() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8">
+    <div className="mx-auto max-w-5xl px-4 py-8">
       <div className="mb-6 flex flex-wrap items-center gap-3">
         <Link
           href="/dashboard/supplier/products"
@@ -262,7 +352,9 @@ export function SupplierAddProductForm() {
       {step === 1 ? (
         <Card className="space-y-6 border-zinc-200 p-6 dark:border-zinc-700">
           <div>
-            <Label htmlFor="p-name">Product name</Label>
+            <Label htmlFor="p-name">
+              Product name <span className="text-red-600">*</span>
+            </Label>
             <Input
               id="p-name"
               className="mt-1.5"
@@ -283,21 +375,29 @@ export function SupplierAddProductForm() {
             />
           </div>
           <div>
-            <Label htmlFor="p-cat">Category</Label>
-            <select
-              id="p-cat"
-              className="mt-1.5 flex h-10 w-full rounded-md border border-zinc-200 bg-transparent px-3 text-sm dark:border-zinc-700"
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-            >
-              <option value="">Select a category (optional)</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.icon ? `${c.icon} ` : ""}
-                  {c.name}
-                </option>
-              ))}
-            </select>
+            <Label className="inline-flex items-center gap-1">
+              Category <span className="text-red-600">*</span>
+            </Label>
+            <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+              TikTok Shop–style columns, search, and recent paths. After 3+ characters in the title, AI ranks real
+              catalog leaves (with <code className="font-mono text-[11px]">OPENAI_API_KEY</code>) plus instant keyword
+              matches.
+            </p>
+            <div className="mt-2">
+              <SupplierCategoryPicker
+                browse={browse}
+                recent={recentCategories}
+                value={categoryId}
+                onChange={(leafId, path) => {
+                  setCategoryId(leafId)
+                  setCategoryPath(path)
+                }}
+                keywordSuggestions={keywordCategorySuggestions}
+                aiSuggestions={aiCategorySuggestions}
+                aiLoading={aiSuggestLoading}
+                loading={loadingBrowse}
+              />
+            </div>
           </div>
           <div>
             <Label>Images</Label>
@@ -308,7 +408,17 @@ export function SupplierAddProductForm() {
               <ImageUpload initialUrls={images} onImagesChange={setImages} />
             </div>
           </div>
-          <Button type="button" className="w-full sm:w-auto" onClick={() => setStep(2)}>
+          <Button
+            type="button"
+            className="w-full sm:w-auto"
+            onClick={() => {
+              if (!categoryId.trim()) {
+                toast.error("Please select a category.")
+                return
+              }
+              setStep(2)
+            }}
+          >
             Continue to pricing
           </Button>
         </Card>

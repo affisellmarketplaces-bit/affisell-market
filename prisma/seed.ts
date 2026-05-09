@@ -91,41 +91,90 @@ function categorySlug(name: string): string {
     .slice(0, 64)
 }
 
-async function upsertMarketplaceCategories(): Promise<void> {
-  for (const row of LEGAL_MARKET_NAV) {
-    const bySlug = await prisma.category.findUnique({ where: { slug: row.slug } })
-    if (bySlug) {
-      await prisma.category.update({
-        where: { id: bySlug.id },
-        data: { name: row.name, icon: row.icon, order: row.order },
-      })
-      continue
-    }
+/** TikTok Shop–style mid-level aisles under each department root. */
+const DEPT_MID_SUFFIXES = [
+  ["Featured collections", "featured"],
+  ["New arrivals", "new-arrivals"],
+  ["Bestsellers", "bestsellers"],
+  ["Seasonal picks", "seasonal"],
+  ["Accessories & add-ons", "accessories"],
+  ["Bundles & sets", "bundles"],
+] as const
 
-    const byName = await prisma.category.findFirst({ where: { name: row.name, parentId: null } })
-    if (byName) {
-      try {
-        await prisma.category.update({
-          where: { id: byName.id },
-          data: { slug: row.slug, icon: row.icon, order: row.order },
-        })
-      } catch {
-        await prisma.category.update({
-          where: { id: byName.id },
-          data: { icon: row.icon, order: row.order },
-        })
-      }
-      continue
-    }
+/** Leaf rows under each mid-aisle (listing granularity for affiliates). */
+const LEAF_TRIOS = [
+  ["Core lineup", "core", "✨"],
+  ["Premium picks", "premium", "⭐"],
+  ["Value essentials", "value", "💰"],
+] as const
 
-    await prisma.category.create({
+async function upsertCategoryNode(data: {
+  name: string
+  slug: string
+  icon: string
+  order: number
+  parentId: string | null
+}): Promise<string> {
+  const existing = await prisma.category.findUnique({ where: { slug: data.slug } })
+  if (existing) {
+    await prisma.category.update({
+      where: { id: existing.id },
       data: {
-        name: row.name,
-        slug: row.slug,
-        icon: row.icon,
-        order: row.order,
+        name: data.name,
+        icon: data.icon,
+        order: data.order,
+        parentId: data.parentId,
       },
     })
+    return existing.id
+  }
+  const created = await prisma.category.create({
+    data: {
+      name: data.name,
+      slug: data.slug,
+      icon: data.icon,
+      order: data.order,
+      parentId: data.parentId,
+    },
+  })
+  return created.id
+}
+
+async function seedNestedDepartment(rootSlug: string, rootId: string): Promise<void> {
+  let orderMid = 1
+  for (const [midName, midSuffix] of DEPT_MID_SUFFIXES) {
+    const midSlug = `${rootSlug}-${midSuffix}`
+    const midId = await upsertCategoryNode({
+      name: midName,
+      slug: midSlug,
+      icon: "📦",
+      order: orderMid++,
+      parentId: rootId,
+    })
+    let leafOrder = 1
+    for (const [leafName, leafSuffix, icon] of LEAF_TRIOS) {
+      const leafSlug = `${midSlug}-${leafSuffix}`
+      await upsertCategoryNode({
+        name: leafName,
+        slug: leafSlug,
+        icon,
+        order: leafOrder++,
+        parentId: midId,
+      })
+    }
+  }
+}
+
+async function upsertMarketplaceCategories(): Promise<void> {
+  for (const row of LEGAL_MARKET_NAV) {
+    const rootId = await upsertCategoryNode({
+      name: row.name,
+      slug: row.slug,
+      icon: row.icon,
+      order: row.order,
+      parentId: null,
+    })
+    await seedNestedDepartment(row.slug, rootId)
   }
 
   async function ensureCategoryForSeedName(name: string): Promise<void> {
@@ -151,7 +200,8 @@ async function upsertMarketplaceCategories(): Promise<void> {
     await ensureCategoryForSeedName(name)
   }
 
-  console.log(`✅ Seeded ${LEGAL_MARKET_NAV.length} legal categories`)
+  const total = await prisma.category.count()
+  console.log(`✅ Seeded marketplace taxonomy (${LEGAL_MARKET_NAV.length} roots, ${total} category rows total)`)
 }
 
 type SeedItem = {

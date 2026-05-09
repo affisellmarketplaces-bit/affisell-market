@@ -32,6 +32,9 @@ model User {
   storeFollowRelations Follow[] @relation("UserFollowsStore")
   searchHistory      SearchHistory[]
   wishlists          Wishlist[]
+
+  /** Supplier add-product: recent category picks JSON [{ leafId, path:[{id,name}] }] max 5 */
+  supplierRecentCategories Json @default("[]")
 }
 
 model Store {

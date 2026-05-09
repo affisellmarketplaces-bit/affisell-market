@@ -20,6 +20,14 @@ function jsonOrNull(v: Prisma.JsonValue | null | undefined): Prisma.InputJsonVal
   return v as Prisma.InputJsonValue
 }
 
+function userPayload(row: Awaited<ReturnType<PrismaClient["user"]["findMany"]>>[number]) {
+  const { supplierRecentCategories, ...rest } = row
+  return {
+    ...rest,
+    supplierRecentCategories: (supplierRecentCategories ?? []) as Prisma.InputJsonValue,
+  }
+}
+
 function storePayload(row: Awaited<ReturnType<PrismaClient["store"]["findMany"]>>[number]) {
   return {
     ...row,
@@ -96,10 +104,11 @@ async function main() {
     const users = await localDb.user.findMany()
     for (const row of users) {
       try {
+        const payload = userPayload(row)
         await prodDb.user.upsert({
           where: { id: row.id },
-          create: row,
-          update: row,
+          create: payload,
+          update: payload,
         })
         counts.users++
       } catch (e) {
