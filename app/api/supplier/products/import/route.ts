@@ -12,6 +12,11 @@ import { prisma } from "@/lib/prisma"
 import { parseProductAttributesBody } from "@/lib/supplier-product-attributes"
 import { parseSupplierProductImages } from "@/lib/supplier-product-images"
 import { parseSupplierProductShippingBody } from "@/lib/supplier-product-shipping"
+import {
+  defaultAffiliateCommissionPct,
+  normalizeAffiliateCommissionRatePct,
+  parseListingKind,
+} from "@/lib/supplier-commission"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -183,11 +188,11 @@ export async function POST(req: NextRequest) {
 
     const basePriceCents = Math.max(100, Math.round(priceEur * 100))
 
+    const listingKind = parseListingKind(p.listing_kind ?? p.listingKind)
     const commRaw = num(p.suggested_commission)
-    const commissionRate = Math.min(
-      50,
-      Math.max(1, Math.round(commRaw > 0 ? commRaw : DEFAULT_COMMISSION_HINT))
-    )
+    const commHint = commRaw > 0 ? commRaw : DEFAULT_COMMISSION_HINT
+    const normalizedComm = normalizeAffiliateCommissionRatePct(commHint, listingKind)
+    const commissionRate = normalizedComm.ok ? normalizedComm.rate : defaultAffiliateCommissionPct()
 
     const statusRaw =
       typeof p.status === "string" ? p.status.toLowerCase() : ""
@@ -415,6 +420,7 @@ export async function POST(req: NextRequest) {
             : (attr.variants as unknown as Prisma.InputJsonValue),
         basePriceCents,
         commissionRate,
+        listingKind,
         stock: stockN,
         active,
         shippingCountry: ship.shippingCountry,

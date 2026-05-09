@@ -133,6 +133,8 @@ model Product {
   basePriceCents Int
   compareAt Decimal?
   commissionRate Int
+  /** PHYSICAL: affiliate commission % max 99; SOFTWARE | SUBSCRIPTION allows up to 100. */
+  listingKind String @default("PHYSICAL")
   stock Int @default(0)
   active Boolean @default(true)
 

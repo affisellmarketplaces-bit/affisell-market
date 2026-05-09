@@ -2,7 +2,7 @@
 
 import { Loader2, Upload, X } from "lucide-react"
 import type { ChangeEvent } from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
 const CANVAS = 1200
@@ -10,11 +10,21 @@ const PAD = 120
 
 type ImageUploadProps = {
   onImagesChange: (urls: string[]) => void
+  /** When provided (e.g. edit mode), hydrates the grid. Remote URLs skip the 800×800 upload rule. */
+  initialUrls?: string[]
 }
 
-export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
-  const [images, setImages] = useState<string[]>([])
+export default function ImageUpload({ onImagesChange, initialUrls }: ImageUploadProps) {
+  const [images, setImages] = useState<string[]>(() => initialUrls?.filter(Boolean).slice(0, 10) ?? [])
   const [processing, setProcessing] = useState(false)
+
+  useEffect(() => {
+    const seed = initialUrls?.filter(Boolean).slice(0, 10) ?? []
+    if (seed.length === 0) return
+    setImages(seed)
+    onImagesChange(seed)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- seed when `initialUrls` changes; avoid `onImagesChange` identity loops
+  }, [initialUrls?.join("|")])
 
   const processImage = async (file: File): Promise<string> => {
     const { removeBackground } = await import("@imgly/background-removal")

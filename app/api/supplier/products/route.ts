@@ -6,6 +6,11 @@ import { createNewDropCommunityPost } from "@/lib/community-new-drop"
 import { parseProductAttributesBody } from "@/lib/supplier-product-attributes"
 import { parseSupplierProductShippingBody } from "@/lib/supplier-product-shipping"
 import { parseSupplierProductImages } from "@/lib/supplier-product-images"
+import {
+  defaultAffiliateCommissionPct,
+  normalizeAffiliateCommissionRatePct,
+  parseListingKind,
+} from "@/lib/supplier-commission"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -89,11 +94,14 @@ export async function POST(req: Request) {
     compareAt = new Prisma.Decimal(compareAtNumber.toFixed(2))
   }
 
+  const listingKind = parseListingKind((body as Record<string, unknown>).listingKind)
   const commRaw = commission ?? commissionRate
-  const rate = Math.min(
-    50,
-    Math.max(1, Math.round(Number.isFinite(Number(commRaw)) ? Number(commRaw) : 20))
-  )
+  const commFallback = Number.isFinite(Number(commRaw)) ? Number(commRaw) : defaultAffiliateCommissionPct()
+  const normalized = normalizeAffiliateCommissionRatePct(commFallback, listingKind)
+  if (!normalized.ok) {
+    return Response.json({ error: normalized.error }, { status: 400 })
+  }
+  const rate = normalized.rate
   const images = parseSupplierProductImages(body as Record<string, unknown>)
   const attr = parseProductAttributesBody(body as Record<string, unknown>)
   const ship = parseSupplierProductShippingBody(body as Record<string, unknown>)
@@ -135,6 +143,7 @@ export async function POST(req: Request) {
         basePriceCents: normalizedPriceCents,
         compareAt,
         commissionRate: rate,
+        listingKind,
         stock: stockN,
         active: true,
         categoryId: categoryId || null,

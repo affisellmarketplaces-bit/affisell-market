@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { parseProductAttributesBody } from "@/lib/supplier-product-attributes"
 import { parseSupplierProductShippingBody } from "@/lib/supplier-product-shipping"
 import { parseSupplierProductImages } from "@/lib/supplier-product-images"
+import { normalizeAffiliateCommissionRatePct, parseListingKind } from "@/lib/supplier-commission"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -15,6 +16,43 @@ async function assertOwnProduct(supplierId: string, productId: string) {
     select: { id: true },
   })
   return Boolean(existing)
+}
+
+export async function GET(
+  _req: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return Response.json({ error: "Not authenticated" }, { status: 401 })
+  }
+  if ((session.user as { role?: string }).role !== "SUPPLIER") {
+    return Response.json({ error: "Forbidden" }, { status: 403 })
+  }
+
+  const { id } = await context.params
+  const own = await assertOwnProduct(session.user.id, id)
+  if (!own) {
+    return Response.json({ error: "Not found" }, { status: 404 })
+  }
+
+  const p = await prisma.product.findFirst({
+    where: { id, supplierId: session.user.id },
+    include: {
+      attributes: { orderBy: { key: "asc" } },
+    },
+  })
+  if (!p) {
+    return Response.json({ error: "Not found" }, { status: 404 })
+  }
+
+  return Response.json({
+    ...p,
+    compareAt: p.compareAt != null ? Number(p.compareAt) : null,
+    freeShippingThreshold: p.freeShippingThreshold != null ? Number(p.freeShippingThreshold) : null,
+    shippingCost: Number(p.shippingCost),
+    listingKind: parseListingKind(p.listingKind),
+  })
 }
 
 export async function PUT(
@@ -35,6 +73,14 @@ export async function PUT(
     return Response.json({ error: "Not found" }, { status: 404 })
   }
 
+  const existingRow = await prisma.product.findUnique({
+    where: { id },
+    select: { listingKind: true, commissionRate: true, stock: true },
+  })
+  if (!existingRow) {
+    return Response.json({ error: "Not found" }, { status: 404 })
+  }
+
   const body = (await req.json()) as {
     name?: string
     description?: string
@@ -46,6 +92,7 @@ export async function PUT(
     stock?: number
     categoryId?: string | null
     productAttributes?: Array<{ key?: unknown; label?: unknown; value?: unknown }>
+    listingKind?: unknown
   }
 
   const name = typeof body.name === "string" ? body.name.trim() : ""
@@ -76,13 +123,23 @@ export async function PUT(
     compareAt = new Prisma.Decimal(compareAtNumber.toFixed(2))
   }
 
-  const commission = Number(body.commission)
-  const rate = Math.min(
-    50,
-    Math.max(1, Math.round(Number.isFinite(commission) ? commission : 20))
-  )
+  const listingKind = parseListingKind(body.listingKind ?? existingRow.listingKind)
+  const commRaw = body.commission
+  const commFallback = Number.isFinite(Number(commRaw))
+    ? Number(commRaw)
+    : existingRow.commissionRate
+  const normalized = normalizeAffiliateCommissionRatePct(commFallback, listingKind)
+  if (!normalized.ok) {
+    return Response.json({ error: normalized.error }, { status: 400 })
+  }
+  const rate = normalized.rate
 
-  const stock = Math.max(0, Math.round(Number.isFinite(Number(body.stock)) ? Number(body.stock) : 0))
+  const stock = Math.max(
+    0,
+    Math.round(
+      Number.isFinite(Number(body.stock)) ? Number(body.stock) : existingRow.stock
+    )
+  )
   const desc = typeof body.description === "string" ? body.description.trim() : ""
   const images = parseSupplierProductImages(body as unknown as Record<string, unknown>)
   const attr = parseProductAttributesBody(body as unknown as Record<string, unknown>)
@@ -122,6 +179,7 @@ export async function PUT(
         basePriceCents: priceCents,
         compareAt,
         commissionRate: rate,
+        listingKind,
         stock,
         categoryId,
         shippingCountry: ship.shippingCountry,
