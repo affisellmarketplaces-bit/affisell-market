@@ -168,11 +168,52 @@ export function scoreTitleAgainstBreadcrumb(title: string, breadcrumb: string): 
   const b = breadcrumb.toLowerCase()
   let score = 0
   for (const w of words) {
-    if (b.includes(w)) score += 3
+    /** Longer tokens (e.g. “laptop”) beat short homonyms (e.g. “air” in “MacBook Air”). */
+    const lengthBonus = Math.min(w.length, 10) * 0.35
+    if (b.includes(w)) score += 3 + lengthBonus
     const stem = w.slice(0, 4)
     if (stem.length >= 3 && b.includes(stem)) score += 1
   }
   return score
+}
+
+const MAX_CATALOG_LINES_FOR_AI = 280
+
+/**
+ * Order leaf paths for AI category matching: high title/breadcrumb overlap first, then the rest
+ * (so the model always sees plausible leaves even when the tree is large).
+ */
+export function leafPathsForAiCatalog(
+  leafPaths: LeafPath[],
+  title: string,
+  description: string
+): LeafPath[] {
+  const text = `${title} ${description}`.trim()
+  if (!text) return leafPaths.slice(0, MAX_CATALOG_LINES_FOR_AI)
+
+  const scored = leafPaths.map((lp) => ({
+    lp,
+    s: scoreTitleAgainstBreadcrumb(text, lp.breadcrumb),
+  }))
+  scored.sort((a, b) => b.s - a.s)
+
+  const out: LeafPath[] = []
+  const seen = new Set<string>()
+  for (const { lp, s } of scored) {
+    if (out.length >= MAX_CATALOG_LINES_FOR_AI) break
+    if (s > 0 && !seen.has(lp.leafId)) {
+      seen.add(lp.leafId)
+      out.push(lp)
+    }
+  }
+  for (const lp of leafPaths) {
+    if (out.length >= MAX_CATALOG_LINES_FOR_AI) break
+    if (!seen.has(lp.leafId)) {
+      seen.add(lp.leafId)
+      out.push(lp)
+    }
+  }
+  return out
 }
 
 export function suggestLeafCategoriesFromTitle(title: string, leafPaths: LeafPath[], limit = 3): LeafPath[] {

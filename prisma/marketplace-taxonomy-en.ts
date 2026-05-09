@@ -369,6 +369,10 @@ export const MARKETPLACE_CATEGORY_TAXONOMY_EN: TaxonomyRoot[] = [
     icon: "💻",
     channels: [
       {
+        name: "Laptops & PCs",
+        leaves: ["Laptops", "Gaming Laptops", "2-in-1 Convertibles", "Chromebooks", "Desktop PCs", "Mini PCs"],
+      },
+      {
         name: "Peripherals",
         leaves: ["Gaming Mice", "Ergonomic Mice", "Mechanical Keyboards", "Membrane Keyboards", "Mouse Pads", "Wrist Rests"],
       },
