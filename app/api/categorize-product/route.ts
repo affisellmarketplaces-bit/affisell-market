@@ -4,7 +4,7 @@ export const revalidate = 0
 import { NextResponse } from "next/server"
 import OpenAI from "openai"
 
-const TIKTOK_CATEGORIES = [
+const BROAD_DEPARTMENT_CHOICES = [
   "Computers",
   "Electronics",
   "Mobile Phones & Accessories",
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
   try {
     const openai = new OpenAI({ apiKey })
 
-    const system = `You are a TikTok Shop category expert. Given a product title and optional image, return EXACTLY 3 categories from this list: ${TIKTOK_CATEGORIES.join(", ")}. Return only JSON: {"categories": ["cat1", "cat2", "cat3"]}`
+    const system = `You are a marketplace taxonomy assistant. Given a product title and optional image, return EXACTLY 3 categories from this list: ${BROAD_DEPARTMENT_CHOICES.join(", ")}. Return only JSON: {"categories": ["cat1", "cat2", "cat3"]}`
 
     const userContent: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [
       { type: "text", text: title.trim() ? title : "Product (see image)." },
@@ -74,7 +74,7 @@ export async function POST(req: Request) {
     }
 
     const list = Array.isArray(result.categories) ? result.categories : []
-    const valid = list.filter((c): c is string => typeof c === "string" && TIKTOK_CATEGORIES.includes(c))
+    const valid = list.filter((c): c is string => typeof c === "string" && BROAD_DEPARTMENT_CHOICES.includes(c))
     const out = valid.slice(0, 3)
     for (const c of ["Electronics", "Computers", "Office Products"] as const) {
       if (out.length >= 3) break

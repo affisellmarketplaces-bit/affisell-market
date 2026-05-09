@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ArrowLeft, Loader2 } from "lucide-react"
+import { ArrowLeft, CircleHelp, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
-import ImageUpload from "@/app/dashboard/products/new/ImageUpload"
+import { SupplierProductImageUpload } from "@/components/supplier/supplier-product-image-upload"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -116,12 +116,12 @@ export function SupplierAddProductForm() {
   }, [name])
 
   const keywordCategorySuggestions = useMemo(() => {
-    if (!browse || debouncedTitle.trim().length < 3) return []
+    if (!browse || debouncedTitle.trim().length < 2) return []
     return suggestLeafCategoriesFromTitle(debouncedTitle, browse.leafPaths, 3)
   }, [browse, debouncedTitle])
 
   useEffect(() => {
-    if (!browse || debouncedTitle.trim().length < 3) {
+    if (!browse || debouncedTitle.trim().length < 2) {
       setAiCategorySuggestions([])
       setAiSuggestLoading(false)
       return
@@ -378,12 +378,7 @@ export function SupplierAddProductForm() {
             <Label className="inline-flex items-center gap-1">
               Category <span className="text-red-600">*</span>
             </Label>
-            <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-              TikTok Shop–style columns, search, and recent paths. After 3+ characters in the title, AI ranks real
-              catalog leaves (with <code className="font-mono text-[11px]">OPENAI_API_KEY</code>) plus instant keyword
-              matches.
-            </p>
-            <div className="mt-2">
+            <div className="mt-1.5">
               <SupplierCategoryPicker
                 browse={browse}
                 recent={recentCategories}
@@ -400,12 +395,25 @@ export function SupplierAddProductForm() {
             </div>
           </div>
           <div>
-            <Label>Images</Label>
-            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-              At least one image (800×800px minimum). First image is the cover.
+            <div className="flex flex-wrap items-center gap-1.5">
+              <Label className="inline-flex items-center gap-1 text-zinc-900 dark:text-zinc-100">
+                <span className="text-red-600">*</span>
+                Images
+              </Label>
+              <button
+                type="button"
+                className="rounded-full p-0.5 text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                title="Nous recommandons d’ajouter au moins 5 images pour bien représenter ton produit."
+                aria-label="Aide : nombre d’images recommandé"
+              >
+                <CircleHelp className="h-4 w-4 shrink-0" aria-hidden />
+              </button>
+            </div>
+            <p className="mt-1 max-w-xl text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+              Nous recommandons d’ajouter au moins 5 images pour bien représenter ton produit.
             </p>
             <div className="mt-3">
-              <ImageUpload initialUrls={images} onImagesChange={setImages} />
+              <SupplierProductImageUpload initialUrls={images} onImagesChange={setImages} />
             </div>
           </div>
           <Button

@@ -35,7 +35,7 @@ export async function POST(req: Request) {
   const title = typeof body.title === "string" ? body.title.trim() : ""
   const description = typeof body.description === "string" ? body.description.trim() : ""
 
-  if (title.length < 3) {
+  if (title.length < 2) {
     return NextResponse.json({ suggestions: [], source: "none" as const })
   }
 

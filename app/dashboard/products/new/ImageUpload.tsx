@@ -5,8 +5,11 @@ import type { ChangeEvent } from "react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
-const CANVAS = 1200
-const PAD = 120
+import {
+  measureImageFile,
+  processProductImageToDataUrl,
+  PRODUCT_IMAGE_CANVAS,
+} from "@/lib/product-image-upload"
 
 type ImageUploadProps = {
   onImagesChange: (urls: string[]) => void
@@ -26,62 +29,6 @@ export default function ImageUpload({ onImagesChange, initialUrls }: ImageUpload
     // eslint-disable-next-line react-hooks/exhaustive-deps -- seed when `initialUrls` changes; avoid `onImagesChange` identity loops
   }, [initialUrls?.join("|")])
 
-  const processImage = async (file: File): Promise<string> => {
-    const { removeBackground } = await import("@imgly/background-removal")
-    const blob = await removeBackground(file)
-
-    return new Promise((resolve, reject) => {
-      const blobUrl = URL.createObjectURL(blob)
-      const img = new window.Image()
-      img.onload = () => {
-        try {
-          const canvas = document.createElement("canvas")
-          canvas.width = CANVAS
-          canvas.height = CANVAS
-          const ctx = canvas.getContext("2d")
-          if (!ctx) {
-            reject(new Error("No canvas"))
-            return
-          }
-
-          ctx.fillStyle = "#F5F5F5"
-          ctx.fillRect(0, 0, CANVAS, CANVAS)
-
-          const maxSize = CANVAS - PAD * 2
-          const scale = Math.min(maxSize / img.width, maxSize / img.height)
-          const width = img.width * scale
-          const height = img.height * scale
-          const x = (CANVAS - width) / 2
-          const y = (CANVAS - height) / 2
-
-          ctx.drawImage(img, x, y, width, height)
-          resolve(canvas.toDataURL("image/jpeg", 0.9))
-        } finally {
-          URL.revokeObjectURL(blobUrl)
-        }
-      }
-      img.onerror = () => {
-        URL.revokeObjectURL(blobUrl)
-        reject(new Error("decode"))
-      }
-      img.src = blobUrl
-    })
-  }
-
-  async function measureFile(file: File): Promise<{ width: number; height: number }> {
-    const url = URL.createObjectURL(file)
-    try {
-      return await new Promise((resolve, reject) => {
-        const el = new window.Image()
-        el.onload = () => resolve({ width: el.width, height: el.height })
-        el.onerror = () => reject(new Error("dim"))
-        el.src = url
-      })
-    } finally {
-      URL.revokeObjectURL(url)
-    }
-  }
-
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
     e.target.value = ""
@@ -91,14 +38,14 @@ export default function ImageUpload({ onImagesChange, initialUrls }: ImageUpload
 
     try {
       for (const file of files) {
-        const dimensions = await measureFile(file)
+        const dimensions = await measureImageFile(file)
 
         if (dimensions.width < 800 || dimensions.height < 800) {
           toast.error(`${file.name}: Minimum 800x800px required`)
           continue
         }
 
-        const processed = await processImage(file)
+        const processed = await processProductImageToDataUrl(file)
         setImages((prev) => {
           const updated = [...prev, processed].slice(0, 10)
           onImagesChange(updated)
@@ -126,7 +73,7 @@ export default function ImageUpload({ onImagesChange, initialUrls }: ImageUpload
       <div className="rounded-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-3">
         <h3 className="text-sm font-black uppercase tracking-wider text-white">PRODUCT IMAGES</h3>
         <p className="mt-1 text-xs text-white/80">
-          Auto-converted to {CANVAS}x{CANVAS} with #F5F5F5 background
+          Auto-converted to {PRODUCT_IMAGE_CANVAS}x{PRODUCT_IMAGE_CANVAS} with #F5F5F5 background
         </p>
       </div>
 

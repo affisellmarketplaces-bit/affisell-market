@@ -64,11 +64,10 @@ export function SupplierCategoryPicker({
   const [search, setSearch] = useState("")
   const [showRecentBox, setShowRecentBox] = useState(true)
   const [chain, setChain] = useState<string[]>([])
-
-  const hasChildren = useCallback(
-    (id: string) => Boolean(browse?.childrenByParent[id]?.length),
-    [browse]
-  )
+  const [columnPending, setColumnPending] = useState<{
+    leafId: string
+    path: CategoryPathSegment[]
+  } | null>(null)
 
   const pathForChain = useCallback(
     (ids: string[]): CategoryPathSegment[] | null => {
@@ -85,7 +84,12 @@ export function SupplierCategoryPicker({
   )
 
   useEffect(() => {
-    if (!browse || !value) return
+    if (!browse) return
+    if (!value) {
+      setChain([])
+      setColumnPending(null)
+      return
+    }
     const walk: string[] = []
     let cur: string | undefined = value
     const seen = new Set<string>()
@@ -96,7 +100,10 @@ export function SupplierCategoryPicker({
       cur = browse.nodes[cur].parentId ?? undefined
     }
     walk.reverse()
-    if (walk.length) setChain(walk)
+    if (walk.length) {
+      setChain(walk)
+      setColumnPending(null)
+    }
   }, [browse, value])
 
   const searchHits = useMemo(() => {
@@ -107,19 +114,45 @@ export function SupplierCategoryPicker({
       .slice(0, 50)
   }, [browse, search])
 
-  const columns = useMemo(() => {
-    if (!browse) return [] as string[][]
-    const cols: string[][] = []
-    cols.push(browse.rootIds)
-    for (let i = 0; i < chain.length; i++) {
-      const parent = chain[i]
-      const kids = browse.childrenByParent[parent] ?? []
-      if (kids.length > 0) {
-        cols.push(kids)
-      }
-    }
-    return cols
+  /** Three fixed columns for root → mid → leaf (taxonomy depth 3). */
+  const threeCols = useMemo(() => {
+    if (!browse) return [[], [], []] as [string[], string[], string[]]
+    const c0 = browse.rootIds
+    const c1 = chain[0] ? browse.childrenByParent[chain[0]] ?? [] : []
+    const c2 = chain[1] ? browse.childrenByParent[chain[1]] ?? [] : []
+    return [c0, c1, c2]
   }, [browse, chain])
+
+  const onColumnPick = useCallback(
+    (colIdx: 0 | 1 | 2, id: string) => {
+      if (!browse) return
+      const child = Boolean(browse.childrenByParent[id]?.length)
+      if (colIdx === 0) {
+        setChain([id])
+        setColumnPending(null)
+        return
+      }
+      if (colIdx === 1) {
+        const r0 = chain[0]
+        if (!r0) return
+        setChain([r0, id])
+        setColumnPending(null)
+        return
+      }
+      const r0 = chain[0]
+      const r1 = chain[1]
+      if (!r0 || !r1) return
+      const next = [r0, r1, id]
+      const path = pathForChain(next)
+      setChain(next)
+      if (child) {
+        setColumnPending(null)
+      } else if (path) {
+        setColumnPending({ leafId: id, path })
+      }
+    },
+    [browse, chain, pathForChain]
+  )
 
   const breadcrumbTrail = useMemo(() => {
     if (!browse || chain.length === 0) return "All categories"
@@ -134,6 +167,7 @@ export function SupplierCategoryPicker({
   }, [keywordSuggestions, aiSuggestions])
 
   const applyLeaf = (lp: LeafPath | RecentCategoryEntry) => {
+    setColumnPending(null)
     onChange(lp.leafId, "breadcrumb" in lp ? lp.path : lp.path)
     setChain(lp.path.map((s) => s.id))
   }
@@ -175,13 +209,13 @@ export function SupplierCategoryPicker({
             type="button"
             className="absolute right-2 top-2 rounded p-1 text-violet-700 hover:bg-violet-100 dark:text-violet-200 dark:hover:bg-violet-900/60"
             onClick={() => setShowRecentBox(false)}
-            aria-label="Dismiss recently used"
+            aria-label="Dismiss previously used categories"
           >
             <X className="h-4 w-4" />
           </button>
           <div className="flex items-center gap-2 pr-8 text-sm font-semibold text-violet-950 dark:text-violet-100">
             <Sparkles className="h-4 w-4 shrink-0 text-violet-600" aria-hidden />
-            Recently used categories
+            Previously used categories
           </div>
           <ul className="mt-3 space-y-2">
             {recent.map((r) => (
@@ -266,7 +300,7 @@ export function SupplierCategoryPicker({
 
       <div>
         <Label htmlFor="cat-search" className="text-zinc-800 dark:text-zinc-200">
-          Search categories
+          Search
         </Label>
         <div className="relative mt-1.5">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" aria-hidden />
@@ -316,66 +350,80 @@ export function SupplierCategoryPicker({
       </div>
 
       <div>
-        <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">All categories</p>
         <p
-          className="mt-1.5 truncate rounded-md border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 text-xs text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-300"
+          className="truncate rounded-md border border-zinc-200 bg-zinc-50 px-2.5 py-2 text-xs font-medium text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-200"
           title={breadcrumbTrail}
         >
           {breadcrumbTrail}
         </p>
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-          Browse columns like TikTok Shop: tap a row with › to go deeper; a row without › selects that category.
-        </p>
-        <div className="mt-2 flex max-w-full gap-0 overflow-x-auto rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-950">
-          {columns.map((ids, colIdx) => (
-            <div
-              key={colIdx}
-              className="min-w-[176px] max-w-[240px] flex-1 border-r border-zinc-200 last:border-r-0 dark:border-zinc-800"
-            >
-              <ul className="max-h-72 min-h-[200px] overflow-y-auto py-1">
-                {ids.map((id) => {
-                  const n = browse.nodes[id]
-                  if (!n) return null
-                  const child = hasChildren(id)
-                  const selectedInCol = chain[colIdx] === id
-                  const isValue = value === id
-                  return (
-                    <li key={id}>
-                      <button
-                        type="button"
-                        className={cn(
-                          "flex w-full items-center justify-between gap-1 px-2.5 py-2 text-left text-xs transition",
-                          selectedInCol || isValue
-                            ? "bg-violet-100 text-violet-950 dark:bg-violet-900/50 dark:text-violet-50"
-                            : "hover:bg-zinc-50 dark:hover:bg-zinc-900"
-                        )}
-                        onClick={() => {
-                          const nextChain = [...chain.slice(0, colIdx), id]
-                          if (child) {
-                            setChain(nextChain)
-                          } else {
-                            const path = pathForChain(nextChain)
-                            if (path) onChange(id, path)
-                            setChain(nextChain)
-                          }
-                        }}
-                      >
-                        <span className="min-w-0 flex-1 truncate">
-                          {n.icon ? `${n.icon} ` : ""}
-                          {n.name}
-                        </span>
-                        {child ? <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-60" aria-hidden /> : null}
-                      </button>
-                    </li>
-                  )
-                })}
-              </ul>
-            </div>
-          ))}
+        <div className="mt-2 grid min-h-[220px] w-full grid-cols-3 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-950">
+          {([0, 1, 2] as const).map((colIdx) => {
+            const ids = threeCols[colIdx]
+            return (
+              <div
+                key={colIdx}
+                className="min-w-0 border-r border-zinc-200 last:border-r-0 dark:border-zinc-800"
+              >
+                <ul className="max-h-72 min-h-[200px] overflow-y-auto py-1">
+                  {ids.length === 0 ? (
+                    <li className="px-2.5 py-6 text-center text-[11px] text-zinc-400">—</li>
+                  ) : (
+                    ids.map((id) => {
+                      const n = browse.nodes[id]
+                      if (!n) return null
+                      const child = Boolean(browse.childrenByParent[id]?.length)
+                      const selectedInCol = chain[colIdx] === id
+                      const isCommitted = value === id
+                      const isPendingLeaf = columnPending?.leafId === id
+                      return (
+                        <li key={id}>
+                          <button
+                            type="button"
+                            className={cn(
+                              "flex w-full items-center justify-between gap-1 px-2.5 py-2 text-left text-xs transition",
+                              selectedInCol || isCommitted || isPendingLeaf
+                                ? "bg-violet-100 text-violet-950 dark:bg-violet-900/50 dark:text-violet-50"
+                                : "hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                            )}
+                            onClick={() => onColumnPick(colIdx as 0 | 1 | 2, id)}
+                          >
+                            <span className="min-w-0 flex-1 truncate">
+                              {n.icon ? `${n.icon} ` : ""}
+                              {n.name}
+                            </span>
+                            {child ? <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-60" aria-hidden /> : null}
+                          </button>
+                        </li>
+                      )
+                    })
+                  )}
+                </ul>
+              </div>
+            )
+          })}
         </div>
       </div>
 
-      {value && browse.nodes[value] ? (
+      {columnPending ? (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-violet-200 bg-violet-50/90 px-3 py-2.5 dark:border-violet-900 dark:bg-violet-950/40">
+          <p className="min-w-0 truncate text-xs text-zinc-800 dark:text-zinc-200">
+            {breadcrumbFromPath(columnPending.path)}
+          </p>
+          <Button
+            type="button"
+            size="sm"
+            className="shrink-0"
+            onClick={() => {
+              onChange(columnPending.leafId, columnPending.path)
+              setColumnPending(null)
+            }}
+          >
+            Apply
+          </Button>
+        </div>
+      ) : null}
+
+      {columnPending ? null : value && browse.nodes[value] ? (
         <p className="text-xs text-zinc-600 dark:text-zinc-400">
           Selected:{" "}
           <span className="font-medium text-zinc-900 dark:text-zinc-100">

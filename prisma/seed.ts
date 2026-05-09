@@ -8,7 +8,12 @@ import { createHash } from "node:crypto"
 import { config } from "dotenv"
 import { Prisma, PrismaClient } from "@prisma/client"
 
-import { AFFISELL_CATEGORIES } from "@/lib/affisell-categories"
+import {
+  flattenMarketplaceCategoryTaxonomy,
+  leafSlugsFromRows,
+  SEED_PRODUCT_LEAF_BY_ITEM_SLUG,
+  sortRowsForInsert,
+} from "./marketplace-taxonomy-en"
 
 config({ path: ".env.local" })
 config({ path: ".env" })
@@ -26,9 +31,6 @@ const AFFILIATE_SELLERS = [
   { name: "Aura Beauty", slug: "aura-beauty", email: "seed-aura-beauty@affisell.local" },
 ] as const
 
-/** Same taxonomy as `@/lib/affisell-categories.ts` (single source of truth). */
-const affisellCategories = AFFISELL_CATEGORIES
-
 function eurosToCents(euros: number): number {
   return Math.round(euros * 100)
 }
@@ -42,166 +44,59 @@ function seedProductId(slug: string): string {
   return `aff_${createHash("sha256").update(`affisell:${slug}`).digest("hex").slice(0, 28)}`
 }
 
-/** Legal Amazon-style department nav (order = sidebar sort). */
-const LEGAL_MARKET_NAV = [
-  { name: "Electronics", slug: "electronics", icon: "📱", order: 1 },
-  { name: "Computers & Accessories", slug: "computers", icon: "💻", order: 2 },
-  { name: "Smart Home", slug: "smart-home", icon: "🏠", order: 3 },
-  { name: "Cell Phones", slug: "cell-phones", icon: "📞", order: 4 },
-  { name: "Video Games", slug: "video-games", icon: "🎮", order: 5 },
-  { name: "Women's Fashion", slug: "womens-fashion", icon: "👗", order: 6 },
-  { name: "Men's Fashion", slug: "mens-fashion", icon: "👔", order: 7 },
-  { name: "Kids' Fashion", slug: "kids-fashion", icon: "👶", order: 8 },
-  { name: "Shoes & Footwear", slug: "shoes", icon: "👟", order: 9 },
-  { name: "Jewelry & Watches", slug: "jewelry", icon: "💎", order: 10 },
-  { name: "Luggage & Bags", slug: "bags", icon: "👜", order: 11 },
-  { name: "Home & Kitchen", slug: "home-kitchen", icon: "🏡", order: 12 },
-  { name: "Furniture", slug: "furniture", icon: "🛋️", order: 13 },
-  { name: "Home Decor", slug: "home-decor", icon: "🖼️", order: 14 },
-  { name: "Tools & Home Improvement", slug: "tools", icon: "🔨", order: 15 },
-  { name: "Patio, Lawn & Garden", slug: "garden", icon: "🌱", order: 16 },
-  { name: "Beauty & Personal Care", slug: "beauty", icon: "💄", order: 17 },
-  { name: "Health & Household", slug: "health", icon: "💊", order: 18 },
-  { name: "Grocery & Gourmet Food", slug: "grocery", icon: "🛒", order: 19 },
-  { name: "Pet Supplies", slug: "pet-supplies", icon: "🐕", order: 20 },
-  { name: "Baby Products", slug: "baby", icon: "🍼", order: 21 },
-  { name: "Sports & Outdoors", slug: "sports", icon: "⚽", order: 22 },
-  { name: "Automotive", slug: "automotive", icon: "🚗", order: 23 },
-  { name: "Industrial & Scientific", slug: "industrial", icon: "⚙️", order: 24 },
-  { name: "Books", slug: "books", icon: "📚", order: 25 },
-  { name: "Music, Movies & TV", slug: "music", icon: "🎵", order: 26 },
-  { name: "Toys & Games", slug: "toys", icon: "🧸", order: 27 },
-  { name: "Arts, Crafts & Sewing", slug: "arts-crafts", icon: "🎨", order: 28 },
-  { name: "Collectibles & Fine Art", slug: "collectibles", icon: "🖼️", order: 29 },
-  { name: "Office Products", slug: "office", icon: "📎", order: 30 },
-  { name: "Handmade & Artisan", slug: "handmade", icon: "✋", order: 31 },
-  { name: "Digital Services", slug: "digital-services", icon: "⚡", order: 32 },
-] as const
-
 const STYLE_ROTATION = ["minimalist", "vintage", "modern", "boho"] as const
 
-function categorySlug(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/,/g, " ")
-    .trim()
-    .replace(/\s*&\s*/g, "-and-")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 64)
-}
-
-/** TikTok Shop–style mid-level aisles under each department root. */
-const DEPT_MID_SUFFIXES = [
-  ["Featured collections", "featured"],
-  ["New arrivals", "new-arrivals"],
-  ["Bestsellers", "bestsellers"],
-  ["Seasonal picks", "seasonal"],
-  ["Accessories & add-ons", "accessories"],
-  ["Bundles & sets", "bundles"],
-] as const
-
-/** Leaf rows under each mid-aisle (listing granularity for affiliates). */
-const LEAF_TRIOS = [
-  ["Core lineup", "core", "✨"],
-  ["Premium picks", "premium", "⭐"],
-  ["Value essentials", "value", "💰"],
-] as const
-
-async function upsertCategoryNode(data: {
-  name: string
-  slug: string
-  icon: string
-  order: number
-  parentId: string | null
-}): Promise<string> {
-  const existing = await prisma.category.findUnique({ where: { slug: data.slug } })
-  if (existing) {
-    await prisma.category.update({
-      where: { id: existing.id },
-      data: {
-        name: data.name,
-        icon: data.icon,
-        order: data.order,
-        parentId: data.parentId,
-      },
+/**
+ * Removes every `Category` row (self-FK safe: delete leaves first).
+ * Clears legacy `Subcategory` rows first so FKs stay valid.
+ */
+async function wipeMarketplaceCategories(): Promise<void> {
+  await prisma.subcategory.deleteMany({})
+  let total = 0
+  let guard = 0
+  for (;;) {
+    const leaves = await prisma.category.findMany({
+      where: { subcategories: { none: {} } },
+      select: { id: true },
+      take: 400,
     })
-    return existing.id
-  }
-  const created = await prisma.category.create({
-    data: {
-      name: data.name,
-      slug: data.slug,
-      icon: data.icon,
-      order: data.order,
-      parentId: data.parentId,
-    },
-  })
-  return created.id
-}
-
-async function seedNestedDepartment(rootSlug: string, rootId: string): Promise<void> {
-  let orderMid = 1
-  for (const [midName, midSuffix] of DEPT_MID_SUFFIXES) {
-    const midSlug = `${rootSlug}-${midSuffix}`
-    const midId = await upsertCategoryNode({
-      name: midName,
-      slug: midSlug,
-      icon: "📦",
-      order: orderMid++,
-      parentId: rootId,
+    if (leaves.length === 0) break
+    const del = await prisma.category.deleteMany({
+      where: { id: { in: leaves.map((l) => l.id) } },
     })
-    let leafOrder = 1
-    for (const [leafName, leafSuffix, icon] of LEAF_TRIOS) {
-      const leafSlug = `${midSlug}-${leafSuffix}`
-      await upsertCategoryNode({
-        name: leafName,
-        slug: leafSlug,
-        icon,
-        order: leafOrder++,
-        parentId: midId,
-      })
+    total += del.count
+    guard += 1
+    if (guard > 1000) {
+      throw new Error("Category wipe did not converge — check for cycles or orphan FKs")
     }
   }
+  console.log(`🗑 Cleared ${total} category rows (tabular subcategories wiped)`)
 }
 
 async function upsertMarketplaceCategories(): Promise<void> {
-  for (const row of LEGAL_MARKET_NAV) {
-    const rootId = await upsertCategoryNode({
-      name: row.name,
-      slug: row.slug,
-      icon: row.icon,
-      order: row.order,
-      parentId: null,
-    })
-    await seedNestedDepartment(row.slug, rootId)
-  }
+  await wipeMarketplaceCategories()
 
-  async function ensureCategoryForSeedName(name: string): Promise<void> {
-    const byName = await prisma.category.findFirst({ where: { name } })
-    if (byName) return
-
-    const base = categorySlug(name)
-    let slug = base
-    let i = 0
-    // Avoid slug collisions with nav rows or other dept names ("Computers" vs "Computers & Accessories")
-    while (await prisma.category.findUnique({ where: { slug } })) {
-      i += 1
-      slug = `${base}-${i}`
+  const flat = sortRowsForInsert(flattenMarketplaceCategoryTaxonomy())
+  const idBySlug = new Map<string, string>()
+  for (const row of flat) {
+    const parentId = row.parentSlug ? idBySlug.get(row.parentSlug) ?? null : null
+    if (row.parentSlug && parentId == null) {
+      throw new Error(`Missing parent for category slug ${row.slug} (parent ${row.parentSlug})`)
     }
-
-    await prisma.category.create({
-      data: { name, slug, icon: "📦", order: 999 },
+    const created = await prisma.category.create({
+      data: {
+        name: row.name,
+        slug: row.slug.slice(0, 64),
+        icon: row.icon,
+        order: row.order,
+        parentId,
+      },
     })
-  }
-
-  const unique = [...new Set(ITEMS.map((item) => item.category))]
-  for (const name of unique) {
-    await ensureCategoryForSeedName(name)
+    idBySlug.set(row.slug, created.id)
   }
 
   const total = await prisma.category.count()
-  console.log(`✅ Seeded marketplace taxonomy (${LEGAL_MARKET_NAV.length} roots, ${total} category rows total)`)
+  console.log(`✅ Seeded EN marketplace taxonomy (${total} category rows)`)
 }
 
 type SeedItem = {
@@ -378,8 +273,6 @@ const ITEMS: SeedItem[] = [
   },
 ]
 
-const allowedCategory = new Set<string>(affisellCategories as readonly string[])
-
 async function ensureStoreUser(input: {
   slug: string
   name: string
@@ -436,9 +329,12 @@ async function main() {
     process.exit(1)
   }
 
+  const taxonomyRows = flattenMarketplaceCategoryTaxonomy()
+  const allowedLeafSlugs = leafSlugsFromRows(taxonomyRows)
   for (const item of ITEMS) {
-    if (!allowedCategory.has(item.category)) {
-      console.error(`Unknown category for ${item.slug}: ${item.category}`)
+    const leaf = SEED_PRODUCT_LEAF_BY_ITEM_SLUG[item.slug]
+    if (!leaf || !allowedLeafSlugs.has(leaf)) {
+      console.error(`Unknown or invalid taxonomy leaf for product ${item.slug}: ${leaf ?? "(missing)"}`)
       process.exit(1)
     }
   }
@@ -480,13 +376,10 @@ async function main() {
       freeShippingThreshold: new Prisma.Decimal("0.01"),
     } as const
 
-    const slugGuess = categorySlug(item.category)
-    const catRow =
-      (await prisma.category.findFirst({
-        where: {
-          OR: [{ name: item.category }, { slug: slugGuess }],
-        },
-      })) ?? null
+    const leafSlug = SEED_PRODUCT_LEAF_BY_ITEM_SLUG[item.slug]
+    const catRow = leafSlug
+      ? ((await prisma.category.findUnique({ where: { slug: leafSlug } })) ?? null)
+      : null
 
     const isPromoBucket = index % 4 === 0
     const compareAtUsd = isPromoBucket ? new Prisma.Decimal((item.priceEur * 1.22).toFixed(2)) : null
