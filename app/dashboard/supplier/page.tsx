@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { Package, PlusCircle, Store, Upload } from "lucide-react"
+import { Package, PlusCircle, RefreshCw, Store, Upload } from "lucide-react"
 
 import { auth } from "@/auth"
 import { buttonVariants } from "@/components/ui/button"
@@ -84,6 +84,24 @@ export default async function DashboardSupplierPage() {
                   Bulk Excel
                 </Link>
               </div>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="border-zinc-200 bg-zinc-50/80 p-5 dark:border-zinc-700 dark:bg-zinc-900/30">
+          <div className="flex items-start gap-3">
+            <RefreshCw className="mt-0.5 h-5 w-5 shrink-0 text-zinc-800 dark:text-zinc-100" aria-hidden />
+            <div className="min-w-0 flex-1">
+              <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">Platform sync</h2>
+              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                Connect Shopify or automation tools to import your catalog as drafts.
+              </p>
+              <Link
+                href="/dashboard/supplier/integrations"
+                className={cn(buttonVariants({ size: "sm" }), "mt-4 inline-flex")}
+              >
+                Set up
+              </Link>
             </div>
           </div>
         </Card>
