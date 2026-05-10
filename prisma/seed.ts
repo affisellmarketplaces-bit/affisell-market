@@ -177,7 +177,7 @@ async function seedSampleCategoryAttributes(): Promise<void> {
       ],
     },
     {
-      slug: "home-supplies-cleaning-supplies-descalers-appliance-care",
+      slug: "home-supplies-cleaning-supplies",
       rows: [
         { key: "brand", label: "Brand name", type: "TEXT", required: true, order: 1 },
         {
@@ -263,7 +263,7 @@ async function seedSampleCategoryAttributes(): Promise<void> {
       ],
     },
     {
-      slug: "beauty-and-personal-care-skincare-face-serums",
+      slug: "beauty-and-personal-care-skincare",
       rows: [
         { key: "brand", label: "Brand name", type: "TEXT", required: true, order: 1 },
         {
@@ -272,12 +272,26 @@ async function seedSampleCategoryAttributes(): Promise<void> {
           type: "SELECT",
           required: true,
           order: 2,
-          options: ["Serum", "Ampoule", "Oil", "Essence", "Gel-serum"],
+          options: [
+            "Serum",
+            "Ampoule",
+            "Oil",
+            "Essence",
+            "Gel-serum",
+            "Day cream",
+            "Night cream",
+            "Gel cream",
+            "Balm",
+            "Cleanser",
+            "Toner",
+            "Sunscreen",
+            "Face mask",
+          ],
         },
-        { key: "scent", label: "Scent / fragrance profile", type: "TEXT", required: false, order: 3 },
+        { key: "scent", label: "Scent / fragrance", type: "TEXT", required: false, order: 3 },
         {
           key: "specific_uses",
-          label: "Primary concerns",
+          label: "Skin concerns",
           type: "MULTI_SELECT",
           required: false,
           order: 4,
@@ -289,6 +303,7 @@ async function seedSampleCategoryAttributes(): Promise<void> {
             "Hyperpigmentation",
             "Barrier repair",
             "Pore care",
+            "SPF / sun protection",
           ],
         },
         {
@@ -309,7 +324,7 @@ async function seedSampleCategoryAttributes(): Promise<void> {
         },
         {
           key: "sun_protection_level",
-          label: "Bundled SPF (if any)",
+          label: "SPF (if labeled)",
           type: "SELECT",
           required: false,
           order: 8,
@@ -322,47 +337,15 @@ async function seedSampleCategoryAttributes(): Promise<void> {
           required: false,
           order: 9,
         },
-      ],
-    },
-    {
-      slug: "beauty-and-personal-care-skincare-face-creams",
-      rows: [
-        { key: "brand", label: "Brand name", type: "TEXT", required: true, order: 1 },
-        {
-          key: "item_form",
-          label: "Item form",
-          type: "SELECT",
-          required: true,
-          order: 2,
-          options: ["Day cream", "Night cream", "Gel cream", "Balm", "Oil cream"],
-        },
-        { key: "scent", label: "Scent", type: "TEXT", required: false, order: 3 },
-        {
-          key: "skin_type",
-          label: "Skin type",
-          type: "MULTI_SELECT",
-          required: false,
-          order: 4,
-          options: ["Normal", "Dry", "Oily", "Combination", "Sensitive"],
-        },
-        { key: "item_volume_ml", label: "Volume", type: "NUMBER", unit: "ml", required: false, order: 5 },
-        {
-          key: "specific_uses",
-          label: "Concerns addressed",
-          type: "MULTI_SELECT",
-          required: false,
-          order: 6,
-          options: ["Hydration", "Anti-aging", "SPF daytime", "Rich night repair"],
-        },
         {
           key: "material_type_free",
           label: "Free of",
           type: "MULTI_SELECT",
           required: false,
-          order: 7,
-          options: ["Fragrance-free", "Paraben-free", "Oil-free"],
+          order: 10,
+          options: ["Fragrance-free", "Paraben-free", "Oil-free", "Sulphate-free"],
         },
-        { key: "special_features", label: "Formula notes", type: "TEXTAREA", required: false, order: 8 },
+        { key: "special_features", label: "Formula notes", type: "TEXTAREA", required: false, order: 11 },
       ],
     },
   ]

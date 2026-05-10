@@ -43,6 +43,7 @@ import {
 import { SupplierCategoryPicker, type BrowsePayload } from "@/components/supplier/supplier-category-picker"
 import {
   CategoryAttributeFields,
+  mergeCoreCategoryAttrs,
   missingRequiredCategorySpecs,
   type CategoryAttrRow,
 } from "@/components/supplier/category-attribute-fields"
@@ -193,6 +194,7 @@ export function SupplierAddProductForm({
   const [categoryAttrs, setCategoryAttrs] = useState<CategoryAttrRow[]>([])
   const [specValues, setSpecValues] = useState<Record<string, string>>({})
   const [attrsLoading, setAttrsLoading] = useState(false)
+  const mergedCategoryAttrs = useMemo(() => mergeCoreCategoryAttrs(categoryAttrs), [categoryAttrs])
 
   const commissionMax = affiliateCommissionMaxPct(listingKind)
 
@@ -315,9 +317,19 @@ export function SupplierAddProductForm({
     let cancelled = false
     setAttrsLoading(true)
     fetch(`/api/attributes/by-category?categoryId=${encodeURIComponent(categoryId)}`)
-      .then((r) => r.json())
-      .then((j: { attributes?: CategoryAttrRow[] }) => {
+      .then(async (r) => {
+        let j: { attributes?: CategoryAttrRow[] } = {}
+        try {
+          j = await r.json()
+        } catch {
+          if (!cancelled) setCategoryAttrs([])
+          return
+        }
         if (cancelled) return
+        if (!r.ok) {
+          setCategoryAttrs([])
+          return
+        }
         setCategoryAttrs(Array.isArray(j.attributes) ? j.attributes : [])
       })
       .catch(() => {
@@ -458,7 +470,7 @@ export function SupplierAddProductForm({
 
   const assembleListingPayload = useCallback(
     (draftPriceFallback: boolean): Record<string, unknown> => {
-      const productAttributes = categoryAttrs
+      const productAttributes = mergedCategoryAttrs
         .map((a) => ({
           key: a.key,
           label: a.label,
@@ -502,7 +514,7 @@ export function SupplierAddProductForm({
       }
     },
     [
-      categoryAttrs,
+      mergedCategoryAttrs,
       specValues,
       price,
       name,
@@ -756,7 +768,7 @@ export function SupplierAddProductForm({
       toast.error("Please select a category.")
       return
     }
-    const missingSpecs = missingRequiredCategorySpecs(categoryAttrs, specValues)
+    const missingSpecs = missingRequiredCategorySpecs(mergedCategoryAttrs, specValues)
     if (missingSpecs.length > 0) {
       toast.error(`Fill required fields: ${missingSpecs.map((m) => m.label).join(", ")}`)
       return
@@ -822,8 +834,8 @@ export function SupplierAddProductForm({
   }
 
   const specMissing = useMemo(
-    () => missingRequiredCategorySpecs(categoryAttrs, specValues),
-    [categoryAttrs, specValues]
+    () => missingRequiredCategorySpecs(mergedCategoryAttrs, specValues),
+    [mergedCategoryAttrs, specValues]
   )
   const step1Checklist = useMemo(
     () => ({
@@ -1011,12 +1023,12 @@ export function SupplierAddProductForm({
                     description="Pull in data from a URL or let AI draft copy—optional, but fast when you’re in a hurry."
                   >
                     <div className="space-y-8 border-t border-violet-200/50 pt-6 dark:border-violet-900/30">
-                      <SupplierUrlImportPanel categoryAttrs={categoryAttrs} onApply={handleUrlImportApply} />
+                      <SupplierUrlImportPanel categoryAttrs={mergedCategoryAttrs} onApply={handleUrlImportApply} />
                       <SupplierAiPublishPanel
                         initialTitle={name}
                         initialNotes={description}
                         initialImageUrls={images}
-                        categoryAttrs={categoryAttrs}
+                        categoryAttrs={mergedCategoryAttrs}
                         categoryPathLabel={categoryPathLabel}
                         onGenerated={handleAiGenerated}
                       />
@@ -1104,7 +1116,7 @@ export function SupplierAddProductForm({
                 <SectionCard
                   icon={Tag}
                   title="Classification"
-                  description="Pick the best-fit leaf category — category-specific technical fields load automatically (brand, form, volume, multi-select traits, etc.)."
+                  description="Pick a leaf category — we load marketplace-style specs (like TikTok Shop seller attributes): core identity, aisle-specific traits, compliance & sustainability extras, merged by your category path."
                 >
                   <div>
                     <Label className="inline-flex items-center gap-1">
@@ -1129,7 +1141,7 @@ export function SupplierAddProductForm({
                   </div>
                   <div className="rounded-xl border border-zinc-100 bg-zinc-50/40 p-1 dark:border-zinc-800 dark:bg-zinc-900/30">
                     <CategoryAttributeFields
-                      attributes={categoryAttrs}
+                      attributes={mergedCategoryAttrs}
                       loading={attrsLoading}
                       values={specValues}
                       onChange={setSpecValues}
@@ -1177,7 +1189,7 @@ export function SupplierAddProductForm({
                         toast.error("Please select a category.")
                         return
                       }
-                      const miss = missingRequiredCategorySpecs(categoryAttrs, specValues)
+                      const miss = missingRequiredCategorySpecs(mergedCategoryAttrs, specValues)
                       if (miss.length > 0) {
                         toast.error(`Fill required fields: ${miss.map((m) => m.label).join(", ")}`)
                         return

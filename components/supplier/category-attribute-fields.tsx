@@ -17,6 +17,51 @@ export type CategoryAttrRow = {
   order: number
 }
 
+/** Shown for every product; superseded if the category (or API) already defines the same key. */
+export const CORE_SPEC_FIELDS_PRESET: CategoryAttrRow[] = [
+  {
+    id: "aff-core-brand",
+    key: "brand",
+    label: "Brand",
+    type: "TEXT",
+    unit: null,
+    options: [],
+    required: true,
+    order: -300,
+  },
+  {
+    id: "aff-core-size",
+    key: "size",
+    label: "Size",
+    type: "TEXT",
+    unit: null,
+    options: [],
+    required: false,
+    order: -299,
+  },
+  {
+    id: "aff-core-color",
+    key: "color",
+    label: "Colour",
+    type: "TEXT",
+    unit: null,
+    options: [],
+    required: false,
+    order: -298,
+  },
+]
+
+export function mergeCoreCategoryAttrs(categoryAttrs: CategoryAttrRow[]): CategoryAttrRow[] {
+  const seen = new Set(categoryAttrs.map((a) => a.key.toLowerCase()))
+  const prefix: CategoryAttrRow[] = []
+  for (const c of CORE_SPEC_FIELDS_PRESET) {
+    if (!seen.has(c.key.toLowerCase())) prefix.push(c)
+  }
+  const merged = [...prefix, ...categoryAttrs]
+  merged.sort((a, b) => a.order - b.order || a.label.localeCompare(b.label))
+  return merged
+}
+
 type Props = {
   attributes: CategoryAttrRow[]
   loading?: boolean
@@ -47,29 +92,31 @@ function toggleMultiOption(current: string, opt: string): string {
 }
 
 export function CategoryAttributeFields({ attributes, loading, values, onChange }: Props) {
-  if (loading) {
-    return (
-      <p className="text-xs text-zinc-500 dark:text-zinc-400">Loading category fields…</p>
-    )
-  }
-
-  if (attributes.length === 0) {
-    return null
-  }
-
   const setKey = (key: string, v: string) => {
     onChange({ ...values, [key]: v })
   }
 
   const sorted = [...attributes].sort((a, b) => a.order - b.order || a.label.localeCompare(b.label))
 
+  if (attributes.length === 0) {
+    return (
+      <p className="text-xs text-amber-800 dark:text-amber-200">
+        Add fields failed to load. Refresh the page or pick a category again.
+      </p>
+    )
+  }
+
   return (
     <div className="rounded-lg border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
       <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Technical specifications</h3>
       <p className="mt-1 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-        Fields are defined per leaf category — like major marketplaces.{" "}
-        <span className="text-red-600">*</span> Required · multi-select traits use checkbox groups.
+        <span className="font-medium text-zinc-700 dark:text-zinc-200">Brand, size and colour</span> are always
+        available; more fields appear for your category.{" "}
+        <span className="text-red-600">*</span> Required · multi-select uses pill toggles.
       </p>
+      {loading ? (
+        <p className="mt-2 text-xs text-violet-600 dark:text-violet-400">Loading extra fields for this aisle…</p>
+      ) : null}
       <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {sorted.map((attr) => {
           const v = values[attr.key] ?? ""
