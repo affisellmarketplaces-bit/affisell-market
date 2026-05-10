@@ -1,8 +1,11 @@
 "use client"
 
+import Link from "next/link"
+
 import { Heart } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
+import { WishlistHeart } from "@/components/wishlist-heart"
 import { cn } from "@/lib/utils"
 
 export type ProductCardProduct = {
@@ -48,7 +51,19 @@ function coerceProduct(p: ProductCardProps["product"]): {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const o = product as Record<string, unknown>
   const p = coerceProduct(product)
+  const listingRaw = o.listingId ?? o.id
+  const listingId =
+    typeof listingRaw === "string"
+      ? listingRaw
+      : listingRaw != null && listingRaw !== ""
+        ? String(listingRaw)
+        : ""
+  const pid = o.productId
+  const productIdStr =
+    typeof pid === "string" ? pid : pid != null && pid !== "" ? String(pid) : ""
+  const href = listingId ? `/marketplace/${encodeURIComponent(listingId)}` : "/marketplace"
   const priceN = p.price
   const compareN = p.compareAt
   const hasDiscount = compareN != null && compareN > priceN
@@ -56,7 +71,14 @@ export function ProductCard({ product }: ProductCardProps) {
   const src = p.image || "/placeholder-product.jpg"
 
   return (
-    <div className="group">
+    <Link
+      href={href}
+      prefetch={false}
+      className={cn(
+        "group flex h-full w-full flex-col rounded-2xl outline-none ring-offset-2 transition-shadow",
+        "hover:shadow-lg hover:shadow-zinc-200/60 focus-visible:ring-2 focus-visible:ring-violet-500"
+      )}
+    >
       <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-gray-100 bg-[#F5F5F5]">
         {hasDiscount ? (
           <Badge className="absolute left-3 top-3 z-10 rounded-full bg-red-500 px-3 py-1.5 font-black text-white hover:bg-red-500">
@@ -73,12 +95,13 @@ export function ProductCard({ product }: ProductCardProps) {
             Best Seller
           </Badge>
         ) : null}
-        <button
-          type="button"
-          className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur transition-all hover:bg-white"
-        >
-          <Heart className="h-4 w-4 text-gray-700" />
-        </button>
+        {productIdStr ? (
+          <WishlistHeart productId={productIdStr} className="absolute right-3 top-3 z-20" />
+        ) : (
+          <span className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur">
+            <Heart className="h-4 w-4 text-gray-700" aria-hidden />
+          </span>
+        )}
         {/* eslint-disable-next-line @next/next/no-img-element -- remote URLs + placeholder */}
         <img
           src={src}
@@ -101,6 +124,6 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
         <p className="mt-1 text-xs text-gray-500">by {p.store || "Affisell"}</p>
       </div>
-    </div>
+    </Link>
   )
 }
