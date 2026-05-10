@@ -136,12 +136,12 @@ export function SupplierAffiliateEvalPreview({
             )}
           >
             <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden />
-            Catalog
+            Products
           </Link>
           <div className="hidden h-4 w-px bg-zinc-200 sm:block dark:bg-zinc-700" aria-hidden />
           <div className="min-w-0 flex-1">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-violet-600 dark:text-violet-400">
-              Affiliate preview
+              Partner preview
             </p>
             <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">{product.name}</p>
           </div>
@@ -191,7 +191,7 @@ export function SupplierAffiliateEvalPreview({
                   : "border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200"
               )}
             >
-              {visible ? "Live in catalog" : product.isDraft ? "Draft" : "Paused"}
+              {visible ? "Published" : product.isDraft ? "Draft" : "Paused"}
             </span>
           </div>
         </div>

@@ -85,7 +85,7 @@ export function SupplierProductAddHub({ onStartManual, onStartWithAssist }: Prop
                 "border-zinc-300 dark:border-zinc-600"
               )}
             >
-              Back to catalog
+              Back to products
             </Link>
           </div>
         </header>

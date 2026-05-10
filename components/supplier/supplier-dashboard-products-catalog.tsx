@@ -33,7 +33,7 @@ export function SupplierDashboardProductsCatalog({
   products: CatalogProduct[]
   storefrontHref: string
   storefrontName: string | null
-  /** Live affiliate listings count per supplier product (`isListed`). */
+  /** How many distinct partner storefronts list this SKU (listed rows). */
   partnerListingCountByProductId?: Record<string, number>
 }) {
   const liveCount = products.filter((p) => !p.isDraft && p.active).length
@@ -45,20 +45,21 @@ export function SupplierDashboardProductsCatalog({
       <div className="flex flex-wrap items-start justify-between gap-4 rounded-2xl border border-zinc-200/90 bg-white/90 px-5 py-4 shadow-sm dark:border-zinc-700/90 dark:bg-zinc-950/60 sm:px-6 sm:py-5">
         <div className="min-w-0">
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-3xl">
-            Affiliate catalog
+            Products
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-            Curate what affiliates see when they evaluate your brand: public pricing, compare-at, stock, and the
-            commission you offer on qualifying sales. Use <strong className="font-medium text-zinc-800 dark:text-zinc-200">Affiliate preview</strong>{" "}
-            on each card for the partner briefing—not the shopper PDP; that only exists after a partner publishes a
-            listing.
+            Manage SKUs you sell through Affisell: pricing, inventory, fulfillment details, and the margin shared with
+            partners. Customer checkout runs on partner storefront listings—your job here is a clear, accurate wholesale
+            anchor. Use <strong className="font-medium text-zinc-800 dark:text-zinc-200">Partner preview</strong> on each
+            card to sanity-check economics from a reseller perspective.
           </p>
           <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-xs font-medium text-zinc-500 dark:text-zinc-400 sm:text-sm">
             <span>
-              <strong className="text-zinc-900 dark:text-zinc-100">{products.length}</strong> total listings
+              <strong className="text-zinc-900 dark:text-zinc-100">{products.length}</strong> SKU
+              {products.length === 1 ? "" : "s"}
             </span>
             <span>
-              <strong className="text-emerald-700 dark:text-emerald-400">{liveCount}</strong> live for affiliates
+              <strong className="text-emerald-700 dark:text-emerald-400">{liveCount}</strong> published live
             </span>
             {draftCount ? (
               <span>
@@ -108,10 +109,10 @@ export function SupplierDashboardProductsCatalog({
 
       {products.length === 0 ? (
         <div className="mt-10 rounded-2xl border border-dashed border-zinc-300 bg-zinc-50/80 px-6 py-20 text-center dark:border-zinc-600 dark:bg-zinc-950/40">
-          <p className="text-lg font-medium text-zinc-900 dark:text-zinc-50">Nothing for affiliates yet</p>
+          <p className="text-lg font-medium text-zinc-900 dark:text-zinc-50">No products yet</p>
           <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
-            Publish listings so partners can browse margins, SKUs, and story on your storefront and marketplace—all
-            from this affiliate-first catalog view.
+            Add your first SKU to go live on the marketplace and your public supplier storefront. Partner discovery and
+            resale tools live in their own workspace—this screen is your catalog control center.
           </p>
           <Link
             href="/dashboard/supplier/products/new"
@@ -225,7 +226,7 @@ export function SupplierDashboardProductsCatalog({
                             <strong className="font-semibold text-emerald-900 dark:text-emerald-100">
                               {partnersListed}
                             </strong>{" "}
-                            creator{partnersListed === 1 ? "" : "s"} listed
+                            partner storefront{partnersListed === 1 ? "" : "s"}
                           </span>
                         </span>
                       ) : null}
@@ -248,7 +249,7 @@ export function SupplierDashboardProductsCatalog({
                           "justify-center gap-1 text-xs text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
                         )}
                       >
-                        Affiliate preview
+                        Partner preview
                       </Link>
                     </div>
                   </div>

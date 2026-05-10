@@ -56,7 +56,7 @@ export default async function SupplierProductsPage() {
             href="/dashboard/supplier/products"
             className="inline-flex rounded-lg bg-white px-3 py-1.5 text-zinc-900 shadow-sm ring-1 ring-black/[0.05] dark:bg-zinc-900 dark:text-zinc-50 dark:ring-white/10"
           >
-            Affiliate catalog
+            Products
           </Link>
           <Link
             href="/dashboard/supplier"

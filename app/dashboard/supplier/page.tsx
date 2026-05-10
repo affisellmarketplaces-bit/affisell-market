@@ -32,7 +32,7 @@ export default async function DashboardSupplierPage() {
             <div className="min-w-0 flex-1">
               <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">Add product</h2>
               <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                Create a listing with images, pricing, and affiliate commission.
+                Create a listing with images, pricing, and partner margin settings.
               </p>
               <Link
                 href="/dashboard/supplier/products/new"
@@ -56,7 +56,7 @@ export default async function DashboardSupplierPage() {
                 href="/dashboard/supplier/products"
                 className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-4 inline-flex")}
               >
-                View catalog
+                Manage products
               </Link>
             </div>
           </div>

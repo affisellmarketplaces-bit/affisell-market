@@ -22,8 +22,8 @@ export async function generateMetadata({
     select: { name: true },
   })
   return {
-    title: p ? `${p.name.slice(0, 72)} · Affiliate preview` : "Affiliate preview",
-    description: "Supplier view of catalog facts and commission partners see before listing.",
+    title: p ? `${p.name.slice(0, 72)} · Partner preview` : "Partner preview",
+    description: "How resellers read your SKU—pricing anchor, margin, and fulfillment signals before they list.",
   }
 }
 
