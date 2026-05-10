@@ -17,13 +17,13 @@ import {
   Check,
   ChevronRight,
   Compass,
+  ExternalLink,
   Eye,
   Filter,
   GripVertical,
   LayoutGrid,
   LogOut,
   Pencil,
-  Percent,
   Search,
   Sparkles,
   Store,
@@ -31,7 +31,6 @@ import {
   Trash2,
   UserRound,
   UsersRound,
-  Zap,
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -80,14 +79,6 @@ function isSkuFresh(iso: string | null | undefined, days = 14) {
   const t = new Date(iso).getTime()
   if (!Number.isFinite(t)) return false
   return Date.now() - t < days * 86_400_000
-}
-
-function discoverCommissionBadgeThreshold(catalog: CatalogProduct[]) {
-  const rates = catalog.map((p) => p.commissionRate).filter((n) => Number.isFinite(n) && n > 0)
-  if (!rates.length) return 14
-  const sorted = [...rates].sort((a, b) => a - b)
-  const idx = Math.max(0, Math.floor(sorted.length * 0.72) - 1)
-  return Math.min(28, Math.max(10, sorted[idx] ?? 14))
 }
 
 type Listing = SerializedListing & {
@@ -377,11 +368,6 @@ export function AffiliateDashboard({
   const [discoverQ, setDiscoverQ] = useState("")
   const [discoverSort, setDiscoverSort] = useState<DiscoverSortKey>("new")
   const [discoverUnlistedOnly, setDiscoverUnlistedOnly] = useState(false)
-
-  const commissionHighlight = useMemo(
-    () => discoverCommissionBadgeThreshold(initialCatalog),
-    [initialCatalog]
-  )
 
   const insightClicks = useMemo(
     () => listingsWithProduct.reduce((s, l) => s + (l.clicks ?? 0), 0),
@@ -684,8 +670,6 @@ export function AffiliateDashboard({
             const isAdded = (p.affiliateProducts?.length ?? 0) > 0
             const thumb = primaryProductImage(p.images) || "/placeholder.png"
             const fresh = !isAdded && isSkuFresh(p.createdAt)
-            const hotMargin =
-              !isAdded && Number.isFinite(p.commissionRate) && p.commissionRate >= commissionHighlight
             const supplierBrand = supplierDisplayLabel(p)
             const supplierHref = p.supplier.store?.slug?.trim()
               ? `/store/supplier/${encodeURIComponent(p.supplier.store.slug)}`
@@ -705,19 +689,11 @@ export function AffiliateDashboard({
                     In your store
                   </div>
                 ) : null}
-                {!isAdded && (fresh || hotMargin) ? (
-                  <div className="pointer-events-none absolute left-3 top-3 z-10 flex max-w-[70%] flex-wrap gap-1">
-                    {fresh ? (
-                      <span className="rounded-full bg-sky-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow">
-                        New in feed
-                      </span>
-                    ) : null}
-                    {hotMargin ? (
-                      <span className="inline-flex items-center gap-0.5 rounded-full bg-violet-600 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white shadow">
-                        <Zap className="h-3 w-3" aria-hidden />
-                        Strong margin
-                      </span>
-                    ) : null}
+                {!isAdded && fresh ? (
+                  <div className="pointer-events-none absolute left-3 top-3 z-10">
+                    <span className="rounded-full bg-sky-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow">
+                      New
+                    </span>
                   </div>
                 ) : null}
                 <div className="relative aspect-square bg-gradient-to-b from-zinc-50 to-gray-50 p-4 dark:from-zinc-900 dark:to-zinc-950">
@@ -729,44 +705,28 @@ export function AffiliateDashboard({
                     sizes="320px"
                     unoptimized={thumb.startsWith("http")}
                   />
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent px-3 pb-3 pt-8 dark:from-zinc-950/90 dark:to-transparent">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold text-violet-900 shadow-sm dark:bg-zinc-900/95 dark:text-violet-200">
-                      <Percent className="h-3 w-3" aria-hidden />
-                      {Number.isFinite(p.commissionRate) && p.commissionRate > 0
-                        ? `${p.commissionRate}% supplier commission`
-                        : "Commission pending"}
-                    </span>
-                  </div>
                 </div>
-                <div className="flex flex-1 flex-col gap-3 p-5">
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <p className="min-w-0 flex-1 font-semibold leading-snug text-gray-900 dark:text-zinc-50">{p.name}</p>
+                <div className="flex flex-1 flex-col gap-2.5 p-4 sm:p-5">
+                  <div className="flex items-start gap-2">
+                    <p className="min-w-0 flex-1 text-[15px] font-semibold leading-snug tracking-tight text-gray-900 dark:text-zinc-50">
+                      {p.name}
+                    </p>
                     <Link
                       href={canonicalListingHref}
-                      className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-teal-700 underline underline-offset-2 hover:text-teal-900 dark:text-teal-400"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Buyer preview — opens PDP when a listing exists"
+                      className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-zinc-200 bg-white text-teal-700 transition hover:border-teal-200 hover:bg-teal-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-teal-400 dark:hover:bg-teal-950/40"
+                      aria-label="Buyer preview"
                     >
-                      Buyer preview
+                      <ExternalLink className="h-4 w-4" aria-hidden />
                     </Link>
                   </div>
                   {(p.categories?.length ?? 0) > 0 ? (
-                    <p className="line-clamp-1 text-[11px] text-blue-700 dark:text-blue-400">
+                    <p className="-mt-1 line-clamp-1 text-xs text-zinc-500 dark:text-zinc-400">
                       {(p.categories ?? []).slice(0, 2).join(" · ")}
                     </p>
                   ) : null}
-                  <div className="rounded-xl border border-violet-200/90 bg-gradient-to-br from-violet-50/95 to-white px-3 py-2.5 dark:border-violet-900/60 dark:from-violet-950/50 dark:to-zinc-950">
-                    <p className="flex flex-wrap items-center gap-1.5 text-xs font-semibold text-violet-950 dark:text-violet-100">
-                      <Percent className="h-3.5 w-3.5 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
-                      <span>Commission offered (supplier)</span>
-                      <span className="tabular-nums font-bold tracking-tight text-violet-900 dark:text-violet-50">
-                        {Number.isFinite(p.commissionRate) && p.commissionRate > 0
-                          ? `${p.commissionRate}%`
-                          : "—"}
-                      </span>
-                    </p>
-                    <p className="mt-1 text-[10px] leading-snug text-violet-800/85 dark:text-violet-200/85">
-                      You earn this percent of resale margin—the gap between shopper price and the supplier price below.
-                    </p>
-                  </div>
                   {(p.colors?.length ?? 0) > 0 ? (
                     <div className="flex flex-wrap gap-1">
                       {(p.colors ?? []).slice(0, 8).map((cn) => {
@@ -790,24 +750,42 @@ export function AffiliateDashboard({
                       })}
                     </div>
                   ) : null}
-                  <div className="mt-auto border-t border-zinc-100 pt-3 dark:border-zinc-800">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                      Supplier price
-                    </p>
-                    <p className="text-sm font-medium text-gray-900 dark:text-zinc-100">{fmtEUR(p.basePriceCents)}</p>
-                    {supplierHref ? (
-                      <Link
-                        href={supplierHref}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-1 inline-flex max-w-full truncate text-xs font-medium text-violet-700 hover:underline dark:text-violet-400"
+                  <div className="mt-auto grid grid-cols-2 gap-3 border-t border-zinc-100 pt-3 dark:border-zinc-800">
+                    <div>
+                      <p className="text-[10px] font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                        Supplier price
+                      </p>
+                      <p className="mt-0.5 text-base font-bold tabular-nums text-zinc-900 dark:text-white">
+                        {fmtEUR(p.basePriceCents)}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p
+                        className="text-[10px] font-medium uppercase tracking-wide text-violet-600 dark:text-violet-400"
+                        title="% of resale margin vs supplier price above"
                       >
-                        {supplierBrand} · public shop →
-                      </Link>
-                    ) : (
-                      <p className="mt-1 truncate text-xs text-gray-400 dark:text-zinc-500">{supplierBrand}</p>
-                    )}
+                        Commission
+                      </p>
+                      <p className="mt-0.5 text-base font-bold tabular-nums text-violet-700 dark:text-violet-300">
+                        {Number.isFinite(p.commissionRate) && p.commissionRate > 0
+                          ? `${p.commissionRate}%`
+                          : "—"}
+                      </p>
+                    </div>
                   </div>
+                  {supplierHref ? (
+                    <Link
+                      href={supplierHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="-mt-1 flex max-w-full items-center gap-1 truncate text-xs font-medium text-violet-700 hover:underline dark:text-violet-400"
+                    >
+                      <Store className="h-3.5 w-3.5 shrink-0 opacity-80" aria-hidden />
+                      <span className="truncate">{supplierBrand}</span>
+                    </Link>
+                  ) : (
+                    <p className="-mt-1 truncate text-xs text-zinc-400 dark:text-zinc-500">{supplierBrand}</p>
+                  )}
                   {isAdded ? (
                     <>
                       <button
