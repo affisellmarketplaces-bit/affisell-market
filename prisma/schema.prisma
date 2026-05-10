@@ -149,6 +149,8 @@ model Product {
   supplierId String
   name String
   description String
+  /** Marketplace “About this item” bullets (distinct from prose description). */
+  descriptionBullets String[] @default([])
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
   images String[] @default([])

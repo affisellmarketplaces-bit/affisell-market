@@ -11,6 +11,8 @@ import {
   Circle,
   Image as ImageIcon,
   Loader2,
+  Plus,
+  Trash2,
   Cloud,
   Package,
   Sparkles,
@@ -162,6 +164,7 @@ export function SupplierAddProductForm({
 
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
+  const [descriptionBullets, setDescriptionBullets] = useState<string[]>([""])
   const [categoryId, setCategoryId] = useState("")
   const [categoryPath, setCategoryPath] = useState<CategoryPathSegment[]>([])
   const [images, setImages] = useState<string[]>([])
@@ -215,6 +218,15 @@ export function SupplierAddProductForm({
     if (discountPct > 70) return "Compare-at discount cannot exceed 70%."
     return null
   }, [compareAt, discountPct, price])
+
+  const unitPriceFromVolumeHint = useMemo(() => {
+    const raw = specValues.item_volume_ml?.trim().replace(",", ".")
+    const ml = Number(raw)
+    const p = Number(price)
+    if (!Number.isFinite(ml) || ml <= 0 || !Number.isFinite(p) || p <= 0) return null
+    const perLiter = p / (ml / 1000)
+    return `${formatMoneyUsd(perLiter)} per litre (from “Item volume” in specs ÷ your base price)`
+  }, [price, specValues.item_volume_ml])
 
   const commissionError = useMemo(() => {
     const n = Number(commission)
@@ -396,6 +408,16 @@ export function SupplierAddProductForm({
       setDeliveryDays(dd != null && Number.isFinite(Number(dd)) ? String(dd) : "")
       setFreeShipping(Boolean(data.freeShipping))
       setSupplierTag(typeof data.supplierTag === "string" ? data.supplierTag : "")
+      const bulletsRaw = data.descriptionBullets
+      if (Array.isArray(bulletsRaw)) {
+        const lines = bulletsRaw
+          .filter((x): x is string => typeof x === "string")
+          .map((s) => s.trim())
+          .filter(Boolean)
+        setDescriptionBullets(lines.length > 0 ? lines : [""])
+      } else {
+        setDescriptionBullets([""])
+      }
       const attrs = data.attributes
       if (Array.isArray(attrs)) {
         const next: Record<string, string> = {}
@@ -476,6 +498,7 @@ export function SupplierAddProductForm({
               : undefined,
         freeShipping,
         supplierTag: supplierTag.trim() || undefined,
+        descriptionBullets: descriptionBullets.map((s) => s.trim()).filter(Boolean),
       }
     },
     [
@@ -500,6 +523,7 @@ export function SupplierAddProductForm({
       deliveryDays,
       freeShipping,
       supplierTag,
+      descriptionBullets,
     ]
   )
 
@@ -536,6 +560,7 @@ export function SupplierAddProductForm({
     setFreeShipping(c.freeShipping)
     setSupplierTag(c.supplierTag)
     setSpecValues(c.specValues)
+    setDescriptionBullets(c.descriptionBullets?.length ? c.descriptionBullets : [""])
     toast("Restored your last on-device draft for this workflow.", { duration: 4500 })
   }, [urlListingId, pendingDraftListingId, loadingBrowse, cacheMode])
 
@@ -661,6 +686,7 @@ export function SupplierAddProductForm({
         freeShipping,
         supplierTag,
         specValues,
+        descriptionBullets,
       })
     }, 720)
     return () => window.clearTimeout(t)
@@ -674,6 +700,7 @@ export function SupplierAddProductForm({
     deliveryMax,
     deliveryMin,
     description,
+    descriptionBullets,
     editId,
     freeShipping,
     images,
@@ -1025,12 +1052,59 @@ export function SupplierAddProductForm({
                       placeholder="Highlights, materials, who it’s for—what affiliates should know"
                     />
                   </div>
+                  <div>
+                    <Label className="text-zinc-800 dark:text-zinc-100">About this item (bullet points)</Label>
+                    <p className="mt-0.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+                      Structured selling points shoppers see first on the product page (like marketplace “About this
+                      item”).
+                    </p>
+                    <div className="mt-2 space-y-2">
+                      {descriptionBullets.map((line, i) => (
+                        <div key={i} className="flex gap-2">
+                          <Input
+                            className="h-10 min-w-0 flex-1"
+                            value={line}
+                            onChange={(e) => {
+                              const next = [...descriptionBullets]
+                              next[i] = e.target.value
+                              setDescriptionBullets(next)
+                            }}
+                            placeholder={`Selling point ${i + 1}`}
+                            maxLength={500}
+                          />
+                          {descriptionBullets.length > 1 ? (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="shrink-0 text-zinc-500 hover:text-red-600"
+                              onClick={() =>
+                                setDescriptionBullets(descriptionBullets.filter((_, j) => j !== i))
+                              }
+                              aria-label="Remove bullet"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          ) : null}
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="gap-1 border-dashed text-zinc-600 dark:text-zinc-300"
+                        onClick={() => setDescriptionBullets([...descriptionBullets, ""])}
+                      >
+                        <Plus className="h-4 w-4" aria-hidden /> Add bullet
+                      </Button>
+                    </div>
+                  </div>
                 </SectionCard>
 
                 <SectionCard
                   icon={Tag}
                   title="Classification"
-                  description="Pick the best-fit leaf category—attributes unlock below."
+                  description="Pick the best-fit leaf category — category-specific technical fields load automatically (brand, form, volume, multi-select traits, etc.)."
                 >
                   <div>
                     <Label className="inline-flex items-center gap-1">
@@ -1150,6 +1224,11 @@ export function SupplierAddProductForm({
                       />
                       {compareError ? <p className="mt-1 text-xs text-red-600">{compareError}</p> : null}
                     </div>
+                    {unitPriceFromVolumeHint ? (
+                      <p className="sm:col-span-2 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                        Unit price signal: {unitPriceFromVolumeHint}
+                      </p>
+                    ) : null}
                     <div>
                       <Label htmlFor="p-stock">Stock</Label>
                       <Input

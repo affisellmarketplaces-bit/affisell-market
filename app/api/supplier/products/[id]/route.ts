@@ -9,6 +9,7 @@ import {
 import { createNewDropCommunityPost } from "@/lib/community-new-drop"
 import { parseProductAttributesBody } from "@/lib/supplier-product-attributes"
 import { parseCompareAtDraftLax, parseCompareAtStrict } from "@/lib/supplier-product-compare-at"
+import { parseDescriptionBullets } from "@/lib/supplier-product-description-bullets"
 import { parseProductMarketplaceMeta } from "@/lib/supplier-product-marketplace-meta"
 import { parseSupplierProductShippingBody } from "@/lib/supplier-product-shipping"
 import { parseSupplierProductImages } from "@/lib/supplier-product-images"
@@ -177,6 +178,10 @@ export async function PUT(
 
   const activatingFromDraft = Boolean(existingRow.isDraft && publish)
   const desc = typeof body.description === "string" ? body.description.trim() : ""
+  const descriptionBulletsPatch =
+    "descriptionBullets" in rawBody
+      ? parseDescriptionBullets((rawBody as Record<string, unknown>).descriptionBullets)
+      : undefined
   const images = parseSupplierProductImages(body as unknown as Record<string, unknown>)
   const attr = parseProductAttributesBody(body as unknown as Record<string, unknown>)
   const ship = parseSupplierProductShippingBody(body as unknown as Record<string, unknown>)
@@ -201,6 +206,9 @@ export async function PUT(
       data: {
         name: nameResolved,
         description: desc,
+        ...(descriptionBulletsPatch !== undefined
+          ? { descriptionBullets: descriptionBulletsPatch }
+          : {}),
         images,
         colorImages:
           attr.colorImages === null

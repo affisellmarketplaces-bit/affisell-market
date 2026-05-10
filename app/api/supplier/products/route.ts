@@ -9,6 +9,7 @@ import { parseProductMarketplaceMeta } from "@/lib/supplier-product-marketplace-
 import { parseSupplierProductShippingBody } from "@/lib/supplier-product-shipping"
 import { parseSupplierProductImages } from "@/lib/supplier-product-images"
 import { parseCompareAtDraftLax, parseCompareAtStrict } from "@/lib/supplier-product-compare-at"
+import { parseDescriptionBullets } from "@/lib/supplier-product-description-bullets"
 import {
   defaultAffiliateCommissionPct,
   normalizeAffiliateCommissionRatePct,
@@ -109,6 +110,9 @@ export async function POST(req: Request) {
   const ship = parseSupplierProductShippingBody(body as Record<string, unknown>)
   const meta = parseProductMarketplaceMeta(body as Record<string, unknown>)
   const desc = typeof description === "string" ? description.trim() : ""
+  const descriptionBullets = parseDescriptionBullets(
+    (body as Record<string, unknown>).descriptionBullets
+  )
   const stockN = Math.max(0, Math.round(Number.isFinite(Number(stock)) ? Number(stock) : 0))
 
   const productAttributes = Array.isArray(productAttributesRaw)
@@ -132,6 +136,7 @@ export async function POST(req: Request) {
         supplierId,
         name: saveAsDraft ? displayName : nameStr.slice(0, 500),
         description: desc,
+        descriptionBullets,
         images,
         colorImages:
           attr.colorImages === null

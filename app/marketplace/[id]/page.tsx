@@ -19,7 +19,11 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
   const listing = await prisma.affiliateProduct.findFirst({
     where: { id, isListed: true, product: { active: true } },
     include: {
-      product: true,
+      product: {
+        include: {
+          attributes: { orderBy: { label: "asc" } },
+        },
+      },
       affiliate: { include: { store: true } },
     },
   })
@@ -170,6 +174,16 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
   const oftenBoughtTogether = mapRelated(oftenRaw).slice(0, 3)
   const alsoViewed = mapRelated([...fallbackRaw, ...oftenRaw]).slice(0, 3)
 
+  const descriptionBullets =
+    Array.isArray(p.descriptionBullets) && p.descriptionBullets.length > 0
+      ? (p.descriptionBullets as unknown[]).filter((x): x is string => typeof x === "string").map((s) => s.trim())
+          .filter(Boolean)
+      : []
+
+  const productSpecs = [...(listing.product.attributes ?? [])]
+    .map((row) => ({ label: String(row.label || row.key || "").trim(), value: row.value.trim() }))
+    .filter((row) => row.label.length > 0 && row.value.length > 0)
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-zinc-50 via-white to-violet-50/30 dark:from-zinc-950 dark:via-zinc-950 dark:to-violet-950/20">
       <div className="mx-auto max-w-6xl px-4 py-10 md:px-8 lg:py-12">
@@ -181,6 +195,8 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
           listing.customDescription,
           listing.product.description
         )}
+        descriptionBullets={descriptionBullets}
+        productSpecs={productSpecs}
         sellerLabel={sellerLabel}
         storefront={storefront}
         priceDisplay={priceDisplay}

@@ -51,11 +51,15 @@ type RelatedCard = {
   priceEur: number
 }
 
+type SpecRow = { label: string; value: string }
+
 type Props = {
   listingId: string
   productId: string
   name: string
   description: string
+  descriptionBullets?: string[]
+  productSpecs?: SpecRow[]
   sellerLabel: string
   storefront: StorefrontInfo | null
   priceDisplay: string
@@ -142,6 +146,8 @@ export function MarketplaceListingDetail({
   productId,
   name,
   description,
+  descriptionBullets = [],
+  productSpecs = [],
   sellerLabel,
   storefront,
   tags,
@@ -665,13 +671,48 @@ export function MarketplaceListingDetail({
       <section className="mt-10 space-y-3">
         <details className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700" open>
           <summary className="cursor-pointer font-semibold">Description</summary>
-          <p className="mt-2 text-sm text-zinc-700 dark:text-zinc-300">{description}</p>
+          {descriptionBullets.length > 0 ? (
+            <>
+              <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400">
+                About this item
+              </p>
+              <ul className="mt-2 list-none space-y-2 text-sm leading-relaxed text-zinc-800 dark:text-zinc-200">
+                {descriptionBullets.map((line, i) => (
+                  <li key={`bullet-${i}`} className="flex gap-2.5">
+                    <span className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-violet-500" aria-hidden />
+                    <span>{line}</span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
+          <div className={descriptionBullets.length > 0 ? "mt-6 border-t border-zinc-100 pt-5 dark:border-zinc-800" : ""}>
+            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400">
+              Full detail
+            </p>
+            <p className="mt-2 text-sm whitespace-pre-wrap text-zinc-700 dark:text-zinc-300">{description}</p>
+          </div>
         </details>
         <details className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
-          <summary className="cursor-pointer font-semibold">Specs</summary>
-          <ul className="mt-2 text-sm text-zinc-700 dark:text-zinc-300">
-            <li>Brand: {sellerLabel}</li>
-            <li>Colors: {colorNames.length || "N/A"}</li>
+          <summary className="cursor-pointer font-semibold">Specifications</summary>
+          {productSpecs.length > 0 ? (
+            <dl className="mt-3 grid gap-x-6 gap-y-3 sm:grid-cols-2">
+              {productSpecs.map((row) => (
+                <div
+                  key={`${row.label}:${row.value.slice(0, 32)}`}
+                  className="border-b border-zinc-100 pb-2 last:border-0 dark:border-zinc-800 sm:border-0 sm:pb-0"
+                >
+                  <dt className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">{row.label}</dt>
+                  <dd className="mt-0.5 text-sm text-zinc-900 dark:text-zinc-100">{row.value}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : null}
+          <ul
+            className={`mt-2 text-sm text-zinc-700 dark:text-zinc-300 ${productSpecs.length > 0 ? "mt-4 border-t border-dashed border-zinc-100 pt-4 dark:border-zinc-800" : ""}`}
+          >
+            <li>Seller storefront: {sellerLabel}</li>
+            <li>Swatches / colours listed: {colorNames.length || "—"}</li>
             <li>Average rating: {reviewSummary.average.toFixed(1)} / 5</li>
           </ul>
         </details>

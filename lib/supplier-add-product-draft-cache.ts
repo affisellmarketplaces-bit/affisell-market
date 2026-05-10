@@ -27,6 +27,8 @@ export type SupplierAddProductCachePayload = {
   freeShipping: boolean
   supplierTag: string
   specValues: Record<string, string>
+  /** “About this item” lines (same order as PDP bullets). */
+  descriptionBullets: string[]
 }
 
 export function readSupplierAddProductDraftCache(mode: SupplierAddProductCacheMode): SupplierAddProductCachePayload | null {
@@ -37,7 +39,10 @@ export function readSupplierAddProductDraftCache(mode: SupplierAddProductCacheMo
     const parsed = JSON.parse(raw) as SupplierAddProductCachePayload
     if (parsed?.v !== 1 || parsed.mode !== mode) return null
     if (typeof parsed.specValues !== "object" || !parsed.specValues) return null
-    return parsed
+    const descriptionBullets = Array.isArray(parsed.descriptionBullets)
+      ? (parsed.descriptionBullets.filter((x): x is string => typeof x === "string"))
+      : []
+    return { ...parsed, descriptionBullets }
   } catch {
     return null
   }

@@ -55,7 +55,15 @@ export const MARKETPLACE_CATEGORY_TAXONOMY_EN: TaxonomyRoot[] = [
       },
       {
         name: "Cleaning Supplies",
-        leaves: ["Mops", "Brooms", "Cleaning Cloths", "Spray Bottles", "Vacuum Accessories", "Rubber Gloves"],
+        leaves: [
+          "Mops",
+          "Brooms",
+          "Cleaning Cloths",
+          "Spray Bottles",
+          "Vacuum Accessories",
+          "Rubber Gloves",
+          "Descalers & Appliance Care",
+        ],
       },
       {
         name: "Laundry Care",

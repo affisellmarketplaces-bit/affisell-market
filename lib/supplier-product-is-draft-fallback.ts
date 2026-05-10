@@ -8,6 +8,7 @@ const PRODUCT_SCALAR_SELECT_NO_ISDRAFT = {
   supplierId: true,
   name: true,
   description: true,
+  descriptionBullets: true,
   createdAt: true,
   updatedAt: true,
   images: true,
