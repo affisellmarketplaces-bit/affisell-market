@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Camera, Search, ShoppingCart } from "lucide-react"
 import type { FormEvent } from "react"
 import { useEffect, useRef, useState, useSyncExternalStore } from "react"
+import { useSession } from "next-auth/react"
 
 import {
   guestCartCount,
@@ -32,6 +33,8 @@ type ToastState = {
 } | null
 
 export function SiteNav() {
+  const { data: session } = useSession()
+  const isSupplier = session?.user?.role === "SUPPLIER"
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -89,6 +92,22 @@ export function SiteNav() {
     if (nextQty <= 0) removeGuestCartItem(toast.productId)
     else setGuestCartQuantity(toast.productId, nextQty)
     setToast(null)
+  }
+
+  if (isSupplier) {
+    return (
+      <nav className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-1 py-1 text-sm md:flex-nowrap md:gap-4">
+        <Link
+          href="/dashboard/supplier"
+          className="order-1 shrink-0 font-semibold text-zinc-900 dark:text-zinc-100"
+        >
+          Affisell
+        </Link>
+        <span className="order-2 text-xs text-zinc-500 dark:text-zinc-400">
+          Supplier
+        </span>
+      </nav>
+    )
   }
 
   function submitHeaderSearch(ev: FormEvent<HTMLFormElement>) {

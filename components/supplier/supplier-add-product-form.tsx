@@ -1,14 +1,28 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ArrowLeft, CircleHelp, Loader2 } from "lucide-react"
+import type { LucideIcon } from "lucide-react"
+import {
+  ArrowLeft,
+  CheckCircle2,
+  CircleHelp,
+  Circle,
+  Image as ImageIcon,
+  Loader2,
+  Package,
+  Sparkles,
+  Globe2,
+  Tag,
+  Truck,
+  Wallet,
+  Zap,
+} from "lucide-react"
 import { toast } from "sonner"
 
 import { SupplierProductImageUpload } from "@/components/supplier/supplier-product-image-upload"
 import { Button, buttonVariants } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -54,7 +68,64 @@ function formatMoneyUsd(n: number) {
   })
 }
 
-export function SupplierAddProductForm() {
+function SectionCard({
+  icon: Icon,
+  title,
+  description,
+  children,
+  className,
+  variant = "default",
+}: {
+  icon: LucideIcon
+  title: string
+  description?: string
+  children: ReactNode
+  className?: string
+  variant?: "default" | "accent"
+}) {
+  return (
+    <section
+      className={cn(
+        "rounded-2xl border p-6 shadow-sm",
+        variant === "accent"
+          ? "border-violet-200/60 bg-gradient-to-br from-violet-50/80 via-white to-white dark:border-violet-900/40 dark:from-violet-950/20 dark:via-zinc-950/50 dark:to-zinc-950"
+          : "border-zinc-200/80 bg-white dark:border-zinc-700/80 dark:bg-zinc-950/40",
+        className
+      )}
+    >
+      <div className="mb-5 flex gap-3">
+        <div
+          className={cn(
+            "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl",
+            variant === "accent"
+              ? "bg-violet-600 text-white shadow-md shadow-violet-500/20"
+              : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
+          )}
+        >
+          <Icon className="h-5 w-5" aria-hidden />
+        </div>
+        <div className="min-w-0">
+          <h2 className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+            {title}
+          </h2>
+          {description ? (
+            <p className="mt-0.5 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+              {description}
+            </p>
+          ) : null}
+        </div>
+      </div>
+      <div className="space-y-5">{children}</div>
+    </section>
+  )
+}
+
+type SupplierAddProductFormProps = {
+  /** Shown when the user arrived from the “Add products” hub (not when editing). */
+  onBackToMethods?: () => void
+}
+
+export function SupplierAddProductForm({ onBackToMethods }: SupplierAddProductFormProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const editId = searchParams.get("edit")?.trim() ?? ""
@@ -86,6 +157,10 @@ export function SupplierAddProductForm() {
   const [deliveryMin, setDeliveryMin] = useState("2")
   const [deliveryMax, setDeliveryMax] = useState("5")
   const [shippingCost, setShippingCost] = useState("0")
+  const [shipsFrom, setShipsFrom] = useState("")
+  const [deliveryDays, setDeliveryDays] = useState("")
+  const [freeShipping, setFreeShipping] = useState(false)
+  const [supplierTag, setSupplierTag] = useState("")
   const [categoryAttrs, setCategoryAttrs] = useState<CategoryAttrRow[]>([])
   const [specValues, setSpecValues] = useState<Record<string, string>>({})
   const [attrsLoading, setAttrsLoading] = useState(false)
@@ -290,6 +365,11 @@ export function SupplierAddProductForm() {
       setDeliveryMax(String(data.deliveryMax ?? 5))
       const sc = data.shippingCost
       setShippingCost(sc != null ? String(Number(sc)) : "0")
+      setShipsFrom(typeof data.shipsFrom === "string" ? data.shipsFrom : "")
+      const dd = data.deliveryDays
+      setDeliveryDays(dd != null && Number.isFinite(Number(dd)) ? String(dd) : "")
+      setFreeShipping(Boolean(data.freeShipping))
+      setSupplierTag(typeof data.supplierTag === "string" ? data.supplierTag : "")
       const attrs = data.attributes
       if (Array.isArray(attrs)) {
         const next: Record<string, string> = {}
@@ -372,6 +452,15 @@ export function SupplierAddProductForm() {
       shippingCostEUR: Number(shippingCost) || 0,
       shippingMethods: ["standard"],
       productAttributes,
+      shipsFrom: shipsFrom.trim() || undefined,
+      deliveryDays:
+        deliveryDays.trim() === ""
+          ? undefined
+          : Math.round(Number(deliveryDays)) >= 0
+            ? Math.round(Number(deliveryDays))
+            : undefined,
+      freeShipping,
+      supplierTag: supplierTag.trim() || undefined,
     }
 
     setSaving(true)
@@ -410,362 +499,628 @@ export function SupplierAddProductForm() {
     }
   }
 
+  const specMissing = useMemo(
+    () => missingRequiredCategorySpecs(categoryAttrs, specValues),
+    [categoryAttrs, specValues]
+  )
+  const step1Checklist = useMemo(
+    () => ({
+      title: name.trim().length > 0,
+      category: Boolean(categoryId.trim()),
+      specs: Boolean(categoryId.trim()) && specMissing.length === 0,
+      images: images.length > 0,
+    }),
+    [name, categoryId, specMissing, images.length]
+  )
+
   if (loadingProduct) {
     return (
-      <div className="flex min-h-[40vh] items-center justify-center gap-2 text-sm text-zinc-600">
-        <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
-        Loading product…
+      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 bg-gradient-to-b from-zinc-50 to-zinc-100/80 px-4 dark:from-zinc-950 dark:to-zinc-900">
+        <Loader2 className="h-8 w-8 animate-spin text-violet-600" aria-hidden />
+        <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Loading product…</p>
       </div>
     )
   }
 
+  const steps = [
+    { n: 1 as const, title: "Listing & media", hint: "Story, category, visuals" },
+    { n: 2 as const, title: "Pricing & publish", hint: "Economics & go-live" },
+  ] as const
+
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <Link
-            href="/dashboard/supplier/products"
-            className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "inline-flex gap-1")}
-          >
-            <ArrowLeft className="h-4 w-4" aria-hidden />
-            Back
-          </Link>
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-            {editId ? "Edit product" : "Add product"}
-          </h1>
+    <>
+      {onBackToMethods ? (
+        <div className="border-b border-zinc-200/90 bg-white/95 dark:border-zinc-800 dark:bg-zinc-950/95">
+          <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6 lg:px-8">
+            <button
+              type="button"
+              onClick={onBackToMethods}
+              className="text-sm font-medium text-teal-700 transition hover:text-teal-900 dark:text-teal-400 dark:hover:text-teal-300"
+            >
+              ← Other listing methods
+            </button>
+          </div>
         </div>
-        <Link
-          href="/dashboard/supplier/bulk-import"
-          className={cn(buttonVariants({ variant: "outline", size: "sm" }), "inline-flex shrink-0")}
-        >
-          Bulk Excel import
-        </Link>
-      </div>
-
-      <div className="mb-6 flex gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-700 dark:bg-zinc-900">
-        {(
-          [
-            [1, "Details & media"],
-            [2, "Pricing & affiliates"],
-          ] as const
-        ).map(([n, label]) => (
-          <button
-            key={n}
-            type="button"
-            onClick={() => setStep(n)}
-            className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition ${
-              step === n
-                ? "bg-white text-zinc-900 shadow dark:bg-zinc-800 dark:text-zinc-50"
-                : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {step === 1 ? (
-        <Card className="space-y-6 border-zinc-200 p-6 dark:border-zinc-700">
-          <SupplierUrlImportPanel categoryAttrs={categoryAttrs} onApply={handleUrlImportApply} />
-          <SupplierAiPublishPanel
-            initialTitle={name}
-            initialNotes={description}
-            initialImageUrls={images}
-            categoryAttrs={categoryAttrs}
-            categoryPathLabel={categoryPathLabel}
-            onGenerated={handleAiGenerated}
+      ) : null}
+      <div className="min-h-screen bg-gradient-to-b from-zinc-100/90 via-white to-zinc-50 dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900/95">
+        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+        <header className="relative overflow-hidden rounded-2xl border border-zinc-200/80 bg-white/90 p-6 shadow-sm ring-1 ring-black/[0.03] dark:border-zinc-700/80 dark:bg-zinc-950/60 dark:ring-white/[0.04] sm:p-8">
+          <div
+            className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-violet-500/[0.12] blur-3xl dark:bg-violet-500/[0.18]"
+            aria-hidden
           />
-          <div>
-            <Label htmlFor="p-name">
-              Product name <span className="text-red-600">*</span>
-            </Label>
-            <Input
-              id="p-name"
-              className="mt-1.5"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Wireless earbuds"
-              maxLength={500}
-            />
-          </div>
-          <div>
-            <Label htmlFor="p-desc">Description</Label>
-            <textarea
-              id="p-desc"
-              className="mt-1.5 min-h-[120px] w-full rounded-md border border-zinc-200 bg-transparent px-3 py-2 text-sm dark:border-zinc-700"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="What affiliates and buyers should know"
-            />
-          </div>
-          <div>
-            <Label className="inline-flex items-center gap-1">
-              Category <span className="text-red-600">*</span>
-            </Label>
-            <div className="mt-1.5">
-              <SupplierCategoryPicker
-                browse={browse}
-                recent={recentCategories}
-                value={categoryId}
-                onChange={(leafId, path) => {
-                  setCategoryId(leafId)
-                  setCategoryPath(path)
-                  setSpecValues({})
-                }}
-                keywordSuggestions={keywordCategorySuggestions}
-                aiSuggestions={aiCategorySuggestions}
-                aiLoading={aiSuggestLoading}
-                loading={loadingBrowse}
-              />
-            </div>
-          </div>
-          <div>
-            <CategoryAttributeFields
-              attributes={categoryAttrs}
-              loading={attrsLoading}
-              values={specValues}
-              onChange={setSpecValues}
-            />
-          </div>
-          <div>
-            <div className="flex flex-wrap items-center gap-1.5">
-              <Label className="inline-flex items-center gap-1 text-zinc-900 dark:text-zinc-100">
-                <span className="text-red-600">*</span>
-                Images
-              </Label>
-              <button
-                type="button"
-                className="rounded-full p-0.5 text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-                title="At least 5 images is best for buyers."
-                aria-label="Image count tip"
+          <div className="pointer-events-none absolute -bottom-24 left-1/3 h-40 w-40 rounded-full bg-emerald-500/[0.06] blur-3xl dark:bg-emerald-500/10" aria-hidden />
+          <div className="relative flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+            <div className="min-w-0 space-y-4">
+              <Link
+                href="/dashboard/supplier/products"
+                className={cn(
+                  buttonVariants({ variant: "ghost", size: "sm" }),
+                  "-ml-2 inline-flex w-fit gap-1.5 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                )}
               >
-                <CircleHelp className="h-4 w-4 shrink-0" aria-hidden />
-              </button>
-            </div>
-            <p className="mt-1 max-w-xl text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-              Add several angles if you can — five or more is ideal.
-            </p>
-            <div className="mt-3">
-              <SupplierProductImageUpload initialUrls={images} onImagesChange={setImages} />
-            </div>
-          </div>
-          <Button
-            type="button"
-            className="w-full sm:w-auto"
-            onClick={() => {
-              if (!categoryId.trim()) {
-                toast.error("Please select a category.")
-                return
-              }
-              const miss = missingRequiredCategorySpecs(categoryAttrs, specValues)
-              if (miss.length > 0) {
-                toast.error(`Fill required fields: ${miss.map((m) => m.label).join(", ")}`)
-                return
-              }
-              setStep(2)
-            }}
-          >
-            Continue to pricing
-          </Button>
-        </Card>
-      ) : (
-        <Card className="space-y-6 border-zinc-200 p-6 dark:border-zinc-700">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <Label htmlFor="p-price">Base price (supplier) — USD</Label>
-              <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-                Affiliates set the final storefront price; commission applies to their margin over this
-                base.
-              </p>
-              <Input
-                id="p-price"
-                type="number"
-                min="0.01"
-                step="0.01"
-                className="mt-1.5"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-              />
-              {priceError ? <p className="mt-1 text-xs text-red-600">{priceError}</p> : null}
-            </div>
-            <div>
-              <Label htmlFor="p-compare">Compare-at (optional)</Label>
-              <Input
-                id="p-compare"
-                type="number"
-                min="0"
-                step="0.01"
-                className="mt-1.5"
-                value={compareAt}
-                onChange={(e) => setCompareAt(e.target.value)}
-                placeholder="MSRP"
-              />
-              {compareError ? <p className="mt-1 text-xs text-red-600">{compareError}</p> : null}
-            </div>
-            <div>
-              <Label htmlFor="p-stock">Stock</Label>
-              <Input
-                id="p-stock"
-                type="number"
-                min="0"
-                step="1"
-                className="mt-1.5"
-                value={stock}
-                onChange={(e) => setStock(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="rounded-lg border border-violet-200 bg-violet-50/80 p-4 dark:border-violet-900 dark:bg-violet-950/40">
-            <h2 className="text-sm font-semibold text-violet-950 dark:text-violet-100">Affiliate commission</h2>
-            <p className="mt-1 text-xs text-violet-900/80 dark:text-violet-200/90">
-              Percentage of the affiliate&apos;s margin (storefront price minus this base price) paid to the
-              affiliate when a sale completes.
-            </p>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <ArrowLeft className="h-4 w-4" aria-hidden />
+                Catalog
+              </Link>
               <div>
-                <Label htmlFor="p-kind">Listing type</Label>
-                <select
-                  id="p-kind"
-                  className="mt-1.5 flex h-10 w-full rounded-md border border-violet-200 bg-white px-3 text-sm dark:border-violet-800 dark:bg-zinc-950"
-                  value={listingKind}
-                  onChange={(e) => setListingKind(e.target.value as ListingKind)}
-                >
-                  {LISTING_KINDS.map((k) => (
-                    <option key={k} value={k}>
-                      {LISTING_LABELS[k]}
-                    </option>
-                  ))}
-                </select>
-                <p className="mt-1 text-xs text-violet-900/70 dark:text-violet-300/80">
-                  Up to {commissionMax}% for this type. 100% is only available for software and subscriptions.
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-600 dark:text-violet-400">
+                  {editId ? "Edit listing" : "New listing"}
+                </p>
+                <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-3xl">
+                  {editId ? "Refine your product" : "Create a standout product"}
+                </h1>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                  A clear story, sharp imagery, and the right category help affiliates sell faster—optimize
+                  the essentials, then set pricing and commissions in step two.
                 </p>
               </div>
-              <div>
-                <Label htmlFor="p-comm">Commission offered (%)</Label>
-                <Input
-                  id="p-comm"
-                  type="number"
-                  min={0}
-                  max={commissionMax}
-                  step="1"
-                  className="mt-1.5"
-                  value={commission}
-                  onChange={(e) => setCommission(e.target.value)}
-                />
-                {commissionError ? <p className="mt-1 text-xs text-red-600">{commissionError}</p> : null}
-              </div>
+            </div>
+            <div className="flex shrink-0 flex-col gap-2 sm:flex-row lg:flex-col">
+              <Link
+                href="/dashboard/supplier/bulk-import"
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "sm" }),
+                  "inline-flex justify-center border-zinc-300 bg-white/80 dark:border-zinc-600 dark:bg-zinc-900/80"
+                )}
+              >
+                Bulk Excel import
+              </Link>
             </div>
           </div>
+        </header>
 
-          <details className="rounded-lg border border-zinc-200 p-4 text-sm dark:border-zinc-700">
-            <summary className="cursor-pointer font-medium text-zinc-800 dark:text-zinc-200">
-              Shipping (optional)
-            </summary>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <div>
-                <Label htmlFor="ship-cc">Ship from (ISO country)</Label>
-                <Input
-                  id="ship-cc"
-                  className="mt-1.5 uppercase"
-                  maxLength={2}
-                  placeholder="US"
-                  value={shippingCountry}
-                  onChange={(e) => setShippingCountry(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="ship-wh">Warehouse</Label>
-                <select
-                  id="ship-wh"
-                  className="mt-1.5 flex h-10 w-full rounded-md border border-zinc-200 bg-transparent px-3 text-sm dark:border-zinc-700"
-                  value={warehouseType}
-                  onChange={(e) => setWarehouseType(e.target.value as typeof warehouseType)}
+        <nav className="mt-8" aria-label="Form steps">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+            <div className="flex w-full flex-col gap-2 rounded-2xl border border-zinc-200/80 bg-zinc-50/90 p-2 shadow-inner dark:border-zinc-700/80 dark:bg-zinc-900/60 sm:flex-row sm:gap-2">
+              {steps.map(({ n, title, hint }) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setStep(n)}
+                  className={cn(
+                    "flex flex-1 items-start gap-3 rounded-xl px-3 py-3 text-left transition sm:py-3.5",
+                    step === n
+                      ? "bg-white text-zinc-900 shadow-md ring-1 ring-black/[0.06] dark:bg-zinc-800 dark:text-zinc-50 dark:ring-white/10"
+                      : "text-zinc-500 hover:bg-white/60 hover:text-zinc-800 dark:text-zinc-500 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-200"
+                  )}
                 >
-                  <option value="">Not specified</option>
-                  <option value="local">Local</option>
-                  <option value="regional">Regional</option>
-                  <option value="international">International</option>
-                </select>
-              </div>
-              <div>
-                <Label htmlFor="ship-pt">Processing days</Label>
-                <Input
-                  id="ship-pt"
-                  type="number"
-                  min={1}
-                  className="mt-1.5"
-                  value={processingTime}
-                  onChange={(e) => setProcessingTime(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="ship-sc">Shipping cost (EUR)</Label>
-                <Input
-                  id="ship-sc"
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  className="mt-1.5"
-                  value={shippingCost}
-                  onChange={(e) => setShippingCost(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="ship-dmin">Delivery min (days)</Label>
-                <Input
-                  id="ship-dmin"
-                  type="number"
-                  min={1}
-                  className="mt-1.5"
-                  value={deliveryMin}
-                  onChange={(e) => setDeliveryMin(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="ship-dmax">Delivery max (days)</Label>
-                <Input
-                  id="ship-dmax"
-                  type="number"
-                  min={1}
-                  className="mt-1.5"
-                  value={deliveryMax}
-                  onChange={(e) => setDeliveryMax(e.target.value)}
-                />
-              </div>
+                  <span
+                    className={cn(
+                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold",
+                      step === n
+                        ? "bg-violet-600 text-white shadow-sm shadow-violet-500/30"
+                        : "bg-zinc-200 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300"
+                    )}
+                  >
+                    {n}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold">{title}</span>
+                    <span className="mt-0.5 block text-xs text-zinc-500 dark:text-zinc-400">{hint}</span>
+                  </span>
+                </button>
+              ))}
             </div>
-          </details>
-
-          {Number.isFinite(Number(price)) && Number(price) > 0 ? (
-            <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm dark:border-zinc-700 dark:bg-zinc-900">
-              <p className="font-medium text-zinc-800 dark:text-zinc-200">Preview</p>
-              <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-                Base price: <span className="font-semibold text-zinc-900 dark:text-zinc-100">{formatMoneyUsd(Number(price))}</span>
-                {compareAt.trim() && Number(compareAt) > Number(price) ? (
-                  <>
-                    {" "}
-                    <span className="text-zinc-400 line-through">{formatMoneyUsd(Number(compareAt))}</span>
-                    {discountPct > 0 ? (
-                      <span className="ml-2 rounded bg-red-600 px-1.5 py-0.5 text-xs text-white">
-                        −{discountPct}%
-                      </span>
-                    ) : null}
-                  </>
-                ) : null}
-              </p>
-            </div>
-          ) : null}
-
-          <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" onClick={() => setStep(1)}>
-              Back
-            </Button>
-            <Button type="button" disabled={saving} onClick={() => void handleSubmit()}>
-              {saving ? "Saving…" : editId ? "Save changes" : "Publish product"}
-            </Button>
+            <p className="shrink-0 text-center text-xs font-medium text-zinc-500 dark:text-zinc-400 sm:text-right">
+              Step <span className="text-zinc-900 dark:text-zinc-200">{step}</span> of 2
+            </p>
           </div>
-        </Card>
-      )}
+        </nav>
+
+        <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_18rem] lg:items-start lg:gap-12">
+          <div className="min-w-0 space-y-10">
+            {step === 1 ? (
+              <>
+                <SectionCard
+                  icon={Zap}
+                  variant="accent"
+                  title="Shortcuts"
+                  description="Pull in data from a URL or let AI draft copy—optional, but fast when you’re in a hurry."
+                >
+                  <div className="space-y-8 border-t border-violet-200/50 pt-6 dark:border-violet-900/30">
+                    <SupplierUrlImportPanel categoryAttrs={categoryAttrs} onApply={handleUrlImportApply} />
+                    <SupplierAiPublishPanel
+                      initialTitle={name}
+                      initialNotes={description}
+                      initialImageUrls={images}
+                      categoryAttrs={categoryAttrs}
+                      categoryPathLabel={categoryPathLabel}
+                      onGenerated={handleAiGenerated}
+                    />
+                  </div>
+                </SectionCard>
+
+                <SectionCard
+                  icon={Package}
+                  title="Product story"
+                  description="Name and description appear to affiliates and on your storefront."
+                >
+                  <div>
+                    <Label htmlFor="p-name">
+                      Product name <span className="text-red-600">*</span>
+                    </Label>
+                    <Input
+                      id="p-name"
+                      className="mt-1.5 h-11"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="e.g. Wireless earbuds with ANC"
+                      maxLength={500}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="p-desc">Description</Label>
+                    <textarea
+                      id="p-desc"
+                      className="mt-1.5 min-h-[132px] w-full rounded-xl border border-zinc-200 bg-zinc-50/50 px-3 py-2.5 text-sm outline-none transition focus:border-violet-400 focus:bg-white dark:border-zinc-700 dark:bg-zinc-900/50 dark:focus:border-violet-600"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Highlights, materials, who it’s for—what affiliates should know"
+                    />
+                  </div>
+                </SectionCard>
+
+                <SectionCard
+                  icon={Tag}
+                  title="Classification"
+                  description="Pick the best-fit leaf category—attributes unlock below."
+                >
+                  <div>
+                    <Label className="inline-flex items-center gap-1">
+                      Category <span className="text-red-600">*</span>
+                    </Label>
+                    <div className="mt-1.5">
+                      <SupplierCategoryPicker
+                        browse={browse}
+                        recent={recentCategories}
+                        value={categoryId}
+                        onChange={(leafId, path) => {
+                          setCategoryId(leafId)
+                          setCategoryPath(path)
+                          setSpecValues({})
+                        }}
+                        keywordSuggestions={keywordCategorySuggestions}
+                        aiSuggestions={aiCategorySuggestions}
+                        aiLoading={aiSuggestLoading}
+                        loading={loadingBrowse}
+                      />
+                    </div>
+                  </div>
+                  <div className="rounded-xl border border-zinc-100 bg-zinc-50/40 p-1 dark:border-zinc-800 dark:bg-zinc-900/30">
+                    <CategoryAttributeFields
+                      attributes={categoryAttrs}
+                      loading={attrsLoading}
+                      values={specValues}
+                      onChange={setSpecValues}
+                    />
+                  </div>
+                </SectionCard>
+
+                <SectionCard
+                  icon={ImageIcon}
+                  title="Visual assets"
+                  description="Strong photos convert—multiple angles and lifestyle shots win."
+                >
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <Label className="inline-flex items-center gap-1 text-zinc-900 dark:text-zinc-100">
+                      <span className="text-red-600">*</span>
+                      Images
+                    </Label>
+                    <button
+                      type="button"
+                      className="rounded-full p-0.5 text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                      title="Five or more images typically perform best."
+                      aria-label="Image count tip"
+                    >
+                      <CircleHelp className="h-4 w-4 shrink-0" aria-hidden />
+                    </button>
+                  </div>
+                  <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+                    Upload several angles; five or more is ideal for marketplace trust.
+                  </p>
+                  <div className="mt-3">
+                    <SupplierProductImageUpload initialUrls={images} onImagesChange={setImages} />
+                  </div>
+                </SectionCard>
+
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    Next: base price, stock, and affiliate economics.
+                  </p>
+                  <Button
+                    type="button"
+                    size="lg"
+                    className="w-full bg-violet-600 hover:bg-violet-700 dark:bg-violet-600 sm:w-auto"
+                    onClick={() => {
+                      if (!categoryId.trim()) {
+                        toast.error("Please select a category.")
+                        return
+                      }
+                      const miss = missingRequiredCategorySpecs(categoryAttrs, specValues)
+                      if (miss.length > 0) {
+                        toast.error(`Fill required fields: ${miss.map((m) => m.label).join(", ")}`)
+                        return
+                      }
+                      setStep(2)
+                    }}
+                  >
+                    Continue to pricing
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <SectionCard
+                  icon={Wallet}
+                  title="Pricing & inventory"
+                  description="Your cost basis and stock. Affiliates set retail; commission applies to their margin."
+                >
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    <div className="sm:col-span-2">
+                      <Label htmlFor="p-price">Base price (supplier) — USD</Label>
+                      <Input
+                        id="p-price"
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        className="mt-1.5 h-11"
+                        value={price}
+                        onChange={(e) => setPrice(e.target.value)}
+                      />
+                      {priceError ? <p className="mt-1 text-xs text-red-600">{priceError}</p> : null}
+                    </div>
+                    <div>
+                      <Label htmlFor="p-compare">Compare-at (optional)</Label>
+                      <Input
+                        id="p-compare"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        className="mt-1.5 h-11"
+                        value={compareAt}
+                        onChange={(e) => setCompareAt(e.target.value)}
+                        placeholder="MSRP"
+                      />
+                      {compareError ? <p className="mt-1 text-xs text-red-600">{compareError}</p> : null}
+                    </div>
+                    <div>
+                      <Label htmlFor="p-stock">Stock</Label>
+                      <Input
+                        id="p-stock"
+                        type="number"
+                        min="0"
+                        step="1"
+                        className="mt-1.5 h-11"
+                        value={stock}
+                        onChange={(e) => setStock(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </SectionCard>
+
+                <SectionCard
+                  icon={Globe2}
+                  title="Marketplace delivery"
+                  description="Region label, delivery window, and free-shipping help buyers find your listing. Optional catalog tag for your own grouping."
+                >
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <Label htmlFor="m-ships">Ships from (display)</Label>
+                      <Input
+                        id="m-ships"
+                        className="mt-1.5 h-11"
+                        value={shipsFrom}
+                        onChange={(e) => setShipsFrom(e.target.value)}
+                        placeholder="e.g. EU, US, Global"
+                        maxLength={48}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="m-days">Typical delivery (days)</Label>
+                      <Input
+                        id="m-days"
+                        type="number"
+                        min={0}
+                        max={365}
+                        className="mt-1.5 h-11"
+                        value={deliveryDays}
+                        onChange={(e) => setDeliveryDays(e.target.value)}
+                        placeholder="e.g. 5"
+                      />
+                    </div>
+                    <div className="flex items-start gap-3 sm:col-span-2">
+                      <input
+                        id="m-free"
+                        type="checkbox"
+                        checked={freeShipping}
+                        onChange={(e) => setFreeShipping(e.target.checked)}
+                        className="mt-1 h-4 w-4 rounded border-zinc-300 text-violet-600 focus:ring-violet-500 dark:border-zinc-600"
+                      />
+                      <Label htmlFor="m-free" className="font-normal leading-snug text-zinc-700 dark:text-zinc-300">
+                        Offer free shipping (shows in marketplace filters when enabled)
+                      </Label>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <Label htmlFor="m-tag">Catalog label (optional)</Label>
+                      <Input
+                        id="m-tag"
+                        className="mt-1.5 h-11"
+                        value={supplierTag}
+                        onChange={(e) => setSupplierTag(e.target.value)}
+                        placeholder="Short tag for your catalog (max 64 characters)"
+                        maxLength={64}
+                      />
+                    </div>
+                  </div>
+                </SectionCard>
+
+                <section className="overflow-hidden rounded-2xl border border-violet-200/80 bg-gradient-to-br from-violet-50 via-white to-violet-50/50 p-6 shadow-sm dark:border-violet-900/50 dark:from-violet-950/40 dark:via-zinc-950 dark:to-violet-950/30">
+                  <div className="mb-4 flex items-start gap-3">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-600 text-white shadow-md shadow-violet-600/25">
+                      <Sparkles className="h-5 w-5" aria-hidden />
+                    </div>
+                    <div>
+                      <h2 className="text-base font-semibold text-violet-950 dark:text-violet-100">
+                        Affiliate commission
+                      </h2>
+                      <p className="mt-1 text-sm text-violet-900/85 dark:text-violet-200/90">
+                        Share of the affiliate&apos;s margin (their price minus your base) when a sale
+                        completes.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <Label htmlFor="p-kind">Listing type</Label>
+                      <select
+                        id="p-kind"
+                        className="mt-1.5 flex h-11 w-full rounded-xl border border-violet-200 bg-white px-3 text-sm dark:border-violet-800 dark:bg-zinc-950"
+                        value={listingKind}
+                        onChange={(e) => setListingKind(e.target.value as ListingKind)}
+                      >
+                        {LISTING_KINDS.map((k) => (
+                          <option key={k} value={k}>
+                            {LISTING_LABELS[k]}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="mt-1.5 text-xs text-violet-900/75 dark:text-violet-300/85">
+                        Up to {commissionMax}% for this listing type. 100% allowed for software and
+                        subscriptions only.
+                      </p>
+                    </div>
+                    <div>
+                      <Label htmlFor="p-comm">Commission offered (%)</Label>
+                      <Input
+                        id="p-comm"
+                        type="number"
+                        min={0}
+                        max={commissionMax}
+                        step="1"
+                        className="mt-1.5 h-11"
+                        value={commission}
+                        onChange={(e) => setCommission(e.target.value)}
+                      />
+                      {commissionError ? (
+                        <p className="mt-1 text-xs text-red-600">{commissionError}</p>
+                      ) : null}
+                    </div>
+                  </div>
+                </section>
+
+                <SectionCard
+                  icon={Truck}
+                  title="Shipping profile"
+                  description="Optional—helps affiliates and filters set buyer expectations."
+                >
+                  <details className="group">
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-zinc-50/60 px-4 py-3 text-sm font-medium text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900/40 dark:text-zinc-200">
+                      Advanced shipping fields
+                      <span className="text-xs font-normal text-zinc-500 group-open:hidden">
+                        Tap to expand
+                      </span>
+                    </summary>
+                    <div className="mt-4 grid gap-3 border-t border-zinc-100 pt-4 dark:border-zinc-800 sm:grid-cols-2">
+                      <div>
+                        <Label htmlFor="ship-cc">Ship from (ISO country)</Label>
+                        <Input
+                          id="ship-cc"
+                          className="mt-1.5 uppercase"
+                          maxLength={2}
+                          placeholder="US"
+                          value={shippingCountry}
+                          onChange={(e) => setShippingCountry(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="ship-wh">Warehouse</Label>
+                        <select
+                          id="ship-wh"
+                          className="mt-1.5 flex h-10 w-full rounded-md border border-zinc-200 bg-transparent px-3 text-sm dark:border-zinc-700"
+                          value={warehouseType}
+                          onChange={(e) => setWarehouseType(e.target.value as typeof warehouseType)}
+                        >
+                          <option value="">Not specified</option>
+                          <option value="local">Local</option>
+                          <option value="regional">Regional</option>
+                          <option value="international">International</option>
+                        </select>
+                      </div>
+                      <div>
+                        <Label htmlFor="ship-pt">Processing days</Label>
+                        <Input
+                          id="ship-pt"
+                          type="number"
+                          min={1}
+                          className="mt-1.5"
+                          value={processingTime}
+                          onChange={(e) => setProcessingTime(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="ship-sc">Shipping cost (EUR)</Label>
+                        <Input
+                          id="ship-sc"
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          className="mt-1.5"
+                          value={shippingCost}
+                          onChange={(e) => setShippingCost(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="ship-dmin">Delivery min (days)</Label>
+                        <Input
+                          id="ship-dmin"
+                          type="number"
+                          min={1}
+                          className="mt-1.5"
+                          value={deliveryMin}
+                          onChange={(e) => setDeliveryMin(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="ship-dmax">Delivery max (days)</Label>
+                        <Input
+                          id="ship-dmax"
+                          type="number"
+                          min={1}
+                          className="mt-1.5"
+                          value={deliveryMax}
+                          onChange={(e) => setDeliveryMax(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </details>
+                </SectionCard>
+
+                {Number.isFinite(Number(price)) && Number(price) > 0 ? (
+                  <div className="rounded-2xl border border-zinc-200 bg-gradient-to-r from-zinc-50 to-white p-5 dark:border-zinc-700 dark:from-zinc-900 dark:to-zinc-950">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                      Buyer-facing preview
+                    </p>
+                    <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
+                      Base:{" "}
+                      <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                        {formatMoneyUsd(Number(price))}
+                      </span>
+                      {compareAt.trim() && Number(compareAt) > Number(price) ? (
+                        <>
+                          {" "}
+                          <span className="text-zinc-400 line-through">
+                            {formatMoneyUsd(Number(compareAt))}
+                          </span>
+                          {discountPct > 0 ? (
+                            <span className="ml-2 inline-flex rounded-md bg-red-600 px-2 py-0.5 text-xs font-semibold text-white">
+                              −{discountPct}%
+                            </span>
+                          ) : null}
+                        </>
+                      ) : null}
+                    </p>
+                  </div>
+                ) : null}
+
+                <div className="flex flex-col gap-3 border-t border-zinc-200 pt-6 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-between">
+                  <Button type="button" variant="outline" size="lg" onClick={() => setStep(1)}>
+                    Back to listing
+                  </Button>
+                  <Button
+                    type="button"
+                    size="lg"
+                    disabled={saving}
+                    className="bg-violet-600 hover:bg-violet-700 dark:bg-violet-600"
+                    onClick={() => void handleSubmit()}
+                  >
+                    {saving ? "Saving…" : editId ? "Save changes" : "Publish product"}
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+
+          <aside className="hidden lg:block">
+            <div className="sticky top-24 space-y-4">
+              {step === 1 ? (
+                <div className="rounded-2xl border border-zinc-200/90 bg-white/95 p-5 shadow-sm dark:border-zinc-700/90 dark:bg-zinc-950/80">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                    Readiness
+                  </p>
+                  <ul className="mt-4 space-y-3 text-sm">
+                    {(
+                      [
+                        ["Title", step1Checklist.title],
+                        ["Category", step1Checklist.category],
+                        ["Required specs", step1Checklist.specs],
+                        ["Images", step1Checklist.images],
+                      ] as const
+                    ).map(([label, ok]) => (
+                      <li key={label} className="flex items-center gap-2">
+                        {ok ? (
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
+                        ) : (
+                          <Circle className="h-4 w-4 shrink-0 text-zinc-300 dark:text-zinc-600" aria-hidden />
+                        )}
+                        <span className={ok ? "text-zinc-800 dark:text-zinc-200" : "text-zinc-500"}>
+                          {label}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-5 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+                    <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+                      Tip: complete classification before uploading galleries so required attributes stay in
+                      sync.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-zinc-200/90 bg-gradient-to-b from-zinc-50 to-white p-5 shadow-sm dark:border-zinc-700/90 dark:from-zinc-900 dark:to-zinc-950">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                    Summary
+                  </p>
+                  <p className="mt-2 text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                    {name.trim() || "Untitled product"}
+                  </p>
+                  {categoryPathLabel ? (
+                    <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">{categoryPathLabel}</p>
+                  ) : null}
+                  {Number.isFinite(Number(price)) && Number(price) > 0 ? (
+                    <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-300">
+                      Base:{" "}
+                      <span className="font-semibold text-zinc-900 dark:text-white">
+                        {formatMoneyUsd(Number(price))}
+                      </span>
+                    </p>
+                  ) : null}
+                </div>
+              )}
+            </div>
+          </aside>
+        </div>
+      </div>
     </div>
+    </>
   )
 }

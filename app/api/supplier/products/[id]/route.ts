@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { parseProductAttributesBody } from "@/lib/supplier-product-attributes"
+import { parseProductMarketplaceMeta } from "@/lib/supplier-product-marketplace-meta"
 import { parseSupplierProductShippingBody } from "@/lib/supplier-product-shipping"
 import { parseSupplierProductImages } from "@/lib/supplier-product-images"
 import { normalizeAffiliateCommissionRatePct, parseListingKind } from "@/lib/supplier-commission"
@@ -144,6 +145,7 @@ export async function PUT(
   const images = parseSupplierProductImages(body as unknown as Record<string, unknown>)
   const attr = parseProductAttributesBody(body as unknown as Record<string, unknown>)
   const ship = parseSupplierProductShippingBody(body as unknown as Record<string, unknown>)
+  const meta = parseProductMarketplaceMeta(body as unknown as Record<string, unknown>)
   const categoryId =
     typeof body.categoryId === "string" && body.categoryId.trim().length ? body.categoryId.trim() : null
   const productAttributes = Array.isArray(body.productAttributes)
@@ -191,6 +193,10 @@ export async function PUT(
         shippingMethods: ship.shippingMethods,
         freeShippingThreshold: ship.freeShippingThreshold,
         shippingCost: ship.shippingCost,
+        shipsFrom: meta.shipsFrom,
+        deliveryDays: meta.deliveryDays,
+        freeShipping: meta.freeShipping,
+        supplierTag: meta.supplierTag,
       },
     })
 

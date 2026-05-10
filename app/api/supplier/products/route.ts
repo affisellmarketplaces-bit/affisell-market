@@ -4,6 +4,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { createNewDropCommunityPost } from "@/lib/community-new-drop"
 import { parseProductAttributesBody } from "@/lib/supplier-product-attributes"
+import { parseProductMarketplaceMeta } from "@/lib/supplier-product-marketplace-meta"
 import { parseSupplierProductShippingBody } from "@/lib/supplier-product-shipping"
 import { parseSupplierProductImages } from "@/lib/supplier-product-images"
 import {
@@ -105,6 +106,7 @@ export async function POST(req: Request) {
   const images = parseSupplierProductImages(body as Record<string, unknown>)
   const attr = parseProductAttributesBody(body as Record<string, unknown>)
   const ship = parseSupplierProductShippingBody(body as Record<string, unknown>)
+  const meta = parseProductMarketplaceMeta(body as Record<string, unknown>)
   const desc = typeof description === "string" ? description.trim() : ""
   const stockN = Math.max(0, Math.round(Number.isFinite(Number(stock)) ? Number(stock) : 0))
 
@@ -156,6 +158,10 @@ export async function POST(req: Request) {
         shippingMethods: ship.shippingMethods,
         freeShippingThreshold: ship.freeShippingThreshold,
         shippingCost: ship.shippingCost,
+        shipsFrom: meta.shipsFrom,
+        deliveryDays: meta.deliveryDays,
+        freeShipping: meta.freeShipping,
+        supplierTag: meta.supplierTag,
       },
     })
 
