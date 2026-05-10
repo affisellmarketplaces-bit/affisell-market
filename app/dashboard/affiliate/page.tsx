@@ -42,7 +42,7 @@ export default async function AffiliateDashboardPage() {
     <Suspense
       fallback={
         <div className="mx-auto max-w-6xl px-4 py-16 text-center text-sm text-gray-500 md:px-8">
-          Loading affiliate dashboard…
+          Loading partner workspace…
         </div>
       }
     >

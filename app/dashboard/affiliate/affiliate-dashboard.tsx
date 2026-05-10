@@ -12,18 +12,33 @@ import {
 import { arrayMove, rectSortingStrategy, SortableContext, useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import {
+  ArrowDownWideNarrow,
+  BadgePercent,
   Check,
+  ChevronRight,
+  Compass,
   Eye,
+  Filter,
   GripVertical,
+  LayoutGrid,
+  LogOut,
   Pencil,
+  Percent,
+  Search,
+  Sparkles,
+  Store,
   TrendingUp,
   Trash2,
+  UserRound,
+  UsersRound,
+  Zap,
 } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
 import { signOut } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import type { CSSProperties } from "react"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import AffiliateLiveStore from "@/components/affiliate/affiliate-live-store"
 import {
@@ -46,9 +61,33 @@ type CatalogProduct = {
   basePriceCents: number
   commissionRate: number
   deliveryMax?: number | null
+  createdAt?: string | null
   /** Present on Supplier Catalog query; may be absent on nested `listing.product`. */
   affiliateProducts?: { id: string; isListed: boolean }[]
   supplier: { email: string; store?: { name: string; slug: string } | null }
+}
+
+type DiscoverSortKey = "new" | "commission-desc" | "price-asc" | "price-desc" | "name"
+
+function supplierDisplayLabel(p: CatalogProduct) {
+  const brand = p.supplier.store?.name?.trim()
+  if (brand) return brand
+  return p.supplier.email
+}
+
+function isSkuFresh(iso: string | null | undefined, days = 14) {
+  if (!iso) return false
+  const t = new Date(iso).getTime()
+  if (!Number.isFinite(t)) return false
+  return Date.now() - t < days * 86_400_000
+}
+
+function discoverCommissionBadgeThreshold(catalog: CatalogProduct[]) {
+  const rates = catalog.map((p) => p.commissionRate).filter((n) => Number.isFinite(n) && n > 0)
+  if (!rates.length) return 14
+  const sorted = [...rates].sort((a, b) => a - b)
+  const idx = Math.max(0, Math.floor(sorted.length * 0.72) - 1)
+  return Math.min(28, Math.max(10, sorted[idx] ?? 14))
 }
 
 type Listing = SerializedListing & {
@@ -307,7 +346,7 @@ export function AffiliateDashboard({
 
     const p = initialCatalog.find((x) => x.id === pid)
     if (!p) {
-      setToast("That product isn’t in your Supplier Catalog preview. Open Discover in the marketplace to find more SKUs.")
+      setToast("That product isn’t in this Discover batch. Browse the marketplace to find more SKUs.")
       router.replace("/dashboard/affiliate", { scroll: false })
       return
     }
@@ -328,94 +367,360 @@ export function AffiliateDashboard({
 
   const ids = listings.map((l) => l.id)
 
+  const listingsWithProduct = listings.filter((l): l is Listing & { product: CatalogProduct } =>
+    Boolean(l.product)
+  )
+  const listedLiveCount = listingsWithProduct.filter((l) => l.isListed).length
+  const discoverSkuCount = initialCatalog.length
+  const addableSkuCount = initialCatalog.filter((p) => !(p.affiliateProducts?.length ?? 0)).length
+
+  const [discoverQ, setDiscoverQ] = useState("")
+  const [discoverSort, setDiscoverSort] = useState<DiscoverSortKey>("new")
+  const [discoverUnlistedOnly, setDiscoverUnlistedOnly] = useState(false)
+
+  const commissionHighlight = useMemo(
+    () => discoverCommissionBadgeThreshold(initialCatalog),
+    [initialCatalog]
+  )
+
+  const insightClicks = useMemo(
+    () => listingsWithProduct.reduce((s, l) => s + (l.clicks ?? 0), 0),
+    [listingsWithProduct]
+  )
+  const insightSales = useMemo(
+    () => listingsWithProduct.reduce((s, l) => s + (l.conversions ?? 0), 0),
+    [listingsWithProduct]
+  )
+
+  const filteredDiscover = useMemo(() => {
+    let rows = [...initialCatalog]
+    if (discoverUnlistedOnly) rows = rows.filter((p) => !(p.affiliateProducts?.length ?? 0))
+    const q = discoverQ.trim().toLowerCase()
+    if (q) {
+      rows = rows.filter((p) => {
+        if (p.name.toLowerCase().includes(q)) return true
+        if (p.tags?.some((t) => t.toLowerCase().includes(q))) return true
+        if (p.categories?.some((c) => c.toLowerCase().includes(q))) return true
+        if (supplierDisplayLabel(p).toLowerCase().includes(q)) return true
+        return false
+      })
+    }
+    rows.sort((a, b) => {
+      switch (discoverSort) {
+        case "commission-desc":
+          return b.commissionRate - a.commissionRate
+        case "price-asc":
+          return a.basePriceCents - b.basePriceCents
+        case "price-desc":
+          return b.basePriceCents - a.basePriceCents
+        case "name":
+          return a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
+        case "new":
+        default: {
+          const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0
+          const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0
+          return tb - ta
+        }
+      }
+    })
+    return rows
+  }, [initialCatalog, discoverQ, discoverSort, discoverUnlistedOnly])
+
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10 md:px-8">
-      <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Affiliate Store Builder</h1>
-          <p className="mt-1 text-sm text-gray-500">Customize listings, SEO, pricing, and your public storefront.</p>
+    <main className="min-h-screen bg-gradient-to-b from-violet-100/35 via-white to-zinc-50/90 dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900/80">
+      <div className="mx-auto max-w-6xl px-4 py-8 md:px-8 md:py-10">
+        <header className="relative overflow-hidden rounded-3xl border border-violet-200/60 bg-white/85 shadow-sm shadow-violet-500/5 ring-1 ring-black/[0.03] backdrop-blur-md dark:border-violet-900/40 dark:bg-zinc-950/75 dark:ring-white/10">
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.45] dark:opacity-[0.2]"
+            style={{
+              backgroundImage: `
+                radial-gradient(ellipse 80% 55% at 15% -10%, rgba(139,92,246,0.28), transparent 50%),
+                radial-gradient(ellipse 60% 45% at 92% 8%, rgba(20,184,166,0.2), transparent 45%),
+                radial-gradient(circle at 50% 100%, rgba(139,92,246,0.06), transparent 55%)
+              `,
+            }}
+            aria-hidden
+          />
+          <div className="relative p-6 sm:p-8">
+            <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+              <div className="min-w-0 flex-1 space-y-4">
+                <div className="inline-flex items-center gap-2 rounded-full border border-violet-200/80 bg-violet-50/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-violet-800 dark:border-violet-800 dark:bg-violet-950/60 dark:text-violet-200">
+                  <Sparkles className="h-3.5 w-3.5" aria-hidden />
+                  Partner workspace
+                </div>
+                <div>
+                  <h1 className="text-balance text-3xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
+                    Your creator storefront
+                  </h1>
+                  <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 sm:text-[15px]">
+                    Discover supplier SKUs, set your resale economics, tune SEO and visuals—everything shoppers see flows
+                    from here. This hub is distinct from seller tools; suppliers never curate from this workspace.
+                  </p>
+                </div>
+                <nav className="flex flex-wrap gap-2 sm:gap-2.5" aria-label="Quick links">
+                  {(
+                    [
+                      {
+                        label: "Browse marketplace",
+                        href: "/marketplace",
+                        Icon: Compass,
+                      },
+                      {
+                        label: "Store profile",
+                        href: "/dashboard/affiliate/settings/store",
+                        Icon: Store,
+                      },
+                      {
+                        label: "Community & social",
+                        href: "/dashboard/settings/social",
+                        Icon: UsersRound,
+                      },
+                      {
+                        label: "Account & security",
+                        href: "/dashboard/settings/account",
+                        Icon: UserRound,
+                      },
+                    ] as const
+                  ).map(({ label, href, Icon }) => (
+                    <button
+                      key={label}
+                      type="button"
+                      onClick={() => router.push(href)}
+                      className="group inline-flex items-center gap-2 rounded-xl border border-zinc-200/90 bg-white/90 px-3.5 py-2 text-left text-[13px] font-medium text-zinc-800 shadow-sm transition hover:border-violet-300/70 hover:bg-violet-50/50 hover:text-violet-900 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100 dark:hover:border-violet-700 dark:hover:bg-violet-950/40 dark:hover:text-violet-100"
+                    >
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-violet-100 to-teal-50 text-violet-700 dark:from-violet-950 dark:to-teal-950/50 dark:text-violet-300">
+                        <Icon className="h-4 w-4" aria-hidden />
+                      </span>
+                      <span className="min-w-0 flex-1 truncate">{label}</span>
+                      <ChevronRight
+                        className="h-4 w-4 shrink-0 text-zinc-400 transition group-hover:translate-x-0.5 group-hover:text-violet-600 dark:group-hover:text-violet-400"
+                        aria-hidden
+                      />
+                    </button>
+                  ))}
+                </nav>
+              </div>
+              <div className="flex w-full shrink-0 flex-col gap-3 sm:flex-row lg:w-auto lg:flex-col xl:max-w-[280px]">
+                <div className="flex flex-wrap gap-2 sm:justify-end lg:justify-start">
+                  <AffiliateLiveStore storeId={storeId} />
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
+                  <button
+                    type="button"
+                    onClick={() => viewStore()}
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100"
+                  >
+                    <Eye className="h-4 w-4 shrink-0" aria-hidden /> Open public store
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => signOut({ callbackUrl: "/" })}
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                  >
+                    <LogOut className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
+                    Sign out
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 grid gap-3 border-t border-zinc-100/90 pt-6 dark:border-zinc-800 sm:grid-cols-3">
+              <div className="rounded-2xl border border-zinc-100 bg-white/70 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/40">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                  Discover feed
+                </p>
+                <p className="mt-1 text-2xl font-bold tabular-nums text-zinc-900 dark:text-white">
+                  {discoverSkuCount}
+                  <span className="ml-1 text-sm font-medium text-zinc-500 dark:text-zinc-400">SKUs</span>
+                </p>
+                <p className="mt-0.5 text-xs text-zinc-600 dark:text-zinc-400">
+                  {addableSkuCount > 0 ? (
+                    <>
+                      <span className="font-semibold text-emerald-700 dark:text-emerald-400">{addableSkuCount}</span>{" "}
+                      ready to list
+                    </>
+                  ) : (
+                    <>You’ve picked up the surfaced batch—refresh often for more.</>
+                  )}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-zinc-100 bg-white/70 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/40">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                  Your listings
+                </p>
+                <p className="mt-1 text-2xl font-bold tabular-nums text-zinc-900 dark:text-white">
+                  {listingsWithProduct.length}
+                </p>
+                <p className="mt-0.5 text-xs text-zinc-600 dark:text-zinc-400">
+                  Curated resale rows in builder &amp; store
+                </p>
+              </div>
+              <div className="rounded-2xl border border-zinc-100 bg-white/70 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/40">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                  Live on storefront
+                </p>
+                <p className="mt-1 text-2xl font-bold tabular-nums text-teal-700 dark:text-teal-400">{listedLiveCount}</p>
+                <p className="mt-0.5 text-xs text-zinc-600 dark:text-zinc-400">Visible SKUs shoppers can checkout</p>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div
+          className="mt-8 flex gap-1 rounded-2xl border border-zinc-200/80 bg-zinc-100/80 p-1 dark:border-zinc-800 dark:bg-zinc-900/60"
+          role="tablist"
+          aria-label="Main sections"
+        >
           <button
             type="button"
-            onClick={() => router.push("/dashboard/affiliate/settings/store")}
-            className="mt-3 text-sm font-medium text-green-700 hover:text-green-800"
+            role="tab"
+            aria-selected={tab === "catalog"}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${
+              tab === "catalog"
+                ? "bg-white text-zinc-900 shadow-sm ring-1 ring-black/[0.04] dark:bg-zinc-950 dark:text-white dark:ring-white/10"
+                : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+            }`}
+            onClick={() => setTab("catalog")}
           >
-            Store profile →
+            <LayoutGrid className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
+            Discover
           </button>
           <button
             type="button"
-            onClick={() => router.push("/dashboard/settings/social")}
-            className="mt-2 block text-sm font-medium text-gray-700 hover:text-gray-900"
+            role="tab"
+            aria-selected={tab === "store"}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${
+              tab === "store"
+                ? "bg-white text-zinc-900 shadow-sm ring-1 ring-black/[0.04] dark:bg-zinc-950 dark:text-white dark:ring-white/10"
+                : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+            }`}
+            onClick={() => setTab("store")}
           >
-            Social &amp; community hub →
-          </button>
-          <button
-            type="button"
-            onClick={() => router.push("/dashboard/settings/account")}
-            className="mt-2 block text-sm font-medium text-gray-700 hover:text-gray-900"
-          >
-            Account &amp; connected logins →
+            <Store className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
+            My storefront
           </button>
         </div>
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <AffiliateLiveStore storeId={storeId} />
-          <button
-            type="button"
-            onClick={() => viewStore()}
-            className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-800 shadow-sm hover:bg-gray-50"
-          >
-            <Eye className="h-4 w-4" /> View My Store
-          </button>
-          <button
-            type="button"
-            onClick={() => signOut({ callbackUrl: "/" })}
-            className="rounded-2xl border border-gray-200 px-4 py-2 text-sm hover:bg-gray-50"
-          >
-            Log out
-          </button>
-        </div>
-      </div>
 
-      <div className="flex gap-1 rounded-2xl bg-gray-100 p-1">
-        <button
-          type="button"
-          className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-medium transition ${
-            tab === "catalog" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-900"
-          }`}
-          onClick={() => setTab("catalog")}
-        >
-          Supplier Catalog
-        </button>
-        <button
-          type="button"
-          className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-medium transition ${
-            tab === "store" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-900"
-          }`}
-          onClick={() => setTab("store")}
-        >
-          My Store
-        </button>
-      </div>
+        {tab === "catalog" ? (
+          <>
+            <div className="mt-8 rounded-2xl border border-zinc-200/80 bg-white/80 p-4 shadow-sm backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/50 sm:p-5">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div className="min-w-0 flex-1 space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-600 dark:text-violet-400">
+                    Discover tools
+                  </p>
+                  <div className="relative max-w-xl">
+                    <Search
+                      className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
+                      aria-hidden
+                    />
+                    <input
+                      type="search"
+                      value={discoverQ}
+                      onChange={(e) => setDiscoverQ(e.target.value)}
+                      placeholder="Search SKU, supplier, tags, category…"
+                      className="w-full rounded-xl border border-zinc-200 bg-white py-2.5 pl-10 pr-3 text-sm outline-none ring-violet-500/25 transition placeholder:text-zinc-400 focus:border-violet-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-950 dark:focus:border-violet-600"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setDiscoverUnlistedOnly((v) => !v)}
+                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                      discoverUnlistedOnly
+                        ? "border-violet-500 bg-violet-50 text-violet-900 dark:border-violet-600 dark:bg-violet-950/60 dark:text-violet-100"
+                        : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
+                    }`}
+                  >
+                    <Filter className="h-3.5 w-3.5" aria-hidden />
+                    Not in my store yet
+                  </button>
+                </div>
+                <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:w-auto lg:min-w-[13rem]">
+                  <label htmlFor="discover-sort" className="sr-only">
+                    Sort discover feed
+                  </label>
+                  <div className="relative w-full sm:min-w-[12rem]">
+                    <ArrowDownWideNarrow
+                      className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
+                      aria-hidden
+                    />
+                    <select
+                      id="discover-sort"
+                      value={discoverSort}
+                      onChange={(e) => setDiscoverSort(e.target.value as DiscoverSortKey)}
+                      className="w-full appearance-none rounded-xl border border-zinc-200 bg-white py-2.5 pl-10 pr-8 text-sm outline-none ring-violet-500/25 focus:border-violet-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-950 dark:focus:border-violet-600"
+                    >
+                      <option value="new">Newest in feed</option>
+                      <option value="commission-desc">Partner margin · high → low</option>
+                      <option value="price-asc">Supplier anchor · low → high</option>
+                      <option value="price-desc">Supplier anchor · high → low</option>
+                      <option value="name">Title A–Z</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400">
+                Showing <strong className="font-semibold text-zinc-800 dark:text-zinc-200">{filteredDiscover.length}</strong>{" "}
+                of {discoverSkuCount} surfaced SKUs
+                {discoverUnlistedOnly ? <> · hides rows already imported</> : null}
+              </p>
+            </div>
 
-      {tab === "catalog" ? (
-        <section className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {initialCatalog.map((p) => {
+            {filteredDiscover.length === 0 ? (
+              <div className="mt-10 rounded-2xl border border-dashed border-zinc-300 bg-white/70 px-6 py-16 text-center dark:border-zinc-700 dark:bg-zinc-950/40">
+                <BadgePercent className="mx-auto h-10 w-10 text-violet-500" aria-hidden />
+                <p className="mt-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">No matches</p>
+                <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
+                  Relax filters or clear search—everything in Discover still lives in the{" "}
+                  <Link href="/marketplace" className="font-medium text-violet-700 underline underline-offset-2 hover:text-violet-900 dark:text-violet-400">
+                    marketplace
+                  </Link>
+                  .
+                </p>
+              </div>
+            ) : (
+        <section className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {filteredDiscover.map((p) => {
             const isAdded = (p.affiliateProducts?.length ?? 0) > 0
             const thumb = primaryProductImage(p.images) || "/placeholder.png"
+            const fresh = !isAdded && isSkuFresh(p.createdAt)
+            const hotMargin =
+              !isAdded && Number.isFinite(p.commissionRate) && p.commissionRate >= commissionHighlight
+            const supplierBrand = supplierDisplayLabel(p)
+            const supplierHref = p.supplier.store?.slug?.trim()
+              ? `/store/supplier/${encodeURIComponent(p.supplier.store.slug)}`
+              : null
+            const canonicalListingHref = `/product/${p.id}`
             return (
               <article
                 id={`catalog-product-${p.id}`}
                 key={p.id}
-                className={`relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 ${
-                  isAdded ? "opacity-60" : ""
+                className={`relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 transition hover:ring-violet-200/90 dark:bg-zinc-950 dark:ring-zinc-800 dark:hover:ring-violet-900/50 ${
+                  isAdded ? "opacity-[0.72]" : ""
                 }`}
               >
                 {isAdded ? (
-                  <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-full bg-green-600 px-2 py-1 text-xs text-white">
+                  <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-full bg-green-600 px-2 py-1 text-xs text-white shadow-sm">
                     <Check className="h-3 w-3" aria-hidden />
-                    Added
+                    In your store
                   </div>
                 ) : null}
-                <div className="relative aspect-square bg-gray-50 p-4">
+                {!isAdded && (fresh || hotMargin) ? (
+                  <div className="pointer-events-none absolute left-3 top-3 z-10 flex max-w-[70%] flex-wrap gap-1">
+                    {fresh ? (
+                      <span className="rounded-full bg-sky-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow">
+                        New in feed
+                      </span>
+                    ) : null}
+                    {hotMargin ? (
+                      <span className="inline-flex items-center gap-0.5 rounded-full bg-violet-600 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white shadow">
+                        <Zap className="h-3 w-3" aria-hidden />
+                        Strong margin
+                      </span>
+                    ) : null}
+                  </div>
+                ) : null}
+                <div className="relative aspect-square bg-gradient-to-b from-zinc-50 to-gray-50 p-4 dark:from-zinc-900 dark:to-zinc-950">
                   <Image
                     src={thumb}
                     alt=""
@@ -424,11 +729,25 @@ export function AffiliateDashboard({
                     sizes="320px"
                     unoptimized={thumb.startsWith("http")}
                   />
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent px-3 pb-3 pt-8 dark:from-zinc-950/90 dark:to-transparent">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold text-violet-900 shadow-sm dark:bg-zinc-900/95 dark:text-violet-200">
+                      <Percent className="h-3 w-3" aria-hidden />
+                      {p.commissionRate}% margin share
+                    </span>
+                  </div>
                 </div>
                 <div className="flex flex-1 flex-col gap-3 p-5">
-                  <p className="font-semibold text-gray-900">{p.name}</p>
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <p className="min-w-0 flex-1 font-semibold leading-snug text-gray-900 dark:text-zinc-50">{p.name}</p>
+                    <Link
+                      href={canonicalListingHref}
+                      className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-teal-700 underline underline-offset-2 hover:text-teal-900 dark:text-teal-400"
+                    >
+                      Buyer preview
+                    </Link>
+                  </div>
                   {(p.categories?.length ?? 0) > 0 ? (
-                    <p className="line-clamp-1 text-[11px] text-blue-700">
+                    <p className="line-clamp-1 text-[11px] text-blue-700 dark:text-blue-400">
                       {(p.categories ?? []).slice(0, 2).join(" · ")}
                     </p>
                   ) : null}
@@ -455,8 +774,24 @@ export function AffiliateDashboard({
                       })}
                     </div>
                   ) : null}
-                  <p className="mt-auto text-sm text-gray-500">Supplier: {fmtEUR(p.basePriceCents)}</p>
-                  <p className="text-xs text-gray-400">{p.supplier.email}</p>
+                  <div className="mt-auto border-t border-zinc-100 pt-3 dark:border-zinc-800">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                      Supplier anchor (your cost-side base)
+                    </p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-zinc-100">{fmtEUR(p.basePriceCents)}</p>
+                    {supplierHref ? (
+                      <Link
+                        href={supplierHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-1 inline-flex max-w-full truncate text-xs font-medium text-violet-700 hover:underline dark:text-violet-400"
+                      >
+                        {supplierBrand} · public shop →
+                      </Link>
+                    ) : (
+                      <p className="mt-1 truncate text-xs text-gray-400 dark:text-zinc-500">{supplierBrand}</p>
+                    )}
+                  </div>
                   {isAdded ? (
                     <>
                       <button
@@ -477,10 +812,10 @@ export function AffiliateDashboard({
                   ) : (
                     <button
                       type="button"
-                      className="mt-3 w-full rounded-2xl bg-black py-3 text-sm font-semibold text-white hover:bg-zinc-900"
+                      className="mt-3 w-full rounded-2xl bg-gradient-to-r from-zinc-900 to-zinc-800 py-3 text-sm font-semibold text-white shadow-md hover:from-zinc-800 hover:to-zinc-900 dark:from-white dark:to-zinc-100 dark:text-zinc-950"
                       onClick={() => openCreate(p)}
                     >
-                      Add to My Store
+                      Add to my store
                     </button>
                   )}
                 </div>
@@ -488,8 +823,35 @@ export function AffiliateDashboard({
             )
           })}
         </section>
+            )}
+          </>
       ) : (
         <section className="mt-8">
+          {listingsWithProduct.length ? (
+            <div className="mb-6 rounded-2xl border border-teal-200/80 bg-gradient-to-r from-teal-50/90 via-white to-violet-50/60 px-5 py-4 shadow-sm dark:border-teal-900/40 dark:from-teal-950/30 dark:via-zinc-950 dark:to-violet-950/30 sm:flex sm:items-center sm:justify-between sm:gap-6">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-teal-800 dark:text-teal-300">
+                  Storefront pulse
+                </p>
+                <p className="mt-2 text-sm text-zinc-700 dark:text-zinc-300">
+                  Shoppers interacted with{" "}
+                  <strong className="font-semibold text-zinc-900 dark:text-white">{insightClicks}</strong> listing views
+                  and closed{" "}
+                  <strong className="font-semibold text-teal-800 dark:text-teal-200">{insightSales}</strong> conversions
+                  on your live SKU rows (all time shown here).
+                </p>
+              </div>
+              <div className="mt-4 flex shrink-0 flex-wrap gap-2 sm:mt-0">
+                <Link
+                  href="/marketplace"
+                  className="inline-flex items-center gap-2 rounded-xl border border-teal-200 bg-white px-4 py-2 text-xs font-semibold text-teal-900 shadow-sm hover:bg-teal-50 dark:border-teal-800 dark:bg-zinc-900 dark:text-teal-100 dark:hover:bg-teal-950/50"
+                >
+                  <Compass className="h-3.5 w-3.5" aria-hidden />
+                  Scout more SKU
+                </Link>
+              </div>
+            </div>
+          ) : null}
           <div className="mb-6 flex flex-wrap items-center gap-3">
             <p className="text-sm font-medium text-gray-700">{listings.filter((l) => l.product).length} listings</p>
             <button
@@ -512,7 +874,7 @@ export function AffiliateDashboard({
 
           {!listings.filter((l) => l.product).length ? (
             <p className="rounded-2xl border border-dashed border-gray-200 bg-white p-10 text-center text-gray-500">
-              No listings yet — add products from Supplier Catalog.
+              No listings yet — add SKUs from <strong className="font-medium text-gray-700">Discover</strong>.
             </p>
           ) : (
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
@@ -545,33 +907,34 @@ export function AffiliateDashboard({
         </section>
       )}
 
-      <ListingBuilderModal
-        open={Boolean(modalProduct)}
-        product={modalProduct}
-        listing={modalListing}
-        storeSlug={storeSlug}
-        onClose={() => {
-          setModalProduct(null)
-          setModalListing(null)
-        }}
-        onSaved={() => {
-          setToast("Saved.")
-          router.refresh()
-        }}
-      />
+        <ListingBuilderModal
+          open={Boolean(modalProduct)}
+          product={modalProduct}
+          listing={modalListing}
+          storeSlug={storeSlug}
+          onClose={() => {
+            setModalProduct(null)
+            setModalListing(null)
+          }}
+          onSaved={() => {
+            setToast("Saved.")
+            router.refresh()
+          }}
+        />
 
-      {toast ? (
-        <div className="fixed bottom-8 right-8 z-[60] max-w-xs rounded-2xl bg-gray-900 px-4 py-3 text-sm text-white shadow-xl">
-          {toast}
-          <button
-            type="button"
-            className="mt-2 block text-[11px] text-gray-300 underline"
-            onClick={() => setToast(null)}
-          >
-            Close
-          </button>
-        </div>
-      ) : null}
+        {toast ? (
+          <div className="fixed bottom-8 right-8 z-[60] max-w-xs rounded-2xl bg-gray-900 px-4 py-3 text-sm text-white shadow-xl">
+            {toast}
+            <button
+              type="button"
+              className="mt-2 block text-[11px] text-gray-300 underline"
+              onClick={() => setToast(null)}
+            >
+              Close
+            </button>
+          </div>
+        ) : null}
+      </div>
     </main>
   )
 }
