@@ -3,9 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3001",
+    "dev": "prisma generate && next dev -p 3001",
     "postinstall": "prisma generate",
     "build": "prisma generate && next build",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate deploy",
     "start": "next start",
     "lint": "eslint",
     "db:copy": "tsx scripts/copy-to-prod.ts"
