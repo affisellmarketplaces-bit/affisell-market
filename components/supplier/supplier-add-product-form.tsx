@@ -29,7 +29,10 @@ import {
   missingRequiredCategorySpecs,
   type CategoryAttrRow,
 } from "@/components/supplier/category-attribute-fields"
-import { SupplierAiPublishPanel } from "@/components/supplier/supplier-ai-publish-panel"
+import {
+  SupplierAiPublishPanel,
+  type AiPublishResult,
+} from "@/components/supplier/supplier-ai-publish-panel"
 import {
   SupplierUrlImportPanel,
   type UrlImportApplyPayload,
@@ -226,9 +229,21 @@ export function SupplierAddProductForm() {
     [categoryPath]
   )
 
-  const handleAiGenerated = useCallback((nextDescription: string, specsPatch: Record<string, string>) => {
-    setDescription(nextDescription)
-    setSpecValues((prev) => ({ ...prev, ...specsPatch }))
+  const handleAiGenerated = useCallback((result: AiPublishResult) => {
+    if (result.title?.trim()) setName(result.title.trim().slice(0, 500))
+    setDescription(result.description)
+    setSpecValues((prev) => ({ ...prev, ...result.specs }))
+    const extra = result.mergeHttpsImageUrls
+    if (extra?.length) {
+      setImages((prev) => {
+        const merged = [...prev]
+        for (const u of extra) {
+          if (merged.includes(u)) continue
+          merged.push(u)
+        }
+        return merged.slice(0, 12)
+      })
+    }
   }, [])
 
   const handleUrlImportApply = useCallback((patch: UrlImportApplyPayload) => {
@@ -453,9 +468,9 @@ export function SupplierAddProductForm() {
         <Card className="space-y-6 border-zinc-200 p-6 dark:border-zinc-700">
           <SupplierUrlImportPanel categoryAttrs={categoryAttrs} onApply={handleUrlImportApply} />
           <SupplierAiPublishPanel
-            name={name}
-            description={description}
-            images={images}
+            initialTitle={name}
+            initialNotes={description}
+            initialImageUrls={images}
             categoryAttrs={categoryAttrs}
             categoryPathLabel={categoryPathLabel}
             onGenerated={handleAiGenerated}

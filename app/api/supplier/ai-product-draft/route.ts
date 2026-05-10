@@ -19,6 +19,13 @@ function stripJsonFence(s: string): string {
   return t
 }
 
+const MAX_DATA_URL_LEN = 1_400_000
+const MAX_DATA_URLS = 4
+
+function isAllowedDataImageUrl(s: string): boolean {
+  return /^data:image\/(jpeg|jpg|png|webp);base64,/i.test(s) && s.length <= MAX_DATA_URL_LEN
+}
+
 export async function POST(req: Request) {
   const session = await auth()
   if (!session?.user?.id) {
@@ -37,6 +44,7 @@ export async function POST(req: Request) {
     name?: unknown
     description?: unknown
     imageUrls?: unknown
+    imageDataUrls?: unknown
     categoryPath?: unknown
     characteristics?: unknown
   }
@@ -54,6 +62,14 @@ export async function POST(req: Request) {
         .map((u) => u.trim().slice(0, 2000))
         .slice(0, 4)
     : []
+
+  const imageDataUrls = Array.isArray(body.imageDataUrls)
+    ? body.imageDataUrls
+        .filter((u): u is string => typeof u === "string" && isAllowedDataImageUrl(u.trim()))
+        .map((u) => u.trim())
+        .slice(0, MAX_DATA_URLS)
+    : []
+
   const categoryPath =
     typeof body.categoryPath === "string" ? body.categoryPath.trim().slice(0, 500) : ""
 
@@ -77,9 +93,9 @@ export async function POST(req: Request) {
     }
   }
 
-  if (name.length < 2 && notes.length < 8 && imageUrls.length === 0) {
+  if (name.length < 2 && notes.length < 8 && imageUrls.length === 0 && imageDataUrls.length === 0) {
     return Response.json(
-      { error: "Add a product name, a short description, or at least one image URL first." },
+      { error: "Add a title, notes, at least one image URL, or upload photos in the dialog." },
       { status: 400 }
     )
   }
@@ -101,7 +117,12 @@ export async function POST(req: Request) {
 
   const imageHint =
     imageUrls.length > 0
-      ? `\nProduct image URLs (use only as weak context for product type; do not claim you inspected pixels):\n${imageUrls.join("\n")}`
+      ? `\nAdditional product image URLs (context only):\n${imageUrls.join("\n")}`
+      : ""
+
+  const visionHint =
+    imageDataUrls.length > 0
+      ? "\nYou are given one or more product photos attached to this message. Use them together with the text fields to infer accurate details."
       : ""
 
   const userMessage = [
@@ -109,6 +130,7 @@ export async function POST(req: Request) {
     `Category path: ${categoryPath || "(none)"}`,
     `Supplier notes / draft description: ${notes || "(none)"}`,
     imageHint,
+    visionHint,
     characteristics.length
       ? `Characteristics (keys for "specs" object):\n${charLines.join("\n")}`
       : `No structured characteristics for this category.`,
@@ -118,27 +140,46 @@ export async function POST(req: Request) {
     .filter(Boolean)
     .join("\n\n")
 
+  const useVision = imageDataUrls.length > 0
+  const userContent:
+    | string
+    | Array<
+        | { type: "text"; text: string }
+        | { type: "image_url"; image_url: { url: string } }
+      > = useVision
+    ? [
+        { type: "text", text: userMessage },
+        ...imageDataUrls.map((url) => ({
+          type: "image_url" as const,
+          image_url: { url },
+        })),
+      ]
+    : userMessage
+
   try {
+    const requestBody: Record<string, unknown> = {
+      model: "gpt-4o-mini",
+      temperature: 0.35,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You draft marketplace product listings for Affisell suppliers. Output is always valid JSON per the user instructions.",
+        },
+        { role: "user", content: userContent },
+      ],
+    }
+    /** `json_object` is reliable for text-only; vision requests use the same flag on gpt-4o-mini. */
+    requestBody.response_format = { type: "json_object" }
+
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        temperature: 0.35,
-        response_format: { type: "json_object" },
-        messages: [
-          {
-            role: "system",
-            content:
-              "You draft marketplace product listings for Affisell suppliers. Output is always valid JSON per the user instructions.",
-          },
-          { role: "user", content: userMessage },
-        ],
-      }),
-      signal: AbortSignal.timeout(60000),
+      body: JSON.stringify(requestBody),
+      signal: AbortSignal.timeout(120000),
     })
 
     const payload = (await res.json()) as {
