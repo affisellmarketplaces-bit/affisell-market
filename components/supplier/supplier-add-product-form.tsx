@@ -309,14 +309,13 @@ export function SupplierAddProductForm({
   }, [])
 
   useEffect(() => {
-    if (!categoryId.trim()) {
-      setCategoryAttrs([])
-      setAttrsLoading(false)
-      return
-    }
     let cancelled = false
     setAttrsLoading(true)
-    fetch(`/api/attributes/by-category?categoryId=${encodeURIComponent(categoryId)}`)
+    const url =
+      categoryId.trim().length > 0
+        ? `/api/attributes/by-category?categoryId=${encodeURIComponent(categoryId.trim())}`
+        : `/api/attributes/by-category`
+    fetch(url)
       .then(async (r) => {
         let j: { attributes?: CategoryAttrRow[] } = {}
         try {
@@ -1139,6 +1138,12 @@ export function SupplierAddProductForm({
                       />
                     </div>
                   </div>
+                  {!categoryId.trim() ? (
+                    <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
+                      You’re viewing the universal spec sheet. Pick a leaf category below to add{" "}
+                      <span className="font-semibold">aisle-specific</span> attributes (electronics, beauty, home…).
+                    </p>
+                  ) : null}
                   <div className="rounded-xl border border-zinc-100 bg-zinc-50/40 p-1 dark:border-zinc-800 dark:bg-zinc-900/30">
                     <CategoryAttributeFields
                       attributes={mergedCategoryAttrs}
