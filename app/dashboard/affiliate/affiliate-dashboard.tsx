@@ -652,8 +652,8 @@ export function AffiliateDashboard({
                     >
                       <option value="new">Newest in feed</option>
                       <option value="commission-desc">Partner margin · high → low</option>
-                      <option value="price-asc">Supplier anchor · low → high</option>
-                      <option value="price-desc">Supplier anchor · high → low</option>
+                      <option value="price-asc">Supplier price · low → high</option>
+                      <option value="price-desc">Supplier price · high → low</option>
                       <option value="name">Title A–Z</option>
                     </select>
                   </div>
@@ -732,7 +732,9 @@ export function AffiliateDashboard({
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent px-3 pb-3 pt-8 dark:from-zinc-950/90 dark:to-transparent">
                     <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold text-violet-900 shadow-sm dark:bg-zinc-900/95 dark:text-violet-200">
                       <Percent className="h-3 w-3" aria-hidden />
-                      {p.commissionRate}% margin share
+                      {Number.isFinite(p.commissionRate) && p.commissionRate > 0
+                        ? `${p.commissionRate}% supplier commission`
+                        : "Commission pending"}
                     </span>
                   </div>
                 </div>
@@ -751,6 +753,20 @@ export function AffiliateDashboard({
                       {(p.categories ?? []).slice(0, 2).join(" · ")}
                     </p>
                   ) : null}
+                  <div className="rounded-xl border border-violet-200/90 bg-gradient-to-br from-violet-50/95 to-white px-3 py-2.5 dark:border-violet-900/60 dark:from-violet-950/50 dark:to-zinc-950">
+                    <p className="flex flex-wrap items-center gap-1.5 text-xs font-semibold text-violet-950 dark:text-violet-100">
+                      <Percent className="h-3.5 w-3.5 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
+                      <span>Commission offered (supplier)</span>
+                      <span className="tabular-nums font-bold tracking-tight text-violet-900 dark:text-violet-50">
+                        {Number.isFinite(p.commissionRate) && p.commissionRate > 0
+                          ? `${p.commissionRate}%`
+                          : "—"}
+                      </span>
+                    </p>
+                    <p className="mt-1 text-[10px] leading-snug text-violet-800/85 dark:text-violet-200/85">
+                      You earn this percent of resale margin—the gap between shopper price and the supplier price below.
+                    </p>
+                  </div>
                   {(p.colors?.length ?? 0) > 0 ? (
                     <div className="flex flex-wrap gap-1">
                       {(p.colors ?? []).slice(0, 8).map((cn) => {
@@ -776,7 +792,7 @@ export function AffiliateDashboard({
                   ) : null}
                   <div className="mt-auto border-t border-zinc-100 pt-3 dark:border-zinc-800">
                     <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                      Supplier anchor (your cost-side base)
+                      Supplier price
                     </p>
                     <p className="text-sm font-medium text-gray-900 dark:text-zinc-100">{fmtEUR(p.basePriceCents)}</p>
                     {supplierHref ? (
