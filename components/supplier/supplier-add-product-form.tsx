@@ -29,6 +29,11 @@ import {
   missingRequiredCategorySpecs,
   type CategoryAttrRow,
 } from "@/components/supplier/category-attribute-fields"
+import { SupplierAiPublishPanel } from "@/components/supplier/supplier-ai-publish-panel"
+import {
+  SupplierUrlImportPanel,
+  type UrlImportApplyPayload,
+} from "@/components/supplier/supplier-url-import-panel"
 import { cn } from "@/lib/utils"
 
 const LISTING_LABELS: Record<ListingKind, string> = {
@@ -213,8 +218,34 @@ export function SupplierAddProductForm() {
   useEffect(() => {
     if (!browse || !categoryId) return
     const p = pathFromLeafId(categoryId, browse.nodes)
-    if (p?.length) setCategoryPath(p)
+    if (p?.length) queueMicrotask(() => setCategoryPath(p))
   }, [browse, categoryId])
+
+  const categoryPathLabel = useMemo(
+    () => categoryPath.map((s) => s.name).join(" > "),
+    [categoryPath]
+  )
+
+  const handleAiGenerated = useCallback((nextDescription: string, specsPatch: Record<string, string>) => {
+    setDescription(nextDescription)
+    setSpecValues((prev) => ({ ...prev, ...specsPatch }))
+  }, [])
+
+  const handleUrlImportApply = useCallback((patch: UrlImportApplyPayload) => {
+    setName(patch.name)
+    setDescription(patch.description)
+    if (patch.images.length) setImages(patch.images)
+    setStock(patch.stock)
+    if (patch.price) setPrice(patch.price)
+    if (patch.compareAt) setCompareAt(patch.compareAt)
+    setShippingCountry(patch.shippingCountry)
+    setWarehouseType(patch.warehouseType)
+    setProcessingTime(patch.processingTime)
+    setDeliveryMin(patch.deliveryMin)
+    setDeliveryMax(patch.deliveryMax)
+    setShippingCost(patch.shippingCost)
+    setSpecValues((prev) => ({ ...prev, ...patch.specValuesPatch }))
+  }, [])
 
   const loadProduct = useCallback(async (id: string) => {
     setLoadingProduct(true)
@@ -420,6 +451,15 @@ export function SupplierAddProductForm() {
 
       {step === 1 ? (
         <Card className="space-y-6 border-zinc-200 p-6 dark:border-zinc-700">
+          <SupplierUrlImportPanel categoryAttrs={categoryAttrs} onApply={handleUrlImportApply} />
+          <SupplierAiPublishPanel
+            name={name}
+            description={description}
+            images={images}
+            categoryAttrs={categoryAttrs}
+            categoryPathLabel={categoryPathLabel}
+            onGenerated={handleAiGenerated}
+          />
           <div>
             <Label htmlFor="p-name">
               Product name <span className="text-red-600">*</span>

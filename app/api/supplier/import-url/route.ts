@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import * as cheerio from "cheerio"
 
+import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 
 type ReviewSentiment = "positive" | "neutral" | "negative"
@@ -175,6 +176,14 @@ function baselineProduct(url: string, platform: Platform): ImportedProduct {
 }
 
 export async function POST(req: NextRequest) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
+  }
+  if ((session.user as { role?: string }).role !== "SUPPLIER") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
+
   try {
     const body = (await req.json()) as {
       url?: string
