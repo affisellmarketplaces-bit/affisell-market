@@ -1,11 +1,18 @@
 "use client"
 
-import Image from "next/image"
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { Sparkles, Star } from "lucide-react"
+import {
+  ChevronRight,
+  Package,
+  RotateCcw,
+  ShieldCheck,
+  Sparkles,
+  Star,
+  Truck,
+} from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useEffect, useMemo, useState, type MouseEvent } from "react"
+import { Fragment, useEffect, useMemo, useState, type MouseEvent } from "react"
 
 import { Button } from "@/components/ui/button"
 import messages from "@/messages/en.json"
@@ -86,9 +93,7 @@ type Props = {
   }>
 }
 
-const VARIANT_KEYS: VariantGroupKey[] = ["size", "storage", "ram", "material"]
-
-function fmtEur(value: number) {
+function fmtMoney(value: number) {
   return value.toLocaleString("en-US", { style: "currency", currency: "USD" })
 }
 
@@ -100,12 +105,46 @@ function t(template: string, vars?: Record<string, string | number>) {
   )
 }
 
+/** One short honest snippet from the listing—not generic placeholder copy. */
+function listingAtAGlance(description: string, name: string, tags: string[]): string | null {
+  const d = description.replace(/\s+/g, " ").trim()
+  if (d.length >= 28) {
+    const max = 220
+    if (d.length <= max) return d
+    const slice = d.slice(0, max)
+    const last = Math.max(slice.lastIndexOf(". "), slice.lastIndexOf("! "), slice.lastIndexOf("? "))
+    const cut = last > 80 ? slice.slice(0, last + 1) : slice
+    return `${cut.trim()}…`
+  }
+  if (tags.length > 0) return tags.slice(0, 5).join(" · ")
+  return null
+}
+
+function StarRatingRow({ value, count }: { value: number; count: number }) {
+  const full = Math.round(Math.min(5, Math.max(0, value)))
+  return (
+    <div className="flex items-center gap-1.5" aria-label={`${value.toFixed(1)} out of 5 stars, ${count} reviews`}>
+      <div className="flex text-amber-400" role="presentation">
+        {Array.from({ length: 5 }, (_, i) => (
+          <Star
+            key={i}
+            className={`h-4 w-4 ${i < full ? "fill-amber-400" : "fill-zinc-200 text-zinc-200 dark:fill-zinc-700 dark:text-zinc-700"}`}
+            aria-hidden
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export function MarketplaceListingDetail({
   listingId,
   productId,
   name,
   description,
   sellerLabel,
+  storefront,
+  tags,
   priceDisplay,
   gallery,
   categories,
@@ -137,11 +176,6 @@ export function MarketplaceListingDetail({
   const [cartBusy, setCartBusy] = useState(false)
   const [buyBusy, setBuyBusy] = useState(false)
   const [showAr, setShowAr] = useState(false)
-  const [liveViewers, setLiveViewers] = useState(12)
-  const [showPurchaseToast, setShowPurchaseToast] = useState(false)
-  const [purchaseToastText, setPurchaseToastText] = useState(
-    "Sarah from Lyon just bought this 2 min ago"
-  )
   const [sizeTip, setSizeTip] = useState<string | null>(null)
   const [showStylist, setShowStylist] = useState(false)
   const [styleIdeas, setStyleIdeas] = useState<string[]>([])
@@ -162,45 +196,32 @@ export function MarketplaceListingDetail({
   const discountPct = hasRetailCompare
     ? Math.round(((retailPriceEur - listingPriceEur) / retailPriceEur) * 100)
     : 0
+  const glanceText = useMemo(() => listingAtAGlance(description, name, tags), [description, name, tags])
+
   const bundleCandidates = oftenBoughtTogether.slice(0, 2)
   const bundleSelected = bundleCandidates.filter((p) => bundleChecked[p.id])
-  const bundleSubtotal = bundleSelected.reduce((sum, p) => sum + p.priceEur, listingPriceEur)
-  const bundleTotal = bundleSelected.length > 0 ? bundleSubtotal * 0.85 : bundleSubtotal
-  const bundleSaved = bundleSelected.length > 0 ? bundleSubtotal - bundleTotal : 0
+  const bundleAddonSum = bundleSelected.reduce((sum, p) => sum + p.priceEur, 0)
+  const bundleCrossSubtotal = listingPriceEur + bundleAddonSum
+  const BUNDLE_SAVE_PCT = 0.15
+  const bundlePayToday =
+    bundleAddonSum > 0
+      ? Math.round(bundleCrossSubtotal * (1 - BUNDLE_SAVE_PCT) * 100) / 100
+      : listingPriceEur
+  const bundleSaved = bundleAddonSum > 0 ? Math.round((bundleCrossSubtotal - bundlePayToday) * 100) / 100 : 0
 
-  useEffect(() => {
-    const id = setInterval(() => {
-      setLiveViewers(Math.floor(Math.random() * 16) + 5)
-    }, 6000)
-    return () => clearInterval(id)
-  }, [])
-
-  useEffect(() => {
-    setShowPurchaseToast(true)
-    const id = setTimeout(() => setShowPurchaseToast(false), 5000)
-    return () => clearTimeout(id)
-  }, [])
-
-  useEffect(() => {
-    const people = ["Sarah", "Emma", "Nina", "Lina", "Chloe", "Camille"]
-    const cities = ["Lyon", "Marseille", "Toulouse", "Nice", "Lille", "Nantes"]
-    const mins = [1, 2, 3, 4, 5, 6]
-    const rotate = setInterval(() => {
-      const person = people[Math.floor(Math.random() * people.length)]
-      const city = cities[Math.floor(Math.random() * cities.length)]
-      const min = mins[Math.floor(Math.random() * mins.length)]
-      setPurchaseToastText(`${person} from ${city} just bought this ${min} min ago`)
-      setShowPurchaseToast(true)
-      window.setTimeout(() => setShowPurchaseToast(false), 5000)
-    }, 18000)
-    return () => clearInterval(rotate)
-  }, [])
+  const etaDate = useMemo(() => {
+    const d = new Date()
+    d.setDate(d.getDate() + Math.max(shipping.deliveryMax, 1))
+    return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+  }, [shipping.deliveryMax])
+  const deliveryPlace = shipping.warehouseCity?.trim() || shipping.shippingCountryLabel || "your area"
 
   useEffect(() => {
     if (typeof window === "undefined") return
     const prevSize = window.localStorage.getItem("last-size")
-    if (prevSize) setSizeTip(`Based on your last purchase, size ${prevSize} fits you 94%`)
-    else if (sizeOptions.includes("M")) setSizeTip("Based on your last purchase, size M fits you 94%")
+    if (prevSize && sizeOptions.includes(prevSize)) {
+      setSizeTip(`You last picked size ${prevSize} on this device.`)
+    }
   }, [sizeOptions])
 
   useEffect(() => {
@@ -290,233 +311,355 @@ export function MarketplaceListingDetail({
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
-        <section className="lg:col-span-3">
-          <div className="group relative aspect-video overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={hero}
-              alt={name}
-              className="h-full w-full object-cover transition duration-300 group-hover:scale-110"
-            />
-            {has3D ? (
-              <span className="absolute left-3 top-3 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 px-3 py-1 text-xs font-semibold text-white">
-                {productT.view360}
-              </span>
-            ) : null}
-          </div>
-
-          <div className="mt-3 grid grid-cols-4 gap-2">
-            {images.slice(0, 4).map((url, i) => (
-              <button
-                key={`${url}-${i}`}
-                type="button"
-                onClick={() => setSelectedImage(i)}
-                className={`relative aspect-square overflow-hidden rounded-lg border ${
-                  selectedImage === i ? "border-zinc-900 dark:border-zinc-100" : "border-zinc-200 dark:border-zinc-700"
-                }`}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={url} alt="" className="h-full w-full object-cover" />
-              </button>
-            ))}
-          </div>
-
-          {arModel ? (
-            <Button
-              size="lg"
-              variant="outline"
-              className="mt-3 border-slate-300 text-slate-900 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95"
-              onClick={() => setShowAr(true)}
-            >
-              {productT.viewInAR}
-            </Button>
-          ) : null}
-        </section>
-
-        <aside className="lg:col-span-2 lg:sticky lg:top-6 lg:self-start">
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-300">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
-            {t(productT.liveViewers, { count: liveViewers })}
-          </div>
-          <nav className="text-sm text-zinc-500 dark:text-zinc-400">
-            {breadcrumbT.home} &gt; {categories[0] || breadcrumbT.fashion} &gt;{" "}
-            {categories[1] || breadcrumbT.blazers}
-          </nav>
-          <h1 className="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">{name}</h1>
-
-          <div className="mt-2 flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-            <span className="text-yellow-500">★★★</span>
-            <span>{reviewSummary.average.toFixed(1)}</span>
-            <span>{t(productT.reviews, { count: reviewSummary.count.toLocaleString("en-US") })}</span>
-            <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
-              {productT.topVentes}
-            </span>
-          </div>
-
-          <div className="mt-4">
-            <div className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{priceDisplay}</div>
-            {hasRetailCompare ? (
-              <span className="mt-1 inline-flex rounded-full bg-red-500 px-2.5 py-1 text-xs font-semibold text-white">
-                -{discountPct}% vs retail {fmtEur(retailPriceEur ?? 0)}
-              </span>
-            ) : null}
-          </div>
-
-          {stock <= 5 ? (
-            <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1 font-medium text-amber-700">
-              {t(productT.onlyLeft, { count: Math.max(1, stock) })}
-            </p>
-          ) : null}
-
-          {colorMeta.length > 0 ? (
-            <div className="mt-5">
-              <p className="text-sm font-semibold">Color</p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {colorMeta.map(({ name: cn, meta }) => (
-                  <button
-                    key={cn}
-                    type="button"
-                    onClick={() => setSelectedColor(cn)}
-                    className={`h-8 w-8 rounded-full border-2 ${
-                      selectedColor === cn ? "border-zinc-900 dark:border-zinc-100" : "border-zinc-300 dark:border-zinc-600"
-                    }`}
-                    style={
-                      meta && !isMulticolorSwatch(meta)
-                        ? { backgroundColor: meta.hex }
-                        : { background: "conic-gradient(red, yellow, lime, cyan, blue, magenta, red)" }
-                    }
-                    title={cn}
-                  />
-                ))}
+      <div className="space-y-12">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-12">
+          <section className="space-y-4 lg:col-span-7">
+            <div className="relative overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <div className="relative aspect-[4/5] bg-zinc-50 sm:aspect-square dark:bg-zinc-900/80">
+                <img
+                  src={hero}
+                  alt={name}
+                  className="h-full w-full object-contain p-4 transition duration-500 ease-out hover:scale-[1.02]"
+                />
+                {has3D ? (
+                  <span className="absolute left-4 top-4 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-3 py-1 text-xs font-semibold text-white shadow-md">
+                    {productT.view360}
+                  </span>
+                ) : null}
               </div>
             </div>
-          ) : null}
 
-          {sizeOptions.length > 0 ? (
-            <div className="mt-5">
-              <p className="text-sm font-semibold">{VARIANT_GROUP_LABELS.size}</p>
-              <div className="mt-2 grid grid-cols-4 gap-2">
-                {sizeOptions.map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => setSelectedSize(s)}
-                    className={`rounded-lg border px-2 py-2 text-sm ${
-                      selectedSize === s
-                        ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900"
-                        : "border-zinc-300 dark:border-zinc-600"
-                    }`}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : null}
-          {sizeTip ? (
-            <p className="mt-2 rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-800 dark:bg-blue-950/40 dark:text-blue-200">
-              {sizeTip}
-            </p>
-          ) : null}
-
-          <div className="mt-6 space-y-3">
-            <Button
-              size="lg"
-              className="w-full bg-violet-600 font-semibold text-white shadow-lg transition-all hover:bg-violet-700 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95"
-              disabled={cartBusy}
-              onClick={(e) => void addToCart(e)}
-            >
-              {cartBusy ? "Adding..." : productT.addToCart}
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="w-full border-2 border-slate-900 text-slate-900 transition-all hover:bg-slate-900 hover:text-white focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95"
-              disabled={buyBusy}
-              onClick={() => void buyNow()}
-            >
-              {buyBusy ? "Redirecting..." : productT.buyNowOneClick}
-            </Button>
-            <Button
-              size="lg"
-              variant="ghost"
-              className="w-full text-slate-700 transition-all hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95"
-              onClick={() => void openStylist()}
-            >
-              <Sparkles className="mr-2 h-4 w-4" />
-              {productT.howToWear}
-            </Button>
-            <Button
-              size="lg"
-              variant="ghost"
-              className="w-full text-slate-700 transition-all hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95"
-              onClick={() => void savePriceAlert()}
-            >
-              {alertSaved ? "Alert saved" : productT.alertPriceDrop}
-            </Button>
-          </div>
-
-          <div className="mt-4 grid grid-cols-1 gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-            <p>
-              ✓ {productT.delivery48h} ✓ {productT.return30d} ✓ {productT.securePayment}
-            </p>
-            <p>
-              {t(productT.deliveryTo, {
-                city: "Aix-en-Provence",
-                date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toLocaleDateString("en-US", {
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                }),
-              })}
-            </p>
-          </div>
-
-          <div className="mt-4 rounded-xl border bg-gradient-to-r from-purple-50 to-pink-50 p-3 dark:border-zinc-700 dark:from-purple-950/40 dark:to-pink-950/40">
-            <div className="flex items-start gap-2">
-              <Sparkles className="mt-0.5 h-4 w-4 shrink-0" />
-              <p className="text-sm">
-                {productT.aiSummary}: Perfect blazer for office and evening. Modern cut. Customers love its versatility.
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-5 rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
-            <p className="text-sm font-semibold">Bundle &amp; Save</p>
-            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Add matching pants + save 15%</p>
-            <div className="mt-3 space-y-2">
-              {bundleCandidates.map((p) => (
-                <label key={p.id} className="flex items-center gap-2 rounded-lg border border-zinc-200 px-2 py-2 dark:border-zinc-700">
-                  <input
-                    type="checkbox"
-                    checked={Boolean(bundleChecked[p.id])}
-                    onChange={(e) => setBundleChecked((prev) => ({ ...prev, [p.id]: e.target.checked }))}
-                  />
-                  <span className="line-clamp-1 text-sm">{p.title}</span>
-                  <span className="ml-auto text-xs text-zinc-500">{fmtEur(p.priceEur)}</span>
-                </label>
+            <div className="grid grid-cols-5 gap-2 sm:grid-cols-6">
+              {images.slice(0, 6).map((url, i) => (
+                <button
+                  key={`${url}-${i}`}
+                  type="button"
+                  onClick={() => setSelectedImage(i)}
+                  className={`relative aspect-square overflow-hidden rounded-xl border-2 bg-zinc-50 transition dark:bg-zinc-900 ${
+                    selectedImage === i
+                      ? "border-violet-600 ring-2 ring-violet-500/30 dark:border-violet-500"
+                      : "border-transparent ring-1 ring-zinc-200 dark:ring-zinc-700"
+                  }`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={url} alt="" className="h-full w-full object-contain p-1" />
+                </button>
               ))}
             </div>
-            <motion.p
-              key={`${bundleTotal}-${bundleSelected.length}`}
-              initial={{ opacity: 0.5, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2 }}
-              className="mt-3 text-sm font-medium"
-            >
-              Bundle total: {fmtEur(bundleTotal)}
-              {bundleSelected.length > 0 ? (
-                <span className="ml-1 text-green-600">
-                  (15% saved - {fmtEur(bundleSaved)})
+
+            {arModel ? (
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-zinc-300 text-zinc-900 hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-100 dark:hover:bg-zinc-900"
+                onClick={() => setShowAr(true)}
+              >
+                {productT.viewInAR}
+              </Button>
+            ) : null}
+          </section>
+
+          <aside className="space-y-5 lg:col-span-5 lg:sticky lg:top-28 lg:self-start">
+            <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400">
+              <Link href="/" className="hover:text-zinc-900 dark:hover:text-zinc-200">
+                {breadcrumbT.home}
+              </Link>
+              <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-50" aria-hidden />
+              <Link href="/marketplace" className="hover:text-zinc-900 dark:hover:text-zinc-200">
+                Marketplace
+              </Link>
+              {categories.slice(0, 2).map((c) => (
+                <Fragment key={c}>
+                  <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-50" aria-hidden />
+                  <span className="max-w-[10rem] truncate font-medium text-zinc-600 dark:text-zinc-300">{c}</span>
+                </Fragment>
+              ))}
+            </nav>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs font-semibold text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
+                <Package className="h-3.5 w-3.5" aria-hidden />
+                {stock > 0 ? (
+                  <>
+                    In stock
+                    {stock <= 20 ? ` · ${stock} left` : null}
+                  </>
+                ) : (
+                  "Out of stock"
+                )}
+              </span>
+              {shipping.freeShippingThresholdEUR != null && shipping.freeShippingThresholdEUR > 0 ? (
+                <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                  Free shipping over {fmtMoney(shipping.freeShippingThresholdEUR)}
                 </span>
               ) : null}
-            </motion.p>
-          </div>
-          <p className="mt-3 text-sm text-zinc-500">
-            {t(productT.byStore, { store: sellerLabel })}
-          </p>
-        </aside>
+            </div>
+
+            <h1 className="text-balance text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-[2rem] sm:leading-tight">
+              {name}
+            </h1>
+
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <StarRatingRow value={reviewSummary.average} count={reviewSummary.count} />
+              <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                {reviewSummary.average.toFixed(1)}
+              </span>
+              <a href="#listing-reviews" className="text-sm font-medium text-violet-700 hover:underline dark:text-violet-400">
+                {t(productT.reviews, { count: reviewSummary.count.toLocaleString("en-US") })}
+              </a>
+              {reviewSummary.count > 0 && reviewSummary.average >= 4.2 ? (
+                <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-300">
+                  {productT.topVentes}
+                </span>
+              ) : null}
+            </div>
+
+            <div>
+              <p className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">{priceDisplay}</p>
+              {hasRetailCompare ? (
+                <p className="mt-2">
+                  <span className="inline-flex rounded-full bg-rose-600 px-2.5 py-1 text-xs font-semibold text-white">
+                    −{discountPct}% vs anchor {fmtMoney(retailPriceEur ?? 0)}
+                  </span>
+                </p>
+              ) : null}
+            </div>
+
+            {stock <= 5 && stock > 0 ? (
+              <p className="rounded-xl border border-amber-200/90 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100">
+                {t(productT.onlyLeft, { count: Math.max(1, stock) })}
+              </p>
+            ) : null}
+
+            <div className="grid grid-cols-3 gap-2 rounded-2xl border border-zinc-200/80 bg-zinc-50/80 p-3 text-center dark:border-zinc-800 dark:bg-zinc-900/40">
+              <div className="flex flex-col items-center gap-1 px-1">
+                <Truck className="h-4 w-4 text-violet-600 dark:text-violet-400" aria-hidden />
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                  Ships
+                </span>
+                <span className="text-xs font-medium text-zinc-900 dark:text-zinc-100">
+                  {shipping.deliveryMin}–{shipping.deliveryMax} days
+                </span>
+              </div>
+              <div className="flex flex-col items-center gap-1 border-x border-zinc-200/80 px-1 dark:border-zinc-700">
+                <RotateCcw className="h-4 w-4 text-violet-600 dark:text-violet-400" aria-hidden />
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                  Returns
+                </span>
+                <span className="text-xs font-medium text-zinc-900 dark:text-zinc-100">{productT.return30d}</span>
+              </div>
+              <div className="flex flex-col items-center gap-1 px-1">
+                <ShieldCheck className="h-4 w-4 text-violet-600 dark:text-violet-400" aria-hidden />
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                  Checkout
+                </span>
+                <span className="text-xs font-medium text-zinc-900 dark:text-zinc-100">{productT.securePayment}</span>
+              </div>
+            </div>
+            <p className="-mt-3 text-xs text-zinc-500 dark:text-zinc-400">
+              {t(productT.deliveryTo, {
+                city: deliveryPlace,
+                date: etaDate,
+              })}
+            </p>
+
+            {colorMeta.length > 0 ? (
+              <div>
+                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Color</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {colorMeta.map(({ name: cn, meta }) => (
+                    <button
+                      key={cn}
+                      type="button"
+                      onClick={() => setSelectedColor(cn)}
+                      className={`h-9 w-9 rounded-full border-2 transition ${
+                        selectedColor === cn ? "border-zinc-900 dark:border-white" : "border-zinc-300 dark:border-zinc-600"
+                      }`}
+                      style={
+                        meta && !isMulticolorSwatch(meta)
+                          ? { backgroundColor: meta.hex }
+                          : { background: "conic-gradient(red, yellow, lime, cyan, blue, magenta, red)" }
+                      }
+                      title={cn}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {sizeOptions.length > 0 ? (
+              <div>
+                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{VARIANT_GROUP_LABELS.size}</p>
+                <div className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-5">
+                  {sizeOptions.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setSelectedSize(s)}
+                      className={`rounded-xl border px-2 py-2.5 text-sm font-medium transition ${
+                        selectedSize === s
+                          ? "border-violet-600 bg-violet-600 text-white shadow-sm dark:border-violet-500 dark:bg-violet-600"
+                          : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-700 dark:hover:border-zinc-600"
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            {sizeTip ? (
+              <p className="rounded-xl bg-blue-50 px-3 py-2 text-sm text-blue-900 dark:bg-blue-950/40 dark:text-blue-100">
+                {sizeTip}
+              </p>
+            ) : null}
+
+            <div className="flex flex-col gap-2.5">
+              <Button
+                size="lg"
+                className="w-full rounded-xl bg-violet-600 text-base font-semibold shadow-md hover:bg-violet-700"
+                disabled={cartBusy}
+                onClick={(e) => void addToCart(e)}
+              >
+                {cartBusy ? "Adding…" : productT.addToCart}
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full rounded-xl border-2 border-zinc-900 font-semibold dark:border-white dark:text-white"
+                disabled={buyBusy}
+                onClick={() => void buyNow()}
+              >
+                {buyBusy ? "Redirecting…" : productT.buyNowOneClick}
+              </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  size="default"
+                  variant="secondary"
+                  className="rounded-xl font-medium"
+                  onClick={() => void openStylist()}
+                >
+                  <Sparkles className="mr-2 h-4 w-4" aria-hidden />
+                  {productT.howToWear}
+                </Button>
+                <Button
+                  size="default"
+                  variant="secondary"
+                  className="rounded-xl font-medium"
+                  onClick={() => void savePriceAlert()}
+                >
+                  {alertSaved ? "Saved" : productT.alertPriceDrop}
+                </Button>
+              </div>
+            </div>
+
+            {glanceText ? (
+              <div className="rounded-2xl border border-violet-200/70 bg-gradient-to-br from-violet-50 via-white to-teal-50/40 px-4 py-3 shadow-sm dark:border-violet-900/40 dark:from-violet-950/30 dark:via-zinc-950 dark:to-teal-950/20">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-violet-700 dark:text-violet-400">
+                  From the listing
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">{glanceText}</p>
+              </div>
+            ) : null}
+
+            {bundleCandidates.length > 0 ? (
+              <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950/40">
+                <p className="text-sm font-bold text-zinc-900 dark:text-zinc-50">Complete the basket</p>
+                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                  Add items below — 15% off the combined total (this SKU + selections).
+                </p>
+                <div className="mt-3 space-y-2">
+                  <div className="flex items-center justify-between rounded-xl border border-zinc-100 bg-zinc-50/80 px-3 py-2 text-sm dark:border-zinc-800 dark:bg-zinc-900/60">
+                    <span className="font-medium text-zinc-900 dark:text-zinc-100">{name}</span>
+                    <span className="tabular-nums text-zinc-600 dark:text-zinc-400">{priceDisplay}</span>
+                  </div>
+                  {bundleCandidates.map((row) => (
+                    <label
+                      key={row.id}
+                      className="flex cursor-pointer items-center gap-3 rounded-xl border border-zinc-100 px-3 py-2 transition hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900/50"
+                    >
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 accent-violet-600"
+                        checked={Boolean(bundleChecked[row.id])}
+                        onChange={(e) =>
+                          setBundleChecked((prev) => ({ ...prev, [row.id]: e.target.checked }))
+                        }
+                      />
+                      <span className="line-clamp-1 flex-1 text-sm text-zinc-800 dark:text-zinc-200">
+                        {row.title}
+                      </span>
+                      <span className="shrink-0 text-xs tabular-nums font-medium text-zinc-600 dark:text-zinc-400">
+                        +{fmtMoney(row.priceEur)}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                <motion.div
+                  key={`${bundlePayToday}-${bundleAddonSum}`}
+                  initial={{ opacity: 0.6, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="mt-4 border-t border-zinc-100 pt-3 text-sm dark:border-zinc-800"
+                >
+                  <div className="flex justify-between font-medium text-zinc-700 dark:text-zinc-300">
+                    <span>Subtotal ({bundleSelected.length ? "items + SKU" : "this SKU"})</span>
+                    <span className="tabular-nums">{fmtMoney(bundleAddonSum > 0 ? bundleCrossSubtotal : listingPriceEur)}</span>
+                  </div>
+                  {bundleAddonSum > 0 ? (
+                    <>
+                      <div className="mt-1 flex justify-between text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                        <span>Bundle discount (15%)</span>
+                        <span className="tabular-nums">−{fmtMoney(bundleSaved)}</span>
+                      </div>
+                      <div className="mt-2 flex justify-between text-base font-bold text-zinc-900 dark:text-white">
+                        <span>You pay</span>
+                        <span className="tabular-nums">{fmtMoney(bundlePayToday)}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-400">
+                      Tick add-ons to see bundle pricing. Checkout adds one line at a time today.
+                    </p>
+                  )}
+                </motion.div>
+              </div>
+            ) : null}
+
+            {storefront ? (
+              <Link
+                href={`/store/${encodeURIComponent(storefront.slug)}`}
+                className="flex items-center gap-3 rounded-2xl border border-zinc-200 p-4 transition hover:border-violet-200 hover:bg-violet-50/40 dark:border-zinc-800 dark:hover:border-violet-900/50 dark:hover:bg-violet-950/20"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                {storefront.logoUrl ? (
+                  <img
+                    src={storefront.logoUrl}
+                    alt=""
+                    className="h-12 w-12 shrink-0 rounded-xl border border-zinc-100 bg-white object-contain p-1 dark:border-zinc-700"
+                  />
+                ) : (
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-100 to-teal-50 text-lg font-bold text-violet-800 dark:from-violet-950 dark:to-teal-950 dark:text-violet-200">
+                    {storefront.name.slice(0, 1).toUpperCase()}
+                  </span>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                    Sold by
+                  </p>
+                  <p className="truncate font-semibold text-zinc-900 dark:text-zinc-50">{storefront.name}</p>
+                  {storefront.showTrustedSoldBy ? (
+                    <p className="text-xs text-emerald-700 dark:text-emerald-400">Verified storefront</p>
+                  ) : null}
+                </div>
+                <ChevronRight className="h-5 w-5 shrink-0 text-zinc-400" aria-hidden />
+              </Link>
+            ) : (
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">{t(productT.byStore, { store: sellerLabel })}</p>
+            )}
+          </aside>
+        </div>
       </div>
 
       <section className="mt-10 space-y-3">
@@ -539,7 +682,7 @@ export function MarketplaceListingDetail({
             {shipping.processingTime} day(s).
           </p>
         </details>
-        <details className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
+        <details id="listing-reviews" className="scroll-mt-28 rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
           <summary className="cursor-pointer font-semibold">Reviews</summary>
           <div className="mt-2 text-sm text-zinc-700 dark:text-zinc-300">
             <p className="mb-2">
@@ -566,7 +709,7 @@ export function MarketplaceListingDetail({
                 <img src={p.image} alt="" className="h-full w-full object-cover" />
               </div>
               <p className="mt-2 line-clamp-2 text-sm font-medium">{p.title}</p>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">{fmtEur(p.priceEur)}</p>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">{fmtMoney(p.priceEur)}</p>
             </Link>
           ))}
         </div>
@@ -582,7 +725,7 @@ export function MarketplaceListingDetail({
                 <img src={p.image} alt="" className="h-full w-full object-cover" />
               </div>
               <p className="mt-2 line-clamp-2 text-sm font-medium">{p.title}</p>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">{fmtEur(p.priceEur)}</p>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">{fmtMoney(p.priceEur)}</p>
             </Link>
           ))}
         </div>
@@ -641,11 +784,6 @@ export function MarketplaceListingDetail({
               </ul>
             )}
           </div>
-        </div>
-      ) : null}
-      {showPurchaseToast ? (
-        <div className="fixed bottom-6 left-6 z-50 max-w-xs rounded-xl bg-zinc-900 px-4 py-3 text-sm text-white shadow-xl dark:bg-white dark:text-zinc-900">
-          {purchaseToastText}
         </div>
       ) : null}
     </>

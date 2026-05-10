@@ -171,7 +171,8 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
   const alsoViewed = mapRelated([...fallbackRaw, ...oftenRaw]).slice(0, 3)
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10 md:px-8">
+    <main className="min-h-screen bg-gradient-to-b from-zinc-50 via-white to-violet-50/30 dark:from-zinc-950 dark:via-zinc-950 dark:to-violet-950/20">
+      <div className="mx-auto max-w-6xl px-4 py-10 md:px-8 lg:py-12">
       <MarketplaceListingDetail
         listingId={listing.id}
         productId={listing.product.id}
@@ -216,6 +217,7 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
           verified: r.verified,
         }))}
       />
+      </div>
     </main>
   )
 }
