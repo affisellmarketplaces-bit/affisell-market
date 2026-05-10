@@ -1,8 +1,8 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import type { LucideIcon } from "lucide-react"
 import {
   ArrowLeft,
@@ -11,6 +11,7 @@ import {
   Circle,
   Image as ImageIcon,
   Loader2,
+  Cloud,
   Package,
   Sparkles,
   Globe2,
@@ -51,6 +52,12 @@ import {
   SupplierUrlImportPanel,
   type UrlImportApplyPayload,
 } from "@/components/supplier/supplier-url-import-panel"
+import {
+  clearSupplierAddProductDraftCache,
+  readSupplierAddProductDraftCache,
+  writeSupplierAddProductDraftCache,
+  type SupplierAddProductCacheMode,
+} from "@/lib/supplier-add-product-draft-cache"
 import { cn } from "@/lib/utils"
 
 const LISTING_LABELS: Record<ListingKind, string> = {
@@ -123,16 +130,35 @@ function SectionCard({
 type SupplierAddProductFormProps = {
   /** Shown when the user arrived from the “Add products” hub (not when editing). */
   onBackToMethods?: () => void
+  /** URL import + AI shortcut panels on step 1 (chosen from the hub or `?assist=1`). */
+  assistShortcuts?: boolean
 }
 
-export function SupplierAddProductForm({ onBackToMethods }: SupplierAddProductFormProps) {
+export function SupplierAddProductForm({
+  onBackToMethods,
+  assistShortcuts = false,
+}: SupplierAddProductFormProps) {
   const router = useRouter()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
   const editId = searchParams.get("edit")?.trim() ?? ""
+  const draftIdFromUrl = searchParams.get("draft")?.trim() ?? ""
+  const composeQs = searchParams.get("compose") === "1"
+  const urlListingId = editId || draftIdFromUrl
 
-  const [loadingProduct, setLoadingProduct] = useState(Boolean(editId))
+  const cacheMode: SupplierAddProductCacheMode = assistShortcuts ? "assist" : composeQs ? "compose" : "plain"
+
+  const [loadingProduct, setLoadingProduct] = useState(Boolean(urlListingId))
   const [saving, setSaving] = useState(false)
+  const [draftSync, setDraftSync] = useState<"idle" | "saving" | "saved" | "error">("idle")
+  const [draftSyncAt, setDraftSyncAt] = useState<number | null>(null)
+  const [pendingDraftListingId, setPendingDraftListingId] = useState("")
+  const [productIsDraft, setProductIsDraft] = useState(false)
   const [step, setStep] = useState<1 | 2>(1)
+
+  const autosaveListingId = editId || draftIdFromUrl || pendingDraftListingId
+  const lastAutosaveJson = useRef("")
+  const hydratedFromCache = useRef(false)
 
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
@@ -384,6 +410,7 @@ export function SupplierAddProductForm({ onBackToMethods }: SupplierAddProductFo
       } else {
         setSpecValues({})
       }
+      setProductIsDraft(Boolean(data.isDraft))
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to load product")
       router.replace("/dashboard/supplier/products/new")
@@ -393,8 +420,12 @@ export function SupplierAddProductForm({ onBackToMethods }: SupplierAddProductFo
   }, [router])
 
   useEffect(() => {
-    if (editId) void loadProduct(editId)
-  }, [editId, loadProduct])
+    if (!urlListingId) {
+      if (!pendingDraftListingId) setProductIsDraft(false)
+      return
+    }
+    void loadProduct(urlListingId)
+  }, [urlListingId, loadProduct, pendingDraftListingId])
 
   useEffect(() => {
     const n = Number(commission)
@@ -402,6 +433,284 @@ export function SupplierAddProductForm({ onBackToMethods }: SupplierAddProductFo
       setCommission(String(commissionMax))
     }
   }, [commission, commissionMax])
+
+  const assembleListingPayload = useCallback(
+    (draftPriceFallback: boolean): Record<string, unknown> => {
+      const productAttributes = categoryAttrs
+        .map((a) => ({
+          key: a.key,
+          label: a.label,
+          value: (specValues[a.key] ?? "").trim(),
+        }))
+        .filter((row) => row.value.length > 0)
+
+      let priceN = Number(price)
+      if (draftPriceFallback && (!Number.isFinite(priceN) || priceN <= 0)) {
+        priceN = 1
+      }
+
+      return {
+        name: name.trim(),
+        description: description.trim(),
+        price: priceN,
+        compareAt: compareAt.trim() ? Number(compareAt) : null,
+        stock: Math.max(0, Math.round(Number(stock) || 0)),
+        commission: Math.round(Number(commission)),
+        listingKind,
+        images,
+        categoryId: categoryId.trim(),
+        shippingCountry: shippingCountry.trim().toUpperCase().slice(0, 2) || undefined,
+        warehouseType: warehouseType || undefined,
+        processingTime: Math.round(Number(processingTime) || 1),
+        deliveryMin: Math.round(Number(deliveryMin) || 2),
+        deliveryMax: Math.round(Number(deliveryMax) || 5),
+        shippingCostEUR: Number(shippingCost) || 0,
+        shippingMethods: ["standard"],
+        productAttributes,
+        shipsFrom: shipsFrom.trim() || undefined,
+        deliveryDays:
+          deliveryDays.trim() === ""
+            ? undefined
+            : Math.round(Number(deliveryDays)) >= 0
+              ? Math.round(Number(deliveryDays))
+              : undefined,
+        freeShipping,
+        supplierTag: supplierTag.trim() || undefined,
+      }
+    },
+    [
+      categoryAttrs,
+      specValues,
+      price,
+      name,
+      description,
+      compareAt,
+      stock,
+      commission,
+      listingKind,
+      images,
+      categoryId,
+      shippingCountry,
+      warehouseType,
+      processingTime,
+      deliveryMin,
+      deliveryMax,
+      shippingCost,
+      shipsFrom,
+      deliveryDays,
+      freeShipping,
+      supplierTag,
+    ]
+  )
+
+  useEffect(() => {
+    if (urlListingId || pendingDraftListingId || hydratedFromCache.current || loadingBrowse) return
+    const c = readSupplierAddProductDraftCache(cacheMode)
+    hydratedFromCache.current = true
+    if (!c) return
+    if (Date.now() - c.updatedAt > 14 * 24 * 60 * 60 * 1000) return
+    setStep(c.step)
+    setName(c.name)
+    setDescription(c.description)
+    setCategoryId(c.categoryId)
+    setImages(Array.isArray(c.images) ? c.images : [])
+    setPrice(c.price)
+    setCompareAt(c.compareAt)
+    setStock(c.stock)
+    if (LISTING_KINDS.includes(c.listingKind as ListingKind)) {
+      setListingKind(c.listingKind as ListingKind)
+    }
+    setCommission(c.commission)
+    setShippingCountry(c.shippingCountry)
+    setWarehouseType(
+      c.warehouseType === "local" || c.warehouseType === "regional" || c.warehouseType === "international"
+        ? c.warehouseType
+        : ""
+    )
+    setProcessingTime(c.processingTime)
+    setDeliveryMin(c.deliveryMin)
+    setDeliveryMax(c.deliveryMax)
+    setShippingCost(c.shippingCost)
+    setShipsFrom(c.shipsFrom)
+    setDeliveryDays(c.deliveryDays)
+    setFreeShipping(c.freeShipping)
+    setSupplierTag(c.supplierTag)
+    setSpecValues(c.specValues)
+    toast("Restored your last on-device draft for this workflow.", { duration: 4500 })
+  }, [urlListingId, pendingDraftListingId, loadingBrowse, cacheMode])
+
+  const autosaveFingerprint = useMemo(
+    () => JSON.stringify(assembleListingPayload(true)) + String(step),
+    [assembleListingPayload, step]
+  )
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    if (loadingProduct || saving) return
+    if (editId && !productIsDraft) return
+
+    const hasServerDraftBucket = Boolean(
+      autosaveListingId && (productIsDraft || draftIdFromUrl || pendingDraftListingId)
+    )
+    const hasLocalSignals =
+      !editId &&
+      (Boolean(name.trim()) ||
+        Boolean(description.trim()) ||
+        Boolean(categoryId.trim()) ||
+        images.length > 0 ||
+        Boolean(shipsFrom.trim()))
+    if (!(hasServerDraftBucket || hasLocalSignals)) return
+
+    let cancelled = false
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        const body = assembleListingPayload(true)
+        const fp = JSON.stringify(body)
+        if (fp === lastAutosaveJson.current) return
+        try {
+          if (cancelled) return
+          setDraftSync("saving")
+          if (autosaveListingId) {
+            const res = await fetch(`/api/supplier/products/${autosaveListingId}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify(body),
+            })
+            const json = (await res.json().catch(() => ({}))) as { error?: string }
+            if (!res.ok) {
+              throw new Error(typeof json.error === "string" ? json.error : "Draft sync failed")
+            }
+          } else {
+            const res = await fetch("/api/supplier/products", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify({ ...body, saveAsDraft: true }),
+            })
+            const json = (await res.json()) as { id?: string; error?: string }
+            if (!res.ok) {
+              throw new Error(typeof json.error === "string" ? json.error : "Draft sync failed")
+            }
+            if (json.id) {
+              setPendingDraftListingId(json.id)
+              setProductIsDraft(true)
+              const qs = new URLSearchParams(searchParams.toString())
+              qs.set("draft", json.id)
+              router.replace(`${pathname}?${qs.toString()}`, { scroll: false })
+            }
+          }
+          if (cancelled) return
+          lastAutosaveJson.current = fp
+          setDraftSync("saved")
+          setDraftSyncAt(Date.now())
+        } catch {
+          if (!cancelled) setDraftSync("error")
+        }
+      })()
+    }, 2400)
+    return () => {
+      cancelled = true
+      window.clearTimeout(timer)
+    }
+  }, [
+    autosaveFingerprint,
+    assembleListingPayload,
+    autosaveListingId,
+    draftIdFromUrl,
+    editId,
+    loadingProduct,
+    name,
+    description,
+    categoryId,
+    images,
+    shipsFrom,
+    pathname,
+    pendingDraftListingId,
+    productIsDraft,
+    router,
+    saving,
+    searchParams,
+  ])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    if (editId && !productIsDraft) return
+    if (!(name.trim() || description.trim() || categoryId.trim() || images.length > 0)) return
+    const t = window.setTimeout(() => {
+      writeSupplierAddProductDraftCache({
+        mode: cacheMode,
+        step,
+        name,
+        description,
+        categoryId,
+        images,
+        price,
+        compareAt,
+        stock,
+        listingKind,
+        commission,
+        shippingCountry,
+        warehouseType,
+        processingTime,
+        deliveryMin,
+        deliveryMax,
+        shippingCost,
+        shipsFrom,
+        deliveryDays,
+        freeShipping,
+        supplierTag,
+        specValues,
+      })
+    }, 720)
+    return () => window.clearTimeout(t)
+  }, [
+    cacheMode,
+    step,
+    categoryId,
+    commission,
+    compareAt,
+    deliveryDays,
+    deliveryMax,
+    deliveryMin,
+    description,
+    editId,
+    freeShipping,
+    images,
+    listingKind,
+    name,
+    price,
+    productIsDraft,
+    processingTime,
+    shippingCost,
+    shippingCountry,
+    shipsFrom,
+    specValues,
+    stock,
+    supplierTag,
+    warehouseType,
+  ])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const dirty =
+      productIsDraft ||
+      (!editId &&
+        Boolean(
+          name.trim() ||
+            description.trim() ||
+            categoryId.trim() ||
+            images.length ||
+            autosaveListingId
+        ))
+    if (!dirty) return
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      e.returnValue = ""
+    }
+    window.addEventListener("beforeunload", handler)
+    return () => window.removeEventListener("beforeunload", handler)
+  }, [autosaveListingId, categoryId, description, editId, images.length, name, productIsDraft])
 
   async function handleSubmit() {
     if (priceError || compareError || commissionError) {
@@ -426,52 +735,34 @@ export function SupplierAddProductForm({ onBackToMethods }: SupplierAddProductFo
       return
     }
 
-    const productAttributes = categoryAttrs
-      .map((a) => ({
-        key: a.key,
-        label: a.label,
-        value: (specValues[a.key] ?? "").trim(),
-      }))
-      .filter((row) => row.value.length > 0)
-
-    const payload: Record<string, unknown> = {
-      name: name.trim(),
-      description: description.trim(),
-      price: Number(price),
-      compareAt: compareAt.trim() ? Number(compareAt) : null,
-      stock: Math.max(0, Math.round(Number(stock) || 0)),
-      commission: Math.round(Number(commission)),
-      listingKind,
-      images,
-      categoryId: categoryId.trim(),
-      shippingCountry: shippingCountry.trim().toUpperCase().slice(0, 2) || undefined,
-      warehouseType: warehouseType || undefined,
-      processingTime: Math.round(Number(processingTime) || 1),
-      deliveryMin: Math.round(Number(deliveryMin) || 2),
-      deliveryMax: Math.round(Number(deliveryMax) || 5),
-      shippingCostEUR: Number(shippingCost) || 0,
-      shippingMethods: ["standard"],
-      productAttributes,
-      shipsFrom: shipsFrom.trim() || undefined,
-      deliveryDays:
-        deliveryDays.trim() === ""
-          ? undefined
-          : Math.round(Number(deliveryDays)) >= 0
-            ? Math.round(Number(deliveryDays))
-            : undefined,
-      freeShipping,
-      supplierTag: supplierTag.trim() || undefined,
-    }
+    const payload = assembleListingPayload(false)
+    const serverId = editId || draftIdFromUrl || pendingDraftListingId
 
     setSaving(true)
     try {
-      const url = editId ? `/api/supplier/products/${editId}` : "/api/supplier/products"
-      const res = await fetch(url, {
-        method: editId ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(editId ? { ...payload, name: name.trim() } : payload),
-      })
+      let res: Response
+      if (serverId && productIsDraft) {
+        res = await fetch(`/api/supplier/products/${serverId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ ...payload, publish: true }),
+        })
+      } else if (serverId && !productIsDraft) {
+        res = await fetch(`/api/supplier/products/${serverId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(payload),
+        })
+      } else {
+        res = await fetch("/api/supplier/products", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(payload),
+        })
+      }
       const json = (await res.json()) as { error?: string; id?: string }
       if (!res.ok) {
         throw new Error(json.error ?? "Save failed")
@@ -489,7 +780,11 @@ export function SupplierAddProductForm({ onBackToMethods }: SupplierAddProductFo
           })
           .catch(() => {})
       }
-      toast.success(editId ? "Product updated." : "Product created.")
+      clearSupplierAddProductDraftCache()
+      lastAutosaveJson.current = ""
+      toast.success(
+        serverId && !productIsDraft ? "Product updated." : "Product published to your catalog."
+      )
       router.push("/dashboard/supplier/products")
       router.refresh()
     } catch (e) {
@@ -526,6 +821,33 @@ export function SupplierAddProductForm({ onBackToMethods }: SupplierAddProductFo
     { n: 1 as const, title: "Listing & media", hint: "Story, category, visuals" },
     { n: 2 as const, title: "Pricing & publish", hint: "Economics & go-live" },
   ] as const
+
+  const headerMeta =
+    editId && !productIsDraft
+      ? {
+          kicker: "Edit listing",
+          title: "Refine your product",
+          blurb: "Adjust story, visuals, specs, marketplace delivery, and economics before saving.",
+        }
+      : productIsDraft
+        ? {
+            kicker: "Draft listing",
+            title: assistShortcuts ? "Draft with assists" : "Manual draft",
+            blurb:
+              "Synced to your supplier account in the background—plus a local backup in this browser. Nothing is public until you publish.",
+          }
+        : assistShortcuts
+          ? {
+              kicker: "Assist mode",
+              title: "Draft your listing",
+              blurb:
+                "Use optional URL import and AI tools below—then finalize category labels and imagery. Pricing is step 2.",
+            }
+          : {
+              kicker: "New listing",
+              title: "Manual listing",
+              blurb: "Story, category, and images here; price, stock, shipping, and commission in step 2.",
+            }
 
   return (
     <>
@@ -564,28 +886,51 @@ export function SupplierAddProductForm({ onBackToMethods }: SupplierAddProductFo
               </Link>
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-600 dark:text-violet-400">
-                  {editId ? "Edit listing" : "New listing"}
+                  {headerMeta.kicker}
                 </p>
                 <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-3xl">
-                  {editId ? "Refine your product" : "Create a standout product"}
+                  {headerMeta.title}
                 </h1>
                 <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                  A clear story, sharp imagery, and the right category help affiliates sell faster—optimize
-                  the essentials, then set pricing and commissions in step two.
+                  {headerMeta.blurb}
                 </p>
+                {productIsDraft ? (
+                  <p className="mt-2 flex flex-wrap items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                    <Cloud className="h-3.5 w-3.5 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
+                    {draftSync === "saving" ? (
+                      <span>Saving draft…</span>
+                    ) : draftSync === "error" ? (
+                      <span className="text-amber-700 dark:text-amber-400">
+                        Could not sync—check your connection and try again.
+                      </span>
+                    ) : draftSyncAt ? (
+                      <span>
+                        Draft saved{" "}
+                        {new Date(draftSyncAt).toLocaleTimeString("en-US", {
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    ) : (
+                      <span>Autosave runs a few seconds after you stop typing.</span>
+                    )}
+                  </p>
+                ) : null}
               </div>
             </div>
-            <div className="flex shrink-0 flex-col gap-2 sm:flex-row lg:flex-col">
-              <Link
-                href="/dashboard/supplier/bulk-import"
-                className={cn(
-                  buttonVariants({ variant: "outline", size: "sm" }),
-                  "inline-flex justify-center border-zinc-300 bg-white/80 dark:border-zinc-600 dark:bg-zinc-900/80"
-                )}
-              >
-                Bulk Excel import
-              </Link>
-            </div>
+            {!onBackToMethods ? (
+              <div className="flex shrink-0 flex-col gap-2 sm:flex-row lg:flex-col">
+                <Link
+                  href="/dashboard/supplier/bulk-import"
+                  className={cn(
+                    buttonVariants({ variant: "outline", size: "sm" }),
+                    "inline-flex justify-center border-zinc-300 bg-white/80 dark:border-zinc-600 dark:bg-zinc-900/80"
+                  )}
+                >
+                  Bulk Excel import
+                </Link>
+              </div>
+            ) : null}
           </div>
         </header>
 
@@ -631,24 +976,26 @@ export function SupplierAddProductForm({ onBackToMethods }: SupplierAddProductFo
           <div className="min-w-0 space-y-10">
             {step === 1 ? (
               <>
-                <SectionCard
-                  icon={Zap}
-                  variant="accent"
-                  title="Shortcuts"
-                  description="Pull in data from a URL or let AI draft copy—optional, but fast when you’re in a hurry."
-                >
-                  <div className="space-y-8 border-t border-violet-200/50 pt-6 dark:border-violet-900/30">
-                    <SupplierUrlImportPanel categoryAttrs={categoryAttrs} onApply={handleUrlImportApply} />
-                    <SupplierAiPublishPanel
-                      initialTitle={name}
-                      initialNotes={description}
-                      initialImageUrls={images}
-                      categoryAttrs={categoryAttrs}
-                      categoryPathLabel={categoryPathLabel}
-                      onGenerated={handleAiGenerated}
-                    />
-                  </div>
-                </SectionCard>
+                {assistShortcuts ? (
+                  <SectionCard
+                    icon={Zap}
+                    variant="accent"
+                    title="Shortcuts"
+                    description="Pull in data from a URL or let AI draft copy—optional, but fast when you’re in a hurry."
+                  >
+                    <div className="space-y-8 border-t border-violet-200/50 pt-6 dark:border-violet-900/30">
+                      <SupplierUrlImportPanel categoryAttrs={categoryAttrs} onApply={handleUrlImportApply} />
+                      <SupplierAiPublishPanel
+                        initialTitle={name}
+                        initialNotes={description}
+                        initialImageUrls={images}
+                        categoryAttrs={categoryAttrs}
+                        categoryPathLabel={categoryPathLabel}
+                        onGenerated={handleAiGenerated}
+                      />
+                    </div>
+                  </SectionCard>
+                ) : null}
 
                 <SectionCard
                   icon={Package}
@@ -777,7 +1124,7 @@ export function SupplierAddProductForm({ onBackToMethods }: SupplierAddProductFo
                 >
                   <div className="grid gap-5 sm:grid-cols-2">
                     <div className="sm:col-span-2">
-                      <Label htmlFor="p-price">Base price (supplier) — USD</Label>
+                      <Label htmlFor="p-price">Base price</Label>
                       <Input
                         id="p-price"
                         type="number"
@@ -1053,7 +1400,11 @@ export function SupplierAddProductForm({ onBackToMethods }: SupplierAddProductFo
                     className="bg-violet-600 hover:bg-violet-700 dark:bg-violet-600"
                     onClick={() => void handleSubmit()}
                   >
-                    {saving ? "Saving…" : editId ? "Save changes" : "Publish product"}
+                    {saving
+                      ? "Saving…"
+                      : editId && !productIsDraft
+                        ? "Save changes"
+                        : "Publish product"}
                   </Button>
                 </div>
               </>

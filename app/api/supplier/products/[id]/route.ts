@@ -2,11 +2,21 @@ import { Prisma } from "@prisma/client"
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import {
+  findSupplierProductGuardForPut,
+  findSupplierProductWithAttributesForOwner,
+} from "@/lib/supplier-product-is-draft-fallback"
+import { createNewDropCommunityPost } from "@/lib/community-new-drop"
 import { parseProductAttributesBody } from "@/lib/supplier-product-attributes"
+import { parseCompareAtDraftLax, parseCompareAtStrict } from "@/lib/supplier-product-compare-at"
 import { parseProductMarketplaceMeta } from "@/lib/supplier-product-marketplace-meta"
 import { parseSupplierProductShippingBody } from "@/lib/supplier-product-shipping"
 import { parseSupplierProductImages } from "@/lib/supplier-product-images"
-import { normalizeAffiliateCommissionRatePct, parseListingKind } from "@/lib/supplier-commission"
+import {
+  defaultAffiliateCommissionPct,
+  normalizeAffiliateCommissionRatePct,
+  parseListingKind,
+} from "@/lib/supplier-commission"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -37,12 +47,7 @@ export async function GET(
     return Response.json({ error: "Not found" }, { status: 404 })
   }
 
-  const p = await prisma.product.findFirst({
-    where: { id, supplierId: session.user.id },
-    include: {
-      attributes: { orderBy: { key: "asc" } },
-    },
-  })
+  const p = await findSupplierProductWithAttributesForOwner(id, session.user.id)
   if (!p) {
     return Response.json({ error: "Not found" }, { status: 404 })
   }
@@ -74,15 +79,20 @@ export async function PUT(
     return Response.json({ error: "Not found" }, { status: 404 })
   }
 
-  const existingRow = await prisma.product.findUnique({
-    where: { id },
-    select: { listingKind: true, commissionRate: true, stock: true },
-  })
+  const rawBody = (await req.json()) as Record<string, unknown>
+  const publish = Boolean(rawBody.publish)
+  const saveAsDraftReq = Boolean(rawBody.saveAsDraft)
+
+  const existingRow = await findSupplierProductGuardForPut(id)
   if (!existingRow) {
     return Response.json({ error: "Not found" }, { status: 404 })
   }
 
-  const body = (await req.json()) as {
+  if (!existingRow.isDraft && saveAsDraftReq) {
+    return Response.json({ error: "This listing is live—use Publish to update it." }, { status: 400 })
+  }
+
+  const body = rawBody as {
     name?: string
     description?: string
     image?: string
@@ -96,51 +106,76 @@ export async function PUT(
     listingKind?: unknown
   }
 
-  const name = typeof body.name === "string" ? body.name.trim() : ""
-  if (!name) {
-    return Response.json({ error: "Missing name" }, { status: 400 })
-  }
-
-  const price = Number(body.price)
-  if (!Number.isFinite(price) || price < 0) {
-    return Response.json({ error: "Invalid price" }, { status: 400 })
-  }
-  const priceCents = Math.max(100, Math.round(price * 100))
-
-  let compareAt: Prisma.Decimal | null = null
-  if (body.compareAt != null && String(body.compareAt).trim() !== "") {
-    const compareAtNumber = Number(body.compareAt)
-    if (!Number.isFinite(compareAtNumber) || compareAtNumber <= 0) {
-      return Response.json({ error: "Invalid compare-at price" }, { status: 400 })
-    }
-    const compareAtCents = Math.round(compareAtNumber * 100)
-    if (compareAtCents <= priceCents) {
-      return Response.json({ error: "Compare-at price must be greater than price" }, { status: 400 })
-    }
-    const discountPct = ((compareAtCents - priceCents) / compareAtCents) * 100
-    if (discountPct > 70) {
-      return Response.json({ error: "Discount cannot exceed 70%" }, { status: 400 })
-    }
-    compareAt = new Prisma.Decimal(compareAtNumber.toFixed(2))
-  }
-
   const listingKind = parseListingKind(body.listingKind ?? existingRow.listingKind)
-  const commRaw = body.commission
-  const commFallback = Number.isFinite(Number(commRaw))
-    ? Number(commRaw)
-    : existingRow.commissionRate
-  const normalized = normalizeAffiliateCommissionRatePct(commFallback, listingKind)
-  if (!normalized.ok) {
-    return Response.json({ error: normalized.error }, { status: 400 })
-  }
-  const rate = normalized.rate
+  let priceCents: number
+  let compareAt: Prisma.Decimal | null = null
+  let rate: number
+  let nameResolved: string
+  let stock: number
+  let draftUpdateOnly = existingRow.isDraft && !publish
 
-  const stock = Math.max(
-    0,
-    Math.round(
-      Number.isFinite(Number(body.stock)) ? Number(body.stock) : existingRow.stock
+  if (draftUpdateOnly) {
+    const priceNum = Number(body.price)
+    priceCents = Number.isFinite(priceNum) && priceNum >= 0
+      ? Math.max(100, Math.round(priceNum * 100))
+      : Math.max(100, existingRow.basePriceCents)
+
+    compareAt = parseCompareAtDraftLax(priceCents, body.compareAt ?? null)
+
+    const commRaw = body.commission
+    const commFallback = Number.isFinite(Number(commRaw))
+      ? Number(commRaw)
+      : existingRow.commissionRate
+    const normalized = normalizeAffiliateCommissionRatePct(commFallback, listingKind)
+    rate = normalized.ok ? normalized.rate : defaultAffiliateCommissionPct()
+
+    const rawName = typeof body.name === "string" ? body.name.trim() : ""
+    nameResolved = (rawName || "Untitled draft").slice(0, 500)
+
+    stock = Math.max(
+      0,
+      Math.round(
+        Number.isFinite(Number(body.stock)) ? Number(body.stock) : existingRow.stock
+      )
     )
-  )
+  } else {
+    const name = typeof body.name === "string" ? body.name.trim() : ""
+    if (!name) {
+      return Response.json({ error: "Missing name" }, { status: 400 })
+    }
+    nameResolved = name.slice(0, 500)
+
+    const price = Number(body.price)
+    if (!Number.isFinite(price) || price < 0) {
+      return Response.json({ error: "Invalid price" }, { status: 400 })
+    }
+    priceCents = Math.max(100, Math.round(price * 100))
+
+    const strict = parseCompareAtStrict(priceCents, body.compareAt ?? null)
+    if (!strict.ok) {
+      return Response.json({ error: strict.error }, { status: 400 })
+    }
+    compareAt = strict.decimal
+
+    const commRaw = body.commission
+    const commFallback = Number.isFinite(Number(commRaw))
+      ? Number(commRaw)
+      : existingRow.commissionRate
+    const normalized = normalizeAffiliateCommissionRatePct(commFallback, listingKind)
+    if (!normalized.ok) {
+      return Response.json({ error: normalized.error }, { status: 400 })
+    }
+    rate = normalized.rate
+
+    stock = Math.max(
+      0,
+      Math.round(
+        Number.isFinite(Number(body.stock)) ? Number(body.stock) : existingRow.stock
+      )
+    )
+  }
+
+  const activatingFromDraft = Boolean(existingRow.isDraft && publish)
   const desc = typeof body.description === "string" ? body.description.trim() : ""
   const images = parseSupplierProductImages(body as unknown as Record<string, unknown>)
   const attr = parseProductAttributesBody(body as unknown as Record<string, unknown>)
@@ -164,7 +199,7 @@ export async function PUT(
     const p = await tx.product.update({
       where: { id },
       data: {
-        name,
+        name: nameResolved,
         description: desc,
         images,
         colorImages:
@@ -197,6 +232,8 @@ export async function PUT(
         deliveryDays: meta.deliveryDays,
         freeShipping: meta.freeShipping,
         supplierTag: meta.supplierTag,
+        ...(existingRow.isDraft && !publish ? { active: false, isDraft: true } : {}),
+        ...(existingRow.isDraft && publish ? { active: true, isDraft: false } : {}),
       },
     })
 
@@ -213,6 +250,24 @@ export async function PUT(
     }
     return p
   })
+
+  if (activatingFromDraft) {
+    const supplierStore = await prisma.store.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true },
+    })
+    if (supplierStore) {
+      try {
+        await createNewDropCommunityPost({
+          storeId: supplierStore.id,
+          productId: updated.id,
+          productName: updated.name,
+        })
+      } catch {
+        /* non-fatal */
+      }
+    }
+  }
 
   return Response.json(updated)
 }

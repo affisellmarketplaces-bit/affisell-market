@@ -2,11 +2,13 @@ import { Prisma } from "@prisma/client"
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { findSupplierProductsForOwnerApi } from "@/lib/supplier-product-is-draft-fallback"
 import { createNewDropCommunityPost } from "@/lib/community-new-drop"
 import { parseProductAttributesBody } from "@/lib/supplier-product-attributes"
 import { parseProductMarketplaceMeta } from "@/lib/supplier-product-marketplace-meta"
 import { parseSupplierProductShippingBody } from "@/lib/supplier-product-shipping"
 import { parseSupplierProductImages } from "@/lib/supplier-product-images"
+import { parseCompareAtDraftLax, parseCompareAtStrict } from "@/lib/supplier-product-compare-at"
 import {
   defaultAffiliateCommissionPct,
   normalizeAffiliateCommissionRatePct,
@@ -24,9 +26,8 @@ export async function GET() {
   if ((session.user as { role?: string }).role !== "SUPPLIER") {
     return Response.json({ error: "Forbidden" }, { status: 403 })
   }
-  const products = await prisma.product.findMany({
-    where: { supplierId: session.user.id },
-    orderBy: { name: "asc" },
+  const products = await findSupplierProductsForOwnerApi({
+    supplierId: session.user.id,
   })
   return Response.json(
     products.map((p) => ({
@@ -50,6 +51,7 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json()
+  const saveAsDraft = Boolean((body as Record<string, unknown>).saveAsDraft)
   const {
     name,
     basePriceCents: basePriceCentsRaw,
@@ -65,7 +67,7 @@ export async function POST(req: Request) {
   const productAttributesRaw = (body as Record<string, unknown>).productAttributes
 
   const nameStr = typeof name === "string" ? name.trim() : ""
-  if (!nameStr) {
+  if (!saveAsDraft && !nameStr) {
     return Response.json({ error: "Missing name" }, { status: 400 })
   }
 
@@ -74,35 +76,34 @@ export async function POST(req: Request) {
     cents = Math.round(Number(price) * 100)
   } else if (basePriceCentsRaw != null) {
     cents = Math.round(Number(basePriceCentsRaw))
+  } else if (saveAsDraft) {
+    cents = 100
   } else {
     return Response.json({ error: "Missing price" }, { status: 400 })
   }
   const normalizedPriceCents = Math.max(100, cents)
-  let compareAt: Prisma.Decimal | null = null
-  if (compareAtRaw != null && String(compareAtRaw).trim() !== "") {
-    const compareAtNumber = Number(compareAtRaw)
-    if (!Number.isFinite(compareAtNumber) || compareAtNumber <= 0) {
-      return Response.json({ error: "Invalid compare-at price" }, { status: 400 })
-    }
-    const compareAtCents = Math.round(compareAtNumber * 100)
-    if (compareAtCents <= normalizedPriceCents) {
-      return Response.json({ error: "Compare-at price must be greater than price" }, { status: 400 })
-    }
-    const discountPct = ((compareAtCents - normalizedPriceCents) / compareAtCents) * 100
-    if (discountPct > 70) {
-      return Response.json({ error: "Discount cannot exceed 70%" }, { status: 400 })
-    }
-    compareAt = new Prisma.Decimal(compareAtNumber.toFixed(2))
-  }
 
   const listingKind = parseListingKind((body as Record<string, unknown>).listingKind)
   const commRaw = commission ?? commissionRate
   const commFallback = Number.isFinite(Number(commRaw)) ? Number(commRaw) : defaultAffiliateCommissionPct()
   const normalized = normalizeAffiliateCommissionRatePct(commFallback, listingKind)
-  if (!normalized.ok) {
+  let rate = defaultAffiliateCommissionPct()
+  if (normalized.ok) {
+    rate = normalized.rate
+  } else if (!saveAsDraft) {
     return Response.json({ error: normalized.error }, { status: 400 })
   }
-  const rate = normalized.rate
+
+  let compareAt: Prisma.Decimal | null = null
+  if (saveAsDraft) {
+    compareAt = parseCompareAtDraftLax(normalizedPriceCents, compareAtRaw)
+  } else {
+    const strict = parseCompareAtStrict(normalizedPriceCents, compareAtRaw)
+    if (!strict.ok) {
+      return Response.json({ error: strict.error }, { status: 400 })
+    }
+    compareAt = strict.decimal
+  }
   const images = parseSupplierProductImages(body as Record<string, unknown>)
   const attr = parseProductAttributesBody(body as Record<string, unknown>)
   const ship = parseSupplierProductShippingBody(body as Record<string, unknown>)
@@ -123,12 +124,13 @@ export async function POST(req: Request) {
     : []
 
   const supplierId = (session.user as { id: string }).id
+  const displayName = (nameStr || "Untitled draft").slice(0, 500)
 
   const product = await prisma.$transaction(async (tx) => {
     const created = await tx.product.create({
       data: {
         supplierId,
-        name: nameStr,
+        name: saveAsDraft ? displayName : nameStr.slice(0, 500),
         description: desc,
         images,
         colorImages:
@@ -147,7 +149,8 @@ export async function POST(req: Request) {
         commissionRate: rate,
         listingKind,
         stock: stockN,
-        active: true,
+        active: !saveAsDraft,
+        isDraft: saveAsDraft,
         categoryId: categoryId || null,
         shippingCountry: ship.shippingCountry,
         warehouseType: ship.warehouseType,
@@ -180,19 +183,21 @@ export async function POST(req: Request) {
     return created
   })
 
-  const supplierStore = await prisma.store.findUnique({
-    where: { userId: (session.user as { id: string }).id },
-    select: { id: true },
-  })
-  if (supplierStore) {
-    try {
-      await createNewDropCommunityPost({
-        storeId: supplierStore.id,
-        productId: product.id,
-        productName: product.name,
-      })
-    } catch {
-      /* non-fatal */
+  if (!saveAsDraft) {
+    const supplierStore = await prisma.store.findUnique({
+      where: { userId: (session.user as { id: string }).id },
+      select: { id: true },
+    })
+    if (supplierStore) {
+      try {
+        await createNewDropCommunityPost({
+          storeId: supplierStore.id,
+          productId: product.id,
+          productName: product.name,
+        })
+      } catch {
+        /* non-fatal */
+      }
     }
   }
 

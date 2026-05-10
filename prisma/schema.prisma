@@ -164,6 +164,8 @@ model Product {
   listingKind String @default("PHYSICAL")
   stock Int @default(0)
   active Boolean @default(true)
+  /** In-progress listing; always kept inactive until published. */
+  isDraft Boolean @default(false)
 
   /** Normalized taxonomy (optional — legacy rows still match via `categories[]` in counts). */
   categoryId String?
@@ -217,6 +219,7 @@ model Product {
   reviews Review[]
 
   @@index([categoryId])
+  @@index([supplierId, isDraft])
   @@index([style])
   @@index([shippingType])
   @@index([basePriceCents])
