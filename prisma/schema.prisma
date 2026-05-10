@@ -35,6 +35,30 @@ model User {
 
   /** Supplier add-product: recent category picks JSON [{ leafId, path:[{id,name}] }] max 5 */
   supplierRecentCategories Json @default("[]")
+
+  supplierIntegrations SupplierIntegration[]
+}
+
+/** Saved connections for supplier catalog sync (Shopify, inbound webhook, …). */
+model SupplierIntegration {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /** Lowercase slug e.g. `shopify`, `webhook`. */
+  platform  String
+  /** User-visible label; unique per user+platform. */
+  name      String   @default("main")
+  enabled   Boolean  @default(true)
+  /** Shopify: { shop, accessToken, apiVersion? }. Webhook: { webhookSecret }. */
+  config    Json     @default("{}")
+  lastSyncAt      DateTime?
+  lastSyncError   String?
+  lastSyncSummary Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, platform, name])
+  @@index([userId])
 }
 
 model Store {
