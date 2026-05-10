@@ -68,14 +68,22 @@ export default async function DashboardSupplierPage() {
             <div className="min-w-0 flex-1">
               <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">Import</h2>
               <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                Bulk upload from CSV or integrations.
+                URL / CSV preview import, or structured Excel with category attributes.
               </p>
-              <Link
-                href="/dashboard/supplier/import"
-                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-4 inline-flex")}
-              >
-                Go to import
-              </Link>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Link
+                  href="/dashboard/supplier/import"
+                  className={cn(buttonVariants({ variant: "outline", size: "sm" }), "inline-flex")}
+                >
+                  Precision import
+                </Link>
+                <Link
+                  href="/dashboard/supplier/bulk-import"
+                  className={cn(buttonVariants({ size: "sm" }), "inline-flex")}
+                >
+                  Bulk Excel
+                </Link>
+              </div>
             </div>
           </div>
         </Card>

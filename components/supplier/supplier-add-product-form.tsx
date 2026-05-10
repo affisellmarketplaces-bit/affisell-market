@@ -375,17 +375,25 @@ export function SupplierAddProductForm() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
-      <div className="mb-6 flex flex-wrap items-center gap-3">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            href="/dashboard/supplier/products"
+            className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "inline-flex gap-1")}
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden />
+            Back
+          </Link>
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+            {editId ? "Edit product" : "Add product"}
+          </h1>
+        </div>
         <Link
-          href="/dashboard/supplier/products"
-          className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "inline-flex gap-1")}
+          href="/dashboard/supplier/bulk-import"
+          className={cn(buttonVariants({ variant: "outline", size: "sm" }), "inline-flex shrink-0")}
         >
-          <ArrowLeft className="h-4 w-4" aria-hidden />
-          Back
+          Bulk Excel import
         </Link>
-        <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-          {editId ? "Edit product" : "Add product"}
-        </h1>
       </div>
 
       <div className="mb-6 flex gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-700 dark:bg-zinc-900">

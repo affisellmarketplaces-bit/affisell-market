@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { Box, CloudUpload, Link2, ShoppingBag, Star } from "lucide-react"
 import type { ChangeEvent } from "react"
 import { useCallback, useState } from "react"
@@ -600,6 +601,14 @@ export function SupplierProductImport() {
         </h1>
         <p className="mt-1 text-zinc-600 dark:text-zinc-400">
           Import from CSV, Shopify, AliExpress, or any URL — review and publish to your catalog
+        </p>
+        <p className="mt-3">
+          <Link
+            href="/dashboard/supplier/bulk-import"
+            className="text-sm font-medium text-violet-600 underline-offset-4 hover:underline dark:text-violet-400"
+          >
+            Bulk Excel import (per-category template, validation, batched publish) →
+          </Link>
         </p>
       </div>
 

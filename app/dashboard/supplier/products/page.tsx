@@ -60,9 +60,17 @@ export default async function SupplierProductsPage() {
             Manage catalog listings and affiliate commission.
           </p>
         </div>
-        <Link href="/dashboard/supplier/products/new" className={cn(buttonVariants({ size: "sm" }), "inline-flex")}>
-          Add product
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/dashboard/supplier/bulk-import"
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "inline-flex")}
+          >
+            Bulk Excel
+          </Link>
+          <Link href="/dashboard/supplier/products/new" className={cn(buttonVariants({ size: "sm" }), "inline-flex")}>
+            Add product
+          </Link>
+        </div>
       </div>
 
       <div className="mt-8 overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700">
