@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import { Suspense } from "react"
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
@@ -38,11 +39,19 @@ export default async function AffiliateDashboardPage() {
   ])
 
   return (
-    <AffiliateDashboard
-      catalog={JSON.parse(JSON.stringify(catalogProducts))}
-      listings={JSON.parse(JSON.stringify(listings))}
-      storeSlug={store?.slug ?? null}
-      storeId={session.user.id}
-    />
+    <Suspense
+      fallback={
+        <div className="mx-auto max-w-6xl px-4 py-16 text-center text-sm text-gray-500 md:px-8">
+          Loading affiliate dashboard…
+        </div>
+      }
+    >
+      <AffiliateDashboard
+        catalog={JSON.parse(JSON.stringify(catalogProducts))}
+        listings={JSON.parse(JSON.stringify(listings))}
+        storeSlug={store?.slug ?? null}
+        storeId={session.user.id}
+      />
+    </Suspense>
   )
 }

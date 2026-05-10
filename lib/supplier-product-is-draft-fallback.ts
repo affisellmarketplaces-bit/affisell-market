@@ -56,7 +56,8 @@ const PRODUCT_SCALAR_SELECT_WITH_ISDRAFT = {
   isDraft: true,
 } as const satisfies Prisma.ProductSelect
 
-const SUPPLIER_TABLE_SELECT_NO_ISDRAFT = {
+/** Supplier dashboard catalog: storefront grid + management (images & compare-at for buyer-style cards). */
+const SUPPLIER_DASHBOARD_CATALOG_SELECT_NO_ISDRAFT = {
   id: true,
   name: true,
   basePriceCents: true,
@@ -65,10 +66,12 @@ const SUPPLIER_TABLE_SELECT_NO_ISDRAFT = {
   stock: true,
   active: true,
   updatedAt: true,
+  images: true,
+  compareAt: true,
 } as const satisfies Prisma.ProductSelect
 
-const SUPPLIER_TABLE_SELECT_WITH_ISDRAFT = {
-  ...SUPPLIER_TABLE_SELECT_NO_ISDRAFT,
+const SUPPLIER_DASHBOARD_CATALOG_SELECT_WITH_ISDRAFT = {
+  ...SUPPLIER_DASHBOARD_CATALOG_SELECT_NO_ISDRAFT,
   isDraft: true,
 } as const satisfies Prisma.ProductSelect
 
@@ -105,23 +108,27 @@ export function isDraftSchemaOrDbError(error: unknown): boolean {
   return Boolean(unknownSelect || unknownArg || columnMissing || p2022)
 }
 
-export async function findSupplierProductsForCatalogTable(where: { supplierId: string }) {
+export async function findSupplierProductsForDashboardCatalog(where: { supplierId: string }) {
   try {
     return await prisma.product.findMany({
       where,
       orderBy: { updatedAt: "desc" },
-      select: SUPPLIER_TABLE_SELECT_WITH_ISDRAFT,
+      select: SUPPLIER_DASHBOARD_CATALOG_SELECT_WITH_ISDRAFT,
     })
   } catch (e: unknown) {
     if (!isDraftSchemaOrDbError(e)) throw e
     const rows = await prisma.product.findMany({
       where,
       orderBy: { updatedAt: "desc" },
-      select: SUPPLIER_TABLE_SELECT_NO_ISDRAFT,
+      select: SUPPLIER_DASHBOARD_CATALOG_SELECT_NO_ISDRAFT,
     })
     return rows.map((r) => ({ ...r, isDraft: false }))
   }
 }
+
+export type SupplierDashboardCatalogProduct = Awaited<
+  ReturnType<typeof findSupplierProductsForDashboardCatalog>
+>[number]
 
 export async function findSupplierProductsForOwnerApi(where: { supplierId: string }) {
   try {

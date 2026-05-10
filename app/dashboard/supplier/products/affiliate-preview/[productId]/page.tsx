@@ -1,0 +1,105 @@
+import { notFound } from "next/navigation"
+import type { Metadata } from "next"
+
+import { auth } from "@/auth"
+import { SupplierAffiliateEvalPreview } from "@/components/supplier/supplier-affiliate-eval-preview"
+import { prisma } from "@/lib/prisma"
+
+export const dynamic = "force-dynamic"
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ productId: string }>
+}): Promise<Metadata> {
+  const session = await auth()
+  if (!session?.user?.id || session.user.role !== "SUPPLIER") return { title: "Preview" }
+  const { productId } = await params
+  const id = productId?.trim()
+  if (!id) return { title: "Preview" }
+  const p = await prisma.product.findFirst({
+    where: { id, supplierId: session.user.id },
+    select: { name: true },
+  })
+  return {
+    title: p ? `${p.name.slice(0, 72)} · Affiliate preview` : "Affiliate preview",
+    description: "Supplier view of catalog facts and commission partners see before listing.",
+  }
+}
+
+export default async function SupplierAffiliatePreviewPage({
+  params,
+}: {
+  params: Promise<{ productId: string }>
+}) {
+  const session = await auth()
+  if (!session?.user?.id || session.user.role !== "SUPPLIER") notFound()
+
+  const { productId } = await params
+  const id = productId?.trim()
+  if (!id) notFound()
+
+  const [product, example] = await Promise.all([
+    prisma.product.findFirst({
+      where: { id, supplierId: session.user.id },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        basePriceCents: true,
+        compareAt: true,
+        commissionRate: true,
+        listingKind: true,
+        stock: true,
+        active: true,
+        isDraft: true,
+        images: true,
+        categories: true,
+        tags: true,
+        deliveryMin: true,
+        deliveryMax: true,
+        handlingDays: true,
+        shippingCountry: true,
+        shippingType: true,
+        variants: true,
+        colorImages: true,
+      },
+    }),
+    prisma.affiliateProduct.findFirst({
+      where: { productId: id, isListed: true, product: { active: true } },
+      orderBy: { updatedAt: "desc" },
+      select: {
+        id: true,
+        sellingPriceCents: true,
+        affiliate: { select: { name: true, email: true, store: { select: { name: true } } } },
+      },
+    }),
+  ])
+
+  if (!product) notFound()
+
+  const editHref = product.isDraft
+    ? `/dashboard/supplier/products/new?compose=1&draft=${product.id}`
+    : `/dashboard/supplier/products/new?edit=${product.id}`
+
+  const exampleRow = example
+    ? {
+        listingId: example.id,
+        sellingPriceCents: example.sellingPriceCents,
+        affiliateLabel:
+          example.affiliate.store?.name?.trim() ||
+          example.affiliate.name?.trim() ||
+          example.affiliate.email ||
+          "Partner",
+      }
+    : null
+
+  return (
+    <SupplierAffiliateEvalPreview
+      product={product}
+      editHref={editHref}
+      catalogHref="/dashboard/supplier/products"
+      example={exampleRow}
+    />
+  )
+}

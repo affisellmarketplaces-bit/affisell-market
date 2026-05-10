@@ -1,20 +1,11 @@
 import Link from "next/link"
 
 import { auth } from "@/auth"
-import { findSupplierProductsForCatalogTable } from "@/lib/supplier-product-is-draft-fallback"
-import { buttonVariants } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { SupplierDashboardProductsCatalog } from "@/components/supplier/supplier-dashboard-products-catalog"
+import { findSupplierProductsForDashboardCatalog } from "@/lib/supplier-product-is-draft-fallback"
+import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
-
-function formatUsd(cents: number) {
-  return (cents / 100).toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })
-}
 
 export default async function SupplierProductsPage() {
   const session = await auth()
@@ -36,92 +27,58 @@ export default async function SupplierProductsPage() {
     )
   }
 
-  const products = await findSupplierProductsForCatalogTable({
-    supplierId: session.user.id,
-  })
+  const [products, store, partnerListingGroups] = await Promise.all([
+    findSupplierProductsForDashboardCatalog({ supplierId: session.user.id }),
+    prisma.store.findUnique({
+      where: { userId: session.user.id },
+      select: { slug: true, name: true },
+    }),
+    prisma.affiliateProduct.groupBy({
+      by: ["productId"],
+      where: { product: { supplierId: session.user.id }, isListed: true },
+      _count: { _all: true },
+    }),
+  ])
+
+  const partnerListingCountByProductId = Object.fromEntries(
+    partnerListingGroups.map((row) => [row.productId, row._count._all])
+  )
+
+  const storefrontHref = store
+    ? `/store/supplier/${encodeURIComponent(store.slug)}`
+    : `/store/supplier/${encodeURIComponent(session.user.id)}`
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Products</h1>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            Manage catalog listings and affiliate commission.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
+    <div className="min-h-screen bg-gradient-to-b from-zinc-100/90 via-white to-zinc-50 dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900/95">
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
+        <nav className="mb-8 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-medium">
           <Link
-            href="/dashboard/supplier/bulk-import"
-            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "inline-flex")}
+            href="/dashboard/supplier/products"
+            className="inline-flex rounded-lg bg-white px-3 py-1.5 text-zinc-900 shadow-sm ring-1 ring-black/[0.05] dark:bg-zinc-900 dark:text-zinc-50 dark:ring-white/10"
           >
-            Bulk Excel
+            Affiliate catalog
           </Link>
-          <Link href="/dashboard/supplier/products/new" className={cn(buttonVariants({ size: "sm" }), "inline-flex")}>
-            Add product
+          <Link
+            href="/dashboard/supplier"
+            className="text-teal-700 transition hover:text-teal-900 dark:text-teal-400 dark:hover:text-teal-300"
+          >
+            ← Supplier home
           </Link>
-        </div>
-      </div>
-
-      <div className="mt-8 overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
-            <tr>
-              <th className="px-4 py-3 font-medium text-zinc-700 dark:text-zinc-300">Name</th>
-              <th className="px-4 py-3 font-medium text-zinc-700 dark:text-zinc-300">Base price</th>
-              <th className="px-4 py-3 font-medium text-zinc-700 dark:text-zinc-300">Commission</th>
-              <th className="px-4 py-3 font-medium text-zinc-700 dark:text-zinc-300">Type</th>
-              <th className="px-4 py-3 font-medium text-zinc-700 dark:text-zinc-300">Stock</th>
-              <th className="px-4 py-3 font-medium text-zinc-700 dark:text-zinc-300">Status</th>
-              <th className="px-4 py-3 font-medium text-zinc-700 dark:text-zinc-300"> </th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-4 py-12 text-center text-zinc-500">
-                  No products yet.{" "}
-                  <Link href="/dashboard/supplier/products/new" className="font-medium text-violet-600 underline">
-                    Add your first product
-                  </Link>
-                  .
-                </td>
-              </tr>
-            ) : (
-              products.map((p) => (
-                <tr key={p.id} className="border-b border-zinc-100 last:border-0 dark:border-zinc-800">
-                  <td className="px-4 py-3 font-medium text-zinc-900 dark:text-zinc-100">{p.name}</td>
-                  <td className="px-4 py-3 text-zinc-700 dark:text-zinc-300">{formatUsd(p.basePriceCents)}</td>
-                  <td className="px-4 py-3 text-zinc-700 dark:text-zinc-300">{p.commissionRate}%</td>
-                  <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{p.listingKind}</td>
-                  <td className="px-4 py-3 text-zinc-700 dark:text-zinc-300">{p.stock}</td>
-                  <td className="px-4 py-3 text-zinc-700 dark:text-zinc-300">
-                    {p.isDraft ? (
-                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900 dark:bg-amber-950/50 dark:text-amber-200">
-                        Draft
-                      </span>
-                    ) : p.active ? (
-                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800">Active</span>
-                    ) : (
-                      <span className="rounded-full bg-zinc-200 px-2 py-0.5 text-xs text-zinc-700">Inactive</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <Link
-                      href={
-                        p.isDraft
-                          ? `/dashboard/supplier/products/new?compose=1&draft=${p.id}`
-                          : `/dashboard/supplier/products/new?edit=${p.id}`
-                      }
-                      className="text-sm font-medium text-violet-600 hover:underline"
-                    >
-                      {p.isDraft ? "Continue" : "Edit"}
-                    </Link>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+          <Link
+            href={storefrontHref}
+            target="_blank"
+            rel="noreferrer"
+            className="text-zinc-600 underline underline-offset-2 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+          >
+            Open storefront in new tab
+          </Link>
+        </nav>
+        <SupplierDashboardProductsCatalog
+          products={products}
+          storefrontHref={storefrontHref}
+          storefrontName={store?.name ?? null}
+          partnerListingCountByProductId={partnerListingCountByProductId}
+        />
       </div>
     </div>
   )

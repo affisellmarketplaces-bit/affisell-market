@@ -21,9 +21,9 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 import { signOut } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import type { CSSProperties } from "react"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 import AffiliateLiveStore from "@/components/affiliate/affiliate-live-store"
 import {
@@ -180,6 +180,8 @@ export function AffiliateDashboard({
   storeId,
 }: Props) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const productDeepLinkConsumed = useRef(false)
   const [tab, setTab] = useState<"catalog" | "store">("catalog")
   const [listings, setListings] = useState<Listing[]>(() =>
     [...initialListings].sort(sortAffiliateListingByPosition)
@@ -297,6 +299,33 @@ export function AffiliateDashboard({
     window.open(`/store/${encodeURIComponent(storeSlug)}`, "_blank", "noopener,noreferrer")
   }
 
+  useEffect(() => {
+    if (productDeepLinkConsumed.current) return
+    const pid = searchParams.get("productId")?.trim()
+    if (!pid) return
+    productDeepLinkConsumed.current = true
+
+    const p = initialCatalog.find((x) => x.id === pid)
+    if (!p) {
+      setToast("That product isn’t in your Supplier Catalog preview. Open Discover in the marketplace to find more SKUs.")
+      router.replace("/dashboard/affiliate", { scroll: false })
+      return
+    }
+
+    setTab("catalog")
+    requestAnimationFrame(() => {
+      document.getElementById(`catalog-product-${pid}`)?.scrollIntoView({ behavior: "smooth", block: "center" })
+    })
+
+    const isAdded = (p.affiliateProducts?.length ?? 0) > 0
+    if (isAdded) openEditModal(pid)
+    else openCreate(p)
+
+    router.replace("/dashboard/affiliate", { scroll: false })
+    // One-shot deep link — handlers intentionally omitted from deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- consume `productId` once on landing
+  }, [initialCatalog, router, searchParams])
+
   const ids = listings.map((l) => l.id)
 
   return (
@@ -374,6 +403,7 @@ export function AffiliateDashboard({
             const thumb = primaryProductImage(p.images) || "/placeholder.png"
             return (
               <article
+                id={`catalog-product-${p.id}`}
                 key={p.id}
                 className={`relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 ${
                   isAdded ? "opacity-60" : ""
