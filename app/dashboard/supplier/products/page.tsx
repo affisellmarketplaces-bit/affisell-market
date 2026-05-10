@@ -1,7 +1,7 @@
 import Link from "next/link"
 
 import { auth } from "@/auth"
-import { prisma } from "@/lib/prisma"
+import { findSupplierProductsForCatalogTable } from "@/lib/supplier-product-is-draft-fallback"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -36,19 +36,8 @@ export default async function SupplierProductsPage() {
     )
   }
 
-  const products = await prisma.product.findMany({
-    where: { supplierId: session.user.id },
-    orderBy: { updatedAt: "desc" },
-    select: {
-      id: true,
-      name: true,
-      basePriceCents: true,
-      commissionRate: true,
-      listingKind: true,
-      stock: true,
-      active: true,
-      updatedAt: true,
-    },
+  const products = await findSupplierProductsForCatalogTable({
+    supplierId: session.user.id,
   })
 
   return (
@@ -106,7 +95,11 @@ export default async function SupplierProductsPage() {
                   <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{p.listingKind}</td>
                   <td className="px-4 py-3 text-zinc-700 dark:text-zinc-300">{p.stock}</td>
                   <td className="px-4 py-3 text-zinc-700 dark:text-zinc-300">
-                    {p.active ? (
+                    {p.isDraft ? (
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900 dark:bg-amber-950/50 dark:text-amber-200">
+                        Draft
+                      </span>
+                    ) : p.active ? (
                       <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800">Active</span>
                     ) : (
                       <span className="rounded-full bg-zinc-200 px-2 py-0.5 text-xs text-zinc-700">Inactive</span>
@@ -114,10 +107,14 @@ export default async function SupplierProductsPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Link
-                      href={`/dashboard/supplier/products/new?edit=${p.id}`}
+                      href={
+                        p.isDraft
+                          ? `/dashboard/supplier/products/new?compose=1&draft=${p.id}`
+                          : `/dashboard/supplier/products/new?edit=${p.id}`
+                      }
                       className="text-sm font-medium text-violet-600 hover:underline"
                     >
-                      Edit
+                      {p.isDraft ? "Continue" : "Edit"}
                     </Link>
                   </td>
                 </tr>
