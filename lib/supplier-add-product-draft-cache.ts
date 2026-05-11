@@ -8,6 +8,9 @@ export type SupplierVariantFormMode = "none" | "simple" | "advanced"
 
 export type SupplierColorImageFormRow = { color: string; image: string }
 
+/** Simple mode: one row per color + optional hero image URL (PDP `colorImages`). */
+export type SupplierSimpleColorRow = { id: string; name: string; image: string }
+
 export type SupplierAddProductCachePayload = {
   v: 1
   mode: SupplierAddProductCacheMode
@@ -40,6 +43,7 @@ export type SupplierAddProductCachePayload = {
   variantColorsText?: string
   variantRows?: ProductVariantLine[]
   variantColorImageRows?: SupplierColorImageFormRow[]
+  simpleColorRows?: SupplierSimpleColorRow[]
 }
 
 export function readSupplierAddProductDraftCache(mode: SupplierAddProductCacheMode): SupplierAddProductCachePayload | null {

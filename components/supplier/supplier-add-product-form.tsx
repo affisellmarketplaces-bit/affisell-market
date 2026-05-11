@@ -63,6 +63,7 @@ import {
   readSupplierAddProductDraftCache,
   writeSupplierAddProductDraftCache,
   type SupplierAddProductCacheMode,
+  type SupplierSimpleColorRow,
   type SupplierVariantFormMode,
 } from "@/lib/supplier-add-product-draft-cache"
 import { newVariantRowId, parseVariantsPayload, type ProductVariantLine } from "@/lib/product-variants"
@@ -204,9 +205,7 @@ export function SupplierAddProductForm({
   const [variantSizesText, setVariantSizesText] = useState("")
   const [variantColorsText, setVariantColorsText] = useState("")
   const [variantRows, setVariantRows] = useState<ProductVariantLine[]>([])
-  const [variantColorImageRows, setVariantColorImageRows] = useState<
-    Array<{ color: string; image: string }>
-  >([])
+  const [simpleColorRows, setSimpleColorRows] = useState<SupplierSimpleColorRow[]>([])
   const [listingKind, setListingKind] = useState<ListingKind>("PHYSICAL")
   const [commission, setCommission] = useState("15")
 
@@ -234,19 +233,11 @@ export function SupplierAddProductForm({
   const commissionMax = affiliateCommissionMaxPct(listingKind)
 
   useEffect(() => {
-    const colors = [...new Set(parseCsvOptions(variantColorsText))]
-    if (variantFormMode === "none" || colors.length === 0) {
-      setVariantColorImageRows([])
-      return
-    }
-    setVariantColorImageRows((prev) => {
-      const byColor = new Map(prev.map((r) => [r.color, r.image]))
-      return colors.map((c) => ({
-        color: c,
-        image: byColor.get(c) ?? "",
-      }))
-    })
-  }, [variantColorsText, variantFormMode])
+    if (variantFormMode !== "simple") return
+    setSimpleColorRows((rows) =>
+      rows.length === 0 ? [{ id: newVariantRowId(), name: "", image: "" }] : rows
+    )
+  }, [variantFormMode, simpleColorRows.length])
 
   const discountPct = useMemo(() => {
     const p = Number(price)
@@ -484,28 +475,49 @@ export function SupplierAddProductForm({
             .map((s) => s.trim())
             .filter(Boolean)
         : []
-      setVariantColorsText(colorList.join(", "))
       const parsedColorImages = parseProductColorImagesFromDb(data.colorImages)
-      setVariantColorImageRows(
-        parsedColorImages ? parsedColorImages.map((r) => ({ color: r.color, image: r.image })) : []
-      )
+      const imageForColor = (c: string) =>
+        parsedColorImages?.find((r) => r.color === c)?.image?.trim() ?? ""
+
       const parsedVariants = parseVariantsPayload(data.variants)
       if (parsedVariants?.variantRows?.length) {
         setVariantFormMode("advanced")
         setVariantRows(parsedVariants.variantRows)
         setVariantSizesText(parsedVariants.size?.length ? parsedVariants.size.join(", ") : "")
+        setVariantColorsText(colorList.join(", "))
+        setSimpleColorRows([])
       } else if (parsedVariants?.size?.length) {
         setVariantFormMode("simple")
         setVariantSizesText(parsedVariants.size.join(", "))
         setVariantRows([])
+        setVariantColorsText("")
+        setSimpleColorRows(
+          colorList.length > 0
+            ? colorList.map((c) => ({
+                id: newVariantRowId(),
+                name: c,
+                image: imageForColor(c),
+              }))
+            : []
+        )
       } else if (colorList.length > 0) {
         setVariantFormMode("simple")
         setVariantSizesText("")
         setVariantRows([])
+        setVariantColorsText("")
+        setSimpleColorRows(
+          colorList.map((c) => ({
+            id: newVariantRowId(),
+            name: c,
+            image: imageForColor(c),
+          }))
+        )
       } else {
         setVariantFormMode("none")
         setVariantSizesText("")
         setVariantRows([])
+        setVariantColorsText("")
+        setSimpleColorRows([])
       }
       const bulletsRaw = data.descriptionBullets
       if (Array.isArray(bulletsRaw)) {
@@ -571,17 +583,33 @@ export function SupplierAddProductForm({
       }
 
       const simpleSizes = parseCsvOptions(variantSizesText)
-      const simpleColors = [...new Set(parseCsvOptions(variantColorsText))]
+      const advancedColorLabels = [...new Set(parseCsvOptions(variantColorsText))]
       let variantsPayload: Record<string, unknown> | null = null
       let colorsPayload: string[] = []
+      let colorImagesPayload: Array<{ color: string; image: string }> | undefined = undefined
 
       if (variantFormMode === "simple") {
-        colorsPayload = simpleColors
+        const ordered: string[] = []
+        const imgBy = new Map<string, string>()
+        for (const row of simpleColorRows) {
+          const n = row.name.trim()
+          if (!n) continue
+          if (!imgBy.has(n)) ordered.push(n)
+          imgBy.set(n, row.image.trim())
+        }
+        colorsPayload = ordered.slice(0, 40)
         if (simpleSizes.length > 0) {
           variantsPayload = { size: simpleSizes }
         }
+        colorImagesPayload =
+          colorsPayload.length > 0
+            ? colorsPayload.map((c) => ({
+                color: c.slice(0, 48),
+                image: (imgBy.get(c) ?? "").trim().slice(0, 2000),
+              }))
+            : undefined
       } else if (variantFormMode === "advanced") {
-        colorsPayload = simpleColors
+        colorsPayload = advancedColorLabels
         const validRows = variantRows
           .filter((r) => r.name.trim().length > 0)
           .map((r) => ({
@@ -599,6 +627,19 @@ export function SupplierAddProductForm({
         if (validRows.length > 0) {
           variantsPayload = { variantRows: validRows }
         }
+        colorImagesPayload =
+          colorsPayload.length > 0
+            ? colorsPayload.map((color) => {
+                const lc = color.toLowerCase()
+                const matched = variantRows.find(
+                  (r) => r.name.toLowerCase().includes(lc) && Boolean(r.image?.trim())
+                )
+                return {
+                  color: color.trim().slice(0, 48),
+                  image: (matched?.image?.trim() || "").slice(0, 2000),
+                }
+              })
+            : undefined
       }
 
       let stockOut = Math.max(0, Math.round(Number(stock) || 0))
@@ -613,40 +654,6 @@ export function SupplierAddProductForm({
           0
         )
       }
-
-      const colorImagesPayload =
-        colorsPayload.length > 0
-          ? (() => {
-              // In "advanced" mode, prefer deriving color photos from SKU rows:
-              // match by checking if row.name contains the color label.
-              if (variantFormMode === "advanced") {
-                const byColorFromUi = new Map(variantColorImageRows.map((r) => [r.color, r.image]))
-                const fromRows = colorsPayload
-                  .map((color) => {
-                    const lc = color.toLowerCase()
-                    const matched = variantRows.find(
-                      (r) => r.name.toLowerCase().includes(lc) && Boolean(r.image?.trim())
-                    )
-                    return {
-                      color,
-                      image: matched?.image?.trim() || byColorFromUi.get(color) || "",
-                    }
-                  })
-                  .filter((r) => r.color.trim().length > 0)
-                return fromRows.map((r) => ({
-                  color: r.color.trim().slice(0, 48),
-                  image: r.image.trim().slice(0, 2000),
-                }))
-              }
-
-              return variantColorImageRows
-                .filter((r) => r.color.trim().length > 0)
-                .map((r) => ({
-                  color: r.color.trim().slice(0, 48),
-                  image: r.image.trim().slice(0, 2000),
-                }))
-            })()
-          : undefined
 
       return {
         name: name.trim(),
@@ -707,7 +714,7 @@ export function SupplierAddProductForm({
       variantFormMode,
       variantSizesText,
       variantColorsText,
-      variantColorImageRows,
+      simpleColorRows,
       variantRows,
     ]
   )
@@ -751,14 +758,32 @@ export function SupplierAddProductForm({
     }
     if (typeof c.variantSizesText === "string") setVariantSizesText(c.variantSizesText)
     if (typeof c.variantColorsText === "string") setVariantColorsText(c.variantColorsText)
-    if (Array.isArray(c.variantColorImageRows) && c.variantColorImageRows.length > 0) {
-      setVariantColorImageRows(
+    if (Array.isArray(c.simpleColorRows) && c.simpleColorRows.length > 0) {
+      const ok = c.simpleColorRows.filter(
+        (r): r is SupplierSimpleColorRow =>
+          r != null &&
+          typeof r === "object" &&
+          typeof (r as SupplierSimpleColorRow).id === "string" &&
+          typeof (r as SupplierSimpleColorRow).name === "string" &&
+          typeof (r as SupplierSimpleColorRow).image === "string"
+      )
+      if (ok.length > 0) setSimpleColorRows(ok)
+    } else if (Array.isArray(c.variantColorImageRows) && c.variantColorImageRows.length > 0) {
+      setSimpleColorRows(
         c.variantColorImageRows
           .filter(
             (r): r is { color: string; image: string } =>
               r != null && typeof r === "object" && typeof r.color === "string" && typeof r.image === "string"
           )
-          .map((r) => ({ color: r.color, image: r.image }))
+          .map((r) => ({ id: newVariantRowId(), name: r.color, image: r.image }))
+      )
+    } else if (typeof c.variantColorsText === "string" && c.variantColorsText.trim()) {
+      setSimpleColorRows(
+        [...new Set(parseCsvOptions(c.variantColorsText))].map((name) => ({
+          id: newVariantRowId(),
+          name,
+          image: "",
+        }))
       )
     }
     if (Array.isArray(c.variantRows) && c.variantRows.length > 0) {
@@ -901,7 +926,7 @@ export function SupplierAddProductForm({
         variantFormMode,
         variantSizesText,
         variantColorsText,
-        variantColorImageRows,
+        simpleColorRows,
         variantRows,
       })
     }, 720)
@@ -935,7 +960,7 @@ export function SupplierAddProductForm({
     variantFormMode,
     variantSizesText,
     variantColorsText,
-    variantColorImageRows,
+    simpleColorRows,
     variantRows,
   ])
 
@@ -988,6 +1013,13 @@ export function SupplierAddProductForm({
         toast.error(
           "Add a label for each variant row, delete empty rows, or switch to “No variants” / “Sizes & colors”."
         )
+        return
+      }
+    }
+    if (variantFormMode === "simple") {
+      const colorNames = simpleColorRows.map((r) => r.name.trim()).filter(Boolean)
+      if (colorNames.length !== new Set(colorNames).size) {
+        toast.error("Chaque nom de couleur doit être unique.")
         return
       }
     }
@@ -1548,49 +1580,85 @@ export function SupplierAddProductForm({
                         />
                       </div>
                       <div className="sm:col-span-2">
-                        <Label htmlFor="v-colors">Colors (comma-separated)</Label>
-                        <Input
-                          id="v-colors"
-                          className="mt-1.5 h-11"
-                          value={variantColorsText}
-                          onChange={(e) => setVariantColorsText(e.target.value)}
-                          placeholder="e.g. Black, Navy, White"
-                        />
-                        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                          Shown as swatch labels when shoppers pick a color.
-                        </p>
-                        <div className="mt-4">
-                          <Label>Photo de couleur (URL)</Label>
-                          {variantColorImageRows.length > 0 ? (
-                            <div className="mt-2 space-y-2">
-                              {variantColorImageRows.map((row) => (
-                                <div
-                                  key={row.color}
-                                  className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
-                                >
-                                  <p className="w-full text-sm font-medium text-zinc-900 dark:text-zinc-50 sm:w-44">
-                                    {row.color}
-                                  </p>
-                                  <Input
-                                    type="url"
-                                    className="w-full sm:flex-1"
-                                    value={row.image}
-                                    onChange={(e) => {
-                                      const next = e.target.value
-                                      setVariantColorImageRows((prev) =>
-                                        prev.map((r) => (r.color === row.color ? { ...r, image: next } : r))
-                                      )
-                                    }}
-                                    placeholder="https://…"
-                                  />
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                              Add colors above to configure their photos.
+                        <div className="flex flex-wrap items-end justify-between gap-3">
+                          <div>
+                            <Label>Couleurs</Label>
+                            <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                              Ajoutez une ligne par couleur (nom + photo optionnelle pour la fiche produit).
                             </p>
-                          )}
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="gap-1 shrink-0"
+                            onClick={() =>
+                              setSimpleColorRows((prev) => [
+                                ...prev,
+                                { id: newVariantRowId(), name: "", image: "" },
+                              ])
+                            }
+                          >
+                            <Plus className="h-4 w-4" aria-hidden />
+                            Ajouter une couleur
+                          </Button>
+                        </div>
+                        <div className="mt-3 space-y-3">
+                          {simpleColorRows.map((row, i) => (
+                            <div
+                              key={row.id}
+                              className="flex flex-col gap-3 rounded-xl border border-zinc-200/90 bg-zinc-50/50 p-3 dark:border-zinc-700 dark:bg-zinc-900/40 sm:flex-row sm:items-end"
+                            >
+                              <div className="min-w-0 flex-1">
+                                <Label htmlFor={`v-color-name-${row.id}`} className="text-xs">
+                                  Nom
+                                </Label>
+                                <Input
+                                  id={`v-color-name-${row.id}`}
+                                  className="mt-1.5 h-10"
+                                  value={row.name}
+                                  onChange={(e) => {
+                                    const v = e.target.value
+                                    setSimpleColorRows((prev) =>
+                                      prev.map((r, j) => (j === i ? { ...r, name: v } : r))
+                                    )
+                                  }}
+                                  placeholder="ex. Violet"
+                                  maxLength={48}
+                                />
+                              </div>
+                              <div className="min-w-0 flex-[2]">
+                                <Label htmlFor={`v-color-img-${row.id}`} className="text-xs">
+                                  Photo (URL)
+                                </Label>
+                                <Input
+                                  id={`v-color-img-${row.id}`}
+                                  type="url"
+                                  className="mt-1.5 h-10"
+                                  value={row.image}
+                                  onChange={(e) => {
+                                    const v = e.target.value
+                                    setSimpleColorRows((prev) =>
+                                      prev.map((r, j) => (j === i ? { ...r, image: v } : r))
+                                    )
+                                  }}
+                                  placeholder="https://…"
+                                />
+                              </div>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-10 w-10 shrink-0 text-zinc-500 hover:text-red-600"
+                                onClick={() =>
+                                  setSimpleColorRows((prev) => prev.filter((_, j) => j !== i))
+                                }
+                                aria-label="Supprimer cette couleur"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     </div>
