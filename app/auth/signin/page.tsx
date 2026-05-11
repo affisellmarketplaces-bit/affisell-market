@@ -5,6 +5,9 @@ import { Apple, X as XLogo } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { signIn } from "next-auth/react"
+
+import { AUTH_LOGIN_CALLBACK_COOKIE } from "@/lib/auth-login-portal"
+import { messageForCredentialsSignInCode } from "@/lib/auth-portal-signin-messages"
 import Image from "next/image"
 import { useState, Suspense } from "react"
 
@@ -31,23 +34,31 @@ function SignInContent() {
   const oauthError = search.get("error")
   const resolvedError =
     error ??
-    (oauthError && oauthError !== "OAuthSignin"
-      ? "Something went wrong with social sign-in. Try again."
-      : null)
+    (oauthError === "AccessDenied"
+      ? "Connexion refusée : ce compte ne correspond pas à l’espace demandé (affilié ou fournisseur)."
+      : oauthError && oauthError !== "OAuthSignin"
+        ? "Something went wrong with social sign-in. Try again."
+        : null)
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
     setError(null)
     setLoading(true)
     const callbackUrl = search.get("callbackUrl") ?? "/dashboard"
-    const res = await signIn("credentials", { email, password, redirect: false, callbackUrl })
+    const res = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+      callbackUrl,
+    })
     setLoading(false)
     if (res?.ok && res?.url) {
       router.push(res.url)
     } else if (res?.ok) {
       router.push(callbackUrl || "/dashboard")
     } else {
-      setError("Invalid email or password.")
+      const portalMsg = messageForCredentialsSignInCode(res?.code)
+      setError(portalMsg ?? "Invalid email or password.")
     }
   }
 
@@ -56,6 +67,9 @@ function SignInContent() {
     setError(null)
     const raw = search.get("callbackUrl") ?? "/dashboard"
     const callbackUrl = raw.startsWith("/") ? raw : "/dashboard"
+    if (typeof document !== "undefined") {
+      document.cookie = `${AUTH_LOGIN_CALLBACK_COOKIE}=${encodeURIComponent(callbackUrl)};path=/;max-age=300;SameSite=Lax`
+    }
     await signIn(provider, { callbackUrl })
     setBusyProvider(null)
   }

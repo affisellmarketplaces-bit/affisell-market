@@ -3,6 +3,8 @@
 import type { FormEvent } from "react"
 import { useState } from "react"
 import { signIn } from "next-auth/react"
+
+import { messageForCredentialsSignInCode } from "@/lib/auth-portal-signin-messages"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
@@ -36,7 +38,9 @@ export default function AffiliateSignupPage() {
       callbackUrl: "/dashboard/affiliate",
     })
     setLoading(false)
-    if (login?.error) setError("Account created — try signing in.")
+    if (login?.error) {
+      setError(messageForCredentialsSignInCode(login.code) ?? "Account created — try signing in.")
+    }
     else router.push("/dashboard")
   }
 

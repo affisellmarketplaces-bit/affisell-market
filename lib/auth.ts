@@ -11,6 +11,14 @@ import Facebook from "next-auth/providers/facebook"
 import Google from "next-auth/providers/google"
 import Twitter from "next-auth/providers/twitter"
 
+import {
+  AffiliateBlockedOnSupplierPortal,
+  EmailIdentifierRequired,
+  NonAffiliateOnAffiliatePortal,
+  NonSupplierOnSupplierPortal,
+  SupplierBlockedOnAffiliatePortal,
+} from "@/lib/auth-credentials-errors"
+import { AUTH_LOGIN_CALLBACK_COOKIE, inferLoginPortal, isValidEmailIdentifier } from "@/lib/auth-login-portal"
 import { ensureMerchantStore } from "@/lib/ensure-store"
 import { OAUTH_SIGNUP_INTENT_COOKIE, OAUTH_WELCOME_COOKIE } from "@/lib/oauth-cookies"
 import { prisma } from "@/lib/prisma"
@@ -135,15 +143,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
   providers: [
     Credentials({
-      credentials: { email: {}, password: {} },
+      credentials: { email: {}, password: {}, callbackUrl: {} },
       async authorize(c) {
         const emailRaw = c?.email?.toString().toLowerCase().trim()
         const passwordRaw = c?.password?.toString()
         if (!emailRaw || !passwordRaw) return null
+        if (!isValidEmailIdentifier(emailRaw)) {
+          throw new EmailIdentifierRequired()
+        }
         const userRow = await prisma.user.findUnique({ where: { email: emailRaw } })
         if (!userRow?.password) return null
         const ok = await bcrypt.compare(passwordRaw, userRow.password)
         if (!ok) return null
+
+        const portal = inferLoginPortal(c?.callbackUrl?.toString())
+        if (portal === "AFFILIATE") {
+          if (userRow.role === "SUPPLIER") throw new SupplierBlockedOnAffiliatePortal()
+          if (userRow.role !== "AFFILIATE") throw new NonAffiliateOnAffiliatePortal()
+        } else if (portal === "SUPPLIER") {
+          if (userRow.role === "AFFILIATE") throw new AffiliateBlockedOnSupplierPortal()
+          if (userRow.role !== "SUPPLIER") throw new NonSupplierOnSupplierPortal()
+        }
+
         return {
           id: userRow.id,
           email: userRow.email,
@@ -168,8 +189,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         await setOauthWelcomeCookie(account.provider)
       }
 
-      // Allow all OAuth logins - Prisma will auto-create user
-      if (account?.provider === "google") return true
       if (!user && !account) return false
 
       const isOAuth = Boolean(account?.provider && account.provider !== "credentials")
@@ -178,6 +197,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const userId = user?.id?.toString()
         if (!userId || !user) {
           return true
+        }
+
+        try {
+          const jar = await cookies()
+          const enc = jar.get(AUTH_LOGIN_CALLBACK_COOKIE)?.value
+          if (enc && user.email) {
+            jar.delete(AUTH_LOGIN_CALLBACK_COOKIE)
+            const portal = inferLoginPortal(decodeURIComponent(enc))
+            if (portal) {
+              const row = await prisma.user.findUnique({
+                where: { email: user.email.toLowerCase() },
+                select: { role: true },
+              })
+              if (row) {
+                if (portal === "AFFILIATE" && row.role !== "AFFILIATE") return false
+                if (portal === "SUPPLIER" && row.role !== "SUPPLIER") return false
+              }
+            }
+          }
+        } catch (e) {
+          console.error("[auth signIn oauth portal]", e)
         }
 
         try {
