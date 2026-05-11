@@ -1137,7 +1137,7 @@ export function SupplierAddProductForm({
                 <SectionCard
                   icon={Tag}
                   title="Classification"
-                  description="Pick a leaf category — we load marketplace-style specs (like TikTok Shop seller attributes): core identity, aisle-specific traits, compliance & sustainability extras, merged by your category path."
+                  description="Pick a leaf category — we load marketplace-style specs: core identity, aisle-specific traits, compliance & sustainability extras, merged by your category path."
                 >
                   <div>
                     <Label className="inline-flex items-center gap-1">

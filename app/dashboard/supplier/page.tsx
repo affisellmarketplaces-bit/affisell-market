@@ -50,7 +50,7 @@ export default async function DashboardSupplierPage() {
             <div className="min-w-0 flex-1">
               <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">Returns</h2>
               <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                TikTok Shop–style flow: approve, wait for tracking, confirm receipt, then mark refunded.
+                Approve requests, wait for the buyer’s tracking, confirm receipt, then mark as refunded.
               </p>
               <Link
                 href="/dashboard/supplier/returns"

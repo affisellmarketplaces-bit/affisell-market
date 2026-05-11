@@ -31,7 +31,7 @@ function toRow(leafCategoryId: string, def: SpecDef): CategoryAttribute {
 type Group = { match: (haystack: string) => boolean; attrs: SpecDef[] }
 
 /**
- * TikTok Shop–style structured attributes: pattern-match on category slug chain
+ * Marketplace-style structured attributes: pattern-match on category slug chain
  * (e.g. `electronics-audio-over-ear-headphones` → electronics + audio templates).
  */
 const SUPPLEMENT_GROUPS: Group[] = [
