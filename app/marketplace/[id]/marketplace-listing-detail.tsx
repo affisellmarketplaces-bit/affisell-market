@@ -130,6 +130,25 @@ function listingAtAGlance(description: string, name: string, tags: string[]): st
   return null
 }
 
+/** Pick gallery index to show for a color (explicit URL, then same index as color order). */
+function imageIndexForColor(
+  color: string | null,
+  colorNames: string[],
+  colorImages: ProductColorImageRow[],
+  images: string[]
+): number {
+  if (!images.length) return 0
+  if (!color) return 0
+  const direct = colorImages.find((c) => c.color === color)?.image?.trim()
+  if (direct) {
+    const hit = images.findIndex((u) => u.trim() === direct.trim())
+    if (hit >= 0) return hit
+  }
+  const idx = colorNames.indexOf(color)
+  if (idx >= 0 && idx < images.length) return idx
+  return 0
+}
+
 function StarRatingRow({ value, count }: { value: number; count: number }) {
   const full = Math.round(Math.min(5, Math.max(0, value)))
   return (
@@ -181,7 +200,10 @@ export function MarketplaceListingDetail({
   const productT = messages.Product
   const breadcrumbT = messages.Breadcrumb
   const router = useRouter()
-  const images = gallery.length > 0 ? gallery : ["/placeholder.png"]
+  const images = useMemo(() => {
+    const g = gallery.filter((u): u is string => typeof u === "string" && Boolean(u.trim()))
+    return g.length > 0 ? g : ["/placeholder.png"]
+  }, [JSON.stringify(gallery)])
   const v = variants ?? {}
   const sizeOptions = v.size ?? []
 
@@ -219,11 +241,11 @@ export function MarketplaceListingDetail({
     setSelectedSize(initialSize)
   }, [initialSize])
 
-  /** After picking a color we drive the hero from that color; thumbnails take over until the color changes again. */
-  const [heroFromGallery, setHeroFromGallery] = useState(false)
+  /** Sync main + thumbnail index when opening another listing or affiliate default color changes. */
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- do not depend on `gallery`/`colorImages` ref churn from parent or thumbnail clicks get reset every render
   useEffect(() => {
-    setHeroFromGallery(false)
-  }, [initialColor])
+    setSelectedImage(imageIndexForColor(initialColor, colorNames, colorImages, images))
+  }, [listingId, initialColor])
 
   const [cartBusy, setCartBusy] = useState(false)
   const [buyBusy, setBuyBusy] = useState(false)
@@ -242,32 +264,8 @@ export function MarketplaceListingDetail({
     return colorNames.map((n) => ({ name: n, meta: map.get(n) }))
   }, [colorNames])
 
-  const colorResolvedUrl = useMemo(() => {
-    if (selectedColor == null) return ""
-    const direct = colorImages.find((c) => c.color === selectedColor)?.image?.trim()
-    if (direct) return direct
-    const idx = colorNames.indexOf(selectedColor)
-    if (idx >= 0 && idx < images.length) return images[idx]!.trim()
-    return ""
-  }, [selectedColor, colorImages, colorNames, images])
-
-  const hero = useMemo(() => {
-    const fallback = images[Math.min(Math.max(0, selectedImage), images.length - 1)]?.trim() || "/placeholder.png"
-    if (heroFromGallery) return fallback
-    return (colorResolvedUrl || fallback).trim() || "/placeholder.png"
-  }, [heroFromGallery, colorResolvedUrl, images, selectedImage])
-
-  const activeThumbIndex = useMemo(() => {
-    if (heroFromGallery) return Math.min(Math.max(0, selectedImage), Math.max(0, images.length - 1))
-    const u = (colorResolvedUrl || images[selectedImage]?.trim() || "").trim()
-    const hit = images.findIndex((x) => x.trim() === u)
-    if (hit >= 0) return hit
-    if (selectedColor) {
-      const ci = colorNames.indexOf(selectedColor)
-      if (ci >= 0 && ci < images.length) return ci
-    }
-    return Math.min(Math.max(0, selectedImage), Math.max(0, images.length - 1))
-  }, [heroFromGallery, selectedImage, images, colorResolvedUrl, selectedColor, colorNames])
+  const safeImageIndex = Math.min(Math.max(0, selectedImage), Math.max(0, images.length - 1))
+  const hero = images[safeImageIndex]?.trim() || "/placeholder.png"
   const listingPriceEur = listingPriceCents / 100
   const hasRetailCompare = typeof retailPriceEur === "number" && retailPriceEur > listingPriceEur
   const discountPct = hasRetailCompare
@@ -450,13 +448,13 @@ export function MarketplaceListingDetail({
                 <button
                   key={`thumb-${i}`}
                   type="button"
-                  aria-pressed={activeThumbIndex === i}
-                  onClick={() => {
+                  aria-pressed={safeImageIndex === i}
+                  onClick={(e) => {
+                    e.preventDefault()
                     setSelectedImage(i)
-                    setHeroFromGallery(true)
                   }}
                   className={`relative aspect-square w-[4.25rem] shrink-0 overflow-hidden rounded-xl border-2 bg-white transition dark:bg-zinc-950 sm:w-[5.25rem] ${
-                    activeThumbIndex === i
+                    safeImageIndex === i
                       ? "border-violet-600 shadow-sm ring-2 ring-violet-500/25 dark:border-violet-500"
                       : "border-zinc-200/90 opacity-90 ring-1 ring-zinc-200/80 hover:border-zinc-300 hover:opacity-100 dark:border-zinc-700 dark:ring-zinc-800 dark:hover:border-zinc-600"
                   }`}
@@ -607,15 +605,7 @@ export function MarketplaceListingDetail({
                       type="button"
                       onClick={() => {
                         setSelectedColor(cn)
-                        setHeroFromGallery(false)
-                        const direct = colorImages.find((c) => c.color === cn)?.image?.trim()
-                        const idx = colorNames.indexOf(cn)
-                        const url =
-                          direct || (idx >= 0 && idx < images.length ? images[idx]!.trim() : "")
-                        if (url) {
-                          const hit = images.findIndex((x) => x.trim() === url.trim())
-                          if (hit >= 0) setSelectedImage(hit)
-                        }
+                        setSelectedImage(imageIndexForColor(cn, colorNames, colorImages, images))
                       }}
                       className={`h-9 w-9 rounded-full border-2 transition ${
                         selectedColor === cn ? "border-zinc-900 dark:border-white" : "border-zinc-300 dark:border-zinc-600"
