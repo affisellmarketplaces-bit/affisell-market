@@ -6,8 +6,8 @@ export default function SignupChooser() {
   const supplierBenefits = ["Access to affiliates", "Zero upfront cost", "Global shipping network", "Analytics dashboard"]
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-white px-4 py-12 sm:py-16">
-      <div className="mx-auto w-full max-w-6xl">
+    <main className="min-h-screen bg-gradient-to-b from-slate-100 via-slate-50 to-violet-50/40 px-3 py-6 sm:px-6 sm:py-10 md:px-10 md:py-12">
+      <div className="mx-auto w-full max-w-6xl rounded-[2.25rem] border border-zinc-200/70 bg-white/75 p-5 shadow-[0_25px_80px_-20px_rgba(0,0,0,0.12)] ring-1 ring-white/80 backdrop-blur-md sm:rounded-[2.75rem] sm:p-8 md:rounded-[3.25rem] md:p-10 lg:rounded-[3.5rem]">
         <div className="text-center">
           <p className="inline-flex items-center rounded-full border border-violet-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-violet-700 shadow-sm">
             Affisell Marketplace
@@ -24,21 +24,21 @@ export default function SignupChooser() {
           </p>
         </div>
 
-        <div className="mx-auto mt-8 grid max-w-4xl grid-cols-1 gap-3 sm:grid-cols-3">
-          <div className="rounded-2xl border border-zinc-200 bg-white px-4 py-3 shadow-sm">
+        <div className="mx-auto mt-8 grid max-w-4xl grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+          <div className="rounded-[1.35rem] border border-zinc-200/90 bg-white px-4 py-3.5 shadow-sm sm:rounded-[1.65rem] sm:py-4 md:rounded-[1.85rem]">
             <p className="flex items-center justify-center gap-2 text-sm font-semibold text-zinc-800">
               <DollarSign className="h-4 w-4 text-violet-600" />
               $2.4M+ paid out
             </p>
             <p className="mt-0.5 text-center text-xs text-zinc-500">in 20+ currencies</p>
           </div>
-          <div className="rounded-2xl border border-zinc-200 bg-white px-4 py-3 shadow-sm">
+          <div className="rounded-[1.35rem] border border-zinc-200/90 bg-white px-4 py-3.5 shadow-sm sm:rounded-[1.65rem] sm:py-4 md:rounded-[1.85rem]">
             <p className="flex items-center justify-center gap-2 text-sm font-semibold text-zinc-800">
               <Globe className="h-4 w-4 text-violet-600" />
               150+ countries
             </p>
           </div>
-          <div className="rounded-2xl border border-zinc-200 bg-white px-4 py-3 shadow-sm">
+          <div className="rounded-[1.35rem] border border-zinc-200/90 bg-white px-4 py-3.5 shadow-sm sm:rounded-[1.65rem] sm:py-4 md:rounded-[1.85rem]">
             <p className="flex items-center justify-center gap-2 text-sm font-semibold text-zinc-800">
               <Shield className="h-4 w-4 text-violet-600" />
               24/7 support
@@ -46,13 +46,13 @@ export default function SignupChooser() {
           </div>
         </div>
 
-        <div className="mx-auto mt-12 grid max-w-5xl grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="mx-auto mt-12 grid max-w-5xl grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-2">
           <Link href="/signup/affiliate" className="group">
-            <article className="relative flex h-full flex-col rounded-3xl border border-violet-300/80 bg-white p-8 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-violet-300/50 sm:p-10">
-              <span className="absolute right-6 top-6 rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 px-3 py-1 text-xs font-semibold text-white">
+            <article className="relative flex h-full flex-col rounded-[1.85rem] border border-violet-300/80 bg-white p-8 shadow-md transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-violet-300/45 sm:rounded-[2.15rem] sm:p-10 md:rounded-[2.5rem]">
+              <span className="absolute right-5 top-5 rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 px-3 py-1 text-xs font-semibold text-white sm:right-6 sm:top-6">
                 Most popular
               </span>
-              <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-100 text-violet-700">
+              <div className="inline-flex h-12 w-12 items-center justify-center rounded-3xl bg-violet-100 text-violet-700 sm:h-14 sm:w-14 sm:rounded-[1.35rem]">
                 <Briefcase className="h-6 w-6" />
               </div>
               <h2 className="mt-5 text-2xl font-semibold text-zinc-900">Join as an Affiliate</h2>
@@ -67,7 +67,7 @@ export default function SignupChooser() {
                   </li>
                 ))}
               </ul>
-              <span className="mt-8 inline-flex w-fit items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition group-hover:from-violet-700 group-hover:to-pink-600">
+              <span className="mt-8 inline-flex w-fit items-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition sm:rounded-[1.15rem] sm:px-6 sm:py-3 group-hover:from-violet-700 group-hover:to-pink-600">
                 Get started — free
                 <ArrowRight className="h-4 w-4" />
               </span>
@@ -76,8 +76,8 @@ export default function SignupChooser() {
           </Link>
 
           <Link href="/signup/supplier" className="group">
-            <article className="flex h-full flex-col rounded-3xl border border-pink-200/80 bg-white p-8 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-pink-200/70 sm:p-10">
-              <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-pink-100 text-pink-700">
+            <article className="flex h-full flex-col rounded-[1.85rem] border border-pink-200/80 bg-white p-8 shadow-md transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-pink-200/60 sm:rounded-[2.15rem] sm:p-10 md:rounded-[2.5rem]">
+              <div className="inline-flex h-12 w-12 items-center justify-center rounded-3xl bg-pink-100 text-pink-700 sm:h-14 sm:w-14 sm:rounded-[1.35rem]">
                 <div className="flex items-center gap-1">
                   <Store className="h-4 w-4" />
                   <Package className="h-4 w-4" />
@@ -95,7 +95,7 @@ export default function SignupChooser() {
                   </li>
                 ))}
               </ul>
-              <span className="mt-8 inline-flex w-fit items-center gap-2 rounded-xl border border-pink-300 bg-white px-5 py-2.5 text-sm font-semibold text-pink-700 transition group-hover:border-pink-400 group-hover:bg-pink-50">
+              <span className="mt-8 inline-flex w-fit items-center gap-2 rounded-2xl border border-pink-300 bg-white px-5 py-2.5 text-sm font-semibold text-pink-700 shadow-sm transition sm:rounded-[1.15rem] sm:px-6 sm:py-3 group-hover:border-pink-400 group-hover:bg-pink-50">
                 Start selling — free
                 <ArrowRight className="h-4 w-4" />
               </span>
@@ -104,17 +104,25 @@ export default function SignupChooser() {
           </Link>
         </div>
 
-        <div className="mx-auto mt-10 max-w-5xl rounded-2xl border border-zinc-200 bg-white/80 px-6 py-5 backdrop-blur">
+        <div className="mx-auto mt-10 max-w-5xl rounded-[1.35rem] border border-zinc-200/90 bg-white/90 px-6 py-5 shadow-sm backdrop-blur-sm sm:rounded-[1.65rem] sm:px-8 sm:py-6 md:rounded-[1.85rem]">
           <div className="flex flex-col items-center justify-between gap-4 text-center sm:flex-row sm:text-left">
             <div className="flex items-center gap-2 text-zinc-700">
               <ShieldCheck className="h-5 w-5 text-violet-600" />
               <p className="text-sm font-medium">Trusted by brands worldwide</p>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
-              <span className="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-zinc-400">Shopify</span>
-              <span className="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-zinc-400">Stripe</span>
-              <span className="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-zinc-400">PayPal</span>
-              <span className="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-zinc-400">Wise</span>
+              <span className="rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-zinc-400 sm:rounded-2xl">
+                Shopify
+              </span>
+              <span className="rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-zinc-400 sm:rounded-2xl">
+                Stripe
+              </span>
+              <span className="rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-zinc-400 sm:rounded-2xl">
+                PayPal
+              </span>
+              <span className="rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-zinc-400 sm:rounded-2xl">
+                Wise
+              </span>
             </div>
           </div>
         </div>
