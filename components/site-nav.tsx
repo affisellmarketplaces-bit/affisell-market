@@ -35,6 +35,7 @@ type ToastState = {
 export function SiteNav() {
   const { data: session } = useSession()
   const isSupplier = session?.user?.role === "SUPPLIER"
+  const showOrders = Boolean(session?.user && !isSupplier)
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -173,6 +174,11 @@ export function SiteNav() {
           <Link href="/marketplace" className="text-zinc-700 hover:underline dark:text-zinc-300">
             Marketplace
           </Link>
+          {showOrders ? (
+            <Link href="/dashboard/orders" className="text-zinc-700 hover:underline dark:text-zinc-300">
+              Orders
+            </Link>
+          ) : null}
           <Link href="/cart" className="relative inline-flex items-center gap-1.5 text-zinc-700 hover:underline dark:text-zinc-300">
             <ShoppingCart className={`h-4 w-4 ${bounce ? "animate-bounce" : ""}`} />
             Cart

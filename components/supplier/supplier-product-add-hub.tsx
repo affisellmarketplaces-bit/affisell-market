@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { Link2, Plus, RefreshCw, Sparkles, Upload } from "lucide-react"
+import { Link2, LogOut, Plus, RefreshCw, Sparkles, Upload } from "lucide-react"
+import { signOut } from "next-auth/react"
 
-import { buttonVariants } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -77,7 +78,7 @@ export function SupplierProductAddHub({ onStartManual, onStartWithAssist }: Prop
               flexible, and ideal when you already have assets ready.
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Link
               href="/dashboard/supplier/products"
               className={cn(
@@ -87,6 +88,16 @@ export function SupplierProductAddHub({ onStartManual, onStartWithAssist }: Prop
             >
               Back to products
             </Link>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-1.5 border-zinc-300 text-zinc-700 dark:border-zinc-600 dark:text-zinc-200"
+              onClick={() => void signOut({ callbackUrl: "/" })}
+            >
+              <LogOut className="h-4 w-4" aria-hidden />
+              Log out
+            </Button>
           </div>
         </header>
 

@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { Package, PlusCircle, RefreshCw, Store, Upload } from "lucide-react"
+import { Package, PlusCircle, RefreshCw, RotateCcw, Store, Upload } from "lucide-react"
 
 import { auth } from "@/auth"
 import { buttonVariants } from "@/components/ui/button"
@@ -39,6 +39,24 @@ export default async function DashboardSupplierPage() {
                 className={cn(buttonVariants({ size: "sm" }), "mt-4 inline-flex")}
               >
                 Open
+              </Link>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="border-zinc-200 p-5 dark:border-zinc-700">
+          <div className="flex items-start gap-3">
+            <RotateCcw className="mt-0.5 h-5 w-5 text-violet-600" aria-hidden />
+            <div className="min-w-0 flex-1">
+              <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">Returns</h2>
+              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                TikTok Shop–style flow: approve, wait for tracking, confirm receipt, then mark refunded.
+              </p>
+              <Link
+                href="/dashboard/supplier/returns"
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-4 inline-flex")}
+              >
+                Open returns
               </Link>
             </div>
           </div>

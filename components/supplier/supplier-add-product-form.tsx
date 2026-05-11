@@ -11,6 +11,7 @@ import {
   Circle,
   Image as ImageIcon,
   Loader2,
+  LogOut,
   Plus,
   Trash2,
   Cloud,
@@ -22,6 +23,7 @@ import {
   Wallet,
   Zap,
 } from "lucide-react"
+import { signOut } from "next-auth/react"
 import { toast } from "sonner"
 
 import { SupplierProductImageUpload } from "@/components/supplier/supplier-product-image-upload"
@@ -891,7 +893,7 @@ export function SupplierAddProductForm({
     <>
       {onBackToMethods ? (
         <div className="border-b border-zinc-200/90 bg-white/95 dark:border-zinc-800 dark:bg-zinc-950/95">
-          <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6 lg:px-8">
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
             <button
               type="button"
               onClick={onBackToMethods}
@@ -899,6 +901,16 @@ export function SupplierAddProductForm({
             >
               ← Other listing methods
             </button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="shrink-0 gap-1.5 border-zinc-300 text-zinc-700 dark:border-zinc-600 dark:text-zinc-200"
+              onClick={() => void signOut({ callbackUrl: "/" })}
+            >
+              <LogOut className="h-4 w-4" aria-hidden />
+              Log out
+            </Button>
           </div>
         </div>
       ) : null}
@@ -956,8 +968,8 @@ export function SupplierAddProductForm({
                 ) : null}
               </div>
             </div>
-            {!onBackToMethods ? (
-              <div className="flex shrink-0 flex-col gap-2 sm:flex-row lg:flex-col">
+            <div className="flex shrink-0 flex-col gap-2 sm:flex-row lg:flex-col lg:items-end">
+              {!onBackToMethods ? (
                 <Link
                   href="/dashboard/supplier/bulk-import"
                   className={cn(
@@ -967,8 +979,18 @@ export function SupplierAddProductForm({
                 >
                   Bulk Excel import
                 </Link>
-              </div>
-            ) : null}
+              ) : null}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="inline-flex justify-center gap-1.5 border-zinc-300 text-zinc-700 dark:border-zinc-600 dark:text-zinc-200"
+                onClick={() => void signOut({ callbackUrl: "/" })}
+              >
+                <LogOut className="h-4 w-4" aria-hidden />
+                Log out
+              </Button>
+            </div>
           </div>
         </header>
 
