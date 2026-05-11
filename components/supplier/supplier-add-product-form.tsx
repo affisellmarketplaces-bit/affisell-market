@@ -66,6 +66,7 @@ import {
   type SupplierVariantFormMode,
 } from "@/lib/supplier-add-product-draft-cache"
 import { newVariantRowId, parseVariantsPayload, type ProductVariantLine } from "@/lib/product-variants"
+import { parseProductColorImagesFromDb } from "@/lib/product-color-images"
 import { cn } from "@/lib/utils"
 
 const LISTING_LABELS: Record<ListingKind, string> = {
@@ -203,6 +204,9 @@ export function SupplierAddProductForm({
   const [variantSizesText, setVariantSizesText] = useState("")
   const [variantColorsText, setVariantColorsText] = useState("")
   const [variantRows, setVariantRows] = useState<ProductVariantLine[]>([])
+  const [variantColorImageRows, setVariantColorImageRows] = useState<
+    Array<{ color: string; image: string }>
+  >([])
   const [listingKind, setListingKind] = useState<ListingKind>("PHYSICAL")
   const [commission, setCommission] = useState("15")
 
@@ -228,6 +232,21 @@ export function SupplierAddProductForm({
   const mergedCategoryAttrs = useMemo(() => mergeCoreCategoryAttrs(categoryAttrs), [categoryAttrs])
 
   const commissionMax = affiliateCommissionMaxPct(listingKind)
+
+  useEffect(() => {
+    const colors = [...new Set(parseCsvOptions(variantColorsText))]
+    if (variantFormMode === "none" || colors.length === 0) {
+      setVariantColorImageRows([])
+      return
+    }
+    setVariantColorImageRows((prev) => {
+      const byColor = new Map(prev.map((r) => [r.color, r.image]))
+      return colors.map((c) => ({
+        color: c,
+        image: byColor.get(c) ?? "",
+      }))
+    })
+  }, [variantColorsText, variantFormMode])
 
   const discountPct = useMemo(() => {
     const p = Number(price)
@@ -466,6 +485,10 @@ export function SupplierAddProductForm({
             .filter(Boolean)
         : []
       setVariantColorsText(colorList.join(", "))
+      const parsedColorImages = parseProductColorImagesFromDb(data.colorImages)
+      setVariantColorImageRows(
+        parsedColorImages ? parsedColorImages.map((r) => ({ color: r.color, image: r.image })) : []
+      )
       const parsedVariants = parseVariantsPayload(data.variants)
       if (parsedVariants?.variantRows?.length) {
         setVariantFormMode("advanced")
@@ -548,7 +571,7 @@ export function SupplierAddProductForm({
       }
 
       const simpleSizes = parseCsvOptions(variantSizesText)
-      const simpleColors = parseCsvOptions(variantColorsText)
+      const simpleColors = [...new Set(parseCsvOptions(variantColorsText))]
       let variantsPayload: Record<string, unknown> | null = null
       let colorsPayload: string[] = []
 
@@ -591,6 +614,40 @@ export function SupplierAddProductForm({
         )
       }
 
+      const colorImagesPayload =
+        colorsPayload.length > 0
+          ? (() => {
+              // In "advanced" mode, prefer deriving color photos from SKU rows:
+              // match by checking if row.name contains the color label.
+              if (variantFormMode === "advanced") {
+                const byColorFromUi = new Map(variantColorImageRows.map((r) => [r.color, r.image]))
+                const fromRows = colorsPayload
+                  .map((color) => {
+                    const lc = color.toLowerCase()
+                    const matched = variantRows.find(
+                      (r) => r.name.toLowerCase().includes(lc) && Boolean(r.image?.trim())
+                    )
+                    return {
+                      color,
+                      image: matched?.image?.trim() || byColorFromUi.get(color) || "",
+                    }
+                  })
+                  .filter((r) => r.color.trim().length > 0)
+                return fromRows.map((r) => ({
+                  color: r.color.trim().slice(0, 48),
+                  image: r.image.trim().slice(0, 2000),
+                }))
+              }
+
+              return variantColorImageRows
+                .filter((r) => r.color.trim().length > 0)
+                .map((r) => ({
+                  color: r.color.trim().slice(0, 48),
+                  image: r.image.trim().slice(0, 2000),
+                }))
+            })()
+          : undefined
+
       return {
         name: name.trim(),
         description: description.trim(),
@@ -621,6 +678,7 @@ export function SupplierAddProductForm({
         descriptionBullets: descriptionBullets.map((s) => s.trim()).filter(Boolean),
         colors: colorsPayload,
         variants: variantsPayload,
+        colorImages: colorImagesPayload,
       }
     },
     [
@@ -649,6 +707,7 @@ export function SupplierAddProductForm({
       variantFormMode,
       variantSizesText,
       variantColorsText,
+      variantColorImageRows,
       variantRows,
     ]
   )
@@ -692,6 +751,16 @@ export function SupplierAddProductForm({
     }
     if (typeof c.variantSizesText === "string") setVariantSizesText(c.variantSizesText)
     if (typeof c.variantColorsText === "string") setVariantColorsText(c.variantColorsText)
+    if (Array.isArray(c.variantColorImageRows) && c.variantColorImageRows.length > 0) {
+      setVariantColorImageRows(
+        c.variantColorImageRows
+          .filter(
+            (r): r is { color: string; image: string } =>
+              r != null && typeof r === "object" && typeof r.color === "string" && typeof r.image === "string"
+          )
+          .map((r) => ({ color: r.color, image: r.image }))
+      )
+    }
     if (Array.isArray(c.variantRows) && c.variantRows.length > 0) {
       setVariantRows(
         c.variantRows.filter(
@@ -832,6 +901,7 @@ export function SupplierAddProductForm({
         variantFormMode,
         variantSizesText,
         variantColorsText,
+        variantColorImageRows,
         variantRows,
       })
     }, 720)
@@ -865,6 +935,7 @@ export function SupplierAddProductForm({
     variantFormMode,
     variantSizesText,
     variantColorsText,
+    variantColorImageRows,
     variantRows,
   ])
 
@@ -1488,6 +1559,39 @@ export function SupplierAddProductForm({
                         <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
                           Shown as swatch labels when shoppers pick a color.
                         </p>
+                        <div className="mt-4">
+                          <Label>Photo de couleur (URL)</Label>
+                          {variantColorImageRows.length > 0 ? (
+                            <div className="mt-2 space-y-2">
+                              {variantColorImageRows.map((row) => (
+                                <div
+                                  key={row.color}
+                                  className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+                                >
+                                  <p className="w-full text-sm font-medium text-zinc-900 dark:text-zinc-50 sm:w-44">
+                                    {row.color}
+                                  </p>
+                                  <Input
+                                    type="url"
+                                    className="w-full sm:flex-1"
+                                    value={row.image}
+                                    onChange={(e) => {
+                                      const next = e.target.value
+                                      setVariantColorImageRows((prev) =>
+                                        prev.map((r) => (r.color === row.color ? { ...r, image: next } : r))
+                                      )
+                                    }}
+                                    placeholder="https://…"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                              Add colors above to configure their photos.
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ) : variantFormMode === "advanced" ? (

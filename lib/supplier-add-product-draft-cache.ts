@@ -6,6 +6,8 @@ export type SupplierAddProductCacheMode = "assist" | "compose" | "plain"
 
 export type SupplierVariantFormMode = "none" | "simple" | "advanced"
 
+export type SupplierColorImageFormRow = { color: string; image: string }
+
 export type SupplierAddProductCachePayload = {
   v: 1
   mode: SupplierAddProductCacheMode
@@ -37,6 +39,7 @@ export type SupplierAddProductCachePayload = {
   variantSizesText?: string
   variantColorsText?: string
   variantRows?: ProductVariantLine[]
+  variantColorImageRows?: SupplierColorImageFormRow[]
 }
 
 export function readSupplierAddProductDraftCache(mode: SupplierAddProductCacheMode): SupplierAddProductCachePayload | null {
