@@ -107,6 +107,16 @@ function defaultVariantRow(commissionPct: string): ProductVariantLine {
   }
 }
 
+/** Step 1 background sync must not send variant snapshot fields (server preserves DB when keys are omitted). */
+function omitVariantSnapshotForDraftStep1(
+  body: Record<string, unknown>,
+  step: 1 | 2
+): Record<string, unknown> {
+  if (step !== 1) return body
+  const { colors: _c, variants: _v, colorImages: _ci, ...rest } = body
+  return rest
+}
+
 function SectionCard({
   icon: Icon,
   title,
@@ -801,7 +811,10 @@ export function SupplierAddProductForm({
   }, [urlListingId, pendingDraftListingId, loadingBrowse, cacheMode])
 
   const autosaveFingerprint = useMemo(
-    () => JSON.stringify(assembleListingPayload(true)) + String(step),
+    () =>
+      JSON.stringify(
+        omitVariantSnapshotForDraftStep1(assembleListingPayload(true) as Record<string, unknown>, step)
+      ) + String(step),
     [assembleListingPayload, step]
   )
 
@@ -825,7 +838,10 @@ export function SupplierAddProductForm({
     let cancelled = false
     const timer = window.setTimeout(() => {
       void (async () => {
-        const body = assembleListingPayload(true)
+        const body = omitVariantSnapshotForDraftStep1(
+          assembleListingPayload(true) as Record<string, unknown>,
+          step
+        )
         const fp = JSON.stringify(body)
         if (fp === lastAutosaveJson.current) return
         try {
@@ -892,6 +908,7 @@ export function SupplierAddProductForm({
     router,
     saving,
     searchParams,
+    step,
   ])
 
   useEffect(() => {

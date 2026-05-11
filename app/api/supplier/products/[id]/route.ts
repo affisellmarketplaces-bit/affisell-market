@@ -210,17 +210,26 @@ export async function PUT(
           ? { descriptionBullets: descriptionBulletsPatch }
           : {}),
         images,
-        colorImages:
-          attr.colorImages === null
-            ? Prisma.DbNull
-            : (attr.colorImages as unknown as Prisma.InputJsonValue),
-        categories: attr.categories,
-        colors: attr.colors,
-        tags: attr.tags,
-        variants:
-          attr.variants === null
-            ? Prisma.DbNull
-            : (attr.variants as unknown as Prisma.InputJsonValue),
+        /** Only touch merchandising JSON when the client sends the key — step-1 autosaves omit these. */
+        ...("colorImages" in rawBody
+          ? {
+              colorImages:
+                attr.colorImages === null
+                  ? Prisma.DbNull
+                  : (attr.colorImages as unknown as Prisma.InputJsonValue),
+            }
+          : {}),
+        ...("categories" in rawBody ? { categories: attr.categories } : {}),
+        ...("colors" in rawBody ? { colors: attr.colors } : {}),
+        ...("tags" in rawBody ? { tags: attr.tags } : {}),
+        ...("variants" in rawBody
+          ? {
+              variants:
+                attr.variants === null
+                  ? Prisma.DbNull
+                  : (attr.variants as unknown as Prisma.InputJsonValue),
+            }
+          : {}),
         basePriceCents: priceCents,
         compareAt,
         commissionRate: rate,
