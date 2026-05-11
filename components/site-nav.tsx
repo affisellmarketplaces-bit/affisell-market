@@ -175,9 +175,14 @@ export function SiteNav() {
             Marketplace
           </Link>
           {showOrders ? (
-            <Link href="/dashboard/orders" className="text-zinc-700 hover:underline dark:text-zinc-300">
-              Orders
-            </Link>
+            <>
+              <Link href="/dashboard/orders" className="text-zinc-700 hover:underline dark:text-zinc-300">
+                Orders
+              </Link>
+              <Link href="/dashboard/wallet" className="text-zinc-700 hover:underline dark:text-zinc-300">
+                Wallet
+              </Link>
+            </>
           ) : null}
           <Link href="/cart" className="relative inline-flex items-center gap-1.5 text-zinc-700 hover:underline dark:text-zinc-300">
             <ShoppingCart className={`h-4 w-4 ${bounce ? "animate-bounce" : ""}`} />

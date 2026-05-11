@@ -18,6 +18,7 @@ import {
   Package,
   Sparkles,
   Globe2,
+  Layers,
   Tag,
   Truck,
   Wallet,
@@ -62,7 +63,9 @@ import {
   readSupplierAddProductDraftCache,
   writeSupplierAddProductDraftCache,
   type SupplierAddProductCacheMode,
+  type SupplierVariantFormMode,
 } from "@/lib/supplier-add-product-draft-cache"
+import { newVariantRowId, parseVariantsPayload, type ProductVariantLine } from "@/lib/product-variants"
 import { cn } from "@/lib/utils"
 
 const LISTING_LABELS: Record<ListingKind, string> = {
@@ -78,6 +81,28 @@ function formatMoneyUsd(n: number) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })
+}
+
+function parseCsvOptions(s: string): string[] {
+  return s
+    .split(/[,;\n]/)
+    .map((x) => x.trim())
+    .filter(Boolean)
+    .slice(0, 40)
+}
+
+function defaultVariantRow(commissionPct: string): ProductVariantLine {
+  const n = Math.round(Number(commissionPct))
+  const commission = Number.isFinite(n) ? Math.min(50, Math.max(1, n)) : 20
+  return {
+    id: newVariantRowId(),
+    name: "",
+    sku: "",
+    priceCents: 0,
+    stock: 0,
+    commission,
+    sales: 0,
+  }
 }
 
 function SectionCard({
@@ -174,6 +199,10 @@ export function SupplierAddProductForm({
   const [price, setPrice] = useState("")
   const [compareAt, setCompareAt] = useState("")
   const [stock, setStock] = useState("0")
+  const [variantFormMode, setVariantFormMode] = useState<SupplierVariantFormMode>("none")
+  const [variantSizesText, setVariantSizesText] = useState("")
+  const [variantColorsText, setVariantColorsText] = useState("")
+  const [variantRows, setVariantRows] = useState<ProductVariantLine[]>([])
   const [listingKind, setListingKind] = useState<ListingKind>("PHYSICAL")
   const [commission, setCommission] = useState("15")
 
@@ -242,6 +271,14 @@ export function SupplierAddProductForm({
     }
     return null
   }, [commission, commissionMax, listingKind])
+
+  const variantStockHint = useMemo(() => {
+    if (variantFormMode !== "advanced") return null
+    const valid = variantRows.filter((r) => r.name.trim())
+    if (valid.length === 0) return null
+    const sum = valid.reduce((a, r) => a + Math.max(0, Math.round(Number(r.stock) || 0)), 0)
+    return `With SKU lines, saved stock is the sum of row quantities (${sum} from ${valid.length} line(s)).`
+  }, [variantFormMode, variantRows])
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedTitle(name), 420)
@@ -421,6 +458,32 @@ export function SupplierAddProductForm({
       setDeliveryDays(dd != null && Number.isFinite(Number(dd)) ? String(dd) : "")
       setFreeShipping(Boolean(data.freeShipping))
       setSupplierTag(typeof data.supplierTag === "string" ? data.supplierTag : "")
+      const colorsRaw = data.colors
+      const colorList = Array.isArray(colorsRaw)
+        ? colorsRaw
+            .filter((x): x is string => typeof x === "string")
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : []
+      setVariantColorsText(colorList.join(", "))
+      const parsedVariants = parseVariantsPayload(data.variants)
+      if (parsedVariants?.variantRows?.length) {
+        setVariantFormMode("advanced")
+        setVariantRows(parsedVariants.variantRows)
+        setVariantSizesText(parsedVariants.size?.length ? parsedVariants.size.join(", ") : "")
+      } else if (parsedVariants?.size?.length) {
+        setVariantFormMode("simple")
+        setVariantSizesText(parsedVariants.size.join(", "))
+        setVariantRows([])
+      } else if (colorList.length > 0) {
+        setVariantFormMode("simple")
+        setVariantSizesText("")
+        setVariantRows([])
+      } else {
+        setVariantFormMode("none")
+        setVariantSizesText("")
+        setVariantRows([])
+      }
       const bulletsRaw = data.descriptionBullets
       if (Array.isArray(bulletsRaw)) {
         const lines = bulletsRaw
@@ -484,12 +547,56 @@ export function SupplierAddProductForm({
         priceN = 1
       }
 
+      const simpleSizes = parseCsvOptions(variantSizesText)
+      const simpleColors = parseCsvOptions(variantColorsText)
+      let variantsPayload: Record<string, unknown> | null = null
+      let colorsPayload: string[] = []
+
+      if (variantFormMode === "simple") {
+        colorsPayload = simpleColors
+        if (simpleSizes.length > 0) {
+          variantsPayload = { size: simpleSizes }
+        }
+      } else if (variantFormMode === "advanced") {
+        colorsPayload = simpleColors
+        const validRows = variantRows
+          .filter((r) => r.name.trim().length > 0)
+          .map((r) => ({
+            id: r.id,
+            name: r.name.trim().slice(0, 160),
+            sku: r.sku.trim().slice(0, 80),
+            priceCents: Math.max(0, Math.round(r.priceCents)),
+            stock: Math.max(0, Math.round(r.stock)),
+            commission: Math.min(50, Math.max(1, Math.round(r.commission))),
+            sales: Math.max(0, Math.round(r.sales)),
+            ...(r.image?.trim() ? { image: r.image.trim().slice(0, 2000) } : {}),
+            ...(r.priceType?.trim() ? { priceType: r.priceType.trim().slice(0, 32) } : {}),
+          }))
+          .slice(0, 500)
+        if (validRows.length > 0) {
+          variantsPayload = { variantRows: validRows }
+        }
+      }
+
+      let stockOut = Math.max(0, Math.round(Number(stock) || 0))
+      if (
+        variantFormMode === "advanced" &&
+        variantsPayload &&
+        Array.isArray(variantsPayload.variantRows) &&
+        (variantsPayload.variantRows as { stock: number }[]).length > 0
+      ) {
+        stockOut = (variantsPayload.variantRows as { stock: number }[]).reduce(
+          (acc, r) => acc + Math.max(0, Math.round(r.stock)),
+          0
+        )
+      }
+
       return {
         name: name.trim(),
         description: description.trim(),
         price: priceN,
         compareAt: compareAt.trim() ? Number(compareAt) : null,
-        stock: Math.max(0, Math.round(Number(stock) || 0)),
+        stock: stockOut,
         commission: Math.round(Number(commission)),
         listingKind,
         images,
@@ -512,6 +619,8 @@ export function SupplierAddProductForm({
         freeShipping,
         supplierTag: supplierTag.trim() || undefined,
         descriptionBullets: descriptionBullets.map((s) => s.trim()).filter(Boolean),
+        colors: colorsPayload,
+        variants: variantsPayload,
       }
     },
     [
@@ -537,6 +646,10 @@ export function SupplierAddProductForm({
       freeShipping,
       supplierTag,
       descriptionBullets,
+      variantFormMode,
+      variantSizesText,
+      variantColorsText,
+      variantRows,
     ]
   )
 
@@ -574,6 +687,22 @@ export function SupplierAddProductForm({
     setSupplierTag(c.supplierTag)
     setSpecValues(c.specValues)
     setDescriptionBullets(c.descriptionBullets?.length ? c.descriptionBullets : [""])
+    if (c.variantFormMode === "none" || c.variantFormMode === "simple" || c.variantFormMode === "advanced") {
+      setVariantFormMode(c.variantFormMode)
+    }
+    if (typeof c.variantSizesText === "string") setVariantSizesText(c.variantSizesText)
+    if (typeof c.variantColorsText === "string") setVariantColorsText(c.variantColorsText)
+    if (Array.isArray(c.variantRows) && c.variantRows.length > 0) {
+      setVariantRows(
+        c.variantRows.filter(
+          (r): r is ProductVariantLine =>
+            r != null &&
+            typeof r === "object" &&
+            typeof (r as ProductVariantLine).id === "string" &&
+            typeof (r as ProductVariantLine).name === "string"
+        )
+      )
+    }
     toast("Restored your last on-device draft for this workflow.", { duration: 4500 })
   }, [urlListingId, pendingDraftListingId, loadingBrowse, cacheMode])
 
@@ -700,6 +829,10 @@ export function SupplierAddProductForm({
         supplierTag,
         specValues,
         descriptionBullets,
+        variantFormMode,
+        variantSizesText,
+        variantColorsText,
+        variantRows,
       })
     }, 720)
     return () => window.clearTimeout(t)
@@ -729,6 +862,10 @@ export function SupplierAddProductForm({
     stock,
     supplierTag,
     warehouseType,
+    variantFormMode,
+    variantSizesText,
+    variantColorsText,
+    variantRows,
   ])
 
   useEffect(() => {
@@ -773,6 +910,15 @@ export function SupplierAddProductForm({
     if (missingSpecs.length > 0) {
       toast.error(`Fill required fields: ${missingSpecs.map((m) => m.label).join(", ")}`)
       return
+    }
+    if (variantFormMode === "advanced" && variantRows.length > 0) {
+      const named = variantRows.filter((r) => r.name.trim())
+      if (named.length === 0) {
+        toast.error(
+          "Add a label for each variant row, delete empty rows, or switch to “No variants” / “Sizes & colors”."
+        )
+        return
+      }
     }
 
     const payload = assembleListingPayload(false)
@@ -1278,9 +1424,244 @@ export function SupplierAddProductForm({
                         className="mt-1.5 h-11"
                         value={stock}
                         onChange={(e) => setStock(e.target.value)}
+                        disabled={
+                          variantFormMode === "advanced" &&
+                          variantRows.some((r) => r.name.trim().length > 0)
+                        }
                       />
+                      {variantStockHint ? (
+                        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{variantStockHint}</p>
+                      ) : null}
                     </div>
                   </div>
+                </SectionCard>
+
+                <SectionCard
+                  icon={Layers}
+                  title="Options & variants"
+                  description="Optional: list sizes or colors for the PDP, or track each SKU with its own stock (totals into inventory above)."
+                >
+                  <div className="flex flex-wrap gap-2">
+                    {(
+                      [
+                        ["none", "No variants"],
+                        ["simple", "Sizes & colors"],
+                        ["advanced", "SKU lines"],
+                      ] as const
+                    ).map(([mode, label]) => (
+                      <button
+                        key={mode}
+                        type="button"
+                        onClick={() => setVariantFormMode(mode)}
+                        className={cn(
+                          "rounded-xl border px-3 py-2 text-sm font-medium transition",
+                          variantFormMode === mode
+                            ? "border-violet-500 bg-violet-50 text-violet-900 dark:border-violet-500 dark:bg-violet-950/50 dark:text-violet-100"
+                            : "border-zinc-200 bg-zinc-50 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                        )}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                  {variantFormMode === "simple" ? (
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="sm:col-span-2">
+                        <Label htmlFor="v-sizes">Sizes (comma-separated)</Label>
+                        <Input
+                          id="v-sizes"
+                          className="mt-1.5 h-11"
+                          value={variantSizesText}
+                          onChange={(e) => setVariantSizesText(e.target.value)}
+                          placeholder="e.g. S, M, L, XL"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <Label htmlFor="v-colors">Colors (comma-separated)</Label>
+                        <Input
+                          id="v-colors"
+                          className="mt-1.5 h-11"
+                          value={variantColorsText}
+                          onChange={(e) => setVariantColorsText(e.target.value)}
+                          placeholder="e.g. Black, Navy, White"
+                        />
+                        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                          Shown as swatch labels when shoppers pick a color.
+                        </p>
+                      </div>
+                    </div>
+                  ) : variantFormMode === "advanced" ? (
+                    <div className="space-y-3">
+                      <div>
+                        <Label htmlFor="v-colors-adv">Color labels (optional, comma-separated)</Label>
+                        <Input
+                          id="v-colors-adv"
+                          className="mt-1.5 h-11"
+                          value={variantColorsText}
+                          onChange={(e) => setVariantColorsText(e.target.value)}
+                          placeholder="e.g. Black, Navy — for PDP swatches"
+                        />
+                      </div>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          Each row needs a label (e.g. “Black / M”). Leave price blank to use your base price.
+                        </p>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="gap-1"
+                          onClick={() =>
+                            setVariantRows((prev) => [...prev, defaultVariantRow(commission)])
+                          }
+                        >
+                          <Plus className="h-4 w-4" aria-hidden /> Add row
+                        </Button>
+                      </div>
+                      <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-700">
+                        <table className="w-full min-w-[640px] text-left text-sm">
+                          <thead className="border-b border-zinc-200 bg-zinc-50 text-xs font-medium text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
+                            <tr>
+                              <th className="px-3 py-2">Label</th>
+                              <th className="px-3 py-2">SKU</th>
+                              <th className="px-3 py-2">Price (USD)</th>
+                              <th className="px-3 py-2">Stock</th>
+                              <th className="px-3 py-2">Comm. %</th>
+                              <th className="w-10 px-2 py-2" />
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {variantRows.length === 0 ? (
+                              <tr>
+                                <td colSpan={6} className="px-3 py-6 text-center text-xs text-zinc-500">
+                                  No rows yet — add a line for each sellable SKU.
+                                </td>
+                              </tr>
+                            ) : (
+                              variantRows.map((row, i) => (
+                                <tr
+                                  key={row.id}
+                                  className="border-b border-zinc-100 last:border-0 dark:border-zinc-800"
+                                >
+                                  <td className="px-2 py-1.5 align-middle">
+                                    <Input
+                                      className="h-9 min-w-[120px]"
+                                      value={row.name}
+                                      onChange={(e) => {
+                                        const v = e.target.value
+                                        setVariantRows((prev) =>
+                                          prev.map((r, j) => (j === i ? { ...r, name: v } : r))
+                                        )
+                                      }}
+                                      placeholder="e.g. Black / M"
+                                      maxLength={160}
+                                    />
+                                  </td>
+                                  <td className="px-2 py-1.5 align-middle">
+                                    <Input
+                                      className="h-9 w-24 min-w-[5rem] sm:w-28"
+                                      value={row.sku}
+                                      onChange={(e) => {
+                                        const v = e.target.value
+                                        setVariantRows((prev) =>
+                                          prev.map((r, j) => (j === i ? { ...r, sku: v } : r))
+                                        )
+                                      }}
+                                      placeholder="—"
+                                      maxLength={80}
+                                    />
+                                  </td>
+                                  <td className="px-2 py-1.5 align-middle">
+                                    <Input
+                                      className="h-9 w-24"
+                                      type="number"
+                                      min={0}
+                                      step="0.01"
+                                      value={row.priceCents > 0 ? (row.priceCents / 100).toFixed(2) : ""}
+                                      onChange={(e) => {
+                                        const raw = e.target.value
+                                        const n = Number(raw)
+                                        setVariantRows((prev) =>
+                                          prev.map((r, j) =>
+                                            j === i
+                                              ? {
+                                                  ...r,
+                                                  priceCents:
+                                                    raw.trim() === "" || !Number.isFinite(n)
+                                                      ? 0
+                                                      : Math.max(0, Math.round(n * 100)),
+                                                }
+                                              : r
+                                          )
+                                        )
+                                      }}
+                                      placeholder="Base"
+                                    />
+                                  </td>
+                                  <td className="px-2 py-1.5 align-middle">
+                                    <Input
+                                      className="h-9 w-20"
+                                      type="number"
+                                      min={0}
+                                      step={1}
+                                      value={row.stock}
+                                      onChange={(e) => {
+                                        const n = Math.max(0, Math.round(Number(e.target.value) || 0))
+                                        setVariantRows((prev) =>
+                                          prev.map((r, j) => (j === i ? { ...r, stock: n } : r))
+                                        )
+                                      }}
+                                    />
+                                  </td>
+                                  <td className="px-2 py-1.5 align-middle">
+                                    <Input
+                                      className="h-9 w-16"
+                                      type="number"
+                                      min={1}
+                                      max={50}
+                                      step={1}
+                                      value={row.commission}
+                                      onChange={(e) => {
+                                        const n = Math.round(Number(e.target.value) || 20)
+                                        setVariantRows((prev) =>
+                                          prev.map((r, j) =>
+                                            j === i
+                                              ? {
+                                                  ...r,
+                                                  commission: Math.min(50, Math.max(1, n)),
+                                                }
+                                              : r
+                                          )
+                                        )
+                                      }}
+                                    />
+                                  </td>
+                                  <td className="px-1 py-1.5 align-middle">
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-9 w-9 text-zinc-500 hover:text-red-600"
+                                      onClick={() =>
+                                        setVariantRows((prev) => prev.filter((_, j) => j !== i))
+                                      }
+                                      aria-label="Remove row"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                      One sellable unit — no size or color pickers on the product page from this listing.
+                    </p>
+                  )}
                 </SectionCard>
 
                 <SectionCard

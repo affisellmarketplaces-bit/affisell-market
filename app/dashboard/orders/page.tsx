@@ -85,9 +85,14 @@ export default async function DashboardOrdersPage() {
             add tracking so they can confirm receipt and mark the refund as processed.
           </p>
         </div>
-        <Link href="/marketplace" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
-          Continue shopping
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/dashboard/wallet" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
+            Store credit
+          </Link>
+          <Link href="/marketplace" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
+            Continue shopping
+          </Link>
+        </div>
       </div>
 
       <AccountOrdersClient initialOrders={payload} className="mt-8" />

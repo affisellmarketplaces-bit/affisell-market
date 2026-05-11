@@ -42,6 +42,15 @@ export default async function AccountSettingsPage() {
       <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">Account</h1>
       <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Manage sign-in methods and linked social accounts.</p>
 
+      <p className="mt-4 text-sm">
+        <Link
+          href="/dashboard/wallet"
+          className="font-medium text-teal-700 underline-offset-2 hover:underline dark:text-teal-400"
+        >
+          Store credit &amp; activity →
+        </Link>
+      </p>
+
       <div className="mt-8 flex items-center gap-4 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
         {dbUser.image ? (
           // eslint-disable-next-line @next/next/no-img-element -- external OAuth avatars vary by host

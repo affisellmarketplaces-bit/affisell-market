@@ -40,6 +40,12 @@ model User {
 
   /** Buyer-initiated returns (marketplace-style case flow). */
   orderReturnsRequested OrderReturn[] @relation("BuyerOrderReturns")
+
+  /** Store credit / cashback balance (EUR cents) from partner listings; spendable at checkout. */
+  buyerRewardBalanceCents Int @default(0)
+  buyerRewardLedger     BuyerRewardLedger[]
+  /** Marketplace orders where this user was the logged-in buyer (optional). */
+  buyerMarketplaceOrders Order[] @relation("BuyerMarketplaceOrders")
 }
 
 /** Saved connections for supplier catalog sync (Shopify, inbound webhook, …). */
@@ -399,12 +405,33 @@ model CartItem {
   @@unique([cartId, affiliateProductId])
 }
 
+/** Idempotent ledger for buyer store credit (earn on paid orders, redeem at checkout). */
+model BuyerRewardLedger {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /** EARNED | REDEEMED | REVERSAL (clawback on refund) */
+  type             String
+  amountCents      Int
+  idempotencyKey   String   @unique
+  stripeSessionId  String?
+  orderId          String?
+  order            Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  createdAt        DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([orderId])
+}
+
 model Order {
   id String @id @default(cuid())
   productId String
   affiliateProductId String
   supplierId String
   affiliateId String
+  /** Logged-in buyer when checkout carried `buyerUserId` metadata (optional). */
+  buyerUserId String?
+  buyer       User?   @relation("BuyerMarketplaceOrders", fields: [buyerUserId], references: [id], onDelete: SetNull)
   customerEmail String
   shippingAddress Json
   /** Line quantity for this order row (multi-item checkout uses one row per SKU). */
@@ -421,6 +448,7 @@ model Order {
   supplier User @relation("SupplierOrders", fields: [supplierId], references: [id])
   affiliate User @relation("AffiliateOrders", fields: [affiliateId], references: [id])
   returns OrderReturn[]
+  buyerRewardLedgerEntries BuyerRewardLedger[]
 }
 
 /**

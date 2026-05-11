@@ -20,9 +20,9 @@ import {
   COLORS,
   VARIANT_GROUP_LABELS,
   isMulticolorSwatch,
-  type VariantGroupKey,
 } from "@/lib/product-catalog-constants"
 import { addGuestCartItem } from "@/lib/guest-cart"
+import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/marketplace-checkout-discount"
 import type { ProductColorImageRow } from "@/lib/product-color-images"
 import type { ProductVariantsJson } from "@/lib/product-variants"
 
@@ -191,6 +191,8 @@ export function MarketplaceListingDetail({
   const [stylistLoading, setStylistLoading] = useState(false)
   const [alertSaved, setAlertSaved] = useState(false)
   const [bundleChecked, setBundleChecked] = useState<Record<string, boolean>>({})
+  const [rewardBalanceCents, setRewardBalanceCents] = useState(0)
+  const [useRewardCents, setUseRewardCents] = useState(0)
 
   const colorMeta = useMemo(() => {
     const map = new Map(COLORS.map((c) => [c.name, c]))
@@ -217,6 +219,42 @@ export function MarketplaceListingDetail({
       ? Math.round(bundleCrossSubtotal * (1 - BUNDLE_SAVE_PCT) * 100) / 100
       : listingPriceEur
   const bundleSaved = bundleAddonSum > 0 ? Math.round((bundleCrossSubtotal - bundlePayToday) * 100) / 100 : 0
+
+  const buyNowQty = 1
+  const buyNowLineSubtotalCents = listingPriceCents * buyNowQty
+  const maxApplicableReward = useMemo(() => {
+    if (buyNowLineSubtotalCents <= 0) return 0
+    return Math.max(
+      0,
+      Math.min(rewardBalanceCents, buyNowLineSubtotalCents - STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS)
+    )
+  }, [buyNowLineSubtotalCents, rewardBalanceCents])
+
+  useEffect(() => {
+    let cancelled = false
+    void fetch("/api/account/buyer-reward-balance", { credentials: "include", cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j: { balanceCents?: number } | null) => {
+        if (cancelled || !j) return
+        setRewardBalanceCents(Math.max(0, Math.round(Number(j.balanceCents) || 0)))
+      })
+      .catch(() => null)
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    setUseRewardCents((v) => Math.min(Math.max(0, v), maxApplicableReward))
+  }, [maxApplicableReward])
+
+  const fmtEur = (cents: number) =>
+    new Intl.NumberFormat("en-IE", {
+      style: "currency",
+      currency: "EUR",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(cents / 100)
 
   const etaDate = useMemo(() => {
     const d = new Date()
@@ -269,10 +307,11 @@ export function MarketplaceListingDetail({
   async function buyNow() {
     setBuyBusy(true)
     try {
+      const applied = Math.min(Math.max(0, Math.round(useRewardCents)), maxApplicableReward)
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: listingId, qty: 1 }),
+        body: JSON.stringify({ productId: listingId, qty: buyNowQty, useRewardCents: applied }),
         credentials: "include",
       })
       if (res.status === 401) {
@@ -540,6 +579,52 @@ export function MarketplaceListingDetail({
               >
                 {cartBusy ? "Adding…" : productT.addToCart}
               </Button>
+              {rewardBalanceCents > 0 && maxApplicableReward > 0 ? (
+                <div className="rounded-xl border border-teal-200/80 bg-teal-50/70 px-4 py-3 dark:border-teal-900/50 dark:bg-teal-950/30">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-teal-950 dark:text-teal-100">Use store credit</p>
+                    <Link
+                      href="/dashboard/wallet"
+                      className="text-xs font-medium text-teal-800 underline-offset-2 hover:underline dark:text-teal-300"
+                    >
+                      Wallet
+                    </Link>
+                  </div>
+                  <p className="mt-1 text-xs text-teal-900/90 dark:text-teal-200/90">
+                    Balance {fmtEur(rewardBalanceCents)} · up to {fmtEur(maxApplicableReward)} on this checkout (€
+                    {(STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS / 100).toFixed(2)} card minimum).
+                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-3">
+                    <input
+                      type="range"
+                      min={0}
+                      max={maxApplicableReward}
+                      step={1}
+                      value={Math.min(useRewardCents, maxApplicableReward)}
+                      onChange={(e) => setUseRewardCents(Number(e.target.value))}
+                      className="min-w-[10rem] flex-1 accent-teal-600"
+                      aria-label="Store credit to apply"
+                    />
+                    <span className="text-sm font-semibold tabular-nums text-teal-950 dark:text-teal-50">
+                      {fmtEur(Math.min(useRewardCents, maxApplicableReward))}
+                    </span>
+                    <button
+                      type="button"
+                      className="rounded-lg border border-teal-300 bg-white px-2 py-0.5 text-xs font-medium text-teal-900 hover:bg-teal-50 dark:border-teal-700 dark:bg-zinc-900 dark:text-teal-100 dark:hover:bg-teal-950/50"
+                      onClick={() => setUseRewardCents(maxApplicableReward)}
+                    >
+                      Max
+                    </button>
+                    <button
+                      type="button"
+                      className="rounded-lg border border-teal-300 bg-white px-2 py-0.5 text-xs font-medium text-teal-900 hover:bg-teal-50 dark:border-teal-700 dark:bg-zinc-900 dark:text-teal-100 dark:hover:bg-teal-950/50"
+                      onClick={() => setUseRewardCents(0)}
+                    >
+                      None
+                    </button>
+                  </div>
+                </div>
+              ) : null}
               <Button
                 size="lg"
                 variant="outline"

@@ -66,6 +66,8 @@ export default function CartPage() {
   const [isAuthed, setIsAuthed] = useState(false)
   const [loading, setLoading] = useState(true)
   const [checkoutBusy, setCheckoutBusy] = useState(false)
+  const [rewardBalanceCents, setRewardBalanceCents] = useState(0)
+  const [useRewardCents, setUseRewardCents] = useState(0)
 
   useEffect(() => {
     const ac = new AbortController()
@@ -78,6 +80,22 @@ export default function CartPage() {
         if (ac.signal.aborted) return
         const authed = Boolean(session?.user?.id)
         setIsAuthed(authed)
+        if (authed && session?.user?.id) {
+          const br = await fetch("/api/account/buyer-reward-balance", {
+            credentials: "include",
+            cache: "no-store",
+            signal: ac.signal,
+          })
+          if (br.ok) {
+            const j = (await br.json()) as { balanceCents?: number }
+            const bal = Math.max(0, Math.round(Number(j.balanceCents) || 0))
+            setRewardBalanceCents(bal)
+            setUseRewardCents(0)
+          }
+        } else {
+          setRewardBalanceCents(0)
+          setUseRewardCents(0)
+        }
         const guestLines = readGuestCart().map(guestToLine)
         setLines(authed ? [...serverLines, ...guestLines] : guestLines)
       } catch {
@@ -94,6 +112,16 @@ export default function CartPage() {
       const [session, serverLines] = await Promise.all([fetchSession(), fetchCart()])
       const authed = Boolean(session?.user?.id)
       setIsAuthed(authed)
+      if (authed && session?.user?.id) {
+        const br = await fetch("/api/account/buyer-reward-balance", { credentials: "include", cache: "no-store" })
+        if (br.ok) {
+          const j = (await br.json()) as { balanceCents?: number }
+          setRewardBalanceCents(Math.max(0, Math.round(Number(j.balanceCents) || 0)))
+        }
+      } else {
+        setRewardBalanceCents(0)
+        setUseRewardCents(0)
+      }
       const guestLines = readGuestCart().map(guestToLine)
       setLines(authed ? [...serverLines, ...guestLines] : guestLines)
     } catch {
@@ -106,7 +134,19 @@ export default function CartPage() {
     [lines]
   )
 
+  const subtotalCents = Math.round(subtotal * 100)
+  const MIN_CARD_EUR = 0.5
+  const minCardCents = Math.round(MIN_CARD_EUR * 100)
+  const maxApplicableReward = useMemo(() => {
+    if (!isAuthed || rewardBalanceCents <= 0 || subtotalCents <= 0) return 0
+    return Math.max(0, Math.min(rewardBalanceCents, subtotalCents - minCardCents))
+  }, [isAuthed, rewardBalanceCents, subtotalCents])
+
   const itemCount = useMemo(() => lines.reduce((n, row) => n + row.qty, 0), [lines])
+
+  useEffect(() => {
+    setUseRewardCents((v) => Math.min(Math.max(0, v), maxApplicableReward))
+  }, [maxApplicableReward])
 
   async function removeItem(itemId: string) {
     if (itemId.startsWith("guest-")) {
@@ -153,6 +193,7 @@ export default function CartPage() {
         body: JSON.stringify({
           items: lines.map((l) => ({ productId: l.product.id, qty: l.qty })),
           cancelPath: "/cart",
+          useRewardCents: Math.min(Math.max(0, Math.round(useRewardCents)), maxApplicableReward),
         }),
       })
       const data = (await res.json()) as { url?: string }
@@ -261,6 +302,47 @@ export default function CartPage() {
             </span>
             <span>{formatEur(subtotal)}</span>
           </div>
+          {isAuthed && rewardBalanceCents > 0 ? (
+            <div className="mb-4 rounded-xl border border-teal-100 bg-teal-50/60 p-4">
+              <p className="text-sm font-semibold text-teal-900">Store credit</p>
+              <p className="mt-1 text-xs text-teal-800">
+                Balance {formatEur(rewardBalanceCents / 100)} · up to {formatEur(maxApplicableReward / 100)} usable
+                (€{MIN_CARD_EUR.toFixed(2)} minimum card charge stays on the order).
+              </p>
+              <label htmlFor="use-reward" className="mt-3 block text-xs font-medium text-teal-900">
+                Apply at checkout (EUR)
+              </label>
+              <div className="mt-1 flex flex-wrap items-center gap-3">
+                <input
+                  id="use-reward"
+                  type="range"
+                  min={0}
+                  max={maxApplicableReward}
+                  step={1}
+                  value={Math.min(useRewardCents, maxApplicableReward)}
+                  onChange={(e) => setUseRewardCents(Number(e.target.value))}
+                  className="min-w-[12rem] flex-1 accent-teal-600"
+                />
+                <span className="text-sm font-semibold text-teal-900">
+                  {formatEur(Math.min(useRewardCents, maxApplicableReward) / 100)}
+                </span>
+                <button
+                  type="button"
+                  className="rounded-lg border border-teal-200 bg-white px-2 py-1 text-xs font-medium text-teal-900 hover:bg-teal-50"
+                  onClick={() => setUseRewardCents(maxApplicableReward)}
+                >
+                  Max
+                </button>
+                <button
+                  type="button"
+                  className="rounded-lg border border-teal-200 bg-white px-2 py-1 text-xs font-medium text-teal-900 hover:bg-teal-50"
+                  onClick={() => setUseRewardCents(0)}
+                >
+                  None
+                </button>
+              </div>
+            </div>
+          ) : null}
           <button
             type="button"
             disabled={checkoutBusy}

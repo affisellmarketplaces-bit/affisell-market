@@ -1,4 +1,5 @@
 import { auth } from "@/auth"
+import { reverseBuyerRewardEarnOnRefund } from "@/lib/buyer-reward-ledger"
 import { prisma } from "@/lib/prisma"
 import { supplierActionToNextStatus } from "@/lib/order-return-state"
 
@@ -43,7 +44,15 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ returnId: str
 
   const ret = await prisma.orderReturn.findFirst({
     where: { id: returnId, order: { supplierId: session.user.id } },
-    include: { order: { include: { product: { select: { name: true } } } } },
+    include: {
+      order: {
+        select: {
+          id: true,
+          sellingPriceCents: true,
+          product: { select: { name: true } },
+        },
+      },
+    },
   })
 
   if (!ret) {
@@ -117,6 +126,17 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ returnId: str
       sellerNote: sellerNote ?? ret.sellerNote,
     },
   })
+
+  if (updated.status === "REFUNDED") {
+    const sell = Math.max(1, ret.order.sellingPriceCents)
+    const approved =
+      updated.approvedRefundCents ?? ret.approvedRefundCents ?? ret.requestedRefundCents
+    const frac = Math.min(1, Math.max(0, approved / sell))
+    await reverseBuyerRewardEarnOnRefund(prisma, {
+      orderId: ret.orderId,
+      refundFraction: frac,
+    })
+  }
 
   return Response.json({ id: updated.id, status: updated.status, refundedAt: updated.refundedAt })
 }

@@ -4,6 +4,12 @@ import {
   listingDisplayTitle,
   listingGalleryUrls,
 } from "@/lib/affiliate-listing-display"
+import { auth } from "@/auth"
+import {
+  fixZeroPaidLinesCents,
+  proportionalLinePaidsCents,
+  STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS,
+} from "@/lib/marketplace-checkout-discount"
 import { prisma } from "@/lib/prisma"
 import { stripeProductImages } from "@/lib/product-images"
 import { getStripeClient } from "@/lib/stripe"
@@ -34,9 +40,64 @@ async function loadListing(id: string) {
   })
 }
 
+type LoadedLine = {
+  affiliateProductId: string
+  qty: number
+  listing: NonNullable<Awaited<ReturnType<typeof loadListing>>>
+}
+
+type StripeLineItem = {
+  price_data: {
+    currency: "eur"
+    unit_amount: number
+    product_data: { name: string; images: string[] }
+  }
+  quantity: number
+}
+
+function pushLineItemsForPaidTotal(items: StripeLineItem[], listing: LoadedLine["listing"], linePaidCents: number, qty: number) {
+  const baseTitle = listingDisplayTitle(listing.customTitle, listing.product.name)
+  const displayName = qty > 1 ? `${baseTitle} ×${qty}` : baseTitle
+  const gallery = listingGalleryUrls(listing.customImages, listing.product.images)
+  const images = stripeProductImages(gallery) ?? []
+  const total = Math.round(linePaidCents)
+  items.push({
+    price_data: {
+      currency: "eur",
+      unit_amount: total,
+      product_data: { name: displayName, images },
+    },
+    quantity: 1,
+  })
+}
+
+function computePaidLinesWithReward(args: {
+  lineSubtotalsCents: number[]
+  balanceCents: number
+  requestedRewardCents: number
+}): { appliedCents: number; paidLineCents: number[] } {
+  const sub = args.lineSubtotalsCents.reduce((a, b) => a + b, 0)
+  const maxApply = Math.max(
+    0,
+    Math.min(args.balanceCents, sub - STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS)
+  )
+  const want = Math.max(0, Math.round(args.requestedRewardCents))
+  const applied = Math.min(want, maxApply)
+  const targetPaid = sub - applied
+  const rawPaid = proportionalLinePaidsCents(args.lineSubtotalsCents, targetPaid)
+  const paidLineCents = fixZeroPaidLinesCents(args.lineSubtotalsCents, rawPaid)
+  return { appliedCents: applied, paidLineCents }
+}
+
 /** Stripe Checkout for multiple marketplace lines (EUR). */
-async function checkoutFromItems(lines: CartLineInput[], opts: { cancelPath?: string; successPath?: string }) {
+async function checkoutFromItems(
+  lines: CartLineInput[],
+  opts: { cancelPath?: string; successPath?: string; useRewardCents?: number }
+) {
   const stripe = getStripeClient()
+  const session = await auth()
+  const buyerUserId = session?.user?.id?.trim() || ""
+
   const normalized: { affiliateProductId: string; qty: number }[] = []
   for (const row of lines) {
     const affiliateProductId = typeof row.productId === "string" ? row.productId.trim() : ""
@@ -49,33 +110,52 @@ async function checkoutFromItems(lines: CartLineInput[], opts: { cancelPath?: st
     return NextResponse.json({ error: "No valid items" }, { status: 400 })
   }
 
-  const stripeLineItems: {
-    price_data: {
-      currency: "eur"
-      unit_amount: number
-      product_data: { name: string; images: string[] }
-    }
-    quantity: number
-  }[] = []
-
-  for (const { affiliateProductId, qty } of normalized) {
-    const listing = await loadListing(affiliateProductId)
+  const loaded: LoadedLine[] = []
+  for (const row of normalized) {
+    const listing = await loadListing(row.affiliateProductId)
     if (!listing || !listing.product.active || !listing.product.supplierId) {
       return NextResponse.json({ error: "Listing not found or inactive" }, { status: 404 })
     }
-    const displayName = listingDisplayTitle(listing.customTitle, listing.product.name)
-    const gallery = listingGalleryUrls(listing.customImages, listing.product.images)
-    stripeLineItems!.push({
-      price_data: {
-        currency: "eur",
-        unit_amount: listing.sellingPriceCents,
-        product_data: {
-          name: displayName,
-          images: stripeProductImages(gallery) ?? [],
-        },
-      },
-      quantity: qty,
+    loaded.push({ affiliateProductId: row.affiliateProductId, qty: row.qty, listing })
+  }
+
+  const lineSubtotalsCents = loaded.map((l) => l.listing.sellingPriceCents * l.qty)
+  let balanceCents = 0
+  if (buyerUserId) {
+    const u = await prisma.user.findUnique({
+      where: { id: buyerUserId },
+      select: { buyerRewardBalanceCents: true },
     })
+    balanceCents = u?.buyerRewardBalanceCents ?? 0
+  }
+
+  const requestedReward =
+    typeof opts.useRewardCents === "number" && Number.isFinite(opts.useRewardCents)
+      ? opts.useRewardCents
+      : 0
+
+  const { appliedCents, paidLineCents } = computePaidLinesWithReward({
+    lineSubtotalsCents,
+    balanceCents,
+    requestedRewardCents: buyerUserId ? requestedReward : 0,
+  })
+
+  for (let i = 0; i < paidLineCents.length; i++) {
+    if (lineSubtotalsCents[i]! > 0 && paidLineCents[i]! < 1) {
+      return NextResponse.json(
+        {
+          error:
+            "Unable to apply store credit across these lines. Try a smaller amount or fewer items.",
+        },
+        { status: 400 }
+      )
+    }
+  }
+
+  const stripeLineItems: StripeLineItem[] = []
+  for (let i = 0; i < loaded.length; i++) {
+    const row = loaded[i]!
+    pushLineItemsForPaidTotal(stripeLineItems, row.listing, paidLineCents[i]!, row.qty)
   }
 
   const { baseUrl, cancelPath, successPath } = checkoutBaseUrls(opts)
@@ -94,6 +174,9 @@ async function checkoutFromItems(lines: CartLineInput[], opts: { cancelPath?: st
     phone_number_collection: { enabled: true },
     metadata: {
       cartLines: JSON.stringify(normalized),
+      appliedRewardCents: String(appliedCents),
+      linePaids: JSON.stringify(paidLineCents),
+      ...(buyerUserId ? { buyerUserId } : {}),
     },
   })
 
@@ -109,12 +192,12 @@ export async function marketplaceCheckoutPOST(request: Request) {
   const stripe = getStripeClient()
   const body = (await request.json().catch(() => ({}))) as {
     affiliateProductId?: string
-    /** Alias for `affiliateProductId` (marketplace listing id). */
     productId?: string
     qty?: number
     items?: CartLineInput[]
     cancelPath?: string
     successPath?: string
+    useRewardCents?: number
   }
 
   if (Array.isArray(body.items) && body.items.length > 0) {
@@ -135,24 +218,46 @@ export async function marketplaceCheckoutPOST(request: Request) {
     return NextResponse.json({ error: "Listing not found or inactive" }, { status: 404 })
   }
 
+  const session = await auth()
+  const buyerUserId = session?.user?.id?.trim() || ""
+
+  let balanceCents = 0
+  if (buyerUserId) {
+    const u = await prisma.user.findUnique({
+      where: { id: buyerUserId },
+      select: { buyerRewardBalanceCents: true },
+    })
+    balanceCents = u?.buyerRewardBalanceCents ?? 0
+  }
+
+  const lineSubtotal = listing.sellingPriceCents * qty
+  const requestedReward =
+    typeof body.useRewardCents === "number" && Number.isFinite(body.useRewardCents)
+      ? body.useRewardCents
+      : 0
+
+  const { appliedCents, paidLineCents } = computePaidLinesWithReward({
+    lineSubtotalsCents: [lineSubtotal],
+    balanceCents,
+    requestedRewardCents: buyerUserId ? requestedReward : 0,
+  })
+
+  if (lineSubtotal > 0 && paidLineCents[0]! < 1) {
+    return NextResponse.json(
+      { error: "Unable to apply this much store credit for this item." },
+      { status: 400 }
+    )
+  }
+
+  const stripeLineItems: StripeLineItem[] = []
+  pushLineItemsForPaidTotal(stripeLineItems, listing, paidLineCents[0]!, qty)
+
   const { baseUrl, cancelPath, successPath } = checkoutBaseUrls(body)
 
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "payment",
     payment_method_types: ["card"],
-    line_items: [
-      {
-        price_data: {
-          currency: "eur",
-          unit_amount: listing.sellingPriceCents,
-          product_data: {
-            name: listingDisplayTitle(listing.customTitle, listing.product.name),
-            images: stripeProductImages(listingGalleryUrls(listing.customImages, listing.product.images)),
-          },
-        },
-        quantity: qty,
-      },
-    ],
+    line_items: stripeLineItems,
     success_url: `${baseUrl}${successPath}`,
     cancel_url: `${baseUrl}${cancelPath}`,
     customer_creation: "always",
@@ -166,6 +271,10 @@ export async function marketplaceCheckoutPOST(request: Request) {
       productId: listing.productId,
       supplierId: listing.product.supplierId,
       affiliateId: listing.affiliateId,
+      appliedRewardCents: String(appliedCents),
+      linePaids: JSON.stringify(paidLineCents),
+      checkoutQty: String(qty),
+      ...(buyerUserId ? { buyerUserId } : {}),
     },
   })
 

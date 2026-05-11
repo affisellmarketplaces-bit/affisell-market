@@ -1,6 +1,10 @@
+import type { ProductVariantLine } from "@/lib/product-variants"
+
 export const SUPPLIER_ADD_PRODUCT_CACHE_KEY = "affisell:supplier-add-product-draft:v1"
 
 export type SupplierAddProductCacheMode = "assist" | "compose" | "plain"
+
+export type SupplierVariantFormMode = "none" | "simple" | "advanced"
 
 export type SupplierAddProductCachePayload = {
   v: 1
@@ -29,6 +33,10 @@ export type SupplierAddProductCachePayload = {
   specValues: Record<string, string>
   /** “About this item” lines (same order as PDP bullets). */
   descriptionBullets: string[]
+  variantFormMode?: SupplierVariantFormMode
+  variantSizesText?: string
+  variantColorsText?: string
+  variantRows?: ProductVariantLine[]
 }
 
 export function readSupplierAddProductDraftCache(mode: SupplierAddProductCacheMode): SupplierAddProductCachePayload | null {
