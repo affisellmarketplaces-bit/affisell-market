@@ -4,6 +4,7 @@ import { NextResponse } from "next/server"
 import type { Prisma } from "@prisma/client"
 
 import { auth } from "@/auth"
+import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
 import { listingDisplayTitle, listingGalleryUrls } from "@/lib/affiliate-listing-display"
 import { prisma } from "@/lib/prisma"
 
@@ -62,6 +63,10 @@ function serializeMarketplaceListing(row: MarketplaceListingRow) {
     store,
     isBestSeller: row.isFeatured,
     storeSlug: row.affiliate.store?.slug ?? null,
+    buyerRewardBadge: buyerRewardBadgeText(
+      normalizeBuyerRewardKind(row.buyerRewardKind),
+      row.buyerRewardPercent ?? 0
+    ),
   }
 }
 

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import type { Prisma } from "@prisma/client"
 
 import { auth } from "@/auth"
+import { resolveBuyerRewardForListing } from "@/lib/affiliate-buyer-reward-request"
 import { slugifyListingSlug } from "@/lib/affiliate-listing-display"
 import { prisma } from "@/lib/prisma"
 
@@ -107,6 +108,24 @@ export async function PATCH(
   if (typeof body.listInStore === "boolean") data.isListed = body.listInStore
   if (typeof body.isListed === "boolean") data.isListed = body.isListed
   if (typeof body.isFeatured === "boolean") data.isFeatured = body.isFeatured
+
+  let nextSellingCents = listing.sellingPriceCents
+  if (typeof data.sellingPriceCents === "number") {
+    nextSellingCents = data.sellingPriceCents
+  }
+
+  const rewardRes = resolveBuyerRewardForListing({
+    body,
+    basePriceCents: listing.product.basePriceCents,
+    nextSellingCents,
+    existingKind: listing.buyerRewardKind,
+    existingPercent: listing.buyerRewardPercent,
+  })
+  if ("error" in rewardRes) {
+    return NextResponse.json({ error: rewardRes.error }, { status: 400 })
+  }
+  data.buyerRewardKind = rewardRes.buyerRewardKind
+  data.buyerRewardPercent = rewardRes.buyerRewardPercent
 
   try {
     const updated = await prisma.affiliateProduct.update({

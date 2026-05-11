@@ -38,7 +38,7 @@ model User {
 
   supplierIntegrations SupplierIntegration[]
 
-  /** Buyer-initiated returns (TikTok Shop–style flow). */
+  /** Buyer-initiated returns (marketplace-style case flow). */
   orderReturnsRequested OrderReturn[] @relation("BuyerOrderReturns")
 }
 
@@ -364,6 +364,14 @@ model AffiliateProduct {
 
   clicks       Int @default(0)
   conversions  Int @default(0)
+
+  /**
+   * Shopper-facing reward funded from the affiliate margin on this listing.
+   * NONE — no offer; CASHBACK — % of purchase as cashback wording; BONUS — store bonus wording.
+   */
+  buyerRewardKind    String @default("NONE")
+  /** 0 when kind is NONE; otherwise 1–50 (% of line total), capped by available margin on save. */
+  buyerRewardPercent Int    @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt

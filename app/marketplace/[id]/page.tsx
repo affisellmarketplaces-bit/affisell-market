@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation"
 
+import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
 import {
   listingDisplayDescription,
   listingDisplayTitle,
@@ -59,6 +60,11 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
     style: "currency",
     currency: "USD",
   })
+
+  const buyerRewardBadge = buyerRewardBadgeText(
+    normalizeBuyerRewardKind(listing.buyerRewardKind),
+    listing.buyerRewardPercent ?? 0
+  )
 
   const p = listing.product
   const freeThresh =
@@ -219,6 +225,7 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
           average: listing.product.averageRating,
           sentiment: listing.product.reviewSentiment,
         }}
+        buyerRewardBadge={buyerRewardBadge}
         ratingBreakdown={ratingBreakdown}
         reviews={reviews.map((r) => ({
           id: r.id,

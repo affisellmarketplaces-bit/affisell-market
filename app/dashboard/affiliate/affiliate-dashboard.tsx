@@ -44,6 +44,7 @@ import {
   ListingBuilderModal,
   type SerializedListing,
 } from "@/components/affiliate/listing-builder-modal"
+import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
 import { COLORS, isMulticolorSwatch } from "@/lib/product-catalog-constants"
 import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
 import { primaryProductImage } from "@/lib/product-images"
@@ -114,6 +115,11 @@ function SortableStoreCard(props: {
 
   if (!p) return null
 
+  const shopperReward = buyerRewardBadgeText(
+    normalizeBuyerRewardKind(listing.buyerRewardKind),
+    listing.buyerRewardPercent ?? 0
+  )
+
   const title = listingDisplayTitle(listing.customTitle ?? null, p.name)
   const img =
     listingPrimaryImageUrl(listing.customImages ?? [], p.images ?? []) ||
@@ -177,6 +183,12 @@ function SortableStoreCard(props: {
           <p className="line-clamp-2 flex-1 text-sm font-semibold leading-snug text-gray-900">{title}</p>
         </div>
         <p className="text-lg font-semibold text-green-600">{fmtEUR(listing.sellingPriceCents)}</p>
+        {shopperReward ? (
+          <p className="text-xs font-medium text-teal-800">
+            Shoppers:{" "}
+            <span className="rounded-md bg-teal-50 px-1.5 py-0.5 text-[11px] text-teal-900">{shopperReward}</span>
+          </p>
+        ) : null}
         <p className="text-xs text-gray-500">
           {listing.clicks ?? 0} clicks · {listing.conversions ?? 0} sales
         </p>

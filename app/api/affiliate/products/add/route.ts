@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
+import { resolveBuyerRewardForListing } from "@/lib/affiliate-buyer-reward-request"
 import { slugifyListingSlug } from "@/lib/affiliate-listing-display"
 import { prisma } from "@/lib/prisma"
 
@@ -124,6 +125,22 @@ export async function POST(request: Request) {
   const maxP = maxPos._max.position
   const position = (maxP == null ? -1 : maxP) + 1
 
+  const existingRow = await prisma.affiliateProduct.findUnique({
+    where: { affiliateId_productId: { affiliateId: session.user.id, productId } },
+    select: { buyerRewardKind: true, buyerRewardPercent: true },
+  })
+
+  const rewardRes = resolveBuyerRewardForListing({
+    body,
+    basePriceCents: product.basePriceCents,
+    nextSellingCents: sellingPriceCents,
+    existingKind: existingRow?.buyerRewardKind,
+    existingPercent: existingRow?.buyerRewardPercent,
+  })
+  if ("error" in rewardRes) {
+    return NextResponse.json({ error: rewardRes.error }, { status: 400 })
+  }
+
   try {
     const row = await prisma.affiliateProduct.upsert({
       where: {
@@ -143,6 +160,8 @@ export async function POST(request: Request) {
         isListed,
         isFeatured,
         position,
+        buyerRewardKind: rewardRes.buyerRewardKind,
+        buyerRewardPercent: rewardRes.buyerRewardPercent,
       },
       update: {
         sellingPriceCents,
@@ -155,6 +174,8 @@ export async function POST(request: Request) {
         collections,
         isListed,
         isFeatured,
+        buyerRewardKind: rewardRes.buyerRewardKind,
+        buyerRewardPercent: rewardRes.buyerRewardPercent,
       },
     })
 

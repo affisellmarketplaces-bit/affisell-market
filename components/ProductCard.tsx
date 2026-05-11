@@ -30,6 +30,7 @@ function coerceProduct(p: ProductCardProps["product"]): {
   compareAt: number | null
   store: string | null
   isBestSeller: boolean
+  buyerRewardBadge: string | null
 } {
   const o = p as Record<string, unknown>
   const title = String(o.title ?? o.name ?? "")
@@ -47,7 +48,11 @@ function coerceProduct(p: ProductCardProps["product"]): {
     c != null && c !== "" && Number.isFinite(Number(c)) ? Number(c) : null
   const store = (o.store ?? null) as string | null
   const isBestSeller = Boolean(o.isBestSeller)
-  return { title, image, price, compareAt, store, isBestSeller }
+  const buyerRewardBadge =
+    typeof o.buyerRewardBadge === "string" && o.buyerRewardBadge.trim()
+      ? o.buyerRewardBadge.trim()
+      : null
+  return { title, image, price, compareAt, store, isBestSeller, buyerRewardBadge }
 }
 
 export function ProductCard({ product }: ProductCardProps) {
@@ -69,6 +74,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const hasDiscount = compareN != null && compareN > priceN
   const discount = hasDiscount ? Math.round(((compareN - priceN) / compareN) * 100) : 0
   const src = p.image || "/placeholder-product.jpg"
+  const reward = p.buyerRewardBadge
 
   return (
     <Link
@@ -116,6 +122,13 @@ export function ProductCard({ product }: ProductCardProps) {
 
       <div className="mt-3 px-1">
         <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-semibold text-gray-900">{p.title}</h3>
+        {reward ? (
+          <p className="mt-1.5">
+            <span className="inline-flex rounded-full bg-teal-100 px-2 py-0.5 text-[10px] font-semibold text-teal-900">
+              {reward}
+            </span>
+          </p>
+        ) : null}
         <div className="mt-2 flex items-baseline gap-2">
           <span className="text-xl font-black text-gray-900">${priceN.toFixed(2)}</span>
           {hasDiscount ? (

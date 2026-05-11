@@ -6,6 +6,7 @@ import type { StoreFeedPost } from "@/components/community/StoreFeed"
 import { StoreFeed } from "@/components/community/StoreFeed"
 import { StoreSocialBar } from "@/components/store-social-bar"
 import { auth } from "@/auth"
+import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
 import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
 import { parseFollowersJson } from "@/lib/format-followers"
 import { prisma } from "@/lib/prisma"
@@ -169,6 +170,10 @@ export default async function PublicStorefrontPage({ params }: { params: Promise
                     soldByAffiliate={store.name}
                     trackClicks
                     fastShipping={(item.product!.deliveryMax ?? 99) <= 3}
+                    buyerRewardBadge={buyerRewardBadgeText(
+                      normalizeBuyerRewardKind(item.buyerRewardKind),
+                      item.buyerRewardPercent ?? 0
+                    )}
                     product={{ id: item.id }}
                   />
                 </li>

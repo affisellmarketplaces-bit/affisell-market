@@ -82,6 +82,8 @@ type Props = {
     average: number
     sentiment: string
   }
+  /** Shown near price when the affiliate listing offers buyer cashback / bonus */
+  buyerRewardBadge?: string | null
   ratingBreakdown: Record<number, number>
   reviews: Array<{
     id: string
@@ -166,6 +168,7 @@ export function MarketplaceListingDetail({
   oftenBoughtTogether = [],
   alsoViewed = [],
   reviewSummary,
+  buyerRewardBadge = null,
   ratingBreakdown,
   reviews,
 }: Props) {
@@ -423,6 +426,13 @@ export function MarketplaceListingDetail({
 
             <div>
               <p className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">{priceDisplay}</p>
+              {buyerRewardBadge ? (
+                <p className="mt-2">
+                  <span className="inline-flex rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-900 dark:border-teal-800 dark:bg-teal-950/60 dark:text-teal-100">
+                    Store offer · {buyerRewardBadge}
+                  </span>
+                </p>
+              ) : null}
               {hasRetailCompare ? (
                 <p className="mt-2">
                   <span className="inline-flex rounded-full bg-rose-600 px-2.5 py-1 text-xs font-semibold text-white">

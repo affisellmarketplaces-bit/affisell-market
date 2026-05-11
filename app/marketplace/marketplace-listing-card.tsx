@@ -18,6 +18,8 @@ type Props = {
   product: { id: string }
   /** When product `deliveryMax` is 3 days or less */
   fastShipping?: boolean
+  /** Short label e.g. "5% cashback" from affiliate listing */
+  buyerRewardBadge?: string | null
 }
 
 export function MarketplaceListingCard({
@@ -30,6 +32,7 @@ export function MarketplaceListingCard({
   trackClicks,
   product,
   fastShipping,
+  buyerRewardBadge,
 }: Props) {
   const listing = {
     id: product.id,
@@ -116,6 +119,13 @@ export function MarketplaceListingCard({
           >
             {priceDisplay}
           </p>
+          {buyerRewardBadge ? (
+            <p className="mt-1.5">
+              <span className="inline-flex rounded-full bg-teal-100 px-2 py-0.5 text-[10px] font-semibold text-teal-900 dark:bg-teal-950/80 dark:text-teal-100">
+                {buyerRewardBadge}
+              </span>
+            </p>
+          ) : null}
           <p className="mt-1 text-xs text-zinc-500">
             by <span className="font-medium text-zinc-700 dark:text-zinc-300">{sellerDisplay}</span>
           </p>

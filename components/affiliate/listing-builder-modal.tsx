@@ -4,6 +4,12 @@ import type { FormEvent, MouseEvent } from "react"
 import { useEffect, useMemo, useState } from "react"
 
 import { AiPricingOptimizer } from "@/components/affiliate/ai-pricing-optimizer"
+import {
+  clampBuyerRewardPercent,
+  maxAffordableBuyerRewardPercent,
+  normalizeBuyerRewardKind,
+  type BuyerRewardKind,
+} from "@/lib/affiliate-buyer-reward"
 
 type CatalogProduct = {
   id: string
@@ -29,6 +35,8 @@ export type SerializedListing = {
   clicks?: number
   conversions?: number
   position?: number
+  buyerRewardKind?: string | null
+  buyerRewardPercent?: number | null
 }
 
 type Props = {
@@ -59,6 +67,8 @@ type FormFields = {
   seoTitle: string
   seoDesc: string
   listInStore: boolean
+  buyerRewardKind: BuyerRewardKind
+  buyerRewardPercent: number
 }
 
 function getListingFormDefaults(
@@ -90,6 +100,8 @@ function getListingFormDefaults(
     seoTitle: L?.seoTitle ?? "",
     seoDesc: L?.seoDescription ?? "",
     listInStore: L ? L.isListed : true,
+    buyerRewardKind: normalizeBuyerRewardKind(L?.buyerRewardKind),
+    buyerRewardPercent: clampBuyerRewardPercent(L?.buyerRewardPercent ?? 0),
   }
 }
 
@@ -125,6 +137,17 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
     if (marginEUR == null || !Number.isFinite(marginEUR) || sup <= 0) return null
     return (marginEUR / sup) * 100
   }, [marginEUR, product])
+
+  const sellingPriceCentsPreview = useMemo(() => {
+    const euro = Number(String(form.priceEUR).replace(",", "."))
+    if (!Number.isFinite(euro)) return product.basePriceCents
+    return Math.round(euro * 100)
+  }, [form.priceEUR, product.basePriceCents])
+
+  const maxBuyerRewardPct = useMemo(
+    () => maxAffordableBuyerRewardPercent(sellingPriceCentsPreview, product.basePriceCents),
+    [sellingPriceCentsPreview, product.basePriceCents]
+  )
 
   useEffect(() => {
     if (!pricingAiToast) return
@@ -203,6 +226,17 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
       const collections = buildCollectionsArray()
       const euro = Number(String(form.priceEUR).replace(",", "."))
 
+      if (form.buyerRewardKind !== "NONE") {
+        if (maxBuyerRewardPct <= 0) {
+          throw new Error("Raise your price above supplier cost to offer a buyer reward.")
+        }
+        if (form.buyerRewardPercent > maxBuyerRewardPct) {
+          throw new Error(
+            `Buyer reward cannot exceed ${maxBuyerRewardPct}% at this price (your margin). Lower the % or increase your selling price.`
+          )
+        }
+      }
+
       if (listing?.id) {
         const bodyObj: Record<string, unknown> = {
           sellingPriceEUR: euro,
@@ -215,6 +249,8 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
           seoDescription: form.seoDesc.trim(),
           isListed: saveDraft ? false : form.listInStore,
           isFeatured: collections.includes("Featured"),
+          buyerRewardKind: form.buyerRewardKind,
+          buyerRewardPercent: form.buyerRewardPercent,
         }
         const res = await fetch(`/api/affiliate/products/${listing.id}`, {
           method: "PATCH",
@@ -247,6 +283,8 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
           saveDraft,
           publish: !saveDraft,
           publishToStore: !saveDraft,
+          buyerRewardKind: form.buyerRewardKind,
+          buyerRewardPercent: form.buyerRewardPercent,
         }
 
         const res = await fetch("/api/affiliate/products/add", {
@@ -500,6 +538,100 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
                     </div>
                   </div>
                 </div>
+              </div>
+
+              <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-4">
+                <p className="text-sm font-semibold text-gray-900">Buyer reward (your store)</p>
+                <p className="mt-1 text-xs text-gray-600">
+                  Optional cashback or bonus for shoppers on this listing. Funded from your margin — max{" "}
+                  <span className="font-semibold text-emerald-800">{maxBuyerRewardPct}%</span> at this price.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-3">
+                  <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-800">
+                    <input
+                      type="radio"
+                      name="buyerRewardKind"
+                      checked={form.buyerRewardKind === "NONE"}
+                      onChange={() =>
+                        setForm((f) => ({ ...f, buyerRewardKind: "NONE", buyerRewardPercent: 0 }))
+                      }
+                    />
+                    None
+                  </label>
+                  <label
+                    className={`flex cursor-pointer items-center gap-2 text-sm text-gray-800 ${maxBuyerRewardPct <= 0 ? "cursor-not-allowed opacity-50" : ""}`}
+                  >
+                    <input
+                      type="radio"
+                      name="buyerRewardKind"
+                      disabled={maxBuyerRewardPct <= 0}
+                      checked={form.buyerRewardKind === "CASHBACK"}
+                      onChange={() =>
+                        setForm((f) => ({
+                          ...f,
+                          buyerRewardKind: "CASHBACK",
+                          buyerRewardPercent:
+                            f.buyerRewardPercent > 0
+                              ? Math.min(f.buyerRewardPercent, maxBuyerRewardPct || 1)
+                              : Math.min(5, Math.max(1, maxBuyerRewardPct)),
+                        }))
+                      }
+                    />
+                    Cashback
+                  </label>
+                  <label
+                    className={`flex cursor-pointer items-center gap-2 text-sm text-gray-800 ${maxBuyerRewardPct <= 0 ? "cursor-not-allowed opacity-50" : ""}`}
+                  >
+                    <input
+                      type="radio"
+                      name="buyerRewardKind"
+                      disabled={maxBuyerRewardPct <= 0}
+                      checked={form.buyerRewardKind === "BONUS"}
+                      onChange={() =>
+                        setForm((f) => ({
+                          ...f,
+                          buyerRewardKind: "BONUS",
+                          buyerRewardPercent:
+                            f.buyerRewardPercent > 0
+                              ? Math.min(f.buyerRewardPercent, maxBuyerRewardPct || 1)
+                              : Math.min(5, Math.max(1, maxBuyerRewardPct)),
+                        }))
+                      }
+                    />
+                    Store bonus
+                  </label>
+                </div>
+                {form.buyerRewardKind !== "NONE" ? (
+                  <div className="mt-3">
+                    <label htmlFor="buyer-reward-pct" className="text-xs font-medium text-gray-700">
+                      Percent of purchase (whole order line)
+                    </label>
+                    <div className="mt-1 flex items-center gap-2">
+                      <input
+                        id="buyer-reward-pct"
+                        type="number"
+                        min={1}
+                        max={maxBuyerRewardPct > 0 ? maxBuyerRewardPct : 50}
+                        step={1}
+                        value={form.buyerRewardPercent || ""}
+                        onChange={(e) => {
+                          const raw = Number(e.target.value)
+                          const next = Number.isFinite(raw)
+                            ? clampNumber(Math.round(raw), 1, Math.max(1, maxBuyerRewardPct || 50))
+                            : 1
+                          setForm((f) => ({ ...f, buyerRewardPercent: next }))
+                        }}
+                        className="w-20 rounded-lg border border-gray-200 px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                      <span className="text-sm text-gray-600">%</span>
+                    </div>
+                    {form.buyerRewardPercent > maxBuyerRewardPct ? (
+                      <p className="mt-2 text-xs text-amber-800">
+                        Lower the % or raise your selling price (max affordable is {maxBuyerRewardPct}%).
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
 
               <div>
