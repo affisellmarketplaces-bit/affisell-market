@@ -71,3 +71,24 @@ export function buildColorImagesFromLegacy(
     return { color: c, hex: catalogHexForColorName(c), image }
   })
 }
+
+/** One row per supplier color: prefer `colorImages` JSON, then legacy `variants.imageByColor`. */
+export function mergeColorImagesForProduct(
+  colors: string[],
+  colorImagesJson: unknown,
+  variantsRaw: unknown
+): ProductColorImageRow[] {
+  if (!colors.length) return []
+  const parsed = parseProductColorImagesFromDb(colorImagesJson)
+  const legacy = buildColorImagesFromLegacy(colors, variantsRaw)
+  return colors.map((color) => {
+    const rowP = parsed?.find((r) => r.color === color)
+    const rowL = legacy.find((r) => r.color === color)
+    const image = (rowP?.image?.trim() || rowL?.image?.trim() || "")
+    return {
+      color,
+      hex: rowP?.hex || rowL?.hex || catalogHexForColorName(color),
+      image,
+    }
+  })
+}

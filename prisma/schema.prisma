@@ -379,6 +379,11 @@ model AffiliateProduct {
   /** 0 when kind is NONE; otherwise 1–50 (% of line total), capped by available margin on save. */
   buyerRewardPercent Int    @default(0)
 
+  /** Optional PDP default: must match `Product.colors[]` when set. */
+  promotedColor String?
+  /** Optional PDP default: must match `Product.variants.size[]` when set. */
+  promotedSize  String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 

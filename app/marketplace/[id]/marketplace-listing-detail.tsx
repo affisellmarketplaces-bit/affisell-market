@@ -56,6 +56,10 @@ type SpecRow = { label: string; value: string }
 type Props = {
   listingId: string
   productId: string
+  /** Affiliate-chosen default color swatch (must exist in `colorNames`). */
+  promotedColor?: string | null
+  /** Affiliate-chosen default size (must exist in variant size options). */
+  promotedSize?: string | null
   name: string
   description: string
   descriptionBullets?: string[]
@@ -146,6 +150,8 @@ function StarRatingRow({ value, count }: { value: number; count: number }) {
 export function MarketplaceListingDetail({
   listingId,
   productId,
+  promotedColor = null,
+  promotedSize = null,
   name,
   description,
   descriptionBullets = [],
@@ -179,9 +185,46 @@ export function MarketplaceListingDetail({
   const v = variants ?? {}
   const sizeOptions = v.size ?? []
 
+  const initialColor = useMemo(() => {
+    const p = promotedColor?.trim()
+    if (p && colorNames.includes(p)) return p
+    return colorNames[0] ?? null
+  }, [colorNames, promotedColor])
+
+  const initialSize = useMemo(() => {
+    const p = promotedSize?.trim()
+    if (p && sizeOptions.includes(p)) return p
+    return sizeOptions[0] ?? null
+  }, [promotedSize, sizeOptions])
+
+  const partnerHighlightLabel = useMemo(() => {
+    const pc = promotedColor?.trim()
+    const ps = promotedSize?.trim()
+    const parts: string[] = []
+    if (pc && colorNames.includes(pc)) parts.push(pc)
+    if (ps && sizeOptions.includes(ps)) parts.push(ps)
+    if (parts.length === 0) return null
+    return parts.join(" · ")
+  }, [colorNames, promotedColor, promotedSize, sizeOptions])
+
   const [selectedImage, setSelectedImage] = useState(0)
-  const [selectedColor, setSelectedColor] = useState<string | null>(colorNames[0] ?? null)
-  const [selectedSize, setSelectedSize] = useState<string | null>(sizeOptions[0] ?? null)
+  const [selectedColor, setSelectedColor] = useState<string | null>(initialColor)
+  const [selectedSize, setSelectedSize] = useState<string | null>(initialSize)
+
+  useEffect(() => {
+    setSelectedColor(initialColor)
+  }, [initialColor])
+
+  useEffect(() => {
+    setSelectedSize(initialSize)
+  }, [initialSize])
+
+  /** After picking a color we drive the hero from that color; thumbnails take over until the color changes again. */
+  const [heroFromGallery, setHeroFromGallery] = useState(false)
+  useEffect(() => {
+    setHeroFromGallery(false)
+  }, [initialColor])
+
   const [cartBusy, setCartBusy] = useState(false)
   const [buyBusy, setBuyBusy] = useState(false)
   const [showAr, setShowAr] = useState(false)
@@ -199,9 +242,32 @@ export function MarketplaceListingDetail({
     return colorNames.map((n) => ({ name: n, meta: map.get(n) }))
   }, [colorNames])
 
-  const colorRowImage =
-    selectedColor != null ? colorImages.find((c) => c.color === selectedColor)?.image?.trim() : ""
-  const hero = colorRowImage || images[selectedImage] || "/placeholder.png"
+  const colorResolvedUrl = useMemo(() => {
+    if (selectedColor == null) return ""
+    const direct = colorImages.find((c) => c.color === selectedColor)?.image?.trim()
+    if (direct) return direct
+    const idx = colorNames.indexOf(selectedColor)
+    if (idx >= 0 && idx < images.length) return images[idx]!.trim()
+    return ""
+  }, [selectedColor, colorImages, colorNames, images])
+
+  const hero = useMemo(() => {
+    const fallback = images[Math.min(Math.max(0, selectedImage), images.length - 1)]?.trim() || "/placeholder.png"
+    if (heroFromGallery) return fallback
+    return (colorResolvedUrl || fallback).trim() || "/placeholder.png"
+  }, [heroFromGallery, colorResolvedUrl, images, selectedImage])
+
+  const activeThumbIndex = useMemo(() => {
+    if (heroFromGallery) return Math.min(Math.max(0, selectedImage), Math.max(0, images.length - 1))
+    const u = (colorResolvedUrl || images[selectedImage]?.trim() || "").trim()
+    const hit = images.findIndex((x) => x.trim() === u)
+    if (hit >= 0) return hit
+    if (selectedColor) {
+      const ci = colorNames.indexOf(selectedColor)
+      if (ci >= 0 && ci < images.length) return ci
+    }
+    return Math.min(Math.max(0, selectedImage), Math.max(0, images.length - 1))
+  }, [heroFromGallery, selectedImage, images, colorResolvedUrl, selectedColor, colorNames])
   const listingPriceEur = listingPriceCents / 100
   const hasRetailCompare = typeof retailPriceEur === "number" && retailPriceEur > listingPriceEur
   const discountPct = hasRetailCompare
@@ -366,9 +432,10 @@ export function MarketplaceListingDetail({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <div className="relative aspect-[4/5] bg-zinc-50 sm:aspect-square dark:bg-zinc-900/80">
                 <img
+                  key={hero}
                   src={hero}
                   alt={name}
-                  className="h-full w-full object-contain p-4 transition duration-500 ease-out hover:scale-[1.02]"
+                  className="h-full w-full object-contain p-4 transition duration-300 ease-out animate-in fade-in-0 hover:scale-[1.01]"
                 />
                 {has3D ? (
                   <span className="absolute left-4 top-4 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-3 py-1 text-xs font-semibold text-white shadow-md">
@@ -378,20 +445,24 @@ export function MarketplaceListingDetail({
               </div>
             </div>
 
-            <div className="grid grid-cols-5 gap-2 sm:grid-cols-6">
-              {images.slice(0, 6).map((url, i) => (
+            <div className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 pb-1 pt-0.5 [scrollbar-width:thin] sm:mx-0 sm:px-0">
+              {images.slice(0, 12).map((url, i) => (
                 <button
-                  key={`${url}-${i}`}
+                  key={`thumb-${i}`}
                   type="button"
-                  onClick={() => setSelectedImage(i)}
-                  className={`relative aspect-square overflow-hidden rounded-xl border-2 bg-zinc-50 transition dark:bg-zinc-900 ${
-                    selectedImage === i
-                      ? "border-violet-600 ring-2 ring-violet-500/30 dark:border-violet-500"
-                      : "border-transparent ring-1 ring-zinc-200 dark:ring-zinc-700"
+                  aria-pressed={activeThumbIndex === i}
+                  onClick={() => {
+                    setSelectedImage(i)
+                    setHeroFromGallery(true)
+                  }}
+                  className={`relative aspect-square w-[4.25rem] shrink-0 overflow-hidden rounded-xl border-2 bg-white transition dark:bg-zinc-950 sm:w-[5.25rem] ${
+                    activeThumbIndex === i
+                      ? "border-violet-600 shadow-sm ring-2 ring-violet-500/25 dark:border-violet-500"
+                      : "border-zinc-200/90 opacity-90 ring-1 ring-zinc-200/80 hover:border-zinc-300 hover:opacity-100 dark:border-zinc-700 dark:ring-zinc-800 dark:hover:border-zinc-600"
                   }`}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={url} alt="" className="h-full w-full object-contain p-1" />
+                  <img src={url} alt="" className="h-full w-full object-contain p-1.5" />
                 </button>
               ))}
             </div>
@@ -447,6 +518,13 @@ export function MarketplaceListingDetail({
             <h1 className="text-balance text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-[2rem] sm:leading-tight">
               {name}
             </h1>
+
+            {partnerHighlightLabel ? (
+              <p className="rounded-xl border border-violet-200/80 bg-violet-50/80 px-3 py-2 text-xs leading-relaxed text-violet-950 dark:border-violet-900/50 dark:bg-violet-950/35 dark:text-violet-100">
+                <span className="font-semibold">Partner highlight:</span> {partnerHighlightLabel}. Shoppers can still
+                pick other colors or sizes below.
+              </p>
+            ) : null}
 
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
               <StarRatingRow value={reviewSummary.average} count={reviewSummary.count} />
@@ -527,7 +605,18 @@ export function MarketplaceListingDetail({
                     <button
                       key={cn}
                       type="button"
-                      onClick={() => setSelectedColor(cn)}
+                      onClick={() => {
+                        setSelectedColor(cn)
+                        setHeroFromGallery(false)
+                        const direct = colorImages.find((c) => c.color === cn)?.image?.trim()
+                        const idx = colorNames.indexOf(cn)
+                        const url =
+                          direct || (idx >= 0 && idx < images.length ? images[idx]!.trim() : "")
+                        if (url) {
+                          const hit = images.findIndex((x) => x.trim() === url.trim())
+                          if (hit >= 0) setSelectedImage(hit)
+                        }
+                      }}
                       className={`h-9 w-9 rounded-full border-2 transition ${
                         selectedColor === cn ? "border-zinc-900 dark:border-white" : "border-zinc-300 dark:border-zinc-600"
                       }`}

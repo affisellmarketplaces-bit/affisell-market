@@ -7,7 +7,7 @@ import {
   listingGalleryUrls,
 } from "@/lib/affiliate-listing-display"
 import { shippingCountryLabel } from "@/lib/product-shipping-display"
-import { parseProductColorImagesFromDb } from "@/lib/product-color-images"
+import { mergeColorImagesForProduct, parseProductColorImagesFromDb } from "@/lib/product-color-images"
 import { prisma } from "@/lib/prisma"
 import { variantsFromDb } from "@/lib/product-variants"
 
@@ -54,7 +54,10 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
   const has3D = tags.some((t) => /(?:\b3d\b|\b360\b)/i.test(t))
   const arModel = tags.find((t) => t.toLowerCase().startsWith("ar:"))?.slice(3) ?? null
   const variants = variantsFromDb(listing.product.variants)
-  const colorImages = parseProductColorImagesFromDb(listing.product.colorImages) ?? []
+  const colorImages =
+    colorNames.length > 0
+      ? mergeColorImagesForProduct(colorNames, listing.product.colorImages, listing.product.variants)
+      : (parseProductColorImagesFromDb(listing.product.colorImages) ?? [])
 
   const priceDisplay = (listing.sellingPriceCents / 100).toLocaleString("en-US", {
     style: "currency",
@@ -196,6 +199,8 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
       <MarketplaceListingDetail
         listingId={listing.id}
         productId={listing.product.id}
+        promotedColor={listing.promotedColor}
+        promotedSize={listing.promotedSize}
         name={listingDisplayTitle(listing.customTitle, listing.product.name)}
         description={listingDisplayDescription(
           listing.customDescription,

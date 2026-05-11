@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
+import { parsePromotedVariantPatch } from "@/lib/affiliate-promoted-variant"
 import { resolveBuyerRewardForListing } from "@/lib/affiliate-buyer-reward-request"
 import { slugifyListingSlug } from "@/lib/affiliate-listing-display"
 import { prisma } from "@/lib/prisma"
@@ -141,6 +142,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: rewardRes.error }, { status: 400 })
   }
 
+  const promo = parsePromotedVariantPatch(
+    {
+      colors: Array.isArray(product.colors)
+        ? product.colors.filter((c): c is string => typeof c === "string" && Boolean(c.trim()))
+        : [],
+      variants: product.variants,
+    },
+    body
+  )
+  if ("error" in promo) {
+    return NextResponse.json({ error: promo.error }, { status: 400 })
+  }
+
   try {
     const row = await prisma.affiliateProduct.upsert({
       where: {
@@ -162,6 +176,7 @@ export async function POST(request: Request) {
         position,
         buyerRewardKind: rewardRes.buyerRewardKind,
         buyerRewardPercent: rewardRes.buyerRewardPercent,
+        ...promo,
       },
       update: {
         sellingPriceCents,
@@ -176,6 +191,7 @@ export async function POST(request: Request) {
         isFeatured,
         buyerRewardKind: rewardRes.buyerRewardKind,
         buyerRewardPercent: rewardRes.buyerRewardPercent,
+        ...promo,
       },
     })
 

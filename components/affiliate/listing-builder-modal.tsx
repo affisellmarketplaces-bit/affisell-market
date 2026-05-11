@@ -10,6 +10,7 @@ import {
   normalizeBuyerRewardKind,
   type BuyerRewardKind,
 } from "@/lib/affiliate-buyer-reward"
+import { productSizeOptions } from "@/lib/affiliate-promoted-variant"
 
 type CatalogProduct = {
   id: string
@@ -17,6 +18,8 @@ type CatalogProduct = {
   description: string
   images: string[]
   basePriceCents: number
+  colors?: string[]
+  variants?: unknown
 }
 
 export type SerializedListing = {
@@ -37,6 +40,8 @@ export type SerializedListing = {
   position?: number
   buyerRewardKind?: string | null
   buyerRewardPercent?: number | null
+  promotedColor?: string | null
+  promotedSize?: string | null
 }
 
 type Props = {
@@ -69,6 +74,8 @@ type FormFields = {
   listInStore: boolean
   buyerRewardKind: BuyerRewardKind
   buyerRewardPercent: number
+  promotedColor: string
+  promotedSize: string
 }
 
 function getListingFormDefaults(
@@ -102,6 +109,8 @@ function getListingFormDefaults(
     listInStore: L ? L.isListed : true,
     buyerRewardKind: normalizeBuyerRewardKind(L?.buyerRewardKind),
     buyerRewardPercent: clampBuyerRewardPercent(L?.buyerRewardPercent ?? 0),
+    promotedColor: L?.promotedColor?.trim() ?? "",
+    promotedSize: L?.promotedSize?.trim() ?? "",
   }
 }
 
@@ -148,6 +157,12 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
     () => maxAffordableBuyerRewardPercent(sellingPriceCentsPreview, product.basePriceCents),
     [sellingPriceCentsPreview, product.basePriceCents]
   )
+
+  const highlightColorOptions = useMemo(
+    () => (product.colors ?? []).map((c) => c.trim()).filter(Boolean),
+    [product.colors]
+  )
+  const highlightSizeOptions = useMemo(() => productSizeOptions(product.variants), [product.variants])
 
   useEffect(() => {
     if (!pricingAiToast) return
@@ -251,6 +266,8 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
           isFeatured: collections.includes("Featured"),
           buyerRewardKind: form.buyerRewardKind,
           buyerRewardPercent: form.buyerRewardPercent,
+          promotedColor: form.promotedColor.trim() || null,
+          promotedSize: form.promotedSize.trim() || null,
         }
         const res = await fetch(`/api/affiliate/products/${listing.id}`, {
           method: "PATCH",
@@ -285,6 +302,8 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
           publishToStore: !saveDraft,
           buyerRewardKind: form.buyerRewardKind,
           buyerRewardPercent: form.buyerRewardPercent,
+          promotedColor: form.promotedColor.trim() || null,
+          promotedSize: form.promotedSize.trim() || null,
         }
 
         const res = await fetch("/api/affiliate/products/add", {
@@ -380,6 +399,56 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
                   placeholder={product.description?.slice(0, 280)}
                 />
               </div>
+
+              {highlightColorOptions.length > 0 || highlightSizeOptions.length > 0 ? (
+                <div className="rounded-xl border border-violet-100 bg-violet-50/40 p-4">
+                  <p className="text-sm font-semibold text-gray-900">Default variant for shoppers</p>
+                  <p className="mt-1 text-xs text-gray-600">
+                    When someone opens this listing, we pre-select this color or size. They can still pick other
+                    options on the product page.
+                  </p>
+                  {highlightColorOptions.length > 0 ? (
+                    <div className="mt-3">
+                      <label htmlFor="promoted-color" className="text-xs font-medium text-gray-700">
+                        Highlight color
+                      </label>
+                      <select
+                        id="promoted-color"
+                        value={form.promotedColor}
+                        onChange={(e) => setForm((f) => ({ ...f, promotedColor: e.target.value }))}
+                        className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-500"
+                      >
+                        <option value="">First color (supplier order)</option>
+                        {highlightColorOptions.map((c) => (
+                          <option key={c} value={c}>
+                            {c}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : null}
+                  {highlightSizeOptions.length > 0 ? (
+                    <div className="mt-3">
+                      <label htmlFor="promoted-size" className="text-xs font-medium text-gray-700">
+                        Highlight size
+                      </label>
+                      <select
+                        id="promoted-size"
+                        value={form.promotedSize}
+                        onChange={(e) => setForm((f) => ({ ...f, promotedSize: e.target.value }))}
+                        className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-500"
+                      >
+                        <option value="">First size (supplier order)</option>
+                        {highlightSizeOptions.map((s) => (
+                          <option key={s} value={s}>
+                            {s}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
 
               <div>
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-800">

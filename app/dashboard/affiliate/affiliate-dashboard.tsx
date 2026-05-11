@@ -330,6 +330,8 @@ export function AffiliateDashboard({
       collections: listing.collections ?? [],
       isListed: listing.isListed,
       isFeatured: listing.isFeatured,
+      promotedColor: listing.promotedColor ?? null,
+      promotedSize: listing.promotedSize ?? null,
     })
   }
 

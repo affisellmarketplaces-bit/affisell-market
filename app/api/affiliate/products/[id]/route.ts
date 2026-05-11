@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import type { Prisma } from "@prisma/client"
 
 import { auth } from "@/auth"
+import { parsePromotedVariantPatch } from "@/lib/affiliate-promoted-variant"
 import { resolveBuyerRewardForListing } from "@/lib/affiliate-buyer-reward-request"
 import { slugifyListingSlug } from "@/lib/affiliate-listing-display"
 import { prisma } from "@/lib/prisma"
@@ -126,6 +127,20 @@ export async function PATCH(
   }
   data.buyerRewardKind = rewardRes.buyerRewardKind
   data.buyerRewardPercent = rewardRes.buyerRewardPercent
+
+  const promo = parsePromotedVariantPatch(
+    {
+      colors: Array.isArray(listing.product.colors)
+        ? listing.product.colors.filter((c): c is string => typeof c === "string" && Boolean(c.trim()))
+        : [],
+      variants: listing.product.variants,
+    },
+    body
+  )
+  if ("error" in promo) {
+    return NextResponse.json({ error: promo.error }, { status: 400 })
+  }
+  Object.assign(data, promo)
 
   try {
     const updated = await prisma.affiliateProduct.update({

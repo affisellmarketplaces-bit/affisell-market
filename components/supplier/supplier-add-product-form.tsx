@@ -892,23 +892,16 @@ export function SupplierAddProductForm({
     }
   }, [
     autosaveFingerprint,
-    assembleListingPayload,
     autosaveListingId,
     draftIdFromUrl,
     editId,
     loadingProduct,
-    name,
-    description,
-    categoryId,
-    images,
-    shipsFrom,
     pathname,
     pendingDraftListingId,
     productIsDraft,
     router,
     saving,
     searchParams,
-    step,
   ])
 
   useEffect(() => {
