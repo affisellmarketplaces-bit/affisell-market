@@ -113,7 +113,7 @@ export function PremiumMarketplaceCard({
           <div className="shrink-0 pt-0.5 text-right">
             <span className="font-medium text-zinc-900">{priceDisplay}</span>
             {compareDisplay ? (
-              <p className="text-xs font-medium text-zinc-400 line-through">{compareDisplay}</p>
+              <p className="text-compare-at text-xs font-medium tabular-nums line-through">{compareDisplay}</p>
             ) : null}
           </div>
         </div>

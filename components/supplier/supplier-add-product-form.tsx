@@ -2056,7 +2056,7 @@ export function SupplierAddProductForm({
                       {compareAt.trim() && Number(compareAt) > Number(price) ? (
                         <>
                           {" "}
-                          <span className="text-zinc-400 line-through">
+                          <span className="text-compare-at tabular-nums line-through">
                             {formatMoneyUsd(Number(compareAt))}
                           </span>
                           {discountPct > 0 ? (

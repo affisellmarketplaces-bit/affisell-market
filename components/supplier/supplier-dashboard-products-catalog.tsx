@@ -193,7 +193,7 @@ export function SupplierDashboardProductsCatalog({
                         {formatUsdFromCents(p.basePriceCents)}
                       </span>
                       {hasDeal && compareNum != null ? (
-                        <span className="text-sm text-zinc-400 line-through">
+                        <span className="text-compare-at text-sm tabular-nums line-through">
                           {compareNum.toLocaleString("en-US", {
                             style: "currency",
                             currency: "USD",

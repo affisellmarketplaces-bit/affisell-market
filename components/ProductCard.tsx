@@ -132,7 +132,7 @@ export function ProductCard({ product }: ProductCardProps) {
         <div className="mt-2 flex items-baseline gap-2">
           <span className="text-xl font-black text-gray-900">${priceN.toFixed(2)}</span>
           {hasDiscount ? (
-            <span className="text-sm text-gray-400 line-through">${compareN.toFixed(2)}</span>
+            <span className="text-compare-at text-sm tabular-nums line-through">${compareN.toFixed(2)}</span>
           ) : null}
         </div>
         <p className="mt-1 text-xs text-gray-500">by {p.store || "Affisell"}</p>

@@ -319,7 +319,7 @@ export function SupplierAffiliateEvalPreview({
                     {formatUsdFromCents(product.basePriceCents)}
                   </p>
                   {hasDeal && compareNum != null ? (
-                    <p className="mt-1 text-xs text-zinc-400 line-through">
+                    <p className="text-compare-at mt-1 text-xs tabular-nums line-through">
                       {compareNum.toLocaleString("en-US", {
                         style: "currency",
                         currency: "USD",

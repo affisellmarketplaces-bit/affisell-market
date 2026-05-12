@@ -214,7 +214,7 @@ export function AffisellCarouselCard({
             <div className="flex flex-wrap items-baseline gap-1">
               <span className="text-lg font-bold text-[#c41e3a]">{priceEur}</span>
               {oldEur ? (
-                <span className="text-xs text-zinc-400 line-through">{oldEur}</span>
+                <span className="text-compare-at text-xs tabular-nums line-through">{oldEur}</span>
               ) : null}
             </div>
             <p

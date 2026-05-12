@@ -39,6 +39,8 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  /** “Was” / MSRP price (struck) — distinct from body text, readable on white */
+  --color-compare-at: var(--compare-at);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -61,6 +63,7 @@
   --secondary-foreground: #0f172a;
   --muted: #f8fafc;
   --muted-foreground: #64748b;
+  --compare-at: #64748b;
   --accent: #7c3aed;
   --accent-foreground: #ffffff;
   --destructive: #dc2626;
@@ -83,7 +86,9 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
-.dark {}
+.dark {
+  --compare-at: #94a3b8;
+}
 
 @layer base {
   * {

@@ -330,7 +330,7 @@ export function SupplierStorefrontBrowse({
                         {formatUsdFromCents(p.basePriceCents)}
                       </span>
                       {hasDeal && compareN != null ? (
-                        <span className="text-sm text-zinc-400 line-through">
+                        <span className="text-compare-at text-sm tabular-nums line-through">
                           {compareN.toLocaleString("en-US", {
                             style: "currency",
                             currency: "USD",
