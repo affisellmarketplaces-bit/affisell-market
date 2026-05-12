@@ -14,6 +14,7 @@ import {
   setGuestCartQuantity,
   type CartAddedEventDetail,
 } from "@/lib/guest-cart"
+import { normalizeCartVariantSignature } from "@/lib/cart-variant"
 
 function subscribeGuestCart(listener: () => void) {
   if (typeof window === "undefined") return () => {}
@@ -30,6 +31,7 @@ type ToastState = {
   productId: string
   productName: string
   qtyAdded: number
+  variantSignature: string
 } | null
 
 export function SiteNav() {
@@ -64,6 +66,7 @@ export function SiteNav() {
         productId: detail.productId,
         productName: detail.productName,
         qtyAdded: detail.qtyAdded,
+        variantSignature: detail.variantSignature,
       })
       if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current)
       toastTimerRef.current = window.setTimeout(() => setToast(null), 3000)
@@ -84,14 +87,18 @@ export function SiteNav() {
   function undoLastAdd() {
     if (!toast) return
     const rows = readGuestCart()
-    const row = rows.find((r) => r.productId === toast.productId)
+    const row = rows.find(
+      (r) =>
+        r.productId === toast.productId &&
+        normalizeCartVariantSignature(r.selectedColor, r.selectedSize) === toast.variantSignature
+    )
     if (!row) {
       setToast(null)
       return
     }
     const nextQty = row.qty - toast.qtyAdded
-    if (nextQty <= 0) removeGuestCartItem(toast.productId)
-    else setGuestCartQuantity(toast.productId, nextQty)
+    if (nextQty <= 0) removeGuestCartItem(toast.productId, toast.variantSignature)
+    else setGuestCartQuantity(toast.productId, nextQty, toast.variantSignature)
     setToast(null)
   }
 

@@ -6,6 +6,11 @@ import {
 } from "@/lib/affiliate-listing-display"
 import { auth } from "@/auth"
 import {
+  formatCartVariantLabel,
+  normalizeCartVariantSignature,
+  parseCartVariantSignature,
+} from "@/lib/cart-variant"
+import {
   fixZeroPaidLinesCents,
   proportionalLinePaidsCents,
   STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS,
@@ -31,7 +36,22 @@ function checkoutBaseUrls(body: { cancelPath?: string; successPath?: string }) {
   return { baseUrl, cancelPath, successPath }
 }
 
-type CartLineInput = { productId?: string; qty?: number }
+type CartLineInput = {
+  productId?: string
+  qty?: number
+  variantSignature?: string
+  selectedColor?: string | null
+  selectedSize?: string | null
+}
+
+function resolveCheckoutVariantLabel(row: CartLineInput): string {
+  const explicit = formatCartVariantLabel(row.selectedColor, row.selectedSize)
+  if (explicit) return explicit
+  const raw = typeof row.variantSignature === "string" ? row.variantSignature.trim() : ""
+  if (!raw) return ""
+  const p = parseCartVariantSignature(raw)
+  return formatCartVariantLabel(p.color, p.size)
+}
 
 async function loadListing(id: string) {
   return prisma.affiliateProduct.findFirst({
@@ -43,6 +63,8 @@ async function loadListing(id: string) {
 type LoadedLine = {
   affiliateProductId: string
   qty: number
+  variantSignature: string
+  variantLabel: string
   listing: NonNullable<Awaited<ReturnType<typeof loadListing>>>
 }
 
@@ -55,9 +77,17 @@ type StripeLineItem = {
   quantity: number
 }
 
-function pushLineItemsForPaidTotal(items: StripeLineItem[], listing: LoadedLine["listing"], linePaidCents: number, qty: number) {
+function pushLineItemsForPaidTotal(
+  items: StripeLineItem[],
+  listing: LoadedLine["listing"],
+  linePaidCents: number,
+  qty: number,
+  variantLabel: string
+) {
   const baseTitle = listingDisplayTitle(listing.customTitle, listing.product.name)
-  const displayName = qty > 1 ? `${baseTitle} ×${qty}` : baseTitle
+  const variantSuffix = variantLabel.trim() ? ` · ${variantLabel.trim()}` : ""
+  const displayName =
+    qty > 1 ? `${baseTitle}${variantSuffix} ×${qty}` : `${baseTitle}${variantSuffix}`
   const gallery = listingGalleryUrls(listing.customImages, listing.product.images)
   const images = stripeProductImages(gallery) ?? []
   const total = Math.round(linePaidCents)
@@ -98,12 +128,22 @@ async function checkoutFromItems(
   const session = await auth()
   const buyerUserId = session?.user?.id?.trim() || ""
 
-  const normalized: { affiliateProductId: string; qty: number }[] = []
+  const normalized: {
+    affiliateProductId: string
+    qty: number
+    variantSignature: string
+    variantLabel: string
+  }[] = []
   for (const row of lines) {
     const affiliateProductId = typeof row.productId === "string" ? row.productId.trim() : ""
     if (!affiliateProductId) continue
     const qty = Math.max(1, Math.min(99, Math.round(Number(row.qty)) || 1))
-    normalized.push({ affiliateProductId, qty })
+    const variantSignature =
+      typeof row.variantSignature === "string" && row.variantSignature.trim()
+        ? row.variantSignature.trim().slice(0, 200)
+        : normalizeCartVariantSignature(row.selectedColor, row.selectedSize)
+    const variantLabel = resolveCheckoutVariantLabel(row).slice(0, 200)
+    normalized.push({ affiliateProductId, qty, variantSignature, variantLabel })
   }
 
   if (normalized.length === 0) {
@@ -116,7 +156,13 @@ async function checkoutFromItems(
     if (!listing || !listing.product.active || !listing.product.supplierId) {
       return NextResponse.json({ error: "Listing not found or inactive" }, { status: 404 })
     }
-    loaded.push({ affiliateProductId: row.affiliateProductId, qty: row.qty, listing })
+    loaded.push({
+      affiliateProductId: row.affiliateProductId,
+      qty: row.qty,
+      variantSignature: row.variantSignature,
+      variantLabel: row.variantLabel,
+      listing,
+    })
   }
 
   const lineSubtotalsCents = loaded.map((l) => l.listing.sellingPriceCents * l.qty)
@@ -155,7 +201,7 @@ async function checkoutFromItems(
   const stripeLineItems: StripeLineItem[] = []
   for (let i = 0; i < loaded.length; i++) {
     const row = loaded[i]!
-    pushLineItemsForPaidTotal(stripeLineItems, row.listing, paidLineCents[i]!, row.qty)
+    pushLineItemsForPaidTotal(stripeLineItems, row.listing, paidLineCents[i]!, row.qty, row.variantLabel)
   }
 
   const { baseUrl, cancelPath, successPath } = checkoutBaseUrls(opts)
@@ -198,6 +244,8 @@ export async function marketplaceCheckoutPOST(request: Request) {
     cancelPath?: string
     successPath?: string
     useRewardCents?: number
+    selectedColor?: string | null
+    selectedSize?: string | null
   }
 
   if (Array.isArray(body.items) && body.items.length > 0) {
@@ -250,7 +298,11 @@ export async function marketplaceCheckoutPOST(request: Request) {
   }
 
   const stripeLineItems: StripeLineItem[] = []
-  pushLineItemsForPaidTotal(stripeLineItems, listing, paidLineCents[0]!, qty)
+  const oneShotVariantLabel = resolveCheckoutVariantLabel({
+    selectedColor: body.selectedColor,
+    selectedSize: body.selectedSize,
+  })
+  pushLineItemsForPaidTotal(stripeLineItems, listing, paidLineCents[0]!, qty, oneShotVariantLabel)
 
   const { baseUrl, cancelPath, successPath } = checkoutBaseUrls(body)
 
@@ -274,6 +326,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
       appliedRewardCents: String(appliedCents),
       linePaids: JSON.stringify(paidLineCents),
       checkoutQty: String(qty),
+      checkoutVariantLabel: oneShotVariantLabel || "",
       ...(buyerUserId ? { buyerUserId } : {}),
     },
   })

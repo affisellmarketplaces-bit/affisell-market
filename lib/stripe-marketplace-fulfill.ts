@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client"
 import type Stripe from "stripe"
 
 import { prisma } from "@/lib/prisma"
+import { formatCartVariantLabel, parseCartVariantSignature } from "@/lib/cart-variant"
 import { buyerEarnCentsForLinePaid } from "@/lib/buyer-reward-earn"
 import { earnBuyerRewardIdempotent, redeemBuyerRewardIdempotent } from "@/lib/buyer-reward-ledger"
 import { resolveBuyerUserIdForEarn } from "@/lib/buyer-reward-resolve-user"
@@ -30,15 +31,21 @@ export async function fulfillMarketplaceStripeSession(
 
   const cartLinesRaw = meta.cartLines?.trim()
   if (cartLinesRaw) {
-    let lines: { affiliateProductId: string; qty: number }[] = []
+    type CartLineMeta = {
+      affiliateProductId: string
+      qty: number
+      variantSignature?: string
+      variantLabel?: string
+    }
+    let lines: CartLineMeta[] = []
     try {
-      lines = JSON.parse(cartLinesRaw) as { affiliateProductId: string; qty: number }[]
+      lines = JSON.parse(cartLinesRaw) as CartLineMeta[]
     } catch {
       return
     }
     if (!Array.isArray(lines) || lines.length === 0) return
 
-    const stripeIds = lines.map((l) => `${sessionId}:${l.affiliateProductId}`)
+    const stripeIds = lines.map((_, i) => `${sessionId}:line:${i}`)
     const already = await prisma.order.findMany({
       where: { stripeSessionId: { in: stripeIds } },
     })
@@ -60,7 +67,7 @@ export async function fulfillMarketplaceStripeSession(
 
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i]!
-        const stripeSessionId = `${sessionId}:${line.affiliateProductId}`
+        const stripeSessionId = `${sessionId}:line:${i}`
         const dup = await tx.order.findUnique({ where: { stripeSessionId } })
         if (dup) continue
 
@@ -86,6 +93,13 @@ export async function fulfillMarketplaceStripeSession(
         const affiliatePayoutCents = Math.floor((marginCents * rate) / 100)
         const commissionCents = affiliatePayoutCents
 
+        const sigStr = typeof line.variantSignature === "string" ? line.variantSignature : ""
+        const parsed = parseCartVariantSignature(sigStr)
+        const variantLabelRaw =
+          typeof line.variantLabel === "string" && line.variantLabel.trim()
+            ? line.variantLabel.trim()
+            : formatCartVariantLabel(parsed.color, parsed.size)
+
         const order = await tx.order.create({
           data: {
             stripeSessionId,
@@ -97,6 +111,7 @@ export async function fulfillMarketplaceStripeSession(
             customerEmail,
             quantity: qty,
             shippingAddress,
+            variantLabel: variantLabelRaw || null,
             basePriceCents,
             sellingPriceCents: paidLineCents,
             commissionCents,
@@ -111,11 +126,12 @@ export async function fulfillMarketplaceStripeSession(
           data: { conversions: { increment: qty } },
         })
 
+        const variantBit = variantLabelRaw ? ` · ${variantLabelRaw}` : ""
         await tx.notification.create({
           data: {
             userId: listing.product.supplierId,
             type: "NEW_ORDER",
-            message: `New order · ${listing.product.name} ×${qty} · ship to ${customerEmail}`,
+            message: `New order · ${listing.product.name}${variantBit} ×${qty} · ship to ${customerEmail}`,
             orderId: order.id,
           },
         })
@@ -152,6 +168,7 @@ export async function fulfillMarketplaceStripeSession(
   }
 
   const qty = Math.max(1, Math.round(parseInt(meta.checkoutQty ?? "1", 10) || 1))
+  const checkoutVariantLabel = meta.checkoutVariantLabel?.trim() || ""
   const listLineCents = listing.sellingPriceCents * qty
   const paids = linePaids
   const paidLineCents =
@@ -191,6 +208,7 @@ export async function fulfillMarketplaceStripeSession(
         customerEmail,
         quantity: qty,
         shippingAddress,
+        variantLabel: checkoutVariantLabel || null,
         basePriceCents,
         sellingPriceCents: paidLineCents,
         commissionCents,
@@ -205,11 +223,12 @@ export async function fulfillMarketplaceStripeSession(
       data: { conversions: { increment: qty } },
     })
 
+    const variantBit = checkoutVariantLabel ? ` · ${checkoutVariantLabel}` : ""
     await tx.notification.create({
       data: {
         userId: listing.product.supplierId,
         type: "NEW_ORDER",
-        message: `New order · ${listing.product.name} · ship to ${customerEmail}`,
+        message: `New order · ${listing.product.name}${variantBit} · ship to ${customerEmail}`,
         orderId: order.id,
       },
     })

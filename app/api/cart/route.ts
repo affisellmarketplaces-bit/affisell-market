@@ -9,6 +9,9 @@ type CartLineJson = {
   id: string
   qty: number
   sellerName: string | null
+  variantSignature: string
+  selectedColor: string | null
+  selectedSize: string | null
   product: {
     id: string
     title: string
@@ -51,6 +54,9 @@ export async function GET() {
       id: row.id,
       qty: row.quantity,
       sellerName: listing.affiliate.name?.trim() || null,
+      variantSignature: row.variantSignature,
+      selectedColor: row.selectedColor,
+      selectedSize: row.selectedSize,
       product: {
         id: listing.id,
         title: listingDisplayTitle(listing.customTitle, p.name),

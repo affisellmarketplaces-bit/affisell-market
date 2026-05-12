@@ -352,7 +352,12 @@ export function MarketplaceListingDetail({
       const res = await fetch("/api/cart/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: listingId, quantity: 1 }),
+        body: JSON.stringify({
+          productId: listingId,
+          quantity: 1,
+          selectedColor: selectedColor ?? undefined,
+          selectedSize: selectedSize ?? undefined,
+        }),
         credentials: "include",
       })
       if (res.status === 401) {
@@ -363,6 +368,8 @@ export function MarketplaceListingDetail({
           imageUrl: hero,
           sellerName: sellerLabel,
           price: listingPriceEur,
+          selectedColor: selectedColor ?? undefined,
+          selectedSize: selectedSize ?? undefined,
         })
         return
       }
@@ -379,7 +386,13 @@ export function MarketplaceListingDetail({
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: listingId, qty: buyNowQty, useRewardCents: applied }),
+        body: JSON.stringify({
+          productId: listingId,
+          qty: buyNowQty,
+          useRewardCents: applied,
+          selectedColor: selectedColor ?? undefined,
+          selectedSize: selectedSize ?? undefined,
+        }),
         credentials: "include",
       })
       if (res.status === 401) {

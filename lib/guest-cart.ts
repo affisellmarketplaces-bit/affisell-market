@@ -1,5 +1,7 @@
 "use client"
 
+import { normalizeCartVariantSignature } from "@/lib/cart-variant"
+
 export const GUEST_CART_KEY = "affisell_cart"
 
 export type GuestCartItem = {
@@ -9,12 +11,19 @@ export type GuestCartItem = {
   price?: number
   imageUrl?: string
   sellerName?: string
+  selectedColor?: string
+  selectedSize?: string
 }
 
 export type CartAddedEventDetail = {
   productId: string
   productName: string
   qtyAdded: number
+  variantSignature: string
+}
+
+function itemVariantSig(item: Pick<GuestCartItem, "selectedColor" | "selectedSize">): string {
+  return normalizeCartVariantSignature(item.selectedColor, item.selectedSize)
 }
 
 function sanitizeQty(input: number) {
@@ -41,6 +50,8 @@ export function readGuestCart(): GuestCartItem[] {
           price: Number.isFinite(Number(item.price)) ? Number(item.price) : undefined,
           imageUrl: typeof item.imageUrl === "string" ? item.imageUrl : undefined,
           sellerName: typeof item.sellerName === "string" ? item.sellerName : undefined,
+          selectedColor: typeof item.selectedColor === "string" ? item.selectedColor : undefined,
+          selectedSize: typeof item.selectedSize === "string" ? item.selectedSize : undefined,
         },
       ]
     })
@@ -59,9 +70,13 @@ export function guestCartCount() {
   return readGuestCart().reduce((sum, item) => sum + sanitizeQty(item.qty), 0)
 }
 
+function sameGuestLine(a: GuestCartItem, b: Pick<GuestCartItem, "productId" | "selectedColor" | "selectedSize">) {
+  return a.productId === b.productId && itemVariantSig(a) === itemVariantSig(b)
+}
+
 export function addGuestCartItem(input: GuestCartItem) {
   const cart = readGuestCart()
-  const idx = cart.findIndex((item) => item.productId === input.productId)
+  const idx = cart.findIndex((item) => sameGuestLine(item, input))
   if (idx >= 0) {
     cart[idx] = {
       ...cart[idx],
@@ -82,6 +97,7 @@ export function addGuestCartItem(input: GuestCartItem) {
           productId: input.productId,
           productName: input.title || "Product",
           qtyAdded: sanitizeQty(input.qty),
+          variantSignature: itemVariantSig(input),
         },
       })
     )
@@ -89,16 +105,26 @@ export function addGuestCartItem(input: GuestCartItem) {
   return cart
 }
 
-export function setGuestCartQuantity(productId: string, qty: number) {
+export function setGuestCartQuantity(
+  productId: string,
+  qty: number,
+  variantSignature: string = ""
+) {
   const cart = readGuestCart()
+  const sig = variantSignature || ""
   const nextQty = sanitizeQty(qty)
-  const next = cart.map((item) => (item.productId === productId ? { ...item, qty: nextQty } : item))
+  const next = cart.map((item) =>
+    item.productId === productId && itemVariantSig(item) === sig ? { ...item, qty: nextQty } : item
+  )
   writeGuestCart(next)
   return next
 }
 
-export function removeGuestCartItem(productId: string) {
-  const next = readGuestCart().filter((item) => item.productId !== productId)
+export function removeGuestCartItem(productId: string, variantSignature: string = "") {
+  const sig = variantSignature || ""
+  const next = readGuestCart().filter(
+    (item) => !(item.productId === productId && itemVariantSig(item) === sig)
+  )
   writeGuestCart(next)
   return next
 }

@@ -404,10 +404,14 @@ model CartItem {
   cartId             String
   affiliateProductId String
   quantity           Int              @default(1)
+  /** Normalized `c:…|s:…` — empty string when no variant picked. */
+  variantSignature   String           @default("")
+  selectedColor      String?
+  selectedSize       String?
   cart               Cart             @relation(fields: [cartId], references: [id], onDelete: Cascade)
   affiliateProduct   AffiliateProduct @relation(fields: [affiliateProductId], references: [id], onDelete: Cascade)
 
-  @@unique([cartId, affiliateProductId])
+  @@unique([cartId, affiliateProductId, variantSignature])
 }
 
 /** Idempotent ledger for buyer store credit (earn on paid orders, redeem at checkout). */
@@ -441,6 +445,8 @@ model Order {
   shippingAddress Json
   /** Line quantity for this order row (multi-item checkout uses one row per SKU). */
   quantity Int @default(1)
+  /** Shoppers’ variant choice at checkout, e.g. "Purple · M" — optional. */
+  variantLabel String?
   basePriceCents Int
   sellingPriceCents Int
   commissionCents Int
