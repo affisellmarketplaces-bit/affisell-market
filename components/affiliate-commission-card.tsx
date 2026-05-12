@@ -2,11 +2,12 @@
 
 import Link from "next/link"
 
+import { formatStoreCurrency } from "@/lib/market-config"
 import type { ProductVariantLine } from "@/lib/product-variants"
 
 export type AffiliateCommissionCardProps = {
   variant: ProductVariantLine
-  /** Fallback price (EUR) when variant has no override */
+  /** Fallback list price in major storefront currency units when variant has no override */
   basePriceEur: number
 }
 
@@ -44,7 +45,7 @@ export function AffiliateCommissionCard({ variant, basePriceEur }: AffiliateComm
         <div className="min-w-0 flex-1">
           <p className="truncate text-xs text-zinc-600 dark:text-zinc-400">{variant.name}</p>
           <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-            €{earning.toFixed(2)}
+            {formatStoreCurrency(earning)}
           </p>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
             You earn • {commissionPct}%
@@ -53,7 +54,7 @@ export function AffiliateCommissionCard({ variant, basePriceEur }: AffiliateComm
         <div className="shrink-0 text-right">
           <p className="text-xs text-zinc-500">Price</p>
           <p className="font-semibold text-zinc-900 dark:text-zinc-100">
-            €{priceEur.toFixed(2)}
+            {formatStoreCurrency(priceEur)}
           </p>
           <Link
             href="/dashboard/affiliate"
@@ -73,7 +74,7 @@ export function AffiliateCommissionCard({ variant, basePriceEur }: AffiliateComm
           <div key={tier.sales}>
             <p className="text-[10px] text-zinc-500 dark:text-zinc-400">{tier.label}</p>
             <p className="text-sm font-bold text-green-700 dark:text-green-400">
-              €{(earning * tier.sales).toFixed(0)}
+              {formatStoreCurrency(earning * tier.sales, { maximumFractionDigits: 0 })}
             </p>
           </div>
         ))}
