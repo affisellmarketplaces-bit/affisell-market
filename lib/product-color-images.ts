@@ -68,7 +68,7 @@ function lookupImageByColor(ibc: Record<string, string> | undefined, color: stri
   return typeof v === "string" ? v : ""
 }
 
-/** Migrate `variants.imageByColor` into rows when `colorImages` is empty */
+/** Migrate `variants.imageByColor` (+ advanced `variantRows[].image`) into rows when `colorImages` is empty */
 export function buildColorImagesFromLegacy(
   colors: string[],
   variantsRaw: unknown
@@ -76,9 +76,17 @@ export function buildColorImagesFromLegacy(
   if (!colors.length) return []
   const v = parseVariantsPayload(variantsRaw)
   const ibc = v?.imageByColor as Record<string, string> | undefined
+  const variantRows = v?.variantRows ?? []
   return colors.map((c) => {
     const raw = lookupImageByColor(ibc, c)
-    const image = raw && !raw.startsWith("blob:") ? raw.trim() : ""
+    let image = raw && !raw.startsWith("blob:") ? raw.trim() : ""
+    if (!image && variantRows.length > 0) {
+      const lc = c.trim().toLowerCase()
+      const vr = variantRows.find(
+        (r) => Boolean(r.image?.trim()) && r.name.trim().toLowerCase().includes(lc)
+      )
+      if (vr?.image?.trim()) image = vr.image.trim()
+    }
     return { color: c, hex: catalogHexForColorName(c), image }
   })
 }
