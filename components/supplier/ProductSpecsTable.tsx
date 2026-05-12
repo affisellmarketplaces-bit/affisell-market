@@ -59,7 +59,7 @@ export default function ProductSpecsTable({
       const data = await res.json()
       setValues(prev => ({...prev,...data.specs }))
       toast.success('Specs auto-filled')
-    } catch (e) {
+    } catch {
       toast.error('AI fill failed')
     }
     setLoading(false)
@@ -79,7 +79,7 @@ export default function ProductSpecsTable({
       })
       setValues(newValues)
       toast.success('Pasted from Excel')
-    } catch (e) {
+    } catch {
       toast.error('Paste failed')
     }
   }

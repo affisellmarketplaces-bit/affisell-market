@@ -356,7 +356,6 @@ export default function PhotoStudioPage() {
       for (const item of items) {
         if (item.status === "done" && item.processedUrl) continue
         if (getTodayUsage() >= DAILY_LIMIT_FREE) break
-        // eslint-disable-next-line no-await-in-loop
         await processOne(item)
       }
     } finally {

@@ -55,7 +55,7 @@ export async function GET(req: Request) {
     select: { id: true },
     take: 80,
   })
-  let candidateIds = inCategory.map((c) => c.id)
+  const candidateIds = inCategory.map((c) => c.id)
 
   if (candidateIds.length === 0) {
     const ids = await topSoldProductIds(thirtyDaysAgo, 12)

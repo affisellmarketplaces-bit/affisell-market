@@ -1,6 +1,8 @@
-import { NextResponse } from 'next/server'
-import OpenAI from 'openai'
-import { prisma } from '@/lib/prisma'
+import { NextResponse } from "next/server"
+import OpenAI from "openai"
+import type { ChatCompletionContentPart, ChatCompletionMessageParam } from "openai/resources/chat/completions"
+
+import { prisma } from "@/lib/prisma"
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -25,7 +27,7 @@ export async function POST(req: Request) {
       include: { attributes: true },
     })
 
-    const messages: any[] = [
+    const messages: ChatCompletionMessageParam[] = [
       {
         role: 'system',
         content:
@@ -33,7 +35,7 @@ export async function POST(req: Request) {
       },
     ]
 
-    const userContent: any[] = [
+    const userContent: ChatCompletionContentPart[] = [
       {
         type: 'text',
         text: `Categories: ${categories
@@ -72,7 +74,7 @@ export async function POST(req: Request) {
       parsed?.specs && typeof parsed.specs === 'object' ? (parsed.specs as Record<string, string>) : {}
 
     return NextResponse.json({ categoryId, categoryName, specs })
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: 'AI failed' }, { status: 500 })
   }
 }

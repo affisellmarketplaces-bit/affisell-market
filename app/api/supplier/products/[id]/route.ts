@@ -113,7 +113,7 @@ export async function PUT(
   let rate: number
   let nameResolved: string
   let stock: number
-  let draftUpdateOnly = existingRow.isDraft && !publish
+  const draftUpdateOnly = existingRow.isDraft && !publish
 
   if (draftUpdateOnly) {
     const priceNum = Number(body.price)

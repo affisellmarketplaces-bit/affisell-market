@@ -235,7 +235,6 @@ export function AffiliateDashboard({
 
   useEffect(() => {
     // Sync when RSC refetches after reorder/save — local state otherwise holds DnD order.
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional sync from server props
     setListings([...initialListings].sort(sortAffiliateListingByPosition))
   }, [initialListings])
 

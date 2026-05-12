@@ -113,7 +113,10 @@ function omitVariantSnapshotForDraftStep1(
   step: 1 | 2
 ): Record<string, unknown> {
   if (step !== 1) return body
-  const { colors: _c, variants: _v, colorImages: _ci, ...rest } = body
+  const rest = { ...body }
+  delete rest.colors
+  delete rest.variants
+  delete rest.colorImages
   return rest
 }
 
@@ -1111,18 +1114,6 @@ export function SupplierAddProductForm({
     [name, categoryId, specMissing, images.length]
   )
 
-  if (loadingProduct) {
-    return (
-      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 bg-gradient-to-b from-zinc-50 via-violet-50/20 to-zinc-100/80 px-4 dark:from-zinc-950 dark:via-violet-950/10 dark:to-zinc-900">
-        <div className="relative">
-          <div className="absolute inset-0 animate-ping rounded-full bg-violet-400/20" aria-hidden />
-          <Loader2 className="relative h-10 w-10 animate-spin text-violet-600 dark:text-violet-400" aria-hidden />
-        </div>
-        <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Loading product…</p>
-      </div>
-    )
-  }
-
   const steps = [
     { n: 1 as const, title: "Listing & media", hint: "Story, category, visuals" },
     { n: 2 as const, title: "Pricing & publish", hint: "Economics & go-live" },
@@ -1161,6 +1152,18 @@ export function SupplierAddProductForm({
 
   const jumpBtnClass =
     "rounded-full border border-zinc-200/90 bg-white px-3.5 py-1.5 text-xs font-semibold text-zinc-700 shadow-sm transition hover:border-violet-400/80 hover:bg-violet-50/80 hover:text-violet-900 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-violet-500/60 dark:hover:bg-violet-950/30 dark:hover:text-violet-100"
+
+  if (loadingProduct) {
+    return (
+      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 bg-gradient-to-b from-zinc-50 via-violet-50/20 to-zinc-100/80 px-4 dark:from-zinc-950 dark:via-violet-950/10 dark:to-zinc-900">
+        <div className="relative">
+          <div className="absolute inset-0 animate-ping rounded-full bg-violet-400/20" aria-hidden />
+          <Loader2 className="relative h-10 w-10 animate-spin text-violet-600 dark:text-violet-400" aria-hidden />
+        </div>
+        <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Loading product…</p>
+      </div>
+    )
+  }
 
   return (
     <>

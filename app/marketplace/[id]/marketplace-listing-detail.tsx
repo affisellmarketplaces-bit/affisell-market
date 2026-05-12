@@ -212,7 +212,7 @@ export function MarketplaceListingDetail({
   const images = useMemo(() => {
     const g = gallery.filter((u): u is string => typeof u === "string" && Boolean(u.trim()))
     return g.length > 0 ? g : ["/placeholder.png"]
-  }, [JSON.stringify(gallery)])
+  }, [gallery])
   const v = variants ?? {}
   const sizeOptions = v.size ?? []
 
@@ -253,11 +253,12 @@ export function MarketplaceListingDetail({
   }, [initialSize])
 
   /** Sync main + thumbnail index when opening another listing or affiliate default color changes. */
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- do not depend on `gallery`/`colorImages` ref churn from parent or thumbnail clicks get reset every render
+  /* eslint-disable react-hooks/exhaustive-deps -- only reset hero when listing or promoted color changes; omit gallery/colorImages ref churn */
   useEffect(() => {
     setGalleryHeroLock(false)
     setSelectedImage(imageIndexForColor(initialColor, colorNames, colorImages, images))
   }, [listingId, initialColor])
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const [cartBusy, setCartBusy] = useState(false)
   const [buyBusy, setBuyBusy] = useState(false)
@@ -480,8 +481,8 @@ export function MarketplaceListingDetail({
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-12">
           <section className="space-y-4 lg:col-span-7">
             <div className="relative overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <div className="relative aspect-[4/5] bg-zinc-50 sm:aspect-square dark:bg-zinc-900/80">
+                {/* eslint-disable-next-line @next/next/no-img-element -- dynamic remote URLs */}
                 <img
                   key={hero}
                   src={hero}
@@ -911,8 +912,8 @@ export function MarketplaceListingDetail({
                 href={`/store/${encodeURIComponent(storefront.slug)}`}
                 className="flex items-center gap-3 rounded-2xl border border-zinc-200 p-4 transition hover:border-violet-200 hover:bg-violet-50/40 dark:border-zinc-800 dark:hover:border-violet-900/50 dark:hover:bg-violet-950/20"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 {storefront.logoUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element -- storefront logo URL */
                   <img
                     src={storefront.logoUrl}
                     alt=""
@@ -1006,7 +1007,7 @@ export function MarketplaceListingDetail({
             <p>5★: {ratingBreakdown[5] ?? 0} · 4★: {ratingBreakdown[4] ?? 0} · 3★: {ratingBreakdown[3] ?? 0}</p>
             {reviews.slice(0, 3).map((r) => (
               <p key={r.id} className="mt-2 rounded bg-zinc-50 p-2 text-xs dark:bg-zinc-800">
-                "{r.text.slice(0, 140)}"
+                <q className="not-italic text-zinc-800 dark:text-zinc-200">{r.text.slice(0, 140)}</q>
               </p>
             ))}
           </div>

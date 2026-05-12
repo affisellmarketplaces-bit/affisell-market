@@ -84,7 +84,6 @@ export function AgentChat() {
   }, [])
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- async history hydrate on mount
     void loadHistory()
   }, [loadHistory])
 

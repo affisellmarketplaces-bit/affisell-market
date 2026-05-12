@@ -15,10 +15,11 @@ export async function GET() {
       message: 'OPENAI_API_KEY works',
       keyPrefix: process.env.OPENAI_API_KEY.substring(0, 7) + '...'
     })
-  } catch (e: any) {
-    return NextResponse.json({ 
-      error: e.message,
-      exists: !!process.env.OPENAI_API_KEY 
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : String(e)
+    return NextResponse.json({
+      error: message,
+      exists: !!process.env.OPENAI_API_KEY,
     }, { status: 500 })
   }
 }
