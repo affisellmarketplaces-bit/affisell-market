@@ -2,11 +2,14 @@
 
 import Link from "next/link"
 import { ExternalLink, Palette, Ruler, Sparkles } from "lucide-react"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import type { CSSProperties } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
+import { COLORS, isMulticolorSwatch } from "@/lib/product-catalog-constants"
 import { normalizeCartVariantSignature, parseCartVariantSignature } from "@/lib/cart-variant"
 import { guestCartLineId, parseGuestCartLineId } from "@/lib/guest-cart-line-id"
 import {
+  patchGuestCartItemImageUrl,
   readGuestCart,
   removeGuestCartItem,
   setGuestCartQuantity,
@@ -88,6 +91,27 @@ function selectionChips(row: CartLine): { kind: "color" | "size"; label: string;
   return out
 }
 
+/** Visual accent for the product frame from selected color name. */
+function colorFrameStyle(color: string | null | undefined): CSSProperties {
+  const raw = color?.trim()
+  if (!raw) {
+    return {
+      boxShadow: "0 0 0 2px rgba(139, 92, 246, 0.35), 0 18px 40px -16px rgba(139, 92, 246, 0.25)",
+    }
+  }
+  const c = COLORS.find((x) => x.name.toLowerCase() === raw.toLowerCase())
+  if (!c || isMulticolorSwatch(c)) {
+    return {
+      background: "linear-gradient(135deg, rgba(236,72,153,0.35), rgba(99,102,241,0.35))",
+      boxShadow: "0 0 0 2px rgba(168, 85, 247, 0.45), 0 20px 44px -18px rgba(168, 85, 247, 0.35)",
+    }
+  }
+  const hex = c.hex
+  return {
+    boxShadow: `0 0 0 2px ${hex}cc, 0 20px 44px -18px ${hex}55`,
+  }
+}
+
 async function fetchSession(signal?: AbortSignal): Promise<AuthSession> {
   const res = await fetch("/api/auth/session", { credentials: "include", cache: "no-store", signal })
   if (!res.ok) return null
@@ -101,6 +125,7 @@ export default function CartPage() {
   const [checkoutBusy, setCheckoutBusy] = useState(false)
   const [rewardBalanceCents, setRewardBalanceCents] = useState(0)
   const [useRewardCents, setUseRewardCents] = useState(0)
+  const guestImagesResolvedKey = useRef("")
 
   useEffect(() => {
     const ac = new AbortController()
@@ -176,6 +201,64 @@ export default function CartPage() {
   }, [isAuthed, rewardBalanceCents, subtotalCents])
 
   const itemCount = useMemo(() => lines.reduce((n, row) => n + row.qty, 0), [lines])
+
+  const guestImageFetchKey = useMemo(
+    () =>
+      lines
+        .filter((l) => l.id.startsWith("guest-") && l.selectedColor?.trim())
+        .map((l) => `${l.id}|${l.selectedColor!.trim().toLowerCase()}`)
+        .sort()
+        .join("~"),
+    [lines]
+  )
+
+  useEffect(() => {
+    if (loading || !guestImageFetchKey) {
+      if (!guestImageFetchKey) guestImagesResolvedKey.current = ""
+      return
+    }
+    if (guestImagesResolvedKey.current === guestImageFetchKey) return
+    guestImagesResolvedKey.current = guestImageFetchKey
+
+    const ac = new AbortController()
+    void (async () => {
+      try {
+        const targets = lines.filter((l) => l.id.startsWith("guest-") && l.selectedColor?.trim())
+        const cache = new Map<string, string>()
+        const pairs = await Promise.all(
+          targets.map(async (l) => {
+            const color = l.selectedColor!.trim()
+            const cacheKey = `${l.product.id}|${color.toLowerCase()}`
+            if (cache.has(cacheKey)) return { id: l.id, url: cache.get(cacheKey)! }
+            const r = await fetch(
+              `/api/cart/line-image?listingId=${encodeURIComponent(l.product.id)}&color=${encodeURIComponent(color)}`,
+              { signal: ac.signal, cache: "no-store" }
+            )
+            const j = (await r.json()) as { imageUrl?: string }
+            const url = (j.imageUrl?.trim() || l.product.imageUrl || "/placeholder.png").trim()
+            cache.set(cacheKey, url)
+            return { id: l.id, url }
+          })
+        )
+        if (ac.signal.aborted) return
+        for (const p of pairs) {
+          const parsed = parseGuestCartLineId(p.id)
+          if (parsed) patchGuestCartItemImageUrl(parsed.productId, parsed.variantSignature, p.url)
+        }
+        const byId = new Map(pairs.map((p) => [p.id, p.url]))
+        setLines((prev) =>
+          prev.map((row) =>
+            byId.has(row.id) && row.product.imageUrl !== byId.get(row.id)
+              ? { ...row, product: { ...row.product, imageUrl: byId.get(row.id)! } }
+              : row
+          )
+        )
+      } catch {
+        /* offline / abort */
+      }
+    })()
+    return () => ac.abort()
+  }, [loading, guestImageFetchKey, lines])
 
   useEffect(() => {
     setUseRewardCents((v) => Math.min(Math.max(0, v), maxApplicableReward))
@@ -293,6 +376,8 @@ export default function CartPage() {
           {lines.map((row) => {
             const lineTotal = row.product.price * row.qty
             const chips = selectionChips(row)
+            const frameColor =
+              row.selectedColor?.trim() || chips.find((c) => c.kind === "color")?.value || null
             return (
               <div
                 key={row.id}
@@ -301,17 +386,22 @@ export default function CartPage() {
                 <div className="flex gap-4 p-4 sm:p-5">
                   <Link
                     href={`/marketplace/${row.product.id}`}
-                    className="relative shrink-0 rounded-xl ring-1 ring-zinc-200/80 transition hover:ring-violet-400/60 dark:ring-zinc-700"
+                    className="relative shrink-0 rounded-xl ring-1 ring-zinc-200/80 transition-[box-shadow,ring-color] duration-300 hover:ring-violet-400/60 dark:ring-zinc-700"
                   >
-                    <img
-                      src={row.product.imageUrl || "/placeholder.png"}
-                      alt=""
-                      className="h-28 w-28 rounded-xl bg-zinc-50 object-contain p-2 sm:h-32 sm:w-32 dark:bg-zinc-950"
-                      onError={(e) => {
-                        e.currentTarget.src = "/placeholder.png"
-                      }}
-                    />
-                    <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-violet-600 text-xs font-bold text-white shadow-md">
+                    <span
+                      className="block overflow-hidden rounded-xl bg-zinc-50 transition-[box-shadow] duration-500 dark:bg-zinc-950"
+                      style={colorFrameStyle(frameColor)}
+                    >
+                      <img
+                        src={row.product.imageUrl || "/placeholder.png"}
+                        alt=""
+                        className="h-28 w-28 object-contain p-2 sm:h-32 sm:w-32"
+                        onError={(e) => {
+                          e.currentTarget.src = "/placeholder.png"
+                        }}
+                      />
+                    </span>
+                    <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-violet-600 text-xs font-bold text-white shadow-md ring-2 ring-white dark:ring-zinc-900">
                       {row.qty}
                     </span>
                   </Link>

@@ -1,6 +1,7 @@
 import { auth } from "@/auth"
-import { prisma } from "@/lib/prisma"
 import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
+import { resolveCartLineImageUrl } from "@/lib/cart-line-image"
+import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -50,6 +51,18 @@ export async function GET() {
   const lines: CartLineJson[] = cart.items.map((row) => {
     const listing = row.affiliateProduct
     const p = listing.product
+    const colors = Array.isArray(p.colors)
+      ? p.colors.filter((c): c is string => typeof c === "string" && Boolean(c.trim()))
+      : []
+    const imageUrl = resolveCartLineImageUrl({
+      customImages: listing.customImages,
+      productImages: p.images ?? [],
+      productColors: colors,
+      colorImagesJson: p.colorImages,
+      variantsJson: p.variants,
+      selectedColor: row.selectedColor,
+    })
+
     return {
       id: row.id,
       qty: row.quantity,
@@ -61,7 +74,7 @@ export async function GET() {
         id: listing.id,
         title: listingDisplayTitle(listing.customTitle, p.name),
         price: listing.sellingPriceCents / 100,
-        imageUrl: listingPrimaryImageUrl(listing.customImages, p.images) || "",
+        imageUrl: imageUrl || listingPrimaryImageUrl(listing.customImages, p.images) || "",
       },
     }
   })

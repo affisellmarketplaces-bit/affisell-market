@@ -128,3 +128,20 @@ export function removeGuestCartItem(productId: string, variantSignature: string 
   writeGuestCart(next)
   return next
 }
+
+/** Persist per-variant hero image (e.g. after resolving color-specific URL) so reloads skip wrong thumbnail flash. */
+export function patchGuestCartItemImageUrl(productId: string, variantSignature: string, imageUrl: string) {
+  const url = typeof imageUrl === "string" ? imageUrl.trim() : ""
+  if (!productId.trim() || !url) return
+  const sig = typeof variantSignature === "string" ? variantSignature.trim() : ""
+  const cart = readGuestCart()
+  let changed = false
+  const next = cart.map((item) => {
+    if (item.productId !== productId) return item
+    if (itemVariantSig(item) !== sig) return item
+    if (item.imageUrl === url) return item
+    changed = true
+    return { ...item, imageUrl: url }
+  })
+  if (changed) writeGuestCart(next)
+}
