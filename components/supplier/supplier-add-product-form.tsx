@@ -7,6 +7,7 @@ import type { LucideIcon } from "lucide-react"
 import {
   ArrowLeft,
   CheckCircle2,
+  ChevronRight,
   CircleHelp,
   Circle,
   Image as ImageIcon,
@@ -19,16 +20,19 @@ import {
   Sparkles,
   Globe2,
   Layers,
+  Store,
   Tag,
   Truck,
+  UserRound,
   Wallet,
   Zap,
 } from "lucide-react"
 import { signOut } from "next-auth/react"
 import { toast } from "sonner"
 
+import { BentoShell } from "@/components/affisell/bento-ui"
 import { SupplierProductImageUpload } from "@/components/supplier/supplier-product-image-upload"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -138,10 +142,10 @@ function SectionCard({
     <section
       id={id}
       className={cn(
-        "scroll-mt-28 rounded-2xl border p-6 shadow-md shadow-zinc-900/[0.04] ring-1 ring-black/[0.03] sm:p-7 dark:shadow-black/30 dark:ring-white/[0.04]",
+        "scroll-mt-28 rounded-3xl border border-gray-100 bg-white/80 p-6 shadow-sm backdrop-blur-sm ring-1 ring-black/[0.02] sm:p-7 dark:border-zinc-800 dark:bg-zinc-950/75 dark:ring-white/[0.04]",
         variant === "accent"
           ? "border-violet-200/60 bg-gradient-to-br from-violet-50/80 via-white to-white dark:border-violet-900/40 dark:from-violet-950/20 dark:via-zinc-950/50 dark:to-zinc-950"
-          : "border-zinc-200/80 bg-white/95 backdrop-blur-[2px] dark:border-zinc-700/80 dark:bg-zinc-950/50",
+          : "",
         className
       )}
     >
@@ -1154,128 +1158,165 @@ export function SupplierAddProductForm({
   }, [])
 
   const jumpBtnClass =
-    "rounded-full border border-zinc-200/90 bg-white px-3.5 py-1.5 text-xs font-semibold text-zinc-700 shadow-sm transition hover:border-violet-400/80 hover:bg-violet-50/80 hover:text-violet-900 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-violet-500/60 dark:hover:bg-violet-950/30 dark:hover:text-violet-100"
+    "rounded-xl border border-gray-200/90 bg-white/90 px-3.5 py-1.5 text-xs font-semibold text-zinc-700 shadow-sm backdrop-blur-sm transition hover:border-violet-300/80 hover:bg-violet-50/90 hover:text-violet-900 dark:border-zinc-600 dark:bg-zinc-900/80 dark:text-zinc-200 dark:hover:border-violet-600/50 dark:hover:bg-violet-950/40 dark:hover:text-violet-100"
 
   if (loadingProduct) {
     return (
-      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 bg-gradient-to-b from-zinc-50 via-violet-50/20 to-zinc-100/80 px-4 dark:from-zinc-950 dark:via-violet-950/10 dark:to-zinc-900">
-        <div className="relative">
-          <div className="absolute inset-0 animate-ping rounded-full bg-violet-400/20" aria-hidden />
-          <Loader2 className="relative h-10 w-10 animate-spin text-violet-600 dark:text-violet-400" aria-hidden />
+      <BentoShell>
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+          <div
+            className="relative overflow-hidden rounded-3xl border border-violet-200/50 bg-white/80 p-10 shadow-sm shadow-violet-500/5 ring-1 ring-black/[0.03] backdrop-blur-md dark:border-violet-900/35 dark:bg-zinc-950/70 dark:ring-white/10"
+            aria-busy
+            aria-label="Loading listing"
+          >
+            <div
+              className="pointer-events-none absolute inset-0 opacity-35 dark:opacity-[0.16]"
+              style={{
+                backgroundImage: `
+                radial-gradient(ellipse 80% 55% at 15% -10%, rgba(139,92,246,0.2), transparent 50%),
+                radial-gradient(ellipse 60% 45% at 92% 8%, rgba(20,184,166,0.12), transparent 45%)
+              `,
+              }}
+              aria-hidden
+            />
+            <div className="relative flex min-h-[32vh] flex-col items-center justify-center gap-4">
+              <div className="relative">
+                <div className="absolute inset-0 animate-ping rounded-2xl bg-violet-400/25" aria-hidden />
+                <Loader2 className="relative h-10 w-10 animate-spin text-violet-600 dark:text-violet-400" aria-hidden />
+              </div>
+              <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Loading listing…</p>
+            </div>
+          </div>
         </div>
-        <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Loading product…</p>
-      </div>
+      </BentoShell>
     )
   }
 
   return (
     <>
-      {onBackToMethods ? (
-        <div className="border-b border-zinc-200/90 bg-white/95 dark:border-zinc-800 dark:bg-zinc-950/95">
-          <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
-            <button
-              type="button"
-              onClick={onBackToMethods}
-              className="text-sm font-medium text-teal-700 transition hover:text-teal-900 dark:text-teal-400 dark:hover:text-teal-300"
-            >
-              ← Other listing methods
-            </button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="shrink-0 gap-1.5 border-zinc-300 text-zinc-700 dark:border-zinc-600 dark:text-zinc-200"
-              onClick={() => void signOut({ callbackUrl: "/" })}
-            >
-              <LogOut className="h-4 w-4" aria-hidden />
-              Log out
-            </Button>
-          </div>
-        </div>
-      ) : null}
-      <div className="min-h-screen bg-gradient-to-b from-zinc-100/90 via-white to-zinc-50 dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900/95">
+      <BentoShell>
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-        <header className="relative overflow-hidden rounded-3xl border border-zinc-200/80 bg-white/95 p-6 shadow-md ring-1 ring-black/[0.03] dark:border-zinc-700/80 dark:bg-zinc-950/70 dark:ring-white/[0.04] sm:p-8">
-          <div
-            className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-violet-500/[0.12] blur-3xl dark:bg-violet-500/[0.18]"
-            aria-hidden
-          />
-          <div className="pointer-events-none absolute -bottom-24 left-1/3 h-40 w-40 rounded-full bg-emerald-500/[0.06] blur-3xl dark:bg-emerald-500/10" aria-hidden />
-          <div className="relative flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-            <div className="min-w-0 space-y-4">
-              <Link
-                href="/dashboard/supplier/products"
-                className={cn(
-                  buttonVariants({ variant: "ghost", size: "sm" }),
-                  "-ml-2 inline-flex w-fit gap-1.5 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-                )}
-              >
-                <ArrowLeft className="h-4 w-4" aria-hidden />
-                Catalog
-              </Link>
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-600 dark:text-violet-400">
-                  {headerMeta.kicker}
-                </p>
-                <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-3xl">
-                  {headerMeta.title}
-                </h1>
-                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                  {headerMeta.blurb}
-                </p>
-                {productIsDraft ? (
-                  <p className="mt-2 flex flex-wrap items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
-                    <Cloud className="h-3.5 w-3.5 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
-                    {draftSync === "saving" ? (
-                      <span>Saving draft…</span>
-                    ) : draftSync === "error" ? (
-                      <span className="text-amber-700 dark:text-amber-400">
-                        Could not sync—check your connection and try again.
-                      </span>
-                    ) : draftSyncAt ? (
-                      <span>
-                        Draft saved{" "}
-                        {new Date(draftSyncAt).toLocaleTimeString("en-US", {
-                          hour: "numeric",
-                          minute: "2-digit",
-                        })}
-                      </span>
-                    ) : (
-                      <span>Autosave runs a few seconds after you stop typing.</span>
-                    )}
-                  </p>
-                ) : null}
+          <header className="relative overflow-hidden rounded-3xl border border-violet-200/60 bg-white/85 shadow-sm shadow-violet-500/5 ring-1 ring-black/[0.03] backdrop-blur-md dark:border-violet-900/40 dark:bg-zinc-950/75 dark:ring-white/10">
+            <div
+              className="pointer-events-none absolute inset-0 opacity-[0.45] dark:opacity-[0.2]"
+              style={{
+                backgroundImage: `
+                radial-gradient(ellipse 80% 55% at 15% -10%, rgba(139,92,246,0.28), transparent 50%),
+                radial-gradient(ellipse 60% 45% at 92% 8%, rgba(20,184,166,0.2), transparent 45%),
+                radial-gradient(circle at 50% 100%, rgba(139,92,246,0.06), transparent 55%)
+              `,
+              }}
+              aria-hidden
+            />
+            <div className="relative p-6 sm:p-8">
+              <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0 flex-1 space-y-4">
+                  {onBackToMethods ? (
+                    <button
+                      type="button"
+                      onClick={onBackToMethods}
+                      className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-teal-700 transition hover:text-teal-900 dark:text-teal-400 dark:hover:text-teal-300"
+                    >
+                      <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden />
+                      Other listing methods
+                    </button>
+                  ) : null}
+                  <div className="inline-flex items-center gap-2 rounded-full border border-violet-200/80 bg-violet-50/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-violet-800 dark:border-violet-800 dark:bg-violet-950/60 dark:text-violet-200">
+                    <Sparkles className="h-3.5 w-3.5" aria-hidden />
+                    Supplier hub
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-600 dark:text-violet-400">
+                      {headerMeta.kicker}
+                    </p>
+                    <h1 className="mt-1 text-balance text-3xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
+                      {headerMeta.title}
+                    </h1>
+                    <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 sm:text-[15px]">
+                      {headerMeta.blurb}
+                    </p>
+                    {productIsDraft ? (
+                      <p className="mt-3 flex flex-wrap items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                        <Cloud className="h-3.5 w-3.5 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
+                        {draftSync === "saving" ? (
+                          <span>Saving draft…</span>
+                        ) : draftSync === "error" ? (
+                          <span className="text-amber-700 dark:text-amber-400">
+                            Could not sync—check your connection and try again.
+                          </span>
+                        ) : draftSyncAt ? (
+                          <span>
+                            Draft saved{" "}
+                            {new Date(draftSyncAt).toLocaleTimeString("en-US", {
+                              hour: "numeric",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                        ) : (
+                          <span>Autosave runs a few seconds after you stop typing.</span>
+                        )}
+                      </p>
+                    ) : null}
+                  </div>
+                  <nav className="flex flex-wrap gap-2 sm:gap-2.5" aria-label="Quick links">
+                    {(
+                      [
+                        { label: "My catalog", href: "/dashboard/supplier/products", Icon: Package },
+                        { label: "Store profile", href: "/dashboard/supplier/settings/store", Icon: Store },
+                        { label: "Storefront look", href: "/dashboard/supplier/storefront", Icon: Globe2 },
+                        { label: "Account & security", href: "/dashboard/settings/account", Icon: UserRound },
+                      ] as const
+                    ).map(({ label, href, Icon }) => (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => router.push(href)}
+                        className="group inline-flex items-center gap-2 rounded-xl border border-zinc-200/90 bg-white/90 px-3.5 py-2 text-left text-[13px] font-medium text-zinc-800 shadow-sm transition hover:border-violet-300/70 hover:bg-violet-50/50 hover:text-violet-900 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100 dark:hover:border-violet-700 dark:hover:bg-violet-950/40 dark:hover:text-violet-100"
+                      >
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-violet-100 to-teal-50 text-violet-700 dark:from-violet-950 dark:to-teal-950/50 dark:text-violet-300">
+                          <Icon className="h-4 w-4" aria-hidden />
+                        </span>
+                        <span className="min-w-0 flex-1 truncate">{label}</span>
+                        <ChevronRight
+                          className="h-4 w-4 shrink-0 text-zinc-400 transition group-hover:translate-x-0.5 group-hover:text-violet-600 dark:group-hover:text-violet-400"
+                          aria-hidden
+                        />
+                      </button>
+                    ))}
+                  </nav>
+                </div>
+                <div className="flex w-full shrink-0 flex-col gap-2 sm:flex-row lg:w-auto lg:flex-col xl:max-w-[280px]">
+                  <Link
+                    href="/dashboard/supplier/products"
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100"
+                  >
+                    <Package className="h-4 w-4 shrink-0" aria-hidden />
+                    View catalog
+                  </Link>
+                  {!onBackToMethods ? (
+                    <Link
+                      href="/dashboard/supplier/bulk-import"
+                      className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                    >
+                      Bulk Excel import
+                    </Link>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={() => void signOut({ callbackUrl: "/" })}
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                  >
+                    <LogOut className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
+                    Sign out
+                  </button>
+                </div>
               </div>
             </div>
-            <div className="flex shrink-0 flex-col gap-2 sm:flex-row lg:flex-col lg:items-end">
-              {!onBackToMethods ? (
-                <Link
-                  href="/dashboard/supplier/bulk-import"
-                  className={cn(
-                    buttonVariants({ variant: "outline", size: "sm" }),
-                    "inline-flex justify-center border-zinc-300 bg-white/80 dark:border-zinc-600 dark:bg-zinc-900/80"
-                  )}
-                >
-                  Bulk Excel import
-                </Link>
-              ) : null}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="inline-flex justify-center gap-1.5 border-zinc-300 text-zinc-700 dark:border-zinc-600 dark:text-zinc-200"
-                onClick={() => void signOut({ callbackUrl: "/" })}
-              >
-                <LogOut className="h-4 w-4" aria-hidden />
-                Log out
-              </Button>
-            </div>
-          </div>
-        </header>
+          </header>
 
         <nav className="mt-8" aria-label="Form steps">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch sm:justify-between sm:gap-6">
-            <div className="grid w-full grid-cols-1 overflow-hidden rounded-3xl border border-zinc-200/90 bg-gradient-to-b from-white via-zinc-50/50 to-zinc-100/40 shadow-lg shadow-zinc-900/5 dark:border-zinc-700/80 dark:from-zinc-900 dark:via-zinc-950/80 dark:to-zinc-950 sm:grid-cols-2">
+            <div className="grid w-full grid-cols-1 overflow-hidden rounded-3xl border border-gray-100 bg-white/80 shadow-sm shadow-violet-500/[0.04] ring-1 ring-black/[0.02] backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/75 dark:ring-white/[0.04] sm:grid-cols-2">
               {steps.map(({ n, title, hint }, i) => (
                 <button
                   key={n}
@@ -1283,10 +1324,10 @@ export function SupplierAddProductForm({
                   onClick={() => setStep(n)}
                   className={cn(
                     "relative flex items-start gap-3 px-4 py-4 text-left transition sm:px-6 sm:py-5",
-                    i === 0 && "sm:border-r sm:border-zinc-200/80 dark:sm:border-zinc-700/80",
+                    i === 0 && "sm:border-r sm:border-gray-100 dark:sm:border-zinc-800",
                     step === n
-                      ? "bg-white/95 ring-2 ring-inset ring-violet-500/40 dark:bg-zinc-900/95 dark:ring-violet-400/35"
-                      : "hover:bg-white/80 dark:hover:bg-zinc-800/30"
+                      ? "bg-violet-50/60 ring-2 ring-inset ring-violet-400/35 dark:bg-violet-950/25 dark:ring-violet-400/30"
+                      : "hover:bg-gray-50/80 dark:hover:bg-zinc-800/40"
                   )}
                 >
                   <span
@@ -1313,7 +1354,7 @@ export function SupplierAddProductForm({
                 </button>
               ))}
             </div>
-            <div className="flex shrink-0 flex-col justify-center rounded-2xl border border-zinc-200/80 bg-white/90 px-4 py-3 text-center shadow-sm dark:border-zinc-700/80 dark:bg-zinc-950/80 sm:min-w-[7.5rem]">
+            <div className="flex shrink-0 flex-col justify-center rounded-3xl border border-gray-100 bg-white/80 px-4 py-4 text-center shadow-sm backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/75 sm:min-w-[7.5rem]">
               <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500">
                 Progress
               </p>
@@ -1329,7 +1370,7 @@ export function SupplierAddProductForm({
           <div className="min-w-0 space-y-10">
             {step === 1 ? (
               <>
-                <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200/80 bg-gradient-to-r from-white via-violet-50/30 to-white px-4 py-3.5 shadow-sm dark:border-zinc-700/80 dark:from-zinc-950 dark:via-violet-950/20 dark:to-zinc-950 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                <div className="flex flex-col gap-3 rounded-3xl border border-gray-100 bg-white/75 px-4 py-3.5 shadow-sm ring-1 ring-black/[0.02] backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/60 dark:ring-white/[0.04] sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">
                     On this page
                   </p>
@@ -1355,7 +1396,7 @@ export function SupplierAddProductForm({
                       className={jumpBtnClass}
                       onClick={() => scrollToSection("add-product-classify")}
                     >
-                      Category &amp; specs
+                      Category & specs
                     </button>
                     <button
                       type="button"
@@ -1540,7 +1581,7 @@ export function SupplierAddProductForm({
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-3 rounded-2xl border border-violet-200/60 bg-gradient-to-r from-violet-50/50 via-white to-white px-4 py-4 dark:border-violet-900/40 dark:from-violet-950/25 dark:via-zinc-950 dark:to-zinc-950 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                <div className="flex flex-col gap-3 rounded-3xl border border-violet-200/60 bg-gradient-to-r from-violet-50/70 via-white/90 to-white px-4 py-4 shadow-sm ring-1 ring-violet-500/10 backdrop-blur-sm dark:border-violet-900/40 dark:from-violet-950/30 dark:via-zinc-950 dark:to-zinc-950 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                   <p className="text-sm text-zinc-600 dark:text-zinc-300">
                     <span className="font-medium text-zinc-900 dark:text-zinc-100">Step 2</span> — base price, stock,
                     variants, and affiliate economics.
@@ -2129,7 +2170,7 @@ export function SupplierAddProductForm({
                 </SectionCard>
 
                 {Number.isFinite(Number(price)) && Number(price) > 0 ? (
-                  <div className="rounded-2xl border border-zinc-200 bg-gradient-to-r from-zinc-50 to-white p-5 dark:border-zinc-700 dark:from-zinc-900 dark:to-zinc-950">
+                  <div className="rounded-3xl border border-gray-100 bg-white/80 p-5 shadow-sm backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/70">
                     <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                       Buyer-facing preview
                     </p>
@@ -2182,7 +2223,7 @@ export function SupplierAddProductForm({
           <aside className="hidden lg:block">
             <div className="sticky top-24 space-y-4">
               {step === 1 ? (
-                <div className="rounded-2xl border border-zinc-200/90 bg-white/95 p-5 shadow-md ring-1 ring-black/[0.02] dark:border-zinc-700/90 dark:bg-zinc-950/80 dark:ring-white/[0.03]">
+                <div className="rounded-3xl border border-gray-100 bg-white/80 p-5 shadow-sm ring-1 ring-black/[0.02] backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/75 dark:ring-white/[0.04]">
                   <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                     Readiness
                   </p>
@@ -2214,7 +2255,7 @@ export function SupplierAddProductForm({
                   </div>
                 </div>
               ) : (
-                <div className="rounded-2xl border border-zinc-200/90 bg-gradient-to-b from-zinc-50 to-white p-5 shadow-md ring-1 ring-black/[0.02] dark:border-zinc-700/90 dark:from-zinc-900 dark:to-zinc-950 dark:ring-white/[0.03]">
+                <div className="rounded-3xl border border-gray-100 bg-gradient-to-b from-zinc-50/90 to-white/95 p-5 shadow-sm ring-1 ring-black/[0.02] backdrop-blur-sm dark:border-zinc-800 dark:from-zinc-900/80 dark:to-zinc-950 dark:ring-white/[0.04]">
                   <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                     Summary
                   </p>
@@ -2238,7 +2279,7 @@ export function SupplierAddProductForm({
           </aside>
         </div>
       </div>
-    </div>
+      </BentoShell>
     </>
   )
 }
