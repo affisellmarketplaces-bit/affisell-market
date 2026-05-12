@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 
+import { rateLimitClientKey, rateLimitResponse } from "@/lib/api-rate-limit"
 import { prisma } from "@/lib/prisma"
 import { formatStoreCurrency } from "@/lib/market-config"
 import { primaryProductImage } from "@/lib/product-images"
@@ -35,6 +36,13 @@ function seededShuffle<T>(arr: T[], seed: number): T[] {
 }
 
 export async function POST(req: Request) {
+  const limited = rateLimitResponse(rateLimitClientKey(req, null), {
+    prefix: "visual-search",
+    limit: 24,
+    windowMs: 60_000,
+  })
+  if (limited) return limited
+
   let buf: Uint8Array
   try {
     const ct = req.headers.get("content-type") ?? ""

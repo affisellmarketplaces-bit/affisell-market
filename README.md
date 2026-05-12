@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Affisell Market
 
-## Getting Started
+Next.js marketplace for **suppliers** (catalog, base price, commission) and **affiliates** (storefront, selling price, marketplace listings). EU-first storefront defaults (locale / currency) live in `lib/market-config.ts`.
 
-First, run the development server:
+## Requirements
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Node 20+
+- PostgreSQL (see `prisma/schema.prisma`)
+- Environment variables: copy `.env.example` → `.env` and fill values for your environment.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Scripts
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Command | Purpose |
+|--------|---------|
+| `npm run dev` | Prisma generate + Next dev (port **3001**) |
+| `npm run build` | Production build |
+| `npm run start` | Start production server |
+| `npm run lint` | ESLint |
+| `npm run test` | Vitest unit tests (`**/*.test.ts`) |
+| `npm run test:watch` | Vitest watch mode |
+| `npm run db:push` / `db:migrate` | Prisma against `DATABASE_URL` |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Testing
 
-## Learn More
+Vitest uses an empty `vitest-env/` as `envDir` so local `.env` is not read during tests. Tests live next to pure logic (e.g. `lib/__tests__/*`).
 
-To learn more about Next.js, take a look at the following resources:
+## i18n
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Server: `i18n.ts` loads `messages/en.json` or `messages/fr.json` when `NEXT_PUBLIC_MESSAGES_LOCALE=fr`.
+- Client: `app/providers.tsx` mirrors the same env for `next-intl` client components.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Money formatting stays tied to `NEXT_PUBLIC_MARKET_REGION` / storefront currency, not the message locale.
 
-## Deploy on Vercel
+## Rate limiting
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+In-memory fixed-window limits (see `lib/api-rate-limit.ts`) protect expensive unauthenticated or high-cost routes (e.g. visual search, categorization, agent chat). For multi-instance production, replace with Redis (e.g. Upstash).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Error UI
+
+- `app/error.tsx` — global error boundary (full document shell).
+- `app/dashboard/error.tsx` — dashboard subtree recovery.
+
+Production monitoring (Sentry, Log Drain, etc.) is not wired in-repo; use your host’s observability stack and forward `console.error` from boundaries as needed.
+
+## API highlights
+
+- **Affiliate listing read**: `GET /api/affiliate/products/[id]` (owner or `ADMIN`).
+- **Supplier product read**: `GET /api/supplier/products/[id]` (owner supplier).
+- **Dashboard product bridge**: `/dashboard/products/[id]` resolves affiliate listing vs supplier product by role.
+
+## Security notes
+
+- Never commit real `.env` or production database URLs.
+- `GET` on affiliate products for `ADMIN` skips `affiliateId` — restrict admin accounts in production.
+
+## Docs
+
+Next.js in this repo may differ from LTS docs; see `AGENTS.md` and `node_modules/next/dist/docs/` when upgrading.

@@ -4,6 +4,8 @@ export const revalidate = 0
 import { NextResponse } from "next/server"
 import OpenAI from "openai"
 
+import { rateLimitClientKey, rateLimitResponse } from "@/lib/api-rate-limit"
+
 const BROAD_DEPARTMENT_CHOICES = [
   "Computers",
   "Electronics",
@@ -24,6 +26,13 @@ const BROAD_DEPARTMENT_CHOICES = [
 ]
 
 export async function POST(req: Request) {
+  const limited = rateLimitResponse(rateLimitClientKey(req, null), {
+    prefix: "categorize-product",
+    limit: 40,
+    windowMs: 60_000,
+  })
+  if (limited) return limited
+
   const body = await req.json().catch(() => ({}))
   const title = typeof body.title === "string" ? body.title : ""
   const imageUrl =

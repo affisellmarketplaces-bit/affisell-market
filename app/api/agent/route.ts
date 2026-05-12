@@ -10,6 +10,7 @@ import {
 import { z } from "zod"
 
 import { auth } from "@/auth"
+import { rateLimitClientKey, rateLimitResponse } from "@/lib/api-rate-limit"
 import { createCheckoutSession } from "@/lib/agent-checkout"
 import { searchCatalogForAgent } from "@/lib/agent-catalog-search"
 import { getAgentHistoryForTools, recordAgentSearch, type AgentHistoryContext } from "@/lib/agent-history"
@@ -103,6 +104,14 @@ export async function POST(req: Request) {
 
   const authSession = await auth()
   const userId = authSession?.user?.id ?? null
+
+  const limited = rateLimitResponse(rateLimitClientKey(req, userId), {
+    prefix: "agent-chat",
+    limit: userId ? 48 : 18,
+    windowMs: 60_000,
+  })
+  if (limited) return limited
+
   const historyCtx: AgentHistoryContext = {
     userId,
     sessionId: userId ? null : sessionIdFromBody,

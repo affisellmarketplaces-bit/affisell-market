@@ -11,6 +11,58 @@ import { prisma } from "@/lib/prisma"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
+/** Owner (or admin) read for dashboard / tooling — no secrets beyond listing + product catalog fields. */
+export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const role = String((session.user as { role?: string }).role ?? "").toUpperCase()
+  if (role !== "AFFILIATE" && role !== "ADMIN") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
+
+  const { id } = await ctx.params
+  const listing = await prisma.affiliateProduct.findFirst({
+    where:
+      role === "ADMIN"
+        ? { id }
+        : {
+            id,
+            affiliateId: session.user.id,
+          },
+    include: {
+      product: {
+        select: {
+          id: true,
+          name: true,
+          basePriceCents: true,
+          variants: true,
+          commissionRate: true,
+          listingKind: true,
+          active: true,
+        },
+      },
+    },
+  })
+
+  if (!listing || !listing.product) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 })
+  }
+
+  return NextResponse.json({
+    listing: {
+      id: listing.id,
+      sellingPriceCents: listing.sellingPriceCents,
+      isListed: listing.isListed,
+      customTitle: listing.customTitle,
+      customSlug: listing.customSlug,
+    },
+    product: listing.product,
+  })
+}
+
 const COLLECTION_ALLOWED = new Set(["Featured", "Black Friday", "Tech Deals"])
 
 function parseCollections(raw: unknown): string[] | undefined {
