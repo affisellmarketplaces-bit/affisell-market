@@ -6,6 +6,7 @@ import { Heart } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
+import { formatStoreCurrency } from "@/lib/market-config"
 import { cn } from "@/lib/utils"
 
 export type ProductCardProduct = {
@@ -130,9 +131,9 @@ export function ProductCard({ product }: ProductCardProps) {
           </p>
         ) : null}
         <div className="mt-2 flex items-baseline gap-2">
-          <span className="text-xl font-black text-gray-900">${priceN.toFixed(2)}</span>
-          {hasDiscount ? (
-            <span className="text-compare-at text-sm tabular-nums line-through">${compareN.toFixed(2)}</span>
+          <span className="text-xl font-black text-gray-900">{formatStoreCurrency(priceN)}</span>
+          {hasDiscount && compareN != null ? (
+            <span className="text-compare-at text-sm tabular-nums line-through">{formatStoreCurrency(compareN)}</span>
           ) : null}
         </div>
         <p className="mt-1 text-xs text-gray-500">by {p.store || "Affisell"}</p>
