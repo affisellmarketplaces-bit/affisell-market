@@ -1,5 +1,9 @@
+import { withSentryConfig } from "@sentry/nextjs"
+
 const nextConfig = {
-  output: "standalone",
+  output: "standalone" as const,
 }
 
-export default nextConfig
+export default withSentryConfig(nextConfig, {
+  silent: !process.env.CI,
+})
