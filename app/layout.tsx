@@ -17,9 +17,9 @@ function HeaderFallback() {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang={STOREFRONT_HTML_LANG}>
-      <body className="min-h-screen bg-zinc-50 text-zinc-900 antialiased [font-family:Inter,system-ui] dark:bg-zinc-950 dark:text-zinc-50">
+      <body className="min-h-screen text-gray-900 [font-family:Inter,system-ui] dark:text-zinc-50">
         <Providers>
-          <header className="border-b border-zinc-200 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-950">
+          <header className="border-b border-gray-100/90 bg-white/80 px-4 py-3 shadow-sm backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/90">
             <Suspense fallback={<HeaderFallback />}>
               <SiteNav />
             </Suspense>

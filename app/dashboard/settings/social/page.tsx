@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
 
+import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { SocialSettingsForm, type SerializedStoreSocial } from "@/components/social-settings-form"
 import { auth } from "@/auth"
 import { ensureMerchantStore } from "@/lib/ensure-store"
@@ -35,22 +36,29 @@ export default async function DashboardSocialSettingsPage() {
   const initialStore = JSON.parse(JSON.stringify(store)) as SerializedStoreSocial
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-10 md:px-8">
-      <nav className="flex flex-wrap gap-3 text-sm">
-        <Link href={backHref} className="font-medium text-zinc-600 underline hover:text-zinc-900 dark:text-zinc-400">
-          ← Dashboard
-        </Link>
-        <Link href={storeHref} className="font-medium text-zinc-600 underline hover:text-zinc-900 dark:text-zinc-400">
-          Store profile
-        </Link>
-      </nav>
-      <h1 className="mt-6 text-2xl font-semibold text-zinc-900 dark:text-zinc-100">Social &amp; Community Hub</h1>
-      <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-        Connect accounts, showcase follower milestones, and keep your public store in sync—English UI only.
-      </p>
-      <div className="mt-8">
-        <SocialSettingsForm key={String(store.updatedAt)} initialStore={initialStore} />
-      </div>
-    </main>
+    <BentoShell>
+      <BentoContainer maxWidth="4xl" className="space-y-8">
+        <nav className="flex flex-wrap gap-4 text-sm font-medium text-gray-600 dark:text-zinc-400">
+          <Link href={backHref} className="text-[#7C3AED] underline-offset-4 hover:underline">
+            ← Dashboard
+          </Link>
+          <Link href={storeHref} className="text-[#7C3AED] underline-offset-4 hover:underline">
+            Store profile
+          </Link>
+        </nav>
+
+        <BentoPageHeading
+          eyebrow="Community"
+          title="Social & Community Hub"
+          description="Connect accounts, showcase follower milestones, and keep your public store in sync—English UI only."
+        />
+
+        <BentoCard className="p-0 md:p-0">
+          <div className="p-6 md:p-8">
+            <SocialSettingsForm key={String(store.updatedAt)} initialStore={initialStore} />
+          </div>
+        </BentoCard>
+      </BentoContainer>
+    </BentoShell>
   )
 }

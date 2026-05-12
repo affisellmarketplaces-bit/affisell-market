@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react"
 
+import { BentoCard } from "@/components/affisell/bento-ui"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { RETURN_REASON_CODES, RETURN_REASON_LABELS } from "@/lib/order-return-types"
 import { cn } from "@/lib/utils"
@@ -68,18 +68,18 @@ export function AccountOrdersClient({
 
   if (orders.length === 0) {
     return (
-      <Card className={cn("border-zinc-200 p-8 text-center dark:border-zinc-700", className)}>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">No orders yet for this account.</p>
-      </Card>
+      <BentoCard className={cn("py-12 text-center dark:border-zinc-800", className)}>
+        <p className="text-sm text-gray-600 dark:text-zinc-400">No orders yet for this account.</p>
+      </BentoCard>
     )
   }
 
   return (
     <div className={cn("space-y-4", className)}>
-      <div className="flex justify-end gap-2 text-xs">
+      <div className="flex justify-end gap-2 rounded-3xl border border-gray-100 bg-white/80 px-4 py-2 text-xs shadow-sm backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/70">
         <button
           type="button"
-          className={cn(lang === "fr" ? "font-semibold text-violet-600" : "text-zinc-500")}
+          className={cn(lang === "fr" ? "font-semibold text-[#7C3AED]" : "text-gray-500")}
           onClick={() => setLang("fr")}
         >
           FR
@@ -87,7 +87,7 @@ export function AccountOrdersClient({
         <span className="text-zinc-300">|</span>
         <button
           type="button"
-          className={cn(lang === "en" ? "font-semibold text-violet-600" : "text-zinc-500")}
+          className={cn(lang === "en" ? "font-semibold text-[#7C3AED]" : "text-gray-500")}
           onClick={() => setLang("en")}
         >
           EN
@@ -101,17 +101,17 @@ export function AccountOrdersClient({
       ) : null}
 
       {orders.map((o) => (
-        <Card key={o.id} className="border-zinc-200 p-4 dark:border-zinc-700">
-          <div className="flex gap-4">
-            <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800">
+        <BentoCard key={o.id} className="py-5 md:py-6">
+          <div className="flex gap-5">
+            <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-gray-100 dark:bg-zinc-800">
               {o.product.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element -- product URLs are supplier-controlled remotes
                 <img src={o.product.imageUrl} alt="" className="h-full w-full object-cover" />
               ) : null}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="font-medium text-zinc-900 dark:text-zinc-50">{o.product.name}</p>
-              <p className="mt-0.5 text-xs text-zinc-500">
+              <p className="text-base font-semibold text-gray-900 dark:text-white">{o.product.name}</p>
+              <p className="mt-1 text-xs uppercase tracking-wider text-gray-500 dark:text-zinc-400">
                 {new Date(o.createdAt).toLocaleDateString()} · ×{o.quantity} · {formatStoreCurrencyFromCents(o.sellingPriceCents)}
               </p>
               {o.activeReturn ? (
@@ -181,7 +181,7 @@ export function AccountOrdersClient({
               ) : null}
             </div>
           </div>
-        </Card>
+        </BentoCard>
       ))}
     </div>
   )

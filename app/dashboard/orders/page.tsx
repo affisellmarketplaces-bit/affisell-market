@@ -1,6 +1,8 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
+import { CreditCard, ShoppingBag } from "lucide-react"
 
+import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { auth } from "@/auth"
 import { AccountOrdersClient } from "@/components/account/account-orders-client"
 import { buttonVariants } from "@/components/ui/button"
@@ -74,28 +76,35 @@ export default async function DashboardOrdersPage() {
   })
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-            My orders
-          </h1>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            Request returns while your order is within the return window. After the seller approves,
-            add tracking so they can confirm receipt and mark the refund as processed.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Link href="/dashboard/wallet" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
-            Store credit
-          </Link>
-          <Link href="/marketplace" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
-            Continue shopping
-          </Link>
-        </div>
-      </div>
+    <BentoShell>
+      <BentoContainer maxWidth="4xl" className="space-y-8">
+        <BentoCard className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+          <BentoPageHeading
+            eyebrow="Purchases"
+            title="My orders"
+            description="Request returns while your order is within the return window. After the seller approves, add tracking so they can confirm receipt and mark the refund as processed."
+            className="max-w-xl"
+          />
+          <div className="flex shrink-0 flex-col gap-3 sm:flex-row lg:flex-col">
+            <Link
+              href="/dashboard/wallet"
+              className={cn(buttonVariants({ variant: "bentoOutline", size: "bento" }), "inline-flex justify-center")}
+            >
+              <CreditCard className="size-5" aria-hidden />
+              Store credit
+            </Link>
+            <Link
+              href="/marketplace"
+              className={cn(buttonVariants({ variant: "bentoSolid", size: "bento" }), "inline-flex justify-center")}
+            >
+              <ShoppingBag className="size-5" aria-hidden />
+              Continue shopping
+            </Link>
+          </div>
+        </BentoCard>
 
-      <AccountOrdersClient initialOrders={payload} className="mt-8" />
-    </div>
+        <AccountOrdersClient initialOrders={payload} />
+      </BentoContainer>
+    </BentoShell>
   )
 }

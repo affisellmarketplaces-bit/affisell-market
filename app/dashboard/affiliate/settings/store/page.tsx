@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 
+import { BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
 import { StoreProfileSettings } from "@/components/store-profile-settings"
 import { auth } from "@/auth"
 
@@ -14,8 +15,10 @@ export default async function AffiliateStoreSettingsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-10 md:px-8">
-      <StoreProfileSettings backHref="/dashboard/affiliate" backLabel="Affiliate dashboard" />
-    </main>
+    <BentoShell>
+      <BentoContainer maxWidth="4xl">
+        <StoreProfileSettings backHref="/dashboard/affiliate" backLabel="Affiliate dashboard" />
+      </BentoContainer>
+    </BentoShell>
   )
 }

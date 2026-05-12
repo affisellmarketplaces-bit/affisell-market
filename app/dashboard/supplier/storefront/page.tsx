@@ -33,9 +33,5 @@ export default async function SupplierStorefrontPage() {
   if (!store?.slug) redirect("/dashboard/supplier")
   const previewHref = `/store/supplier/${encodeURIComponent(store.slug)}`
 
-  return (
-    <main className="min-h-screen bg-zinc-50">
-      <SupplierStorefrontEditor previewHref={previewHref} />
-    </main>
-  )
+  return <SupplierStorefrontEditor previewHref={previewHref} />
 }

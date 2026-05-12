@@ -1,49 +1,141 @@
 import Link from "next/link"
+import { ArrowRight, LayoutGrid, Sparkles, Store, Users } from "lucide-react"
 
+import { BentoCard, BentoContainer, BentoPageHeading, BentoShell, bentoGrid } from "@/components/affisell/bento-ui"
 import { HomeAffisellCarousels } from "@/components/home-affisell-carousels"
 import { BestSellers } from "@/components/trends/BestSellers"
 import { NewArrivals } from "@/components/trends/NewArrivals"
 import { SalesBarometer } from "@/components/trends/SalesBarometer"
+import { buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <main className="mx-auto flex max-w-2xl flex-col justify-center gap-4 px-6 py-16">
-        <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Affisell</h1>
-        <p className="text-zinc-600 dark:text-zinc-400">Affiliate dropshipping marketplace V1.</p>
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <Link
-            href="/signup/supplier"
-            className="rounded-lg bg-zinc-900 px-5 py-3 text-center text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
-          >
-            Become Supplier
-          </Link>
-          <Link
-            href="/signup/affiliate"
-            className="rounded-lg border border-zinc-300 px-5 py-3 text-center text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
-          >
-            Become Affiliate
-          </Link>
-          <Link
-            href="/marketplace"
-            className="rounded-lg border border-zinc-300 px-5 py-3 text-center text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
-          >
-            Browse Marketplace
-          </Link>
-        </div>
-        <p className="mt-8 text-sm text-zinc-500">
-          <Link href="/login" className="underline hover:text-zinc-800 dark:hover:text-zinc-200">
-            Sign in
-          </Link>
-        </p>
-      </main>
+    <BentoShell>
+      <BentoContainer maxWidth="7xl" className="space-y-10 md:space-y-14">
+        <div className={cn(bentoGrid, "items-stretch")}>
+          <BentoCard className="relative overflow-hidden xl:col-span-7">
+            <div
+              className="pointer-events-none absolute inset-0 opacity-[0.35]"
+              style={{
+                backgroundImage: `
+                  radial-gradient(ellipse 70% 50% at 10% -20%, rgba(124,58,237,0.22), transparent 55%),
+                  radial-gradient(ellipse 50% 40% at 95% 0%, rgba(16,185,129,0.12), transparent 50%)
+                `,
+              }}
+              aria-hidden
+            />
+            <div className="relative flex h-full flex-col gap-8">
+              <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[#7C3AED]/20 bg-[#7C3AED]/8 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#5b21b6]">
+                <Sparkles className="size-3.5" aria-hidden />
+                Affiliate marketplace
+              </div>
+              <BentoPageHeading
+                title="Affisell"
+                description="Affiliate dropshipping marketplace — discover SKUs, curate your storefront, and grow with partners."
+                className="space-y-4"
+              />
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <Link
+                  href="/signup/supplier"
+                  className={cn(
+                    buttonVariants({ variant: "bentoSolid", size: "bento" }),
+                    "inline-flex w-full justify-center sm:w-auto"
+                  )}
+                >
+                  <Store className="size-5 shrink-0" aria-hidden />
+                  Become supplier
+                  <ArrowRight className="size-4 shrink-0 opacity-80" aria-hidden />
+                </Link>
+                <Link
+                  href="/signup/affiliate"
+                  className={cn(
+                    buttonVariants({ variant: "bentoOutline", size: "bento" }),
+                    "inline-flex w-full justify-center sm:w-auto"
+                  )}
+                >
+                  <Users className="size-5 shrink-0" aria-hidden />
+                  Become affiliate
+                </Link>
+                <Link
+                  href="/marketplace"
+                  className={cn(
+                    buttonVariants({ variant: "bentoAccent", size: "bento" }),
+                    "inline-flex w-full justify-center sm:w-auto"
+                  )}
+                >
+                  <LayoutGrid className="size-5 shrink-0" aria-hidden />
+                  Browse marketplace
+                </Link>
+              </div>
+              <p className="text-sm text-gray-600">
+                <Link href="/login" className="font-medium text-[#7C3AED] underline-offset-4 hover:underline">
+                  Sign in
+                </Link>{" "}
+                to open your workspace.
+              </p>
+            </div>
+          </BentoCard>
 
-      <section className="mx-auto max-w-7xl space-y-16 px-4 py-12">
-        <HomeAffisellCarousels />
-        <BestSellers />
-        <NewArrivals />
-        <SalesBarometer />
-      </section>
-    </div>
+          <div className="grid gap-6 xl:col-span-5">
+            <BentoCard className="flex flex-col justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">For suppliers</p>
+                <p className="mt-2 text-2xl font-bold tracking-tight text-gray-900">List once, sell everywhere</p>
+                <p className="mt-2 text-sm leading-relaxed text-gray-600">
+                  Sync catalog, manage returns, and tune your public store profile.
+                </p>
+              </div>
+              <Link
+                href="/dashboard/supplier"
+                className={cn(
+                  buttonVariants({ variant: "bentoOutline", size: "bento" }),
+                  "inline-flex w-full justify-center"
+                )}
+              >
+                Supplier hub
+                <ArrowRight className="size-4" aria-hidden />
+              </Link>
+            </BentoCard>
+            <BentoCard className="flex flex-col justify-between gap-4 border-[#10B981]/20 bg-gradient-to-br from-white/90 to-emerald-50/40">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-emerald-800/80">Live opportunity</p>
+                <p className="mt-2 text-2xl font-bold tracking-tight text-gray-900">Partner workspace</p>
+                <p className="mt-2 text-sm leading-relaxed text-gray-600">
+                  Curate resale listings, SEO, and storefront cards from one glass dashboard.
+                </p>
+              </div>
+              <Link
+                href="/dashboard/affiliate"
+                className={cn(
+                  buttonVariants({ variant: "bentoSolid", size: "bento" }),
+                  "inline-flex w-full justify-center"
+                )}
+              >
+                Open workspace
+              </Link>
+            </BentoCard>
+          </div>
+        </div>
+
+        <section className="space-y-8">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Market pulse</p>
+              <h2 className="mt-1 text-2xl font-bold tracking-tight text-gray-900 md:text-3xl">Trending on Affisell</h2>
+              <p className="mt-1 max-w-xl text-sm text-gray-600">Fresh drops, barometer, and editor’s picks — same glass card language site-wide.</p>
+            </div>
+          </div>
+          <BentoCard className="p-0 md:p-0">
+            <div className="space-y-12 p-6 md:p-8">
+              <HomeAffisellCarousels />
+              <BestSellers />
+              <NewArrivals />
+              <SalesBarometer />
+            </div>
+          </BentoCard>
+        </section>
+      </BentoContainer>
+    </BentoShell>
   )
 }

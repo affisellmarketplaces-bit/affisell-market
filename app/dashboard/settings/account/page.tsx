@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
 
+import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { ConnectedAccountsPanel } from "@/components/connected-accounts-panel"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
@@ -32,46 +33,53 @@ export default async function AccountSettingsPage() {
         : "/marketplace"
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-10 md:px-8">
-      <p className="mb-4 text-sm">
-        <Link href={backHref} className="font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
-          ← Back to dashboard
-        </Link>
-      </p>
+    <BentoShell>
+      <BentoContainer maxWidth="4xl" className="space-y-8">
+        <p className="text-sm text-gray-600 dark:text-zinc-400">
+          <Link href={backHref} className="font-medium text-[#7C3AED] underline-offset-4 hover:underline">
+            ← Back to dashboard
+          </Link>
+        </p>
 
-      <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">Account</h1>
-      <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Manage sign-in methods and linked social accounts.</p>
-
-      <p className="mt-4 text-sm">
-        <Link
-          href="/dashboard/wallet"
-          className="font-medium text-teal-700 underline-offset-2 hover:underline dark:text-teal-400"
-        >
-          Store credit &amp; activity →
-        </Link>
-      </p>
-
-      <div className="mt-8 flex items-center gap-4 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-        {dbUser.image ? (
-          // eslint-disable-next-line @next/next/no-img-element -- external OAuth avatars vary by host
-          <img src={dbUser.image} alt="" width={56} height={56} className="h-14 w-14 rounded-full object-cover" />
-        ) : (
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-zinc-200 text-lg font-semibold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
-            {(dbUser.name ?? dbUser.email ?? "?").slice(0, 1).toUpperCase()}
-          </div>
-        )}
-        <div>
-          <p className="font-medium text-zinc-900 dark:text-zinc-100">{dbUser.name ?? "Your account"}</p>
-          <p className="text-sm text-zinc-500">{dbUser.email}</p>
-        </div>
-      </div>
-
-      <div className="mt-8">
-        <ConnectedAccountsPanel
-          initialLinked={accounts.map((a) => ({ id: a.id, provider: a.provider }))}
-          hasPassword={!!dbUser.password?.length}
+        <BentoPageHeading
+          eyebrow="Security"
+          title="Account"
+          description="Manage sign-in methods and linked social accounts."
         />
-      </div>
-    </main>
+
+        <BentoCard>
+          <p className="text-sm text-gray-600 dark:text-zinc-400">
+            <Link href="/dashboard/wallet" className="font-medium text-[#7C3AED] underline-offset-4 hover:underline">
+              Store credit &amp; activity →
+            </Link>
+          </p>
+        </BentoCard>
+
+        <BentoCard className="flex flex-col gap-6 sm:flex-row sm:items-center">
+          {dbUser.image ? (
+            // eslint-disable-next-line @next/next/no-img-element -- external OAuth avatars vary by host
+            <img src={dbUser.image} alt="" width={56} height={56} className="h-16 w-16 rounded-full object-cover ring-2 ring-gray-100 dark:ring-zinc-700" />
+          ) : (
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xl font-bold text-gray-600 dark:bg-zinc-800 dark:text-zinc-300">
+              {(dbUser.name ?? dbUser.email ?? "?").slice(0, 1).toUpperCase()}
+            </div>
+          )}
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">Signed in as</p>
+            <p className="mt-1 text-xl font-bold tracking-tight text-gray-900 dark:text-white">{dbUser.name ?? "Your account"}</p>
+            <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">{dbUser.email}</p>
+          </div>
+        </BentoCard>
+
+        <BentoCard className="p-0 md:p-0">
+          <div className="p-6 md:p-8">
+            <ConnectedAccountsPanel
+              initialLinked={accounts.map((a) => ({ id: a.id, provider: a.provider }))}
+              hasPassword={!!dbUser.password?.length}
+            />
+          </div>
+        </BentoCard>
+      </BentoContainer>
+    </BentoShell>
   )
 }

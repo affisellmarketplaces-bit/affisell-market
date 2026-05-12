@@ -40,6 +40,7 @@ import type { CSSProperties } from "react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import AffiliateLiveStore from "@/components/affiliate/affiliate-live-store"
+import { BentoStat } from "@/components/affisell/bento-ui"
 import {
   ListingBuilderModal,
   type SerializedListing,
@@ -131,8 +132,8 @@ function SortableStoreCard(props: {
     <article
       ref={setNodeRef}
       style={style}
-      className={`relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 transition ${
-        selected ? "ring-2 ring-green-600" : "ring-gray-100 hover:shadow-md hover:ring-gray-200"
+      className={`relative flex flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white/90 shadow-sm backdrop-blur-sm transition dark:border-zinc-800 dark:bg-zinc-950/80 ${
+        selected ? "ring-2 ring-[#10B981]" : "hover:shadow-md"
       }`}
     >
       <div className="absolute right-3 top-3 z-10 flex flex-col items-end gap-1">
@@ -176,7 +177,7 @@ function SortableStoreCard(props: {
           <TrendingUp className="mt-0.5 h-4 w-4 shrink-0 text-green-600" aria-hidden />
           <p className="line-clamp-2 flex-1 text-sm font-semibold leading-snug text-gray-900">{title}</p>
         </div>
-        <p className="text-lg font-semibold text-green-600">{formatStoreCurrencyFromCents(listing.sellingPriceCents)}</p>
+        <p className="text-lg font-semibold text-[#10B981]">{formatStoreCurrencyFromCents(listing.sellingPriceCents)}</p>
         {shopperReward ? (
           <p className="text-xs font-medium text-teal-800">
             Shoppers:{" "}
@@ -420,7 +421,7 @@ export function AffiliateDashboard({
   }, [initialCatalog, discoverQ, discoverSort, discoverUnlistedOnly])
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-violet-100/35 via-white to-zinc-50/90 dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900/80">
+    <main className="min-h-[calc(100dvh-3.75rem)]">
       <div className="mx-auto max-w-6xl px-4 py-8 md:px-8 md:py-10">
         <header className="relative overflow-hidden rounded-3xl border border-violet-200/60 bg-white/85 shadow-sm shadow-violet-500/5 ring-1 ring-black/[0.03] backdrop-blur-md dark:border-violet-900/40 dark:bg-zinc-950/75 dark:ring-white/10">
           <div
@@ -517,44 +518,40 @@ export function AffiliateDashboard({
               </div>
             </div>
 
-            <div className="mt-8 grid gap-3 border-t border-zinc-100/90 pt-6 dark:border-zinc-800 sm:grid-cols-3">
-              <div className="rounded-2xl border border-zinc-100 bg-white/70 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/40">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                  Discover feed
-                </p>
-                <p className="mt-1 text-2xl font-bold tabular-nums text-zinc-900 dark:text-white">
-                  {discoverSkuCount}
-                  <span className="ml-1 text-sm font-medium text-zinc-500 dark:text-zinc-400">SKUs</span>
-                </p>
-                <p className="mt-0.5 text-xs text-zinc-600 dark:text-zinc-400">
-                  {addableSkuCount > 0 ? (
+            <div className="mt-8 grid gap-6 border-t border-gray-100/90 pt-8 dark:border-zinc-800 sm:grid-cols-3">
+              <BentoStat
+                className="border-0 bg-transparent p-0 shadow-none backdrop-blur-none dark:bg-transparent"
+                label="Discover feed"
+                value={
+                  <>
+                    {discoverSkuCount}
+                    <span className="ml-1 text-base font-medium text-gray-500 dark:text-zinc-400">SKUs</span>
+                  </>
+                }
+                hint={
+                  addableSkuCount > 0 ? (
                     <>
-                      <span className="font-semibold text-emerald-700 dark:text-emerald-400">{addableSkuCount}</span>{" "}
-                      ready to list
+                      <span className="font-semibold text-[#10B981] dark:text-emerald-400">{addableSkuCount}</span> ready
+                      to list
                     </>
                   ) : (
                     <>You’ve picked up the surfaced batch—refresh often for more.</>
-                  )}
-                </p>
-              </div>
-              <div className="rounded-2xl border border-zinc-100 bg-white/70 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/40">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                  Your listings
-                </p>
-                <p className="mt-1 text-2xl font-bold tabular-nums text-zinc-900 dark:text-white">
-                  {listingsWithProduct.length}
-                </p>
-                <p className="mt-0.5 text-xs text-zinc-600 dark:text-zinc-400">
-                  Curated resale rows in builder &amp; store
-                </p>
-              </div>
-              <div className="rounded-2xl border border-zinc-100 bg-white/70 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/40">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                  Live on storefront
-                </p>
-                <p className="mt-1 text-2xl font-bold tabular-nums text-teal-700 dark:text-teal-400">{listedLiveCount}</p>
-                <p className="mt-0.5 text-xs text-zinc-600 dark:text-zinc-400">Visible SKUs shoppers can checkout</p>
-              </div>
+                  )
+                }
+              />
+              <BentoStat
+                className="border-0 bg-transparent p-0 shadow-none backdrop-blur-none dark:bg-transparent"
+                label="Your listings"
+                value={listingsWithProduct.length}
+                hint="Curated resale rows in builder & store"
+              />
+              <BentoStat
+                className="border-0 bg-transparent p-0 shadow-none backdrop-blur-none dark:bg-transparent"
+                label="Live on storefront"
+                value={listedLiveCount}
+                valueClassName="text-[#10B981] dark:text-emerald-400"
+                hint="Visible SKUs shoppers can checkout"
+              />
             </div>
           </div>
         </header>

@@ -18,6 +18,15 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
+        /** Bento / Modern SaaS — primary CTA (near-black). */
+        bentoSolid:
+          "border-transparent bg-gray-900 text-white hover:bg-gray-800 [a]:hover:bg-gray-800 dark:bg-white dark:text-gray-950 dark:hover:bg-zinc-100",
+        /** Outlined secondary for dashboards. */
+        bentoOutline:
+          "border-gray-200 bg-white text-gray-900 hover:bg-gray-50 aria-expanded:bg-gray-50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:bg-zinc-900",
+        /** Brand accent (#7C3AED). */
+        bentoAccent:
+          "border-transparent bg-[#7C3AED] text-white hover:bg-[#6d28d9] [a]:hover:bg-[#6d28d9] dark:bg-[#7C3AED] dark:hover:bg-[#6d28d9]",
       },
       size: {
         default:
@@ -31,6 +40,9 @@ const buttonVariants = cva(
         "icon-sm":
           "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
         "icon-lg": "size-9",
+        /** Dashboard CTAs: icon + label, comfortable hit target. */
+        bento:
+          "h-12 gap-2 rounded-xl px-5 text-sm font-medium has-data-[icon=inline-end]:pr-4 has-data-[icon=inline-start]:pl-4 [&_svg:not([class*='size-'])]:size-5",
       },
     },
     defaultVariants: {

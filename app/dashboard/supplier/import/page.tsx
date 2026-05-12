@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 
+import { BentoShell } from "@/components/affisell/bento-ui"
 import { auth } from "@/auth"
 
 import { SupplierProductImport } from "@/components/supplier-product-import"
@@ -11,8 +12,8 @@ export default async function SupplierImportPage() {
   if (session.user.role !== "SUPPLIER") redirect("/marketplace")
 
   return (
-    <main className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <BentoShell>
       <SupplierProductImport />
-    </main>
+    </BentoShell>
   )
 }

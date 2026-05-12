@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 
+import { BentoShell } from "@/components/affisell/bento-ui"
 import { auth } from "@/auth"
 import { SupplierBulkExcelImport } from "@/components/supplier/supplier-bulk-excel-import"
 
@@ -10,8 +11,8 @@ export default async function SupplierBulkImportPage() {
   if (session.user.role !== "SUPPLIER") redirect("/marketplace")
 
   return (
-    <main className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <BentoShell>
       <SupplierBulkExcelImport />
-    </main>
+    </BentoShell>
   )
 }

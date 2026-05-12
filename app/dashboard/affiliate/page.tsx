@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { Suspense } from "react"
 
+import { BentoCard, BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 
@@ -41,9 +42,13 @@ export default async function AffiliateDashboardPage() {
   return (
     <Suspense
       fallback={
-        <div className="mx-auto max-w-6xl px-4 py-16 text-center text-sm text-gray-500 md:px-8">
-          Loading partner workspace…
-        </div>
+        <BentoShell>
+          <BentoContainer>
+            <BentoCard className="py-12 text-center text-sm text-gray-600 dark:text-zinc-400">
+              Loading partner workspace…
+            </BentoCard>
+          </BentoContainer>
+        </BentoShell>
       }
     >
       <AffiliateDashboard

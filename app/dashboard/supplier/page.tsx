@@ -2,10 +2,10 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 import { Package, PlusCircle, RefreshCw, RotateCcw, Store, Upload } from "lucide-react"
 
+import { BentoCard, BentoContainer, BentoPageHeading, BentoShell, bentoGrid } from "@/components/affisell/bento-ui"
 import { auth } from "@/auth"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { Card } from "@/components/ui/card"
 
 export const dynamic = "force-dynamic"
 
@@ -19,129 +19,153 @@ export default async function DashboardSupplierPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10">
-      <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">Supplier dashboard</h1>
-      <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-        Manage your Affisell catalog, storefront, and bulk tools.
-      </p>
+    <BentoShell>
+      <BentoContainer maxWidth="5xl" className="space-y-8">
+        <BentoPageHeading
+          eyebrow="Supplier workspace"
+          title="Operations hub"
+          description="Manage your Affisell catalog, storefront, returns, and bulk tools from one calm surface."
+        />
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2">
-        <Card className="border-zinc-200 p-5 dark:border-zinc-700">
-          <div className="flex items-start gap-3">
-            <PlusCircle className="mt-0.5 h-5 w-5 text-violet-600" aria-hidden />
-            <div className="min-w-0 flex-1">
-              <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">Add product</h2>
-              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                Create a listing with images, pricing, and partner margin settings.
-              </p>
-              <Link
-                href="/dashboard/supplier/products/new"
-                className={cn(buttonVariants({ size: "sm" }), "mt-4 inline-flex")}
-              >
-                Open
-              </Link>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="border-zinc-200 p-5 dark:border-zinc-700">
-          <div className="flex items-start gap-3">
-            <RotateCcw className="mt-0.5 h-5 w-5 text-violet-600" aria-hidden />
-            <div className="min-w-0 flex-1">
-              <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">Returns</h2>
-              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                Approve requests, wait for the buyer’s tracking, confirm receipt, then mark as refunded.
-              </p>
-              <Link
-                href="/dashboard/supplier/returns"
-                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-4 inline-flex")}
-              >
-                Open returns
-              </Link>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="border-zinc-200 p-5 dark:border-zinc-700">
-          <div className="flex items-start gap-3">
-            <Package className="mt-0.5 h-5 w-5 text-violet-600" aria-hidden />
-            <div className="min-w-0 flex-1">
-              <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">Products</h2>
-              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                View and edit everything you sell on the marketplace.
-              </p>
-              <Link
-                href="/dashboard/supplier/products"
-                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-4 inline-flex")}
-              >
-                Manage products
-              </Link>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="border-zinc-200 p-5 dark:border-zinc-700">
-          <div className="flex items-start gap-3">
-            <Upload className="mt-0.5 h-5 w-5 text-violet-600" aria-hidden />
-            <div className="min-w-0 flex-1">
-              <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">Import</h2>
-              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                URL / CSV preview import, or structured Excel with category attributes.
-              </p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Link
-                  href="/dashboard/supplier/import"
-                  className={cn(buttonVariants({ variant: "outline", size: "sm" }), "inline-flex")}
-                >
-                  Precision import
-                </Link>
-                <Link
-                  href="/dashboard/supplier/bulk-import"
-                  className={cn(buttonVariants({ size: "sm" }), "inline-flex")}
-                >
-                  Bulk Excel
-                </Link>
+        <div className={cn(bentoGrid, "auto-rows-fr")}>
+          <BentoCard className="flex flex-col gap-4 xl:col-span-5">
+            <div className="flex items-start gap-4">
+              <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-[#7C3AED]/10 text-[#7C3AED]">
+                <PlusCircle className="size-6" aria-hidden />
+              </span>
+              <div className="min-w-0 flex-1 space-y-2">
+                <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">Add product</h2>
+                <p className="text-sm leading-relaxed text-gray-600 dark:text-zinc-400">
+                  Create a listing with images, pricing in your store currency, and partner margin settings.
+                </p>
               </div>
             </div>
-          </div>
-        </Card>
+            <Link
+              href="/dashboard/supplier/products/new"
+              className={cn(buttonVariants({ variant: "bentoAccent", size: "bento" }), "mt-auto inline-flex w-full justify-center sm:w-auto")}
+            >
+              <PlusCircle className="size-5" aria-hidden />
+              New listing
+            </Link>
+          </BentoCard>
 
-        <Card className="border-zinc-200 bg-zinc-50/80 p-5 dark:border-zinc-700 dark:bg-zinc-900/30">
-          <div className="flex items-start gap-3">
-            <RefreshCw className="mt-0.5 h-5 w-5 shrink-0 text-zinc-800 dark:text-zinc-100" aria-hidden />
-            <div className="min-w-0 flex-1">
-              <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">Platform sync</h2>
-              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                Connect Shopify or automation tools to import your catalog as drafts.
-              </p>
+          <BentoCard className="flex flex-col gap-4 xl:col-span-7">
+            <div className="flex items-start gap-4">
+              <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gray-100 text-gray-900 dark:bg-zinc-800 dark:text-white">
+                <RotateCcw className="size-6" aria-hidden />
+              </span>
+              <div className="min-w-0 flex-1 space-y-2">
+                <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">Returns</h2>
+                <p className="text-sm leading-relaxed text-gray-600 dark:text-zinc-400">
+                  Approve requests, wait for buyer tracking, confirm receipt, then mark refunded.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/dashboard/supplier/returns"
+              className={cn(buttonVariants({ variant: "bentoOutline", size: "bento" }), "mt-auto inline-flex w-full justify-center sm:w-auto")}
+            >
+              Open returns
+            </Link>
+          </BentoCard>
+
+          <BentoCard className="flex flex-col gap-4 xl:col-span-7">
+            <div className="flex items-start gap-4">
+              <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-[#7C3AED]/10 text-[#7C3AED]">
+                <Package className="size-6" aria-hidden />
+              </span>
+              <div className="min-w-0 flex-1 space-y-2">
+                <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">Products</h2>
+                <p className="text-sm leading-relaxed text-gray-600 dark:text-zinc-400">
+                  View and edit everything you sell on the marketplace.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/dashboard/supplier/products"
+              className={cn(buttonVariants({ variant: "bentoOutline", size: "bento" }), "mt-auto inline-flex w-full justify-center sm:w-auto")}
+            >
+              Manage products
+            </Link>
+          </BentoCard>
+
+          <BentoCard className="flex flex-col gap-4 xl:col-span-5">
+            <div className="flex items-start gap-4">
+              <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-[#7C3AED]/10 text-[#7C3AED]">
+                <Upload className="size-6" aria-hidden />
+              </span>
+              <div className="min-w-0 flex-1 space-y-2">
+                <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">Import</h2>
+                <p className="text-sm leading-relaxed text-gray-600 dark:text-zinc-400">
+                  URL / CSV preview, or structured Excel with category attributes.
+                </p>
+              </div>
+            </div>
+            <div className="mt-auto flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/dashboard/supplier/integrations"
-                className={cn(buttonVariants({ size: "sm" }), "mt-4 inline-flex")}
+                href="/dashboard/supplier/import"
+                className={cn(buttonVariants({ variant: "bentoOutline", size: "bento" }), "inline-flex flex-1 justify-center")}
               >
-                Set up
+                Precision import
+              </Link>
+              <Link
+                href="/dashboard/supplier/bulk-import"
+                className={cn(buttonVariants({ variant: "bentoSolid", size: "bento" }), "inline-flex flex-1 justify-center")}
+              >
+                Bulk Excel
               </Link>
             </div>
-          </div>
-        </Card>
+          </BentoCard>
 
-        <Card className="border-zinc-200 p-5 dark:border-zinc-700">
-          <div className="flex items-start gap-3">
-            <Store className="mt-0.5 h-5 w-5 text-violet-600" aria-hidden />
-            <div className="min-w-0 flex-1">
-              <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">Store profile</h2>
-              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                Branding, social links, and public storefront.
-              </p>
+          <BentoCard className="flex flex-col gap-4 border-dashed border-gray-200/90 bg-white/60 xl:col-span-6 dark:border-zinc-700 dark:bg-zinc-900/40">
+            <div className="flex items-start gap-4">
+              <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gray-900 text-white dark:bg-white dark:text-gray-900">
+                <RefreshCw className="size-6" aria-hidden />
+              </span>
+              <div className="min-w-0 flex-1 space-y-2">
+                <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">Platform sync</h2>
+                <p className="text-sm leading-relaxed text-gray-600 dark:text-zinc-400">
+                  Connect Shopify or automation tools to import your catalog as drafts.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/dashboard/supplier/integrations"
+              className={cn(buttonVariants({ variant: "bentoSolid", size: "bento" }), "mt-auto inline-flex w-full justify-center sm:w-auto")}
+            >
+              Set up integrations
+            </Link>
+          </BentoCard>
+
+          <BentoCard className="flex flex-col gap-4 xl:col-span-6">
+            <div className="flex items-start gap-4">
+              <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-[#7C3AED]/10 text-[#7C3AED]">
+                <Store className="size-6" aria-hidden />
+              </span>
+              <div className="min-w-0 flex-1 space-y-2">
+                <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">Store profile</h2>
+                <p className="text-sm leading-relaxed text-gray-600 dark:text-zinc-400">
+                  Branding, social links, and public storefront.
+                </p>
+              </div>
+            </div>
+            <div className="mt-auto flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/dashboard/supplier/settings/store"
-                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-4 inline-flex")}
+                className={cn(buttonVariants({ variant: "bentoOutline", size: "bento" }), "inline-flex flex-1 justify-center")}
               >
-                Settings
+                Store settings
+              </Link>
+              <Link
+                href="/dashboard/supplier/storefront"
+                className={cn(buttonVariants({ variant: "bentoAccent", size: "bento" }), "inline-flex flex-1 justify-center")}
+              >
+                Visual storefront
               </Link>
             </div>
-          </div>
-        </Card>
-      </div>
-    </div>
+          </BentoCard>
+        </div>
+      </BentoContainer>
+    </BentoShell>
   )
 }
