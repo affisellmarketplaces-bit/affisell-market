@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 
 import { addGuestCartItem } from "@/lib/guest-cart"
@@ -80,10 +81,13 @@ export function MarketplaceListingCard({
     <div className="group flex h-full w-full flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-600">
       <Link href={detailHref} className="block" onPointerDown={() => recordClick()}>
         <div className="relative flex h-72 w-full items-center justify-center overflow-hidden rounded-t-xl bg-white p-4">
-          <img
+          <Image
             src={listing.image}
             alt={listing.title}
-            className="max-h-full max-w-full object-contain"
+            fill
+            sizes="(max-width: 768px) 100vw, 320px"
+            unoptimized
+            className="object-contain p-4"
             onError={(e) => {
               e.currentTarget.src = "/placeholder.png"
             }}

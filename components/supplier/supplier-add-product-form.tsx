@@ -898,17 +898,24 @@ export function SupplierAddProductForm({
       window.clearTimeout(timer)
     }
   }, [
+    assembleListingPayload,
     autosaveFingerprint,
     autosaveListingId,
+    categoryId,
+    description,
     draftIdFromUrl,
     editId,
+    images,
     loadingProduct,
+    name,
     pathname,
     pendingDraftListingId,
     productIsDraft,
     router,
     saving,
     searchParams,
+    shipsFrom,
+    step,
   ])
 
   useEffect(() => {

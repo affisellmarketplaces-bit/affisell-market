@@ -34,6 +34,8 @@ import {
 } from "@/lib/product-color-images"
 import type { ProductVariantsJson } from "@/lib/product-variants"
 
+const EMPTY_SIZE_OPTIONS: string[] = []
+
 type StorefrontInfo = {
   name: string
   slug: string
@@ -213,8 +215,10 @@ export function MarketplaceListingDetail({
     const g = gallery.filter((u): u is string => typeof u === "string" && Boolean(u.trim()))
     return g.length > 0 ? g : ["/placeholder.png"]
   }, [gallery])
-  const v = variants ?? {}
-  const sizeOptions = v.size ?? []
+  const sizeOptions = useMemo(() => {
+    const s = variants?.size
+    return s && s.length > 0 ? s : EMPTY_SIZE_OPTIONS
+  }, [variants?.size])
 
   const initialColor = useMemo(() => {
     const p = promotedColor?.trim()

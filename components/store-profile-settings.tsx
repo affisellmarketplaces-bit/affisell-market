@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import type { FormEvent } from "react"
 import { useCallback, useEffect, useRef, useState } from "react"
@@ -488,9 +489,12 @@ export function StoreProfileSettings({ backHref, backLabel }: Props) {
           <h2 className="text-lg font-semibold text-gray-900">Store Logo</h2>
           <div className="mt-3 flex flex-wrap items-start gap-4">
             {previewUrl ? (
-              <img
+              <Image
                 src={previewUrl}
                 alt=""
+                width={80}
+                height={80}
+                unoptimized
                 className="h-20 w-20 rounded-lg border border-gray-200 object-contain"
               />
             ) : null}

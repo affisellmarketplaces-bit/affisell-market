@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { ExternalLink, Palette, Ruler, Sparkles } from "lucide-react"
 import type { CSSProperties } from "react"
@@ -198,7 +199,7 @@ export default function CartPage() {
   const maxApplicableReward = useMemo(() => {
     if (!isAuthed || rewardBalanceCents <= 0 || subtotalCents <= 0) return 0
     return Math.max(0, Math.min(rewardBalanceCents, subtotalCents - minCardCents))
-  }, [isAuthed, rewardBalanceCents, subtotalCents])
+  }, [isAuthed, rewardBalanceCents, minCardCents, subtotalCents])
 
   const itemCount = useMemo(() => lines.reduce((n, row) => n + row.qty, 0), [lines])
 
@@ -392,9 +393,12 @@ export default function CartPage() {
                       className="block overflow-hidden rounded-xl bg-zinc-50 transition-[box-shadow] duration-500 dark:bg-zinc-950"
                       style={colorFrameStyle(frameColor)}
                     >
-                      <img
+                      <Image
                         src={row.product.imageUrl || "/placeholder.png"}
                         alt=""
+                        width={128}
+                        height={128}
+                        unoptimized
                         className="h-28 w-28 object-contain p-2 sm:h-32 sm:w-32"
                         onError={(e) => {
                           e.currentTarget.src = "/placeholder.png"

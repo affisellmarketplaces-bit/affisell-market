@@ -48,6 +48,8 @@ const CUSTOMER_REQUESTS = [
   { name: "Lavender", hex: "#E6E6FA", count: 5 },
 ] as const
 
+const EMPTY_VARIANT_ROWS: ProductVariantLine[] = []
+
 export type ProductVariantsAdvancedProps = {
   variants: ProductVariantsJson | null
   onVariantsChange: (next: ProductVariantsJson | null) => void
@@ -71,7 +73,10 @@ export function ProductVariantsAdvanced({
   colors,
   tags,
 }: ProductVariantsAdvancedProps) {
-  const rows = variants?.variantRows ?? []
+  const rows = useMemo(
+    () => variants?.variantRows ?? EMPTY_VARIANT_ROWS,
+    [variants?.variantRows]
+  )
   const [showBulkCreator, setShowBulkCreator] = useState(false)
   const [bulkAttr1, setBulkAttr1] = useState("")
   const [bulkAttr2, setBulkAttr2] = useState("")
@@ -133,7 +138,7 @@ export function ProductVariantsAdvanced({
     setShowCustomColor(false)
     setCustomName("")
     setCustomHex("#ff6b6b")
-  }, [customColors.length, customHex, customName])
+  }, [customColors, customHex, customName])
 
   const createVariantFromColor = useCallback(
     (colorName: string) => {
