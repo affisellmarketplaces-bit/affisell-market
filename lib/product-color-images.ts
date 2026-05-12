@@ -57,6 +57,17 @@ export function parseProductColorImagesFromBody(raw: unknown): ProductColorImage
   return rows.length ? rows.slice(0, 40) : null
 }
 
+/** Resolve key in imageByColor map with case-insensitive fallback. */
+function lookupImageByColor(ibc: Record<string, string> | undefined, color: string): string {
+  if (!ibc) return ""
+  const direct = ibc[color]
+  if (typeof direct === "string" && direct.trim()) return direct
+  const want = color.trim().toLowerCase()
+  const key = Object.keys(ibc).find((k) => k.trim().toLowerCase() === want)
+  const v = key ? ibc[key] : ""
+  return typeof v === "string" ? v : ""
+}
+
 /** Migrate `variants.imageByColor` into rows when `colorImages` is empty */
 export function buildColorImagesFromLegacy(
   colors: string[],
@@ -64,12 +75,37 @@ export function buildColorImagesFromLegacy(
 ): ProductColorImageRow[] {
   if (!colors.length) return []
   const v = parseVariantsPayload(variantsRaw)
-  const ibc = v?.imageByColor
+  const ibc = v?.imageByColor as Record<string, string> | undefined
   return colors.map((c) => {
-    const raw = typeof ibc?.[c] === "string" ? ibc[c] : ""
+    const raw = lookupImageByColor(ibc, c)
     const image = raw && !raw.startsWith("blob:") ? raw.trim() : ""
     return { color: c, hex: catalogHexForColorName(c), image }
   })
+}
+
+/** Compare image URLs loosely (ignore query string / trailing slash). */
+export function comparableImageUrl(url: string): string {
+  const t = url.trim()
+  if (!t) return ""
+  try {
+    const u = new URL(t, "https://placeholder.local")
+    return `${u.pathname}${u.hash}`.toLowerCase()
+  } catch {
+    return t.split("?")[0]!.toLowerCase()
+  }
+}
+
+/** Match supplier color name to a row (exact, then case-insensitive trim). */
+export function findColorImageRowForName(
+  rows: ProductColorImageRow[],
+  colorName: string
+): ProductColorImageRow | undefined {
+  const want = colorName.trim()
+  if (!want) return undefined
+  const exact = rows.find((r) => r.color === want)
+  if (exact) return exact
+  const wl = want.toLowerCase()
+  return rows.find((r) => r.color.trim().toLowerCase() === wl)
 }
 
 /** One row per supplier color: prefer `colorImages` JSON, then legacy `variants.imageByColor`. */
@@ -82,7 +118,7 @@ export function mergeColorImagesForProduct(
   const parsed = parseProductColorImagesFromDb(colorImagesJson)
   const legacy = buildColorImagesFromLegacy(colors, variantsRaw)
   return colors.map((color) => {
-    const rowP = parsed?.find((r) => r.color === color)
+    const rowP = parsed ? findColorImageRowForName(parsed, color) : undefined
     const rowL = legacy.find((r) => r.color === color)
     const image = (rowP?.image?.trim() || rowL?.image?.trim() || "")
     return {

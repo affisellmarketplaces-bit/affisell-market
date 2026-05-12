@@ -27,7 +27,11 @@ import {
 } from "@/lib/product-catalog-constants"
 import { addGuestCartItem } from "@/lib/guest-cart"
 import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/marketplace-checkout-discount"
-import type { ProductColorImageRow } from "@/lib/product-color-images"
+import {
+  comparableImageUrl,
+  findColorImageRowForName,
+  type ProductColorImageRow,
+} from "@/lib/product-color-images"
 import type { ProductVariantsJson } from "@/lib/product-variants"
 
 type StorefrontInfo = {
@@ -134,7 +138,7 @@ function listingAtAGlance(description: string, name: string, tags: string[]): st
   return null
 }
 
-/** Pick gallery index to show for a color (explicit URL, then same index as color order). */
+/** Pick gallery index for a color (match per-color image URL to gallery, then fall back to color order). */
 function imageIndexForColor(
   color: string | null,
   colorNames: string[],
@@ -143,12 +147,13 @@ function imageIndexForColor(
 ): number {
   if (!images.length) return 0
   if (!color) return 0
-  const direct = colorImages.find((c) => c.color === color)?.image?.trim()
+  const row = findColorImageRowForName(colorImages, color)
+  const direct = row?.image?.trim()
   if (direct) {
-    const hit = images.findIndex((u) => u.trim() === direct.trim())
+    const hit = images.findIndex((u) => comparableImageUrl(u) === comparableImageUrl(direct))
     if (hit >= 0) return hit
   }
-  const idx = colorNames.indexOf(color)
+  const idx = colorNames.findIndex((c) => c.trim().toLowerCase() === color.trim().toLowerCase())
   if (idx >= 0 && idx < images.length) return idx
   return 0
 }
@@ -234,6 +239,8 @@ export function MarketplaceListingDetail({
   }, [colorNames, promotedColor, promotedSize, sizeOptions])
 
   const [selectedImage, setSelectedImage] = useState(0)
+  /** When true, main image follows thumbnail index; when false, follows selected color’s image URL when set. */
+  const [galleryHeroLock, setGalleryHeroLock] = useState(false)
   const [selectedColor, setSelectedColor] = useState<string | null>(initialColor)
   const [selectedSize, setSelectedSize] = useState<string | null>(initialSize)
 
@@ -248,6 +255,7 @@ export function MarketplaceListingDetail({
   /** Sync main + thumbnail index when opening another listing or affiliate default color changes. */
   // eslint-disable-next-line react-hooks/exhaustive-deps -- do not depend on `gallery`/`colorImages` ref churn from parent or thumbnail clicks get reset every render
   useEffect(() => {
+    setGalleryHeroLock(false)
     setSelectedImage(imageIndexForColor(initialColor, colorNames, colorImages, images))
   }, [listingId, initialColor])
 
@@ -269,7 +277,35 @@ export function MarketplaceListingDetail({
   }, [colorNames])
 
   const safeImageIndex = Math.min(Math.max(0, selectedImage), Math.max(0, images.length - 1))
-  const hero = images[safeImageIndex]?.trim() || "/placeholder.png"
+
+  const colorRow = useMemo(
+    () => (selectedColor ? findColorImageRowForName(colorImages, selectedColor) : undefined),
+    [colorImages, selectedColor]
+  )
+  const colorDirectUrl = colorRow?.image?.trim() ?? ""
+
+  const hero = useMemo(() => {
+    if (!galleryHeroLock && colorDirectUrl) return colorDirectUrl
+    return images[safeImageIndex]?.trim() || "/placeholder.png"
+  }, [galleryHeroLock, colorDirectUrl, images, safeImageIndex])
+
+  const activeThumbIndex = useMemo(() => {
+    if (galleryHeroLock) return safeImageIndex
+    if (colorDirectUrl) {
+      const hit = images.findIndex((u) => comparableImageUrl(u) === comparableImageUrl(colorDirectUrl))
+      if (hit >= 0) return hit
+      return -1
+    }
+    return imageIndexForColor(selectedColor, colorNames, colorImages, images)
+  }, [
+    galleryHeroLock,
+    safeImageIndex,
+    colorDirectUrl,
+    images,
+    selectedColor,
+    colorNames,
+    colorImages,
+  ])
   const listingPriceEur = listingPriceCents / 100
   const hasRetailCompare = typeof retailPriceEur === "number" && retailPriceEur > listingPriceEur
   const discountPct = hasRetailCompare
@@ -465,13 +501,14 @@ export function MarketplaceListingDetail({
                 <button
                   key={`thumb-${i}`}
                   type="button"
-                  aria-pressed={safeImageIndex === i}
+                  aria-pressed={activeThumbIndex >= 0 && activeThumbIndex === i}
                   onClick={(e) => {
                     e.preventDefault()
+                    setGalleryHeroLock(true)
                     setSelectedImage(i)
                   }}
                   className={`relative aspect-square w-[4.25rem] shrink-0 overflow-hidden rounded-xl border-2 bg-white transition dark:bg-zinc-950 sm:w-[5.25rem] ${
-                    safeImageIndex === i
+                    activeThumbIndex >= 0 && activeThumbIndex === i
                       ? "border-violet-600 shadow-sm ring-2 ring-violet-500/25 dark:border-violet-500"
                       : "border-zinc-200/90 opacity-90 ring-1 ring-zinc-200/80 hover:border-zinc-300 hover:opacity-100 dark:border-zinc-700 dark:ring-zinc-800 dark:hover:border-zinc-600"
                   }`}
@@ -626,6 +663,7 @@ export function MarketplaceListingDetail({
                       key={cn}
                       type="button"
                       onClick={() => {
+                        setGalleryHeroLock(false)
                         setSelectedColor(cn)
                         setSelectedImage(imageIndexForColor(cn, colorNames, colorImages, images))
                       }}
