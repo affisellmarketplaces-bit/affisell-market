@@ -27,7 +27,12 @@ import {
 } from "@/lib/product-catalog-constants"
 import { addGuestCartItem } from "@/lib/guest-cart"
 import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/marketplace-checkout-discount"
-import { formatStoreCount, formatStoreCurrency, formatStoreDate } from "@/lib/market-config"
+import {
+  formatStoreCount,
+  formatStoreCurrency,
+  formatStoreCurrencyFromCents,
+  formatStoreDate,
+} from "@/lib/market-config"
 import {
   comparableImageUrl,
   findColorImageRowForName,
@@ -357,14 +362,6 @@ export function MarketplaceListingDetail({
   useEffect(() => {
     setUseRewardCents((v) => Math.min(Math.max(0, v), maxApplicableReward))
   }, [maxApplicableReward])
-
-  const fmtEur = (cents: number) =>
-    new Intl.NumberFormat("en-IE", {
-      style: "currency",
-      currency: "EUR",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(cents / 100)
 
   const etaDate = useMemo(() => {
     const d = new Date()
@@ -740,8 +737,9 @@ export function MarketplaceListingDetail({
                     </Link>
                   </div>
                   <p className="mt-1 text-xs text-teal-900/90 dark:text-teal-200/90">
-                    Balance {fmtEur(rewardBalanceCents)} · up to {fmtEur(maxApplicableReward)} on this checkout (€
-                    {(STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS / 100).toFixed(2)} card minimum).
+                    Balance {formatStoreCurrencyFromCents(rewardBalanceCents)} · up to{" "}
+                    {formatStoreCurrencyFromCents(maxApplicableReward)} on this checkout (
+                    {formatStoreCurrency(STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS / 100)} card minimum).
                   </p>
                   <div className="mt-2 flex flex-wrap items-center gap-3">
                     <input
@@ -755,7 +753,7 @@ export function MarketplaceListingDetail({
                       aria-label="Store credit to apply"
                     />
                     <span className="text-sm font-semibold tabular-nums text-teal-950 dark:text-teal-50">
-                      {fmtEur(Math.min(useRewardCents, maxApplicableReward))}
+                      {formatStoreCurrencyFromCents(Math.min(useRewardCents, maxApplicableReward))}
                     </span>
                     <button
                       type="button"

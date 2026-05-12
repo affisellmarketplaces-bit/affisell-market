@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { prisma } from "@/lib/prisma"
+import { formatStoreCurrency } from "@/lib/market-config"
 import { primaryProductImage } from "@/lib/product-images"
 import type { VisualSearchResult } from "@/lib/visual-search-types"
 
@@ -95,10 +96,7 @@ export async function POST(req: Request) {
       productId: row.product.id,
       title: row.product.name,
       imageUrl: img || "/placeholder.png",
-      priceDisplay: (row.sellingPriceCents / 100).toLocaleString("fr-FR", {
-        style: "currency",
-        currency: "EUR",
-      }),
+      priceDisplay: formatStoreCurrency(row.sellingPriceCents / 100),
       matchScore,
     }
   })

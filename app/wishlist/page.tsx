@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { prisma } from "@/lib/prisma"
+import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 
 export const dynamic = "force-dynamic"
 
@@ -86,13 +87,11 @@ export default async function WishlistPage() {
                   </Link>
                   <div className="mt-1 flex flex-wrap items-center gap-2 text-sm">
                     <span className="font-bold text-zinc-900">
-                      {current != null
-                        ? (current / 100).toLocaleString("fr-FR", { style: "currency", currency: "EUR" })
-                        : "N/A"}
+                      {current != null ? formatStoreCurrencyFromCents(current) : "N/A"}
                     </span>
                     {w.targetPriceCents != null ? (
                       <span className="text-zinc-500">
-                        cible {(w.targetPriceCents / 100).toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
+                        cible {formatStoreCurrencyFromCents(w.targetPriceCents)}
                       </span>
                     ) : null}
                     {pct > 0 ? (

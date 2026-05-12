@@ -4,6 +4,7 @@ import { useMemo, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { RETURN_REASON_CODES, RETURN_REASON_LABELS } from "@/lib/order-return-types"
 import { cn } from "@/lib/utils"
 
@@ -26,10 +27,6 @@ type OrderRow = {
     buyerTrackingNumber: string | null
   } | null
   lastReturn: { id: string; status: string; createdAt: string; terminal: boolean } | null
-}
-
-function formatMoney(cents: number) {
-  return new Intl.NumberFormat(undefined, { style: "currency", currency: "EUR" }).format(cents / 100)
 }
 
 function statusLabel(status: string) {
@@ -115,7 +112,7 @@ export function AccountOrdersClient({
             <div className="min-w-0 flex-1">
               <p className="font-medium text-zinc-900 dark:text-zinc-50">{o.product.name}</p>
               <p className="mt-0.5 text-xs text-zinc-500">
-                {new Date(o.createdAt).toLocaleDateString()} · ×{o.quantity} · {formatMoney(o.sellingPriceCents)}
+                {new Date(o.createdAt).toLocaleDateString()} · ×{o.quantity} · {formatStoreCurrencyFromCents(o.sellingPriceCents)}
               </p>
               {o.activeReturn ? (
                 <div className="mt-2 space-y-1 text-sm">

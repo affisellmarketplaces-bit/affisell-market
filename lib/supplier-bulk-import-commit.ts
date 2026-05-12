@@ -9,13 +9,13 @@ import { normalizeAffiliateCommissionRatePct } from "@/lib/supplier-commission"
 
 export function assertParsedBulkProductRow(row: ParsedBulkProductRow): string | null {
   if (!row.name.trim()) return "Missing name"
-  if (!Number.isFinite(row.priceUsd) || row.priceUsd <= 0) return "Invalid price"
+  if (!Number.isFinite(row.priceEur) || row.priceEur <= 0) return "Invalid price"
   if (!row.images.length) return "Missing images"
   const comm = normalizeAffiliateCommissionRatePct(row.commissionPct, row.listingKind)
   if (!comm.ok) return comm.error
-  if (row.compareAtUsd != null && row.compareAtUsd > 0) {
-    const pc = Math.round(row.priceUsd * 100)
-    const cc = Math.round(row.compareAtUsd * 100)
+  if (row.compareAtEur != null && row.compareAtEur > 0) {
+    const pc = Math.round(row.priceEur * 100)
+    const cc = Math.round(row.compareAtEur * 100)
     if (cc <= pc) return "Compare-at must exceed price"
     const discountPct = ((cc - pc) / cc) * 100
     if (discountPct > 70) return "Compare-at discount over 70%"
@@ -31,15 +31,15 @@ export async function insertBulkParsedProduct(
   const err = assertParsedBulkProductRow(row)
   if (err) throw new Error(err)
 
-  const normalizedPriceCents = Math.max(100, Math.round(row.priceUsd * 100))
+  const normalizedPriceCents = Math.max(100, Math.round(row.priceEur * 100))
 
   let compareAt: Prisma.Decimal | null = null
-  if (row.compareAtUsd != null && row.compareAtUsd > 0) {
-    const compareAtCents = Math.round(row.compareAtUsd * 100)
+  if (row.compareAtEur != null && row.compareAtEur > 0) {
+    const compareAtCents = Math.round(row.compareAtEur * 100)
     if (compareAtCents > normalizedPriceCents) {
       const discountPct = ((compareAtCents - normalizedPriceCents) / compareAtCents) * 100
       if (discountPct <= 70) {
-        compareAt = new Prisma.Decimal(row.compareAtUsd.toFixed(2))
+        compareAt = new Prisma.Decimal(row.compareAtEur.toFixed(2))
       }
     }
   }

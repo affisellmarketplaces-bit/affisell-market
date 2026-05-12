@@ -29,8 +29,11 @@ export const BULK_FIXED_COLUMNS: readonly {
 }[] = [
   { key: "name", description: "Product name (required)" },
   { key: "description", description: "Plain text description" },
-  { key: "price_usd", description: "Base price in USD, e.g. 29.99 (required)" },
-  { key: "compare_at_usd", description: "Optional MSRP / compare-at in USD (must be > price)" },
+  { key: "price_eur", description: "Base price in EUR, e.g. 29.99 (required)" },
+  {
+    key: "compare_at_eur",
+    description: "Optional MSRP / compare-at in EUR (must be > base price; legacy columns price_usd / compare_at_usd still accepted)",
+  },
   { key: "stock", description: "Integer stock (default 0)" },
   { key: "commission_pct", description: `Affiliate commission % (default ${defaultAffiliateCommissionPct()})` },
   { key: "listing_kind", description: "PHYSICAL | SOFTWARE | SUBSCRIPTION (default PHYSICAL)" },
@@ -84,8 +87,8 @@ export function parseImageUrlsCell(raw: string): string[] {
 export type ParsedBulkProductRow = {
   name: string
   description: string
-  priceUsd: number
-  compareAtUsd: number | null
+  priceEur: number
+  compareAtEur: number | null
   stock: number
   commissionPct: number
   listingKind: ListingKind
@@ -101,7 +104,10 @@ export type BulkRowParseResult = {
   data: ParsedBulkProductRow | null
 }
 
-function parseUsdNumber(raw: string, field: string): { ok: true; n: number } | { ok: false; error: string } {
+function parsePositiveDecimal(
+  raw: string,
+  field: string
+): { ok: true; n: number } | { ok: false; error: string } {
   const t = raw.replace(/\s+/g, "").replace(",", ".")
   if (!t) return { ok: false, error: `${field} is required` }
   const n = Number(t)
@@ -124,15 +130,16 @@ export function validateAndParseBulkRow(
 
   const desc = (cells.description ?? "").trim()
 
-  const priceR = parseUsdNumber(cells.price_usd ?? "", "price_usd")
+  const priceCell = (cells.price_eur ?? cells.price_usd ?? "").trim()
+  const priceR = parsePositiveDecimal(priceCell, "price")
   if (!priceR.ok) errors.push(priceR.error)
 
-  let compareAtUsd: number | null = null
-  const cmpRaw = (cells.compare_at_usd ?? "").trim()
+  let compareAtEur: number | null = null
+  const cmpRaw = (cells.compare_at_eur ?? cells.compare_at_usd ?? "").trim()
   if (cmpRaw) {
     const c = Number(cmpRaw.replace(",", "."))
-    if (!Number.isFinite(c) || c <= 0) errors.push("compare_at_usd is invalid")
-    else compareAtUsd = c
+    if (!Number.isFinite(c) || c <= 0) errors.push("compare_at is invalid")
+    else compareAtEur = c
   }
 
   const stockRaw = (cells.stock ?? "").trim()
@@ -153,12 +160,12 @@ export function validateAndParseBulkRow(
   const images = parseImageUrlsCell(cells.images ?? "")
   if (images.length === 0) errors.push("At least one http(s) image URL is required in images")
 
-  let priceUsd = 0
-  if (priceR.ok) priceUsd = priceR.n
+  let priceEur = 0
+  if (priceR.ok) priceEur = priceR.n
 
-  if (compareAtUsd != null && priceUsd > 0) {
-    if (compareAtUsd <= priceUsd) errors.push("compare_at_usd must be greater than price_usd")
-    const discountPct = ((compareAtUsd - priceUsd) / compareAtUsd) * 100
+  if (compareAtEur != null && priceEur > 0) {
+    if (compareAtEur <= priceEur) errors.push("compare_at must be greater than base price")
+    const discountPct = ((compareAtEur - priceEur) / compareAtEur) * 100
     if (discountPct > 70) errors.push("compare_at discount cannot exceed 70%")
   }
 
@@ -230,8 +237,8 @@ export function validateAndParseBulkRow(
     data: {
       name: name.slice(0, 500),
       description: desc.slice(0, 8000) || "—",
-      priceUsd,
-      compareAtUsd,
+      priceEur,
+      compareAtEur,
       stock,
       commissionPct,
       listingKind,
@@ -270,7 +277,7 @@ export function extractRowCells(
 
 export function isRowEmpty(cells: Record<string, string>): boolean {
   const name = (cells.name ?? "").trim()
-  const price = (cells.price_usd ?? "").trim()
+  const price = (cells.price_eur ?? cells.price_usd ?? "").trim()
   const imgs = (cells.images ?? "").trim()
   return !name && !price && !imgs
 }

@@ -14,6 +14,7 @@ import { createCheckoutSession } from "@/lib/agent-checkout"
 import { searchCatalogForAgent } from "@/lib/agent-catalog-search"
 import { getAgentHistoryForTools, recordAgentSearch, type AgentHistoryContext } from "@/lib/agent-history"
 import type { AgentProductCard } from "@/lib/agent-product-card-types"
+import { formatStoreCurrency } from "@/lib/market-config"
 import { prisma } from "@/lib/prisma"
 
 /** Shared client instance (same engine as `@/lib/prisma`). */
@@ -123,10 +124,7 @@ export async function POST(req: Request) {
     if (!checkout?.checkoutUrl) {
       return Response.json({ error: "Impossible de préparer le paiement pour ce produit." })
     }
-    const price = (checkout.priceCents / 100).toLocaleString("fr-FR", {
-      style: "currency",
-      currency: "EUR",
-    })
+    const price = formatStoreCurrency(checkout.priceCents / 100)
     const text = `Parfait! Je prépare votre commande pour ${checkout.name}. [Bouton: Payer ${price}]`
     return Response.json({
       messages: [

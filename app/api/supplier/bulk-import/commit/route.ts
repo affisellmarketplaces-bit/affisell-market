@@ -102,9 +102,10 @@ export async function POST(req: Request) {
     const o = item as Record<string, unknown>
     const name = typeof o.name === "string" ? o.name : ""
     const description = typeof o.description === "string" ? o.description : "—"
-    const priceUsd = Number(o.priceUsd)
-    const compareAtUsd =
-      o.compareAtUsd != null && o.compareAtUsd !== "" ? Number(o.compareAtUsd) : null
+    const priceEur = Number(o.priceEur ?? o.priceUsd)
+    const rawCompare = o.compareAtEur ?? o.compareAtUsd
+    const compareAtEur =
+      rawCompare != null && rawCompare !== "" ? Number(rawCompare) : null
     const stock = Math.max(0, Math.round(Number(o.stock) || 0))
     const commissionPct = Math.round(Number(o.commissionPct) || 15)
     const listingKind = parseListingKind(o.listingKind)
@@ -131,10 +132,10 @@ export async function POST(req: Request) {
     parsedRows.push({
       name,
       description,
-      priceUsd,
-      compareAtUsd:
-        compareAtUsd != null && Number.isFinite(compareAtUsd) && compareAtUsd > 0
-          ? compareAtUsd
+      priceEur,
+      compareAtEur:
+        compareAtEur != null && Number.isFinite(compareAtEur) && compareAtEur > 0
+          ? compareAtEur
           : null,
       stock,
       commissionPct,

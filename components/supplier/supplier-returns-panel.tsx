@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { RETURN_REASON_LABELS } from "@/lib/order-return-types"
 import { cn } from "@/lib/utils"
 
@@ -34,10 +35,6 @@ type ReturnRow = {
     productName: string
     productImageUrl: string | null
   }
-}
-
-function money(cents: number) {
-  return new Intl.NumberFormat(undefined, { style: "currency", currency: "EUR" }).format(cents / 100)
 }
 
 function statusLabel(s: string) {
@@ -166,7 +163,7 @@ export function SupplierReturnsPanel({ className }: { className?: string }) {
               <p className="font-medium text-zinc-900 dark:text-zinc-50">{r.order.productName}</p>
               <p className="text-xs text-zinc-500">
                 {r.order.customerEmail} · ordered {new Date(r.order.orderedAt).toLocaleDateString()} · ×
-                {r.order.quantity} · {money(r.order.sellingPriceCents)}
+                {r.order.quantity} · {formatStoreCurrencyFromCents(r.order.sellingPriceCents)}
               </p>
               <p className="mt-1 text-sm">
                 <span className="text-zinc-500">Status: </span>

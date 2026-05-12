@@ -4,6 +4,7 @@ import { motion } from "framer-motion"
 import Link from "next/link"
 
 import type { AgentProductCard } from "@/lib/agent-product-card-types"
+import { formatStoreCurrency } from "@/lib/market-config"
 import { WishlistHeart } from "@/components/wishlist-heart"
 
 type Props = {
@@ -44,7 +45,7 @@ function AgentProductCardItem({ p }: { p: AgentProductCard }) {
         <p className="line-clamp-2 text-base font-semibold text-white">{p.name}</p>
         <p className="text-sm text-zinc-400">{p.brand}</p>
         <p className="mt-auto text-2xl font-bold text-white">
-          {p.price.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
+          {formatStoreCurrency(p.price)}
         </p>
         <div className="rounded-xl bg-white py-3 text-center text-sm font-medium text-black transition group-hover:bg-violet-600 group-hover:text-white">
           Voir le produit

@@ -261,7 +261,7 @@ export function SupplierAddProductForm({
 
   const priceError = useMemo(() => {
     const p = Number(price)
-    if (!Number.isFinite(p) || p <= 0) return "Enter a valid base price (USD)."
+    if (!Number.isFinite(p) || p <= 0) return "Enter a valid base price (EUR)."
     return null
   }, [price])
 
@@ -1787,7 +1787,7 @@ export function SupplierAddProductForm({
                             <tr>
                               <th className="px-3 py-2">Label</th>
                               <th className="px-3 py-2">SKU</th>
-                              <th className="px-3 py-2">Price (USD)</th>
+                              <th className="px-3 py-2">Price (EUR)</th>
                               <th className="px-3 py-2">Stock</th>
                               <th className="px-3 py-2">Comm. %</th>
                               <th className="w-10 px-2 py-2" />

@@ -4,18 +4,11 @@ import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import { buttonVariants } from "@/components/ui/button"
 import { prisma } from "@/lib/prisma"
+import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/marketplace-checkout-discount"
+import { formatStoreCurrency, formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { cn } from "@/lib/utils"
 
 export const dynamic = "force-dynamic"
-
-function formatEur(cents: number) {
-  return new Intl.NumberFormat("en-IE", {
-    style: "currency",
-    currency: "EUR",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(cents / 100)
-}
 
 function typeLabel(type: string) {
   if (type === "EARNED") return "Earned"
@@ -52,8 +45,8 @@ export default async function WalletPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">Store credit</h1>
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            Cashback and bonuses from partner stores. Use it at checkout on the marketplace (minimum €0.50 card
-            payment applies).
+            Cashback and bonuses from partner stores. Use it at checkout on the marketplace (minimum{" "}
+            {formatStoreCurrency(STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS / 100)} card payment applies).
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -68,7 +61,7 @@ export default async function WalletPage() {
 
       <div className="mt-8 rounded-2xl border border-teal-200/80 bg-gradient-to-br from-teal-50 to-white p-6 shadow-sm dark:border-teal-900/50 dark:from-teal-950/40 dark:to-zinc-950">
         <p className="text-xs font-semibold uppercase tracking-wide text-teal-800 dark:text-teal-200">Current balance</p>
-        <p className="mt-2 text-3xl font-bold tabular-nums text-teal-950 dark:text-teal-50">{formatEur(balance)}</p>
+        <p className="mt-2 text-3xl font-bold tabular-nums text-teal-950 dark:text-teal-50">{formatStoreCurrencyFromCents(balance)}</p>
       </div>
 
       <div className="mt-10">
@@ -111,7 +104,7 @@ export default async function WalletPage() {
                         }`}
                       >
                         {signed >= 0 ? "+" : "−"}
-                        {formatEur(Math.abs(signed))}
+                        {formatStoreCurrencyFromCents(Math.abs(signed))}
                       </td>
                     </tr>
                   )

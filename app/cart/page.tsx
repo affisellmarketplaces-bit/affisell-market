@@ -16,6 +16,7 @@ import {
   setGuestCartQuantity,
   type GuestCartItem,
 } from "@/lib/guest-cart"
+import { formatStoreCurrency } from "@/lib/market-config"
 
 type CartLine = {
   id: string
@@ -35,15 +36,6 @@ type CartLine = {
 type AuthSession = {
   user?: { id?: string; role?: string | null } | null
 } | null
-
-function formatEur(n: number) {
-  return new Intl.NumberFormat("en-IE", {
-    style: "currency",
-    currency: "EUR",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(n)
-}
 
 function normalizeCartRow(raw: CartLine): CartLine {
   return {
@@ -481,7 +473,7 @@ export default function CartPage() {
                       </div>
                       <div className="flex items-center gap-4">
                         <span className="text-lg font-bold tabular-nums text-zinc-900 dark:text-zinc-50">
-                          {formatEur(lineTotal)}
+                          {formatStoreCurrency(lineTotal)}
                         </span>
                         <button
                           type="button"
@@ -513,13 +505,14 @@ export default function CartPage() {
             <span>
               Subtotal ({itemCount} {itemCount === 1 ? "item" : "items"})
             </span>
-            <span className="tabular-nums">{formatEur(subtotal)}</span>
+            <span className="tabular-nums">{formatStoreCurrency(subtotal)}</span>
           </div>
           {isAuthed && rewardBalanceCents > 0 ? (
             <div className="mb-4 rounded-xl border border-teal-100 bg-teal-50/60 p-4 dark:border-teal-900/50 dark:bg-teal-950/30">
               <p className="text-sm font-semibold text-teal-900 dark:text-teal-100">Store credit</p>
               <p className="mt-1 text-xs text-teal-800 dark:text-teal-200/90">
-                Balance {formatEur(rewardBalanceCents / 100)} · up to {formatEur(maxApplicableReward / 100)} usable
+                Balance {formatStoreCurrency(rewardBalanceCents / 100)} · up to{" "}
+                {formatStoreCurrency(maxApplicableReward / 100)} usable
                 (€{MIN_CARD_EUR.toFixed(2)} minimum card charge stays on the order).
               </p>
               <label htmlFor="use-reward" className="mt-3 block text-xs font-medium text-teal-900 dark:text-teal-100">
@@ -537,7 +530,7 @@ export default function CartPage() {
                   className="min-w-[12rem] flex-1 accent-teal-600"
                 />
                 <span className="text-sm font-semibold text-teal-900 dark:text-teal-50">
-                  {formatEur(Math.min(useRewardCents, maxApplicableReward) / 100)}
+                  {formatStoreCurrency(Math.min(useRewardCents, maxApplicableReward) / 100)}
                 </span>
                 <button
                   type="button"
