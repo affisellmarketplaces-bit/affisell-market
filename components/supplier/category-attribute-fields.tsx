@@ -107,17 +107,15 @@ export function CategoryAttributeFields({ attributes, loading, values, onChange 
   }
 
   return (
-    <div className="rounded-lg border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
+    <div className="rounded-lg border border-zinc-200 bg-zinc-50/80 p-3 dark:border-zinc-700 dark:bg-zinc-900/40 sm:p-4">
       <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Technical specifications</h3>
-      <p className="mt-1 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-        <span className="font-medium text-zinc-700 dark:text-zinc-200">Brand, size and colour</span> are always
-        available; more fields appear for your category.{" "}
-        <span className="text-red-600">*</span> Required · multi-select uses pill toggles.
+      <p className="mt-0.5 text-xs leading-snug text-zinc-500 dark:text-zinc-400">
+        <span className="text-red-600">*</span> Required fields · multi-select = pill toggles.
       </p>
       {loading ? (
         <p className="mt-2 text-xs text-violet-600 dark:text-violet-400">Loading extra fields for this aisle…</p>
       ) : null}
-      <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {sorted.map((attr) => {
           const v = values[attr.key] ?? ""
           const labelSuffix = attr.unit ? ` (${attr.unit})` : ""
