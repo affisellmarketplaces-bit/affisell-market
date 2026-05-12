@@ -9,6 +9,8 @@ import {
   type ProductVariantsJson,
 } from "@/lib/product-variants"
 
+import { formatStoreCurrency, formatStoreCurrencyFromCents } from "@/lib/market-config"
+
 function slugPart(s: string) {
   return s
     .replace(/[^a-zA-Z0-9]+/g, "-")
@@ -179,7 +181,7 @@ export function ProductVariantsAdvanced({
   }
 
   const formatEur = (cents: number) =>
-    cents <= 0 ? "—" : (cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    cents <= 0 ? "—" : formatStoreCurrencyFromCents(cents, { maximumFractionDigits: 2, minimumFractionDigits: 2 })
 
   const heuristicRows = useCallback((): ProductVariantLine[] => {
     const cols = colors.length ? colors : ["Default"]
@@ -386,10 +388,7 @@ export function ProductVariantsAdvanced({
                   {productTitle || "Product"} — {previewColor}
                 </p>
                 <div className="mt-1.5 flex flex-wrap items-center gap-3 text-sm">
-                  <span className="text-xl font-semibold">
-                    €
-                    {formatEur(getVariantForColor(previewColor)?.priceCents ?? baseCents)}
-                  </span>
+                  <span className="text-xl font-semibold">{formatEur(getVariantForColor(previewColor)?.priceCents ?? baseCents)}</span>
                   <span className="rounded bg-white/20 px-2 py-0.5 text-xs">
                     {getVariantForColor(previewColor)
                       ? `${getVariantForColor(previewColor)?.stock ?? 0} in stock`
@@ -512,7 +511,7 @@ export function ProductVariantsAdvanced({
                 </span>
                 {variant ? (
                   <span className={`text-[10px] ${isPreview ? "text-zinc-300" : "text-zinc-500"}`}>
-                    €{formatEur(variant.priceCents)}
+                    {formatEur(variant.priceCents)}
                   </span>
                 ) : null}
               </button>
@@ -823,7 +822,9 @@ export function ProductVariantsAdvanced({
                   className="rounded-lg border border-green-100 bg-white p-2.5 dark:border-green-900 dark:bg-zinc-950"
                 >
                   <p className="truncate text-xs text-zinc-600 dark:text-zinc-400">{v.name}</p>
-                  <p className="text-lg font-bold text-green-700 dark:text-green-400">€{earning}</p>
+                  <p className="text-lg font-bold text-green-700 dark:text-green-400">
+                    {formatStoreCurrency(Number(earning))}
+                  </p>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">
                     per sale ({comm}%)
                   </p>

@@ -68,6 +68,7 @@ import {
 } from "@/lib/supplier-add-product-draft-cache"
 import { newVariantRowId, parseVariantsPayload, type ProductVariantLine } from "@/lib/product-variants"
 import { parseProductColorImagesFromDb } from "@/lib/product-color-images"
+import { formatStoreCurrency } from "@/lib/market-config"
 import { cn } from "@/lib/utils"
 
 const LISTING_LABELS: Record<ListingKind, string> = {
@@ -76,13 +77,8 @@ const LISTING_LABELS: Record<ListingKind, string> = {
   SUBSCRIPTION: "Subscription / SaaS",
 }
 
-function formatMoneyUsd(n: number) {
-  return n.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })
+function formatMoneyDisplay(n: number) {
+  return formatStoreCurrency(n)
 }
 
 function parseCsvOptions(s: string): string[] {
@@ -285,7 +281,7 @@ export function SupplierAddProductForm({
     const p = Number(price)
     if (!Number.isFinite(ml) || ml <= 0 || !Number.isFinite(p) || p <= 0) return null
     const perLiter = p / (ml / 1000)
-    return `${formatMoneyUsd(perLiter)} per litre (from “Item volume” in specs ÷ your base price)`
+    return `${formatMoneyDisplay(perLiter)} per litre (from “Item volume” in specs ÷ your base price)`
   }, [price, specValues.item_volume_ml])
 
   const commissionError = useMemo(() => {
@@ -2140,13 +2136,13 @@ export function SupplierAddProductForm({
                     <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
                       Base:{" "}
                       <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                        {formatMoneyUsd(Number(price))}
+                        {formatMoneyDisplay(Number(price))}
                       </span>
                       {compareAt.trim() && Number(compareAt) > Number(price) ? (
                         <>
                           {" "}
                           <span className="text-compare-at tabular-nums line-through">
-                            {formatMoneyUsd(Number(compareAt))}
+                            {formatMoneyDisplay(Number(compareAt))}
                           </span>
                           {discountPct > 0 ? (
                             <span className="ml-2 inline-flex rounded-md bg-red-600 px-2 py-0.5 text-xs font-semibold text-white">
@@ -2232,7 +2228,7 @@ export function SupplierAddProductForm({
                     <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-300">
                       Base:{" "}
                       <span className="font-semibold text-zinc-900 dark:text-white">
-                        {formatMoneyUsd(Number(price))}
+                        {formatMoneyDisplay(Number(price))}
                       </span>
                     </p>
                   ) : null}

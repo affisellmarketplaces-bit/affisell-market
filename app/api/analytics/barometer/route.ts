@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -8,7 +9,7 @@ const MS_DAY = 24 * 60 * 60 * 1000
 type CatRow = { category: string; total: bigint }
 
 function formatEurCents(cents: number): string {
-  return (cents / 100).toLocaleString("en-US", { style: "currency", currency: "EUR", maximumFractionDigits: 0 })
+  return formatStoreCurrencyFromCents(cents, { maximumFractionDigits: 0 })
 }
 
 export async function GET() {

@@ -4,6 +4,7 @@ import Link from "next/link"
 
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { addGuestCartItem } from "@/lib/guest-cart"
+import { formatStoreCurrency } from "@/lib/market-config"
 
 type Props = {
   detailHref: string
@@ -34,14 +35,7 @@ export function PremiumMarketplaceCard({
   const hasDiscount = Number.isFinite(compareN) && compareN > priceValue
   const savePct =
     hasDiscount ? Math.round(((compareN - priceValue) / compareN) * 100) : 0
-  const compareDisplay = hasDiscount
-    ? compareN.toLocaleString("en-US", {
-        style: "currency",
-        currency: "USD",
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })
-    : null
+  const compareDisplay = hasDiscount ? formatStoreCurrency(compareN) : null
 
   return (
     <Link

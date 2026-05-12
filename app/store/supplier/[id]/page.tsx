@@ -10,6 +10,7 @@ import {
   type SupplierStorefrontListingSerializable,
 } from "@/components/supplier/supplier-storefront-browse"
 import { primaryProductImage } from "@/lib/product-images"
+import { formatStoreCount } from "@/lib/market-config"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
@@ -321,7 +322,7 @@ export default async function SupplierStorePreviewPage({ params }: { params: Pro
                   Live listings ·{" "}
                   {viewHint > 0 ? (
                     <>
-                      <strong>{viewHint.toLocaleString("en-US")}</strong> affiliate preview clicks tracked
+                      <strong>{formatStoreCount(viewHint)}</strong> affiliate preview clicks tracked
                     </>
                   ) : (
                     "Promotion insights grow as affiliates share."

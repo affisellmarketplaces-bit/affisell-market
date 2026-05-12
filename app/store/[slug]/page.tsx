@@ -8,6 +8,7 @@ import { StoreSocialBar } from "@/components/store-social-bar"
 import { auth } from "@/auth"
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
 import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
+import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { parseFollowersJson } from "@/lib/format-followers"
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
@@ -162,10 +163,7 @@ export default async function PublicStorefrontPage({ params }: { params: Promise
                       null
                     }
                     name={listingDisplayTitle(item.customTitle, item.product!.name)}
-                    priceDisplay={(item.sellingPriceCents / 100).toLocaleString("en-US", {
-                      style: "currency",
-                      currency: "EUR",
-                    })}
+                    priceDisplay={formatStoreCurrencyFromCents(item.sellingPriceCents)}
                     sellerDisplay={store.name}
                     soldByAffiliate={store.name}
                     trackClicks

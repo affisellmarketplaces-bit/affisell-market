@@ -6,6 +6,7 @@ import { Toaster } from "sonner"
 
 import messages from "@/messages/en.json"
 
+/** next-intl message locale stays `en` until you add `messages/fr.json` etc.; money uses `lib/market-config`. */
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <NextIntlClientProvider locale="en" messages={messages}>

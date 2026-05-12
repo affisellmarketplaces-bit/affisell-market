@@ -9,6 +9,7 @@ import {
 import { shippingCountryLabel } from "@/lib/product-shipping-display"
 import { mergeColorImagesForProduct, parseProductColorImagesFromDb } from "@/lib/product-color-images"
 import { prisma } from "@/lib/prisma"
+import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { variantsFromDb } from "@/lib/product-variants"
 
 import { MarketplaceListingDetail } from "./marketplace-listing-detail"
@@ -59,10 +60,7 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
       ? mergeColorImagesForProduct(colorNames, listing.product.colorImages, listing.product.variants)
       : (parseProductColorImagesFromDb(listing.product.colorImages) ?? [])
 
-  const priceDisplay = (listing.sellingPriceCents / 100).toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-  })
+  const priceDisplay = formatStoreCurrencyFromCents(listing.sellingPriceCents)
 
   const buyerRewardBadge = buyerRewardBadgeText(
     normalizeBuyerRewardKind(listing.buyerRewardKind),

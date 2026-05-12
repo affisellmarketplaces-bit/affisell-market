@@ -6,6 +6,7 @@ import { Heart, Share2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 import { primaryProductImage } from "@/lib/product-images"
+import { formatStoreDateTime } from "@/lib/market-config"
 
 export type StoreFeedPost = {
   id: string
@@ -67,10 +68,7 @@ export function StoreFeed({ storeSlug, posts }: Props) {
           <div className="border-b border-zinc-100 px-4 py-3 dark:border-zinc-800">
             <p className="whitespace-pre-wrap text-sm text-zinc-900 dark:text-zinc-100">{p.content}</p>
             <p className="mt-1 text-xs text-zinc-500">
-              {new Date(p.createdAt).toLocaleString("en-US", {
-                dateStyle: "medium",
-                timeStyle: "short",
-              })}
+              {formatStoreDateTime(p.createdAt)}
             </p>
           </div>
 

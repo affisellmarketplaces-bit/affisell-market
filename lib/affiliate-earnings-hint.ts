@@ -4,6 +4,7 @@ export const ILLUSTRATIVE_RETAIL_MARKUP_PCT = 18
 /**
  * Illustrative partner share per sold unit when the affiliate sells at (1 + markup) × supplier base price.
  * Commission is modeled as `% of margin` where margin = retail − supplier base (see supplier listing copy).
+ * Returned amounts use the **same currency as `basePriceCents`** (EUR for the EU storefront; field names `*Usd` are legacy).
  */
 export function illustrativePartnerShareUsd(args: {
   basePriceCents: number

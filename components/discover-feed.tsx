@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 
 import { addGuestCartItem } from "@/lib/guest-cart"
+import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { WishlistHeart } from "@/components/wishlist-heart"
 
 export type DiscoverItem = {
@@ -38,14 +39,7 @@ function DiscoverCard({ item }: { item: DiscoverItem }) {
     return () => io.disconnect()
   }, [item.isVideo])
 
-  const price = useMemo(
-    () =>
-      (item.priceCents / 100).toLocaleString("en-US", {
-        style: "currency",
-        currency: "USD",
-      }),
-    [item.priceCents]
-  )
+  const price = useMemo(() => formatStoreCurrencyFromCents(item.priceCents), [item.priceCents])
 
   async function oneTapAdd() {
     if (!item.listingId) return

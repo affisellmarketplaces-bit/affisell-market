@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { trackAffisellEvent } from "@/lib/affisell-track-client"
 import type { CarouselItemJson } from "@/lib/carousel-types"
 import { addGuestCartItem } from "@/lib/guest-cart"
+import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { cn } from "@/lib/utils"
 import { WishlistHeart } from "@/components/wishlist-heart"
 
@@ -93,16 +94,10 @@ export function AffisellCarouselCard({
   const h = Math.floor(leftMs / 3_600_000)
   const m = Math.floor((leftMs % 3_600_000) / 60_000)
 
-  const priceEur = (item.priceCents / 100).toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-  })
+  const priceEur = formatStoreCurrencyFromCents(item.priceCents)
   const oldEur =
     item.compareAtCents != null && item.compareAtCents > item.priceCents
-      ? (item.compareAtCents / 100).toLocaleString("en-US", {
-          style: "currency",
-          currency: "USD",
-        })
+      ? formatStoreCurrencyFromCents(item.compareAtCents)
       : null
 
   const subline =

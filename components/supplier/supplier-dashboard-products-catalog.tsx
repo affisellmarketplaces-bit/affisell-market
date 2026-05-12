@@ -3,6 +3,7 @@ import Link from "next/link"
 import { ExternalLink, Percent, ShoppingBag, Users } from "lucide-react"
 
 import { buttonVariants } from "@/components/ui/button"
+import { formatStoreCurrency, formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { primaryProductImage } from "@/lib/product-images"
 import { cn } from "@/lib/utils"
 import type { SupplierDashboardCatalogProduct } from "@/lib/supplier-product-is-draft-fallback"
@@ -13,15 +14,6 @@ const LISTING_LABEL: Record<string, string> = {
   PHYSICAL: "Physical",
   SOFTWARE: "Digital",
   SUBSCRIPTION: "Subscription",
-}
-
-function formatUsdFromCents(cents: number) {
-  return (cents / 100).toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })
 }
 
 export function SupplierDashboardProductsCatalog({
@@ -190,16 +182,11 @@ export function SupplierDashboardProductsCatalog({
                     </h2>
                     <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                       <span className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                        {formatUsdFromCents(p.basePriceCents)}
+                        {formatStoreCurrencyFromCents(p.basePriceCents)}
                       </span>
                       {hasDeal && compareNum != null ? (
                         <span className="text-compare-at text-sm tabular-nums line-through">
-                          {compareNum.toLocaleString("en-US", {
-                            style: "currency",
-                            currency: "USD",
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}
+                          {formatStoreCurrency(compareNum)}
                         </span>
                       ) : null}
                     </div>

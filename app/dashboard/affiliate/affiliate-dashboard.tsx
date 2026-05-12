@@ -47,6 +47,7 @@ import {
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
 import { COLORS, isMulticolorSwatch } from "@/lib/product-catalog-constants"
 import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
+import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { primaryProductImage } from "@/lib/product-images"
 
 type CatalogProduct = {
@@ -90,13 +91,6 @@ type Listing = SerializedListing & {
 function sortAffiliateListingByPosition(a: Listing, b: Listing) {
   if (a.position !== b.position) return a.position - b.position
   return a.id.localeCompare(b.id)
-}
-
-function fmtEUR(cents: number) {
-  return (cents / 100).toLocaleString("en-US", {
-    style: "currency",
-    currency: "EUR",
-  })
 }
 
 function SortableStoreCard(props: {
@@ -182,7 +176,7 @@ function SortableStoreCard(props: {
           <TrendingUp className="mt-0.5 h-4 w-4 shrink-0 text-green-600" aria-hidden />
           <p className="line-clamp-2 flex-1 text-sm font-semibold leading-snug text-gray-900">{title}</p>
         </div>
-        <p className="text-lg font-semibold text-green-600">{fmtEUR(listing.sellingPriceCents)}</p>
+        <p className="text-lg font-semibold text-green-600">{formatStoreCurrencyFromCents(listing.sellingPriceCents)}</p>
         {shopperReward ? (
           <p className="text-xs font-medium text-teal-800">
             Shoppers:{" "}
@@ -769,7 +763,7 @@ export function AffiliateDashboard({
                         Supplier price
                       </p>
                       <p className="mt-0.5 text-base font-bold tabular-nums text-zinc-900 dark:text-white">
-                        {fmtEUR(p.basePriceCents)}
+                        {formatStoreCurrencyFromCents(p.basePriceCents)}
                       </p>
                     </div>
                     <div className="text-right">

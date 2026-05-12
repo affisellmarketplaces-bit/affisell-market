@@ -27,6 +27,7 @@ import {
 } from "@/lib/product-catalog-constants"
 import { addGuestCartItem } from "@/lib/guest-cart"
 import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/marketplace-checkout-discount"
+import { formatStoreCount, formatStoreCurrency, formatStoreDate } from "@/lib/market-config"
 import {
   comparableImageUrl,
   findColorImageRowForName,
@@ -114,7 +115,7 @@ type Props = {
 }
 
 function fmtMoney(value: number) {
-  return value.toLocaleString("en-US", { style: "currency", currency: "USD" })
+  return formatStoreCurrency(value)
 }
 
 function t(template: string, vars?: Record<string, string | number>) {
@@ -368,7 +369,7 @@ export function MarketplaceListingDetail({
   const etaDate = useMemo(() => {
     const d = new Date()
     d.setDate(d.getDate() + Math.max(shipping.deliveryMax, 1))
-    return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+    return formatStoreDate(d)
   }, [shipping.deliveryMax])
   const deliveryPlace = shipping.warehouseCity?.trim() || shipping.shippingCountryLabel || "your area"
 
@@ -589,7 +590,7 @@ export function MarketplaceListingDetail({
                 {reviewSummary.average.toFixed(1)}
               </span>
               <a href="#listing-reviews" className="text-sm font-medium text-violet-700 hover:underline dark:text-violet-400">
-                {t(productT.reviews, { count: reviewSummary.count.toLocaleString("en-US") })}
+                {t(productT.reviews, { count: formatStoreCount(reviewSummary.count) })}
               </a>
               {reviewSummary.count > 0 && reviewSummary.average >= 4.2 ? (
                 <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-300">
@@ -1006,7 +1007,7 @@ export function MarketplaceListingDetail({
           <div className="mt-2 text-sm text-zinc-700 dark:text-zinc-300">
             <p className="mb-2">
               <Star className="mr-1 inline h-4 w-4 fill-yellow-400 text-yellow-400" />
-              {reviewSummary.average.toFixed(1)} ({reviewSummary.count.toLocaleString("en-US")} reviews)
+              {reviewSummary.average.toFixed(1)} ({formatStoreCount(reviewSummary.count)} reviews)
             </p>
             <p>5★: {ratingBreakdown[5] ?? 0} · 4★: {ratingBreakdown[4] ?? 0} · 3★: {ratingBreakdown[3] ?? 0}</p>
             {reviews.slice(0, 3).map((r) => (

@@ -6,6 +6,7 @@ import { Link2, LogOut, Plus, RefreshCw, Sparkles, Upload } from "lucide-react"
 import { signOut } from "next-auth/react"
 
 import { Button, buttonVariants } from "@/components/ui/button"
+import { formatStoreDateTime } from "@/lib/market-config"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -108,12 +109,7 @@ export function SupplierProductAddHub({ onStartManual, onStartWithAssist }: Prop
             </p>
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
               Listing is saved privately—resume anytime. Last touch:{" "}
-              {latestDraft.updatedAt
-                ? new Date(latestDraft.updatedAt).toLocaleString("en-US", {
-                    dateStyle: "medium",
-                    timeStyle: "short",
-                  })
-                : "recent"}
+              {latestDraft.updatedAt ? formatStoreDateTime(latestDraft.updatedAt) : "recent"}
             </p>
             <Link
               href={`/dashboard/supplier/products/new?compose=1&draft=${encodeURIComponent(latestDraft.id)}`}

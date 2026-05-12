@@ -11,6 +11,8 @@ import {
   YAxis,
 } from "recharts"
 
+import { formatStoreCurrency } from "@/lib/market-config"
+
 type Cat = {
   category: string
   totalCents: number
@@ -82,13 +84,7 @@ export function SalesBarometer() {
                   />
                   <YAxis hide />
                   <Tooltip
-                    formatter={(value) => [
-                      Number(value).toLocaleString("en-US", {
-                        style: "currency",
-                        currency: "EUR",
-                      }),
-                      "Sales",
-                    ]}
+                    formatter={(value) => [formatStoreCurrency(Number(value)), "Sales"]}
                     contentStyle={{
                       borderRadius: "12px",
                       border: "1px solid #e5e7eb",

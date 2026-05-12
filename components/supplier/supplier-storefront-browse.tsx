@@ -17,6 +17,7 @@ import {
 } from "lucide-react"
 
 import { ILLUSTRATIVE_RETAIL_MARKUP_PCT, illustrativePartnerShareUsd } from "@/lib/affiliate-earnings-hint"
+import { formatStoreCurrency, formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { cn } from "@/lib/utils"
 
@@ -43,13 +44,8 @@ const KIND_LABEL: Record<string, string> = {
   SUBSCRIPTION: "Subscription",
 }
 
-function formatUsdFromCents(cents: number) {
-  return (cents / 100).toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })
+function formatListPriceFromCents(cents: number) {
+  return formatStoreCurrencyFromCents(cents)
 }
 
 type SortKey = "new" | "price-asc" | "price-desc" | "commission-desc" | "partners-desc"
@@ -58,8 +54,8 @@ function kindOf(p: SupplierStorefrontListingSerializable) {
   return String(p.listingKind ?? "").toUpperCase()
 }
 
-function fmtUsdRough(n: number) {
-  return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 })
+function fmtHintAmount(n: number) {
+  return formatStoreCurrency(n)
 }
 
 function affiliateHubProductHref(base: string, productId: string) {
@@ -327,16 +323,11 @@ export function SupplierStorefrontBrowse({
                     </Link>
                     <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                       <span className="text-lg font-bold tracking-tight text-zinc-900 dark:text-white">
-                        {formatUsdFromCents(p.basePriceCents)}
+                        {formatListPriceFromCents(p.basePriceCents)}
                       </span>
                       {hasDeal && compareN != null ? (
                         <span className="text-compare-at text-sm tabular-nums line-through">
-                          {compareN.toLocaleString("en-US", {
-                            style: "currency",
-                            currency: "USD",
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}
+                          {formatStoreCurrency(compareN)}
                         </span>
                       ) : null}
                     </div>
@@ -371,8 +362,8 @@ export function SupplierStorefrontBrowse({
                           Example partner payout*
                         </p>
                         <p className="mt-0.5 text-[11px] leading-snug text-teal-900/90 dark:text-teal-100/85">
-                          ~{fmtUsdRough(shareHint.partnerShareUsd)} / sold unit if you retail ~{shareHint.retailMarkupPct}% above this
-                          anchor ({fmtUsdRough(shareHint.retailUsd)} retail vs {formatUsdFromCents(p.basePriceCents)}{" "}
+                          ~{fmtHintAmount(shareHint.partnerShareUsd)} / sold unit if you retail ~{shareHint.retailMarkupPct}% above this
+                          anchor ({fmtHintAmount(shareHint.retailUsd)} retail vs {formatListPriceFromCents(p.basePriceCents)}{" "}
                           anchor).
                         </p>
                       </div>

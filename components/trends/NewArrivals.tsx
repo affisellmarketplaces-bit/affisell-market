@@ -4,6 +4,8 @@ import { Sparkles } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 
+import { formatStoreCurrencyFromCents } from "@/lib/market-config"
+
 type Item = {
   id: string
   name: string
@@ -37,10 +39,7 @@ export function NewArrivals() {
   }, [])
 
   function priceLabel(cents: number) {
-    return (cents / 100).toLocaleString("en-US", {
-      style: "currency",
-      currency: "EUR",
-    })
+    return formatStoreCurrencyFromCents(cents)
   }
 
   return (

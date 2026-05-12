@@ -2,6 +2,7 @@ import { Suspense } from "react"
 
 import { SiteNav } from "@/components/site-nav"
 import { Providers } from "@/app/providers"
+import { STOREFRONT_HTML_LANG } from "@/lib/market-config"
 
 import "./globals.css"
 
@@ -15,7 +16,7 @@ function HeaderFallback() {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang={STOREFRONT_HTML_LANG}>
       <body className="min-h-screen bg-zinc-50 text-zinc-900 antialiased [font-family:Inter,system-ui] dark:bg-zinc-950 dark:text-zinc-50">
         <Providers>
           <header className="border-b border-zinc-200 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-950">

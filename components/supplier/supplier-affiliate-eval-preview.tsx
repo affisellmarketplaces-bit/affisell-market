@@ -24,6 +24,7 @@ import { listingGalleryUrls } from "@/lib/affiliate-listing-display"
 import { shippingCountryLabel } from "@/lib/product-shipping-display"
 import { parseProductColorImagesFromDb } from "@/lib/product-color-images"
 import { variantsFromDb } from "@/lib/product-variants"
+import { formatStoreCurrency, formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { cn } from "@/lib/utils"
 
 const KIND_LABEL: Record<string, string> = {
@@ -59,15 +60,6 @@ type ProductShape = {
   shippingType: string
   variants: unknown
   colorImages: unknown
-}
-
-function formatUsdFromCents(cents: number) {
-  return (cents / 100).toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })
 }
 
 function imgUnopt(url: string) {
@@ -316,16 +308,11 @@ export function SupplierAffiliateEvalPreview({
                     Catalog anchor
                   </p>
                   <p className="mt-2 text-xl font-bold tabular-nums text-zinc-900 dark:text-white">
-                    {formatUsdFromCents(product.basePriceCents)}
+                    {formatStoreCurrencyFromCents(product.basePriceCents)}
                   </p>
                   {hasDeal && compareNum != null ? (
                     <p className="text-compare-at mt-1 text-xs tabular-nums line-through">
-                      {compareNum.toLocaleString("en-US", {
-                        style: "currency",
-                        currency: "USD",
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
+                      {formatStoreCurrency(compareNum)}
                     </p>
                   ) : null}
                 </div>
@@ -359,7 +346,7 @@ export function SupplierAffiliateEvalPreview({
                       <p className="text-sm font-semibold text-teal-950 dark:text-teal-50">Live partner example</p>
                       <p className="mt-1 text-xs leading-relaxed text-teal-900/90 dark:text-teal-100/90">
                         <strong className="font-semibold text-teal-950 dark:text-teal-100">{example.affiliateLabel}</strong> lists
-                        this SKU at <strong>{formatUsdFromCents(example.sellingPriceCents)}</strong>—compare with your catalog anchor
+                        this SKU at <strong>{formatStoreCurrencyFromCents(example.sellingPriceCents)}</strong>—compare with your catalog anchor
                         above.
                       </p>
                       <Link
