@@ -10,7 +10,8 @@
     "db:migrate": "prisma migrate deploy",
     "start": "next start",
     "lint": "eslint",
-    "db:copy": "tsx scripts/copy-to-prod.ts"
+    "db:copy": "tsx scripts/copy-to-prod.ts",
+    "db:backfill-images": "tsx prisma/backfill-product-images.ts"
   },
   "dependencies": {
     "@ai-sdk/groq": "^3.0.38",
