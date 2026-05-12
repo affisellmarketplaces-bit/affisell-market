@@ -98,6 +98,11 @@ model Store {
   liveUrl              String?
   lastSyncAt           DateTime?
 
+  /** Structured ship-from address (labels, returns instructions, partner comms). */
+  shipFromAddress Json?
+  /** Return receiving address; when null, treat as same as `shipFromAddress` when displaying. */
+  returnAddress Json?
+
   communityPosts CommunityPost[]
   followerRelations Follow[] @relation("StoreFollowers")
 }
