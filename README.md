@@ -18,11 +18,20 @@ Next.js marketplace for **suppliers** (catalog, base price, commission) and **af
 | `npm run lint` | ESLint |
 | `npm run test` | Vitest unit tests (`**/*.test.ts`) |
 | `npm run test:watch` | Vitest watch mode |
+| `npm run test:e2e` | Playwright smoke (`e2e/*.spec.ts`) |
+| `npm run test:e2e:ui` | Playwright UI mode |
 | `npm run db:push` / `db:migrate` | Prisma against `DATABASE_URL` |
 
 ## Testing
 
 Vitest uses an empty `vitest-env/` as `envDir` so local `.env` is not read during tests. Tests live next to pure logic (e.g. `lib/__tests__/*`).
+
+### End-to-end (Playwright)
+
+- **Install browsers** (once per machine / CI image): `npx playwright install chromium`
+- **Run**: `npm run test:e2e` — starts `npm run dev` on **3001** unless the server is already up (`reuseExistingServer` outside CI), then runs `e2e/smoke.spec.ts`.
+- **Point at another URL** (e.g. preview deploy): `PLAYWRIGHT_BASE_URL=https://… npm run test:e2e` and set `PLAYWRIGHT_SKIP_WEBSERVER=1` so Playwright does not spawn a local dev server.
+- Smoke covers: home hero, navigation to `/marketplace`, header **Cart** link → `/cart`.
 
 ## i18n
 
