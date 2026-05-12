@@ -10,6 +10,7 @@ import { shippingCountryLabel } from "@/lib/product-shipping-display"
 import { mergeColorImagesForProduct, parseProductColorImagesFromDb } from "@/lib/product-color-images"
 import { prisma } from "@/lib/prisma"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
+import { publicPartnerSellerLabel } from "@/lib/public-seller-display"
 import { variantsFromDb } from "@/lib/product-variants"
 
 import { MarketplaceListingDetail } from "./marketplace-listing-detail"
@@ -41,7 +42,10 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
         showTrustedSoldBy: Boolean(st.customDomain && st.domainVerified),
       }
     : null
-  const sellerLabel = st?.name ?? listing.affiliate.name?.trim() ?? listing.affiliate.email
+  const sellerLabel = publicPartnerSellerLabel({
+    storeName: st?.name,
+    affiliateDisplayName: listing.affiliate.name,
+  })
   const gallery = listingGalleryUrls(listing.customImages, listing.product.images ?? [])
   const categories = Array.isArray(listing.product.categories)
     ? listing.product.categories.filter((c): c is string => typeof c === "string" && Boolean(c.trim()))
@@ -68,6 +72,12 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
   )
 
   const p = listing.product
+  const sellingEur = listing.sellingPriceCents / 100
+  const compareAtEur = p.compareAt != null ? Number(p.compareAt) : null
+  /** Shoppers only see MSRP-style compare-at — never supplier wholesale (`basePriceCents`). */
+  const retailPriceEur =
+    compareAtEur != null && Number.isFinite(compareAtEur) && compareAtEur > sellingEur ? compareAtEur : undefined
+
   const freeThresh =
     p.freeShippingThreshold != null && Number(p.freeShippingThreshold) > 0
       ? Number(p.freeShippingThreshold)
@@ -218,7 +228,7 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
         shipping={shipping}
         listingPriceCents={listing.sellingPriceCents}
         stock={listing.product.stock}
-        retailPriceEur={listing.product.basePriceCents / 100}
+        retailPriceEur={retailPriceEur}
         has3D={has3D}
         arModel={arModel}
         oftenBoughtTogether={oftenBoughtTogether}

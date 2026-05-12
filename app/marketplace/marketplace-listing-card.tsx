@@ -58,7 +58,6 @@ export function MarketplaceListingCard({
       })
       return
     }
-    console.log("Add to cart", res.ok ? "ok" : await res.text())
   }
 
   function recordClick() {

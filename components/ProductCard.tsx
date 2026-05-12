@@ -37,10 +37,10 @@ function coerceProduct(p: ProductCardProps["product"]): {
   const images = o.images
   const imageFromArr = Array.isArray(images) && typeof images[0] === "string" ? images[0] : ""
   const image = String(o.image ?? imageFromArr ?? "").trim()
-  const priceRaw = o.price ?? o.basePriceUsd
+  const priceRaw = o.price
   let price = Number(priceRaw)
-  if (!Number.isFinite(price) && typeof o.basePriceCents === "number") {
-    price = o.basePriceCents / 100
+  if (!Number.isFinite(price) && typeof o.sellingPriceCents === "number") {
+    price = o.sellingPriceCents / 100
   }
   if (!Number.isFinite(price)) price = 0
   const c = o.compareAt

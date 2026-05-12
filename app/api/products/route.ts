@@ -7,6 +7,7 @@ import { auth } from "@/auth"
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
 import { listingDisplayTitle, listingGalleryUrls } from "@/lib/affiliate-listing-display"
 import { prisma } from "@/lib/prisma"
+import { publicStoreLabelFromAffiliateRow } from "@/lib/public-seller-display"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -19,14 +20,12 @@ const listingMarketplaceInclude = {
       description: true,
       images: true,
       compareAt: true,
-      basePriceCents: true,
       stock: true,
       categoryId: true,
     },
   },
   affiliate: {
     select: {
-      email: true,
       name: true,
       store: { select: { name: true, slug: true } },
     },
@@ -40,11 +39,7 @@ function serializeMarketplaceListing(row: MarketplaceListingRow) {
   const compareNum = p.compareAt != null ? Number(p.compareAt) : null
   const gallery = listingGalleryUrls(row.customImages ?? [], p.images ?? [])
   const title = listingDisplayTitle(row.customTitle, p.name)
-  const store =
-    row.affiliate.store?.name?.trim() ||
-    row.affiliate.name?.trim() ||
-    row.affiliate.email?.split("@")[0] ||
-    "Seller"
+  const store = publicStoreLabelFromAffiliateRow(row.affiliate)
 
   return {
     id: row.id,
@@ -54,7 +49,6 @@ function serializeMarketplaceListing(row: MarketplaceListingRow) {
     title,
     price: row.sellingPriceCents / 100,
     sellingPriceCents: row.sellingPriceCents,
-    basePriceCents: p.basePriceCents,
     compareAt:
       compareNum != null && Number.isFinite(compareNum) ? compareNum : null,
     image: gallery[0] ?? null,

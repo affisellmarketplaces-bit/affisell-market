@@ -988,8 +988,19 @@ export function MarketplaceListingDetail({
           <ul
             className={`mt-2 text-sm text-zinc-700 dark:text-zinc-300 ${productSpecs.length > 0 ? "mt-4 border-t border-dashed border-zinc-100 pt-4 dark:border-zinc-800" : ""}`}
           >
-            <li>Seller storefront: {sellerLabel}</li>
-            <li>Swatches / colours listed: {colorNames.length || "—"}</li>
+            {storefront ? (
+              <li>
+                <Link
+                  href={`/store/${encodeURIComponent(storefront.slug)}`}
+                  className="font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-400"
+                >
+                  Visit {storefront.name}
+                </Link>
+              </li>
+            ) : (
+              <li className="text-zinc-600 dark:text-zinc-400">Sold by {sellerLabel}</li>
+            )}
+            <li>Colour options: {colorNames.length || "—"}</li>
             <li>Average rating: {reviewSummary.average.toFixed(1)} / 5</li>
           </ul>
         </details>

@@ -406,9 +406,9 @@ export function AgentChat() {
           {error ? (
             <div
               role="alert"
-            className="mx-4 mb-3 rounded-xl border border-red-500/40 bg-red-950/50 px-3 py-2 text-sm text-red-200"
+              className="mx-4 mb-3 rounded-xl border border-red-500/40 bg-red-950/50 px-3 py-2 text-sm text-red-200"
             >
-              {error.message}
+              Une erreur est survenue. Réessayez dans un instant.
               <button
                 type="button"
                 onClick={() => clearError()}

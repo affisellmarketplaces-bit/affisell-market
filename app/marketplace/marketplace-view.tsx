@@ -27,11 +27,7 @@ function normalizeProducts(raw: unknown): ProductRow[] {
       title: o.title ?? o.name,
       price:
         o.price ??
-        (typeof o.sellingPriceCents === "number"
-          ? (o.sellingPriceCents as number) / 100
-          : typeof o.basePriceCents === "number"
-            ? (o.basePriceCents as number) / 100
-            : undefined),
+        (typeof o.sellingPriceCents === "number" ? (o.sellingPriceCents as number) / 100 : undefined),
       image: o.image ?? (Array.isArray(o.images) ? o.images[0] : undefined),
     }
   })

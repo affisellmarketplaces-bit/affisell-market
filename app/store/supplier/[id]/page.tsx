@@ -60,7 +60,7 @@ export async function generateMetadata({
   const id = decodeURIComponent(rawId)
   const store = await prisma.store.findFirst({
     where: {
-      OR: [{ slug: id }, { userId: id }],
+      slug: id,
       user: { role: "SUPPLIER" },
     },
     select: { name: true, description: true },
@@ -68,7 +68,7 @@ export async function generateMetadata({
   if (!store) return { title: "Store · Affisell" }
   const desc =
     store.description?.trim().slice(0, 155) ??
-    `${store.name} — supplier storefront on Affisell. Browse listings and affiliate partner margins.`
+    `${store.name} — supplier storefront on Affisell. Browse products and shop with confidence.`
   return {
     title: `${store.name} · Supplier shop`,
     description: desc,
@@ -86,7 +86,7 @@ export default async function SupplierStorePreviewPage({ params }: { params: Pro
 
   const store = await prisma.store.findFirst({
     where: {
-      OR: [{ slug: id }, { userId: id }],
+      slug: id,
       user: { role: "SUPPLIER" },
     },
     include: { user: { select: { role: true } } },
