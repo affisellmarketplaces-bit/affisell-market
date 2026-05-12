@@ -1469,7 +1469,7 @@ export function SupplierAddProductForm({
                       id="add-product-classify"
                       icon={Tag}
                       title="Classification"
-                      description="Pick a leaf category — we load marketplace-style specs: core identity, aisle-specific traits, compliance & sustainability extras, merged by your category path."
+                      description="Choose a leaf category to load the right specs for this product."
                     >
                       <div>
                         <Label className="inline-flex items-center gap-1">
@@ -1492,13 +1492,6 @@ export function SupplierAddProductForm({
                           />
                         </div>
                       </div>
-                      {!categoryId.trim() ? (
-                        <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
-                          You’re viewing the universal spec sheet. Pick a leaf category below to add{" "}
-                          <span className="font-semibold">aisle-specific</span> attributes (electronics, beauty,
-                          home…).
-                        </p>
-                      ) : null}
                       <div className="rounded-xl border border-zinc-100 bg-zinc-50/40 p-1 dark:border-zinc-800 dark:bg-zinc-900/30">
                         <CategoryAttributeFields
                           attributes={mergedCategoryAttrs}
@@ -2210,8 +2203,7 @@ export function SupplierAddProductForm({
                   </ul>
                   <div className="mt-5 border-t border-zinc-100 pt-4 dark:border-zinc-800">
                     <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-                      Tip: complete classification before uploading galleries so required attributes stay in
-                      sync.
+                      Pick a category so required specs match your aisle.
                     </p>
                   </div>
                 </div>
