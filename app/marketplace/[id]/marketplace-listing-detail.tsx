@@ -3,13 +3,17 @@
 import Link from "next/link"
 import { motion } from "framer-motion"
 import {
+  ArrowRight,
+  Bell,
   ChevronRight,
   Package,
   RotateCcw,
   ShieldCheck,
+  ShoppingBag,
   Sparkles,
   Star,
   Truck,
+  Zap,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Fragment, useEffect, useMemo, useState, type MouseEvent } from "react"
@@ -539,18 +543,23 @@ export function MarketplaceListingDetail({
               ) : null}
             </div>
 
-            <div>
-              <p className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">{priceDisplay}</p>
+            <div className="relative overflow-hidden rounded-2xl border border-zinc-200/80 bg-gradient-to-br from-white via-violet-50/30 to-white p-4 shadow-sm dark:border-zinc-700/80 dark:from-zinc-900 dark:via-violet-950/20 dark:to-zinc-950">
+              <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-violet-400/15 blur-2xl dark:bg-violet-500/10" aria-hidden />
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-violet-700/90 dark:text-violet-300/90">
+                Your price
+              </p>
+              <p className="mt-1 text-3xl font-bold tracking-tight text-zinc-900 tabular-nums dark:text-white">{priceDisplay}</p>
               {buyerRewardBadge ? (
-                <p className="mt-2">
-                  <span className="inline-flex rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-900 dark:border-teal-800 dark:bg-teal-950/60 dark:text-teal-100">
+                <p className="mt-3">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-teal-200/90 bg-teal-50/90 px-3 py-1.5 text-xs font-semibold text-teal-900 shadow-sm dark:border-teal-800 dark:bg-teal-950/70 dark:text-teal-100">
+                    <Sparkles className="h-3.5 w-3.5 shrink-0 opacity-80" aria-hidden />
                     Store offer · {buyerRewardBadge}
                   </span>
                 </p>
               ) : null}
               {hasRetailCompare ? (
                 <p className="mt-2">
-                  <span className="inline-flex rounded-full bg-rose-600 px-2.5 py-1 text-xs font-semibold text-white">
+                  <span className="inline-flex rounded-full bg-gradient-to-r from-rose-600 to-orange-500 px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
                     −{discountPct}% vs anchor {fmtMoney(retailPriceEur ?? 0)}
                   </span>
                 </p>
@@ -649,17 +658,21 @@ export function MarketplaceListingDetail({
               </p>
             ) : null}
 
-            <div className="flex flex-col gap-2.5">
-              <Button
-                size="lg"
-                className="w-full rounded-xl bg-violet-600 text-base font-semibold shadow-md hover:bg-violet-700"
-                disabled={cartBusy}
-                onClick={(e) => void addToCart(e)}
-              >
-                {cartBusy ? "Adding…" : productT.addToCart}
-              </Button>
+            <div className="relative rounded-[1.65rem] border border-zinc-200/90 bg-gradient-to-b from-white via-zinc-50/40 to-zinc-50/90 p-5 shadow-[0_22px_56px_-28px_rgba(15,23,42,0.35)] ring-1 ring-black/[0.03] dark:border-zinc-700/90 dark:from-zinc-900/90 dark:via-zinc-950/80 dark:to-zinc-950 dark:shadow-black/50 dark:ring-white/[0.04]">
+              <div className="mb-4 flex items-start gap-2.5">
+                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-md shadow-amber-500/25">
+                  <Zap className="h-4 w-4" aria-hidden />
+                </span>
+                <p className="text-xs leading-snug text-zinc-600 dark:text-zinc-400">
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">{productT.actionStackHint}</span>
+                  <span className="mt-0.5 block text-[11px] text-zinc-500 dark:text-zinc-500">
+                    {productT.securePayment} · {shipping.deliveryMin}–{shipping.deliveryMax} day delivery
+                  </span>
+                </p>
+              </div>
+
               {rewardBalanceCents > 0 && maxApplicableReward > 0 ? (
-                <div className="rounded-xl border border-teal-200/80 bg-teal-50/70 px-4 py-3 dark:border-teal-900/50 dark:bg-teal-950/30">
+                <div className="mb-4 rounded-2xl border border-teal-200/80 bg-teal-50/70 px-4 py-3 dark:border-teal-900/50 dark:bg-teal-950/30">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="text-sm font-semibold text-teal-950 dark:text-teal-100">Use store credit</p>
                     <Link
@@ -704,33 +717,68 @@ export function MarketplaceListingDetail({
                   </div>
                 </div>
               ) : null}
-              <Button
-                size="lg"
-                variant="outline"
-                className="w-full rounded-xl border-2 border-zinc-900 font-semibold dark:border-white dark:text-white"
-                disabled={buyBusy}
-                onClick={() => void buyNow()}
-              >
-                {buyBusy ? "Redirecting…" : productT.buyNowOneClick}
-              </Button>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  size="default"
-                  variant="secondary"
-                  className="rounded-xl font-medium"
-                  onClick={() => void openStylist()}
+
+              <div className="flex flex-col gap-3">
+                <motion.button
+                  type="button"
+                  disabled={cartBusy || stock <= 0}
+                  whileHover={{ scale: stock > 0 && !cartBusy ? 1.01 : 1 }}
+                  whileTap={{ scale: stock > 0 && !cartBusy ? 0.99 : 1 }}
+                  onClick={(e) => void addToCart(e)}
+                  className="group relative flex h-14 w-full items-center justify-center gap-2 overflow-hidden rounded-full bg-gradient-to-r from-violet-600 via-violet-600 to-fuchsia-600 text-base font-semibold text-white shadow-lg shadow-violet-500/30 transition hover:shadow-xl hover:shadow-violet-500/35 disabled:cursor-not-allowed disabled:opacity-50 dark:shadow-violet-900/40"
                 >
-                  <Sparkles className="mr-2 h-4 w-4" aria-hidden />
-                  {productT.howToWear}
-                </Button>
-                <Button
-                  size="default"
-                  variant="secondary"
-                  className="rounded-xl font-medium"
-                  onClick={() => void savePriceAlert()}
+                  <span className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 transition group-hover:opacity-100" aria-hidden />
+                  <ShoppingBag className="relative h-5 w-5 shrink-0" aria-hidden />
+                  <span className="relative">{cartBusy ? "Adding…" : productT.addToCart}</span>
+                </motion.button>
+
+                <motion.button
+                  type="button"
+                  disabled={buyBusy || stock <= 0}
+                  whileHover={{ scale: stock > 0 && !buyBusy ? 1.01 : 1 }}
+                  whileTap={{ scale: stock > 0 && !buyBusy ? 0.99 : 1 }}
+                  onClick={() => void buyNow()}
+                  className="flex h-14 w-full items-center justify-center gap-2 rounded-full border-2 border-zinc-900 bg-white text-base font-semibold text-zinc-900 shadow-sm transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-100 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:bg-zinc-900"
                 >
-                  {alertSaved ? "Saved" : productT.alertPriceDrop}
-                </Button>
+                  {buyBusy ? (
+                    "Redirecting…"
+                  ) : (
+                    <>
+                      {productT.buyNowOneClick}
+                      <ArrowRight className="h-4 w-4 opacity-70" aria-hidden />
+                    </>
+                  )}
+                </motion.button>
+
+                <div className="grid grid-cols-2 gap-2.5 pt-1">
+                  <button
+                    type="button"
+                    disabled={stylistLoading}
+                    onClick={() => void openStylist()}
+                    className="flex flex-col items-start gap-0.5 rounded-2xl border border-zinc-200/90 bg-zinc-100/80 px-3.5 py-3 text-left text-sm font-semibold text-zinc-900 transition hover:border-violet-300/80 hover:bg-violet-50/60 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-800/60 dark:text-zinc-100 dark:hover:border-violet-600/50 dark:hover:bg-violet-950/30"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Sparkles className="h-4 w-4 text-violet-600 dark:text-violet-400" aria-hidden />
+                      {productT.howToWear}
+                    </span>
+                    <span className="text-[10px] font-normal leading-tight text-zinc-500 dark:text-zinc-400">
+                      {productT.howToStyleSub}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void savePriceAlert()}
+                    className="flex flex-col items-start gap-0.5 rounded-2xl border border-zinc-200/90 bg-zinc-100/80 px-3.5 py-3 text-left text-sm font-semibold text-zinc-900 transition hover:border-amber-300/80 hover:bg-amber-50/50 dark:border-zinc-700 dark:bg-zinc-800/60 dark:text-zinc-100 dark:hover:border-amber-700/50 dark:hover:bg-amber-950/25"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Bell className="h-4 w-4 text-amber-600 dark:text-amber-400" aria-hidden />
+                      {alertSaved ? "Saved" : productT.alertPriceDrop}
+                    </span>
+                    <span className="text-[10px] font-normal leading-tight text-zinc-500 dark:text-zinc-400">
+                      {alertSaved ? productT.priceAlertSavedSub : productT.priceAlertSub}
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
 
