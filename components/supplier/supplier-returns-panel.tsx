@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useCallback, useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
@@ -56,6 +57,7 @@ export function SupplierReturnsPanel({ className }: { className?: string }) {
   const [rows, setRows] = useState<ReturnRow[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
+  const [returnHint, setReturnHint] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setError(null)
@@ -71,6 +73,23 @@ export function SupplierReturnsPanel({ className }: { className?: string }) {
   useEffect(() => {
     void load()
   }, [load])
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch("/api/store/logistics", { credentials: "include", cache: "no-store" })
+        if (!res.ok) return
+        const j = (await res.json()) as { returnFormatted?: string | null }
+        if (j.returnFormatted?.trim()) {
+          setReturnHint(j.returnFormatted.trim())
+        } else {
+          setReturnHint(null)
+        }
+      } catch {
+        setReturnHint(null)
+      }
+    })()
+  }, [])
 
   async function patch(id: string, body: Record<string, unknown>) {
     setBusy(id)
@@ -106,6 +125,28 @@ export function SupplierReturnsPanel({ className }: { className?: string }) {
 
   return (
     <div className={cn("space-y-4", className)}>
+      <Card className="border-violet-200/80 bg-gradient-to-r from-violet-50/80 to-white p-4 dark:border-violet-900/50 dark:from-violet-950/30 dark:to-zinc-950">
+        <p className="text-xs font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-300">
+          Return receiving address
+        </p>
+        {returnHint ? (
+          <pre className="mt-2 whitespace-pre-wrap text-sm leading-snug text-zinc-800 dark:text-zinc-200">
+            {returnHint}
+          </pre>
+        ) : (
+          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+            No return address on file yet. Add your warehouse / return address in store settings so you can paste it
+            for buyers when you approve a return.
+          </p>
+        )}
+        <Link
+          href="/dashboard/supplier/settings/store"
+          className="mt-3 inline-block text-sm font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
+        >
+          Configure in store settings →
+        </Link>
+      </Card>
+
       {error ? (
         <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200">
           {error}

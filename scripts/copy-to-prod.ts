@@ -29,9 +29,12 @@ function userPayload(row: Awaited<ReturnType<PrismaClient["user"]["findMany"]>>[
 }
 
 function storePayload(row: Awaited<ReturnType<PrismaClient["store"]["findMany"]>>[number]) {
+  const { followers, shipFromAddress, returnAddress, ...rest } = row
   return {
-    ...row,
-    followers: jsonOrNull(row.followers),
+    ...rest,
+    followers: jsonOrNull(followers),
+    shipFromAddress: jsonOrNull(shipFromAddress),
+    returnAddress: jsonOrNull(returnAddress),
   } satisfies Prisma.StoreUncheckedCreateInput
 }
 

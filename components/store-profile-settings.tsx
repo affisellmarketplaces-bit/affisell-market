@@ -4,6 +4,11 @@ import Link from "next/link"
 import type { FormEvent } from "react"
 import { useCallback, useEffect, useRef, useState } from "react"
 
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { parseSupplierLogisticsAddress, type SupplierLogisticsAddress } from "@/lib/supplier-logistics-address"
+
 type StoreRow = {
   id: string
   name: string
@@ -13,6 +18,43 @@ type StoreRow = {
   description: string | null
   customDomain: string | null
   domainVerified: boolean
+  shipFromAddress?: unknown
+  returnAddress?: unknown
+}
+
+type AddrForm = {
+  company: string
+  line1: string
+  line2: string
+  city: string
+  region: string
+  postalCode: string
+  countryCode: string
+  phone: string
+}
+
+const emptyAddr = (): AddrForm => ({
+  company: "",
+  line1: "",
+  line2: "",
+  city: "",
+  region: "",
+  postalCode: "",
+  countryCode: "",
+  phone: "",
+})
+
+function addrToForm(a: SupplierLogisticsAddress): AddrForm {
+  return {
+    company: a.company ?? "",
+    line1: a.line1,
+    line2: a.line2 ?? "",
+    city: a.city,
+    region: a.region ?? "",
+    postalCode: a.postalCode,
+    countryCode: a.countryCode,
+    phone: a.phone ?? "",
+  }
 }
 
 type Props = {
@@ -36,6 +78,13 @@ export function StoreProfileSettings({ backHref, backLabel }: Props) {
   const [customDomain, setCustomDomain] = useState("")
   const [domainVerified, setDomainVerified] = useState(false)
 
+  const [shipFrom, setShipFrom] = useState<AddrForm>(() => emptyAddr())
+  const [returnAddr, setReturnAddr] = useState<AddrForm>(() => emptyAddr())
+  const [returnSameAsShip, setReturnSameAsShip] = useState(true)
+  const [logisticsBusy, setLogisticsBusy] = useState(false)
+  const [logisticsMsg, setLogisticsMsg] = useState<string | null>(null)
+  const [logisticsErr, setLogisticsErr] = useState<string | null>(null)
+
   const fileRef = useRef<HTMLInputElement>(null)
 
   const hydrate = useCallback(async () => {
@@ -58,6 +107,11 @@ export function StoreProfileSettings({ backHref, backLabel }: Props) {
         setPreviewUrl(st.logoUrl ?? "")
         setCustomDomain(st.customDomain ?? "")
         setDomainVerified(st.domainVerified)
+        const sf = parseSupplierLogisticsAddress(st.shipFromAddress)
+        const rt = parseSupplierLogisticsAddress(st.returnAddress)
+        setShipFrom(sf ? addrToForm(sf) : emptyAddr())
+        setReturnAddr(rt ? addrToForm(rt) : emptyAddr())
+        setReturnSameAsShip(!rt)
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error")
@@ -132,6 +186,31 @@ export function StoreProfileSettings({ backHref, backLabel }: Props) {
     }
   }
 
+  async function saveLogistics() {
+    setLogisticsBusy(true)
+    setLogisticsErr(null)
+    setLogisticsMsg(null)
+    try {
+      const res = await fetch("/api/store/logistics", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          shipFrom: shipFrom,
+          returnSameAsShip: returnSameAsShip,
+          returnAddress: returnSameAsShip ? undefined : returnAddr,
+        }),
+      })
+      const json = (await res.json()) as { error?: string; ok?: boolean }
+      if (!res.ok) throw new Error(json.error ?? "Could not save addresses")
+      setLogisticsMsg("Shipping & return addresses saved.")
+    } catch (e) {
+      setLogisticsErr(e instanceof Error ? e.message : "Error")
+    } finally {
+      setLogisticsBusy(false)
+    }
+  }
+
   function onLogoFileChange(f: File | undefined) {
     if (!f) return
     const prevBlob = previewUrl.startsWith("blob:") ? previewUrl : ""
@@ -190,6 +269,218 @@ export function StoreProfileSettings({ backHref, backLabel }: Props) {
             maxLength={600}
             className="mt-2 w-full max-w-xl rounded-lg border border-gray-300 px-3 py-2"
           />
+        </section>
+
+        <section className="rounded-2xl border border-zinc-200 bg-zinc-50/50 p-5 dark:border-zinc-700 dark:bg-zinc-900/30">
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Warehouse &amp; returns</h2>
+          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+            Ship-from address (labels, carrier pickups). Return address is where buyers send approved returns
+            (defaults to ship-from if unchecked below).
+          </p>
+
+          <div className="mt-5 space-y-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+              Ship from
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <Label htmlFor="sf-company">Company (optional)</Label>
+                <Input
+                  id="sf-company"
+                  className="mt-1.5"
+                  value={shipFrom.company}
+                  onChange={(e) => setShipFrom((s) => ({ ...s, company: e.target.value }))}
+                  maxLength={120}
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <Label htmlFor="sf-line1">Address line 1</Label>
+                <Input
+                  id="sf-line1"
+                  className="mt-1.5"
+                  value={shipFrom.line1}
+                  onChange={(e) => setShipFrom((s) => ({ ...s, line1: e.target.value }))}
+                  maxLength={200}
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <Label htmlFor="sf-line2">Address line 2 (optional)</Label>
+                <Input
+                  id="sf-line2"
+                  className="mt-1.5"
+                  value={shipFrom.line2}
+                  onChange={(e) => setShipFrom((s) => ({ ...s, line2: e.target.value }))}
+                  maxLength={120}
+                />
+              </div>
+              <div>
+                <Label htmlFor="sf-city">City</Label>
+                <Input
+                  id="sf-city"
+                  className="mt-1.5"
+                  value={shipFrom.city}
+                  onChange={(e) => setShipFrom((s) => ({ ...s, city: e.target.value }))}
+                  maxLength={120}
+                />
+              </div>
+              <div>
+                <Label htmlFor="sf-region">Region / state (optional)</Label>
+                <Input
+                  id="sf-region"
+                  className="mt-1.5"
+                  value={shipFrom.region}
+                  onChange={(e) => setShipFrom((s) => ({ ...s, region: e.target.value }))}
+                  maxLength={80}
+                />
+              </div>
+              <div>
+                <Label htmlFor="sf-postal">Postal code</Label>
+                <Input
+                  id="sf-postal"
+                  className="mt-1.5"
+                  value={shipFrom.postalCode}
+                  onChange={(e) => setShipFrom((s) => ({ ...s, postalCode: e.target.value }))}
+                  maxLength={32}
+                />
+              </div>
+              <div>
+                <Label htmlFor="sf-cc">Country (ISO-2)</Label>
+                <Input
+                  id="sf-cc"
+                  className="mt-1.5 uppercase"
+                  value={shipFrom.countryCode}
+                  onChange={(e) =>
+                    setShipFrom((s) => ({ ...s, countryCode: e.target.value.toUpperCase().slice(0, 2) }))
+                  }
+                  maxLength={2}
+                  placeholder="FR"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <Label htmlFor="sf-phone">Phone (optional)</Label>
+                <Input
+                  id="sf-phone"
+                  className="mt-1.5"
+                  value={shipFrom.phone}
+                  onChange={(e) => setShipFrom((s) => ({ ...s, phone: e.target.value }))}
+                  maxLength={40}
+                />
+              </div>
+            </div>
+          </div>
+
+          <label className="mt-6 flex cursor-pointer items-start gap-2.5">
+            <input
+              type="checkbox"
+              checked={returnSameAsShip}
+              onChange={(e) => setReturnSameAsShip(e.target.checked)}
+              className="mt-1 h-4 w-4 rounded border-zinc-300 text-violet-600"
+            />
+            <span className="text-sm text-zinc-700 dark:text-zinc-300">
+              Return address is the same as ship-from
+            </span>
+          </label>
+
+          {!returnSameAsShip ? (
+            <div className="mt-5 space-y-4 border-t border-zinc-200 pt-5 dark:border-zinc-700">
+              <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                Return receiving address
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <Label htmlFor="rt-company">Company (optional)</Label>
+                  <Input
+                    id="rt-company"
+                    className="mt-1.5"
+                    value={returnAddr.company}
+                    onChange={(e) => setReturnAddr((s) => ({ ...s, company: e.target.value }))}
+                    maxLength={120}
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <Label htmlFor="rt-line1">Address line 1</Label>
+                  <Input
+                    id="rt-line1"
+                    className="mt-1.5"
+                    value={returnAddr.line1}
+                    onChange={(e) => setReturnAddr((s) => ({ ...s, line1: e.target.value }))}
+                    maxLength={200}
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <Label htmlFor="rt-line2">Address line 2 (optional)</Label>
+                  <Input
+                    id="rt-line2"
+                    className="mt-1.5"
+                    value={returnAddr.line2}
+                    onChange={(e) => setReturnAddr((s) => ({ ...s, line2: e.target.value }))}
+                    maxLength={120}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="rt-city">City</Label>
+                  <Input
+                    id="rt-city"
+                    className="mt-1.5"
+                    value={returnAddr.city}
+                    onChange={(e) => setReturnAddr((s) => ({ ...s, city: e.target.value }))}
+                    maxLength={120}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="rt-region">Region / state (optional)</Label>
+                  <Input
+                    id="rt-region"
+                    className="mt-1.5"
+                    value={returnAddr.region}
+                    onChange={(e) => setReturnAddr((s) => ({ ...s, region: e.target.value }))}
+                    maxLength={80}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="rt-postal">Postal code</Label>
+                  <Input
+                    id="rt-postal"
+                    className="mt-1.5"
+                    value={returnAddr.postalCode}
+                    onChange={(e) => setReturnAddr((s) => ({ ...s, postalCode: e.target.value }))}
+                    maxLength={32}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="rt-cc">Country (ISO-2)</Label>
+                  <Input
+                    id="rt-cc"
+                    className="mt-1.5 uppercase"
+                    value={returnAddr.countryCode}
+                    onChange={(e) =>
+                      setReturnAddr((s) => ({ ...s, countryCode: e.target.value.toUpperCase().slice(0, 2) }))
+                    }
+                    maxLength={2}
+                    placeholder="FR"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <Label htmlFor="rt-phone">Phone (optional)</Label>
+                  <Input
+                    id="rt-phone"
+                    className="mt-1.5"
+                    value={returnAddr.phone}
+                    onChange={(e) => setReturnAddr((s) => ({ ...s, phone: e.target.value }))}
+                    maxLength={40}
+                  />
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Button type="button" disabled={logisticsBusy} onClick={() => void saveLogistics()}>
+              {logisticsBusy ? "Saving…" : "Save warehouse addresses"}
+            </Button>
+            {logisticsErr ? <p className="text-sm text-red-600">{logisticsErr}</p> : null}
+            {logisticsMsg ? <p className="text-sm text-emerald-700 dark:text-emerald-400">{logisticsMsg}</p> : null}
+          </div>
         </section>
 
         {/* Logo */}

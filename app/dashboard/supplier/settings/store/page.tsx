@@ -14,7 +14,7 @@ export default async function SupplierStoreSettingsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-10 md:px-8">
+    <main className="mx-auto max-w-4xl px-4 py-10 md:px-8">
       <StoreProfileSettings backHref="/dashboard/supplier" backLabel="Supplier dashboard" />
     </main>
   )
