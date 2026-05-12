@@ -106,7 +106,7 @@ export function SupplierStorefrontEditor({ previewHref }: Props) {
           <BentoPageHeading
             eyebrow="Branding"
             title="Customize my storefront"
-            description="Glass cards, soft borders, and a live preview — aligned with the Affisell partner workspace."
+            description="Update how your shop looks to visitors: name, banner, description, and a live preview."
             className="max-w-2xl"
           />
           <Link

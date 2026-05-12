@@ -440,15 +440,15 @@ export function AffiliateDashboard({
               <div className="min-w-0 flex-1 space-y-4">
                 <div className="inline-flex items-center gap-2 rounded-full border border-violet-200/80 bg-violet-50/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-violet-800 dark:border-violet-800 dark:bg-violet-950/60 dark:text-violet-200">
                   <Sparkles className="h-3.5 w-3.5" aria-hidden />
-                  Partner workspace
+                  Affiliate hub
                 </div>
                 <div>
                   <h1 className="text-balance text-3xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
                     Your creator storefront
                   </h1>
                   <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 sm:text-[15px]">
-                    Discover supplier SKUs, set your resale economics, tune SEO and visuals—everything shoppers see flows
-                    from here. This hub is distinct from seller tools; suppliers never curate from this workspace.
+                    Discover products to sell, set your prices and margins, and manage what appears in your public
+                    store—all from here.
                   </p>
                 </div>
                 <nav className="flex flex-wrap gap-2 sm:gap-2.5" aria-label="Quick links">

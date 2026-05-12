@@ -32,7 +32,7 @@ export default function HomePage() {
               </div>
               <BentoPageHeading
                 title="Affisell"
-                description="Affiliate dropshipping marketplace — discover SKUs, curate your storefront, and grow with partners."
+                description="Shop partner stores, discover new products, and support creators — all in one marketplace."
                 className="space-y-4"
               />
               <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -72,7 +72,7 @@ export default function HomePage() {
                 <Link href="/login" className="font-medium text-[#7C3AED] underline-offset-4 hover:underline">
                   Sign in
                 </Link>{" "}
-                to open your workspace.
+                to access your account.
               </p>
             </div>
           </BentoCard>
@@ -99,10 +99,10 @@ export default function HomePage() {
             </BentoCard>
             <BentoCard className="flex flex-col justify-between gap-4 border-[#10B981]/20 bg-gradient-to-br from-white/90 to-emerald-50/40">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-emerald-800/80">Live opportunity</p>
-                <p className="mt-2 text-2xl font-bold tracking-tight text-gray-900">Partner workspace</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-emerald-800/80">For creators</p>
+                <p className="mt-2 text-2xl font-bold tracking-tight text-gray-900">Your affiliate store</p>
                 <p className="mt-2 text-sm leading-relaxed text-gray-600">
-                  Curate resale listings, SEO, and storefront cards from one glass dashboard.
+                  Pick products, set your prices, and share your storefront with your audience.
                 </p>
               </div>
               <Link
@@ -112,7 +112,7 @@ export default function HomePage() {
                   "inline-flex w-full justify-center"
                 )}
               >
-                Open workspace
+                Go to dashboard
               </Link>
             </BentoCard>
           </div>
@@ -121,9 +121,11 @@ export default function HomePage() {
         <section className="space-y-8">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Market pulse</p>
-              <h2 className="mt-1 text-2xl font-bold tracking-tight text-gray-900 md:text-3xl">Trending on Affisell</h2>
-              <p className="mt-1 max-w-xl text-sm text-gray-600">Fresh drops, barometer, and editor’s picks — same glass card language site-wide.</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Highlights</p>
+              <h2 className="mt-1 text-2xl font-bold tracking-tight text-gray-900 md:text-3xl">Popular on Affisell</h2>
+              <p className="mt-1 max-w-xl text-sm text-gray-600">
+                New arrivals, bestsellers, and a quick read on what&apos;s selling — so you can shop with confidence.
+              </p>
             </div>
           </div>
           <BentoCard className="p-0 md:p-0">

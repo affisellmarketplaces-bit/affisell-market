@@ -22,7 +22,7 @@ export default async function DashboardSupplierPage() {
     <BentoShell>
       <BentoContainer maxWidth="5xl" className="space-y-8">
         <BentoPageHeading
-          eyebrow="Supplier workspace"
+          eyebrow="Your tools"
           title="Operations hub"
           description="Manage your Affisell catalog, storefront, returns, and bulk tools from one calm surface."
         />

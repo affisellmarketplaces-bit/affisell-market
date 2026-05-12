@@ -45,7 +45,7 @@ export default async function AffiliateDashboardPage() {
         <BentoShell>
           <BentoContainer>
             <BentoCard className="py-12 text-center text-sm text-gray-600 dark:text-zinc-400">
-              Loading partner workspace…
+              Loading your dashboard…
             </BentoCard>
           </BentoContainer>
         </BentoShell>

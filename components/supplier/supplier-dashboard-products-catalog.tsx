@@ -104,7 +104,7 @@ export function SupplierDashboardProductsCatalog({
           <p className="text-lg font-medium text-zinc-900 dark:text-zinc-50">No products yet</p>
           <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
             Add your first SKU to go live on the marketplace and your public supplier storefront. Partner discovery and
-            resale tools live in their own workspace—this screen is your catalog control center.
+            resale tools live in the affiliate dashboard—this screen is your catalog control center.
           </p>
           <Link
             href="/dashboard/supplier/products/new"
