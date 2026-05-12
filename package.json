@@ -12,6 +12,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "db:copy": "tsx scripts/copy-to-prod.ts",
     "db:backfill-images": "tsx prisma/backfill-product-images.ts"
   },
@@ -59,6 +61,7 @@
     "seed": "tsx prisma/seed.ts"
   },
   "devDependencies": {
+    "@playwright/test": "^1.52.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
