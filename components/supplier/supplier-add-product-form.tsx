@@ -124,6 +124,7 @@ function SectionCard({
   children,
   className,
   variant = "default",
+  id,
 }: {
   icon: LucideIcon
   title: string
@@ -131,34 +132,37 @@ function SectionCard({
   children: ReactNode
   className?: string
   variant?: "default" | "accent"
+  /** In-page anchor for quick navigation */
+  id?: string
 }) {
   return (
     <section
+      id={id}
       className={cn(
-        "rounded-2xl border p-6 shadow-sm",
+        "scroll-mt-28 rounded-2xl border p-6 shadow-md shadow-zinc-900/[0.04] ring-1 ring-black/[0.03] sm:p-7 dark:shadow-black/30 dark:ring-white/[0.04]",
         variant === "accent"
           ? "border-violet-200/60 bg-gradient-to-br from-violet-50/80 via-white to-white dark:border-violet-900/40 dark:from-violet-950/20 dark:via-zinc-950/50 dark:to-zinc-950"
-          : "border-zinc-200/80 bg-white dark:border-zinc-700/80 dark:bg-zinc-950/40",
+          : "border-zinc-200/80 bg-white/95 backdrop-blur-[2px] dark:border-zinc-700/80 dark:bg-zinc-950/50",
         className
       )}
     >
-      <div className="mb-5 flex gap-3">
+      <div className="mb-5 flex gap-3.5">
         <div
           className={cn(
-            "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl",
+            "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl",
             variant === "accent"
-              ? "bg-violet-600 text-white shadow-md shadow-violet-500/20"
-              : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
+              ? "bg-violet-600 text-white shadow-md shadow-violet-500/25"
+              : "bg-gradient-to-br from-zinc-100 to-zinc-50 text-zinc-700 ring-1 ring-zinc-200/80 dark:from-zinc-800 dark:to-zinc-900 dark:text-zinc-200 dark:ring-zinc-700/80"
           )}
         >
           <Icon className="h-5 w-5" aria-hidden />
         </div>
-        <div className="min-w-0">
-          <h2 className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
             {title}
           </h2>
           {description ? (
-            <p className="mt-0.5 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+            <p className="mt-1 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
               {description}
             </p>
           ) : null}
@@ -1109,8 +1113,11 @@ export function SupplierAddProductForm({
 
   if (loadingProduct) {
     return (
-      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 bg-gradient-to-b from-zinc-50 to-zinc-100/80 px-4 dark:from-zinc-950 dark:to-zinc-900">
-        <Loader2 className="h-8 w-8 animate-spin text-violet-600" aria-hidden />
+      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 bg-gradient-to-b from-zinc-50 via-violet-50/20 to-zinc-100/80 px-4 dark:from-zinc-950 dark:via-violet-950/10 dark:to-zinc-900">
+        <div className="relative">
+          <div className="absolute inset-0 animate-ping rounded-full bg-violet-400/20" aria-hidden />
+          <Loader2 className="relative h-10 w-10 animate-spin text-violet-600 dark:text-violet-400" aria-hidden />
+        </div>
         <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Loading product…</p>
       </div>
     )
@@ -1148,11 +1155,18 @@ export function SupplierAddProductForm({
               blurb: "Story, category, and images here; price, stock, shipping, and commission in step 2.",
             }
 
+  const scrollToSection = useCallback((id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" })
+  }, [])
+
+  const jumpBtnClass =
+    "rounded-full border border-zinc-200/90 bg-white px-3.5 py-1.5 text-xs font-semibold text-zinc-700 shadow-sm transition hover:border-violet-400/80 hover:bg-violet-50/80 hover:text-violet-900 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-violet-500/60 dark:hover:bg-violet-950/30 dark:hover:text-violet-100"
+
   return (
     <>
       {onBackToMethods ? (
         <div className="border-b border-zinc-200/90 bg-white/95 dark:border-zinc-800 dark:bg-zinc-950/95">
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
             <button
               type="button"
               onClick={onBackToMethods}
@@ -1174,8 +1188,8 @@ export function SupplierAddProductForm({
         </div>
       ) : null}
       <div className="min-h-screen bg-gradient-to-b from-zinc-100/90 via-white to-zinc-50 dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900/95">
-        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-        <header className="relative overflow-hidden rounded-2xl border border-zinc-200/80 bg-white/90 p-6 shadow-sm ring-1 ring-black/[0.03] dark:border-zinc-700/80 dark:bg-zinc-950/60 dark:ring-white/[0.04] sm:p-8">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+        <header className="relative overflow-hidden rounded-3xl border border-zinc-200/80 bg-white/95 p-6 shadow-md ring-1 ring-black/[0.03] dark:border-zinc-700/80 dark:bg-zinc-950/70 dark:ring-white/[0.04] sm:p-8">
           <div
             className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-violet-500/[0.12] blur-3xl dark:bg-violet-500/[0.18]"
             aria-hidden
@@ -1254,49 +1268,102 @@ export function SupplierAddProductForm({
         </header>
 
         <nav className="mt-8" aria-label="Form steps">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-            <div className="flex w-full flex-col gap-2 rounded-2xl border border-zinc-200/80 bg-zinc-50/90 p-2 shadow-inner dark:border-zinc-700/80 dark:bg-zinc-900/60 sm:flex-row sm:gap-2">
-              {steps.map(({ n, title, hint }) => (
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch sm:justify-between sm:gap-6">
+            <div className="grid w-full grid-cols-1 overflow-hidden rounded-3xl border border-zinc-200/90 bg-gradient-to-b from-white via-zinc-50/50 to-zinc-100/40 shadow-lg shadow-zinc-900/5 dark:border-zinc-700/80 dark:from-zinc-900 dark:via-zinc-950/80 dark:to-zinc-950 sm:grid-cols-2">
+              {steps.map(({ n, title, hint }, i) => (
                 <button
                   key={n}
                   type="button"
                   onClick={() => setStep(n)}
                   className={cn(
-                    "flex flex-1 items-start gap-3 rounded-xl px-3 py-3 text-left transition sm:py-3.5",
+                    "relative flex items-start gap-3 px-4 py-4 text-left transition sm:px-6 sm:py-5",
+                    i === 0 && "sm:border-r sm:border-zinc-200/80 dark:sm:border-zinc-700/80",
                     step === n
-                      ? "bg-white text-zinc-900 shadow-md ring-1 ring-black/[0.06] dark:bg-zinc-800 dark:text-zinc-50 dark:ring-white/10"
-                      : "text-zinc-500 hover:bg-white/60 hover:text-zinc-800 dark:text-zinc-500 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-200"
+                      ? "bg-white/95 ring-2 ring-inset ring-violet-500/40 dark:bg-zinc-900/95 dark:ring-violet-400/35"
+                      : "hover:bg-white/80 dark:hover:bg-zinc-800/30"
                   )}
                 >
                   <span
                     className={cn(
-                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold",
+                      "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold transition",
                       step === n
-                        ? "bg-violet-600 text-white shadow-sm shadow-violet-500/30"
+                        ? "bg-violet-600 text-white shadow-lg shadow-violet-500/35"
                         : "bg-zinc-200 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300"
                     )}
                   >
                     {n}
                   </span>
-                  <span className="min-w-0">
-                    <span className="block text-sm font-semibold">{title}</span>
-                    <span className="mt-0.5 block text-xs text-zinc-500 dark:text-zinc-400">{hint}</span>
+                  <span className="min-w-0 flex-1 pr-6">
+                    <span className="flex items-center gap-2">
+                      <span className="block text-sm font-semibold text-zinc-900 dark:text-zinc-50">{title}</span>
+                      {n === 1 && step === 2 ? (
+                        <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" aria-hidden />
+                      ) : null}
+                    </span>
+                    <span className="mt-0.5 block text-xs leading-snug text-zinc-500 dark:text-zinc-400">
+                      {hint}
+                    </span>
                   </span>
                 </button>
               ))}
             </div>
-            <p className="shrink-0 text-center text-xs font-medium text-zinc-500 dark:text-zinc-400 sm:text-right">
-              Step <span className="text-zinc-900 dark:text-zinc-200">{step}</span> of 2
-            </p>
+            <div className="flex shrink-0 flex-col justify-center rounded-2xl border border-zinc-200/80 bg-white/90 px-4 py-3 text-center shadow-sm dark:border-zinc-700/80 dark:bg-zinc-950/80 sm:min-w-[7.5rem]">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500">
+                Progress
+              </p>
+              <p className="mt-1 text-lg font-bold tabular-nums text-zinc-900 dark:text-zinc-50">
+                {step}
+                <span className="text-sm font-semibold text-zinc-400 dark:text-zinc-500"> /2</span>
+              </p>
+            </div>
           </div>
         </nav>
 
-        <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_18rem] lg:items-start lg:gap-12">
+        <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_20rem] lg:items-start lg:gap-12">
           <div className="min-w-0 space-y-10">
             {step === 1 ? (
               <>
+                <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200/80 bg-gradient-to-r from-white via-violet-50/30 to-white px-4 py-3.5 shadow-sm dark:border-zinc-700/80 dark:from-zinc-950 dark:via-violet-950/20 dark:to-zinc-950 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">
+                    On this page
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {assistShortcuts ? (
+                      <button
+                        type="button"
+                        className={jumpBtnClass}
+                        onClick={() => scrollToSection("add-product-shortcuts")}
+                      >
+                        Shortcuts
+                      </button>
+                    ) : null}
+                    <button
+                      type="button"
+                      className={jumpBtnClass}
+                      onClick={() => scrollToSection("add-product-story")}
+                    >
+                      Story
+                    </button>
+                    <button
+                      type="button"
+                      className={jumpBtnClass}
+                      onClick={() => scrollToSection("add-product-classify")}
+                    >
+                      Category &amp; specs
+                    </button>
+                    <button
+                      type="button"
+                      className={jumpBtnClass}
+                      onClick={() => scrollToSection("add-product-media")}
+                    >
+                      Photos
+                    </button>
+                  </div>
+                </div>
+
                 {assistShortcuts ? (
                   <SectionCard
+                    id="add-product-shortcuts"
                     icon={Zap}
                     variant="accent"
                     title="Shortcuts"
@@ -1316,160 +1383,173 @@ export function SupplierAddProductForm({
                   </SectionCard>
                 ) : null}
 
-                <SectionCard
-                  icon={Package}
-                  title="Product story"
-                  description="Name and description appear to affiliates and on your storefront."
-                >
-                  <div>
-                    <Label htmlFor="p-name">
-                      Product name <span className="text-red-600">*</span>
-                    </Label>
-                    <Input
-                      id="p-name"
-                      className="mt-1.5 h-11"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="e.g. Wireless earbuds with ANC"
-                      maxLength={500}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="p-desc">Description</Label>
-                    <textarea
-                      id="p-desc"
-                      className="mt-1.5 min-h-[132px] w-full rounded-xl border border-zinc-200 bg-zinc-50/50 px-3 py-2.5 text-sm outline-none transition focus:border-violet-400 focus:bg-white dark:border-zinc-700 dark:bg-zinc-900/50 dark:focus:border-violet-600"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Highlights, materials, who it’s for—what affiliates should know"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-zinc-800 dark:text-zinc-100">About this item (bullet points)</Label>
-                    <p className="mt-0.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-                      Structured selling points shoppers see first on the product page (like marketplace “About this
-                      item”).
-                    </p>
-                    <div className="mt-2 space-y-2">
-                      {descriptionBullets.map((line, i) => (
-                        <div key={i} className="flex gap-2">
-                          <Input
-                            className="h-10 min-w-0 flex-1"
-                            value={line}
-                            onChange={(e) => {
-                              const next = [...descriptionBullets]
-                              next[i] = e.target.value
-                              setDescriptionBullets(next)
-                            }}
-                            placeholder={`Selling point ${i + 1}`}
-                            maxLength={500}
-                          />
-                          {descriptionBullets.length > 1 ? (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="shrink-0 text-zinc-500 hover:text-red-600"
-                              onClick={() =>
-                                setDescriptionBullets(descriptionBullets.filter((_, j) => j !== i))
-                              }
-                              aria-label="Remove bullet"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          ) : null}
-                        </div>
-                      ))}
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="gap-1 border-dashed text-zinc-600 dark:text-zinc-300"
-                        onClick={() => setDescriptionBullets([...descriptionBullets, ""])}
-                      >
-                        <Plus className="h-4 w-4" aria-hidden /> Add bullet
-                      </Button>
-                    </div>
-                  </div>
-                </SectionCard>
-
-                <SectionCard
-                  icon={Tag}
-                  title="Classification"
-                  description="Pick a leaf category — we load marketplace-style specs: core identity, aisle-specific traits, compliance & sustainability extras, merged by your category path."
-                >
-                  <div>
-                    <Label className="inline-flex items-center gap-1">
-                      Category <span className="text-red-600">*</span>
-                    </Label>
-                    <div className="mt-1.5">
-                      <SupplierCategoryPicker
-                        browse={browse}
-                        recent={recentCategories}
-                        value={categoryId}
-                        onChange={(leafId, path) => {
-                          setCategoryId(leafId)
-                          setCategoryPath(path)
-                          setSpecValues({})
-                        }}
-                        keywordSuggestions={keywordCategorySuggestions}
-                        aiSuggestions={aiCategorySuggestions}
-                        aiLoading={aiSuggestLoading}
-                        loading={loadingBrowse}
-                      />
-                    </div>
-                  </div>
-                  {!categoryId.trim() ? (
-                    <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
-                      You’re viewing the universal spec sheet. Pick a leaf category below to add{" "}
-                      <span className="font-semibold">aisle-specific</span> attributes (electronics, beauty, home…).
-                    </p>
-                  ) : null}
-                  <div className="rounded-xl border border-zinc-100 bg-zinc-50/40 p-1 dark:border-zinc-800 dark:bg-zinc-900/30">
-                    <CategoryAttributeFields
-                      attributes={mergedCategoryAttrs}
-                      loading={attrsLoading}
-                      values={specValues}
-                      onChange={setSpecValues}
-                    />
-                  </div>
-                </SectionCard>
-
-                <SectionCard
-                  icon={ImageIcon}
-                  title="Visual assets"
-                  description="Strong photos convert—multiple angles and lifestyle shots win."
-                >
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <Label className="inline-flex items-center gap-1 text-zinc-900 dark:text-zinc-100">
-                      <span className="text-red-600">*</span>
-                      Images
-                    </Label>
-                    <button
-                      type="button"
-                      className="rounded-full p-0.5 text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-                      title="Five or more images typically perform best."
-                      aria-label="Image count tip"
+                <div className="grid gap-8 xl:grid-cols-12 xl:gap-x-10 xl:items-start">
+                  <div className="space-y-8 xl:col-span-5">
+                    <SectionCard
+                      id="add-product-story"
+                      icon={Package}
+                      title="Product story"
+                      description="Name and description appear to affiliates and on your storefront."
                     >
-                      <CircleHelp className="h-4 w-4 shrink-0" aria-hidden />
-                    </button>
+                      <div>
+                        <Label htmlFor="p-name">
+                          Product name <span className="text-red-600">*</span>
+                        </Label>
+                        <Input
+                          id="p-name"
+                          className="mt-1.5 h-11"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder="e.g. Wireless earbuds with ANC"
+                          maxLength={500}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="p-desc">Description</Label>
+                        <textarea
+                          id="p-desc"
+                          className="mt-1.5 min-h-[132px] w-full rounded-xl border border-zinc-200 bg-zinc-50/50 px-3 py-2.5 text-sm outline-none transition focus:border-violet-400 focus:bg-white dark:border-zinc-700 dark:bg-zinc-900/50 dark:focus:border-violet-600"
+                          value={description}
+                          onChange={(e) => setDescription(e.target.value)}
+                          placeholder="Highlights, materials, who it’s for—what affiliates should know"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-zinc-800 dark:text-zinc-100">About this item (bullet points)</Label>
+                        <p className="mt-0.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+                          Structured selling points shoppers see first on the product page (like marketplace “About
+                          this item”).
+                        </p>
+                        <div className="mt-2 space-y-2">
+                          {descriptionBullets.map((line, i) => (
+                            <div key={i} className="flex gap-2">
+                              <Input
+                                className="h-10 min-w-0 flex-1"
+                                value={line}
+                                onChange={(e) => {
+                                  const next = [...descriptionBullets]
+                                  next[i] = e.target.value
+                                  setDescriptionBullets(next)
+                                }}
+                                placeholder={`Selling point ${i + 1}`}
+                                maxLength={500}
+                              />
+                              {descriptionBullets.length > 1 ? (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="shrink-0 text-zinc-500 hover:text-red-600"
+                                  onClick={() =>
+                                    setDescriptionBullets(descriptionBullets.filter((_, j) => j !== i))
+                                  }
+                                  aria-label="Remove bullet"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              ) : null}
+                            </div>
+                          ))}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="gap-1 border-dashed text-zinc-600 dark:text-zinc-300"
+                            onClick={() => setDescriptionBullets([...descriptionBullets, ""])}
+                          >
+                            <Plus className="h-4 w-4" aria-hidden /> Add bullet
+                          </Button>
+                        </div>
+                      </div>
+                    </SectionCard>
                   </div>
-                  <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-                    Upload several angles; five or more is ideal for marketplace trust.
-                  </p>
-                  <div className="mt-3">
-                    <SupplierProductImageUpload initialUrls={images} onImagesChange={setImages} />
-                  </div>
-                </SectionCard>
 
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                    Next: base price, stock, and affiliate economics.
+                  <div className="space-y-8 xl:col-span-7">
+                    <SectionCard
+                      id="add-product-classify"
+                      icon={Tag}
+                      title="Classification"
+                      description="Pick a leaf category — we load marketplace-style specs: core identity, aisle-specific traits, compliance & sustainability extras, merged by your category path."
+                    >
+                      <div>
+                        <Label className="inline-flex items-center gap-1">
+                          Category <span className="text-red-600">*</span>
+                        </Label>
+                        <div className="mt-1.5">
+                          <SupplierCategoryPicker
+                            browse={browse}
+                            recent={recentCategories}
+                            value={categoryId}
+                            onChange={(leafId, path) => {
+                              setCategoryId(leafId)
+                              setCategoryPath(path)
+                              setSpecValues({})
+                            }}
+                            keywordSuggestions={keywordCategorySuggestions}
+                            aiSuggestions={aiCategorySuggestions}
+                            aiLoading={aiSuggestLoading}
+                            loading={loadingBrowse}
+                          />
+                        </div>
+                      </div>
+                      {!categoryId.trim() ? (
+                        <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
+                          You’re viewing the universal spec sheet. Pick a leaf category below to add{" "}
+                          <span className="font-semibold">aisle-specific</span> attributes (electronics, beauty,
+                          home…).
+                        </p>
+                      ) : null}
+                      <div className="rounded-xl border border-zinc-100 bg-zinc-50/40 p-1 dark:border-zinc-800 dark:bg-zinc-900/30">
+                        <CategoryAttributeFields
+                          attributes={mergedCategoryAttrs}
+                          loading={attrsLoading}
+                          values={specValues}
+                          onChange={setSpecValues}
+                        />
+                      </div>
+                    </SectionCard>
+                  </div>
+
+                  <div className="space-y-8 xl:col-span-12">
+                    <SectionCard
+                      id="add-product-media"
+                      icon={ImageIcon}
+                      title="Visual assets"
+                      description="Strong photos convert—multiple angles and lifestyle shots win."
+                    >
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <Label className="inline-flex items-center gap-1 text-zinc-900 dark:text-zinc-100">
+                          <span className="text-red-600">*</span>
+                          Images
+                        </Label>
+                        <button
+                          type="button"
+                          className="rounded-full p-0.5 text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                          title="Five or more images typically perform best."
+                          aria-label="Image count tip"
+                        >
+                          <CircleHelp className="h-4 w-4 shrink-0" aria-hidden />
+                        </button>
+                      </div>
+                      <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+                        Upload several angles; five or more is ideal for marketplace trust.
+                      </p>
+                      <div className="mt-3">
+                        <SupplierProductImageUpload initialUrls={images} onImagesChange={setImages} />
+                      </div>
+                    </SectionCard>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3 rounded-2xl border border-violet-200/60 bg-gradient-to-r from-violet-50/50 via-white to-white px-4 py-4 dark:border-violet-900/40 dark:from-violet-950/25 dark:via-zinc-950 dark:to-zinc-950 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                  <p className="text-sm text-zinc-600 dark:text-zinc-300">
+                    <span className="font-medium text-zinc-900 dark:text-zinc-100">Step 2</span> — base price, stock,
+                    variants, and affiliate economics.
                   </p>
                   <Button
                     type="button"
                     size="lg"
-                    className="w-full bg-violet-600 hover:bg-violet-700 dark:bg-violet-600 sm:w-auto"
+                    className="w-full shrink-0 bg-violet-600 hover:bg-violet-700 dark:bg-violet-600 sm:w-auto"
                     onClick={() => {
                       if (!categoryId.trim()) {
                         toast.error("Please select a category.")
@@ -1489,6 +1569,8 @@ export function SupplierAddProductForm({
               </>
             ) : (
               <>
+                <div className="grid gap-8 xl:grid-cols-2 xl:gap-x-10 xl:items-start">
+                  <div className="space-y-8">
                 <SectionCard
                   icon={Wallet}
                   title="Pricing & inventory"
@@ -1845,7 +1927,8 @@ export function SupplierAddProductForm({
                     </p>
                   )}
                 </SectionCard>
-
+                  </div>
+                  <div className="space-y-8">
                 <SectionCard
                   icon={Globe2}
                   title="Marketplace delivery"
@@ -1902,13 +1985,16 @@ export function SupplierAddProductForm({
                   </div>
                 </SectionCard>
 
-                <section className="overflow-hidden rounded-2xl border border-violet-200/80 bg-gradient-to-br from-violet-50 via-white to-violet-50/50 p-6 shadow-sm dark:border-violet-900/50 dark:from-violet-950/40 dark:via-zinc-950 dark:to-violet-950/30">
+                <section
+                  id="add-product-commission"
+                  className="scroll-mt-28 overflow-hidden rounded-3xl border border-violet-200/80 bg-gradient-to-br from-violet-50 via-white to-violet-50/50 p-6 shadow-md ring-1 ring-violet-500/10 dark:border-violet-900/50 dark:from-violet-950/40 dark:via-zinc-950 dark:to-violet-950/30 dark:ring-violet-400/10 sm:p-7"
+                >
                   <div className="mb-4 flex items-start gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-600 text-white shadow-md shadow-violet-600/25">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-violet-600 text-white shadow-lg shadow-violet-600/30">
                       <Sparkles className="h-5 w-5" aria-hidden />
                     </div>
                     <div>
-                      <h2 className="text-base font-semibold text-violet-950 dark:text-violet-100">
+                      <h2 className="text-lg font-semibold text-violet-950 dark:text-violet-100">
                         Affiliate commission
                       </h2>
                       <p className="mt-1 text-sm text-violet-900/85 dark:text-violet-200/90">
@@ -2069,6 +2155,8 @@ export function SupplierAddProductForm({
                     </p>
                   </div>
                 ) : null}
+                </div>
+                </div>
 
                 <div className="flex flex-col gap-3 border-t border-zinc-200 pt-6 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-between">
                   <Button type="button" variant="outline" size="lg" onClick={() => setStep(1)}>
@@ -2095,7 +2183,7 @@ export function SupplierAddProductForm({
           <aside className="hidden lg:block">
             <div className="sticky top-24 space-y-4">
               {step === 1 ? (
-                <div className="rounded-2xl border border-zinc-200/90 bg-white/95 p-5 shadow-sm dark:border-zinc-700/90 dark:bg-zinc-950/80">
+                <div className="rounded-2xl border border-zinc-200/90 bg-white/95 p-5 shadow-md ring-1 ring-black/[0.02] dark:border-zinc-700/90 dark:bg-zinc-950/80 dark:ring-white/[0.03]">
                   <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                     Readiness
                   </p>
@@ -2128,7 +2216,7 @@ export function SupplierAddProductForm({
                   </div>
                 </div>
               ) : (
-                <div className="rounded-2xl border border-zinc-200/90 bg-gradient-to-b from-zinc-50 to-white p-5 shadow-sm dark:border-zinc-700/90 dark:from-zinc-900 dark:to-zinc-950">
+                <div className="rounded-2xl border border-zinc-200/90 bg-gradient-to-b from-zinc-50 to-white p-5 shadow-md ring-1 ring-black/[0.02] dark:border-zinc-700/90 dark:from-zinc-900 dark:to-zinc-950 dark:ring-white/[0.03]">
                   <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                     Summary
                   </p>
