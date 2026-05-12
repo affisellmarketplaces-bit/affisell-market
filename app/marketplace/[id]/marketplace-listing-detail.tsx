@@ -6,6 +6,7 @@ import {
   ArrowRight,
   Bell,
   ChevronRight,
+  MousePointerClick,
   Package,
   RotateCcw,
   ShieldCheck,
@@ -790,17 +791,35 @@ export function MarketplaceListingDetail({
                 <motion.button
                   type="button"
                   disabled={buyBusy || stock <= 0}
-                  whileHover={{ scale: stock > 0 && !buyBusy ? 1.01 : 1 }}
-                  whileTap={{ scale: stock > 0 && !buyBusy ? 0.99 : 1 }}
+                  whileHover={{ scale: stock > 0 && !buyBusy ? 1.012 : 1 }}
+                  whileTap={{ scale: stock > 0 && !buyBusy ? 0.988 : 1 }}
                   onClick={() => void buyNow()}
-                  className="flex h-14 w-full items-center justify-center gap-2 rounded-full border-2 border-zinc-900 bg-white text-base font-semibold text-zinc-900 shadow-sm transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-100 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:bg-zinc-900"
+                  className="group relative isolate flex h-14 w-full items-center gap-3 overflow-hidden rounded-full border border-violet-300/45 bg-gradient-to-b from-white/95 to-violet-50/40 px-4 text-left text-base font-semibold text-zinc-900 shadow-[0_0_0_1px_rgba(139,92,246,0.07),0_10px_36px_-14px_rgba(124,58,237,0.42)] ring-1 ring-white/70 backdrop-blur-md transition-[border-color,box-shadow,background-color] duration-300 hover:border-violet-400/60 hover:from-white hover:to-violet-50/55 hover:shadow-[0_0_0_1px_rgba(139,92,246,0.12),0_16px_52px_-12px_rgba(124,58,237,0.52)] disabled:cursor-not-allowed disabled:opacity-50 dark:border-violet-500/35 dark:from-zinc-950/92 dark:to-violet-950/40 dark:text-zinc-50 dark:ring-white/10 dark:hover:border-violet-400/50 dark:hover:to-violet-950/55"
                 >
+                  <span
+                    className="pointer-events-none absolute inset-0 -z-10 translate-x-[-130%] skew-x-[-12deg] bg-gradient-to-r from-transparent via-white/55 to-transparent opacity-0 transition duration-700 ease-out group-hover:translate-x-[130%] group-hover:opacity-100 dark:via-white/10"
+                    aria-hidden
+                  />
+                  <span
+                    className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-violet-500/[0.07] via-transparent to-fuchsia-500/[0.08] dark:from-violet-400/[0.12] dark:to-fuchsia-500/[0.1]"
+                    aria-hidden
+                  />
                   {buyBusy ? (
-                    "Redirecting…"
+                    <span className="relative flex flex-1 items-center justify-center py-1 text-center font-medium">
+                      Redirecting…
+                    </span>
                   ) : (
                     <>
-                      {productT.buyNowOneClick}
-                      <ArrowRight className="h-4 w-4 opacity-70" aria-hidden />
+                      <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white shadow-lg shadow-violet-500/35 ring-1 ring-white/25 dark:shadow-violet-900/50">
+                        <MousePointerClick className="h-[18px] w-[18px]" strokeWidth={2.25} aria-hidden />
+                      </span>
+                      <span className="relative min-w-0 flex-1 text-[15px] font-semibold leading-snug tracking-tight">
+                        {productT.buyNowOneClick}
+                      </span>
+                      <ArrowRight
+                        className="relative h-5 w-5 shrink-0 text-violet-600 transition duration-300 group-hover:translate-x-0.5 dark:text-violet-400"
+                        aria-hidden
+                      />
                     </>
                   )}
                 </motion.button>
