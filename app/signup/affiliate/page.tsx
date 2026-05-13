@@ -1,7 +1,7 @@
 "use client"
 
 import type { FormEvent } from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { signIn } from "next-auth/react"
 
 import { messageForCredentialsSignInCode } from "@/lib/auth-portal-signin-messages"
@@ -15,6 +15,19 @@ export default function AffiliateSignupPage() {
   const [displayName, setDisplayName] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    void fetch("/api/auth/oauth-intent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ intent: "AFFILIATE" }),
+    })
+    void fetch("/api/auth/login-portal-cookie", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ callbackUrl: "/dashboard/affiliate" }),
+    })
+  }, [])
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
@@ -135,7 +148,7 @@ export default function AffiliateSignupPage() {
 
         <p className="mt-6 text-center text-sm text-gray-600">
           Already have an account?{" "}
-          <Link href="/login" className="font-medium text-blue-600 hover:text-blue-700">
+          <Link href="/login?callbackUrl=/dashboard/affiliate" className="font-medium text-blue-600 hover:text-blue-700">
             Sign in
           </Link>
         </p>

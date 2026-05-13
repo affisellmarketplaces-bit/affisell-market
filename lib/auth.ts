@@ -203,16 +203,29 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           const jar = await cookies()
           const enc = jar.get(AUTH_LOGIN_CALLBACK_COOKIE)?.value
           if (enc && user.email) {
-            jar.delete(AUTH_LOGIN_CALLBACK_COOKIE)
             const portal = inferLoginPortal(decodeURIComponent(enc))
             if (portal) {
               const row = await prisma.user.findUnique({
                 where: { email: user.email.toLowerCase() },
-                select: { role: true },
+                select: { role: true, createdAt: true },
               })
               if (row) {
-                if (portal === "AFFILIATE" && row.role !== "AFFILIATE") return false
-                if (portal === "SUPPLIER" && row.role !== "SUPPLIER") return false
+                if (row.role === "AFFILIATE" || row.role === "SUPPLIER") {
+                  if (portal === "AFFILIATE" && row.role !== "AFFILIATE") {
+                    jar.delete(AUTH_LOGIN_CALLBACK_COOKIE)
+                    return false
+                  }
+                  if (portal === "SUPPLIER" && row.role !== "SUPPLIER") {
+                    jar.delete(AUTH_LOGIN_CALLBACK_COOKIE)
+                    return false
+                  }
+                } else if (row.role === "CUSTOMER") {
+                  const ageMs = Date.now() - new Date(row.createdAt).getTime()
+                  if (ageMs > 30_000) {
+                    jar.delete(AUTH_LOGIN_CALLBACK_COOKIE)
+                    return false
+                  }
+                }
               }
             }
           }
@@ -318,8 +331,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   events: {
     async createUser({ user }) {
       let role = "CUSTOMER"
-      const intent = await consumeOAuthSignupIntent()
-      if (intent === "AFFILIATE" || intent === "SUPPLIER") role = intent
+      try {
+        const jar = await cookies()
+        const enc = jar.get(AUTH_LOGIN_CALLBACK_COOKIE)?.value
+        const portal = enc ? inferLoginPortal(decodeURIComponent(enc)) : null
+        const intent = await consumeOAuthSignupIntent()
+        if (portal === "AFFILIATE" || portal === "SUPPLIER") role = portal
+        else if (intent === "AFFILIATE" || intent === "SUPPLIER") role = intent
+        if (enc) jar.delete(AUTH_LOGIN_CALLBACK_COOKIE)
+      } catch {
+        const intent = await consumeOAuthSignupIntent()
+        if (intent === "AFFILIATE" || intent === "SUPPLIER") role = intent
+      }
 
       await prisma.user.update({
         where: { id: user.id! },

@@ -18,8 +18,14 @@ export function inferLoginPortal(callbackUrl: string | undefined | null): LoginP
   }
   const q = path.split("?")[0] ?? path
   const lower = q.toLowerCase()
-  if (lower.includes("/dashboard/supplier")) return "SUPPLIER"
-  if (lower.includes("/dashboard/affiliate") || lower.startsWith("/affiliate/")) return "AFFILIATE"
+  if (lower.includes("/dashboard/supplier") || lower.includes("/signup/supplier")) return "SUPPLIER"
+  if (
+    lower.includes("/dashboard/affiliate") ||
+    lower.includes("/signup/affiliate") ||
+    lower.startsWith("/affiliate/")
+  ) {
+    return "AFFILIATE"
+  }
   return null
 }
 

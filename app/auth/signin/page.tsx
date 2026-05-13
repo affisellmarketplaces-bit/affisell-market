@@ -4,8 +4,9 @@ import type { FormEvent } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { signIn } from "next-auth/react"
-import { useState, Suspense } from "react"
+import { useState, Suspense, useEffect } from "react"
 
+import { inferLoginPortal } from "@/lib/auth-login-portal"
 import { messageForCredentialsSignInCode } from "@/lib/auth-portal-signin-messages"
 
 function SignInContent() {
@@ -17,6 +18,18 @@ function SignInContent() {
   const [error, setError] = useState<string | null>(null)
 
   const oauthError = search.get("error")
+  const callbackUrl = search.get("callbackUrl")
+
+  useEffect(() => {
+    if (!callbackUrl) return
+    if (!inferLoginPortal(callbackUrl)) return
+    void fetch("/api/auth/login-portal-cookie", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ callbackUrl }),
+    })
+  }, [callbackUrl])
+
   const resolvedError =
     error ??
     (oauthError === "AccessDenied"
