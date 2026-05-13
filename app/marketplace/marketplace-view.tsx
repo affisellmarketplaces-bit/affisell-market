@@ -83,53 +83,84 @@ export function MarketplaceView() {
   }
 
   return (
-    <main className="min-h-screen bg-[#FCFCFC]">
-      <div className="mx-auto max-w-7xl px-4 py-10 md:px-8">
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-4xl font-bold tracking-tight text-zinc-900">Marketplace</h1>
-            <p className="mt-1 text-zinc-500">Live listings from partner stores — search, filter, open a product.</p>
-          </div>
-          {hasFilters ? (
-            <Button type="button" variant="outline" size="sm" onClick={clearFilters} className="shrink-0 gap-1.5">
-              <X className="h-4 w-4" aria-hidden />
-              Clear filters
-            </Button>
-          ) : null}
-        </div>
+    <main className="min-h-[calc(100dvh-3.75rem)] text-zinc-900 dark:text-zinc-50">
+      <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 md:py-10">
+        <header className="relative overflow-hidden rounded-3xl border border-violet-200/60 bg-white/85 shadow-sm shadow-violet-500/5 ring-1 ring-black/[0.03] backdrop-blur-md dark:border-violet-900/40 dark:bg-zinc-950/75 dark:ring-white/10">
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.45] dark:opacity-[0.2]"
+            style={{
+              backgroundImage: `
+                radial-gradient(ellipse 80% 55% at 15% -10%, rgba(139,92,246,0.22), transparent 50%),
+                radial-gradient(ellipse 60% 45% at 92% 8%, rgba(20,184,166,0.16), transparent 45%),
+                radial-gradient(circle at 50% 100%, rgba(139,92,246,0.06), transparent 55%)
+              `,
+            }}
+            aria-hidden
+          />
+          <div className="relative space-y-6 p-6 sm:p-8">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0 space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-600 dark:text-violet-400">
+                  Discover
+                </p>
+                <h1 className="text-balance text-3xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
+                  Marketplace
+                </h1>
+                <p className="max-w-xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 sm:text-[15px]">
+                  Live listings from partner stores — search, filter by category, and open any product.
+                </p>
+              </div>
+              {hasFilters ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={clearFilters}
+                  className="shrink-0 gap-1.5 border-zinc-200/90 bg-white/90 dark:border-zinc-700 dark:bg-zinc-900/80"
+                >
+                  <X className="h-4 w-4" aria-hidden />
+                  Clear filters
+                </Button>
+              ) : null}
+            </div>
 
-        <form
-          className="mb-8 max-w-xl"
-          role="search"
-          onSubmit={(e) => {
-            e.preventDefault()
-            const fd = new FormData(e.currentTarget)
-            const next = new URLSearchParams(searchParams.toString())
-            const localQ = String(fd.get("localQ") ?? "").trim()
-            if (localQ) next.set("q", localQ)
-            else next.delete("q")
-            const s = next.toString()
-            router.push(`/marketplace${s ? `?${s}` : ""}`)
-          }}
-        >
-          <label htmlFor="marketplace-local-search" className="sr-only">
-            Search listings
-          </label>
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" aria-hidden />
-            <input
-              id="marketplace-local-search"
-              name="localQ"
-              type="search"
-              defaultValue={searchQuery}
-              placeholder="Search by product name or description…"
-              autoComplete="off"
-              className="h-11 w-full rounded-xl border border-zinc-200 bg-white py-2 pl-10 pr-3 text-sm text-zinc-900 shadow-sm outline-none ring-violet-500/20 placeholder:text-zinc-400 focus:border-violet-400 focus:ring-2"
-            />
+            <form
+              className="max-w-xl"
+              role="search"
+              onSubmit={(e) => {
+                e.preventDefault()
+                const fd = new FormData(e.currentTarget)
+                const next = new URLSearchParams(searchParams.toString())
+                const localQ = String(fd.get("localQ") ?? "").trim()
+                if (localQ) next.set("q", localQ)
+                else next.delete("q")
+                const s = next.toString()
+                router.push(`/marketplace${s ? `?${s}` : ""}`)
+              }}
+            >
+              <label htmlFor="marketplace-local-search" className="sr-only">
+                Search listings
+              </label>
+              <div className="relative">
+                <Search
+                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
+                  aria-hidden
+                />
+                <input
+                  id="marketplace-local-search"
+                  name="localQ"
+                  type="search"
+                  defaultValue={searchQuery}
+                  placeholder="Search by product name or description…"
+                  autoComplete="off"
+                  className="h-11 w-full rounded-xl border border-zinc-200/90 bg-white/95 py-2 pl-10 pr-3 text-sm text-zinc-900 shadow-sm outline-none ring-violet-500/15 placeholder:text-zinc-400 focus:border-violet-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100"
+                />
+              </div>
+            </form>
           </div>
-        </form>
+        </header>
 
-        <div className="mt-6 flex flex-col gap-8 lg:flex-row lg:items-start">
+        <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-start">
           <div className="shrink-0 lg:sticky lg:top-[5.25rem] lg:self-start">
             <Sidebar onCategoryClick={handleCategoryClick} />
           </div>
@@ -139,16 +170,16 @@ export function MarketplaceView() {
               <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <li key={i} className="animate-pulse">
-                    <div className="aspect-square rounded-2xl bg-zinc-200" />
-                    <div className="mt-3 h-4 w-3/4 rounded bg-zinc-200" />
-                    <div className="mt-2 h-5 w-20 rounded bg-zinc-200" />
+                    <div className="aspect-square rounded-3xl border border-zinc-100 bg-zinc-100/80 dark:border-zinc-800 dark:bg-zinc-800/50" />
+                    <div className="mt-3 h-4 w-3/4 rounded-lg bg-zinc-100 dark:bg-zinc-800/50" />
+                    <div className="mt-2 h-5 w-20 rounded-lg bg-zinc-100 dark:bg-zinc-800/50" />
                   </li>
                 ))}
               </ul>
             ) : products.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-zinc-200 bg-white px-6 py-16 text-center">
-                <p className="text-lg font-medium text-zinc-800">No listings match</p>
-                <p className="mx-auto mt-2 max-w-md text-sm text-zinc-500">
+              <div className="rounded-3xl border border-dashed border-violet-200/70 bg-white/80 px-6 py-16 text-center shadow-sm backdrop-blur-sm dark:border-violet-900/40 dark:bg-zinc-950/50">
+                <p className="text-lg font-medium text-zinc-900 dark:text-zinc-100">No listings match</p>
+                <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
                   {hasFilters
                     ? "Try another search or category, or reset filters to see everything in the marketplace."
                     : "There are no published partner listings yet."}
@@ -164,8 +195,8 @@ export function MarketplaceView() {
                 )}
               </div>
             ) : (
-              <p className="mb-4 text-sm text-zinc-500">
-                <strong className="font-semibold text-zinc-800">{products.length}</strong> listing
+              <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+                <strong className="font-semibold text-zinc-900 dark:text-zinc-100">{products.length}</strong> listing
                 {products.length === 1 ? "" : "s"}
                 {searchQuery.trim() ? (
                   <>
@@ -176,7 +207,7 @@ export function MarketplaceView() {
               </p>
             )}
             {!loading && products.length > 0 ? (
-              <ul className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
+              <ul className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
                 {products.map((product) => (
                   <li key={String(product.listingId ?? product.id)} className="flex h-full">
                     <ProductCard product={product} />

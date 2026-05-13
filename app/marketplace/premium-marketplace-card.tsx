@@ -40,9 +40,9 @@ export function PremiumMarketplaceCard({
   return (
     <Link
       href={detailHref}
-      className="group flex h-full w-full flex-col rounded-2xl transition-shadow hover:shadow-xl hover:shadow-zinc-200/50"
+      className="group flex h-full w-full flex-col rounded-3xl border border-gray-100/90 bg-white/85 p-2 shadow-sm backdrop-blur-sm transition-shadow hover:border-violet-200/80 hover:shadow-lg hover:shadow-violet-500/5 dark:border-zinc-800 dark:bg-zinc-950/60 dark:hover:border-violet-800/50"
     >
-      <div className="relative mb-3 aspect-square w-full shrink-0 overflow-hidden rounded-2xl bg-[#F5F5F5]">
+      <div className="relative mb-3 aspect-square w-full shrink-0 overflow-hidden rounded-2xl border border-white/50 bg-gradient-to-br from-violet-50/40 to-teal-50/25 dark:border-zinc-800/80 dark:from-violet-950/25 dark:to-teal-950/15">
         {hasDiscount ? (
           <span className="absolute left-3 top-3 z-20 rounded-full bg-red-500 px-2.5 py-1 text-[11px] font-black text-white shadow">
             SAVE {savePct}%
@@ -102,16 +102,18 @@ export function PremiumMarketplaceCard({
       <div className="flex flex-1 flex-col pb-1 pt-0">
         <div className="flex items-start justify-between gap-3">
           <div className="min-h-0 min-w-0 flex-1">
-            <h3 className="line-clamp-3 h-[4.125rem] break-words font-semibold leading-snug text-zinc-900">{name}</h3>
+            <h3 className="line-clamp-3 h-[4.125rem] break-words font-semibold leading-snug text-zinc-900 dark:text-zinc-100">
+              {name}
+            </h3>
           </div>
           <div className="shrink-0 pt-0.5 text-right">
-            <span className="font-medium text-zinc-900">{priceDisplay}</span>
+            <span className="font-medium text-zinc-900 dark:text-zinc-100">{priceDisplay}</span>
             {compareDisplay ? (
               <p className="text-compare-at text-xs font-medium tabular-nums line-through">{compareDisplay}</p>
             ) : null}
           </div>
         </div>
-        <p className="mt-1 line-clamp-2 h-10 text-sm leading-5 text-zinc-500">by {sellerDisplay}</p>
+        <p className="mt-1 line-clamp-2 h-10 text-sm leading-5 text-zinc-500 dark:text-zinc-400">by {sellerDisplay}</p>
       </div>
     </Link>
   )

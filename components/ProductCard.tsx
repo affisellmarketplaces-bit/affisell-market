@@ -82,11 +82,11 @@ export function ProductCard({ product }: ProductCardProps) {
       href={href}
       prefetch={false}
       className={cn(
-        "group flex h-full w-full flex-col rounded-2xl outline-none ring-offset-2 transition-shadow",
-        "hover:shadow-lg hover:shadow-zinc-200/60 focus-visible:ring-2 focus-visible:ring-violet-500"
+        "group flex h-full w-full flex-col rounded-3xl border border-gray-100/90 bg-white/85 p-2 shadow-sm outline-none ring-offset-2 backdrop-blur-sm transition-shadow dark:border-zinc-800 dark:bg-zinc-950/60",
+        "hover:border-violet-200/80 hover:shadow-lg hover:shadow-violet-500/5 focus-visible:ring-2 focus-visible:ring-violet-500 dark:hover:border-violet-800/60"
       )}
     >
-      <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-gray-100 bg-[#F5F5F5]">
+      <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-white/50 bg-gradient-to-br from-violet-50/40 to-teal-50/25 dark:border-zinc-800/80 dark:from-violet-950/25 dark:to-teal-950/15">
         {hasDiscount ? (
           <Badge className="absolute left-3 top-3 z-10 rounded-full bg-red-500 px-3 py-1.5 font-black text-white hover:bg-red-500">
             SAVE {discount}%
@@ -121,8 +121,8 @@ export function ProductCard({ product }: ProductCardProps) {
         />
       </div>
 
-      <div className="mt-3 px-1">
-        <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-semibold text-gray-900">{p.title}</h3>
+      <div className="mt-3 px-1 pb-1">
+        <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-semibold text-gray-900 dark:text-zinc-100">{p.title}</h3>
         {reward ? (
           <p className="mt-1.5">
             <span className="inline-flex rounded-full bg-teal-100 px-2 py-0.5 text-[10px] font-semibold text-teal-900">
@@ -131,12 +131,12 @@ export function ProductCard({ product }: ProductCardProps) {
           </p>
         ) : null}
         <div className="mt-2 flex items-baseline gap-2">
-          <span className="text-xl font-black text-gray-900">{formatStoreCurrency(priceN)}</span>
+          <span className="text-xl font-black text-gray-900 dark:text-white">{formatStoreCurrency(priceN)}</span>
           {hasDiscount && compareN != null ? (
             <span className="text-compare-at text-sm tabular-nums line-through">{formatStoreCurrency(compareN)}</span>
           ) : null}
         </div>
-        <p className="mt-1 text-xs text-gray-500">by {p.store || "Affisell"}</p>
+        <p className="mt-1 text-xs text-gray-500 dark:text-zinc-400">by {p.store || "Affisell"}</p>
       </div>
     </Link>
   )
