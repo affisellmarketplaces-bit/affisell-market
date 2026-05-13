@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation"
 
 import { prisma } from "@/lib/prisma"
+import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
 
 /** Canonical product URL for the agent: resolve to a marketplace listing when one exists. */
 export default async function ProductByIdPage({ params }: { params: Promise<{ id: string }> }) {
@@ -8,7 +9,12 @@ export default async function ProductByIdPage({ params }: { params: Promise<{ id
   if (!id?.trim()) notFound()
 
   const listing = await prisma.affiliateProduct.findFirst({
-    where: { productId: id, isListed: true, product: { active: true } },
+    where: {
+      ...affiliateRoleMarketplaceWhere,
+      productId: id,
+      isListed: true,
+      product: { active: true },
+    },
     select: { id: true },
     orderBy: { id: "asc" },
   })

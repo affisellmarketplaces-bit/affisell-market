@@ -55,7 +55,12 @@ function resolveCheckoutVariantLabel(row: CartLineInput): string {
 
 async function loadListing(id: string) {
   return prisma.affiliateProduct.findFirst({
-    where: { id, isListed: true, product: { active: true } },
+    where: {
+      id,
+      isListed: true,
+      product: { active: true },
+      affiliate: { role: "AFFILIATE" },
+    },
     include: { product: true },
   })
 }

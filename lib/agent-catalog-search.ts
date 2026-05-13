@@ -1,7 +1,9 @@
 import type { Prisma, PrismaClient } from "@prisma/client"
 
 import type { AgentProductCard, AgentSearchToolResult } from "@/lib/agent-product-card-types"
+import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
 import { primaryProductImage } from "@/lib/product-images"
+import { publicPartnerSellerLabel } from "@/lib/public-seller-display"
 
 function brandFromSupplier(s: {
   name: string | null
@@ -95,6 +97,7 @@ export async function searchCatalogForAgent(
   }
 
   const listingWhere: Prisma.AffiliateProductWhereInput = {
+    ...affiliateRoleMarketplaceWhere,
     isListed: true,
     product: {
       active: true,
@@ -103,6 +106,7 @@ export async function searchCatalogForAgent(
   }
 
   const listingWhereAffiliateText: Prisma.AffiliateProductWhereInput = {
+    ...affiliateRoleMarketplaceWhere,
     isListed: true,
     product: { active: true },
     OR: [
@@ -121,6 +125,7 @@ export async function searchCatalogForAgent(
         customDescription: true,
         customImages: true,
         sellingPriceCents: true,
+        affiliate: { select: { name: true, store: { select: { name: true } } } },
         product: {
           select: {
             id: true,
@@ -142,6 +147,7 @@ export async function searchCatalogForAgent(
         customDescription: true,
         customImages: true,
         sellingPriceCents: true,
+        affiliate: { select: { name: true, store: { select: { name: true } } } },
         product: {
           select: {
             id: true,
@@ -177,7 +183,10 @@ export async function searchCatalogForAgent(
       price: row.sellingPriceCents / 100,
       imageUrl,
       description,
-      brand: brandFromSupplier(p.supplier),
+      brand: publicPartnerSellerLabel({
+        storeName: row.affiliate.store?.name,
+        affiliateDisplayName: row.affiliate.name,
+      }),
     })
     if (products.length >= 3) break
   }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { rateLimitClientKey, rateLimitResponse } from "@/lib/api-rate-limit"
+import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
 import { prisma } from "@/lib/prisma"
 import { formatStoreCurrency } from "@/lib/market-config"
 import { primaryProductImage } from "@/lib/product-images"
@@ -73,7 +74,7 @@ export async function POST(req: Request) {
   const seed = seedFromBuffer(buf)
 
   const rows = await prisma.affiliateProduct.findMany({
-    where: { isListed: true, product: { active: true } },
+    where: { ...affiliateRoleMarketplaceWhere, isListed: true, product: { active: true } },
     take: 40,
     orderBy: { id: "desc" },
     include: {

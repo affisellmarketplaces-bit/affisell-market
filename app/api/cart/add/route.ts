@@ -34,7 +34,12 @@ export async function POST(req: Request) {
   const selectedSize = sizeRaw ? sizeRaw.slice(0, 40) : null
 
   const listing = await prisma.affiliateProduct.findFirst({
-    where: { id: affiliateProductId, isListed: true, product: { active: true } },
+    where: {
+      id: affiliateProductId,
+      isListed: true,
+      product: { active: true },
+      affiliate: { role: "AFFILIATE" },
+    },
   })
   if (!listing) {
     return Response.json({ error: "Listing not found" }, { status: 404 })

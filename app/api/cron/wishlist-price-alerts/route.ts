@@ -30,7 +30,7 @@ export async function GET(req: Request) {
           id: true,
           name: true,
           affiliateProducts: {
-            where: { isListed: true, product: { active: true } },
+            where: { isListed: true, product: { active: true }, affiliate: { role: "AFFILIATE" } },
             take: 1,
             orderBy: { id: "asc" },
             select: { id: true, sellingPriceCents: true },

@@ -6,6 +6,7 @@ import {
   listingDisplayTitle,
   listingGalleryUrls,
 } from "@/lib/affiliate-listing-display"
+import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
 import { shippingCountryLabel } from "@/lib/product-shipping-display"
 import { mergeColorImagesForProduct, parseProductColorImagesFromDb } from "@/lib/product-color-images"
 import { prisma } from "@/lib/prisma"
@@ -20,7 +21,12 @@ export const dynamic = "force-dynamic"
 export default async function MarketplaceListingPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const listing = await prisma.affiliateProduct.findFirst({
-    where: { id, isListed: true, product: { active: true } },
+    where: {
+      id,
+      isListed: true,
+      product: { active: true },
+      affiliate: { role: "AFFILIATE" },
+    },
     include: {
       product: {
         include: {
@@ -146,6 +152,7 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
 
   const oftenRaw = await prisma.affiliateProduct.findMany({
     where: {
+      ...affiliateRoleMarketplaceWhere,
       isListed: true,
       id: { not: listing.id },
       product: {
@@ -162,6 +169,7 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
       ? []
       : await prisma.affiliateProduct.findMany({
           where: {
+            ...affiliateRoleMarketplaceWhere,
             isListed: true,
             id: { notIn: [listing.id, ...oftenRaw.map((r) => r.id)] },
             product: { active: true },

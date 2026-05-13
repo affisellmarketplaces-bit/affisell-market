@@ -1,3 +1,4 @@
+import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
 
@@ -33,11 +34,6 @@ export async function GET() {
   const [products, weekCounts] = await Promise.all([
     prisma.product.findMany({
       where: { id: { in: productIds }, active: true },
-      include: {
-        supplier: {
-          include: { store: { select: { name: true, slug: true, logoUrl: true } } },
-        },
-      },
     }),
     prisma.order.groupBy({
       by: ["productId"],
@@ -55,42 +51,51 @@ export async function GET() {
 
   const listings = await prisma.affiliateProduct.findMany({
     where: {
+      ...affiliateRoleMarketplaceWhere,
       productId: { in: productIds },
       isListed: true,
       product: { active: true },
     },
-    select: { id: true, productId: true },
+    include: {
+      affiliate: { include: { store: { select: { name: true, slug: true, logoUrl: true } } } },
+    },
     orderBy: { id: "asc" },
   })
-  const firstListingByProduct = new Map<string, string>()
-  for (const l of listings) {
-    if (!firstListingByProduct.has(l.productId)) {
-      firstListingByProduct.set(l.productId, l.id)
+
+  const firstByProduct = new Map<
+    string,
+    {
+      listingId: string
+      sellingPriceCents: number
+      store: { name: string; slug: string; logoUrl: string | null } | null
     }
+  >()
+  for (const l of listings) {
+    if (firstByProduct.has(l.productId)) continue
+    const st = l.affiliate.store
+    firstByProduct.set(l.productId, {
+      listingId: l.id,
+      sellingPriceCents: l.sellingPriceCents,
+      store: st ? { name: st.name, slug: st.slug, logoUrl: st.logoUrl } : null,
+    })
   }
 
   const items = productIds
     .map((id) => {
       const p = productMap.get(id)
-      if (!p) return null
+      const meta = firstByProduct.get(id)
+      if (!p || !meta) return null
       const totalSold = countMap.get(id) ?? 0
       const soldThisWeek = weekMap.get(id) ?? 0
-      const listingId = firstListingByProduct.get(id)
       return {
         id: p.id,
         name: p.name,
         imageUrl: primaryProductImage(p.images) || null,
-        priceCents: p.basePriceCents,
+        priceCents: meta.sellingPriceCents,
         totalSold,
         soldThisWeek,
-        href: listingId ? `/marketplace/${listingId}` : "/marketplace",
-        store: p.supplier.store
-          ? {
-              name: p.supplier.store.name,
-              slug: p.supplier.store.slug,
-              logoUrl: p.supplier.store.logoUrl,
-            }
-          : null,
+        href: `/marketplace/${meta.listingId}`,
+        store: meta.store,
       }
     })
     .filter((x): x is NonNullable<typeof x> => x != null)

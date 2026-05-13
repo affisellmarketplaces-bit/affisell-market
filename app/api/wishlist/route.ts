@@ -1,4 +1,5 @@
 import { auth } from "@/auth"
+import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -11,7 +12,12 @@ function dropPercent(current: number, previous: number | null): number {
 
 async function currentPriceForProduct(productId: string): Promise<number | null> {
   const listing = await prisma.affiliateProduct.findFirst({
-    where: { productId, isListed: true, product: { active: true } },
+    where: {
+      productId,
+      isListed: true,
+      product: { active: true },
+      ...affiliateRoleMarketplaceWhere,
+    },
     orderBy: { id: "asc" },
     select: { sellingPriceCents: true },
   })

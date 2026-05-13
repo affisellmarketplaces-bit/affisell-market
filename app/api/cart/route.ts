@@ -36,7 +36,7 @@ export async function GET() {
           affiliateProduct: {
             include: {
               product: true,
-              affiliate: { select: { name: true } },
+              affiliate: { select: { name: true, role: true } },
             },
           },
         },
@@ -48,7 +48,9 @@ export async function GET() {
     return Response.json([] as CartLineJson[])
   }
 
-  const lines: CartLineJson[] = cart.items.map((row) => {
+  const lines: CartLineJson[] = cart.items
+    .filter((row) => row.affiliateProduct.affiliate.role === "AFFILIATE")
+    .map((row) => {
     const listing = row.affiliateProduct
     const p = listing.product
     const colors = Array.isArray(p.colors)

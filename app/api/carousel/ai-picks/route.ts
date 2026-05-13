@@ -1,6 +1,7 @@
 import { auth } from "@/auth"
 import { mapListingToCarousel, viewCountsToday } from "@/lib/carousel-mapper"
 import type { CarouselItemJson } from "@/lib/carousel-types"
+import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -53,6 +54,7 @@ export async function GET(req: Request) {
 
   const listings = await prisma.affiliateProduct.findMany({
     where: {
+      ...affiliateRoleMarketplaceWhere,
       isListed: true,
       product: { active: true, id: { in: unique } },
     },

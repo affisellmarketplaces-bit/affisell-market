@@ -36,7 +36,7 @@ export default async function DiscoverPage() {
         basePriceCents: true,
         images: true,
         affiliateProducts: {
-          where: { isListed: true },
+          where: { isListed: true, affiliate: { role: "AFFILIATE" } },
           take: 1,
           orderBy: { id: "asc" },
           select: { id: true, sellingPriceCents: true },

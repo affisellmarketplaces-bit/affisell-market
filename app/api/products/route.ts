@@ -3,9 +3,9 @@ import { NextResponse } from "next/server"
 
 import type { Prisma } from "@prisma/client"
 
-import { auth } from "@/auth"
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
 import { listingDisplayTitle, listingGalleryUrls } from "@/lib/affiliate-listing-display"
+import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
 import { prisma } from "@/lib/prisma"
 import { publicStoreLabelFromAffiliateRow } from "@/lib/public-seller-display"
 
@@ -89,6 +89,7 @@ async function marketplaceListingWhere(
   }
 
   const andParts: Prisma.AffiliateProductWhereInput[] = [
+    affiliateRoleMarketplaceWhere,
     { isListed: true },
     { product: productFilters },
   ]
@@ -108,16 +109,6 @@ async function marketplaceListingWhere(
 }
 
 export async function GET(request: NextRequest) {
-  const session = await auth()
-
-  if (session?.user?.role === "SUPPLIER") {
-    const products = await prisma.product.findMany({
-      where: { supplierId: session.user.id },
-      orderBy: { name: "asc" },
-    })
-    return NextResponse.json(products)
-  }
-
   const url = request.nextUrl
   const categoryId = url.searchParams.get("categoryId") ?? url.searchParams.get("category")
   const subcategoryId =
