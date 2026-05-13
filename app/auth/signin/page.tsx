@@ -3,15 +3,16 @@
 import type { FormEvent } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { signIn } from "next-auth/react"
+import { signIn, useSession } from "next-auth/react"
 import { useState, Suspense, useEffect } from "react"
 
-import { inferLoginPortal } from "@/lib/auth-login-portal"
+import { inferLoginPortal, sanitizeInternalCallbackUrl } from "@/lib/auth-login-portal"
 import { messageForCredentialsSignInCode } from "@/lib/auth-portal-signin-messages"
 
 function SignInContent() {
   const search = useSearchParams()
   const router = useRouter()
+  const { data: session, status } = useSession()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -30,6 +31,26 @@ function SignInContent() {
     })
   }, [callbackUrl])
 
+  useEffect(() => {
+    if (status !== "authenticated" || !session?.user?.role) return
+    const rawCb = search.get("callbackUrl")
+    const portal = inferLoginPortal(rawCb)
+    const safe = sanitizeInternalCallbackUrl(rawCb)
+    const role = session.user.role
+
+    if (role === "SUPPLIER") {
+      router.replace(portal === "AFFILIATE" ? "/dashboard/supplier" : (safe ?? "/dashboard/supplier"))
+      return
+    }
+    if (role === "AFFILIATE") {
+      router.replace(portal === "SUPPLIER" ? "/dashboard/affiliate" : (safe ?? "/dashboard/affiliate"))
+      return
+    }
+    if (role === "CUSTOMER" && portal) {
+      router.replace("/marketplace")
+    }
+  }, [status, session?.user?.role, callbackUrl, router])
+
   const resolvedError =
     error ??
     (oauthError === "AccessDenied"
@@ -44,7 +65,7 @@ function SignInContent() {
     setLoading(true)
     const callbackUrl = search.get("callbackUrl") ?? "/dashboard"
     const res = await signIn("credentials", {
-      email,
+      email: email.trim().toLowerCase(),
       password,
       redirect: false,
       callbackUrl,

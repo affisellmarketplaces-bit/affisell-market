@@ -38,6 +38,9 @@ type ToastState = {
 export function SiteNav() {
   const { data: session } = useSession()
   const pathname = usePathname()
+  const isAuthRoute =
+    pathname?.startsWith("/auth/") || pathname === "/login" || pathname?.startsWith("/signup")
+
   const isSupplier = session?.user?.role === "SUPPLIER"
   const isAffiliate = session?.user?.role === "AFFILIATE"
   const showAffiliateMerchantActions = Boolean(isAffiliate && pathname?.startsWith("/dashboard"))
@@ -105,7 +108,7 @@ export function SiteNav() {
     setToast(null)
   }
 
-  if (isSupplier) {
+  if (isSupplier && !isAuthRoute) {
     return (
       <nav className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-1 py-1 text-sm md:flex-nowrap md:gap-4">
         <Link

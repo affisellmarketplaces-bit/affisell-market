@@ -29,6 +29,23 @@ export function inferLoginPortal(callbackUrl: string | undefined | null): LoginP
   return null
 }
 
+/** Same-origin path only — for `router.replace` after sign-in. */
+export function sanitizeInternalCallbackUrl(raw: string | null | undefined): string | null {
+  if (!raw || typeof raw !== "string") return null
+  let path = raw.trim()
+  try {
+    if (path.startsWith("http://") || path.startsWith("https://")) {
+      path = new URL(path).pathname || path
+    }
+  } catch {
+    return null
+  }
+  const q = path.split("?")[0] ?? path
+  if (!q.startsWith("/") || q.startsWith("//")) return null
+  if (q.includes("..")) return null
+  return q
+}
+
 export function isValidEmailIdentifier(raw: string): boolean {
   const t = raw.trim().toLowerCase()
   return t.includes("@") && t.length >= 3 && !t.startsWith("@") && !t.endsWith("@")
