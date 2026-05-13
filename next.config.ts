@@ -14,6 +14,10 @@ const hasUploadCredentials = Boolean(authToken && org && project)
 /**
  * @sentry/nextjs v10 — there is no `hideSourceMaps` option. Maps are not served publicly when
  * `sourcemaps.deleteSourcemapsAfterUpload` is true (Sentry enables this for Turbopack by default).
+ *
+ * `release.setCommits` / `deploy` must be literal `false`: @sentry/bundler-plugin-core otherwise
+ * auto-fills setCommits on Vercel (VERCEL_GIT_*), which spams errors in build logs when the repo
+ * is not linked in Sentry. Next’s exported types omit `false`; the bundler accepts it.
  */
 export default withSentryConfig(nextConfig, {
   ...(hasUploadCredentials
@@ -28,6 +32,10 @@ export default withSentryConfig(nextConfig, {
         sourcemaps: {
           deleteSourcemapsAfterUpload: true,
         },
+        release: {
+          setCommits: false,
+          deploy: false,
+        } as unknown as import("@sentry/nextjs").SentryBuildOptions["release"],
       }
     : {
         silent: false,
