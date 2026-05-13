@@ -40,7 +40,14 @@ export default async function SupplierAffiliatePreviewPage({
   const id = productId?.trim()
   if (!id) notFound()
 
-  const [product, example] = await Promise.all([
+  const liveAffiliateListingWhere = {
+    productId: id,
+    isListed: true,
+    product: { active: true },
+    affiliate: { role: "AFFILIATE" as const },
+  }
+
+  const [product, example, affiliatesWhoListed] = await Promise.all([
     prisma.product.findFirst({
       where: { id, supplierId: session.user.id },
       select: {
@@ -67,16 +74,17 @@ export default async function SupplierAffiliatePreviewPage({
       },
     }),
     prisma.affiliateProduct.findFirst({
-      where: {
-        productId: id,
-        isListed: true,
-        product: { active: true },
-        affiliate: { role: "AFFILIATE" },
-      },
+      where: liveAffiliateListingWhere,
       orderBy: { updatedAt: "desc" },
       select: { id: true },
     }),
+    prisma.affiliateProduct.groupBy({
+      by: ["affiliateId"],
+      where: liveAffiliateListingWhere,
+    }),
   ])
+
+  const listedAffiliateCount = affiliatesWhoListed.length
 
   if (!product) notFound()
 
@@ -84,15 +92,17 @@ export default async function SupplierAffiliatePreviewPage({
     ? `/dashboard/supplier/products/new?compose=1&draft=${product.id}`
     : `/dashboard/supplier/products/new?edit=${product.id}`
 
-  const exampleRow = example
-    ? { partnerListingRef: supplierFacingPartnerListingRef(example.id) }
-    : null
+  const exampleRow =
+    example && listedAffiliateCount > 0
+      ? { partnerListingRef: supplierFacingPartnerListingRef(example.id) }
+      : null
 
   return (
     <SupplierAffiliateEvalPreview
       product={product}
       editHref={editHref}
       catalogHref="/dashboard/supplier/products"
+      listedAffiliateCount={listedAffiliateCount}
       example={exampleRow}
     />
   )

@@ -68,11 +68,14 @@ export function SupplierAffiliateEvalPreview({
   product,
   editHref,
   catalogHref,
+  listedAffiliateCount,
   example,
 }: {
   product: ProductShape
   editHref: string
   catalogHref: string
+  /** Distinct affiliates with a live listed offer for this SKU (AFFILIATE role). */
+  listedAffiliateCount: number
   example: AffiliateEvalExampleRow | null
 }) {
   const gallery = useMemo(() => listingGalleryUrls([], product.images ?? []), [product.images])
@@ -346,36 +349,47 @@ export function SupplierAffiliateEvalPreview({
                 shown here for partner confidentiality.
               </p>
 
-              {example ? (
+              {listedAffiliateCount > 0 ? (
                 <div className="rounded-2xl border border-teal-200/90 bg-gradient-to-br from-teal-50 to-white p-5 dark:border-teal-900/60 dark:from-teal-950/40 dark:to-zinc-950">
                   <div className="flex items-start gap-3">
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-teal-600 text-white">
                       <Store className="h-4 w-4" aria-hidden />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-teal-950 dark:text-teal-50">Active partner listing</p>
-                      <p className="mt-1 text-xs leading-relaxed text-teal-900/90 dark:text-teal-100/90">
-                        At least one partner has added this SKU to their shop. For confidentiality, you cannot see their
-                        name, resale price, or storefront from this screen.
+                      <p className="text-sm font-semibold text-teal-950 dark:text-teal-50">Partner listings</p>
+                      <p className="mt-2 text-3xl font-bold tabular-nums text-teal-950 dark:text-teal-50">
+                        {listedAffiliateCount}
                       </p>
-                      <p className="mt-3 text-xs leading-relaxed text-teal-900/85 dark:text-teal-100/85">
-                        <span className="font-semibold text-teal-950 dark:text-teal-100">Affisell reference</span> (for
-                        support only):{" "}
-                        <code className="rounded bg-teal-100/80 px-1.5 py-0.5 font-mono text-[11px] text-teal-950 dark:bg-teal-900/50 dark:text-teal-50">
-                          {example.partnerListingRef}
-                        </code>
+                      <p className="mt-1 text-xs font-medium text-teal-900/95 dark:text-teal-100/95">
+                        {listedAffiliateCount === 1
+                          ? "affiliate has this product in a live shop listing"
+                          : "affiliates have this product in live shop listings"}
                       </p>
-                      <button
-                        type="button"
-                        onClick={() => void copyPartnerRef()}
-                        className={cn(
-                          buttonVariants({ variant: "outline", size: "sm" }),
-                          "mt-3 gap-1.5 border-teal-300 text-teal-900 hover:bg-teal-50 dark:border-teal-800 dark:text-teal-100 dark:hover:bg-teal-950/50"
-                        )}
-                      >
-                        <Copy className="h-3.5 w-3.5" aria-hidden />
-                        {copiedPartnerRef ? "Copied" : "Copy reference"}
-                      </button>
+                      <p className="mt-2 text-xs leading-relaxed text-teal-900/90 dark:text-teal-100/90">
+                        For confidentiality, you cannot see their names, resale prices, or storefronts from this screen.
+                      </p>
+                      {example ? (
+                        <>
+                          <p className="mt-3 text-xs leading-relaxed text-teal-900/85 dark:text-teal-100/85">
+                            <span className="font-semibold text-teal-950 dark:text-teal-100">Affisell reference</span>{" "}
+                            (one recent listing; for support only):{" "}
+                            <code className="rounded bg-teal-100/80 px-1.5 py-0.5 font-mono text-[11px] text-teal-950 dark:bg-teal-900/50 dark:text-teal-50">
+                              {example.partnerListingRef}
+                            </code>
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => void copyPartnerRef()}
+                            className={cn(
+                              buttonVariants({ variant: "outline", size: "sm" }),
+                              "mt-3 gap-1.5 border-teal-300 text-teal-900 hover:bg-teal-50 dark:border-teal-800 dark:text-teal-100 dark:hover:bg-teal-950/50"
+                            )}
+                          >
+                            <Copy className="h-3.5 w-3.5" aria-hidden />
+                            {copiedPartnerRef ? "Copied" : "Copy reference"}
+                          </button>
+                        </>
+                      ) : null}
                     </div>
                   </div>
                 </div>
