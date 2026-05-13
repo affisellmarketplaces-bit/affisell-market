@@ -44,12 +44,15 @@ Money formatting stays tied to `NEXT_PUBLIC_MARKET_REGION` / storefront currency
 
 In-memory fixed-window limits (see `lib/api-rate-limit.ts`) protect expensive unauthenticated or high-cost routes (e.g. visual search, categorization, agent chat). For multi-instance production, replace with Redis (e.g. Upstash).
 
-## Error UI
+## Error UI & monitoring
 
-- `app/error.tsx` — global error boundary (full document shell).
-- `app/dashboard/error.tsx` — dashboard subtree recovery.
+- `app/global-error.tsx` — root layout failures (full `html`/`body` + Sentry).
+- `app/error.tsx` — segment errors under the root layout (Sentry).
+- `app/dashboard/error.tsx` — dashboard subtree recovery (Sentry).
 
-Production monitoring (Sentry, Log Drain, etc.) is not wired in-repo; use your host’s observability stack and forward `console.error` from boundaries as needed.
+**Sentry** (optional): set `NEXT_PUBLIC_SENTRY_DSN` and/or `SENTRY_DSN` (see `.env.example`). If unset, the SDK stays disabled. For source map upload in CI, use Sentry’s org/project/auth token env vars.
+
+Use your host’s **log drain** or similar for structured logs alongside Sentry.
 
 ## API highlights
 
