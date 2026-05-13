@@ -442,10 +442,10 @@ export function AffiliateDashboard({
                 </div>
                 <div>
                   <h1 className="text-balance text-3xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
-                    Your creator storefront
+                    Your branded storefront
                   </h1>
                   <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 sm:text-[15px]">
-                    Discover products to sell, set your prices and margins, and manage what appears in your public
+                    Discover products to sell, set your prices and margins, and manage what shoppers see in your public
                     store—all from here.
                   </p>
                 </div>
