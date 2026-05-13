@@ -18,7 +18,7 @@ import {
   NonSupplierOnSupplierPortal,
   SupplierBlockedOnAffiliatePortal,
 } from "@/lib/auth-credentials-errors"
-import { AUTH_LOGIN_CALLBACK_COOKIE, inferLoginPortal, isValidEmailIdentifier } from "@/lib/auth-login-portal"
+import { inferLoginPortal, isValidEmailIdentifier } from "@/lib/auth-login-portal"
 import { ensureMerchantStore } from "@/lib/ensure-store"
 import { OAUTH_SIGNUP_INTENT_COOKIE, OAUTH_WELCOME_COOKIE } from "@/lib/oauth-cookies"
 import { prisma } from "@/lib/prisma"
@@ -200,40 +200,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         try {
-          const jar = await cookies()
-          const enc = jar.get(AUTH_LOGIN_CALLBACK_COOKIE)?.value
-          if (enc && user.email) {
-            const portal = inferLoginPortal(decodeURIComponent(enc))
-            if (portal) {
-              const row = await prisma.user.findUnique({
-                where: { email: user.email.toLowerCase() },
-                select: { role: true, createdAt: true },
-              })
-              if (row) {
-                if (row.role === "AFFILIATE" || row.role === "SUPPLIER") {
-                  if (portal === "AFFILIATE" && row.role !== "AFFILIATE") {
-                    jar.delete(AUTH_LOGIN_CALLBACK_COOKIE)
-                    return false
-                  }
-                  if (portal === "SUPPLIER" && row.role !== "SUPPLIER") {
-                    jar.delete(AUTH_LOGIN_CALLBACK_COOKIE)
-                    return false
-                  }
-                } else if (row.role === "CUSTOMER") {
-                  const ageMs = Date.now() - new Date(row.createdAt).getTime()
-                  if (ageMs > 30_000) {
-                    jar.delete(AUTH_LOGIN_CALLBACK_COOKIE)
-                    return false
-                  }
-                }
-              }
-            }
-          }
-        } catch (e) {
-          console.error("[auth signIn oauth portal]", e)
-        }
-
-        try {
           const imageCandidate =
             typeof user.image === "string" && user.image.length
               ? user.image
@@ -331,18 +297,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   events: {
     async createUser({ user }) {
       let role = "CUSTOMER"
-      try {
-        const jar = await cookies()
-        const enc = jar.get(AUTH_LOGIN_CALLBACK_COOKIE)?.value
-        const portal = enc ? inferLoginPortal(decodeURIComponent(enc)) : null
-        const intent = await consumeOAuthSignupIntent()
-        if (portal === "AFFILIATE" || portal === "SUPPLIER") role = portal
-        else if (intent === "AFFILIATE" || intent === "SUPPLIER") role = intent
-        if (enc) jar.delete(AUTH_LOGIN_CALLBACK_COOKIE)
-      } catch {
-        const intent = await consumeOAuthSignupIntent()
-        if (intent === "AFFILIATE" || intent === "SUPPLIER") role = intent
-      }
+      const intent = await consumeOAuthSignupIntent()
+      if (intent === "AFFILIATE" || intent === "SUPPLIER") role = intent
 
       await prisma.user.update({
         where: { id: user.id! },

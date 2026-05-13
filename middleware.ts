@@ -4,8 +4,9 @@ import { getToken } from "next-auth/jwt"
 
 const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
 
-function loginUrl(req: NextRequest, pathWithSearch: string) {
-  const u = new URL("/login", req.url)
+/** Send unauthenticated users straight to sign-in (avoids an extra `/login` hop that could render blank). */
+function signInRedirectUrl(req: NextRequest, pathWithSearch: string) {
+  const u = new URL("/auth/signin", req.url)
   u.searchParams.set("callbackUrl", pathWithSearch)
   return u
 }
@@ -27,7 +28,7 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith("/affiliate/")
 
   if (isSupplierArea) {
-    if (!loggedIn) return NextResponse.redirect(loginUrl(req, path))
+    if (!loggedIn) return NextResponse.redirect(signInRedirectUrl(req, path))
     if (role !== "SUPPLIER") {
       const u = new URL(req.url)
       u.pathname = role === "AFFILIATE" ? "/dashboard/affiliate" : "/marketplace"
@@ -37,7 +38,7 @@ export async function middleware(req: NextRequest) {
   }
 
   if (isAffiliateArea) {
-    if (!loggedIn) return NextResponse.redirect(loginUrl(req, path))
+    if (!loggedIn) return NextResponse.redirect(signInRedirectUrl(req, path))
     if (role !== "AFFILIATE") {
       const u = new URL(req.url)
       u.pathname = role === "SUPPLIER" ? "/dashboard/supplier" : "/marketplace"
@@ -50,5 +51,11 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/supplier/:path*", "/dashboard/affiliate/:path*", "/affiliate/:path*"],
+  matcher: [
+    "/dashboard/supplier",
+    "/dashboard/supplier/:path*",
+    "/dashboard/affiliate",
+    "/dashboard/affiliate/:path*",
+    "/affiliate/:path*",
+  ],
 }

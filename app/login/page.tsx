@@ -1,19 +1,20 @@
-import { redirect } from "next/navigation"
+import { Suspense } from "react"
+
+import { LoginRedirectClient } from "./login-redirect-client"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
-type Props = {
-  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
-}
-
-export default async function LoginRedirect(props: Props) {
-  const sp = (await props.searchParams) ?? {}
-  const qs = new URLSearchParams()
-  for (const [k, v] of Object.entries(sp)) {
-    if (v === undefined) continue
-    qs.set(k, Array.isArray(v) ? (v[0] ?? "") : v)
-  }
-  const suffix = qs.toString()
-  redirect(suffix ? `/auth/signin?${suffix}` : "/auth/signin")
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[50vh] items-center justify-center text-sm text-zinc-600 dark:text-zinc-400">
+          Chargement…
+        </div>
+      }
+    >
+      <LoginRedirectClient />
+    </Suspense>
+  )
 }

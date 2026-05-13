@@ -3,54 +3,20 @@
 import type { FormEvent } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { signIn, useSession } from "next-auth/react"
-import { useState, Suspense, useEffect } from "react"
+import { signIn } from "next-auth/react"
+import { useState, Suspense } from "react"
 
-import { inferLoginPortal, sanitizeInternalCallbackUrl } from "@/lib/auth-login-portal"
 import { messageForCredentialsSignInCode } from "@/lib/auth-portal-signin-messages"
 
 function SignInContent() {
   const search = useSearchParams()
   const router = useRouter()
-  const { data: session, status } = useSession()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const oauthError = search.get("error")
-  const callbackUrl = search.get("callbackUrl")
-
-  useEffect(() => {
-    if (!callbackUrl) return
-    if (!inferLoginPortal(callbackUrl)) return
-    void fetch("/api/auth/login-portal-cookie", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ callbackUrl }),
-    })
-  }, [callbackUrl])
-
-  useEffect(() => {
-    if (status !== "authenticated" || !session?.user?.role) return
-    const rawCb = search.get("callbackUrl")
-    const portal = inferLoginPortal(rawCb)
-    const safe = sanitizeInternalCallbackUrl(rawCb)
-    const role = session.user.role
-
-    if (role === "SUPPLIER") {
-      router.replace(portal === "AFFILIATE" ? "/dashboard/supplier" : (safe ?? "/dashboard/supplier"))
-      return
-    }
-    if (role === "AFFILIATE") {
-      router.replace(portal === "SUPPLIER" ? "/dashboard/affiliate" : (safe ?? "/dashboard/affiliate"))
-      return
-    }
-    if (role === "CUSTOMER" && portal) {
-      router.replace("/marketplace")
-    }
-  }, [status, session?.user?.role, callbackUrl, router])
-
   const resolvedError =
     error ??
     (oauthError === "AccessDenied"

@@ -1,9 +1,8 @@
 /**
- * When signing in toward affiliate or supplier dashboards, only that role may authenticate.
- * Neutral URLs (marketplace, wishlist, /dashboard root, etc.) do not enforce a portal.
+ * When signing in with email/password toward affiliate or supplier dashboards,
+ * only that role may authenticate (see `lib/auth.ts` credentials `authorize`).
+ * Neutral URLs (marketplace, /dashboard root, etc.) do not enforce a portal.
  */
-export const AUTH_LOGIN_CALLBACK_COOKIE = "aff_login_cb"
-
 export type LoginPortal = "AFFILIATE" | "SUPPLIER"
 
 export function inferLoginPortal(callbackUrl: string | undefined | null): LoginPortal | null {
@@ -27,23 +26,6 @@ export function inferLoginPortal(callbackUrl: string | undefined | null): LoginP
     return "AFFILIATE"
   }
   return null
-}
-
-/** Same-origin path only — for `router.replace` after sign-in. */
-export function sanitizeInternalCallbackUrl(raw: string | null | undefined): string | null {
-  if (!raw || typeof raw !== "string") return null
-  let path = raw.trim()
-  try {
-    if (path.startsWith("http://") || path.startsWith("https://")) {
-      path = new URL(path).pathname || path
-    }
-  } catch {
-    return null
-  }
-  const q = path.split("?")[0] ?? path
-  if (!q.startsWith("/") || q.startsWith("//")) return null
-  if (q.includes("..")) return null
-  return q
 }
 
 export function isValidEmailIdentifier(raw: string): boolean {
