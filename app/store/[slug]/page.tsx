@@ -184,14 +184,6 @@ export default async function PublicStorefrontPage({ params }: { params: Promise
     )
   }
 
-  const supplierProducts =
-    role === "SUPPLIER"
-      ? await prisma.product.findMany({
-          where: { supplierId: store.user.id, active: true },
-          orderBy: { name: "asc" },
-        })
-      : []
-
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 md:px-8">
       <nav className="text-sm">
@@ -223,40 +215,20 @@ export default async function PublicStorefrontPage({ params }: { params: Promise
         <p className="mt-4 max-w-2xl text-sm text-zinc-600">{store.description}</p>
       ) : null}
 
-      <section className="mt-12">
-        <h2 className="text-lg font-medium text-zinc-900">Products</h2>
-        <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {supplierProducts.length === 0 ? (
-            <li className="col-span-full text-zinc-500">No active products listed.</li>
-          ) : (
-            supplierProducts.map((p) => {
-              const mainImg = primaryProductImage(p.images) || "/placeholder.png"
-              return (
-                <li
-                  key={p.id}
-                  className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900"
-                >
-                  <Link href={`/marketplace`} className="block">
-                    <div className="relative mx-auto mb-3 aspect-square w-full max-h-40 bg-zinc-50 dark:bg-zinc-800">
-                      <Image
-                        src={mainImg}
-                        alt={p.name}
-                        fill
-                        className="object-contain p-2"
-                        sizes="240px"
-                        unoptimized={mainImg.startsWith("http")}
-                      />
-                    </div>
-                    <p className="font-medium text-zinc-900 dark:text-zinc-100">{p.name}</p>
-                    <p className="mt-1 text-sm text-zinc-500">
-                      Available through affiliate listings on the marketplace
-                    </p>
-                  </Link>
-                </li>
-              )
-            })
-          )}
-        </ul>
+      <section className="mt-12 rounded-xl border border-zinc-200 bg-zinc-50 p-6 dark:border-zinc-700 dark:bg-zinc-900/50">
+        <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-100">Boutique</h2>
+        <p className="mt-2 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
+          Les produits de ce fournisseur ne sont pas vendus directement ici. Les acheteurs passent par les offres
+          publiées par les affiliés sur le marketplace.
+        </p>
+        <p className="mt-3">
+          <Link
+            href="/marketplace"
+            className="inline-flex rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
+          >
+            Voir le marketplace
+          </Link>
+        </p>
       </section>
 
       {communitySection}

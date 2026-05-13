@@ -1,7 +1,9 @@
 import type { Prisma, PrismaClient } from "@prisma/client"
 
 import type { AgentProductCard } from "@/lib/agent-product-card-types"
+import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
 import { primaryProductImage } from "@/lib/product-images"
+import { publicPartnerSellerLabel } from "@/lib/public-seller-display"
 
 export type AgentHistoryContext = {
   userId: string | null
@@ -57,19 +59,23 @@ async function productIdsToCards(db: PrismaClient, productIds: string[]): Promis
       id: true,
       name: true,
       description: true,
-      basePriceCents: true,
       images: true,
-      supplier: { select: { name: true, store: { select: { name: true } } } },
     },
   })
 
   const listings = await db.affiliateProduct.findMany({
-    where: { productId: { in: unique }, isListed: true, product: { active: true } },
+    where: {
+      ...affiliateRoleMarketplaceWhere,
+      productId: { in: unique },
+      isListed: true,
+      product: { active: true },
+    },
     select: {
       productId: true,
       sellingPriceCents: true,
       customTitle: true,
       customImages: true,
+      affiliate: { select: { name: true, store: { select: { name: true } } } },
     },
     orderBy: { id: "asc" },
   })
@@ -78,9 +84,6 @@ async function productIdsToCards(db: PrismaClient, productIds: string[]): Promis
     if (!firstListing.has(l.productId)) firstListing.set(l.productId, l)
   }
 
-  const brand = (s: { name: string | null; store: { name: string } | null }) =>
-    s.store?.name?.trim() || s.name?.trim() || "Affisell"
-
   const byId = new Map(products.map((p) => [p.id, p]))
 
   return unique
@@ -88,10 +91,11 @@ async function productIdsToCards(db: PrismaClient, productIds: string[]): Promis
       const p = byId.get(id)
       if (!p) return null
       const l = firstListing.get(id)
+      if (!l) return null
       const imageUrl =
-        primaryProductImage(l?.customImages as string[] | undefined) || primaryProductImage(p.images) || null
-      const name = l?.customTitle?.trim() || p.name
-      const price = l ? l.sellingPriceCents / 100 : p.basePriceCents / 100
+        primaryProductImage(l.customImages as string[] | undefined) || primaryProductImage(p.images) || null
+      const name = l.customTitle?.trim() || p.name
+      const price = l.sellingPriceCents / 100
       const description =
         p.description.length > 400 ? `${p.description.slice(0, 397)}…` : p.description
       return {
@@ -100,7 +104,10 @@ async function productIdsToCards(db: PrismaClient, productIds: string[]): Promis
         price,
         imageUrl,
         description,
-        brand: brand(p.supplier),
+        brand: publicPartnerSellerLabel({
+          storeName: l.affiliate.store?.name,
+          affiliateDisplayName: l.affiliate.name,
+        }),
       } satisfies AgentProductCard
     })
     .filter((x): x is AgentProductCard => x != null)

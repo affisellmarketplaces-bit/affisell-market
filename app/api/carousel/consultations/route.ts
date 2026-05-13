@@ -48,15 +48,20 @@ export async function GET(req: Request) {
     return Response.json(await packListings(ids, recommendationQuery, false))
   }
 
-  const inCategory = await prisma.product.findMany({
+  const inCategoryRows = await prisma.affiliateProduct.findMany({
     where: {
-      active: true,
-      categories: { hasSome: categoryList },
+      ...affiliateRoleMarketplaceWhere,
+      isListed: true,
+      product: {
+        active: true,
+        categories: { hasSome: categoryList },
+      },
     },
-    select: { id: true },
+    select: { productId: true },
     take: 80,
+    orderBy: [{ product: { stock: "desc" } }, { id: "desc" }],
   })
-  const candidateIds = inCategory.map((c) => c.id)
+  const candidateIds = [...new Set(inCategoryRows.map((r) => r.productId))]
 
   if (candidateIds.length === 0) {
     const ids = await topSoldProductIds(thirtyDaysAgo, 12)

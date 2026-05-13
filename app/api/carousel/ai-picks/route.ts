@@ -28,17 +28,21 @@ export async function GET(req: Request) {
   const thirtyDaysAgo = new Date(Date.now() - 30 * MS_DAY)
 
   const trendingIds = await topSoldProductIds(thirtyDaysAgo, 10)
-  const extra = await prisma.product.findMany({
+  const extraRows = await prisma.affiliateProduct.findMany({
     where: {
-      active: true,
-      id: trendingIds.length ? { notIn: trendingIds } : undefined,
+      ...affiliateRoleMarketplaceWhere,
+      isListed: true,
+      product: {
+        active: true,
+        ...(trendingIds.length ? { id: { notIn: trendingIds } } : {}),
+      },
     },
     take: 8,
-    orderBy: [{ stock: "desc" }, { createdAt: "desc" }],
-    select: { id: true },
+    orderBy: [{ product: { stock: "desc" } }, { createdAt: "desc" }],
+    select: { productId: true },
   })
-
-  const merged = [...trendingIds, ...extra.map((e) => e.id)]
+  const extra = extraRows.map((e) => e.productId)
+  const merged = [...trendingIds, ...extra]
   const unique: string[] = []
   const seen = new Set<string>()
   for (const id of merged) {

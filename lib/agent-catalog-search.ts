@@ -5,18 +5,11 @@ import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listi
 import { primaryProductImage } from "@/lib/product-images"
 import { publicPartnerSellerLabel } from "@/lib/public-seller-display"
 
-function brandFromSupplier(s: {
-  name: string | null
-  store: { name: string } | null
-}): string {
-  return s.store?.name?.trim() || s.name?.trim() || "Affisell"
-}
-
 function trimDescription(s: string, max = 400): string {
   return s.length > max ? `${s.slice(0, max - 1)}…` : s
 }
 
-async function findSimilarProducts(
+async function findSimilarAffiliateListings(
   db: PrismaClient,
   main: AgentProductCard[],
   q: string
@@ -39,43 +32,72 @@ async function findSimilarProducts(
     namePatterns.push({ name: { contains: "Watch", mode: "insensitive" } })
   }
 
-  const orBranches: Prisma.ProductWhereInput[] = [...namePatterns]
+  const productOr: Prisma.ProductWhereInput[] = [...namePatterns]
   if (cats.length > 0) {
-    orBranches.push({ categories: { hasSome: cats } })
+    productOr.push({ categories: { hasSome: cats } })
   }
 
-  const similarRows = await db.product.findMany({
+  const similarRows = await db.affiliateProduct.findMany({
     where: {
-      active: true,
-      id: { notIn: mainIds },
-      OR: orBranches,
+      ...affiliateRoleMarketplaceWhere,
+      isListed: true,
+      product: {
+        active: true,
+        id: { notIn: mainIds },
+        OR: productOr,
+      },
     },
-    take: 6,
-    orderBy: [{ stock: "desc" }, { createdAt: "desc" }],
+    take: 12,
+    orderBy: [{ product: { stock: "desc" } }, { id: "asc" }],
     select: {
-      id: true,
-      name: true,
-      description: true,
-      basePriceCents: true,
-      images: true,
-      supplier: { select: { name: true, store: { select: { name: true } } } },
+      customTitle: true,
+      customDescription: true,
+      customImages: true,
+      sellingPriceCents: true,
+      affiliate: { select: { name: true, store: { select: { name: true } } } },
+      product: {
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          images: true,
+        },
+      },
     },
   })
 
-  return similarRows.slice(0, 3).map((p) => ({
-    id: p.id,
-    name: p.name,
-    price: p.basePriceCents / 100,
-    imageUrl: primaryProductImage(p.images) || null,
-    description: trimDescription(p.description),
-    brand: brandFromSupplier(p.supplier),
-  }))
+  const seen = new Set<string>()
+  const out: AgentProductCard[] = []
+  for (const row of similarRows) {
+    const pid = row.product.id
+    if (seen.has(pid)) continue
+    seen.add(pid)
+    const p = row.product
+    const imageUrl =
+      primaryProductImage(row.customImages as string[] | null | undefined) ||
+      primaryProductImage(p.images) ||
+      null
+    const name = row.customTitle?.trim() || p.name
+    const description = trimDescription(row.customDescription?.trim() || p.description)
+    out.push({
+      id: p.id,
+      name,
+      price: row.sellingPriceCents / 100,
+      imageUrl,
+      description,
+      brand: publicPartnerSellerLabel({
+        storeName: row.affiliate.store?.name,
+        affiliateDisplayName: row.affiliate.name,
+      }),
+    })
+    if (out.length >= 3) break
+  }
+  return out
 }
 
 /**
- * Search listed affiliate offers and base products. Prefers rows from `AffiliateProduct`
- * (custom images/titles and selling price), then fills from `Product` only.
- * Returns up to 3 main hits plus up to 3 similar products (shared categories and/or name ILIKE, incl. montre → watch).
+ * Search buyer-facing marketplace listings (`AffiliateProduct` with affiliate role).
+ * Returns up to 3 main hits plus up to 3 similar listings (shared categories and/or name ILIKE, incl. montre → watch).
  */
 export async function searchCatalogForAgent(
   db: PrismaClient,
@@ -90,11 +112,6 @@ export async function searchCatalogForAgent(
     { name: { contains: q, mode: "insensitive" } },
     { description: { contains: q, mode: "insensitive" } },
   ]
-
-  const textMatch: Prisma.ProductWhereInput = {
-    active: true,
-    OR: nameOrDescriptionMatch,
-  }
 
   const listingWhere: Prisma.AffiliateProductWhereInput = {
     ...affiliateRoleMarketplaceWhere,
@@ -191,50 +208,21 @@ export async function searchCatalogForAgent(
     if (products.length >= 3) break
   }
 
-  if (products.length < 3) {
-    const exclude = new Set(products.map((x) => x.id))
-    const need = 3 - products.length
-    const extras = await db.product.findMany({
-      where: {
-        ...textMatch,
-        ...(exclude.size > 0 ? { id: { notIn: [...exclude] } } : {}),
-      },
-      take: need,
-      orderBy: [{ stock: "desc" }, { createdAt: "desc" }],
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        basePriceCents: true,
-        images: true,
-        supplier: { select: { name: true, store: { select: { name: true } } } },
-      },
-    })
-    for (const p of extras) {
-      products.push({
-        id: p.id,
-        name: p.name,
-        price: p.basePriceCents / 100,
-        imageUrl: primaryProductImage(p.images) || null,
-        description: trimDescription(p.description),
-        brand: brandFromSupplier(p.supplier),
-      })
-    }
-  }
-
   if (products.length > 0) {
     const main = products.slice(0, 3)
-    const similarProducts = await findSimilarProducts(db, main, q)
+    const similarProducts = await findSimilarAffiliateListings(db, main, q)
     return { products: main, similarProducts, suggestedCategories: [] }
   }
 
-  const sample = await db.product.findMany({
-    where: { active: true },
-    select: { categories: true },
+  const sample = await db.affiliateProduct.findMany({
+    where: { ...affiliateRoleMarketplaceWhere, isListed: true, product: { active: true } },
+    select: { product: { select: { categories: true } } },
     take: 120,
   })
   const suggestedCategories = [
-    ...new Set(sample.flatMap((p) => p.categories).filter((c) => typeof c === "string" && c.trim())),
+    ...new Set(
+      sample.flatMap((s) => s.product?.categories ?? []).filter((c) => typeof c === "string" && c.trim())
+    ),
   ].slice(0, 12)
 
   return { products: [], similarProducts: [], suggestedCategories }

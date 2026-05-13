@@ -28,7 +28,13 @@ export default async function DiscoverPage() {
       : Promise.resolve([]),
     prisma.product.findMany({
       take: 20,
-      where: { active: true },
+      where: {
+        active: true,
+        isDraft: false,
+        affiliateProducts: {
+          some: { isListed: true, affiliate: { role: "AFFILIATE" } },
+        },
+      },
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
@@ -63,13 +69,13 @@ export default async function DiscoverPage() {
   const ranked = [...scored].sort((a, b) => b.score - a.score)
 
   const items: DiscoverItem[] = ranked.map(({ product: p, score }) => {
-    const listing = p.affiliateProducts[0] ?? null
+    const listing = p.affiliateProducts[0]!
     const { mediaUrl, isVideo } = pickMedia(p.images ?? [])
     return {
       productId: p.id,
-      listingId: listing?.id ?? null,
+      listingId: listing.id,
       name: p.name,
-      priceCents: listing?.sellingPriceCents ?? p.basePriceCents,
+      priceCents: listing.sellingPriceCents,
       mediaUrl,
       isVideo,
       boosted: score > 0,
