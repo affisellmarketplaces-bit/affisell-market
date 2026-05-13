@@ -4,6 +4,7 @@ import type { Metadata } from "next"
 import { auth } from "@/auth"
 import { SupplierAffiliateEvalPreview } from "@/components/supplier/supplier-affiliate-eval-preview"
 import { prisma } from "@/lib/prisma"
+import { supplierFacingPartnerListingRef } from "@/lib/supplier-partner-listing-ref"
 
 export const dynamic = "force-dynamic"
 
@@ -66,13 +67,14 @@ export default async function SupplierAffiliatePreviewPage({
       },
     }),
     prisma.affiliateProduct.findFirst({
-      where: { productId: id, isListed: true, product: { active: true } },
-      orderBy: { updatedAt: "desc" },
-      select: {
-        id: true,
-        sellingPriceCents: true,
-        affiliate: { select: { name: true, email: true, store: { select: { name: true } } } },
+      where: {
+        productId: id,
+        isListed: true,
+        product: { active: true },
+        affiliate: { role: "AFFILIATE" },
       },
+      orderBy: { updatedAt: "desc" },
+      select: { id: true },
     }),
   ])
 
@@ -83,15 +85,7 @@ export default async function SupplierAffiliatePreviewPage({
     : `/dashboard/supplier/products/new?edit=${product.id}`
 
   const exampleRow = example
-    ? {
-        listingId: example.id,
-        sellingPriceCents: example.sellingPriceCents,
-        affiliateLabel:
-          example.affiliate.store?.name?.trim() ||
-          example.affiliate.name?.trim() ||
-          example.affiliate.email ||
-          "Partner",
-      }
+    ? { partnerListingRef: supplierFacingPartnerListingRef(example.id) }
     : null
 
   return (

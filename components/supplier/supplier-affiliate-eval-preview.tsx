@@ -11,7 +11,6 @@ import {
   ChevronDown,
   ChevronUp,
   Copy,
-  ExternalLink,
   Layers,
   Package,
   Sparkles,
@@ -34,9 +33,8 @@ const KIND_LABEL: Record<string, string> = {
 }
 
 export type AffiliateEvalExampleRow = {
-  listingId: string
-  sellingPriceCents: number
-  affiliateLabel: string
+  /** Opaque handle (e.g. APS-…); no storefront URL or partner identity. */
+  partnerListingRef: string
 }
 
 type ProductShape = {
@@ -81,6 +79,7 @@ export function SupplierAffiliateEvalPreview({
   const [activeIdx, setActiveIdx] = useState(0)
   const [descOpen, setDescOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [copiedPartnerRef, setCopiedPartnerRef] = useState(false)
 
   const hero = gallery[activeIdx] ?? gallery[0] ?? "/placeholder.png"
   const compareNum = product.compareAt != null ? Number(product.compareAt) : null
@@ -100,6 +99,17 @@ export function SupplierAffiliateEvalPreview({
       await navigator.clipboard.writeText(product.id)
       setCopied(true)
       window.setTimeout(() => setCopied(false), 2000)
+    } catch {
+      /* ignore */
+    }
+  }
+
+  async function copyPartnerRef() {
+    if (!example) return
+    try {
+      await navigator.clipboard.writeText(example.partnerListingRef)
+      setCopiedPartnerRef(true)
+      window.setTimeout(() => setCopiedPartnerRef(false), 2000)
     } catch {
       /* ignore */
     }
@@ -332,8 +342,8 @@ export function SupplierAffiliateEvalPreview({
               </div>
 
               <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-                Partners choose their selling price when they add this product to their store; the shopper PDP always shows
-                their storefront and final price.
+                Partners set their own resale price and storefront presentation; those shopper-facing details are not
+                shown here for partner confidentiality.
               </p>
 
               {example ? (
@@ -343,31 +353,39 @@ export function SupplierAffiliateEvalPreview({
                       <Store className="h-4 w-4" aria-hidden />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-teal-950 dark:text-teal-50">Live partner example</p>
+                      <p className="text-sm font-semibold text-teal-950 dark:text-teal-50">Active partner listing</p>
                       <p className="mt-1 text-xs leading-relaxed text-teal-900/90 dark:text-teal-100/90">
-                        <strong className="font-semibold text-teal-950 dark:text-teal-100">{example.affiliateLabel}</strong> lists
-                        this SKU at <strong>{formatStoreCurrencyFromCents(example.sellingPriceCents)}</strong>—compare with your catalog anchor
-                        above.
+                        At least one partner has added this SKU to their shop. For confidentiality, you cannot see their
+                        name, resale price, or storefront from this screen.
                       </p>
-                      <Link
-                        href={`/marketplace/${example.listingId}`}
-                        target="_blank"
-                        rel="noreferrer"
+                      <p className="mt-3 text-xs leading-relaxed text-teal-900/85 dark:text-teal-100/85">
+                        <span className="font-semibold text-teal-950 dark:text-teal-100">Affisell reference</span> (for
+                        support only):{" "}
+                        <code className="rounded bg-teal-100/80 px-1.5 py-0.5 font-mono text-[11px] text-teal-950 dark:bg-teal-900/50 dark:text-teal-50">
+                          {example.partnerListingRef}
+                        </code>
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => void copyPartnerRef()}
                         className={cn(
                           buttonVariants({ variant: "outline", size: "sm" }),
                           "mt-3 gap-1.5 border-teal-300 text-teal-900 hover:bg-teal-50 dark:border-teal-800 dark:text-teal-100 dark:hover:bg-teal-950/50"
                         )}
                       >
-                        Shopper listing
-                        <ExternalLink className="h-3.5 w-3.5" aria-hidden />
-                      </Link>
+                        <Copy className="h-3.5 w-3.5" aria-hidden />
+                        {copiedPartnerRef ? "Copied" : "Copy reference"}
+                      </button>
                     </div>
                   </div>
                 </div>
               ) : visible ? (
                 <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50/50 px-4 py-4 text-sm text-zinc-600 dark:border-zinc-600 dark:bg-zinc-900/30 dark:text-zinc-400">
                   <p className="font-medium text-zinc-800 dark:text-zinc-200">No partner listing yet</p>
-                  <p className="mt-1 text-xs leading-relaxed">When someone publishes this product, you’ll see their retail price and a link to the shopper page for comparison.</p>
+                  <p className="mt-1 text-xs leading-relaxed">
+                    When a partner publishes this product, you will see an Affisell-only reference here confirming that a
+                    listing exists—without their identity, resale price, or shop link.
+                  </p>
                 </div>
               ) : null}
 
