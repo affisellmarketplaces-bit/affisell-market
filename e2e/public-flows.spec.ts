@@ -14,8 +14,9 @@ test.describe("public flows", () => {
   })
 
   test("/login redirects to sign-in", async ({ page }) => {
-    await page.goto("/login")
+    await page.goto("/login?callbackUrl=%2Fdashboard%2Fsupplier")
     await expect(page).toHaveURL(/\/auth\/signin/)
+    await expect(page).toHaveURL(/callbackUrl=%2Fdashboard%2Fsupplier/)
   })
 
   test("discover feed shell loads", async ({ page }) => {

@@ -2,15 +2,15 @@
 
 import type { FormEvent } from "react"
 import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { signIn } from "next-auth/react"
 import { useState, Suspense } from "react"
 
+import { sanitizeInternalCallbackUrl } from "@/lib/auth-login-portal"
 import { messageForCredentialsSignInCode } from "@/lib/auth-portal-signin-messages"
 
 function SignInContent() {
   const search = useSearchParams()
-  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -29,7 +29,8 @@ function SignInContent() {
     e.preventDefault()
     setError(null)
     setLoading(true)
-    const callbackUrl = search.get("callbackUrl") ?? "/dashboard"
+    const rawCallback = search.get("callbackUrl")
+    const callbackUrl = rawCallback ?? "/dashboard"
     const res = await signIn("credentials", {
       email: email.trim().toLowerCase(),
       password,
@@ -37,14 +38,13 @@ function SignInContent() {
       callbackUrl,
     })
     setLoading(false)
-    if (res?.ok && res?.url) {
-      router.push(res.url)
-    } else if (res?.ok) {
-      router.push(callbackUrl || "/dashboard")
-    } else {
-      const portalMsg = messageForCredentialsSignInCode(res?.code)
-      setError(portalMsg ?? "Invalid email or password.")
+    if (res?.ok) {
+      const target = sanitizeInternalCallbackUrl(rawCallback) ?? "/dashboard"
+      window.location.assign(target)
+      return
     }
+    const portalMsg = messageForCredentialsSignInCode(res?.code)
+    setError(portalMsg ?? "Invalid email or password.")
   }
 
   return (
