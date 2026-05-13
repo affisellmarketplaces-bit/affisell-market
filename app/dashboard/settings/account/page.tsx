@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { ConnectedAccountsPanel } from "@/components/connected-accounts-panel"
+import { MerchantAccountNavActions } from "@/components/merchant-account-nav-actions"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 
@@ -79,6 +80,19 @@ export default async function AccountSettingsPage() {
             />
           </div>
         </BentoCard>
+
+        {dbUser.role === "SUPPLIER" || dbUser.role === "AFFILIATE" ? (
+          <BentoCard className="space-y-4 border-red-100/80 dark:border-red-950/50">
+            <div>
+              <h2 className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">Merchant session</h2>
+              <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">
+                Sign out or delete this {dbUser.role === "SUPPLIER" ? "supplier" : "affiliate"} account. Deletion is
+                permanent and is blocked if you already have marketplace orders in this role.
+              </p>
+            </div>
+            <MerchantAccountNavActions showAccountLink={false} />
+          </BentoCard>
+        ) : null}
       </BentoContainer>
     </BentoShell>
   )

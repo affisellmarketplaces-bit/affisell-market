@@ -15,6 +15,8 @@ import {
   type CartAddedEventDetail,
 } from "@/lib/guest-cart"
 import { normalizeCartVariantSignature } from "@/lib/cart-variant"
+import { MerchantAccountNavActions } from "@/components/merchant-account-nav-actions"
+import { VisualSearchModal } from "@/components/visual-search-modal"
 
 function subscribeGuestCart(listener: () => void) {
   if (typeof window === "undefined") return () => {}
@@ -25,7 +27,6 @@ function subscribeGuestCart(listener: () => void) {
     window.removeEventListener("affisell:cart-added", listener)
   }
 }
-import { VisualSearchModal } from "@/components/visual-search-modal"
 
 type ToastState = {
   productId: string
@@ -36,10 +37,12 @@ type ToastState = {
 
 export function SiteNav() {
   const { data: session } = useSession()
+  const pathname = usePathname()
   const isSupplier = session?.user?.role === "SUPPLIER"
+  const isAffiliate = session?.user?.role === "AFFILIATE"
+  const showAffiliateMerchantActions = Boolean(isAffiliate && pathname?.startsWith("/dashboard"))
   const showOrders = Boolean(session?.user && !isSupplier)
   const router = useRouter()
-  const pathname = usePathname()
   const searchParams = useSearchParams()
   const marketplaceSearchKey =
     pathname === "/marketplace" ? `marketplace-${searchParams.toString()}` : `nav-${pathname}`
@@ -111,9 +114,10 @@ export function SiteNav() {
         >
           Affisell
         </Link>
-        <span className="order-2 text-xs text-zinc-500 dark:text-zinc-400">
-          Supplier
-        </span>
+        <span className="order-2 shrink-0 text-xs text-zinc-500 dark:text-zinc-400">Supplier</span>
+        <div className="order-3 flex w-full flex-wrap justify-end gap-2 md:ml-auto md:w-auto">
+          <MerchantAccountNavActions />
+        </div>
       </nav>
     )
   }
@@ -174,7 +178,7 @@ export function SiteNav() {
           </div>
         </form>
 
-        <div className="order-2 flex shrink-0 items-center gap-4 md:order-3 md:gap-6">
+        <div className="order-2 flex shrink-0 flex-wrap items-center gap-4 md:order-3 md:gap-6">
           <Link href="/agent" className="text-zinc-700 hover:underline dark:text-zinc-300">
             Agent
           </Link>
@@ -200,6 +204,11 @@ export function SiteNav() {
               </span>
             ) : null}
           </Link>
+          {showAffiliateMerchantActions ? (
+            <div className="flex w-full basis-full flex-wrap justify-end gap-2 pt-1 md:ml-auto md:w-auto md:basis-auto md:pt-0">
+              <MerchantAccountNavActions />
+            </div>
+          ) : null}
         </div>
       </nav>
 

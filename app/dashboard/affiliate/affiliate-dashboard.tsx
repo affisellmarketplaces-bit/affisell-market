@@ -22,7 +22,6 @@ import {
   Filter,
   GripVertical,
   LayoutGrid,
-  LogOut,
   Pencil,
   Search,
   Sparkles,
@@ -34,7 +33,6 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { signOut } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import type { CSSProperties } from "react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
@@ -505,14 +503,6 @@ export function AffiliateDashboard({
                     className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100"
                   >
                     <Eye className="h-4 w-4 shrink-0" aria-hidden /> Open public store
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => signOut({ callbackUrl: "/" })}
-                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
-                  >
-                    <LogOut className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
-                    Sign out
                   </button>
                 </div>
               </div>
