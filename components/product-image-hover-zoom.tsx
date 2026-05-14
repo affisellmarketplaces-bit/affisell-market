@@ -65,9 +65,6 @@ export function ProductImageHoverZoom({ src, alt, overlay, className, frameClass
         "overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950 lg:flex lg:items-stretch lg:gap-3 lg:p-2",
         className
       )}
-      onMouseEnter={() => finePointer && setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      onMouseMove={finePointer ? onMove : undefined}
     >
       <div className="relative min-w-0 flex-1">
         <div
@@ -76,6 +73,9 @@ export function ProductImageHoverZoom({ src, alt, overlay, className, frameClass
             "relative aspect-[4/5] overflow-hidden bg-zinc-50 sm:aspect-square dark:bg-zinc-900/80",
             frameClassName
           )}
+          onMouseEnter={() => finePointer && setHover(true)}
+          onMouseLeave={() => setHover(false)}
+          onMouseMove={finePointer ? onMove : undefined}
         >
           {/* eslint-disable-next-line @next/next/no-img-element -- remote listing URLs */}
           <img
@@ -105,9 +105,10 @@ export function ProductImageHoverZoom({ src, alt, overlay, className, frameClass
         <div
           role="region"
           aria-label={hover ? "Magnified product image" : "Product image zoom"}
+          aria-hidden={!hover}
           className={cn(
-            "relative mt-4 hidden aspect-square w-full shrink-0 overflow-hidden rounded-xl border border-zinc-200/80 bg-zinc-50 shadow-inner dark:border-zinc-700 dark:bg-zinc-900/60 lg:mt-0 lg:block lg:w-[min(42vw,24rem)] xl:w-[min(38vw,28rem)]",
-            hover ? "ring-2 ring-violet-500/25" : "opacity-95"
+            "relative mt-4 hidden aspect-square w-full shrink-0 overflow-hidden rounded-xl border border-zinc-200/80 bg-zinc-50 shadow-inner transition-[opacity,box-shadow] duration-150 dark:border-zinc-700 dark:bg-zinc-900/60 lg:mt-0 lg:block lg:w-[min(42vw,24rem)] xl:w-[min(38vw,28rem)]",
+            hover ? "ring-2 ring-violet-500/25" : ""
           )}
         >
           <div
@@ -117,7 +118,7 @@ export function ProductImageHoverZoom({ src, alt, overlay, className, frameClass
               backgroundRepeat: "no-repeat",
               backgroundSize: `${ZOOM * 100}% auto`,
               backgroundPosition: `${pct.x}% ${pct.y}%`,
-              opacity: hover ? 1 : 0.4,
+              opacity: hover ? 1 : 0,
             }}
           />
           {!hover ? (
