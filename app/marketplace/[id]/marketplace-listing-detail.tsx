@@ -20,6 +20,7 @@ import { useRouter } from "next/navigation"
 import { Fragment, useEffect, useMemo, useState, type MouseEvent } from "react"
 
 import { Button } from "@/components/ui/button"
+import { ProductImageHoverZoom } from "@/components/product-image-hover-zoom"
 import messages from "@/messages/en.json"
 import {
   COLORS,
@@ -483,22 +484,17 @@ export function MarketplaceListingDetail({
       <div className="space-y-12">
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-12">
           <section className="space-y-4 lg:col-span-7">
-            <div className="relative overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-              <div className="relative aspect-[4/5] bg-zinc-50 sm:aspect-square dark:bg-zinc-900/80">
-                {/* eslint-disable-next-line @next/next/no-img-element -- dynamic remote URLs */}
-                <img
-                  key={hero}
-                  src={hero}
-                  alt={name}
-                  className="h-full w-full object-contain p-4 transition duration-300 ease-out animate-in fade-in-0 hover:scale-[1.01]"
-                />
-                {has3D ? (
-                  <span className="absolute left-4 top-4 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-3 py-1 text-xs font-semibold text-white shadow-md">
+            <ProductImageHoverZoom
+              src={hero}
+              alt={name}
+              overlay={
+                has3D ? (
+                  <span className="pointer-events-none absolute left-4 top-4 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-3 py-1 text-xs font-semibold text-white shadow-md">
                     {productT.view360}
                   </span>
-                ) : null}
-              </div>
-            </div>
+                ) : null
+              }
+            />
 
             <div className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 pb-1 pt-0.5 [scrollbar-width:thin] sm:mx-0 sm:px-0">
               {images.slice(0, 12).map((url, i) => (
