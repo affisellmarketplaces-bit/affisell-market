@@ -77,6 +77,8 @@ model Store {
   name             String
   slug             String    @unique
   logoUrl          String?
+  /** Optional Affisell AI–generated square profile image (shown in addition to or instead of logo where supported). */
+  aiAvatarUrl      String?
   bannerUrl        String?
   description      String?
   customDomain     String?   @unique
