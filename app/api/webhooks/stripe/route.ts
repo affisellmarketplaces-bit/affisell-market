@@ -1,9 +1,11 @@
 import type { Prisma } from "@prisma/client"
 import { NextRequest, NextResponse } from "next/server"
-import Stripe from "stripe"
+import type Stripe from "stripe"
 
 import { fulfillMarketplaceStripeSession } from "@/lib/stripe-marketplace-fulfill"
 import { getStripeClient } from "@/lib/stripe"
+import { inngest } from "@/inngest/client"
+import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -31,11 +33,7 @@ export async function POST(req: NextRequest) {
 
   let event: Stripe.Event
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    )
+    event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!)
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Invalid webhook signature"
     return NextResponse.json({ error: message }, { status: 400 })
@@ -56,6 +54,28 @@ export async function POST(req: NextRequest) {
     } catch (e) {
       console.error("fulfillMarketplaceStripeSession", e)
       return NextResponse.json({ error: "fulfill_failed" }, { status: 500 })
+    }
+  }
+
+  if (event.type === "payment_intent.succeeded") {
+    const pi = event.data.object as Stripe.PaymentIntent
+    const blindId = pi.metadata?.blindDropshipOrderId?.trim()
+    if (blindId && pi.metadata?.flow === "blind_dropship") {
+      const paid = Math.round(pi.amount_received ?? pi.amount ?? 0)
+      const order = await prisma.blindDropshipOrder.findUnique({ where: { id: blindId } })
+      if (order && order.status === "pending_payment") {
+        if (paid >= order.totalPaidCents - 1) {
+          await prisma.blindDropshipOrder.update({
+            where: { id: blindId },
+            data: { status: "paid" },
+          })
+          try {
+            await inngest.send({ name: "blind/order.fulfill", data: { orderId: blindId } })
+          } catch (e) {
+            console.error("[blind-dropship] inngest.send failed", e)
+          }
+        }
+      }
     }
   }
 

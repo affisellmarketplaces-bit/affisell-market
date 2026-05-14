@@ -22,187 +22,241 @@ model User {
   accounts Account[]
   sessions Session[]
 
-  products Product[] @relation("SupplierProducts")
-  affiliateProducts AffiliateProduct[]
-  supplierOrders Order[] @relation("SupplierOrders")
-  store Store?
-  affiliateOrders Order[] @relation("AffiliateOrders")
-  notifications Notification[]
-  cart Cart?
-  storeFollowRelations Follow[] @relation("UserFollowsStore")
-  searchHistory      SearchHistory[]
-  wishlists          Wishlist[]
+  products             Product[]          @relation("SupplierProducts")
+  affiliateProducts    AffiliateProduct[]
+  supplierOrders       Order[]            @relation("SupplierOrders")
+  store                Store?
+  affiliateOrders      Order[]            @relation("AffiliateOrders")
+  notifications        Notification[]
+  cart                 Cart?
+  storeFollowRelations Follow[]           @relation("UserFollowsStore")
+  searchHistory        SearchHistory[]
+  wishlists            Wishlist[]
 
-  /** Supplier add-product: recent category picks JSON [{ leafId, path:[{id,name}] }] max 5 */
+  /**
+   * Supplier add-product: recent category picks JSON [{ leafId, path:[{id,name}] }] max 5
+   */
   supplierRecentCategories Json @default("[]")
 
   supplierIntegrations SupplierIntegration[]
 
-  /** Buyer-initiated returns (marketplace-style case flow). */
+  /**
+   * Optional blind-dropship API profile for this supplier user (parallel to native Affisell listings).
+   */
+  blindDropshipSupplier BlindDropshipSupplier?
+
+  /**
+   * Buyer-initiated returns (marketplace-style case flow).
+   */
   orderReturnsRequested OrderReturn[] @relation("BuyerOrderReturns")
 
-  /** Store credit / cashback balance (EUR cents) from partner listings; spendable at checkout. */
-  buyerRewardBalanceCents Int @default(0)
-  buyerRewardLedger     BuyerRewardLedger[]
-  /** Marketplace orders where this user was the logged-in buyer (optional). */
-  buyerMarketplaceOrders Order[] @relation("BuyerMarketplaceOrders")
+  /**
+   * Store credit / cashback balance (EUR cents) from partner listings; spendable at checkout.
+   */
+  buyerRewardBalanceCents Int                 @default(0)
+  buyerRewardLedger       BuyerRewardLedger[]
+  /**
+   * Marketplace orders where this user was the logged-in buyer (optional).
+   */
+  buyerMarketplaceOrders  Order[]             @relation("BuyerMarketplaceOrders")
+
+  blindDropshipAffiliateOrders BlindDropshipOrder[] @relation("BlindDropshipAffiliateOrders")
+  blindDropshipBuyerOrders     BlindDropshipOrder[] @relation("BlindDropshipBuyerOrders")
 }
 
-/** Saved connections for supplier catalog sync (Shopify, inbound webhook, …). */
+/**
+ * Saved connections for supplier catalog sync (Shopify, inbound webhook, …).
+ */
 model SupplierIntegration {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  /** Lowercase slug e.g. `shopify`, `webhook`. */
-  platform  String
-  /** User-visible label; unique per user+platform. */
-  name      String   @default("main")
-  enabled   Boolean  @default(true)
-  /** Shopify: { shop, accessToken, apiVersion? }. Webhook: { webhookSecret }. */
-  config    Json     @default("{}")
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /**
+   * Lowercase slug e.g. `shopify`, `webhook`.
+   */
+  platform        String
+  /**
+   * User-visible label; unique per user+platform.
+   */
+  name            String    @default("main")
+  enabled         Boolean   @default(true)
+  /**
+   * Shopify: { shop, accessToken, apiVersion? }. Webhook: { webhookSecret }.
+   */
+  config          Json      @default("{}")
   lastSyncAt      DateTime?
   lastSyncError   String?
   lastSyncSummary Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   @@unique([userId, platform, name])
   @@index([userId])
 }
 
 model Store {
-  id               String    @id @default(cuid())
-  userId           String    @unique
-  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name             String
-  slug             String    @unique
-  logoUrl          String?
-  /** Optional Affisell AI–generated square profile image (shown in addition to or instead of logo where supported). */
-  aiAvatarUrl      String?
-  bannerUrl        String?
-  description      String?
-  customDomain     String?   @unique
-  domainVerified   Boolean   @default(false)
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name           String
+  slug           String   @unique
+  logoUrl        String?
+  /**
+   * Optional Affisell AI–generated square profile image (shown in addition to or instead of logo where supported).
+   */
+  aiAvatarUrl    String?
+  bannerUrl      String?
+  description    String?
+  customDomain   String?  @unique
+  domainVerified Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  instagram            String?
-  tiktok               String?
-  youtube              String?
-  twitch               String?
-  facebook             String?
-  twitter              String?
-  followers            Json?
-  showSocialsOnStore   Boolean   @default(true)
-  autoSyncFollowersDaily Boolean @default(false)
-  isLive               Boolean   @default(false)
-  livePlatform         String?
-  liveUrl              String?
-  lastSyncAt           DateTime?
+  instagram              String?
+  tiktok                 String?
+  youtube                String?
+  twitch                 String?
+  facebook               String?
+  twitter                String?
+  followers              Json?
+  showSocialsOnStore     Boolean   @default(true)
+  autoSyncFollowersDaily Boolean   @default(false)
+  isLive                 Boolean   @default(false)
+  livePlatform           String?
+  liveUrl                String?
+  lastSyncAt             DateTime?
 
-  /** Structured ship-from address (labels, returns instructions, partner comms). */
+  /**
+   * Structured ship-from address (labels, returns instructions, partner comms).
+   */
   shipFromAddress Json?
-  /** Return receiving address; when null, treat as same as `shipFromAddress` when displaying. */
-  returnAddress Json?
+  /**
+   * Return receiving address; when null, treat as same as `shipFromAddress` when displaying.
+   */
+  returnAddress   Json?
 
-  communityPosts CommunityPost[]
-  followerRelations Follow[] @relation("StoreFollowers")
+  communityPosts    CommunityPost[]
+  followerRelations Follow[]        @relation("StoreFollowers")
 }
 
 model Category {
-  id   String @id @default(cuid())
-  /** Not unique: leaf rows can share labels (e.g. "Clothing") under different parents. */
-  name String
-  slug String @unique
-  icon String @default("📦")
+  id    String @id @default(cuid())
+  /**
+   * Not unique: leaf rows can share labels (e.g. "Clothing") under different parents.
+   */
+  name  String
+  slug  String @unique
+  icon  String @default("📦")
   order Int    @default(0)
 
-  parentId String?
-  parent   Category?  @relation("CategoryToSubcategory", fields: [parentId], references: [id])
-  /** Nested browse nodes (same model — distinct from `tabularSubcategories` legacy table). */
+  parentId      String?
+  parent        Category?  @relation("CategoryToSubcategory", fields: [parentId], references: [id])
+  /**
+   * Nested browse nodes (same model — distinct from `tabularSubcategories` legacy table).
+   */
   subcategories Category[] @relation("CategoryToSubcategory")
 
   products Product[]
 
   attributes CategoryAttribute[]
 
-  /** Legacy per-department table (CSV/import); distinct from nested `subcategories` above. */
+  /**
+   * Legacy per-department table (CSV/import); distinct from nested `subcategories` above.
+   */
   tabularSubcategories Subcategory[] @relation("CategoryTabularSubcategory")
 }
 
 model CategoryAttribute {
-  id String @id @default(cuid())
+  id         String   @id @default(cuid())
   categoryId String
-  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
-  key String
-  label String
-  type String
-  unit String?
-  options String[] @default([])
-  required Boolean @default(false)
-  order Int @default(0)
-  aiSuggest Boolean @default(true)
-  showInFilter Boolean @default(true)
+  key          String
+  label        String
+  type         String
+  unit         String?
+  options      String[] @default([])
+  required     Boolean  @default(false)
+  order        Int      @default(0)
+  aiSuggest    Boolean  @default(true)
+  showInFilter Boolean  @default(true)
 
   @@unique([categoryId, key])
   @@index([categoryId])
 }
 
 model Subcategory {
-  id         String @id @default(cuid())
+  id         String    @id @default(cuid())
   name       String
   slug       String
   categoryId String
-  category   Category @relation("CategoryTabularSubcategory", fields: [categoryId], references: [id], onDelete: Cascade)
+  category   Category  @relation("CategoryTabularSubcategory", fields: [categoryId], references: [id], onDelete: Cascade)
   products   Product[]
 
   @@unique([categoryId, slug])
 }
 
 model Product {
-  id String @id @default(cuid())
-  supplierId String
-  name String
-  description String
-  /** Marketplace “About this item” bullets (distinct from prose description). */
-  descriptionBullets String[] @default([])
-  /** Extra lifestyle / detail images shown under the long description (not gallery heroes). */
+  id                            String   @id @default(cuid())
+  supplierId                    String
+  name                          String
+  description                   String
+  /**
+   * Marketplace “About this item” bullets (distinct from prose description).
+   */
+  descriptionBullets            String[] @default([])
+  /**
+   * Extra lifestyle / detail images shown under the long description (not gallery heroes).
+   */
   descriptionIllustrationImages String[] @default([])
-  /** HTTPS links: YouTube, Vimeo, or direct `.mp4` — shown under the description. */
+  /**
+   * HTTPS links: YouTube, Vimeo, or direct `.mp4` — shown under the description.
+   */
   descriptionIllustrationVideos String[] @default([])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-  images String[] @default([])
-  colorImages Json?
-  categories String[] @default([])
-  colors String[] @default([])
-  variants Json?
-  tags String[] @default([])
-  basePriceCents Int
-  compareAt Decimal?
-  commissionRate Int
-  /** PHYSICAL: affiliate commission % max 99; SOFTWARE | SUBSCRIPTION allows up to 100. */
-  listingKind String @default("PHYSICAL")
-  stock Int @default(0)
-  active Boolean @default(true)
-  /** In-progress listing; always kept inactive until published. */
-  isDraft Boolean @default(false)
+  createdAt                     DateTime @default(now())
+  updatedAt                     DateTime @default(now()) @updatedAt
+  images                        String[] @default([])
+  colorImages                   Json?
+  categories                    String[] @default([])
+  colors                        String[] @default([])
+  variants                      Json?
+  tags                          String[] @default([])
+  basePriceCents                Int
+  compareAt                     Decimal?
+  commissionRate                Int
+  /**
+   * PHYSICAL: affiliate commission % max 99; SOFTWARE | SUBSCRIPTION allows up to 100.
+   */
+  listingKind                   String   @default("PHYSICAL")
+  stock                         Int      @default(0)
+  active                        Boolean  @default(true)
+  /**
+   * In-progress listing; always kept inactive until published.
+   */
+  isDraft                       Boolean  @default(false)
 
-  /** Normalized taxonomy (optional — legacy rows still match via `categories[]` in counts). */
+  /**
+   * Normalized taxonomy (optional — legacy rows still match via `categories[]` in counts).
+   */
   categoryId String?
   category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
   subcategoryId String?
-  subcategory    Subcategory? @relation(fields: [subcategoryId], references: [id], onDelete: SetNull)
+  subcategory   Subcategory? @relation(fields: [subcategoryId], references: [id], onDelete: SetNull)
 
-  /** Marketplace filter: minimalist, vintage, etc. */
+  /**
+   * Marketplace filter: minimalist, vintage, etc.
+   */
   style String?
 
-  /** Filter bucket: standard | free | prime | same-day | next-day — see counts API */
+  /**
+   * Filter bucket: standard | free | prime | same-day | next-day — see counts API
+   */
   shippingType String @default("standard")
 
-  /** Processing / handling lag (supplier → ship), used beside delivery windows */
+  /**
+   * Processing / handling lag (supplier → ship), used beside delivery windows
+   */
   handlingDays Int @default(1)
 
   isOnSale      Boolean @default(false)
@@ -212,35 +266,48 @@ model Product {
   hasCoupon     Boolean @default(false)
   isEcoFriendly Boolean @default(false)
 
-  shippingCountry        String?
-  warehouseType          String?
-  warehouseCity          String?
-  processingTime         Int      @default(1)
-  deliveryMin            Int      @default(2)
-  deliveryMax            Int      @default(5)
-  shippingMethods        String[] @default([])
-  freeShippingThreshold  Decimal?
-  shippingCost           Decimal  @default(0)
+  shippingCountry       String?
+  warehouseType         String?
+  warehouseCity         String?
+  processingTime        Int      @default(1)
+  deliveryMin           Int      @default(2)
+  deliveryMax           Int      @default(5)
+  shippingMethods       String[] @default([])
+  freeShippingThreshold Decimal?
+  shippingCost          Decimal  @default(0)
 
-  /** Marketplace display / API (e.g. "EU", "FR"). Distinct from `shippingCountry` filter fields. */
-  shipsFrom     String?
-  deliveryDays  Int?
-  freeShipping  Boolean @default(false)
-  /** Display source label (e.g. "seed"); API may expose as `supplier` string. */
-  supplierTag   String?
-  reviewCount   Int      @default(0)
-  averageRating Float    @default(0)
-  reviewSentiment String @default("neutral")
+  /**
+   * Marketplace display / API (e.g. "EU", "FR"). Distinct from `shippingCountry` filter fields.
+   */
+  shipsFrom              String?
+  deliveryDays           Int?
+  freeShipping           Boolean @default(false)
+  /**
+   * Display source label (e.g. "seed"); API may expose as `supplier` string.
+   */
+  supplierTag            String?
+  /**
+   * Blind dropship: partner SKU + wholesale cost (cents) sent to supplier APIs only — never shopper/affiliate price.
+   * Null when the product is only sold through native Affisell fulfillment.
+   */
+  supplierSku            String?
+  supplierWholesaleCents Int?
+  reviewCount            Int     @default(0)
+  averageRating          Float   @default(0)
+  reviewSentiment        String  @default("neutral")
 
-  supplier User @relation("SupplierProducts", fields: [supplierId], references: [id])
-  affiliateProducts AffiliateProduct[]
-  attributes ProductAttribute[]
-  orders Order[]
-  communityPosts CommunityPost[]
-  wishlists Wishlist[]
-  reviews Review[]
-  /** AI category suggestions pending manual review (see `ProductReview` model). */
-  productReviews ProductReview[]
+  supplier                User                     @relation("SupplierProducts", fields: [supplierId], references: [id])
+  affiliateProducts       AffiliateProduct[]
+  attributes              ProductAttribute[]
+  orders                  Order[]
+  blindDropshipOrderItems BlindDropshipOrderItem[]
+  communityPosts          CommunityPost[]
+  wishlists               Wishlist[]
+  reviews                 Review[]
+  /**
+   * AI category suggestions pending manual review (see `ProductReview` model).
+   */
+  productReviews          ProductReview[]
 
   @@index([categoryId])
   @@index([supplierId, isDraft])
@@ -251,7 +318,9 @@ model Product {
   @@index([createdAt])
 }
 
-/** AI / ops queue: suggested taxonomy row for a product (not shopper star reviews — those use `Review`). */
+/**
+ * AI / ops queue: suggested taxonomy row for a product (not shopper star reviews — those use `Review`).
+ */
 model ProductReview {
   id                String   @id @default(cuid())
   productId         String
@@ -266,11 +335,11 @@ model ProductReview {
 }
 
 model ProductAttribute {
-  id String @id @default(cuid())
+  id        String  @id @default(cuid())
   productId String
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  key String
+  key   String
   value String
   label String
 
@@ -279,20 +348,20 @@ model ProductAttribute {
 }
 
 model Review {
-  id        String   @id @default(cuid())
+  id        String  @id @default(cuid())
   productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  rating       Int
-  author       String
-  country      String?
-  date         DateTime
-  text         String   @db.Text
-  images       String[] @default([])
-  variant      String?
-  helpful_count Int     @default(0)
-  verified     Boolean  @default(true)
-  sentiment    String   @default("neutral")
+  rating        Int
+  author        String
+  country       String?
+  date          DateTime
+  text          String   @db.Text
+  images        String[] @default([])
+  variant       String?
+  helpful_count Int      @default(0)
+  verified      Boolean  @default(true)
+  sentiment     String   @default("neutral")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -305,9 +374,13 @@ model Wishlist {
   id                 String   @id @default(cuid())
   userId             String
   productId          String
-  /** Optional target alert threshold chosen by shopper (in cents). */
+  /**
+   * Optional target alert threshold chosen by shopper (in cents).
+   */
   targetPriceCents   Int?
-  /** Last daily seen price, used for "depuis hier" drop computation. */
+  /**
+   * Last daily seen price, used for "depuis hier" drop computation.
+   */
   previousPriceCents Int?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
@@ -321,12 +394,12 @@ model Wishlist {
 }
 
 model SearchHistory {
-  id         String   @id @default(cuid())
-  userId     String?
-  sessionId  String?
-  query      String
-  productId  String?
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String?
+  sessionId String?
+  query     String
+  productId String?
+  createdAt DateTime @default(now())
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
@@ -334,7 +407,9 @@ model SearchHistory {
   @@index([sessionId, createdAt])
 }
 
-/** Homepage carousel analytics (view / hover / add-to-cart). */
+/**
+ * Homepage carousel analytics (view / hover / add-to-cart).
+ */
 model AffisellTrackEvent {
   id         String   @id @default(cuid())
   eventType  String
@@ -373,12 +448,12 @@ model Follow {
 }
 
 model AffiliateProduct {
-  id String @id @default(cuid())
+  id          String     @id @default(cuid())
   affiliateId String
-  productId String
-  affiliate User @relation(fields: [affiliateId], references: [id])
-  product Product @relation(fields: [productId], references: [id])
-  cartItems CartItem[]
+  productId   String
+  affiliate   User       @relation(fields: [affiliateId], references: [id])
+  product     Product    @relation(fields: [productId], references: [id])
+  cartItems   CartItem[]
 
   sellingPriceCents Int
 
@@ -386,30 +461,38 @@ model AffiliateProduct {
   customDescription String?
   customImages      String[] @default([])
 
-  customSlug      String?
-  seoTitle        String?
-  seoDescription  String?
-  collections     String[] @default([])
+  customSlug     String?
+  seoTitle       String?
+  seoDescription String?
+  collections    String[] @default([])
 
   isListed   Boolean @default(true)
   isFeatured Boolean @default(false)
   position   Int     @default(0)
 
-  clicks       Int @default(0)
-  conversions  Int @default(0)
+  clicks      Int @default(0)
+  conversions Int @default(0)
 
   /**
    * Shopper-facing reward funded from the affiliate margin on this listing.
    * NONE — no offer; CASHBACK — % of purchase as cashback wording; BONUS — store bonus wording.
    */
   buyerRewardKind    String @default("NONE")
-  /** 0 when kind is NONE; otherwise 1–50 (% of line total), capped by available margin on save. */
+  /**
+   * 0 when kind is NONE; otherwise 1–50 (% of line total), capped by available margin on save.
+   */
   buyerRewardPercent Int    @default(0)
 
-  /** Optional PDP default: must match `Product.colors[]` when set. */
+  /**
+   * Optional PDP default: must match `Product.colors[]` when set.
+   */
   promotedColor String?
-  /** Optional PDP default: must match `Product.variants.size[]` when set. */
+  /**
+   * Optional PDP default: must match `Product.variants.size[]` when set.
+   */
   promotedSize  String?
+
+  blindDropshipOrderItems BlindDropshipOrderItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -431,7 +514,9 @@ model CartItem {
   cartId             String
   affiliateProductId String
   quantity           Int              @default(1)
-  /** Normalized `c:…|s:…` — empty string when no variant picked. */
+  /**
+   * Normalized `c:…|s:…` — empty string when no variant picked.
+   */
   variantSignature   String           @default("")
   selectedColor      String?
   selectedSize       String?
@@ -441,51 +526,61 @@ model CartItem {
   @@unique([cartId, affiliateProductId, variantSignature])
 }
 
-/** Idempotent ledger for buyer store credit (earn on paid orders, redeem at checkout). */
+/**
+ * Idempotent ledger for buyer store credit (earn on paid orders, redeem at checkout).
+ */
 model BuyerRewardLedger {
-  id               String   @id @default(cuid())
-  userId           String
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  /** EARNED | REDEEMED | REVERSAL (clawback on refund) */
-  type             String
-  amountCents      Int
-  idempotencyKey   String   @unique
-  stripeSessionId  String?
-  orderId          String?
-  order            Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
-  createdAt        DateTime @default(now())
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /**
+   * EARNED | REDEEMED | REVERSAL (clawback on refund)
+   */
+  type            String
+  amountCents     Int
+  idempotencyKey  String   @unique
+  stripeSessionId String?
+  orderId         String?
+  order           Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  createdAt       DateTime @default(now())
 
   @@index([userId, createdAt])
   @@index([orderId])
 }
 
 model Order {
-  id String @id @default(cuid())
-  productId String
-  affiliateProductId String
-  supplierId String
-  affiliateId String
-  /** Logged-in buyer when checkout carried `buyerUserId` metadata (optional). */
-  buyerUserId String?
-  buyer       User?   @relation("BuyerMarketplaceOrders", fields: [buyerUserId], references: [id], onDelete: SetNull)
-  customerEmail String
-  shippingAddress Json
-  /** Line quantity for this order row (multi-item checkout uses one row per SKU). */
-  quantity Int @default(1)
-  /** Shoppers’ variant choice at checkout, e.g. "Purple · M" — optional. */
-  variantLabel String?
-  basePriceCents Int
-  sellingPriceCents Int
-  commissionCents Int
-  marginCents Int
-  affiliatePayoutCents Int
-  status String @default("paid")
-  stripeSessionId String @unique
-  createdAt DateTime @default(now())
-  product Product @relation(fields: [productId], references: [id])
-  supplier User @relation("SupplierOrders", fields: [supplierId], references: [id])
-  affiliate User @relation("AffiliateOrders", fields: [affiliateId], references: [id])
-  returns OrderReturn[]
+  id                       String              @id @default(cuid())
+  productId                String
+  affiliateProductId       String
+  supplierId               String
+  affiliateId              String
+  /**
+   * Logged-in buyer when checkout carried `buyerUserId` metadata (optional).
+   */
+  buyerUserId              String?
+  buyer                    User?               @relation("BuyerMarketplaceOrders", fields: [buyerUserId], references: [id], onDelete: SetNull)
+  customerEmail            String
+  shippingAddress          Json
+  /**
+   * Line quantity for this order row (multi-item checkout uses one row per SKU).
+   */
+  quantity                 Int                 @default(1)
+  /**
+   * Shoppers’ variant choice at checkout, e.g. "Purple · M" — optional.
+   */
+  variantLabel             String?
+  basePriceCents           Int
+  sellingPriceCents        Int
+  commissionCents          Int
+  marginCents              Int
+  affiliatePayoutCents     Int
+  status                   String              @default("paid")
+  stripeSessionId          String              @unique
+  createdAt                DateTime            @default(now())
+  product                  Product             @relation(fields: [productId], references: [id])
+  supplier                 User                @relation("SupplierOrders", fields: [supplierId], references: [id])
+  affiliate                User                @relation("AffiliateOrders", fields: [affiliateId], references: [id])
+  returns                  OrderReturn[]
   buyerRewardLedgerEntries BuyerRewardLedger[]
 }
 
@@ -494,32 +589,38 @@ model Order {
  * Status values are enforced in application code; see `lib/order-return-state.ts`.
  */
 model OrderReturn {
-  id String @id @default(cuid())
+  id      String @id @default(cuid())
   orderId String
-  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   buyerUserId String?
-  buyer User? @relation("BuyerOrderReturns", fields: [buyerUserId], references: [id], onDelete: SetNull)
+  buyer       User?   @relation("BuyerOrderReturns", fields: [buyerUserId], references: [id], onDelete: SetNull)
 
   status String @default("REQUESTED")
 
-  reasonCode String
+  reasonCode   String
   reasonDetail String?
-  /** JSON string[] — photo / video evidence URLs. */
-  evidenceUrls Json @default("[]")
+  /**
+   * JSON string[] — photo / video evidence URLs.
+   */
+  evidenceUrls Json    @default("[]")
 
-  /** Amount buyer asks to recover (usually order line total). */
+  /**
+   * Amount buyer asks to recover (usually order line total).
+   */
   requestedRefundCents Int
-  approvedRefundCents Int?
+  approvedRefundCents  Int?
 
-  sellerNote String?
+  sellerNote      String?
   rejectionReason String?
 
   buyerTrackingCarrier String?
-  buyerTrackingNumber String?
-  buyerShippedAt DateTime?
+  buyerTrackingNumber  String?
+  buyerShippedAt       DateTime?
 
-  /** Seller should approve or reject by this time (SLA hint). */
+  /**
+   * Seller should approve or reject by this time (SLA hint).
+   */
   sellerRespondByAt DateTime?
 
   receivedAt DateTime?
@@ -533,14 +634,14 @@ model OrderReturn {
 }
 
 model Notification {
-  id String @id @default(cuid())
-  userId String
-  type String
-  message String
-  orderId String?
-  read Boolean @default(false)
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  message   String
+  orderId   String?
+  read      Boolean  @default(false)
   createdAt DateTime @default(now())
-  user User @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model Account {
@@ -576,4 +677,91 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+// --- Blind dropship (parallel to native Affisell checkout; supplier APIs see wholesale only) ---
+
+model BlindDropshipSupplier {
+  id              String    @id @default(cuid())
+  /**
+   * Affisell supplier user this API profile belongs to (one profile per supplier).
+   */
+  linkedUserId    String    @unique
+  linkedUser      User      @relation(fields: [linkedUserId], references: [id], onDelete: Cascade)
+  name            String
+  /**
+   * rest | csv | browser
+   */
+  apiType         String    @default("rest")
+  apiEndpoint     String?
+  /**
+   * AES-GCM sealed secret; never sent to partners.
+   */
+  apiKeyEncrypted String    @db.Text
+  /**
+   * card_per_order | wallet
+   */
+  billingType     String    @default("wallet")
+  isBlindDropship Boolean   @default(true)
+  /**
+   * webhookSecret (HMAC), stripeConnectAccountId, inventoryPath, createOrderPath, slack alerts, etc.
+   */
+  config          Json      @default("{}")
+  lastStockSyncAt DateTime?
+  lastStockError  String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  orderItems BlindDropshipOrderItem[]
+}
+
+model BlindDropshipOrder {
+  id                    String   @id @default(cuid())
+  affiliateId           String
+  affiliate             User     @relation("BlindDropshipAffiliateOrders", fields: [affiliateId], references: [id], onDelete: Restrict)
+  buyerUserId           String?
+  buyer                 User?    @relation("BlindDropshipBuyerOrders", fields: [buyerUserId], references: [id], onDelete: SetNull)
+  customerEmail         String
+  shippingAddress       Json
+  totalPaidCents        Int
+  totalCostCents        Int      @default(0)
+  /**
+   * pending_payment | paid | fulfilling | shipped | failed | refunded
+   */
+  status                String   @default("pending_payment")
+  stripePaymentIntentId String?  @unique
+  trackingCarrier       String?
+  trackingNumber        String?
+  lastFulfillError      String?  @db.Text
+  inngestRunId          String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  items BlindDropshipOrderItem[]
+
+  @@index([affiliateId, status])
+  @@index([status, createdAt])
+}
+
+model BlindDropshipOrderItem {
+  id                        String                @id @default(cuid())
+  blindDropshipOrderId      String
+  order                     BlindDropshipOrder    @relation(fields: [blindDropshipOrderId], references: [id], onDelete: Cascade)
+  affiliateProductId        String
+  affiliateProduct          AffiliateProduct      @relation(fields: [affiliateProductId], references: [id], onDelete: Restrict)
+  productId                 String
+  product                   Product               @relation(fields: [productId], references: [id], onDelete: Restrict)
+  blindDropshipSupplierId   String
+  blindDropshipSupplier     BlindDropshipSupplier @relation(fields: [blindDropshipSupplierId], references: [id], onDelete: Restrict)
+  quantity                  Int                   @default(1)
+  supplierPriceAtOrderCents Int
+  supplierSkuAtOrder        String
+  /**
+   * Partner reference after createOrder succeeds.
+   */
+  supplierOrderId           String?
+  createdAt                 DateTime              @default(now())
+
+  @@index([blindDropshipOrderId])
+  @@index([supplierOrderId])
 }

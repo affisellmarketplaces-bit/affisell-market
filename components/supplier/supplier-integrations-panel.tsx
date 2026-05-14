@@ -151,6 +151,19 @@ export function SupplierIntegrationsPanel({ initialIntegrations }: Props) {
         </p>
       ) : null}
 
+      <Card className="border-violet-200/80 bg-gradient-to-br from-violet-50/80 to-white p-5 dark:border-violet-900/50 dark:from-violet-950/30 dark:to-zinc-950">
+        <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">Blind dropship API (optional)</h2>
+        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+          Parallel to native Affisell listings: partner REST receives <strong>wholesale cost only</strong>, ships to the
+          shopper address we pass through, and posts tracking to a signed webhook. Configure with{" "}
+          <code className="rounded bg-white/80 px-1 text-xs dark:bg-zinc-900/80">PUT /api/supplier/blind-dropship-profile</code>{" "}
+          (supplier session). Set <code className="rounded bg-white/80 px-1 text-xs dark:bg-zinc-900/80">supplierSku</code>{" "}
+          + <code className="rounded bg-white/80 px-1 text-xs dark:bg-zinc-900/80">supplierWholesaleCents</code> on each
+          catalog product, then checkout with{" "}
+          <code className="rounded bg-white/80 px-1 text-xs dark:bg-zinc-900/80">checkoutMode: &quot;blind_dropship&quot;</code>.
+        </p>
+      </Card>
+
       <Card className="border-zinc-200 p-5 dark:border-zinc-700">
         <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">New integration</h2>
         <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
