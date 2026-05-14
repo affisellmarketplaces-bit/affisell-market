@@ -19,6 +19,51 @@ const MIME_EXT: Record<string, string> = {
   "image/jpg": ".jpg",
 }
 
+function openAiUserFacingError(e: unknown): { message: string; status: number } {
+  const raw = e instanceof Error ? e.message : String(e)
+  if (/401|Incorrect API key|Invalid API key|invalid_api_key|authentication failed/i.test(raw)) {
+    return {
+      message:
+        "OpenAI rejected the server API key. In Vercel: Project → Settings → Environment Variables → set OPENAI_API_KEY to a valid secret key (no quotes, no line breaks), then redeploy.",
+      status: 502,
+    }
+  }
+  if (/429|rate limit/i.test(raw)) {
+    return { message: "OpenAI rate limit — try again in a minute.", status: 429 }
+  }
+  let s = raw.replace(/\bsk-[a-zA-Z0-9-]{20,}\b/g, "sk-…")
+  s = s.replace(/OPENAI_[A-Z0-9_-]{4,}/gi, "…")
+  return { message: s.slice(0, 280) || "Generation failed", status: 500 }
+}
+
+/** Normalize env and reject obvious misconfiguration before calling OpenAI (avoids opaque 401s). */
+function resolveOpenAiServerKey(): { apiKey: string } | { error: string } {
+  const raw = process.env.OPENAI_API_KEY
+  if (!raw?.trim()) return { error: "Missing OPENAI_API_KEY" }
+  let k = raw.trim().replace(/^\uFEFF/, "")
+  k = k.replace(/^['"]+|['"]+$/g, "")
+  if (!k) return { error: "Missing OPENAI_API_KEY" }
+  if (/^OPENAI_/i.test(k)) {
+    return {
+      error:
+        "OPENAI_API_KEY is wrong: the value looks like a variable name, not your OpenAI secret. In Vercel → Environment Variables, set OPENAI_API_KEY to the key from platform.openai.com/api-keys (it starts with sk-). Redeploy after saving.",
+    }
+  }
+  if (!k.startsWith("sk-")) {
+    return {
+      error:
+        "OPENAI_API_KEY must be your OpenAI secret key (starts with sk-). Do not use a project ID or other string. Copy the full key from platform.openai.com/api-keys, then redeploy.",
+    }
+  }
+  if (/^sk-xxx$/i.test(k) || /^sk-your/i.test(k) || /^sk-placeholder/i.test(k)) {
+    return { error: "Replace the placeholder OPENAI_API_KEY with a real key from OpenAI, then redeploy." }
+  }
+  if (k.length < 24) {
+    return { error: "OPENAI_API_KEY looks too short — paste the full secret from OpenAI and redeploy." }
+  }
+  return { apiKey: k }
+}
+
 async function visionToDallePrompt(openai: OpenAI, dataUrl: string, storeName: string, mode: "from-logo" | "from-photo") {
   const modeHint =
     mode === "from-logo"
@@ -56,10 +101,11 @@ async function visionToDallePrompt(openai: OpenAI, dataUrl: string, storeName: s
 }
 
 export async function POST(req: Request) {
-  const key = process.env.OPENAI_API_KEY
-  if (!key) {
-    return Response.json({ error: "Missing OPENAI_API_KEY" }, { status: 500 })
+  const resolvedKey = resolveOpenAiServerKey()
+  if ("error" in resolvedKey) {
+    return Response.json({ error: resolvedKey.error }, { status: 503 })
   }
+  const key = resolvedKey.apiKey
 
   const session = await auth()
   const userId = session?.user?.id
@@ -166,7 +212,8 @@ export async function POST(req: Request) {
     if (msg.toLowerCase().includes("safety") || msg.toLowerCase().includes("content_policy")) {
       return Response.json({ error: "Image was blocked by safety policy — try a different photo or logo." }, { status: 422 })
     }
+    const { message, status } = openAiUserFacingError(e)
     console.error("[store-avatar]", e)
-    return Response.json({ error: msg }, { status: 500 })
+    return Response.json({ error: message }, { status })
   }
 }
