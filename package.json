@@ -32,6 +32,8 @@
     "@imgly/background-removal": "^1.7.0",
     "@imgly/background-removal-node": "^1.4.5",
     "@prisma/client": "^6.19.3",
+    "@stripe/react-stripe-js": "^6.3.0",
+    "@stripe/stripe-js": "^9.5.0",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.105.0",
     "ai": "^6.0.175",
