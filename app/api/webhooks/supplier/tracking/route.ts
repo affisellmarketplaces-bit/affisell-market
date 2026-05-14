@@ -9,11 +9,13 @@ import { prisma } from "@/lib/prisma"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-const bodySchema = z.object({
-  supplier_order_id: z.string().min(1),
-  tracking_number: z.string().min(1),
-  tracking_carrier: z.string().min(1).optional(),
-})
+const bodySchema = z
+  .object({
+    supplier_order_id: z.string().min(1),
+    tracking_number: z.string().min(1),
+    tracking_carrier: z.string().min(1).optional(),
+  })
+  .strict()
 
 function verifyHmac(secret: string, raw: string, sigHeader: string | null): boolean {
   if (!sigHeader) return false
@@ -34,6 +36,7 @@ export async function POST(req: NextRequest) {
   }
 
   const raw = await req.text()
+
   const supplier = await prisma.blindDropshipSupplier.findUnique({ where: { id: sid } })
   if (!supplier) {
     return NextResponse.json({ error: "Unknown supplier endpoint" }, { status: 404 })
@@ -46,6 +49,7 @@ export async function POST(req: NextRequest) {
 
   const sig = req.headers.get("x-signature") ?? req.headers.get("x-webhook-signature")
   if (!verifyHmac(secret, raw, sig)) {
+    console.warn("Tentative webhook forgé", { sid, hasSig: Boolean(sig) })
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 })
   }
 

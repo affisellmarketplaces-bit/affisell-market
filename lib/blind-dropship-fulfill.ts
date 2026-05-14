@@ -87,20 +87,45 @@ export async function runBlindDropshipFulfillment(orderId: string): Promise<void
   }
 
   try {
+    if (process.env.BLIND_DROPSHIP_ENABLE_STRIPE_TRANSFERS !== "true") {
+      await prisma.blindDropshipOrder.update({
+        where: { id: order.id },
+        data: { status: "awaiting_manual_payment", lastFulfillError: "STOP: transfers disabled — supplier not paid" },
+      })
+      await blindDropshipSlackAlert(`Paiement fournisseur manuel requis pour order ${orderId}`)
+      throw new Error("STOP: Fournisseur non payé")
+    }
+
     for (const [, group] of groups) {
       const cfg = (group.supplier.config ?? {}) as Record<string, unknown>
       const connect = typeof cfg.stripeConnectAccountId === "string" ? cfg.stripeConnectAccountId.trim() : ""
-      if (connect && process.env.BLIND_DROPSHIP_ENABLE_STRIPE_TRANSFERS === "true") {
-        try {
-          await maybeStripeTransferToSupplier({
-            amountCents: group.costCents,
-            destinationAccountId: connect,
-            orderId: order.id,
-          })
-        } catch (te) {
-          const tm = te instanceof Error ? te.message : String(te)
-          throw new Error(`stripe_transfer_failed:${tm}`)
-        }
+      if (!connect) {
+        await prisma.blindDropshipOrder.update({
+          where: { id: order.id },
+          data: {
+            status: "awaiting_manual_payment",
+            lastFulfillError: "STOP: missing stripeConnectAccountId for a supplier group",
+          },
+        })
+        await blindDropshipSlackAlert(
+          `Paiement fournisseur manuel requis pour order ${orderId} (Stripe Connect account missing)`
+        )
+        throw new Error("STOP: Fournisseur non payé")
+      }
+      try {
+        await maybeStripeTransferToSupplier({
+          amountCents: group.costCents,
+          destinationAccountId: connect,
+          orderId: order.id,
+        })
+      } catch (te) {
+        const tm = te instanceof Error ? te.message : String(te)
+        await prisma.blindDropshipOrder.update({
+          where: { id: order.id },
+          data: { status: "awaiting_manual_payment", lastFulfillError: `stripe_transfer_failed:${tm}` },
+        })
+        await blindDropshipSlackAlert(`Paiement fournisseur échoué order ${orderId}: ${tm}`)
+        throw new Error(`STOP: Fournisseur non payé (${tm})`)
       }
     }
 
@@ -141,11 +166,17 @@ export async function runBlindDropshipFulfillment(orderId: string): Promise<void
     })
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
-    await prisma.blindDropshipOrder.update({
+    const current = await prisma.blindDropshipOrder.findUnique({
       where: { id: order.id },
-      data: { status: "failed", lastFulfillError: msg.slice(0, 4000) },
+      select: { status: true },
     })
-    await blindDropshipSlackAlert(`[blind-dropship] fulfill FAILED order=${order.id}\n${msg}`)
+    if (current?.status !== "awaiting_manual_payment") {
+      await prisma.blindDropshipOrder.update({
+        where: { id: order.id },
+        data: { status: "failed", lastFulfillError: msg.slice(0, 4000) },
+      })
+      await blindDropshipSlackAlert(`[blind-dropship] fulfill FAILED order=${order.id}\n${msg}`)
+    }
     throw e
   }
 }

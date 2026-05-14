@@ -78,6 +78,50 @@ Use your host’s **log drain** or similar for structured logs alongside Sentry.
 - Never commit real `.env` or production database URLs.
 - `GET` on affiliate products for `ADMIN` skips `affiliateId` — restrict admin accounts in production.
 
+## Blind Dropship
+
+Optional **parallel** checkout path: `POST /api/checkout` with `checkoutMode: "blind_dropship"` (Stripe **PaymentIntent** + `BlindDropshipOrder` rows). The standard marketplace **Checkout Session** flow is unchanged.
+
+### Stripe Dashboard (webhooks)
+
+Point your Stripe webhook to `/api/webhooks/stripe` and enable at least:
+
+- `checkout.session.completed` — legacy marketplace cart checkout  
+- **`payment_intent.succeeded`** — blind dropship PaymentIntents (`metadata.flow = blind_dropship`)
+
+### Supplier tracking webhook
+
+- **URL**: `POST /api/webhooks/supplier/tracking?sid={BlindDropshipSupplier.id}` (value returned from `PUT /api/supplier/blind-dropship-profile`).
+- **Signature**: header `X-Signature` = **lowercase hex** `SHA256(raw_body_utf8, webhookSecret)` where `webhookSecret` is stored in the supplier profile `config.webhookSecret`.  
+  The handler verifies the signature **before** parsing JSON; invalid signatures return **401** and log `Tentative webhook forgé`.
+- **Body (JSON, strict keys)**:
+
+```json
+{ "supplier_order_id": "…", "tracking_number": "…", "tracking_carrier": "…" }
+```
+
+(`tracking_carrier` optional.)
+
+### Example curl (partner → Affisell)
+
+```bash
+BODY='{"supplier_order_id":"PO-123","tracking_number":"1Z999","tracking_carrier":"UPS"}'
+SIG=$(printf '%s' "$BODY" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" | awk '{print $2}')
+curl -sS -X POST "https://YOUR_DOMAIN/api/webhooks/supplier/tracking?sid=SUPPLIER_CONFIG_ID" \
+  -H "Content-Type: application/json" \
+  -H "X-Signature: $SIG" \
+  -d "$BODY"
+```
+
+### Front checkout
+
+- Page: `/checkout/blind` — uses guest cart + server cart (same line ids as `/cart`), checks eligibility via `POST /api/checkout/blind-eligibility`, then Stripe **Payment Element** with `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`.
+- After payment, Stripe redirects to `/order-success?blindOrderId=…`.
+
+### Fulfillment guard
+
+Unless `BLIND_DROPSHIP_ENABLE_STRIPE_TRANSFERS=true` **and** each supplier group has a successful Stripe **Transfer** to `stripeConnectAccountId`, the worker **does not** call the supplier `createOrder` API (order moves to `awaiting_manual_payment` and Slack is notified).
+
 ## Docs
 
 Next.js in this repo may differ from LTS docs; see `AGENTS.md` and `node_modules/next/dist/docs/` when upgrading.

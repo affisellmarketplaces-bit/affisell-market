@@ -49,7 +49,8 @@ export class RestSupplierAdapter implements SupplierAdapter {
         items: data.items.map((i) => ({
           sku: i.sku,
           quantity: i.quantity,
-          price: i.unit_price_cents / 100,
+          /** Wholesale only (integer cents) — never affiliate retail. */
+          unit_price_cents: i.unit_price_cents,
         })),
         contact_email: data.contact_email,
         reference: data.reference,
