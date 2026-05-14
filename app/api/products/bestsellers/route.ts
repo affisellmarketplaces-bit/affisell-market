@@ -57,7 +57,7 @@ export async function GET() {
       product: { active: true },
     },
     include: {
-      affiliate: { include: { store: { select: { name: true, slug: true, logoUrl: true } } } },
+      affiliate: { include: { store: { select: { name: true, slug: true, logoUrl: true, aiAvatarUrl: true } } } },
     },
     orderBy: { id: "asc" },
   })
@@ -67,7 +67,7 @@ export async function GET() {
     {
       listingId: string
       sellingPriceCents: number
-      store: { name: string; slug: string; logoUrl: string | null } | null
+      store: { name: string; slug: string; logoUrl: string | null; aiAvatarUrl: string | null } | null
     }
   >()
   for (const l of listings) {
@@ -76,7 +76,7 @@ export async function GET() {
     firstByProduct.set(l.productId, {
       listingId: l.id,
       sellingPriceCents: l.sellingPriceCents,
-      store: st ? { name: st.name, slug: st.slug, logoUrl: st.logoUrl } : null,
+      store: st ? { name: st.name, slug: st.slug, logoUrl: st.logoUrl, aiAvatarUrl: st.aiAvatarUrl } : null,
     })
   }
 

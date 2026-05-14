@@ -108,14 +108,14 @@ export default async function PublicStorefrontPage({ params }: { params: Promise
         </nav>
 
         <header className="mt-8 flex flex-wrap items-center gap-4">
-          {store.logoUrl ? (
+          {store.aiAvatarUrl || store.logoUrl ? (
             <Image
-              src={store.logoUrl}
+              src={store.aiAvatarUrl || store.logoUrl || ""}
               alt=""
               width={72}
               height={72}
-              className="h-[72px] w-[72px] rounded-xl border border-zinc-200 object-contain"
-              unoptimized={store.logoUrl.startsWith("http") || store.logoUrl.startsWith("/uploads")}
+              className="h-[72px] w-[72px] rounded-xl border border-zinc-200 object-cover object-center"
+              unoptimized
             />
           ) : null}
           <div>
@@ -193,14 +193,14 @@ export default async function PublicStorefrontPage({ params }: { params: Promise
       </nav>
 
       <header className="mt-8 flex flex-wrap items-center gap-4">
-        {store.logoUrl ? (
+        {store.aiAvatarUrl || store.logoUrl ? (
           <Image
-            src={store.logoUrl}
+            src={store.aiAvatarUrl || store.logoUrl || ""}
             alt=""
             width={72}
             height={72}
-            className="h-[72px] w-[72px] rounded-xl border border-zinc-200 object-contain"
-            unoptimized={store.logoUrl.startsWith("http") || store.logoUrl.startsWith("/uploads")}
+            className="h-[72px] w-[72px] rounded-xl border border-zinc-200 object-cover object-center"
+            unoptimized
           />
         ) : null}
         <div>

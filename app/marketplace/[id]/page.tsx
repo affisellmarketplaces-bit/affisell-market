@@ -45,6 +45,7 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
         name: st.name,
         slug: st.slug,
         logoUrl: st.logoUrl,
+        aiAvatarUrl: st.aiAvatarUrl,
         showTrustedSoldBy: Boolean(st.customDomain && st.domainVerified),
       }
     : null

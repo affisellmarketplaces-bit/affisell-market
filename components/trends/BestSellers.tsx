@@ -15,7 +15,7 @@ type Item = {
   totalSold: number
   soldThisWeek: number
   href: string
-  store: { name: string; slug: string; logoUrl: string | null } | null
+  store: { name: string; slug: string; logoUrl: string | null; aiAvatarUrl: string | null } | null
 }
 
 export function BestSellers() {
@@ -86,17 +86,15 @@ export function BestSellers() {
                   {item.name}
                 </p>
                 <div className="flex items-center gap-2">
-                  {item.store?.logoUrl ? (
+                  {item.store?.aiAvatarUrl || item.store?.logoUrl ? (
                     <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-white">
                       <Image
-                        src={item.store.logoUrl}
+                        src={item.store.aiAvatarUrl || item.store.logoUrl || ""}
                         alt=""
                         width={32}
                         height={32}
-                        className="object-contain"
-                        unoptimized={
-                          item.store.logoUrl.startsWith("http") || item.store.logoUrl.startsWith("/uploads")
-                        }
+                        className="object-cover object-center"
+                        unoptimized
                       />
                     </span>
                   ) : (

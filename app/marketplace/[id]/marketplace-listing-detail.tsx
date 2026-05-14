@@ -57,6 +57,7 @@ type StorefrontInfo = {
   name: string
   slug: string
   logoUrl: string | null
+  aiAvatarUrl: string | null
   showTrustedSoldBy: boolean
 }
 
@@ -1231,12 +1232,12 @@ export function MarketplaceListingDetail({
                 href={`/store/${encodeURIComponent(storefront.slug)}`}
                 className="flex items-center gap-3 rounded-2xl border border-zinc-200 p-4 transition hover:border-violet-200 hover:bg-violet-50/40 dark:border-zinc-800 dark:hover:border-violet-900/50 dark:hover:bg-violet-950/20"
               >
-                {storefront.logoUrl ? (
-                  /* eslint-disable-next-line @next/next/no-img-element -- storefront logo URL */
+                {storefront.aiAvatarUrl || storefront.logoUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element -- storefront logo / AI avatar URLs */
                   <img
-                    src={storefront.logoUrl}
+                    src={storefront.aiAvatarUrl || storefront.logoUrl || ""}
                     alt=""
-                    className="h-12 w-12 shrink-0 rounded-xl border border-zinc-100 bg-white object-contain p-1 dark:border-zinc-700"
+                    className="h-12 w-12 shrink-0 rounded-xl border border-zinc-100 bg-white object-cover object-center p-0.5 dark:border-zinc-700"
                   />
                 ) : (
                   <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-100 to-teal-50 text-lg font-bold text-violet-800 dark:from-violet-950 dark:to-teal-950 dark:text-violet-200">

@@ -5,6 +5,8 @@ import Link from "next/link"
 import type { FormEvent } from "react"
 import { useCallback, useEffect, useRef, useState } from "react"
 
+import { Sparkles } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -15,6 +17,7 @@ type StoreRow = {
   name: string
   slug: string
   logoUrl: string | null
+  aiAvatarUrl: string | null
   bannerUrl: string | null
   description: string | null
   customDomain: string | null
@@ -76,6 +79,7 @@ export function StoreProfileSettings({ backHref, backLabel }: Props) {
   const [bannerUrl, setBannerUrl] = useState("")
   const [logoUrlInput, setLogoUrlInput] = useState("")
   const [previewUrl, setPreviewUrl] = useState("")
+  const [aiAvatarUrl, setAiAvatarUrl] = useState("")
   const [customDomain, setCustomDomain] = useState("")
   const [domainVerified, setDomainVerified] = useState(false)
 
@@ -87,6 +91,10 @@ export function StoreProfileSettings({ backHref, backLabel }: Props) {
   const [logisticsErr, setLogisticsErr] = useState<string | null>(null)
 
   const fileRef = useRef<HTMLInputElement>(null)
+  const avatarPhotoRef = useRef<HTMLInputElement>(null)
+  const [avatarBusy, setAvatarBusy] = useState(false)
+  const [avatarErr, setAvatarErr] = useState<string | null>(null)
+  const [avatarMsg, setAvatarMsg] = useState<string | null>(null)
 
   const hydrate = useCallback(async () => {
     setLoading(true)
@@ -106,6 +114,7 @@ export function StoreProfileSettings({ backHref, backLabel }: Props) {
         setBannerUrl(st.bannerUrl ?? "")
         setLogoUrlInput(st.logoUrl ?? "")
         setPreviewUrl(st.logoUrl ?? "")
+        setAiAvatarUrl(st.aiAvatarUrl ?? "")
         setCustomDomain(st.customDomain ?? "")
         setDomainVerified(st.domainVerified)
         const sf = parseSupplierLogisticsAddress(st.shipFromAddress)
@@ -151,6 +160,7 @@ export function StoreProfileSettings({ backHref, backLabel }: Props) {
       if (json.store) {
         setPreviewUrl(json.store.logoUrl ?? "")
         setLogoUrlInput(json.store.logoUrl ?? "")
+        setAiAvatarUrl(json.store.aiAvatarUrl ?? "")
         setCustomDomain(json.store.customDomain ?? "")
         setDomainVerified(json.store.domainVerified)
       }
@@ -219,6 +229,69 @@ export function StoreProfileSettings({ backHref, backLabel }: Props) {
     const u = URL.createObjectURL(f)
     setPreviewUrl(u)
     setLogoUrlInput("")
+  }
+
+  async function generateAvatarFromLogo() {
+    setAvatarBusy(true)
+    setAvatarErr(null)
+    setAvatarMsg(null)
+    try {
+      const fd = new FormData()
+      fd.set("mode", "from-logo")
+      const res = await fetch("/api/ai/store-avatar", { method: "POST", body: fd, credentials: "include" })
+      const json = (await res.json()) as { error?: string; aiAvatarUrl?: string | null }
+      if (!res.ok) throw new Error(json.error ?? "Generation failed")
+      if (json.aiAvatarUrl) setAiAvatarUrl(json.aiAvatarUrl)
+      setAvatarMsg("Affisell AI avatar updated.")
+    } catch (e) {
+      setAvatarErr(e instanceof Error ? e.message : "Error")
+    } finally {
+      setAvatarBusy(false)
+    }
+  }
+
+  async function onAvatarPhotoPicked(file: File | undefined) {
+    if (!file) return
+    setAvatarBusy(true)
+    setAvatarErr(null)
+    setAvatarMsg(null)
+    try {
+      const fd = new FormData()
+      fd.set("mode", "from-photo")
+      fd.set("photo", file)
+      const res = await fetch("/api/ai/store-avatar", { method: "POST", body: fd, credentials: "include" })
+      const json = (await res.json()) as { error?: string; aiAvatarUrl?: string | null }
+      if (!res.ok) throw new Error(json.error ?? "Generation failed")
+      if (json.aiAvatarUrl) setAiAvatarUrl(json.aiAvatarUrl)
+      setAvatarMsg("Affisell AI avatar updated from your photo.")
+    } catch (e) {
+      setAvatarErr(e instanceof Error ? e.message : "Error")
+    } finally {
+      setAvatarBusy(false)
+      if (avatarPhotoRef.current) avatarPhotoRef.current.value = ""
+    }
+  }
+
+  async function clearAiAvatar() {
+    setAvatarBusy(true)
+    setAvatarErr(null)
+    setAvatarMsg(null)
+    try {
+      const res = await fetch("/api/ai/store-avatar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ clear: true }),
+      })
+      const json = (await res.json()) as { error?: string }
+      if (!res.ok) throw new Error(json.error ?? "Could not clear")
+      setAiAvatarUrl("")
+      setAvatarMsg("AI avatar removed.")
+    } catch (e) {
+      setAvatarErr(e instanceof Error ? e.message : "Error")
+    } finally {
+      setAvatarBusy(false)
+    }
   }
 
   if (loading) {
@@ -523,6 +596,97 @@ export function StoreProfileSettings({ backHref, backLabel }: Props) {
                 />
               </label>
               <p className="mt-2 text-xs text-gray-400">PNG recommended, 500×500px max</p>
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-violet-200/80 bg-gradient-to-br from-violet-50/90 via-white to-fuchsia-50/40 p-5 dark:border-violet-900/40 dark:from-violet-950/30 dark:via-zinc-950 dark:to-fuchsia-950/20">
+          <div className="flex items-start gap-3">
+            <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white shadow-md shadow-violet-500/25">
+              <Sparkles className="h-5 w-5" aria-hidden />
+            </span>
+            <div>
+              <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Affisell AI store avatar</h2>
+              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                Optional square illustration for your storefront and product pages — generated from your logo or a
+                reference photo (stylized, not a photo clone). Uses OpenAI when{" "}
+                <code className="rounded bg-white/80 px-1 text-xs dark:bg-zinc-900/80">OPENAI_API_KEY</code> is set.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-start gap-4">
+            <div className="relative">
+              {aiAvatarUrl ? (
+                <Image
+                  src={aiAvatarUrl}
+                  alt="AI-generated store avatar"
+                  width={96}
+                  height={96}
+                  unoptimized
+                  className="h-24 w-24 rounded-2xl border border-violet-200/80 object-cover shadow-sm dark:border-violet-800/60"
+                />
+              ) : (
+                <div className="flex h-24 w-24 items-center justify-center rounded-2xl border border-dashed border-violet-300/70 bg-white/60 text-xs text-violet-700 dark:border-violet-700 dark:bg-zinc-900/50 dark:text-violet-300">
+                  No avatar yet
+                </div>
+              )}
+              {aiAvatarUrl ? (
+                <span className="absolute -right-1 -top-1 rounded-full bg-violet-600 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white shadow">
+                  AI
+                </span>
+              ) : null}
+            </div>
+            <div className="flex min-w-[200px] flex-1 flex-col gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={
+                  avatarBusy ||
+                  (!logoUrlInput.trim() &&
+                    !previewUrl.startsWith("https") &&
+                    !previewUrl.startsWith("/uploads"))
+                }
+                onClick={() => void generateAvatarFromLogo()}
+                className="w-full max-w-sm border-violet-300 bg-white/90 hover:bg-violet-50 dark:border-violet-700 dark:bg-zinc-900/80 dark:hover:bg-violet-950/40"
+              >
+                {avatarBusy ? "Working…" : "Generate from logo"}
+              </Button>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                Uses the logo already saved on your store. If you just uploaded a new file, click{" "}
+                <strong>Save Store Profile</strong> first, then generate.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={avatarBusy}
+                onClick={() => avatarPhotoRef.current?.click()}
+                className="w-full max-w-sm border-violet-300 bg-white/90 hover:bg-violet-50 dark:border-violet-700 dark:bg-zinc-900/80 dark:hover:bg-violet-950/40"
+              >
+                Generate from photo…
+              </Button>
+              <input
+                ref={avatarPhotoRef}
+                type="file"
+                accept="image/png,image/jpeg"
+                className="hidden"
+                onChange={(e) => void onAvatarPhotoPicked(e.target.files?.[0])}
+              />
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">PNG or JPEG, max ~4 MB. Stylized illustration only.</p>
+              {aiAvatarUrl ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  disabled={avatarBusy}
+                  onClick={() => void clearAiAvatar()}
+                  className="self-start text-zinc-600 hover:text-red-700 dark:text-zinc-400 dark:hover:text-red-400"
+                >
+                  Remove AI avatar
+                </Button>
+              ) : null}
+              {avatarErr ? <p className="text-sm text-red-600 dark:text-red-400">{avatarErr}</p> : null}
+              {avatarMsg ? <p className="text-sm text-emerald-700 dark:text-emerald-400">{avatarMsg}</p> : null}
             </div>
           </div>
         </section>

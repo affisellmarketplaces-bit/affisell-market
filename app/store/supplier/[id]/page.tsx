@@ -253,15 +253,15 @@ export default async function SupplierStorePreviewPage({ params }: { params: Pro
             )}
 
             <div className="flex flex-wrap items-start gap-5 lg:gap-8">
-              {store.logoUrl ? (
+              {store.aiAvatarUrl || store.logoUrl ? (
                 <div className="shrink-0 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
                   <Image
-                    src={store.logoUrl}
+                    src={store.aiAvatarUrl || store.logoUrl || ""}
                     alt=""
                     width={96}
                     height={96}
-                    className="h-24 w-24 object-contain p-2"
-                    unoptimized={store.logoUrl.startsWith("http") || store.logoUrl.startsWith("/uploads")}
+                    className="h-24 w-24 object-cover object-center p-0.5"
+                    unoptimized
                   />
                 </div>
               ) : null}
