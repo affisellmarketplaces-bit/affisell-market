@@ -441,6 +441,17 @@ export function MarketplaceListingDetail({
     : 0
   const glanceText = useMemo(() => listingAtAGlance(description, name, tags), [description, name, tags])
 
+  /** Short excerpt for the footer details panel (SEO / second entry point without repeating the full body). */
+  const descriptionFooterExcerpt = useMemo(() => {
+    const d = description.replace(/\s+/g, " ").trim()
+    if (!d) return null
+    const max = 420
+    if (d.length <= max) return d
+    const slice = d.slice(0, max)
+    const cut = slice.lastIndexOf(" ")
+    return `${(cut > 200 ? slice.slice(0, cut) : slice).trimEnd()}…`
+  }, [description])
+
   const bundleCandidates = oftenBoughtTogether.slice(0, 2)
   const bundleSelected = bundleCandidates.filter((p) => bundleChecked[p.id])
   const bundleAddonSum = bundleSelected.reduce((sum, p) => sum + p.priceEur, 0)
@@ -1212,6 +1223,38 @@ export function MarketplaceListingDetail({
       </div>
 
       <section className="mt-10 space-y-3">
+        <details
+          id="listing-description-footer"
+          className="scroll-mt-28 rounded-xl border border-zinc-200 p-4 dark:border-zinc-700"
+        >
+          <summary className="cursor-pointer font-semibold">Description</summary>
+          <div className="mt-3 space-y-3 text-sm text-zinc-700 dark:text-zinc-300">
+            <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+              The full story, bullet highlights, and listing photos or videos are in{" "}
+              <a
+                href="#product-description"
+                className="font-semibold text-violet-700 underline-offset-2 hover:underline dark:text-violet-400"
+              >
+                About this product
+              </a>{" "}
+              above. This panel adds a compact excerpt on the page for search and quick scanning.
+            </p>
+            {descriptionFooterExcerpt ? (
+              <p className="leading-relaxed text-zinc-800 dark:text-zinc-200">{descriptionFooterExcerpt}</p>
+            ) : (
+              <p className="text-xs italic text-zinc-500 dark:text-zinc-400">No written description for this listing.</p>
+            )}
+            <p>
+              <a
+                href="#product-description"
+                className="inline-flex items-center gap-1 font-semibold text-violet-700 underline-offset-2 hover:underline dark:text-violet-400"
+              >
+                Jump to full description
+                <span aria-hidden>↑</span>
+              </a>
+            </p>
+          </div>
+        </details>
         <details id="listing-specs" className="scroll-mt-28 rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
           <summary className="cursor-pointer font-semibold">Specifications</summary>
           {productSpecs.length > 0 ? (
