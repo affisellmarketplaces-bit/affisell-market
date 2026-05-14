@@ -149,7 +149,9 @@
     "aiSummary": "AI Summary",
     "reviews": "{count} reviews",
     "byStore": "by {store}",
-    "viewInAR": "View in AR"
+    "viewInAR": "View in AR",
+    "buyNowShort": "Buy now",
+    "priceFluidityNote": "Shown price can change before checkout."
   },
   "Filters": {
     "smartFilters": "Smart Filters",
