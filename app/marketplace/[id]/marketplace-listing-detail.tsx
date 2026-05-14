@@ -749,8 +749,8 @@ export function MarketplaceListingDetail({
 
             <div className="listing-price-card-sheen relative overflow-hidden rounded-2xl border border-zinc-200/80 bg-gradient-to-br from-white via-violet-50/30 to-white p-4 shadow-sm dark:border-zinc-700/80 dark:from-zinc-900 dark:via-violet-950/20 dark:to-zinc-950">
               <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-violet-400/15 blur-2xl dark:bg-violet-500/10" aria-hidden />
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-violet-700/90 dark:text-violet-300/90">
-                Your price
+              <p className="text-[11px] font-semibold tracking-[0.08em] text-violet-700/90 dark:text-violet-300/90">
+                Price
               </p>
               <p className="mt-1 text-3xl font-bold tracking-tight text-zinc-900 tabular-nums dark:text-white">{priceDisplay}</p>
               {buyerRewardBadge ? (
