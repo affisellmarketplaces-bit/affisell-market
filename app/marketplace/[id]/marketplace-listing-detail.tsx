@@ -5,7 +5,9 @@ import { motion, useReducedMotion } from "framer-motion"
 import {
   ArrowRight,
   Bell,
+  ChevronDown,
   ChevronRight,
+  FileText,
   MousePointerClick,
   Package,
   RotateCcw,
@@ -339,6 +341,12 @@ export function MarketplaceListingDetail({
   const [galleryHeroLock, setGalleryHeroLock] = useState(false)
   const [selectedColor, setSelectedColor] = useState<string | null>(initialColor)
   const [selectedSize, setSelectedSize] = useState<string | null>(initialSize)
+  const [descExpanded, setDescExpanded] = useState(false)
+
+  const descriptionIsLong = useMemo(
+    () => description.replace(/\s+/g, " ").trim().length > 960,
+    [description]
+  )
 
   useEffect(() => {
     setSelectedColor(initialColor)
@@ -347,6 +355,10 @@ export function MarketplaceListingDetail({
   useEffect(() => {
     setSelectedSize(initialSize)
   }, [initialSize])
+
+  useEffect(() => {
+    setDescExpanded(false)
+  }, [listingId])
 
   useEffect(() => {
     if (stock <= 0) setShowStickyBuy(false)
@@ -840,6 +852,117 @@ export function MarketplaceListingDetail({
               </p>
             ) : null}
 
+            <a
+              href="#listing-purchase-dock"
+              className="group mt-1 flex w-full items-center justify-center gap-2 rounded-xl border border-violet-300/55 bg-gradient-to-r from-violet-600/[0.07] to-fuchsia-600/[0.07] py-3 text-sm font-semibold text-violet-900 shadow-sm transition hover:border-violet-400/70 hover:from-violet-600/10 hover:to-fuchsia-600/10 dark:border-violet-500/35 dark:from-violet-500/12 dark:to-fuchsia-600/12 dark:text-violet-100"
+            >
+              <ShoppingBag className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
+              <span>Options & purchase</span>
+              <span className="text-xs font-normal opacity-70 transition-transform group-hover:translate-y-0.5" aria-hidden>
+                ↓
+              </span>
+            </a>
+          </aside>
+
+          <div className="col-span-full mt-2 grid grid-cols-1 gap-10 border-t border-zinc-200/70 pt-10 dark:border-zinc-800/80 lg:mt-0 lg:grid-cols-12 lg:gap-12 lg:pt-10">
+            <motion.div
+              id="product-description"
+              initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={reduceMotion ? { duration: 0 } : { duration: 0.45, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
+              className="relative order-2 overflow-hidden rounded-2xl border border-zinc-200/80 bg-gradient-to-b from-white to-zinc-50/80 p-6 shadow-sm dark:border-zinc-700/80 dark:from-zinc-900/90 dark:to-zinc-950/80 lg:order-none lg:col-span-7"
+            >
+              <div
+                className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-400/35 to-transparent dark:via-violet-500/25"
+                aria-hidden
+              />
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-600/10 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300">
+                  <FileText className="h-4 w-4" aria-hidden />
+                </span>
+                <div>
+                  <h2 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-50">About this product</h2>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">Full copy from the listing · specs below</p>
+                </div>
+              </div>
+              {glanceText ? (
+                <blockquote className="mt-5 border-l-4 border-violet-500/60 bg-violet-50/50 py-3 pl-4 pr-3 text-sm italic leading-relaxed text-zinc-800 dark:border-violet-500/40 dark:bg-violet-950/25 dark:text-zinc-200">
+                  {glanceText}
+                </blockquote>
+              ) : null}
+              {descriptionBullets.length > 0 ? (
+                <div className={glanceText ? "mt-6" : "mt-5"}>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400">
+                    Highlights
+                  </p>
+                  <ul className="mt-3 list-none space-y-2.5 text-sm leading-relaxed text-zinc-800 dark:text-zinc-200">
+                    {descriptionBullets.map((line, i) => (
+                      <li key={`hero-bullet-${i}`} className="flex gap-3">
+                        <span
+                          className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-sm shadow-violet-500/30"
+                          aria-hidden
+                        />
+                        <span>{line}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              <div className={descriptionBullets.length > 0 ? "mt-8 border-t border-zinc-100 pt-6 dark:border-zinc-800" : "mt-5"}>
+                <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400">Full detail</p>
+                <div className="relative mt-3">
+                  <p
+                    className={`whitespace-pre-wrap text-sm leading-relaxed text-zinc-700 dark:text-zinc-300 ${
+                      !descExpanded && descriptionIsLong ? "line-clamp-[10]" : ""
+                    }`}
+                  >
+                    {description}
+                  </p>
+                  {!descExpanded && descriptionIsLong ? (
+                    <div
+                      className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-white via-white/90 to-transparent dark:from-zinc-900 dark:via-zinc-900/90"
+                      aria-hidden
+                    />
+                  ) : null}
+                </div>
+                {descriptionIsLong ? (
+                  <button
+                    type="button"
+                    onClick={() => setDescExpanded((v) => !v)}
+                    className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-800 shadow-sm transition hover:border-violet-300 hover:bg-violet-50/60 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-violet-500/50 dark:hover:bg-violet-950/30"
+                  >
+                    {descExpanded ? "Show less" : "Show full description"}
+                    <ChevronDown
+                      className={`h-3.5 w-3.5 transition-transform ${descExpanded ? "rotate-180" : ""}`}
+                      aria-hidden
+                    />
+                  </button>
+                ) : null}
+                <DescriptionIllustrativeMedia
+                  images={descriptionIllustrationImages}
+                  videos={descriptionIllustrationVideos}
+                />
+              </div>
+              <div className="mt-6 flex flex-wrap gap-3 border-t border-zinc-100 pt-4 text-xs dark:border-zinc-800">
+                <a
+                  href="#listing-specs"
+                  className="font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-400"
+                >
+                  Technical specs
+                </a>
+                <span className="text-zinc-300 dark:text-zinc-600" aria-hidden>
+                  ·
+                </span>
+                <a
+                  href="#listing-reviews"
+                  className="font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-400"
+                >
+                  {t(productT.reviews, { count: formatStoreCount(reviewSummary.count) })}
+                </a>
+              </div>
+            </motion.div>
+
+            <div className="order-1 space-y-5 lg:sticky lg:top-28 lg:order-none lg:col-span-5 lg:self-start">
             <div
               ref={purchaseDockRef}
               id="listing-purchase-dock"
@@ -987,15 +1110,6 @@ export function MarketplaceListingDetail({
               </div>
             </div>
 
-            {glanceText ? (
-              <div className="rounded-2xl border border-violet-200/70 bg-gradient-to-br from-violet-50 via-white to-teal-50/40 px-4 py-3 shadow-sm dark:border-violet-900/40 dark:from-violet-950/30 dark:via-zinc-950 dark:to-teal-950/20">
-                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-violet-700 dark:text-violet-400">
-                  From the listing
-                </p>
-                <p className="mt-2 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">{glanceText}</p>
-              </div>
-            ) : null}
-
             {bundleCandidates.length > 0 ? (
               <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950/40">
                 <p className="text-sm font-bold text-zinc-900 dark:text-zinc-50">Complete the basket</p>
@@ -1091,41 +1205,14 @@ export function MarketplaceListingDetail({
             ) : (
               <p className="text-sm text-zinc-500 dark:text-zinc-400">{t(productT.byStore, { store: sellerLabel })}</p>
             )}
-          </aside>
+            </div>
+          </div>
           </div>
         </motion.div>
       </div>
 
       <section className="mt-10 space-y-3">
-        <details className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700" open>
-          <summary className="cursor-pointer font-semibold">Description</summary>
-          {descriptionBullets.length > 0 ? (
-            <>
-              <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400">
-                About this item
-              </p>
-              <ul className="mt-2 list-none space-y-2 text-sm leading-relaxed text-zinc-800 dark:text-zinc-200">
-                {descriptionBullets.map((line, i) => (
-                  <li key={`bullet-${i}`} className="flex gap-2.5">
-                    <span className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-violet-500" aria-hidden />
-                    <span>{line}</span>
-                  </li>
-                ))}
-              </ul>
-            </>
-          ) : null}
-          <div className={descriptionBullets.length > 0 ? "mt-6 border-t border-zinc-100 pt-5 dark:border-zinc-800" : ""}>
-            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400">
-              Full detail
-            </p>
-            <p className="mt-2 text-sm whitespace-pre-wrap text-zinc-700 dark:text-zinc-300">{description}</p>
-            <DescriptionIllustrativeMedia
-              images={descriptionIllustrationImages}
-              videos={descriptionIllustrationVideos}
-            />
-          </div>
-        </details>
-        <details className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
+        <details id="listing-specs" className="scroll-mt-28 rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
           <summary className="cursor-pointer font-semibold">Specifications</summary>
           {productSpecs.length > 0 ? (
             <dl className="mt-3 grid gap-x-6 gap-y-3 sm:grid-cols-2">
