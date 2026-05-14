@@ -5,7 +5,7 @@ import { getToken } from "next-auth/jwt"
 const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
 
 /** Match Auth.js session cookie name (`__Secure-…` only when the request is HTTPS, e.g. Vercel). */
-function useSecureSessionCookie(req: NextRequest): boolean {
+function secureSessionCookieForRequest(req: NextRequest): boolean {
   return req.nextUrl.protocol === "https:"
 }
 
@@ -33,7 +33,7 @@ export async function middleware(req: NextRequest) {
   const token = await getToken({
     req,
     secret,
-    secureCookie: useSecureSessionCookie(req),
+    secureCookie: secureSessionCookieForRequest(req),
   })
   const role = typeof token?.role === "string" ? token.role : undefined
   const loggedIn = Boolean(token?.sub)

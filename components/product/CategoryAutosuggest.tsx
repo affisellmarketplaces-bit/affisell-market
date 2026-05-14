@@ -1,7 +1,7 @@
 "use client"
 
 import { Loader2, Sparkles } from "lucide-react"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import { useDebounce } from "use-debounce"
 import { toast } from "sonner"
 
@@ -43,20 +43,26 @@ export function CategoryAutosuggest({
   const [loading, setLoading] = useState(false)
   const [suggestions, setSuggestions] = useState<ClassifyApiSuggestion[]>([])
   const lastAutoKey = useRef<string | null>(null)
+  const categoryIdRef = useRef(categoryId)
+  const onChangeRef = useRef(onChange)
+  const onAiTaggedRef = useRef(onAiTagged)
 
-  const applySuggestion = useCallback(
-    (row: ClassifyApiSuggestion, mode: "auto" | "click") => {
-      if (!browse || !row.leafId) return
-      const path = pathFromLeafId(row.leafId, browse.nodes)
-      if (!path?.length) return
-      onChange(row.leafId, path)
-      onAiTagged?.()
-      if (mode === "auto") {
-        toast.success("Catégorie suggérée par IA")
-      }
-    },
-    [browse, onChange, onAiTagged]
-  )
+  useLayoutEffect(() => {
+    categoryIdRef.current = categoryId
+    onChangeRef.current = onChange
+    onAiTaggedRef.current = onAiTagged
+  }, [categoryId, onChange, onAiTagged])
+
+  const applySuggestion = useCallback((row: ClassifyApiSuggestion, mode: "auto" | "click") => {
+    if (!browse || !row.leafId) return
+    const path = pathFromLeafId(row.leafId, browse.nodes)
+    if (!path?.length) return
+    onChangeRef.current(row.leafId, path)
+    onAiTaggedRef.current?.()
+    if (mode === "auto") {
+      toast.success("Catégorie suggérée par IA")
+    }
+  }, [browse])
 
   useEffect(() => {
     if (debouncedTitle.trim().length <= 3) {
@@ -79,6 +85,7 @@ export function CategoryAutosuggest({
             ...(debouncedImage.trim() ? { imageUrl: debouncedImage.trim() } : {}),
           }),
         })
+        if (ac.signal.aborted) return
         const data = (await res.json()) as {
           suggestions?: ClassifyApiSuggestion[]
           error?: string
@@ -94,7 +101,7 @@ export function CategoryAutosuggest({
         const top = visible[0]
         if (top && top.confidence > 0.9 && browse) {
           const key = `${debouncedTitle.trim()}|${debouncedDescription.trim()}|${top.leafId}`
-          if (lastAutoKey.current !== key && top.leafId !== categoryId) {
+          if (lastAutoKey.current !== key && top.leafId !== categoryIdRef.current) {
             lastAutoKey.current = key
             applySuggestion(top, "auto")
           }
@@ -107,7 +114,7 @@ export function CategoryAutosuggest({
     })()
 
     return () => ac.abort()
-  }, [debouncedTitle, debouncedDescription, debouncedImage, browse, categoryId, applySuggestion])
+  }, [debouncedTitle, debouncedDescription, debouncedImage, browse, applySuggestion])
 
   const chips = suggestions.filter((s) => s.confidence > 0.6 && s.leafId)
 
