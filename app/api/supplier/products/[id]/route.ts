@@ -10,6 +10,10 @@ import { createNewDropCommunityPost } from "@/lib/community-new-drop"
 import { parseProductAttributesBody } from "@/lib/supplier-product-attributes"
 import { parseCompareAtDraftLax, parseCompareAtStrict } from "@/lib/supplier-product-compare-at"
 import { parseDescriptionBullets } from "@/lib/supplier-product-description-bullets"
+import {
+  parseDescriptionIllustrationImages,
+  parseDescriptionIllustrationVideos,
+} from "@/lib/supplier-product-description-illustrations"
 import { parseProductMarketplaceMeta } from "@/lib/supplier-product-marketplace-meta"
 import { parseSupplierProductShippingBody } from "@/lib/supplier-product-shipping"
 import { parseSupplierProductImages } from "@/lib/supplier-product-images"
@@ -183,6 +187,14 @@ export async function PUT(
       ? parseDescriptionBullets((rawBody as Record<string, unknown>).descriptionBullets)
       : undefined
   const images = parseSupplierProductImages(body as unknown as Record<string, unknown>)
+  const descriptionIllustrationImagesPatch =
+    "descriptionIllustrationImages" in rawBody
+      ? parseDescriptionIllustrationImages(rawBody)
+      : undefined
+  const descriptionIllustrationVideosPatch =
+    "descriptionIllustrationVideos" in rawBody
+      ? parseDescriptionIllustrationVideos(rawBody)
+      : undefined
   const attr = parseProductAttributesBody(body as unknown as Record<string, unknown>)
   const ship = parseSupplierProductShippingBody(body as unknown as Record<string, unknown>)
   const meta = parseProductMarketplaceMeta(body as unknown as Record<string, unknown>)
@@ -208,6 +220,12 @@ export async function PUT(
         description: desc,
         ...(descriptionBulletsPatch !== undefined
           ? { descriptionBullets: descriptionBulletsPatch }
+          : {}),
+        ...(descriptionIllustrationImagesPatch !== undefined
+          ? { descriptionIllustrationImages: descriptionIllustrationImagesPatch }
+          : {}),
+        ...(descriptionIllustrationVideosPatch !== undefined
+          ? { descriptionIllustrationVideos: descriptionIllustrationVideosPatch }
           : {}),
         images,
         /** Only touch merchandising JSON when the client sends the key — step-1 autosaves omit these. */

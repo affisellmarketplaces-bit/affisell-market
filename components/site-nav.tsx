@@ -108,6 +108,19 @@ export function SiteNav() {
     setToast(null)
   }
 
+  useEffect(() => {
+    function onKeyDown(ev: KeyboardEvent) {
+      if (ev.key !== "/" || ev.ctrlKey || ev.metaKey || ev.altKey) return
+      const el = ev.target as HTMLElement | null
+      if (!el) return
+      if (el.closest("input, textarea, select, [contenteditable=true]")) return
+      ev.preventDefault()
+      document.getElementById("header-search-q")?.focus()
+    }
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [])
+
   if (isSupplier && !isAuthRoute) {
     return (
       <nav className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-1 py-1 text-sm md:flex-nowrap md:gap-4">
@@ -166,6 +179,7 @@ export function SiteNav() {
               type="search"
               defaultValue={pathname === "/marketplace" ? (searchParams.get("q") ?? "") : ""}
               placeholder="Search marketplace…"
+              title="Tip: press / to jump here"
               autoComplete="off"
               className="h-10 w-full min-w-0 rounded-full border border-zinc-200 bg-zinc-50 py-2 pl-9 pr-12 text-zinc-900 shadow-sm outline-none placeholder:text-zinc-400 focus:border-zinc-300 focus:bg-white dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:border-zinc-500 md:max-w-xl lg:max-w-2xl"
             />

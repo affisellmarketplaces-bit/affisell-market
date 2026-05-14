@@ -205,13 +205,48 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
           .filter(Boolean)
       : []
 
+  const descriptionIllustrationImages =
+    Array.isArray(p.descriptionIllustrationImages) && p.descriptionIllustrationImages.length > 0
+      ? (p.descriptionIllustrationImages as unknown[])
+          .filter((x): x is string => typeof x === "string")
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : []
+
+  const descriptionIllustrationVideos =
+    Array.isArray(p.descriptionIllustrationVideos) && p.descriptionIllustrationVideos.length > 0
+      ? (p.descriptionIllustrationVideos as unknown[])
+          .filter((x): x is string => typeof x === "string")
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : []
+
   const productSpecs = [...(listing.product.attributes ?? [])]
     .map((row) => ({ label: String(row.label || row.key || "").trim(), value: row.value.trim() }))
     .filter((row) => row.label.length > 0 && row.value.length > 0)
 
+  let viewsLast24h = 0
+  try {
+    const since = new Date()
+    since.setUTCMinutes(since.getUTCMinutes() - 24 * 60)
+    viewsLast24h = await prisma.affisellTrackEvent.count({
+      where: {
+        eventType: "view",
+        productId: listing.product.id,
+        createdAt: { gte: since },
+      },
+    })
+  } catch {
+    viewsLast24h = 0
+  }
+
   return (
-    <main className="min-h-screen bg-gradient-to-b from-zinc-50 via-white to-violet-50/30 dark:from-zinc-950 dark:via-zinc-950 dark:to-violet-950/20">
-      <div className="mx-auto max-w-6xl px-4 py-10 md:px-8 lg:py-12">
+    <main className="relative min-h-screen overflow-x-hidden bg-gradient-to-b from-zinc-100/95 via-white to-violet-100/45 dark:from-zinc-950 dark:via-zinc-950 dark:to-violet-950/30">
+      <div
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_115%_70%_at_50%_-12%,rgba(139,92,246,0.14),transparent_52%)] dark:bg-[radial-gradient(ellipse_115%_70%_at_50%_-12%,rgba(139,92,246,0.22),transparent_55%)]"
+        aria-hidden
+      />
+      <div className="relative mx-auto max-w-6xl px-4 py-10 md:px-8 lg:py-12">
       <MarketplaceListingDetail
         listingId={listing.id}
         productId={listing.product.id}
@@ -223,6 +258,8 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
           listing.product.description
         )}
         descriptionBullets={descriptionBullets}
+        descriptionIllustrationImages={descriptionIllustrationImages}
+        descriptionIllustrationVideos={descriptionIllustrationVideos}
         productSpecs={productSpecs}
         sellerLabel={sellerLabel}
         storefront={storefront}
@@ -260,6 +297,7 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
           helpful_count: r.helpful_count,
           verified: r.verified,
         }))}
+        viewsLast24h={viewsLast24h}
       />
       </div>
     </main>

@@ -40,7 +40,7 @@ function normalizePastedUrl(raw: string): string {
 
 const BLOCKED_NON_IMAGE = /\.(pdf|zip|7z|rar|tar|gz|html?|json|csv|txt|docx?|xlsx?|pptx?|exe|dmg|pkg)(\?|#|$)/i
 
-function resolveImageLinkUrl(raw: string): string | null {
+export function resolveImageLinkUrl(raw: string): string | null {
   const n = normalizePastedUrl(raw)
   if (n.startsWith("data:image/")) {
     if (n.length > MAX_DATA_IMAGE_URL_LEN) return null

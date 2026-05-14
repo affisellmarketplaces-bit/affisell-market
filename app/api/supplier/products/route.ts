@@ -11,6 +11,10 @@ import { parseSupplierProductImages } from "@/lib/supplier-product-images"
 import { parseCompareAtDraftLax, parseCompareAtStrict } from "@/lib/supplier-product-compare-at"
 import { parseDescriptionBullets } from "@/lib/supplier-product-description-bullets"
 import {
+  parseDescriptionIllustrationImages,
+  parseDescriptionIllustrationVideos,
+} from "@/lib/supplier-product-description-illustrations"
+import {
   defaultAffiliateCommissionPct,
   normalizeAffiliateCommissionRatePct,
   parseListingKind,
@@ -113,6 +117,8 @@ export async function POST(req: Request) {
   const descriptionBullets = parseDescriptionBullets(
     (body as Record<string, unknown>).descriptionBullets
   )
+  const descriptionIllustrationImages = parseDescriptionIllustrationImages(body as Record<string, unknown>)
+  const descriptionIllustrationVideos = parseDescriptionIllustrationVideos(body as Record<string, unknown>)
   const stockN = Math.max(0, Math.round(Number.isFinite(Number(stock)) ? Number(stock) : 0))
 
   const productAttributes = Array.isArray(productAttributesRaw)
@@ -137,6 +143,8 @@ export async function POST(req: Request) {
         name: saveAsDraft ? displayName : nameStr.slice(0, 500),
         description: desc,
         descriptionBullets,
+        descriptionIllustrationImages,
+        descriptionIllustrationVideos,
         images,
         colorImages:
           attr.colorImages === null

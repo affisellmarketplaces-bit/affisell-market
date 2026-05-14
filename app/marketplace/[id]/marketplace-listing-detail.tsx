@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { motion } from "framer-motion"
+import { motion, useReducedMotion } from "framer-motion"
 import {
   ArrowRight,
   Bell,
@@ -13,11 +13,12 @@ import {
   ShoppingBag,
   Sparkles,
   Star,
+  TrendingUp,
   Truck,
   Zap,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { Fragment, useEffect, useMemo, useState, type MouseEvent } from "react"
+import { Fragment, useEffect, useMemo, useRef, useState, type MouseEvent } from "react"
 
 import { Button } from "@/components/ui/button"
 import { ProductImageHoverZoom } from "@/components/product-image-hover-zoom"
@@ -35,6 +36,11 @@ import {
   formatStoreCurrencyFromCents,
   formatStoreDate,
 } from "@/lib/market-config"
+import {
+  isDirectMp4Url,
+  vimeoEmbedSrc,
+  youtubeEmbedSrc,
+} from "@/lib/product-description-video-embed"
 import {
   comparableImageUrl,
   findColorImageRowForName,
@@ -81,6 +87,8 @@ type Props = {
   name: string
   description: string
   descriptionBullets?: string[]
+  descriptionIllustrationImages?: string[]
+  descriptionIllustrationVideos?: string[]
   productSpecs?: SpecRow[]
   sellerLabel: string
   storefront: StorefrontInfo | null
@@ -119,6 +127,8 @@ type Props = {
     helpful_count: number
     verified: boolean
   }>
+  /** PDP views in the last 24h (analytics) — powers a “trending” signal when high enough. */
+  viewsLast24h?: number
 }
 
 function fmtMoney(value: number) {
@@ -185,6 +195,74 @@ function StarRatingRow({ value, count }: { value: number; count: number }) {
   )
 }
 
+function DescriptionIllustrativeMedia({
+  images,
+  videos,
+}: {
+  images: string[]
+  videos: string[]
+}) {
+  if (images.length === 0 && videos.length === 0) return null
+  return (
+    <div className="mt-5 space-y-5">
+      <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400">
+        Photos & videos
+      </p>
+      {images.length > 0 ? (
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {images.map((src) => (
+            <li
+              key={src}
+              className="overflow-hidden rounded-xl border border-zinc-100 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element -- remote supplier / CDN URLs */}
+              <img src={src} alt="" className="max-h-80 w-full object-contain p-2" loading="lazy" />
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {videos.length > 0 ? (
+        <ul className="space-y-4">
+          {videos.map((url) => {
+            const yt = youtubeEmbedSrc(url)
+            const vm = !yt ? vimeoEmbedSrc(url) : null
+            const mp4 = !yt && !vm && isDirectMp4Url(url)
+            return (
+              <li key={url} className="overflow-hidden rounded-xl border border-zinc-200 bg-black/5 dark:border-zinc-700">
+                {yt ? (
+                  <iframe
+                    title="Product video"
+                    src={yt}
+                    className="aspect-video w-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    loading="lazy"
+                  />
+                ) : vm ? (
+                  <iframe
+                    title="Product video"
+                    src={vm}
+                    className="aspect-video w-full"
+                    allow="autoplay; fullscreen; picture-in-picture"
+                    allowFullScreen
+                    loading="lazy"
+                  />
+                ) : mp4 ? (
+                  <video src={url} className="aspect-video w-full bg-black" controls playsInline preload="metadata" />
+                ) : (
+                  <p className="p-3 text-xs text-zinc-500">
+                    Unsupported video link — use YouTube, Vimeo, or a direct .mp4 URL.
+                  </p>
+                )}
+              </li>
+            )
+          })}
+        </ul>
+      ) : null}
+    </div>
+  )
+}
+
 export function MarketplaceListingDetail({
   listingId,
   productId,
@@ -193,6 +271,8 @@ export function MarketplaceListingDetail({
   name,
   description,
   descriptionBullets = [],
+  descriptionIllustrationImages = [],
+  descriptionIllustrationVideos = [],
   productSpecs = [],
   sellerLabel,
   storefront,
@@ -215,10 +295,14 @@ export function MarketplaceListingDetail({
   buyerRewardBadge = null,
   ratingBreakdown,
   reviews,
+  viewsLast24h = 0,
 }: Props) {
   const productT = messages.Product
   const breadcrumbT = messages.Breadcrumb
   const router = useRouter()
+  const reduceMotion = useReducedMotion()
+  const purchaseDockRef = useRef<HTMLDivElement>(null)
+  const [showStickyBuy, setShowStickyBuy] = useState(false)
   const images = useMemo(() => {
     const g = gallery.filter((u): u is string => typeof u === "string" && Boolean(u.trim()))
     return g.length > 0 ? g : ["/placeholder.png"]
@@ -263,6 +347,25 @@ export function MarketplaceListingDetail({
   useEffect(() => {
     setSelectedSize(initialSize)
   }, [initialSize])
+
+  useEffect(() => {
+    if (stock <= 0) setShowStickyBuy(false)
+  }, [stock])
+
+  useEffect(() => {
+    const el = purchaseDockRef.current
+    if (!el) return
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry) return
+        const past = !entry.isIntersecting && entry.boundingClientRect.top < 96
+        setShowStickyBuy(past)
+      },
+      { threshold: 0, rootMargin: "-72px 0px 0px 0px" }
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [listingId, stock])
 
   /** Sync main + thumbnail index when opening another listing or affiliate default color changes. */
   /* eslint-disable react-hooks/exhaustive-deps -- only reset hero when listing or promoted color changes; omit gallery/colorImages ref churn */
@@ -481,12 +584,34 @@ export function MarketplaceListingDetail({
 
   return (
     <>
-      <div className="space-y-12">
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-12">
+      <div className="relative mb-10 lg:mb-14">
+        <div
+          className="pointer-events-none absolute -left-1/4 top-[-4.5rem] h-[26rem] w-[26rem] rounded-full bg-violet-500/[0.2] blur-3xl dark:bg-violet-600/[0.14] sm:left-[-8%] sm:top-[-5rem]"
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute right-[-12%] top-[18%] h-[20rem] w-[20rem] rounded-full bg-teal-400/16 blur-3xl dark:bg-teal-500/10 sm:right-[-6%]"
+          aria-hidden
+        />
+        <motion.div
+          initial={reduceMotion ? false : { opacity: 0, y: 28 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={
+            reduceMotion ? { duration: 0 } : { duration: 0.62, ease: [0.22, 1, 0.36, 1] }
+          }
+          className="relative overflow-hidden rounded-[2rem] border border-white/75 bg-white/80 p-5 shadow-[0_36px_120px_-40px_rgba(91,33,217,0.32),0_0_0_1px_rgba(255,255,255,0.55)_inset] backdrop-blur-2xl sm:p-7 lg:p-9 dark:border-white/[0.08] dark:bg-zinc-950/65 dark:shadow-[0_40px_120px_-48px_rgba(0,0,0,0.65)]"
+        >
+          <div
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_85%_at_50%_-8%,rgba(139,92,246,0.16),transparent_58%)] dark:bg-[radial-gradient(120%_85%_at_50%_-8%,rgba(167,139,250,0.14),transparent_58%)]"
+            aria-hidden
+          />
+          <div className="relative grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-12">
           <section className="space-y-4 lg:col-span-7">
             <ProductImageHoverZoom
               src={hero}
               alt={name}
+              className="rounded-[1.35rem] border-zinc-200/55 bg-white/90 shadow-[0_28px_70px_-34px_rgba(91,33,217,0.28)] ring-1 ring-violet-500/[0.07] dark:border-zinc-700/80 dark:bg-zinc-950/70 dark:shadow-[0_28px_80px_-36px_rgba(0,0,0,0.55)] dark:ring-violet-400/[0.06] lg:p-3"
+              frameClassName="rounded-[1.1rem] bg-gradient-to-b from-zinc-50/90 to-white dark:from-zinc-900/90 dark:to-zinc-950"
               overlay={
                 has3D ? (
                   <span className="pointer-events-none absolute left-4 top-4 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-3 py-1 text-xs font-semibold text-white shadow-md">
@@ -496,7 +621,7 @@ export function MarketplaceListingDetail({
               }
             />
 
-            <div className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 pb-1 pt-0.5 [scrollbar-width:thin] sm:mx-0 sm:px-0">
+            <div className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 pb-1 pt-0.5 [mask-image:linear-gradient(to_right,transparent,black_0.65rem,black_calc(100%-0.65rem),transparent)] [scrollbar-width:thin] sm:mx-0 sm:px-0 sm:[mask-image:linear-gradient(to_right,transparent,black_0.5rem,black_calc(100%-0.5rem),transparent)]">
               {images.slice(0, 12).map((url, i) => (
                 <button
                   key={`thumb-${i}`}
@@ -586,6 +711,12 @@ export function MarketplaceListingDetail({
               <a href="#listing-reviews" className="text-sm font-medium text-violet-700 hover:underline dark:text-violet-400">
                 {t(productT.reviews, { count: formatStoreCount(reviewSummary.count) })}
               </a>
+              {viewsLast24h >= 12 ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-orange-200/90 bg-gradient-to-r from-orange-50 to-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-orange-900 shadow-sm dark:border-orange-900/50 dark:from-orange-950/50 dark:to-amber-950/40 dark:text-orange-100">
+                  <TrendingUp className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                  {t(productT.trendingViews24h, { count: formatStoreCount(viewsLast24h) })}
+                </span>
+              ) : null}
               {reviewSummary.count > 0 && reviewSummary.average >= 4.2 ? (
                 <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-300">
                   {productT.topVentes}
@@ -593,7 +724,7 @@ export function MarketplaceListingDetail({
               ) : null}
             </div>
 
-            <div className="relative overflow-hidden rounded-2xl border border-zinc-200/80 bg-gradient-to-br from-white via-violet-50/30 to-white p-4 shadow-sm dark:border-zinc-700/80 dark:from-zinc-900 dark:via-violet-950/20 dark:to-zinc-950">
+            <div className="listing-price-card-sheen relative overflow-hidden rounded-2xl border border-zinc-200/80 bg-gradient-to-br from-white via-violet-50/30 to-white p-4 shadow-sm dark:border-zinc-700/80 dark:from-zinc-900 dark:via-violet-950/20 dark:to-zinc-950">
               <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-violet-400/15 blur-2xl dark:bg-violet-500/10" aria-hidden />
               <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-violet-700/90 dark:text-violet-300/90">
                 Your price
@@ -709,7 +840,11 @@ export function MarketplaceListingDetail({
               </p>
             ) : null}
 
-            <div className="relative rounded-[1.65rem] border border-zinc-200/90 bg-gradient-to-b from-white via-zinc-50/40 to-zinc-50/90 p-5 shadow-[0_22px_56px_-28px_rgba(15,23,42,0.35)] ring-1 ring-black/[0.03] dark:border-zinc-700/90 dark:from-zinc-900/90 dark:via-zinc-950/80 dark:to-zinc-950 dark:shadow-black/50 dark:ring-white/[0.04]">
+            <div
+              ref={purchaseDockRef}
+              id="listing-purchase-dock"
+              className="relative rounded-[1.65rem] border border-zinc-200/90 bg-gradient-to-b from-white via-zinc-50/40 to-zinc-50/90 p-5 shadow-[0_22px_56px_-28px_rgba(15,23,42,0.35)] ring-1 ring-black/[0.03] dark:border-zinc-700/90 dark:from-zinc-900/90 dark:via-zinc-950/80 dark:to-zinc-950 dark:shadow-black/50 dark:ring-white/[0.04]"
+            >
               <div className="mb-4 flex items-start gap-2.5">
                 <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-md shadow-amber-500/25">
                   <Zap className="h-4 w-4" aria-hidden />
@@ -957,7 +1092,8 @@ export function MarketplaceListingDetail({
               <p className="text-sm text-zinc-500 dark:text-zinc-400">{t(productT.byStore, { store: sellerLabel })}</p>
             )}
           </aside>
-        </div>
+          </div>
+        </motion.div>
       </div>
 
       <section className="mt-10 space-y-3">
@@ -983,6 +1119,10 @@ export function MarketplaceListingDetail({
               Full detail
             </p>
             <p className="mt-2 text-sm whitespace-pre-wrap text-zinc-700 dark:text-zinc-300">{description}</p>
+            <DescriptionIllustrativeMedia
+              images={descriptionIllustrationImages}
+              videos={descriptionIllustrationVideos}
+            />
           </div>
         </details>
         <details className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
@@ -1130,6 +1270,41 @@ export function MarketplaceListingDetail({
           </div>
         </div>
       ) : null}
+
+      <motion.div
+        role="region"
+        aria-label={t(productT.stickyBuyHint)}
+        aria-hidden={!(stock > 0 && showStickyBuy && !showAr && !showStylist)}
+        className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 sm:px-6"
+        initial={false}
+        animate={
+          reduceMotion
+            ? { opacity: stock > 0 && showStickyBuy && !showAr && !showStylist ? 1 : 0 }
+            : {
+                y: stock > 0 && showStickyBuy && !showAr && !showStylist ? 0 : 120,
+                opacity: stock > 0 && showStickyBuy && !showAr && !showStylist ? 1 : 0,
+              }
+        }
+        transition={{ type: "spring", stiffness: 420, damping: 36 }}
+        style={{
+          pointerEvents: stock > 0 && showStickyBuy && !showAr && !showStylist ? "auto" : "none",
+        }}
+      >
+        <div className="mx-auto flex max-w-3xl items-center gap-3 rounded-2xl border border-zinc-200/90 bg-white/95 px-3 py-2.5 shadow-2xl shadow-zinc-900/12 ring-1 ring-black/[0.05] backdrop-blur-xl dark:border-zinc-700 dark:bg-zinc-950/95 dark:ring-white/10">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs font-semibold leading-tight text-zinc-900 dark:text-zinc-50">{name}</p>
+            <p className="text-base font-bold tabular-nums text-violet-700 dark:text-violet-400">{priceDisplay}</p>
+          </div>
+          <Button
+            type="button"
+            disabled={cartBusy || stock <= 0}
+            onClick={(e) => void addToCart(e)}
+            className="h-11 shrink-0 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 text-sm font-semibold text-white shadow-lg shadow-violet-500/25 hover:from-violet-500 hover:to-fuchsia-500 disabled:opacity-50"
+          >
+            {cartBusy ? "Adding…" : productT.addToCart}
+          </Button>
+        </div>
+      </motion.div>
     </>
   )
 }

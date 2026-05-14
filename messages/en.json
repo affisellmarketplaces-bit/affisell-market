@@ -139,6 +139,8 @@
     "actionStackHint": "Secure checkout · fast fulfilment",
     "topVentes": "Top rated",
     "liveViewers": "{count} people are viewing this",
+    "trendingViews24h": "Trending · {count} views in 24h",
+    "stickyBuyHint": "Quick buy while you browse",
     "onlyLeft": "Only {count} left in stock",
     "delivery48h": "2-day delivery",
     "return30d": "30-day returns",

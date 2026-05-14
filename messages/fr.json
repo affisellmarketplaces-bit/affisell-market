@@ -139,6 +139,8 @@
     "actionStackHint": "Paiement sécurisé · expédition rapide",
     "topVentes": "Mieux notés",
     "liveViewers": "{count} personnes consultent cette fiche",
+    "trendingViews24h": "Tendance · {count} vues en 24 h",
+    "stickyBuyHint": "Achat rapide pendant la lecture",
     "onlyLeft": "Plus que {count} en stock",
     "delivery48h": "Livraison sous 2 jours",
     "return30d": "Retours 30 jours",

@@ -118,3 +118,43 @@
 .pulse-green {
   animation: pulse-green 1s ease-out;
 }
+
+@keyframes listing-price-sheen {
+  0%,
+  100% {
+    transform: translateX(-130%) skewX(-14deg);
+  }
+  50% {
+    transform: translateX(130%) skewX(-14deg);
+  }
+}
+
+.listing-price-card-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 42%,
+    rgba(255, 255, 255, 0.38) 50%,
+    transparent 58%
+  );
+  animation: listing-price-sheen 9s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.dark .listing-price-card-sheen::after {
+  background: linear-gradient(
+    105deg,
+    transparent 42%,
+    rgba(255, 255, 255, 0.07) 50%,
+    transparent 58%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .listing-price-card-sheen::after {
+    animation: none;
+    opacity: 0;
+  }
+}

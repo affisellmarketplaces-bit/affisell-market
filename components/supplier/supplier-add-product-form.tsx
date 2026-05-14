@@ -31,6 +31,7 @@ import { signOut } from "next-auth/react"
 import { toast } from "sonner"
 
 import { BentoShell } from "@/components/affisell/bento-ui"
+import { SupplierDescriptionIllustrationFields } from "@/components/supplier/supplier-description-illustration-fields"
 import { SupplierProductImageUpload } from "@/components/supplier/supplier-product-image-upload"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -212,6 +213,8 @@ export function SupplierAddProductForm({
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [descriptionBullets, setDescriptionBullets] = useState<string[]>([""])
+  const [descriptionIllustrationImages, setDescriptionIllustrationImages] = useState<string[]>([])
+  const [descriptionIllustrationVideos, setDescriptionIllustrationVideos] = useState<string[]>([])
   const [categoryId, setCategoryId] = useState("")
   const [categoryPath, setCategoryPath] = useState<CategoryPathSegment[]>([])
   const [images, setImages] = useState<string[]>([])
@@ -517,6 +520,30 @@ export function SupplierAddProductForm({
       } else {
         setDescriptionBullets([""])
       }
+      const illRaw = data.descriptionIllustrationImages
+      if (Array.isArray(illRaw)) {
+        setDescriptionIllustrationImages(
+          illRaw
+            .filter((x): x is string => typeof x === "string")
+            .map((s) => s.trim())
+            .filter(Boolean)
+            .slice(0, 4)
+        )
+      } else {
+        setDescriptionIllustrationImages([])
+      }
+      const vidRaw = data.descriptionIllustrationVideos
+      if (Array.isArray(vidRaw)) {
+        setDescriptionIllustrationVideos(
+          vidRaw
+            .filter((x): x is string => typeof x === "string")
+            .map((s) => s.trim())
+            .filter(Boolean)
+            .slice(0, 2)
+        )
+      } else {
+        setDescriptionIllustrationVideos([])
+      }
       const attrs = data.attributes
       if (Array.isArray(attrs)) {
         const next: Record<string, string> = {}
@@ -672,6 +699,8 @@ export function SupplierAddProductForm({
         freeShipping,
         supplierTag: supplierTag.trim() || undefined,
         descriptionBullets: descriptionBullets.map((s) => s.trim()).filter(Boolean),
+        descriptionIllustrationImages,
+        descriptionIllustrationVideos,
         colors: colorsPayload,
         variants: variantsPayload,
         colorImages: colorImagesPayload,
@@ -700,6 +729,8 @@ export function SupplierAddProductForm({
       freeShipping,
       supplierTag,
       descriptionBullets,
+      descriptionIllustrationImages,
+      descriptionIllustrationVideos,
       variantFormMode,
       variantSizesText,
       variantColorsText,
@@ -742,6 +773,16 @@ export function SupplierAddProductForm({
     setSupplierTag(c.supplierTag)
     setSpecValues(c.specValues)
     setDescriptionBullets(c.descriptionBullets?.length ? c.descriptionBullets : [""])
+    setDescriptionIllustrationImages(
+      Array.isArray(c.descriptionIllustrationImages)
+        ? c.descriptionIllustrationImages.filter((x): x is string => typeof x === "string").slice(0, 4)
+        : []
+    )
+    setDescriptionIllustrationVideos(
+      Array.isArray(c.descriptionIllustrationVideos)
+        ? c.descriptionIllustrationVideos.filter((x): x is string => typeof x === "string").slice(0, 2)
+        : []
+    )
     if (c.variantFormMode === "none" || c.variantFormMode === "simple" || c.variantFormMode === "advanced") {
       setVariantFormMode(c.variantFormMode)
     }
@@ -811,6 +852,8 @@ export function SupplierAddProductForm({
         Boolean(description.trim()) ||
         Boolean(categoryId.trim()) ||
         images.length > 0 ||
+        descriptionIllustrationImages.length > 0 ||
+        descriptionIllustrationVideos.length > 0 ||
         Boolean(shipsFrom.trim()))
     if (!(hasServerDraftBucket || hasLocalSignals)) return
 
@@ -875,6 +918,8 @@ export function SupplierAddProductForm({
     autosaveListingId,
     categoryId,
     description,
+    descriptionIllustrationImages,
+    descriptionIllustrationVideos,
     draftIdFromUrl,
     editId,
     images,
@@ -893,7 +938,7 @@ export function SupplierAddProductForm({
   useEffect(() => {
     if (typeof window === "undefined") return
     if (editId && !productIsDraft) return
-    if (!(name.trim() || description.trim() || categoryId.trim() || images.length > 0)) return
+    if (!(name.trim() || description.trim() || categoryId.trim() || images.length > 0 || descriptionIllustrationImages.length > 0 || descriptionIllustrationVideos.length > 0)) return
     const t = window.setTimeout(() => {
       writeSupplierAddProductDraftCache({
         mode: cacheMode,
@@ -919,6 +964,8 @@ export function SupplierAddProductForm({
         supplierTag,
         specValues,
         descriptionBullets,
+        descriptionIllustrationImages,
+        descriptionIllustrationVideos,
         variantFormMode,
         variantSizesText,
         variantColorsText,
@@ -938,6 +985,8 @@ export function SupplierAddProductForm({
     deliveryMin,
     description,
     descriptionBullets,
+    descriptionIllustrationImages,
+    descriptionIllustrationVideos,
     editId,
     freeShipping,
     images,
@@ -970,6 +1019,8 @@ export function SupplierAddProductForm({
             description.trim() ||
             categoryId.trim() ||
             images.length ||
+            descriptionIllustrationImages.length ||
+            descriptionIllustrationVideos.length ||
             autosaveListingId
         ))
     if (!dirty) return
@@ -979,7 +1030,7 @@ export function SupplierAddProductForm({
     }
     window.addEventListener("beforeunload", handler)
     return () => window.removeEventListener("beforeunload", handler)
-  }, [autosaveListingId, categoryId, description, editId, images.length, name, productIsDraft])
+  }, [autosaveListingId, categoryId, description, descriptionIllustrationImages.length, descriptionIllustrationVideos.length, editId, images.length, name, productIsDraft])
 
   async function handleSubmit() {
     if (priceError || compareError || commissionError) {
@@ -1493,6 +1544,12 @@ export function SupplierAddProductForm({
                           </Button>
                         </div>
                       </div>
+                      <SupplierDescriptionIllustrationFields
+                        images={descriptionIllustrationImages}
+                        onImagesChange={setDescriptionIllustrationImages}
+                        videos={descriptionIllustrationVideos}
+                        onVideosChange={setDescriptionIllustrationVideos}
+                      />
                     </SectionCard>
                   </div>
 

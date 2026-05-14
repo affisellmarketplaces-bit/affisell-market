@@ -9,6 +9,8 @@ const PRODUCT_SCALAR_SELECT_NO_ISDRAFT = {
   name: true,
   description: true,
   descriptionBullets: true,
+  descriptionIllustrationImages: true,
+  descriptionIllustrationVideos: true,
   createdAt: true,
   updatedAt: true,
   images: true,

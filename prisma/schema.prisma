@@ -165,6 +165,10 @@ model Product {
   description String
   /** Marketplace “About this item” bullets (distinct from prose description). */
   descriptionBullets String[] @default([])
+  /** Extra lifestyle / detail images shown under the long description (not gallery heroes). */
+  descriptionIllustrationImages String[] @default([])
+  /** HTTPS links: YouTube, Vimeo, or direct `.mp4` — shown under the description. */
+  descriptionIllustrationVideos String[] @default([])
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
   images String[] @default([])
