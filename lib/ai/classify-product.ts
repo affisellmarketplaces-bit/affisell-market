@@ -1,0 +1,164 @@
+import OpenAI from "openai"
+
+import { scoreTitleAgainstBreadcrumb } from "@/lib/category-browse"
+import type { LeafPath } from "@/lib/category-browse"
+
+export type ClassifyInput = {
+  title: string
+  description: string
+  imageUrl?: string | null
+}
+
+export type ClassifySuggestionRow = {
+  category: string
+  confidence: number
+  reason: string
+  leafId: string | null
+}
+
+function normalizeLabel(s: string): string {
+  return s.replace(/\s+/g, " ").trim().toLowerCase()
+}
+
+export function matchCategoryToLeafId(
+  rawCategory: string,
+  leafPaths: LeafPath[]
+): { leafId: string | null; matchedBreadcrumb: string | null } {
+  const t = rawCategory.trim()
+  if (!t) return { leafId: null, matchedBreadcrumb: null }
+  const norm = normalizeLabel(t)
+  for (const lp of leafPaths) {
+    if (normalizeLabel(lp.breadcrumb) === norm) {
+      return { leafId: lp.leafId, matchedBreadcrumb: lp.breadcrumb }
+    }
+  }
+  let best: LeafPath | null = null
+  let bestScore = 0
+  for (const lp of leafPaths) {
+    const s = scoreTitleAgainstBreadcrumb(norm, lp.breadcrumb.toLowerCase())
+    if (s > bestScore) {
+      bestScore = s
+      best = lp
+    }
+  }
+  if (best && bestScore >= 4) {
+    return { leafId: best.leafId, matchedBreadcrumb: best.breadcrumb }
+  }
+  return { leafId: null, matchedBreadcrumb: null }
+}
+
+function parseSuggestionsPayload(raw: string): Array<{ category: string; confidence: number; reason: string }> {
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(raw) as unknown
+  } catch {
+    return []
+  }
+  if (!parsed || typeof parsed !== "object") return []
+  const o = parsed as Record<string, unknown>
+
+  /** Support `{ suggestions: [...] }` or legacy single `{ category, confidence, reason }`. */
+  if (Array.isArray(o.suggestions)) {
+    return o.suggestions
+      .map((row) => {
+        if (!row || typeof row !== "object") return null
+        const r = row as Record<string, unknown>
+        const category = typeof r.category === "string" ? r.category.trim() : ""
+        const confidence = typeof r.confidence === "number" ? r.confidence : Number(r.confidence)
+        const reason = typeof r.reason === "string" ? r.reason.trim() : ""
+        if (!category || !Number.isFinite(confidence)) return null
+        return { category, confidence, reason }
+      })
+      .filter((x): x is { category: string; confidence: number; reason: string } => x != null)
+  }
+
+  const category = typeof o.category === "string" ? o.category.trim() : ""
+  const confidence = typeof o.confidence === "number" ? o.confidence : Number(o.confidence)
+  const reason = typeof o.reason === "string" ? o.reason.trim() : ""
+  if (!category || !Number.isFinite(confidence)) return []
+  return [{ category, confidence, reason }]
+}
+
+export async function classifyAffisellProduct(
+  input: ClassifyInput,
+  ctx: { allowedBreadcrumbs: string[]; leafPaths: LeafPath[] }
+): Promise<{ suggestions: ClassifySuggestionRow[]; error?: string }> {
+  const apiKey = process.env.OPENAI_API_KEY?.trim()
+  if (!apiKey) {
+    return { suggestions: [], error: "OPENAI_API_KEY is not set" }
+  }
+  if (ctx.allowedBreadcrumbs.length === 0) {
+    return { suggestions: [], error: "No categories available" }
+  }
+
+  const listBlock = ctx.allowedBreadcrumbs.join("\n")
+  const system = `Tu es un expert e-commerce pour la marketplace Affisell. Classe ce produit dans au plus 3 catégories parmi la liste EXACTE ci-dessous (une ligne = un libellé complet "Département > Sous-catégorie").
+
+Réponds uniquement en JSON valide:
+{"suggestions":[{"category": string, "confidence": number, "reason": string}]}
+
+Règles:
+- Utilise UNIQUEMENT des chaînes "category" identiques à une ligne de la liste (copie exacte).
+- 1 à 3 suggestions, meilleure confiance en premier.
+- confidence entre 0 et 1.
+
+LISTE AUTORISÉE:
+${listBlock}`
+
+  const userText = `TITLE: ${input.title}\nDESCRIPTION: ${input.description.trim() || "(none)"}`
+
+  const userMessage: OpenAI.Chat.ChatCompletionUserMessageParam = input.imageUrl?.trim()
+    ? {
+        role: "user",
+        content: [
+          { type: "text", text: userText },
+          { type: "image_url", image_url: { url: input.imageUrl.trim(), detail: "low" } },
+        ],
+      }
+    : { role: "user", content: userText }
+
+  try {
+    const openai = new OpenAI({ apiKey })
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      temperature: 0.1,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: system },
+        userMessage,
+      ],
+      max_tokens: 900,
+    })
+
+    const raw = completion.choices[0]?.message?.content ?? "{}"
+    const rows = parseSuggestionsPayload(raw)
+
+    const suggestions: ClassifySuggestionRow[] = []
+    for (const row of rows.slice(0, 3)) {
+      const exact = ctx.leafPaths.find((lp) => normalizeLabel(lp.breadcrumb) === normalizeLabel(row.category))
+      if (exact) {
+        suggestions.push({
+          category: exact.breadcrumb,
+          confidence: Math.min(1, Math.max(0, row.confidence)),
+          reason: row.reason,
+          leafId: exact.leafId,
+        })
+        continue
+      }
+      const fuzzy = matchCategoryToLeafId(row.category, ctx.leafPaths)
+      if (fuzzy.leafId && fuzzy.matchedBreadcrumb) {
+        suggestions.push({
+          category: fuzzy.matchedBreadcrumb,
+          confidence: Math.min(1, Math.max(0, row.confidence)),
+          reason: row.reason,
+          leafId: fuzzy.leafId,
+        })
+      }
+    }
+
+    return { suggestions }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "OpenAI request failed"
+    return { suggestions: [], error: msg }
+  }
+}

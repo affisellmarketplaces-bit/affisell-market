@@ -35,6 +35,7 @@ import { SupplierProductImageUpload } from "@/components/supplier/supplier-produ
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { CategoryAutosuggest } from "@/components/product/CategoryAutosuggest"
 import {
   affiliateCommissionMaxPct,
   type ListingKind,
@@ -44,7 +45,6 @@ import {
   pathFromLeafId,
   suggestLeafCategoriesFromTitle,
   type CategoryPathSegment,
-  type LeafPath,
   type RecentCategoryEntry,
 } from "@/lib/category-browse"
 import { SupplierCategoryPicker, type BrowsePayload } from "@/components/supplier/supplier-category-picker"
@@ -230,8 +230,7 @@ export function SupplierAddProductForm({
   const [recentCategories, setRecentCategories] = useState<RecentCategoryEntry[]>([])
   const [loadingBrowse, setLoadingBrowse] = useState(true)
   const [debouncedTitle, setDebouncedTitle] = useState("")
-  const [aiCategorySuggestions, setAiCategorySuggestions] = useState<LeafPath[]>([])
-  const [aiSuggestLoading, setAiSuggestLoading] = useState(false)
+  const [categoryAiTag, setCategoryAiTag] = useState(false)
   const [shippingCountry, setShippingCountry] = useState("")
   const [warehouseType, setWarehouseType] = useState<"" | "local" | "regional" | "international">("")
   const [processingTime, setProcessingTime] = useState("1")
@@ -316,34 +315,6 @@ export function SupplierAddProductForm({
     if (!browse || debouncedTitle.trim().length < 2) return []
     return suggestLeafCategoriesFromTitle(debouncedTitle, browse.leafPaths, 3)
   }, [browse, debouncedTitle])
-
-  useEffect(() => {
-    if (!browse || debouncedTitle.trim().length < 2) {
-      setAiCategorySuggestions([])
-      setAiSuggestLoading(false)
-      return
-    }
-    const ac = new AbortController()
-    setAiSuggestLoading(true)
-    fetch("/api/supplier/suggest-categories-ai", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      signal: ac.signal,
-      body: JSON.stringify({ title: debouncedTitle, description: description.trim() || undefined }),
-    })
-      .then((r) => r.json())
-      .then((j: { suggestions?: LeafPath[] }) => {
-        setAiCategorySuggestions(Array.isArray(j.suggestions) ? j.suggestions.slice(0, 3) : [])
-      })
-      .catch(() => {
-        if (!ac.signal.aborted) setAiCategorySuggestions([])
-      })
-      .finally(() => {
-        if (!ac.signal.aborted) setAiSuggestLoading(false)
-      })
-    return () => ac.abort()
-  }, [browse, debouncedTitle, description])
 
   useEffect(() => {
     let cancelled = false
@@ -561,6 +532,7 @@ export function SupplierAddProductForm({
         setSpecValues({})
       }
       setProductIsDraft(Boolean(data.isDraft))
+      setCategoryAiTag(false)
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to load product")
       router.replace("/dashboard/supplier/products/new")
@@ -1450,6 +1422,19 @@ export function SupplierAddProductForm({
                           placeholder="e.g. Wireless earbuds with ANC"
                           maxLength={500}
                         />
+                        <CategoryAutosuggest
+                          title={name}
+                          description={description}
+                          imageUrl={images[0] ?? null}
+                          browse={browse}
+                          categoryId={categoryId}
+                          onChange={(leafId, path) => {
+                            setCategoryId(leafId)
+                            setCategoryPath(path)
+                            setSpecValues({})
+                          }}
+                          onAiTagged={() => setCategoryAiTag(true)}
+                        />
                       </div>
                       <div>
                         <Label htmlFor="p-desc">Description</Label>
@@ -1519,8 +1504,15 @@ export function SupplierAddProductForm({
                       description="Choose a leaf category to load the right specs for this product."
                     >
                       <div>
-                        <Label className="inline-flex items-center gap-1">
-                          Category <span className="text-red-600">*</span>
+                        <Label className="inline-flex items-center gap-2">
+                          <span>
+                            Category <span className="text-red-600">*</span>
+                          </span>
+                          {categoryAiTag ? (
+                            <span className="rounded-full bg-violet-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                              IA
+                            </span>
+                          ) : null}
                         </Label>
                         <div className="mt-1.5">
                           <SupplierCategoryPicker
@@ -1531,10 +1523,11 @@ export function SupplierAddProductForm({
                               setCategoryId(leafId)
                               setCategoryPath(path)
                               setSpecValues({})
+                              setCategoryAiTag(false)
                             }}
                             keywordSuggestions={keywordCategorySuggestions}
-                            aiSuggestions={aiCategorySuggestions}
-                            aiLoading={aiSuggestLoading}
+                            aiSuggestions={[]}
+                            aiLoading={false}
                             loading={loadingBrowse}
                           />
                         </div>

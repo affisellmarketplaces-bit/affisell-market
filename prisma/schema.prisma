@@ -233,6 +233,8 @@ model Product {
   communityPosts CommunityPost[]
   wishlists Wishlist[]
   reviews Review[]
+  /** AI category suggestions pending manual review (see `ProductReview` model). */
+  productReviews ProductReview[]
 
   @@index([categoryId])
   @@index([supplierId, isDraft])
@@ -240,6 +242,20 @@ model Product {
   @@index([shippingType])
   @@index([basePriceCents])
   @@index([isOnSale])
+  @@index([createdAt])
+}
+
+/** AI / ops queue: suggested taxonomy row for a product (not shopper star reviews — those use `Review`). */
+model ProductReview {
+  id                String   @id @default(cuid())
+  productId         String
+  product           Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  suggestedCategory String
+  confidence        Float
+  reason            String   @db.Text
+  createdAt         DateTime @default(now())
+
+  @@index([productId])
   @@index([createdAt])
 }
 
