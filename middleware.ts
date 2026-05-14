@@ -64,6 +64,18 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  const isMarketplaceBuyerAccount =
+    pathname === "/marketplace/account" || pathname.startsWith("/marketplace/account/")
+  if (isMarketplaceBuyerAccount) {
+    if (!loggedIn) return NextResponse.redirect(signInRedirectUrl(req, path))
+    if (role === "AFFILIATE" || role === "SUPPLIER") {
+      const u = new URL(req.url)
+      u.pathname = role === "SUPPLIER" ? "/dashboard/supplier" : "/dashboard/affiliate"
+      u.search = ""
+      return NextResponse.redirect(u)
+    }
+  }
+
   return NextResponse.next()
 }
 
@@ -75,5 +87,7 @@ export const config = {
     "/dashboard/affiliate",
     "/dashboard/affiliate/:path*",
     "/affiliate/:path*",
+    "/marketplace/account",
+    "/marketplace/account/:path*",
   ],
 }

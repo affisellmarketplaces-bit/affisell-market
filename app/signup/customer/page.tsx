@@ -40,7 +40,7 @@ export default function CustomerSignupPage() {
     if (login?.error) {
       setError(messageForCredentialsSignInCode(login.code) ?? "Account created — try signing in.")
     }
-    else router.push("/dashboard")
+    else router.push("/marketplace/account")
   }
 
   return (
@@ -110,7 +110,7 @@ export default function CustomerSignupPage() {
 
         <p className="mt-6 text-center text-sm text-gray-600">
           Already have an account?{" "}
-          <Link href="/login" className="font-medium text-blue-600 hover:text-blue-700">
+          <Link href="/login?callbackUrl=%2Fmarketplace%2Faccount" className="font-medium text-blue-600 hover:text-blue-700">
             Sign in
           </Link>
         </p>

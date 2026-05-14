@@ -1038,7 +1038,7 @@ export function MarketplaceListingDetail({
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="text-sm font-semibold text-teal-950 dark:text-teal-100">Use store credit</p>
                     <Link
-                      href="/dashboard/wallet"
+                      href="/marketplace/account/wallet"
                       className="text-xs font-medium text-teal-800 underline-offset-2 hover:underline dark:text-teal-300"
                     >
                       Wallet

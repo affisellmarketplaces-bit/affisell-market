@@ -49,11 +49,24 @@ export default async function AccountSettingsPage() {
         />
 
         <BentoCard>
-          <p className="text-sm text-gray-600 dark:text-zinc-400">
-            <Link href="/dashboard/wallet" className="font-medium text-[#7C3AED] underline-offset-4 hover:underline">
-              Store credit &amp; activity →
-            </Link>
-          </p>
+          {dbUser.role === "CUSTOMER" ? (
+            <p className="text-sm text-gray-600 dark:text-zinc-400">
+              <Link
+                href="/marketplace/account/wallet"
+                className="font-medium text-[#7C3AED] underline-offset-4 hover:underline"
+              >
+                Store credit &amp; activity →
+              </Link>
+            </p>
+          ) : (
+            <p className="text-sm text-gray-600 dark:text-zinc-400">
+              Buyer store credit is available in your{" "}
+              <Link href="/marketplace/account" className="font-medium text-[#7C3AED] underline-offset-4 hover:underline">
+                marketplace buyer hub
+              </Link>{" "}
+              when you use a separate customer login — merchant accounts stay on this dashboard.
+            </p>
+          )}
         </BentoCard>
 
         <BentoCard className="flex flex-col gap-6 sm:flex-row sm:items-center">

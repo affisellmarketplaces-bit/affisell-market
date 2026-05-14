@@ -292,7 +292,7 @@ export default function CartPage() {
   async function checkout() {
     if (lines.length === 0) return
     if (!isAuthed) {
-      window.location.href = `/auth/signin?callbackUrl=${encodeURIComponent("/cart")}`
+      window.location.href = `/login?callbackUrl=${encodeURIComponent("/cart")}`
       return
     }
     setCheckoutBusy(true)

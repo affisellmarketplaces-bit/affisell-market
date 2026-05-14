@@ -17,6 +17,7 @@ import {
 import { normalizeCartVariantSignature } from "@/lib/cart-variant"
 import { MerchantAccountNavActions } from "@/components/merchant-account-nav-actions"
 import { VisualSearchModal } from "@/components/visual-search-modal"
+import { showBuyerCommerceInSiteHeader } from "@/lib/buyer-commerce"
 
 function subscribeGuestCart(listener: () => void) {
   if (typeof window === "undefined") return () => {}
@@ -44,7 +45,8 @@ export function SiteNav() {
   const isSupplier = session?.user?.role === "SUPPLIER"
   const isAffiliate = session?.user?.role === "AFFILIATE"
   const showAffiliateMerchantActions = Boolean(isAffiliate && pathname?.startsWith("/dashboard"))
-  const showOrders = Boolean(session?.user && !isSupplier)
+  const role = session?.user?.role
+  const showBuyerHeaderCommerce = showBuyerCommerceInSiteHeader(pathname, role, Boolean(session?.user))
   const router = useRouter()
   const searchParams = useSearchParams()
   const marketplaceSearchKey =
@@ -202,25 +204,28 @@ export function SiteNav() {
           <Link href="/marketplace" className="text-zinc-700 hover:underline dark:text-zinc-300">
             Marketplace
           </Link>
-          {showOrders ? (
+          {showBuyerHeaderCommerce ? (
             <>
-              <Link href="/dashboard/orders" className="text-zinc-700 hover:underline dark:text-zinc-300">
+              <Link href="/marketplace/account/orders" className="text-zinc-700 hover:underline dark:text-zinc-300">
                 Orders
               </Link>
-              <Link href="/dashboard/wallet" className="text-zinc-700 hover:underline dark:text-zinc-300">
+              <Link href="/marketplace/account/wallet" className="text-zinc-700 hover:underline dark:text-zinc-300">
                 Wallet
+              </Link>
+              <Link
+                href="/cart"
+                className="relative inline-flex items-center gap-1.5 text-zinc-700 hover:underline dark:text-zinc-300"
+              >
+                <ShoppingCart className={`h-4 w-4 ${bounce ? "animate-bounce" : ""}`} />
+                Cart
+                {count > 0 ? (
+                  <span className="absolute -right-3 -top-2 inline-flex min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                    {count}
+                  </span>
+                ) : null}
               </Link>
             </>
           ) : null}
-          <Link href="/cart" className="relative inline-flex items-center gap-1.5 text-zinc-700 hover:underline dark:text-zinc-300">
-            <ShoppingCart className={`h-4 w-4 ${bounce ? "animate-bounce" : ""}`} />
-            Cart
-            {count > 0 ? (
-              <span className="absolute -right-3 -top-2 inline-flex min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                {count}
-              </span>
-            ) : null}
-          </Link>
           {showAffiliateMerchantActions ? (
             <div className="flex w-full basis-full flex-wrap justify-end gap-2 pt-1 md:ml-auto md:w-auto md:basis-auto md:pt-0">
               <MerchantAccountNavActions />

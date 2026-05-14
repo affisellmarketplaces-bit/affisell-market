@@ -10,7 +10,7 @@ export default async function DashboardRootPage() {
   if (!session?.user) redirect("/login")
 
   if (session.user.role === "SUPPLIER") redirect("/dashboard/supplier")
-  if (session.user.role === "CUSTOMER") redirect("/marketplace")
+  if (session.user.role === "CUSTOMER") redirect("/marketplace/account")
 
   redirect("/dashboard/affiliate")
 }
