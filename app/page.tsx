@@ -2,6 +2,7 @@ import Link from "next/link"
 import { ArrowRight, LayoutGrid, Sparkles, Store, Users } from "lucide-react"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell, bentoGrid } from "@/components/affisell/bento-ui"
+import { CategoryBlock } from "@/components/home/CategoryBlock"
 import { HomeAffisellCarousels } from "@/components/home-affisell-carousels"
 import { BestSellers } from "@/components/trends/BestSellers"
 import { NewArrivals } from "@/components/trends/NewArrivals"
@@ -130,6 +131,10 @@ export default function HomePage() {
           </div>
           <BentoCard className="p-0 md:p-0">
             <div className="space-y-12 p-6 md:p-8">
+              <div className="grid gap-8 lg:grid-cols-2">
+                <CategoryBlock category="Sport" />
+                <CategoryBlock category="electronics" />
+              </div>
               <HomeAffisellCarousels />
               <BestSellers />
               <NewArrivals />

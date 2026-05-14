@@ -25,6 +25,8 @@
 /public/uploads/*
 !/public/uploads/.gitkeep
 
+/public/generated/categories/*.png
+
 # misc
 .DS_Store
 *.pem
