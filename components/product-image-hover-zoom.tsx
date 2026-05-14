@@ -24,7 +24,9 @@ type Props = {
  */
 export function ProductImageHoverZoom({ src, alt, overlay, className, frameClassName }: Props) {
   const heroRef = useRef<HTMLDivElement>(null)
-  const [hover, setHover] = useState(false)
+  const [pointerInHero, setPointerInHero] = useState(false)
+  /** True after first pointer move while still over the hero — activates lens + loupe pane. */
+  const [zoomEngaged, setZoomEngaged] = useState(false)
   const [pct, setPct] = useState({ x: 50, y: 50 })
   const [finePointer, setFinePointer] = useState(false)
 
@@ -40,18 +42,22 @@ export function ProductImageHoverZoom({ src, alt, overlay, className, frameClass
   }, [])
 
   useEffect(() => {
-    setHover(false)
+    setPointerInHero(false)
+    setZoomEngaged(false)
     setPct({ x: 50, y: 50 })
   }, [src])
+
+  const zoomActive = finePointer && pointerInHero && zoomEngaged
 
   const onMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const el = heroRef.current
     if (!el) return
+    if (finePointer) setZoomEngaged(true)
     const r = el.getBoundingClientRect()
     const x = ((e.clientX - r.left) / Math.max(1, r.width)) * 100
     const y = ((e.clientY - r.top) / Math.max(1, r.height)) * 100
     setPct({ x: Math.min(100, Math.max(0, x)), y: Math.min(100, Math.max(0, y)) })
-  }, [])
+  }, [finePointer])
 
   const lensSpan = 100 / ZOOM
   const lensLeft = Math.min(100 - lensSpan, Math.max(0, pct.x - lensSpan / 2))
@@ -62,20 +68,24 @@ export function ProductImageHoverZoom({ src, alt, overlay, className, frameClass
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950 lg:flex lg:items-stretch lg:gap-3 lg:p-2",
+        "w-full overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950 lg:flex lg:flex-row lg:items-stretch lg:gap-3 lg:p-2",
         className
       )}
     >
-      <div className="relative min-w-0 flex-1">
+      <div className="relative min-w-0 flex-1 basis-0">
         <div
           ref={heroRef}
           className={cn(
-            "relative aspect-[4/5] overflow-hidden bg-zinc-50 sm:aspect-square dark:bg-zinc-900/80",
+            "relative flex aspect-[4/5] w-full items-center justify-center overflow-hidden bg-zinc-50 sm:aspect-square dark:bg-zinc-900/80",
+            finePointer && pointerInHero && !zoomEngaged && "ring-1 ring-inset ring-violet-400/25 dark:ring-violet-500/20",
             frameClassName
           )}
-          onMouseEnter={() => finePointer && setHover(true)}
-          onMouseLeave={() => setHover(false)}
-          onMouseMove={finePointer ? onMove : undefined}
+          onPointerEnter={() => setPointerInHero(true)}
+          onPointerLeave={() => {
+            setPointerInHero(false)
+            setZoomEngaged(false)
+          }}
+          onPointerMove={finePointer ? onMove : undefined}
         >
           {/* eslint-disable-next-line @next/next/no-img-element -- remote listing URLs */}
           <img
@@ -83,9 +93,9 @@ export function ProductImageHoverZoom({ src, alt, overlay, className, frameClass
             src={src}
             alt={alt}
             draggable={false}
-            className="h-full w-full select-none object-contain p-4 transition duration-300 ease-out animate-in fade-in-0"
+            className="max-h-full max-w-full select-none object-contain object-center p-3 transition-opacity duration-300 ease-out sm:p-4 animate-in fade-in-0"
           />
-          {finePointer && hover ? (
+          {zoomActive ? (
             <div
               className="pointer-events-none absolute z-[1] rounded-md border-2 border-white/95 shadow-lg ring-2 ring-black/25 dark:ring-white/20"
               style={{
@@ -97,35 +107,38 @@ export function ProductImageHoverZoom({ src, alt, overlay, className, frameClass
               aria-hidden
             />
           ) : null}
-          {overlay ? <div className="pointer-events-none absolute inset-0 z-[2]">{overlay}</div> : null}
+          {finePointer && pointerInHero && !zoomEngaged ? (
+            <p
+              className="pointer-events-none absolute inset-x-0 bottom-3 z-[2] mx-auto w-fit max-w-[calc(100%-1.5rem)] rounded-full border border-zinc-200/80 bg-white/90 px-3 py-1.5 text-center text-[11px] font-medium text-zinc-600 shadow-sm backdrop-blur-sm dark:border-zinc-600/80 dark:bg-zinc-950/85 dark:text-zinc-300"
+              aria-live="polite"
+            >
+              Hover image to zoom
+            </p>
+          ) : null}
+          {overlay ? <div className="pointer-events-none absolute inset-0 z-[3]">{overlay}</div> : null}
         </div>
       </div>
 
       {finePointer ? (
         <div
           role="region"
-          aria-label={hover ? "Magnified product image" : "Product image zoom"}
-          aria-hidden={!hover}
+          aria-label={zoomActive ? "Magnified product image" : "Product image zoom"}
+          aria-hidden={!zoomActive}
           className={cn(
-            "relative mt-4 hidden aspect-square w-full shrink-0 overflow-hidden rounded-xl border border-zinc-200/80 bg-zinc-50 shadow-inner transition-[opacity,box-shadow] duration-150 dark:border-zinc-700 dark:bg-zinc-900/60 lg:mt-0 lg:block lg:w-[min(42vw,24rem)] xl:w-[min(38vw,28rem)]",
-            hover ? "ring-2 ring-violet-500/25" : ""
+            "relative mt-4 hidden min-h-0 w-full shrink-0 overflow-hidden rounded-xl border border-zinc-200/80 bg-zinc-50 shadow-inner transition-[box-shadow] duration-200 dark:border-zinc-700 dark:bg-zinc-900/60 lg:mt-0 lg:block lg:w-56 lg:self-stretch xl:w-64",
+            zoomActive ? "ring-2 ring-violet-500/25" : ""
           )}
         >
           <div
-            className="h-full w-full bg-no-repeat transition-[background-position,opacity] duration-75 ease-out"
+            className="absolute inset-0 bg-no-repeat transition-[background-position,opacity] duration-75 ease-out"
             style={{
               backgroundImage: zoomBg,
               backgroundRepeat: "no-repeat",
               backgroundSize: `${ZOOM * 100}% auto`,
               backgroundPosition: `${pct.x}% ${pct.y}%`,
-              opacity: hover ? 1 : 0,
+              opacity: zoomActive ? 1 : 0,
             }}
           />
-          {!hover ? (
-            <p className="pointer-events-none absolute inset-x-0 bottom-3 text-center text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
-              Hover image to zoom
-            </p>
-          ) : null}
         </div>
       ) : null}
     </div>
