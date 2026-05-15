@@ -7,6 +7,8 @@ import { Search, X } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 
 import { ProductCard } from "@/components/ProductCard"
+import { MarketplaceAffisellPulse } from "@/components/marketplace/MarketplaceAffisellPulse"
+import { MarketplaceDepartmentRail } from "@/components/marketplace/MarketplaceDepartmentRail"
 import { Sidebar } from "@/components/marketplace/Sidebar"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { affisellBrand } from "@/lib/affisell-brand"
@@ -161,6 +163,12 @@ export function MarketplaceView() {
             </form>
           </div>
         </header>
+
+        <MarketplaceDepartmentRail
+          activeCategoryId={categoryId}
+          activeSubcategoryId={subcategoryId}
+        />
+        <MarketplaceAffisellPulse />
 
         {dbUnavailable ? (
           <div

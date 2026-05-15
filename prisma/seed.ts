@@ -1,5 +1,6 @@
 /**
- * Seed Affisell : 8 catégories, 30 produits (2 images chacun : Unsplash + Picsum), 2 fournisseurs, 1 affilié, 1 admin.
+ * Seed Affisell : 8 **rayons** (racines) + **allées** FR (enfants, style Amazon department › aisle),
+ * 30 produits sur feuilles d’allée, 2 photos (Unsplash + Picsum), **listings** `AffiliateProduct` pour la vitrine marketplace.
  * `npx prisma db seed`
  *
  * Charge `.env` / `.env.local` pour `DATABASE_URL`.
@@ -8,6 +9,9 @@
 import { config } from "dotenv"
 import { hash } from "bcryptjs"
 import { PrismaClient } from "@prisma/client"
+
+import { FR_DEPARTMENT_AISLES } from "@/lib/marketplace-department-aisles-fr"
+import { clearCategoryBrowseCache } from "@/lib/product-auto-categorize"
 
 config({ path: ".env.local" })
 config({ path: ".env" })
@@ -60,17 +64,6 @@ const PRODUCTS = [
 
 function eurosToCents(eur: number): number {
   return Math.round(eur * 100)
-}
-
-function productSlug(name: string, index: number): string {
-  const base = name
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 48)
-  return `${base}-${index}`.slice(0, 64)
 }
 
 function imageUrls(img: string, i: number): [string, string] {
@@ -126,7 +119,7 @@ async function wipeMarketplaceData(): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  console.log("🌱 Seeding Affisell (30 produits + photos, 8 catégories, users démo)…")
+  console.log("🌱 Seeding Affisell (rayons + allées, 30 produits, listings affiliés)…")
   await wipeMarketplaceData()
 
   const password = await hash("password123", 10)
@@ -147,7 +140,7 @@ async function main(): Promise<void> {
       role: "SUPPLIER",
     },
   })
-  await prisma.user.create({
+  const vendeur = await prisma.user.create({
     data: {
       email: "vendeur@affisell.io",
       name: "Vendeur Pro",
@@ -164,7 +157,18 @@ async function main(): Promise<void> {
     },
   })
 
-  const cats = await Promise.all(
+  await prisma.store.create({
+    data: {
+      userId: vendeur.id,
+      name: "Boutique Affisell Live",
+      slug: "boutique-affisell-live",
+      description:
+        "Vitrine démo : rayons intelligents, prix publics dynamiques, récompenses acheteurs compatibles Affisell.",
+      isLive: true,
+    },
+  })
+
+  const roots = await Promise.all(
     CATEGORIES.map((c, order) =>
       prisma.category.create({
         data: { name: c.name, slug: c.slug, icon: c.icon, order },
@@ -172,11 +176,42 @@ async function main(): Promise<void> {
     )
   )
 
-  await Promise.all(
-    PRODUCTS.map((p, i) => {
+  /** Par index racine → ids des allées (feuilles navigation marketplace). */
+  const aisleIdsByRoot: string[][] = []
+  for (let r = 0; r < roots.length; r++) {
+    const root = roots[r]!
+    const aislesDef = FR_DEPARTMENT_AISLES[r]
+    if (!aislesDef) {
+      aisleIdsByRoot.push([])
+      continue
+    }
+    const ids: string[] = []
+    let order = 0
+    for (const a of aislesDef) {
+      const slug = `${CATEGORIES[r].slug}-${a.slugKey}`.slice(0, 64)
+      const row = await prisma.category.create({
+        data: {
+          name: a.name,
+          slug,
+          icon: a.icon,
+          order: order++,
+          parentId: root.id,
+        },
+      })
+      ids.push(row.id)
+    }
+    aisleIdsByRoot.push(ids)
+  }
+
+  const createdProducts = await Promise.all(
+    PRODUCTS.map(async (p, i) => {
       const basePriceCents = eurosToCents(p.priceEur)
       const commissionRate = Math.floor(Math.random() * 15) + 15
       const [a, b] = imageUrls(p.img, i)
+      const aisles = aisleIdsByRoot[p.cat] ?? []
+      const leafId =
+        aisles.length > 0 ? aisles[i % aisles.length]! : roots[p.cat]!.id
+
       return prisma.product.create({
         data: {
           name: p.name,
@@ -189,21 +224,44 @@ async function main(): Promise<void> {
           active: true,
           isDraft: false,
           listingKind: "PHYSICAL",
-          categoryId: cats[p.cat]!.id,
+          categoryId: leafId,
           supplierId: i % 2 === 0 ? f1.id : f2.id,
           supplierTag: "seed-affisell-30",
           shipsFrom: "EU",
           deliveryDays: 3,
           freeShipping: p.priceEur >= 50,
+          isNewArrival: i % 5 === 0,
+          isBestSeller: i % 7 === 0,
+          isOnSale: i % 9 === 0,
         },
       })
     })
   )
 
-  console.log("✅ 30 produits + 8 catégories + users démo créés.")
-  console.log("👤 Connexion admin : admin@affisell.io / password123")
+  for (let i = 0; i < createdProducts.length; i++) {
+    const p = createdProducts[i]!
+    const markupPct = 20 + (i % 15)
+    const sellingPriceCents = Math.round(p.basePriceCents * (1 + markupPct / 100))
+    await prisma.affiliateProduct.create({
+      data: {
+        affiliateId: vendeur.id,
+        productId: p.id,
+        sellingPriceCents,
+        isListed: true,
+        isFeatured: i % 6 === 0,
+        position: i,
+        buyerRewardKind: i % 8 === 0 ? "CASHBACK" : "NONE",
+        buyerRewardPercent: i % 8 === 0 ? Math.min(8, p.commissionRate - 1) : 0,
+      },
+    })
+  }
+
+  clearCategoryBrowseCache()
+
+  console.log("✅ Rayons + allées FR, 30 produits (feuilles), listings affiliés boutique « Boutique Affisell Live ».")
+  console.log("👤 Admin : admin@affisell.io / password123")
   console.log("👤 Fournisseurs : fournisseur1@affisell.io | fournisseur2@affisell.io / password123")
-  console.log("👤 Affilié : vendeur@affisell.io / password123")
+  console.log("👤 Affilié + store : vendeur@affisell.io / password123 → /store/boutique-affisell-live")
 }
 
 main()
