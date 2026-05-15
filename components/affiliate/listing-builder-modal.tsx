@@ -15,7 +15,7 @@ import { productSizeOptions } from "@/lib/affiliate-promoted-variant"
 type CatalogProduct = {
   id: string
   name: string
-  description: string
+  description?: string
   images: string[]
   basePriceCents: number
   colors?: string[]

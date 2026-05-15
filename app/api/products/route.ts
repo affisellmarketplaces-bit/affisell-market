@@ -8,6 +8,7 @@ import { listingDisplayTitle, listingGalleryUrls } from "@/lib/affiliate-listing
 import { buildCategoryScopeProductFilter } from "@/lib/marketplace-category-product-filter"
 import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
 import { prisma } from "@/lib/prisma"
+import { dbUnavailablePayload } from "@/lib/prisma-db-error"
 import { publicStoreLabelFromAffiliateRow } from "@/lib/public-seller-display"
 
 export const runtime = "nodejs"
@@ -102,22 +103,30 @@ async function marketplaceListingWhere(
 }
 
 export async function GET(request: NextRequest) {
-  const url = request.nextUrl
-  const categoryId = url.searchParams.get("categoryId") ?? url.searchParams.get("category")
-  const subcategoryId =
-    url.searchParams.get("subcategoryId") ?? url.searchParams.get("subcategory")
-  const q = url.searchParams.get("q") ?? ""
+  try {
+    const url = request.nextUrl
+    const categoryId = url.searchParams.get("categoryId") ?? url.searchParams.get("category")
+    const subcategoryId =
+      url.searchParams.get("subcategoryId") ?? url.searchParams.get("subcategory")
+    const q = url.searchParams.get("q") ?? ""
 
-  const where = await marketplaceListingWhere(categoryId, subcategoryId, q)
+    const where = await marketplaceListingWhere(categoryId, subcategoryId, q)
 
-  const rows = await prisma.affiliateProduct.findMany({
-    where,
-    include: listingMarketplaceInclude,
-    orderBy: [{ isFeatured: "desc" }, { clicks: "desc" }, { updatedAt: "desc" }],
-    take: 120,
-  })
+    const rows = await prisma.affiliateProduct.findMany({
+      where,
+      include: listingMarketplaceInclude,
+      orderBy: [{ isFeatured: "desc" }, { clicks: "desc" }, { updatedAt: "desc" }],
+      take: 120,
+    })
 
-  return NextResponse.json({
-    products: rows.map(serializeMarketplaceListing),
-  })
+    return NextResponse.json({
+      products: rows.map(serializeMarketplaceListing),
+    })
+  } catch (e) {
+    console.error("[api/products]", e)
+    return NextResponse.json(
+      { products: [], ...dbUnavailablePayload(e) },
+      { status: 503 }
+    )
+  }
 }

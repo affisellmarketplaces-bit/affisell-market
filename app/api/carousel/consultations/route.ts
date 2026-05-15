@@ -2,6 +2,7 @@ import { auth } from "@/auth"
 import { mapListingToCarousel, viewCountsToday } from "@/lib/carousel-mapper"
 import type { CarouselItemJson } from "@/lib/carousel-types"
 import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
+import { dbUnavailablePayload } from "@/lib/prisma-db-error"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -10,6 +11,7 @@ export const dynamic = "force-dynamic"
 const MS_DAY = 24 * 60 * 60 * 1000
 
 export async function GET(req: Request) {
+  try {
   const session = await auth()
   const userId = session?.user?.id ?? null
   const sessionId = new URL(req.url).searchParams.get("sessionId")?.trim() || null
@@ -80,6 +82,13 @@ export async function GET(req: Request) {
   candidateIds.sort((a, b) => (soldMap.get(b) ?? 0) - (soldMap.get(a) ?? 0))
 
   return Response.json(await packListings(candidateIds.slice(0, 12), recommendationQuery, false))
+  } catch (e) {
+    console.error("[api/carousel/consultations]", e)
+    return Response.json(
+      { items: [] as CarouselItemJson[], recommendationQuery: null, ...dbUnavailablePayload(e) },
+      { status: 503 }
+    )
+  }
 }
 
 async function topSoldProductIds(since: Date, take: number): Promise<string[]> {

@@ -29,8 +29,13 @@ interface SidebarProps {
 
 export function Sidebar({ onCategoryClick, activeCategoryId, activeSubcategoryId }: SidebarProps) {
   const [expandedCats, setExpandedCats] = useState<string[]>([])
-  const { data, isLoading } = useSWR<{ categories: Cat[] }>("/api/categories", fetcher, {
-    refreshInterval: 30_000,
+  const { data, isLoading } = useSWR<{
+    categories: Cat[]
+    dbUnavailable?: boolean
+    staticFallback?: boolean
+    error?: string
+  }>("/api/categories", fetcher, {
+    refreshInterval: (latest) => (latest?.dbUnavailable ? 0 : 300_000),
   })
 
   const toggleCategory = (catId: string) => {
@@ -43,6 +48,15 @@ export function Sidebar({ onCategoryClick, activeCategoryId, activeSubcategoryId
     return (
       <aside className="flex h-[calc(100vh-80px)] w-[19rem] shrink-0 items-center justify-center self-start border-r border-border bg-card lg:sticky lg:top-[5.25rem]">
         <Loader2 className="h-8 w-8 animate-spin text-brand" />
+      </aside>
+    )
+  }
+
+  if (!data?.categories?.length && data?.dbUnavailable) {
+    return (
+      <aside className="h-[calc(100vh-80px)] w-[19rem] shrink-0 border-r border-border bg-card p-4 lg:sticky lg:top-[5.25rem]">
+        <p className="text-sm font-medium text-amber-900 dark:text-amber-200">Categories unavailable</p>
+        <p className="mt-2 text-xs text-muted-foreground">{data.error}</p>
       </aside>
     )
   }
@@ -62,7 +76,9 @@ export function Sidebar({ onCategoryClick, activeCategoryId, activeSubcategoryId
           <Grid3x3 className="h-5 w-5" strokeWidth={3} />
           Categories
         </h2>
-        <p className="mt-1 text-[11px] font-medium text-white/80">Browse by department</p>
+        <p className="mt-1 text-[11px] font-medium text-white/80">
+          {data.staticFallback ? "Offline taxonomy — connect DB for live counts" : "Browse by department"}
+        </p>
       </div>
 
       <div>

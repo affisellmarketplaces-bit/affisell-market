@@ -1,3 +1,4 @@
+import { dbUnavailablePayload } from "@/lib/prisma-db-error"
 import { prisma } from "@/lib/prisma"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 
@@ -13,6 +14,7 @@ function formatEurCents(cents: number): string {
 }
 
 export async function GET() {
+  try {
   const now = Date.now()
   const currentStart = new Date(now - 30 * MS_DAY)
   const currentEnd = new Date(now)
@@ -78,4 +80,11 @@ export async function GET() {
   }))
 
   return Response.json({ categories, chartData })
+  } catch (e) {
+    console.error("[api/analytics/barometer]", e)
+    return Response.json(
+      { categories: [], chartData: [], ...dbUnavailablePayload(e) },
+      { status: 503 }
+    )
+  }
 }

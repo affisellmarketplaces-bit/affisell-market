@@ -7,6 +7,7 @@ import PQueue from "p-queue"
 import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
 import { generateCategoryCard } from "@/lib/merchandise/generate-card"
 import { resolveMerchandisingDepartment } from "@/lib/merchandise/templates"
+import { dbUnavailablePayload } from "@/lib/prisma-db-error"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -59,6 +60,7 @@ function scoreProduct(views: number, basePriceCents: number): number {
 }
 
 export async function GET(request: NextRequest) {
+  try {
   const categoryParam = request.nextUrl.searchParams.get("category")?.trim() ?? ""
   const resolved = resolveMerchandisingDepartment(categoryParam)
   if (!resolved) {
@@ -178,4 +180,11 @@ export async function GET(request: NextRequest) {
     categoryId: root.id,
     items,
   })
+  } catch (e) {
+    console.error("[api/merchandise/generate]", e)
+    return NextResponse.json(
+      { title: "", categoryId: null, items: [], ...dbUnavailablePayload(e) },
+      { status: 503 }
+    )
+  }
 }

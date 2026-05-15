@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: affisell
+      POSTGRES_PASSWORD: affisell
+      POSTGRES_DB: affisell
+    volumes:
+      - affisell_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U affisell -d affisell"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  affisell_pg_data:

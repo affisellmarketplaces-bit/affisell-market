@@ -1,4 +1,5 @@
 import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
+import { dbUnavailablePayload } from "@/lib/prisma-db-error"
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
 
@@ -10,6 +11,7 @@ const MS_DAY = 24 * 60 * 60 * 1000
 type RankRow = { productId: string; c: bigint }
 
 export async function GET() {
+  try {
   const now = Date.now()
   const thirtyDaysAgo = new Date(now - 30 * MS_DAY)
   const sevenDaysAgo = new Date(now - 7 * MS_DAY)
@@ -101,4 +103,8 @@ export async function GET() {
     .filter((x): x is NonNullable<typeof x> => x != null)
 
   return Response.json({ items })
+  } catch (e) {
+    console.error("[api/products/bestsellers]", e)
+    return Response.json({ items: [], ...dbUnavailablePayload(e) }, { status: 503 })
+  }
 }

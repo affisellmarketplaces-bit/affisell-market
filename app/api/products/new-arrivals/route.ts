@@ -1,4 +1,5 @@
 import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
+import { dbUnavailablePayload } from "@/lib/prisma-db-error"
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
 import { publicPartnerSellerLabel } from "@/lib/public-seller-display"
@@ -7,6 +8,7 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 export async function GET() {
+  try {
   const listings = await prisma.affiliateProduct.findMany({
     where: {
       ...affiliateRoleMarketplaceWhere,
@@ -50,4 +52,8 @@ export async function GET() {
   }
 
   return Response.json({ items })
+  } catch (e) {
+    console.error("[api/products/new-arrivals]", e)
+    return Response.json({ items: [], ...dbUnavailablePayload(e) }, { status: 503 })
+  }
 }

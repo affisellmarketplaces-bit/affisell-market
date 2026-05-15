@@ -43,6 +43,7 @@ export function MarketplaceView() {
 
   const [products, setProducts] = useState<ProductRow[]>([])
   const [loading, setLoading] = useState(true)
+  const [dbUnavailable, setDbUnavailable] = useState<string | null>(null)
 
   useEffect(() => {
     const params = new URLSearchParams()
@@ -53,14 +54,24 @@ export function MarketplaceView() {
 
     const qs = params.toString()
     setLoading(true)
+    setDbUnavailable(null)
     const url = qs ? `/api/products?${qs}` : `/api/products`
 
     fetch(url)
-      .then((r) => r.json())
-      .then((data) => {
+      .then(async (r) => {
+        const data = (await r.json()) as {
+          products?: unknown
+          dbUnavailable?: boolean
+          error?: string
+        }
         setProducts(normalizeProducts(data))
+        if (data.dbUnavailable && data.error) setDbUnavailable(data.error)
+        else if (!r.ok) setDbUnavailable(data.error ?? "Could not load listings")
       })
-      .catch(() => setProducts([]))
+      .catch(() => {
+        setProducts([])
+        setDbUnavailable("Could not load listings")
+      })
       .finally(() => setLoading(false))
   }, [categoryId, subcategoryId, searchQuery])
 
@@ -151,6 +162,16 @@ export function MarketplaceView() {
           </div>
         </header>
 
+        {dbUnavailable ? (
+          <div
+            role="alert"
+            className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100"
+          >
+            <p className="font-semibold">Marketplace data temporarily unavailable</p>
+            <p className="mt-1 text-amber-900/90 dark:text-amber-200/90">{dbUnavailable}</p>
+          </div>
+        ) : null}
+
         <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-start">
           <div className="shrink-0 lg:sticky lg:top-[5.25rem] lg:self-start">
             <Sidebar
@@ -173,20 +194,39 @@ export function MarketplaceView() {
               </ul>
             ) : products.length === 0 ? (
               <div className="rounded-3xl border border-dashed border-violet-200/70 bg-white/80 px-6 py-16 text-center shadow-sm backdrop-blur-sm dark:border-violet-900/40 dark:bg-zinc-950/50">
-                <p className="text-lg font-medium text-zinc-900 dark:text-zinc-100">No listings match</p>
-                <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
-                  {hasFilters
-                    ? "Try another search or category, or reset filters to see everything in the marketplace."
-                    : "There are no published partner listings yet."}
-                </p>
-                {hasFilters ? (
-                  <Button type="button" className="mt-6 bg-violet-600 hover:bg-violet-700" onClick={clearFilters}>
-                    Show all listings
-                  </Button>
+                {dbUnavailable ? (
+                  <>
+                    <p className="text-lg font-medium text-amber-950 dark:text-amber-100">
+                      Database temporarily unavailable
+                    </p>
+                    <p className="mx-auto mt-2 max-w-lg text-sm text-amber-900/90 dark:text-amber-200/90">
+                      {dbUnavailable}
+                    </p>
+                    <p className="mx-auto mt-3 max-w-lg text-xs text-zinc-600 dark:text-zinc-400">
+                      Local dev: run{" "}
+                      <code className="rounded bg-zinc-100 px-1 py-0.5 dark:bg-zinc-800">npm run db:local:setup</code>{" "}
+                      and set DATABASE_URL in .env.local to
+                      postgresql://affisell:affisell@localhost:5433/affisell
+                    </p>
+                  </>
                 ) : (
-                  <Link href="/" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-6 inline-flex")}>
-                    Back home
-                  </Link>
+                  <>
+                    <p className="text-lg font-medium text-zinc-900 dark:text-zinc-100">No listings match</p>
+                    <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
+                      {hasFilters
+                        ? "Try another search or category, or reset filters to see everything in the marketplace."
+                        : "There are no published partner listings yet."}
+                    </p>
+                    {hasFilters ? (
+                      <Button type="button" className="mt-6 bg-violet-600 hover:bg-violet-700" onClick={clearFilters}>
+                        Show all listings
+                      </Button>
+                    ) : (
+                      <Link href="/" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-6 inline-flex")}>
+                        Back home
+                      </Link>
+                    )}
+                  </>
                 )}
               </div>
             ) : (

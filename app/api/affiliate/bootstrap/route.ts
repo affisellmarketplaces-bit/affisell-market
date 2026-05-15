@@ -2,18 +2,11 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { loadAffiliateDashboardListings } from "@/lib/affiliate-dashboard-data"
+import { dbUnavailablePayload } from "@/lib/prisma-db-error"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
-
-function friendlyDbError(e: unknown): string {
-  const message = e instanceof Error ? e.message : "Could not load dashboard data"
-  if (message.toLowerCase().includes("data transfer quota")) {
-    return "Database transfer quota exceeded on your hosting plan. Upgrade the plan or wait for the monthly reset."
-  }
-  return message
-}
 
 export async function GET() {
   const session = await auth()
@@ -40,9 +33,9 @@ export async function GET() {
     console.error("[affiliate/bootstrap]", e)
     return NextResponse.json(
       {
-        error: friendlyDbError(e),
         listings: [],
         storeSlug: null,
+        ...dbUnavailablePayload(e),
       },
       { status: 503 }
     )

@@ -5,6 +5,7 @@ import {
   AFFILIATE_DISCOVER_CATALOG_LIMIT,
   loadAffiliateDiscoverCatalog,
 } from "@/lib/affiliate-dashboard-data"
+import { dbUnavailablePayload } from "@/lib/prisma-db-error"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -24,11 +25,7 @@ export async function GET() {
     })
     return NextResponse.json({ products })
   } catch (e) {
-    const raw = e instanceof Error ? e.message : "Catalog load failed"
-    const message = raw.toLowerCase().includes("data transfer quota")
-      ? "Database transfer quota exceeded. Upgrade your hosting plan or try again later."
-      : raw
     console.error("[affiliate/discover-catalog]", e)
-    return NextResponse.json({ products: [], error: message }, { status: 503 })
+    return NextResponse.json({ products: [], ...dbUnavailablePayload(e) }, { status: 503 })
   }
 }
