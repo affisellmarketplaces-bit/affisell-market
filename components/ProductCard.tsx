@@ -4,6 +4,7 @@ import Link from "next/link"
 
 import { Heart } from "lucide-react"
 
+import { ProductDiscountTag } from "@/components/product-discount-tag"
 import { Badge } from "@/components/ui/badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { formatStoreCurrency } from "@/lib/market-config"
@@ -87,18 +88,9 @@ export function ProductCard({ product }: ProductCardProps) {
       )}
     >
       <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-white/50 bg-gradient-to-br from-violet-50/40 to-teal-50/25 dark:border-zinc-800/80 dark:from-violet-950/25 dark:to-teal-950/15">
-        {hasDiscount ? (
-          <Badge className="absolute left-3 top-3 z-10 rounded-full bg-red-500 px-3 py-1.5 font-black text-white hover:bg-red-500">
-            SAVE {discount}%
-          </Badge>
-        ) : null}
+        {hasDiscount ? <ProductDiscountTag percent={discount} /> : null}
         {p.isBestSeller ? (
-          <Badge
-            className={cn(
-              "absolute left-3 z-10 rounded-full bg-amber-500 px-3 py-1.5 font-black text-white hover:bg-amber-500",
-              hasDiscount ? "top-12" : "top-3"
-            )}
-          >
+          <Badge className="absolute bottom-2 left-2 z-10 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm hover:bg-amber-500">
             Best Seller
           </Badge>
         ) : null}

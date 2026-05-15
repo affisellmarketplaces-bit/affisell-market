@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 
+import { ProductDiscountTag } from "@/components/product-discount-tag"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { addGuestCartItem } from "@/lib/guest-cart"
 import { formatStoreCurrency } from "@/lib/market-config"
@@ -43,11 +44,7 @@ export function PremiumMarketplaceCard({
       className="group flex h-full w-full flex-col rounded-3xl border border-gray-100/90 bg-white/85 p-2 shadow-sm backdrop-blur-sm transition-shadow hover:border-violet-200/80 hover:shadow-lg hover:shadow-violet-500/5 dark:border-zinc-800 dark:bg-zinc-950/60 dark:hover:border-violet-800/50"
     >
       <div className="relative mb-3 aspect-square w-full shrink-0 overflow-hidden rounded-2xl border border-white/50 bg-gradient-to-br from-violet-50/40 to-teal-50/25 dark:border-zinc-800/80 dark:from-violet-950/25 dark:to-teal-950/15">
-        {hasDiscount ? (
-          <span className="absolute left-3 top-3 z-20 rounded-full bg-red-500 px-2.5 py-1 text-[11px] font-black text-white shadow">
-            SAVE {savePct}%
-          </span>
-        ) : null}
+        {hasDiscount ? <ProductDiscountTag percent={savePct} /> : null}
         {imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -63,9 +60,7 @@ export function PremiumMarketplaceCard({
         <WishlistHeart productId={productId} className="absolute right-3 top-3 z-20" />
         {showPremiumBadge ? (
           <span
-            className={`absolute left-3 z-[19] rounded-full bg-gradient-to-r from-violet-500 to-pink-500 px-2.5 py-1 text-[11px] font-semibold text-white shadow ${
-              hasDiscount ? "top-11" : "top-3"
-            }`}
+            className="absolute bottom-2 left-2 z-[19] rounded-full bg-gradient-to-r from-violet-500 to-pink-500 px-2.5 py-1 text-[11px] font-semibold text-white shadow"
           >
             Premium
           </span>
