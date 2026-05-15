@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Camera, Search, ShoppingCart, Wallet } from "lucide-react"
+import { motion } from "framer-motion"
 import type { FormEvent } from "react"
 import { useEffect, useRef, useState, useSyncExternalStore } from "react"
 import { useSession } from "next-auth/react"
@@ -138,7 +139,10 @@ export function SiteNav() {
         <span className="order-2 shrink-0 rounded-full bg-supplier-muted px-2 py-0.5 text-xs font-semibold text-supplier">
           Supplier
         </span>
-        <div className="order-3 flex w-full flex-wrap items-center justify-end gap-2 md:ml-auto md:w-auto">
+        <motion.div
+          layout
+          className="order-3 flex w-full flex-wrap items-center justify-end gap-2 md:ml-auto md:w-auto"
+        >
           <Link
             href="/dashboard/supplier/orders"
             className="rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
@@ -153,7 +157,7 @@ export function SiteNav() {
           </Link>
           <SupplierNotificationsMenu />
           <MerchantAccountNavActions />
-        </div>
+        </motion.div>
       </nav>
     )
   }
