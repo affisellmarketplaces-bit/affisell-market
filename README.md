@@ -12,7 +12,7 @@ Next.js marketplace for **suppliers** (catalog, base price, commission) and **af
 
 | Command | Purpose |
 |--------|---------|
-| `npm run dev` | Prisma generate + Next dev (port **3001**) |
+| `npm run dev` | Prisma generate + Next dev (default port **3001**; if busy, next free port up to +19) |
 | `npm run build` | Production build |
 | `npm run start` | Start production server |
 | `npm run lint` | ESLint |
@@ -20,7 +20,17 @@ Next.js marketplace for **suppliers** (catalog, base price, commission) and **af
 | `npm run test:watch` | Vitest watch mode |
 | `npm run test:e2e` | Playwright (`e2e/*.spec.ts`) |
 | `npm run test:e2e:ui` | Playwright UI mode |
-| `npm run db:push` / `db:migrate` | Prisma against `DATABASE_URL` |
+| `npm run db:push` / `db:migrate` | Prisma against `DATABASE_URL` (`db:migrate` = `migrate deploy`) |
+
+### Neon / empty `public` schema
+
+1. After `DROP SCHEMA public CASCADE; CREATE SCHEMA public;`, run **`npm run db:migrate`** only (`prisma migrate deploy`). That creates `_prisma_migrations` and applies every folder under `prisma/migrations/`.
+2. **Do not** run `npx prisma migrate resolve --rolled-back` (or `--applied`) on a database that has **no** `_prisma_migrations` table yet — Prisma throws `Invariant violation: called markMigrationRolledBack on a database without migrations table`. Use `migrate resolve` only to repair a **partially** migrated DB.
+3. Legacy migration names (e.g. `20260221200000_product_images_array`) are **not** in this repository; if your shell history still runs old commands, prefer **`npm run db:migrate`** after a schema drop.
+
+### Dev server port
+
+- Default **`PORT=3001`**. If something else listens on 3001, `npm run dev` automatically tries **3002, 3003, …** and prints which port it chose. Set `PORT` in `.env` to pin a value.
 
 ## CI
 
@@ -33,7 +43,7 @@ Vitest uses an empty `vitest-env/` as `envDir` so local `.env` is not read durin
 ### End-to-end (Playwright)
 
 - **Install browsers** (once per machine / CI image): `npx playwright install chromium`
-- **Run**: `npm run test:e2e` — starts `npm run dev` on **3001** unless the server is already up (`reuseExistingServer` outside CI), then runs all specs under `e2e/`.
+- **Run**: `npm run test:e2e` — starts `npm run dev` on **3001** (Playwright sets `PLAYWRIGHT_WEB_SERVER=1` + `PORT` so the dev script does not auto-switch ports; must match `baseURL`) unless the server is already up (`reuseExistingServer` outside CI), then runs all specs under `e2e/`.
 - **Point at another URL** (e.g. preview deploy): `PLAYWRIGHT_BASE_URL=https://… npm run test:e2e` and set `PLAYWRIGHT_SKIP_WEBSERVER=1` so Playwright does not spawn a local dev server.
 - **Smoke** (`e2e/smoke.spec.ts`): home hero, `/marketplace`, header **Cart** → `/cart`.
 - **Public flows** (`e2e/public-flows.spec.ts`): `/api/categories`, `GET /api/cart`, `/auth/signin`, `/login` → sign-in, `/discover`, `/wishlist` → sign-in.
@@ -47,7 +57,7 @@ Vitest uses an empty `vitest-env/` as `envDir` so local `.env` is not read durin
 ## i18n
 
 - Server: `i18n.ts` loads `messages/en.json` or `messages/fr.json` when `NEXT_PUBLIC_MESSAGES_LOCALE=fr`.
-- Client: `app/providers.tsx` mirrors the same env for `next-intl` client components.
+- Client: `app/root-intl-session.tsx` (`NextIntlClientProvider` + `timeZone="Europe/Paris"`).
 
 Money formatting stays tied to `NEXT_PUBLIC_MARKET_REGION` / storefront currency, not the message locale.
 
