@@ -1,3 +1,2 @@
--- AlterTable
-ALTER TABLE "Product" ADD COLUMN "descriptionIllustrationImages" TEXT[] DEFAULT ARRAY[]::TEXT[];
-ALTER TABLE "Product" ADD COLUMN "descriptionIllustrationVideos" TEXT[] DEFAULT ARRAY[]::TEXT[];
+-- No-op: schema created by baseline migration `20260430000000_baseline_schema`.
+SELECT 1;

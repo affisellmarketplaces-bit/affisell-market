@@ -1,1 +1,2 @@
-ALTER TABLE "Product" ADD COLUMN "descriptionBullets" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[];
+-- No-op: schema created by baseline migration `20260430000000_baseline_schema`.
+SELECT 1;

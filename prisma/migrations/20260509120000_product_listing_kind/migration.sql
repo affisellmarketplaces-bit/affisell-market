@@ -1,2 +1,2 @@
--- Affiliate listing kind: PHYSICAL (commission max 99%) vs SOFTWARE/SUBSCRIPTION (up to 100%).
-ALTER TABLE "Product" ADD COLUMN IF NOT EXISTS "listingKind" TEXT NOT NULL DEFAULT 'PHYSICAL';
+-- No-op: schema created by baseline migration `20260430000000_baseline_schema`.
+SELECT 1;

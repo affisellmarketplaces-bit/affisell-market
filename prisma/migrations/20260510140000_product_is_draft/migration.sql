@@ -1,5 +1,2 @@
--- AlterTable
-ALTER TABLE "Product" ADD COLUMN "isDraft" BOOLEAN NOT NULL DEFAULT false;
-
--- CreateIndex
-CREATE INDEX "Product_supplierId_isDraft_idx" ON "Product"("supplierId", "isDraft");
+-- No-op: schema created by baseline migration `20260430000000_baseline_schema`.
+SELECT 1;

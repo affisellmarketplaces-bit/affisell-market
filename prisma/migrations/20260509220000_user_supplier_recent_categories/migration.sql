@@ -1,1 +1,2 @@
-ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "supplierRecentCategories" JSONB NOT NULL DEFAULT '[]'::jsonb;
+-- No-op: schema created by baseline migration `20260430000000_baseline_schema`.
+SELECT 1;

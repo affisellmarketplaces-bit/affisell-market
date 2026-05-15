@@ -1,3 +1,2 @@
--- Supplier-configurable warehouse ship-from and return receiving addresses
-ALTER TABLE "Store" ADD COLUMN "shipFromAddress" JSONB;
-ALTER TABLE "Store" ADD COLUMN "returnAddress" JSONB;
+-- No-op: schema created by baseline migration `20260430000000_baseline_schema`.
+SELECT 1;
