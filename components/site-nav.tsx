@@ -16,6 +16,7 @@ import {
 } from "@/lib/guest-cart"
 import { normalizeCartVariantSignature } from "@/lib/cart-variant"
 import { MerchantAccountNavActions } from "@/components/merchant-account-nav-actions"
+import { SupplierNotificationsMenu } from "@/components/supplier/supplier-notifications-menu"
 import { VisualSearchModal } from "@/components/visual-search-modal"
 import { showBuyerCommerceInSiteHeader } from "@/lib/buyer-commerce"
 
@@ -133,7 +134,14 @@ export function SiteNav() {
           Affisell
         </Link>
         <span className="order-2 shrink-0 text-xs text-zinc-500 dark:text-zinc-400">Supplier</span>
-        <div className="order-3 flex w-full flex-wrap justify-end gap-2 md:ml-auto md:w-auto">
+        <div className="order-3 flex w-full flex-wrap items-center justify-end gap-2 md:ml-auto md:w-auto">
+          <Link
+            href="/dashboard/supplier/orders"
+            className="rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
+          >
+            Orders to ship
+          </Link>
+          <SupplierNotificationsMenu />
           <MerchantAccountNavActions />
         </div>
       </nav>

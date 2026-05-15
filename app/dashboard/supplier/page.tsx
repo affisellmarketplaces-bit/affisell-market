@@ -9,6 +9,7 @@ import {
   RotateCcw,
   Sparkles,
   Store,
+  Truck,
   Upload,
 } from "lucide-react"
 
@@ -16,6 +17,7 @@ import { BentoCard, BentoContainer, BentoStat, bentoGrid } from "@/components/af
 import { auth } from "@/auth"
 import { buttonVariants } from "@/components/ui/button"
 import { TERMINAL_RETURN_STATUSES } from "@/lib/order-return-types"
+import { countSupplierOrdersToShip } from "@/lib/supplier-orders-payload"
 import { prisma } from "@/lib/prisma"
 import { cn } from "@/lib/utils"
 
@@ -31,7 +33,7 @@ export default async function DashboardSupplierPage() {
   }
 
   const userId = session.user.id
-  const [liveSkuCount, draftCount, openReturnsCount] = await Promise.all([
+  const [liveSkuCount, draftCount, openReturnsCount, ordersToShipCount] = await Promise.all([
     prisma.product.count({ where: { supplierId: userId, active: true, isDraft: false } }),
     prisma.product.count({ where: { supplierId: userId, isDraft: true } }),
     prisma.orderReturn.count({
@@ -40,10 +42,12 @@ export default async function DashboardSupplierPage() {
         status: { notIn: [...TERMINAL_RETURN_STATUSES] },
       },
     }),
+    countSupplierOrdersToShip(userId),
   ])
 
   const quickLinks = [
     { label: "Browse marketplace", href: "/marketplace", Icon: Compass },
+    { label: "Orders to ship", href: "/dashboard/supplier/orders", Icon: Truck },
     { label: "All products", href: "/dashboard/supplier/products", Icon: Package },
     { label: "New listing", href: "/dashboard/supplier/products/new", Icon: PlusCircle },
     { label: "Returns inbox", href: "/dashboard/supplier/returns", Icon: RotateCcw },
@@ -121,7 +125,22 @@ export default async function DashboardSupplierPage() {
                 </div>
               </div>
 
-              <div className="mt-8 grid gap-6 border-t border-gray-100/90 pt-8 dark:border-zinc-800 sm:grid-cols-3">
+              <div className="mt-8 grid gap-6 border-t border-gray-100/90 pt-8 dark:border-zinc-800 sm:grid-cols-2 lg:grid-cols-4">
+                <BentoStat
+                  className="border-0 bg-transparent p-0 shadow-none backdrop-blur-none dark:bg-transparent"
+                  label="To ship"
+                  value={ordersToShipCount}
+                  valueClassName={ordersToShipCount > 0 ? "text-amber-600 dark:text-amber-400" : undefined}
+                  hint={
+                    ordersToShipCount > 0 ? (
+                      <Link href="/dashboard/supplier/orders" className="text-violet-700 underline-offset-2 hover:underline dark:text-violet-400">
+                        Open fulfillment queue →
+                      </Link>
+                    ) : (
+                      "New paid orders appear here"
+                    )
+                  }
+                />
                 <BentoStat
                   className="border-0 bg-transparent p-0 shadow-none backdrop-blur-none dark:bg-transparent"
                   label="Live on marketplace"
@@ -176,6 +195,30 @@ export default async function DashboardSupplierPage() {
                 >
                   <PlusCircle className="size-5" aria-hidden />
                   New listing
+                </Link>
+              </BentoCard>
+
+              <BentoCard className="flex flex-col gap-4 xl:col-span-5">
+                <div className="flex items-start gap-4">
+                  <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-900 dark:bg-amber-950/50 dark:text-amber-200">
+                    <Truck className="size-6" aria-hidden />
+                  </span>
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">Orders to ship</h2>
+                    <p className="text-sm leading-relaxed text-gray-600 dark:text-zinc-400">
+                      Paid marketplace orders with buyer shipping addresses.
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href="/dashboard/supplier/orders"
+                  className={cn(
+                    buttonVariants({ variant: "bentoAccent", size: "bento" }),
+                    "mt-auto inline-flex w-full justify-center sm:w-auto"
+                  )}
+                >
+                  <Truck className="size-5" aria-hidden />
+                  Fulfillment queue{ordersToShipCount > 0 ? ` (${ordersToShipCount})` : ""}
                 </Link>
               </BentoCard>
 

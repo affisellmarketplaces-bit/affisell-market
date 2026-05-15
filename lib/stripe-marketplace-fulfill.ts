@@ -131,7 +131,7 @@ export async function fulfillMarketplaceStripeSession(
           data: {
             userId: listing.product.supplierId,
             type: "NEW_ORDER",
-            message: `New order · ${listing.product.name}${variantBit} ×${qty} · ship to ${customerEmail}`,
+            message: `New order to ship · ${listing.product.name}${variantBit} ×${qty} · ${customerEmail}`,
             orderId: order.id,
           },
         })
@@ -228,7 +228,7 @@ export async function fulfillMarketplaceStripeSession(
       data: {
         userId: listing.product.supplierId,
         type: "NEW_ORDER",
-        message: `New order · ${listing.product.name}${variantBit} · ship to ${customerEmail}`,
+        message: `New order to ship · ${listing.product.name}${variantBit} · ${customerEmail}`,
         orderId: order.id,
       },
     })

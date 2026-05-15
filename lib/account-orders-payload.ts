@@ -29,6 +29,9 @@ export async function buildBuyerOrdersPayloadForEmail(customerEmail: string) {
       quantity: o.quantity,
       sellingPriceCents: o.sellingPriceCents,
       status: o.status,
+      shippedAt: o.shippedAt?.toISOString() ?? null,
+      trackingCarrier: o.trackingCarrier,
+      trackingNumber: o.trackingNumber,
       product: {
         id: o.product.id,
         name: o.product.name,

@@ -574,9 +574,16 @@ model Order {
   commissionCents          Int
   marginCents              Int
   affiliatePayoutCents     Int
+  /**
+   * paid = awaiting supplier shipment · shipped · refunded (returns flow may also apply)
+   */
   status                   String              @default("paid")
+  trackingCarrier          String?
+  trackingNumber           String?
+  shippedAt                DateTime?
   stripeSessionId          String              @unique
   createdAt                DateTime            @default(now())
+  updatedAt                DateTime            @updatedAt
   product                  Product             @relation(fields: [productId], references: [id])
   supplier                 User                @relation("SupplierOrders", fields: [supplierId], references: [id])
   affiliate                User                @relation("AffiliateOrders", fields: [affiliateId], references: [id])
