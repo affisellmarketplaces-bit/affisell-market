@@ -10,11 +10,17 @@ import { cn } from "@/lib/utils"
 
 type Props = {
   className?: string
-  /** When false, only sign out + delete (e.g. on `/dashboard/settings/account`). */
+  /** When false, only sign out (+ delete if enabled) on `/dashboard/settings/account`. */
   showAccountLink?: boolean
+  /** Delete account is only shown in account settings, not in the header. */
+  showDeleteAccount?: boolean
 }
 
-export function MerchantAccountNavActions({ className, showAccountLink = true }: Props) {
+export function MerchantAccountNavActions({
+  className,
+  showAccountLink = true,
+  showDeleteAccount = false,
+}: Props) {
   const [busy, setBusy] = useState<"delete" | null>(null)
   const [err, setErr] = useState<string | null>(null)
 
@@ -63,18 +69,20 @@ export function MerchantAccountNavActions({ className, showAccountLink = true }:
         <LogOut className="size-4 shrink-0" aria-hidden />
         Sign out
       </button>
-      <button
-        type="button"
-        disabled={busy === "delete"}
-        className={cn(
-          buttonVariants({ variant: "outline", size: "sm" }),
-          "gap-1.5 border-red-200 bg-white/90 text-red-700 hover:bg-red-50 disabled:opacity-60 dark:border-red-900/60 dark:bg-zinc-900/90 dark:text-red-400 dark:hover:bg-red-950/40"
-        )}
-        onClick={() => void deleteAccount()}
-      >
-        <Trash2 className="size-4 shrink-0" aria-hidden />
-        {busy === "delete" ? "Deleting…" : "Delete account"}
-      </button>
+      {showDeleteAccount ? (
+        <button
+          type="button"
+          disabled={busy === "delete"}
+          className={cn(
+            buttonVariants({ variant: "outline", size: "sm" }),
+            "gap-1.5 border-red-200 bg-white/90 text-red-700 hover:bg-red-50 disabled:opacity-60 dark:border-red-900/60 dark:bg-zinc-900/90 dark:text-red-400 dark:hover:bg-red-950/40"
+          )}
+          onClick={() => void deleteAccount()}
+        >
+          <Trash2 className="size-4 shrink-0" aria-hidden />
+          {busy === "delete" ? "Deleting…" : "Delete account"}
+        </button>
+      ) : null}
       {err ? <p className="w-full text-xs text-red-600 dark:text-red-400">{err}</p> : null}
     </div>
   )

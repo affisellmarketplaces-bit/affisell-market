@@ -103,7 +103,7 @@ export default async function AccountSettingsPage() {
                 permanent and is blocked if you already have marketplace orders in this role.
               </p>
             </div>
-            <MerchantAccountNavActions showAccountLink={false} />
+            <MerchantAccountNavActions showAccountLink={false} showDeleteAccount />
           </BentoCard>
         ) : null}
       </BentoContainer>
