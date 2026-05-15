@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { Package, Sparkles } from "lucide-react"
 
 import { BentoCard } from "@/components/affisell/bento-ui"
 import { Button } from "@/components/ui/button"
@@ -15,6 +16,7 @@ type OrderRow = {
   quantity: number
   sellingPriceCents: number
   status: string
+  supplierPreparingAt: string | null
   shippedAt: string | null
   trackingCarrier?: string | null
   trackingNumber?: string | null
@@ -49,6 +51,19 @@ function statusLabel(status: string) {
     CANCELLED: "Cancelled",
   }
   return map[status] ?? status
+}
+
+function orderFulfillmentTag(status: string, lang: "en" | "fr") {
+  if (status === "preparing") {
+    return lang === "fr" ? " · Préparation en cours" : " · Preparing your order"
+  }
+  if (status === "shipped") {
+    return lang === "fr" ? " · Expédiée" : " · Shipped"
+  }
+  if (status === "paid") {
+    return lang === "fr" ? " · Confirmée" : " · Confirmed"
+  }
+  return ""
 }
 
 export function AccountOrdersClient({
@@ -129,8 +144,34 @@ export function AccountOrdersClient({
               </p>
               <p className="mt-1 text-xs uppercase tracking-wider text-gray-500 dark:text-zinc-400">
                 {new Date(o.createdAt).toLocaleDateString()} · ×{o.quantity} · {formatStoreCurrencyFromCents(o.sellingPriceCents)}
-                {o.status === "shipped" ? " · Shipped" : ""}
+                {orderFulfillmentTag(o.status, lang)}
               </p>
+              {o.status === "preparing" ? (
+                <div className="mt-4 overflow-hidden rounded-2xl border border-sky-200/80 bg-gradient-to-br from-sky-50/95 via-white to-violet-50 p-4 shadow-[0_18px_50px_-28px_rgba(14,165,233,0.55)] dark:border-sky-900/50 dark:from-sky-950/45 dark:via-zinc-950 dark:to-violet-950/40">
+                  <div className="flex gap-3">
+                    <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl border border-sky-200/80 bg-white/90 text-sky-700 shadow-inner dark:border-sky-800/80 dark:bg-sky-950/40 dark:text-sky-200">
+                      <Package className="size-5 animate-[pulse_2.4s_ease-in-out_infinite]" aria-hidden />
+                    </div>
+                    <div className="min-w-0 space-y-1">
+                      <p className="flex flex-wrap items-center gap-1.5 text-sm font-semibold text-sky-950 dark:text-sky-50">
+                        <Sparkles className="size-3.5 text-sky-600 dark:text-sky-300" aria-hidden />
+                        {lang === "fr" ? "Votre vendeur prépare l’envoi" : "Your seller is preparing shipment"}
+                      </p>
+                      <p className="text-xs leading-relaxed text-sky-900/85 dark:text-sky-100/80">
+                        {lang === "fr"
+                          ? "Le produit est pris en charge et emballé. Vous recevrez le suivi dès l’expédition."
+                          : "They’ve confirmed your order is being packed. Tracking appears the moment the carrier scans the parcel."}
+                      </p>
+                      {o.supplierPreparingAt ? (
+                        <p className="text-[11px] text-sky-800/70 dark:text-sky-200/70">
+                          {lang === "fr" ? "Mise à jour" : "Since"}{" "}
+                          {new Date(o.supplierPreparingAt).toLocaleString()}
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              ) : null}
               {o.trackingNumber ? (
                 <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
                   Tracking: {o.trackingCarrier ?? "Carrier"} {o.trackingNumber}

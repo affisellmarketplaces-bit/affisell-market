@@ -43,7 +43,7 @@ export default async function SupplierOrdersPage() {
         <BentoPageHeading
           eyebrow="Fulfillment"
           title="Orders to ship"
-          description="Marketplace sales from affiliate storefronts appear here automatically after Stripe payment. Enter tracking and mark shipped when the parcel leaves your warehouse."
+          description="Stripe-confirmed marketplace orders land here instantly. Signal confidence while your team packs — buyers get alerted before tracking exists — then paste carrier details when the parcel scans out."
         />
 
         <SupplierOrdersPanel />

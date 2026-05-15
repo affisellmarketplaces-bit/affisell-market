@@ -22,7 +22,7 @@ const markShippedSchema = z
   })
   .strict()
 
-const patchSchema = z.union([markPreparingSchema, markShippedSchema])
+const patchSchema = z.discriminatedUnion("action", [markPreparingSchema, markShippedSchema])
 
 export async function PATCH(
   req: Request,
@@ -118,10 +118,6 @@ export async function PATCH(
 
   if (!["paid", "preparing"].includes(existing.status)) {
     return Response.json({ error: "Order is not awaiting shipment" }, { status: 409 })
-  }
-
-  if (parsed.data.action !== "mark_shipped") {
-    return Response.json({ error: "Invalid action" }, { status: 400 })
   }
 
   const carrier = parsed.data.trackingCarrier?.trim() || "Carrier"

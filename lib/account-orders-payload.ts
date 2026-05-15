@@ -158,6 +158,7 @@ export async function buildBuyerOrdersPayloadForEmail(customerEmail: string): Pr
       quantity: b.items.reduce((a, it) => a + it.quantity, 0) || 1,
       sellingPriceCents: b.totalPaidCents,
       status: b.status,
+      supplierPreparingAt: null,
       shippedAt: b.deliveredAt?.toISOString() ?? null,
       trackingCarrier: b.trackingCarrier,
       trackingNumber: b.trackingNumber,
