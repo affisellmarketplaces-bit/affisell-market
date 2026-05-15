@@ -1,2 +1,2 @@
--- No-op: schema created by baseline migration `20260430000000_baseline_schema`.
+-- Schéma aligné sur prisma/schema.prisma via la migration initiale 20260502120000.
 SELECT 1;
