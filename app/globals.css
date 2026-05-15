@@ -193,7 +193,7 @@
   }
 
   .affisell-quick-link {
-    @apply group inline-flex items-center gap-2 rounded-xl border border-zinc-200/90 bg-white/90 px-3.5 py-2 text-left text-[13px] font-medium text-zinc-800 shadow-sm transition dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100;
+    @apply inline-flex items-center gap-2 rounded-xl border border-zinc-200/90 bg-white/90 px-3.5 py-2 text-left text-[13px] font-medium text-zinc-800 shadow-sm transition dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100;
   }
 
   .affisell-quick-link__icon {

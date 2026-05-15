@@ -7,7 +7,7 @@ export const affisellBrand = {
   badgeBuyer: "affisell-badge affisell-badge--buyer",
   badgeSupplier: "affisell-badge affisell-badge--supplier",
   badgeAffiliate: "affisell-badge affisell-badge--affiliate",
-  quickLink: "affisell-quick-link",
+  quickLink: "group affisell-quick-link",
   quickLinkIconBrand: "affisell-quick-link__icon affisell-quick-link__icon--brand",
   quickLinkIconSupplier: "affisell-quick-link__icon affisell-quick-link__icon--supplier",
   quickLinkIconAffiliate: "affisell-quick-link__icon affisell-quick-link__icon--affiliate",
