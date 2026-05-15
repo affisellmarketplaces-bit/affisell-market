@@ -16,6 +16,15 @@ jobs:
           node-version: "20"
           cache: npm
 
+      - name: Verify package-lock.json is in sync
+        run: |
+          npm install --package-lock-only --ignore-scripts
+          if ! git diff --quiet package-lock.json; then
+            echo "::error::package-lock.json is out of sync with package.json. Run 'npm install' locally and commit package-lock.json."
+            git diff --stat package-lock.json
+            exit 1
+          fi
+
       - name: Install
         run: npm ci
 
