@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { Camera, Search, ShoppingCart } from "lucide-react"
+import { Camera, Search, ShoppingCart, Wallet } from "lucide-react"
 import type { FormEvent } from "react"
 import { useEffect, useRef, useState, useSyncExternalStore } from "react"
 import { useSession } from "next-auth/react"
@@ -17,8 +17,10 @@ import {
 import { normalizeCartVariantSignature } from "@/lib/cart-variant"
 import { MerchantAccountNavActions } from "@/components/merchant-account-nav-actions"
 import { SupplierNotificationsMenu } from "@/components/supplier/supplier-notifications-menu"
+import { buttonVariants } from "@/components/ui/button"
 import { VisualSearchModal } from "@/components/visual-search-modal"
 import { showBuyerCommerceInSiteHeader } from "@/lib/buyer-commerce"
+import { cn } from "@/lib/utils"
 
 function subscribeGuestCart(listener: () => void) {
   if (typeof window === "undefined") return () => {}
@@ -143,6 +145,12 @@ export function SiteNav() {
           >
             Orders to ship
           </Link>
+          <Link
+            href="/dashboard/supplier/balance"
+            className="rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
+          >
+            Balance &amp; sales
+          </Link>
           <SupplierNotificationsMenu />
           <MerchantAccountNavActions />
         </div>
@@ -208,7 +216,10 @@ export function SiteNav() {
         </form>
 
         <div className="order-2 flex shrink-0 flex-wrap items-center gap-4 md:order-3 md:gap-6">
-          <Link href="/agent" className="text-zinc-700 hover:underline dark:text-zinc-300">
+          <Link
+            href="/agent"
+            className="font-medium text-brand hover:text-brand-hover hover:underline dark:text-brand-light dark:hover:text-brand-light"
+          >
             Agent
           </Link>
           <Link href="/marketplace" className="text-zinc-700 hover:underline dark:text-zinc-300">
@@ -224,7 +235,7 @@ export function SiteNav() {
               </Link>
               <Link
                 href="/cart"
-                className="relative inline-flex items-center gap-1.5 text-zinc-700 hover:underline dark:text-zinc-300"
+                className="relative inline-flex items-center gap-1.5 font-medium text-blue-600 hover:text-blue-700 hover:underline dark:text-sky-400 dark:hover:text-sky-300"
               >
                 <ShoppingCart className={`h-4 w-4 ${bounce ? "animate-bounce" : ""}`} />
                 Cart
@@ -238,6 +249,16 @@ export function SiteNav() {
           ) : null}
           {showAffiliateMerchantActions ? (
             <div className="flex w-full basis-full flex-wrap justify-end gap-2 pt-1 md:ml-auto md:w-auto md:basis-auto md:pt-0">
+              <Link
+                href="/dashboard/affiliate/earnings"
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "sm" }),
+                  "gap-1.5 border-violet-200/80 bg-white/90 text-violet-800 hover:bg-violet-50 dark:border-violet-800/60 dark:bg-zinc-900/90 dark:text-violet-200 dark:hover:bg-violet-950/50"
+                )}
+              >
+                <Wallet className="size-4 shrink-0" aria-hidden />
+                Earnings
+              </Link>
               <MerchantAccountNavActions />
             </div>
           ) : null}

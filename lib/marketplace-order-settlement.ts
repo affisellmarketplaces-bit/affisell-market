@@ -66,9 +66,6 @@ export function formatSupplierNewOrderNotification(args: {
     `− Affisell marketplace (${AFFISELL_MARKETPLACE_FEE_PERCENT}%): ${money(s.affisellFeeCents)}`,
     `− Partner commission (your offer): ${money(s.affiliateCommissionCents)}`,
   ]
-  if (s.affiliateMarginRetainedCents > 0) {
-    lines.push(`− Partner markup retained: ${money(s.affiliateMarginRetainedCents)}`)
-  }
   lines.push(`Your wholesale (COGS): ${money(s.supplierNetCents)}`)
   return lines.join(" · ")
 }

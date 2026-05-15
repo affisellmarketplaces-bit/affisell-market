@@ -30,6 +30,7 @@ import {
   Trash2,
   UserRound,
   UsersRound,
+  Wallet,
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -554,6 +555,11 @@ export function AffiliateDashboard({ storeId }: Props) {
                         label: "Browse marketplace",
                         href: "/marketplace",
                         Icon: Compass,
+                      },
+                      {
+                        label: "Earnings cockpit",
+                        href: "/dashboard/affiliate/earnings",
+                        Icon: Wallet,
                       },
                       {
                         label: "Store profile",

@@ -39,5 +39,6 @@ describe("marketplace order settlement", () => {
     expect(msg).toContain("Affisell marketplace (10%)")
     expect(msg).toContain("Partner commission")
     expect(msg).toContain("Your wholesale")
+    expect(msg).not.toContain("markup retained")
   })
 })

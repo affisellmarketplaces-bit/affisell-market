@@ -9,6 +9,7 @@ import {
   RotateCcw,
   Sparkles,
   Store,
+  TrendingUp,
   Truck,
   Upload,
 } from "lucide-react"
@@ -49,6 +50,7 @@ export default async function DashboardSupplierPage() {
   const quickLinks = [
     { label: "Browse marketplace", href: "/marketplace", Icon: Compass },
     { label: "Orders to ship", href: "/dashboard/supplier/orders", Icon: Truck },
+    { label: "Balance & sales", href: "/dashboard/supplier/balance", Icon: TrendingUp },
     { label: "All products", href: "/dashboard/supplier/products", Icon: Package },
     { label: "New listing", href: "/dashboard/supplier/products/new", Icon: PlusCircle },
     { label: "Returns inbox", href: "/dashboard/supplier/returns", Icon: RotateCcw },

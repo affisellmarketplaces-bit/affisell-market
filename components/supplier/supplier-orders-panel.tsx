@@ -21,7 +21,6 @@ type OrderRow = {
   basePriceCents: number
   affisellFeeCents: number
   affiliateCommissionCents: number
-  affiliateMarginRetainedCents: number
   supplierNetCents: number
   createdAt: string
   shippedAt: string | null
@@ -203,9 +202,6 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
                   <ul className="mt-1 space-y-0.5 text-zinc-600 dark:text-zinc-400">
                     <li>− Affisell marketplace (10%): {formatStoreCurrencyFromCents(o.affisellFeeCents)}</li>
                     <li>− Partner commission: {formatStoreCurrencyFromCents(o.affiliateCommissionCents)}</li>
-                    {o.affiliateMarginRetainedCents > 0 ? (
-                      <li>− Partner markup: {formatStoreCurrencyFromCents(o.affiliateMarginRetainedCents)}</li>
-                    ) : null}
                     <li className="font-medium text-violet-800 dark:text-violet-300">
                       Your wholesale (COGS): {formatStoreCurrencyFromCents(o.supplierNetCents)}
                     </li>

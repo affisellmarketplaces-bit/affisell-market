@@ -6,6 +6,7 @@ import {
   mapMarketplaceOrder,
   supplierOrderInclude,
 } from "@/lib/supplier-orders-payload"
+import { toSupplierFulfillmentOrderPublic } from "@/lib/supplier-orders-public-api"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -99,5 +100,5 @@ export async function PATCH(
     return order
   })
 
-  return Response.json({ order: mapMarketplaceOrder(updated) })
+  return Response.json({ order: toSupplierFulfillmentOrderPublic(mapMarketplaceOrder(updated)) })
 }
