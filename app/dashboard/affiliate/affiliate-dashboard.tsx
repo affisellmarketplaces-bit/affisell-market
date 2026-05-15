@@ -204,21 +204,18 @@ function SortableStoreCard(props: {
 }
 
 type Props = {
-  catalog: CatalogProduct[]
   listings: Listing[]
   storeSlug: string | null
   storeId: string
 }
 
-export function AffiliateDashboard({
-  catalog: initialCatalog,
-  listings: initialListings,
-  storeSlug,
-  storeId,
-}: Props) {
+export function AffiliateDashboard({ listings: initialListings, storeSlug, storeId }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const productDeepLinkConsumed = useRef(false)
+  const [catalog, setCatalog] = useState<CatalogProduct[]>([])
+  const [catalogLoading, setCatalogLoading] = useState(true)
+  const [catalogError, setCatalogError] = useState<string | null>(null)
   const [tab, setTab] = useState<"catalog" | "store">("catalog")
   const [listings, setListings] = useState<Listing[]>(() =>
     [...initialListings].sort(sortAffiliateListingByPosition)
@@ -232,6 +229,30 @@ export function AffiliateDashboard({
     // Sync when RSC refetches after reorder/save — local state otherwise holds DnD order.
     setListings([...initialListings].sort(sortAffiliateListingByPosition))
   }, [initialListings])
+
+  useEffect(() => {
+    let cancelled = false
+    setCatalogLoading(true)
+    setCatalogError(null)
+    void fetch("/api/affiliate/discover-catalog", { credentials: "include" })
+      .then(async (r) => {
+        const data = (await r.json()) as { products?: CatalogProduct[]; error?: string }
+        if (!r.ok) throw new Error(data.error ?? "Could not load catalog")
+        if (!cancelled) setCatalog(Array.isArray(data.products) ? data.products : [])
+      })
+      .catch((e: unknown) => {
+        if (!cancelled) {
+          setCatalog([])
+          setCatalogError(e instanceof Error ? e.message : "Could not load catalog")
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setCatalogLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const reorderPersist = useCallback(
     async (next: Listing[]) => {
@@ -305,7 +326,9 @@ export function AffiliateDashboard({
 
   function openEditModal(productId: string) {
     const listingRow = listings.find((l) => l.productId === productId)
-    const p = initialCatalog.find((x) => x.id === productId)
+    const p =
+      catalog.find((x) => x.id === productId) ??
+      (listingRow?.product && listingRow.product.id === productId ? listingRow.product : null)
     if (listingRow && p) openEdit(listingRow, p)
   }
 
@@ -338,12 +361,12 @@ export function AffiliateDashboard({
   }
 
   useEffect(() => {
-    if (productDeepLinkConsumed.current) return
+    if (productDeepLinkConsumed.current || catalogLoading) return
     const pid = searchParams.get("productId")?.trim()
     if (!pid) return
     productDeepLinkConsumed.current = true
 
-    const p = initialCatalog.find((x) => x.id === pid)
+    const p = catalog.find((x) => x.id === pid)
     if (!p) {
       setToast("That product isn’t in this Discover batch. Browse the marketplace to find more SKUs.")
       router.replace("/dashboard/affiliate", { scroll: false })
@@ -362,7 +385,7 @@ export function AffiliateDashboard({
     router.replace("/dashboard/affiliate", { scroll: false })
     // One-shot deep link — handlers intentionally omitted from deps
     // eslint-disable-next-line react-hooks/exhaustive-deps -- consume `productId` once on landing
-  }, [initialCatalog, router, searchParams])
+  }, [catalog, catalogLoading, router, searchParams])
 
   const ids = listings.map((l) => l.id)
 
@@ -370,8 +393,8 @@ export function AffiliateDashboard({
     Boolean(l.product)
   )
   const listedLiveCount = listingsWithProduct.filter((l) => l.isListed).length
-  const discoverSkuCount = initialCatalog.length
-  const addableSkuCount = initialCatalog.filter((p) => !(p.affiliateProducts?.length ?? 0)).length
+  const discoverSkuCount = catalog.length
+  const addableSkuCount = catalog.filter((p) => !(p.affiliateProducts?.length ?? 0)).length
 
   const [discoverQ, setDiscoverQ] = useState("")
   const [discoverSort, setDiscoverSort] = useState<DiscoverSortKey>("new")
@@ -387,7 +410,7 @@ export function AffiliateDashboard({
   )
 
   const filteredDiscover = useMemo(() => {
-    let rows = [...initialCatalog]
+    let rows = [...catalog]
     if (discoverUnlistedOnly) rows = rows.filter((p) => !(p.affiliateProducts?.length ?? 0))
     const q = discoverQ.trim().toLowerCase()
     if (q) {
@@ -418,7 +441,7 @@ export function AffiliateDashboard({
       }
     })
     return rows
-  }, [initialCatalog, discoverQ, discoverSort, discoverUnlistedOnly])
+  }, [catalog, discoverQ, discoverSort, discoverUnlistedOnly])
 
   return (
     <main className="min-h-[calc(100dvh-3.75rem)]">
@@ -632,13 +655,51 @@ export function AffiliateDashboard({
                 </div>
               </div>
               <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400">
-                Showing <strong className="font-semibold text-zinc-800 dark:text-zinc-200">{filteredDiscover.length}</strong>{" "}
-                of {discoverSkuCount} surfaced SKUs
-                {discoverUnlistedOnly ? <> · hides rows already imported</> : null}
+                {catalogLoading ? (
+                  <>Loading discover feed…</>
+                ) : (
+                  <>
+                    Showing{" "}
+                    <strong className="font-semibold text-zinc-800 dark:text-zinc-200">{filteredDiscover.length}</strong> of{" "}
+                    {discoverSkuCount} surfaced SKUs
+                    {discoverUnlistedOnly ? <> · hides rows already imported</> : null}
+                  </>
+                )}
               </p>
             </div>
 
-            {filteredDiscover.length === 0 ? (
+            {catalogError ? (
+              <div className="mt-10 rounded-2xl border border-amber-200 bg-amber-50/90 px-6 py-8 text-center dark:border-amber-900/50 dark:bg-amber-950/30">
+                <p className="text-sm font-semibold text-amber-950 dark:text-amber-100">Discover feed unavailable</p>
+                <p className="mx-auto mt-2 max-w-md text-sm text-amber-900/80 dark:text-amber-200/80">{catalogError}</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCatalogLoading(true)
+                    setCatalogError(null)
+                    void fetch("/api/affiliate/discover-catalog", { credentials: "include" })
+                      .then(async (r) => {
+                        const data = (await r.json()) as { products?: CatalogProduct[]; error?: string }
+                        if (!r.ok) throw new Error(data.error ?? "Could not load catalog")
+                        setCatalog(Array.isArray(data.products) ? data.products : [])
+                      })
+                      .catch((e: unknown) => {
+                        setCatalogError(e instanceof Error ? e.message : "Could not load catalog")
+                      })
+                      .finally(() => setCatalogLoading(false))
+                  }}
+                  className="mt-4 rounded-xl bg-amber-900 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-800 dark:bg-amber-100 dark:text-amber-950 dark:hover:bg-white"
+                >
+                  Retry
+                </button>
+              </div>
+            ) : catalogLoading ? (
+              <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="aspect-[4/5] animate-pulse rounded-2xl bg-zinc-100 dark:bg-zinc-800/80" />
+                ))}
+              </div>
+            ) : filteredDiscover.length === 0 ? (
               <div className="mt-10 rounded-2xl border border-dashed border-zinc-300 bg-white/70 px-6 py-16 text-center dark:border-zinc-700 dark:bg-zinc-950/40">
                 <BadgePercent className="mx-auto h-10 w-10 text-violet-500" aria-hidden />
                 <p className="mt-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">No matches</p>

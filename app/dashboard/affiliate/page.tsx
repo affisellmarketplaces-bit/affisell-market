@@ -3,6 +3,7 @@ import { Suspense } from "react"
 
 import { BentoCard, BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
 import { auth } from "@/auth"
+import { loadAffiliateDashboardListings } from "@/lib/affiliate-dashboard-data"
 import { prisma } from "@/lib/prisma"
 
 import { AffiliateDashboard } from "./affiliate-dashboard"
@@ -15,26 +16,12 @@ export default async function AffiliateDashboardPage() {
   if (session.user.role === "SUPPLIER") redirect("/dashboard/supplier")
   if (session.user.role !== "AFFILIATE") redirect("/marketplace")
 
-  const [catalogProducts, listings, store] = await Promise.all([
-    prisma.product.findMany({
-      where: { active: true },
-      include: {
-        affiliateProducts: {
-          where: { affiliateId: session.user.id },
-          select: { id: true, isListed: true },
-        },
-        supplier: { include: { store: true } },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 100,
-    }),
-    prisma.affiliateProduct.findMany({
-      where: { affiliateId: session.user.id },
-      include: { product: true },
-      orderBy: [{ position: "asc" }, { id: "asc" }],
-    }),
+  const affiliateId = session.user.id
+
+  const [listings, store] = await Promise.all([
+    loadAffiliateDashboardListings(affiliateId),
     prisma.store.findUnique({
-      where: { userId: session.user.id },
+      where: { userId: affiliateId },
       select: { slug: true },
     }),
   ])
@@ -52,10 +39,9 @@ export default async function AffiliateDashboardPage() {
       }
     >
       <AffiliateDashboard
-        catalog={JSON.parse(JSON.stringify(catalogProducts))}
         listings={JSON.parse(JSON.stringify(listings))}
         storeSlug={store?.slug ?? null}
-        storeId={session.user.id}
+        storeId={affiliateId}
       />
     </Suspense>
   )
