@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma"
 
-const MARKETPLACE_DONE = ["paid", "shipped"] as const
+const MARKETPLACE_DONE = ["paid", "preparing", "shipped"] as const
 const BLIND_COUNTABLE = ["paid", "fulfilling", "shipped", "awaiting_manual_payment"] as const
 
 function startOfUtcDay(d: Date): Date {

@@ -12,13 +12,17 @@ import { prisma } from "@/lib/prisma"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-const patchSchema = z
+const markPreparingSchema = z.object({ action: z.literal("mark_preparing") }).strict()
+
+const markShippedSchema = z
   .object({
     action: z.literal("mark_shipped"),
     trackingCarrier: z.string().max(80).optional(),
     trackingNumber: z.string().min(1).max(120),
   })
   .strict()
+
+const patchSchema = z.union([markPreparingSchema, markShippedSchema])
 
 export async function PATCH(
   req: Request,
@@ -61,8 +65,63 @@ export async function PATCH(
   if (!existing) {
     return Response.json({ error: "Order not found" }, { status: 404 })
   }
-  if (existing.status !== "paid") {
+  if (parsed.data.action === "mark_preparing") {
+    if (existing.status !== "paid") {
+      return Response.json(
+        {
+          error:
+            existing.status === "preparing"
+              ? "Order is already marked as preparing."
+              : "Only paid orders can move to preparing.",
+        },
+        { status: 409 }
+      )
+    }
+
+    const updated = await prisma.$transaction(async (tx) => {
+      const order = await tx.order.update({
+        where: { id: orderId },
+        data: {
+          status: "preparing",
+          supplierPreparingAt: new Date(),
+        },
+        include: supplierOrderInclude,
+      })
+
+      const productName = existing.product?.name ?? "Your order"
+
+      if (order.buyerUserId) {
+        await tx.notification.create({
+          data: {
+            userId: order.buyerUserId,
+            type: "ORDER_PREPARING",
+            message: `Good news · ${productName} — your seller confirmed the order is being packed. Tracking will drop as soon as the parcel ships. Bonne nouvelle · ${productName} — votre vendeur prépare votre commande.`,
+            orderId: order.id,
+          },
+        })
+      }
+
+      await tx.notification.create({
+        data: {
+          userId: order.affiliateId,
+          type: "ORDER_PREP_UPDATE",
+          message: `Fulfillment · ${productName} — supplier started preparing the package; your buyer gets the same heads-up in “My orders”.`,
+          orderId: order.id,
+        },
+      })
+
+      return order
+    })
+
+    return Response.json({ order: toSupplierFulfillmentOrderPublic(mapMarketplaceOrder(updated)) })
+  }
+
+  if (!["paid", "preparing"].includes(existing.status)) {
     return Response.json({ error: "Order is not awaiting shipment" }, { status: 409 })
+  }
+
+  if (parsed.data.action !== "mark_shipped") {
+    return Response.json({ error: "Invalid action" }, { status: 400 })
   }
 
   const carrier = parsed.data.trackingCarrier?.trim() || "Carrier"

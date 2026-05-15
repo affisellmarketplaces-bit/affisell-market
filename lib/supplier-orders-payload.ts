@@ -57,6 +57,8 @@ export type SupplierFulfillmentOrder = {
   payoutStatus: string
   payoutEligibleAt: string | null
   deliveryConfirmedAt: string | null
+  supplierPreparingAt: string | null
+  canMarkPreparing: boolean
 }
 
 type SupplierOrderRow = Prisma.OrderGetPayload<{ include: typeof orderInclude }>
@@ -68,7 +70,14 @@ export function mapMarketplaceOrder(o: SupplierOrderRow): SupplierFulfillmentOrd
     id: o.id,
     fulfillmentSource: "marketplace",
     status: o.status,
-    displayStatus: o.status === "paid" ? "To ship" : o.status === "shipped" ? "Shipped" : o.status,
+    displayStatus:
+      o.status === "paid"
+        ? "Awaiting packing"
+        : o.status === "preparing"
+          ? "Preparing"
+          : o.status === "shipped"
+            ? "Shipped"
+            : o.status,
     quantity: o.quantity,
     variantLabel: o.variantLabel,
     customerEmail: o.customerEmail,
@@ -84,7 +93,9 @@ export function mapMarketplaceOrder(o: SupplierOrderRow): SupplierFulfillmentOrd
     trackingCarrier: o.trackingCarrier,
     trackingNumber: o.trackingNumber,
     shippingAddressFormatted: formatOrderShippingAddress(o.shippingAddress),
-    canMarkShipped: o.status === "paid",
+    canMarkPreparing: o.status === "paid",
+    canMarkShipped: o.status === "paid" || o.status === "preparing",
+    supplierPreparingAt: o.supplierPreparingAt?.toISOString() ?? null,
     product: {
       id: o.product.id,
       name: o.product.name,
@@ -189,6 +200,8 @@ function mapBlindOrder(
     trackingNumber: order.trackingNumber,
     shippingAddressFormatted: formatOrderShippingAddress(order.shippingAddress),
     canMarkShipped: false,
+    canMarkPreparing: false,
+    supplierPreparingAt: null,
     product: {
       id: first.product.id,
       name: names,
@@ -216,9 +229,9 @@ function mapBlindOrder(
 }
 
 function marketplaceStatusFilter(tab: "to_ship" | "shipped" | "all") {
-  if (tab === "to_ship") return { status: "paid" as const }
+  if (tab === "to_ship") return { status: { in: ["paid", "preparing"] as string[] } }
   if (tab === "shipped") return { status: "shipped" as const }
-  return { status: { in: ["paid", "shipped"] as string[] } }
+  return { status: { in: ["paid", "preparing", "shipped"] as string[] } }
 }
 
 function blindStatusFilter(tab: "to_ship" | "shipped" | "all"): string[] {
@@ -282,7 +295,7 @@ export async function countSupplierOrdersToShip(supplierId: string): Promise<num
   })
 
   const [marketplace, blind] = await Promise.all([
-    prisma.order.count({ where: { supplierId, status: "paid" } }),
+    prisma.order.count({ where: { supplierId, status: { in: ["paid", "preparing"] } } }),
     blindProfile
       ? prisma.blindDropshipOrder.count({
           where: {

@@ -18,6 +18,7 @@ export type BuyerOrderRow = {
   quantity: number
   sellingPriceCents: number
   status: string
+  supplierPreparingAt: string | null
   shippedAt: string | null
   trackingCarrier: string | null
   trackingNumber: string | null
@@ -87,6 +88,7 @@ export async function buildBuyerOrdersPayloadForEmail(customerEmail: string): Pr
       quantity: o.quantity,
       sellingPriceCents: o.sellingPriceCents,
       status: o.status,
+      supplierPreparingAt: o.supplierPreparingAt?.toISOString() ?? null,
       shippedAt: o.shippedAt?.toISOString() ?? null,
       trackingCarrier: o.trackingCarrier,
       trackingNumber: o.trackingNumber,

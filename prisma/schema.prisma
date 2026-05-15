@@ -584,9 +584,13 @@ model Order {
    */
   affiliateMarginRetainedCents Int             @default(0)
   /**
-   * paid = awaiting supplier shipment · shipped · refunded (returns flow may also apply)
+   * Marketplace line: paid → preparing (seller packing + buyer notified) → shipped · refunded …
    */
   status                   String              @default("paid")
+  /**
+   * Set when seller confirms they received / are packing; triggers buyer-visible “preparing” state.
+   */
+  supplierPreparingAt      DateTime?
   trackingCarrier          String?
   trackingNumber           String?
   shippedAt                DateTime?

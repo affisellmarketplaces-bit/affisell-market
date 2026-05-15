@@ -57,8 +57,8 @@ export async function POST(req: Request, ctx: { params: Promise<{ orderId: strin
     return Response.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  if (order.status !== "paid") {
-    return Response.json({ error: "Returns are only available for paid orders" }, { status: 400 })
+  if (order.status !== "paid" && order.status !== "preparing" && order.status !== "shipped") {
+    return Response.json({ error: "Returns are not available for this order state." }, { status: 400 })
   }
 
   if (!isWithinReturnWindow(order)) {
