@@ -18,7 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang={STOREFRONT_HTML_LANG}>
       <body className="min-h-screen text-gray-900 [font-family:Inter,system-ui] dark:text-zinc-50">
-        <Providers>
+        <Providers timeZone="Europe/Paris">
           <header className="border-b border-gray-100/90 bg-white/80 px-4 py-3 shadow-sm backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/90">
             <Suspense fallback={<HeaderFallback />}>
               <SiteNav />
