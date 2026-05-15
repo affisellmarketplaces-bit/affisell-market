@@ -54,7 +54,7 @@ import { primaryProductImage } from "@/lib/product-images"
 type CatalogProduct = {
   id: string
   name: string
-  description: string
+  description?: string
   images: string[]
   categories?: string[]
   colors?: string[]
@@ -204,31 +204,57 @@ function SortableStoreCard(props: {
 }
 
 type Props = {
-  listings: Listing[]
-  storeSlug: string | null
   storeId: string
 }
 
-export function AffiliateDashboard({ listings: initialListings, storeSlug, storeId }: Props) {
+export function AffiliateDashboard({ storeId }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const productDeepLinkConsumed = useRef(false)
+  const [storeSlug, setStoreSlug] = useState<string | null>(null)
+  const [bootstrapLoading, setBootstrapLoading] = useState(true)
+  const [bootstrapError, setBootstrapError] = useState<string | null>(null)
   const [catalog, setCatalog] = useState<CatalogProduct[]>([])
   const [catalogLoading, setCatalogLoading] = useState(true)
   const [catalogError, setCatalogError] = useState<string | null>(null)
   const [tab, setTab] = useState<"catalog" | "store">("catalog")
-  const [listings, setListings] = useState<Listing[]>(() =>
-    [...initialListings].sort(sortAffiliateListingByPosition)
-  )
+  const [listings, setListings] = useState<Listing[]>([])
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [toast, setToast] = useState<string | null>(null)
   const [modalProduct, setModalProduct] = useState<CatalogProduct | null>(null)
   const [modalListing, setModalListing] = useState<SerializedListing | null>(null)
 
   useEffect(() => {
-    // Sync when RSC refetches after reorder/save — local state otherwise holds DnD order.
-    setListings([...initialListings].sort(sortAffiliateListingByPosition))
-  }, [initialListings])
+    let cancelled = false
+    setBootstrapLoading(true)
+    setBootstrapError(null)
+    void fetch("/api/affiliate/bootstrap", { credentials: "include" })
+      .then(async (r) => {
+        const data = (await r.json()) as {
+          listings?: Listing[]
+          storeSlug?: string | null
+          error?: string
+        }
+        if (!cancelled) {
+          if (Array.isArray(data.listings)) {
+            setListings([...data.listings].sort(sortAffiliateListingByPosition))
+          }
+          setStoreSlug(data.storeSlug ?? null)
+          if (!r.ok) setBootstrapError(data.error ?? "Could not load your storefront data")
+        }
+      })
+      .catch((e: unknown) => {
+        if (!cancelled) {
+          setBootstrapError(e instanceof Error ? e.message : "Could not load your storefront data")
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setBootstrapLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -254,6 +280,34 @@ export function AffiliateDashboard({ listings: initialListings, storeSlug, store
     }
   }, [])
 
+  const refreshDashboardData = useCallback(async () => {
+    try {
+      const [bootRes, catRes] = await Promise.all([
+        fetch("/api/affiliate/bootstrap", { credentials: "include" }),
+        fetch("/api/affiliate/discover-catalog", { credentials: "include" }),
+      ])
+      const boot = (await bootRes.json()) as {
+        listings?: Listing[]
+        storeSlug?: string | null
+        error?: string
+      }
+      const cat = (await catRes.json()) as { products?: CatalogProduct[]; error?: string }
+      if (Array.isArray(boot.listings)) {
+        setListings([...boot.listings].sort(sortAffiliateListingByPosition))
+      }
+      setStoreSlug(boot.storeSlug ?? null)
+      setBootstrapError(bootRes.ok ? null : (boot.error ?? "Could not load your storefront data"))
+      if (catRes.ok && Array.isArray(cat.products)) {
+        setCatalog(cat.products)
+        setCatalogError(null)
+      } else if (!catRes.ok) {
+        setCatalogError(cat.error ?? "Could not load catalog")
+      }
+    } catch {
+      setBootstrapError("Could not refresh dashboard data")
+    }
+  }, [])
+
   const reorderPersist = useCallback(
     async (next: Listing[]) => {
       await fetch("/api/affiliate/products/reorder", {
@@ -262,9 +316,8 @@ export function AffiliateDashboard({ listings: initialListings, storeSlug, store
         credentials: "include",
         body: JSON.stringify({ orderedIds: next.map((l) => l.id) }),
       }).catch(() => null)
-      router.refresh()
     },
-    [router]
+    []
   )
 
   const sensors = useSensors(
@@ -299,7 +352,6 @@ export function AffiliateDashboard({ listings: initialListings, storeSlug, store
     setListings((prev) =>
       prev.map((l) => (l.id === listingId ? { ...l, isListed: !cur } : l)).sort(sortAffiliateListingByPosition)
     )
-    router.refresh()
   }
 
   async function bulkPatch(opts: { isFeatured?: boolean; isListed?: boolean }) {
@@ -316,11 +368,33 @@ export function AffiliateDashboard({ listings: initialListings, storeSlug, store
     if (opts.isListed === false) setToast("Unlisted selections")
     else if (opts.isFeatured === true) setToast("Featured selections")
     else setToast("Updated selections")
-    router.refresh()
+    void refreshDashboardData()
   }
 
-  function openCreate(p: CatalogProduct) {
-    setModalProduct(p)
+  async function loadProductForModal(productId: string): Promise<CatalogProduct | null> {
+    const cached = catalog.find((x) => x.id === productId)
+    if (cached?.description != null && cached.variants !== undefined) return cached
+
+    try {
+      const r = await fetch(`/api/affiliate/catalog-product/${encodeURIComponent(productId)}`, {
+        credentials: "include",
+      })
+      const data = (await r.json()) as { product?: CatalogProduct; error?: string }
+      if (!r.ok || !data.product) {
+        setToast(data.error ?? "Could not load product details")
+        return cached ?? null
+      }
+      return data.product
+    } catch {
+      setToast("Could not load product details")
+      return cached ?? null
+    }
+  }
+
+  async function openCreate(p: CatalogProduct) {
+    const full = await loadProductForModal(p.id)
+    if (!full) return
+    setModalProduct(full)
     setModalListing(null)
   }
 
@@ -329,11 +403,12 @@ export function AffiliateDashboard({ listings: initialListings, storeSlug, store
     const p =
       catalog.find((x) => x.id === productId) ??
       (listingRow?.product && listingRow.product.id === productId ? listingRow.product : null)
-    if (listingRow && p) openEdit(listingRow, p)
+    if (listingRow && p) void openEdit(listingRow, p)
   }
 
-  function openEdit(listing: Listing, p: CatalogProduct) {
-    setModalProduct(p)
+  async function openEdit(listing: Listing, p: CatalogProduct) {
+    const full = (await loadProductForModal(p.id)) ?? p
+    setModalProduct(full)
     setModalListing({
       id: listing.id,
       productId: listing.productId,
@@ -379,8 +454,7 @@ export function AffiliateDashboard({ listings: initialListings, storeSlug, store
     })
 
     const isAdded = (p.affiliateProducts?.length ?? 0) > 0
-    if (isAdded) openEditModal(pid)
-    else openCreate(p)
+    void (isAdded ? openEditModal(pid) : openCreate(p))
 
     router.replace("/dashboard/affiliate", { scroll: false })
     // One-shot deep link — handlers intentionally omitted from deps
@@ -446,6 +520,15 @@ export function AffiliateDashboard({ listings: initialListings, storeSlug, store
   return (
     <main className="min-h-[calc(100dvh-3.75rem)]">
       <div className="mx-auto max-w-6xl px-4 py-8 md:px-8 md:py-10">
+        {bootstrapError ? (
+          <div
+            role="alert"
+            className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100"
+          >
+            <p className="font-semibold">Storefront data unavailable</p>
+            <p className="mt-1 text-amber-900/90 dark:text-amber-200/90">{bootstrapError}</p>
+          </div>
+        ) : null}
         <header className={affisellBrand.headerShell}>
           <div className={affisellBrand.headerMesh} aria-hidden />
           <div className="relative p-6 sm:p-8">
@@ -937,7 +1020,7 @@ export function AffiliateDashboard({ listings: initialListings, storeSlug, store
                             return n
                           })
                         }
-                        onEdit={() => openEdit(l, l.product)}
+                        onEdit={() => void openEdit(l, l.product)}
                         onToggleList={() => void toggleList(l.id, l.isListed)}
                       />
                     ))}
@@ -959,7 +1042,7 @@ export function AffiliateDashboard({ listings: initialListings, storeSlug, store
           }}
           onSaved={() => {
             setToast("Saved.")
-            router.refresh()
+            void refreshDashboardData()
           }}
         />
 

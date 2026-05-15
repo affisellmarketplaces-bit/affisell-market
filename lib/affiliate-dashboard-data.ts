@@ -2,17 +2,22 @@ import type { Prisma } from "@prisma/client"
 
 import { prisma } from "@/lib/prisma"
 
-/** Fields needed for discover grid + listing builder — excludes heavy media / review blobs. */
-export function affiliateCatalogProductSelect(affiliateId: string): Prisma.ProductSelect {
+const supplierPick = {
+  select: {
+    email: true,
+    store: { select: { name: true, slug: true } },
+  },
+} as const
+
+/** Discover grid cards — no long description / variants JSON. */
+export function affiliateDiscoverCardSelect(affiliateId: string): Prisma.ProductSelect {
   return {
     id: true,
     name: true,
-    description: true,
     images: true,
     categories: true,
     colors: true,
     tags: true,
-    variants: true,
     basePriceCents: true,
     commissionRate: true,
     deliveryMax: true,
@@ -21,34 +26,29 @@ export function affiliateCatalogProductSelect(affiliateId: string): Prisma.Produ
       where: { affiliateId },
       select: { id: true, isListed: true },
     },
-    supplier: {
-      select: {
-        email: true,
-        store: { select: { name: true, slug: true } },
-      },
-    },
+    supplier: supplierPick,
   }
 }
 
-export const affiliateListingProductSelect = {
+/** Listing builder / edit modal — single product, loaded on demand. */
+export function affiliateCatalogProductDetailSelect(affiliateId: string): Prisma.ProductSelect {
+  return {
+    ...affiliateDiscoverCardSelect(affiliateId),
+    description: true,
+    variants: true,
+  }
+}
+
+/** My storefront cards — minimal nested product payload. */
+export const affiliateListingCardProductSelect = {
   id: true,
   name: true,
-  description: true,
   images: true,
-  categories: true,
   colors: true,
-  tags: true,
-  variants: true,
   basePriceCents: true,
   commissionRate: true,
   deliveryMax: true,
-  createdAt: true,
-  supplier: {
-    select: {
-      email: true,
-      store: { select: { name: true, slug: true } },
-    },
-  },
+  supplier: supplierPick,
 } satisfies Prisma.ProductSelect
 
 const affiliateListingRowSelect = {
@@ -73,19 +73,19 @@ const affiliateListingRowSelect = {
   promotedSize: true,
 } satisfies Prisma.AffiliateProductSelect
 
-export const AFFILIATE_DISCOVER_CATALOG_LIMIT = 48
+export const AFFILIATE_DISCOVER_CATALOG_LIMIT = 24
 
 export async function loadAffiliateDiscoverCatalog(affiliateId: string, opts?: { take?: number }) {
   const take = opts?.take ?? AFFILIATE_DISCOVER_CATALOG_LIMIT
   return prisma.product.findMany({
     where: { active: true, isDraft: false },
-    select: affiliateCatalogProductSelect(affiliateId),
+    select: affiliateDiscoverCardSelect(affiliateId),
     orderBy: { createdAt: "desc" },
     take,
   })
 }
 
-/** Listings with nested product — one product query, no duplicate catalog fetch. */
+/** Listings + slim product rows (two small queries). */
 export async function loadAffiliateDashboardListings(affiliateId: string) {
   const rows = await prisma.affiliateProduct.findMany({
     where: { affiliateId },
@@ -98,7 +98,7 @@ export async function loadAffiliateDashboardListings(affiliateId: string) {
     productIds.length > 0
       ? await prisma.product.findMany({
           where: { id: { in: productIds } },
-          select: affiliateListingProductSelect,
+          select: affiliateListingCardProductSelect,
         })
       : []
   const byId = new Map(products.map((p) => [p.id, p]))

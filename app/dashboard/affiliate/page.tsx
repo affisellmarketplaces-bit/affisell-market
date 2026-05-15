@@ -3,28 +3,17 @@ import { Suspense } from "react"
 
 import { BentoCard, BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
 import { auth } from "@/auth"
-import { loadAffiliateDashboardListings } from "@/lib/affiliate-dashboard-data"
-import { prisma } from "@/lib/prisma"
 
 import { AffiliateDashboard } from "./affiliate-dashboard"
 
 export const dynamic = "force-dynamic"
 
+/** No Prisma on SSR — hosted DB may block queries when transfer quota is exceeded. */
 export default async function AffiliateDashboardPage() {
   const session = await auth()
   if (!session?.user?.id) redirect("/login?callbackUrl=/dashboard/affiliate")
   if (session.user.role === "SUPPLIER") redirect("/dashboard/supplier")
   if (session.user.role !== "AFFILIATE") redirect("/marketplace")
-
-  const affiliateId = session.user.id
-
-  const [listings, store] = await Promise.all([
-    loadAffiliateDashboardListings(affiliateId),
-    prisma.store.findUnique({
-      where: { userId: affiliateId },
-      select: { slug: true },
-    }),
-  ])
 
   return (
     <Suspense
@@ -38,11 +27,7 @@ export default async function AffiliateDashboardPage() {
         </BentoShell>
       }
     >
-      <AffiliateDashboard
-        listings={JSON.parse(JSON.stringify(listings))}
-        storeSlug={store?.slug ?? null}
-        storeId={affiliateId}
-      />
+      <AffiliateDashboard storeId={session.user.id} />
     </Suspense>
   )
 }
