@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client"
 
 import { aggregateBlindLinesForSupplier } from "@/lib/blind-dropship-settlement"
 import { formatOrderShippingAddress } from "@/lib/order-shipping-address"
+import { orderPayoutTiming, payoutStatusLabel } from "@/lib/order-payout-policy"
 import { prisma } from "@/lib/prisma"
 
 const orderInclude = {
@@ -51,6 +52,11 @@ export type SupplierFulfillmentOrder = {
     storeSlug: string | null
   }
   openReturn: { id: string; status: string } | null
+  supplierPayoutAt: string | null
+  affiliatePayoutAt: string | null
+  payoutStatus: string
+  payoutEligibleAt: string | null
+  deliveryConfirmedAt: string | null
 }
 
 type SupplierOrderRow = Prisma.OrderGetPayload<{ include: typeof orderInclude }>
@@ -92,6 +98,11 @@ export function mapMarketplaceOrder(o: SupplierOrderRow): SupplierFulfillmentOrd
       storeSlug: store?.slug ?? null,
     },
     openReturn: openReturn ? { id: openReturn.id, status: openReturn.status } : null,
+    supplierPayoutAt: o.supplierPayoutAt?.toISOString() ?? null,
+    affiliatePayoutAt: o.affiliatePayoutAt?.toISOString() ?? null,
+    payoutStatus: payoutStatusLabel(o),
+    payoutEligibleAt: orderPayoutTiming(o)?.payoutEligibleAt?.toISOString() ?? null,
+    deliveryConfirmedAt: o.deliveryConfirmedAt?.toISOString() ?? null,
   }
 }
 
@@ -111,6 +122,16 @@ function mapBlindOrder(
     shippingAddress: unknown
     createdAt: Date
     updatedAt: Date
+    totalPaidCents: number
+    totalCostCents: number
+    affisellFeeCents: number
+    affiliateCommissionCents: number
+    affiliateMarginRetainedCents: number
+    deliveredAt: Date | null
+    deliveryConfirmedAt: Date | null
+    supplierPayoutAt: Date | null
+    affiliatePayoutAt: Date | null
+    payoutEligibleAt: Date | null
     trackingCarrier: string | null
     trackingNumber: string | null
     affiliate: { id: string; name: string | null; store: { name: string; slug: string } | null }
@@ -181,6 +202,16 @@ function mapBlindOrder(
       storeSlug: store?.slug ?? null,
     },
     openReturn: null,
+    supplierPayoutAt: order.supplierPayoutAt?.toISOString() ?? null,
+    affiliatePayoutAt: order.affiliatePayoutAt?.toISOString() ?? null,
+    payoutStatus:
+      order.supplierPayoutAt && order.affiliatePayoutAt
+        ? "Paid out"
+        : order.payoutEligibleAt && new Date() >= order.payoutEligibleAt
+          ? "Payout pending"
+          : blindDisplayStatus(order.status),
+    payoutEligibleAt: order.payoutEligibleAt?.toISOString() ?? null,
+    deliveryConfirmedAt: order.deliveryConfirmedAt?.toISOString() ?? null,
   }
 }
 

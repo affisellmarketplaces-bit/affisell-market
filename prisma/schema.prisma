@@ -59,6 +59,7 @@ model User {
    * Marketplace orders where this user was the logged-in buyer (optional).
    */
   buyerMarketplaceOrders  Order[]             @relation("BuyerMarketplaceOrders")
+  merchantPayoutLedger    MerchantPayoutLedger[]
 
   blindDropshipAffiliateOrders BlindDropshipOrder[] @relation("BlindDropshipAffiliateOrders")
   blindDropshipBuyerOrders     BlindDropshipOrder[] @relation("BlindDropshipBuyerOrders")
@@ -589,6 +590,15 @@ model Order {
   trackingCarrier          String?
   trackingNumber           String?
   shippedAt                DateTime?
+  /** Carrier / supplier marked shipped — start of delivery & payout timers. */
+  deliveredAt              DateTime?
+  /** Buyer confirmed receipt, or auto after 10d silence. */
+  deliveryConfirmedAt      DateTime?
+  deliveryConfirmedBy      String?
+  /** When supplier + affiliate payouts may run (confirm+7d or auto at delivered+10d). */
+  payoutEligibleAt         DateTime?
+  supplierPayoutAt         DateTime?
+  affiliatePayoutAt        DateTime?
   stripeSessionId          String              @unique
   createdAt                DateTime            @default(now())
   updatedAt                DateTime            @updatedAt
@@ -597,6 +607,30 @@ model Order {
   affiliate                User                @relation("AffiliateOrders", fields: [affiliateId], references: [id])
   returns                  OrderReturn[]
   buyerRewardLedgerEntries BuyerRewardLedger[]
+  merchantPayoutLedger     MerchantPayoutLedger[]
+}
+
+/**
+ * Supplier / affiliate payout & clawback audit (idempotent keys per order + role).
+ */
+model MerchantPayoutLedger {
+  id                   String              @id @default(cuid())
+  orderId              String?
+  order                Order?              @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  blindDropshipOrderId String?
+  blindDropshipOrder   BlindDropshipOrder? @relation(fields: [blindDropshipOrderId], references: [id], onDelete: Cascade)
+  userId               String
+  user                 User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  beneficiaryRole      String
+  entryType            String
+  amountCents          Int
+  idempotencyKey       String              @unique
+  note                 String?             @db.Text
+  createdAt            DateTime            @default(now())
+
+  @@index([orderId])
+  @@index([blindDropshipOrderId])
+  @@index([userId, createdAt])
 }
 
 /**
@@ -751,12 +785,19 @@ model BlindDropshipOrder {
   stripePaymentIntentId String?  @unique
   trackingCarrier       String?
   trackingNumber        String?
+  deliveredAt           DateTime?
+  deliveryConfirmedAt   DateTime?
+  deliveryConfirmedBy   String?
+  payoutEligibleAt      DateTime?
+  supplierPayoutAt      DateTime?
+  affiliatePayoutAt     DateTime?
   lastFulfillError      String?  @db.Text
   inngestRunId          String?
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
-  items BlindDropshipOrderItem[]
+  items                  BlindDropshipOrderItem[]
+  merchantPayoutLedger   MerchantPayoutLedger[]
 
   @@index([affiliateId, status])
   @@index([status, createdAt])

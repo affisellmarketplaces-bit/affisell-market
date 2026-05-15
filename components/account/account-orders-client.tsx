@@ -10,10 +10,19 @@ import { cn } from "@/lib/utils"
 
 type OrderRow = {
   id: string
+  fulfillmentSource?: "marketplace" | "blind_dropship"
   createdAt: string
   quantity: number
   sellingPriceCents: number
   status: string
+  shippedAt: string | null
+  trackingCarrier?: string | null
+  trackingNumber?: string | null
+  deliveredAt: string | null
+  deliveryConfirmedAt: string | null
+  canConfirmDelivery: boolean
+  payoutEligibleAt: string | null
+  payoutPolicy: { daysAfterConfirm: number; autoConfirmDays: number }
   product: { id: string; name: string; imageUrl: string | null }
   returnWindowEndsAt: string
   returnEligible: boolean
@@ -110,10 +119,64 @@ export function AccountOrdersClient({
               ) : null}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-base font-semibold text-gray-900 dark:text-white">{o.product.name}</p>
+              <p className="text-base font-semibold text-gray-900 dark:text-white">
+                {o.product.name}
+                {o.fulfillmentSource === "blind_dropship" ? (
+                  <span className="ml-2 rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-violet-800 dark:bg-violet-950/60 dark:text-violet-200">
+                    Blind
+                  </span>
+                ) : null}
+              </p>
               <p className="mt-1 text-xs uppercase tracking-wider text-gray-500 dark:text-zinc-400">
                 {new Date(o.createdAt).toLocaleDateString()} · ×{o.quantity} · {formatStoreCurrencyFromCents(o.sellingPriceCents)}
+                {o.status === "shipped" ? " · Shipped" : ""}
               </p>
+              {o.trackingNumber ? (
+                <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
+                  Tracking: {o.trackingCarrier ?? "Carrier"} {o.trackingNumber}
+                </p>
+              ) : null}
+              {o.canConfirmDelivery ? (
+                <div className="mt-3 rounded-lg border border-violet-200 bg-violet-50/80 p-3 dark:border-violet-900/50 dark:bg-violet-950/30">
+                  <p className="text-sm text-violet-950 dark:text-violet-100">
+                    Received and satisfied? Confirm delivery — seller payouts run after {o.payoutPolicy.daysAfterConfirm}{" "}
+                    days. Without confirmation, payouts may still release after {o.payoutPolicy.autoConfirmDays} days from
+                    shipment. Your statutory withdrawal right remains during the return window.
+                  </p>
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="mt-2"
+                    disabled={busyId === o.id}
+                    onClick={async () => {
+                      setError(null)
+                      setBusyId(o.id)
+                      try {
+                        const res = await fetch(`/api/account/orders/${o.id}/confirm-delivery`, {
+                          method: "POST",
+                        })
+                        const j = (await res.json().catch(() => ({}))) as { error?: string; message?: string }
+                        if (!res.ok) {
+                          setError(j.error ?? "Could not confirm")
+                          return
+                        }
+                        await refresh()
+                      } finally {
+                        setBusyId(null)
+                      }
+                    }}
+                  >
+                    Confirm receipt & satisfaction
+                  </Button>
+                </div>
+              ) : o.deliveryConfirmedAt ? (
+                <p className="mt-2 text-xs text-emerald-800 dark:text-emerald-200">
+                  Delivery confirmed · {new Date(o.deliveryConfirmedAt).toLocaleDateString()}
+                  {o.payoutEligibleAt
+                    ? ` · merchant payouts from ${new Date(o.payoutEligibleAt).toLocaleDateString()}`
+                    : null}
+                </p>
+              ) : null}
               {o.activeReturn ? (
                 <div className="mt-2 space-y-1 text-sm">
                   <p>

@@ -70,20 +70,33 @@ export async function POST(req: NextRequest) {
       supplierOrderId: supplier_order_id,
       blindDropshipSupplierId: sid,
     },
-    include: { order: true },
+    include: { order: { select: { id: true, customerEmail: true, buyerUserId: true } } },
   })
   if (!item) {
     return NextResponse.json({ error: "Order line not found for supplier_order_id" }, { status: 404 })
   }
 
+  const now = new Date()
   await prisma.blindDropshipOrder.update({
     where: { id: item.blindDropshipOrderId },
     data: {
       trackingNumber: tracking_number,
       trackingCarrier: tracking_carrier ?? "Carrier",
       status: "shipped",
+      deliveredAt: now,
     },
   })
+
+  if (item.order.buyerUserId) {
+    await prisma.notification.create({
+      data: {
+        userId: item.order.buyerUserId,
+        type: "ORDER_SHIPPED",
+        message: `Your blind dropship order has shipped · ${tracking_carrier ?? "Carrier"} ${tracking_number}. Confirm receipt in My orders when satisfied (merchant payouts after 7 days). Withdrawal rights remain during the return window.`,
+        orderId: null,
+      },
+    })
+  }
 
   const emailResult = await sendBlindDropshipShippedEmail({
     to: item.order.customerEmail,

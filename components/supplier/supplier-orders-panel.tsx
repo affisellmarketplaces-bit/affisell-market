@@ -41,6 +41,9 @@ type OrderRow = {
     storeSlug: string | null
   }
   openReturn: { id: string; status: string } | null
+  payoutStatus: string
+  payoutEligibleAt: string | null
+  supplierPayoutAt: string | null
 }
 
 type Tab = "to_ship" | "shipped" | "all"
@@ -227,9 +230,16 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
                     </>
                   ) : null}
                 </p>
+                <p className="mt-1 text-xs text-zinc-500">
+                  Merchant payout: <span className="font-medium">{o.payoutStatus}</span>
+                  {o.payoutEligibleAt && !o.supplierPayoutAt
+                    ? ` · from ${new Date(o.payoutEligibleAt).toLocaleDateString()}`
+                    : null}
+                  {o.supplierPayoutAt ? ` · paid ${new Date(o.supplierPayoutAt).toLocaleDateString()}` : null}
+                </p>
                 {o.openReturn ? (
                   <p className="mt-2 text-xs text-amber-800 dark:text-amber-200">
-                    Open return ({o.openReturn.status}) —{" "}
+                    Open return ({o.openReturn.status}) — payouts on hold —{" "}
                     <Link href="/dashboard/supplier/returns" className="underline">
                       Returns inbox
                     </Link>

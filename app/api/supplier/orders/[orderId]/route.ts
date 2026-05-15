@@ -75,6 +75,7 @@ export async function PATCH(
         trackingCarrier: carrier,
         trackingNumber: tracking,
         shippedAt: new Date(),
+        deliveredAt: new Date(),
       },
       include: supplierOrderInclude,
     })
@@ -89,7 +90,7 @@ export async function PATCH(
         data: {
           userId: order.buyerUserId,
           type: "ORDER_SHIPPED",
-          message: `Your order has shipped · ${order.product.name} · ${carrier} ${tracking}`,
+          message: `Your order has shipped · ${order.product.name} · ${carrier} ${tracking}. Confirm receipt in My orders when satisfied (payouts release 7 days later). Your right of withdrawal remains available during the return window.`,
           orderId: order.id,
         },
       })

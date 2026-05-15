@@ -1,5 +1,6 @@
 import { auth } from "@/auth"
 import { reverseBuyerRewardEarnOnRefund } from "@/lib/buyer-reward-ledger"
+import { clawbackOrderPayoutsOnRefund } from "@/lib/order-payout"
 import { prisma } from "@/lib/prisma"
 import { supplierActionToNextStatus } from "@/lib/order-return-state"
 
@@ -135,6 +136,11 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ returnId: str
     await reverseBuyerRewardEarnOnRefund(prisma, {
       orderId: ret.orderId,
       refundFraction: frac,
+    })
+    await clawbackOrderPayoutsOnRefund(ret.orderId)
+    await prisma.order.update({
+      where: { id: ret.orderId },
+      data: { status: "refunded" },
     })
   }
 
