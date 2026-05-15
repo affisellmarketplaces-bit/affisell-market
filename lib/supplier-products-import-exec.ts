@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client"
 
 import { createNewDropCommunityPost } from "@/lib/community-new-drop"
+import { scheduleProductAutoCategorization } from "@/lib/product-auto-categorize"
 import {
   catalogHexForColorName,
   type ProductColorImageRow,
@@ -457,6 +458,10 @@ export async function executeSupplierProductsImport(args: {
       } catch {
         /* non-fatal */
       }
+    }
+
+    if (active) {
+      scheduleProductAutoCategorization(product.id)
     }
   }
 

@@ -14,6 +14,7 @@ import {
   parseDescriptionIllustrationImages,
   parseDescriptionIllustrationVideos,
 } from "@/lib/supplier-product-description-illustrations"
+import { scheduleProductAutoCategorization } from "@/lib/product-auto-categorize"
 import {
   defaultAffiliateCommissionPct,
   normalizeAffiliateCommissionRatePct,
@@ -211,6 +212,9 @@ export async function POST(req: Request) {
       } catch {
         /* non-fatal */
       }
+    }
+    if (!categoryId) {
+      scheduleProductAutoCategorization(product.id)
     }
   }
 

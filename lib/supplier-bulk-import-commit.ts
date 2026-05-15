@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client"
 
 import { createNewDropCommunityPost } from "@/lib/community-new-drop"
+import { scheduleProductAutoCategorization } from "@/lib/product-auto-categorize"
 import { prisma } from "@/lib/prisma"
 import { parseProductAttributesBody } from "@/lib/supplier-product-attributes"
 import { parseSupplierProductShippingBody } from "@/lib/supplier-product-shipping"
@@ -118,6 +119,10 @@ export async function insertBulkParsedProduct(
     } catch {
       /* non-fatal */
     }
+  }
+
+  if (!categoryId) {
+    scheduleProductAutoCategorization(product.id)
   }
 
   return { id: product.id, name: product.name }

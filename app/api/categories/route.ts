@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 
+import { countListedProductsInCategoryScope } from "@/lib/marketplace-category-counts"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
@@ -15,13 +16,11 @@ export async function GET() {
         icon: true,
         slug: true,
         order: true,
-        _count: { select: { products: true } },
         subcategories: {
           select: {
             id: true,
             name: true,
             slug: true,
-            _count: { select: { products: true } },
           },
           orderBy: { name: "asc" },
         },
@@ -29,25 +28,28 @@ export async function GET() {
       orderBy: { order: "asc" },
     })
 
-    const categoriesWithCounts = categories.map((cat) => {
-      const subcategories = cat.subcategories.map((sub) => ({
-        id: sub.id,
-        name: sub.name,
-        slug: sub.slug,
-        count: sub._count.products,
-      }))
-      const nestedSum = subcategories.reduce((sum, sub) => sum + sub.count, 0)
-      const direct = cat._count.products
-      return {
-        id: cat.id,
-        name: cat.name,
-        icon: cat.icon,
-        slug: cat.slug,
-        order: cat.order,
-        count: direct + nestedSum,
-        subcategories,
-      }
-    })
+    const categoriesWithCounts = await Promise.all(
+      categories.map(async (cat) => {
+        const subcategories = await Promise.all(
+          cat.subcategories.map(async (sub) => ({
+            id: sub.id,
+            name: sub.name,
+            slug: sub.slug,
+            count: await countListedProductsInCategoryScope(prisma, sub.id),
+          }))
+        )
+        const count = await countListedProductsInCategoryScope(prisma, cat.id)
+        return {
+          id: cat.id,
+          name: cat.name,
+          icon: cat.icon,
+          slug: cat.slug,
+          order: cat.order,
+          count,
+          subcategories,
+        }
+      })
+    )
 
     return NextResponse.json({ categories: categoriesWithCounts })
   } catch (e) {

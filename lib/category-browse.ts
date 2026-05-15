@@ -130,6 +130,34 @@ export function pathFromLeafId(
   return out.length ? out : null
 }
 
+/** All category ids in a subtree (node + descendants) for marketplace filters. */
+export async function collectCategorySubtreeIds(
+  prisma: PrismaClient,
+  rootId: string
+): Promise<string[]> {
+  const rows = await prisma.category.findMany({
+    select: { id: true, parentId: true },
+  })
+  const childrenByParent = new Map<string, string[]>()
+  for (const r of rows) {
+    if (!r.parentId) continue
+    if (!childrenByParent.has(r.parentId)) childrenByParent.set(r.parentId, [])
+    childrenByParent.get(r.parentId)!.push(r.id)
+  }
+  const out = new Set<string>([rootId])
+  const stack = [rootId]
+  while (stack.length > 0) {
+    const id = stack.pop()!
+    for (const kid of childrenByParent.get(id) ?? []) {
+      if (!out.has(kid)) {
+        out.add(kid)
+        stack.push(kid)
+      }
+    }
+  }
+  return [...out]
+}
+
 export async function fetchAllCategoriesForBrowse(prisma: PrismaClient): Promise<BrowseNode[]> {
   const rows = await prisma.category.findMany({
     select: { id: true, name: true, parentId: true, icon: true, order: true },

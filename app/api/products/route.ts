@@ -5,6 +5,7 @@ import type { Prisma } from "@prisma/client"
 
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
 import { listingDisplayTitle, listingGalleryUrls } from "@/lib/affiliate-listing-display"
+import { buildCategoryScopeProductFilter } from "@/lib/marketplace-category-product-filter"
 import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
 import { prisma } from "@/lib/prisma"
 import { publicStoreLabelFromAffiliateRow } from "@/lib/public-seller-display"
@@ -74,18 +75,10 @@ async function marketplaceListingWhere(
     isDraft: false,
   }
 
-  if (subcategoryId) {
-    productFilters.categoryId = subcategoryId
-  } else if (categoryId) {
-    const category = await prisma.category.findUnique({
-      where: { id: categoryId },
-      include: { subcategories: { select: { id: true } } },
-    })
-    if (category) {
-      productFilters.categoryId = {
-        in: [category.id, ...category.subcategories.map((s) => s.id)],
-      }
-    }
+  const scopeRootId = subcategoryId ?? categoryId
+  if (scopeRootId) {
+    const categoryScope = await buildCategoryScopeProductFilter(prisma, scopeRootId)
+    Object.assign(productFilters, categoryScope)
   }
 
   const andParts: Prisma.AffiliateProductWhereInput[] = [

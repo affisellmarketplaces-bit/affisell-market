@@ -7,6 +7,7 @@ import {
   findSupplierProductWithAttributesForOwner,
 } from "@/lib/supplier-product-is-draft-fallback"
 import { createNewDropCommunityPost } from "@/lib/community-new-drop"
+import { scheduleProductAutoCategorization } from "@/lib/product-auto-categorize"
 import { parseProductAttributesBody } from "@/lib/supplier-product-attributes"
 import { parseCompareAtDraftLax, parseCompareAtStrict } from "@/lib/supplier-product-compare-at"
 import { parseDescriptionBullets } from "@/lib/supplier-product-description-bullets"
@@ -302,6 +303,11 @@ export async function PUT(
         /* non-fatal */
       }
     }
+  }
+
+  const isLive = !updated.isDraft && updated.active
+  if (isLive && !categoryId) {
+    scheduleProductAutoCategorization(updated.id)
   }
 
   return Response.json(updated)
