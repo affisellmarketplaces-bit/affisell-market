@@ -16,6 +16,10 @@ type OrderRow = {
   customerEmail: string
   sellingPriceCents: number
   basePriceCents: number
+  affisellFeeCents: number
+  affiliateCommissionCents: number
+  affiliateMarginRetainedCents: number
+  supplierNetCents: number
   createdAt: string
   shippedAt: string | null
   trackingCarrier: string | null
@@ -177,10 +181,23 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
                   <p className="text-xs text-zinc-500">SKU: {o.product.supplierSku}</p>
                 ) : null}
                 <p className="mt-1 text-xs text-zinc-500">
-                  ×{o.quantity} · {formatStoreCurrencyFromCents(o.sellingPriceCents)} paid · COGS{" "}
-                  {formatStoreCurrencyFromCents(o.basePriceCents)} ·{" "}
-                  {new Date(o.createdAt).toLocaleString()}
+                  ×{o.quantity} · {new Date(o.createdAt).toLocaleString()}
                 </p>
+                <div className="mt-2 rounded-lg border border-zinc-100 bg-white/80 px-2.5 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-900/60">
+                  <p className="font-medium text-zinc-800 dark:text-zinc-200">
+                    Sale total {formatStoreCurrencyFromCents(o.sellingPriceCents)}
+                  </p>
+                  <ul className="mt-1 space-y-0.5 text-zinc-600 dark:text-zinc-400">
+                    <li>− Affisell marketplace (10%): {formatStoreCurrencyFromCents(o.affisellFeeCents)}</li>
+                    <li>− Partner commission: {formatStoreCurrencyFromCents(o.affiliateCommissionCents)}</li>
+                    {o.affiliateMarginRetainedCents > 0 ? (
+                      <li>− Partner markup: {formatStoreCurrencyFromCents(o.affiliateMarginRetainedCents)}</li>
+                    ) : null}
+                    <li className="font-medium text-violet-800 dark:text-violet-300">
+                      Your wholesale (COGS): {formatStoreCurrencyFromCents(o.supplierNetCents)}
+                    </li>
+                  </ul>
+                </div>
                 <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
                   Buyer: <span className="font-medium">{o.customerEmail}</span>
                   {o.affiliate.storeName ? (

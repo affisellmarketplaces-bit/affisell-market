@@ -1,11 +1,29 @@
 import type { Prisma } from "@prisma/client"
 import type Stripe from "stripe"
 
-import { prisma } from "@/lib/prisma"
 import { formatCartVariantLabel, parseCartVariantSignature } from "@/lib/cart-variant"
 import { buyerEarnCentsForLinePaid } from "@/lib/buyer-reward-earn"
 import { earnBuyerRewardIdempotent, redeemBuyerRewardIdempotent } from "@/lib/buyer-reward-ledger"
 import { resolveBuyerUserIdForEarn } from "@/lib/buyer-reward-resolve-user"
+import { computeMarketplaceOrderSettlement } from "@/lib/marketplace-order-settlement"
+import { createMarketplaceOrderNotifications } from "@/lib/marketplace-order-notifications"
+import { prisma } from "@/lib/prisma"
+
+type Tx = Prisma.TransactionClient
+
+type ListingWithProduct = {
+  id: string
+  affiliateId: string
+  productId: string
+  product: {
+    id: string
+    name: string
+    supplierId: string
+    basePriceCents: number
+    commissionRate: number
+    active: boolean
+  }
+}
 
 function parseLinePaids(raw: string | undefined | null): number[] | null {
   if (!raw?.trim()) return null
@@ -16,6 +34,72 @@ function parseLinePaids(raw: string | undefined | null): number[] | null {
   } catch {
     return null
   }
+}
+
+async function createPaidMarketplaceOrder(
+  tx: Tx,
+  args: {
+    stripeSessionId: string
+    listing: ListingWithProduct
+    qty: number
+    paidLineCents: number
+    buyerUserId: string | null
+    customerEmail: string
+    shippingAddress: Prisma.InputJsonValue
+    variantLabel: string
+    affiliateStoreName?: string | null
+  }
+): Promise<string | null> {
+  const { listing, qty } = args
+  const basePriceCents = listing.product.basePriceCents * qty
+  const settlement = computeMarketplaceOrderSettlement({
+    sellingPriceCents: args.paidLineCents,
+    basePriceCents,
+    supplierCommissionRatePercent: listing.product.commissionRate,
+  })
+
+  const order = await tx.order.create({
+    data: {
+      stripeSessionId: args.stripeSessionId,
+      productId: listing.productId,
+      affiliateProductId: listing.id,
+      supplierId: listing.product.supplierId,
+      affiliateId: listing.affiliateId,
+      buyerUserId: args.buyerUserId,
+      customerEmail: args.customerEmail,
+      quantity: qty,
+      shippingAddress: args.shippingAddress,
+      variantLabel: args.variantLabel || null,
+      basePriceCents,
+      sellingPriceCents: settlement.sellingPriceCents,
+      marginCents: settlement.marginCents,
+      commissionCents: settlement.affiliateCommissionCents,
+      affiliatePayoutCents: settlement.affiliateCommissionCents,
+      affisellFeeCents: settlement.affisellFeeCents,
+      affiliateMarginRetainedCents: settlement.affiliateMarginRetainedCents,
+      status: "paid",
+    },
+  })
+
+  await tx.affiliateProduct.update({
+    where: { id: listing.id },
+    data: { conversions: { increment: qty } },
+  })
+
+  const variantBit = args.variantLabel ? ` · ${args.variantLabel}` : ""
+  await createMarketplaceOrderNotifications(tx, {
+    orderId: order.id,
+    supplierId: listing.product.supplierId,
+    affiliateId: listing.affiliateId,
+    productName: listing.product.name,
+    variantBit,
+    qty,
+    customerEmail: args.customerEmail,
+    affiliateStoreName: args.affiliateStoreName,
+    settlement,
+  })
+
+  return order.id
 }
 
 export async function fulfillMarketplaceStripeSession(
@@ -74,7 +158,10 @@ export async function fulfillMarketplaceStripeSession(
         const qty = Math.max(1, Math.round(Number(line.qty)) || 1)
         const listing = await tx.affiliateProduct.findUnique({
           where: { id: line.affiliateProductId },
-          include: { product: true },
+          include: {
+            product: true,
+            affiliate: { select: { store: { select: { name: true } } } },
+          },
         })
 
         if (!listing?.product || !listing.isListed || !listing.product.active) {
@@ -87,12 +174,6 @@ export async function fulfillMarketplaceStripeSession(
             ? Math.min(listLineCents, Math.max(0, linePaids[i]!))
             : listLineCents
 
-        const basePriceCents = listing.product.basePriceCents * qty
-        const marginCents = Math.max(0, paidLineCents - basePriceCents)
-        const rate = listing.product.commissionRate
-        const affiliatePayoutCents = Math.floor((marginCents * rate) / 100)
-        const commissionCents = affiliatePayoutCents
-
         const sigStr = typeof line.variantSignature === "string" ? line.variantSignature : ""
         const parsed = parseCartVariantSignature(sigStr)
         const variantLabelRaw =
@@ -100,50 +181,26 @@ export async function fulfillMarketplaceStripeSession(
             ? line.variantLabel.trim()
             : formatCartVariantLabel(parsed.color, parsed.size)
 
-        const order = await tx.order.create({
-          data: {
-            stripeSessionId,
-            productId: listing.productId,
-            affiliateProductId: listing.id,
-            supplierId: listing.product.supplierId,
-            affiliateId: listing.affiliateId,
-            buyerUserId: earnUserId || null,
-            customerEmail,
-            quantity: qty,
-            shippingAddress,
-            variantLabel: variantLabelRaw || null,
-            basePriceCents,
-            sellingPriceCents: paidLineCents,
-            commissionCents,
-            marginCents,
-            affiliatePayoutCents,
-            status: "paid",
-          },
+        const orderId = await createPaidMarketplaceOrder(tx, {
+          stripeSessionId,
+          listing,
+          qty,
+          paidLineCents,
+          buyerUserId: earnUserId || null,
+          customerEmail,
+          shippingAddress,
+          variantLabel: variantLabelRaw,
+          affiliateStoreName: listing.affiliate.store?.name ?? null,
         })
 
-        await tx.affiliateProduct.update({
-          where: { id: listing.id },
-          data: { conversions: { increment: qty } },
-        })
-
-        const variantBit = variantLabelRaw ? ` · ${variantLabelRaw}` : ""
-        await tx.notification.create({
-          data: {
-            userId: listing.product.supplierId,
-            type: "NEW_ORDER",
-            message: `New order to ship · ${listing.product.name}${variantBit} ×${qty} · ${customerEmail}`,
-            orderId: order.id,
-          },
-        })
-
-        if (earnUserId) {
+        if (earnUserId && orderId) {
           const earn = buyerEarnCentsForLinePaid(paidLineCents, listing)
           await earnBuyerRewardIdempotent(tx, {
             userId: earnUserId,
             amountCents: earn,
             stripeSessionId: sessionId,
             affiliateProductId: listing.id,
-            orderId: order.id,
+            orderId,
           })
         }
       }
@@ -160,7 +217,10 @@ export async function fulfillMarketplaceStripeSession(
 
   const listing = await prisma.affiliateProduct.findUnique({
     where: { id: affiliateProductId },
-    include: { product: true },
+    include: {
+      product: true,
+      affiliate: { select: { store: { select: { name: true } } } },
+    },
   })
 
   if (!listing?.product || !listing.isListed || !listing.product.active) {
@@ -191,56 +251,26 @@ export async function fulfillMarketplaceStripeSession(
       }
     }
 
-    const basePriceCents = listing.product.basePriceCents * qty
-    const marginCents = Math.max(0, paidLineCents - basePriceCents)
-    const rate = listing.product.commissionRate
-    const affiliatePayoutCents = Math.floor((marginCents * rate) / 100)
-    const commissionCents = affiliatePayoutCents
-
-    const order = await tx.order.create({
-      data: {
-        stripeSessionId: sessionId,
-        productId: listing.productId,
-        affiliateProductId: listing.id,
-        supplierId: listing.product.supplierId,
-        affiliateId: listing.affiliateId,
-        buyerUserId: earnUserId || null,
-        customerEmail,
-        quantity: qty,
-        shippingAddress,
-        variantLabel: checkoutVariantLabel || null,
-        basePriceCents,
-        sellingPriceCents: paidLineCents,
-        commissionCents,
-        marginCents,
-        affiliatePayoutCents,
-        status: "paid",
-      },
+    const orderId = await createPaidMarketplaceOrder(tx, {
+      stripeSessionId: sessionId,
+      listing,
+      qty,
+      paidLineCents,
+      buyerUserId: earnUserId || null,
+      customerEmail,
+      shippingAddress,
+      variantLabel: checkoutVariantLabel,
+      affiliateStoreName: listing.affiliate.store?.name ?? null,
     })
 
-    await tx.affiliateProduct.update({
-      where: { id: listing.id },
-      data: { conversions: { increment: qty } },
-    })
-
-    const variantBit = checkoutVariantLabel ? ` · ${checkoutVariantLabel}` : ""
-    await tx.notification.create({
-      data: {
-        userId: listing.product.supplierId,
-        type: "NEW_ORDER",
-        message: `New order to ship · ${listing.product.name}${variantBit} · ${customerEmail}`,
-        orderId: order.id,
-      },
-    })
-
-    if (earnUserId) {
+    if (earnUserId && orderId) {
       const earn = buyerEarnCentsForLinePaid(paidLineCents, listing)
       await earnBuyerRewardIdempotent(tx, {
         userId: earnUserId,
         amountCents: earn,
         stripeSessionId: sessionId,
         affiliateProductId: listing.id,
-        orderId: order.id,
+        orderId,
       })
     }
   })

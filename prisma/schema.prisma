@@ -575,6 +575,14 @@ model Order {
   marginCents              Int
   affiliatePayoutCents     Int
   /**
+   * Affisell marketplace fee (default 10% of line total paid).
+   */
+  affisellFeeCents         Int                 @default(0)
+  /**
+   * Affiliate markup kept above supplier commission offer (`margin − affiliate payout`).
+   */
+  affiliateMarginRetainedCents Int             @default(0)
+  /**
    * paid = awaiting supplier shipment · shipped · refunded (returns flow may also apply)
    */
   status                   String              @default("paid")
