@@ -9,6 +9,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { ProductCard } from "@/components/ProductCard"
 import { Sidebar } from "@/components/marketplace/Sidebar"
 import { Button, buttonVariants } from "@/components/ui/button"
+import { affisellBrand } from "@/lib/affisell-brand"
 import { cn } from "@/lib/utils"
 
 type ProductRow = Record<string, unknown>
@@ -85,23 +86,13 @@ export function MarketplaceView() {
   return (
     <main className="min-h-[calc(100dvh-3.75rem)] text-zinc-900 dark:text-zinc-50">
       <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 md:py-10">
-        <header className="relative overflow-hidden rounded-3xl border border-violet-200/60 bg-white/85 shadow-sm shadow-violet-500/5 ring-1 ring-black/[0.03] backdrop-blur-md dark:border-violet-900/40 dark:bg-zinc-950/75 dark:ring-white/10">
-          <div
-            className="pointer-events-none absolute inset-0 opacity-[0.45] dark:opacity-[0.2]"
-            style={{
-              backgroundImage: `
-                radial-gradient(ellipse 80% 55% at 15% -10%, rgba(139,92,246,0.22), transparent 50%),
-                radial-gradient(ellipse 60% 45% at 92% 8%, rgba(20,184,166,0.16), transparent 45%),
-                radial-gradient(circle at 50% 100%, rgba(139,92,246,0.06), transparent 55%)
-              `,
-            }}
-            aria-hidden
-          />
+        <header className={affisellBrand.headerShell}>
+          <div className={affisellBrand.headerMesh} aria-hidden />
           <div className="relative space-y-6 p-6 sm:p-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0 space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-600 dark:text-violet-400">
-                  Discover
+                <p className={cn("text-xs font-semibold uppercase tracking-[0.14em]", affisellBrand.eyebrowBuyer)}>
+                  Discover · Shop
                 </p>
                 <h1 className="text-balance text-3xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
                   Marketplace
@@ -153,7 +144,7 @@ export function MarketplaceView() {
                   defaultValue={searchQuery}
                   placeholder="Search by product name or description…"
                   autoComplete="off"
-                  className="h-11 w-full rounded-xl border border-zinc-200/90 bg-white/95 py-2 pl-10 pr-3 text-sm text-zinc-900 shadow-sm outline-none ring-violet-500/15 placeholder:text-zinc-400 focus:border-violet-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100"
+                  className="h-11 w-full rounded-xl border border-zinc-200/90 bg-white/95 py-2 pl-10 pr-3 text-sm text-zinc-900 shadow-sm outline-none ring-brand/15 placeholder:text-zinc-400 focus:border-brand focus:ring-2 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100"
                 />
               </div>
             </form>
@@ -162,7 +153,11 @@ export function MarketplaceView() {
 
         <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-start">
           <div className="shrink-0 lg:sticky lg:top-[5.25rem] lg:self-start">
-            <Sidebar onCategoryClick={handleCategoryClick} />
+            <Sidebar
+              onCategoryClick={handleCategoryClick}
+              activeCategoryId={categoryId}
+              activeSubcategoryId={subcategoryId}
+            />
           </div>
 
           <div className="min-w-0 flex-1">

@@ -129,11 +129,13 @@ export function SiteNav() {
       <nav className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-1 py-1 text-sm md:flex-nowrap md:gap-4">
         <Link
           href="/dashboard/supplier"
-          className="order-1 shrink-0 font-semibold text-zinc-900 dark:text-zinc-100"
+          className="order-1 shrink-0 text-lg font-bold affisell-logo-text"
         >
           Affisell
         </Link>
-        <span className="order-2 shrink-0 text-xs text-zinc-500 dark:text-zinc-400">Supplier</span>
+        <span className="order-2 shrink-0 rounded-full bg-supplier-muted px-2 py-0.5 text-xs font-semibold text-supplier">
+          Supplier
+        </span>
         <div className="order-3 flex w-full flex-wrap items-center justify-end gap-2 md:ml-auto md:w-auto">
           <Link
             href="/dashboard/supplier/orders"
@@ -168,7 +170,7 @@ export function SiteNav() {
   return (
     <>
       <nav className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-1 py-1 text-sm md:flex-nowrap md:gap-4">
-        <Link href="/" className="order-1 shrink-0 font-semibold text-zinc-900 dark:text-zinc-100">
+        <Link href="/" className="order-1 shrink-0 text-lg font-bold affisell-logo-text">
           Affisell
         </Link>
 

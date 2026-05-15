@@ -57,7 +57,7 @@ export function BentoPageHeading({
   className,
 }: {
   eyebrow?: string
-  title: string
+  title: ReactNode
   description?: ReactNode
   className?: string
 }) {

@@ -46,7 +46,9 @@ import {
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
 import { COLORS, isMulticolorSwatch } from "@/lib/product-catalog-constants"
 import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
+import { affisellBrand } from "@/lib/affisell-brand"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
+import { cn } from "@/lib/utils"
 import { primaryProductImage } from "@/lib/product-images"
 
 type CatalogProduct = {
@@ -421,22 +423,12 @@ export function AffiliateDashboard({
   return (
     <main className="min-h-[calc(100dvh-3.75rem)]">
       <div className="mx-auto max-w-6xl px-4 py-8 md:px-8 md:py-10">
-        <header className="relative overflow-hidden rounded-3xl border border-violet-200/60 bg-white/85 shadow-sm shadow-violet-500/5 ring-1 ring-black/[0.03] backdrop-blur-md dark:border-violet-900/40 dark:bg-zinc-950/75 dark:ring-white/10">
-          <div
-            className="pointer-events-none absolute inset-0 opacity-[0.45] dark:opacity-[0.2]"
-            style={{
-              backgroundImage: `
-                radial-gradient(ellipse 80% 55% at 15% -10%, rgba(139,92,246,0.28), transparent 50%),
-                radial-gradient(ellipse 60% 45% at 92% 8%, rgba(20,184,166,0.2), transparent 45%),
-                radial-gradient(circle at 50% 100%, rgba(139,92,246,0.06), transparent 55%)
-              `,
-            }}
-            aria-hidden
-          />
+        <header className={affisellBrand.headerShell}>
+          <div className={affisellBrand.headerMesh} aria-hidden />
           <div className="relative p-6 sm:p-8">
             <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
               <div className="min-w-0 flex-1 space-y-4">
-                <div className="inline-flex items-center gap-2 rounded-full border border-violet-200/80 bg-violet-50/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-violet-800 dark:border-violet-800 dark:bg-violet-950/60 dark:text-violet-200">
+                <div className={affisellBrand.badgeAffiliate}>
                   <Sparkles className="h-3.5 w-3.5" aria-hidden />
                   Affiliate hub
                 </div>
@@ -478,14 +470,14 @@ export function AffiliateDashboard({
                       key={label}
                       type="button"
                       onClick={() => router.push(href)}
-                      className="group inline-flex items-center gap-2 rounded-xl border border-zinc-200/90 bg-white/90 px-3.5 py-2 text-left text-[13px] font-medium text-zinc-800 shadow-sm transition hover:border-violet-300/70 hover:bg-violet-50/50 hover:text-violet-900 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100 dark:hover:border-violet-700 dark:hover:bg-violet-950/40 dark:hover:text-violet-100"
+                      className={cn(affisellBrand.quickLink, "affisell-quick-link--affiliate")}
                     >
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-violet-100 to-teal-50 text-violet-700 dark:from-violet-950 dark:to-teal-950/50 dark:text-violet-300">
+                      <span className={affisellBrand.quickLinkIconAffiliate}>
                         <Icon className="h-4 w-4" aria-hidden />
                       </span>
                       <span className="min-w-0 flex-1 truncate">{label}</span>
                       <ChevronRight
-                        className="h-4 w-4 shrink-0 text-zinc-400 transition group-hover:translate-x-0.5 group-hover:text-violet-600 dark:group-hover:text-violet-400"
+                        className="h-4 w-4 shrink-0 text-zinc-400 transition group-hover:translate-x-0.5 group-hover:text-affiliate"
                         aria-hidden
                       />
                     </button>
@@ -500,7 +492,7 @@ export function AffiliateDashboard({
                   <button
                     type="button"
                     onClick={() => viewStore()}
-                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100"
+                    className={cn("inline-flex flex-1 items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold", affisellBrand.ctaBrand)}
                   >
                     <Eye className="h-4 w-4 shrink-0" aria-hidden /> Open public store
                   </button>

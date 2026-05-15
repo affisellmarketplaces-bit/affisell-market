@@ -8,6 +8,7 @@ import { BestSellers } from "@/components/trends/BestSellers"
 import { NewArrivals } from "@/components/trends/NewArrivals"
 import { SalesBarometer } from "@/components/trends/SalesBarometer"
 import { buttonVariants } from "@/components/ui/button"
+import { affisellBrand } from "@/lib/affisell-brand"
 import { cn } from "@/lib/utils"
 
 export default function HomePage() {
@@ -27,12 +28,12 @@ export default function HomePage() {
               aria-hidden
             />
             <div className="relative flex h-full flex-col gap-8">
-              <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[#7C3AED]/20 bg-[#7C3AED]/8 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#5b21b6]">
+              <div className={affisellBrand.badgeBrand}>
                 <Sparkles className="size-3.5" aria-hidden />
                 Affiliate marketplace
               </div>
               <BentoPageHeading
-                title="Affisell"
+                title={<span className="affisell-logo-text">Affisell</span>}
                 description="Shop partner stores, discover new products, and support creators — all in one marketplace."
                 className="space-y-4"
               />
@@ -70,7 +71,7 @@ export default function HomePage() {
                 </Link>
               </div>
               <p className="text-sm text-gray-600">
-                <Link href="/login" className="font-medium text-[#7C3AED] underline-offset-4 hover:underline">
+                <Link href="/login" className="font-medium text-brand underline-offset-4 hover:underline">
                   Sign in
                 </Link>{" "}
                 to access your account.
@@ -79,9 +80,9 @@ export default function HomePage() {
           </BentoCard>
 
           <div className="grid gap-6 xl:col-span-5">
-            <BentoCard className="flex flex-col justify-between gap-4">
+            <BentoCard className="flex flex-col justify-between gap-4 border-supplier/20 bg-gradient-to-br from-white/95 to-supplier-muted/50">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">For suppliers</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-supplier">For suppliers</p>
                 <p className="mt-2 text-2xl font-bold tracking-tight text-gray-900">List once, sell everywhere</p>
                 <p className="mt-2 text-sm leading-relaxed text-gray-600">
                   Sync catalog, manage returns, and tune your public store profile.
@@ -90,7 +91,7 @@ export default function HomePage() {
               <Link
                 href="/dashboard/supplier"
                 className={cn(
-                  buttonVariants({ variant: "bentoOutline", size: "bento" }),
+                  buttonVariants({ variant: "bentoSupplier", size: "bento" }),
                   "inline-flex w-full justify-center"
                 )}
               >
@@ -98,9 +99,9 @@ export default function HomePage() {
                 <ArrowRight className="size-4" aria-hidden />
               </Link>
             </BentoCard>
-            <BentoCard className="flex flex-col justify-between gap-4 border-[#10B981]/20 bg-gradient-to-br from-white/90 to-emerald-50/40">
+            <BentoCard className="flex flex-col justify-between gap-4 border-affiliate/20 bg-gradient-to-br from-white/95 to-affiliate-muted/60">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-emerald-800/80">For creators</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-affiliate">For creators</p>
                 <p className="mt-2 text-2xl font-bold tracking-tight text-gray-900">Your affiliate store</p>
                 <p className="mt-2 text-sm leading-relaxed text-gray-600">
                   Pick products, set your prices, and share your storefront with your audience.
@@ -109,7 +110,7 @@ export default function HomePage() {
               <Link
                 href="/dashboard/affiliate"
                 className={cn(
-                  buttonVariants({ variant: "bentoSolid", size: "bento" }),
+                  buttonVariants({ variant: "bentoAffiliate", size: "bento" }),
                   "inline-flex w-full justify-center"
                 )}
               >

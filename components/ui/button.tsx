@@ -24,9 +24,15 @@ const buttonVariants = cva(
         /** Outlined secondary for dashboards. */
         bentoOutline:
           "border-gray-200 bg-white text-gray-900 hover:bg-gray-50 aria-expanded:bg-gray-50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:bg-zinc-900",
-        /** Brand accent (#7C3AED). */
+        /** Brand accent (Affisell violet). */
         bentoAccent:
-          "border-transparent bg-[#7C3AED] text-white hover:bg-[#6d28d9] [a]:hover:bg-[#6d28d9] dark:bg-[#7C3AED] dark:hover:bg-[#6d28d9]",
+          "border-transparent bg-brand text-white shadow-sm shadow-brand/20 hover:bg-brand-hover [a]:hover:bg-brand-hover",
+        bentoSupplier:
+          "border-transparent bg-supplier text-white shadow-sm shadow-supplier/20 hover:bg-indigo-700",
+        bentoAffiliate:
+          "border-transparent bg-affiliate text-white shadow-sm shadow-affiliate/20 hover:bg-emerald-600",
+        bentoBuyer:
+          "border-transparent bg-buyer text-white shadow-sm shadow-buyer/20 hover:bg-orange-600",
       },
       size: {
         default:
