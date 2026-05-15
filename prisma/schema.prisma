@@ -740,8 +740,12 @@ model BlindDropshipOrder {
   shippingAddress       Json
   totalPaidCents        Int
   totalCostCents        Int      @default(0)
+  marginCents           Int      @default(0)
+  affisellFeeCents      Int      @default(0)
+  affiliateCommissionCents Int   @default(0)
+  affiliateMarginRetainedCents Int @default(0)
   /**
-   * pending_payment | paid | fulfilling | shipped | failed | refunded
+   * pending_payment | paid | fulfilling | shipped | failed | refunded | awaiting_manual_payment
    */
   status                String   @default("pending_payment")
   stripePaymentIntentId String?  @unique
@@ -771,6 +775,11 @@ model BlindDropshipOrderItem {
   quantity                  Int                   @default(1)
   supplierPriceAtOrderCents Int
   supplierSkuAtOrder        String
+  linePaidCents             Int      @default(0)
+  marginCents               Int      @default(0)
+  affisellFeeCents          Int      @default(0)
+  affiliateCommissionCents  Int      @default(0)
+  affiliateMarginRetainedCents Int     @default(0)
   /**
    * Partner reference after createOrder succeeds.
    */

@@ -10,7 +10,10 @@ import { cn } from "@/lib/utils"
 
 type OrderRow = {
   id: string
+  fulfillmentSource: "marketplace" | "blind_dropship"
   status: string
+  displayStatus: string
+  canMarkShipped: boolean
   quantity: number
   variantLabel: string | null
   customerEmail: string
@@ -163,16 +166,23 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <p className="font-medium text-zinc-900 dark:text-zinc-50">{o.product.name}</p>
-                  <span
-                    className={cn(
-                      "rounded-full px-2.5 py-0.5 text-xs font-semibold",
-                      o.status === "paid"
-                        ? "bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-200"
-                        : "bg-emerald-100 text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-200"
-                    )}
-                  >
-                    {o.status === "paid" ? "To ship" : "Shipped"}
-                  </span>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {o.fulfillmentSource === "blind_dropship" ? (
+                      <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-900 dark:bg-violet-950/60 dark:text-violet-200">
+                        Blind dropship
+                      </span>
+                    ) : null}
+                    <span
+                      className={cn(
+                        "rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                        o.status === "shipped"
+                          ? "bg-emerald-100 text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-200"
+                          : "bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-200"
+                      )}
+                    >
+                      {o.displayStatus}
+                    </span>
+                  </div>
                 </div>
                 {o.variantLabel ? (
                   <p className="text-xs text-zinc-500">Variant: {o.variantLabel}</p>
@@ -245,7 +255,7 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
               </p>
             ) : null}
 
-            {o.status === "paid" ? (
+            {o.canMarkShipped ? (
               <div className="mt-4 flex flex-wrap items-end gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
                 <label className="flex min-w-[120px] flex-col gap-1 text-xs text-zinc-500">
                   Carrier

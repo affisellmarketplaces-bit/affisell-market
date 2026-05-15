@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client"
 import { NextRequest, NextResponse } from "next/server"
 import type Stripe from "stripe"
 
+import { createBlindDropshipPaidNotifications } from "@/lib/blind-dropship-notifications"
 import { fulfillMarketplaceStripeSession } from "@/lib/stripe-marketplace-fulfill"
 import { getStripeClient } from "@/lib/stripe"
 import { inngest } from "@/inngest/client"
@@ -69,6 +70,11 @@ export async function POST(req: NextRequest) {
             where: { id: blindId },
             data: { status: "paid" },
           })
+          try {
+            await createBlindDropshipPaidNotifications(blindId)
+          } catch (e) {
+            console.error("[blind-dropship] paid notifications failed", e)
+          }
           try {
             await inngest.send({ name: "blind/order.fulfill", data: { orderId: blindId } })
           } catch (e) {

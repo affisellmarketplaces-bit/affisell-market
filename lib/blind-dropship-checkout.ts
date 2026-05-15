@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 
 import { auth } from "@/auth"
+import { aggregateBlindOrderSettlement, computeBlindLineSettlement } from "@/lib/blind-dropship-settlement"
 import { prisma } from "@/lib/prisma"
 import { getStripeClient } from "@/lib/stripe"
 
@@ -70,6 +71,7 @@ export async function blindDropshipCheckoutPOST(parsed: unknown): Promise<Respon
     wholesaleCents: number
     linePaidCents: number
     blindSupplierId: string
+    lineSettlement: ReturnType<typeof computeBlindLineSettlement>
   }
 
   const lines: Line[] = []
@@ -99,6 +101,12 @@ export async function blindDropshipCheckoutPOST(parsed: unknown): Promise<Respon
     }
     const qty = row.qty
     const linePaidCents = listing.sellingPriceCents * qty
+    const lineSettlement = computeBlindLineSettlement({
+      linePaidCents,
+      wholesaleUnitCents: wholesale,
+      qty,
+      supplierCommissionRatePercent: p.commissionRate,
+    })
     lines.push({
       affiliateProductId: listing.id,
       qty,
@@ -107,11 +115,13 @@ export async function blindDropshipCheckoutPOST(parsed: unknown): Promise<Respon
       wholesaleCents: wholesale,
       linePaidCents,
       blindSupplierId: blind.id,
+      lineSettlement,
     })
   }
 
-  const totalPaidCents = lines.reduce((a, l) => a + l.linePaidCents, 0)
-  const totalCostCents = lines.reduce((a, l) => a + l.wholesaleCents * l.qty, 0)
+  const orderSettlement = aggregateBlindOrderSettlement(lines.map((l) => l.lineSettlement))
+  const totalPaidCents = orderSettlement.sellingPriceCents
+  const totalCostCents = orderSettlement.basePriceCents
   if (totalPaidCents < 50) {
     return NextResponse.json({ error: "Order total too small" }, { status: 400 })
   }
@@ -132,10 +142,15 @@ export async function blindDropshipCheckoutPOST(parsed: unknown): Promise<Respon
         shippingAddress: body.shipping as object,
         totalPaidCents,
         totalCostCents,
+        marginCents: orderSettlement.marginCents,
+        affisellFeeCents: orderSettlement.affisellFeeCents,
+        affiliateCommissionCents: orderSettlement.affiliateCommissionCents,
+        affiliateMarginRetainedCents: orderSettlement.affiliateMarginRetainedCents,
         status: "pending_payment",
       },
     })
     for (const l of lines) {
+      const s = l.lineSettlement
       await tx.blindDropshipOrderItem.create({
         data: {
           blindDropshipOrderId: o.id,
@@ -145,6 +160,11 @@ export async function blindDropshipCheckoutPOST(parsed: unknown): Promise<Respon
           quantity: l.qty,
           supplierPriceAtOrderCents: l.wholesaleCents,
           supplierSkuAtOrder: l.supplierSku,
+          linePaidCents: s.sellingPriceCents,
+          marginCents: s.marginCents,
+          affisellFeeCents: s.affisellFeeCents,
+          affiliateCommissionCents: s.affiliateCommissionCents,
+          affiliateMarginRetainedCents: s.affiliateMarginRetainedCents,
         },
       })
     }

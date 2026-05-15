@@ -1,7 +1,11 @@
 import { z } from "zod"
 
 import { auth } from "@/auth"
-import { mapSupplierOrderRow, supplierOrderInclude } from "@/lib/supplier-orders-payload"
+import {
+  isSupplierBlindDropshipOrder,
+  mapMarketplaceOrder,
+  supplierOrderInclude,
+} from "@/lib/supplier-orders-payload"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -37,6 +41,16 @@ export async function PATCH(
   const parsed = patchSchema.safeParse(body)
   if (!parsed.success) {
     return Response.json({ error: "Invalid body", details: parsed.error.flatten() }, { status: 400 })
+  }
+
+  if (await isSupplierBlindDropshipOrder(orderId, session.user.id)) {
+    return Response.json(
+      {
+        error:
+          "Blind dropship orders are sent to your partner API automatically. Use your partner webhook for tracking updates.",
+      },
+      { status: 400 }
+    )
   }
 
   const existing = await prisma.order.findFirst({
@@ -84,5 +98,5 @@ export async function PATCH(
     return order
   })
 
-  return Response.json({ order: mapSupplierOrderRow(updated) })
+  return Response.json({ order: mapMarketplaceOrder(updated) })
 }
