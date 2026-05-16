@@ -248,6 +248,7 @@ export function SupplierAddProductForm({
   const [supplierTag, setSupplierTag] = useState("")
   const [categoryAttrs, setCategoryAttrs] = useState<CategoryAttrRow[]>([])
   const [specValues, setSpecValues] = useState<Record<string, string>>({})
+  const [specFormErrors, setSpecFormErrors] = useState<string[]>([])
   const [attrsLoading, setAttrsLoading] = useState(false)
   const mergedCategoryAttrs = useMemo(() => mergeCoreCategoryAttrs(categoryAttrs), [categoryAttrs])
 
@@ -1070,9 +1071,13 @@ export function SupplierAddProductForm({
     }
     const missingSpecs = missingRequiredCategorySpecs(mergedCategoryAttrs, specValues)
     if (missingSpecs.length > 0) {
-      toast.error(`Fill required fields: ${missingSpecs.map((m) => m.label).join(", ")}`)
+      setSpecFormErrors(missingSpecs.map((m) => `${m.label} est requis`))
+      setStep(1)
+      document.getElementById("product-spec-fields")?.scrollIntoView({ behavior: "smooth", block: "center" })
+      toast.error("Corrigez les champs marqués en rouge.")
       return
     }
+    setSpecFormErrors([])
     if (variantFormMode === "advanced" && variantRows.length > 0) {
       const named = variantRows.filter((r) => r.name.trim())
       if (named.length === 0) {
@@ -1118,10 +1123,18 @@ export function SupplierAddProductForm({
           body: JSON.stringify(payload),
         })
       }
-      const json = (await res.json()) as { error?: string; id?: string }
+      const json = (await res.json()) as { error?: string; id?: string; errors?: string[] }
       if (!res.ok) {
+        if (res.status === 400 && Array.isArray(json.errors) && json.errors.length > 0) {
+          setSpecFormErrors(json.errors)
+          setStep(1)
+          document.getElementById("product-spec-fields")?.scrollIntoView({ behavior: "smooth", block: "center" })
+          toast.error(json.error ?? "Validation des spécifications")
+          return
+        }
         throw new Error(json.error ?? "Save failed")
       }
+      setSpecFormErrors([])
       if (categoryId && categoryPath.length) {
         void fetch("/api/supplier/recent-categories", {
           method: "POST",
@@ -1603,6 +1616,7 @@ export function SupplierAddProductForm({
                                 setCategoryId(leafId)
                                 setCategoryPath(path)
                                 setSpecValues({})
+                                setSpecFormErrors([])
                                 setCategoryAiTag(false)
                               }}
                             />
@@ -1615,6 +1629,7 @@ export function SupplierAddProductForm({
                               setCategoryId(leafId)
                               setCategoryPath(path)
                               setSpecValues({})
+                              setSpecFormErrors([])
                               setCategoryAiTag(false)
                             }}
                             keywordSuggestions={keywordCategorySuggestions}
@@ -1624,11 +1639,18 @@ export function SupplierAddProductForm({
                           />
                         </div>
                       </div>
-                      <div className="rounded-xl border border-zinc-100 bg-zinc-50/40 p-1 dark:border-zinc-800 dark:bg-zinc-900/30">
+                      <div
+                        id="product-spec-fields"
+                        className="rounded-xl border border-zinc-100 bg-zinc-50/40 p-1 dark:border-zinc-800 dark:bg-zinc-900/30"
+                      >
                         <DynamicAttributes
                           categoryId={categoryId}
                           values={specValues}
-                          onChange={setSpecValues}
+                          errors={specFormErrors}
+                          onChange={(next) => {
+                            setSpecValues(next)
+                            if (specFormErrors.length > 0) setSpecFormErrors([])
+                          }}
                         />
                       </div>
                     </SectionCard>
@@ -1681,9 +1703,12 @@ export function SupplierAddProductForm({
                       }
                       const miss = missingRequiredCategorySpecs(mergedCategoryAttrs, specValues)
                       if (miss.length > 0) {
-                        toast.error(`Fill required fields: ${miss.map((m) => m.label).join(", ")}`)
+                        setSpecFormErrors(miss.map((m) => `${m.label} est requis`))
+                        document.getElementById("product-spec-fields")?.scrollIntoView({ behavior: "smooth", block: "center" })
+                        toast.error("Corrigez les champs marqués en rouge.")
                         return
                       }
+                      setSpecFormErrors([])
                       setStep(2)
                     }}
                   >

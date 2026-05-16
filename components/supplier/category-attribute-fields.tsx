@@ -36,6 +36,14 @@ type Props = {
   loading?: boolean
   values: Record<string, string>
   onChange: (next: Record<string, string>) => void
+  /** Server or client validation messages, e.g. `Marque est requis`. */
+  errors?: string[]
+}
+
+function errorsForAttribute(attr: CategoryAttrRow, errors?: string[]): string[] {
+  if (!errors?.length) return []
+  const label = attr.label.toLowerCase()
+  return errors.filter((e) => e.toLowerCase().includes(label))
 }
 
 function normType(t: string | undefined): string {
@@ -60,7 +68,7 @@ function toggleMultiOption(current: string, opt: string): string {
   return joinMulti([...set].sort())
 }
 
-export function CategoryAttributeFields({ attributes, loading, values, onChange }: Props) {
+export function CategoryAttributeFields({ attributes, loading, values, onChange, errors }: Props) {
   const setKey = (key: string, v: string) => {
     onChange({ ...values, [key]: v })
   }
@@ -94,6 +102,11 @@ export function CategoryAttributeFields({ attributes, loading, values, onChange 
           const isMulti = (tp === "MULTI_SELECT" || tp === "MULTI") && attr.options.length > 0
           const isBool = tp === "BOOLEAN" || tp === "YES_NO"
           const isTextarea = tp === "TEXTAREA" || tp === "LONG_TEXT"
+          const fieldErrors = errorsForAttribute(attr, errors)
+          const hasError = fieldErrors.length > 0
+          const invalidBorder = hasError
+            ? "border-red-500 focus:border-red-500 focus:ring-red-500/25"
+            : "border-zinc-200 dark:border-zinc-700"
 
           return (
             <div key={attr.id} className={cn("min-w-0", isTextarea && "sm:col-span-2 lg:col-span-3")}>
@@ -127,6 +140,7 @@ export function CategoryAttributeFields({ attributes, loading, values, onChange 
                         onClick={() => setKey(attr.key, toggleMultiOption(v, opt))}
                         className={cn(
                           "rounded-full border px-3 py-1 text-xs font-medium transition",
+                          hasError && !on && "border-red-500",
                           on
                             ? "border-violet-500 bg-violet-500 text-white shadow-sm"
                             : "border-zinc-200 bg-white text-zinc-700 hover:border-violet-300 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-200"
@@ -142,8 +156,9 @@ export function CategoryAttributeFields({ attributes, loading, values, onChange 
               {isBool ? (
                 <select
                   className={cn(
-                    "mt-1.5 flex h-9 w-full rounded-md border border-zinc-200 bg-white px-2 text-sm shadow-sm",
-                    "dark:border-zinc-700 dark:bg-zinc-950"
+                    "mt-1.5 flex h-9 w-full rounded-md border bg-white px-2 text-sm shadow-sm outline-none focus:ring-2",
+                    invalidBorder,
+                    "dark:bg-zinc-950"
                   )}
                   value={v}
                   onChange={(e) => setKey(attr.key, e.target.value)}
@@ -157,8 +172,9 @@ export function CategoryAttributeFields({ attributes, loading, values, onChange 
               {isSelect ? (
                 <select
                   className={cn(
-                    "mt-1.5 flex h-9 w-full rounded-md border border-zinc-200 bg-white px-2 text-sm shadow-sm",
-                    "dark:border-zinc-700 dark:bg-zinc-950"
+                    "mt-1.5 flex h-9 w-full rounded-md border bg-white px-2 text-sm shadow-sm outline-none focus:ring-2",
+                    invalidBorder,
+                    "dark:bg-zinc-950"
                   )}
                   value={v}
                   onChange={(e) => setKey(attr.key, e.target.value)}
@@ -175,8 +191,11 @@ export function CategoryAttributeFields({ attributes, loading, values, onChange 
               {!isSelect && !isMulti && !isBool && isTextarea ? (
                 <textarea
                   className={cn(
-                    "mt-1.5 min-h-[88px] w-full rounded-md border border-zinc-200 bg-white px-2.5 py-2 text-sm shadow-sm",
-                    "outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-500/20 dark:border-zinc-700 dark:bg-zinc-950"
+                    "mt-1.5 min-h-[88px] w-full rounded-md border bg-white px-2.5 py-2 text-sm shadow-sm outline-none focus:ring-2",
+                    hasError
+                      ? "border-red-500 focus:border-red-500 focus:ring-red-500/25"
+                      : "border-zinc-200 focus:border-violet-400 focus:ring-violet-500/20 dark:border-zinc-700",
+                    "dark:bg-zinc-950"
                   )}
                   value={v}
                   onChange={(e) => setKey(attr.key, e.target.value)}
@@ -186,7 +205,7 @@ export function CategoryAttributeFields({ attributes, loading, values, onChange 
 
               {!isSelect && !isMulti && !isBool && !isTextarea ? (
                 <Input
-                  className="mt-1.5"
+                  className={cn("mt-1.5", hasError && "border-red-500 focus-visible:ring-red-500/25")}
                   type={tp === "NUMBER" || tp === "DECIMAL" ? "number" : "text"}
                   value={v}
                   min={
@@ -206,6 +225,11 @@ export function CategoryAttributeFields({ attributes, loading, values, onChange 
                   placeholder={attr.options?.length ? attr.options.join(", ") : attr.label}
                 />
               ) : null}
+              {fieldErrors.map((err) => (
+                <p key={err} className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {err}
+                </p>
+              ))}
             </div>
           )
         })}
