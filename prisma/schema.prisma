@@ -316,11 +316,10 @@ model Product {
    */
   supplierSku            String?
   supplierWholesaleCents Int?
-  /**
-   * Meta AI / webhook-generated vertical ad video URL when ready.
-   */
-  videoAdUrl     String?
-  videoAdStatus  String   @default("none") // none | generating | ready | failed
+  videoAdUrl            String?
+  videoAdPrompt         String?  @db.Text
+  videoAdStatus         String?  @default("none") // none | generating | ready | failed
+  videoGenerationJobs   VideoGenerationJob[]
   reviewCount            Int     @default(0)
   averageRating          Float   @default(0)
   reviewSentiment        String  @default("neutral")
@@ -337,7 +336,6 @@ model Product {
    * AI category suggestions pending manual review (see `ProductReview` model).
    */
   productReviews          ProductReview[]
-  videoGenerationJobs     VideoGenerationJob[]
 
   @@index([categoryId])
   @@index([supplierId, isDraft])
@@ -346,20 +344,6 @@ model Product {
   @@index([basePriceCents])
   @@index([isOnSale])
   @@index([createdAt])
-}
-
-model VideoGenerationJob {
-  id        String   @id @default(cuid())
-  productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  prompt    String   @db.Text
-  status    String   @default("pending") // pending | ready | failed
-  videoUrl  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([productId])
-  @@index([status])
 }
 
 /**
@@ -876,4 +860,18 @@ model BlindDropshipOrderItem {
 
   @@index([blindDropshipOrderId])
   @@index([supplierOrderId])
+}
+
+model VideoGenerationJob {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  prompt    String   @db.Text
+  status    String   @default("pending") // pending | ready | failed
+  videoUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId])
+  @@index([status])
 }

@@ -1,0 +1,6 @@
+# Prisma Rules
+1. JAMAIS modifier une migration dans prisma/migrations/ après qu'elle soit appliquée sur Neon
+2. Pour changer le schema: toujours éditer prisma/schema.prisma PUIS npx prisma migrate dev --name xxx
+3. Si drift: utiliser npx prisma migrate resolve --applied ou npx prisma db push. JAMAIS prisma migrate reset sur Neon prod
+4. Avant chaque PR: npx prisma migrate status doit être clean
+5. Toujours commit le dossier prisma/migrations/ après migrate dev
