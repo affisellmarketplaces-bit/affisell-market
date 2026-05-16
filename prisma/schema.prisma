@@ -166,7 +166,12 @@ model Category {
    */
   level    Int     @default(1)
   fullPath String  @default("")
-  isLeaf   Boolean @default(true)
+  isLeaf   Boolean @default(false)
+
+  /**
+   * Grand comptoir: noms de specs côté catégorie feuille (ex. Marque, Taille).
+   */
+  specs String[] @default([])
 
   products Product[]
 
