@@ -16,20 +16,14 @@ import {
 
 type Tx = Prisma.TransactionClient
 
-type ListingWithProduct = {
-  id: string
-  affiliateId: string
-  productId: string
-  affiliate: { store: { partnerListingCode: string } | null }
-  product: {
-    id: string
-    name: string
-    supplierId: string
-    basePriceCents: number
-    commissionRate: number
-    active: boolean
-  }
-}
+const listingWithProductInclude = {
+  product: true,
+  affiliate: { select: { store: { select: { partnerListingCode: true } } } },
+} satisfies Prisma.AffiliateProductInclude
+
+type ListingWithProduct = Prisma.AffiliateProductGetPayload<{
+  include: typeof listingWithProductInclude
+}>
 
 function parseLinePaids(raw: string | undefined | null): number[] | null {
   if (!raw?.trim()) return null
