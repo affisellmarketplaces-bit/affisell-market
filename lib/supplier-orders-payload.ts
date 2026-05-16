@@ -26,8 +26,12 @@ export type SupplierFulfillmentOrder = {
   quantity: number
   variantLabel: string | null
   customerEmail: string
-  /** Supplier wholesale / COGS for the line (only money figure exposed to suppliers). */
+  /** Supplier wholesale / COGS for the line (your payout basis). */
   supplierNetCents: number
+  /** Affisell marketplace fee on partner-channel checkout (does not reduce your wholesale). */
+  affisellFeeCents: number
+  /** Commission funded from margin per your listing offer (`commissionRate`). */
+  affiliateCommissionCents: number
   partnerListingCode: string | null
   createdAt: string
   shippedAt: string | null
@@ -72,6 +76,8 @@ export function mapMarketplaceOrder(o: SupplierOrderRow): SupplierFulfillmentOrd
     variantLabel: o.variantLabel,
     customerEmail: o.customerEmail,
     supplierNetCents: o.basePriceCents,
+    affisellFeeCents: o.affisellFeeCents,
+    affiliateCommissionCents: o.affiliatePayoutCents,
     partnerListingCode: store?.partnerListingCode ?? null,
     createdAt: o.createdAt.toISOString(),
     shippedAt: o.shippedAt?.toISOString() ?? null,
@@ -167,6 +173,8 @@ function mapBlindOrder(
     variantLabel: null,
     customerEmail: order.customerEmail,
     supplierNetCents: slice.supplierNetCents,
+    affisellFeeCents: slice.affisellFeeCents,
+    affiliateCommissionCents: slice.affiliateCommissionCents,
     partnerListingCode: store?.partnerListingCode ?? null,
     createdAt: order.createdAt.toISOString(),
     shippedAt: order.status === "shipped" ? order.updatedAt.toISOString() : null,

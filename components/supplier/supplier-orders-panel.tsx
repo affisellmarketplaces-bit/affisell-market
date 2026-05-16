@@ -7,15 +7,15 @@ import {
   ClipboardCheck,
   Loader2,
   Package,
-  Radio,
-  Sparkles,
   Truck,
+  Workflow,
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
+import { AFFISELL_MARKETPLACE_FEE_PERCENT } from "@/lib/marketplace-order-settlement"
 import { cn } from "@/lib/utils"
 
 type OrderRow = {
@@ -30,6 +30,8 @@ type OrderRow = {
   variantLabel: string | null
   customerEmail: string
   supplierNetCents: number
+  affisellFeeCents: number
+  affiliateCommissionCents: number
   partnerListingCode: string | null
   createdAt: string
   shippedAt: string | null
@@ -63,18 +65,18 @@ function FulfillmentRail({
         [
           {
             key: "paid" as const,
-            label: "Paid & queued",
-            detail: "Settlement captured securely",
+            label: "Captured · queued",
+            detail: "Funds settled — ship window open",
           },
           {
             key: "preparing" as const,
-            label: "Receiving & prepping",
-            detail: "Notify your buyer you're on it",
+            label: "Inbound · prepping",
+            detail: "Buyer gets a live pulse when you confirm",
           },
           {
             key: "shipped" as const,
-            label: "Shipped · tracking shared",
-            detail: "Customer sees carrier + number",
+            label: "Outbound · tracked",
+            detail: "Carrier + ID mirrored to buyer orders",
           },
         ] as const
       ).map((meta, idx) => ({
@@ -87,52 +89,168 @@ function FulfillmentRail({
   const activeRank = status === "shipped" ? 2 : status === "preparing" ? 1 : 0
 
   return (
-    <div className="relative mt-5 overflow-hidden rounded-2xl border border-violet-200/70 bg-[radial-gradient(120%_90%_at_10%_-20%,rgba(167,139,250,0.35),transparent_52%),linear-gradient(to_bottom_right,rgba(250,245,255,0.95),rgba(255,255,255,0.7))] p-4 shadow-[0_22px_60px_-32px_rgba(109,40,217,0.65)] backdrop-blur-sm dark:border-violet-900/55 dark:bg-[radial-gradient(120%_90%_at_10%_-20%,rgba(109,40,217,0.28),transparent_52%),linear-gradient(to_bottom_right,rgba(46,16,101,0.35),rgba(24,24,27,0.85))]">
-      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-violet-950/85 dark:text-violet-100/90">
-        <Sparkles className="size-3.5 text-violet-600 dark:text-violet-300" aria-hidden />
-        Fulfillment runway
+    <div
+      className="relative mt-5 overflow-hidden rounded-2xl border border-zinc-200/90 bg-white/70 shadow-[0_24px_80px_-48px_rgba(109,40,217,0.45)] backdrop-blur-xl dark:border-zinc-700/90 dark:bg-zinc-950/75 dark:shadow-[0_24px_80px_-48px_rgba(0,0,0,0.85)]"
+      role="region"
+      aria-label="Fulfillment trail"
+    >
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.55] dark:opacity-[0.35]"
+        aria-hidden
+        style={{
+          backgroundImage: `
+            radial-gradient(ellipse 90% 80% at 0% -30%, rgb(139 92 246 / 0.22), transparent 55%),
+            radial-gradient(ellipse 70% 60% at 100% 0%, rgb(6 182 212 / 0.12), transparent 50%),
+            linear-gradient(180deg, rgb(250 245 255 / 0.9) 0%, transparent 45%)
+          `,
+        }}
+      />
+      <div className="relative border-b border-zinc-100/90 px-4 py-3 dark:border-zinc-800/80 sm:px-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5">
+            <span className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-600/25">
+              <Workflow className="size-4 shrink-0 opacity-95" aria-hidden strokeWidth={2.25} />
+            </span>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Fulfillment trail</p>
+                <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-emerald-800 ring-1 ring-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-400/30">
+                  Live
+                </span>
+              </div>
+              <p className="mt-0.5 max-w-xl text-[11px] leading-relaxed text-zinc-600 dark:text-zinc-400">
+                Progressive handoff — each checkpoint syncs buyer notifications before tracking exists.
+              </p>
+            </div>
+          </div>
+          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500">
+            Step {Math.min(activeRank + 1, 3)} / 3
+          </p>
+        </div>
       </div>
-      <p className="mt-1 max-w-xl text-[11px] leading-relaxed text-violet-900/70 dark:text-violet-200/75">
-        Reassure buyers early: confirming prep sends them an alert and updates “My orders” before tracking exists.
-      </p>
 
-      <ul className="mt-5 flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-4 sm:[&>*]:flex-1 sm:[&>*]:pb-0">
+      {/* Desktop: horizontal runway */}
+      <div className="relative hidden px-3 pb-5 pt-8 sm:block sm:px-6">
+        <div className="flex items-start justify-between gap-2">
+          {steps.map(({ key, label, detail, index }) => {
+            const complete =
+              index < activeRank || (status === "shipped" && index <= 2)
+            const active = index === activeRank && status !== "shipped"
+
+            let Icon = Package
+            if (key === "preparing") Icon = ClipboardCheck
+            if (key === "shipped") Icon = Truck
+
+            const segmentFilled = index < steps.length - 1 && activeRank > index
+
+            return (
+              <div key={key} className="relative flex min-w-0 flex-1 flex-col items-center">
+                {index > 0 ? (
+                  <div
+                    className="absolute right-1/2 top-5 h-0.5 w-[calc(100%-2.5rem)] translate-x-[calc(50%-1.25rem)] translate-y-[-50%] rounded-full bg-zinc-200 dark:bg-zinc-700"
+                    aria-hidden
+                  >
+                    <div
+                      className={cn(
+                        "h-full rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-500 to-violet-500 transition-all duration-700 ease-out",
+                        segmentFilled ? "w-full opacity-100" : "w-0 opacity-0"
+                      )}
+                    />
+                  </div>
+                ) : null}
+
+                <div
+                  className={cn(
+                    "relative z-[1] flex size-11 shrink-0 items-center justify-center rounded-2xl border-2 font-mono text-xs font-bold tabular-nums transition-all duration-300",
+                    complete
+                      ? "border-emerald-400/80 bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-[0_12px_28px_-12px_rgb(16_185_129_/_0.65)] dark:from-emerald-600 dark:to-teal-700"
+                      : active
+                        ? "border-violet-500 bg-white text-violet-700 shadow-[0_0_0_4px_rgb(139_92_246_/_0.2),0_16px_40px_-24px_rgb(109_40_217_/_0.55)] dark:bg-zinc-900 dark:text-violet-300 dark:shadow-[0_0_0_4px_rgb(139_92_246_/_0.25)]"
+                        : "border-zinc-200 bg-zinc-50 text-zinc-400 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-500"
+                  )}
+                >
+                  {complete ? (
+                    <Check className="size-5" aria-hidden strokeWidth={3} />
+                  ) : active ? (
+                    <span className="relative flex size-2.5">
+                      <span className="absolute inline-flex size-full animate-ping rounded-full bg-violet-400 opacity-40" />
+                      <span className="relative inline-flex size-2.5 rounded-full bg-violet-600 dark:bg-violet-400" />
+                    </span>
+                  ) : (
+                    <Icon className="size-[18px] opacity-80" aria-hidden strokeWidth={2} />
+                  )}
+                </div>
+
+                <div className="mt-3 w-full px-1 text-center">
+                  <p
+                    className={cn(
+                      "text-[13px] font-semibold leading-snug tracking-tight",
+                      active ? "text-violet-950 dark:text-violet-100" : "text-zinc-900 dark:text-zinc-100"
+                    )}
+                  >
+                    {label}
+                  </p>
+                  <p className="mt-1 text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">{detail}</p>
+                  {key === "preparing" && supplierPreparingAt ? (
+                    <p className="mt-2 inline-flex flex-wrap items-center justify-center gap-1 text-[10px] font-medium text-emerald-700 dark:text-emerald-400">
+                      <BadgeCheck className="size-3.5 shrink-0" aria-hidden />
+                      Pulse sent · {new Date(supplierPreparingAt).toLocaleString()}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Mobile: vertical trail */}
+      <ul className="relative space-y-0 px-4 pb-5 pt-6 sm:hidden">
+        <div
+          className="absolute bottom-8 left-[21px] top-10 w-px bg-gradient-to-b from-violet-300 via-violet-200 to-zinc-200 dark:from-violet-600 dark:via-violet-900 dark:to-zinc-700"
+          aria-hidden
+        />
         {steps.map(({ key, label, detail, index }) => {
-          const done = index < activeRank || (status === "shipped" && index <= 2)
+          const complete =
+            index < activeRank || (status === "shipped" && index <= 2)
           const active = index === activeRank && status !== "shipped"
-          const completeShipped = key === "shipped" && status === "shipped"
 
           let Icon = Package
           if (key === "preparing") Icon = ClipboardCheck
           if (key === "shipped") Icon = Truck
 
           return (
-            <li key={key} className="relative flex gap-3 sm:flex-col sm:border-l sm:border-violet-200/40 sm:pl-4 sm:first:border-l-0 sm:first:pl-0 dark:sm:border-violet-900/55">
+            <li key={key} className="relative flex gap-4 pl-1">
               <div
                 className={cn(
-                  "flex size-11 shrink-0 items-center justify-center rounded-2xl border text-violet-800 shadow-inner dark:text-violet-100",
-                  done || completeShipped
-                    ? "border-emerald-300/70 bg-emerald-50/90 text-emerald-800 shadow-[0_0_0_1px_rgba(16,185,129,0.15)] dark:border-emerald-800/70 dark:bg-emerald-950/40 dark:text-emerald-200"
+                  "relative z-[1] flex size-10 shrink-0 items-center justify-center rounded-xl border-2 transition-all duration-300",
+                  complete
+                    ? "border-emerald-400/80 bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-600/20"
                     : active
-                      ? "border-violet-400/80 bg-white/95 ring-2 ring-violet-400/55 ring-offset-2 ring-offset-violet-50 dark:bg-zinc-950/85 dark:ring-violet-500/40 dark:ring-offset-zinc-950 animate-[pulse_2s_ease-in-out_infinite]"
-                      : "border-zinc-200/70 bg-white/60 text-zinc-400 dark:border-zinc-700 dark:bg-zinc-950/55"
+                      ? "border-violet-500 bg-white shadow-[0_0_0_3px_rgb(139_92_246_/_0.22)] dark:bg-zinc-900"
+                      : "border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900/80"
                 )}
               >
-                {done || completeShipped ? (
-                  <Check className="size-5 shrink-0" aria-hidden strokeWidth={2.75} />
+                {complete ? (
+                  <Check className="size-[18px]" aria-hidden strokeWidth={3} />
                 ) : active ? (
-                  <Radio className="size-[18px] shrink-0" aria-hidden />
+                  <span className="relative flex size-2">
+                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-violet-400 opacity-35" />
+                    <span className="relative inline-flex size-2 rounded-full bg-violet-600 dark:bg-violet-400" />
+                  </span>
                 ) : (
-                  <Icon className="size-[18px] shrink-0 opacity-70" aria-hidden />
+                  <Icon className="size-[16px] text-zinc-400 dark:text-zinc-500" aria-hidden strokeWidth={2} />
                 )}
               </div>
-              <div className="min-w-0">
-                <p className={cn("text-sm font-semibold leading-tight", active ? "text-violet-950 dark:text-violet-50" : "text-zinc-900 dark:text-zinc-50")}>{label}</p>
+              <div className="min-w-0 pb-6 pt-0.5">
+                <p className={cn("text-sm font-semibold leading-tight", active ? "text-violet-950 dark:text-violet-50" : "text-zinc-900 dark:text-zinc-50")}>
+                  {label}
+                </p>
                 <p className="mt-1 text-[11px] leading-snug text-zinc-600 dark:text-zinc-400">{detail}</p>
                 {key === "preparing" && supplierPreparingAt ? (
                   <p className="mt-2 inline-flex flex-wrap items-center gap-1 text-[11px] text-emerald-800 dark:text-emerald-300">
                     <BadgeCheck className="size-3.5 shrink-0" aria-hidden />
-                    Buyer pinged · {new Date(supplierPreparingAt).toLocaleString()}
+                    Pulse sent · {new Date(supplierPreparingAt).toLocaleString()}
                   </p>
                 ) : null}
               </div>
@@ -301,12 +419,34 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
                     ×{o.quantity} · {new Date(o.createdAt).toLocaleString()}
                   </p>
                   <div className="mt-3 rounded-xl border border-zinc-100 bg-white/90 px-3 py-2.5 shadow-sm backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900/60">
-                    <p className="text-xs font-medium text-violet-800 dark:text-violet-300">
-                      Your wholesale (COGS): {formatStoreCurrencyFromCents(o.supplierNetCents)}
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                      Settlement detail
+                    </p>
+                    <ul className="mt-2 space-y-1 text-[11px] text-zinc-600 dark:text-zinc-400">
+                      <li className="flex flex-wrap justify-between gap-x-3 gap-y-0.5">
+                        <span>Your wholesale (your article)</span>
+                        <span className="font-medium tabular-nums text-zinc-800 dark:text-zinc-200">
+                          {formatStoreCurrencyFromCents(o.supplierNetCents)}
+                        </span>
+                      </li>
+                      <li className="flex flex-wrap justify-between gap-x-3 gap-y-0.5">
+                        <span>
+                          − Affisell marketplace ({AFFISELL_MARKETPLACE_FEE_PERCENT}% of partner checkout)
+                        </span>
+                        <span className="tabular-nums">{formatStoreCurrencyFromCents(o.affisellFeeCents)}</span>
+                      </li>
+                      <li className="flex flex-wrap justify-between gap-x-3 gap-y-0.5">
+                        <span>− Partner listing commission (your offer)</span>
+                        <span className="tabular-nums">{formatStoreCurrencyFromCents(o.affiliateCommissionCents)}</span>
+                      </li>
+                    </ul>
+                    <p className="mt-2 border-t border-zinc-100 pt-2 text-xs font-semibold text-violet-800 dark:text-violet-300">
+                      Your payout basis (wholesale): {formatStoreCurrencyFromCents(o.supplierNetCents)}
                     </p>
                     <p className="mt-1.5 text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
-                      Retail price and partner margin are hidden on this view — only Affisell support can match a
-                      partner using the listing reference below.
+                      Partner storefront retail total is not shown. Marketplace and listing commissions are funded from
+                      partner-channel revenue; they do not reduce your wholesale. Use the listing reference below only if
+                      Affisell support asks for it.
                     </p>
                   </div>
                   <p className="mt-3 text-xs text-zinc-600 dark:text-zinc-400">
