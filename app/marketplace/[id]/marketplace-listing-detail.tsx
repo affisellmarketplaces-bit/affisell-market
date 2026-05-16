@@ -406,6 +406,21 @@ export function MarketplaceListingDetail({
     return colorNames.map((n) => ({ name: n, meta: map.get(n) }))
   }, [colorNames])
 
+  const showColorSwatches = useMemo(
+    () => colorMeta.some(({ meta }) => Boolean(meta)),
+    [colorMeta]
+  )
+
+  const variantRowByName = useMemo(() => {
+    const m = new Map<string, { stock: number; image?: string }>()
+    for (const r of variants?.variantRows ?? []) {
+      const name = r.name.trim()
+      if (!name) continue
+      m.set(name, { stock: r.stock, image: r.image?.trim() || undefined })
+    }
+    return m
+  }, [variants?.variantRows])
+
   const safeImageIndex = Math.min(Math.max(0, selectedImage), Math.max(0, images.length - 1))
 
   const colorRow = useMemo(
@@ -852,7 +867,10 @@ export function MarketplaceListingDetail({
 
             {colorMeta.length > 0 ? (
               <div>
-                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Color</p>
+                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                  {showColorSwatches ? "Color" : "Option"}
+                </p>
+                {showColorSwatches ? (
                 <div className="mt-2 flex flex-wrap gap-2">
                   {colorMeta.map(({ name: cn, meta }) => (
                     <button
@@ -875,6 +893,33 @@ export function MarketplaceListingDetail({
                     />
                   ))}
                 </div>
+                ) : (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {colorMeta.map(({ name: cn }) => {
+                    const row = variantRowByName.get(cn)
+                    const out = row != null && row.stock <= 0
+                    return (
+                      <button
+                        key={cn}
+                        type="button"
+                        disabled={out}
+                        onClick={() => {
+                          setGalleryHeroLock(false)
+                          setSelectedColor(cn)
+                          setSelectedImage(imageIndexForColor(cn, colorNames, colorImages, images))
+                        }}
+                        className={`rounded-xl border px-3 py-2 text-sm font-medium transition ${
+                          selectedColor === cn
+                            ? "border-violet-600 bg-violet-600 text-white shadow-sm dark:border-violet-500 dark:bg-violet-600"
+                            : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-700 dark:hover:border-zinc-600"
+                        } ${out ? "cursor-not-allowed opacity-40" : ""}`}
+                      >
+                        {cn}
+                      </button>
+                    )
+                  })}
+                </div>
+                )}
               </div>
             ) : null}
 

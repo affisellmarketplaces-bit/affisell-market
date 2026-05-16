@@ -120,3 +120,15 @@ export function patchProductVariants(
 export function variantsFromDb(raw: unknown): ProductVariantsJson | null {
   return parseVariantsPayload(raw)
 }
+
+/** PDP / cart option labels: `Product.colors` first, else advanced `variantRows[].name`. */
+export function resolveMarketplaceOptionNames(
+  productColors: string[],
+  variants: ProductVariantsJson | null
+): string[] {
+  const fromColors = productColors.map((c) => c.trim()).filter(Boolean)
+  if (fromColors.length > 0) return fromColors
+  return (variants?.variantRows ?? [])
+    .map((r) => r.name.trim())
+    .filter(Boolean)
+}

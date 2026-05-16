@@ -12,7 +12,7 @@ import { mergeColorImagesForProduct, parseProductColorImagesFromDb } from "@/lib
 import { prisma } from "@/lib/prisma"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { publicPartnerSellerLabel } from "@/lib/public-seller-display"
-import { variantsFromDb } from "@/lib/product-variants"
+import { resolveMarketplaceOptionNames, variantsFromDb } from "@/lib/product-variants"
 
 import { MarketplaceListingDetail } from "./marketplace-listing-detail"
 
@@ -57,7 +57,7 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
   const categories = Array.isArray(listing.product.categories)
     ? listing.product.categories.filter((c): c is string => typeof c === "string" && Boolean(c.trim()))
     : []
-  const colorNames = Array.isArray(listing.product.colors)
+  const productColorNames = Array.isArray(listing.product.colors)
     ? listing.product.colors.filter((c): c is string => typeof c === "string" && Boolean(c.trim()))
     : []
   const tags = Array.isArray(listing.product.tags)
@@ -66,6 +66,7 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
   const has3D = tags.some((t) => /(?:\b3d\b|\b360\b)/i.test(t))
   const arModel = tags.find((t) => t.toLowerCase().startsWith("ar:"))?.slice(3) ?? null
   const variants = variantsFromDb(listing.product.variants)
+  const colorNames = resolveMarketplaceOptionNames(productColorNames, variants)
   const colorImages =
     colorNames.length > 0
       ? mergeColorImagesForProduct(colorNames, listing.product.colorImages, listing.product.variants)
