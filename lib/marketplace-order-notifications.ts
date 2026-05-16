@@ -20,12 +20,15 @@ export async function createMarketplaceOrderNotifications(
     customerEmail: string
     partnerListingCode?: string | null
     settlement: MarketplaceOrderSettlement
+    imageUrl?: string | null
   }
 ): Promise<void> {
+  const imageUrl = args.imageUrl?.trim() || null
   await tx.notification.create({
     data: {
       userId: args.supplierId,
       type: "NEW_ORDER",
+      imageUrl,
       message: formatSupplierNewOrderNotification({
         productName: args.productName,
         variantBit: args.variantBit,
@@ -42,6 +45,7 @@ export async function createMarketplaceOrderNotifications(
     data: {
       userId: args.affiliateId,
       type: "NEW_SALE",
+      imageUrl,
       message: formatAffiliateNewSaleNotification({
         productName: args.productName,
         variantBit: args.variantBit,

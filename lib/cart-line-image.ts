@@ -1,4 +1,5 @@
 import { listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
+import { parseCartVariantSignature } from "@/lib/cart-variant"
 import {
   comparableImageUrl,
   findColorImageRowForName,
@@ -98,4 +99,39 @@ export function resolveCartLineImageUrl(args: ResolveArgs): string {
   if (idx2 >= 0 && idx2 < slotGallery.length) return slotGallery[idx2]!.trim()
 
   return fallback
+}
+
+export function colorNameFromVariantLabel(variantLabel: string | null | undefined): string | null {
+  const raw = typeof variantLabel === "string" ? variantLabel.trim() : ""
+  if (!raw) return null
+  const first = raw.split("·")[0]?.trim()
+  return first || null
+}
+
+type MarketplaceListingForImage = {
+  customImages: string[] | null | undefined
+  product: {
+    images: string[]
+    colors: string[]
+    colorImages: unknown
+    variants: unknown
+  }
+}
+
+/** Snapshot image for a paid marketplace line (colorway from checkout). */
+export function resolveMarketplaceOrderLineImageUrl(
+  listing: MarketplaceListingForImage,
+  variantLabel: string | null | undefined,
+  variantSignature?: string | null
+): string {
+  const parsed = parseCartVariantSignature(typeof variantSignature === "string" ? variantSignature : "")
+  const color = parsed.color || colorNameFromVariantLabel(variantLabel)
+  return resolveCartLineImageUrl({
+    customImages: listing.customImages,
+    productImages: listing.product.images,
+    productColors: listing.product.colors,
+    colorImagesJson: listing.product.colorImages,
+    variantsJson: listing.product.variants,
+    selectedColor: color,
+  })
 }

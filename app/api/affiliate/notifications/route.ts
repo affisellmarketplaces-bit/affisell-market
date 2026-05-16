@@ -11,7 +11,7 @@ export async function GET() {
   if (!session?.user?.id) {
     return Response.json({ error: "Not authenticated" }, { status: 401 })
   }
-  if ((session.user as { role?: string }).role !== "SUPPLIER") {
+  if ((session.user as { role?: string }).role !== "AFFILIATE") {
     return Response.json({ error: "Forbidden" }, { status: 403 })
   }
 
@@ -30,7 +30,7 @@ export async function GET() {
   const orderImages =
     orderIds.length > 0
       ? await prisma.order.findMany({
-          where: { id: { in: orderIds }, supplierId: session.user.id },
+          where: { id: { in: orderIds }, affiliateId: session.user.id },
           select: { id: true, variantImageUrl: true },
         })
       : []
@@ -62,7 +62,7 @@ export async function PATCH(req: Request) {
   if (!session?.user?.id) {
     return Response.json({ error: "Not authenticated" }, { status: 401 })
   }
-  if ((session.user as { role?: string }).role !== "SUPPLIER") {
+  if ((session.user as { role?: string }).role !== "AFFILIATE") {
     return Response.json({ error: "Forbidden" }, { status: 403 })
   }
 

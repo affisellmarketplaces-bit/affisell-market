@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client"
 import type Stripe from "stripe"
 
+import { resolveMarketplaceOrderLineImageUrl } from "@/lib/cart-line-image"
 import { formatCartVariantLabel, parseCartVariantSignature } from "@/lib/cart-variant"
 import { buyerEarnCentsForLinePaid } from "@/lib/buyer-reward-earn"
 import { earnBuyerRewardIdempotent, redeemBuyerRewardIdempotent } from "@/lib/buyer-reward-ledger"
@@ -47,12 +48,16 @@ async function createPaidMarketplaceOrder(
     customerEmail: string
     shippingAddress: Prisma.InputJsonValue
     variantLabel: string
+    variantSignature?: string
     partnerListingCode?: string | null
   }
 ): Promise<string | null> {
   const { listing, qty } = args
   const variants = variantsFromDb(listing.product.variants)
-  const optionName = args.variantLabel.split("·")[0]?.trim() || null
+  const parsed = parseCartVariantSignature(args.variantSignature ?? "")
+  const optionName = parsed.color || args.variantLabel.split("·")[0]?.trim() || null
+  const variantImageUrl =
+    resolveMarketplaceOrderLineImageUrl(listing, args.variantLabel, args.variantSignature) || null
   const basePriceCents =
     marketplaceWholesaleCentsForOption({
       productBasePriceCents: listing.product.basePriceCents,
@@ -77,6 +82,7 @@ async function createPaidMarketplaceOrder(
       quantity: qty,
       shippingAddress: args.shippingAddress,
       variantLabel: args.variantLabel || null,
+      variantImageUrl,
       basePriceCents,
       sellingPriceCents: settlement.sellingPriceCents,
       marginCents: settlement.marginCents,
@@ -104,6 +110,7 @@ async function createPaidMarketplaceOrder(
     customerEmail: args.customerEmail,
     partnerListingCode: args.partnerListingCode,
     settlement,
+    imageUrl: variantImageUrl,
   })
 
   return order.id
@@ -204,6 +211,7 @@ export async function fulfillMarketplaceStripeSession(
           customerEmail,
           shippingAddress,
           variantLabel: variantLabelRaw,
+          variantSignature: sigStr,
           partnerListingCode: listing.affiliate.store?.partnerListingCode ?? null,
         })
 
@@ -243,8 +251,10 @@ export async function fulfillMarketplaceStripeSession(
 
   const qty = Math.max(1, Math.round(parseInt(meta.checkoutQty ?? "1", 10) || 1))
   const checkoutVariantLabel = meta.checkoutVariantLabel?.trim() || ""
+  const checkoutVariantSignature = meta.checkoutVariantSignature?.trim() || ""
   const variants = variantsFromDb(listing.product.variants)
-  const optionName = checkoutVariantLabel.split("·")[0]?.trim() || null
+  const checkoutParsed = parseCartVariantSignature(checkoutVariantSignature)
+  const optionName = checkoutParsed.color || checkoutVariantLabel.split("·")[0]?.trim() || null
   const listLineCents =
     marketplaceSellingPriceCentsForOption({
       listingSellingPriceCents: listing.sellingPriceCents,
@@ -282,6 +292,7 @@ export async function fulfillMarketplaceStripeSession(
       customerEmail,
       shippingAddress,
       variantLabel: checkoutVariantLabel,
+      variantSignature: checkoutVariantSignature,
       partnerListingCode: listing.affiliate.store?.partnerListingCode ?? null,
     })
 

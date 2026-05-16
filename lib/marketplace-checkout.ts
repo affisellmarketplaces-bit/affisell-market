@@ -345,6 +345,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
     selectedColor: body.selectedColor,
     selectedSize: body.selectedSize,
   })
+  const oneShotVariantSignature = normalizeCartVariantSignature(body.selectedColor, body.selectedSize)
   pushLineItemsForPaidTotal(stripeLineItems, listing, paidLineCents[0]!, qty, oneShotVariantLabel)
 
   const { baseUrl, cancelPath, successPath } = checkoutBaseUrls(body)
@@ -370,6 +371,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
       linePaids: JSON.stringify(paidLineCents),
       checkoutQty: String(qty),
       checkoutVariantLabel: oneShotVariantLabel || "",
+      checkoutVariantSignature: oneShotVariantSignature || "",
       ...(buyerUserId ? { buyerUserId } : {}),
     },
   })

@@ -17,6 +17,7 @@ import {
 } from "@/lib/guest-cart"
 import { normalizeCartVariantSignature } from "@/lib/cart-variant"
 import { MerchantAccountNavActions } from "@/components/merchant-account-nav-actions"
+import { MerchantNotificationsMenu } from "@/components/merchant-notifications-menu"
 import { SupplierNotificationsMenu } from "@/components/supplier/supplier-notifications-menu"
 import { buttonVariants } from "@/components/ui/button"
 import { VisualSearchModal } from "@/components/visual-search-modal"
@@ -263,6 +264,7 @@ export function SiteNav() {
                 <Wallet className="size-4 shrink-0" aria-hidden />
                 Earnings
               </Link>
+              <MerchantNotificationsMenu role="AFFILIATE" />
               <MerchantAccountNavActions />
             </div>
           ) : null}

@@ -1,12 +1,24 @@
 import type { Prisma } from "@prisma/client"
 
 import { aggregateBlindLinesForSupplier } from "@/lib/blind-dropship-settlement"
+import { resolveMarketplaceOrderLineImageUrl } from "@/lib/cart-line-image"
 import { formatOrderShippingAddress } from "@/lib/order-shipping-address"
 import { orderPayoutTiming, payoutStatusLabel } from "@/lib/order-payout-policy"
 import { prisma } from "@/lib/prisma"
 
 const orderInclude = {
-  product: { select: { id: true, name: true, images: true, supplierSku: true } },
+  product: {
+    select: {
+      id: true,
+      name: true,
+      images: true,
+      colors: true,
+      colorImages: true,
+      variants: true,
+      supplierSku: true,
+    },
+  },
+  affiliateProduct: { select: { customImages: true } },
   affiliate: { select: { store: { select: { partnerListingCode: true } } } },
   returns: {
     where: { status: { notIn: ["REJECTED", "CANCELLED", "REFUNDED"] as string[] } },
@@ -57,9 +69,20 @@ export type SupplierFulfillmentOrder = {
 
 type SupplierOrderRow = Prisma.OrderGetPayload<{ include: typeof orderInclude }>
 
+function orderLineImageUrl(o: SupplierOrderRow): string | null {
+  const snap = o.variantImageUrl?.trim()
+  if (snap) return snap
+  const resolved = resolveMarketplaceOrderLineImageUrl(
+    { customImages: o.affiliateProduct.customImages, product: o.product },
+    o.variantLabel
+  )
+  return resolved || o.product.images[0] || null
+}
+
 export function mapMarketplaceOrder(o: SupplierOrderRow): SupplierFulfillmentOrder {
   const openReturn = o.returns[0] ?? null
   const store = o.affiliate.store
+  const imageUrl = orderLineImageUrl(o)
   return {
     id: o.id,
     fulfillmentSource: "marketplace",
@@ -90,7 +113,7 @@ export function mapMarketplaceOrder(o: SupplierOrderRow): SupplierFulfillmentOrd
     product: {
       id: o.product.id,
       name: o.product.name,
-      imageUrl: o.product.images[0] ?? null,
+      imageUrl,
       supplierSku: o.product.supplierSku,
     },
     openReturn: openReturn ? { id: openReturn.id, status: openReturn.status } : null,

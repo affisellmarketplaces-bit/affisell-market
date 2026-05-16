@@ -482,6 +482,7 @@ model AffiliateProduct {
   affiliate   User       @relation(fields: [affiliateId], references: [id])
   product     Product    @relation(fields: [productId], references: [id])
   cartItems   CartItem[]
+  orders      Order[]
 
   sellingPriceCents Int
 
@@ -597,6 +598,10 @@ model Order {
    * Shoppers’ variant choice at checkout, e.g. "Purple · M" — optional.
    */
   variantLabel             String?
+  /**
+   * Hero image for the chosen color at checkout (snapshot for fulfillment & alerts).
+   */
+  variantImageUrl          String?
   basePriceCents           Int
   sellingPriceCents        Int
   commissionCents          Int
@@ -634,6 +639,7 @@ model Order {
   createdAt                DateTime            @default(now())
   updatedAt                DateTime            @updatedAt
   product                  Product             @relation(fields: [productId], references: [id])
+  affiliateProduct           AffiliateProduct    @relation(fields: [affiliateProductId], references: [id])
   supplier                 User                @relation("SupplierOrders", fields: [supplierId], references: [id])
   affiliate                User                @relation("AffiliateOrders", fields: [affiliateId], references: [id])
   returns                  OrderReturn[]
@@ -718,6 +724,10 @@ model Notification {
   userId    String
   type      String
   message   String
+  /**
+   * Product thumbnail for the variant chosen at purchase (orders / sales alerts).
+   */
+  imageUrl  String?
   orderId   String?
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
