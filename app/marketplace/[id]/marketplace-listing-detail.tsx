@@ -186,6 +186,35 @@ function imageIndexForColor(
   return 0
 }
 
+/** Split long marketplace titles into a scannable headline + supporting line. */
+function splitListingTitle(name: string): { headline: string; subline: string | null } {
+  const trimmed = name.trim()
+  if (!trimmed) return { headline: "", subline: null }
+
+  const comma = trimmed.indexOf(",")
+  if (comma >= 12 && comma <= 96) {
+    const headline = trimmed.slice(0, comma).trim()
+    const subline = trimmed.slice(comma + 1).trim()
+    if (headline.length >= 8 && subline.length >= 10) {
+      return { headline, subline }
+    }
+  }
+
+  const dash = trimmed.match(/^(.{12,72})\s[-–—]\s+(.{8,})$/u)
+  if (dash) {
+    return { headline: dash[1].trim(), subline: dash[2].trim() }
+  }
+
+  if (trimmed.length > 78) {
+    const cut = trimmed.lastIndexOf(" ", 78)
+    if (cut >= 28) {
+      return { headline: trimmed.slice(0, cut).trim(), subline: trimmed.slice(cut).trim() }
+    }
+  }
+
+  return { headline: trimmed, subline: null }
+}
+
 function StarRatingRow({ value, count }: { value: number; count: number }) {
   const full = Math.round(Math.min(5, Math.max(0, value)))
   return (
@@ -311,6 +340,10 @@ export function MarketplaceListingDetail({
   const reduceMotion = useReducedMotion()
   const purchaseDockRef = useRef<HTMLDivElement>(null)
   const [showStickyBuy, setShowStickyBuy] = useState(false)
+  const [titleExpanded, setTitleExpanded] = useState(false)
+  const { headline: titleHeadline, subline: titleSubline } = useMemo(() => splitListingTitle(name), [name])
+  const titleSublineLong = Boolean(titleSubline && titleSubline.length > 110)
+  const categoryEyebrow = categories[0]?.trim() || tags[0]?.trim() || null
   const images = useMemo(() => {
     const g = gallery.filter((u): u is string => typeof u === "string" && Boolean(u.trim()))
     return g.length > 0 ? g : ["/placeholder.png"]
@@ -364,6 +397,7 @@ export function MarketplaceListingDetail({
 
   useEffect(() => {
     setDescExpanded(false)
+    setTitleExpanded(false)
   }, [listingId])
 
   useEffect(() => {
@@ -687,9 +721,28 @@ export function MarketplaceListingDetail({
             className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_85%_at_50%_-8%,rgba(139,92,246,0.16),transparent_58%)] dark:bg-[radial-gradient(120%_85%_at_50%_-8%,rgba(167,139,250,0.14),transparent_58%)]"
             aria-hidden
           />
-          <motion.div className="relative grid grid-cols-1 gap-10 lg:grid-cols-12 lg:items-start lg:gap-12">
+          <motion.div className="relative grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-start lg:gap-x-12 lg:gap-y-8">
+            <nav
+              aria-label="Breadcrumb"
+              className="order-first col-span-full flex flex-wrap items-center gap-1 border-b border-zinc-200/70 pb-4 text-xs text-zinc-500 dark:border-zinc-800/80 dark:text-zinc-400"
+            >
+              <Link href="/" className="hover:text-zinc-900 dark:hover:text-zinc-200">
+                {breadcrumbT.home}
+              </Link>
+              <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-50" aria-hidden />
+              <Link href="/marketplace" className="hover:text-zinc-900 dark:hover:text-zinc-200">
+                Marketplace
+              </Link>
+              {categories.slice(0, 2).map((c) => (
+                <Fragment key={c}>
+                  <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-50" aria-hidden />
+                  <span className="max-w-[12rem] truncate font-medium text-zinc-600 dark:text-zinc-300">{c}</span>
+                </Fragment>
+              ))}
+            </nav>
+
           <motion.div
-            className="order-2 flex flex-col gap-8 lg:order-none lg:col-span-7 lg:gap-10"
+            className="order-2 flex flex-col gap-6 lg:order-none lg:col-span-7 lg:gap-8"
             initial={reduceMotion ? false : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={reduceMotion ? { duration: 0 } : { duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
@@ -743,6 +796,11 @@ export function MarketplaceListingDetail({
               </Button>
             ) : null}
           </section>
+
+            <div
+              aria-hidden
+              className="hidden h-px w-full bg-gradient-to-r from-transparent via-zinc-200/90 to-transparent dark:via-zinc-700/80 lg:block"
+            />
 
             <motion.div
               id="product-description"
@@ -843,45 +901,72 @@ export function MarketplaceListingDetail({
 
           </motion.div>
 
-          <aside className="order-1 space-y-5 lg:order-none lg:col-span-5 lg:sticky lg:top-28 lg:self-start">
-            <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400">
-              <Link href="/" className="hover:text-zinc-900 dark:hover:text-zinc-200">
-                {breadcrumbT.home}
-              </Link>
-              <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-50" aria-hidden />
-              <Link href="/marketplace" className="hover:text-zinc-900 dark:hover:text-zinc-200">
-                Marketplace
-              </Link>
-              {categories.slice(0, 2).map((c) => (
-                <Fragment key={c}>
-                  <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-50" aria-hidden />
-                  <span className="max-w-[10rem] truncate font-medium text-zinc-600 dark:text-zinc-300">{c}</span>
-                </Fragment>
-              ))}
-            </nav>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs font-semibold text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
-                <Package className="h-3.5 w-3.5" aria-hidden />
-                {stock > 0 ? (
-                  <>
-                    In stock
-                    {stock <= 20 ? ` · ${stock} left` : null}
-                  </>
-                ) : (
-                  "Out of stock"
-                )}
-              </span>
-              {shipping.freeShippingThresholdEUR != null && shipping.freeShippingThresholdEUR > 0 ? (
-                <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
-                  Free shipping over {fmtMoney(shipping.freeShippingThresholdEUR)}
+          <aside className="order-1 space-y-4 lg:order-none lg:col-span-5 lg:sticky lg:top-28 lg:self-start">
+            <header className="space-y-3 lg:pt-0.5">
+              <motion.div
+                className="flex flex-wrap items-center gap-2"
+                initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={reduceMotion ? { duration: 0 } : { duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              >
+                {categoryEyebrow ? (
+                  <span className="rounded-full bg-violet-600/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-violet-800 dark:bg-violet-500/15 dark:text-violet-200">
+                    {categoryEyebrow}
+                  </span>
+                ) : null}
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-0.5 text-[11px] font-semibold text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
+                  <Package className="h-3.5 w-3.5" aria-hidden />
+                  {stock > 0 ? (
+                    <>
+                      In stock
+                      {stock <= 20 ? ` · ${stock} left` : null}
+                    </>
+                  ) : (
+                    "Out of stock"
+                  )}
                 </span>
-              ) : null}
-            </div>
+                {shipping.freeShippingThresholdEUR != null && shipping.freeShippingThresholdEUR > 0 ? (
+                  <span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
+                    Free shipping over {fmtMoney(shipping.freeShippingThresholdEUR)}
+                  </span>
+                ) : null}
+              </motion.div>
 
-            <h1 className="text-balance text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-[2rem] sm:leading-tight">
-              {name}
-            </h1>
+              <motion.div
+                className="relative"
+                initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={reduceMotion ? { duration: 0 } : { duration: 0.4, delay: 0.04, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <div
+                  className="pointer-events-none absolute -left-3 top-0 hidden h-full w-0.5 rounded-full bg-gradient-to-b from-violet-500 via-fuchsia-500 to-transparent opacity-80 lg:block"
+                  aria-hidden
+                />
+                <h1 className="text-balance pl-0 lg:pl-2">
+                  <span className="block text-[1.35rem] font-bold leading-[1.2] tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-[1.65rem]">
+                    {titleHeadline}
+                  </span>
+                  {titleSubline ? (
+                    <span
+                      className={`mt-2 block text-sm font-normal leading-relaxed text-zinc-600 dark:text-zinc-400 ${
+                        !titleExpanded && titleSublineLong ? "line-clamp-2" : ""
+                      }`}
+                    >
+                      {titleSubline}
+                    </span>
+                  ) : null}
+                </h1>
+                {titleSubline && titleSublineLong ? (
+                  <button
+                    type="button"
+                    onClick={() => setTitleExpanded((v) => !v)}
+                    className="mt-2 text-xs font-semibold text-violet-700 underline-offset-2 hover:underline dark:text-violet-400"
+                  >
+                    {titleExpanded ? "Show shorter title" : "Show full title"}
+                  </button>
+                ) : null}
+              </motion.div>
+            </header>
 
             {partnerHighlightLabel ? (
               <p className="rounded-xl border border-violet-200/80 bg-violet-50/80 px-3 py-2 text-xs leading-relaxed text-violet-950 dark:border-violet-900/50 dark:bg-violet-950/35 dark:text-violet-100">

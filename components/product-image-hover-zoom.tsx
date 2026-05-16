@@ -125,7 +125,8 @@ export function ProductImageHoverZoom({ src, alt, overlay, className, frameClass
           aria-label={zoomActive ? "Magnified product image" : "Product image zoom"}
           aria-hidden={!zoomActive}
           className={cn(
-            "relative mt-4 hidden min-h-0 w-full shrink-0 overflow-hidden rounded-xl border border-zinc-200/80 bg-zinc-50 shadow-inner transition-[box-shadow] duration-200 dark:border-zinc-700 dark:bg-zinc-900/60 lg:mt-0 lg:block lg:w-56 lg:self-stretch xl:w-64",
+            "relative mt-4 hidden min-h-0 shrink-0 overflow-hidden rounded-xl border border-zinc-200/80 bg-zinc-50 shadow-inner transition-[width,opacity,box-shadow,border-color] duration-200 dark:border-zinc-700 dark:bg-zinc-900/60 lg:mt-0 lg:block lg:self-stretch",
+            zoomEngaged ? "lg:w-56 lg:opacity-100 xl:w-64" : "lg:w-0 lg:border-transparent lg:opacity-0",
             zoomActive ? "ring-2 ring-violet-500/25" : ""
           )}
         >
