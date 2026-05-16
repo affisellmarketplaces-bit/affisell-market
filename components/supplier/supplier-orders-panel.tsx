@@ -130,9 +130,9 @@ function FulfillmentRail({
       </div>
 
       {/* Desktop: horizontal runway */}
-      <div className="relative hidden px-3 pb-5 pt-8 sm:block sm:px-6">
-        <div className="flex items-start justify-between gap-2">
-          {steps.map(({ key, label, detail, index }) => {
+      <div className="relative hidden pb-6 pt-7 sm:block sm:px-6">
+        <div className="flex items-start">
+          {steps.flatMap(({ key, label, detail, index }) => {
             const complete =
               index < activeRank || (status === "shipped" && index <= 2)
             const active = index === activeRank && status !== "shipped"
@@ -141,27 +141,13 @@ function FulfillmentRail({
             if (key === "preparing") Icon = ClipboardCheck
             if (key === "shipped") Icon = Truck
 
-            const segmentFilled = index < steps.length - 1 && activeRank > index
+            const segmentFilled = activeRank > index
 
-            return (
-              <div key={key} className="relative flex min-w-0 flex-1 flex-col items-center">
-                {index > 0 ? (
-                  <div
-                    className="absolute right-1/2 top-5 h-0.5 w-[calc(100%-2.5rem)] translate-x-[calc(50%-1.25rem)] translate-y-[-50%] rounded-full bg-zinc-200 dark:bg-zinc-700"
-                    aria-hidden
-                  >
-                    <div
-                      className={cn(
-                        "h-full rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-500 to-violet-500 transition-all duration-700 ease-out",
-                        segmentFilled ? "w-full opacity-100" : "w-0 opacity-0"
-                      )}
-                    />
-                  </div>
-                ) : null}
-
+            const column = (
+              <div key={key} className="flex w-[min(28%,140px)] shrink-0 flex-col items-center">
                 <div
                   className={cn(
-                    "relative z-[1] flex size-11 shrink-0 items-center justify-center rounded-2xl border-2 font-mono text-xs font-bold tabular-nums transition-all duration-300",
+                    "relative z-[1] flex size-11 shrink-0 items-center justify-center rounded-2xl border-2 transition-all duration-300",
                     complete
                       ? "border-emerald-400/80 bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-[0_12px_28px_-12px_rgb(16_185_129_/_0.65)] dark:from-emerald-600 dark:to-teal-700"
                       : active
@@ -181,7 +167,7 @@ function FulfillmentRail({
                   )}
                 </div>
 
-                <div className="mt-3 w-full px-1 text-center">
+                <div className="mt-3 w-full text-center">
                   <p
                     className={cn(
                       "text-[13px] font-semibold leading-snug tracking-tight",
@@ -200,6 +186,25 @@ function FulfillmentRail({
                 </div>
               </div>
             )
+
+            if (index === steps.length - 1) return [column]
+
+            const connector = (
+              <div
+                key={`${key}-connector`}
+                className="relative mx-2 mt-[22px] h-[3px] min-w-[32px] flex-1 shrink rounded-full bg-zinc-200 dark:bg-zinc-700"
+                aria-hidden
+              >
+                <div
+                  className={cn(
+                    "h-full rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-500 to-violet-500 transition-all duration-700 ease-out",
+                    segmentFilled ? "w-full opacity-100" : "w-0 opacity-0"
+                  )}
+                />
+              </div>
+            )
+
+            return [column, connector]
           })}
         </div>
       </div>
