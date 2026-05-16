@@ -26,6 +26,7 @@ import { Fragment, useEffect, useMemo, useRef, useState, type MouseEvent } from 
 import { Button } from "@/components/ui/button"
 import { ProductImageHoverZoom } from "@/components/product-image-hover-zoom"
 import messages from "@/messages/en.json"
+import { affisellBrand } from "@/lib/affisell-brand"
 import {
   COLORS,
   VARIANT_GROUP_LABELS,
@@ -700,7 +701,20 @@ export function MarketplaceListingDetail({
 
   return (
     <>
-      <div className="relative mb-10 lg:mb-14">
+      <motion.div
+        className={affisellBrand.pageFrame}
+        initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={reduceMotion ? { duration: 0 } : { duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <div className={affisellBrand.pageFrameBar} aria-hidden />
+        <span className={affisellBrand.pageFrameLabel}>{messages.nav.brand}</span>
+        <span className={`${affisellBrand.pageFrameCorner} affisell-page-frame__corner--tl`} aria-hidden />
+        <span className={`${affisellBrand.pageFrameCorner} affisell-page-frame__corner--tr`} aria-hidden />
+        <span className={`${affisellBrand.pageFrameCorner} affisell-page-frame__corner--bl`} aria-hidden />
+        <span className={`${affisellBrand.pageFrameCorner} affisell-page-frame__corner--br`} aria-hidden />
+        <motion.div className={`${affisellBrand.pageFrameInner} px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-9`}>
+        <div className="relative mb-10 lg:mb-14">
         <div
           className="pointer-events-none absolute -left-1/4 top-[-4.5rem] h-[26rem] w-[26rem] rounded-full bg-violet-500/[0.2] blur-3xl dark:bg-violet-600/[0.14] sm:left-[-8%] sm:top-[-5rem]"
           aria-hidden
@@ -1443,7 +1457,7 @@ export function MarketplaceListingDetail({
           </aside>
           </motion.div>
         </motion.div>
-      </div>
+        </div>
 
       <section className="mt-10 space-y-3">
         <details
@@ -1623,6 +1637,9 @@ export function MarketplaceListingDetail({
           </div>
         </div>
       ) : null}
+
+        </motion.div>
+      </motion.div>
 
       <motion.div
         role="region"
