@@ -1,6 +1,7 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react"
+import { useDebounce } from "use-debounce"
 import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import type { LucideIcon } from "lucide-react"
@@ -49,6 +50,7 @@ import {
   type CategoryPathSegment,
   type RecentCategoryEntry,
 } from "@/lib/category-browse"
+import { suggestFromTitle, titleSuggestionAttributes } from "@/lib/title-parser"
 import { SupplierCategoryPicker, type BrowsePayload } from "@/components/supplier/supplier-category-picker"
 import {
   mergeCoreCategoryAttrs,
@@ -234,8 +236,10 @@ export function SupplierAddProductForm({
   const [browse, setBrowse] = useState<BrowsePayload | null>(null)
   const [recentCategories, setRecentCategories] = useState<RecentCategoryEntry[]>([])
   const [loadingBrowse, setLoadingBrowse] = useState(true)
-  const [debouncedTitle, setDebouncedTitle] = useState("")
+  const [debouncedName] = useDebounce(name, 500)
   const [categoryAiTag, setCategoryAiTag] = useState(false)
+  const categoryIdRef = useRef(categoryId)
+  const lastTitleParserKeyRef = useRef<string | null>(null)
   const [shippingCountry, setShippingCountry] = useState("")
   const [warehouseType, setWarehouseType] = useState<"" | "local" | "regional" | "international">("")
   const [processingTime, setProcessingTime] = useState("1")
@@ -312,15 +316,69 @@ export function SupplierAddProductForm({
     return `With SKU lines, saved stock is the sum of row quantities (${sum} from ${valid.length} line(s)).`
   }, [variantFormMode, variantRows])
 
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedTitle(name), 420)
-    return () => clearTimeout(t)
-  }, [name])
+  useLayoutEffect(() => {
+    categoryIdRef.current = categoryId
+  }, [categoryId])
 
   const keywordCategorySuggestions = useMemo(() => {
-    if (!browse || debouncedTitle.trim().length < 2) return []
-    return suggestLeafCategoriesFromTitle(debouncedTitle, browse.leafPaths, 3)
-  }, [browse, debouncedTitle])
+    if (!browse || debouncedName.trim().length < 2) return []
+    return suggestLeafCategoriesFromTitle(debouncedName, browse.leafPaths, 3)
+  }, [browse, debouncedName])
+
+  useEffect(() => {
+    const title = debouncedName.trim()
+    if (title.length < 5) return
+
+    const suggestion = suggestFromTitle(title)
+    const { categorySlug } = suggestion
+    const attrs = titleSuggestionAttributes(suggestion)
+
+    void (async () => {
+      if (categorySlug && !categoryIdRef.current) {
+        try {
+          const res = await fetch(`/api/categories/by-slug/${encodeURIComponent(categorySlug)}`, {
+            cache: "no-store",
+          })
+          if (!res.ok || categoryIdRef.current) return
+          const cat = (await res.json()) as { id?: string; name?: string }
+          if (!cat.id || !browse) return
+
+          const path = pathFromLeafId(cat.id, browse.nodes)
+          if (!path?.length) return
+
+          const key = `${title}|cat|${categorySlug}`
+          if (lastTitleParserKeyRef.current === key) return
+          lastTitleParserKeyRef.current = key
+
+          setCategoryId(cat.id)
+          setCategoryPath(path)
+          setSpecFormErrors([])
+          toast.info(`Catégorie détectée : ${cat.name}`)
+        } catch {
+          /* non-fatal */
+        }
+      }
+
+      if (Object.keys(attrs).length === 0) return
+
+      const attrKey = `${title}|attrs|${JSON.stringify(attrs)}`
+      if (lastTitleParserKeyRef.current === attrKey) return
+
+      setSpecValues((prev) => {
+        const next = { ...prev }
+        let changed = false
+        for (const [k, v] of Object.entries(attrs)) {
+          if (v && (!prev[k] || !prev[k]!.trim())) {
+            next[k] = v
+            changed = true
+          }
+        }
+        return changed ? next : prev
+      })
+      lastTitleParserKeyRef.current = attrKey
+      if (attrs.brand) toast.info(`Marque détectée : ${attrs.brand}`)
+    })()
+  }, [debouncedName, browse])
 
   useEffect(() => {
     let cancelled = false
