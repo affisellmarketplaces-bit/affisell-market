@@ -383,6 +383,10 @@ export function SupplierAddProductForm({
             required: d.required,
             order: d.order,
             recommended: d.recommended,
+            validationRule: d.validationRule,
+            dependsOnKey: d.dependsOnKey,
+            dependsOnValue: d.dependsOnValue,
+            helpText: d.helpText,
           }))
         )
       })

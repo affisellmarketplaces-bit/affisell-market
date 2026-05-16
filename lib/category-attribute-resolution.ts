@@ -39,6 +39,10 @@ export function genericFallbackRows(forCategoryId: string): CategoryAttribute[] 
       order: 1,
       aiSuggest: true,
       showInFilter: true,
+      validationRule: null,
+      dependsOnKey: null,
+      dependsOnValue: null,
+      helpText: null,
     },
     {
       id: `aff-fallback-product_type-${stamp}`,
@@ -52,6 +56,10 @@ export function genericFallbackRows(forCategoryId: string): CategoryAttribute[] 
       order: 2,
       aiSuggest: true,
       showInFilter: true,
+      validationRule: null,
+      dependsOnKey: null,
+      dependsOnValue: null,
+      helpText: null,
     },
     {
       id: `aff-fallback-material-${stamp}`,
@@ -65,6 +73,10 @@ export function genericFallbackRows(forCategoryId: string): CategoryAttribute[] 
       order: 3,
       aiSuggest: true,
       showInFilter: true,
+      validationRule: null,
+      dependsOnKey: null,
+      dependsOnValue: null,
+      helpText: null,
     },
     {
       id: `aff-fallback_dimensions-${stamp}`,
@@ -78,6 +90,10 @@ export function genericFallbackRows(forCategoryId: string): CategoryAttribute[] 
       order: 4,
       aiSuggest: true,
       showInFilter: true,
+      validationRule: null,
+      dependsOnKey: null,
+      dependsOnValue: null,
+      helpText: null,
     },
     {
       id: `aff-fallback_color-${stamp}`,
@@ -91,6 +107,10 @@ export function genericFallbackRows(forCategoryId: string): CategoryAttribute[] 
       order: 5,
       aiSuggest: true,
       showInFilter: true,
+      validationRule: null,
+      dependsOnKey: null,
+      dependsOnValue: null,
+      helpText: null,
     },
     {
       id: `aff-fallback_highlights-${stamp}`,
@@ -104,6 +124,10 @@ export function genericFallbackRows(forCategoryId: string): CategoryAttribute[] 
       order: 6,
       aiSuggest: true,
       showInFilter: false,
+      validationRule: null,
+      dependsOnKey: null,
+      dependsOnValue: null,
+      helpText: null,
     },
     {
       id: `aff-fallback_whats_in_box-${stamp}`,
@@ -117,6 +141,10 @@ export function genericFallbackRows(forCategoryId: string): CategoryAttribute[] 
       order: 7,
       aiSuggest: true,
       showInFilter: false,
+      validationRule: null,
+      dependsOnKey: null,
+      dependsOnValue: null,
+      helpText: null,
     },
     {
       id: `aff-fallback_manufacturer-${stamp}`,
@@ -130,6 +158,10 @@ export function genericFallbackRows(forCategoryId: string): CategoryAttribute[] 
       order: 8,
       aiSuggest: true,
       showInFilter: true,
+      validationRule: null,
+      dependsOnKey: null,
+      dependsOnValue: null,
+      helpText: null,
     },
   ]
 }

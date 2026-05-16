@@ -25,6 +25,10 @@ function toRow(leafCategoryId: string, def: SpecDef): CategoryAttribute {
     order: def.order,
     aiSuggest: true,
     showInFilter: true,
+    validationRule: null,
+    dependsOnKey: null,
+    dependsOnValue: null,
+    helpText: null,
   }
 }
 

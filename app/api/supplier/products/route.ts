@@ -16,6 +16,11 @@ import {
 } from "@/lib/supplier-product-description-illustrations"
 import { scheduleProductAutoCategorization } from "@/lib/product-auto-categorize"
 import {
+  CategoryAttributeValidationError,
+  normalizeCategoryAttributeValues,
+  validateVisibleCategoryAttributes,
+} from "@/lib/category-attribute-rules"
+import {
   defaultAffiliateCommissionPct,
   normalizeAffiliateCommissionRatePct,
   parseListingKind,
@@ -136,6 +141,27 @@ export async function POST(req: Request) {
 
   const supplierId = (session.user as { id: string }).id
   const displayName = (nameStr || "Untitled draft").slice(0, 500)
+
+  if (!saveAsDraft && categoryId) {
+    const attributeValuesRaw = (body as Record<string, unknown>).attributeValues
+    const valuesInput =
+      productAttributes.length > 0
+        ? productAttributes
+        : attributeValuesRaw && typeof attributeValuesRaw === "object"
+          ? normalizeCategoryAttributeValues(
+              attributeValuesRaw as Record<string, unknown> | Array<{ key?: unknown; value?: unknown }>
+            )
+          : {}
+
+    try {
+      await validateVisibleCategoryAttributes(categoryId, valuesInput)
+    } catch (err) {
+      if (err instanceof CategoryAttributeValidationError) {
+        return Response.json({ error: err.message, errors: err.errors }, { status: 400 })
+      }
+      throw err
+    }
+  }
 
   const product = await prisma.$transaction(async (tx) => {
     const created = await tx.product.create({

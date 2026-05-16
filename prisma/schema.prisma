@@ -204,9 +204,20 @@ model CategoryAttribute {
   order        Int      @default(0)
   aiSuggest    Boolean  @default(true)
   showInFilter Boolean  @default(true)
+  /**
+   * Optional constraints, e.g. `{"min": 64, "max": 1024}` or `{"pattern": "^[0-9]{13}$"}`.
+   */
+  validationRule Json?
+  /**
+   * Show this field only when `dependsOnKey` equals `dependsOnValue` in the form state.
+   */
+  dependsOnKey   String?
+  dependsOnValue String?
+  helpText       String?
 
   @@unique([categoryId, key])
   @@index([categoryId])
+  @@index([dependsOnKey])
 }
 
 model Subcategory {
@@ -373,6 +384,7 @@ model ProductAttribute {
 
   @@unique([productId, key])
   @@index([productId])
+  @@index([key, value])
 }
 
 model Review {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 
 import {
   CategoryAttributeFields,
@@ -9,6 +9,10 @@ import {
   type CategoryAttrRow,
 } from "@/components/supplier/category-attribute-fields"
 import type { CategoryAttributeDto } from "@/lib/category-attribute-api"
+import {
+  filterVisibleCategoryAttributes,
+  pruneHiddenCategoryAttributeValues,
+} from "@/lib/category-attribute-rules"
 
 function dtoToRow(d: CategoryAttributeDto): CategoryAttrRow {
   return {
@@ -21,6 +25,10 @@ function dtoToRow(d: CategoryAttributeDto): CategoryAttrRow {
     required: d.required,
     order: d.order,
     recommended: d.recommended,
+    validationRule: d.validationRule,
+    dependsOnKey: d.dependsOnKey,
+    dependsOnValue: d.dependsOnValue,
+    helpText: d.helpText,
   }
 }
 
@@ -66,7 +74,18 @@ export function DynamicAttributes({ categoryId, values, onChange, className }: P
     }
   }, [categoryId])
 
-  const merged = mergeCoreCategoryAttrs(attrs)
+  const merged = useMemo(() => mergeCoreCategoryAttrs(attrs), [attrs])
+  const visibleAttrs = useMemo(
+    () => filterVisibleCategoryAttributes(merged, values),
+    [merged, values]
+  )
+
+  const handleChange = useCallback(
+    (next: Record<string, string>) => {
+      onChange(pruneHiddenCategoryAttributeValues(merged, next))
+    },
+    [merged, onChange]
+  )
 
   if (!categoryId.trim()) {
     return (
@@ -79,10 +98,10 @@ export function DynamicAttributes({ categoryId, values, onChange, className }: P
   return (
     <div className={className}>
       <CategoryAttributeFields
-        attributes={merged}
+        attributes={visibleAttrs}
         loading={loading}
         values={values}
-        onChange={onChange}
+        onChange={handleChange}
       />
     </div>
   )

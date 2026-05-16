@@ -2,7 +2,15 @@
 
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  CORE_SPEC_FIELDS_PRESET,
+  mergeCoreCategoryAttrs,
+} from "@/lib/category-attribute-core"
+import type { CategoryAttributeValidationRule } from "@/lib/category-attribute-rules"
+import { filterVisibleCategoryAttributes } from "@/lib/category-attribute-rules"
 import { cn } from "@/lib/utils"
+
+export { CORE_SPEC_FIELDS_PRESET, mergeCoreCategoryAttrs }
 
 export const CATEGORY_MULTI_JOINER = "|"
 
@@ -17,51 +25,10 @@ export type CategoryAttrRow = {
   order: number
   /** Optional spec — improves listing visibility (taxonomy `aiSuggest`). */
   recommended?: boolean
-}
-
-/** Shown for every product; superseded if the category (or API) already defines the same key. */
-export const CORE_SPEC_FIELDS_PRESET: CategoryAttrRow[] = [
-  {
-    id: "aff-core-brand",
-    key: "brand",
-    label: "Brand",
-    type: "TEXT",
-    unit: null,
-    options: [],
-    required: true,
-    order: -300,
-  },
-  {
-    id: "aff-core-size",
-    key: "size",
-    label: "Size",
-    type: "TEXT",
-    unit: null,
-    options: [],
-    required: false,
-    order: -299,
-  },
-  {
-    id: "aff-core-color",
-    key: "color",
-    label: "Colour",
-    type: "TEXT",
-    unit: null,
-    options: [],
-    required: false,
-    order: -298,
-  },
-]
-
-export function mergeCoreCategoryAttrs(categoryAttrs: CategoryAttrRow[]): CategoryAttrRow[] {
-  const seen = new Set(categoryAttrs.map((a) => a.key.toLowerCase()))
-  const prefix: CategoryAttrRow[] = []
-  for (const c of CORE_SPEC_FIELDS_PRESET) {
-    if (!seen.has(c.key.toLowerCase())) prefix.push(c)
-  }
-  const merged = [...prefix, ...categoryAttrs]
-  merged.sort((a, b) => a.order - b.order || a.label.localeCompare(b.label))
-  return merged
+  validationRule?: CategoryAttributeValidationRule | null
+  dependsOnKey?: string | null
+  dependsOnValue?: string | null
+  helpText?: string | null
 }
 
 type Props = {
@@ -145,6 +112,9 @@ export function CategoryAttributeFields({ attributes, loading, values, onChange 
                   Recommandé — améliore la visibilité sur la marketplace
                 </p>
               ) : null}
+              {attr.helpText ? (
+                <p className="mt-0.5 text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">{attr.helpText}</p>
+              ) : null}
 
               {isMulti ? (
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -219,6 +189,19 @@ export function CategoryAttributeFields({ attributes, loading, values, onChange 
                   className="mt-1.5"
                   type={tp === "NUMBER" || tp === "DECIMAL" ? "number" : "text"}
                   value={v}
+                  min={
+                    attr.validationRule?.min != null && (tp === "NUMBER" || tp === "DECIMAL")
+                      ? attr.validationRule.min
+                      : undefined
+                  }
+                  max={
+                    attr.validationRule?.max != null && (tp === "NUMBER" || tp === "DECIMAL")
+                      ? attr.validationRule.max
+                      : undefined
+                  }
+                  minLength={attr.validationRule?.minLength}
+                  maxLength={attr.validationRule?.maxLength}
+                  pattern={tp === "NUMBER" || tp === "DECIMAL" ? undefined : attr.validationRule?.pattern}
                   onChange={(e) => setKey(attr.key, e.target.value)}
                   placeholder={attr.options?.length ? attr.options.join(", ") : attr.label}
                 />
@@ -235,7 +218,7 @@ export function missingRequiredCategorySpecs(
   defs: CategoryAttrRow[],
   values: Record<string, string>
 ): CategoryAttrRow[] {
-  return defs.filter((a) => {
+  return filterVisibleCategoryAttributes(defs, values).filter((a) => {
     if (!a.required) return false
     const raw = (values[a.key] ?? "").trim()
     const tp = normType(a.type)
