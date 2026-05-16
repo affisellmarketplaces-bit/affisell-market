@@ -492,13 +492,23 @@ export function MarketplaceListingDetail({
 
   useEffect(() => {
     let cancelled = false
-    void fetch("/api/account/buyer-reward-balance", { credentials: "include", cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((j: { balanceCents?: number } | null) => {
-        if (cancelled || !j) return
+    ;(async () => {
+      try {
+        const sessionRes = await fetch("/api/auth/session", { credentials: "include", cache: "no-store" })
+        if (!sessionRes.ok || cancelled) return
+        const session = (await sessionRes.json()) as { user?: { id?: string } } | null
+        if (!session?.user?.id || cancelled) return
+        const br = await fetch("/api/account/buyer-reward-balance", {
+          credentials: "include",
+          cache: "no-store",
+        })
+        if (!br.ok || cancelled) return
+        const j = (await br.json()) as { balanceCents?: number }
         setRewardBalanceCents(Math.max(0, Math.round(Number(j.balanceCents) || 0)))
-      })
-      .catch(() => null)
+      } catch {
+        /* store credit is optional on PDP */
+      }
+    })()
     return () => {
       cancelled = true
     }
