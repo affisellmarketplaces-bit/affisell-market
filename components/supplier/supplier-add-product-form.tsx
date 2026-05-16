@@ -37,6 +37,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { CategoryAutosuggest } from "@/components/product/CategoryAutosuggest"
+import { CategoryAutocomplete } from "@/components/supplier/category-autocomplete"
 import {
   affiliateCommissionMaxPct,
   type ListingKind,
@@ -1571,7 +1572,23 @@ export function SupplierAddProductForm({
                             </span>
                           ) : null}
                         </Label>
-                        <div className="mt-1.5">
+                        <div className="mt-1.5 space-y-3">
+                          <div>
+                            <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                              Recherche (taxonomie Google)
+                            </p>
+                            <CategoryAutocomplete
+                              browse={browse}
+                              value={categoryId}
+                              disabled={loadingBrowse}
+                              onChange={(leafId, path) => {
+                                setCategoryId(leafId)
+                                setCategoryPath(path)
+                                setSpecValues({})
+                                setCategoryAiTag(false)
+                              }}
+                            />
+                          </div>
                           <SupplierCategoryPicker
                             browse={browse}
                             recent={recentCategories}

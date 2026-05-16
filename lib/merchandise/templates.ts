@@ -40,6 +40,51 @@ function buildDepartmentTemplates(): Record<string, MerchCategoryTemplate> {
 
 const DEPARTMENTS = buildDepartmentTemplates()
 
+/**
+ * After `prisma/seed.ts` imports Google Product Taxonomy (fr-FR), Prisma root `Category.name`
+ * values match the top-level lines in `prisma/taxonomy-fr.txt`. Map Affisell merchandising
+ * departments (English) to those DB root labels so `/api/merchandise/generate` keeps working.
+ */
+const SEEDED_GOOGLE_FR_ROOT_BY_AFFISELL_DEPT: Record<string, string> = {
+  Electronics: "Appareils électroniques",
+  "Home & Kitchen": "Maison et jardin",
+  "Beauty & Personal Care": "Santé et beauté",
+  "Men's Fashion": "Vêtements et accessoires",
+  "Women's Fashion": "Vêtements et accessoires",
+  "Sports & Outdoors": "Équipements sportifs",
+  "Toys & Games": "Jeux et jouets",
+  Books: "Médias",
+  Automotive: "Véhicules et accessoires",
+  "Pet Supplies": "Animaux et articles pour animaux de compagnie",
+  "Office Products": "Fournitures de bureau",
+  "Health & Household": "Santé et beauté",
+  "Baby Products": "Bébés et tout-petits",
+  "Tools & Home Improvement": "Quincaillerie",
+  "Industrial & Scientific": "Entreprise et industrie",
+  "Arts, Crafts & Sewing": "Arts et loisirs",
+  "Music, Movies & TV": "Médias",
+  "Collectibles & Fine Art": "Arts et loisirs",
+  "Grocery & Gourmet Food": "Alimentation, boissons et tabac",
+  "Handmade Products": "Arts et loisirs",
+  "Digital Content & Services": "Logiciels",
+  "Travel & Luggage": "Bagages et maroquinerie",
+  "Party & Costumes": "Jeux et jouets",
+  "Major Appliances": "Appareils électroniques",
+  "Cycling & Scooters": "Équipements sportifs",
+  "Boating & Marine": "Véhicules et accessoires",
+  "School & Education": "Fournitures de bureau",
+  "Equestrian & Farm": "Animaux et articles pour animaux de compagnie",
+  "Software & Apps": "Logiciels",
+  "B2B & Professional Supply": "Entreprise et industrie",
+  "Sustainable Living": "Maison et jardin",
+  "Senior & Adaptive Aids": "Santé et beauté",
+  "Pop Culture & Anime Merch": "Jeux et jouets",
+}
+
+function prismaRootNameForMerch(deptEnglish: string): string {
+  return SEEDED_GOOGLE_FR_ROOT_BY_AFFISELL_DEPT[deptEnglish] ?? deptEnglish
+}
+
 /** Visual presets keyed by Affisell department name + common FR/EN shortcuts. */
 export const CATEGORY_TEMPLATES: Record<string, MerchCategoryTemplate> = {
   ...DEPARTMENTS,
@@ -71,7 +116,8 @@ const TEMPLATE_KEY_TO_DEPT: Record<string, string> = {
 }
 
 /**
- * Resolves `?category=` to a seeded root `Category.name` (Prisma) and a template row.
+ * Resolves `?category=` to a seeded root `Category.name` in Prisma (Google taxonomy fr-FR root
+ * label after `prisma/seed.ts`) and a template row.
  */
 export function resolveMerchandisingDepartment(raw: string): {
   dbRootName: string
@@ -85,21 +131,21 @@ export function resolveMerchandisingDepartment(raw: string): {
 
   const fromSlug = SLUG_TO_DEPT[hyphenSlug]
   if (fromSlug && DEPARTMENTS[fromSlug]) {
-    return { dbRootName: fromSlug, template: DEPARTMENTS[fromSlug] }
+    return { dbRootName: prismaRootNameForMerch(fromSlug), template: DEPARTMENTS[fromSlug] }
   }
 
   const fromAlias = TEMPLATE_KEY_TO_DEPT[lower]
   if (fromAlias && DEPARTMENTS[fromAlias]) {
-    return { dbRootName: fromAlias, template: DEPARTMENTS[fromAlias] }
+    return { dbRootName: prismaRootNameForMerch(fromAlias), template: DEPARTMENTS[fromAlias] }
   }
 
   const fromDept = LOWER_NAME_TO_DEPT[lower]
   if (fromDept && DEPARTMENTS[fromDept]) {
-    return { dbRootName: fromDept, template: DEPARTMENTS[fromDept] }
+    return { dbRootName: prismaRootNameForMerch(fromDept), template: DEPARTMENTS[fromDept] }
   }
 
   if (DEPARTMENTS[q]) {
-    return { dbRootName: q, template: DEPARTMENTS[q] }
+    return { dbRootName: prismaRootNameForMerch(q), template: DEPARTMENTS[q] }
   }
 
   return null

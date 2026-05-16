@@ -143,6 +143,10 @@ model Store {
 model Category {
   id    String @id @default(cuid())
   /**
+   * Google Product Taxonomy numeric id (fr-FR file); null for legacy rows.
+   */
+  googleId Int? @unique
+  /**
    * Not unique: leaf rows can share labels (e.g. "Clothing") under different parents.
    */
   name  String
@@ -150,21 +154,31 @@ model Category {
   icon  String @default("📦")
   order Int    @default(0)
 
-  parentId      String?
-  parent        Category?  @relation("CategoryToSubcategory", fields: [parentId], references: [id])
+  parentId String?
+  parent   Category?  @relation("CategoryToCategory", fields: [parentId], references: [id])
   /**
    * Nested browse nodes (same model — distinct from `tabularSubcategories` legacy table).
    */
-  subcategories Category[] @relation("CategoryToSubcategory")
+  children Category[] @relation("CategoryToCategory")
+
+  /**
+   * Depth in tree (1 = root). Used for Google taxonomy import ordering.
+   */
+  level    Int     @default(1)
+  fullPath String  @default("")
+  isLeaf   Boolean @default(true)
 
   products Product[]
 
   attributes CategoryAttribute[]
 
   /**
-   * Legacy per-department table (CSV/import); distinct from nested `subcategories` above.
+   * Legacy per-department table (CSV/import); distinct from nested `children` above.
    */
   tabularSubcategories Subcategory[] @relation("CategoryTabularSubcategory")
+
+  @@index([parentId])
+  @@index([level])
 }
 
 model CategoryAttribute {

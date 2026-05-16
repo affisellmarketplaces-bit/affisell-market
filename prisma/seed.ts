@@ -1,16 +1,20 @@
 /**
- * Seed Affisell : 8 **rayons** (racines) + **allées** FR (enfants, style Amazon department › aisle),
- * 30 produits sur feuilles d’allée, 2 photos (Unsplash + Picsum), **listings** `AffiliateProduct` pour la vitrine marketplace.
+ * Seed Affisell : taxonomie **Google Product Taxonomy (fr-FR)** complète (~5,5k nœuds),
+ * 30 produits sur feuilles Google, 2 photos (Unsplash + Picsum), **listings** `AffiliateProduct` pour la vitrine.
  * `npx prisma db seed`
  *
+ * Fichier source : `prisma/taxonomy-fr.txt` (télécharger avec curl si absent).
  * Charge `.env` / `.env.local` pour `DATABASE_URL`.
  */
+
+import { randomUUID } from "node:crypto"
+import fs from "node:fs"
+import path from "node:path"
 
 import { config } from "dotenv"
 import { hash } from "bcryptjs"
 import { PrismaClient } from "@prisma/client"
 
-import { FR_DEPARTMENT_AISLES } from "@/lib/marketplace-department-aisles-fr"
 import { clearCategoryBrowseCache } from "@/lib/product-auto-categorize"
 
 config({ path: ".env.local" })
@@ -18,48 +22,37 @@ config({ path: ".env" })
 
 const prisma = new PrismaClient()
 
-const CATEGORIES = [
-  { name: "Électronique", slug: "electronique", icon: "📱" },
-  { name: "Mode", slug: "mode", icon: "👗" },
-  { name: "Maison & Jardin", slug: "maison-jardin", icon: "🏠" },
-  { name: "Beauté & Santé", slug: "beaute-sante", icon: "✨" },
-  { name: "Sports & Loisirs", slug: "sports-loisirs", icon: "⚽" },
-  { name: "Informatique", slug: "informatique", icon: "💻" },
-  { name: "Bébé & Puériculture", slug: "bebe-puericulture", icon: "🍼" },
-  { name: "Auto & Moto", slug: "auto-moto", icon: "🚗" },
-] as const
-
 const PRODUCTS = [
-  { name: "iPhone 15 Pro Max", priceEur: 1479, cat: 0, img: "iphone-15" },
-  { name: "MacBook Air M3", priceEur: 1299, cat: 5, img: "macbook-air" },
-  { name: "AirPods Pro 2", priceEur: 279, cat: 0, img: "airpods" },
-  { name: "Sony WH-1000XM5", priceEur: 399, cat: 0, img: "headphones" },
-  { name: "Dyson V15 Detect", priceEur: 749, cat: 2, img: "vacuum-cleaner" },
-  { name: "PS5 Slim", priceEur: 549, cat: 0, img: "playstation-5" },
-  { name: "Nike Air Max 270", priceEur: 160, cat: 1, img: "nike-sneakers" },
-  { name: "Adidas Ultraboost 22", priceEur: 190, cat: 1, img: "running-shoes" },
-  { name: "Levis 501 Jeans", priceEur: 110, cat: 1, img: "jeans" },
-  { name: "North Face Nuptse", priceEur: 320, cat: 1, img: "winter-jacket" },
-  { name: "Ray-Ban Aviator", priceEur: 180, cat: 1, img: "sunglasses" },
-  { name: "Canapé IKEA Klippan", priceEur: 299, cat: 2, img: "sofa" },
-  { name: "Lampe Philips Hue", priceEur: 89, cat: 2, img: "smart-lamp" },
-  { name: "Aspirateur Roborock S8", priceEur: 599, cat: 2, img: "robot-vacuum" },
-  { name: "Machine Nespresso Vertuo", priceEur: 149, cat: 2, img: "coffee-machine" },
-  { name: "Tapis Beni Ouarain", priceEur: 450, cat: 2, img: "moroccan-rug" },
-  { name: "Crème La Roche-Posay", priceEur: 25, cat: 3, img: "skincare" },
-  { name: "Parfum Dior Sauvage", priceEur: 110, cat: 3, img: "perfume-bottle" },
-  { name: "Brosse Dyson Airwrap", priceEur: 549, cat: 3, img: "hair-styler" },
-  { name: "Vélo VanMoof S5", priceEur: 2498, cat: 4, img: "electric-bike" },
-  { name: "Tapis Yoga Lululemon", priceEur: 88, cat: 4, img: "yoga-mat" },
-  { name: "Chaussures Salomon XT-6", priceEur: 180, cat: 4, img: "hiking-shoes" },
-  { name: "Logitech MX Master 3S", priceEur: 115, cat: 5, img: "computer-mouse" },
-  { name: "Clavier Keychron K2", priceEur: 89, cat: 5, img: "mechanical-keyboard" },
-  { name: "Ecran LG 27 4K", priceEur: 349, cat: 5, img: "4k-monitor" },
-  { name: "Poussette Babyzen Yoyo", priceEur: 479, cat: 6, img: "baby-stroller" },
-  { name: "Siège Auto Cybex", priceEur: 350, cat: 6, img: "car-seat" },
-  { name: "Casque Moto Shoei", priceEur: 650, cat: 7, img: "motorcycle-helmet" },
-  { name: "Gants Alpinestars", priceEur: 120, cat: 7, img: "motorcycle-gloves" },
-  { name: "Chargeur Tesla Wall", priceEur: 500, cat: 7, img: "ev-charger" },
+  { name: "iPhone 15 Pro Max", priceEur: 1479, img: "iphone-15" },
+  { name: "MacBook Air M3", priceEur: 1299, img: "macbook-air" },
+  { name: "AirPods Pro 2", priceEur: 279, img: "airpods" },
+  { name: "Sony WH-1000XM5", priceEur: 399, img: "headphones" },
+  { name: "Dyson V15 Detect", priceEur: 749, img: "vacuum-cleaner" },
+  { name: "PS5 Slim", priceEur: 549, img: "playstation-5" },
+  { name: "Nike Air Max 270", priceEur: 160, img: "nike-sneakers" },
+  { name: "Adidas Ultraboost 22", priceEur: 190, img: "running-shoes" },
+  { name: "Levis 501 Jeans", priceEur: 110, img: "jeans" },
+  { name: "North Face Nuptse", priceEur: 320, img: "winter-jacket" },
+  { name: "Ray-Ban Aviator", priceEur: 180, img: "sunglasses" },
+  { name: "Canapé IKEA Klippan", priceEur: 299, img: "sofa" },
+  { name: "Lampe Philips Hue", priceEur: 89, img: "smart-lamp" },
+  { name: "Aspirateur Roborock S8", priceEur: 599, img: "robot-vacuum" },
+  { name: "Machine Nespresso Vertuo", priceEur: 149, img: "coffee-machine" },
+  { name: "Tapis Beni Ouarain", priceEur: 450, img: "moroccan-rug" },
+  { name: "Crème La Roche-Posay", priceEur: 25, img: "skincare" },
+  { name: "Parfum Dior Sauvage", priceEur: 110, img: "perfume-bottle" },
+  { name: "Brosse Dyson Airwrap", priceEur: 549, img: "hair-styler" },
+  { name: "Vélo VanMoof S5", priceEur: 2498, img: "electric-bike" },
+  { name: "Tapis Yoga Lululemon", priceEur: 88, img: "yoga-mat" },
+  { name: "Chaussures Salomon XT-6", priceEur: 180, img: "hiking-shoes" },
+  { name: "Logitech MX Master 3S", priceEur: 115, img: "computer-mouse" },
+  { name: "Clavier Keychron K2", priceEur: 89, img: "mechanical-keyboard" },
+  { name: "Ecran LG 27 4K", priceEur: 349, img: "4k-monitor" },
+  { name: "Poussette Babyzen Yoyo", priceEur: 479, img: "baby-stroller" },
+  { name: "Siège Auto Cybex", priceEur: 350, img: "car-seat" },
+  { name: "Casque Moto Shoei", priceEur: 650, img: "motorcycle-helmet" },
+  { name: "Gants Alpinestars", priceEur: 120, img: "motorcycle-gloves" },
+  { name: "Chargeur Tesla Wall", priceEur: 500, img: "ev-charger" },
 ] as const
 
 function eurosToCents(eur: number): number {
@@ -71,6 +64,135 @@ function imageUrls(img: string, i: number): [string, string] {
     `https://source.unsplash.com/800x800/?${encodeURIComponent(img)}`,
     `https://picsum.photos/seed/affisell${i}/800/800`,
   ]
+}
+
+function slugFromGoogleLeaf(name: string, googleId: number): string {
+  const base = name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+  const suffix = `-${googleId}`
+  const max = 190
+  const trimmed = base.length + suffix.length > max ? base.slice(0, Math.max(1, max - suffix.length)) : base
+  return `${trimmed}${suffix}`
+}
+
+type TaxonomyRow = {
+  id: string
+  googleId: number
+  name: string
+  slug: string
+  parentId: string | null
+  level: number
+  fullPath: string
+}
+
+async function seedGoogleTaxonomyFr(): Promise<void> {
+  console.log("🌱 Import Google Product Taxonomy (fr-FR)…")
+
+  const filePath = path.join(process.cwd(), "prisma", "taxonomy-fr.txt")
+  if (!fs.existsSync(filePath)) {
+    throw new Error(
+      `Missing ${filePath}. Run: curl -fsSL -o prisma/taxonomy-fr.txt https://www.google.com/basepages/producttype/taxonomy-with-ids.fr-FR.txt`
+    )
+  }
+
+  const raw = fs.readFileSync(filePath, "utf-8")
+  const lines = raw.split(/\r?\n/)
+
+  type Parsed = {
+    googleId: number
+    fullPath: string
+    parts: string[]
+    level: number
+    parentPath: string | null
+    name: string
+  }
+
+  const parsed: Parsed[] = []
+  for (const line of lines) {
+    const t = line.trim()
+    if (!t || t.startsWith("#")) continue
+    const sep = " - "
+    const i = t.indexOf(sep)
+    if (i === -1) continue
+    const idStr = t.slice(0, i).trim()
+    const fullPath = t.slice(i + sep.length).trim()
+    const googleId = Number.parseInt(idStr, 10)
+    if (!Number.isFinite(googleId) || !fullPath) continue
+    const parts = fullPath.split(" > ").map((p) => p.trim())
+    if (parts.length === 0 || parts.some((p) => !p)) continue
+    const name = parts[parts.length - 1]!
+    const level = parts.length
+    const parentPath = level > 1 ? parts.slice(0, -1).join(" > ") : null
+    parsed.push({ googleId, fullPath, parts, level, parentPath, name })
+  }
+
+  parsed.sort((a, b) => {
+    if (a.level !== b.level) return a.level - b.level
+    return a.fullPath.localeCompare(b.fullPath, "fr")
+  })
+
+  const idByPath = new Map<string, string>()
+  const rows: TaxonomyRow[] = []
+
+  for (const p of parsed) {
+    const parentId = p.parentPath ? idByPath.get(p.parentPath) ?? null : null
+    if (p.parentPath && parentId == null) {
+      throw new Error(`Taxonomie invalide : parent introuvable pour « ${p.fullPath} » (attendu « ${p.parentPath} »).`)
+    }
+    const id = randomUUID()
+    idByPath.set(p.fullPath, id)
+    rows.push({
+      id,
+      googleId: p.googleId,
+      name: p.name,
+      slug: slugFromGoogleLeaf(p.name, p.googleId),
+      parentId,
+      level: p.level,
+      fullPath: p.fullPath,
+    })
+  }
+
+  const BATCH = 400
+  let inserted = 0
+  for (let i = 0; i < rows.length; i += BATCH) {
+    const batch = rows.slice(i, i + BATCH)
+    await prisma.category.createMany({
+      data: batch.map((r) => ({
+        id: r.id,
+        googleId: r.googleId,
+        name: r.name,
+        slug: r.slug,
+        parentId: r.parentId,
+        level: r.level,
+        fullPath: r.fullPath,
+        isLeaf: true,
+        order: r.googleId,
+      })),
+    })
+    inserted += batch.length
+    if (inserted % 2000 === 0) console.log(`   … ${inserted} lignes insérées`)
+  }
+
+  const parentIds = new Set<string>()
+  for (const r of rows) {
+    if (r.parentId) parentIds.add(r.parentId)
+  }
+  if (parentIds.size > 0) {
+    await prisma.category.updateMany({
+      where: { id: { in: [...parentIds] } },
+      data: { isLeaf: false },
+    })
+  }
+
+  const maxLevel = await prisma.category.aggregate({ _max: { level: true } })
+  const leafCount = await prisma.category.count({ where: { isLeaf: true } })
+  console.log(`✅ ${inserted} catégories Google importées`)
+  console.log(`📊 Niveau max: ${maxLevel._max.level ?? "—"}`)
+  console.log(`📁 Feuilles: ${leafCount}`)
 }
 
 /** Vide les données métier (garde `_prisma_migrations`). Ordre respectant les FK Prisma. */
@@ -99,7 +221,7 @@ async function wipeMarketplaceData(): Promise<void> {
   let guard = 0
   for (;;) {
     const leaves = await prisma.category.findMany({
-      where: { subcategories: { none: {} } },
+      where: { children: { none: {} } },
       select: { id: true },
       take: 500,
     })
@@ -119,8 +241,18 @@ async function wipeMarketplaceData(): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  console.log("🌱 Seeding Affisell (rayons + allées, 30 produits, listings affiliés)…")
+  console.log("🌱 Seeding Affisell (taxonomie Google FR + 30 produits, listings affiliés)…")
   await wipeMarketplaceData()
+  await seedGoogleTaxonomyFr()
+
+  const leafCategories = await prisma.category.findMany({
+    where: { isLeaf: true },
+    select: { id: true },
+    orderBy: { googleId: "asc" },
+  })
+  if (leafCategories.length === 0) {
+    throw new Error("No leaf categories after Google taxonomy import.")
+  }
 
   const password = await hash("password123", 10)
 
@@ -163,54 +295,17 @@ async function main(): Promise<void> {
       name: "Boutique Affisell Live",
       slug: "boutique-affisell-live",
       description:
-        "Vitrine démo : rayons intelligents, prix publics dynamiques, récompenses acheteurs compatibles Affisell.",
+        "Vitrine démo : taxonomie Google FR, prix publics dynamiques, récompenses acheteurs compatibles Affisell.",
       isLive: true,
     },
   })
-
-  const roots = await Promise.all(
-    CATEGORIES.map((c, order) =>
-      prisma.category.create({
-        data: { name: c.name, slug: c.slug, icon: c.icon, order },
-      })
-    )
-  )
-
-  /** Par index racine → ids des allées (feuilles navigation marketplace). */
-  const aisleIdsByRoot: string[][] = []
-  for (let r = 0; r < roots.length; r++) {
-    const root = roots[r]!
-    const aislesDef = FR_DEPARTMENT_AISLES[r]
-    if (!aislesDef) {
-      aisleIdsByRoot.push([])
-      continue
-    }
-    const ids: string[] = []
-    let order = 0
-    for (const a of aislesDef) {
-      const slug = `${CATEGORIES[r].slug}-${a.slugKey}`.slice(0, 64)
-      const row = await prisma.category.create({
-        data: {
-          name: a.name,
-          slug,
-          icon: a.icon,
-          order: order++,
-          parentId: root.id,
-        },
-      })
-      ids.push(row.id)
-    }
-    aisleIdsByRoot.push(ids)
-  }
 
   const createdProducts = await Promise.all(
     PRODUCTS.map(async (p, i) => {
       const basePriceCents = eurosToCents(p.priceEur)
       const commissionRate = Math.floor(Math.random() * 15) + 15
       const [a, b] = imageUrls(p.img, i)
-      const aisles = aisleIdsByRoot[p.cat] ?? []
-      const leafId =
-        aisles.length > 0 ? aisles[i % aisles.length]! : roots[p.cat]!.id
+      const leaf = leafCategories[(i * 7919) % leafCategories.length]!
 
       return prisma.product.create({
         data: {
@@ -224,7 +319,7 @@ async function main(): Promise<void> {
           active: true,
           isDraft: false,
           listingKind: "PHYSICAL",
-          categoryId: leafId,
+          categoryId: leaf.id,
           supplierId: i % 2 === 0 ? f1.id : f2.id,
           supplierTag: "seed-affisell-30",
           shipsFrom: "EU",
@@ -258,7 +353,7 @@ async function main(): Promise<void> {
 
   clearCategoryBrowseCache()
 
-  console.log("✅ Rayons + allées FR, 30 produits (feuilles), listings affiliés boutique « Boutique Affisell Live ».")
+  console.log("✅ Taxonomie Google FR + 30 produits (feuilles), listings affiliés « Boutique Affisell Live ».")
   console.log("👤 Admin : admin@affisell.io / password123")
   console.log("👤 Fournisseurs : fournisseur1@affisell.io | fournisseur2@affisell.io / password123")
   console.log("👤 Affilié + store : vendeur@affisell.io / password123 → /store/boutique-affisell-live")

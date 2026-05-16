@@ -22,7 +22,7 @@ export async function GET() {
         icon: true,
         slug: true,
         order: true,
-        subcategories: {
+        children: {
           select: {
             id: true,
             name: true,
@@ -41,7 +41,7 @@ export async function GET() {
       slug: cat.slug,
       order: cat.order,
       count: 0,
-      subcategories: cat.subcategories.map((sub) => ({
+      subcategories: cat.children.map((sub) => ({
         id: sub.id,
         name: sub.name,
         slug: sub.slug,
