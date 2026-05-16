@@ -22,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           NextIntlClientProvider timeZone="Europe/Paris" → implemented in ./root-intl-session.tsx (<RootIntlAndSession>).
         */}
         <RootIntlAndSession>
-          <header className="border-b border-gray-100/90 bg-white/80 px-4 py-3 shadow-sm backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/90">
+          <header className="relative z-[100] border-b border-gray-100/90 bg-white/80 px-4 py-3 shadow-sm backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/90">
             <Suspense fallback={<HeaderFallback />}>
               <SiteNav />
             </Suspense>
