@@ -51,11 +51,12 @@ import {
 } from "@/lib/category-browse"
 import { SupplierCategoryPicker, type BrowsePayload } from "@/components/supplier/supplier-category-picker"
 import {
-  CategoryAttributeFields,
   mergeCoreCategoryAttrs,
   missingRequiredCategorySpecs,
   type CategoryAttrRow,
 } from "@/components/supplier/category-attribute-fields"
+import { DynamicAttributes } from "@/components/product-form-dynamic"
+import type { CategoryAttributeDto } from "@/lib/category-attribute-api"
 import {
   SupplierAiPublishPanel,
   type AiPublishResult,
@@ -370,7 +371,20 @@ export function SupplierAddProductForm({
           setCategoryAttrs([])
           return
         }
-        setCategoryAttrs(Array.isArray(j.attributes) ? j.attributes : [])
+        const raw = Array.isArray(j.attributes) ? (j.attributes as CategoryAttributeDto[]) : []
+        setCategoryAttrs(
+          raw.map((d) => ({
+            id: d.id,
+            key: d.key,
+            label: d.label,
+            type: d.type,
+            unit: d.unit ?? null,
+            options: d.options ?? [],
+            required: d.required,
+            order: d.order,
+            recommended: d.recommended,
+          }))
+        )
       })
       .catch(() => {
         if (!cancelled) setCategoryAttrs([])
@@ -1607,9 +1621,8 @@ export function SupplierAddProductForm({
                         </div>
                       </div>
                       <div className="rounded-xl border border-zinc-100 bg-zinc-50/40 p-1 dark:border-zinc-800 dark:bg-zinc-900/30">
-                        <CategoryAttributeFields
-                          attributes={mergedCategoryAttrs}
-                          loading={attrsLoading}
+                        <DynamicAttributes
+                          categoryId={categoryId}
                           values={specValues}
                           onChange={setSpecValues}
                         />

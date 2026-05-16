@@ -15,6 +15,8 @@ export type CategoryAttrRow = {
   options: string[]
   required: boolean
   order: number
+  /** Optional spec — improves listing visibility (taxonomy `aiSuggest`). */
+  recommended?: boolean
 }
 
 /** Shown for every product; superseded if the category (or API) already defines the same key. */
@@ -138,6 +140,11 @@ export function CategoryAttributeFields({ attributes, loading, values, onChange 
                   <span className="text-[11px] font-normal text-zinc-400 dark:text-zinc-500">(optional)</span>
                 ) : null}
               </Label>
+              {attr.recommended && !attr.required ? (
+                <p className="mt-0.5 text-[11px] font-medium text-sky-700 dark:text-sky-300">
+                  Recommandé — améliore la visibilité sur la marketplace
+                </p>
+              ) : null}
 
               {isMulti ? (
                 <div className="mt-2 flex flex-wrap gap-2">

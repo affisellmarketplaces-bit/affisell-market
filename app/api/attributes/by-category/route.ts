@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 
+import { categoryAttributesToDto } from "@/lib/category-attribute-api"
 import {
   genericFallbackRows,
   resolveCategoryAttributesForForm,
@@ -17,21 +18,28 @@ export async function GET(req: Request) {
 
   /** No category picked: never return HTTP 400 (client always needs a usable spec canvas). */
   if (!categoryId) {
-    const attributes = mergeMarketplaceStyleSupplements(
+    const rows = mergeMarketplaceStyleSupplements(
       UNCLASSIFIED_STUB_ID,
       [],
       genericFallbackRows(UNCLASSIFIED_STUB_ID)
     )
-    return NextResponse.json({ attributes, mode: "unclassified" as const })
+    return NextResponse.json({
+      attributes: categoryAttributesToDto(rows),
+      mode: "unclassified" as const,
+    })
   }
 
   try {
-    const attributes = await resolveCategoryAttributesForForm(categoryId)
-    return NextResponse.json({ attributes, mode: "taxonomy" as const })
+    const rows = await resolveCategoryAttributesForForm(categoryId)
+    return NextResponse.json({
+      attributes: categoryAttributesToDto(rows),
+      mode: "taxonomy" as const,
+    })
   } catch (e) {
     console.error("[api/attributes/by-category]", e)
+    const fallback = mergeMarketplaceStyleSupplements(categoryId, [], genericFallbackRows(categoryId))
     return NextResponse.json({
-      attributes: mergeMarketplaceStyleSupplements(categoryId, [], genericFallbackRows(categoryId)),
+      attributes: categoryAttributesToDto(fallback),
       warning: "taxonomy_db_error",
     })
   }
