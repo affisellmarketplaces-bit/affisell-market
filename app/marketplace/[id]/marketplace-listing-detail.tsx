@@ -49,7 +49,11 @@ import {
   findColorImageRowForName,
   type ProductColorImageRow,
 } from "@/lib/product-color-images"
-import type { ProductVariantsJson } from "@/lib/product-variants"
+import {
+  marketplaceRetailPriceEurForOption,
+  marketplaceSellingPriceCentsForOption,
+  type ProductVariantsJson,
+} from "@/lib/product-variants"
 
 const EMPTY_SIZE_OPTIONS: string[] = []
 
@@ -96,7 +100,6 @@ type Props = {
   productSpecs?: SpecRow[]
   sellerLabel: string
   storefront: StorefrontInfo | null
-  priceDisplay: string
   gallery: string[]
   categories: string[]
   colorNames: string[]
@@ -105,6 +108,7 @@ type Props = {
   colorImages: ProductColorImageRow[]
   shipping: ListingShippingBlock
   listingPriceCents: number
+  basePriceCents: number
   stock: number
   retailPriceEur?: number
   has3D?: boolean
@@ -281,7 +285,6 @@ export function MarketplaceListingDetail({
   sellerLabel,
   storefront,
   tags,
-  priceDisplay,
   gallery,
   categories,
   colorNames,
@@ -289,6 +292,7 @@ export function MarketplaceListingDetail({
   colorImages,
   shipping,
   listingPriceCents,
+  basePriceCents,
   stock,
   retailPriceEur,
   has3D = false,
@@ -451,10 +455,38 @@ export function MarketplaceListingDetail({
     colorNames,
     colorImages,
   ])
-  const listingPriceEur = listingPriceCents / 100
-  const hasRetailCompare = typeof retailPriceEur === "number" && retailPriceEur > listingPriceEur
+  const activeListingPriceCents = useMemo(
+    () =>
+      marketplaceSellingPriceCentsForOption({
+        listingSellingPriceCents: listingPriceCents,
+        productBasePriceCents: basePriceCents,
+        variants,
+        optionName: selectedColor,
+      }),
+    [listingPriceCents, basePriceCents, variants, selectedColor]
+  )
+
+  const activeRetailPriceEur = useMemo(
+    () =>
+      marketplaceRetailPriceEurForOption({
+        retailPriceEur,
+        productBasePriceCents: basePriceCents,
+        variants,
+        optionName: selectedColor,
+      }),
+    [retailPriceEur, basePriceCents, variants, selectedColor]
+  )
+
+  const priceDisplay = useMemo(
+    () => formatStoreCurrencyFromCents(activeListingPriceCents),
+    [activeListingPriceCents]
+  )
+
+  const listingPriceEur = activeListingPriceCents / 100
+  const hasRetailCompare =
+    typeof activeRetailPriceEur === "number" && activeRetailPriceEur > listingPriceEur
   const discountPct = hasRetailCompare
-    ? Math.round(((retailPriceEur - listingPriceEur) / retailPriceEur) * 100)
+    ? Math.round(((activeRetailPriceEur - listingPriceEur) / activeRetailPriceEur) * 100)
     : 0
   const glanceText = useMemo(() => listingAtAGlance(description, name, tags), [description, name, tags])
 
@@ -481,7 +513,7 @@ export function MarketplaceListingDetail({
   const bundleSaved = bundleAddonSum > 0 ? Math.round((bundleCrossSubtotal - bundlePayToday) * 100) / 100 : 0
 
   const buyNowQty = 1
-  const buyNowLineSubtotalCents = listingPriceCents * buyNowQty
+  const buyNowLineSubtotalCents = activeListingPriceCents * buyNowQty
   const maxApplicableReward = useMemo(() => {
     if (buyNowLineSubtotalCents <= 0) return 0
     return Math.max(
@@ -793,7 +825,7 @@ export function MarketplaceListingDetail({
                   {hasRetailCompare ? (
                     <p className="mt-2">
                       <span className="inline-flex rounded-full bg-gradient-to-r from-rose-600 to-orange-500 px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
-                        −{discountPct}% vs anchor {fmtMoney(retailPriceEur ?? 0)}
+                        −{discountPct}% vs anchor {fmtMoney(activeRetailPriceEur ?? 0)}
                       </span>
                     </p>
                   ) : null}
@@ -908,6 +940,12 @@ export function MarketplaceListingDetail({
                   {colorMeta.map(({ name: cn }) => {
                     const row = variantRowByName.get(cn)
                     const out = row != null && row.stock <= 0
+                    const optionCents = marketplaceSellingPriceCentsForOption({
+                      listingSellingPriceCents: listingPriceCents,
+                      productBasePriceCents: basePriceCents,
+                      variants,
+                      optionName: cn,
+                    })
                     return (
                       <button
                         key={cn}
@@ -924,7 +962,14 @@ export function MarketplaceListingDetail({
                             : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-700 dark:hover:border-zinc-600"
                         } ${out ? "cursor-not-allowed opacity-40" : ""}`}
                       >
-                        {cn}
+                        <span className="block leading-tight">{cn}</span>
+                        <span
+                          className={`mt-0.5 block text-[11px] font-semibold tabular-nums ${
+                            selectedColor === cn ? "text-white/90" : "text-zinc-500 dark:text-zinc-400"
+                          }`}
+                        >
+                          {formatStoreCurrencyFromCents(optionCents)}
+                        </span>
                       </button>
                     )
                   })}

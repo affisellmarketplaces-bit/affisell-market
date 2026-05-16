@@ -2,6 +2,7 @@ import { auth } from "@/auth"
 import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
 import { resolveCartLineImageUrl } from "@/lib/cart-line-image"
 import { prisma } from "@/lib/prisma"
+import { marketplaceSellingPriceCentsForOption, variantsFromDb } from "@/lib/product-variants"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -65,6 +66,14 @@ export async function GET() {
       selectedColor: row.selectedColor,
     })
 
+    const variants = variantsFromDb(p.variants)
+    const unitCents = marketplaceSellingPriceCentsForOption({
+      listingSellingPriceCents: listing.sellingPriceCents,
+      productBasePriceCents: p.basePriceCents,
+      variants,
+      optionName: row.selectedColor,
+    })
+
     return {
       id: row.id,
       qty: row.quantity,
@@ -75,7 +84,7 @@ export async function GET() {
       product: {
         id: listing.id,
         title: listingDisplayTitle(listing.customTitle, p.name),
-        price: listing.sellingPriceCents / 100,
+        price: unitCents / 100,
         imageUrl: imageUrl || listingPrimaryImageUrl(listing.customImages, p.images) || "",
       },
     }

@@ -72,8 +72,6 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
       ? mergeColorImagesForProduct(colorNames, listing.product.colorImages, listing.product.variants)
       : (parseProductColorImagesFromDb(listing.product.colorImages) ?? [])
 
-  const priceDisplay = formatStoreCurrencyFromCents(listing.sellingPriceCents)
-
   const buyerRewardBadge = buyerRewardBadgeText(
     normalizeBuyerRewardKind(listing.buyerRewardKind),
     listing.buyerRewardPercent ?? 0
@@ -265,7 +263,6 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
         productSpecs={productSpecs}
         sellerLabel={sellerLabel}
         storefront={storefront}
-        priceDisplay={priceDisplay}
         gallery={gallery}
         categories={categories}
         colorNames={colorNames}
@@ -274,6 +271,7 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
         colorImages={colorImages}
         shipping={shipping}
         listingPriceCents={listing.sellingPriceCents}
+        basePriceCents={p.basePriceCents}
         stock={listing.product.stock}
         retailPriceEur={retailPriceEur}
         has3D={has3D}

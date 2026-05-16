@@ -8,6 +8,11 @@ import { resolveBuyerUserIdForEarn } from "@/lib/buyer-reward-resolve-user"
 import { computeMarketplaceOrderSettlement } from "@/lib/marketplace-order-settlement"
 import { createMarketplaceOrderNotifications } from "@/lib/marketplace-order-notifications"
 import { prisma } from "@/lib/prisma"
+import {
+  marketplaceSellingPriceCentsForOption,
+  marketplaceWholesaleCentsForOption,
+  variantsFromDb,
+} from "@/lib/product-variants"
 
 type Tx = Prisma.TransactionClient
 
@@ -52,7 +57,14 @@ async function createPaidMarketplaceOrder(
   }
 ): Promise<string | null> {
   const { listing, qty } = args
-  const basePriceCents = listing.product.basePriceCents * qty
+  const variants = variantsFromDb(listing.product.variants)
+  const optionName = args.variantLabel.split("·")[0]?.trim() || null
+  const basePriceCents =
+    marketplaceWholesaleCentsForOption({
+      productBasePriceCents: listing.product.basePriceCents,
+      variants,
+      optionName,
+    }) * qty
   const settlement = computeMarketplaceOrderSettlement({
     sellingPriceCents: args.paidLineCents,
     basePriceCents,
@@ -169,14 +181,21 @@ export async function fulfillMarketplaceStripeSession(
           continue
         }
 
-        const listLineCents = listing.sellingPriceCents * qty
+        const sigStr = typeof line.variantSignature === "string" ? line.variantSignature : ""
+        const parsed = parseCartVariantSignature(sigStr)
+        const variants = variantsFromDb(listing.product.variants)
+        const optionName = parsed.color || null
+        const listLineCents =
+          marketplaceSellingPriceCentsForOption({
+            listingSellingPriceCents: listing.sellingPriceCents,
+            productBasePriceCents: listing.product.basePriceCents,
+            variants,
+            optionName,
+          }) * qty
         const paidLineCents =
           linePaids && linePaids.length === lines.length && linePaids[i] != null
             ? Math.min(listLineCents, Math.max(0, linePaids[i]!))
             : listLineCents
-
-        const sigStr = typeof line.variantSignature === "string" ? line.variantSignature : ""
-        const parsed = parseCartVariantSignature(sigStr)
         const variantLabelRaw =
           typeof line.variantLabel === "string" && line.variantLabel.trim()
             ? line.variantLabel.trim()
@@ -230,7 +249,15 @@ export async function fulfillMarketplaceStripeSession(
 
   const qty = Math.max(1, Math.round(parseInt(meta.checkoutQty ?? "1", 10) || 1))
   const checkoutVariantLabel = meta.checkoutVariantLabel?.trim() || ""
-  const listLineCents = listing.sellingPriceCents * qty
+  const variants = variantsFromDb(listing.product.variants)
+  const optionName = checkoutVariantLabel.split("·")[0]?.trim() || null
+  const listLineCents =
+    marketplaceSellingPriceCentsForOption({
+      listingSellingPriceCents: listing.sellingPriceCents,
+      productBasePriceCents: listing.product.basePriceCents,
+      variants,
+      optionName,
+    }) * qty
   const paids = linePaids
   const paidLineCents =
     paids && paids.length >= 1 ? Math.min(listLineCents, Math.max(0, paids[0]!)) : listLineCents

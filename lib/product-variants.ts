@@ -132,3 +132,54 @@ export function resolveMarketplaceOptionNames(
     .map((r) => r.name.trim())
     .filter(Boolean)
 }
+
+export function findVariantRowByOptionName(
+  variants: ProductVariantsJson | null,
+  optionName: string | null | undefined
+): ProductVariantLine | undefined {
+  const want = optionName?.trim().toLowerCase()
+  if (!want || !variants?.variantRows?.length) return undefined
+  return variants.variantRows.find((r) => r.name.trim().toLowerCase() === want)
+}
+
+/**
+ * Shopper price for a listing option: affiliate selling price + wholesale delta vs product base.
+ * `variantRows[].priceCents` are supplier wholesale per SKU; listing price is anchored on base.
+ */
+export function marketplaceSellingPriceCentsForOption(args: {
+  listingSellingPriceCents: number
+  productBasePriceCents: number
+  variants: ProductVariantsJson | null
+  optionName?: string | null
+}): number {
+  const sell = Math.max(0, Math.round(args.listingSellingPriceCents))
+  const base = Math.max(0, Math.round(args.productBasePriceCents))
+  const row = findVariantRowByOptionName(args.variants, args.optionName)
+  const wholesale = row && row.priceCents > 0 ? row.priceCents : base
+  return Math.max(0, sell + (wholesale - base))
+}
+
+/** Scale MSRP compare-at by the same wholesale delta when present. */
+export function marketplaceRetailPriceEurForOption(args: {
+  retailPriceEur?: number
+  productBasePriceCents: number
+  variants: ProductVariantsJson | null
+  optionName?: string | null
+}): number | undefined {
+  const retail = args.retailPriceEur
+  if (retail == null || !Number.isFinite(retail)) return undefined
+  const base = Math.max(0, Math.round(args.productBasePriceCents))
+  const row = findVariantRowByOptionName(args.variants, args.optionName)
+  const wholesale = row && row.priceCents > 0 ? row.priceCents : base
+  return retail + (wholesale - base) / 100
+}
+
+export function marketplaceWholesaleCentsForOption(args: {
+  productBasePriceCents: number
+  variants: ProductVariantsJson | null
+  optionName?: string | null
+}): number {
+  const base = Math.max(0, Math.round(args.productBasePriceCents))
+  const row = findVariantRowByOptionName(args.variants, args.optionName)
+  return row && row.priceCents > 0 ? row.priceCents : base
+}

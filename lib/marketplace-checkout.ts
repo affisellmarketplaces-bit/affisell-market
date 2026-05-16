@@ -16,6 +16,10 @@ import {
   STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS,
 } from "@/lib/marketplace-checkout-discount"
 import { prisma } from "@/lib/prisma"
+import {
+  marketplaceSellingPriceCentsForOption,
+  variantsFromDb,
+} from "@/lib/product-variants"
 import { stripeProductImages } from "@/lib/product-images"
 import { getStripeClient } from "@/lib/stripe"
 
@@ -51,6 +55,27 @@ function resolveCheckoutVariantLabel(row: CartLineInput): string {
   if (!raw) return ""
   const p = parseCartVariantSignature(raw)
   return formatCartVariantLabel(p.color, p.size)
+}
+
+function checkoutOptionName(row: CartLineInput): string | null {
+  const color = typeof row.selectedColor === "string" ? row.selectedColor.trim() : ""
+  if (color) return color
+  const raw = typeof row.variantSignature === "string" ? row.variantSignature.trim() : ""
+  if (!raw) return null
+  return parseCartVariantSignature(raw).color || null
+}
+
+function lineSellingPriceCents(
+  listing: NonNullable<Awaited<ReturnType<typeof loadListing>>>,
+  row: CartLineInput
+): number {
+  const variants = variantsFromDb(listing.product.variants)
+  return marketplaceSellingPriceCentsForOption({
+    listingSellingPriceCents: listing.sellingPriceCents,
+    productBasePriceCents: listing.product.basePriceCents,
+    variants,
+    optionName: checkoutOptionName(row),
+  })
 }
 
 async function loadListing(id: string) {
@@ -170,7 +195,16 @@ async function checkoutFromItems(
     })
   }
 
-  const lineSubtotalsCents = loaded.map((l) => l.listing.sellingPriceCents * l.qty)
+  const lineSubtotalsCents = loaded.map((l, i) => {
+    const n = normalized[i]!
+    const parsed = parseCartVariantSignature(n.variantSignature)
+    const unit = lineSellingPriceCents(l.listing, {
+      variantSignature: n.variantSignature,
+      selectedColor: parsed.color,
+      selectedSize: parsed.size,
+    })
+    return unit * l.qty
+  })
   let balanceCents = 0
   if (buyerUserId) {
     const u = await prisma.user.findUnique({
@@ -283,7 +317,11 @@ export async function marketplaceCheckoutPOST(request: Request) {
     balanceCents = u?.buyerRewardBalanceCents ?? 0
   }
 
-  const lineSubtotal = listing.sellingPriceCents * qty
+  const unitSelling = lineSellingPriceCents(listing, {
+    selectedColor: body.selectedColor,
+    selectedSize: body.selectedSize,
+  })
+  const lineSubtotal = unitSelling * qty
   const requestedReward =
     typeof body.useRewardCents === "number" && Number.isFinite(body.useRewardCents)
       ? body.useRewardCents
