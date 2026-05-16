@@ -43,7 +43,7 @@ export default async function SupplierOrdersPage() {
         <BentoPageHeading
           eyebrow="Fulfillment"
           title="Orders to ship"
-          description="Stripe-confirmed marketplace orders land here instantly. Signal confidence while your team packs — buyers get alerted before tracking exists — then paste carrier details when the parcel scans out."
+          description="Paid orders queue here — confirm prep, then add tracking when the parcel leaves."
         />
 
         <SupplierOrdersPanel />

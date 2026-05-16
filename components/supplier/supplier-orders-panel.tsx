@@ -2,20 +2,19 @@
 
 import Link from "next/link"
 import {
-  BadgeCheck,
   Check,
   ClipboardCheck,
+  Coins,
   Loader2,
+  MapPin,
   Package,
   Truck,
-  Workflow,
 } from "lucide-react"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
-import { AFFISELL_MARKETPLACE_FEE_PERCENT } from "@/lib/marketplace-order-settlement"
 import { cn } from "@/lib/utils"
 
 type OrderRow = {
@@ -52,6 +51,25 @@ type OrderRow = {
 
 type Tab = "to_ship" | "shipped" | "all"
 
+function formatOrderWhen(iso: string) {
+  const d = new Date(iso)
+  return d.toLocaleString(undefined, {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
+
+function splitShipTo(formatted: string) {
+  const lines = formatted
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean)
+  if (lines.length === 0) return { name: "—", rest: "" }
+  return { name: lines[0], rest: lines.slice(1).join(" · ") }
+}
+
 function FulfillmentRail({
   status,
   supplierPreparingAt,
@@ -59,210 +77,135 @@ function FulfillmentRail({
   status: OrderRow["status"]
   supplierPreparingAt: string | null
 }) {
-  const steps = useMemo(
-    () =>
-      (
-        [
-          {
-            key: "paid" as const,
-            label: "Captured · queued",
-            detail: "Funds settled — ship window open",
-          },
-          {
-            key: "preparing" as const,
-            label: "Inbound · prepping",
-            detail: "Buyer gets a live pulse when you confirm",
-          },
-          {
-            key: "shipped" as const,
-            label: "Outbound · tracked",
-            detail: "Carrier + ID mirrored to buyer orders",
-          },
-        ] as const
-      ).map((meta, idx) => ({
-        ...meta,
-        index: idx,
-      })),
-    []
-  )
+  const steps = [
+    { key: "paid" as const, label: "Paid", Icon: Package },
+    { key: "preparing" as const, label: "Prep", Icon: ClipboardCheck },
+    { key: "shipped" as const, label: "Shipped", Icon: Truck },
+  ]
 
   const activeRank = status === "shipped" ? 2 : status === "preparing" ? 1 : 0
 
   return (
     <div
-      className="relative mt-5 overflow-hidden rounded-2xl border border-zinc-200/90 bg-white/70 shadow-[0_24px_80px_-48px_rgba(109,40,217,0.45)] backdrop-blur-xl dark:border-zinc-700/90 dark:bg-zinc-950/75 dark:shadow-[0_24px_80px_-48px_rgba(0,0,0,0.85)]"
+      className="mt-4 flex items-center gap-1 rounded-xl border border-zinc-200/80 bg-zinc-50/80 px-3 py-2.5 dark:border-zinc-800 dark:bg-zinc-900/40"
       role="region"
-      aria-label="Fulfillment trail"
+      aria-label="Fulfillment progress"
     >
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.55] dark:opacity-[0.35]"
-        aria-hidden
-        style={{
-          backgroundImage: `
-            radial-gradient(ellipse 90% 80% at 0% -30%, rgb(139 92 246 / 0.22), transparent 55%),
-            radial-gradient(ellipse 70% 60% at 100% 0%, rgb(6 182 212 / 0.12), transparent 50%),
-            linear-gradient(180deg, rgb(250 245 255 / 0.9) 0%, transparent 45%)
-          `,
-        }}
-      />
-      <div className="relative border-b border-zinc-100/90 px-4 py-3 dark:border-zinc-800/80 sm:px-5">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2.5">
-            <span className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-600/25">
-              <Workflow className="size-4 shrink-0 opacity-95" aria-hidden strokeWidth={2.25} />
-            </span>
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="text-sm font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Fulfillment trail</p>
-                <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-emerald-800 ring-1 ring-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-400/30">
-                  Live
-                </span>
-              </div>
-              <p className="mt-0.5 max-w-xl text-[11px] leading-relaxed text-zinc-600 dark:text-zinc-400">
-                Progressive handoff — each checkpoint syncs buyer notifications before tracking exists.
-              </p>
-            </div>
-          </div>
-          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500">
-            Step {Math.min(activeRank + 1, 3)} / 3
-          </p>
-        </div>
-      </div>
+      {steps.map(({ key, label, Icon }, index) => {
+        const complete = index < activeRank || (status === "shipped" && index <= 2)
+        const active = index === activeRank && status !== "shipped"
 
-      {/* Desktop: horizontal runway */}
-      <div className="relative hidden pb-6 pt-7 sm:block sm:px-6">
-        <div className="flex items-start">
-          {steps.flatMap(({ key, label, detail, index }) => {
-            const complete =
-              index < activeRank || (status === "shipped" && index <= 2)
-            const active = index === activeRank && status !== "shipped"
-
-            let Icon = Package
-            if (key === "preparing") Icon = ClipboardCheck
-            if (key === "shipped") Icon = Truck
-
-            const segmentFilled = activeRank > index
-
-            const column = (
-              <div key={key} className="flex w-[min(28%,140px)] shrink-0 flex-col items-center">
-                <div
-                  className={cn(
-                    "relative z-[1] flex size-11 shrink-0 items-center justify-center rounded-2xl border-2 transition-all duration-300",
-                    complete
-                      ? "border-emerald-400/80 bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-[0_12px_28px_-12px_rgb(16_185_129_/_0.65)] dark:from-emerald-600 dark:to-teal-700"
-                      : active
-                        ? "border-violet-500 bg-white text-violet-700 shadow-[0_0_0_4px_rgb(139_92_246_/_0.2),0_16px_40px_-24px_rgb(109_40_217_/_0.55)] dark:bg-zinc-900 dark:text-violet-300 dark:shadow-[0_0_0_4px_rgb(139_92_246_/_0.25)]"
-                        : "border-zinc-200 bg-zinc-50 text-zinc-400 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-500"
-                  )}
-                >
-                  {complete ? (
-                    <Check className="size-5" aria-hidden strokeWidth={3} />
-                  ) : active ? (
-                    <span className="relative flex size-2.5">
-                      <span className="absolute inline-flex size-full animate-ping rounded-full bg-violet-400 opacity-40" />
-                      <span className="relative inline-flex size-2.5 rounded-full bg-violet-600 dark:bg-violet-400" />
-                    </span>
-                  ) : (
-                    <Icon className="size-[18px] opacity-80" aria-hidden strokeWidth={2} />
-                  )}
-                </div>
-
-                <div className="mt-3 w-full text-center">
-                  <p
-                    className={cn(
-                      "text-[13px] font-semibold leading-snug tracking-tight",
-                      active ? "text-violet-950 dark:text-violet-100" : "text-zinc-900 dark:text-zinc-100"
-                    )}
-                  >
-                    {label}
-                  </p>
-                  <p className="mt-1 text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">{detail}</p>
-                  {key === "preparing" && supplierPreparingAt ? (
-                    <p className="mt-2 inline-flex flex-wrap items-center justify-center gap-1 text-[10px] font-medium text-emerald-700 dark:text-emerald-400">
-                      <BadgeCheck className="size-3.5 shrink-0" aria-hidden />
-                      Pulse sent · {new Date(supplierPreparingAt).toLocaleString()}
-                    </p>
-                  ) : null}
-                </div>
-              </div>
-            )
-
-            if (index === steps.length - 1) return [column]
-
-            const connector = (
-              <div
-                key={`${key}-connector`}
-                className="relative mx-2 mt-[22px] h-[3px] min-w-[32px] flex-1 shrink rounded-full bg-zinc-200 dark:bg-zinc-700"
-                aria-hidden
-              >
-                <div
-                  className={cn(
-                    "h-full rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-500 to-violet-500 transition-all duration-700 ease-out",
-                    segmentFilled ? "w-full opacity-100" : "w-0 opacity-0"
-                  )}
-                />
-              </div>
-            )
-
-            return [column, connector]
-          })}
-        </div>
-      </div>
-
-      {/* Mobile: vertical trail */}
-      <ul className="relative space-y-0 px-4 pb-5 pt-6 sm:hidden">
-        <div
-          className="absolute bottom-8 left-[21px] top-10 w-px bg-gradient-to-b from-violet-300 via-violet-200 to-zinc-200 dark:from-violet-600 dark:via-violet-900 dark:to-zinc-700"
-          aria-hidden
-        />
-        {steps.map(({ key, label, detail, index }) => {
-          const complete =
-            index < activeRank || (status === "shipped" && index <= 2)
-          const active = index === activeRank && status !== "shipped"
-
-          let Icon = Package
-          if (key === "preparing") Icon = ClipboardCheck
-          if (key === "shipped") Icon = Truck
-
-          return (
-            <li key={key} className="relative flex gap-4 pl-1">
+        return (
+          <div key={key} className="flex min-w-0 flex-1 items-center gap-1">
+            {index > 0 ? (
               <div
                 className={cn(
-                  "relative z-[1] flex size-10 shrink-0 items-center justify-center rounded-xl border-2 transition-all duration-300",
+                  "h-0.5 min-w-[12px] flex-1 rounded-full transition-colors duration-500",
+                  index <= activeRank ? "bg-violet-500" : "bg-zinc-200 dark:bg-zinc-700"
+                )}
+                aria-hidden
+              />
+            ) : null}
+            <div
+              className={cn(
+                "flex min-w-0 flex-1 flex-col items-center gap-1",
+                index > 0 ? "pl-0" : ""
+              )}
+            >
+              <div
+                className={cn(
+                  "flex size-8 items-center justify-center rounded-lg border transition-all",
                   complete
-                    ? "border-emerald-400/80 bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-600/20"
+                    ? "border-emerald-500/50 bg-emerald-500 text-white"
                     : active
-                      ? "border-violet-500 bg-white shadow-[0_0_0_3px_rgb(139_92_246_/_0.22)] dark:bg-zinc-900"
-                      : "border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900/80"
+                      ? "border-violet-500 bg-white text-violet-700 shadow-[0_0_0_3px_rgb(139_92_246_/_0.18)] dark:bg-zinc-950 dark:text-violet-300"
+                      : "border-zinc-200 bg-white text-zinc-400 dark:border-zinc-700 dark:bg-zinc-900"
                 )}
               >
                 {complete ? (
-                  <Check className="size-[18px]" aria-hidden strokeWidth={3} />
-                ) : active ? (
-                  <span className="relative flex size-2">
-                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-violet-400 opacity-35" />
-                    <span className="relative inline-flex size-2 rounded-full bg-violet-600 dark:bg-violet-400" />
-                  </span>
+                  <Check className="size-3.5" strokeWidth={3} aria-hidden />
                 ) : (
-                  <Icon className="size-[16px] text-zinc-400 dark:text-zinc-500" aria-hidden strokeWidth={2} />
+                  <Icon className="size-3.5" aria-hidden strokeWidth={2.25} />
                 )}
               </div>
-              <div className="min-w-0 pb-6 pt-0.5">
-                <p className={cn("text-sm font-semibold leading-tight", active ? "text-violet-950 dark:text-violet-50" : "text-zinc-900 dark:text-zinc-50")}>
-                  {label}
-                </p>
-                <p className="mt-1 text-[11px] leading-snug text-zinc-600 dark:text-zinc-400">{detail}</p>
-                {key === "preparing" && supplierPreparingAt ? (
-                  <p className="mt-2 inline-flex flex-wrap items-center gap-1 text-[11px] text-emerald-800 dark:text-emerald-300">
-                    <BadgeCheck className="size-3.5 shrink-0" aria-hidden />
-                    Pulse sent · {new Date(supplierPreparingAt).toLocaleString()}
-                  </p>
-                ) : null}
-              </div>
-            </li>
-          )
-        })}
-      </ul>
+              <span
+                className={cn(
+                  "truncate text-[10px] font-semibold uppercase tracking-wide",
+                  active ? "text-violet-700 dark:text-violet-300" : "text-zinc-500 dark:text-zinc-400"
+                )}
+              >
+                {label}
+              </span>
+            </div>
+          </div>
+        )
+      })}
+      {supplierPreparingAt ? (
+        <span className="sr-only">Preparing confirmed {new Date(supplierPreparingAt).toLocaleString()}</span>
+      ) : null}
+    </div>
+  )
+}
+
+function PayoutStrip({ o }: { o: OrderRow }) {
+  const feesTotal = o.affisellFeeCents + o.affiliateCommissionCents
+  return (
+    <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
+      <div className="flex items-center gap-3 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 px-4 py-3 text-white shadow-lg shadow-violet-600/20">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-white/15">
+          <Coins className="size-5" aria-hidden />
+        </span>
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-violet-100">Your payout</p>
+          <p className="text-2xl font-bold tabular-nums tracking-tight">
+            {formatStoreCurrencyFromCents(o.supplierNetCents)}
+          </p>
+          <p className="text-[11px] text-violet-100/90">Wholesale · not reduced by partner fees</p>
+        </div>
+      </div>
+      {feesTotal > 0 ? (
+        <div className="flex flex-wrap gap-2 sm:flex-col sm:items-end">
+          <span
+            className="rounded-full bg-zinc-100 px-2.5 py-1 text-[11px] font-medium tabular-nums text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"
+            title="Deducted from partner checkout, not your wholesale"
+          >
+            Platform −{formatStoreCurrencyFromCents(o.affisellFeeCents)}
+          </span>
+          <span
+            className="rounded-full bg-zinc-100 px-2.5 py-1 text-[11px] font-medium tabular-nums text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"
+            title="Partner listing commission"
+          >
+            Listing −{formatStoreCurrencyFromCents(o.affiliateCommissionCents)}
+          </span>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+function OrderMetaChips({ o }: { o: OrderRow }) {
+  return (
+    <div className="mt-3 flex flex-wrap gap-1.5">
+      <span className="rounded-md bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+        {o.customerEmail}
+      </span>
+      {o.partnerListingCode ? (
+        <span className="rounded-md bg-zinc-100 px-2 py-0.5 font-mono text-[11px] font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+          {o.partnerListingCode}
+        </span>
+      ) : null}
+      <span
+        className={cn(
+          "rounded-md px-2 py-0.5 text-[11px] font-medium",
+          o.supplierPayoutAt
+            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200"
+            : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+        )}
+      >
+        {o.supplierPayoutAt
+          ? `Paid ${new Date(o.supplierPayoutAt).toLocaleDateString()}`
+          : o.payoutStatus}
+      </span>
     </div>
   )
 }
@@ -343,7 +286,7 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
     if (status === "shipped")
       return "bg-emerald-100 text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-200"
     if (status === "preparing") {
-      return "bg-gradient-to-r from-sky-100 to-violet-100 text-sky-950 ring-1 ring-sky-200/70 dark:from-sky-950/50 dark:to-violet-950/50 dark:text-sky-100 dark:ring-sky-900/70"
+      return "bg-sky-100 text-sky-900 dark:bg-sky-950/50 dark:text-sky-200"
     }
     return "bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-200"
   }
@@ -359,7 +302,7 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
   ]
 
   return (
-    <div className={cn("space-y-6", className)}>
+    <div className={cn("space-y-5", className)}>
       <div className="flex flex-wrap gap-2">
         {tabs.map((t) => (
           <button
@@ -388,179 +331,162 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
         <Card className="border-zinc-200 p-10 text-center dark:border-zinc-700">
           <Package className="mx-auto mb-3 size-9 text-zinc-300 dark:text-zinc-600" aria-hidden />
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            {tab === "to_ship"
-              ? "Nothing in the runway right now — new marketplace payouts land here instantly after Stripe settles."
-              : "No orders in this view yet."}
+            {tab === "to_ship" ? "No orders waiting — new payouts appear here after checkout." : "No orders in this view."}
           </p>
         </Card>
       ) : (
-        rows.map((o) => (
-          <Card key={o.id} className="relative overflow-hidden border-zinc-200/90 dark:border-zinc-700">
-            <div className={cn("pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-violet-400 to-fuchsia-400 opacity-80")} />
+        rows.map((o) => {
+          const shipTo = splitShipTo(o.shippingAddressFormatted)
+          return (
+            <Card
+              key={o.id}
+              className="overflow-hidden border-zinc-200/90 shadow-sm dark:border-zinc-700"
+            >
+              <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(220px,280px)]">
+                <div className="border-b border-zinc-100 p-4 dark:border-zinc-800 sm:p-5 lg:border-b-0 lg:border-r">
+                  <div className="flex gap-3 sm:gap-4">
+                    <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 sm:h-16 sm:w-16">
+                      {o.product.imageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={o.product.imageUrl} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <Package className="m-auto size-6 text-zinc-300 dark:text-zinc-600" aria-hidden />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <h2 className="line-clamp-2 text-sm font-semibold leading-snug text-zinc-900 dark:text-zinc-50 sm:text-[15px]">
+                          {o.product.name}
+                        </h2>
+                        <div className="flex shrink-0 flex-wrap items-center gap-1">
+                          {o.fulfillmentSource === "blind_dropship" ? (
+                            <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-violet-900 dark:bg-violet-950/60 dark:text-violet-200">
+                              Blind
+                            </span>
+                          ) : null}
+                          <span
+                            className={cn(
+                              "rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                              statusBadgeClass(o.status)
+                            )}
+                          >
+                            {o.displayStatus}
+                          </span>
+                        </div>
+                      </div>
+                      <p className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-zinc-500">
+                        <span className="font-medium tabular-nums text-zinc-700 dark:text-zinc-300">×{o.quantity}</span>
+                        <span aria-hidden>·</span>
+                        <span>{formatOrderWhen(o.createdAt)}</span>
+                        {o.variantLabel ? (
+                          <>
+                            <span aria-hidden>·</span>
+                            <span className="truncate">{o.variantLabel}</span>
+                          </>
+                        ) : null}
+                        {o.product.supplierSku ? (
+                          <>
+                            <span aria-hidden>·</span>
+                            <span className="font-mono">{o.product.supplierSku}</span>
+                          </>
+                        ) : null}
+                      </p>
 
-            <div className="p-4 pb-5 sm:p-5">
-              <div className="flex flex-wrap gap-4">
-                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-white/70 bg-zinc-100 shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
-                  {o.product.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={o.product.imageUrl} alt="" className="h-full w-full object-cover" />
-                  ) : null}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <p className="font-semibold text-zinc-900 dark:text-zinc-50">{o.product.name}</p>
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      {o.fulfillmentSource === "blind_dropship" ? (
-                        <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-900 dark:bg-violet-950/60 dark:text-violet-200">
-                          Blind dropship
-                        </span>
+                      <PayoutStrip o={o} />
+                      <OrderMetaChips o={o} />
+
+                      {o.openReturn ? (
+                        <p className="mt-2 text-[11px] text-amber-800 dark:text-amber-200">
+                          Return open ({o.openReturn.status}) —{" "}
+                          <Link href="/dashboard/supplier/returns" className="font-semibold underline">
+                            Inbox
+                          </Link>
+                        </p>
                       ) : null}
-                      <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-semibold shadow-sm", statusBadgeClass(o.status))}>{o.displayStatus}</span>
+
+                      {o.fulfillmentSource === "marketplace" ? (
+                        <FulfillmentRail status={o.status} supplierPreparingAt={o.supplierPreparingAt} />
+                      ) : null}
+
+                      {o.status === "shipped" && o.trackingNumber ? (
+                        <div className="mt-3 flex items-center gap-2 rounded-lg border border-emerald-200/80 bg-emerald-50/90 px-3 py-2 text-sm text-emerald-950 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-100">
+                          <Truck className="size-4 shrink-0" aria-hidden />
+                          <span className="min-w-0 truncate font-medium">
+                            {o.trackingCarrier ?? "Carrier"} · {o.trackingNumber}
+                          </span>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
-                  {o.variantLabel ? <p className="text-xs text-zinc-500">Variant: {o.variantLabel}</p> : null}
-                  {o.product.supplierSku ? <p className="text-xs text-zinc-500">SKU: {o.product.supplierSku}</p> : null}
-                  <p className="mt-1 text-xs text-zinc-500">
-                    ×{o.quantity} · {new Date(o.createdAt).toLocaleString()}
-                  </p>
-                  <div className="mt-3 rounded-xl border border-zinc-100 bg-white/90 px-3 py-2.5 shadow-sm backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900/60">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                      Settlement detail
-                    </p>
-                    <ul className="mt-2 space-y-1 text-[11px] text-zinc-600 dark:text-zinc-400">
-                      <li className="flex flex-wrap justify-between gap-x-3 gap-y-0.5">
-                        <span>Your wholesale (your article)</span>
-                        <span className="font-medium tabular-nums text-zinc-800 dark:text-zinc-200">
-                          {formatStoreCurrencyFromCents(o.supplierNetCents)}
-                        </span>
-                      </li>
-                      <li className="flex flex-wrap justify-between gap-x-3 gap-y-0.5">
-                        <span>
-                          − Affisell marketplace ({AFFISELL_MARKETPLACE_FEE_PERCENT}% of partner checkout)
-                        </span>
-                        <span className="tabular-nums">{formatStoreCurrencyFromCents(o.affisellFeeCents)}</span>
-                      </li>
-                      <li className="flex flex-wrap justify-between gap-x-3 gap-y-0.5">
-                        <span>− Partner listing commission (your offer)</span>
-                        <span className="tabular-nums">{formatStoreCurrencyFromCents(o.affiliateCommissionCents)}</span>
-                      </li>
-                    </ul>
-                    <p className="mt-2 border-t border-zinc-100 pt-2 text-xs font-semibold text-violet-800 dark:text-violet-300">
-                      Your payout basis (wholesale): {formatStoreCurrencyFromCents(o.supplierNetCents)}
-                    </p>
-                    <p className="mt-1.5 text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
-                      Partner storefront retail total is not shown. Marketplace and listing commissions are funded from
-                      partner-channel revenue; they do not reduce your wholesale. Use the listing reference below only if
-                      Affisell support asks for it.
-                    </p>
+                </div>
+
+                <div className="flex flex-col bg-zinc-50/70 p-4 dark:bg-zinc-900/30 sm:p-5">
+                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                    <MapPin className="size-3.5 text-violet-600 dark:text-violet-400" aria-hidden />
+                    Ship to
                   </div>
-                  <p className="mt-3 text-xs text-zinc-600 dark:text-zinc-400">
-                    Buyer: <span className="font-medium">{o.customerEmail}</span>
-                    {o.partnerListingCode ? (
-                      <>
-                        {" "}
-                        · Partner listing{" "}
-                        <span className="font-mono font-medium text-zinc-800 dark:text-zinc-200">
-                          {o.partnerListingCode}
-                        </span>
-                      </>
-                    ) : null}
-                  </p>
-                  <p className="mt-1 text-xs text-zinc-500">
-                    Merchant payout: <span className="font-medium">{o.payoutStatus}</span>
-                    {o.payoutEligibleAt && !o.supplierPayoutAt ? ` · from ${new Date(o.payoutEligibleAt).toLocaleDateString()}` : null}
-                    {o.supplierPayoutAt ? ` · paid ${new Date(o.supplierPayoutAt).toLocaleDateString()}` : null}
-                  </p>
-                  {o.openReturn ? (
-                    <p className="mt-2 text-xs text-amber-800 dark:text-amber-200">
-                      Open return ({o.openReturn.status}) — payouts on hold —{" "}
-                      <Link href="/dashboard/supplier/returns" className="underline">
-                        Returns inbox
-                      </Link>
-                    </p>
+                  <p className="mt-2 text-sm font-semibold text-zinc-900 dark:text-zinc-50">{shipTo.name}</p>
+                  {shipTo.rest ? (
+                    <p className="mt-1 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">{shipTo.rest}</p>
+                  ) : null}
+
+                  {o.canMarkPreparing ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="mt-4 w-full gap-2 border-violet-200 dark:border-violet-900"
+                      disabled={busy === o.id}
+                      onClick={() => void markPreparing(o.id)}
+                    >
+                      {busy === o.id ? (
+                        <Loader2 className="size-4 animate-spin" aria-hidden />
+                      ) : (
+                        <ClipboardCheck className="size-4" aria-hidden />
+                      )}
+                      Mark preparing
+                    </Button>
+                  ) : null}
+
+                  {o.canMarkShipped ? (
+                    <div className="mt-auto space-y-2 pt-4">
+                      <input
+                        id={`carrier-${o.id}`}
+                        className="h-9 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm outline-none focus:border-violet-400 dark:border-zinc-600 dark:bg-zinc-950"
+                        placeholder="Carrier"
+                        aria-label="Carrier"
+                        value={trackingByOrder[o.id]?.carrier ?? ""}
+                        onChange={(e) => setTracking(o.id, "carrier", e.target.value)}
+                      />
+                      <input
+                        id={`tracking-${o.id}`}
+                        className="h-9 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm outline-none focus:border-violet-400 dark:border-zinc-600 dark:bg-zinc-950"
+                        placeholder="Tracking number *"
+                        aria-label="Tracking number"
+                        value={trackingByOrder[o.id]?.number ?? ""}
+                        onChange={(e) => setTracking(o.id, "number", e.target.value)}
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="w-full gap-2"
+                        disabled={busy === o.id}
+                        onClick={() => void markShipped(o.id)}
+                      >
+                        {busy === o.id ? (
+                          <Loader2 className="size-4 animate-spin" aria-hidden />
+                        ) : (
+                          <Truck className="size-4" aria-hidden />
+                        )}
+                        Mark shipped
+                      </Button>
+                    </div>
                   ) : null}
                 </div>
               </div>
-
-              <div className="mt-5 rounded-xl border border-zinc-100 bg-zinc-50/85 p-3.5 shadow-inner dark:border-zinc-800 dark:bg-zinc-900/50">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Ship to</p>
-                <pre className="mt-2 whitespace-pre-wrap font-sans text-sm leading-snug text-zinc-800 dark:text-zinc-100">
-                  {o.shippingAddressFormatted}
-                </pre>
-              </div>
-
-              {o.fulfillmentSource === "marketplace" ? (
-                <FulfillmentRail status={o.status} supplierPreparingAt={o.supplierPreparingAt} />
-              ) : null}
-
-              {o.status === "shipped" && o.trackingNumber ? (
-                <div className="mt-5 flex flex-wrap items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50/85 px-3 py-2.5 text-sm text-emerald-950 shadow-sm dark:border-emerald-900/50 dark:bg-emerald-950/25 dark:text-emerald-100">
-                  <Truck className="size-4 shrink-0" aria-hidden />
-                  <span>
-                    <span className="font-semibold">{o.trackingCarrier ?? "Carrier"}</span> {o.trackingNumber}
-                  </span>
-                  {o.shippedAt ? (
-                    <span className="text-xs text-emerald-800/80 dark:text-emerald-200/80">· Departed {new Date(o.shippedAt).toLocaleString()}</span>
-                  ) : null}
-                </div>
-              ) : null}
-
-              {o.canMarkPreparing ? (
-                <div className="mt-6 flex flex-col gap-3 border-t border-zinc-100 pt-6 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-zinc-900 dark:text-white">Customer pulse check</p>
-                    <p className="max-w-xl text-xs text-zinc-600 dark:text-zinc-400">
-                      Tap once you acknowledge the order in your ERP/WMS — we instantly mirror that confidence to the shopper.
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="gap-2 border-violet-200 bg-white/90 shadow-sm hover:bg-violet-50 dark:border-violet-900 dark:bg-zinc-950 dark:hover:bg-violet-950/40"
-                    disabled={busy === o.id}
-                    onClick={() => void markPreparing(o.id)}
-                  >
-                    {busy === o.id ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <ClipboardCheck className="size-4" aria-hidden />}
-                    Received · now preparing
-                  </Button>
-                </div>
-              ) : null}
-
-              {o.canMarkShipped ? (
-                <div className="mt-6 flex flex-wrap items-end gap-3 border-t border-zinc-100 pt-6 dark:border-zinc-800">
-                  <div className="min-w-[160px] flex-1 space-y-1">
-                    <label className="text-[11px] font-medium uppercase tracking-wide text-zinc-500" htmlFor={`carrier-${o.id}`}>
-                      Carrier
-                    </label>
-                    <input
-                      id={`carrier-${o.id}`}
-                      className="h-11 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm shadow-sm outline-none transition focus:border-violet-400 dark:border-zinc-600 dark:bg-zinc-950"
-                      placeholder="UPS, Chronopost, DHL…"
-                      value={trackingByOrder[o.id]?.carrier ?? ""}
-                      onChange={(e) => setTracking(o.id, "carrier", e.target.value)}
-                    />
-                  </div>
-                  <div className="min-w-[200px] flex-[1.3] space-y-1">
-                    <label className="text-[11px] font-medium uppercase tracking-wide text-zinc-500" htmlFor={`tracking-${o.id}`}>
-                      Tracking number *
-                    </label>
-                    <input
-                      id={`tracking-${o.id}`}
-                      className="h-11 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm shadow-sm outline-none transition focus:border-violet-400 dark:border-zinc-600 dark:bg-zinc-950"
-                      placeholder="Paste the carrier reference"
-                      value={trackingByOrder[o.id]?.number ?? ""}
-                      onChange={(e) => setTracking(o.id, "number", e.target.value)}
-                    />
-                  </div>
-                  <Button type="button" disabled={busy === o.id} onClick={() => void markShipped(o.id)} className="h-11 gap-2 px-6">
-                    {busy === o.id ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <Truck className="size-4" aria-hidden />}
-                    Mark shipped
-                  </Button>
-                </div>
-              ) : null}
-            </div>
-          </Card>
-        ))
+            </Card>
+          )
+        })
       )}
     </div>
   )
