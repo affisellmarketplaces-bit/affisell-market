@@ -241,13 +241,12 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
   }
 
   return (
-    <main className="relative min-h-screen overflow-x-hidden bg-gradient-to-b from-zinc-100/95 via-white to-violet-100/45 dark:from-zinc-950 dark:via-zinc-950 dark:to-violet-950/30">
+    <main className="affisell-pdp-viewport relative min-h-screen overflow-x-hidden bg-gradient-to-b from-zinc-100/95 via-white to-violet-100/45 dark:from-zinc-950 dark:via-zinc-950 dark:to-violet-950/30">
       <div
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_115%_70%_at_50%_-12%,rgba(139,92,246,0.14),transparent_52%)] dark:bg-[radial-gradient(ellipse_115%_70%_at_50%_-12%,rgba(139,92,246,0.22),transparent_55%)]"
         aria-hidden
       />
-      <div className="relative mx-auto max-w-6xl rounded-[1.75rem] bg-[var(--affisell-gradient)] p-[2px] shadow-[0_20px_70px_-28px_rgba(109,40,217,0.28)]">
-        <div className="rounded-[calc(1.75rem-2px)] bg-white/95 px-4 py-10 backdrop-blur-sm md:px-8 lg:py-12 dark:bg-zinc-950/95">
+      <div className="relative mx-auto max-w-6xl px-4 py-10 md:px-8 lg:py-12">
       <MarketplaceListingDetail
         listingId={listing.id}
         productId={listing.product.id}
@@ -300,7 +299,6 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
         }))}
         viewsLast24h={viewsLast24h}
       />
-        </div>
       </div>
     </main>
   )

@@ -153,6 +153,48 @@
     background: var(--affisell-gradient);
   }
 
+  /**
+   * PDP / product page — hairline viewport frame (fine, barely visible).
+   * Sits on the outer edges of the screen, not around inner content cards.
+   */
+  .affisell-pdp-viewport {
+    position: relative;
+  }
+
+  .affisell-pdp-viewport::before {
+    content: "";
+    pointer-events: none;
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    border-radius: 0;
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--brand) 14%, transparent),
+      inset 0 0 0 1px color-mix(in srgb, white 55%, transparent);
+  }
+
+  @supports (border-width: 0.5px) {
+    .affisell-pdp-viewport::before {
+      box-shadow:
+        inset 0 0 0 0.5px color-mix(in srgb, var(--brand) 16%, transparent),
+        inset 0 0 0 0.5px color-mix(in srgb, white 40%, transparent);
+    }
+  }
+
+  .dark .affisell-pdp-viewport::before {
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--brand-light) 12%, transparent),
+      inset 0 0 0 1px color-mix(in srgb, black 35%, transparent);
+  }
+
+  @supports (border-width: 0.5px) {
+    .dark .affisell-pdp-viewport::before {
+      box-shadow:
+        inset 0 0 0 0.5px color-mix(in srgb, var(--brand-light) 14%, transparent),
+        inset 0 0 0 0.5px color-mix(in srgb, black 45%, transparent);
+    }
+  }
+
   .affisell-header-shell {
     @apply relative overflow-hidden rounded-3xl border border-brand/20 bg-white/85 shadow-sm shadow-brand/10 ring-1 ring-black/[0.03] backdrop-blur-md dark:border-brand/30 dark:bg-zinc-950/75 dark:ring-white/10;
   }
