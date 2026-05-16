@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 
 import { cn } from "@/lib/utils"
 
-/** Magnification factor for the hover pane (Amazon-style). */
+/** Magnification factor for the hover loupe. */
 const ZOOM = 2.35
 
 type Props = {
@@ -19,13 +19,13 @@ type Props = {
 }
 
 /**
- * Desktop (lg+): main product image with a side pane that magnifies the region under the cursor.
- * Touch / coarse pointer: hero only, no zoom pane (avoids broken UX).
+ * Desktop (lg+): hero image + floating loupe (absolute, no layout shift).
+ * Touch / coarse pointer: hero only.
  */
 export function ProductImageHoverZoom({ src, alt, overlay, className, frameClassName }: Props) {
+  const rootRef = useRef<HTMLDivElement>(null)
   const heroRef = useRef<HTMLDivElement>(null)
   const [pointerInHero, setPointerInHero] = useState(false)
-  /** True after first pointer move while still over the hero — activates lens + loupe pane. */
   const [zoomEngaged, setZoomEngaged] = useState(false)
   const [pct, setPct] = useState({ x: 50, y: 50 })
   const [finePointer, setFinePointer] = useState(false)
@@ -49,15 +49,18 @@ export function ProductImageHoverZoom({ src, alt, overlay, className, frameClass
 
   const zoomActive = finePointer && pointerInHero && zoomEngaged
 
-  const onMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const el = heroRef.current
-    if (!el) return
-    if (finePointer) setZoomEngaged(true)
-    const r = el.getBoundingClientRect()
-    const x = ((e.clientX - r.left) / Math.max(1, r.width)) * 100
-    const y = ((e.clientY - r.top) / Math.max(1, r.height)) * 100
-    setPct({ x: Math.min(100, Math.max(0, x)), y: Math.min(100, Math.max(0, y)) })
-  }, [finePointer])
+  const onMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      const el = heroRef.current
+      if (!el) return
+      if (finePointer) setZoomEngaged(true)
+      const r = el.getBoundingClientRect()
+      const x = ((e.clientX - r.left) / Math.max(1, r.width)) * 100
+      const y = ((e.clientY - r.top) / Math.max(1, r.height)) * 100
+      setPct({ x: Math.min(100, Math.max(0, x)), y: Math.min(100, Math.max(0, y)) })
+    },
+    [finePointer]
+  )
 
   const lensSpan = 100 / ZOOM
   const lensLeft = Math.min(100 - lensSpan, Math.max(0, pct.x - lensSpan / 2))
@@ -67,12 +70,13 @@ export function ProductImageHoverZoom({ src, alt, overlay, className, frameClass
 
   return (
     <div
+      ref={rootRef}
       className={cn(
-        "w-full overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950 lg:flex lg:flex-row lg:items-stretch lg:gap-3 lg:p-2",
+        "relative w-full overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950 lg:overflow-visible",
         className
       )}
     >
-      <div className="relative min-w-0 flex-1 basis-0">
+      <div className="relative min-w-0">
         <div
           ref={heroRef}
           className={cn(
@@ -125,19 +129,18 @@ export function ProductImageHoverZoom({ src, alt, overlay, className, frameClass
           aria-label={zoomActive ? "Magnified product image" : "Product image zoom"}
           aria-hidden={!zoomActive}
           className={cn(
-            "relative mt-4 hidden min-h-0 shrink-0 overflow-hidden rounded-xl border border-zinc-200/80 bg-zinc-50 shadow-inner transition-[width,opacity,box-shadow,border-color] duration-200 dark:border-zinc-700 dark:bg-zinc-900/60 lg:mt-0 lg:block lg:self-stretch",
-            zoomEngaged ? "lg:w-56 lg:opacity-100 xl:w-64" : "lg:w-0 lg:border-transparent lg:opacity-0",
-            zoomActive ? "ring-2 ring-violet-500/25" : ""
+            "pointer-events-none absolute z-40 hidden overflow-hidden rounded-xl border border-zinc-200/90 bg-zinc-50 shadow-[0_24px_60px_-20px_rgba(15,23,42,0.45)] transition-[opacity,transform] duration-200 ease-out dark:border-zinc-600 dark:bg-zinc-900/95 lg:block",
+            "left-[calc(100%+0.75rem)] top-0 h-full min-h-[12rem] w-56 xl:w-64",
+            zoomActive ? "translate-x-0 opacity-100" : "translate-x-2 opacity-0"
           )}
         >
           <div
-            className="absolute inset-0 bg-no-repeat transition-[background-position,opacity] duration-75 ease-out"
+            className="absolute inset-0 bg-no-repeat transition-[background-position] duration-75 ease-out"
             style={{
               backgroundImage: zoomBg,
               backgroundRepeat: "no-repeat",
               backgroundSize: `${ZOOM * 100}% auto`,
               backgroundPosition: `${pct.x}% ${pct.y}%`,
-              opacity: zoomActive ? 1 : 0,
             }}
           />
         </div>

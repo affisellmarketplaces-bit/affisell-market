@@ -715,7 +715,7 @@ export function MarketplaceListingDetail({
           transition={
             reduceMotion ? { duration: 0 } : { duration: 0.62, ease: [0.22, 1, 0.36, 1] }
           }
-          className="relative overflow-hidden rounded-[2rem] border border-white/75 bg-white/80 p-5 shadow-[0_36px_120px_-40px_rgba(91,33,217,0.32),0_0_0_1px_rgba(255,255,255,0.55)_inset] backdrop-blur-2xl sm:p-7 lg:p-9 dark:border-white/[0.08] dark:bg-zinc-950/65 dark:shadow-[0_40px_120px_-48px_rgba(0,0,0,0.65)]"
+          className="relative overflow-hidden rounded-[2rem] border border-white/75 bg-white/80 p-5 shadow-[0_36px_120px_-40px_rgba(91,33,217,0.32),0_0_0_1px_rgba(255,255,255,0.55)_inset] backdrop-blur-2xl sm:p-7 lg:overflow-visible lg:p-9 dark:border-white/[0.08] dark:bg-zinc-950/65 dark:shadow-[0_40px_120px_-48px_rgba(0,0,0,0.65)]"
         >
           <div
             className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_85%_at_50%_-8%,rgba(139,92,246,0.16),transparent_58%)] dark:bg-[radial-gradient(120%_85%_at_50%_-8%,rgba(167,139,250,0.14),transparent_58%)]"
@@ -742,16 +742,16 @@ export function MarketplaceListingDetail({
             </nav>
 
           <motion.div
-            className="order-2 flex flex-col gap-6 lg:order-none lg:col-span-7 lg:gap-8"
+            className="order-2 flex flex-col gap-6 lg:order-none lg:col-span-7 lg:gap-8 lg:overflow-visible"
             initial={reduceMotion ? false : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={reduceMotion ? { duration: 0 } : { duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           >
-          <section className="space-y-4">
+          <section className="space-y-4 lg:overflow-visible">
             <ProductImageHoverZoom
               src={hero}
               alt={name}
-              className="rounded-[1.35rem] border-zinc-200/55 bg-white/90 shadow-[0_28px_70px_-34px_rgba(91,33,217,0.28)] ring-1 ring-violet-500/[0.07] dark:border-zinc-700/80 dark:bg-zinc-950/70 dark:shadow-[0_28px_80px_-36px_rgba(0,0,0,0.55)] dark:ring-violet-400/[0.06] lg:p-3"
+              className="rounded-[1.35rem] border-zinc-200/55 bg-white/90 shadow-[0_28px_70px_-34px_rgba(91,33,217,0.28)] ring-1 ring-violet-500/[0.07] dark:border-zinc-700/80 dark:bg-zinc-950/70 dark:shadow-[0_28px_80px_-36px_rgba(0,0,0,0.55)] dark:ring-violet-400/[0.06] lg:px-3 lg:pb-3 lg:pt-3"
               frameClassName="rounded-[1.1rem] bg-gradient-to-b from-zinc-50/90 to-white dark:from-zinc-900/90 dark:to-zinc-950"
               overlay={
                 has3D ? (
@@ -902,12 +902,47 @@ export function MarketplaceListingDetail({
           </motion.div>
 
           <aside className="order-1 space-y-4 lg:order-none lg:col-span-5 lg:sticky lg:top-28 lg:self-start">
-            <header className="space-y-3 lg:pt-0.5">
+            <header className="space-y-3 lg:pt-3">
+              <motion.div
+                className="relative"
+                initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={reduceMotion ? { duration: 0 } : { duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <div
+                  className="pointer-events-none absolute -left-3 top-0 hidden h-full w-0.5 rounded-full bg-gradient-to-b from-violet-500 via-fuchsia-500 to-transparent opacity-80 lg:block"
+                  aria-hidden
+                />
+                <h1 className="text-balance pl-0 lg:pl-2">
+                  <span className="block text-[1.35rem] font-bold leading-[1.15] tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-[1.65rem]">
+                    {titleHeadline}
+                  </span>
+                  {titleSubline ? (
+                    <span
+                      className={`mt-2 block text-sm font-normal leading-relaxed text-zinc-600 dark:text-zinc-400 ${
+                        !titleExpanded && titleSublineLong ? "line-clamp-2" : ""
+                      }`}
+                    >
+                      {titleSubline}
+                    </span>
+                  ) : null}
+                </h1>
+                {titleSubline && titleSublineLong ? (
+                  <button
+                    type="button"
+                    onClick={() => setTitleExpanded((v) => !v)}
+                    className="mt-2 text-xs font-semibold text-violet-700 underline-offset-2 hover:underline dark:text-violet-400"
+                  >
+                    {titleExpanded ? "Show shorter title" : "Show full title"}
+                  </button>
+                ) : null}
+              </motion.div>
+
               <motion.div
                 className="flex flex-wrap items-center gap-2"
                 initial={reduceMotion ? false : { opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={reduceMotion ? { duration: 0 } : { duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                transition={reduceMotion ? { duration: 0 } : { duration: 0.35, delay: 0.06, ease: [0.22, 1, 0.36, 1] }}
               >
                 {categoryEyebrow ? (
                   <span className="rounded-full bg-violet-600/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-violet-800 dark:bg-violet-500/15 dark:text-violet-200">
@@ -929,41 +964,6 @@ export function MarketplaceListingDetail({
                   <span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
                     Free shipping over {fmtMoney(shipping.freeShippingThresholdEUR)}
                   </span>
-                ) : null}
-              </motion.div>
-
-              <motion.div
-                className="relative"
-                initial={reduceMotion ? false : { opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={reduceMotion ? { duration: 0 } : { duration: 0.4, delay: 0.04, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <div
-                  className="pointer-events-none absolute -left-3 top-0 hidden h-full w-0.5 rounded-full bg-gradient-to-b from-violet-500 via-fuchsia-500 to-transparent opacity-80 lg:block"
-                  aria-hidden
-                />
-                <h1 className="text-balance pl-0 lg:pl-2">
-                  <span className="block text-[1.35rem] font-bold leading-[1.2] tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-[1.65rem]">
-                    {titleHeadline}
-                  </span>
-                  {titleSubline ? (
-                    <span
-                      className={`mt-2 block text-sm font-normal leading-relaxed text-zinc-600 dark:text-zinc-400 ${
-                        !titleExpanded && titleSublineLong ? "line-clamp-2" : ""
-                      }`}
-                    >
-                      {titleSubline}
-                    </span>
-                  ) : null}
-                </h1>
-                {titleSubline && titleSublineLong ? (
-                  <button
-                    type="button"
-                    onClick={() => setTitleExpanded((v) => !v)}
-                    className="mt-2 text-xs font-semibold text-violet-700 underline-offset-2 hover:underline dark:text-violet-400"
-                  >
-                    {titleExpanded ? "Show shorter title" : "Show full title"}
-                  </button>
                 ) : null}
               </motion.div>
             </header>
