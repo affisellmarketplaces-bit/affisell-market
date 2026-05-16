@@ -29,7 +29,8 @@ type ReturnRow = {
   order: {
     id: string
     customerEmail: string
-    sellingPriceCents: number
+    supplierNetCents: number
+    partnerListingCode: string | null
     quantity: number
     orderedAt: string
     productName: string
@@ -163,7 +164,16 @@ export function SupplierReturnsPanel({ className }: { className?: string }) {
               <p className="font-medium text-zinc-900 dark:text-zinc-50">{r.order.productName}</p>
               <p className="text-xs text-zinc-500">
                 {r.order.customerEmail} · ordered {new Date(r.order.orderedAt).toLocaleDateString()} · ×
-                {r.order.quantity} · {formatStoreCurrencyFromCents(r.order.sellingPriceCents)}
+                {r.order.quantity} · wholesale {formatStoreCurrencyFromCents(r.order.supplierNetCents)}
+                {r.order.partnerListingCode ? (
+                  <>
+                    {" "}
+                    · Partner listing{" "}
+                    <span className="font-mono font-medium text-zinc-700 dark:text-zinc-300">
+                      {r.order.partnerListingCode}
+                    </span>
+                  </>
+                ) : null}
               </p>
               <p className="mt-1 text-sm">
                 <span className="text-zinc-500">Status: </span>

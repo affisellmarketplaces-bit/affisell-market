@@ -15,6 +15,7 @@ type ListingWithProduct = {
   id: string
   affiliateId: string
   productId: string
+  affiliate: { store: { partnerListingCode: string } | null }
   product: {
     id: string
     name: string
@@ -47,7 +48,7 @@ async function createPaidMarketplaceOrder(
     customerEmail: string
     shippingAddress: Prisma.InputJsonValue
     variantLabel: string
-    affiliateStoreName?: string | null
+    partnerListingCode?: string | null
   }
 ): Promise<string | null> {
   const { listing, qty } = args
@@ -95,7 +96,7 @@ async function createPaidMarketplaceOrder(
     variantBit,
     qty,
     customerEmail: args.customerEmail,
-    affiliateStoreName: args.affiliateStoreName,
+    partnerListingCode: args.partnerListingCode,
     settlement,
   })
 
@@ -160,7 +161,7 @@ export async function fulfillMarketplaceStripeSession(
           where: { id: line.affiliateProductId },
           include: {
             product: true,
-            affiliate: { select: { store: { select: { name: true } } } },
+            affiliate: { select: { store: { select: { partnerListingCode: true } } } },
           },
         })
 
@@ -190,7 +191,7 @@ export async function fulfillMarketplaceStripeSession(
           customerEmail,
           shippingAddress,
           variantLabel: variantLabelRaw,
-          affiliateStoreName: listing.affiliate.store?.name ?? null,
+          partnerListingCode: listing.affiliate.store?.partnerListingCode ?? null,
         })
 
         if (earnUserId && orderId) {
@@ -219,7 +220,7 @@ export async function fulfillMarketplaceStripeSession(
     where: { id: affiliateProductId },
     include: {
       product: true,
-      affiliate: { select: { store: { select: { name: true } } } },
+      affiliate: { select: { store: { select: { partnerListingCode: true } } } },
     },
   })
 
@@ -260,7 +261,7 @@ export async function fulfillMarketplaceStripeSession(
       customerEmail,
       shippingAddress,
       variantLabel: checkoutVariantLabel,
-      affiliateStoreName: listing.affiliate.store?.name ?? null,
+      partnerListingCode: listing.affiliate.store?.partnerListingCode ?? null,
     })
 
     if (earnUserId && orderId) {

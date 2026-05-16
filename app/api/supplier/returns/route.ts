@@ -22,9 +22,10 @@ export async function GET() {
         select: {
           id: true,
           customerEmail: true,
-          sellingPriceCents: true,
+          basePriceCents: true,
           quantity: true,
           createdAt: true,
+          affiliate: { select: { store: { select: { partnerListingCode: true } } } },
           product: { select: { name: true, images: true } },
         },
       },
@@ -53,7 +54,8 @@ export async function GET() {
       order: {
         id: r.order.id,
         customerEmail: r.order.customerEmail,
-        sellingPriceCents: r.order.sellingPriceCents,
+        supplierNetCents: r.order.basePriceCents,
+        partnerListingCode: r.order.affiliate.store?.partnerListingCode ?? null,
         quantity: r.order.quantity,
         orderedAt: r.order.createdAt.toISOString(),
         productName: r.order.product.name,

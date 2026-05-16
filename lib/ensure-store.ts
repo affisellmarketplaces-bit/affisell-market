@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client"
 
+import { allocateUniquePartnerListingCode } from "@/lib/partner-listing-code"
 import { prisma } from "@/lib/prisma"
 import { defaultStoreNameFromSignup, slugFromStoreName } from "@/lib/store-slug"
 
@@ -38,12 +39,14 @@ export async function ensureMerchantStore(
 
   const name = defaultStoreNameFromSignup(params.email, params.displayName ?? null)
   const slug = await allocateUniqueSlug(name, params.userId, tx)
+  const partnerListingCode = await allocateUniquePartnerListingCode(tx)
 
   return tx.store.create({
     data: {
       userId: params.userId,
       name,
       slug,
+      partnerListingCode,
     },
   })
 }

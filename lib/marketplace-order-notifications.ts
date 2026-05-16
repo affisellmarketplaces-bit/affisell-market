@@ -18,7 +18,7 @@ export async function createMarketplaceOrderNotifications(
     variantBit: string
     qty: number
     customerEmail: string
-    affiliateStoreName?: string | null
+    partnerListingCode?: string | null
     settlement: MarketplaceOrderSettlement
   }
 ): Promise<void> {
@@ -31,8 +31,8 @@ export async function createMarketplaceOrderNotifications(
         variantBit: args.variantBit,
         qty: args.qty,
         customerEmail: args.customerEmail,
-        storeName: args.affiliateStoreName,
-        settlement: args.settlement,
+        partnerListingCode: args.partnerListingCode,
+        supplierNetCents: args.settlement.supplierNetCents,
       }),
       orderId: args.orderId,
     },

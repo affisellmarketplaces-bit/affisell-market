@@ -21,7 +21,7 @@ describe("marketplace order settlement", () => {
     expect(s.supplierNetCents).toBe(6_000)
   })
 
-  it("supplier notification lists total and deductions", () => {
+  it("supplier notification hides retail and store identity", () => {
     const s = computeMarketplaceOrderSettlement({
       sellingPriceCents: 5_000,
       basePriceCents: 3_000,
@@ -32,13 +32,13 @@ describe("marketplace order settlement", () => {
       variantBit: "",
       qty: 1,
       customerEmail: "buyer@test.com",
-      storeName: "Cool Store",
-      settlement: s,
+      partnerListingCode: "AFS-TESTCODE1",
+      supplierNetCents: s.supplierNetCents,
     })
-    expect(msg).toContain("Sale total")
-    expect(msg).toContain("Affisell marketplace (10%)")
-    expect(msg).toContain("Partner commission")
-    expect(msg).toContain("Your wholesale")
+    expect(msg).toContain("Your wholesale (COGS)")
+    expect(msg).toContain("Partner listing AFS-TESTCODE1")
+    expect(msg).not.toContain("Sale total")
+    expect(msg).not.toContain("Cool Store")
     expect(msg).not.toContain("markup retained")
   })
 })

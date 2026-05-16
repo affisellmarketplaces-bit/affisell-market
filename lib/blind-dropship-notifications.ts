@@ -13,7 +13,7 @@ export async function createBlindDropshipPaidNotifications(orderId: string): Pro
   const order = await prisma.blindDropshipOrder.findUnique({
     where: { id: orderId },
     include: {
-      affiliate: { select: { store: { select: { name: true } } } },
+      affiliate: { select: { id: true, name: true, store: { select: { partnerListingCode: true } } } },
       items: {
         include: {
           product: { select: { name: true } },
@@ -87,8 +87,8 @@ export async function createBlindDropshipPaidNotifications(orderId: string): Pro
             variantBit: " · blind dropship",
             qty: 1,
             customerEmail: order.customerEmail,
-            storeName: order.affiliate.store?.name ?? null,
-            settlement: supplierSlice,
+            partnerListingCode: order.affiliate.store?.partnerListingCode ?? null,
+            supplierNetCents: supplierSlice.supplierNetCents,
           }),
           orderId: null,
         },

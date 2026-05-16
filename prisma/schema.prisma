@@ -101,6 +101,10 @@ model Store {
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name           String
   slug           String   @unique
+  /**
+   * Opaque ref (e.g. AFS-…) for supplier/support; never substitute for public store branding.
+   */
+  partnerListingCode String @unique
   logoUrl        String?
   /**
    * Optional Affisell AI–generated square profile image (shown in addition to or instead of logo where supported).

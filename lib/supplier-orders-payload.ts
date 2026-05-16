@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma"
 
 const orderInclude = {
   product: { select: { id: true, name: true, images: true, supplierSku: true } },
-  affiliate: { select: { id: true, name: true, email: true, store: { select: { name: true, slug: true } } } },
+  affiliate: { select: { store: { select: { partnerListingCode: true } } } },
   returns: {
     where: { status: { notIn: ["REJECTED", "CANCELLED", "REFUNDED"] as string[] } },
     orderBy: { createdAt: "desc" },
@@ -26,13 +26,9 @@ export type SupplierFulfillmentOrder = {
   quantity: number
   variantLabel: string | null
   customerEmail: string
-  sellingPriceCents: number
-  basePriceCents: number
-  marginCents: number
-  affisellFeeCents: number
-  affiliateCommissionCents: number
-  affiliateMarginRetainedCents: number
+  /** Supplier wholesale / COGS for the line (only money figure exposed to suppliers). */
   supplierNetCents: number
+  partnerListingCode: string | null
   createdAt: string
   shippedAt: string | null
   trackingCarrier: string | null
@@ -44,12 +40,6 @@ export type SupplierFulfillmentOrder = {
     name: string
     imageUrl: string | null
     supplierSku: string | null
-  }
-  affiliate: {
-    id: string
-    name: string | null
-    storeName: string | null
-    storeSlug: string | null
   }
   openReturn: { id: string; status: string } | null
   supplierPayoutAt: string | null
@@ -81,13 +71,8 @@ export function mapMarketplaceOrder(o: SupplierOrderRow): SupplierFulfillmentOrd
     quantity: o.quantity,
     variantLabel: o.variantLabel,
     customerEmail: o.customerEmail,
-    sellingPriceCents: o.sellingPriceCents,
-    basePriceCents: o.basePriceCents,
-    marginCents: o.marginCents,
-    affisellFeeCents: o.affisellFeeCents,
-    affiliateCommissionCents: o.affiliatePayoutCents,
-    affiliateMarginRetainedCents: o.affiliateMarginRetainedCents,
     supplierNetCents: o.basePriceCents,
+    partnerListingCode: store?.partnerListingCode ?? null,
     createdAt: o.createdAt.toISOString(),
     shippedAt: o.shippedAt?.toISOString() ?? null,
     trackingCarrier: o.trackingCarrier,
@@ -101,12 +86,6 @@ export function mapMarketplaceOrder(o: SupplierOrderRow): SupplierFulfillmentOrd
       name: o.product.name,
       imageUrl: o.product.images[0] ?? null,
       supplierSku: o.product.supplierSku,
-    },
-    affiliate: {
-      id: o.affiliate.id,
-      name: o.affiliate.name,
-      storeName: store?.name ?? null,
-      storeSlug: store?.slug ?? null,
     },
     openReturn: openReturn ? { id: openReturn.id, status: openReturn.status } : null,
     supplierPayoutAt: o.supplierPayoutAt?.toISOString() ?? null,
@@ -145,7 +124,7 @@ function mapBlindOrder(
     payoutEligibleAt: Date | null
     trackingCarrier: string | null
     trackingNumber: string | null
-    affiliate: { id: string; name: string | null; store: { name: string; slug: string } | null }
+    affiliate: { id: string; store: { partnerListingCode: string } | null }
     items: {
       quantity: number
       supplierSkuAtOrder: string
@@ -187,13 +166,8 @@ function mapBlindOrder(
     quantity: qty,
     variantLabel: null,
     customerEmail: order.customerEmail,
-    sellingPriceCents: slice.sellingPriceCents,
-    basePriceCents: slice.basePriceCents,
-    marginCents: slice.marginCents,
-    affisellFeeCents: slice.affisellFeeCents,
-    affiliateCommissionCents: slice.affiliateCommissionCents,
-    affiliateMarginRetainedCents: slice.affiliateMarginRetainedCents,
     supplierNetCents: slice.supplierNetCents,
+    partnerListingCode: store?.partnerListingCode ?? null,
     createdAt: order.createdAt.toISOString(),
     shippedAt: order.status === "shipped" ? order.updatedAt.toISOString() : null,
     trackingCarrier: order.trackingCarrier,
@@ -207,12 +181,6 @@ function mapBlindOrder(
       name: names,
       imageUrl: first.product.images[0] ?? null,
       supplierSku: first.supplierSkuAtOrder || first.product.supplierSku,
-    },
-    affiliate: {
-      id: order.affiliate.id,
-      name: order.affiliate.name,
-      storeName: store?.name ?? null,
-      storeSlug: store?.slug ?? null,
     },
     openReturn: null,
     supplierPayoutAt: order.supplierPayoutAt?.toISOString() ?? null,
@@ -268,7 +236,7 @@ export async function fetchSupplierOrders(
       orderBy: { createdAt: "desc" },
       take: 200,
       include: {
-        affiliate: { select: { id: true, name: true, store: { select: { name: true, slug: true } } } },
+        affiliate: { select: { id: true, store: { select: { partnerListingCode: true } } } },
         items: {
           where: { blindDropshipSupplierId: blindProfile.id },
           include: {

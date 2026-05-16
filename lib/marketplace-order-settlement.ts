@@ -48,26 +48,22 @@ function money(cents: number): string {
   return formatStoreCurrencyFromCents(cents)
 }
 
-/** Supplier inbox: total sale + fee breakdown (auto-created on affiliate storefront checkout). */
+/** Supplier inbox: wholesale only + opaque partner ref — never retail, margin, or store display name. */
 export function formatSupplierNewOrderNotification(args: {
   productName: string
   variantBit: string
   qty: number
   customerEmail: string
-  storeName?: string | null
-  settlement: MarketplaceOrderSettlement
+  partnerListingCode?: string | null
+  supplierNetCents: number
 }): string {
-  const { settlement: s } = args
   const variant = args.variantBit ? args.variantBit : ""
-  const via = args.storeName ? ` · via ${args.storeName}` : ""
-  const lines = [
-    `New order to ship · ${args.productName}${variant} ×${args.qty} · ${args.customerEmail}${via}`,
-    `Sale total ${money(s.sellingPriceCents)}`,
-    `− Affisell marketplace (${AFFISELL_MARKETPLACE_FEE_PERCENT}%): ${money(s.affisellFeeCents)}`,
-    `− Partner commission (your offer): ${money(s.affiliateCommissionCents)}`,
-  ]
-  lines.push(`Your wholesale (COGS): ${money(s.supplierNetCents)}`)
-  return lines.join(" · ")
+  const ref =
+    args.partnerListingCode?.trim() ? ` · Partner listing ${args.partnerListingCode.trim()}` : ""
+  return [
+    `New order to ship · ${args.productName}${variant} ×${args.qty} · ${args.customerEmail}${ref}`,
+    `Your wholesale (COGS): ${money(args.supplierNetCents)}`,
+  ].join(" · ")
 }
 
 /** Affiliate inbox: sale on their storefront with earnings breakdown. */

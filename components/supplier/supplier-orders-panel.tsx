@@ -29,11 +29,8 @@ type OrderRow = {
   quantity: number
   variantLabel: string | null
   customerEmail: string
-  sellingPriceCents: number
-  basePriceCents: number
-  affisellFeeCents: number
-  affiliateCommissionCents: number
   supplierNetCents: number
+  partnerListingCode: string | null
   createdAt: string
   shippedAt: string | null
   trackingCarrier: string | null
@@ -44,12 +41,6 @@ type OrderRow = {
     name: string
     imageUrl: string | null
     supplierSku: string | null
-  }
-  affiliate: {
-    id: string
-    name: string | null
-    storeName: string | null
-    storeSlug: string | null
   }
   openReturn: { id: string; status: string } | null
   payoutStatus: string
@@ -310,33 +301,23 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
                     ×{o.quantity} · {new Date(o.createdAt).toLocaleString()}
                   </p>
                   <div className="mt-3 rounded-xl border border-zinc-100 bg-white/90 px-3 py-2.5 shadow-sm backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900/60">
-                    <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200">
-                      Sale total {formatStoreCurrencyFromCents(o.sellingPriceCents)}
+                    <p className="text-xs font-medium text-violet-800 dark:text-violet-300">
+                      Your wholesale (COGS): {formatStoreCurrencyFromCents(o.supplierNetCents)}
                     </p>
-                    <ul className="mt-1 space-y-0.5 text-[11px] text-zinc-600 dark:text-zinc-400">
-                      <li>− Affisell marketplace (10%): {formatStoreCurrencyFromCents(o.affisellFeeCents)}</li>
-                      <li>− Partner commission: {formatStoreCurrencyFromCents(o.affiliateCommissionCents)}</li>
-                      <li className="font-medium text-violet-800 dark:text-violet-300">
-                        Your wholesale (COGS): {formatStoreCurrencyFromCents(o.supplierNetCents)}
-                      </li>
-                    </ul>
+                    <p className="mt-1.5 text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
+                      Retail price and partner margin are hidden on this view — only Affisell support can match a
+                      partner using the listing reference below.
+                    </p>
                   </div>
                   <p className="mt-3 text-xs text-zinc-600 dark:text-zinc-400">
                     Buyer: <span className="font-medium">{o.customerEmail}</span>
-                    {o.affiliate.storeName ? (
+                    {o.partnerListingCode ? (
                       <>
                         {" "}
-                        · via{" "}
-                        {o.affiliate.storeSlug ? (
-                          <Link
-                            href={`/store/${encodeURIComponent(o.affiliate.storeSlug)}`}
-                            className="text-violet-700 underline-offset-2 hover:underline dark:text-violet-400"
-                          >
-                            {o.affiliate.storeName}
-                          </Link>
-                        ) : (
-                          o.affiliate.storeName
-                        )}
+                        · Partner listing{" "}
+                        <span className="font-mono font-medium text-zinc-800 dark:text-zinc-200">
+                          {o.partnerListingCode}
+                        </span>
                       </>
                     ) : null}
                   </p>

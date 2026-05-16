@@ -1,10 +1,7 @@
 import type { SupplierFulfillmentOrder } from "@/lib/supplier-orders-payload"
 
-/** Never expose affiliate markup or full margin meta to supplier clients — only Affiliates / ops should see retained margin. */
-export type SupplierFulfillmentOrderPublic = Omit<
-  SupplierFulfillmentOrder,
-  "affiliateMarginRetainedCents" | "marginCents"
->
+/** Supplier API payload — already stripped of affiliate retail / identity in `SupplierFulfillmentOrder`. */
+export type SupplierFulfillmentOrderPublic = SupplierFulfillmentOrder
 
 export function toSupplierFulfillmentOrdersPublic(
   rows: SupplierFulfillmentOrder[]
@@ -15,6 +12,5 @@ export function toSupplierFulfillmentOrdersPublic(
 export function toSupplierFulfillmentOrderPublic(
   o: SupplierFulfillmentOrder
 ): SupplierFulfillmentOrderPublic {
-  const { affiliateMarginRetainedCents: _a, marginCents: _m, ...rest } = o
-  return rest
+  return o
 }
