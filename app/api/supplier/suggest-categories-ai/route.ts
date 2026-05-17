@@ -105,6 +105,7 @@ Rules:
 - Do not let a single generic substring (air, pro, mini, max, note) override the main noun (laptop, phone, headphones, lamp, etc.).
 - Prefer the closest real leaf: computers and similar go under Computers / Laptops / PCs when present, not kitchen or fragrance.
 - If DESCRIPTION is provided, use it together with the title.
+- Smart bands, fitness trackers, connected watches/bracelets → activity / biometric monitor leaves, never phone unlock categories, electronic connectors, or white-noise sleep aids.
 
 Return JSON: {"ids":["id1","id2","id3"]} — only IDs from the list, no invented IDs, no duplicates, best match first.`,
           },

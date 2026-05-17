@@ -264,8 +264,7 @@ export function SupplierBulkExcelImport() {
                       setParseRows(null)
                       setParseSummary(null)
                     }}
-                    keywordSuggestions={[]}
-                    aiSuggestions={[]}
+                    suggestions={[]}
                     loading={loadingBrowse}
                   />
                 </div>

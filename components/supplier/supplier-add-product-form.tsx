@@ -38,8 +38,6 @@ import { SupplierProductImageUpload } from "@/components/supplier/supplier-produ
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { CategoryAutosuggest } from "@/components/product/CategoryAutosuggest"
-import { CategoryAutocomplete } from "@/components/supplier/category-autocomplete"
 import {
   affiliateCommissionMaxPct,
   type ListingKind,
@@ -47,13 +45,16 @@ import {
 } from "@/lib/supplier-commission"
 import {
   pathFromLeafId,
-  suggestLeafCategoriesFromProductText,
   type CategoryPathSegment,
   type RecentCategoryEntry,
 } from "@/lib/category-browse"
 import { suggestFromTitle, titleSuggestionAttributes } from "@/lib/title-parser"
-import { SupplierCategoryPicker, type BrowsePayload } from "@/components/supplier/supplier-category-picker"
-import { useSupplierCategoryAiSuggestions } from "@/components/supplier/use-supplier-category-ai-suggestions"
+import {
+  SupplierCategoryPicker,
+  type BrowsePayload,
+  type CategoryPickOrigin,
+} from "@/components/supplier/supplier-category-picker"
+import { useSupplierCategorySuggestions } from "@/components/supplier/use-supplier-category-suggestions"
 import {
   mergeCoreCategoryAttrs,
   missingRequiredCategorySpecs,
@@ -256,6 +257,7 @@ export function SupplierAddProductForm({
   const [debouncedCategoryDescription] = useDebounce(categoryMatchDescription, 500)
   const [categoryAiTag, setCategoryAiTag] = useState(false)
   const categoryIdRef = useRef(categoryId)
+  const categoryManualPickRef = useRef(false)
   const lastTitleParserKeyRef = useRef<string | null>(null)
   const [shippingCountry, setShippingCountry] = useState("")
   const [warehouseType, setWarehouseType] = useState<"" | "local" | "regional" | "international">("")
@@ -337,53 +339,58 @@ export function SupplierAddProductForm({
     categoryIdRef.current = categoryId
   }, [categoryId])
 
-  const keywordCategorySuggestions = useMemo(() => {
-    if (!browse || debouncedName.trim().length < 2) return []
-    return suggestLeafCategoriesFromProductText(
-      debouncedName,
-      debouncedCategoryDescription,
-      browse.leafPaths,
-      3
-    )
-  }, [browse, debouncedName, debouncedCategoryDescription])
+  const { suggestions: categorySuggestions, loading: categorySuggestionsLoading } =
+    useSupplierCategorySuggestions(debouncedName, debouncedCategoryDescription, browse)
 
-  const { aiSuggestions: categoryAiSuggestions, aiLoading: categoryAiLoading } =
-    useSupplierCategoryAiSuggestions(debouncedName, debouncedCategoryDescription, browse)
+  const applyCategory = useCallback(
+    (leafId: string, path: CategoryPathSegment[], origin: CategoryPickOrigin = "manual") => {
+      if (origin === "manual") categoryManualPickRef.current = true
+      setCategoryId(leafId)
+      setCategoryPath(path)
+      setSpecValues({})
+      setSpecFormErrors([])
+      setCategoryAiTag(origin === "suggested")
+    },
+    []
+  )
+
+  /** Auto-apply the top suggestion until the supplier picks manually (search or tree). */
+  useEffect(() => {
+    if (categoryManualPickRef.current || categorySuggestionsLoading || !browse) return
+    const top = categorySuggestions[0]
+    if (!top?.leafId) return
+
+    const path = pathFromLeafId(top.leafId, browse.nodes)
+    if (!path?.length) return
+
+    const currentId = categoryIdRef.current
+    if (currentId === top.leafId) return
+
+    const key = `${debouncedName.trim()}|${debouncedCategoryDescription.trim()}|${top.leafId}`
+    if (lastTitleParserKeyRef.current === key) return
+    lastTitleParserKeyRef.current = key
+
+    applyCategory(top.leafId, path, "suggested")
+    if (currentId) {
+      toast.info("Catégorie mise à jour selon l’analyse du titre.")
+    }
+  }, [
+    categorySuggestions,
+    categorySuggestionsLoading,
+    browse,
+    debouncedName,
+    debouncedCategoryDescription,
+    applyCategory,
+  ])
 
   useEffect(() => {
     const title = debouncedName.trim()
     if (title.length < 5) return
 
     const suggestion = suggestFromTitle(title)
-    const { categorySlug } = suggestion
     const attrs = titleSuggestionAttributes(suggestion)
 
     void (async () => {
-      if (categorySlug && !categoryIdRef.current) {
-        try {
-          const res = await fetch(`/api/categories/by-slug/${encodeURIComponent(categorySlug)}`, {
-            cache: "no-store",
-          })
-          if (!res.ok || categoryIdRef.current) return
-          const cat = (await res.json()) as { id?: string; name?: string }
-          if (!cat.id || !browse) return
-
-          const path = pathFromLeafId(cat.id, browse.nodes)
-          if (!path?.length) return
-
-          const key = `${title}|cat|${categorySlug}`
-          if (lastTitleParserKeyRef.current === key) return
-          lastTitleParserKeyRef.current = key
-
-          setCategoryId(cat.id)
-          setCategoryPath(path)
-          setSpecFormErrors([])
-          toast.info(`Catégorie détectée : ${cat.name}`)
-        } catch {
-          /* non-fatal */
-        }
-      }
-
       if (Object.keys(attrs).length === 0) return
 
       const attrKey = `${title}|attrs|${JSON.stringify(attrs)}`
@@ -1638,19 +1645,6 @@ export function SupplierAddProductForm({
                           placeholder="e.g. Wireless earbuds with ANC"
                           maxLength={500}
                         />
-                        <CategoryAutosuggest
-                          title={name}
-                          description={description}
-                          imageUrl={images[0] ?? null}
-                          browse={browse}
-                          categoryId={categoryId}
-                          onChange={(leafId, path) => {
-                            setCategoryId(leafId)
-                            setCategoryPath(path)
-                            setSpecValues({})
-                          }}
-                          onAiTagged={() => setCategoryAiTag(true)}
-                        />
                       </div>
                       <div>
                         <Label htmlFor="p-desc">Description</Label>
@@ -1723,12 +1717,12 @@ export function SupplierAddProductForm({
                       id="add-product-classify"
                       icon={Tag}
                       title="Classification"
-                      description="Choose a leaf category to load the right specs for this product."
+                      description="Suggestions automatiques à partir du titre et de la description, puis recherche ou arbre pour affiner."
                     >
                       <div>
                         <Label className="inline-flex items-center gap-2">
                           <span>
-                            Category <span className="text-red-600">*</span>
+                            Catégorie <span className="text-red-600">*</span>
                           </span>
                           {categoryAiTag ? (
                             <span className="rounded-full bg-violet-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
@@ -1736,38 +1730,14 @@ export function SupplierAddProductForm({
                             </span>
                           ) : null}
                         </Label>
-                        <div className="mt-1.5 space-y-3">
-                          <div>
-                            <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                              Recherche (taxonomie Google)
-                            </p>
-                            <CategoryAutocomplete
-                              browse={browse}
-                              value={categoryId}
-                              disabled={loadingBrowse}
-                              onChange={(leafId, path) => {
-                                setCategoryId(leafId)
-                                setCategoryPath(path)
-                                setSpecValues({})
-                                setSpecFormErrors([])
-                                setCategoryAiTag(false)
-                              }}
-                            />
-                          </div>
+                        <div className="mt-1.5">
                           <SupplierCategoryPicker
                             browse={browse}
                             recent={recentCategories}
                             value={categoryId}
-                            onChange={(leafId, path) => {
-                              setCategoryId(leafId)
-                              setCategoryPath(path)
-                              setSpecValues({})
-                              setSpecFormErrors([])
-                              setCategoryAiTag(false)
-                            }}
-                            keywordSuggestions={keywordCategorySuggestions}
-                            aiSuggestions={categoryAiSuggestions}
-                            aiLoading={categoryAiLoading}
+                            onChange={applyCategory}
+                            suggestions={categorySuggestions}
+                            suggestionsLoading={categorySuggestionsLoading}
                             loading={loadingBrowse}
                           />
                         </div>

@@ -1,11 +1,10 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { ChevronRight, Database, Loader2, Search, Sparkles, Terminal, X } from "lucide-react"
+import { ChevronRight, Database, Loader2, Sparkles, Terminal, X } from "lucide-react"
 
+import { CategoryAutocomplete } from "@/components/supplier/category-autocomplete"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import type {
   BrowseNode,
   CategoryPathSegment,
@@ -21,16 +20,16 @@ export type BrowsePayload = {
   leafPaths: LeafPath[]
 }
 
+export type CategoryPickOrigin = "manual" | "suggested"
+
 type Props = {
   browse: BrowsePayload | null
   recent: RecentCategoryEntry[]
   value: string
-  onChange: (leafId: string, path: CategoryPathSegment[]) => void
-  /** Keyword / lexical matches from title (always local). */
-  keywordSuggestions: LeafPath[]
-  /** Groq-ranked picks from live taxonomy (may be empty). */
-  aiSuggestions: LeafPath[]
-  aiLoading?: boolean
+  onChange: (leafId: string, path: CategoryPathSegment[], origin?: CategoryPickOrigin) => void
+  /** Merged Groq + keyword suggestions (max 3). */
+  suggestions: LeafPath[]
+  suggestionsLoading?: boolean
   loading?: boolean
 }
 
@@ -38,30 +37,15 @@ function breadcrumbFromPath(path: CategoryPathSegment[]) {
   return path.map((p) => p.name).join(" > ")
 }
 
-function dedupeByLeaf(primary: LeafPath[], secondary: LeafPath[]): LeafPath[] {
-  const seen = new Set(primary.map((p) => p.leafId))
-  const out = [...primary]
-  for (const lp of secondary) {
-    if (out.length >= 3) break
-    if (!seen.has(lp.leafId)) {
-      seen.add(lp.leafId)
-      out.push(lp)
-    }
-  }
-  return out.slice(0, 3)
-}
-
 export function SupplierCategoryPicker({
   browse,
   recent,
   value,
   onChange,
-  keywordSuggestions,
-  aiSuggestions,
-  aiLoading,
+  suggestions,
+  suggestionsLoading,
   loading,
 }: Props) {
-  const [search, setSearch] = useState("")
   const [showRecentBox, setShowRecentBox] = useState(true)
   const [chain, setChain] = useState<string[]>([])
   const [columnPending, setColumnPending] = useState<{
@@ -106,15 +90,6 @@ export function SupplierCategoryPicker({
     }
   }, [browse, value])
 
-  const searchHits = useMemo(() => {
-    if (!browse || !search.trim()) return []
-    const q = search.trim().toLowerCase()
-    return browse.leafPaths
-      .filter((lp) => lp.breadcrumb.toLowerCase().includes(q))
-      .slice(0, 50)
-  }, [browse, search])
-
-  /** Three fixed columns for root → mid → leaf (taxonomy depth 3). */
   const threeCols = useMemo(() => {
     if (!browse) return [[], [], []] as [string[], string[], string[]]
     const c0 = browse.rootIds
@@ -123,7 +98,6 @@ export function SupplierCategoryPicker({
     return [c0, c1, c2]
   }, [browse, chain])
 
-  /** Hide empty drill-down columns so the active column gets more width and names wrap better. */
   const visibleColumnCount = chain.length <= 0 ? 1 : chain.length === 1 ? 2 : 3
 
   const onColumnPick = useCallback(
@@ -158,27 +132,25 @@ export function SupplierCategoryPicker({
   )
 
   const breadcrumbTrail = useMemo(() => {
-    if (!browse || chain.length === 0) return "All categories"
+    if (!browse || chain.length === 0) return "Toutes les catégories"
     const parts = chain.map((id) => browse.nodes[id]?.name ?? id)
-    return ["All categories", ...parts].join(" > ")
+    return ["Toutes les catégories", ...parts].join(" > ")
   }, [browse, chain])
 
-  const keywordOnly = useMemo(() => {
-    const aiIds = new Set(aiSuggestions.map((a) => a.leafId))
-    const filtered = keywordSuggestions.filter((k) => !aiIds.has(k.leafId))
-    return dedupeByLeaf([], filtered)
-  }, [keywordSuggestions, aiSuggestions])
-
-  const applyLeaf = (lp: LeafPath | RecentCategoryEntry) => {
+  const applyLeaf = (
+    lp: LeafPath | RecentCategoryEntry,
+    origin: CategoryPickOrigin = "manual"
+  ) => {
     setColumnPending(null)
-    onChange(lp.leafId, "breadcrumb" in lp ? lp.path : lp.path)
-    setChain(lp.path.map((s) => s.id))
+    const path = "breadcrumb" in lp ? lp.path : lp.path
+    onChange(lp.leafId, path, origin)
+    setChain(path.map((s) => s.id))
   }
 
   if (loading || !browse) {
     return (
       <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-8 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900">
-        Loading categories…
+        Chargement des catégories…
       </div>
     )
   }
@@ -198,135 +170,122 @@ export function SupplierCategoryPicker({
           <div className="min-w-0 flex-1 space-y-4">
             <div>
               <h3 className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-                Category taxonomy not loaded
+                Taxonomie non chargée
               </h3>
               <p className="mt-1.5 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                This environment has no marketplace categories yet. Run a one-time seed from the project root (uses
-                your{" "}
+                Exécutez le seed des catégories depuis la racine du projet (
                 <code className="rounded-md bg-zinc-100 px-1.5 py-0.5 font-mono text-[11px] text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200">
                   DATABASE_URL
                 </code>
-                ), then refresh this page.
+                ).
               </p>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl border border-zinc-200/90 bg-white/90 p-3.5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/60">
-                <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                  <Terminal className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                  Prisma
-                </span>
-                <code className="mt-2 block break-all font-mono text-[13px] font-medium text-violet-700 dark:text-violet-300">
-                  npx prisma db seed
-                </code>
-              </div>
-              <div className="rounded-xl border border-zinc-200/90 bg-white/90 p-3.5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/60">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                  npm script
-                </span>
-                <code className="mt-2 block font-mono text-[13px] font-medium text-violet-700 dark:text-violet-300">
-                  npm run seed
-                </code>
-              </div>
-            </div>
-            <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-              After seeding you get the full tree, AI category hints, and aisle-specific specs on this form.
-            </p>
+            <pre className="overflow-x-auto rounded-lg border border-zinc-200 bg-zinc-950 px-3 py-2 text-[11px] text-zinc-100 dark:border-zinc-700">
+              <Terminal className="mb-1 inline h-3.5 w-3.5 opacity-70" aria-hidden /> npx prisma db seed
+            </pre>
           </div>
         </div>
       </div>
     )
   }
 
+  const showSuggestions = suggestionsLoading || suggestions.length > 0
+
   return (
     <div className="space-y-4">
-      {showRecentBox && recent.length > 0 ? (
-        <div className="relative rounded-lg border border-violet-200 bg-violet-50/90 p-4 dark:border-violet-900 dark:bg-violet-950/40">
-          <button
-            type="button"
-            className="absolute right-2 top-2 rounded p-1 text-violet-700 hover:bg-violet-100 dark:text-violet-200 dark:hover:bg-violet-900/60"
-            onClick={() => setShowRecentBox(false)}
-            aria-label="Dismiss previously used categories"
-          >
-            <X className="h-4 w-4" />
-          </button>
-          <div className="flex items-center gap-2 pr-8 text-sm font-semibold text-violet-950 dark:text-violet-100">
-            <Sparkles className="h-4 w-4 shrink-0 text-violet-600" aria-hidden />
-            Previously used categories
-          </div>
-          <ul className="mt-3 space-y-2">
-            {recent.map((r) => (
-              <li
-                key={r.leafId}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-violet-100 bg-white/80 px-3 py-2 text-xs dark:border-violet-900/60 dark:bg-zinc-950/80"
-              >
-                <span className="min-w-0 flex-1 text-zinc-800 dark:text-zinc-200">
-                  {breadcrumbFromPath(r.path)}
-                </span>
-                <Button type="button" size="xs" variant="outline" className="shrink-0" onClick={() => applyLeaf(r)}>
-                  Apply
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
+      <div>
+        <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          Catégorie sélectionnée
+        </p>
+        <CategoryAutocomplete
+          browse={browse}
+          value={value}
+          disabled={loading}
+          placeholder="Rechercher dans la taxonomie Google (FR)…"
+          onChange={(leafId, path) => onChange(leafId, path, "manual")}
+        />
+      </div>
 
-      {(aiLoading || aiSuggestions.length > 0) && (
-        <div className="rounded-lg border border-sky-200 bg-gradient-to-br from-sky-50 to-indigo-50/80 p-4 dark:border-sky-900/60 dark:from-sky-950/40 dark:to-indigo-950/30">
-          <div className="flex items-center gap-2 text-sm font-semibold text-sky-950 dark:text-sky-100">
-            <Sparkles className="h-4 w-4 shrink-0 text-sky-600" aria-hidden />
-            Suggestions IA
+      {showSuggestions ? (
+        <div className="rounded-lg border border-violet-200 bg-gradient-to-br from-violet-50 to-indigo-50/80 p-4 dark:border-violet-900/60 dark:from-violet-950/40 dark:to-indigo-950/30">
+          <div className="flex items-center gap-2 text-sm font-semibold text-violet-950 dark:text-violet-100">
+            <Sparkles className="h-4 w-4 shrink-0 text-violet-600" aria-hidden />
+            Catégories suggérées
           </div>
-          <p className="mt-1 text-xs text-sky-900/80 dark:text-sky-200/80">
-            Analyse du titre et de la description — choisissez une ligne pour appliquer.
+          <p className="mt-1 text-xs text-violet-900/80 dark:text-violet-200/80">
+            D’après le titre et la description — la meilleure correspondance est appliquée automatiquement.
           </p>
-          {aiLoading ? (
+          {suggestionsLoading ? (
             <ul className="mt-3 space-y-2">
               {[0, 1, 2].map((i) => (
                 <li
                   key={i}
-                  className="flex items-center gap-2 rounded-md border border-sky-100/80 bg-white/60 px-3 py-3 dark:border-sky-900/40 dark:bg-zinc-950/50"
+                  className="flex items-center gap-2 rounded-md border border-violet-100/80 bg-white/60 px-3 py-3 dark:border-violet-900/40 dark:bg-zinc-950/50"
                 >
-                  <Loader2 className="h-4 w-4 animate-spin text-sky-600" aria-hidden />
-                  <span className="text-xs text-sky-800/70 dark:text-sky-200/70">Analyse en cours…</span>
+                  <Loader2 className="h-4 w-4 animate-spin text-violet-600" aria-hidden />
+                  <span className="text-xs text-violet-800/70 dark:text-violet-200/70">Analyse en cours…</span>
                 </li>
               ))}
             </ul>
           ) : (
             <ul className="mt-3 space-y-2">
-              {aiSuggestions.map((lp) => (
+              {suggestions.map((lp, i) => (
                 <li
                   key={lp.leafId}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-sky-100 bg-white/90 px-3 py-2 text-xs dark:border-sky-900/50 dark:bg-zinc-950/80"
+                  className={cn(
+                    "flex flex-wrap items-center justify-between gap-2 rounded-md border px-3 py-2 text-xs",
+                    value === lp.leafId
+                      ? "border-violet-400 bg-violet-100/90 dark:border-violet-600 dark:bg-violet-900/40"
+                      : "border-violet-100 bg-white/90 dark:border-violet-900/50 dark:bg-zinc-950/80"
+                  )}
                 >
-                  <span className="min-w-0 flex-1 text-zinc-800 dark:text-zinc-200">{lp.breadcrumb}</span>
-                  <Button type="button" size="xs" variant="outline" className="shrink-0" onClick={() => applyLeaf(lp)}>
-                    Apply
+                  <span className="min-w-0 flex-1 text-zinc-800 dark:text-zinc-200">
+                    {i === 0 ? (
+                      <span className="mr-1.5 rounded bg-violet-600 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white">
+                        Recommandé
+                      </span>
+                    ) : null}
+                    {lp.breadcrumb}
+                  </span>
+                  <Button
+                    type="button"
+                    size="xs"
+                    variant={value === lp.leafId ? "secondary" : "outline"}
+                    className="shrink-0"
+                    disabled={value === lp.leafId}
+                    onClick={() => applyLeaf(lp, "suggested")}
+                  >
+                    {value === lp.leafId ? "Appliquée" : "Appliquer"}
                   </Button>
                 </li>
               ))}
             </ul>
           )}
         </div>
-      )}
+      ) : null}
 
-      {keywordOnly.length > 0 ? (
-        <div className="rounded-lg border border-teal-200 bg-teal-50/80 p-4 dark:border-teal-900 dark:bg-teal-950/30">
-          <div className="flex items-center gap-2 text-sm font-semibold text-teal-950 dark:text-teal-100">
-            Correspondances rapides
-          </div>
-          <p className="mt-1 text-xs text-teal-900/75 dark:text-teal-200/75">
-            Correspondance locale (titre + description), sans catégories aléatoires.
-          </p>
+      {showRecentBox && recent.length > 0 ? (
+        <div className="relative rounded-lg border border-zinc-200 bg-zinc-50/90 p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
+          <button
+            type="button"
+            className="absolute right-2 top-2 rounded p-1 text-zinc-600 hover:bg-zinc-200 dark:text-zinc-300 dark:hover:bg-zinc-800"
+            onClick={() => setShowRecentBox(false)}
+            aria-label="Masquer les catégories récentes"
+          >
+            <X className="h-4 w-4" />
+          </button>
+          <p className="pr-8 text-sm font-medium text-zinc-800 dark:text-zinc-100">Récemment utilisées</p>
           <ul className="mt-3 space-y-2">
-            {keywordOnly.map((lp) => (
+            {recent.map((r) => (
               <li
-                key={lp.leafId}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-teal-100 bg-white/80 px-3 py-2 text-xs dark:border-teal-900/50 dark:bg-zinc-950/80"
+                key={r.leafId}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950"
               >
-                <span className="min-w-0 flex-1 text-zinc-800 dark:text-zinc-200">{lp.breadcrumb}</span>
-                <Button type="button" size="xs" variant="outline" className="shrink-0" onClick={() => applyLeaf(lp)}>
-                  Apply
+                <span className="min-w-0 flex-1 text-zinc-800 dark:text-zinc-200">
+                  {breadcrumbFromPath(r.path)}
+                </span>
+                <Button type="button" size="xs" variant="outline" className="shrink-0" onClick={() => applyLeaf(r)}>
+                  Appliquer
                 </Button>
               </li>
             ))}
@@ -335,57 +294,9 @@ export function SupplierCategoryPicker({
       ) : null}
 
       <div>
-        <Label htmlFor="cat-search" className="text-zinc-800 dark:text-zinc-200">
-          Search
-        </Label>
-        <div className="relative mt-1.5">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" aria-hidden />
-          <Input
-            id="cat-search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search"
-            className="pl-9 pr-8"
-          />
-          {search ? (
-            <button
-              type="button"
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-              onClick={() => setSearch("")}
-              aria-label="Clear search"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          ) : null}
-        </div>
-        {search.trim() ? (
-          <div className="mt-2 max-h-52 overflow-y-auto rounded-md border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-950">
-            {searchHits.length === 0 ? (
-              <p className="px-3 py-4 text-center text-xs text-zinc-500">No matches</p>
-            ) : (
-              <ul>
-                {searchHits.map((lp) => (
-                  <li key={lp.leafId} className="border-b border-zinc-100 last:border-0 dark:border-zinc-800">
-                    <button
-                      type="button"
-                      className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs hover:bg-zinc-50 dark:hover:bg-zinc-900"
-                      onClick={() => {
-                        applyLeaf(lp)
-                        setSearch("")
-                      }}
-                    >
-                      <span className="text-zinc-800 dark:text-zinc-200">{lp.breadcrumb}</span>
-                      <span className="shrink-0 font-medium text-violet-600">Apply</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        ) : null}
-      </div>
-
-      <div>
+        <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          Parcourir l’arbre
+        </p>
         <p
           className="truncate rounded-md border border-zinc-200 bg-zinc-50 px-2 py-1.5 text-[11px] font-medium text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-200"
           title={breadcrumbTrail}
@@ -410,7 +321,7 @@ export function SupplierCategoryPicker({
                 <ul className="max-h-[min(42vh,14rem)] min-h-0 overflow-y-auto py-0.5 sm:min-h-[7.5rem]">
                   {ids.length === 0 ? (
                     <li className="px-2 py-4 text-center text-[11px] text-zinc-400 dark:text-zinc-500">
-                      {colIdx === 0 ? "No categories" : "—"}
+                      {colIdx === 0 ? "Aucune catégorie" : "—"}
                     </li>
                   ) : (
                     ids.map((id) => {
@@ -462,18 +373,24 @@ export function SupplierCategoryPicker({
             size="sm"
             className="shrink-0"
             onClick={() => {
-              onChange(columnPending.leafId, columnPending.path)
+              onChange(columnPending.leafId, columnPending.path, "manual")
               setColumnPending(null)
             }}
           >
-            Apply
+            Appliquer
           </Button>
         </div>
       ) : null}
 
       {columnPending ? null : value && browse.nodes[value] ? (
-        <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">Leaf category applied.</p>
-      ) : null}
+        <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
+          Catégorie feuille appliquée — les champs spécifiques se chargent ci-dessous.
+        </p>
+      ) : (
+        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          Choisissez une suggestion, recherchez ou parcourez l’arbre jusqu’à une catégorie feuille.
+        </p>
+      )}
     </div>
   )
 }
