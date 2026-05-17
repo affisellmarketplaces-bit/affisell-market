@@ -54,3 +54,4 @@ next-env.d.ts
 
 /app/generated/prisma
 .env*.local
+gcp-service-account.json
