@@ -21,7 +21,8 @@
     "db:backfill-images": "tsx prisma/backfill-product-images.ts",
     "reclassify-products": "tsx scripts/reclassify-products.ts",
     "verify:sentry": "tsx scripts/verify-sentry.ts",
-    "test:veo": "tsx test-veo.ts"
+    "test:veo": "tsx test-veo.ts",
+    "test:veo:pipeline": "tsx scripts/test-veo-pipeline.ts"
   },
   "dependencies": {
     "@ai-sdk/groq": "^3.0.38",
@@ -40,6 +41,7 @@
     "@stripe/stripe-js": "^9.5.0",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.105.0",
+    "@vercel/blob": "^2.3.3",
     "ai": "^6.0.175",
     "bcryptjs": "^3.0.3",
     "cheerio": "^1.2.0",
