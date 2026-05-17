@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { usePathname, useRouter } from "next/navigation"
 import { Loader2, RefreshCw, Sparkles } from "lucide-react"
 import { toast } from "sonner"
 
@@ -71,6 +72,8 @@ export function GenerateVideoButton({
   className,
 }: Props) {
   const initial = useMemo(() => resolveInitialStyle(initialStyle), [initialStyle])
+  const router = useRouter()
+  const pathname = usePathname()
 
   const [loading, setLoading] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState(false)
@@ -211,7 +214,7 @@ export function GenerateVideoButton({
       if (res.status === 402 || data.paywall) {
         setPaywall(true)
         applyQuotaFromResponse(data)
-        toast.error(data.error ?? "Quota atteint")
+        router.replace(`${pathname}?upgrade=paywall`)
         return
       }
 

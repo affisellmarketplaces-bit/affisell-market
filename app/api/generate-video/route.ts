@@ -5,13 +5,8 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { uploadVideoToVercelBlob } from "@/lib/video-storage"
 import { videoLog } from "@/lib/video-logger"
-import {
-  fetchUserVideoQuota,
-  incrementVideoCount,
-  isQuotaExceeded,
-  paywallResponse,
-  quotaSnapshot,
-} from "@/lib/video-quota"
+import { FREE_VIDEO_LIMIT } from "@/lib/video-quota-constants"
+import { fetchUserVideoQuota, paywallResponse, quotaSnapshot } from "@/lib/video-quota"
 import {
   downloadGcsUri,
   extractVideoBytesFromVeoResponse,
@@ -121,6 +116,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "User not found" }, { status: 404 })
   }
 
+  const user = quotaRow.user
+
   const product = await prisma.product.findFirst({
     where: { id: productId, supplierId: session.user.id },
     select: { id: true },
@@ -129,9 +126,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Product not found" }, { status: 404 })
   }
 
-  // 1. Quota gate before any Veo work (including regenerate)
-  if (isQuotaExceeded(quotaRow.user)) {
-    videoLog.warn("generate-video.quota", { userId: session.user.id, videoCount: quotaRow.user.videoCount })
+  // Quota gate before any Veo work (including regenerate)
+  if (!user.isPro && user.videoCount >= FREE_VIDEO_LIMIT) {
+    videoLog.warn("generate-video.quota", { userId: session.user.id, videoCount: user.videoCount })
     return paywallResponse()
   }
 
@@ -169,7 +166,7 @@ export async function POST(req: NextRequest) {
     style,
     regenerate,
     userId: session.user.id,
-    videoCount: quotaRow.user.videoCount,
+    videoCount: user.videoCount,
   })
 
   try {
@@ -212,7 +209,12 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    const snapshot = await incrementVideoCount(session.user.id)
+    const updatedUser = await prisma.user.update({
+      where: { id: session.user.id },
+      data: { videoCount: { increment: 1 } },
+      select: { videoCount: true, isPro: true },
+    })
+    const snapshot = quotaSnapshot(updatedUser)
 
     videoLog.info("generate-video.done", {
       productId,
