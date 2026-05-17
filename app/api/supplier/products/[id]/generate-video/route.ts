@@ -2,17 +2,14 @@ import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
-import {
-  createProductVideoJob,
-  metaAiWebhookUrl,
-  requestMetaAiVideoGeneration,
-  serializeProductVideo,
-  type MetaVideoFormat,
-} from "@/lib/meta-ai"
+import { serializeProductVideo, type MetaVideoFormat } from "@/lib/meta-ai"
+import { generateProductAdVideo } from "@/lib/product-video-generation"
 import { prisma } from "@/lib/prisma"
+import { videoLog } from "@/lib/video-logger"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
+export const maxDuration = 60
 
 const FORMATS = new Set<MetaVideoFormat>(["9:16", "1:1", "16:9"])
 
@@ -69,32 +66,47 @@ export async function POST(
   }
 
   try {
-    const { jobId } = await requestMetaAiVideoGeneration({
-      productData,
-      images,
-      userPrompt: prompt,
-      format,
-      webhookUrl: metaAiWebhookUrl(),
-    })
-
-    const job = await createProductVideoJob({
-      productId: product.id,
-      prompt,
-      format,
-      jobId,
-    })
-
     await prisma.product.update({
       where: { id: product.id },
       data: { videoAdStatus: "generating", videoAdPrompt: prompt },
     })
 
+    const result = await generateProductAdVideo({
+      productId: product.id,
+      prompt,
+      format,
+      productData,
+      images,
+    })
+
+    if (result.mode === "sync") {
+      const job = await prisma.videoGenerationJob.findFirst({
+        where: { productId: product.id, jobId: result.jobId },
+        orderBy: { createdAt: "desc" },
+      })
+
+      return NextResponse.json({
+        jobId: result.jobId,
+        status: "success",
+        videoUrl: result.videoUrl,
+        video: job ? serializeProductVideo(job) : null,
+      })
+    }
+
+    const job = await prisma.videoGenerationJob.findFirst({
+      where: { productId: product.id, jobId: result.jobId },
+    })
+
     return NextResponse.json({
-      jobId: job.jobId ?? job.id,
-      video: serializeProductVideo(job),
+      jobId: result.jobId,
+      status: "PROCESSING",
+      video: job ? serializeProductVideo(job) : null,
     })
   } catch (e) {
-    console.error("[generate-video]", e)
+    videoLog.error("generate-video.failed", {
+      productId,
+      error: e instanceof Error ? e.message : String(e),
+    })
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Video generation failed" },
       { status: 502 }

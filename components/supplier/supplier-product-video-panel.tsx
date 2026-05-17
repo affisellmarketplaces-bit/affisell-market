@@ -75,12 +75,24 @@ export function SupplierProductVideoPanel({ productId, productName }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: prompt.trim(), format }),
       })
-      const data = (await res.json()) as { error?: string; jobId?: string; video?: VideoRow }
+      const data = (await res.json()) as {
+        error?: string
+        jobId?: string
+        status?: string
+        videoUrl?: string
+        video?: VideoRow
+      }
       if (!res.ok) throw new Error(data.error ?? "Generation failed")
-      toast.success("Génération lancée — la vidéo sera prête dans quelques instants.")
-      setOpen(false)
-      if (data.video) setVideos((prev) => [data.video!, ...prev.filter((v) => v.id !== data.video!.id)])
-      void loadVideos()
+      if (data.status === "success" && data.videoUrl) {
+        toast.success("Vidéo générée — prête à télécharger.")
+        setOpen(false)
+        void loadVideos()
+      } else {
+        toast.success("Génération lancée — la vidéo sera prête dans quelques instants.")
+        setOpen(false)
+        if (data.video) setVideos((prev) => [data.video!, ...prev.filter((v) => v.id !== data.video!.id)])
+        void loadVideos()
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Échec de la génération")
     } finally {

@@ -1,8 +1,10 @@
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 
+import { completeProductVideoJob, failProductVideoJob } from "@/lib/product-video-completion"
 import { verifyMetaWebhookSignature } from "@/lib/meta-ai-webhook"
 import { prisma } from "@/lib/prisma"
+import { videoLog } from "@/lib/video-logger"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -34,6 +36,7 @@ export async function POST(req: NextRequest) {
     const sigOk = verifyMetaWebhookSignature(rawBody, signature, secret)
     const legacyOk = body.secret === secret
     if (!sigOk && !legacyOk) {
+      videoLog.warn("meta.webhook.unauthorized")
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
   }
@@ -53,56 +56,26 @@ export async function POST(req: NextRequest) {
         })
       : null
 
-  if (!job) {
+  if (!job && !productId) {
     return NextResponse.json({ error: "Job not found" }, { status: 404 })
   }
 
-  const resolvedProductId = productId || job.productId
+  const resolvedProductId = productId || job?.productId
+  if (!resolvedProductId) {
+    return NextResponse.json({ error: "Job not found" }, { status: 404 })
+  }
 
   if (failed || !videoUrl) {
-    await prisma.$transaction([
-      prisma.videoGenerationJob.update({
-        where: { id: job.id },
-        data: { status: "FAILED" },
-      }),
-      prisma.product.update({
-        where: { id: resolvedProductId },
-        data: { videoAdStatus: "failed" },
-      }),
-    ])
+    await failProductVideoJob(resolvedProductId, jobId ?? job?.jobId)
     return NextResponse.json({ success: true, status: "FAILED" })
   }
 
-  const product = await prisma.product.findUnique({
-    where: { id: resolvedProductId },
-    select: { id: true, supplierId: true, name: true },
+  await completeProductVideoJob({
+    productId: resolvedProductId,
+    jobId: jobId ?? job?.jobId,
+    videoUrl,
+    thumbnailUrl: thumbnailUrl ?? null,
   })
-
-  await prisma.videoGenerationJob.update({
-    where: { id: job.id },
-    data: {
-      status: "DONE",
-      videoUrl,
-      thumbnailUrl: thumbnailUrl ?? undefined,
-    },
-  })
-  await prisma.product.update({
-    where: { id: resolvedProductId },
-    data: {
-      videoAdUrl: videoUrl,
-      videoAdStatus: "ready",
-    },
-  })
-  if (product) {
-    await prisma.notification.create({
-      data: {
-        userId: product.supplierId,
-        type: "VIDEO_AD_READY",
-        message: `Ta pub vidéo est prête pour « ${product.name.slice(0, 80)} ».`,
-        imageUrl: thumbnailUrl ?? null,
-      },
-    })
-  }
 
   return NextResponse.json({ success: true, status: "DONE" })
 }
