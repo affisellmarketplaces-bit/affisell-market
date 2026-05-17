@@ -1,15 +1,17 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import Link from "next/link"
 import { Search, X } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 
 import { ProductCard } from "@/components/ProductCard"
+import { MarketplaceFilters } from "@/components/marketplace/filters"
 import { MarketplaceAffisellPulse } from "@/components/marketplace/MarketplaceAffisellPulse"
 import { MarketplaceDepartmentRail } from "@/components/marketplace/MarketplaceDepartmentRail"
 import { Sidebar } from "@/components/marketplace/Sidebar"
+import { MARKETPLACE_QUERY_RESERVED } from "@/lib/marketplace-attribute-filters"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { affisellBrand } from "@/lib/affisell-brand"
 import { cn } from "@/lib/utils"
@@ -47,17 +49,19 @@ export function MarketplaceView() {
   const [loading, setLoading] = useState(true)
   const [dbUnavailable, setDbUnavailable] = useState<string | null>(null)
 
-  useEffect(() => {
-    const params = new URLSearchParams()
-    if (categoryId) params.set("categoryId", categoryId)
-    if (subcategoryId) params.set("subcategoryId", subcategoryId)
-    const q = searchQuery.trim()
-    if (q) params.set("q", q)
+  const attributeFilterKeys = useMemo(() => {
+    const keys: string[] = []
+    for (const key of searchParams.keys()) {
+      if (!MARKETPLACE_QUERY_RESERVED.has(key)) keys.push(key)
+    }
+    return keys
+  }, [searchParams])
 
-    const qs = params.toString()
+  useEffect(() => {
+    const qs = searchParams.toString()
     setLoading(true)
     setDbUnavailable(null)
-    const url = qs ? `/api/products?${qs}` : `/api/products`
+    const url = qs ? `/api/marketplace/products?${qs}` : `/api/marketplace/products`
 
     fetch(url)
       .then(async (r) => {
@@ -75,12 +79,17 @@ export function MarketplaceView() {
         setDbUnavailable("Could not load listings")
       })
       .finally(() => setLoading(false))
-  }, [categoryId, subcategoryId, searchQuery])
+  }, [searchParams])
 
   const handleCategoryClick = (catId: string, subId?: string) => {
     const params = new URLSearchParams(searchParams.toString())
+    for (const key of [...params.keys()]) {
+      if (!MARKETPLACE_QUERY_RESERVED.has(key)) params.delete(key)
+    }
     params.delete("category")
     params.delete("subcategory")
+    params.delete("categoryId")
+    params.delete("subcategoryId")
     if (subId) {
       params.set("subcategory", subId)
     } else {
@@ -90,7 +99,9 @@ export function MarketplaceView() {
     router.push(`/marketplace${s ? `?${s}` : ""}`)
   }
 
-  const hasFilters = Boolean(categoryId || subcategoryId || searchQuery.trim())
+  const hasFilters = Boolean(
+    categoryId || subcategoryId || searchQuery.trim() || attributeFilterKeys.length > 0
+  )
 
   function clearFilters() {
     router.push("/marketplace")
@@ -180,14 +191,15 @@ export function MarketplaceView() {
           </div>
         ) : null}
 
-        <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-start">
-          <div className="shrink-0 lg:sticky lg:top-[5.25rem] lg:self-start">
+        <div className="mt-8 flex flex-col gap-8 xl:flex-row xl:items-start">
+          <aside className="flex w-full shrink-0 flex-col gap-4 xl:sticky xl:top-[5.25rem] xl:w-[19rem] xl:self-start">
             <Sidebar
               onCategoryClick={handleCategoryClick}
               activeCategoryId={categoryId}
               activeSubcategoryId={subcategoryId}
             />
-          </div>
+            <MarketplaceFilters categoryId={categoryId} subcategoryId={subcategoryId} />
+          </aside>
 
           <div className="min-w-0 flex-1">
             {loading ? (
