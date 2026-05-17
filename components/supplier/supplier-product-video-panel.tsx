@@ -69,11 +69,11 @@ export function SupplierProductVideoPanel({ productId, productName }: Props) {
     }
     setGenerating(true)
     try {
-      const res = await fetch(`/api/supplier/products/${encodeURIComponent(productId)}/generate-video`, {
+      const res = await fetch("/api/video/generate", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: prompt.trim(), format }),
+        body: JSON.stringify({ productId, prompt: prompt.trim(), format }),
       })
       const data = (await res.json()) as {
         error?: string

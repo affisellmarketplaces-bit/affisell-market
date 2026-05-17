@@ -67,7 +67,7 @@ export async function generateProductAdVideo(
           attributes: input.productData.attributes,
         },
         thumbnailUrl,
-        timeoutMs: Number(process.env.VEO_TIMEOUT_MS ?? 60_000),
+        pollTimeoutMs: Number(process.env.VEO_POLL_TIMEOUT_MS ?? 90_000),
       })
 
       await prisma.videoGenerationJob.update({
