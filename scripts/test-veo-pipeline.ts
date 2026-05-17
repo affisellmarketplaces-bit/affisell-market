@@ -7,6 +7,7 @@ import { config } from "dotenv"
 
 config({ path: ".env.local", override: true })
 
+import { getVeoAuthSource } from "../lib/veo-auth"
 import { generateVeoProductVideo } from "../lib/veo-video"
 
 async function main() {
@@ -14,6 +15,8 @@ async function main() {
     console.error("Set BLOB_READ_WRITE_TOKEN in .env.local")
     process.exit(1)
   }
+
+  console.log("Auth:", getVeoAuthSource())
 
   const started = Date.now()
   const result = await generateVeoProductVideo({

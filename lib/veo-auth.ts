@@ -1,8 +1,12 @@
+import { existsSync, readFileSync, readdirSync } from "node:fs"
+import { resolve } from "node:path"
+
 import { videoLog } from "@/lib/video-logger"
 
 const SCOPES = ["https://www.googleapis.com/auth/cloud-platform"] as const
 const TOKEN_REFRESH_BUFFER_MS = 60_000
 const DEFAULT_TOKEN_TTL_MS = 3_600_000
+const AFFISELL_KEY_PATTERN = /^affisell-.+\.json$/i
 
 type GoogleAuthModule = typeof import("google-auth-library")
 type GoogleAuthInstance = InstanceType<GoogleAuthModule["GoogleAuth"]>
@@ -14,20 +18,62 @@ async function loadGoogleAuth(): Promise<GoogleAuthModule> {
   return import("google-auth-library")
 }
 
-async function defaultLocalKeyPath(): Promise<string | undefined> {
-  if (typeof process === "undefined" || !process.versions?.node) return undefined
+function parseCredentialsFile(filePath: string): Record<string, unknown> {
+  const raw = readFileSync(filePath, "utf8")
   try {
-    const { existsSync } = await import("node:fs")
-    const { resolve } = await import("node:path")
-    const local = resolve(process.cwd(), "gcp-service-account.json")
-    return existsSync(local) ? local : undefined
+    return JSON.parse(raw) as Record<string, unknown>
   } catch {
-    return undefined
+    throw new Error(`Invalid JSON in GCP credentials file: ${filePath}`)
   }
+}
+
+/** Local dev: affisell-*.json, then GOOGLE_APPLICATION_CREDENTIALS path, then gcp-service-account.json */
+function loadLocalGcpCredentialsFromDisk(): Record<string, unknown> | null {
+  if (typeof process === "undefined" || !process.versions?.node) return null
+
+  const cwd = process.cwd()
+
+  const envPath = process.env.GOOGLE_APPLICATION_CREDENTIALS?.trim()
+  if (envPath) {
+    const resolved = resolve(cwd, envPath)
+    if (existsSync(resolved)) {
+      return parseCredentialsFile(resolved)
+    }
+  }
+
+  let affisellFiles: string[] = []
+  try {
+    affisellFiles = readdirSync(cwd)
+      .filter((name) => AFFISELL_KEY_PATTERN.test(name))
+      .sort()
+  } catch {
+    return null
+  }
+
+  if (affisellFiles.length > 0) {
+    if (affisellFiles.length > 1) {
+      videoLog.warn("veo.auth.multiple_affisell_keys", { using: affisellFiles[0], found: affisellFiles.length })
+    }
+    return parseCredentialsFile(resolve(cwd, affisellFiles[0]))
+  }
+
+  const legacy = resolve(cwd, "gcp-service-account.json")
+  if (existsSync(legacy)) {
+    return parseCredentialsFile(legacy)
+  }
+
+  return null
 }
 
 async function createGoogleAuth(): Promise<GoogleAuthInstance> {
   const { GoogleAuth } = await loadGoogleAuth()
+  if (existsSync(resolve(process.cwd(), "affisell-vertex.json"))) {
+    return new GoogleAuth({
+      keyFilename: "./affisell-vertex.json",
+      scopes: [...SCOPES],
+    })
+  }
+
   const jsonRaw = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON?.trim()
 
   if (jsonRaw) {
@@ -40,10 +86,9 @@ async function createGoogleAuth(): Promise<GoogleAuthInstance> {
     return new GoogleAuth({ credentials, scopes: [...SCOPES] })
   }
 
-  const envPath = process.env.GOOGLE_APPLICATION_CREDENTIALS?.trim()
-  const keyFilename = envPath || (await defaultLocalKeyPath())
-  if (keyFilename) {
-    return new GoogleAuth({ keyFilename, scopes: [...SCOPES] })
+  const fromDisk = loadLocalGcpCredentialsFromDisk()
+  if (fromDisk) {
+    return new GoogleAuth({ credentials: fromDisk, scopes: [...SCOPES] })
   }
 
   return new GoogleAuth({ scopes: [...SCOPES] })
@@ -73,7 +118,7 @@ export async function getVeoAccessToken(): Promise<string> {
         : ((result as { token?: string | null }).token ?? null)
   if (!token) {
     throw new Error(
-      "Failed to obtain Google Cloud access token. Set GOOGLE_APPLICATION_CREDENTIALS_JSON (Vercel) or GOOGLE_APPLICATION_CREDENTIALS / gcp-service-account.json (local)."
+      "Failed to obtain Google Cloud access token. Set GOOGLE_APPLICATION_CREDENTIALS_JSON (Vercel) or place affisell-*.json at repo root (local)."
     )
   }
 
@@ -120,4 +165,15 @@ export async function veoAuthorizedFetch(
   }
 
   return lastRes ?? new Response(null, { status: 429 })
+}
+
+/** For diagnostics (test-veo): which auth source is active. */
+export function getVeoAuthSource(): string {
+  if (existsSync(resolve(process.cwd(), "affisell-vertex.json"))) {
+    return "affisell-vertex.json (keyFilename)"
+  }
+  if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON?.trim()) {
+    return "GOOGLE_APPLICATION_CREDENTIALS_JSON"
+  }
+  return "ADC"
 }

@@ -77,10 +77,13 @@ export function resolveVeoDurationSeconds(format: MetaVideoFormat): number {
   return Math.min(Math.max(base, 1), 4)
 }
 
-function operationPollUrl(location: string, operationName: string): string {
-  const base = veoApiBase(location)
-  const name = operationName.startsWith("projects/") ? operationName : operationName.replace(/^\//, "")
-  return `${base}/${name}`
+export function veoOperationPollUrl(operationName: string): string {
+  const name = operationName.replace(/^\//, "").trim()
+  return `https://us-central1-aiplatform.googleapis.com/v1/${name}`
+}
+
+function veoFetchPredictOperationUrl(config: VeoConfig): string {
+  return `${veoApiBase(config.location)}/projects/${config.project}/locations/${config.location}/publishers/google/models/${config.modelId}:fetchPredictOperation`
 }
 
 function extractErrorMessage(body: unknown): string {
@@ -180,14 +183,25 @@ export async function pollVeoOperation(
   const config = getVeoConfig()
   const timeoutMs = opts.timeoutMs ?? Number(process.env.VEO_POLL_TIMEOUT_MS ?? 90_000)
   const intervalMs = opts.intervalMs ?? 3_000
-  const url = operationPollUrl(config.location, operationName)
+  const pollUrl = veoOperationPollUrl(operationName)
+  const fetchUrl = veoFetchPredictOperationUrl(config)
   const started = Date.now()
+
+  videoLog.info("veo.poll.start", { operationName, pollUrl, fetchUrl })
 
   while (Date.now() - started < timeoutMs) {
     await acquireVeoRateLimit()
 
-    const res = await veoAuthorizedFetch(url, { method: "GET", cache: "no-store" })
-    const raw = (await res.json().catch(() => ({}))) as Record<string, unknown>
+    let res = await veoAuthorizedFetch(pollUrl, { method: "GET", cache: "no-store" })
+    let raw = (await res.json().catch(() => ({}))) as Record<string, unknown>
+
+    if (res.status === 404) {
+      res = await veoAuthorizedFetch(fetchUrl, {
+        method: "POST",
+        body: JSON.stringify({ operationName }),
+      })
+      raw = (await res.json().catch(() => ({}))) as Record<string, unknown>
+    }
 
     if (!res.ok) {
       const msg = extractErrorMessage(raw) || `poll failed (${res.status})`

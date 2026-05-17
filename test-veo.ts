@@ -8,6 +8,7 @@ import { config } from "dotenv"
 
 config({ path: ".env.local", override: true })
 
+import { getVeoAuthSource } from "./lib/veo-auth"
 import { VeoHttpError, getVeoConfig, veoPredictLongRunning } from "./lib/veo-video"
 
 function explainHttp(status: number, body: unknown): void {
@@ -27,7 +28,7 @@ function explainHttp(status: number, body: unknown): void {
 
   if (status === 401) {
     console.error("401 Unauthorized — service account token rejected.")
-    console.error("  Check GOOGLE_APPLICATION_CREDENTIALS_JSON / gcp-service-account.json")
+    console.error("  Check GOOGLE_APPLICATION_CREDENTIALS_JSON / affisell-*.json at repo root")
     console.error("  and Vertex AI User on project", process.env.GOOGLE_CLOUD_PROJECT)
   } else if (status === 403) {
     console.error("403 Forbidden — enable Vertex AI API and grant Vertex AI User on the project.")
@@ -51,11 +52,7 @@ async function main() {
     project: veoConfig.project,
     location: veoConfig.location,
     modelId: veoConfig.modelId,
-    auth: process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON
-      ? "GOOGLE_APPLICATION_CREDENTIALS_JSON"
-      : process.env.GOOGLE_APPLICATION_CREDENTIALS
-        ? "GOOGLE_APPLICATION_CREDENTIALS"
-        : "gcp-service-account.json (ADC)",
+    auth: getVeoAuthSource(),
   })
 
   try {
