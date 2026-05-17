@@ -20,7 +20,8 @@
     "db:copy": "tsx scripts/copy-to-prod.ts",
     "db:backfill-images": "tsx prisma/backfill-product-images.ts",
     "reclassify-products": "tsx scripts/reclassify-products.ts",
-    "verify:sentry": "tsx scripts/verify-sentry.ts"
+    "verify:sentry": "tsx scripts/verify-sentry.ts",
+    "test:veo": "tsx test-veo.ts"
   },
   "dependencies": {
     "@ai-sdk/groq": "^3.0.38",
@@ -46,6 +47,7 @@
     "clsx": "^2.1.1",
     "exceljs": "^4.4.0",
     "framer-motion": "^12.38.0",
+    "google-auth-library": "^10.6.2",
     "groq-sdk": "^1.1.2",
     "inngest": "^4.4.0",
     "lucide-react": "^1.11.0",
@@ -80,11 +82,11 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "dotenv": "^16.4.7",
+    "dotenv": "^16.6.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "tailwindcss": "^4",
-    "tsx": "^4.19.3",
+    "tsx": "^4.22.1",
     "typescript": "^5",
     "vitest": "^3.2.4"
   }
