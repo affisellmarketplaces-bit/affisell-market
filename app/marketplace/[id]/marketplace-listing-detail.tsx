@@ -145,6 +145,8 @@ type Props = {
     thumbnailUrl: string | null
     format: string
   }>
+  /** Supplier listing clip shown under the photo gallery (9:16). */
+  galleryListingVideoUrl?: string | null
 }
 
 function fmtMoney(value: number) {
@@ -342,6 +344,7 @@ export function MarketplaceListingDetail({
   reviews,
   viewsLast24h = 0,
   adVideos = [],
+  galleryListingVideoUrl = null,
 }: Props) {
   const productT = messages.Product
   const breadcrumbT = messages.Breadcrumb
@@ -793,6 +796,21 @@ export function MarketplaceListingDetail({
                 </button>
               ))}
             </div>
+
+            {galleryListingVideoUrl && isDirectMp4Url(galleryListingVideoUrl) ? (
+              <div className="overflow-hidden rounded-[1.1rem] border border-violet-200/70 bg-black shadow-sm dark:border-violet-900/50">
+                <p className="border-b border-violet-100/80 bg-violet-50/80 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-violet-800 dark:border-violet-900/40 dark:bg-violet-950/40 dark:text-violet-200">
+                  Vidéo produit
+                </p>
+                <video
+                  src={galleryListingVideoUrl}
+                  className="aspect-[9/16] max-h-[min(70vh,520px)] w-full bg-black object-contain"
+                  controls
+                  playsInline
+                  preload="metadata"
+                />
+              </div>
+            ) : null}
 
             {arModel ? (
               <Button

@@ -19,6 +19,8 @@ function isAllowedVideoUrl(s: string): boolean {
     if (host === "youtu.be" || host.endsWith(".youtube.com") || host === "youtube.com") return true
     if (host.endsWith("vimeo.com") || host === "vimeo.com") return true
     if (/\.mp4(\?|#|$)/i.test(`${u.pathname}${u.search}`)) return true
+    if (host.endsWith(".public.blob.vercel-storage.com")) return true
+    if (host.endsWith(".blob.vercel-storage.com")) return true
     return false
   } catch {
     return false

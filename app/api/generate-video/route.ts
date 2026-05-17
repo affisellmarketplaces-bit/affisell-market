@@ -27,6 +27,8 @@ export const maxDuration = 300
 
 const FORMAT = "9:16" as const
 const DURATION_SECONDS = 4
+const MIN_STYLE_LENGTH = 8
+const MAX_STYLE_LENGTH = 500
 
 function veoErrorStatus(code: VeoGenerationError["code"]): number {
   if (code === "QUOTA_EXCEEDED") return 429
@@ -38,6 +40,32 @@ function veoErrorStatus(code: VeoGenerationError["code"]): number {
 
 function buildPrompt(productName: string, style: string): string {
   return `${style.trim()} product video ad for ${productName.trim()}, vertical 9:16, ${DURATION_SECONDS} seconds, cinematic lighting, no watermark text.`
+}
+
+function parseStyleFromBody(body: unknown): { style: string } | { error: string } {
+  if (!body || typeof body !== "object") {
+    return { error: "style is required." }
+  }
+  const b = body as { style?: unknown; customPrompt?: unknown }
+  const custom =
+    typeof b.customPrompt === "string" ? b.customPrompt.trim() : ""
+  const preset = typeof b.style === "string" ? b.style.trim() : ""
+  const style = custom || preset
+
+  if (!style) {
+    return { error: "style or customPrompt is required." }
+  }
+  if (style.length < MIN_STYLE_LENGTH) {
+    return {
+      error: `La direction créative doit contenir au moins ${MIN_STYLE_LENGTH} caractères.`,
+    }
+  }
+  if (style.length > MAX_STYLE_LENGTH) {
+    return {
+      error: `La direction créative ne peut pas dépasser ${MAX_STYLE_LENGTH} caractères.`,
+    }
+  }
+  return { style }
 }
 
 function quotaJson(snapshot: ReturnType<typeof quotaSnapshot>) {
@@ -73,10 +101,6 @@ export async function POST(req: NextRequest) {
     body && typeof body === "object" && "productName" in body
       ? String((body as { productName?: unknown }).productName ?? "").trim()
       : ""
-  const style =
-    body && typeof body === "object" && "style" in body
-      ? String((body as { style?: unknown }).style ?? "").trim()
-      : ""
   const regenerate =
     body && typeof body === "object" && "regenerate" in body
       ? Boolean((body as { regenerate?: unknown }).regenerate)
@@ -88,9 +112,12 @@ export async function POST(req: NextRequest) {
   if (!productName) {
     return NextResponse.json({ error: "productName is required." }, { status: 400 })
   }
-  if (!style) {
-    return NextResponse.json({ error: "style is required." }, { status: 400 })
+
+  const parsedStyle = parseStyleFromBody(body)
+  if ("error" in parsedStyle) {
+    return NextResponse.json({ error: parsedStyle.error }, { status: 400 })
   }
+  const { style } = parsedStyle
 
   const quotaRow = await fetchUserVideoQuota(session.user.id)
   if (!quotaRow) {
@@ -122,15 +149,19 @@ export async function POST(req: NextRequest) {
     })
 
     if (existing) {
-      videoLog.info("generate-video.cached", { productId, jobId: existing.jobId })
-      return NextResponse.json({
-        status: "cached",
-        videoUrl: existing.videoUrl,
-        jobId: existing.jobId,
-        style: existing.style,
-        cached: true,
-        ...quotaJson(quotaRow.snapshot),
-      })
+      if (existing.style === style) {
+        videoLog.info("generate-video.cached", { productId, jobId: existing.jobId })
+        return NextResponse.json({
+          status: "cached",
+          videoUrl: existing.videoUrl,
+          jobId: existing.jobId,
+          style: existing.style,
+          cached: true,
+          ...quotaJson(quotaRow.snapshot),
+        })
+      }
+      await prisma.productVideo.deleteMany({ where: { productId } })
+      videoLog.info("generate-video.style-changed", { productId, userId: session.user.id })
     }
   }
 

@@ -32,6 +32,7 @@ import { signOut } from "next-auth/react"
 import { toast } from "sonner"
 
 import { BentoShell } from "@/components/affisell/bento-ui"
+import { AttachProductVideoActions } from "@/components/attach-product-video-actions"
 import { SupplierDescriptionIllustrationFields } from "@/components/supplier/supplier-description-illustration-fields"
 import { SupplierProductImageUpload } from "@/components/supplier/supplier-product-image-upload"
 import { Button } from "@/components/ui/button"
@@ -1738,8 +1739,16 @@ export function SupplierAddProductForm({
                       <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
                         Upload several angles; five or more is ideal for marketplace trust.
                       </p>
-                      <div className="mt-3">
+                      <div className="mt-3 space-y-4">
                         <SupplierProductImageUpload initialUrls={images} onImagesChange={setImages} />
+                        {editId ? (
+                          <AttachProductVideoActions
+                            productId={editId}
+                            onAttached={(result) => {
+                              setDescriptionIllustrationVideos(result.descriptionIllustrationVideos)
+                            }}
+                          />
+                        ) : null}
                       </div>
                     </SectionCard>
                   </div>

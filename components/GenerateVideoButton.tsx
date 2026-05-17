@@ -1,9 +1,10 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Loader2, RefreshCw, Sparkles } from "lucide-react"
 import { toast } from "sonner"
 
+import { AttachProductVideoActions } from "@/components/attach-product-video-actions"
 import { Button } from "@/components/ui/button"
 import {
   Select,
@@ -21,6 +22,10 @@ export const VIDEO_STYLE_OPTIONS = [
   "UGC style, handheld",
   "Studio product 360",
 ] as const
+
+export const CUSTOM_STYLE_VALUE = "__custom__" as const
+const MIN_STYLE_LENGTH = 8
+const MAX_STYLE_LENGTH = 500
 
 export type VideoQuotaInfo = {
   videoCount: number
@@ -42,6 +47,21 @@ type Props = {
   className?: string
 }
 
+function isPresetStyle(value: string): value is (typeof VIDEO_STYLE_OPTIONS)[number] {
+  return (VIDEO_STYLE_OPTIONS as readonly string[]).includes(value)
+}
+
+function resolveInitialStyle(initialStyle?: string | null) {
+  const trimmed = initialStyle?.trim() ?? ""
+  if (trimmed && isPresetStyle(trimmed)) {
+    return { mode: "preset" as const, preset: trimmed, custom: "" }
+  }
+  if (trimmed) {
+    return { mode: "custom" as const, preset: VIDEO_STYLE_OPTIONS[1], custom: trimmed }
+  }
+  return { mode: "preset" as const, preset: VIDEO_STYLE_OPTIONS[1], custom: "" }
+}
+
 export function GenerateVideoButton({
   productId,
   productName,
@@ -50,21 +70,25 @@ export function GenerateVideoButton({
   initialStyle,
   className,
 }: Props) {
-  const defaultStyle = VIDEO_STYLE_OPTIONS.includes(
-    (initialStyle ?? "") as (typeof VIDEO_STYLE_OPTIONS)[number]
-  )
-    ? (initialStyle as (typeof VIDEO_STYLE_OPTIONS)[number])
-    : VIDEO_STYLE_OPTIONS[1]
+  const initial = useMemo(() => resolveInitialStyle(initialStyle), [initialStyle])
 
   const [loading, setLoading] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [paywall, setPaywall] = useState(false)
   const [videoUrl, setVideoUrl] = useState<string | null>(initialVideoUrl ?? null)
-  const [selectedStyle, setSelectedStyle] = useState<string>(defaultStyle)
+  const [styleMode, setStyleMode] = useState<"preset" | "custom">(initial.mode)
+  const [selectedPreset, setSelectedPreset] = useState<string>(initial.preset)
+  const [customStyle, setCustomStyle] = useState(initial.custom)
   const [quota, setQuota] = useState(initialQuota)
 
-  const videoLimit = quota.isPro ? quota.videoLimit : FREE_VIDEO_LIMIT
-  const remaining = quota.isPro ? Infinity : Math.max(0, videoLimit - quota.videoCount)
+  const selectValue = styleMode === "custom" ? CUSTOM_STYLE_VALUE : selectedPreset
+
+  const effectiveStyle =
+    styleMode === "custom" ? customStyle.trim() : selectedPreset.trim()
+
+  const styleValid =
+    effectiveStyle.length >= MIN_STYLE_LENGTH && effectiveStyle.length <= MAX_STYLE_LENGTH
+
   const quotaReached = paywall || (!quota.isPro && quota.videoCount >= FREE_VIDEO_LIMIT)
   const showRegenerate = Boolean(videoUrl)
 
@@ -123,8 +147,23 @@ export function GenerateVideoButton({
   }
 
   async function runGenerate(regenerate: boolean) {
-    if (!productId.trim() || !productName.trim() || !selectedStyle.trim()) {
-      toast.error("Produit et style requis.")
+    if (!productId.trim() || !productName.trim()) {
+      toast.error("Produit requis.")
+      return
+    }
+
+    if (!effectiveStyle) {
+      toast.error("Choisissez un style ou décrivez votre pub.")
+      return
+    }
+
+    if (effectiveStyle.length < MIN_STYLE_LENGTH) {
+      toast.error(`Décrivez votre pub en au moins ${MIN_STYLE_LENGTH} caractères.`)
+      return
+    }
+
+    if (effectiveStyle.length > MAX_STYLE_LENGTH) {
+      toast.error(`Maximum ${MAX_STYLE_LENGTH} caractères.`)
       return
     }
 
@@ -136,17 +175,24 @@ export function GenerateVideoButton({
     setLoading(true)
     if (regenerate) setVideoUrl(null)
 
+    const body: Record<string, unknown> = {
+      productId: productId.trim(),
+      productName: productName.trim(),
+      regenerate,
+    }
+
+    if (styleMode === "custom") {
+      body.customPrompt = effectiveStyle
+    } else {
+      body.style = effectiveStyle
+    }
+
     try {
       const res = await fetch("/api/generate-video", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          productId: productId.trim(),
-          productName: productName.trim(),
-          style: selectedStyle.trim(),
-          regenerate,
-        }),
+        body: JSON.stringify(body),
       })
 
       const data = (await res.json()) as {
@@ -212,12 +258,18 @@ export function GenerateVideoButton({
 
       <div className="space-y-2">
         <label htmlFor="video-style" className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-          Style vidéo
+          Direction créative
         </label>
         <Select
-          value={selectedStyle}
+          value={selectValue}
           onValueChange={(value) => {
-            if (value) setSelectedStyle(value)
+            if (!value) return
+            if (value === CUSTOM_STYLE_VALUE) {
+              setStyleMode("custom")
+              return
+            }
+            setStyleMode("preset")
+            setSelectedPreset(value)
           }}
           disabled={loading || quotaReached}
         >
@@ -230,9 +282,44 @@ export function GenerateVideoButton({
                 {option}
               </SelectItem>
             ))}
+            <SelectItem value={CUSTOM_STYLE_VALUE}>Personnalisé…</SelectItem>
           </SelectContent>
         </Select>
       </div>
+
+      {styleMode === "custom" ? (
+        <div className="space-y-1.5">
+          <label htmlFor="video-custom-style" className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+            Votre prompt
+          </label>
+          <textarea
+            id="video-custom-style"
+            className="min-h-[100px] w-full max-w-md rounded-xl border border-zinc-200 bg-zinc-50/50 px-3 py-2 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-500/20 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900"
+            value={customStyle}
+            onChange={(e) => setCustomStyle(e.target.value)}
+            disabled={loading || quotaReached}
+            placeholder="Ex : slow motion sur fond noir, voix off française, ambiance premium…"
+            maxLength={MAX_STYLE_LENGTH}
+          />
+          <p
+            className={cn(
+              "text-xs",
+              styleValid ? "text-muted-foreground" : "text-amber-700 dark:text-amber-400"
+            )}
+          >
+            {effectiveStyle.length}/{MAX_STYLE_LENGTH} caractères
+            {effectiveStyle.length > 0 && effectiveStyle.length < MIN_STYLE_LENGTH
+              ? ` — minimum ${MIN_STYLE_LENGTH}`
+              : null}
+          </p>
+        </div>
+      ) : null}
+
+      {showRegenerate ? (
+        <p className="text-xs text-muted-foreground">
+          Pour appliquer un nouveau style, modifiez la direction puis cliquez sur Régénérer.
+        </p>
+      ) : null}
 
       {quotaReached && !quota.isPro ? (
         <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100">
@@ -263,7 +350,7 @@ export function GenerateVideoButton({
           <Button
             type="button"
             variant="bentoAccent"
-            disabled={loading || checkoutLoading}
+            disabled={loading || checkoutLoading || !styleValid}
             onClick={() => void runGenerate(false)}
           >
             {loading ? (
@@ -284,7 +371,7 @@ export function GenerateVideoButton({
           <Button
             type="button"
             variant="outline"
-            disabled={loading || checkoutLoading}
+            disabled={loading || checkoutLoading || !styleValid}
             onClick={() => void runGenerate(true)}
           >
             {loading ? (
@@ -303,19 +390,22 @@ export function GenerateVideoButton({
       </div>
 
       {videoUrl ? (
-        <div className="overflow-hidden rounded-lg border border-border bg-muted/30">
-          <video
-            src={videoUrl}
-            controls
-            playsInline
-            className="aspect-[9/16] max-h-[480px] w-full bg-black object-contain"
-          />
-          <p className="border-t border-border px-3 py-2 text-xs text-muted-foreground">
-            <a href={videoUrl} target="_blank" rel="noopener noreferrer" className="underline">
-              Ouvrir la vidéo
-            </a>
-          </p>
-        </div>
+        <>
+          <div className="overflow-hidden rounded-lg border border-border bg-muted/30">
+            <video
+              src={videoUrl}
+              controls
+              playsInline
+              className="aspect-[9/16] max-h-[480px] w-full bg-black object-contain"
+            />
+            <p className="border-t border-border px-3 py-2 text-xs text-muted-foreground">
+              <a href={videoUrl} target="_blank" rel="noopener noreferrer" className="underline">
+                Ouvrir la vidéo
+              </a>
+            </p>
+          </div>
+          <AttachProductVideoActions productId={productId} videoUrl={videoUrl} />
+        </>
       ) : null}
     </div>
   )

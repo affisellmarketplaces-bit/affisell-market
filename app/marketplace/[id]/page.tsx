@@ -314,6 +314,9 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
           verified: r.verified,
         }))}
         viewsLast24h={viewsLast24h}
+        galleryListingVideoUrl={
+          typeof p.videoAdUrl === "string" && p.videoAdUrl.trim() ? p.videoAdUrl.trim() : null
+        }
         adVideos={adVideos
           .filter((v): v is typeof v & { videoUrl: string } => Boolean(v.videoUrl))
           .map((v) => ({
