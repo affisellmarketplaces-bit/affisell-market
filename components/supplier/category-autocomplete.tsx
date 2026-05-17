@@ -1,7 +1,8 @@
 "use client"
 
-import { useMemo } from "react"
-import Select, { type GroupBase, type SingleValue, type StylesConfig } from "react-select"
+import { useCallback, useMemo } from "react"
+import AsyncSelect from "react-select/async"
+import type { GroupBase, SingleValue, StylesConfig } from "react-select"
 
 import type { BrowsePayload } from "@/components/supplier/supplier-category-picker"
 import { pathFromLeafId, type CategoryPathSegment } from "@/lib/category-browse"
@@ -66,15 +67,23 @@ export function CategoryAutocomplete({
   disabled,
   placeholder = "Rechercher dans la taxonomie Google (FR)…",
 }: Props) {
-  const options = useMemo<CategorySelectOption[]>(() => {
-    if (!browse) return []
-    return browse.leafPaths.map((lp) => ({ value: lp.leafId, label: lp.breadcrumb }))
-  }, [browse])
+  const selected = useMemo((): CategorySelectOption | null => {
+    if (!value || !browse) return null
+    const path = pathFromLeafId(value, browse.nodes)
+    if (!path?.length) return { value, label: value }
+    return { value, label: path.map((p) => p.name).join(" > ") }
+  }, [value, browse])
 
-  const selected = useMemo(
-    () => options.find((o) => o.value === value) ?? null,
-    [options, value]
-  )
+  const loadOptions = useCallback(async (inputValue: string): Promise<CategorySelectOption[]> => {
+    const q = inputValue.trim()
+    if (q.length < 2) return []
+    const res = await fetch(`/api/categories/search?q=${encodeURIComponent(q)}`)
+    if (!res.ok) return []
+    const data = (await res.json()) as {
+      results?: Array<{ leafId: string; breadcrumb: string; path: CategoryPathSegment[] }>
+    }
+    return (data.results ?? []).map((r) => ({ value: r.leafId, label: r.breadcrumb }))
+  }, [])
 
   const handleChange = (opt: SingleValue<CategorySelectOption>) => {
     if (!opt || !browse) return
@@ -82,36 +91,32 @@ export function CategoryAutocomplete({
     if (path?.length) onChange(opt.value, path)
   }
 
-  if (!browse || browse.leafPaths.length === 0) {
+  if (!browse) {
     return (
-      <p className="text-xs text-zinc-500 dark:text-zinc-400">
-        Chargement des catégories feuilles…
-      </p>
+      <p className="text-xs text-zinc-500 dark:text-zinc-400">Chargement de la taxonomie…</p>
     )
   }
 
   return (
-    <Select<CategorySelectOption, false>
+    <AsyncSelect<CategorySelectOption, false>
       instanceId="affisell-category-google-fr"
+      cacheOptions
+      defaultOptions={false}
       isDisabled={disabled}
       isClearable
-      isSearchable
+      loadOptions={loadOptions}
       placeholder={placeholder}
       noOptionsMessage={({ inputValue }) =>
-        inputValue.trim() ? "Aucune catégorie correspondante." : "Tapez pour filtrer parmi les feuilles."
+        inputValue.trim().length < 2
+          ? "Tapez au moins 2 caractères."
+          : "Aucune catégorie feuille correspondante."
       }
-      options={options}
+      loadingMessage={() => "Recherche…"}
       value={selected}
       onChange={handleChange}
       styles={selectStyles}
       menuPortalTarget={typeof document !== "undefined" ? document.body : null}
       menuPosition="fixed"
-      filterOption={(candidate, raw) => {
-        const q = raw.toLowerCase().trim()
-        if (!q) return true
-        const label = String(candidate.label).toLowerCase()
-        return label.includes(q)
-      }}
     />
   )
 }

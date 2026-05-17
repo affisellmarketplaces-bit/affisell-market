@@ -416,7 +416,7 @@ export function SupplierAddProductForm({
     let cancelled = false
     setLoadingBrowse(true)
     Promise.all([
-      fetch("/api/categories/browse").then((r) => r.json()),
+      fetch("/api/categories/browse?lite=1").then((r) => r.json()),
       fetch("/api/supplier/recent-categories", { credentials: "include" }).then((r) =>
         r.ok ? r.json() : Promise.resolve({ recent: [] })
       ),

@@ -6,12 +6,30 @@ import { buildCategoryBrowse, fetchAllCategoriesForBrowse } from "@/lib/category
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
-/** Full category tree for supplier browse / search (self-referential `Category` model). */
-export async function GET() {
+/** Category tree for supplier browse. `?lite=1` omits leafPaths (use `/api/categories/search` for leaves). */
+export async function GET(req: Request) {
+  const lite = new URL(req.url).searchParams.get("lite") === "1"
   try {
     const rows = await fetchAllCategoriesForBrowse(prisma)
-    const { nodes, rootIds, childrenByParent, leafPaths } = buildCategoryBrowse(rows)
-    return NextResponse.json({ nodes, rootIds, childrenByParent, leafPaths })
+    const built = buildCategoryBrowse(rows)
+    const version = rows.length
+    if (lite) {
+      return NextResponse.json({
+        nodes: built.nodes,
+        rootIds: built.rootIds,
+        childrenByParent: built.childrenByParent,
+        leafPaths: [],
+        version,
+        lite: true,
+      })
+    }
+    return NextResponse.json({
+      nodes: built.nodes,
+      rootIds: built.rootIds,
+      childrenByParent: built.childrenByParent,
+      leafPaths: built.leafPaths,
+      version,
+    })
   } catch (e) {
     console.error("[api/categories/browse]", e)
     return NextResponse.json(

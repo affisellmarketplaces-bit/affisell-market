@@ -48,10 +48,6 @@ export function SupplierCategoryPicker({
 }: Props) {
   const [showRecentBox, setShowRecentBox] = useState(true)
   const [chain, setChain] = useState<string[]>([])
-  const [columnPending, setColumnPending] = useState<{
-    leafId: string
-    path: CategoryPathSegment[]
-  } | null>(null)
 
   const pathForChain = useCallback(
     (ids: string[]): CategoryPathSegment[] | null => {
@@ -71,7 +67,6 @@ export function SupplierCategoryPicker({
     if (!browse) return
     if (!value) {
       setChain([])
-      setColumnPending(null)
       return
     }
     const walk: string[] = []
@@ -84,51 +79,32 @@ export function SupplierCategoryPicker({
       cur = browse.nodes[cur].parentId ?? undefined
     }
     walk.reverse()
-    if (walk.length) {
-      setChain(walk)
-      setColumnPending(null)
-    }
+    if (walk.length) setChain(walk)
   }, [browse, value])
 
-  const threeCols = useMemo(() => {
-    if (!browse) return [[], [], []] as [string[], string[], string[]]
-    const c0 = browse.rootIds
-    const c1 = chain[0] ? browse.childrenByParent[chain[0]] ?? [] : []
-    const c2 = chain[1] ? browse.childrenByParent[chain[1]] ?? [] : []
-    return [c0, c1, c2]
+  /** One column per tree level (Google taxonomy up to 7 levels). */
+  const drillColumns = useMemo(() => {
+    if (!browse) return [] as string[][]
+    const cols: string[][] = [browse.rootIds]
+    for (let i = 0; i < chain.length; i++) {
+      const parentId = chain[i]
+      if (!parentId) break
+      cols.push(browse.childrenByParent[parentId] ?? [])
+    }
+    return cols
   }, [browse, chain])
 
-  const visibleColumnCount = chain.length <= 0 ? 1 : chain.length === 1 ? 2 : 3
-
   const onColumnPick = useCallback(
-    (colIdx: 0 | 1 | 2, id: string) => {
+    (colIdx: number, id: string) => {
       if (!browse) return
-      const child = Boolean(browse.childrenByParent[id]?.length)
-      if (colIdx === 0) {
-        setChain([id])
-        setColumnPending(null)
-        return
-      }
-      if (colIdx === 1) {
-        const r0 = chain[0]
-        if (!r0) return
-        setChain([r0, id])
-        setColumnPending(null)
-        return
-      }
-      const r0 = chain[0]
-      const r1 = chain[1]
-      if (!r0 || !r1) return
-      const next = [r0, r1, id]
-      const path = pathForChain(next)
-      setChain(next)
-      if (child) {
-        setColumnPending(null)
-      } else if (path) {
-        setColumnPending({ leafId: id, path })
-      }
+      const nextChain = [...chain.slice(0, colIdx), id]
+      setChain(nextChain)
+      const kids = browse.childrenByParent[id] ?? []
+      if (kids.length > 0) return
+      const path = pathForChain(nextChain)
+      if (path) onChange(id, path, "manual")
     },
-    [browse, chain, pathForChain]
+    [browse, chain, pathForChain, onChange]
   )
 
   const breadcrumbTrail = useMemo(() => {
@@ -141,8 +117,7 @@ export function SupplierCategoryPicker({
     lp: LeafPath | RecentCategoryEntry,
     origin: CategoryPickOrigin = "manual"
   ) => {
-    setColumnPending(null)
-    const path = "breadcrumb" in lp ? lp.path : lp.path
+    const path = lp.path
     onChange(lp.leafId, path, origin)
     setChain(path.map((s) => s.id))
   }
@@ -303,22 +278,17 @@ export function SupplierCategoryPicker({
         >
           {breadcrumbTrail}
         </p>
-        <div
-          className={cn(
-            "mt-1.5 grid w-full overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-950",
-            visibleColumnCount === 1 && "grid-cols-1",
-            visibleColumnCount === 2 && "grid-cols-1 sm:grid-cols-2",
-            visibleColumnCount === 3 && "grid-cols-1 sm:grid-cols-3"
-          )}
-        >
-          {([0, 1, 2] as const).slice(0, visibleColumnCount).map((colIdx) => {
-            const ids = threeCols[colIdx]
+        <div className="mt-1.5 flex w-full overflow-x-auto rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-950">
+          {drillColumns.map((ids, colIdx) => {
             return (
               <div
                 key={colIdx}
-                className="min-w-0 border-b border-zinc-200 last:border-b-0 sm:border-b-0 sm:border-r sm:border-zinc-200 sm:last:border-r-0 dark:border-zinc-800"
+                className="min-w-[11rem] max-w-[14rem] shrink-0 border-r border-zinc-200 last:border-r-0 dark:border-zinc-800"
               >
-                <ul className="max-h-[min(42vh,14rem)] min-h-0 overflow-y-auto py-0.5 sm:min-h-[7.5rem]">
+                <p className="border-b border-zinc-100 bg-zinc-50 px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-400">
+                  Niveau {colIdx + 1}
+                </p>
+                <ul className="max-h-[min(42vh,14rem)] min-h-[7rem] overflow-y-auto py-0.5">
                   {ids.length === 0 ? (
                     <li className="px-2 py-4 text-center text-[11px] text-zinc-400 dark:text-zinc-500">
                       {colIdx === 0 ? "Aucune catégorie" : "—"}
@@ -330,7 +300,6 @@ export function SupplierCategoryPicker({
                       const child = Boolean(browse.childrenByParent[id]?.length)
                       const selectedInCol = chain[colIdx] === id
                       const isCommitted = value === id
-                      const isPendingLeaf = columnPending?.leafId === id
                       return (
                         <li key={id}>
                           <button
@@ -338,11 +307,11 @@ export function SupplierCategoryPicker({
                             title={n.name}
                             className={cn(
                               "flex w-full items-start justify-between gap-1.5 px-2 py-1.5 text-left text-xs leading-snug transition",
-                              selectedInCol || isCommitted || isPendingLeaf
+                              selectedInCol || isCommitted
                                 ? "bg-violet-100 text-violet-950 dark:bg-violet-900/50 dark:text-violet-50"
                                 : "hover:bg-zinc-50 dark:hover:bg-zinc-900"
                             )}
-                            onClick={() => onColumnPick(colIdx as 0 | 1 | 2, id)}
+                            onClick={() => onColumnPick(colIdx, id)}
                           >
                             <span className="min-w-0 flex-1 break-words text-left">
                               {n.icon ? <span className="mr-0.5">{n.icon}</span> : null}
@@ -363,26 +332,7 @@ export function SupplierCategoryPicker({
         </div>
       </div>
 
-      {columnPending ? (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-violet-200 bg-violet-50/90 px-3 py-2.5 dark:border-violet-900 dark:bg-violet-950/40">
-          <p className="min-w-0 truncate text-xs text-zinc-800 dark:text-zinc-200">
-            {breadcrumbFromPath(columnPending.path)}
-          </p>
-          <Button
-            type="button"
-            size="sm"
-            className="shrink-0"
-            onClick={() => {
-              onChange(columnPending.leafId, columnPending.path, "manual")
-              setColumnPending(null)
-            }}
-          >
-            Appliquer
-          </Button>
-        </div>
-      ) : null}
-
-      {columnPending ? null : value && browse.nodes[value] ? (
+      {value && browse.nodes[value] ? (
         <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
           Catégorie feuille appliquée — les champs spécifiques se chargent ci-dessous.
         </p>
