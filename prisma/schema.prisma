@@ -18,6 +18,12 @@ model User {
   password      String?
   role          String    @default("CUSTOMER")
   createdAt     DateTime  @default(now())
+  videoQuota    Int       @default(3)
+  videoUsed     Int       @default(0)
+  isPro         Boolean   @default(false)
+  stripeCustomerId     String?   @unique
+  stripeSubscriptionId String?   @unique
+  proActivatedAt       DateTime?
 
   accounts Account[]
   sessions Session[]
@@ -331,6 +337,7 @@ model Product {
   videoAdPrompt         String?  @db.Text
   videoAdStatus         String?  @default("none") // none | generating | ready | failed
   videoGenerationJobs   VideoGenerationJob[]
+  videos                ProductVideo[]
   reviewCount            Int     @default(0)
   averageRating          Float   @default(0)
   reviewSentiment        String  @default("neutral")
@@ -355,6 +362,18 @@ model Product {
   @@index([basePriceCents])
   @@index([isOnSale])
   @@index([createdAt])
+}
+
+model ProductVideo {
+  id        String   @id @default(cuid())
+  productId String   @unique
+  videoUrl  String
+  jobId     String
+  prompt    String
+  style     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 /**
