@@ -42,6 +42,9 @@ export async function POST(req: NextRequest) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session
+    if (session.mode === "subscription" && session.metadata?.plan === "pro") {
+      return NextResponse.json({ received: true })
+    }
     const customerEmail =
       session.customer_email ||
       session.customer_details?.email ||
