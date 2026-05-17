@@ -4,6 +4,14 @@ const nextConfig = {
   output: "standalone" as const,
   /** Client bundles emit source maps for Sentry (Turbopack + runAfterProductionCompile upload). */
   productionBrowserSourceMaps: true,
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "m.media-amazon.com", pathname: "/**" },
+      { protocol: "https", hostname: "images-na.ssl-images-amazon.com", pathname: "/**" },
+      { protocol: "https", hostname: "images.unsplash.com", pathname: "/**" },
+      { protocol: "https", hostname: "**.public.blob.vercel-storage.com", pathname: "/**" },
+    ],
+  },
 }
 
 const authToken = process.env.SENTRY_AUTH_TOKEN?.trim()
