@@ -1,3 +1,7 @@
+/**
+ * @deprecated Legacy Meta / multi-format video path. New generations use POST /api/generate-video.
+ * Kept for reference and optional VIDEO_API_PROVIDER=meta reinstatement.
+ */
 import { NextResponse } from "next/server"
 
 import { serializeProductVideo, type MetaVideoFormat } from "@/lib/meta-ai"

@@ -14,6 +14,7 @@ import { mergeColorImagesForProduct, parseProductColorImagesFromDb } from "@/lib
 import { prisma } from "@/lib/prisma"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { publicPartnerSellerLabel } from "@/lib/public-seller-display"
+import { fetchListingAdClips } from "@/lib/listing-ad-videos"
 import { resolveMarketplaceOptionNames, variantsFromDb } from "@/lib/product-variants"
 
 import { MarketplaceListingDetail } from "./marketplace-listing-detail"
@@ -233,21 +234,7 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
     .filter((row) => row.label.length > 0 && row.value.length > 0)
 
   const adVideos = allowAdVideoDownload
-    ? await prisma.videoGenerationJob.findMany({
-        where: {
-          productId: listing.product.id,
-          status: "DONE",
-          videoUrl: { not: null },
-        },
-        orderBy: { updatedAt: "desc" },
-        take: 5,
-        select: {
-          id: true,
-          videoUrl: true,
-          thumbnailUrl: true,
-          format: true,
-        },
-      })
+    ? await fetchListingAdClips(listing.product.id)
     : []
 
   let viewsLast24h = 0
@@ -326,14 +313,7 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
         galleryListingVideoUrl={
           typeof p.videoAdUrl === "string" && p.videoAdUrl.trim() ? p.videoAdUrl.trim() : null
         }
-        adVideos={adVideos
-          .filter((v): v is typeof v & { videoUrl: string } => Boolean(v.videoUrl))
-          .map((v) => ({
-            id: v.id,
-            videoUrl: v.videoUrl,
-            thumbnailUrl: v.thumbnailUrl,
-            format: v.format,
-          }))}
+        adVideos={adVideos}
       />
       </div>
     </main>

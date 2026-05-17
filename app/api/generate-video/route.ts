@@ -74,9 +74,6 @@ function quotaJson(snapshot: ReturnType<typeof quotaSnapshot>) {
     videoLimit: snapshot.videoLimit,
     remaining: snapshot.remaining,
     isPro: snapshot.isPro,
-    // legacy fields for existing UI
-    videoQuota: snapshot.isPro ? snapshot.videoLimit : snapshot.videoLimit,
-    videoUsed: snapshot.videoCount,
   }
 }
 

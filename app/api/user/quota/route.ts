@@ -22,7 +22,5 @@ export async function GET() {
     videoLimit: snapshot.videoLimit,
     remaining: snapshot.remaining,
     isPro: snapshot.isPro,
-    videoQuota: snapshot.videoLimit,
-    videoUsed: snapshot.videoCount,
   })
 }
