@@ -51,6 +51,7 @@ export function GenerateVideoButton({
     : VIDEO_STYLE_OPTIONS[1]
 
   const [loading, setLoading] = useState(false)
+  const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [videoUrl, setVideoUrl] = useState<string | null>(initialVideoUrl ?? null)
   const [selectedStyle, setSelectedStyle] = useState<string>(defaultStyle)
   const [quota, setQuota] = useState(initialQuota)
@@ -73,6 +74,24 @@ export function GenerateVideoButton({
   useEffect(() => {
     void refreshQuota()
   }, [refreshQuota])
+
+  async function handleUpgradePro() {
+    setCheckoutLoading(true)
+    try {
+      const res = await fetch("/api/stripe/create-checkout", {
+        method: "POST",
+        credentials: "include",
+      })
+      const data = (await res.json()) as { url?: string; error?: string }
+      if (!res.ok || !data.url) {
+        throw new Error(data.error ?? "Impossible de démarrer le paiement")
+      }
+      window.location.href = data.url
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Échec du checkout Pro")
+      setCheckoutLoading(false)
+    }
+  }
 
   async function runGenerate(regenerate: boolean) {
     if (!productId.trim() || !productName.trim() || !selectedStyle.trim()) {

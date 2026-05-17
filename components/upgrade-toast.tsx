@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { toast } from "sonner"
 
 type Props = {
@@ -10,20 +10,19 @@ type Props = {
 
 export function UpgradeToast({ upgrade }: Props) {
   const router = useRouter()
+  const pathname = usePathname()
   const shown = useRef(false)
 
   useEffect(() => {
-    if (shown.current) return
+    if (shown.current || !upgrade) return
+    shown.current = true
     if (upgrade === "success") {
-      shown.current = true
       toast.success("Bienvenue Pro! Vidéos illimitées activées")
-      router.replace(window.location.pathname, { scroll: false })
     } else if (upgrade === "cancelled") {
-      shown.current = true
       toast.message("Upgrade annulé")
-      router.replace(window.location.pathname, { scroll: false })
     }
-  }, [upgrade, router])
+    router.replace(pathname)
+  }, [upgrade, pathname, router])
 
   return null
 }
