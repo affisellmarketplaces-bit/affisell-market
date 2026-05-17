@@ -3,6 +3,12 @@ import { NextResponse } from "next/server"
 import { serializeProductVideo, type MetaVideoFormat } from "@/lib/meta-ai"
 import { generateProductAdVideo } from "@/lib/product-video-generation"
 import { prisma } from "@/lib/prisma"
+import {
+  fetchUserVideoQuota,
+  incrementVideoCount,
+  isQuotaExceeded,
+  paywallResponse,
+} from "@/lib/video-quota"
 import { VeoGenerationError } from "@/lib/veo-video"
 import { videoLog } from "@/lib/video-logger"
 
@@ -44,6 +50,15 @@ export async function handleProductVideoGenerate(args: {
     )
   }
 
+  const quotaRow = await fetchUserVideoQuota(supplierId)
+  if (!quotaRow) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 })
+  }
+  if (isQuotaExceeded(quotaRow.user)) {
+    videoLog.warn("video.generate.quota", { supplierId, videoCount: quotaRow.user.videoCount })
+    return paywallResponse()
+  }
+
   const images = product.images.filter((u) => typeof u === "string" && u.trim()).slice(0, 8)
   const productData = {
     id: product.id,
@@ -74,6 +89,8 @@ export async function handleProductVideoGenerate(args: {
     })
 
     if (result.mode === "sync") {
+      await incrementVideoCount(supplierId)
+
       const job = await prisma.videoGenerationJob.findFirst({
         where: { productId: product.id, jobId: result.jobId },
         orderBy: { createdAt: "desc" },

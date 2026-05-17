@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
+import { FREE_VIDEO_LIMIT } from "@/lib/video-quota-constants"
 
 export const VIDEO_STYLE_OPTIONS = [
   "TikTok unboxing, energetic",
@@ -22,9 +23,14 @@ export const VIDEO_STYLE_OPTIONS = [
 ] as const
 
 export type VideoQuotaInfo = {
-  videoQuota: number
-  videoUsed: number
+  videoCount: number
+  videoLimit: number
+  remaining: number
   isPro: boolean
+  /** @deprecated use videoCount */
+  videoQuota?: number
+  /** @deprecated use videoCount */
+  videoUsed?: number
 }
 
 type Props = {
@@ -52,12 +58,14 @@ export function GenerateVideoButton({
 
   const [loading, setLoading] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState(false)
+  const [paywall, setPaywall] = useState(false)
   const [videoUrl, setVideoUrl] = useState<string | null>(initialVideoUrl ?? null)
   const [selectedStyle, setSelectedStyle] = useState<string>(defaultStyle)
   const [quota, setQuota] = useState(initialQuota)
 
-  const remaining = Math.max(0, quota.videoQuota - quota.videoUsed)
-  const quotaReached = !quota.isPro && quota.videoUsed >= quota.videoQuota
+  const videoLimit = quota.isPro ? quota.videoLimit : FREE_VIDEO_LIMIT
+  const remaining = quota.isPro ? Infinity : Math.max(0, videoLimit - quota.videoCount)
+  const quotaReached = paywall || (!quota.isPro && quota.videoCount >= FREE_VIDEO_LIMIT)
   const showRegenerate = Boolean(videoUrl)
 
   const refreshQuota = useCallback(async () => {
@@ -66,6 +74,7 @@ export function GenerateVideoButton({
       if (!res.ok) return
       const data = (await res.json()) as VideoQuotaInfo
       setQuota(data)
+      setPaywall(!data.isPro && data.videoCount >= FREE_VIDEO_LIMIT)
     } catch {
       /* ignore */
     }
@@ -91,6 +100,26 @@ export function GenerateVideoButton({
       toast.error(e instanceof Error ? e.message : "Échec du checkout Pro")
       setCheckoutLoading(false)
     }
+  }
+
+  function applyQuotaFromResponse(data: {
+    videoCount?: number
+    videoLimit?: number
+    remaining?: number
+    isPro?: boolean
+    videoUsed?: number
+    videoQuota?: number
+  }) {
+    const count = data.videoCount ?? data.videoUsed
+    if (typeof count !== "number") return
+    const limit = data.videoLimit ?? data.videoQuota ?? FREE_VIDEO_LIMIT
+    setQuota({
+      videoCount: count,
+      videoLimit: limit,
+      remaining: data.remaining ?? Math.max(0, limit - count),
+      isPro: Boolean(data.isPro),
+    })
+    setPaywall(!data.isPro && count >= FREE_VIDEO_LIMIT)
   }
 
   async function runGenerate(regenerate: boolean) {
@@ -122,11 +151,22 @@ export function GenerateVideoButton({
 
       const data = (await res.json()) as {
         error?: string
+        paywall?: boolean
         videoUrl?: string
         cached?: boolean
-        videoQuota?: number
-        videoUsed?: number
+        videoCount?: number
+        videoLimit?: number
+        remaining?: number
         isPro?: boolean
+        videoUsed?: number
+        videoQuota?: number
+      }
+
+      if (res.status === 402 || data.paywall) {
+        setPaywall(true)
+        applyQuotaFromResponse(data)
+        toast.error(data.error ?? "Quota atteint")
+        return
       }
 
       if (!res.ok) {
@@ -138,15 +178,8 @@ export function GenerateVideoButton({
       }
 
       setVideoUrl(data.videoUrl)
-      if (typeof data.videoQuota === "number" && typeof data.videoUsed === "number") {
-        setQuota({
-          videoQuota: data.videoQuota,
-          videoUsed: data.videoUsed,
-          isPro: Boolean(data.isPro),
-        })
-      } else {
-        await refreshQuota()
-      }
+      applyQuotaFromResponse(data)
+      await refreshQuota()
 
       if (data.cached) {
         toast.success("Vidéo existante chargée")
@@ -169,8 +202,10 @@ export function GenerateVideoButton({
           <span className="font-medium text-violet-700 dark:text-violet-300">Pro — vidéos illimitées</span>
         ) : (
           <>
-            <span className="font-medium text-zinc-900 dark:text-zinc-100">{remaining}</span>
-            /{quota.videoQuota} vidéos restantes
+            <span className="font-medium text-zinc-900 dark:text-zinc-100">
+              {Math.max(0, FREE_VIDEO_LIMIT - quota.videoCount)}
+            </span>
+            /{FREE_VIDEO_LIMIT} vidéos restantes
           </>
         )}
       </p>
@@ -184,7 +219,7 @@ export function GenerateVideoButton({
           onValueChange={(value) => {
             if (value) setSelectedStyle(value)
           }}
-          disabled={loading}
+          disabled={loading || quotaReached}
         >
           <SelectTrigger id="video-style" className="w-full max-w-md">
             <SelectValue placeholder="Choisir un style" />
@@ -199,18 +234,36 @@ export function GenerateVideoButton({
         </Select>
       </div>
 
-      {quotaReached ? (
+      {quotaReached && !quota.isPro ? (
         <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100">
-          Quota atteint. Passez à Pro pour continuer à générer des vidéos.
+          Quota atteint. Passez à Pro pour des vidéos illimitées.
         </p>
       ) : null}
 
       <div className="flex flex-wrap gap-2">
-        {!showRegenerate ? (
+        {quotaReached && !quota.isPro ? (
           <Button
             type="button"
             variant="bentoAccent"
-            disabled={loading || quotaReached}
+            disabled={checkoutLoading || loading}
+            onClick={() => void handleUpgradePro()}
+          >
+            {checkoutLoading ? (
+              <>
+                <Loader2 className="animate-spin" />
+                Redirection…
+              </>
+            ) : (
+              <>Passer Pro — 29€/mois</>
+            )}
+          </Button>
+        ) : null}
+
+        {!showRegenerate && !(quotaReached && !quota.isPro) ? (
+          <Button
+            type="button"
+            variant="bentoAccent"
+            disabled={loading || checkoutLoading}
             onClick={() => void runGenerate(false)}
           >
             {loading ? (
@@ -227,11 +280,11 @@ export function GenerateVideoButton({
           </Button>
         ) : null}
 
-        {showRegenerate ? (
+        {showRegenerate && !(quotaReached && !quota.isPro) ? (
           <Button
             type="button"
             variant="outline"
-            disabled={loading || quotaReached}
+            disabled={loading || checkoutLoading}
             onClick={() => void runGenerate(true)}
           >
             {loading ? (

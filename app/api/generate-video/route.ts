@@ -6,6 +6,13 @@ import { prisma } from "@/lib/prisma"
 import { uploadVideoToVercelBlob } from "@/lib/video-storage"
 import { videoLog } from "@/lib/video-logger"
 import {
+  fetchUserVideoQuota,
+  incrementVideoCount,
+  isQuotaExceeded,
+  paywallResponse,
+  quotaSnapshot,
+} from "@/lib/video-quota"
+import {
   downloadGcsUri,
   extractVideoBytesFromVeoResponse,
   getVeoConfig,
@@ -31,6 +38,18 @@ function veoErrorStatus(code: VeoGenerationError["code"]): number {
 
 function buildPrompt(productName: string, style: string): string {
   return `${style.trim()} product video ad for ${productName.trim()}, vertical 9:16, ${DURATION_SECONDS} seconds, cinematic lighting, no watermark text.`
+}
+
+function quotaJson(snapshot: ReturnType<typeof quotaSnapshot>) {
+  return {
+    videoCount: snapshot.videoCount,
+    videoLimit: snapshot.videoLimit,
+    remaining: snapshot.remaining,
+    isPro: snapshot.isPro,
+    // legacy fields for existing UI
+    videoQuota: snapshot.isPro ? snapshot.videoLimit : snapshot.videoLimit,
+    videoUsed: snapshot.videoCount,
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -73,36 +92,30 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "style is required." }, { status: 400 })
   }
 
-  const [user, product] = await Promise.all([
-    prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { id: true, videoQuota: true, videoUsed: true, isPro: true },
-    }),
-    prisma.product.findFirst({
-      where: { id: productId, supplierId: session.user.id },
-      select: { id: true },
-    }),
-  ])
-
-  if (!user) {
+  const quotaRow = await fetchUserVideoQuota(session.user.id)
+  if (!quotaRow) {
     return NextResponse.json({ error: "User not found" }, { status: 404 })
   }
+
+  const product = await prisma.product.findFirst({
+    where: { id: productId, supplierId: session.user.id },
+    select: { id: true },
+  })
   if (!product) {
     return NextResponse.json({ error: "Product not found" }, { status: 404 })
   }
 
-  if (!user.isPro && user.videoUsed >= user.videoQuota) {
-    return NextResponse.json(
-      { error: "Quota atteint. Upgrade Pro." },
-      { status: 403 }
-    )
+  // 1. Quota gate before any Veo work (including regenerate)
+  if (isQuotaExceeded(quotaRow.user)) {
+    videoLog.warn("generate-video.quota", { userId: session.user.id, videoCount: quotaRow.user.videoCount })
+    return paywallResponse()
   }
 
   const prompt = buildPrompt(productName, style)
 
   if (regenerate) {
     await prisma.productVideo.deleteMany({ where: { productId } })
-    videoLog.info("generate-video.regenerate", { productId, userId: user.id })
+    videoLog.info("generate-video.regenerate", { productId, userId: session.user.id })
   } else {
     const existing = await prisma.productVideo.findUnique({
       where: { productId },
@@ -116,9 +129,7 @@ export async function POST(req: NextRequest) {
         jobId: existing.jobId,
         style: existing.style,
         cached: true,
-        videoQuota: user.videoQuota,
-        videoUsed: user.videoUsed,
-        isPro: user.isPro,
+        ...quotaJson(quotaRow.snapshot),
       })
     }
   }
@@ -129,7 +140,8 @@ export async function POST(req: NextRequest) {
     productName,
     style,
     regenerate,
-    userId: user.id,
+    userId: session.user.id,
+    videoCount: quotaRow.user.videoCount,
   })
 
   try {
@@ -161,24 +173,25 @@ export async function POST(req: NextRequest) {
     const jobId = operationName.split("/").pop() ?? operationName
     const videoUrl = await uploadVideoToVercelBlob(bytes, jobId)
 
-    const [, updatedUser] = await prisma.$transaction([
-      prisma.productVideo.create({
-        data: {
-          productId,
-          videoUrl,
-          jobId,
-          prompt,
-          style,
-        },
-      }),
-      prisma.user.update({
-        where: { id: user.id },
-        data: { videoUsed: { increment: 1 } },
-        select: { videoQuota: true, videoUsed: true, isPro: true },
-      }),
-    ])
+    // 3. Persist video then increment count only after successful generation
+    await prisma.productVideo.create({
+      data: {
+        productId,
+        videoUrl,
+        jobId,
+        prompt,
+        style,
+      },
+    })
 
-    videoLog.info("generate-video.done", { productId, jobId, videoUrl })
+    const snapshot = await incrementVideoCount(session.user.id)
+
+    videoLog.info("generate-video.done", {
+      productId,
+      jobId,
+      videoUrl,
+      videoCount: snapshot.videoCount,
+    })
 
     return NextResponse.json({
       status: "success",
@@ -186,9 +199,7 @@ export async function POST(req: NextRequest) {
       jobId,
       style,
       cached: false,
-      videoQuota: updatedUser.videoQuota,
-      videoUsed: updatedUser.videoUsed,
-      isPro: updatedUser.isPro,
+      ...quotaJson(snapshot),
     })
   } catch (e) {
     videoLog.error("generate-video.failed", {

@@ -19,7 +19,7 @@ model User {
   role          String    @default("CUSTOMER")
   createdAt     DateTime  @default(now())
   videoQuota    Int       @default(3)
-  videoUsed     Int       @default(0)
+  videoCount    Int       @default(0) @map("videoUsed")
   isPro         Boolean   @default(false)
   stripeCustomerId     String?   @unique
   stripeSubscriptionId String?   @unique

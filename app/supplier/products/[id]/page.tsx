@@ -4,14 +4,19 @@ import { notFound, redirect } from "next/navigation"
 
 import { auth } from "@/auth"
 import { GenerateVideoButton } from "@/components/GenerateVideoButton"
+import { UpgradeToast } from "@/components/upgrade-toast"
+import { FREE_VIDEO_LIMIT } from "@/lib/video-quota-constants"
+import { fetchUserVideoQuota } from "@/lib/video-quota"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
 
 export default async function SupplierProductPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ upgrade?: string }>
 }) {
   const session = await auth()
   if (!session?.user?.id) {
@@ -26,29 +31,28 @@ export default async function SupplierProductPage({
   }
 
   const { id } = await params
+  const { upgrade } = await searchParams
 
-  const [product, user, productVideo] = await Promise.all([
+  const [product, quotaRow, productVideo] = await Promise.all([
     prisma.product.findFirst({
       where: { id, supplierId: session.user.id },
       select: { id: true, name: true, images: true, isDraft: true },
     }),
-    prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { videoQuota: true, videoUsed: true, isPro: true },
-    }),
+    fetchUserVideoQuota(session.user.id),
     prisma.productVideo.findUnique({
       where: { productId: id },
       select: { videoUrl: true, style: true },
     }),
   ])
 
-  if (!product || !user) notFound()
+  if (!product || !quotaRow) notFound()
 
   const images = (product.images ?? []).filter((u) => typeof u === "string" && u.trim())
-  const remaining = Math.max(0, user.videoQuota - user.videoUsed)
+  const { snapshot } = quotaRow
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-100/90 via-white to-zinc-50 dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900/95">
+      <UpgradeToast upgrade={upgrade} />
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:py-12">
         <nav className="mb-8 flex flex-wrap items-center gap-3 text-sm">
           <Link
@@ -67,10 +71,10 @@ export default async function SupplierProductPage({
 
         <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">{product.name}</h1>
 
-        {!user.isPro ? (
+        {!snapshot.isPro ? (
           <p className="mt-2 text-sm text-muted-foreground">
-            <span className="font-medium text-zinc-900 dark:text-zinc-100">{remaining}</span>
-            /{user.videoQuota} vidéos restantes
+            <span className="font-medium text-zinc-900 dark:text-zinc-100">{snapshot.remaining}</span>
+            /{FREE_VIDEO_LIMIT} vidéos restantes
           </p>
         ) : null}
 
@@ -87,7 +91,11 @@ export default async function SupplierProductPage({
                   fill
                   className="object-cover"
                   sizes="(max-width: 640px) 50vw, 200px"
-                  unoptimized={src.startsWith("data:")}
+                  unoptimized={
+                    src.startsWith("data:") ||
+                    src.startsWith("http://") ||
+                    src.startsWith("https://")
+                  }
                 />
               </div>
             ))}
@@ -101,9 +109,10 @@ export default async function SupplierProductPage({
           productId={product.id}
           productName={product.name}
           quota={{
-            videoQuota: user.videoQuota,
-            videoUsed: user.videoUsed,
-            isPro: user.isPro,
+            videoCount: snapshot.videoCount,
+            videoLimit: snapshot.videoLimit,
+            remaining: snapshot.remaining,
+            isPro: snapshot.isPro,
           }}
           initialVideoUrl={productVideo?.videoUrl ?? null}
           initialStyle={productVideo?.style ?? null}

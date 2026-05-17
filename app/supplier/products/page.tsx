@@ -1,6 +1,4 @@
-import { redirect } from "next/navigation"
-
-import { UpgradeToast } from "@/components/upgrade-toast"
+import { SupplierUpgradeRedirect } from "@/components/supplier-upgrade-redirect"
 
 export default async function SupplierProductsUpgradePage({
   searchParams,
@@ -8,16 +6,7 @@ export default async function SupplierProductsUpgradePage({
   searchParams: Promise<{ upgrade?: string }>
 }) {
   const { upgrade } = await searchParams
-
-  if (upgrade === "cancelled") {
-    return (
-      <>
-        <UpgradeToast upgrade="cancelled" />
-        <meta httpEquiv="refresh" content="2;url=/dashboard/supplier/products" />
-        <p className="sr-only">Redirecting…</p>
-      </>
-    )
-  }
-
-  redirect("/dashboard/supplier/products")
+  return (
+    <SupplierUpgradeRedirect upgrade={upgrade} redirectTo="/dashboard/supplier/products" />
+  )
 }
