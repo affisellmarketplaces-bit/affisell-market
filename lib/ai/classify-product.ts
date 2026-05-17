@@ -1,4 +1,4 @@
-import OpenAI from "openai"
+import Groq from "groq-sdk"
 
 import { scoreTitleAgainstBreadcrumb } from "@/lib/category-browse"
 import type { LeafPath } from "@/lib/category-browse"
@@ -15,6 +15,9 @@ export type ClassifySuggestionRow = {
   reason: string
   leafId: string | null
 }
+
+const GROQ_TEXT_MODEL = "llama-3.1-8b-instant"
+const GROQ_VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
 
 function normalizeLabel(s: string): string {
   return s.replace(/\s+/g, " ").trim().toLowerCase()
@@ -57,7 +60,6 @@ function parseSuggestionsPayload(raw: string): Array<{ category: string; confide
   if (!parsed || typeof parsed !== "object") return []
   const o = parsed as Record<string, unknown>
 
-  /** Support `{ suggestions: [...] }` or legacy single `{ category, confidence, reason }`. */
   if (Array.isArray(o.suggestions)) {
     return o.suggestions
       .map((row) => {
@@ -83,9 +85,9 @@ export async function classifyAffisellProduct(
   input: ClassifyInput,
   ctx: { allowedBreadcrumbs: string[]; leafPaths: LeafPath[] }
 ): Promise<{ suggestions: ClassifySuggestionRow[]; error?: string }> {
-  const apiKey = process.env.OPENAI_API_KEY?.trim()
+  const apiKey = process.env.GROQ_API_KEY?.trim()
   if (!apiKey) {
-    return { suggestions: [], error: "OPENAI_API_KEY is not set" }
+    return { suggestions: [] }
   }
   if (ctx.allowedBreadcrumbs.length === 0) {
     return { suggestions: [], error: "No categories available" }
@@ -106,26 +108,24 @@ LISTE AUTORISÉE:
 ${listBlock}`
 
   const userText = `TITLE: ${input.title}\nDESCRIPTION: ${input.description.trim() || "(none)"}`
+  const imageUrl = input.imageUrl?.trim()
 
-  const userMessage: OpenAI.Chat.ChatCompletionUserMessageParam = input.imageUrl?.trim()
-    ? {
-        role: "user",
-        content: [
-          { type: "text", text: userText },
-          { type: "image_url", image_url: { url: input.imageUrl.trim(), detail: "low" } },
-        ],
-      }
-    : { role: "user", content: userText }
+  const userContent: Groq.Chat.Completions.ChatCompletionContentPart[] | string = imageUrl
+    ? [
+        { type: "text", text: userText },
+        { type: "image_url", image_url: { url: imageUrl } },
+      ]
+    : userText
 
   try {
-    const openai = new OpenAI({ apiKey })
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+    const groq = new Groq({ apiKey })
+    const completion = await groq.chat.completions.create({
+      model: imageUrl ? GROQ_VISION_MODEL : GROQ_TEXT_MODEL,
       temperature: 0.1,
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: system },
-        userMessage,
+        { role: "user", content: userContent },
       ],
       max_tokens: 900,
     })
@@ -157,8 +157,7 @@ ${listBlock}`
     }
 
     return { suggestions }
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "OpenAI request failed"
-    return { suggestions: [], error: msg }
+  } catch {
+    return { suggestions: [] }
   }
 }

@@ -46,14 +46,10 @@ export async function POST(req: Request): Promise<NextResponse<ClassifyCategoryR
     const allowedBreadcrumbs =
       leafPaths.length > 0 ? leafPaths.map((lp) => lp.breadcrumb) : [...CATEGORIES_AFFISELL]
 
-    const { suggestions, error } = await classifyAffisellProduct(
+    const { suggestions } = await classifyAffisellProduct(
       { title, description, imageUrl },
       { allowedBreadcrumbs, leafPaths }
     )
-
-    if (error) {
-      return NextResponse.json({ suggestions, error }, { status: suggestions.length ? 200 : 503 })
-    }
 
     return NextResponse.json({ suggestions })
   } catch (e) {

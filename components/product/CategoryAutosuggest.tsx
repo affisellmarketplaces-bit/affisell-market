@@ -65,7 +65,8 @@ export function CategoryAutosuggest({
   }, [browse])
 
   useEffect(() => {
-    if (debouncedTitle.trim().length <= 3) {
+    const trimmedTitle = debouncedTitle.trim()
+    if (trimmedTitle.length <= 3 || /^https?:\/\//i.test(trimmedTitle)) {
       setSuggestions([])
       setLoading(false)
       return
@@ -93,9 +94,6 @@ export function CategoryAutosuggest({
         if (ac.signal.aborted) return
         const next = Array.isArray(data.suggestions) ? data.suggestions : []
         setSuggestions(next)
-        if (data.error && next.length === 0) {
-          toast.error(data.error)
-        }
 
         const visible = next.filter((s) => s.confidence > 0.6 && s.leafId)
         const top = visible[0]
@@ -118,7 +116,8 @@ export function CategoryAutosuggest({
 
   const chips = suggestions.filter((s) => s.confidence > 0.6 && s.leafId)
 
-  if (debouncedTitle.trim().length <= 3) return null
+  const trimmedTitle = debouncedTitle.trim()
+  if (trimmedTitle.length <= 3 || /^https?:\/\//i.test(trimmedTitle)) return null
 
   return (
     <div className="mt-2 space-y-2">
