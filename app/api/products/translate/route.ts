@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 
+import { groqChatText } from "@/lib/ai/groq-client"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -12,31 +13,17 @@ function looksNonEnglish(text: string) {
 }
 
 async function translateCommercialText(input: string, kind: "title" | "description") {
-  const apiKey = process.env.OPENAI_API_KEY
-  if (!apiKey || !input.trim()) return input
+  if (!input.trim() || !process.env.GROQ_API_KEY?.trim()) return input
   const prompt =
     kind === "title"
       ? `Translate to English commercial product title, max 60 chars, remove country names: "${input}"`
       : `Translate this product description to concise commercial English, keep facts and benefits, remove country/location mentions:\n\n${input}`
   try {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        temperature: 0.2,
-        messages: [{ role: "user", content: prompt }],
-      }),
-      signal: AbortSignal.timeout(30000),
+    const out = await groqChatText({
+      temperature: 0.2,
+      messages: [{ role: "user", content: prompt }],
     })
-    if (!res.ok) return input
-    const payload = (await res.json()) as {
-      choices?: Array<{ message?: { content?: string } }>
-    }
-    return payload.choices?.[0]?.message?.content?.trim() || input
+    return out || input
   } catch {
     return input
   }

@@ -609,8 +609,9 @@ export function StoreProfileSettings({ backHref, backLabel }: Props) {
               <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Affisell AI store avatar</h2>
               <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
                 Optional square illustration for your storefront and product pages — generated from your logo or a
-                reference photo (stylized, not a photo clone). Uses OpenAI when{" "}
-                <code className="rounded bg-white/80 px-1 text-xs dark:bg-zinc-900/80">OPENAI_API_KEY</code> is set.
+                reference photo (stylized, not a photo clone). Uses Groq + Hugging Face when{" "}
+                <code className="rounded bg-white/80 px-1 text-xs dark:bg-zinc-900/80">GROQ_API_KEY</code> and{" "}
+                <code className="rounded bg-white/80 px-1 text-xs dark:bg-zinc-900/80">HF_TOKEN</code> are set.
               </p>
             </div>
           </div>

@@ -295,7 +295,7 @@ export function SupplierUrlImportPanel({ categoryAttrs, onApply }: Props) {
                   onChange={(e) => setAiRewrite(e.target.checked)}
                   className="rounded border-zinc-300"
                 />
-                AI polish description (uses OpenAI when configured)
+                AI polish description (uses Groq when configured)
               </label>
               <div>
                 <Label htmlFor="url-markup">Price markup vs. scraped cost</Label>

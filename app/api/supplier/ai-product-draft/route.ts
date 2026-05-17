@@ -1,4 +1,5 @@
 import { auth } from "@/auth"
+import { groqChatText, GROQ_VISION_MODEL } from "@/lib/ai/groq-client"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -35,9 +36,8 @@ export async function POST(req: Request) {
     return Response.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  const apiKey = process.env.OPENAI_API_KEY?.trim()
-  if (!apiKey) {
-    return Response.json({ error: "AI is not configured (missing OPENAI_API_KEY)." }, { status: 503 })
+  if (!process.env.GROQ_API_KEY?.trim()) {
+    return Response.json({ error: "AI is not configured (missing GROQ_API_KEY)." }, { status: 503 })
   }
 
   let body: {
@@ -157,43 +157,21 @@ export async function POST(req: Request) {
     : userMessage
 
   try {
-    const requestBody: Record<string, unknown> = {
-      model: "gpt-4o-mini",
-      temperature: 0.35,
-      messages: [
-        {
-          role: "system",
-          content:
-            "You draft marketplace product listings for Affisell suppliers. Output is always valid JSON per the user instructions.",
-        },
-        { role: "user", content: userContent },
-      ],
-    }
-    /** `json_object` is reliable for text-only; vision requests use the same flag on gpt-4o-mini. */
-    requestBody.response_format = { type: "json_object" }
-
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(requestBody),
-      signal: AbortSignal.timeout(120000),
-    })
-
-    const payload = (await res.json()) as {
-      error?: { message?: string }
-      choices?: Array<{ message?: { content?: string } }>
-    }
-    if (!res.ok) {
-      return Response.json(
-        { error: payload.error?.message ?? "OpenAI request failed" },
-        { status: 502 }
-      )
-    }
-
-    const raw = payload.choices?.[0]?.message?.content ?? "{}"
+    const raw =
+      (await groqChatText({
+        model: useVision ? GROQ_VISION_MODEL : undefined,
+        vision: useVision,
+        temperature: 0.35,
+        response_format: { type: "json_object" },
+        messages: [
+          {
+            role: "system",
+            content:
+              "You draft marketplace product listings for Affisell suppliers. Output is always valid JSON per the user instructions.",
+          },
+          { role: "user", content: userContent },
+        ],
+      })) ?? "{}"
     let parsed: { description?: unknown; specs?: unknown }
     try {
       parsed = JSON.parse(stripJsonFence(raw)) as { description?: unknown; specs?: unknown }

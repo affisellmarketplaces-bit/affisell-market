@@ -28,7 +28,7 @@ type Props = {
   onChange: (leafId: string, path: CategoryPathSegment[]) => void
   /** Keyword / lexical matches from title (always local). */
   keywordSuggestions: LeafPath[]
-  /** OpenAI-ranked picks from live taxonomy (may be empty). */
+  /** Groq-ranked picks from live taxonomy (may be empty). */
   aiSuggestions: LeafPath[]
   aiLoading?: boolean
   loading?: boolean

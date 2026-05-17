@@ -9,7 +9,7 @@ import { generateProductAdVideo } from "@/lib/product-video-generation"
 import { prisma } from "@/lib/prisma"
 import {
   fetchUserVideoQuota,
-  incrementVideoCount,
+  incrementVideoCountIfAllowed,
   isQuotaExceeded,
   paywallResponse,
 } from "@/lib/video-quota"
@@ -93,7 +93,7 @@ export async function handleProductVideoGenerate(args: {
     })
 
     if (result.mode === "sync") {
-      await incrementVideoCount(supplierId)
+      await incrementVideoCountIfAllowed(supplierId)
 
       const job = await prisma.videoGenerationJob.findFirst({
         where: { productId: product.id, jobId: result.jobId },

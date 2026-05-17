@@ -3,7 +3,7 @@
  *
  *   npm run reclassify-products
  *
- * Requires DATABASE_URL + OPENAI_API_KEY in .env / .env.local
+ * Requires DATABASE_URL + GROQ_API_KEY in .env / .env.local
  */
 
 import { config } from "dotenv"

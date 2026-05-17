@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import * as cheerio from "cheerio"
 
 import { auth } from "@/auth"
+import { groqChatText } from "@/lib/ai/groq-client"
 import { prisma } from "@/lib/prisma"
 
 type ReviewSentiment = "positive" | "neutral" | "negative"
@@ -239,7 +240,7 @@ export async function POST(req: NextRequest) {
     product.basePrice = product.suggested_price
     product.costPrice = product.price
 
-    if (body.options?.aiRewrite && process.env.OPENAI_API_KEY) {
+    if (body.options?.aiRewrite && process.env.GROQ_API_KEY?.trim()) {
       product.description = await rewriteWithAI(product.description)
       product.ai_description = product.description
     }
@@ -611,71 +612,44 @@ async function checkDuplicate(title: string, image: string): Promise<boolean> {
 }
 
 async function rewriteWithAI(text: string): Promise<string> {
-  const apiKey = process.env.OPENAI_API_KEY
-  if (!apiKey || !text.trim()) return text
+  if (!process.env.GROQ_API_KEY?.trim() || !text.trim()) return text
   const prompt = `Rewrite the following product description to be clearer, concise, SEO-friendly, and conversion-oriented. Keep factual claims only.\n\n${text.slice(
     0,
     3500
   )}`
 
   try {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
+    return (
+      (await groqChatText({
         temperature: 0.4,
         messages: [
           {
             role: "system",
-            content:
-              "You are an ecommerce copywriter. Return plain text only, no markdown.",
+            content: "You are an ecommerce copywriter. Return plain text only, no markdown.",
           },
           { role: "user", content: prompt },
         ],
-      }),
-      signal: AbortSignal.timeout(30000),
-    })
-    if (!res.ok) return text
-    const payload = (await res.json()) as {
-      choices?: Array<{ message?: { content?: string } }>
-    }
-    return payload.choices?.[0]?.message?.content?.trim() || text
+      })) || text
+    )
   } catch {
     return text
   }
 }
 
 async function translateTitleToEnglish(scrapedTitle: string): Promise<string> {
-  const apiKey = process.env.OPENAI_API_KEY
-  if (!apiKey || !scrapedTitle.trim()) return scrapedTitle
+  if (!process.env.GROQ_API_KEY?.trim() || !scrapedTitle.trim()) return scrapedTitle
   try {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
+    return (
+      (await groqChatText({
+        temperature: 0.2,
         messages: [
           {
             role: "user",
             content: `Translate to English commercial product title, max 60 chars, remove country names: "${scrapedTitle}"`,
           },
         ],
-        temperature: 0.2,
-      }),
-      signal: AbortSignal.timeout(20000),
-    })
-    if (!res.ok) return scrapedTitle
-    const payload = (await res.json()) as {
-      choices?: Array<{ message?: { content?: string } }>
-    }
-    return payload.choices?.[0]?.message?.content?.trim() || scrapedTitle
+      })) || scrapedTitle
+    )
   } catch {
     return scrapedTitle
   }

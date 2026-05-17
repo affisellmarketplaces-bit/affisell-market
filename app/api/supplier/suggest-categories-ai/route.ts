@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
-import OpenAI from "openai"
 
 import { auth } from "@/auth"
+import { groqChatText } from "@/lib/ai/groq-client"
 import {
   buildCategoryBrowse,
   fetchAllCategoriesForBrowse,
@@ -45,7 +45,7 @@ function mergeSuggestionsByTitleRelevance(
 
 /**
  * Maps a product title (and optional description) to up to 3 leaf categories from the live DB tree,
- * using OpenAI when configured — otherwise falls back to keyword scoring.
+ * using Groq when configured — otherwise falls back to keyword scoring.
  */
 export async function POST(req: Request) {
   const session = await auth()
@@ -74,12 +74,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ suggestions: [], source: "empty" as const })
   }
 
-  const apiKey = process.env.OPENAI_API_KEY?.trim()
-  if (!apiKey) {
-    return NextResponse.json({ suggestions: [], source: "none" as const })
-  }
-
   const keywordFallback = suggestLeafCategoriesFromTitle(title, leafPaths, 6)
+
+  if (!process.env.GROQ_API_KEY?.trim()) {
+    return NextResponse.json({ suggestions: keywordFallback, source: "keyword" as const })
+  }
   const catalogLeaves = leafPathsForAiCatalog(leafPaths, title, description)
 
   const allowed = new Map<string, LeafPath>()
@@ -92,15 +91,14 @@ export async function POST(req: Request) {
   const catalogBlock = lines.join("\n")
 
   try {
-    const openai = new OpenAI({ apiKey })
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      temperature: 0.1,
-      response_format: { type: "json_object" },
-      messages: [
-        {
-          role: "system",
-          content: `You are an Affisell marketplace merchandiser. Map the listing to exactly 3 leaf categories from the ALLOWED list only (each line: CATEGORY_ID<TAB>breadcrumb).
+    const raw =
+      (await groqChatText({
+        temperature: 0.1,
+        response_format: { type: "json_object" },
+        messages: [
+          {
+            role: "system",
+            content: `You are an Affisell marketplace merchandiser. Map the listing to exactly 3 leaf categories from the ALLOWED list only (each line: CATEGORY_ID<TAB>breadcrumb).
 
 Rules:
 - Infer the primary product type from the full title (e.g. a "MacBook Air" or "iPad Air" is a laptop/tablet computer, not air fryers, air fresheners, or unrelated "air" products).
@@ -109,15 +107,13 @@ Rules:
 - If DESCRIPTION is provided, use it together with the title.
 
 Return JSON: {"ids":["id1","id2","id3"]} — only IDs from the list, no invented IDs, no duplicates, best match first.`,
-        },
-        {
-          role: "user",
-          content: `TITLE: ${title}\n${description ? `DESCRIPTION: ${description}\n` : ""}\nALLOWED (id<TAB>breadcrumb):\n${catalogBlock}`,
-        },
-      ],
-    })
-
-    const raw = completion.choices[0]?.message?.content ?? "{}"
+          },
+          {
+            role: "user",
+            content: `TITLE: ${title}\n${description ? `DESCRIPTION: ${description}\n` : ""}\nALLOWED (id<TAB>breadcrumb):\n${catalogBlock}`,
+          },
+        ],
+      })) ?? "{}"
     let ids: string[] = []
     try {
       const parsed = JSON.parse(raw) as { ids?: unknown }

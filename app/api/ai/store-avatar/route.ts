@@ -1,12 +1,11 @@
 import { mkdir, writeFile } from "node:fs/promises"
 import path from "node:path"
 
-import OpenAI from "openai"
-import type { ChatCompletionContentPart, ChatCompletionMessageParam } from "openai/resources/chat/completions"
-
 import { auth } from "@/auth"
 import { ensureMerchantStore } from "@/lib/ensure-store"
-import { fileToDataUrl, loadImageAsDataUrlForOpenAI } from "@/lib/ai/load-store-image-for-vision"
+import { groqChatText, GROQ_VISION_MODEL } from "@/lib/ai/groq-client"
+import { generateImageWithHf } from "@/lib/ai/hf-image"
+import { fileToDataUrl, loadImageAsDataUrlForVision } from "@/lib/ai/load-store-image-for-vision"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -19,93 +18,67 @@ const MIME_EXT: Record<string, string> = {
   "image/jpg": ".jpg",
 }
 
-function openAiUserFacingError(e: unknown): { message: string; status: number } {
+function groqUserFacingError(e: unknown): { message: string; status: number } {
   const raw = e instanceof Error ? e.message : String(e)
-  if (/401|Incorrect API key|Invalid API key|invalid_api_key|authentication failed/i.test(raw)) {
+  if (/401|invalid.*api.*key|authentication/i.test(raw)) {
     return {
       message:
-        "OpenAI rejected the server API key. In Vercel: Project → Settings → Environment Variables → set OPENAI_API_KEY to a valid secret key (no quotes, no line breaks), then redeploy.",
+        "Groq rejected the server API key. Set GROQ_API_KEY in environment variables, then redeploy.",
       status: 502,
     }
   }
   if (/429|rate limit/i.test(raw)) {
-    return { message: "OpenAI rate limit — try again in a minute.", status: 429 }
+    return { message: "Groq rate limit — try again in a minute.", status: 429 }
   }
-  let s = raw.replace(/\bsk-[a-zA-Z0-9-]{20,}\b/g, "sk-…")
-  s = s.replace(/OPENAI_[A-Z0-9_-]{4,}/gi, "…")
+  let s = raw.replace(/\bgsk_[a-zA-Z0-9-]{20,}\b/g, "gsk_…")
+  s = s.replace(/GROQ_[A-Z0-9_-]{4,}/gi, "…")
   return { message: s.slice(0, 280) || "Generation failed", status: 500 }
 }
 
-/** Normalize env and reject obvious misconfiguration before calling OpenAI (avoids opaque 401s). */
-function resolveOpenAiServerKey(): { apiKey: string } | { error: string } {
-  const raw = process.env.OPENAI_API_KEY
-  if (!raw?.trim()) return { error: "Missing OPENAI_API_KEY" }
-  let k = raw.trim().replace(/^\uFEFF/, "")
-  k = k.replace(/^['"]+|['"]+$/g, "")
-  if (!k) return { error: "Missing OPENAI_API_KEY" }
-  if (/^OPENAI_/i.test(k)) {
-    return {
-      error:
-        "OPENAI_API_KEY is wrong: the value looks like a variable name, not your OpenAI secret. In Vercel → Environment Variables, set OPENAI_API_KEY to the key from platform.openai.com/api-keys (it starts with sk-). Redeploy after saving.",
-    }
-  }
-  if (!k.startsWith("sk-")) {
-    return {
-      error:
-        "OPENAI_API_KEY must be your OpenAI secret key (starts with sk-). Do not use a project ID or other string. Copy the full key from platform.openai.com/api-keys, then redeploy.",
-    }
-  }
-  if (/^sk-xxx$/i.test(k) || /^sk-your/i.test(k) || /^sk-placeholder/i.test(k)) {
-    return { error: "Replace the placeholder OPENAI_API_KEY with a real key from OpenAI, then redeploy." }
-  }
-  if (k.length < 24) {
-    return { error: "OPENAI_API_KEY looks too short — paste the full secret from OpenAI and redeploy." }
-  }
-  return { apiKey: k }
-}
-
-async function visionToDallePrompt(openai: OpenAI, dataUrl: string, storeName: string, mode: "from-logo" | "from-photo") {
+async function visionToImagePrompt(
+  dataUrl: string,
+  storeName: string,
+  mode: "from-logo" | "from-photo"
+): Promise<string> {
   const modeHint =
     mode === "from-logo"
       ? "The image is a brand logo or mark. Derive palette, shapes, and mood for a friendly illustrated store mascot or abstract avatar — not a copy of the logo as-is."
       : "The image is a person reference. Produce a stylized illustrated portrait suitable for a shop profile — not a photorealistic duplicate, no attempt to match biometric identity."
 
-  const system =
-    "You write a single English paragraph to use as a DALL-E 3 prompt (max 700 characters). " +
-    "Subject: one square 1:1 professional marketplace store profile avatar, digital illustration, soft lighting, centered. " +
-    "Rules: no readable text, no logos, no watermarks, no trademarked characters, no celebrity names. " +
-    "Neutral smooth gradient background. Output ONLY the prompt paragraph, no quotes or labels."
-
-  const userContent: ChatCompletionContentPart[] = [
-    { type: "text", text: `Store name (context only, do not render as text in image): ${storeName.slice(0, 80)}.` },
-    { type: "text", text: modeHint },
-    { type: "image_url", image_url: { url: dataUrl } },
-  ]
-
-  const messages: ChatCompletionMessageParam[] = [
-    { role: "system", content: system },
-    { role: "user", content: userContent },
-  ]
-
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages,
+  const raw = await groqChatText({
+    model: GROQ_VISION_MODEL,
+    vision: true,
     temperature: 0.7,
     max_tokens: 500,
+    messages: [
+      {
+        role: "system",
+        content:
+          "You write a single English paragraph to use as an image generation prompt (max 700 characters). " +
+          "Subject: one square 1:1 professional marketplace store profile avatar, digital illustration, soft lighting, centered. " +
+          "Rules: no readable text, no logos, no watermarks, no trademarked characters, no celebrity names. " +
+          "Neutral smooth gradient background. Output ONLY the prompt paragraph, no quotes or labels.",
+      },
+      {
+        role: "user",
+        content: [
+          { type: "text", text: `Store name (context only, do not render as text in image): ${storeName.slice(0, 80)}.` },
+          { type: "text", text: modeHint },
+          { type: "image_url", image_url: { url: dataUrl } },
+        ],
+      },
+    ],
   })
 
-  const raw = completion.choices[0]?.message?.content?.trim() ?? ""
-  const cleaned = raw.replace(/^["']|["']$/g, "").slice(0, 3200)
+  const cleaned = raw?.replace(/^["']|["']$/g, "").slice(0, 3200) ?? ""
   if (!cleaned) throw new Error("Empty prompt from vision step")
   return `${cleaned} Square 1:1 composition, high quality illustration, ecommerce profile avatar.`
 }
 
 export async function POST(req: Request) {
-  const resolvedKey = resolveOpenAiServerKey()
-  if ("error" in resolvedKey) {
-    return Response.json({ error: resolvedKey.error }, { status: 503 })
+  if (!process.env.GROQ_API_KEY?.trim()) {
+    return Response.json({ error: "Missing GROQ_API_KEY" }, { status: 503 })
   }
-  const key = resolvedKey.apiKey
 
   const session = await auth()
   const userId = session?.user?.id
@@ -133,7 +106,10 @@ export async function POST(req: Request) {
       })
       return Response.json({ ok: true, aiAvatarUrl: null })
     }
-    return Response.json({ error: "Unknown JSON body — use { \"clear\": true } or multipart for generation" }, { status: 400 })
+    return Response.json(
+      { error: 'Unknown JSON body — use { "clear": true } or multipart for generation' },
+      { status: 400 }
+    )
   }
 
   if (!ct.includes("multipart/form-data")) {
@@ -147,7 +123,6 @@ export async function POST(req: Request) {
     return Response.json({ error: "mode must be from-logo or from-photo" }, { status: 400 })
   }
 
-  const openai = new OpenAI({ apiKey: key })
   let imageDataUrl: string
 
   if (mode === "from-logo") {
@@ -155,7 +130,7 @@ export async function POST(req: Request) {
     if (!logo) {
       return Response.json({ error: "Add a store logo first (URL or upload), then generate from logo." }, { status: 400 })
     }
-    const loaded = await loadImageAsDataUrlForOpenAI(logo)
+    const loaded = await loadImageAsDataUrlForVision(logo)
     if ("error" in loaded) return Response.json({ error: loaded.error }, { status: 400 })
     imageDataUrl = loaded.dataUrl
   } else {
@@ -174,27 +149,18 @@ export async function POST(req: Request) {
   }
 
   try {
-    const dallePrompt = await visionToDallePrompt(openai, imageDataUrl, store.name, mode)
-
-    const gen = await openai.images.generate({
-      model: "dall-e-3",
-      prompt: dallePrompt.slice(0, 4000),
-      n: 1,
-      size: "1024x1024",
-      quality: "standard",
-    })
-
-    const first = gen.data?.[0]
-    const url = first?.url
-    if (!url) {
-      return Response.json({ error: "Image API returned no URL" }, { status: 502 })
+    const imagePrompt = await visionToImagePrompt(imageDataUrl, store.name, mode)
+    const outBuf = await generateImageWithHf(imagePrompt.slice(0, 2000))
+    if (!outBuf) {
+      return Response.json(
+        {
+          error:
+            "Avatar image generation requires HF_TOKEN (Hugging Face) in addition to GROQ_API_KEY. Add HF_TOKEN or skip AI avatars.",
+        },
+        { status: 503 }
+      )
     }
 
-    const imgRes = await fetch(url)
-    if (!imgRes.ok) {
-      return Response.json({ error: "Could not download generated image" }, { status: 502 })
-    }
-    const outBuf = Buffer.from(await imgRes.arrayBuffer())
     const filename = `ai-avatar-${userId}-${Date.now()}.png`
     const dir = path.join(process.cwd(), "public", "uploads")
     await mkdir(dir, { recursive: true })
@@ -210,9 +176,12 @@ export async function POST(req: Request) {
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Generation failed"
     if (msg.toLowerCase().includes("safety") || msg.toLowerCase().includes("content_policy")) {
-      return Response.json({ error: "Image was blocked by safety policy — try a different photo or logo." }, { status: 422 })
+      return Response.json(
+        { error: "Image was blocked by safety policy — try a different photo or logo." },
+        { status: 422 }
+      )
     }
-    const { message, status } = openAiUserFacingError(e)
+    const { message, status } = groqUserFacingError(e)
     console.error("[store-avatar]", e)
     return Response.json({ error: message }, { status })
   }

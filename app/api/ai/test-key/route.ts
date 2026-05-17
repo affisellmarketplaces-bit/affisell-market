@@ -1,25 +1,26 @@
-import { NextResponse } from 'next/server'
-import OpenAI from 'openai'
+import { NextResponse } from "next/server"
+
+import { createGroqClient, getGroqApiKey } from "@/lib/ai/groq-client"
 
 export async function GET() {
+  const apiKey = getGroqApiKey()
+  if (!apiKey) {
+    return NextResponse.json({ error: "GROQ_API_KEY missing in .env.local", exists: false }, { status: 500 })
+  }
+
   try {
-    if (!process.env.OPENAI_API_KEY) {
-      return NextResponse.json({ error: 'OPENAI_API_KEY missing in .env.local', exists: false }, { status: 500 })
+    const groq = createGroqClient()
+    if (!groq) {
+      return NextResponse.json({ error: "GROQ_API_KEY missing", exists: false }, { status: 500 })
     }
-    
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-    await openai.models.list()
-    
-    return NextResponse.json({ 
-      success: true, 
-      message: 'OPENAI_API_KEY works',
-      keyPrefix: process.env.OPENAI_API_KEY.substring(0, 7) + '...'
+    await groq.models.list()
+    return NextResponse.json({
+      success: true,
+      message: "GROQ_API_KEY works",
+      keyPrefix: `${apiKey.slice(0, 8)}…`,
     })
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : String(e)
-    return NextResponse.json({
-      error: message,
-      exists: !!process.env.OPENAI_API_KEY,
-    }, { status: 500 })
+    return NextResponse.json({ error: message, exists: true }, { status: 500 })
   }
 }

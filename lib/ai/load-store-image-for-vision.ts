@@ -4,9 +4,9 @@ import path from "node:path"
 const MAX_BYTES = 4 * 1024 * 1024
 
 /**
- * Load an image from our `/uploads/…` path or an HTTPS URL into a data URL for OpenAI vision.
+ * Load an image from our `/uploads/…` path or an HTTPS URL into a data URL for Groq vision.
  */
-export async function loadImageAsDataUrlForOpenAI(imageRef: string): Promise<{ dataUrl: string } | { error: string }> {
+export async function loadImageAsDataUrlForVision(imageRef: string): Promise<{ dataUrl: string } | { error: string }> {
   const trimmed = imageRef.trim()
   if (!trimmed) return { error: "Empty image reference" }
 

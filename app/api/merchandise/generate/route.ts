@@ -1,9 +1,9 @@
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 
-import OpenAI from "openai"
 import PQueue from "p-queue"
 
+import { groqChatText } from "@/lib/ai/groq-client"
 import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
 import { generateCategoryCard } from "@/lib/merchandise/generate-card"
 import { resolveMerchandisingDepartment } from "@/lib/merchandise/templates"
@@ -134,12 +134,9 @@ export async function GET(request: NextRequest) {
 
   const titles = top.map((p) => p.name)
   let title = `Top picks in ${root.name}`
-  const apiKey = process.env.OPENAI_API_KEY?.trim()
-  if (apiKey && titles.length) {
+  if (process.env.GROQ_API_KEY?.trim() && titles.length) {
     try {
-      const openai = new OpenAI({ apiKey })
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+      const t = await groqChatText({
         max_tokens: 32,
         messages: [
           {
@@ -153,7 +150,6 @@ export async function GET(request: NextRequest) {
           },
         ],
       })
-      const t = completion.choices[0]?.message?.content?.trim()
       if (t) title = t.replace(/^["']|["']$/g, "").slice(0, 80)
     } catch {
       /* keep fallback */

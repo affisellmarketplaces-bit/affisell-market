@@ -16,7 +16,7 @@ import { prisma } from "@/lib/prisma"
 const AUTO_APPLY_AI_CONFIDENCE = 0.72
 /** Apply + queue ops review between these bounds. */
 const REVIEW_QUEUE_MIN_CONFIDENCE = 0.52
-/** Title/breadcrumb heuristic score to skip OpenAI (fast path). */
+/** Title/breadcrumb heuristic score to skip Groq (fast path). */
 const HEURISTIC_APPLY_SCORE = 9
 
 type BrowseCtx = {
@@ -103,7 +103,7 @@ async function applyCategory(
 
 /**
  * Classify a live marketplace product into the Affisell category tree (leaf `categoryId`).
- * Uses a fast title heuristic, then OpenAI when needed.
+ * Uses a fast title heuristic, then Groq when needed.
  */
 export async function autoCategorizeProduct(
   productId: string,

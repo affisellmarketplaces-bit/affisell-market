@@ -46,11 +46,45 @@ export async function fetchUserVideoQuota(userId: string) {
   return { user, snapshot: quotaSnapshot(user) }
 }
 
-export async function incrementVideoCount(userId: string): Promise<VideoQuotaSnapshot> {
-  const updated = await prisma.user.update({
+/** Increment only if free user is still under the limit (avoids race past 3 videos). */
+export async function incrementVideoCountIfAllowed(
+  userId: string
+): Promise<VideoQuotaSnapshot | null> {
+  const user = await prisma.user.findUnique({
     where: { id: userId },
-    data: { videoCount: { increment: 1 } },
     select: { videoCount: true, isPro: true },
   })
-  return quotaSnapshot(updated)
+  if (!user) return null
+
+  if (user.isPro) {
+    const updated = await prisma.user.update({
+      where: { id: userId },
+      data: { videoCount: { increment: 1 } },
+      select: { videoCount: true, isPro: true },
+    })
+    return quotaSnapshot(updated)
+  }
+
+  const result = await prisma.user.updateMany({
+    where: { id: userId, isPro: false, videoCount: { lt: FREE_VIDEO_LIMIT } },
+    data: { videoCount: { increment: 1 } },
+  })
+  if (result.count === 0) return null
+
+  const updated = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { videoCount: true, isPro: true },
+  })
+  return updated ? quotaSnapshot(updated) : null
+}
+
+/** @deprecated Use {@link incrementVideoCountIfAllowed} */
+export async function incrementVideoCount(userId: string): Promise<VideoQuotaSnapshot> {
+  const snap = await incrementVideoCountIfAllowed(userId)
+  if (snap) return snap
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { videoCount: true, isPro: true },
+  })
+  return quotaSnapshot(user ?? { videoCount: FREE_VIDEO_LIMIT, isPro: false })
 }

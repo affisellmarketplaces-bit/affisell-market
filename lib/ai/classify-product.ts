@@ -1,5 +1,4 @@
-import Groq from "groq-sdk"
-
+import { groqChatText, GROQ_TEXT_MODEL, GROQ_VISION_MODEL } from "@/lib/ai/groq-client"
 import { scoreTitleAgainstBreadcrumb } from "@/lib/category-browse"
 import type { LeafPath } from "@/lib/category-browse"
 
@@ -15,9 +14,6 @@ export type ClassifySuggestionRow = {
   reason: string
   leafId: string | null
 }
-
-const GROQ_TEXT_MODEL = "llama-3.1-8b-instant"
-const GROQ_VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
 
 function normalizeLabel(s: string): string {
   return s.replace(/\s+/g, " ").trim().toLowerCase()
@@ -85,8 +81,7 @@ export async function classifyAffisellProduct(
   input: ClassifyInput,
   ctx: { allowedBreadcrumbs: string[]; leafPaths: LeafPath[] }
 ): Promise<{ suggestions: ClassifySuggestionRow[]; error?: string }> {
-  const apiKey = process.env.GROQ_API_KEY?.trim()
-  if (!apiKey) {
+  if (!process.env.GROQ_API_KEY?.trim()) {
     return { suggestions: [] }
   }
   if (ctx.allowedBreadcrumbs.length === 0) {
@@ -110,27 +105,27 @@ ${listBlock}`
   const userText = `TITLE: ${input.title}\nDESCRIPTION: ${input.description.trim() || "(none)"}`
   const imageUrl = input.imageUrl?.trim()
 
-  const userContent: Groq.Chat.Completions.ChatCompletionContentPart[] | string = imageUrl
+  const userContent = imageUrl
     ? [
-        { type: "text", text: userText },
-        { type: "image_url", image_url: { url: imageUrl } },
+        { type: "text" as const, text: userText },
+        { type: "image_url" as const, image_url: { url: imageUrl } },
       ]
     : userText
 
   try {
-    const groq = new Groq({ apiKey })
-    const completion = await groq.chat.completions.create({
-      model: imageUrl ? GROQ_VISION_MODEL : GROQ_TEXT_MODEL,
-      temperature: 0.1,
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: userContent },
-      ],
-      max_tokens: 900,
-    })
+    const raw =
+      (await groqChatText({
+        model: imageUrl ? GROQ_VISION_MODEL : GROQ_TEXT_MODEL,
+        vision: Boolean(imageUrl),
+        temperature: 0.1,
+        response_format: { type: "json_object" },
+        max_tokens: 900,
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: userContent },
+        ],
+      })) ?? "{}"
 
-    const raw = completion.choices[0]?.message?.content ?? "{}"
     const rows = parseSuggestionsPayload(raw)
 
     const suggestions: ClassifySuggestionRow[] = []

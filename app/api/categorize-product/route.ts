@@ -2,8 +2,8 @@ export const dynamic = "force-dynamic"
 export const revalidate = 0
 
 import { NextResponse } from "next/server"
-import OpenAI from "openai"
 
+import { groqChatText } from "@/lib/ai/groq-client"
 import { rateLimitClientKey, rateLimitResponse } from "@/lib/api-rate-limit"
 
 const BROAD_DEPARTMENT_CHOICES = [
@@ -25,6 +25,8 @@ const BROAD_DEPARTMENT_CHOICES = [
   "Video Games",
 ]
 
+const FALLBACK = ["Electronics", "Computers", "Office Products"] as const
+
 export async function POST(req: Request) {
   const limited = rateLimitResponse(rateLimitClientKey(req, null), {
     prefix: "categorize-product",
@@ -42,39 +44,29 @@ export async function POST(req: Request) {
     return NextResponse.json({ categories: [] })
   }
 
-  const apiKey = process.env.OPENAI_API_KEY
-  if (!apiKey) {
-    return NextResponse.json({
-      categories: ["Electronics", "Computers", "Office Products"],
-    })
-  }
+  const system = `You are a marketplace taxonomy assistant. Given a product title and optional image, return EXACTLY 3 categories from this list: ${BROAD_DEPARTMENT_CHOICES.join(", ")}. Return only JSON: {"categories": ["cat1", "cat2", "cat3"]}`
+
+  const userContent = imageUrl
+    ? [
+        { type: "text" as const, text: title.trim() ? title : "Product (see image)." },
+        { type: "image_url" as const, image_url: { url: imageUrl } },
+      ]
+    : title.trim()
+      ? title
+      : "Product (see image)."
 
   try {
-    const openai = new OpenAI({ apiKey })
+    const raw =
+      (await groqChatText({
+        vision: Boolean(imageUrl),
+        temperature: 0,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: userContent },
+        ],
+      })) ?? '{"categories":[]}'
 
-    const system = `You are a marketplace taxonomy assistant. Given a product title and optional image, return EXACTLY 3 categories from this list: ${BROAD_DEPARTMENT_CHOICES.join(", ")}. Return only JSON: {"categories": ["cat1", "cat2", "cat3"]}`
-
-    const userContent: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [
-      { type: "text", text: title.trim() ? title : "Product (see image)." },
-    ]
-    if (imageUrl && typeof imageUrl === "string") {
-      userContent.push({
-        type: "image_url",
-        image_url: { url: imageUrl },
-      })
-    }
-
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: userContent },
-      ],
-      response_format: { type: "json_object" },
-      temperature: 0,
-    })
-
-    const raw = completion.choices[0]?.message?.content ?? '{"categories":[]}'
     let result: { categories?: string[] }
     try {
       result = JSON.parse(raw) as { categories?: string[] }
@@ -85,7 +77,7 @@ export async function POST(req: Request) {
     const list = Array.isArray(result.categories) ? result.categories : []
     const valid = list.filter((c): c is string => typeof c === "string" && BROAD_DEPARTMENT_CHOICES.includes(c))
     const out = valid.slice(0, 3)
-    for (const c of ["Electronics", "Computers", "Office Products"] as const) {
+    for (const c of FALLBACK) {
       if (out.length >= 3) break
       if (!out.includes(c)) out.push(c)
     }
@@ -93,8 +85,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ categories: out.slice(0, 3) })
   } catch (e) {
     console.error(e)
-    return NextResponse.json({
-      categories: ["Electronics", "Computers", "Office Products"],
-    })
+    return NextResponse.json({ categories: [...FALLBACK] })
   }
 }

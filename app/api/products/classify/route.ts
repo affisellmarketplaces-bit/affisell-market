@@ -1,5 +1,6 @@
-import Groq from "groq-sdk"
 import { NextResponse } from "next/server"
+
+import { groqChatText, GROQ_TEXT_MODEL } from "@/lib/ai/groq-client"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -31,8 +32,7 @@ function parseCopyPayload(raw: unknown): ClassifyCopyResponse {
 }
 
 export async function POST(req: Request): Promise<NextResponse<ClassifyCopyResponse>> {
-  const apiKey = process.env.GROQ_API_KEY?.trim()
-  if (!apiKey) {
+  if (!process.env.GROQ_API_KEY?.trim()) {
     return emptyCopy()
   }
 
@@ -64,9 +64,10 @@ export async function POST(req: Request): Promise<NextResponse<ClassifyCopyRespo
   }
 
   try {
-    const groq = new Groq({ apiKey })
-    const completion = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
+    const content = await groqChatText({
+      model: GROQ_TEXT_MODEL,
+      temperature: 0.7,
+      response_format: { type: "json_object" },
       messages: [
         {
           role: "system",
@@ -75,12 +76,9 @@ export async function POST(req: Request): Promise<NextResponse<ClassifyCopyRespo
         },
         { role: "user", content: prompt },
       ],
-      temperature: 0.7,
-      response_format: { type: "json_object" },
     })
 
-    const content = completion.choices[0]?.message?.content
-    if (!content?.trim()) {
+    if (!content) {
       return emptyCopy()
     }
 
