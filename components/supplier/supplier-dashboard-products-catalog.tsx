@@ -18,11 +18,13 @@ const LISTING_LABEL: Record<string, string> = {
 
 export function SupplierDashboardProductsCatalog({
   products,
+  draftsOnly = false,
   storefrontHref,
   storefrontName,
   partnerListingCountByProductId = {},
 }: {
   products: CatalogProduct[]
+  draftsOnly?: boolean
   storefrontHref: string
   storefrontName: string | null
   /** How many distinct partner storefronts list this SKU (listed rows). */
@@ -37,13 +39,25 @@ export function SupplierDashboardProductsCatalog({
       <div className="flex flex-wrap items-start justify-between gap-4 rounded-2xl border border-zinc-200/90 bg-white/90 px-5 py-4 shadow-sm dark:border-zinc-700/90 dark:bg-zinc-950/60 sm:px-6 sm:py-5">
         <div className="min-w-0">
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-3xl">
-            Products
+            {draftsOnly ? "Draft listings" : "Products"}
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-            Manage SKUs you sell through Affisell: pricing, inventory, fulfillment details, and the margin shared with
-            partners. Customer checkout runs on partner storefront listings—your job here is a clear, accurate wholesale
-            anchor. Use <strong className="font-medium text-zinc-800 dark:text-zinc-200">Partner preview</strong> on each
-            card to sanity-check economics from a reseller perspective.
+            {draftsOnly ? (
+              <>
+                Resume a draft below, or{" "}
+                <Link href="/dashboard/supplier/products" className="font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-400">
+                  view your full catalog
+                </Link>
+                .
+              </>
+            ) : (
+              <>
+                Manage SKUs you sell through Affisell: pricing, inventory, fulfillment details, and the margin shared with
+                partners. Customer checkout runs on partner storefront listings—your job here is a clear, accurate wholesale
+                anchor. Use <strong className="font-medium text-zinc-800 dark:text-zinc-200">Partner preview</strong> on each
+                card to sanity-check economics from a reseller perspective.
+              </>
+            )}
           </p>
           <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-xs font-medium text-zinc-500 dark:text-zinc-400 sm:text-sm">
             <span>
@@ -101,10 +115,13 @@ export function SupplierDashboardProductsCatalog({
 
       {products.length === 0 ? (
         <div className="mt-10 rounded-2xl border border-dashed border-zinc-300 bg-zinc-50/80 px-6 py-20 text-center dark:border-zinc-600 dark:bg-zinc-950/40">
-          <p className="text-lg font-medium text-zinc-900 dark:text-zinc-50">No products yet</p>
+          <p className="text-lg font-medium text-zinc-900 dark:text-zinc-50">
+            {draftsOnly ? "No drafts right now" : "No products yet"}
+          </p>
           <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
-            Add your first SKU to go live on the marketplace and your public supplier storefront. Partner discovery and
-            resale tools live in the affiliate dashboard—this screen is your catalog control center.
+            {draftsOnly
+              ? "Start a new listing from the hub—drafts save automatically as you work."
+              : "Add your first SKU to go live on the marketplace and your public supplier storefront. Partner discovery and resale tools live in the affiliate dashboard—this screen is your catalog control center."}
           </p>
           <Link
             href="/dashboard/supplier/products/new"
@@ -113,7 +130,7 @@ export function SupplierDashboardProductsCatalog({
               "mt-6 inline-flex bg-violet-600 hover:bg-violet-700"
             )}
           >
-            List your first product
+            {draftsOnly ? "New listing" : "List your first product"}
           </Link>
         </div>
       ) : (

@@ -7,7 +7,11 @@ import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
 
-export default async function SupplierProductsPage() {
+export default async function SupplierProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ drafts?: string }>
+}) {
   const session = await auth()
   if (!session?.user?.id) {
     return (
@@ -26,6 +30,9 @@ export default async function SupplierProductsPage() {
       </div>
     )
   }
+
+  const { drafts: draftsQs } = await searchParams
+  const draftsOnly = draftsQs === "1"
 
   const [products, store, partnerListingGroups] = await Promise.all([
     findSupplierProductsForDashboardCatalog({ supplierId: session.user.id }),
@@ -47,6 +54,8 @@ export default async function SupplierProductsPage() {
   const storefrontHref = store
     ? `/store/supplier/${encodeURIComponent(store.slug)}`
     : `/store/supplier/${encodeURIComponent(session.user.id)}`
+
+  const catalogProducts = draftsOnly ? products.filter((p) => p.isDraft) : products
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-100/90 via-white to-zinc-50 dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900/95">
@@ -74,7 +83,8 @@ export default async function SupplierProductsPage() {
           </Link>
         </nav>
         <SupplierDashboardProductsCatalog
-          products={products}
+          products={catalogProducts}
+          draftsOnly={draftsOnly}
           storefrontHref={storefrontHref}
           storefrontName={store?.name ?? null}
           partnerListingCountByProductId={partnerListingCountByProductId}

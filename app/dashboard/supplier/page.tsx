@@ -15,7 +15,9 @@ import {
 } from "lucide-react"
 
 import { BentoCard, BentoContainer, BentoStat, bentoGrid } from "@/components/affisell/bento-ui"
+import { SupplierDraftsStatPicker } from "@/components/supplier/supplier-drafts-stat-picker"
 import { auth } from "@/auth"
+import { primaryProductImage } from "@/lib/product-images"
 import { buttonVariants } from "@/components/ui/button"
 import { TERMINAL_RETURN_STATUSES } from "@/lib/order-return-types"
 import { countSupplierOrdersToShip } from "@/lib/supplier-orders-payload"
@@ -35,7 +37,7 @@ export default async function DashboardSupplierPage() {
   }
 
   const userId = session.user.id
-  const [liveSkuCount, draftCount, openReturnsCount, ordersToShipCount] = await Promise.all([
+  const [liveSkuCount, draftCount, openReturnsCount, ordersToShipCount, draftProducts] = await Promise.all([
     prisma.product.count({ where: { supplierId: userId, active: true, isDraft: false } }),
     prisma.product.count({ where: { supplierId: userId, isDraft: true } }),
     prisma.orderReturn.count({
@@ -45,7 +47,19 @@ export default async function DashboardSupplierPage() {
       },
     }),
     countSupplierOrdersToShip(userId),
+    prisma.product.findMany({
+      where: { supplierId: userId, isDraft: true },
+      select: { id: true, name: true, images: true, updatedAt: true },
+      orderBy: { updatedAt: "desc" },
+    }),
   ])
+
+  const draftPickerRows = draftProducts.map((p) => ({
+    id: p.id,
+    name: p.name,
+    imageUrl: primaryProductImage(p.images) || null,
+    updatedAt: p.updatedAt.toISOString(),
+  }))
 
   const quickLinks = [
     { label: "Browse marketplace", href: "/marketplace", Icon: Compass },
@@ -145,12 +159,7 @@ export default async function DashboardSupplierPage() {
                   }
                   hint={draftCount > 0 ? `${draftCount} draft${draftCount === 1 ? "" : "s"} not published yet` : "Published & active listings"}
                 />
-                <BentoStat
-                  className="border-0 bg-transparent p-0 shadow-none backdrop-blur-none dark:bg-transparent"
-                  label="Drafts"
-                  value={draftCount}
-                  hint="Finish and publish when you are ready"
-                />
+                <SupplierDraftsStatPicker draftCount={draftCount} drafts={draftPickerRows} />
                 <BentoStat
                   className="border-0 bg-transparent p-0 shadow-none backdrop-blur-none dark:bg-transparent"
                   label="Returns in progress"
