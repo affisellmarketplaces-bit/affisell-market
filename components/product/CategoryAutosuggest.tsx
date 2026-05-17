@@ -75,7 +75,7 @@ export function CategoryAutosuggest({
     setLoading(true)
     void (async () => {
       try {
-        const res = await fetch("/api/products/classify", {
+        const res = await fetch("/api/products/classify-category", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           signal: ac.signal,

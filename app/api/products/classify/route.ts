@@ -1,63 +1,91 @@
+import Groq from "groq-sdk"
 import { NextResponse } from "next/server"
-
-import { CATEGORIES_AFFISELL } from "@/lib/ai/categories"
-import { classifyAffisellProduct } from "@/lib/ai/classify-product"
-import { buildCategoryBrowse, fetchAllCategoriesForBrowse } from "@/lib/category-browse"
-import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-type ClassifyResponseJson = {
-  suggestions: Array<{
-    category: string
-    confidence: number
-    reason: string
-    leafId: string | null
-  }>
-  error?: string
+export type ClassifyCopyResponse = {
+  title: string
+  bulletPoints: string[]
 }
 
-export async function POST(req: Request): Promise<NextResponse<ClassifyResponseJson>> {
+function emptyCopy(): NextResponse<ClassifyCopyResponse> {
+  return NextResponse.json({ title: "", bulletPoints: [] })
+}
+
+function parseCopyPayload(raw: unknown): ClassifyCopyResponse {
+  if (!raw || typeof raw !== "object") {
+    return { title: "", bulletPoints: [] }
+  }
+  const o = raw as Record<string, unknown>
+  const title = typeof o.title === "string" ? o.title.trim() : ""
+  const bulletsRaw = o.bulletPoints ?? o.bullet_points
+  const bulletPoints = Array.isArray(bulletsRaw)
+    ? bulletsRaw
+        .filter((x): x is string => typeof x === "string")
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .slice(0, 12)
+    : []
+  return { title, bulletPoints }
+}
+
+export async function POST(req: Request): Promise<NextResponse<ClassifyCopyResponse>> {
+  const apiKey = process.env.GROQ_API_KEY?.trim()
+  if (!apiKey) {
+    return emptyCopy()
+  }
+
   let body: unknown
   try {
     body = await req.json()
   } catch {
-    return NextResponse.json({ suggestions: [], error: "Invalid JSON body" }, { status: 400 })
+    return NextResponse.json({ title: "", bulletPoints: [] }, { status: 400 })
   }
 
   if (!body || typeof body !== "object") {
-    return NextResponse.json({ suggestions: [], error: "Expected JSON object" }, { status: 400 })
+    return NextResponse.json({ title: "", bulletPoints: [] }, { status: 400 })
   }
 
   const o = body as Record<string, unknown>
-  const title = typeof o.title === "string" ? o.title.trim() : ""
-  const description = typeof o.description === "string" ? o.description.trim() : ""
-  const imageUrl =
-    typeof o.imageUrl === "string" && o.imageUrl.trim().length > 0 ? o.imageUrl.trim() : undefined
+  let prompt = typeof o.prompt === "string" ? o.prompt.trim() : ""
+  if (!prompt) {
+    const title = typeof o.title === "string" ? o.title.trim() : ""
+    const description = typeof o.description === "string" ? o.description.trim() : ""
+    if (title || description) {
+      prompt = [title && `Titre actuel: ${title}`, description && `Description: ${description}`]
+        .filter(Boolean)
+        .join("\n")
+    }
+  }
 
-  if (title.length === 0) {
-    return NextResponse.json({ suggestions: [], error: "title is required" }, { status: 400 })
+  if (!prompt) {
+    return NextResponse.json({ title: "", bulletPoints: [] }, { status: 400 })
   }
 
   try {
-    const rows = await fetchAllCategoriesForBrowse(prisma)
-    const { leafPaths } = buildCategoryBrowse(rows)
-    const allowedBreadcrumbs =
-      leafPaths.length > 0 ? leafPaths.map((lp) => lp.breadcrumb) : [...CATEGORIES_AFFISELL]
+    const groq = new Groq({ apiKey })
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      messages: [
+        {
+          role: "system",
+          content:
+            'Tu es un copywriter e-commerce. Génère un titre produit optimisé Amazon et 4 à 6 bullet points de vente. Réponds uniquement en JSON: {"title": string, "bulletPoints": string[]}',
+        },
+        { role: "user", content: prompt },
+      ],
+      temperature: 0.7,
+      response_format: { type: "json_object" },
+    })
 
-    const { suggestions, error } = await classifyAffisellProduct(
-      { title, description, imageUrl },
-      { allowedBreadcrumbs, leafPaths }
-    )
-
-    if (error) {
-      return NextResponse.json({ suggestions, error }, { status: suggestions.length ? 200 : 503 })
+    const content = completion.choices[0]?.message?.content
+    if (!content?.trim()) {
+      return emptyCopy()
     }
 
-    return NextResponse.json({ suggestions })
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "Classification failed"
-    return NextResponse.json({ suggestions: [], error: msg }, { status: 500 })
+    return NextResponse.json(parseCopyPayload(JSON.parse(content)))
+  } catch {
+    return emptyCopy()
   }
 }
