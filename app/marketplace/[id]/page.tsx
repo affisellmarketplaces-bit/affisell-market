@@ -225,6 +225,22 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
     .map((row) => ({ label: String(row.label || row.key || "").trim(), value: row.value.trim() }))
     .filter((row) => row.label.length > 0 && row.value.length > 0)
 
+  const adVideos = await prisma.videoGenerationJob.findMany({
+    where: {
+      productId: listing.product.id,
+      status: "DONE",
+      videoUrl: { not: null },
+    },
+    orderBy: { updatedAt: "desc" },
+    take: 5,
+    select: {
+      id: true,
+      videoUrl: true,
+      thumbnailUrl: true,
+      format: true,
+    },
+  })
+
   let viewsLast24h = 0
   try {
     const since = new Date()
@@ -298,6 +314,14 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
           verified: r.verified,
         }))}
         viewsLast24h={viewsLast24h}
+        adVideos={adVideos
+          .filter((v): v is typeof v & { videoUrl: string } => Boolean(v.videoUrl))
+          .map((v) => ({
+            id: v.id,
+            videoUrl: v.videoUrl,
+            thumbnailUrl: v.thumbnailUrl,
+            format: v.format,
+          }))}
       />
       </div>
     </main>

@@ -229,6 +229,17 @@ export function SupplierDashboardProductsCatalog({
                       >
                         Edit listing
                       </Link>
+                      {!p.isDraft ? (
+                        <Link
+                          href={`/dashboard/supplier/products/${p.id}`}
+                          className={cn(
+                            buttonVariants({ variant: "ghost", size: "sm" }),
+                            "justify-center gap-1 text-xs text-violet-700 hover:text-violet-900 dark:text-violet-300"
+                          )}
+                        >
+                          Vidéo pub IA
+                        </Link>
+                      ) : null}
                       <Link
                         href={`/dashboard/supplier/products/affiliate-preview/${p.id}`}
                         className={cn(

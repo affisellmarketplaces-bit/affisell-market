@@ -884,15 +884,20 @@ model BlindDropshipOrderItem {
   @@index([supplierOrderId])
 }
 
+/// Meta AI ad video for a supplier product (marketplace affiliates download when DONE).
 model VideoGenerationJob {
-  id        String   @id @default(cuid())
-  productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  prompt    String   @db.Text
-  status    String   @default("pending") // pending | ready | failed
-  videoUrl  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(cuid())
+  productId    String
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  /** External Meta AI job id returned by POST /v1/video */
+  jobId        String?  @unique
+  prompt       String   @db.Text
+  format       String   @default("9:16") // 9:16 | 1:1 | 16:9
+  status       String   @default("PROCESSING") // PROCESSING | DONE | FAILED
+  videoUrl     String?
+  thumbnailUrl String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@index([productId])
   @@index([status])

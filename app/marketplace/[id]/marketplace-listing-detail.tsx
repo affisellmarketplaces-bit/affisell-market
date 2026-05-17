@@ -8,6 +8,7 @@ import {
   ChevronDown,
   ChevronRight,
   Clock,
+  Download,
   FileText,
   MousePointerClick,
   Package,
@@ -137,6 +138,13 @@ type Props = {
   }>
   /** PDP views in the last 24h (analytics) — powers a “trending” signal when high enough. */
   viewsLast24h?: number
+  /** Meta AI ad clips ready for affiliate download (TikTok / Meta Ads). */
+  adVideos?: Array<{
+    id: string
+    videoUrl: string
+    thumbnailUrl: string | null
+    format: string
+  }>
 }
 
 function fmtMoney(value: number) {
@@ -333,6 +341,7 @@ export function MarketplaceListingDetail({
   ratingBreakdown,
   reviews,
   viewsLast24h = 0,
+  adVideos = [],
 }: Props) {
   const productT = messages.Product
   const breadcrumbT = messages.Breadcrumb
@@ -1058,6 +1067,32 @@ export function MarketplaceListingDetail({
                 </div>
               </div>
             </div>
+
+            {adVideos.length > 0 ? (
+              <div className="rounded-2xl border border-violet-200/80 bg-violet-50/50 p-4 dark:border-violet-900/50 dark:bg-violet-950/25">
+                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                  Vidéo pub prête pour vos ads
+                </p>
+                <p className="mt-0.5 text-xs text-zinc-600 dark:text-zinc-400">
+                  Téléchargez le clip fournisseur pour TikTok, Reels ou Meta Ads ({adVideos[0]!.format}).
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {adVideos.map((clip) => (
+                    <a
+                      key={clip.id}
+                      href={clip.videoUrl}
+                      download
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-700"
+                    >
+                      <Download className="h-4 w-4 shrink-0" aria-hidden />
+                      Télécharger vidéo pub
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ) : null}
 
             {stock <= 5 && stock > 0 ? (
               <p className="rounded-xl border border-amber-200/90 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100">
