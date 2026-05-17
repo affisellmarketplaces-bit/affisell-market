@@ -99,6 +99,13 @@ function parseCsvOptions(s: string): string[] {
     .slice(0, 40)
 }
 
+const AI_KEY_FEATURES_COUNT = 5
+
+function bulletsForAiCopy(lines: string[]): string[] {
+  const trimmed = lines.map((s) => s.trim()).filter(Boolean)
+  return Array.from({ length: AI_KEY_FEATURES_COUNT }, (_, i) => trimmed[i] ?? "")
+}
+
 function defaultVariantRow(commissionPct: string): ProductVariantLine {
   const n = Math.round(Number(commissionPct))
   const commission = Number.isFinite(n) ? Math.min(50, Math.max(1, n)) : 20
@@ -218,6 +225,7 @@ export function SupplierAddProductForm({
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [descriptionBullets, setDescriptionBullets] = useState<string[]>([""])
+  const [aiStoryLoading, setAiStoryLoading] = useState(false)
   const [descriptionIllustrationImages, setDescriptionIllustrationImages] = useState<string[]>([])
   const [descriptionIllustrationVideos, setDescriptionIllustrationVideos] = useState<string[]>([])
   const [categoryId, setCategoryId] = useState("")
@@ -488,6 +496,38 @@ export function SupplierAddProductForm({
       })
     }
   }, [])
+
+  const handleGenerateStoryWithAi = useCallback(async () => {
+    setAiStoryLoading(true)
+    try {
+      const res = await fetch("/api/products/classify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: name.trim(), description: description.trim() }),
+      })
+      let data: { title?: string; bulletPoints?: unknown }
+      try {
+        data = (await res.json()) as { title?: string; bulletPoints?: unknown }
+      } catch {
+        toast.error("IA indisponible, remplis manuellement")
+        return
+      }
+      const rawBullets = Array.isArray(data.bulletPoints)
+        ? data.bulletPoints.filter((x): x is string => typeof x === "string")
+        : []
+      const hasBullets = rawBullets.some((b) => b.trim().length > 0)
+      if (!res.ok || !hasBullets) {
+        toast.error("IA indisponible, remplis manuellement")
+        return
+      }
+      if (data.title?.trim()) setName(data.title.trim().slice(0, 500))
+      setDescriptionBullets(bulletsForAiCopy(rawBullets))
+    } catch {
+      toast.error("IA indisponible, remplis manuellement")
+    } finally {
+      setAiStoryLoading(false)
+    }
+  }, [name, description])
 
   const handleUrlImportApply = useCallback((patch: UrlImportApplyPayload) => {
     setName(patch.name)
@@ -1553,9 +1593,27 @@ export function SupplierAddProductForm({
                       description="Name and description appear to affiliates and on your storefront."
                     >
                       <div>
-                        <Label htmlFor="p-name">
-                          Product name <span className="text-red-600">*</span>
-                        </Label>
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <Label htmlFor="p-name" className="mb-0">
+                            Title <span className="text-red-600">*</span>
+                          </Label>
+                          <Button
+                            type="button"
+                            size="sm"
+                            disabled={aiStoryLoading}
+                            onClick={() => void handleGenerateStoryWithAi()}
+                            className="gap-1.5 bg-violet-600 text-white shadow-sm shadow-violet-600/20 hover:bg-violet-700 disabled:opacity-60"
+                          >
+                            {aiStoryLoading ? (
+                              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                            ) : (
+                              <span className="text-sm leading-none" aria-hidden>
+                                ✨
+                              </span>
+                            )}
+                            {aiStoryLoading ? "Génération..." : "Générer avec IA"}
+                          </Button>
+                        </div>
                         <Input
                           id="p-name"
                           className="mt-1.5 h-11"
@@ -1589,9 +1647,9 @@ export function SupplierAddProductForm({
                         />
                       </div>
                       <div>
-                        <Label className="text-zinc-800 dark:text-zinc-100">About this item (bullet points)</Label>
+                        <Label className="text-zinc-800 dark:text-zinc-100">Key features</Label>
                         <p className="mt-0.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-                          Structured selling points shoppers see first on the product page (like marketplace “About
+                          Up to five selling points shoppers see first on the product page (like marketplace “About
                           this item”).
                         </p>
                         <div className="mt-2 space-y-2">
