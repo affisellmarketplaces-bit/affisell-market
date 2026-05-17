@@ -8,7 +8,19 @@ import { config } from "dotenv"
 config({ path: ".env.local", override: true })
 
 import { getVeoAuthSource } from "../lib/veo-auth"
-import { generateVeoProductVideo } from "../lib/veo-video"
+import { uploadVideoToVercelBlob } from "../lib/video-storage"
+import {
+  downloadGcsUri,
+  extractVideoBytesFromVeoResponse,
+  formatToVeoAspectRatio,
+  getVeoConfig,
+  pollVeoOperation,
+  resolveVeoDurationSeconds,
+  veoPredictLongRunning,
+} from "../lib/veo-video"
+
+const PROMPT =
+  "A ginger cat wearing a beret dancing in Paris street, 4k, cinematic, no phone, no product"
 
 async function main() {
   if (!process.env.BLOB_READ_WRITE_TOKEN?.trim()) {
@@ -17,23 +29,35 @@ async function main() {
   }
 
   console.log("Auth:", getVeoAuthSource())
+  console.log("Prompt:", PROMPT)
 
+  const config = getVeoConfig()
+  const format = "9:16" as const
   const started = Date.now()
-  const result = await generateVeoProductVideo({
-    productId: "test-product",
-    userPrompt: "iPhone product showcase, sleek studio lighting, premium tech ad",
-    format: "9:16",
-    product: {
-      name: "iPhone 15 Pro",
-      description: "Latest Apple smartphone with titanium design.",
-      attributes: [{ label: "Storage", value: "256GB" }],
+
+  const { operationName } = await veoPredictLongRunning(config, {
+    instances: [{ prompt: PROMPT }],
+    parameters: {
+      aspectRatio: formatToVeoAspectRatio(format),
+      durationSeconds: resolveVeoDurationSeconds(format),
+      sampleCount: 1,
+      generateAudio: false,
     },
-    pollTimeoutMs: 90_000,
   })
 
+  const donePayload = await pollVeoOperation(operationName, { timeoutMs: 90_000, intervalMs: 3_000 })
+
+  let { bytes, gcsUri } = extractVideoBytesFromVeoResponse(donePayload)
+  if (bytes.length === 0 && gcsUri) {
+    bytes = await downloadGcsUri(gcsUri)
+  }
+
+  const operationId = operationName.split("/").pop() ?? operationName
+  const videoUrl = await uploadVideoToVercelBlob(bytes, operationId)
+
   console.log("✅ Pipeline OK", {
-    jobId: result.jobId,
-    videoUrl: result.videoUrl,
+    jobId: operationId,
+    videoUrl,
     elapsedSec: Math.round((Date.now() - started) / 1000),
   })
 }

@@ -9,7 +9,7 @@ import { getVeoConfig, veoOperationPollUrl, veoPredictLongRunning } from "../lib
 async function main() {
   const cfg = getVeoConfig()
   const body = {
-    instances: [{ prompt: "test cat" }],
+    instances: [{ prompt: "A ginger cat dancing in Paris, 4k, cinematic" }],
     parameters: { durationSeconds: 4, aspectRatio: "9:16", sampleCount: 1 },
   }
   const { operationName, raw } = await veoPredictLongRunning(cfg, body)
