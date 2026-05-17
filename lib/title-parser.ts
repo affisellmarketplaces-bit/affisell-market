@@ -40,7 +40,13 @@ export function suggestFromTitle(title: string): TitleSuggestions {
 
   if (!lower) return suggestions
 
-  if (/iphone|samsung galaxy|smartphone|pixel|xiaomi|oneplus|huawei/.test(lower)) {
+  if (
+    /smart\s*band|mi\s*band|bracelet\s*connect|montre\s*connect|fitness\s*tracker|galaxy\s*fit|amazfit|fitbit|oura|whoop|honor\s*band|xiaomi\s*band|tracker\s*d.activ|podom[eè]tre\s*connect/i.test(
+      lower
+    )
+  ) {
+    suggestions.categorySlug = "moniteurs-d-activite"
+  } else if (/iphone|samsung galaxy|smartphone|pixel|xiaomi|oneplus|huawei/.test(lower)) {
     suggestions.categorySlug = "telephones-portables-deverrouilles"
   } else if (/macbook|ordinateur portable|laptop|chromebook/.test(lower)) {
     suggestions.categorySlug = "ordinateurs-portables"

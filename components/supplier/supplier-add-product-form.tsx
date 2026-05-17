@@ -47,12 +47,13 @@ import {
 } from "@/lib/supplier-commission"
 import {
   pathFromLeafId,
-  suggestLeafCategoriesFromTitle,
+  suggestLeafCategoriesFromProductText,
   type CategoryPathSegment,
   type RecentCategoryEntry,
 } from "@/lib/category-browse"
 import { suggestFromTitle, titleSuggestionAttributes } from "@/lib/title-parser"
 import { SupplierCategoryPicker, type BrowsePayload } from "@/components/supplier/supplier-category-picker"
+import { useSupplierCategoryAiSuggestions } from "@/components/supplier/use-supplier-category-ai-suggestions"
 import {
   mergeCoreCategoryAttrs,
   missingRequiredCategorySpecs,
@@ -246,6 +247,13 @@ export function SupplierAddProductForm({
   const [recentCategories, setRecentCategories] = useState<RecentCategoryEntry[]>([])
   const [loadingBrowse, setLoadingBrowse] = useState(true)
   const [debouncedName] = useDebounce(name, 500)
+
+  const categoryMatchDescription = useMemo(() => {
+    const bullets = descriptionBullets.map((s) => s.trim()).filter(Boolean).join(" ")
+    return [description.trim(), bullets].filter(Boolean).join("\n")
+  }, [description, descriptionBullets])
+
+  const [debouncedCategoryDescription] = useDebounce(categoryMatchDescription, 500)
   const [categoryAiTag, setCategoryAiTag] = useState(false)
   const categoryIdRef = useRef(categoryId)
   const lastTitleParserKeyRef = useRef<string | null>(null)
@@ -331,8 +339,16 @@ export function SupplierAddProductForm({
 
   const keywordCategorySuggestions = useMemo(() => {
     if (!browse || debouncedName.trim().length < 2) return []
-    return suggestLeafCategoriesFromTitle(debouncedName, browse.leafPaths, 3)
-  }, [browse, debouncedName])
+    return suggestLeafCategoriesFromProductText(
+      debouncedName,
+      debouncedCategoryDescription,
+      browse.leafPaths,
+      3
+    )
+  }, [browse, debouncedName, debouncedCategoryDescription])
+
+  const { aiSuggestions: categoryAiSuggestions, aiLoading: categoryAiLoading } =
+    useSupplierCategoryAiSuggestions(debouncedName, debouncedCategoryDescription, browse)
 
   useEffect(() => {
     const title = debouncedName.trim()
@@ -1750,8 +1766,8 @@ export function SupplierAddProductForm({
                               setCategoryAiTag(false)
                             }}
                             keywordSuggestions={keywordCategorySuggestions}
-                            aiSuggestions={[]}
-                            aiLoading={false}
+                            aiSuggestions={categoryAiSuggestions}
+                            aiLoading={categoryAiLoading}
                             loading={loadingBrowse}
                           />
                         </div>

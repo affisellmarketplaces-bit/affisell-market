@@ -98,6 +98,7 @@ Règles:
 - Utilise UNIQUEMENT des chaînes "category" identiques à une ligne de la liste (copie exacte).
 - 1 à 3 suggestions, meilleure confiance en premier.
 - confidence entre 0 et 1.
+- Montres/bracelets connectés, smart bands, trackers d'activité → catégories "Moniteurs d'activité" / moniteurs biométriques, jamais connecteurs électroniques ni générateurs de bruit blanc.
 
 LISTE AUTORISÉE:
 ${listBlock}`

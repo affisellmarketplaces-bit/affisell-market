@@ -1,5 +1,12 @@
 import type { PrismaClient } from "@prisma/client"
 
+import {
+  scoreProductTextAgainstBreadcrumb,
+  suggestLeafCategoriesFromProductText,
+} from "@/lib/category-title-match"
+
+export { scoreProductTextAgainstBreadcrumb, suggestLeafCategoriesFromProductText } from "@/lib/category-title-match"
+
 export type BrowseNode = {
   id: string
   name: string
@@ -172,37 +179,8 @@ export async function fetchAllCategoriesForBrowse(prisma: PrismaClient): Promise
   }))
 }
 
-const STOP = new Set([
-  "the",
-  "and",
-  "for",
-  "with",
-  "from",
-  "this",
-  "that",
-  "your",
-  "pack",
-  "set",
-  "new",
-])
-
 export function scoreTitleAgainstBreadcrumb(title: string, breadcrumb: string): number {
-  const words = title
-    .toLowerCase()
-    .split(/[^a-z0-9]+/i)
-    .map((w) => w.trim())
-    .filter((w) => w.length > 2 && !STOP.has(w))
-  if (words.length === 0) return 0
-  const b = breadcrumb.toLowerCase()
-  let score = 0
-  for (const w of words) {
-    /** Longer tokens (e.g. “laptop”) beat short homonyms (e.g. “air” in “MacBook Air”). */
-    const lengthBonus = Math.min(w.length, 10) * 0.35
-    if (b.includes(w)) score += 3 + lengthBonus
-    const stem = w.slice(0, 4)
-    if (stem.length >= 3 && b.includes(stem)) score += 1
-  }
-  return score
+  return scoreProductTextAgainstBreadcrumb(title, breadcrumb)
 }
 
 const MAX_CATALOG_LINES_FOR_AI = 280
@@ -245,38 +223,7 @@ export function leafPathsForAiCatalog(
 }
 
 export function suggestLeafCategoriesFromTitle(title: string, leafPaths: LeafPath[], limit = 3): LeafPath[] {
-  const t = title.trim()
-  if (!t) return []
-
-  const scored = leafPaths
-    .map((lp) => ({
-      lp,
-      s: scoreTitleAgainstBreadcrumb(t, lp.breadcrumb),
-    }))
-    .sort((a, b) => b.s - a.s)
-
-  const picked: LeafPath[] = []
-  const seen = new Set<string>()
-  for (const { lp, s } of scored) {
-    if (picked.length >= limit) break
-    if (seen.has(lp.leafId)) continue
-    if (s > 0) {
-      seen.add(lp.leafId)
-      picked.push(lp)
-    }
-  }
-
-  if (picked.length < limit) {
-    for (const lp of leafPaths) {
-      if (picked.length >= limit) break
-      if (!seen.has(lp.leafId)) {
-        seen.add(lp.leafId)
-        picked.push(lp)
-      }
-    }
-  }
-
-  return picked.slice(0, limit)
+  return suggestLeafCategoriesFromProductText(title, "", leafPaths, limit)
 }
 
 export type RecentCategoryEntry = { leafId: string; path: CategoryPathSegment[] }

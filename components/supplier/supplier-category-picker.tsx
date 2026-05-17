@@ -275,10 +275,10 @@ export function SupplierCategoryPicker({
         <div className="rounded-lg border border-sky-200 bg-gradient-to-br from-sky-50 to-indigo-50/80 p-4 dark:border-sky-900/60 dark:from-sky-950/40 dark:to-indigo-950/30">
           <div className="flex items-center gap-2 text-sm font-semibold text-sky-950 dark:text-sky-100">
             <Sparkles className="h-4 w-4 shrink-0 text-sky-600" aria-hidden />
-            AI picks for this title
+            Suggestions IA
           </div>
           <p className="mt-1 text-xs text-sky-900/80 dark:text-sky-200/80">
-            From your title — pick one row to apply.
+            Analyse du titre et de la description — choisissez une ligne pour appliquer.
           </p>
           {aiLoading ? (
             <ul className="mt-3 space-y-2">
@@ -288,7 +288,7 @@ export function SupplierCategoryPicker({
                   className="flex items-center gap-2 rounded-md border border-sky-100/80 bg-white/60 px-3 py-3 dark:border-sky-900/40 dark:bg-zinc-950/50"
                 >
                   <Loader2 className="h-4 w-4 animate-spin text-sky-600" aria-hidden />
-                  <span className="text-xs text-sky-800/70 dark:text-sky-200/70">Analyzing title…</span>
+                  <span className="text-xs text-sky-800/70 dark:text-sky-200/70">Analyse en cours…</span>
                 </li>
               ))}
             </ul>
@@ -313,10 +313,10 @@ export function SupplierCategoryPicker({
       {keywordOnly.length > 0 ? (
         <div className="rounded-lg border border-teal-200 bg-teal-50/80 p-4 dark:border-teal-900 dark:bg-teal-950/30">
           <div className="flex items-center gap-2 text-sm font-semibold text-teal-950 dark:text-teal-100">
-            Quick keyword matches
+            Correspondances rapides
           </div>
           <p className="mt-1 text-xs text-teal-900/75 dark:text-teal-200/75">
-            From the product title (local match).
+            Correspondance locale (titre + description), sans catégories aléatoires.
           </p>
           <ul className="mt-3 space-y-2">
             {keywordOnly.map((lp) => (

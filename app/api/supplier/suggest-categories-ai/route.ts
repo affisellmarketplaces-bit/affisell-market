@@ -6,8 +6,8 @@ import {
   buildCategoryBrowse,
   fetchAllCategoriesForBrowse,
   leafPathsForAiCatalog,
-  scoreTitleAgainstBreadcrumb,
-  suggestLeafCategoriesFromTitle,
+  scoreProductTextAgainstBreadcrumb,
+  suggestLeafCategoriesFromProductText,
   type LeafPath,
 } from "@/lib/category-browse"
 import { prisma } from "@/lib/prisma"
@@ -35,7 +35,7 @@ function mergeSuggestionsByTitleRelevance(
   return combined
     .map((lp) => ({
       lp,
-      s: scoreTitleAgainstBreadcrumb(text, lp.breadcrumb),
+      s: scoreProductTextAgainstBreadcrumb(text, lp.breadcrumb),
       tie: aiRank.get(lp.leafId) ?? 0,
     }))
     .sort((a, b) => (b.s !== a.s ? b.s - a.s : b.tie - a.tie))
@@ -74,7 +74,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ suggestions: [], source: "empty" as const })
   }
 
-  const keywordFallback = suggestLeafCategoriesFromTitle(title, leafPaths, 6)
+  const keywordFallback = suggestLeafCategoriesFromProductText(title, description, leafPaths, 6)
 
   if (!process.env.GROQ_API_KEY?.trim()) {
     return NextResponse.json({ suggestions: keywordFallback, source: "keyword" as const })
