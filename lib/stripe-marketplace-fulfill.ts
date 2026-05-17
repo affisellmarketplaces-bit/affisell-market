@@ -10,6 +10,7 @@ import { computeMarketplaceOrderSettlement } from "@/lib/marketplace-order-settl
 import { createMarketplaceOrderNotifications } from "@/lib/marketplace-order-notifications"
 import { prisma } from "@/lib/prisma"
 import {
+  commissionRateForOption,
   marketplaceSellingPriceCentsForOption,
   marketplaceWholesaleCentsForOption,
   variantsFromDb,
@@ -67,7 +68,11 @@ async function createPaidMarketplaceOrder(
   const settlement = computeMarketplaceOrderSettlement({
     sellingPriceCents: args.paidLineCents,
     basePriceCents,
-    supplierCommissionRatePercent: listing.product.commissionRate,
+    supplierCommissionRatePercent: commissionRateForOption({
+      variants,
+      optionName,
+      productCommissionRate: listing.product.commissionRate,
+    }),
   })
 
   const order = await tx.order.create({

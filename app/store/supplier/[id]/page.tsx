@@ -10,6 +10,7 @@ import {
   type SupplierStorefrontListingSerializable,
 } from "@/components/supplier/supplier-storefront-browse"
 import { primaryProductImage } from "@/lib/product-images"
+import { formatVariantCommissionRange, variantSkuPricingSummary, variantsFromDb } from "@/lib/product-variants"
 import { formatStoreCount } from "@/lib/market-config"
 import { prisma } from "@/lib/prisma"
 
@@ -115,6 +116,7 @@ export default async function SupplierStorePreviewPage({ params }: { params: Pro
         createdAt: true,
         tags: true,
         deliveryMax: true,
+        variants: true,
       },
     }),
     prisma.affiliateProduct.groupBy({
@@ -142,11 +144,19 @@ export default async function SupplierStorePreviewPage({ params }: { params: Pro
 
   const listings: SupplierStorefrontListingSerializable[] = products.map((p) => {
     const compareNum = p.compareAt != null ? Number(p.compareAt) : null
+    const skuPricing = variantSkuPricingSummary(
+      variantsFromDb(p.variants),
+      p.basePriceCents
+    )
     return {
       id: p.id,
       name: p.name,
       basePriceCents: p.basePriceCents,
-      commissionRate: p.commissionRate,
+      commissionRate: skuPricing?.commissionMax ?? p.commissionRate,
+      commissionDisplay: skuPricing
+        ? formatVariantCommissionRange(skuPricing)
+        : `${p.commissionRate}%`,
+      variants: p.variants,
       listingKind: p.listingKind,
       stock: p.stock,
       imageUrl: primaryProductImage(p.images) || "/placeholder.png",

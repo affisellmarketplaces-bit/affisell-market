@@ -18,6 +18,11 @@ import {
 
 import { ILLUSTRATIVE_RETAIL_MARKUP_PCT, illustrativePartnerShareUsd } from "@/lib/affiliate-earnings-hint"
 import { formatStoreCurrency, formatStoreCurrencyFromCents } from "@/lib/market-config"
+import {
+  formatVariantCommissionRange,
+  variantSkuPricingSummary,
+  variantsFromDb,
+} from "@/lib/product-variants"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { cn } from "@/lib/utils"
 
@@ -36,6 +41,9 @@ export type SupplierStorefrontListingSerializable = {
   deliveryMax: number
   /** Distinct affiliate listings live for this product (social proof). */
   partnerListingCount: number
+  /** When set, commission varies by SKU choice. */
+  commissionDisplay?: string
+  variants?: unknown
 }
 
 const KIND_LABEL: Record<string, string> = {
@@ -256,9 +264,13 @@ export function SupplierStorefrontBrowse({
               typeof img === "string" &&
               (img.startsWith("http://") || img.startsWith("https://") || img.startsWith("/uploads"))
             const partners = p.partnerListingCount ?? 0
+            const skuPricing = variantSkuPricingSummary(variantsFromDb(p.variants), p.basePriceCents)
+            const commissionDisplay =
+              p.commissionDisplay ??
+              (skuPricing ? formatVariantCommissionRange(skuPricing) : `${p.commissionRate}%`)
             const shareHint = illustrativePartnerShareUsd({
               basePriceCents: p.basePriceCents,
-              commissionRatePct: p.commissionRate,
+              commissionRatePct: skuPricing?.commissionMax ?? p.commissionRate,
               retailMarkupPct: ILLUSTRATIVE_RETAIL_MARKUP_PCT,
             })
             const topAdoption = maxPartnerCount >= 2 && partners === maxPartnerCount && partners > 0
@@ -342,7 +354,8 @@ export function SupplierStorefrontBrowse({
                         <Percent className="h-3.5 w-3.5 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
                         <span>
                           <span className="font-medium text-violet-900 dark:text-violet-100">
-                            Commission offered: {p.commissionRate}%
+                            Commission: {commissionDisplay}
+                            {skuPricing ? " (par choix)" : ""}
                           </span>
                         </span>
                       </span>

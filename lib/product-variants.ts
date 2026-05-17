@@ -183,3 +183,58 @@ export function marketplaceWholesaleCentsForOption(args: {
   const row = findVariantRowByOptionName(args.variants, args.optionName)
   return row && row.priceCents > 0 ? row.priceCents : base
 }
+
+/** Commission % for settlement: SKU line override, else product default. */
+export function commissionRateForOption(args: {
+  variants: ProductVariantsJson | null
+  optionName?: string | null
+  productCommissionRate: number
+}): number {
+  const fallback = Math.min(100, Math.max(0, Math.round(args.productCommissionRate)))
+  const row = findVariantRowByOptionName(args.variants, args.optionName)
+  if (!row) return fallback
+  return Math.min(100, Math.max(0, Math.round(row.commission)))
+}
+
+export type VariantSkuPricingSummary = {
+  rows: ProductVariantLine[]
+  wholesaleMinCents: number
+  wholesaleMaxCents: number
+  commissionMin: number
+  commissionMax: number
+}
+
+export function variantSkuPricingSummary(
+  variants: ProductVariantsJson | null,
+  productBasePriceCents: number
+): VariantSkuPricingSummary | null {
+  const rows = variants?.variantRows ?? []
+  if (rows.length === 0) return null
+  const base = Math.max(0, Math.round(productBasePriceCents))
+  const wholesale = rows.map((r) => (r.priceCents > 0 ? r.priceCents : base))
+  const commissions = rows.map((r) => Math.min(100, Math.max(0, Math.round(r.commission))))
+  return {
+    rows,
+    wholesaleMinCents: Math.min(...wholesale),
+    wholesaleMaxCents: Math.max(...wholesale),
+    commissionMin: Math.min(...commissions),
+    commissionMax: Math.max(...commissions),
+  }
+}
+
+function formatCentsRange(minCents: number, maxCents: number, fmt: (c: number) => string): string {
+  if (minCents === maxCents) return fmt(minCents)
+  return `${fmt(minCents)} – ${fmt(maxCents)}`
+}
+
+export function formatVariantWholesaleRange(
+  summary: VariantSkuPricingSummary,
+  fmt: (cents: number) => string
+): string {
+  return formatCentsRange(summary.wholesaleMinCents, summary.wholesaleMaxCents, fmt)
+}
+
+export function formatVariantCommissionRange(summary: VariantSkuPricingSummary): string {
+  if (summary.commissionMin === summary.commissionMax) return `${summary.commissionMin}%`
+  return `${summary.commissionMin}% – ${summary.commissionMax}%`
+}

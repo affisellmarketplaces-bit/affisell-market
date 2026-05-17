@@ -22,7 +22,12 @@ import { buttonVariants } from "@/components/ui/button"
 import { listingGalleryUrls } from "@/lib/affiliate-listing-display"
 import { shippingCountryLabel } from "@/lib/product-shipping-display"
 import { parseProductColorImagesFromDb } from "@/lib/product-color-images"
-import { variantsFromDb } from "@/lib/product-variants"
+import {
+  formatVariantCommissionRange,
+  formatVariantWholesaleRange,
+  variantSkuPricingSummary,
+  variantsFromDb,
+} from "@/lib/product-variants"
 import { formatStoreCurrency, formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { cn } from "@/lib/utils"
 
@@ -92,6 +97,10 @@ export function SupplierAffiliateEvalPreview({
   const kindShort = KIND_LABEL[kindKey] ?? kindKey.replace(/_/g, " ").toLowerCase()
 
   const variantSummary = variantsFromDb(product.variants)
+  const skuPricing = useMemo(
+    () => variantSkuPricingSummary(variantSummary, product.basePriceCents),
+    [variantSummary, product.basePriceCents]
+  )
   const colorRows = parseProductColorImagesFromDb(product.colorImages) ?? []
   const visible = product.active && !product.isDraft
   const desc = product.description?.trim() ?? ""
@@ -334,8 +343,12 @@ export function SupplierAffiliateEvalPreview({
                     <BadgePercent className="h-3 w-3" aria-hidden />
                     Commission offered
                   </p>
-                  <p className="mt-2 text-xl font-bold tabular-nums text-violet-950 dark:text-violet-100">{product.commissionRate}%</p>
-                  <p className="mt-1 text-[11px] leading-snug text-violet-800/90 dark:text-violet-200/80">Share of partner margin on sales</p>
+                  <p className="mt-2 text-xl font-bold tabular-nums text-violet-950 dark:text-violet-100">
+                    {skuPricing ? formatVariantCommissionRange(skuPricing) : `${product.commissionRate}%`}
+                  </p>
+                  <p className="mt-1 text-[11px] leading-snug text-violet-800/90 dark:text-violet-200/80">
+                    {skuPricing ? "Par choix SKU (lignes)" : "Part de la marge partenaire"}
+                  </p>
                 </div>
                 <div className="col-span-2 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Inventory</p>
@@ -343,6 +356,43 @@ export function SupplierAffiliateEvalPreview({
                   <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Partners inherit this stock signal in their tools.</p>
                 </div>
               </div>
+
+              {skuPricing ? (
+                <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
+                  <p className="border-b border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-semibold text-zinc-800 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200">
+                    Tarifs par choix (SKU lines) — coût fournisseur &amp; commission
+                  </p>
+                  <table className="w-full min-w-[420px] text-left text-sm">
+                    <thead className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">
+                      <tr>
+                        <th className="px-3 py-2">Choix</th>
+                        <th className="px-3 py-2">Coût</th>
+                        <th className="px-3 py-2">Comm.</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {skuPricing.rows.map((row) => (
+                        <tr key={row.id} className="border-t border-zinc-100 dark:border-zinc-800">
+                          <td className="px-3 py-2 font-medium text-zinc-900 dark:text-zinc-100">{row.name}</td>
+                          <td className="px-3 py-2 tabular-nums text-zinc-700 dark:text-zinc-300">
+                            {formatStoreCurrencyFromCents(
+                              row.priceCents > 0 ? row.priceCents : product.basePriceCents
+                            )}
+                          </td>
+                          <td className="px-3 py-2 tabular-nums text-violet-800 dark:text-violet-300">
+                            {row.commission}%
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <p className="border-t border-zinc-100 px-3 py-2 text-[11px] text-zinc-500 dark:border-zinc-800">
+                    Fourchette coût :{" "}
+                    {formatVariantWholesaleRange(skuPricing, formatStoreCurrencyFromCents)} · Commission :{" "}
+                    {formatVariantCommissionRange(skuPricing)}
+                  </p>
+                </div>
+              ) : null}
 
               <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
                 Partners set their own resale price and storefront presentation; those shopper-facing details are not

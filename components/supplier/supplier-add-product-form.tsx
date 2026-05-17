@@ -1984,7 +1984,11 @@ export function SupplierAddProductForm({
                       </div>
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                          Each row needs a label (e.g. “Black / M”). Leave price blank to use your base price.
+                          Chaque ligne = un choix acheteur (ex. « Noir », « Kaki »).{" "}
+                          <strong className="font-medium text-zinc-700 dark:text-zinc-300">Coût</strong> : votre
+                          prix de base par SKU (vide = prix catalogue).{" "}
+                          <strong className="font-medium text-zinc-700 dark:text-zinc-300">Comm. %</strong> : part de
+                          la marge affiliée pour ce choix (checkout et paiements).
                         </p>
                         <Button
                           type="button"
@@ -2004,7 +2008,7 @@ export function SupplierAddProductForm({
                             <tr>
                               <th className="px-3 py-2">Label</th>
                               <th className="px-3 py-2">SKU</th>
-                              <th className="px-3 py-2">Price (EUR)</th>
+                              <th className="px-3 py-2">Coût (EUR)</th>
                               <th className="px-3 py-2">Stock</th>
                               <th className="px-3 py-2">Comm. %</th>
                               <th className="w-10 px-2 py-2" />
@@ -2075,7 +2079,7 @@ export function SupplierAddProductForm({
                                           )
                                         )
                                       }}
-                                      placeholder="Base"
+                                      placeholder={price.trim() ? "Base" : "—"}
                                     />
                                   </td>
                                   <td className="px-2 py-1.5 align-middle">
@@ -2214,8 +2218,9 @@ export function SupplierAddProductForm({
                         Affiliate commission
                       </h2>
                       <p className="mt-1 text-sm text-violet-900/85 dark:text-violet-200/90">
-                        Share of the affiliate&apos;s margin (their price minus your base) when a sale
-                        completes.
+                        {variantFormMode === "advanced" && variantRows.length > 0
+                          ? "Par défaut pour les nouvelles lignes SKU. La commission par choix est définie dans le tableau « SKU lines »."
+                          : "Part de la marge affiliée (leur prix de vente moins votre coût) à chaque vente."}
                       </p>
                     </div>
                   </div>
