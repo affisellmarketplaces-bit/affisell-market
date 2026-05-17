@@ -45,6 +45,7 @@ import {
   vimeoEmbedSrc,
   youtubeEmbedSrc,
 } from "@/lib/product-description-video-embed"
+import { canDownloadSupplierAdVideos } from "@/lib/marketplace-ad-video-download"
 import {
   comparableImageUrl,
   findColorImageRowForName,
@@ -138,7 +139,7 @@ type Props = {
   }>
   /** PDP views in the last 24h (analytics) — powers a “trending” signal when high enough. */
   viewsLast24h?: number
-  /** Meta AI ad clips ready for affiliate download (TikTok / Meta Ads). */
+  /** Meta AI ad clips — download UI only for supplier / affiliate. */
   adVideos?: Array<{
     id: string
     videoUrl: string
@@ -295,7 +296,15 @@ function DescriptionIllustrativeMedia({
                     loading="lazy"
                   />
                 ) : mp4 ? (
-                  <video src={url} className="aspect-video w-full bg-black" controls playsInline preload="metadata" />
+                  <video
+                    src={url}
+                    className="aspect-video w-full bg-black"
+                    controls
+                    playsInline
+                    preload="metadata"
+                    controlsList="nodownload"
+                    onContextMenu={(e) => e.preventDefault()}
+                  />
                 ) : (
                   <p className="p-3 text-xs text-zinc-500">
                     Unsupported video link — use YouTube, Vimeo, or a direct .mp4 URL.
@@ -449,6 +458,8 @@ export function MarketplaceListingDetail({
   const [alertSaved, setAlertSaved] = useState(false)
   const [bundleChecked, setBundleChecked] = useState<Record<string, boolean>>({})
   const [rewardBalanceCents, setRewardBalanceCents] = useState(0)
+  const [viewerRole, setViewerRole] = useState<string | null>(null)
+  const canDownloadAdVideos = canDownloadSupplierAdVideos(viewerRole)
   const [useRewardCents, setUseRewardCents] = useState(0)
 
   const colorMeta = useMemo(() => {
@@ -574,7 +585,9 @@ export function MarketplaceListingDetail({
       try {
         const sessionRes = await fetch("/api/auth/session", { credentials: "include", cache: "no-store" })
         if (!sessionRes.ok || cancelled) return
-        const session = (await sessionRes.json()) as { user?: { id?: string } } | null
+        const session = (await sessionRes.json()) as { user?: { id?: string; role?: string } } | null
+        if (cancelled) return
+        setViewerRole(session?.user?.role ?? null)
         if (!session?.user?.id || cancelled) return
         const br = await fetch("/api/account/buyer-reward-balance", {
           credentials: "include",
@@ -808,6 +821,8 @@ export function MarketplaceListingDetail({
                   controls
                   playsInline
                   preload="metadata"
+                  controlsList="nodownload"
+                  onContextMenu={(e) => e.preventDefault()}
                 />
               </div>
             ) : null}
@@ -1086,7 +1101,7 @@ export function MarketplaceListingDetail({
               </div>
             </div>
 
-            {adVideos.length > 0 ? (
+            {canDownloadAdVideos && adVideos.length > 0 ? (
               <div className="rounded-2xl border border-violet-200/80 bg-violet-50/50 p-4 dark:border-violet-900/50 dark:bg-violet-950/25">
                 <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                   Vidéo pub prête pour vos ads

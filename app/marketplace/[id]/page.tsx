@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation"
 
+import { auth } from "@/auth"
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
+import { canDownloadSupplierAdVideos } from "@/lib/marketplace-ad-video-download"
 import {
   listingDisplayDescription,
   listingDisplayTitle,
@@ -20,6 +22,11 @@ export const dynamic = "force-dynamic"
 
 export default async function MarketplaceListingPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+  const session = await auth()
+  const allowAdVideoDownload = canDownloadSupplierAdVideos(
+    (session?.user as { role?: string } | undefined)?.role
+  )
+
   const listing = await prisma.affiliateProduct.findFirst({
     where: {
       id,
@@ -225,21 +232,23 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
     .map((row) => ({ label: String(row.label || row.key || "").trim(), value: row.value.trim() }))
     .filter((row) => row.label.length > 0 && row.value.length > 0)
 
-  const adVideos = await prisma.videoGenerationJob.findMany({
-    where: {
-      productId: listing.product.id,
-      status: "DONE",
-      videoUrl: { not: null },
-    },
-    orderBy: { updatedAt: "desc" },
-    take: 5,
-    select: {
-      id: true,
-      videoUrl: true,
-      thumbnailUrl: true,
-      format: true,
-    },
-  })
+  const adVideos = allowAdVideoDownload
+    ? await prisma.videoGenerationJob.findMany({
+        where: {
+          productId: listing.product.id,
+          status: "DONE",
+          videoUrl: { not: null },
+        },
+        orderBy: { updatedAt: "desc" },
+        take: 5,
+        select: {
+          id: true,
+          videoUrl: true,
+          thumbnailUrl: true,
+          format: true,
+        },
+      })
+    : []
 
   let viewsLast24h = 0
   try {
