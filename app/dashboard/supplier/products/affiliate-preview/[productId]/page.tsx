@@ -4,6 +4,7 @@ import type { Metadata } from "next"
 import { auth } from "@/auth"
 import { SupplierAffiliateEvalPreview } from "@/components/supplier/supplier-affiliate-eval-preview"
 import { prisma } from "@/lib/prisma"
+import { serializeProductDecimalFields } from "@/lib/serialize-for-client"
 import { supplierFacingPartnerListingRef } from "@/lib/supplier-partner-listing-ref"
 
 export const dynamic = "force-dynamic"
@@ -99,7 +100,7 @@ export default async function SupplierAffiliatePreviewPage({
 
   return (
     <SupplierAffiliateEvalPreview
-      product={product}
+      product={serializeProductDecimalFields(product)}
       editHref={editHref}
       catalogHref="/dashboard/supplier/products"
       listedAffiliateCount={listedAffiliateCount}

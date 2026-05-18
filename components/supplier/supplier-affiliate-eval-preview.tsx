@@ -47,7 +47,7 @@ type ProductShape = {
   name: string
   description: string
   basePriceCents: number
-  compareAt: unknown
+  compareAt: number | null
   commissionRate: number
   listingKind: string
   stock: number

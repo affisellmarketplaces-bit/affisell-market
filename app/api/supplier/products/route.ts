@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { findSupplierProductsForOwnerApi } from "@/lib/supplier-product-is-draft-fallback"
+import { decimalToNumber } from "@/lib/serialize-for-client"
 import { createNewDropCommunityPost } from "@/lib/community-new-drop"
 import { parseProductAttributesBody } from "@/lib/supplier-product-attributes"
 import { parseProductMarketplaceMeta } from "@/lib/supplier-product-marketplace-meta"
@@ -44,10 +45,9 @@ export async function GET() {
   return Response.json(
     products.map((p) => ({
       ...p,
-      compareAt: p.compareAt != null ? Number(p.compareAt) : null,
-      freeShippingThreshold:
-        p.freeShippingThreshold != null ? Number(p.freeShippingThreshold) : null,
-      shippingCost: Number(p.shippingCost),
+      compareAt: decimalToNumber(p.compareAt),
+      freeShippingThreshold: decimalToNumber(p.freeShippingThreshold),
+      shippingCost: decimalToNumber(p.shippingCost) ?? 0,
     }))
   )
 }

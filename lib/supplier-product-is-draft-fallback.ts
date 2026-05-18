@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client"
 
 import { prisma } from "@/lib/prisma"
+import { serializeProductDecimalFields } from "@/lib/serialize-for-client"
 
 /** Every scalar Product field except isDraft — used when the DB lacks the column or client is stale. */
 const PRODUCT_SCALAR_SELECT_NO_ISDRAFT = {
@@ -111,13 +112,18 @@ export function isDraftSchemaOrDbError(error: unknown): boolean {
   return Boolean(unknownSelect || unknownArg || columnMissing || p2022)
 }
 
+function serializeDashboardCatalogRow<T extends { compareAt: unknown }>(row: T) {
+  return serializeProductDecimalFields(row)
+}
+
 export async function findSupplierProductsForDashboardCatalog(where: { supplierId: string }) {
   try {
-    return await prisma.product.findMany({
+    const rows = await prisma.product.findMany({
       where,
       orderBy: { updatedAt: "desc" },
       select: SUPPLIER_DASHBOARD_CATALOG_SELECT_WITH_ISDRAFT,
     })
+    return rows.map(serializeDashboardCatalogRow)
   } catch (e: unknown) {
     if (!isDraftSchemaOrDbError(e)) throw e
     const rows = await prisma.product.findMany({
@@ -125,21 +131,26 @@ export async function findSupplierProductsForDashboardCatalog(where: { supplierI
       orderBy: { updatedAt: "desc" },
       select: SUPPLIER_DASHBOARD_CATALOG_SELECT_NO_ISDRAFT,
     })
-    return rows.map((r) => ({ ...r, isDraft: false }))
+    return rows.map((r) => serializeDashboardCatalogRow({ ...r, isDraft: false }))
   }
 }
 
-export type SupplierDashboardCatalogProduct = Awaited<
-  ReturnType<typeof findSupplierProductsForDashboardCatalog>
->[number]
+export type SupplierDashboardCatalogProduct = Omit<
+  Prisma.ProductGetPayload<{ select: typeof SUPPLIER_DASHBOARD_CATALOG_SELECT_WITH_ISDRAFT }>,
+  "compareAt"
+> & {
+  compareAt: number | null
+  isDraft: boolean
+}
 
 export async function findSupplierProductsForOwnerApi(where: { supplierId: string }) {
   try {
-    return await prisma.product.findMany({
+    const rows = await prisma.product.findMany({
       where,
       orderBy: { name: "asc" },
       select: PRODUCT_SCALAR_SELECT_WITH_ISDRAFT,
     })
+    return rows.map(serializeProductDecimalFields)
   } catch (e: unknown) {
     if (!isDraftSchemaOrDbError(e)) throw e
     const rows = await prisma.product.findMany({
@@ -147,18 +158,19 @@ export async function findSupplierProductsForOwnerApi(where: { supplierId: strin
       orderBy: { name: "asc" },
       select: PRODUCT_SCALAR_SELECT_NO_ISDRAFT,
     })
-    return rows.map((r) => ({ ...r, isDraft: false }))
+    return rows.map((r) => serializeProductDecimalFields({ ...r, isDraft: false }))
   }
 }
 
 export async function findSupplierProductWithAttributesForOwner(id: string, supplierId: string) {
   try {
-    return await prisma.product.findFirst({
+    const row = await prisma.product.findFirst({
       where: { id, supplierId },
       include: {
         attributes: { orderBy: { key: "asc" } },
       },
     })
+    return row === null ? null : serializeProductDecimalFields(row)
   } catch (e: unknown) {
     if (!isDraftSchemaOrDbError(e)) throw e
     const row = await prisma.product.findFirst({
@@ -168,7 +180,7 @@ export async function findSupplierProductWithAttributesForOwner(id: string, supp
         attributes: { orderBy: { key: "asc" } },
       },
     })
-    return row === null ? null : { ...row, isDraft: false }
+    return row === null ? null : serializeProductDecimalFields({ ...row, isDraft: false })
   }
 }
 
