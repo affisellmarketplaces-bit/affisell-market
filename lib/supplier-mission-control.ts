@@ -1,6 +1,7 @@
 import { primaryProductImage } from "@/lib/product-images"
 import { TERMINAL_RETURN_STATUSES } from "@/lib/order-return-types"
 import { loadOrdersToShipSla } from "@/lib/supplier-ship-sla"
+import { loadSupplierWeeklyGoal, type SupplierWeeklyGoalSnapshot } from "@/lib/supplier-weekly-goal"
 import { prisma } from "@/lib/prisma"
 
 const MARKETPLACE_COUNTABLE = ["paid", "preparing", "shipped", "refunded"] as const
@@ -66,6 +67,7 @@ export type SupplierMissionControlData = {
   urgent: SupplierUrgentSnapshot
   metrics7d: SupplierMetrics7d
   growth: SupplierGrowthSnapshot
+  weeklyGoal: SupplierWeeklyGoalSnapshot | null
 }
 
 export function pctChange(current: number, previous: number): number | null {
@@ -301,7 +303,7 @@ export async function loadSupplierMissionControl(
 
   const storePromise = prisma.store.findUnique({
     where: { userId: supplierUserId },
-    select: { name: true, slug: true },
+    select: { name: true, slug: true, createdAt: true },
   })
 
   const [
@@ -350,6 +352,8 @@ export async function loadSupplierMissionControl(
     loadDormantSkus(supplierUserId),
   ])
 
+  const weeklyGoal = await loadSupplierWeeklyGoal(supplierUserId, store?.createdAt ?? null)
+
   const current = aggregateOrders(currentOrders)
   const previous = aggregateOrders(previousOrders)
 
@@ -384,5 +388,6 @@ export async function loadSupplierMissionControl(
       totalSkus,
       dormantSkus,
     },
+    weeklyGoal,
   }
 }
