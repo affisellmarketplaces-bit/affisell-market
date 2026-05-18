@@ -32,7 +32,7 @@ import { toast } from "sonner"
 
 import { BentoShell } from "@/components/affisell/bento-ui"
 import { AttachProductVideoActions } from "@/components/attach-product-video-actions"
-import { SupplierDescriptionIllustrationFields } from "@/components/supplier/supplier-description-illustration-fields"
+import { SupplierProductDescriptionField } from "@/components/supplier/supplier-product-description-field"
 import { SupplierProductImageUpload } from "@/components/supplier/supplier-product-image-upload"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -1691,7 +1691,7 @@ export function SupplierAddProductForm({
                                 ✨
                               </span>
                             )}
-                            {aiStoryLoading ? "Génération..." : "Générer avec IA"}
+                            {aiStoryLoading ? "Génération..." : "Titre & points clés IA"}
                           </Button>
                         </div>
                         <Input
@@ -1703,16 +1703,22 @@ export function SupplierAddProductForm({
                           maxLength={500}
                         />
                       </div>
-                      <div>
-                        <Label htmlFor="p-desc">Description</Label>
-                        <textarea
-                          id="p-desc"
-                          className="mt-1.5 min-h-[132px] w-full rounded-xl border border-zinc-200 bg-zinc-50/50 px-3 py-2.5 text-sm outline-none transition focus:border-violet-400 focus:bg-white dark:border-zinc-700 dark:bg-zinc-900/50 dark:focus:border-violet-600"
-                          value={description}
-                          onChange={(e) => setDescription(e.target.value)}
-                          placeholder="Highlights, materials, who it’s for—what affiliates should know"
-                        />
-                      </div>
+                      <SupplierProductDescriptionField
+                        description={description}
+                        onDescriptionChange={setDescription}
+                        illustrationImages={descriptionIllustrationImages}
+                        onIllustrationImagesChange={setDescriptionIllustrationImages}
+                        illustrationVideos={descriptionIllustrationVideos}
+                        onIllustrationVideosChange={setDescriptionIllustrationVideos}
+                        productTitle={name}
+                        productGalleryImages={images}
+                        descriptionBullets={descriptionBullets}
+                        onBulletPointsGenerated={(bullets) =>
+                          setDescriptionBullets(bulletsForAiCopy(bullets))
+                        }
+                        categoryPathLabel={categoryPathLabel}
+                        disabled={aiStoryLoading}
+                      />
                       <div>
                         <Label className="text-zinc-800 dark:text-zinc-100">Key features</Label>
                         <p className="mt-0.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
@@ -1760,12 +1766,6 @@ export function SupplierAddProductForm({
                           </Button>
                         </div>
                       </div>
-                      <SupplierDescriptionIllustrationFields
-                        images={descriptionIllustrationImages}
-                        onImagesChange={setDescriptionIllustrationImages}
-                        videos={descriptionIllustrationVideos}
-                        onVideosChange={setDescriptionIllustrationVideos}
-                      />
                     </SectionCard>
                   </div>
 
