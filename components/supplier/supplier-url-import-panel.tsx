@@ -65,6 +65,7 @@ export function SupplierUrlImportPanel({ categoryAttrs, commissionPct, onApply }
         error?: string
         platform?: string
         method?: string
+        warnings?: string[]
       }
       if (!res.ok) throw new Error(data.error ?? "Import impossible")
 
@@ -94,6 +95,10 @@ export function SupplierUrlImportPanel({ categoryAttrs, commissionPct, onApply }
       if (patch.variants.mode !== "none") bits.push("variantes")
       if (patch.brand === GENERIC_BRAND_LABEL) bits.push("marque : Generic")
       else if (patch.brand) bits.push(`marque : ${patch.brand}`)
+
+      if (Array.isArray(data.warnings) && data.warnings.length > 0) {
+        toast.warning(data.warnings.join(" "))
+      }
 
       toast.success(
         bits.length

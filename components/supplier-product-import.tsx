@@ -475,7 +475,11 @@ export function SupplierProductImport() {
           },
         }),
       })
-      const data = (await res.json()) as { products?: unknown[]; error?: string }
+      const data = (await res.json()) as {
+        products?: unknown[]
+        error?: string
+        warnings?: string[]
+      }
       if (!res.ok) throw new Error(data.error ?? "Import failed")
       const rows = Array.isArray(data.products) ? data.products : []
       setImportedProducts(
@@ -483,6 +487,9 @@ export function SupplierProductImport() {
           normalizeImportPreviewRow(typeof r === "object" && r ? (r as Record<string, unknown>) : {})
         )
       )
+      if (Array.isArray(data.warnings) && data.warnings.length > 0) {
+        setNotice(data.warnings.join(" "))
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Import failed")
       setImportedProducts([])

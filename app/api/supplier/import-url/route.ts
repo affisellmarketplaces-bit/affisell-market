@@ -3,6 +3,16 @@ import * as cheerio from "cheerio"
 
 import { auth } from "@/auth"
 import { groqChatText } from "@/lib/ai/groq-client"
+import {
+  detectImportPlatform,
+  extractWindowJson,
+  fetchHtmlWithScrapingBee,
+  getScrapingBeeApiKey,
+  normalizeImportUrl,
+  parseAliExpressHtml,
+  scrapingBeeMissingMessage,
+  type AliExpressParseInput,
+} from "@/lib/import-url-scrape"
 import { mirrorImportedVideosToR2 } from "@/lib/import-video-r2"
 import { prisma } from "@/lib/prisma"
 
@@ -169,13 +179,7 @@ function hdImage(raw: string): string {
 }
 
 function detectPlatform(url: string): Platform {
-  const host = url.toLowerCase()
-  if (host.includes("aliexpress.com")) return "aliexpress"
-  if (host.includes("amazon.")) return "amazon"
-  if (host.includes("/products/") || host.includes("myshopify.com")) return "shopify"
-  if (host.includes("shein.com")) return "shein"
-  if (host.includes("temu.com")) return "temu"
-  return "universal"
+  return detectImportPlatform(url)
 }
 
 function parseDate(raw: string): string {
@@ -257,10 +261,11 @@ export async function POST(req: NextRequest) {
       url?: string
       options?: { markup?: number; aiRewrite?: boolean }
     }
-    const url = txt(body.url)
-    if (!url) return NextResponse.json({ error: "Missing URL" }, { status: 400 })
+    const rawUrl = txt(body.url)
+    if (!rawUrl) return NextResponse.json({ error: "Missing URL" }, { status: 400 })
 
-    const platform = detectPlatform(url)
+    const platform = detectPlatform(rawUrl)
+    const url = normalizeImportUrl(rawUrl, platform)
     let product: ImportedProduct | null = null
     let method = "direct"
 
@@ -273,14 +278,37 @@ export async function POST(req: NextRequest) {
       console.warn("Tier 1 failed:", error)
     }
 
-    if (!product?.title && process.env.SCRAPINGBEE_API_KEY) {
-      method = "scrapingbee"
-      product = await scrapeWithScrapingBee(url, platform)
+    const needsScrapingBee =
+      platform === "aliexpress" &&
+      (!product?.title || !product.price || product.images.length === 0)
+
+    const scrapingBeeKey = getScrapingBeeApiKey()
+    if (needsScrapingBee && scrapingBeeKey) {
+      try {
+        const { html, strategy } = await fetchHtmlWithScrapingBee(url, platform, scrapingBeeKey)
+        method = `scrapingbee:${strategy}`
+        product = parseProductHTML(html, url, platform)
+      } catch (beeError: unknown) {
+        const msg = beeError instanceof Error ? beeError.message : ""
+        const quotaExhausted = /limit reached|credits exhausted|402/i.test(msg)
+        if (!product?.title || !quotaExhausted) throw beeError
+        console.warn("ScrapingBee unavailable, using partial direct import:", msg)
+        method = "direct-partial"
+      }
     }
 
     if (!product?.title) {
+      if (!scrapingBeeKey) {
+        throw new Error(scrapingBeeMissingMessage(platform))
+      }
       throw new Error(
-        "Import failed. For AliExpress: Add SCRAPINGBEE_API_KEY to .env.local. Get free key at scrapingbee.com"
+        "Could not extract product data from this page. Try www.aliexpress.com/item/… or verify ScrapingBee credits on your dashboard."
+      )
+    }
+
+    if (platform === "aliexpress" && product.price <= 0) {
+      console.warn(
+        "AliExpress import: price not found in page — supplier should confirm cost before publishing."
       )
     }
 
@@ -316,11 +344,24 @@ export async function POST(req: NextRequest) {
       product.videos = await mirrorImportedVideosToR2(product.videos, 2)
     }
 
+    const warnings: string[] = []
+    if (platform === "aliexpress" && product.price <= 0) {
+      warnings.push(
+        "Prix fournisseur introuvable sur la page — renseignez le coût à la main avant publication. Un import ScrapingBee complet nécessite des crédits API actifs."
+      )
+    }
+    if (method === "direct-partial") {
+      warnings.push(
+        "Import partiel (ScrapingBee indisponible ou quota épuisé). Titre et images récupérés ; vérifiez prix et variantes."
+      )
+    }
+
     return NextResponse.json({
       products: [product],
       success: true,
       platform,
       method,
+      warnings,
       innovations: {
         quality_score: product.quality_score,
         duplicate: product.is_duplicate,
@@ -337,27 +378,6 @@ export async function POST(req: NextRequest) {
       { status: 422 }
     )
   }
-}
-
-async function scrapeWithScrapingBee(
-  url: string,
-  platform: Platform
-): Promise<ImportedProduct> {
-  const apiKey = process.env.SCRAPINGBEE_API_KEY
-  if (!apiKey) throw new Error("SCRAPINGBEE_API_KEY is missing")
-  const params = new URLSearchParams({
-    api_key: apiKey,
-    url,
-    render_js: "true",
-    premium_proxy: "true",
-    country_code: "us",
-  })
-  const res = await fetch(`https://app.scrapingbee.com/api/v1/?${params}`, {
-    signal: AbortSignal.timeout(45000),
-  })
-  if (!res.ok) throw new Error("ScrapingBee failed")
-  const html = await res.text()
-  return parseProductHTML(html, url, platform)
 }
 
 async function scrapeWithDirectFetch(
@@ -385,20 +405,19 @@ function parseProductHTML(
   const $ = cheerio.load(html)
 
   if (platform === "aliexpress") {
-    let aerData: Record<string, unknown> | null = null
-    $("script").each((_, el) => {
-      const content = $(el).html() || ""
-      if (!content.includes("__AER_DATA__")) return
-      const m = content.match(/window\.__AER_DATA__\s*=\s*({[\s\S]*?});/m)
-      if (!m?.[1]) return
-      try {
-        aerData = JSON.parse(m[1]) as Record<string, unknown>
-      } catch {
-        /* noop */
-      }
-    })
-    if (!aerData) throw new Error("__AER_DATA__ not found")
-    const out = parseAERData(aerData, url)
+    const aer = extractWindowJson(html, ["__AER_DATA__"])
+    if (aer) {
+      const out = parseAERData(aer, url)
+      out.videos = collectVideoUrls(out.videos, extractVideosFromHtml($))
+      return out
+    }
+    const parsed = parseAliExpressHtml(html, url)
+    if (!parsed?.title) {
+      throw new Error(
+        "AliExpress page loaded but product JSON was not found. Retry with www.aliexpress.com or check ScrapingBee credits."
+      )
+    }
+    const out = mergeAliExpressParsed(parsed, url)
     out.videos = collectVideoUrls(out.videos, extractVideosFromHtml($))
     return out
   }
@@ -418,6 +437,38 @@ function parseProductHTML(
   }
 
   throw new Error("Platform not supported yet")
+}
+
+function mergeAliExpressParsed(parsed: AliExpressParseInput, url: string): ImportedProduct {
+  const out = baselineProduct(url, "aliexpress")
+  out.title = parsed.title
+  out.description = parsed.description
+  out.price = parsed.price
+  out.original_price = parsed.original_price || parsed.price
+  out.images = parsed.images
+  out.brand = parsed.brand
+  out.sku = parsed.sku
+  out.stock = parsed.stock
+  out.variants = parsed.variants
+  out.colors = parsed.colors
+  out.sizes = parsed.sizes
+  out.videos = parsed.videos
+  out.shipping = {
+    from_country: parsed.shipping.from_country,
+    delivery_time: parsed.shipping.delivery_time,
+    shipping_cost: 0,
+    carrier: "Standard",
+  }
+  out.reviews = {
+    total: parsed.reviews.total,
+    average_rating: parsed.reviews.average_rating,
+    breakdown: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
+    items: [],
+    sentiment: globalSentiment(parsed.reviews.average_rating),
+  }
+  out.category = "AliExpress Product"
+  out.tags = generateSEO(out.title, out.category)
+  return out
 }
 
 function parseAERData(aerData: Record<string, unknown>, url: string): ImportedProduct {
