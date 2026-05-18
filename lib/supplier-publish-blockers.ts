@@ -32,8 +32,14 @@ export const PUBLISH_FIELD_SCROLL_ID: Record<PublishFieldKey, string> = {
   variants: "add-product-variants",
 }
 
-export function publishBlockerStep(field: PublishFieldKey): 1 | 2 {
-  return field === "name" || field === "images" || field === "category" || field === "specs" ? 1 : 2
+export function publishBlockerStep(field: PublishFieldKey): 1 | 2 | 3 {
+  if (field === "name" || field === "images" || field === "category" || field === "specs") {
+    return 1
+  }
+  if (field === "price" || field === "compareAt" || field === "variants") {
+    return 2
+  }
+  return 3
 }
 
 export const PUBLISH_SECTION_ERROR_CLASS =

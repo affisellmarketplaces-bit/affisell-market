@@ -17,7 +17,6 @@ import {
   Plus,
   Trash2,
   Package,
-  Save,
   Sparkles,
   Globe2,
   Layers,
@@ -56,12 +55,18 @@ import {
   type CategoryPickOrigin,
 } from "@/components/supplier/supplier-category-picker"
 import { SupplierDeleteDraftButton } from "@/components/supplier/supplier-delete-draft-button"
-import { SupplierDraftSaveControl } from "@/components/supplier/supplier-draft-save-control"
 import {
   SupplierVariantTable,
   type EditableVariantRow,
 } from "@/components/supplier/supplier-variant-table"
-import { SupplierListingReadinessPanel } from "@/components/supplier/supplier-listing-readiness-panel"
+import { ProductWizard } from "@/components/supplier/ProductWizard"
+import { SupplierSimulationCard } from "@/components/supplier/supplier-simulation-card"
+import { SupplierSkuErrorsAlert } from "@/components/supplier/supplier-sku-errors-alert"
+import {
+  SupplierWizardQualityPanel,
+  type WizardQualityItem,
+} from "@/components/supplier/supplier-wizard-quality-panel"
+import { useSupplierProductWizardStore, type WizardStep } from "@/stores/supplier-product-wizard-store"
 import { useSupplierCategorySuggestions } from "@/components/supplier/use-supplier-category-suggestions"
 import {
   mergeCoreCategoryAttrs,
@@ -173,7 +178,7 @@ function defaultVariantRow(commissionPct: string): ProductVariantLine {
 /** Step 1 background sync must not send variant snapshot fields (server preserves DB when keys are omitted). */
 function omitVariantSnapshotForDraftStep1(
   body: Record<string, unknown>,
-  step: 1 | 2
+  step: WizardStep
 ): Record<string, unknown> {
   if (step !== 1) return body
   const rest = { ...body }
@@ -275,7 +280,14 @@ export function SupplierAddProductForm({
   const [draftSyncAt, setDraftSyncAt] = useState<number | null>(null)
   const [pendingDraftListingId, setPendingDraftListingId] = useState("")
   const [productIsDraft, setProductIsDraft] = useState(false)
-  const [step, setStep] = useState<1 | 2>(1)
+  const step = useSupplierProductWizardStore((s) => s.step)
+  const trySetStep = useSupplierProductWizardStore((s) => s.trySetStep)
+  const nextWizardStep = useSupplierProductWizardStore((s) => s.nextStep)
+  const prevWizardStep = useSupplierProductWizardStore((s) => s.prevStep)
+  const setStep1Valid = useSupplierProductWizardStore((s) => s.setStep1Valid)
+  const setStep2Valid = useSupplierProductWizardStore((s) => s.setStep2Valid)
+  const setSkuErrors = useSupplierProductWizardStore((s) => s.setSkuErrors)
+  const skuErrors = useSupplierProductWizardStore((s) => s.skuErrors)
 
   const autosaveListingId = editId || draftIdFromUrl || pendingDraftListingId
   const lastAutosaveJson = useRef("")
@@ -1120,7 +1132,7 @@ export function SupplierAddProductForm({
     hydratedFromCache.current = true
     if (!c) return
     if (Date.now() - c.updatedAt > 14 * 24 * 60 * 60 * 1000) return
-    setStep(c.step)
+    trySetStep((Math.min(3, Math.max(1, c.step ?? 1)) as WizardStep) || 1)
     setName(c.name)
     setDescription(c.description)
     setCategoryId(c.categoryId)
@@ -1234,7 +1246,7 @@ export function SupplierAddProductForm({
   )
 
   const buildDraftSyncBody = useCallback(
-    (forStep: 1 | 2) => {
+    (forStep: WizardStep) => {
       const full = assembleListingPayload(true) as Record<string, unknown>
       return forStep === 1 ? omitVariantSnapshotForDraftStep1(full, 1) : full
     },
@@ -1242,7 +1254,7 @@ export function SupplierAddProductForm({
   )
 
   const syncDraftToServer = useCallback(
-    async (opts?: { silent?: boolean; force?: boolean; stepOverride?: 1 | 2 }) => {
+    async (opts?: { silent?: boolean; force?: boolean; stepOverride?: WizardStep }) => {
       if (!canSaveDraft || loadingProduct || saving) return false
 
       const syncStep = opts?.stepOverride ?? step
@@ -1291,7 +1303,7 @@ export function SupplierAddProductForm({
         setDraftSync("saved")
         setDraftSyncAt(Date.now())
         if (!productIsDraft) setProductIsDraft(true)
-        if (!opts?.silent) toast.success("Brouillon enregistré")
+        if (!opts?.silent) toast.success("Brouillon sauvegardé")
         return true
       } catch (e) {
         setDraftSync("error")
@@ -1574,38 +1586,6 @@ export function SupplierAddProductForm({
 
   const hasVariants = variantFormMode !== "none"
 
-  const steps = [
-    { n: 1 as const, title: "Listing & media", hint: "Story, category, visuals" },
-    { n: 2 as const, title: "Pricing & publish", hint: "Economics & go-live" },
-  ] as const
-
-  const headerMeta =
-    editId && !productIsDraft
-      ? {
-          kicker: "Edit listing",
-          title: "Refine your product",
-          blurb: "Adjust story, visuals, specs, marketplace delivery, and economics before saving.",
-        }
-      : productIsDraft
-        ? {
-            kicker: "Draft listing",
-            title: assistShortcuts ? "Draft with assists" : "Manual draft",
-            blurb:
-              "Synced to your supplier account in the background—plus a local backup in this browser. Nothing is public until you publish.",
-          }
-        : assistShortcuts
-          ? {
-              kicker: "Assist mode",
-              title: "Draft your listing",
-              blurb:
-                "Use optional URL import and AI tools below—then finalize category labels and imagery. Pricing is step 2.",
-            }
-          : {
-              kicker: "New listing",
-              title: "Manual listing",
-              blurb: "Story, category, and images here; price, stock, shipping, and commission in step 2.",
-            }
-
   const scrollToSection = useCallback((id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" })
   }, [])
@@ -1635,7 +1615,7 @@ export function SupplierAddProductForm({
 
       const first = blockers[0]!
       const targetStep = publishBlockerStep(first.field)
-      if (step !== targetStep) setStep(targetStep)
+      if (step !== targetStep) trySetStep(targetStep)
 
       window.setTimeout(() => {
         document
@@ -1649,7 +1629,104 @@ export function SupplierAddProductForm({
           : `Publication impossible : ${blockers.length} point${blockers.length > 1 ? "s" : ""} à corriger (zones encadrées en rouge).`
       )
     },
-    [step]
+    [step, trySetStep]
+  )
+
+  const step1Complete = useMemo(
+    () =>
+      step1Checklist.title &&
+      step1Checklist.category &&
+      step1Checklist.specs &&
+      step1Checklist.images,
+    [step1Checklist]
+  )
+
+  const step2Complete = useMemo(() => {
+    const priceOk = Number(price) > 0 && !priceError && !compareError
+    const skuOk =
+      skuValidationIssues.length === 0 &&
+      (variantFormMode !== "simple" || simpleColorIssues.length === 0)
+    return priceOk && skuOk
+  }, [
+    price,
+    priceError,
+    compareError,
+    skuValidationIssues.length,
+    variantFormMode,
+    simpleColorIssues.length,
+  ])
+
+  useEffect(() => {
+    setStep1Valid(step1Complete)
+  }, [step1Complete, setStep1Valid])
+
+  useEffect(() => {
+    setStep2Valid(step2Complete)
+  }, [step2Complete, setStep2Valid])
+
+  useEffect(() => {
+    setSkuErrors(skuValidationIssues)
+  }, [skuValidationIssues, setSkuErrors])
+
+  const wizardQualityItems: WizardQualityItem[] = useMemo(
+    () => [
+      { id: "title", label: "Titre", done: step1Checklist.title, anchorId: "p-name" },
+      {
+        id: "category",
+        label: "Catégorie",
+        done: step1Checklist.category,
+        anchorId: "add-product-classify",
+      },
+      { id: "specs", label: "Specs", done: step1Checklist.specs, anchorId: "product-spec-fields" },
+      { id: "photos", label: "Photos", done: step1Checklist.images, anchorId: "add-product-media" },
+      {
+        id: "price",
+        label: "Prix",
+        done: Number(price) > 0 && !priceError,
+        anchorId: "add-product-pricing",
+      },
+    ],
+    [step1Checklist, price, priceError]
+  )
+
+  const simulationSupplierPrice = useMemo(() => {
+    if (variantFormMode === "advanced") {
+      const row = advancedSkuRows.find((r) => r.color.trim() && r.supplierPrice > 0)
+      if (row) return row.supplierPrice
+    }
+    const n = Number(price)
+    return Number.isFinite(n) && n > 0 ? n : 0
+  }, [variantFormMode, advancedSkuRows, price])
+
+  const simulationCommission = useMemo(() => {
+    if (variantFormMode === "advanced" && advancedSkuRows.length > 0) {
+      const row = advancedSkuRows.find((r) => r.color.trim())
+      if (row) return row.commissionRate
+    }
+    return Math.round(Number(commission) || 15)
+  }, [variantFormMode, advancedSkuRows, commission])
+
+  const simulationCard = (
+    <SupplierSimulationCard
+      supplierPriceEur={simulationSupplierPrice}
+      commissionPct={simulationCommission}
+      compareAtEur={compareAt.trim() ? Number(compareAt) : null}
+      shipsFrom={shipsFrom.trim() || undefined}
+      deliveryDays={
+        deliveryDays.trim() && Number.isFinite(Number(deliveryDays))
+          ? Math.round(Number(deliveryDays))
+          : null
+      }
+      warehouseCode={warehouseType || shippingCountry.trim() || null}
+      processingDays={
+        processingTime.trim() && Number.isFinite(Number(processingTime))
+          ? Math.round(Number(processingTime))
+          : null
+      }
+      shippingCostEur={Number(shippingCost) || 0}
+      freeShipping={freeShipping}
+      className="lg:top-24 lg:sticky"
+    />
   )
 
   const publishValidationContext = useMemo(
@@ -1719,207 +1796,24 @@ export function SupplierAddProductForm({
   return (
     <>
       <BentoShell>
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-          <header className="relative overflow-hidden rounded-3xl border border-violet-200/60 bg-white/85 shadow-sm shadow-violet-500/5 ring-1 ring-black/[0.03] backdrop-blur-md dark:border-violet-900/40 dark:bg-zinc-950/75 dark:ring-white/10">
-            <div
-              className="pointer-events-none absolute inset-0 opacity-[0.45] dark:opacity-[0.2]"
-              style={{
-                backgroundImage: `
-                radial-gradient(ellipse 80% 55% at 15% -10%, rgba(139,92,246,0.28), transparent 50%),
-                radial-gradient(ellipse 60% 45% at 92% 8%, rgba(20,184,166,0.2), transparent 45%),
-                radial-gradient(circle at 50% 100%, rgba(139,92,246,0.06), transparent 55%)
-              `,
-              }}
-              aria-hidden
-            />
-            <div className="relative p-6 sm:p-8">
-              <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
-                <div className="min-w-0 flex-1 space-y-4">
-                  {onBackToMethods ? (
-                    <button
-                      type="button"
-                      onClick={onBackToMethods}
-                      className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-teal-700 transition hover:text-teal-900 dark:text-teal-400 dark:hover:text-teal-300"
-                    >
-                      <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden />
-                      Other listing methods
-                    </button>
-                  ) : null}
-                  <div className="inline-flex items-center gap-2 rounded-full border border-violet-200/80 bg-violet-50/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-violet-800 dark:border-violet-800 dark:bg-violet-950/60 dark:text-violet-200">
-                    <Sparkles className="h-3.5 w-3.5" aria-hidden />
-                    Supplier hub
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-600 dark:text-violet-400">
-                      {headerMeta.kicker}
-                    </p>
-                    <h1 className="mt-1 text-balance text-3xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
-                      {headerMeta.title}
-                    </h1>
-                    <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 sm:text-[15px]">
-                      {headerMeta.blurb}
-                    </p>
-                    {canSaveDraft ? (
-                      <div className="mt-3 hidden space-y-2 lg:block">
-                        <SupplierDraftSaveControl
-                          syncState={draftSync}
-                          savedAt={draftSyncAt}
-                          disabled={saving}
-                          onSave={handleSaveDraftClick}
-                        />
-                        {autosaveListingId ? (
-                          <SupplierDeleteDraftButton
-                            productId={autosaveListingId}
-                            productName={name}
-                            redirectTo={
-                              onBackToMethods
-                                ? "/dashboard/supplier/products/new"
-                                : "/dashboard/supplier/products?drafts=1"
-                            }
-                          />
-                        ) : null}
-                      </div>
-                    ) : null}
-                  </div>
-                  <nav className="flex flex-wrap gap-2 sm:gap-2.5" aria-label="Quick links">
-                    {(
-                      [
-                        { label: "My catalog", href: "/dashboard/supplier/products", Icon: Package },
-                        { label: "Store profile", href: "/dashboard/supplier/settings/store", Icon: Store },
-                        { label: "Storefront look", href: "/dashboard/supplier/storefront", Icon: Globe2 },
-                        { label: "Account & security", href: "/dashboard/settings/account", Icon: UserRound },
-                      ] as const
-                    ).map(({ label, href, Icon }) => (
-                      <button
-                        key={label}
-                        type="button"
-                        onClick={() => router.push(href)}
-                        className="group inline-flex items-center gap-2 rounded-xl border border-zinc-200/90 bg-white/90 px-3.5 py-2 text-left text-[13px] font-medium text-zinc-800 shadow-sm transition hover:border-violet-300/70 hover:bg-violet-50/50 hover:text-violet-900 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100 dark:hover:border-violet-700 dark:hover:bg-violet-950/40 dark:hover:text-violet-100"
-                      >
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-violet-100 to-teal-50 text-violet-700 dark:from-violet-950 dark:to-teal-950/50 dark:text-violet-300">
-                          <Icon className="h-4 w-4" aria-hidden />
-                        </span>
-                        <span className="min-w-0 flex-1 truncate">{label}</span>
-                        <ChevronRight
-                          className="h-4 w-4 shrink-0 text-zinc-400 transition group-hover:translate-x-0.5 group-hover:text-violet-600 dark:group-hover:text-violet-400"
-                          aria-hidden
-                        />
-                      </button>
-                    ))}
-                  </nav>
-                </div>
-                <div className="flex w-full shrink-0 flex-col gap-2 sm:flex-row lg:w-auto lg:flex-col xl:max-w-[300px]">
-                  {canSaveDraft ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      disabled={draftSync === "saving" || saving}
-                      onClick={handleSaveDraftClick}
-                      className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-2xl border-violet-200/90 bg-violet-50/90 text-sm font-semibold text-violet-900 shadow-sm hover:bg-violet-100 dark:border-violet-800/60 dark:bg-violet-950/40 dark:text-violet-100 dark:hover:bg-violet-950/70"
-                      title="Enregistrer comme brouillon"
-                    >
-                      {draftSync === "saving" ? (
-                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                      ) : (
-                        <Save className="h-4 w-4 shrink-0" aria-hidden />
-                      )}
-                      Enregistrer brouillon
-                    </Button>
-                  ) : null}
-                  <Link
-                    href="/dashboard/supplier/products"
-                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100"
-                  >
-                    <Package className="h-4 w-4 shrink-0" aria-hidden />
-                    View catalog
-                  </Link>
-                  {!onBackToMethods ? (
-                    <Link
-                      href="/dashboard/supplier/bulk-import"
-                      className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
-                    >
-                      Bulk Excel import
-                    </Link>
-                  ) : null}
-                  <button
-                    type="button"
-                    onClick={() => void signOut({ callbackUrl: "/" })}
-                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
-                  >
-                    <LogOut className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
-                    Sign out
-                  </button>
-                </div>
-              </div>
-            </div>
-          </header>
+        <ProductWizard
+          breadcrumb={[
+            { label: "Catalogue", href: "/dashboard/supplier/products" },
+            {
+              label: editId
+                ? productIsDraft
+                  ? "Brouillon"
+                  : "Modifier le produit"
+                : "Nouveau produit",
+            },
+          ]}
+          onSaveDraft={canSaveDraft ? () => void handleSaveDraftClick() : undefined}
+          savingDraft={draftSync === "saving" || saving}
+          onBack={onBackToMethods}
+          qualityPanel={<SupplierWizardQualityPanel items={wizardQualityItems} />}
+        >
+          <div className="space-y-10">
 
-        {canSaveDraft ? (
-          <div className="mt-4 rounded-2xl border border-violet-200/50 bg-violet-50/40 px-4 py-3 dark:border-violet-900/40 dark:bg-violet-950/20 lg:hidden">
-            <SupplierDraftSaveControl
-              syncState={draftSync}
-              savedAt={draftSyncAt}
-              disabled={saving}
-              onSave={handleSaveDraftClick}
-              layout="stacked"
-            />
-          </div>
-        ) : null}
-
-        <nav className="mt-8" aria-label="Form steps">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch sm:justify-between sm:gap-6">
-            <div className="grid w-full grid-cols-1 overflow-hidden rounded-3xl border border-gray-100 bg-white/80 shadow-sm shadow-violet-500/[0.04] ring-1 ring-black/[0.02] backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/75 dark:ring-white/[0.04] sm:grid-cols-2">
-              {steps.map(({ n, title, hint }, i) => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => setStep(n)}
-                  className={cn(
-                    "relative flex items-start gap-3 px-4 py-4 text-left transition sm:px-6 sm:py-5",
-                    i === 0 && "sm:border-r sm:border-gray-100 dark:sm:border-zinc-800",
-                    step === n
-                      ? "bg-violet-50/60 ring-2 ring-inset ring-violet-400/35 dark:bg-violet-950/25 dark:ring-violet-400/30"
-                      : "hover:bg-gray-50/80 dark:hover:bg-zinc-800/40"
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold transition",
-                      step === n
-                        ? "bg-violet-600 text-white shadow-lg shadow-violet-500/35"
-                        : "bg-zinc-200 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300"
-                    )}
-                  >
-                    {n}
-                  </span>
-                  <span className="min-w-0 flex-1 pr-6">
-                    <span className="flex items-center gap-2">
-                      <span className="block text-sm font-semibold text-zinc-900 dark:text-zinc-50">{title}</span>
-                      {n === 1 && step === 2 ? (
-                        <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" aria-hidden />
-                      ) : null}
-                    </span>
-                    <span className="mt-0.5 block text-xs leading-snug text-zinc-500 dark:text-zinc-400">
-                      {hint}
-                    </span>
-                  </span>
-                </button>
-              ))}
-            </div>
-            <div className="flex shrink-0 flex-col justify-center rounded-3xl border border-gray-100 bg-white/80 px-4 py-4 text-center shadow-sm backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/75 sm:min-w-[7.5rem]">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500">
-                Progress
-              </p>
-              <p className="mt-1 text-lg font-bold tabular-nums text-zinc-900 dark:text-zinc-50">
-                {step}
-                <span className="text-sm font-semibold text-zinc-400 dark:text-zinc-500"> /2</span>
-              </p>
-            </div>
-          </div>
-        </nav>
-
-        <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_20rem] lg:items-start lg:gap-12">
-          <div className="min-w-0 space-y-10">
             {publishBlockers.length > 0 ? (
               <div
                 role="alert"
@@ -2233,30 +2127,7 @@ export function SupplierAddProductForm({
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-3 rounded-3xl border border-violet-200/60 bg-gradient-to-r from-violet-50/70 via-white/90 to-white px-4 py-4 shadow-sm ring-1 ring-violet-500/10 backdrop-blur-sm dark:border-violet-900/40 dark:from-violet-950/30 dark:via-zinc-950 dark:to-zinc-950 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                  <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                    <span className="font-medium text-zinc-900 dark:text-zinc-100">Étape 2</span> — prix, stock,
-                    variantes et commission affiliés.
-                  </p>
-                  <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-                  {canSaveDraft ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="lg"
-                      disabled={draftSync === "saving" || saving}
-                      onClick={handleSaveDraftClick}
-                      className="w-full shrink-0 gap-1.5 border-violet-200 sm:w-auto"
-                      title="Enregistrer comme brouillon"
-                    >
-                      {draftSync === "saving" ? (
-                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                      ) : (
-                        <Save className="h-4 w-4" aria-hidden />
-                      )}
-                      Brouillon
-                    </Button>
-                  ) : null}
+                <div className="flex flex-col gap-3 border-t border-zinc-200 pt-6 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-end">
                   <Button
                     type="button"
                     size="lg"
@@ -2274,18 +2145,17 @@ export function SupplierAddProductForm({
                       }
                       setPublishBlockers([])
                       setSpecFormErrors([])
-                      setStep(2)
+                      nextWizardStep()
                     }}
                   >
-                    Continuer — tarifs
+                    Continuer — variantes & prix
                   </Button>
-                  </div>
                 </div>
               </>
-            ) : (
+            ) : step === 2 ? (
               <>
-                <div className="grid gap-8 xl:grid-cols-2 xl:gap-x-10 xl:items-start">
-                  <div className="space-y-8">
+                <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(220px,30%)] lg:items-start">
+                  <div className="min-w-0 space-y-8">
                 <SectionCard
                   id="add-product-pricing"
                   icon={Wallet}
@@ -2613,6 +2483,7 @@ export function SupplierAddProductForm({
                           : 2
                       }
                       disabled={saving}
+                      hideHeaderStats
                     />
                   ) : (
                     <p className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -2620,8 +2491,47 @@ export function SupplierAddProductForm({
                     </p>
                   )}
                 </SectionCard>
+                    <SupplierSkuErrorsAlert issues={skuValidationIssues} />
+                    <div className="lg:hidden">{simulationCard}</div>
                   </div>
-                  <div className="space-y-8">
+                  <div className="hidden lg:block">{simulationCard}</div>
+                </div>
+
+                <div className="flex flex-col gap-3 border-t border-zinc-200 pt-6 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-between">
+                  <Button type="button" variant="outline" size="lg" onClick={prevWizardStep}>
+                    Retour à la fiche
+                  </Button>
+                  <Button
+                    type="button"
+                    size="lg"
+                    className="bg-violet-600 hover:bg-violet-700 dark:bg-violet-600"
+                    disabled={
+                      skuErrors.length > 0 ||
+                      (variantFormMode === "simple" && simpleColorIssues.length > 0) ||
+                      !step2Complete
+                    }
+                    onClick={() => {
+                      const blockers = collectClientPublishBlockers(publishValidationContext)
+                      const step2Only = blockers.filter((b) =>
+                        ["price", "compareAt", "variants"].includes(b.field)
+                      )
+                      if (step2Only.length > 0) {
+                        applyPublishBlockers(step2Only)
+                        return
+                      }
+                      setPublishBlockers((prev) =>
+                        prev.filter((b) => !["price", "compareAt", "variants"].includes(b.field))
+                      )
+                      nextWizardStep()
+                    }}
+                  >
+                    Continuer — logistique
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="space-y-8">
                 <SectionCard
                   icon={Globe2}
                   title="Marketplace delivery"
@@ -2836,67 +2746,13 @@ export function SupplierAddProductForm({
                     </div>
                   </details>
                 </SectionCard>
-
-                {Number.isFinite(Number(price)) && Number(price) > 0 ? (
-                  <div className="rounded-3xl border border-gray-100 bg-white/80 p-5 shadow-sm backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/70">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                      Aperçu catalogue affiliés
-                    </p>
-                    <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
-                      Votre prix :{" "}
-                      <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                        {formatMoneyDisplay(Number(price))}
-                      </span>
-                      {" · "}Commission :{" "}
-                      <span className="font-semibold text-violet-800 dark:text-violet-200">
-                        {Math.round(Number(commission) || 0)}%
-                      </span>
-                      {compareAt.trim() && Number(compareAt) > Number(price) ? (
-                        <>
-                          {" "}
-                          · Barré :{" "}
-                          <span className="text-compare-at tabular-nums line-through">
-                            {formatMoneyDisplay(Number(compareAt))}
-                          </span>
-                        </>
-                      ) : null}
-                    </p>
-                    {affiliateCatalogPreviewLine ? (
-                      <p className="mt-2 text-sm font-medium text-violet-900/90 dark:text-violet-200/90">
-                        {affiliateCatalogPreviewLine}
-                      </p>
-                    ) : null}
-                    <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-                      Le prix affiché aux acheteurs est choisi par chaque affilié sur sa boutique.
-                    </p>
-                  </div>
-                ) : null}
-                </div>
                 </div>
 
                 <div className="flex flex-col gap-3 border-t border-zinc-200 pt-6 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-between">
-                  <Button type="button" variant="outline" size="lg" onClick={() => setStep(1)}>
-                    Retour à la fiche
+                  <Button type="button" variant="outline" size="lg" onClick={prevWizardStep}>
+                    Retour — variantes & prix
                   </Button>
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                    {canSaveDraft ? (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="lg"
-                        disabled={draftSync === "saving" || saving}
-                        onClick={handleSaveDraftClick}
-                        className="gap-1.5 border-violet-200"
-                        title="Enregistrer comme brouillon"
-                      >
-                        {draftSync === "saving" ? (
-                          <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                        ) : (
-                          <Save className="h-4 w-4" aria-hidden />
-                        )}
-                        Enregistrer brouillon
-                      </Button>
-                    ) : null}
                     <Button
                       type="button"
                       size="lg"
@@ -2919,24 +2775,7 @@ export function SupplierAddProductForm({
               </>
             )}
           </div>
-
-          <aside className="hidden lg:block">
-            <div className="sticky top-24">
-              <SupplierListingReadinessPanel
-                step={step}
-                checks={step1Checklist}
-                productLabel={name}
-                categoryLabel={categoryPathLabel}
-                priceLabel={
-                  Number.isFinite(Number(price)) && Number(price) > 0
-                    ? formatMoneyDisplay(Number(price))
-                    : null
-                }
-              />
-            </div>
-          </aside>
-        </div>
-      </div>
+        </ProductWizard>
       </BentoShell>
     </>
   )

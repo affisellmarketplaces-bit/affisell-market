@@ -14,7 +14,7 @@ export type SupplierSimpleColorRow = { id: string; name: string; image: string }
 export type SupplierAddProductCachePayload = {
   v: 1
   mode: SupplierAddProductCacheMode
-  step: 1 | 2
+  step: 1 | 2 | 3
   updatedAt: number
   name: string
   description: string

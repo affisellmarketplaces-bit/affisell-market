@@ -82,6 +82,8 @@ type Props = {
   disabled?: boolean
   className?: string
   tableId?: string
+  /** Hide stock total + inline error count in header (wizard shows alert below). */
+  hideHeaderStats?: boolean
 }
 
 export function SupplierVariantTable({
@@ -101,6 +103,7 @@ export function SupplierVariantTable({
   disabled,
   className,
   tableId = "supplier-sku-table",
+  hideHeaderStats = false,
 }: Props) {
   const [mode, setMode] = useState<"fast" | "table">(rows.length === 0 ? "fast" : "table")
   const [customColumnModalOpen, setCustomColumnModalOpen] = useState(false)
@@ -340,7 +343,7 @@ export function SupplierVariantTable({
           <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">SKU Builder</p>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
             Stock total : <strong className="tabular-nums">{totalStock}</strong>
-            {validationIssues.length > 0 ? (
+            {!hideHeaderStats && validationIssues.length > 0 ? (
               <span className="ml-2 font-medium text-red-600 dark:text-red-400">
                 · {validationIssues.length} erreur{validationIssues.length > 1 ? "s" : ""}
               </span>
@@ -545,6 +548,7 @@ export function SupplierVariantTable({
                     return (
                       <tr
                         key={row.id}
+                        data-sku-row={index}
                         ref={isFirstError ? firstErrorRef : undefined}
                         className="bg-white dark:bg-zinc-950"
                       >
