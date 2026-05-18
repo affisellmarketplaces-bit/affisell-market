@@ -31,6 +31,8 @@ function toEditable(rows: ProductVariantApiRow[]): EditableVariantRow[] {
     publicPrice: r.publicPrice,
     stock: r.stock,
     commissionRate: r.commissionRate ?? 10,
+    compareAtEur: null,
+    customFields: {},
     margin: r.margin,
   }))
 }
@@ -153,6 +155,8 @@ export function SupplierProductPricingPanel({ productId }: Props) {
                     publicPrice: Number(price) || 0,
                     stock: Number(stock) || 0,
                     commissionRate: Number(commissionRate) || 15,
+                    compareAtEur: null,
+                    customFields: {},
                     margin: 0,
                   },
                 ])
@@ -171,7 +175,10 @@ export function SupplierProductPricingPanel({ productId }: Props) {
             onChange={setVariantRows}
             disabled={saving}
             basePriceEur={Number(price) || 0}
+            catalogCompareAtEur={null}
             defaultCommission={Math.round(Number(commissionRate) || 15)}
+            customColumns={[]}
+            onCustomColumnsChange={() => {}}
             skuPrefix="PRD"
           />
         </div>

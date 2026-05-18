@@ -21,6 +21,15 @@ export type ProductVariantLine = {
   image?: string
   /** Pricing mode label for supplier UI */
   priceType?: string
+  /** Optional compare-at (cents) for this SKU line */
+  compareAtCents?: number
+  /** Supplier-defined extra columns (unité, volume, …) */
+  attrs?: Record<string, string>
+}
+
+export type SkuCustomColumnMeta = {
+  key: string
+  label: string
 }
 
 export type ProductVariantsJson = {
@@ -31,6 +40,8 @@ export type ProductVariantsJson = {
   model?: string
   /** Optional map color name → image URL for PDP hero swap */
   imageByColor?: Record<string, string>
+  /** Column definitions for supplier SKU table */
+  skuCustomColumns?: SkuCustomColumnMeta[]
   /** Advanced matrix / SKU lines */
   variantRows?: ProductVariantLine[]
 }
@@ -59,9 +70,24 @@ function parseVariantLine(raw: unknown): ProductVariantLine | null {
     typeof r.sales === "number" && Number.isFinite(r.sales) ? Math.max(0, Math.round(r.sales)) : 0
   const imageRaw = typeof r.image === "string" ? r.image.trim().slice(0, 2000) : ""
   const priceTypeRaw = typeof r.priceType === "string" ? r.priceType.trim().slice(0, 32) : ""
+  const compareAtCents =
+    typeof r.compareAtCents === "number" && Number.isFinite(r.compareAtCents)
+      ? Math.max(0, Math.round(r.compareAtCents))
+      : typeof r.compareAtEur === "number" && Number.isFinite(r.compareAtEur)
+        ? Math.max(0, Math.round(r.compareAtEur * 100))
+        : undefined
+  const attrsRaw = r.attrs
   const line: ProductVariantLine = { id, name, sku, priceCents, stock, commission, sales }
   if (imageRaw) line.image = imageRaw
   if (priceTypeRaw) line.priceType = priceTypeRaw
+  if (compareAtCents != null && compareAtCents > 0) line.compareAtCents = compareAtCents
+  if (attrsRaw && typeof attrsRaw === "object" && !Array.isArray(attrsRaw)) {
+    const attrs: Record<string, string> = {}
+    for (const [k, v] of Object.entries(attrsRaw)) {
+      if (typeof v === "string" && v.trim()) attrs[k.slice(0, 32)] = v.trim().slice(0, 120)
+    }
+    if (Object.keys(attrs).length) line.attrs = attrs
+  }
   return line
 }
 
@@ -90,6 +116,17 @@ export function parseVariantsPayload(raw: unknown): ProductVariantsJson | null {
       if (typeof val === "string" && val.trim()) rec[key.trim()] = val.trim()
     }
     if (Object.keys(rec).length) out.imageByColor = rec
+  }
+  if (Array.isArray(o.skuCustomColumns)) {
+    const cols = o.skuCustomColumns
+      .filter((x): x is Record<string, unknown> => x != null && typeof x === "object")
+      .map((c) => ({
+        key: typeof c.key === "string" ? c.key.trim().slice(0, 32) : "",
+        label: typeof c.label === "string" ? c.label.trim().slice(0, 48) : "",
+      }))
+      .filter((c) => c.key.length > 0 && c.label.length > 0)
+      .slice(0, 12)
+    if (cols.length) out.skuCustomColumns = cols
   }
   if (Array.isArray(o.variantRows)) {
     const parsed = o.variantRows

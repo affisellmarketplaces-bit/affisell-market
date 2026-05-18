@@ -2,8 +2,10 @@ import { newVariantRowId, type ProductVariantLine } from "@/lib/product-variants
 import { buildVariantOptionLabel } from "@/lib/marketplace-purchase-quantity"
 import type { ProductVariantInput } from "@/lib/product-variant-sku"
 
-export const VARIANT_COLOR_REGEX = /^[a-zA-Z0-9\s-]+$/
-export const VARIANT_COLOR_ERROR = "Pas de + ou virgule dans la couleur"
+/** SKU matrix color (DB) — lettres accentuées, chiffres, espaces, - / & ' */
+export const VARIANT_COLOR_REGEX = /^[\p{L}\p{N}\s\-/&'.]+$/u
+export const VARIANT_COLOR_ERROR =
+  "Caractères autorisés : lettres, chiffres, espaces, - / & ' (pas de virgule ni +)"
 
 export function parseCommaList(text: string, max = 40): string[] {
   const seen = new Set<string>()
@@ -54,6 +56,20 @@ export function buildSkuCombinations(colors: string[], sizes: string[]): SkuComb
   return out
 }
 
+export type SkuCustomColumnDef = {
+  id: string
+  /** Clé technique (ex. unit) */
+  key: string
+  /** Libellé colonne (ex. Unité de mesure) */
+  label: string
+}
+
+export type SkuFastColorRow = {
+  id: string
+  name: string
+  image: string
+}
+
 export type SupplierSkuTableRow = {
   id: string
   color: string
@@ -61,8 +77,75 @@ export type SupplierSkuTableRow = {
   sku: string | null
   supplierPrice: number
   publicPrice: number
+  /** Prix barré optionnel (EUR) pour cette ligne */
+  compareAtEur?: number | null
   stock: number
   commissionRate: number
+  /** Photo pastille PDP pour cette couleur */
+  colorImage?: string
+  /** Champs personnalisés (unité, volume, …) */
+  customFields?: Record<string, string>
+}
+
+export type SkuFastDefaults = {
+  supplierPrice: number
+  publicPrice: number
+  compareAtEur: number | null
+  stock: number
+  commissionRate: number
+  customFieldValues: Record<string, string>
+}
+
+function normalizeCustomFields(
+  raw: Record<string, string> | undefined,
+  columnKeys: string[]
+): Record<string, string> {
+  const out: Record<string, string> = {}
+  for (const key of columnKeys) {
+    const v = raw?.[key]
+    if (typeof v === "string" && v.trim()) out[key] = v.trim().slice(0, 120)
+  }
+  return out
+}
+
+export function slugCustomColumnKey(label: string): string {
+  return label
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 32) || "field"
+}
+
+export function applyColorImageToRows(
+  rows: SupplierSkuTableRow[],
+  color: string,
+  image: string
+): SupplierSkuTableRow[] {
+  const want = color.trim().toLowerCase()
+  if (!want) return rows
+  return rows.map((r) =>
+    r.color.trim().toLowerCase() === want ? { ...r, colorImage: image } : r
+  )
+}
+
+export function colorImageByName(rows: SupplierSkuTableRow[]): Map<string, string> {
+  const map = new Map<string, string>()
+  for (const r of rows) {
+    const c = r.color.trim()
+    if (!c) continue
+    const img = r.colorImage?.trim()
+    if (img && !map.has(c.toLowerCase())) map.set(c.toLowerCase(), img)
+  }
+  return map
+}
+
+export function firstRowIndexForColor(rows: SupplierSkuTableRow[], index: number): boolean {
+  const color = rows[index]?.color.trim().toLowerCase()
+  if (!color) return true
+  return rows.findIndex((r) => r.color.trim().toLowerCase() === color) === index
 }
 
 export function generateSkuTableRows(params: {
@@ -72,25 +155,91 @@ export function generateSkuTableRows(params: {
   baseSupplierPrice: number
   basePublicPrice: number
   defaultCommission: number
+  defaultCompareAtEur?: number | null
+  defaultStock?: number
+  customColumns?: SkuCustomColumnDef[]
+  customFieldValues?: Record<string, string>
 }): SupplierSkuTableRow[] {
   const colors = parseCommaList(params.colorsText)
+  const colorRows: SkuFastColorRow[] = colors.map((name) => ({
+    id: newVariantRowId(),
+    name,
+    image: "",
+  }))
+  return generateSkuTableRowsFromSetup({
+    colorRows,
+    sizesText: params.sizesText,
+    skuPrefix: params.skuPrefix,
+    defaults: {
+      supplierPrice: params.baseSupplierPrice,
+      publicPrice: params.basePublicPrice,
+      compareAtEur: params.defaultCompareAtEur ?? null,
+      stock: params.defaultStock ?? 0,
+      commissionRate: params.defaultCommission,
+      customFieldValues: params.customFieldValues ?? {},
+    },
+    customColumns: params.customColumns ?? [],
+  })
+}
+
+export function generateSkuTableRowsFromSetup(params: {
+  colorRows: SkuFastColorRow[]
+  sizesText: string
+  skuPrefix: string
+  defaults: SkuFastDefaults
+  customColumns: SkuCustomColumnDef[]
+}): SupplierSkuTableRow[] {
+  const colors = params.colorRows
+    .map((c) => ({ name: c.name.trim(), image: c.image.trim() }))
+    .filter((c) => c.name.length > 0)
   const sizes = parseCommaList(params.sizesText)
-  const combos = buildSkuCombinations(colors, sizes)
+  const combos = buildSkuCombinations(
+    colors.map((c) => c.name),
+    sizes
+  )
+  const columnKeys = params.customColumns.map((c) => c.key)
+  const customFields = normalizeCustomFields(params.defaults.customFieldValues, columnKeys)
+  const imageByColor = new Map(colors.map((c) => [c.name.toLowerCase(), c.image]))
+
   return combos.map((c) => ({
     id: newVariantRowId(),
     color: c.color,
     size: c.size,
     sku: suggestVariantSku(params.skuPrefix, c.color, c.size),
-    supplierPrice: params.baseSupplierPrice,
-    publicPrice: params.basePublicPrice,
-    stock: 0,
-    commissionRate: params.defaultCommission,
+    supplierPrice: params.defaults.supplierPrice,
+    publicPrice: params.defaults.publicPrice,
+    compareAtEur: params.defaults.compareAtEur,
+    stock: params.defaults.stock,
+    commissionRate: params.defaults.commissionRate,
+    colorImage: imageByColor.get(c.color.toLowerCase()) || undefined,
+    customFields: { ...customFields },
+  }))
+}
+
+export function ensureRowCustomFields(
+  rows: SupplierSkuTableRow[],
+  columnKeys: string[]
+): SupplierSkuTableRow[] {
+  return rows.map((r) => ({
+    ...r,
+    customFields: normalizeCustomFields(
+      { ...r.customFields },
+      columnKeys
+    ),
   }))
 }
 
 export type VariantRowValidationIssue = {
   index: number
-  field: "color" | "size" | "sku" | "stock" | "supplierPrice" | "publicPrice"
+  field:
+    | "color"
+    | "size"
+    | "sku"
+    | "stock"
+    | "supplierPrice"
+    | "publicPrice"
+    | "compareAtEur"
+    | string
   message: string
 }
 
@@ -138,6 +287,17 @@ export function validateSupplierSkuTableRows(
       })
     }
 
+    const compare = row.compareAtEur
+    if (compare != null && Number.isFinite(compare) && compare > 0) {
+      if (compare < row.publicPrice) {
+        issues.push({
+          index,
+          field: "compareAtEur",
+          message: "Prix barré ≥ prix public",
+        })
+      }
+    }
+
     const sku = row.sku?.trim() ?? ""
     if (!sku) {
       issues.push({ index, field: "sku", message: "SKU requis" })
@@ -178,16 +338,27 @@ export function skuTableRowsToProductVariantLines(
   rows: SupplierSkuTableRow[],
   productBasePriceCents: number
 ): ProductVariantLine[] {
-  return rows.map((r) => ({
-    id: r.id,
-    name: buildVariantOptionLabel(r.color, r.size) || r.color,
-    sku: (r.sku ?? "").trim(),
-    priceCents:
-      r.supplierPrice > 0 ? Math.round(r.supplierPrice * 100) : Math.max(0, productBasePriceCents),
-    stock: Math.max(0, Math.round(r.stock)),
-    commission: Math.min(100, Math.max(0, Math.round(r.commissionRate))),
-    sales: 0,
-  }))
+  return rows.map((r) => {
+    const line: ProductVariantLine = {
+      id: r.id,
+      name: buildVariantOptionLabel(r.color, r.size) || r.color,
+      sku: (r.sku ?? "").trim(),
+      priceCents:
+        r.supplierPrice > 0 ? Math.round(r.supplierPrice * 100) : Math.max(0, productBasePriceCents),
+      stock: Math.max(0, Math.round(r.stock)),
+      commission: Math.min(100, Math.max(0, Math.round(r.commissionRate))),
+      sales: 0,
+    }
+    const img = r.colorImage?.trim()
+    if (img) line.image = img
+    if (r.compareAtEur != null && r.compareAtEur > 0) {
+      line.compareAtCents = Math.round(r.compareAtEur * 100)
+    }
+    if (r.customFields && Object.keys(r.customFields).length > 0) {
+      line.attrs = { ...r.customFields }
+    }
+    return line
+  })
 }
 
 export function productVariantLinesToSkuTableRows(
@@ -205,8 +376,12 @@ export function productVariantLinesToSkuTableRows(
       sku: r.sku.trim() || null,
       supplierPrice: r.priceCents > 0 ? r.priceCents / 100 : baseSupplierPrice,
       publicPrice: basePublicPrice,
+      compareAtEur:
+        r.compareAtCents != null && r.compareAtCents > 0 ? r.compareAtCents / 100 : null,
       stock: r.stock,
       commissionRate: r.commission || defaultCommission,
+      colorImage: r.image?.trim() || undefined,
+      customFields: r.attrs ? { ...r.attrs } : {},
     }
   })
 }
@@ -268,5 +443,7 @@ export function skuTableRowFromApiVariant(row: {
     publicPrice: Number(row.publicPrice) || 0,
     stock: Math.max(0, Math.round(row.stock) || 0),
     commissionRate: Math.min(100, Math.max(0, Math.round(row.commissionRate ?? 10))),
+    compareAtEur: null,
+    customFields: {},
   }
 }

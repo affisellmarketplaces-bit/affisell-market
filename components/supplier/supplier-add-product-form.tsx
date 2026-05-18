@@ -105,11 +105,13 @@ import {
 } from "@/lib/supplier-variant-row-sync"
 import {
   apiRowsFromSkuTable,
+  colorImageByName,
   generateSkuTableRows,
   productVariantLinesToSkuTableRows,
   skuTableRowFromApiVariant,
   skuTableRowsToProductVariantLines,
   sumSkuTableStock,
+  type SkuCustomColumnDef,
   type VariantRowValidationIssue,
 } from "@/lib/supplier-sku-builder"
 import {
@@ -289,6 +291,7 @@ export function SupplierAddProductForm({
   const [variantColorsText, setVariantColorsText] = useState("")
   const [variantRows, setVariantRows] = useState<ProductVariantLine[]>([])
   const [advancedSkuRows, setAdvancedSkuRows] = useState<EditableVariantRow[]>([])
+  const [skuCustomColumns, setSkuCustomColumns] = useState<SkuCustomColumnDef[]>([])
   const [skuValidationIssues, setSkuValidationIssues] = useState<VariantRowValidationIssue[]>([])
   const [simpleColorIssues, setSimpleColorIssues] = useState<SimpleColorValidationIssue[]>([])
   const [simpleColorRows, setSimpleColorRows] = useState<SupplierSimpleColorRow[]>([])
@@ -759,6 +762,7 @@ export function SupplierAddProductForm({
         }>
         setVariantFormMode("advanced")
         setAdvancedSkuRows(apiRows.map(skuTableRowFromApiVariant))
+        setSkuCustomColumns([])
         setVariantRows([])
         setVariantSizesText("")
         setVariantColorsText("")
@@ -776,6 +780,13 @@ export function SupplierAddProductForm({
           )
         )
         setVariantRows(parsedListingVariants.variantRows)
+        setSkuCustomColumns(
+          (parsedListingVariants.skuCustomColumns ?? []).map((c) => ({
+            id: newVariantRowId(),
+            key: c.key,
+            label: c.label,
+          }))
+        )
         setVariantSizesText(
           parsedListingVariants.size?.length ? parsedListingVariants.size.join(", ") : ""
         )
@@ -957,22 +968,18 @@ export function SupplierAddProductForm({
           )
           listingVariantsPayload = {
             ...(sizes.length > 0 ? { size: sizes } : {}),
+            skuCustomColumns: skuCustomColumns.map((c) => ({ key: c.key, label: c.label })),
             variantRows: mirrorLines,
           }
         }
 
+        const imgByColor = colorImageByName(filledSku)
         colorImagesPayload =
           colorsPayload.length > 0
-            ? colorsPayload.map((color) => {
-                const img =
-                  simpleColorRows.find(
-                    (r) => r.name.trim().toLowerCase() === color.toLowerCase()
-                  )?.image?.trim() ?? ""
-                return {
-                  color: color.slice(0, 48),
-                  image: trimColorSwatchImageForStore(img),
-                }
-              })
+            ? colorsPayload.map((color) => ({
+                color: color.slice(0, 48),
+                image: trimColorSwatchImageForStore(imgByColor.get(color.toLowerCase()) ?? ""),
+              }))
             : undefined
       }
 
@@ -1052,6 +1059,7 @@ export function SupplierAddProductForm({
       simpleColorRows,
       variantRows,
       advancedSkuRows,
+      skuCustomColumns,
     ]
   )
 
@@ -2406,6 +2414,10 @@ export function SupplierAddProductForm({
                                 publicPrice: pub || 1,
                                 stock: 0,
                                 commissionRate: comm,
+                                compareAtEur: compareAt.trim()
+                                  ? Number(compareAt)
+                                  : null,
+                                customFields: {},
                               },
                             ])
                           }
@@ -2537,7 +2549,12 @@ export function SupplierAddProductForm({
                       onChange={setAdvancedSkuRows}
                       onValidationChange={setSkuValidationIssues}
                       basePriceEur={Number(price) || 0}
+                      catalogCompareAtEur={
+                        compareAt.trim() ? Number(compareAt) : null
+                      }
                       defaultCommission={Math.round(Number(commission) || 15)}
+                      customColumns={skuCustomColumns}
+                      onCustomColumnsChange={setSkuCustomColumns}
                       skuPrefix="PRD"
                       disabled={saving}
                     />
