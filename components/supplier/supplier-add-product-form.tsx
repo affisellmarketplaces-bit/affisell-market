@@ -80,6 +80,11 @@ import {
   type SupplierVariantFormMode,
 } from "@/lib/supplier-add-product-draft-cache"
 import { newVariantRowId, parseVariantsPayload, type ProductVariantLine } from "@/lib/product-variants"
+import {
+  applySimpleColorsToVariantRowsIfChanged,
+  extractOrderedColorNames,
+  syncVariantRowsFromSimpleColors,
+} from "@/lib/supplier-variant-row-sync"
 import { parseProductColorImagesFromDb } from "@/lib/product-color-images"
 import { formatStoreCurrency } from "@/lib/market-config"
 import { cn } from "@/lib/utils"
@@ -284,6 +289,29 @@ export function SupplierAddProductForm({
       rows.length === 0 ? [{ id: newVariantRowId(), name: "", image: "" }] : rows
     )
   }, [variantFormMode, simpleColorRows.length])
+
+  const simpleColorsSyncKey = useMemo(() => {
+    const names = extractOrderedColorNames(simpleColorRows)
+    return `${names.join("\u0001")}|\u0002|${variantSizesText.trim()}`
+  }, [simpleColorRows, variantSizesText])
+
+  useEffect(() => {
+    if (extractOrderedColorNames(simpleColorRows).length === 0) return
+
+    setVariantRows((prev) =>
+      applySimpleColorsToVariantRowsIfChanged(prev, {
+        simpleColorRows,
+        sizesText: variantSizesText,
+        defaultRow: () => defaultVariantRow(commission),
+      })
+    )
+
+    const labels = extractOrderedColorNames(simpleColorRows)
+    setVariantColorsText((prev) => {
+      const next = labels.join(", ")
+      return prev === next ? prev : next
+    })
+  }, [simpleColorsSyncKey, commission, simpleColorRows, variantSizesText])
 
   const discountPct = useMemo(() => {
     const p = Number(price)
@@ -2008,7 +2036,17 @@ export function SupplierAddProductForm({
                         type="button"
                         onClick={() => {
                           setVariantFormMode("advanced")
-                          if (variantRows.length === 0) {
+                          const colors = extractOrderedColorNames(simpleColorRows)
+                          if (colors.length > 0) {
+                            const { rows, colorLabels } = syncVariantRowsFromSimpleColors({
+                              simpleColorRows,
+                              sizesText: variantSizesText,
+                              existingRows: variantRows,
+                              defaultRow: () => defaultVariantRow(commission),
+                            })
+                            setVariantRows(rows)
+                            setVariantColorsText(colorLabels.join(", "))
+                          } else if (variantRows.length === 0) {
                             setVariantRows([defaultVariantRow(commission)])
                           }
                         }}
@@ -2132,11 +2170,12 @@ export function SupplierAddProductForm({
                       </div>
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                          Chaque ligne = un choix acheteur (ex. « Noir », « Kaki »).{" "}
-                          <strong className="font-medium text-zinc-700 dark:text-zinc-300">Coût</strong> : votre
-                          prix de base par SKU (vide = prix catalogue).{" "}
-                          <strong className="font-medium text-zinc-700 dark:text-zinc-300">Comm. %</strong> : part de
-                          la marge affiliée pour ce choix (checkout et paiements).
+                          Les couleurs du mode « Couleurs & tailles » remplissent automatiquement les libellés
+                          (avec les tailles si renseignées). Complétez SKU, stock, coût…{" "}
+                          <strong className="font-medium text-zinc-700 dark:text-zinc-300">Coût</strong> : prix de base
+                          par SKU (vide = prix catalogue).{" "}
+                          <strong className="font-medium text-zinc-700 dark:text-zinc-300">Comm. %</strong> : part
+                          affiliée pour ce choix.
                         </p>
                         <Button
                           type="button"
