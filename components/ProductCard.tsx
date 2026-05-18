@@ -7,7 +7,7 @@ import { Heart } from "lucide-react"
 import { ProductDiscountTag } from "@/components/product-discount-tag"
 import { Badge } from "@/components/ui/badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
-import { formatStoreCurrency } from "@/lib/market-config"
+import { formatStoreCurrency, formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { cn } from "@/lib/utils"
 
 export type ProductCardProduct = {
@@ -19,6 +19,9 @@ export type ProductCardProduct = {
   compareAt?: number | string | null
   store?: string | null
   isBestSeller?: boolean
+  soldCount?: number
+  marginCents?: number
+  deliveryLabel?: string
 }
 
 type ProductCardProps = {
@@ -33,6 +36,9 @@ function coerceProduct(p: ProductCardProps["product"]): {
   store: string | null
   isBestSeller: boolean
   buyerRewardBadge: string | null
+  soldCount: number | null
+  marginCents: number | null
+  deliveryLabel: string | null
 } {
   const o = p as Record<string, unknown>
   const title = String(o.title ?? o.name ?? "")
@@ -54,7 +60,26 @@ function coerceProduct(p: ProductCardProps["product"]): {
     typeof o.buyerRewardBadge === "string" && o.buyerRewardBadge.trim()
       ? o.buyerRewardBadge.trim()
       : null
-  return { title, image, price, compareAt, store, isBestSeller, buyerRewardBadge }
+  const soldRaw = o.soldCount
+  const soldCount =
+    typeof soldRaw === "number" && Number.isFinite(soldRaw) && soldRaw > 0 ? soldRaw : null
+  const marginRaw = o.marginCents
+  const marginCents =
+    typeof marginRaw === "number" && Number.isFinite(marginRaw) && marginRaw > 0 ? marginRaw : null
+  const deliveryLabel =
+    typeof o.deliveryLabel === "string" && o.deliveryLabel.trim() ? o.deliveryLabel.trim() : null
+  return {
+    title,
+    image,
+    price,
+    compareAt,
+    store,
+    isBestSeller,
+    buyerRewardBadge,
+    soldCount,
+    marginCents,
+    deliveryLabel,
+  }
 }
 
 export function ProductCard({ product }: ProductCardProps) {
@@ -128,6 +153,31 @@ export function ProductCard({ product }: ProductCardProps) {
             <span className="text-compare-at text-sm tabular-nums line-through">{formatStoreCurrency(compareN)}</span>
           ) : null}
         </div>
+        {p.soldCount != null || p.marginCents != null || p.deliveryLabel ? (
+          <ul className="mt-2 flex flex-wrap gap-1.5">
+            {p.soldCount != null ? (
+              <li>
+                <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-900 dark:bg-amber-950/60 dark:text-amber-200">
+                  {p.soldCount} vendu{p.soldCount > 1 ? "s" : ""}
+                </span>
+              </li>
+            ) : null}
+            {p.marginCents != null ? (
+              <li>
+                <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-200">
+                  Marge {formatStoreCurrencyFromCents(p.marginCents, { maximumFractionDigits: 2 })}
+                </span>
+              </li>
+            ) : null}
+            {p.deliveryLabel ? (
+              <li>
+                <span className="inline-flex rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold text-sky-900 dark:bg-sky-950/60 dark:text-sky-200">
+                  Delivery {p.deliveryLabel}
+                </span>
+              </li>
+            ) : null}
+          </ul>
+        ) : null}
         <p className="mt-1 text-xs text-gray-500 dark:text-zinc-400">by {p.store || "Affisell"}</p>
       </div>
     </Link>

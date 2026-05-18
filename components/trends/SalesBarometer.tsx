@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { ArrowDownRight, ArrowUpRight, TrendingUp } from "lucide-react"
 import { useEffect, useState } from "react"
 import {
@@ -11,26 +12,24 @@ import {
   YAxis,
 } from "recharts"
 
+import type { HomeBarometerData } from "@/lib/home-marketplace-data"
 import { formatStoreCurrency } from "@/lib/market-config"
 
-type Cat = {
-  category: string
-  totalCents: number
-  pctOfTop: number
-  growthPct: number | null
-  isNew: boolean
-  totalLabel: string
+type Cat = HomeBarometerData["categories"][number]
+type ChartDatum = HomeBarometerData["chartData"][number]
+
+type Props = {
+  initialData?: HomeBarometerData | null
 }
 
-type ChartDatum = { name: string; sales: number }
-
-export function SalesBarometer() {
-  const [categories, setCategories] = useState<Cat[]>([])
-  const [chartData, setChartData] = useState<ChartDatum[]>([])
-  const [loading, setLoading] = useState(true)
+export function SalesBarometer({ initialData = null }: Props) {
+  const [categories, setCategories] = useState<Cat[]>(initialData?.categories ?? [])
+  const [chartData, setChartData] = useState<ChartDatum[]>(initialData?.chartData ?? [])
+  const [loading, setLoading] = useState(!initialData)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (initialData) return
     let cancelled = false
     ;(async () => {
       try {
@@ -44,7 +43,7 @@ export function SalesBarometer() {
           setChartData(Array.isArray(json.chartData) ? json.chartData : [])
         }
       } catch {
-        if (!cancelled) setError("Could not load barometer")
+        if (!cancelled) setError("Impossible de charger le baromètre")
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -52,24 +51,28 @@ export function SalesBarometer() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [initialData])
 
   return (
-    <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+    <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 dark:bg-zinc-950 dark:ring-zinc-800">
       <div className="mb-6">
-        <h2 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
+        <h2 className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-zinc-50">
           <TrendingUp className="h-7 w-7 shrink-0 text-green-600" aria-hidden />
-          Sales Barometer
+          Baromètre des ventes
         </h2>
-        <p className="mt-1 text-sm text-gray-500">Market performance last 30 days</p>
+        <p className="mt-1 text-sm text-gray-500 dark:text-zinc-400">
+          Performance globale Affisell · 30 derniers jours
+        </p>
       </div>
 
       {loading ? (
-        <p className="text-sm text-gray-500">Loading…</p>
+        <p className="text-sm text-gray-500">Chargement…</p>
       ) : error ? (
         <p className="text-sm text-red-600">{error}</p>
       ) : categories.length === 0 ? (
-        <p className="text-sm text-gray-500">Not enough category sales data yet.</p>
+        <p className="text-sm text-gray-500">
+          Données globales en cours de collecte. Revenez bientôt pour voir les tendances par catégorie.
+        </p>
       ) : (
         <div className="space-y-8">
           {chartData.length > 0 ? (
@@ -84,7 +87,7 @@ export function SalesBarometer() {
                   />
                   <YAxis hide />
                   <Tooltip
-                    formatter={(value) => [formatStoreCurrency(Number(value)), "Sales"]}
+                    formatter={(value) => [formatStoreCurrency(Number(value)), "Ventes"]}
                     contentStyle={{
                       borderRadius: "12px",
                       border: "1px solid #e5e7eb",
@@ -101,7 +104,7 @@ export function SalesBarometer() {
             {categories.map((c) => (
               <li key={c.category}>
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-sm font-semibold text-gray-900">{c.category}</span>
+                  <span className="text-sm font-semibold text-gray-900 dark:text-zinc-100">{c.category}</span>
                   <div className="flex items-center gap-3">
                     <span
                       className={`inline-flex items-center gap-0.5 text-sm font-semibold ${
@@ -111,7 +114,7 @@ export function SalesBarometer() {
                       }`}
                     >
                       {c.isNew ? (
-                        "New"
+                        "Nouveau"
                       ) : c.growthPct == null ? (
                         "—"
                       ) : (
@@ -126,15 +129,23 @@ export function SalesBarometer() {
                         </>
                       )}
                     </span>
-                    <span className="text-right text-sm tabular-nums text-gray-700">{c.totalLabel}</span>
+                    <span className="text-right text-sm tabular-nums text-gray-700 dark:text-zinc-300">
+                      {c.totalLabel}
+                    </span>
                   </div>
                 </div>
-                <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-100">
+                <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-zinc-800">
                   <div
                     className="h-full rounded-full bg-green-500 transition-[width]"
                     style={{ width: `${Math.min(100, Math.max(0, c.pctOfTop))}%` }}
                   />
                 </div>
+                <Link
+                  href={`/marketplace?category=${encodeURIComponent(c.categorySlug)}`}
+                  className="mt-2 inline-flex text-xs font-semibold text-violet-700 hover:underline dark:text-violet-300"
+                >
+                  Vendre en {c.category} →
+                </Link>
               </li>
             ))}
           </ul>
