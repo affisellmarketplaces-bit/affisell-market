@@ -3,9 +3,14 @@ import {
   loadSupplierUrgentSnapshot,
   type SupplierUrgentSnapshot,
 } from "@/lib/supplier-urgent-snapshot"
+import {
+  loadTopProductCommissionOpportunity,
+  type ProductCommissionOpportunity,
+} from "@/lib/supplier-product-opportunity"
 import { loadSupplierWeeklyGoal, type SupplierWeeklyGoalSnapshot } from "@/lib/supplier-weekly-goal"
 
 export type { SupplierUrgentSnapshot } from "@/lib/supplier-urgent-snapshot"
+export type { ProductCommissionOpportunity } from "@/lib/supplier-product-opportunity"
 import { prisma } from "@/lib/prisma"
 
 const MARKETPLACE_COUNTABLE = ["paid", "preparing", "shipped", "refunded"] as const
@@ -30,14 +35,6 @@ export type SupplierMetrics7d = {
   } | null
 }
 
-export type AffiliateOpportunity = {
-  affiliateId: string
-  affiliateName: string
-  productId: string
-  productName: string
-  viewCount: number
-}
-
 export type DormantSku = {
   id: string
   name: string
@@ -45,7 +42,7 @@ export type DormantSku = {
 }
 
 export type SupplierGrowthSnapshot = {
-  opportunities: AffiliateOpportunity[]
+  topOpportunity: ProductCommissionOpportunity | null
   adoptionRatePct: number
   skusWithSales: number
   totalSkus: number
@@ -168,72 +165,6 @@ async function topSkuLast7d(
   }
 }
 
-async function loadAffiliateOpportunities(supplierId: string): Promise<AffiliateOpportunity[]> {
-  const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-  const products = await prisma.product.findMany({
-    where: { supplierId, active: true, isDraft: false },
-    select: { id: true, name: true },
-  })
-  if (products.length === 0) return []
-
-  const productIds = products.map((p) => p.id)
-  const nameById = new Map(products.map((p) => [p.id, p.name]))
-
-  const views = await prisma.affisellTrackEvent.findMany({
-    where: {
-      eventType: "view",
-      productId: { in: productIds },
-      userId: { not: null },
-      createdAt: { gte: since },
-    },
-    select: { userId: true, productId: true },
-  })
-
-  if (views.length === 0) return []
-
-  const viewerIds = [...new Set(views.map((v) => v.userId!).filter(Boolean))]
-  const affiliates = await prisma.user.findMany({
-    where: { id: { in: viewerIds }, role: "AFFILIATE" },
-    select: { id: true, name: true, email: true },
-  })
-  if (affiliates.length === 0) return []
-
-  const affiliateIds = new Set(affiliates.map((a) => a.id))
-  const affiliateById = new Map(
-    affiliates.map((a) => [a.id, a.name?.trim() || a.email.split("@")[0] || "Affilié"])
-  )
-
-  const existingListings = await prisma.affiliateProduct.findMany({
-    where: {
-      productId: { in: productIds },
-      affiliateId: { in: [...affiliateIds] },
-    },
-    select: { affiliateId: true, productId: true },
-  })
-  const listed = new Set(existingListings.map((r) => `${r.affiliateId}:${r.productId}`))
-
-  const counts = new Map<string, { affiliateId: string; productId: string; views: number }>()
-  for (const v of views) {
-    if (!v.userId || !v.productId || !affiliateIds.has(v.userId)) continue
-    if (listed.has(`${v.userId}:${v.productId}`)) continue
-    const key = `${v.userId}:${v.productId}`
-    const cur = counts.get(key) ?? { affiliateId: v.userId, productId: v.productId, views: 0 }
-    cur.views += 1
-    counts.set(key, cur)
-  }
-
-  return [...counts.values()]
-    .sort((a, b) => b.views - a.views)
-    .slice(0, 6)
-    .map((row) => ({
-      affiliateId: row.affiliateId,
-      affiliateName: affiliateById.get(row.affiliateId) ?? "Affilié",
-      productId: row.productId,
-      productName: nameById.get(row.productId) ?? "Produit",
-      viewCount: row.views,
-    }))
-}
-
 async function loadDormantSkus(supplierId: string): Promise<DormantSku[]> {
   const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
 
@@ -284,7 +215,7 @@ export async function loadSupplierMissionControl(
     currentOrders,
     previousOrders,
     topSku,
-    opportunities,
+    topOpportunity,
     totalSkus,
     skusWithSales,
     dormantSkus,
@@ -297,7 +228,7 @@ export async function loadSupplierMissionControl(
     fetchMarketplaceOrders(supplierUserId, currentFrom, currentTo),
     fetchMarketplaceOrders(supplierUserId, previousFrom, previousTo),
     topSkuLast7d(supplierUserId, currentFrom, currentTo),
-    loadAffiliateOpportunities(supplierUserId),
+    loadTopProductCommissionOpportunity(supplierUserId),
     prisma.product.count({
       where: { supplierId: supplierUserId, active: true, isDraft: false },
     }),
@@ -335,7 +266,7 @@ export async function loadSupplierMissionControl(
       topSku,
     },
     growth: {
-      opportunities,
+      topOpportunity,
       adoptionRatePct,
       skusWithSales,
       totalSkus,

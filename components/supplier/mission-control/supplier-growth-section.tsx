@@ -1,7 +1,8 @@
 import Image from "next/image"
 import Link from "next/link"
-import { Archive, Rocket, Sparkles, TrendingUp } from "lucide-react"
+import { Archive, Lightbulb, Rocket, TrendingUp } from "lucide-react"
 
+import { SupplierOpportunityBoostButton } from "@/components/supplier/mission-control/supplier-opportunity-boost-button"
 import type { SupplierGrowthSnapshot } from "@/lib/supplier-mission-control"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -11,45 +12,59 @@ type Props = {
 }
 
 export function SupplierGrowthSection({ growth }: Props) {
+  const opp = growth.topOpportunity
+
   return (
     <section aria-labelledby="growth-heading" className="grid gap-6 lg:grid-cols-2">
-      <div className="space-y-4 rounded-2xl border border-zinc-200/90 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="space-y-4 rounded-2xl border border-violet-200/80 bg-gradient-to-br from-violet-50/70 via-white to-white p-5 shadow-sm dark:border-violet-900/50 dark:from-violet-950/35 dark:via-zinc-950 dark:to-zinc-950">
         <div className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-violet-600" aria-hidden />
+          <span className="text-base" aria-hidden>
+            💡
+          </span>
           <h2 id="growth-heading" className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
             Opportunités
           </h2>
         </div>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Affiliés ayant consulté vos produits sans les ajouter à leur boutique — proposez +2&nbsp;% de commission
-          pour accélérer l’adoption.
-        </p>
-        {growth.opportunities.length === 0 ? (
-          <p className="rounded-xl bg-zinc-50 px-3 py-2 text-sm text-zinc-500 dark:bg-zinc-900/60">
-            Aucune piste détectée sur les 30 derniers jours. Publiez plus de SKUs visibles sur le marketplace.
+
+        {!opp ? (
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            Aucune piste détectée sur les 30 derniers jours. Publiez plus de SKUs visibles sur le
+            marketplace.
           </p>
         ) : (
-          <ul className="space-y-2">
-            {growth.opportunities.map((o) => (
-              <li
-                key={`${o.affiliateId}-${o.productId}`}
-                className="flex flex-col gap-2 rounded-xl border border-zinc-100 px-3 py-2.5 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-between"
+          <div className="space-y-4">
+            <p className="text-sm leading-relaxed text-zinc-800 dark:text-zinc-200">
+              <span className="font-semibold text-violet-900 dark:text-violet-100">
+                {opp.affiliateViewerCount} affilié{opp.affiliateViewerCount > 1 ? "s" : ""}
+              </span>{" "}
+              ont vu{" "}
+              <span className="font-medium">« {opp.productName} »</span>{" "}
+              <span className="font-semibold tabular-nums">{opp.totalViews}×</span> sans l’ajouter.
+            </p>
+            <p className="flex items-start gap-2 rounded-xl border border-violet-100 bg-white/80 px-3 py-2.5 text-sm text-violet-950 dark:border-violet-900/50 dark:bg-zinc-900/50 dark:text-violet-100">
+              <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" aria-hidden />
+              <span>
+                Passe commission{" "}
+                <span className="font-semibold tabular-nums">{opp.currentCommissionPct}%</span>
+                {" → "}
+                <span className="font-semibold tabular-nums">{opp.suggestedCommissionPct}%</span>
+                {" = "}
+                <span className="font-semibold text-emerald-700 dark:text-emerald-400">
+                  +{opp.estimatedExtraSales7d} vente{opp.estimatedExtraSales7d > 1 ? "s" : ""} estimée
+                  {opp.estimatedExtraSales7d > 1 ? "s" : ""} / 7j
+                </span>
+              </span>
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <SupplierOpportunityBoostButton opportunity={opp} />
+              <Link
+                href={`/dashboard/supplier/products/${opp.productId}`}
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
               >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">{o.affiliateName}</p>
-                  <p className="truncate text-xs text-zinc-500">
-                    {o.productName} · {o.viewCount} vue{o.viewCount > 1 ? "s" : ""}
-                  </p>
-                </div>
-                <Link
-                  href={`/dashboard/supplier/products/${o.productId}`}
-                  className={cn(buttonVariants({ variant: "outline", size: "sm" }), "shrink-0")}
-                >
-                  +2&nbsp;% commission
-                </Link>
-              </li>
-            ))}
-          </ul>
+                Voir la fiche
+              </Link>
+            </div>
+          </div>
         )}
       </div>
 
