@@ -1,9 +1,11 @@
+import { GROQ_VISION_MAX_IMAGES } from "@/lib/ai/groq-vision"
 import { groqChatText, GROQ_VISION_MODEL } from "@/lib/ai/groq-client"
 import { generateImageWithHf } from "@/lib/ai/hf-image"
 
 const MAX_DATA_URL_LEN = 1_400_000
-const MAX_VISION_IMAGES = 6
 const MAX_ILLUSTRATIONS = 4
+/** Max illustration images sent to vision (rest stay on listing as user uploads) */
+const MAX_VISION_ILLUSTRATIONS = 3
 
 export type GenerateDescriptionRequest = {
   title: string
@@ -43,6 +45,26 @@ function normalizeBullets(raw: unknown): string[] {
     .map((s) => s.trim())
     .filter(Boolean)
     .slice(0, 6)
+}
+
+/** Vision payload: illustrations first, then gallery — never exceeds Groq limit. */
+export function buildVisionImagePayload(input: {
+  illustrationUrls: string[]
+  galleryDataUrls: string[]
+  galleryUrls: string[]
+}): { visionImages: string[]; galleryPool: string[] } {
+  const galleryPool = [...input.galleryDataUrls, ...input.galleryUrls]
+  const visionImages: string[] = []
+  const seen = new Set<string>()
+  const add = (u: string) => {
+    const s = u.trim()
+    if (!s || seen.has(s) || visionImages.length >= GROQ_VISION_MAX_IMAGES) return
+    seen.add(s)
+    visionImages.push(s)
+  }
+  for (const u of input.illustrationUrls.slice(0, MAX_VISION_ILLUSTRATIONS)) add(u)
+  for (const u of galleryPool) add(u)
+  return { visionImages, galleryPool }
 }
 
 export function pickGalleryIllustrations(
@@ -86,22 +108,23 @@ export async function generateSupplierProductDescription(
   const productImageUrls = input.productImageUrls
     .filter((u) => /^https?:\/\//i.test(u.trim()))
     .map((u) => u.trim())
-    .slice(0, 4)
+    .slice(0, 2)
 
   const productImageDataUrls = input.productImageDataUrls
     .filter((u) => isAllowedDataImageUrl(u.trim()))
     .map((u) => u.trim())
-    .slice(0, 4)
+    .slice(0, 2)
 
   const userIllustrations = input.illustrationDataUrls
     .filter((u) => isAllowedDataImageUrl(u.trim()) || /^https?:\/\//i.test(u.trim()))
     .map((u) => u.trim())
     .slice(0, MAX_ILLUSTRATIONS)
 
-  const visionImages = [...productImageDataUrls, ...userIllustrations, ...productImageUrls].slice(
-    0,
-    MAX_VISION_IMAGES
-  )
+  const { visionImages, galleryPool } = buildVisionImagePayload({
+    illustrationUrls: userIllustrations,
+    galleryDataUrls: productImageDataUrls,
+    galleryUrls: productImageUrls,
+  })
   const useVision = visionImages.length > 0
 
   const bulletBlock =
@@ -111,7 +134,7 @@ export async function generateSupplierProductDescription(
 {
   "description": string (texte structuré SEO, 400-2200 caractères, sections avec titres en MAJUSCULES sur leur ligne, paragraphes séparés par double saut de ligne; pas de HTML; français commercial),
   "bulletPoints": string[] (4 à 6 puces courtes style marketplace, factuelles),
-  "galleryImageIndices": number[] (optionnel, indices 0..n-1 des photos produit jointes à réutiliser comme illustrations sous la description; max 4, choisir les plus parlantes)
+  "galleryImageIndices": number[] (optionnel, indices 0..n-1 UNIQUEMENT sur les photos galerie produit — pas les illustrations; max 4)
 }
 
 Structure obligatoire de description (titres exacts sur une ligne):
@@ -132,8 +155,8 @@ POURQUOI CE PRODUIT ?`
     bulletBlock,
     userIllustrations.length > 0
       ? `Le fournisseur a déjà ${userIllustrations.length} image(s) d'illustration — ne pas inventer de fausses promesses sur le contenu des images.`
-      : productImageDataUrls.length + productImageUrls.length > 0
-        ? `Choisis galleryImageIndices parmi les photos produit fournies pour illustrer la fiche (lifestyle, détail, usage).`
+      : galleryPool.length > 0
+        ? `Photos galerie uniquement (${galleryPool.length} image(s), indices 0 à ${galleryPool.length - 1}) pour galleryImageIndices — choisir les plus parlantes pour illustrer la fiche.`
         : "",
     schema,
   ]
@@ -155,21 +178,26 @@ POURQUOI CE PRODUIT ?`
       ]
     : userText
 
-  const raw =
-    (await groqChatText({
-      model: useVision ? GROQ_VISION_MODEL : undefined,
-      vision: useVision,
-      temperature: 0.45,
-      response_format: { type: "json_object" },
-      messages: [
-        {
-          role: "system",
-          content:
-            "Tu rédiges des fiches produit e-commerce optimisées SEO pour Affisell. Reste factuel; n'invente pas de certifications, avis clients ou garanties non mentionnées.",
-        },
-        { role: "user", content: userContent },
-      ],
-    })) ?? "{}"
+  let raw: string
+  try {
+    raw =
+      (await groqChatText({
+        model: useVision ? GROQ_VISION_MODEL : undefined,
+        vision: useVision,
+        temperature: 0.45,
+        response_format: { type: "json_object" },
+        messages: [
+          {
+            role: "system",
+            content:
+              "Tu rédiges des fiches produit e-commerce optimisées SEO pour Affisell. Reste factuel; n'invente pas de certifications, avis clients ou garanties non mentionnées.",
+          },
+          { role: "user", content: userContent },
+        ],
+      })) ?? "{}"
+  } catch (e: unknown) {
+    throw e instanceof Error ? e : new Error(String(e))
+  }
 
   let parsed: {
     description?: unknown
@@ -201,7 +229,11 @@ POURQUOI CE PRODUIT ?`
     const indices = Array.isArray(parsed.galleryImageIndices)
       ? parsed.galleryImageIndices.filter((n): n is number => typeof n === "number" && Number.isInteger(n))
       : []
-    const fromGallery = pickGalleryIllustrations(productImageDataUrls, productImageUrls, indices)
+    const fromGallery = pickGalleryIllustrations(
+      productImageUrls,
+      productImageDataUrls,
+      indices
+    )
     if (fromGallery.length > 0) {
       illustrationImages = fromGallery
       illustrationSource = "from_gallery"

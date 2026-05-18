@@ -41,12 +41,16 @@ export function SupplierDescriptionIllustrationFields({ images, onImagesChange, 
   const [pasteUrl, setPasteUrl] = useState("")
 
   useEffect(() => {
-    setSlots(slotsFrom(images))
-  }, [images])
+    const trimmed = images.slice(0, IMAGE_SLOTS)
+    setSlots(slotsFrom(trimmed))
+    if (trimmed.length !== images.length) {
+      onImagesChange(trimmed)
+    }
+  }, [images, onImagesChange])
 
   const syncSlots = (next: (string | null)[]) => {
     setSlots(next)
-    onImagesChange(orderedFromSlots(next))
+    onImagesChange(orderedFromSlots(next).slice(0, IMAGE_SLOTS))
   }
 
   const onFile = async (slot: number, e: ChangeEvent<HTMLInputElement>) => {

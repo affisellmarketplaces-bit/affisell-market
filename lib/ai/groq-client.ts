@@ -1,7 +1,15 @@
 import Groq from "groq-sdk"
 
+import {
+  capVisionImagesInMessages,
+  GROQ_VISION_MAX_IMAGES,
+  normalizeGroqClientError,
+} from "@/lib/ai/groq-vision"
+
 export const GROQ_TEXT_MODEL = "llama-3.1-8b-instant"
 export const GROQ_VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
+
+export { GROQ_VISION_MAX_IMAGES }
 
 export function getGroqApiKey(): string | null {
   const key = process.env.GROQ_API_KEY?.trim()
@@ -28,13 +36,22 @@ export async function groqChatText(options: GroqChatOptions): Promise<string | n
   const groq = createGroqClient()
   if (!groq) return null
 
-  const completion = await groq.chat.completions.create({
-    model: options.model ?? (options.vision ? GROQ_VISION_MODEL : GROQ_TEXT_MODEL),
-    messages: options.messages,
-    temperature: options.temperature ?? 0.2,
-    max_tokens: options.max_tokens,
-    response_format: options.response_format,
-  })
+  const messages =
+    options.vision || options.model === GROQ_VISION_MODEL
+      ? capVisionImagesInMessages(options.messages, GROQ_VISION_MAX_IMAGES)
+      : options.messages
 
-  return completion.choices[0]?.message?.content?.trim() ?? null
+  try {
+    const completion = await groq.chat.completions.create({
+      model: options.model ?? (options.vision ? GROQ_VISION_MODEL : GROQ_TEXT_MODEL),
+      messages,
+      temperature: options.temperature ?? 0.2,
+      max_tokens: options.max_tokens,
+      response_format: options.response_format,
+    })
+
+    return completion.choices[0]?.message?.content?.trim() ?? null
+  } catch (err: unknown) {
+    throw normalizeGroqClientError(err)
+  }
 }

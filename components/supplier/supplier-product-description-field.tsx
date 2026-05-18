@@ -9,7 +9,28 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 
-const MAX_GALLERY_DATA_FOR_AI = 4
+const MAX_GALLERY_FOR_AI = 2
+const MAX_ILLUSTRATIONS_FOR_AI = 3
+
+function parseGenerateDescriptionError(raw: string): string {
+  const trimmed = raw.trim()
+  try {
+    const outer = JSON.parse(trimmed) as { error?: { message?: string } | string; message?: string }
+    const inner =
+      typeof outer.error === "object" && outer.error?.message
+        ? outer.error.message
+        : typeof outer.error === "string"
+          ? outer.error
+          : outer.message
+    if (inner) return parseGenerateDescriptionError(inner)
+  } catch {
+    /* plain text */
+  }
+  if (/too many images/i.test(trimmed)) {
+    return "Trop d'images pour l'IA (max. 4). Gardez au plus 3 illustrations, ou retirez des photos galerie."
+  }
+  return trimmed.length > 200 ? `${trimmed.slice(0, 200)}…` : trimmed
+}
 
 type Props = {
   description: string
@@ -62,10 +83,11 @@ export function SupplierProductDescriptionField({
 
     setAiLoading(true)
     try {
-      const productImageUrls = productGalleryImages.filter(isHttpsImageUrl).slice(0, MAX_GALLERY_DATA_FOR_AI)
+      const productImageUrls = productGalleryImages.filter(isHttpsImageUrl).slice(0, MAX_GALLERY_FOR_AI)
       const productImageDataUrls = productGalleryImages
         .filter(isDataImageUrl)
-        .slice(0, MAX_GALLERY_DATA_FOR_AI)
+        .slice(0, MAX_GALLERY_FOR_AI)
+      const illustrationForAi = illustrationImages.slice(0, MAX_ILLUSTRATIONS_FOR_AI)
 
       const res = await fetch("/api/supplier/generate-description", {
         method: "POST",
@@ -78,7 +100,7 @@ export function SupplierProductDescriptionField({
           categoryPath: categoryPathLabel,
           productImageUrls,
           productImageDataUrls,
-          illustrationDataUrls: illustrationImages,
+          illustrationDataUrls: illustrationForAi,
           generateMissingIllustrations: true,
         }),
       })
@@ -92,7 +114,7 @@ export function SupplierProductDescriptionField({
       }
 
       if (!res.ok) {
-        throw new Error(data.error ?? "Génération impossible")
+        throw new Error(parseGenerateDescriptionError(data.error ?? "Génération impossible"))
       }
 
       if (data.description?.trim()) {
