@@ -4,6 +4,7 @@ import {
   validateSupplierSkuTableRows,
   type SupplierSkuTableRow,
 } from "@/lib/supplier-sku-builder"
+import { validateSimpleColorRows } from "@/lib/supplier-simple-color-validation"
 
 export type PublishFieldKey =
   | "name"
@@ -103,9 +104,24 @@ export function collectClientPublishBlockers(ctx: CollectPublishContext): Publis
     }
   }
   if (ctx.variantFormMode === "simple") {
-    const colorNames = ctx.simpleColorRows.map((r) => r.name.trim()).filter(Boolean)
-    if (colorNames.length !== new Set(colorNames).size) {
-      out.push({ field: "variants", message: "Chaque nom de couleur doit être unique." })
+    const filled = ctx.simpleColorRows.filter((r) => r.name.trim())
+    if (filled.length === 0) {
+      out.push({
+        field: "variants",
+        message: "Ajoutez au moins une couleur, ou repassez en produit simple.",
+      })
+    } else {
+      const issues = validateSimpleColorRows(ctx.simpleColorRows)
+      const uniqueMessages = [...new Set(issues.map((i) => i.message))].slice(0, 3)
+      for (const message of uniqueMessages) {
+        out.push({ field: "variants", message })
+      }
+      if (issues.length > uniqueMessages.length) {
+        out.push({
+          field: "variants",
+          message: `${issues.length} erreurs sur les noms de couleur.`,
+        })
+      }
     }
   }
 
@@ -145,13 +161,17 @@ export function mapServerPublishBlockers(json: {
   }
 
   if (typeof json.error === "string" && json.error.trim()) {
-    const mapped = blockerFromMessage(json.error)
+    const normalizedError =
+      json.error === "Invalid variants payload"
+        ? "Format des variantes incorrect : en mode couleurs, n’utilisez pas la clé SKU ; en mode tableau SKU, vérifiez chaque ligne."
+        : json.error
+    const mapped = blockerFromMessage(normalizedError)
     if (mapped) {
       if (!out.some((b) => b.field === mapped.field && b.message === mapped.message)) {
-        out.push(mapped)
+        out.push({ ...mapped, message: normalizedError })
       }
     } else if (out.length === 0) {
-      out.push({ field: "specs", message: json.error })
+      out.push({ field: "specs", message: normalizedError })
     }
   }
 

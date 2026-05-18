@@ -243,7 +243,7 @@ export function parseProductVariantsFromBody(body: unknown): {
     return { error: "Au moins une variante SKU est requise lorsque les déclinaisons sont activées" }
   }
 
-  if (hasVariants || normalized.rows.length > 0) {
+  if (hasVariants) {
     return { hasVariants: true, variants: normalized.rows }
   }
 

@@ -112,6 +112,11 @@ import {
   sumSkuTableStock,
   type VariantRowValidationIssue,
 } from "@/lib/supplier-sku-builder"
+import {
+  validateSimpleColorName,
+  validateSimpleColorRows,
+  type SimpleColorValidationIssue,
+} from "@/lib/supplier-simple-color-validation"
 import { parseProductColorImagesFromDb } from "@/lib/product-color-images"
 import { trimColorSwatchImageForStore } from "@/lib/color-swatch-image"
 import { formatStoreCurrency } from "@/lib/market-config"
@@ -165,7 +170,9 @@ function omitVariantSnapshotForDraftStep1(
   const rest = { ...body }
   delete rest.colors
   delete rest.variants
+  delete rest.listingVariants
   delete rest.colorImages
+  delete rest.hasVariants
   return rest
 }
 
@@ -283,6 +290,7 @@ export function SupplierAddProductForm({
   const [variantRows, setVariantRows] = useState<ProductVariantLine[]>([])
   const [advancedSkuRows, setAdvancedSkuRows] = useState<EditableVariantRow[]>([])
   const [skuValidationIssues, setSkuValidationIssues] = useState<VariantRowValidationIssue[]>([])
+  const [simpleColorIssues, setSimpleColorIssues] = useState<SimpleColorValidationIssue[]>([])
   const [simpleColorRows, setSimpleColorRows] = useState<SupplierSimpleColorRow[]>([])
   const [listingKind, setListingKind] = useState<ListingKind>("PHYSICAL")
   const [commission, setCommission] = useState("15")
@@ -393,6 +401,14 @@ export function SupplierAddProductForm({
     }
     return null
   }, [commission, commissionMax, listingKind])
+
+  useEffect(() => {
+    if (variantFormMode !== "simple") {
+      setSimpleColorIssues([])
+      return
+    }
+    setSimpleColorIssues(validateSimpleColorRows(simpleColorRows))
+  }, [variantFormMode, simpleColorRows])
 
   const variantStockHint = useMemo(() => {
     if (variantFormMode !== "advanced") return null
@@ -887,7 +903,6 @@ export function SupplierAddProductForm({
       }
 
       const simpleSizes = parseCsvOptions(variantSizesText)
-      let variantsPayload: Record<string, unknown> | null = null
       let listingVariantsPayload: Record<string, unknown> | null = null
       let colorsPayload: string[] = []
       let colorImagesPayload: Array<{ color: string; image: string }> | undefined = undefined
@@ -905,8 +920,9 @@ export function SupplierAddProductForm({
         }
         colorsPayload = ordered.slice(0, 40)
         if (simpleSizes.length > 0) {
-          variantsPayload = { size: simpleSizes }
+          listingVariantsPayload = { size: simpleSizes }
         }
+        hasVariantsPayload = false
         colorImagesPayload =
           colorsPayload.length > 0
             ? colorsPayload.map((c) => ({
@@ -996,11 +1012,12 @@ export function SupplierAddProductForm({
         descriptionIllustrationImages,
         descriptionIllustrationVideos,
         colors: colorsPayload,
-        variants: variantsPayload,
         ...(listingVariantsPayload ? { listingVariants: listingVariantsPayload } : {}),
-        ...(hasVariantsPayload && skuVariantsPayload
+        ...(variantFormMode === "advanced" && hasVariantsPayload && skuVariantsPayload
           ? { hasVariants: true, variants: skuVariantsPayload }
-          : {}),
+          : variantFormMode !== "none"
+            ? { hasVariants: false }
+            : {}),
         colorImages: colorImagesPayload,
       }
     },
@@ -1375,6 +1392,19 @@ export function SupplierAddProductForm({
   }, [autosaveListingId, categoryId, description, descriptionIllustrationImages.length, descriptionIllustrationVideos.length, editId, images.length, name, productIsDraft])
 
   async function handleSubmit() {
+    if (variantFormMode === "simple" && simpleColorIssues.length > 0) {
+      applyPublishBlockers([
+        {
+          field: "variants",
+          message: `${simpleColorIssues.length} erreur${simpleColorIssues.length > 1 ? "s" : ""} sur les noms de couleur.`,
+        },
+      ])
+      toast.error(
+        `${simpleColorIssues.length} erreur${simpleColorIssues.length > 1 ? "s" : ""} sur les couleurs — corrigez les lignes encadrées.`
+      )
+      return
+    }
+
     if (variantFormMode === "advanced" && skuValidationIssues.length > 0) {
       applyPublishBlockers([
         {
@@ -2408,8 +2438,15 @@ export function SupplierAddProductForm({
                           <div>
                             <Label>Couleurs</Label>
                             <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-                              Une ligne par couleur — photo via lien URL ou import direct (fichier, collage, glisser-déposer).
+                              Une ligne = une couleur (ex. <span className="font-medium">Noir/Rouge</span>). Pas de
+                              virgule ni « + » — pour plusieurs axes, utilisez le tableau SKU.
                             </p>
+                            {simpleColorIssues.length > 0 ? (
+                              <p className="mt-1 text-xs font-medium text-red-600 dark:text-red-400">
+                                {simpleColorIssues.length} erreur
+                                {simpleColorIssues.length > 1 ? "s" : ""} à corriger ci-dessous.
+                              </p>
+                            ) : null}
                           </div>
                           <Button
                             type="button"
@@ -2428,10 +2465,17 @@ export function SupplierAddProductForm({
                           </Button>
                         </div>
                         <div className="mt-3 space-y-3">
-                          {simpleColorRows.map((row, i) => (
+                          {simpleColorRows.map((row, i) => {
+                            const colorIssue = simpleColorIssues.find((iss) => iss.index === i)
+                            return (
                             <div
                               key={row.id}
-                              className="flex flex-col gap-3 rounded-xl border border-zinc-200/90 bg-zinc-50/50 p-3 dark:border-zinc-700 dark:bg-zinc-900/40 sm:flex-row sm:items-start"
+                              className={cn(
+                                "flex flex-col gap-3 rounded-xl border p-3 sm:flex-row sm:items-start",
+                                colorIssue
+                                  ? "border-red-400 bg-red-50/50 dark:border-red-600 dark:bg-red-950/30"
+                                  : "border-zinc-200/90 bg-zinc-50/50 dark:border-zinc-700 dark:bg-zinc-900/40"
+                              )}
                             >
                               <div className="min-w-0 flex-1">
                                 <Label htmlFor={`v-color-name-${row.id}`} className="text-xs">
@@ -2439,17 +2483,27 @@ export function SupplierAddProductForm({
                                 </Label>
                                 <Input
                                   id={`v-color-name-${row.id}`}
-                                  className="mt-1.5 h-10"
+                                  className={cn(
+                                    "mt-1.5 h-10",
+                                    colorIssue && PUBLISH_INPUT_ERROR_CLASS
+                                  )}
                                   value={row.name}
                                   onChange={(e) => {
                                     const v = e.target.value
                                     setSimpleColorRows((prev) =>
                                       prev.map((r, j) => (j === i ? { ...r, name: v } : r))
                                     )
+                                    clearPublishFieldError("variants")
                                   }}
-                                  placeholder="ex. Violet"
+                                  placeholder="ex. Noir/Rouge"
                                   maxLength={48}
+                                  aria-invalid={Boolean(colorIssue)}
                                 />
+                                {colorIssue ? (
+                                  <p className="mt-1 text-xs font-medium text-red-600 dark:text-red-400">
+                                    {colorIssue.message}
+                                  </p>
+                                ) : null}
                               </div>
                               <SupplierSimpleColorImageField
                                 rowId={row.id}
@@ -2473,7 +2527,7 @@ export function SupplierAddProductForm({
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
-                          ))}
+                          )})}
                         </div>
                       </div>
                     </div>
@@ -2767,6 +2821,7 @@ export function SupplierAddProductForm({
                       size="lg"
                       disabled={
                         saving ||
+                        (variantFormMode === "simple" && simpleColorIssues.length > 0) ||
                         (variantFormMode === "advanced" && skuValidationIssues.length > 0)
                       }
                       className="bg-violet-600 hover:bg-violet-700 dark:bg-violet-600"
