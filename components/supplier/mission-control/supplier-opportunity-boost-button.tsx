@@ -62,7 +62,7 @@ export function SupplierOpportunityBoostButton({ opportunity, className }: Props
       )}
       {alreadyBoosted
         ? `Commission à ${opportunity.suggestedCommissionPct}%`
-        : `Booster à ${opportunity.suggestedCommissionPct}% en 1 clic`}
+        : "Proposer +2% commission"}
     </button>
   )
 }

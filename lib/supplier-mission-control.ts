@@ -27,11 +27,17 @@ export type SupplierMetrics7d = {
   orderCount: MetricDelta
   supplierNetCents: MetricDelta
   commissionCents: MetricDelta
+  /** False when the prior 7d window (J-14→J-7) has no sales baseline. */
+  hasPriorPeriodData: boolean
   topSku: {
     productId: string
     name: string
     units: number
     imageUrl: string | null
+    stock: number
+    dailySales: number
+    stockoutDays: number | null
+    stockUrgent: boolean
   } | null
 }
 
@@ -153,16 +159,45 @@ async function topSkuLast7d(
 
   const product = await prisma.product.findUnique({
     where: { id: top.productId },
-    select: { id: true, name: true, images: true },
+    select: {
+      id: true,
+      name: true,
+      images: true,
+      stock: true,
+      hasVariants: true,
+      productVariants: { select: { stock: true } },
+    },
   })
   if (!product) return null
+
+  const units = top._sum.quantity ?? 0
+  const stock = product.hasVariants
+    ? product.productVariants.reduce((sum, v) => sum + v.stock, 0)
+    : product.stock
+  const dailySales = units / 7
+  const stockoutDays =
+    dailySales > 0 ? Math.floor(stock / dailySales) : null
+  const stockUrgent = stockoutDays != null && stockoutDays < 3
 
   return {
     productId: product.id,
     name: product.name,
-    units: top._sum.quantity ?? 0,
+    units,
     imageUrl: primaryProductImage(product.images) || null,
+    stock,
+    dailySales,
+    stockoutDays,
+    stockUrgent,
   }
+}
+
+function hasPriorPeriodSalesBaseline(previous: ReturnType<typeof aggregateOrders>): boolean {
+  return (
+    previous.gmvCents > 0 ||
+    previous.orderCount > 0 ||
+    previous.supplierNetCents > 0 ||
+    previous.commissionCents > 0
+  )
 }
 
 async function loadDormantSkus(supplierId: string): Promise<DormantSku[]> {
@@ -259,6 +294,7 @@ export async function loadSupplierMissionControl(
     productCount,
     urgent,
     metrics7d: {
+      hasPriorPeriodData: hasPriorPeriodSalesBaseline(previous),
       gmvCents: metricDelta(current.gmvCents, previous.gmvCents),
       orderCount: metricDelta(current.orderCount, previous.orderCount),
       supplierNetCents: metricDelta(current.supplierNetCents, previous.supplierNetCents),

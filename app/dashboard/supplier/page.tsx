@@ -31,14 +31,16 @@ export default async function DashboardSupplierPage() {
         <SupplierMissionControlLive>
           <SupplierMissionControlHeader storeName={data.storeName} />
 
-          {data.weeklyGoal ? <SupplierWeeklyGoalCard goal={data.weeklyGoal} /> : null}
+          {data.weeklyGoal && data.metrics7d.hasPriorPeriodData ? (
+            <SupplierWeeklyGoalCard goal={data.weeklyGoal} />
+          ) : null}
 
           {data.productCount === 0 ? (
             <SupplierOnboardingChecklist storeSlug={data.storeSlug} />
           ) : (
             <>
-              <SupplierUrgentActions urgent={data.urgent} storeSlug={data.storeSlug} />
-              <SupplierMetricsBar metrics={data.metrics7d} />
+              <SupplierUrgentActions urgent={data.urgent} />
+              <SupplierMetricsBar metrics={data.metrics7d} weeklyGoal={data.weeklyGoal} />
               <SupplierGrowthSection growth={data.growth} />
             </>
           )}

@@ -28,31 +28,29 @@ export function SupplierGrowthSection({ growth }: Props) {
 
         {!opp ? (
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Aucune piste détectée sur les 30 derniers jours. Publiez plus de SKUs visibles sur le
+            Aucune piste détectée sur les 7 derniers jours. Publiez plus de SKUs visibles sur le
             marketplace.
           </p>
         ) : (
           <div className="space-y-4">
             <p className="text-sm leading-relaxed text-zinc-800 dark:text-zinc-200">
               <span className="font-semibold text-violet-900 dark:text-violet-100">
-                {opp.affiliateViewerCount} affilié{opp.affiliateViewerCount > 1 ? "s" : ""}
+                {opp.affiliateViewerCount} affilié{opp.affiliateViewerCount > 1 ? "s" : ""} intéressé
+                {opp.affiliateViewerCount > 1 ? "s" : ""} par
               </span>{" "}
-              ont vu{" "}
-              <span className="font-medium">« {opp.productName} »</span>{" "}
-              <span className="font-semibold tabular-nums">{opp.totalViews}×</span> sans l’ajouter.
+              <span className="font-medium">« {opp.productName} »</span>
             </p>
             <p className="flex items-start gap-2 rounded-xl border border-violet-100 bg-white/80 px-3 py-2.5 text-sm text-violet-950 dark:border-violet-900/50 dark:bg-zinc-900/50 dark:text-violet-100">
               <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" aria-hidden />
               <span>
-                Passe commission{" "}
+                Estimation :{" "}
+                <span className="font-semibold text-emerald-700 dark:text-emerald-400">
+                  +{opp.estimatedExtraSales7d} vente{opp.estimatedExtraSales7d > 1 ? "s" : ""} / 7j
+                </span>
+                {" · Commission "}
                 <span className="font-semibold tabular-nums">{opp.currentCommissionPct}%</span>
                 {" → "}
                 <span className="font-semibold tabular-nums">{opp.suggestedCommissionPct}%</span>
-                {" = "}
-                <span className="font-semibold text-emerald-700 dark:text-emerald-400">
-                  +{opp.estimatedExtraSales7d} vente{opp.estimatedExtraSales7d > 1 ? "s" : ""} estimée
-                  {opp.estimatedExtraSales7d > 1 ? "s" : ""} / 7j
-                </span>
               </span>
             </p>
             <div className="flex flex-wrap items-center gap-2">

@@ -7,17 +7,21 @@ import {
 } from "@/lib/supplier-product-opportunity"
 
 describe("estimateExtraSalesFromOpportunity", () => {
-  it("estimates ~3 extra sales for 5 affiliates and 23 views with +5pp", () => {
-    const n = estimateExtraSalesFromOpportunity(5, 23, OPPORTUNITY_COMMISSION_BOOST_PP)
-    expect(n).toBeGreaterThanOrEqual(2)
-    expect(n).toBeLessThanOrEqual(5)
+  it("estimates count × 0.15 sales / 7j", () => {
+    expect(estimateExtraSalesFromOpportunity(5)).toBe(0.8)
+    expect(estimateExtraSalesFromOpportunity(10)).toBe(1.5)
+    expect(estimateExtraSalesFromOpportunity(0)).toBe(0)
   })
 })
 
 describe("suggestCommissionPct", () => {
-  it("bumps 10% to 15% on physical goods", () => {
+  it("bumps 10% to 12% with default +2pp", () => {
     const { suggested, boostPp } = suggestCommissionPct(10, "PHYSICAL")
-    expect(suggested).toBe(15)
-    expect(boostPp).toBe(5)
+    expect(suggested).toBe(12)
+    expect(boostPp).toBe(2)
+  })
+
+  it("uses OPPORTUNITY_COMMISSION_BOOST_PP constant", () => {
+    expect(OPPORTUNITY_COMMISSION_BOOST_PP).toBe(2)
   })
 })

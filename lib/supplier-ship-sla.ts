@@ -1,16 +1,33 @@
 import { prisma } from "@/lib/prisma"
 
-/** Marketplace: ship within 48h of payment (display SLA for Mission Control). */
-export const SUPPLIER_SHIP_SLA_MS = 48 * 60 * 60 * 1000
+/** Marketplace: ship within 48h of payment (`Order.createdAt`). */
+export const SUPPLIER_SHIP_SLA_HOURS = 48
+export const SUPPLIER_SHIP_SLA_MS = SUPPLIER_SHIP_SLA_HOURS * 60 * 60 * 1000
 
-/** Estimated platform penalty if shipment misses SLA (EUR cents, display only). */
-export const SUPPLIER_LATE_SHIP_PENALTY_CENTS = 1500
+/** Urgent threshold: less than 24h left before SLA breach. */
+export const SUPPLIER_SHIP_SLA_URGENT_HOURS = 24
+
+/** Display penalty per late order (EUR cents). */
+export const SUPPLIER_LATE_SHIP_PENALTY_PER_ORDER_CENTS = 500
 
 export type OrdersToShipSlaSnapshot = {
   count: number
-  /** Milliseconds until the soonest SLA breach; 0 if already late. */
+  /** Hours until soonest SLA breach (48h − hours since payment). */
+  minHoursLeft: number | null
   msUntilBreach: number | null
-  penaltyCents: number
+  isLate: boolean
+  isUrgent: boolean
+  penaltyPerOrderCents: number
+  totalPenaltyCents: number
+}
+
+export function hoursSincePayment(paymentAt: Date, nowMs = Date.now()): number {
+  return (nowMs - paymentAt.getTime()) / 3_600_000
+}
+
+/** hoursLeft = 48 − hoursSince(paymentAt) */
+export function hoursLeftFromPayment(paymentAt: Date, nowMs = Date.now()): number {
+  return SUPPLIER_SHIP_SLA_HOURS - hoursSincePayment(paymentAt, nowMs)
 }
 
 export function formatSlaCountdown(ms: number): string {
@@ -20,20 +37,43 @@ export function formatSlaCountdown(ms: number): string {
   return `${hours}h${String(minutes).padStart(2, "0")}`
 }
 
-/** Compact hours label for card title, e.g. « < 22h » (matches countdown hour). */
-export function formatSlaHoursShort(ms: number): string {
-  const hours = Math.max(1, Math.floor(ms / 3_600_000))
-  return `${hours}h`
+export function formatHoursLeftLabel(hoursLeft: number): string {
+  if (hoursLeft <= 0) return "SLA dépassé"
+  const h = Math.floor(hoursLeft)
+  const m = Math.round((hoursLeft - h) * 60)
+  if (h >= 1) return `< ${h}h`
+  return m > 0 ? `${m} min` : "< 1h"
 }
 
-function soonestBreachMs(createdAts: Date[], nowMs: number): number | null {
-  if (createdAts.length === 0) return null
-  let minRemaining = Infinity
-  for (const createdAt of createdAts) {
-    const remaining = createdAt.getTime() + SUPPLIER_SHIP_SLA_MS - nowMs
-    minRemaining = Math.min(minRemaining, remaining)
+/** @deprecated Prefer formatHoursLeftLabel — kept for legacy call sites. */
+export function formatSlaHoursShort(ms: number): string {
+  const hours = Math.max(0, Math.ceil(ms / 3_600_000))
+  return hours >= 1 ? `${hours}h` : "< 1h"
+}
+
+function analyzeSla(createdAts: Date[], nowMs: number): Pick<
+  OrdersToShipSlaSnapshot,
+  "minHoursLeft" | "msUntilBreach" | "isLate" | "isUrgent"
+> {
+  if (createdAts.length === 0) {
+    return { minHoursLeft: null, msUntilBreach: null, isLate: false, isUrgent: false }
   }
-  return minRemaining === Infinity ? null : minRemaining
+
+  let minHoursLeft = Infinity
+  for (const paymentAt of createdAts) {
+    const left = hoursLeftFromPayment(paymentAt, nowMs)
+    minHoursLeft = Math.min(minHoursLeft, left)
+  }
+
+  if (!Number.isFinite(minHoursLeft)) {
+    return { minHoursLeft: null, msUntilBreach: null, isLate: false, isUrgent: false }
+  }
+
+  const isLate = minHoursLeft <= 0
+  const isUrgent = minHoursLeft < SUPPLIER_SHIP_SLA_URGENT_HOURS
+  const msUntilBreach = Math.round(minHoursLeft * 3_600_000)
+
+  return { minHoursLeft, msUntilBreach, isLate, isUrgent }
 }
 
 export async function loadOrdersToShipSla(supplierId: string): Promise<OrdersToShipSlaSnapshot> {
@@ -61,11 +101,12 @@ export async function loadOrdersToShipSla(supplierId: string): Promise<OrdersToS
   const createdAts = [...marketplace.map((o) => o.createdAt), ...blind.map((o) => o.createdAt)]
   const count = createdAts.length
   const nowMs = Date.now()
-  const raw = soonestBreachMs(createdAts, nowMs)
+  const sla = analyzeSla(createdAts, nowMs)
 
   return {
     count,
-    msUntilBreach: raw,
-    penaltyCents: count > 0 ? SUPPLIER_LATE_SHIP_PENALTY_CENTS : 0,
+    ...sla,
+    penaltyPerOrderCents: count > 0 ? SUPPLIER_LATE_SHIP_PENALTY_PER_ORDER_CENTS : 0,
+    totalPenaltyCents: count > 0 ? count * SUPPLIER_LATE_SHIP_PENALTY_PER_ORDER_CENTS : 0,
   }
 }

@@ -1,15 +1,19 @@
 import Link from "next/link"
-import { CheckCircle2, Share2 } from "lucide-react"
+import { CheckCircle2, Plus } from "lucide-react"
 
+import { SupplierUrgentCarousel } from "@/components/supplier/mission-control/supplier-urgent-carousel"
 import type { SupplierUrgentSnapshot } from "@/lib/supplier-urgent-snapshot"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
-import { formatSlaCountdown, formatSlaHoursShort } from "@/lib/supplier-ship-sla"
+import {
+  formatHoursLeftLabel,
+  formatSlaCountdown,
+  SUPPLIER_LATE_SHIP_PENALTY_PER_ORDER_CENTS,
+} from "@/lib/supplier-ship-sla"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 type Props = {
   urgent: SupplierUrgentSnapshot
-  storeSlug: string | null
 }
 
 type SlotProps = {
@@ -58,7 +62,14 @@ function UrgentSlot({
         >
           {title}
           {active && titleSubline ? (
-            <span className="mt-0.5 block text-xs font-bold text-amber-700 dark:text-amber-300">
+            <span
+              className={cn(
+                "mt-0.5 block text-xs font-bold",
+                tone === "red"
+                  ? "text-red-700 dark:text-red-300"
+                  : "text-amber-700 dark:text-amber-300"
+              )}
+            >
               {titleSubline}
             </span>
           ) : null}
@@ -108,21 +119,29 @@ function UrgentSlot({
 
 function buildShipSlot(urgent: SupplierUrgentSnapshot): SlotProps {
   const active = urgent.ordersToShip > 0
-  const slaMs = urgent.ordersToShipSlaMs
-  const late = slaMs != null && slaMs <= 0
-  const remainingMs = slaMs != null && slaMs > 0 ? slaMs : null
+  const hoursLeft = urgent.ordersToShipHoursLeft
+  const late = urgent.ordersToShipSlaLate
+  const urgentSla = urgent.ordersToShipSlaUrgent
+  const remainingMs =
+    urgent.ordersToShipSlaMs != null && urgent.ordersToShipSlaMs > 0
+      ? urgent.ordersToShipSlaMs
+      : null
 
   const countTitle =
     urgent.ordersToShip === 1
       ? "1 commande à expédier"
       : `${urgent.ordersToShip} commandes à expédier`
 
+  const penaltyPerOrder = formatStoreCurrencyFromCents(
+    urgent.ordersToShipPenaltyPerOrderCents || SUPPLIER_LATE_SHIP_PENALTY_PER_ORDER_CENTS
+  )
+
   return {
     active,
     title: countTitle,
     titleSubline:
-      active && remainingMs != null
-        ? `< ${formatSlaHoursShort(remainingMs)}`
+      active && hoursLeft != null && !late
+        ? formatHoursLeftLabel(hoursLeft)
         : active && late
           ? "SLA dépassé"
           : undefined,
@@ -131,17 +150,17 @@ function buildShipSlot(urgent: SupplierUrgentSnapshot): SlotProps {
       : late
         ? "Payées · en retard"
         : remainingMs != null
-          ? `Payées · SLA dépassé dans ${formatSlaCountdown(remainingMs)}`
+          ? `Payées · SLA dans ${formatSlaCountdown(remainingMs)}`
           : "Payées · en attente",
     consequence:
-      active && urgent.ordersToShipPenaltyCents > 0
-        ? `Pénalité estimée : −${formatStoreCurrencyFromCents(urgent.ordersToShipPenaltyCents)} si retard`
+      active && (urgentSla || late)
+        ? `Pénalité estimée : −${penaltyPerOrder}/commande`
         : active
           ? "Risque note acheteur si retard"
           : "—",
     href: "/dashboard/supplier/orders",
     cta: "Expédier",
-    tone: late ? "red" : "amber",
+    tone: urgentSla || late ? "red" : "amber",
     ctaVariant: active ? "default" : "outline",
   }
 }
@@ -153,9 +172,9 @@ function buildStockSlot(urgent: SupplierUrgentSnapshot): SlotProps {
 
   const title = active
     ? urgent.lowStockCount === 1
-      ? "1 Rupture"
-      : `${urgent.lowStockCount} Ruptures`
-    : "Ruptures stock"
+      ? "1 rupture SKU"
+      : `${urgent.lowStockCount} ruptures SKU`
+    : "Ruptures SKU"
 
   const skuLabel = first
     ? extra > 0
@@ -194,9 +213,9 @@ function buildMessageSlot(urgent: SupplierUrgentSnapshot): SlotProps {
     active,
     title: active
       ? n === 1
-        ? "1 Message client"
-        : `${n} Messages client`
-      : "Message client",
+        ? "1 message client"
+        : `${n} messages client`
+      : "Messages client",
     metric: active ? "sans réponse" : "Boîte à jour",
     consequence: active
       ? urgent.shopRatingImpactPct > 0
@@ -210,7 +229,7 @@ function buildMessageSlot(urgent: SupplierUrgentSnapshot): SlotProps {
   }
 }
 
-export function SupplierUrgentActions({ urgent, storeSlug }: Props) {
+export function SupplierUrgentActions({ urgent }: Props) {
   const ship = buildShipSlot(urgent)
   const stock = buildStockSlot(urgent)
   const message = buildMessageSlot(urgent)
@@ -224,41 +243,31 @@ export function SupplierUrgentActions({ urgent, storeSlug }: Props) {
       </h2>
 
       {allClear ? (
-        <div className="flex flex-col gap-4 rounded-2xl border border-emerald-200/80 bg-emerald-50/40 px-5 py-6 dark:border-emerald-900/40 dark:bg-emerald-950/20 sm:flex-row sm:items-center sm:justify-between">
+        <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/40 px-5 py-6 dark:border-emerald-900/40 dark:bg-emerald-950/20">
           <div className="flex items-start gap-3">
             <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden />
             <div>
               <p className="font-semibold text-emerald-950 dark:text-emerald-100">Tout est à jour ✅</p>
-              <p className="mt-1 text-sm text-emerald-900/80 dark:text-emerald-200/80">
-                Expéditions, stocks et messages clients sont à jour.
+              <p className="mt-2 text-sm text-emerald-900/80 dark:text-emerald-200/80">
+                Prochaine étape :{" "}
+                <Link
+                  href="/dashboard/supplier/products/new"
+                  className="inline-flex items-center gap-1 font-semibold text-emerald-800 underline-offset-2 hover:underline dark:text-emerald-200"
+                >
+                  <Plus className="h-3.5 w-3.5" aria-hidden />
+                  Ajouter un produit
+                </Link>
               </p>
             </div>
           </div>
-          <EmptyOrdersHint storeSlug={storeSlug} />
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <SupplierUrgentCarousel>
           <UrgentSlot {...ship} />
           <UrgentSlot {...stock} />
           <UrgentSlot {...message} />
-        </div>
+        </SupplierUrgentCarousel>
       )}
     </section>
-  )
-}
-
-function EmptyOrdersHint({ storeSlug }: { storeSlug: string | null }) {
-  const catalogHref = storeSlug ? `/store/supplier/${storeSlug}` : "/marketplace"
-  return (
-    <p className="text-sm text-zinc-600 dark:text-zinc-400">
-      Boostez la visibilité :{" "}
-      <Link
-        href={catalogHref}
-        className="inline-flex items-center gap-1 font-semibold text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
-      >
-        <Share2 className="h-3.5 w-3.5" aria-hidden />
-        Partager catalogue
-      </Link>
-    </p>
   )
 }

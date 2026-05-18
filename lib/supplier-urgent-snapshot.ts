@@ -2,6 +2,7 @@ import { TERMINAL_RETURN_STATUSES } from "@/lib/order-return-types"
 import { loadOrdersToShipSla } from "@/lib/supplier-ship-sla"
 import { prisma } from "@/lib/prisma"
 
+/** Variants with stock strictly below this count surface in urgent actions. */
 const LOW_STOCK_THRESHOLD = 5
 const SHOP_RATING_PENALTY_PCT_PER_MESSAGE = 3
 
@@ -15,6 +16,10 @@ export type LowStockUrgentLine = {
 export type SupplierUrgentSnapshot = {
   ordersToShip: number
   ordersToShipSlaMs: number | null
+  ordersToShipHoursLeft: number | null
+  ordersToShipSlaUrgent: boolean
+  ordersToShipSlaLate: boolean
+  ordersToShipPenaltyPerOrderCents: number
   ordersToShipPenaltyCents: number
   lowStockCount: number
   lowStockLines: LowStockUrgentLine[]
@@ -42,7 +47,7 @@ async function loadLowStockLines(supplierId: string): Promise<LowStockUrgentLine
   const [variants, simpleProducts] = await Promise.all([
     prisma.productVariant.findMany({
       where: {
-        stock: { lte: LOW_STOCK_THRESHOLD },
+        stock: { lt: LOW_STOCK_THRESHOLD },
         product: { supplierId, active: true, isDraft: false, hasVariants: true },
       },
       select: {
@@ -61,7 +66,7 @@ async function loadLowStockLines(supplierId: string): Promise<LowStockUrgentLine
         active: true,
         isDraft: false,
         hasVariants: false,
-        stock: { lte: LOW_STOCK_THRESHOLD },
+        stock: { lt: LOW_STOCK_THRESHOLD },
       },
       select: { id: true, name: true, stock: true },
       orderBy: [{ stock: "asc" }, { updatedAt: "desc" }],
@@ -133,12 +138,12 @@ async function countLowStock(supplierId: string): Promise<number> {
         active: true,
         isDraft: false,
         hasVariants: false,
-        stock: { lte: LOW_STOCK_THRESHOLD },
+        stock: { lt: LOW_STOCK_THRESHOLD },
       },
     }),
     prisma.productVariant.count({
       where: {
-        stock: { lte: LOW_STOCK_THRESHOLD },
+        stock: { lt: LOW_STOCK_THRESHOLD },
         product: { supplierId, active: true, isDraft: false, hasVariants: true },
       },
     }),
@@ -158,7 +163,11 @@ export async function loadSupplierUrgentSnapshot(supplierId: string): Promise<Su
   return {
     ordersToShip: shipSla.count,
     ordersToShipSlaMs: shipSla.msUntilBreach,
-    ordersToShipPenaltyCents: shipSla.penaltyCents,
+    ordersToShipHoursLeft: shipSla.minHoursLeft,
+    ordersToShipSlaUrgent: shipSla.isUrgent,
+    ordersToShipSlaLate: shipSla.isLate,
+    ordersToShipPenaltyPerOrderCents: shipSla.penaltyPerOrderCents,
+    ordersToShipPenaltyCents: shipSla.totalPenaltyCents,
     lowStockCount,
     lowStockLines,
     lowStockDailyLossCents: lowStockCount * 600 * 100,

@@ -1,9 +1,9 @@
 import { affiliateCommissionMaxPct, parseListingKind } from "@/lib/supplier-commission"
 import { prisma } from "@/lib/prisma"
 
-const OPPORTUNITY_LOOKBACK_MS = 30 * 24 * 60 * 60 * 1000
-/** Default commission bump offered in Mission Control (percentage points). */
-export const OPPORTUNITY_COMMISSION_BOOST_PP = 5
+const OPPORTUNITY_LOOKBACK_MS = 7 * 24 * 60 * 60 * 1000
+/** Commission bump offered in Mission Control (percentage points). */
+export const OPPORTUNITY_COMMISSION_BOOST_PP = 2
 
 export type ProductCommissionOpportunity = {
   productId: string
@@ -13,19 +13,14 @@ export type ProductCommissionOpportunity = {
   currentCommissionPct: number
   suggestedCommissionPct: number
   commissionBoostPct: number
+  /** Estimated extra sales / 7d (affiliateCount × 0.15). */
   estimatedExtraSales7d: number
   listingKind: string
 }
 
-export function estimateExtraSalesFromOpportunity(
-  uniqueAffiliates: number,
-  totalViews: number,
-  commissionBoostPct: number
-): number {
-  const viewSignal = totalViews / 7.5
-  const affiliateSignal = Math.min(uniqueAffiliates, 8) * 0.08
-  const boostSignal = commissionBoostPct >= 5 ? 0.35 : commissionBoostPct / 15
-  return Math.max(1, Math.min(12, Math.round(viewSignal + affiliateSignal + boostSignal)))
+export function estimateExtraSalesFromOpportunity(affiliateViewerCount: number): number {
+  const raw = affiliateViewerCount * 0.15
+  return Math.round(raw * 10) / 10
 }
 
 export function suggestCommissionPct(
@@ -61,7 +56,7 @@ export async function loadTopProductCommissionOpportunity(
       userId: { not: null },
       createdAt: { gte: since },
     },
-    select: { userId: true, productId: true },
+    select: { userId: true, productId: true, createdAt: true },
   })
   if (views.length === 0) return null
 
@@ -113,19 +108,17 @@ export async function loadTopProductCommissionOpportunity(
   )
   if (boostPp <= 0) return null
 
+  const affiliateViewerCount = best.affiliates.size
+
   return {
     productId: best.productId,
     productName: meta.name,
-    affiliateViewerCount: best.affiliates.size,
+    affiliateViewerCount,
     totalViews: best.views,
     currentCommissionPct,
     suggestedCommissionPct: suggested,
     commissionBoostPct: boostPp,
-    estimatedExtraSales7d: estimateExtraSalesFromOpportunity(
-      best.affiliates.size,
-      best.views,
-      boostPp
-    ),
+    estimatedExtraSales7d: estimateExtraSalesFromOpportunity(affiliateViewerCount),
     listingKind: meta.listingKind,
   }
 }
