@@ -36,6 +36,46 @@ export const productVariantInputSchema = z.object({
   publicPrice: z.coerce.number().positive().optional(),
   stock: z.coerce.number().int().min(0, "Stock doit être ≥ 0"),
   commissionRate: z.coerce.number().min(0).max(100).default(10),
+  weightGrams: z
+    .union([z.coerce.number().int().positive().max(30000), z.literal(""), z.null()])
+    .optional()
+    .transform((v) => (v === "" || v == null ? null : v)),
+  ean: z
+    .union([z.string(), z.null(), z.undefined()])
+    .optional()
+    .transform((v) => {
+      if (v == null || typeof v !== "string") return null
+      const t = v.trim()
+      return t.length > 0 ? t : null
+    })
+    .refine((v) => v == null || /^[0-9]{8,13}$/.test(v), {
+      message: "EAN : 8 à 13 chiffres",
+    }),
+  processingDays: z
+    .union([z.coerce.number().int().min(0).max(30), z.literal(""), z.null()])
+    .optional()
+    .transform((v) => (v === "" || v == null ? null : v)),
+  originCountry: z
+    .string()
+    .trim()
+    .max(2)
+    .optional()
+    .nullable()
+    .transform((v) => (v && v.length > 0 ? v.toUpperCase() : null)),
+  warehouseCode: z
+    .string()
+    .trim()
+    .max(16)
+    .optional()
+    .nullable()
+    .transform((v) => (v && v.length > 0 ? v : null)),
+  videoUrl: z
+    .string()
+    .trim()
+    .max(2000)
+    .optional()
+    .nullable()
+    .transform((v) => (v && v.length > 0 ? v : null)),
 }).transform((v) => ({
   ...v,
   publicPrice: v.publicPrice ?? v.supplierPrice,
@@ -56,15 +96,24 @@ export function marginEur(supplierPrice: number, publicPrice: number): number {
   return Math.round((publicPrice - supplierPrice) * 100) / 100
 }
 
-export function serializeProductVariantRow(row: {
-  id: string
-  sku: string | null
-  color: string | null
-  size: string | null
-  supplierPrice: Prisma.Decimal
-  publicPrice: Prisma.Decimal
-  stock: number
-}): ProductVariantApiRow {
+export function serializeProductVariantRow(
+  row: {
+    id: string
+    sku: string | null
+    color: string | null
+    size: string | null
+    supplierPrice: Prisma.Decimal
+    publicPrice: Prisma.Decimal
+    stock: number
+    weightGrams?: number | null
+    processingDays?: number | null
+    ean?: string | null
+    originCountry?: string | null
+    warehouseCode?: string | null
+    videoUrl?: string | null
+  },
+  defaultCommissionRate = 10
+): ProductVariantApiRow {
   const supplier = Number(row.supplierPrice)
   const pub = Number(row.publicPrice)
   return {
@@ -75,8 +124,14 @@ export function serializeProductVariantRow(row: {
     supplierPrice: supplier,
     publicPrice: pub,
     stock: row.stock,
-    commissionRate: 10,
+    commissionRate: defaultCommissionRate,
     margin: marginEur(supplier, pub),
+    weightGrams: row.weightGrams ?? null,
+    processingDays: row.processingDays ?? null,
+    ean: row.ean ?? null,
+    originCountry: row.originCountry ?? null,
+    warehouseCode: row.warehouseCode ?? null,
+    videoUrl: row.videoUrl ?? null,
   }
 }
 
@@ -283,6 +338,12 @@ export async function syncProductVariants(
       supplierPrice: new Prisma.Decimal(v.supplierPrice.toFixed(2)),
       publicPrice: new Prisma.Decimal(v.supplierPrice.toFixed(2)),
       stock: v.stock,
+      weightGrams: v.weightGrams ?? null,
+      processingDays: v.processingDays ?? 2,
+      ean: v.ean ?? null,
+      originCountry: v.originCountry ?? "CN",
+      warehouseCode: v.warehouseCode ?? null,
+      videoUrl: v.videoUrl ?? null,
     }
 
     if (v.id && existingIds.has(v.id)) {

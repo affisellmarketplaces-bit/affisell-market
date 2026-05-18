@@ -37,6 +37,9 @@ type Props = {
   onRemoveCustomColumn: (id: string) => void
   hiddenColumns: SkuOptionalColumnKey[]
   onHiddenColumnsChange: (hidden: SkuOptionalColumnKey[]) => void
+  catalogOriginCountry?: string
+  catalogWarehouse?: string
+  catalogProcessingDays?: number
   onGenerate: (rows: SupplierSkuTableRow[]) => void
   disabled?: boolean
 }
@@ -55,6 +58,9 @@ export function SupplierSkuFastPanel({
   onRemoveCustomColumn,
   hiddenColumns,
   onHiddenColumnsChange,
+  catalogOriginCountry = "CN",
+  catalogWarehouse = "EU",
+  catalogProcessingDays = 2,
   onGenerate,
   disabled,
 }: Props) {
@@ -65,6 +71,12 @@ export function SupplierSkuFastPanel({
   const showCompareAt = isSkuColumnVisible(hiddenColumns, "compareAt")
   const showStock = isSkuColumnVisible(hiddenColumns, "stock")
   const showCommission = isSkuColumnVisible(hiddenColumns, "commission")
+  const showWeight = isSkuColumnVisible(hiddenColumns, "weightGrams")
+  const showEan = isSkuColumnVisible(hiddenColumns, "ean")
+  const showProcessing = isSkuColumnVisible(hiddenColumns, "processingDays")
+  const showOrigin = isSkuColumnVisible(hiddenColumns, "originCountry")
+  const showWarehouse = isSkuColumnVisible(hiddenColumns, "warehouseCode")
+  const showVideo = isSkuColumnVisible(hiddenColumns, "videoUrl")
   const [colorRows, setColorRows] = useState<SkuFastColorRow[]>([newColorRow()])
   const [sizesText, setSizesText] = useState("")
   const [defaults, setDefaults] = useState<SkuFastDefaults>(() => ({
@@ -73,6 +85,12 @@ export function SupplierSkuFastPanel({
     stock: 0,
     commissionRate: defaultCommission,
     customFieldValues: {},
+    weightGrams: null,
+    processingDays: catalogProcessingDays,
+    ean: null,
+    originCountry: catalogOriginCountry,
+    warehouseCode: catalogWarehouse,
+    videoUrl: null,
   }))
   const [newColumnLabel, setNewColumnLabel] = useState("")
 
@@ -326,6 +344,100 @@ export function SupplierSkuFastPanel({
               }
             />
           </div>
+          ) : null}
+          {showWeight ? (
+            <div>
+              <Label className="text-xs">Poids (g)</Label>
+              <Input
+                type="number"
+                min={1}
+                max={30000}
+                className="mt-1 h-10"
+                disabled={disabled}
+                value={defaults.weightGrams != null && defaults.weightGrams > 0 ? defaults.weightGrams : ""}
+                onChange={(e) => {
+                  const raw = e.target.value
+                  setDefault({ weightGrams: raw.trim() === "" ? null : Number(raw) || null })
+                }}
+                placeholder="250"
+              />
+            </div>
+          ) : null}
+          {showEan ? (
+            <div>
+              <Label className="text-xs">EAN (opt.)</Label>
+              <Input
+                className="mt-1 h-10 font-mono text-sm"
+                disabled={disabled}
+                value={defaults.ean ?? ""}
+                onChange={(e) => setDefault({ ean: e.target.value.trim() || null })}
+                placeholder="3700123456789"
+                maxLength={13}
+              />
+            </div>
+          ) : null}
+          {showProcessing ? (
+            <div>
+              <Label className="text-xs">Délai expédition (j)</Label>
+              <Input
+                type="number"
+                min={0}
+                max={30}
+                className="mt-1 h-10"
+                disabled={disabled}
+                value={defaults.processingDays ?? ""}
+                onChange={(e) =>
+                  setDefault({
+                    processingDays: Math.min(30, Math.max(0, Math.round(Number(e.target.value) || 0))),
+                  })
+                }
+              />
+            </div>
+          ) : null}
+          {showOrigin ? (
+            <div>
+              <Label className="text-xs">Pays origine (ISO)</Label>
+              <Input
+                className="mt-1 h-10 uppercase"
+                disabled={disabled}
+                value={defaults.originCountry ?? ""}
+                onChange={(e) =>
+                  setDefault({
+                    originCountry: e.target.value.trim().toUpperCase().slice(0, 2) || "CN",
+                  })
+                }
+                maxLength={2}
+              />
+            </div>
+          ) : null}
+          {showWarehouse ? (
+            <div>
+              <Label className="text-xs">Entrepôt</Label>
+              <Input
+                className="mt-1 h-10 uppercase"
+                disabled={disabled}
+                value={defaults.warehouseCode ?? ""}
+                onChange={(e) =>
+                  setDefault({
+                    warehouseCode: e.target.value.trim().toUpperCase() || null,
+                  })
+                }
+                placeholder="EU"
+                maxLength={16}
+              />
+            </div>
+          ) : null}
+          {showVideo ? (
+            <div>
+              <Label className="text-xs">Lien vidéo démo</Label>
+              <Input
+                className="mt-1 h-10 text-sm"
+                disabled={disabled}
+                value={defaults.videoUrl ?? ""}
+                onChange={(e) => setDefault({ videoUrl: e.target.value.trim() || null })}
+                placeholder="https://…"
+              />
+            </div>
           ) : null}
         </div>
       </section>

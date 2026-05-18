@@ -381,6 +381,14 @@ model ProductVariant {
   /** Prix affiché client (selling). */
   publicPrice   Decimal  @db.Decimal(10, 2)
   stock         Int      @default(0)
+  weightGrams   Int?
+  processingDays Int?    @default(2)
+  ean           String?  @unique
+  originCountry String?  @default("CN")
+  warehouseCode String?
+  purchasePriceHT Decimal? @db.Decimal(10, 2)
+  moq           Int?     @default(1)
+  videoUrl      String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

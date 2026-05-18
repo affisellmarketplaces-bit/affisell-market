@@ -67,7 +67,9 @@ export async function GET(
     return Response.json({ error: "Not found" }, { status: 404 })
   }
 
-  const variants = p.productVariants.map(serializeProductVariantRow)
+  const variants = p.productVariants.map((v) =>
+    serializeProductVariantRow(v, p.commissionRate)
+  )
 
   return Response.json({
     ...p,
@@ -361,7 +363,9 @@ export async function PUT(
 
   return Response.json({
     ...(fresh ?? updated),
-    variants: (fresh?.productVariants ?? []).map(serializeProductVariantRow),
+    variants: (fresh?.productVariants ?? []).map((v) =>
+      serializeProductVariantRow(v, fresh?.commissionRate ?? updated.commissionRate)
+    ),
   })
 }
 
@@ -443,7 +447,9 @@ export async function PATCH(
     ...fresh,
     compareAt: fresh.compareAt != null ? Number(fresh.compareAt) : null,
     shippingCost: Number(fresh.shippingCost),
-    variants: fresh.productVariants.map(serializeProductVariantRow),
+    variants: fresh.productVariants.map((v) =>
+      serializeProductVariantRow(v, fresh.commissionRate)
+    ),
   })
 }
 

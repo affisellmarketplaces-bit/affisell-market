@@ -114,6 +114,7 @@ import {
   type SkuCustomColumnDef,
   type VariantRowValidationIssue,
 } from "@/lib/supplier-sku-builder"
+import { formatAffiliateCatalogPreviewLine } from "@/lib/supplier-sku-affiliate-earning"
 import { parseSkuHiddenColumns, type SkuOptionalColumnKey } from "@/lib/supplier-sku-columns"
 import {
   validateSimpleColorName,
@@ -370,6 +371,24 @@ export function SupplierAddProductForm({
     if (!Number.isFinite(p) || !Number.isFinite(c) || c <= p) return 0
     return Math.round(((c - p) / c) * 100)
   }, [price, compareAt])
+
+  const affiliateCatalogPreviewLine = useMemo(() => {
+    const priceN = Number(price)
+    if (!Number.isFinite(priceN) || priceN <= 0) return null
+    const firstSku = advancedSkuRows.find((r) => r.color.trim())
+    const comm = firstSku?.commissionRate ?? Math.round(Number(commission) || 0)
+    const dd = deliveryDays.trim() ? Number(deliveryDays) : null
+    return formatAffiliateCatalogPreviewLine({
+      supplierPriceEur: firstSku?.supplierPrice && firstSku.supplierPrice > 0 ? firstSku.supplierPrice : priceN,
+      commissionRate: comm,
+      compareAtEur: compareAt.trim() ? Number(compareAt) : null,
+      weightGrams: firstSku?.weightGrams ?? null,
+      processingDays: firstSku?.processingDays ?? (dd != null && Number.isFinite(dd) ? dd : null),
+      warehouseCode: firstSku?.warehouseCode ?? null,
+      shipsFrom: shipsFrom.trim() || undefined,
+      deliveryDays: dd,
+    })
+  }, [price, commission, compareAt, advancedSkuRows, deliveryDays, shipsFrom])
 
   const priceError = useMemo(() => {
     const p = Number(price)
@@ -2561,6 +2580,12 @@ export function SupplierAddProductForm({
                       hiddenColumns={skuHiddenColumns}
                       onHiddenColumnsChange={setSkuHiddenColumns}
                       skuPrefix="PRD"
+                      catalogShipsFrom={shipsFrom.trim() || "EU"}
+                      catalogDeliveryDays={
+                        deliveryDays.trim() && Number.isFinite(Number(deliveryDays))
+                          ? Math.round(Number(deliveryDays))
+                          : 2
+                      }
                       disabled={saving}
                     />
                   ) : (
@@ -2810,6 +2835,11 @@ export function SupplierAddProductForm({
                         </>
                       ) : null}
                     </p>
+                    {affiliateCatalogPreviewLine ? (
+                      <p className="mt-2 text-sm font-medium text-violet-900/90 dark:text-violet-200/90">
+                        {affiliateCatalogPreviewLine}
+                      </p>
+                    ) : null}
                     <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
                       Le prix affiché aux acheteurs est choisi par chaque affilié sur sa boutique.
                     </p>

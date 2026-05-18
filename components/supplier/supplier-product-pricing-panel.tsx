@@ -180,6 +180,8 @@ export function SupplierProductPricingPanel({ productId }: Props) {
             onCustomColumnsChange={() => {}}
             hiddenColumns={[]}
             onHiddenColumnsChange={() => {}}
+            catalogShipsFrom="EU"
+            catalogDeliveryDays={2}
             skuPrefix="PRD"
           />
         </div>

@@ -7,6 +7,14 @@ export const SKU_OPTIONAL_COLUMN_KEYS = [
   "compareAt",
   "stock",
   "commission",
+  "weightGrams",
+  "ean",
+  "processingDays",
+  "originCountry",
+  "warehouseCode",
+  "videoUrl",
+  /** UI-only: calculated affiliate commission per sale */
+  "affiliateMargin",
 ] as const
 
 export type SkuOptionalColumnKey = (typeof SKU_OPTIONAL_COLUMN_KEYS)[number]
@@ -21,6 +29,13 @@ export const SKU_OPTIONAL_COLUMN_LABELS: Record<SkuOptionalColumnKey, string> = 
   compareAt: "Prix barré",
   stock: "Stock",
   commission: "Commission %",
+  weightGrams: "Poids (g)",
+  ean: "EAN",
+  processingDays: "Délai (j)",
+  originCountry: "Pays origine",
+  warehouseCode: "Entrepôt",
+  videoUrl: "Lien vidéo",
+  affiliateMargin: "Marge affilié EUR",
 }
 
 export function isSkuOptionalColumnKey(v: string): v is SkuOptionalColumnKey {

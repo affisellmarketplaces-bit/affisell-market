@@ -85,6 +85,12 @@ export type SupplierSkuTableRow = {
   colorImage?: string
   /** Champs personnalisés (unité, volume, …) */
   customFields?: Record<string, string>
+  weightGrams?: number | null
+  processingDays?: number | null
+  ean?: string | null
+  originCountry?: string | null
+  warehouseCode?: string | null
+  videoUrl?: string | null
 }
 
 export type SkuFastDefaults = {
@@ -93,6 +99,43 @@ export type SkuFastDefaults = {
   stock: number
   commissionRate: number
   customFieldValues: Record<string, string>
+  weightGrams?: number | null
+  processingDays?: number | null
+  ean?: string | null
+  originCountry?: string | null
+  warehouseCode?: string | null
+  videoUrl?: string | null
+}
+
+function parseLogisticsFromAttrs(attrs?: Record<string, string>): Partial<SupplierSkuTableRow> {
+  if (!attrs) return {}
+  const out: Partial<SupplierSkuTableRow> = {}
+  const wg = attrs.weightGrams?.trim()
+  if (wg && /^\d+$/.test(wg)) out.weightGrams = Math.min(30000, parseInt(wg, 10))
+  const pd = attrs.processingDays?.trim()
+  if (pd && /^\d+$/.test(pd)) out.processingDays = Math.min(30, parseInt(pd, 10))
+  const ean = attrs.ean?.trim()
+  if (ean) out.ean = ean
+  const oc = attrs.originCountry?.trim()
+  if (oc) out.originCountry = oc.slice(0, 2).toUpperCase()
+  const wh = attrs.warehouseCode?.trim()
+  if (wh) out.warehouseCode = wh.slice(0, 16)
+  const vid = attrs.videoUrl?.trim()
+  if (vid) out.videoUrl = vid.slice(0, 2000)
+  return out
+}
+
+function logisticsAttrsFromRow(row: SupplierSkuTableRow): Record<string, string> {
+  const out: Record<string, string> = {}
+  if (row.weightGrams != null && row.weightGrams > 0) out.weightGrams = String(row.weightGrams)
+  if (row.processingDays != null && row.processingDays >= 0) {
+    out.processingDays = String(row.processingDays)
+  }
+  if (row.ean?.trim()) out.ean = row.ean.trim()
+  if (row.originCountry?.trim()) out.originCountry = row.originCountry.trim()
+  if (row.warehouseCode?.trim()) out.warehouseCode = row.warehouseCode.trim()
+  if (row.videoUrl?.trim()) out.videoUrl = row.videoUrl.trim()
+  return out
 }
 
 function normalizeCustomFields(
@@ -209,6 +252,12 @@ export function generateSkuTableRowsFromSetup(params: {
     commissionRate: params.defaults.commissionRate,
     colorImage: imageByColor.get(c.color.toLowerCase()) || undefined,
     customFields: { ...customFields },
+    weightGrams: params.defaults.weightGrams ?? null,
+    processingDays: params.defaults.processingDays ?? 2,
+    ean: params.defaults.ean?.trim() || null,
+    originCountry: params.defaults.originCountry?.trim() || "CN",
+    warehouseCode: params.defaults.warehouseCode?.trim() || null,
+    videoUrl: params.defaults.videoUrl?.trim() || null,
   }))
 }
 
@@ -283,6 +332,33 @@ export function validateSupplierSkuTableRows(
       }
     }
 
+    if (row.weightGrams != null && row.weightGrams !== undefined) {
+      const wg = row.weightGrams
+      if (!Number.isFinite(wg) || wg <= 0 || wg > 30000 || !Number.isInteger(wg)) {
+        issues.push({
+          index,
+          field: "weightGrams",
+          message: "Poids : entier entre 1 et 30 000 g",
+        })
+      }
+    }
+
+    const ean = row.ean?.trim() ?? ""
+    if (ean && !/^[0-9]{8,13}$/.test(ean)) {
+      issues.push({ index, field: "ean", message: "EAN : 8 à 13 chiffres" })
+    }
+
+    if (row.processingDays != null && row.processingDays !== undefined) {
+      const pd = row.processingDays
+      if (!Number.isInteger(pd) || pd < 0 || pd > 30) {
+        issues.push({
+          index,
+          field: "processingDays",
+          message: "Délai : entier entre 0 et 30 jours",
+        })
+      }
+    }
+
     const sku = row.sku?.trim() ?? ""
     if (!sku) {
       issues.push({ index, field: "sku", message: "SKU requis" })
@@ -339,9 +415,9 @@ export function skuTableRowsToProductVariantLines(
     if (r.compareAtEur != null && r.compareAtEur > 0) {
       line.compareAtCents = Math.round(r.compareAtEur * 100)
     }
-    if (r.customFields && Object.keys(r.customFields).length > 0) {
-      line.attrs = { ...r.customFields }
-    }
+    const logistics = logisticsAttrsFromRow(r)
+    const attrs = { ...r.customFields, ...logistics }
+    if (Object.keys(attrs).length > 0) line.attrs = attrs
     return line
   })
 }
@@ -353,6 +429,7 @@ export function productVariantLinesToSkuTableRows(
 ): SupplierSkuTableRow[] {
   return lines.map((r) => {
     const { color, size } = splitVariantLineName(r.name)
+    const fromAttrs = parseLogisticsFromAttrs(r.attrs)
     return {
       id: r.id,
       color,
@@ -365,6 +442,12 @@ export function productVariantLinesToSkuTableRows(
       commissionRate: r.commission || defaultCommission,
       colorImage: r.image?.trim() || undefined,
       customFields: r.attrs ? { ...r.attrs } : {},
+      weightGrams: fromAttrs.weightGrams ?? null,
+      processingDays: fromAttrs.processingDays ?? 2,
+      ean: fromAttrs.ean ?? null,
+      originCountry: fromAttrs.originCountry ?? "CN",
+      warehouseCode: fromAttrs.warehouseCode ?? null,
+      videoUrl: fromAttrs.videoUrl ?? null,
     }
   })
 }
@@ -402,6 +485,12 @@ export function apiRowsFromSkuTable(
         100,
         Math.max(0, Math.round(r.commissionRate || defaults.defaultCommission))
       ),
+      weightGrams: r.weightGrams ?? null,
+      processingDays: r.processingDays ?? null,
+      ean: r.ean?.trim() || null,
+      originCountry: r.originCountry?.trim() || null,
+      warehouseCode: r.warehouseCode?.trim() || null,
+      videoUrl: r.videoUrl?.trim() || null,
     }
     })
 }
@@ -419,6 +508,12 @@ export function skuTableRowFromApiVariant(row: {
   publicPrice?: number
   stock: number
   commissionRate?: number
+  weightGrams?: number | null
+  processingDays?: number | null
+  ean?: string | null
+  originCountry?: string | null
+  warehouseCode?: string | null
+  videoUrl?: string | null
 }): SupplierSkuTableRow {
   const supplier = Number(row.supplierPrice) || Number(row.publicPrice) || 0
   return {
@@ -431,5 +526,11 @@ export function skuTableRowFromApiVariant(row: {
     commissionRate: Math.min(100, Math.max(0, Math.round(row.commissionRate ?? 10))),
     compareAtEur: null,
     customFields: {},
+    weightGrams: row.weightGrams ?? null,
+    processingDays: row.processingDays ?? 2,
+    ean: row.ean?.trim() || null,
+    originCountry: row.originCountry?.trim() || "CN",
+    warehouseCode: row.warehouseCode?.trim() || null,
+    videoUrl: row.videoUrl?.trim() || null,
   }
 }

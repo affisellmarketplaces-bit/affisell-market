@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import { Plus, Trash2, X } from "lucide-react"
 
+import { SupplierSkuAffiliateMarginCell } from "@/components/supplier/supplier-sku-affiliate-margin-cell"
 import { SupplierSkuColumnToggles } from "@/components/supplier/supplier-sku-column-toggles"
 import { SupplierSkuFastPanel } from "@/components/supplier/supplier-sku-fast-panel"
 import { SupplierSimpleColorImageField } from "@/components/supplier/supplier-simple-color-image-field"
@@ -28,6 +29,12 @@ function newRow(defaults: {
   compareAtEur: number | null
   commission: number
   customFields: Record<string, string>
+  weightGrams?: number | null
+  processingDays?: number | null
+  ean?: string | null
+  originCountry?: string | null
+  warehouseCode?: string | null
+  videoUrl?: string | null
 }): EditableVariantRow {
   return {
     id: `new-${crypto.randomUUID()}`,
@@ -40,6 +47,12 @@ function newRow(defaults: {
     commissionRate: defaults.commission,
     colorImage: undefined,
     customFields: { ...defaults.customFields },
+    weightGrams: defaults.weightGrams ?? null,
+    processingDays: defaults.processingDays ?? 2,
+    ean: defaults.ean ?? null,
+    originCountry: defaults.originCountry ?? "CN",
+    warehouseCode: defaults.warehouseCode ?? null,
+    videoUrl: defaults.videoUrl ?? null,
   }
 }
 
@@ -55,6 +68,8 @@ type Props = {
   hiddenColumns: SkuOptionalColumnKey[]
   onHiddenColumnsChange: (hidden: SkuOptionalColumnKey[]) => void
   skuPrefix?: string
+  catalogShipsFrom?: string
+  catalogDeliveryDays?: number | null
   disabled?: boolean
   className?: string
   tableId?: string
@@ -72,6 +87,8 @@ export function SupplierVariantTable({
   hiddenColumns,
   onHiddenColumnsChange,
   skuPrefix = "PRD",
+  catalogShipsFrom = "EU",
+  catalogDeliveryDays = 2,
   disabled,
   className,
   tableId = "supplier-sku-table",
@@ -87,7 +104,26 @@ export function SupplierVariantTable({
   const showCompareAtCol = isSkuColumnVisible(hiddenColumns, "compareAt")
   const showStockCol = isSkuColumnVisible(hiddenColumns, "stock")
   const showCommissionCol = isSkuColumnVisible(hiddenColumns, "commission")
+  const showWeightCol = isSkuColumnVisible(hiddenColumns, "weightGrams")
+  const showEanCol = isSkuColumnVisible(hiddenColumns, "ean")
+  const showProcessingCol = isSkuColumnVisible(hiddenColumns, "processingDays")
+  const showOriginCol = isSkuColumnVisible(hiddenColumns, "originCountry")
+  const showWarehouseCol = isSkuColumnVisible(hiddenColumns, "warehouseCode")
+  const showVideoCol = isSkuColumnVisible(hiddenColumns, "videoUrl")
+  const showAffiliateMarginCol = isSkuColumnVisible(hiddenColumns, "affiliateMargin")
   const columnKeys = useMemo(() => customColumns.map((c) => c.key), [customColumns])
+
+  const rowLogisticsDefaults = useMemo(
+    () => ({
+      weightGrams: null as number | null,
+      processingDays: catalogDeliveryDays ?? 2,
+      ean: null as string | null,
+      originCountry: "CN",
+      warehouseCode: catalogShipsFrom.trim() || "EU",
+      videoUrl: null as string | null,
+    }),
+    [catalogShipsFrom, catalogDeliveryDays]
+  )
 
   const rowsWithFields = useMemo(
     () => ensureRowCustomFields(rows, columnKeys),
@@ -204,6 +240,7 @@ export function SupplierVariantTable({
         compareAtEur: catalogCompareAtEur,
         commission: defaultCommission,
         customFields: defaultCustomFields,
+        ...rowLogisticsDefaults,
       }),
     ])
     setMode("table")
@@ -214,6 +251,7 @@ export function SupplierVariantTable({
     catalogCompareAtEur,
     defaultCommission,
     defaultCustomFields,
+    rowLogisticsDefaults,
   ])
 
   const handleFastGenerate = useCallback(
@@ -256,6 +294,13 @@ export function SupplierVariantTable({
     (showCompareAtCol ? 1 : 0) +
     (showStockCol ? 1 : 0) +
     (showCommissionCol ? 1 : 0) +
+    (showWeightCol ? 1 : 0) +
+    (showEanCol ? 1 : 0) +
+    (showProcessingCol ? 1 : 0) +
+    (showOriginCol ? 1 : 0) +
+    (showWarehouseCol ? 1 : 0) +
+    (showVideoCol ? 1 : 0) +
+    (showAffiliateMarginCol ? 1 : 0) +
     customColumns.length
 
   return (
@@ -313,6 +358,9 @@ export function SupplierVariantTable({
           onRemoveCustomColumn={removeCustomColumn}
           hiddenColumns={hiddenColumns}
           onHiddenColumnsChange={onHiddenColumnsChange}
+          catalogOriginCountry={rowLogisticsDefaults.originCountry}
+          catalogWarehouse={rowLogisticsDefaults.warehouseCode ?? "EU"}
+          catalogProcessingDays={rowLogisticsDefaults.processingDays ?? 2}
           onGenerate={handleFastGenerate}
           disabled={disabled}
         />
@@ -363,7 +411,7 @@ export function SupplierVariantTable({
           </div>
 
           <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-700">
-            <table id={tableId} className="w-full min-w-[1100px] text-left text-sm">
+            <table id={tableId} className="w-full min-w-[1280px] text-left text-sm">
               <thead className="sticky top-0 z-10 bg-zinc-50 text-xs font-semibold uppercase tracking-wide text-zinc-500 shadow-sm dark:bg-zinc-900/95 dark:text-zinc-400">
                 <tr>
                   {showPhotoCol ? <th className="w-[140px] px-2 py-2.5">Photo</th> : null}
@@ -392,6 +440,15 @@ export function SupplierVariantTable({
                   {showCompareAtCol ? <th className="px-3 py-2.5">Barré</th> : null}
                   {showStockCol ? <th className="px-3 py-2.5">Stock</th> : null}
                   {showCommissionCol ? <th className="px-3 py-2.5">Comm.%</th> : null}
+                  {showWeightCol ? <th className="px-3 py-2.5">Poids (g)</th> : null}
+                  {showEanCol ? <th className="px-3 py-2.5">EAN</th> : null}
+                  {showProcessingCol ? <th className="px-3 py-2.5">Délai (j)</th> : null}
+                  {showOriginCol ? <th className="px-3 py-2.5">Origine</th> : null}
+                  {showWarehouseCol ? <th className="px-3 py-2.5">Entrepôt</th> : null}
+                  {showVideoCol ? <th className="px-3 py-2.5">Vidéo</th> : null}
+                  {showAffiliateMarginCol ? (
+                    <th className="px-3 py-2.5">Marge affilié</th>
+                  ) : null}
                   {customColumns.map((col) => (
                     <th key={col.id} className="min-w-[100px] px-2 py-2.5">
                       <span className="inline-flex items-center gap-1">
@@ -556,6 +613,113 @@ export function SupplierVariantTable({
                                 })
                               }
                             />
+                          </td>
+                        ) : null}
+                        {showWeightCol ? (
+                          <td className="px-2 py-1.5">
+                            <Input
+                              type="number"
+                              min={1}
+                              max={30000}
+                              className={cn("h-9 w-20", rowErrorClass(index, "weightGrams"))}
+                              value={row.weightGrams != null && row.weightGrams > 0 ? row.weightGrams : ""}
+                              disabled={disabled}
+                              placeholder="250"
+                              onChange={(e) => {
+                                const raw = e.target.value
+                                updateRow(index, {
+                                  weightGrams: raw.trim() === "" ? null : Number(raw) || null,
+                                })
+                              }}
+                            />
+                          </td>
+                        ) : null}
+                        {showEanCol ? (
+                          <td className="px-2 py-1.5">
+                            <Input
+                              className={cn("h-9 min-w-[100px] font-mono text-xs", rowErrorClass(index, "ean"))}
+                              value={row.ean ?? ""}
+                              disabled={disabled}
+                              placeholder="3700123456789"
+                              maxLength={13}
+                              onChange={(e) =>
+                                updateRow(index, {
+                                  ean: e.target.value.trim() ? e.target.value.trim() : null,
+                                })
+                              }
+                            />
+                          </td>
+                        ) : null}
+                        {showProcessingCol ? (
+                          <td className="px-2 py-1.5">
+                            <Input
+                              type="number"
+                              min={0}
+                              max={30}
+                              className={cn("h-9 w-14", rowErrorClass(index, "processingDays"))}
+                              value={row.processingDays ?? ""}
+                              disabled={disabled}
+                              onChange={(e) =>
+                                updateRow(index, {
+                                  processingDays: Math.min(
+                                    30,
+                                    Math.max(0, Math.round(Number(e.target.value) || 0))
+                                  ),
+                                })
+                              }
+                            />
+                          </td>
+                        ) : null}
+                        {showOriginCol ? (
+                          <td className="px-2 py-1.5">
+                            <Input
+                              className="h-9 w-14 uppercase"
+                              value={row.originCountry ?? ""}
+                              disabled={disabled}
+                              placeholder="CN"
+                              maxLength={2}
+                              onChange={(e) =>
+                                updateRow(index, {
+                                  originCountry: e.target.value.trim().toUpperCase().slice(0, 2) || null,
+                                })
+                              }
+                            />
+                          </td>
+                        ) : null}
+                        {showWarehouseCol ? (
+                          <td className="px-2 py-1.5">
+                            <Input
+                              className="h-9 w-16 uppercase"
+                              value={row.warehouseCode ?? ""}
+                              disabled={disabled}
+                              placeholder="EU"
+                              maxLength={16}
+                              onChange={(e) =>
+                                updateRow(index, {
+                                  warehouseCode: e.target.value.trim().toUpperCase() || null,
+                                })
+                              }
+                            />
+                          </td>
+                        ) : null}
+                        {showVideoCol ? (
+                          <td className="px-2 py-1.5">
+                            <Input
+                              className="h-9 min-w-[120px] text-xs"
+                              value={row.videoUrl ?? ""}
+                              disabled={disabled}
+                              placeholder="https://…"
+                              onChange={(e) =>
+                                updateRow(index, {
+                                  videoUrl: e.target.value.trim() || null,
+                                })
+                              }
+                            />
+                          </td>
+                        ) : null}
+                        {showAffiliateMarginCol ? (
+                          <td className="px-2 py-1.5">
+                            <SupplierSkuAffiliateMarginCell row={row} />
                           </td>
                         ) : null}
                         {customColumns.map((col) => (
