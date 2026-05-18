@@ -1,11 +1,15 @@
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 
+import type { ComponentProps } from "react"
+
 import { auth } from "@/auth"
 import { SupplierAffiliateEvalPreview } from "@/components/supplier/supplier-affiliate-eval-preview"
+import { decimalToNumber } from "@/lib/serialize-for-client"
 import { prisma } from "@/lib/prisma"
-import { serializeProductDecimalFields } from "@/lib/serialize-for-client"
 import { supplierFacingPartnerListingRef } from "@/lib/supplier-partner-listing-ref"
+
+type AffiliatePreviewProduct = ComponentProps<typeof SupplierAffiliateEvalPreview>["product"]
 
 export const dynamic = "force-dynamic"
 
@@ -98,9 +102,14 @@ export default async function SupplierAffiliatePreviewPage({
       ? { partnerListingRef: supplierFacingPartnerListingRef(example.id) }
       : null
 
+  const previewProduct = {
+    ...product,
+    compareAt: decimalToNumber(product.compareAt),
+  } satisfies AffiliatePreviewProduct
+
   return (
     <SupplierAffiliateEvalPreview
-      product={serializeProductDecimalFields(product)}
+      product={previewProduct}
       editHref={editHref}
       catalogHref="/dashboard/supplier/products"
       listedAffiliateCount={listedAffiliateCount}
