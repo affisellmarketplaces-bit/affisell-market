@@ -306,8 +306,16 @@ export async function PUT(
   }
 
   const isLive = !updated.isDraft && updated.active
-  if (isLive && !categoryId) {
+  const savedCategoryId = categoryId ?? updated.categoryId
+  if (isLive && !savedCategoryId) {
     scheduleProductAutoCategorization(updated.id)
+  } else if (
+    updated.isDraft &&
+    !publish &&
+    !savedCategoryId &&
+    nameResolved.trim().length >= 5
+  ) {
+    scheduleProductAutoCategorization(updated.id, { allowDraft: true })
   }
 
   return Response.json(updated)

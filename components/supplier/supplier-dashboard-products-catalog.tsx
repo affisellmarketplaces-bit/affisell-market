@@ -1,7 +1,10 @@
+"use client"
+
 import Image from "next/image"
 import Link from "next/link"
 import { ExternalLink, Percent, ShoppingBag, Users } from "lucide-react"
 
+import { SupplierDeleteDraftButton } from "@/components/supplier/supplier-delete-draft-button"
 import { buttonVariants } from "@/components/ui/button"
 import { formatStoreCurrency, formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { primaryProductImage } from "@/lib/product-images"
@@ -244,8 +247,11 @@ export function SupplierDashboardProductsCatalog({
                           "justify-center border-violet-200 font-medium text-violet-900 hover:bg-violet-50 dark:border-violet-800 dark:text-violet-100 dark:hover:bg-violet-950/50 sm:flex-1"
                         )}
                       >
-                        Edit listing
+                        {p.isDraft ? "Reprendre le brouillon" : "Edit listing"}
                       </Link>
+                      {p.isDraft ? (
+                        <SupplierDeleteDraftButton productId={p.id} productName={p.name} variant="icon" />
+                      ) : null}
                       {!p.isDraft ? (
                         <Link
                           href={`/dashboard/supplier/products/${p.id}`}

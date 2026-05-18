@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-/** @deprecated Prefer POST /api/supplier/suggest-listing — kept for compatibility. */
+/** Unified listing suggestions (category) for supplier product form. */
 export async function POST(req: Request) {
   const session = await auth()
   if (!session?.user?.id) {
@@ -24,6 +24,6 @@ export async function POST(req: Request) {
   const title = typeof body.title === "string" ? body.title.trim() : ""
   const description = typeof body.description === "string" ? body.description.trim() : ""
 
-  const { suggestions, source } = await suggestListingCategories(title, description, prisma)
-  return NextResponse.json({ suggestions, source })
+  const result = await suggestListingCategories(title, description, prisma)
+  return NextResponse.json(result)
 }

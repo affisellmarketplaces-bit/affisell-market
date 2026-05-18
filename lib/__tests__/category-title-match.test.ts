@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import type { LeafPath } from "@/lib/category-browse"
 import {
+  findWearableCategoryAlternatives,
   scoreProductTextAgainstBreadcrumb,
   suggestLeafCategoriesFromProductText,
 } from "@/lib/category-title-match"
@@ -33,6 +34,11 @@ const FIXTURE_LEAVES: LeafPath[] = [
   {
     leafId: "phone",
     breadcrumb: "Appareils électroniques > Communications > Téléphones mobiles",
+    path: [],
+  },
+  {
+    leafId: "watches-jewelry",
+    breadcrumb: "Vêtements et accessoires > Bijoux > Montres",
     path: [],
   },
 ]
@@ -76,5 +82,16 @@ describe("category-title-match", () => {
   it("returns empty when title is too vague", () => {
     const picks = suggestLeafCategoriesFromProductText("Pro Max", "", FIXTURE_LEAVES, 3)
     expect(picks).toEqual([])
+  })
+
+  it("offers jewelry watches as alternative for smart band primary", () => {
+    const title = "Xiaomi Smart Band 10, Montre Connectée"
+    const primary = suggestLeafCategoriesFromProductText(title, "", FIXTURE_LEAVES, 3)
+    const alts = findWearableCategoryAlternatives(title, "", FIXTURE_LEAVES, primary)
+
+    expect(primary[0]?.leafId).toBe("activity")
+    expect(alts).toHaveLength(1)
+    expect(alts[0]?.leafId).toBe("watches-jewelry")
+    expect(alts[0]?.reason).toMatch(/déconseillé/i)
   })
 })

@@ -7,7 +7,7 @@ import {
   fetchAllCategoriesForBrowse,
   leafPathsForAiCatalog,
   scoreTitleAgainstBreadcrumb,
-  suggestLeafCategoriesFromTitle,
+  suggestLeafCategoriesFromProductText,
   type LeafPath,
 } from "@/lib/category-browse"
 import { prisma } from "@/lib/prisma"
@@ -107,7 +107,7 @@ async function applyCategory(
  */
 export async function autoCategorizeProduct(
   productId: string,
-  options?: { force?: boolean; client?: PrismaClient }
+  options?: { force?: boolean; allowDraft?: boolean; client?: PrismaClient }
 ): Promise<AutoCategorizeResult> {
   const client = options?.client ?? prisma
 
@@ -125,7 +125,7 @@ export async function autoCategorizeProduct(
   })
 
   if (!product) return { ok: false, error: "not_found" }
-  if (product.isDraft || !product.active) {
+  if (!options?.allowDraft && (product.isDraft || !product.active)) {
     return { ok: true, applied: false, reason: "skipped" }
   }
   if (product.categoryId && !options?.force) {
@@ -178,7 +178,7 @@ export async function autoCategorizeProduct(
 
   const top = suggestions[0]
   if (!top?.leafId) {
-    const fallback = suggestLeafCategoriesFromTitle(title, leafPaths, 1)[0]
+    const fallback = suggestLeafCategoriesFromProductText(title, description, leafPaths, 1)[0]
     if (fallback) {
       await applyCategory(
         productId,
@@ -228,7 +228,7 @@ export async function autoCategorizeProduct(
 /** Fire-and-forget after API response — does not block the supplier UI. */
 export function scheduleProductAutoCategorization(
   productId: string,
-  options?: { force?: boolean }
+  options?: { force?: boolean; allowDraft?: boolean }
 ): void {
   const run = () => {
     void autoCategorizeProduct(productId, options).catch((e) => {

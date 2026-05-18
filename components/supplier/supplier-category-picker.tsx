@@ -11,6 +11,7 @@ import type {
   LeafPath,
   RecentCategoryEntry,
 } from "@/lib/category-browse"
+import type { CategoryAlternativeSuggestion } from "@/lib/category-title-match"
 import { cn } from "@/lib/utils"
 
 export type BrowsePayload = {
@@ -29,6 +30,8 @@ type Props = {
   onChange: (leafId: string, path: CategoryPathSegment[], origin?: CategoryPickOrigin) => void
   /** Merged Groq + keyword suggestions (max 3). */
   suggestions: LeafPath[]
+  /** e.g. Bijoux > Montres when listing looks like a wearable */
+  alternativeSuggestions?: CategoryAlternativeSuggestion[]
   suggestionsLoading?: boolean
   loading?: boolean
 }
@@ -43,6 +46,7 @@ export function SupplierCategoryPicker({
   value,
   onChange,
   suggestions,
+  alternativeSuggestions = [],
   suggestionsLoading,
   loading,
 }: Props) {
@@ -164,7 +168,8 @@ export function SupplierCategoryPicker({
     )
   }
 
-  const showSuggestions = suggestionsLoading || suggestions.length > 0
+  const showSuggestions =
+    suggestionsLoading || suggestions.length > 0 || alternativeSuggestions.length > 0
 
   return (
     <div className="space-y-4">
@@ -236,6 +241,49 @@ export function SupplierCategoryPicker({
               ))}
             </ul>
           )}
+          {!suggestionsLoading && alternativeSuggestions.length > 0 ? (
+            <div className="mt-4 border-t border-amber-200/80 pt-4 dark:border-amber-900/50">
+              <p className="text-xs font-semibold text-amber-950 dark:text-amber-100">
+                Interprétation alternative
+              </p>
+              <p className="mt-0.5 text-[11px] text-amber-900/85 dark:text-amber-200/80">
+                Si votre produit correspond plutôt à ce rayon — non recommandé pour les bracelets connectés.
+              </p>
+              <ul className="mt-2 space-y-2">
+                {alternativeSuggestions.map((alt) => (
+                  <li
+                    key={alt.leafId}
+                    className={cn(
+                      "flex flex-col gap-2 rounded-md border px-3 py-2 text-xs sm:flex-row sm:items-center sm:justify-between",
+                      value === alt.leafId
+                        ? "border-amber-400 bg-amber-100/90 dark:border-amber-600 dark:bg-amber-950/50"
+                        : "border-amber-200/90 bg-amber-50/90 dark:border-amber-900/60 dark:bg-amber-950/30"
+                    )}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <span className="mr-1.5 rounded bg-amber-600 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white">
+                        Alternative
+                      </span>
+                      <span className="text-zinc-800 dark:text-zinc-200">{alt.breadcrumb}</span>
+                      <p className="mt-1 text-[10px] leading-snug text-amber-900/90 dark:text-amber-200/75">
+                        {alt.reason}
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      size="xs"
+                      variant={value === alt.leafId ? "secondary" : "outline"}
+                      className="shrink-0 border-amber-300 dark:border-amber-800"
+                      disabled={value === alt.leafId}
+                      onClick={() => applyLeaf(alt, "suggested")}
+                    >
+                      {value === alt.leafId ? "Appliquée" : "Appliquer"}
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </div>
       ) : null}
 

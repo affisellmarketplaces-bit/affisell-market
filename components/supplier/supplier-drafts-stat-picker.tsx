@@ -1,11 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { ChevronRight, FileEdit, PlusCircle } from "lucide-react"
 
 import { BentoStat } from "@/components/affisell/bento-ui"
+import { SupplierDeleteDraftButton } from "@/components/supplier/supplier-delete-draft-button"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -35,12 +37,20 @@ function formatDraftDate(iso: string) {
 }
 
 export function SupplierDraftsStatPicker({ draftCount, drafts }: Props) {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
+  const [removedIds, setRemovedIds] = useState<Set<string>>(() => new Set())
+
+  const visibleDrafts = useMemo(
+    () => drafts.filter((d) => !removedIds.has(d.id)),
+    [drafts, removedIds]
+  )
+  const visibleCount = visibleDrafts.length
 
   const statClassName =
     "border-0 bg-transparent p-0 shadow-none backdrop-blur-none dark:bg-transparent"
 
-  if (draftCount === 0) {
+  if (visibleCount === 0) {
     return (
       <BentoStat
         className={statClassName}
@@ -67,7 +77,7 @@ export function SupplierDraftsStatPicker({ draftCount, drafts }: Props) {
         <BentoStat
           className={cn(statClassName, "pointer-events-none")}
           label="Drafts"
-          value={draftCount}
+          value={visibleCount}
           valueClassName="group-hover:text-violet-700 dark:group-hover:text-violet-300"
           hint={
             <span className="inline-flex items-center gap-1 text-violet-700 dark:text-violet-400">
@@ -91,15 +101,20 @@ export function SupplierDraftsStatPicker({ draftCount, drafts }: Props) {
           </div>
 
           <ul className="flex-1 overflow-y-auto p-3">
-            {drafts.map((draft) => {
+            {visibleDrafts.length === 0 ? (
+              <li className="px-3 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                Aucun brouillon — créez une nouvelle fiche.
+              </li>
+            ) : null}
+            {visibleDrafts.map((draft) => {
               const href = `/dashboard/supplier/products/new?compose=1&draft=${encodeURIComponent(draft.id)}`
-              const label = draft.name.trim() || "Untitled draft"
+              const label = draft.name.trim() || "Brouillon sans titre"
               return (
-                <li key={draft.id}>
+                <li key={draft.id} className="flex items-center gap-1">
                   <Link
                     href={href}
                     onClick={() => setOpen(false)}
-                    className="flex items-center gap-3 rounded-xl border border-transparent px-3 py-3 transition hover:border-violet-200 hover:bg-violet-50/80 dark:hover:border-violet-900/50 dark:hover:bg-violet-950/40"
+                    className="flex min-w-0 flex-1 items-center gap-3 rounded-xl border border-transparent px-3 py-3 transition hover:border-violet-200 hover:bg-violet-50/80 dark:hover:border-violet-900/50 dark:hover:bg-violet-950/40"
                   >
                     <span className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800">
                       {draft.imageUrl ? (
@@ -131,6 +146,16 @@ export function SupplierDraftsStatPicker({ draftCount, drafts }: Props) {
                     </span>
                     <ChevronRight className="h-4 w-4 shrink-0 text-zinc-400" aria-hidden />
                   </Link>
+                  <SupplierDeleteDraftButton
+                    productId={draft.id}
+                    productName={label}
+                    variant="icon"
+                    className="mr-1"
+                    onDeleted={() => {
+                      setRemovedIds((prev) => new Set(prev).add(draft.id))
+                      router.refresh()
+                    }}
+                  />
                 </li>
               )
             })}

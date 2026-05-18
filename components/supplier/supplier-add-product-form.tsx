@@ -10,7 +10,6 @@ import {
   CheckCircle2,
   ChevronRight,
   CircleHelp,
-  Circle,
   Image as ImageIcon,
   Loader2,
   LogOut,
@@ -54,6 +53,8 @@ import {
   type BrowsePayload,
   type CategoryPickOrigin,
 } from "@/components/supplier/supplier-category-picker"
+import { SupplierDeleteDraftButton } from "@/components/supplier/supplier-delete-draft-button"
+import { SupplierListingReadinessPanel } from "@/components/supplier/supplier-listing-readiness-panel"
 import { useSupplierCategorySuggestions } from "@/components/supplier/use-supplier-category-suggestions"
 import {
   mergeCoreCategoryAttrs,
@@ -339,7 +340,11 @@ export function SupplierAddProductForm({
     categoryIdRef.current = categoryId
   }, [categoryId])
 
-  const { suggestions: categorySuggestions, loading: categorySuggestionsLoading } =
+  const {
+    suggestions: categorySuggestions,
+    alternatives: categoryAlternativeSuggestions,
+    loading: categorySuggestionsLoading,
+  } =
     useSupplierCategorySuggestions(debouncedName, debouncedCategoryDescription, browse)
 
   const applyCategory = useCallback(
@@ -1294,9 +1299,12 @@ export function SupplierAddProductForm({
       category: Boolean(categoryId.trim()),
       specs: Boolean(categoryId.trim()) && specMissing.length === 0,
       images: images.length > 0,
+      price: Number(price) > 0 && !priceError,
     }),
-    [name, categoryId, specMissing, images.length]
+    [name, categoryId, specMissing, images.length, price, priceError]
   )
+
+  const hasVariants = variantFormMode !== "none"
 
   const steps = [
     { n: 1 as const, title: "Listing & media", hint: "Story, category, visuals" },
@@ -1413,26 +1421,39 @@ export function SupplierAddProductForm({
                       {headerMeta.blurb}
                     </p>
                     {productIsDraft ? (
-                      <p className="mt-3 flex flex-wrap items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
-                        <Cloud className="h-3.5 w-3.5 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
-                        {draftSync === "saving" ? (
-                          <span>Saving draft…</span>
-                        ) : draftSync === "error" ? (
-                          <span className="text-amber-700 dark:text-amber-400">
-                            Could not sync—check your connection and try again.
-                          </span>
-                        ) : draftSyncAt ? (
-                          <span>
-                            Draft saved{" "}
-                            {new Date(draftSyncAt).toLocaleTimeString("en-US", {
-                              hour: "numeric",
-                              minute: "2-digit",
-                            })}
-                          </span>
-                        ) : (
-                          <span>Autosave runs a few seconds after you stop typing.</span>
-                        )}
-                      </p>
+                      <div className="mt-3 flex flex-wrap items-center gap-3">
+                        <p className="flex flex-wrap items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                          <Cloud className="h-3.5 w-3.5 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
+                          {draftSync === "saving" ? (
+                            <span>Enregistrement du brouillon…</span>
+                          ) : draftSync === "error" ? (
+                            <span className="text-amber-700 dark:text-amber-400">
+                              Échec de la synchro — vérifiez votre connexion.
+                            </span>
+                          ) : draftSyncAt ? (
+                            <span>
+                              Brouillon enregistré à{" "}
+                              {new Date(draftSyncAt).toLocaleTimeString("fr-FR", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          ) : (
+                            <span>Sauvegarde automatique après quelques secondes.</span>
+                          )}
+                        </p>
+                        {autosaveListingId ? (
+                          <SupplierDeleteDraftButton
+                            productId={autosaveListingId}
+                            productName={name}
+                            redirectTo={
+                              onBackToMethods
+                                ? "/dashboard/supplier/products/new"
+                                : "/dashboard/supplier/products?drafts=1"
+                            }
+                          />
+                        ) : null}
+                      </div>
                     ) : null}
                   </div>
                   <nav className="flex flex-wrap gap-2 sm:gap-2.5" aria-label="Quick links">
@@ -1737,6 +1758,7 @@ export function SupplierAddProductForm({
                             value={categoryId}
                             onChange={applyCategory}
                             suggestions={categorySuggestions}
+                            alternativeSuggestions={categoryAlternativeSuggestions}
                             suggestionsLoading={categorySuggestionsLoading}
                             loading={loadingBrowse}
                           />
@@ -1893,32 +1915,78 @@ export function SupplierAddProductForm({
 
                 <SectionCard
                   icon={Layers}
-                  title="Options & variants"
-                  description="Optional: list sizes or colors for the PDP, or track each SKU with its own stock (totals into inventory above)."
+                  title="Variantes"
+                  description="Un seul article ou plusieurs déclinaisons — le stock total se calcule automatiquement."
                 >
                   <div className="flex flex-wrap gap-2">
-                    {(
-                      [
-                        ["none", "No variants"],
-                        ["simple", "Sizes & colors"],
-                        ["advanced", "SKU lines"],
-                      ] as const
-                    ).map(([mode, label]) => (
+                    <button
+                      type="button"
+                      onClick={() => setVariantFormMode("none")}
+                      className={cn(
+                        "rounded-xl border px-4 py-2.5 text-sm font-medium transition",
+                        !hasVariants
+                          ? "border-violet-500 bg-violet-50 text-violet-900 dark:border-violet-500 dark:bg-violet-950/50 dark:text-violet-100"
+                          : "border-zinc-200 bg-zinc-50 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                      )}
+                    >
+                      Produit simple
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (variantFormMode === "none") {
+                          setVariantFormMode("simple")
+                          setSimpleColorRows((rows) =>
+                            rows.length === 0
+                              ? [{ id: newVariantRowId(), name: "", image: "" }]
+                              : rows
+                          )
+                        }
+                      }}
+                      className={cn(
+                        "rounded-xl border px-4 py-2.5 text-sm font-medium transition",
+                        hasVariants
+                          ? "border-violet-500 bg-violet-50 text-violet-900 dark:border-violet-500 dark:bg-violet-950/50 dark:text-violet-100"
+                          : "border-zinc-200 bg-zinc-50 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                      )}
+                    >
+                      Plusieurs déclinaisons
+                    </button>
+                  </div>
+                  {hasVariants ? (
+                    <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-800">
+                      <span className="text-xs text-zinc-500 dark:text-zinc-400">Mode :</span>
                       <button
-                        key={mode}
                         type="button"
-                        onClick={() => setVariantFormMode(mode)}
+                        onClick={() => setVariantFormMode("simple")}
                         className={cn(
-                          "rounded-xl border px-3 py-2 text-sm font-medium transition",
-                          variantFormMode === mode
-                            ? "border-violet-500 bg-violet-50 text-violet-900 dark:border-violet-500 dark:bg-violet-950/50 dark:text-violet-100"
-                            : "border-zinc-200 bg-zinc-50 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                          "rounded-lg px-2.5 py-1 text-xs font-medium",
+                          variantFormMode === "simple"
+                            ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
+                            : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400"
                         )}
                       >
-                        {label}
+                        Couleurs & tailles
                       </button>
-                    ))}
-                  </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setVariantFormMode("advanced")
+                          if (variantRows.length === 0) {
+                            setVariantRows([defaultVariantRow(commission)])
+                          }
+                        }}
+                        className={cn(
+                          "rounded-lg px-2.5 py-1 text-xs font-medium",
+                          variantFormMode === "advanced"
+                            ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
+                            : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400"
+                        )}
+                      >
+                        Tableau SKU détaillé
+                      </button>
+                    </div>
+                  ) : null}
                   {variantFormMode === "simple" ? (
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div className="sm:col-span-2">
@@ -2446,60 +2514,18 @@ export function SupplierAddProductForm({
           </div>
 
           <aside className="hidden lg:block">
-            <div className="sticky top-24 space-y-4">
-              {step === 1 ? (
-                <div className="rounded-3xl border border-gray-100 bg-white/80 p-5 shadow-sm ring-1 ring-black/[0.02] backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/75 dark:ring-white/[0.04]">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                    Readiness
-                  </p>
-                  <ul className="mt-4 space-y-3 text-sm">
-                    {(
-                      [
-                        ["Title", step1Checklist.title],
-                        ["Category", step1Checklist.category],
-                        ["Required specs", step1Checklist.specs],
-                        ["Images", step1Checklist.images],
-                      ] as const
-                    ).map(([label, ok]) => (
-                      <li key={label} className="flex items-center gap-2">
-                        {ok ? (
-                          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
-                        ) : (
-                          <Circle className="h-4 w-4 shrink-0 text-zinc-300 dark:text-zinc-600" aria-hidden />
-                        )}
-                        <span className={ok ? "text-zinc-800 dark:text-zinc-200" : "text-zinc-500"}>
-                          {label}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="mt-5 border-t border-zinc-100 pt-4 dark:border-zinc-800">
-                    <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-                      Pick a category so required specs match your aisle.
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="rounded-3xl border border-gray-100 bg-gradient-to-b from-zinc-50/90 to-white/95 p-5 shadow-sm ring-1 ring-black/[0.02] backdrop-blur-sm dark:border-zinc-800 dark:from-zinc-900/80 dark:to-zinc-950 dark:ring-white/[0.04]">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                    Summary
-                  </p>
-                  <p className="mt-2 text-sm font-medium text-zinc-900 dark:text-zinc-50">
-                    {name.trim() || "Untitled product"}
-                  </p>
-                  {categoryPathLabel ? (
-                    <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">{categoryPathLabel}</p>
-                  ) : null}
-                  {Number.isFinite(Number(price)) && Number(price) > 0 ? (
-                    <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-300">
-                      Base:{" "}
-                      <span className="font-semibold text-zinc-900 dark:text-white">
-                        {formatMoneyDisplay(Number(price))}
-                      </span>
-                    </p>
-                  ) : null}
-                </div>
-              )}
+            <div className="sticky top-24">
+              <SupplierListingReadinessPanel
+                step={step}
+                checks={step1Checklist}
+                productLabel={name}
+                categoryLabel={categoryPathLabel}
+                priceLabel={
+                  Number.isFinite(Number(price)) && Number(price) > 0
+                    ? formatMoneyDisplay(Number(price))
+                    : null
+                }
+              />
             </div>
           </aside>
         </div>

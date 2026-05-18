@@ -139,6 +139,53 @@ function activeIntentForText(normText: string): ProductIntent | null {
   return null
 }
 
+export function isWearableProductText(title: string, description = ""): boolean {
+  const text = `${title} ${description}`.trim()
+  if (text.length < 2) return false
+  return activeIntentForText(normalizeText(text))?.id === "activity_tracker"
+}
+
+/** Secondary picks when marketing says "montre" but Google expects activity monitors. */
+const WEARABLE_ALTERNATIVE_LEAVES: Array<{
+  breadcrumb: RegExp
+  reason: string
+}> = [
+  {
+    breadcrumb: /^vetements et accessoires\s*>\s*bijoux\s*>\s*montres$/i,
+    reason:
+      "Autre interprétation : montre classique (bijouterie). Déconseillé pour bracelets connectés et smart bands.",
+  },
+]
+
+export type CategoryAlternativeSuggestion = LeafPath & { reason: string }
+
+export function findWearableCategoryAlternatives(
+  title: string,
+  description: string,
+  leafPaths: LeafPath[],
+  primarySuggestions: LeafPath[]
+): CategoryAlternativeSuggestion[] {
+  if (!isWearableProductText(title, description)) return []
+
+  const primaryHasActivity = primarySuggestions.some((lp) =>
+    /moniteurs?\s+d['']activit/i.test(lp.breadcrumb)
+  )
+  if (primarySuggestions.length > 0 && !primaryHasActivity) return []
+
+  const exclude = new Set(primarySuggestions.map((p) => p.leafId))
+  const out: CategoryAlternativeSuggestion[] = []
+
+  for (const alt of WEARABLE_ALTERNATIVE_LEAVES) {
+    const lp = leafPaths.find((p) => {
+      if (exclude.has(p.leafId)) return false
+      return alt.breadcrumb.test(normalizeText(p.breadcrumb))
+    })
+    if (lp) out.push({ ...lp, reason: alt.reason })
+  }
+
+  return out
+}
+
 /** Score how well product copy matches a taxonomy breadcrumb (higher = better). */
 export function scoreProductTextAgainstBreadcrumb(text: string, breadcrumb: string): number {
   const normText = normalizeText(text)

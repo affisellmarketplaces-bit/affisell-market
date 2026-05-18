@@ -109,11 +109,11 @@ export function SupplierProductAddHub({ onStartManual, onStartWithAssist }: Prop
                 </div>
                 <div>
                   <h1 className="text-balance text-3xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
-                    Add products
+                    Ajouter des produits
                   </h1>
                   <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 sm:text-[15px]">
-                    Choose how you build your catalog—manual listing, bulk Excel, URL import, or AI-assisted drafts.
-                    Everything stays private until you publish.
+                    Créez une fiche produit complète, ou utilisez l’import / l’IA pour aller plus vite. Tout reste en
+                    brouillon jusqu’à publication.
                   </p>
                 </div>
                 <nav className="flex flex-wrap gap-2 sm:gap-2.5" aria-label="Quick links">
@@ -137,12 +137,20 @@ export function SupplierProductAddHub({ onStartManual, onStartWithAssist }: Prop
                 </nav>
               </div>
               <div className="flex w-full shrink-0 flex-col gap-2 sm:flex-row lg:w-auto lg:flex-col xl:max-w-[280px]">
+                <button
+                  type="button"
+                  onClick={onStartManual}
+                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-teal-700 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-teal-700/25 transition hover:bg-teal-800 dark:bg-teal-600 dark:hover:bg-teal-500"
+                >
+                  <Plus className="h-4 w-4 shrink-0" aria-hidden />
+                  Nouvelle fiche
+                </button>
                 <Link
                   href="/dashboard/supplier/products"
-                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100"
+                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-5 py-3 text-sm font-semibold text-zinc-900 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
                 >
                   <Package className="h-4 w-4 shrink-0" aria-hidden />
-                  View my catalog
+                  Mon catalogue
                 </Link>
                 <button
                   type="button"
@@ -197,46 +205,10 @@ export function SupplierProductAddHub({ onStartManual, onStartWithAssist }: Prop
         </header>
 
         <p className="mt-8 text-sm text-gray-600 dark:text-zinc-400">
-          Pick a card below—each path opens the right tool for your workflow.
+          Autres méthodes — import en masse, URL, synchronisation ou aide IA.
         </p>
 
         <ul className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <li className="lg:col-span-1">
-            <button
-              type="button"
-              onClick={onStartManual}
-              className={cn(
-                cardBase,
-                "relative overflow-hidden border-teal-200/90 bg-gradient-to-br from-teal-50/90 via-cyan-50/50 to-white ring-1 ring-teal-500/15 dark:border-teal-900/50 dark:from-teal-950/40 dark:via-cyan-950/15 dark:to-zinc-950 dark:ring-teal-500/20"
-              )}
-            >
-              <span
-                className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-teal-400/20 blur-2xl dark:bg-teal-500/15"
-                aria-hidden
-              />
-              <div className="relative flex h-full flex-col">
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-teal-600 text-white shadow-lg shadow-teal-600/25">
-                  <Plus className="h-5 w-5" strokeWidth={2.5} aria-hidden />
-                </span>
-                <h2 className="mt-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-                  Add individual products
-                </h2>
-                <p className="mt-2 flex-1 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                  Titles, descriptions, category, and images—full control. Use the other cards for imports or AI
-                  assist.
-                </p>
-                <span
-                  className={cn(
-                    buttonVariants({ variant: "bentoSolid", size: "bento" }),
-                    "mt-6 w-full justify-center bg-teal-700 hover:bg-teal-800 dark:bg-teal-600 dark:hover:bg-teal-500"
-                  )}
-                >
-                  Start manual listing
-                </span>
-              </div>
-            </button>
-          </li>
-
           <li>
             <Link
               href="/dashboard/supplier/bulk-import"
