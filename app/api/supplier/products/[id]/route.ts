@@ -2,10 +2,7 @@ import { Prisma } from "@prisma/client"
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import {
-  findSupplierProductGuardForPut,
-  findSupplierProductWithAttributesForOwner,
-} from "@/lib/supplier-product-is-draft-fallback"
+import { findSupplierProductGuardForPut } from "@/lib/supplier-product-is-draft-fallback"
 import { createNewDropCommunityPost } from "@/lib/community-new-drop"
 import { scheduleProductAutoCategorization } from "@/lib/product-auto-categorize"
 import { parseProductAttributesBody } from "@/lib/supplier-product-attributes"
@@ -23,6 +20,11 @@ import {
   normalizeAffiliateCommissionRatePct,
   parseListingKind,
 } from "@/lib/supplier-commission"
+import {
+  parseProductVariantsFromBody,
+  serializeProductVariantRow,
+  syncProductVariants,
+} from "@/lib/product-variant-sku"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -53,10 +55,18 @@ export async function GET(
     return Response.json({ error: "Not found" }, { status: 404 })
   }
 
-  const p = await findSupplierProductWithAttributesForOwner(id, session.user.id)
+  const p = await prisma.product.findFirst({
+    where: { id, supplierId: session.user.id },
+    include: {
+      attributes: { orderBy: { label: "asc" } },
+      productVariants: { orderBy: { createdAt: "asc" } },
+    },
+  })
   if (!p) {
     return Response.json({ error: "Not found" }, { status: 404 })
   }
+
+  const variants = p.productVariants.map(serializeProductVariantRow)
 
   return Response.json({
     ...p,
@@ -64,6 +74,7 @@ export async function GET(
     freeShippingThreshold: p.freeShippingThreshold != null ? Number(p.freeShippingThreshold) : null,
     shippingCost: Number(p.shippingCost),
     listingKind: parseListingKind(p.listingKind),
+    variants,
   })
 }
 
@@ -213,6 +224,21 @@ export async function PUT(
         .filter((r) => r.key.length > 0 && r.value.length > 0)
     : []
 
+  const variantPatch =
+    "hasVariants" in rawBody || "variants" in rawBody
+      ? parseProductVariantsFromBody({
+          hasVariants: rawBody.hasVariants,
+          variants: rawBody.variants,
+        })
+      : null
+
+  if (variantPatch && "error" in variantPatch) {
+    return Response.json(
+      { error: variantPatch.error, issues: variantPatch.issues },
+      { status: 400 }
+    )
+  }
+
   const updated = await prisma.$transaction(async (tx) => {
     const p = await tx.product.update({
       where: { id },
@@ -284,7 +310,17 @@ export async function PUT(
         })),
       })
     }
+
+    if (variantPatch && !("error" in variantPatch)) {
+      await syncProductVariants(tx, id, variantPatch.hasVariants, variantPatch.variants)
+    }
+
     return p
+  })
+
+  const fresh = await prisma.product.findUnique({
+    where: { id },
+    include: { productVariants: { orderBy: { createdAt: "asc" } } },
   })
 
   if (activatingFromDraft) {
@@ -318,7 +354,92 @@ export async function PUT(
     scheduleProductAutoCategorization(updated.id, { allowDraft: true })
   }
 
-  return Response.json(updated)
+  return Response.json({
+    ...(fresh ?? updated),
+    variants: (fresh?.productVariants ?? []).map(serializeProductVariantRow),
+  })
+}
+
+/** Partial update: SKU table + simple price/stock (avoids wiping listing fields). */
+export async function PATCH(
+  req: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return Response.json({ error: "Not authenticated" }, { status: 401 })
+  }
+  if ((session.user as { role?: string }).role !== "SUPPLIER") {
+    return Response.json({ error: "Forbidden" }, { status: 403 })
+  }
+
+  const { id } = await context.params
+  const own = await assertOwnProduct(session.user.id, id)
+  if (!own) {
+    return Response.json({ error: "Not found" }, { status: 404 })
+  }
+
+  const rawBody = (await req.json()) as Record<string, unknown>
+  const variantPatch = parseProductVariantsFromBody({
+    hasVariants: rawBody.hasVariants,
+    variants: rawBody.variants,
+  })
+  if ("error" in variantPatch) {
+    return Response.json(
+      { error: variantPatch.error, issues: variantPatch.issues },
+      { status: 400 }
+    )
+  }
+
+  const commRaw = rawBody.commission ?? rawBody.commissionRate
+  const listingKind = parseListingKind(rawBody.listingKind)
+  let commissionUpdate: number | undefined
+  if (commRaw != null && Number.isFinite(Number(commRaw))) {
+    const normalized = normalizeAffiliateCommissionRatePct(Number(commRaw), listingKind)
+    if (!normalized.ok) {
+      return Response.json({ error: normalized.error }, { status: 400 })
+    }
+    commissionUpdate = normalized.rate
+  }
+
+  await prisma.$transaction(async (tx) => {
+    const data: Prisma.ProductUpdateInput = {}
+    if (typeof rawBody.name === "string" && rawBody.name.trim()) {
+      data.name = rawBody.name.trim().slice(0, 500)
+    }
+    if (commissionUpdate != null) {
+      data.commissionRate = commissionUpdate
+    }
+    if (!variantPatch.hasVariants) {
+      const price = Number(rawBody.price)
+      if (Number.isFinite(price) && price > 0) {
+        data.basePriceCents = Math.max(100, Math.round(price * 100))
+      }
+      const stock = Number(rawBody.stock)
+      if (Number.isFinite(stock)) {
+        data.stock = Math.max(0, Math.round(stock))
+      }
+    }
+    if (Object.keys(data).length) {
+      await tx.product.update({ where: { id }, data })
+    }
+    await syncProductVariants(tx, id, variantPatch.hasVariants, variantPatch.variants)
+  })
+
+  const fresh = await prisma.product.findFirst({
+    where: { id, supplierId: session.user.id },
+    include: { productVariants: { orderBy: { createdAt: "asc" } } },
+  })
+  if (!fresh) {
+    return Response.json({ error: "Not found" }, { status: 404 })
+  }
+
+  return Response.json({
+    ...fresh,
+    compareAt: fresh.compareAt != null ? Number(fresh.compareAt) : null,
+    shippingCost: Number(fresh.shippingCost),
+    variants: fresh.productVariants.map(serializeProductVariantRow),
+  })
 }
 
 export async function DELETE(

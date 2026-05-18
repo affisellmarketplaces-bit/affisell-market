@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation"
 
 import { auth } from "@/auth"
 import { GenerateVideoButton } from "@/components/GenerateVideoButton"
+import { SupplierProductPricingPanel } from "@/components/supplier/supplier-product-pricing-panel"
 import { UpgradeToast } from "@/components/upgrade-toast"
 import { FREE_VIDEO_LIMIT } from "@/lib/video-quota-constants"
 import { fetchUserVideoQuota } from "@/lib/video-quota"
@@ -123,6 +124,8 @@ export default async function SupplierProductVideoPage({
             Publiez le produit avant de générer une vidéo pub.
           </p>
         ) : null}
+
+        <SupplierProductPricingPanel productId={product.id} />
       </div>
     </div>
   )

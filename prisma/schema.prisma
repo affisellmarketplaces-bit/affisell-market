@@ -261,6 +261,11 @@ model Product {
   categories                    String[] @default([])
   colors                        String[] @default([])
   variants                      Json?
+  /**
+   * When true, SKU lines live in `ProductVariant` (supplier/public price per row).
+   */
+  hasVariants                   Boolean  @default(false)
+  productVariants               ProductVariant[]
   tags                          String[] @default([])
   basePriceCents                Int
   compareAt                     Decimal?
@@ -362,6 +367,25 @@ model Product {
   @@index([basePriceCents])
   @@index([isOnSale])
   @@index([createdAt])
+}
+
+model ProductVariant {
+  id            String   @id @default(cuid())
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sku           String?
+  color         String?
+  size          String?
+  /** Prix payé au fournisseur (wholesale). */
+  supplierPrice Decimal  @db.Decimal(10, 2)
+  /** Prix affiché client (selling). */
+  publicPrice   Decimal  @db.Decimal(10, 2)
+  stock         Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([productId, color, size, sku])
+  @@index([productId])
 }
 
 model ProductVideo {
