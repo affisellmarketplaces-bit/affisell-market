@@ -1,8 +1,9 @@
 import Link from "next/link"
-import { CheckCircle2, Share2 } from "lucide-react"
+import { ArrowRight, CheckCircle2, Share2 } from "lucide-react"
 
 import type { SupplierUrgentSnapshot } from "@/lib/supplier-mission-control"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
+import { formatSlaCountdown, formatSlaHoursShort } from "@/lib/supplier-ship-sla"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -18,23 +19,43 @@ type UrgentCard = {
   consequence: string
   href: string
   cta: string
+  ctaArrow?: boolean
   tone: "amber" | "red" | "violet"
 }
 
 function buildCards(urgent: SupplierUrgentSnapshot): UrgentCard[] {
   const cards: UrgentCard[] = []
   if (urgent.ordersToShip > 0) {
+    const slaMs = urgent.ordersToShipSlaMs
+    const late = slaMs != null && slaMs <= 0
+    const remainingMs = slaMs != null && slaMs > 0 ? slaMs : null
+    const countLabel =
+      urgent.ordersToShip === 1
+        ? "1 commande à expédier"
+        : `${urgent.ordersToShip} commandes à expédier`
+    const title =
+      remainingMs != null
+        ? `${countLabel} < ${formatSlaHoursShort(remainingMs)}`
+        : late
+          ? `${countLabel} · SLA dépassé`
+          : countLabel
+
     cards.push({
       id: "ship",
-      title:
-        urgent.ordersToShip === 1
-          ? "1 commande à expédier"
-          : `${urgent.ordersToShip} commandes à expédier`,
-      metric: "Payées · en attente d’envoi",
-      consequence: "Les acheteurs attendent un suivi colis",
+      title,
+      metric: late
+        ? "Payées · en retard d’expédition"
+        : remainingMs != null
+          ? `Payées · SLA dépassé dans ${formatSlaCountdown(remainingMs)}`
+          : "Payées · en attente d’envoi",
+      consequence:
+        urgent.ordersToShipPenaltyCents > 0
+          ? `Pénalité estimée : −${formatStoreCurrencyFromCents(urgent.ordersToShipPenaltyCents)} si retard`
+          : "Les acheteurs attendent un suivi colis",
       href: "/dashboard/supplier/orders",
-      cta: "Expédier",
-      tone: "amber",
+      cta: "Expédier maintenant",
+      ctaArrow: true,
+      tone: late ? "red" : "amber",
     })
   }
   if (urgent.returnsInProgress > 0) {
@@ -119,9 +140,21 @@ export function SupplierUrgentActions({ urgent, storeSlug }: Props) {
               </div>
               <Link
                 href={card.href}
-                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-fit border-zinc-300/80 bg-white/80")}
+                className={cn(
+                  buttonVariants({
+                    variant: card.id === "ship" ? "default" : "outline",
+                    size: "sm",
+                  }),
+                  card.id === "ship"
+                    ? "w-fit gap-1 bg-amber-600 text-white hover:bg-amber-700 dark:bg-amber-600"
+                    : "w-fit border-zinc-300/80 bg-white/80",
+                  card.tone === "red" &&
+                    card.id === "ship" &&
+                    "bg-red-600 hover:bg-red-700 dark:bg-red-600"
+                )}
               >
                 {card.cta}
+                {card.ctaArrow ? <ArrowRight className="h-3.5 w-3.5" aria-hidden /> : null}
               </Link>
             </article>
           ))}

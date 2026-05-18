@@ -1,6 +1,6 @@
 import { primaryProductImage } from "@/lib/product-images"
 import { TERMINAL_RETURN_STATUSES } from "@/lib/order-return-types"
-import { countSupplierOrdersToShip } from "@/lib/supplier-orders-payload"
+import { loadOrdersToShipSla } from "@/lib/supplier-ship-sla"
 import { prisma } from "@/lib/prisma"
 
 const MARKETPLACE_COUNTABLE = ["paid", "preparing", "shipped", "refunded"] as const
@@ -15,6 +15,9 @@ export type MetricDelta = {
 
 export type SupplierUrgentSnapshot = {
   ordersToShip: number
+  /** Ms until soonest ship SLA breach; null when no pending orders. */
+  ordersToShipSlaMs: number | null
+  ordersToShipPenaltyCents: number
   returnsInProgress: number
   lowStockCount: number
   /** Rough daily revenue at risk (cents). */
@@ -304,7 +307,7 @@ export async function loadSupplierMissionControl(
   const [
     store,
     productCount,
-    ordersToShip,
+    ordersToShipSla,
     returnsInProgress,
     lowStockCount,
     currentOrders,
@@ -319,7 +322,7 @@ export async function loadSupplierMissionControl(
     prisma.product.count({
       where: { supplierId: supplierUserId, active: true, isDraft: false },
     }),
-    countSupplierOrdersToShip(supplierUserId),
+    loadOrdersToShipSla(supplierUserId),
     prisma.orderReturn.count({
       where: {
         order: { supplierId: supplierUserId },
@@ -360,7 +363,9 @@ export async function loadSupplierMissionControl(
     storeSlug: store?.slug ?? null,
     productCount,
     urgent: {
-      ordersToShip,
+      ordersToShip: ordersToShipSla.count,
+      ordersToShipSlaMs: ordersToShipSla.msUntilBreach,
+      ordersToShipPenaltyCents: ordersToShipSla.penaltyCents,
       returnsInProgress,
       lowStockCount,
       lowStockDailyLossCents,
