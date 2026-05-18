@@ -19,7 +19,13 @@ import {
   type SkuFastDefaults,
   type SupplierSkuTableRow,
 } from "@/lib/supplier-sku-builder"
+import {
+  isSkuColumnVisible,
+  type SkuOptionalColumnKey,
+} from "@/lib/supplier-sku-columns"
 import { cn } from "@/lib/utils"
+
+import { SupplierSkuColumnToggles } from "@/components/supplier/supplier-sku-column-toggles"
 
 type Props = {
   skuPrefix: string
@@ -29,6 +35,9 @@ type Props = {
   defaultCommission: number
   customColumns: SkuCustomColumnDef[]
   onCustomColumnsChange: (cols: SkuCustomColumnDef[]) => void
+  onRemoveCustomColumn: (id: string) => void
+  hiddenColumns: SkuOptionalColumnKey[]
+  onHiddenColumnsChange: (hidden: SkuOptionalColumnKey[]) => void
   onGenerate: (rows: SupplierSkuTableRow[]) => void
   disabled?: boolean
 }
@@ -45,9 +54,17 @@ export function SupplierSkuFastPanel({
   defaultCommission,
   customColumns,
   onCustomColumnsChange,
+  onRemoveCustomColumn,
+  hiddenColumns,
+  onHiddenColumnsChange,
   onGenerate,
   disabled,
 }: Props) {
+  const showPhoto = isSkuColumnVisible(hiddenColumns, "photo")
+  const showSize = isSkuColumnVisible(hiddenColumns, "size")
+  const showCompareAt = isSkuColumnVisible(hiddenColumns, "compareAt")
+  const showStock = isSkuColumnVisible(hiddenColumns, "stock")
+  const showCommission = isSkuColumnVisible(hiddenColumns, "commission")
   const [colorRows, setColorRows] = useState<SkuFastColorRow[]>([newColorRow()])
   const [sizesText, setSizesText] = useState("")
   const [defaults, setDefaults] = useState<SkuFastDefaults>(() => ({
@@ -80,10 +97,10 @@ export function SupplierSkuFastPanel({
     setNewColumnLabel("")
   }, [customColumns, newColumnLabel, onCustomColumnsChange])
 
-  const removeCustomColumn = useCallback(
+  const handleRemoveCustomColumn = useCallback(
     (id: string) => {
       const col = customColumns.find((c) => c.id === id)
-      onCustomColumnsChange(customColumns.filter((c) => c.id !== id))
+      onRemoveCustomColumn(id)
       if (col) {
         setDefaults((d) => {
           const next = { ...d.customFieldValues }
@@ -92,21 +109,32 @@ export function SupplierSkuFastPanel({
         })
       }
     },
-    [customColumns, onCustomColumnsChange]
+    [customColumns, onRemoveCustomColumn]
   )
 
   const handleGenerate = useCallback(() => {
     const filledColors = colorRows.filter((c) => c.name.trim())
     if (filledColors.length === 0) return
-    const rows = generateSkuTableRowsFromSetup({
-      colorRows: filledColors,
-      sizesText: sizesText,
+    let rows = generateSkuTableRowsFromSetup({
+      colorRows: showPhoto ? filledColors : filledColors.map((c) => ({ ...c, image: "" })),
+      sizesText: showSize ? sizesText : "",
       skuPrefix,
       defaults,
       customColumns,
     })
+    if (!showCompareAt) rows = rows.map((r) => ({ ...r, compareAtEur: null }))
     onGenerate(rows)
-  }, [colorRows, sizesText, skuPrefix, defaults, customColumns, onGenerate])
+  }, [
+    colorRows,
+    sizesText,
+    skuPrefix,
+    defaults,
+    customColumns,
+    onGenerate,
+    showPhoto,
+    showSize,
+    showCompareAt,
+  ])
 
   return (
     <div className="space-y-5 rounded-2xl border border-violet-200/90 bg-gradient-to-br from-violet-50/90 via-white to-violet-50/40 p-4 shadow-sm dark:border-violet-900/50 dark:from-violet-950/30 dark:via-zinc-950 dark:to-violet-950/20 sm:p-5">
@@ -120,11 +148,17 @@ export function SupplierSkuFastPanel({
         </p>
       </div>
 
+      <SupplierSkuColumnToggles
+        hiddenColumns={hiddenColumns}
+        onHiddenColumnsChange={onHiddenColumnsChange}
+        disabled={disabled}
+      />
+
       <section className="space-y-3">
         <div className="flex flex-wrap items-end justify-between gap-2">
           <div>
             <h3 className="text-xs font-bold uppercase tracking-wide text-zinc-600 dark:text-zinc-400">
-              1 · Couleurs & photos
+              1 · Couleurs{showPhoto ? " & photos" : ""}
             </h3>
             <p className="text-[11px] text-zinc-500">Une pastille = une couleur (ex. Rose Haricot, Rouge).</p>
           </div>
@@ -144,7 +178,10 @@ export function SupplierSkuFastPanel({
           {colorRows.map((row, i) => (
             <div
               key={row.id}
-              className="grid gap-3 rounded-xl border border-zinc-200/90 bg-white/80 p-3 dark:border-zinc-700 dark:bg-zinc-900/50 sm:grid-cols-[1fr_auto_auto]"
+              className={cn(
+                "grid gap-3 rounded-xl border border-zinc-200/90 bg-white/80 p-3 dark:border-zinc-700 dark:bg-zinc-900/50",
+                showPhoto ? "sm:grid-cols-[1fr_auto_auto]" : "sm:grid-cols-[1fr_auto]"
+              )}
             >
               <div>
                 <Label htmlFor={`fast-color-${row.id}`} className="text-xs">
@@ -164,24 +201,26 @@ export function SupplierSkuFastPanel({
                   maxLength={32}
                 />
               </div>
-              <div className="min-w-[200px]">
-                <Label className="text-xs flex items-center gap-1">
-                  <ImagePlus className="h-3.5 w-3.5" aria-hidden />
-                  Photo couleur
-                </Label>
-                <div className="mt-1">
-                  <SupplierSimpleColorImageField
-                    rowId={row.id}
-                    value={row.image}
-                    disabled={disabled}
-                    onChange={(image) =>
-                      setColorRows((prev) =>
-                        prev.map((r, j) => (j === i ? { ...r, image } : r))
-                      )
-                    }
-                  />
+              {showPhoto ? (
+                <div className="min-w-[200px]">
+                  <Label className="text-xs flex items-center gap-1">
+                    <ImagePlus className="h-3.5 w-3.5" aria-hidden />
+                    Photo couleur
+                  </Label>
+                  <div className="mt-1">
+                    <SupplierSimpleColorImageField
+                      rowId={row.id}
+                      value={row.image}
+                      disabled={disabled}
+                      onChange={(image) =>
+                        setColorRows((prev) =>
+                          prev.map((r, j) => (j === i ? { ...r, image } : r))
+                        )
+                      }
+                    />
+                  </div>
                 </div>
-              </div>
+              ) : null}
               <div className="flex items-end pb-0.5">
                 <Button
                   type="button"
@@ -200,18 +239,20 @@ export function SupplierSkuFastPanel({
         </div>
       </section>
 
-      <section>
-        <h3 className="text-xs font-bold uppercase tracking-wide text-zinc-600 dark:text-zinc-400">
-          2 · Tailles (optionnel)
-        </h3>
-        <Input
-          className="mt-2"
-          disabled={disabled}
-          value={sizesText}
-          onChange={(e) => setSizesText(e.target.value)}
-          placeholder="S, M, L, XL"
-        />
-      </section>
+      {showSize ? (
+        <section>
+          <h3 className="text-xs font-bold uppercase tracking-wide text-zinc-600 dark:text-zinc-400">
+            2 · Tailles (optionnel)
+          </h3>
+          <Input
+            className="mt-2"
+            disabled={disabled}
+            value={sizesText}
+            onChange={(e) => setSizesText(e.target.value)}
+            placeholder="S, M, L, XL"
+          />
+        </section>
+      ) : null}
 
       <section className="space-y-3">
         <h3 className="text-xs font-bold uppercase tracking-wide text-zinc-600 dark:text-zinc-400">
@@ -244,6 +285,7 @@ export function SupplierSkuFastPanel({
               onChange={(e) => setDefault({ publicPrice: Number(e.target.value) || 0 })}
             />
           </div>
+          {showCompareAt ? (
           <div>
             <Label className="text-xs">Prix barré EUR (opt.)</Label>
             <Input
@@ -262,6 +304,8 @@ export function SupplierSkuFastPanel({
               placeholder={catalogCompareAtEur ? String(catalogCompareAtEur) : "19.90"}
             />
           </div>
+          ) : null}
+          {showStock ? (
           <div>
             <Label className="text-xs">Stock / ligne</Label>
             <Input
@@ -275,6 +319,8 @@ export function SupplierSkuFastPanel({
               }
             />
           </div>
+          ) : null}
+          {showCommission ? (
           <div>
             <Label className="text-xs">Commission %</Label>
             <Input
@@ -291,6 +337,7 @@ export function SupplierSkuFastPanel({
               }
             />
           </div>
+          ) : null}
         </div>
       </section>
 
@@ -334,7 +381,7 @@ export function SupplierSkuFastPanel({
                   type="button"
                   className="rounded-full p-1 hover:bg-zinc-200 dark:hover:bg-zinc-700"
                   disabled={disabled}
-                  onClick={() => removeCustomColumn(col.id)}
+                  onClick={() => handleRemoveCustomColumn(col.id)}
                   aria-label={`Retirer ${col.label}`}
                 >
                   <Trash2 className="h-3 w-3" />

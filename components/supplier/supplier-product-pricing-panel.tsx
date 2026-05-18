@@ -179,6 +179,8 @@ export function SupplierProductPricingPanel({ productId }: Props) {
             defaultCommission={Math.round(Number(commissionRate) || 15)}
             customColumns={[]}
             onCustomColumnsChange={() => {}}
+            hiddenColumns={[]}
+            onHiddenColumnsChange={() => {}}
             skuPrefix="PRD"
           />
         </div>

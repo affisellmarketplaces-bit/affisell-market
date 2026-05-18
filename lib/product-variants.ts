@@ -42,6 +42,8 @@ export type ProductVariantsJson = {
   imageByColor?: Record<string, string>
   /** Column definitions for supplier SKU table */
   skuCustomColumns?: SkuCustomColumnMeta[]
+  /** Built-in columns hidden in supplier SKU UI (photo, size, compareAt, …) */
+  skuHiddenColumns?: string[]
   /** Advanced matrix / SKU lines */
   variantRows?: ProductVariantLine[]
 }
@@ -127,6 +129,14 @@ export function parseVariantsPayload(raw: unknown): ProductVariantsJson | null {
       .filter((c) => c.key.length > 0 && c.label.length > 0)
       .slice(0, 12)
     if (cols.length) out.skuCustomColumns = cols
+  }
+  if (Array.isArray(o.skuHiddenColumns)) {
+    const hidden = o.skuHiddenColumns
+      .filter((x): x is string => typeof x === "string")
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .slice(0, 12)
+    if (hidden.length) out.skuHiddenColumns = hidden
   }
   if (Array.isArray(o.variantRows)) {
     const parsed = o.variantRows

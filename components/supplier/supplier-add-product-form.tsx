@@ -114,6 +114,7 @@ import {
   type SkuCustomColumnDef,
   type VariantRowValidationIssue,
 } from "@/lib/supplier-sku-builder"
+import { parseSkuHiddenColumns, type SkuOptionalColumnKey } from "@/lib/supplier-sku-columns"
 import {
   validateSimpleColorName,
   validateSimpleColorRows,
@@ -292,6 +293,7 @@ export function SupplierAddProductForm({
   const [variantRows, setVariantRows] = useState<ProductVariantLine[]>([])
   const [advancedSkuRows, setAdvancedSkuRows] = useState<EditableVariantRow[]>([])
   const [skuCustomColumns, setSkuCustomColumns] = useState<SkuCustomColumnDef[]>([])
+  const [skuHiddenColumns, setSkuHiddenColumns] = useState<SkuOptionalColumnKey[]>([])
   const [skuValidationIssues, setSkuValidationIssues] = useState<VariantRowValidationIssue[]>([])
   const [simpleColorIssues, setSimpleColorIssues] = useState<SimpleColorValidationIssue[]>([])
   const [simpleColorRows, setSimpleColorRows] = useState<SupplierSimpleColorRow[]>([])
@@ -763,6 +765,7 @@ export function SupplierAddProductForm({
         setVariantFormMode("advanced")
         setAdvancedSkuRows(apiRows.map(skuTableRowFromApiVariant))
         setSkuCustomColumns([])
+        setSkuHiddenColumns([])
         setVariantRows([])
         setVariantSizesText("")
         setVariantColorsText("")
@@ -787,6 +790,7 @@ export function SupplierAddProductForm({
             label: c.label,
           }))
         )
+        setSkuHiddenColumns(parseSkuHiddenColumns(parsedListingVariants.skuHiddenColumns))
         setVariantSizesText(
           parsedListingVariants.size?.length ? parsedListingVariants.size.join(", ") : ""
         )
@@ -969,6 +973,7 @@ export function SupplierAddProductForm({
           listingVariantsPayload = {
             ...(sizes.length > 0 ? { size: sizes } : {}),
             skuCustomColumns: skuCustomColumns.map((c) => ({ key: c.key, label: c.label })),
+            ...(skuHiddenColumns.length > 0 ? { skuHiddenColumns } : {}),
             variantRows: mirrorLines,
           }
         }
@@ -2555,6 +2560,8 @@ export function SupplierAddProductForm({
                       defaultCommission={Math.round(Number(commission) || 15)}
                       customColumns={skuCustomColumns}
                       onCustomColumnsChange={setSkuCustomColumns}
+                      hiddenColumns={skuHiddenColumns}
+                      onHiddenColumnsChange={setSkuHiddenColumns}
                       skuPrefix="PRD"
                       disabled={saving}
                     />

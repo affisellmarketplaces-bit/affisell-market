@@ -1,8 +1,9 @@
 "use client"
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
-import { Plus, Trash2 } from "lucide-react"
+import { Plus, Trash2, X } from "lucide-react"
 
+import { SupplierSkuColumnToggles } from "@/components/supplier/supplier-sku-column-toggles"
 import { SupplierSkuFastPanel } from "@/components/supplier/supplier-sku-fast-panel"
 import { SupplierSimpleColorImageField } from "@/components/supplier/supplier-simple-color-image-field"
 import { Button } from "@/components/ui/button"
@@ -18,6 +19,7 @@ import {
   type SupplierSkuTableRow,
   type VariantRowValidationIssue,
 } from "@/lib/supplier-sku-builder"
+import { isSkuColumnVisible, type SkuOptionalColumnKey } from "@/lib/supplier-sku-columns"
 import { cn } from "@/lib/utils"
 
 export type EditableVariantRow = SupplierSkuTableRow & { margin?: number }
@@ -59,6 +61,8 @@ type Props = {
   defaultCommission: number
   customColumns: SkuCustomColumnDef[]
   onCustomColumnsChange: (cols: SkuCustomColumnDef[]) => void
+  hiddenColumns: SkuOptionalColumnKey[]
+  onHiddenColumnsChange: (hidden: SkuOptionalColumnKey[]) => void
   skuPrefix?: string
   disabled?: boolean
   className?: string
@@ -74,6 +78,8 @@ export function SupplierVariantTable({
   defaultCommission,
   customColumns,
   onCustomColumnsChange,
+  hiddenColumns,
+  onHiddenColumnsChange,
   skuPrefix = "PRD",
   disabled,
   className,
@@ -84,11 +90,34 @@ export function SupplierVariantTable({
 
   const baseSupplier = basePriceEur > 0 ? Math.round(basePriceEur * 0.6 * 100) / 100 : 10
   const basePublic = basePriceEur > 0 ? basePriceEur : 0
+  const showPhotoCol = isSkuColumnVisible(hiddenColumns, "photo")
+  const showSizeCol = isSkuColumnVisible(hiddenColumns, "size")
+  const showCompareAtCol = isSkuColumnVisible(hiddenColumns, "compareAt")
+  const showStockCol = isSkuColumnVisible(hiddenColumns, "stock")
+  const showCommissionCol = isSkuColumnVisible(hiddenColumns, "commission")
+  const showMarginCol = isSkuColumnVisible(hiddenColumns, "margin")
   const columnKeys = useMemo(() => customColumns.map((c) => c.key), [customColumns])
 
   const rowsWithFields = useMemo(
     () => ensureRowCustomFields(rows, columnKeys).map(withMargin),
     [rows, columnKeys]
+  )
+
+  const removeCustomColumn = useCallback(
+    (id: string) => {
+      const col = customColumns.find((c) => c.id === id)
+      onCustomColumnsChange(customColumns.filter((c) => c.id !== id))
+      if (col) {
+        onChange(
+          rowsWithFields.map((r) => {
+            const cf = { ...(r.customFields ?? {}) }
+            delete cf[col.key]
+            return withMargin({ ...r, customFields: cf })
+          })
+        )
+      }
+    },
+    [customColumns, onCustomColumnsChange, onChange, rowsWithFields]
   )
 
   useEffect(() => {
@@ -230,7 +259,15 @@ export function SupplierVariantTable({
       ? "border-red-500 ring-2 ring-red-500/25 focus-visible:ring-red-500/30"
       : ""
 
-  const colSpan = 10 + customColumns.length
+  const colSpan =
+    5 +
+    (showPhotoCol ? 1 : 0) +
+    (showSizeCol ? 1 : 0) +
+    (showCompareAtCol ? 1 : 0) +
+    (showMarginCol ? 1 : 0) +
+    (showStockCol ? 1 : 0) +
+    (showCommissionCol ? 1 : 0) +
+    customColumns.length
 
   return (
     <div className={cn("space-y-4", className)}>
@@ -285,6 +322,9 @@ export function SupplierVariantTable({
           defaultCommission={defaultCommission}
           customColumns={customColumns}
           onCustomColumnsChange={onCustomColumnsChange}
+          onRemoveCustomColumn={removeCustomColumn}
+          hiddenColumns={hiddenColumns}
+          onHiddenColumnsChange={onHiddenColumnsChange}
           onGenerate={handleFastGenerate}
           disabled={disabled}
         />
@@ -292,12 +332,20 @@ export function SupplierVariantTable({
 
       {mode === "table" || rowsWithFields.length > 0 ? (
         <>
+          <SupplierSkuColumnToggles
+            variant="toolbar"
+            hiddenColumns={hiddenColumns}
+            onHiddenColumnsChange={onHiddenColumnsChange}
+            disabled={disabled}
+            className="rounded-xl border border-zinc-200/90 bg-zinc-50/80 p-3 dark:border-zinc-700 dark:bg-zinc-900/40"
+          />
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Photo partagée par couleur · Coût vide = {formatStoreCurrency(baseSupplier)}
+              {showPhotoCol ? "Photo partagée par couleur · " : ""}
+              Coût vide = {formatStoreCurrency(baseSupplier)}
             </p>
             <div className="flex flex-wrap gap-2">
-              {catalogCompareAtEur != null && catalogCompareAtEur > 0 ? (
+              {showCompareAtCol && catalogCompareAtEur != null && catalogCompareAtEur > 0 ? (
                 <Button
                   type="button"
                   variant="outline"
@@ -328,9 +376,9 @@ export function SupplierVariantTable({
             <table id={tableId} className="w-full min-w-[1100px] text-left text-sm">
               <thead className="sticky top-0 z-10 bg-zinc-50 text-xs font-semibold uppercase tracking-wide text-zinc-500 shadow-sm dark:bg-zinc-900/95 dark:text-zinc-400">
                 <tr>
-                  <th className="w-[140px] px-2 py-2.5">Photo</th>
+                  {showPhotoCol ? <th className="w-[140px] px-2 py-2.5">Photo</th> : null}
                   <th className="px-3 py-2.5">Couleur</th>
-                  <th className="px-3 py-2.5">Taille</th>
+                  {showSizeCol ? <th className="px-3 py-2.5">Taille</th> : null}
                   <th className="px-3 py-2.5">SKU</th>
                   <th className="px-3 py-2.5">
                     <span className="inline-flex items-center gap-1">
@@ -349,13 +397,25 @@ export function SupplierVariantTable({
                     </span>
                   </th>
                   <th className="px-3 py-2.5">Public</th>
-                  <th className="px-3 py-2.5">Barré</th>
-                  <th className="px-3 py-2.5">Marge</th>
-                  <th className="px-3 py-2.5">Stock</th>
-                  <th className="px-3 py-2.5">Comm.%</th>
+                  {showCompareAtCol ? <th className="px-3 py-2.5">Barré</th> : null}
+                  {showMarginCol ? <th className="px-3 py-2.5">Marge</th> : null}
+                  {showStockCol ? <th className="px-3 py-2.5">Stock</th> : null}
+                  {showCommissionCol ? <th className="px-3 py-2.5">Comm.%</th> : null}
                   {customColumns.map((col) => (
                     <th key={col.id} className="min-w-[100px] px-2 py-2.5">
-                      {col.label}
+                      <span className="inline-flex items-center gap-1">
+                        {col.label}
+                        <button
+                          type="button"
+                          className="rounded p-0.5 text-zinc-400 hover:bg-zinc-200 hover:text-red-600 dark:hover:bg-zinc-700"
+                          disabled={disabled}
+                          onClick={() => removeCustomColumn(col.id)}
+                          aria-label={`Retirer la colonne ${col.label}`}
+                          title="Retirer cette colonne"
+                        >
+                          <X className="h-3 w-3" aria-hidden />
+                        </button>
+                      </span>
                     </th>
                   ))}
                   <th className="w-10 px-2 py-2.5" aria-label="Actions" />
@@ -372,25 +432,29 @@ export function SupplierVariantTable({
                   rowsWithFields.map((row, index) => {
                     const isFirstError =
                       validationIssues.length > 0 && validationIssues[0]?.index === index
-                    const showPhoto = firstRowIndexForColor(rowsWithFields, index)
+                    const isFirstColorRow = firstRowIndexForColor(rowsWithFields, index)
                     return (
                       <tr
                         key={row.id}
                         ref={isFirstError ? firstErrorRef : undefined}
                         className="bg-white dark:bg-zinc-950"
                       >
-                        <td className="px-2 py-2 align-top">
-                          {showPhoto && row.color.trim() ? (
-                            <SupplierSimpleColorImageField
-                              rowId={`sku-photo-${row.id}`}
-                              value={row.colorImage ?? ""}
-                              disabled={disabled}
-                              onChange={(img) => updateColorImage(index, img)}
-                            />
-                          ) : (
-                            <span className="block px-1 pt-2 text-[10px] text-zinc-400">↳ même couleur</span>
-                          )}
-                        </td>
+                        {showPhotoCol ? (
+                          <td className="px-2 py-2 align-top">
+                            {isFirstColorRow && row.color.trim() ? (
+                              <SupplierSimpleColorImageField
+                                rowId={`sku-photo-${row.id}`}
+                                value={row.colorImage ?? ""}
+                                disabled={disabled}
+                                onChange={(img) => updateColorImage(index, img)}
+                              />
+                            ) : (
+                              <span className="block px-1 pt-2 text-[10px] text-zinc-400">
+                                ↳ même couleur
+                              </span>
+                            )}
+                          </td>
+                        ) : null}
                         <td className="px-2 py-1.5">
                           <Input
                             className={cn("h-9 min-w-[88px]", rowErrorClass(index, "color"))}
@@ -400,19 +464,21 @@ export function SupplierVariantTable({
                             maxLength={32}
                           />
                         </td>
-                        <td className="px-2 py-1.5">
-                          <Input
-                            className={cn("h-9 w-16", rowErrorClass(index, "size"))}
-                            value={row.size ?? ""}
-                            disabled={disabled}
-                            onChange={(e) =>
-                              updateRow(index, {
-                                size: e.target.value.trim() ? e.target.value : null,
-                              })
-                            }
-                            maxLength={16}
-                          />
-                        </td>
+                        {showSizeCol ? (
+                          <td className="px-2 py-1.5">
+                            <Input
+                              className={cn("h-9 w-16", rowErrorClass(index, "size"))}
+                              value={row.size ?? ""}
+                              disabled={disabled}
+                              onChange={(e) =>
+                                updateRow(index, {
+                                  size: e.target.value.trim() ? e.target.value : null,
+                                })
+                              }
+                              maxLength={16}
+                            />
+                          </td>
+                        ) : null}
                         <td className="px-2 py-1.5">
                           <Input
                             className={cn("h-9 min-w-[96px] font-mono text-xs", rowErrorClass(index, "sku"))}
@@ -450,60 +516,70 @@ export function SupplierVariantTable({
                             }
                           />
                         </td>
-                        <td className="px-2 py-1.5">
-                          <Input
-                            type="number"
-                            min={0}
-                            step={0.01}
-                            className={cn("h-9 w-24", rowErrorClass(index, "compareAtEur"))}
-                            value={
-                              row.compareAtEur != null && row.compareAtEur > 0 ? row.compareAtEur : ""
-                            }
-                            disabled={disabled}
-                            placeholder="—"
-                            onChange={(e) => {
-                              const raw = e.target.value
-                              updateRow(index, {
-                                compareAtEur: raw.trim() === "" ? null : Number(raw) || null,
-                              })
-                            }}
-                          />
-                        </td>
-                        <td className="px-2 py-1.5 text-sm font-medium tabular-nums text-emerald-700 dark:text-emerald-400">
-                          {formatStoreCurrency(row.margin ?? marginEur(row.supplierPrice, row.publicPrice))}
-                        </td>
-                        <td className="px-2 py-1.5">
-                          <Input
-                            type="number"
-                            min={0}
-                            className={cn("h-9 w-16", rowErrorClass(index, "stock"))}
-                            value={row.stock}
-                            disabled={disabled}
-                            onChange={(e) =>
-                              updateRow(index, {
-                                stock: Math.max(0, Math.round(Number(e.target.value) || 0)),
-                              })
-                            }
-                          />
-                        </td>
-                        <td className="px-2 py-1.5">
-                          <Input
-                            type="number"
-                            min={0}
-                            max={100}
-                            className="h-9 w-14"
-                            value={row.commissionRate}
-                            disabled={disabled}
-                            onChange={(e) =>
-                              updateRow(index, {
-                                commissionRate: Math.min(
-                                  100,
-                                  Math.max(0, Math.round(Number(e.target.value) || 0))
-                                ),
-                              })
-                            }
-                          />
-                        </td>
+                        {showCompareAtCol ? (
+                          <td className="px-2 py-1.5">
+                            <Input
+                              type="number"
+                              min={0}
+                              step={0.01}
+                              className={cn("h-9 w-24", rowErrorClass(index, "compareAtEur"))}
+                              value={
+                                row.compareAtEur != null && row.compareAtEur > 0 ? row.compareAtEur : ""
+                              }
+                              disabled={disabled}
+                              placeholder="—"
+                              onChange={(e) => {
+                                const raw = e.target.value
+                                updateRow(index, {
+                                  compareAtEur: raw.trim() === "" ? null : Number(raw) || null,
+                                })
+                              }}
+                            />
+                          </td>
+                        ) : null}
+                        {showMarginCol ? (
+                          <td className="px-2 py-1.5 text-sm font-medium tabular-nums text-emerald-700 dark:text-emerald-400">
+                            {formatStoreCurrency(
+                              row.margin ?? marginEur(row.supplierPrice, row.publicPrice)
+                            )}
+                          </td>
+                        ) : null}
+                        {showStockCol ? (
+                          <td className="px-2 py-1.5">
+                            <Input
+                              type="number"
+                              min={0}
+                              className={cn("h-9 w-16", rowErrorClass(index, "stock"))}
+                              value={row.stock}
+                              disabled={disabled}
+                              onChange={(e) =>
+                                updateRow(index, {
+                                  stock: Math.max(0, Math.round(Number(e.target.value) || 0)),
+                                })
+                              }
+                            />
+                          </td>
+                        ) : null}
+                        {showCommissionCol ? (
+                          <td className="px-2 py-1.5">
+                            <Input
+                              type="number"
+                              min={0}
+                              max={100}
+                              className="h-9 w-14"
+                              value={row.commissionRate}
+                              disabled={disabled}
+                              onChange={(e) =>
+                                updateRow(index, {
+                                  commissionRate: Math.min(
+                                    100,
+                                    Math.max(0, Math.round(Number(e.target.value) || 0))
+                                  ),
+                                })
+                              }
+                            />
+                          </td>
+                        ) : null}
                         {customColumns.map((col) => (
                           <td key={col.id} className="px-2 py-1.5">
                             <Input
