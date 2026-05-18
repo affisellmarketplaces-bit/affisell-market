@@ -1,3 +1,4 @@
+import { trimColorSwatchImageForStore } from "@/lib/color-swatch-image"
 import { COLORS } from "@/lib/product-catalog-constants"
 import { parseVariantsPayload } from "@/lib/product-variants"
 
@@ -51,7 +52,7 @@ export function parseProductColorImagesFromBody(raw: unknown): ProductColorImage
     rows.push({
       color,
       hex: hex || catalogHexForColorName(color),
-      image: image.slice(0, 2000),
+      image: trimColorSwatchImageForStore(image),
     })
   }
   return rows.length ? rows.slice(0, 40) : null

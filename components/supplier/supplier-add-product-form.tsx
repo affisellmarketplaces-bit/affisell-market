@@ -34,6 +34,7 @@ import { toast } from "sonner"
 import { BentoShell } from "@/components/affisell/bento-ui"
 import { AttachProductVideoActions } from "@/components/attach-product-video-actions"
 import { SupplierProductDescriptionField } from "@/components/supplier/supplier-product-description-field"
+import { SupplierSimpleColorImageField } from "@/components/supplier/supplier-simple-color-image-field"
 import { SupplierProductImageUpload } from "@/components/supplier/supplier-product-image-upload"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -99,6 +100,7 @@ import {
   syncVariantRowsFromSimpleColors,
 } from "@/lib/supplier-variant-row-sync"
 import { parseProductColorImagesFromDb } from "@/lib/product-color-images"
+import { trimColorSwatchImageForStore } from "@/lib/color-swatch-image"
 import { formatStoreCurrency } from "@/lib/market-config"
 import { cn } from "@/lib/utils"
 
@@ -849,7 +851,7 @@ export function SupplierAddProductForm({
           colorsPayload.length > 0
             ? colorsPayload.map((c) => ({
                 color: c.slice(0, 48),
-                image: (imgBy.get(c) ?? "").trim().slice(0, 2000),
+                image: trimColorSwatchImageForStore(imgBy.get(c) ?? ""),
               }))
             : undefined
       } else if (variantFormMode === "advanced") {
@@ -2306,7 +2308,7 @@ export function SupplierAddProductForm({
                           <div>
                             <Label>Couleurs</Label>
                             <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-                              Ajoutez une ligne par couleur (nom + photo optionnelle pour la fiche produit).
+                              Une ligne par couleur — photo via lien URL ou import direct (fichier, collage, glisser-déposer).
                             </p>
                           </div>
                           <Button
@@ -2329,7 +2331,7 @@ export function SupplierAddProductForm({
                           {simpleColorRows.map((row, i) => (
                             <div
                               key={row.id}
-                              className="flex flex-col gap-3 rounded-xl border border-zinc-200/90 bg-zinc-50/50 p-3 dark:border-zinc-700 dark:bg-zinc-900/40 sm:flex-row sm:items-end"
+                              className="flex flex-col gap-3 rounded-xl border border-zinc-200/90 bg-zinc-50/50 p-3 dark:border-zinc-700 dark:bg-zinc-900/40 sm:flex-row sm:items-start"
                             >
                               <div className="min-w-0 flex-1">
                                 <Label htmlFor={`v-color-name-${row.id}`} className="text-xs">
@@ -2349,24 +2351,15 @@ export function SupplierAddProductForm({
                                   maxLength={48}
                                 />
                               </div>
-                              <div className="min-w-0 flex-[2]">
-                                <Label htmlFor={`v-color-img-${row.id}`} className="text-xs">
-                                  Photo (URL)
-                                </Label>
-                                <Input
-                                  id={`v-color-img-${row.id}`}
-                                  type="url"
-                                  className="mt-1.5 h-10"
-                                  value={row.image}
-                                  onChange={(e) => {
-                                    const v = e.target.value
-                                    setSimpleColorRows((prev) =>
-                                      prev.map((r, j) => (j === i ? { ...r, image: v } : r))
-                                    )
-                                  }}
-                                  placeholder="https://…"
-                                />
-                              </div>
+                              <SupplierSimpleColorImageField
+                                rowId={row.id}
+                                value={row.image}
+                                onChange={(image) => {
+                                  setSimpleColorRows((prev) =>
+                                    prev.map((r, j) => (j === i ? { ...r, image } : r))
+                                  )
+                                }}
+                              />
                               <Button
                                 type="button"
                                 variant="ghost"
