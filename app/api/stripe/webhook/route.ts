@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server"
 import type Stripe from "stripe"
 
-import { activateProFromCheckoutSession, deactivateProFromSubscription } from "@/lib/stripe-pro"
+import {
+  activateProFromCheckoutSession,
+  deactivateProFromSubscription,
+} from "@/lib/stripe-pro"
 import { getStripeClient } from "@/lib/stripe"
 
 export const runtime = "nodejs"
@@ -30,19 +33,24 @@ export async function POST(req: Request) {
   }
 
   try {
-    if (event.type === "checkout.session.completed") {
-      const session = event.data.object as Stripe.Checkout.Session
-      if (session.mode === "subscription" && session.metadata?.plan === "pro") {
-        await activateProFromCheckoutSession(session)
+    switch (event.type) {
+      case "checkout.session.completed": {
+        const session = event.data.object as Stripe.Checkout.Session
+        if (session.mode === "subscription" && session.payment_status === "paid") {
+          await activateProFromCheckoutSession(session)
+        }
+        break
       }
-    }
-
-    if (event.type === "customer.subscription.deleted") {
-      const subscription = event.data.object as Stripe.Subscription
-      await deactivateProFromSubscription(subscription)
+      case "customer.subscription.deleted": {
+        const subscription = event.data.object as Stripe.Subscription
+        await deactivateProFromSubscription(subscription)
+        break
+      }
+      default:
+        break
     }
   } catch (e) {
-    console.error("[stripe/pro-webhook]", event.type, e)
+    console.error("[stripe/webhook]", event.type, e)
     return NextResponse.json({ error: "Webhook handler failed" }, { status: 500 })
   }
 

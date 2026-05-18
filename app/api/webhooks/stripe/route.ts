@@ -4,6 +4,11 @@ import type Stripe from "stripe"
 
 import { createBlindDropshipPaidNotifications } from "@/lib/blind-dropship-notifications"
 import { fulfillMarketplaceStripeSession } from "@/lib/stripe-marketplace-fulfill"
+import {
+  activateProFromCheckoutSession,
+  deactivateProFromSubscription,
+  isProSubscriptionCheckout,
+} from "@/lib/stripe-pro"
 import { getStripeClient } from "@/lib/stripe"
 import { inngest } from "@/inngest/client"
 import { prisma } from "@/lib/prisma"
@@ -42,7 +47,13 @@ export async function POST(req: NextRequest) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session
-    if (session.mode === "subscription" && session.metadata?.plan === "pro") {
+    if (isProSubscriptionCheckout(session)) {
+      try {
+        await activateProFromCheckoutSession(session)
+      } catch (e) {
+        console.error("[stripe/webhook] pro activation", e)
+        return NextResponse.json({ error: "pro_activation_failed" }, { status: 500 })
+      }
       return NextResponse.json({ received: true })
     }
     const customerEmail =
@@ -59,6 +70,17 @@ export async function POST(req: NextRequest) {
       console.error("fulfillMarketplaceStripeSession", e)
       return NextResponse.json({ error: "fulfill_failed" }, { status: 500 })
     }
+  }
+
+  if (event.type === "customer.subscription.deleted") {
+    const subscription = event.data.object as Stripe.Subscription
+    try {
+      await deactivateProFromSubscription(subscription)
+    } catch (e) {
+      console.error("[stripe/webhook] pro deactivation", e)
+      return NextResponse.json({ error: "pro_deactivation_failed" }, { status: 500 })
+    }
+    return NextResponse.json({ received: true })
   }
 
   if (event.type === "payment_intent.succeeded") {

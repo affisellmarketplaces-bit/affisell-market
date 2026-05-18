@@ -15,39 +15,95 @@ export function appBaseUrl(): string {
   return `https://${raw.replace(/\/$/, "")}`
 }
 
-export async function activateProFromCheckoutSession(session: Stripe.Checkout.Session) {
-  const userId = session.metadata?.userId?.trim()
-  if (!userId) {
-    throw new Error("checkout.session.completed missing metadata.userId")
+function checkoutCustomerId(session: Stripe.Checkout.Session): string | null {
+  return typeof session.customer === "string" ? session.customer : session.customer?.id ?? null
+}
+
+function subscriptionIdFromCheckout(session: Stripe.Checkout.Session): string | null {
+  return typeof session.subscription === "string"
+    ? session.subscription
+    : session.subscription?.id ?? null
+}
+
+function customerIdFromSubscription(subscription: Stripe.Subscription): string | null {
+  return typeof subscription.customer === "string"
+    ? subscription.customer
+    : subscription.customer?.id ?? null
+}
+
+/** Resolve Affisell user from Checkout metadata (preferred) or customer email. */
+export async function resolveUserIdForProCheckout(session: Stripe.Checkout.Session): Promise<string | null> {
+  const fromMeta = session.metadata?.userId?.trim()
+  if (fromMeta) {
+    const byId = await prisma.user.findUnique({ where: { id: fromMeta }, select: { id: true } })
+    if (byId) return byId.id
   }
 
-  const customerId =
-    typeof session.customer === "string" ? session.customer : session.customer?.id ?? null
-  const subscriptionId =
-    typeof session.subscription === "string"
-      ? session.subscription
-      : session.subscription?.id ?? null
+  const email =
+    session.customer_email?.trim() ||
+    session.customer_details?.email?.trim() ||
+    null
+  if (!email) return null
+
+  const byEmail = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true },
+  })
+  return byEmail?.id ?? null
+}
+
+export function isProSubscriptionCheckout(session: Stripe.Checkout.Session): boolean {
+  if (session.mode !== "subscription") return false
+  if (session.payment_status !== "paid") return false
+  return true
+}
+
+export async function activateProFromCheckoutSession(session: Stripe.Checkout.Session) {
+  if (!isProSubscriptionCheckout(session)) {
+    return { activated: false as const, reason: "not_paid_subscription" }
+  }
+
+  const userId = await resolveUserIdForProCheckout(session)
+  if (!userId) {
+    throw new Error(
+      "checkout.session.completed: could not resolve user (metadata.userId or customer_email)"
+    )
+  }
+
+  const customerId = checkoutCustomerId(session)
+  const subscriptionId = subscriptionIdFromCheckout(session)
 
   await prisma.user.update({
     where: { id: userId },
     data: {
       isPro: true,
       videoQuota: PRO_VIDEO_QUOTA,
-      stripeCustomerId: customerId,
-      stripeSubscriptionId: subscriptionId,
+      ...(customerId ? { stripeCustomerId: customerId } : {}),
+      ...(subscriptionId ? { stripeSubscriptionId: subscriptionId } : {}),
       proActivatedAt: new Date(),
     },
   })
+
+  return { activated: true as const, userId }
 }
 
 export async function deactivateProFromSubscription(subscription: Stripe.Subscription) {
+  const customerId = customerIdFromSubscription(subscription)
   const subId = subscription.id
-  await prisma.user.updateMany({
-    where: { stripeSubscriptionId: subId },
+
+  const result = await prisma.user.updateMany({
+    where: {
+      OR: [
+        ...(customerId ? [{ stripeCustomerId: customerId }] : []),
+        { stripeSubscriptionId: subId },
+      ],
+    },
     data: {
       isPro: false,
       videoQuota: FREE_VIDEO_QUOTA,
       stripeSubscriptionId: null,
     },
   })
+
+  return { updated: result.count }
 }
