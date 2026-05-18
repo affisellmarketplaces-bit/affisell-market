@@ -23,6 +23,7 @@ import {
 import { useRouter } from "next/navigation"
 import { Fragment, useEffect, useMemo, useRef, useState, type MouseEvent } from "react"
 
+import { MarketplacePurchaseQuantity } from "@/components/marketplace/marketplace-purchase-quantity"
 import { Button } from "@/components/ui/button"
 import { ProductImageHoverZoom } from "@/components/product-image-hover-zoom"
 import messages from "@/messages/en.json"
@@ -33,6 +34,10 @@ import {
 } from "@/lib/product-catalog-constants"
 import { addGuestCartItem } from "@/lib/guest-cart"
 import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/marketplace-checkout-discount"
+import {
+  clampPurchaseQuantity,
+  resolveListingAvailableStock,
+} from "@/lib/marketplace-purchase-quantity"
 import {
   formatStoreCount,
   formatStoreCurrency,
@@ -411,9 +416,6 @@ export function MarketplaceListingDetail({
     setTitleExpanded(false)
   }, [listingId])
 
-  useEffect(() => {
-    if (stock <= 0) setShowStickyBuy(false)
-  }, [stock])
 
   useEffect(() => {
     const el = purchaseDockRef.current
@@ -440,6 +442,7 @@ export function MarketplaceListingDetail({
 
   const [cartBusy, setCartBusy] = useState(false)
   const [buyBusy, setBuyBusy] = useState(false)
+  const [purchaseQty, setPurchaseQty] = useState(1)
   const [showAr, setShowAr] = useState(false)
   const [sizeTip, setSizeTip] = useState<string | null>(null)
   const [showStylist, setShowStylist] = useState(false)
@@ -557,8 +560,26 @@ export function MarketplaceListingDetail({
       : listingPriceEur
   const bundleSaved = bundleAddonSum > 0 ? Math.round((bundleCrossSubtotal - bundlePayToday) * 100) / 100 : 0
 
-  const buyNowQty = 1
-  const buyNowLineSubtotalCents = activeListingPriceCents * buyNowQty
+  const availableStock = useMemo(
+    () =>
+      resolveListingAvailableStock({
+        productStock: stock,
+        variants,
+        selectedColor,
+        selectedSize,
+      }),
+    [stock, variants, selectedColor, selectedSize]
+  )
+
+  useEffect(() => {
+    setPurchaseQty((q) => clampPurchaseQuantity(q, availableStock))
+  }, [availableStock, selectedColor, selectedSize, listingId])
+
+  useEffect(() => {
+    if (availableStock <= 0) setShowStickyBuy(false)
+  }, [availableStock])
+
+  const buyNowLineSubtotalCents = activeListingPriceCents * purchaseQty
   const maxApplicableReward = useMemo(() => {
     if (buyNowLineSubtotalCents <= 0) return 0
     return Math.max(
@@ -626,7 +647,7 @@ export function MarketplaceListingDetail({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           productId: listingId,
-          quantity: 1,
+          quantity: purchaseQty,
           selectedColor: selectedColor ?? undefined,
           selectedSize: selectedSize ?? undefined,
         }),
@@ -635,7 +656,7 @@ export function MarketplaceListingDetail({
       if (res.status === 401) {
         addGuestCartItem({
           productId: listingId,
-          qty: 1,
+          qty: purchaseQty,
           title: name,
           imageUrl: hero,
           sellerName: sellerLabel,
@@ -660,7 +681,7 @@ export function MarketplaceListingDetail({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           productId: listingId,
-          qty: buyNowQty,
+          qty: purchaseQty,
           useRewardCents: applied,
           selectedColor: selectedColor ?? undefined,
           selectedSize: selectedSize ?? undefined,
@@ -980,13 +1001,13 @@ export function MarketplaceListingDetail({
                 ) : null}
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-0.5 text-[11px] font-semibold text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
                   <Package className="h-3.5 w-3.5" aria-hidden />
-                  {stock > 0 ? (
+                  {availableStock > 0 ? (
                     <>
-                      In stock
-                      {stock <= 20 ? ` · ${stock} left` : null}
+                      {productT.inStock}
+                      {availableStock <= 20 ? ` · ${availableStock} left` : null}
                     </>
                   ) : (
-                    "Out of stock"
+                    productT.outOfStock
                   )}
                 </span>
                 {shipping.freeShippingThresholdEUR != null && shipping.freeShippingThresholdEUR > 0 ? (
@@ -1053,9 +1074,9 @@ export function MarketplaceListingDetail({
                 <div className="flex min-w-0 flex-col justify-center gap-2 border-t border-zinc-200/70 pt-3 min-[420px]:w-[10.25rem] min-[420px]:shrink-0 min-[420px]:border-l min-[420px]:border-t-0 min-[420px]:pl-5 min-[420px]:pt-0 dark:border-zinc-700/80">
                   <motion.button
                     type="button"
-                    disabled={buyBusy || stock <= 0}
-                    whileHover={{ scale: stock > 0 && !buyBusy ? 1.02 : 1 }}
-                    whileTap={{ scale: stock > 0 && !buyBusy ? 0.98 : 1 }}
+                    disabled={buyBusy || availableStock <= 0}
+                    whileHover={{ scale: availableStock > 0 && !buyBusy ? 1.02 : 1 }}
+                    whileTap={{ scale: availableStock > 0 && !buyBusy ? 0.98 : 1 }}
                     onClick={() => void buyNow()}
                     className="relative flex h-11 w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-sm font-semibold text-white shadow-md shadow-violet-500/25 ring-1 ring-white/15 transition hover:shadow-lg hover:shadow-violet-500/30 disabled:cursor-not-allowed disabled:opacity-50 dark:ring-white/10"
                   >
@@ -1088,9 +1109,9 @@ export function MarketplaceListingDetail({
               </div>
             </div>
 
-            {stock <= 5 && stock > 0 ? (
+            {availableStock <= 5 && availableStock > 0 ? (
               <p className="rounded-xl border border-amber-200/90 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100">
-                {t(productT.onlyLeft, { count: Math.max(1, stock) })}
+                {t(productT.onlyLeft, { count: Math.max(1, availableStock) })}
               </p>
             ) : null}
 
@@ -1292,12 +1313,24 @@ export function MarketplaceListingDetail({
                 </div>
               ) : null}
 
+              <MarketplacePurchaseQuantity
+                className="mb-1"
+                quantity={purchaseQty}
+                onQuantityChange={setPurchaseQty}
+                availableStock={availableStock}
+                inStockLabel={productT.inStock}
+                outOfStockLabel={productT.outOfStock}
+                quantityOptionLabel={(count) => t(productT.quantityOption, { count })}
+                quantityAriaLabel={productT.quantityAria}
+                disabled={cartBusy || buyBusy}
+              />
+
               <div className="flex flex-col gap-3">
                 <motion.button
                   type="button"
-                  disabled={cartBusy || stock <= 0}
-                  whileHover={{ scale: stock > 0 && !cartBusy ? 1.01 : 1 }}
-                  whileTap={{ scale: stock > 0 && !cartBusy ? 0.99 : 1 }}
+                  disabled={cartBusy || availableStock <= 0}
+                  whileHover={{ scale: availableStock > 0 && !cartBusy ? 1.01 : 1 }}
+                  whileTap={{ scale: availableStock > 0 && !cartBusy ? 0.99 : 1 }}
                   onClick={(e) => void addToCart(e)}
                   className="group relative flex h-14 w-full items-center justify-center gap-2 overflow-hidden rounded-full bg-gradient-to-r from-violet-600 via-violet-600 to-fuchsia-600 text-base font-semibold text-white shadow-lg shadow-violet-500/30 transition hover:shadow-xl hover:shadow-violet-500/35 disabled:cursor-not-allowed disabled:opacity-50 dark:shadow-violet-900/40"
                 >
@@ -1308,9 +1341,9 @@ export function MarketplaceListingDetail({
 
                 <motion.button
                   type="button"
-                  disabled={buyBusy || stock <= 0}
-                  whileHover={{ scale: stock > 0 && !buyBusy ? 1.012 : 1 }}
-                  whileTap={{ scale: stock > 0 && !buyBusy ? 0.988 : 1 }}
+                  disabled={buyBusy || availableStock <= 0}
+                  whileHover={{ scale: availableStock > 0 && !buyBusy ? 1.012 : 1 }}
+                  whileTap={{ scale: availableStock > 0 && !buyBusy ? 0.988 : 1 }}
                   onClick={() => void buyNow()}
                   className="group relative isolate flex h-14 w-full items-center gap-3 overflow-hidden rounded-full border border-violet-300/45 bg-gradient-to-b from-white/95 to-violet-50/40 px-4 text-left text-base font-semibold text-zinc-900 shadow-[0_0_0_1px_rgba(139,92,246,0.07),0_10px_36px_-14px_rgba(124,58,237,0.42)] ring-1 ring-white/70 backdrop-blur-md transition-[border-color,box-shadow,background-color] duration-300 hover:border-violet-400/60 hover:from-white hover:to-violet-50/55 hover:shadow-[0_0_0_1px_rgba(139,92,246,0.12),0_16px_52px_-12px_rgba(124,58,237,0.52)] disabled:cursor-not-allowed disabled:opacity-50 dark:border-violet-500/35 dark:from-zinc-950/92 dark:to-violet-950/40 dark:text-zinc-50 dark:ring-white/10 dark:hover:border-violet-400/50 dark:hover:to-violet-950/55"
                 >
@@ -1684,20 +1717,20 @@ export function MarketplaceListingDetail({
       <motion.div
         role="region"
         aria-label={t(productT.stickyBuyHint)}
-        aria-hidden={!(stock > 0 && showStickyBuy && !showAr && !showStylist)}
+        aria-hidden={!(availableStock > 0 && showStickyBuy && !showAr && !showStylist)}
         className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 sm:px-6"
         initial={false}
         animate={
           reduceMotion
-            ? { opacity: stock > 0 && showStickyBuy && !showAr && !showStylist ? 1 : 0 }
+            ? { opacity: availableStock > 0 && showStickyBuy && !showAr && !showStylist ? 1 : 0 }
             : {
-                y: stock > 0 && showStickyBuy && !showAr && !showStylist ? 0 : 120,
-                opacity: stock > 0 && showStickyBuy && !showAr && !showStylist ? 1 : 0,
+                y: availableStock > 0 && showStickyBuy && !showAr && !showStylist ? 0 : 120,
+                opacity: availableStock > 0 && showStickyBuy && !showAr && !showStylist ? 1 : 0,
               }
         }
         transition={{ type: "spring", stiffness: 420, damping: 36 }}
         style={{
-          pointerEvents: stock > 0 && showStickyBuy && !showAr && !showStylist ? "auto" : "none",
+          pointerEvents: availableStock > 0 && showStickyBuy && !showAr && !showStylist ? "auto" : "none",
         }}
       >
         <div className="mx-auto flex max-w-3xl items-center gap-3 rounded-2xl border border-zinc-200/90 bg-white/95 px-3 py-2.5 shadow-2xl shadow-zinc-900/12 ring-1 ring-black/[0.05] backdrop-blur-xl dark:border-zinc-700 dark:bg-zinc-950/95 dark:ring-white/10">
@@ -1707,7 +1740,7 @@ export function MarketplaceListingDetail({
           </div>
           <Button
             type="button"
-            disabled={cartBusy || stock <= 0}
+            disabled={cartBusy || availableStock <= 0}
             onClick={(e) => void addToCart(e)}
             className="h-11 shrink-0 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 text-sm font-semibold text-white shadow-lg shadow-violet-500/25 hover:from-violet-500 hover:to-fuchsia-500 disabled:opacity-50"
           >
