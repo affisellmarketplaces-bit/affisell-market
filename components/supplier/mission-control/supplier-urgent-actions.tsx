@@ -1,7 +1,7 @@
 import Link from "next/link"
-import { ArrowRight, CheckCircle2, Share2 } from "lucide-react"
+import { CheckCircle2, Share2 } from "lucide-react"
 
-import type { SupplierUrgentSnapshot } from "@/lib/supplier-mission-control"
+import type { SupplierUrgentSnapshot } from "@/lib/supplier-urgent-snapshot"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { formatSlaCountdown, formatSlaHoursShort } from "@/lib/supplier-ship-sla"
 import { buttonVariants } from "@/components/ui/button"
@@ -12,95 +12,210 @@ type Props = {
   storeSlug: string | null
 }
 
-type UrgentCard = {
-  id: string
+type SlotProps = {
+  active: boolean
   title: string
+  titleSubline?: string
   metric: string
   consequence: string
   href: string
   cta: string
-  ctaArrow?: boolean
-  tone: "amber" | "red" | "violet"
+  tone: "amber" | "red" | "violet" | "zinc"
+  ctaVariant?: "default" | "outline"
 }
 
-function buildCards(urgent: SupplierUrgentSnapshot): UrgentCard[] {
-  const cards: UrgentCard[] = []
-  if (urgent.ordersToShip > 0) {
-    const slaMs = urgent.ordersToShipSlaMs
-    const late = slaMs != null && slaMs <= 0
-    const remainingMs = slaMs != null && slaMs > 0 ? slaMs : null
-    const countLabel =
-      urgent.ordersToShip === 1
-        ? "1 commande à expédier"
-        : `${urgent.ordersToShip} commandes à expédier`
-    const title =
-      remainingMs != null
-        ? `${countLabel} < ${formatSlaHoursShort(remainingMs)}`
-        : late
-          ? `${countLabel} · SLA dépassé`
-          : countLabel
-
-    cards.push({
-      id: "ship",
-      title,
-      metric: late
-        ? "Payées · en retard d’expédition"
-        : remainingMs != null
-          ? `Payées · SLA dépassé dans ${formatSlaCountdown(remainingMs)}`
-          : "Payées · en attente d’envoi",
-      consequence:
-        urgent.ordersToShipPenaltyCents > 0
-          ? `Pénalité estimée : −${formatStoreCurrencyFromCents(urgent.ordersToShipPenaltyCents)} si retard`
-          : "Les acheteurs attendent un suivi colis",
-      href: "/dashboard/supplier/orders",
-      cta: "Expédier maintenant",
-      ctaArrow: true,
-      tone: late ? "red" : "amber",
-    })
-  }
-  if (urgent.returnsInProgress > 0) {
-    cards.push({
-      id: "returns",
-      title:
-        urgent.returnsInProgress === 1
-          ? "1 retour en cours"
-          : `${urgent.returnsInProgress} retours en cours`,
-      metric: "Décision ou suivi requis",
-      consequence: "SLA acheteur — risque litige",
-      href: "/dashboard/supplier/returns",
-      cta: "Traiter",
-      tone: "violet",
-    })
-  }
-  if (urgent.lowStockCount > 0) {
-    cards.push({
-      id: "stock",
-      title:
-        urgent.lowStockCount === 1
-          ? "1 rupture stock"
-          : `${urgent.lowStockCount} ruptures stock`,
-      metric: "≤ 5 unités restantes",
-      consequence: `Perte ${formatStoreCurrencyFromCents(urgent.lowStockDailyLossCents)}/jour estimée`,
-      href: "/dashboard/supplier/products",
-      cta: "Réassortir",
-      tone: "red",
-    })
-  }
-  return cards
-}
-
-const toneRing: Record<UrgentCard["tone"], string> = {
+const toneRing: Record<SlotProps["tone"], string> = {
   amber: "border-amber-200/80 bg-amber-50/50 dark:border-amber-900/50 dark:bg-amber-950/20",
   red: "border-red-200/80 bg-red-50/40 dark:border-red-900/50 dark:bg-red-950/20",
   violet: "border-violet-200/80 bg-violet-50/40 dark:border-violet-900/50 dark:bg-violet-950/20",
+  zinc: "border-zinc-200/80 bg-zinc-50/40 dark:border-zinc-800 dark:bg-zinc-900/30",
+}
+
+function UrgentSlot({
+  active,
+  title,
+  titleSubline,
+  metric,
+  consequence,
+  href,
+  cta,
+  tone,
+  ctaVariant = "outline",
+}: SlotProps) {
+  return (
+    <article
+      className={cn(
+        "flex min-h-[9.5rem] flex-col gap-3 rounded-2xl border p-4 shadow-sm",
+        active ? toneRing[tone] : toneRing.zinc
+      )}
+    >
+      <div className="min-w-0 flex-1 space-y-1">
+        <h3
+          className={cn(
+            "text-sm font-semibold leading-snug",
+            active ? "text-zinc-900 dark:text-zinc-50" : "text-zinc-400 dark:text-zinc-500"
+          )}
+        >
+          {title}
+          {active && titleSubline ? (
+            <span className="mt-0.5 block text-xs font-bold text-amber-700 dark:text-amber-300">
+              {titleSubline}
+            </span>
+          ) : null}
+        </h3>
+        <p
+          className={cn(
+            "text-xs font-medium",
+            active ? "text-zinc-600 dark:text-zinc-300" : "text-zinc-400 dark:text-zinc-600"
+          )}
+        >
+          {metric}
+        </p>
+        <p
+          className={cn(
+            "text-xs",
+            active ? "text-zinc-500 dark:text-zinc-400" : "text-zinc-400/80 dark:text-zinc-600"
+          )}
+        >
+          {consequence}
+        </p>
+      </div>
+      {active ? (
+        <Link
+          href={href}
+          className={cn(
+            buttonVariants({ variant: ctaVariant, size: "sm" }),
+            ctaVariant === "default" &&
+              tone === "amber" &&
+              "w-fit bg-amber-600 text-white hover:bg-amber-700 dark:bg-amber-600",
+            ctaVariant === "default" &&
+              tone === "red" &&
+              "w-fit bg-red-600 text-white hover:bg-red-700 dark:bg-red-600",
+            ctaVariant === "default" &&
+              tone === "violet" &&
+              "w-fit bg-violet-600 text-white hover:bg-violet-700 dark:bg-violet-600",
+            ctaVariant === "outline" && "w-fit border-zinc-300/80 bg-white/80 dark:bg-zinc-950/80"
+          )}
+        >
+          {cta}
+        </Link>
+      ) : (
+        <span className="text-xs text-zinc-400 dark:text-zinc-600">—</span>
+      )}
+    </article>
+  )
+}
+
+function buildShipSlot(urgent: SupplierUrgentSnapshot): SlotProps {
+  const active = urgent.ordersToShip > 0
+  const slaMs = urgent.ordersToShipSlaMs
+  const late = slaMs != null && slaMs <= 0
+  const remainingMs = slaMs != null && slaMs > 0 ? slaMs : null
+
+  const countTitle =
+    urgent.ordersToShip === 1
+      ? "1 commande à expédier"
+      : `${urgent.ordersToShip} commandes à expédier`
+
+  return {
+    active,
+    title: countTitle,
+    titleSubline:
+      active && remainingMs != null
+        ? `< ${formatSlaHoursShort(remainingMs)}`
+        : active && late
+          ? "SLA dépassé"
+          : undefined,
+    metric: !active
+      ? "Aucune en attente"
+      : late
+        ? "Payées · en retard"
+        : remainingMs != null
+          ? `Payées · SLA dépassé dans ${formatSlaCountdown(remainingMs)}`
+          : "Payées · en attente",
+    consequence:
+      active && urgent.ordersToShipPenaltyCents > 0
+        ? `Pénalité estimée : −${formatStoreCurrencyFromCents(urgent.ordersToShipPenaltyCents)} si retard`
+        : active
+          ? "Risque note acheteur si retard"
+          : "—",
+    href: "/dashboard/supplier/orders",
+    cta: "Expédier",
+    tone: late ? "red" : "amber",
+    ctaVariant: active ? "default" : "outline",
+  }
+}
+
+function buildStockSlot(urgent: SupplierUrgentSnapshot): SlotProps {
+  const active = urgent.lowStockCount > 0
+  const first = urgent.lowStockLines[0]
+  const extra = urgent.lowStockCount > 1 ? urgent.lowStockCount - 1 : 0
+
+  const title = active
+    ? urgent.lowStockCount === 1
+      ? "1 Rupture"
+      : `${urgent.lowStockCount} Ruptures`
+    : "Ruptures stock"
+
+  const skuLabel = first
+    ? extra > 0
+      ? `SKU ${first.label} · +${extra}`
+      : `SKU ${first.label}`
+    : "—"
+
+  const stockLine =
+    first != null
+      ? first.stock <= 0
+        ? "0 stock"
+        : `${first.stock} restant${first.stock > 1 ? "s" : ""}`
+      : "—"
+
+  const restockHref = first
+    ? `/dashboard/supplier/products/${first.productId}${first.variantId ? "#add-product-variants" : ""}`
+    : "/dashboard/supplier/products"
+
+  return {
+    active,
+    title,
+    metric: active ? skuLabel : "Stocks OK",
+    consequence: active ? stockLine : "—",
+    href: restockHref,
+    cta: "Réassortir",
+    tone: first != null && first.stock <= 0 ? "red" : "amber",
+    ctaVariant: active ? "default" : "outline",
+  }
+}
+
+function buildMessageSlot(urgent: SupplierUrgentSnapshot): SlotProps {
+  const active = urgent.clientMessagesCount > 0
+  const n = urgent.clientMessagesCount
+
+  return {
+    active,
+    title: active
+      ? n === 1
+        ? "1 Message client"
+        : `${n} Messages client`
+      : "Message client",
+    metric: active ? "sans réponse" : "Boîte à jour",
+    consequence: active
+      ? urgent.shopRatingImpactPct > 0
+        ? `−${urgent.shopRatingImpactPct} % note shop`
+        : "Réponse attendue"
+      : "—",
+    href: "/dashboard/supplier/returns",
+    cta: "Répondre",
+    tone: "violet",
+    ctaVariant: active ? "default" : "outline",
+  }
 }
 
 export function SupplierUrgentActions({ urgent, storeSlug }: Props) {
-  const cards = buildCards(urgent)
-  const allClear =
-    urgent.ordersToShip === 0 &&
-    urgent.returnsInProgress === 0 &&
-    urgent.lowStockCount === 0
+  const ship = buildShipSlot(urgent)
+  const stock = buildStockSlot(urgent)
+  const message = buildMessageSlot(urgent)
+
+  const allClear = !ship.active && !stock.active && !message.active
 
   return (
     <section aria-labelledby="urgent-heading" className="space-y-4">
@@ -115,55 +230,19 @@ export function SupplierUrgentActions({ urgent, storeSlug }: Props) {
             <div>
               <p className="font-semibold text-emerald-950 dark:text-emerald-100">Tout est à jour ✅</p>
               <p className="mt-1 text-sm text-emerald-900/80 dark:text-emerald-200/80">
-                Aucune commande, retour ni rupture ne nécessite votre attention.
+                Expéditions, stocks et messages clients sont à jour.
               </p>
             </div>
           </div>
-          {urgent.ordersToShip === 0 ? (
-            <EmptyOrdersHint storeSlug={storeSlug} />
-          ) : null}
+          <EmptyOrdersHint storeSlug={storeSlug} />
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {cards.map((card) => (
-            <article
-              key={card.id}
-              className={cn(
-                "flex flex-col gap-3 rounded-2xl border p-4 shadow-sm",
-                toneRing[card.tone]
-              )}
-            >
-              <div className="min-w-0 flex-1 space-y-1">
-                <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">{card.title}</h3>
-                <p className="text-xs font-medium text-zinc-600 dark:text-zinc-300">{card.metric}</p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">{card.consequence}</p>
-              </div>
-              <Link
-                href={card.href}
-                className={cn(
-                  buttonVariants({
-                    variant: card.id === "ship" ? "default" : "outline",
-                    size: "sm",
-                  }),
-                  card.id === "ship"
-                    ? "w-fit gap-1 bg-amber-600 text-white hover:bg-amber-700 dark:bg-amber-600"
-                    : "w-fit border-zinc-300/80 bg-white/80",
-                  card.tone === "red" &&
-                    card.id === "ship" &&
-                    "bg-red-600 hover:bg-red-700 dark:bg-red-600"
-                )}
-              >
-                {card.cta}
-                {card.ctaArrow ? <ArrowRight className="h-3.5 w-3.5" aria-hidden /> : null}
-              </Link>
-            </article>
-          ))}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <UrgentSlot {...ship} />
+          <UrgentSlot {...stock} />
+          <UrgentSlot {...message} />
         </div>
       )}
-
-      {!allClear && urgent.ordersToShip === 0 ? (
-        <EmptyOrdersHint storeSlug={storeSlug} />
-      ) : null}
     </section>
   )
 }
@@ -172,7 +251,7 @@ function EmptyOrdersHint({ storeSlug }: { storeSlug: string | null }) {
   const catalogHref = storeSlug ? `/store/supplier/${storeSlug}` : "/marketplace"
   return (
     <p className="text-sm text-zinc-600 dark:text-zinc-400">
-      Aucune commande en file. Boostez la visibilité :{" "}
+      Boostez la visibilité :{" "}
       <Link
         href={catalogHref}
         className="inline-flex items-center gap-1 font-semibold text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"

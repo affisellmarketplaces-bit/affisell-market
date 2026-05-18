@@ -1,28 +1,20 @@
 import { primaryProductImage } from "@/lib/product-images"
-import { TERMINAL_RETURN_STATUSES } from "@/lib/order-return-types"
-import { loadOrdersToShipSla } from "@/lib/supplier-ship-sla"
+import {
+  loadSupplierUrgentSnapshot,
+  type SupplierUrgentSnapshot,
+} from "@/lib/supplier-urgent-snapshot"
 import { loadSupplierWeeklyGoal, type SupplierWeeklyGoalSnapshot } from "@/lib/supplier-weekly-goal"
+
+export type { SupplierUrgentSnapshot } from "@/lib/supplier-urgent-snapshot"
 import { prisma } from "@/lib/prisma"
 
 const MARKETPLACE_COUNTABLE = ["paid", "preparing", "shipped", "refunded"] as const
-const LOW_STOCK_THRESHOLD = 5
 const MS_7D = 7 * 24 * 60 * 60 * 1000
 
 export type MetricDelta = {
   value: number
   previous: number
   pctChange: number | null
-}
-
-export type SupplierUrgentSnapshot = {
-  ordersToShip: number
-  /** Ms until soonest ship SLA breach; null when no pending orders. */
-  ordersToShipSlaMs: number | null
-  ordersToShipPenaltyCents: number
-  returnsInProgress: number
-  lowStockCount: number
-  /** Rough daily revenue at risk (cents). */
-  lowStockDailyLossCents: number
 }
 
 export type SupplierMetrics7d = {
@@ -140,27 +132,6 @@ async function fetchMarketplaceOrders(
       affisellFeeCents: true,
     },
   })
-}
-
-async function countLowStock(supplierId: string): Promise<number> {
-  const [simpleLow, variantLow] = await Promise.all([
-    prisma.product.count({
-      where: {
-        supplierId,
-        active: true,
-        isDraft: false,
-        hasVariants: false,
-        stock: { lte: LOW_STOCK_THRESHOLD },
-      },
-    }),
-    prisma.productVariant.count({
-      where: {
-        stock: { lte: LOW_STOCK_THRESHOLD },
-        product: { supplierId, active: true, isDraft: false, hasVariants: true },
-      },
-    }),
-  ])
-  return simpleLow + variantLow
 }
 
 async function topSkuLast7d(
@@ -309,9 +280,7 @@ export async function loadSupplierMissionControl(
   const [
     store,
     productCount,
-    ordersToShipSla,
-    returnsInProgress,
-    lowStockCount,
+    urgent,
     currentOrders,
     previousOrders,
     topSku,
@@ -324,14 +293,7 @@ export async function loadSupplierMissionControl(
     prisma.product.count({
       where: { supplierId: supplierUserId, active: true, isDraft: false },
     }),
-    loadOrdersToShipSla(supplierUserId),
-    prisma.orderReturn.count({
-      where: {
-        order: { supplierId: supplierUserId },
-        status: { notIn: [...TERMINAL_RETURN_STATUSES] },
-      },
-    }),
-    countLowStock(supplierUserId),
+    loadSupplierUrgentSnapshot(supplierUserId),
     fetchMarketplaceOrders(supplierUserId, currentFrom, currentTo),
     fetchMarketplaceOrders(supplierUserId, previousFrom, previousTo),
     topSkuLast7d(supplierUserId, currentFrom, currentTo),
@@ -357,8 +319,6 @@ export async function loadSupplierMissionControl(
   const current = aggregateOrders(currentOrders)
   const previous = aggregateOrders(previousOrders)
 
-  const lowStockDailyLossCents = lowStockCount * 600 * 100
-
   const adoptionRatePct =
     totalSkus > 0 ? Math.round((skusWithSales / totalSkus) * 1000) / 10 : 0
 
@@ -366,14 +326,7 @@ export async function loadSupplierMissionControl(
     storeName: store?.name?.trim() || "votre boutique",
     storeSlug: store?.slug ?? null,
     productCount,
-    urgent: {
-      ordersToShip: ordersToShipSla.count,
-      ordersToShipSlaMs: ordersToShipSla.msUntilBreach,
-      ordersToShipPenaltyCents: ordersToShipSla.penaltyCents,
-      returnsInProgress,
-      lowStockCount,
-      lowStockDailyLossCents,
-    },
+    urgent,
     metrics7d: {
       gmvCents: metricDelta(current.gmvCents, previous.gmvCents),
       orderCount: metricDelta(current.orderCount, previous.orderCount),
