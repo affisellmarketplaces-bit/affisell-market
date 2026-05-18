@@ -1,7 +1,9 @@
 import { Prisma } from "@prisma/client"
 import { z } from "zod"
 
+import { normalizeVariantCustomData } from "@/lib/product-custom-columns"
 import { buildVariantOptionLabel } from "@/lib/marketplace-purchase-quantity"
+import type { CustomColumn, VariantCustomData } from "@/types/product"
 import {
   VARIANT_COLOR_ERROR,
   VARIANT_COLOR_REGEX,
@@ -76,6 +78,10 @@ export const productVariantInputSchema = z.object({
     .optional()
     .nullable()
     .transform((v) => (v && v.length > 0 ? v : null)),
+  customData: z
+    .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+    .optional()
+    .nullable(),
 }).transform((v) => ({
   ...v,
   publicPrice: v.publicPrice ?? v.supplierPrice,
@@ -111,6 +117,7 @@ export function serializeProductVariantRow(
     originCountry?: string | null
     warehouseCode?: string | null
     videoUrl?: string | null
+    customData?: unknown
   },
   defaultCommissionRate = 10
 ): ProductVariantApiRow {
@@ -132,7 +139,47 @@ export function serializeProductVariantRow(
     originCountry: row.originCountry ?? null,
     warehouseCode: row.warehouseCode ?? null,
     videoUrl: row.videoUrl ?? null,
+    customData: parseVariantCustomDataFromDb(row.customData),
   }
+}
+
+export function parseVariantCustomDataFromDb(json: unknown): VariantCustomData | null {
+  if (!json || typeof json !== "object" || Array.isArray(json)) return null
+  const out: VariantCustomData = {}
+  for (const [k, v] of Object.entries(json as Record<string, unknown>)) {
+    if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") {
+      out[k] = v
+    }
+  }
+  return Object.keys(out).length > 0 ? out : null
+}
+
+export function customDataToPrismaJson(
+  data: VariantCustomData | null | undefined
+): Prisma.InputJsonValue | typeof Prisma.DbNull {
+  if (!data || Object.keys(data).length === 0) return Prisma.DbNull
+  return data as Prisma.InputJsonValue
+}
+
+export function applyCustomColumnsToVariantRows(
+  rows: ProductVariantInput[],
+  columns: CustomColumn[],
+  rawRows: unknown[]
+): ProductVariantInput[] {
+  if (columns.length === 0) return rows
+  return rows.map((row, i) => {
+    const raw = rawRows[i]
+    const source =
+      raw && typeof raw === "object" && !Array.isArray(raw)
+        ? (raw as Record<string, unknown>).customData ??
+          (raw as Record<string, unknown>).customFields
+        : undefined
+    const customData = normalizeVariantCustomData(columns, source ?? row.customData)
+    return {
+      ...row,
+      customData: Object.keys(customData).length > 0 ? customData : undefined,
+    }
+  })
 }
 
 /** SKU matrix payload: `variants` is an array, or `hasVariants` is set explicitly. */
@@ -344,6 +391,7 @@ export async function syncProductVariants(
       originCountry: v.originCountry ?? "CN",
       warehouseCode: v.warehouseCode ?? null,
       videoUrl: v.videoUrl ?? null,
+      customData: customDataToPrismaJson(v.customData ?? null),
     }
 
     if (v.id && existingIds.has(v.id)) {

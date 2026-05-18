@@ -265,6 +265,10 @@ model Product {
    * When true, SKU lines live in `ProductVariant` (supplier/public price per row).
    */
   hasVariants                   Boolean  @default(false)
+  /**
+   * Supplier-defined SKU columns: [{ key, label, type, required, options? }]
+   */
+  customColumns                 Json?
   productVariants               ProductVariant[]
   tags                          String[] @default([])
   basePriceCents                Int
@@ -389,6 +393,8 @@ model ProductVariant {
   purchasePriceHT Decimal? @db.Decimal(10, 2)
   moq           Int?     @default(1)
   videoUrl      String?
+  /** Per-SKU values for `Product.customColumns` keys */
+  customData    Json?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

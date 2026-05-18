@@ -27,10 +27,16 @@ import {
   parseListingKind,
 } from "@/lib/supplier-commission"
 import {
+  parseCustomColumnsFromBody,
+  validateVariantsCustomData,
+} from "@/lib/product-custom-columns"
+import {
+  applyCustomColumnsToVariantRows,
   isSkuVariantsSyncBody,
   parseProductVariantsFromBody,
   syncProductVariants,
 } from "@/lib/product-variant-sku"
+import type { CustomColumn } from "@/types/product"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -168,17 +174,33 @@ export async function POST(req: Request) {
     }
   }
 
+  const customColumnsParsed = parseCustomColumnsFromBody(body as Record<string, unknown>)
+  if (!Array.isArray(customColumnsParsed)) {
+    return Response.json({ error: customColumnsParsed.error }, { status: 400 })
+  }
+  const customColumns = customColumnsParsed
+
   let variantSync: { hasVariants: boolean; variants: import("@/lib/product-variant-sku").ProductVariantInput[] } | null =
     null
   if (isSkuVariantsSyncBody(body as Record<string, unknown>)) {
-    const variantPatch = parseProductVariantsFromBody(body as Record<string, unknown>)
+    const bodyRecord = body as Record<string, unknown>
+    const rawVariants = Array.isArray(bodyRecord.variants) ? bodyRecord.variants : []
+    const customErr = validateVariantsCustomData(customColumns, rawVariants)
+    if (customErr) {
+      return Response.json({ error: customErr }, { status: 400 })
+    }
+
+    const variantPatch = parseProductVariantsFromBody(bodyRecord)
     if ("error" in variantPatch) {
       return Response.json(
         { error: variantPatch.error, issues: variantPatch.issues },
         { status: 400 }
       )
     }
-    variantSync = variantPatch
+    variantSync = {
+      ...variantPatch,
+      variants: applyCustomColumnsToVariantRows(variantPatch.variants, customColumns, rawVariants),
+    }
   }
 
   const product = await prisma.$transaction(async (tx) => {
@@ -223,6 +245,10 @@ export async function POST(req: Request) {
         deliveryDays: meta.deliveryDays,
         freeShipping: meta.freeShipping,
         supplierTag: meta.supplierTag,
+        customColumns:
+          customColumns.length > 0
+            ? (customColumns as unknown as Prisma.InputJsonValue)
+            : Prisma.DbNull,
       },
     })
 

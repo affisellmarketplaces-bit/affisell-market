@@ -7,6 +7,10 @@ import {
   buildMarketplaceScopedProductWhere,
   parseMarketplaceAttributeFilters,
 } from "@/lib/marketplace-attribute-filters"
+import {
+  parseProductCustomColumnFilters,
+  productCustomColumnFilterClauses,
+} from "@/lib/product-custom-column-filters"
 import { prisma } from "@/lib/prisma"
 import { publicStoreLabelFromAffiliateRow } from "@/lib/public-seller-display"
 
@@ -71,12 +75,16 @@ export async function buildMarketplaceAffiliateWhereFromUrl(
   const q = (searchParams.get("q") ?? "").trim()
 
   const attributeFilters = parseMarketplaceAttributeFilters(searchParams)
+  const customColumnFilters = parseProductCustomColumnFilters(searchParams)
   const productWhere = await buildMarketplaceScopedProductWhere(scopeRootId, attributeFilters)
+  const ccClauses = productCustomColumnFilterClauses(customColumnFilters)
+  const productWhereWithCustom: Prisma.ProductWhereInput =
+    ccClauses.length > 0 ? { AND: [productWhere, ...ccClauses] } : productWhere
 
   const andParts: Prisma.AffiliateProductWhereInput[] = [
     affiliateRoleMarketplaceWhere,
     { isListed: true },
-    { product: productWhere },
+    { product: productWhereWithCustom },
   ]
 
   if (q) {

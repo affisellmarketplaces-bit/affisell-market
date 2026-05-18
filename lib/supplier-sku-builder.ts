@@ -1,6 +1,8 @@
 import { newVariantRowId, type ProductVariantLine } from "@/lib/product-variants"
 import { buildVariantOptionLabel } from "@/lib/marketplace-purchase-quantity"
+import { isCustomValueEmpty, labelToCustomColumnKey } from "@/lib/product-custom-columns"
 import type { ProductVariantInput } from "@/lib/product-variant-sku"
+import type { CustomColumnUi, VariantCustomData } from "@/types/product"
 
 /** SKU matrix color (DB) — lettres accentuées, chiffres, espaces, - / & ' */
 export const VARIANT_COLOR_REGEX = /^[\p{L}\p{N}\s\-/&'.]+$/u
@@ -56,13 +58,8 @@ export function buildSkuCombinations(colors: string[], sizes: string[]): SkuComb
   return out
 }
 
-export type SkuCustomColumnDef = {
-  id: string
-  /** Clé technique (ex. unit) */
-  key: string
-  /** Libellé colonne (ex. Unité de mesure) */
-  label: string
-}
+/** @deprecated alias — use `CustomColumnUi` */
+export type SkuCustomColumnDef = CustomColumnUi
 
 export type SkuFastColorRow = {
   id: string
@@ -83,7 +80,9 @@ export type SupplierSkuTableRow = {
   commissionRate: number
   /** Photo pastille PDP pour cette couleur */
   colorImage?: string
-  /** Champs personnalisés (unité, volume, …) */
+  /** Champs personnalisés typés (DB `ProductVariant.customData`) */
+  customData?: VariantCustomData
+  /** @deprecated miroir listingVariants — préférer `customData` */
   customFields?: Record<string, string>
   weightGrams?: number | null
   processingDays?: number | null
@@ -151,14 +150,17 @@ function normalizeCustomFields(
 }
 
 export function slugCustomColumnKey(label: string): string {
-  return label
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "")
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "")
-    .slice(0, 32) || "field"
+  return labelToCustomColumnKey(label)
+}
+
+export function rowCustomData(row: SupplierSkuTableRow): VariantCustomData {
+  const out: VariantCustomData = { ...(row.customData ?? {}) }
+  if (row.customFields) {
+    for (const [k, v] of Object.entries(row.customFields)) {
+      if (out[k] === undefined && typeof v === "string" && v.trim()) out[k] = v.trim()
+    }
+  }
+  return out
 }
 
 export function applyColorImageToRows(
@@ -252,6 +254,9 @@ export function generateSkuTableRowsFromSetup(params: {
     commissionRate: params.defaults.commissionRate,
     colorImage: imageByColor.get(c.color.toLowerCase()) || undefined,
     customFields: { ...customFields },
+    customData: Object.fromEntries(
+      Object.entries(customFields).filter(([, v]) => v.length > 0)
+    ),
     weightGrams: params.defaults.weightGrams ?? null,
     processingDays: params.defaults.processingDays ?? 2,
     ean: params.defaults.ean?.trim() || null,
@@ -265,13 +270,19 @@ export function ensureRowCustomFields(
   rows: SupplierSkuTableRow[],
   columnKeys: string[]
 ): SupplierSkuTableRow[] {
-  return rows.map((r) => ({
-    ...r,
-    customFields: normalizeCustomFields(
-      { ...r.customFields },
+  return rows.map((r) => {
+    const data = rowCustomData(r)
+    for (const key of columnKeys) {
+      if (!(key in data)) data[key] = ""
+    }
+    const customFields = normalizeCustomFields(
+      Object.fromEntries(
+        Object.entries(data).map(([k, v]) => [k, typeof v === "string" ? v : String(v)])
+      ),
       columnKeys
-    ),
-  }))
+    )
+    return { ...r, customData: data, customFields }
+  })
 }
 
 export type VariantRowValidationIssue = {
@@ -292,7 +303,8 @@ export function variantColorSizeKey(color: string, size: string | null | undefin
 }
 
 export function validateSupplierSkuTableRows(
-  rows: SupplierSkuTableRow[]
+  rows: SupplierSkuTableRow[],
+  customColumns: SkuCustomColumnDef[] = []
 ): VariantRowValidationIssue[] {
   const issues: VariantRowValidationIssue[] = []
   const seenKeys = new Map<string, number>()
@@ -390,6 +402,18 @@ export function validateSupplierSkuTableRows(
         seenKeys.set(key, index)
       }
     }
+
+    const data = rowCustomData(row)
+    for (const col of customColumns) {
+      if (!col.required) continue
+      if (isCustomValueEmpty(col.type, data[col.key])) {
+        issues.push({
+          index,
+          field: col.key,
+          message: `${col.label} requis`,
+        })
+      }
+    }
   })
 
   return issues
@@ -416,7 +440,10 @@ export function skuTableRowsToProductVariantLines(
       line.compareAtCents = Math.round(r.compareAtEur * 100)
     }
     const logistics = logisticsAttrsFromRow(r)
-    const attrs = { ...r.customFields, ...logistics }
+    const customStrings = Object.fromEntries(
+      Object.entries(rowCustomData(r)).map(([k, v]) => [k, String(v)])
+    )
+    const attrs = { ...customStrings, ...logistics }
     if (Object.keys(attrs).length > 0) line.attrs = attrs
     return line
   })
@@ -441,6 +468,21 @@ export function productVariantLinesToSkuTableRows(
       stock: r.stock,
       commissionRate: r.commission || defaultCommission,
       colorImage: r.image?.trim() || undefined,
+      customData: r.attrs
+        ? Object.fromEntries(
+            Object.entries(r.attrs).filter(
+              ([k]) =>
+                ![
+                  "weightGrams",
+                  "processingDays",
+                  "ean",
+                  "originCountry",
+                  "warehouseCode",
+                  "videoUrl",
+                ].includes(k)
+            )
+          )
+        : {},
       customFields: r.attrs ? { ...r.attrs } : {},
       weightGrams: fromAttrs.weightGrams ?? null,
       processingDays: fromAttrs.processingDays ?? 2,
@@ -491,6 +533,10 @@ export function apiRowsFromSkuTable(
       originCountry: r.originCountry?.trim() || null,
       warehouseCode: r.warehouseCode?.trim() || null,
       videoUrl: r.videoUrl?.trim() || null,
+      customData: (() => {
+        const d = rowCustomData(r)
+        return Object.keys(d).length > 0 ? d : undefined
+      })(),
     }
     })
 }
@@ -514,8 +560,10 @@ export function skuTableRowFromApiVariant(row: {
   originCountry?: string | null
   warehouseCode?: string | null
   videoUrl?: string | null
+  customData?: VariantCustomData | null
 }): SupplierSkuTableRow {
   const supplier = Number(row.supplierPrice) || Number(row.publicPrice) || 0
+  const customData = row.customData && Object.keys(row.customData).length > 0 ? { ...row.customData } : undefined
   return {
     id: row.id,
     color: row.color?.trim() ?? "",
@@ -525,7 +573,10 @@ export function skuTableRowFromApiVariant(row: {
     stock: Math.max(0, Math.round(row.stock) || 0),
     commissionRate: Math.min(100, Math.max(0, Math.round(row.commissionRate ?? 10))),
     compareAtEur: null,
-    customFields: {},
+    customData,
+    customFields: customData
+      ? Object.fromEntries(Object.entries(customData).map(([k, v]) => [k, String(v)]))
+      : {},
     weightGrams: row.weightGrams ?? null,
     processingDays: row.processingDays ?? 2,
     ean: row.ean?.trim() || null,

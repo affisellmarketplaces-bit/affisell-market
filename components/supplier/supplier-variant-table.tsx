@@ -3,6 +3,11 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import { Plus, Trash2, X } from "lucide-react"
 
+import {
+  isCustomCellInvalid,
+  SupplierCustomColumnCell,
+} from "@/components/supplier/supplier-custom-column-cell"
+import { SupplierCustomColumnModal } from "@/components/supplier/supplier-custom-column-modal"
 import { SupplierSkuAffiliateMarginCell } from "@/components/supplier/supplier-sku-affiliate-margin-cell"
 import { SupplierSkuColumnToggles } from "@/components/supplier/supplier-sku-column-toggles"
 import { SupplierSkuFastPanel } from "@/components/supplier/supplier-sku-fast-panel"
@@ -10,15 +15,19 @@ import { SupplierSimpleColorImageField } from "@/components/supplier/supplier-si
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { formatStoreCurrency } from "@/lib/market-config"
+import { newVariantRowId } from "@/lib/product-variants"
+import { downloadSupplierSkuCsv } from "@/lib/supplier-sku-csv-export"
 import {
   applyColorImageToRows,
   ensureRowCustomFields,
   firstRowIndexForColor,
+  rowCustomData,
   type SkuCustomColumnDef,
   validateSupplierSkuTableRows,
   type SupplierSkuTableRow,
   type VariantRowValidationIssue,
 } from "@/lib/supplier-sku-builder"
+import type { CustomColumn, VariantCustomData } from "@/types/product"
 import { isSkuColumnVisible, type SkuOptionalColumnKey } from "@/lib/supplier-sku-columns"
 import { cn } from "@/lib/utils"
 
@@ -94,7 +103,9 @@ export function SupplierVariantTable({
   tableId = "supplier-sku-table",
 }: Props) {
   const [mode, setMode] = useState<"fast" | "table">(rows.length === 0 ? "fast" : "table")
+  const [customColumnModalOpen, setCustomColumnModalOpen] = useState(false)
   const costTipId = useId()
+  const MAX_CUSTOM_COLUMNS = 10
 
   const baseSupplier = basePriceEur > 0 ? basePriceEur : 10
   const showPhotoCol = isSkuColumnVisible(hiddenColumns, "photo")
@@ -137,9 +148,11 @@ export function SupplierVariantTable({
       if (col) {
         onChange(
           rowsWithFields.map((r) => {
+            const data = { ...rowCustomData(r) }
+            delete data[col.key]
             const cf = { ...(r.customFields ?? {}) }
             delete cf[col.key]
-            return { ...r, customFields: cf }
+            return { ...r, customData: data, customFields: cf }
           })
         )
       }
@@ -161,8 +174,19 @@ export function SupplierVariantTable({
   }, [columnKeys.join("\0")])
 
   const validationIssues = useMemo(
-    () => validateSupplierSkuTableRows(rowsWithFields),
-    [rowsWithFields]
+    () => validateSupplierSkuTableRows(rowsWithFields, customColumns),
+    [rowsWithFields, customColumns]
+  )
+
+  const addCustomColumn = useCallback(
+    (col: CustomColumn) => {
+      if (customColumns.length >= MAX_CUSTOM_COLUMNS) return
+      onCustomColumnsChange([
+        ...customColumns,
+        { ...col, id: newVariantRowId() },
+      ])
+    },
+    [customColumns, onCustomColumnsChange]
   )
 
   useEffect(() => {
@@ -202,15 +226,21 @@ export function SupplierVariantTable({
     [rowsWithFields, onChange]
   )
 
-  const updateCustomField = useCallback(
-    (index: number, key: string, value: string) => {
+  const updateCustomData = useCallback(
+    (index: number, key: string, value: string | number | boolean | undefined) => {
       onChange(
         rowsWithFields.map((r, i) => {
           if (i !== index) return r
-          return {
-            ...r,
-            customFields: { ...r.customFields, [key]: value },
+          const data: VariantCustomData = { ...rowCustomData(r) }
+          if (value === undefined || (value === "" && typeof value !== "boolean")) {
+            delete data[key]
+          } else {
+            data[key] = value as string | number | boolean
           }
+          const customFields = { ...(r.customFields ?? {}) }
+          if (value === undefined || value === "") delete customFields[key]
+          else customFields[key] = String(value)
+          return { ...r, customData: data, customFields }
         })
       )
     },
@@ -356,6 +386,9 @@ export function SupplierVariantTable({
           customColumns={customColumns}
           onCustomColumnsChange={onCustomColumnsChange}
           onRemoveCustomColumn={removeCustomColumn}
+          onOpenCustomColumnModal={() => setCustomColumnModalOpen(true)}
+          customColumnCount={customColumns.length}
+          maxCustomColumns={MAX_CUSTOM_COLUMNS}
           hiddenColumns={hiddenColumns}
           onHiddenColumnsChange={onHiddenColumnsChange}
           catalogOriginCountry={rowLogisticsDefaults.originCountry}
@@ -368,13 +401,41 @@ export function SupplierVariantTable({
 
       {mode === "table" || rowsWithFields.length > 0 ? (
         <>
-          <SupplierSkuColumnToggles
-            variant="toolbar"
-            hiddenColumns={hiddenColumns}
-            onHiddenColumnsChange={onHiddenColumnsChange}
-            disabled={disabled}
-            className="rounded-xl border border-zinc-200/90 bg-zinc-50/80 p-3 dark:border-zinc-700 dark:bg-zinc-900/40"
-          />
+          <div className="space-y-2 rounded-xl border border-zinc-200/90 bg-zinc-50/80 p-3 dark:border-zinc-700 dark:bg-zinc-900/40">
+            <SupplierSkuColumnToggles
+              variant="toolbar"
+              hiddenColumns={hiddenColumns}
+              onHiddenColumnsChange={onHiddenColumnsChange}
+              disabled={disabled}
+            />
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={disabled || customColumns.length >= MAX_CUSTOM_COLUMNS}
+                onClick={() => setCustomColumnModalOpen(true)}
+              >
+                <Plus className="mr-1 h-4 w-4" aria-hidden />
+                Colonne personnalisée
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={disabled || rowsWithFields.length === 0}
+                onClick={() =>
+                  downloadSupplierSkuCsv(
+                    `sku-export-${Date.now()}.csv`,
+                    rowsWithFields,
+                    customColumns
+                  )
+                }
+              >
+                Exporter CSV
+              </Button>
+            </div>
+          </div>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
               {showPhotoCol ? "Photo partagée par couleur · " : ""}
@@ -723,16 +784,17 @@ export function SupplierVariantTable({
                           </td>
                         ) : null}
                         {customColumns.map((col) => (
-                          <td key={col.id} className="px-2 py-1.5">
-                            <Input
-                              className="h-9 min-w-[88px]"
-                              value={row.customFields?.[col.key] ?? ""}
-                              disabled={disabled}
-                              onChange={(e) => updateCustomField(index, col.key, e.target.value)}
-                              placeholder="—"
-                              maxLength={120}
-                            />
-                          </td>
+                          <SupplierCustomColumnCell
+                            key={col.id}
+                            column={col}
+                            value={rowCustomData(row)[col.key]}
+                            disabled={disabled}
+                            invalid={
+                              isCustomCellInvalid(col, rowCustomData(row)[col.key]) ||
+                              issueByIndex.get(index)?.has(col.key)
+                            }
+                            onChange={(v) => updateCustomData(index, col.key, v)}
+                          />
                         ))}
                         <td className="px-1 py-1.5">
                           <Button
@@ -756,6 +818,14 @@ export function SupplierVariantTable({
           </div>
         </>
       ) : null}
+
+      <SupplierCustomColumnModal
+        open={customColumnModalOpen}
+        onOpenChange={setCustomColumnModalOpen}
+        existingKeys={customColumns.map((c) => c.key)}
+        maxColumns={MAX_CUSTOM_COLUMNS}
+        onSave={addCustomColumn}
+      />
     </div>
   )
 }

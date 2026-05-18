@@ -35,6 +35,9 @@ type Props = {
   customColumns: SkuCustomColumnDef[]
   onCustomColumnsChange: (cols: SkuCustomColumnDef[]) => void
   onRemoveCustomColumn: (id: string) => void
+  onOpenCustomColumnModal?: () => void
+  customColumnCount?: number
+  maxCustomColumns?: number
   hiddenColumns: SkuOptionalColumnKey[]
   onHiddenColumnsChange: (hidden: SkuOptionalColumnKey[]) => void
   catalogOriginCountry?: string
@@ -56,6 +59,9 @@ export function SupplierSkuFastPanel({
   customColumns,
   onCustomColumnsChange,
   onRemoveCustomColumn,
+  onOpenCustomColumnModal,
+  customColumnCount = 0,
+  maxCustomColumns = 10,
   hiddenColumns,
   onHiddenColumnsChange,
   catalogOriginCountry = "CN",
@@ -109,7 +115,13 @@ export function SupplierSkuFastPanel({
     if (!label) return
     const key = slugCustomColumnKey(label)
     if (customColumns.some((c) => c.key === key)) return
-    const col: SkuCustomColumnDef = { id: newVariantRowId(), key, label }
+    const col: SkuCustomColumnDef = {
+      id: newVariantRowId(),
+      key,
+      label,
+      type: "text",
+      required: false,
+    }
     onCustomColumnsChange([...customColumns, col])
     setNewColumnLabel("")
   }, [customColumns, newColumnLabel, onCustomColumnsChange])
@@ -451,24 +463,39 @@ export function SupplierSkuFastPanel({
           tableau pour chaque SKU.
         </p>
         <div className="flex flex-wrap gap-2">
-          <Input
-            className="h-10 min-w-[12rem] flex-1"
-            disabled={disabled}
-            value={newColumnLabel}
-            onChange={(e) => setNewColumnLabel(e.target.value)}
-            placeholder="ex. Unité de mesure"
-            maxLength={48}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault()
-                addCustomColumn()
-              }
-            }}
-          />
-          <Button type="button" variant="outline" size="sm" disabled={disabled} onClick={addCustomColumn}>
-            <Plus className="mr-1 h-4 w-4" aria-hidden />
-            Colonne
-          </Button>
+          {onOpenCustomColumnModal ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={disabled || customColumnCount >= maxCustomColumns}
+              onClick={onOpenCustomColumnModal}
+            >
+              <Plus className="mr-1 h-4 w-4" aria-hidden />
+              Colonne personnalisée
+            </Button>
+          ) : (
+            <>
+              <Input
+                className="h-10 min-w-[12rem] flex-1"
+                disabled={disabled}
+                value={newColumnLabel}
+                onChange={(e) => setNewColumnLabel(e.target.value)}
+                placeholder="ex. Unité de mesure"
+                maxLength={48}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault()
+                    addCustomColumn()
+                  }
+                }}
+              />
+              <Button type="button" variant="outline" size="sm" disabled={disabled} onClick={addCustomColumn}>
+                <Plus className="mr-1 h-4 w-4" aria-hidden />
+                Colonne
+              </Button>
+            </>
+          )}
         </div>
         {customColumns.length > 0 ? (
           <div className="flex flex-wrap gap-2">

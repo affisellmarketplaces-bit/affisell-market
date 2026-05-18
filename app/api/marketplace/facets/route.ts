@@ -6,6 +6,10 @@ import {
   parseMarketplaceAttributeFilters,
   resolveFilterableCategoryAttributes,
 } from "@/lib/marketplace-attribute-filters"
+import {
+  loadProductCustomColumnFacets,
+  parseProductCustomColumnFilters,
+} from "@/lib/product-custom-column-filters"
 import { dbUnavailablePayload } from "@/lib/prisma-db-error"
 
 export const runtime = "nodejs"
@@ -26,9 +30,11 @@ export async function GET(request: NextRequest) {
     const defs = await resolveFilterableCategoryAttributes(scopeRootId.trim())
     const allowedKeys = new Set(defs.map((d) => d.key))
     const attributeFilters = parseMarketplaceAttributeFilters(sp, allowedKeys)
-    const facets = await loadMarketplaceFacets(scopeRootId.trim(), attributeFilters, defs)
+    const categoryFacets = await loadMarketplaceFacets(scopeRootId.trim(), attributeFilters, defs)
+    const ccFilters = parseProductCustomColumnFilters(sp)
+    const customFacets = await loadProductCustomColumnFacets(scopeRootId.trim(), ccFilters)
 
-    return NextResponse.json(facets)
+    return NextResponse.json([...categoryFacets, ...customFacets])
   } catch (e) {
     console.error("[api/marketplace/facets]", e)
     return NextResponse.json({ facets: [], ...dbUnavailablePayload(e) }, { status: 503 })

@@ -117,6 +117,11 @@ import {
 import { formatAffiliateCatalogPreviewLine } from "@/lib/supplier-sku-affiliate-earning"
 import { parseSkuHiddenColumns, type SkuOptionalColumnKey } from "@/lib/supplier-sku-columns"
 import {
+  legacySkuCustomColumnsToDefinitions,
+  mergeCustomColumnDefinitions,
+  parseCustomColumnsFromDb,
+} from "@/lib/product-custom-columns"
+import {
   validateSimpleColorName,
   validateSimpleColorRows,
   type SimpleColorValidationIssue,
@@ -779,10 +784,22 @@ export function SupplierAddProductForm({
           publicPrice: number
           stock: number
           commissionRate?: number
+          customData?: Record<string, string | number | boolean> | null
         }>
+        const dbCols = parseCustomColumnsFromDb(
+          (data as { customColumns?: unknown }).customColumns
+        )
+        const legacyCols = legacySkuCustomColumnsToDefinitions(
+          parsedListingVariants?.skuCustomColumns
+        )
         setVariantFormMode("advanced")
         setAdvancedSkuRows(apiRows.map(skuTableRowFromApiVariant))
-        setSkuCustomColumns([])
+        setSkuCustomColumns(
+          mergeCustomColumnDefinitions(dbCols, legacyCols).map((c) => ({
+            ...c,
+            id: newVariantRowId(),
+          }))
+        )
         setSkuHiddenColumns([])
         setVariantRows([])
         setVariantSizesText("")
@@ -800,11 +817,9 @@ export function SupplierAddProductForm({
         )
         setVariantRows(parsedListingVariants.variantRows)
         setSkuCustomColumns(
-          (parsedListingVariants.skuCustomColumns ?? []).map((c) => ({
-            id: newVariantRowId(),
-            key: c.key,
-            label: c.label,
-          }))
+          legacySkuCustomColumnsToDefinitions(parsedListingVariants.skuCustomColumns).map(
+            (c) => ({ ...c, id: newVariantRowId() })
+          )
         )
         setSkuHiddenColumns(parseSkuHiddenColumns(parsedListingVariants.skuHiddenColumns))
         setVariantSizesText(
@@ -1050,6 +1065,17 @@ export function SupplierAddProductForm({
           : variantFormMode !== "none"
             ? { hasVariants: false }
             : {}),
+        ...(skuCustomColumns.length > 0
+          ? {
+              customColumns: skuCustomColumns.map((c) => ({
+                key: c.key,
+                label: c.label,
+                type: c.type,
+                required: c.required,
+                ...(c.options?.length ? { options: c.options } : {}),
+              })),
+            }
+          : {}),
         colorImages: colorImagesPayload,
       }
     },

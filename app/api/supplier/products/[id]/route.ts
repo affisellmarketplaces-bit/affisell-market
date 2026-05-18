@@ -21,11 +21,18 @@ import {
   parseListingKind,
 } from "@/lib/supplier-commission"
 import {
+  parseCustomColumnsFromBody,
+  parseCustomColumnsFromDb,
+  validateVariantsCustomData,
+} from "@/lib/product-custom-columns"
+import {
+  applyCustomColumnsToVariantRows,
   isSkuVariantsSyncBody,
   parseProductVariantsFromBody,
   serializeProductVariantRow,
   syncProductVariants,
 } from "@/lib/product-variant-sku"
+import type { CustomColumn } from "@/types/product"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -79,6 +86,7 @@ export async function GET(
     listingKind: parseListingKind(p.listingKind),
     hasVariants: p.hasVariants,
     listingVariants: p.variants,
+    customColumns: parseCustomColumnsFromDb(p.customColumns),
     variants,
   })
 }
@@ -229,6 +237,16 @@ export async function PUT(
         .filter((r) => r.key.length > 0 && r.value.length > 0)
     : []
 
+  let customColumnsUpdate: CustomColumn[] | undefined
+  if ("customColumns" in rawBody) {
+    const parsed = parseCustomColumnsFromBody(rawBody)
+    if (!Array.isArray(parsed)) {
+      return Response.json({ error: parsed.error }, { status: 400 })
+    }
+    customColumnsUpdate = parsed
+  }
+
+  const rawSkuVariants = Array.isArray(rawBody.variants) ? rawBody.variants : []
   const variantPatch = isSkuVariantsSyncBody(rawBody)
     ? parseProductVariantsFromBody({
         hasVariants: rawBody.hasVariants,
@@ -241,6 +259,30 @@ export async function PUT(
       { error: variantPatch.error, issues: variantPatch.issues },
       { status: 400 }
     )
+  }
+
+  if (variantPatch && !("error" in variantPatch)) {
+    const cols =
+      customColumnsUpdate ??
+      parseCustomColumnsFromDb(
+        (
+          await prisma.product.findUnique({
+            where: { id },
+            select: { customColumns: true },
+          })
+        )?.customColumns
+      )
+    const customErr = validateVariantsCustomData(cols, rawSkuVariants)
+    if (customErr) {
+      return Response.json({ error: customErr }, { status: 400 })
+    }
+    if (cols.length > 0) {
+      variantPatch.variants = applyCustomColumnsToVariantRows(
+        variantPatch.variants,
+        cols,
+        rawSkuVariants
+      )
+    }
   }
 
   const updated = await prisma.$transaction(async (tx) => {
@@ -301,6 +343,14 @@ export async function PUT(
         deliveryDays: meta.deliveryDays,
         freeShipping: meta.freeShipping,
         supplierTag: meta.supplierTag,
+        ...("customColumns" in rawBody
+          ? {
+              customColumns:
+                customColumnsUpdate && customColumnsUpdate.length > 0
+                  ? (customColumnsUpdate as unknown as Prisma.InputJsonValue)
+                  : Prisma.DbNull,
+            }
+          : {}),
         ...(existingRow.isDraft && !publish ? { active: false, isDraft: true } : {}),
         ...(existingRow.isDraft && publish ? { active: true, isDraft: false } : {}),
       },

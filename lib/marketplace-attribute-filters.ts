@@ -15,6 +15,9 @@ export const MARKETPLACE_QUERY_RESERVED = new Set([
   "freeShipping",
 ])
 
+/** Reserved prefix for product SKU custom column filters (`cc_matiere=…`) */
+export const MARKETPLACE_CUSTOM_COLUMN_PREFIX = "cc_"
+
 export type MarketplaceFacetValue = { value: string; count: number }
 export type MarketplaceFacet = { key: string; label: string; values: MarketplaceFacetValue[] }
 
@@ -80,6 +83,7 @@ export function parseMarketplaceAttributeFilters(
   const out: Record<string, string> = {}
   for (const [key, raw] of searchParams.entries()) {
     if (MARKETPLACE_QUERY_RESERVED.has(key)) continue
+    if (key.startsWith(MARKETPLACE_CUSTOM_COLUMN_PREFIX)) continue
     const value = raw.trim()
     if (!value) continue
     if (allowedKeys && !allowedKeys.has(key)) continue

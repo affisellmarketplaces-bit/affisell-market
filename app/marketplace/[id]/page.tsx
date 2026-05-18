@@ -12,6 +12,10 @@ import { mergeColorImagesForProduct, parseProductColorImagesFromDb } from "@/lib
 import { prisma } from "@/lib/prisma"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { publicPartnerSellerLabel } from "@/lib/public-seller-display"
+import {
+  buildCustomColumnProductSpecs,
+  parseCustomColumnsFromDb,
+} from "@/lib/product-custom-columns"
 import { resolveMarketplaceOptionNames, variantsFromDb } from "@/lib/product-variants"
 
 import { MarketplaceListingDetail } from "./marketplace-listing-detail"
@@ -31,6 +35,7 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
       product: {
         include: {
           attributes: { orderBy: { label: "asc" } },
+          productVariants: { select: { customData: true } },
         },
       },
       affiliate: { include: { store: true } },
@@ -221,9 +226,17 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
           .filter(Boolean)
       : []
 
-  const productSpecs = [...(listing.product.attributes ?? [])]
-    .map((row) => ({ label: String(row.label || row.key || "").trim(), value: row.value.trim() }))
-    .filter((row) => row.label.length > 0 && row.value.length > 0)
+  const customCols = parseCustomColumnsFromDb(listing.product.customColumns)
+  const customSpecs = buildCustomColumnProductSpecs(
+    customCols,
+    listing.product.productVariants ?? []
+  )
+  const productSpecs = [
+    ...customSpecs,
+    ...(listing.product.attributes ?? [])
+      .map((row) => ({ label: String(row.label || row.key || "").trim(), value: row.value.trim() }))
+      .filter((row) => row.label.length > 0 && row.value.length > 0),
+  ]
 
   let viewsLast24h = 0
   try {

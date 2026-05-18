@@ -36,6 +36,51 @@ test.describe("supplier SKU variants API", () => {
     }
   })
 
+  test("rejects missing required custom column on variant row", async ({ request }) => {
+    const res = await request.post("/api/supplier/products", {
+      data: {
+        name: "Luminaire test",
+        price: 49.9,
+        stock: 0,
+        saveAsDraft: true,
+        hasVariants: true,
+        customColumns: [
+          {
+            key: "indice_ip",
+            label: "Indice IP",
+            type: "select",
+            required: true,
+            options: ["IP44", "IP67"],
+          },
+        ],
+        variants: [
+          {
+            color: "Noir",
+            size: "S",
+            sku: "LUM-NOI-S",
+            supplierPrice: 20,
+            stock: 5,
+            customData: { indice_ip: "IP44" },
+          },
+          {
+            color: "Rouge",
+            size: "M",
+            sku: "LUM-ROU-M",
+            supplierPrice: 20,
+            stock: 5,
+            customData: {},
+          },
+        ],
+      },
+    })
+
+    expect([400, 401, 403]).toContain(res.status())
+    if (res.status() === 400) {
+      const body = (await res.json()) as { error?: string }
+      expect(body.error ?? "").toMatch(/Indice IP requis|Ligne 2/)
+    }
+  })
+
   test("accepts Bonnet 4-SKU matrix when supplier is authenticated", async ({ request }) => {
     test.skip(!process.env.PLAYWRIGHT_SUPPLIER_COOKIE, "Set PLAYWRIGHT_SUPPLIER_COOKIE for authenticated E2E")
 
