@@ -3,6 +3,7 @@ import * as cheerio from "cheerio"
 
 import { auth } from "@/auth"
 import { groqChatText } from "@/lib/ai/groq-client"
+import { mirrorImportedVideosToR2 } from "@/lib/import-video-r2"
 import { prisma } from "@/lib/prisma"
 
 type ReviewSentiment = "positive" | "neutral" | "negative"
@@ -309,6 +310,10 @@ export async function POST(req: NextRequest) {
     if (body.options?.aiRewrite && process.env.GROQ_API_KEY?.trim()) {
       product.description = await rewriteWithAI(product.description)
       product.ai_description = product.description
+    }
+
+    if (product.videos.length > 0) {
+      product.videos = await mirrorImportedVideosToR2(product.videos, 2)
     }
 
     return NextResponse.json({
