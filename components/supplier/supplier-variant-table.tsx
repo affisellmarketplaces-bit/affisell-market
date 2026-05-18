@@ -82,6 +82,8 @@ export function SupplierVariantTable({
   const baseSupplier = basePriceEur > 0 ? basePriceEur : 10
   const showPhotoCol = isSkuColumnVisible(hiddenColumns, "photo")
   const showSizeCol = isSkuColumnVisible(hiddenColumns, "size")
+  const showSupplierPriceCol = isSkuColumnVisible(hiddenColumns, "supplierPrice")
+  const showSkuCol = isSkuColumnVisible(hiddenColumns, "sku")
   const showCompareAtCol = isSkuColumnVisible(hiddenColumns, "compareAt")
   const showStockCol = isSkuColumnVisible(hiddenColumns, "stock")
   const showCommissionCol = isSkuColumnVisible(hiddenColumns, "commission")
@@ -246,9 +248,11 @@ export function SupplierVariantTable({
       : ""
 
   const colSpan =
-    4 +
+    2 +
     (showPhotoCol ? 1 : 0) +
     (showSizeCol ? 1 : 0) +
+    (showSkuCol ? 1 : 0) +
+    (showSupplierPriceCol ? 1 : 0) +
     (showCompareAtCol ? 1 : 0) +
     (showStockCol ? 1 : 0) +
     (showCommissionCol ? 1 : 0) +
@@ -329,6 +333,17 @@ export function SupplierVariantTable({
               Prix vide = {formatStoreCurrency(baseSupplier)} (catalogue affiliés)
             </p>
             <div className="flex flex-wrap gap-2">
+              {showSupplierPriceCol ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={disabled || rowsWithFields.length === 0 || baseSupplier <= 0}
+                  onClick={applySupplierPriceToAll}
+                >
+                  Votre prix à tous
+                </Button>
+              ) : null}
               {showCompareAtCol && catalogCompareAtEur != null && catalogCompareAtEur > 0 ? (
                 <Button
                   type="button"
@@ -340,15 +355,6 @@ export function SupplierVariantTable({
                   Prix barré catalogue à tous
                 </Button>
               ) : null}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={disabled || rowsWithFields.length === 0 || baseSupplier <= 0}
-                onClick={applySupplierPriceToAll}
-              >
-                Votre prix à tous
-              </Button>
               <Button type="button" variant="outline" size="sm" disabled={disabled} onClick={addRow}>
                 <Plus className="mr-1 h-4 w-4" aria-hidden />
                 Ligne
@@ -363,24 +369,26 @@ export function SupplierVariantTable({
                   {showPhotoCol ? <th className="w-[140px] px-2 py-2.5">Photo</th> : null}
                   <th className="px-3 py-2.5">Couleur</th>
                   {showSizeCol ? <th className="px-3 py-2.5">Taille</th> : null}
-                  <th className="px-3 py-2.5">SKU</th>
-                  <th className="px-3 py-2.5">
-                    <span className="inline-flex items-center gap-1">
-                      Votre prix
-                      <button
-                        type="button"
-                        className="font-normal normal-case text-violet-600 underline decoration-dotted dark:text-violet-400"
-                        aria-describedby={costTipId}
-                        title="Prix catalogue visible par les affiliés"
-                      >
-                        ?
-                      </button>
-                    </span>
-                    <span id={costTipId} className="sr-only">
-                      Les affiliés fixent le prix de vente client ; vous définissez votre prix et la
-                      commission offerte.
-                    </span>
-                  </th>
+                  {showSkuCol ? <th className="px-3 py-2.5">SKU</th> : null}
+                  {showSupplierPriceCol ? (
+                    <th className="px-3 py-2.5">
+                      <span className="inline-flex items-center gap-1">
+                        Votre prix
+                        <button
+                          type="button"
+                          className="font-normal normal-case text-violet-600 underline decoration-dotted dark:text-violet-400"
+                          aria-describedby={costTipId}
+                          title="Prix catalogue visible par les affiliés"
+                        >
+                          ?
+                        </button>
+                      </span>
+                      <span id={costTipId} className="sr-only">
+                        Les affiliés fixent le prix de vente client ; vous définissez votre prix et la
+                        commission offerte.
+                      </span>
+                    </th>
+                  ) : null}
                   {showCompareAtCol ? <th className="px-3 py-2.5">Barré</th> : null}
                   {showStockCol ? <th className="px-3 py-2.5">Stock</th> : null}
                   {showCommissionCol ? <th className="px-3 py-2.5">Comm.%</th> : null}
@@ -462,30 +470,37 @@ export function SupplierVariantTable({
                             />
                           </td>
                         ) : null}
-                        <td className="px-2 py-1.5">
-                          <Input
-                            className={cn("h-9 min-w-[96px] font-mono text-xs", rowErrorClass(index, "sku"))}
-                            value={row.sku ?? ""}
-                            disabled={disabled}
-                            onChange={(e) => updateRow(index, { sku: e.target.value || null })}
-                            maxLength={64}
-                          />
-                        </td>
-                        <td className="px-2 py-1.5">
-                          <Input
-                            type="number"
-                            min={0.01}
-                            step={0.01}
-                            className={cn("h-9 w-24", rowErrorClass(index, "supplierPrice"))}
-                            value={row.supplierPrice > 0 ? row.supplierPrice : ""}
-                            disabled={disabled}
-                            onChange={(e) =>
-                              updateRow(index, {
-                                supplierPrice: Number(e.target.value) || 0,
-                              })
-                            }
-                          />
-                        </td>
+                        {showSkuCol ? (
+                          <td className="px-2 py-1.5">
+                            <Input
+                              className={cn(
+                                "h-9 min-w-[96px] font-mono text-xs",
+                                rowErrorClass(index, "sku")
+                              )}
+                              value={row.sku ?? ""}
+                              disabled={disabled}
+                              onChange={(e) => updateRow(index, { sku: e.target.value || null })}
+                              maxLength={64}
+                            />
+                          </td>
+                        ) : null}
+                        {showSupplierPriceCol ? (
+                          <td className="px-2 py-1.5">
+                            <Input
+                              type="number"
+                              min={0.01}
+                              step={0.01}
+                              className={cn("h-9 w-24", rowErrorClass(index, "supplierPrice"))}
+                              value={row.supplierPrice > 0 ? row.supplierPrice : ""}
+                              disabled={disabled}
+                              onChange={(e) =>
+                                updateRow(index, {
+                                  supplierPrice: Number(e.target.value) || 0,
+                                })
+                              }
+                            />
+                          </td>
+                        ) : null}
                         {showCompareAtCol ? (
                           <td className="px-2 py-1.5">
                             <Input

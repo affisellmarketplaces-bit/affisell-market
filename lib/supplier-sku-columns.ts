@@ -2,6 +2,8 @@
 export const SKU_OPTIONAL_COLUMN_KEYS = [
   "photo",
   "size",
+  "supplierPrice",
+  "sku",
   "compareAt",
   "stock",
   "commission",
@@ -14,6 +16,8 @@ const KEY_SET = new Set<string>(SKU_OPTIONAL_COLUMN_KEYS)
 export const SKU_OPTIONAL_COLUMN_LABELS: Record<SkuOptionalColumnKey, string> = {
   photo: "Photo couleur",
   size: "Taille",
+  supplierPrice: "Votre prix",
+  sku: "SKU",
   compareAt: "Prix barré",
   stock: "Stock",
   commission: "Commission %",

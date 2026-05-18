@@ -60,6 +60,8 @@ export function SupplierSkuFastPanel({
 }: Props) {
   const showPhoto = isSkuColumnVisible(hiddenColumns, "photo")
   const showSize = isSkuColumnVisible(hiddenColumns, "size")
+  const showSupplierPrice = isSkuColumnVisible(hiddenColumns, "supplierPrice")
+  const showSku = isSkuColumnVisible(hiddenColumns, "sku")
   const showCompareAt = isSkuColumnVisible(hiddenColumns, "compareAt")
   const showStock = isSkuColumnVisible(hiddenColumns, "stock")
   const showCommission = isSkuColumnVisible(hiddenColumns, "commission")
@@ -256,20 +258,22 @@ export function SupplierSkuFastPanel({
           3 · Valeurs par défaut (toutes les lignes)
         </h3>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <div>
-            <Label className="text-xs">Votre prix EUR (catalogue affiliés)</Label>
-            <Input
-              type="number"
-              min={0.01}
-              step={0.01}
-              className="mt-1 h-10"
-              disabled={disabled}
-              value={defaults.supplierPrice > 0 ? defaults.supplierPrice : ""}
-              onChange={(e) =>
-                setDefault({ supplierPrice: Number(e.target.value) || 0 })
-              }
-            />
-          </div>
+          {showSupplierPrice ? (
+            <div>
+              <Label className="text-xs">Votre prix EUR (catalogue affiliés)</Label>
+              <Input
+                type="number"
+                min={0.01}
+                step={0.01}
+                className="mt-1 h-10"
+                disabled={disabled}
+                value={defaults.supplierPrice > 0 ? defaults.supplierPrice : ""}
+                onChange={(e) =>
+                  setDefault({ supplierPrice: Number(e.target.value) || 0 })
+                }
+              />
+            </div>
+          ) : null}
           {showCompareAt ? (
           <div>
             <Label className="text-xs">Prix barré EUR (opt.)</Label>

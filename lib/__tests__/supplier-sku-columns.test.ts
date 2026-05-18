@@ -8,7 +8,11 @@ import {
 
 describe("supplier-sku-columns", () => {
   it("parses hidden column keys", () => {
-    expect(parseSkuHiddenColumns(["photo", "size", "invalid"])).toEqual(["photo", "size"])
+    expect(parseSkuHiddenColumns(["photo", "supplierPrice", "sku", "invalid"])).toEqual([
+      "photo",
+      "supplierPrice",
+      "sku",
+    ])
   })
 
   it("toggles visibility", () => {
