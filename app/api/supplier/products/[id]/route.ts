@@ -21,6 +21,7 @@ import {
   parseListingKind,
 } from "@/lib/supplier-commission"
 import {
+  isSkuVariantsSyncBody,
   parseProductVariantsFromBody,
   serializeProductVariantRow,
   syncProductVariants,
@@ -74,6 +75,8 @@ export async function GET(
     freeShippingThreshold: p.freeShippingThreshold != null ? Number(p.freeShippingThreshold) : null,
     shippingCost: Number(p.shippingCost),
     listingKind: parseListingKind(p.listingKind),
+    hasVariants: p.hasVariants,
+    listingVariants: p.variants,
     variants,
   })
 }
@@ -224,13 +227,12 @@ export async function PUT(
         .filter((r) => r.key.length > 0 && r.value.length > 0)
     : []
 
-  const variantPatch =
-    "hasVariants" in rawBody || "variants" in rawBody
-      ? parseProductVariantsFromBody({
-          hasVariants: rawBody.hasVariants,
-          variants: rawBody.variants,
-        })
-      : null
+  const variantPatch = isSkuVariantsSyncBody(rawBody)
+    ? parseProductVariantsFromBody({
+        hasVariants: rawBody.hasVariants,
+        variants: rawBody.variants,
+      })
+    : null
 
   if (variantPatch && "error" in variantPatch) {
     return Response.json(
@@ -267,7 +269,10 @@ export async function PUT(
         ...("categories" in rawBody ? { categories: attr.categories } : {}),
         ...("colors" in rawBody ? { colors: attr.colors } : {}),
         ...("tags" in rawBody ? { tags: attr.tags } : {}),
-        ...("variants" in rawBody
+        ...("listingVariants" in rawBody ||
+        (typeof rawBody.variants === "object" &&
+          rawBody.variants !== null &&
+          !Array.isArray(rawBody.variants))
           ? {
               variants:
                 attr.variants === null

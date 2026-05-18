@@ -22,7 +22,17 @@ type ProductPricingPayload = {
 }
 
 function toEditable(rows: ProductVariantApiRow[]): EditableVariantRow[] {
-  return rows.map((r) => ({ ...r }))
+  return rows.map((r) => ({
+    id: r.id ?? `new-${crypto.randomUUID()}`,
+    color: r.color?.trim() ?? "",
+    size: r.size,
+    sku: r.sku,
+    supplierPrice: r.supplierPrice,
+    publicPrice: r.publicPrice,
+    stock: r.stock,
+    commissionRate: r.commissionRate ?? 10,
+    margin: r.margin,
+  }))
 }
 
 function toPayloadRows(rows: EditableVariantRow[]) {
@@ -34,6 +44,7 @@ function toPayloadRows(rows: EditableVariantRow[]) {
     supplierPrice: Number(r.supplierPrice),
     publicPrice: Number(r.publicPrice),
     stock: r.stock,
+    commissionRate: r.commissionRate,
   }))
 }
 
@@ -136,11 +147,12 @@ export function SupplierProductPricingPanel({ productId }: Props) {
                   {
                     id: `new-${crypto.randomUUID()}`,
                     sku: null,
-                    color: null,
+                    color: "",
                     size: null,
                     supplierPrice: Number(price) > 0 ? Number(price) * 0.6 : 10,
                     publicPrice: Number(price) || 0,
                     stock: Number(stock) || 0,
+                    commissionRate: Number(commissionRate) || 15,
                     margin: 0,
                   },
                 ])
@@ -154,7 +166,14 @@ export function SupplierProductPricingPanel({ productId }: Props) {
 
       {hasVariants ? (
         <div className="mt-6">
-          <SupplierVariantTable rows={variantRows} onChange={setVariantRows} disabled={saving} />
+          <SupplierVariantTable
+            rows={variantRows}
+            onChange={setVariantRows}
+            disabled={saving}
+            basePriceEur={Number(price) || 0}
+            defaultCommission={Math.round(Number(commissionRate) || 15)}
+            skuPrefix="PRD"
+          />
         </div>
       ) : (
         <div className="mt-6 grid gap-4 sm:grid-cols-2">

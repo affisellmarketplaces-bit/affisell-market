@@ -26,7 +26,11 @@ import {
   normalizeAffiliateCommissionRatePct,
   parseListingKind,
 } from "@/lib/supplier-commission"
-import { parseProductVariantsFromBody, syncProductVariants } from "@/lib/product-variant-sku"
+import {
+  isSkuVariantsSyncBody,
+  parseProductVariantsFromBody,
+  syncProductVariants,
+} from "@/lib/product-variant-sku"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -166,7 +170,7 @@ export async function POST(req: Request) {
 
   let variantSync: { hasVariants: boolean; variants: import("@/lib/product-variant-sku").ProductVariantInput[] } | null =
     null
-  if ("hasVariants" in (body as Record<string, unknown>)) {
+  if (isSkuVariantsSyncBody(body as Record<string, unknown>)) {
     const variantPatch = parseProductVariantsFromBody(body as Record<string, unknown>)
     if ("error" in variantPatch) {
       return Response.json(

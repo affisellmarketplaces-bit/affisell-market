@@ -1,5 +1,9 @@
 import type { SupplierVariantFormMode } from "@/lib/supplier-add-product-draft-cache"
 import type { ProductVariantLine } from "@/lib/product-variants"
+import {
+  validateSupplierSkuTableRows,
+  type SupplierSkuTableRow,
+} from "@/lib/supplier-sku-builder"
 
 export type PublishFieldKey =
   | "name"
@@ -47,6 +51,7 @@ export type CollectPublishContext = {
   commissionError: string | null
   variantFormMode: SupplierVariantFormMode
   variantRows: ProductVariantLine[]
+  advancedSkuRows?: SupplierSkuTableRow[]
   simpleColorRows: { name: string }[]
 }
 
@@ -74,14 +79,27 @@ export function collectClientPublishBlockers(ctx: CollectPublishContext): Publis
   if (ctx.commissionError) {
     out.push({ field: "commission", message: ctx.commissionError })
   }
-  if (ctx.variantFormMode === "advanced" && ctx.variantRows.length > 0) {
-    const named = ctx.variantRows.filter((r) => r.name.trim())
-    if (named.length === 0) {
+  if (ctx.variantFormMode === "advanced") {
+    const skuRows = ctx.advancedSkuRows ?? []
+    const filled = skuRows.filter((r) => r.color.trim())
+    if (filled.length === 0) {
       out.push({
         field: "variants",
         message:
-          "Ajoutez un libellé pour chaque ligne SKU, supprimez les lignes vides, ou repassez en « Produit simple » / « Couleurs & tailles ».",
+          "Ajoutez au moins une variante SKU (mode rapide ou ligne du tableau), ou repassez en produit simple.",
       })
+    } else {
+      const issues = validateSupplierSkuTableRows(filled)
+      const uniqueMessages = [...new Set(issues.map((i) => i.message))].slice(0, 3)
+      for (const message of uniqueMessages) {
+        out.push({ field: "variants", message })
+      }
+      if (issues.length > uniqueMessages.length) {
+        out.push({
+          field: "variants",
+          message: `${issues.length} erreurs à corriger dans le tableau SKU.`,
+        })
+      }
     }
   }
   if (ctx.variantFormMode === "simple") {

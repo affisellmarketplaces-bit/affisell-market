@@ -42,8 +42,15 @@ export type ParsedProductAttributes = {
   colorImages: ProductColorImageRow[] | null
 }
 
+function merchandisingVariantsRaw(body: Record<string, unknown>): unknown {
+  if (body.listingVariants != null) return body.listingVariants
+  const v = body.variants
+  if (v != null && typeof v === "object" && !Array.isArray(v)) return v
+  return null
+}
+
 export function parseProductAttributesBody(body: Record<string, unknown>): ParsedProductAttributes {
-  const variants = parseVariantsPayload(body.variants)
+  const variants = parseVariantsPayload(merchandisingVariantsRaw(body))
   return {
     categories: parseProductCategories(body.categories),
     colors: parseProductColors(body.colors),

@@ -57,6 +57,10 @@ import {
 } from "@/components/supplier/supplier-category-picker"
 import { SupplierDeleteDraftButton } from "@/components/supplier/supplier-delete-draft-button"
 import { SupplierDraftSaveControl } from "@/components/supplier/supplier-draft-save-control"
+import {
+  SupplierVariantTable,
+  type EditableVariantRow,
+} from "@/components/supplier/supplier-variant-table"
 import { SupplierListingReadinessPanel } from "@/components/supplier/supplier-listing-readiness-panel"
 import { useSupplierCategorySuggestions } from "@/components/supplier/use-supplier-category-suggestions"
 import {
@@ -99,6 +103,15 @@ import {
   extractOrderedColorNames,
   syncVariantRowsFromSimpleColors,
 } from "@/lib/supplier-variant-row-sync"
+import {
+  apiRowsFromSkuTable,
+  generateSkuTableRows,
+  productVariantLinesToSkuTableRows,
+  skuTableRowFromApiVariant,
+  skuTableRowsToProductVariantLines,
+  sumSkuTableStock,
+  type VariantRowValidationIssue,
+} from "@/lib/supplier-sku-builder"
 import { parseProductColorImagesFromDb } from "@/lib/product-color-images"
 import { trimColorSwatchImageForStore } from "@/lib/color-swatch-image"
 import { formatStoreCurrency } from "@/lib/market-config"
@@ -268,6 +281,8 @@ export function SupplierAddProductForm({
   const [variantSizesText, setVariantSizesText] = useState("")
   const [variantColorsText, setVariantColorsText] = useState("")
   const [variantRows, setVariantRows] = useState<ProductVariantLine[]>([])
+  const [advancedSkuRows, setAdvancedSkuRows] = useState<EditableVariantRow[]>([])
+  const [skuValidationIssues, setSkuValidationIssues] = useState<VariantRowValidationIssue[]>([])
   const [simpleColorRows, setSimpleColorRows] = useState<SupplierSimpleColorRow[]>([])
   const [listingKind, setListingKind] = useState<ListingKind>("PHYSICAL")
   const [commission, setCommission] = useState("15")
@@ -381,11 +396,11 @@ export function SupplierAddProductForm({
 
   const variantStockHint = useMemo(() => {
     if (variantFormMode !== "advanced") return null
-    const valid = variantRows.filter((r) => r.name.trim())
-    if (valid.length === 0) return null
-    const sum = valid.reduce((a, r) => a + Math.max(0, Math.round(Number(r.stock) || 0)), 0)
-    return `With SKU lines, saved stock is the sum of row quantities (${sum} from ${valid.length} line(s)).`
-  }, [variantFormMode, variantRows])
+    const filled = advancedSkuRows.filter((r) => r.color.trim())
+    if (filled.length === 0) return null
+    const sum = sumSkuTableStock(filled)
+    return `Avec les lignes SKU, le stock enregistré est la somme des quantités (${sum} sur ${filled.length} ligne${filled.length > 1 ? "s" : ""}).`
+  }, [variantFormMode, advancedSkuRows])
 
   useLayoutEffect(() => {
     categoryIdRef.current = categoryId
@@ -638,6 +653,16 @@ export function SupplierAddProductForm({
     setVariantFormMode(mode)
     if (mode === "advanced") {
       setVariantRows(variantRows.length ? variantRows : [defaultVariantRow(commission)])
+      setAdvancedSkuRows((rows) =>
+        rows.length
+          ? rows
+          : productVariantLinesToSkuTableRows(
+              variantRows.length ? variantRows : [defaultVariantRow(commission)],
+              Math.round(Number(commission) || 15),
+              Number(price) || 0,
+              Number(price) > 0 ? Math.round(Number(price) * 0.6 * 100) / 100 : 10
+            )
+      )
       setVariantSizesText("")
       setVariantColorsText("")
       setSimpleColorRows([])
@@ -700,16 +725,49 @@ export function SupplierAddProductForm({
       const imageForColor = (c: string) =>
         parsedColorImages?.find((r) => r.color === c)?.image?.trim() ?? ""
 
-      const parsedVariants = parseVariantsPayload(data.variants)
-      if (parsedVariants?.variantRows?.length) {
+      const hasSkuMatrix = Boolean(data.hasVariants) && Array.isArray(data.variants) && data.variants.length > 0
+      const parsedListingVariants = parseVariantsPayload(
+        (data as { listingVariants?: unknown }).listingVariants ?? data.variants
+      )
+
+      if (hasSkuMatrix) {
+        const apiRows = data.variants as Array<{
+          id: string
+          color: string | null
+          size: string | null
+          sku: string | null
+          supplierPrice: number
+          publicPrice: number
+          stock: number
+          commissionRate?: number
+        }>
         setVariantFormMode("advanced")
-        setVariantRows(parsedVariants.variantRows)
-        setVariantSizesText(parsedVariants.size?.length ? parsedVariants.size.join(", ") : "")
+        setAdvancedSkuRows(apiRows.map(skuTableRowFromApiVariant))
+        setVariantRows([])
+        setVariantSizesText("")
+        setVariantColorsText("")
+        setSimpleColorRows([])
+      } else if (parsedListingVariants?.variantRows?.length) {
+        setVariantFormMode("advanced")
+        const pub = Number.isFinite(cents) ? cents / 100 : 0
+        const sup = pub > 0 ? Math.round(pub * 0.6 * 100) / 100 : 10
+        setAdvancedSkuRows(
+          productVariantLinesToSkuTableRows(
+            parsedListingVariants.variantRows,
+            Math.round(Number(data.commissionRate) || 15),
+            pub,
+            sup
+          )
+        )
+        setVariantRows(parsedListingVariants.variantRows)
+        setVariantSizesText(
+          parsedListingVariants.size?.length ? parsedListingVariants.size.join(", ") : ""
+        )
         setVariantColorsText(colorList.join(", "))
         setSimpleColorRows([])
-      } else if (parsedVariants?.size?.length) {
+      } else if (parsedListingVariants?.size?.length) {
         setVariantFormMode("simple")
-        setVariantSizesText(parsedVariants.size.join(", "))
+        setVariantSizesText(parsedListingVariants.size.join(", "))
         setVariantRows([])
         setVariantColorsText("")
         setSimpleColorRows(
@@ -829,10 +887,12 @@ export function SupplierAddProductForm({
       }
 
       const simpleSizes = parseCsvOptions(variantSizesText)
-      const advancedColorLabels = [...new Set(parseCsvOptions(variantColorsText))]
       let variantsPayload: Record<string, unknown> | null = null
+      let listingVariantsPayload: Record<string, unknown> | null = null
       let colorsPayload: string[] = []
       let colorImagesPayload: Array<{ color: string; image: string }> | undefined = undefined
+      let hasVariantsPayload = false
+      let skuVariantsPayload: ReturnType<typeof apiRowsFromSkuTable> | undefined = undefined
 
       if (variantFormMode === "simple") {
         const ordered: string[] = []
@@ -855,50 +915,54 @@ export function SupplierAddProductForm({
               }))
             : undefined
       } else if (variantFormMode === "advanced") {
-        colorsPayload = advancedColorLabels
-        const validRows = variantRows
-          .filter((r) => r.name.trim().length > 0)
-          .map((r) => ({
-            id: r.id,
-            name: r.name.trim().slice(0, 160),
-            sku: r.sku.trim().slice(0, 80),
-            priceCents: Math.max(0, Math.round(r.priceCents)),
-            stock: Math.max(0, Math.round(r.stock)),
-            commission: Math.min(50, Math.max(1, Math.round(r.commission))),
-            sales: Math.max(0, Math.round(r.sales)),
-            ...(r.image?.trim() ? { image: r.image.trim().slice(0, 2000) } : {}),
-            ...(r.priceType?.trim() ? { priceType: r.priceType.trim().slice(0, 32) } : {}),
-          }))
-          .slice(0, 500)
-        if (validRows.length > 0) {
-          variantsPayload = { variantRows: validRows }
+        const basePublic = priceN > 0 ? priceN : 1
+        const baseSupplier = basePublic > 0 ? Math.round(basePublic * 0.6 * 100) / 100 : 10
+        const comm = Math.round(Number(commission) || 15)
+        const filledSku = advancedSkuRows.filter((r) => r.color.trim())
+        colorsPayload = [
+          ...new Set(filledSku.map((r) => r.color.trim()).filter(Boolean)),
+        ].slice(0, 40)
+        const sizes = [
+          ...new Set(
+            filledSku.map((r) => r.size?.trim()).filter((s): s is string => Boolean(s))
+          ),
+        ].slice(0, 40)
+
+        if (filledSku.length > 0) {
+          hasVariantsPayload = true
+          skuVariantsPayload = apiRowsFromSkuTable(filledSku, {
+            baseSupplierPrice: baseSupplier,
+            basePublicPrice: basePublic,
+            defaultCommission: comm,
+          })
+          const mirrorLines = skuTableRowsToProductVariantLines(
+            filledSku,
+            Math.max(100, Math.round(priceN * 100))
+          )
+          listingVariantsPayload = {
+            ...(sizes.length > 0 ? { size: sizes } : {}),
+            variantRows: mirrorLines,
+          }
         }
+
         colorImagesPayload =
           colorsPayload.length > 0
             ? colorsPayload.map((color) => {
-                const lc = color.toLowerCase()
-                const matched = variantRows.find(
-                  (r) => r.name.toLowerCase().includes(lc) && Boolean(r.image?.trim())
-                )
+                const img =
+                  simpleColorRows.find(
+                    (r) => r.name.trim().toLowerCase() === color.toLowerCase()
+                  )?.image?.trim() ?? ""
                 return {
-                  color: color.trim().slice(0, 48),
-                  image: (matched?.image?.trim() || "").slice(0, 2000),
+                  color: color.slice(0, 48),
+                  image: trimColorSwatchImageForStore(img),
                 }
               })
             : undefined
       }
 
       let stockOut = Math.max(0, Math.round(Number(stock) || 0))
-      if (
-        variantFormMode === "advanced" &&
-        variantsPayload &&
-        Array.isArray(variantsPayload.variantRows) &&
-        (variantsPayload.variantRows as { stock: number }[]).length > 0
-      ) {
-        stockOut = (variantsPayload.variantRows as { stock: number }[]).reduce(
-          (acc, r) => acc + Math.max(0, Math.round(r.stock)),
-          0
-        )
+      if (variantFormMode === "advanced" && advancedSkuRows.some((r) => r.color.trim())) {
+        stockOut = sumSkuTableStock(advancedSkuRows.filter((r) => r.color.trim()))
       }
 
       return {
@@ -933,6 +997,10 @@ export function SupplierAddProductForm({
         descriptionIllustrationVideos,
         colors: colorsPayload,
         variants: variantsPayload,
+        ...(listingVariantsPayload ? { listingVariants: listingVariantsPayload } : {}),
+        ...(hasVariantsPayload && skuVariantsPayload
+          ? { hasVariants: true, variants: skuVariantsPayload }
+          : {}),
         colorImages: colorImagesPayload,
       }
     },
@@ -966,6 +1034,7 @@ export function SupplierAddProductForm({
       variantColorsText,
       simpleColorRows,
       variantRows,
+      advancedSkuRows,
     ]
   )
 
@@ -1306,6 +1375,19 @@ export function SupplierAddProductForm({
   }, [autosaveListingId, categoryId, description, descriptionIllustrationImages.length, descriptionIllustrationVideos.length, editId, images.length, name, productIsDraft])
 
   async function handleSubmit() {
+    if (variantFormMode === "advanced" && skuValidationIssues.length > 0) {
+      applyPublishBlockers([
+        {
+          field: "variants",
+          message: `${skuValidationIssues.length} erreur${skuValidationIssues.length > 1 ? "s" : ""} à corriger dans le tableau SKU.`,
+        },
+      ])
+      toast.error(
+        `${skuValidationIssues.length} erreur${skuValidationIssues.length > 1 ? "s" : ""} à corriger dans le tableau SKU.`
+      )
+      return
+    }
+
     const clientBlockers = collectClientPublishBlockers(publishValidationContext)
     if (clientBlockers.length > 0) {
       applyPublishBlockers(clientBlockers)
@@ -1492,6 +1574,7 @@ export function SupplierAddProductForm({
       commissionError,
       variantFormMode,
       variantRows,
+      advancedSkuRows,
       simpleColorRows,
     }),
     [
@@ -1504,6 +1587,7 @@ export function SupplierAddProductForm({
       commissionError,
       variantFormMode,
       variantRows,
+      advancedSkuRows,
       simpleColorRows,
     ]
   )
@@ -2187,7 +2271,7 @@ export function SupplierAddProductForm({
                         onChange={(e) => setStock(e.target.value)}
                         disabled={
                           variantFormMode === "advanced" &&
-                          variantRows.some((r) => r.name.trim().length > 0)
+                          advancedSkuRows.some((r) => r.color.trim().length > 0)
                         }
                       />
                       {variantStockHint ? (
@@ -2267,17 +2351,33 @@ export function SupplierAddProductForm({
                         onClick={() => {
                           setVariantFormMode("advanced")
                           const colors = extractOrderedColorNames(simpleColorRows)
+                          const pub = Number(price) || 0
+                          const sup = pub > 0 ? Math.round(pub * 0.6 * 100) / 100 : 10
+                          const comm = Math.round(Number(commission) || 15)
                           if (colors.length > 0) {
-                            const { rows, colorLabels } = syncVariantRowsFromSimpleColors({
-                              simpleColorRows,
+                            const generated = generateSkuTableRows({
+                              colorsText: colors.join(", "),
                               sizesText: variantSizesText,
-                              existingRows: variantRows,
-                              defaultRow: () => defaultVariantRow(commission),
+                              skuPrefix: "PRD",
+                              baseSupplierPrice: sup,
+                              basePublicPrice: pub || 1,
+                              defaultCommission: comm,
                             })
-                            setVariantRows(rows)
-                            setVariantColorsText(colorLabels.join(", "))
-                          } else if (variantRows.length === 0) {
-                            setVariantRows([defaultVariantRow(commission)])
+                            setAdvancedSkuRows(generated)
+                            setVariantRows([])
+                          } else if (advancedSkuRows.length === 0) {
+                            setAdvancedSkuRows([
+                              {
+                                id: newVariantRowId(),
+                                color: "",
+                                size: null,
+                                sku: null,
+                                supplierPrice: sup,
+                                publicPrice: pub || 1,
+                                stock: 0,
+                                commissionRate: comm,
+                              },
+                            ])
                           }
                         }}
                         className={cn(
@@ -2378,177 +2478,15 @@ export function SupplierAddProductForm({
                       </div>
                     </div>
                   ) : variantFormMode === "advanced" ? (
-                    <div className="space-y-3">
-                      <div>
-                        <Label htmlFor="v-colors-adv">Color labels (optional, comma-separated)</Label>
-                        <Input
-                          id="v-colors-adv"
-                          className="mt-1.5 h-11"
-                          value={variantColorsText}
-                          onChange={(e) => setVariantColorsText(e.target.value)}
-                          placeholder="e.g. Black, Navy — for PDP swatches"
-                        />
-                      </div>
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                          Les couleurs du mode « Couleurs & tailles » remplissent automatiquement les libellés
-                          (avec les tailles si renseignées). Complétez SKU, stock, coût…{" "}
-                          <strong className="font-medium text-zinc-700 dark:text-zinc-300">Coût</strong> : prix de base
-                          par SKU (vide = prix catalogue).{" "}
-                          <strong className="font-medium text-zinc-700 dark:text-zinc-300">Comm. %</strong> : part
-                          affiliée pour ce choix.
-                        </p>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="gap-1"
-                          onClick={() =>
-                            setVariantRows((prev) => [...prev, defaultVariantRow(commission)])
-                          }
-                        >
-                          <Plus className="h-4 w-4" aria-hidden /> Add row
-                        </Button>
-                      </div>
-                      <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-700">
-                        <table className="w-full min-w-[640px] text-left text-sm">
-                          <thead className="border-b border-zinc-200 bg-zinc-50 text-xs font-medium text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
-                            <tr>
-                              <th className="px-3 py-2">Label</th>
-                              <th className="px-3 py-2">SKU</th>
-                              <th className="px-3 py-2">Coût (EUR)</th>
-                              <th className="px-3 py-2">Stock</th>
-                              <th className="px-3 py-2">Comm. %</th>
-                              <th className="w-10 px-2 py-2" />
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {variantRows.length === 0 ? (
-                              <tr>
-                                <td colSpan={6} className="px-3 py-6 text-center text-xs text-zinc-500">
-                                  No rows yet — add a line for each sellable SKU.
-                                </td>
-                              </tr>
-                            ) : (
-                              variantRows.map((row, i) => (
-                                <tr
-                                  key={row.id}
-                                  className="border-b border-zinc-100 last:border-0 dark:border-zinc-800"
-                                >
-                                  <td className="px-2 py-1.5 align-middle">
-                                    <Input
-                                      className="h-9 min-w-[120px]"
-                                      value={row.name}
-                                      onChange={(e) => {
-                                        const v = e.target.value
-                                        setVariantRows((prev) =>
-                                          prev.map((r, j) => (j === i ? { ...r, name: v } : r))
-                                        )
-                                      }}
-                                      placeholder="e.g. Black / M"
-                                      maxLength={160}
-                                    />
-                                  </td>
-                                  <td className="px-2 py-1.5 align-middle">
-                                    <Input
-                                      className="h-9 w-24 min-w-[5rem] sm:w-28"
-                                      value={row.sku}
-                                      onChange={(e) => {
-                                        const v = e.target.value
-                                        setVariantRows((prev) =>
-                                          prev.map((r, j) => (j === i ? { ...r, sku: v } : r))
-                                        )
-                                      }}
-                                      placeholder="—"
-                                      maxLength={80}
-                                    />
-                                  </td>
-                                  <td className="px-2 py-1.5 align-middle">
-                                    <Input
-                                      className="h-9 w-24"
-                                      type="number"
-                                      min={0}
-                                      step="0.01"
-                                      value={row.priceCents > 0 ? (row.priceCents / 100).toFixed(2) : ""}
-                                      onChange={(e) => {
-                                        const raw = e.target.value
-                                        const n = Number(raw)
-                                        setVariantRows((prev) =>
-                                          prev.map((r, j) =>
-                                            j === i
-                                              ? {
-                                                  ...r,
-                                                  priceCents:
-                                                    raw.trim() === "" || !Number.isFinite(n)
-                                                      ? 0
-                                                      : Math.max(0, Math.round(n * 100)),
-                                                }
-                                              : r
-                                          )
-                                        )
-                                      }}
-                                      placeholder={price.trim() ? "Base" : "—"}
-                                    />
-                                  </td>
-                                  <td className="px-2 py-1.5 align-middle">
-                                    <Input
-                                      className="h-9 w-20"
-                                      type="number"
-                                      min={0}
-                                      step={1}
-                                      value={row.stock}
-                                      onChange={(e) => {
-                                        const n = Math.max(0, Math.round(Number(e.target.value) || 0))
-                                        setVariantRows((prev) =>
-                                          prev.map((r, j) => (j === i ? { ...r, stock: n } : r))
-                                        )
-                                      }}
-                                    />
-                                  </td>
-                                  <td className="px-2 py-1.5 align-middle">
-                                    <Input
-                                      className="h-9 w-16"
-                                      type="number"
-                                      min={1}
-                                      max={50}
-                                      step={1}
-                                      value={row.commission}
-                                      onChange={(e) => {
-                                        const n = Math.round(Number(e.target.value) || 20)
-                                        setVariantRows((prev) =>
-                                          prev.map((r, j) =>
-                                            j === i
-                                              ? {
-                                                  ...r,
-                                                  commission: Math.min(50, Math.max(1, n)),
-                                                }
-                                              : r
-                                          )
-                                        )
-                                      }}
-                                    />
-                                  </td>
-                                  <td className="px-1 py-1.5 align-middle">
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-9 w-9 text-zinc-500 hover:text-red-600"
-                                      onClick={() =>
-                                        setVariantRows((prev) => prev.filter((_, j) => j !== i))
-                                      }
-                                      aria-label="Remove row"
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </td>
-                                </tr>
-                              ))
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
+                    <SupplierVariantTable
+                      rows={advancedSkuRows}
+                      onChange={setAdvancedSkuRows}
+                      onValidationChange={setSkuValidationIssues}
+                      basePriceEur={Number(price) || 0}
+                      defaultCommission={Math.round(Number(commission) || 15)}
+                      skuPrefix="PRD"
+                      disabled={saving}
+                    />
                   ) : (
                     <p className="text-xs text-zinc-500 dark:text-zinc-400">
                       One sellable unit — no size or color pickers on the product page from this listing.
@@ -2631,8 +2569,8 @@ export function SupplierAddProductForm({
                         Affiliate commission
                       </h2>
                       <p className="mt-1 text-sm text-violet-900/85 dark:text-violet-200/90">
-                        {variantFormMode === "advanced" && variantRows.length > 0
-                          ? "Par défaut pour les nouvelles lignes SKU. La commission par choix est définie dans le tableau « SKU lines »."
+                        {variantFormMode === "advanced" && advancedSkuRows.length > 0
+                          ? "Par défaut pour les nouvelles lignes SKU. La commission par choix est définie dans le tableau SKU."
                           : "Part de la marge affiliée (leur prix de vente moins votre coût) à chaque vente."}
                       </p>
                     </div>
@@ -2827,7 +2765,10 @@ export function SupplierAddProductForm({
                     <Button
                       type="button"
                       size="lg"
-                      disabled={saving}
+                      disabled={
+                        saving ||
+                        (variantFormMode === "advanced" && skuValidationIssues.length > 0)
+                      }
                       className="bg-violet-600 hover:bg-violet-700 dark:bg-violet-600"
                       onClick={() => void handleSubmit()}
                     >
