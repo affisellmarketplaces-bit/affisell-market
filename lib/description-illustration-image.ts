@@ -45,13 +45,20 @@ export async function processDescriptionIllustrationFile(file: File): Promise<st
   }
 }
 
+function isLikelyImageFile(f: File): boolean {
+  if (f.type.startsWith("image/")) return true
+  // macOS / Safari clipboard screenshots often have an empty MIME type
+  if (!f.type && f.size > 0) return true
+  return /\.(jpe?g|png|gif|webp|bmp|avif|heic)$/i.test(f.name)
+}
+
 export function imageFilesFromDataTransfer(dt: DataTransfer | null): File[] {
   if (!dt) return []
   const seen = new Set<File>()
   const out: File[] = []
 
   const push = (f: File | null) => {
-    if (!f || !f.type.startsWith("image/") || seen.has(f)) return
+    if (!f || !isLikelyImageFile(f) || seen.has(f)) return
     seen.add(f)
     out.push(f)
   }
@@ -62,8 +69,8 @@ export function imageFilesFromDataTransfer(dt: DataTransfer | null): File[] {
     }
   }
 
-  for (const item of dt.items) {
-    if (item.kind === "file" && item.type.startsWith("image/")) {
+  for (const item of Array.from(dt.items)) {
+    if (item.kind === "file") {
       push(item.getAsFile())
     }
   }

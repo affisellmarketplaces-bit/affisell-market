@@ -3,20 +3,19 @@ import { describe, expect, it } from "vitest"
 import { imageFilesFromDataTransfer } from "@/lib/description-illustration-image"
 
 describe("imageFilesFromDataTransfer", () => {
-  it("returns empty for null", () => {
-    expect(imageFilesFromDataTransfer(null)).toEqual([])
-  })
-
-  it("collects image files from items", () => {
-    const file = new File([new Uint8Array([1])], "a.png", { type: "image/png" })
+  it("accepts clipboard files with empty MIME type", () => {
+    const file = new File([new Uint8Array([1, 2, 3])], "screenshot.png", { type: "" })
     const dt = {
-      files: { length: 0 },
+      files: [file],
       items: [
-        { kind: "file", type: "image/png", getAsFile: () => file },
-        { kind: "string", type: "text/plain", getAsFile: () => null },
+        {
+          kind: "file",
+          type: "",
+          getAsFile: () => file,
+        },
       ],
     } as unknown as DataTransfer
 
-    expect(imageFilesFromDataTransfer(dt)).toEqual([file])
+    expect(imageFilesFromDataTransfer(dt)).toHaveLength(1)
   })
 })

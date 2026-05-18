@@ -1,6 +1,7 @@
 "use client"
 
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useId, useRef, useState } from "react"
+import type { ChangeEvent } from "react"
 import { ImagePlus, Loader2, Sparkles, X } from "lucide-react"
 import { toast } from "sonner"
 
@@ -81,6 +82,8 @@ export function SupplierProductDescriptionField({
   const [imageBusy, setImageBusy] = useState(false)
   const [dragOver, setDragOver] = useState(false)
   const composerRef = useRef<HTMLDivElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const fileInputId = useId()
 
   const ingestImageFiles = useCallback(
     async (files: File[]) => {
@@ -127,6 +130,7 @@ export function SupplierProductDescriptionField({
       const files = imageFilesFromDataTransfer(e.clipboardData)
       if (files.length === 0) return
       e.preventDefault()
+      e.stopPropagation()
       void ingestImageFiles(files)
     },
     [ingestImageFiles]
@@ -135,10 +139,27 @@ export function SupplierProductDescriptionField({
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault()
+      e.stopPropagation()
       setDragOver(false)
       const files = imageFilesFromDataTransfer(e.dataTransfer)
       if (files.length === 0) return
       void ingestImageFiles(files)
+    },
+    [ingestImageFiles]
+  )
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    if (imageFilesFromDataTransfer(e.dataTransfer).length === 0) return
+    e.preventDefault()
+    e.stopPropagation()
+    setDragOver(true)
+  }, [])
+
+  const handleFileInputChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files ? Array.from(e.target.files) : []
+      e.target.value = ""
+      if (files.length > 0) void ingestImageFiles(files)
     },
     [ingestImageFiles]
   )
@@ -242,6 +263,11 @@ export function SupplierProductDescriptionField({
 
   const composerDisabled = disabled || aiLoading || imageBusy
 
+  const openFilePicker = useCallback(() => {
+    if (composerDisabled) return
+    fileInputRef.current?.click()
+  }, [composerDisabled])
+
   return (
     <div className="space-y-4">
       <div>
@@ -271,13 +297,9 @@ export function SupplierProductDescriptionField({
 
         <div
           ref={composerRef}
-          onPaste={handlePaste}
+          onPasteCapture={handlePaste}
           onDrop={handleDrop}
-          onDragOver={(e) => {
-            if (imageFilesFromDataTransfer(e.dataTransfer).length === 0) return
-            e.preventDefault()
-            setDragOver(true)
-          }}
+          onDragOver={handleDragOver}
           onDragLeave={(e) => {
             if (!composerRef.current?.contains(e.relatedTarget as Node)) {
               setDragOver(false)
@@ -334,14 +356,39 @@ export function SupplierProductDescriptionField({
             )}
             value={description}
             onChange={(e) => onDescriptionChange(e.target.value)}
+            onPaste={handlePaste}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
             placeholder="Notes, bénéfices, matériaux, public cible… Collez une image (Ctrl+V) ou glissez-la ici."
             disabled={composerDisabled}
           />
 
+          <input
+            ref={fileInputRef}
+            id={fileInputId}
+            type="file"
+            accept="image/*"
+            multiple
+            className="sr-only"
+            disabled={composerDisabled}
+            onChange={handleFileInputChange}
+          />
+
           <p className="flex flex-wrap items-center gap-1.5 border-t border-zinc-200/60 px-3 py-1.5 text-[11px] text-zinc-500 dark:border-zinc-700/80 dark:text-zinc-400">
-            <ImagePlus className="h-3 w-3 shrink-0 text-violet-500" aria-hidden />
+            <button
+              type="button"
+              disabled={composerDisabled || illustrationImages.length >= DESCRIPTION_ILLUSTRATION_MAX}
+              onClick={openFilePicker}
+              className="inline-flex shrink-0 items-center gap-1 rounded-md text-violet-600 transition hover:bg-violet-50 hover:text-violet-800 disabled:cursor-not-allowed disabled:opacity-50 dark:text-violet-400 dark:hover:bg-violet-950/50"
+              aria-label="Ajouter une image depuis vos fichiers"
+            >
+              <ImagePlus className="h-3.5 w-3.5" aria-hidden />
+              <span className="font-medium underline decoration-dotted underline-offset-2">
+                Parcourir
+              </span>
+            </button>
             <span>
-              Ctrl+V ou glisser-déposer · max. {DESCRIPTION_ILLUSTRATION_MAX} images · min.{" "}
+              · Ctrl+V ou glisser-déposer · max. {DESCRIPTION_ILLUSTRATION_MAX} images · min.{" "}
               {DESCRIPTION_ILLUSTRATION_MIN_W}×{DESCRIPTION_ILLUSTRATION_MIN_H} px
             </span>
             {illustrationImages.length > 0 && (
