@@ -7,6 +7,7 @@ import { Search, X } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 
 import { ProductCard } from "@/components/ProductCard"
+import { ProductCardPreviewToggle } from "@/components/product/ProductCardPreviewToggle"
 import { MarketplaceFilters } from "@/components/marketplace/filters"
 import { MarketplaceAffisellPulse } from "@/components/marketplace/MarketplaceAffisellPulse"
 import { MarketplaceDepartmentRail } from "@/components/marketplace/MarketplaceDepartmentRail"
@@ -179,7 +180,8 @@ export function MarketplaceView() {
           activeCategoryId={categoryId}
           activeSubcategoryId={subcategoryId}
         />
-        <MarketplaceAffisellPulse />
+            <MarketplaceAffisellPulse />
+            <ProductCardPreviewToggle className="mt-4" />
 
         {dbUnavailable ? (
           <div

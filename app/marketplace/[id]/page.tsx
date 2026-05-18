@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
@@ -17,10 +18,69 @@ import {
   parseCustomColumnsFromDb,
 } from "@/lib/product-custom-columns"
 import { resolveMarketplaceOptionNames, variantsFromDb } from "@/lib/product-variants"
+import { primaryProductImage } from "@/lib/product-images"
+import {
+  buildProductListingMetadata,
+  buildProductOfferJsonLd,
+} from "@/lib/product-listing-seo"
 
 import { MarketplaceListingDetail } from "./marketplace-listing-detail"
 
 export const dynamic = "force-dynamic"
+
+export async function buildListingMetadataForId(
+  listingId: string,
+  storeSlug?: string
+): Promise<Metadata> {
+  const listing = await prisma.affiliateProduct.findFirst({
+    where: {
+      id: listingId,
+      isListed: true,
+      product: { active: true },
+      affiliate: {
+        role: "AFFILIATE",
+        ...(storeSlug ? { store: { slug: storeSlug } } : {}),
+      },
+    },
+    select: {
+      sellingPriceCents: true,
+      customTitle: true,
+      customImages: true,
+      customDescription: true,
+      product: {
+        select: {
+          name: true,
+          description: true,
+          images: true,
+          stock: true,
+        },
+      },
+    },
+  })
+  if (!listing?.product) return { title: "Produit" }
+  const name = listingDisplayTitle(listing.customTitle, listing.product.name)
+  const imageUrl =
+    primaryProductImage(listing.customImages) ||
+    primaryProductImage(listing.product.images) ||
+    null
+  return buildProductListingMetadata({
+    name,
+    description: listingDisplayDescription(listing.customDescription, listing.product.description),
+    imageUrl,
+    priceCents: listing.sellingPriceCents,
+    inStock: listing.product.stock > 0,
+    customerFacing: true,
+  })
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}): Promise<Metadata> {
+  const { id } = await params
+  return buildListingMetadataForId(id)
+}
 
 export default async function MarketplaceListingPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -253,14 +313,32 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
     viewsLast24h = 0
   }
 
+  const displayName = listingDisplayTitle(listing.customTitle, listing.product.name)
+  const seoImage =
+    primaryProductImage(listing.customImages) ||
+    primaryProductImage(listing.product.images) ||
+    null
+  const productJsonLd = buildProductOfferJsonLd({
+    name: displayName,
+    imageUrl: seoImage,
+    priceCents: listing.sellingPriceCents,
+    inStock: listing.product.stock > 0,
+    customerFacing: true,
+  })
+
   return (
     <main className="affisell-pdp-viewport relative min-h-screen overflow-x-hidden bg-gradient-to-b from-zinc-100/95 via-white to-violet-100/45 dark:from-zinc-950 dark:via-zinc-950 dark:to-violet-950/30">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
       <div
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_115%_70%_at_50%_-12%,rgba(139,92,246,0.14),transparent_52%)] dark:bg-[radial-gradient(ellipse_115%_70%_at_50%_-12%,rgba(139,92,246,0.22),transparent_55%)]"
         aria-hidden
       />
       <div className="relative mx-auto max-w-6xl px-4 py-10 md:px-8 lg:py-12">
       <MarketplaceListingDetail
+        audience="customer"
         listingId={listing.id}
         productId={listing.product.id}
         promotedColor={listing.promotedColor}

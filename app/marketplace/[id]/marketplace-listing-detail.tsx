@@ -91,6 +91,8 @@ type RelatedCard = {
 type SpecRow = { label: string; value: string }
 
 type Props = {
+  /** Buyer-facing pages hide wholesale / partner seller attribution. */
+  audience?: "customer" | "merchant"
   listingId: string
   productId: string
   /** Affiliate-chosen default color swatch (must exist in `colorNames`). */
@@ -316,6 +318,7 @@ function DescriptionIllustrativeMedia({
 }
 
 export function MarketplaceListingDetail({
+  audience = "customer",
   listingId,
   productId,
   promotedColor = null,
@@ -1617,9 +1620,9 @@ export function MarketplaceListingDetail({
                 </div>
                 <ChevronRight className="h-5 w-5 shrink-0 text-zinc-400" aria-hidden />
               </Link>
-            ) : (
+            ) : audience === "merchant" ? (
               <p className="text-sm text-zinc-500 dark:text-zinc-400">{t(productT.byStore, { store: sellerLabel })}</p>
-            )}
+            ) : null}
           </aside>
           </motion.div>
         </motion.div>

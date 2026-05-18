@@ -71,7 +71,7 @@ export function HomeHighlights({ data }: Props) {
         <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
           {items.map((item) => (
             <li key={`${tab}-${item.listingId}`}>
-              <ProductCard product={homeProductToCardProps(item)} />
+              <ProductCard product={homeProductToCardProps(item)} viewMode="customer" />
             </li>
           ))}
         </ul>

@@ -156,7 +156,7 @@ export default async function PublicStorefrontPage({ params }: { params: Promise
               .map((item) => (
                 <li key={item.id} className="flex h-full">
                   <MarketplaceListingCard
-                    detailHref={`/marketplace/${item.id}`}
+                    detailHref={`/shop/${slug}/product/${item.id}`}
                     imageUrl={
                       listingPrimaryImageUrl(item.customImages, item.product!.images) ||
                       primaryProductImage(item.product!.images) ||
@@ -165,6 +165,7 @@ export default async function PublicStorefrontPage({ params }: { params: Promise
                     name={listingDisplayTitle(item.customTitle, item.product!.name)}
                     priceDisplay={formatStoreCurrencyFromCents(item.sellingPriceCents)}
                     sellerDisplay={store.name}
+                    showSellerAttribution={false}
                     soldByAffiliate={store.name}
                     trackClicks
                     fastShipping={(item.product!.deliveryMax ?? 99) <= 3}

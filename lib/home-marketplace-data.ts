@@ -17,6 +17,8 @@ export type HomeProductCard = {
   marginCents: number
   deliveryMin: number
   deliveryMax: number
+  stock: number
+  freeShipping: boolean
   storeName: string
   isBestSeller?: boolean
 }
@@ -73,6 +75,8 @@ type ListingRow = {
     deliveryMax: number
     deliveryDays: number | null
     isBestSeller: boolean
+    stock: number
+    freeShipping: boolean
   }
   affiliate: { name: string | null; store: { name: string } | null }
 }
@@ -85,6 +89,7 @@ function mapListingToHomeCard(
   const p = row.product
   const deliveryMin = p.deliveryMin ?? 2
   const deliveryMax = p.deliveryMax ?? p.deliveryDays ?? 7
+  const stock = p.stock
   return {
     listingId: row.id,
     productId: p.id,
@@ -96,6 +101,8 @@ function mapListingToHomeCard(
     marginCents: estimateMarginCents(row.sellingPriceCents, p.basePriceCents),
     deliveryMin,
     deliveryMax,
+    stock,
+    freeShipping: p.freeShipping,
     storeName,
     isBestSeller: p.isBestSeller,
   }
@@ -114,9 +121,11 @@ const listingSelect = {
       commissionRate: true,
       deliveryMin: true,
       deliveryMax: true,
-      deliveryDays: true,
-      isBestSeller: true,
-    },
+    deliveryDays: true,
+    isBestSeller: true,
+    freeShipping: true,
+    stock: true,
+  },
   },
   affiliate: {
     select: { name: true, store: { select: { name: true } } },
@@ -349,5 +358,7 @@ export function homeProductToCardProps(item: HomeProductCard) {
     marginCents: item.marginCents,
     deliveryLabel: deliveryRangeLabel(item.deliveryMin, item.deliveryMax),
     store: item.storeName,
+    stock: item.stock,
+    freeShipping: item.freeShipping ?? false,
   }
 }

@@ -11,6 +11,8 @@ type Props = {
   name: string
   priceDisplay: string
   sellerDisplay: string
+  /** When false, hides the “by {seller}” line (shop / customer PDP). */
+  showSellerAttribution?: boolean
   /** Shown between title and price on affiliate storefront grids */
   soldByAffiliate?: string | null
   /** When true POST /click before navigation (ignored if falsy listing id below) */
@@ -29,6 +31,7 @@ export function MarketplaceListingCard({
   name,
   priceDisplay,
   sellerDisplay,
+  showSellerAttribution = true,
   soldByAffiliate,
   trackClicks,
   product,
@@ -131,9 +134,11 @@ export function MarketplaceListingCard({
               </span>
             </p>
           ) : null}
-          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-            by <span className="font-medium text-zinc-700 dark:text-zinc-300">{sellerDisplay}</span>
-          </p>
+          {showSellerAttribution ? (
+            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+              by <span className="font-medium text-zinc-700 dark:text-zinc-300">{sellerDisplay}</span>
+            </p>
+          ) : null}
         </div>
       </Link>
       <div className="px-4 pb-4">
