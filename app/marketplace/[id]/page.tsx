@@ -1,8 +1,6 @@
 import { notFound } from "next/navigation"
 
-import { auth } from "@/auth"
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
-import { canDownloadSupplierAdVideos } from "@/lib/marketplace-ad-video-download"
 import {
   listingDisplayDescription,
   listingDisplayTitle,
@@ -14,7 +12,6 @@ import { mergeColorImagesForProduct, parseProductColorImagesFromDb } from "@/lib
 import { prisma } from "@/lib/prisma"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { publicPartnerSellerLabel } from "@/lib/public-seller-display"
-import { fetchListingAdClips } from "@/lib/listing-ad-videos"
 import { resolveMarketplaceOptionNames, variantsFromDb } from "@/lib/product-variants"
 
 import { MarketplaceListingDetail } from "./marketplace-listing-detail"
@@ -23,11 +20,6 @@ export const dynamic = "force-dynamic"
 
 export default async function MarketplaceListingPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const session = await auth()
-  const allowAdVideoDownload = canDownloadSupplierAdVideos(
-    (session?.user as { role?: string } | undefined)?.role
-  )
-
   const listing = await prisma.affiliateProduct.findFirst({
     where: {
       id,
@@ -233,10 +225,6 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
     .map((row) => ({ label: String(row.label || row.key || "").trim(), value: row.value.trim() }))
     .filter((row) => row.label.length > 0 && row.value.length > 0)
 
-  const adVideos = allowAdVideoDownload
-    ? await fetchListingAdClips(listing.product.id)
-    : []
-
   let viewsLast24h = 0
   try {
     const since = new Date()
@@ -313,7 +301,6 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
         galleryListingVideoUrl={
           typeof p.videoAdUrl === "string" && p.videoAdUrl.trim() ? p.videoAdUrl.trim() : null
         }
-        adVideos={adVideos}
       />
       </div>
     </main>
