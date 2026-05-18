@@ -558,9 +558,20 @@ export function SupplierAddProductForm({
   }, [name, description])
 
   const handleUrlImportApply = useCallback((patch: UrlImportApplyPayload) => {
+    categoryManualPickRef.current = false
+    lastTitleParserKeyRef.current = ""
     setName(patch.name)
     setDescription(patch.description)
     if (patch.images.length) setImages(patch.images)
+    if (patch.illustrationVideos.length) {
+      setDescriptionIllustrationVideos((prev) => {
+        const merged = [...prev]
+        for (const v of patch.illustrationVideos) {
+          if (!merged.includes(v)) merged.push(v)
+        }
+        return merged.slice(0, 2)
+      })
+    }
     setStock(patch.stock)
     if (patch.price) setPrice(patch.price)
     if (patch.compareAt) setCompareAt(patch.compareAt)
@@ -571,7 +582,28 @@ export function SupplierAddProductForm({
     setDeliveryMax(patch.deliveryMax)
     setShippingCost(patch.shippingCost)
     setSpecValues((prev) => ({ ...prev, ...patch.specValuesPatch }))
-  }, [])
+
+    const { mode, sizes, simpleColors, variantRows } = patch.variants
+    setVariantFormMode(mode)
+    if (mode === "advanced") {
+      setVariantRows(variantRows.length ? variantRows : [defaultVariantRow(commission)])
+      setVariantSizesText("")
+      setVariantColorsText("")
+      setSimpleColorRows([])
+    } else if (mode === "simple") {
+      setVariantSizesText(sizes.join(", "))
+      setSimpleColorRows(
+        simpleColors.length > 0 ? simpleColors : [{ id: newVariantRowId(), name: "", image: "" }]
+      )
+      setVariantRows([])
+      setVariantColorsText("")
+    } else {
+      setVariantSizesText("")
+      setVariantRows([])
+      setVariantColorsText("")
+      setSimpleColorRows([])
+    }
+  }, [commission])
 
   const loadProduct = useCallback(async (id: string) => {
     setLoadingProduct(true)
@@ -1615,7 +1647,11 @@ export function SupplierAddProductForm({
                     description="Pull in data from a URL or let AI draft copy—optional, but fast when you’re in a hurry."
                   >
                     <div className="space-y-8 border-t border-violet-200/50 pt-6 dark:border-violet-900/30">
-                      <SupplierUrlImportPanel categoryAttrs={mergedCategoryAttrs} onApply={handleUrlImportApply} />
+                      <SupplierUrlImportPanel
+                        categoryAttrs={mergedCategoryAttrs}
+                        commissionPct={commission}
+                        onApply={handleUrlImportApply}
+                      />
                       <SupplierAiPublishPanel
                         initialTitle={name}
                         initialNotes={description}

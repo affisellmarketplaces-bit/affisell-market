@@ -36,6 +36,7 @@ type ImportedProduct = {
   original_price: number
   currency: string
   images: string[]
+  videos: string[]
   variants: Array<{
     name: string
     type: string
@@ -95,6 +96,70 @@ function num(v: unknown): number {
   return Number.isFinite(n) ? n : 0
 }
 
+function collectVideoUrls(...sources: unknown[]): string[] {
+  const out: string[] = []
+  const seen = new Set<string>()
+  const push = (raw: string) => {
+    const s = raw.trim()
+    if (!s) return
+    const withProto = /^https?:/i.test(s) ? s : s.startsWith("//") ? `https:${s}` : ""
+    if (!withProto || !/^https?:\/\//i.test(withProto)) return
+    if (seen.has(withProto)) return
+    if (!/\.(mp4|webm|m3u8)(\?|#|$)/i.test(withProto) && !/video|\.mp4/i.test(withProto)) return
+    seen.add(withProto)
+    out.push(withProto)
+  }
+  for (const src of sources) {
+    if (typeof src === "string") push(src)
+    else if (Array.isArray(src)) {
+      for (const item of src) {
+        if (typeof item === "string") push(item)
+        else if (item && typeof item === "object") {
+          const r = asRec(item)
+          push(txt(r.contentUrl))
+          push(txt(r.url))
+          push(txt(r.src))
+        }
+      }
+    }
+  }
+  return out.slice(0, 3)
+}
+
+function extractVideosFromHtml($: cheerio.CheerioAPI): string[] {
+  const urls: string[] = []
+  $('meta[property="og:video"], meta[property="og:video:url"], meta[property="og:video:secure_url"]').each(
+    (_, el) => {
+      urls.push($(el).attr("content") ?? "")
+    }
+  )
+  $("video source[src], video[src]").each((_, el) => {
+    urls.push($(el).attr("src") ?? "")
+  })
+  $('script[type="application/ld+json"]').each((_, el) => {
+    const text = $(el).html() || ""
+    if (!/video/i.test(text)) return
+    try {
+      const parsed = JSON.parse(text) as unknown
+      const walk = (node: unknown) => {
+        if (!node || typeof node !== "object") return
+        if (Array.isArray(node)) {
+          node.forEach(walk)
+          return
+        }
+        const r = asRec(node)
+        if (txt(r.contentUrl)) urls.push(txt(r.contentUrl))
+        if (txt(r.embedUrl)) urls.push(txt(r.embedUrl))
+        for (const v of Object.values(r)) walk(v)
+      }
+      walk(parsed)
+    } catch {
+      /* ignore */
+    }
+  })
+  return collectVideoUrls(urls)
+}
+
 function hdImage(raw: string): string {
   const s = raw.trim()
   if (!s) return ""
@@ -140,6 +205,7 @@ function baselineProduct(url: string, platform: Platform): ImportedProduct {
     original_price: 0,
     currency: "USD",
     images: [],
+    videos: [],
     variants: [],
     colors: [],
     sizes: [],
@@ -327,16 +393,23 @@ function parseProductHTML(
       }
     })
     if (!aerData) throw new Error("__AER_DATA__ not found")
-    return parseAERData(aerData, url)
+    const out = parseAERData(aerData, url)
+    out.videos = collectVideoUrls(out.videos, extractVideosFromHtml($))
+    return out
   }
 
   if (platform === "amazon") {
-    return parseAmazonHTML(html, url)
+    const out = parseAmazonHTML(html, url)
+    out.videos = collectVideoUrls(out.videos, extractVideosFromHtml($))
+    return out
   }
 
   if (platform === "shein" || platform === "temu" || platform === "universal") {
     const fromSchema = parseSchemaProduct($, url, platform)
-    if (fromSchema.title) return fromSchema
+    if (fromSchema.title) {
+      fromSchema.videos = collectVideoUrls(fromSchema.videos, extractVideosFromHtml($))
+      return fromSchema
+    }
   }
 
   throw new Error("Platform not supported yet")
@@ -454,6 +527,10 @@ function parseAERData(aerData: Record<string, unknown>, url: string): ImportedPr
     sentiment: globalSentiment(avg),
   }
 
+  const mediaModule = asRec(p.mediaComponent)
+  const videoPath = txt(asRec(mediaModule).videoPath) || txt(productInfo.videoPath)
+  if (videoPath) out.videos = collectVideoUrls([hdImage(videoPath)])
+
   out.category = "AliExpress Product"
   out.tags = generateSEO(out.title, out.category)
   return out
@@ -468,7 +545,14 @@ function parseAmazonHTML(html: string, url: string): ImportedProduct {
   out.original_price = num(
     $(".a-text-price .a-offscreen").first().text().replace(/[^\d.,]/g, "")
   )
-  out.images = [$("#landingImage").attr("src") ?? ""].filter(Boolean)
+  $("#altImages img, #imageBlock img").each((_, el) => {
+    const src = $(el).attr("src") ?? $(el).attr("data-src") ?? ""
+    if (src) out.images.push(hdImage(src))
+  })
+  const landing = $("#landingImage").attr("src") ?? ""
+  if (landing) out.images.unshift(hdImage(landing))
+  out.images = [...new Set(out.images.filter(Boolean))].slice(0, 12)
+  if (out.images.length === 0 && landing) out.images = [hdImage(landing)]
   out.brand = $("#bylineInfo").text().trim()
   out.shipping = {
     from_country: "USA",
@@ -531,6 +615,10 @@ function parseSchemaProduct(
   out.sku = txt(p.sku)
   out.stock = txt(offers.availability).includes("InStock") ? 999 : 0
   out.category = txt(p.category) || "General"
+  const video = p.video
+  out.videos = collectVideoUrls(
+    typeof video === "string" ? [video] : Array.isArray(video) ? video : []
+  )
   out.tags = generateSEO(out.title, out.category)
   return out
 }
@@ -566,6 +654,17 @@ async function scrapeShopify(url: string): Promise<ImportedProduct> {
   out.stock = Math.max(0, Math.round(num(asRec(variants[0]).inventory_quantity)))
   out.brand = txt(p.vendor)
   out.category = txt(p.product_type) || "Shopify Product"
+  const media = Array.isArray(p.media) ? p.media : []
+  const videoUrls = media
+    .map((m) => asRec(m))
+    .filter((m) => txt(m.media_type) === "video" || /\.mp4/i.test(txt(m.src)))
+    .map((m) => {
+      const sources = Array.isArray(m.sources) ? m.sources : []
+      const first = sources[0] ? asRec(sources[0]) : null
+      return txt(first?.url) || txt(m.src)
+    })
+    .filter(Boolean)
+  out.videos = collectVideoUrls(videoUrls)
   out.tags = generateSEO(out.title, out.category)
   return out
 }

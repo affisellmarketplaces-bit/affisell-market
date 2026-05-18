@@ -10,102 +10,22 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import type { CategoryAttrRow } from "@/components/supplier/category-attribute-fields"
+import {
+  buildUrlImportFormPatch,
+  GENERIC_BRAND_LABEL,
+  type UrlImportFormPatch,
+} from "@/lib/url-import-apply"
 import { cn } from "@/lib/utils"
 
-export type UrlImportApplyPayload = {
-  name: string
-  description: string
-  images: string[]
-  stock: string
-  price: string
-  compareAt: string
-  shippingCountry: string
-  warehouseType: "" | "local" | "regional" | "international"
-  processingTime: string
-  deliveryMin: string
-  deliveryMax: string
-  shippingCost: string
-  specValuesPatch: Record<string, string>
-}
+export type UrlImportApplyPayload = UrlImportFormPatch
 
 type Props = {
   categoryAttrs: CategoryAttrRow[]
+  commissionPct: string
   onApply: (payload: UrlImportApplyPayload) => void
 }
 
-function guessIso2Country(label: string): string {
-  const l = label.toLowerCase().trim()
-  const map: Record<string, string> = {
-    china: "CN",
-    "hong kong": "HK",
-    usa: "US",
-    "united states": "US",
-    uk: "GB",
-    "united kingdom": "GB",
-    france: "FR",
-    germany: "DE",
-    spain: "ES",
-    italy: "IT",
-    netherlands: "NL",
-    belgium: "BE",
-    poland: "PL",
-    japan: "JP",
-    korea: "KR",
-    canada: "CA",
-    australia: "AU",
-  }
-  for (const [word, cc] of Object.entries(map)) {
-    if (l.includes(word)) return cc
-  }
-  if (/^[a-z]{2}$/i.test(label.trim())) return label.trim().toUpperCase()
-  return ""
-}
-
-function parseDeliveryRange(s: string): { min: string; max: string } {
-  const t = s.replace(/–/g, "-")
-  const m = t.match(/(\d+)\s*-\s*(\d+)/)
-  if (m) {
-    const lo = m[1] ?? "2"
-    const hi = m[2] ?? "5"
-    return { min: lo, max: hi }
-  }
-  const one = t.match(/(\d+)/)
-  return one ? { min: one[1]!, max: one[1]! } : { min: "2", max: "5" }
-}
-
-function mergeSpecsFromImport(
-  defs: CategoryAttrRow[],
-  specs: Record<string, unknown>
-): Record<string, string> {
-  if (!defs.length) return {}
-  const norm = (s: string) =>
-    s
-      .toLowerCase()
-      .replace(/[_-]+/g, " ")
-      .replace(/\s+/g, " ")
-      .trim()
-
-  const flat: Record<string, string> = {}
-  for (const [k, v] of Object.entries(specs)) {
-    if (typeof v !== "string" || !v.trim()) continue
-    flat[norm(k)] = v.trim()
-  }
-
-  const out: Record<string, string> = {}
-  for (const d of defs) {
-    const fromKey = flat[norm(d.key)]
-    const fromLabel = flat[norm(d.label)]
-    const val = fromKey ?? fromLabel
-    if (val) out[d.key] = val
-  }
-  return out
-}
-
-function asRec(v: unknown): Record<string, unknown> {
-  return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : {}
-}
-
-export function SupplierUrlImportPanel({ categoryAttrs, onApply }: Props) {
+export function SupplierUrlImportPanel({ categoryAttrs, commissionPct, onApply }: Props) {
   const [url, setUrl] = useState("")
   const [loading, setLoading] = useState(false)
   const [aiRewrite, setAiRewrite] = useState(false)
@@ -116,11 +36,11 @@ export function SupplierUrlImportPanel({ categoryAttrs, onApply }: Props) {
   const runImport = useCallback(async () => {
     const u = url.trim()
     if (!u) {
-      toast.error("Paste a product URL.")
+      toast.error("Collez l’URL du produit.")
       return
     }
     if (!/^https?:\/\//i.test(u)) {
-      toast.error("URL must start with http:// or https://")
+      toast.error("L’URL doit commencer par http:// ou https://")
       return
     }
     setLoading(true)
@@ -145,90 +65,47 @@ export function SupplierUrlImportPanel({ categoryAttrs, onApply }: Props) {
         error?: string
         platform?: string
         method?: string
-        innovations?: { quality_score?: number; duplicate?: boolean }
       }
-      if (!res.ok) throw new Error(data.error ?? "Import failed")
+      if (!res.ok) throw new Error(data.error ?? "Import impossible")
 
       const raw = Array.isArray(data.products) ? data.products[0] : null
       const p = raw && typeof raw === "object" && !Array.isArray(raw) ? (raw as Record<string, unknown>) : null
-      if (!p) throw new Error("No product returned")
+      if (!p) throw new Error("Aucune donnée produit reçue")
 
       const title = typeof p.title === "string" ? p.title.trim() : ""
-      if (!title) throw new Error("Could not read a product title from this page.")
+      if (!title) throw new Error("Impossible de lire le titre sur cette page.")
 
-      const descRaw =
-        typeof p.ai_description === "string" && p.ai_description.trim()
-          ? String(p.ai_description)
-          : typeof p.description === "string"
-            ? p.description.trim()
-            : ""
-      const images = Array.isArray(p.images)
-        ? p.images.filter((x): x is string => typeof x === "string" && /^https?:\/\//i.test(x)).slice(0, 12)
-        : []
-
-      const stockN = Math.max(0, Math.round(Number(p.stock) || 0))
-      const priceScraped = Number(p.price) || 0
-      const suggested = Number(p.suggested_price) || Number(p.basePrice) || 0
-      const original = Number(p.original_price) || 0
-      const priceUsd =
-        suggested > 0
-          ? suggested
-          : priceScraped > 0
-            ? Math.round(priceScraped * mk * 100) / 100
-            : 0
-
-      let compareAt = ""
-      if (original > 0 && priceUsd > 0 && original > priceUsd) {
-        compareAt = original.toFixed(2)
-      }
-
-      const ship = asRec(p.shipping)
-      const fromCountry = typeof ship.from_country === "string" ? ship.from_country : ""
-      const cc = guessIso2Country(fromCountry)
-      const deliveryTime = typeof ship.delivery_time === "string" ? ship.delivery_time : ""
-      const { min: dmin, max: dmax } = parseDeliveryRange(deliveryTime)
-      const shipCost = Number(ship.shipping_cost)
-      const fl = fromCountry.toLowerCase()
-      const warehouseType: "" | "local" | "regional" | "international" =
-        /china|hong kong|aliexpress|temu|shein/i.test(fl) || cc === "CN"
-          ? "international"
-          : cc === "US" || cc === "GB"
-            ? "regional"
-            : cc
-              ? "regional"
-              : ""
-
-      const specs = asRec(p.specs)
-      const specValuesPatch = mergeSpecsFromImport(categoryAttrs, specs)
-
-      onApply({
-        name: title.slice(0, 500),
-        description: (descRaw || "—").slice(0, 8000),
-        images,
-        stock: String(stockN || 0),
-        price: priceUsd > 0 ? priceUsd.toFixed(2) : "",
-        compareAt,
-        shippingCountry: cc,
-        warehouseType,
-        processingTime: "1",
-        deliveryMin: dmin,
-        deliveryMax: dmax,
-        shippingCost: Number.isFinite(shipCost) && shipCost >= 0 ? String(shipCost) : "0",
-        specValuesPatch,
+      const patch = buildUrlImportFormPatch(p, {
+        markup: mk,
+        categoryAttrs: categoryAttrs.map((a) => ({ key: a.key, label: a.label })),
+        commissionPct,
       })
+
+      onApply(patch)
 
       setLastMeta({
         platform: String(data.platform ?? "unknown"),
         method: String(data.method ?? ""),
       })
 
-      toast.success("Product fields filled from URL — review images and pricing.")
+      const bits: string[] = []
+      if (patch.images.length) bits.push(`${patch.images.length} image(s)`)
+      if (patch.illustrationVideos.length) bits.push(`${patch.illustrationVideos.length} vidéo(s)`)
+      if (patch.variants.mode !== "none") bits.push("variantes")
+      if (patch.brand === GENERIC_BRAND_LABEL) bits.push("marque : Generic")
+      else if (patch.brand) bits.push(`marque : ${patch.brand}`)
+
+      toast.success(
+        bits.length
+          ? `Fiche préremplie (${bits.join(", ")}) — vérifiez catégorie et prix.`
+          : "Fiche préremplie — vérifiez catégorie et prix."
+      )
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Import failed")
+      toast.error(e instanceof Error ? e.message : "Import impossible")
     } finally {
       setLoading(false)
     }
-  }, [url, aiRewrite, markup, categoryAttrs, onApply])
+  }, [url, aiRewrite, markup, categoryAttrs, commissionPct, onApply])
 
   return (
     <Card className="border-zinc-200 bg-zinc-50/90 p-5 dark:border-zinc-700 dark:bg-zinc-900/50">
@@ -238,27 +115,28 @@ export function SupplierUrlImportPanel({ categoryAttrs, onApply }: Props) {
         </div>
         <div className="min-w-0 flex-1 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-50">Add from URL</h2>
+            <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-50">Import depuis URL</h2>
             <Badge
               variant="secondary"
               className="border border-sky-200 bg-sky-100 text-sky-900 dark:border-sky-800 dark:bg-sky-950 dark:text-sky-100"
             >
-              Beta
+              Enrichi
             </Badge>
           </div>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Paste a product link — we pull title, description, images, price, and shipping.
+            Titre, description, images, vidéos, prix, livraison, marque (Generic si inconnue), tailles et couleurs
+            quand disponibles.
           </p>
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
             <div className="min-w-0 flex-1">
               <Label htmlFor="url-import-field" className="sr-only">
-                Product URL
+                URL produit
               </Label>
               <Input
                 id="url-import-field"
                 type="url"
-                placeholder="https://www.amazon.com/dp/… or https://brand.com/products/…"
+                placeholder="https://www.amazon.fr/dp/… ou boutique Shopify…"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 disabled={loading}
@@ -269,10 +147,10 @@ export function SupplierUrlImportPanel({ categoryAttrs, onApply }: Props) {
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
-                  Fetching…
+                  Import…
                 </>
               ) : (
-                "Import into form"
+                "Importer dans la fiche"
               )}
             </Button>
           </div>
@@ -283,7 +161,7 @@ export function SupplierUrlImportPanel({ categoryAttrs, onApply }: Props) {
             className="flex items-center gap-1 text-xs font-medium text-violet-700 hover:underline dark:text-violet-300"
           >
             <ChevronDown className={cn("h-4 w-4 transition", showAdvanced && "rotate-180")} aria-hidden />
-            Advanced options
+            Options avancées
           </button>
 
           {showAdvanced ? (
@@ -295,10 +173,10 @@ export function SupplierUrlImportPanel({ categoryAttrs, onApply }: Props) {
                   onChange={(e) => setAiRewrite(e.target.checked)}
                   className="rounded border-zinc-300"
                 />
-                AI polish description (uses Groq when configured)
+                Reformuler la description (Groq)
               </label>
               <div>
-                <Label htmlFor="url-markup">Price markup vs. scraped cost</Label>
+                <Label htmlFor="url-markup">Marge sur prix source</Label>
                 <Input
                   id="url-markup"
                   type="number"
@@ -315,10 +193,12 @@ export function SupplierUrlImportPanel({ categoryAttrs, onApply }: Props) {
           {lastMeta ? (
             <div className="flex flex-wrap gap-2 text-xs text-zinc-600 dark:text-zinc-400">
               <span className="rounded-md bg-white px-2 py-1 dark:bg-zinc-900">
-                Platform: <strong className="text-zinc-900 dark:text-zinc-100">{lastMeta.platform}</strong>
+                Plateforme : <strong className="text-zinc-900 dark:text-zinc-100">{lastMeta.platform}</strong>
               </span>
               {lastMeta.method ? (
-                <span className="rounded-md bg-white px-2 py-1 dark:bg-zinc-900">Method: {lastMeta.method}</span>
+                <span className="rounded-md bg-white px-2 py-1 dark:bg-zinc-900">
+                  Méthode : {lastMeta.method}
+                </span>
               ) : null}
             </div>
           ) : null}
