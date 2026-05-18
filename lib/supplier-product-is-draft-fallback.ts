@@ -112,8 +112,18 @@ export function isDraftSchemaOrDbError(error: unknown): boolean {
   return Boolean(unknownSelect || unknownArg || columnMissing || p2022)
 }
 
-function serializeDashboardCatalogRow<T extends { compareAt: unknown }>(row: T) {
-  return serializeProductDecimalFields(row)
+export type SupplierDashboardCatalogProduct = Omit<
+  Prisma.ProductGetPayload<{ select: typeof SUPPLIER_DASHBOARD_CATALOG_SELECT_WITH_ISDRAFT }>,
+  "compareAt"
+> & {
+  compareAt: number | null
+  isDraft: boolean
+}
+
+function serializeDashboardCatalogRow(
+  row: Prisma.ProductGetPayload<{ select: typeof SUPPLIER_DASHBOARD_CATALOG_SELECT_WITH_ISDRAFT }>
+): SupplierDashboardCatalogProduct {
+  return serializeProductDecimalFields(row) as SupplierDashboardCatalogProduct
 }
 
 export async function findSupplierProductsForDashboardCatalog(where: { supplierId: string }) {
@@ -131,16 +141,10 @@ export async function findSupplierProductsForDashboardCatalog(where: { supplierI
       orderBy: { updatedAt: "desc" },
       select: SUPPLIER_DASHBOARD_CATALOG_SELECT_NO_ISDRAFT,
     })
-    return rows.map((r) => serializeDashboardCatalogRow({ ...r, isDraft: false }))
+    return rows.map((r) =>
+      serializeProductDecimalFields({ ...r, isDraft: false }) as SupplierDashboardCatalogProduct
+    )
   }
-}
-
-export type SupplierDashboardCatalogProduct = Omit<
-  Prisma.ProductGetPayload<{ select: typeof SUPPLIER_DASHBOARD_CATALOG_SELECT_WITH_ISDRAFT }>,
-  "compareAt"
-> & {
-  compareAt: number | null
-  isDraft: boolean
 }
 
 export async function findSupplierProductsForOwnerApi(where: { supplierId: string }) {

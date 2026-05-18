@@ -25,22 +25,33 @@ const PRODUCT_DECIMAL_KEYS = [
 
 type ProductDecimalKey = (typeof PRODUCT_DECIMAL_KEYS)[number]
 
+type ProductDecimalValues = {
+  compareAt: number | null
+  freeShippingThreshold: number | null
+  shippingCost: number
+}
+
+/** Product row shape safe to pass into Client Components (Prisma `Decimal` → `number`). */
+export type WithSerializedProductDecimals<T> = Omit<T, ProductDecimalKey> &
+  Pick<ProductDecimalValues, Extract<ProductDecimalKey, keyof T>>
+
 /** Shallow map of common `Product` decimal columns for Client Component props. */
-export function serializeProductDecimalFields<T extends Record<string, unknown>>(row: T): T {
-  const out = { ...row }
+export function serializeProductDecimalFields<T extends Record<string, unknown>>(
+  row: T
+): WithSerializedProductDecimals<T> {
+  const out: Record<string, unknown> = { ...row }
   for (const key of PRODUCT_DECIMAL_KEYS) {
     if (!(key in out)) continue
-    const raw = out[key]
+    const raw = row[key]
     if (raw == null) {
-      ;(out as Record<string, unknown>)[key] = null
+      out[key] = null
       continue
     }
     if (isPrismaDecimal(raw) || typeof raw === "string" || typeof raw === "number") {
-      ;(out as Record<string, unknown>)[key] =
-        key === "shippingCost" ? decimalToNumber(raw) ?? 0 : decimalToNumber(raw)
+      out[key] = key === "shippingCost" ? decimalToNumber(raw) ?? 0 : decimalToNumber(raw)
     }
   }
-  return out
+  return out as WithSerializedProductDecimals<T>
 }
 
 function walkForClient(value: unknown): unknown {
