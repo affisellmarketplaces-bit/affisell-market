@@ -9,7 +9,6 @@ import { SupplierSimpleColorImageField } from "@/components/supplier/supplier-si
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { formatStoreCurrency } from "@/lib/market-config"
-import { marginEur } from "@/lib/product-variant-sku"
 import {
   applyColorImageToRows,
   ensureRowCustomFields,
@@ -22,34 +21,26 @@ import {
 import { isSkuColumnVisible, type SkuOptionalColumnKey } from "@/lib/supplier-sku-columns"
 import { cn } from "@/lib/utils"
 
-export type EditableVariantRow = SupplierSkuTableRow & { margin?: number }
-
-function withMargin(row: EditableVariantRow): EditableVariantRow {
-  const supplier = Number(row.supplierPrice) || 0
-  const pub = Number(row.publicPrice) || 0
-  return { ...row, margin: marginEur(supplier, pub) }
-}
+export type EditableVariantRow = SupplierSkuTableRow
 
 function newRow(defaults: {
   supplierPrice: number
-  publicPrice: number
   compareAtEur: number | null
   commission: number
   customFields: Record<string, string>
 }): EditableVariantRow {
-  return withMargin({
+  return {
     id: `new-${crypto.randomUUID()}`,
     color: "",
     size: null,
     sku: null,
     supplierPrice: defaults.supplierPrice,
-    publicPrice: defaults.publicPrice,
     compareAtEur: defaults.compareAtEur,
     stock: 0,
     commissionRate: defaults.commission,
     colorImage: undefined,
     customFields: { ...defaults.customFields },
-  })
+  }
 }
 
 type Props = {
@@ -88,18 +79,16 @@ export function SupplierVariantTable({
   const [mode, setMode] = useState<"fast" | "table">(rows.length === 0 ? "fast" : "table")
   const costTipId = useId()
 
-  const baseSupplier = basePriceEur > 0 ? Math.round(basePriceEur * 0.6 * 100) / 100 : 10
-  const basePublic = basePriceEur > 0 ? basePriceEur : 0
+  const baseSupplier = basePriceEur > 0 ? basePriceEur : 10
   const showPhotoCol = isSkuColumnVisible(hiddenColumns, "photo")
   const showSizeCol = isSkuColumnVisible(hiddenColumns, "size")
   const showCompareAtCol = isSkuColumnVisible(hiddenColumns, "compareAt")
   const showStockCol = isSkuColumnVisible(hiddenColumns, "stock")
   const showCommissionCol = isSkuColumnVisible(hiddenColumns, "commission")
-  const showMarginCol = isSkuColumnVisible(hiddenColumns, "margin")
   const columnKeys = useMemo(() => customColumns.map((c) => c.key), [customColumns])
 
   const rowsWithFields = useMemo(
-    () => ensureRowCustomFields(rows, columnKeys).map(withMargin),
+    () => ensureRowCustomFields(rows, columnKeys),
     [rows, columnKeys]
   )
 
@@ -112,7 +101,7 @@ export function SupplierVariantTable({
           rowsWithFields.map((r) => {
             const cf = { ...(r.customFields ?? {}) }
             delete cf[col.key]
-            return withMargin({ ...r, customFields: cf })
+            return { ...r, customFields: cf }
           })
         )
       }
@@ -129,7 +118,7 @@ export function SupplierVariantTable({
       if (!prev) return true
       return JSON.stringify(r.customFields) !== JSON.stringify(prev.customFields)
     })
-    if (needsPatch) onChange(ensured.map(withMargin))
+    if (needsPatch) onChange(ensured)
     // eslint-disable-next-line react-hooks/exhaustive-deps -- sync empty custom field keys when columns change
   }, [columnKeys.join("\0")])
 
@@ -168,7 +157,7 @@ export function SupplierVariantTable({
       onChange(
         rowsWithFields.map((r, i) => {
           if (i !== index) return r
-          return withMargin({ ...r, ...patch })
+          return { ...r, ...patch }
         })
       )
     },
@@ -180,10 +169,10 @@ export function SupplierVariantTable({
       onChange(
         rowsWithFields.map((r, i) => {
           if (i !== index) return r
-          return withMargin({
+          return {
             ...r,
             customFields: { ...r.customFields, [key]: value },
-          })
+          }
         })
       )
     },
@@ -193,7 +182,7 @@ export function SupplierVariantTable({
   const updateColorImage = useCallback(
     (index: number, image: string) => {
       const color = rowsWithFields[index]?.color ?? ""
-      onChange(applyColorImageToRows(rowsWithFields, color, image).map(withMargin))
+      onChange(applyColorImageToRows(rowsWithFields, color, image))
     },
     [rowsWithFields, onChange]
   )
@@ -210,7 +199,6 @@ export function SupplierVariantTable({
       ...rowsWithFields,
       newRow({
         supplierPrice: baseSupplier,
-        publicPrice: basePublic,
         compareAtEur: catalogCompareAtEur,
         commission: defaultCommission,
         customFields: defaultCustomFields,
@@ -221,7 +209,6 @@ export function SupplierVariantTable({
     rowsWithFields,
     onChange,
     baseSupplier,
-    basePublic,
     catalogCompareAtEur,
     defaultCommission,
     defaultCustomFields,
@@ -229,21 +216,20 @@ export function SupplierVariantTable({
 
   const handleFastGenerate = useCallback(
     (generated: SupplierSkuTableRow[]) => {
-      onChange(generated.map(withMargin))
+      onChange(generated)
       setMode("table")
     },
     [onChange]
   )
 
-  const applyPublicPriceToAll = useCallback(() => {
-    const pub = basePublic > 0 ? basePublic : Number(rowsWithFields[0]?.publicPrice) || 0
-    if (pub <= 0) return
-    onChange(rowsWithFields.map((r) => withMargin({ ...r, publicPrice: pub })))
-  }, [rowsWithFields, onChange, basePublic])
+  const applySupplierPriceToAll = useCallback(() => {
+    if (baseSupplier <= 0) return
+    onChange(rowsWithFields.map((r) => ({ ...r, supplierPrice: baseSupplier })))
+  }, [rowsWithFields, onChange, baseSupplier])
 
   const applyCompareAtToAll = useCallback(() => {
     if (catalogCompareAtEur == null || catalogCompareAtEur <= 0) return
-    onChange(rowsWithFields.map((r) => withMargin({ ...r, compareAtEur: catalogCompareAtEur })))
+    onChange(rowsWithFields.map((r) => ({ ...r, compareAtEur: catalogCompareAtEur })))
   }, [rowsWithFields, onChange, catalogCompareAtEur])
 
   const firstErrorRef = useRef<HTMLTableRowElement | null>(null)
@@ -260,11 +246,10 @@ export function SupplierVariantTable({
       : ""
 
   const colSpan =
-    5 +
+    4 +
     (showPhotoCol ? 1 : 0) +
     (showSizeCol ? 1 : 0) +
     (showCompareAtCol ? 1 : 0) +
-    (showMarginCol ? 1 : 0) +
     (showStockCol ? 1 : 0) +
     (showCommissionCol ? 1 : 0) +
     customColumns.length
@@ -317,7 +302,6 @@ export function SupplierVariantTable({
         <SupplierSkuFastPanel
           skuPrefix={skuPrefix}
           baseSupplierPrice={baseSupplier}
-          basePublicPrice={basePublic}
           catalogCompareAtEur={catalogCompareAtEur}
           defaultCommission={defaultCommission}
           customColumns={customColumns}
@@ -342,7 +326,7 @@ export function SupplierVariantTable({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
               {showPhotoCol ? "Photo partagée par couleur · " : ""}
-              Coût vide = {formatStoreCurrency(baseSupplier)}
+              Prix vide = {formatStoreCurrency(baseSupplier)} (catalogue affiliés)
             </p>
             <div className="flex flex-wrap gap-2">
               {showCompareAtCol && catalogCompareAtEur != null && catalogCompareAtEur > 0 ? (
@@ -360,10 +344,10 @@ export function SupplierVariantTable({
                 type="button"
                 variant="outline"
                 size="sm"
-                disabled={disabled || rowsWithFields.length === 0}
-                onClick={applyPublicPriceToAll}
+                disabled={disabled || rowsWithFields.length === 0 || baseSupplier <= 0}
+                onClick={applySupplierPriceToAll}
               >
-                Prix public à tous
+                Votre prix à tous
               </Button>
               <Button type="button" variant="outline" size="sm" disabled={disabled} onClick={addRow}>
                 <Plus className="mr-1 h-4 w-4" aria-hidden />
@@ -382,23 +366,22 @@ export function SupplierVariantTable({
                   <th className="px-3 py-2.5">SKU</th>
                   <th className="px-3 py-2.5">
                     <span className="inline-flex items-center gap-1">
-                      Coût
+                      Votre prix
                       <button
                         type="button"
                         className="font-normal normal-case text-violet-600 underline decoration-dotted dark:text-violet-400"
                         aria-describedby={costTipId}
-                        title="Prix d'achat fournisseur"
+                        title="Prix catalogue visible par les affiliés"
                       >
                         ?
                       </button>
                     </span>
                     <span id={costTipId} className="sr-only">
-                      Marge = Prix public − Coût
+                      Les affiliés fixent le prix de vente client ; vous définissez votre prix et la
+                      commission offerte.
                     </span>
                   </th>
-                  <th className="px-3 py-2.5">Public</th>
                   {showCompareAtCol ? <th className="px-3 py-2.5">Barré</th> : null}
-                  {showMarginCol ? <th className="px-3 py-2.5">Marge</th> : null}
                   {showStockCol ? <th className="px-3 py-2.5">Stock</th> : null}
                   {showCommissionCol ? <th className="px-3 py-2.5">Comm.%</th> : null}
                   {customColumns.map((col) => (
@@ -503,19 +486,6 @@ export function SupplierVariantTable({
                             }
                           />
                         </td>
-                        <td className="px-2 py-1.5">
-                          <Input
-                            type="number"
-                            min={0.01}
-                            step={0.01}
-                            className={cn("h-9 w-24", rowErrorClass(index, "publicPrice"))}
-                            value={row.publicPrice > 0 ? row.publicPrice : ""}
-                            disabled={disabled}
-                            onChange={(e) =>
-                              updateRow(index, { publicPrice: Number(e.target.value) || 0 })
-                            }
-                          />
-                        </td>
                         {showCompareAtCol ? (
                           <td className="px-2 py-1.5">
                             <Input
@@ -535,13 +505,6 @@ export function SupplierVariantTable({
                                 })
                               }}
                             />
-                          </td>
-                        ) : null}
-                        {showMarginCol ? (
-                          <td className="px-2 py-1.5 text-sm font-medium tabular-nums text-emerald-700 dark:text-emerald-400">
-                            {formatStoreCurrency(
-                              row.margin ?? marginEur(row.supplierPrice, row.publicPrice)
-                            )}
                           </td>
                         ) : null}
                         {showStockCol ? (

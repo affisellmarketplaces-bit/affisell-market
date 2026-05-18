@@ -5,7 +5,6 @@ export const SKU_OPTIONAL_COLUMN_KEYS = [
   "compareAt",
   "stock",
   "commission",
-  "margin",
 ] as const
 
 export type SkuOptionalColumnKey = (typeof SKU_OPTIONAL_COLUMN_KEYS)[number]
@@ -18,7 +17,6 @@ export const SKU_OPTIONAL_COLUMN_LABELS: Record<SkuOptionalColumnKey, string> = 
   compareAt: "Prix barré",
   stock: "Stock",
   commission: "Commission %",
-  margin: "Marge",
 }
 
 export function isSkuOptionalColumnKey(v: string): v is SkuOptionalColumnKey {

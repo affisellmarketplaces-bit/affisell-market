@@ -680,8 +680,7 @@ export function SupplierAddProductForm({
           : productVariantLinesToSkuTableRows(
               variantRows.length ? variantRows : [defaultVariantRow(commission)],
               Math.round(Number(commission) || 15),
-              Number(price) || 0,
-              Number(price) > 0 ? Math.round(Number(price) * 0.6 * 100) / 100 : 10
+              Number(price) > 0 ? Number(price) : 10
             )
       )
       setVariantSizesText("")
@@ -772,14 +771,12 @@ export function SupplierAddProductForm({
         setSimpleColorRows([])
       } else if (parsedListingVariants?.variantRows?.length) {
         setVariantFormMode("advanced")
-        const pub = Number.isFinite(cents) ? cents / 100 : 0
-        const sup = pub > 0 ? Math.round(pub * 0.6 * 100) / 100 : 10
+        const sup = Number.isFinite(cents) ? cents / 100 : 10
         setAdvancedSkuRows(
           productVariantLinesToSkuTableRows(
             parsedListingVariants.variantRows,
             Math.round(Number(data.commissionRate) || 15),
-            pub,
-            sup
+            sup > 0 ? sup : 10
           )
         )
         setVariantRows(parsedListingVariants.variantRows)
@@ -946,8 +943,7 @@ export function SupplierAddProductForm({
               }))
             : undefined
       } else if (variantFormMode === "advanced") {
-        const basePublic = priceN > 0 ? priceN : 1
-        const baseSupplier = basePublic > 0 ? Math.round(basePublic * 0.6 * 100) / 100 : 10
+        const baseSupplier = priceN > 0 ? priceN : 10
         const comm = Math.round(Number(commission) || 15)
         const filledSku = advancedSkuRows.filter((r) => r.color.trim())
         colorsPayload = [
@@ -963,9 +959,14 @@ export function SupplierAddProductForm({
           hasVariantsPayload = true
           skuVariantsPayload = apiRowsFromSkuTable(filledSku, {
             baseSupplierPrice: baseSupplier,
-            basePublicPrice: basePublic,
             defaultCommission: comm,
           })
+          const minSupplierFromRows = Math.min(
+            ...filledSku.map((r) => r.supplierPrice).filter((p) => p > 0)
+          )
+          if (Number.isFinite(minSupplierFromRows) && minSupplierFromRows > 0) {
+            priceN = minSupplierFromRows
+          }
           const mirrorLines = skuTableRowsToProductVariantLines(
             filledSku,
             Math.max(100, Math.round(priceN * 100))
@@ -2243,13 +2244,13 @@ export function SupplierAddProductForm({
                 <SectionCard
                   id="add-product-pricing"
                   icon={Wallet}
-                  title="Pricing & inventory"
-                  description="Your cost basis and stock. Affiliates set retail; commission applies to their margin."
+                  title="Prix & stock"
+                  description="Votre prix catalogue, stock et prix barré optionnel. Les affiliés fixent le prix client ; vous définissez la commission sur leur marge."
                   hasError={hasPublishFieldError("price") || hasPublishFieldError("compareAt")}
                 >
                   <div className="grid gap-5 sm:grid-cols-2">
                     <div className="sm:col-span-2">
-                      <Label htmlFor="p-price">Base price</Label>
+                      <Label htmlFor="p-price">Votre prix (EUR)</Label>
                       <Input
                         id="p-price"
                         type="number"
@@ -2273,7 +2274,7 @@ export function SupplierAddProductForm({
                       ) : null}
                     </div>
                     <div>
-                      <Label htmlFor="p-compare">Compare-at (optional)</Label>
+                      <Label htmlFor="p-compare">Prix barré (optionnel)</Label>
                       <Input
                         id="p-compare"
                         type="number"
@@ -2394,8 +2395,7 @@ export function SupplierAddProductForm({
                         onClick={() => {
                           setVariantFormMode("advanced")
                           const colors = extractOrderedColorNames(simpleColorRows)
-                          const pub = Number(price) || 0
-                          const sup = pub > 0 ? Math.round(pub * 0.6 * 100) / 100 : 10
+                          const sup = Number(price) > 0 ? Number(price) : 10
                           const comm = Math.round(Number(commission) || 15)
                           if (colors.length > 0) {
                             const generated = generateSkuTableRows({
@@ -2403,7 +2403,6 @@ export function SupplierAddProductForm({
                               sizesText: variantSizesText,
                               skuPrefix: "PRD",
                               baseSupplierPrice: sup,
-                              basePublicPrice: pub || 1,
                               defaultCommission: comm,
                             })
                             setAdvancedSkuRows(generated)
@@ -2416,7 +2415,6 @@ export function SupplierAddProductForm({
                                 size: null,
                                 sku: null,
                                 supplierPrice: sup,
-                                publicPrice: pub || 1,
                                 stock: 0,
                                 commissionRate: comm,
                                 compareAtEur: compareAt.trim()
@@ -2791,26 +2789,29 @@ export function SupplierAddProductForm({
                 {Number.isFinite(Number(price)) && Number(price) > 0 ? (
                   <div className="rounded-3xl border border-gray-100 bg-white/80 p-5 shadow-sm backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/70">
                     <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                      Buyer-facing preview
+                      Aperçu catalogue affiliés
                     </p>
                     <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
-                      Base:{" "}
+                      Votre prix :{" "}
                       <span className="font-semibold text-zinc-900 dark:text-zinc-100">
                         {formatMoneyDisplay(Number(price))}
+                      </span>
+                      {" · "}Commission :{" "}
+                      <span className="font-semibold text-violet-800 dark:text-violet-200">
+                        {Math.round(Number(commission) || 0)}%
                       </span>
                       {compareAt.trim() && Number(compareAt) > Number(price) ? (
                         <>
                           {" "}
+                          · Barré :{" "}
                           <span className="text-compare-at tabular-nums line-through">
                             {formatMoneyDisplay(Number(compareAt))}
                           </span>
-                          {discountPct > 0 ? (
-                            <span className="ml-2 inline-flex rounded-md bg-red-600 px-2 py-0.5 text-xs font-semibold text-white">
-                              −{discountPct}%
-                            </span>
-                          ) : null}
                         </>
                       ) : null}
+                    </p>
+                    <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+                      Le prix affiché aux acheteurs est choisi par chaque affilié sur sa boutique.
                     </p>
                   </div>
                 ) : null}

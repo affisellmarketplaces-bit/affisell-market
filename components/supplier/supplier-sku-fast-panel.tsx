@@ -30,7 +30,6 @@ import { SupplierSkuColumnToggles } from "@/components/supplier/supplier-sku-col
 type Props = {
   skuPrefix: string
   baseSupplierPrice: number
-  basePublicPrice: number
   catalogCompareAtEur: number | null
   defaultCommission: number
   customColumns: SkuCustomColumnDef[]
@@ -49,7 +48,6 @@ function newColorRow(): SkuFastColorRow {
 export function SupplierSkuFastPanel({
   skuPrefix,
   baseSupplierPrice,
-  basePublicPrice,
   catalogCompareAtEur,
   defaultCommission,
   customColumns,
@@ -69,7 +67,6 @@ export function SupplierSkuFastPanel({
   const [sizesText, setSizesText] = useState("")
   const [defaults, setDefaults] = useState<SkuFastDefaults>(() => ({
     supplierPrice: baseSupplierPrice,
-    publicPrice: basePublicPrice,
     compareAtEur: catalogCompareAtEur,
     stock: 0,
     commissionRate: defaultCommission,
@@ -143,8 +140,8 @@ export function SupplierSkuFastPanel({
           Assistant de génération
         </p>
         <p className="mt-1 text-xs leading-relaxed text-violet-900/80 dark:text-violet-200/85">
-          Définissez couleurs (avec photo), tailles, prix par défaut et colonnes métier — puis générez
-          le tableau complet. Chaque cellule reste modifiable après coup.
+          Définissez couleurs, tailles, votre prix catalogue, commission et colonnes métier — puis
+          générez le tableau. Les affiliés fixent le prix client final.
         </p>
       </div>
 
@@ -260,7 +257,7 @@ export function SupplierSkuFastPanel({
         </h3>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <div>
-            <Label className="text-xs">Coût fournisseur EUR</Label>
+            <Label className="text-xs">Votre prix EUR (catalogue affiliés)</Label>
             <Input
               type="number"
               min={0.01}
@@ -271,18 +268,6 @@ export function SupplierSkuFastPanel({
               onChange={(e) =>
                 setDefault({ supplierPrice: Number(e.target.value) || 0 })
               }
-            />
-          </div>
-          <div>
-            <Label className="text-xs">Prix public EUR</Label>
-            <Input
-              type="number"
-              min={0.01}
-              step={0.01}
-              className="mt-1 h-10"
-              disabled={disabled}
-              value={defaults.publicPrice > 0 ? defaults.publicPrice : ""}
-              onChange={(e) => setDefault({ publicPrice: Number(e.target.value) || 0 })}
             />
           </div>
           {showCompareAt ? (
@@ -427,9 +412,9 @@ export function SupplierSkuFastPanel({
         </Button>
         {comboCount > 0 ? (
           <p className="text-xs text-zinc-600 dark:text-zinc-400">
-            Aperçu : coût {formatStoreCurrency(defaults.supplierPrice)} → public{" "}
-            {formatStoreCurrency(defaults.publicPrice)}
-            {defaults.compareAtEur ? ` (barré ${formatStoreCurrency(defaults.compareAtEur)})` : ""}
+            Aperçu catalogue affiliés : {formatStoreCurrency(defaults.supplierPrice)}
+            {defaults.compareAtEur ? ` · barré ${formatStoreCurrency(defaults.compareAtEur)}` : ""}
+            {" · "}comm. {defaults.commissionRate}%
             {" · "}stock {defaults.stock}/ligne
           </p>
         ) : null}

@@ -54,11 +54,11 @@ export async function GET(
       count: variants.length,
       totalStock: variants.reduce((s, v) => s + v.stock, 0),
       totalMarginEur: Math.round(totalMargin * 100) / 100,
-      minPublicPrice: variants.length
-        ? Math.min(...variants.map((v) => v.publicPrice))
+      minSupplierPrice: variants.length
+        ? Math.min(...variants.map((v) => v.supplierPrice))
         : product.basePriceCents / 100,
-      maxPublicPrice: variants.length
-        ? Math.max(...variants.map((v) => v.publicPrice))
+      maxSupplierPrice: variants.length
+        ? Math.max(...variants.map((v) => v.supplierPrice))
         : product.basePriceCents / 100,
     },
     supplier: product.supplier,

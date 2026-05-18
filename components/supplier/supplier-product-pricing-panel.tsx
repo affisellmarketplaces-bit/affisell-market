@@ -28,26 +28,27 @@ function toEditable(rows: ProductVariantApiRow[]): EditableVariantRow[] {
     size: r.size,
     sku: r.sku,
     supplierPrice: r.supplierPrice,
-    publicPrice: r.publicPrice,
     stock: r.stock,
     commissionRate: r.commissionRate ?? 10,
     compareAtEur: null,
     customFields: {},
-    margin: r.margin,
   }))
 }
 
 function toPayloadRows(rows: EditableVariantRow[]) {
-  return rows.map((r) => ({
-    id: r.id?.startsWith("new-") ? undefined : r.id,
-    sku: r.sku,
-    color: r.color,
-    size: r.size,
-    supplierPrice: Number(r.supplierPrice),
-    publicPrice: Number(r.publicPrice),
-    stock: r.stock,
-    commissionRate: r.commissionRate,
-  }))
+  return rows.map((r) => {
+    const supplierPrice = Number(r.supplierPrice)
+    return {
+      id: r.id?.startsWith("new-") ? undefined : r.id,
+      sku: r.sku,
+      color: r.color,
+      size: r.size,
+      supplierPrice,
+      publicPrice: supplierPrice,
+      stock: r.stock,
+      commissionRate: r.commissionRate,
+    }
+  })
 }
 
 type Props = {
@@ -134,8 +135,8 @@ export function SupplierProductPricingPanel({ productId }: Props) {
         <div>
           <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Tarification</h2>
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            Commission affiliés : <strong>{commissionRate}%</strong> — marge SKU = prix public − prix
-            fournisseur
+            Votre prix catalogue + commission <strong>{commissionRate}%</strong> sur la marge
+            affiliée. Les affiliés fixent le prix client.
           </p>
         </div>
         <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-zinc-800 dark:text-zinc-200">
@@ -151,13 +152,11 @@ export function SupplierProductPricingPanel({ productId }: Props) {
                     sku: null,
                     color: "",
                     size: null,
-                    supplierPrice: Number(price) > 0 ? Number(price) * 0.6 : 10,
-                    publicPrice: Number(price) || 0,
+                    supplierPrice: Number(price) > 0 ? Number(price) : 10,
                     stock: Number(stock) || 0,
                     commissionRate: Number(commissionRate) || 15,
                     compareAtEur: null,
                     customFields: {},
-                    margin: 0,
                   },
                 ])
               }

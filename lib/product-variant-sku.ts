@@ -30,14 +30,16 @@ export const productVariantInputSchema = z.object({
     .optional()
     .nullable()
     .transform((v) => (v && v.length > 0 ? v : null)),
-  supplierPrice: z.coerce.number().positive("Coût fournisseur doit être > 0"),
-  publicPrice: z.coerce.number().positive("Prix public doit être > 0"),
+  /** Prix catalogue fournisseur (wholesale) — le prix public est fixé par l'affilié. */
+  supplierPrice: z.coerce.number().positive("Votre prix (EUR) doit être > 0"),
+  /** Ignoré côté fournisseur ; recopié sur supplierPrice en base pour compatibilité. */
+  publicPrice: z.coerce.number().positive().optional(),
   stock: z.coerce.number().int().min(0, "Stock doit être ≥ 0"),
   commissionRate: z.coerce.number().min(0).max(100).default(10),
-}).refine((v) => v.publicPrice >= v.supplierPrice, {
-  message: "Prix public doit être ≥ coût fournisseur",
-  path: ["publicPrice"],
-})
+}).transform((v) => ({
+  ...v,
+  publicPrice: v.publicPrice ?? v.supplierPrice,
+}))
 
 export const productVariantsBodySchema = z.object({
   hasVariants: z.boolean().optional(),
@@ -279,7 +281,7 @@ export async function syncProductVariants(
       color: v.color,
       size: v.size,
       supplierPrice: new Prisma.Decimal(v.supplierPrice.toFixed(2)),
-      publicPrice: new Prisma.Decimal(v.publicPrice.toFixed(2)),
+      publicPrice: new Prisma.Decimal(v.supplierPrice.toFixed(2)),
       stock: v.stock,
     }
 
@@ -302,12 +304,12 @@ export async function syncProductVariants(
   const agg = await tx.productVariant.aggregate({
     where: { productId },
     _sum: { stock: true },
-    _min: { publicPrice: true },
+    _min: { supplierPrice: true },
   })
   const totalStock = agg._sum.stock ?? 0
-  const minPublic = agg._min.publicPrice
+  const minSupplier = agg._min.supplierPrice
   const baseCents =
-    minPublic != null ? Math.max(100, Math.round(Number(minPublic) * 100)) : undefined
+    minSupplier != null ? Math.max(100, Math.round(Number(minSupplier) * 100)) : undefined
 
   await tx.product.update({
     where: { id: productId },

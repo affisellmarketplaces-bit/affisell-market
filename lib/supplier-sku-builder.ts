@@ -75,9 +75,9 @@ export type SupplierSkuTableRow = {
   color: string
   size: string | null
   sku: string | null
+  /** Prix catalogue fournisseur (EUR) — visible par les affiliés, pas le prix client final. */
   supplierPrice: number
-  publicPrice: number
-  /** Prix barré optionnel (EUR) pour cette ligne */
+  /** Prix barré optionnel (EUR) — repère MSRP pour les affiliés */
   compareAtEur?: number | null
   stock: number
   commissionRate: number
@@ -89,7 +89,6 @@ export type SupplierSkuTableRow = {
 
 export type SkuFastDefaults = {
   supplierPrice: number
-  publicPrice: number
   compareAtEur: number | null
   stock: number
   commissionRate: number
@@ -153,7 +152,6 @@ export function generateSkuTableRows(params: {
   sizesText: string
   skuPrefix: string
   baseSupplierPrice: number
-  basePublicPrice: number
   defaultCommission: number
   defaultCompareAtEur?: number | null
   defaultStock?: number
@@ -172,7 +170,6 @@ export function generateSkuTableRows(params: {
     skuPrefix: params.skuPrefix,
     defaults: {
       supplierPrice: params.baseSupplierPrice,
-      publicPrice: params.basePublicPrice,
       compareAtEur: params.defaultCompareAtEur ?? null,
       stock: params.defaultStock ?? 0,
       commissionRate: params.defaultCommission,
@@ -207,7 +204,6 @@ export function generateSkuTableRowsFromSetup(params: {
     size: c.size,
     sku: suggestVariantSku(params.skuPrefix, c.color, c.size),
     supplierPrice: params.defaults.supplierPrice,
-    publicPrice: params.defaults.publicPrice,
     compareAtEur: params.defaults.compareAtEur,
     stock: params.defaults.stock,
     commissionRate: params.defaults.commissionRate,
@@ -237,7 +233,6 @@ export type VariantRowValidationIssue = {
     | "sku"
     | "stock"
     | "supplierPrice"
-    | "publicPrice"
     | "compareAtEur"
     | string
   message: string
@@ -274,26 +269,16 @@ export function validateSupplierSkuTableRows(
     }
 
     if (!Number.isFinite(row.supplierPrice) || row.supplierPrice <= 0) {
-      issues.push({ index, field: "supplierPrice", message: "Coût EUR requis (> 0)" })
-    }
-
-    if (!Number.isFinite(row.publicPrice) || row.publicPrice <= 0) {
-      issues.push({ index, field: "publicPrice", message: "Prix public requis (> 0)" })
-    } else if (row.supplierPrice > 0 && row.publicPrice < row.supplierPrice) {
-      issues.push({
-        index,
-        field: "publicPrice",
-        message: "Prix public ≥ coût fournisseur",
-      })
+      issues.push({ index, field: "supplierPrice", message: "Votre prix EUR requis (> 0)" })
     }
 
     const compare = row.compareAtEur
     if (compare != null && Number.isFinite(compare) && compare > 0) {
-      if (compare < row.publicPrice) {
+      if (row.supplierPrice > 0 && compare < row.supplierPrice) {
         issues.push({
           index,
           field: "compareAtEur",
-          message: "Prix barré ≥ prix public",
+          message: "Prix barré ≥ votre prix",
         })
       }
     }
@@ -364,7 +349,6 @@ export function skuTableRowsToProductVariantLines(
 export function productVariantLinesToSkuTableRows(
   lines: ProductVariantLine[],
   defaultCommission: number,
-  basePublicPrice: number,
   baseSupplierPrice: number
 ): SupplierSkuTableRow[] {
   return lines.map((r) => {
@@ -375,7 +359,6 @@ export function productVariantLinesToSkuTableRows(
       size,
       sku: r.sku.trim() || null,
       supplierPrice: r.priceCents > 0 ? r.priceCents / 100 : baseSupplierPrice,
-      publicPrice: basePublicPrice,
       compareAtEur:
         r.compareAtCents != null && r.compareAtCents > 0 ? r.compareAtCents / 100 : null,
       stock: r.stock,
@@ -400,24 +383,27 @@ export function splitVariantLineName(name: string): { color: string; size: strin
 
 export function apiRowsFromSkuTable(
   rows: SupplierSkuTableRow[],
-  defaults: { baseSupplierPrice: number; basePublicPrice: number; defaultCommission: number }
+  defaults: { baseSupplierPrice: number; defaultCommission: number }
 ): ProductVariantInput[] {
   return rows
     .filter((r) => r.color.trim())
-    .map((r) => ({
+    .map((r) => {
+      const supplierPrice =
+        r.supplierPrice > 0 ? r.supplierPrice : Math.max(0.01, defaults.baseSupplierPrice)
+      return {
       id: r.id.startsWith("new-") ? undefined : r.id,
       color: r.color.trim(),
       size: r.size?.trim() ? r.size.trim() : null,
       sku: (r.sku?.trim() || suggestVariantSku("PRD", r.color, r.size)).slice(0, 64),
-      supplierPrice:
-        r.supplierPrice > 0 ? r.supplierPrice : Math.max(0.01, defaults.baseSupplierPrice),
-      publicPrice: r.publicPrice > 0 ? r.publicPrice : Math.max(0.01, defaults.basePublicPrice),
+      supplierPrice,
+      publicPrice: supplierPrice,
       stock: Math.max(0, Math.round(r.stock)),
       commissionRate: Math.min(
         100,
         Math.max(0, Math.round(r.commissionRate || defaults.defaultCommission))
       ),
-    }))
+    }
+    })
 }
 
 export function sumSkuTableStock(rows: SupplierSkuTableRow[]): number {
@@ -430,17 +416,17 @@ export function skuTableRowFromApiVariant(row: {
   size: string | null
   sku: string | null
   supplierPrice: number
-  publicPrice: number
+  publicPrice?: number
   stock: number
   commissionRate?: number
 }): SupplierSkuTableRow {
+  const supplier = Number(row.supplierPrice) || Number(row.publicPrice) || 0
   return {
     id: row.id,
     color: row.color?.trim() ?? "",
     size: row.size?.trim() ? row.size.trim() : null,
     sku: row.sku?.trim() ? row.sku.trim() : null,
-    supplierPrice: Number(row.supplierPrice) || 0,
-    publicPrice: Number(row.publicPrice) || 0,
+    supplierPrice: supplier,
     stock: Math.max(0, Math.round(row.stock) || 0),
     commissionRate: Math.min(100, Math.max(0, Math.round(row.commissionRate ?? 10))),
     compareAtEur: null,

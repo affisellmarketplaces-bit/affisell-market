@@ -29,7 +29,6 @@ describe("supplier-sku-builder", () => {
       sizesText: "S, M",
       skuPrefix: "BON",
       baseSupplierPrice: 9.9,
-      basePublicPrice: 19.9,
       defaultCommission: 10,
     })
     expect(rows).toHaveLength(4)
@@ -44,7 +43,6 @@ describe("supplier-sku-builder", () => {
         size: "S",
         sku: "DUP",
         supplierPrice: 10,
-        publicPrice: 20,
         stock: 1,
         commissionRate: 10,
       },
@@ -54,7 +52,6 @@ describe("supplier-sku-builder", () => {
         size: "M",
         sku: "DUP",
         supplierPrice: 10,
-        publicPrice: 20,
         stock: 1,
         commissionRate: 10,
       },

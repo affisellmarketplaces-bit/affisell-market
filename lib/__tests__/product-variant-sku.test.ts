@@ -8,22 +8,27 @@ import {
 } from "@/lib/product-variant-sku"
 
 describe("product-variant-sku", () => {
-  it("validates supplier and public prices", () => {
+  it("validates supplier price and mirrors publicPrice for storage", () => {
     const ok = productVariantInputSchema.safeParse({
+      color: "Noir",
+      supplierPrice: 10,
+      stock: 5,
+    })
+    expect(ok.success).toBe(true)
+    if (ok.success) {
+      expect(ok.data.publicPrice).toBe(10)
+    }
+
+    const withExplicit = productVariantInputSchema.safeParse({
       color: "Noir",
       supplierPrice: 10,
       publicPrice: 25,
       stock: 5,
     })
-    expect(ok.success).toBe(true)
-
-    const bad = productVariantInputSchema.safeParse({
-      color: "Noir",
-      supplierPrice: 30,
-      publicPrice: 20,
-      stock: 1,
-    })
-    expect(bad.success).toBe(false)
+    expect(withExplicit.success).toBe(true)
+    if (withExplicit.success) {
+      expect(withExplicit.data.publicPrice).toBe(25)
+    }
   })
 
   it("rejects color with + or comma", () => {
@@ -35,7 +40,7 @@ describe("product-variant-sku", () => {
     })
     expect(bad.success).toBe(false)
     if (!bad.success) {
-      expect(bad.error.issues[0]?.message).toMatch(/Pas de \+ ou virgule/)
+      expect(bad.error.issues[0]?.message).toMatch(/virgule|\+/)
     }
   })
 
