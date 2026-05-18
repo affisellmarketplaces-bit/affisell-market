@@ -1,0 +1,152 @@
+import type { SupplierVariantFormMode } from "@/lib/supplier-add-product-draft-cache"
+import type { ProductVariantLine } from "@/lib/product-variants"
+
+export type PublishFieldKey =
+  | "name"
+  | "images"
+  | "category"
+  | "specs"
+  | "price"
+  | "compareAt"
+  | "commission"
+  | "variants"
+
+export type PublishBlocker = {
+  field: PublishFieldKey
+  message: string
+}
+
+export const PUBLISH_FIELD_SCROLL_ID: Record<PublishFieldKey, string> = {
+  name: "p-name",
+  images: "add-product-media",
+  category: "add-product-classify",
+  specs: "product-spec-fields",
+  price: "add-product-pricing",
+  compareAt: "p-compare",
+  commission: "add-product-commission",
+  variants: "add-product-variants",
+}
+
+export function publishBlockerStep(field: PublishFieldKey): 1 | 2 {
+  return field === "name" || field === "images" || field === "category" || field === "specs" ? 1 : 2
+}
+
+export const PUBLISH_SECTION_ERROR_CLASS =
+  "border-red-400 ring-2 ring-red-500/45 dark:border-red-500/80 dark:ring-red-500/35"
+
+export const PUBLISH_INPUT_ERROR_CLASS =
+  "border-red-500 ring-2 ring-red-500/25 focus:border-red-500 focus-visible:ring-red-500/30 dark:border-red-500"
+
+export type CollectPublishContext = {
+  name: string
+  imagesCount: number
+  categoryId: string
+  missingSpecs: { label: string; key?: string }[]
+  priceError: string | null
+  compareError: string | null
+  commissionError: string | null
+  variantFormMode: SupplierVariantFormMode
+  variantRows: ProductVariantLine[]
+  simpleColorRows: { name: string }[]
+}
+
+export function collectClientPublishBlockers(ctx: CollectPublishContext): PublishBlocker[] {
+  const out: PublishBlocker[] = []
+
+  if (!ctx.name.trim()) {
+    out.push({ field: "name", message: "Le titre du produit est obligatoire." })
+  }
+  if (ctx.imagesCount === 0) {
+    out.push({ field: "images", message: "Ajoutez au moins une photo produit." })
+  }
+  if (!ctx.categoryId.trim()) {
+    out.push({ field: "category", message: "Sélectionnez une catégorie." })
+  }
+  for (const m of ctx.missingSpecs) {
+    out.push({ field: "specs", message: `${m.label} est requis` })
+  }
+  if (ctx.priceError) {
+    out.push({ field: "price", message: ctx.priceError })
+  }
+  if (ctx.compareError) {
+    out.push({ field: "compareAt", message: ctx.compareError })
+  }
+  if (ctx.commissionError) {
+    out.push({ field: "commission", message: ctx.commissionError })
+  }
+  if (ctx.variantFormMode === "advanced" && ctx.variantRows.length > 0) {
+    const named = ctx.variantRows.filter((r) => r.name.trim())
+    if (named.length === 0) {
+      out.push({
+        field: "variants",
+        message:
+          "Ajoutez un libellé pour chaque ligne SKU, supprimez les lignes vides, ou repassez en « Produit simple » / « Couleurs & tailles ».",
+      })
+    }
+  }
+  if (ctx.variantFormMode === "simple") {
+    const colorNames = ctx.simpleColorRows.map((r) => r.name.trim()).filter(Boolean)
+    if (colorNames.length !== new Set(colorNames).size) {
+      out.push({ field: "variants", message: "Chaque nom de couleur doit être unique." })
+    }
+  }
+
+  return out
+}
+
+function blockerFromMessage(message: string): PublishBlocker | null {
+  const m = message.toLowerCase()
+  if (m.includes("prix") || m.includes("price") || m.includes("compare")) {
+    if (m.includes("compare") || m.includes("barré") || m.includes("compare-at")) {
+      return { field: "compareAt", message }
+    }
+    return { field: "price", message }
+  }
+  if (m.includes("commission")) return { field: "commission", message }
+  if (m.includes("variant") || m.includes("sku") || m.includes("déclinaison")) {
+    return { field: "variants", message }
+  }
+  if (m.includes("catégor") || m.includes("category")) return { field: "category", message }
+  if (m.includes("image") || m.includes("photo")) return { field: "images", message }
+  if (m.includes("titre") || m.includes("name") || m.includes("nom")) return { field: "name", message }
+  return null
+}
+
+/** Map API 400 responses to field blockers for highlighting. */
+export function mapServerPublishBlockers(json: {
+  error?: string
+  errors?: string[]
+  issues?: unknown
+}): PublishBlocker[] {
+  const out: PublishBlocker[] = []
+
+  if (Array.isArray(json.errors) && json.errors.length > 0) {
+    for (const msg of json.errors) {
+      out.push({ field: "specs", message: msg })
+    }
+  }
+
+  if (typeof json.error === "string" && json.error.trim()) {
+    const mapped = blockerFromMessage(json.error)
+    if (mapped) {
+      if (!out.some((b) => b.field === mapped.field && b.message === mapped.message)) {
+        out.push(mapped)
+      }
+    } else if (out.length === 0) {
+      out.push({ field: "specs", message: json.error })
+    }
+  }
+
+  if (Array.isArray(json.issues) && json.issues.length > 0 && out.length === 0) {
+    out.push({
+      field: "variants",
+      message: "Corrigez les variantes / lignes SKU (champs invalides).",
+    })
+  }
+
+  return out
+}
+
+export function uniqueBlockerFields(blockers: PublishBlocker[]): PublishFieldKey[] {
+  return [...new Set(blockers.map((b) => b.field))]
+}

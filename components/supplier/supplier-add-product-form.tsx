@@ -6,6 +6,7 @@ import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import type { LucideIcon } from "lucide-react"
 import {
+  AlertCircle,
   ArrowLeft,
   CheckCircle2,
   ChevronRight,
@@ -82,6 +83,17 @@ import {
 } from "@/lib/supplier-add-product-draft-cache"
 import { newVariantRowId, parseVariantsPayload, type ProductVariantLine } from "@/lib/product-variants"
 import {
+  collectClientPublishBlockers,
+  mapServerPublishBlockers,
+  PUBLISH_FIELD_SCROLL_ID,
+  PUBLISH_INPUT_ERROR_CLASS,
+  PUBLISH_SECTION_ERROR_CLASS,
+  publishBlockerStep,
+  type PublishBlocker,
+  type PublishFieldKey,
+  uniqueBlockerFields,
+} from "@/lib/supplier-publish-blockers"
+import {
   applySimpleColorsToVariantRowsIfChanged,
   extractOrderedColorNames,
   syncVariantRowsFromSimpleColors,
@@ -150,6 +162,7 @@ function SectionCard({
   className,
   variant = "default",
   id,
+  hasError = false,
 }: {
   icon: LucideIcon
   title: string
@@ -159,15 +172,21 @@ function SectionCard({
   variant?: "default" | "accent"
   /** In-page anchor for quick navigation */
   id?: string
+  /** Publication validation — red frame */
+  hasError?: boolean
 }) {
   return (
     <section
       id={id}
       className={cn(
-        "scroll-mt-28 rounded-3xl border border-gray-100 bg-white/80 p-6 shadow-sm backdrop-blur-sm ring-1 ring-black/[0.02] sm:p-7 dark:border-zinc-800 dark:bg-zinc-950/75 dark:ring-white/[0.04]",
-        variant === "accent"
+        "scroll-mt-28 rounded-3xl border bg-white/80 p-6 shadow-sm backdrop-blur-sm ring-1 sm:p-7 dark:bg-zinc-950/75",
+        hasError
+          ? PUBLISH_SECTION_ERROR_CLASS
+          : "border-gray-100 ring-black/[0.02] dark:border-zinc-800 dark:ring-white/[0.04]",
+        variant === "accent" && !hasError
           ? "border-violet-200/60 bg-gradient-to-br from-violet-50/80 via-white to-white dark:border-violet-900/40 dark:from-violet-950/20 dark:via-zinc-950/50 dark:to-zinc-950"
           : "",
+        hasError && variant === "accent" && "bg-red-50/40 dark:bg-red-950/20",
         className
       )}
     >
@@ -279,6 +298,7 @@ export function SupplierAddProductForm({
   const [categoryAttrs, setCategoryAttrs] = useState<CategoryAttrRow[]>([])
   const [specValues, setSpecValues] = useState<Record<string, string>>({})
   const [specFormErrors, setSpecFormErrors] = useState<string[]>([])
+  const [publishBlockers, setPublishBlockers] = useState<PublishBlocker[]>([])
   const [attrsLoading, setAttrsLoading] = useState(false)
   const mergedCategoryAttrs = useMemo(() => mergeCoreCategoryAttrs(categoryAttrs), [categoryAttrs])
 
@@ -1284,47 +1304,13 @@ export function SupplierAddProductForm({
   }, [autosaveListingId, categoryId, description, descriptionIllustrationImages.length, descriptionIllustrationVideos.length, editId, images.length, name, productIsDraft])
 
   async function handleSubmit() {
-    if (priceError || compareError || commissionError) {
-      toast.error("Fix validation errors before saving.")
+    const clientBlockers = collectClientPublishBlockers(publishValidationContext)
+    if (clientBlockers.length > 0) {
+      applyPublishBlockers(clientBlockers)
       return
     }
-    if (!name.trim()) {
-      toast.error("Product name is required.")
-      return
-    }
-    if (images.length === 0) {
-      toast.error("Add at least one product image.")
-      return
-    }
-    if (!categoryId.trim()) {
-      toast.error("Please select a category.")
-      return
-    }
-    const missingSpecs = missingRequiredCategorySpecs(mergedCategoryAttrs, specValues)
-    if (missingSpecs.length > 0) {
-      setSpecFormErrors(missingSpecs.map((m) => `${m.label} est requis`))
-      setStep(1)
-      document.getElementById("product-spec-fields")?.scrollIntoView({ behavior: "smooth", block: "center" })
-      toast.error("Corrigez les champs marqués en rouge.")
-      return
-    }
+    setPublishBlockers([])
     setSpecFormErrors([])
-    if (variantFormMode === "advanced" && variantRows.length > 0) {
-      const named = variantRows.filter((r) => r.name.trim())
-      if (named.length === 0) {
-        toast.error(
-          "Add a label for each variant row, delete empty rows, or switch to “No variants” / “Sizes & colors”."
-        )
-        return
-      }
-    }
-    if (variantFormMode === "simple") {
-      const colorNames = simpleColorRows.map((r) => r.name.trim()).filter(Boolean)
-      if (colorNames.length !== new Set(colorNames).size) {
-        toast.error("Chaque nom de couleur doit être unique.")
-        return
-      }
-    }
 
     const payload = assembleListingPayload(false)
     const serverId = editId || draftIdFromUrl || pendingDraftListingId
@@ -1356,15 +1342,19 @@ export function SupplierAddProductForm({
       }
       const json = (await res.json()) as { error?: string; id?: string; errors?: string[] }
       if (!res.ok) {
-        if (res.status === 400 && Array.isArray(json.errors) && json.errors.length > 0) {
-          setSpecFormErrors(json.errors)
-          setStep(1)
-          document.getElementById("product-spec-fields")?.scrollIntoView({ behavior: "smooth", block: "center" })
-          toast.error(json.error ?? "Validation des spécifications")
+        const serverBlockers = mapServerPublishBlockers(
+          json as { error?: string; errors?: string[]; issues?: unknown }
+        )
+        if (serverBlockers.length > 0) {
+          applyPublishBlockers(serverBlockers)
           return
         }
-        throw new Error(json.error ?? "Save failed")
+        applyPublishBlockers([
+          { field: "specs", message: json.error ?? "Publication impossible. Vérifiez le formulaire." },
+        ])
+        return
       }
+      setPublishBlockers([])
       setSpecFormErrors([])
       if (categoryId && categoryPath.length) {
         void fetch("/api/supplier/recent-categories", {
@@ -1387,7 +1377,8 @@ export function SupplierAddProductForm({
       router.push("/dashboard/supplier/products")
       router.refresh()
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Save failed")
+      const msg = e instanceof Error ? e.message : "Publication impossible"
+      applyPublishBlockers([{ field: "specs", message: msg }])
     } finally {
       setSaving(false)
     }
@@ -1449,6 +1440,71 @@ export function SupplierAddProductForm({
   const handleSaveDraftClick = useCallback(() => {
     void syncDraftToServer({ force: true, stepOverride: step })
   }, [syncDraftToServer, step])
+
+  const publishErrorFields = useMemo(() => uniqueBlockerFields(publishBlockers), [publishBlockers])
+
+  const hasPublishFieldError = useCallback(
+    (field: PublishFieldKey) => publishErrorFields.includes(field),
+    [publishErrorFields]
+  )
+
+  const clearPublishFieldError = useCallback((field: PublishFieldKey) => {
+    setPublishBlockers((prev) => prev.filter((b) => b.field !== field))
+  }, [])
+
+  const applyPublishBlockers = useCallback(
+    (blockers: PublishBlocker[]) => {
+      if (blockers.length === 0) return
+
+      setPublishBlockers(blockers)
+      const specMsgs = blockers.filter((b) => b.field === "specs").map((b) => b.message)
+      setSpecFormErrors(specMsgs.length > 0 ? specMsgs : [])
+
+      const first = blockers[0]!
+      const targetStep = publishBlockerStep(first.field)
+      if (step !== targetStep) setStep(targetStep)
+
+      window.setTimeout(() => {
+        document
+          .getElementById(PUBLISH_FIELD_SCROLL_ID[first.field])
+          ?.scrollIntoView({ behavior: "smooth", block: "center" })
+      }, targetStep !== step ? 120 : 0)
+
+      toast.error(
+        blockers.length === 1
+          ? blockers[0]!.message
+          : `Publication impossible : ${blockers.length} point${blockers.length > 1 ? "s" : ""} à corriger (zones encadrées en rouge).`
+      )
+    },
+    [step]
+  )
+
+  const publishValidationContext = useMemo(
+    (): Parameters<typeof collectClientPublishBlockers>[0] => ({
+      name,
+      imagesCount: images.length,
+      categoryId,
+      missingSpecs: specMissing,
+      priceError,
+      compareError,
+      commissionError,
+      variantFormMode,
+      variantRows,
+      simpleColorRows,
+    }),
+    [
+      name,
+      images.length,
+      categoryId,
+      specMissing,
+      priceError,
+      compareError,
+      commissionError,
+      variantFormMode,
+      variantRows,
+      simpleColorRows,
+    ]
+  )
 
   const jumpBtnClass =
     "rounded-xl border border-gray-200/90 bg-white/90 px-3.5 py-1.5 text-xs font-semibold text-zinc-700 shadow-sm backdrop-blur-sm transition hover:border-violet-300/80 hover:bg-violet-50/90 hover:text-violet-900 dark:border-zinc-600 dark:bg-zinc-900/80 dark:text-zinc-200 dark:hover:border-violet-600/50 dark:hover:bg-violet-950/40 dark:hover:text-violet-100"
@@ -1689,6 +1745,24 @@ export function SupplierAddProductForm({
 
         <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_20rem] lg:items-start lg:gap-12">
           <div className="min-w-0 space-y-10">
+            {publishBlockers.length > 0 ? (
+              <div
+                role="alert"
+                className="rounded-2xl border-2 border-red-300 bg-red-50 px-4 py-3.5 text-red-950 shadow-sm dark:border-red-700/80 dark:bg-red-950/40 dark:text-red-100"
+              >
+                <div className="flex gap-3">
+                  <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-600 dark:text-red-400" aria-hidden />
+                  <div className="min-w-0">
+                    <p className="font-semibold">Publication impossible — corrigez les zones encadrées en rouge</p>
+                    <ul className="mt-2 list-disc space-y-1 pl-4 text-sm leading-relaxed">
+                      {publishBlockers.map((b, i) => (
+                        <li key={`${b.field}-${i}`}>{b.message}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            ) : null}
             {step === 1 ? (
               <>
                 <div className="flex flex-col gap-3 rounded-3xl border border-gray-100 bg-white/75 px-4 py-3.5 shadow-sm ring-1 ring-black/[0.02] backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/60 dark:ring-white/[0.04] sm:flex-row sm:items-center sm:justify-between sm:gap-4">
@@ -1762,6 +1836,7 @@ export function SupplierAddProductForm({
                       icon={Package}
                       title="Product story"
                       description="Name and description appear to affiliates and on your storefront."
+                      hasError={hasPublishFieldError("name")}
                     >
                       <div>
                         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -1787,12 +1862,21 @@ export function SupplierAddProductForm({
                         </div>
                         <Input
                           id="p-name"
-                          className="mt-1.5 h-11"
+                          className={cn("mt-1.5 h-11", hasPublishFieldError("name") && PUBLISH_INPUT_ERROR_CLASS)}
                           value={name}
-                          onChange={(e) => setName(e.target.value)}
+                          onChange={(e) => {
+                            setName(e.target.value)
+                            clearPublishFieldError("name")
+                          }}
                           placeholder="e.g. Wireless earbuds with ANC"
                           maxLength={500}
+                          aria-invalid={hasPublishFieldError("name")}
                         />
+                        {hasPublishFieldError("name") ? (
+                          <p className="mt-1 text-xs font-medium text-red-600 dark:text-red-400">
+                            {publishBlockers.find((b) => b.field === "name")?.message}
+                          </p>
+                        ) : null}
                       </div>
                       <SupplierProductDescriptionField
                         description={description}
@@ -1866,6 +1950,7 @@ export function SupplierAddProductForm({
                       icon={Tag}
                       title="Classification"
                       description="Suggestions automatiques à partir du titre et de la description, puis recherche ou arbre pour affiner."
+                      hasError={hasPublishFieldError("category") || hasPublishFieldError("specs")}
                     >
                       <div>
                         <Label className="inline-flex items-center gap-2">
@@ -1878,12 +1963,20 @@ export function SupplierAddProductForm({
                             </span>
                           ) : null}
                         </Label>
-                        <div className="mt-1.5">
+                        <div
+                          className={cn(
+                            "mt-1.5 rounded-xl",
+                            hasPublishFieldError("category") && "ring-2 ring-red-500/40"
+                          )}
+                        >
                           <SupplierCategoryPicker
                             browse={browse}
                             recent={recentCategories}
                             value={categoryId}
-                            onChange={applyCategory}
+                            onChange={(leafId, path, origin) => {
+                              applyCategory(leafId, path, origin)
+                              clearPublishFieldError("category")
+                            }}
                             suggestions={categorySuggestions}
                             alternativeSuggestions={categoryAlternativeSuggestions}
                             suggestionsLoading={categorySuggestionsLoading}
@@ -1893,7 +1986,12 @@ export function SupplierAddProductForm({
                       </div>
                       <div
                         id="product-spec-fields"
-                        className="rounded-xl border border-zinc-100 bg-zinc-50/40 p-1 dark:border-zinc-800 dark:bg-zinc-900/30"
+                        className={cn(
+                          "rounded-xl border bg-zinc-50/40 p-1 dark:bg-zinc-900/30",
+                          hasPublishFieldError("specs")
+                            ? "border-red-400 ring-2 ring-red-500/40 dark:border-red-600"
+                            : "border-zinc-100 dark:border-zinc-800"
+                        )}
                       >
                         <DynamicAttributes
                           categoryId={categoryId}
@@ -1902,6 +2000,7 @@ export function SupplierAddProductForm({
                           onChange={(next) => {
                             setSpecValues(next)
                             if (specFormErrors.length > 0) setSpecFormErrors([])
+                            clearPublishFieldError("specs")
                           }}
                         />
                       </div>
@@ -1914,6 +2013,7 @@ export function SupplierAddProductForm({
                       icon={ImageIcon}
                       title="Visual assets"
                       description="Strong photos convert—multiple angles and lifestyle shots win."
+                      hasError={hasPublishFieldError("images")}
                     >
                       <div className="flex flex-wrap items-center gap-1.5">
                         <Label className="inline-flex items-center gap-1 text-zinc-900 dark:text-zinc-100">
@@ -1932,8 +2032,19 @@ export function SupplierAddProductForm({
                       <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
                         Upload several angles; five or more is ideal for marketplace trust.
                       </p>
+                      {hasPublishFieldError("images") ? (
+                        <p className="text-xs font-medium text-red-600 dark:text-red-400">
+                          {publishBlockers.find((b) => b.field === "images")?.message}
+                        </p>
+                      ) : null}
                       <div className="mt-3 space-y-4">
-                        <SupplierProductImageUpload initialUrls={images} onImagesChange={setImages} />
+                        <SupplierProductImageUpload
+                          initialUrls={images}
+                          onImagesChange={(urls) => {
+                            setImages(urls)
+                            if (urls.length > 0) clearPublishFieldError("images")
+                          }}
+                        />
                         {editId ? (
                           <AttachProductVideoActions
                             productId={editId}
@@ -1976,17 +2087,17 @@ export function SupplierAddProductForm({
                     size="lg"
                     className="w-full shrink-0 bg-violet-600 hover:bg-violet-700 dark:bg-violet-600 sm:w-auto"
                     onClick={() => {
-                      if (!categoryId.trim()) {
-                        toast.error("Please select a category.")
+                      const step1Blockers = collectClientPublishBlockers({
+                        ...publishValidationContext,
+                        priceError: null,
+                        compareError: null,
+                        commissionError: null,
+                      })
+                      if (step1Blockers.length > 0) {
+                        applyPublishBlockers(step1Blockers)
                         return
                       }
-                      const miss = missingRequiredCategorySpecs(mergedCategoryAttrs, specValues)
-                      if (miss.length > 0) {
-                        setSpecFormErrors(miss.map((m) => `${m.label} est requis`))
-                        document.getElementById("product-spec-fields")?.scrollIntoView({ behavior: "smooth", block: "center" })
-                        toast.error("Corrigez les champs marqués en rouge.")
-                        return
-                      }
+                      setPublishBlockers([])
                       setSpecFormErrors([])
                       setStep(2)
                     }}
@@ -2001,9 +2112,11 @@ export function SupplierAddProductForm({
                 <div className="grid gap-8 xl:grid-cols-2 xl:gap-x-10 xl:items-start">
                   <div className="space-y-8">
                 <SectionCard
+                  id="add-product-pricing"
                   icon={Wallet}
                   title="Pricing & inventory"
                   description="Your cost basis and stock. Affiliates set retail; commission applies to their margin."
+                  hasError={hasPublishFieldError("price") || hasPublishFieldError("compareAt")}
                 >
                   <div className="grid gap-5 sm:grid-cols-2">
                     <div className="sm:col-span-2">
@@ -2013,11 +2126,22 @@ export function SupplierAddProductForm({
                         type="number"
                         min="0.01"
                         step="0.01"
-                        className="mt-1.5 h-11"
+                        className={cn(
+                          "mt-1.5 h-11",
+                          (priceError || hasPublishFieldError("price")) && PUBLISH_INPUT_ERROR_CLASS
+                        )}
                         value={price}
-                        onChange={(e) => setPrice(e.target.value)}
+                        onChange={(e) => {
+                          setPrice(e.target.value)
+                          clearPublishFieldError("price")
+                        }}
+                        aria-invalid={Boolean(priceError || hasPublishFieldError("price"))}
                       />
-                      {priceError ? <p className="mt-1 text-xs text-red-600">{priceError}</p> : null}
+                      {priceError || hasPublishFieldError("price") ? (
+                        <p className="mt-1 text-xs font-medium text-red-600 dark:text-red-400">
+                          {priceError ?? publishBlockers.find((b) => b.field === "price")?.message}
+                        </p>
+                      ) : null}
                     </div>
                     <div>
                       <Label htmlFor="p-compare">Compare-at (optional)</Label>
@@ -2026,12 +2150,23 @@ export function SupplierAddProductForm({
                         type="number"
                         min="0"
                         step="0.01"
-                        className="mt-1.5 h-11"
+                        className={cn(
+                          "mt-1.5 h-11",
+                          (compareError || hasPublishFieldError("compareAt")) && PUBLISH_INPUT_ERROR_CLASS
+                        )}
                         value={compareAt}
-                        onChange={(e) => setCompareAt(e.target.value)}
+                        onChange={(e) => {
+                          setCompareAt(e.target.value)
+                          clearPublishFieldError("compareAt")
+                        }}
                         placeholder="MSRP"
+                        aria-invalid={Boolean(compareError || hasPublishFieldError("compareAt"))}
                       />
-                      {compareError ? <p className="mt-1 text-xs text-red-600">{compareError}</p> : null}
+                      {compareError || hasPublishFieldError("compareAt") ? (
+                        <p className="mt-1 text-xs font-medium text-red-600 dark:text-red-400">
+                          {compareError ?? publishBlockers.find((b) => b.field === "compareAt")?.message}
+                        </p>
+                      ) : null}
                     </div>
                     {unitPriceFromVolumeHint ? (
                       <p className="sm:col-span-2 text-xs font-medium text-emerald-700 dark:text-emerald-400">
@@ -2061,14 +2196,24 @@ export function SupplierAddProductForm({
                 </SectionCard>
 
                 <SectionCard
+                  id="add-product-variants"
                   icon={Layers}
                   title="Variantes"
                   description="Un seul article ou plusieurs déclinaisons — le stock total se calcule automatiquement."
+                  hasError={hasPublishFieldError("variants")}
                 >
+                  {hasPublishFieldError("variants") ? (
+                    <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-800 dark:border-red-800 dark:bg-red-950/50 dark:text-red-200">
+                      {publishBlockers.find((b) => b.field === "variants")?.message}
+                    </p>
+                  ) : null}
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
-                      onClick={() => setVariantFormMode("none")}
+                      onClick={() => {
+                        setVariantFormMode("none")
+                        clearPublishFieldError("variants")
+                      }}
                       className={cn(
                         "rounded-xl border px-4 py-2.5 text-sm font-medium transition",
                         !hasVariants
@@ -2477,7 +2622,12 @@ export function SupplierAddProductForm({
 
                 <section
                   id="add-product-commission"
-                  className="scroll-mt-28 overflow-hidden rounded-3xl border border-violet-200/80 bg-gradient-to-br from-violet-50 via-white to-violet-50/50 p-6 shadow-md ring-1 ring-violet-500/10 dark:border-violet-900/50 dark:from-violet-950/40 dark:via-zinc-950 dark:to-violet-950/30 dark:ring-violet-400/10 sm:p-7"
+                  className={cn(
+                    "scroll-mt-28 overflow-hidden rounded-3xl border bg-gradient-to-br from-violet-50 via-white to-violet-50/50 p-6 shadow-md ring-1 sm:p-7 dark:from-violet-950/40 dark:via-zinc-950 dark:to-violet-950/30",
+                    hasPublishFieldError("commission")
+                      ? PUBLISH_SECTION_ERROR_CLASS
+                      : "border-violet-200/80 ring-violet-500/10 dark:border-violet-900/50 dark:ring-violet-400/10"
+                  )}
                 >
                   <div className="mb-4 flex items-start gap-3">
                     <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-violet-600 text-white shadow-lg shadow-violet-600/30">
@@ -2522,12 +2672,21 @@ export function SupplierAddProductForm({
                         min={0}
                         max={commissionMax}
                         step="1"
-                        className="mt-1.5 h-11"
+                        className={cn(
+                          "mt-1.5 h-11",
+                          (commissionError || hasPublishFieldError("commission")) && PUBLISH_INPUT_ERROR_CLASS
+                        )}
                         value={commission}
-                        onChange={(e) => setCommission(e.target.value)}
+                        onChange={(e) => {
+                          setCommission(e.target.value)
+                          clearPublishFieldError("commission")
+                        }}
+                        aria-invalid={Boolean(commissionError || hasPublishFieldError("commission"))}
                       />
-                      {commissionError ? (
-                        <p className="mt-1 text-xs text-red-600">{commissionError}</p>
+                      {commissionError || hasPublishFieldError("commission") ? (
+                        <p className="mt-1 text-xs font-medium text-red-600 dark:text-red-400">
+                          {commissionError ?? publishBlockers.find((b) => b.field === "commission")?.message}
+                        </p>
                       ) : null}
                     </div>
                   </div>
