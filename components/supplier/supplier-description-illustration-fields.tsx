@@ -9,12 +9,18 @@ import { resolveImageLinkUrl } from "@/components/supplier/supplier-product-imag
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { measureImageFile, processProductImageToDataUrl } from "@/lib/product-image-upload"
+import {
+  DESCRIPTION_ILLUSTRATION_MAX,
+  DESCRIPTION_ILLUSTRATION_MIN_H,
+  DESCRIPTION_ILLUSTRATION_MIN_W,
+  DescriptionIllustrationSizeError,
+  processDescriptionIllustrationFile,
+} from "@/lib/description-illustration-image"
 import { cn } from "@/lib/utils"
 
-const IMAGE_SLOTS = 4
-const MIN_W = 400
-const MIN_H = 400
+const IMAGE_SLOTS = DESCRIPTION_ILLUSTRATION_MAX
+const MIN_W = DESCRIPTION_ILLUSTRATION_MIN_W
+const MIN_H = DESCRIPTION_ILLUSTRATION_MIN_H
 const MAX_VIDEOS = 2
 
 type Props = {
@@ -22,6 +28,8 @@ type Props = {
   onImagesChange: (urls: string[]) => void
   videos: string[]
   onVideosChange: (urls: string[]) => void
+  /** When true, only video URL fields are shown (images managed in description composer). */
+  hideImageGrid?: boolean
 }
 
 function slotsFrom(urls: string[]): (string | null)[] {
@@ -35,7 +43,13 @@ function orderedFromSlots(slots: (string | null)[]): string[] {
   }, [])
 }
 
-export function SupplierDescriptionIllustrationFields({ images, onImagesChange, videos, onVideosChange }: Props) {
+export function SupplierDescriptionIllustrationFields({
+  images,
+  onImagesChange,
+  videos,
+  onVideosChange,
+  hideImageGrid = false,
+}: Props) {
   const [slots, setSlots] = useState<(string | null)[]>(() => slotsFrom(images))
   const [busy, setBusy] = useState<number | null>(null)
   const [pasteUrl, setPasteUrl] = useState("")
@@ -59,18 +73,17 @@ export function SupplierDescriptionIllustrationFields({ images, onImagesChange, 
     if (!file) return
     setBusy(slot)
     try {
-      const dim = await measureImageFile(file)
-      if (dim.width < MIN_W || dim.height < MIN_H) {
-        toast.error(`${file.name}: use at least ${MIN_W}×${MIN_H} px for description images.`)
-        return
-      }
-      const dataUrl = await processProductImageToDataUrl(file)
+      const dataUrl = await processDescriptionIllustrationFile(file)
       const next = [...slots]
       next[slot] = dataUrl
       syncSlots(next)
-      toast.success("Image added")
-    } catch {
-      toast.error("Could not process this image.")
+      toast.success("Image ajoutée")
+    } catch (e) {
+      if (e instanceof DescriptionIllustrationSizeError) {
+        toast.error(`${e.fileName} : min. ${e.minW}×${e.minH} px.`)
+      } else {
+        toast.error("Impossible de traiter cette image.")
+      }
     } finally {
       setBusy(null)
     }
@@ -111,7 +124,13 @@ export function SupplierDescriptionIllustrationFields({ images, onImagesChange, 
   const v1 = videos[1] ?? ""
 
   return (
-    <div className="space-y-6 border-t border-zinc-100 pt-5 dark:border-zinc-800">
+    <div
+      className={cn(
+        "space-y-6",
+        !hideImageGrid && "border-t border-zinc-100 pt-5 dark:border-zinc-800"
+      )}
+    >
+      {!hideImageGrid && (
       <div>
         <Label className="text-zinc-800 dark:text-zinc-100">Illustration photos (description)</Label>
         <p className="mt-0.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
@@ -176,11 +195,12 @@ export function SupplierDescriptionIllustrationFields({ images, onImagesChange, 
           </Button>
         </div>
       </div>
+      )}
 
       <div>
         <Label className="inline-flex items-center gap-2 text-zinc-800 dark:text-zinc-100">
           <Video className="h-4 w-4 text-zinc-500" aria-hidden />
-          Illustrative videos
+          {hideImageGrid ? "Vidéos illustratives" : "Illustrative videos"}
         </Label>
         <p className="mt-0.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
           YouTube, Vimeo, or direct HTTPS <code className="rounded bg-zinc-100 px-1 dark:bg-zinc-800">.mp4</code> link
