@@ -15,8 +15,8 @@ import {
   LogOut,
   Plus,
   Trash2,
-  Cloud,
   Package,
+  Save,
   Sparkles,
   Globe2,
   Layers,
@@ -54,6 +54,7 @@ import {
   type CategoryPickOrigin,
 } from "@/components/supplier/supplier-category-picker"
 import { SupplierDeleteDraftButton } from "@/components/supplier/supplier-delete-draft-button"
+import { SupplierDraftSaveControl } from "@/components/supplier/supplier-draft-save-control"
 import { SupplierListingReadinessPanel } from "@/components/supplier/supplier-listing-readiness-panel"
 import { useSupplierCategorySuggestions } from "@/components/supplier/use-supplier-category-suggestions"
 import {
@@ -1037,109 +1038,152 @@ export function SupplierAddProductForm({
     toast("Restored your last on-device draft for this workflow.", { duration: 4500 })
   }, [urlListingId, pendingDraftListingId, loadingBrowse, cacheMode])
 
-  const autosaveFingerprint = useMemo(
+  const canSaveDraft = !editId || productIsDraft
+
+  const hasDraftContentSignals = useMemo(
     () =>
-      JSON.stringify(
-        omitVariantSnapshotForDraftStep1(assembleListingPayload(true) as Record<string, unknown>, step)
-      ) + String(step),
-    [assembleListingPayload, step]
+      Boolean(name.trim()) ||
+      Boolean(description.trim()) ||
+      Boolean(categoryId.trim()) ||
+      images.length > 0 ||
+      descriptionIllustrationImages.length > 0 ||
+      descriptionIllustrationVideos.length > 0 ||
+      Boolean(shipsFrom.trim()) ||
+      Boolean(variantSizesText.trim()) ||
+      simpleColorRows.some((r) => r.name.trim()) ||
+      variantRows.some((r) => r.name.trim()),
+    [
+      categoryId,
+      description,
+      descriptionIllustrationImages.length,
+      descriptionIllustrationVideos.length,
+      images.length,
+      name,
+      shipsFrom,
+      simpleColorRows,
+      variantRows,
+      variantSizesText,
+    ]
+  )
+
+  const buildDraftSyncBody = useCallback(
+    (forStep: 1 | 2) => {
+      const full = assembleListingPayload(true) as Record<string, unknown>
+      return forStep === 1 ? omitVariantSnapshotForDraftStep1(full, 1) : full
+    },
+    [assembleListingPayload]
+  )
+
+  const syncDraftToServer = useCallback(
+    async (opts?: { silent?: boolean; force?: boolean; stepOverride?: 1 | 2 }) => {
+      if (!canSaveDraft || loadingProduct || saving) return false
+
+      const syncStep = opts?.stepOverride ?? step
+      const body = buildDraftSyncBody(syncStep)
+      const fp = JSON.stringify(body) + `|step:${syncStep}`
+      if (!opts?.force && fp === lastAutosaveJson.current) {
+        if (!opts?.silent) toast.success("Brouillon déjà à jour")
+        return true
+      }
+
+      setDraftSync("saving")
+      try {
+        if (autosaveListingId) {
+          const res = await fetch(`/api/supplier/products/${autosaveListingId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify(body),
+          })
+          const json = (await res.json().catch(() => ({}))) as { error?: string }
+          if (!res.ok) {
+            throw new Error(typeof json.error === "string" ? json.error : "Échec de l'enregistrement")
+          }
+        } else {
+          const res = await fetch("/api/supplier/products", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ ...body, saveAsDraft: true }),
+          })
+          const json = (await res.json()) as { id?: string; error?: string }
+          if (!res.ok) {
+            throw new Error(typeof json.error === "string" ? json.error : "Échec de l'enregistrement")
+          }
+          if (json.id) {
+            setPendingDraftListingId(json.id)
+            setProductIsDraft(true)
+            const qs = new URLSearchParams(searchParams.toString())
+            qs.set("draft", json.id)
+            if (!qs.has("compose")) qs.set("compose", "1")
+            router.replace(`${pathname}?${qs.toString()}`, { scroll: false })
+          }
+        }
+
+        lastAutosaveJson.current = fp
+        setDraftSync("saved")
+        setDraftSyncAt(Date.now())
+        if (!productIsDraft) setProductIsDraft(true)
+        if (!opts?.silent) toast.success("Brouillon enregistré")
+        return true
+      } catch (e) {
+        setDraftSync("error")
+        if (!opts?.silent) {
+          toast.error(e instanceof Error ? e.message : "Impossible d'enregistrer le brouillon")
+        }
+        return false
+      }
+    },
+    [
+      autosaveListingId,
+      buildDraftSyncBody,
+      canSaveDraft,
+      loadingProduct,
+      pathname,
+      productIsDraft,
+      router,
+      saving,
+      searchParams,
+      step,
+    ]
+  )
+
+  const autosaveFingerprint = useMemo(
+    () => JSON.stringify(buildDraftSyncBody(step)) + String(step),
+    [buildDraftSyncBody, step]
   )
 
   useEffect(() => {
     if (typeof window === "undefined") return
-    if (loadingProduct || saving) return
-    if (editId && !productIsDraft) return
+    if (loadingProduct || saving || !canSaveDraft) return
 
     const hasServerDraftBucket = Boolean(
       autosaveListingId && (productIsDraft || draftIdFromUrl || pendingDraftListingId)
     )
-    const hasLocalSignals =
-      !editId &&
-      (Boolean(name.trim()) ||
-        Boolean(description.trim()) ||
-        Boolean(categoryId.trim()) ||
-        images.length > 0 ||
-        descriptionIllustrationImages.length > 0 ||
-        descriptionIllustrationVideos.length > 0 ||
-        Boolean(shipsFrom.trim()))
-    if (!(hasServerDraftBucket || hasLocalSignals)) return
+    if (!(hasServerDraftBucket || hasDraftContentSignals)) return
 
     let cancelled = false
     const timer = window.setTimeout(() => {
       void (async () => {
-        const body = omitVariantSnapshotForDraftStep1(
-          assembleListingPayload(true) as Record<string, unknown>,
-          step
-        )
-        const fp = JSON.stringify(body)
-        if (fp === lastAutosaveJson.current) return
-        try {
-          if (cancelled) return
-          setDraftSync("saving")
-          if (autosaveListingId) {
-            const res = await fetch(`/api/supplier/products/${autosaveListingId}`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              credentials: "include",
-              body: JSON.stringify(body),
-            })
-            const json = (await res.json().catch(() => ({}))) as { error?: string }
-            if (!res.ok) {
-              throw new Error(typeof json.error === "string" ? json.error : "Draft sync failed")
-            }
-          } else {
-            const res = await fetch("/api/supplier/products", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              credentials: "include",
-              body: JSON.stringify({ ...body, saveAsDraft: true }),
-            })
-            const json = (await res.json()) as { id?: string; error?: string }
-            if (!res.ok) {
-              throw new Error(typeof json.error === "string" ? json.error : "Draft sync failed")
-            }
-            if (json.id) {
-              setPendingDraftListingId(json.id)
-              setProductIsDraft(true)
-              const qs = new URLSearchParams(searchParams.toString())
-              qs.set("draft", json.id)
-              router.replace(`${pathname}?${qs.toString()}`, { scroll: false })
-            }
-          }
-          if (cancelled) return
-          lastAutosaveJson.current = fp
-          setDraftSync("saved")
-          setDraftSyncAt(Date.now())
-        } catch {
-          if (!cancelled) setDraftSync("error")
-        }
+        if (cancelled) return
+        await syncDraftToServer({ silent: true })
       })()
-    }, 2400)
+    }, 2200)
     return () => {
       cancelled = true
       window.clearTimeout(timer)
     }
   }, [
-    assembleListingPayload,
     autosaveFingerprint,
     autosaveListingId,
-    categoryId,
-    description,
-    descriptionIllustrationImages,
-    descriptionIllustrationVideos,
+    canSaveDraft,
     draftIdFromUrl,
-    editId,
-    images,
+    hasDraftContentSignals,
     loadingProduct,
-    name,
-    pathname,
     pendingDraftListingId,
     productIsDraft,
-    router,
     saving,
-    searchParams,
-    shipsFrom,
-    step,
+    syncDraftToServer,
   ])
 
   useEffect(() => {
@@ -1402,6 +1446,10 @@ export function SupplierAddProductForm({
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" })
   }, [])
 
+  const handleSaveDraftClick = useCallback(() => {
+    void syncDraftToServer({ force: true, stepOverride: step })
+  }, [syncDraftToServer, step])
+
   const jumpBtnClass =
     "rounded-xl border border-gray-200/90 bg-white/90 px-3.5 py-1.5 text-xs font-semibold text-zinc-700 shadow-sm backdrop-blur-sm transition hover:border-violet-300/80 hover:bg-violet-50/90 hover:text-violet-900 dark:border-zinc-600 dark:bg-zinc-900/80 dark:text-zinc-200 dark:hover:border-violet-600/50 dark:hover:bg-violet-950/40 dark:hover:text-violet-100"
 
@@ -1480,28 +1528,14 @@ export function SupplierAddProductForm({
                     <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 sm:text-[15px]">
                       {headerMeta.blurb}
                     </p>
-                    {productIsDraft ? (
-                      <div className="mt-3 flex flex-wrap items-center gap-3">
-                        <p className="flex flex-wrap items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
-                          <Cloud className="h-3.5 w-3.5 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
-                          {draftSync === "saving" ? (
-                            <span>Enregistrement du brouillon…</span>
-                          ) : draftSync === "error" ? (
-                            <span className="text-amber-700 dark:text-amber-400">
-                              Échec de la synchro — vérifiez votre connexion.
-                            </span>
-                          ) : draftSyncAt ? (
-                            <span>
-                              Brouillon enregistré à{" "}
-                              {new Date(draftSyncAt).toLocaleTimeString("fr-FR", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </span>
-                          ) : (
-                            <span>Sauvegarde automatique après quelques secondes.</span>
-                          )}
-                        </p>
+                    {canSaveDraft ? (
+                      <div className="mt-3 hidden space-y-2 lg:block">
+                        <SupplierDraftSaveControl
+                          syncState={draftSync}
+                          savedAt={draftSyncAt}
+                          disabled={saving}
+                          onSave={handleSaveDraftClick}
+                        />
                         {autosaveListingId ? (
                           <SupplierDeleteDraftButton
                             productId={autosaveListingId}
@@ -1543,7 +1577,24 @@ export function SupplierAddProductForm({
                     ))}
                   </nav>
                 </div>
-                <div className="flex w-full shrink-0 flex-col gap-2 sm:flex-row lg:w-auto lg:flex-col xl:max-w-[280px]">
+                <div className="flex w-full shrink-0 flex-col gap-2 sm:flex-row lg:w-auto lg:flex-col xl:max-w-[300px]">
+                  {canSaveDraft ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={draftSync === "saving" || saving}
+                      onClick={handleSaveDraftClick}
+                      className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-2xl border-violet-200/90 bg-violet-50/90 text-sm font-semibold text-violet-900 shadow-sm hover:bg-violet-100 dark:border-violet-800/60 dark:bg-violet-950/40 dark:text-violet-100 dark:hover:bg-violet-950/70"
+                      title="Enregistrer comme brouillon"
+                    >
+                      {draftSync === "saving" ? (
+                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                      ) : (
+                        <Save className="h-4 w-4 shrink-0" aria-hidden />
+                      )}
+                      Enregistrer brouillon
+                    </Button>
+                  ) : null}
                   <Link
                     href="/dashboard/supplier/products"
                     className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100"
@@ -1571,6 +1622,18 @@ export function SupplierAddProductForm({
               </div>
             </div>
           </header>
+
+        {canSaveDraft ? (
+          <div className="mt-4 rounded-2xl border border-violet-200/50 bg-violet-50/40 px-4 py-3 dark:border-violet-900/40 dark:bg-violet-950/20 lg:hidden">
+            <SupplierDraftSaveControl
+              syncState={draftSync}
+              savedAt={draftSyncAt}
+              disabled={saving}
+              onSave={handleSaveDraftClick}
+              layout="stacked"
+            />
+          </div>
+        ) : null}
 
         <nav className="mt-8" aria-label="Form steps">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch sm:justify-between sm:gap-6">
@@ -1886,9 +1949,28 @@ export function SupplierAddProductForm({
 
                 <div className="flex flex-col gap-3 rounded-3xl border border-violet-200/60 bg-gradient-to-r from-violet-50/70 via-white/90 to-white px-4 py-4 shadow-sm ring-1 ring-violet-500/10 backdrop-blur-sm dark:border-violet-900/40 dark:from-violet-950/30 dark:via-zinc-950 dark:to-zinc-950 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                   <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                    <span className="font-medium text-zinc-900 dark:text-zinc-100">Step 2</span> — base price, stock,
-                    variants, and affiliate economics.
+                    <span className="font-medium text-zinc-900 dark:text-zinc-100">Étape 2</span> — prix, stock,
+                    variantes et commission affiliés.
                   </p>
+                  <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                  {canSaveDraft ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="lg"
+                      disabled={draftSync === "saving" || saving}
+                      onClick={handleSaveDraftClick}
+                      className="w-full shrink-0 gap-1.5 border-violet-200 sm:w-auto"
+                      title="Enregistrer comme brouillon"
+                    >
+                      {draftSync === "saving" ? (
+                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                      ) : (
+                        <Save className="h-4 w-4" aria-hidden />
+                      )}
+                      Brouillon
+                    </Button>
+                  ) : null}
                   <Button
                     type="button"
                     size="lg"
@@ -1909,8 +1991,9 @@ export function SupplierAddProductForm({
                       setStep(2)
                     }}
                   >
-                    Continue to pricing
+                    Continuer — tarifs
                   </Button>
+                  </div>
                 </div>
               </>
             ) : (
@@ -2568,21 +2651,41 @@ export function SupplierAddProductForm({
 
                 <div className="flex flex-col gap-3 border-t border-zinc-200 pt-6 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-between">
                   <Button type="button" variant="outline" size="lg" onClick={() => setStep(1)}>
-                    Back to listing
+                    Retour à la fiche
                   </Button>
-                  <Button
-                    type="button"
-                    size="lg"
-                    disabled={saving}
-                    className="bg-violet-600 hover:bg-violet-700 dark:bg-violet-600"
-                    onClick={() => void handleSubmit()}
-                  >
-                    {saving
-                      ? "Saving…"
-                      : editId && !productIsDraft
-                        ? "Save changes"
-                        : "Publish product"}
-                  </Button>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    {canSaveDraft ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="lg"
+                        disabled={draftSync === "saving" || saving}
+                        onClick={handleSaveDraftClick}
+                        className="gap-1.5 border-violet-200"
+                        title="Enregistrer comme brouillon"
+                      >
+                        {draftSync === "saving" ? (
+                          <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                        ) : (
+                          <Save className="h-4 w-4" aria-hidden />
+                        )}
+                        Enregistrer brouillon
+                      </Button>
+                    ) : null}
+                    <Button
+                      type="button"
+                      size="lg"
+                      disabled={saving}
+                      className="bg-violet-600 hover:bg-violet-700 dark:bg-violet-600"
+                      onClick={() => void handleSubmit()}
+                    >
+                      {saving
+                        ? "Enregistrement…"
+                        : editId && !productIsDraft
+                          ? "Enregistrer"
+                          : "Publier le produit"}
+                    </Button>
+                  </div>
                 </div>
               </>
             )}
