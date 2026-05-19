@@ -19,11 +19,16 @@ function typeLabel(type: string) {
   return type
 }
 
-export default async function MarketplaceBuyerWalletPage() {
+type Props = { searchParams?: Promise<{ welcome?: string }> | { welcome?: string } }
+
+export default async function MarketplaceBuyerWalletPage({ searchParams }: Props) {
   const session = await auth()
   if (!session?.user?.id) {
-    redirect("/login?callbackUrl=/marketplace/account/wallet")
+    redirect("/signup/customer?callbackUrl=/marketplace/account/wallet")
   }
+
+  const sp = searchParams instanceof Promise ? await searchParams : searchParams
+  const showWelcome = sp?.welcome === "1"
 
   const [user, entries] = await Promise.all([
     prisma.user.findUnique({
@@ -45,6 +50,16 @@ export default async function MarketplaceBuyerWalletPage() {
 
   return (
     <BentoContainer maxWidth="4xl" className="space-y-8">
+      {showWelcome ? (
+        <BentoCard className="border-violet-200/80 bg-gradient-to-r from-violet-50/90 to-fuchsia-50/50 dark:border-violet-800/50 dark:from-violet-950/40 dark:to-fuchsia-950/20">
+          <p className="text-sm font-semibold text-violet-900 dark:text-violet-100">
+            Compte créé — votre cashback apparaît ici dès que le paiement est confirmé.
+          </p>
+          <p className="mt-1 text-xs text-violet-800/90 dark:text-violet-200/80">
+            Utilisez votre solde au prochain achat sur le marketplace (minimum carte {formatStoreCurrency(STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS / 100)}).
+          </p>
+        </BentoCard>
+      ) : null}
       <BentoCard className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
         <BentoPageHeading
           eyebrow="Rewards"

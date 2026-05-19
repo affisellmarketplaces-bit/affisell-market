@@ -16,6 +16,7 @@ import {
   setGuestCartQuantity,
   type GuestCartItem,
 } from "@/lib/guest-cart"
+import { CartCheckoutIdentitySheet } from "@/components/cart/cart-checkout-identity-sheet"
 import { formatStoreCurrency } from "@/lib/market-config"
 
 type CartLine = {
@@ -116,6 +117,7 @@ export default function CartPage() {
   const [isAuthed, setIsAuthed] = useState(false)
   const [loading, setLoading] = useState(true)
   const [checkoutBusy, setCheckoutBusy] = useState(false)
+  const [identityOpen, setIdentityOpen] = useState(false)
   const [rewardBalanceCents, setRewardBalanceCents] = useState(0)
   const [useRewardCents, setUseRewardCents] = useState(0)
   const guestImagesResolvedKey = useRef("")
@@ -289,12 +291,7 @@ export default function CartPage() {
     await refreshCart()
   }
 
-  async function checkout() {
-    if (lines.length === 0) return
-    if (!isAuthed) {
-      window.location.href = `/login?callbackUrl=${encodeURIComponent("/cart")}`
-      return
-    }
+  async function proceedToStripe() {
     setCheckoutBusy(true)
     try {
       const res = await fetch("/api/checkout", {
@@ -310,21 +307,37 @@ export default function CartPage() {
             selectedSize: l.selectedSize,
           })),
           cancelPath: "/cart",
+          successPath: "/success?welcome=1",
           useRewardCents: Math.min(Math.max(0, Math.round(useRewardCents)), maxApplicableReward),
         }),
       })
-      const data = (await res.json()) as { url?: string }
+      const data = (await res.json()) as { url?: string; error?: string }
       if (data.url) window.location.href = data.url
     } finally {
       setCheckoutBusy(false)
     }
   }
 
+  async function checkout() {
+    if (lines.length === 0) return
+    if (!isAuthed) {
+      setIdentityOpen(true)
+      return
+    }
+    await proceedToStripe()
+  }
+
+  async function afterIdentity() {
+    setIdentityOpen(false)
+    await refreshCart()
+    await proceedToStripe()
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-violet-50/40 py-8 dark:from-zinc-950 dark:to-violet-950/20">
         <div className="mx-auto max-w-3xl px-4">
-          <p className="text-sm text-zinc-500">Loading cart…</p>
+          <p className="text-sm text-zinc-500">Chargement du panier…</p>
         </div>
       </div>
     )
@@ -334,13 +347,13 @@ export default function CartPage() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-violet-50/40 py-8 dark:from-zinc-950 dark:to-violet-950/20">
         <div className="mx-auto max-w-3xl px-4">
-          <h1 className="mb-2 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Shopping Cart</h1>
-          <p className="text-zinc-600 dark:text-zinc-400">Your cart is empty</p>
+          <h1 className="mb-2 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Panier</h1>
+          <p className="text-zinc-600 dark:text-zinc-400">Votre panier est vide</p>
           <Link
-            href="/shops/browse"
+            href="/#explorer"
             className="mt-6 inline-flex rounded-full bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-violet-700"
           >
-            Continue shopping
+            Découvrir les produits
           </Link>
         </div>
       </div>
@@ -352,16 +365,16 @@ export default function CartPage() {
       <div className="mx-auto max-w-3xl px-4">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Shopping Cart</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Panier</h1>
             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-              {itemCount} {itemCount === 1 ? "piece" : "pieces"} · selections follow you to checkout
+              {itemCount} article{itemCount > 1 ? "s" : ""} · vos choix (couleur, taille) sont conservés
             </p>
           </div>
           <Link
-            href="/shops/browse"
+            href="/#explorer"
             className="text-sm font-medium text-violet-700 hover:underline dark:text-violet-400"
           >
-            ← Marketplace
+            ← Explorer
           </Link>
         </div>
 
@@ -503,13 +516,13 @@ export default function CartPage() {
         <div className="mt-8 rounded-2xl border border-zinc-200/90 bg-white p-6 shadow-lg dark:border-zinc-800 dark:bg-zinc-900/70">
           <div className="mb-4 flex justify-between text-lg font-bold text-zinc-900 dark:text-zinc-50">
             <span>
-              Subtotal ({itemCount} {itemCount === 1 ? "item" : "items"})
+              Sous-total ({itemCount} article{itemCount > 1 ? "s" : ""})
             </span>
             <span className="tabular-nums">{formatStoreCurrency(subtotal)}</span>
           </div>
           {isAuthed && rewardBalanceCents > 0 ? (
             <div className="mb-4 rounded-xl border border-teal-100 bg-teal-50/60 p-4 dark:border-teal-900/50 dark:bg-teal-950/30">
-              <p className="text-sm font-semibold text-teal-900 dark:text-teal-100">Store credit</p>
+              <p className="text-sm font-semibold text-teal-900 dark:text-teal-100">Cashback disponible</p>
               <p className="mt-1 text-xs text-teal-800 dark:text-teal-200/90">
                 Balance {formatStoreCurrency(rewardBalanceCents / 100)} · up to{" "}
                 {formatStoreCurrency(maxApplicableReward / 100)} usable
@@ -549,21 +562,31 @@ export default function CartPage() {
               </div>
             </div>
           ) : null}
+          {!isAuthed ? (
+            <p className="mb-3 text-center text-xs text-zinc-500 dark:text-zinc-400">
+              E-mail ou mobile demandé avant le paiement · compte client et cashback automatiques
+            </p>
+          ) : null}
           <button
             type="button"
             disabled={checkoutBusy}
             onClick={() => void checkout()}
             className="mb-3 w-full rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 py-3.5 text-sm font-semibold text-white shadow-md transition hover:opacity-95 disabled:opacity-60"
           >
-            {checkoutBusy ? "Redirecting…" : "Proceed to Checkout"}
+            {checkoutBusy ? "Redirection…" : "Valider mon achat"}
           </button>
           <Link
-            href="/shops/browse"
+            href="/#explorer"
             className="flex w-full items-center justify-center rounded-full border-2 border-zinc-900 py-3 text-center text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50 dark:border-zinc-100 dark:text-zinc-50 dark:hover:bg-zinc-800"
           >
-            Continue shopping
+            Continuer mes achats
           </Link>
         </div>
+        <CartCheckoutIdentitySheet
+          open={identityOpen}
+          onClose={() => setIdentityOpen(false)}
+          onIdentified={afterIdentity}
+        />
       </div>
     </div>
   )

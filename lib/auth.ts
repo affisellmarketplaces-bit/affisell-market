@@ -19,6 +19,7 @@ import {
   SupplierBlockedOnAffiliatePortal,
 } from "@/lib/auth-credentials-errors"
 import { inferLoginPortal, isValidEmailIdentifier } from "@/lib/auth-login-portal"
+import { verifyBuyerCheckoutMagicToken } from "@/lib/buyer-checkout-magic"
 import { ensureMerchantStore } from "@/lib/ensure-store"
 import { OAUTH_SIGNUP_INTENT_COOKIE, OAUTH_WELCOME_COOKIE } from "@/lib/oauth-cookies"
 import { prisma } from "@/lib/prisma"
@@ -143,8 +144,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
   providers: [
     Credentials({
-      credentials: { email: {}, password: {}, callbackUrl: {} },
+      credentials: { email: {}, password: {}, callbackUrl: {}, checkoutMagic: {} },
       async authorize(c) {
+        const magicRaw = c?.checkoutMagic?.toString().trim()
+        if (magicRaw) {
+          const payload = verifyBuyerCheckoutMagicToken(magicRaw)
+          if (!payload) return null
+          const userRow = await prisma.user.findUnique({ where: { id: payload.userId } })
+          if (!userRow || userRow.role !== "CUSTOMER") return null
+          return {
+            id: userRow.id,
+            email: userRow.email,
+            name: userRow.name ?? undefined,
+            image: userRow.image ?? undefined,
+            role: userRow.role,
+          }
+        }
+
         const emailRaw = c?.email?.toString().toLowerCase().trim()
         const passwordRaw = c?.password?.toString()
         if (!emailRaw || !passwordRaw) return null
