@@ -93,7 +93,7 @@ export async function middleware(req: NextRequest) {
   const loggedIn = Boolean(token?.sub)
 
   if (pathname === "/" && role === "AFFILIATE") {
-    return NextResponse.redirect(new URL("/marketplace", req.url))
+    return NextResponse.redirect(new URL("/dashboard/affiliate", req.url))
   }
 
   if (pathname === "/" && role === "SUPPLIER") {
@@ -103,7 +103,16 @@ export async function middleware(req: NextRequest) {
   const isMarketplace =
     pathname === "/marketplace" || pathname.startsWith("/marketplace/")
   if (isMarketplace && pathname !== "/marketplace/account" && !pathname.startsWith("/marketplace/account/")) {
-    if (!loggedIn || role !== "AFFILIATE") {
+    if (!loggedIn) {
+      return NextResponse.redirect(loginAffiliateUrl(req, path))
+    }
+    if (role === "CUSTOMER") {
+      return NextResponse.redirect(new URL("/shops", req.url))
+    }
+    if (role === "SUPPLIER") {
+      return NextResponse.redirect(new URL("/dashboard/supplier", req.url))
+    }
+    if (role !== "AFFILIATE") {
       return NextResponse.redirect(loginAffiliateUrl(req, path))
     }
   }

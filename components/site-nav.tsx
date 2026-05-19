@@ -44,8 +44,7 @@ export function SiteNav({ initialRole = null }: Props) {
   }
 
   if (role === "AFFILIATE") {
-    const onDashboard = Boolean(pathname?.startsWith("/dashboard/affiliate"))
-    return <NavAffiliate showDashboardActions={onDashboard} />
+    return <NavAffiliate />
   }
 
   return <NavPublic />

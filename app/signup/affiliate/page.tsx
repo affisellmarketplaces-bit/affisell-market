@@ -42,7 +42,7 @@ export default function AffiliateSignupPage() {
       email,
       password,
       redirect: false,
-      callbackUrl: "/marketplace",
+      callbackUrl: "/dashboard/affiliate",
     })
     setLoading(false)
     if (login?.error) {

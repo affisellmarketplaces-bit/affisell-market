@@ -13,7 +13,8 @@ export default async function AffiliateDashboardPage() {
   const session = await auth()
   if (!session?.user?.id) redirect("/login?callbackUrl=/dashboard/affiliate")
   if (session.user.role === "SUPPLIER") redirect("/dashboard/supplier")
-  if (session.user.role !== "AFFILIATE") redirect("/marketplace")
+  if (session.user.role === "CUSTOMER") redirect("/shops")
+  if (session.user.role !== "AFFILIATE") redirect("/login/affiliate")
 
   return (
     <Suspense

@@ -14,7 +14,7 @@ export default async function HomePage() {
   }
 
   if (role === "AFFILIATE") {
-    redirect("/marketplace")
+    redirect("/dashboard/affiliate")
   }
 
   return <PublicHome />

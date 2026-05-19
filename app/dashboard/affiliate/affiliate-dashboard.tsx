@@ -484,6 +484,8 @@ export function AffiliateDashboard({ storeId }: Props) {
     [listingsWithProduct]
   )
 
+  const showWelcome = searchParams.get("welcome") === "1"
+
   const filteredDiscover = useMemo(() => {
     let rows = [...catalog]
     if (discoverUnlistedOnly) rows = rows.filter((p) => !(p.affiliateProducts?.length ?? 0))
@@ -521,6 +523,21 @@ export function AffiliateDashboard({ storeId }: Props) {
   return (
     <main className="min-h-[calc(100dvh-3.75rem)]">
       <div className="mx-auto max-w-6xl px-4 py-8 md:px-8 md:py-10">
+        {showWelcome ? (
+          <div
+            role="status"
+            className="mb-6 rounded-2xl border border-violet-200 bg-violet-50 px-4 py-4 text-sm text-violet-950 dark:border-violet-800/60 dark:bg-violet-950/50 dark:text-violet-100"
+          >
+            <p className="font-semibold">Bienvenue dans votre espace créateur</p>
+            <p className="mt-1 text-violet-900/90 dark:text-violet-200/90">
+              Configurez votre boutique ci-dessous, puis explorez le{" "}
+              <Link href="/marketplace" className="font-medium underline underline-offset-2">
+                catalogue affilié
+              </Link>{" "}
+              pour ajouter vos premiers produits.
+            </p>
+          </div>
+        ) : null}
         {bootstrapError ? (
           <div
             role="alert"

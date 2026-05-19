@@ -8,8 +8,8 @@ export default function AffiliateLoginPage() {
       <PortalSignInForm
         portal="AFFILIATE"
         title="Espace Créateur"
-        subtitle="Connecte-toi pour gérer ta boutique"
-        defaultCallback="/marketplace"
+        subtitle="Accède à ton dashboard créateur et à ton catalogue affilié"
+        defaultCallback="/dashboard/affiliate"
         signupHref="/signup/affiliate"
         signupLabel="Créer mon espace créateur"
       />
