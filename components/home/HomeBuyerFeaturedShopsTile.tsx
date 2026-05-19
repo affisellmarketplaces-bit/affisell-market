@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ArrowUpRight, Store } from "lucide-react"
+import { ArrowUpRight } from "lucide-react"
 
 import { FEATURED_SHOPS_TILE } from "@/lib/buyer-smart-services"
 import type { PublicShopDirectoryEntry } from "@/lib/shop-storefront-data"
@@ -13,8 +13,7 @@ type Props = {
 }
 
 /** Featured creator storefronts — replaces the old strip below the hero. */
-export function HomeBuyerFeaturedShopsTile({ shops }: Props) {
-  const featured = shops.slice(0, 3)
+export function HomeBuyerFeaturedShopsTile({ shops: _shops }: Props) {
   const { href, label, hint, accent } = FEATURED_SHOPS_TILE
 
   return (
@@ -28,36 +27,15 @@ export function HomeBuyerFeaturedShopsTile({ shops }: Props) {
           aria-hidden
         />
         <span className="relative flex items-start justify-between gap-2">
-          {featured.length > 0 ? (
-            <span className="flex shrink-0 items-center -space-x-2">
-              {featured.map((shop, i) => (
-                <span
-                  key={shop.slug}
-                  className={cn(
-                    "relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl border-2 border-white/30 bg-white/20 shadow-inner ring-1 ring-white/20",
-                    i > 0 && "z-[1]"
-                  )}
-                  style={{ zIndex: featured.length - i }}
-                >
-                  {shop.logoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={shop.logoUrl} alt="" className="h-full w-full object-cover" loading="lazy" />
-                  ) : (
-                    <span className="text-sm font-bold text-white">{shop.name.slice(0, 1)}</span>
-                  )}
-                </span>
-              ))}
-            </span>
-          ) : (
-            <span
-              className={cn(
-                "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br shadow-inner",
-                accent
-              )}
-            >
-              <Store className="h-4 w-4 text-white" aria-hidden />
-            </span>
-          )}
+          <span
+            className={cn(
+              "flex h-9 min-w-9 shrink-0 items-center justify-center rounded-xl border-2 border-white/30 bg-gradient-to-br px-1.5 shadow-inner ring-1 ring-white/20",
+              accent
+            )}
+            aria-hidden
+          >
+            <span className="text-[11px] font-extrabold leading-none tracking-tight text-white">Une</span>
+          </span>
           <ArrowUpRight
             className="h-4 w-4 shrink-0 text-white/50 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-white"
             aria-hidden
