@@ -336,6 +336,10 @@ model Product {
    * Display source label (e.g. "seed"); API may expose as `supplier` string.
    */
   supplierTag            String?
+  /** AliExpress Open API product id (dropshipping import). */
+  aliexpressProductId    String?
+  /** Import channel, e.g. `aliexpress`. */
+  importSource           String?
   /**
    * Blind dropship: partner SKU + wholesale cost (cents) sent to supplier APIs only — never shopper/affiliate price.
    * Null when the product is only sold through native Affisell fulfillment.
@@ -365,6 +369,7 @@ model Product {
   productReviews          ProductReview[]
 
   @@index([categoryId])
+  @@index([aliexpressProductId])
   @@index([supplierId, isDraft])
   @@index([style])
   @@index([shippingType])
