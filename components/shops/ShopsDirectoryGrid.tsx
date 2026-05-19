@@ -37,7 +37,7 @@ export function ShopsDirectoryGrid({ shops }: { shops: PublicShopDirectoryEntry[
                 : "border border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200"
             )}
           >
-            {label === "Toutes" ? "[Toutes]" : `[${label}]`}
+            {label}
           </button>
         ))}
       </div>

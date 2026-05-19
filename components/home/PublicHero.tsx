@@ -1,5 +1,6 @@
 import Link from "next/link"
 
+import { HeroSearchBar } from "@/components/home/HeroSearchBar"
 import { buttonVariants } from "@/components/ui/button"
 import type { PublicHomeStats } from "@/lib/public-home-data"
 import { cn } from "@/lib/utils"
@@ -20,8 +21,11 @@ export function PublicHero({ stats }: Props) {
           Les boutiques créées par vos créateurs préférés
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-pretty text-sm text-violet-100/95 sm:text-base">
-          Livraison 2-7j · Paiement sécurisé · Support FR · +{stats.productCountLabel} produits
+          Livraison 2-7j · Paiement sécurisé · Support FR · {stats.productCountLabel} produits en boutique
         </p>
+        <div className="mx-auto mt-6 max-w-xl">
+          <HeroSearchBar className="[&_input]:border-white/30 [&_input]:bg-white/95 [&_button]:bg-zinc-900 [&_button]:hover:bg-zinc-800" />
+        </div>
         <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
           <Link
             href="/shops"

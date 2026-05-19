@@ -1,3 +1,4 @@
+import { loadBuyerListingCount } from "@/lib/buyer-discovery-data"
 import {
   homeProductToCardProps,
   loadHomeBestSellers7d,
@@ -35,7 +36,7 @@ const EMPTY_MARKETPLACE_STATS: HomeMarketplaceStats = {
 export async function loadPublicHomeStats(): Promise<PublicHomeStats> {
   const [shopCount, productCount] = await Promise.all([
     prisma.store.count({ where: { user: { role: "AFFILIATE" } } }),
-    prisma.product.count({ where: { active: true, isDraft: false } }),
+    loadBuyerListingCount(),
   ])
   return {
     shopCount,
