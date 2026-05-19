@@ -80,6 +80,7 @@ export function SupplierSkuFastPanel({
   const showWeight = isSkuColumnVisible(hiddenColumns, "weightGrams")
   const showEan = isSkuColumnVisible(hiddenColumns, "ean")
   const showProcessing = isSkuColumnVisible(hiddenColumns, "processingDays")
+  const showWarranty = isSkuColumnVisible(hiddenColumns, "warrantyMonths")
   const showOrigin = isSkuColumnVisible(hiddenColumns, "originCountry")
   const showWarehouse = isSkuColumnVisible(hiddenColumns, "warehouseCode")
   const showVideo = isSkuColumnVisible(hiddenColumns, "videoUrl")
@@ -93,6 +94,7 @@ export function SupplierSkuFastPanel({
     customFieldValues: {},
     weightGrams: null,
     processingDays: catalogProcessingDays,
+    warrantyMonths: null,
     ean: null,
     originCountry: catalogOriginCountry,
     warehouseCode: catalogWarehouse,
@@ -403,6 +405,33 @@ export function SupplierSkuFastPanel({
                     processingDays: Math.min(30, Math.max(0, Math.round(Number(e.target.value) || 0))),
                   })
                 }
+              />
+            </div>
+          ) : null}
+          {showWarranty ? (
+            <div>
+              <Label className="text-xs">Garantie (mois)</Label>
+              <Input
+                type="number"
+                min={0}
+                max={120}
+                className="mt-1 h-10"
+                disabled={disabled}
+                value={
+                  defaults.warrantyMonths != null && defaults.warrantyMonths > 0
+                    ? defaults.warrantyMonths
+                    : ""
+                }
+                placeholder="12"
+                onChange={(e) => {
+                  const raw = e.target.value
+                  setDefault({
+                    warrantyMonths:
+                      raw.trim() === ""
+                        ? null
+                        : Math.min(120, Math.max(0, Math.round(Number(raw) || 0))),
+                  })
+                }}
               />
             </div>
           ) : null}

@@ -86,6 +86,8 @@ export type SupplierSkuTableRow = {
   customFields?: Record<string, string>
   weightGrams?: number | null
   processingDays?: number | null
+  /** Durée de garantie fabricant / vendeur (mois) */
+  warrantyMonths?: number | null
   ean?: string | null
   originCountry?: string | null
   warehouseCode?: string | null
@@ -100,6 +102,7 @@ export type SkuFastDefaults = {
   customFieldValues: Record<string, string>
   weightGrams?: number | null
   processingDays?: number | null
+  warrantyMonths?: number | null
   ean?: string | null
   originCountry?: string | null
   warehouseCode?: string | null
@@ -113,6 +116,8 @@ function parseLogisticsFromAttrs(attrs?: Record<string, string>): Partial<Suppli
   if (wg && /^\d+$/.test(wg)) out.weightGrams = Math.min(30000, parseInt(wg, 10))
   const pd = attrs.processingDays?.trim()
   if (pd && /^\d+$/.test(pd)) out.processingDays = Math.min(30, parseInt(pd, 10))
+  const wm = attrs.warrantyMonths?.trim()
+  if (wm && /^\d+$/.test(wm)) out.warrantyMonths = Math.min(120, parseInt(wm, 10))
   const ean = attrs.ean?.trim()
   if (ean) out.ean = ean
   const oc = attrs.originCountry?.trim()
@@ -129,6 +134,9 @@ function logisticsAttrsFromRow(row: SupplierSkuTableRow): Record<string, string>
   if (row.weightGrams != null && row.weightGrams > 0) out.weightGrams = String(row.weightGrams)
   if (row.processingDays != null && row.processingDays >= 0) {
     out.processingDays = String(row.processingDays)
+  }
+  if (row.warrantyMonths != null && row.warrantyMonths > 0) {
+    out.warrantyMonths = String(row.warrantyMonths)
   }
   if (row.ean?.trim()) out.ean = row.ean.trim()
   if (row.originCountry?.trim()) out.originCountry = row.originCountry.trim()
@@ -259,6 +267,7 @@ export function generateSkuTableRowsFromSetup(params: {
     ),
     weightGrams: params.defaults.weightGrams ?? null,
     processingDays: params.defaults.processingDays ?? 2,
+    warrantyMonths: params.defaults.warrantyMonths ?? null,
     ean: params.defaults.ean?.trim() || null,
     originCountry: params.defaults.originCountry?.trim() || "CN",
     warehouseCode: params.defaults.warehouseCode?.trim() || null,
@@ -371,6 +380,17 @@ export function validateSupplierSkuTableRows(
       }
     }
 
+    if (row.warrantyMonths != null && row.warrantyMonths !== undefined) {
+      const wm = row.warrantyMonths
+      if (!Number.isInteger(wm) || wm < 0 || wm > 120) {
+        issues.push({
+          index,
+          field: "warrantyMonths",
+          message: "Garantie : entier entre 0 et 120 mois",
+        })
+      }
+    }
+
     const sku = row.sku?.trim() ?? ""
     if (!sku) {
       issues.push({ index, field: "sku", message: "SKU requis" })
@@ -475,6 +495,7 @@ export function productVariantLinesToSkuTableRows(
                 ![
                   "weightGrams",
                   "processingDays",
+                  "warrantyMonths",
                   "ean",
                   "originCountry",
                   "warehouseCode",
@@ -486,6 +507,7 @@ export function productVariantLinesToSkuTableRows(
       customFields: r.attrs ? { ...r.attrs } : {},
       weightGrams: fromAttrs.weightGrams ?? null,
       processingDays: fromAttrs.processingDays ?? 2,
+      warrantyMonths: fromAttrs.warrantyMonths ?? null,
       ean: fromAttrs.ean ?? null,
       originCountry: fromAttrs.originCountry ?? "CN",
       warehouseCode: fromAttrs.warehouseCode ?? null,
@@ -541,7 +563,10 @@ export function apiRowsFromSkuTable(
       warehouseCode: r.warehouseCode?.trim() || null,
       videoUrl: r.videoUrl?.trim() || null,
       customData: (() => {
-        const d = rowCustomData(r)
+        const d: VariantCustomData = { ...rowCustomData(r) }
+        if (r.warrantyMonths != null && r.warrantyMonths > 0) {
+          d.warrantyMonths = r.warrantyMonths
+        }
         return Object.keys(d).length > 0 ? d : undefined
       })(),
     }
@@ -570,7 +595,20 @@ export function skuTableRowFromApiVariant(row: {
   customData?: VariantCustomData | null
 }): SupplierSkuTableRow {
   const supplier = Number(row.supplierPrice) || Number(row.publicPrice) || 0
-  const customData = row.customData && Object.keys(row.customData).length > 0 ? { ...row.customData } : undefined
+  const customDataRaw =
+    row.customData && Object.keys(row.customData).length > 0 ? { ...row.customData } : undefined
+  let warrantyMonths: number | null = null
+  if (customDataRaw?.warrantyMonths != null) {
+    const wm = customDataRaw.warrantyMonths
+    if (typeof wm === "number" && Number.isFinite(wm)) {
+      warrantyMonths = Math.min(120, Math.max(0, Math.round(wm)))
+    } else if (typeof wm === "string" && /^\d+$/.test(wm.trim())) {
+      warrantyMonths = Math.min(120, parseInt(wm.trim(), 10))
+    }
+    delete customDataRaw.warrantyMonths
+  }
+  const customData =
+    customDataRaw && Object.keys(customDataRaw).length > 0 ? customDataRaw : undefined
   return {
     id: row.id?.trim() ? row.id.trim() : newVariantRowId(),
     color: row.color?.trim() ?? "",
@@ -586,6 +624,7 @@ export function skuTableRowFromApiVariant(row: {
       : {},
     weightGrams: row.weightGrams ?? null,
     processingDays: row.processingDays ?? 2,
+    warrantyMonths,
     ean: row.ean?.trim() || null,
     originCountry: row.originCountry?.trim() || "CN",
     warehouseCode: row.warehouseCode?.trim() || null,

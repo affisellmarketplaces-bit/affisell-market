@@ -40,6 +40,7 @@ function newRow(defaults: {
   customFields: Record<string, string>
   weightGrams?: number | null
   processingDays?: number | null
+  warrantyMonths?: number | null
   ean?: string | null
   originCountry?: string | null
   warehouseCode?: string | null
@@ -58,6 +59,7 @@ function newRow(defaults: {
     customFields: { ...defaults.customFields },
     weightGrams: defaults.weightGrams ?? null,
     processingDays: defaults.processingDays ?? 2,
+    warrantyMonths: defaults.warrantyMonths ?? null,
     ean: defaults.ean ?? null,
     originCountry: defaults.originCountry ?? "CN",
     warehouseCode: defaults.warehouseCode ?? null,
@@ -121,6 +123,7 @@ export function SupplierVariantTable({
   const showWeightCol = isSkuColumnVisible(hiddenColumns, "weightGrams")
   const showEanCol = isSkuColumnVisible(hiddenColumns, "ean")
   const showProcessingCol = isSkuColumnVisible(hiddenColumns, "processingDays")
+  const showWarrantyCol = isSkuColumnVisible(hiddenColumns, "warrantyMonths")
   const showOriginCol = isSkuColumnVisible(hiddenColumns, "originCountry")
   const showWarehouseCol = isSkuColumnVisible(hiddenColumns, "warehouseCode")
   const showVideoCol = isSkuColumnVisible(hiddenColumns, "videoUrl")
@@ -131,6 +134,7 @@ export function SupplierVariantTable({
     () => ({
       weightGrams: null as number | null,
       processingDays: catalogDeliveryDays ?? 2,
+      warrantyMonths: null as number | null,
       ean: null as string | null,
       originCountry: "CN",
       warehouseCode: catalogShipsFrom.trim() || "EU",
@@ -330,6 +334,7 @@ export function SupplierVariantTable({
     (showWeightCol ? 1 : 0) +
     (showEanCol ? 1 : 0) +
     (showProcessingCol ? 1 : 0) +
+    (showWarrantyCol ? 1 : 0) +
     (showOriginCol ? 1 : 0) +
     (showWarehouseCol ? 1 : 0) +
     (showVideoCol ? 1 : 0) +
@@ -515,6 +520,7 @@ export function SupplierVariantTable({
                   {showWeightCol ? <th className="px-3 py-2.5">Poids (g)</th> : null}
                   {showEanCol ? <th className="px-3 py-2.5">EAN</th> : null}
                   {showProcessingCol ? <th className="px-3 py-2.5">Délai (j)</th> : null}
+                  {showWarrantyCol ? <th className="px-3 py-2.5">Garantie (mois)</th> : null}
                   {showOriginCol ? <th className="px-3 py-2.5">Origine</th> : null}
                   {showWarehouseCol ? <th className="px-3 py-2.5">Entrepôt</th> : null}
                   {showVideoCol ? <th className="px-3 py-2.5">Vidéo</th> : null}
@@ -746,6 +752,36 @@ export function SupplierVariantTable({
                                   ),
                                 })
                               }
+                            />
+                          </td>
+                        ) : null}
+                        {showWarrantyCol ? (
+                          <td className="px-2 py-1.5">
+                            <Input
+                              type="number"
+                              min={0}
+                              max={120}
+                              className={cn("h-9 w-16", rowErrorClass(index, "warrantyMonths"))}
+                              value={
+                                row.warrantyMonths != null && row.warrantyMonths > 0
+                                  ? row.warrantyMonths
+                                  : ""
+                              }
+                              disabled={disabled}
+                              placeholder="12"
+                              aria-label={`Garantie en mois, variante ${row.color || index + 1}`}
+                              onChange={(e) => {
+                                const raw = e.target.value
+                                updateRow(index, {
+                                  warrantyMonths:
+                                    raw.trim() === ""
+                                      ? null
+                                      : Math.min(
+                                          120,
+                                          Math.max(0, Math.round(Number(raw) || 0))
+                                        ),
+                                })
+                              }}
                             />
                           </td>
                         ) : null}
