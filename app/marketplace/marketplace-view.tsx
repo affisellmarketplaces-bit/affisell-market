@@ -8,6 +8,9 @@ import { useRouter, useSearchParams } from "next/navigation"
 
 import { ProductCard } from "@/components/ProductCard"
 import { ProductCardPreviewToggle } from "@/components/product/ProductCardPreviewToggle"
+import { usePreviewAsCustomer } from "@/hooks/usePreviewAsCustomer"
+import { useUserRole } from "@/hooks/useUserRole"
+import { canShowBusinessProductData } from "@/lib/user-role"
 import { MarketplaceFilters } from "@/components/marketplace/filters"
 import { MarketplaceAffisellPulse } from "@/components/marketplace/MarketplaceAffisellPulse"
 import { MarketplaceDepartmentRail } from "@/components/marketplace/MarketplaceDepartmentRail"
@@ -42,6 +45,9 @@ function normalizeProducts(raw: unknown): ProductRow[] {
 export function MarketplaceView() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const userRole = useUserRole()
+  const previewAsCustomer = usePreviewAsCustomer()
+  const showBusinessData = canShowBusinessProductData(userRole) && !previewAsCustomer
   const categoryId = searchParams.get("category")
   const subcategoryId = searchParams.get("subcategory")
   const searchQuery = searchParams.get("q") ?? ""
@@ -267,7 +273,7 @@ export function MarketplaceView() {
               <ul className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
                 {products.map((product) => (
                   <li key={String(product.listingId ?? product.id)} className="flex h-full">
-                    <ProductCard product={product} />
+                    <ProductCard product={product} showBusinessData={showBusinessData} />
                   </li>
                 ))}
               </ul>

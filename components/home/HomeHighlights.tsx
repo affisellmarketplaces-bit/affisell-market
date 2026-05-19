@@ -17,6 +17,7 @@ const TABS: { id: TabId; label: string }[] = [
 
 type Props = {
   data: HomeHighlightsData
+  showBusinessData?: boolean
 }
 
 function itemsForTab(tab: TabId, data: HomeHighlightsData): HomeProductCard[] {
@@ -25,7 +26,7 @@ function itemsForTab(tab: TabId, data: HomeHighlightsData): HomeProductCard[] {
   return data.highMargin
 }
 
-export function HomeHighlights({ data }: Props) {
+export function HomeHighlights({ data, showBusinessData = false }: Props) {
   const [tab, setTab] = useState<TabId>("bestsellers")
   const items = itemsForTab(tab, data)
 
@@ -71,7 +72,7 @@ export function HomeHighlights({ data }: Props) {
         <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
           {items.map((item) => (
             <li key={`${tab}-${item.listingId}`}>
-              <ProductCard product={homeProductToCardProps(item)} viewMode="customer" />
+              <ProductCard product={homeProductToCardProps(item)} showBusinessData={showBusinessData} />
             </li>
           ))}
         </ul>

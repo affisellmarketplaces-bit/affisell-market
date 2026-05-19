@@ -1,4 +1,5 @@
 import { BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
+import { AffiliateBanner } from "@/components/home/AffiliateBanner"
 import { Hero } from "@/components/home/Hero"
 import { HomeFooter } from "@/components/home/HomeFooter"
 import { HomeHighlights } from "@/components/home/HomeHighlights"
@@ -22,8 +23,9 @@ export default async function HomePage() {
   return (
     <BentoShell>
       <BentoContainer maxWidth="7xl" className="space-y-12 py-8 md:space-y-14 md:py-10">
+        <AffiliateBanner />
         <Hero stats={stats} />
-        <HomeHighlights data={highlights} />
+        <HomeHighlights data={highlights} showBusinessData />
         <HomePickedForYou />
         <SalesBarometer initialData={barometer} />
       </BentoContainer>

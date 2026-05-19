@@ -11,24 +11,24 @@ export const dynamic = "force-dynamic"
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string; id: string }>
+  params: Promise<{ affiliateSlug: string; id: string }>
 }): Promise<Metadata> {
-  const { slug, id } = await params
-  return buildListingMetadataForId(id, slug)
+  const { affiliateSlug, id } = await params
+  return buildListingMetadataForId(id, affiliateSlug)
 }
 
 export default async function ShopProductPage({
   params,
 }: {
-  params: Promise<{ slug: string; id: string }>
+  params: Promise<{ affiliateSlug: string; id: string }>
 }) {
-  const { slug, id } = await params
+  const { affiliateSlug, id } = await params
   const match = await prisma.affiliateProduct.findFirst({
     where: {
       id,
       isListed: true,
       product: { active: true },
-      affiliate: { role: "AFFILIATE", store: { slug } },
+      affiliate: { role: "AFFILIATE", store: { slug: affiliateSlug } },
     },
     select: { id: true },
   })

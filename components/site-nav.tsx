@@ -46,6 +46,12 @@ export function SiteNav() {
   const pathname = usePathname()
   const isAuthRoute =
     pathname?.startsWith("/auth/") || pathname === "/login" || pathname?.startsWith("/signup")
+  const isShopStorefront =
+    pathname === "/shops" || (pathname?.startsWith("/shop/") ?? false)
+
+  if (isShopStorefront) {
+    return null
+  }
 
   const isSupplier = session?.user?.role === "SUPPLIER"
   const isAffiliate = session?.user?.role === "AFFILIATE"

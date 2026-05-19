@@ -1,24 +1,13 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { useSession } from "next-auth/react"
 import { Heart } from "lucide-react"
 
 import { ProductDiscountTag } from "@/components/product-discount-tag"
 import { Badge } from "@/components/ui/badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { formatStoreCurrency, formatStoreCurrencyFromCents } from "@/lib/market-config"
-import {
-  isAffiliateRole,
-  isSupplierRole,
-  PREVIEW_AS_CUSTOMER_STORAGE_KEY,
-  resolveProductCardViewMode,
-  showMerchantProductCardFields,
-  type ProductCardViewMode,
-} from "@/lib/product-card-view"
 import { cn } from "@/lib/utils"
-import { useEffect, useState } from "react"
 
 export type ProductCardProduct = {
   title?: string
@@ -31,15 +20,18 @@ export type ProductCardProduct = {
   isBestSeller?: boolean
   soldCount?: number
   marginCents?: number
+  commissionPct?: number
   deliveryLabel?: string
   freeShipping?: boolean
   stock?: number
+  averageRating?: number
+  reviewCount?: number
 }
 
 type ProductCardProps = {
   product: ProductCardProduct | Record<string, unknown>
-  /** Override route-based audience (e.g. shop PDP grids). */
-  viewMode?: ProductCardViewMode
+  /** When true: margin, sales, commission, supplier. Default false (buyer-safe). */
+  showBusinessData?: boolean
   href?: string
 }
 
@@ -70,12 +62,21 @@ function coerceProduct(p: ProductCardProps["product"]) {
   const marginRaw = o.marginCents
   const marginCents =
     typeof marginRaw === "number" && Number.isFinite(marginRaw) && marginRaw > 0 ? marginRaw : null
+  const commissionRaw = o.commissionPct
+  const commissionPct =
+    typeof commissionRaw === "number" && Number.isFinite(commissionRaw) && commissionRaw > 0
+      ? Math.round(commissionRaw)
+      : null
   const deliveryLabel =
     typeof o.deliveryLabel === "string" && o.deliveryLabel.trim() ? o.deliveryLabel.trim() : null
   const freeShipping = Boolean(o.freeShipping)
   const stockRaw = o.stock
   const stock =
     typeof stockRaw === "number" && Number.isFinite(stockRaw) ? stockRaw : null
+  const averageRating =
+    typeof o.averageRating === "number" && Number.isFinite(o.averageRating) ? o.averageRating : null
+  const reviewCount =
+    typeof o.reviewCount === "number" && Number.isFinite(o.reviewCount) ? o.reviewCount : null
   return {
     title,
     image,
@@ -86,20 +87,75 @@ function coerceProduct(p: ProductCardProps["product"]) {
     buyerRewardBadge,
     soldCount,
     marginCents,
+    commissionPct,
     deliveryLabel,
     freeShipping,
     stock,
+    averageRating,
+    reviewCount,
   }
+}
+
+function BusinessBadges({
+  soldCount,
+  marginCents,
+  commissionPct,
+  deliveryLabel,
+}: {
+  soldCount: number | null
+  marginCents: number | null
+  commissionPct: number | null
+  deliveryLabel: string | null
+}) {
+  const hasAny = soldCount != null || marginCents != null || commissionPct != null || deliveryLabel
+  if (!hasAny) return null
+  return (
+    <ul className="mt-2 flex flex-wrap gap-1.5">
+      {soldCount != null ? (
+        <li>
+          <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-900 dark:bg-amber-950/60 dark:text-amber-200">
+            {soldCount} vente{soldCount > 1 ? "s" : ""}
+          </span>
+        </li>
+      ) : null}
+      {marginCents != null ? (
+        <li>
+          <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-200">
+            Marge {formatStoreCurrencyFromCents(marginCents, { maximumFractionDigits: 2 })}
+          </span>
+        </li>
+      ) : null}
+      {commissionPct != null ? (
+        <li>
+          <span className="inline-flex rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-900 dark:bg-violet-950/60 dark:text-violet-200">
+            Commission {commissionPct}%
+          </span>
+        </li>
+      ) : null}
+      {deliveryLabel ? (
+        <li>
+          <span className="inline-flex rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold text-sky-900 dark:bg-sky-950/60 dark:text-sky-200">
+            Delivery {deliveryLabel}
+          </span>
+        </li>
+      ) : null}
+    </ul>
+  )
 }
 
 function CustomerTrustBadges({
   freeShipping,
   stock,
+  averageRating,
+  reviewCount,
 }: {
   freeShipping: boolean
   stock: number | null
+  averageRating: number | null
+  reviewCount: number | null
 }) {
   const lowStock = stock != null && stock > 0 && stock < 5
+  const hasRating = averageRating != null && averageRating > 0
   return (
     <ul className="mt-2 flex flex-wrap gap-1.5">
       {freeShipping ? (
@@ -114,9 +170,17 @@ function CustomerTrustBadges({
           Retour 30j
         </span>
       </li>
-      {lowStock ? (
+      {hasRating ? (
         <li>
           <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-900 dark:bg-amber-950/60 dark:text-amber-200">
+            Note {averageRating!.toFixed(1)}
+            {reviewCount != null && reviewCount > 0 ? ` (${reviewCount})` : ""}
+          </span>
+        </li>
+      ) : null}
+      {lowStock ? (
+        <li>
+          <span className="inline-flex rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-900 dark:bg-red-950/60 dark:text-red-200">
             Stock faible
           </span>
         </li>
@@ -125,44 +189,11 @@ function CustomerTrustBadges({
   )
 }
 
-export function ProductCard({ product, viewMode: viewModeProp, href: hrefProp }: ProductCardProps) {
-  const pathname = usePathname()
-  const { data: session } = useSession()
-  const role = session?.user?.role ?? null
-  const isAffiliate = isAffiliateRole(role)
-  const isSupplier = isSupplierRole(role)
-
-  const [previewAsCustomer, setPreviewAsCustomer] = useState(false)
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    try {
-      setPreviewAsCustomer(window.sessionStorage.getItem(PREVIEW_AS_CUSTOMER_STORAGE_KEY) === "1")
-    } catch {
-      setPreviewAsCustomer(false)
-    }
-    const onStorage = () => {
-      try {
-        setPreviewAsCustomer(window.sessionStorage.getItem(PREVIEW_AS_CUSTOMER_STORAGE_KEY) === "1")
-      } catch {
-        setPreviewAsCustomer(false)
-      }
-    }
-    window.addEventListener("storage", onStorage)
-    window.addEventListener("affisell:preview-as-customer", onStorage)
-    return () => {
-      window.removeEventListener("storage", onStorage)
-      window.removeEventListener("affisell:preview-as-customer", onStorage)
-    }
-  }, [])
-
-  const viewMode = resolveProductCardViewMode({
-    viewMode: viewModeProp,
-    pathname,
-    role,
-    previewAsCustomer,
-  })
-  const showMerchant = showMerchantProductCardFields(viewMode)
-
+export function ProductCard({
+  product,
+  showBusinessData = false,
+  href: hrefProp,
+}: ProductCardProps) {
   const o = product as Record<string, unknown>
   const p = coerceProduct(product)
   const listingRaw = o.listingId ?? o.id
@@ -175,7 +206,13 @@ export function ProductCard({ product, viewMode: viewModeProp, href: hrefProp }:
   const pid = o.productId
   const productIdStr =
     typeof pid === "string" ? pid : pid != null && pid !== "" ? String(pid) : ""
-  const href = hrefProp ?? (listingId ? `/marketplace/${encodeURIComponent(listingId)}` : "/marketplace")
+  const href =
+    hrefProp ??
+    (typeof o.href === "string" && o.href
+      ? o.href
+      : listingId
+        ? `/marketplace/${encodeURIComponent(listingId)}`
+        : "/marketplace")
   const priceN = p.price
   const compareN = p.compareAt
   const hasDiscount = compareN != null && compareN > priceN
@@ -191,9 +228,7 @@ export function ProductCard({ product, viewMode: viewModeProp, href: hrefProp }:
         "group flex h-full w-full flex-col rounded-3xl border border-gray-100/90 bg-white/85 p-2 shadow-sm outline-none ring-offset-2 backdrop-blur-sm transition-shadow dark:border-zinc-800 dark:bg-zinc-950/60",
         "hover:border-violet-200/80 hover:shadow-lg hover:shadow-violet-500/5 focus-visible:ring-2 focus-visible:ring-violet-500 dark:hover:border-violet-800/60"
       )}
-      data-product-card-view={viewMode}
-      data-affiliate={isAffiliate ? "true" : undefined}
-      data-supplier={isSupplier ? "true" : undefined}
+      data-show-business-data={showBusinessData ? "true" : "false"}
     >
       <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-white/50 bg-gradient-to-br from-violet-50/40 to-teal-50/25 dark:border-zinc-800/80 dark:from-violet-950/25 dark:to-teal-950/15">
         {hasDiscount ? <ProductDiscountTag percent={discount} /> : null}
@@ -237,39 +272,25 @@ export function ProductCard({ product, viewMode: viewModeProp, href: hrefProp }:
           ) : null}
         </div>
 
-        {showMerchant ? (
+        {showBusinessData ? (
           <>
-            {p.soldCount != null || p.marginCents != null || p.deliveryLabel ? (
-              <ul className="mt-2 flex flex-wrap gap-1.5">
-                {p.soldCount != null ? (
-                  <li>
-                    <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-900 dark:bg-amber-950/60 dark:text-amber-200">
-                      {p.soldCount} vendu{p.soldCount > 1 ? "s" : ""}
-                    </span>
-                  </li>
-                ) : null}
-                {p.marginCents != null ? (
-                  <li>
-                    <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-200">
-                      Marge {formatStoreCurrencyFromCents(p.marginCents, { maximumFractionDigits: 2 })}
-                    </span>
-                  </li>
-                ) : null}
-                {p.deliveryLabel ? (
-                  <li>
-                    <span className="inline-flex rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold text-sky-900 dark:bg-sky-950/60 dark:text-sky-200">
-                      Delivery {p.deliveryLabel}
-                    </span>
-                  </li>
-                ) : null}
-              </ul>
-            ) : null}
+            <BusinessBadges
+              soldCount={p.soldCount}
+              marginCents={p.marginCents}
+              commissionPct={p.commissionPct}
+              deliveryLabel={p.deliveryLabel}
+            />
             {p.store ? (
-              <p className="mt-1 text-xs text-gray-500 dark:text-zinc-400">by {p.store}</p>
+              <p className="mt-1 text-xs text-gray-500 dark:text-zinc-400">Supplier · {p.store}</p>
             ) : null}
           </>
         ) : (
-          <CustomerTrustBadges freeShipping={p.freeShipping} stock={p.stock} />
+          <CustomerTrustBadges
+            freeShipping={p.freeShipping}
+            stock={p.stock}
+            averageRating={p.averageRating}
+            reviewCount={p.reviewCount}
+          />
         )}
       </div>
     </Link>

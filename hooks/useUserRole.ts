@@ -1,19 +1,29 @@
 "use client"
 
-import { useMemo } from "react"
+import { usePathname } from "next/navigation"
 import { useSession } from "next-auth/react"
+import { useMemo } from "react"
 
-export type UserRoleView = "buyer" | "seller" | "admin"
+import { resolveUserRole, type UserRole } from "@/lib/user-role"
 
-export function useUserRole(): UserRoleView {
-  const { data: session } = useSession()
+/**
+ * Effective UI role from next-auth session + current URL path.
+ * Shop routes always resolve to `customer`.
+ */
+export function useUserRole(): UserRole {
+  const pathname = usePathname()
+  const { data: session, status } = useSession()
 
   return useMemo(() => {
-    const rawRole = String(session?.user?.role ?? "").toUpperCase()
-    if (rawRole === "ADMIN") return "admin"
-    if (rawRole === "SUPPLIER" || rawRole === "SELLER" || rawRole === "AFFILIATE") {
-      return "seller"
+    if (status === "loading") {
+      const path = pathname ?? ""
+      if (path.startsWith("/shop/") || path === "/shops") return "customer"
+      return null
     }
-    return "buyer"
-  }, [session?.user?.role])
+
+    return resolveUserRole({
+      sessionRole: session?.user?.role ?? null,
+      pathname,
+    })
+  }, [pathname, session?.user?.role, status])
 }

@@ -19,6 +19,9 @@ export type HomeProductCard = {
   deliveryMax: number
   stock: number
   freeShipping: boolean
+  commissionPct: number
+  averageRating: number
+  reviewCount: number
   storeName: string
   isBestSeller?: boolean
 }
@@ -77,6 +80,8 @@ type ListingRow = {
     isBestSeller: boolean
     stock: number
     freeShipping: boolean
+    averageRating: number
+    reviewCount: number
   }
   affiliate: { name: string | null; store: { name: string } | null }
 }
@@ -103,6 +108,9 @@ function mapListingToHomeCard(
     deliveryMax,
     stock,
     freeShipping: p.freeShipping,
+    commissionPct: Math.round(Number(p.commissionRate) || 0),
+    averageRating: p.averageRating,
+    reviewCount: p.reviewCount,
     storeName,
     isBestSeller: p.isBestSeller,
   }
@@ -121,11 +129,13 @@ const listingSelect = {
       commissionRate: true,
       deliveryMin: true,
       deliveryMax: true,
-    deliveryDays: true,
-    isBestSeller: true,
-    freeShipping: true,
-    stock: true,
-  },
+      deliveryDays: true,
+      isBestSeller: true,
+      freeShipping: true,
+      stock: true,
+      averageRating: true,
+      reviewCount: true,
+    },
   },
   affiliate: {
     select: { name: true, store: { select: { name: true } } },
@@ -360,5 +370,8 @@ export function homeProductToCardProps(item: HomeProductCard) {
     store: item.storeName,
     stock: item.stock,
     freeShipping: item.freeShipping ?? false,
+    commissionPct: item.commissionPct,
+    averageRating: item.averageRating,
+    reviewCount: item.reviewCount,
   }
 }

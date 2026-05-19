@@ -4,16 +4,27 @@ import { getToken } from "next-auth/jwt"
 
 const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
 
+const FORCED_CUSTOMER_HEADER = "x-affisell-view-role"
+
 /** Match Auth.js session cookie name (`__Secure-…` only when the request is HTTPS, e.g. Vercel). */
 function secureSessionCookieForRequest(req: NextRequest): boolean {
   return req.nextUrl.protocol === "https:"
 }
 
 /** Send unauthenticated users straight to sign-in (avoids an extra `/login` hop that could render blank). */
-function signInRedirectUrl(req: NextRequest, pathWithSearch: string) {
+function signInRedirectUrl(req: NextRequest, pathWithSearch: string, role?: string) {
   const u = new URL("/auth/signin", req.url)
   u.searchParams.set("callbackUrl", pathWithSearch)
+  if (role) u.searchParams.set("role", role)
   return u
+}
+
+function withForcedCustomerRole(req: NextRequest): NextResponse {
+  const requestHeaders = new Headers(req.headers)
+  requestHeaders.set(FORCED_CUSTOMER_HEADER, "customer")
+  return NextResponse.next({
+    request: { headers: requestHeaders },
+  })
 }
 
 export async function middleware(req: NextRequest) {
@@ -24,6 +35,11 @@ export async function middleware(req: NextRequest) {
     const u = req.nextUrl.clone()
     u.pathname = "/auth/signin"
     return NextResponse.redirect(u)
+  }
+
+  /** Buyer storefront: always customer-facing UI. */
+  if (pathname === "/shops" || pathname.startsWith("/shop/")) {
+    return withForcedCustomerRole(req)
   }
 
   if (!secret) return NextResponse.next()
@@ -37,6 +53,11 @@ export async function middleware(req: NextRequest) {
   })
   const role = typeof token?.role === "string" ? token.role : undefined
   const loggedIn = Boolean(token?.sub)
+
+  /** Affiliate portal home — requires sign-in. */
+  if (pathname === "/" && !loggedIn) {
+    return NextResponse.redirect(signInRedirectUrl(req, "/", "affiliate"))
+  }
 
   const isSupplierArea = pathname === "/dashboard/supplier" || pathname.startsWith("/dashboard/supplier/")
   const isAffiliateArea =
@@ -81,7 +102,10 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
+    "/",
     "/login",
+    "/shop/:path*",
+    "/shops",
     "/dashboard/supplier",
     "/dashboard/supplier/:path*",
     "/dashboard/affiliate",
