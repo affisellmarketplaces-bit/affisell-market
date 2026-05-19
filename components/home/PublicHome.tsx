@@ -3,7 +3,7 @@ import { Suspense } from "react"
 import { BuyerMarketplaceExplorer } from "@/components/home/BuyerMarketplaceExplorer"
 import { HomeFeaturedShopsStrip } from "@/components/home/HomeFeaturedShopsStrip"
 import { PublicHero } from "@/components/home/PublicHero"
-import { loadFeaturedShopsSafe, loadPublicHomeStatsSafe } from "@/lib/public-home-data"
+import { loadFeaturedShopsSafe } from "@/lib/public-home-data"
 
 function MarketplaceFallback() {
   return (
@@ -14,14 +14,11 @@ function MarketplaceFallback() {
 }
 
 export async function PublicHome() {
-  const [stats, shops] = await Promise.all([
-    loadPublicHomeStatsSafe(),
-    loadFeaturedShopsSafe(12),
-  ])
+  const shops = await loadFeaturedShopsSafe(12)
 
   return (
     <main className="mx-auto max-w-7xl space-y-10 px-4 py-8 sm:px-6 sm:py-10">
-      <PublicHero stats={stats} />
+      <PublicHero />
       <HomeFeaturedShopsStrip shops={shops} />
       <Suspense fallback={<MarketplaceFallback />}>
         <BuyerMarketplaceExplorer />

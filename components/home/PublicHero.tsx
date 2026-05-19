@@ -3,14 +3,9 @@ import Link from "next/link"
 import { HomeBuyerSmartStrip } from "@/components/home/HomeBuyerSmartStrip"
 import { HeroSearchBar } from "@/components/home/HeroSearchBar"
 import { buttonVariants } from "@/components/ui/button"
-import type { PublicHomeStats } from "@/lib/public-home-data"
 import { cn } from "@/lib/utils"
 
-type Props = {
-  stats: PublicHomeStats
-}
-
-export function PublicHero({ stats }: Props) {
+export function PublicHero() {
   return (
     <section className="relative overflow-hidden rounded-3xl border border-violet-200/60 bg-gradient-to-br from-violet-600 via-violet-700 to-teal-700 px-4 py-10 text-white shadow-lg sm:px-8 sm:py-12 md:px-10 md:py-14">
       <div
@@ -57,9 +52,6 @@ export function PublicHero({ stats }: Props) {
           >
             Je suis fournisseur
           </Link>
-        </p>
-        <p className="mt-6 text-sm font-medium tabular-nums text-violet-100/90">
-          {stats.shopCountLabel} boutiques créateurs · {stats.productCountLabel} produits
         </p>
         <HomeBuyerSmartStrip />
       </div>
