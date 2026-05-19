@@ -553,7 +553,7 @@ export function sumSkuTableStock(rows: SupplierSkuTableRow[]): number {
 }
 
 export function skuTableRowFromApiVariant(row: {
-  id: string
+  id?: string
   color: string | null
   size: string | null
   sku: string | null
@@ -572,7 +572,7 @@ export function skuTableRowFromApiVariant(row: {
   const supplier = Number(row.supplierPrice) || Number(row.publicPrice) || 0
   const customData = row.customData && Object.keys(row.customData).length > 0 ? { ...row.customData } : undefined
   return {
-    id: row.id,
+    id: row.id?.trim() ? row.id.trim() : newVariantRowId(),
     color: row.color?.trim() ?? "",
     size: row.size?.trim() ? row.size.trim() : null,
     sku: row.sku?.trim() ? row.sku.trim() : null,
