@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -9,7 +9,15 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { formatStoreCurrency } from "@/lib/market-config"
+import { parseVariantsPayload } from "@/lib/product-variants"
 import type { ProductVariantApiRow } from "@/lib/product-variant-sku"
+import {
+  apiRowsFromSkuTable,
+  productVariantLinesToSkuTableRows,
+  skuTableRowFromApiVariant,
+  skuTableRowsToProductVariantLines,
+} from "@/lib/supplier-sku-builder"
+import { parseSkuHiddenColumns, type SkuOptionalColumnKey } from "@/lib/supplier-sku-columns"
 
 type ProductPricingPayload = {
   id: string
@@ -18,37 +26,20 @@ type ProductPricingPayload = {
   basePriceCents: number
   stock: number
   commissionRate: number
+  compareAt: number | null
+  listingVariants: unknown
   variants: ProductVariantApiRow[]
 }
 
-function toEditable(rows: ProductVariantApiRow[]): EditableVariantRow[] {
-  return rows.map((r) => ({
-    id: r.id ?? `new-${crypto.randomUUID()}`,
-    color: r.color?.trim() ?? "",
-    size: r.size,
-    sku: r.sku,
-    supplierPrice: r.supplierPrice,
-    stock: r.stock,
-    commissionRate: r.commissionRate ?? 10,
-    compareAtEur: null,
-    customFields: {},
-  }))
-}
-
-function toPayloadRows(rows: EditableVariantRow[]) {
-  return rows.map((r) => {
-    const supplierPrice = Number(r.supplierPrice)
-    return {
-      id: r.id?.startsWith("new-") ? undefined : r.id,
-      sku: r.sku,
-      color: r.color,
-      size: r.size,
-      supplierPrice,
-      publicPrice: supplierPrice,
-      stock: r.stock,
-      commissionRate: r.commissionRate,
-    }
-  })
+function rowsFromProduct(data: ProductPricingPayload): EditableVariantRow[] {
+  const baseSupplier = data.basePriceCents > 0 ? data.basePriceCents / 100 : 10
+  const comm = data.commissionRate ?? 15
+  const parsed = parseVariantsPayload(data.listingVariants)
+  if (parsed?.variantRows?.length) {
+    return productVariantLinesToSkuTableRows(parsed.variantRows, comm, baseSupplier)
+  }
+  const apiRows = Array.isArray(data.variants) ? data.variants : []
+  return apiRows.map((r) => skuTableRowFromApiVariant(r))
 }
 
 type Props = {
@@ -61,9 +52,16 @@ export function SupplierProductPricingPanel({ productId }: Props) {
   const [name, setName] = useState("")
   const [hasVariants, setHasVariants] = useState(false)
   const [price, setPrice] = useState("")
+  const [compareAt, setCompareAt] = useState("")
   const [stock, setStock] = useState("0")
   const [commissionRate, setCommissionRate] = useState("15")
   const [variantRows, setVariantRows] = useState<EditableVariantRow[]>([])
+  const [skuHiddenColumns, setSkuHiddenColumns] = useState<SkuOptionalColumnKey[]>([])
+
+  const catalogCompareAtEur = useMemo(() => {
+    const c = Number(compareAt)
+    return compareAt.trim() && Number.isFinite(c) && c > 0 ? c : null
+  }, [compareAt])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -74,9 +72,16 @@ export function SupplierProductPricingPanel({ productId }: Props) {
       setName(data.name)
       setHasVariants(Boolean(data.hasVariants))
       setPrice((data.basePriceCents / 100).toFixed(2))
+      setCompareAt(
+        data.compareAt != null && Number.isFinite(data.compareAt) && data.compareAt > 0
+          ? String(data.compareAt)
+          : ""
+      )
       setStock(String(data.stock ?? 0))
       setCommissionRate(String(data.commissionRate ?? 15))
-      setVariantRows(toEditable(Array.isArray(data.variants) ? data.variants : []))
+      setVariantRows(rowsFromProduct(data))
+      const parsed = parseVariantsPayload(data.listingVariants)
+      setSkuHiddenColumns(parseSkuHiddenColumns(parsed?.skuHiddenColumns))
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erreur")
     } finally {
@@ -91,15 +96,36 @@ export function SupplierProductPricingPanel({ productId }: Props) {
   const save = useCallback(async () => {
     setSaving(true)
     try {
+      const priceN = Number(price)
+      const comm = Math.round(Number(commissionRate) || 15)
       const body: Record<string, unknown> = {
         name,
-        commission: Number(commissionRate),
+        commission: comm,
         hasVariants,
+        compareAt: compareAt.trim() ? Number(compareAt) : null,
       }
       if (hasVariants) {
-        body.variants = toPayloadRows(variantRows)
+        const filled = variantRows.filter((r) => r.color.trim())
+        body.variants = apiRowsFromSkuTable(filled, {
+          baseSupplierPrice: priceN > 0 ? priceN : 10,
+          defaultCommission: comm,
+        })
+        if (filled.length > 0) {
+          const minSupplier = Math.min(...filled.map((r) => r.supplierPrice).filter((p) => p > 0))
+          const baseCents = Math.max(
+            100,
+            Math.round(
+              (Number.isFinite(minSupplier) && minSupplier > 0 ? minSupplier : priceN > 0 ? priceN : 10) *
+                100
+            )
+          )
+          body.listingVariants = {
+            variantRows: skuTableRowsToProductVariantLines(filled, baseCents),
+            ...(skuHiddenColumns.length > 0 ? { skuHiddenColumns } : {}),
+          }
+        }
       } else {
-        body.price = Number(price)
+        body.price = priceN
         body.stock = Number(stock)
       }
 
@@ -118,7 +144,18 @@ export function SupplierProductPricingPanel({ productId }: Props) {
     } finally {
       setSaving(false)
     }
-  }, [productId, name, commissionRate, hasVariants, variantRows, price, stock, load])
+  }, [
+    productId,
+    name,
+    commissionRate,
+    hasVariants,
+    variantRows,
+    price,
+    stock,
+    compareAt,
+    skuHiddenColumns,
+    load,
+  ])
 
   if (loading) {
     return (
@@ -155,7 +192,7 @@ export function SupplierProductPricingPanel({ productId }: Props) {
                     supplierPrice: Number(price) > 0 ? Number(price) : 10,
                     stock: Number(stock) || 0,
                     commissionRate: Number(commissionRate) || 15,
-                    compareAtEur: null,
+                    compareAtEur: catalogCompareAtEur,
                     customFields: {},
                   },
                 ])
@@ -167,28 +204,23 @@ export function SupplierProductPricingPanel({ productId }: Props) {
         </label>
       </div>
 
-      {hasVariants ? (
-        <div className="mt-6">
-          <SupplierVariantTable
-            rows={variantRows}
-            onChange={setVariantRows}
-            disabled={saving}
-            basePriceEur={Number(price) || 0}
-            catalogCompareAtEur={null}
-            defaultCommission={Math.round(Number(commissionRate) || 15)}
-            customColumns={[]}
-            onCustomColumnsChange={() => {}}
-            hiddenColumns={[]}
-            onHiddenColumnsChange={() => {}}
-            catalogShipsFrom="EU"
-            catalogDeliveryDays={2}
-            skuPrefix="PRD"
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <div>
+          <Label htmlFor="pricing-compare">Prix barré catalogue (optionnel)</Label>
+          <Input
+            id="pricing-compare"
+            type="number"
+            min={0.01}
+            step={0.01}
+            className="mt-1.5"
+            value={compareAt}
+            onChange={(e) => setCompareAt(e.target.value)}
+            placeholder="MSRP pour toutes les lignes"
           />
         </div>
-      ) : (
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        {!hasVariants ? (
           <div>
-            <Label htmlFor="simple-price">Prix public (€)</Label>
+            <Label htmlFor="simple-price">Prix catalogue (€)</Label>
             <Input
               id="simple-price"
               type="number"
@@ -199,6 +231,29 @@ export function SupplierProductPricingPanel({ productId }: Props) {
               onChange={(e) => setPrice(e.target.value)}
             />
           </div>
+        ) : null}
+      </div>
+
+      {hasVariants ? (
+        <div className="mt-6">
+          <SupplierVariantTable
+            rows={variantRows}
+            onChange={setVariantRows}
+            disabled={saving}
+            basePriceEur={Number(price) || 0}
+            catalogCompareAtEur={catalogCompareAtEur}
+            defaultCommission={Math.round(Number(commissionRate) || 15)}
+            customColumns={[]}
+            onCustomColumnsChange={() => {}}
+            hiddenColumns={skuHiddenColumns}
+            onHiddenColumnsChange={setSkuHiddenColumns}
+            catalogShipsFrom="EU"
+            catalogDeliveryDays={2}
+            skuPrefix="PRD"
+          />
+        </div>
+      ) : (
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
           <div>
             <Label htmlFor="simple-stock">Stock</Label>
             <Input
@@ -212,6 +267,7 @@ export function SupplierProductPricingPanel({ productId }: Props) {
           </div>
           <p className="sm:col-span-2 text-xs text-zinc-500">
             Prix catalogue actuel : {formatStoreCurrency(Number(price) || 0)}
+            {catalogCompareAtEur ? ` · barré ${formatStoreCurrency(catalogCompareAtEur)}` : ""}
           </p>
         </div>
       )}

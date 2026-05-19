@@ -411,6 +411,14 @@ export function SupplierVariantTable({
               onHiddenColumnsChange={onHiddenColumnsChange}
               disabled={disabled}
             />
+            {showCompareAtCol ? (
+              <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                Colonne « Barré » : saisissez un prix par ligne ci-dessous
+                {catalogCompareAtEur != null && catalogCompareAtEur > 0
+                  ? `, ou « Prix barré catalogue à tous » (${formatStoreCurrency(catalogCompareAtEur)}).`
+                  : ", ou le champ « Prix barré » au-dessus du tableau pour toutes les lignes."}
+              </p>
+            ) : null}
             <div className="flex flex-wrap gap-2">
               <Button
                 type="button"
@@ -627,14 +635,20 @@ export function SupplierVariantTable({
                           <td className="px-2 py-1.5">
                             <Input
                               type="number"
-                              min={0}
+                              min={0.01}
                               step={0.01}
-                              className={cn("h-9 w-24", rowErrorClass(index, "compareAtEur"))}
+                              inputMode="decimal"
+                              aria-label={`Prix barré EUR, variante ${row.color || index + 1}`}
+                              className={cn(
+                                "h-9 w-24 bg-background tabular-nums",
+                                rowErrorClass(index, "compareAtEur")
+                              )}
                               value={
                                 row.compareAtEur != null && row.compareAtEur > 0 ? row.compareAtEur : ""
                               }
                               disabled={disabled}
-                              placeholder="—"
+                              placeholder="19.90"
+                              title="Prix avant réduction (optionnel), par variante"
                               onChange={(e) => {
                                 const raw = e.target.value
                                 updateRow(index, {

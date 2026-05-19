@@ -32,6 +32,7 @@ import {
   serializeProductVariantRow,
   syncProductVariants,
 } from "@/lib/product-variant-sku"
+import { parseVariantsPayload } from "@/lib/product-variants"
 import type { CustomColumn } from "@/types/product"
 
 export const runtime = "nodejs"
@@ -453,8 +454,16 @@ export async function PATCH(
     )
   }
 
+  const existingRow = await prisma.product.findFirst({
+    where: { id, supplierId: session.user.id },
+    select: { basePriceCents: true, variants: true, listingKind: true },
+  })
+  if (!existingRow) {
+    return Response.json({ error: "Not found" }, { status: 404 })
+  }
+
   const commRaw = rawBody.commission ?? rawBody.commissionRate
-  const listingKind = parseListingKind(rawBody.listingKind)
+  const listingKind = parseListingKind(rawBody.listingKind ?? existingRow.listingKind)
   let commissionUpdate: number | undefined
   if (commRaw != null && Number.isFinite(Number(commRaw))) {
     const normalized = normalizeAffiliateCommissionRatePct(Number(commRaw), listingKind)
@@ -462,6 +471,19 @@ export async function PATCH(
       return Response.json({ error: normalized.error }, { status: 400 })
     }
     commissionUpdate = normalized.rate
+  }
+
+  let priceCentsForCompare = existingRow.basePriceCents
+  if (!variantPatch.hasVariants) {
+    const price = Number(rawBody.price)
+    if (Number.isFinite(price) && price > 0) {
+      priceCentsForCompare = Math.max(100, Math.round(price * 100))
+    }
+  } else if (variantPatch.variants.length > 0) {
+    const minSupplier = Math.min(...variantPatch.variants.map((v) => v.supplierPrice))
+    if (Number.isFinite(minSupplier) && minSupplier > 0) {
+      priceCentsForCompare = Math.max(100, Math.round(minSupplier * 100))
+    }
   }
 
   await prisma.$transaction(async (tx) => {
@@ -472,6 +494,23 @@ export async function PATCH(
     if (commissionUpdate != null) {
       data.commissionRate = commissionUpdate
     }
+    if ("compareAt" in rawBody) {
+      data.compareAt = parseCompareAtDraftLax(priceCentsForCompare, rawBody.compareAt ?? null)
+    }
+    if (
+      rawBody.listingVariants &&
+      typeof rawBody.listingVariants === "object" &&
+      !Array.isArray(rawBody.listingVariants)
+    ) {
+      const existingVariants = parseVariantsPayload(existingRow.variants) ?? {}
+      const incoming = rawBody.listingVariants as Record<string, unknown>
+      data.variants = {
+        ...existingVariants,
+        ...incoming,
+        variantRows:
+          incoming.variantRows ?? existingVariants.variantRows,
+      } as unknown as Prisma.InputJsonValue
+    }
     if (!variantPatch.hasVariants) {
       const price = Number(rawBody.price)
       if (Number.isFinite(price) && price > 0) {
@@ -481,6 +520,9 @@ export async function PATCH(
       if (Number.isFinite(stock)) {
         data.stock = Math.max(0, Math.round(stock))
       }
+    } else if (variantPatch.variants.length > 0) {
+      data.basePriceCents = priceCentsForCompare
+      data.stock = variantPatch.variants.reduce((acc, v) => acc + Math.max(0, v.stock), 0)
     }
     if (Object.keys(data).length) {
       await tx.product.update({ where: { id }, data })
