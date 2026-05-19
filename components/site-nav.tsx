@@ -49,10 +49,6 @@ export function SiteNav() {
   const isShopStorefront =
     pathname === "/shops" || (pathname?.startsWith("/shop/") ?? false)
 
-  if (isShopStorefront) {
-    return null
-  }
-
   const isSupplier = session?.user?.role === "SUPPLIER"
   const isAffiliate = session?.user?.role === "AFFILIATE"
   const showAffiliateMerchantActions = Boolean(isAffiliate && pathname?.startsWith("/dashboard"))
@@ -133,6 +129,10 @@ export function SiteNav() {
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
   }, [])
+
+  if (isShopStorefront) {
+    return null
+  }
 
   if (isSupplier && !isAuthRoute) {
     return (

@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import Image from "next/image"
 
 import { loadPublicAffiliateShops, type PublicShopDirectoryEntry } from "@/lib/shop-storefront-data"
 
@@ -46,13 +45,14 @@ export default async function ShopsDirectoryPage() {
                 className="flex items-center gap-4 rounded-2xl border border-zinc-200/90 bg-white p-4 shadow-sm transition hover:border-violet-200 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-violet-800"
               >
                 {shop.logoUrl ? (
-                  <Image
+                  // eslint-disable-next-line @next/next/no-img-element -- arbitrary creator logo hosts
+                  <img
                     src={shop.logoUrl}
                     alt=""
                     width={56}
                     height={56}
                     className="h-14 w-14 rounded-xl object-cover"
-                    unoptimized
+                    loading="lazy"
                   />
                 ) : (
                   <span className="flex h-14 w-14 items-center justify-center rounded-xl bg-violet-100 text-lg font-bold text-violet-800 dark:bg-violet-950 dark:text-violet-200">
