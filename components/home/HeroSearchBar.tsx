@@ -20,8 +20,11 @@ export function HeroSearchBar({ className, catalogPath = PUBLIC_MARKETPLACE_BROW
   function onSubmit(e: FormEvent) {
     e.preventDefault()
     const trimmed = q.trim()
+    const hash = catalogPath === "/" ? "#explorer" : ""
     router.push(
-      trimmed ? `${catalogPath}?q=${encodeURIComponent(trimmed)}` : catalogPath
+      trimmed
+        ? `${catalogPath}?q=${encodeURIComponent(trimmed)}${hash}`
+        : `${catalogPath}${hash}`
     )
   }
 

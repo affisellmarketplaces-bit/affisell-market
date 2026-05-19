@@ -1,5 +1,6 @@
 import Link from "next/link"
 
+import { HomeBuyerSmartStrip } from "@/components/home/HomeBuyerSmartStrip"
 import { HeroSearchBar } from "@/components/home/HeroSearchBar"
 import { buttonVariants } from "@/components/ui/button"
 import type { PublicHomeStats } from "@/lib/public-home-data"
@@ -11,12 +12,12 @@ type Props = {
 
 export function PublicHero({ stats }: Props) {
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-violet-200/60 bg-gradient-to-br from-violet-600 via-violet-700 to-teal-700 px-6 py-12 text-white shadow-lg sm:px-10 sm:py-16">
+    <section className="relative overflow-hidden rounded-3xl border border-violet-200/60 bg-gradient-to-br from-violet-600 via-violet-700 to-teal-700 px-4 py-10 text-white shadow-lg sm:px-8 sm:py-12 md:px-10 md:py-14">
       <div
         className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl"
         aria-hidden
       />
-      <div className="relative mx-auto max-w-4xl text-center">
+      <div className="relative mx-auto max-w-6xl text-center">
         <h1 className="text-balance text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
           Les boutiques créées par vos créateurs préférés
         </h1>
@@ -37,7 +38,7 @@ export function PublicHero({ stats }: Props) {
               "bg-white text-violet-900 hover:bg-violet-50"
             )}
           >
-            Découvrir les boutiques
+            Explorer le catalogue
           </Link>
           <Link
             href="/signup/affiliate"
@@ -60,6 +61,7 @@ export function PublicHero({ stats }: Props) {
         <p className="mt-6 text-sm font-medium tabular-nums text-violet-100/90">
           {stats.shopCountLabel} boutiques créateurs · {stats.productCountLabel} produits
         </p>
+        <HomeBuyerSmartStrip />
       </div>
     </section>
   )

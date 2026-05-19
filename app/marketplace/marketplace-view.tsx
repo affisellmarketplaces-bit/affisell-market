@@ -238,7 +238,7 @@ export function MarketplaceView({
                   Découvrir &amp; acheter
                 </h2>
                 <p className="mt-1 max-w-xl text-sm text-zinc-600 dark:text-zinc-400">
-                  Parcourez les annonces des boutiques créateurs, filtrez par rayon et commandez en quelques clics.
+                  Utilisez la recherche du bandeau violet, les rayons ci-dessous ou l’agent shopping pour affiner.
                 </p>
               </div>
               {hasFilters ? (
@@ -254,39 +254,12 @@ export function MarketplaceView({
                 </Button>
               ) : null}
             </div>
-            <form
-              className="max-w-2xl"
-              role="search"
-              onSubmit={(e) => {
-                e.preventDefault()
-                const fd = new FormData(e.currentTarget)
-                const next = new URLSearchParams(searchParams.toString())
-                const localQ = String(fd.get("localQ") ?? "").trim()
-                if (localQ) next.set("q", localQ)
-                else next.delete("q")
-                const s = next.toString()
-                router.push(`${basePath}${s ? `?${s}` : ""}`)
-              }}
-            >
-              <label htmlFor="marketplace-home-search" className="sr-only">
-                Rechercher un produit
-              </label>
-              <div className="relative">
-                <Search
-                  className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-400"
-                  aria-hidden
-                />
-                <input
-                  id="marketplace-home-search"
-                  name="localQ"
-                  type="search"
-                  defaultValue={searchQuery}
-                  placeholder="Rechercher un produit, une marque, un créateur…"
-                  autoComplete="off"
-                  className="h-12 w-full rounded-2xl border border-zinc-200/90 bg-white py-2 pl-12 pr-4 text-sm shadow-md shadow-violet-500/5 outline-none ring-violet-500/15 focus:border-violet-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-900/80"
-                />
-              </div>
-            </form>
+            {searchQuery.trim() ? (
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                Résultats pour{" "}
+                <span className="font-semibold text-zinc-900 dark:text-zinc-100">&ldquo;{searchQuery.trim()}&rdquo;</span>
+              </p>
+            ) : null}
           </div>
         )}
 
@@ -295,7 +268,9 @@ export function MarketplaceView({
           activeSubcategoryId={subcategoryId}
           catalogBasePath={basePath}
         />
-        <MarketplaceAffisellPulse audience={isCustomerBrowse ? "buyer" : "default"} />
+        {!embedded ? (
+          <MarketplaceAffisellPulse audience={isCustomerBrowse ? "buyer" : "default"} />
+        ) : null}
         {!isAffiliateCatalog && !isCustomerBrowse ? (
           <ProductCardPreviewToggle className="mt-4" />
         ) : null}
