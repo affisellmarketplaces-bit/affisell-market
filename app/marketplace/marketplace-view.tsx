@@ -17,6 +17,7 @@ import { MarketplaceAffisellPulse } from "@/components/marketplace/MarketplaceAf
 import { MarketplaceDepartmentRail } from "@/components/marketplace/MarketplaceDepartmentRail"
 import { Sidebar } from "@/components/marketplace/Sidebar"
 import { MARKETPLACE_QUERY_RESERVED } from "@/lib/marketplace-attribute-filters"
+import { marketplaceCatalogHref } from "@/lib/marketplace-catalog-url"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { affisellBrand } from "@/lib/affisell-brand"
 import { cn } from "@/lib/utils"

@@ -5,6 +5,7 @@ import useSWR from "swr"
 import { Sparkles } from "lucide-react"
 
 import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
+import { marketplaceCatalogHref } from "@/lib/marketplace-catalog-url"
 import { affisellBrand } from "@/lib/affisell-brand"
 import { cn } from "@/lib/utils"
 
