@@ -5,9 +5,9 @@ import type { HomeMarketplaceStats } from "@/lib/home-marketplace-data"
 import { cn } from "@/lib/utils"
 
 const NICHE_LINKS = [
-  { label: "Fitness", href: "/dashboard/affiliate/catalog?q=fitness" },
-  { label: "Tech", href: "/dashboard/affiliate/catalog?q=tech" },
-  { label: "Maison", href: "/dashboard/affiliate/catalog?q=maison" },
+  { label: "Fitness", href: "/dashboard/affiliate/catalog?niche=fitness" },
+  { label: "Tech", href: "/dashboard/affiliate/catalog?niche=tech" },
+  { label: "Maison", href: "/dashboard/affiliate/catalog?niche=maison" },
 ] as const
 
 type Props = {
@@ -23,13 +23,13 @@ export function AffiliateHero({ stats }: Props) {
       />
       <div className="relative mx-auto flex max-w-4xl flex-col items-center text-center">
         <h1 className="text-balance text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-5xl md:text-6xl">
-          Les produits qui rapportent, prêts à revendre
+          Les produits qui rapportent, prêts à add to your vitrine store
         </h1>
         <p className="mt-3 max-w-2xl text-pretty text-sm text-zinc-600 dark:text-zinc-400 sm:text-base">
-          Parcourez le catalogue Affisell, comparez marges et délais d&apos;expédition
+          Filtrez par rayon ou domaine, explorez les tendances, puis publiez chaque SKU sur votre boutique vitrine en un clic.
         </p>
         <div className="mt-8 w-full">
-          <HeroSearchBar className="mx-auto" />
+          <HeroSearchBar className="mx-auto" catalogPath="/dashboard/affiliate/catalog" />
         </div>
         <div className="mt-4 flex flex-wrap justify-center gap-2">
           {NICHE_LINKS.map((n) => (

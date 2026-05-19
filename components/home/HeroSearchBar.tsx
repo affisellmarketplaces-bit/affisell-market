@@ -9,9 +9,11 @@ import { cn } from "@/lib/utils"
 
 type Props = {
   className?: string
+  /** Defaults to public buyer browse. */
+  catalogPath?: string
 }
 
-export function HeroSearchBar({ className }: Props) {
+export function HeroSearchBar({ className, catalogPath = PUBLIC_MARKETPLACE_BROWSE_PATH }: Props) {
   const router = useRouter()
   const [q, setQ] = useState("")
 
@@ -19,9 +21,7 @@ export function HeroSearchBar({ className }: Props) {
     e.preventDefault()
     const trimmed = q.trim()
     router.push(
-      trimmed
-        ? `${PUBLIC_MARKETPLACE_BROWSE_PATH}?q=${encodeURIComponent(trimmed)}`
-        : PUBLIC_MARKETPLACE_BROWSE_PATH
+      trimmed ? `${catalogPath}?q=${encodeURIComponent(trimmed)}` : catalogPath
     )
   }
 
