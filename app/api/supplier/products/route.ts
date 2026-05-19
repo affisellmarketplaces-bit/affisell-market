@@ -101,9 +101,9 @@ export async function POST(req: Request) {
   } else if (saveAsDraft) {
     cents = 100
   } else {
-    return Response.json({ error: "Missing price" }, { status: 400 })
+    cents = 0
   }
-  const normalizedPriceCents = Math.max(100, cents)
+  let normalizedPriceCents = Math.max(100, cents || 100)
 
   const listingKind = parseListingKind((body as Record<string, unknown>).listingKind)
   const commRaw = commission ?? commissionRate
@@ -201,6 +201,16 @@ export async function POST(req: Request) {
       ...variantPatch,
       variants: applyCustomColumnsToVariantRows(variantPatch.variants, customColumns, rawVariants),
     }
+    if (variantSync.hasVariants && variantSync.variants.length > 0) {
+      const minEur = Math.min(...variantSync.variants.map((v) => v.supplierPrice))
+      if (Number.isFinite(minEur) && minEur > 0) {
+        normalizedPriceCents = Math.max(100, Math.round(minEur * 100))
+      }
+    } else if (!saveAsDraft && cents <= 0) {
+      return Response.json({ error: "Missing price" }, { status: 400 })
+    }
+  } else if (!saveAsDraft && cents <= 0) {
+    return Response.json({ error: "Missing price" }, { status: 400 })
   }
 
   const product = await prisma.$transaction(async (tx) => {

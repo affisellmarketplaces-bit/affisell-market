@@ -93,6 +93,11 @@ import {
 } from "@/lib/supplier-add-product-draft-cache"
 import { newVariantRowId, parseVariantsPayload, type ProductVariantLine } from "@/lib/product-variants"
 import {
+  effectiveSupplierCatalogPriceEur,
+  minSupplierPriceEurFromSkuRows,
+  usesVariantSkuPricing,
+} from "@/lib/supplier-catalog-price"
+import {
   collectClientPublishBlockers,
   mapServerPublishBlockers,
   PUBLISH_FIELD_SCROLL_ID,
@@ -382,21 +387,33 @@ export function SupplierAddProductForm({
     })
   }, [simpleColorsSyncKey, commission, simpleColorRows, variantSizesText])
 
+  const variantSkuPricingActive = usesVariantSkuPricing(variantFormMode, advancedSkuRows)
+
+  const catalogPriceEur = useMemo(
+    () =>
+      effectiveSupplierCatalogPriceEur({
+        variantFormMode,
+        priceFieldEur: price,
+        skuRows: advancedSkuRows,
+      }),
+    [variantFormMode, price, advancedSkuRows]
+  )
+
   const discountPct = useMemo(() => {
-    const p = Number(price)
+    const p = catalogPriceEur ?? Number(price)
     const c = Number(compareAt)
     if (!Number.isFinite(p) || !Number.isFinite(c) || c <= p) return 0
     return Math.round(((c - p) / c) * 100)
-  }, [price, compareAt])
+  }, [catalogPriceEur, price, compareAt])
 
   const affiliateCatalogPreviewLine = useMemo(() => {
-    const priceN = Number(price)
+    const priceN = catalogPriceEur ?? Number(price)
     if (!Number.isFinite(priceN) || priceN <= 0) return null
-    const firstSku = advancedSkuRows.find((r) => r.color.trim())
+    const firstSku = advancedSkuRows.find((r) => r.color.trim() && r.supplierPrice > 0)
     const comm = firstSku?.commissionRate ?? Math.round(Number(commission) || 0)
     const dd = deliveryDays.trim() ? Number(deliveryDays) : null
     return formatAffiliateCatalogPreviewLine({
-      supplierPriceEur: firstSku?.supplierPrice && firstSku.supplierPrice > 0 ? firstSku.supplierPrice : priceN,
+      supplierPriceEur: priceN,
       commissionRate: comm,
       compareAtEur: compareAt.trim() ? Number(compareAt) : null,
       weightGrams: firstSku?.weightGrams ?? null,
@@ -405,32 +422,35 @@ export function SupplierAddProductForm({
       shipsFrom: shipsFrom.trim() || undefined,
       deliveryDays: dd,
     })
-  }, [price, commission, compareAt, advancedSkuRows, deliveryDays, shipsFrom])
+  }, [catalogPriceEur, price, commission, compareAt, advancedSkuRows, deliveryDays, shipsFrom])
 
   const priceError = useMemo(() => {
+    if (variantSkuPricingActive) return null
     const p = Number(price)
-    if (!Number.isFinite(p) || p <= 0) return "Enter a valid base price (EUR)."
+    if (!Number.isFinite(p) || p <= 0) return "Indiquez un prix catalogue valide (EUR)."
     return null
-  }, [price])
+  }, [price, variantSkuPricingActive])
 
   const compareError = useMemo(() => {
     if (!compareAt.trim()) return null
-    const p = Number(price)
+    const p = catalogPriceEur ?? Number(price)
     const c = Number(compareAt)
-    if (!Number.isFinite(c) || c <= 0) return "Compare-at price is invalid."
-    if (Number.isFinite(p) && c <= p) return "Compare-at must be greater than base price."
-    if (discountPct > 70) return "Compare-at discount cannot exceed 70%."
+    if (!Number.isFinite(c) || c <= 0) return "Prix barré invalide."
+    if (Number.isFinite(p) && p > 0 && c <= p) {
+      return "Le prix barré doit être supérieur au prix catalogue."
+    }
+    if (discountPct > 70) return "La réduction sur prix barré ne peut pas dépasser 70 %."
     return null
-  }, [compareAt, discountPct, price])
+  }, [compareAt, discountPct, catalogPriceEur, price])
 
   const unitPriceFromVolumeHint = useMemo(() => {
     const raw = specValues.item_volume_ml?.trim().replace(",", ".")
     const ml = Number(raw)
-    const p = Number(price)
+    const p = catalogPriceEur ?? Number(price)
     if (!Number.isFinite(ml) || ml <= 0 || !Number.isFinite(p) || p <= 0) return null
     const perLiter = p / (ml / 1000)
     return `${formatMoneyDisplay(perLiter)} per litre (from “Item volume” in specs ÷ your base price)`
-  }, [price, specValues.item_volume_ml])
+  }, [catalogPriceEur, price, specValues.item_volume_ml])
 
   const commissionError = useMemo(() => {
     const n = Number(commission)
@@ -955,7 +975,12 @@ export function SupplierAddProductForm({
         }))
         .filter((row) => row.value.length > 0)
 
-      let priceN = Number(price)
+      let priceN =
+        effectiveSupplierCatalogPriceEur({
+          variantFormMode,
+          priceFieldEur: price,
+          skuRows: advancedSkuRows,
+        }) ?? Number(price)
       if (draftPriceFallback && (!Number.isFinite(priceN) || priceN <= 0)) {
         priceN = 1
       }
@@ -1579,7 +1604,9 @@ export function SupplierAddProductForm({
       category: Boolean(categoryId.trim()),
       specs: Boolean(categoryId.trim()) && specMissing.length === 0,
       images: images.length > 0,
-      price: Number(price) > 0 && !priceError,
+      price: variantSkuPricingActive
+        ? minSupplierPriceEurFromSkuRows(advancedSkuRows) != null
+        : Number(price) > 0 && !priceError,
     }),
     [name, categoryId, specMissing, images.length, price, priceError]
   )
@@ -1642,12 +1669,16 @@ export function SupplierAddProductForm({
   )
 
   const step2Complete = useMemo(() => {
-    const priceOk = Number(price) > 0 && !priceError && !compareError
+    const priceOk = variantSkuPricingActive
+      ? minSupplierPriceEurFromSkuRows(advancedSkuRows) != null && !compareError
+      : Number(price) > 0 && !priceError && !compareError
     const skuOk =
       skuValidationIssues.length === 0 &&
       (variantFormMode !== "simple" || simpleColorIssues.length === 0)
     return priceOk && skuOk
   }, [
+    variantSkuPricingActive,
+    advancedSkuRows,
     price,
     priceError,
     compareError,
@@ -1682,21 +1713,16 @@ export function SupplierAddProductForm({
       {
         id: "price",
         label: "Prix",
-        done: Number(price) > 0 && !priceError,
+        done: variantSkuPricingActive
+          ? minSupplierPriceEurFromSkuRows(advancedSkuRows) != null
+          : Number(price) > 0 && !priceError,
         anchorId: "add-product-pricing",
       },
     ],
-    [step1Checklist, price, priceError]
+    [step1Checklist, variantSkuPricingActive, advancedSkuRows, price, priceError]
   )
 
-  const simulationSupplierPrice = useMemo(() => {
-    if (variantFormMode === "advanced") {
-      const row = advancedSkuRows.find((r) => r.color.trim() && r.supplierPrice > 0)
-      if (row) return row.supplierPrice
-    }
-    const n = Number(price)
-    return Number.isFinite(n) && n > 0 ? n : 0
-  }, [variantFormMode, advancedSkuRows, price])
+  const simulationSupplierPrice = useMemo(() => catalogPriceEur ?? 0, [catalogPriceEur])
 
   const simulationCommission = useMemo(() => {
     if (variantFormMode === "advanced" && advancedSkuRows.length > 0) {
@@ -2165,23 +2191,42 @@ export function SupplierAddProductForm({
                 >
                   <div className="grid gap-5 sm:grid-cols-2">
                     <div className="sm:col-span-2">
-                      <Label htmlFor="p-price">Votre prix (EUR)</Label>
+                      <Label htmlFor="p-price">
+                        {variantSkuPricingActive
+                          ? "Prix catalogue affiché (EUR)"
+                          : "Votre prix (EUR)"}
+                      </Label>
                       <Input
                         id="p-price"
                         type="number"
                         min="0.01"
                         step="0.01"
+                        readOnly={variantSkuPricingActive}
                         className={cn(
                           "mt-1.5 h-11",
+                          variantSkuPricingActive && "bg-zinc-50 text-zinc-800 dark:bg-zinc-900/80",
                           (priceError || hasPublishFieldError("price")) && PUBLISH_INPUT_ERROR_CLASS
                         )}
-                        value={price}
+                        value={
+                          variantSkuPricingActive
+                            ? catalogPriceEur != null
+                              ? catalogPriceEur.toFixed(2)
+                              : ""
+                            : price
+                        }
                         onChange={(e) => {
+                          if (variantSkuPricingActive) return
                           setPrice(e.target.value)
                           clearPublishFieldError("price")
                         }}
                         aria-invalid={Boolean(priceError || hasPublishFieldError("price"))}
                       />
+                      {variantSkuPricingActive ? (
+                        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                          Prix le plus bas parmi vos variantes (tableau ci-dessous). Saisissez le prix sur
+                          chaque ligne SKU.
+                        </p>
+                      ) : null}
                       {priceError || hasPublishFieldError("price") ? (
                         <p className="mt-1 text-xs font-medium text-red-600 dark:text-red-400">
                           {priceError ?? publishBlockers.find((b) => b.field === "price")?.message}
@@ -2466,7 +2511,7 @@ export function SupplierAddProductForm({
                       rows={advancedSkuRows}
                       onChange={setAdvancedSkuRows}
                       onValidationChange={setSkuValidationIssues}
-                      basePriceEur={Number(price) || 0}
+                      basePriceEur={catalogPriceEur ?? (Number(price) || 10)}
                       catalogCompareAtEur={
                         compareAt.trim() ? Number(compareAt) : null
                       }

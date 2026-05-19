@@ -512,6 +512,13 @@ export function apiRowsFromSkuTable(
 ): ProductVariantInput[] {
   return rows
     .filter((r) => r.color.trim())
+    .sort((a, b) => {
+      const pa =
+        a.supplierPrice > 0 ? a.supplierPrice : Math.max(0.01, defaults.baseSupplierPrice)
+      const pb =
+        b.supplierPrice > 0 ? b.supplierPrice : Math.max(0.01, defaults.baseSupplierPrice)
+      return pa - pb || a.color.localeCompare(b.color, undefined, { sensitivity: "base" })
+    })
     .map((r) => {
       const supplierPrice =
         r.supplierPrice > 0 ? r.supplierPrice : Math.max(0.01, defaults.baseSupplierPrice)
