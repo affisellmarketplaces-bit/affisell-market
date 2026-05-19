@@ -1,7 +1,6 @@
 import { Suspense } from "react"
 
 import { BuyerMarketplaceExplorer } from "@/components/home/BuyerMarketplaceExplorer"
-import { HomeFeaturedShopsStrip } from "@/components/home/HomeFeaturedShopsStrip"
 import { PublicHero } from "@/components/home/PublicHero"
 import { loadFeaturedShopsSafe } from "@/lib/public-home-data"
 
@@ -14,12 +13,11 @@ function MarketplaceFallback() {
 }
 
 export async function PublicHome() {
-  const shops = await loadFeaturedShopsSafe(12)
+  const featuredShops = await loadFeaturedShopsSafe(6)
 
   return (
     <main className="mx-auto max-w-7xl space-y-10 px-4 py-8 sm:px-6 sm:py-10">
-      <PublicHero />
-      <HomeFeaturedShopsStrip shops={shops} />
+      <PublicHero featuredShops={featuredShops} />
       <Suspense fallback={<MarketplaceFallback />}>
         <BuyerMarketplaceExplorer />
       </Suspense>

@@ -2,8 +2,23 @@
 
 import Link from "next/link"
 
-import { BUYER_SMART_SERVICES } from "@/lib/buyer-smart-services"
+import { Store } from "lucide-react"
+
+import { BUYER_SMART_SERVICES, FEATURED_SHOPS_TILE } from "@/lib/buyer-smart-services"
 import { cn } from "@/lib/utils"
+
+const BUYER_PULSE_TILES = [
+  BUYER_SMART_SERVICES[0]!,
+  {
+    href: FEATURED_SHOPS_TILE.href,
+    label: FEATURED_SHOPS_TILE.label,
+    hint: FEATURED_SHOPS_TILE.hint,
+    Icon: Store,
+    cardClass: FEATURED_SHOPS_TILE.cardClass,
+  },
+  BUYER_SMART_SERVICES[1]!,
+  BUYER_SMART_SERVICES[2]!,
+].filter(Boolean)
 
 const DEFAULT_PULSE = [
   {
@@ -47,8 +62,8 @@ export function MarketplaceAffisellPulse({ audience = "default" }: Props) {
         <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
           Acheter malin sur Affisell
         </p>
-        <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-          {BUYER_SMART_SERVICES.map(({ href, label, hint, Icon, cardClass }) => (
+        <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          {BUYER_PULSE_TILES.map(({ href, label, hint, Icon, cardClass }) => (
             <li key={href}>
               <Link
                 href={href}

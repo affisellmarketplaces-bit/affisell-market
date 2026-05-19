@@ -1,7 +1,15 @@
 import type { LucideIcon } from "lucide-react"
-import { Brain, Heart, LayoutGrid, ShoppingBag, Store } from "lucide-react"
+import { Brain, Heart, LayoutGrid } from "lucide-react"
 
 import { PUBLIC_SHOPS_PATH } from "@/lib/affiliate-routes"
+
+export const FEATURED_SHOPS_TILE = {
+  href: PUBLIC_SHOPS_PATH,
+  label: "Boutiques à la une",
+  hint: "Sélection créateurs",
+  accent: "from-fuchsia-400/90 to-pink-500/90",
+  cardClass: "from-fuchsia-600 to-pink-600 text-white shadow-fuchsia-500/25",
+} as const
 
 export type BuyerSmartService = {
   href: string
@@ -25,28 +33,12 @@ export const BUYER_SMART_SERVICES: BuyerSmartService[] = [
     cardClass: "from-violet-600 to-indigo-600 text-white shadow-violet-500/25",
   },
   {
-    href: PUBLIC_SHOPS_PATH,
-    label: "Boutiques créateurs",
-    hint: "Parcourir les vitrines",
-    Icon: Store,
-    accent: "from-fuchsia-400/90 to-pink-500/90",
-    cardClass: "from-fuchsia-600 to-pink-600 text-white shadow-fuchsia-500/25",
-  },
-  {
     href: "/#explorer",
     label: "Catalogue live",
     hint: "Rayons, filtres & fiches produit",
     Icon: LayoutGrid,
     accent: "from-sky-400/90 to-cyan-500/90",
     cardClass: "from-sky-600 to-cyan-600 text-white shadow-sky-500/25",
-  },
-  {
-    href: "/cart",
-    label: "Panier",
-    hint: "Vos articles & paiement sécurisé",
-    Icon: ShoppingBag,
-    accent: "from-emerald-400/90 to-teal-500/90",
-    cardClass: "from-emerald-600 to-teal-600 text-white shadow-emerald-500/25",
   },
   {
     href: "/wishlist",

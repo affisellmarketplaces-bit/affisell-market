@@ -3,9 +3,14 @@ import Link from "next/link"
 import { HomeBuyerSmartStrip } from "@/components/home/HomeBuyerSmartStrip"
 import { HeroSearchBar } from "@/components/home/HeroSearchBar"
 import { buttonVariants } from "@/components/ui/button"
+import type { PublicShopDirectoryEntry } from "@/lib/shop-storefront-data"
 import { cn } from "@/lib/utils"
 
-export function PublicHero() {
+type Props = {
+  featuredShops: PublicShopDirectoryEntry[]
+}
+
+export function PublicHero({ featuredShops }: Props) {
   return (
     <section className="relative overflow-hidden rounded-3xl border border-violet-200/60 bg-gradient-to-br from-violet-600 via-violet-700 to-teal-700 px-4 py-10 text-white shadow-lg sm:px-8 sm:py-12 md:px-10 md:py-14">
       <div
@@ -53,7 +58,7 @@ export function PublicHero() {
             Je suis fournisseur
           </Link>
         </p>
-        <HomeBuyerSmartStrip />
+        <HomeBuyerSmartStrip featuredShops={featuredShops} />
       </div>
     </section>
   )
