@@ -1,15 +1,11 @@
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 
-import type { ComponentProps } from "react"
-
 import { auth } from "@/auth"
 import { SupplierAffiliateEvalPreview } from "@/components/supplier/supplier-affiliate-eval-preview"
-import { decimalToNumber } from "@/lib/serialize-for-client"
 import { prisma } from "@/lib/prisma"
+import { loadSupplierStorefrontCatalogProduct } from "@/lib/supplier-storefront-product-preview"
 import { supplierFacingPartnerListingRef } from "@/lib/supplier-partner-listing-ref"
-
-type AffiliatePreviewProduct = ComponentProps<typeof SupplierAffiliateEvalPreview>["product"]
 
 export const dynamic = "force-dynamic"
 
@@ -45,75 +41,49 @@ export default async function SupplierAffiliatePreviewPage({
   const id = productId?.trim()
   if (!id) notFound()
 
-  const liveAffiliateListingWhere = {
+  const store = await prisma.store.findUnique({
+    where: { userId: session.user.id },
+    select: { slug: true },
+  })
+  if (!store?.slug) notFound()
+
+  const loaded = await loadSupplierStorefrontCatalogProduct({
+    storeSlug: store.slug,
     productId: id,
-    isListed: true,
-    product: { active: true },
-    affiliate: { role: "AFFILIATE" as const },
-  }
+    allowUnpublished: true,
+  })
+  if (!loaded) notFound()
 
-  const [product, example, affiliatesWhoListed] = await Promise.all([
-    prisma.product.findFirst({
-      where: { id, supplierId: session.user.id },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        basePriceCents: true,
-        compareAt: true,
-        commissionRate: true,
-        listingKind: true,
-        stock: true,
-        active: true,
-        isDraft: true,
-        images: true,
-        categories: true,
-        tags: true,
-        deliveryMin: true,
-        deliveryMax: true,
-        handlingDays: true,
-        shippingCountry: true,
-        shippingType: true,
-        variants: true,
-        colorImages: true,
-      },
-    }),
-    prisma.affiliateProduct.findFirst({
-      where: liveAffiliateListingWhere,
-      orderBy: { updatedAt: "desc" },
-      select: { id: true },
-    }),
-    prisma.affiliateProduct.groupBy({
-      by: ["affiliateId"],
-      where: liveAffiliateListingWhere,
-    }),
-  ])
+  const product = loaded.product
 
-  const listedAffiliateCount = affiliatesWhoListed.length
-
-  if (!product) notFound()
+  const exampleListing = await prisma.affiliateProduct.findFirst({
+    where: {
+      productId: id,
+      isListed: true,
+      product: { active: true },
+      affiliate: { role: "AFFILIATE" },
+    },
+    orderBy: { updatedAt: "desc" },
+    select: { id: true },
+  })
 
   const editHref = product.isDraft
     ? `/dashboard/supplier/products/new?compose=1&draft=${product.id}`
     : `/dashboard/supplier/products/new?edit=${product.id}`
 
   const exampleRow =
-    example && listedAffiliateCount > 0
-      ? { partnerListingRef: supplierFacingPartnerListingRef(example.id) }
+    exampleListing && loaded.listedAffiliateCount > 0
+      ? { partnerListingRef: supplierFacingPartnerListingRef(exampleListing.id) }
       : null
-
-  const previewProduct = {
-    ...product,
-    compareAt: decimalToNumber(product.compareAt),
-  } satisfies AffiliatePreviewProduct
 
   return (
     <SupplierAffiliateEvalPreview
-      product={previewProduct}
+      product={product}
       editHref={editHref}
       catalogHref="/dashboard/supplier/products"
-      listedAffiliateCount={listedAffiliateCount}
+      listedAffiliateCount={loaded.listedAffiliateCount}
       example={exampleRow}
+      presentation="supplier-dashboard"
     />
   )
 }

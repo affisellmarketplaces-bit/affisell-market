@@ -340,7 +340,7 @@ export default async function SupplierStorePreviewPage({ params }: { params: Pro
               </Link>
             </div>
           ) : (
-            <SupplierStorefrontBrowse listings={listings} />
+              <SupplierStorefrontBrowse listings={listings} storeSlug={store.slug} />
           )}
 
           <aside className="mt-16 overflow-hidden rounded-3xl border border-zinc-200/90 bg-gradient-to-br from-zinc-900 via-violet-950 to-zinc-900 p-6 text-white shadow-xl dark:border-zinc-800 md:p-8">

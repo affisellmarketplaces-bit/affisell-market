@@ -48,11 +48,13 @@ function kindOf(p: SupplierStorefrontListingSerializable) {
   return String(p.listingKind ?? "").toUpperCase()
 }
 
-/** Public supplier catalog — shopper PDP only (no affiliate CTAs or commission UI). */
+/** Public supplier catalog — cards link to partner-catalog product sheets. */
 export function SupplierStorefrontBrowse({
   listings,
+  storeSlug,
 }: {
   listings: SupplierStorefrontListingSerializable[]
+  storeSlug: string
 }) {
   const [q, setQ] = useState("")
   const [kind, setKind] = useState<string>("ALL")
@@ -231,7 +233,7 @@ export function SupplierStorefrontBrowse({
             const unopt =
               typeof img === "string" &&
               (img.startsWith("http://") || img.startsWith("https://") || img.startsWith("/uploads"))
-            const productHref = `/product/${p.id}`
+            const productHref = `/store/supplier/${encodeURIComponent(storeSlug)}/product/${encodeURIComponent(p.id)}`
 
             return (
               <li key={p.id}>
@@ -301,7 +303,7 @@ export function SupplierStorefrontBrowse({
                       href={productHref}
                       className="mt-auto flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 py-3 text-center text-sm font-semibold text-white shadow-md shadow-violet-600/30 transition hover:from-violet-500 hover:to-fuchsia-500 hover:shadow-lg"
                     >
-                      Voir le produit
+                      Voir la fiche catalogue
                       <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
                     </Link>
                   </div>
