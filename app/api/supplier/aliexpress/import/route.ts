@@ -62,14 +62,15 @@ export async function POST(req: Request) {
       },
     })
 
-    return Response.json({ product }, { status: 201 })
+    return Response.json({ success: true, product }, { status: 201 })
   } catch (e) {
     if (!(e instanceof AliExpressApiError)) {
       Sentry.captureException(e)
     }
     const message = e instanceof Error ? e.message : "Import failed"
+    const rateLimited = e instanceof AliExpressApiError && e.rateLimited
     const status =
-      e instanceof AliExpressApiError && e.rateLimited
+      rateLimited
         ? 429
         : e instanceof AliExpressApiError
           ? 502
@@ -78,7 +79,9 @@ export async function POST(req: Request) {
             : 500
     return Response.json(
       {
+        success: false,
         error: message,
+        rateLimited,
         ...(e instanceof AliExpressApiError && e.code != null ? { code: e.code } : {}),
       },
       { status }
