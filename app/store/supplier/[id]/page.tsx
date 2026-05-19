@@ -3,15 +3,24 @@ import Image from "next/image"
 import Link from "next/link"
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
-import { ChevronRight, Link2, Music2, Radio, Users } from "lucide-react"
+import {
+  BadgeCheck,
+  ChevronRight,
+  Link2,
+  Music2,
+  Package,
+  Radio,
+  ShieldCheck,
+  Truck,
+} from "lucide-react"
 
 import {
   SupplierStorefrontBrowse,
   type SupplierStorefrontListingSerializable,
 } from "@/components/supplier/supplier-storefront-browse"
+import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
 import { primaryProductImage } from "@/lib/product-images"
 import { formatVariantCommissionRange, variantSkuPricingSummary, variantsFromDb } from "@/lib/product-variants"
-import { formatStoreCount } from "@/lib/market-config"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
@@ -66,12 +75,12 @@ export async function generateMetadata({
     },
     select: { name: true, description: true },
   })
-  if (!store) return { title: "Store · Affisell" }
+  if (!store) return { title: "Boutique · Affisell" }
   const desc =
     store.description?.trim().slice(0, 155) ??
-    `${store.name} — supplier storefront on Affisell. Browse products and shop with confidence.`
+    `${store.name} — boutique fournisseur sur Affisell. Parcourez le catalogue et achetez en toute confiance.`
   return {
-    title: `${store.name} · Supplier shop`,
+    title: `${store.name} · Boutique fournisseur`,
     description: desc,
     openGraph: {
       title: store.name,
@@ -97,57 +106,43 @@ export default async function SupplierStorePreviewPage({ params }: { params: Pro
 
   const supplierId = store.userId
   const base = appBaseUrl()
-  const storePath = `/store/supplier/${encodeURIComponent(store.slug)}`
 
-  const [products, affiliateGroups, clicksSum, partnerListingGroups] = await Promise.all([
-    prisma.product.findMany({
-      where: { supplierId, active: true, isDraft: false },
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        name: true,
-        basePriceCents: true,
-        commissionRate: true,
-        listingKind: true,
-        stock: true,
-        images: true,
-        compareAt: true,
-        isOnSale: true,
-        createdAt: true,
-        tags: true,
-        deliveryMax: true,
-        variants: true,
-      },
-    }),
-    prisma.affiliateProduct.groupBy({
-      by: ["affiliateId"],
-      where: { product: { supplierId } },
-    }),
-    prisma.affiliateProduct.aggregate({
-      where: { product: { supplierId } },
-      _sum: { clicks: true },
-    }),
-    prisma.affiliateProduct.groupBy({
-      by: ["productId"],
-      where: { product: { supplierId }, isListed: true },
-      _count: { _all: true },
-    }),
-  ])
+  const products = await prisma.product.findMany({
+    where: { supplierId, active: true, isDraft: false },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      name: true,
+      basePriceCents: true,
+      commissionRate: true,
+      listingKind: true,
+      stock: true,
+      images: true,
+      compareAt: true,
+      isOnSale: true,
+      createdAt: true,
+      tags: true,
+      deliveryMax: true,
+      variants: true,
+    },
+  })
+
+  const partnerListingGroups = await prisma.affiliateProduct.groupBy({
+    by: ["productId"],
+    where: { product: { supplierId }, isListed: true },
+    _count: { _all: true },
+  })
 
   const partnerListingCountByProductId = Object.fromEntries(
     partnerListingGroups.map((row) => [row.productId, row._count._all])
   )
 
-  const affiliateCount = affiliateGroups.length
-  const viewHint = clicksSum._sum.clicks ?? 0
-  const maxCommission = products.reduce((m, p) => Math.max(m, p.commissionRate), 0)
+  const fastShipCount = products.filter((p) => p.deliveryMax <= 3).length
+  const minDelivery = products.reduce((m, p) => Math.min(m, p.deliveryMax), products[0]?.deliveryMax ?? 7)
 
   const listings: SupplierStorefrontListingSerializable[] = products.map((p) => {
     const compareNum = p.compareAt != null ? Number(p.compareAt) : null
-    const skuPricing = variantSkuPricingSummary(
-      variantsFromDb(p.variants),
-      p.basePriceCents
-    )
+    const skuPricing = variantSkuPricingSummary(variantsFromDb(p.variants), p.basePriceCents)
     return {
       id: p.id,
       name: p.name,
@@ -180,7 +175,7 @@ export default async function SupplierStorePreviewPage({ params }: { params: Pro
     push(Music2, store.tiktok ? socialHref("tiktok", store.tiktok) : null, "TikTok")
     push(TwitchIcon, store.twitch ? socialHref("twitch", store.twitch) : null, "Twitch")
     push(Link2, store.facebook ? socialHref("facebook", store.facebook) : null, "Facebook")
-    push(Link2, store.twitter ? socialHref("twitter", store.twitter) : null, "X / Twitter")
+    push(Link2, store.twitter ? socialHref("twitter", store.twitter) : null, "X")
   }
 
   const jsonLd =
@@ -205,28 +200,33 @@ export default async function SupplierStorePreviewPage({ params }: { params: Pro
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       ) : null}
 
-      <div className="min-h-screen bg-gradient-to-b from-zinc-100 via-white to-zinc-50 dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900">
-        {/* Hero */}
-        <header className="relative overflow-hidden border-b border-zinc-200/80 bg-white/90 dark:border-zinc-800 dark:bg-zinc-950/80">
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+        <header className="relative overflow-hidden border-b border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-950">
           <div
-            className="pointer-events-none absolute inset-0 opacity-[0.35] dark:opacity-20"
+            className="pointer-events-none absolute inset-0 opacity-60 dark:opacity-40"
             style={{
-              backgroundImage: `radial-gradient(circle at 20% 20%, rgba(139,92,246,0.22), transparent 40%),
-                radial-gradient(circle at 80% 0%, rgba(20,184,166,0.18), transparent 38%)`,
+              backgroundImage: `radial-gradient(ellipse 80% 60% at 10% -10%, rgba(124,58,237,0.28), transparent 55%),
+                radial-gradient(ellipse 60% 50% at 90% 0%, rgba(217,70,239,0.18), transparent 50%)`,
             }}
             aria-hidden
           />
 
-          <div className="relative mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
-            <nav className="mb-8 flex flex-wrap items-center gap-1 text-sm text-zinc-500 dark:text-zinc-400" aria-label="Breadcrumb">
+          <div className="relative mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:py-10">
+            <nav
+              className="mb-6 flex flex-wrap items-center gap-1 text-sm text-zinc-500 dark:text-zinc-400"
+              aria-label="Fil d'Ariane"
+            >
               <Link href="/" className="transition hover:text-zinc-900 dark:hover:text-white">
-                Home
+                Accueil
               </Link>
-              <ChevronRight className="h-4 w-4 shrink-0 opacity-60" aria-hidden />
-              <Link href="/marketplace" className="transition hover:text-zinc-900 dark:hover:text-white">
+              <ChevronRight className="h-4 w-4 shrink-0 opacity-50" aria-hidden />
+              <Link
+                href={PUBLIC_MARKETPLACE_BROWSE_PATH}
+                className="transition hover:text-zinc-900 dark:hover:text-white"
+              >
                 Marketplace
               </Link>
-              <ChevronRight className="h-4 w-4 shrink-0 opacity-60" aria-hidden />
+              <ChevronRight className="h-4 w-4 shrink-0 opacity-50" aria-hidden />
               <span className="truncate font-medium text-zinc-900 dark:text-zinc-100">{store.name}</span>
             </nav>
 
@@ -235,195 +235,133 @@ export default async function SupplierStorePreviewPage({ params }: { params: Pro
                 href={store.liveUrl.trim()}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mb-6 inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-800 shadow-sm transition hover:bg-red-100 dark:border-red-900 dark:bg-red-950/60 dark:text-red-200 dark:hover:bg-red-950"
+                className="mb-5 inline-flex items-center gap-2 rounded-full border border-red-200/80 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-800 shadow-sm transition hover:bg-red-100 dark:border-red-900/60 dark:bg-red-950/50 dark:text-red-200"
               >
                 <span className="relative flex h-2 w-2">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
                 </span>
                 <Radio className="h-3.5 w-3.5" aria-hidden />
-                Live now{store.livePlatform ? ` · ${store.livePlatform}` : ""}
+                En direct{store.livePlatform ? ` · ${store.livePlatform}` : ""}
               </a>
             ) : null}
 
-            {store.bannerUrl ? (
-              <div className="relative mb-8 aspect-[21/9] max-h-56 overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-100 shadow-inner dark:border-zinc-700">
-                <Image
-                  src={store.bannerUrl}
-                  alt=""
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 1152px) 100vw, 1152px"
-                  priority
-                  unoptimized={store.bannerUrl.startsWith("http") || store.bannerUrl.startsWith("/uploads")}
-                />
-              </div>
-            ) : (
-              <div className="mb-8 hidden h-1 max-w-md rounded-full bg-gradient-to-r from-violet-500 via-teal-400 to-violet-500 sm:block lg:max-w-lg" aria-hidden />
-            )}
-
-            <div className="flex flex-wrap items-start gap-5 lg:gap-8">
-              {store.aiAvatarUrl || store.logoUrl ? (
-                <div className="shrink-0 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-                  <Image
-                    src={store.aiAvatarUrl || store.logoUrl || ""}
-                    alt=""
-                    width={96}
-                    height={96}
-                    className="h-24 w-24 object-cover object-center p-0.5"
-                    unoptimized
-                  />
-                </div>
-              ) : null}
-              <div className="min-w-0 flex-1">
-                <h1 className="text-balance text-3xl font-bold tracking-tight text-zinc-900 dark:text-white md:text-4xl lg:text-5xl">
-                  {store.name}
-                </h1>
-                {store.description ? (
-                  <p className="mt-3 max-w-2xl text-pretty leading-relaxed text-zinc-600 dark:text-zinc-300">
-                    {store.description}
-                  </p>
-                ) : (
-                  <p className="mt-3 text-zinc-500 dark:text-zinc-400">Affiliate-friendly supplier on Affisell.</p>
+            <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+              <div className="flex min-w-0 flex-1 flex-col gap-5 sm:flex-row sm:items-start">
+                {(store.aiAvatarUrl || store.logoUrl) && (
+                  <div className="relative shrink-0">
+                    <div
+                      className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 opacity-80 blur-sm"
+                      aria-hidden
+                    />
+                    <div className="relative overflow-hidden rounded-2xl border border-white/80 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900">
+                      <Image
+                        src={store.aiAvatarUrl || store.logoUrl || ""}
+                        alt=""
+                        width={88}
+                        height={88}
+                        className="h-[5.5rem] w-[5.5rem] object-cover"
+                        unoptimized
+                      />
+                    </div>
+                  </div>
                 )}
+                <div className="min-w-0 flex-1">
+                  <p className="inline-flex items-center gap-1.5 rounded-full border border-violet-200/80 bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-800 dark:border-violet-800/60 dark:bg-violet-950/50 dark:text-violet-200">
+                    <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
+                    Fournisseur vérifié Affisell
+                  </p>
+                  <h1 className="mt-3 text-balance text-3xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
+                    {store.name}
+                  </h1>
+                  <p className="mt-2 max-w-2xl text-pretty text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 sm:text-base">
+                    {store.description?.trim() ||
+                      "Catalogue officiel du fournisseur — achetez via les fiches produit Affisell (panier, paiement sécurisé, livraison)."}
+                  </p>
+                  {socials.length > 0 ? (
+                    <ul className="mt-4 flex flex-wrap gap-2">
+                      {socials.map(({ href, label, Icon }) => (
+                        <li key={label}>
+                          <a
+                            href={href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white/90 px-3 py-1.5 text-xs font-medium text-zinc-800 shadow-sm backdrop-blur transition hover:border-violet-300 hover:text-violet-800 dark:border-zinc-700 dark:bg-zinc-900/90 dark:text-zinc-200"
+                          >
+                            <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                            {label}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
+              </div>
 
-                {socials.length > 0 ? (
-                  <ul className="mt-5 flex flex-wrap gap-2">
-                    {socials.map(({ href, label, Icon }) => (
-                      <li key={label}>
-                        <a
-                          href={href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-medium text-zinc-800 shadow-sm transition hover:border-violet-300 hover:text-violet-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-violet-700"
-                        >
-                          <Icon className="h-4 w-4 shrink-0" aria-hidden />
-                          {label}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
+              <div className="grid w-full shrink-0 grid-cols-3 gap-2 sm:max-w-md lg:max-w-sm">
+                <div className="rounded-2xl border border-zinc-200/90 bg-white/90 p-3 text-center shadow-sm backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/80">
+                  <Package className="mx-auto h-4 w-4 text-violet-600 dark:text-violet-400" aria-hidden />
+                  <p className="mt-2 text-xl font-bold tabular-nums text-zinc-900 dark:text-white">
+                    {products.length}
+                  </p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Produits</p>
+                </div>
+                <div className="rounded-2xl border border-zinc-200/90 bg-white/90 p-3 text-center shadow-sm backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/80">
+                  <Truck className="mx-auto h-4 w-4 text-emerald-600 dark:text-emerald-400" aria-hidden />
+                  <p className="mt-2 text-xl font-bold tabular-nums text-zinc-900 dark:text-white">
+                    {fastShipCount > 0 ? fastShipCount : "—"}
+                  </p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Expédition rapide</p>
+                </div>
+                <div className="rounded-2xl border border-zinc-200/90 bg-white/90 p-3 text-center shadow-sm backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/80">
+                  <ShieldCheck className="mx-auto h-4 w-4 text-teal-600 dark:text-teal-400" aria-hidden />
+                  <p className="mt-2 text-xl font-bold tabular-nums text-zinc-900 dark:text-white">
+                    {minDelivery}j
+                  </p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Délai max</p>
+                </div>
               </div>
             </div>
-
-            <div className="mt-10 grid gap-4 sm:grid-cols-3">
-              <div className="rounded-2xl border border-zinc-200/90 bg-white/90 p-4 shadow-sm backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80">
-                <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                  Partner offers
-                </p>
-                <p className="mt-2 text-2xl font-bold text-violet-700 dark:text-violet-300">
-                  {maxCommission > 0 ? `Up to ${maxCommission}%` : "—"}
-                </p>
-                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Margin shared with affiliates on listings below.</p>
-              </div>
-              <div className="rounded-2xl border border-zinc-200/90 bg-white/90 p-4 shadow-sm backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80">
-                <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                  <Users className="h-3.5 w-3.5" aria-hidden />
-                  Active affiliates
-                </p>
-                <p className="mt-2 text-2xl font-bold text-zinc-900 dark:text-white">{affiliateCount}</p>
-                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Creators currently promoting this catalog.</p>
-              </div>
-              <div className="rounded-2xl border border-zinc-200/90 bg-white/90 p-4 shadow-sm backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80">
-                <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Catalog & reach</p>
-                <p className="mt-2 text-2xl font-bold text-zinc-900 dark:text-white">{products.length}</p>
-                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                  Live listings ·{" "}
-                  {viewHint > 0 ? (
-                    <>
-                      <strong>{formatStoreCount(viewHint)}</strong> affiliate preview clicks tracked
-                    </>
-                  ) : (
-                    "Promotion insights grow as affiliates share."
-                  )}
-                </p>
-              </div>
-            </div>
-
-            <p className="mt-8 inline-flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-teal-800 dark:text-teal-300">
-              <span className="font-semibold">Affisell verified supplier</span>
-              <span className="hidden text-zinc-400 sm:inline dark:text-zinc-600">·</span>
-              <Link href={`/marketplace`} className="font-medium underline-offset-4 hover:underline">
-                Back to marketplace
-              </Link>
-              <span className="hidden text-zinc-400 sm:inline dark:text-zinc-600">·</span>
-              <span className="max-w-full break-all text-zinc-500 dark:text-zinc-400">
-                Share: <span className="font-mono text-xs text-zinc-600 dark:text-zinc-300">{base}{storePath}</span>
-              </span>
-            </p>
           </div>
         </header>
 
-        <main className="mx-auto max-w-6xl px-4 pb-16 pt-10 sm:px-6 lg:px-8 lg:pb-24">
+        <main className="mx-auto max-w-6xl px-4 pb-20 pt-10 sm:px-6 lg:pb-24">
           {products.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-zinc-300 bg-white/70 px-6 py-16 text-center dark:border-zinc-700 dark:bg-zinc-950/40">
-              <p className="text-lg font-medium text-zinc-900 dark:text-zinc-50">Catalog coming soon</p>
+            <div className="rounded-3xl border border-dashed border-zinc-300 bg-white px-6 py-16 text-center shadow-sm dark:border-zinc-700 dark:bg-zinc-950">
+              <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Catalogue bientôt disponible</p>
               <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
-                This supplier has not published active products yet. Explore the marketplace for other shops.
+                Ce fournisseur n&apos;a pas encore publié de produits actifs.
               </p>
               <Link
-                href="/marketplace"
-                className="mt-8 inline-flex rounded-xl bg-zinc-900 px-6 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+                href={PUBLIC_MARKETPLACE_BROWSE_PATH}
+                className="mt-8 inline-flex rounded-2xl bg-violet-600 px-6 py-3 text-sm font-semibold text-white shadow-md shadow-violet-600/25 hover:bg-violet-700"
               >
-                Browse marketplace
+                Explorer la marketplace
               </Link>
             </div>
           ) : (
-            <>
-              <div className="mb-10 rounded-2xl border border-zinc-200/90 bg-white/90 p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/70 md:flex md:items-start md:gap-8 md:p-6">
-                <div className="min-w-0 flex-1 space-y-3 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                  <p>
-                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">Shoppers: </span>
-                    this page is the supplier showcase only. Use{" "}
-                    <strong className="font-medium text-zinc-800 dark:text-zinc-200">View product</strong> to open the
-                    official marketplace listing (cart, checkout, policies).
-                  </p>
-                  <p>
-                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">Affiliate partners: </span>
-                    you do <strong className="font-medium text-zinc-800 dark:text-zinc-200">not</strong> add products
-                    from this supplier URL. Listings and “Add to my store” live in your{" "}
-                    <Link href="/dashboard/affiliate" className="font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-400">
-                      affiliate hub
-                    </Link>
-                    —this catalog is read-only social proof with live commission labels.
-                  </p>
-                </div>
-                <div className="mt-4 shrink-0 border-t border-zinc-100 pt-4 dark:border-zinc-800 md:mt-0 md:w-56 md:border-l md:border-t-0 md:pl-8 md:pt-0">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                    Supplier tools
-                  </p>
-                  <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-                    Inventory, drafts, and publishing are managed in the supplier dashboard—not here.
-                  </p>
-                </div>
-              </div>
-              <SupplierStorefrontBrowse listings={listings} variant="supplier-showcase" />
-            </>
+            <SupplierStorefrontBrowse listings={listings} />
           )}
 
-          <aside className="mt-14 rounded-2xl border border-violet-200/80 bg-gradient-to-br from-violet-50 via-white to-teal-50 p-6 dark:border-violet-900/50 dark:from-violet-950/40 dark:via-zinc-950 dark:to-teal-950/30 md:p-8">
-            <p className="text-sm font-semibold text-violet-900 dark:text-violet-100">Selling or promoting on Affisell?</p>
-            <p className="mt-2 max-w-3xl text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
-              Suppliers control catalog and margins in the seller dashboard. Affiliates discover products in the marketplace and{" "}
-              <strong className="font-semibold text-zinc-900 dark:text-white">attach them to their store from the affiliate hub</strong>
-              —never from the supplier’s public showcase page.
+          <aside className="mt-16 overflow-hidden rounded-3xl border border-zinc-200/90 bg-gradient-to-br from-zinc-900 via-violet-950 to-zinc-900 p-6 text-white shadow-xl dark:border-zinc-800 md:p-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-300">Affisell</p>
+            <p className="mt-2 text-lg font-semibold">Vous êtes créateur ou fournisseur ?</p>
+            <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-300">
+              Les acheteurs passent commande via les fiches produit Affisell. Les créateurs gèrent leurs listings depuis
+              le hub affilié — pas depuis cette vitrine.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
-                href="/register"
-                className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-violet-500"
+                href="/signup/affiliate"
+                className="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-violet-950 shadow hover:bg-violet-50"
               >
-                Open a seller account
+                Devenir créateur
               </Link>
               <Link
-                href="/dashboard/affiliate"
-                className="rounded-xl border border-violet-300 bg-white px-4 py-2 text-sm font-semibold text-violet-900 hover:bg-violet-50 dark:border-violet-800 dark:bg-zinc-900 dark:text-violet-100 dark:hover:bg-violet-950/50"
+                href={PUBLIC_MARKETPLACE_BROWSE_PATH}
+                className="rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur hover:bg-white/15"
               >
-                Affiliate hub
-              </Link>
-              <Link href="/marketplace" className="rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-50 dark:hover:bg-zinc-800">
-                Browse marketplace
+                Marketplace acheteur
               </Link>
             </div>
           </aside>

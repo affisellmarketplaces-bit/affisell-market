@@ -7,22 +7,14 @@ import {
   ArrowDownWideNarrow,
   ArrowRight,
   LayoutGrid,
-  Percent,
-  Rocket,
   Search,
+  ShieldCheck,
   Sparkles,
-  TrendingUp,
   Truck,
-  Users,
 } from "lucide-react"
 
-import { ILLUSTRATIVE_RETAIL_MARKUP_PCT, illustrativePartnerShareUsd } from "@/lib/affiliate-earnings-hint"
+import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
 import { formatStoreCurrency, formatStoreCurrencyFromCents } from "@/lib/market-config"
-import {
-  formatVariantCommissionRange,
-  variantSkuPricingSummary,
-  variantsFromDb,
-} from "@/lib/product-variants"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { cn } from "@/lib/utils"
 
@@ -39,48 +31,28 @@ export type SupplierStorefrontListingSerializable = {
   createdAtIso: string
   tags: string[]
   deliveryMax: number
-  /** Distinct affiliate listings live for this product (social proof). */
   partnerListingCount: number
-  /** When set, commission varies by SKU choice. */
   commissionDisplay?: string
   variants?: unknown
 }
 
 const KIND_LABEL: Record<string, string> = {
-  PHYSICAL: "Physical",
+  PHYSICAL: "Physique",
   SOFTWARE: "Digital",
-  SUBSCRIPTION: "Subscription",
+  SUBSCRIPTION: "Abonnement",
 }
 
-function formatListPriceFromCents(cents: number) {
-  return formatStoreCurrencyFromCents(cents)
-}
-
-type SortKey = "new" | "price-asc" | "price-desc" | "commission-desc" | "partners-desc"
+type SortKey = "new" | "price-asc" | "price-desc"
 
 function kindOf(p: SupplierStorefrontListingSerializable) {
   return String(p.listingKind ?? "").toUpperCase()
 }
 
-function fmtHintAmount(n: number) {
-  return formatStoreCurrency(n)
-}
-
-function affiliateHubProductHref(base: string, productId: string) {
-  const join = base.includes("?") ? "&" : "?"
-  return `${base}${join}productId=${encodeURIComponent(productId)}`
-}
-
+/** Public supplier catalog — shopper PDP only (no affiliate CTAs or commission UI). */
 export function SupplierStorefrontBrowse({
   listings,
-  /** Supplier showcase: shopper PDP plus affiliate path to hub (per-card `productId` deep link). */
-  variant = "supplier-showcase",
-  /** Affiliate hub base URL; `productId=` is appended for “Add to my store”. */
-  affiliateHubHref = "/dashboard/affiliate",
 }: {
   listings: SupplierStorefrontListingSerializable[]
-  variant?: "supplier-showcase" | "generic"
-  affiliateHubHref?: string
 }) {
   const [q, setQ] = useState("")
   const [kind, setKind] = useState<string>("ALL")
@@ -110,10 +82,6 @@ export function SupplierStorefrontBrowse({
           return a.basePriceCents - b.basePriceCents
         case "price-desc":
           return b.basePriceCents - a.basePriceCents
-        case "commission-desc":
-          return b.commissionRate - a.commissionRate
-        case "partners-desc":
-          return (b.partnerListingCount ?? 0) - (a.partnerListingCount ?? 0)
         case "new":
         default:
           return new Date(b.createdAtIso).getTime() - new Date(a.createdAtIso).getTime()
@@ -123,56 +91,75 @@ export function SupplierStorefrontBrowse({
     return rows
   }, [listings, q, kind, sort])
 
-  const maxPartnerCount = useMemo(
-    () => listings.reduce((m, l) => Math.max(m, l.partnerListingCount ?? 0), 0),
-    [listings]
-  )
-
-  const detailCta =
-    variant === "supplier-showcase"
-      ? { label: "View product", sub: "Shopper PDP on Affisell" }
-      : { label: "View listing", sub: "Open details" }
-
   return (
-    <section className="space-y-6" aria-labelledby="storefront-catalog-heading">
-      <h2 id="storefront-catalog-heading" className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-        Catalog
-      </h2>
-      <div className="flex flex-col gap-4 rounded-2xl border border-zinc-200/80 bg-white/80 p-4 shadow-sm backdrop-blur-sm dark:border-zinc-800/80 dark:bg-zinc-950/60 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between sm:gap-3 sm:p-5">
+    <section className="space-y-8" aria-labelledby="storefront-catalog-heading">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-600 dark:text-violet-400">
+            Catalogue
+          </p>
+          <h2
+            id="storefront-catalog-heading"
+            className="mt-1 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50"
+          >
+            Produits disponibles
+          </h2>
+        </div>
+        <p className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+          <LayoutGrid className="h-4 w-4 shrink-0" aria-hidden />
+          <span>
+            <strong className="font-semibold text-zinc-800 dark:text-zinc-100">{filteredSorted.length}</strong>
+            {" / "}
+            {listings.length} article{listings.length === 1 ? "" : "s"}
+          </span>
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200/80 bg-white/90 p-4 shadow-sm backdrop-blur-md dark:border-zinc-800/80 dark:bg-zinc-950/70 sm:flex-row sm:flex-wrap sm:items-end">
         <div className="min-w-[12rem] flex-1">
-          <label htmlFor="storefront-search" className="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-            Search this shop
+          <label
+            htmlFor="storefront-search"
+            className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400"
+          >
+            Rechercher
           </label>
           <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" aria-hidden />
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
+              aria-hidden
+            />
             <input
               id="storefront-search"
               type="search"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Product name or tag…"
-              className="w-full rounded-xl border border-zinc-200 bg-white py-2.5 pl-10 pr-3 text-sm outline-none ring-violet-500/30 transition placeholder:text-zinc-400 focus:border-violet-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-950 dark:focus:border-violet-600"
+              placeholder="Nom du produit…"
+              className="h-11 w-full rounded-xl border border-zinc-200 bg-white py-2 pl-10 pr-3 text-sm outline-none ring-violet-500/20 transition placeholder:text-zinc-400 focus:border-violet-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-950 dark:focus:border-violet-600"
             />
           </div>
         </div>
 
-        <div className="flex min-w-[10rem] flex-col gap-1 sm:w-48">
-          <label htmlFor="storefront-sort" className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-            Sort
+        <div className="flex min-w-[10rem] flex-col gap-1 sm:w-44">
+          <label
+            htmlFor="storefront-sort"
+            className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400"
+          >
+            Trier
           </label>
           <div className="relative">
-            <ArrowDownWideNarrow className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" aria-hidden />
+            <ArrowDownWideNarrow
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
+              aria-hidden
+            />
             <select
               id="storefront-sort"
               value={sort}
               onChange={(e) => setSort(e.target.value as SortKey)}
-              className="w-full appearance-none rounded-xl border border-zinc-200 bg-white py-2.5 pl-10 pr-8 text-sm outline-none ring-violet-500/30 focus:border-violet-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-950 dark:focus:border-violet-600"
+              className="h-11 w-full appearance-none rounded-xl border border-zinc-200 bg-white py-2 pl-10 pr-8 text-sm outline-none ring-violet-500/20 focus:border-violet-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-950 dark:focus:border-violet-600"
             >
-              <option value="new">Newest first</option>
-              <option value="price-asc">Price · low → high</option>
-              <option value="price-desc">Price · high → low</option>
-              <option value="commission-desc">Commission · highest</option>
-              <option value="partners-desc">Creator adoption · most listed</option>
+              <option value="new">Nouveautés</option>
+              <option value="price-asc">Prix croissant</option>
+              <option value="price-desc">Prix décroissant</option>
             </select>
           </div>
         </div>
@@ -180,53 +167,35 @@ export function SupplierStorefrontBrowse({
 
       {kindsPresent.length > 1 ? (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Type</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+            Type
+          </span>
           <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setKind("ALL")}
-              className={cn(
-                "rounded-full border px-3 py-1 text-xs font-medium transition",
-                kind === "ALL"
-                  ? "border-violet-600 bg-violet-600 text-white shadow-sm"
-                  : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
-              )}
-            >
-              All
-            </button>
-            {kindsPresent.map((k) => (
+            {(["ALL", ...kindsPresent] as const).map((k) => (
               <button
                 key={k}
                 type="button"
                 onClick={() => setKind(k)}
                 className={cn(
-                  "rounded-full border px-3 py-1 text-xs font-medium transition",
+                  "rounded-full border px-3.5 py-1.5 text-xs font-semibold transition",
                   kind === k
-                    ? "border-teal-600 bg-teal-600 text-white shadow-sm"
+                    ? "border-violet-600 bg-violet-600 text-white shadow-md shadow-violet-600/25"
                     : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
                 )}
               >
-                {KIND_LABEL[k] ?? k}
+                {k === "ALL" ? "Tout" : (KIND_LABEL[k] ?? k)}
               </button>
             ))}
           </div>
         </div>
       ) : null}
 
-      <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
-        <LayoutGrid className="h-4 w-4 shrink-0" aria-hidden />
-        <span>
-          Showing <strong className="font-semibold text-zinc-800 dark:text-zinc-100">{filteredSorted.length}</strong> of{" "}
-          <strong className="font-semibold text-zinc-800 dark:text-zinc-100">{listings.length}</strong> listings
-        </span>
-      </div>
-
       {filteredSorted.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50/90 px-6 py-16 text-center dark:border-zinc-700 dark:bg-zinc-950/40">
+        <div className="rounded-3xl border border-dashed border-zinc-300 bg-gradient-to-b from-zinc-50 to-white px-6 py-16 text-center dark:border-zinc-700 dark:from-zinc-950 dark:to-zinc-900">
           <Sparkles className="mx-auto h-10 w-10 text-violet-500" aria-hidden />
-          <p className="mt-4 text-lg font-medium text-zinc-900 dark:text-zinc-50">No matches</p>
+          <p className="mt-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">Aucun résultat</p>
           <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
-            Try another search, clear filters, or browse the full marketplace for similar suppliers.
+            Modifiez votre recherche ou explorez d&apos;autres boutiques sur Affisell.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <button
@@ -235,20 +204,20 @@ export function SupplierStorefrontBrowse({
                 setQ("")
                 setKind("ALL")
               }}
-              className="rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-800 shadow-sm hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+              className="rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-800 shadow-sm hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100"
             >
-              Reset filters
+              Réinitialiser
             </button>
             <Link
-              href="/marketplace"
-              className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-violet-700"
+              href={PUBLIC_MARKETPLACE_BROWSE_PATH}
+              className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-violet-600/25 hover:bg-violet-700"
             >
-              Explore marketplace
+              Explorer la marketplace
             </Link>
           </div>
         </div>
       ) : (
-        <ul className="grid list-none grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <ul className="grid list-none grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredSorted.map((p) => {
             const baseNum = p.basePriceCents / 100
             const compareN = p.compareAtNumber
@@ -258,159 +227,83 @@ export function SupplierStorefrontBrowse({
             const kindKey = kindOf(p)
             const kindShort = KIND_LABEL[kindKey] ?? kindKey.replace(/_/g, " ").toLowerCase()
             const fastShip = p.deliveryMax <= 3
-            const lowStock = p.stock > 0 && p.stock <= 8
             const img = p.imageUrl
             const unopt =
               typeof img === "string" &&
               (img.startsWith("http://") || img.startsWith("https://") || img.startsWith("/uploads"))
-            const partners = p.partnerListingCount ?? 0
-            const skuPricing = variantSkuPricingSummary(variantsFromDb(p.variants), p.basePriceCents)
-            const commissionDisplay =
-              p.commissionDisplay ??
-              (skuPricing ? formatVariantCommissionRange(skuPricing) : `${p.commissionRate}%`)
-            const shareHint = illustrativePartnerShareUsd({
-              basePriceCents: p.basePriceCents,
-              commissionRatePct: skuPricing?.commissionMax ?? p.commissionRate,
-              retailMarkupPct: ILLUSTRATIVE_RETAIL_MARKUP_PCT,
-            })
-            const topAdoption = maxPartnerCount >= 2 && partners === maxPartnerCount && partners > 0
-            const crowded = partners >= 3
+            const productHref = `/product/${p.id}`
 
             return (
               <li key={p.id}>
-                <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:border-violet-200 hover:shadow-lg dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-violet-900/60">
-                  <div className="relative aspect-[4/3] w-full shrink-0 bg-gradient-to-br from-zinc-100 to-zinc-50 dark:from-zinc-900 dark:to-zinc-950">
-                    <Link href={`/product/${p.id}`} className="relative block h-full w-full">
+                <article className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-zinc-200/90 bg-white shadow-sm ring-1 ring-black/[0.03] transition duration-300 hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-xl hover:shadow-violet-500/10 dark:border-zinc-800 dark:bg-zinc-950 dark:ring-white/[0.04] dark:hover:border-violet-800/60">
+                  <div className="relative aspect-[4/5] w-full shrink-0 overflow-hidden bg-gradient-to-br from-zinc-100 via-white to-violet-50/40 dark:from-zinc-900 dark:via-zinc-950 dark:to-violet-950/20">
+                    <Link href={productHref} className="relative block h-full w-full">
                       <Image
                         src={img}
                         alt={p.name}
                         fill
-                        className="object-contain p-3 transition duration-300 group-hover:scale-[1.02]"
+                        className="object-contain p-4 transition duration-500 group-hover:scale-[1.03]"
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 280px"
                         unoptimized={unopt}
                       />
+                      <div
+                        className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent opacity-0 transition group-hover:opacity-100"
+                        aria-hidden
+                      />
                     </Link>
-                    <WishlistHeart productId={p.id} className="absolute right-2.5 top-2.5 z-10" />
+                    <WishlistHeart productId={p.id} className="absolute right-3 top-3 z-10" />
                     <div className="pointer-events-none absolute left-3 top-3 flex max-w-[calc(100%-4rem)] flex-wrap gap-1.5">
                       {hasDeal ? (
-                        <span className="rounded-full bg-red-600 px-2 py-0.5 text-[11px] font-bold text-white shadow">
+                        <span className="rounded-full bg-rose-600 px-2.5 py-0.5 text-[11px] font-bold text-white shadow">
                           −{discountPct}%
                         </span>
                       ) : null}
                       {fastShip ? (
-                        <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white shadow">
+                        <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-600/95 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white shadow">
                           <Truck className="h-3 w-3" aria-hidden />
-                          Fast ship
-                        </span>
-                      ) : null}
-                      {lowStock ? (
-                        <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-semibold text-white shadow">
-                          Low stock
-                        </span>
-                      ) : null}
-                      {p.isOnSale && !hasDeal ? (
-                        <span className="rounded-full bg-pink-600 px-2 py-0.5 text-[10px] font-semibold text-white shadow">
-                          Promo
-                        </span>
-                      ) : null}
-                      {topAdoption ? (
-                        <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow">
-                          <TrendingUp className="h-3 w-3" aria-hidden />
-                          Top pick
-                        </span>
-                      ) : null}
-                      {crowded && !topAdoption ? (
-                        <span className="inline-flex items-center gap-0.5 rounded-full bg-sky-600 px-2 py-0.5 text-[10px] font-semibold text-white shadow">
-                          <Users className="h-3 w-3" aria-hidden />
-                          {partners} creators
+                          Livraison rapide
                         </span>
                       ) : null}
                     </div>
                   </div>
-                  <div className="flex flex-1 flex-col gap-2.5 p-4">
-                    <Link href={`/product/${p.id}`}>
-                      <h3 className="line-clamp-2 min-h-[2.75rem] text-sm font-semibold leading-snug text-zinc-900 dark:text-zinc-50">
+
+                  <div className="flex flex-1 flex-col gap-3 p-4 pt-3">
+                    <Link href={productHref} className="min-h-[2.75rem]">
+                      <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-zinc-900 transition group-hover:text-violet-800 dark:text-zinc-50 dark:group-hover:text-violet-200">
                         {p.name}
                       </h3>
                     </Link>
-                    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                      <span className="text-lg font-bold tracking-tight text-zinc-900 dark:text-white">
-                        {formatListPriceFromCents(p.basePriceCents)}
+
+                    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                      <span className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">
+                        {formatStoreCurrencyFromCents(p.basePriceCents)}
                       </span>
                       {hasDeal && compareN != null ? (
-                        <span className="text-compare-at text-sm tabular-nums line-through">
+                        <span className="text-sm tabular-nums text-zinc-400 line-through">
                           {formatStoreCurrency(compareN)}
                         </span>
                       ) : null}
                     </div>
-                    <div className="flex flex-wrap gap-2 text-[11px] text-zinc-600 dark:text-zinc-400">
-                      <span className="rounded-lg border border-zinc-200 px-2 py-1 dark:border-zinc-700">
-                        <span className="font-semibold text-zinc-900 dark:text-zinc-100">{kindShort}</span>
-                        {" · "}
-                        <span className="text-zinc-500">Stock </span>
-                        <span className="font-semibold text-zinc-900 dark:text-zinc-100">{p.stock}</span>
+
+                    <p className="flex flex-wrap items-center gap-2 text-[11px] text-zinc-500 dark:text-zinc-400">
+                      <span className="inline-flex items-center gap-1 rounded-md bg-zinc-100 px-2 py-0.5 dark:bg-zinc-800">
+                        <ShieldCheck className="h-3 w-3 text-emerald-600" aria-hidden />
+                        {kindShort}
                       </span>
-                      <span className="inline-flex items-center gap-1 rounded-lg border border-violet-200 bg-violet-50 px-2 py-1 dark:border-violet-900 dark:bg-violet-950/50">
-                        <Percent className="h-3.5 w-3.5 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
-                        <span>
-                          <span className="font-medium text-violet-900 dark:text-violet-100">
-                            Commission: {commissionDisplay}
-                            {skuPricing ? " (par choix)" : ""}
-                          </span>
-                        </span>
-                      </span>
-                      {partners > 0 ? (
-                        <span className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1 text-emerald-950 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-100">
-                          <Users className="h-3.5 w-3.5 shrink-0 text-emerald-700 dark:text-emerald-400" aria-hidden />
-                          <span className="font-medium">
-                            {partners} creator{partners === 1 ? "" : "s"} listing
-                          </span>
-                        </span>
-                      ) : null}
-                    </div>
-                    {variant === "supplier-showcase" && shareHint ? (
-                      <div className="rounded-xl border border-teal-100 bg-gradient-to-r from-teal-50/90 to-white px-3 py-2 dark:border-teal-900/60 dark:from-teal-950/35 dark:to-zinc-950">
-                        <p className="flex items-center gap-1.5 text-[11px] font-semibold text-teal-900 dark:text-teal-100">
-                          <Rocket className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                          Example partner payout*
-                        </p>
-                        <p className="mt-0.5 text-[11px] leading-snug text-teal-900/90 dark:text-teal-100/85">
-                          ~{fmtHintAmount(shareHint.partnerShareUsd)} / sold unit if you retail ~{shareHint.retailMarkupPct}% above this
-                          anchor ({fmtHintAmount(shareHint.retailUsd)} retail vs {formatListPriceFromCents(p.basePriceCents)}{" "}
-                          anchor).
-                        </p>
-                      </div>
-                    ) : null}
-                    <div className="mt-auto space-y-2 pt-2">
-                      <Link
-                        href={`/product/${p.id}`}
-                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-900 py-2.5 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
-                      >
-                        {detailCta.label}
-                        <ArrowRight className="h-4 w-4 shrink-0 opacity-90" aria-hidden />
-                      </Link>
-                      <p className="text-center text-[10px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
-                        {detailCta.sub}
-                      </p>
-                      {variant === "supplier-showcase" ? (
-                        <Link
-                          href={affiliateHubProductHref(affiliateHubHref, p.id)}
-                          className={cn(
-                            "flex w-full items-center justify-center gap-2 rounded-xl border-2 border-violet-400/80 bg-violet-50 py-2.5 text-center text-sm font-semibold text-violet-950 shadow-sm transition hover:border-violet-500 hover:bg-violet-100 dark:border-violet-600 dark:bg-violet-950/60 dark:text-violet-50 dark:hover:bg-violet-950"
-                          )}
-                        >
-                          <Sparkles className="h-4 w-4 shrink-0" aria-hidden />
-                          Add to my store
-                        </Link>
-                      ) : null}
-                      {variant === "supplier-showcase" ? (
-                        <p className="text-center text-[9px] leading-relaxed text-zinc-400 dark:text-zinc-500">
-                          *Illustrative only—your payout depends on the price you set. Opens the affiliate hub to list this
-                          SKU.
-                          {shareHint ? " Commission is a share of selling margin vs supplier anchor." : null}
-                        </p>
-                      ) : null}
-                    </div>
+                      {p.stock > 0 ? (
+                        <span className="text-emerald-700 dark:text-emerald-400">En stock</span>
+                      ) : (
+                        <span className="text-amber-700 dark:text-amber-400">Rupture</span>
+                      )}
+                    </p>
+
+                    <Link
+                      href={productHref}
+                      className="mt-auto flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 py-3 text-center text-sm font-semibold text-white shadow-md shadow-violet-600/30 transition hover:from-violet-500 hover:to-fuchsia-500 hover:shadow-lg"
+                    >
+                      Voir le produit
+                      <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
+                    </Link>
                   </div>
                 </article>
               </li>
