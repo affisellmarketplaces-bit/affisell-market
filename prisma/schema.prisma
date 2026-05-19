@@ -589,6 +589,11 @@ model AffiliateProduct {
    * Optional PDP default: must match `Product.variants.size[]` when set.
    */
   promotedSize  String?
+  /**
+   * Subset of supplier variant keys shown on this affiliate storefront (empty = all).
+   * Keys match `ProductVariantLine.name` or color-only labels from the supplier catalog.
+   */
+  promotedVariantKeys String[] @default([])
 
   blindDropshipOrderItems BlindDropshipOrderItem[]
 

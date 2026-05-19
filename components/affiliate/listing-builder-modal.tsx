@@ -13,6 +13,11 @@ import {
   type BuyerRewardKind,
 } from "@/lib/affiliate-buyer-reward"
 import { productSizeOptions } from "@/lib/affiliate-promoted-variant"
+import {
+  buildAffiliateVariantOptions,
+  initialPromotedVariantPick,
+  promotedVariantKeysFromPick,
+} from "@/lib/affiliate-storefront-variants"
 
 type CatalogProduct = {
   id: string
@@ -22,6 +27,12 @@ type CatalogProduct = {
   basePriceCents: number
   colors?: string[]
   variants?: unknown
+  hasVariants?: boolean
+  productVariants?: Array<{
+    color: string | null
+    size: string | null
+    stock: number
+  }>
 }
 
 export type SerializedListing = {
@@ -44,6 +55,7 @@ export type SerializedListing = {
   buyerRewardPercent?: number | null
   promotedColor?: string | null
   promotedSize?: string | null
+  promotedVariantKeys?: string[]
 }
 
 type Props = {
@@ -78,11 +90,13 @@ type FormFields = {
   buyerRewardPercent: number
   promotedColor: string
   promotedSize: string
+  promotedVariantPick: Record<string, boolean>
 }
 
 function getListingFormDefaults(
   product: CatalogProduct,
-  listing: SerializedListing | null
+  listing: SerializedListing | null,
+  variantOptions: ReturnType<typeof buildAffiliateVariantOptions>
 ): Omit<FormFields, "step"> {
   const urls = product.images?.filter(Boolean) ?? []
   const L = listing
@@ -113,6 +127,10 @@ function getListingFormDefaults(
     buyerRewardPercent: clampBuyerRewardPercent(L?.buyerRewardPercent ?? 0),
     promotedColor: L?.promotedColor?.trim() ?? "",
     promotedSize: L?.promotedSize?.trim() ?? "",
+    promotedVariantPick: initialPromotedVariantPick(
+      variantOptions,
+      L?.promotedVariantKeys
+    ),
   }
 }
 
@@ -126,9 +144,19 @@ type BodyProps = {
 
 function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved }: BodyProps) {
   const supplierUrls = useMemo(() => product.images?.filter(Boolean) ?? [], [product.images])
+  const variantOptions = useMemo(
+    () =>
+      buildAffiliateVariantOptions({
+        colors: product.colors ?? [],
+        variants: product.variants,
+        hasVariants: product.hasVariants,
+        productVariants: product.productVariants,
+      }),
+    [product]
+  )
   const [form, setForm] = useState<FormFields>(() => ({
     step: 1,
-    ...getListingFormDefaults(product, listing),
+    ...getListingFormDefaults(product, listing, variantOptions),
   }))
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -241,6 +269,19 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
     setBusy(true)
     if (!opts?.silent) setError(null)
     try {
+      const promotedVariantKeys =
+        variantOptions.length > 0
+          ? promotedVariantKeysFromPick(variantOptions, form.promotedVariantPick)
+          : []
+
+      if (
+        !saveDraft &&
+        variantOptions.length > 0 &&
+        promotedVariantKeys.length === 0
+      ) {
+        throw new Error("Sélectionnez au moins une variante à afficher sur votre boutique.")
+      }
+
       const collections = buildCollectionsArray()
       let euro = Number(String(form.priceEUR).replace(",", "."))
       if (saveDraft && (!Number.isFinite(euro) || euro <= 0)) {
@@ -274,6 +315,7 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
           buyerRewardPercent: form.buyerRewardPercent,
           promotedColor: form.promotedColor.trim() || null,
           promotedSize: form.promotedSize.trim() || null,
+          promotedVariantKeys,
         }
         const res = await fetch(`/api/affiliate/products/${listing.id}`, {
           method: "PATCH",
@@ -310,6 +352,7 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
           buyerRewardPercent: form.buyerRewardPercent,
           promotedColor: form.promotedColor.trim() || null,
           promotedSize: form.promotedSize.trim() || null,
+          promotedVariantKeys,
         }
 
         const res = await fetch("/api/affiliate/products/add", {
@@ -440,12 +483,82 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
                 />
               </div>
 
+              {variantOptions.length > 1 ? (
+                <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-4">
+                  <p className="text-sm font-semibold text-gray-900">
+                    Variantes sur votre boutique
+                  </p>
+                  <p className="mt-1 text-xs text-gray-600">
+                    Cochez les déclinaisons que vous souhaitez proposer. Les autres ne seront pas
+                    proposées aux visiteurs de votre vitrine.
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      className="text-xs font-medium text-emerald-800 underline decoration-dotted"
+                      onClick={() =>
+                        setForm((f) => ({
+                          ...f,
+                          promotedVariantPick: Object.fromEntries(
+                            variantOptions.map((o) => [o.key, true])
+                          ),
+                        }))
+                      }
+                    >
+                      Tout sélectionner
+                    </button>
+                    <button
+                      type="button"
+                      className="text-xs font-medium text-gray-600 underline decoration-dotted"
+                      onClick={() =>
+                        setForm((f) => ({
+                          ...f,
+                          promotedVariantPick: Object.fromEntries(
+                            variantOptions.map((o) => [o.key, false])
+                          ),
+                        }))
+                      }
+                    >
+                      Tout désélectionner
+                    </button>
+                  </div>
+                  <ul className="mt-3 max-h-48 space-y-2 overflow-y-auto">
+                    {variantOptions.map((opt) => (
+                      <li key={opt.key}>
+                        <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm hover:border-emerald-200">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(form.promotedVariantPick[opt.key])}
+                            onChange={() =>
+                              setForm((f) => ({
+                                ...f,
+                                promotedVariantPick: {
+                                  ...f.promotedVariantPick,
+                                  [opt.key]: !f.promotedVariantPick[opt.key],
+                                },
+                              }))
+                            }
+                            className="rounded border-gray-300"
+                          />
+                          <span className="font-medium text-gray-900">{opt.label}</span>
+                          {opt.stock > 0 ? (
+                            <span className="ml-auto text-xs text-gray-500">
+                              stock {opt.stock}
+                            </span>
+                          ) : null}
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
               {highlightColorOptions.length > 0 || highlightSizeOptions.length > 0 ? (
                 <div className="rounded-xl border border-violet-100 bg-violet-50/40 p-4">
                   <p className="text-sm font-semibold text-gray-900">Default variant for shoppers</p>
                   <p className="mt-1 text-xs text-gray-600">
-                    When someone opens this listing, we pre-select this color or size. They can still pick other
-                    options on the product page.
+                    When someone opens this listing, we pre-select this color or size among the variants
+                    you promote above.
                   </p>
                   {highlightColorOptions.length > 0 ? (
                     <div className="mt-3">

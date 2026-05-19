@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { parsePromotedVariantPatch } from "@/lib/affiliate-promoted-variant"
+import { parsePromotedVariantKeysBody } from "@/lib/affiliate-storefront-variants"
 import { resolveBuyerRewardForListing } from "@/lib/affiliate-buyer-reward-request"
 import { slugifyListingSlug } from "@/lib/affiliate-listing-display"
 import { prisma } from "@/lib/prisma"
@@ -151,17 +152,33 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: rewardRes.error }, { status: 400 })
   }
 
-  const promo = parsePromotedVariantPatch(
-    {
-      colors: Array.isArray(product.colors)
-        ? product.colors.filter((c): c is string => typeof c === "string" && Boolean(c.trim()))
-        : [],
-      variants: product.variants,
-    },
-    body
-  )
+  const productForPromo = {
+    colors: Array.isArray(product.colors)
+      ? product.colors.filter((c): c is string => typeof c === "string" && Boolean(c.trim()))
+      : [],
+    variants: product.variants,
+    hasVariants: product.hasVariants,
+    productVariants: await prisma.productVariant.findMany({
+      where: { productId: product.id },
+      select: { color: true, size: true, stock: true },
+      orderBy: { createdAt: "asc" },
+    }),
+  }
+
+  const promo = parsePromotedVariantPatch(productForPromo, body)
   if ("error" in promo && !saveDraft) {
     return NextResponse.json({ error: promo.error }, { status: 400 })
+  }
+
+  let promotedVariantKeys: string[] | undefined
+  if ("promotedVariantKeys" in body) {
+    const keysRes = parsePromotedVariantKeysBody(productForPromo, body.promotedVariantKeys)
+    if ("error" in keysRes && !saveDraft) {
+      return NextResponse.json({ error: keysRes.error }, { status: 400 })
+    }
+    if (!("error" in keysRes)) {
+      promotedVariantKeys = keysRes.promotedVariantKeys
+    }
   }
 
   const reward =
@@ -169,6 +186,8 @@ export async function POST(request: Request) {
       ? { buyerRewardKind: "NONE" as const, buyerRewardPercent: 0 }
       : rewardRes
   const promoPatch = "error" in promo ? {} : promo
+  const keysPatch =
+    promotedVariantKeys !== undefined ? { promotedVariantKeys } : {}
 
   try {
     const row = await prisma.affiliateProduct.upsert({
@@ -192,6 +211,7 @@ export async function POST(request: Request) {
         buyerRewardKind: reward.buyerRewardKind,
         buyerRewardPercent: reward.buyerRewardPercent,
         ...promoPatch,
+        ...keysPatch,
       },
       update: {
         sellingPriceCents,
@@ -207,6 +227,7 @@ export async function POST(request: Request) {
         buyerRewardKind: reward.buyerRewardKind,
         buyerRewardPercent: reward.buyerRewardPercent,
         ...promoPatch,
+        ...keysPatch,
       },
     })
 

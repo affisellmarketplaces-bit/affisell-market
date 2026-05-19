@@ -425,6 +425,7 @@ export function AffiliateDashboard({ storeId }: Props) {
       isFeatured: listing.isFeatured,
       promotedColor: listing.promotedColor ?? null,
       promotedSize: listing.promotedSize ?? null,
+      promotedVariantKeys: listing.promotedVariantKeys ?? [],
     })
   }
 

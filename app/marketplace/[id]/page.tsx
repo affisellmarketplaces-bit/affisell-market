@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
+import { filterListingForPromotedVariants } from "@/lib/affiliate-storefront-variants"
 import {
   listingDisplayDescription,
   listingDisplayTitle,
@@ -130,8 +131,13 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
     : []
   const has3D = tags.some((t) => /(?:\b3d\b|\b360\b)/i.test(t))
   const arModel = tags.find((t) => t.toLowerCase().startsWith("ar:"))?.slice(3) ?? null
-  const variants = variantsFromDb(listing.product.variants)
-  const colorNames = resolveMarketplaceOptionNames(productColorNames, variants)
+  const variantsRaw = variantsFromDb(listing.product.variants)
+  const colorNamesRaw = resolveMarketplaceOptionNames(productColorNames, variantsRaw)
+  const { variants, colorNames } = filterListingForPromotedVariants({
+    variants: variantsRaw,
+    colorNames: colorNamesRaw,
+    promotedVariantKeys: listing.promotedVariantKeys,
+  })
   const colorImages =
     colorNames.length > 0
       ? mergeColorImagesForProduct(colorNames, listing.product.colorImages, listing.product.variants)

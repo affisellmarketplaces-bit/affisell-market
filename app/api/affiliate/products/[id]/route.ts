@@ -4,6 +4,7 @@ import type { Prisma } from "@prisma/client"
 
 import { auth } from "@/auth"
 import { parsePromotedVariantPatch } from "@/lib/affiliate-promoted-variant"
+import { parsePromotedVariantKeysBody } from "@/lib/affiliate-storefront-variants"
 import { resolveBuyerRewardForListing } from "@/lib/affiliate-buyer-reward-request"
 import { slugifyListingSlug } from "@/lib/affiliate-listing-display"
 import { prisma } from "@/lib/prisma"
@@ -180,19 +181,32 @@ export async function PATCH(
   data.buyerRewardKind = rewardRes.buyerRewardKind
   data.buyerRewardPercent = rewardRes.buyerRewardPercent
 
-  const promo = parsePromotedVariantPatch(
-    {
-      colors: Array.isArray(listing.product.colors)
-        ? listing.product.colors.filter((c): c is string => typeof c === "string" && Boolean(c.trim()))
-        : [],
-      variants: listing.product.variants,
-    },
-    body
-  )
+  const productForPromo = {
+    colors: Array.isArray(listing.product.colors)
+      ? listing.product.colors.filter((c): c is string => typeof c === "string" && Boolean(c.trim()))
+      : [],
+    variants: listing.product.variants,
+    hasVariants: listing.product.hasVariants,
+    productVariants: await prisma.productVariant.findMany({
+      where: { productId: listing.productId },
+      select: { color: true, size: true, stock: true },
+      orderBy: { createdAt: "asc" },
+    }),
+  }
+
+  const promo = parsePromotedVariantPatch(productForPromo, body)
   if ("error" in promo) {
     return NextResponse.json({ error: promo.error }, { status: 400 })
   }
   Object.assign(data, promo)
+
+  if ("promotedVariantKeys" in body) {
+    const keysRes = parsePromotedVariantKeysBody(productForPromo, body.promotedVariantKeys)
+    if ("error" in keysRes) {
+      return NextResponse.json({ error: keysRes.error }, { status: 400 })
+    }
+    data.promotedVariantKeys = keysRes.promotedVariantKeys
+  }
 
   try {
     const updated = await prisma.affiliateProduct.update({
