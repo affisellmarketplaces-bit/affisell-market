@@ -1,11 +1,42 @@
 "use client"
 
 import Link from "next/link"
-import { Brain, Radar, Telescope, Zap } from "lucide-react"
+import { Brain, Heart, Radar, Store } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-const PULSE = [
+const BUYER_PULSE = [
+  {
+    href: "/agent",
+    label: "Agent shopping",
+    hint: "Conseiller IA pour trouver le bon produit",
+    Icon: Brain,
+    className: "from-violet-600 to-indigo-600 text-white shadow-violet-500/25",
+  },
+  {
+    href: "/shops",
+    label: "Boutiques créateurs",
+    hint: "Parcourir les vitrines",
+    Icon: Store,
+    className: "from-fuchsia-600 to-pink-600 text-white shadow-fuchsia-500/25",
+  },
+  {
+    href: "/?q=smart",
+    label: "Recherche intelligente",
+    hint: "Essai démo « smart »",
+    Icon: Radar,
+    className: "from-sky-600 to-cyan-600 text-white shadow-sky-500/25",
+  },
+  {
+    href: "/wishlist",
+    label: "Favoris",
+    hint: "Alertes prix & wishlist",
+    Icon: Heart,
+    className: "from-amber-600 to-orange-600 text-white shadow-amber-500/25",
+  },
+] as const
+
+const DEFAULT_PULSE = [
   {
     href: "/agent",
     label: "Agent Affisell",
@@ -17,7 +48,7 @@ const PULSE = [
     href: "/discover",
     label: "Discover",
     hint: "Tendances & nouveautés",
-    Icon: Telescope,
+    Icon: Radar,
     className: "from-fuchsia-600 to-pink-600 text-white shadow-fuchsia-500/25",
   },
   {
@@ -31,22 +62,28 @@ const PULSE = [
     href: "/wishlist",
     label: "Wishlist",
     hint: "Alertes prix & favoris",
-    Icon: Zap,
+    Icon: Heart,
     className: "from-amber-600 to-orange-600 text-white shadow-amber-500/25",
   },
 ] as const
 
-export function MarketplaceAffisellPulse() {
+type Props = {
+  audience?: "buyer" | "default"
+}
+
+export function MarketplaceAffisellPulse({ audience = "default" }: Props) {
+  const pulse = audience === "buyer" ? BUYER_PULSE : DEFAULT_PULSE
+
   return (
     <section
-      className="mt-4 rounded-2xl border border-zinc-200/80 bg-zinc-50/90 p-4 dark:border-zinc-800 dark:bg-zinc-900/50"
-      aria-label="Innovations Affisell"
+      className="mt-4 rounded-2xl border border-zinc-200/80 bg-gradient-to-br from-zinc-50/95 via-white to-violet-50/40 p-4 shadow-sm dark:border-zinc-800 dark:from-zinc-900/50 dark:via-zinc-950 dark:to-violet-950/20"
+      aria-label="Services Affisell"
     >
       <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-        Plus qu’un marketplace — couche Affisell
+        {audience === "buyer" ? "Acheter malin sur Affisell" : "Plus qu’un marketplace — couche Affisell"}
       </p>
       <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        {PULSE.map(({ href, label, hint, Icon, className }) => (
+        {pulse.map(({ href, label, hint, Icon, className }) => (
           <li key={href}>
             <Link
               href={href}

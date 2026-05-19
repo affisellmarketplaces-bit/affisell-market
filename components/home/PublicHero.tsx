@@ -21,20 +21,23 @@ export function PublicHero({ stats }: Props) {
           Les boutiques créées par vos créateurs préférés
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-pretty text-sm text-violet-100/95 sm:text-base">
-          Livraison 2-7j · Paiement sécurisé · Support FR · {stats.productCountLabel} produits en boutique
+          Livraison 2-7j · Paiement sécurisé · Support
         </p>
         <div className="mx-auto mt-6 max-w-xl">
-          <HeroSearchBar className="[&_input]:border-white/30 [&_input]:bg-white/95 [&_button]:bg-zinc-900 [&_button]:hover:bg-zinc-800" />
+          <HeroSearchBar
+            className="[&_input]:border-white/30 [&_input]:bg-white/95 [&_button]:bg-zinc-900 [&_button]:hover:bg-zinc-800"
+            catalogPath="/"
+          />
         </div>
         <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
           <Link
-            href="/shops"
+            href="/#explorer"
             className={cn(
               buttonVariants({ size: "lg" }),
               "bg-white text-violet-900 hover:bg-violet-50"
             )}
           >
-            Découvrir les boutiques →
+            Découvrir les boutiques
           </Link>
           <Link
             href="/signup/affiliate"
@@ -51,7 +54,7 @@ export function PublicHero({ stats }: Props) {
             href="/signup/supplier"
             className="text-sm font-medium text-violet-100/95 underline-offset-2 hover:underline"
           >
-            Je suis fournisseur →
+            Je suis fournisseur
           </Link>
         </p>
         <p className="mt-6 text-sm font-medium tabular-nums text-violet-100/90">

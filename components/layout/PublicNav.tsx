@@ -16,8 +16,10 @@ export function PublicNav() {
   const pathname = usePathname() ?? ""
 
   const onHome = pathname === "/"
-  const onShops = pathname === PUBLIC_SHOPS_PATH || (pathname.startsWith("/shops/") && pathname !== PUBLIC_MARKETPLACE_BROWSE_PATH)
-  const onBrowse = pathname === PUBLIC_MARKETPLACE_BROWSE_PATH
+  const onShops =
+    pathname === PUBLIC_SHOPS_PATH ||
+    (pathname.startsWith("/shops/") && !pathname.includes("/product/"))
+  const onMarketplace = pathname === "/" || pathname === PUBLIC_MARKETPLACE_BROWSE_PATH
 
   return (
     <nav className="mx-auto flex max-w-7xl flex-wrap items-center gap-2 px-1 py-1 text-sm md:flex-nowrap md:gap-3">
@@ -28,15 +30,15 @@ export function PublicNav() {
       <div className="order-3 hidden min-w-0 flex-1 items-center gap-1 md:order-2 md:flex">
         <NavPill href="/" label="Accueil" icon={Home} active={onHome} />
         <NavPill href={PUBLIC_SHOPS_PATH} label="Boutiques" icon={Store} active={onShops} />
-        <NavPill href={PUBLIC_MARKETPLACE_BROWSE_PATH} label="Marketplace" icon={Search} active={onBrowse} />
+        <NavPill href="/#explorer" label="Marketplace" icon={Search} active={onMarketplace} />
       </div>
 
       <Suspense fallback={<div className="order-4 h-10 min-w-0 flex-1 md:order-3" aria-hidden />}>
         <div className="order-4 flex min-w-0 flex-1 md:order-3">
           <NavHeaderSearch
             id="public-header-search-q"
-            placeholder="Rechercher…"
-            searchTarget="shops"
+            placeholder="Rechercher un produit…"
+            searchTarget="marketplace"
           />
         </div>
       </Suspense>

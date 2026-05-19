@@ -48,11 +48,14 @@ type MarketplaceViewProps = {
   basePath?: string
   /** Affiliate catalog shows margins; customer browse never does. */
   audience?: "affiliate" | "customer"
+  /** Home embed: hide page header (hero is above). */
+  embedded?: boolean
 }
 
 export function MarketplaceView({
   basePath = "/shops/browse",
   audience = "customer",
+  embedded = false,
 }: MarketplaceViewProps = {}) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -134,9 +137,19 @@ export function MarketplaceView({
     router.push(basePath)
   }
 
+  const Shell = embedded ? "section" : "main"
+
   return (
-    <main className="min-h-[calc(100dvh-3.75rem)] text-zinc-900 dark:text-zinc-50">
-      <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 md:py-10">
+    <Shell
+      id={embedded ? "explorer" : undefined}
+      aria-label={embedded ? "Explorer et acheter" : undefined}
+      className={cn(
+        "text-zinc-900 dark:text-zinc-50",
+        embedded ? "scroll-mt-24" : "min-h-[calc(100dvh-3.75rem)]"
+      )}
+    >
+      <div className={cn("mx-auto max-w-7xl", embedded ? "py-2" : "px-4 py-8 md:px-8 md:py-10")}>
+        {!embedded ? (
         <header className={affisellBrand.headerShell}>
           <div className={affisellBrand.headerMesh} aria-hidden />
           <div className="relative space-y-6 p-6 sm:p-8">
@@ -158,7 +171,7 @@ export function MarketplaceView({
                 <p className="max-w-xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 sm:text-[15px]">
                   {isAffiliateCatalog
                     ? "Parcourez les fiches fournisseur, comparez marges et délais, puis ajoutez les SKU à votre boutique."
-                    : "Live listings from partner stores — search, filter by category, and open any product."}
+                    : "Annonces live des boutiques créateurs — recherchez, filtrez par rayon et ouvrez une fiche produit."}
                 </p>
               </div>
               {hasFilters ? (
@@ -170,7 +183,7 @@ export function MarketplaceView({
                   className="shrink-0 gap-1.5 border-zinc-200/90 bg-white/90 dark:border-zinc-700 dark:bg-zinc-900/80"
                 >
                   <X className="h-4 w-4" aria-hidden />
-                  Clear filters
+                  Réinitialiser
                 </Button>
               ) : null}
             </div>
@@ -190,7 +203,7 @@ export function MarketplaceView({
               }}
             >
               <label htmlFor="marketplace-local-search" className="sr-only">
-                {isAffiliateCatalog ? "Rechercher dans le catalogue" : "Search listings"}
+                {isAffiliateCatalog ? "Rechercher dans le catalogue" : "Rechercher un produit"}
               </label>
               <div className="relative">
                 <Search
@@ -202,7 +215,11 @@ export function MarketplaceView({
                   name="localQ"
                   type="search"
                   defaultValue={searchQuery}
-                  placeholder="Search by product name or description…"
+                  placeholder={
+                    isAffiliateCatalog
+                      ? "Rechercher un produit, une marque…"
+                      : "Rechercher un produit, une marque, un créateur…"
+                  }
                   autoComplete="off"
                   className="h-11 w-full rounded-xl border border-zinc-200/90 bg-white/95 py-2 pl-10 pr-3 text-sm text-zinc-900 shadow-sm outline-none ring-brand/15 placeholder:text-zinc-400 focus:border-brand focus:ring-2 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100"
                 />
@@ -210,13 +227,75 @@ export function MarketplaceView({
             </form>
           </div>
         </header>
+        ) : (
+          <div className="mb-6 space-y-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-teal-700 dark:text-teal-300">
+                  Shopping · Live
+                </p>
+                <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-3xl">
+                  Découvrir &amp; acheter
+                </h2>
+                <p className="mt-1 max-w-xl text-sm text-zinc-600 dark:text-zinc-400">
+                  Parcourez les annonces des boutiques créateurs, filtrez par rayon et commandez en quelques clics.
+                </p>
+              </div>
+              {hasFilters ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={clearFilters}
+                  className="shrink-0 gap-1.5"
+                >
+                  <X className="h-4 w-4" aria-hidden />
+                  Réinitialiser
+                </Button>
+              ) : null}
+            </div>
+            <form
+              className="max-w-2xl"
+              role="search"
+              onSubmit={(e) => {
+                e.preventDefault()
+                const fd = new FormData(e.currentTarget)
+                const next = new URLSearchParams(searchParams.toString())
+                const localQ = String(fd.get("localQ") ?? "").trim()
+                if (localQ) next.set("q", localQ)
+                else next.delete("q")
+                const s = next.toString()
+                router.push(`${basePath}${s ? `?${s}` : ""}`)
+              }}
+            >
+              <label htmlFor="marketplace-home-search" className="sr-only">
+                Rechercher un produit
+              </label>
+              <div className="relative">
+                <Search
+                  className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-400"
+                  aria-hidden
+                />
+                <input
+                  id="marketplace-home-search"
+                  name="localQ"
+                  type="search"
+                  defaultValue={searchQuery}
+                  placeholder="Rechercher un produit, une marque, un créateur…"
+                  autoComplete="off"
+                  className="h-12 w-full rounded-2xl border border-zinc-200/90 bg-white py-2 pl-12 pr-4 text-sm shadow-md shadow-violet-500/5 outline-none ring-violet-500/15 focus:border-violet-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-900/80"
+                />
+              </div>
+            </form>
+          </div>
+        )}
 
         <MarketplaceDepartmentRail
           activeCategoryId={categoryId}
           activeSubcategoryId={subcategoryId}
           catalogBasePath={basePath}
         />
-        <MarketplaceAffisellPulse />
+        <MarketplaceAffisellPulse audience={isCustomerBrowse ? "buyer" : "default"} />
         {!isAffiliateCatalog && !isCustomerBrowse ? (
           <ProductCardPreviewToggle className="mt-4" />
         ) : null}
@@ -226,7 +305,7 @@ export function MarketplaceView({
             role="alert"
             className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100"
           >
-            <p className="font-semibold">Marketplace data temporarily unavailable</p>
+            <p className="font-semibold">Marketplace temporairement indisponible</p>
             <p className="mt-1 text-amber-900/90 dark:text-amber-200/90">{dbUnavailable}</p>
           </div>
         ) : null}
@@ -271,19 +350,19 @@ export function MarketplaceView({
                   </>
                 ) : (
                   <>
-                    <p className="text-lg font-medium text-zinc-900 dark:text-zinc-100">No listings match</p>
+                    <p className="text-lg font-medium text-zinc-900 dark:text-zinc-100">Aucune annonce</p>
                     <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
                       {hasFilters
-                        ? "Try another search or category, or reset filters to see everything in the marketplace."
-                        : "There are no published partner listings yet."}
+                        ? "Essayez une autre recherche ou un autre rayon, ou réinitialisez les filtres."
+                        : "Les créateurs publient leurs fiches progressivement — revenez bientôt."}
                     </p>
                     {hasFilters ? (
                       <Button type="button" className="mt-6 bg-violet-600 hover:bg-violet-700" onClick={clearFilters}>
-                        Show all listings
+                        Tout afficher
                       </Button>
                     ) : (
-                      <Link href="/" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-6 inline-flex")}>
-                        Back home
+                      <Link href="/shops" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-6 inline-flex")}>
+                        Voir les boutiques
                       </Link>
                     )}
                   </>
@@ -291,12 +370,12 @@ export function MarketplaceView({
               </div>
             ) : (
               <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-                <strong className="font-semibold text-zinc-900 dark:text-zinc-100">{products.length}</strong> listing
+                <strong className="font-semibold text-zinc-900 dark:text-zinc-100">{products.length}</strong> annonce
                 {products.length === 1 ? "" : "s"}
                 {searchQuery.trim() ? (
                   <>
                     {" "}
-                    for &ldquo;{searchQuery.trim()}&rdquo;
+                    pour « {searchQuery.trim()} »
                   </>
                 ) : null}
               </p>
@@ -313,6 +392,6 @@ export function MarketplaceView({
           </div>
         </div>
       </div>
-    </main>
+    </Shell>
   )
 }

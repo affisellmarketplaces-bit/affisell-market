@@ -1,23 +1,31 @@
-import { BuyerDiscoveryHub } from "@/components/home/BuyerDiscoveryHub"
+import { Suspense } from "react"
+
+import { BuyerMarketplaceExplorer } from "@/components/home/BuyerMarketplaceExplorer"
+import { HomeFeaturedShopsStrip } from "@/components/home/HomeFeaturedShopsStrip"
 import { PublicHero } from "@/components/home/PublicHero"
-import {
-  loadBuyerCategoryChipsSafe,
-  loadBuyerHomeProductsSafe,
-} from "@/lib/buyer-discovery-data"
 import { loadFeaturedShopsSafe, loadPublicHomeStatsSafe } from "@/lib/public-home-data"
 
+function MarketplaceFallback() {
+  return (
+    <div className="rounded-3xl border border-dashed border-zinc-200 bg-zinc-50/80 px-6 py-16 text-center text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900/40">
+      Chargement du catalogue…
+    </div>
+  )
+}
+
 export async function PublicHome() {
-  const [stats, shops, products, categories] = await Promise.all([
+  const [stats, shops] = await Promise.all([
     loadPublicHomeStatsSafe(),
-    loadFeaturedShopsSafe(24),
-    loadBuyerHomeProductsSafe(32),
-    loadBuyerCategoryChipsSafe(12),
+    loadFeaturedShopsSafe(12),
   ])
 
   return (
-    <main className="mx-auto max-w-7xl space-y-12 px-4 py-8 sm:px-6 sm:py-10">
+    <main className="mx-auto max-w-7xl space-y-10 px-4 py-8 sm:px-6 sm:py-10">
       <PublicHero stats={stats} />
-      <BuyerDiscoveryHub shops={shops} products={products} categories={categories} />
+      <HomeFeaturedShopsStrip shops={shops} />
+      <Suspense fallback={<MarketplaceFallback />}>
+        <BuyerMarketplaceExplorer />
+      </Suspense>
     </main>
   )
 }

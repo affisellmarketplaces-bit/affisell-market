@@ -193,13 +193,22 @@ export function ProductCard({ product, mode = "customer", href: hrefProp }: Prod
   const pid = o.productId
   const productIdStr =
     typeof pid === "string" ? pid : pid != null && pid !== "" ? String(pid) : ""
+  const storeSlugRaw = o.storeSlug
+  const storeSlug =
+    typeof storeSlugRaw === "string" && storeSlugRaw.trim()
+      ? storeSlugRaw.trim()
+      : null
   const href =
     hrefProp ??
     (typeof o.href === "string" && o.href
       ? o.href
-      : listingId
-        ? `/marketplace/${encodeURIComponent(listingId)}`
-        : "/marketplace")
+      : listingId && storeSlug && mode === "customer"
+        ? `/shops/${encodeURIComponent(storeSlug)}/product/${encodeURIComponent(listingId)}`
+        : listingId
+          ? `/marketplace/${encodeURIComponent(listingId)}`
+          : mode === "customer"
+            ? "/#explorer"
+            : "/marketplace")
   const priceN = p.price
   const compareN = p.compareAt
   const hasDiscount = compareN != null && compareN > priceN

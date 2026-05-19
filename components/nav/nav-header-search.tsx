@@ -4,10 +4,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Search } from "lucide-react"
 import type { FormEvent } from "react"
 
-import {
-  AFFILIATE_CATALOG_PATH,
-  PUBLIC_MARKETPLACE_BROWSE_PATH,
-} from "@/lib/affiliate-routes"
+import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
 
 type Props = {
   id: string
@@ -30,7 +27,19 @@ export function NavHeaderSearch({
       ? AFFILIATE_CATALOG_PATH
       : searchTarget === "shops"
         ? "/shops"
-        : PUBLIC_MARKETPLACE_BROWSE_PATH
+        : "/"
+
+  function pushWithQuery(base: string, q: string, hash?: string) {
+    const params =
+      base === "/" && pathname === "/"
+        ? new URLSearchParams(searchParams.toString())
+        : new URLSearchParams()
+    if (q) params.set("q", q)
+    else params.delete("q")
+    const qs = params.toString()
+    const url = `${base}${qs ? `?${qs}` : ""}${hash ?? ""}`
+    router.push(url)
+  }
 
   function onSubmit(ev: FormEvent<HTMLFormElement>) {
     ev.preventDefault()
@@ -40,24 +49,20 @@ export function NavHeaderSearch({
       router.push(q ? `/shops?q=${encodeURIComponent(q)}` : "/shops")
       return
     }
-    if (pathname === browseBase || pathname.startsWith(`${browseBase}?`)) {
-      const params = new URLSearchParams(searchParams.toString())
-      if (q) params.set("q", q)
-      else params.delete("q")
-      const s = params.toString()
-      router.push(`${browseBase}${s ? `?${s}` : ""}`)
-    } else {
-      const usp = new URLSearchParams()
-      if (q) usp.set("q", q)
-      router.push(`${browseBase}${usp.toString() ? `?${usp}` : ""}`)
+    if (searchTarget === "catalog") {
+      pushWithQuery(AFFILIATE_CATALOG_PATH, q)
+      return
     }
+    pushWithQuery("/", q, "#explorer")
   }
 
   const defaultQ =
-    (searchTarget === "marketplace" || searchTarget === "catalog") &&
-    (pathname === browseBase || pathname.startsWith(`${browseBase}/`))
+    searchTarget === "marketplace" && pathname === "/"
       ? (searchParams.get("q") ?? "")
-      : ""
+      : searchTarget === "catalog" &&
+          (pathname === AFFILIATE_CATALOG_PATH || pathname.startsWith(`${AFFILIATE_CATALOG_PATH}/`))
+        ? (searchParams.get("q") ?? "")
+        : ""
 
   return (
     <form className="flex min-w-0 flex-1 items-center gap-2" onSubmit={onSubmit} role="search">
