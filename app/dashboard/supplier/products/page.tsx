@@ -1,9 +1,11 @@
 import Link from "next/link"
 
-import { auth } from "@/auth"
+import { BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
 import { SupplierDashboardProductsCatalog } from "@/components/supplier/supplier-dashboard-products-catalog"
+import { auth } from "@/auth"
 import { findSupplierProductsForDashboardCatalog } from "@/lib/supplier-product-is-draft-fallback"
 import { prisma } from "@/lib/prisma"
+import { cn } from "@/lib/utils"
 
 export const dynamic = "force-dynamic"
 
@@ -15,19 +17,23 @@ export default async function SupplierProductsPage({
   const session = await auth()
   if (!session?.user?.id) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-16 text-center text-sm text-zinc-600">
-        <Link href="/login?callbackUrl=/dashboard/supplier/products" className="underline">
-          Sign in
-        </Link>{" "}
-        to manage products.
-      </div>
+      <BentoShell>
+        <BentoContainer maxWidth="4xl" className="py-16 text-center text-sm text-zinc-600">
+          <Link href="/login/supplier?callbackUrl=/dashboard/supplier/products" className="font-medium text-violet-700 underline">
+            Connexion
+          </Link>{" "}
+          requise pour gérer le catalogue.
+        </BentoContainer>
+      </BentoShell>
     )
   }
   if (session.user.role !== "SUPPLIER") {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-16 text-center text-sm text-zinc-600">
-        Supplier access only.
-      </div>
+      <BentoShell>
+        <BentoContainer maxWidth="4xl" className="py-16 text-center text-sm text-zinc-600">
+          Accès réservé aux fournisseurs.
+        </BentoContainer>
+      </BentoShell>
     )
   }
 
@@ -58,30 +64,39 @@ export default async function SupplierProductsPage({
   const catalogProducts = draftsOnly ? products.filter((p) => p.isDraft) : products
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-100/90 via-white to-zinc-50 dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900/95">
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
-        <nav className="mb-8 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-medium">
-          <Link
-            href="/dashboard/supplier/products"
-            className="inline-flex rounded-lg bg-white px-3 py-1.5 text-zinc-900 shadow-sm ring-1 ring-black/[0.05] dark:bg-zinc-900 dark:text-zinc-50 dark:ring-white/10"
-          >
-            Products
-          </Link>
+    <BentoShell className="bg-zinc-50/50 dark:bg-zinc-950">
+      <BentoContainer maxWidth="7xl">
+        <nav
+          className="mb-6 flex flex-wrap items-center gap-2 text-sm"
+          aria-label="Navigation catalogue"
+        >
           <Link
             href="/dashboard/supplier"
-            className="text-teal-700 transition hover:text-teal-900 dark:text-teal-400 dark:hover:text-teal-300"
+            className="rounded-full px-3 py-1.5 font-medium text-zinc-600 transition hover:bg-white hover:text-zinc-900 hover:shadow-sm dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
           >
-            ← Supplier home
+            ← Mission control
           </Link>
-          <Link
-            href={storefrontHref}
-            target="_blank"
-            rel="noreferrer"
-            className="text-zinc-600 underline underline-offset-2 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+          <span className="text-zinc-300 dark:text-zinc-700" aria-hidden>
+            /
+          </span>
+          <span
+            className={cn(
+              "rounded-full bg-white px-3 py-1.5 font-semibold text-zinc-900 shadow-sm ring-1 ring-black/[0.04] dark:bg-zinc-900 dark:text-zinc-50 dark:ring-white/10",
+              draftsOnly && "bg-amber-50 text-amber-950 ring-amber-200/80 dark:bg-amber-950/40 dark:text-amber-100"
+            )}
           >
-            Open storefront in new tab
-          </Link>
+            {draftsOnly ? "Brouillons" : "Produits"}
+          </span>
+          {!draftsOnly && draftCount(products) > 0 ? (
+            <Link
+              href="/dashboard/supplier/products?drafts=1"
+              className="rounded-full border border-amber-200/80 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-900 transition hover:bg-amber-100 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100"
+            >
+              {draftCount(products)} brouillon{draftCount(products) === 1 ? "" : "s"}
+            </Link>
+          ) : null}
         </nav>
+
         <SupplierDashboardProductsCatalog
           products={catalogProducts}
           draftsOnly={draftsOnly}
@@ -89,7 +104,11 @@ export default async function SupplierProductsPage({
           storefrontName={store?.name ?? null}
           partnerListingCountByProductId={partnerListingCountByProductId}
         />
-      </div>
-    </div>
+      </BentoContainer>
+    </BentoShell>
   )
+}
+
+function draftCount(products: { isDraft: boolean }[]) {
+  return products.filter((p) => p.isDraft).length
 }
