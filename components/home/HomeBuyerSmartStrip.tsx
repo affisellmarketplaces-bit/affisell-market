@@ -15,7 +15,7 @@ const tileLinkClass =
 
 /** Buyer shortcuts anchored on the lower edge of the home hero band. */
 export function HomeBuyerSmartStrip({ featuredShops }: Props) {
-  const [agent, catalogue, favoris] = BUYER_SMART_SERVICES
+  const [agent, catalogue, boutiques] = BUYER_SMART_SERVICES
 
   function ServiceTile({
     href,
@@ -72,7 +72,7 @@ export function HomeBuyerSmartStrip({ featuredShops }: Props) {
         {agent ? <ServiceTile {...agent} /> : null}
         <HomeBuyerFeaturedShopsTile shops={featuredShops} />
         {catalogue ? <ServiceTile {...catalogue} /> : null}
-        {favoris ? <ServiceTile {...favoris} /> : null}
+        {boutiques ? <ServiceTile {...boutiques} /> : null}
       </ul>
     </div>
   )
