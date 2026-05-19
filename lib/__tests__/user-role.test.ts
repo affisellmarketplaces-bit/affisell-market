@@ -22,8 +22,8 @@ describe("resolveUserRole", () => {
     )
   })
 
-  it("unauthenticated returns null", () => {
-    expect(resolveUserRole({ pathname: "/marketplace" })).toBe(null)
+  it("unauthenticated defaults to customer", () => {
+    expect(resolveUserRole({ pathname: "/marketplace" })).toBe("customer")
   })
 })
 

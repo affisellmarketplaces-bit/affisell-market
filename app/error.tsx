@@ -12,7 +12,14 @@ export default function AppError({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error("[app error]", error)
+    console.error("[app error]", {
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+      digest: error.digest,
+      cause: error.cause,
+    })
+    console.error("[app error] full", error)
     Sentry.captureException(error)
   }, [error])
 

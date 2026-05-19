@@ -6,7 +6,9 @@ import { Heart } from "lucide-react"
 import { ProductDiscountTag } from "@/components/product-discount-tag"
 import { Badge } from "@/components/ui/badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
+import { useUserRole } from "@/hooks/useUserRole"
 import { formatStoreCurrency, formatStoreCurrencyFromCents } from "@/lib/market-config"
+import { calcMarginCents } from "@/lib/product-card-margin"
 import { cn } from "@/lib/utils"
 
 export type ProductCardProduct = {
@@ -20,6 +22,7 @@ export type ProductCardProduct = {
   isBestSeller?: boolean
   soldCount?: number
   marginCents?: number
+  supplierPrice?: number
   commissionPct?: number
   deliveryLabel?: string
   freeShipping?: boolean
@@ -60,8 +63,14 @@ function coerceProduct(p: ProductCardProps["product"]) {
   const soldCount =
     typeof soldRaw === "number" && Number.isFinite(soldRaw) && soldRaw > 0 ? soldRaw : null
   const marginRaw = o.marginCents
-  const marginCents =
+  let marginCents =
     typeof marginRaw === "number" && Number.isFinite(marginRaw) && marginRaw > 0 ? marginRaw : null
+  if (marginCents == null) {
+    const supplierRaw = o.supplierPrice
+    const supplierPrice =
+      typeof supplierRaw === "number" && Number.isFinite(supplierRaw) ? supplierRaw : null
+    marginCents = calcMarginCents(price, supplierPrice)
+  }
   const commissionRaw = o.commissionPct
   const commissionPct =
     typeof commissionRaw === "number" && Number.isFinite(commissionRaw) && commissionRaw > 0
@@ -99,15 +108,19 @@ function coerceProduct(p: ProductCardProps["product"]) {
 function BusinessBadges({
   soldCount,
   marginCents,
+  showMargin,
   commissionPct,
   deliveryLabel,
 }: {
   soldCount: number | null
   marginCents: number | null
+  showMargin: boolean
   commissionPct: number | null
   deliveryLabel: string | null
 }) {
-  const hasAny = soldCount != null || marginCents != null || commissionPct != null || deliveryLabel
+  const marginBadge = showMargin && marginCents != null ? marginCents : null
+  const hasAny =
+    soldCount != null || marginBadge != null || commissionPct != null || deliveryLabel
   if (!hasAny) return null
   return (
     <ul className="mt-2 flex flex-wrap gap-1.5">
@@ -118,10 +131,10 @@ function BusinessBadges({
           </span>
         </li>
       ) : null}
-      {marginCents != null ? (
+      {marginBadge != null ? (
         <li>
           <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-200">
-            Marge {formatStoreCurrencyFromCents(marginCents, { maximumFractionDigits: 2 })}
+            Marge {formatStoreCurrencyFromCents(marginBadge, { maximumFractionDigits: 2 })}
           </span>
         </li>
       ) : null}
@@ -194,6 +207,8 @@ export function ProductCard({
   showBusinessData = false,
   href: hrefProp,
 }: ProductCardProps) {
+  const userRole = useUserRole()
+  const isAffiliate = userRole === "affiliate"
   const o = product as Record<string, unknown>
   const p = coerceProduct(product)
   const listingRaw = o.listingId ?? o.id
@@ -277,6 +292,7 @@ export function ProductCard({
             <BusinessBadges
               soldCount={p.soldCount}
               marginCents={p.marginCents}
+              showMargin={isAffiliate}
               commissionPct={p.commissionPct}
               deliveryLabel={p.deliveryLabel}
             />

@@ -79,7 +79,6 @@ export async function loadAffiliateShopProducts(
           stock: true,
           freeShipping: true,
           compareAt: true,
-          basePriceCents: true,
           averageRating: true,
           reviewCount: true,
         },
@@ -112,12 +111,24 @@ export async function loadAffiliateShopProducts(
     })
 }
 
-export async function loadPublicAffiliateShops(limit = 24): Promise<
-  { slug: string; name: string; logoUrl: string | null; nicheLabel: string }[]
-> {
+export type PublicShopDirectoryEntry = {
+  slug: string
+  name: string
+  logoUrl: string | null
+  nicheLabel: string
+}
+
+/** Public directory — no wholesale / margin fields. */
+export async function loadPublicAffiliateShops(limit = 24): Promise<PublicShopDirectoryEntry[]> {
   const stores = await prisma.store.findMany({
     where: { user: { role: "AFFILIATE" } },
-    select: { slug: true, name: true, logoUrl: true, aiAvatarUrl: true, description: true },
+    select: {
+      slug: true,
+      name: true,
+      logoUrl: true,
+      aiAvatarUrl: true,
+      description: true,
+    },
     orderBy: { name: "asc" },
     take: limit,
   })

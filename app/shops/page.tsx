@@ -2,17 +2,27 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import Image from "next/image"
 
-import { loadPublicAffiliateShops } from "@/lib/shop-storefront-data"
+import { loadPublicAffiliateShops, type PublicShopDirectoryEntry } from "@/lib/shop-storefront-data"
 
-export const dynamic = "force-dynamic"
+/** Public SEO directory — revalidate hourly; no affiliate wholesale fields. */
+export const revalidate = 3600
 
 export const metadata: Metadata = {
   title: "Boutiques créateurs",
   description: "Parcourez les boutiques Affisell des créateurs affiliés.",
 }
 
+async function loadShopsSafe(): Promise<PublicShopDirectoryEntry[]> {
+  try {
+    return await loadPublicAffiliateShops()
+  } catch (err) {
+    console.error("[shops/page] loadPublicAffiliateShops failed:", err)
+    return []
+  }
+}
+
 export default async function ShopsDirectoryPage() {
-  const shops = await loadPublicAffiliateShops()
+  const shops = await loadShopsSafe()
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">

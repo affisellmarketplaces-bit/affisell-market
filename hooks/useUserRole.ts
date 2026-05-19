@@ -16,14 +16,14 @@ export function useUserRole(): UserRole {
 
   return useMemo(() => {
     if (status === "loading") {
-      const path = pathname ?? ""
-      if (path.startsWith("/shop/") || path === "/shops") return "customer"
-      return null
+      return "customer"
     }
 
-    return resolveUserRole({
-      sessionRole: session?.user?.role ?? null,
-      pathname,
-    })
+    return (
+      resolveUserRole({
+        sessionRole: session?.user?.role ?? null,
+        pathname,
+      }) ?? "customer"
+    )
   }, [pathname, session?.user?.role, status])
 }

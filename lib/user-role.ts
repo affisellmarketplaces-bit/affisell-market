@@ -31,7 +31,7 @@ export function resolveUserRole(input: ResolveUserRoleInput): UserRole {
   const sessionRole = normalizeSessionRole(input.sessionRole)
   if (sessionRole) return sessionRole
 
-  return null
+  return "customer"
 }
 
 export function canShowBusinessProductData(role: UserRole): boolean {
