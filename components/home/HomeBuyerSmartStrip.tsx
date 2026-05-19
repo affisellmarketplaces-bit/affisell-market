@@ -4,7 +4,7 @@ import { ArrowUpRight } from "lucide-react"
 import { BUYER_SMART_SERVICES } from "@/lib/buyer-smart-services"
 import { cn } from "@/lib/utils"
 
-/** Four buyer shortcuts anchored on the lower edge of the home hero band. */
+/** Buyer shortcuts anchored on the lower edge of the home hero band. */
 export function HomeBuyerSmartStrip() {
   return (
     <div
@@ -17,7 +17,7 @@ export function HomeBuyerSmartStrip() {
       >
         Acheter malin sur Affisell
       </p>
-      <ul className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+      <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-5">
         {BUYER_SMART_SERVICES.map(({ href, label, hint, Icon, accent }) => (
           <li key={href} className="min-w-0">
             <Link

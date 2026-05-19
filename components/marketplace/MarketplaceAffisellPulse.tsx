@@ -47,7 +47,7 @@ export function MarketplaceAffisellPulse({ audience = "default" }: Props) {
         <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
           Acheter malin sur Affisell
         </p>
-        <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {BUYER_SMART_SERVICES.map(({ href, label, hint, Icon, cardClass }) => (
             <li key={href}>
               <Link

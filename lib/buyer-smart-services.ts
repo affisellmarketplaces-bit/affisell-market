@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react"
-import { Brain, Heart, LayoutGrid, Store } from "lucide-react"
+import { Brain, Heart, LayoutGrid, ShoppingBag, Store } from "lucide-react"
 
 import { PUBLIC_SHOPS_PATH } from "@/lib/affiliate-routes"
 
@@ -39,6 +39,14 @@ export const BUYER_SMART_SERVICES: BuyerSmartService[] = [
     Icon: LayoutGrid,
     accent: "from-sky-400/90 to-cyan-500/90",
     cardClass: "from-sky-600 to-cyan-600 text-white shadow-sky-500/25",
+  },
+  {
+    href: "/cart",
+    label: "Panier",
+    hint: "Vos articles & paiement sécurisé",
+    Icon: ShoppingBag,
+    accent: "from-emerald-400/90 to-teal-500/90",
+    cardClass: "from-emerald-600 to-teal-600 text-white shadow-emerald-500/25",
   },
   {
     href: "/wishlist",
