@@ -44,9 +44,14 @@ export function QuickNav() {
     (href: string) => {
       setOpen(false)
       setQ("")
+      const path = href.split("#")[0] || href
+      if (path === "/wishlist" && !session?.user?.id) {
+        router.push(`/signup/customer?callbackUrl=${encodeURIComponent("/wishlist")}`)
+        return
+      }
       router.push(href)
     },
-    [router]
+    [router, session?.user?.id]
   )
 
   useEffect(() => {

@@ -36,8 +36,8 @@ test.describe("public flows", () => {
     expect(Array.isArray(data)).toBeTruthy()
   })
 
-  test("wishlist sends guests to login", async ({ page }) => {
+  test("wishlist sends guests to customer signup", async ({ page }) => {
     await page.goto("/wishlist")
-    await expect(page).toHaveURL(/\/login/)
+    await expect(page).toHaveURL(/\/signup\/customer/)
   })
 })

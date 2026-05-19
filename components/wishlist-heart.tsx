@@ -41,7 +41,11 @@ export function WishlistHeart({ productId, className }: Props) {
         body: JSON.stringify({ productId }),
       })
       if (res.status === 401) {
-        window.location.href = `/login?callbackUrl=${encodeURIComponent(window.location.pathname)}`
+        const returnTo =
+          typeof window !== "undefined"
+            ? `${window.location.pathname}${window.location.search}`
+            : "/"
+        window.location.href = `/signup/customer?callbackUrl=${encodeURIComponent(returnTo)}`
         return
       }
       if (!res.ok) return
