@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 
-import { ProductCard } from "@/components/ProductCard"
+import { ProductCard, type ProductCardDisplayMode } from "@/components/ProductCard"
 import type { HomeHighlightsData, HomeProductCard } from "@/lib/home-marketplace-data"
 import { homeProductToCardProps } from "@/lib/home-marketplace-data"
 import { cn } from "@/lib/utils"
@@ -17,7 +17,7 @@ const TABS: { id: TabId; label: string }[] = [
 
 type Props = {
   data: HomeHighlightsData
-  showBusinessData?: boolean
+  mode: ProductCardDisplayMode
 }
 
 function itemsForTab(tab: TabId, data: HomeHighlightsData): HomeProductCard[] {
@@ -26,7 +26,7 @@ function itemsForTab(tab: TabId, data: HomeHighlightsData): HomeProductCard[] {
   return data.highMargin
 }
 
-export function HomeHighlights({ data, showBusinessData = false }: Props) {
+export function HomeHighlights({ data, mode }: Props) {
   const [tab, setTab] = useState<TabId>("bestsellers")
   const items = itemsForTab(tab, data)
 
@@ -72,7 +72,7 @@ export function HomeHighlights({ data, showBusinessData = false }: Props) {
         <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
           {items.map((item) => (
             <li key={`${tab}-${item.listingId}`}>
-              <ProductCard product={homeProductToCardProps(item)} showBusinessData={showBusinessData} />
+              <ProductCard product={homeProductToCardProps(item)} mode={mode} />
             </li>
           ))}
         </ul>

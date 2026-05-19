@@ -1,4 +1,3 @@
-import Image from "next/image"
 import Link from "next/link"
 
 type Props = {
@@ -12,13 +11,14 @@ export function ShopStoreHeader({ storeName, logoUrl, description }: Props) {
     <header className="border-b border-zinc-200/90 bg-white dark:border-zinc-800 dark:bg-zinc-950">
       <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-4 sm:px-6">
         {logoUrl ? (
-          <Image
+          // eslint-disable-next-line @next/next/no-img-element -- arbitrary creator asset hosts
+          <img
             src={logoUrl}
             alt=""
             width={48}
             height={48}
             className="h-12 w-12 rounded-xl border border-zinc-200 object-cover dark:border-zinc-700"
-            unoptimized
+            loading="lazy"
           />
         ) : (
           <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 text-lg font-bold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">

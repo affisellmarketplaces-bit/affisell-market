@@ -1,17 +1,18 @@
 import type { Metadata } from "next"
-import Link from "next/link"
 
-import { loadPublicAffiliateShops, type PublicShopDirectoryEntry } from "@/lib/shop-storefront-data"
+import { ShopsDirectoryGrid } from "@/components/shops/ShopsDirectoryGrid"
+import { loadPublicAffiliateShops } from "@/lib/shop-storefront-data"
 
-/** Public SEO directory — revalidate hourly; no affiliate wholesale fields. */
+/** Public SEO directory — revalidate hourly; safe buyer-facing fields only. */
 export const revalidate = 3600
 
 export const metadata: Metadata = {
   title: "Boutiques créateurs",
   description: "Parcourez les boutiques Affisell des créateurs affiliés.",
+  robots: { index: true, follow: true },
 }
 
-async function loadShopsSafe(): Promise<PublicShopDirectoryEntry[]> {
+async function loadShopsSafe() {
   try {
     return await loadPublicAffiliateShops()
   } catch (err) {
@@ -30,43 +31,14 @@ export default async function ShopsDirectoryPage() {
           Boutiques créateurs
         </h1>
         <p className="max-w-xl text-sm text-zinc-600 dark:text-zinc-400">
-          Achetez directement auprès des créateurs — sans données affilié sur les fiches produit.
+          Achetez directement auprès de vos créateurs préférés
         </p>
       </header>
 
       {shops.length === 0 ? (
         <p className="text-sm text-zinc-500">Aucune boutique publique pour le moment.</p>
       ) : (
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {shops.map((shop) => (
-            <li key={shop.slug}>
-              <Link
-                href={`/shop/${shop.slug}`}
-                className="flex items-center gap-4 rounded-2xl border border-zinc-200/90 bg-white p-4 shadow-sm transition hover:border-violet-200 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-violet-800"
-              >
-                {shop.logoUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element -- arbitrary creator logo hosts
-                  <img
-                    src={shop.logoUrl}
-                    alt=""
-                    width={56}
-                    height={56}
-                    className="h-14 w-14 rounded-xl object-cover"
-                    loading="lazy"
-                  />
-                ) : (
-                  <span className="flex h-14 w-14 items-center justify-center rounded-xl bg-violet-100 text-lg font-bold text-violet-800 dark:bg-violet-950 dark:text-violet-200">
-                    {shop.name.slice(0, 1)}
-                  </span>
-                )}
-                <div className="min-w-0">
-                  <p className="font-semibold text-zinc-900 dark:text-zinc-50">{shop.name}</p>
-                  <p className="text-xs text-zinc-500">Boutique {shop.nicheLabel}</p>
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <ShopsDirectoryGrid shops={shops} />
       )}
     </main>
   )

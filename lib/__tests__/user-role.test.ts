@@ -4,13 +4,13 @@ import { canShowBusinessProductData, resolveUserRole } from "@/lib/user-role"
 
 describe("resolveUserRole", () => {
   it("shop paths force customer", () => {
-    expect(resolveUserRole({ sessionRole: "AFFILIATE", pathname: "/shop/fitness-coach" })).toBe(
+    expect(resolveUserRole({ sessionRole: "AFFILIATE", pathname: "/shops/fitness-coach" })).toBe(
       "customer"
     )
     expect(
       resolveUserRole({
         sessionRole: "SUPPLIER",
-        pathname: "/shop/fitness-coach/product/abc",
+        pathname: "/shops/fitness-coach/product/abc",
       })
     ).toBe("customer")
     expect(resolveUserRole({ pathname: "/shops" })).toBe("customer")

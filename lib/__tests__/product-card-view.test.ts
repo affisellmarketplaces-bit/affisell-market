@@ -24,7 +24,7 @@ describe("resolveProductCardViewMode", () => {
 
   it("test 3: client sur /shop/xxx → customer même si affilié", () => {
     const mode = resolveProductCardViewMode({
-      pathname: "/shop/ma-boutique",
+      pathname: "/shops/ma-boutique",
       role: "AFFILIATE",
     })
     expect(mode).toBe("customer")

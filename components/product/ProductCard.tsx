@@ -6,10 +6,11 @@ import { Heart } from "lucide-react"
 import { ProductDiscountTag } from "@/components/product-discount-tag"
 import { Badge } from "@/components/ui/badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
-import { useUserRole } from "@/hooks/useUserRole"
 import { formatStoreCurrency, formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { calcMarginCents } from "@/lib/product-card-margin"
 import { cn } from "@/lib/utils"
+
+export type ProductCardDisplayMode = "affiliate" | "customer" | "supplier"
 
 export type ProductCardProduct = {
   title?: string
@@ -33,8 +34,8 @@ export type ProductCardProduct = {
 
 type ProductCardProps = {
   product: ProductCardProduct | Record<string, unknown>
-  /** When true: margin, sales, commission, supplier. Default false (buyer-safe). */
-  showBusinessData?: boolean
+  /** Required — parent decides buyer vs merchant context (RGPD-safe customer mode). */
+  mode: ProductCardDisplayMode
   href?: string
 }
 
@@ -106,18 +107,19 @@ function coerceProduct(p: ProductCardProps["product"]) {
 }
 
 function BusinessBadges({
+  mode,
   soldCount,
   marginCents,
-  showMargin,
   commissionPct,
   deliveryLabel,
 }: {
+  mode: "affiliate" | "supplier"
   soldCount: number | null
   marginCents: number | null
-  showMargin: boolean
   commissionPct: number | null
   deliveryLabel: string | null
 }) {
+  const showMargin = mode === "affiliate"
   const marginBadge = showMargin && marginCents != null ? marginCents : null
   const hasAny =
     soldCount != null || marginBadge != null || commissionPct != null || deliveryLabel
@@ -156,59 +158,29 @@ function BusinessBadges({
   )
 }
 
-function CustomerTrustBadges({
-  freeShipping,
-  stock,
-  averageRating,
-  reviewCount,
-}: {
-  freeShipping: boolean
-  stock: number | null
-  averageRating: number | null
-  reviewCount: number | null
-}) {
-  const lowStock = stock != null && stock > 0 && stock < 5
-  const hasRating = averageRating != null && averageRating > 0
+function CustomerConversionBadges() {
   return (
     <ul className="mt-2 flex flex-wrap gap-1.5">
-      {freeShipping ? (
-        <li>
-          <span className="inline-flex rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold text-sky-900 dark:bg-sky-950/60 dark:text-sky-200">
-            Livraison gratuite
-          </span>
-        </li>
-      ) : null}
       <li>
-        <span className="inline-flex rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-900 dark:bg-violet-950/60 dark:text-violet-200">
-          Retour 30j
+        <span className="inline-flex rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold text-sky-900 dark:bg-sky-950/60 dark:text-sky-200">
+          Livraison offerte
         </span>
       </li>
-      {hasRating ? (
-        <li>
-          <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-900 dark:bg-amber-950/60 dark:text-amber-200">
-            Note {averageRating!.toFixed(1)}
-            {reviewCount != null && reviewCount > 0 ? ` (${reviewCount})` : ""}
-          </span>
-        </li>
-      ) : null}
-      {lowStock ? (
-        <li>
-          <span className="inline-flex rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-900 dark:bg-red-950/60 dark:text-red-200">
-            Stock faible
-          </span>
-        </li>
-      ) : null}
+      <li>
+        <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-200">
+          Garantie 2 ans
+        </span>
+      </li>
+      <li>
+        <span className="inline-flex rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-900 dark:bg-violet-950/60 dark:text-violet-200">
+          Paiement 3x
+        </span>
+      </li>
     </ul>
   )
 }
 
-export function ProductCard({
-  product,
-  showBusinessData = false,
-  href: hrefProp,
-}: ProductCardProps) {
-  const userRole = useUserRole()
-  const isAffiliate = userRole === "affiliate"
+export function ProductCard({ product, mode, href: hrefProp }: ProductCardProps) {
   const o = product as Record<string, unknown>
   const p = coerceProduct(product)
   const listingRaw = o.listingId ?? o.id
@@ -235,6 +207,8 @@ export function ProductCard({
   const src = p.image || "/placeholder-product.jpg"
   const reward = p.buyerRewardBadge
 
+  const merchantMode = mode === "affiliate" || mode === "supplier"
+
   return (
     <Link
       href={href}
@@ -243,7 +217,8 @@ export function ProductCard({
         "group flex h-full w-full flex-col rounded-3xl border border-gray-100/90 bg-white/85 p-2 shadow-sm outline-none ring-offset-2 backdrop-blur-sm transition-shadow dark:border-zinc-800 dark:bg-zinc-950/60",
         "hover:border-violet-200/80 hover:shadow-lg hover:shadow-violet-500/5 focus-visible:ring-2 focus-visible:ring-violet-500 dark:hover:border-violet-800/60"
       )}
-      data-show-business-data={showBusinessData ? "true" : "false"}
+      data-product-card-mode={mode}
+      data-show-business-data={merchantMode ? "true" : "false"}
     >
       <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-white/50 bg-gradient-to-br from-violet-50/40 to-teal-50/25 dark:border-zinc-800/80 dark:from-violet-950/25 dark:to-teal-950/15">
         {hasDiscount ? <ProductDiscountTag percent={discount} /> : null}
@@ -287,12 +262,12 @@ export function ProductCard({
           ) : null}
         </div>
 
-        {showBusinessData ? (
+        {merchantMode ? (
           <>
             <BusinessBadges
+              mode={mode === "supplier" ? "supplier" : "affiliate"}
               soldCount={p.soldCount}
               marginCents={p.marginCents}
-              showMargin={isAffiliate}
               commissionPct={p.commissionPct}
               deliveryLabel={p.deliveryLabel}
             />
@@ -301,12 +276,7 @@ export function ProductCard({
             ) : null}
           </>
         ) : (
-          <CustomerTrustBadges
-            freeShipping={p.freeShipping}
-            stock={p.stock}
-            averageRating={p.averageRating}
-            reviewCount={p.reviewCount}
-          />
+          <CustomerConversionBadges />
         )}
       </div>
     </Link>

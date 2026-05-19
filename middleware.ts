@@ -37,8 +37,25 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(u)
   }
 
-  /** Buyer storefront: always customer-facing UI. */
-  if (pathname === "/shops" || pathname.startsWith("/shop/")) {
+  /** Legacy `/shop/*` → canonical `/shops/*` */
+  if (pathname === "/shop") {
+    const u = req.nextUrl.clone()
+    u.pathname = "/shops"
+    return NextResponse.redirect(u, 308)
+  }
+
+  if (pathname.startsWith("/shop/")) {
+    const rest = pathname.slice("/shop/".length)
+    const u = req.nextUrl.clone()
+    u.pathname = rest ? `/shops/${rest}` : "/shops"
+    return NextResponse.redirect(u, 308)
+  }
+
+  /**
+   * Public creator storefront UI: affiliates see the shopper experience here.
+   * `?preview=affiliate` (+ logged-in AFFILIATE) restores business card mode on the client only.
+   */
+  if (pathname === "/shops" || pathname.startsWith("/shops/")) {
     return withForcedCustomerRole(req)
   }
 
@@ -104,8 +121,10 @@ export const config = {
   matcher: [
     "/",
     "/login",
+    "/shop",
     "/shop/:path*",
     "/shops",
+    "/shops/:path*",
     "/dashboard/supplier",
     "/dashboard/supplier/:path*",
     "/dashboard/affiliate",

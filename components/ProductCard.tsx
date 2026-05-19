@@ -1,1 +1,1 @@
-export { ProductCard, type ProductCardProduct } from "@/components/product/ProductCard"
+export { ProductCard, type ProductCardProduct, type ProductCardDisplayMode } from "@/components/product/ProductCard"

@@ -1,3 +1,5 @@
+import { Prisma } from "@prisma/client"
+
 import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
@@ -22,10 +24,16 @@ export type ShopProductCard = {
   stock: number
   averageRating: number
   reviewCount: number
+  /** Present only when serialized for affiliate preview (never on public buyer pages). */
+  marginCents?: number
+  commissionPct?: number
+  soldCount?: number
 }
 
-function inferNicheLabel(description: string | null, storeName: string): string {
+/** Public directory niche label — must match filters on `/shops`. */
+export function inferNicheLabel(description: string | null, storeName: string): string {
   const text = `${description ?? ""} ${storeName}`.toLowerCase()
+  if (/beaut|beauté|cosmét|cosmetic|makeup|soin|skincare|parfum|spa/.test(text)) return "Beauté"
   if (/fitness|sport|gym|muscu/.test(text)) return "Fitness"
   if (/tech|électron|electron|gaming|informatique/.test(text)) return "Tech"
   if (/maison|déco|deco|cuisine|home/.test(text)) return "Maison"
@@ -58,8 +66,10 @@ export async function loadAffiliateShopStore(slug: string): Promise<ShopStoreSum
 
 export async function loadAffiliateShopProducts(
   affiliateUserId: string,
+  options?: { includeBusinessFields?: boolean },
   limit = 48
 ): Promise<ShopProductCard[]> {
+  const includeBusiness = options?.includeBusinessFields === true
   const listings = await prisma.affiliateProduct.findMany({
     where: {
       affiliateId: affiliateUserId,
@@ -81,12 +91,30 @@ export async function loadAffiliateShopProducts(
           compareAt: true,
           averageRating: true,
           reviewCount: true,
+          ...(includeBusiness
+            ? { basePriceCents: true, commissionRate: true }
+            : {}),
         },
       },
     },
     orderBy: [{ position: "asc" }, { id: "asc" }],
     take: limit,
   })
+
+  const soldByProduct = new Map<string, number>()
+  if (includeBusiness && listings.length > 0) {
+    const productIds = [...new Set(listings.map((l) => l.product?.id).filter(Boolean))] as string[]
+    if (productIds.length > 0) {
+      const soldGroups = await prisma.order.groupBy({
+        by: ["productId"],
+        where: { affiliateId: affiliateUserId, productId: { in: productIds } },
+        _count: { _all: true },
+      })
+      for (const g of soldGroups) {
+        soldByProduct.set(g.productId, g._count._all)
+      }
+    }
+  }
 
   return listings
     .filter((l) => l.product)
@@ -107,6 +135,13 @@ export async function loadAffiliateShopProducts(
         stock: p.stock,
         averageRating: p.averageRating,
         reviewCount: p.reviewCount,
+        ...(includeBusiness
+          ? {
+              marginCents: Math.max(0, l.sellingPriceCents - p.basePriceCents),
+              commissionPct: Math.round(Number(p.commissionRate) || 0),
+              soldCount: soldByProduct.get(p.id) ?? 0,
+            }
+          : {}),
       }
     })
 }
@@ -116,10 +151,36 @@ export type PublicShopDirectoryEntry = {
   name: string
   logoUrl: string | null
   nicheLabel: string
+  /** Aggregate average rating from listed products (0–5). */
+  averageRating: number
+  /** Completed orders attributed to this affiliate’s storefront channel. */
+  orderCount: number
+}
+
+async function loadAffiliateListedRatingAverages(userIds: string[]): Promise<Map<string, number>> {
+  const map = new Map<string, number>()
+  if (userIds.length === 0) return map
+
+  const rows = await prisma.$queryRaw<{ affiliate_id: string; avg: number | null }[]>`
+    SELECT ap."affiliateId" AS affiliate_id,
+           AVG(p."averageRating")::double precision AS avg
+    FROM "AffiliateProduct" ap
+    INNER JOIN "Product" p ON p.id = ap."productId"
+    WHERE ap."isListed" = true
+      AND p.active = true
+      AND p."isDraft" = false
+      AND ap."affiliateId" IN (${Prisma.join(userIds)})
+    GROUP BY ap."affiliateId"
+  `
+
+  for (const row of rows) {
+    map.set(row.affiliate_id, row.avg != null && Number.isFinite(row.avg) ? row.avg : 0)
+  }
+  return map
 }
 
 /** Public directory — no wholesale / margin fields. */
-export async function loadPublicAffiliateShops(limit = 24): Promise<PublicShopDirectoryEntry[]> {
+export async function loadPublicAffiliateShops(limit = 500): Promise<PublicShopDirectoryEntry[]> {
   const stores = await prisma.store.findMany({
     where: { user: { role: "AFFILIATE" } },
     select: {
@@ -128,20 +189,48 @@ export async function loadPublicAffiliateShops(limit = 24): Promise<PublicShopDi
       logoUrl: true,
       aiAvatarUrl: true,
       description: true,
+      userId: true,
     },
     orderBy: { name: "asc" },
     take: limit,
   })
+
+  const userIds = stores.map((s) => s.userId)
+  const [orderGroups, ratingMap] = await Promise.all([
+    userIds.length === 0
+      ? ([] as { affiliateId: string; _count: { _all: number } }[])
+      : prisma.order.groupBy({
+          by: ["affiliateId"],
+          where: { affiliateId: { in: userIds } },
+          _count: { _all: true },
+        }),
+    loadAffiliateListedRatingAverages(userIds),
+  ])
+
+  const orderCountByAffiliate = new Map(orderGroups.map((g) => [g.affiliateId, g._count._all]))
 
   return stores.map((s) => ({
     slug: s.slug,
     name: s.name,
     logoUrl: s.logoUrl ?? s.aiAvatarUrl,
     nicheLabel: inferNicheLabel(s.description, s.name),
+    averageRating: ratingMap.get(s.userId) ?? 0,
+    orderCount: orderCountByAffiliate.get(s.userId) ?? 0,
   }))
 }
 
-export function shopProductToCardProps(item: ShopProductCard, affiliateSlug: string) {
+/** Slugs only — sitemap-friendly. */
+export async function loadPublicAffiliateShopSlugs(limit = 2000): Promise<string[]> {
+  const rows = await prisma.store.findMany({
+    where: { user: { role: "AFFILIATE" } },
+    select: { slug: true },
+    orderBy: { name: "asc" },
+    take: limit,
+  })
+  return rows.map((r) => r.slug)
+}
+
+export function shopProductToCardProps(item: ShopProductCard, storeSlug: string) {
   return {
     listingId: item.listingId,
     productId: item.productId,
@@ -154,6 +243,9 @@ export function shopProductToCardProps(item: ShopProductCard, affiliateSlug: str
     stock: item.stock,
     averageRating: item.averageRating,
     reviewCount: item.reviewCount,
-    href: `/shop/${affiliateSlug}/product/${item.listingId}`,
+    ...(item.marginCents != null ? { marginCents: item.marginCents } : {}),
+    ...(item.commissionPct != null ? { commissionPct: item.commissionPct } : {}),
+    ...(item.soldCount != null ? { soldCount: item.soldCount } : {}),
+    href: `/shops/${storeSlug}/product/${item.listingId}`,
   }
 }

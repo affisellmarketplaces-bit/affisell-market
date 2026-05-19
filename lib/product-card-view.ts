@@ -37,7 +37,7 @@ export function resolveProductCardViewMode(input: ResolveProductCardViewModeInpu
 
   const path = (input.pathname ?? "").split("?")[0] ?? ""
 
-  if (path === "/shops" || path.startsWith("/shop/")) {
+  if (path === "/shops" || path.startsWith("/shops/")) {
     return "customer"
   }
 

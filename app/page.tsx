@@ -25,7 +25,7 @@ export default async function HomePage() {
       <BentoContainer maxWidth="7xl" className="space-y-12 py-8 md:space-y-14 md:py-10">
         <AffiliateBanner />
         <Hero stats={stats} />
-        <HomeHighlights data={highlights} showBusinessData />
+        <HomeHighlights data={highlights} mode="affiliate" />
         <HomePickedForYou />
         <SalesBarometer initialData={barometer} />
       </BentoContainer>

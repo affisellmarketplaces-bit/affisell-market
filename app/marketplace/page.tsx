@@ -1,9 +1,15 @@
+import type { Metadata } from "next"
 import { Suspense } from "react"
 
 import { MarketplaceView } from "./marketplace-view"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
+
+export const metadata: Metadata = {
+  title: "Marketplace Affisell",
+  robots: { index: false, follow: false },
+}
 
 export default function MarketplacePage() {
   return (

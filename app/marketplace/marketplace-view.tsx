@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Search, X } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 
-import { ProductCard } from "@/components/ProductCard"
+import { ProductCard, type ProductCardDisplayMode } from "@/components/ProductCard"
 import { ProductCardPreviewToggle } from "@/components/product/ProductCardPreviewToggle"
 import { usePreviewAsCustomer } from "@/hooks/usePreviewAsCustomer"
 import { useUserRole } from "@/hooks/useUserRole"
@@ -48,6 +48,11 @@ export function MarketplaceView() {
   const userRole = useUserRole()
   const previewAsCustomer = usePreviewAsCustomer()
   const showBusinessData = canShowBusinessProductData(userRole) && !previewAsCustomer
+  const productCardMode: ProductCardDisplayMode = showBusinessData
+    ? userRole === "supplier"
+      ? "supplier"
+      : "affiliate"
+    : "customer"
   const categoryId = searchParams.get("category")
   const subcategoryId = searchParams.get("subcategory")
   const searchQuery = searchParams.get("q") ?? ""
@@ -273,7 +278,7 @@ export function MarketplaceView() {
               <ul className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
                 {products.map((product) => (
                   <li key={String(product.listingId ?? product.id)} className="flex h-full">
-                    <ProductCard product={product} showBusinessData={showBusinessData} />
+                    <ProductCard product={product} mode={productCardMode} />
                   </li>
                 ))}
               </ul>
