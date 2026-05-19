@@ -1,0 +1,73 @@
+"use client"
+
+import { Home, Search, ShoppingBag, Store } from "lucide-react"
+import { usePathname } from "next/navigation"
+import { useSession } from "next-auth/react"
+
+import { FastLink } from "@/components/navigation/fast-link"
+import { PUBLIC_MARKETPLACE_BROWSE_PATH, PUBLIC_SHOPS_PATH } from "@/lib/affiliate-routes"
+import { cn } from "@/lib/utils"
+
+const DOCK_ITEMS = [
+  { href: "/", label: "Accueil", icon: Home, match: (p: string) => p === "/" },
+  {
+    href: PUBLIC_SHOPS_PATH,
+    label: "Boutiques",
+    icon: Store,
+    match: (p: string) =>
+      p === PUBLIC_SHOPS_PATH ||
+      (/^\/shops\/[^/]+$/.test(p) && p !== PUBLIC_MARKETPLACE_BROWSE_PATH),
+  },
+  {
+    href: PUBLIC_MARKETPLACE_BROWSE_PATH,
+    label: "Explorer",
+    icon: Search,
+    match: (p: string) => p === PUBLIC_MARKETPLACE_BROWSE_PATH,
+  },
+  { href: "/cart", label: "Panier", icon: ShoppingBag, match: (p: string) => p === "/cart" },
+] as const
+
+/** Thumb-friendly dock for public buyers (mobile). */
+export function MobileDock() {
+  const pathname = usePathname() ?? ""
+  const { data: session } = useSession()
+  const role = session?.user?.role
+
+  if (role === "AFFILIATE" || role === "SUPPLIER") return null
+  if (pathname.startsWith("/login") || pathname.startsWith("/signup") || pathname.startsWith("/onboarding"))
+    return null
+  if (pathname.startsWith("/dashboard")) return null
+
+  const onShopPdp = /^\/shops\/[^/]+\/product\//.test(pathname)
+  if (onShopPdp) return null
+
+  return (
+    <nav
+      aria-label="Navigation rapide"
+      className="fixed inset-x-0 bottom-0 z-[90] border-t border-zinc-200/90 bg-white/90 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-950/90 md:hidden"
+    >
+      <ul className="mx-auto flex max-w-md items-stretch justify-around gap-1">
+        {DOCK_ITEMS.map(({ href, label, icon: Icon, match }) => {
+          const active = match(pathname)
+          return (
+            <li key={href} className="flex-1">
+              <FastLink
+                href={href}
+                className={cn(
+                  "flex flex-col items-center gap-0.5 rounded-2xl px-2 py-2 text-[10px] font-semibold transition-all duration-150",
+                  active
+                    ? "bg-violet-600 text-white shadow-lg shadow-violet-600/30"
+                    : "text-zinc-500 active:scale-95"
+                )}
+                aria-current={active ? "page" : undefined}
+              >
+                <Icon className="h-5 w-5" aria-hidden />
+                {label}
+              </FastLink>
+            </li>
+          )
+        })}
+      </ul>
+    </nav>
+  )
+}

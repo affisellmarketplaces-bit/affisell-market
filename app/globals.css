@@ -331,3 +331,42 @@
     opacity: 0;
   }
 }
+
+/* —— Navigation rapide (prefetch + transitions) —— */
+.affisell-fast-link {
+  touch-action: manipulation;
+}
+
+@supports (view-transition-name: none) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.18s;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+.affisell-page-shell {
+  animation: affisell-page-in 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes affisell-page-in {
+  from {
+    opacity: 0.92;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .affisell-page-shell {
+    animation: none;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}

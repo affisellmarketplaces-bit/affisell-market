@@ -17,7 +17,7 @@ function HeaderFallback() {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang={STOREFRONT_HTML_LANG}>
-      <body className="min-h-screen text-gray-900 [font-family:Inter,system-ui] dark:text-zinc-50">
+      <body className="min-h-screen pb-[calc(4.25rem+env(safe-area-inset-bottom))] text-gray-900 [font-family:Inter,system-ui] md:pb-0 dark:text-zinc-50">
         {/*
           NextIntlClientProvider timeZone="Europe/Paris" → implemented in ./root-intl-session.tsx (<RootIntlAndSession>).
         */}

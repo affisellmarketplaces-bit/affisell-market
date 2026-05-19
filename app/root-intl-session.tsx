@@ -4,6 +4,7 @@ import { SessionProvider } from "next-auth/react"
 import { NextIntlClientProvider } from "next-intl"
 import { Toaster } from "sonner"
 
+import { NavigationShell } from "@/components/navigation/navigation-shell"
 import en from "@/messages/en.json"
 import fr from "@/messages/fr.json"
 
@@ -18,6 +19,7 @@ export function RootIntlAndSession({ children }: { children: React.ReactNode }) 
   return (
     <NextIntlClientProvider locale={clientLocale} messages={clientMessages} timeZone="Europe/Paris">
       <SessionProvider>
+        <NavigationShell />
         {children}
         <Toaster richColors position="top-center" />
       </SessionProvider>
