@@ -97,6 +97,7 @@ import {
   minSupplierPriceEurFromSkuRows,
   usesVariantSkuPricing,
 } from "@/lib/supplier-catalog-price"
+import { registerMerchantDraftFlush } from "@/lib/merchant-draft-flush"
 import {
   collectClientPublishBlockers,
   mapServerPublishBlockers,
@@ -1244,31 +1245,9 @@ export function SupplierAddProductForm({
 
   const canSaveDraft = !editId || productIsDraft
 
-  const hasDraftContentSignals = useMemo(
-    () =>
-      Boolean(name.trim()) ||
-      Boolean(description.trim()) ||
-      Boolean(categoryId.trim()) ||
-      images.length > 0 ||
-      descriptionIllustrationImages.length > 0 ||
-      descriptionIllustrationVideos.length > 0 ||
-      Boolean(shipsFrom.trim()) ||
-      Boolean(variantSizesText.trim()) ||
-      simpleColorRows.some((r) => r.name.trim()) ||
-      variantRows.some((r) => r.name.trim()),
-    [
-      categoryId,
-      description,
-      descriptionIllustrationImages.length,
-      descriptionIllustrationVideos.length,
-      images.length,
-      name,
-      shipsFrom,
-      simpleColorRows,
-      variantRows,
-      variantSizesText,
-    ]
-  )
+  /** Compose / draft flows autosave without required fields (empty → "Untitled draft"). */
+  const draftAutosaveEnabled =
+    canSaveDraft && (composeQs || productIsDraft || Boolean(autosaveListingId) || assistShortcuts)
 
   const buildDraftSyncBody = useCallback(
     (forStep: WizardStep) => {
@@ -1359,12 +1338,7 @@ export function SupplierAddProductForm({
 
   useEffect(() => {
     if (typeof window === "undefined") return
-    if (loadingProduct || saving || !canSaveDraft) return
-
-    const hasServerDraftBucket = Boolean(
-      autosaveListingId && (productIsDraft || draftIdFromUrl || pendingDraftListingId)
-    )
-    if (!(hasServerDraftBucket || hasDraftContentSignals)) return
+    if (loadingProduct || saving || !draftAutosaveEnabled) return
 
     let cancelled = false
     const timer = window.setTimeout(() => {
@@ -1379,16 +1353,22 @@ export function SupplierAddProductForm({
     }
   }, [
     autosaveFingerprint,
-    autosaveListingId,
-    canSaveDraft,
-    draftIdFromUrl,
-    hasDraftContentSignals,
+    draftAutosaveEnabled,
     loadingProduct,
-    pendingDraftListingId,
-    productIsDraft,
     saving,
     syncDraftToServer,
   ])
+
+  useEffect(() => {
+    if (!draftAutosaveEnabled) return
+    const unregister = registerMerchantDraftFlush("supplier-add-product", () => {
+      void syncDraftToServer({ silent: true, force: true })
+    })
+    return () => {
+      void syncDraftToServer({ silent: true, force: true })
+      unregister()
+    }
+  }, [draftAutosaveEnabled, syncDraftToServer])
 
   useEffect(() => {
     if (typeof window === "undefined") return

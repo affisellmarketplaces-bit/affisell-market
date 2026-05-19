@@ -63,18 +63,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Product not found or inactive" }, { status: 404 })
   }
 
-  if (sellingPriceCents === undefined || !Number.isFinite(sellingPriceCents)) {
-    return NextResponse.json({ error: "Missing selling price" }, { status: 400 })
-  }
-  if (sellingPriceCents < product.basePriceCents) {
-    return NextResponse.json(
-      { error: `Your price must be at least supplier base (${(product.basePriceCents / 100).toFixed(2)} EUR)` },
-      { status: 400 }
-    )
-  }
-
   /** Save Draft → keep listing off the public storefront */
   const saveDraft = body.saveDraft === true
+
+  if (saveDraft) {
+    if (sellingPriceCents === undefined || !Number.isFinite(sellingPriceCents)) {
+      sellingPriceCents = product.basePriceCents
+    }
+    if (sellingPriceCents < product.basePriceCents) {
+      sellingPriceCents = product.basePriceCents
+    }
+  } else {
+    if (sellingPriceCents === undefined || !Number.isFinite(sellingPriceCents)) {
+      return NextResponse.json({ error: "Missing selling price" }, { status: 400 })
+    }
+    if (sellingPriceCents < product.basePriceCents) {
+      return NextResponse.json(
+        { error: `Your price must be at least supplier base (${(product.basePriceCents / 100).toFixed(2)} EUR)` },
+        { status: 400 }
+      )
+    }
+  }
 
   const customTitleRaw = typeof body.customTitle === "string" ? body.customTitle.trim() : ""
   const customTitle = customTitleRaw ? customTitleRaw.slice(0, 200) : null
@@ -138,7 +147,7 @@ export async function POST(request: Request) {
     existingKind: existingRow?.buyerRewardKind,
     existingPercent: existingRow?.buyerRewardPercent,
   })
-  if ("error" in rewardRes) {
+  if ("error" in rewardRes && !saveDraft) {
     return NextResponse.json({ error: rewardRes.error }, { status: 400 })
   }
 
@@ -151,9 +160,15 @@ export async function POST(request: Request) {
     },
     body
   )
-  if ("error" in promo) {
+  if ("error" in promo && !saveDraft) {
     return NextResponse.json({ error: promo.error }, { status: 400 })
   }
+
+  const reward =
+    "error" in rewardRes
+      ? { buyerRewardKind: "NONE" as const, buyerRewardPercent: 0 }
+      : rewardRes
+  const promoPatch = "error" in promo ? {} : promo
 
   try {
     const row = await prisma.affiliateProduct.upsert({
@@ -174,9 +189,9 @@ export async function POST(request: Request) {
         isListed,
         isFeatured,
         position,
-        buyerRewardKind: rewardRes.buyerRewardKind,
-        buyerRewardPercent: rewardRes.buyerRewardPercent,
-        ...promo,
+        buyerRewardKind: reward.buyerRewardKind,
+        buyerRewardPercent: reward.buyerRewardPercent,
+        ...promoPatch,
       },
       update: {
         sellingPriceCents,
@@ -189,9 +204,9 @@ export async function POST(request: Request) {
         collections,
         isListed,
         isFeatured,
-        buyerRewardKind: rewardRes.buyerRewardKind,
-        buyerRewardPercent: rewardRes.buyerRewardPercent,
-        ...promo,
+        buyerRewardKind: reward.buyerRewardKind,
+        buyerRewardPercent: reward.buyerRewardPercent,
+        ...promoPatch,
       },
     })
 

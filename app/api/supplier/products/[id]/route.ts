@@ -255,10 +255,13 @@ export async function PUT(
     : null
 
   if (variantPatch && "error" in variantPatch) {
-    return Response.json(
-      { error: variantPatch.error, issues: variantPatch.issues },
-      { status: 400 }
-    )
+    if (!draftUpdateOnly) {
+      return Response.json(
+        { error: variantPatch.error, issues: variantPatch.issues },
+        { status: 400 }
+      )
+    }
+    // Brouillon : on enregistre le reste même si le tableau SKU est incomplet.
   }
 
   if (variantPatch && !("error" in variantPatch)) {
@@ -273,7 +276,7 @@ export async function PUT(
         )?.customColumns
       )
     const customErr = validateVariantsCustomData(cols, rawSkuVariants)
-    if (customErr) {
+    if (customErr && !draftUpdateOnly) {
       return Response.json({ error: customErr }, { status: 400 })
     }
     if (cols.length > 0) {

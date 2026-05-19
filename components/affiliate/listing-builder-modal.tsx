@@ -1,7 +1,9 @@
 "use client"
 
 import type { FormEvent, MouseEvent } from "react"
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+
+import { flushAllMerchantDrafts, registerMerchantDraftFlush } from "@/lib/merchant-draft-flush"
 
 import { AiPricingOptimizer } from "@/components/affiliate/ai-pricing-optimizer"
 import {
@@ -134,6 +136,7 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
   const [pricingAiToast, setPricingAiToast] = useState<string | null>(null)
   const [pricingGreenToast, setPricingGreenToast] = useState<string | null>(null)
   const [pricePulse, setPricePulse] = useState(false)
+  const lastDraftFingerprint = useRef("")
 
   const marginEUR = useMemo(() => {
     const pp = Number(String(form.priceEUR).replace(",", "."))
@@ -234,14 +237,17 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
     return merged.filter((u) => (seen.has(u) ? false : (seen.add(u), true))).slice(0, 20)
   }
 
-  async function submit(saveDraft: boolean) {
+  async function submit(saveDraft: boolean, opts?: { silent?: boolean }) {
     setBusy(true)
-    setError(null)
+    if (!opts?.silent) setError(null)
     try {
       const collections = buildCollectionsArray()
-      const euro = Number(String(form.priceEUR).replace(",", "."))
+      let euro = Number(String(form.priceEUR).replace(",", "."))
+      if (saveDraft && (!Number.isFinite(euro) || euro <= 0)) {
+        euro = product.basePriceCents / 100
+      }
 
-      if (form.buyerRewardKind !== "NONE") {
+      if (!saveDraft && form.buyerRewardKind !== "NONE") {
         if (maxBuyerRewardPct <= 0) {
           throw new Error("Raise your price above supplier cost to offer a buyer reward.")
         }
@@ -312,17 +318,51 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
           credentials: "include",
           body: JSON.stringify(bodyObj),
         })
-        const j = (await res.json()) as { error?: string }
+        const j = (await res.json()) as { error?: string; id?: string }
         if (!res.ok) throw new Error(j.error ?? "Could not create listing")
       }
 
-      onSaved()
-      onClose()
+      if (!opts?.silent) {
+        onSaved()
+        onClose()
+      }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error")
+      if (!opts?.silent) setError(e instanceof Error ? e.message : "Error")
     } finally {
       setBusy(false)
     }
+  }
+
+  const saveDraftSilent = useCallback(async () => {
+    if (busy) return
+    const fp = JSON.stringify({ productId: product.id, listingId: listing?.id, form })
+    if (fp === lastDraftFingerprint.current) return
+    try {
+      await submit(true, { silent: true })
+      lastDraftFingerprint.current = fp
+    } catch {
+      /* autosave best-effort */
+    }
+  }, [busy, form, listing?.id, product.id])
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void saveDraftSilent()
+    }, 2200)
+    return () => window.clearTimeout(timer)
+  }, [form, saveDraftSilent])
+
+  useEffect(() => {
+    const unregister = registerMerchantDraftFlush("affiliate-listing-builder", () => saveDraftSilent())
+    return () => {
+      void saveDraftSilent()
+      unregister()
+    }
+  }, [saveDraftSilent])
+
+  async function handleClose() {
+    await saveDraftSilent()
+    onClose()
   }
 
   function handleFormSubmit(e: FormEvent) {
@@ -343,7 +383,7 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
         </div>
         <button
           type="button"
-          onClick={onClose}
+          onClick={() => void handleClose()}
           className="rounded-full p-2 text-gray-500 hover:bg-gray-100"
           aria-label="Close"
         >
@@ -814,8 +854,11 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
 }
 
 export function ListingBuilderModal({ open, product, listing, storeSlug, onClose, onSaved }: Props) {
+  const closeRef = useRef(onClose)
+  closeRef.current = onClose
+
   function onOverlayDown(e: MouseEvent<HTMLDivElement>) {
-    if ((e.target as HTMLElement).dataset?.overlay === "1") onClose()
+    if ((e.target as HTMLElement).dataset?.overlay === "1") closeRef.current()
   }
 
   if (!open || !product) return null

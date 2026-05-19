@@ -176,9 +176,11 @@ export async function POST(req: Request) {
 
   const customColumnsParsed = parseCustomColumnsFromBody(body as Record<string, unknown>)
   if (!Array.isArray(customColumnsParsed)) {
-    return Response.json({ error: customColumnsParsed.error }, { status: 400 })
+    if (!saveAsDraft) {
+      return Response.json({ error: customColumnsParsed.error }, { status: 400 })
+    }
   }
-  const customColumns = customColumnsParsed
+  const customColumns = Array.isArray(customColumnsParsed) ? customColumnsParsed : []
 
   let variantSync: { hasVariants: boolean; variants: import("@/lib/product-variant-sku").ProductVariantInput[] } | null =
     null
@@ -186,28 +188,31 @@ export async function POST(req: Request) {
     const bodyRecord = body as Record<string, unknown>
     const rawVariants = Array.isArray(bodyRecord.variants) ? bodyRecord.variants : []
     const customErr = validateVariantsCustomData(customColumns, rawVariants)
-    if (customErr) {
+    if (customErr && !saveAsDraft) {
       return Response.json({ error: customErr }, { status: 400 })
     }
 
     const variantPatch = parseProductVariantsFromBody(bodyRecord)
     if ("error" in variantPatch) {
-      return Response.json(
-        { error: variantPatch.error, issues: variantPatch.issues },
-        { status: 400 }
-      )
-    }
-    variantSync = {
-      ...variantPatch,
-      variants: applyCustomColumnsToVariantRows(variantPatch.variants, customColumns, rawVariants),
-    }
-    if (variantSync.hasVariants && variantSync.variants.length > 0) {
-      const minEur = Math.min(...variantSync.variants.map((v) => v.supplierPrice))
-      if (Number.isFinite(minEur) && minEur > 0) {
-        normalizedPriceCents = Math.max(100, Math.round(minEur * 100))
+      if (!saveAsDraft) {
+        return Response.json(
+          { error: variantPatch.error, issues: variantPatch.issues },
+          { status: 400 }
+        )
       }
-    } else if (!saveAsDraft && cents <= 0) {
-      return Response.json({ error: "Missing price" }, { status: 400 })
+    } else {
+      variantSync = {
+        ...variantPatch,
+        variants: applyCustomColumnsToVariantRows(variantPatch.variants, customColumns, rawVariants),
+      }
+      if (variantSync.hasVariants && variantSync.variants.length > 0) {
+        const minEur = Math.min(...variantSync.variants.map((v) => v.supplierPrice))
+        if (Number.isFinite(minEur) && minEur > 0) {
+          normalizedPriceCents = Math.max(100, Math.round(minEur * 100))
+        }
+      } else if (!saveAsDraft && cents <= 0) {
+        return Response.json({ error: "Missing price" }, { status: 400 })
+      }
     }
   } else if (!saveAsDraft && cents <= 0) {
     return Response.json({ error: "Missing price" }, { status: 400 })
