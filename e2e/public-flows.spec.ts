@@ -7,16 +7,15 @@ test.describe("public flows", () => {
     expect(res.headers()["content-type"] ?? "").toMatch(/json/i)
   })
 
-  test("auth sign-in page renders", async ({ page }) => {
-    await page.goto("/auth/signin")
-    await expect(page.getByRole("heading", { name: "Affisell", exact: true })).toBeVisible()
-    await expect(page.getByText("Sign in with your email")).toBeVisible()
+  test("login selector page renders", async ({ page }) => {
+    await page.goto("/login")
+    await expect(page.getByRole("heading", { name: "Connexion Affisell" })).toBeVisible()
+    await expect(page.getByRole("link", { name: /Je suis Créateur/i })).toBeVisible()
   })
 
-  test("/login redirects to sign-in", async ({ page }) => {
-    await page.goto("/login?callbackUrl=%2Fdashboard%2Fsupplier")
-    await expect(page).toHaveURL(/\/auth\/signin/)
-    await expect(page).toHaveURL(/callbackUrl=%2Fdashboard%2Fsupplier/)
+  test("legacy /auth/signin redirects to /login", async ({ page }) => {
+    await page.goto("/auth/signin")
+    await expect(page).toHaveURL(/\/login/)
   })
 
   test("discover feed shell loads", async ({ page }) => {
@@ -25,9 +24,9 @@ test.describe("public flows", () => {
     await expect(page.locator(".bg-black").first()).toBeVisible({ timeout: 30_000 })
   })
 
-  test("marketplace heading", async ({ page }) => {
+  test("marketplace redirects guests to affiliate login", async ({ page }) => {
     await page.goto("/marketplace")
-    await expect(page.getByRole("heading", { level: 1, name: "Marketplace" })).toBeVisible()
+    await expect(page).toHaveURL(/\/login\/affiliate/)
   })
 
   test("GET /api/cart returns JSON (guest)", async ({ request }) => {
@@ -37,8 +36,8 @@ test.describe("public flows", () => {
     expect(Array.isArray(data)).toBeTruthy()
   })
 
-  test("wishlist sends guests to sign-in", async ({ page }) => {
+  test("wishlist sends guests to login", async ({ page }) => {
     await page.goto("/wishlist")
-    await expect(page).toHaveURL(/\/auth\/signin/)
+    await expect(page).toHaveURL(/\/login/)
   })
 })

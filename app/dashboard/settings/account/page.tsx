@@ -24,7 +24,7 @@ export default async function AccountSettingsPage() {
     }),
   ])
 
-  if (!dbUser) redirect("/auth/signin")
+  if (!dbUser) redirect("/login")
 
   const backHref =
     dbUser.role === "SUPPLIER"

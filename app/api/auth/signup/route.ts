@@ -9,11 +9,13 @@ export const dynamic = "force-dynamic"
 
 export async function POST(req: Request) {
   try {
-    const { email, password, role, name: nameRaw } = (await req.json()) as {
+    const { email, password, role, name: nameRaw, tiktok, siret } = (await req.json()) as {
       email?: string
       password?: string
       role?: string
       name?: string
+      tiktok?: string
+      siret?: string
     }
     const emailNormalized = typeof email === "string" ? email.toLowerCase().trim() : ""
     if (!emailNormalized || !password) {
@@ -41,13 +43,34 @@ export async function POST(req: Request) {
       },
     })
 
+    let store = null
     if (resolvedRole === "AFFILIATE" || resolvedRole === "SUPPLIER") {
-      await ensureMerchantStore({
+      store = await ensureMerchantStore({
         userId: user.id,
         email: emailNormalized,
         displayName,
       })
     }
+
+    const tiktokHandle =
+      typeof tiktok === "string" && tiktok.trim() ? tiktok.trim().replace(/^@/, "").slice(0, 80) : null
+    const siretDigits =
+      typeof siret === "string" && siret.trim() ? siret.replace(/\D/g, "").slice(0, 14) : null
+
+    if (store && tiktokHandle && resolvedRole === "AFFILIATE") {
+      await prisma.store.update({
+        where: { id: store.id },
+        data: { tiktok: tiktokHandle },
+      })
+    }
+
+    if (store && siretDigits && resolvedRole === "SUPPLIER") {
+      await prisma.store.update({
+        where: { id: store.id },
+        data: { description: `SIRET: ${siretDigits}` },
+      })
+    }
+
     return NextResponse.json({ ok: true }, { status: 201 })
   } catch (e: unknown) {
     console.error("[signup]", e)

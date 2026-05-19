@@ -20,6 +20,7 @@ export function inferLoginPortal(callbackUrl: string | undefined | null): LoginP
   if (
     lower.includes("/dashboard/supplier") ||
     lower.includes("/signup/supplier") ||
+    lower.includes("/login/supplier") ||
     lower.includes("/auth/signin/supplier")
   ) {
     return "SUPPLIER"
@@ -27,6 +28,8 @@ export function inferLoginPortal(callbackUrl: string | undefined | null): LoginP
   if (
     lower.includes("/dashboard/affiliate") ||
     lower.includes("/signup/affiliate") ||
+    lower.includes("/login/affiliate") ||
+    lower.includes("/onboarding/affiliate") ||
     lower.includes("/auth/signin/affiliate") ||
     lower.startsWith("/affiliate/") ||
     lower.startsWith("/marketplace")

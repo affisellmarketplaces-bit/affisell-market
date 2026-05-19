@@ -24,10 +24,12 @@ export function SiteNav({ initialRole = null }: Props) {
   const pathname = usePathname()
 
   const isAuthRoute =
-    pathname?.startsWith("/auth/") || pathname === "/login" || pathname?.startsWith("/signup")
-  const isShopStorefront =
-    pathname === "/shops" ||
-    (pathname?.startsWith("/shops/") && !pathname?.includes("/login"))
+    pathname?.startsWith("/auth/") ||
+    pathname === "/login" ||
+    pathname?.startsWith("/login/") ||
+    pathname?.startsWith("/signup") ||
+    pathname?.startsWith("/onboarding/")
+  const isShopStorefront = pathname === "/shops" || pathname?.startsWith("/shops/")
 
   if (isShopStorefront || isAuthRoute) {
     return null

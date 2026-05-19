@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic"
 export default async function DashboardSupplierPage() {
   const session = await auth()
   if (!session?.user?.id) {
-    redirect("/auth/signin?callbackUrl=/dashboard/supplier")
+    redirect("/login/supplier?callbackUrl=/dashboard/supplier")
   }
   if (session.user.role !== "SUPPLIER") {
     redirect("/dashboard")

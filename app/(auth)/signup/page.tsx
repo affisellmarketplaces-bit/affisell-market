@@ -129,7 +129,7 @@ export default function SignupChooser() {
 
         <p className="mt-8 text-center text-sm text-zinc-600">
           Already have an account or cashback wallet?{" "}
-          <Link href="/auth/signin" className="font-medium text-violet-700 hover:text-violet-800">
+          <Link href="/login" className="font-medium text-violet-700 hover:text-violet-800">
             Sign in
           </Link>
         </p>

@@ -17,6 +17,8 @@ type Props = {
   defaultCallback: string
   signupHref: string
   signupLabel?: string
+  signInHref?: string
+  signInLabel?: string
   showSocialSignIn?: boolean
 }
 
@@ -27,6 +29,8 @@ export function PortalSignInForm({
   defaultCallback,
   signupHref,
   signupLabel = "Create an account",
+  signInHref,
+  signInLabel,
   showSocialSignIn = false,
 }: Props) {
   const search = useSearchParams()
@@ -161,6 +165,14 @@ export function PortalSignInForm({
           <Link href={signupHref} className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">
             {signupLabel}
           </Link>
+          {signInHref && signInLabel ? (
+            <>
+              {" · "}
+              <Link href={signInHref} className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">
+                {signInLabel}
+              </Link>
+            </>
+          ) : null}
         </p>
       </div>
     </div>

@@ -1,15 +1,21 @@
 "use client"
 
 import type { FormEvent } from "react"
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import { signIn } from "next-auth/react"
 
 import { messageForCredentialsSignInCode } from "@/lib/auth-portal-signin-messages"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 
-export default function CustomerSignupPage() {
+import { sanitizeInternalCallbackUrl } from "@/lib/auth-login-portal"
+
+function CustomerSignupForm() {
   const router = useRouter()
+  const search = useSearchParams()
+  const shopSlug = search.get("shop")?.trim() || null
+  const rawCallback = search.get("callbackUrl")
+  const returnTo = sanitizeInternalCallbackUrl(rawCallback) ?? (shopSlug ? `/shops/${shopSlug}` : "/marketplace/account")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -110,11 +116,26 @@ export default function CustomerSignupPage() {
 
         <p className="mt-6 text-center text-sm text-gray-600">
           Already have an account?{" "}
-          <Link href="/login?callbackUrl=%2Fmarketplace%2Faccount" className="font-medium text-blue-600 hover:text-blue-700">
+          <Link
+            href={
+              shopSlug
+                ? `/shops/${shopSlug}/login?callbackUrl=${encodeURIComponent(returnTo)}`
+                : `/login?callbackUrl=${encodeURIComponent(returnTo)}`
+            }
+            className="font-medium text-blue-600 hover:text-blue-700"
+          >
             Sign in
           </Link>
         </p>
       </div>
     </div>
+  )
+}
+
+export default function CustomerSignupPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Chargement…</div>}>
+      <CustomerSignupForm />
+    </Suspense>
   )
 }

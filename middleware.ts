@@ -6,37 +6,47 @@ const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
 
 const FORCED_CUSTOMER_HEADER = "x-affisell-view-role"
 
-/** Match Auth.js session cookie name (`__Secure-…` only when the request is HTTPS, e.g. Vercel). */
 function secureSessionCookieForRequest(req: NextRequest): boolean {
   return req.nextUrl.protocol === "https:"
 }
 
-function signInAffiliateUrl(req: NextRequest, pathWithSearch: string) {
-  const u = new URL("/auth/signin/affiliate", req.url)
+function loginAffiliateUrl(req: NextRequest, pathWithSearch: string) {
+  const u = new URL("/login/affiliate", req.url)
   u.searchParams.set("callbackUrl", pathWithSearch)
   return u
 }
 
-function signInSupplierUrl(req: NextRequest, pathWithSearch: string) {
-  const u = new URL("/auth/signin/supplier", req.url)
+function loginSupplierUrl(req: NextRequest, pathWithSearch: string) {
+  const u = new URL("/login/supplier", req.url)
   u.searchParams.set("callbackUrl", pathWithSearch)
   return u
 }
 
-/** Legacy `/auth/signin?role=…` → clean portal routes. */
-function legacySignInRedirect(req: NextRequest): NextResponse | null {
-  if (req.nextUrl.pathname !== "/auth/signin") return null
-  const role = req.nextUrl.searchParams.get("role")?.trim().toLowerCase()
-  const callback = req.nextUrl.searchParams.get("callbackUrl")
-  if (role === "affiliate") {
-    const u = signInAffiliateUrl(req, callback ?? "/marketplace")
+/** Legacy `/auth/signin` and `?role=` → clean routes. */
+function legacyAuthRedirect(req: NextRequest): NextResponse | null {
+  const { pathname, searchParams } = req.nextUrl
+  const callback = searchParams.get("callbackUrl")
+
+  if (pathname === "/auth/signin/affiliate") {
+    const u = loginAffiliateUrl(req, callback ?? "/marketplace")
     return NextResponse.redirect(u)
+  }
+  if (pathname === "/auth/signin/supplier") {
+    const u = loginSupplierUrl(req, callback ?? "/dashboard/supplier")
+    return NextResponse.redirect(u)
+  }
+  if (pathname !== "/auth/signin") return null
+
+  const role = searchParams.get("role")?.trim().toLowerCase()
+  if (role === "affiliate") {
+    return NextResponse.redirect(loginAffiliateUrl(req, callback ?? "/marketplace"))
   }
   if (role === "supplier") {
-    const u = signInSupplierUrl(req, callback ?? "/dashboard/supplier")
-    return NextResponse.redirect(u)
+    return NextResponse.redirect(loginSupplierUrl(req, callback ?? "/dashboard/supplier"))
   }
-  return null
+  const u = new URL("/login", req.url)
+  if (callback) u.searchParams.set("callbackUrl", callback)
+  return NextResponse.redirect(u)
 }
 
 function withForcedCustomerRole(req: NextRequest): NextResponse {
@@ -50,14 +60,8 @@ function withForcedCustomerRole(req: NextRequest): NextResponse {
 export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname
 
-  const legacy = legacySignInRedirect(req)
+  const legacy = legacyAuthRedirect(req)
   if (legacy) return legacy
-
-  if (pathname === "/login") {
-    const u = req.nextUrl.clone()
-    u.pathname = "/auth/signin"
-    return NextResponse.redirect(u)
-  }
 
   if (pathname === "/shop") {
     const u = req.nextUrl.clone()
@@ -88,11 +92,19 @@ export async function middleware(req: NextRequest) {
   const role = typeof token?.role === "string" ? token.role : undefined
   const loggedIn = Boolean(token?.sub)
 
+  if (pathname === "/" && role === "AFFILIATE") {
+    return NextResponse.redirect(new URL("/marketplace", req.url))
+  }
+
+  if (pathname === "/" && role === "SUPPLIER") {
+    return NextResponse.redirect(new URL("/dashboard/supplier", req.url))
+  }
+
   const isMarketplace =
     pathname === "/marketplace" || pathname.startsWith("/marketplace/")
   if (isMarketplace && pathname !== "/marketplace/account" && !pathname.startsWith("/marketplace/account/")) {
     if (!loggedIn || role !== "AFFILIATE") {
-      return NextResponse.redirect(signInAffiliateUrl(req, path))
+      return NextResponse.redirect(loginAffiliateUrl(req, path))
     }
   }
 
@@ -103,20 +115,20 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith("/affiliate/")
 
   if (isSupplierArea) {
-    if (!loggedIn) return NextResponse.redirect(signInSupplierUrl(req, path))
+    if (!loggedIn) return NextResponse.redirect(loginSupplierUrl(req, path))
     if (role !== "SUPPLIER") {
       const u = new URL(req.url)
-      u.pathname = role === "AFFILIATE" ? "/dashboard/affiliate" : "/marketplace"
+      u.pathname = role === "AFFILIATE" ? "/marketplace" : "/login"
       u.search = ""
       return NextResponse.redirect(u)
     }
   }
 
   if (isAffiliateArea) {
-    if (!loggedIn) return NextResponse.redirect(signInAffiliateUrl(req, path))
+    if (!loggedIn) return NextResponse.redirect(loginAffiliateUrl(req, path))
     if (role !== "AFFILIATE") {
       const u = new URL(req.url)
-      u.pathname = role === "SUPPLIER" ? "/dashboard/supplier" : "/marketplace"
+      u.pathname = role === "SUPPLIER" ? "/dashboard/supplier" : "/login"
       u.search = ""
       return NextResponse.redirect(u)
     }
@@ -126,13 +138,13 @@ export async function middleware(req: NextRequest) {
     pathname === "/marketplace/account" || pathname.startsWith("/marketplace/account/")
   if (isMarketplaceBuyerAccount) {
     if (!loggedIn) {
-      const u = new URL("/auth/signin", req.url)
+      const u = new URL("/login", req.url)
       u.searchParams.set("callbackUrl", path)
       return NextResponse.redirect(u)
     }
     if (role === "AFFILIATE" || role === "SUPPLIER") {
       const u = new URL(req.url)
-      u.pathname = role === "SUPPLIER" ? "/dashboard/supplier" : "/dashboard/affiliate"
+      u.pathname = role === "SUPPLIER" ? "/dashboard/supplier" : "/marketplace"
       u.search = ""
       return NextResponse.redirect(u)
     }
@@ -144,20 +156,16 @@ export async function middleware(req: NextRequest) {
 export const config = {
   matcher: [
     "/",
-    "/login",
     "/auth/signin",
+    "/auth/signin/:path*",
     "/shop",
     "/shop/:path*",
     "/shops",
     "/shops/:path*",
     "/marketplace",
     "/marketplace/:path*",
-    "/dashboard/supplier",
-    "/dashboard/supplier/:path*",
-    "/dashboard/affiliate",
-    "/dashboard/affiliate/:path*",
+    "/dashboard",
+    "/dashboard/:path*",
     "/affiliate/:path*",
-    "/marketplace/account",
-    "/marketplace/account/:path*",
   ],
 }

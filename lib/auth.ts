@@ -139,7 +139,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   /** Creates `User` + `Account` on first OAuth sign-in (see Prisma models). */
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
-  pages: { signIn: "/auth/signin" },
+  pages: { signIn: "/login" },
 
   providers: [
     Credentials({

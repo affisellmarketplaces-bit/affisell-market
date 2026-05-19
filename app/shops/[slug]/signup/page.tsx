@@ -3,7 +3,7 @@ import { Suspense } from "react"
 import { ShopBuyerAuthForm } from "@/components/auth/shop-buyer-auth-form"
 import { loadAffiliateShopStore } from "@/lib/shop-storefront-data"
 
-export default async function ShopBuyerLoginPage({
+export default async function ShopBuyerSignupPage({
   params,
 }: {
   params: Promise<{ slug: string }>
@@ -14,7 +14,7 @@ export default async function ShopBuyerLoginPage({
 
   return (
     <Suspense fallback={<div className="flex min-h-[50vh] items-center justify-center">Chargement…</div>}>
-      <ShopBuyerAuthForm storeName={storeName} shopSlug={slug} mode="login" />
+      <ShopBuyerAuthForm storeName={storeName} shopSlug={slug} mode="signup" />
     </Suspense>
   )
 }
