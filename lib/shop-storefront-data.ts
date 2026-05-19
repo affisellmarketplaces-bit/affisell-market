@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
 
 export type ShopStoreSummary = {
+  userId: string
   slug: string
   name: string
   description: string | null
@@ -44,6 +45,7 @@ export async function loadAffiliateShopStore(slug: string): Promise<ShopStoreSum
   const store = await prisma.store.findUnique({
     where: { slug },
     select: {
+      userId: true,
       slug: true,
       name: true,
       description: true,
@@ -55,6 +57,7 @@ export async function loadAffiliateShopStore(slug: string): Promise<ShopStoreSum
   if (!store || store.user.role !== "AFFILIATE") return null
 
   return {
+    userId: store.userId,
     slug: store.slug,
     name: store.name,
     description: store.description,

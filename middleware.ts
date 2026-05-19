@@ -2,6 +2,12 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { getToken } from "next-auth/jwt"
 
+import {
+  AFFILIATE_CATALOG_PATH,
+  isMarketplaceListingPath,
+  resolveLegacyMarketplaceIndexPath,
+} from "@/lib/affiliate-routes"
+
 const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
 
 const FORCED_CUSTOMER_HEADER = "x-affisell-view-role"
@@ -28,7 +34,7 @@ function legacyAuthRedirect(req: NextRequest): NextResponse | null {
   const callback = searchParams.get("callbackUrl")
 
   if (pathname === "/auth/signin/affiliate") {
-    const u = loginAffiliateUrl(req, callback ?? "/marketplace")
+    const u = loginAffiliateUrl(req, callback ?? AFFILIATE_CATALOG_PATH)
     return NextResponse.redirect(u)
   }
   if (pathname === "/auth/signin/supplier") {
@@ -39,7 +45,7 @@ function legacyAuthRedirect(req: NextRequest): NextResponse | null {
 
   const role = searchParams.get("role")?.trim().toLowerCase()
   if (role === "affiliate") {
-    return NextResponse.redirect(loginAffiliateUrl(req, callback ?? "/marketplace"))
+    return NextResponse.redirect(loginAffiliateUrl(req, callback ?? AFFILIATE_CATALOG_PATH))
   }
   if (role === "supplier") {
     return NextResponse.redirect(loginSupplierUrl(req, callback ?? "/dashboard/supplier"))
@@ -76,6 +82,15 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(u, 308)
   }
 
+  if (pathname.startsWith("/store/") && !pathname.startsWith("/store/supplier/")) {
+    const slug = pathname.slice("/store/".length).split("/")[0]
+    if (slug) {
+      const u = req.nextUrl.clone()
+      u.pathname = `/shops/${slug}`
+      return NextResponse.redirect(u, 308)
+    }
+  }
+
   if (pathname === "/shops" || pathname.startsWith("/shops/")) {
     return withForcedCustomerRole(req)
   }
@@ -100,21 +115,15 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard/supplier", req.url))
   }
 
-  const isMarketplace =
-    pathname === "/marketplace" || pathname.startsWith("/marketplace/")
-  if (isMarketplace && pathname !== "/marketplace/account" && !pathname.startsWith("/marketplace/account/")) {
-    if (!loggedIn) {
-      return NextResponse.redirect(loginAffiliateUrl(req, path))
-    }
-    if (role === "CUSTOMER") {
-      return NextResponse.redirect(new URL("/shops", req.url))
-    }
-    if (role === "SUPPLIER") {
-      return NextResponse.redirect(new URL("/dashboard/supplier", req.url))
-    }
-    if (role !== "AFFILIATE") {
-      return NextResponse.redirect(loginAffiliateUrl(req, path))
-    }
+  if (pathname === "/marketplace") {
+    const u = req.nextUrl.clone()
+    u.pathname = resolveLegacyMarketplaceIndexPath(role)
+    u.search = ""
+    return NextResponse.redirect(u, 308)
+  }
+
+  if (isMarketplaceListingPath(pathname)) {
+    return withForcedCustomerRole(req)
   }
 
   const isSupplierArea = pathname === "/dashboard/supplier" || pathname.startsWith("/dashboard/supplier/")
@@ -127,7 +136,7 @@ export async function middleware(req: NextRequest) {
     if (!loggedIn) return NextResponse.redirect(loginSupplierUrl(req, path))
     if (role !== "SUPPLIER") {
       const u = new URL(req.url)
-      u.pathname = role === "AFFILIATE" ? "/marketplace" : "/login"
+      u.pathname = role === "AFFILIATE" ? AFFILIATE_CATALOG_PATH : "/login"
       u.search = ""
       return NextResponse.redirect(u)
     }
@@ -153,7 +162,7 @@ export async function middleware(req: NextRequest) {
     }
     if (role === "AFFILIATE" || role === "SUPPLIER") {
       const u = new URL(req.url)
-      u.pathname = role === "SUPPLIER" ? "/dashboard/supplier" : "/marketplace"
+      u.pathname = role === "SUPPLIER" ? "/dashboard/supplier" : AFFILIATE_CATALOG_PATH
       u.search = ""
       return NextResponse.redirect(u)
     }
@@ -173,6 +182,8 @@ export const config = {
     "/shops/:path*",
     "/marketplace",
     "/marketplace/:path*",
+    "/store",
+    "/store/:path*",
     "/dashboard",
     "/dashboard/:path*",
     "/affiliate/:path*",

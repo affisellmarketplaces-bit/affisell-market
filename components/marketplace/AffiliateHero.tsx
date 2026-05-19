@@ -5,9 +5,9 @@ import type { HomeMarketplaceStats } from "@/lib/home-marketplace-data"
 import { cn } from "@/lib/utils"
 
 const NICHE_LINKS = [
-  { label: "Fitness", href: "/marketplace?q=fitness" },
-  { label: "Tech", href: "/marketplace?q=tech" },
-  { label: "Maison", href: "/marketplace?q=maison" },
+  { label: "Fitness", href: "/dashboard/affiliate/catalog?q=fitness" },
+  { label: "Tech", href: "/dashboard/affiliate/catalog?q=tech" },
+  { label: "Maison", href: "/dashboard/affiliate/catalog?q=maison" },
 ] as const
 
 type Props = {

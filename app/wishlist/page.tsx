@@ -47,7 +47,7 @@ export default async function WishlistPage() {
       {rows.length === 0 ? (
         <div className="mt-8 rounded-xl border border-zinc-200 bg-white p-6 text-sm text-zinc-600">
           Votre wishlist est vide.
-          <Link href="/marketplace" className="ml-2 font-medium text-violet-600 underline">
+          <Link href="/shops/browse" className="ml-2 font-medium text-violet-600 underline">
             Explorer le marketplace
           </Link>
         </div>
@@ -63,7 +63,7 @@ export default async function WishlistPage() {
                 key={w.id}
                 className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-3 shadow-sm"
               >
-                <Link href={listing ? `/marketplace/${listing.id}` : "/marketplace"} className="shrink-0">
+                <Link href={listing ? `/marketplace/${listing.id}` : "/shops/browse"} className="shrink-0">
                   {imageUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -80,7 +80,7 @@ export default async function WishlistPage() {
                 </Link>
                 <div className="min-w-0 flex-1">
                   <Link
-                    href={listing ? `/marketplace/${listing.id}` : "/marketplace"}
+                    href={listing ? `/marketplace/${listing.id}` : "/shops/browse"}
                     className="line-clamp-2 font-medium text-zinc-900 hover:underline"
                   >
                     {w.product.name}
@@ -104,7 +104,7 @@ export default async function WishlistPage() {
                 <div className="flex shrink-0 items-center gap-2">
                   <WishlistHeart productId={w.productId} />
                   <Link
-                    href={listing ? `/marketplace/${listing.id}` : "/marketplace"}
+                    href={listing ? `/marketplace/${listing.id}` : "/shops/browse"}
                     className="rounded-lg bg-violet-600 px-3 py-2 text-xs font-semibold text-white hover:bg-violet-500"
                   >
                     Voir

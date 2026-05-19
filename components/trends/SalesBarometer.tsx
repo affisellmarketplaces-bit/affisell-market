@@ -141,7 +141,7 @@ export function SalesBarometer({ initialData = null }: Props) {
                   />
                 </div>
                 <Link
-                  href={`/marketplace?category=${encodeURIComponent(c.categorySlug)}`}
+                  href={`/shops/browse?category=${encodeURIComponent(c.categorySlug)}`}
                   className="mt-2 inline-flex text-xs font-semibold text-violet-700 hover:underline dark:text-violet-300"
                 >
                   Vendre en {c.category} →

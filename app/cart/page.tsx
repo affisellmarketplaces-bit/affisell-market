@@ -337,7 +337,7 @@ export default function CartPage() {
           <h1 className="mb-2 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Shopping Cart</h1>
           <p className="text-zinc-600 dark:text-zinc-400">Your cart is empty</p>
           <Link
-            href="/marketplace"
+            href="/shops/browse"
             className="mt-6 inline-flex rounded-full bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-violet-700"
           >
             Continue shopping
@@ -358,7 +358,7 @@ export default function CartPage() {
             </p>
           </div>
           <Link
-            href="/marketplace"
+            href="/shops/browse"
             className="text-sm font-medium text-violet-700 hover:underline dark:text-violet-400"
           >
             ← Marketplace
@@ -558,7 +558,7 @@ export default function CartPage() {
             {checkoutBusy ? "Redirecting…" : "Proceed to Checkout"}
           </button>
           <Link
-            href="/marketplace"
+            href="/shops/browse"
             className="flex w-full items-center justify-center rounded-full border-2 border-zinc-900 py-3 text-center text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50 dark:border-zinc-100 dark:text-zinc-50 dark:hover:bg-zinc-800"
           >
             Continue shopping

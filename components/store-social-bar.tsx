@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useCallback, useState } from "react"
 
+import { PUBLIC_SHOPS_PATH } from "@/lib/affiliate-routes"
 import { formatFollowers, type FollowersJson } from "@/lib/format-followers"
 
 function cleanHandle(h: string | null | undefined) {
@@ -70,7 +71,7 @@ export function StoreSocialBar(props: Props) {
 
   const toggleFollow = useCallback(async () => {
     if (!viewerLoggedIn) {
-      router.push(`/login?callbackUrl=${encodeURIComponent(`/store/${storeSlug}`)}`)
+      router.push(`/login?callbackUrl=${encodeURIComponent(`/shops/${storeSlug}`)}`)
       return
     }
     setBusy(true)
@@ -93,7 +94,7 @@ export function StoreSocialBar(props: Props) {
 
   function onMessage() {
     if (!viewerLoggedIn) {
-      router.push(`/login?callbackUrl=${encodeURIComponent(`/store/${storeSlug}`)}`)
+      router.push(`/login?callbackUrl=${encodeURIComponent(`/shops/${storeSlug}`)}`)
       return
     }
     const el = document.getElementById("community")
@@ -174,10 +175,10 @@ export function StoreSocialBar(props: Props) {
           <MessageCircle className="h-4 w-4" /> Message
         </button>
         <Link
-          href="/marketplace"
+          href={PUBLIC_SHOPS_PATH}
           className="inline-flex items-center gap-2 rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-900"
         >
-          <Users className="h-4 w-4" /> Marketplace
+          <Users className="h-4 w-4" /> Boutiques
         </Link>
       </div>
     </div>

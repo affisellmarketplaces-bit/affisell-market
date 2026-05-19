@@ -23,7 +23,7 @@ export default function OrderSuccessPage({ searchParams }: Props) {
         </p>
       ) : null}
       <div className="mt-8 flex flex-wrap justify-center gap-3">
-        <Link href="/marketplace" className={cn(buttonVariants({ variant: "bentoAccent", size: "bento" }))}>
+        <Link href="/shops/browse" className={cn(buttonVariants({ variant: "bentoAccent", size: "bento" }))}>
           Continue shopping
         </Link>
         <Link href="/marketplace/account/orders" className={cn(buttonVariants({ variant: "bentoOutline", size: "bento" }))}>

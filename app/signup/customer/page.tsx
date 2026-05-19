@@ -40,7 +40,7 @@ function CustomerSignupForm() {
       email,
       password,
       redirect: false,
-      callbackUrl: "/marketplace",
+      callbackUrl: "/shops/browse",
     })
     setLoading(false)
     if (login?.error) {

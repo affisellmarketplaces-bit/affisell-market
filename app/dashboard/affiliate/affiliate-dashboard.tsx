@@ -44,6 +44,7 @@ import {
   ListingBuilderModal,
   type SerializedListing,
 } from "@/components/affiliate/listing-builder-modal"
+import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
 import { COLORS, isMulticolorSwatch } from "@/lib/product-catalog-constants"
 import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
@@ -434,7 +435,7 @@ export function AffiliateDashboard({ storeId }: Props) {
       router.push("/dashboard/affiliate/settings/store")
       return
     }
-    window.open(`/store/${encodeURIComponent(storeSlug)}`, "_blank", "noopener,noreferrer")
+    window.open(`/shops/${encodeURIComponent(storeSlug)}`, "_blank", "noopener,noreferrer")
   }
 
   useEffect(() => {
@@ -532,7 +533,7 @@ export function AffiliateDashboard({ storeId }: Props) {
             <p className="font-semibold">Bienvenue dans votre espace créateur</p>
             <p className="mt-1 text-violet-900/90 dark:text-violet-200/90">
               Configurez votre boutique ci-dessous, puis explorez le{" "}
-              <Link href="/marketplace" className="font-medium underline underline-offset-2">
+              <Link href={AFFILIATE_CATALOG_PATH} className="font-medium underline underline-offset-2">
                 catalogue affilié
               </Link>{" "}
               pour ajouter vos premiers produits.
@@ -571,7 +572,7 @@ export function AffiliateDashboard({ storeId }: Props) {
                     [
                       {
                         label: "Browse marketplace",
-                        href: "/marketplace",
+                        href: AFFILIATE_CATALOG_PATH,
                         Icon: Compass,
                       },
                       {
@@ -812,7 +813,7 @@ export function AffiliateDashboard({ storeId }: Props) {
                 <p className="mt-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">No matches</p>
                 <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
                   Relax filters or clear search—everything in Discover still lives in the{" "}
-                  <Link href="/marketplace" className="font-medium text-violet-700 underline underline-offset-2 hover:text-violet-900 dark:text-violet-400">
+                  <Link href={AFFILIATE_CATALOG_PATH} className="font-medium text-violet-700 underline underline-offset-2 hover:text-violet-900 dark:text-violet-400">
                     marketplace
                   </Link>
                   .
@@ -991,7 +992,7 @@ export function AffiliateDashboard({ storeId }: Props) {
               </div>
               <div className="mt-4 flex shrink-0 flex-wrap gap-2 sm:mt-0">
                 <Link
-                  href="/marketplace"
+                  href={AFFILIATE_CATALOG_PATH}
                   className="inline-flex items-center gap-2 rounded-xl border border-teal-200 bg-white px-4 py-2 text-xs font-semibold text-teal-900 shadow-sm hover:bg-teal-50 dark:border-teal-800 dark:bg-zinc-900 dark:text-teal-100 dark:hover:bg-teal-950/50"
                 >
                   <Compass className="h-3.5 w-3.5" aria-hidden />

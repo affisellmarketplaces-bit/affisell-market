@@ -126,7 +126,7 @@ export default async function MarketplaceBuyerWalletPage() {
       </div>
 
       <p className="text-center text-sm text-gray-600 dark:text-zinc-400">
-        <Link href="/marketplace" className="font-medium text-[#7C3AED] underline-offset-4 hover:underline">
+        <Link href="/shops/browse" className="font-medium text-[#7C3AED] underline-offset-4 hover:underline">
           Browse marketplace
         </Link>
       </p>

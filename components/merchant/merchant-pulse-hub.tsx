@@ -123,14 +123,14 @@ export function MerchantPulseHub({
               </p>
               {role === "AFFILIATE" ? (
                 <Link
-                  href="/marketplace"
+                  href="/dashboard/affiliate/catalog"
                   className="inline-flex items-center gap-1 text-xs font-semibold text-ai hover:underline"
                 >
                   Drive more sales <ArrowUpRight className="h-3.5 w-3.5" />
                 </Link>
               ) : (
                 <Link
-                  href="/marketplace"
+                  href="/dashboard/affiliate/catalog"
                   className="inline-flex items-center gap-1 text-xs font-semibold text-supplier hover:underline"
                 >
                   Browse demand <ArrowUpRight className="h-3.5 w-3.5" />

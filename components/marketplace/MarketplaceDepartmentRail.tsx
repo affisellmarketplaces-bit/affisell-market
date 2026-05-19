@@ -4,6 +4,7 @@ import Link from "next/link"
 import useSWR from "swr"
 import { Sparkles } from "lucide-react"
 
+import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
 import { affisellBrand } from "@/lib/affisell-brand"
 import { cn } from "@/lib/utils"
 
@@ -14,9 +15,11 @@ type Cat = { id: string; name: string; icon: string; slug: string; order: number
 export function MarketplaceDepartmentRail({
   activeCategoryId,
   activeSubcategoryId,
+  catalogBasePath = PUBLIC_MARKETPLACE_BROWSE_PATH,
 }: {
   activeCategoryId: string | null
   activeSubcategoryId: string | null
+  catalogBasePath?: string
 }) {
   const { data, isLoading } = useSWR<{ categories: Cat[] }>("/api/categories", fetcher, {
     refreshInterval: 300_000,
@@ -40,7 +43,7 @@ export function MarketplaceDepartmentRail({
       </div>
       <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <Link
-          href="/marketplace"
+          href={catalogBasePath}
           className={cn(
             "shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition",
             !activeCategoryId && !activeSubcategoryId
@@ -55,7 +58,7 @@ export function MarketplaceDepartmentRail({
           return (
             <Link
               key={c.id}
-              href={`/marketplace?category=${encodeURIComponent(c.id)}`}
+              href={`${catalogBasePath}?category=${encodeURIComponent(c.id)}`}
               className={cn(
                 affisellBrand.quickLink,
                 "affisell-quick-link--buyer shrink-0 !rounded-full !py-1.5 text-xs",

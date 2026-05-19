@@ -8,6 +8,7 @@ import { LayoutDashboard, Store, Wallet } from "lucide-react"
 import { NavHeaderSearch } from "@/components/nav/nav-header-search"
 import { MerchantAvatarMenu } from "@/components/nav/merchant-avatar-menu"
 import { MerchantNotificationsMenu } from "@/components/merchant-notifications-menu"
+import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
 import { cn } from "@/lib/utils"
 
 function navLinkClass(active: boolean) {
@@ -23,7 +24,8 @@ export function NavAffiliate() {
   const pathname = usePathname() ?? ""
 
   const onDashboard = pathname.startsWith("/dashboard/affiliate")
-  const onMarketplace = pathname === "/marketplace" || pathname.startsWith("/marketplace/")
+  const onMarketplace =
+    pathname === AFFILIATE_CATALOG_PATH || pathname.startsWith(`${AFFILIATE_CATALOG_PATH}/`)
   const onAgent = pathname.startsWith("/agent")
   const onEarnings = pathname.startsWith("/dashboard/affiliate/earnings")
 
@@ -35,7 +37,11 @@ export function NavAffiliate() {
 
       <Suspense fallback={<div className="order-3 h-10 min-w-0 flex-1 md:order-2" aria-hidden />}>
         <div className="order-3 flex min-w-0 flex-1 md:order-2">
-          <NavHeaderSearch id="affiliate-header-search-q" placeholder="Rechercher un produit…" />
+          <NavHeaderSearch
+            id="affiliate-header-search-q"
+            placeholder="Rechercher un produit…"
+            searchTarget="catalog"
+          />
         </div>
       </Suspense>
 
@@ -43,7 +49,10 @@ export function NavAffiliate() {
         <Link href="/agent" className={navLinkClass(onAgent)}>
           Agent
         </Link>
-        <Link href="/marketplace" className={cn(navLinkClass(onMarketplace), "inline-flex items-center gap-1")}>
+        <Link
+          href={AFFILIATE_CATALOG_PATH}
+          className={cn(navLinkClass(onMarketplace), "inline-flex items-center gap-1")}
+        >
           <Store className="size-4 shrink-0 opacity-80" aria-hidden />
           Catalogue
         </Link>

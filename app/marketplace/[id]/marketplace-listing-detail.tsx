@@ -27,6 +27,7 @@ import { MarketplacePurchaseQuantity } from "@/components/marketplace/marketplac
 import { Button } from "@/components/ui/button"
 import { ProductImageHoverZoom } from "@/components/product-image-hover-zoom"
 import messages from "@/messages/en.json"
+import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
 import {
   COLORS,
   VARIANT_GROUP_LABELS,
@@ -766,7 +767,10 @@ export function MarketplaceListingDetail({
                 {breadcrumbT.home}
               </Link>
               <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-50" aria-hidden />
-              <Link href="/marketplace" className="hover:text-zinc-900 dark:hover:text-zinc-200">
+              <Link
+                href={PUBLIC_MARKETPLACE_BROWSE_PATH}
+                className="hover:text-zinc-900 dark:hover:text-zinc-200"
+              >
                 Marketplace
               </Link>
               {categories.slice(0, 2).map((c) => (

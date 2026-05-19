@@ -105,7 +105,7 @@ export function StoreFeed({ storeSlug, posts }: Props) {
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold uppercase tracking-wide text-green-700">Featured product</p>
                 <p className="font-medium text-zinc-900 dark:text-zinc-100">{p.product.name}</p>
-                <Link href="/marketplace" className="mt-1 text-xs font-medium text-teal-700 underline">
+                <Link href="/shops/browse" className="mt-1 text-xs font-medium text-teal-700 underline">
                   Browse on marketplace →
                 </Link>
               </div>

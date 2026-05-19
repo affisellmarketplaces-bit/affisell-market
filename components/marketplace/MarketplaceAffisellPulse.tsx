@@ -21,7 +21,7 @@ const PULSE = [
     className: "from-fuchsia-600 to-pink-600 text-white shadow-fuchsia-500/25",
   },
   {
-    href: "/marketplace?q=smart",
+    href: "/shops/browse?q=smart",
     label: "Recherche vivante",
     hint: "Filtre démo « smart »",
     Icon: Radar,

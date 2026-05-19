@@ -95,7 +95,7 @@ export default function MarketplaceBuyerAccountHomePage() {
       </BentoCard>
 
       <p className="text-center text-sm text-zinc-500 dark:text-zinc-400">
-        <Link href="/marketplace" className="font-medium text-violet-700 underline-offset-4 hover:underline dark:text-violet-400">
+        <Link href="/shops/browse" className="font-medium text-violet-700 underline-offset-4 hover:underline dark:text-violet-400">
           ← Back to marketplace
         </Link>
       </p>

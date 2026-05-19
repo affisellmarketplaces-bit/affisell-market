@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 
 import { ProductCard, type ProductCardDisplayMode } from "@/components/ProductCard"
 import { ProductCardPreviewToggle } from "@/components/product/ProductCardPreviewToggle"
+import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
 import { usePreviewAsCustomer } from "@/hooks/usePreviewAsCustomer"
 import { useUserRole } from "@/hooks/useUserRole"
 import { canShowBusinessProductData } from "@/lib/user-role"
@@ -42,12 +43,26 @@ function normalizeProducts(raw: unknown): ProductRow[] {
   })
 }
 
-export function MarketplaceView() {
+type MarketplaceViewProps = {
+  /** Catalog browse base path (affiliate dashboard vs legacy /marketplace). */
+  basePath?: string
+  /** Affiliate catalog shows margins; customer browse never does. */
+  audience?: "affiliate" | "customer"
+}
+
+export function MarketplaceView({
+  basePath = "/shops/browse",
+  audience = "customer",
+}: MarketplaceViewProps = {}) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const userRole = useUserRole()
   const previewAsCustomer = usePreviewAsCustomer()
-  const showBusinessData = canShowBusinessProductData(userRole) && !previewAsCustomer
+  const isAffiliateCatalog = audience === "affiliate" || basePath === AFFILIATE_CATALOG_PATH
+  const isCustomerBrowse = audience === "customer"
+  const showBusinessData =
+    !isCustomerBrowse &&
+    (isAffiliateCatalog || (canShowBusinessProductData(userRole) && !previewAsCustomer))
   const productCardMode: ProductCardDisplayMode = showBusinessData
     ? userRole === "supplier"
       ? "supplier"
@@ -108,7 +123,7 @@ export function MarketplaceView() {
       params.set("category", catId)
     }
     const s = params.toString()
-    router.push(`/marketplace${s ? `?${s}` : ""}`)
+    router.push(`${basePath}${s ? `?${s}` : ""}`)
   }
 
   const hasFilters = Boolean(
@@ -116,7 +131,7 @@ export function MarketplaceView() {
   )
 
   function clearFilters() {
-    router.push("/marketplace")
+    router.push(basePath)
   }
 
   return (
@@ -127,14 +142,23 @@ export function MarketplaceView() {
           <div className="relative space-y-6 p-6 sm:p-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0 space-y-2">
-                <p className={cn("text-xs font-semibold uppercase tracking-[0.14em]", affisellBrand.eyebrowBuyer)}>
-                  Discover · Shop
+                <p
+                  className={cn(
+                    "text-xs font-semibold uppercase tracking-[0.14em]",
+                    isAffiliateCatalog
+                      ? "text-violet-700 dark:text-violet-300"
+                      : affisellBrand.eyebrowBuyer
+                  )}
+                >
+                  {isAffiliateCatalog ? "Catalogue · Revendre" : "Discover · Shop"}
                 </p>
                 <h1 className="text-balance text-3xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
-                  Marketplace
+                  {isAffiliateCatalog ? "Catalogue produits" : "Marketplace"}
                 </h1>
                 <p className="max-w-xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 sm:text-[15px]">
-                  Live listings from partner stores — search, filter by category, and open any product.
+                  {isAffiliateCatalog
+                    ? "Parcourez les fiches fournisseur, comparez marges et délais, puis ajoutez les SKU à votre boutique."
+                    : "Live listings from partner stores — search, filter by category, and open any product."}
                 </p>
               </div>
               {hasFilters ? (
@@ -162,11 +186,11 @@ export function MarketplaceView() {
                 if (localQ) next.set("q", localQ)
                 else next.delete("q")
                 const s = next.toString()
-                router.push(`/marketplace${s ? `?${s}` : ""}`)
+                router.push(`${basePath}${s ? `?${s}` : ""}`)
               }}
             >
               <label htmlFor="marketplace-local-search" className="sr-only">
-                Search listings
+                {isAffiliateCatalog ? "Rechercher dans le catalogue" : "Search listings"}
               </label>
               <div className="relative">
                 <Search
@@ -190,9 +214,12 @@ export function MarketplaceView() {
         <MarketplaceDepartmentRail
           activeCategoryId={categoryId}
           activeSubcategoryId={subcategoryId}
+          catalogBasePath={basePath}
         />
-            <MarketplaceAffisellPulse />
-            <ProductCardPreviewToggle className="mt-4" />
+        <MarketplaceAffisellPulse />
+        {!isAffiliateCatalog && !isCustomerBrowse ? (
+          <ProductCardPreviewToggle className="mt-4" />
+        ) : null}
 
         {dbUnavailable ? (
           <div

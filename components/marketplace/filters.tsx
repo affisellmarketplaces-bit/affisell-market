@@ -1,9 +1,13 @@
 "use client"
 
 import { Loader2 } from "lucide-react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import useSWR from "swr"
 
+import {
+  AFFILIATE_CATALOG_PATH,
+  PUBLIC_MARKETPLACE_BROWSE_PATH,
+} from "@/lib/affiliate-routes"
 import type { MarketplaceFacet } from "@/lib/marketplace-attribute-filters"
 import { cn } from "@/lib/utils"
 
@@ -22,8 +26,17 @@ function facetParams(categoryId: string | null, subcategoryId: string | null | u
   return sp
 }
 
+function catalogBaseFromPath(pathname: string): string {
+  if (pathname === AFFILIATE_CATALOG_PATH || pathname.startsWith(`${AFFILIATE_CATALOG_PATH}/`)) {
+    return AFFILIATE_CATALOG_PATH
+  }
+  return PUBLIC_MARKETPLACE_BROWSE_PATH
+}
+
 export function MarketplaceFilters({ categoryId, subcategoryId, className }: Props) {
   const router = useRouter()
+  const pathname = usePathname() ?? ""
+  const catalogBase = catalogBaseFromPath(pathname)
   const searchParams = useSearchParams()
   const scopeId = subcategoryId ?? categoryId
 
@@ -50,7 +63,7 @@ export function MarketplaceFilters({ categoryId, subcategoryId, className }: Pro
     if (next.get(key) === value) next.delete(key)
     else next.set(key, value)
     const s = next.toString()
-    router.push(`/marketplace${s ? `?${s}` : ""}`)
+    router.push(`${catalogBase}${s ? `?${s}` : ""}`)
   }
 
   if (!scopeId) {

@@ -187,7 +187,7 @@ export function MarketplaceFilterSidebar({ current }: { current: MarketplaceFilt
 
       {(c.shipsFrom || c.delivery || c.freeShipping || c.category) && (
         <Link
-          href="/marketplace"
+          href="/shops/browse"
           className="block text-center text-xs font-medium text-zinc-500 underline hover:text-zinc-800 dark:hover:text-zinc-200"
         >
           Clear all filters

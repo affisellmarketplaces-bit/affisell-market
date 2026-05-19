@@ -77,7 +77,7 @@ export function HomePickedForYou() {
       ) : (
         <AffisellCarousel
           title={tAI("pickedForYou")}
-          voirPlusHref="/marketplace"
+          voirPlusHref="/shops/browse"
           items={items}
           recommendationQuery={null}
         />

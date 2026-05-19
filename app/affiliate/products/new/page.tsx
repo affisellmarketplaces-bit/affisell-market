@@ -37,7 +37,7 @@ export default async function AffiliateProductsNewPage() {
           Open Affiliate dashboard →
         </Link>
         <Link
-          href="/marketplace"
+          href="/dashboard/affiliate/catalog"
           className="inline-flex items-center rounded-xl border border-zinc-300 px-5 py-3 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-600 dark:hover:bg-zinc-800"
         >
           Browse marketplace

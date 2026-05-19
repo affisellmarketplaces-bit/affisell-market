@@ -4,11 +4,16 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Search } from "lucide-react"
 import type { FormEvent } from "react"
 
+import {
+  AFFILIATE_CATALOG_PATH,
+  PUBLIC_MARKETPLACE_BROWSE_PATH,
+} from "@/lib/affiliate-routes"
+
 type Props = {
   id: string
   placeholder?: string
-  /** Where public / unscoped search submits (default: marketplace). */
-  searchTarget?: "marketplace" | "shops"
+  /** Where unscoped search submits. */
+  searchTarget?: "marketplace" | "shops" | "catalog"
 }
 
 export function NavHeaderSearch({
@@ -20,6 +25,13 @@ export function NavHeaderSearch({
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
+  const browseBase =
+    searchTarget === "catalog"
+      ? AFFILIATE_CATALOG_PATH
+      : searchTarget === "shops"
+        ? "/shops"
+        : PUBLIC_MARKETPLACE_BROWSE_PATH
+
   function onSubmit(ev: FormEvent<HTMLFormElement>) {
     ev.preventDefault()
     const fd = new FormData(ev.currentTarget)
@@ -28,21 +40,22 @@ export function NavHeaderSearch({
       router.push(q ? `/shops?q=${encodeURIComponent(q)}` : "/shops")
       return
     }
-    if (pathname === "/marketplace") {
+    if (pathname === browseBase || pathname.startsWith(`${browseBase}?`)) {
       const params = new URLSearchParams(searchParams.toString())
       if (q) params.set("q", q)
       else params.delete("q")
       const s = params.toString()
-      router.push(`/marketplace${s ? `?${s}` : ""}`)
+      router.push(`${browseBase}${s ? `?${s}` : ""}`)
     } else {
       const usp = new URLSearchParams()
       if (q) usp.set("q", q)
-      router.push(`/marketplace${usp.toString() ? `?${usp}` : ""}`)
+      router.push(`${browseBase}${usp.toString() ? `?${usp}` : ""}`)
     }
   }
 
   const defaultQ =
-    searchTarget === "marketplace" && pathname === "/marketplace"
+    (searchTarget === "marketplace" || searchTarget === "catalog") &&
+    (pathname === browseBase || pathname.startsWith(`${browseBase}/`))
       ? (searchParams.get("q") ?? "")
       : ""
 

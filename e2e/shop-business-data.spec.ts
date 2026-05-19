@@ -1,12 +1,10 @@
 import { expect, test } from "@playwright/test"
 
 test.describe("customer vs affiliate product surfaces", () => {
-  test("marketplace emits noindex robots meta", async ({ page }) => {
-    await page.goto("/marketplace")
-    await expect(page.locator('meta[name="robots"]').first()).toHaveAttribute(
-      "content",
-      /noindex/i
-    )
+  test("public browse is indexable", async ({ page }) => {
+    await page.goto("/shops/browse")
+    const robots = page.locator('meta[name="robots"]').first()
+    await expect(robots).toHaveAttribute("content", /index/i)
   })
 
   test("private /shops/[slug]/product/[id]: no “Marge” mention", async ({ page }) => {
@@ -21,15 +19,15 @@ test.describe("customer vs affiliate product surfaces", () => {
     await expect(page.getByText(/Marge\b/i)).toHaveCount(0)
   })
 
-  test("guest marketplace product cards: customer mode, no Marge", async ({ page }) => {
-    await page.goto("/marketplace")
+  test("guest browse product cards: customer mode, no Marge", async ({ page }) => {
+    await page.goto("/shops/browse")
     await page.waitForSelector('[data-product-card-mode="customer"]', { timeout: 45_000 })
     await expect(page.getByText(/\bMarge\b/i)).toHaveCount(0)
   })
 
-  test("affiliate on marketplace: sees Marge on product cards", async ({ page }) => {
+  test("affiliate catalog: sees Marge on product cards", async ({ page }) => {
     test.skip(!process.env.PLAYWRIGHT_AFFILIATE_E2E, "Set PLAYWRIGHT_AFFILIATE_E2E=1 and seed session.")
-    await page.goto("/marketplace")
+    await page.goto("/dashboard/affiliate/catalog")
     await expect(page.locator('[data-product-card-mode="affiliate"]').first()).toBeVisible({
       timeout: 45_000,
     })

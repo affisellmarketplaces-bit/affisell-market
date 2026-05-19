@@ -37,7 +37,7 @@ export default async function MarketplaceBuyerOrdersPage() {
             Store credit
           </Link>
           <Link
-            href="/marketplace"
+            href="/shops/browse"
             className={cn(buttonVariants({ variant: "bentoSolid", size: "bento" }), "inline-flex justify-center")}
           >
             <ShoppingBag className="size-5" aria-hidden />

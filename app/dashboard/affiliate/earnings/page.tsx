@@ -10,7 +10,7 @@ export default async function AffiliateEarningsPage() {
   const session = await auth()
   if (!session?.user?.id) redirect("/login?callbackUrl=/dashboard/affiliate/earnings")
   if (session.user.role === "SUPPLIER") redirect("/dashboard/supplier")
-  if (session.user.role !== "AFFILIATE") redirect("/marketplace")
+  if (session.user.role !== "AFFILIATE") redirect("/dashboard/affiliate/catalog")
 
   const data = await loadAffiliateEarningsPulse(session.user.id)
 

@@ -24,9 +24,9 @@ test.describe("public flows", () => {
     await expect(page.locator(".bg-black").first()).toBeVisible({ timeout: 30_000 })
   })
 
-  test("marketplace redirects guests to affiliate login", async ({ page }) => {
+  test("legacy /marketplace redirects guests to public browse", async ({ page }) => {
     await page.goto("/marketplace")
-    await expect(page).toHaveURL(/\/login\/affiliate/)
+    await expect(page).toHaveURL(/\/shops\/browse/)
   })
 
   test("GET /api/cart returns JSON (guest)", async ({ request }) => {

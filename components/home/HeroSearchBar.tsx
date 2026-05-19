@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation"
 import { Search } from "lucide-react"
 import { type FormEvent, useState } from "react"
 
+import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -17,7 +18,11 @@ export function HeroSearchBar({ className }: Props) {
   function onSubmit(e: FormEvent) {
     e.preventDefault()
     const trimmed = q.trim()
-    router.push(trimmed ? `/marketplace?q=${encodeURIComponent(trimmed)}` : "/marketplace")
+    router.push(
+      trimmed
+        ? `${PUBLIC_MARKETPLACE_BROWSE_PATH}?q=${encodeURIComponent(trimmed)}`
+        : PUBLIC_MARKETPLACE_BROWSE_PATH
+    )
   }
 
   return (

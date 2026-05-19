@@ -116,7 +116,7 @@ export function CategoryBlock({ category, className }: Props) {
       </div>
       <div className="mt-5 border-t border-zinc-100 pt-4 dark:border-zinc-800">
         <Link
-          href={`/marketplace?category=${encodeURIComponent(data.categoryId)}`}
+          href={`/shops/browse?category=${encodeURIComponent(data.categoryId)}`}
           className="text-sm font-semibold text-violet-600 underline-offset-4 hover:underline dark:text-violet-400"
         >
           See more

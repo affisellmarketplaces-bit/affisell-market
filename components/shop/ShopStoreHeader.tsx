@@ -32,12 +32,20 @@ export function ShopStoreHeader({ storeName, logoUrl, description }: Props) {
             <p className="mt-0.5 line-clamp-2 text-sm text-zinc-600 dark:text-zinc-400">{description}</p>
           ) : null}
         </div>
-        <Link
-          href="/shops"
-          className="shrink-0 text-sm font-medium text-zinc-600 underline-offset-2 hover:underline dark:text-zinc-400"
-        >
-          Toutes les boutiques
-        </Link>
+        <div className="flex shrink-0 flex-wrap gap-3 text-sm font-medium">
+          <Link
+            href="/shops/browse"
+            className="text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
+          >
+            Marketplace
+          </Link>
+          <Link
+            href="/shops"
+            className="text-zinc-600 underline-offset-2 hover:underline dark:text-zinc-400"
+          >
+            Toutes les boutiques
+          </Link>
+        </div>
       </div>
     </header>
   )

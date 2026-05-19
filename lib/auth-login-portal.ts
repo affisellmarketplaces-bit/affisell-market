@@ -32,7 +32,8 @@ export function inferLoginPortal(callbackUrl: string | undefined | null): LoginP
     lower.includes("/onboarding/affiliate") ||
     lower.includes("/auth/signin/affiliate") ||
     lower.startsWith("/affiliate/") ||
-    lower.startsWith("/marketplace")
+    lower.startsWith("/marketplace") ||
+    lower.includes("/dashboard/affiliate/catalog")
   ) {
     return "AFFILIATE"
   }

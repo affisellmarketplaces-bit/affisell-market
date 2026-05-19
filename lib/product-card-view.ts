@@ -41,6 +41,10 @@ export function resolveProductCardViewMode(input: ResolveProductCardViewModeInpu
     return "customer"
   }
 
+  if (path === "/dashboard/affiliate/catalog" || path.startsWith("/dashboard/affiliate/catalog")) {
+    return "merchant"
+  }
+
   if (path === "/marketplace" || path.startsWith("/marketplace/")) {
     if (isMerchantRole(input.role) && !input.previewAsCustomer) {
       return "merchant"
