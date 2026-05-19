@@ -71,11 +71,6 @@ export async function middleware(req: NextRequest) {
   const role = typeof token?.role === "string" ? token.role : undefined
   const loggedIn = Boolean(token?.sub)
 
-  /** Affiliate portal home — requires sign-in. */
-  if (pathname === "/" && !loggedIn) {
-    return NextResponse.redirect(signInRedirectUrl(req, "/", "affiliate"))
-  }
-
   const isSupplierArea = pathname === "/dashboard/supplier" || pathname.startsWith("/dashboard/supplier/")
   const isAffiliateArea =
     pathname === "/dashboard/affiliate" ||

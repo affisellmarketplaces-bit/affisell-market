@@ -1,13 +1,14 @@
 import type { Metadata } from "next"
 
+import { FeaturedShops } from "@/components/home/FeaturedShops"
 import { ShopsDirectoryGrid } from "@/components/shops/ShopsDirectoryGrid"
 import { loadPublicAffiliateShops } from "@/lib/shop-storefront-data"
 
-/** Public SEO directory — revalidate hourly; safe buyer-facing fields only. */
+/** Public SEO directory — revalidate hourly; buyer-safe fields only. */
 export const revalidate = 3600
 
 export const metadata: Metadata = {
-  title: "Boutiques créateurs",
+  title: "Boutiques créateurs - Affisell",
   description: "Parcourez les boutiques Affisell des créateurs affiliés.",
   robots: { index: true, follow: true },
 }
@@ -36,7 +37,7 @@ export default async function ShopsDirectoryPage() {
       </header>
 
       {shops.length === 0 ? (
-        <p className="text-sm text-zinc-500">Aucune boutique publique pour le moment.</p>
+        <FeaturedShops shops={[]} />
       ) : (
         <ShopsDirectoryGrid shops={shops} />
       )}

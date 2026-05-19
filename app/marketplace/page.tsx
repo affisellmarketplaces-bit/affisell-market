@@ -1,5 +1,12 @@
 import type { Metadata } from "next"
+import { redirect } from "next/navigation"
 import { Suspense } from "react"
+
+import { AffiliateHero } from "@/components/marketplace/AffiliateHero"
+import { HomeHighlights } from "@/components/home/HomeHighlights"
+import { auth } from "@/auth"
+import { loadHomeHighlights } from "@/lib/home-marketplace-data"
+import { loadHomeMarketplaceStatsSafe } from "@/lib/public-home-data"
 
 import { MarketplaceView } from "./marketplace-view"
 
@@ -11,16 +18,45 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-export default function MarketplacePage() {
+async function loadHighlightsSafe() {
+  try {
+    return await loadHomeHighlights()
+  } catch (err) {
+    console.error("[marketplace/page] loadHomeHighlights failed:", err)
+    return { bestSellers7d: [], newArrivals: [], highMargin: [] }
+  }
+}
+
+export default async function MarketplacePage() {
+  const session = await auth()
+  const role = session?.user?.role
+  if (role === "SUPPLIER") {
+    redirect("/dashboard/supplier")
+  }
+  if (role !== "AFFILIATE") {
+    redirect("/auth/signin?role=affiliate&callbackUrl=/marketplace")
+  }
+
+  const [stats, highlights] = await Promise.all([
+    loadHomeMarketplaceStatsSafe(),
+    loadHighlightsSafe(),
+  ])
+
   return (
-    <Suspense
-      fallback={
-        <main className="min-h-[calc(100dvh-3.75rem)] text-zinc-600 dark:text-zinc-400">
-          <div className="mx-auto max-w-7xl px-4 py-20 text-center md:px-8">Loading…</div>
-        </main>
-      }
-    >
-      <MarketplaceView />
-    </Suspense>
+    <main className="min-h-[calc(100dvh-3.75rem)]">
+      <div className="mx-auto max-w-7xl space-y-10 px-4 py-8 md:px-8">
+        <AffiliateHero stats={stats} />
+        <HomeHighlights data={highlights} mode="affiliate" />
+      </div>
+      <Suspense
+        fallback={
+          <div className="mx-auto max-w-7xl px-4 py-12 text-center text-zinc-600 dark:text-zinc-400 md:px-8">
+            Chargement du catalogue…
+          </div>
+        }
+      >
+        <MarketplaceView />
+      </Suspense>
+    </main>
   )
 }

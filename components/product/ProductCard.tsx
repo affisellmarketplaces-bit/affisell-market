@@ -34,8 +34,8 @@ export type ProductCardProduct = {
 
 type ProductCardProps = {
   product: ProductCardProduct | Record<string, unknown>
-  /** Required — parent decides buyer vs merchant context (RGPD-safe customer mode). */
-  mode: ProductCardDisplayMode
+  /** Parent decides buyer vs merchant context. Defaults to customer (RGPD-safe). */
+  mode?: ProductCardDisplayMode
   href?: string
 }
 
@@ -180,7 +180,7 @@ function CustomerConversionBadges() {
   )
 }
 
-export function ProductCard({ product, mode, href: hrefProp }: ProductCardProps) {
+export function ProductCard({ product, mode = "customer", href: hrefProp }: ProductCardProps) {
   const o = product as Record<string, unknown>
   const p = coerceProduct(product)
   const listingRaw = o.listingId ?? o.id
@@ -207,7 +207,8 @@ export function ProductCard({ product, mode, href: hrefProp }: ProductCardProps)
   const src = p.image || "/placeholder-product.jpg"
   const reward = p.buyerRewardBadge
 
-  const merchantMode = mode === "affiliate" || mode === "supplier"
+  const showBusiness = mode === "affiliate" || mode === "supplier"
+  const showMargin = mode === "affiliate"
 
   return (
     <Link
@@ -218,7 +219,7 @@ export function ProductCard({ product, mode, href: hrefProp }: ProductCardProps)
         "hover:border-violet-200/80 hover:shadow-lg hover:shadow-violet-500/5 focus-visible:ring-2 focus-visible:ring-violet-500 dark:hover:border-violet-800/60"
       )}
       data-product-card-mode={mode}
-      data-show-business-data={merchantMode ? "true" : "false"}
+      data-show-business-data={showBusiness ? "true" : "false"}
     >
       <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-white/50 bg-gradient-to-br from-violet-50/40 to-teal-50/25 dark:border-zinc-800/80 dark:from-violet-950/25 dark:to-teal-950/15">
         {hasDiscount ? <ProductDiscountTag percent={discount} /> : null}
@@ -262,10 +263,10 @@ export function ProductCard({ product, mode, href: hrefProp }: ProductCardProps)
           ) : null}
         </div>
 
-        {merchantMode ? (
+        {showBusiness ? (
           <>
             <BusinessBadges
-              mode={mode === "supplier" ? "supplier" : "affiliate"}
+              mode={showMargin ? "affiliate" : "supplier"}
               soldCount={p.soldCount}
               marginCents={p.marginCents}
               commissionPct={p.commissionPct}
