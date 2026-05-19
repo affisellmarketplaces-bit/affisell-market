@@ -17,11 +17,19 @@ export function inferLoginPortal(callbackUrl: string | undefined | null): LoginP
   }
   const q = path.split("?")[0] ?? path
   const lower = q.toLowerCase()
-  if (lower.includes("/dashboard/supplier") || lower.includes("/signup/supplier")) return "SUPPLIER"
+  if (
+    lower.includes("/dashboard/supplier") ||
+    lower.includes("/signup/supplier") ||
+    lower.includes("/auth/signin/supplier")
+  ) {
+    return "SUPPLIER"
+  }
   if (
     lower.includes("/dashboard/affiliate") ||
     lower.includes("/signup/affiliate") ||
-    lower.startsWith("/affiliate/")
+    lower.includes("/auth/signin/affiliate") ||
+    lower.startsWith("/affiliate/") ||
+    lower.startsWith("/marketplace")
   ) {
     return "AFFILIATE"
   }

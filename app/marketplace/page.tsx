@@ -34,7 +34,7 @@ export default async function MarketplacePage() {
     redirect("/dashboard/supplier")
   }
   if (role !== "AFFILIATE") {
-    redirect("/auth/signin?role=affiliate&callbackUrl=/marketplace")
+    redirect("/auth/signin/affiliate")
   }
 
   const [stats, highlights] = await Promise.all([

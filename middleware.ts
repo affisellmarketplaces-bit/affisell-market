@@ -11,12 +11,32 @@ function secureSessionCookieForRequest(req: NextRequest): boolean {
   return req.nextUrl.protocol === "https:"
 }
 
-/** Send unauthenticated users straight to sign-in (avoids an extra `/login` hop that could render blank). */
-function signInRedirectUrl(req: NextRequest, pathWithSearch: string, role?: string) {
-  const u = new URL("/auth/signin", req.url)
+function signInAffiliateUrl(req: NextRequest, pathWithSearch: string) {
+  const u = new URL("/auth/signin/affiliate", req.url)
   u.searchParams.set("callbackUrl", pathWithSearch)
-  if (role) u.searchParams.set("role", role)
   return u
+}
+
+function signInSupplierUrl(req: NextRequest, pathWithSearch: string) {
+  const u = new URL("/auth/signin/supplier", req.url)
+  u.searchParams.set("callbackUrl", pathWithSearch)
+  return u
+}
+
+/** Legacy `/auth/signin?role=…` → clean portal routes. */
+function legacySignInRedirect(req: NextRequest): NextResponse | null {
+  if (req.nextUrl.pathname !== "/auth/signin") return null
+  const role = req.nextUrl.searchParams.get("role")?.trim().toLowerCase()
+  const callback = req.nextUrl.searchParams.get("callbackUrl")
+  if (role === "affiliate") {
+    const u = signInAffiliateUrl(req, callback ?? "/marketplace")
+    return NextResponse.redirect(u)
+  }
+  if (role === "supplier") {
+    const u = signInSupplierUrl(req, callback ?? "/dashboard/supplier")
+    return NextResponse.redirect(u)
+  }
+  return null
 }
 
 function withForcedCustomerRole(req: NextRequest): NextResponse {
@@ -30,14 +50,15 @@ function withForcedCustomerRole(req: NextRequest): NextResponse {
 export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname
 
-  /** One server redirect (no blank client page). Preserves `?callbackUrl=`. */
+  const legacy = legacySignInRedirect(req)
+  if (legacy) return legacy
+
   if (pathname === "/login") {
     const u = req.nextUrl.clone()
     u.pathname = "/auth/signin"
     return NextResponse.redirect(u)
   }
 
-  /** Legacy `/shop/*` → canonical `/shops/*` */
   if (pathname === "/shop") {
     const u = req.nextUrl.clone()
     u.pathname = "/shops"
@@ -51,10 +72,6 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(u, 308)
   }
 
-  /**
-   * Public creator storefront UI: affiliates see the shopper experience here.
-   * `?preview=affiliate` (+ logged-in AFFILIATE) restores business card mode on the client only.
-   */
   if (pathname === "/shops" || pathname.startsWith("/shops/")) {
     return withForcedCustomerRole(req)
   }
@@ -71,6 +88,14 @@ export async function middleware(req: NextRequest) {
   const role = typeof token?.role === "string" ? token.role : undefined
   const loggedIn = Boolean(token?.sub)
 
+  const isMarketplace =
+    pathname === "/marketplace" || pathname.startsWith("/marketplace/")
+  if (isMarketplace && pathname !== "/marketplace/account" && !pathname.startsWith("/marketplace/account/")) {
+    if (!loggedIn || role !== "AFFILIATE") {
+      return NextResponse.redirect(signInAffiliateUrl(req, path))
+    }
+  }
+
   const isSupplierArea = pathname === "/dashboard/supplier" || pathname.startsWith("/dashboard/supplier/")
   const isAffiliateArea =
     pathname === "/dashboard/affiliate" ||
@@ -78,7 +103,7 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith("/affiliate/")
 
   if (isSupplierArea) {
-    if (!loggedIn) return NextResponse.redirect(signInRedirectUrl(req, path))
+    if (!loggedIn) return NextResponse.redirect(signInSupplierUrl(req, path))
     if (role !== "SUPPLIER") {
       const u = new URL(req.url)
       u.pathname = role === "AFFILIATE" ? "/dashboard/affiliate" : "/marketplace"
@@ -88,7 +113,7 @@ export async function middleware(req: NextRequest) {
   }
 
   if (isAffiliateArea) {
-    if (!loggedIn) return NextResponse.redirect(signInRedirectUrl(req, path))
+    if (!loggedIn) return NextResponse.redirect(signInAffiliateUrl(req, path))
     if (role !== "AFFILIATE") {
       const u = new URL(req.url)
       u.pathname = role === "SUPPLIER" ? "/dashboard/supplier" : "/marketplace"
@@ -100,7 +125,11 @@ export async function middleware(req: NextRequest) {
   const isMarketplaceBuyerAccount =
     pathname === "/marketplace/account" || pathname.startsWith("/marketplace/account/")
   if (isMarketplaceBuyerAccount) {
-    if (!loggedIn) return NextResponse.redirect(signInRedirectUrl(req, path))
+    if (!loggedIn) {
+      const u = new URL("/auth/signin", req.url)
+      u.searchParams.set("callbackUrl", path)
+      return NextResponse.redirect(u)
+    }
     if (role === "AFFILIATE" || role === "SUPPLIER") {
       const u = new URL(req.url)
       u.pathname = role === "SUPPLIER" ? "/dashboard/supplier" : "/dashboard/affiliate"
@@ -116,10 +145,13 @@ export const config = {
   matcher: [
     "/",
     "/login",
+    "/auth/signin",
     "/shop",
     "/shop/:path*",
     "/shops",
     "/shops/:path*",
+    "/marketplace",
+    "/marketplace/:path*",
     "/dashboard/supplier",
     "/dashboard/supplier/:path*",
     "/dashboard/affiliate",

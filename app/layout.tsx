@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 
-import { SiteNav } from "@/components/site-nav"
+import { AppHeader } from "@/components/nav/app-header"
 import { RootIntlAndSession } from "@/app/root-intl-session"
 import { STOREFRONT_HTML_LANG } from "@/lib/market-config"
 
@@ -24,7 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <RootIntlAndSession>
           <header className="relative z-[100] border-b border-gray-100/90 bg-white/80 px-4 py-3 shadow-sm backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/90">
             <Suspense fallback={<HeaderFallback />}>
-              <SiteNav />
+              <AppHeader />
             </Suspense>
           </header>
           {children}

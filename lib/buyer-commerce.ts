@@ -23,6 +23,9 @@ export function showBuyerCommerceInSiteHeader(
   hasSession: boolean
 ): boolean {
   if (!isBuyerCommerceSurfacePath(pathname)) return false
-  if (!hasSession) return true
+  if (!hasSession) {
+    if (pathname === "/cart" || pathname === "/wishlist") return true
+    return false
+  }
   return !isMerchantRole(role)
 }

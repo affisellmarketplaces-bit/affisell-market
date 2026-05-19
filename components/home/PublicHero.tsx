@@ -33,7 +33,7 @@ export function PublicHero({ stats }: Props) {
             Découvrir les boutiques →
           </Link>
           <Link
-            href="/auth/signin?role=affiliate"
+            href="/auth/signin/affiliate"
             className={cn(
               buttonVariants({ size: "lg", variant: "outline" }),
               "border-white/40 bg-transparent text-white hover:bg-white/10"
@@ -42,6 +42,14 @@ export function PublicHero({ stats }: Props) {
             Je suis créateur
           </Link>
         </div>
+        <p className="mt-4">
+          <Link
+            href="/auth/signin/supplier"
+            className="text-sm font-medium text-violet-100/95 underline-offset-2 hover:underline"
+          >
+            Je suis fournisseur →
+          </Link>
+        </p>
         <p className="mt-6 text-sm font-medium tabular-nums text-violet-100/90">
           {stats.shopCountLabel} boutiques créateurs · {stats.productCountLabel} produits
         </p>
