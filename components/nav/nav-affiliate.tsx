@@ -10,17 +10,21 @@ import { QuickNav } from "@/components/navigation/quick-nav"
 import { NavHeaderSearch } from "@/components/nav/nav-header-search"
 import { MerchantAvatarMenu } from "@/components/nav/merchant-avatar-menu"
 import { MerchantNotificationsMenu } from "@/components/merchant-notifications-menu"
-import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
+import { AFFILIATE_AGENT_PATH, AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
 
 export function NavAffiliate() {
   const pathname = usePathname() ?? ""
 
-  const onDashboard = pathname.startsWith("/dashboard/affiliate") && !pathname.startsWith("/dashboard/affiliate/earnings")
+  const onAgent = pathname.startsWith(AFFILIATE_AGENT_PATH)
   const onCatalog =
     pathname === AFFILIATE_CATALOG_PATH || pathname.startsWith(`${AFFILIATE_CATALOG_PATH}/`)
-  const onAgent = pathname.startsWith("/agent")
   const onEarnings = pathname.startsWith("/dashboard/affiliate/earnings")
-
+  const onDashboard =
+    pathname === "/dashboard/affiliate" ||
+    (pathname.startsWith("/dashboard/affiliate/") &&
+      !onEarnings &&
+      !onCatalog &&
+      !onAgent)
   return (
     <nav className="mx-auto flex max-w-7xl flex-wrap items-center gap-2 px-1 py-1 text-sm md:flex-nowrap md:gap-3">
       <FastLink href="/dashboard/affiliate" className="order-1 shrink-0 text-lg font-bold affisell-logo-text">
@@ -28,7 +32,7 @@ export function NavAffiliate() {
       </FastLink>
 
       <div className="order-3 hidden min-w-0 flex-1 items-center gap-1 md:order-2 md:flex">
-        <NavPill href="/agent" label="Agent" active={onAgent} />
+        <NavPill href={AFFILIATE_AGENT_PATH} label="Agent sourcing" active={onAgent} />
         <NavPill href={AFFILIATE_CATALOG_PATH} label="Catalogue" icon={Store} active={onCatalog} />
         <NavPill href="/dashboard/affiliate" label="Dashboard" icon={LayoutDashboard} active={onDashboard} />
         <NavPill href="/dashboard/affiliate/earnings" label="Revenus" icon={Wallet} active={onEarnings} />

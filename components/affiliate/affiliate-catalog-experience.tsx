@@ -25,7 +25,7 @@ import { AffiliateHero } from "@/components/marketplace/AffiliateHero"
 import { MarketplaceDepartmentRail } from "@/components/marketplace/MarketplaceDepartmentRail"
 import { Sidebar } from "@/components/marketplace/Sidebar"
 import { Button } from "@/components/ui/button"
-import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
+import { AFFILIATE_AGENT_PATH, AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
 import type {
   AffiliateCatalogHighlights as HighlightsData,
   AffiliateCatalogProduct,
@@ -64,7 +64,12 @@ const NICHE_PILLS = [
 ] as const
 
 const PULSE_LINKS = [
-  { href: "/agent", label: "Agent IA", hint: "Conseiller sourcing", className: "from-violet-600 to-indigo-600" },
+  {
+    href: AFFILIATE_AGENT_PATH,
+    label: "Agent sourcing",
+    hint: "Analyser & choisir vos SKU",
+    className: "from-violet-600 to-indigo-600",
+  },
   { href: "/discover", label: "Discover", hint: "Signaux marché", className: "from-fuchsia-600 to-pink-600" },
   {
     href: `${AFFILIATE_CATALOG_PATH}?highlight=margin`,
@@ -109,6 +114,7 @@ export function AffiliateCatalogExperience({ stats, initialHighlights }: Props) 
   const [modalListing, setModalListing] = useState<SerializedListing | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const toastTimer = useRef<number | null>(null)
+  const productDeepLinkConsumed = useRef(false)
 
   const filterKey = searchParams.toString()
 
@@ -233,6 +239,22 @@ export function AffiliateCatalogExperience({ stats, initialHighlights }: Props) 
     },
     [openCreate, openEdit]
   )
+
+  useEffect(() => {
+    if (productDeepLinkConsumed.current || loading) return
+    const pid = searchParams.get("productId")?.trim()
+    if (!pid) return
+    const row = products.find((p) => p.id === pid)
+    if (!row) return
+    productDeepLinkConsumed.current = true
+    const listingId = row.affiliateProducts[0]?.id ?? null
+    void (listingId ? openEdit(pid, listingId) : openCreate(pid))
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete("productId")
+    const s = params.toString()
+    router.replace(`${AFFILIATE_CATALOG_PATH}${s ? `?${s}` : ""}`, { scroll: false })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot deep link from agent cards
+  }, [loading, products, searchParams, openCreate, openEdit, router])
 
   const handleCategoryClick = (catId: string, subId?: string) => {
     const params = new URLSearchParams(searchParams.toString())

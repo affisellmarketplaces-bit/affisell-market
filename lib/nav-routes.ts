@@ -1,4 +1,9 @@
-import { AFFILIATE_CATALOG_PATH, PUBLIC_MARKETPLACE_BROWSE_PATH, PUBLIC_SHOPS_PATH } from "@/lib/affiliate-routes"
+import {
+  AFFILIATE_AGENT_PATH,
+  AFFILIATE_CATALOG_PATH,
+  PUBLIC_MARKETPLACE_BROWSE_PATH,
+  PUBLIC_SHOPS_PATH,
+} from "@/lib/affiliate-routes"
 
 /** Routes préchargées au survol / au chargement pour une navigation instantanée. */
 export const BUYER_WARM_ROUTES = [
@@ -13,7 +18,7 @@ export const BUYER_WARM_ROUTES = [
 export const AFFILIATE_WARM_ROUTES = [
   "/dashboard/affiliate",
   AFFILIATE_CATALOG_PATH,
-  "/agent",
+  AFFILIATE_AGENT_PATH,
   "/dashboard/affiliate/earnings",
 ] as const
 
@@ -74,7 +79,13 @@ export const AFFILIATE_QUICK_NAV: QuickNavItem[] = [
     keywords: ["catalogue", "discover", "produit"],
     group: "Affilié",
   },
-  { id: "agent", label: "Agent IA", href: "/agent", keywords: ["agent", "ia"], group: "Affilié" },
+  {
+    id: "agent",
+    label: "Agent sourcing",
+    href: AFFILIATE_AGENT_PATH,
+    keywords: ["agent", "ia", "sourcing", "marge"],
+    group: "Affilié",
+  },
   {
     id: "earnings",
     label: "Revenus",

@@ -1,6 +1,9 @@
 /** Affiliate product discovery (margins, commissions) — not the public buyer marketplace. */
 export const AFFILIATE_CATALOG_PATH = "/dashboard/affiliate/catalog"
 
+/** Agent IA sourcing (marges, choix SKU vitrine) — pas l’agent shopping acheteur `/agent`. */
+export const AFFILIATE_AGENT_PATH = "/dashboard/affiliate/agent"
+
 /** Public buyer directory and storefronts. */
 export const PUBLIC_SHOPS_PATH = "/shops"
 
