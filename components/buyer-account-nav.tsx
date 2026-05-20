@@ -6,23 +6,48 @@ import { CreditCard, LayoutDashboard, Package, ShoppingCart } from "lucide-react
 
 import { cn } from "@/lib/utils"
 
-const tabs = [
-  { href: "/marketplace/account", label: "Overview", icon: LayoutDashboard, exact: true },
-  { href: "/marketplace/account/orders", label: "Orders", icon: Package, exact: false },
-  { href: "/marketplace/account/wallet", label: "Wallet", icon: CreditCard, exact: false },
-  { href: "/cart", label: "Cart", icon: ShoppingCart, exact: false },
-] as const
+type TabKey = "overview" | "orders" | "wallet" | "cart"
 
-export function BuyerAccountNav() {
+const TAB_DEFS: Array<{
+  key: TabKey
+  href: string
+  baseLabel: string
+  icon: typeof LayoutDashboard
+  exact: boolean
+}> = [
+  { key: "overview", href: "/marketplace/account", baseLabel: "Vue d'ensemble", icon: LayoutDashboard, exact: true },
+  { key: "orders", href: "/marketplace/account/orders", baseLabel: "Commandes", icon: Package, exact: false },
+  { key: "wallet", href: "/marketplace/account/wallet", baseLabel: "Portefeuille", icon: CreditCard, exact: false },
+  { key: "cart", href: "/cart", baseLabel: "Panier", icon: ShoppingCart, exact: false },
+]
+
+function tabLabel(
+  key: TabKey,
+  baseLabel: string,
+  orderCount: number,
+  cartItemCount: number
+): string {
+  if (key === "orders") return `${baseLabel} (${orderCount})`
+  if (key === "cart") return `${baseLabel} (${cartItemCount})`
+  return baseLabel
+}
+
+type Props = {
+  orderCount?: number
+  cartItemCount?: number
+}
+
+export function BuyerAccountNav({ orderCount = 0, cartItemCount = 0 }: Props) {
   const pathname = usePathname() ?? ""
 
   return (
-    <nav className="mt-6 flex flex-wrap gap-2" aria-label="Buyer account">
-      {tabs.map(({ href, label, icon: Icon, exact }) => {
+    <nav className="mt-6 flex flex-wrap gap-2" aria-label="Espace client">
+      {TAB_DEFS.map(({ key, href, baseLabel, icon: Icon, exact }) => {
         const active = exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`)
+        const label = tabLabel(key, baseLabel, orderCount, cartItemCount)
         return (
           <Link
-            key={href + label}
+            key={href}
             href={href}
             className={cn(
               "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium shadow-sm transition",

@@ -1,8 +1,9 @@
 "use client"
 
 import { Suspense } from "react"
-import { Home, Search, Store } from "lucide-react"
+import { Home, Search, Store, User } from "lucide-react"
 import { usePathname } from "next/navigation"
+import { useSession } from "next-auth/react"
 
 import { FastLink } from "@/components/navigation/fast-link"
 import { NavPill } from "@/components/navigation/nav-pill"
@@ -14,6 +15,8 @@ import { cn } from "@/lib/utils"
 
 export function PublicNav() {
   const pathname = usePathname() ?? ""
+  const { data: session, status } = useSession()
+  const isCustomer = session?.user?.role === "CUSTOMER"
 
   const onHome = pathname === "/"
   const onShops =
@@ -51,9 +54,19 @@ export function PublicNav() {
         >
           Créateur
         </FastLink>
-        <FastLink href="/login" className={cn(buttonVariants({ size: "sm" }))}>
-          Connexion
-        </FastLink>
+        {status !== "loading" && isCustomer ? (
+          <FastLink
+            href="/marketplace/account"
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-1.5")}
+          >
+            <User className="size-4 shrink-0" aria-hidden />
+            Mon compte
+          </FastLink>
+        ) : (
+          <FastLink href="/login" className={cn(buttonVariants({ size: "sm" }))}>
+            Connexion
+          </FastLink>
+        )}
       </div>
     </nav>
   )
