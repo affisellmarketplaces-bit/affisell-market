@@ -100,6 +100,15 @@ export async function loadFeaturedProductsCustomer(limit = 8): Promise<HomeProdu
   return loadHomeBestSellers7d(limit)
 }
 
+export async function loadHomeBestSellers7dSafe(limit = 12): Promise<HomeProductCard[]> {
+  try {
+    return await loadHomeBestSellers7d(limit)
+  } catch (err) {
+    console.error("[public-home] loadHomeBestSellers7d failed:", err)
+    return []
+  }
+}
+
 export async function loadFeaturedProductsCustomerSafe(limit = 8): Promise<HomeProductCard[]> {
   try {
     return await loadFeaturedProductsCustomer(limit)

@@ -57,7 +57,8 @@ Vitest uses an empty `vitest-env/` as `envDir` so local `.env` is not read durin
 ## i18n (next-intl)
 
 - **Messages**: `messages/en.json` (default) and `messages/fr.json`.
-- **Server**: `i18n.ts` — locale from cookie `affisell_locale`, then `NEXT_PUBLIC_MESSAGES_LOCALE`, default `en`.
+- **Server**: `i18n.ts` + `createNextIntlPlugin('./i18n.ts')` in `next.config.ts` (required for `getTranslations` in Server Components).
+- Locale from cookie `affisell_locale`, then `NEXT_PUBLIC_MESSAGES_LOCALE`, default `en`.
 - **Client**: `components/navigation/locale-intl-provider.tsx` + `app/root-intl-session.tsx` (`NextIntlClientProvider`, `timeZone="Europe/Paris"`).
 - **Switcher**: header `LocaleSwitcher` (EN/FR flags) sets the cookie and `router.refresh()`.
 - **Persona landings**: `/` (buyer), `/creators`, `/partners` — copy via `useTranslations` / `getTranslations`; no hardcoded UI strings in those flows.

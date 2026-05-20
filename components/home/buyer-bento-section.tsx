@@ -1,4 +1,3 @@
-import Image from "next/image"
 import Link from "next/link"
 import { getTranslations } from "next-intl/server"
 import { Bot, Sparkles, Store, TrendingUp } from "lucide-react"
@@ -6,17 +5,20 @@ import { Bot, Sparkles, Store, TrendingUp } from "lucide-react"
 import { BentoCard } from "@/components/marketing/bento-card"
 import { AnimatedCounter } from "@/components/marketing/animated-counter"
 import { StaggerIn, StaggerItem } from "@/components/marketing/stagger-in"
-import { loadHomeBestSellers7d, loadHomeMarketplaceStats } from "@/lib/home-marketplace-data"
-import { loadFeaturedShopsSafe } from "@/lib/public-home-data"
+import {
+  loadFeaturedShopsSafe,
+  loadHomeBestSellers7dSafe,
+  loadHomeMarketplaceStatsSafe,
+} from "@/lib/public-home-data"
 import { PUBLIC_SHOPS_PATH } from "@/lib/affiliate-routes"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 
 export async function BuyerBentoSection() {
   const t = await getTranslations("home.bento")
   const [stats, shops, trending] = await Promise.all([
-    loadHomeMarketplaceStats(),
+    loadHomeMarketplaceStatsSafe(),
     loadFeaturedShopsSafe(4),
-    loadHomeBestSellers7d(3),
+    loadHomeBestSellers7dSafe(3),
   ])
 
   return (
@@ -48,7 +50,15 @@ export async function BuyerBentoSection() {
                   className="flex items-center gap-2 rounded-lg border border-zinc-100 px-2 py-1.5 text-xs dark:border-zinc-800"
                 >
                   {shop.logoUrl ? (
-                    <Image src={shop.logoUrl} alt="" width={24} height={24} className="rounded-full" />
+                    // eslint-disable-next-line @next/next/no-img-element -- creator CDN hosts vary
+                    <img
+                      src={shop.logoUrl}
+                      alt=""
+                      width={24}
+                      height={24}
+                      className="h-6 w-6 rounded-full object-cover"
+                      loading="lazy"
+                    />
                   ) : (
                     <Store className="h-5 w-5 text-violet-600" aria-hidden />
                   )}
