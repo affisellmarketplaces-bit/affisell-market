@@ -97,7 +97,7 @@ export function Sidebar({ onCategoryClick, activeCategoryId, activeSubcategoryId
                   "group flex w-full items-center justify-between px-4 py-3 text-left text-sm transition-colors",
                   parentActive
                     ? "bg-buyer-muted/80 text-orange-950 dark:bg-buyer-muted dark:text-buyer-light"
-                    : "text-foreground hover:bg-muted/80"
+                    : "text-zinc-900 hover:bg-muted/80 dark:text-zinc-100 dark:hover:bg-zinc-800/60"
                 )}
               >
                 <span className="flex min-w-0 items-center gap-2">
@@ -109,7 +109,7 @@ export function Sidebar({ onCategoryClick, activeCategoryId, activeSubcategoryId
                     <span
                       className={cn(
                         "rounded-full px-2 py-0.5 text-[10px] font-bold",
-                        parentActive ? "bg-buyer/15 text-buyer" : "text-muted-foreground"
+                        parentActive ? "bg-buyer/15 text-buyer" : "text-zinc-500 dark:text-zinc-400"
                       )}
                     >
                       {cat.count}
@@ -117,11 +117,11 @@ export function Sidebar({ onCategoryClick, activeCategoryId, activeSubcategoryId
                   ) : null}
                   {expanded ? (
                     <ChevronDown
-                      className={cn("h-4 w-4", parentActive ? "text-buyer" : "text-muted-foreground")}
+                      className={cn("h-4 w-4", parentActive ? "text-buyer" : "text-zinc-400 dark:text-zinc-500")}
                     />
                   ) : (
                     <ChevronRight
-                      className={cn("h-4 w-4", parentActive ? "text-buyer" : "text-muted-foreground")}
+                      className={cn("h-4 w-4", parentActive ? "text-buyer" : "text-zinc-400 dark:text-zinc-500")}
                     />
                   )}
                 </span>
@@ -139,7 +139,7 @@ export function Sidebar({ onCategoryClick, activeCategoryId, activeSubcategoryId
                         "flex w-full items-center justify-between border-l-2 py-2 pl-11 pr-4 text-left text-sm transition",
                         subActive
                           ? "border-buyer bg-buyer-muted/70 font-medium text-orange-950 dark:border-buyer dark:bg-buyer-muted dark:text-buyer-light"
-                          : "border-transparent text-muted-foreground hover:border-brand/30 hover:bg-brand-muted/40 hover:text-foreground"
+                          : "border-transparent text-zinc-600 hover:border-brand/30 hover:bg-brand-muted/40 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                       )}
                     >
                       <span className="min-w-0 truncate">{sub.name}</span>
