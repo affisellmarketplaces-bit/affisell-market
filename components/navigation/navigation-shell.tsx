@@ -15,7 +15,7 @@ export function NavigationShell() {
         <NavigationProgress />
       </Suspense>
       <NavigationWarmup />
-      <CommandK />
+      <CommandK showTrigger={false} />
       <MobileDock />
     </>
   )

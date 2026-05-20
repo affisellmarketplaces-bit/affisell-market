@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils"
 type Props = {
   href: string
   label: string
+  /** Shorter label below `xl` when the bar is tight. */
+  shortLabel?: string
   active?: boolean
   icon?: LucideIcon
   className?: string
@@ -19,13 +21,14 @@ type Props = {
 export function NavPill({
   href,
   label,
+  shortLabel,
   active = false,
   icon: Icon,
   className,
   localeAware = false,
 }: Props) {
   const classNames = cn(
-    "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold transition-all duration-200",
+    "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold transition-all duration-200 lg:px-3.5",
     active
       ? "bg-zinc-900 text-white shadow-md dark:bg-white dark:text-zinc-900"
       : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800",
@@ -36,7 +39,14 @@ export function NavPill({
   const content = (
     <>
       {Icon ? <Icon className="h-4 w-4 shrink-0 opacity-90" aria-hidden /> : null}
-      {label}
+      {shortLabel ? (
+        <>
+          <span className="xl:hidden">{shortLabel}</span>
+          <span className="hidden xl:inline">{label}</span>
+        </>
+      ) : (
+        label
+      )}
     </>
   )
 

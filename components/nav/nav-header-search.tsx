@@ -83,7 +83,7 @@ export function NavHeaderSearch({
           defaultValue={defaultQ}
           placeholder={resolvedPlaceholder}
           autoComplete="off"
-          className="h-10 w-full min-w-0 rounded-full border border-zinc-200 bg-zinc-50 py-2 pl-9 pr-3 text-zinc-900 shadow-sm outline-none placeholder:text-zinc-400 focus:border-zinc-300 focus:bg-white dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:border-zinc-500 md:max-w-xl lg:max-w-2xl"
+          className="h-10 w-full min-w-0 rounded-full border-0 bg-transparent py-2 pl-9 pr-2 text-zinc-900 shadow-none outline-none placeholder:text-zinc-400 focus:ring-0 dark:text-zinc-100"
         />
       </div>
     </form>

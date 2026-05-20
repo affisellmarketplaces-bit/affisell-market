@@ -50,7 +50,14 @@ function Highlight({ text, query }: { text: string; query: string }) {
   )
 }
 
-export function CommandK() {
+export const COMMAND_K_OPEN_EVENT = "affisell:command-k-open"
+
+type CommandKProps = {
+  /** When false, only ⌘K shortcut + modal (for global shell). */
+  showTrigger?: boolean
+}
+
+export function CommandK({ showTrigger = true }: CommandKProps) {
   const t = useTranslations("CommandK")
   const locale = useLocale()
   const router = useRouter()
@@ -152,24 +159,31 @@ export function CommandK() {
       }
       if (e.key === "Escape") setOpen(false)
     }
+    const onOpenEvent = () => setOpen(true)
     window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
+    window.addEventListener(COMMAND_K_OPEN_EVENT, onOpenEvent)
+    return () => {
+      window.removeEventListener("keydown", onKey)
+      window.removeEventListener(COMMAND_K_OPEN_EVENT, onOpenEvent)
+    }
   }, [])
 
   const groups = (["buy", "sell", "account"] as const).filter((s) => bySegment[s].length > 0)
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 rounded-full border border-zinc-200/90 bg-zinc-50/90 px-2.5 py-1.5 text-xs font-medium shadow-sm transition hover:border-violet-300 dark:border-zinc-700 dark:bg-zinc-900/80 sm:px-3"
-        aria-label={`${t("triggerLabel")} (⌘K)`}
-      >
-        <Zap className="h-3.5 w-3.5 text-[#6366F1]" aria-hidden />
-        <span className="hidden lg:inline">{t("triggerLabel")}</span>
-        <kbd className="rounded-md border px-1.5 py-0.5 font-mono text-[10px]">⌘K</kbd>
-      </button>
+      {showTrigger ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="inline-flex items-center gap-2 rounded-full border border-zinc-200/90 bg-zinc-50/90 px-2.5 py-1.5 text-xs font-medium shadow-sm transition hover:border-violet-300 dark:border-zinc-700 dark:bg-zinc-900/80 sm:px-3"
+          aria-label={`${t("triggerLabel")} (⌘K)`}
+        >
+          <Zap className="h-3.5 w-3.5 text-[#6366F1]" aria-hidden />
+          <span className="hidden xl:inline">{t("triggerLabel")}</span>
+          <kbd className="rounded-md border px-1.5 py-0.5 font-mono text-[10px]">⌘K</kbd>
+        </button>
+      ) : null}
 
       <AnimatePresence>
         {open ? (
