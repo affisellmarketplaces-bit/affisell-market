@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { CreditCard, LayoutDashboard, Package, ShoppingCart } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -11,14 +12,14 @@ type TabKey = "overview" | "orders" | "wallet" | "cart"
 const TAB_DEFS: Array<{
   key: TabKey
   href: string
-  baseLabel: string
+  labelKey: "overview" | "orders" | "wallet" | "cart"
   icon: typeof LayoutDashboard
   exact: boolean
 }> = [
-  { key: "overview", href: "/marketplace/account", baseLabel: "Vue d'ensemble", icon: LayoutDashboard, exact: true },
-  { key: "orders", href: "/marketplace/account/orders", baseLabel: "Commandes", icon: Package, exact: false },
-  { key: "wallet", href: "/marketplace/account/wallet", baseLabel: "Portefeuille", icon: CreditCard, exact: false },
-  { key: "cart", href: "/cart", baseLabel: "Panier", icon: ShoppingCart, exact: false },
+  { key: "overview", href: "/marketplace/account", labelKey: "overview", icon: LayoutDashboard, exact: true },
+  { key: "orders", href: "/marketplace/account/orders", labelKey: "orders", icon: Package, exact: false },
+  { key: "wallet", href: "/marketplace/account/wallet", labelKey: "wallet", icon: CreditCard, exact: false },
+  { key: "cart", href: "/cart", labelKey: "cart", icon: ShoppingCart, exact: false },
 ]
 
 function tabLabel(
@@ -38,13 +39,14 @@ type Props = {
 }
 
 export function BuyerAccountNav({ orderCount = 0, cartItemCount = 0 }: Props) {
+  const t = useTranslations("buyerAccount")
   const pathname = usePathname() ?? ""
 
   return (
-    <nav className="mt-6 flex flex-wrap gap-2" aria-label="Espace client">
-      {TAB_DEFS.map(({ key, href, baseLabel, icon: Icon, exact }) => {
+    <nav className="mt-6 flex flex-wrap gap-2" aria-label={t("navAria")}>
+      {TAB_DEFS.map(({ key, href, labelKey, icon: Icon, exact }) => {
         const active = exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`)
-        const label = tabLabel(key, baseLabel, orderCount, cartItemCount)
+        const label = tabLabel(key, t(labelKey), orderCount, cartItemCount)
         return (
           <Link
             key={href}

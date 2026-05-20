@@ -2,6 +2,7 @@
 
 import { Loader2 } from "lucide-react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { useTranslations } from "next-intl"
 import useSWR from "swr"
 
 import {
@@ -34,6 +35,8 @@ function catalogBaseFromPath(pathname: string): string {
 }
 
 export function MarketplaceFilters({ categoryId, subcategoryId, className }: Props) {
+  const t = useTranslations("marketplace.browse")
+  const tAuth = useTranslations("auth")
   const router = useRouter()
   const pathname = usePathname() ?? ""
   const catalogBase = catalogBaseFromPath(pathname)
@@ -74,7 +77,7 @@ export function MarketplaceFilters({ categoryId, subcategoryId, className }: Pro
           className
         )}
       >
-        Choisissez une catégorie pour afficher les filtres produit.
+        {t("pickCategory")}
       </aside>
     )
   }
@@ -88,18 +91,18 @@ export function MarketplaceFilters({ categoryId, subcategoryId, className }: Pro
     >
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-          Filtres
+          {t("filtersTitle")}
         </p>
-        <p className="mt-0.5 text-[11px] text-zinc-500 dark:text-zinc-400">Comme sur Amazon — par caractéristique</p>
+        <p className="mt-0.5 text-[11px] text-zinc-500 dark:text-zinc-400">{t("filtersHint")}</p>
       </div>
 
       {isLoading ? (
         <div className="flex items-center gap-2 text-sm text-zinc-500">
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-          Chargement…
+          {tAuth("loading")}
         </div>
       ) : facets.length === 0 ? (
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">Aucun filtre pour cette catégorie.</p>
+        <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("noFacets")}</p>
       ) : (
         facets.map((facet) => (
           <div key={facet.key}>

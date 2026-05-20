@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation"
 import { Suspense } from "react"
+import { useTranslations } from "next-intl"
 import { LayoutDashboard, Store, Wallet } from "lucide-react"
 
 import { LocaleSwitcher } from "@/components/locale-switcher"
@@ -14,6 +15,8 @@ import { MerchantNotificationsMenu } from "@/components/merchant-notifications-m
 import { AFFILIATE_AGENT_PATH, AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
 
 export function NavAffiliate() {
+  const t = useTranslations("nav.affiliate")
+  const tSearch = useTranslations("nav")
   const pathname = usePathname() ?? ""
 
   const onAgent = pathname.startsWith(AFFILIATE_AGENT_PATH)
@@ -33,17 +36,17 @@ export function NavAffiliate() {
       </FastLink>
 
       <div className="order-3 hidden min-w-0 flex-1 items-center gap-1 md:order-2 md:flex">
-        <NavPill href={AFFILIATE_AGENT_PATH} label="Agent sourcing" active={onAgent} />
-        <NavPill href={AFFILIATE_CATALOG_PATH} label="Catalogue" icon={Store} active={onCatalog} />
-        <NavPill href="/dashboard/affiliate" label="Dashboard" icon={LayoutDashboard} active={onDashboard} />
-        <NavPill href="/dashboard/affiliate/earnings" label="Revenus" icon={Wallet} active={onEarnings} />
+        <NavPill href={AFFILIATE_AGENT_PATH} label={t("agent")} active={onAgent} />
+        <NavPill href={AFFILIATE_CATALOG_PATH} label={t("catalog")} icon={Store} active={onCatalog} />
+        <NavPill href="/dashboard/affiliate" label={t("dashboard")} icon={LayoutDashboard} active={onDashboard} />
+        <NavPill href="/dashboard/affiliate/earnings" label={t("earnings")} icon={Wallet} active={onEarnings} />
       </div>
 
       <Suspense fallback={<div className="order-4 h-10 min-w-0 flex-1 md:order-3" aria-hidden />}>
         <div className="order-4 flex min-w-0 flex-1 md:order-3">
           <NavHeaderSearch
             id="affiliate-header-search-q"
-            placeholder="Rechercher un produit…"
+            placeholder={tSearch("searchCatalog")}
             searchTarget="catalog"
           />
         </div>

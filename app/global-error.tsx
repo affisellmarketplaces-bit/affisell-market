@@ -4,7 +4,7 @@ import * as Sentry from "@sentry/nextjs"
 import Link from "next/link"
 import { useEffect } from "react"
 
-import { RootIntlAndSession } from "@/app/root-intl-session"
+import { RootSessionShell } from "@/app/root-intl-session"
 import { STOREFRONT_HTML_LANG } from "@/lib/market-config"
 
 import "./globals.css"
@@ -24,7 +24,7 @@ export default function GlobalError({
   return (
     <html lang={STOREFRONT_HTML_LANG}>
       <body className="min-h-dvh bg-gradient-to-b from-violet-50/80 via-white to-zinc-50 text-zinc-900 antialiased dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900 dark:text-zinc-50">
-        <RootIntlAndSession>
+        <RootSessionShell>
           <main className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center px-6 py-16">
             <p className="text-xs font-semibold uppercase tracking-widest text-violet-600 dark:text-violet-400">
               Something went wrong
@@ -52,7 +52,7 @@ export default function GlobalError({
               </Link>
             </div>
           </main>
-        </RootIntlAndSession>
+        </RootSessionShell>
       </body>
     </html>
   )

@@ -179,7 +179,15 @@ export async function middleware(req: NextRequest) {
   }
 
   const intlResponse = intlMiddleware(req)
-  if (locale) setLocaleCookie(intlResponse, locale)
+  const urlLocale = localeFromPathname(req.nextUrl.pathname)
+  const cookieLocale = req.cookies.get(LOCALE_COOKIE)?.value
+  if (urlLocale) {
+    setLocaleCookie(intlResponse, urlLocale)
+  } else if (cookieLocale) {
+    setLocaleCookie(intlResponse, cookieLocale)
+  } else {
+    setLocaleCookie(intlResponse, routing.defaultLocale)
+  }
   return intlResponse
 }
 

@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils"
 const FLAGS: Record<AppLocale, string> = { en: "🇬🇧", fr: "🇫🇷" }
 const LABELS: Record<AppLocale, string> = { en: "English", fr: "Français" }
 
+const MARKETING_PATHS = new Set(["/", "/creators", "/partners"])
+
 function setLocaleCookie(locale: AppLocale) {
   document.cookie = `${LOCALE_COOKIE}=${locale};path=/;max-age=${localeCookieMaxAgeSec()};SameSite=Lax`
 }
@@ -22,19 +24,22 @@ export function LanguageSwitcher({ className }: { className?: string }) {
   const router = useRouter()
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
-  const [, startTransition] = useTransition()
+  const [pending, startTransition] = useTransition()
 
   function select(next: AppLocale) {
     if (next === locale) return
     setLocaleCookie(next)
     setOpen(false)
     startTransition(() => {
-      router.replace(pathname, { locale: next })
+      if (MARKETING_PATHS.has(pathname)) {
+        router.replace(pathname, { locale: next })
+      }
+      router.refresh()
     })
   }
 
   return (
-    <div className={cn("relative", className)}>
+    <div className={cn("relative", pending && "opacity-70", className)}>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}

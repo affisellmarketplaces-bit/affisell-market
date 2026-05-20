@@ -3,6 +3,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { ExternalLink, Palette, Ruler, Sparkles } from "lucide-react"
+import { useTranslations } from "next-intl"
 import type { CSSProperties } from "react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
@@ -113,6 +114,7 @@ async function fetchSession(signal?: AbortSignal): Promise<AuthSession> {
 }
 
 export default function CartPage() {
+  const t = useTranslations("cart")
   const [lines, setLines] = useState<CartLine[]>([])
   const [isAuthed, setIsAuthed] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -337,7 +339,7 @@ export default function CartPage() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-violet-50/40 py-8 dark:from-zinc-950 dark:to-violet-950/20">
         <div className="mx-auto max-w-3xl px-4">
-          <p className="text-sm text-zinc-500">Chargement du panier…</p>
+          <p className="text-sm text-zinc-500">{t("loading")}</p>
         </div>
       </div>
     )
@@ -347,13 +349,13 @@ export default function CartPage() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-violet-50/40 py-8 dark:from-zinc-950 dark:to-violet-950/20">
         <div className="mx-auto max-w-3xl px-4">
-          <h1 className="mb-2 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Panier</h1>
-          <p className="text-zinc-600 dark:text-zinc-400">Votre panier est vide</p>
+          <h1 className="mb-2 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">{t("title")}</h1>
+          <p className="text-zinc-600 dark:text-zinc-400">{t("empty")}</p>
           <Link
             href="/#explorer"
             className="mt-6 inline-flex rounded-full bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-violet-700"
           >
-            Découvrir les produits
+            {t("discoverProducts")}
           </Link>
         </div>
       </div>
@@ -365,16 +367,14 @@ export default function CartPage() {
       <div className="mx-auto max-w-3xl px-4">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Panier</h1>
-            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-              {itemCount} article{itemCount > 1 ? "s" : ""} · vos choix (couleur, taille) sont conservés
-            </p>
+            <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">{t("title")}</h1>
+            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{t("itemCountHint", { count: itemCount })}</p>
           </div>
           <Link
             href="/#explorer"
             className="text-sm font-medium text-violet-700 hover:underline dark:text-violet-400"
           >
-            ← Explorer
+            {t("explore")}
           </Link>
         </div>
 
@@ -516,7 +516,7 @@ export default function CartPage() {
         <div className="mt-8 rounded-2xl border border-zinc-200/90 bg-white p-6 shadow-lg dark:border-zinc-800 dark:bg-zinc-900/70">
           <div className="mb-4 flex justify-between text-lg font-bold text-zinc-900 dark:text-zinc-50">
             <span>
-              Sous-total ({itemCount} article{itemCount > 1 ? "s" : ""})
+              {t("subtotal", { count: itemCount })}
             </span>
             <span className="tabular-nums">{formatStoreCurrency(subtotal)}</span>
           </div>

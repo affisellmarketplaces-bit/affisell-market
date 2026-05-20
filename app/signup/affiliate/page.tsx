@@ -5,10 +5,12 @@ import { useState } from "react"
 import { signIn } from "next-auth/react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 
-import { messageForCredentialsSignInCode } from "@/lib/auth-portal-signin-messages"
+import { credentialsSignInErrorMessage } from "@/lib/auth-portal-signin-messages"
 
 export default function AffiliateSignupPage() {
+  const t = useTranslations("auth")
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -46,7 +48,7 @@ export default function AffiliateSignupPage() {
     })
     setLoading(false)
     if (login?.error) {
-      setError(messageForCredentialsSignInCode(login.code) ?? "Compte créé — connectez-vous.")
+      setError(credentialsSignInErrorMessage(login.code, t) ?? t("signupLoginFail"))
       return
     }
     router.push("/onboarding/affiliate")

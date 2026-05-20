@@ -4,13 +4,16 @@ import type { FormEvent } from "react"
 import { Suspense, useState } from "react"
 import { signIn } from "next-auth/react"
 
-import { messageForCredentialsSignInCode } from "@/lib/auth-portal-signin-messages"
+import { useTranslations } from "next-intl"
+
+import { credentialsSignInErrorMessage } from "@/lib/auth-portal-signin-messages"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 
 import { sanitizeInternalCallbackUrl } from "@/lib/auth-login-portal"
 
 function CustomerSignupForm() {
+  const t = useTranslations("auth")
   const router = useRouter()
   const search = useSearchParams()
   const shopSlug = search.get("shop")?.trim() || null
@@ -44,7 +47,7 @@ function CustomerSignupForm() {
     })
     setLoading(false)
     if (login?.error) {
-      setError(messageForCredentialsSignInCode(login.code) ?? "Account created — try signing in.")
+      setError(credentialsSignInErrorMessage(login.code, t) ?? t("signupLoginFail"))
     }
     else router.push("/marketplace/account")
   }

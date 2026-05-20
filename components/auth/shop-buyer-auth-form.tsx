@@ -4,9 +4,10 @@ import type { FormEvent } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { signIn } from "next-auth/react"
+import { useTranslations } from "next-intl"
 import { useMemo, useState } from "react"
 
-import { messageForCredentialsSignInCode } from "@/lib/auth-portal-signin-messages"
+import { credentialsSignInErrorMessage } from "@/lib/auth-portal-signin-messages"
 import { sanitizeInternalCallbackUrl } from "@/lib/auth-login-portal"
 
 type Props = {
@@ -16,6 +17,7 @@ type Props = {
 }
 
 export function ShopBuyerAuthForm({ storeName, shopSlug, mode }: Props) {
+  const t = useTranslations("auth")
   const search = useSearchParams()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -64,8 +66,7 @@ export function ShopBuyerAuthForm({ storeName, shopSlug, mode }: Props) {
       window.location.assign(returnTo)
       return
     }
-    const portalMsg = messageForCredentialsSignInCode(res?.code)
-    setError(portalMsg ?? "Email ou mot de passe incorrect.")
+    setError(credentialsSignInErrorMessage(res?.code, t) ?? t("invalidCredentials"))
   }
 
   const title = mode === "login" ? `Mon compte ${storeName}` : `Créer un compte ${storeName}`

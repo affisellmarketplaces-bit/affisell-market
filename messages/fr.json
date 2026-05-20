@@ -5,7 +5,29 @@
     "dashboard": "Tableau de bord",
     "marketplace": "Marketplace",
     "signup": "Créer un compte",
-    "login": "Connexion"
+    "login": "Connexion",
+    "searchAria": "Rechercher",
+    "searchProducts": "Rechercher un produit…",
+    "searchCatalog": "Rechercher dans le catalogue…",
+    "dock": {
+      "aria": "Navigation rapide",
+      "home": "Accueil",
+      "stores": "Boutiques",
+      "explore": "Explorer",
+      "cart": "Panier"
+    },
+    "affiliate": {
+      "agent": "Agent sourcing",
+      "catalog": "Catalogue",
+      "dashboard": "Tableau de bord",
+      "earnings": "Revenus"
+    },
+    "supplier": {
+      "badge": "Fournisseur",
+      "dashboard": "Tableau de bord",
+      "orders": "Commandes",
+      "products": "Produits"
+    }
   },
   "PublicNav": {
     "home": "Accueil",
@@ -137,7 +159,7 @@
     "email": "E-mail",
     "password": "Mot de passe",
     "signupTitle": "Créer votre compte",
-    "submitLogin": "Connexion",
+    "submitLogin": "Se connecter",
     "submitSignup": "Créer un compte",
     "creating": "Création…",
     "connecting": "Connexion…",
@@ -148,7 +170,98 @@
     "roleSupplier": "Fournisseur",
     "roleAffiliate": "Affilié",
     "noAccount": "Pas encore de compte ?",
-    "hasAccount": "Déjà inscrit ?"
+    "hasAccount": "Déjà inscrit ?",
+    "continueGoogle": "Continuer avec Google",
+    "orPassword": "Ou avec mot de passe",
+    "loading": "Chargement…",
+    "loginSelector": {
+      "title": "Connexion Affisell",
+      "subtitle": "Choisissez votre espace professionnel. Les acheteurs se connectent depuis la boutique de leur créateur.",
+      "creatorTitle": "Je suis Créateur",
+      "creatorHint": "Catalogue affilié & boutique",
+      "supplierTitle": "Je suis Fournisseur",
+      "supplierHint": "Produits & commandes B2B",
+      "buyerNote": "Tu es acheteur ?",
+      "buyerHint": "Connecte-toi sur la boutique du créateur",
+      "buyerButton": "(bouton « Mon compte » sur sa vitrine).",
+      "noAccount": "Pas encore de compte créateur ?",
+      "createSpace": "Créer mon espace"
+    },
+    "portal": {
+      "accessDenied": "Connexion refusée : ce compte ne correspond pas à l’espace demandé.",
+      "oauthFailed": "La connexion a échoué. Réessayez ou utilisez l’e-mail et le mot de passe.",
+      "affiliate": {
+        "title": "Espace Créateur",
+        "subtitle": "Accède à ton dashboard créateur et à ton catalogue affilié",
+        "signup": "Créer mon espace créateur"
+      },
+      "supplier": {
+        "title": "Espace Fournisseur",
+        "subtitle": "Gérez produits, commandes et expédition B2B",
+        "signup": "Créer un compte fournisseur"
+      },
+      "errors": {
+        "supplier_on_affiliate_portal": "Connexion refusée : ce compte est un compte fournisseur. Utilisez la connexion vendeur (espace supplier).",
+        "affiliate_on_supplier_portal": "Connexion refusée : ce compte est affilié. Utilisez la connexion affilié, pas l’espace fournisseur.",
+        "non_affiliate_on_affiliate_portal": "Connexion refusée : seuls les comptes affiliés sont autorisés pour cette destination.",
+        "non_supplier_on_supplier_portal": "Connexion refusée : seuls les comptes fournisseur sont autorisés pour cette destination.",
+        "email_required_not_id": "Connexion refusée : saisissez votre adresse e-mail (pas un identifiant interne / ID)."
+      }
+    }
+  },
+  "cart": {
+    "title": "Panier",
+    "loading": "Chargement du panier…",
+    "empty": "Votre panier est vide",
+    "discoverProducts": "Découvrir les produits",
+    "explore": "← Explorer",
+    "itemCount": "{count, plural, one {# article} other {# articles}}",
+    "itemCountHint": "{count, plural, one {# article} other {# articles}} · vos choix (couleur, taille) sont conservés",
+    "subtotal": "Sous-total ({count, plural, one {# article} other {# articles}})"
+  },
+  "buyerAccount": {
+    "navAria": "Espace client",
+    "overview": "Vue d'ensemble",
+    "orders": "Commandes",
+    "wallet": "Portefeuille",
+    "cart": "Panier"
+  },
+  "shops": {
+    "metaTitle": "Boutiques créateurs - Affisell",
+    "metaDescription": "Parcourez les boutiques Affisell des créateurs affiliés.",
+    "title": "Boutiques créateurs",
+    "subtitle": "Achetez directement auprès de vos créateurs préférés"
+  },
+  "discovery": {
+    "eyebrow": "Explorer",
+    "title": "Trouvez votre créateur, puis votre produit",
+    "subtitle": "Chaque article est vendu par une boutique affiliée vérifiée — filtrez par univers, rayon ou créateur préféré.",
+    "fullMarketplace": "Marketplace complète",
+    "searchLabel": "Rechercher un produit ou une boutique",
+    "searchPlaceholder": "Rechercher un produit, une boutique, un rayon…",
+    "creators": "Créateurs",
+    "allCreators": "Tous",
+    "nichesLabel": "Univers",
+    "categoriesLabel": "Rayons",
+    "allCatalog": "Tout le catalogue",
+    "productCount": "{count, plural, one {# produit} other {# produits}}",
+    "atStore": " chez ",
+    "thisCreator": "ce créateur",
+    "viewStore": "Voir la boutique",
+    "emptyTitle": "Aucun produit pour ces filtres",
+    "emptyBody": "Élargissez la recherche ou parcourez toute la marketplace.",
+    "viewAllProducts": "Voir tous les produits",
+    "storesSection": "Boutiques",
+    "storesTitle": "Vos créateurs sur Affisell",
+    "allStores": "Toutes les boutiques →",
+    "niches": {
+      "all": "Toutes",
+      "fitness": "Fitness",
+      "tech": "Tech",
+      "beauty": "Beauté",
+      "home": "Maison",
+      "lifestyle": "Lifestyle"
+    }
   },
   "supplier": {
     "form": {
@@ -232,7 +345,26 @@
     "title": "Marketplace",
     "subtitle": "Fiches vitrine actives",
     "empty": "Aucune fiche pour le moment.",
-    "sellerLabel": "Vendu par un affilié"
+    "sellerLabel": "Vendu par un affilié",
+    "browse": {
+      "ariaEmbedded": "Explorer et acheter",
+      "eyebrowBuyer": "Découvrir · Acheter",
+      "eyebrowCatalog": "Catalogue · Revendre",
+      "titleBuyer": "Marketplace",
+      "titleCatalog": "Catalogue produits",
+      "subtitleBuyer": "Annonces live des boutiques créateurs — recherchez, filtrez par rayon et ouvrez une fiche produit.",
+      "subtitleCatalog": "Parcourez les fiches fournisseur, comparez marges et délais, puis ajoutez les SKU à votre boutique.",
+      "resetFilters": "Réinitialiser",
+      "searchCatalog": "Rechercher dans le catalogue",
+      "searchProduct": "Rechercher un produit",
+      "placeholderCatalog": "Rechercher un produit, une marque…",
+      "placeholderBuyer": "Rechercher un produit, une marque, un créateur…",
+      "pickCategory": "Choisissez une catégorie pour afficher les filtres produit.",
+      "loadingFacets": "Chargement des filtres…",
+      "noFacets": "Aucun filtre pour cette catégorie.",
+      "filtersTitle": "Filtres",
+      "filtersHint": "Comme sur Amazon — par caractéristique"
+    }
   },
   "product": {
     "noDescription": "Pas de description.",

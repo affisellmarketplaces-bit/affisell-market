@@ -5,7 +5,29 @@
     "dashboard": "Dashboard",
     "marketplace": "Marketplace",
     "signup": "Create account",
-    "login": "Sign in"
+    "login": "Sign in",
+    "searchAria": "Search",
+    "searchProducts": "Search products…",
+    "searchCatalog": "Search catalog…",
+    "dock": {
+      "aria": "Quick navigation",
+      "home": "Home",
+      "stores": "Stores",
+      "explore": "Explore",
+      "cart": "Cart"
+    },
+    "affiliate": {
+      "agent": "Sourcing agent",
+      "catalog": "Catalog",
+      "dashboard": "Dashboard",
+      "earnings": "Earnings"
+    },
+    "supplier": {
+      "badge": "Supplier",
+      "dashboard": "Dashboard",
+      "orders": "Orders",
+      "products": "Products"
+    }
   },
   "PublicNav": {
     "home": "Home",
@@ -148,7 +170,98 @@
     "roleSupplier": "Supplier",
     "roleAffiliate": "Affiliate",
     "noAccount": "No account?",
-    "hasAccount": "Already registered?"
+    "hasAccount": "Already registered?",
+    "continueGoogle": "Continue with Google",
+    "orPassword": "Or use password",
+    "loading": "Loading…",
+    "loginSelector": {
+      "title": "Sign in to Affisell",
+      "subtitle": "Choose your professional space. Buyers sign in from their creator's store.",
+      "creatorTitle": "I'm a Creator",
+      "creatorHint": "Affiliate catalog & storefront",
+      "supplierTitle": "I'm a Supplier",
+      "supplierHint": "Products & B2B orders",
+      "buyerNote": "Are you a buyer?",
+      "buyerHint": "Sign in on the creator's store",
+      "buyerButton": "(« My account » on their storefront.)",
+      "noAccount": "No creator account yet?",
+      "createSpace": "Create my space"
+    },
+    "portal": {
+      "accessDenied": "Sign-in denied: this account does not match the requested space.",
+      "oauthFailed": "Sign-in failed. Try again or use email and password.",
+      "affiliate": {
+        "title": "Creator space",
+        "subtitle": "Access your creator dashboard and affiliate catalog",
+        "signup": "Create my creator space"
+      },
+      "supplier": {
+        "title": "Supplier space",
+        "subtitle": "Manage products, orders, and B2B fulfilment",
+        "signup": "Create a supplier account"
+      },
+      "errors": {
+        "supplier_on_affiliate_portal": "Sign-in denied: this is a supplier account. Use the supplier login.",
+        "affiliate_on_supplier_portal": "Sign-in denied: this is an affiliate account. Use the affiliate login, not supplier.",
+        "non_affiliate_on_affiliate_portal": "Sign-in denied: only affiliate accounts are allowed here.",
+        "non_supplier_on_supplier_portal": "Sign-in denied: only supplier accounts are allowed here.",
+        "email_required_not_id": "Sign-in denied: enter your email address (not an internal ID)."
+      }
+    }
+  },
+  "cart": {
+    "title": "Cart",
+    "loading": "Loading cart…",
+    "empty": "Your cart is empty",
+    "discoverProducts": "Discover products",
+    "explore": "← Explore",
+    "itemCount": "{count, plural, one {# item} other {# items}}",
+    "itemCountHint": "{count, plural, one {# item} other {# items}} · your choices (color, size) are saved",
+    "subtotal": "Subtotal ({count, plural, one {# item} other {# items}})"
+  },
+  "buyerAccount": {
+    "navAria": "Customer area",
+    "overview": "Overview",
+    "orders": "Orders",
+    "wallet": "Wallet",
+    "cart": "Cart"
+  },
+  "shops": {
+    "metaTitle": "Creator stores — Affisell",
+    "metaDescription": "Browse Affisell storefronts from affiliate creators.",
+    "title": "Creator stores",
+    "subtitle": "Shop directly from your favorite creators"
+  },
+  "discovery": {
+    "eyebrow": "Explore",
+    "title": "Find your creator, then your product",
+    "subtitle": "Every item is sold by a verified affiliate store — filter by niche, category, or favorite creator.",
+    "fullMarketplace": "Full marketplace",
+    "searchLabel": "Search for a product or store",
+    "searchPlaceholder": "Search products, stores, categories…",
+    "creators": "Creators",
+    "allCreators": "All",
+    "nichesLabel": "Niches",
+    "categoriesLabel": "Categories",
+    "allCatalog": "Entire catalog",
+    "productCount": "{count, plural, one {# product} other {# products}}",
+    "atStore": " at ",
+    "thisCreator": "this creator",
+    "viewStore": "View store",
+    "emptyTitle": "No products for these filters",
+    "emptyBody": "Broaden your search or browse the full marketplace.",
+    "viewAllProducts": "View all products",
+    "storesSection": "Stores",
+    "storesTitle": "Your creators on Affisell",
+    "allStores": "All stores →",
+    "niches": {
+      "all": "All",
+      "fitness": "Fitness",
+      "tech": "Tech",
+      "beauty": "Beauty",
+      "home": "Home",
+      "lifestyle": "Lifestyle"
+    }
   },
   "supplier": {
     "form": {
@@ -232,7 +345,26 @@
     "title": "Marketplace",
     "subtitle": "Active storefront listings",
     "empty": "Nothing listed yet.",
-    "sellerLabel": "Sold by affiliate"
+    "sellerLabel": "Sold by affiliate",
+    "browse": {
+      "ariaEmbedded": "Explore and shop",
+      "eyebrowBuyer": "Discover · Shop",
+      "eyebrowCatalog": "Catalog · Resell",
+      "titleBuyer": "Marketplace",
+      "titleCatalog": "Product catalog",
+      "subtitleBuyer": "Live listings from creator stores — search, filter by department, and open a product page.",
+      "subtitleCatalog": "Browse supplier listings, compare margins and lead times, then add SKUs to your store.",
+      "resetFilters": "Reset",
+      "searchCatalog": "Search catalog",
+      "searchProduct": "Search for a product",
+      "placeholderCatalog": "Search products, brands…",
+      "placeholderBuyer": "Search products, brands, creators…",
+      "pickCategory": "Choose a category to show product filters.",
+      "loadingFacets": "Loading filters…",
+      "noFacets": "No filters for this category.",
+      "filtersTitle": "Filters",
+      "filtersHint": "By product attribute"
+    }
   },
   "product": {
     "noDescription": "No description.",

@@ -3,6 +3,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { useMemo, useState } from "react"
+import { useTranslations } from "next-intl"
 import { ArrowRight, Search, Sparkles, Store } from "lucide-react"
 
 import { ProductCard } from "@/components/product/ProductCard"
@@ -12,9 +13,18 @@ import { buyerListingToCardProps } from "@/lib/buyer-discovery-data"
 import type { PublicShopDirectoryEntry } from "@/lib/shop-storefront-data"
 import { cn } from "@/lib/utils"
 
-const NICHE_FILTERS = ["Toutes", "Fitness", "Tech", "Beauté", "Maison", "Lifestyle"] as const
+const NICHE_FILTERS = ["Toutes", "Beauté", "Fitness", "Tech", "Maison", "Lifestyle"] as const
 
 type NicheFilter = (typeof NICHE_FILTERS)[number]
+
+const NICHE_I18N_KEY: Record<NicheFilter, "all" | "beauty" | "fitness" | "tech" | "home" | "lifestyle"> = {
+  Toutes: "all",
+  Beauté: "beauty",
+  Fitness: "fitness",
+  Tech: "tech",
+  Maison: "home",
+  Lifestyle: "lifestyle",
+}
 
 type Props = {
   shops: PublicShopDirectoryEntry[]
@@ -23,6 +33,7 @@ type Props = {
 }
 
 export function BuyerDiscoveryHub({ shops, products, categories }: Props) {
+  const t = useTranslations("discovery")
   const [shopSlug, setShopSlug] = useState<string | null>(null)
   const [niche, setNiche] = useState<NicheFilter>("Toutes")
   const [category, setCategory] = useState<string | null>(null)
@@ -85,14 +96,14 @@ export function BuyerDiscoveryHub({ shops, products, categories }: Props) {
         <div className="relative max-w-xl">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" aria-hidden />
           <label htmlFor="home-discovery-search" className="sr-only">
-            Rechercher un produit ou une boutique
+            {t("searchLabel")}
           </label>
           <input
             id="home-discovery-search"
             type="search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Rechercher un produit, une boutique, un rayon…"
+            placeholder={t("searchPlaceholder")}
             className="h-12 w-full rounded-2xl border border-zinc-200 bg-zinc-50/80 py-2 pl-11 pr-4 text-sm outline-none ring-violet-500/20 transition focus:border-violet-400 focus:bg-white focus:ring-2 dark:border-zinc-700 dark:bg-zinc-900/80 dark:focus:border-violet-600"
           />
         </div>
@@ -114,7 +125,7 @@ export function BuyerDiscoveryHub({ shops, products, categories }: Props) {
                 <Sparkles className="h-5 w-5" aria-hidden />
               </span>
               <span className="max-w-[4.5rem] truncate text-[11px] font-semibold text-zinc-800 dark:text-zinc-100">
-                Tous
+                {t("allCreators")}
               </span>
             </button>
             {filteredShops.map((shop) => (
@@ -176,7 +187,7 @@ export function BuyerDiscoveryHub({ shops, products, categories }: Props) {
         {categories.length > 0 ? (
           <div className="mt-4 flex flex-wrap gap-2">
             <span className="w-full text-xs font-semibold uppercase tracking-wide text-zinc-500 sm:w-auto sm:py-2">
-              Rayons
+              {t("categoriesLabel")}
             </span>
             <button
               type="button"
@@ -188,7 +199,7 @@ export function BuyerDiscoveryHub({ shops, products, categories }: Props) {
                   : "border border-violet-200/80 bg-violet-50/80 text-violet-900 hover:bg-violet-100 dark:border-violet-800 dark:bg-violet-950/40 dark:text-violet-100"
               )}
             >
-              Tout le catalogue
+              {t("allCatalog")}
             </button>
             {categories.map((cat) => (
               <button
@@ -212,14 +223,14 @@ export function BuyerDiscoveryHub({ shops, products, categories }: Props) {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          <strong className="font-semibold text-zinc-900 dark:text-zinc-100">{filteredProducts.length}</strong>{" "}
-          produit{filteredProducts.length === 1 ? "" : "s"}
+          <strong className="font-semibold text-zinc-900 dark:text-zinc-100">
+            {t("productCount", { count: filteredProducts.length })}
+          </strong>
           {shopSlug ? (
             <>
-              {" "}
-              chez{" "}
+              {t("atStore")}
               <span className="text-violet-700 dark:text-violet-300">
-                {shops.find((s) => s.slug === shopSlug)?.name ?? "ce créateur"}
+                {shops.find((s) => s.slug === shopSlug)?.name ?? t("thisCreator")}
               </span>
             </>
           ) : null}
@@ -230,22 +241,20 @@ export function BuyerDiscoveryHub({ shops, products, categories }: Props) {
             className="inline-flex items-center gap-1.5 text-sm font-semibold text-violet-700 hover:underline dark:text-violet-300"
           >
             <Store className="h-4 w-4" aria-hidden />
-            Voir la boutique
+            {t("viewStore")}
           </Link>
         ) : null}
       </div>
 
       {filteredProducts.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-zinc-300 bg-zinc-50/80 px-6 py-16 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
-          <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Aucun produit pour ces filtres</p>
-          <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
-            Élargissez la recherche ou parcourez toute la marketplace.
-          </p>
+          <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">{t("emptyTitle")}</p>
+          <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">{t("emptyBody")}</p>
           <Link
             href={PUBLIC_MARKETPLACE_BROWSE_PATH}
             className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-violet-700"
           >
-            Voir tous les produits
+            {t("viewAllProducts")}
             <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
         </div>
@@ -297,7 +306,7 @@ export function BuyerDiscoveryHub({ shops, products, categories }: Props) {
             href="/shops"
             className="mt-6 inline-flex text-sm font-semibold text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
           >
-            Toutes les boutiques →
+            {t("allStores")}
           </Link>
         </div>
       ) : null}

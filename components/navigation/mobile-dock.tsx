@@ -3,6 +3,7 @@
 import { Home, Search, ShoppingBag, Store } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { useSession } from "next-auth/react"
+import { useTranslations } from "next-intl"
 import { useEffect, useState } from "react"
 
 import { FastLink } from "@/components/navigation/fast-link"
@@ -10,31 +11,32 @@ import { PUBLIC_MARKETPLACE_BROWSE_PATH, PUBLIC_SHOPS_PATH } from "@/lib/affilia
 import { guestCartCount } from "@/lib/guest-cart"
 import { cn } from "@/lib/utils"
 
-const DOCK_ITEMS = [
-  { href: "/", label: "Accueil", icon: Home, match: (p: string) => p === "/" },
-  {
-    href: PUBLIC_SHOPS_PATH,
-    label: "Boutiques",
-    icon: Store,
-    match: (p: string) =>
-      p === PUBLIC_SHOPS_PATH ||
-      (/^\/shops\/[^/]+$/.test(p) && p !== PUBLIC_MARKETPLACE_BROWSE_PATH),
-  },
-  {
-    href: PUBLIC_MARKETPLACE_BROWSE_PATH,
-    label: "Explorer",
-    icon: Search,
-    match: (p: string) => p === PUBLIC_MARKETPLACE_BROWSE_PATH,
-  },
-  { href: "/cart", label: "Panier", icon: ShoppingBag, match: (p: string) => p === "/cart" },
-] as const
-
 /** Thumb-friendly dock for public buyers (mobile). */
 export function MobileDock() {
+  const t = useTranslations("nav.dock")
   const pathname = usePathname() ?? ""
   const { data: session } = useSession()
   const role = session?.user?.role
   const [cartCount, setCartCount] = useState(0)
+
+  const dockItems = [
+    { href: "/", label: t("home"), icon: Home, match: (p: string) => p === "/" || p === "/en" || p === "/fr" },
+    {
+      href: PUBLIC_SHOPS_PATH,
+      label: t("stores"),
+      icon: Store,
+      match: (p: string) =>
+        p === PUBLIC_SHOPS_PATH ||
+        (/^\/shops\/[^/]+$/.test(p) && p !== PUBLIC_MARKETPLACE_BROWSE_PATH),
+    },
+    {
+      href: PUBLIC_MARKETPLACE_BROWSE_PATH,
+      label: t("explore"),
+      icon: Search,
+      match: (p: string) => p === PUBLIC_MARKETPLACE_BROWSE_PATH,
+    },
+    { href: "/cart", label: t("cart"), icon: ShoppingBag, match: (p: string) => p === "/cart" },
+  ] as const
 
   useEffect(() => {
     const sync = () => setCartCount(guestCartCount())
@@ -57,11 +59,11 @@ export function MobileDock() {
 
   return (
     <nav
-      aria-label="Navigation rapide"
+      aria-label={t("aria")}
       className="fixed inset-x-0 bottom-0 z-[90] border-t border-zinc-200/90 bg-white/90 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-950/90 md:hidden"
     >
       <ul className="mx-auto flex max-w-md items-stretch justify-around gap-1">
-        {DOCK_ITEMS.map(({ href, label, icon: Icon, match }) => {
+        {dockItems.map(({ href, label, icon: Icon, match }) => {
           const active = match(pathname)
           const showCartBadge = href === "/cart" && cartCount > 0
           return (

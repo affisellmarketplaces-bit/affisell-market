@@ -1,17 +1,24 @@
 import { Suspense } from "react"
+import { getTranslations } from "next-intl/server"
 
 import { PortalSignInForm } from "@/components/auth/portal-sign-in-form"
 
-export default function AffiliateLoginPage() {
+export default async function AffiliateLoginPage() {
+  const t = await getTranslations("auth")
+
   return (
-    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Chargement…</div>}>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">{t("loading")}</div>
+      }
+    >
       <PortalSignInForm
         portal="AFFILIATE"
-        title="Espace Créateur"
-        subtitle="Accède à ton dashboard créateur et à ton catalogue affilié"
+        title={t("portal.affiliate.title")}
+        subtitle={t("portal.affiliate.subtitle")}
         defaultCallback="/dashboard/affiliate"
         signupHref="/signup/affiliate"
-        signupLabel="Créer mon espace créateur"
+        signupLabel={t("portal.affiliate.signup")}
       />
     </Suspense>
   )

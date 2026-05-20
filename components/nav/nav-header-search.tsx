@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Search } from "lucide-react"
+import { useTranslations } from "next-intl"
 import type { FormEvent } from "react"
 
 import { AFFILIATE_CATALOG_PATH, PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
@@ -15,9 +16,12 @@ type Props = {
 
 export function NavHeaderSearch({
   id,
-  placeholder = "Search marketplace…",
+  placeholder,
   searchTarget = "marketplace",
 }: Props) {
+  const t = useTranslations("nav")
+  const resolvedPlaceholder =
+    placeholder ?? (searchTarget === "catalog" ? t("searchCatalog") : t("searchProducts"))
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -69,7 +73,7 @@ export function NavHeaderSearch({
     <form className="flex min-w-0 flex-1 items-center gap-2" onSubmit={onSubmit} role="search">
       <div className="relative flex min-w-0 flex-1 items-center">
         <label htmlFor={id} className="sr-only">
-          Search
+          {t("searchAria")}
         </label>
         <Search className="pointer-events-none absolute left-3 h-4 w-4 text-zinc-400" aria-hidden />
         <input
@@ -77,7 +81,7 @@ export function NavHeaderSearch({
           name="q"
           type="search"
           defaultValue={defaultQ}
-          placeholder={placeholder}
+          placeholder={resolvedPlaceholder}
           autoComplete="off"
           className="h-10 w-full min-w-0 rounded-full border border-zinc-200 bg-zinc-50 py-2 pl-9 pr-3 text-zinc-900 shadow-sm outline-none placeholder:text-zinc-400 focus:border-zinc-300 focus:bg-white dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:border-zinc-500 md:max-w-xl lg:max-w-2xl"
         />

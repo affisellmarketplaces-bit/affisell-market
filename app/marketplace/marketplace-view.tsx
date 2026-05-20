@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { Search, X } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { useTranslations } from "next-intl"
 
 import { ProductCard, type ProductCardDisplayMode } from "@/components/ProductCard"
 import { ProductCardPreviewToggle } from "@/components/product/ProductCardPreviewToggle"
@@ -58,6 +59,7 @@ export function MarketplaceView({
   audience = "customer",
   embedded = false,
 }: MarketplaceViewProps = {}) {
+  const t = useTranslations("marketplace.browse")
   const router = useRouter()
   const searchParams = useSearchParams()
   const userRole = useUserRole()
@@ -143,7 +145,7 @@ export function MarketplaceView({
   return (
     <Shell
       id={embedded ? "explorer" : undefined}
-      aria-label={embedded ? "Explorer et acheter" : undefined}
+      aria-label={embedded ? t("ariaEmbedded") : undefined}
       className={cn(
         "text-zinc-900 dark:text-zinc-50",
         embedded ? "scroll-mt-24" : "min-h-[calc(100dvh-3.75rem)]"
@@ -164,15 +166,13 @@ export function MarketplaceView({
                       : affisellBrand.eyebrowBuyer
                   )}
                 >
-                  {isAffiliateCatalog ? "Catalogue · Revendre" : "Discover · Shop"}
+                  {isAffiliateCatalog ? t("eyebrowCatalog") : t("eyebrowBuyer")}
                 </p>
                 <h1 className="text-balance text-3xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
-                  {isAffiliateCatalog ? "Catalogue produits" : "Marketplace"}
+                  {isAffiliateCatalog ? t("titleCatalog") : t("titleBuyer")}
                 </h1>
                 <p className="max-w-xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 sm:text-[15px]">
-                  {isAffiliateCatalog
-                    ? "Parcourez les fiches fournisseur, comparez marges et délais, puis ajoutez les SKU à votre boutique."
-                    : "Annonces live des boutiques créateurs — recherchez, filtrez par rayon et ouvrez une fiche produit."}
+                  {isAffiliateCatalog ? t("subtitleCatalog") : t("subtitleBuyer")}
                 </p>
               </div>
               {hasFilters ? (
@@ -184,7 +184,7 @@ export function MarketplaceView({
                   className="shrink-0 gap-1.5 border-zinc-200/90 bg-white/90 dark:border-zinc-700 dark:bg-zinc-900/80"
                 >
                   <X className="h-4 w-4" aria-hidden />
-                  Réinitialiser
+                  {t("resetFilters")}
                 </Button>
               ) : null}
             </div>
@@ -204,7 +204,7 @@ export function MarketplaceView({
               }}
             >
               <label htmlFor="marketplace-local-search" className="sr-only">
-                {isAffiliateCatalog ? "Rechercher dans le catalogue" : "Rechercher un produit"}
+                {isAffiliateCatalog ? t("searchCatalog") : t("searchProduct")}
               </label>
               <div className="relative">
                 <Search
@@ -217,9 +217,7 @@ export function MarketplaceView({
                   type="search"
                   defaultValue={searchQuery}
                   placeholder={
-                    isAffiliateCatalog
-                      ? "Rechercher un produit, une marque…"
-                      : "Rechercher un produit, une marque, un créateur…"
+                    isAffiliateCatalog ? t("placeholderCatalog") : t("placeholderBuyer")
                   }
                   autoComplete="off"
                   className="h-11 w-full rounded-xl border border-zinc-200/90 bg-white/95 py-2 pl-10 pr-3 text-sm text-zinc-900 shadow-sm outline-none ring-brand/15 placeholder:text-zinc-400 focus:border-brand focus:ring-2 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100"
@@ -251,7 +249,7 @@ export function MarketplaceView({
                   className="shrink-0 gap-1.5"
                 >
                   <X className="h-4 w-4" aria-hidden />
-                  Réinitialiser
+                  {t("resetFilters")}
                 </Button>
               ) : null}
             </div>

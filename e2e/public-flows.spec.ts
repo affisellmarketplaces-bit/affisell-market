@@ -9,8 +9,8 @@ test.describe("public flows", () => {
 
   test("login selector page renders", async ({ page }) => {
     await page.goto("/login")
-    await expect(page.getByRole("heading", { name: "Connexion Affisell" })).toBeVisible()
-    await expect(page.getByRole("link", { name: /Je suis Créateur/i })).toBeVisible()
+    await expect(page.getByRole("heading", { name: /Sign in to Affisell|Connexion Affisell/i })).toBeVisible()
+    await expect(page.getByRole("link", { name: /I'm a Creator|Je suis Créateur/i })).toBeVisible()
   })
 
   test("legacy /auth/signin redirects to /login", async ({ page }) => {

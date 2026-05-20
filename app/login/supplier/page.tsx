@@ -1,17 +1,24 @@
 import { Suspense } from "react"
+import { getTranslations } from "next-intl/server"
 
 import { PortalSignInForm } from "@/components/auth/portal-sign-in-form"
 
-export default function SupplierLoginPage() {
+export default async function SupplierLoginPage() {
+  const t = await getTranslations("auth")
+
   return (
-    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Chargement…</div>}>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">{t("loading")}</div>
+      }
+    >
       <PortalSignInForm
         portal="SUPPLIER"
-        title="Espace Fournisseur"
-        subtitle="Connecte-toi pour gérer tes produits et tes commandes"
+        title={t("portal.supplier.title")}
+        subtitle={t("portal.supplier.subtitle")}
         defaultCallback="/dashboard/supplier"
         signupHref="/signup/supplier"
-        signupLabel="Créer un compte fournisseur"
+        signupLabel={t("portal.supplier.signup")}
       />
     </Suspense>
   )

@@ -4,11 +4,12 @@ import type { FormEvent } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { signIn } from "next-auth/react"
+import { useTranslations } from "next-intl"
 import { useMemo, useState } from "react"
 
 import type { LoginPortal } from "@/lib/auth-login-portal"
 import { sanitizeInternalCallbackUrl } from "@/lib/auth-login-portal"
-import { messageForCredentialsSignInCode } from "@/lib/auth-portal-signin-messages"
+import { credentialsSignInErrorMessage } from "@/lib/auth-portal-signin-messages"
 
 type Props = {
   portal: LoginPortal | null
@@ -33,6 +34,7 @@ export function PortalSignInForm({
   signInLabel,
   showSocialSignIn = false,
 }: Props) {
+  const t = useTranslations("auth")
   const search = useSearchParams()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -47,9 +49,9 @@ export function PortalSignInForm({
   const resolvedError =
     error ??
     (oauthError === "AccessDenied"
-      ? "Connexion refusée : ce compte ne correspond pas à l’espace demandé."
+      ? t("portal.accessDenied")
       : oauthError && oauthError !== "OAuthSignin"
-        ? "La connexion a échoué. Réessayez ou utilisez l’e-mail et le mot de passe."
+        ? t("portal.oauthFailed")
         : null)
 
   const signInCallback = useMemo(() => {
@@ -73,8 +75,7 @@ export function PortalSignInForm({
       window.location.assign(signInCallback)
       return
     }
-    const portalMsg = messageForCredentialsSignInCode(res?.code)
-    setError(portalMsg ?? "Invalid email or password.")
+    setError(credentialsSignInErrorMessage(res?.code, t) ?? t("invalidCredentials"))
   }
 
   return (
@@ -102,7 +103,7 @@ export function PortalSignInForm({
                 <span aria-hidden className="text-lg font-bold text-blue-600">
                   G
                 </span>
-                Continue with Google
+                {t("continueGoogle")}
               </button>
             </div>
             <div className="relative my-6">
@@ -111,7 +112,7 @@ export function PortalSignInForm({
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="bg-white px-3 text-gray-500 dark:bg-zinc-900 dark:text-zinc-500">
-                  Or use password
+                  {t("orPassword")}
                 </span>
               </div>
             </div>
@@ -121,7 +122,7 @@ export function PortalSignInForm({
         <form onSubmit={onSubmit} className="space-y-5">
           <div>
             <label htmlFor="portal-signin-email" className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-zinc-300">
-              Email
+              {t("email")}
             </label>
             <input
               id="portal-signin-email"
@@ -139,7 +140,7 @@ export function PortalSignInForm({
               htmlFor="portal-signin-password"
               className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-zinc-300"
             >
-              Password
+              {t("password")}
             </label>
             <input
               id="portal-signin-password"
@@ -157,7 +158,7 @@ export function PortalSignInForm({
             disabled={loading}
             className="w-full rounded-xl bg-blue-600 py-2.5 font-medium text-white shadow-sm transition-colors hover:bg-blue-700 disabled:opacity-60"
           >
-            {loading ? "Connexion…" : "Se connecter"}
+            {loading ? t("connecting") : t("submitLogin")}
           </button>
         </form>
 
