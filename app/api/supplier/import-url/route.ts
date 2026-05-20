@@ -265,6 +265,16 @@ export async function POST(req: NextRequest) {
     if (!rawUrl) return NextResponse.json({ error: "Missing URL" }, { status: 400 })
 
     const platform = detectPlatform(rawUrl)
+    if (platform === "aliexpress") {
+      return NextResponse.json(
+        {
+          error:
+            "AliExpress utilise l’API officielle Affisell (onglet AliExpress), pas ScrapingBee.",
+          useAliExpressApi: true,
+        },
+        { status: 400 }
+      )
+    }
     const url = normalizeImportUrl(rawUrl, platform)
     let product: ImportedProduct | null = null
     let method = "direct"
