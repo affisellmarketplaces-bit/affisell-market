@@ -54,10 +54,14 @@ Vitest uses an empty `vitest-env/` as `envDir` so local `.env` is not read durin
 2. **Sentry**: trigger a test error on the production URL and confirm **de-minified** stack frames.
 3. **Playwright on preview** (optional): `PLAYWRIGHT_BASE_URL=https://your-preview.vercel.app PLAYWRIGHT_SKIP_WEBSERVER=1 npm run test:e2e`
 
-## i18n
+## i18n (next-intl)
 
-- Server: `i18n.ts` loads `messages/en.json` or `messages/fr.json` when `NEXT_PUBLIC_MESSAGES_LOCALE=fr`.
-- Client: `app/root-intl-session.tsx` (`NextIntlClientProvider` + `timeZone="Europe/Paris"`).
+- **Messages**: `messages/en.json` (default) and `messages/fr.json`.
+- **Server**: `i18n.ts` — locale from cookie `affisell_locale`, then `NEXT_PUBLIC_MESSAGES_LOCALE`, default `en`.
+- **Client**: `components/navigation/locale-intl-provider.tsx` + `app/root-intl-session.tsx` (`NextIntlClientProvider`, `timeZone="Europe/Paris"`).
+- **Switcher**: header `LocaleSwitcher` (EN/FR flags) sets the cookie and `router.refresh()`.
+- **Persona landings**: `/` (buyer), `/creators`, `/partners` — copy via `useTranslations` / `getTranslations`; no hardcoded UI strings in those flows.
+- **Quick nav**: `components/command-k/command-k.tsx` — namespace `CommandK`, fuzzy search + product preview from `/api/marketplace/products`.
 
 Money formatting stays tied to `NEXT_PUBLIC_MARKET_REGION` / storefront currency, not the message locale.
 

@@ -29,9 +29,12 @@ export function SiteNav({ initialRole = null }: Props) {
     pathname?.startsWith("/login/") ||
     pathname?.startsWith("/signup") ||
     pathname?.startsWith("/onboarding/")
-  const isShopStorefront = pathname === "/shops" || pathname?.startsWith("/shops/")
+  /** Individual creator storefront (`/shops/:slug`), not directory or browse. */
+  const isCreatorStorefront =
+    pathname?.startsWith("/shops/") &&
+    !pathname.startsWith("/shops/browse")
 
-  if (isShopStorefront || isAuthRoute) {
+  if (isCreatorStorefront || isAuthRoute) {
     return null
   }
 

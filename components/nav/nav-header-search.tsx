@@ -4,7 +4,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Search } from "lucide-react"
 import type { FormEvent } from "react"
 
-import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
+import { AFFILIATE_CATALOG_PATH, PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
 
 type Props = {
   id: string
@@ -27,7 +27,7 @@ export function NavHeaderSearch({
       ? AFFILIATE_CATALOG_PATH
       : searchTarget === "shops"
         ? "/shops"
-        : "/"
+        : PUBLIC_MARKETPLACE_BROWSE_PATH
 
   function pushWithQuery(base: string, q: string, hash?: string) {
     const params =
@@ -53,11 +53,12 @@ export function NavHeaderSearch({
       pushWithQuery(AFFILIATE_CATALOG_PATH, q)
       return
     }
-    pushWithQuery("/", q, "#explorer")
+    pushWithQuery(PUBLIC_MARKETPLACE_BROWSE_PATH, q)
   }
 
   const defaultQ =
-    searchTarget === "marketplace" && pathname === "/"
+    searchTarget === "marketplace" &&
+      (pathname === "/" || pathname === PUBLIC_MARKETPLACE_BROWSE_PATH)
       ? (searchParams.get("q") ?? "")
       : searchTarget === "catalog" &&
           (pathname === AFFILIATE_CATALOG_PATH || pathname.startsWith(`${AFFILIATE_CATALOG_PATH}/`))

@@ -349,6 +349,22 @@
   animation: affisell-page-in 0.22s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes gradient-shift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
 @keyframes affisell-page-in {
   from {
     opacity: 0.92;

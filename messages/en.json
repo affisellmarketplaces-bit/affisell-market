@@ -7,12 +7,123 @@
     "signup": "Create account",
     "login": "Sign in"
   },
+  "PublicNav": {
+    "home": "Home",
+    "marketplace": "Marketplace",
+    "creatorStores": "Creator stores",
+    "searchPlaceholder": "Search products…",
+    "searchLabel": "Search",
+    "cmdKBadge": "⌘K",
+    "signIn": "Sign in",
+    "myAccount": "My account",
+    "cart": "Cart",
+    "cartAria": "Shopping cart",
+    "themeToggle": "Toggle theme"
+  },
   "home": {
-    "title": "Affiliate dropshipping marketplace",
-    "subtitle": "Suppliers upload products with base price and commission; affiliates publish their store and selling price.",
-    "becomeSupplier": "Become Supplier",
-    "becomeAffiliate": "Become Affiliate",
-    "browseMarketplace": "Browse Marketplace"
+    "hero": {
+      "title": "Stores curated by your favorite",
+      "titleHighlight": "creators",
+      "sub": "Fast shipping · Secure payment · 14-day returns",
+      "searchPlaceholder": "Search products, brands, niches…",
+      "searchLabel": "Search products",
+      "searchSubmit": "Search",
+      "cmdKHint": "Quick nav",
+      "ctaPrimary": "Explore catalog",
+      "creatorLink": "Are you a creator? Sell on Affisell →"
+    },
+    "bento": {
+      "agentShopping": {
+        "title": "Agent Shopping",
+        "description": "AI finds products for you"
+      },
+      "featuredStores": {
+        "title": "Featured Stores",
+        "description": "Curated creator storefronts"
+      },
+      "liveCatalog": {
+        "title": "Live Catalog",
+        "description": "Products available now",
+        "counterSuffix": "+ products"
+      },
+      "trending": {
+        "title": "Trending Now",
+        "description": "Hot picks this week"
+      }
+    },
+    "loadingCatalog": "Loading catalog…"
+  },
+  "creators": {
+    "meta": {
+      "title": "Sell on Affisell — Creator storefront",
+      "description": "Monetize your audience with zero inventory. Pick products, we ship."
+    },
+    "hero": {
+      "title": "Monetize your audience in 2 minutes",
+      "sub": "Zero inventory. Zero risk. Pick products, we ship.",
+      "cta": "Create your free store",
+      "badgeCreators": "500+ creators",
+      "badgeRevenue": "Average $2,400/month",
+      "badgeSetup": "2-min setup"
+    },
+    "features": {
+      "pick": {
+        "title": "Pick products",
+        "description": "Choose from 1M+ products from verified suppliers"
+      },
+      "sync": {
+        "title": "Auto-sync",
+        "description": "Prices, stock, orders synced automatically"
+      },
+      "paid": {
+        "title": "Get paid",
+        "description": "Weekly payouts. Keep 15–30% margin"
+      }
+    },
+    "social": {
+      "title": "Creators growing with Affisell",
+      "quote1": "I launched in one evening and hit my first sale the same week.",
+      "quote2": "No warehouse, no support tickets on shipping — Affisell handles it.",
+      "revenueTag": "{amount}/mo"
+    },
+    "preview": {
+      "title": "Your creator dashboard",
+      "hint": "Hover to explore the interface"
+    },
+    "footerLink": "You're a brand? Partner with us →"
+  },
+  "partners": {
+    "meta": {
+      "title": "Affisell Partners — Supplier distribution",
+      "description": "Distribute through creator storefronts with API automation."
+    },
+    "hero": {
+      "title": "Distribute through 10,000+ creators",
+      "sub": "API integration. Automated orders. Secure payments.",
+      "cta": "Become a partner"
+    },
+    "features": {
+      "reach": {
+        "title": "Reach",
+        "description": "Access engaged audiences through creator stores"
+      },
+      "automation": {
+        "title": "Automation",
+        "description": "Orders routed to your warehouse via API"
+      },
+      "control": {
+        "title": "Control",
+        "description": "Real-time inventory & pricing"
+      }
+    },
+    "steps": {
+      "title": "How it works",
+      "step1": "Connect your catalog via API or bulk import",
+      "step2": "Creators list your SKUs in their stores",
+      "step3": "We route orders and payouts automatically"
+    },
+    "ctaFinal": "Apply to become a partner",
+    "backCreators": "← Creators"
   },
   "auth": {
     "signin": "Sign in",
@@ -195,9 +306,11 @@
   "CommandK": {
     "languageSwitcher": "Language",
     "triggerLabel": "Quick navigation",
-    "placeholder": "Where to go? Marketplace, seller tools, account…",
+    "placeholder": "Where to go? Search products or pages…",
     "empty": "No destination found",
     "escape": "esc",
+    "productsGroup": "PRODUCTS",
+    "openQuickNav": "Open quick navigation",
     "groups": {
       "buy": "BUY",
       "sell": "SELL",
