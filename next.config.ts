@@ -1,6 +1,10 @@
 import { withSentryConfig } from "@sentry/nextjs"
+import type { NextConfig } from "next"
+import createNextIntlPlugin from "next-intl/plugin"
 
-const nextConfig = {
+const withNextIntl = createNextIntlPlugin("./i18n.ts")
+
+const nextConfig: NextConfig = {
   output: "standalone" as const,
   /** Client bundles emit source maps for Sentry (Turbopack + runAfterProductionCompile upload). */
   productionBrowserSourceMaps: true,
@@ -27,7 +31,7 @@ const hasUploadCredentials = Boolean(authToken && org && project)
  * auto-fills setCommits on Vercel (VERCEL_GIT_*), which spams errors in build logs when the repo
  * is not linked in Sentry. Next’s exported types omit `false`; the bundler accepts it.
  */
-export default withSentryConfig(nextConfig, {
+export default withSentryConfig(withNextIntl(nextConfig), {
   ...(hasUploadCredentials
     ? {
         authToken,
