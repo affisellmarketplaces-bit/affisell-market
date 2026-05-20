@@ -8,6 +8,19 @@ const nextConfig: NextConfig = {
   output: "standalone" as const,
   /** Client bundles emit source maps for Sentry (Turbopack + runAfterProductionCompile upload). */
   productionBrowserSourceMaps: true,
+  serverExternalPackages: [
+    "@imgly/background-removal",
+    "@imgly/background-removal-node",
+    "onnxruntime-web",
+  ],
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      if (Array.isArray(config.externals)) {
+        config.externals.push("@imgly/background-removal", "onnxruntime-web")
+      }
+    }
+    return config
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "m.media-amazon.com", pathname: "/**" },
