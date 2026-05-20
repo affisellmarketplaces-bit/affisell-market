@@ -95,22 +95,6 @@ const TAB_ICONS: Record<ImportMethod, typeof CloudUpload> = {
 const DEFAULT_IMPORT_MARKUP = 1.7
 const DEFAULT_IMPORT_COMMISSION = 25
 
-const ALIEXPRESS_ITEM_URL_RE =
-  /^https?:\/\/(?:[a-z]{2}\.)?(?:www\.)?aliexpress\.com\/item\/\d+/i
-
-function isValidAliExpressImportInput(input: string): boolean {
-  const trimmed = input.trim()
-  if (/^\d+$/.test(trimmed)) return true
-  return ALIEXPRESS_ITEM_URL_RE.test(trimmed)
-}
-
-function extractAliExpressProductId(input: string): string | null {
-  const trimmed = input.trim()
-  if (!trimmed) return null
-  if (!isValidAliExpressImportInput(trimmed)) return null
-  return trimmed.match(/(\d{13,})/)?.[1] ?? null
-}
-
 function num(raw: unknown, fallback = 0): number {
   if (typeof raw === "number" && Number.isFinite(raw)) return raw
   const n = parseFloat(String(raw ?? "").replace(",", "."))
@@ -518,20 +502,15 @@ export function SupplierProductImport() {
   }, [aiRewrite, markupMultiplier])
 
   const handleAliExpressImport = useCallback(async () => {
-    const input = aliExpressUrl.trim()
-    if (!input) {
-      setError("Saisissez un ID produit ou une URL AliExpress")
+    const raw = aliExpressUrl.trim()
+    if (!raw) {
+      toast.error("Saisissez un ID produit ou une URL AliExpress")
       return
     }
-    if (!isValidAliExpressImportInput(input)) {
-      setError(
-        "Format invalide : ID numérique (13+ chiffres) ou URL https://www.aliexpress.com/item/…"
-      )
-      return
-    }
-    const productId = extractAliExpressProductId(input)
-    if (!productId) {
-      setError("Impossible d’extraire l’ID produit AliExpress (13 chiffres minimum)")
+
+    const productId = raw.match(/item\/(\d{13,})/)?.[1] || raw
+    if (!/^\d{13,}$/.test(productId)) {
+      toast.error("ID invalide")
       return
     }
 
@@ -554,7 +533,7 @@ export function SupplierProductImport() {
       }
 
       if (data.success && data.product?.id) {
-        toast.success("Produit importé")
+        toast.success("Produit importé depuis AliExpress API")
         router.push(`/dashboard/supplier/products/${data.product.id}`)
         return
       }
@@ -565,11 +544,14 @@ export function SupplierProductImport() {
         return
       }
 
-      const message = data.error ?? "Import AliExpress échoué"
-      const rateLimited = data.rateLimited === true || res.status === 429
-      setError(rateLimited ? `${message}. Rate limit, retry dans 60s` : message)
+      const message = data.error || "Import échoué"
+      if (data.rateLimited || res.status === 429) {
+        toast.error(`${message} — Rate limit, retry dans 60s`)
+      } else {
+        toast.error(message)
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Import AliExpress échoué")
+      toast.error(err instanceof Error ? err.message : "Import échoué")
     } finally {
       setIsImporting(false)
     }
@@ -839,32 +821,32 @@ export function SupplierProductImport() {
       ) : null}
 
       {importMethod === "aliexpress" ? (
-        <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-950">
+        <form
+          className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-950"
+          onSubmit={(e) => {
+            e.preventDefault()
+            void handleAliExpressImport()
+          }}
+        >
           <h3 className="mb-3 font-semibold text-zinc-900 dark:text-zinc-100">Import from AliExpress</h3>
-          <p className="mb-3 text-sm text-zinc-600 dark:text-zinc-400">
-            API officielle AliExpress Open Service — brouillon créé directement dans votre catalogue.
-          </p>
           <input
             type="text"
-            inputMode="numeric"
             placeholder="1005008719608144 ou https://www.aliexpress.com/item/1005008719608144.html"
-            className="mb-3 w-full rounded-lg border border-zinc-300 px-4 py-3 dark:border-zinc-600 dark:bg-zinc-900"
+            className="mb-2 w-full rounded-lg border border-zinc-300 px-4 py-3 dark:border-zinc-600 dark:bg-zinc-900"
             value={aliExpressUrl}
             onChange={(e) => setAliExpressUrl(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && void handleAliExpressImport()}
           />
+          <p className="mb-4 text-xs text-zinc-500 dark:text-zinc-400">
+            API Officielle AliExpress — FR/EUR/Stock temps réel
+          </p>
           <button
-            type="button"
+            type="submit"
             disabled={isImporting || !aliExpressUrl.trim()}
-            onClick={() => void handleAliExpressImport()}
             className="w-full rounded-lg bg-orange-600 px-6 py-3 text-sm font-medium text-white hover:bg-orange-700 disabled:opacity-60 sm:w-auto"
           >
             {isImporting ? "Import en cours…" : "Importer via API AliExpress"}
           </button>
-          <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-            Pour le scraping par URL (ScrapingBee), utilisez l’onglet Product URL.
-          </p>
-        </div>
+        </form>
       ) : null}
 
       {importedProducts.length > 0 ? (
