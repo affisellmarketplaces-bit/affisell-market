@@ -11,8 +11,6 @@ export const routing = defineRouting({
    * with split `app/page.tsx` + `app/[locale]/page.tsx`). Locale is chosen via URL or switcher.
    */
   localeDetection: false,
-  localeCookie: {
-    name: LOCALE_COOKIE,
-    maxAge: localeCookieMaxAgeSec(),
-  },
+  /** Cookie is managed in `middleware.ts` + `LanguageSwitcher` to avoid conflicting redirects. */
+  localeCookie: false,
 })

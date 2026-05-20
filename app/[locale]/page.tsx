@@ -9,13 +9,10 @@ export const dynamic = "force-dynamic"
 
 type Props = { params: Promise<{ locale: string }> }
 
-/** French (and other non-default) home at `/fr`. Default EN home is `app/page.tsx` at `/`. */
+/** French home at `/fr`. English home is `app/page.tsx` at `/` — never redirect default locale to `/` (causes 307 loop on Vercel). */
 export default async function LocaleHomePage({ params }: Props) {
   const { locale } = await params
-  if (locale === routing.defaultLocale) {
-    redirect("/")
-  }
-  setRequestLocale(locale)
+  setRequestLocale(locale === routing.defaultLocale ? routing.defaultLocale : locale)
 
   const session = await auth()
   if (session?.user?.role === "SUPPLIER") redirect("/dashboard/supplier")

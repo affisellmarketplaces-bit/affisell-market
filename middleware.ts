@@ -15,6 +15,9 @@ const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
 const FORCED_CUSTOMER_HEADER = "x-affisell-view-role"
 const intlMiddleware = createIntlMiddleware(routing)
 
+/** Never run next-intl redirects on these — we serve them via `app/page` + `app/[locale]/page`. */
+const HOME_PATHS = new Set(["/", "/fr", "/en"])
+
 function secureSessionCookieForRequest(req: NextRequest): boolean {
   return req.nextUrl.protocol === "https:"
 }
@@ -55,17 +58,17 @@ function legacyAuthRedirect(req: NextRequest, pathname: string): NextResponse | 
   return NextResponse.redirect(u)
 }
 
-function requestWithPathname(req: NextRequest): NextRequest {
+function nextWithPathname(req: NextRequest, extraHeaders?: Record<string, string>): NextResponse {
   const requestHeaders = new Headers(req.headers)
   requestHeaders.set("x-affisell-pathname", req.nextUrl.pathname)
-  return new NextRequest(req.url, { headers: requestHeaders })
+  for (const [key, value] of Object.entries(extraHeaders ?? {})) {
+    requestHeaders.set(key, value)
+  }
+  return NextResponse.next({ request: { headers: requestHeaders } })
 }
 
 function withForcedCustomerRole(req: NextRequest): NextResponse {
-  const requestHeaders = new Headers(req.headers)
-  requestHeaders.set(FORCED_CUSTOMER_HEADER, "customer")
-  requestHeaders.set("x-affisell-pathname", req.nextUrl.pathname)
-  return NextResponse.next({ request: { headers: requestHeaders } })
+  return nextWithPathname(req, { [FORCED_CUSTOMER_HEADER]: "customer" })
 }
 
 function syncLocaleCookies(res: NextResponse, locale: string) {
@@ -78,25 +81,64 @@ function syncLocaleCookies(res: NextResponse, locale: string) {
   res.cookies.delete("NEXT_LOCALE")
 }
 
+/** Home routes: no next-intl middleware (prevents `/` ↔ `/fr` redirect loops). */
+function handleHomePath(req: NextRequest): NextResponse {
+  const pathname = req.nextUrl.pathname
+
+  if (pathname === "/en") {
+    const u = req.nextUrl.clone()
+    u.pathname = "/"
+    const res = NextResponse.redirect(u, 308)
+    syncLocaleCookies(res, "en")
+    return res
+  }
+
+  const res = nextWithPathname(req)
+  const urlLocale = localeFromPathname(pathname)
+  const cookieLocale =
+    req.cookies.get(LOCALE_COOKIE)?.value ?? req.cookies.get("NEXT_LOCALE")?.value
+  syncLocaleCookies(
+    res,
+    urlLocale ?? (pathname === "/fr" ? "fr" : resolveAppLocale(cookieLocale ?? routing.defaultLocale))
+  )
+  return res
+}
+
+function isRedirectLoop(source: string, location: string): boolean {
+  try {
+    const targetPath = new URL(location, "http://localhost").pathname
+    return (
+      (source === "/" && (targetPath === "/fr" || targetPath === "/en")) ||
+      (source === "/fr" && targetPath === "/") ||
+      (source === "/en" && targetPath === "/")
+    )
+  } catch {
+    return false
+  }
+}
+
 export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname
 
+  if (HOME_PATHS.has(pathname)) {
+    return handleHomePath(req)
+  }
+
   const bare = pathnameWithoutLocale(pathname)
-  const locale = localeFromPathname(pathname)
 
   const legacy = legacyAuthRedirect(req, bare)
   if (legacy) return legacy
 
   if (bare === "/shop") {
     const u = req.nextUrl.clone()
-    u.pathname = locale ? `/${locale}/shops` : "/shops"
+    u.pathname = "/shops"
     return NextResponse.redirect(u, 308)
   }
 
   if (bare.startsWith("/shop/")) {
     const rest = bare.slice("/shop/".length)
     const u = req.nextUrl.clone()
-    u.pathname = locale ? `/${locale}/shops/${rest}` : rest ? `/shops/${rest}` : "/shops"
+    u.pathname = rest ? `/shops/${rest}` : "/shops"
     return NextResponse.redirect(u, 308)
   }
 
@@ -131,71 +173,83 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL("/dashboard/supplier", req.url))
     }
 
-  if (bare === "/marketplace") {
-    const u = req.nextUrl.clone()
-    u.pathname = resolveLegacyMarketplaceIndexPath(role)
-    u.search = ""
-    return NextResponse.redirect(u, 308)
-  }
-
-  if (isMarketplaceListingPath(bare)) {
-    return withForcedCustomerRole(req)
-  }
-
-  const isSupplierArea = bare === "/dashboard/supplier" || bare.startsWith("/dashboard/supplier/")
-  const isAffiliateArea =
-    bare === "/dashboard/affiliate" ||
-    bare.startsWith("/dashboard/affiliate/") ||
-    bare.startsWith("/affiliate/")
-
-  if (isSupplierArea) {
-    if (!loggedIn) return NextResponse.redirect(loginSupplierUrl(req, path))
-    if (role !== "SUPPLIER") {
-      const u = new URL(req.url)
-      u.pathname = role === "AFFILIATE" ? AFFILIATE_CATALOG_PATH : "/login"
+    if (bare === "/marketplace") {
+      const u = req.nextUrl.clone()
+      u.pathname = resolveLegacyMarketplaceIndexPath(role)
       u.search = ""
-      return NextResponse.redirect(u)
+      return NextResponse.redirect(u, 308)
+    }
+
+    if (isMarketplaceListingPath(bare)) {
+      return withForcedCustomerRole(req)
+    }
+
+    const isSupplierArea = bare === "/dashboard/supplier" || bare.startsWith("/dashboard/supplier/")
+    const isAffiliateArea =
+      bare === "/dashboard/affiliate" ||
+      bare.startsWith("/dashboard/affiliate/") ||
+      bare.startsWith("/affiliate/")
+
+    if (isSupplierArea) {
+      if (!loggedIn) return NextResponse.redirect(loginSupplierUrl(req, path))
+      if (role !== "SUPPLIER") {
+        const u = new URL(req.url)
+        u.pathname = role === "AFFILIATE" ? AFFILIATE_CATALOG_PATH : "/login"
+        u.search = ""
+        return NextResponse.redirect(u)
+      }
+    }
+
+    if (isAffiliateArea) {
+      if (!loggedIn) return NextResponse.redirect(loginAffiliateUrl(req, path))
+      if (role !== "AFFILIATE") {
+        const u = new URL(req.url)
+        u.pathname = role === "SUPPLIER" ? "/dashboard/supplier" : "/login"
+        u.search = ""
+        return NextResponse.redirect(u)
+      }
+    }
+
+    const isMarketplaceBuyerAccount =
+      bare === "/marketplace/account" || bare.startsWith("/marketplace/account/")
+    if (isMarketplaceBuyerAccount) {
+      if (!loggedIn) {
+        const u = new URL("/login", req.url)
+        u.searchParams.set("callbackUrl", path)
+        return NextResponse.redirect(u)
+      }
+      if (role === "AFFILIATE" || role === "SUPPLIER") {
+        const u = new URL(req.url)
+        u.pathname = role === "SUPPLIER" ? "/dashboard/supplier" : AFFILIATE_CATALOG_PATH
+        u.search = ""
+        return NextResponse.redirect(u)
+      }
     }
   }
 
-  if (isAffiliateArea) {
-    if (!loggedIn) return NextResponse.redirect(loginAffiliateUrl(req, path))
-    if (role !== "AFFILIATE") {
-      const u = new URL(req.url)
-      u.pathname = role === "SUPPLIER" ? "/dashboard/supplier" : "/login"
-      u.search = ""
-      return NextResponse.redirect(u)
-    }
+  const requestHeaders = new Headers(req.headers)
+  requestHeaders.set("x-affisell-pathname", pathname)
+  const intlResponse = intlMiddleware(
+    new NextRequest(req.url, { headers: requestHeaders })
+  )
+
+  const location = intlResponse.headers.get("location")
+  if (location && isRedirectLoop(pathname, location)) {
+    const res = nextWithPathname(req)
+    const urlLocale = localeFromPathname(pathname)
+    syncLocaleCookies(res, urlLocale ?? routing.defaultLocale)
+    return res
   }
 
-  const isMarketplaceBuyerAccount =
-    bare === "/marketplace/account" || bare.startsWith("/marketplace/account/")
-  if (isMarketplaceBuyerAccount) {
-    if (!loggedIn) {
-      const u = new URL("/login", req.url)
-      u.searchParams.set("callbackUrl", path)
-      return NextResponse.redirect(u)
-    }
-    if (role === "AFFILIATE" || role === "SUPPLIER") {
-      const u = new URL(req.url)
-      u.pathname = role === "SUPPLIER" ? "/dashboard/supplier" : AFFILIATE_CATALOG_PATH
-      u.search = ""
-      return NextResponse.redirect(u)
-    }
-  }
-  }
-
-  const intlResponse = intlMiddleware(requestWithPathname(req))
-
-  const urlLocale = localeFromPathname(req.nextUrl.pathname)
+  const urlLocale = localeFromPathname(pathname)
   if (urlLocale) {
     syncLocaleCookies(intlResponse, urlLocale)
-  } else if (intlResponse.headers.get("location")) {
-    // Keep redirect responses from next-intl (e.g. strip `/en` prefix) — do not attach cookies
-  } else {
-    const cookieLocale = req.cookies.get(LOCALE_COOKIE)?.value ?? req.cookies.get("NEXT_LOCALE")?.value
+  } else if (!location) {
+    const cookieLocale =
+      req.cookies.get(LOCALE_COOKIE)?.value ?? req.cookies.get("NEXT_LOCALE")?.value
     syncLocaleCookies(intlResponse, cookieLocale ?? routing.defaultLocale)
   }
+
   return intlResponse
 }
 
