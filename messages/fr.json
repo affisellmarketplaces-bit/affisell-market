@@ -52,7 +52,8 @@
       },
       "trending": {
         "title": "Tendances",
-        "description": "Les coups de cœur de la semaine"
+        "description": "Les coups de cœur de la semaine",
+        "empty": "—"
       }
     },
     "loadingCatalog": "Chargement du catalogue…"
@@ -150,6 +151,18 @@
     "hasAccount": "Déjà inscrit ?"
   },
   "supplier": {
+    "form": {
+      "loadingListing": "Chargement de la fiche…",
+      "breadcrumbCatalog": "Catalogue",
+      "breadcrumbDraft": "Brouillon",
+      "breadcrumbEdit": "Modifier le produit",
+      "breadcrumbNew": "Nouveau produit",
+      "publishBlockedTitle": "Publication impossible — corrigez les zones encadrées en rouge",
+      "onThisPage": "Sur cette page",
+      "jumpShortcuts": "Raccourcis",
+      "jumpStory": "Story",
+      "saveDraft": "Enregistrer"
+    },
     "myProducts": "Mes produits",
     "addProduct": "Ajouter un produit",
     "ordersToShip": "Commandes à expédier",

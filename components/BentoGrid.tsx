@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server"
-import { Bot, Sparkles } from "lucide-react"
+import { Bot } from "lucide-react"
 
 import { AnimatedCounter } from "@/components/AnimatedCounter"
 import { BentoCard } from "@/components/marketing/bento-card"
@@ -52,7 +52,7 @@ export async function BentoGrid() {
       </StaggerItem>
       <StaggerItem>
         <BentoCard title={t("trending.title")} description={t("trending.description")}>
-          <TrendingSparkline items={trending} emptyLabel="—" icon={Sparkles} />
+          <TrendingSparkline items={trending} />
         </BentoCard>
       </StaggerItem>
     </StaggerIn>

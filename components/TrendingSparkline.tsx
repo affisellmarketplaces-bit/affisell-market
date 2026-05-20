@@ -1,22 +1,23 @@
 "use client"
 
-import type { LucideIcon } from "lucide-react"
+import { Sparkles, TrendingUp } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import type { HomeProductCard } from "@/lib/home-marketplace-data"
 
 type Props = {
   items: HomeProductCard[]
-  emptyLabel: string
-  icon: LucideIcon
 }
 
-export function TrendingSparkline({ items, emptyLabel, icon: Icon }: Props) {
+export function TrendingSparkline({ items }: Props) {
+  const t = useTranslations("home.bento.trending")
+
   if (items.length === 0) {
     return (
       <p className="flex items-center gap-2 text-xs text-zinc-500">
-        <Icon className="h-4 w-4" aria-hidden />
-        {emptyLabel}
+        <Sparkles className="h-4 w-4" aria-hidden />
+        {t("empty")}
       </p>
     )
   }
@@ -33,6 +34,7 @@ export function TrendingSparkline({ items, emptyLabel, icon: Icon }: Props) {
             style={{ clipPath: `inset(${100 - (p.soldCount / max) * 100}% 0 0 0)` }}
             aria-hidden
           />
+          <TrendingUp className="h-3.5 w-3.5 shrink-0 text-emerald-600" aria-hidden />
           <span className="shrink-0 text-zinc-500">
             {formatStoreCurrencyFromCents(p.priceCents)}
           </span>

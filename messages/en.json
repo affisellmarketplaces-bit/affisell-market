@@ -52,7 +52,8 @@
       },
       "trending": {
         "title": "Trending Now",
-        "description": "Hot picks this week"
+        "description": "Hot picks this week",
+        "empty": "—"
       }
     },
     "loadingCatalog": "Loading catalog…"
@@ -150,6 +151,18 @@
     "hasAccount": "Already registered?"
   },
   "supplier": {
+    "form": {
+      "loadingListing": "Loading listing…",
+      "breadcrumbCatalog": "Catalog",
+      "breadcrumbDraft": "Draft",
+      "breadcrumbEdit": "Edit product",
+      "breadcrumbNew": "New product",
+      "publishBlockedTitle": "Cannot publish — fix the highlighted fields",
+      "onThisPage": "On this page",
+      "jumpShortcuts": "Shortcuts",
+      "jumpStory": "Story",
+      "saveDraft": "Save draft"
+    },
     "myProducts": "My Products",
     "addProduct": "Add Product",
     "ordersToShip": "Orders to Ship",

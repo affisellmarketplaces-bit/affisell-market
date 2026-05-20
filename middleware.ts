@@ -16,12 +16,6 @@ const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
 const FORCED_CUSTOMER_HEADER = "x-affisell-view-role"
 const intlMiddleware = createIntlMiddleware(routing)
 
-const MARKETING_ALIASES: Record<string, string> = {
-  "/": `/${routing.defaultLocale}`,
-  "/creators": `/${routing.defaultLocale}/creators`,
-  "/partners": `/${routing.defaultLocale}/partners`,
-}
-
 function secureSessionCookieForRequest(req: NextRequest): boolean {
   return req.nextUrl.protocol === "https:"
 }
@@ -80,13 +74,6 @@ function setLocaleCookie(res: NextResponse, locale: string) {
 export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname
 
-  const alias = MARKETING_ALIASES[pathname]
-  if (alias) {
-    const u = req.nextUrl.clone()
-    u.pathname = alias
-    return NextResponse.redirect(u, 308)
-  }
-
   const bare = pathnameWithoutLocale(pathname)
   const locale = localeFromPathname(pathname)
 
@@ -129,11 +116,11 @@ export async function middleware(req: NextRequest) {
     const role = typeof token?.role === "string" ? token.role : undefined
     const loggedIn = Boolean(token?.sub)
 
-    const isLocaleHome = bare === "/" && locale
-    if (isLocaleHome && role === "AFFILIATE") {
+    const isHome = bare === "/"
+    if (isHome && role === "AFFILIATE") {
       return NextResponse.redirect(new URL("/dashboard/affiliate", req.url))
     }
-    if (isLocaleHome && role === "SUPPLIER") {
+    if (isHome && role === "SUPPLIER") {
       return NextResponse.redirect(new URL("/dashboard/supplier", req.url))
     }
 

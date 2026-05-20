@@ -10,7 +10,14 @@ export default function LocaleNotFound() {
 
   return (
     <main className="mx-auto flex min-h-[60vh] max-w-lg flex-col items-center justify-center px-6 py-16 text-center">
-      <Image src="/illustrations/empty-search.svg" alt="" width={200} height={160} />
+      <Image
+        src="/illustrations/empty-search.svg"
+        alt=""
+        width={200}
+        height={160}
+        loading="eager"
+        priority
+      />
       <h1 className="mt-6 text-2xl font-bold">{t("title")}</h1>
       <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{t("body")}</p>
       <Link

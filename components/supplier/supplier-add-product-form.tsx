@@ -28,6 +28,7 @@ import {
   Zap,
 } from "lucide-react"
 import { signOut } from "next-auth/react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { BentoShell } from "@/components/affisell/bento-ui"
@@ -279,6 +280,7 @@ export function SupplierAddProductForm({
   const urlListingId = editId || draftIdFromUrl
 
   const cacheMode: SupplierAddProductCacheMode = assistShortcuts ? "assist" : composeQs ? "compose" : "plain"
+  const tForm = useTranslations("supplier.form")
 
   const [loadingProduct, setLoadingProduct] = useState(Boolean(urlListingId))
   const [saving, setSaving] = useState(false)
@@ -1791,7 +1793,7 @@ export function SupplierAddProductForm({
                 <div className="absolute inset-0 animate-ping rounded-2xl bg-violet-400/25" aria-hidden />
                 <Loader2 className="relative h-10 w-10 animate-spin text-violet-600 dark:text-violet-400" aria-hidden />
               </div>
-              <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Loading listing…</p>
+              <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">{tForm("loadingListing")}</p>
             </div>
           </div>
         </div>
@@ -1804,13 +1806,13 @@ export function SupplierAddProductForm({
       <BentoShell>
         <ProductWizard
           breadcrumb={[
-            { label: "Catalogue", href: "/dashboard/supplier/products" },
+            { label: tForm("breadcrumbCatalog"), href: "/dashboard/supplier/products" },
             {
               label: editId
                 ? productIsDraft
-                  ? "Brouillon"
-                  : "Modifier le produit"
-                : "Nouveau produit",
+                  ? tForm("breadcrumbDraft")
+                  : tForm("breadcrumbEdit")
+                : tForm("breadcrumbNew"),
             },
           ]}
           onSaveDraft={canSaveDraft ? () => void handleSaveDraftClick() : undefined}
@@ -1828,7 +1830,7 @@ export function SupplierAddProductForm({
                 <div className="flex gap-3">
                   <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-600 dark:text-red-400" aria-hidden />
                   <div className="min-w-0">
-                    <p className="font-semibold">Publication impossible — corrigez les zones encadrées en rouge</p>
+                    <p className="font-semibold">{tForm("publishBlockedTitle")}</p>
                     <ul className="mt-2 list-disc space-y-1 pl-4 text-sm leading-relaxed">
                       {publishBlockers.map((b, i) => (
                         <li key={`${b.field}-${i}`}>{b.message}</li>
@@ -1842,7 +1844,7 @@ export function SupplierAddProductForm({
               <>
                 <div className="flex flex-col gap-3 rounded-3xl border border-gray-100 bg-white/75 px-4 py-3.5 shadow-sm ring-1 ring-black/[0.02] backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/60 dark:ring-white/[0.04] sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">
-                    On this page
+                    {tForm("onThisPage")}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {assistShortcuts ? (
@@ -1851,7 +1853,7 @@ export function SupplierAddProductForm({
                         className={jumpBtnClass}
                         onClick={() => scrollToSection("add-product-shortcuts")}
                       >
-                        Shortcuts
+                        {tForm("jumpShortcuts")}
                       </button>
                     ) : null}
                     <button
@@ -1859,7 +1861,7 @@ export function SupplierAddProductForm({
                       className={jumpBtnClass}
                       onClick={() => scrollToSection("add-product-story")}
                     >
-                      Story
+                      {tForm("jumpStory")}
                     </button>
                     <button
                       type="button"
