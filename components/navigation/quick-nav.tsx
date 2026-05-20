@@ -3,27 +3,40 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
+import { useTranslations } from "next-intl"
 import { Command, Search, Zap } from "lucide-react"
 
 import {
-  AFFILIATE_QUICK_NAV,
-  BUYER_QUICK_NAV,
-  SUPPLIER_QUICK_NAV,
+  buildQuickNavCatalog,
+  groupQuickNavItems,
+  QUICK_NAV_SEGMENT_LABEL_KEYS,
   type QuickNavItem,
-} from "@/lib/nav-routes"
+  type QuickNavSegment,
+} from "@/lib/quick-nav-catalog"
 import { cn } from "@/lib/utils"
 
-function itemsForRole(role: string | undefined): QuickNavItem[] {
-  if (role === "SUPPLIER") return SUPPLIER_QUICK_NAV
-  if (role === "AFFILIATE") return AFFILIATE_QUICK_NAV
-  return BUYER_QUICK_NAV
-}
+type ResolvedQuickNavItem = QuickNavItem & { label: string }
 
 export function QuickNav() {
   const router = useRouter()
   const { data: session } = useSession()
+  const t = useTranslations("QuickNav")
   const role = session?.user?.role
-  const items = useMemo(() => itemsForRole(role), [role])
+  const loggedIn = Boolean(session?.user?.id)
+
+  const catalog = useMemo(
+    () => buildQuickNavCatalog(role, loggedIn),
+    [role, loggedIn]
+  )
+
+  const items: ResolvedQuickNavItem[] = useMemo(
+    () =>
+      catalog.map((item) => ({
+        ...item,
+        label: t(item.labelKey),
+      })),
+    [catalog, t]
+  )
 
   const [open, setOpen] = useState(false)
   const [q, setQ] = useState("")
@@ -32,13 +45,17 @@ export function QuickNav() {
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase()
     if (!needle) return items
-    return items.filter(
-      (item) =>
+    return items.filter((item) => {
+      const segmentLabel = t(
+        QUICK_NAV_SEGMENT_LABEL_KEYS[item.segment as QuickNavSegment]
+      ).toLowerCase()
+      return (
         item.label.toLowerCase().includes(needle) ||
         item.keywords.some((k) => k.includes(needle)) ||
-        item.group.toLowerCase().includes(needle)
-    )
-  }, [items, q])
+        segmentLabel.includes(needle)
+      )
+    })
+  }, [items, q, t])
 
   const go = useCallback(
     (href: string) => {
@@ -89,24 +106,22 @@ export function QuickNav() {
 
   useEffect(() => {
     if (!open) return
-    for (const item of filtered.slice(0, 8)) {
+    for (const item of filtered.slice(0, 10)) {
       try {
-        router.prefetch(item.href)
+        router.prefetch(item.href.split("?")[0] ?? item.href)
       } catch {
         /* ignore */
       }
     }
   }, [open, filtered, router])
 
-  const grouped = useMemo(() => {
-    const map = new Map<string, QuickNavItem[]>()
-    for (const item of filtered) {
-      const list = map.get(item.group) ?? []
-      list.push(item)
-      map.set(item.group, list)
-    }
-    return [...map.entries()]
-  }, [filtered])
+  const grouped = useMemo(
+    () =>
+      groupQuickNavItems(filtered, (segment) =>
+        t(QUICK_NAV_SEGMENT_LABEL_KEYS[segment])
+      ),
+    [filtered, t]
+  )
 
   let flatIndex = -1
 
@@ -116,10 +131,10 @@ export function QuickNav() {
         type="button"
         onClick={() => setOpen(true)}
         className="inline-flex items-center gap-2 rounded-full border border-zinc-200/90 bg-zinc-50/90 px-2.5 py-1.5 text-xs font-medium text-zinc-600 shadow-sm transition hover:border-violet-300 hover:bg-white hover:text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-300 dark:hover:border-violet-700 sm:px-3"
-        aria-label="Navigation rapide (⌘K)"
+        aria-label={`${t("triggerLabel")} (⌘K)`}
       >
         <Zap className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400" aria-hidden />
-        <span className="hidden lg:inline">Navigation rapide</span>
+        <span className="hidden lg:inline">{t("triggerLabel")}</span>
         <kbd className="rounded-md border border-zinc-200 bg-white px-1.5 py-0.5 font-mono text-[10px] text-zinc-500 dark:border-zinc-600 dark:bg-zinc-950">
           ⌘K
         </kbd>
@@ -134,7 +149,7 @@ export function QuickNav() {
           <div
             role="dialog"
             aria-modal
-            aria-label="Navigation rapide"
+            aria-label={t("triggerLabel")}
             className="w-full max-w-lg overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-2xl dark:border-zinc-700 dark:bg-zinc-950"
             onClick={(e) => e.stopPropagation()}
           >
@@ -144,21 +159,21 @@ export function QuickNav() {
                 autoFocus
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Où aller ? Boutique, marketplace, dashboard…"
+                placeholder={t("placeholder")}
                 className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-zinc-400"
               />
               <kbd className="hidden rounded border border-zinc-200 px-1.5 py-0.5 font-mono text-[10px] text-zinc-400 sm:inline">
                 esc
               </kbd>
             </div>
-            <ul className="max-h-[min(50vh,360px)] overflow-y-auto p-2">
+            <ul className="max-h-[min(50vh,360px)] overflow-y-auto p-2" role="listbox">
               {filtered.length === 0 ? (
-                <li className="px-3 py-8 text-center text-sm text-zinc-500">Aucune destination</li>
+                <li className="px-3 py-8 text-center text-sm text-zinc-500">{t("empty")}</li>
               ) : (
-                grouped.map(([group, groupItems]) => (
-                  <li key={group} className="mb-2 last:mb-0">
+                grouped.map(({ segment, label: groupLabel, items: groupItems }) => (
+                  <li key={segment} className="mb-2 last:mb-0">
                     <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                      {group}
+                      {groupLabel}
                     </p>
                     <ul>
                       {groupItems.map((item) => {
@@ -169,11 +184,13 @@ export function QuickNav() {
                           <li key={item.id}>
                             <button
                               type="button"
+                              role="option"
+                              aria-selected={isActive}
                               onClick={() => go(item.href)}
                               onMouseEnter={() => {
                                 setActiveIndex(idx)
                                 try {
-                                  router.prefetch(item.href)
+                                  router.prefetch(item.href.split("?")[0] ?? item.href)
                                 } catch {
                                   /* ignore */
                                 }

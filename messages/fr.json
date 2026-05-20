@@ -189,5 +189,37 @@
     "delivery": "Livraison {days} jours",
     "premium": "Premium",
     "topRated": "Mieux notés"
+  },
+  "QuickNav": {
+    "triggerLabel": "Navigation rapide",
+    "placeholder": "Où aller ? Boutique, marketplace, compte…",
+    "empty": "Aucune destination",
+    "groups": {
+      "buy": "ACHETER",
+      "sell": "VENDRE",
+      "account": "COMPTE"
+    },
+    "items": {
+      "home": "Accueil",
+      "shops": "Boutiques créateurs",
+      "marketplace": "Marketplace",
+      "cart": "Panier",
+      "wishlist": "Favoris",
+      "sellOnAffisell": "Vendre sur Affisell",
+      "becomeSupplier": "Devenir fournisseur",
+      "loginSeller": "Connexion vendeur",
+      "supplierDashboard": "Mission control",
+      "supplierProducts": "Produits fournisseur",
+      "supplierOrders": "Commandes fournisseur",
+      "affiliateDashboard": "Dashboard créateur",
+      "affiliateCatalog": "Catalogue affilié",
+      "affiliateAgent": "Agent sourcing",
+      "affiliateEarnings": "Revenus affilié",
+      "loginBuyer": "Connexion acheteur",
+      "createBuyerAccount": "Créer un compte acheteur",
+      "buyerAccount": "Mon espace client",
+      "buyerOrders": "Mes commandes",
+      "buyerWallet": "Portefeuille"
+    }
   }
 }

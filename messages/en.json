@@ -191,5 +191,37 @@
     "delivery": "Delivery {days} days",
     "premium": "Premium",
     "topRated": "Top rated"
+  },
+  "QuickNav": {
+    "triggerLabel": "Quick navigation",
+    "placeholder": "Where to go? Shops, marketplace, account…",
+    "empty": "No destination found",
+    "groups": {
+      "buy": "SHOP",
+      "sell": "SELL",
+      "account": "ACCOUNT"
+    },
+    "items": {
+      "home": "Home",
+      "shops": "Creator shops",
+      "marketplace": "Marketplace",
+      "cart": "Cart",
+      "wishlist": "Wishlist",
+      "sellOnAffisell": "Sell on Affisell",
+      "becomeSupplier": "Become a supplier",
+      "loginSeller": "Seller sign in",
+      "supplierDashboard": "Mission control",
+      "supplierProducts": "Supplier products",
+      "supplierOrders": "Supplier orders",
+      "affiliateDashboard": "Creator dashboard",
+      "affiliateCatalog": "Affiliate catalog",
+      "affiliateAgent": "Sourcing agent",
+      "affiliateEarnings": "Affiliate earnings",
+      "loginBuyer": "Buyer sign in",
+      "createBuyerAccount": "Create buyer account",
+      "buyerAccount": "My account",
+      "buyerOrders": "My orders",
+      "buyerWallet": "Wallet"
+    }
   }
 }
