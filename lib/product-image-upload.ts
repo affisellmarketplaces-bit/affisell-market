@@ -18,8 +18,8 @@ export async function measureImageFile(file: File): Promise<{ width: number; hei
 }
 
 export async function processProductImageToDataUrl(file: File): Promise<string> {
-  const { removeBackground } = await import("@imgly/background-removal")
-  const blob = await removeBackground(file)
+  const { removeBackgroundFromFile } = await import("@/lib/background-removal-client")
+  const blob = await removeBackgroundFromFile(file)
 
   return new Promise((resolve, reject) => {
     const blobUrl = URL.createObjectURL(blob)
