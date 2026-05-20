@@ -275,8 +275,7 @@ export default async function SupplierStorePreviewPage({ params }: { params: Pro
                     {store.name}
                   </h1>
                   <p className="mt-2 max-w-2xl text-pretty text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 sm:text-base">
-                    {store.description?.trim() ||
-                      "Catalogue officiel du fournisseur — achetez via les fiches produit Affisell (panier, paiement sécurisé, livraison)."}
+                    {store.description?.trim() || "Catalogue officiel du fournisseur"}
                   </p>
                   {socials.length > 0 ? (
                     <ul className="mt-4 flex flex-wrap gap-2">
