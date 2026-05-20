@@ -13,7 +13,11 @@ const FLAGS: Record<AppLocale, string> = { en: "🇬🇧", fr: "🇫🇷" }
 const LABELS: Record<AppLocale, string> = { en: "English", fr: "Français" }
 
 function setLocaleCookie(locale: AppLocale) {
-  document.cookie = `${LOCALE_COOKIE}=${locale};path=/;max-age=${localeCookieMaxAgeSec()};SameSite=Lax`
+  const maxAge = localeCookieMaxAgeSec()
+  const base = `${LOCALE_COOKIE}=${locale};path=/;max-age=${maxAge};SameSite=Lax`
+  document.cookie = base
+  // Legacy name next-intl used before routing.localeCookie was configured
+  document.cookie = `NEXT_LOCALE=${locale};path=/;max-age=${maxAge};SameSite=Lax`
 }
 
 export function LanguageSwitcher({ className }: { className?: string }) {

@@ -1,6 +1,5 @@
 import createIntlMiddleware from "next-intl/middleware"
-import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { getToken } from "next-auth/jwt"
 
 import { routing } from "@/i18n/routing"
@@ -56,9 +55,16 @@ function legacyAuthRedirect(req: NextRequest, pathname: string): NextResponse | 
   return NextResponse.redirect(u)
 }
 
+function requestWithPathname(req: NextRequest): NextRequest {
+  const requestHeaders = new Headers(req.headers)
+  requestHeaders.set("x-affisell-pathname", req.nextUrl.pathname)
+  return new NextRequest(req.url, { headers: requestHeaders })
+}
+
 function withForcedCustomerRole(req: NextRequest): NextResponse {
   const requestHeaders = new Headers(req.headers)
   requestHeaders.set(FORCED_CUSTOMER_HEADER, "customer")
+  requestHeaders.set("x-affisell-pathname", req.nextUrl.pathname)
   return NextResponse.next({ request: { headers: requestHeaders } })
 }
 
@@ -178,13 +184,13 @@ export async function middleware(req: NextRequest) {
   }
   }
 
-  const intlResponse = intlMiddleware(req)
+  const intlResponse = intlMiddleware(requestWithPathname(req))
   const urlLocale = localeFromPathname(req.nextUrl.pathname)
   const cookieLocale = req.cookies.get(LOCALE_COOKIE)?.value
   if (urlLocale) {
     setLocaleCookie(intlResponse, urlLocale)
   } else if (cookieLocale) {
-    setLocaleCookie(intlResponse, cookieLocale)
+    setLocaleCookie(intlResponse, resolveAppLocale(cookieLocale))
   } else {
     setLocaleCookie(intlResponse, routing.defaultLocale)
   }
