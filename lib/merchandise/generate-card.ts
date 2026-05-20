@@ -1,7 +1,6 @@
 import fs from "fs/promises"
 import path from "path"
 
-import { removeBackground } from "@imgly/background-removal-node"
 import sharp from "sharp"
 
 import type { MerchCategoryTemplate } from "@/lib/merchandise/templates"
@@ -30,8 +29,17 @@ function escapeXml(s: string) {
     .replace(/'/g, "&apos;")
 }
 
-async function blobToBuffer(blob: Blob): Promise<Buffer> {
-  return Buffer.from(await blob.arrayBuffer())
+async function subjectBufferFromImageUrl(firstUrl: string): Promise<Buffer> {
+  const res = await fetch(firstUrl)
+  if (!res.ok) {
+    return sharp({
+      create: { width: 160, height: 160, channels: 3, background: "#ffffff" },
+    })
+      .png()
+      .toBuffer()
+  }
+  const buf = Buffer.from(await res.arrayBuffer())
+  return sharp(buf).png().toBuffer()
 }
 
 function cachePathForProduct(productId: string) {
@@ -74,25 +82,8 @@ export async function generateCategoryCard(
       .png()
       .toBuffer()
   } else {
-    try {
-      const blob = await removeBackground(firstUrl, {
-        model: "small",
-        output: { format: "image/png" },
-      })
-      subject = await blobToBuffer(blob)
-    } catch {
-      const res = await fetch(firstUrl)
-      if (!res.ok) {
-        subject = await sharp({
-          create: { width: 160, height: 160, channels: 3, background: "#ffffff" },
-        })
-          .png()
-          .toBuffer()
-      } else {
-        const buf = Buffer.from(await res.arrayBuffer())
-        subject = await sharp(buf).png().toBuffer()
-      }
-    }
+    /** Sharp-only on serverless (imgly-node models exceed Vercel 250MB function limit). */
+    subject = await subjectBufferFromImageUrl(firstUrl)
   }
 
   const maxW = 240
