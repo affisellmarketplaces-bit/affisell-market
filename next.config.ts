@@ -8,18 +8,13 @@ const nextConfig: NextConfig = {
   output: "standalone" as const,
   /** Client bundles emit source maps for Sentry (Turbopack + runAfterProductionCompile upload). */
   productionBrowserSourceMaps: true,
-  serverExternalPackages: [
-    "@imgly/background-removal",
-    "@imgly/background-removal-node",
-    "onnxruntime-web",
-  ],
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      if (Array.isArray(config.externals)) {
-        config.externals.push("@imgly/background-removal", "onnxruntime-web")
-      }
-    }
-    return config
+  /** Keep WASM/ONNX browser stacks out of serverless traces (photo-studio is client-only). */
+  outputFileTracingExcludes: {
+    "*": [
+      "node_modules/onnxruntime-web/**",
+      "node_modules/@imgly/background-removal/**",
+      "node_modules/@imgly/background-removal-node/**",
+    ],
   },
   images: {
     remotePatterns: [
