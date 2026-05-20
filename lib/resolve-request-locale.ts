@@ -21,8 +21,7 @@ export async function resolveRequestLocale(requested: string | undefined): Promi
   }
 
   const cookieStore = await cookies()
-  const cookieRaw =
-    cookieStore.get(LOCALE_COOKIE)?.value ?? cookieStore.get("NEXT_LOCALE")?.value
+  const cookieRaw = cookieStore.get(LOCALE_COOKIE)?.value
   if (cookieRaw && hasLocale(routing.locales, cookieRaw)) {
     return cookieRaw as AppLocale
   }

@@ -6,7 +6,11 @@ export const routing = defineRouting({
   locales: ["en", "fr"],
   defaultLocale: "en",
   localePrefix: "as-needed",
-  /** Must match `LanguageSwitcher` — next-intl defaults to `NEXT_LOCALE` otherwise. */
+  /**
+   * Do not auto-redirect `/` ↔ `/fr` from cookie + Accept-Language (causes redirect loops
+   * with split `app/page.tsx` + `app/[locale]/page.tsx`). Locale is chosen via URL or switcher.
+   */
+  localeDetection: false,
   localeCookie: {
     name: LOCALE_COOKIE,
     maxAge: localeCookieMaxAgeSec(),

@@ -68,13 +68,14 @@ function withForcedCustomerRole(req: NextRequest): NextResponse {
   return NextResponse.next({ request: { headers: requestHeaders } })
 }
 
-function setLocaleCookie(res: NextResponse, locale: string) {
+function syncLocaleCookies(res: NextResponse, locale: string) {
   const resolved = resolveAppLocale(locale)
   res.cookies.set(LOCALE_COOKIE, resolved, {
     path: "/",
     maxAge: localeCookieMaxAgeSec(),
     sameSite: "lax",
   })
+  res.cookies.delete("NEXT_LOCALE")
 }
 
 export async function middleware(req: NextRequest) {
@@ -185,14 +186,15 @@ export async function middleware(req: NextRequest) {
   }
 
   const intlResponse = intlMiddleware(requestWithPathname(req))
+
   const urlLocale = localeFromPathname(req.nextUrl.pathname)
-  const cookieLocale = req.cookies.get(LOCALE_COOKIE)?.value
   if (urlLocale) {
-    setLocaleCookie(intlResponse, urlLocale)
-  } else if (cookieLocale) {
-    setLocaleCookie(intlResponse, resolveAppLocale(cookieLocale))
+    syncLocaleCookies(intlResponse, urlLocale)
+  } else if (intlResponse.headers.get("location")) {
+    // Keep redirect responses from next-intl (e.g. strip `/en` prefix) — do not attach cookies
   } else {
-    setLocaleCookie(intlResponse, routing.defaultLocale)
+    const cookieLocale = req.cookies.get(LOCALE_COOKIE)?.value ?? req.cookies.get("NEXT_LOCALE")?.value
+    syncLocaleCookies(intlResponse, cookieLocale ?? routing.defaultLocale)
   }
   return intlResponse
 }

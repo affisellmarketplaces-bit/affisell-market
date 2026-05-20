@@ -14,10 +14,9 @@ const LABELS: Record<AppLocale, string> = { en: "English", fr: "Français" }
 
 function setLocaleCookie(locale: AppLocale) {
   const maxAge = localeCookieMaxAgeSec()
-  const base = `${LOCALE_COOKIE}=${locale};path=/;max-age=${maxAge};SameSite=Lax`
-  document.cookie = base
-  // Legacy name next-intl used before routing.localeCookie was configured
-  document.cookie = `NEXT_LOCALE=${locale};path=/;max-age=${maxAge};SameSite=Lax`
+  document.cookie = `${LOCALE_COOKIE}=${locale};path=/;max-age=${maxAge};SameSite=Lax`
+  // Clear legacy cookie that could disagree with affisell_locale and cause redirect loops
+  document.cookie = `NEXT_LOCALE=;path=/;max-age=0;SameSite=Lax`
 }
 
 export function LanguageSwitcher({ className }: { className?: string }) {
