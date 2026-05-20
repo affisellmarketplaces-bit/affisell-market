@@ -7,6 +7,11 @@ import type { ChangeEvent } from "react"
 import { useCallback, useState } from "react"
 import { toast } from "sonner"
 
+import {
+  isAliExpressImportInput,
+  parseAliExpressProductId,
+} from "@/lib/aliexpress-product-id"
+
 export type ImportedVariantDraft = {
   name: string
   image: string
@@ -456,12 +461,73 @@ export function SupplierProductImport() {
     }
   }, [])
 
+  const runAliExpressImport = useCallback(
+    async (productId: string) => {
+      setIsImporting(true)
+      setError(null)
+      setNotice(null)
+      try {
+        const res = await fetch("/api/supplier/aliexpress/import", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ productId }),
+        })
+        const data = (await res.json()) as {
+          success?: boolean
+          product?: { id?: string }
+          error?: string
+          rateLimited?: boolean
+          productId?: string
+        }
+
+        if (data.success && data.product?.id) {
+          toast.success("Produit importé depuis AliExpress API")
+          router.push(`/dashboard/supplier/products/${data.product.id}`)
+          return
+        }
+
+        if (res.status === 409 && typeof data.productId === "string") {
+          toast.info("Produit déjà importé")
+          router.push(`/dashboard/supplier/products/${data.productId}`)
+          return
+        }
+
+        const message = data.error || "Import échoué"
+        if (data.rateLimited || res.status === 429) {
+          toast.error(`${message} — Rate limit, retry dans 60s`)
+        } else {
+          toast.error(message)
+        }
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Import échoué")
+      } finally {
+        setIsImporting(false)
+      }
+    },
+    [router]
+  )
+
   const handleURLImport = useCallback(async (url: string) => {
     const u = url.trim()
     if (!u) {
       setError("Enter a product URL")
       return
     }
+
+    if (isAliExpressImportInput(u)) {
+      const productId = parseAliExpressProductId(u)
+      if (!productId) {
+        toast.error("ID AliExpress invalide")
+        setImportMethod("aliexpress")
+        setAliExpressUrl(u)
+        return
+      }
+      toast.info("URL AliExpress — import via API officielle")
+      await runAliExpressImport(productId)
+      return
+    }
+
     setIsImporting(true)
     setError(null)
     setNotice(null)
