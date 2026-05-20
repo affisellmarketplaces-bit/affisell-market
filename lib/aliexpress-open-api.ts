@@ -1,5 +1,8 @@
 import crypto from "crypto"
 
+import { getAliExpressConfigStatus, readAliExpressConfig } from "@/lib/aliexpress-config"
+import { resolveAliExpressAccessToken } from "@/lib/aliexpress-oauth"
+
 const REQUEST_TIMEOUT_MS = 10_000
 
 const DEFAULT_BIZ_LOCALE = {
@@ -20,10 +23,19 @@ export class AliExpressApiError extends Error {
   }
 }
 
-function resolveBaseUrl(): string {
+function resolveBaseUrl(sandbox?: boolean): string {
+  if (sandbox === true) return "https://api-sg.aliexpress.com/sync"
+  if (sandbox === false) return "https://api.aliexpress.com/sync"
   const env = process.env.ALIEXPRESS_ENV?.trim().toLowerCase()
   if (env === "sandbox") return "https://api-sg.aliexpress.com/sync"
   return "https://api.aliexpress.com/sync"
+}
+
+export type AliExpressClientCredentials = {
+  appKey: string
+  appSecret: string
+  accessToken: string
+  sandbox?: boolean
 }
 
 function formatTimestamp(d = new Date()): string {
@@ -94,11 +106,24 @@ export class AliExpressClient {
   private readonly accessToken: string
   private readonly baseUrl: string
 
-  constructor() {
-    this.appKey = process.env.ALIEXPRESS_APP_KEY?.trim() ?? ""
-    this.appSecret = process.env.ALIEXPRESS_APP_SECRET?.trim() ?? ""
-    this.accessToken = process.env.ALIEXPRESS_ACCESS_TOKEN?.trim() ?? ""
-    this.baseUrl = resolveBaseUrl()
+  constructor(credentials?: AliExpressClientCredentials) {
+    if (credentials) {
+      this.appKey = credentials.appKey
+      this.appSecret = credentials.appSecret
+      this.accessToken = credentials.accessToken
+      this.baseUrl = resolveBaseUrl(credentials.sandbox)
+      return
+    }
+    const config = readAliExpressConfig()
+    this.appKey = config.appKey
+    this.appSecret = config.appSecret
+    this.accessToken = config.accessToken
+    this.baseUrl = resolveBaseUrl(config.sandbox)
+  }
+
+  /** Sync check: app key + secret + (access or refresh token) present in env. */
+  static isConfigured(): boolean {
+    return getAliExpressConfigStatus().configured
   }
 
   isConfigured(): boolean {
@@ -209,4 +234,20 @@ export class AliExpressClient {
     if (!id) throw new AliExpressApiError("product_id is required")
     return this.request("aliexpress.ds.product.get", { product_id: id })
   }
+}
+
+/** Build client with resolved session (env token or refresh). */
+export async function createAliExpressClient(): Promise<AliExpressClient> {
+  const config = readAliExpressConfig()
+  const status = getAliExpressConfigStatus(config)
+  if (!status.configured) {
+    throw new AliExpressApiError(status.message)
+  }
+  const accessToken = await resolveAliExpressAccessToken(config)
+  return new AliExpressClient({
+    appKey: config.appKey,
+    appSecret: config.appSecret,
+    accessToken,
+    sandbox: config.sandbox,
+  })
 }

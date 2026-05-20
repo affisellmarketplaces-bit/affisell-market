@@ -479,6 +479,7 @@ export function SupplierProductImport() {
           error?: string
           rateLimited?: boolean
           productId?: string
+          missing?: string[]
         }
 
         if (data.success && data.product?.id) {
@@ -494,10 +495,14 @@ export function SupplierProductImport() {
         }
 
         const message = data.error || "Import échoué"
+        const missingHint =
+          Array.isArray(data.missing) && data.missing.length > 0
+            ? ` (${data.missing.join(", ")})`
+            : ""
         if (data.rateLimited || res.status === 429) {
-          toast.error(`${message} — Rate limit, retry dans 60s`)
+          toast.error(`${message}${missingHint} — Rate limit, retry dans 60s`)
         } else {
-          toast.error(message)
+          toast.error(`${message}${missingHint}`)
         }
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Import échoué")
@@ -565,7 +570,7 @@ export function SupplierProductImport() {
     } finally {
       setIsImporting(false)
     }
-  }, [aiRewrite, markupMultiplier])
+  }, [aiRewrite, markupMultiplier, runAliExpressImport])
 
   const handleAliExpressImport = useCallback(async () => {
     const raw = aliExpressUrl.trim()
@@ -573,55 +578,13 @@ export function SupplierProductImport() {
       toast.error("Saisissez un ID produit ou une URL AliExpress")
       return
     }
-
-    const productId = raw.match(/item\/(\d{13,})/)?.[1] || raw
-    if (!/^\d{13,}$/.test(productId)) {
+    const productId = parseAliExpressProductId(raw)
+    if (!productId) {
       toast.error("ID invalide")
       return
     }
-
-    setIsImporting(true)
-    setError(null)
-    setNotice(null)
-    try {
-      const res = await fetch("/api/supplier/aliexpress/import", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ productId }),
-      })
-      const data = (await res.json()) as {
-        success?: boolean
-        product?: { id?: string }
-        error?: string
-        rateLimited?: boolean
-        productId?: string
-      }
-
-      if (data.success && data.product?.id) {
-        toast.success("Produit importé depuis AliExpress API")
-        router.push(`/dashboard/supplier/products/${data.product.id}`)
-        return
-      }
-
-      if (res.status === 409 && typeof data.productId === "string") {
-        toast.info("Produit déjà importé")
-        router.push(`/dashboard/supplier/products/${data.productId}`)
-        return
-      }
-
-      const message = data.error || "Import échoué"
-      if (data.rateLimited || res.status === 429) {
-        toast.error(`${message} — Rate limit, retry dans 60s`)
-      } else {
-        toast.error(message)
-      }
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Import échoué")
-    } finally {
-      setIsImporting(false)
-    }
-  }, [aliExpressUrl, router])
+    await runAliExpressImport(productId)
+  }, [aliExpressUrl, runAliExpressImport])
 
   const handleSelectAll = useCallback(() => {
     setImportedProducts((prev) => prev.map((p) => ({ ...p, selected: true })))

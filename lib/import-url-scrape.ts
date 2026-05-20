@@ -64,9 +64,7 @@ export function getScrapingBeeApiKey(): string | null {
 
 export function scrapingBeeMissingMessage(platform: ImportPlatform): string {
   if (platform === "aliexpress") {
-    return (
-      "AliExpress import needs SCRAPINGBEE_API_KEY. Add your key in Vercel → Project → Settings → Environment Variables, then redeploy. Free trial: scrapingbee.com"
-    )
+    return "AliExpress : utilisez l’onglet AliExpress (API officielle), pas Product URL / ScrapingBee."
   }
   return "Import blocked by the store. Set SCRAPINGBEE_API_KEY in environment variables (scrapingbee.com)."
 }

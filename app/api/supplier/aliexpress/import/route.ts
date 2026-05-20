@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/nextjs"
 
-import { AliExpressApiError, AliExpressClient } from "@/lib/aliexpress-open-api"
+import { getAliExpressConfigStatus } from "@/lib/aliexpress-config"
+import { AliExpressApiError, createAliExpressClient } from "@/lib/aliexpress-open-api"
 import { mapAliExpressGetProductResponse } from "@/lib/aliexpress-product-map"
 import { defaultAffiliateCommissionPct } from "@/lib/supplier-commission"
 import { requireSupplierOrAdminSession } from "@/lib/supplier-or-admin-session"
@@ -21,12 +22,20 @@ export async function POST(req: Request) {
     return Response.json({ error: "productId is required" }, { status: 400 })
   }
 
-  const client = new AliExpressClient()
-  if (!client.isConfigured()) {
-    return Response.json({ error: "AliExpress API is not configured" }, { status: 503 })
+  const configStatus = getAliExpressConfigStatus()
+  if (!configStatus.configured) {
+    return Response.json(
+      {
+        success: false,
+        error: configStatus.message,
+        missing: configStatus.missing,
+      },
+      { status: 503 }
+    )
   }
 
   try {
+    const client = await createAliExpressClient()
     const raw = await client.getProduct(productId)
     const mapped = mapAliExpressGetProductResponse(raw, productId)
 

@@ -289,8 +289,7 @@ export async function POST(req: NextRequest) {
     }
 
     const needsScrapingBee =
-      platform === "aliexpress" &&
-      (!product?.title || !product.price || product.images.length === 0)
+      !product?.title || !product.price || product.images.length === 0
 
     const scrapingBeeKey = getScrapingBeeApiKey()
     if (needsScrapingBee && scrapingBeeKey) {
@@ -316,13 +315,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (platform === "aliexpress" && product.price <= 0) {
-      console.warn(
-        "AliExpress import: price not found in page — supplier should confirm cost before publishing."
-      )
-    }
-
-    if (platform === "aliexpress" || url.toLowerCase().includes("mango")) {
+    if (url.toLowerCase().includes("mango")) {
       product.title = await translateTitleToEnglish(product.title)
     }
 
@@ -355,11 +348,6 @@ export async function POST(req: NextRequest) {
     }
 
     const warnings: string[] = []
-    if (platform === "aliexpress" && product.price <= 0) {
-      warnings.push(
-        "Prix fournisseur introuvable sur la page — renseignez le coût à la main avant publication. Un import ScrapingBee complet nécessite des crédits API actifs."
-      )
-    }
     if (method === "direct-partial") {
       warnings.push(
         "Import partiel (ScrapingBee indisponible ou quota épuisé). Titre et images récupérés ; vérifiez prix et variantes."

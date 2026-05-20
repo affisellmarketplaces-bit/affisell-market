@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/nextjs"
 
-import { AliExpressApiError, AliExpressClient, unwrapAliExpressMethodResponse } from "@/lib/aliexpress-open-api"
+import { getAliExpressConfigStatus } from "@/lib/aliexpress-config"
+import { AliExpressApiError, createAliExpressClient, unwrapAliExpressMethodResponse } from "@/lib/aliexpress-open-api"
 import { requireSupplierOrAdminSession } from "@/lib/supplier-or-admin-session"
 
 export const runtime = "nodejs"
@@ -19,15 +20,20 @@ export async function GET() {
     return Response.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  const client = new AliExpressClient()
-  if (!client.isConfigured()) {
+  const configStatus = getAliExpressConfigStatus()
+  if (!configStatus.configured) {
     return Response.json(
-      { status: "error", error: "AliExpress API is not configured (missing key, secret, or token)" },
+      {
+        status: "error",
+        error: configStatus.message,
+        missing: configStatus.missing,
+      },
       { status: 503 }
     )
   }
 
   try {
+    const client = await createAliExpressClient()
     const payload = await client.request("aliexpress.system.time.get", {})
     const time = extractSystemTime(payload)
     return Response.json({ status: "ok", time })
