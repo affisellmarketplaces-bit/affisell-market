@@ -5,6 +5,7 @@ import { Home, Search, Store, User } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { useSession } from "next-auth/react"
 
+import { LocaleSwitcher } from "@/components/locale-switcher"
 import { FastLink } from "@/components/navigation/fast-link"
 import { NavPill } from "@/components/navigation/nav-pill"
 import { QuickNav } from "@/components/navigation/quick-nav"
@@ -47,6 +48,7 @@ export function PublicNav() {
       </Suspense>
 
       <div className="order-2 flex shrink-0 flex-wrap items-center gap-2 md:order-4">
+        <LocaleSwitcher />
         <QuickNav />
         <FastLink
           href="/signup/affiliate"

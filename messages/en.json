@@ -192,36 +192,32 @@
     "premium": "Premium",
     "topRated": "Top rated"
   },
-  "QuickNav": {
+  "CommandK": {
+    "languageSwitcher": "Language",
     "triggerLabel": "Quick navigation",
-    "placeholder": "Where to go? Shops, marketplace, account…",
+    "placeholder": "Where to go? Marketplace, seller tools, account…",
     "empty": "No destination found",
+    "escape": "esc",
     "groups": {
-      "buy": "SHOP",
+      "buy": "BUY",
       "sell": "SELL",
       "account": "ACCOUNT"
     },
     "items": {
       "home": "Home",
-      "shops": "Creator shops",
       "marketplace": "Marketplace",
+      "creatorStores": "Creator stores",
       "cart": "Cart",
       "wishlist": "Wishlist",
-      "sellOnAffisell": "Sell on Affisell",
-      "becomeSupplier": "Become a supplier",
-      "loginSeller": "Seller sign in",
-      "supplierDashboard": "Mission control",
-      "supplierProducts": "Supplier products",
-      "supplierOrders": "Supplier orders",
-      "affiliateDashboard": "Creator dashboard",
-      "affiliateCatalog": "Affiliate catalog",
-      "affiliateAgent": "Sourcing agent",
-      "affiliateEarnings": "Affiliate earnings",
-      "loginBuyer": "Buyer sign in",
+      "myOrders": "My orders",
+      "sellerDashboard": "Seller dashboard",
+      "listProduct": "List a product",
+      "mySales": "My sales",
+      "becomeSeller": "Become a seller",
+      "signIn": "Sign in",
       "createBuyerAccount": "Create buyer account",
-      "buyerAccount": "My account",
-      "buyerOrders": "My orders",
-      "buyerWallet": "Wallet"
+      "settings": "Settings",
+      "signOut": "Sign out"
     }
   }
 }

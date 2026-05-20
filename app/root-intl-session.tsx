@@ -1,28 +1,22 @@
 "use client"
 
 import { SessionProvider } from "next-auth/react"
-import { NextIntlClientProvider } from "next-intl"
 import { Toaster } from "sonner"
 
+import { LocaleIntlProvider } from "@/components/navigation/locale-intl-provider"
 import { NavigationShell } from "@/components/navigation/navigation-shell"
-import en from "@/messages/en.json"
-import fr from "@/messages/fr.json"
-
-const clientLocale = process.env.NEXT_PUBLIC_MESSAGES_LOCALE?.toLowerCase() === "fr" ? "fr" : "en"
-const clientMessages = clientLocale === "fr" ? fr : en
 
 /**
- * next-intl + session + toasts. `timeZone` is set on `NextIntlClientProvider` for consistent dates.
- * Wired from `app/layout.tsx` as `<RootIntlAndSession>`.
+ * next-intl + session + toasts. Locale from cookie (`affisell_locale`) via `LocaleIntlProvider`.
  */
 export function RootIntlAndSession({ children }: { children: React.ReactNode }) {
   return (
-    <NextIntlClientProvider locale={clientLocale} messages={clientMessages} timeZone="Europe/Paris">
+    <LocaleIntlProvider>
       <SessionProvider>
         <NavigationShell />
         {children}
         <Toaster richColors position="top-center" />
       </SessionProvider>
-    </NextIntlClientProvider>
+    </LocaleIntlProvider>
   )
 }

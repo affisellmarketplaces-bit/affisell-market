@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation"
 import { LayoutDashboard, Package, ShoppingCart } from "lucide-react"
 
+import { LocaleSwitcher } from "@/components/locale-switcher"
 import { FastLink } from "@/components/navigation/fast-link"
 import { NavPill } from "@/components/navigation/nav-pill"
 import { QuickNav } from "@/components/navigation/quick-nav"
@@ -33,6 +34,7 @@ export function NavSupplier() {
       </div>
 
       <div className="order-3 flex w-full flex-wrap items-center justify-end gap-2 md:order-4 md:ml-auto md:w-auto">
+        <LocaleSwitcher />
         <QuickNav />
         <SupplierNotificationsMenu />
         <MerchantAccountNavActions />

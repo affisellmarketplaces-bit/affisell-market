@@ -28,4 +28,4 @@ export const SUPPLIER_WARM_ROUTES = [
   "/dashboard/supplier/orders",
 ] as const
 
-/** Quick navigation catalog lives in `@/lib/quick-nav-catalog`. */
+/** Quick navigation catalog lives in `@/lib/command-k-catalog`. */

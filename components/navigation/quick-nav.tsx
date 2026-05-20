@@ -2,34 +2,34 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
-import { useSession } from "next-auth/react"
+import { signOut, useSession } from "next-auth/react"
 import { useTranslations } from "next-intl"
 import { Command, Search, Zap } from "lucide-react"
 
 import {
-  buildQuickNavCatalog,
-  groupQuickNavItems,
-  QUICK_NAV_SEGMENT_LABEL_KEYS,
-  type QuickNavItem,
-  type QuickNavSegment,
-} from "@/lib/quick-nav-catalog"
+  buildCommandKCatalog,
+  COMMAND_K_SEGMENT_LABEL_KEYS,
+  groupCommandKItems,
+  type CommandKItem,
+  type CommandKSegment,
+} from "@/lib/command-k-catalog"
 import { cn } from "@/lib/utils"
 
-type ResolvedQuickNavItem = QuickNavItem & { label: string }
+type ResolvedCommandKItem = CommandKItem & { label: string }
 
 export function QuickNav() {
   const router = useRouter()
   const { data: session } = useSession()
-  const t = useTranslations("QuickNav")
+  const t = useTranslations("CommandK")
   const role = session?.user?.role
   const loggedIn = Boolean(session?.user?.id)
 
   const catalog = useMemo(
-    () => buildQuickNavCatalog(role, loggedIn),
+    () => buildCommandKCatalog(role, loggedIn),
     [role, loggedIn]
   )
 
-  const items: ResolvedQuickNavItem[] = useMemo(
+  const items: ResolvedCommandKItem[] = useMemo(
     () =>
       catalog.map((item) => ({
         ...item,
@@ -47,7 +47,7 @@ export function QuickNav() {
     if (!needle) return items
     return items.filter((item) => {
       const segmentLabel = t(
-        QUICK_NAV_SEGMENT_LABEL_KEYS[item.segment as QuickNavSegment]
+        COMMAND_K_SEGMENT_LABEL_KEYS[item.segment as CommandKSegment]
       ).toLowerCase()
       return (
         item.label.toLowerCase().includes(needle) ||
@@ -57,10 +57,16 @@ export function QuickNav() {
     })
   }, [items, q, t])
 
-  const go = useCallback(
-    (href: string) => {
+  const runItem = useCallback(
+    (item: ResolvedCommandKItem) => {
       setOpen(false)
       setQ("")
+      if (item.action === "signOut") {
+        void signOut({ callbackUrl: "/" })
+        return
+      }
+      const href = item.href
+      if (!href) return
       const path = href.split("#")[0] || href
       if (path === "/wishlist" && !session?.user?.id) {
         router.push(`/signup/customer?callbackUrl=${encodeURIComponent("/wishlist")}`)
@@ -97,16 +103,17 @@ export function QuickNav() {
       }
       if (e.key === "Enter" && filtered[activeIndex]) {
         e.preventDefault()
-        go(filtered[activeIndex].href)
+        runItem(filtered[activeIndex])
       }
     }
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
-  }, [open, filtered, activeIndex, go])
+  }, [open, filtered, activeIndex, runItem])
 
   useEffect(() => {
     if (!open) return
     for (const item of filtered.slice(0, 10)) {
+      if (item.action !== "navigate" || !item.href) continue
       try {
         router.prefetch(item.href.split("?")[0] ?? item.href)
       } catch {
@@ -117,8 +124,8 @@ export function QuickNav() {
 
   const grouped = useMemo(
     () =>
-      groupQuickNavItems(filtered, (segment) =>
-        t(QUICK_NAV_SEGMENT_LABEL_KEYS[segment])
+      groupCommandKItems(filtered, (segment) =>
+        t(COMMAND_K_SEGMENT_LABEL_KEYS[segment])
       ),
     [filtered, t]
   )
@@ -163,7 +170,7 @@ export function QuickNav() {
                 className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-zinc-400"
               />
               <kbd className="hidden rounded border border-zinc-200 px-1.5 py-0.5 font-mono text-[10px] text-zinc-400 sm:inline">
-                esc
+                {t("escape")}
               </kbd>
             </div>
             <ul className="max-h-[min(50vh,360px)] overflow-y-auto p-2" role="listbox">
@@ -186,13 +193,15 @@ export function QuickNav() {
                               type="button"
                               role="option"
                               aria-selected={isActive}
-                              onClick={() => go(item.href)}
+                              onClick={() => runItem(item)}
                               onMouseEnter={() => {
                                 setActiveIndex(idx)
-                                try {
-                                  router.prefetch(item.href.split("?")[0] ?? item.href)
-                                } catch {
-                                  /* ignore */
+                                if (item.action === "navigate" && item.href) {
+                                  try {
+                                    router.prefetch(item.href.split("?")[0] ?? item.href)
+                                  } catch {
+                                    /* ignore */
+                                  }
                                 }
                               }}
                               className={cn(

@@ -190,10 +190,12 @@
     "premium": "Premium",
     "topRated": "Mieux notés"
   },
-  "QuickNav": {
+  "CommandK": {
+    "languageSwitcher": "Langue",
     "triggerLabel": "Navigation rapide",
-    "placeholder": "Où aller ? Boutique, marketplace, compte…",
+    "placeholder": "Où aller ? Marketplace, vente, compte…",
     "empty": "Aucune destination",
+    "escape": "échap",
     "groups": {
       "buy": "ACHETER",
       "sell": "VENDRE",
@@ -201,25 +203,19 @@
     },
     "items": {
       "home": "Accueil",
-      "shops": "Boutiques créateurs",
       "marketplace": "Marketplace",
+      "creatorStores": "Boutiques créateurs",
       "cart": "Panier",
       "wishlist": "Favoris",
-      "sellOnAffisell": "Vendre sur Affisell",
-      "becomeSupplier": "Devenir fournisseur",
-      "loginSeller": "Connexion vendeur",
-      "supplierDashboard": "Mission control",
-      "supplierProducts": "Produits fournisseur",
-      "supplierOrders": "Commandes fournisseur",
-      "affiliateDashboard": "Dashboard créateur",
-      "affiliateCatalog": "Catalogue affilié",
-      "affiliateAgent": "Agent sourcing",
-      "affiliateEarnings": "Revenus affilié",
-      "loginBuyer": "Connexion acheteur",
+      "myOrders": "Mes commandes",
+      "sellerDashboard": "Tableau de bord vendeur",
+      "listProduct": "Mettre en vente",
+      "mySales": "Mes ventes",
+      "becomeSeller": "Vendre sur Affisell",
+      "signIn": "Connexion",
       "createBuyerAccount": "Créer un compte acheteur",
-      "buyerAccount": "Mon espace client",
-      "buyerOrders": "Mes commandes",
-      "buyerWallet": "Portefeuille"
+      "settings": "Paramètres",
+      "signOut": "Déconnexion"
     }
   }
 }

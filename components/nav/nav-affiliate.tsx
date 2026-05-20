@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation"
 import { Suspense } from "react"
 import { LayoutDashboard, Store, Wallet } from "lucide-react"
 
+import { LocaleSwitcher } from "@/components/locale-switcher"
 import { FastLink } from "@/components/navigation/fast-link"
 import { NavPill } from "@/components/navigation/nav-pill"
 import { QuickNav } from "@/components/navigation/quick-nav"
@@ -49,6 +50,7 @@ export function NavAffiliate() {
       </Suspense>
 
       <div className="order-2 flex shrink-0 flex-wrap items-center gap-2 md:order-4 md:gap-3">
+        <LocaleSwitcher />
         <QuickNav />
         <MerchantNotificationsMenu role="AFFILIATE" />
         <MerchantAvatarMenu />
