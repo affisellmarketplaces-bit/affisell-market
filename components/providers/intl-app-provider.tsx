@@ -13,7 +13,12 @@ type Props = {
 /** Client mirror of server locale + messages (no cookie race). */
 export function IntlAppProvider({ locale, messages, children }: Props) {
   return (
-    <NextIntlClientProvider locale={locale} messages={messages} timeZone="Europe/Paris">
+    <NextIntlClientProvider
+      key={locale}
+      locale={locale}
+      messages={messages}
+      timeZone="Europe/Paris"
+    >
       {children}
     </NextIntlClientProvider>
   )

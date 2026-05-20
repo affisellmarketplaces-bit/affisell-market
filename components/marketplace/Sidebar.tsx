@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useLocale, useTranslations } from "next-intl"
 import useSWR from "swr"
 
 import { ChevronDown, ChevronRight, Grid3x3, Loader2 } from "lucide-react"
@@ -28,13 +29,15 @@ interface SidebarProps {
 }
 
 export function Sidebar({ onCategoryClick, activeCategoryId, activeSubcategoryId }: SidebarProps) {
+  const locale = useLocale()
+  const t = useTranslations("marketplace.sidebar")
   const [expandedCats, setExpandedCats] = useState<string[]>([])
   const { data, isLoading } = useSWR<{
     categories: Cat[]
     dbUnavailable?: boolean
     staticFallback?: boolean
     error?: string
-  }>("/api/categories", fetcher, {
+  }>(["/api/categories", locale], () => fetcher("/api/categories"), {
     refreshInterval: (latest) => (latest?.dbUnavailable ? 0 : 300_000),
   })
 
@@ -55,7 +58,7 @@ export function Sidebar({ onCategoryClick, activeCategoryId, activeSubcategoryId
   if (!data?.categories?.length && data?.dbUnavailable) {
     return (
       <aside className="h-[calc(100vh-80px)] w-[19rem] shrink-0 border-r border-border bg-card p-4 lg:sticky lg:top-[5.25rem]">
-        <p className="text-sm font-medium text-amber-900 dark:text-amber-200">Categories unavailable</p>
+        <p className="text-sm font-medium text-amber-900 dark:text-amber-200">{t("unavailable")}</p>
         <p className="mt-2 text-xs text-muted-foreground">{data.error}</p>
       </aside>
     )
@@ -74,10 +77,10 @@ export function Sidebar({ onCategoryClick, activeCategoryId, activeSubcategoryId
       <div className={cn("sticky top-0 z-10 px-4 py-4", affisellBrand.gradientBar)}>
         <h2 className="flex items-center gap-2 text-lg font-black uppercase tracking-wider text-white drop-shadow-sm">
           <Grid3x3 className="h-5 w-5" strokeWidth={3} />
-          Categories
+          {t("title")}
         </h2>
         <p className="mt-1 text-[11px] font-medium text-white/80">
-          {data.staticFallback ? "Offline taxonomy — connect DB for live counts" : "Browse by department"}
+          {data.staticFallback ? t("offlineHint") : t("subtitle")}
         </p>
       </div>
 

@@ -346,6 +346,13 @@
     "subtitle": "Fiches vitrine actives",
     "empty": "Aucune fiche pour le moment.",
     "sellerLabel": "Vendu par un affilié",
+    "sidebar": {
+      "title": "Catégories",
+      "subtitle": "Parcourir par rayon",
+      "offlineHint": "Taxonomie hors ligne — connectez la base pour les compteurs",
+      "unavailable": "Catégories indisponibles",
+      "empty": "Aucune catégorie"
+    },
     "browse": {
       "ariaEmbedded": "Explorer et acheter",
       "eyebrowBuyer": "Découvrir · Acheter",

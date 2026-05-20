@@ -346,6 +346,13 @@
     "subtitle": "Active storefront listings",
     "empty": "Nothing listed yet.",
     "sellerLabel": "Sold by affiliate",
+    "sidebar": {
+      "title": "Categories",
+      "subtitle": "Browse by department",
+      "offlineHint": "Offline taxonomy — connect DB for live counts",
+      "unavailable": "Categories unavailable",
+      "empty": "No categories"
+    },
     "browse": {
       "ariaEmbedded": "Explore and shop",
       "eyebrowBuyer": "Discover · Shop",

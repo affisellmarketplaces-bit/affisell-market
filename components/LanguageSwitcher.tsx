@@ -1,18 +1,16 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState } from "react"
 import { useLocale, useTranslations } from "next-intl"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronDown } from "lucide-react"
 
-import { usePathname, useRouter } from "@/i18n/navigation"
+import { hrefForLocaleSwitch } from "@/lib/client-locale-path"
 import { LOCALE_COOKIE, localeCookieMaxAgeSec, type AppLocale } from "@/lib/i18n-locale"
 import { cn } from "@/lib/utils"
 
 const FLAGS: Record<AppLocale, string> = { en: "🇬🇧", fr: "🇫🇷" }
 const LABELS: Record<AppLocale, string> = { en: "English", fr: "Français" }
-
-const MARKETING_PATHS = new Set(["/", "/creators", "/partners"])
 
 function setLocaleCookie(locale: AppLocale) {
   document.cookie = `${LOCALE_COOKIE}=${locale};path=/;max-age=${localeCookieMaxAgeSec()};SameSite=Lax`
@@ -21,21 +19,16 @@ function setLocaleCookie(locale: AppLocale) {
 export function LanguageSwitcher({ className }: { className?: string }) {
   const locale = useLocale() as AppLocale
   const t = useTranslations("CommandK")
-  const router = useRouter()
-  const pathname = usePathname()
   const [open, setOpen] = useState(false)
-  const [pending, startTransition] = useTransition()
+  const [pending, setPending] = useState(false)
 
   function select(next: AppLocale) {
-    if (next === locale) return
+    if (next === locale || pending) return
     setLocaleCookie(next)
     setOpen(false)
-    startTransition(() => {
-      if (MARKETING_PATHS.has(pathname)) {
-        router.replace(pathname, { locale: next })
-      }
-      router.refresh()
-    })
+    setPending(true)
+    const { pathname, search, hash } = window.location
+    window.location.assign(hrefForLocaleSwitch(pathname, search, hash, next))
   }
 
   return (
@@ -46,6 +39,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
         className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200/90 bg-zinc-50/90 px-3 py-1.5 text-xs font-semibold dark:border-zinc-700 dark:bg-zinc-900/80"
         aria-label={t("languageSwitcher")}
         aria-expanded={open}
+        disabled={pending}
       >
         <motion.span
           key={locale}
