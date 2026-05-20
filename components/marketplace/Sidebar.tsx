@@ -49,7 +49,7 @@ export function Sidebar({ onCategoryClick, activeCategoryId, activeSubcategoryId
 
   if (isLoading) {
     return (
-      <aside className="flex h-[calc(100vh-80px)] w-[19rem] shrink-0 items-center justify-center self-start border-r border-border bg-card lg:sticky lg:top-[5.25rem]">
+      <aside className="flex h-[min(24rem,50vh)] w-full shrink-0 items-center justify-center self-start rounded-2xl border border-border bg-card lg:h-[calc(100vh-5.25rem)] lg:w-full lg:rounded-none lg:border-r lg:border-y-0 lg:border-l-0 lg:sticky lg:top-[5.25rem]">
         <Loader2 className="h-8 w-8 animate-spin text-brand" />
       </aside>
     )
@@ -57,7 +57,7 @@ export function Sidebar({ onCategoryClick, activeCategoryId, activeSubcategoryId
 
   if (!data?.categories?.length && data?.dbUnavailable) {
     return (
-      <aside className="h-[calc(100vh-80px)] w-[19rem] shrink-0 border-r border-border bg-card p-4 lg:sticky lg:top-[5.25rem]">
+      <aside className="h-[min(24rem,50vh)] w-full shrink-0 rounded-2xl border border-border bg-card p-4 lg:h-[calc(100vh-5.25rem)] lg:w-full lg:rounded-none lg:border-r lg:border-y-0 lg:border-l-0 lg:sticky lg:top-[5.25rem]">
         <p className="text-sm font-medium text-amber-900 dark:text-amber-200">{t("unavailable")}</p>
         <p className="mt-2 text-xs text-muted-foreground">{data.error}</p>
       </aside>
@@ -66,14 +66,14 @@ export function Sidebar({ onCategoryClick, activeCategoryId, activeSubcategoryId
 
   if (!data?.categories?.length) {
     return (
-      <aside className="h-[calc(100vh-80px)] w-[19rem] shrink-0 border-r border-border bg-card p-4 lg:sticky lg:top-[5.25rem]">
-        <p className="text-sm text-muted-foreground">No categories</p>
+      <aside className="h-[min(24rem,50vh)] w-full shrink-0 rounded-2xl border border-border bg-card p-4 lg:h-[calc(100vh-5.25rem)] lg:w-full lg:rounded-none lg:border-r lg:border-y-0 lg:border-l-0 lg:sticky lg:top-[5.25rem]">
+        <p className="text-sm text-muted-foreground">{t("empty")}</p>
       </aside>
     )
   }
 
   return (
-    <aside className="sticky top-[5.25rem] flex h-[calc(100vh-80px)] w-[19rem] shrink-0 flex-col self-start overflow-y-auto border-r border-border bg-card lg:top-[5.25rem]">
+    <aside className="flex h-[min(28rem,55vh)] w-full shrink-0 flex-col overflow-y-auto rounded-2xl border border-border bg-card lg:sticky lg:top-[5.25rem] lg:h-[calc(100vh-5.25rem)] lg:w-full lg:max-h-none lg:rounded-none lg:border-r lg:border-y-0 lg:border-l-0">
       <div className={cn("sticky top-0 z-10 px-4 py-4", affisellBrand.gradientBar)}>
         <h2 className="flex items-center gap-2 text-lg font-black uppercase tracking-wider text-white drop-shadow-sm">
           <Grid3x3 className="h-5 w-5" strokeWidth={3} />

@@ -393,8 +393,8 @@ export function AffiliateCatalogExperience({ stats, initialHighlights }: Props) 
             catalogBasePath={AFFILIATE_CATALOG_PATH}
           />
 
-          <div className="flex flex-col gap-8 xl:flex-row xl:items-start">
-            <aside className="flex w-full shrink-0 flex-col gap-4 xl:sticky xl:top-[5.25rem] xl:w-[19rem] xl:self-start">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
+            <aside className="flex w-full shrink-0 flex-col gap-4 lg:sticky lg:top-[5.25rem] lg:w-[min(19rem,100%)] lg:max-w-[19rem] lg:self-start">
               <Sidebar
                 onCategoryClick={handleCategoryClick}
                 activeCategoryId={categoryId}
