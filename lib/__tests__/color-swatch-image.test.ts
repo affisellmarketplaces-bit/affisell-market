@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { trimColorSwatchImageForStore } from "@/lib/color-swatch-image"
+import { trimColorSwatchImageForStore } from "@/lib/color-swatch-store"
 
 describe("trimColorSwatchImageForStore", () => {
   it("keeps longer data URLs", () => {

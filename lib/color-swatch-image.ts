@@ -1,7 +1,7 @@
 import { measureImageFile } from "@/lib/product-image-upload"
+import { COLOR_SWATCH_IMAGE_MAX_STORED } from "@/lib/color-swatch-store"
 
-/** Max stored length per color swatch (data URL or https). */
-export const COLOR_SWATCH_IMAGE_MAX_STORED = 500_000
+export { COLOR_SWATCH_IMAGE_MAX_STORED, trimColorSwatchImageForStore } from "@/lib/color-swatch-store"
 
 export const COLOR_SWATCH_MIN_W = 80
 export const COLOR_SWATCH_MIN_H = 80
@@ -44,13 +44,4 @@ export async function processColorSwatchFile(file: File): Promise<string> {
   } finally {
     bmp.close()
   }
-}
-
-export function trimColorSwatchImageForStore(image: string): string {
-  const t = image.trim()
-  if (!t) return ""
-  if (t.startsWith("data:image/")) {
-    return t.slice(0, COLOR_SWATCH_IMAGE_MAX_STORED)
-  }
-  return t.slice(0, 2000)
 }

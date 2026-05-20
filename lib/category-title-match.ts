@@ -108,6 +108,13 @@ const PRODUCT_INTENTS: ProductIntent[] = [
     boost: [/ecouteurs?/i, /casques?/i, /audio/i],
     penalize: [/connecteur/i, /composant/i],
   },
+  {
+    id: "cookware",
+    match:
+      /\b(frying\s*pan|skillet|wok|saucepan|cookware|bakeware|marmite|casserole|poele|sauteuse|batterie\s+de\s+cuisine|ustensiles?\s+de\s+cuisine)\b/i,
+    boost: [/cookware/i, /bakeware/i, /kitchen/i, /cuisine/i, /ustensiles?/i],
+    penalize: [/headphones?/i, /audio/i, /connecteur/i, /telephones?\s+mobiles?/i],
+  },
 ]
 
 const PHRASE_BOOSTS: Array<{ phrase: RegExp; breadcrumb: RegExp; points: number }> = [
@@ -116,6 +123,8 @@ const PHRASE_BOOSTS: Array<{ phrase: RegExp; breadcrumb: RegExp; points: number 
   { phrase: /smart\s*band|mi\s*band/i, breadcrumb: /moniteurs?\s+d['']activit/i, points: 20 },
   { phrase: /sommeil|sleep/i, breadcrumb: /moniteurs?\s+d['']activit/i, points: 4 },
   { phrase: /sommeil|sleep/i, breadcrumb: /aides?\s+au\s+sommeil|bruit\s+blanc/i, points: -25 },
+  { phrase: /frying\s*pan|skillet|wok/i, breadcrumb: /cookware|bakeware/i, points: 22 },
+  { phrase: /frying\s*pan|skillet/i, breadcrumb: /home\s*&\s*kitchen|kitchen/i, points: 8 },
 ]
 
 function normalizeText(s: string): string {

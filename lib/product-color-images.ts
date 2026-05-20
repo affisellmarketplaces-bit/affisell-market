@@ -1,4 +1,4 @@
-import { trimColorSwatchImageForStore } from "@/lib/color-swatch-image"
+import { trimColorSwatchImageForStore } from "@/lib/color-swatch-store"
 import { COLORS } from "@/lib/product-catalog-constants"
 import { parseVariantsPayload } from "@/lib/product-variants"
 

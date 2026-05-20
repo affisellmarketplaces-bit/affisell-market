@@ -24,9 +24,10 @@ test.describe("public flows", () => {
     await expect(page.locator(".bg-black").first()).toBeVisible({ timeout: 30_000 })
   })
 
-  test("legacy /marketplace redirects guests to public browse", async ({ page }) => {
+  test("legacy /marketplace redirects guests to home explorer", async ({ page }) => {
     await page.goto("/marketplace")
-    await expect(page).toHaveURL(/\/shops\/browse/)
+    await expect(page).toHaveURL(/#explorer/)
+    await expect(page.locator("#explorer")).toBeVisible({ timeout: 30_000 })
   })
 
   test("GET /api/cart returns JSON (guest)", async ({ request }) => {

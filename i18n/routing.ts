@@ -1,7 +1,5 @@
 import { defineRouting } from "next-intl/routing"
 
-import { LOCALE_COOKIE, localeCookieMaxAgeSec } from "@/lib/i18n-locale"
-
 export const routing = defineRouting({
   locales: ["en", "fr"],
   defaultLocale: "en",

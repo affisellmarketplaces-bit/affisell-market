@@ -2,7 +2,7 @@ import { cookies, headers } from "next/headers"
 import { hasLocale } from "next-intl"
 
 import { routing } from "@/i18n/routing"
-import { DEFAULT_LOCALE, LOCALE_COOKIE, resolveAppLocale, type AppLocale } from "@/lib/i18n-locale"
+import { DEFAULT_LOCALE, LOCALE_COOKIE, type AppLocale } from "@/lib/i18n-locale"
 import { localeFromPathname } from "@/lib/locale-path"
 
 /**
