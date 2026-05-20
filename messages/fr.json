@@ -21,6 +21,10 @@
     "themeToggle": "Changer le thème"
   },
   "home": {
+    "meta": {
+      "title": "Affisell — Marketplace boutiques créateurs",
+      "description": "Achetez les produits sélectionnés par vos créateurs préférés. Livraison rapide, paiement sécurisé."
+    },
     "hero": {
       "title": "Les boutiques de vos",
       "titleHighlight": "créateurs préférés",
@@ -90,7 +94,8 @@
       "title": "Votre tableau de bord créateur",
       "hint": "Survolez pour explorer l'interface"
     },
-    "footerLink": "Vous êtes une marque ? Devenez partenaire →"
+    "footerLink": "Vous êtes une marque ? Devenez partenaire →",
+    "ctaFinal": "Commencer à vendre"
   },
   "partners": {
     "meta": {
@@ -105,22 +110,22 @@
     "features": {
       "reach": {
         "title": "Portée",
-        "description": "Audiences engagées via les boutiques créateurs"
+        "description": "Accédez à des audiences engagées via boutiques créateurs"
       },
       "automation": {
         "title": "Automatisation",
-        "description": "Commandes envoyées à votre entrepôt via API"
+        "description": "Commandes envoyées à votre entrepôt ou via API"
       },
       "control": {
         "title": "Contrôle",
-        "description": "Stock et prix en temps réel"
+        "description": "Fixez vos prix, gérez stock en temps réel"
       }
     },
     "steps": {
       "title": "Comment ça marche",
-      "step1": "Connectez votre catalogue (API ou import)",
-      "step2": "Les créateurs listent vos SKU dans leurs boutiques",
-      "step3": "Nous routons commandes et paiements"
+      "step1": "Connecter l'API",
+      "step2": "Les créateurs listent vos produits",
+      "step3": "Nous vous envoyons les commandes"
     },
     "ctaFinal": "Postuler comme partenaire",
     "backCreators": "← Créateurs"
@@ -326,11 +331,41 @@
       "sellerDashboard": "Tableau de bord vendeur",
       "listProduct": "Mettre en vente",
       "mySales": "Mes ventes",
-      "becomeSeller": "Vendre sur Affisell",
+      "becomeSeller": "Devenir créateur",
+      "becomePartner": "Devenir partenaire",
+      "analytics": "Statistiques",
+      "payouts": "Paiements",
       "signIn": "Connexion",
       "createBuyerAccount": "Créer un compte acheteur",
       "settings": "Paramètres",
       "signOut": "Déconnexion"
+    }
+  },
+  "footer": {
+    "about": "À propos",
+    "contact": "Contact",
+    "terms": "Conditions",
+    "privacy": "Confidentialité",
+    "sellTitle": "Vendre",
+    "becomeCreator": "Devenir créateur",
+    "becomePartner": "Devenir partenaire",
+    "helpTitle": "Aide",
+    "faq": "FAQ",
+    "shipping": "Livraison",
+    "returns": "Retours"
+  },
+  "errors": {
+    "notFound": {
+      "title": "Page introuvable",
+      "body": "Cette page n'existe pas ou a été déplacée.",
+      "home": "Retour à l'accueil"
+    },
+    "page": {
+      "label": "Une erreur est survenue",
+      "title": "Un problème est survenu",
+      "body": "Le chargement de la page a échoué. Réessayez ou revenez à l'accueil.",
+      "retry": "Réessayer",
+      "home": "Accueil"
     }
   }
 }

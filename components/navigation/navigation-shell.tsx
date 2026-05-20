@@ -5,7 +5,7 @@ import { Suspense } from "react"
 import { MobileDock } from "@/components/navigation/mobile-dock"
 import { NavigationProgress } from "@/components/navigation/navigation-progress"
 import { NavigationWarmup } from "@/components/navigation/navigation-warmup"
-import { QuickNav } from "@/components/navigation/quick-nav"
+import { CommandK } from "@/components/CommandK"
 
 /** Global instant-nav affordances (progress, prefetch, ⌘K, mobile dock). */
 export function NavigationShell() {
@@ -15,7 +15,7 @@ export function NavigationShell() {
         <NavigationProgress />
       </Suspense>
       <NavigationWarmup />
-      <QuickNav />
+      <CommandK />
       <MobileDock />
     </>
   )

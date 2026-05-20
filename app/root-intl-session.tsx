@@ -1,5 +1,6 @@
 "use client"
 
+import { Analytics } from "@vercel/analytics/react"
 import { SessionProvider } from "next-auth/react"
 import { Toaster } from "sonner"
 
@@ -18,6 +19,7 @@ export function RootIntlAndSession({ children }: { children: React.ReactNode }) 
           <NavigationShell />
           {children}
           <Toaster richColors position="top-center" />
+          <Analytics />
         </SessionProvider>
       </LocaleIntlProvider>
     </ThemeProvider>

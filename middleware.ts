@@ -1,16 +1,26 @@
+import createIntlMiddleware from "next-intl/middleware"
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { getToken } from "next-auth/jwt"
 
+import { routing } from "@/i18n/routing"
 import {
   AFFILIATE_CATALOG_PATH,
   isMarketplaceListingPath,
   resolveLegacyMarketplaceIndexPath,
 } from "@/lib/affiliate-routes"
+import { LOCALE_COOKIE, localeCookieMaxAgeSec, resolveAppLocale } from "@/lib/i18n-locale"
+import { localeFromPathname, pathnameWithoutLocale } from "@/lib/locale-path"
 
 const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
-
 const FORCED_CUSTOMER_HEADER = "x-affisell-view-role"
+const intlMiddleware = createIntlMiddleware(routing)
+
+const MARKETING_ALIASES: Record<string, string> = {
+  "/": `/${routing.defaultLocale}`,
+  "/creators": `/${routing.defaultLocale}/creators`,
+  "/partners": `/${routing.defaultLocale}/partners`,
+}
 
 function secureSessionCookieForRequest(req: NextRequest): boolean {
   return req.nextUrl.protocol === "https:"
@@ -28,26 +38,23 @@ function loginSupplierUrl(req: NextRequest, pathWithSearch: string) {
   return u
 }
 
-/** Legacy `/auth/signin` and `?role=` → clean routes. */
-function legacyAuthRedirect(req: NextRequest): NextResponse | null {
-  const { pathname, searchParams } = req.nextUrl
+function legacyAuthRedirect(req: NextRequest, pathname: string): NextResponse | null {
+  const { searchParams } = req.nextUrl
   const callback = searchParams.get("callbackUrl")
 
   if (pathname === "/auth/signin/affiliate") {
-    const u = loginAffiliateUrl(req, callback ?? AFFILIATE_CATALOG_PATH)
-    return NextResponse.redirect(u)
+    return NextResponse.redirect(loginAffiliateUrl(req, callback ?? AFFILIATE_CATALOG_PATH))
   }
   if (pathname === "/auth/signin/supplier") {
-    const u = loginSupplierUrl(req, callback ?? "/dashboard/supplier")
-    return NextResponse.redirect(u)
+    return NextResponse.redirect(loginSupplierUrl(req, callback ?? "/dashboard/supplier"))
   }
   if (pathname !== "/auth/signin") return null
 
   const role = searchParams.get("role")?.trim().toLowerCase()
-  if (role === "affiliate") {
+  if (role === "affiliate" || role === "creator") {
     return NextResponse.redirect(loginAffiliateUrl(req, callback ?? AFFILIATE_CATALOG_PATH))
   }
-  if (role === "supplier") {
+  if (role === "supplier" || role === "partner") {
     return NextResponse.redirect(loginSupplierUrl(req, callback ?? "/dashboard/supplier"))
   }
   const u = new URL("/login", req.url)
@@ -58,32 +65,49 @@ function legacyAuthRedirect(req: NextRequest): NextResponse | null {
 function withForcedCustomerRole(req: NextRequest): NextResponse {
   const requestHeaders = new Headers(req.headers)
   requestHeaders.set(FORCED_CUSTOMER_HEADER, "customer")
-  return NextResponse.next({
-    request: { headers: requestHeaders },
+  return NextResponse.next({ request: { headers: requestHeaders } })
+}
+
+function setLocaleCookie(res: NextResponse, locale: string) {
+  const resolved = resolveAppLocale(locale)
+  res.cookies.set(LOCALE_COOKIE, resolved, {
+    path: "/",
+    maxAge: localeCookieMaxAgeSec(),
+    sameSite: "lax",
   })
 }
 
 export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname
 
-  const legacy = legacyAuthRedirect(req)
+  const alias = MARKETING_ALIASES[pathname]
+  if (alias) {
+    const u = req.nextUrl.clone()
+    u.pathname = alias
+    return NextResponse.redirect(u, 308)
+  }
+
+  const bare = pathnameWithoutLocale(pathname)
+  const locale = localeFromPathname(pathname)
+
+  const legacy = legacyAuthRedirect(req, bare)
   if (legacy) return legacy
 
-  if (pathname === "/shop") {
+  if (bare === "/shop") {
     const u = req.nextUrl.clone()
-    u.pathname = "/shops"
+    u.pathname = locale ? `/${locale}/shops` : "/shops"
     return NextResponse.redirect(u, 308)
   }
 
-  if (pathname.startsWith("/shop/")) {
-    const rest = pathname.slice("/shop/".length)
+  if (bare.startsWith("/shop/")) {
+    const rest = bare.slice("/shop/".length)
     const u = req.nextUrl.clone()
-    u.pathname = rest ? `/shops/${rest}` : "/shops"
+    u.pathname = locale ? `/${locale}/shops/${rest}` : rest ? `/shops/${rest}` : "/shops"
     return NextResponse.redirect(u, 308)
   }
 
-  if (pathname.startsWith("/store/") && !pathname.startsWith("/store/supplier/")) {
-    const slug = pathname.slice("/store/".length).split("/")[0]
+  if (bare.startsWith("/store/") && !bare.startsWith("/store/supplier/")) {
+    const slug = bare.slice("/store/".length).split("/")[0]
     if (slug) {
       const u = req.nextUrl.clone()
       u.pathname = `/shops/${slug}`
@@ -91,46 +115,44 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  if (pathname === "/shops" || pathname.startsWith("/shops/")) {
+  if (bare === "/shops" || bare.startsWith("/shops/")) {
     return withForcedCustomerRole(req)
   }
 
-  if (!secret) return NextResponse.next()
+  if (secret) {
+    const path = bare + (req.nextUrl.search || "")
+    const token = await getToken({
+      req,
+      secret,
+      secureCookie: secureSessionCookieForRequest(req),
+    })
+    const role = typeof token?.role === "string" ? token.role : undefined
+    const loggedIn = Boolean(token?.sub)
 
-  const path = req.nextUrl.pathname + req.nextUrl.search
+    const isLocaleHome = bare === "/" && locale
+    if (isLocaleHome && role === "AFFILIATE") {
+      return NextResponse.redirect(new URL("/dashboard/affiliate", req.url))
+    }
+    if (isLocaleHome && role === "SUPPLIER") {
+      return NextResponse.redirect(new URL("/dashboard/supplier", req.url))
+    }
 
-  const token = await getToken({
-    req,
-    secret,
-    secureCookie: secureSessionCookieForRequest(req),
-  })
-  const role = typeof token?.role === "string" ? token.role : undefined
-  const loggedIn = Boolean(token?.sub)
-
-  if (pathname === "/" && role === "AFFILIATE") {
-    return NextResponse.redirect(new URL("/dashboard/affiliate", req.url))
-  }
-
-  if (pathname === "/" && role === "SUPPLIER") {
-    return NextResponse.redirect(new URL("/dashboard/supplier", req.url))
-  }
-
-  if (pathname === "/marketplace") {
+  if (bare === "/marketplace") {
     const u = req.nextUrl.clone()
     u.pathname = resolveLegacyMarketplaceIndexPath(role)
     u.search = ""
     return NextResponse.redirect(u, 308)
   }
 
-  if (isMarketplaceListingPath(pathname)) {
+  if (isMarketplaceListingPath(bare)) {
     return withForcedCustomerRole(req)
   }
 
-  const isSupplierArea = pathname === "/dashboard/supplier" || pathname.startsWith("/dashboard/supplier/")
+  const isSupplierArea = bare === "/dashboard/supplier" || bare.startsWith("/dashboard/supplier/")
   const isAffiliateArea =
-    pathname === "/dashboard/affiliate" ||
-    pathname.startsWith("/dashboard/affiliate/") ||
-    pathname.startsWith("/affiliate/")
+    bare === "/dashboard/affiliate" ||
+    bare.startsWith("/dashboard/affiliate/") ||
+    bare.startsWith("/affiliate/")
 
   if (isSupplierArea) {
     if (!loggedIn) return NextResponse.redirect(loginSupplierUrl(req, path))
@@ -153,7 +175,7 @@ export async function middleware(req: NextRequest) {
   }
 
   const isMarketplaceBuyerAccount =
-    pathname === "/marketplace/account" || pathname.startsWith("/marketplace/account/")
+    bare === "/marketplace/account" || bare.startsWith("/marketplace/account/")
   if (isMarketplaceBuyerAccount) {
     if (!loggedIn) {
       const u = new URL("/login", req.url)
@@ -167,12 +189,16 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(u)
     }
   }
+  }
 
-  return NextResponse.next()
+  const intlResponse = intlMiddleware(req)
+  if (locale) setLocaleCookie(intlResponse, locale)
+  return intlResponse
 }
 
 export const config = {
   matcher: [
+    "/((?!api|_next|_vercel|.*\\..*).*)",
     "/",
     "/auth/signin",
     "/auth/signin/:path*",
@@ -187,5 +213,7 @@ export const config = {
     "/dashboard",
     "/dashboard/:path*",
     "/affiliate/:path*",
+    "/creators",
+    "/partners",
   ],
 }

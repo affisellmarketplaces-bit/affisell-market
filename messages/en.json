@@ -21,6 +21,10 @@
     "themeToggle": "Toggle theme"
   },
   "home": {
+    "meta": {
+      "title": "Affisell — Creator storefront marketplace",
+      "description": "Shop curated products from your favorite creators. Fast shipping, secure checkout."
+    },
     "hero": {
       "title": "Stores curated by your favorite",
       "titleHighlight": "creators",
@@ -90,7 +94,8 @@
       "title": "Your creator dashboard",
       "hint": "Hover to explore the interface"
     },
-    "footerLink": "You're a brand? Partner with us →"
+    "footerLink": "You're a brand? Partner with us →",
+    "ctaFinal": "Start selling today"
   },
   "partners": {
     "meta": {
@@ -105,22 +110,22 @@
     "features": {
       "reach": {
         "title": "Reach",
-        "description": "Access engaged audiences through creator stores"
+        "description": "Access engaged audiences via creator stores"
       },
       "automation": {
         "title": "Automation",
-        "description": "Orders routed to your warehouse via API"
+        "description": "Orders sent directly to your warehouse or via API"
       },
       "control": {
         "title": "Control",
-        "description": "Real-time inventory & pricing"
+        "description": "Set your prices, manage inventory in real-time"
       }
     },
     "steps": {
       "title": "How it works",
-      "step1": "Connect your catalog via API or bulk import",
-      "step2": "Creators list your SKUs in their stores",
-      "step3": "We route orders and payouts automatically"
+      "step1": "Connect API",
+      "step2": "Creators list your products",
+      "step3": "We send you orders"
     },
     "ctaFinal": "Apply to become a partner",
     "backCreators": "← Creators"
@@ -326,11 +331,41 @@
       "sellerDashboard": "Seller dashboard",
       "listProduct": "List a product",
       "mySales": "My sales",
-      "becomeSeller": "Become a seller",
+      "becomeSeller": "Become a creator",
+      "becomePartner": "Become a partner",
+      "analytics": "Analytics",
+      "payouts": "Payouts",
       "signIn": "Sign in",
       "createBuyerAccount": "Create buyer account",
       "settings": "Settings",
       "signOut": "Sign out"
+    }
+  },
+  "footer": {
+    "about": "About",
+    "contact": "Contact",
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "sellTitle": "Sell",
+    "becomeCreator": "Become a creator",
+    "becomePartner": "Become a partner",
+    "helpTitle": "Help",
+    "faq": "FAQ",
+    "shipping": "Shipping",
+    "returns": "Returns"
+  },
+  "errors": {
+    "notFound": {
+      "title": "Page not found",
+      "body": "This page does not exist or was moved.",
+      "home": "Back home"
+    },
+    "page": {
+      "label": "Something went wrong",
+      "title": "We hit a snag",
+      "body": "A problem occurred while loading this page. You can retry, or go back to the home page.",
+      "retry": "Try again",
+      "home": "Home"
     }
   }
 }

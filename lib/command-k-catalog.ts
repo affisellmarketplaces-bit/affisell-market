@@ -53,7 +53,7 @@ const CATALOG: CatalogEntry[] = [
     segment: "buy",
     labelKey: "items.home",
     action: "navigate",
-    href: "/",
+    href: "/home",
     keywords: ["home", "accueil"],
   },
   {
@@ -95,10 +95,49 @@ const CATALOG: CatalogEntry[] = [
     segment: "sell",
     labelKey: "items.becomeSeller",
     action: "navigate",
-    href: "/signup/affiliate",
-    keywords: ["sell", "seller", "affiliate", "vendre"],
-    hideForPersona: ["buyer"],
-    showOnlyWhenLoggedOut: true,
+    href: "/signup/affiliate?role=creator",
+    keywords: ["sell", "seller", "affiliate", "creator", "vendre"],
+    hideForPersona: ["seller", "affiliate"],
+  },
+  {
+    id: "analytics-affiliate",
+    segment: "sell",
+    labelKey: "items.analytics",
+    action: "navigate",
+    href: "/dashboard/affiliate",
+    keywords: ["analytics", "stats"],
+    hideForPersona: ["buyer", "guest", "seller"],
+    showOnlyWhenLoggedIn: true,
+  },
+  {
+    id: "payouts-affiliate",
+    segment: "sell",
+    labelKey: "items.payouts",
+    action: "navigate",
+    href: "/dashboard/affiliate/earnings",
+    keywords: ["payouts", "earnings", "money"],
+    hideForPersona: ["buyer", "guest", "seller"],
+    showOnlyWhenLoggedIn: true,
+  },
+  {
+    id: "analytics-supplier",
+    segment: "sell",
+    labelKey: "items.analytics",
+    action: "navigate",
+    href: "/dashboard/supplier",
+    keywords: ["analytics", "stats"],
+    hideForPersona: ["buyer", "guest", "affiliate"],
+    showOnlyWhenLoggedIn: true,
+  },
+  {
+    id: "payouts-supplier",
+    segment: "sell",
+    labelKey: "items.payouts",
+    action: "navigate",
+    href: "/dashboard/supplier/balance",
+    keywords: ["payouts", "balance"],
+    hideForPersona: ["buyer", "guest", "affiliate"],
+    showOnlyWhenLoggedIn: true,
   },
   {
     id: "seller-dashboard",
@@ -179,6 +218,16 @@ const CATALOG: CatalogEntry[] = [
     showOnlyWhenLoggedOut: true,
   },
   {
+    id: "become-partner",
+    segment: "account",
+    labelKey: "items.becomePartner",
+    action: "navigate",
+    href: "/signup/supplier?role=supplier",
+    keywords: ["partner", "supplier", "brand", "fournisseur"],
+    hideForPersona: ["seller"],
+    showOnlyWhenLoggedOut: true,
+  },
+  {
     id: "my-orders",
     segment: "account",
     labelKey: "items.myOrders",
@@ -216,10 +265,14 @@ export function buildCommandKCatalog(
 
   return CATALOG.filter((entry) => {
     if (entry.hideForPersona?.includes(persona)) return false
+    if (persona === "buyer" && entry.segment === "sell" && entry.id !== "become-seller") return false
     if (entry.showOnlyWhenLoggedIn && !loggedIn) return false
     if (entry.showOnlyWhenLoggedOut && loggedIn) return false
     return true
   }).map((entry) => {
+    if (entry.id === "home" && entry.href === "/home") {
+      return { ...entry, href: "/" }
+    }
     const { hideForPersona: _h, showOnlyWhenLoggedIn: _a, showOnlyWhenLoggedOut: _b, ...item } =
       entry
     if (item.id === "settings" && item.action === "navigate") {
