@@ -231,13 +231,13 @@ export function MarketplaceView({
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-teal-700 dark:text-teal-300">
-                  Shopping · Live
+                  {t("embeddedEyebrow")}
                 </p>
                 <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-3xl">
-                  Découvrir &amp; acheter
+                  {t("embeddedTitle")}
                 </h2>
                 <p className="mt-1 max-w-xl text-sm text-zinc-600 dark:text-zinc-400">
-                  Utilisez la recherche du bandeau violet, les rayons ci-dessous ou l’agent shopping pour affiner.
+                  {t("embeddedSubtitle")}
                 </p>
               </div>
               {hasFilters ? (
@@ -255,7 +255,7 @@ export function MarketplaceView({
             </div>
             {searchQuery.trim() ? (
               <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                Résultats pour{" "}
+                {t("resultsFor")}{" "}
                 <span className="font-semibold text-zinc-900 dark:text-zinc-100">&ldquo;{searchQuery.trim()}&rdquo;</span>
               </p>
             ) : null}
@@ -279,7 +279,7 @@ export function MarketplaceView({
             role="alert"
             className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100"
           >
-            <p className="font-semibold">Marketplace temporairement indisponible</p>
+            <p className="font-semibold">{t("dbUnavailableTitle")}</p>
             <p className="mt-1 text-amber-900/90 dark:text-amber-200/90">{dbUnavailable}</p>
           </div>
         ) : null}

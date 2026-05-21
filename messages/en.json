@@ -371,7 +371,18 @@
       "loadingFacets": "Loading filters…",
       "noFacets": "No filters for this category.",
       "filtersTitle": "Filters",
-      "filtersHint": "By product attribute"
+      "filtersHint": "By product attribute",
+      "embeddedEyebrow": "Shopping · Live",
+      "embeddedTitle": "Discover & shop",
+      "embeddedSubtitle": "Use the purple hero search, the departments below, or the shopping agent to refine your picks.",
+      "resultsFor": "Results for",
+      "dbUnavailableTitle": "Marketplace temporarily unavailable"
+    },
+    "departmentRail": {
+      "ariaLabel": "Affisell departments",
+      "badge": "Departments",
+      "hint": "Department-store navigation — each department opens its aisles in the left column.",
+      "allCatalog": "Full catalog"
     }
   },
   "product": {

@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 import useSWR from "swr"
 import { Sparkles } from "lucide-react"
 
@@ -22,6 +23,7 @@ export function MarketplaceDepartmentRail({
   activeSubcategoryId: string | null
   catalogBasePath?: string
 }) {
+  const t = useTranslations("marketplace.departmentRail")
   const { data, isLoading } = useSWR<{ categories: Cat[] }>("/api/categories", fetcher, {
     refreshInterval: 300_000,
   })
@@ -31,15 +33,15 @@ export function MarketplaceDepartmentRail({
   return (
     <section
       className="mt-6 overflow-hidden rounded-2xl border border-violet-200/60 bg-gradient-to-r from-violet-50/95 via-white to-fuchsia-50/80 p-4 shadow-sm dark:border-violet-900/40 dark:from-violet-950/40 dark:via-zinc-950 dark:to-fuchsia-950/30"
-      aria-label="Rayons Affisell"
+      aria-label={t("ariaLabel")}
     >
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-600 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
           <Sparkles className="size-3" aria-hidden />
-          Rayons
+          {t("badge")}
         </span>
         <p className="text-xs font-medium text-violet-950/80 dark:text-violet-100/85">
-          Navigation type grand comptoir — chaque rayon ouvre ses allées dans la colonne de gauche.
+          {t("hint")}
         </p>
       </div>
       <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -52,7 +54,7 @@ export function MarketplaceDepartmentRail({
               : "border-zinc-200/80 bg-white/90 text-zinc-700 hover:border-violet-300 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-200"
           )}
         >
-          Tout le catalogue
+          {t("allCatalog")}
         </Link>
         {data.categories.map((c) => {
           const on = activeCategoryId === c.id && !activeSubcategoryId
