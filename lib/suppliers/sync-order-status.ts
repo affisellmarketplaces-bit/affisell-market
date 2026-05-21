@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client"
 
+import { sendBuyerTrackingEmail } from "@/lib/auto-order/buyer-tracking-email"
 import {
   applyOrderStatusToJob,
   mapOrderStatusToFulfillment,
@@ -23,7 +24,22 @@ export async function syncSupplierFulfillmentOrderStatus(
 ): Promise<SyncOrderStatusResult> {
   const job = await prisma.supplierFulfillmentOrder.findUnique({
     where: { id: supplierFulfillmentOrderId },
-    include: { lines: true, provider: true },
+    include: {
+      lines: {
+        include: {
+          order: {
+            select: {
+              id: true,
+              customerEmail: true,
+              trackingNumber: true,
+              shippedAt: true,
+              product: { select: { name: true } },
+            },
+          },
+        },
+      },
+      provider: true,
+    },
   })
   if (!job?.supplierOrderId) {
     return { supplierFulfillmentOrderId, updated: false, error: "missing_supplier_order_id" }
@@ -47,10 +63,18 @@ export async function syncSupplierFulfillmentOrderStatus(
     })
 
     for (const line of job.lines) {
+      const marketplaceOrder = line.order
+      const trackingNumber = remote.trackingNumber ?? line.trackingNumber
+      const shippedNow =
+        remote.status === "SHIPPED" &&
+        trackingNumber &&
+        !marketplaceOrder.shippedAt &&
+        !marketplaceOrder.trackingNumber
+
       await prisma.supplierFulfillmentOrderLine.update({
         where: { id: line.id },
         data: {
-          trackingNumber: remote.trackingNumber ?? line.trackingNumber,
+          trackingNumber,
           trackingUrl: remote.trackingUrl ?? line.trackingUrl,
           fulfilledAt:
             remote.status === "SHIPPED" || remote.status === "DELIVERED"
@@ -58,14 +82,28 @@ export async function syncSupplierFulfillmentOrderStatus(
               : line.fulfilledAt,
         },
       })
-      await prisma.order.update({
-        where: { id: line.orderId },
-        data: {
-          fulfillmentStatus: lineFulfillment,
-          fulfilledAt:
-            lineFulfillment === "SHIPPED" || lineFulfillment === "DELIVERED" ? new Date() : null,
-        },
-      })
+      const orderData: Prisma.OrderUpdateInput = {
+        fulfillmentStatus: lineFulfillment,
+      }
+      if (trackingNumber) orderData.trackingNumber = trackingNumber
+      if (remote.carrier) orderData.trackingCarrier = remote.carrier
+      if (remote.status === "SHIPPED" || remote.status === "DELIVERED") {
+        orderData.status = "shipped"
+        orderData.shippedAt = marketplaceOrder.shippedAt ?? new Date()
+        orderData.fulfilledAt = new Date()
+      }
+      await prisma.order.update({ where: { id: line.orderId }, data: orderData })
+
+      if (shippedNow && marketplaceOrder.customerEmail) {
+        void sendBuyerTrackingEmail({
+          to: marketplaceOrder.customerEmail,
+          orderId: marketplaceOrder.id,
+          productName: marketplaceOrder.product.name,
+          carrier: remote.carrier,
+          trackingNumber,
+          trackingUrl: remote.trackingUrl,
+        })
+      }
     }
 
     return {
