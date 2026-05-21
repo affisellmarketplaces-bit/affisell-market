@@ -31,6 +31,11 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "images-na.ssl-images-amazon.com", pathname: "/**" },
       { protocol: "https", hostname: "images.unsplash.com", pathname: "/**" },
       { protocol: "https", hostname: "**.public.blob.vercel-storage.com", pathname: "/**" },
+      { protocol: "https", hostname: "**.amazonaws.com", pathname: "/**" },
+      { protocol: "https", hostname: "**.cloudfront.net", pathname: "/**" },
+      { protocol: "https", hostname: "cdn.shopify.com", pathname: "/**" },
+      { protocol: "https", hostname: "**.myshopify.com", pathname: "/**" },
+      { protocol: "https", hostname: "**.supabase.co", pathname: "/**" },
     ],
   },
 }
