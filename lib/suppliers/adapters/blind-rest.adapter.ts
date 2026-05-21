@@ -1,12 +1,6 @@
 import type { SupplierChannelType } from "@prisma/client"
 
-import {
-  BaseSupplierAdapter,
-  type CancelOrderInput,
-  type CancelOrderResult,
-  type GetOrderStatusInput,
-  type SupplierOrderStatus,
-} from "@/lib/suppliers/base.adapter"
+import { BaseSupplierAdapter, type OrderStatusDTO } from "@/lib/suppliers/base.adapter"
 import type { InventoryDTO, PlaceOrderDTO, SupplierOrderResult } from "@/lib/suppliers/dto"
 import {
   extractTrackingFromPartnerPayload,
@@ -103,9 +97,9 @@ export class BlindRestSupplierAdapter extends BaseSupplierAdapter {
     })
   }
 
-  async getOrderStatus(input: GetOrderStatusInput): Promise<SupplierOrderStatus> {
+  async getOrderStatus(supplierOrderId: string): Promise<OrderStatusDTO> {
     return this.withObservability("blindRest.getOrderStatus", async () => {
-      const raw = await this.rest().getOrderStatus(input.supplierOrderId)
+      const raw = await this.rest().getOrderStatus(supplierOrderId)
       const tracking = extractTrackingFromPartnerPayload(raw)
       return {
         status: parsePartnerOrderStatusPayload(raw),
@@ -115,17 +109,11 @@ export class BlindRestSupplierAdapter extends BaseSupplierAdapter {
     })
   }
 
-  async cancelOrder(input: CancelOrderInput): Promise<CancelOrderResult> {
+  async cancelOrder(supplierOrderId: string): Promise<void> {
     return this.withObservability("blindRest.cancelOrder", async () => {
-      try {
-        const result = await this.rest().cancelOrder(input.supplierOrderId, input.reason)
-        return { cancelled: result.cancelled }
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : String(e)
-        if (msg.includes("404") || msg.includes("405")) {
-          return { cancelled: false }
-        }
-        throw e
+      const result = await this.rest().cancelOrder(supplierOrderId)
+      if (!result.cancelled) {
+        throw new Error("blind_rest_cancel_rejected")
       }
     })
   }

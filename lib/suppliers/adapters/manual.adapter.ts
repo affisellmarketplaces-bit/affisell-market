@@ -1,15 +1,8 @@
 import type { SupplierChannelType } from "@prisma/client"
 
-import {
-  BaseSupplierAdapter,
-  type CancelOrderInput,
-  type CancelOrderResult,
-  type GetOrderStatusInput,
-  type SupplierOrderStatus,
-} from "@/lib/suppliers/base.adapter"
+import { BaseSupplierAdapter, type OrderStatusDTO } from "@/lib/suppliers/base.adapter"
 import type { InventoryDTO, PlaceOrderDTO, SupplierOrderResult } from "@/lib/suppliers/dto"
 
-/** Manual fulfillment — ops places order outside the API. */
 export class ManualSupplierAdapter extends BaseSupplierAdapter {
   readonly type: SupplierChannelType = "MANUAL"
   readonly supportsApi = false
@@ -27,17 +20,15 @@ export class ManualSupplierAdapter extends BaseSupplierAdapter {
     })
   }
 
-  async getOrderStatus(input: GetOrderStatusInput): Promise<SupplierOrderStatus> {
+  async getOrderStatus(_supplierOrderId: string): Promise<OrderStatusDTO> {
     return this.withObservability("manual.getOrderStatus", async () => ({
       status: "PENDING",
-      raw: { mode: "manual", supplierOrderId: input.supplierOrderId },
+      raw: { mode: "manual" },
     }))
   }
 
-  async cancelOrder(_input: CancelOrderInput): Promise<CancelOrderResult> {
-    return this.withObservability("manual.cancelOrder", async () => ({
-      cancelled: false,
-    }))
+  async cancelOrder(_supplierOrderId: string): Promise<void> {
+    return this.withObservability("manual.cancelOrder", async () => {})
   }
 
   async syncInventory(): Promise<InventoryDTO[]> {

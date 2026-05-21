@@ -1,17 +1,9 @@
+export { BaseSupplierAdapter, MarginTooLowError, type OrderStatusDTO } from "@/lib/suppliers/base.adapter"
 export {
-  BaseSupplierAdapter,
-  MarginTooLowError,
-  type CancelOrderInput,
-  type CancelOrderResult,
-  type GetOrderStatusInput,
-  type SupplierOrderStatus,
-  type SupplierOrderStatusValue,
-} from "@/lib/suppliers/base.adapter"
-export {
-  mapSupplierOrderStatusToFulfillment,
-  mapSupplierOrderStatusToMarketplaceFulfillment,
+  mapOrderStatusToFulfillment,
+  mapOrderStatusToMarketplaceFulfillment,
   parsePartnerOrderStatusPayload,
-  toOrderStatusDTO,
+  extractTrackingFromPartnerPayload,
 } from "@/lib/suppliers/order-status"
 export {
   syncAllOpenSupplierOrders,

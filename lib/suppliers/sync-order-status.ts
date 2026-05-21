@@ -1,8 +1,9 @@
 import type { Prisma } from "@prisma/client"
 
 import {
-  mapSupplierOrderStatusToFulfillment,
-  mapSupplierOrderStatusToMarketplaceFulfillment,
+  applyOrderStatusToJob,
+  mapOrderStatusToFulfillment,
+  mapOrderStatusToMarketplaceFulfillment,
 } from "@/lib/suppliers/order-status"
 import { resolveSupplierAdapterForGroup } from "@/lib/suppliers/place-order-bridge"
 import { prisma } from "@/lib/prisma"
@@ -13,6 +14,7 @@ export type SyncOrderStatusResult = {
   supplierFulfillmentOrderId: string
   updated: boolean
   status?: string
+  trackingNumber?: string
   error?: string
 }
 
@@ -32,9 +34,8 @@ export async function syncSupplierFulfillmentOrderStatus(
 
   try {
     const adapter = await resolveSupplierAdapterForGroup(job.fulfillmentProviderId)
-    const remote = await adapter.getOrderStatus({ supplierOrderId: job.supplierOrderId })
-    const prismaStatus = mapSupplierOrderStatusToFulfillment(remote.status)
-    const lineFulfillment = mapSupplierOrderStatusToMarketplaceFulfillment(remote.status)
+    const remote = await adapter.getOrderStatus(job.supplierOrderId)
+    const { prismaStatus, lineFulfillment } = applyOrderStatusToJob(remote)
 
     await prisma.supplierFulfillmentOrder.update({
       where: { id: job.id },
@@ -67,7 +68,12 @@ export async function syncSupplierFulfillmentOrderStatus(
       })
     }
 
-    return { supplierFulfillmentOrderId, updated: true, status: remote.status }
+    return {
+      supplierFulfillmentOrderId,
+      updated: true,
+      status: remote.status,
+      trackingNumber: remote.trackingNumber,
+    }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
     return { supplierFulfillmentOrderId, updated: false, error: msg }
@@ -92,3 +98,5 @@ export async function syncAllOpenSupplierOrders(limit = 100): Promise<SyncOrderS
   }
   return results
 }
+
+export { mapOrderStatusToFulfillment, mapOrderStatusToMarketplaceFulfillment }

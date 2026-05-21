@@ -1,17 +1,8 @@
 import type { SupplierChannelType } from "@prisma/client"
 
-import {
-  BaseSupplierAdapter,
-  type CancelOrderInput,
-  type CancelOrderResult,
-  type GetOrderStatusInput,
-  type SupplierOrderStatus,
-} from "@/lib/suppliers/base.adapter"
+import { BaseSupplierAdapter, type OrderStatusDTO } from "@/lib/suppliers/base.adapter"
 import type { InventoryDTO, PlaceOrderDTO, SupplierOrderResult } from "@/lib/suppliers/dto"
 
-/**
- * AliExpress — API placement not wired in v1.1; queues manual ops with margin checks.
- */
 export class AliExpressSupplierAdapter extends BaseSupplierAdapter {
   readonly type: SupplierChannelType = "ALIEXPRESS"
   readonly supportsApi = false
@@ -29,17 +20,15 @@ export class AliExpressSupplierAdapter extends BaseSupplierAdapter {
     })
   }
 
-  async getOrderStatus(input: GetOrderStatusInput): Promise<SupplierOrderStatus> {
+  async getOrderStatus(supplierOrderId: string): Promise<OrderStatusDTO> {
     return this.withObservability("aliexpress.getOrderStatus", async () => ({
       status: "PENDING",
-      raw: { mode: "aliexpress_manual", supplierOrderId: input.supplierOrderId },
+      raw: { mode: "aliexpress_manual", supplierOrderId },
     }))
   }
 
-  async cancelOrder(_input: CancelOrderInput): Promise<CancelOrderResult> {
-    return this.withObservability("aliexpress.cancelOrder", async () => ({
-      cancelled: false,
-    }))
+  async cancelOrder(_supplierOrderId: string): Promise<void> {
+    return this.withObservability("aliexpress.cancelOrder", async () => {})
   }
 
   async syncInventory(skus: string[]): Promise<InventoryDTO[]> {

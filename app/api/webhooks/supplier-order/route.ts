@@ -6,8 +6,8 @@ import { z } from "zod"
 
 import {
   extractTrackingFromPartnerPayload,
-  mapSupplierOrderStatusToFulfillment,
-  mapSupplierOrderStatusToMarketplaceFulfillment,
+  mapOrderStatusToFulfillment,
+  mapOrderStatusToMarketplaceFulfillment,
   parsePartnerOrderStatusPayload,
 } from "@/lib/suppliers/order-status"
 import { prisma } from "@/lib/prisma"
@@ -22,6 +22,7 @@ const webhookSchema = z.object({
   tracking_url: z.string().optional(),
   trackingNumber: z.string().optional(),
   trackingUrl: z.string().optional(),
+  carrier: z.string().optional(),
   providerSlug: z.string().optional(),
   fulfillmentProviderId: z.string().optional(),
   event: z.string().optional(),
@@ -86,8 +87,8 @@ export async function POST(req: NextRequest) {
     tracking_url: data.tracking_url ?? data.trackingUrl,
   })
 
-  const prismaStatus = mapSupplierOrderStatusToFulfillment(statusValue)
-  const lineFulfillment = mapSupplierOrderStatusToMarketplaceFulfillment(statusValue)
+  const prismaStatus = mapOrderStatusToFulfillment(statusValue)
+  const lineFulfillment = mapOrderStatusToMarketplaceFulfillment(statusValue)
 
   await prisma.supplierFulfillmentOrder.update({
     where: { id: job.id },

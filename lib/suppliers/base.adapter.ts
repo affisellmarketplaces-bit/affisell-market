@@ -12,33 +12,13 @@ import {
   type SupplierOrderResult,
 } from "@/lib/suppliers/dto"
 
-export type SupplierOrderStatusValue =
-  | "PENDING"
-  | "PROCESSING"
-  | "SHIPPED"
-  | "DELIVERED"
-  | "CANCELLED"
-  | "FAILED"
-
-export type SupplierOrderStatus = {
-  status: SupplierOrderStatusValue
+export type OrderStatusDTO = {
+  status: "PENDING" | "CONFIRMED" | "SHIPPED" | "DELIVERED" | "CANCELLED" | "FAILED"
   trackingNumber?: string
   trackingUrl?: string
+  carrier?: string
   estimatedDelivery?: Date
   raw: unknown
-}
-
-export type GetOrderStatusInput = {
-  supplierOrderId: string
-}
-
-export type CancelOrderInput = {
-  supplierOrderId: string
-  reason?: string
-}
-
-export type CancelOrderResult = {
-  cancelled: boolean
 }
 
 export class MarginTooLowError extends Error {
@@ -66,8 +46,8 @@ export abstract class BaseSupplierAdapter {
   }
 
   abstract placeOrder(input: PlaceOrderDTO): Promise<SupplierOrderResult>
-  abstract getOrderStatus(input: GetOrderStatusInput): Promise<SupplierOrderStatus>
-  abstract cancelOrder(input: CancelOrderInput): Promise<CancelOrderResult>
+  abstract getOrderStatus(supplierOrderId: string): Promise<OrderStatusDTO>
+  abstract cancelOrder(supplierOrderId: string): Promise<void>
   abstract syncInventory(skus: string[]): Promise<InventoryDTO[]>
 
   protected async withObservability<T>(name: string, fn: () => Promise<T>): Promise<T> {
@@ -93,7 +73,6 @@ export abstract class BaseSupplierAdapter {
     return placeOrderDtoSchema.parse(input)
   }
 
-  /** Reject lines where wholesale cost eats more than (1 - minMargin) of retail. */
   protected validateMargin(unitCostCents: number, unitPriceCents: number) {
     const minRatio =
       typeof this.config.minMarginRatio === "number" && this.config.minMarginRatio > 0
@@ -116,7 +95,6 @@ export abstract class BaseSupplierAdapter {
     return typeof t === "number" && t > 0 ? Math.min(t, 120_000) : 30_000
   }
 
-  /** Runtime credentials (e.g. blind partner row) without storing secrets in `apiConfig`. */
   protected mergeConfig(extra: DecryptedConfig) {
     Object.assign(this.config, extra)
   }

@@ -90,12 +90,15 @@ export class RestSupplierAdapter implements SupplierAdapter {
     return res.json().catch(() => ({}))
   }
 
-  async cancelOrder(supplierOrderId: string, reason?: string): Promise<{ cancelled: boolean; raw: unknown }> {
+  async cancelOrder(
+    supplierOrderId: string,
+    reason = "cancelled_by_affisell"
+  ): Promise<{ cancelled: boolean; raw: unknown }> {
     const template = this.cfg.cancelOrderPath ?? "/orders/{id}/cancel"
     const res = await fetch(this.url(this.pathWithId(template, supplierOrderId)), {
       method: "POST",
       headers: this.headers(),
-      body: JSON.stringify({ reason: reason ?? "cancelled_by_affisell" }),
+      body: JSON.stringify({ reason }),
       signal: AbortSignal.timeout(30_000),
     })
     if (res.status === 404 || res.status === 405) {

@@ -1,16 +1,9 @@
 import type { SupplierChannelType } from "@prisma/client"
 
-import {
-  BaseSupplierAdapter,
-  type CancelOrderInput,
-  type CancelOrderResult,
-  type GetOrderStatusInput,
-  type SupplierOrderStatus,
-} from "@/lib/suppliers/base.adapter"
+import { BaseSupplierAdapter, type OrderStatusDTO } from "@/lib/suppliers/base.adapter"
 import type { InventoryDTO, PlaceOrderDTO, SupplierOrderResult } from "@/lib/suppliers/dto"
 import { prisma } from "@/lib/prisma"
 
-/** Affisell native supplier — no external API; order stays in-platform. */
 export class NativeSupplierAdapter extends BaseSupplierAdapter {
   readonly type: SupplierChannelType = "AFFISELL_NATIVE"
   readonly supportsApi = false
@@ -29,20 +22,24 @@ export class NativeSupplierAdapter extends BaseSupplierAdapter {
     })
   }
 
-  async getOrderStatus(input: GetOrderStatusInput): Promise<SupplierOrderStatus> {
+  async getOrderStatus(supplierOrderId: string): Promise<OrderStatusDTO> {
     return this.withObservability("native.getOrderStatus", async () => {
       const job = await prisma.supplierFulfillmentOrder.findFirst({
-        where: { supplierOrderId: input.supplierOrderId },
-        include: { lines: { include: { order: { select: { status: true, fulfillmentStatus: true } } } } },
+        where: { supplierOrderId },
+        include: {
+          lines: {
+            include: { order: { select: { status: true, fulfillmentStatus: true } } },
+          },
+        },
       })
       const orderStatus = job?.lines[0]?.order?.status
       const fulfillment = job?.lines[0]?.order?.fulfillmentStatus
-      let status: SupplierOrderStatus["status"] = "PROCESSING"
+      let status: OrderStatusDTO["status"] = "CONFIRMED"
       if (orderStatus === "shipped" || fulfillment === "SHIPPED") status = "SHIPPED"
       else if (fulfillment === "DELIVERED") status = "DELIVERED"
       else if (job?.status === "CANCELLED") status = "CANCELLED"
       else if (job?.status === "FAILED") status = "FAILED"
-      else if (job?.status === "CONFIRMED") status = "PROCESSING"
+      else if (job?.status === "PENDING") status = "PENDING"
 
       const line = job?.lines[0]
       return {
@@ -54,17 +51,16 @@ export class NativeSupplierAdapter extends BaseSupplierAdapter {
     })
   }
 
-  async cancelOrder(input: CancelOrderInput): Promise<CancelOrderResult> {
+  async cancelOrder(supplierOrderId: string): Promise<void> {
     return this.withObservability("native.cancelOrder", async () => {
       const job = await prisma.supplierFulfillmentOrder.findFirst({
-        where: { supplierOrderId: input.supplierOrderId },
+        where: { supplierOrderId },
       })
-      if (!job) return { cancelled: false }
+      if (!job) return
       await prisma.supplierFulfillmentOrder.update({
         where: { id: job.id },
-        data: { status: "CANCELLED", errorMessage: input.reason ?? "cancelled_native" },
+        data: { status: "CANCELLED", errorMessage: "cancelled_native" },
       })
-      return { cancelled: true }
     })
   }
 

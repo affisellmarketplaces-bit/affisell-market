@@ -43,14 +43,7 @@ export type SupplierOrderResult = {
   errorMessage?: string
 }
 
-/** Legacy DTO mapped from `SupplierOrderStatus` for Prisma / engine consumers. */
-export type OrderStatusDTO = {
-  supplierOrderId: string
-  status: SupplierFulfillmentStatus
-  trackingNumber?: string | null
-  trackingUrl?: string | null
-  raw?: unknown
-}
+export type { OrderStatusDTO } from "@/lib/suppliers/base.adapter"
 
 export type InventoryDTO = {
   sku: string
