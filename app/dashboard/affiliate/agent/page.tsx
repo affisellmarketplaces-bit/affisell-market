@@ -31,7 +31,7 @@ export default async function AffiliateAgentPage() {
           <h1 className="mt-2 text-balance text-3xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
             Analysez. Choisissez. Mettez en vitrine.
           </h1>
-          <p className="mx-auto mt-3 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400 sm:text-base">
+          <p className="mx-auto mt-3 max-w-2xl text-sm text-zinc-600 dark:text-zinc-300 sm:text-base">
             Votre copilote pour sourcer les SKU qui rapportent — commissions, marges et fit avec votre audience.
           </p>
         </header>

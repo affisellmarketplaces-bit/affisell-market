@@ -64,7 +64,7 @@ export default async function SupplierProductVideoPage({
           </Link>
           <Link
             href={`/dashboard/supplier/products/new?edit=${product.id}`}
-            className="text-zinc-600 underline dark:text-zinc-400"
+            className="text-zinc-600 underline dark:text-zinc-300"
           >
             Modifier la fiche
           </Link>

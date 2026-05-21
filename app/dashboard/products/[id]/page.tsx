@@ -142,7 +142,7 @@ export default function DashboardProductDetailPage() {
   if (status === "loading" || (status === "authenticated" && loading)) {
     return (
       <main className="mx-auto max-w-4xl px-4 py-10">
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading…</p>
+        <p className="text-sm text-zinc-500 dark:text-zinc-300">Loading…</p>
       </main>
     )
   }
@@ -151,7 +151,7 @@ export default function DashboardProductDetailPage() {
     return (
       <main className="mx-auto max-w-3xl px-4 py-10">
         <h1 className="text-2xl font-semibold">Product</h1>
-        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
           <Link href={`/login?callbackUrl=/dashboard/products/${encodeURIComponent(listingId)}`} className="font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-400">
             Sign in
           </Link>{" "}
@@ -165,7 +165,7 @@ export default function DashboardProductDetailPage() {
     return (
       <main className="mx-auto max-w-3xl px-4 py-10">
         <h1 className="text-2xl font-semibold">Dashboard Product</h1>
-        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
           Seller tools are only available for seller or admin accounts.
         </p>
       </main>
@@ -196,7 +196,7 @@ export default function DashboardProductDetailPage() {
           Affiliate listing
         </p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">{displayTitle}</h1>
-        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
           Listing ID <span className="font-mono text-xs">{listing.id}</span>
           {listing.isListed ? (
             <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200">
@@ -208,7 +208,7 @@ export default function DashboardProductDetailPage() {
             </span>
           )}
         </p>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-300">
           Your selling price:{" "}
           <span className="font-semibold text-zinc-900 dark:text-zinc-100">
             {formatStoreCurrency(listing.sellingPriceCents / 100)}
@@ -217,7 +217,7 @@ export default function DashboardProductDetailPage() {
         </p>
 
         <section className="affiliate-section mt-8 space-y-3 rounded-2xl border border-zinc-200 p-4 dark:border-zinc-700">
-          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-300">
             Affiliate earnings by option
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -251,10 +251,10 @@ export default function DashboardProductDetailPage() {
       <main className="mx-auto max-w-4xl px-4 py-10">
         <p className="text-xs font-semibold uppercase tracking-wide text-teal-600 dark:text-teal-400">Catalog product</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">{p.name}</h1>
-        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
           Product ID <span className="font-mono text-xs">{p.id}</span>
         </p>
-        <ul className="mt-4 list-inside list-disc text-sm text-zinc-600 dark:text-zinc-400">
+        <ul className="mt-4 list-inside list-disc text-sm text-zinc-600 dark:text-zinc-300">
           <li>Base price: {formatStoreCurrency(p.basePriceCents / 100)}</li>
           <li>Stock: {p.stock}</li>
           <li>Affiliate commission (margin share): {p.commissionRate}%</li>

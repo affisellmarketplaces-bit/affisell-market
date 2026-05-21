@@ -65,7 +65,7 @@ export default async function SupplierIntegrationsPage() {
         href="/dashboard/supplier"
         className={cn(
           buttonVariants({ variant: "ghost", size: "sm" }),
-          "-ml-2 mb-6 inline-flex gap-2 text-zinc-600 dark:text-zinc-400"
+          "-ml-2 mb-6 inline-flex gap-2 text-zinc-600 dark:text-zinc-300"
         )}
       >
         <ArrowLeft className="h-4 w-4" aria-hidden />
@@ -77,7 +77,7 @@ export default async function SupplierIntegrationsPage() {
           <RefreshCw className="mt-0.5 h-5 w-5 shrink-0 text-zinc-900 dark:text-zinc-100" aria-hidden />
           <div className="min-w-0">
             <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Platform sync</h1>
-            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
               Connect Shopify or an automation workflow to import product drafts, then review and
               publish.
             </p>

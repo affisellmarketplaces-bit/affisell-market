@@ -72,7 +72,7 @@ export default async function SupplierProductsPage({
         >
           <Link
             href="/dashboard/supplier"
-            className="rounded-full px-3 py-1.5 font-medium text-zinc-600 transition hover:bg-white hover:text-zinc-900 hover:shadow-sm dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+            className="rounded-full px-3 py-1.5 font-medium text-zinc-600 transition hover:bg-white hover:text-zinc-900 hover:shadow-sm dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
           >
             ← Mission control
           </Link>

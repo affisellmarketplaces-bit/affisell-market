@@ -38,7 +38,7 @@ export default async function DashboardSocialSettingsPage() {
   return (
     <BentoShell>
       <BentoContainer maxWidth="4xl" className="space-y-8">
-        <nav className="flex flex-wrap gap-4 text-sm font-medium text-gray-600 dark:text-zinc-400">
+        <nav className="flex flex-wrap gap-4 text-sm font-medium text-gray-600 dark:text-zinc-300">
           <Link href={backHref} className="text-[#7C3AED] underline-offset-4 hover:underline">
             ← Dashboard
           </Link>

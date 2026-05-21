@@ -36,7 +36,7 @@ export default async function AccountSettingsPage() {
   return (
     <BentoShell>
       <BentoContainer maxWidth="4xl" className="space-y-8">
-        <p className="text-sm text-gray-600 dark:text-zinc-400">
+        <p className="text-sm text-gray-600 dark:text-zinc-300">
           <Link href={backHref} className="font-medium text-[#7C3AED] underline-offset-4 hover:underline">
             ← Back to dashboard
           </Link>
@@ -50,7 +50,7 @@ export default async function AccountSettingsPage() {
 
         <BentoCard>
           {dbUser.role === "CUSTOMER" ? (
-            <p className="text-sm text-gray-600 dark:text-zinc-400">
+            <p className="text-sm text-gray-600 dark:text-zinc-300">
               <Link
                 href="/marketplace/account/wallet"
                 className="font-medium text-[#7C3AED] underline-offset-4 hover:underline"
@@ -59,7 +59,7 @@ export default async function AccountSettingsPage() {
               </Link>
             </p>
           ) : (
-            <p className="text-sm text-gray-600 dark:text-zinc-400">
+            <p className="text-sm text-gray-600 dark:text-zinc-300">
               Buyer store credit is available in your{" "}
               <Link href="/marketplace/account" className="font-medium text-[#7C3AED] underline-offset-4 hover:underline">
                 marketplace buyer hub
@@ -79,9 +79,9 @@ export default async function AccountSettingsPage() {
             </div>
           )}
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">Signed in as</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-300">Signed in as</p>
             <p className="mt-1 text-xl font-bold tracking-tight text-gray-900 dark:text-white">{dbUser.name ?? "Your account"}</p>
-            <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">{dbUser.email}</p>
+            <p className="mt-1 text-sm text-gray-600 dark:text-zinc-300">{dbUser.email}</p>
           </div>
         </BentoCard>
 
@@ -98,7 +98,7 @@ export default async function AccountSettingsPage() {
           <BentoCard className="space-y-4 border-red-100/80 dark:border-red-950/50">
             <div>
               <h2 className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">Merchant session</h2>
-              <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">
+              <p className="mt-1 text-sm text-gray-600 dark:text-zinc-300">
                 Sign out or delete this {dbUser.role === "SUPPLIER" ? "supplier" : "affiliate"} account. Deletion is
                 permanent and is blocked if you already have marketplace orders in this role.
               </p>

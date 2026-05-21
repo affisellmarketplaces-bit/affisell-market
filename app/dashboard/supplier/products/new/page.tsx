@@ -26,7 +26,7 @@ function SupplierNewProductFallback() {
             <div className="h-10 w-10 animate-pulse rounded-2xl bg-violet-200/70 dark:bg-violet-900/50" />
             <div className="h-4 w-40 max-w-full animate-pulse rounded-full bg-zinc-200/90 dark:bg-zinc-700/80" />
             <div className="h-3 w-56 max-w-full animate-pulse rounded-full bg-zinc-100 dark:bg-zinc-800/80" />
-            <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Loading workspace…</p>
+            <p className="text-sm font-medium text-zinc-500 dark:text-zinc-300">Loading workspace…</p>
           </div>
         </div>
       </div>

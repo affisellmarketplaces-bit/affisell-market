@@ -22,7 +22,7 @@ export default function DashboardError({
         Dashboard error
       </p>
       <h1 className="mt-2 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">This section failed to load</h1>
-      <p className="mt-3 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+      <p className="mt-3 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
         Try again, or return to your dashboard home.
       </p>
       {error.digest ? <p className="mt-2 font-mono text-xs text-zinc-400">Ref: {error.digest}</p> : null}
