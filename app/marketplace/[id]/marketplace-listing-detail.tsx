@@ -747,8 +747,8 @@ export function MarketplaceListingDetail({
           aria-hidden
         />
         <motion.div
-          initial={reduceMotion ? false : { opacity: 0, y: 28 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={reduceMotion ? false : { y: 20 }}
+          animate={{ y: 0 }}
           transition={
             reduceMotion ? { duration: 0 } : { duration: 0.62, ease: [0.22, 1, 0.36, 1] }
           }
@@ -783,8 +783,8 @@ export function MarketplaceListingDetail({
 
           <motion.div
             className="order-2 flex flex-col gap-6 lg:order-none lg:col-span-7 lg:gap-8 lg:overflow-visible"
-            initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={reduceMotion ? false : { y: 10 }}
+            animate={{ y: 0 }}
             transition={reduceMotion ? { duration: 0 } : { duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           >
           <section className="space-y-4 lg:overflow-visible">
@@ -820,7 +820,16 @@ export function MarketplaceListingDetail({
                   }`}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={url} alt="" className="h-full w-full object-contain p-1.5" />
+                  <img
+                    src={url}
+                    alt=""
+                    className="h-full w-full object-contain p-1.5"
+                    loading="lazy"
+                    decoding="async"
+                    onError={(e) => {
+                      e.currentTarget.src = "/placeholder-product.jpg"
+                    }}
+                  />
                 </button>
               ))}
             </div>
@@ -861,8 +870,8 @@ export function MarketplaceListingDetail({
 
             <motion.div
               id="product-description"
-              initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={reduceMotion ? false : { y: 12 }}
+              animate={{ y: 0 }}
               transition={reduceMotion ? { duration: 0 } : { duration: 0.45, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
               className="relative overflow-hidden rounded-2xl border border-zinc-200/80 bg-gradient-to-b from-white to-zinc-50/80 p-6 shadow-sm dark:border-zinc-700/80 dark:from-zinc-900/90 dark:to-zinc-950/80"
             >
@@ -962,8 +971,8 @@ export function MarketplaceListingDetail({
             <header className="space-y-3 lg:pt-3">
               <motion.div
                 className="relative"
-                initial={reduceMotion ? false : { opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={reduceMotion ? false : { y: 8 }}
+                animate={{ y: 0 }}
                 transition={reduceMotion ? { duration: 0 } : { duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
               >
                 <div
@@ -997,8 +1006,8 @@ export function MarketplaceListingDetail({
 
               <motion.div
                 className="flex flex-wrap items-center gap-2"
-                initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={reduceMotion ? false : { y: 6 }}
+                animate={{ y: 0 }}
                 transition={reduceMotion ? { duration: 0 } : { duration: 0.35, delay: 0.06, ease: [0.22, 1, 0.36, 1] }}
               >
                 {categoryEyebrow ? (
@@ -1256,8 +1265,8 @@ export function MarketplaceListingDetail({
               ref={purchaseDockRef}
               id="listing-purchase-dock"
               className="relative scroll-mt-28 rounded-[1.65rem] border border-zinc-200/90 bg-white p-5 shadow-[0_22px_56px_-28px_rgba(15,23,42,0.35)] ring-1 ring-black/[0.03] dark:border-zinc-700/90 dark:bg-zinc-950 dark:shadow-black/50 dark:ring-white/[0.04]"
-              initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={reduceMotion ? false : { y: 10 }}
+              animate={{ y: 0 }}
               transition={reduceMotion ? { duration: 0 } : { duration: 0.45, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
             >
               <div className="mb-4 flex items-start gap-2.5">
@@ -1479,7 +1488,7 @@ export function MarketplaceListingDetail({
             ) : null}
 
             <motion.div
-              initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+              initial={reduceMotion ? false : { y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35, delay: 0.08 }}
               className="overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm ring-1 ring-black/[0.02] dark:border-zinc-800 dark:bg-zinc-950/80 dark:ring-white/[0.04]"

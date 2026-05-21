@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils"
 /** Magnification factor for the hover loupe. */
 const ZOOM = 2.35
 
+const PLACEHOLDER_SRC = "/placeholder-product.jpg"
+
 type Props = {
   src: string
   alt: string
@@ -29,6 +31,7 @@ export function ProductImageHoverZoom({ src, alt, overlay, className, frameClass
   const [zoomEngaged, setZoomEngaged] = useState(false)
   const [pct, setPct] = useState({ x: 50, y: 50 })
   const [finePointer, setFinePointer] = useState(false)
+  const [displaySrc, setDisplaySrc] = useState(src)
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return
@@ -42,6 +45,7 @@ export function ProductImageHoverZoom({ src, alt, overlay, className, frameClass
   }, [])
 
   useEffect(() => {
+    setDisplaySrc(src?.trim() || PLACEHOLDER_SRC)
     setPointerInHero(false)
     setZoomEngaged(false)
     setPct({ x: 50, y: 50 })
@@ -66,7 +70,7 @@ export function ProductImageHoverZoom({ src, alt, overlay, className, frameClass
   const lensLeft = Math.min(100 - lensSpan, Math.max(0, pct.x - lensSpan / 2))
   const lensTop = Math.min(100 - lensSpan, Math.max(0, pct.y - lensSpan / 2))
 
-  const zoomBg = src ? `url(${JSON.stringify(src)})` : undefined
+  const zoomBg = displaySrc ? `url(${JSON.stringify(displaySrc)})` : undefined
 
   return (
     <div
@@ -91,13 +95,19 @@ export function ProductImageHoverZoom({ src, alt, overlay, className, frameClass
           }}
           onPointerMove={finePointer ? onMove : undefined}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element -- remote listing URLs */}
+          {/* eslint-disable-next-line @next/next/no-img-element -- remote listing URLs; absolute fill avoids iOS flex max-h-full collapse */}
           <img
-            key={src}
-            src={src}
+            key={displaySrc}
+            src={displaySrc}
             alt={alt}
             draggable={false}
-            className="max-h-full max-w-full select-none object-contain object-center p-3 transition-opacity duration-300 ease-out sm:p-4 animate-in fade-in-0"
+            decoding="async"
+            className="absolute inset-0 h-full w-full select-none object-contain object-center p-3 sm:p-4"
+            onError={() => {
+              setDisplaySrc((current) =>
+                current === PLACEHOLDER_SRC ? current : PLACEHOLDER_SRC
+              )
+            }}
           />
           {zoomActive ? (
             <div

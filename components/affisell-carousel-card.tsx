@@ -164,6 +164,10 @@ export function AffisellCarouselCard({
               alt=""
               className="h-full w-full object-contain transition-transform duration-300 group-hover/card:scale-105"
               loading="lazy"
+              decoding="async"
+              onError={(e) => {
+                e.currentTarget.src = "/placeholder-product.jpg"
+              }}
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-zinc-100 text-xs text-zinc-400">
