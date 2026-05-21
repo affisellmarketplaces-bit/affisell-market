@@ -16,6 +16,15 @@ const nextConfig: NextConfig = {
       "node_modules/@imgly/background-removal-node/**",
     ],
   },
+  serverExternalPackages: ["@imgly/background-removal", "@imgly/background-removal-node", "onnxruntime-web"],
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      if (Array.isArray(config.externals)) {
+        config.externals.push("@imgly/background-removal", "onnxruntime-web")
+      }
+    }
+    return config
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "m.media-amazon.com", pathname: "/**" },
