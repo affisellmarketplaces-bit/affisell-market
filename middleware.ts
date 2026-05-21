@@ -10,6 +10,7 @@ import {
 } from "@/lib/affiliate-routes"
 import { LOCALE_COOKIE, localeCookieMaxAgeSec, resolveAppLocale } from "@/lib/i18n-locale"
 import { localeFromPathname, pathnameWithoutLocale } from "@/lib/locale-path"
+import { isStaticAppPathname } from "@/lib/reserved-locale-segments"
 
 const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
 const FORCED_CUSTOMER_HEADER = "x-affisell-view-role"
@@ -17,9 +18,6 @@ const intlMiddleware = createIntlMiddleware(routing)
 
 /** Never run next-intl redirects on these — we serve them via `app/page` + `app/[locale]/page`. */
 const HOME_PATHS = new Set(["/", "/fr", "/en"])
-
-/** Top-level app routes (not locale segments) — skip intl middleware so `/agent` is not swallowed. */
-const STATIC_APP_PATHS = new Set(["/agent", "/creators", "/partners"])
 
 function secureSessionCookieForRequest(req: NextRequest): boolean {
   return req.nextUrl.protocol === "https:"
@@ -127,7 +125,7 @@ export async function middleware(req: NextRequest) {
     return handleHomePath(req)
   }
 
-  if (STATIC_APP_PATHS.has(pathname)) {
+  if (isStaticAppPathname(pathname)) {
     return nextWithPathname(req)
   }
 

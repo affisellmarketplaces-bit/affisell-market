@@ -1,6 +1,29 @@
 import { expect, test } from "@playwright/test"
 
+/** Core marketing and buyer routes — must not 404 (next-intl vs static segment regression). */
+const PUBLIC_PAGE_PATHS = [
+  "/",
+  "/agent",
+  "/creators",
+  "/partners",
+  "/contact",
+  "/faq",
+  "/discover",
+  "/login",
+  "/affiliate",
+  "/cart",
+  "/shops",
+  "/signup",
+] as const
+
 test.describe("public flows", () => {
+  for (const path of PUBLIC_PAGE_PATHS) {
+    test(`GET ${path} is not 404`, async ({ request }) => {
+      const res = await request.get(path, { maxRedirects: 5 })
+      expect(res.status(), `${path} returned ${res.status()}`).not.toBe(404)
+    })
+  }
+
   test("GET /api/categories returns JSON", async ({ request }) => {
     const res = await request.get("/api/categories")
     expect(res.ok()).toBeTruthy()

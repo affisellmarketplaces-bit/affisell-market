@@ -29,3 +29,9 @@ export const RESERVED_LOCALE_SEGMENTS = new Set([
   "supplier",
   "wishlist",
 ])
+
+/** True when the first path segment is an app route (not `en` / `fr`). Used by middleware. */
+export function isStaticAppPathname(pathname: string): boolean {
+  const segment = pathname.split("/").filter(Boolean)[0]
+  return segment != null && RESERVED_LOCALE_SEGMENTS.has(segment)
+}
