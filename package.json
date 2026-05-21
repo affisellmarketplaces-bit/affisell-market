@@ -48,6 +48,7 @@
     "@stripe/stripe-js": "^9.5.0",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.105.0",
+    "@tanstack/react-table": "^8.21.3",
     "@types/express": "^5.0.6",
     "@uploadthing/react": "^7.3.3",
     "@vercel/analytics": "^2.0.1",
