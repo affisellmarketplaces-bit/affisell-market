@@ -58,7 +58,7 @@ export function ReviewsEngine({
   const getKey = (pageIndex: number, prev: ReviewsListResponse | null) => {
     if (prev && !prev.nextCursor) return null
     const cursor = pageIndex > 0 && prev?.nextCursor ? `&cursor=${prev.nextCursor}` : ""
-    return `/api/reviews/${productId}?${queryBase}${cursor}`
+    return `/api/reviews/product/${productId}?${queryBase}${cursor}`
   }
 
   const { data, size, setSize, isLoading, mutate } = useSWRInfinite<ReviewsListResponse>(getKey, fetcher, {
