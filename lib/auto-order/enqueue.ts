@@ -2,7 +2,7 @@ import { enqueueAutoFulfillmentBatch } from "@/lib/auto-order/engine"
 import { publishAutoOrderEvent } from "@/lib/auto-order/queue"
 import { logAutoOrder } from "@/lib/auto-order/telemetry"
 
-/** Idempotent batch row + async worker via Inngest (BullMQ-compatible event shape). */
+/** Idempotent batch row + async worker (BullMQ when REDIS_URL set, else Inngest). */
 export async function triggerAutoFulfillmentForStripeSession(stripeSessionId: string): Promise<void> {
   if (process.env.AUTO_ORDER_ENABLED === "false") return
 
@@ -15,7 +15,7 @@ export async function triggerAutoFulfillmentForStripeSession(stripeSessionId: st
       data: { stripeSessionId, batchId },
       id: `auto-order-${stripeSessionId}`,
     })
-    logAutoOrder("inngest_sent", { stripeSessionId, batchId })
+    logAutoOrder("queue_published", { stripeSessionId, batchId })
   } catch (e) {
     console.error("[auto-order] inngest.send failed", e)
   }

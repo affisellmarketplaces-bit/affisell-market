@@ -1,7 +1,10 @@
-import type { FulfillmentStatus, Prisma } from "@prisma/client"
+import type { Prisma } from "@prisma/client"
 
-import { placeOrderViaSupplierAdapter } from "@/lib/suppliers/place-order-bridge"
-import { assertCircuitClosed, recordCircuitFailure, recordCircuitSuccess } from "@/lib/auto-order/circuit-breaker"
+import { applySupplierPlaceOrderResult } from "@/lib/auto-order/apply-place-result"
+import { finalizeAutoFulfillmentBatch } from "@/lib/auto-order/batch-finalize"
+import { assertCircuitClosed, recordCircuitFailure } from "@/lib/auto-order/circuit-breaker"
+import { isAutoOrderQueueEnabled } from "@/lib/auto-order/redis"
+import { dispatchPlaceSupplierOrder } from "@/lib/suppliers/place-order-resilient"
 import { executeSupplierPayment } from "@/lib/auto-order/payment"
 import { resolveFulfillmentChannel } from "@/lib/auto-order/resolve-channel"
 import { logAutoOrder } from "@/lib/auto-order/telemetry"
@@ -165,6 +168,7 @@ export async function runAutoFulfillmentBatch(stripeSessionId: string): Promise<
 
   const jobResults: BatchRunResult["jobs"] = []
   let successCount = 0
+  let asyncPlacePending = 0
   const errors: Array<{ providerId: string; message: string }> = []
 
   for (const group of groupMap.values()) {
@@ -229,54 +233,35 @@ export async function runAutoFulfillmentBatch(stripeSessionId: string): Promise<
         continue
       }
 
-      const placed = await placeOrderViaSupplierAdapter({
+      const placed = await dispatchPlaceSupplierOrder({
+        supplierFulfillmentOrderId: job.id,
         batchId: batch.id,
         reference: `afb-${batch.id}-${job.id}`,
         shipping,
         contactEmail,
         group,
+        paymentReference: payment.reference ?? null,
       })
 
-      await prisma.supplierFulfillmentOrder.update({
-        where: { id: job.id },
-        data: {
-          status: placed.status,
-          supplierOrderId: placed.supplierOrderId,
-          paymentReference: payment.reference ?? null,
-          rawRequest: placed.rawRequest as Prisma.InputJsonValue,
-          rawResponse: placed.rawResponse as Prisma.InputJsonValue,
-          errorMessage: placed.errorMessage,
-          processedAt: new Date(),
-          attempts: { increment: 1 },
-        },
-      })
-
-      const lineStatus: FulfillmentStatus =
-        placed.status === "CONFIRMED" || placed.status === "SHIPPED"
-          ? "ORDERED"
-          : placed.status === "FAILED"
-            ? "MANUAL_REQUIRED"
-            : "PROCESSING"
-
-      for (const l of group.lines) {
-        await prisma.order.update({
-          where: { id: l.orderId },
-          data: {
-            fulfillmentStatus: lineStatus,
-            fulfilledAt: lineStatus === "ORDERED" ? new Date() : null,
-            fulfillmentErrors: placed.errorMessage
-              ? ([{ supplier: placed.errorMessage }] as Prisma.InputJsonValue)
-              : undefined,
-          },
-        })
+      if (placed.deferred) {
+        asyncPlacePending += 1
+        jobResults.push({ jobId: job.id, status: "PROCESSING" })
+        continue
       }
 
-      if (placed.status === "CONFIRMED" || placed.status === "SHIPPED") {
-        successCount += 1
-        recordCircuitSuccess(circuitKey)
-      } else {
+      const outcome = await applySupplierPlaceOrderResult({
+        supplierFulfillmentOrderId: job.id,
+        batchId: batch.id,
+        providerId: group.providerId,
+        group,
+        placed,
+        paymentReference: payment.reference ?? null,
+      })
+
+      if (outcome.success) successCount += 1
+      else if (placed.errorMessage) {
         recordCircuitFailure(circuitKey)
-        errors.push({ providerId: group.providerId, message: placed.errorMessage ?? placed.status })
+        errors.push({ providerId: group.providerId, message: placed.errorMessage })
       }
 
       jobResults.push({
@@ -292,29 +277,23 @@ export async function runAutoFulfillmentBatch(stripeSessionId: string): Promise<
     }
   }
 
-  const fulfillmentStatus: FulfillmentStatus =
-    successCount === 0
-      ? "FAILED"
-      : successCount < groupMap.size
-        ? "PARTIAL"
-        : "ORDERED"
+  if (asyncPlacePending > 0 && isAutoOrderQueueEnabled()) {
+    await prisma.autoFulfillmentBatch.update({
+      where: { id: batch.id },
+      data: {
+        status: "PROCESSING",
+        fulfillmentStatus: "PROCESSING",
+        supplierJobCount: jobResults.length,
+        errors: errors.length ? (errors as Prisma.InputJsonValue) : undefined,
+      },
+    })
+    logAutoOrder("batch_awaiting_place_workers", {
+      batchId: batch.id,
+      asyncPlacePending,
+      jobs: jobResults.length,
+    })
+    return { batchId: batch.id, fulfillmentStatus: "PROCESSING", jobs: jobResults }
+  }
 
-  await prisma.autoFulfillmentBatch.update({
-    where: { id: batch.id },
-    data: {
-      status: errors.length ? (successCount ? "PARTIAL" : "FAILED") : "COMPLETED",
-      fulfillmentStatus,
-      supplierJobCount: jobResults.length,
-      errors: errors.length ? (errors as Prisma.InputJsonValue) : undefined,
-      completedAt: new Date(),
-    },
-  })
-
-  logAutoOrder("batch_completed", {
-    batchId: batch.id,
-    fulfillmentStatus,
-    jobs: jobResults.length,
-  })
-
-  return { batchId: batch.id, fulfillmentStatus, jobs: jobResults }
+  return finalizeAutoFulfillmentBatch(batch.id)
 }
