@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { redirect } from "next/navigation"
 
 import { AgentChat } from "@/components/AgentChat"
@@ -32,7 +33,9 @@ export default async function AgentPage() {
           Votre conseiller shopping IA — recherche dans le marketplace en temps réel
         </p>
       </div>
-      <AgentChat />
+      <Suspense fallback={<div className="h-96 animate-pulse rounded-2xl bg-zinc-800/50" aria-hidden />}>
+        <AgentChat />
+      </Suspense>
     </main>
   )
 }

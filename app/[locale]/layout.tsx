@@ -13,6 +13,9 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }))
 }
 
+/** Only en and fr match; paths like /agent use dedicated app routes outside [locale]. */
+export const dynamicParams = false
+
 export default async function LocaleLayout({ children, params }: Props) {
   const { locale } = await params
   if (!hasLocale(routing.locales, locale)) notFound()

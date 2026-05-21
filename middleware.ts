@@ -270,6 +270,7 @@ export const config = {
     "/dashboard",
     "/dashboard/:path*",
     "/affiliate/:path*",
+    "/agent",
     "/creators",
     "/partners",
   ],
