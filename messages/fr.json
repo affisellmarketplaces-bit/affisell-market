@@ -688,13 +688,65 @@
     "contact": "Contact",
     "terms": "Conditions",
     "privacy": "Confidentialité",
+    "cookies": "Cookies",
     "sellTitle": "Vendre",
     "becomeCreator": "Devenir créateur",
     "becomePartner": "Devenir partenaire",
     "helpTitle": "Aide",
     "faq": "FAQ",
     "shipping": "Livraison",
-    "returns": "Retours"
+    "returns": "Retours",
+    "cta": {
+      "creator": {
+        "title": "Devenir créateur",
+        "text": "Lancez votre boutique en 60 s",
+        "cta": "Commencer à vendre →"
+      },
+      "supplier": {
+        "title": "Pour les fournisseurs",
+        "text": "Listez vos produits, touchez le monde",
+        "cta": "Importer des produits →"
+      },
+      "agent": {
+        "title": "Agent Shopping",
+        "text": "L'IA trouve les meilleures offres",
+        "cta": "Essayer l'agent →"
+      }
+    },
+    "brand": {
+      "tagline": "La marketplace pensée pour les créateurs"
+    },
+    "product": {
+      "title": "Produit",
+      "exploreCatalog": "Explorer le catalogue",
+      "topCreators": "Top créateurs",
+      "liveShopping": "Live Shopping",
+      "affiliateProgram": "Programme affilié"
+    },
+    "company": {
+      "title": "Entreprise",
+      "about": "À propos",
+      "blog": "Blog",
+      "careers": "Carrières",
+      "press": "Press Kit"
+    },
+    "newsletter": {
+      "title": "Restez informé",
+      "subtext": "Drops produits + conseils créateurs. 1×/mois.",
+      "placeholder": "vous@createur.com",
+      "submit": "S'abonner",
+      "disclaimer": "Pas de spam. Désabonnement en un clic.",
+      "success": "C'est bon — bienvenue dans la boucle."
+    },
+    "subfooter": {
+      "copyright": "© {year} Affisell, Inc. Fait à Marseille 🇫🇷"
+    },
+    "social": {
+      "x": "Affisell sur X",
+      "instagram": "Affisell sur Instagram",
+      "tiktok": "Affisell sur TikTok",
+      "discord": "Affisell sur Discord"
+    }
   },
   "errors": {
     "notFound": {

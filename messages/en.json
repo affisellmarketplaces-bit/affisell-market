@@ -688,13 +688,65 @@
     "contact": "Contact",
     "terms": "Terms",
     "privacy": "Privacy",
+    "cookies": "Cookies",
     "sellTitle": "Sell",
     "becomeCreator": "Become a creator",
     "becomePartner": "Become a partner",
     "helpTitle": "Help",
     "faq": "FAQ",
     "shipping": "Shipping",
-    "returns": "Returns"
+    "returns": "Returns",
+    "cta": {
+      "creator": {
+        "title": "Become a Creator",
+        "text": "Launch your store in 60s",
+        "cta": "Start selling →"
+      },
+      "supplier": {
+        "title": "For Suppliers",
+        "text": "List products, get global reach",
+        "cta": "Import products →"
+      },
+      "agent": {
+        "title": "Agent Shopping",
+        "text": "Let AI find the best deals",
+        "cta": "Try Agent →"
+      }
+    },
+    "brand": {
+      "tagline": "The creator-first marketplace"
+    },
+    "product": {
+      "title": "Product",
+      "exploreCatalog": "Explore catalog",
+      "topCreators": "Top Creators",
+      "liveShopping": "Live Shopping",
+      "affiliateProgram": "Affiliate Program"
+    },
+    "company": {
+      "title": "Company",
+      "about": "About",
+      "blog": "Blog",
+      "careers": "Careers",
+      "press": "Press Kit"
+    },
+    "newsletter": {
+      "title": "Stay in the loop",
+      "subtext": "Product drops + creator tips. 1x/month.",
+      "placeholder": "you@creator.com",
+      "submit": "Subscribe",
+      "disclaimer": "No spam. Unsubscribe anytime.",
+      "success": "You're in — welcome to the loop."
+    },
+    "subfooter": {
+      "copyright": "© {year} Affisell, Inc. Made in Marseille 🇫🇷"
+    },
+    "social": {
+      "x": "Affisell on X",
+      "instagram": "Affisell on Instagram",
+      "tiktok": "Affisell on TikTok",
+      "discord": "Affisell on Discord"
+    }
   },
   "errors": {
     "notFound": {

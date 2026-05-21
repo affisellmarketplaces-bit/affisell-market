@@ -1,6 +1,7 @@
 import { Suspense } from "react"
 import { getLocale, getMessages, setRequestLocale } from "next-intl/server"
 
+import { Footer } from "@/components/layout/Footer"
 import { AppHeader } from "@/components/nav/app-header"
 import { RootSessionShell } from "@/app/root-intl-session"
 import { IntlAppProvider } from "@/components/providers/intl-app-provider"
@@ -32,6 +33,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               </Suspense>
             </header>
             {children}
+            <Footer />
           </RootSessionShell>
         </IntlAppProvider>
       </body>
