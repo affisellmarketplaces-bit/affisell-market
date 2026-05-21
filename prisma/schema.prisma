@@ -345,6 +345,17 @@ model Product {
   /** Import channel, e.g. `aliexpress`. */
   importSource           String?
   /**
+   * Auto-Order Engine: route paid lines to external suppliers without buyer treasury advance.
+   */
+  autoFulfill            Boolean              @default(true)
+  fulfillmentChannel     SupplierChannelType?
+  sourceProductId        String?
+  sourceSkuId            String?
+  sourceUrl              String?
+  fulfillmentDelayHours  Int                  @default(0)
+  /** Minimum margin in basis points (1500 = 15%). */
+  minMarginBps           Int                  @default(1500)
+  /**
    * Blind dropship: partner SKU + wholesale cost (cents) sent to supplier APIs only — never shopper/affiliate price.
    * Null when the product is only sold through native Affisell fulfillment.
    */
@@ -797,6 +808,17 @@ model Order {
   merchantPayoutLedger     MerchantPayoutLedger[]
   buyerReview              Review?
   reviewReminderSentAt     DateTime?
+  /**
+   * Universal Auto-Order Engine — aggregate fulfillment across supplier channels.
+   */
+  fulfillmentStatus      FulfillmentStatus @default(PENDING)
+  fulfillmentErrors      Json?
+  paidAt                 DateTime?
+  fulfilledAt            DateTime?
+  autoFulfillmentBatchId String?
+  autoFulfillmentBatch   AutoFulfillmentBatch? @relation(fields: [autoFulfillmentBatchId], references: [id], onDelete: SetNull)
+
+  supplierFulfillmentLinks SupplierFulfillmentOrderLine[]
 }
 
 /**
@@ -954,7 +976,8 @@ model BlindDropshipSupplier {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  orderItems BlindDropshipOrderItem[]
+  orderItems            BlindDropshipOrderItem[]
+  fulfillmentProvider FulfillmentProvider?
 }
 
 model BlindDropshipOrder {
@@ -1022,6 +1045,163 @@ model BlindDropshipOrderItem {
 
   @@index([blindDropshipOrderId])
   @@index([supplierOrderId])
+}
+
+// ─── Universal Auto-Order Engine v1 ───────────────────────────────────────────
+
+enum SupplierChannelType {
+  AFFISELL_NATIVE
+  ALIEXPRESS
+  CJ_DROPSHIPPING
+  TEMU
+  BIGBUY
+  ZENDROP
+  AMAZON
+  TIKTOK_SHOP
+  BLIND_REST
+  MANUAL
+}
+
+enum FulfillmentProviderStatus {
+  ACTIVE
+  PAUSED
+  DISABLED
+}
+
+enum FulfillmentPaymentMethod {
+  STRIPE_ISSUING
+  STRIPE_CONNECT
+  WALLET_PREPAID
+  INVOICE_NET30
+  NONE
+}
+
+enum FulfillmentStatus {
+  PENDING
+  PROCESSING
+  PARTIAL
+  ORDERED
+  SHIPPED
+  DELIVERED
+  FAILED
+  MANUAL_REQUIRED
+}
+
+enum SupplierFulfillmentStatus {
+  PENDING
+  PROCESSING
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  FAILED
+}
+
+enum AutoFulfillmentBatchStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  PARTIAL
+  FAILED
+}
+
+/**
+ * Configured supplier channel (maps to Affisell User supplier and/or blind REST partner).
+ */
+model FulfillmentProvider {
+  id                      String                    @id @default(cuid())
+  slug                    String                    @unique
+  name                    String
+  channelType             SupplierChannelType
+  status                  FulfillmentProviderStatus @default(ACTIVE)
+  /** Non-secret config: endpoints, timeouts, version. */
+  apiConfig               Json                      @default("{}")
+  /** AES-encrypted credentials blob — never expose to client. */
+  credentialsEncrypted    String?                   @db.Text
+  paymentMethod           FulfillmentPaymentMethod  @default(NONE)
+  stripeConnectAccountId  String?
+  commissionRateBps       Int                       @default(0)
+  walletBalanceCents      Int                       @default(0)
+  slaHours                Int                       @default(24)
+  metadata                Json?
+  /** Native Affisell supplier user (role SUPPLIER). */
+  supplierUserId          String?
+  blindDropshipSupplierId String?                   @unique
+  blindDropshipSupplier   BlindDropshipSupplier?    @relation(fields: [blindDropshipSupplierId], references: [id], onDelete: SetNull)
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+
+  supplierJobs SupplierFulfillmentOrder[]
+
+  @@index([channelType, status])
+  @@index([supplierUserId])
+}
+
+/** One checkout session → N supplier purchase jobs (event-driven batch). */
+model AutoFulfillmentBatch {
+  id                String                     @id @default(cuid())
+  stripeSessionId   String                     @unique
+  status            AutoFulfillmentBatchStatus @default(PENDING)
+  fulfillmentStatus FulfillmentStatus          @default(PENDING)
+  orderCount        Int                        @default(0)
+  supplierJobCount  Int                        @default(0)
+  errors            Json?
+  idempotencyKey    String                     @unique
+  startedAt         DateTime?
+  completedAt       DateTime?
+  createdAt         DateTime                   @default(now())
+  updatedAt         DateTime                   @updatedAt
+
+  marketplaceOrders Order[]
+  supplierJobs    SupplierFulfillmentOrder[]
+
+  @@index([status, createdAt])
+}
+
+/**
+ * Purchase placed (or queued) with an external/native supplier for one or more marketplace Order rows.
+ */
+model SupplierFulfillmentOrder {
+  id                    String                    @id @default(cuid())
+  batchId               String
+  batch                 AutoFulfillmentBatch      @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  fulfillmentProviderId String
+  provider              FulfillmentProvider       @relation(fields: [fulfillmentProviderId], references: [id])
+  supplierOrderId       String?                   @unique
+  status                SupplierFulfillmentStatus @default(PENDING)
+  totalCostCents        Int                       @default(0)
+  currency              String                    @default("EUR")
+  paymentMethod         FulfillmentPaymentMethod
+  paymentReference      String?
+  rawRequest            Json?
+  rawResponse           Json?
+  errorMessage          String?                   @db.Text
+  attempts              Int                       @default(0)
+  createdAt             DateTime                  @default(now())
+  processedAt           DateTime?
+
+  lines SupplierFulfillmentOrderLine[]
+
+  @@index([batchId])
+  @@index([fulfillmentProviderId, status])
+}
+
+model SupplierFulfillmentOrderLine {
+  id                       String                   @id @default(cuid())
+  supplierFulfillmentOrderId String
+  supplierFulfillmentOrder SupplierFulfillmentOrder @relation(fields: [supplierFulfillmentOrderId], references: [id], onDelete: Cascade)
+  orderId                  String
+  order                    Order                    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId                String
+  quantity                 Int
+  unitCostCents            Int
+  supplierSku              String?
+  trackingNumber           String?
+  trackingUrl              String?
+  fulfilledAt              DateTime?
+
+  @@unique([supplierFulfillmentOrderId, orderId])
+  @@index([orderId])
 }
 
 /// Meta AI ad video for a supplier product (marketplace affiliates download when DONE).

@@ -7,6 +7,7 @@ import { buyerEarnCentsForLinePaid } from "@/lib/buyer-reward-earn"
 import { earnBuyerRewardIdempotent, redeemBuyerRewardIdempotent } from "@/lib/buyer-reward-ledger"
 import { resolveBuyerUserIdForEarn } from "@/lib/buyer-reward-resolve-user"
 import { computeMarketplaceOrderSettlement } from "@/lib/marketplace-order-settlement"
+import { triggerAutoFulfillmentForStripeSession } from "@/lib/auto-order/enqueue"
 import { createMarketplaceOrderNotifications } from "@/lib/marketplace-order-notifications"
 import { prisma } from "@/lib/prisma"
 import {
@@ -96,6 +97,8 @@ async function createPaidMarketplaceOrder(
       affisellFeeCents: settlement.affisellFeeCents,
       affiliateMarginRetainedCents: settlement.affiliateMarginRetainedCents,
       status: "paid",
+      paidAt: new Date(),
+      fulfillmentStatus: "PENDING",
     },
   })
 
@@ -233,6 +236,11 @@ export async function fulfillMarketplaceStripeSession(
       }
     })
 
+    try {
+      await triggerAutoFulfillmentForStripeSession(sessionId)
+    } catch (e) {
+      console.error("[auto-order] trigger after cart fulfill failed", e)
+    }
     return
   }
 
@@ -312,4 +320,10 @@ export async function fulfillMarketplaceStripeSession(
       })
     }
   })
+
+  try {
+    await triggerAutoFulfillmentForStripeSession(sessionId)
+  } catch (e) {
+    console.error("[auto-order] trigger after fulfill failed", e)
+  }
 }
