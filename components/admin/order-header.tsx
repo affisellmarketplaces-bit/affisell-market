@@ -18,10 +18,10 @@ export function OrderHeader({ order, actions }: Props) {
     <header className="mb-8 flex flex-wrap items-start justify-between gap-4">
       <div>
         <Link
-          href="/admin/providers"
+          href="/admin/orders"
           className="text-xs font-medium text-violet-600 hover:underline dark:text-violet-400"
         >
-          ← Admin
+          ← Commandes
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-zinc-900 dark:text-white">
           Commande {order.id.slice(0, 10)}…
