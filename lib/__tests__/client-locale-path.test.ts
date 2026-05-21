@@ -11,6 +11,8 @@ describe("hrefForLocaleSwitch", () => {
   it("maps home and marketing paths to / or /fr", () => {
     expect(hrefForLocaleSwitch("/", "", "", "fr")).toBe("/fr")
     expect(hrefForLocaleSwitch("/fr", "", "", "en")).toBe("/")
+    expect(hrefForLocaleSwitch("/agent", "", "", "fr")).toBe("/fr/agent")
+    expect(hrefForLocaleSwitch("/fr/agent", "", "", "en")).toBe("/agent")
     expect(hrefForLocaleSwitch("/creators", "", "#cta", "fr")).toBe("/fr/creators#cta")
     expect(hrefForLocaleSwitch("/fr/partners", "", "", "en")).toBe("/partners")
   })

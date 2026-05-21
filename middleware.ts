@@ -18,6 +18,9 @@ const intlMiddleware = createIntlMiddleware(routing)
 /** Never run next-intl redirects on these — we serve them via `app/page` + `app/[locale]/page`. */
 const HOME_PATHS = new Set(["/", "/fr", "/en"])
 
+/** Top-level app routes (not locale segments) — skip intl middleware so `/agent` is not swallowed. */
+const STATIC_APP_PATHS = new Set(["/agent", "/creators", "/partners"])
+
 function secureSessionCookieForRequest(req: NextRequest): boolean {
   return req.nextUrl.protocol === "https:"
 }
@@ -122,6 +125,10 @@ export async function middleware(req: NextRequest) {
 
   if (HOME_PATHS.has(pathname)) {
     return handleHomePath(req)
+  }
+
+  if (STATIC_APP_PATHS.has(pathname)) {
+    return nextWithPathname(req)
   }
 
   const bare = pathnameWithoutLocale(pathname)
