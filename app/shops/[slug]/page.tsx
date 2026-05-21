@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
+import { getTranslations } from "next-intl/server"
 
 import { ProductGrid } from "@/components/shop/ProductGrid"
 import type { ProductCardDisplayMode } from "@/components/product/ProductCard"
@@ -16,12 +17,14 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params
   const store = await loadAffiliateShopStore(slug)
-  if (!store) return { title: "Boutique" }
+  const t = await getTranslations("shops")
+  const tDiscovery = await getTranslations("discovery")
+  if (!store) return { title: t("title") }
+  const niche = tDiscovery(`niches.${store.nicheLabel}`)
   return {
-    title: `${store.name} - Boutique ${store.nicheLabel}`,
+    title: t("storeMetaTitle", { name: store.name, niche }),
     description:
-      store.description?.slice(0, 160) ??
-      `Découvrez la sélection ${store.nicheLabel} de ${store.name}.`,
+      store.description?.slice(0, 160) ?? t("storeMetaDescription", { name: store.name, niche }),
     robots: { index: true, follow: true },
   }
 }

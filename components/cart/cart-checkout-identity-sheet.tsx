@@ -3,6 +3,7 @@
 import type { FormEvent } from "react"
 import { Mail, Phone, X } from "lucide-react"
 import { signIn } from "next-auth/react"
+import { useTranslations } from "next-intl"
 import { useState } from "react"
 
 type Channel = "email" | "phone"
@@ -14,6 +15,7 @@ type Props = {
 }
 
 export function CartCheckoutIdentitySheet({ open, onClose, onIdentified }: Props) {
+  const t = useTranslations("cart.identity")
   const [channel, setChannel] = useState<Channel>("email")
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
@@ -36,7 +38,7 @@ export function CartCheckoutIdentitySheet({ open, onClose, onIdentified }: Props
       })
       const data = (await res.json()) as { error?: string; checkoutMagic?: string }
       if (!res.ok || !data.checkoutMagic) {
-        setError(data.error ?? "Impossible de continuer. Réessayez.")
+        setError(data.error ?? t("identifyFailed"))
         return
       }
       const login = await signIn("credentials", {
@@ -45,12 +47,12 @@ export function CartCheckoutIdentitySheet({ open, onClose, onIdentified }: Props
         callbackUrl: "/cart",
       })
       if (login?.error) {
-        setError("Connexion impossible après identification.")
+        setError(t("signInFailed"))
         return
       }
       await onIdentified()
     } catch {
-      setError("Réseau indisponible. Réessayez.")
+      setError(t("networkError"))
     } finally {
       setLoading(false)
     }
@@ -61,25 +63,23 @@ export function CartCheckoutIdentitySheet({ open, onClose, onIdentified }: Props
       <button
         type="button"
         className="absolute inset-0 bg-zinc-950/50 backdrop-blur-sm"
-        aria-label="Fermer"
+        aria-label={t("close")}
         onClick={onClose}
       />
       <div className="relative z-10 w-full max-w-md rounded-t-3xl border border-zinc-200 bg-white p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900 sm:rounded-3xl">
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
             <p className="text-xs font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400">
-              Avant le paiement
+              {t("beforePay")}
             </p>
-            <h2 className="mt-1 text-xl font-bold text-zinc-900 dark:text-zinc-50">Continuer avec votre identité</h2>
-            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-              Votre compte client est créé automatiquement pour suivre vos commandes et votre cashback.
-            </p>
+            <h2 className="mt-1 text-xl font-bold text-zinc-900 dark:text-zinc-50">{t("title")}</h2>
+            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{t("subtitle")}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="rounded-full p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-            aria-label="Fermer"
+            aria-label={t("close")}
           >
             <X className="h-5 w-5" />
           </button>
@@ -96,7 +96,7 @@ export function CartCheckoutIdentitySheet({ open, onClose, onIdentified }: Props
             }`}
           >
             <Mail className="h-4 w-4" aria-hidden />
-            E-mail
+            {t("emailTab")}
           </button>
           <button
             type="button"
@@ -108,7 +108,7 @@ export function CartCheckoutIdentitySheet({ open, onClose, onIdentified }: Props
             }`}
           >
             <Phone className="h-4 w-4" aria-hidden />
-            Téléphone
+            {t("phoneTab")}
           </button>
         </div>
 
@@ -116,7 +116,7 @@ export function CartCheckoutIdentitySheet({ open, onClose, onIdentified }: Props
           {channel === "email" ? (
             <div>
               <label htmlFor="checkout-email" className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                Adresse e-mail
+                {t("emailLabel")}
               </label>
               <input
                 id="checkout-email"
@@ -125,14 +125,14 @@ export function CartCheckoutIdentitySheet({ open, onClose, onIdentified }: Props
                 autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="vous@exemple.com"
+                placeholder={t("emailPlaceholder")}
                 className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none ring-violet-500 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-950"
               />
             </div>
           ) : (
             <div>
               <label htmlFor="checkout-phone" className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                Numéro de mobile
+                {t("phoneLabel")}
               </label>
               <input
                 id="checkout-phone"
@@ -141,7 +141,7 @@ export function CartCheckoutIdentitySheet({ open, onClose, onIdentified }: Props
                 autoComplete="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="06 12 34 56 78"
+                placeholder={t("phonePlaceholder")}
                 className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none ring-violet-500 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-950"
               />
             </div>
@@ -158,13 +158,11 @@ export function CartCheckoutIdentitySheet({ open, onClose, onIdentified }: Props
             disabled={loading}
             className="w-full rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 py-3.5 text-sm font-semibold text-white shadow-md disabled:opacity-60"
           >
-            {loading ? "Préparation…" : "Continuer vers le paiement"}
+            {loading ? t("preparing") : t("continueCheckout")}
           </button>
         </form>
 
-        <p className="mt-4 text-center text-xs text-zinc-500 dark:text-zinc-400">
-          En validant, vous acceptez la création d’un compte acheteur Affisell pour vos bonus cashback.
-        </p>
+        <p className="mt-4 text-center text-xs text-zinc-500 dark:text-zinc-400">{t("legalNote")}</p>
       </div>
     </div>
   )

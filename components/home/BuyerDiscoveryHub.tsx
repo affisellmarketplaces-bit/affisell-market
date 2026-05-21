@@ -11,20 +11,8 @@ import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
 import type { BuyerCategoryChip, BuyerListingCard } from "@/lib/buyer-discovery-data"
 import { buyerListingToCardProps } from "@/lib/buyer-discovery-data"
 import type { PublicShopDirectoryEntry } from "@/lib/shop-storefront-data"
+import { NICHE_FILTER_KEYS, type NicheFilterKey } from "@/lib/niche-label"
 import { cn } from "@/lib/utils"
-
-const NICHE_FILTERS = ["Toutes", "Beauté", "Fitness", "Tech", "Maison", "Lifestyle"] as const
-
-type NicheFilter = (typeof NICHE_FILTERS)[number]
-
-const NICHE_I18N_KEY: Record<NicheFilter, "all" | "beauty" | "fitness" | "tech" | "home" | "lifestyle"> = {
-  Toutes: "all",
-  Beauté: "beauty",
-  Fitness: "fitness",
-  Tech: "tech",
-  Maison: "home",
-  Lifestyle: "lifestyle",
-}
 
 type Props = {
   shops: PublicShopDirectoryEntry[]
@@ -35,7 +23,7 @@ type Props = {
 export function BuyerDiscoveryHub({ shops, products, categories }: Props) {
   const t = useTranslations("discovery")
   const [shopSlug, setShopSlug] = useState<string | null>(null)
-  const [niche, setNiche] = useState<NicheFilter>("Toutes")
+  const [niche, setNiche] = useState<NicheFilterKey>("all")
   const [category, setCategory] = useState<string | null>(null)
   const [q, setQ] = useState("")
 
@@ -43,7 +31,7 @@ export function BuyerDiscoveryHub({ shops, products, categories }: Props) {
     const needle = q.trim().toLowerCase()
     return products.filter((p) => {
       if (shopSlug && p.storeSlug !== shopSlug) return false
-      if (niche !== "Toutes" && p.nicheLabel !== niche) return false
+      if (niche !== "all" && p.nicheLabel !== niche) return false
       if (category && !p.categories.some((c) => c === category)) return false
       if (!needle) return true
       if (p.name.toLowerCase().includes(needle)) return true
@@ -53,7 +41,7 @@ export function BuyerDiscoveryHub({ shops, products, categories }: Props) {
   }, [products, shopSlug, niche, category, q])
 
   const filteredShops = useMemo(() => {
-    if (niche === "Toutes") return shops
+    if (niche === "all") return shops
     return shops.filter((s) => s.nicheLabel === niche)
   }, [shops, niche])
 
@@ -61,7 +49,7 @@ export function BuyerDiscoveryHub({ shops, products, categories }: Props) {
     setShopSlug(slug)
     if (slug) {
       const shop = shops.find((s) => s.slug === slug)
-      if (shop) setNiche(shop.nicheLabel as NicheFilter)
+      if (shop) setNiche(shop.nicheLabel)
     }
   }
 
@@ -70,24 +58,21 @@ export function BuyerDiscoveryHub({ shops, products, categories }: Props) {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-600 dark:text-violet-400">
-            Explorer
+            {t("eyebrow")}
           </p>
           <h2
             id="discovery-heading"
             className="mt-1 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-3xl"
           >
-            Trouvez votre créateur, puis votre produit
+            {t("title")}
           </h2>
-          <p className="mt-2 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
-            Chaque article est vendu par une boutique affiliée vérifiée — filtrez par univers, rayon ou
-            créateur préféré.
-          </p>
+          <p className="mt-2 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">{t("subtitle")}</p>
         </div>
         <Link
           href={PUBLIC_MARKETPLACE_BROWSE_PATH}
           className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-800 shadow-sm transition hover:border-violet-300 hover:text-violet-800 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
         >
-          Marketplace complète
+          {t("fullMarketplace")}
           <ArrowRight className="h-4 w-4" aria-hidden />
         </Link>
       </div>
@@ -109,7 +94,7 @@ export function BuyerDiscoveryHub({ shops, products, categories }: Props) {
         </div>
 
         <div className="mt-6 space-y-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Créateurs</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{t("creators")}</p>
           <div className="flex gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <button
               type="button"
@@ -162,24 +147,24 @@ export function BuyerDiscoveryHub({ shops, products, categories }: Props) {
 
         <div className="mt-6 flex flex-wrap gap-2">
           <span className="w-full text-xs font-semibold uppercase tracking-wide text-zinc-500 sm:w-auto sm:py-2">
-            Univers
+            {t("nichesLabel")}
           </span>
-          {NICHE_FILTERS.map((label) => (
+          {NICHE_FILTER_KEYS.map((key) => (
             <button
-              key={label}
+              key={key}
               type="button"
               onClick={() => {
-                setNiche(label)
+                setNiche(key)
                 setShopSlug(null)
               }}
               className={cn(
                 "rounded-full px-3.5 py-1.5 text-xs font-semibold transition",
-                niche === label
+                niche === key
                   ? "bg-zinc-900 text-white shadow-sm dark:bg-zinc-100 dark:text-zinc-900"
                   : "border border-zinc-200 bg-zinc-50 text-zinc-700 hover:bg-white dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
               )}
             >
-              {label}
+              {t(`niches.${key}`)}
             </button>
           ))}
         </div>
@@ -270,8 +255,8 @@ export function BuyerDiscoveryHub({ shops, products, categories }: Props) {
 
       {shops.length > 0 ? (
         <div className="rounded-3xl border border-zinc-200/90 bg-gradient-to-br from-zinc-50 via-white to-violet-50/30 p-6 dark:border-zinc-800 dark:from-zinc-950 dark:via-zinc-950 dark:to-violet-950/20 sm:p-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">Boutiques</p>
-          <h3 className="mt-1 text-xl font-bold text-zinc-900 dark:text-zinc-50">Vos créateurs sur Affisell</h3>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">{t("storesSection")}</p>
+          <h3 className="mt-1 text-xl font-bold text-zinc-900 dark:text-zinc-50">{t("storesTitle")}</h3>
           <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredShops.slice(0, 6).map((shop) => (
               <li key={shop.slug}>
@@ -295,7 +280,7 @@ export function BuyerDiscoveryHub({ shops, products, categories }: Props) {
                   )}
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-semibold text-zinc-900 dark:text-zinc-50">{shop.name}</p>
-                    <p className="text-xs text-zinc-500">{shop.nicheLabel}</p>
+                    <p className="text-xs text-zinc-500">{t(`niches.${shop.nicheLabel}`)}</p>
                   </div>
                   <ArrowRight className="h-4 w-4 shrink-0 text-zinc-400" aria-hidden />
                 </Link>

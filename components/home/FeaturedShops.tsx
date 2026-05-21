@@ -1,4 +1,7 @@
+"use client"
+
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 
 import type { PublicShopDirectoryEntry } from "@/lib/shop-storefront-data"
 
@@ -7,19 +10,20 @@ type Props = {
   emptyMessage?: string
 }
 
-export function FeaturedShops({
-  shops,
-  emptyMessage = "Les créateurs ouvrent leurs boutiques. Revenez demain.",
-}: Props) {
+export function FeaturedShops({ shops, emptyMessage }: Props) {
+  const t = useTranslations("discovery")
+  const tShops = useTranslations("shops")
+  const empty = emptyMessage ?? tShops("featuredEmpty")
+
   if (shops.length === 0) {
-    return <p className="text-sm text-zinc-500">{emptyMessage}</p>
+    return <p className="text-sm text-zinc-500">{empty}</p>
   }
 
   return (
     <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {shops.map((shop) => {
         const rating = shop.averageRating > 0 ? shop.averageRating.toFixed(1) : "—"
-        const ordersLabel = shop.orderCount.toLocaleString("fr-FR")
+        const ordersLabel = tShops("ordersCount", { count: shop.orderCount })
         return (
           <li
             key={shop.slug}
@@ -43,9 +47,9 @@ export function FeaturedShops({
               )}
               <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold text-zinc-900 dark:text-zinc-50">{shop.name}</p>
-                <p className="text-xs text-zinc-500">{shop.nicheLabel}</p>
+                <p className="text-xs text-zinc-500">{t(`niches.${shop.nicheLabel}`)}</p>
                 <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
-                  ⭐ {rating} · {ordersLabel} commande{shop.orderCount !== 1 ? "s" : ""}
+                  ⭐ {rating} · {ordersLabel}
                 </p>
               </div>
             </div>
@@ -53,7 +57,7 @@ export function FeaturedShops({
               href={`/shops/${shop.slug}`}
               className="inline-flex items-center justify-center rounded-xl bg-violet-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-violet-700"
             >
-              Visiter
+              {tShops("visitStore")}
             </Link>
           </li>
         )

@@ -12,6 +12,7 @@ import { credentialsSignInErrorMessage } from "@/lib/auth-portal-signin-messages
 
 export default function SupplierSignupPage() {
   const t = useTranslations("auth")
+  const tSignup = useTranslations("auth.signupSupplier")
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -38,7 +39,7 @@ export default function SupplierSignupPage() {
     const data = (await res.json()) as { error?: string }
     if (!res.ok) {
       setLoading(false)
-      setError(data.error ?? "Inscription impossible")
+      setError(data.error ?? t("signupFail"))
       return
     }
     const login = await signIn("credentials", {
@@ -59,10 +60,8 @@ export default function SupplierSignupPage() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-10 dark:bg-zinc-950">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">Vendez sur Affisell</h1>
-          <p className="mt-2 text-gray-600 dark:text-zinc-400">
-            Des milliers de créateurs peuvent vendre vos produits
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">{tSignup("createTitle")}</h1>
+          <p className="mt-2 text-gray-600 dark:text-zinc-400">{tSignup("subtitle")}</p>
         </div>
 
         <div className="rounded-2xl border border-emerald-200/80 bg-white p-8 shadow-sm dark:border-emerald-900/50 dark:bg-zinc-900">
@@ -133,16 +132,16 @@ export default function SupplierSignupPage() {
               disabled={loading}
               className="w-full rounded-xl bg-emerald-600 py-2.5 font-medium text-white shadow-sm transition-colors hover:bg-emerald-700 disabled:opacity-60"
             >
-              {loading ? "Création…" : "Créer mon compte fournisseur"}
+              {loading ? t("creating") : tSignup("createButton")}
             </button>
             {error ? <p className="text-center text-sm text-red-600 dark:text-red-400">{error}</p> : null}
           </form>
         </div>
 
         <p className="mt-6 text-center text-sm text-gray-600 dark:text-zinc-400">
-          Déjà fournisseur ?{" "}
+          {tSignup("hasAccount")}{" "}
           <Link href="/login/supplier" className="font-medium text-emerald-700 hover:underline dark:text-emerald-300">
-            Se connecter
+            {tSignup("signIn")}
           </Link>
         </p>
       </div>

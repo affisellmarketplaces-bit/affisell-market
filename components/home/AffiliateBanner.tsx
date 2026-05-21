@@ -2,10 +2,12 @@
 
 import Link from "next/link"
 import { useSession } from "next-auth/react"
+import { useTranslations } from "next-intl"
 import { ShoppingBag } from "lucide-react"
 
 export function AffiliateBanner() {
   const { status } = useSession()
+  const t = useTranslations("home.buyerBanner")
 
   if (status !== "unauthenticated") return null
 
@@ -14,13 +16,13 @@ export function AffiliateBanner() {
       <p className="flex flex-wrap items-center justify-center gap-2 text-center sm:justify-between">
         <span className="inline-flex items-center gap-2 font-medium">
           <ShoppingBag className="h-4 w-4 shrink-0" aria-hidden />
-          Acheteur ? Parcourez les boutiques créateurs.
+          {t("title")} {t("body")}
         </span>
         <Link
           href="/shops"
           className="font-semibold text-sky-800 underline-offset-2 hover:underline dark:text-sky-200"
         >
-          Voir les boutiques →
+          {t("cta")}
         </Link>
       </p>
     </div>

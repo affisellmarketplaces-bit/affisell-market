@@ -309,34 +309,25 @@ export function MarketplaceView({
               <div className="rounded-3xl border border-dashed border-violet-200/70 bg-white/80 px-6 py-16 text-center shadow-sm backdrop-blur-sm dark:border-violet-900/40 dark:bg-zinc-950/50">
                 {dbUnavailable ? (
                   <>
-                    <p className="text-lg font-medium text-amber-950 dark:text-amber-100">
-                      Database temporarily unavailable
-                    </p>
+                    <p className="text-lg font-medium text-amber-950 dark:text-amber-100">{t("dbEmptyTitle")}</p>
                     <p className="mx-auto mt-2 max-w-lg text-sm text-amber-900/90 dark:text-amber-200/90">
                       {dbUnavailable}
                     </p>
-                    <p className="mx-auto mt-3 max-w-lg text-xs text-zinc-600 dark:text-zinc-400">
-                      Local dev: run{" "}
-                      <code className="rounded bg-zinc-100 px-1 py-0.5 dark:bg-zinc-800">npm run db:local:setup</code>{" "}
-                      and set DATABASE_URL in .env.local to
-                      postgresql://affisell:affisell@localhost:5433/affisell
-                    </p>
+                    <p className="mx-auto mt-3 max-w-lg text-xs text-zinc-600 dark:text-zinc-400">{t("dbDevHint")}</p>
                   </>
                 ) : (
                   <>
-                    <p className="text-lg font-medium text-zinc-900 dark:text-zinc-100">Aucune annonce</p>
+                    <p className="text-lg font-medium text-zinc-900 dark:text-zinc-100">{t("emptyListingTitle")}</p>
                     <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
-                      {hasFilters
-                        ? "Essayez une autre recherche ou un autre rayon, ou réinitialisez les filtres."
-                        : "Les créateurs publient leurs fiches progressivement — revenez bientôt."}
+                      {hasFilters ? t("emptyFilteredBody") : t("emptyDefaultBody")}
                     </p>
                     {hasFilters ? (
                       <Button type="button" className="mt-6 bg-violet-600 hover:bg-violet-700" onClick={clearFilters}>
-                        Tout afficher
+                        {t("showAll")}
                       </Button>
                     ) : (
                       <Link href="/shops" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-6 inline-flex")}>
-                        Voir les boutiques
+                        {t("viewStores")}
                       </Link>
                     )}
                   </>
@@ -344,14 +335,10 @@ export function MarketplaceView({
               </div>
             ) : (
               <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-                <strong className="font-semibold text-zinc-900 dark:text-zinc-100">{products.length}</strong> annonce
-                {products.length === 1 ? "" : "s"}
-                {searchQuery.trim() ? (
-                  <>
-                    {" "}
-                    pour « {searchQuery.trim()} »
-                  </>
-                ) : null}
+                <strong className="font-semibold text-zinc-900 dark:text-zinc-100">
+                  {t("listingCount", { count: products.length })}
+                </strong>
+                {searchQuery.trim() ? t("listingCountForQuery", { query: searchQuery.trim() }) : null}
               </p>
             )}
             {!loading && products.length > 0 ? (

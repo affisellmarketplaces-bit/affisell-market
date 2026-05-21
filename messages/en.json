@@ -79,7 +79,38 @@
         "empty": "—"
       }
     },
-    "loadingCatalog": "Loading catalog…"
+    "loadingCatalog": "Loading catalog…",
+    "buyerBanner": {
+      "title": "Shopping as a buyer?",
+      "body": "Browse creator storefronts.",
+      "cta": "Browse stores →"
+    },
+    "footerCreator": "Are you a creator?",
+    "footerSupplier": "Are you a supplier?",
+    "footerSupplierCta": "Open a supplier account",
+    "footerCreatorCta": "Become an affiliate",
+    "footerNavAria": "Partner spaces",
+    "pickedEmpty": "No suggestions for this niche yet.",
+    "featuredProductsEmpty": "No featured products yet.",
+    "buyerServices": {
+      "sectionBuyer": "Shop smarter on Affisell",
+      "sectionDefault": "More than a marketplace — the Affisell layer",
+      "aria": "Affisell services",
+      "agent": "Shopping agent",
+      "agentHint": "AI advisor to find the right product",
+      "catalog": "Live catalog",
+      "catalogHint": "Departments, filters & product pages",
+      "stores": "Stores",
+      "storesHint": "All creator storefronts",
+      "featured": "Featured stores",
+      "featuredHint": "Curated creators",
+      "discover": "Discover",
+      "discoverHint": "Trends & new arrivals",
+      "liveSearch": "Live search",
+      "liveSearchHint": "Demo “smart” filter",
+      "wishlist": "Wishlist",
+      "wishlistHint": "Price alerts & favorites"
+    }
   },
   "creators": {
     "meta": {
@@ -188,6 +219,42 @@
       "noAccount": "No creator account yet?",
       "createSpace": "Create my space"
     },
+    "shopBuyer": {
+      "loginTitle": "My account — {store}",
+      "signupTitle": "Create account — {store}",
+      "loginHint": "Sign in to track orders from this store.",
+      "signupHint": "Create an account to checkout faster on this store.",
+      "email": "Email",
+      "password": "Password",
+      "submitLogin": "Sign in",
+      "submitSignup": "Create my account",
+      "toggleSignup": "Create an account",
+      "toggleLogin": "Sign in",
+      "backToStore": "← Back to store",
+      "signupHintExtended": "Sign up to order and track purchases.",
+      "noAccount": "No account yet?",
+      "signUpLink": "Sign up",
+      "alreadyClient": "Already a customer?",
+      "signupFail": "Could not sign up"
+    },
+    "signupAffiliate": {
+      "createTitle": "Create my Affisell creator space",
+      "title": "Creator space",
+      "subtitle": "Access the catalog and launch your store in 5 minutes",
+      "socialLabel": "TikTok / Instagram handle",
+      "socialPlaceholder": "@your_handle",
+      "createButton": "Create my space",
+      "hasAccount": "Already a creator?",
+      "signIn": "Sign in"
+    },
+    "signupSupplier": {
+      "createTitle": "Sell on Affisell",
+      "title": "Supplier space",
+      "subtitle": "Thousands of creators can sell your products",
+      "createButton": "Create my account",
+      "hasAccount": "Already a partner?",
+      "signIn": "Sign in"
+    },
     "portal": {
       "accessDenied": "Sign-in denied: this account does not match the requested space.",
       "oauthFailed": "Sign-in failed. Try again or use email and password.",
@@ -218,20 +285,76 @@
     "explore": "← Explore",
     "itemCount": "{count, plural, one {# item} other {# items}}",
     "itemCountHint": "{count, plural, one {# item} other {# items}} · your choices (color, size) are saved",
-    "subtotal": "Subtotal ({count, plural, one {# item} other {# items}})"
+    "subtotal": "Subtotal ({count, plural, one {# item} other {# items}})",
+    "identity": {
+      "beforePay": "Before payment",
+      "title": "Continue with your identity",
+      "subtitle": "A buyer account is created automatically to track orders and cashback.",
+      "close": "Close",
+      "emailTab": "Email",
+      "phoneTab": "Phone",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "you@example.com",
+      "phoneLabel": "Mobile number",
+      "phonePlaceholder": "+1 555 000 0000",
+      "preparing": "Preparing…",
+      "continueCheckout": "Continue to payment",
+      "legalNote": "By continuing, you agree to create an Affisell buyer account for cashback rewards.",
+      "identifyFailed": "Could not continue. Try again.",
+      "signInFailed": "Sign-in failed after identification.",
+      "networkError": "Network unavailable. Try again."
+    }
   },
   "buyerAccount": {
     "navAria": "Customer area",
     "overview": "Overview",
     "orders": "Orders",
     "wallet": "Wallet",
-    "cart": "Cart"
+    "cart": "Cart",
+    "defaultName": "My account",
+    "hubTitle": "Everything for your purchases",
+    "hubSubtitle": "Orders, wallet, and favorites in one place.",
+    "noOrders": "No orders yet",
+    "discoverProducts": "Discover products",
+    "viewOrders": "View orders",
+    "viewCart": "View cart",
+    "walletPromo": "Exclusive discounts",
+    "walletPromoHint": "Up to 70% off on selected items",
+    "walletPromoCta": "See offers →",
+    "supportTitle": "Support",
+    "supportBody": "Questions? Get in touch",
+    "contactCta": "Contact us →",
+    "sidebarAria": "Perks and support",
+    "welcomeEyebrow": "Welcome",
+    "browseMarketplace": "Browse marketplace",
+    "noOrdersHint": "Discover trending products and earn cashback",
+    "ordersTitle": "Orders & returns",
+    "ordersBody": "View paid orders, returns in progress, and deadlines",
+    "walletTitle": "Wallet",
+    "walletAvailable": "{amount} available",
+    "walletBody": "Cashback on partner products — applied automatically at checkout",
+    "viewWallet": "View wallet",
+    "cashbackFaq": "How do I earn cashback?",
+    "cartEmptyTitle": "Your cart is empty",
+    "cartEmptyBody": "Add items from the marketplace to checkout",
+    "startShopping": "Start shopping",
+    "cartTitle": "Your cart",
+    "cartPending": "{count, plural, one {# item waiting} other {# items waiting}}",
+    "backMarketplace": "← Back to marketplace"
   },
   "shops": {
     "metaTitle": "Creator stores — Affisell",
     "metaDescription": "Browse Affisell storefronts from affiliate creators.",
     "title": "Creator stores",
-    "subtitle": "Shop directly from your favorite creators"
+    "subtitle": "Shop directly from your favorite creators",
+    "filterAll": "All",
+    "emptyCategory": "No stores in this category yet.",
+    "storeMetaTitle": "{name} — {niche} store",
+    "storeMetaDescription": "Discover {name}'s {niche} selection.",
+    "filterAria": "Filter by niche",
+    "featuredEmpty": "Creators are opening their stores. Check back soon.",
+    "visitStore": "Visit store",
+    "ordersCount": "{count, plural, one {# order} other {# orders}}"
   },
   "discovery": {
     "eyebrow": "Explore",
@@ -376,7 +499,16 @@
       "embeddedTitle": "Discover & shop",
       "embeddedSubtitle": "Use the purple hero search, the departments below, or the shopping agent to refine your picks.",
       "resultsFor": "Results for",
-      "dbUnavailableTitle": "Marketplace temporarily unavailable"
+      "dbUnavailableTitle": "Marketplace temporarily unavailable",
+      "emptyListingTitle": "No listings yet",
+      "emptyFilteredBody": "Try another search or department, or reset your filters.",
+      "emptyDefaultBody": "Creators publish listings over time — check back soon.",
+      "showAll": "Show all",
+      "viewStores": "Browse stores",
+      "listingCount": "{count, plural, one {# listing} other {# listings}}",
+      "listingCountForQuery": " for « {query} »",
+      "dbEmptyTitle": "Database temporarily unavailable",
+      "dbDevHint": "Local dev: run npm run db:local:setup and set DATABASE_URL in .env.local to postgresql://affisell:affisell@localhost:5433/affisell"
     },
     "departmentRail": {
       "ariaLabel": "Affisell departments",
@@ -393,13 +525,19 @@
     "tagline": "Affiliate storefront",
     "subtitle": "Curated products from this promoter.",
     "empty": "This store has no active products.",
-    "buy": "Buy Now"
+    "buy": "Buy Now",
+    "allStores": "All stores",
+    "noProducts": "No products available yet."
   },
   "success": {
     "title": "Thank you!",
     "body": "Your payment succeeded. You will receive a confirmation by email.",
     "backHome": "Back home",
-    "thankYou": "Thank you!"
+    "thankYou": "Thank you!",
+    "continueShopping": "Continue shopping",
+    "purchaseTitle": "Thanks for your purchase",
+    "purchaseBody": "Your payment is being confirmed. You will receive a tracking email once the order is validated.",
+    "myCart": "My cart"
   },
   "cancel": {
     "title": "Checkout cancelled",
@@ -456,6 +594,46 @@
   "Menu": {
     "helloSignin": "Hello, sign in",
     "searchAskAi": "Search or ask AI..."
+  },
+  "wishlist": {
+    "title": "My favorites",
+    "subtitle": "Saved products from the catalog — price alerts included.",
+    "empty": "No favorites yet. Add products from the marketplace (♥ on a product page).",
+    "browse": "Browse catalog"
+  },
+  "faq": {
+    "metaTitle": "FAQ — Affisell",
+    "eyebrow": "Help",
+    "title": "Frequently asked questions",
+    "description": "Returns, shipping, and buyer perks on the Affisell marketplace.",
+    "cashbackTitle": "How do I earn cashback?",
+    "cashbackBody": "On partner product pages, part of the price may be credited to your wallet after payment is confirmed. Sign in before checkout: the balance applies automatically on your next eligible purchase.",
+    "walletCta": "View my wallet",
+    "backMarketplace": "← Back to catalog"
+  },
+  "contact": {
+    "metaTitle": "Contact — Affisell",
+    "eyebrow": "Support",
+    "title": "Contact Affisell",
+    "description": "Questions about an order, a return, or your cashback wallet? Email us — we reply within 2 business days.",
+    "emailLabel": "Email:",
+    "backAccount": "← Back to my account"
+  },
+  "agent": {
+    "metaTitle": "Shopping agent — Affisell",
+    "metaDescription": "AI shopping advisor for buyers — discover and compare marketplace products.",
+    "eyebrow": "Buyer",
+    "heroTitle": "Find. Compare. Buy.",
+    "heroSub": "Your AI shopping advisor — search the live marketplace in real time"
+  },
+  "marketplacePulse": {
+    "hint": "Filter by department or niche, explore trends, then publish each SKU to your storefront in one click."
+  },
+  "supplierStore": {
+    "metaDescription": "{name} — supplier store on Affisell. Browse the catalog and shop with confidence.",
+    "creatorCtaTitle": "Are you a creator or supplier?",
+    "creatorCtaBody": "Buyers order through Affisell product pages. Creators manage listings from their dashboard.",
+    "becomeCreator": "Become a creator"
   },
   "AI": {
     "pickedForYou": "Picked for you by Affisell AI",

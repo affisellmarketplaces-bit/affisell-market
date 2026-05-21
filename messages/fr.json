@@ -79,7 +79,38 @@
         "empty": "—"
       }
     },
-    "loadingCatalog": "Chargement du catalogue…"
+    "loadingCatalog": "Chargement du catalogue…",
+    "buyerBanner": {
+      "title": "Vous achetez ?",
+      "body": "Parcourez les boutiques créateurs.",
+      "cta": "Voir les boutiques →"
+    },
+    "footerCreator": "Tu es créateur ?",
+    "footerSupplier": "Tu es fournisseur ?",
+    "footerSupplierCta": "Ouvrir un compte fournisseur",
+    "footerCreatorCta": "Devenir affilié",
+    "footerNavAria": "Espace partenaires",
+    "pickedEmpty": "Aucune suggestion pour cette niche pour le moment.",
+    "featuredProductsEmpty": "Aucun produit mis en avant pour le moment.",
+    "buyerServices": {
+      "sectionBuyer": "Acheter malin sur Affisell",
+      "sectionDefault": "Plus qu'un marketplace — couche Affisell",
+      "aria": "Services Affisell",
+      "agent": "Agent shopping",
+      "agentHint": "Conseiller IA pour trouver le bon produit",
+      "catalog": "Catalogue live",
+      "catalogHint": "Rayons, filtres & fiches produit",
+      "stores": "Boutiques",
+      "storesHint": "Toutes les vitrines créateurs",
+      "featured": "Boutiques à la une",
+      "featuredHint": "Sélection créateurs",
+      "discover": "Discover",
+      "discoverHint": "Tendances & nouveautés",
+      "liveSearch": "Recherche vivante",
+      "liveSearchHint": "Filtre démo « smart »",
+      "wishlist": "Wishlist",
+      "wishlistHint": "Alertes prix & favoris"
+    }
   },
   "creators": {
     "meta": {
@@ -188,6 +219,42 @@
       "noAccount": "Pas encore de compte créateur ?",
       "createSpace": "Créer mon espace"
     },
+    "shopBuyer": {
+      "loginTitle": "Mon compte — {store}",
+      "signupTitle": "Créer un compte — {store}",
+      "loginHint": "Connectez-vous pour suivre vos commandes sur cette boutique.",
+      "signupHint": "Créez un compte pour payer plus vite sur cette boutique.",
+      "email": "E-mail",
+      "password": "Mot de passe",
+      "submitLogin": "Se connecter",
+      "submitSignup": "Créer mon compte",
+      "toggleSignup": "Créer un compte",
+      "toggleLogin": "Se connecter",
+      "backToStore": "← Retour à la boutique",
+      "signupHintExtended": "Inscrivez-vous pour commander et suivre vos achats.",
+      "noAccount": "Pas encore de compte ?",
+      "signUpLink": "S'inscrire",
+      "alreadyClient": "Déjà client ?",
+      "signupFail": "Inscription impossible"
+    },
+    "signupAffiliate": {
+      "createTitle": "Créer mon espace Créateur Affisell",
+      "title": "Espace créateur",
+      "subtitle": "Accédez au catalogue et lancez votre boutique en 5 minutes",
+      "socialLabel": "Pseudo TikTok / Instagram",
+      "socialPlaceholder": "@votre_pseudo",
+      "createButton": "Créer mon espace",
+      "hasAccount": "Déjà créateur ?",
+      "signIn": "Se connecter"
+    },
+    "signupSupplier": {
+      "createTitle": "Créer mon compte fournisseur",
+      "title": "Espace fournisseur",
+      "subtitle": "Des milliers de créateurs peuvent vendre vos produits",
+      "createButton": "Créer mon compte",
+      "hasAccount": "Déjà partenaire ?",
+      "signIn": "Se connecter"
+    },
     "portal": {
       "accessDenied": "Connexion refusée : ce compte ne correspond pas à l’espace demandé.",
       "oauthFailed": "La connexion a échoué. Réessayez ou utilisez l’e-mail et le mot de passe.",
@@ -218,20 +285,76 @@
     "explore": "← Explorer",
     "itemCount": "{count, plural, one {# article} other {# articles}}",
     "itemCountHint": "{count, plural, one {# article} other {# articles}} · vos choix (couleur, taille) sont conservés",
-    "subtotal": "Sous-total ({count, plural, one {# article} other {# articles}})"
+    "subtotal": "Sous-total ({count, plural, one {# article} other {# articles}})",
+    "identity": {
+      "beforePay": "Avant le paiement",
+      "title": "Continuer avec votre identité",
+      "subtitle": "Votre compte client est créé automatiquement pour suivre vos commandes et votre cashback.",
+      "close": "Fermer",
+      "emailTab": "E-mail",
+      "phoneTab": "Téléphone",
+      "emailLabel": "Adresse e-mail",
+      "emailPlaceholder": "vous@exemple.com",
+      "phoneLabel": "Numéro de mobile",
+      "phonePlaceholder": "06 12 34 56 78",
+      "preparing": "Préparation…",
+      "continueCheckout": "Continuer vers le paiement",
+      "legalNote": "En validant, vous acceptez la création d'un compte acheteur Affisell pour vos bonus cashback.",
+      "identifyFailed": "Impossible de continuer. Réessayez.",
+      "signInFailed": "Connexion impossible après identification.",
+      "networkError": "Réseau indisponible. Réessayez."
+    }
   },
   "buyerAccount": {
     "navAria": "Espace client",
     "overview": "Vue d'ensemble",
     "orders": "Commandes",
     "wallet": "Portefeuille",
-    "cart": "Panier"
+    "cart": "Panier",
+    "defaultName": "Mon compte",
+    "hubTitle": "Tout pour vos achats",
+    "hubSubtitle": "Commandes, portefeuille et favoris au même endroit.",
+    "noOrders": "Aucune commande pour l'instant",
+    "discoverProducts": "Découvrir les produits",
+    "viewOrders": "Voir les commandes",
+    "viewCart": "Voir le panier",
+    "walletPromo": "Réductions exclusives",
+    "walletPromoHint": "Jusqu'à -70% sur une sélection",
+    "walletPromoCta": "Voir les offres →",
+    "supportTitle": "Support",
+    "supportBody": "Une question ? Contactez-nous",
+    "contactCta": "Nous écrire →",
+    "sidebarAria": "Avantages et support",
+    "welcomeEyebrow": "Bienvenue",
+    "browseMarketplace": "Parcourir le marketplace",
+    "noOrdersHint": "Découvrez nos produits tendance et profitez du cashback",
+    "ordersTitle": "Commandes & retours",
+    "ordersBody": "Consultez vos commandes payées, retours en cours et dates limites",
+    "walletTitle": "Portefeuille",
+    "walletAvailable": "{amount} disponible",
+    "walletBody": "Cashback sur les produits partenaires — utilisable automatiquement au paiement",
+    "viewWallet": "Voir le portefeuille",
+    "cashbackFaq": "Comment gagner du cashback ?",
+    "cartEmptyTitle": "Votre panier est vide",
+    "cartEmptyBody": "Ajoutez des articles depuis le marketplace pour passer commande",
+    "startShopping": "Commencer mes achats",
+    "cartTitle": "Votre panier",
+    "cartPending": "{count, plural, one {# article en attente} other {# articles en attente}}",
+    "backMarketplace": "← Retour au marketplace"
   },
   "shops": {
     "metaTitle": "Boutiques créateurs - Affisell",
     "metaDescription": "Parcourez les boutiques Affisell des créateurs affiliés.",
     "title": "Boutiques créateurs",
-    "subtitle": "Achetez directement auprès de vos créateurs préférés"
+    "subtitle": "Achetez directement auprès de vos créateurs préférés",
+    "filterAll": "Toutes",
+    "emptyCategory": "Aucune boutique dans cette catégorie pour le moment.",
+    "storeMetaTitle": "{name} — boutique {niche}",
+    "storeMetaDescription": "Découvrez la sélection {niche} de {name}.",
+    "filterAria": "Filtrer par univers",
+    "featuredEmpty": "Les créateurs ouvrent leurs boutiques. Revenez demain.",
+    "visitStore": "Voir la boutique",
+    "ordersCount": "{count, plural, one {# commande} other {# commandes}}"
   },
   "discovery": {
     "eyebrow": "Explorer",
@@ -376,7 +499,16 @@
       "embeddedTitle": "Découvrir & acheter",
       "embeddedSubtitle": "Utilisez la recherche du bandeau violet, les rayons ci-dessous ou l’agent shopping pour affiner.",
       "resultsFor": "Résultats pour",
-      "dbUnavailableTitle": "Marketplace temporairement indisponible"
+      "dbUnavailableTitle": "Marketplace temporairement indisponible",
+      "emptyListingTitle": "Aucune annonce",
+      "emptyFilteredBody": "Essayez une autre recherche ou un autre rayon, ou réinitialisez les filtres.",
+      "emptyDefaultBody": "Les créateurs publient leurs fiches progressivement — revenez bientôt.",
+      "showAll": "Tout afficher",
+      "viewStores": "Voir les boutiques",
+      "listingCount": "{count, plural, one {# annonce} other {# annonces}}",
+      "listingCountForQuery": " pour « {query} »",
+      "dbEmptyTitle": "Base de données temporairement indisponible",
+      "dbDevHint": "En local : lancez npm run db:local:setup et définissez DATABASE_URL dans .env.local sur postgresql://affisell:affisell@localhost:5433/affisell"
     },
     "departmentRail": {
       "ariaLabel": "Rayons Affisell",
@@ -393,13 +525,19 @@
     "tagline": "Vitrine affilié",
     "subtitle": "Produits sélectionnés par ce promoteur.",
     "empty": "Cette boutique n'a pas de produits actifs.",
-    "buy": "Acheter"
+    "buy": "Acheter",
+    "allStores": "Toutes les boutiques",
+    "noProducts": "Aucun produit disponible pour le moment."
   },
   "success": {
     "title": "Merci !",
     "body": "Votre paiement a réussi. Vous recevrez une confirmation par e-mail.",
     "backHome": "Retour à l'accueil",
-    "thankYou": "Merci !"
+    "thankYou": "Merci !",
+    "continueShopping": "Continuer mes achats",
+    "purchaseTitle": "Merci pour votre achat",
+    "purchaseBody": "Votre paiement est en cours de confirmation. Vous recevrez un e-mail de suivi dès que la commande est validée.",
+    "myCart": "Mon panier"
   },
   "cancel": {
     "title": "Paiement annulé",
@@ -456,6 +594,46 @@
   "Menu": {
     "helloSignin": "Bonjour, connectez-vous",
     "searchAskAi": "Rechercher ou demander à l'IA…"
+  },
+  "wishlist": {
+    "title": "Mes favoris",
+    "subtitle": "Produits enregistrés via ♥ sur le catalogue — alertes prix incluses.",
+    "empty": "Aucun favori pour le moment. Ajoutez des produits depuis le marketplace (icône ♥ sur une fiche).",
+    "browse": "Explorer le catalogue"
+  },
+  "faq": {
+    "metaTitle": "FAQ — Affisell",
+    "eyebrow": "Aide",
+    "title": "Questions fréquentes",
+    "description": "Retours, livraisons et avantages acheteurs sur le marketplace Affisell.",
+    "cashbackTitle": "Comment gagner du cashback ?",
+    "cashbackBody": "Sur les fiches produits partenaires, une partie du prix peut être créditée en portefeuille après paiement confirmé. Connectez-vous avant le checkout : le solde s'applique automatiquement sur votre prochain achat éligible.",
+    "walletCta": "Voir mon portefeuille",
+    "backMarketplace": "← Retour au catalogue"
+  },
+  "contact": {
+    "metaTitle": "Contact — Affisell",
+    "eyebrow": "Support",
+    "title": "Contactez Affisell",
+    "description": "Une question sur une commande, un retour ou votre portefeuille cashback ? Écrivez-nous, nous répondons sous 48 h ouvrées.",
+    "emailLabel": "E-mail :",
+    "backAccount": "← Retour à mon espace client"
+  },
+  "agent": {
+    "metaTitle": "Agent shopping — Affisell",
+    "metaDescription": "Conseiller shopping IA pour les acheteurs — découvrez et comparez les produits du marketplace.",
+    "eyebrow": "Acheteur",
+    "heroTitle": "Trouvez. Comparez. Achetez.",
+    "heroSub": "Votre conseiller shopping IA — recherche dans le marketplace en temps réel"
+  },
+  "marketplacePulse": {
+    "hint": "Filtrez par rayon ou domaine, explorez les tendances, puis publiez chaque SKU sur votre boutique vitrine en un clic."
+  },
+  "supplierStore": {
+    "metaDescription": "{name} — boutique fournisseur sur Affisell. Parcourez le catalogue et achetez en toute confiance.",
+    "creatorCtaTitle": "Vous êtes créateur ou fournisseur ?",
+    "creatorCtaBody": "Les acheteurs passent commande via les fiches produit Affisell. Les créateurs gèrent leurs listings depuis leur tableau de bord.",
+    "becomeCreator": "Devenir créateur"
   },
   "AI": {
     "pickedForYou": "Sélectionné pour vous par l'IA Affisell",

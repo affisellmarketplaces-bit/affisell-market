@@ -18,6 +18,7 @@ type Props = {
 
 export function ShopBuyerAuthForm({ storeName, shopSlug, mode }: Props) {
   const t = useTranslations("auth")
+  const tShop = useTranslations("auth.shopBuyer")
   const search = useSearchParams()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -50,7 +51,7 @@ export function ShopBuyerAuthForm({ storeName, shopSlug, mode }: Props) {
       const data = (await res.json()) as { error?: string }
       if (!res.ok) {
         setLoading(false)
-        setError(data.error ?? "Inscription impossible")
+        setError(data.error ?? tShop("signupFail"))
         return
       }
     }
@@ -69,7 +70,10 @@ export function ShopBuyerAuthForm({ storeName, shopSlug, mode }: Props) {
     setError(credentialsSignInErrorMessage(res?.code, t) ?? t("invalidCredentials"))
   }
 
-  const title = mode === "login" ? `Mon compte ${storeName}` : `Créer un compte ${storeName}`
+  const title =
+    mode === "login"
+      ? tShop("loginTitle", { store: storeName })
+      : tShop("signupTitle", { store: storeName })
 
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 py-12">
@@ -77,9 +81,7 @@ export function ShopBuyerAuthForm({ storeName, shopSlug, mode }: Props) {
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{title}</h1>
           <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-            {mode === "login"
-              ? "Connectez-vous pour suivre vos commandes sur cette boutique."
-              : "Inscrivez-vous pour commander et suivre vos achats."}
+            {mode === "login" ? tShop("loginHint") : tShop("signupHintExtended")}
           </p>
         </div>
 
@@ -92,7 +94,7 @@ export function ShopBuyerAuthForm({ storeName, shopSlug, mode }: Props) {
         <form onSubmit={onSubmit} className="space-y-5">
           <div>
             <label htmlFor="shop-buyer-email" className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              Email
+              {tShop("email")}
             </label>
             <input
               id="shop-buyer-email"
@@ -106,7 +108,7 @@ export function ShopBuyerAuthForm({ storeName, shopSlug, mode }: Props) {
           </div>
           <div>
             <label htmlFor="shop-buyer-password" className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              Mot de passe
+              {tShop("password")}
             </label>
             <input
               id="shop-buyer-password"
@@ -123,26 +125,30 @@ export function ShopBuyerAuthForm({ storeName, shopSlug, mode }: Props) {
             disabled={loading}
             className="w-full rounded-xl bg-zinc-900 py-2.5 font-medium text-white hover:bg-zinc-800 disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
           >
-            {loading ? "…" : mode === "login" ? "Se connecter" : "Créer mon compte"}
+            {loading
+              ? "…"
+              : mode === "login"
+                ? tShop("submitLogin")
+                : tShop("submitSignup")}
           </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-zinc-600 dark:text-zinc-400">
           {mode === "login" ? (
             <>
-              Pas encore de compte ?{" "}
+              {tShop("noAccount")}{" "}
               <Link href={signupHref} className="font-medium text-zinc-900 underline-offset-2 hover:underline dark:text-zinc-100">
-                S&apos;inscrire
+                {tShop("signUpLink")}
               </Link>
             </>
           ) : (
             <>
-              Déjà client ?{" "}
+              {tShop("alreadyClient")}{" "}
               <Link
                 href={`/shops/${shopSlug}/login?callbackUrl=${encodeURIComponent(returnTo)}`}
                 className="font-medium text-zinc-900 underline-offset-2 hover:underline dark:text-zinc-100"
               >
-                Se connecter
+                {tShop("submitLogin")}
               </Link>
             </>
           )}
@@ -150,7 +156,7 @@ export function ShopBuyerAuthForm({ storeName, shopSlug, mode }: Props) {
 
         <p className="mt-4 text-center">
           <Link href={`/shops/${shopSlug}`} className="text-sm text-zinc-500 hover:underline">
-            ← Retour à la boutique
+            {tShop("backToStore")}
           </Link>
         </p>
       </div>

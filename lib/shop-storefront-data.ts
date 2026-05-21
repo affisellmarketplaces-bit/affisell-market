@@ -11,7 +11,7 @@ export type ShopStoreSummary = {
   description: string | null
   logoUrl: string | null
   aiAvatarUrl: string | null
-  nicheLabel: string
+  nicheLabel: NicheKey
 }
 
 export type ShopProductCard = {
@@ -31,14 +31,17 @@ export type ShopProductCard = {
   soldCount?: number
 }
 
-/** Public directory niche label — must match filters on `/shops`. */
-export function inferNicheLabel(description: string | null, storeName: string): string {
+/** Canonical niche key — filters and i18n use this, not a display string. */
+export type NicheKey = "beauty" | "fitness" | "tech" | "home" | "lifestyle"
+
+/** Public directory niche — must match filters on `/shops` and `discovery.niches.*`. */
+export function inferNicheLabel(description: string | null, storeName: string): NicheKey {
   const text = `${description ?? ""} ${storeName}`.toLowerCase()
-  if (/beaut|beauté|cosmét|cosmetic|makeup|soin|skincare|parfum|spa/.test(text)) return "Beauté"
-  if (/fitness|sport|gym|muscu/.test(text)) return "Fitness"
-  if (/tech|électron|electron|gaming|informatique/.test(text)) return "Tech"
-  if (/maison|déco|deco|cuisine|home/.test(text)) return "Maison"
-  return "Lifestyle"
+  if (/beaut|beauté|cosmét|cosmetic|makeup|soin|skincare|parfum|spa/.test(text)) return "beauty"
+  if (/fitness|sport|gym|muscu/.test(text)) return "fitness"
+  if (/tech|électron|electron|gaming|informatique/.test(text)) return "tech"
+  if (/maison|déco|deco|cuisine|home/.test(text)) return "home"
+  return "lifestyle"
 }
 
 export async function loadAffiliateShopStore(slug: string): Promise<ShopStoreSummary | null> {
@@ -153,7 +156,7 @@ export type PublicShopDirectoryEntry = {
   slug: string
   name: string
   logoUrl: string | null
-  nicheLabel: string
+  nicheLabel: NicheKey
   /** Aggregate average rating from listed products (0–5). */
   averageRating: number
   /** Completed orders attributed to this affiliate’s storefront channel. */

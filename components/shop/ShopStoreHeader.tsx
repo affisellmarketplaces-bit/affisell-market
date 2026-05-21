@@ -1,4 +1,7 @@
+"use client"
+
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 
 type Props = {
   storeName: string
@@ -7,6 +10,9 @@ type Props = {
 }
 
 export function ShopStoreHeader({ storeName, logoUrl, description }: Props) {
+  const t = useTranslations("boutique")
+  const tNav = useTranslations("PublicNav")
+
   return (
     <header className="border-b border-zinc-200/90 bg-white dark:border-zinc-800 dark:bg-zinc-950">
       <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-4 sm:px-6">
@@ -26,7 +32,7 @@ export function ShopStoreHeader({ storeName, logoUrl, description }: Props) {
           </span>
         )}
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Boutique</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">{t("tagline")}</p>
           <h1 className="truncate text-xl font-bold text-zinc-900 dark:text-zinc-50">{storeName}</h1>
           {description ? (
             <p className="mt-0.5 line-clamp-2 text-sm text-zinc-600 dark:text-zinc-400">{description}</p>
@@ -37,13 +43,13 @@ export function ShopStoreHeader({ storeName, logoUrl, description }: Props) {
             href="/shops/browse"
             className="text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
           >
-            Marketplace
+            {tNav("marketplace")}
           </Link>
           <Link
             href="/shops"
             className="text-zinc-600 underline-offset-2 hover:underline dark:text-zinc-400"
           >
-            Toutes les boutiques
+            {t("allStores")}
           </Link>
         </div>
       </div>

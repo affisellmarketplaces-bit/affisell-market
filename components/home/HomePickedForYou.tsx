@@ -7,16 +7,14 @@ import { AffisellCarousel } from "@/components/affisell-carousel"
 import type { CarouselItemJson } from "@/lib/carousel-types"
 import { cn } from "@/lib/utils"
 
-const NICHES = [
-  { id: "fitness", label: "Fitness" },
-  { id: "tech", label: "Tech" },
-  { id: "maison", label: "Maison" },
-] as const
+const NICHES = ["fitness", "tech", "home"] as const
 
-type NicheId = (typeof NICHES)[number]["id"]
+type NicheId = (typeof NICHES)[number]
 
 export function HomePickedForYou() {
   const tAI = useTranslations("AI")
+  const tDiscovery = useTranslations("discovery")
+  const tHome = useTranslations("home")
   const [niche, setNiche] = useState<NicheId>("fitness")
   const [items, setItems] = useState<CarouselItemJson[]>([])
   const [loading, setLoading] = useState(true)
@@ -50,21 +48,21 @@ export function HomePickedForYou() {
           role="tablist"
           aria-label="Niches"
         >
-          {NICHES.map((n) => (
+          {NICHES.map((id) => (
             <button
-              key={n.id}
+              key={id}
               type="button"
               role="tab"
-              aria-selected={niche === n.id}
-              onClick={() => setNiche(n.id)}
+              aria-selected={niche === id}
+              onClick={() => setNiche(id)}
               className={cn(
                 "rounded-lg px-3 py-1.5 text-xs font-semibold transition",
-                niche === n.id
+                niche === id
                   ? "bg-violet-600 text-white"
                   : "text-violet-800 hover:bg-white/80 dark:text-violet-200"
               )}
             >
-              {n.label}
+              {tDiscovery(`niches.${id}`)}
             </button>
           ))}
         </div>
@@ -73,7 +71,7 @@ export function HomePickedForYou() {
       {loading ? (
         <div className="h-[280px] animate-pulse rounded-2xl bg-zinc-200/80 dark:bg-zinc-800" />
       ) : items.length === 0 ? (
-        <p className="text-sm text-zinc-500">Aucune suggestion pour cette niche pour le moment.</p>
+        <p className="text-sm text-zinc-500">{tHome("pickedEmpty")}</p>
       ) : (
         <AffisellCarousel
           title={tAI("pickedForYou")}

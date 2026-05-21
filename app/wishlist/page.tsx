@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
+import { getTranslations } from "next-intl/server"
 
 import { auth } from "@/auth"
 import { WishlistHeart } from "@/components/wishlist-heart"
@@ -14,6 +15,7 @@ function dropPercent(current: number, previous: number | null): number {
 }
 
 export default async function WishlistPage() {
+  const t = await getTranslations("wishlist")
   const session = await auth()
   const userId = session?.user?.id
   if (!userId) redirect("/signup/customer?callbackUrl=/wishlist")
@@ -41,16 +43,14 @@ export default async function WishlistPage() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-10 md:px-6">
-      <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Mes favoris</h1>
-      <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-        Produits enregistrés via ♥ sur le catalogue — alertes prix incluses.
-      </p>
+      <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">{t("title")}</h1>
+      <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{t("subtitle")}</p>
 
       {rows.length === 0 ? (
         <div className="mt-8 rounded-xl border border-zinc-200 bg-white p-6 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
-          Aucun favori pour le moment. Ajoutez des produits depuis le marketplace (icône ♥ sur une fiche).
+          {t("empty")}
           <Link href="/#explorer" className="ml-2 font-medium text-violet-600 underline dark:text-violet-400">
-            Explorer le catalogue
+            {t("browse")}
           </Link>
         </div>
       ) : (

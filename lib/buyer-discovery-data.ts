@@ -4,7 +4,7 @@ import type { HomeProductCard } from "@/lib/home-marketplace-data"
 import { loadHomeBestSellers7d, loadHomeNewArrivals } from "@/lib/home-marketplace-data"
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
-import { inferNicheLabel } from "@/lib/shop-storefront-data"
+import { inferNicheLabel, type NicheKey } from "@/lib/shop-storefront-data"
 
 export type BuyerCategoryChip = {
   id: string
@@ -16,7 +16,7 @@ export type BuyerCategoryChip = {
 
 export type BuyerListingCard = HomeProductCard & {
   storeSlug: string
-  nicheLabel: string
+  nicheLabel: NicheKey
   categories: string[]
 }
 
