@@ -7,10 +7,12 @@ export type ProviderListRow = {
   name: string
   slug: string
   type: string
-  status: string
-  displayStatus: "ACTIVE" | "INACTIVE" | "ERROR"
+  /** Health / lifecycle badge: ACTIVE | INACTIVE | ERROR */
+  status: "ACTIVE" | "INACTIVE" | "ERROR"
+  lifecycleStatus: string
   paymentMethod: string
   lastHealthCheck: string | null
+  latencyMs: number | null
   hasCredentials: boolean
   apiEndpoint: string | null
 }
@@ -28,19 +30,23 @@ export function toProviderListRow(row: FulfillmentProvider): ProviderListRow {
         ? apiConfig.endpoint
         : null
 
-  let displayStatus: ProviderListRow["displayStatus"] = "INACTIVE"
-  if (meta.healthStatus === "ERROR") displayStatus = "ERROR"
-  else if (row.status === "ACTIVE") displayStatus = "ACTIVE"
+  let status: ProviderListRow["status"] = "INACTIVE"
+  if (meta.healthStatus === "ERROR") status = "ERROR"
+  else if (row.status === "ACTIVE") status = "ACTIVE"
 
   return {
     id: row.id,
     name: row.name,
     slug: row.slug,
     type: row.channelType,
-    status: row.status,
-    displayStatus,
+    status,
+    lifecycleStatus: row.status,
     paymentMethod: row.paymentMethod,
     lastHealthCheck: meta.lastHealthCheckAt ?? null,
+    latencyMs:
+      typeof meta.latencyMs === "number" && Number.isFinite(meta.latencyMs)
+        ? Math.round(meta.latencyMs)
+        : null,
     hasCredentials: Boolean(row.credentialsEncrypted),
     apiEndpoint: endpoint,
   }

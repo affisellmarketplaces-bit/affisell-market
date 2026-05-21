@@ -5,8 +5,6 @@ import {
   SupplierChannelType,
 } from "@prisma/client"
 import { zodResolver } from "@hookform/resolvers/zod"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 
@@ -22,10 +20,19 @@ type Props = {
   mode: "create" | "edit"
   providerId?: string
   defaultValues?: Partial<ProviderFormValues>
+  onSuccess?: () => void
+  onCancel?: () => void
+  compact?: boolean
 }
 
-export function ProviderForm({ mode, providerId, defaultValues }: Props) {
-  const router = useRouter()
+export function ProviderForm({
+  mode,
+  providerId,
+  defaultValues,
+  onSuccess,
+  onCancel,
+  compact,
+}: Props) {
   const [error, setError] = useState<string | null>(null)
 
   const form = useForm<ProviderFormValues>({
@@ -98,12 +105,14 @@ export function ProviderForm({ mode, providerId, defaultValues }: Props) {
       }
     }
 
-    router.push("/admin/providers")
-    router.refresh()
+    onSuccess?.()
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="mt-8 max-w-xl space-y-6">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className={compact ? "space-y-4" : "mt-8 max-w-xl space-y-6"}
+    >
       <div className="space-y-2">
         <Label htmlFor="name" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
           Name
@@ -195,9 +204,11 @@ export function ProviderForm({ mode, providerId, defaultValues }: Props) {
         <Button type="submit" variant="bentoAccent" disabled={isSubmitting}>
           {isSubmitting ? "Saving…" : mode === "create" ? "Create provider" : "Save changes"}
         </Button>
-        <Link href="/admin/providers" className="text-sm text-zinc-600 underline dark:text-zinc-400">
-          Cancel
-        </Link>
+        {onCancel ? (
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+        ) : null}
       </div>
     </form>
   )

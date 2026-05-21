@@ -26,7 +26,8 @@ export async function GET() {
     orderBy: { updatedAt: "desc" },
   })
 
-  return NextResponse.json({ rows: rows.map(toProviderListRow) })
+  const providers = rows.map(toProviderListRow)
+  return NextResponse.json({ providers, rows: providers })
 }
 
 export async function POST(req: NextRequest) {

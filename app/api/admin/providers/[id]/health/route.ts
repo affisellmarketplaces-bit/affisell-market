@@ -1,9 +1,10 @@
-import type { Prisma } from "@prisma/client"
 import { type NextRequest, NextResponse } from "next/server"
 
+import type { Prisma } from "@prisma/client"
+
 import { mergeHealthMetadata } from "@/lib/admin/providers/metadata"
-import { testFulfillmentProviderConnection } from "@/lib/admin/providers/test-connection"
 import { toProviderListRow } from "@/lib/admin/providers/serialize"
+import { testFulfillmentProviderConnection } from "@/lib/admin/providers/test-connection"
 import { requireAdminSession } from "@/lib/admin/require-admin-session"
 import { prisma } from "@/lib/prisma"
 
@@ -38,7 +39,7 @@ export async function POST(_req: NextRequest, ctx: Ctx) {
   return NextResponse.json({
     ok: result.ok,
     latency: result.latencyMs ?? null,
-    result,
+    message: result.message,
     row: toProviderListRow(updated),
   })
 }

@@ -2,6 +2,7 @@ export type ProviderHealthMeta = {
   healthStatus?: "OK" | "ERROR"
   healthMessage?: string
   lastHealthCheckAt?: string
+  latencyMs?: number
 }
 
 export function readProviderMetadata(raw: unknown): ProviderHealthMeta & Record<string, unknown> {
