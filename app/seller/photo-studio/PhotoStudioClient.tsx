@@ -14,8 +14,6 @@ import {
   Wand2,
 } from "lucide-react"
 
-import { removeBackgroundFromFile } from "@/lib/background-removal-client"
-
 type StudioMode = "remove-bg" | "enhance-pro" | "lifestyle" | "erase-text"
 type StudioItem = {
   id: string
@@ -266,7 +264,8 @@ export default function PhotoStudioClient() {
       let result = sourceUrl
 
       if (mode === "remove-bg") {
-        const cutoutBlob = await removeBackgroundFromFile(item.file)
+        const { removeBackground } = await import("@imgly/background-removal")
+        const cutoutBlob = await removeBackground(item.file)
         const transparentUrl = URL.createObjectURL(cutoutBlob)
         const whiteBgCanvas = await canvasFromImage(transparentUrl)
         const ctx = whiteBgCanvas.getContext("2d")
