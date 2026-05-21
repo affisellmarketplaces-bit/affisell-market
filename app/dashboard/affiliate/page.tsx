@@ -21,7 +21,7 @@ export default async function AffiliateDashboardPage() {
       fallback={
         <BentoShell>
           <BentoContainer>
-            <BentoCard className="py-12 text-center text-sm text-gray-600 dark:text-zinc-400">
+            <BentoCard className="py-12 text-center text-sm text-gray-600 dark:text-zinc-300">
               Loading your dashboard…
             </BentoCard>
           </BentoContainer>

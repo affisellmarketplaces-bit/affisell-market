@@ -64,13 +64,13 @@ export function BentoPageHeading({
   return (
     <div className={cn("space-y-3", className)}>
       {eyebrow ? (
-        <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">{eyebrow}</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-300">{eyebrow}</p>
       ) : null}
       <h1 className="text-balance text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl lg:text-5xl">
         {title}
       </h1>
       {description ? (
-        <div className="max-w-2xl text-base leading-relaxed text-gray-600 dark:text-zinc-400">{description}</div>
+        <div className="max-w-2xl text-base leading-relaxed text-gray-600 dark:text-zinc-300">{description}</div>
       ) : null}
     </div>
   )
@@ -97,11 +97,11 @@ export function BentoStat({
         className
       )}
     >
-      <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">{label}</p>
+      <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-300">{label}</p>
       <p className={cn("mt-2 text-3xl font-bold tabular-nums tracking-tight text-gray-900 dark:text-white", valueClassName)}>
         {value}
       </p>
-      {hint ? <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">{hint}</p> : null}
+      {hint ? <p className="mt-1 text-sm text-gray-600 dark:text-zinc-300">{hint}</p> : null}
     </div>
   )
 }

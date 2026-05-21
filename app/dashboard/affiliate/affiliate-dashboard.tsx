@@ -140,22 +140,22 @@ function SortableStoreCard(props: {
     >
       <div className="absolute right-3 top-3 z-10 flex flex-col items-end gap-1">
         {(listing.product?.deliveryMax ?? 99) <= 3 ? (
-          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-900">
+          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-900 dark:bg-emerald-950/70 dark:text-emerald-200">
             Fast Shipping
           </span>
         ) : null}
         {listing.isFeatured ? (
-          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-900">
+          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-900 dark:bg-amber-950/70 dark:text-amber-200">
             Featured
           </span>
         ) : null}
       </div>
-      <label className="absolute left-3 top-3 z-10 flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg bg-white/90 shadow ring-1 ring-gray-100">
-        <input type="checkbox" checked={selected} onChange={() => onSelect()} className="h-4 w-4 accent-gray-900" />
+      <label className="absolute left-3 top-3 z-10 flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg bg-white/90 shadow ring-1 ring-gray-100 dark:bg-zinc-800/95 dark:ring-zinc-600">
+        <input type="checkbox" checked={selected} onChange={() => onSelect()} className="h-4 w-4 accent-emerald-600 dark:accent-emerald-400" />
       </label>
       <button
         type="button"
-        className="absolute left-14 top-3 z-10 flex h-9 w-9 cursor-grab touch-none items-center justify-center rounded-lg bg-white/90 text-gray-500 shadow ring-1 ring-gray-100 active:cursor-grabbing"
+        className="absolute left-14 top-3 z-10 flex h-9 w-9 cursor-grab touch-none items-center justify-center rounded-lg bg-white/90 text-gray-500 shadow ring-1 ring-gray-100 active:cursor-grabbing dark:bg-zinc-800/95 dark:text-zinc-300 dark:ring-zinc-600"
         {...attributes}
         {...listeners}
         aria-label="Drag to reorder"
@@ -163,7 +163,7 @@ function SortableStoreCard(props: {
         <GripVertical className="h-4 w-4" />
       </button>
 
-      <div className="relative aspect-square bg-gray-50 p-4">
+      <div className="relative aspect-square bg-gray-50 p-4 dark:bg-zinc-900/80">
         <Image
           src={img || "/placeholder.png"}
           alt=""
@@ -177,26 +177,30 @@ function SortableStoreCard(props: {
       <div className="flex flex-1 flex-col gap-2 px-4 pb-4 pt-3">
         <div className="flex items-start gap-2">
           <TrendingUp className="mt-0.5 h-4 w-4 shrink-0 text-green-600" aria-hidden />
-          <p className="line-clamp-2 flex-1 text-sm font-semibold leading-snug text-gray-900">{title}</p>
+          <p className="line-clamp-2 flex-1 text-sm font-semibold leading-snug text-gray-900 dark:text-zinc-50">{title}</p>
         </div>
-        <p className="text-lg font-semibold text-[#10B981]">{formatStoreCurrencyFromCents(listing.sellingPriceCents)}</p>
+        <p className="text-lg font-semibold text-[#10B981] dark:text-emerald-400">
+          {formatStoreCurrencyFromCents(listing.sellingPriceCents)}
+        </p>
         {shopperReward ? (
-          <p className="text-xs font-medium text-teal-800">
+          <p className="text-xs font-medium text-teal-800 dark:text-teal-200">
             Shoppers:{" "}
-            <span className="rounded-md bg-teal-50 px-1.5 py-0.5 text-[11px] text-teal-900">{shopperReward}</span>
+            <span className="rounded-md bg-teal-50 px-1.5 py-0.5 text-[11px] text-teal-900 dark:bg-teal-950/60 dark:text-teal-100">
+              {shopperReward}
+            </span>
           </p>
         ) : null}
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-gray-500 dark:text-zinc-300">
           {listing.clicks ?? 0} clicks · {listing.conversions ?? 0} sales
         </p>
-        <label className="mt-2 flex items-center gap-2 text-xs text-gray-600">
-          <input type="checkbox" checked={listing.isListed} onChange={() => void onToggleList()} />
+        <label className="mt-2 flex items-center gap-2 text-xs text-gray-600 dark:text-zinc-300">
+          <input type="checkbox" checked={listing.isListed} onChange={() => void onToggleList()} className="accent-emerald-600 dark:accent-emerald-400" />
           Listed
         </label>
         <button
           type="button"
           onClick={() => onEdit()}
-          className="mt-3 inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50"
+          className="mt-3 inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
         >
           <Pencil className="h-4 w-4" aria-hidden /> Edit
         </button>
@@ -523,7 +527,7 @@ export function AffiliateDashboard({ storeId }: Props) {
   }, [catalog, discoverQ, discoverSort, discoverUnlistedOnly])
 
   return (
-    <main className="min-h-[calc(100dvh-3.75rem)]">
+    <main className="min-h-[calc(100dvh-3.75rem)] text-zinc-900 dark:text-zinc-50">
       <div className="mx-auto max-w-6xl px-4 py-8 md:px-8 md:py-10">
         {showWelcome ? (
           <div
@@ -562,7 +566,7 @@ export function AffiliateDashboard({ storeId }: Props) {
                   <h1 className="text-balance text-3xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
                     Your branded storefront
                   </h1>
-                  <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 sm:text-[15px]">
+                  <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-300 sm:text-[15px]">
                     Discover products to sell, set your prices and margins, and manage what shoppers see in your public
                     store—all from here.
                   </p>
@@ -638,7 +642,7 @@ export function AffiliateDashboard({ storeId }: Props) {
                 value={
                   <>
                     {discoverSkuCount}
-                    <span className="ml-1 text-base font-medium text-gray-500 dark:text-zinc-400">SKUs</span>
+                    <span className="ml-1 text-base font-medium text-gray-500 dark:text-zinc-300">SKUs</span>
                   </>
                 }
                 hint={
@@ -669,37 +673,25 @@ export function AffiliateDashboard({ storeId }: Props) {
           </div>
         </header>
 
-        <div
-          className="mt-8 flex gap-1 rounded-2xl border border-zinc-200/80 bg-zinc-100/80 p-1 dark:border-zinc-800 dark:bg-zinc-900/60"
-          role="tablist"
-          aria-label="Main sections"
-        >
+        <div className="dash-tab-track mt-8" role="tablist" aria-label="Main sections">
           <button
             type="button"
             role="tab"
             aria-selected={tab === "catalog"}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${
-              tab === "catalog"
-                ? "bg-white text-zinc-900 shadow-sm ring-1 ring-black/[0.04] dark:bg-zinc-950 dark:text-white dark:ring-white/10"
-                : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
-            }`}
+            className={cn("dash-tab", tab === "catalog" ? "dash-tab--active" : "dash-tab--inactive")}
             onClick={() => setTab("catalog")}
           >
-            <LayoutGrid className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
+            <LayoutGrid className="h-4 w-4 shrink-0 opacity-90" aria-hidden />
             Discover
           </button>
           <button
             type="button"
             role="tab"
             aria-selected={tab === "store"}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${
-              tab === "store"
-                ? "bg-white text-zinc-900 shadow-sm ring-1 ring-black/[0.04] dark:bg-zinc-950 dark:text-white dark:ring-white/10"
-                : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
-            }`}
+            className={cn("dash-tab", tab === "store" ? "dash-tab--active" : "dash-tab--inactive")}
             onClick={() => setTab("store")}
           >
-            <Store className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
+            <Store className="h-4 w-4 shrink-0 opacity-90" aria-hidden />
             My storefront
           </button>
         </div>
@@ -722,7 +714,7 @@ export function AffiliateDashboard({ storeId }: Props) {
                       value={discoverQ}
                       onChange={(e) => setDiscoverQ(e.target.value)}
                       placeholder="Search SKU, supplier, tags, category…"
-                      className="w-full rounded-xl border border-zinc-200 bg-white py-2.5 pl-10 pr-3 text-sm outline-none ring-violet-500/25 transition placeholder:text-zinc-400 focus:border-violet-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-950 dark:focus:border-violet-600"
+                      className="w-full rounded-xl border border-zinc-200 bg-white py-2.5 pl-10 pr-3 text-sm text-zinc-900 outline-none ring-violet-500/25 transition placeholder:text-zinc-400 focus:border-violet-400 focus:ring-2 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-violet-500"
                     />
                   </div>
                   <button
@@ -751,7 +743,7 @@ export function AffiliateDashboard({ storeId }: Props) {
                       id="discover-sort"
                       value={discoverSort}
                       onChange={(e) => setDiscoverSort(e.target.value as DiscoverSortKey)}
-                      className="w-full appearance-none rounded-xl border border-zinc-200 bg-white py-2.5 pl-10 pr-8 text-sm outline-none ring-violet-500/25 focus:border-violet-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-950 dark:focus:border-violet-600"
+                      className="w-full appearance-none rounded-xl border border-zinc-200 bg-white py-2.5 pl-10 pr-8 text-sm text-zinc-900 outline-none ring-violet-500/25 focus:border-violet-400 focus:ring-2 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:border-violet-500"
                     >
                       <option value="new">Newest in feed</option>
                       <option value="commission-desc">Partner margin · high → low</option>
@@ -762,7 +754,7 @@ export function AffiliateDashboard({ storeId }: Props) {
                   </div>
                 </div>
               </div>
-              <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400">
+              <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-300">
                 {catalogLoading ? (
                   <>Loading discover feed…</>
                 ) : (
@@ -811,7 +803,7 @@ export function AffiliateDashboard({ storeId }: Props) {
               <div className="mt-10 rounded-2xl border border-dashed border-zinc-300 bg-white/70 px-6 py-16 text-center dark:border-zinc-700 dark:bg-zinc-950/40">
                 <BadgePercent className="mx-auto h-10 w-10 text-violet-500" aria-hidden />
                 <p className="mt-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">No matches</p>
-                <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
+                <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-300">
                   Relax filters or clear search—everything in Discover still lives in the{" "}
                   <Link href={AFFILIATE_CATALOG_PATH} className="font-medium text-violet-700 underline underline-offset-2 hover:text-violet-900 dark:text-violet-400">
                     marketplace
@@ -878,7 +870,7 @@ export function AffiliateDashboard({ storeId }: Props) {
                     </Link>
                   </div>
                   {(p.categories?.length ?? 0) > 0 ? (
-                    <p className="-mt-1 line-clamp-1 text-xs text-zinc-500 dark:text-zinc-400">
+                    <p className="-mt-1 line-clamp-1 text-xs text-zinc-500 dark:text-zinc-300">
                       {(p.categories ?? []).slice(0, 2).join(" · ")}
                     </p>
                   ) : null}
@@ -907,7 +899,7 @@ export function AffiliateDashboard({ storeId }: Props) {
                   ) : null}
                   <div className="mt-auto grid grid-cols-2 gap-3 border-t border-zinc-100 pt-3 dark:border-zinc-800">
                     <div>
-                      <p className="text-[10px] font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                      <p className="text-[10px] font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-300">
                         Supplier price
                       </p>
                       <p className="mt-0.5 text-base font-bold tabular-nums text-zinc-900 dark:text-white">
@@ -946,7 +938,7 @@ export function AffiliateDashboard({ storeId }: Props) {
                       <button
                         type="button"
                         disabled
-                        className="mt-3 w-full cursor-not-allowed rounded-2xl bg-gray-100 py-3 text-sm font-semibold text-gray-500"
+                        className="mt-3 w-full cursor-not-allowed rounded-2xl bg-gray-100 py-3 text-sm font-semibold text-gray-500 dark:bg-zinc-800 dark:text-zinc-300"
                       >
                         Already in your store
                       </button>
@@ -982,7 +974,7 @@ export function AffiliateDashboard({ storeId }: Props) {
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-teal-800 dark:text-teal-300">
                   Storefront pulse
                 </p>
-                <p className="mt-2 text-sm text-zinc-700 dark:text-zinc-300">
+                <p className="mt-2 text-sm text-zinc-700 dark:text-zinc-200">
                   Shoppers interacted with{" "}
                   <strong className="font-semibold text-zinc-900 dark:text-white">{insightClicks}</strong> listing views
                   and closed{" "}
@@ -1002,12 +994,14 @@ export function AffiliateDashboard({ storeId }: Props) {
             </div>
           ) : null}
           <div className="mb-6 flex flex-wrap items-center gap-3">
-            <p className="text-sm font-medium text-gray-700">{listings.filter((l) => l.product).length} listings</p>
+            <p className="text-sm font-medium text-gray-700 dark:text-zinc-200">
+              {listings.filter((l) => l.product).length} listings
+            </p>
             <button
               type="button"
               disabled={selected.size === 0}
               onClick={() => void bulkPatch({ isFeatured: true })}
-              className="inline-flex items-center gap-1 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-gray-50 disabled:opacity-40"
+              className="dash-btn-secondary"
             >
               Feature selected
             </button>
@@ -1015,15 +1009,15 @@ export function AffiliateDashboard({ storeId }: Props) {
               type="button"
               disabled={selected.size === 0}
               onClick={() => void bulkPatch({ isListed: false })}
-              className="inline-flex items-center gap-1 rounded-xl border border-red-100 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-40"
+              className="dash-btn-danger"
             >
               <Trash2 className="h-3.5 w-3.5" /> Unlist selected
             </button>
           </div>
 
           {!listings.filter((l) => l.product).length ? (
-            <p className="rounded-2xl border border-dashed border-gray-200 bg-white p-10 text-center text-gray-500">
-              No listings yet — add SKUs from <strong className="font-medium text-gray-700">Discover</strong>.
+            <p className="rounded-2xl border border-dashed border-gray-200 bg-white p-10 text-center text-gray-500 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-300">
+              No listings yet — add SKUs from <strong className="font-medium text-gray-700 dark:text-zinc-100">Discover</strong>.
             </p>
           ) : (
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
