@@ -26,6 +26,11 @@ function defaultJobOptions(): JobsOptions {
   }
 }
 
+/** Lazy accessor for Bull Board (`new BullMQAdapter(placeOrderQueue())`). */
+export function placeOrderQueue(): Queue<PlaceSupplierOrderJobData> {
+  return getPlaceSupplierOrderQueue()
+}
+
 export function getPlaceSupplierOrderQueue(): Queue<PlaceSupplierOrderJobData> {
   if (!placeQueue) {
     placeQueue = new Queue<PlaceSupplierOrderJobData>(PLACE_SUPPLIER_ORDER_QUEUE, {
