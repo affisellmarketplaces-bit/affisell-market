@@ -7,11 +7,39 @@ import {
   placeOrderDtoSchema,
   type DecryptedConfig,
   type InventoryDTO,
-  type OrderStatusDTO,
   type PlaceOrderDTO,
   type SupplierContext,
   type SupplierOrderResult,
 } from "@/lib/suppliers/dto"
+
+export type SupplierOrderStatusValue =
+  | "PENDING"
+  | "PROCESSING"
+  | "SHIPPED"
+  | "DELIVERED"
+  | "CANCELLED"
+  | "FAILED"
+
+export type SupplierOrderStatus = {
+  status: SupplierOrderStatusValue
+  trackingNumber?: string
+  trackingUrl?: string
+  estimatedDelivery?: Date
+  raw: unknown
+}
+
+export type GetOrderStatusInput = {
+  supplierOrderId: string
+}
+
+export type CancelOrderInput = {
+  supplierOrderId: string
+  reason?: string
+}
+
+export type CancelOrderResult = {
+  cancelled: boolean
+}
 
 export class MarginTooLowError extends Error {
   readonly code = "MARGIN_TOO_LOW"
@@ -38,8 +66,8 @@ export abstract class BaseSupplierAdapter {
   }
 
   abstract placeOrder(input: PlaceOrderDTO): Promise<SupplierOrderResult>
-  abstract getOrderStatus(supplierOrderId: string): Promise<OrderStatusDTO>
-  abstract cancelOrder(supplierOrderId: string): Promise<void>
+  abstract getOrderStatus(input: GetOrderStatusInput): Promise<SupplierOrderStatus>
+  abstract cancelOrder(input: CancelOrderInput): Promise<CancelOrderResult>
   abstract syncInventory(skus: string[]): Promise<InventoryDTO[]>
 
   protected async withObservability<T>(name: string, fn: () => Promise<T>): Promise<T> {

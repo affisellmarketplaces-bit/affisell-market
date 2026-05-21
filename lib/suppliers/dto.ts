@@ -43,6 +43,7 @@ export type SupplierOrderResult = {
   errorMessage?: string
 }
 
+/** Legacy DTO mapped from `SupplierOrderStatus` for Prisma / engine consumers. */
 export type OrderStatusDTO = {
   supplierOrderId: string
   status: SupplierFulfillmentStatus
@@ -65,6 +66,8 @@ export type DecryptedConfig = {
   version?: string
   createOrderPath?: string
   inventoryPath?: string
+  orderStatusPath?: string
+  cancelOrderPath?: string
   extraHeaders?: Record<string, string>
   minMarginRatio?: number
   [key: string]: unknown

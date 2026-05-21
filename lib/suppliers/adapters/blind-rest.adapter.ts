@@ -1,12 +1,17 @@
 import type { SupplierChannelType } from "@prisma/client"
 
-import { BaseSupplierAdapter } from "@/lib/suppliers/base.adapter"
-import type {
-  InventoryDTO,
-  OrderStatusDTO,
-  PlaceOrderDTO,
-  SupplierOrderResult,
-} from "@/lib/suppliers/dto"
+import {
+  BaseSupplierAdapter,
+  type CancelOrderInput,
+  type CancelOrderResult,
+  type GetOrderStatusInput,
+  type SupplierOrderStatus,
+} from "@/lib/suppliers/base.adapter"
+import type { InventoryDTO, PlaceOrderDTO, SupplierOrderResult } from "@/lib/suppliers/dto"
+import {
+  extractTrackingFromPartnerPayload,
+  parsePartnerOrderStatusPayload,
+} from "@/lib/suppliers/order-status"
 import { RestSupplierAdapter } from "@/lib/suppliers/rest-adapter"
 import type { BlindCreateOrderInput, BlindSupplierAddress } from "@/lib/suppliers/types"
 
@@ -51,6 +56,10 @@ export class BlindRestSupplierAdapter extends BaseSupplierAdapter {
         typeof this.config.createOrderPath === "string" ? this.config.createOrderPath : undefined,
       inventoryPath:
         typeof this.config.inventoryPath === "string" ? this.config.inventoryPath : undefined,
+      orderStatusPath:
+        typeof this.config.orderStatusPath === "string" ? this.config.orderStatusPath : undefined,
+      cancelOrderPath:
+        typeof this.config.cancelOrderPath === "string" ? this.config.cancelOrderPath : undefined,
       extraHeaders:
         this.config.extraHeaders && typeof this.config.extraHeaders === "object"
           ? (this.config.extraHeaders as Record<string, string>)
@@ -94,15 +103,31 @@ export class BlindRestSupplierAdapter extends BaseSupplierAdapter {
     })
   }
 
-  async getOrderStatus(supplierOrderId: string): Promise<OrderStatusDTO> {
-    return this.withObservability("blindRest.getOrderStatus", async () => ({
-      supplierOrderId,
-      status: "CONFIRMED",
-    }))
+  async getOrderStatus(input: GetOrderStatusInput): Promise<SupplierOrderStatus> {
+    return this.withObservability("blindRest.getOrderStatus", async () => {
+      const raw = await this.rest().getOrderStatus(input.supplierOrderId)
+      const tracking = extractTrackingFromPartnerPayload(raw)
+      return {
+        status: parsePartnerOrderStatusPayload(raw),
+        ...tracking,
+        raw,
+      }
+    })
   }
 
-  async cancelOrder(_supplierOrderId: string): Promise<void> {
-    throw new Error("blind_rest_cancel_not_supported")
+  async cancelOrder(input: CancelOrderInput): Promise<CancelOrderResult> {
+    return this.withObservability("blindRest.cancelOrder", async () => {
+      try {
+        const result = await this.rest().cancelOrder(input.supplierOrderId, input.reason)
+        return { cancelled: result.cancelled }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e)
+        if (msg.includes("404") || msg.includes("405")) {
+          return { cancelled: false }
+        }
+        throw e
+      }
+    })
   }
 
   async syncInventory(skus: string[]): Promise<InventoryDTO[]> {

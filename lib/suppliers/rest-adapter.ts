@@ -10,6 +10,10 @@ const GENERIC_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
 type RestConfig = {
   createOrderPath?: string
   inventoryPath?: string
+  /** `GET` path template; `{id}` replaced with supplier order id. Default `/orders/{id}`. */
+  orderStatusPath?: string
+  /** `POST` path template for cancel. Default `/orders/{id}/cancel`. */
+  cancelOrderPath?: string
   /** Extra headers (values must not contain banned branding for partners). */
   extraHeaders?: Record<string, string>
 }
@@ -66,6 +70,54 @@ export class RestSupplierAdapter implements SupplierAdapter {
       throw new Error("partner_create_order_missing_id")
     }
     return { supplier_order_id }
+  }
+
+  private pathWithId(template: string, id: string): string {
+    return template.replace(/\{id\}/g, encodeURIComponent(id))
+  }
+
+  async getOrderStatus(supplierOrderId: string): Promise<unknown> {
+    const template = this.cfg.orderStatusPath ?? "/orders/{id}"
+    const res = await fetch(this.url(this.pathWithId(template, supplierOrderId)), {
+      method: "GET",
+      headers: this.headers(),
+      signal: AbortSignal.timeout(30_000),
+    })
+    if (!res.ok) {
+      const t = await res.text().catch(() => "")
+      throw new Error(`partner_order_status_failed:${res.status}:${t.slice(0, 500)}`)
+    }
+    return res.json().catch(() => ({}))
+  }
+
+  async cancelOrder(supplierOrderId: string, reason?: string): Promise<{ cancelled: boolean; raw: unknown }> {
+    const template = this.cfg.cancelOrderPath ?? "/orders/{id}/cancel"
+    const res = await fetch(this.url(this.pathWithId(template, supplierOrderId)), {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify({ reason: reason ?? "cancelled_by_affisell" }),
+      signal: AbortSignal.timeout(30_000),
+    })
+    if (res.status === 404 || res.status === 405) {
+      const del = await fetch(this.url(this.pathWithId("/orders/{id}", supplierOrderId)), {
+        method: "DELETE",
+        headers: this.headers(),
+        signal: AbortSignal.timeout(30_000),
+      })
+      if (!del.ok) {
+        const t = await del.text().catch(() => "")
+        throw new Error(`partner_cancel_failed:${del.status}:${t.slice(0, 300)}`)
+      }
+      return { cancelled: true, raw: await del.json().catch(() => ({})) }
+    }
+    if (!res.ok) {
+      const t = await res.text().catch(() => "")
+      throw new Error(`partner_cancel_failed:${res.status}:${t.slice(0, 300)}`)
+    }
+    const raw = await res.json().catch(() => ({}))
+    const o = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {}
+    const cancelled = o.cancelled !== false && o.success !== false
+    return { cancelled, raw }
   }
 
   async getStock(): Promise<BlindStockRow[]> {

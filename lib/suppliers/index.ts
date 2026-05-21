@@ -1,4 +1,22 @@
-export { BaseSupplierAdapter, MarginTooLowError } from "@/lib/suppliers/base.adapter"
+export {
+  BaseSupplierAdapter,
+  MarginTooLowError,
+  type CancelOrderInput,
+  type CancelOrderResult,
+  type GetOrderStatusInput,
+  type SupplierOrderStatus,
+  type SupplierOrderStatusValue,
+} from "@/lib/suppliers/base.adapter"
+export {
+  mapSupplierOrderStatusToFulfillment,
+  mapSupplierOrderStatusToMarketplaceFulfillment,
+  parsePartnerOrderStatusPayload,
+  toOrderStatusDTO,
+} from "@/lib/suppliers/order-status"
+export {
+  syncAllOpenSupplierOrders,
+  syncSupplierFulfillmentOrderStatus,
+} from "@/lib/suppliers/sync-order-status"
 export * from "@/lib/suppliers/dto"
 export {
   createSupplierAdapter,
