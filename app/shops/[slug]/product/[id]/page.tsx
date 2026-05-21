@@ -19,8 +19,10 @@ export async function generateMetadata({
 
 export default async function ShopsProductPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string; id: string }>
+  searchParams: Promise<{ writeReview?: string; orderId?: string }>
 }) {
   const { slug, id } = await params
   const match = await prisma.affiliateProduct.findFirst({
@@ -34,5 +36,5 @@ export default async function ShopsProductPage({
   })
   if (!match) notFound()
 
-  return MarketplaceListingPage({ params: Promise.resolve({ id }) })
+  return MarketplaceListingPage({ params: Promise.resolve({ id }), searchParams })
 }

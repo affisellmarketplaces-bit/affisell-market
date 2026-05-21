@@ -748,6 +748,48 @@
       "discord": "Affisell sur Discord"
     }
   },
+  "reviews": {
+    "title": "Avis clients",
+    "writeReview": "Écrire un avis",
+    "ugcCount": "{count} avec photo ou vidéo",
+    "distribution": "Répartition des notes",
+    "sortLabel": "Trier les avis",
+    "loadMore": "Voir plus d'avis",
+    "emptyTitle": "Soyez le premier à donner votre avis",
+    "emptyBody": "Partagez votre expérience avec photos ou vidéo — vous aidez les autres acheteurs.",
+    "filters": {
+      "all": "Tous",
+      "photos": "Photos",
+      "fiveStar": "5★",
+      "verified": "Vérifiés"
+    },
+    "sort": {
+      "top": "Les plus utiles",
+      "recent": "Plus récents",
+      "rating": "Meilleures notes",
+      "media": "Avec média"
+    },
+    "write": {
+      "eyebrow": "Trust Engine",
+      "title": "Partagez votre expérience",
+      "close": "Fermer",
+      "tapStars": "Touchez pour noter",
+      "headline": "Titre (optionnel)",
+      "headlinePlaceholder": "Résumez en une phrase",
+      "experience": "Votre avis",
+      "bodyPlaceholder": "Qu'avez-vous aimé ? Que pourrait-on améliorer ?",
+      "photosVideos": "Photos & vidéo",
+      "removeMedia": "Retirer",
+      "aiImprove": "Améliorer avec l'IA",
+      "aiLoading": "Amélioration…",
+      "aiError": "Assistant IA indisponible",
+      "submit": "Publier l'avis",
+      "submitting": "Publication…",
+      "submitError": "Impossible de publier l'avis",
+      "ratingRequired": "Choisissez une note",
+      "bodyMin": "Écrivez au moins 20 caractères"
+    }
+  },
   "errors": {
     "notFound": {
       "title": "Page introuvable",

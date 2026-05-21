@@ -98,15 +98,18 @@ export async function POST(
         author,
         country,
         date,
-        text,
+        body: text,
         images,
         variant,
-        helpful_count,
+        helpfulCount: helpful_count,
         verified,
         sentiment,
+        status: "PUBLISHED" as const,
+        publishedAt: date,
+        media: images.map((url) => ({ type: "image", url })),
       }
     })
-    .filter((r) => r.text.length > 0)
+    .filter((r) => r.body.length > 0)
 
   await prisma.review.deleteMany({ where: { productId } })
 
@@ -121,12 +124,15 @@ export async function POST(
   const sentiment =
     avgRating >= 4 ? "positive" : avgRating >= 3 ? "neutral" : "negative"
 
+  const ugcCount = rows.filter((r) => r.images.length > 0).length
+
   await prisma.product.update({
     where: { id: productId },
     data: {
       reviewCount: rows.length,
       averageRating: parseFloat(avgRating.toFixed(1)),
       reviewSentiment: rows.length > 0 ? sentiment : "neutral",
+      ugcCount,
     },
   })
 

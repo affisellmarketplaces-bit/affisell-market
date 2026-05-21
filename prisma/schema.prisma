@@ -69,6 +69,10 @@ model User {
 
   blindDropshipAffiliateOrders BlindDropshipOrder[] @relation("BlindDropshipAffiliateOrders")
   blindDropshipBuyerOrders     BlindDropshipOrder[] @relation("BlindDropshipBuyerOrders")
+
+  buyerReviews      Review[]      @relation("BuyerReviews")
+  reviewVotes       ReviewVote[]
+  reviewReplies     ReviewReply[] @relation("CreatorReviewReplies")
 }
 
 /**
@@ -354,6 +358,8 @@ model Product {
   reviewCount            Int     @default(0)
   averageRating          Float   @default(0)
   reviewSentiment        String  @default("neutral")
+  /** Published buyer UGC rows with at least one image or video in `media`. */
+  ugcCount               Int     @default(0)
 
   supplier                User                     @relation("SupplierProducts", fields: [supplierId], references: [id])
   affiliateProducts       AffiliateProduct[]
@@ -449,27 +455,92 @@ model ProductAttribute {
   @@index([key, value])
 }
 
+enum ReviewStatus {
+  PENDING
+  AI_FLAGGED
+  PUBLISHED
+  REJECTED
+}
+
+enum VoteType {
+  HELPFUL
+  UNHELPFUL
+}
+
+/**
+ * Shopper & imported catalog reviews (Trust Engine). Legacy imports use `author` + `images`;
+ * buyer submissions use `userId`, `orderId`, and `media` JSON UGC payloads.
+ */
 model Review {
   id        String  @id @default(cuid())
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  rating        Int
-  author        String
-  country       String?
-  date          DateTime
-  text          String   @db.Text
-  images        String[] @default([])
-  variant       String?
-  helpful_count Int      @default(0)
-  verified      Boolean  @default(true)
-  sentiment     String   @default("neutral")
+  userId  String?
+  user    User?   @relation("BuyerReviews", fields: [userId], references: [id], onDelete: SetNull)
+  orderId String? @unique
+  order   Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  rating Int
+  title  String? @db.VarChar(120)
+  body   String  @map("text") @db.Text
 
+  /** Legacy supplier import display name when `userId` is null. */
+  author  String?
+  country String?
+  date    DateTime?
+  variant String?
+  images  String[] @default([])
+
+  /**
+   * UGC payloads: [{ type: "image"|"video", url, blurhash?, width?, height?, duration?, muxPlaybackId? }]
+   */
+  media Json @default("[]")
+
+  verified  Boolean @default(true)
+  aiScore   Float?
+  sentiment String? @default("neutral")
+
+  helpfulCount Int @default(0) @map("helpful_count")
+  viewCount    Int @default(0)
+
+  status         ReviewStatus @default(PUBLISHED)
+  moderationNote String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  publishedAt DateTime?
+
+  votes ReviewVote[]
+  reply ReviewReply?
+
+  @@index([productId, status, publishedAt(sort: Desc)])
+  @@index([rating, status])
   @@index([productId])
-  @@index([rating])
+}
+
+model ReviewVote {
+  id       String   @id @default(cuid())
+  reviewId String
+  review   Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type     VoteType
+  createdAt DateTime @default(now())
+
+  @@unique([reviewId, userId])
+  @@index([reviewId])
+}
+
+/** Public creator / affiliate reply on a published review. */
+model ReviewReply {
+  id       String   @id @default(cuid())
+  reviewId String   @unique
+  review   Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User     @relation("CreatorReviewReplies", fields: [userId], references: [id], onDelete: Cascade)
+  body     String   @db.Text
+  createdAt DateTime @default(now())
 }
 
 model Wishlist {
@@ -724,6 +795,8 @@ model Order {
   returns                  OrderReturn[]
   buyerRewardLedgerEntries BuyerRewardLedger[]
   merchantPayoutLedger     MerchantPayoutLedger[]
+  buyerReview              Review?
+  reviewReminderSentAt     DateTime?
 }
 
 /**

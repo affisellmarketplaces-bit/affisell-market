@@ -21,7 +21,9 @@ import {
   Zap,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { Fragment, useEffect, useMemo, useRef, useState, type MouseEvent } from "react"
+import { Fragment, Suspense, useEffect, useMemo, useRef, useState, type MouseEvent } from "react"
+
+import { ReviewsEngine } from "@/components/reviews/ReviewsEngine"
 
 import { MarketplacePurchaseQuantity } from "@/components/marketplace/marketplace-purchase-quantity"
 import { Button } from "@/components/ui/button"
@@ -127,7 +129,10 @@ type Props = {
     count: number
     average: number
     sentiment: string
+    ugcCount?: number
   }
+  writeReviewOrderId?: string | null
+  openWriteReview?: boolean
   /** Shown near price when the affiliate listing offers buyer cashback / bonus */
   buyerRewardBadge?: string | null
   ratingBreakdown: Record<number, number>
@@ -350,7 +355,9 @@ export function MarketplaceListingDetail({
   reviewSummary,
   buyerRewardBadge = null,
   ratingBreakdown,
-  reviews,
+  reviews: _legacyReviews,
+  writeReviewOrderId = null,
+  openWriteReview = false,
   viewsLast24h = 0,
   galleryListingVideoUrl = null,
 }: Props) {
@@ -1578,13 +1585,13 @@ export function MarketplaceListingDetail({
                   </p>
                 </details>
                 <details
-                  id="listing-reviews"
+                  id="listing-reviews-summary"
                   className="group scroll-mt-28 [&[open]>summary]:bg-violet-50/80 dark:[&[open]>summary]:bg-violet-950/30"
                 >
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50/80 dark:text-zinc-100 dark:hover:bg-zinc-900/50 [&::-webkit-details-marker]:hidden">
                     <span className="flex items-center gap-2">
                       <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" aria-hidden />
-                      Reviews
+                      Reviews snapshot
                     </span>
                     <ChevronDown className="h-4 w-4 shrink-0 text-zinc-400 transition-transform duration-200 group-open:rotate-180" aria-hidden />
                   </summary>
@@ -1595,11 +1602,6 @@ export function MarketplaceListingDetail({
                     <p className="text-zinc-600 dark:text-zinc-400">
                       5★: {ratingBreakdown[5] ?? 0} · 4★: {ratingBreakdown[4] ?? 0} · 3★: {ratingBreakdown[3] ?? 0}
                     </p>
-                    {reviews.slice(0, 3).map((r) => (
-                      <p key={r.id} className="mt-2 rounded-lg bg-white/80 p-2 text-zinc-800 ring-1 ring-zinc-200/60 dark:bg-zinc-950/60 dark:text-zinc-200 dark:ring-zinc-700/60">
-                        <q className="not-italic">{r.text.slice(0, 140)}</q>
-                      </p>
-                    ))}
                   </div>
                 </details>
               </div>
@@ -1641,6 +1643,33 @@ export function MarketplaceListingDetail({
         </motion.div>
         </div>
 
+
+      <section className="mt-12 border-t border-zinc-200/80 pt-10 dark:border-zinc-800">
+        <Suspense
+          fallback={
+            <div className="grid gap-4 md:grid-cols-2">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} className="h-40 animate-pulse rounded-3xl bg-zinc-100 dark:bg-zinc-800" />
+              ))}
+            </div>
+          }
+        >
+          <ReviewsEngine
+            productId={productId}
+            productName={name}
+            listingId={listingId}
+            initialSummary={{
+              averageRating: reviewSummary.average,
+              reviewCount: reviewSummary.count,
+              ugcCount: reviewSummary.ugcCount ?? 0,
+              distribution: ratingBreakdown,
+            }}
+            canWriteReview={Boolean(writeReviewOrderId)}
+            writeReviewOrderId={writeReviewOrderId}
+            openWriteOnMount={openWriteReview}
+          />
+        </Suspense>
+      </section>
 
       <section className="mt-10">
         <h2 className="text-xl font-bold">Frequently bought together</h2>

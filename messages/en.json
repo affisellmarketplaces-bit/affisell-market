@@ -748,6 +748,48 @@
       "discord": "Affisell on Discord"
     }
   },
+  "reviews": {
+    "title": "Customer reviews",
+    "writeReview": "Write a review",
+    "ugcCount": "{count} with photos or video",
+    "distribution": "Rating breakdown",
+    "sortLabel": "Sort reviews",
+    "loadMore": "Load more reviews",
+    "emptyTitle": "Be the first to review",
+    "emptyBody": "Share your experience with photos or video — it helps other shoppers decide.",
+    "filters": {
+      "all": "All",
+      "photos": "Photos",
+      "fiveStar": "5★",
+      "verified": "Verified"
+    },
+    "sort": {
+      "top": "Most helpful",
+      "recent": "Newest",
+      "rating": "Highest rating",
+      "media": "With media"
+    },
+    "write": {
+      "eyebrow": "Trust Engine",
+      "title": "Share your experience",
+      "close": "Close",
+      "tapStars": "Tap to rate",
+      "headline": "Headline (optional)",
+      "headlinePlaceholder": "Sum it up in one line",
+      "experience": "Your review",
+      "bodyPlaceholder": "What did you like? Anything we should improve?",
+      "photosVideos": "Photos & video",
+      "removeMedia": "Remove",
+      "aiImprove": "Improve with AI",
+      "aiLoading": "Polishing…",
+      "aiError": "AI assist unavailable",
+      "submit": "Publish review",
+      "submitting": "Publishing…",
+      "submitError": "Could not publish review",
+      "ratingRequired": "Please select a star rating",
+      "bodyMin": "Write at least 20 characters"
+    }
+  },
   "errors": {
     "notFound": {
       "title": "Page not found",

@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
+import { auth } from "@/auth"
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
 import { filterListingForPromotedVariants } from "@/lib/affiliate-storefront-variants"
 import {
@@ -20,6 +21,8 @@ import {
 } from "@/lib/product-custom-columns"
 import { resolveMarketplaceOptionNames, variantsFromDb } from "@/lib/product-variants"
 import { primaryProductImage } from "@/lib/product-images"
+import { getRatingDistribution } from "@/lib/reviews/stats"
+import { buildAggregateRatingJsonLd } from "@/lib/reviews/json-ld"
 import {
   buildProductListingMetadata,
   buildProductOfferJsonLd,
@@ -27,7 +30,7 @@ import {
 
 import { MarketplaceListingDetail } from "./marketplace-listing-detail"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 60
 
 export async function buildListingMetadataForId(
   listingId: string,
@@ -83,8 +86,16 @@ export async function generateMetadata({
   return buildListingMetadataForId(id)
 }
 
-export default async function MarketplaceListingPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function MarketplaceListingPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ writeReview?: string; orderId?: string }>
+}) {
   const { id } = await params
+  const sp = await searchParams
+  const session = await auth()
   const listing = await prisma.affiliateProduct.findFirst({
     where: {
       id,
@@ -170,42 +181,21 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
     freeShippingThresholdEUR: freeThresh,
   }
 
-  let reviews: Array<{
-    id: string
-    rating: number
-    author: string
-    country: string | null
-    date: Date
-    text: string
-    images: string[]
-    variant: string | null
-    helpful_count: number
-    verified: boolean
-  }> = []
-  let ratingBreakdown: Record<number, number> = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
-  try {
-    reviews =
-      (await prisma.review?.findMany({
-        where: { productId: listing.product.id },
-        orderBy: { helpful_count: "desc" },
-        take: 20,
-      })) || []
+  const ratingBreakdown = await getRatingDistribution(listing.product.id)
 
-    const stats = await prisma.review.groupBy({
-      by: ["rating"],
-      where: { productId: listing.product.id },
-      _count: { rating: true },
-    })
-
-    ratingBreakdown = [5, 4, 3, 2, 1].reduce(
-      (acc, star) => {
-        acc[star] = stats.find((s) => s.rating === star)?._count.rating || 0
-        return acc
+  let writeReviewOrderId: string | null = null
+  if (session?.user?.id && sp.orderId) {
+    const order = await prisma.order.findFirst({
+      where: {
+        id: sp.orderId,
+        buyerUserId: session.user.id,
+        productId: listing.product.id,
+        deliveredAt: { not: null },
+        buyerReview: null,
       },
-      {} as Record<number, number>
-    )
-  } catch (e) {
-    console.error("Review fetch failed:", e)
+      select: { id: true },
+    })
+    writeReviewOrderId = order?.id ?? null
   }
 
   const relatedBaseSelect = {
@@ -331,6 +321,14 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
     inStock: listing.product.stock > 0,
     customerFacing: true,
   })
+  const aggregateRating = buildAggregateRatingJsonLd({
+    productName: displayName,
+    averageRating: listing.product.averageRating,
+    reviewCount: listing.product.reviewCount,
+  })
+  if (aggregateRating && productJsonLd && typeof productJsonLd === "object") {
+    ;(productJsonLd as Record<string, unknown>).aggregateRating = aggregateRating
+  }
 
   return (
     <main className="affisell-pdp-viewport relative min-h-screen overflow-x-hidden bg-gradient-to-b from-zinc-100/95 via-white to-violet-100/45 dark:from-zinc-950 dark:via-zinc-950 dark:to-violet-950/30">
@@ -379,21 +377,13 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
           count: listing.product.reviewCount,
           average: listing.product.averageRating,
           sentiment: listing.product.reviewSentiment,
+          ugcCount: listing.product.ugcCount,
         }}
         buyerRewardBadge={buyerRewardBadge}
         ratingBreakdown={ratingBreakdown}
-        reviews={reviews.map((r) => ({
-          id: r.id,
-          rating: r.rating,
-          author: r.author,
-          country: r.country,
-          date: r.date.toISOString(),
-          text: r.text,
-          images: r.images,
-          variant: r.variant,
-          helpful_count: r.helpful_count,
-          verified: r.verified,
-        }))}
+        reviews={[]}
+        writeReviewOrderId={writeReviewOrderId}
+        openWriteReview={sp.writeReview === "true" && Boolean(writeReviewOrderId)}
         viewsLast24h={viewsLast24h}
         galleryListingVideoUrl={
           typeof p.videoAdUrl === "string" && p.videoAdUrl.trim() ? p.videoAdUrl.trim() : null
