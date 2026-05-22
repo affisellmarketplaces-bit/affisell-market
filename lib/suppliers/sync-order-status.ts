@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client"
 
+import { notifyOrderDelivered } from "@/lib/emails/notify-order-delivered"
 import { notifyMarketplaceOrderShipped } from "@/lib/emails/notify-order-shipped"
 import {
   applyOrderStatusToJob,
@@ -33,6 +34,8 @@ export async function syncSupplierFulfillmentOrderStatus(
               customerEmail: true,
               trackingNumber: true,
               shippedAt: true,
+              deliveredAt: true,
+              fulfillmentStatus: true,
               product: { select: { name: true } },
             },
           },
@@ -52,6 +55,7 @@ export async function syncSupplierFulfillmentOrderStatus(
     const adapter = await resolveSupplierAdapterForGroup(job.fulfillmentProviderId)
     const remote = await adapter.getOrderStatus(job.supplierOrderId)
     const { prismaStatus, lineFulfillment } = applyOrderStatusToJob(remote)
+    const previousJobStatus = job.status
 
     await prisma.supplierFulfillmentOrder.update({
       where: { id: job.id },
@@ -87,10 +91,18 @@ export async function syncSupplierFulfillmentOrderStatus(
       }
       if (trackingNumber) orderData.trackingNumber = trackingNumber
       if (remote.carrier) orderData.trackingCarrier = remote.carrier
+      const deliveredNow =
+        remote.status === "DELIVERED" &&
+        previousJobStatus !== "DELIVERED" &&
+        marketplaceOrder.fulfillmentStatus !== "DELIVERED"
+
       if (remote.status === "SHIPPED" || remote.status === "DELIVERED") {
         orderData.status = "shipped"
         orderData.shippedAt = marketplaceOrder.shippedAt ?? new Date()
         orderData.fulfilledAt = new Date()
+      }
+      if (remote.status === "DELIVERED") {
+        orderData.deliveredAt = marketplaceOrder.deliveredAt ?? new Date()
       }
       await prisma.order.update({ where: { id: line.orderId }, data: orderData })
 
@@ -100,6 +112,10 @@ export async function syncSupplierFulfillmentOrderStatus(
           trackingUrl: remote.trackingUrl ?? line.trackingUrl,
           carrier: remote.carrier,
         })
+      }
+
+      if (deliveredNow && marketplaceOrder.customerEmail) {
+        void notifyOrderDelivered(marketplaceOrder.id)
       }
     }
 

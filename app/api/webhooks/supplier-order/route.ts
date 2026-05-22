@@ -4,6 +4,7 @@ import type { Prisma } from "@prisma/client"
 import { type NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 
+import { notifyOrderDelivered } from "@/lib/emails/notify-order-delivered"
 import { notifyMarketplaceOrderShipped } from "@/lib/emails/notify-order-shipped"
 import {
   extractTrackingFromPartnerPayload,
@@ -90,6 +91,7 @@ export async function POST(req: NextRequest) {
 
   const prismaStatus = mapOrderStatusToFulfillment(statusValue)
   const lineFulfillment = mapOrderStatusToMarketplaceFulfillment(statusValue)
+  const previousJobStatus = job.status
 
   await prisma.supplierFulfillmentOrder.update({
     where: { id: job.id },
@@ -103,7 +105,14 @@ export async function POST(req: NextRequest) {
   for (const line of job.lines) {
     const marketplaceOrder = await prisma.order.findUnique({
       where: { id: line.orderId },
-      select: { id: true, shippedAt: true, trackingNumber: true },
+      select: {
+        id: true,
+        shippedAt: true,
+        trackingNumber: true,
+        deliveredAt: true,
+        fulfillmentStatus: true,
+        customerEmail: true,
+      },
     })
     const trackingNumber = tracking.trackingNumber ?? line.trackingNumber
     const shippedNow =
@@ -111,6 +120,10 @@ export async function POST(req: NextRequest) {
       Boolean(trackingNumber) &&
       !marketplaceOrder?.shippedAt &&
       !marketplaceOrder?.trackingNumber
+    const deliveredNow =
+      statusValue === "DELIVERED" &&
+      previousJobStatus !== "DELIVERED" &&
+      marketplaceOrder?.fulfillmentStatus !== "DELIVERED"
 
     await prisma.supplierFulfillmentOrderLine.update({
       where: { id: line.id },
@@ -136,6 +149,9 @@ export async function POST(req: NextRequest) {
               fulfilledAt: new Date(),
             }
           : {}),
+        ...(statusValue === "DELIVERED"
+          ? { deliveredAt: marketplaceOrder?.deliveredAt ?? new Date() }
+          : {}),
       },
     })
 
@@ -145,6 +161,10 @@ export async function POST(req: NextRequest) {
         trackingUrl: tracking.trackingUrl ?? line.trackingUrl,
         carrier: tracking.carrier,
       })
+    }
+
+    if (deliveredNow && marketplaceOrder?.customerEmail) {
+      void notifyOrderDelivered(line.orderId)
     }
   }
 
