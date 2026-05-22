@@ -4,6 +4,7 @@ import type { Prisma } from "@prisma/client"
 import { type NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 
+import { notifyMarketplaceOrderShipped } from "@/lib/emails/notify-order-shipped"
 import {
   extractTrackingFromPartnerPayload,
   mapOrderStatusToFulfillment,
@@ -100,10 +101,21 @@ export async function POST(req: NextRequest) {
   })
 
   for (const line of job.lines) {
+    const marketplaceOrder = await prisma.order.findUnique({
+      where: { id: line.orderId },
+      select: { id: true, shippedAt: true, trackingNumber: true },
+    })
+    const trackingNumber = tracking.trackingNumber ?? line.trackingNumber
+    const shippedNow =
+      statusValue === "SHIPPED" &&
+      Boolean(trackingNumber) &&
+      !marketplaceOrder?.shippedAt &&
+      !marketplaceOrder?.trackingNumber
+
     await prisma.supplierFulfillmentOrderLine.update({
       where: { id: line.id },
       data: {
-        trackingNumber: tracking.trackingNumber ?? line.trackingNumber,
+        trackingNumber,
         trackingUrl: tracking.trackingUrl ?? line.trackingUrl,
         fulfilledAt:
           statusValue === "SHIPPED" || statusValue === "DELIVERED"
@@ -115,10 +127,25 @@ export async function POST(req: NextRequest) {
       where: { id: line.orderId },
       data: {
         fulfillmentStatus: lineFulfillment,
-        fulfilledAt:
-          lineFulfillment === "SHIPPED" || lineFulfillment === "DELIVERED" ? new Date() : null,
+        ...(trackingNumber ? { trackingNumber } : {}),
+        ...(tracking.carrier ? { trackingCarrier: tracking.carrier } : {}),
+        ...(statusValue === "SHIPPED" || statusValue === "DELIVERED"
+          ? {
+              status: "shipped",
+              shippedAt: marketplaceOrder?.shippedAt ?? new Date(),
+              fulfilledAt: new Date(),
+            }
+          : {}),
       },
     })
+
+    if (shippedNow && trackingNumber) {
+      void notifyMarketplaceOrderShipped(line.orderId, {
+        trackingNumber,
+        trackingUrl: tracking.trackingUrl ?? line.trackingUrl,
+        carrier: tracking.carrier,
+      })
+    }
   }
 
   return NextResponse.json({

@@ -7,6 +7,7 @@ import {
   supplierOrderInclude,
 } from "@/lib/supplier-orders-payload"
 import { toSupplierFulfillmentOrderPublic } from "@/lib/supplier-orders-public-api"
+import { notifyMarketplaceOrderShipped } from "@/lib/emails/notify-order-shipped"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -153,6 +154,11 @@ export async function PATCH(
     }
 
     return order
+  })
+
+  void notifyMarketplaceOrderShipped(updated.id, {
+    trackingNumber: tracking,
+    carrier,
   })
 
   return Response.json({ order: toSupplierFulfillmentOrderPublic(mapMarketplaceOrder(updated)) })

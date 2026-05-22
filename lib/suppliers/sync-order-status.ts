@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client"
 
-import { sendBuyerTrackingEmail } from "@/lib/auto-order/buyer-tracking-email"
+import { notifyMarketplaceOrderShipped } from "@/lib/emails/notify-order-shipped"
 import {
   applyOrderStatusToJob,
   mapOrderStatusToFulfillment,
@@ -94,14 +94,11 @@ export async function syncSupplierFulfillmentOrderStatus(
       }
       await prisma.order.update({ where: { id: line.orderId }, data: orderData })
 
-      if (shippedNow && marketplaceOrder.customerEmail) {
-        void sendBuyerTrackingEmail({
-          to: marketplaceOrder.customerEmail,
-          orderId: marketplaceOrder.id,
-          productName: marketplaceOrder.product.name,
-          carrier: remote.carrier,
+      if (shippedNow && marketplaceOrder.customerEmail && trackingNumber) {
+        void notifyMarketplaceOrderShipped(marketplaceOrder.id, {
           trackingNumber,
-          trackingUrl: remote.trackingUrl,
+          trackingUrl: remote.trackingUrl ?? line.trackingUrl,
+          carrier: remote.carrier,
         })
       }
     }
