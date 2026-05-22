@@ -808,6 +808,8 @@ model Order {
   merchantPayoutLedger     MerchantPayoutLedger[]
   buyerReview              Review?
   reviewReminderSentAt     DateTime?
+  /** Idempotent guard for cancelled/refunded buyer email (Resend). */
+  cancelledEmailSentAt     DateTime?
   /**
    * Universal Auto-Order Engine — aggregate fulfillment across supplier channels.
    */

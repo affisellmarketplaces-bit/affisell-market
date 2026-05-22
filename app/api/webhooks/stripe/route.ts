@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import type Stripe from "stripe"
 
 import { createBlindDropshipPaidNotifications } from "@/lib/blind-dropship-notifications"
+import { handleStripeChargeRefunded } from "@/lib/stripe-charge-refunded"
 import { fulfillMarketplaceStripeSession } from "@/lib/stripe-marketplace-fulfill"
 import {
   activateProFromCheckoutSession,
@@ -81,6 +82,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "pro_deactivation_failed" }, { status: 500 })
     }
     return NextResponse.json({ received: true })
+  }
+
+  if (event.type === "charge.refunded") {
+    const charge = event.data.object as Stripe.Charge
+    try {
+      const { processedOrderIds } = await handleStripeChargeRefunded(charge)
+      return NextResponse.json({ received: true, processedOrderIds })
+    } catch (e) {
+      console.error("[stripe/webhook] charge.refunded", e)
+      return NextResponse.json({ error: "refund_handler_failed" }, { status: 500 })
+    }
   }
 
   if (event.type === "payment_intent.succeeded") {
