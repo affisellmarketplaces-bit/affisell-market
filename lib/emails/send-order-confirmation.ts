@@ -1,5 +1,8 @@
+import { render } from "@react-email/render"
+import { createElement } from "react"
 import { Resend } from "resend"
 
+import { OrderConfirmationEmail } from "@/emails/order-confirmation"
 import { readResendEnv } from "@/lib/env/resend"
 
 export async function sendOrderConfirmationEmail({
@@ -30,18 +33,23 @@ export async function sendOrderConfirmationEmail({
   }
 
   const to = FROM.includes("onboarding@resend.dev") ? testEmailTo : customerEmail
+  const shortOrderId = orderId.slice(-6).toUpperCase()
+
+  const emailHtml = await render(
+    createElement(OrderConfirmationEmail, {
+      orderId,
+      productName,
+      total,
+      currency,
+      customerEmail,
+    })
+  )
 
   const { data, error } = await resend.emails.send({
     from: FROM,
     to,
-    subject: `Commande Affisell #${orderId.slice(-6)} confirmée`,
-    html: `
-      <h2>Merci pour votre achat!</h2>
-      <p>Commande : <strong>${productName}</strong></p>
-      <p>Total : <strong>${(total / 100).toFixed(2)} ${currency.toUpperCase()}</strong></p>
-      <p>Numéro : <strong>#${orderId.slice(-6)}</strong></p>
-      <p>Vous recevrez un email dès que votre colis est expédié avec le numéro de suivi.</p>
-    `,
+    subject: `Commande Affisell #${shortOrderId} confirmée`,
+    html: emailHtml,
   })
 
   if (error) {
