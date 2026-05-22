@@ -8,7 +8,10 @@ import { earnBuyerRewardIdempotent, redeemBuyerRewardIdempotent } from "@/lib/bu
 import { resolveBuyerUserIdForEarn } from "@/lib/buyer-reward-resolve-user"
 import { computeMarketplaceOrderSettlement } from "@/lib/marketplace-order-settlement"
 import { triggerAutoFulfillmentForStripeSession } from "@/lib/auto-order/enqueue"
-import { sendOrderConfirmationEmail } from "@/lib/emails/send-order-confirmation"
+import {
+  resolveOrderConfirmationImageUrl,
+  sendOrderConfirmationEmail,
+} from "@/lib/emails/send-order-confirmation"
 import { createMarketplaceOrderNotifications } from "@/lib/marketplace-order-notifications"
 import { prisma } from "@/lib/prisma"
 import {
@@ -124,12 +127,28 @@ async function createPaidMarketplaceOrder(
     imageUrl: variantImageUrl,
   })
 
+  const productImageUrl = resolveOrderConfirmationImageUrl({
+    productImages: listing.product.images,
+    variantImageUrl,
+  })
+
+  const shippingName =
+    args.shippingAddress &&
+    typeof args.shippingAddress === "object" &&
+    !Array.isArray(args.shippingAddress) &&
+    typeof (args.shippingAddress as Record<string, unknown>).name === "string"
+      ? ((args.shippingAddress as Record<string, unknown>).name as string).trim()
+      : undefined
+
   await sendOrderConfirmationEmail({
     orderId: order.id,
     productName: listing.product.name,
-    total: args.checkoutAmountTotal,
+    productImageUrl,
+    quantity: qty,
+    total: (args.paidLineCents / 100).toFixed(2),
     currency: args.checkoutCurrency,
     customerEmail: args.customerEmail,
+    customerName: shippingName,
   })
 
   return order.id

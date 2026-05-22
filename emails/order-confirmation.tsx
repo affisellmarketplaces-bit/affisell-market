@@ -1,31 +1,42 @@
 import {
   Body,
+  Button,
+  Column,
   Container,
   Head,
   Heading,
   Html,
+  Img,
   Preview,
   Text,
   Section,
   Hr,
   Link,
+  Row,
 } from "@react-email/components"
 
 export interface OrderConfirmationEmailProps {
   orderId: string
   productName: string
-  total: number
+  productImageUrl: string
+  quantity: number
+  total: string
   currency: string
-  customerEmail: string
+  customerName: string
+  orderUrl: string
+  trackingUrl?: string
 }
 
 export const OrderConfirmationEmail = ({
   orderId,
   productName,
+  productImageUrl,
+  quantity,
   total,
   currency,
+  orderUrl,
+  trackingUrl,
 }: OrderConfirmationEmailProps) => {
-  const formattedTotal = (total / 100).toFixed(2)
   const shortOrderId = orderId.slice(-6).toUpperCase()
 
   return (
@@ -34,28 +45,46 @@ export const OrderConfirmationEmail = ({
       <Preview>Commande Affisell #{shortOrderId} confirmée</Preview>
       <Body style={main}>
         <Container style={container}>
-          <Heading style={h1}>Merci pour votre achat!</Heading>
-          <Text style={text}>On a bien reçu votre commande et on la prépare.</Text>
+          <Heading style={h1}>Merci pour votre commande</Heading>
 
-          <Section style={box}>
-            <Heading as="h2" style={h2}>
-              Récapitulatif
-            </Heading>
-            <Text style={productNameStyle}>{productName}</Text>
-            <Hr style={hr} />
-            <Text style={text}>
-              <strong>
-                Total : {formattedTotal} {currency.toUpperCase()}
-              </strong>
-            </Text>
-            <Text style={text}>
-              Numéro de commande : <strong>#{shortOrderId}</strong>
-            </Text>
+          <Row
+            style={{
+              margin: "24px 0",
+              border: "1px solid #e5e7eb",
+              borderRadius: "8px",
+              padding: "16px",
+            }}
+          >
+            <Column style={{ width: "80px" }}>
+              <Img
+                src={productImageUrl}
+                width="64"
+                height="64"
+                alt={productName}
+                style={{ borderRadius: "8px", objectFit: "cover" }}
+              />
+            </Column>
+            <Column style={{ paddingLeft: "16px" }}>
+              <Text style={productNameStyle}>{productName}</Text>
+              <Text style={qtyStyle}>Quantité: {quantity}</Text>
+              <Text style={qtyStyle}>
+                Total: {total} {currency}
+              </Text>
+            </Column>
+          </Row>
+
+          <Section style={{ textAlign: "center", margin: "32px 0" }}>
+            <Button href={orderUrl} style={buttonStyle}>
+              Voir ma commande
+            </Button>
+            {trackingUrl ? (
+              <Text style={{ fontSize: "12px", color: "#666", marginTop: "12px" }}>
+                <Link href={trackingUrl} style={{ color: "#5469d4" }}>
+                  Suivre mon colis
+                </Link>
+              </Text>
+            ) : null}
           </Section>
-
-          <Text style={text}>
-            Vous recevrez un autre email dès que votre colis est expédié avec le numéro de suivi.
-          </Text>
 
           <Hr style={hr} />
 
@@ -77,16 +106,34 @@ const container = {
   marginBottom: "64px",
 }
 const h1 = { color: "#333", fontSize: "24px", fontWeight: "bold", padding: "0 40px" }
-const h2 = { color: "#333", fontSize: "20px", fontWeight: "bold" }
-const text = { color: "#333", fontSize: "14px", lineHeight: "24px", padding: "0 40px" }
-const productNameStyle = {
-  color: "#333",
-  fontSize: "16px",
-  fontWeight: "bold",
-  padding: "0 40px",
-}
-const box = { padding: "0 40px" }
 const hr = { borderColor: "#e6ebf1", margin: "20px 40px" }
 const footer = { color: "#8898aa", fontSize: "12px", lineHeight: "16px", padding: "0 40px" }
+const productNameStyle = {
+  fontSize: "16px",
+  fontWeight: "600",
+  margin: "0 0 4px",
+  color: "#111",
+}
+const qtyStyle = { fontSize: "14px", color: "#666", margin: "0" }
+const buttonStyle = {
+  backgroundColor: "#5469d4",
+  color: "#fff",
+  padding: "12px 24px",
+  borderRadius: "6px",
+  textDecoration: "none",
+  display: "inline-block",
+  fontWeight: "600",
+}
+
+OrderConfirmationEmail.PreviewProps = {
+  orderId: "clpreview00000001",
+  productName: "Casque Bluetooth Pro",
+  productImageUrl: "https://via.placeholder.com/64",
+  quantity: 1,
+  total: "49.99",
+  currency: "EUR",
+  customerName: "Marie",
+  orderUrl: "https://affisell-market.vercel.app/orders/clpreview00000001",
+} satisfies OrderConfirmationEmailProps
 
 export default OrderConfirmationEmail

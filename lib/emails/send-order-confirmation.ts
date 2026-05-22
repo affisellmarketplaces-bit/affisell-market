@@ -1,22 +1,62 @@
 import { render } from "@react-email/render"
-import { createElement } from "react"
 import { Resend } from "resend"
 
 import { OrderConfirmationEmail } from "@/emails/order-confirmation"
 import { readResendEnv } from "@/lib/env/resend"
+import { appBaseUrl } from "@/lib/stripe-pro"
+
+const PLACEHOLDER_PRODUCT_IMAGE = "https://via.placeholder.com/64"
+
+export function resolveAppUrl(): string {
+  const raw =
+    process.env.APP_URL?.trim() ||
+    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
+    appBaseUrl()
+  return raw.replace(/\/$/, "")
+}
+
+function resolveCustomerName(
+  customerName: string | undefined,
+  customerEmail: string
+): string {
+  if (customerName?.trim()) return customerName.trim()
+  const local = customerEmail.split("@")[0]?.trim()
+  return local || "Client"
+}
+
+/** Maps marketplace line data (Prisma: images string[], variantImageUrl) to email props. */
+export function resolveOrderConfirmationImageUrl(args: {
+  productImages?: string[] | null
+  variantImageUrl?: string | null
+}): string {
+  const variant = args.variantImageUrl?.trim()
+  if (variant) return variant
+  const first = args.productImages?.find((u) => typeof u === "string" && u.trim())?.trim()
+  return first || PLACEHOLDER_PRODUCT_IMAGE
+}
 
 export async function sendOrderConfirmationEmail({
   orderId,
   productName,
+  productImageUrl,
+  quantity,
   total,
   currency,
   customerEmail,
+  customerName,
+  orderUrl,
+  trackingUrl,
 }: {
   orderId: string
   productName: string
-  total: number
+  productImageUrl?: string
+  quantity: number
+  total: string
   currency: string
   customerEmail: string
+  customerName?: string
+  orderUrl?: string
+  trackingUrl?: string
 }) {
   const { apiKey, fromEmail, testEmailTo } = readResendEnv()
   if (!apiKey || !fromEmail) {
@@ -34,14 +74,19 @@ export async function sendOrderConfirmationEmail({
 
   const to = FROM.includes("onboarding@resend.dev") ? testEmailTo : customerEmail
   const shortOrderId = orderId.slice(-6).toUpperCase()
+  const resolvedOrderUrl = orderUrl ?? `${resolveAppUrl()}/orders/${orderId}`
 
-  const emailHtml = await render(
-    createElement(OrderConfirmationEmail, {
+  const html = await render(
+    OrderConfirmationEmail({
       orderId,
       productName,
+      productImageUrl: productImageUrl?.trim() || PLACEHOLDER_PRODUCT_IMAGE,
+      quantity,
       total,
-      currency,
-      customerEmail,
+      currency: currency.toUpperCase(),
+      customerName: resolveCustomerName(customerName, customerEmail),
+      orderUrl: resolvedOrderUrl,
+      trackingUrl: trackingUrl || undefined,
     })
   )
 
@@ -49,7 +94,7 @@ export async function sendOrderConfirmationEmail({
     from: FROM,
     to,
     subject: `Commande Affisell #${shortOrderId} confirmée`,
-    html: emailHtml,
+    html,
   })
 
   if (error) {
