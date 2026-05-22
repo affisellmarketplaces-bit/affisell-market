@@ -8,6 +8,7 @@ import { earnBuyerRewardIdempotent, redeemBuyerRewardIdempotent } from "@/lib/bu
 import { resolveBuyerUserIdForEarn } from "@/lib/buyer-reward-resolve-user"
 import { computeMarketplaceOrderSettlement } from "@/lib/marketplace-order-settlement"
 import { triggerAutoFulfillmentForStripeSession } from "@/lib/auto-order/enqueue"
+import { sendOrderConfirmationEmail } from "@/lib/emails/send-order-confirmation"
 import { createMarketplaceOrderNotifications } from "@/lib/marketplace-order-notifications"
 import { prisma } from "@/lib/prisma"
 import {
@@ -52,6 +53,8 @@ async function createPaidMarketplaceOrder(
     variantLabel: string
     variantSignature?: string
     partnerListingCode?: string | null
+    checkoutAmountTotal: number
+    checkoutCurrency: string
   }
 ): Promise<string | null> {
   const { listing, qty } = args
@@ -121,6 +124,14 @@ async function createPaidMarketplaceOrder(
     imageUrl: variantImageUrl,
   })
 
+  await sendOrderConfirmationEmail({
+    orderId: order.id,
+    productName: listing.product.name,
+    total: args.checkoutAmountTotal,
+    currency: args.checkoutCurrency,
+    customerEmail: args.customerEmail,
+  })
+
   return order.id
 }
 
@@ -130,6 +141,8 @@ export async function fulfillMarketplaceStripeSession(
   customerEmail: string
 ): Promise<void> {
   const sessionId = session.id
+  const checkoutAmountTotal = session.amount_total ?? 0
+  const checkoutCurrency = session.currency ?? "eur"
   const meta = session.metadata ?? {}
   const buyerUserId = meta.buyerUserId?.trim() || ""
   const appliedRewardCents = Math.max(0, Math.round(parseInt(meta.appliedRewardCents ?? "0", 10) || 0))
@@ -221,6 +234,8 @@ export async function fulfillMarketplaceStripeSession(
           variantLabel: variantLabelRaw,
           variantSignature: sigStr,
           partnerListingCode: listing.affiliate.store?.partnerListingCode ?? null,
+          checkoutAmountTotal,
+          checkoutCurrency,
         })
 
         if (earnUserId && orderId) {
@@ -307,6 +322,8 @@ export async function fulfillMarketplaceStripeSession(
       variantLabel: checkoutVariantLabel,
       variantSignature: checkoutVariantSignature,
       partnerListingCode: listing.affiliate.store?.partnerListingCode ?? null,
+      checkoutAmountTotal,
+      checkoutCurrency,
     })
 
     if (earnUserId && orderId) {
