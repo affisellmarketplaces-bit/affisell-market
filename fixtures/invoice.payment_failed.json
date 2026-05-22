@@ -1,0 +1,25 @@
+{
+  "id": "evt_test_payment_failed",
+  "object": "event",
+  "api_version": "2024-11-20.acacia",
+  "created": 1716153600,
+  "type": "invoice.payment_failed",
+  "data": {
+    "object": {
+      "id": "in_test_payment_failed",
+      "object": "invoice",
+      "attempt_count": 1,
+      "customer": "cus_test_replace_me",
+      "metadata": {
+        "orderId": "REPLACE_WITH_REAL_ORDER_ID"
+      },
+      "subscription_details": {
+        "metadata": {}
+      },
+      "lines": {
+        "object": "list",
+        "data": []
+      }
+    }
+  }
+}

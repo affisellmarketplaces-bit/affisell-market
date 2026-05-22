@@ -810,6 +810,8 @@ model Order {
   reviewReminderSentAt     DateTime?
   /** Idempotent guard for cancelled/refunded buyer email (Resend). */
   cancelledEmailSentAt     DateTime?
+  /** Idempotent guard for payment-failed / update-card email (Stripe Billing Portal). */
+  paymentFailedEmailSentAt DateTime?
   /**
    * Universal Auto-Order Engine — aggregate fulfillment across supplier channels.
    */

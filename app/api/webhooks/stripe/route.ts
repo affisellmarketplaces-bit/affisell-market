@@ -4,6 +4,7 @@ import type Stripe from "stripe"
 
 import { createBlindDropshipPaidNotifications } from "@/lib/blind-dropship-notifications"
 import { handleStripeChargeRefunded } from "@/lib/stripe-charge-refunded"
+import { handleStripeInvoicePaymentFailed } from "@/lib/stripe-invoice-payment-failed"
 import { fulfillMarketplaceStripeSession } from "@/lib/stripe-marketplace-fulfill"
 import {
   activateProFromCheckoutSession,
@@ -39,8 +40,14 @@ export async function POST(req: NextRequest) {
   const body = await req.text()
 
   let event: Stripe.Event
+  const isDevFixture =
+    process.env.NODE_ENV === "development" && signature === "test"
   try {
-    event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!)
+    if (isDevFixture) {
+      event = JSON.parse(body) as Stripe.Event
+    } else {
+      event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!)
+    }
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Invalid webhook signature"
     return NextResponse.json({ error: message }, { status: 400 })
@@ -82,6 +89,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "pro_deactivation_failed" }, { status: 500 })
     }
     return NextResponse.json({ received: true })
+  }
+
+  if (event.type === "invoice.payment_failed") {
+    const invoice = event.data.object as Stripe.Invoice
+    try {
+      const result = await handleStripeInvoicePaymentFailed(invoice)
+      return NextResponse.json({ received: true, ...result })
+    } catch (e) {
+      console.error("[stripe/webhook] invoice.payment_failed", e)
+      return NextResponse.json({ error: "payment_failed_handler_failed" }, { status: 500 })
+    }
   }
 
   if (event.type === "charge.refunded") {
