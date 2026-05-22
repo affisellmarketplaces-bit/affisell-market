@@ -1,6 +1,40 @@
-# Prisma Rules
-1. JAMAIS modifier une migration dans prisma/migrations/ après qu'elle soit appliquée sur Neon
-2. Pour changer le schema: toujours éditer prisma/schema.prisma PUIS npx prisma migrate dev --name xxx
-3. Si drift: utiliser npx prisma migrate resolve --applied ou npx prisma db push. JAMAIS prisma migrate reset sur Neon prod
-4. Avant chaque PR: npx prisma migrate status doit être clean
-5. Toujours commit le dossier prisma/migrations/ après migrate dev
+# .cursorrules pour Affisell v1.3
+
+## Mission
+Tu codes pour Affisell, un marketplace d'affiliation. Chaque feature doit maximiser: 
+1. LTV client
+2. Taux de conversion 
+3. Automatisation sans intervention humaine
+
+## Standards techniques obligatoires
+1. **TypeScript strict** : aucun `any`, types Prisma inférés
+2. **Idempotence** : toute action DB/API doit être safe si rejouée 2x
+3. **React Email v1.3** : tous les mails utilisent `@react-email/components`
+4. **Edge cases first** : refund, cancel, retry, rate-limit traités avant le happy path
+5. **Logs business** : `console.log('[feature]', {orderId, result})` pour Metabase
+
+## Innovation requise sur chaque PR
+Avant de coder, réponds à 3 questions :
+1. **Quel metric business cette PR augmente de +10% ?** Si aucune, refuse.
+2. **Quelle étape manuelle je supprime pour le fondateur ?** Si aucune, refuse. 
+3. **Qu'est-ce qu'Amazon/Shopify font que je peux ship en 1h ?** Fais-le.
+
+## Patterns Affisell
+1. **1 Order = 1 produit** : pas de `order.items`. Utilise `order.product`
+2. **URLs** : `/marketplace/{affiliateProductId}?writeReview=true&orderId={id}`
+3. **Images** : `resolveOrderConfirmationImageUrl(order)` pas d'URL hardcodée
+4. **Auth Cron** : `Bearer ${CRON_SECRET}` sur toutes les routes `/api/cron/*`
+5. **Resend** : `from: process.env.RESEND_FROM_EMAIL` + `TEST_EMAIL_TO` en dev
+
+## Interdictions
+1. Pas de setTimeout pour "attendre". Utilise webhook ou cron.
+2. Pas de `console.log` sans contexte. Préfixe `[module]`
+3. Pas de `catch {}` vide. Log + return error typed.
+4. Pas de feature sans test `npm run email:dev` ou `curl` manuel.
+
+## Format réponse Cursor
+1. **Plan 3 lignes** : Pourquoi, Quoi, Impact LTV
+2. **Diff minimal** : montre que les fichiers changés
+3. **Test 1 ligne** : commande curl ou npm pour vérifier
+
+Si tu respectes pas ces règles, je reject la PR.
