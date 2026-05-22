@@ -13,10 +13,9 @@ const nextConfig: NextConfig = {
     "*": [
       "node_modules/onnxruntime-web/**",
       "node_modules/@imgly/background-removal/**",
-      "node_modules/@imgly/background-removal-node/**",
     ],
   },
-  serverExternalPackages: ["@imgly/background-removal", "@imgly/background-removal-node", "onnxruntime-web"],
+  serverExternalPackages: ["@imgly/background-removal", "onnxruntime-web"],
   webpack: (config, { isServer }) => {
     if (isServer) {
       if (Array.isArray(config.externals)) {
