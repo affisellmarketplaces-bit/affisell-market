@@ -65,7 +65,7 @@ async function main() {
     console.log("  affiliateMarginCents: ", order.affiliateMarginCents)
     console.log("  paymentSettlement:    ", order.paymentSettlementStatus)
 
-    if (order.supplierPriceCents == null) {
+    if (order.supplierPriceCents == null || order.supplierPriceCents <= 0) {
       throw new Error("Order not migrated to three-way split")
     }
 
