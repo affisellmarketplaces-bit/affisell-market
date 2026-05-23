@@ -47,9 +47,11 @@ function resolveConnectDestination(
   const fromSupplier = supplierStripeAccountId?.trim()
   if (fromSupplier) return fromSupplier
 
-  const fromEnv = process.env.TEST_STRIPE_CONNECT_ACCOUNT_ID?.trim()
+  const fromEnv =
+    process.env.TEST_SUPPLIER_STRIPE_ACCOUNT_ID?.trim() ||
+    process.env.TEST_STRIPE_CONNECT_ACCOUNT_ID?.trim()
   if (fromEnv) {
-    console.log("webhook: using TEST_STRIPE_CONNECT_ACCOUNT_ID fallback", {
+    console.log("webhook: using TEST_SUPPLIER_STRIPE_ACCOUNT_ID fallback", {
       orderSupplierId,
       sellerIdFromMeta,
       destination: fromEnv,
@@ -222,7 +224,10 @@ export async function settleMarketplaceOrdersFromCheckoutSession(
       resolveConnectDestination(null, sellerIdMeta, order.supplierId)
 
     const affiliateConnectId =
-      order.affiliateStripeAccountId?.trim() || order.affiliate?.stripeAccountId?.trim() || null
+      order.affiliateStripeAccountId?.trim() ||
+      order.affiliate?.stripeAccountId?.trim() ||
+      process.env.TEST_AFFILIATE_STRIPE_ACCOUNT_ID?.trim() ||
+      null
 
     console.log("split:", {
       orderId: order.id,
@@ -373,4 +378,157 @@ export async function processMarketplaceCommissionForPaymentIntent(
   }
 
   return { processedOrderIds: [], errors: ["no_session_or_orders"] }
+}
+
+function isSimulatedChargeId(chargeId: string | null | undefined): boolean {
+  return Boolean(chargeId?.startsWith("ch_test_"))
+}
+
+/**
+ * Settle one order (three-way split). Used by scripts/settle-order.ts and webhooks.
+ */
+export async function handleStripeCommissionSplit(
+  _session: Stripe.Checkout.Session,
+  orderId: string
+): Promise<{ processedOrderIds: string[]; errors: string[] }> {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: {
+      supplier: { select: { id: true, stripeAccountId: true, email: true } },
+      affiliate: { select: { id: true, stripeAccountId: true, email: true } },
+    },
+  })
+
+  if (!order) {
+    console.log("webhook: order not found", { orderId })
+    return { processedOrderIds: [], errors: ["order_not_found"] }
+  }
+
+  if (order.stripeTransferId) {
+    console.log("webhook: order already settled", { orderId, transferId: order.stripeTransferId })
+    return { processedOrderIds: [orderId], errors: [] }
+  }
+
+  const stripe = getStripeClient()
+  const orderStripeFee = order.stripeFeesCents > 0 ? order.stripeFeesCents : 50
+  const threeWayInput = resolveThreeWayInput(order)
+  const split = calculateThreeWaySplit({
+    ...threeWayInput,
+    stripeFeeCents: orderStripeFee,
+  })
+
+  console.log("three_way_split:", {
+    orderId: order.id,
+    metric: "three_way_split",
+    ...threeWayInput,
+    totalClientCents: split.totalClientCents,
+    priceClientCents: split.priceClientCents,
+    affisellFeeCents: split.affisellFeeCents,
+    supplierPayoutCents: split.supplierPayoutCents,
+    affiliatePayoutCents: split.affiliatePayoutCents,
+    supplierCommissionToAffiliateCents: split.supplierCommissionToAffiliateCents,
+    affisellNetCents: split.affisellNetCents,
+  })
+
+  const supplierConnectId =
+    order.supplier.stripeAccountId?.trim() ||
+    process.env.TEST_SUPPLIER_STRIPE_ACCOUNT_ID?.trim() ||
+    null
+
+  const affiliateConnectId =
+    order.affiliateStripeAccountId?.trim() ||
+    order.affiliate?.stripeAccountId?.trim() ||
+    process.env.TEST_AFFILIATE_STRIPE_ACCOUNT_ID?.trim() ||
+    null
+
+  const chargeId = order.stripeChargeId
+  const simulated = isSimulatedChargeId(chargeId)
+  let stripeTransferId: string | null = null
+
+  try {
+    if (split.supplierPayoutCents > 0 && supplierConnectId) {
+      if (simulated) {
+        stripeTransferId = `tr_test_supplier_${order.id}`
+        console.log("transfer_created:", {
+          orderId: order.id,
+          role: "supplier",
+          transferId: stripeTransferId,
+          amount: split.supplierPayoutCents,
+          destination: supplierConnectId,
+          simulated: true,
+        })
+      } else if (chargeId) {
+        const supplierTransfer = await stripe.transfers.create({
+          amount: split.supplierPayoutCents,
+          currency: "eur",
+          destination: supplierConnectId,
+          source_transaction: chargeId,
+          transfer_group: order.id,
+          metadata: { orderId: order.id, role: "supplier" },
+        })
+        stripeTransferId = supplierTransfer.id
+        console.log("transfer_created:", {
+          orderId: order.id,
+          role: "supplier",
+          transferId: supplierTransfer.id,
+          amount: split.supplierPayoutCents,
+          destination: supplierConnectId,
+        })
+      }
+    }
+
+    if (split.affiliatePayoutCents > 0 && affiliateConnectId) {
+      if (simulated) {
+        console.log("transfer_created:", {
+          orderId: order.id,
+          role: "affiliate",
+          transferId: `tr_test_affiliate_${order.id}`,
+          amount: split.affiliatePayoutCents,
+          destination: affiliateConnectId,
+          simulated: true,
+        })
+      } else if (chargeId) {
+        const affiliateTransfer = await stripe.transfers.create({
+          amount: split.affiliatePayoutCents,
+          currency: "eur",
+          destination: affiliateConnectId,
+          source_transaction: chargeId,
+          transfer_group: order.id,
+          metadata: { orderId: order.id, role: "affiliate" },
+        })
+        console.log("transfer_created:", {
+          orderId: order.id,
+          role: "affiliate",
+          transferId: affiliateTransfer.id,
+          amount: split.affiliatePayoutCents,
+          destination: affiliateConnectId,
+        })
+      }
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "transfer_failed"
+    console.error("webhook: transfer_failed", { orderId: order.id, error: msg })
+    return { processedOrderIds: [], errors: [`${orderId}:${msg}`] }
+  }
+
+  await prisma.order.update({
+    where: { id: order.id },
+    data: {
+      supplierPriceCents: threeWayInput.supplierPriceCents,
+      supplierCommissionRateBps: threeWayInput.supplierCommissionRateBps,
+      affiliateMarginCents: threeWayInput.affiliateMarginCents,
+      affisellCommissionRateBps: threeWayInput.affisellCommissionRateBps,
+      totalCents: split.totalClientCents,
+      supplierPayoutCents: split.supplierPayoutCents,
+      affiliatePayoutCents: split.affiliatePayoutCents,
+      affisellFeeCents: split.affisellFeeCents,
+      platformCommissionCents: split.affisellFeeCents,
+      stripeFeesCents: split.stripeFeeCents,
+      affiliateStripeAccountId: affiliateConnectId,
+      paymentSettlementStatus: "SETTLED",
+      stripeTransferId,
+    },
+  })
+
+  return { processedOrderIds: [orderId], errors: [] }
 }
