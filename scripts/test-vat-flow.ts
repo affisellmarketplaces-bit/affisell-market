@@ -31,6 +31,8 @@ const STRIPE_FEE_CENTS = 373
 const RUN_TAG = process.env.TEST_VAT_RUN_TAG?.trim() || `vat-${Date.now()}`
 const SUPPLIER_EMAIL = `vat-supplier-${RUN_TAG}@affisell.test`
 const AFFILIATE_EMAIL = `vat-affiliate-${RUN_TAG}@affisell.test`
+const TEST_PRODUCT_ID =
+  process.env.TEST_VAT_PRODUCT_ID?.trim() || "cmpiddd890003thlps6tp"
 
 function assert(condition: boolean, message: string): void {
   if (!condition) throw new Error(message)
@@ -68,68 +70,126 @@ function runMathChecks(): void {
   console.log("  ✅ HT → TTC → commission HT → refund prorata OK\n")
 }
 
-async function ensureTestUsers(stripeAccountId: string) {
-  const supplier = await prisma.user.upsert({
-    where: { email: SUPPLIER_EMAIL },
-    create: {
-      email: SUPPLIER_EMAIL,
-      name: "Vendeur Test TVA",
-      role: "SUPPLIER",
-      stripeAccountId,
-      vatNumber: "FR12345678901",
-    },
-    update: { stripeAccountId, vatNumber: "FR12345678901" },
+function isPrismaUniqueViolation(e: unknown): boolean {
+  return (
+    typeof e === "object" &&
+    e !== null &&
+    "code" in e &&
+    (e as { code: string }).code === "P2002"
+  )
+}
+
+/**
+ * Resolve supplier by Connect account (unique). Never upsert on email when acct is taken.
+ */
+async function ensureTestSupplier(stripeAccountId: string) {
+  const name = "Vendeur Test TVA"
+  const vatNumber = "FR12345678901"
+
+  const existing = await prisma.user.findUnique({
+    where: { stripeAccountId },
   })
 
-  const affiliate = await prisma.user.upsert({
+  if (existing) {
+    return prisma.user.update({
+      where: { id: existing.id },
+      data: { name, vatNumber },
+    })
+  }
+
+  try {
+    return await prisma.user.create({
+      data: {
+        email: SUPPLIER_EMAIL,
+        name,
+        role: "SUPPLIER",
+        stripeAccountId,
+        vatNumber,
+      },
+    })
+  } catch (e) {
+    if (isPrismaUniqueViolation(e)) {
+      const raced = await prisma.user.findUnique({ where: { stripeAccountId } })
+      if (raced) {
+        return prisma.user.update({
+          where: { id: raced.id },
+          data: { name, vatNumber },
+        })
+      }
+    }
+    throw e
+  }
+}
+
+async function ensureTestAffiliate() {
+  return prisma.user.upsert({
     where: { email: AFFILIATE_EMAIL },
     create: {
       email: AFFILIATE_EMAIL,
       name: "Affilié Test TVA",
       role: "AFFILIATE",
     },
-    update: {},
+    update: { name: "Affilié Test TVA" },
   })
+}
 
+async function ensureTestUsers(stripeAccountId: string) {
+  const supplier = await ensureTestSupplier(stripeAccountId)
+  const affiliate = await ensureTestAffiliate()
   return { supplier, affiliate }
 }
 
-async function ensureTestListing(supplierId: string, affiliateId: string) {
-  const existing = await prisma.product.findFirst({
-    where: { supplierId, name: "Produit Test TVA Affisell" },
-    include: { affiliateProducts: { where: { affiliateId }, take: 1 } },
+async function ensureAffiliateListing(productId: string, affiliateId: string) {
+  const existing = await prisma.affiliateProduct.findFirst({
+    where: { productId, affiliateId },
   })
-
-  if (existing?.affiliateProducts[0]) {
-    return {
-      product: existing,
-      listing: existing.affiliateProducts[0],
-    }
+  if (existing) {
+    return prisma.affiliateProduct.update({
+      where: { id: existing.id },
+      data: { sellingPriceCents: HT_CENTS, isListed: true },
+    })
   }
-
-  const product = await prisma.product.create({
-    data: {
-      supplierId,
-      name: "Produit Test TVA Affisell",
-      description: "Produit de test Stripe Tax — 100€ HT",
-      basePriceCents: HT_CENTS,
-      commissionRate: 10,
-      stock: 99,
-      active: true,
-      isDraft: false,
-      images: [],
-    },
-  })
-
-  const listing = await prisma.affiliateProduct.create({
+  return prisma.affiliateProduct.create({
     data: {
       affiliateId,
-      productId: product.id,
+      productId,
       sellingPriceCents: HT_CENTS,
       isListed: true,
     },
   })
+}
 
+async function ensureTestListing(supplierId: string, affiliateId: string) {
+  const pinned = await prisma.product.findUnique({ where: { id: TEST_PRODUCT_ID } })
+
+  const product = pinned
+    ? await prisma.product.update({
+        where: { id: TEST_PRODUCT_ID },
+        data: {
+          supplierId,
+          name: "Produit Test TVA Affisell",
+          description: "Produit de test Stripe Tax — 100€ HT",
+          basePriceCents: HT_CENTS,
+          active: true,
+          isDraft: false,
+        },
+      })
+    : await prisma.product.create({
+        data: {
+          id: TEST_PRODUCT_ID,
+          supplierId,
+          name: "Produit Test TVA Affisell",
+          description: "Produit de test Stripe Tax — 100€ HT",
+          basePriceCents: HT_CENTS,
+          commissionRate: 10,
+          stock: 99,
+          active: true,
+          isDraft: false,
+          images: [],
+        },
+      })
+
+  const listing = await ensureAffiliateListing(product.id, affiliateId)
   return { product, listing }
 }
 
@@ -213,12 +273,24 @@ async function main() {
   const { supplier, affiliate } = await ensureTestUsers(connectAccount)
   const { product, listing } = await ensureTestListing(supplier.id, affiliate.id)
 
-  const session = await createCheckoutSession({
-    sellerId: supplier.id,
-    productId: product.id,
-    affiliateProductId: listing.id,
-    productName: product.name,
-  })
+  let session
+  try {
+    session = await createCheckoutSession({
+      sellerId: supplier.id,
+      productId: product.id,
+      affiliateProductId: listing.id,
+      productName: product.name,
+    })
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    if (msg.includes("head office address") && msg.includes("automatic tax")) {
+      console.error("\n❌ Stripe Tax non configuré en mode test.")
+      console.error("   Dashboard → Tax → adresse du siège social (mode test):")
+      console.error("   https://dashboard.stripe.com/test/settings/tax\n")
+      process.exit(1)
+    }
+    throw e
+  }
 
   if (!session.url) {
     console.error("❌ Session Stripe sans URL")
@@ -228,7 +300,7 @@ async function main() {
   console.log("✅ Session Checkout créée (automatic_tax + tax_behavior: exclusive)\n")
   console.log(`   Vendeur:     ${supplier.email} (${supplier.id})`)
   console.log(`   Connect:     ${connectAccount}`)
-  console.log(`   Produit HT:  ${(HT_CENTS / 100).toFixed(2)} €`)
+  console.log(`   Produit:     ${product.id} (HT ${(HT_CENTS / 100).toFixed(2)} €)`)
   console.log(`   Listing:     ${listing.id}\n`)
   console.log("👉 Ouvre et paie en mode test:")
   console.log(`   ${session.url}\n`)
