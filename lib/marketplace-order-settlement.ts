@@ -44,6 +44,34 @@ export function computeMarketplaceOrderSettlement(args: {
   }
 }
 
+/** Three-way Connect split: Supplier + Affiliate + Affisell (HT + platform fee). */
+export function calculateThreeWaySplit(input: {
+  supplierPriceCents: number
+  supplierCommissionRateBps: number
+  affiliateMarginCents: number
+  affisellCommissionRateBps: number
+  stripeFeeCents: number
+}) {
+  const priceClientCents = input.supplierPriceCents + input.affiliateMarginCents
+  const affisellFeeCents = Math.round(priceClientCents * input.affisellCommissionRateBps / 10_000)
+  const totalClientCents = priceClientCents + affisellFeeCents
+  const supplierCommissionToAffiliateCents = Math.round(
+    input.supplierPriceCents * input.supplierCommissionRateBps / 10_000
+  )
+  const supplierPayoutCents = input.supplierPriceCents - supplierCommissionToAffiliateCents
+  const affiliatePayoutCents = supplierCommissionToAffiliateCents + input.affiliateMarginCents
+  return {
+    totalClientCents,
+    priceClientCents,
+    affisellFeeCents,
+    supplierPayoutCents,
+    affiliatePayoutCents,
+    supplierCommissionToAffiliateCents,
+    stripeFeeCents: input.stripeFeeCents,
+    affisellNetCents: affisellFeeCents - input.stripeFeeCents,
+  }
+}
+
 function money(cents: number): string {
   return formatStoreCurrencyFromCents(cents)
 }

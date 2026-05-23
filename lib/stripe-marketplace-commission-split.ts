@@ -1,13 +1,42 @@
 import type Stripe from "stripe"
 
-import { calculateSplit } from "@/lib/commission"
+import { calculateThreeWaySplit } from "@/lib/marketplace-order-settlement"
 import { getStripeClient } from "@/lib/stripe"
 import { prisma } from "@/lib/prisma"
 
-function commissionRateBpsFromEnv(): number {
+function affisellCommissionRateBpsFromEnv(): number {
   const raw = process.env.AFFISELL_COMMISSION_BPS?.trim()
   const n = raw ? Number.parseInt(raw, 10) : 1200
   return Number.isFinite(n) && n >= 0 ? n : 1200
+}
+
+function resolveThreeWayInput(order: {
+  supplierPriceCents: number
+  supplierCommissionRateBps: number
+  affiliateMarginCents: number
+  affisellCommissionRateBps: number
+  basePriceCents: number
+  sellingPriceCents: number
+  marginCents: number
+  quantity: number
+}) {
+  const qty = Math.max(1, order.quantity)
+  const supplierPriceCents =
+    order.supplierPriceCents > 0 ? order.supplierPriceCents : order.basePriceCents * qty
+  const affiliateMarginCents =
+    order.affiliateMarginCents > 0
+      ? order.affiliateMarginCents
+      : Math.max(0, order.marginCents || order.sellingPriceCents - order.basePriceCents * qty)
+  return {
+    supplierPriceCents,
+    supplierCommissionRateBps:
+      order.supplierCommissionRateBps > 0 ? order.supplierCommissionRateBps : 1000,
+    affiliateMarginCents,
+    affisellCommissionRateBps:
+      order.affisellCommissionRateBps > 0
+        ? order.affisellCommissionRateBps
+        : affisellCommissionRateBpsFromEnv(),
+  }
 }
 
 function resolveConnectDestination(
@@ -111,7 +140,7 @@ export async function settleMarketplaceOrdersFromCheckoutSession(
 ): Promise<{ processedOrderIds: string[]; errors: string[] }> {
   const stripe = getStripeClient()
   const session = await retrieveCheckoutSessionForSettlement(sessionOrId)
-  const commissionRateBps = commissionRateBpsFromEnv()
+  const defaultAffisellBps = affisellCommissionRateBpsFromEnv()
 
   console.log("webhook: settleMarketplaceOrdersFromCheckoutSession", {
     sessionId: session.id,
@@ -153,6 +182,7 @@ export async function settleMarketplaceOrdersFromCheckoutSession(
     },
     include: {
       supplier: { select: { id: true, stripeAccountId: true, email: true } },
+      affiliate: { select: { id: true, stripeAccountId: true, email: true } },
     },
   })
 
@@ -178,85 +208,80 @@ export async function settleMarketplaceOrdersFromCheckoutSession(
     }
 
     const allocated = amountsByOrder.get(order.id)
-    const subtotalCents = allocated?.subtotalCents ?? session.amount_subtotal ?? 0
     const taxCents = allocated?.taxCents ?? session.total_details?.amount_tax ?? 0
-    const shippingCents = order.shippingCents ?? 0
-
     const orderStripeFee = allocated?.stripeFeeCents ?? stripeFeeCents
 
-    const split = calculateSplit({
-      subtotalCents,
-      shippingCents,
-      taxCents,
+    const threeWayInput = resolveThreeWayInput(order)
+    const split = calculateThreeWaySplit({
+      ...threeWayInput,
       stripeFeeCents: orderStripeFee,
-      commissionRateBps,
     })
+
+    const supplierConnectId =
+      order.supplier.stripeAccountId?.trim() ||
+      resolveConnectDestination(null, sellerIdMeta, order.supplierId)
+
+    const affiliateConnectId =
+      order.affiliateStripeAccountId?.trim() || order.affiliate?.stripeAccountId?.trim() || null
 
     console.log("split:", {
       orderId: order.id,
       metric: "commission_calculated",
-      subtotalCents,
-      shippingCents,
+      ...threeWayInput,
       taxCents,
-      commissionRateBps,
-      platformCommissionCents: split.commissionCents,
-      sellerPayoutCents: split.sellerPayoutCents,
+      totalClientCents: split.totalClientCents,
+      affisellFeeCents: split.affisellFeeCents,
+      supplierPayoutCents: split.supplierPayoutCents,
+      affiliatePayoutCents: split.affiliatePayoutCents,
       stripeFeeCents: orderStripeFee,
-      totalCents: split.totalCents,
+      affisellNetCents: split.affisellNetCents,
     })
 
-    const destination = resolveConnectDestination(
-      order.supplier.stripeAccountId,
-      sellerIdMeta,
-      order.supplierId
-    )
-
-    if (!destination) {
+    if (!supplierConnectId && split.supplierPayoutCents > 0) {
       console.warn("webhook: skip_transfer_no_seller_account", {
         orderId: order.id,
         supplierId: order.supplierId,
         supplierEmail: order.supplier.email,
       })
-      errors.push(`${order.id}:missing_stripe_account`)
-      await prisma.order.update({
-        where: { id: order.id },
-        data: {
-          stripePaymentIntentId: paymentIntent.id,
-          stripeChargeId: charge.id,
-          subtotalCents,
-          taxCents,
-          totalCents: split.totalCents,
-          platformCommissionCents: split.commissionCents,
-          affisellFeeCents: split.commissionCents,
-          stripeFeesCents: split.stripeFeeCents,
-          sellerPayoutCents: split.sellerPayoutCents,
-          platformCommissionRate: commissionRateBps / 10_000,
-        },
-      })
-      continue
     }
 
     let stripeTransferId: string | null = null
     try {
-      if (split.sellerPayoutCents > 0) {
-        const transfer = await stripe.transfers.create({
-          amount: split.sellerPayoutCents,
-          currency: (order.currency ?? paymentIntent.currency ?? "eur").toLowerCase(),
-          destination,
+      // Transfer Supplier
+      if (split.supplierPayoutCents > 0 && supplierConnectId) {
+        const supplierTransfer = await stripe.transfers.create({
+          amount: split.supplierPayoutCents,
+          currency: "eur",
+          destination: supplierConnectId,
           source_transaction: charge.id,
-          metadata: {
-            orderId: order.id,
-            sessionId: session.id,
-            commissionCents: String(split.commissionCents),
-            taxCents: String(taxCents),
-          },
+          transfer_group: order.id,
+          metadata: { orderId: order.id, role: "supplier" },
         })
-        stripeTransferId = transfer.id
+        stripeTransferId = supplierTransfer.id
         console.log("transfer_created:", {
           orderId: order.id,
-          transferId: transfer.id,
-          amount: split.sellerPayoutCents,
-          destination,
+          role: "supplier",
+          transferId: supplierTransfer.id,
+          amount: split.supplierPayoutCents,
+          destination: supplierConnectId,
+        })
+      }
+      // Transfer Affiliate
+      if (split.affiliatePayoutCents > 0 && affiliateConnectId) {
+        const affiliateTransfer = await stripe.transfers.create({
+          amount: split.affiliatePayoutCents,
+          currency: "eur",
+          destination: affiliateConnectId,
+          source_transaction: charge.id,
+          transfer_group: order.id,
+          metadata: { orderId: order.id, role: "affiliate" },
+        })
+        console.log("transfer_created:", {
+          orderId: order.id,
+          role: "affiliate",
+          transferId: affiliateTransfer.id,
+          amount: split.affiliatePayoutCents,
+          destination: affiliateConnectId,
         })
       }
     } catch (e) {
@@ -266,19 +291,28 @@ export async function settleMarketplaceOrdersFromCheckoutSession(
       continue
     }
 
+    const totalCentsWithTax = split.totalClientCents + taxCents
+
     await prisma.order.update({
       where: { id: order.id },
       data: {
         stripePaymentIntentId: paymentIntent.id,
         stripeChargeId: charge.id,
-        subtotalCents,
+        subtotalCents: threeWayInput.supplierPriceCents + threeWayInput.affiliateMarginCents,
         taxCents,
-        totalCents: split.totalCents,
-        platformCommissionRate: commissionRateBps / 10_000,
-        platformCommissionCents: split.commissionCents,
-        affisellFeeCents: split.commissionCents,
+        totalCents: totalCentsWithTax,
+        supplierPriceCents: threeWayInput.supplierPriceCents,
+        supplierCommissionRateBps: threeWayInput.supplierCommissionRateBps,
+        affiliateMarginCents: threeWayInput.affiliateMarginCents,
+        affisellCommissionRateBps: threeWayInput.affisellCommissionRateBps,
+        platformCommissionRate: threeWayInput.affisellCommissionRateBps / 10_000,
+        platformCommissionCents: split.affisellFeeCents,
+        affisellFeeCents: split.affisellFeeCents,
         stripeFeesCents: split.stripeFeeCents,
-        sellerPayoutCents: split.sellerPayoutCents,
+        supplierPayoutCents: split.supplierPayoutCents,
+        affiliatePayoutCents: split.affiliatePayoutCents,
+        sellerPayoutCents: split.supplierPayoutCents,
+        affiliateStripeAccountId: affiliateConnectId,
         currency: (order.currency ?? paymentIntent.currency ?? "eur").toUpperCase(),
         paymentSettlementStatus: stripeTransferId ? "SETTLED" : "PAID",
         stripeTransferId,
@@ -286,10 +320,10 @@ export async function settleMarketplaceOrdersFromCheckoutSession(
       },
     })
 
-    if (!order.supplier.stripeAccountId?.trim() && destination) {
+    if (!order.supplier.stripeAccountId?.trim() && supplierConnectId) {
       await prisma.user.updateMany({
         where: { id: order.supplierId, stripeAccountId: null },
-        data: { stripeAccountId: destination },
+        data: { stripeAccountId: supplierConnectId },
       })
     }
 

@@ -833,6 +833,16 @@ model Order {
   stripeFeesCents          Int                 @default(0)
   /** Net transferred to supplier via Stripe Connect. */
   sellerPayoutCents        Int                 @default(0)
+  /** Three-way split — supplier wholesale (HT). */
+  supplierPriceCents       Int                 @default(0)
+  supplierCommissionRateBps Int                @default(1000)
+  /** Affiliate markup above supplier price (HT). */
+  affiliateMarginCents     Int                 @default(0)
+  affisellCommissionRateBps Int                @default(1200)
+  /** Connect payout to supplier (three-way split). */
+  supplierPayoutCents      Int                 @default(0)
+  /** Snapshot of affiliate Connect account at settlement. */
+  affiliateStripeAccountId String?
   currency                 String              @default("EUR")
   paymentSettlementStatus  OrderPaymentSettlementStatus @default(PENDING)
   createdAt                DateTime            @default(now())
@@ -862,6 +872,8 @@ model Order {
 
   supplierFulfillmentLinks SupplierFulfillmentOrderLine[]
   stripeRefunds            OrderStripeRefund[]
+
+  @@index([affiliateId])
 }
 
 /** Stripe refund rows + commission clawback (Connect settlement). */
