@@ -87,6 +87,16 @@ async function main() {
     console.log("  stripeTransferId:       ", order.stripeTransferId ?? "—")
     console.log("  supplier Connect:       ", order.supplier.stripeAccountId ?? "—")
 
+    if (
+      order.paymentSettlementStatus === "SETTLED" &&
+      order.stripeTransferId &&
+      (order.sellerPayoutCents ?? 0) > 0
+    ) {
+      console.log("\n  ✅ Commande SETTLED (transfer Connect OK)")
+    } else if (order.paymentSettlementStatus === "PENDING") {
+      console.log("\n  ⚠️  Encore PENDING — resend webhook checkout.session.completed")
+    }
+
     const subtotal = order.subtotalCents ?? 0
     const taxCents = order.taxCents ?? 0
     const totalCents = order.totalCents ?? order.sellingPriceCents

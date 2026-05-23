@@ -9,6 +9,8 @@ export type CommissionSplitInput = {
   /** VAT collected by seller (Stripe Tax). */
   taxCents: number
   stripeFeeCents: number
+  /** Basis points on HT (1000 = 10%, 1200 = 12%). Defaults to COMMISSION_RATE. */
+  commissionRateBps?: number
 }
 
 export type CommissionSplitResult = {
@@ -27,7 +29,11 @@ export function calculateSplit(params: CommissionSplitInput): CommissionSplitRes
   const stripeFeeCents = Math.max(0, Math.round(params.stripeFeeCents))
 
   const commissionBaseCents = subtotalCents + shippingCents
-  const commissionCents = Math.round(commissionBaseCents * COMMISSION_RATE)
+  const rate =
+    params.commissionRateBps != null
+      ? params.commissionRateBps / 10_000
+      : COMMISSION_RATE
+  const commissionCents = Math.round(commissionBaseCents * rate)
   const totalCents = subtotalCents + shippingCents + taxCents
   const sellerPayoutCents = totalCents - commissionCents - stripeFeeCents
 

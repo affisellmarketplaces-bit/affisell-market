@@ -4,7 +4,10 @@ import type Stripe from "stripe"
 
 import { createBlindDropshipPaidNotifications } from "@/lib/blind-dropship-notifications"
 import { handleStripeChargeRefunded } from "@/lib/stripe-charge-refunded"
-import { processMarketplaceCommissionForPaymentIntent } from "@/lib/stripe-marketplace-commission-split"
+import {
+  processMarketplaceCommissionForPaymentIntent,
+  settleMarketplaceOrdersFromCheckoutSession,
+} from "@/lib/stripe-marketplace-commission-split"
 import { syncOrderVatFromCheckoutSession } from "@/lib/stripe-sync-order-vat-from-session"
 import { handleStripeInvoicePaymentFailed } from "@/lib/stripe-invoice-payment-failed"
 import { fulfillMarketplaceStripeSession } from "@/lib/stripe-marketplace-fulfill"
@@ -75,18 +78,20 @@ export async function POST(req: NextRequest) {
     const shippingAddress = addressFromSession(session) as Prisma.InputJsonValue
 
     try {
+      console.log("webhook: checkout.session.completed", { sessionId: session.id })
       await fulfillMarketplaceStripeSession(session, shippingAddress, customerEmail)
       const vatSync = await syncOrderVatFromCheckoutSession(session.id)
-      const piRef = session.payment_intent
-      const piId = typeof piRef === "string" ? piRef : piRef?.id
-      if (piId) {
-        const pi = await stripe.paymentIntents.retrieve(piId)
-        const commission = await processMarketplaceCommissionForPaymentIntent(pi)
-        return NextResponse.json({ received: true, fulfilled: true, vatSync, commission })
+      const settlement = await settleMarketplaceOrdersFromCheckoutSession(session.id)
+      if (settlement.errors.length > 0 && settlement.processedOrderIds.length === 0) {
+        console.error("webhook: settlement_failed", settlement)
+        return NextResponse.json(
+          { error: "settlement_failed", fulfilled: true, vatSync, settlement },
+          { status: 500 }
+        )
       }
-      return NextResponse.json({ received: true, fulfilled: true, vatSync })
+      return NextResponse.json({ received: true, fulfilled: true, vatSync, settlement })
     } catch (e) {
-      console.error("fulfillMarketplaceStripeSession", e)
+      console.error("webhook: checkout.session.completed error", e)
       return NextResponse.json({ error: "fulfill_failed" }, { status: 500 })
     }
   }
@@ -129,16 +134,19 @@ export async function POST(req: NextRequest) {
     const blindId = pi.metadata?.blindDropshipOrderId?.trim()
     if (!blindId || pi.metadata?.flow !== "blind_dropship") {
       try {
-        const commission = await processMarketplaceCommissionForPaymentIntent(pi)
-        if (commission.processedOrderIds.length > 0) {
-          return NextResponse.json({ received: true, commission })
+        const settlement = await processMarketplaceCommissionForPaymentIntent(pi)
+        if (settlement.processedOrderIds.length > 0) {
+          return NextResponse.json({ received: true, settlement })
         }
-        if (commission.errors.length > 0) {
-          return NextResponse.json({ error: "commission_split_failed", commission }, { status: 500 })
+        if (settlement.errors.length > 0) {
+          const retriable = settlement.errors.some((e) => e.includes("orders_not_found"))
+          if (!retriable) {
+            return NextResponse.json({ error: "settlement_failed", settlement }, { status: 500 })
+          }
         }
       } catch (e) {
-        console.error("[stripe/webhook] marketplace commission split", e)
-        return NextResponse.json({ error: "commission_split_failed" }, { status: 500 })
+        console.error("webhook: payment_intent.succeeded settlement error", e)
+        return NextResponse.json({ error: "settlement_failed" }, { status: 500 })
       }
     }
 

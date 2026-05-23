@@ -745,6 +745,8 @@ model BuyerRewardLedger {
 enum OrderPaymentSettlementStatus {
   PENDING
   PAID
+  /** Connect transfer completed (seller paid out). */
+  SETTLED
   PARTIALLY_REFUNDED
   REFUNDED
   FAILED
