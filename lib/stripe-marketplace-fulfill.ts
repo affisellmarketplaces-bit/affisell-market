@@ -282,7 +282,7 @@ export async function fulfillMarketplaceStripeSession(
   }
 
   const existing = await prisma.order.findUnique({ where: { stripeSessionId: sessionId } })
-  if (existing) return
+  if (existing?.status === "paid") return
 
   const affiliateProductId = meta.affiliateProductId?.trim()
   if (!affiliateProductId) return
@@ -318,7 +318,7 @@ export async function fulfillMarketplaceStripeSession(
 
   await prisma.$transaction(async (tx) => {
     const dup = await tx.order.findUnique({ where: { stripeSessionId: sessionId } })
-    if (dup) return
+    if (dup?.status === "paid") return
 
     const earnUserId = await resolveBuyerUserIdForEarn(tx, buyerUserId, customerEmail)
 
@@ -331,6 +331,107 @@ export async function fulfillMarketplaceStripeSession(
       if (!r.ok) {
         throw new Error(`buyer_redeem_failed:${r.reason}`)
       }
+    }
+
+    if (dup?.status === "PENDING") {
+      const basePriceCents =
+        marketplaceWholesaleCentsForOption({
+          productBasePriceCents: listing.product.basePriceCents,
+          variants,
+          optionName,
+        }) * qty
+      const settlement = computeMarketplaceOrderSettlement({
+        sellingPriceCents: paidLineCents,
+        basePriceCents,
+        supplierCommissionRatePercent: commissionRateForOption({
+          variants,
+          optionName,
+          productCommissionRate: listing.product.commissionRate,
+        }),
+      })
+      const variantImageUrl =
+        resolveMarketplaceOrderLineImageUrl(listing, checkoutVariantLabel, checkoutVariantSignature) ||
+        null
+
+      await tx.order.update({
+        where: { id: dup.id },
+        data: {
+          buyerUserId: earnUserId || null,
+          customerEmail,
+          shippingAddress,
+          quantity: qty,
+          variantLabel: checkoutVariantLabel || null,
+          variantImageUrl,
+          basePriceCents,
+          sellingPriceCents: settlement.sellingPriceCents,
+          marginCents: settlement.marginCents,
+          commissionCents: settlement.affiliateCommissionCents,
+          affiliatePayoutCents: settlement.affiliateCommissionCents,
+          affisellFeeCents: settlement.affisellFeeCents,
+          affiliateMarginRetainedCents: settlement.affiliateMarginRetainedCents,
+          status: "paid",
+          paidAt: new Date(),
+          fulfillmentStatus: "PENDING",
+          subtotalCents: basePriceCents,
+          totalCents: settlement.sellingPriceCents,
+          paymentSettlementStatus: "PENDING",
+          currency: checkoutCurrency.toUpperCase(),
+        },
+      })
+
+      await tx.affiliateProduct.update({
+        where: { id: listing.id },
+        data: { conversions: { increment: qty } },
+      })
+
+      const variantBit = checkoutVariantLabel ? ` · ${checkoutVariantLabel}` : ""
+      await createMarketplaceOrderNotifications(tx, {
+        orderId: dup.id,
+        supplierId: listing.product.supplierId,
+        affiliateId: listing.affiliateId,
+        productName: listing.product.name,
+        variantBit,
+        qty,
+        customerEmail,
+        partnerListingCode: listing.affiliate.store?.partnerListingCode ?? null,
+        settlement,
+        imageUrl: variantImageUrl,
+      })
+
+      const productImageUrl = resolveOrderConfirmationImageUrl({
+        productImages: listing.product.images,
+        variantImageUrl,
+      })
+      const shippingName =
+        shippingAddress &&
+        typeof shippingAddress === "object" &&
+        !Array.isArray(shippingAddress) &&
+        typeof (shippingAddress as Record<string, unknown>).name === "string"
+          ? ((shippingAddress as Record<string, unknown>).name as string).trim()
+          : undefined
+
+      await sendOrderConfirmationEmail({
+        orderId: dup.id,
+        productName: listing.product.name,
+        productImageUrl,
+        quantity: qty,
+        total: (paidLineCents / 100).toFixed(2),
+        currency: checkoutCurrency,
+        customerEmail,
+        customerName: shippingName,
+      })
+
+      if (earnUserId) {
+        const earn = buyerEarnCentsForLinePaid(paidLineCents, listing)
+        await earnBuyerRewardIdempotent(tx, {
+          userId: earnUserId,
+          amountCents: earn,
+          stripeSessionId: sessionId,
+          affiliateProductId: listing.id,
+          orderId: dup.id,
+        })
+      }
+      return
     }
 
     const orderId = await createPaidMarketplaceOrder(tx, {

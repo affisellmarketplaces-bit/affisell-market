@@ -283,6 +283,10 @@ model Product {
   compareAt                     Decimal?
   commissionRate                Int
   /**
+   * Supplier → affiliate commission in basis points (1000 = 10% of supplier price).
+   */
+  supplierCommissionRateBps     Int?
+  /**
    * PHYSICAL: affiliate commission % max 99; SOFTWARE | SUBSCRIPTION allows up to 100.
    */
   listingKind                   String   @default("PHYSICAL")
@@ -645,6 +649,10 @@ model AffiliateProduct {
   orders      Order[]
 
   sellingPriceCents Int
+  /**
+   * Affiliate markup above supplier price (HT, per unit). 0 = derive from selling − base at checkout.
+   */
+  marginCents       Int @default(0)
 
   customTitle       String?
   customDescription String?

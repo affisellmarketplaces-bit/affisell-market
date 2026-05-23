@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import { NextResponse } from "next/server"
 
 import {
@@ -18,6 +19,7 @@ import {
 import { prisma } from "@/lib/prisma"
 import {
   marketplaceSellingPriceCentsForOption,
+  marketplaceWholesaleCentsForOption,
   variantsFromDb,
 } from "@/lib/product-variants"
 import { stripeProductImages } from "@/lib/product-images"
@@ -91,7 +93,7 @@ async function loadListing(id: string) {
       product: { active: true },
       affiliate: { role: "AFFILIATE" },
     },
-    include: { product: true },
+    include: { product: true, affiliate: true },
   })
 }
 
@@ -312,6 +314,14 @@ export async function marketplaceCheckoutPOST(request: Request) {
     return NextResponse.json({ error: "Listing not found or inactive" }, { status: 404 })
   }
 
+  const product = listing.product
+  const affiliateProduct = listing
+  const affiliate = listing.affiliate
+
+  if (!affiliate.stripeAccountId?.trim()) {
+    return NextResponse.json({ error: "Affiliate Stripe account not connected" }, { status: 400 })
+  }
+
   const session = await auth()
   const buyerUserId = session?.user?.id?.trim() || ""
 
@@ -355,6 +365,52 @@ export async function marketplaceCheckoutPOST(request: Request) {
   const oneShotVariantSignature = normalizeCartVariantSignature(body.selectedColor, body.selectedSize)
   pushLineItemsForPaidTotal(stripeLineItems, listing, paidLineCents[0]!, qty, oneShotVariantLabel)
 
+  const variants = variantsFromDb(product.variants)
+  const optionName = checkoutOptionName({
+    selectedColor: body.selectedColor,
+    selectedSize: body.selectedSize,
+  })
+  const unitSupplierCents = marketplaceWholesaleCentsForOption({
+    productBasePriceCents: product.basePriceCents,
+    variants,
+    optionName,
+  })
+  const supplierPriceCents = unitSupplierCents * qty
+  const sellingPriceCents = paidLineCents[0]!
+  const unitMarginCents =
+    affiliateProduct.marginCents > 0
+      ? affiliateProduct.marginCents
+      : Math.max(0, unitSelling - unitSupplierCents)
+  const lineMarginCents = Math.max(0, sellingPriceCents - supplierPriceCents)
+
+  const order = await prisma.order.create({
+    data: {
+      status: "PENDING",
+      currency: "eur",
+      productId: product.id,
+      supplierId: product.supplierId,
+      affiliateId: affiliate.id,
+      affiliateProductId: affiliateProduct.id,
+      quantity: qty,
+      customerEmail: "",
+      shippingAddress: {},
+      stripeSessionId: `pending_${randomUUID()}`,
+      basePriceCents: supplierPriceCents,
+      sellingPriceCents,
+      commissionCents: 0,
+      marginCents: lineMarginCents,
+      affiliatePayoutCents: 0,
+      variantLabel: oneShotVariantLabel || null,
+      supplierPriceCents: unitSupplierCents * qty,
+      supplierCommissionRateBps: product.supplierCommissionRateBps ?? 1000,
+      affiliateMarginCents:
+        affiliateProduct.marginCents > 0 ? affiliateProduct.marginCents * qty : unitMarginCents * qty,
+      affisellCommissionRateBps: 1200,
+      affiliateStripeAccountId: affiliate.stripeAccountId,
+      paymentSettlementStatus: "PENDING",
+    },
+  })
+
   const { baseUrl, cancelPath, successPath } = checkoutBaseUrls(body)
 
   const checkoutSession = await stripe.checkout.sessions.create({
@@ -373,17 +429,20 @@ export async function marketplaceCheckoutPOST(request: Request) {
     payment_intent_data: {
       metadata: {
         flow: "marketplace",
-        sellerId: listing.product.supplierId,
-        affiliateProductId: listing.id,
+        sellerId: product.supplierId,
+        orderId: order.id,
+        productId: product.id,
+        affiliateProductId: affiliateProduct.id,
         ...(buyerUserId ? { buyerUserId } : {}),
       },
     },
     metadata: {
-      affiliateProductId: listing.id,
-      productId: listing.productId,
-      supplierId: listing.product.supplierId,
-      sellerId: listing.product.supplierId,
-      affiliateId: listing.affiliateId,
+      orderId: order.id,
+      productId: product.id,
+      affiliateProductId: affiliateProduct.id,
+      supplierId: product.supplierId,
+      sellerId: product.supplierId,
+      affiliateId: affiliate.id,
       appliedRewardCents: String(appliedCents),
       linePaids: JSON.stringify(paidLineCents),
       checkoutQty: String(qty),
@@ -394,8 +453,14 @@ export async function marketplaceCheckoutPOST(request: Request) {
   })
 
   if (!checkoutSession.url) {
+    await prisma.order.delete({ where: { id: order.id } }).catch(() => undefined)
     return NextResponse.json({ error: "Stripe URL unavailable" }, { status: 502 })
   }
 
-  return NextResponse.json({ url: checkoutSession.url })
+  await prisma.order.update({
+    where: { id: order.id },
+    data: { stripeSessionId: checkoutSession.id },
+  })
+
+  return NextResponse.json({ url: checkoutSession.url, orderId: order.id })
 }
