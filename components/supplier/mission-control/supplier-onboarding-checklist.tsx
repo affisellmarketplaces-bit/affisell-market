@@ -43,6 +43,10 @@ export function SupplierOnboardingChecklist({ storeSlug }: Props) {
       <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
         Trois étapes pour passer de zéro à votre première vente affiliée.
       </p>
+      <p className="mt-3 rounded-lg border border-amber-200/80 bg-amber-50/90 px-3 py-2 text-xs leading-relaxed text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100">
+        Le Vendeur est seul responsable de la collecte, déclaration et reversement de la TVA.
+        Affisell prélève 12&nbsp;% sur le montant HT (produits et livraison), jamais sur la TVA.
+      </p>
       <ol className="mt-5 space-y-3">
         {steps.map((step, index) => {
           const href = step.id === "share" ? shareHref : step.href!

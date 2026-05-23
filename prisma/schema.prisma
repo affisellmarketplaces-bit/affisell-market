@@ -23,6 +23,10 @@ model User {
   isPro         Boolean   @default(false)
   stripeCustomerId     String?   @unique
   stripeSubscriptionId String?   @unique
+  /** Stripe Connect Express/Standard account for marketplace seller payouts. */
+  stripeAccountId      String?   @unique
+  /** Seller VAT number (invoicing; seller remains liable for VAT). */
+  vatNumber            String?
   proActivatedAt       DateTime?
 
   accounts Account[]
@@ -738,6 +742,15 @@ model BuyerRewardLedger {
   @@index([orderId])
 }
 
+enum OrderPaymentSettlementStatus {
+  PENDING
+  PAID
+  PARTIALLY_REFUNDED
+  REFUNDED
+  FAILED
+  CANCELLED
+}
+
 model Order {
   id                       String              @id @default(cuid())
   productId                String
@@ -797,6 +810,29 @@ model Order {
   supplierPayoutAt         DateTime?
   affiliatePayoutAt        DateTime?
   stripeSessionId          String              @unique
+  stripePaymentIntentId    String?             @unique
+  stripeInvoiceId          String?             @unique
+  stripeChargeId           String?             @unique
+  stripeTransferId         String?             @unique
+  stripeCustomerId         String?
+  /** Line HT (products) — commission 12% base, excludes tax. */
+  subtotalCents            Int?
+  /** Shipping HT (excl. tax). */
+  shippingCents            Int                 @default(0)
+  /** VAT collected on checkout (Stripe Tax; seller liable). */
+  taxCents                 Int                 @default(0)
+  taxCountry               String?
+  taxRate                  Decimal?            @db.Decimal(5, 4)
+  /** Total paid by buyer (line TTC). */
+  totalCents               Int?
+  platformCommissionRate   Decimal             @default(0.12) @db.Decimal(5, 4)
+  /** Affisell platform fee (12% of subtotalCents). Distinct from affiliate `commissionCents`. */
+  platformCommissionCents  Int                 @default(0)
+  stripeFeesCents          Int                 @default(0)
+  /** Net transferred to supplier via Stripe Connect. */
+  sellerPayoutCents        Int                 @default(0)
+  currency                 String              @default("EUR")
+  paymentSettlementStatus  OrderPaymentSettlementStatus @default(PENDING)
   createdAt                DateTime            @default(now())
   updatedAt                DateTime            @updatedAt
   product                  Product             @relation(fields: [productId], references: [id])
@@ -823,6 +859,22 @@ model Order {
   autoFulfillmentBatch   AutoFulfillmentBatch? @relation(fields: [autoFulfillmentBatchId], references: [id], onDelete: SetNull)
 
   supplierFulfillmentLinks SupplierFulfillmentOrderLine[]
+  stripeRefunds            OrderStripeRefund[]
+}
+
+/** Stripe refund rows + commission clawback (Connect settlement). */
+model OrderStripeRefund {
+  id                      String   @id @default(cuid())
+  orderId                 String
+  order                   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  stripeRefundId          String   @unique
+  amountCents             Int
+  commissionReturnedCents Int
+  taxReturnedCents          Int      @default(0)
+  reason                  String?
+  createdAt               DateTime @default(now())
+
+  @@index([orderId])
 }
 
 /**

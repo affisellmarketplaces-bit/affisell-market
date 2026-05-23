@@ -127,6 +127,10 @@ export default function SupplierSignupPage() {
                 className="w-full rounded-xl border border-gray-300 px-4 py-2.5 outline-none transition focus:ring-2 focus:ring-emerald-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
               />
             </div>
+            <p className="rounded-lg border border-amber-200/80 bg-amber-50/90 px-3 py-2 text-xs leading-relaxed text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100">
+              Le Vendeur est seul responsable de la collecte, déclaration et reversement de la TVA.
+              Affisell prélève 12&nbsp;% sur le montant HT (produits et livraison), jamais sur la TVA.
+            </p>
             <button
               type="submit"
               disabled={loading}

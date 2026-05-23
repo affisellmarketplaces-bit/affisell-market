@@ -21,6 +21,11 @@ import {
   variantsFromDb,
 } from "@/lib/product-variants"
 import { stripeProductImages } from "@/lib/product-images"
+import {
+  buildHtLineItem,
+  marketplaceCheckoutTaxOptions,
+  type MarketplaceStripeLineItem,
+} from "@/lib/marketplace-stripe-checkout"
 import { getStripeClient } from "@/lib/stripe"
 
 function checkoutBaseUrls(body: { cancelPath?: string; successPath?: string }) {
@@ -98,17 +103,8 @@ type LoadedLine = {
   listing: NonNullable<Awaited<ReturnType<typeof loadListing>>>
 }
 
-type StripeLineItem = {
-  price_data: {
-    currency: "eur"
-    unit_amount: number
-    product_data: { name: string; images: string[] }
-  }
-  quantity: number
-}
-
 function pushLineItemsForPaidTotal(
-  items: StripeLineItem[],
+  items: MarketplaceStripeLineItem[],
   listing: LoadedLine["listing"],
   linePaidCents: number,
   qty: number,
@@ -120,15 +116,14 @@ function pushLineItemsForPaidTotal(
     qty > 1 ? `${baseTitle}${variantSuffix} ×${qty}` : `${baseTitle}${variantSuffix}`
   const gallery = listingGalleryUrls(listing.customImages, listing.product.images)
   const images = stripeProductImages(gallery) ?? []
-  const total = Math.round(linePaidCents)
-  items.push({
-    price_data: {
-      currency: "eur",
-      unit_amount: total,
-      product_data: { name: displayName, images },
-    },
-    quantity: 1,
-  })
+  items.push(
+    buildHtLineItem({
+      name: displayName,
+      images,
+      linePaidCentsHt: linePaidCents,
+      qty,
+    })
+  )
 }
 
 function computePaidLinesWithReward(args: {
@@ -237,11 +232,14 @@ async function checkoutFromItems(
     }
   }
 
-  const stripeLineItems: StripeLineItem[] = []
+  const stripeLineItems: MarketplaceStripeLineItem[] = []
   for (let i = 0; i < loaded.length; i++) {
     const row = loaded[i]!
     pushLineItemsForPaidTotal(stripeLineItems, row.listing, paidLineCents[i]!, row.qty, row.variantLabel)
   }
+
+  const supplierIds = [...new Set(loaded.map((l) => l.listing.product.supplierId))]
+  const primarySupplierId = supplierIds.length === 1 ? supplierIds[0]! : null
 
   const { baseUrl, cancelPath, successPath } = checkoutBaseUrls(opts)
 
@@ -249,6 +247,7 @@ async function checkoutFromItems(
     mode: "payment",
     payment_method_types: ["card"],
     line_items: stripeLineItems,
+    ...marketplaceCheckoutTaxOptions(),
     success_url: `${baseUrl}${successPath}`,
     cancel_url: `${baseUrl}${cancelPath}`,
     customer_creation: "always",
@@ -257,10 +256,18 @@ async function checkoutFromItems(
       allowed_countries: ["US", "CA", "GB", "FR", "DE", "ES", "IT", "PT", "BE", "NL", "CH"],
     },
     phone_number_collection: { enabled: true },
+    payment_intent_data: {
+      metadata: {
+        flow: "marketplace",
+        ...(primarySupplierId ? { sellerId: primarySupplierId } : {}),
+        ...(buyerUserId ? { buyerUserId } : {}),
+      },
+    },
     metadata: {
       cartLines: JSON.stringify(normalized),
       appliedRewardCents: String(appliedCents),
       linePaids: JSON.stringify(paidLineCents),
+      ...(primarySupplierId ? { sellerId: primarySupplierId } : {}),
       ...(buyerUserId ? { buyerUserId } : {}),
     },
   })
@@ -340,7 +347,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
     )
   }
 
-  const stripeLineItems: StripeLineItem[] = []
+  const stripeLineItems: MarketplaceStripeLineItem[] = []
   const oneShotVariantLabel = resolveCheckoutVariantLabel({
     selectedColor: body.selectedColor,
     selectedSize: body.selectedSize,
@@ -354,6 +361,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
     mode: "payment",
     payment_method_types: ["card"],
     line_items: stripeLineItems,
+    ...marketplaceCheckoutTaxOptions(),
     success_url: `${baseUrl}${successPath}`,
     cancel_url: `${baseUrl}${cancelPath}`,
     customer_creation: "always",
@@ -362,10 +370,19 @@ export async function marketplaceCheckoutPOST(request: Request) {
       allowed_countries: ["US", "CA", "GB", "FR", "DE", "ES", "IT", "PT", "BE", "NL", "CH"],
     },
     phone_number_collection: { enabled: true },
+    payment_intent_data: {
+      metadata: {
+        flow: "marketplace",
+        sellerId: listing.product.supplierId,
+        affiliateProductId: listing.id,
+        ...(buyerUserId ? { buyerUserId } : {}),
+      },
+    },
     metadata: {
       affiliateProductId: listing.id,
       productId: listing.productId,
       supplierId: listing.product.supplierId,
+      sellerId: listing.product.supplierId,
       affiliateId: listing.affiliateId,
       appliedRewardCents: String(appliedCents),
       linePaids: JSON.stringify(paidLineCents),

@@ -105,6 +105,9 @@ async function createPaidMarketplaceOrder(
       status: "paid",
       paidAt: new Date(),
       fulfillmentStatus: "PENDING",
+      subtotalCents: basePriceCents,
+      totalCents: settlement.sellingPriceCents,
+      paymentSettlementStatus: "PENDING",
     },
   })
 

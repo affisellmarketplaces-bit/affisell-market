@@ -4,6 +4,8 @@ import type Stripe from "stripe"
 
 import { createBlindDropshipPaidNotifications } from "@/lib/blind-dropship-notifications"
 import { handleStripeChargeRefunded } from "@/lib/stripe-charge-refunded"
+import { processMarketplaceCommissionForPaymentIntent } from "@/lib/stripe-marketplace-commission-split"
+import { syncOrderVatFromCheckoutSession } from "@/lib/stripe-sync-order-vat-from-session"
 import { handleStripeInvoicePaymentFailed } from "@/lib/stripe-invoice-payment-failed"
 import { fulfillMarketplaceStripeSession } from "@/lib/stripe-marketplace-fulfill"
 import {
@@ -74,6 +76,15 @@ export async function POST(req: NextRequest) {
 
     try {
       await fulfillMarketplaceStripeSession(session, shippingAddress, customerEmail)
+      const vatSync = await syncOrderVatFromCheckoutSession(session.id)
+      const piRef = session.payment_intent
+      const piId = typeof piRef === "string" ? piRef : piRef?.id
+      if (piId) {
+        const pi = await stripe.paymentIntents.retrieve(piId)
+        const commission = await processMarketplaceCommissionForPaymentIntent(pi)
+        return NextResponse.json({ received: true, fulfilled: true, vatSync, commission })
+      }
+      return NextResponse.json({ received: true, fulfilled: true, vatSync })
     } catch (e) {
       console.error("fulfillMarketplaceStripeSession", e)
       return NextResponse.json({ error: "fulfill_failed" }, { status: 500 })
@@ -116,6 +127,21 @@ export async function POST(req: NextRequest) {
   if (event.type === "payment_intent.succeeded") {
     const pi = event.data.object as Stripe.PaymentIntent
     const blindId = pi.metadata?.blindDropshipOrderId?.trim()
+    if (!blindId || pi.metadata?.flow !== "blind_dropship") {
+      try {
+        const commission = await processMarketplaceCommissionForPaymentIntent(pi)
+        if (commission.processedOrderIds.length > 0) {
+          return NextResponse.json({ received: true, commission })
+        }
+        if (commission.errors.length > 0) {
+          return NextResponse.json({ error: "commission_split_failed", commission }, { status: 500 })
+        }
+      } catch (e) {
+        console.error("[stripe/webhook] marketplace commission split", e)
+        return NextResponse.json({ error: "commission_split_failed" }, { status: 500 })
+      }
+    }
+
     if (blindId && pi.metadata?.flow === "blind_dropship") {
       const paid = Math.round(pi.amount_received ?? pi.amount ?? 0)
       const order = await prisma.blindDropshipOrder.findUnique({ where: { id: blindId } })
