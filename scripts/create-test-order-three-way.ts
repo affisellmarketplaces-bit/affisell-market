@@ -1,20 +1,21 @@
+import { config } from "dotenv"
+
+config({ path: ".env.local" })
+
 /**
  * Run: npx tsx scripts/create-test-order-three-way.ts
  */
 import { randomUUID } from "node:crypto"
-import { resolve } from "node:path"
-import { config } from "dotenv"
 import { PrismaClient } from "@prisma/client"
 import Stripe from "stripe"
 
-config({ path: resolve(process.cwd(), ".env.local") })
-config({ path: resolve(process.cwd(), ".env") })
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
-if (!process.env.STRIPE_SECRET_KEY?.trim()) {
-  throw new Error("STRIPE_SECRET_KEY manquant")
+if (!process.env.STRIPE_SECRET_KEY?.startsWith("sk_test_")) {
+  throw new Error("STRIPE_SECRET_KEY invalide ou manquante")
 }
+console.log("Key OK:", process.env.STRIPE_SECRET_KEY.substring(0, 15))
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 const prisma = new PrismaClient()
 
 const LINE_TOTAL_CENTS = 14_560
@@ -142,22 +143,24 @@ async function main() {
   })
 
   // 5. Session checkout
+  const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001"
+
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
-    expires_at: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
     line_items: [
       {
         price_data: {
           currency: "eur",
           product_data: { name: product.name },
-          unit_amount: LINE_TOTAL_CENTS,
+          unit_amount: 14560,
         },
         quantity: 1,
       },
     ],
-    success_url: "http://localhost:3001/success?session_id={CHECKOUT_SESSION_ID}",
-    cancel_url: "http://localhost:3001/cancel",
+    success_url: `${BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${BASE_URL}/cancel`,
     metadata: { orderId: order.id },
+    expires_at: Math.floor(Date.now() / 1000) + 86400, // 24h
   })
 
   if (!session.url) {
