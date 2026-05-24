@@ -6,6 +6,8 @@ const createWebhook = vi.fn()
 const findUniqueInTx = vi.fn()
 const scheduleMarketplaceTransferAttempts = vi.fn()
 const runProcessTransfersJob = vi.fn()
+const ensureMarketplaceCheckoutFulfilled = vi.fn()
+const findOrderIdsForCheckoutSession = vi.fn()
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -22,6 +24,18 @@ vi.mock("@/lib/prisma", () => ({
     },
   },
 }))
+
+vi.mock("@/lib/marketplace-checkout-fulfill", () => ({
+  ensureMarketplaceCheckoutFulfilled,
+}))
+
+vi.mock("@/lib/stripe-marketplace-commission-split", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/stripe-marketplace-commission-split")>()
+  return {
+    ...actual,
+    findOrderIdsForCheckoutSession,
+  }
+})
 
 vi.mock("@/lib/transfers/schedule-from-checkout", () => ({
   scheduleMarketplaceTransferAttempts,
@@ -58,6 +72,8 @@ describe("processStripeWebhookEvent idempotence", () => {
       orderId: "order_test_1",
       scheduled: true,
     })
+    ensureMarketplaceCheckoutFulfilled.mockResolvedValue(undefined)
+    findOrderIdsForCheckoutSession.mockResolvedValue(["order_test_1"])
   })
 
   it("schedules transfers only once when the same event is processed twice", async () => {

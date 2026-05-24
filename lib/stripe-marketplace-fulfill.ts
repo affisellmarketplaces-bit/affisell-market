@@ -25,7 +25,12 @@ type Tx = Prisma.TransactionClient
 
 const listingWithProductInclude = {
   product: true,
-  affiliate: { select: { store: { select: { partnerListingCode: true } } } },
+  affiliate: {
+    select: {
+      stripeAccountId: true,
+      store: { select: { partnerListingCode: true } },
+    },
+  },
 } satisfies Prisma.AffiliateProductInclude
 
 type ListingWithProduct = Prisma.AffiliateProductGetPayload<{
@@ -108,6 +113,7 @@ async function createPaidMarketplaceOrder(
       subtotalCents: basePriceCents,
       totalCents: settlement.sellingPriceCents,
       paymentSettlementStatus: "PENDING",
+      affiliateStripeAccountId: listing.affiliate.stripeAccountId?.trim() || null,
     },
   })
 
@@ -215,10 +221,7 @@ export async function fulfillMarketplaceStripeSession(
         const qty = Math.max(1, Math.round(Number(line.qty)) || 1)
         const listing = await tx.affiliateProduct.findUnique({
           where: { id: line.affiliateProductId },
-          include: {
-            product: true,
-            affiliate: { select: { store: { select: { partnerListingCode: true } } } },
-          },
+          include: listingWithProductInclude,
         })
 
         if (!listing?.product || !listing.isListed || !listing.product.active) {
@@ -289,10 +292,7 @@ export async function fulfillMarketplaceStripeSession(
 
   const listing = await prisma.affiliateProduct.findUnique({
     where: { id: affiliateProductId },
-    include: {
-      product: true,
-      affiliate: { select: { store: { select: { partnerListingCode: true } } } },
-    },
+    include: listingWithProductInclude,
   })
 
   if (!listing?.product || !listing.isListed || !listing.product.active) {
@@ -376,6 +376,7 @@ export async function fulfillMarketplaceStripeSession(
           totalCents: settlement.sellingPriceCents,
           paymentSettlementStatus: "PENDING",
           currency: checkoutCurrency.toUpperCase(),
+          affiliateStripeAccountId: listing.affiliate.stripeAccountId?.trim() || null,
         },
       })
 

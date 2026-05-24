@@ -25,6 +25,7 @@ export type ThreeWaySplitResult = {
 }
 
 export { computeThreeWayAmounts } from "@/lib/transfers/schedule-from-checkout"
+export { computeTransferAmountsFromOrder } from "@/lib/marketplace-split-amounts"
 
 export async function assertTransfersActive(accountId: string) {
   const { getStripeClient } = await import("@/lib/stripe")

@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client"
 import type Stripe from "stripe"
 
+import { computeTransferAmountsFromOrder } from "@/lib/marketplace-split-amounts"
 import { logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
 import { prisma } from "@/lib/prisma"
 import { getStripeClient } from "@/lib/stripe"
@@ -25,12 +26,18 @@ async function resolveChargeId(
   return typeof latest === "string" ? latest : latest?.id
 }
 
+/** @deprecated Use computeTransferAmountsFromOrder — kept for scripts importing legacy name. */
 export function computeThreeWayAmounts(totalCents: number) {
   const supplierPayoutCents = Math.floor(totalCents * 0.6)
   const affiliatePayoutCents = Math.floor(totalCents * 0.2667)
   const affisellFeeCents = totalCents - supplierPayoutCents - affiliatePayoutCents
   const stripeFeeCents = Math.round(totalCents * 0.029 + 25)
-  return { supplierPayoutCents, affiliatePayoutCents, affisellFeeCents, stripeFeeCents }
+  return {
+    supplierPayoutCents,
+    affiliatePayoutCents,
+    affisellFeeCents,
+    stripeFeeCents,
+  }
 }
 
 export async function scheduleMarketplaceTransferAttempts(
@@ -55,9 +62,6 @@ export async function scheduleMarketplaceTransferAttempts(
     return { orderId, scheduled: false, reason: "already_settled" }
   }
 
-  const totalCents = session.amount_total
-  if (totalCents == null) return { orderId, scheduled: false, reason: "amount_total_missing" }
-
   const supplierDestination = order.supplier.stripeAccountId?.trim()
   const affiliateDestination =
     order.affiliateStripeAccountId?.trim() || order.affiliate?.stripeAccountId?.trim()
@@ -66,22 +70,38 @@ export async function scheduleMarketplaceTransferAttempts(
     return { orderId, scheduled: false, reason: "missing_connect_account" }
   }
 
-  const amounts = computeThreeWayAmounts(totalCents)
+  const amounts = computeTransferAmountsFromOrder({
+    basePriceCents: order.basePriceCents,
+    sellingPriceCents: order.sellingPriceCents,
+    affiliatePayoutCents: order.affiliatePayoutCents,
+    affiliateMarginRetainedCents: order.affiliateMarginRetainedCents,
+    affisellFeeCents: order.affisellFeeCents,
+    supplierPriceCents: order.supplierPriceCents,
+    affiliateMarginCents: order.affiliateMarginCents,
+    supplierCommissionRateBps: order.supplierCommissionRateBps,
+    affisellCommissionRateBps: order.affisellCommissionRateBps,
+  })
+
+  if (amounts.supplierPayoutCents + amounts.affiliateTransferCents <= 0) {
+    return { orderId, scheduled: false, reason: "zero_payout" }
+  }
+
   const chargeId = await resolveChargeId(stripe, session)
 
   await db.order.update({
     where: { id: orderId },
     data: {
-      totalCents,
+      totalCents: amounts.lineTotalCents,
       supplierPayoutCents: amounts.supplierPayoutCents,
-      affiliatePayoutCents: amounts.affiliatePayoutCents,
+      affiliatePayoutCents: amounts.affiliateTransferCents,
       affisellFeeCents: amounts.affisellFeeCents,
       stripeFeesCents: amounts.stripeFeeCents,
-      stripeSessionId: session.id,
+      stripeSessionId: order.stripeSessionId || session.id,
       stripeChargeId: chargeId ?? order.stripeChargeId,
       splitStatus: "PENDING",
       status: "paid",
       paymentSettlementStatus: "PAID",
+      affiliateStripeAccountId: affiliateDestination,
     },
   })
 
@@ -114,13 +134,15 @@ export async function scheduleMarketplaceTransferAttempts(
   }
 
   await upsertAttempt("SUPPLIER", amounts.supplierPayoutCents, supplierDestination)
-  await upsertAttempt("AFFILIATE", amounts.affiliatePayoutCents, affiliateDestination)
+  await upsertAttempt("AFFILIATE", amounts.affiliateTransferCents, affiliateDestination)
 
   logStripeWebhookInfo({
     metric: "split_scheduled",
     orderId,
+    lineTotalCents: amounts.lineTotalCents,
     supplierPayoutCents: amounts.supplierPayoutCents,
-    affiliatePayoutCents: amounts.affiliatePayoutCents,
+    affiliateTransferCents: amounts.affiliateTransferCents,
+    affisellFeeCents: amounts.affisellFeeCents,
   })
 
   return { orderId, scheduled: true }

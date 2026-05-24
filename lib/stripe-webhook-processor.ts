@@ -3,7 +3,11 @@ import type Stripe from "stripe"
 import StripeSdk from "stripe"
 
 import { prisma } from "@/lib/prisma"
-import { processMarketplaceCommissionForPaymentIntent } from "@/lib/stripe-marketplace-commission-split"
+import { ensureMarketplaceCheckoutFulfilled } from "@/lib/marketplace-checkout-fulfill"
+import {
+  findOrderIdsForCheckoutSession,
+  processMarketplaceCommissionForPaymentIntent,
+} from "@/lib/stripe-marketplace-commission-split"
 import { scheduleMarketplaceTransferAttempts } from "@/lib/transfers/schedule-from-checkout"
 import { isInsufficientCapabilitiesError } from "@/lib/stripe-connect-transfer"
 import {
@@ -158,42 +162,60 @@ async function processCheckoutSessionCompleted(
   }
 
   if (session.mode === "payment" && session.payment_status === "paid") {
-    const orderId = session.metadata?.orderId?.trim()
-    if (!orderId) {
+    const orderIds = await findOrderIdsForCheckoutSession(session.id)
+    if (orderIds.length === 0) {
       logStripeWebhookError({
-        metric: "checkout_missing_order_id",
+        metric: "checkout_orders_not_found",
         eventId: event.id,
         sessionId: session.id,
       })
-      return { orderId: null, status: "skipped", error: "missing_order_id" }
+      return { orderId: null, status: "skipped", error: "orders_not_found" }
     }
 
     const checkoutStarted = Date.now()
+    let primaryOrderId = orderIds[0]!
+    let scheduledAny = false
+    let lastReason: string | null = null
+
     try {
-      const scheduled = await scheduleMarketplaceTransferAttempts(session, orderId, tx)
-      if (!scheduled.scheduled) {
+      for (const orderId of orderIds) {
+        const scheduled = await scheduleMarketplaceTransferAttempts(session, orderId, tx)
+        if (scheduled.scheduled) {
+          scheduledAny = true
+          primaryOrderId = orderId
+        } else {
+          lastReason = scheduled.reason ?? null
+          if (scheduled.reason === "already_settled") {
+            scheduledAny = true
+            primaryOrderId = orderId
+          }
+        }
+      }
+
+      if (!scheduledAny) {
         return {
-          orderId,
-          status: scheduled.reason === "already_settled" ? "success" : "skipped",
-          error: scheduled.reason ?? null,
+          orderId: primaryOrderId,
+          status: "skipped",
+          error: lastReason,
         }
       }
 
       logStripeWebhookInfo({
         level: "info",
         metric: "webhook_checkout_completed",
-        orderId,
+        orderId: primaryOrderId,
+        orderCount: orderIds.length,
         duration_ms: Date.now() - checkoutStarted,
         supplierTransferId: null,
         affiliateTransferId: null,
         phase: "scheduled",
       })
 
-      return { orderId, status: "success", error: null }
+      return { orderId: primaryOrderId, status: "success", error: null }
     } catch (error) {
-      await handleStripeTransferError(error, orderId, tx)
+      await handleStripeTransferError(error, primaryOrderId, tx)
       const msg = error instanceof Error ? error.message : String(error)
-      return { orderId, status: "failed", error: msg }
+      return { orderId: primaryOrderId, status: "failed", error: msg }
     }
   }
 
@@ -263,6 +285,27 @@ async function dispatchStripeEvent(
 }
 
 export async function processStripeWebhookEvent(event: Stripe.Event): Promise<WebhookProcessResult> {
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object as Stripe.Checkout.Session
+    if (session.mode === "payment" && session.payment_status === "paid") {
+      try {
+        await ensureMarketplaceCheckoutFulfilled(session)
+      } catch (error) {
+        logStripeWebhookError({
+          metric: "checkout_fulfill_failed",
+          eventId: event.id,
+          sessionId: session.id,
+          error: error instanceof Error ? error.message : String(error),
+        })
+        captureStripeWebhookException(error, {
+          eventId: event.id,
+          sessionId: session.id,
+          phase: "checkout_fulfill",
+        })
+      }
+    }
+  }
+
   const existing = await prisma.processedWebhook.findUnique({ where: { id: event.id } })
   if (existing) {
     logStripeWebhookInfo({
