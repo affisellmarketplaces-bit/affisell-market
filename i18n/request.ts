@@ -1,5 +1,6 @@
 import { getRequestConfig } from "next-intl/server"
 
+import { APP_TIME_ZONE } from "@/lib/i18n-locale"
 import { resolveRequestLocale } from "@/lib/resolve-request-locale"
 
 export default getRequestConfig(async ({ requestLocale }) => {
@@ -8,7 +9,8 @@ export default getRequestConfig(async ({ requestLocale }) => {
 
   return {
     locale,
-    timeZone: "Europe/Paris",
+    timeZone: APP_TIME_ZONE,
+    now: new Date(),
     messages: (await import(`../messages/${locale}.json`)).default,
   }
 })

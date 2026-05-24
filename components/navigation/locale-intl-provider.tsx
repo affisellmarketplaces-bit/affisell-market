@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { NextIntlClientProvider, type AbstractIntlMessages } from "next-intl"
 
 import {
+  APP_TIME_ZONE,
   DEFAULT_LOCALE,
   LOCALE_COOKIE,
   resolveAppLocale,
@@ -34,7 +35,12 @@ export function LocaleIntlProvider({ children }: Props) {
   }, [])
 
   return (
-    <NextIntlClientProvider locale={locale} messages={MESSAGES[locale]} timeZone="Europe/Paris">
+    <NextIntlClientProvider
+      locale={locale}
+      messages={MESSAGES[locale]}
+      timeZone={APP_TIME_ZONE}
+      now={new Date()}
+    >
       {children}
     </NextIntlClientProvider>
   )

@@ -21,11 +21,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const locale = resolveAppLocale(await getLocale())
   setRequestLocale(locale)
   const messages = await getMessages()
+  const now = new Date()
 
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className="min-h-screen pb-[calc(4.25rem+env(safe-area-inset-bottom))] text-gray-900 [font-family:Inter,system-ui] md:pb-0 dark:text-zinc-50">
-        <IntlAppProvider locale={locale} messages={messages}>
+        <IntlAppProvider locale={locale} messages={messages} now={now}>
           <RootSessionShell>
             <header className="relative z-[100] border-b border-gray-100/90 bg-white/80 px-4 py-3 shadow-sm backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/90">
               <Suspense fallback={<HeaderFallback />}>
