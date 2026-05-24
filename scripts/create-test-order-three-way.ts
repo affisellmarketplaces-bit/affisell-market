@@ -1,21 +1,21 @@
 import { config } from "dotenv"
-import { resolve } from "node:path"
 
-config({ path: resolve(process.cwd(), ".env.local") })
-config({ path: resolve(process.cwd(), ".env") })
+config({ path: ".env.local" })
 
 /**
  * Run: npx tsx scripts/create-test-order-three-way.ts
+ *      npx tsx scripts/create-test-order-three-way.ts --require-onboarded
  */
 import { randomUUID } from "node:crypto"
 import { PrismaClient } from "@prisma/client"
 import Stripe from "stripe"
 
 const SUPPLIER_ACCOUNT_ID = "acct_1TaaA6FXp6SP9lqY"
-const CONNECT_BUSINESS_URL = "https://affisell.com"
 const CHECKOUT_SUCCESS_URL =
   "http://localhost:3001/success?session_id={CHECKOUT_SESSION_ID}"
 const CHECKOUT_CANCEL_URL = "http://localhost:3001/cancel"
+
+const requireOnboarded = process.argv.includes("--require-onboarded")
 
 function requireStripeKey(): string {
   const key = process.env.STRIPE_SECRET_KEY?.trim()
@@ -35,6 +35,7 @@ async function upsertTestUser(args: {
   name: string
   role: "SUPPLIER" | "AFFILIATE"
   stripeAccountId: string
+  stripeOnboardedAt?: Date | null
 }) {
   await prisma.user.updateMany({
     where: {
@@ -46,17 +47,23 @@ async function upsertTestUser(args: {
 
   return prisma.user.upsert({
     where: { email: args.email },
-    update: { stripeAccountId: args.stripeAccountId, name: args.name, role: args.role },
+    update: {
+      stripeAccountId: args.stripeAccountId,
+      name: args.name,
+      role: args.role,
+      stripeOnboardedAt: args.stripeOnboardedAt,
+    },
     create: {
       email: args.email,
       name: args.name,
       stripeAccountId: args.stripeAccountId,
       role: args.role,
+      stripeOnboardedAt: args.stripeOnboardedAt ?? null,
     },
   })
 }
 
-async function createAndOnboardAffiliate(stripe: Stripe) {
+async function createAffiliateWithOnboardingLink(stripe: Stripe) {
   const affiliateAcct = await stripe.accounts.create({
     type: "express",
     country: "FR",
@@ -67,46 +74,16 @@ async function createAndOnboardAffiliate(stripe: Stripe) {
     },
   })
 
-  const profileUpdate: Stripe.AccountUpdateParams = {
-    business_type: "individual",
-    individual: {
-      first_name: "Test",
-      last_name: "Affiliate",
-      email: "affiliate@test.com",
-      dob: { day: 1, month: 1, year: 1990 },
-      address: {
-        line1: "1 rue de Rivoli",
-        city: "Paris",
-        postal_code: "75001",
-        country: "FR",
-      },
-    },
-    business_profile: { mcc: "5734", url: CONNECT_BUSINESS_URL },
-    tos_acceptance: { date: Math.floor(Date.now() / 1000), ip: "127.0.0.1" },
-  }
+  const link = await stripe.accountLinks.create({
+    account: affiliateAcct.id,
+    refresh_url: CHECKOUT_CANCEL_URL,
+    return_url: CHECKOUT_SUCCESS_URL.replace("{CHECKOUT_SESSION_ID}", "affiliate_onboard"),
+    type: "account_onboarding",
+  })
 
-  try {
-    await stripe.accounts.update(affiliateAcct.id, profileUpdate)
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : ""
-    if (!msg.includes("Terms of Service")) {
-      throw e
-    }
-    console.warn(
-      "Express: tos_acceptance via API impossible — onboarding sans ToS, lien Dashboard ci-dessous"
-    )
-    const { tos_acceptance: _tos, ...withoutTos } = profileUpdate
-    await stripe.accounts.update(affiliateAcct.id, withoutTos)
-    const link = await stripe.accountLinks.create({
-      account: affiliateAcct.id,
-      refresh_url: "http://localhost:3001/cancel",
-      return_url: CHECKOUT_SUCCESS_URL.replace("{CHECKOUT_SESSION_ID}", "affiliate_onboard"),
-      type: "account_onboarding",
-    })
-    console.warn("Affiliate onboarding URL:", link.url)
-  }
+  console.log("AFFILIATE_ONBOARDING_URL:", link.url)
 
-  return affiliateAcct.id
+  return { accountId: affiliateAcct.id, onboardingUrl: link.url }
 }
 
 async function main() {
@@ -115,15 +92,26 @@ async function main() {
 
   const stripe = new Stripe(requireStripeKey())
 
-  console.log("→ Création + onboarding affiliate…")
-  const affiliateAcctId = await createAndOnboardAffiliate(stripe)
+  const { accountId: affiliateAcctId, onboardingUrl } = await createAffiliateWithOnboardingLink(stripe)
   console.log("Affiliate:", affiliateAcctId)
+
+  const affiliateAccount = await stripe.accounts.retrieve(affiliateAcctId)
+  const affiliateTransfersActive = affiliateAccount.capabilities?.transfers === "active"
+
+  if (requireOnboarded && !affiliateTransfersActive) {
+    console.error(
+      "Affiliate transfers not active. Complete onboarding first:\n",
+      onboardingUrl
+    )
+    process.exit(1)
+  }
 
   const supplier = await upsertTestUser({
     email: "supplier@test.com",
     name: "Supplier Test",
     role: "SUPPLIER",
     stripeAccountId: SUPPLIER_ACCOUNT_ID,
+    stripeOnboardedAt: new Date(),
   })
 
   const affiliate = await upsertTestUser({
@@ -131,6 +119,7 @@ async function main() {
     name: "Affiliate Test",
     role: "AFFILIATE",
     stripeAccountId: affiliateAcctId,
+    stripeOnboardedAt: affiliateTransfersActive ? new Date() : null,
   })
 
   const product = await prisma.product.create({
@@ -186,10 +175,6 @@ async function main() {
       `Supplier transfers not active (got: ${supplierAcct.capabilities?.transfers ?? "undefined"})`
     )
   }
-
-  console.log("→ Checkout session…")
-  console.log("  success_url:", CHECKOUT_SUCCESS_URL)
-  console.log("  cancel_url:", CHECKOUT_CANCEL_URL)
 
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
