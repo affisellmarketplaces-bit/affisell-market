@@ -12,6 +12,9 @@ import { randomUUID } from "node:crypto"
 import { Prisma, PrismaClient } from "@prisma/client"
 import Stripe from "stripe"
 
+import { computeTransferAmountsFromOrder } from "../lib/marketplace-split-amounts"
+import { computeMarketplaceOrderSettlement } from "../lib/marketplace-order-settlement"
+
 const SUPPLIER_ACCOUNT_ID = "acct_1TaaA6FXp6SP9lqY"
 const CHECKOUT_SUCCESS_URL =
   "http://localhost:3001/success?session_id={CHECKOUT_SESSION_ID}"
@@ -31,6 +34,9 @@ function requireStripeKey(): string {
 
 const prisma = new PrismaClient()
 
+const SUPPLIER_PRICE_CENTS = 9_000
+const SELLING_PRICE_CENTS = 13_000
+const AFFILIATE_MARGIN_CENTS = 4_000
 const LINE_TOTAL_CENTS = 14_560
 
 async function upsertTestUser(args: {
@@ -176,11 +182,17 @@ async function main() {
     stripeCapabilities: (affiliateAccount.capabilities ?? undefined) as Prisma.InputJsonValue | undefined,
   })
 
+  const settlement = computeMarketplaceOrderSettlement({
+    sellingPriceCents: SELLING_PRICE_CENTS,
+    basePriceCents: SUPPLIER_PRICE_CENTS,
+    supplierCommissionRatePercent: 10,
+  })
+
   const product = await prisma.product.create({
     data: {
       name: "Test 3Way Split",
       description: "Test 3Way Split",
-      basePriceCents: LINE_TOTAL_CENTS,
+      basePriceCents: SUPPLIER_PRICE_CENTS,
       commissionRate: 10,
       supplierId: supplier.id,
     },
@@ -190,8 +202,8 @@ async function main() {
     data: {
       affiliateId: affiliate.id,
       productId: product.id,
-      sellingPriceCents: LINE_TOTAL_CENTS,
-      marginCents: 4_000,
+      sellingPriceCents: SELLING_PRICE_CENTS,
+      marginCents: AFFILIATE_MARGIN_CENTS,
       isListed: true,
     },
   })
@@ -208,14 +220,16 @@ async function main() {
       customerEmail: "",
       shippingAddress: {},
       stripeSessionId: `pending_${randomUUID()}`,
-      basePriceCents: 9_000,
-      sellingPriceCents: 13_000,
-      commissionCents: 0,
-      marginCents: 4_000,
-      affiliatePayoutCents: 0,
-      supplierPriceCents: 9_000,
+      basePriceCents: settlement.basePriceCents,
+      sellingPriceCents: settlement.sellingPriceCents,
+      commissionCents: settlement.affiliateCommissionCents,
+      marginCents: settlement.marginCents,
+      affiliatePayoutCents: settlement.affiliateCommissionCents,
+      affiliateMarginRetainedCents: settlement.affiliateMarginRetainedCents,
+      affisellFeeCents: settlement.affisellFeeCents,
+      supplierPriceCents: SUPPLIER_PRICE_CENTS,
       supplierCommissionRateBps: 1000,
-      affiliateMarginCents: 4_000,
+      affiliateMarginCents: AFFILIATE_MARGIN_CENTS,
       affisellCommissionRateBps: 1200,
       affiliateStripeAccountId: affiliateAcctId,
       totalCents: LINE_TOTAL_CENTS,
@@ -257,9 +271,27 @@ async function main() {
     data: { stripeSessionId: session.id },
   })
 
+  const transfers = computeTransferAmountsFromOrder({
+    basePriceCents: order.basePriceCents,
+    sellingPriceCents: order.sellingPriceCents,
+    affiliatePayoutCents: order.affiliatePayoutCents,
+    affiliateMarginRetainedCents: order.affiliateMarginRetainedCents,
+    affisellFeeCents: order.affisellFeeCents,
+    supplierPriceCents: order.supplierPriceCents,
+    affiliateMarginCents: order.affiliateMarginCents,
+    supplierCommissionRateBps: order.supplierCommissionRateBps,
+    affisellCommissionRateBps: order.affisellCommissionRateBps,
+  })
+
+  const fmt = (cents: number) => (cents / 100).toFixed(2)
+
   console.log("Checkout URL:", session.url)
   console.log("Order ID:", order.id)
-  console.log("Montants attendus: Supplier 87.36€ | Affiliate 38.83€ | Affisell 19.41€")
+  console.log(
+    `Montants attendus (split réel): Supplier ${fmt(transfers.supplierPayoutCents)}€ | ` +
+      `Affiliate ${fmt(transfers.affiliateTransferCents)}€ | ` +
+      `Affisell ${fmt(transfers.affisellFeeCents)}€ (reste plateforme)`
+  )
 }
 
 main()
