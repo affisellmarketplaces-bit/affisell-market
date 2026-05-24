@@ -3,6 +3,7 @@
  * Keep in sync when adding top-level routes beside `en` / `fr`.
  */
 export const RESERVED_LOCALE_SEGMENTS = new Set([
+  "admin",
   "agent",
   "affiliate",
   "api",

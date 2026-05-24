@@ -168,6 +168,7 @@ async function processCheckoutSessionCompleted(
       return { orderId: null, status: "skipped", error: "missing_order_id" }
     }
 
+    const checkoutStarted = Date.now()
     try {
       const scheduled = await scheduleMarketplaceTransferAttempts(session, orderId, tx)
       if (!scheduled.scheduled) {
@@ -177,6 +178,17 @@ async function processCheckoutSessionCompleted(
           error: scheduled.reason ?? null,
         }
       }
+
+      logStripeWebhookInfo({
+        level: "info",
+        metric: "webhook_checkout_completed",
+        orderId,
+        duration_ms: Date.now() - checkoutStarted,
+        supplierTransferId: null,
+        affiliateTransferId: null,
+        phase: "scheduled",
+      })
+
       return { orderId, status: "success", error: null }
     } catch (error) {
       await handleStripeTransferError(error, orderId, tx)

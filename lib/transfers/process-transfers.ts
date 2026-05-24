@@ -1,7 +1,8 @@
-import type { Prisma } from "@prisma/client"
+import type { Prisma, TransferRole } from "@prisma/client"
 import Stripe from "stripe"
 
 import { computeSplitStatusFromAttempts } from "@/lib/transfers/compute-split-status"
+import { alertSplitTransferFailed } from "@/lib/transfers/split-slack-alert"
 import { logStripeWebhookError, logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
 import { prisma } from "@/lib/prisma"
 import { getStripeClient } from "@/lib/stripe"
@@ -66,6 +67,31 @@ async function applyOrderSettlement(orderId: string) {
   }
 
   await prisma.order.update({ where: { id: orderId }, data })
+
+  logStripeWebhookInfo({
+    level: "info",
+    metric: "webhook_checkout_completed",
+    orderId,
+    supplierTransferId: supplierAttempt?.stripeTransferId ?? null,
+    affiliateTransferId: affiliateAttempt?.stripeTransferId ?? null,
+    splitStatus,
+  })
+}
+
+async function notifyTerminalFailure(args: {
+  orderId: string
+  role: TransferRole
+  errorCode: string | null
+  attempts: number
+  status: string
+}) {
+  if (args.status !== "FAILED" || args.attempts < MAX_ATTEMPTS) return
+  await alertSplitTransferFailed({
+    orderId: args.orderId,
+    role: args.role,
+    errorCode: args.errorCode,
+    attempts: args.attempts,
+  })
 }
 
 async function processOneAttempt(
@@ -97,6 +123,13 @@ async function processOneAttempt(
         },
       })
       await syncOnboardingFailure(attempt.destination)
+      await notifyTerminalFailure({
+        orderId: attempt.orderId,
+        role: attempt.role,
+        errorCode: "AFFILIATE_ONBOARDING_REQUIRED",
+        attempts: nextAttempts,
+        status: "FAILED",
+      })
       await applyOrderSettlement(attempt.orderId)
       return "failed"
     }
@@ -178,6 +211,14 @@ async function processOneAttempt(
       errorCode,
       accountId: attempt.destination,
       attempts: nextAttempts,
+    })
+
+    await notifyTerminalFailure({
+      orderId: attempt.orderId,
+      role: attempt.role,
+      errorCode,
+      attempts: nextAttempts,
+      status: terminal ? "FAILED" : "PENDING",
     })
 
     await applyOrderSettlement(attempt.orderId)
