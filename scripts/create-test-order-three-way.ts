@@ -110,6 +110,7 @@ async function main() {
 
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
+    expires_at: Math.floor(Date.now() / 1000) + 60 * 60 * 24, // 24h
     payment_method_types: ["card"],
     line_items: [
       {
