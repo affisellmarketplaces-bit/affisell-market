@@ -108,7 +108,7 @@ function colorRowsFromImport(raw: unknown): ProductColorImageRow[] {
 }
 
 function mergeImportTags(extra: unknown): string[] {
-  const merged = ["imported"]
+  const merged: string[] = []
   if (Array.isArray(extra)) {
     for (const x of extra) {
       if (typeof x === "string" && x.trim()) merged.push(x.trim())

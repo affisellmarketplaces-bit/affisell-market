@@ -35,6 +35,7 @@ import {
   VARIANT_GROUP_LABELS,
   isMulticolorSwatch,
 } from "@/lib/product-catalog-constants"
+import { shopperCategoryEyebrow, shopperVisibleTags } from "@/lib/product-shopper-tags"
 import { addGuestCartItem } from "@/lib/guest-cart"
 import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/marketplace-checkout-discount"
 import {
@@ -177,7 +178,8 @@ function listingAtAGlance(description: string, name: string, tags: string[]): st
     const cut = last > 80 ? slice.slice(0, last + 1) : slice
     return `${cut.trim()}…`
   }
-  if (tags.length > 0) return tags.slice(0, 5).join(" · ")
+  const visibleTags = shopperVisibleTags(tags)
+  if (visibleTags.length > 0) return visibleTags.slice(0, 5).join(" · ")
   return null
 }
 
@@ -370,7 +372,7 @@ export function MarketplaceListingDetail({
   const [titleExpanded, setTitleExpanded] = useState(false)
   const { headline: titleHeadline, subline: titleSubline } = useMemo(() => splitListingTitle(name), [name])
   const titleSublineLong = Boolean(titleSubline && titleSubline.length > 110)
-  const categoryEyebrow = categories[0]?.trim() || tags[0]?.trim() || null
+  const categoryEyebrow = shopperCategoryEyebrow(categories, tags)
   const images = useMemo(() => {
     const g = gallery.filter((u): u is string => typeof u === "string" && Boolean(u.trim()))
     return g.length > 0 ? g : ["/placeholder.png"]
