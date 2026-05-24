@@ -1,4 +1,4 @@
 {
-  "buildCommand": "echo 'BUILD_START' && npx prisma generate && npx prisma migrate deploy && next build",
-  "installCommand": "npm ci"
+  "installCommand": "npm ci",
+  "buildCommand": "node scripts/vercel-build.mjs"
 }

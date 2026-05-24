@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "prisma generate && node ./scripts/next-dev-port.mjs",
-    "postinstall": "prisma generate",
+    "postinstall": "node scripts/prisma-postinstall.mjs",
     "build": "next build",
     "db:push": "prisma db push",
     "db:local:up": "docker compose up -d",

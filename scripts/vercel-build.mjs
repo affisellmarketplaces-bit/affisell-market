@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
  * Vercel production build.
- * - Requires DATABASE_URL (Neon direct URL recommended, not pooler-only).
- * - Hobby plan: vercel.json crons must be once per day only.
+ * - Requires DATABASE_URL (pooled Neon OK; DIRECT_URL auto-derived if missing).
  */
 import { execSync } from "node:child_process"
+import { ensureDirectUrl } from "./ensure-direct-url.mjs"
 
 const MIGRATIONS_TO_MARK_APPLIED = [
   "20260528140000_processed_webhook_status_capabilities",
@@ -84,17 +84,21 @@ if (!process.env.DATABASE_URL?.trim()) {
       "ERROR: DATABASE_URL is not set for the Vercel build.",
       "Vercel → Project → Settings → Environment Variables → Production",
       "Enable: Production + Preview + Development (for migrate deploy at build time)",
-      "Use Neon *direct* connection string (host without -pooler) when possible.",
+      "Set DATABASE_URL (Neon; ?pgbouncer=true is OK). DIRECT_URL is optional.",
     ].join("\n")
   )
   process.exit(1)
 }
 
+ensureDirectUrl()
+
 try {
+  console.log("BUILD_START")
   run("npx prisma generate")
   runMigrations()
   run("npm run build")
-  console.log("\n✓ Vercel build completed successfully.")
+  console.log("\nNext.js build completed")
+  console.log("✓ Vercel build completed successfully.")
 } catch (error) {
   console.error("\n✗ Vercel build failed.")
   if (error instanceof Error && error.message) {
