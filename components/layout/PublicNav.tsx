@@ -68,18 +68,20 @@ export function PublicNav() {
           className={cn(buttonVariants({ variant: "outline", size: "sm" }), "relative gap-1.5")}
           aria-label={t("cartAria")}
         >
-          <ShoppingCart className="size-4 shrink-0" aria-hidden />
-          <span className="hidden sm:inline">{t("cart")}</span>
-          {cartCount > 0 ? (
-            <motion.span
-              key={cartCount}
-              initial={{ scale: 0.6 }}
-              animate={{ scale: 1 }}
-              className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#6366F1] px-1 text-[10px] font-bold text-white"
-            >
-              {cartCount > 9 ? "9+" : cartCount}
-            </motion.span>
-          ) : null}
+          <>
+            <ShoppingCart className="size-4 shrink-0" aria-hidden />
+            <span className="hidden sm:inline">{t("cart")}</span>
+            {cartCount > 0 ? (
+              <motion.span
+                key={cartCount}
+                initial={{ scale: 0.6 }}
+                animate={{ scale: 1 }}
+                className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#6366F1] px-1 text-[10px] font-bold text-white"
+              >
+                {cartCount > 9 ? "9+" : cartCount}
+              </motion.span>
+            ) : null}
+          </>
         </Link>
         {status !== "loading" && isCustomer ? (
           <Link href="/marketplace/account" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-1.5")}>
