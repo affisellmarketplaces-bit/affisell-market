@@ -143,7 +143,7 @@ async function main() {
   })
 
   // 5. Session checkout
-  const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001"
+  console.log("NEXT_PUBLIC_APP_URL:", process.env.NEXT_PUBLIC_APP_URL)
 
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
@@ -157,10 +157,9 @@ async function main() {
         quantity: 1,
       },
     ],
-    success_url: `${BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${BASE_URL}/cancel`,
+    success_url: "http://localhost:3001/success?session_id={CHECKOUT_SESSION_ID}",
+    cancel_url: "http://localhost:3001/cancel",
     metadata: { orderId: order.id },
-    expires_at: Math.floor(Date.now() / 1000) + 86400, // 24h
   })
 
   if (!session.url) {
