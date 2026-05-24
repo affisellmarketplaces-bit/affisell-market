@@ -4,6 +4,10 @@
 - Before pushing: `npm run push:safe` (secret scan + pull --rebase + push).
 - Optional hook (once per clone): `git config core.hooksPath .githooks` then `chmod +x .githooks/pre-push`.
 
+### Agent : commit + push après une correction
+
+Après toute tâche qui **modifie le code** (fix, feature, refactor demandé), l’agent doit **committer et pousser** (`npm run push:safe`) puis **afficher le hash et le message du commit** dans le chat. Sauf consigne inverse (« sans commit », question seule). Détail : `.cursor/rules/git-commit-after-fix.mdc`.
+
 <!-- BEGIN:nextjs-agent-rules -->
 # This is NOT the Next.js you know
 

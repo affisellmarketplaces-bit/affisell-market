@@ -1,0 +1,29 @@
+---
+description: Commit et push sur main après chaque correction de code terminée
+alwaysApply: true
+---
+
+# Git — fin de tâche (corrections & features)
+
+Quand tu **modifies le code** pour corriger un bug, implémenter une feature ou répondre à « corrige / fix / répare », termine **toujours** ainsi (sauf si l'utilisateur dit « sans commit », « ne push pas », ou « explique seulement ») :
+
+1. Vérifier qu'il y a des changements : `git status` et `git diff`.
+2. **Ne jamais** committer `.env`, clés, ou fichiers de secrets.
+3. Créer **un commit** avec un message clair (1–2 phrases, le *pourquoi*), via HEREDOC.
+4. Pousser avec **`npm run push:safe`** (scan secrets + pull --rebase + push sur `main`).
+5. Dans ta réponse finale, indiquer explicitement :
+   - le **hash** et le **message** du commit ;
+   - que le push a réussi (ou l'erreur exacte).
+
+## Ne pas committer
+
+- Questions / revue / explication sans changement de fichiers.
+- L'utilisateur demande explicitement de ne pas committer.
+- Aucun fichier modifié.
+
+## En cas d'échec
+
+- Hook pre-commit / push rejeté : corriger, **nouveau commit** (pas d'amend sauf règles amend).
+- `push:safe` en conflit : résoudre le rebase puis re-pousser.
+
+Référence projet : `AGENTS.md` (section Git push).
