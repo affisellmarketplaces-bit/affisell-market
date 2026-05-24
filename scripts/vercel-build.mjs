@@ -50,6 +50,18 @@ function parseFailedMigrationNames(text) {
   return [...names]
 }
 
+function parseMigrationNameFromOutput(text) {
+  if (!text) return undefined
+  return (
+    text.match(/Applying migration `([^`]+)`/i)?.[1] ??
+    text.match(/Migration name: (\d{14}_[a-z0-9_]+)/i)?.[1]
+  )
+}
+
+function isAlreadyExistsError(text) {
+  return /already exists|42P07|42710|P3014/i.test(text ?? "")
+}
+
 function runDeployRepair() {
   console.log("\n> Applying prisma/deploy-repair.sql (idempotent)")
   const result = execPrisma(
@@ -116,6 +128,18 @@ function runMigrations() {
       continue
     }
 
+    if (isAlreadyExistsError(deploy.output)) {
+      const migrationName = parseMigrationNameFromOutput(deploy.output)
+      if (migrationName) {
+        console.log(
+          `\nRepair: schema objects exist — marking ${migrationName} as applied after deploy-repair`
+        )
+        runDeployRepair()
+        resolveFailedMigrations([migrationName])
+        continue
+      }
+    }
+
     console.error("\n✗ prisma migrate deploy failed without a recoverable failed migration.")
     if (deploy.output) console.error(deploy.output)
     process.exit(1)
@@ -147,9 +171,15 @@ try {
   console.log("\nNext.js build completed")
   console.log("✓ Vercel build completed successfully.")
 } catch (error) {
-  console.error("\n✗ Vercel build failed.")
+  console.error("\n✗ Vercel build failed (uncaught).")
   if (error instanceof Error && error.message) {
     console.error(error.message)
+  }
+  if (error && typeof error === "object" && "stdout" in error) {
+    const stdout = error.stdout?.toString?.()
+    const stderr = error.stderr?.toString?.()
+    if (stdout) console.error(stdout)
+    if (stderr) console.error(stderr)
   }
   process.exit(1)
 }
