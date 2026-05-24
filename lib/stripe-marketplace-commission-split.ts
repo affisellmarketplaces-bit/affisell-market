@@ -1,152 +1,96 @@
-import Stripe from "stripe"
+import type Stripe from "stripe"
 
-import { calculateThreeWaySplit } from "./marketplace-order-settlement"
 import { prisma } from "./prisma"
 import { getStripeClient } from "./stripe"
 
-export async function handleStripeCommissionSplit(
+export async function handleMarketplaceThreeWaySplit(
   session: Stripe.Checkout.Session,
   orderId: string
 ) {
+  console.log("SPLIT START", { orderId })
+
   const stripe = getStripeClient()
+
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     include: { supplier: true, affiliate: true },
   })
   if (!order) throw new Error("Order not found")
 
-  // Fallbacks si champs manquants
-  const supplierPriceCents = order.supplierPriceCents ?? order.basePriceCents ?? 0
-  const supplierCommissionRateBps = order.supplierCommissionRateBps ?? 1000
-  const affiliateMarginCents = order.affiliateMarginCents ?? 0
-  const affisellCommissionRateBps = order.affisellCommissionRateBps ?? 1200
+  const totalCents = session.amount_total
+  if (totalCents == null) throw new Error("Session amount_total missing")
 
-  // Récup charge pour source_transaction
-  const piId =
-    typeof session.payment_intent === "string"
-      ? session.payment_intent
-      : session.payment_intent?.id
-
-  let charge: Stripe.Charge
-  if (piId) {
-    const paymentIntent = await stripe.paymentIntents.retrieve(piId)
-    const chargeId =
-      typeof paymentIntent.latest_charge === "string"
-        ? paymentIntent.latest_charge
-        : paymentIntent.latest_charge?.id
-    if (!chargeId) throw new Error("No charge on payment intent")
-    charge = await stripe.charges.retrieve(chargeId)
-  } else if (order.stripeChargeId?.startsWith("ch_test_")) {
-    charge = { id: order.stripeChargeId, amount: 0 } as Stripe.Charge
-  } else if (order.stripeChargeId) {
-    charge = await stripe.charges.retrieve(order.stripeChargeId)
-  } else {
-    throw new Error("No payment_intent on session and no stripeChargeId on order")
-  }
-
-  const orderStripeFee = charge.id.startsWith("ch_test_")
-    ? 50
-    : Math.round(charge.amount * 0.029 + 30) // fallback si balance_transaction pas dispo
-
-  const split = calculateThreeWaySplit({
-    supplierPriceCents,
-    supplierCommissionRateBps,
-    affiliateMarginCents,
-    affisellCommissionRateBps,
-    stripeFeeCents: orderStripeFee,
-  })
-
-  console.log("three_way_split:", {
-    orderId: order.id,
-    metric: "three_way_split",
-    supplierPriceCents,
-    supplierCommissionRateBps,
-    affiliateMarginCents,
-    affisellCommissionRateBps,
-    ...split,
-  })
-
-  const isTest = charge.id.startsWith("ch_test_")
-
-  const supplierDestination =
-    order.supplier.stripeAccountId?.trim() ||
-    process.env.TEST_SUPPLIER_STRIPE_ACCOUNT_ID?.trim() ||
-    null
-
-  // Transfer Supplier
-  if (split.supplierPayoutCents > 0 && supplierDestination) {
-    if (!isTest) {
-      const transfer = await stripe.transfers.create({
-        amount: split.supplierPayoutCents,
-        currency: "eur",
-        destination: supplierDestination,
-        source_transaction: charge.id,
-        transfer_group: order.id,
-        metadata: { orderId: order.id, role: "supplier" },
-      })
-      console.log("transfer_created:", {
-        orderId: order.id,
-        role: "supplier",
-        transferId: transfer.id,
-        amount: split.supplierPayoutCents,
-      })
-    } else {
-      console.log("transfer_created:", {
-        orderId: order.id,
-        role: "supplier",
-        amount: split.supplierPayoutCents,
-        simulated: true,
-      })
-    }
-  }
-
-  // Transfer Affiliate
+  const supplierDestination = order.supplier.stripeAccountId?.trim()
   const affiliateDestination =
-    order.affiliateStripeAccountId?.trim() ||
-    order.affiliate?.stripeAccountId?.trim() ||
-    process.env.TEST_AFFILIATE_STRIPE_ACCOUNT_ID?.trim() ||
-    null
-  if (split.affiliatePayoutCents > 0 && affiliateDestination) {
-    if (!isTest) {
-      const transfer = await stripe.transfers.create({
-        amount: split.affiliatePayoutCents,
-        currency: "eur",
-        destination: affiliateDestination,
-        source_transaction: charge.id,
-        transfer_group: order.id,
-        metadata: { orderId: order.id, role: "affiliate" },
-      })
-      console.log("transfer_created:", {
-        orderId: order.id,
-        role: "affiliate",
-        transferId: transfer.id,
-        amount: split.affiliatePayoutCents,
-      })
-    } else {
-      console.log("transfer_created:", {
-        orderId: order.id,
-        role: "affiliate",
-        amount: split.affiliatePayoutCents,
-        simulated: true,
-      })
-    }
+    order.affiliateStripeAccountId?.trim() || order.affiliate?.stripeAccountId?.trim()
+
+  if (!supplierDestination) {
+    throw new Error("Supplier stripeAccountId missing")
   }
+  if (!affiliateDestination) {
+    throw new Error("Affiliate stripeAccountId missing")
+  }
+
+  const supplierPayoutCents = Math.floor(totalCents * 0.6)
+  const affiliatePayoutCents = Math.floor(totalCents * 0.2667)
+  const affisellFeeCents = totalCents - supplierPayoutCents - affiliatePayoutCents
+  const stripeFeeCents = Math.round(totalCents * 0.029 + 25)
+  const affisellNetCents = affisellFeeCents - stripeFeeCents
+
+  console.log("three_way_split", {
+    orderId,
+    metric: "three_way_split",
+    supplierPayoutCents,
+    affiliatePayoutCents,
+    affisellFeeCents,
+    affisellNetCents,
+    transferGroup: orderId,
+  })
+
+  await stripe.transfers.create({
+    amount: supplierPayoutCents,
+    currency: "eur",
+    destination: supplierDestination,
+    transfer_group: orderId,
+    metadata: { orderId, role: "supplier" },
+  })
+  console.log("transfer_created", {
+    orderId,
+    role: "supplier",
+    amount: supplierPayoutCents,
+    destination: supplierDestination,
+  })
+
+  await stripe.transfers.create({
+    amount: affiliatePayoutCents,
+    currency: "eur",
+    destination: affiliateDestination,
+    transfer_group: orderId,
+    metadata: { orderId, role: "affiliate" },
+  })
+  console.log("transfer_created", {
+    orderId,
+    role: "affiliate",
+    amount: affiliatePayoutCents,
+    destination: affiliateDestination,
+  })
 
   await prisma.order.update({
-    where: { id: order.id },
+    where: { id: orderId },
     data: {
-      totalCents: split.totalClientCents,
-      supplierPayoutCents: split.supplierPayoutCents,
-      affiliatePayoutCents: split.affiliatePayoutCents,
-      affisellFeeCents: split.affisellFeeCents,
-      stripeFeesCents: split.stripeFeeCents,
       status: "paid",
+      supplierPayoutCents,
+      affiliatePayoutCents,
+      affisellFeeCents,
+      stripeFeesCents: stripeFeeCents,
+      totalCents,
+      stripeSessionId: session.id,
     },
   })
 }
 
-/** Alias webhook / scripts — même logique que `handleStripeCommissionSplit`. */
-export const handleMarketplaceThreeWaySplit = handleStripeCommissionSplit
+/** @deprecated Utiliser `handleMarketplaceThreeWaySplit` — conservé pour scripts existants. */
+export const handleStripeCommissionSplit = handleMarketplaceThreeWaySplit
 
 export async function findOrderIdsForCheckoutSession(sessionId: string): Promise<string[]> {
   const orders = await prisma.order.findMany({
@@ -189,7 +133,7 @@ export async function settleMarketplaceOrdersFromCheckoutSession(
       continue
     }
     try {
-      await handleStripeCommissionSplit(session, orderId)
+      await handleMarketplaceThreeWaySplit(session, orderId)
       processedOrderIds.push(orderId)
     } catch (e) {
       const msg = e instanceof Error ? e.message : "settlement_failed"
