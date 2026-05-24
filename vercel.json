@@ -1,5 +1,6 @@
 {
-  "buildCommand": "prisma generate && next build",
+  "installCommand": "npm ci",
+  "buildCommand": "prisma generate && prisma migrate deploy && next build",
   "crons": [
     {
       "path": "/api/cron/wishlist-price-alerts",
