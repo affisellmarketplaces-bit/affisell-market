@@ -1,0 +1,23 @@
+name: Process Stripe transfers
+
+# Hobby Vercel crons are once/day only — run transfers every 15 min via GitHub Actions.
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  process-transfers:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Vercel job
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          VERCEL_APP_URL: ${{ secrets.VERCEL_APP_URL }}
+        run: |
+          if [ -z "$CRON_SECRET" ] || [ -z "$VERCEL_APP_URL" ]; then
+            echo "Set GitHub secrets CRON_SECRET and VERCEL_APP_URL (e.g. https://affisell-market.vercel.app)"
+            exit 1
+          fi
+          curl -fsS -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${VERCEL_APP_URL%/}/api/jobs/process-transfers"
