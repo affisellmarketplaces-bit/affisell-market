@@ -765,6 +765,24 @@ enum OrderPaymentSettlementStatus {
   CANCELLED
 }
 
+enum TransferRole {
+  SUPPLIER
+  AFFILIATE
+}
+
+enum TransferStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum SplitStatus {
+  PENDING
+  PARTIAL
+  SUCCESS
+  FAILED
+}
+
 model Order {
   id                       String              @id @default(cuid())
   productId                String
@@ -857,6 +875,8 @@ model Order {
   affiliateStripeAccountId String?
   currency                 String              @default("EUR")
   paymentSettlementStatus  OrderPaymentSettlementStatus @default(PENDING)
+  /** Connect three-way split aggregate (TransferAttempt rows). */
+  splitStatus              SplitStatus         @default(PENDING)
   createdAt                DateTime            @default(now())
   updatedAt                DateTime            @updatedAt
   product                  Product             @relation(fields: [productId], references: [id])
@@ -884,8 +904,29 @@ model Order {
 
   supplierFulfillmentLinks SupplierFulfillmentOrderLine[]
   stripeRefunds            OrderStripeRefund[]
+  transferAttempts         TransferAttempt[]
 
   @@index([affiliateId])
+  @@index([splitStatus])
+}
+
+model TransferAttempt {
+  id               String         @id @default(cuid())
+  orderId          String
+  role             TransferRole
+  amountCents      Int
+  destination      String
+  status           TransferStatus @default(PENDING)
+  stripeTransferId String?
+  errorCode        String?
+  errorMessage     String?
+  attempts         Int            @default(0)
+  lastAttemptAt    DateTime?
+  createdAt        DateTime       @default(now())
+  order            Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId, role])
+  @@index([status, attempts])
 }
 
 /** Stripe refund rows + commission clawback (Connect settlement). */

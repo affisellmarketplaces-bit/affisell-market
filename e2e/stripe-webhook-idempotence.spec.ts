@@ -43,12 +43,15 @@ test.describe("Stripe webhook idempotence", () => {
 
     const res1 = await post()
     expect(res1.status()).toBe(200)
-    const body1 = (await res1.json()) as { received?: boolean; duplicate?: boolean }
+    const body1 = (await res1.json()) as { received?: boolean }
     expect(body1.received).toBe(true)
+
+    await new Promise((r) => setTimeout(r, 1500))
 
     const res2 = await post()
     expect(res2.status()).toBe(200)
-    const body2 = (await res2.json()) as { duplicate?: boolean }
+    const body2 = (await res2.json()) as { duplicate?: boolean; received?: boolean }
+    expect(body2.received).toBe(true)
     expect(body2.duplicate).toBe(true)
   })
 })

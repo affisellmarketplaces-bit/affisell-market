@@ -4,8 +4,8 @@ import type Stripe from "stripe"
 const findUnique = vi.fn()
 const createWebhook = vi.fn()
 const findUniqueInTx = vi.fn()
-
-const handleMarketplaceThreeWaySplit = vi.fn()
+const scheduleMarketplaceTransferAttempts = vi.fn()
+const runProcessTransfersJob = vi.fn()
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -23,9 +23,12 @@ vi.mock("@/lib/prisma", () => ({
   },
 }))
 
-vi.mock("@/lib/stripe-marketplace-commission-split", () => ({
-  handleMarketplaceThreeWaySplit,
-  processMarketplaceCommissionForPaymentIntent: vi.fn(),
+vi.mock("@/lib/transfers/schedule-from-checkout", () => ({
+  scheduleMarketplaceTransferAttempts,
+}))
+
+vi.mock("@/lib/transfers/process-transfers", () => ({
+  runProcessTransfersJob,
 }))
 
 vi.mock("@/lib/stripe-pro", () => ({
@@ -51,14 +54,13 @@ describe("processStripeWebhookEvent idempotence", () => {
     findUnique.mockResolvedValue(null)
     findUniqueInTx.mockResolvedValue(null)
     createWebhook.mockResolvedValue({ id: "evt_1" })
-    handleMarketplaceThreeWaySplit.mockResolvedValue({
-      supplierTransfer: { id: "tr_1" },
-      affiliateTransfer: { id: "tr_2" },
-      errors: [],
+    scheduleMarketplaceTransferAttempts.mockResolvedValue({
+      orderId: "order_test_1",
+      scheduled: true,
     })
   })
 
-  it("calls split only once when the same event is processed twice", async () => {
+  it("schedules transfers only once when the same event is processed twice", async () => {
     const { processStripeWebhookEvent } = await import("@/lib/stripe-webhook-processor")
 
     const event = {
@@ -76,7 +78,7 @@ describe("processStripeWebhookEvent idempotence", () => {
 
     const r1 = await processStripeWebhookEvent(event)
     expect(r1.duplicate).toBe(false)
-    expect(handleMarketplaceThreeWaySplit).toHaveBeenCalledTimes(1)
+    expect(scheduleMarketplaceTransferAttempts).toHaveBeenCalledTimes(1)
 
     findUnique.mockResolvedValue({
       id: event.id,
@@ -87,6 +89,6 @@ describe("processStripeWebhookEvent idempotence", () => {
 
     const r2 = await processStripeWebhookEvent(event)
     expect(r2.duplicate).toBe(true)
-    expect(handleMarketplaceThreeWaySplit).toHaveBeenCalledTimes(1)
+    expect(scheduleMarketplaceTransferAttempts).toHaveBeenCalledTimes(1)
   })
 })

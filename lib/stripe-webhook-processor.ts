@@ -3,10 +3,8 @@ import type Stripe from "stripe"
 import StripeSdk from "stripe"
 
 import { prisma } from "@/lib/prisma"
-import {
-  handleMarketplaceThreeWaySplit,
-  processMarketplaceCommissionForPaymentIntent,
-} from "@/lib/stripe-marketplace-commission-split"
+import { processMarketplaceCommissionForPaymentIntent } from "@/lib/stripe-marketplace-commission-split"
+import { scheduleMarketplaceTransferAttempts } from "@/lib/transfers/schedule-from-checkout"
 import { isInsufficientCapabilitiesError } from "@/lib/stripe-connect-transfer"
 import {
   captureStripeWebhookException,
@@ -171,11 +169,13 @@ async function processCheckoutSessionCompleted(
     }
 
     try {
-      const split = await handleMarketplaceThreeWaySplit(session, orderId, tx)
-      if (split.errors.length > 0) {
-        await handleSplitErrors(split.errors, orderId, tx)
-        const msg = split.errors.map((e) => `${e.role}:${e.message}`).join("; ")
-        return { orderId, status: "failed", error: msg }
+      const scheduled = await scheduleMarketplaceTransferAttempts(session, orderId, tx)
+      if (!scheduled.scheduled) {
+        return {
+          orderId,
+          status: scheduled.reason === "already_settled" ? "success" : "skipped",
+          error: scheduled.reason ?? null,
+        }
       }
       return { orderId, status: "success", error: null }
     } catch (error) {

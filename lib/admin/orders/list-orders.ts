@@ -15,10 +15,21 @@ export async function listAdminOrders(query: AdminOrdersListQuery): Promise<Admi
       id: true,
       customerEmail: true,
       sellingPriceCents: true,
+      totalCents: true,
       status: true,
+      splitStatus: true,
       fulfillmentStatus: true,
       trackingNumber: true,
       createdAt: true,
+      transferAttempts: {
+        select: {
+          role: true,
+          status: true,
+          amountCents: true,
+          destination: true,
+          errorCode: true,
+        },
+      },
       supplierFulfillmentLinks: {
         select: {
           supplierFulfillmentOrder: {

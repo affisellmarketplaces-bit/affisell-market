@@ -62,6 +62,7 @@ export async function loadStripeHealthOrders(
     const supplierOnboarded = Boolean(order.supplier.stripeOnboardedAt)
     const affiliateOnboarded = Boolean(order.affiliate.stripeOnboardedAt)
     const input = {
+      splitStatus: order.splitStatus,
       status: order.status,
       paymentSettlementStatus: order.paymentSettlementStatus,
       supplierPayoutCents: order.supplierPayoutCents,

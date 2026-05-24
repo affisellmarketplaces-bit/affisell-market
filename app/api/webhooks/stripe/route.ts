@@ -3,6 +3,7 @@ import type Stripe from "stripe"
 
 import { prisma } from "@/lib/prisma"
 import { processStripeWebhookEvent } from "@/lib/stripe-webhook-processor"
+import { enqueueProcessTransfersJob } from "@/lib/transfers/enqueue-job"
 import {
   captureStripeWebhookException,
   logStripeWebhookInfo,
@@ -12,8 +13,6 @@ import { getStripeClient } from "@/lib/stripe"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 export const revalidate = 0
-
-const WEBHOOK_ACK_MS = 3_000
 
 export async function POST(req: NextRequest) {
   const started = Date.now()
@@ -55,70 +54,40 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const work = processStripeWebhookEvent(event)
-
-  const raced = await Promise.race([
-    work.then((result) => ({ kind: "done" as const, result })),
-    new Promise<{ kind: "timeout" }>((resolve) => {
-      setTimeout(() => resolve({ kind: "timeout" }), WEBHOOK_ACK_MS)
-    }),
-  ])
-
-  if (raced.kind === "timeout") {
-    void work
-      .then((result) => {
-        logStripeWebhookInfo({
-          level: "info",
-          metric: "webhook_background_done",
-          eventId: event.id,
-          type: event.type,
-          orderId: result.orderId,
-          duplicate: result.duplicate,
-          duration_ms: Date.now() - started,
-        })
+  void (async () => {
+    try {
+      const result = await processStripeWebhookEvent(event)
+      if (
+        event.type === "checkout.session.completed" &&
+        (event.data.object as Stripe.Checkout.Session).mode === "payment"
+      ) {
+        await enqueueProcessTransfersJob()
+      }
+      logStripeWebhookInfo({
+        level: "info",
+        metric: "webhook_background_done",
+        eventId: event.id,
+        type: event.type,
+        orderId: result.orderId,
+        duplicate: result.duplicate,
+        duration_ms: Date.now() - started,
       })
-      .catch((error) => {
-        captureStripeWebhookException(error, {
-          eventId: event.id,
-          type: event.type,
-          phase: "webhook_background",
-        })
+    } catch (error) {
+      captureStripeWebhookException(error, {
+        eventId: event.id,
+        type: event.type,
+        phase: "webhook_background",
       })
-
-    logStripeWebhookInfo({
-      level: "info",
-      metric: "webhook_deferred",
-      eventId: event.id,
-      type: event.type,
-      duration_ms: Date.now() - started,
-    })
-
-    return NextResponse.json(
-      { received: true, deferred: true, eventId: event.id },
-      { status: 200 }
-    )
-  }
-
-  const { result } = raced
+    }
+  })()
 
   logStripeWebhookInfo({
     level: "info",
-    metric: "webhook_done",
+    metric: "webhook_ack",
     eventId: event.id,
     type: event.type,
-    orderId: result.orderId,
-    duplicate: result.duplicate,
-    status: result.status,
     duration_ms: Date.now() - started,
   })
 
-  return NextResponse.json(
-    {
-      received: true,
-      duplicate: result.duplicate,
-      orderId: result.orderId,
-      status: result.status,
-    },
-    { status: 200 }
-  )
+  return NextResponse.json({ received: true, eventId: event.id }, { status: 200 })
 }

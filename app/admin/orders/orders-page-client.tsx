@@ -1,10 +1,11 @@
 "use client"
 
 import Link from "next/link"
-import { useDeferredValue, useMemo, useState } from "react"
+import { useDeferredValue, useMemo, useState, useTransition } from "react"
 import useSWR from "swr"
 import type { ColumnDef } from "@tanstack/react-table"
-import type { FulfillmentStatus } from "@prisma/client"
+import type { FulfillmentStatus, SplitStatus } from "@prisma/client"
+import { toast } from "sonner"
 
 import { DataTable } from "@/components/admin/data-table"
 import { fetchAdminOrders } from "@/lib/admin/orders/fetch"
@@ -35,8 +36,26 @@ const PAYMENT_OPTIONS = [
   { value: "refunded", label: "refunded" },
 ]
 
+const SPLIT_BADGE: Record<
+  SplitStatus,
+  "default" | "secondary" | "outline" | "accent" | "live"
+> = {
+  PENDING: "secondary",
+  PARTIAL: "accent",
+  SUCCESS: "live",
+  FAILED: "accent",
+}
+
 function money(cents: number) {
   return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(cents / 100)
+}
+
+function transferLabel(
+  label: string,
+  t: { amountCents: number; status: string; errorCode: string | null } | null
+) {
+  if (!t) return `${label}: —`
+  return `${label}: ${money(t.amountCents)} · ${t.status}${t.errorCode ? ` (${t.errorCode})` : ""}`
 }
 
 export function OrdersPageClient() {
@@ -45,6 +64,8 @@ export function OrdersPageClient() {
   const [paymentStatus, setPaymentStatus] = useState("")
   const [createdFrom, setCreatedFrom] = useState("")
   const [createdTo, setCreatedTo] = useState("")
+  const [pendingId, setPendingId] = useState<string | null>(null)
+  const [, startTransition] = useTransition()
 
   const deferredQ = useDeferredValue(q)
 
@@ -67,7 +88,7 @@ export function OrdersPageClient() {
 
   const swrKey = useMemo(() => ["admin-orders", listQuery] as const, [listQuery])
 
-  const { data: orders, isLoading, error } = useSWR(swrKey, () => fetchAdminOrders(listQuery), {
+  const { data: orders, isLoading, error, mutate } = useSWR(swrKey, () => fetchAdminOrders(listQuery), {
     keepPreviousData: true,
   })
 
@@ -77,75 +98,161 @@ export function OrdersPageClient() {
     () => [
       {
         accessorKey: "orderNumber",
-        header: "#Order",
+        header: "Order ID",
         cell: ({ row }) => (
-          <span className="font-mono text-xs font-medium text-zinc-900 dark:text-zinc-100">
-            {row.original.orderNumber}
-          </span>
-        ),
-      },
-      {
-        accessorKey: "customerEmail",
-        header: "Client",
-        cell: ({ row }) => (
-          <span className="text-sm text-zinc-700 dark:text-zinc-300">{row.original.customerEmail}</span>
+          <div className="flex flex-col gap-0.5">
+            <span className="font-mono text-xs font-medium">{row.original.orderNumber}</span>
+            <Link
+              href={`/admin/orders/${row.original.id}`}
+              className="text-xs text-blue-600 hover:underline dark:text-blue-400"
+            >
+              Détail
+            </Link>
+          </div>
         ),
       },
       {
         accessorKey: "amountCents",
-        header: "Montant",
+        header: "Total",
         cell: ({ row }) => (
           <span className="text-sm tabular-nums">{money(row.original.amountCents)}</span>
         ),
       },
       {
-        id: "status",
-        header: "Statut",
-        cell: ({ row }) => (
-          <div className="flex flex-col gap-1">
-            <Badge variant="outline" className="w-fit text-xs">
-              {row.original.paymentStatus}
-            </Badge>
-            <Badge variant="accent" className="w-fit text-xs">
-              {row.original.fulfillmentStatus}
-            </Badge>
-          </div>
-        ),
-      },
-      {
-        id: "suppliers",
-        header: "Fournisseurs",
+        id: "supplier",
+        header: "Supplier",
         cell: ({ row }) => (
           <span className="text-xs text-zinc-600 dark:text-zinc-400">
-            {row.original.supplierNames.length > 0
-              ? row.original.supplierNames.join(", ")
-              : "—"}
+            {transferLabel("S", row.original.supplierTransfer)}
           </span>
         ),
       },
       {
-        accessorKey: "trackingNumber",
-        header: "Tracking",
+        id: "affiliate",
+        header: "Affiliate",
+        cell: ({ row }) => {
+          const a = row.original.affiliateTransfer
+          return (
+            <div className="space-y-1 text-xs">
+              <span className="text-zinc-600 dark:text-zinc-400">
+                {transferLabel("A", a)}
+              </span>
+              {a?.errorCode === "AFFILIATE_ONBOARDING_REQUIRED" ? (
+                <Badge variant="accent" className="text-[10px]">
+                  AFFILIATE_ONBOARDING_REQUIRED
+                </Badge>
+              ) : null}
+            </div>
+          )
+        },
+      },
+      {
+        accessorKey: "splitStatus",
+        header: "SplitStatus",
         cell: ({ row }) => (
-          <span className="font-mono text-xs text-zinc-600 dark:text-zinc-400">
-            {row.original.trackingNumber ?? "—"}
+          <Badge variant={SPLIT_BADGE[row.original.splitStatus]} className="w-fit text-xs">
+            {row.original.splitStatus}
+          </Badge>
+        ),
+      },
+      {
+        id: "transfers",
+        header: "Transfers",
+        cell: ({ row }) => (
+          <span className="font-mono text-[10px] text-zinc-500">
+            {row.original.supplierTransfer?.status ?? "—"} /{" "}
+            {row.original.affiliateTransfer?.status ?? "—"}
           </span>
         ),
       },
       {
         id: "actions",
         header: "Actions",
-        cell: ({ row }) => (
-          <Link
-            href={`/admin/orders/${row.original.id}`}
-            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
-          >
-            Détail
-          </Link>
-        ),
+        cell: ({ row }) => {
+          const o = row.original
+          const busy = pendingId === o.id
+          const canResettle =
+            o.splitStatus === "PARTIAL" || o.splitStatus === "FAILED" || o.splitStatus === "PENDING"
+          const affiliateAcct = o.affiliateTransfer?.destination
+          const needsOnboarding =
+            o.affiliateTransfer?.errorCode === "AFFILIATE_ONBOARDING_REQUIRED"
+
+          return (
+            <div className="flex flex-wrap gap-1">
+              {canResettle ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={busy}
+                  onClick={() => {
+                    setPendingId(o.id)
+                    startTransition(async () => {
+                      try {
+                        const res = await fetch(`/api/admin/orders/${o.id}/resettle`, {
+                          method: "POST",
+                          credentials: "include",
+                        })
+                        const data = (await res.json()) as { ok?: boolean; error?: string }
+                        if (!res.ok) throw new Error(data.error ?? "Resettle failed")
+                        toast.success("Resettle terminé", { description: o.orderNumber })
+                        await mutate()
+                      } catch (e) {
+                        toast.error(e instanceof Error ? e.message : "Erreur")
+                      } finally {
+                        setPendingId(null)
+                      }
+                    })
+                  }}
+                >
+                  Resettle
+                </Button>
+              ) : null}
+              {needsOnboarding && affiliateAcct ? (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  disabled={busy}
+                  onClick={() => {
+                    setPendingId(o.id)
+                    startTransition(async () => {
+                      try {
+                        const res = await fetch("/api/admin/stripe-health/send-onboarding", {
+                          method: "POST",
+                          credentials: "include",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ accountId: affiliateAcct }),
+                        })
+                        const data = (await res.json()) as { url?: string; error?: string }
+                        if (!res.ok) throw new Error(data.error ?? "Link failed")
+                        if (data.url) window.open(data.url, "_blank")
+                        toast.success("Lien onboarding généré")
+                      } catch (e) {
+                        toast.error(e instanceof Error ? e.message : "Erreur")
+                      } finally {
+                        setPendingId(null)
+                      }
+                    })
+                  }}
+                >
+                  Onboarding
+                </Button>
+              ) : null}
+              {o.affiliateTransfer?.onboardingUrl ? (
+                <a
+                  href={o.affiliateTransfer.onboardingUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
+                >
+                  Stripe
+                </a>
+              ) : null}
+            </div>
+          )
+        },
       },
     ],
-    []
+    [mutate, pendingId, startTransition]
   )
 
   function clearFilters() {
@@ -165,10 +272,16 @@ export function OrdersPageClient() {
         <div>
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Commandes</h1>
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            Recherche serveur — SAV, tracking et annulations fournisseur.
+            Split Connect, transfers et resettle.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Link
+            href="/admin/stripe-health"
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+          >
+            Stripe health
+          </Link>
           <Link
             href="/admin/providers"
             className={cn(buttonVariants({ variant: "outline", size: "sm" }))}

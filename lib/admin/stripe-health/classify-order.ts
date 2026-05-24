@@ -2,6 +2,7 @@ import { parseWebhookErrorMessage } from "@/lib/admin/stripe-health/parse-webhoo
 import type { StripeHealthFailureDetail, StripeHealthStatus } from "@/lib/admin/stripe-health/types"
 
 export type StripeHealthOrderInput = {
+  splitStatus?: string
   status: string
   paymentSettlementStatus: string
   supplierPayoutCents: number | null
@@ -25,6 +26,9 @@ export function classifyStripeHealthOrder(
   order: StripeHealthOrderInput,
   webhook: StripeHealthWebhookInput
 ): StripeHealthStatus {
+  if (order.splitStatus === "SUCCESS") return "split_ok"
+  if (order.splitStatus === "PARTIAL") return "onboarding_required"
+  if (order.splitStatus === "FAILED") return "split_failed"
   if (isOrderSplitSettled(order)) return "split_ok"
 
   const webhookFailed = webhook?.status === "failed"
