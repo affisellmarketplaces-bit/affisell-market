@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * Vercel production build.
- * - Requires DATABASE_URL (pooled Neon OK; DIRECT_URL auto-derived if missing).
- * - Repairs failed/partial Prisma migrations on Neon before migrate deploy.
+ * Vercel production build: Prisma generate → heal Neon (P3009) → migrate deploy → next build.
  */
 import { execSync } from "node:child_process"
+import { readdirSync } from "node:fs"
+import { join } from "node:path"
 import { ensureDirectUrl } from "./ensure-direct-url.mjs"
 
-const MAX_MIGRATE_ATTEMPTS = 6
+const MIGRATION_DIR = join(process.cwd(), "prisma/migrations")
 
 function run(command, options = {}) {
   console.log(`\n> ${command}`)
@@ -22,7 +22,7 @@ function execPrisma(args) {
       env: process.env,
       stdio: ["ignore", "pipe", "pipe"],
     })
-    return { ok: true, output: stdout }
+    return { ok: true, output: stdout.trim() }
   } catch (error) {
     const err = error
     const stdout = err?.stdout?.toString?.() ?? ""
@@ -31,11 +31,35 @@ function execPrisma(args) {
   }
 }
 
+function execSqlFile(relativePath, label) {
+  console.log(`\n> ${label}`)
+  const result = execPrisma(
+    `db execute --file ${relativePath} --schema prisma/schema.prisma`
+  )
+  if (result.ok) {
+    console.log(`✓ ${label}`)
+    return true
+  }
+  console.log(`⚠ ${label} (continuing)`)
+  if (result.output) console.log(result.output)
+  return false
+}
+
+function listLocalMigrationNames() {
+  return readdirSync(MIGRATION_DIR, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .filter((name) => /^\d{14}_/.test(name))
+    .sort()
+}
+
 function parseFailedMigrationNames(text) {
   const names = new Set()
   if (!text) return []
 
-  const failedBlock = text.match(/following migration\(s\) have failed:\s*([\s\S]*?)(?:\n\n|$)/i)
+  const failedBlock = text.match(
+    /following migration\(s\) have failed:\s*([\s\S]*?)(?:\n\n|To fix|Run|$)/i
+  )
   if (failedBlock?.[1]) {
     for (const line of failedBlock[1].split("\n")) {
       const match = line.trim().match(/^(\d{14}_[a-z0-9_]+)/i)
@@ -50,112 +74,81 @@ function parseFailedMigrationNames(text) {
   return [...names]
 }
 
-function parseMigrationNameFromOutput(text) {
-  if (!text) return undefined
-  return (
-    text.match(/Applying migration `([^`]+)`/i)?.[1] ??
-    text.match(/Migration name: (\d{14}_[a-z0-9_]+)/i)?.[1]
-  )
-}
-
-function isAlreadyExistsError(text) {
-  return /already exists|42P07|42710|P3014/i.test(text ?? "")
-}
-
-function runDeployRepair() {
-  console.log("\n> Applying prisma/deploy-repair.sql (idempotent)")
-  const result = execPrisma(
-    'db execute --file prisma/deploy-repair.sql --schema prisma/schema.prisma'
-  )
-  if (result.ok) {
-    console.log("✓ deploy-repair.sql applied")
-    return
-  }
-  console.log("(deploy-repair partial — continuing)")
-  if (result.output) console.log(result.output)
-}
-
 function resolveFailedMigrations(names) {
   for (const name of names) {
     console.log(`\n> npx prisma migrate resolve --applied ${name}`)
     const result = execPrisma(`migrate resolve --applied ${name}`)
     if (result.ok) {
-      console.log(`✓ Marked ${name} as applied`)
+      console.log(`✓ ${name}`)
       continue
     }
     if (/P3008/i.test(result.output)) {
-      console.log(`(skip ${name} — already recorded as applied)`)
+      console.log(`  (${name} already applied)`)
       continue
     }
-    if (/not found|not in a failed state|failed state/i.test(result.output)) {
-      console.log(`(skip ${name} — not in failed state)`)
-      continue
-    }
-    console.log(`(resolve ${name} note: ${result.output.split("\n")[0] ?? "unknown"})`)
+    console.log(`  (resolve note: ${(result.output.split("\n").find(Boolean) ?? "skipped").slice(0, 120)})`)
+  }
+}
+
+function healMigrationHistory() {
+  execSqlFile("prisma/deploy-repair.sql", "deploy-repair.sql (schema)")
+  execSqlFile("prisma/fix-p3009-migrations.sql", "fix-p3009-migrations.sql (clear failed rows)")
+
+  const status = execPrisma("migrate status")
+  const failed = parseFailedMigrationNames(status.output)
+  if (failed.length > 0) {
+    console.log(`\nPrisma still reports failed: ${failed.join(", ")}`)
+    resolveFailedMigrations(failed)
+    execSqlFile("prisma/fix-p3009-migrations.sql", "fix-p3009-migrations.sql (retry)")
   }
 }
 
 function runMigrations() {
-  runDeployRepair()
+  healMigrationHistory()
 
-  for (let attempt = 1; attempt <= MAX_MIGRATE_ATTEMPTS; attempt++) {
-    const statusBefore = execPrisma("migrate status")
-    const failedBefore = parseFailedMigrationNames(statusBefore.output)
-    if (failedBefore.length > 0) {
-      console.log(`\nRepairing failed migration record(s): ${failedBefore.join(", ")}`)
-      runDeployRepair()
-      resolveFailedMigrations(failedBefore)
-    }
+  const localMigrations = listLocalMigrationNames()
+  console.log(`\nLocal migrations: ${localMigrations.length} in prisma/migrations/`)
 
-    console.log(`\n> npx prisma migrate deploy (attempt ${attempt}/${MAX_MIGRATE_ATTEMPTS})`)
-    const deploy = execPrisma("migrate deploy")
-    if (deploy.output) console.log(deploy.output)
+  console.log("\n> npx prisma migrate deploy")
+  const deploy = execPrisma("migrate deploy")
+  if (deploy.output) console.log(deploy.output)
 
-    if (deploy.ok) {
-      const statusAfter = execPrisma("migrate status")
-      if (statusAfter.output.includes("Database schema is up to date")) {
-        console.log("\n✓ Prisma migrations: up to date")
-        return
+  if (!deploy.ok) {
+    if (/P3009/i.test(deploy.output)) {
+      console.log("\nP3009 after heal — running second repair cycle")
+      healMigrationHistory()
+      const retry = execPrisma("migrate deploy")
+      if (retry.output) console.log(retry.output)
+      if (!retry.ok) {
+        console.error("\n✗ migrate deploy still failing after P3009 repair.")
+        process.exit(1)
       }
-      console.log(statusAfter.output)
-      return
+    } else {
+      console.error("\n✗ migrate deploy failed.")
+      process.exit(1)
     }
+  }
 
-    const failedFromDeploy = parseFailedMigrationNames(deploy.output)
-    if (failedFromDeploy.length > 0) {
-      runDeployRepair()
-      resolveFailedMigrations(failedFromDeploy)
-      continue
-    }
+  const status = execPrisma("migrate status")
+  if (status.output.includes("Database schema is up to date")) {
+    console.log("\n✓ Prisma migrations: up to date")
+    return
+  }
 
-    if (isAlreadyExistsError(deploy.output)) {
-      const migrationName = parseMigrationNameFromOutput(deploy.output)
-      if (migrationName) {
-        console.log(
-          `\nRepair: schema objects exist — marking ${migrationName} as applied after deploy-repair`
-        )
-        runDeployRepair()
-        resolveFailedMigrations([migrationName])
-        continue
-      }
-    }
-
-    console.error("\n✗ prisma migrate deploy failed without a recoverable failed migration.")
-    if (deploy.output) console.error(deploy.output)
+  if (parseFailedMigrationNames(status.output).length > 0) {
+    console.error("\n✗ Failed migrations remain after deploy:")
+    console.error(status.output)
     process.exit(1)
   }
 
-  console.error("\n✗ Prisma migrate deploy did not reach a clean state after retries.")
-  process.exit(1)
+  console.log(status.output || "\n✓ migrate deploy completed")
 }
 
 if (!process.env.DATABASE_URL?.trim()) {
   console.error(
     [
       "ERROR: DATABASE_URL is not set for the Vercel build.",
-      "Vercel → Project → Settings → Environment Variables → Production",
-      "Enable: Production + Preview + Development (for migrate deploy at build time)",
-      "Set DATABASE_URL (Neon; ?pgbouncer=true is OK). DIRECT_URL is optional.",
+      "Vercel → Settings → Environment Variables → Production (+ Preview recommended)",
     ].join("\n")
   )
   process.exit(1)
@@ -172,9 +165,7 @@ try {
   console.log("✓ Vercel build completed successfully.")
 } catch (error) {
   console.error("\n✗ Vercel build failed (uncaught).")
-  if (error instanceof Error && error.message) {
-    console.error(error.message)
-  }
+  if (error instanceof Error && error.message) console.error(error.message)
   if (error && typeof error === "object" && "stdout" in error) {
     const stdout = error.stdout?.toString?.()
     const stderr = error.stderr?.toString?.()
