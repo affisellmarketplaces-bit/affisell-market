@@ -11,6 +11,10 @@ import {
   parseProductCustomColumnFilters,
   productCustomColumnFilterClauses,
 } from "@/lib/product-custom-column-filters"
+import {
+  listingWarrantyBadgeLabel,
+  resolveProductWarrantyMonths,
+} from "@/lib/product-warranty"
 import { prisma } from "@/lib/prisma"
 import { publicStoreLabelFromAffiliateRow } from "@/lib/public-seller-display"
 
@@ -24,6 +28,8 @@ export const listingMarketplaceInclude = {
       compareAt: true,
       stock: true,
       categoryId: true,
+      variants: true,
+      hasVariants: true,
     },
   },
   affiliate: {
@@ -38,11 +44,21 @@ export type MarketplaceListingRow = Prisma.AffiliateProductGetPayload<{
   include: typeof listingMarketplaceInclude
 }>
 
-export function serializeMarketplaceListing(row: MarketplaceListingRow) {
+export function serializeMarketplaceListing(
+  row: MarketplaceListingRow,
+  options?: { warrantyMonths?: number | null; locale?: string }
+) {
   const p = row.product
   const compareNum = p.compareAt != null ? Number(p.compareAt) : null
   const gallery = listingGalleryUrls(row.customImages ?? [], p.images ?? [])
   const title = listingDisplayTitle(row.customTitle, p.name)
+  const warrantyMonths =
+    options?.warrantyMonths !== undefined
+      ? options.warrantyMonths
+      : resolveProductWarrantyMonths({
+          variants: p.variants,
+          hasVariants: p.hasVariants,
+        })
 
   return {
     id: row.id,
@@ -62,6 +78,11 @@ export function serializeMarketplaceListing(row: MarketplaceListingRow) {
     buyerRewardBadge: buyerRewardBadgeText(
       normalizeBuyerRewardKind(row.buyerRewardKind),
       row.buyerRewardPercent ?? 0
+    ),
+    warrantyLabel: listingWarrantyBadgeLabel(
+      row.showWarranty,
+      warrantyMonths,
+      options?.locale ?? "fr"
     ),
   }
 }
@@ -108,5 +129,31 @@ export async function fetchMarketplaceListings(searchParams: URLSearchParams, ta
     orderBy: [{ isFeatured: "desc" }, { clicks: "desc" }, { updatedAt: "desc" }],
     take,
   })
-  return rows.map(serializeMarketplaceListing)
+
+  const variantProductIds = [
+    ...new Set(rows.filter((r) => r.product.hasVariants).map((r) => r.product.id)),
+  ]
+  const variantRows =
+    variantProductIds.length > 0
+      ? await prisma.productVariant.findMany({
+          where: { productId: { in: variantProductIds } },
+          select: { productId: true, customData: true },
+        })
+      : []
+  const variantsByProductId = new Map<string, Array<{ customData: unknown }>>()
+  for (const variant of variantRows) {
+    const list = variantsByProductId.get(variant.productId) ?? []
+    list.push({ customData: variant.customData })
+    variantsByProductId.set(variant.productId, list)
+  }
+
+  return rows.map((row) => {
+    const productVariants = variantsByProductId.get(row.product.id)
+    const warrantyMonths = resolveProductWarrantyMonths({
+      variants: row.product.variants,
+      hasVariants: row.product.hasVariants,
+      productVariants,
+    })
+    return serializeMarketplaceListing(row, { warrantyMonths })
+  })
 }

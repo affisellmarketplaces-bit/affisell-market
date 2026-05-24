@@ -699,6 +699,11 @@ model AffiliateProduct {
    */
   promotedVariantKeys String[] @default([])
 
+  /**
+   * When true, show supplier warranty badge on storefront cards (requires warranty on SKUs).
+   */
+  showWarranty Boolean @default(false)
+
   blindDropshipOrderItems BlindDropshipOrderItem[]
 
   createdAt DateTime @default(now())

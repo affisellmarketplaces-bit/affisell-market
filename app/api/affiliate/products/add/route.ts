@@ -5,6 +5,7 @@ import { parsePromotedVariantPatch } from "@/lib/affiliate-promoted-variant"
 import { parsePromotedVariantKeysBody } from "@/lib/affiliate-storefront-variants"
 import { resolveBuyerRewardForListing } from "@/lib/affiliate-buyer-reward-request"
 import { slugifyListingSlug } from "@/lib/affiliate-listing-display"
+import { parseShowWarrantyFlag, resolveProductWarrantyMonths } from "@/lib/product-warranty"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -189,6 +190,26 @@ export async function POST(request: Request) {
   const keysPatch =
     promotedVariantKeys !== undefined ? { promotedVariantKeys } : {}
 
+  const showWarrantyFlag = parseShowWarrantyFlag(body.showWarranty)
+  let showWarranty = false
+  if (showWarrantyFlag === true) {
+    const warrantyMonths = resolveProductWarrantyMonths({
+      variants: product.variants,
+      hasVariants: product.hasVariants,
+      productVariants: await prisma.productVariant.findMany({
+        where: { productId: product.id },
+        select: { customData: true },
+      }),
+    })
+    if ((warrantyMonths == null || warrantyMonths <= 0) && !saveDraft) {
+      return NextResponse.json(
+        { error: "Ce produit n'a pas de garantie fournisseur à afficher." },
+        { status: 400 }
+      )
+    }
+    showWarranty = warrantyMonths != null && warrantyMonths > 0
+  }
+
   try {
     const row = await prisma.affiliateProduct.upsert({
       where: {
@@ -210,6 +231,7 @@ export async function POST(request: Request) {
         position,
         buyerRewardKind: reward.buyerRewardKind,
         buyerRewardPercent: reward.buyerRewardPercent,
+        showWarranty,
         ...promoPatch,
         ...keysPatch,
       },
@@ -226,6 +248,7 @@ export async function POST(request: Request) {
         isFeatured,
         buyerRewardKind: reward.buyerRewardKind,
         buyerRewardPercent: reward.buyerRewardPercent,
+        showWarranty,
         ...promoPatch,
         ...keysPatch,
       },

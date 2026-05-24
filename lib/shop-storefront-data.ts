@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client"
 
 import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
+import { listingWarrantyBadgeLabel, resolveProductWarrantyMonths } from "@/lib/product-warranty"
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
 
@@ -25,6 +26,7 @@ export type ShopProductCard = {
   stock: number
   averageRating: number
   reviewCount: number
+  warrantyLabel?: string | null
   /** Present only when serialized for affiliate preview (never on public buyer pages). */
   marginCents?: number
   commissionPct?: number
@@ -87,6 +89,7 @@ export async function loadAffiliateShopProducts(
       sellingPriceCents: true,
       customTitle: true,
       customImages: true,
+      showWarranty: true,
       product: {
         select: {
           id: true,
@@ -97,6 +100,8 @@ export async function loadAffiliateShopProducts(
           compareAt: true,
           averageRating: true,
           reviewCount: true,
+          variants: true,
+          hasVariants: true,
           ...(includeBusiness
             ? { basePriceCents: true, commissionRate: true }
             : {}),
@@ -122,12 +127,34 @@ export async function loadAffiliateShopProducts(
     }
   }
 
+  const variantProductIds = [
+    ...new Set(listings.filter((l) => l.product?.hasVariants).map((l) => l.product!.id)),
+  ]
+  const variantRows =
+    variantProductIds.length > 0
+      ? await prisma.productVariant.findMany({
+          where: { productId: { in: variantProductIds } },
+          select: { productId: true, customData: true },
+        })
+      : []
+  const variantsByProductId = new Map<string, Array<{ customData: unknown }>>()
+  for (const variant of variantRows) {
+    const list = variantsByProductId.get(variant.productId) ?? []
+    list.push({ customData: variant.customData })
+    variantsByProductId.set(variant.productId, list)
+  }
+
   return listings
     .filter((l) => l.product)
     .map((l) => {
       const p = l.product!
       const compareAt =
         p.compareAt != null && Number(p.compareAt) > 0 ? Math.round(Number(p.compareAt) * 100) : null
+      const warrantyMonths = resolveProductWarrantyMonths({
+        variants: p.variants,
+        hasVariants: p.hasVariants,
+        productVariants: variantsByProductId.get(p.id),
+      })
       return {
         listingId: l.id,
         productId: p.id,
@@ -141,6 +168,7 @@ export async function loadAffiliateShopProducts(
         stock: p.stock,
         averageRating: p.averageRating,
         reviewCount: p.reviewCount,
+        warrantyLabel: listingWarrantyBadgeLabel(l.showWarranty, warrantyMonths),
         ...(includeBusiness
           ? {
               marginCents: Math.max(0, l.sellingPriceCents - p.basePriceCents),
@@ -246,6 +274,7 @@ export function shopProductToCardProps(item: ShopProductCard, storeSlug: string)
     price: item.priceCents / 100,
     compareAt: item.compareAtCents != null ? item.compareAtCents / 100 : null,
     freeShipping: item.freeShipping,
+    warrantyLabel: item.warrantyLabel ?? null,
     stock: item.stock,
     averageRating: item.averageRating,
     reviewCount: item.reviewCount,

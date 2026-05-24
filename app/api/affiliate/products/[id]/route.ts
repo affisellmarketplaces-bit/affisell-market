@@ -7,6 +7,7 @@ import { parsePromotedVariantPatch } from "@/lib/affiliate-promoted-variant"
 import { parsePromotedVariantKeysBody } from "@/lib/affiliate-storefront-variants"
 import { resolveBuyerRewardForListing } from "@/lib/affiliate-buyer-reward-request"
 import { slugifyListingSlug } from "@/lib/affiliate-listing-display"
+import { parseShowWarrantyFlag, resolveProductWarrantyMonths } from "@/lib/product-warranty"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -206,6 +207,27 @@ export async function PATCH(
       return NextResponse.json({ error: keysRes.error }, { status: 400 })
     }
     data.promotedVariantKeys = keysRes.promotedVariantKeys
+  }
+
+  const showWarrantyFlag = parseShowWarrantyFlag(body.showWarranty)
+  if (showWarrantyFlag !== undefined) {
+    if (showWarrantyFlag) {
+      const warrantyMonths = resolveProductWarrantyMonths({
+        variants: listing.product.variants,
+        hasVariants: listing.product.hasVariants,
+        productVariants: await prisma.productVariant.findMany({
+          where: { productId: listing.productId },
+          select: { customData: true },
+        }),
+      })
+      if (warrantyMonths == null || warrantyMonths <= 0) {
+        return NextResponse.json(
+          { error: "Ce produit n'a pas de garantie fournisseur à afficher." },
+          { status: 400 }
+        )
+      }
+    }
+    data.showWarranty = showWarrantyFlag
   }
 
   try {

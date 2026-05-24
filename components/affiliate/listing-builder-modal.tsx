@@ -18,6 +18,7 @@ import {
   initialPromotedVariantPick,
   promotedVariantKeysFromPick,
 } from "@/lib/affiliate-storefront-variants"
+import { formatWarrantyBadgeLabel, resolveProductWarrantyMonths } from "@/lib/product-warranty"
 
 type CatalogProduct = {
   id: string
@@ -32,6 +33,7 @@ type CatalogProduct = {
     color: string | null
     size: string | null
     stock: number
+    customData?: unknown
   }>
 }
 
@@ -56,6 +58,7 @@ export type SerializedListing = {
   promotedColor?: string | null
   promotedSize?: string | null
   promotedVariantKeys?: string[]
+  showWarranty?: boolean
 }
 
 type Props = {
@@ -91,6 +94,7 @@ type FormFields = {
   promotedColor: string
   promotedSize: string
   promotedVariantPick: Record<string, boolean>
+  showWarranty: boolean
 }
 
 function getListingFormDefaults(
@@ -131,6 +135,7 @@ function getListingFormDefaults(
       variantOptions,
       L?.promotedVariantKeys
     ),
+    showWarranty: Boolean(L?.showWarranty),
   }
 }
 
@@ -154,6 +159,19 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
       }),
     [product]
   )
+  const supplierWarrantyMonths = useMemo(
+    () =>
+      resolveProductWarrantyMonths({
+        variants: product.variants,
+        hasVariants: product.hasVariants,
+        productVariants: product.productVariants,
+      }),
+    [product]
+  )
+  const supplierWarrantyLabel =
+    supplierWarrantyMonths != null && supplierWarrantyMonths > 0
+      ? formatWarrantyBadgeLabel(supplierWarrantyMonths)
+      : null
   const [form, setForm] = useState<FormFields>(() => ({
     step: 1,
     ...getListingFormDefaults(product, listing, variantOptions),
@@ -316,6 +334,7 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
           promotedColor: form.promotedColor.trim() || null,
           promotedSize: form.promotedSize.trim() || null,
           promotedVariantKeys,
+          showWarranty: form.showWarranty,
         }
         const res = await fetch(`/api/affiliate/products/${listing.id}`, {
           method: "PATCH",
@@ -353,6 +372,7 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
           promotedColor: form.promotedColor.trim() || null,
           promotedSize: form.promotedSize.trim() || null,
           promotedVariantKeys,
+          showWarranty: form.showWarranty,
         }
 
         const res = await fetch("/api/affiliate/products/add", {
@@ -855,6 +875,26 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
                   </div>
                 ) : null}
               </div>
+
+              {supplierWarrantyLabel ? (
+                <div className="rounded-xl border border-emerald-100 bg-white p-4">
+                  <p className="text-sm font-semibold text-gray-900">Garantie fournisseur</p>
+                  <p className="mt-1 text-xs text-gray-600">
+                    Le fournisseur propose{" "}
+                    <span className="font-semibold text-emerald-800">{supplierWarrantyLabel}</span> sur ce
+                    produit.
+                  </p>
+                  <label className="mt-3 flex cursor-pointer items-start gap-2 text-sm text-gray-800">
+                    <input
+                      type="checkbox"
+                      checked={form.showWarranty}
+                      onChange={(e) => setForm((f) => ({ ...f, showWarranty: e.target.checked }))}
+                      className="mt-0.5 rounded"
+                    />
+                    <span>Afficher la garantie sur ma boutique et le marketplace</span>
+                  </label>
+                </div>
+              ) : null}
 
               <div>
                 <p className="text-sm font-medium text-gray-800">Collections</p>

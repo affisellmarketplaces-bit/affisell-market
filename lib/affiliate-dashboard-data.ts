@@ -38,7 +38,7 @@ export function affiliateCatalogProductDetailSelect(affiliateId: string): Prisma
     variants: true,
     hasVariants: true,
     productVariants: {
-      select: { color: true, size: true, stock: true },
+      select: { color: true, size: true, stock: true, customData: true },
       orderBy: { createdAt: "asc" },
     },
   }
@@ -77,6 +77,7 @@ const affiliateListingRowSelect = {
   promotedColor: true,
   promotedSize: true,
   promotedVariantKeys: true,
+  showWarranty: true,
 } satisfies Prisma.AffiliateProductSelect
 
 export const AFFILIATE_DISCOVER_CATALOG_LIMIT = 24

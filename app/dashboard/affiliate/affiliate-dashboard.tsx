@@ -431,6 +431,7 @@ export function AffiliateDashboard({ storeId }: Props) {
       promotedColor: listing.promotedColor ?? null,
       promotedSize: listing.promotedSize ?? null,
       promotedVariantKeys: listing.promotedVariantKeys ?? [],
+      showWarranty: listing.showWarranty ?? false,
     })
   }
 

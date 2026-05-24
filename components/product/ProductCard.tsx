@@ -27,6 +27,7 @@ export type ProductCardProduct = {
   commissionPct?: number
   deliveryLabel?: string
   freeShipping?: boolean
+  warrantyLabel?: string | null
   stock?: number
   averageRating?: number
   reviewCount?: number
@@ -80,6 +81,10 @@ function coerceProduct(p: ProductCardProps["product"]) {
   const deliveryLabel =
     typeof o.deliveryLabel === "string" && o.deliveryLabel.trim() ? o.deliveryLabel.trim() : null
   const freeShipping = Boolean(o.freeShipping)
+  const warrantyLabel =
+    typeof o.warrantyLabel === "string" && o.warrantyLabel.trim()
+      ? o.warrantyLabel.trim()
+      : null
   const stockRaw = o.stock
   const stock =
     typeof stockRaw === "number" && Number.isFinite(stockRaw) ? stockRaw : null
@@ -100,6 +105,7 @@ function coerceProduct(p: ProductCardProps["product"]) {
     commissionPct,
     deliveryLabel,
     freeShipping,
+    warrantyLabel,
     stock,
     averageRating,
     reviewCount,
@@ -158,19 +164,31 @@ function BusinessBadges({
   )
 }
 
-function CustomerConversionBadges() {
+function CustomerConversionBadges({
+  freeShipping,
+  warrantyLabel,
+}: {
+  freeShipping: boolean
+  warrantyLabel: string | null
+}) {
+  const hasAny = freeShipping || warrantyLabel
+  if (!hasAny) return null
   return (
     <ul className="mt-2 flex flex-wrap gap-1.5">
-      <li>
-        <span className="inline-flex rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold text-sky-900 dark:bg-sky-950/60 dark:text-sky-200">
-          Livraison offerte
-        </span>
-      </li>
-      <li>
-        <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-200">
-          Garantie 2 ans
-        </span>
-      </li>
+      {freeShipping ? (
+        <li>
+          <span className="inline-flex rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold text-sky-900 dark:bg-sky-950/60 dark:text-sky-200">
+            Livraison offerte
+          </span>
+        </li>
+      ) : null}
+      {warrantyLabel ? (
+        <li>
+          <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-200">
+            {warrantyLabel}
+          </span>
+        </li>
+      ) : null}
       <li>
         <span className="inline-flex rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-900 dark:bg-violet-950/60 dark:text-violet-200">
           Paiement 3x
@@ -286,7 +304,7 @@ export function ProductCard({ product, mode = "customer", href: hrefProp }: Prod
             ) : null}
           </>
         ) : (
-          <CustomerConversionBadges />
+          <CustomerConversionBadges freeShipping={p.freeShipping} warrantyLabel={p.warrantyLabel} />
         )}
       </div>
     </Link>
