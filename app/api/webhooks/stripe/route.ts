@@ -4,7 +4,6 @@ import type Stripe from "stripe"
 import { createBlindDropshipPaidNotifications } from "@/lib/blind-dropship-notifications"
 import { handleStripeChargeRefunded } from "@/lib/stripe-charge-refunded"
 import {
-  handleMarketplaceThreeWaySplit,
   processMarketplaceCommissionForPaymentIntent,
 } from "@/lib/stripe-marketplace-commission-split"
 import { handleStripeInvoicePaymentFailed } from "@/lib/stripe-invoice-payment-failed"
@@ -45,32 +44,28 @@ export async function POST(req: NextRequest) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session
-
     console.log("=== WEBHOOK checkout.session.completed ===", {
       id: session.id,
       mode: session.mode,
       payment_status: session.payment_status,
+      metadata: session.metadata,
     })
 
-    try {
-      if (session.mode === "subscription" && session.payment_status === "paid") {
-        await activateProFromCheckoutSession(session)
-      }
-
-      if (session.mode === "payment" && session.payment_status === "paid") {
-        const orderId = session.metadata?.orderId
-        if (!orderId) {
-          console.error("No orderId in session metadata")
-        } else {
-          await handleMarketplaceThreeWaySplit(session, orderId)
-        }
-      }
-    } catch (e) {
-      console.error("webhook: checkout.session.completed error", e)
-      return NextResponse.json({ error: "checkout_session_completed_failed" }, { status: 500 })
+    if (session.mode === "subscription" && session.payment_status === "paid") {
+      await activateProFromCheckoutSession(session)
     }
 
-    return NextResponse.json({ received: true })
+    if (session.mode === "payment" && session.payment_status === "paid") {
+      const orderId = session.metadata?.orderId
+      if (!orderId) {
+        console.error("WEBHOOK ERROR: No orderId in session metadata")
+      } else {
+        const { handleMarketplaceThreeWaySplit } = await import(
+          "@/lib/stripe-marketplace-commission-split"
+        )
+        await handleMarketplaceThreeWaySplit(session, orderId)
+      }
+    }
   }
 
   if (event.type === "customer.subscription.deleted") {
