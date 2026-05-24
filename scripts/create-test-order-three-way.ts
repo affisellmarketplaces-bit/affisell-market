@@ -1,42 +1,76 @@
+/**
+ * Run: npx tsx scripts/create-test-order-three-way.ts
+ */
 import { randomUUID } from "node:crypto"
 import { resolve } from "node:path"
 import { config } from "dotenv"
+import { PrismaClient } from "@prisma/client"
+import Stripe from "stripe"
 
 config({ path: resolve(process.cwd(), ".env.local") })
 config({ path: resolve(process.cwd(), ".env") })
-
-import { PrismaClient } from "@prisma/client"
-
-import { getStripeClient } from "../lib/stripe"
 
 if (!process.env.STRIPE_SECRET_KEY?.trim()) {
   throw new Error("STRIPE_SECRET_KEY manquant")
 }
 
-const stripe = getStripeClient()
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 const prisma = new PrismaClient()
 
 const LINE_TOTAL_CENTS = 14_560
 
 async function main() {
-  // 1. Créer 2 comptes Stripe Connect test à chaque run
+  // 1. Créer comptes Connect avec transfers activé + auto-onboard
   const supplierAcct = await stripe.accounts.create({
     type: "express",
     country: "FR",
     email: "supplier@test.com",
-    capabilities: { transfers: { requested: true } },
+    capabilities: {
+      transfers: { requested: true },
+      card_payments: { requested: true },
+    },
   })
 
   const affiliateAcct = await stripe.accounts.create({
     type: "express",
     country: "FR",
     email: "affiliate@test.com",
-    capabilities: { transfers: { requested: true } },
+    capabilities: {
+      transfers: { requested: true },
+      card_payments: { requested: true },
+    },
+  })
+
+  // 2. Simuler l'onboarding complet pour activer transfers
+  await stripe.accounts.update(supplierAcct.id, {
+    business_type: "individual",
+    individual: {
+      first_name: "Test",
+      last_name: "Supplier",
+      email: "supplier@test.com",
+      dob: { day: 1, month: 1, year: 1990 },
+      address: { line1: "1 rue test", city: "Paris", postal_code: "75001", country: "FR" },
+    },
+    business_profile: { mcc: "5734", url: "https://test.com" },
+    tos_acceptance: { date: Math.floor(Date.now() / 1000), ip: "127.0.0.1" },
+  })
+
+  await stripe.accounts.update(affiliateAcct.id, {
+    business_type: "individual",
+    individual: {
+      first_name: "Test",
+      last_name: "Affiliate",
+      email: "affiliate@test.com",
+      dob: { day: 1, month: 1, year: 1990 },
+      address: { line1: "1 rue test", city: "Paris", postal_code: "75001", country: "FR" },
+    },
+    business_profile: { mcc: "5734", url: "https://test.com" },
+    tos_acceptance: { date: Math.floor(Date.now() / 1000), ip: "127.0.0.1" },
   })
 
   console.log("Supplier:", supplierAcct.id, "Affiliate:", affiliateAcct.id)
 
-  // 2. Upsert users avec les vrais stripeAccountId
+  // 3. Upsert users
   const supplier = await prisma.user.upsert({
     where: { email: "supplier@test.com" },
     update: { stripeAccountId: supplierAcct.id },
@@ -59,7 +93,7 @@ async function main() {
     },
   })
 
-  // 3. Créer produit + listing + order avec les bons IDs (schéma Affisell)
+  // 4. Créer produit + listing + order (schéma Affisell)
   const product = await prisma.product.create({
     data: {
       name: "Test 3Way Split",
@@ -107,7 +141,7 @@ async function main() {
     },
   })
 
-  // 4. Créer session checkout
+  // 5. Session checkout
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
     expires_at: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
