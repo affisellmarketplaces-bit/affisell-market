@@ -145,6 +145,9 @@ export async function handleStripeCommissionSplit(
   })
 }
 
+/** Alias webhook / scripts — même logique que `handleStripeCommissionSplit`. */
+export const handleMarketplaceThreeWaySplit = handleStripeCommissionSplit
+
 export async function findOrderIdsForCheckoutSession(sessionId: string): Promise<string[]> {
   const orders = await prisma.order.findMany({
     where: {

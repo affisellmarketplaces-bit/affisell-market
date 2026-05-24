@@ -1,20 +1,16 @@
-import type { Prisma } from "@prisma/client"
 import { NextRequest, NextResponse } from "next/server"
 import type Stripe from "stripe"
 
 import { createBlindDropshipPaidNotifications } from "@/lib/blind-dropship-notifications"
 import { handleStripeChargeRefunded } from "@/lib/stripe-charge-refunded"
 import {
+  handleMarketplaceThreeWaySplit,
   processMarketplaceCommissionForPaymentIntent,
-  settleMarketplaceOrdersFromCheckoutSession,
 } from "@/lib/stripe-marketplace-commission-split"
-import { syncOrderVatFromCheckoutSession } from "@/lib/stripe-sync-order-vat-from-session"
 import { handleStripeInvoicePaymentFailed } from "@/lib/stripe-invoice-payment-failed"
-import { fulfillMarketplaceStripeSession } from "@/lib/stripe-marketplace-fulfill"
 import {
   activateProFromCheckoutSession,
   deactivateProFromSubscription,
-  isProSubscriptionCheckout,
 } from "@/lib/stripe-pro"
 import { getStripeClient } from "@/lib/stripe"
 import { inngest } from "@/inngest/client"
@@ -23,17 +19,6 @@ import { prisma } from "@/lib/prisma"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 export const revalidate = 0
-
-function addressFromSession(session: Stripe.Checkout.Session): Record<string, unknown> {
-  const extended = session as Stripe.Checkout.Session & {
-    shipping_details?: { address?: Stripe.Address | null; name?: string | null } | null
-  }
-  const ship = extended.shipping_details ?? null
-  if (ship?.address) return { ...(ship.address as object), name: ship.name }
-  const bill = session.customer_details
-  if (bill?.address) return { ...(bill.address as object), name: bill.name }
-  return {}
-}
 
 export async function POST(req: NextRequest) {
   const stripe = getStripeClient()
@@ -60,40 +45,32 @@ export async function POST(req: NextRequest) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session
-    if (isProSubscriptionCheckout(session)) {
-      try {
-        await activateProFromCheckoutSession(session)
-      } catch (e) {
-        console.error("[stripe/webhook] pro activation", e)
-        return NextResponse.json({ error: "pro_activation_failed" }, { status: 500 })
-      }
-      return NextResponse.json({ received: true })
-    }
-    const customerEmail =
-      session.customer_email ||
-      session.customer_details?.email ||
-      session.customer_details?.phone ||
-      "unknown@checkout"
 
-    const shippingAddress = addressFromSession(session) as Prisma.InputJsonValue
+    console.log("=== WEBHOOK checkout.session.completed ===", {
+      id: session.id,
+      mode: session.mode,
+      payment_status: session.payment_status,
+    })
 
     try {
-      console.log("webhook: checkout.session.completed", { sessionId: session.id })
-      await fulfillMarketplaceStripeSession(session, shippingAddress, customerEmail)
-      const vatSync = await syncOrderVatFromCheckoutSession(session.id)
-      const settlement = await settleMarketplaceOrdersFromCheckoutSession(session.id)
-      if (settlement.errors.length > 0 && settlement.processedOrderIds.length === 0) {
-        console.error("webhook: settlement_failed", settlement)
-        return NextResponse.json(
-          { error: "settlement_failed", fulfilled: true, vatSync, settlement },
-          { status: 500 }
-        )
+      if (session.mode === "subscription" && session.payment_status === "paid") {
+        await activateProFromCheckoutSession(session)
       }
-      return NextResponse.json({ received: true, fulfilled: true, vatSync, settlement })
+
+      if (session.mode === "payment" && session.payment_status === "paid") {
+        const orderId = session.metadata?.orderId
+        if (!orderId) {
+          console.error("No orderId in session metadata")
+        } else {
+          await handleMarketplaceThreeWaySplit(session, orderId)
+        }
+      }
     } catch (e) {
       console.error("webhook: checkout.session.completed error", e)
-      return NextResponse.json({ error: "fulfill_failed" }, { status: 500 })
+      return NextResponse.json({ error: "checkout_session_completed_failed" }, { status: 500 })
     }
+
+    return NextResponse.json({ received: true })
   }
 
   if (event.type === "customer.subscription.deleted") {
