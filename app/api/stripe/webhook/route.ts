@@ -36,8 +36,25 @@ export async function POST(req: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session
+        console.log("=== WEBHOOK checkout.session.completed ===", {
+          id: session.id,
+          mode: session.mode,
+          payment_status: session.payment_status,
+          metadata: session.metadata,
+        })
         if (session.mode === "subscription" && session.payment_status === "paid") {
           await activateProFromCheckoutSession(session)
+        }
+        if (session.mode === "payment" && session.payment_status === "paid") {
+          const orderId = session.metadata?.orderId
+          if (!orderId) {
+            console.error("WEBHOOK ERROR: No orderId")
+            break
+          }
+          const { handleMarketplaceThreeWaySplit } = await import(
+            "@/lib/stripe-marketplace-commission-split"
+          )
+          await handleMarketplaceThreeWaySplit(session, orderId)
         }
         break
       }
