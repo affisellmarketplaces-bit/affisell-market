@@ -47,7 +47,9 @@ async function main() {
 
   const donePayload = await pollVeoOperation(operationName, { timeoutMs: 90_000, intervalMs: 3_000 })
 
-  let { bytes, gcsUri } = extractVideoBytesFromVeoResponse(donePayload)
+  const extracted = extractVideoBytesFromVeoResponse(donePayload)
+  let bytes = extracted.bytes
+  const gcsUri = extracted.gcsUri
   if (bytes.length === 0 && gcsUri) {
     bytes = await downloadGcsUri(gcsUri)
   }

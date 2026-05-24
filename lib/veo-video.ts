@@ -345,7 +345,9 @@ export async function generateVeoProductVideo(args: {
     intervalMs: 3_000,
   })
 
-  let { bytes, gcsUri } = extractVideoBytesFromVeoResponse(donePayload)
+  const extracted = extractVideoBytesFromVeoResponse(donePayload)
+  let bytes = extracted.bytes
+  const gcsUri = extracted.gcsUri
 
   if (bytes.length === 0 && gcsUri) {
     bytes = await downloadGcsUri(gcsUri)
