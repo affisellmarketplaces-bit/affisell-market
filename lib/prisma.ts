@@ -20,4 +20,17 @@ export async function connectPrismaWithRetry(): Promise<void> {
   }
 }
 
+/** Retry once after Neon idle disconnect (P1017). */
+export async function withPrismaReconnect<T>(fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn()
+  } catch (e) {
+    const code =
+      typeof e === "object" && e !== null && "code" in e ? String((e as { code: string }).code) : ""
+    if (code !== "P1017") throw e
+    await prisma.$connect()
+    return await fn()
+  }
+}
+
 export default prisma

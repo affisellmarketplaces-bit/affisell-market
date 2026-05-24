@@ -9,8 +9,15 @@ export type AutoOrderQueueEvent = {
 
 export async function publishAutoOrderEvent(event: AutoOrderQueueEvent): Promise<void> {
   if (isAutoOrderQueueEnabled()) {
-    await enqueueBatchFulfillJob(event.data)
-    return
+    try {
+      await enqueueBatchFulfillJob(event.data)
+      return
+    } catch (e) {
+      console.warn(
+        "[auto-order] BullMQ enqueue failed, falling back to Inngest:",
+        e instanceof Error ? e.message : String(e)
+      )
+    }
   }
 
   const { inngest } = await import("@/inngest/client")

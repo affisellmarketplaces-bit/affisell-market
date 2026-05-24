@@ -39,13 +39,13 @@ export default async function AdminQueuesPage() {
         <ul className="mt-8 list-disc space-y-2 pl-5 text-sm text-zinc-600 dark:text-zinc-400">
           <li>
             <strong className="font-medium text-zinc-800 dark:text-zinc-200">
-              auto-order:place-supplier-order
+              auto-order-place-supplier-order
             </strong>{" "}
             — live jobs (6 retries, exponential backoff)
           </li>
           <li>
             <strong className="font-medium text-zinc-800 dark:text-zinc-200">
-              auto-order:place-supplier-order:dlq
+              auto-order-place-supplier-order-dlq
             </strong>{" "}
             — exhausted failures; retry from the DLQ queue in the UI
           </li>

@@ -5,7 +5,7 @@ import { isNonRetryablePlaceOrderError, NonRetryablePlaceOrderError } from "@/li
 
 describe("place order resilience", () => {
   it("uses stable BullMQ job id per supplier fulfillment row", () => {
-    expect(placeSupplierOrderJobId("sfo_abc")).toBe("place:sfo_abc")
+    expect(placeSupplierOrderJobId("sfo_abc")).toBe("place-sfo_abc")
   })
 
   it("classifies non-retryable errors", () => {

@@ -78,15 +78,21 @@ async function createPaidMarketplaceOrder(
       variants,
       optionName,
     }) * qty
+  const supplierCommissionRatePercent = commissionRateForOption({
+    variants,
+    optionName,
+    productCommissionRate: listing.product.commissionRate,
+  })
   const settlement = computeMarketplaceOrderSettlement({
     sellingPriceCents: args.paidLineCents,
     basePriceCents,
-    supplierCommissionRatePercent: commissionRateForOption({
-      variants,
-      optionName,
-      productCommissionRate: listing.product.commissionRate,
-    }),
+    supplierCommissionRatePercent,
   })
+  const unitSupplierCents = Math.round(basePriceCents / qty)
+  const affiliateMarginCents =
+    listing.marginCents > 0
+      ? listing.marginCents
+      : Math.max(0, unitSupplierCents > 0 ? Math.round(settlement.marginCents / qty) : 0)
 
   const order = await tx.order.create({
     data: {
@@ -108,6 +114,10 @@ async function createPaidMarketplaceOrder(
       affiliatePayoutCents: settlement.affiliateCommissionCents,
       affisellFeeCents: settlement.affisellFeeCents,
       affiliateMarginRetainedCents: settlement.affiliateMarginRetainedCents,
+      supplierPriceCents: unitSupplierCents * qty,
+      supplierCommissionRateBps: Math.round(supplierCommissionRatePercent * 100),
+      affiliateMarginCents: affiliateMarginCents * qty,
+      affisellCommissionRateBps: 1200,
       status: "paid",
       paidAt: new Date(),
       fulfillmentStatus: "PENDING",
@@ -115,6 +125,7 @@ async function createPaidMarketplaceOrder(
       totalCents: settlement.sellingPriceCents,
       paymentSettlementStatus: "PENDING",
       affiliateStripeAccountId: listing.affiliate.stripeAccountId?.trim() || null,
+      currency: args.checkoutCurrency.toUpperCase(),
     },
   })
 

@@ -83,7 +83,7 @@ export async function enqueuePlaceSupplierOrderJob(
 async function moveJobToDlq(job: Job<PlaceSupplierOrderJobData>, reason: string) {
   const dlq = getPlaceSupplierOrderDlq()
   await dlq.add("dlq", job.data, {
-    jobId: `dlq:${job.id}`,
+    jobId: `dlq-${job.id}`,
     removeOnComplete: false,
   })
   logAutoOrder("place_order_dlq", { jobId: job.id ?? job.name ?? "unknown", reason })
@@ -133,7 +133,8 @@ export function getBatchFulfillQueue(): Queue<BatchFulfillJobData> {
 }
 
 export async function enqueueBatchFulfillJob(data: BatchFulfillJobData): Promise<void> {
-  const jobId = `batch:${data.stripeSessionId}`
+  if (!isAutoOrderQueueEnabled()) return
+  const jobId = `batch-${data.stripeSessionId}`
   await getBatchFulfillQueue().add("fulfill", data, { jobId })
 }
 

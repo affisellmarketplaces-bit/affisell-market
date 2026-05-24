@@ -62,11 +62,11 @@ export async function scheduleMarketplaceTransferAttempts(
     return { orderId, scheduled: false, reason: "already_settled" }
   }
 
-  const supplierDestination = order.supplier.stripeAccountId?.trim()
+  const supplierDestination = order.supplier.stripeAccountId?.trim() || null
   const affiliateDestination =
-    order.affiliateStripeAccountId?.trim() || order.affiliate?.stripeAccountId?.trim()
+    order.affiliateStripeAccountId?.trim() || order.affiliate?.stripeAccountId?.trim() || null
 
-  if (!supplierDestination || !affiliateDestination) {
+  if (!supplierDestination && !affiliateDestination) {
     return { orderId, scheduled: false, reason: "missing_connect_account" }
   }
 
@@ -82,36 +82,21 @@ export async function scheduleMarketplaceTransferAttempts(
     affisellCommissionRateBps: order.affisellCommissionRateBps,
   })
 
-  if (amounts.supplierPayoutCents + amounts.affiliateTransferCents <= 0) {
-    return { orderId, scheduled: false, reason: "zero_payout" }
-  }
-
   const chargeId = await resolveChargeId(stripe, session)
 
-  await db.order.update({
-    where: { id: orderId },
-    data: {
-      totalCents: amounts.lineTotalCents,
-      supplierPayoutCents: amounts.supplierPayoutCents,
-      affiliatePayoutCents: amounts.affiliateTransferCents,
-      affisellFeeCents: amounts.affisellFeeCents,
-      stripeFeesCents: amounts.stripeFeeCents,
-      stripeSessionId: order.stripeSessionId || session.id,
-      stripeChargeId: chargeId ?? order.stripeChargeId,
-      splitStatus: "PENDING",
-      status: "paid",
-      paymentSettlementStatus: "PAID",
-      affiliateStripeAccountId: affiliateDestination,
-    },
-  })
+  let scheduledCount = 0
 
   const upsertAttempt = async (
     role: "SUPPLIER" | "AFFILIATE",
     amountCents: number,
     destination: string
   ) => {
+    if (amountCents <= 0) return
     const current = order.transferAttempts.find((a) => a.role === role)
-    if (current?.status === "SUCCESS") return
+    if (current?.status === "SUCCESS") {
+      scheduledCount += 1
+      return
+    }
 
     await db.transferAttempt.upsert({
       where: { orderId_role: { orderId, role } },
@@ -131,10 +116,42 @@ export async function scheduleMarketplaceTransferAttempts(
         stripeTransferId: null,
       },
     })
+    scheduledCount += 1
   }
 
-  await upsertAttempt("SUPPLIER", amounts.supplierPayoutCents, supplierDestination)
-  await upsertAttempt("AFFILIATE", amounts.affiliateTransferCents, affiliateDestination)
+  if (supplierDestination && amounts.supplierPayoutCents > 0) {
+    await upsertAttempt("SUPPLIER", amounts.supplierPayoutCents, supplierDestination)
+  }
+  if (affiliateDestination && amounts.affiliateTransferCents > 0) {
+    await upsertAttempt("AFFILIATE", amounts.affiliateTransferCents, affiliateDestination)
+  }
+
+  if (scheduledCount === 0) {
+    return {
+      orderId,
+      scheduled: false,
+      reason: !supplierDestination && !affiliateDestination
+        ? "missing_connect_account"
+        : "zero_payout",
+    }
+  }
+
+  await db.order.update({
+    where: { id: orderId },
+    data: {
+      totalCents: amounts.lineTotalCents,
+      supplierPayoutCents: amounts.supplierPayoutCents,
+      affiliatePayoutCents: amounts.affiliateTransferCents,
+      affisellFeeCents: amounts.affisellFeeCents,
+      stripeFeesCents: amounts.stripeFeeCents,
+      stripeSessionId: order.stripeSessionId || session.id,
+      stripeChargeId: chargeId ?? order.stripeChargeId,
+      splitStatus: "PENDING",
+      status: "paid",
+      paymentSettlementStatus: "PAID",
+      affiliateStripeAccountId: affiliateDestination,
+    },
+  })
 
   logStripeWebhookInfo({
     metric: "split_scheduled",
@@ -143,6 +160,8 @@ export async function scheduleMarketplaceTransferAttempts(
     supplierPayoutCents: amounts.supplierPayoutCents,
     affiliateTransferCents: amounts.affiliateTransferCents,
     affisellFeeCents: amounts.affisellFeeCents,
+    supplierScheduled: Boolean(supplierDestination && amounts.supplierPayoutCents > 0),
+    affiliateScheduled: Boolean(affiliateDestination && amounts.affiliateTransferCents > 0),
   })
 
   return { orderId, scheduled: true }

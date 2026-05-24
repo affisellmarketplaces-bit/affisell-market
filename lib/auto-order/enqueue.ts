@@ -17,6 +17,6 @@ export async function triggerAutoFulfillmentForStripeSession(stripeSessionId: st
     })
     logAutoOrder("queue_published", { stripeSessionId, batchId })
   } catch (e) {
-    console.error("[auto-order] inngest.send failed", e)
+    console.error("[auto-order] fulfillment queue publish failed", e)
   }
 }

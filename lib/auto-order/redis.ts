@@ -1,6 +1,19 @@
 import IORedis from "ioredis"
 
 let sharedConnection: IORedis | null = null
+let lastRedisErrorLogAt = 0
+
+function attachRedisErrorHandler(conn: IORedis): void {
+  const tagged = conn as IORedis & { __affisellErrorHandler?: boolean }
+  if (tagged.__affisellErrorHandler) return
+  tagged.__affisellErrorHandler = true
+  conn.on("error", (err) => {
+    const now = Date.now()
+    if (now - lastRedisErrorLogAt < 30_000) return
+    lastRedisErrorLogAt = now
+    console.warn("[redis]", err instanceof Error ? err.message : String(err))
+  })
+}
 
 export function getRedisUrl(): string | null {
   const url = process.env.REDIS_URL?.trim()
@@ -19,7 +32,9 @@ export function getRedisConnection(): IORedis {
     sharedConnection = new IORedis(url, {
       maxRetriesPerRequest: null,
       enableReadyCheck: true,
+      lazyConnect: true,
     })
+    attachRedisErrorHandler(sharedConnection)
   }
   return sharedConnection
 }
@@ -28,8 +43,11 @@ export function getRedisConnection(): IORedis {
 export function createRedisConnection(): IORedis {
   const url = getRedisUrl()
   if (!url) throw new Error("REDIS_URL is not configured")
-  return new IORedis(url, {
+  const conn = new IORedis(url, {
     maxRetriesPerRequest: null,
     enableReadyCheck: true,
+    lazyConnect: true,
   })
+  attachRedisErrorHandler(conn)
+  return conn
 }

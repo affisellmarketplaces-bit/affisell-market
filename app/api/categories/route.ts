@@ -5,7 +5,7 @@ import { localizeCategoryTree } from "@/lib/google-taxonomy-locale"
 import { LOCALE_COOKIE, resolveAppLocale } from "@/lib/i18n-locale"
 import { staticMarketplaceCategories } from "@/lib/marketplace-static-categories"
 import { dbUnavailablePayload } from "@/lib/prisma-db-error"
-import { prisma } from "@/lib/prisma"
+import { prisma, withPrismaReconnect } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -20,7 +20,8 @@ export async function GET() {
   const locale = resolveAppLocale(cookieStore.get(LOCALE_COOKIE)?.value)
 
   try {
-    const categories = await prisma.category.findMany({
+    const categories = await withPrismaReconnect(() =>
+      prisma.category.findMany({
       where: { parentId: null },
       select: {
         id: true,
@@ -40,7 +41,8 @@ export async function GET() {
         },
       },
       orderBy: { order: "asc" },
-    })
+      })
+    )
 
     const categoriesWithCounts = categories.map((cat) => ({
       id: cat.id,
