@@ -11,6 +11,8 @@ import { randomUUID } from "node:crypto"
 import { PrismaClient } from "@prisma/client"
 import Stripe from "stripe"
 
+const SUPPLIER_ACCOUNT_ID = "acct_1TaaA6FXp6SP9lqY"
+const CONNECT_BUSINESS_URL = "https://affisell.com"
 const CHECKOUT_SUCCESS_URL =
   "http://localhost:3001/success?session_id={CHECKOUT_SESSION_ID}"
 const CHECKOUT_CANCEL_URL = "http://localhost:3001/cancel"
@@ -27,18 +29,6 @@ function requireStripeKey(): string {
 const prisma = new PrismaClient()
 
 const LINE_TOTAL_CENTS = 14_560
-
-async function createExpressConnectAccount(stripe: Stripe, email: string) {
-  return stripe.accounts.create({
-    type: "express",
-    country: "FR",
-    email,
-    capabilities: {
-      transfers: { requested: true },
-      card_payments: { requested: true },
-    },
-  })
-}
 
 async function upsertTestUser(args: {
   email: string
@@ -66,36 +56,74 @@ async function upsertTestUser(args: {
   })
 }
 
+async function createAndOnboardAffiliate(stripe: Stripe) {
+  const affiliateAcct = await stripe.accounts.create({
+    type: "express",
+    country: "FR",
+    email: "affiliate@test.com",
+    capabilities: {
+      transfers: { requested: true },
+      card_payments: { requested: true },
+    },
+  })
+
+  const profileUpdate: Stripe.AccountUpdateParams = {
+    business_type: "individual",
+    individual: {
+      first_name: "Test",
+      last_name: "Affiliate",
+      email: "affiliate@test.com",
+      dob: { day: 1, month: 1, year: 1990 },
+      address: {
+        line1: "1 rue de Rivoli",
+        city: "Paris",
+        postal_code: "75001",
+        country: "FR",
+      },
+    },
+    business_profile: { mcc: "5734", url: CONNECT_BUSINESS_URL },
+    tos_acceptance: { date: Math.floor(Date.now() / 1000), ip: "127.0.0.1" },
+  }
+
+  try {
+    await stripe.accounts.update(affiliateAcct.id, profileUpdate)
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : ""
+    if (!msg.includes("Terms of Service")) {
+      throw e
+    }
+    console.warn(
+      "Express: tos_acceptance via API impossible — onboarding sans ToS, lien Dashboard ci-dessous"
+    )
+    const { tos_acceptance: _tos, ...withoutTos } = profileUpdate
+    await stripe.accounts.update(affiliateAcct.id, withoutTos)
+    const link = await stripe.accountLinks.create({
+      account: affiliateAcct.id,
+      refresh_url: "http://localhost:3001/cancel",
+      return_url: CHECKOUT_SUCCESS_URL.replace("{CHECKOUT_SESSION_ID}", "affiliate_onboard"),
+      type: "account_onboarding",
+    })
+    console.warn("Affiliate onboarding URL:", link.url)
+  }
+
+  return affiliateAcct.id
+}
+
 async function main() {
   console.log("NEXT_PUBLIC_APP_URL:", process.env.NEXT_PUBLIC_APP_URL)
+  console.log("Supplier:", SUPPLIER_ACCOUNT_ID)
 
   const stripe = new Stripe(requireStripeKey())
 
-  const envSupplier = process.env.TEST_SUPPLIER_STRIPE_ACCOUNT_ID?.trim()
-  const envAffiliate = process.env.TEST_AFFILIATE_STRIPE_ACCOUNT_ID?.trim()
-
-  let supplierAcctId: string
-  let affiliateAcctId: string
-
-  if (envSupplier && envAffiliate) {
-    supplierAcctId = envSupplier
-    affiliateAcctId = envAffiliate
-    console.log("→ Comptes Connect depuis .env.local")
-  } else {
-    console.log("→ Création comptes Connect (sans onboarding API — ToS via Dashboard si besoin)…")
-    const supplierAcct = await createExpressConnectAccount(stripe, "supplier@test.com")
-    const affiliateAcct = await createExpressConnectAccount(stripe, "affiliate@test.com")
-    supplierAcctId = supplierAcct.id
-    affiliateAcctId = affiliateAcct.id
-  }
-
-  console.log("Supplier:", supplierAcctId, "Affiliate:", affiliateAcctId)
+  console.log("→ Création + onboarding affiliate…")
+  const affiliateAcctId = await createAndOnboardAffiliate(stripe)
+  console.log("Affiliate:", affiliateAcctId)
 
   const supplier = await upsertTestUser({
     email: "supplier@test.com",
     name: "Supplier Test",
     role: "SUPPLIER",
-    stripeAccountId: supplierAcctId,
+    stripeAccountId: SUPPLIER_ACCOUNT_ID,
   })
 
   const affiliate = await upsertTestUser({
@@ -151,6 +179,13 @@ async function main() {
       paymentSettlementStatus: "PENDING",
     },
   })
+
+  const supplierAcct = await stripe.accounts.retrieve(SUPPLIER_ACCOUNT_ID)
+  if (supplierAcct.capabilities?.transfers !== "active") {
+    throw new Error(
+      `Supplier transfers not active (got: ${supplierAcct.capabilities?.transfers ?? "undefined"})`
+    )
+  }
 
   console.log("→ Checkout session…")
   console.log("  success_url:", CHECKOUT_SUCCESS_URL)
