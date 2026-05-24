@@ -19,7 +19,7 @@ function SuccessRedirect() {
     }
 
     fetch(`/api/stripe/verify-session?session_id=${encodeURIComponent(session_id)}`).finally(() => {
-      router.replace("/marketplace/account/wallet")
+      router.replace("/marketplace/account/orders")
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps -- run once; session_id read at mount
   }, [])

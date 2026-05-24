@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { after } from "next/server"
 import type Stripe from "stripe"
 
 import { prisma } from "@/lib/prisma"
@@ -54,40 +55,45 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  void (async () => {
-    try {
-      const result = await processStripeWebhookEvent(event)
-      if (
-        event.type === "checkout.session.completed" &&
-        (event.data.object as Stripe.Checkout.Session).mode === "payment"
-      ) {
-        await enqueueProcessTransfersJob()
-      }
-      logStripeWebhookInfo({
-        level: "info",
-        metric: "webhook_background_done",
-        eventId: event.id,
-        type: event.type,
-        orderId: result.orderId,
-        duplicate: result.duplicate,
-        duration_ms: Date.now() - started,
-      })
-    } catch (error) {
-      captureStripeWebhookException(error, {
-        eventId: event.id,
-        type: event.type,
-        phase: "webhook_background",
-      })
+  try {
+    const result = await processStripeWebhookEvent(event)
+
+    if (
+      event.type === "checkout.session.completed" &&
+      (event.data.object as Stripe.Checkout.Session).mode === "payment" &&
+      result.status !== "failed"
+    ) {
+      after(() => enqueueProcessTransfersJob())
     }
-  })()
 
-  logStripeWebhookInfo({
-    level: "info",
-    metric: "webhook_ack",
-    eventId: event.id,
-    type: event.type,
-    duration_ms: Date.now() - started,
-  })
+    logStripeWebhookInfo({
+      level: "info",
+      metric: "webhook_processed_sync",
+      eventId: event.id,
+      type: event.type,
+      orderId: result.orderId,
+      duplicate: result.duplicate,
+      status: result.status,
+      duration_ms: Date.now() - started,
+    })
 
-  return NextResponse.json({ received: true, eventId: event.id }, { status: 200 })
+    if (result.status === "failed") {
+      return NextResponse.json(
+        { received: false, eventId: event.id, orderId: result.orderId, status: result.status },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json(
+      { received: true, eventId: event.id, orderId: result.orderId, status: result.status },
+      { status: 200 }
+    )
+  } catch (error) {
+    captureStripeWebhookException(error, {
+      eventId: event.id,
+      type: event.type,
+      phase: "webhook_sync",
+    })
+    return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 })
+  }
 }

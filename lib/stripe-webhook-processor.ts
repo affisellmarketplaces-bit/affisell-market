@@ -193,9 +193,15 @@ async function processCheckoutSessionCompleted(
       }
 
       if (!scheduledAny) {
+        logStripeWebhookInfo({
+          metric: "checkout_transfers_not_scheduled",
+          orderId: primaryOrderId,
+          orderCount: orderIds.length,
+          reason: lastReason,
+        })
         return {
           orderId: primaryOrderId,
-          status: "skipped",
+          status: "success",
           error: lastReason,
         }
       }
@@ -288,21 +294,7 @@ export async function processStripeWebhookEvent(event: Stripe.Event): Promise<We
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session
     if (session.mode === "payment" && session.payment_status === "paid") {
-      try {
-        await ensureMarketplaceCheckoutFulfilled(session)
-      } catch (error) {
-        logStripeWebhookError({
-          metric: "checkout_fulfill_failed",
-          eventId: event.id,
-          sessionId: session.id,
-          error: error instanceof Error ? error.message : String(error),
-        })
-        captureStripeWebhookException(error, {
-          eventId: event.id,
-          sessionId: session.id,
-          phase: "checkout_fulfill",
-        })
-      }
+      await ensureMarketplaceCheckoutFulfilled(session)
     }
   }
 

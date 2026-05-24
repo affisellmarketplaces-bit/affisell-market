@@ -1,10 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server"
 
+import { ensureMarketplaceCheckoutFulfilled } from "@/lib/marketplace-checkout-fulfill"
+import { findOrderIdsForCheckoutSession } from "@/lib/stripe-marketplace-commission-split"
 import { getStripeClient } from "@/lib/stripe"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
+/** Buyer lands here after Stripe Checkout — idempotent backup if the webhook was delayed or dropped. */
 export async function GET(req: NextRequest) {
   const sessionId = req.nextUrl.searchParams.get("session_id")
   if (!sessionId) {
@@ -14,9 +17,18 @@ export async function GET(req: NextRequest) {
   try {
     const stripe = getStripeClient()
     const session = await stripe.checkout.sessions.retrieve(sessionId)
+
+    if (session.mode === "payment" && session.payment_status === "paid") {
+      await ensureMarketplaceCheckoutFulfilled(session)
+    }
+
+    const orderIds = await findOrderIdsForCheckoutSession(sessionId)
+
     return NextResponse.json({
       paid: session.payment_status === "paid",
-      orderId: session.metadata?.orderId ?? null,
+      orderId: orderIds[0] ?? session.metadata?.orderId ?? null,
+      orderIds,
+      fulfilled: orderIds.length > 0,
     })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "verify_failed"

@@ -1,15 +1,19 @@
 import { NextResponse } from "next/server"
+import { after } from "next/server"
 import type Stripe from "stripe"
 
-import {
-  activateProFromCheckoutSession,
-  deactivateProFromSubscription,
-} from "@/lib/stripe-pro"
+import { prisma } from "@/lib/prisma"
+import { processStripeWebhookEvent } from "@/lib/stripe-webhook-processor"
+import { enqueueProcessTransfersJob } from "@/lib/transfers/enqueue-job"
 import { getStripeClient } from "@/lib/stripe"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
+/**
+ * Legacy Stripe webhook URL — delegates to the same processor as `/api/webhooks/stripe`
+ * so cart checkouts (no `orderId` metadata) and fulfillment still run.
+ */
 export async function POST(req: Request) {
   const stripe = getStripeClient()
   const signature = req.headers.get("stripe-signature")
@@ -32,44 +36,32 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: message }, { status: 400 })
   }
 
+  const existing = await prisma.processedWebhook.findUnique({ where: { id: event.id } })
+  if (existing) {
+    return NextResponse.json(
+      { received: true, duplicate: true, orderId: existing.orderId, status: existing.status },
+      { status: 200 }
+    )
+  }
+
   try {
-    switch (event.type) {
-      case "checkout.session.completed": {
-        const session = event.data.object as Stripe.Checkout.Session
-        console.log("=== WEBHOOK checkout.session.completed ===", {
-          id: session.id,
-          mode: session.mode,
-          payment_status: session.payment_status,
-          metadata: session.metadata,
-        })
-        if (session.mode === "subscription" && session.payment_status === "paid") {
-          await activateProFromCheckoutSession(session)
-        }
-        if (session.mode === "payment" && session.payment_status === "paid") {
-          const orderId = session.metadata?.orderId
-          if (!orderId) {
-            console.error("WEBHOOK ERROR: No orderId")
-            break
-          }
-          const { handleMarketplaceThreeWaySplit } = await import(
-            "@/lib/stripe-marketplace-commission-split"
-          )
-          await handleMarketplaceThreeWaySplit(session, orderId)
-        }
-        break
-      }
-      case "customer.subscription.deleted": {
-        const subscription = event.data.object as Stripe.Subscription
-        await deactivateProFromSubscription(subscription)
-        break
-      }
-      default:
-        break
+    const result = await processStripeWebhookEvent(event)
+
+    if (
+      event.type === "checkout.session.completed" &&
+      (event.data.object as Stripe.Checkout.Session).mode === "payment" &&
+      result.status !== "failed"
+    ) {
+      after(() => enqueueProcessTransfersJob())
     }
+
+    if (result.status === "failed") {
+      return NextResponse.json({ error: "Webhook handler failed" }, { status: 500 })
+    }
+
+    return NextResponse.json({ received: true, orderId: result.orderId, status: result.status })
   } catch (e) {
     console.error("[stripe/webhook]", event.type, e)
     return NextResponse.json({ error: "Webhook handler failed" }, { status: 500 })
   }
-
-  return NextResponse.json({ received: true })
 }

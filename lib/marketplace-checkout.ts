@@ -321,10 +321,6 @@ export async function marketplaceCheckoutPOST(request: Request) {
   const affiliateProduct = listing
   const affiliate = listing.affiliate
 
-  if (!affiliate.stripeAccountId?.trim()) {
-    return NextResponse.json({ error: "Affiliate Stripe account not connected" }, { status: 400 })
-  }
-
   const session = await auth()
   const buyerUserId = session?.user?.id?.trim() || ""
 

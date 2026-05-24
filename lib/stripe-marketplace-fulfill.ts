@@ -8,6 +8,7 @@ import { earnBuyerRewardIdempotent, redeemBuyerRewardIdempotent } from "@/lib/bu
 import { resolveBuyerUserIdForEarn } from "@/lib/buyer-reward-resolve-user"
 import { computeMarketplaceOrderSettlement } from "@/lib/marketplace-order-settlement"
 import { triggerAutoFulfillmentForStripeSession } from "@/lib/auto-order/enqueue"
+import { logStripeWebhookError } from "@/lib/stripe-webhook-observability"
 import {
   resolveOrderConfirmationImageUrl,
   sendOrderConfirmationEmail,
@@ -149,18 +150,41 @@ async function createPaidMarketplaceOrder(
       ? ((args.shippingAddress as Record<string, unknown>).name as string).trim()
       : undefined
 
-  await sendOrderConfirmationEmail({
-    orderId: order.id,
-    productName: listing.product.name,
-    productImageUrl,
-    quantity: qty,
-    total: (args.paidLineCents / 100).toFixed(2),
-    currency: args.checkoutCurrency,
-    customerEmail: args.customerEmail,
-    customerName: shippingName,
-  })
+  try {
+    await sendOrderConfirmationEmail({
+      orderId: order.id,
+      productName: listing.product.name,
+      productImageUrl,
+      quantity: qty,
+      total: (args.paidLineCents / 100).toFixed(2),
+      currency: args.checkoutCurrency,
+      customerEmail: args.customerEmail,
+      customerName: shippingName,
+    })
+  } catch (e) {
+    logStripeWebhookError({
+      metric: "order_confirmation_email_failed",
+      orderId: order.id,
+      error: e instanceof Error ? e.message : String(e),
+    })
+  }
 
   return order.id
+}
+
+async function redeemBuyerRewardOrSkip(
+  tx: Tx,
+  args: { userId: string; amountCents: number; stripeSessionId: string }
+): Promise<void> {
+  if (!args.userId || args.amountCents <= 0) return
+  const r = await redeemBuyerRewardIdempotent(tx, args)
+  if (!r.ok) {
+    logStripeWebhookError({
+      metric: "buyer_redeem_skipped",
+      sessionId: args.stripeSessionId,
+      error: r.reason,
+    })
+  }
 }
 
 export async function fulfillMarketplaceStripeSession(
@@ -201,16 +225,11 @@ export async function fulfillMarketplaceStripeSession(
     await prisma.$transaction(async (tx) => {
       const earnUserId = await resolveBuyerUserIdForEarn(tx, buyerUserId, customerEmail)
 
-      if (buyerUserId && appliedRewardCents > 0) {
-        const r = await redeemBuyerRewardIdempotent(tx, {
-          userId: buyerUserId,
-          amountCents: appliedRewardCents,
-          stripeSessionId: sessionId,
-        })
-        if (!r.ok) {
-          throw new Error(`buyer_redeem_failed:${r.reason}`)
-        }
-      }
+      await redeemBuyerRewardOrSkip(tx, {
+        userId: buyerUserId,
+        amountCents: appliedRewardCents,
+        stripeSessionId: sessionId,
+      })
 
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i]!
@@ -322,16 +341,11 @@ export async function fulfillMarketplaceStripeSession(
 
     const earnUserId = await resolveBuyerUserIdForEarn(tx, buyerUserId, customerEmail)
 
-    if (buyerUserId && appliedRewardCents > 0) {
-      const r = await redeemBuyerRewardIdempotent(tx, {
-        userId: buyerUserId,
-        amountCents: appliedRewardCents,
-        stripeSessionId: sessionId,
-      })
-      if (!r.ok) {
-        throw new Error(`buyer_redeem_failed:${r.reason}`)
-      }
-    }
+    await redeemBuyerRewardOrSkip(tx, {
+      userId: buyerUserId,
+      amountCents: appliedRewardCents,
+      stripeSessionId: sessionId,
+    })
 
     if (dup?.status === "PENDING") {
       const basePriceCents =
@@ -411,16 +425,24 @@ export async function fulfillMarketplaceStripeSession(
           ? ((shippingAddress as Record<string, unknown>).name as string).trim()
           : undefined
 
-      await sendOrderConfirmationEmail({
-        orderId: dup.id,
-        productName: listing.product.name,
-        productImageUrl,
-        quantity: qty,
-        total: (paidLineCents / 100).toFixed(2),
-        currency: checkoutCurrency,
-        customerEmail,
-        customerName: shippingName,
-      })
+      try {
+        await sendOrderConfirmationEmail({
+          orderId: dup.id,
+          productName: listing.product.name,
+          productImageUrl,
+          quantity: qty,
+          total: (paidLineCents / 100).toFixed(2),
+          currency: checkoutCurrency,
+          customerEmail,
+          customerName: shippingName,
+        })
+      } catch (e) {
+        logStripeWebhookError({
+          metric: "order_confirmation_email_failed",
+          orderId: dup.id,
+          error: e instanceof Error ? e.message : String(e),
+        })
+      }
 
       if (earnUserId) {
         const earn = buyerEarnCentsForLinePaid(paidLineCents, listing)
