@@ -968,7 +968,10 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
 
 export function ListingBuilderModal({ open, product, listing, storeSlug, onClose, onSaved }: Props) {
   const closeRef = useRef(onClose)
-  closeRef.current = onClose
+
+  useEffect(() => {
+    closeRef.current = onClose
+  }, [onClose])
 
   function onOverlayDown(e: MouseEvent<HTMLDivElement>) {
     if ((e.target as HTMLElement).dataset?.overlay === "1") closeRef.current()

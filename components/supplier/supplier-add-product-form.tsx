@@ -1737,34 +1737,19 @@ export function SupplierAddProductForm({
     />
   )
 
-  const publishValidationContext = useMemo(
-    (): Parameters<typeof collectClientPublishBlockers>[0] => ({
-      name,
-      imagesCount: images.length,
-      categoryId,
-      missingSpecs: specMissing,
-      priceError,
-      compareError,
-      commissionError,
-      variantFormMode,
-      variantRows,
-      advancedSkuRows,
-      simpleColorRows,
-    }),
-    [
-      name,
-      images.length,
-      categoryId,
-      specMissing,
-      priceError,
-      compareError,
-      commissionError,
-      variantFormMode,
-      variantRows,
-      advancedSkuRows,
-      simpleColorRows,
-    ]
-  )
+  const publishValidationContext: Parameters<typeof collectClientPublishBlockers>[0] = {
+    name,
+    imagesCount: images.length,
+    categoryId,
+    missingSpecs: specMissing,
+    priceError,
+    compareError,
+    commissionError,
+    variantFormMode,
+    variantRows,
+    advancedSkuRows,
+    simpleColorRows,
+  }
 
   const jumpBtnClass =
     "rounded-xl border border-gray-200/90 bg-white/90 px-3.5 py-1.5 text-xs font-semibold text-zinc-700 shadow-sm backdrop-blur-sm transition hover:border-violet-300/80 hover:bg-violet-50/90 hover:text-violet-900 dark:border-zinc-600 dark:bg-zinc-900/80 dark:text-zinc-200 dark:hover:border-violet-600/50 dark:hover:bg-violet-950/40 dark:hover:text-violet-100"

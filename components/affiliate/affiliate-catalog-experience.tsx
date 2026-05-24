@@ -159,66 +159,47 @@ export function AffiliateCatalogExperience({ stats, initialHighlights }: Props) 
       .finally(() => setLoading(false))
   }, [filterKey, sort, searchParams])
 
-  const showToast = useCallback((msg: string) => {
+  function showToast(msg: string) {
     setToast(msg)
     if (toastTimer.current) window.clearTimeout(toastTimer.current)
     toastTimer.current = window.setTimeout(() => setToast(null), 3200)
-  }, [])
+  }
 
-  const loadProductForModal = useCallback(
-    async (productId: string): Promise<CatalogProduct | null> => {
-      const cached = products.find((x) => x.id === productId)
-      try {
-        const r = await fetch(`/api/affiliate/catalog-product/${encodeURIComponent(productId)}`, {
-          credentials: "include",
-        })
-        const data = (await r.json()) as { product?: CatalogProduct; error?: string }
-        if (!r.ok || !data.product) {
-          showToast(data.error ?? "Détails produit indisponibles")
-          return cached ? (cached as CatalogProduct) : null
-        }
-        return data.product
-      } catch {
-        showToast("Détails produit indisponibles")
+  async function loadProductForModal(productId: string): Promise<CatalogProduct | null> {
+    const cached = products.find((x) => x.id === productId)
+    try {
+      const r = await fetch(`/api/affiliate/catalog-product/${encodeURIComponent(productId)}`, {
+        credentials: "include",
+      })
+      const data = (await r.json()) as { product?: CatalogProduct; error?: string }
+      if (!r.ok || !data.product) {
+        showToast(data.error ?? "Détails produit indisponibles")
         return cached ? (cached as CatalogProduct) : null
       }
-    },
-    [products, showToast]
-  )
+      return data.product
+    } catch {
+      showToast("Détails produit indisponibles")
+      return cached ? (cached as CatalogProduct) : null
+    }
+  }
 
-  const openCreate = useCallback(
-    async (productId: string) => {
-      const full = await loadProductForModal(productId)
-      if (!full) return
+  async function openCreate(productId: string) {
+    const full = await loadProductForModal(productId)
+    if (!full) return
+    setModalProduct(full)
+    setModalListing(null)
+  }
+
+  async function openEdit(productId: string, listingId: string) {
+    const full = await loadProductForModal(productId)
+    if (!full) return
+    try {
+      const r = await fetch("/api/affiliate/bootstrap", { credentials: "include" })
+      const data = (await r.json()) as { listings?: SerializedListing[] }
+      const row = data.listings?.find((l) => l.id === listingId && l.productId === productId)
       setModalProduct(full)
-      setModalListing(null)
-    },
-    [loadProductForModal]
-  )
-
-  const openEdit = useCallback(
-    async (productId: string, listingId: string) => {
-      const full = await loadProductForModal(productId)
-      if (!full) return
-      try {
-        const r = await fetch("/api/affiliate/bootstrap", { credentials: "include" })
-        const data = (await r.json()) as { listings?: SerializedListing[] }
-        const row = data.listings?.find((l) => l.id === listingId && l.productId === productId)
-        setModalProduct(full)
-        setModalListing(
-          row ?? {
-            id: listingId,
-            productId,
-            sellingPriceCents: full.basePriceCents,
-            customImages: [],
-            collections: [],
-            isListed: true,
-            promotedVariantKeys: [],
-          }
-        )
-      } catch {
-        setModalProduct(full)
-        setModalListing({
+      setModalListing(
+        row ?? {
           id: listingId,
           productId,
           sellingPriceCents: full.basePriceCents,
@@ -226,11 +207,21 @@ export function AffiliateCatalogExperience({ stats, initialHighlights }: Props) 
           collections: [],
           isListed: true,
           promotedVariantKeys: [],
-        })
-      }
-    },
-    [loadProductForModal]
-  )
+        }
+      )
+    } catch {
+      setModalProduct(full)
+      setModalListing({
+        id: listingId,
+        productId,
+        sellingPriceCents: full.basePriceCents,
+        customImages: [],
+        collections: [],
+        isListed: true,
+        promotedVariantKeys: [],
+      })
+    }
+  }
 
   const onPickProduct = useCallback(
     (productId: string, listingId: string | null) => {

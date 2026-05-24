@@ -209,7 +209,21 @@ export function CommandK() {
     else setPreviewProduct(products[0] ?? null)
   }, [activeIndex, flatRows, products])
 
-  let flatIndex = -1
+  const flatIndexByKey = useMemo(() => {
+    const map = new Map<string, number>()
+    let index = -1
+    for (const { items: groupItems } of grouped) {
+      for (const item of groupItems) {
+        index += 1
+        map.set(`nav:${item.id}`, index)
+      }
+    }
+    for (const product of products) {
+      index += 1
+      map.set(`product:${product.id}`, index)
+    }
+    return map
+  }, [grouped, products])
 
   return (
     <>
@@ -278,8 +292,7 @@ export function CommandK() {
                             </p>
                             <ul>
                               {groupItems.map((item) => {
-                                flatIndex += 1
-                                const idx = flatIndex
+                                const idx = flatIndexByKey.get(`nav:${item.id}`) ?? 0
                                 const isActive = idx === activeIndex
                                 return (
                                   <li key={item.id}>
@@ -315,8 +328,7 @@ export function CommandK() {
                           </p>
                           <ul>
                             {products.map((p) => {
-                              flatIndex += 1
-                              const idx = flatIndex
+                              const idx = flatIndexByKey.get(`product:${p.id}`) ?? 0
                               const isActive = idx === activeIndex
                               return (
                                 <li key={p.id}>

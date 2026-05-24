@@ -63,7 +63,7 @@ export function PublicNav() {
       <div className="col-start-3 row-start-1 flex shrink-0 items-center justify-end gap-1.5 sm:gap-2 lg:col-start-4">
         <LanguageSwitcher />
         <ThemeToggle />
-        <a
+        <Link
           href="/cart"
           className={cn(buttonVariants({ variant: "outline", size: "sm" }), "relative gap-1.5")}
           aria-label={t("cartAria")}
@@ -80,16 +80,16 @@ export function PublicNav() {
               {cartCount > 9 ? "9+" : cartCount}
             </motion.span>
           ) : null}
-        </a>
+        </Link>
         {status !== "loading" && isCustomer ? (
-          <a href="/marketplace/account" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-1.5")}>
+          <Link href="/marketplace/account" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-1.5")}>
             <User className="size-4 shrink-0" aria-hidden />
             <span className="hidden md:inline">{t("myAccount")}</span>
-          </a>
+          </Link>
         ) : (
-          <a href="/login" className={cn(buttonVariants({ size: "sm" }))}>
+          <Link href="/login" className={cn(buttonVariants({ size: "sm" }))}>
             {t("signIn")}
-          </a>
+          </Link>
         )}
       </div>
 

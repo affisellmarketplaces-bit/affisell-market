@@ -18,9 +18,10 @@ function SuccessRedirect() {
       return
     }
 
-    fetch(`/api/stripe/verify-session?session_id=${session_id}`).finally(() => {
+    fetch(`/api/stripe/verify-session?session_id=${encodeURIComponent(session_id)}`).finally(() => {
       router.replace("/marketplace/account/wallet")
     })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once; session_id read at mount
   }, [])
 
   return <div>Redirection...</div>
