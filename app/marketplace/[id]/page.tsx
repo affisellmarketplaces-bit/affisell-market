@@ -331,7 +331,7 @@ export default async function MarketplaceListingPage({
   }
 
   return (
-    <main className="affisell-pdp-viewport relative min-h-screen overflow-x-hidden bg-gradient-to-b from-zinc-100/95 via-white to-violet-100/45 dark:from-zinc-950 dark:via-zinc-950 dark:to-violet-950/30">
+    <main className="affisell-pdp-viewport relative min-h-screen w-full max-w-[100vw] overflow-x-clip bg-gradient-to-b from-zinc-100/95 via-white to-violet-100/45 dark:from-zinc-950 dark:via-zinc-950 dark:to-violet-950/30">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
@@ -340,7 +340,7 @@ export default async function MarketplaceListingPage({
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_115%_70%_at_50%_-12%,rgba(139,92,246,0.14),transparent_52%)] dark:bg-[radial-gradient(ellipse_115%_70%_at_50%_-12%,rgba(139,92,246,0.22),transparent_55%)]"
         aria-hidden
       />
-      <div className="relative mx-auto max-w-6xl px-4 py-10 md:px-8 lg:py-12">
+      <div className="relative mx-auto min-w-0 max-w-6xl px-4 py-8 pb-28 md:px-8 md:py-10 lg:py-12 lg:pb-12">
       <MarketplaceListingDetail
         audience="customer"
         listingId={listing.id}

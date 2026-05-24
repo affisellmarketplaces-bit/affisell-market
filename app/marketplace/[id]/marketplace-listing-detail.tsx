@@ -746,13 +746,13 @@ export function MarketplaceListingDetail({
 
   return (
     <>
-      <div className="relative mb-10 lg:mb-14">
+      <div className="relative mb-10 max-w-full overflow-x-clip lg:mb-14">
         <motion.div
-          className="pointer-events-none absolute -left-1/4 top-[-4.5rem] h-[26rem] w-[26rem] rounded-full bg-violet-500/[0.2] blur-3xl dark:bg-violet-600/[0.14] sm:left-[-8%] sm:top-[-5rem]"
+          className="pointer-events-none absolute -left-1/4 top-[-4.5rem] hidden h-[26rem] w-[26rem] rounded-full bg-violet-500/[0.2] blur-3xl dark:bg-violet-600/[0.14] sm:left-[-8%] sm:top-[-5rem] lg:block"
           aria-hidden
         />
         <motion.div
-          className="pointer-events-none absolute right-[-12%] top-[18%] h-[20rem] w-[20rem] rounded-full bg-teal-400/16 blur-3xl dark:bg-teal-500/10 sm:right-[-6%]"
+          className="pointer-events-none absolute right-[-12%] top-[18%] hidden h-[20rem] w-[20rem] rounded-full bg-teal-400/16 blur-3xl dark:bg-teal-500/10 sm:right-[-6%] lg:block"
           aria-hidden
         />
         <motion.div
@@ -761,13 +761,13 @@ export function MarketplaceListingDetail({
           transition={
             reduceMotion ? { duration: 0 } : { duration: 0.62, ease: [0.22, 1, 0.36, 1] }
           }
-          className="relative overflow-hidden rounded-[2rem] border border-white/75 bg-white/80 p-5 shadow-[0_36px_120px_-40px_rgba(91,33,217,0.32),0_0_0_1px_rgba(255,255,255,0.55)_inset] backdrop-blur-2xl sm:p-7 lg:overflow-visible lg:p-9 dark:border-white/[0.08] dark:bg-zinc-950/65 dark:shadow-[0_40px_120px_-48px_rgba(0,0,0,0.65)]"
+          className="relative max-w-full overflow-x-clip rounded-[2rem] border border-white/75 bg-white/80 p-4 shadow-[0_36px_120px_-40px_rgba(91,33,217,0.32),0_0_0_1px_rgba(255,255,255,0.55)_inset] backdrop-blur-2xl sm:p-7 lg:overflow-visible lg:p-9 dark:border-white/[0.08] dark:bg-zinc-950/65 dark:shadow-[0_40px_120px_-48px_rgba(0,0,0,0.65)]"
         >
           <div
             className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_85%_at_50%_-8%,rgba(139,92,246,0.16),transparent_58%)] dark:bg-[radial-gradient(120%_85%_at_50%_-8%,rgba(167,139,250,0.14),transparent_58%)]"
             aria-hidden
           />
-          <motion.div className="relative grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-start lg:gap-x-12 lg:gap-y-8">
+          <motion.div className="relative grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start lg:gap-x-12 lg:gap-y-8">
             <nav
               aria-label="Breadcrumb"
               className="order-first col-span-full flex flex-wrap items-center gap-1 border-b border-zinc-200/70 pb-4 text-xs text-zinc-500 dark:border-zinc-800/80 dark:text-zinc-400"
@@ -791,12 +791,12 @@ export function MarketplaceListingDetail({
             </nav>
 
           <motion.div
-            className="order-2 flex flex-col gap-6 lg:order-none lg:col-span-7 lg:gap-8 lg:overflow-visible"
+            className="order-2 flex min-w-0 flex-col gap-4 sm:gap-6 lg:order-none lg:col-span-7 lg:row-start-2 lg:gap-8 lg:overflow-visible"
             initial={reduceMotion ? false : { y: 10 }}
             animate={{ y: 0 }}
             transition={reduceMotion ? { duration: 0 } : { duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           >
-          <section className="space-y-4 lg:overflow-visible">
+          <section className="min-w-0 space-y-4 lg:overflow-visible">
             <ProductImageHoverZoom
               src={hero}
               alt={name}
@@ -811,7 +811,7 @@ export function MarketplaceListingDetail({
               }
             />
 
-            <div className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 pb-1 pt-0.5 [mask-image:linear-gradient(to_right,transparent,black_0.65rem,black_calc(100%-0.65rem),transparent)] [scrollbar-width:thin] sm:mx-0 sm:px-0 sm:[mask-image:linear-gradient(to_right,transparent,black_0.5rem,black_calc(100%-0.5rem),transparent)]">
+            <div className="flex w-full min-w-0 max-w-full touch-pan-x gap-2 overflow-x-auto overscroll-x-contain pb-1 pt-0.5 [scrollbar-width:thin] [mask-image:linear-gradient(to_right,transparent,black_0.5rem,black_calc(100%-0.5rem),transparent)]">
               {images.slice(0, 12).map((url, i) => (
                 <button
                   key={`thumb-${i}`}
@@ -871,112 +871,9 @@ export function MarketplaceListingDetail({
               </Button>
             ) : null}
           </section>
-
-            <div
-              aria-hidden
-              className="hidden h-px w-full bg-gradient-to-r from-transparent via-zinc-200/90 to-transparent dark:via-zinc-700/80 lg:block"
-            />
-
-            <motion.div
-              id="product-description"
-              initial={reduceMotion ? false : { y: 12 }}
-              animate={{ y: 0 }}
-              transition={reduceMotion ? { duration: 0 } : { duration: 0.45, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
-              className="relative overflow-hidden rounded-2xl border border-zinc-200/80 bg-gradient-to-b from-white to-zinc-50/80 p-6 shadow-sm dark:border-zinc-700/80 dark:from-zinc-900/90 dark:to-zinc-950/80"
-            >
-              <div
-                className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-400/35 to-transparent dark:via-violet-500/25"
-                aria-hidden
-              />
-              <div className="flex items-center gap-2.5">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-600/10 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300">
-                  <FileText className="h-4 w-4" aria-hidden />
-                </span>
-                <div>
-                  <h2 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-50">About this product</h2>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">Full copy from the listing · specs below</p>
-                </div>
-              </div>
-              {glanceText ? (
-                <blockquote className="mt-5 border-l-4 border-violet-500/60 bg-violet-50/50 py-3 pl-4 pr-3 text-sm italic leading-relaxed text-zinc-800 dark:border-violet-500/40 dark:bg-violet-950/25 dark:text-zinc-200">
-                  {glanceText}
-                </blockquote>
-              ) : null}
-              {descriptionBullets.length > 0 ? (
-                <div className={glanceText ? "mt-6" : "mt-5"}>
-                  <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400">
-                    Highlights
-                  </p>
-                  <ul className="mt-3 list-none space-y-2.5 text-sm leading-relaxed text-zinc-800 dark:text-zinc-200">
-                    {descriptionBullets.map((line, i) => (
-                      <li key={`hero-bullet-${i}`} className="flex gap-3">
-                        <span
-                          className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-sm shadow-violet-500/30"
-                          aria-hidden
-                        />
-                        <span>{line}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-              <div className={descriptionBullets.length > 0 ? "mt-8 border-t border-zinc-100 pt-6 dark:border-zinc-800" : "mt-5"}>
-                <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400">Full detail</p>
-                <div className="relative mt-3">
-                  <p
-                    className={`whitespace-pre-wrap text-sm leading-relaxed text-zinc-700 dark:text-zinc-300 ${
-                      !descExpanded && descriptionIsLong ? "line-clamp-[10]" : ""
-                    }`}
-                  >
-                    {description}
-                  </p>
-                  {!descExpanded && descriptionIsLong ? (
-                    <div
-                      className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-white via-white/90 to-transparent dark:from-zinc-900 dark:via-zinc-900/90"
-                      aria-hidden
-                    />
-                  ) : null}
-                </div>
-                {descriptionIsLong ? (
-                  <button
-                    type="button"
-                    onClick={() => setDescExpanded((v) => !v)}
-                    className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-800 shadow-sm transition hover:border-violet-300 hover:bg-violet-50/60 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-violet-500/50 dark:hover:bg-violet-950/30"
-                  >
-                    {descExpanded ? "Show less" : "Show full description"}
-                    <ChevronDown
-                      className={`h-3.5 w-3.5 transition-transform ${descExpanded ? "rotate-180" : ""}`}
-                      aria-hidden
-                    />
-                  </button>
-                ) : null}
-                <DescriptionIllustrativeMedia
-                  images={descriptionIllustrationImages}
-                  videos={descriptionIllustrationVideos}
-                />
-              </div>
-              <div className="mt-6 flex flex-wrap gap-3 border-t border-zinc-100 pt-4 text-xs dark:border-zinc-800">
-                <a
-                  href="#listing-specs"
-                  className="font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-400"
-                >
-                  Technical specs
-                </a>
-                <span className="text-zinc-300 dark:text-zinc-600" aria-hidden>
-                  ·
-                </span>
-                <a
-                  href="#listing-reviews"
-                  className="font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-400"
-                >
-                  {t(productT.reviews, { count: formatStoreCount(reviewSummary.count) })}
-                </a>
-              </div>
-            </motion.div>
-
           </motion.div>
 
-          <aside className="order-1 space-y-4 lg:order-none lg:col-span-5 lg:sticky lg:top-28 lg:self-start">
+          <aside className="order-3 min-w-0 space-y-4 lg:order-none lg:col-span-5 lg:col-start-8 lg:row-start-2 lg:row-span-2 lg:sticky lg:top-28 lg:self-start">
             <header className="space-y-3 lg:pt-3">
               <motion.div
                 className="relative"
@@ -1043,13 +940,6 @@ export function MarketplaceListingDetail({
               </motion.div>
             </header>
 
-            {partnerHighlightLabel ? (
-              <p className="rounded-xl border border-violet-200/80 bg-violet-50/80 px-3 py-2 text-xs leading-relaxed text-violet-950 dark:border-violet-900/50 dark:bg-violet-950/35 dark:text-violet-100">
-                <span className="font-semibold">Partner highlight:</span> {partnerHighlightLabel}. Shoppers can still
-                pick other colors or sizes below.
-              </p>
-            ) : null}
-
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
               <StarRatingRow value={reviewSummary.average} count={reviewSummary.count} />
               <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
@@ -1071,7 +961,31 @@ export function MarketplaceListingDetail({
               ) : null}
             </div>
 
-            <div className="listing-price-card-sheen relative overflow-hidden rounded-2xl border border-zinc-200/80 bg-gradient-to-br from-white via-violet-50/30 to-white p-4 shadow-sm dark:border-zinc-700/80 dark:from-zinc-900 dark:via-violet-950/20 dark:to-zinc-950 sm:p-5">
+            <div className="lg:hidden">
+              <p className="text-[11px] font-semibold tracking-[0.08em] text-violet-700/90 dark:text-violet-300/90">
+                Price
+              </p>
+              <p className="mt-1 text-3xl font-bold tracking-tight text-zinc-900 tabular-nums dark:text-white">
+                {priceDisplay}
+              </p>
+              {buyerRewardBadge ? (
+                <p className="mt-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-teal-200/90 bg-teal-50/90 px-3 py-1.5 text-xs font-semibold text-teal-900 dark:border-teal-800 dark:bg-teal-950/70 dark:text-teal-100">
+                    <Sparkles className="h-3.5 w-3.5 shrink-0 opacity-80" aria-hidden />
+                    Store offer · {buyerRewardBadge}
+                  </span>
+                </p>
+              ) : null}
+            </div>
+
+            {partnerHighlightLabel ? (
+              <p className="rounded-xl border border-violet-200/80 bg-violet-50/80 px-3 py-2 text-xs leading-relaxed text-violet-950 dark:border-violet-900/50 dark:bg-violet-950/35 dark:text-violet-100">
+                <span className="font-semibold">Partner highlight:</span> {partnerHighlightLabel}. Shoppers can still
+                pick other colors or sizes below.
+              </p>
+            ) : null}
+
+            <div className="listing-price-card-sheen relative max-w-full overflow-hidden rounded-2xl border border-zinc-200/80 bg-gradient-to-br from-white via-violet-50/30 to-white p-4 shadow-sm dark:border-zinc-700/80 dark:from-zinc-900 dark:via-violet-950/20 dark:to-zinc-950 sm:p-5 max-lg:hidden">
               <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-violet-400/15 blur-2xl dark:bg-violet-500/10" aria-hidden />
               <div className="relative flex flex-col gap-4 min-[420px]:flex-row min-[420px]:items-stretch min-[420px]:justify-between min-[420px]:gap-5">
                 <div className="min-w-0 flex-1">
@@ -1641,12 +1555,121 @@ export function MarketplaceListingDetail({
               <p className="text-sm text-zinc-500 dark:text-zinc-400">{t(productT.byStore, { store: sellerLabel })}</p>
             ) : null}
           </aside>
+
+          <motion.div
+            className="order-4 flex min-w-0 flex-col gap-6 lg:order-none lg:col-span-7 lg:row-start-3"
+            initial={reduceMotion ? false : { y: 10 }}
+            animate={{ y: 0 }}
+            transition={reduceMotion ? { duration: 0 } : { duration: 0.4, delay: 0.04, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div
+              aria-hidden
+              className="hidden h-px w-full bg-gradient-to-r from-transparent via-zinc-200/90 to-transparent dark:via-zinc-700/80 lg:block"
+            />
+
+            <motion.div
+              id="product-description"
+              initial={reduceMotion ? false : { y: 12 }}
+              animate={{ y: 0 }}
+              transition={reduceMotion ? { duration: 0 } : { duration: 0.45, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
+              className="relative max-w-full overflow-hidden rounded-2xl border border-zinc-200/80 bg-gradient-to-b from-white to-zinc-50/80 p-4 shadow-sm sm:p-6 dark:border-zinc-700/80 dark:from-zinc-900/90 dark:to-zinc-950/80"
+            >
+              <div
+                className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-400/35 to-transparent dark:via-violet-500/25"
+                aria-hidden
+              />
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-600/10 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300">
+                  <FileText className="h-4 w-4" aria-hidden />
+                </span>
+                <div>
+                  <h2 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-50">About this product</h2>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">Full copy from the listing · specs below</p>
+                </div>
+              </div>
+              {glanceText ? (
+                <blockquote className="mt-5 border-l-4 border-violet-500/60 bg-violet-50/50 py-3 pl-4 pr-3 text-sm italic leading-relaxed text-zinc-800 dark:border-violet-500/40 dark:bg-violet-950/25 dark:text-zinc-200">
+                  {glanceText}
+                </blockquote>
+              ) : null}
+              {descriptionBullets.length > 0 ? (
+                <div className={glanceText ? "mt-6" : "mt-5"}>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400">
+                    Highlights
+                  </p>
+                  <ul className="mt-3 list-none space-y-2.5 text-sm leading-relaxed text-zinc-800 dark:text-zinc-200">
+                    {descriptionBullets.map((line, i) => (
+                      <li key={`hero-bullet-${i}`} className="flex gap-3">
+                        <span
+                          className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-sm shadow-violet-500/30"
+                          aria-hidden
+                        />
+                        <span>{line}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              <div className={descriptionBullets.length > 0 ? "mt-8 border-t border-zinc-100 pt-6 dark:border-zinc-800" : "mt-5"}>
+                <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400">Full detail</p>
+                <div className="relative mt-3">
+                  <p
+                    className={`whitespace-pre-wrap break-words text-sm leading-relaxed text-zinc-700 dark:text-zinc-300 ${
+                      !descExpanded && descriptionIsLong ? "line-clamp-[10]" : ""
+                    }`}
+                  >
+                    {description}
+                  </p>
+                  {!descExpanded && descriptionIsLong ? (
+                    <div
+                      className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-white via-white/90 to-transparent dark:from-zinc-900 dark:via-zinc-900/90"
+                      aria-hidden
+                    />
+                  ) : null}
+                </div>
+                {descriptionIsLong ? (
+                  <button
+                    type="button"
+                    onClick={() => setDescExpanded((v) => !v)}
+                    className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-800 shadow-sm transition hover:border-violet-300 hover:bg-violet-50/60 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-violet-500/50 dark:hover:bg-violet-950/30"
+                  >
+                    {descExpanded ? "Show less" : "Show full description"}
+                    <ChevronDown
+                      className={`h-3.5 w-3.5 transition-transform ${descExpanded ? "rotate-180" : ""}`}
+                      aria-hidden
+                    />
+                  </button>
+                ) : null}
+                <DescriptionIllustrativeMedia
+                  images={descriptionIllustrationImages}
+                  videos={descriptionIllustrationVideos}
+                />
+              </div>
+              <div className="mt-6 flex flex-wrap gap-3 border-t border-zinc-100 pt-4 text-xs dark:border-zinc-800">
+                <a
+                  href="#listing-specs"
+                  className="font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-400"
+                >
+                  Technical specs
+                </a>
+                <span className="text-zinc-300 dark:text-zinc-600" aria-hidden>
+                  ·
+                </span>
+                <a
+                  href="#listing-reviews"
+                  className="font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-400"
+                >
+                  {t(productT.reviews, { count: formatStoreCount(reviewSummary.count) })}
+                </a>
+              </div>
+            </motion.div>
+          </motion.div>
           </motion.div>
         </motion.div>
         </div>
 
 
-      <section className="mt-12 border-t border-zinc-200/80 pt-10 dark:border-zinc-800">
+      <section className="mt-12 max-w-full overflow-x-clip border-t border-zinc-200/80 pt-10 dark:border-zinc-800">
         <Suspense
           fallback={
             <div className="grid gap-4 md:grid-cols-2">
@@ -1765,7 +1788,7 @@ export function MarketplaceListingDetail({
         role="region"
         aria-label={t(productT.stickyBuyHint)}
         aria-hidden={!(availableStock > 0 && showStickyBuy && !showAr && !showStylist)}
-        className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 sm:px-6"
+        className="fixed inset-x-0 bottom-0 z-40 max-w-[100vw] px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 sm:px-6"
         initial={false}
         animate={
           reduceMotion

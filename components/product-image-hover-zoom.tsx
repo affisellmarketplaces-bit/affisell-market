@@ -76,7 +76,7 @@ export function ProductImageHoverZoom({ src, alt, overlay, className, frameClass
     <div
       ref={rootRef}
       className={cn(
-        "relative w-full overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950 lg:overflow-visible",
+        "relative w-full max-w-full overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950 lg:overflow-visible",
         className
       )}
     >

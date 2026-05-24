@@ -29,7 +29,7 @@ export default async function ShopPublicLayout({
           description={store.description}
         />
       ) : null}
-      <main>{children}</main>
+      <main className="min-w-0 overflow-x-clip">{children}</main>
     </div>
   )
 }
