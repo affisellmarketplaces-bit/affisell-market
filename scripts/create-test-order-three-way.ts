@@ -1,19 +1,19 @@
 import { randomUUID } from "node:crypto"
 import { resolve } from "node:path"
 import { config } from "dotenv"
-import Stripe from "stripe"
-import { PrismaClient } from "@prisma/client"
 
 config({ path: resolve(process.cwd(), ".env.local") })
 config({ path: resolve(process.cwd(), ".env") })
+
+import { PrismaClient } from "@prisma/client"
+
+import { getStripeClient } from "../lib/stripe"
 
 if (!process.env.STRIPE_SECRET_KEY?.trim()) {
   throw new Error("STRIPE_SECRET_KEY manquant")
 }
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2026-02-25.clover",
-})
+const stripe = getStripeClient()
 const prisma = new PrismaClient()
 
 const LINE_TOTAL_CENTS = 14_560
