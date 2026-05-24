@@ -5,27 +5,33 @@ alwaysApply: true
 
 # Git — fin de tâche (corrections & features)
 
-Quand tu **modifies le code** pour corriger un bug, implémenter une feature ou répondre à « corrige / fix / répare », termine **toujours** ainsi (sauf si l'utilisateur dit « sans commit », « ne push pas », ou « explique seulement ») :
+Quand tu **modifies le code** (fix, feature, refactor demandé), termine ainsi (sauf « sans commit », « ne push pas », question seule) :
 
-1. Vérifier qu'il y a des changements : `git status` et `git diff`.
-2. **Ne jamais** committer `.env`, clés, ou fichiers de secrets.
-3. Créer **un commit** avec un message clair (1–2 phrases, le *pourquoi*), via HEREDOC.
-4. Pousser avec **`npm run push:safe`** (scan secrets + pull --rebase + push sur `main`).
-5. Terminer **chaque** réponse de correction par un bloc Git lisible, par exemple :
+## Procédure en 2 commandes séparées (obligatoire)
 
-   **Git** — Commit `5a42270` — *chore: …* — push OK (`main`)
+Les interruptions viennent d’enchaîner `git commit && npm run push:safe` en **une seule** commande shell : `git pull` peut bloquer  plusieurs minutes sur le réseau et Cursor coupe la session.
 
-   (hash court 7 caractères, message en italique, statut push ou erreur exacte)
+1. **Commande A** — commit uniquement :
+   - `git status` / `git diff`
+   - ne pas committer `.env` ni secrets
+   - `git add …` puis `git commit` (HEREDOC)
+
+2. **Commande B** — push seul (appel shell **séparé**, `block_until_ms` ≥ 90000) :
+   - `npm run push:safe` (script `scripts/git-push-safe.mjs` : timeouts fetch/push, pas de prompt interactif)
+
+Si la commande B time out : indiquer quand même le hash du commit A et écrire « push à relancer : `npm run push:safe` ».
+
+## Réponse finale
+
+**Git** — Commit `abc1234` — *message* — push OK (`main`)
+
+ou
+
+**Git** — Commit `abc1234` — *message* — push non terminé (relancer `npm run push:safe`)
 
 ## Ne pas committer
 
-- Questions / revue / explication sans changement de fichiers.
-- L'utilisateur demande explicitement de ne pas committer.
-- Aucun fichier modifié.
+- Question / revue sans changement de fichiers.
+- Consigne explicite « sans commit ».
 
-## En cas d'échec
-
-- Hook pre-commit / push rejeté : corriger, **nouveau commit** (pas d'amend sauf règles amend).
-- `push:safe` en conflit : résoudre le rebase puis re-pousser.
-
-Référence projet : `AGENTS.md` (section Git push).
+Référence : `AGENTS.md` (section Git push).
