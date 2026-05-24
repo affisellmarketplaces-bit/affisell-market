@@ -24,7 +24,7 @@
     "verify:sentry": "tsx scripts/verify-sentry.ts",
     "email:dev": "email dev --dir emails",
     "verify:no-secrets": "node scripts/verify-no-secrets.mjs",
-    "push:safe": "npm run verify:no-secrets && git pull --rebase origin main && git push origin main",
+    "push:safe": "node scripts/git-push-safe.mjs",
     "test:veo": "tsx test-veo.ts",
     "test:veo:pipeline": "tsx scripts/test-veo-pipeline.ts",
     "test:vat": "tsx scripts/test-vat-flow.ts",
