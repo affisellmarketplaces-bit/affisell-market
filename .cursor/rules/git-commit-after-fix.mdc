@@ -11,9 +11,11 @@ Quand tu **modifies le code** pour corriger un bug, implémenter une feature ou 
 2. **Ne jamais** committer `.env`, clés, ou fichiers de secrets.
 3. Créer **un commit** avec un message clair (1–2 phrases, le *pourquoi*), via HEREDOC.
 4. Pousser avec **`npm run push:safe`** (scan secrets + pull --rebase + push sur `main`).
-5. Dans ta réponse finale, indiquer explicitement :
-   - le **hash** et le **message** du commit ;
-   - que le push a réussi (ou l'erreur exacte).
+5. Terminer **chaque** réponse de correction par un bloc Git lisible, par exemple :
+
+   **Git** — Commit `5a42270` — *chore: …* — push OK (`main`)
+
+   (hash court 7 caractères, message en italique, statut push ou erreur exacte)
 
 ## Ne pas committer
 

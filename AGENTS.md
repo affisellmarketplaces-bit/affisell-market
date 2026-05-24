@@ -6,7 +6,7 @@
 
 ### Agent : commit + push après une correction
 
-Après toute tâche qui **modifie le code** (fix, feature, refactor demandé), l’agent doit **committer et pousser** (`npm run push:safe`) puis **afficher le hash et le message du commit** dans le chat. Sauf consigne inverse (« sans commit », question seule). Détail : `.cursor/rules/git-commit-after-fix.mdc`.
+Après toute tâche qui **modifie le code** (fix, feature, refactor demandé), l’agent doit **committer et pousser** (`npm run push:safe`) puis terminer le chat par une ligne du type : **Git** — Commit `abc1234` — *message* — push OK (`main`). Sauf consigne inverse (« sans commit », question seule). Détail : `.cursor/rules/git-commit-after-fix.mdc`.
 
 <!-- BEGIN:nextjs-agent-rules -->
 # This is NOT the Next.js you know
