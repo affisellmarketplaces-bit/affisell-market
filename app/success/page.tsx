@@ -39,7 +39,7 @@ function SuccessContent() {
 
   if (!payload) {
     return (
-      <BentoContainer maxWidth="md" className="py-16">
+      <BentoContainer maxWidth="4xl" className="py-16">
         <BentoCard>
           <p className="text-sm text-zinc-600 dark:text-zinc-300">Confirmation du paiement…</p>
         </BentoCard>
@@ -49,7 +49,7 @@ function SuccessContent() {
 
   if (payload.error) {
     return (
-      <BentoContainer maxWidth="md" className="py-16">
+      <BentoContainer maxWidth="4xl" className="py-16">
         <BentoCard className="space-y-4">
           <h1 className="text-xl font-semibold text-zinc-900 dark:text-white">Paiement reçu</h1>
           <p className="text-sm text-zinc-600 dark:text-zinc-300">
@@ -72,7 +72,7 @@ function SuccessContent() {
   const orderCount = payload.orderIds?.length ?? (payload.orderId ? 1 : 0)
 
   return (
-    <BentoContainer maxWidth="md" className="py-16">
+    <BentoContainer maxWidth="4xl" className="py-16">
       <BentoCard className="space-y-5">
         <div>
           <p className="text-xs font-medium uppercase tracking-wide text-violet-600 dark:text-violet-400">
@@ -115,7 +115,7 @@ export default function SuccessPage() {
   return (
     <Suspense
       fallback={
-        <BentoContainer maxWidth="md" className="py-16">
+        <BentoContainer maxWidth="4xl" className="py-16">
           <BentoCard>
             <p className="text-sm text-zinc-600">Confirmation du paiement…</p>
           </BentoCard>
