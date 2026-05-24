@@ -1,16 +1,10 @@
 import Stripe from "stripe"
 
+import { assertTransfersActive } from "@/lib/stripe-marketplace-commission-split"
 import { logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
 import { getStripeClient } from "@/lib/stripe"
 
-export async function assertConnectTransfersActive(destination: string, role: string) {
-  const stripe = getStripeClient()
-  const account = await stripe.accounts.retrieve(destination)
-  if (account.capabilities?.transfers !== "active") {
-    throw new Error(`AFFILIATE_ONBOARDING_REQUIRED:${destination}`)
-  }
-  return account
-}
+export { assertTransfersActive as assertConnectTransfersActive }
 
 export async function createConnectTransfer(args: {
   orderId: string
@@ -20,7 +14,7 @@ export async function createConnectTransfer(args: {
   sourceTransaction?: string
 }) {
   const stripe = getStripeClient()
-  await assertConnectTransfersActive(args.destination, args.role)
+  await assertTransfersActive(args.destination)
 
   const transfer = await stripe.transfers.create(
     {
@@ -31,7 +25,7 @@ export async function createConnectTransfer(args: {
       ...(args.sourceTransaction ? { source_transaction: args.sourceTransaction } : {}),
       metadata: { orderId: args.orderId, role: args.role },
     },
-    { idempotencyKey: `transfer_${args.orderId}_${args.role}` }
+    { idempotencyKey: `tr_${args.orderId}_${args.role}` }
   )
 
   logStripeWebhookInfo({

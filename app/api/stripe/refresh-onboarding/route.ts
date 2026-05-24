@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import type { Prisma } from "@prisma/client"
 
 import { prisma } from "@/lib/prisma"
 import { getStripeClient } from "@/lib/stripe"
@@ -19,16 +20,23 @@ export async function POST(req: Request) {
   const transfersActive = account.capabilities?.transfers === "active"
 
   let userUpdated = 0
+  const capabilities = (account.capabilities ?? undefined) as Prisma.InputJsonValue | undefined
   if (transfersActive) {
     const result = await prisma.user.updateMany({
       where: { stripeAccountId: accountId },
-      data: { stripeOnboardedAt: new Date() },
+      data: {
+        stripeOnboardedAt: new Date(),
+        stripeCapabilities: capabilities,
+      },
     })
     userUpdated = result.count
   } else {
     await prisma.user.updateMany({
       where: { stripeAccountId: accountId },
-      data: { stripeOnboardedAt: null },
+      data: {
+        stripeOnboardedAt: null,
+        stripeCapabilities: capabilities,
+      },
     })
   }
 

@@ -1,8 +1,12 @@
 import type { Prisma } from "@prisma/client"
 import type Stripe from "stripe"
+import StripeSdk from "stripe"
 
 import { prisma } from "@/lib/prisma"
-import { handleMarketplaceThreeWaySplit } from "@/lib/stripe-marketplace-commission-split"
+import {
+  handleMarketplaceThreeWaySplit,
+  processMarketplaceCommissionForPaymentIntent,
+} from "@/lib/stripe-marketplace-commission-split"
 import { isInsufficientCapabilitiesError } from "@/lib/stripe-connect-transfer"
 import {
   captureStripeWebhookException,
@@ -10,9 +14,9 @@ import {
   logStripeWebhookInfo,
   stripeErrorFields,
 } from "@/lib/stripe-webhook-observability"
+import { getStripeClient } from "@/lib/stripe"
 import { createBlindDropshipPaidNotifications } from "@/lib/blind-dropship-notifications"
 import { handleStripeChargeRefunded } from "@/lib/stripe-charge-refunded"
-import { processMarketplaceCommissionForPaymentIntent } from "@/lib/stripe-marketplace-commission-split"
 import { handleStripeInvoicePaymentFailed } from "@/lib/stripe-invoice-payment-failed"
 import {
   activateProFromCheckoutSession,
@@ -24,24 +28,65 @@ export type WebhookProcessResult = {
   orderId: string | null
   duplicate: boolean
   handled: boolean
+  status?: string
+  deferred?: boolean
 }
 
-export async function isStripeWebhookProcessed(eventId: string): Promise<boolean> {
-  const row = await prisma.processedWebhook.findUnique({ where: { id: eventId } })
-  return Boolean(row)
-}
+type WebhookStatus = "success" | "failed" | "skipped"
 
-async function clearStripeOnboardedForAccount(
+async function syncUserCapabilitiesFromStripe(
   tx: Prisma.TransactionClient,
   stripeAccountId: string
 ) {
+  const stripe = getStripeClient()
+  const account = await stripe.accounts.retrieve(stripeAccountId)
   await tx.user.updateMany({
     where: { stripeAccountId },
-    data: { stripeOnboardedAt: null },
+    data: {
+      stripeOnboardedAt: null,
+      stripeCapabilities: account.capabilities as Prisma.InputJsonValue,
+    },
   })
 }
 
-async function handleTransferSettlementError(
+async function handleSplitErrors(
+  splitErrors: { role: string; message: string; accountId?: string; code?: string }[],
+  orderId: string,
+  tx: Prisma.TransactionClient
+) {
+  for (const err of splitErrors) {
+    const accountId = err.accountId?.trim()
+    if (!accountId) continue
+
+    if (
+      err.code === "affiliate_onboarding_required" ||
+      err.message.startsWith("AFFILIATE_ONBOARDING_REQUIRED:")
+    ) {
+      await syncUserCapabilitiesFromStripe(tx, accountId)
+      logStripeWebhookError({
+        level: "error",
+        metric: "affiliate_onboarding_required",
+        orderId,
+        accountId,
+        errorCode: err.code ?? null,
+      })
+      continue
+    }
+
+    if (err.code === "insufficient_capabilities_for_transfer") {
+      await syncUserCapabilitiesFromStripe(tx, accountId)
+      logStripeWebhookError({
+        level: "error",
+        metric: "insufficient_capabilities_for_transfer",
+        orderId,
+        accountId,
+        errorCode: err.code,
+      })
+    }
+  }
+}
+
+async function handleStripeTransferError(
   error: unknown,
   orderId: string | null,
   tx: Prisma.TransactionClient
@@ -51,13 +96,15 @@ async function handleTransferSettlementError(
   if (isInsufficientCapabilitiesError(error)) {
     const accountId = fields.accountId
     if (accountId) {
-      await clearStripeOnboardedForAccount(tx, accountId)
+      await syncUserCapabilitiesFromStripe(tx, accountId)
     }
     logStripeWebhookError({
+      level: "error",
       metric: "insufficient_capabilities_for_transfer",
       orderId,
-      accountId,
-      message: error instanceof Error ? error.message : String(error),
+      accountId: accountId ?? null,
+      errorCode: "insufficient_capabilities_for_transfer",
+      param: fields.param,
     })
     return
   }
@@ -65,9 +112,10 @@ async function handleTransferSettlementError(
   if (error instanceof Error && error.message.startsWith("AFFILIATE_ONBOARDING_REQUIRED:")) {
     const accountId = error.message.split(":")[1]?.trim()
     if (accountId) {
-      await clearStripeOnboardedForAccount(tx, accountId)
+      await syncUserCapabilitiesFromStripe(tx, accountId)
     }
     logStripeWebhookError({
+      level: "error",
       metric: "affiliate_onboarding_required",
       orderId,
       accountId: accountId ?? null,
@@ -75,13 +123,26 @@ async function handleTransferSettlementError(
     return
   }
 
-  captureStripeWebhookException(error, { orderId, phase: "three_way_split", ...fields })
+  if (error instanceof StripeSdk.errors.StripeError) {
+    logStripeWebhookError({
+      level: "error",
+      metric: "stripe_error",
+      orderId,
+      errorCode: error.code ?? error.type,
+      param: error.param ?? null,
+      accountId: fields.accountId,
+    })
+    captureStripeWebhookException(error, { orderId, ...fields })
+    return
+  }
+
+  captureStripeWebhookException(error, { orderId, phase: "webhook", ...fields })
 }
 
 async function processCheckoutSessionCompleted(
   event: Stripe.Event,
   tx: Prisma.TransactionClient
-): Promise<string | null> {
+): Promise<{ orderId: string | null; status: WebhookStatus; error: string | null }> {
   const session = event.data.object as Stripe.Checkout.Session
 
   logStripeWebhookInfo({
@@ -95,7 +156,7 @@ async function processCheckoutSessionCompleted(
 
   if (session.mode === "subscription" && session.payment_status === "paid") {
     await activateProFromCheckoutSession(session)
-    return session.metadata?.orderId ?? null
+    return { orderId: session.metadata?.orderId ?? null, status: "success", error: null }
   }
 
   if (session.mode === "payment" && session.payment_status === "paid") {
@@ -106,39 +167,45 @@ async function processCheckoutSessionCompleted(
         eventId: event.id,
         sessionId: session.id,
       })
-      return null
+      return { orderId: null, status: "skipped", error: "missing_order_id" }
     }
 
     try {
-      await handleMarketplaceThreeWaySplit(session, orderId, tx)
+      const split = await handleMarketplaceThreeWaySplit(session, orderId, tx)
+      if (split.errors.length > 0) {
+        await handleSplitErrors(split.errors, orderId, tx)
+        const msg = split.errors.map((e) => `${e.role}:${e.message}`).join("; ")
+        return { orderId, status: "failed", error: msg }
+      }
+      return { orderId, status: "success", error: null }
     } catch (error) {
-      await handleTransferSettlementError(error, orderId, tx)
+      await handleStripeTransferError(error, orderId, tx)
+      const msg = error instanceof Error ? error.message : String(error)
+      return { orderId, status: "failed", error: msg }
     }
-
-    return orderId
   }
 
-  return null
+  return { orderId: null, status: "skipped", error: null }
 }
 
 async function dispatchStripeEvent(
   event: Stripe.Event,
   tx: Prisma.TransactionClient
-): Promise<string | null> {
+): Promise<{ orderId: string | null; status: WebhookStatus; error: string | null }> {
   switch (event.type) {
     case "checkout.session.completed":
       return processCheckoutSessionCompleted(event, tx)
     case "customer.subscription.deleted": {
       await deactivateProFromSubscription(event.data.object as Stripe.Subscription)
-      return null
+      return { orderId: null, status: "success", error: null }
     }
     case "invoice.payment_failed": {
       await handleStripeInvoicePaymentFailed(event.data.object as Stripe.Invoice)
-      return null
+      return { orderId: null, status: "success", error: null }
     }
     case "charge.refunded": {
       await handleStripeChargeRefunded(event.data.object as Stripe.Charge)
-      return null
+      return { orderId: null, status: "success", error: null }
     }
     case "payment_intent.succeeded": {
       const pi = event.data.object as Stripe.PaymentIntent
@@ -147,11 +214,12 @@ async function dispatchStripeEvent(
         try {
           await processMarketplaceCommissionForPaymentIntent(pi)
         } catch (error) {
-          captureStripeWebhookException(error, {
+          await handleStripeTransferError(error, null, tx)
+          return {
             orderId: null,
-            phase: "payment_intent.succeeded",
-            ...stripeErrorFields(error),
-          })
+            status: "failed",
+            error: error instanceof Error ? error.message : String(error),
+          }
         }
       } else {
         const paid = Math.round(pi.amount_received ?? pi.amount ?? 0)
@@ -175,52 +243,99 @@ async function dispatchStripeEvent(
           }
         }
       }
-      return null
+      return { orderId: null, status: "success", error: null }
     }
     default:
-      return null
+      return { orderId: null, status: "skipped", error: null }
   }
 }
 
 export async function processStripeWebhookEvent(event: Stripe.Event): Promise<WebhookProcessResult> {
-  if (await isStripeWebhookProcessed(event.id)) {
-    logStripeWebhookInfo({ metric: "webhook_duplicate", eventId: event.id, type: event.type })
-    return { orderId: null, duplicate: true, handled: true }
+  const existing = await prisma.processedWebhook.findUnique({ where: { id: event.id } })
+  if (existing) {
+    logStripeWebhookInfo({
+      level: "info",
+      metric: "webhook_duplicate",
+      eventId: event.id,
+      type: event.type,
+      orderId: existing.orderId,
+    })
+    return {
+      orderId: existing.orderId,
+      duplicate: true,
+      handled: true,
+      status: existing.status,
+    }
   }
 
   let orderId: string | null = null
+  let status: WebhookStatus = "skipped"
+  let error: string | null = null
 
   try {
     await prisma.$transaction(
       async (tx) => {
+        const race = await tx.processedWebhook.findUnique({ where: { id: event.id } })
+        if (race) {
+          status = race.status as WebhookStatus
+          orderId = race.orderId
+          return
+        }
+
         try {
-          orderId = await dispatchStripeEvent(event, tx)
-        } catch (error) {
-          captureStripeWebhookException(error, {
-            eventId: event.id,
-            type: event.type,
-            orderId,
-            ...stripeErrorFields(error),
-          })
+          const outcome = await dispatchStripeEvent(event, tx)
+          orderId = outcome.orderId
+          status = outcome.status
+          error = outcome.error
+        } catch (err) {
+          status = "failed"
+          error = err instanceof Error ? err.message : String(err)
+          await handleStripeTransferError(err, orderId, tx)
         } finally {
           await tx.processedWebhook.create({
-            data: { id: event.id, orderId },
+            data: {
+              id: event.id,
+              orderId,
+              status,
+              error,
+            },
           })
         }
       },
-      { timeout: 12_000 }
+      { timeout: 25_000 }
     )
-  } catch (error) {
+  } catch (err) {
     const code =
-      typeof error === "object" && error !== null && "code" in error
-        ? String((error as { code: string }).code)
+      typeof err === "object" && err !== null && "code" in err
+        ? String((err as { code: string }).code)
         : ""
     if (code === "P2002") {
       logStripeWebhookInfo({ metric: "webhook_duplicate_race", eventId: event.id })
       return { orderId: null, duplicate: true, handled: true }
     }
-    throw error
+    captureStripeWebhookException(err, { eventId: event.id, type: event.type })
+    try {
+      await prisma.processedWebhook.create({
+        data: {
+          id: event.id,
+          orderId,
+          status: "failed",
+          error: err instanceof Error ? err.message : String(err),
+        },
+      })
+    } catch {
+      // race: already recorded
+    }
+    return { orderId, duplicate: false, handled: true, status: "failed" }
   }
 
-  return { orderId, duplicate: false, handled: true }
+  logStripeWebhookInfo({
+    level: "info",
+    metric: "webhook_processed",
+    eventId: event.id,
+    orderId,
+    status,
+  })
+
+  return { orderId, duplicate: false, handled: true, status }
 }

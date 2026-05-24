@@ -21,10 +21,11 @@ function jsonOrNull(v: Prisma.JsonValue | null | undefined): Prisma.InputJsonVal
 }
 
 function userPayload(row: Awaited<ReturnType<PrismaClient["user"]["findMany"]>>[number]) {
-  const { supplierRecentCategories, ...rest } = row
+  const { supplierRecentCategories, stripeCapabilities, ...rest } = row
   return {
     ...rest,
     supplierRecentCategories: (supplierRecentCategories ?? []) as Prisma.InputJsonValue,
+    stripeCapabilities: jsonOrNull(stripeCapabilities),
   }
 }
 

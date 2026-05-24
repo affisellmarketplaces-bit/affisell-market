@@ -27,6 +27,8 @@ model User {
   stripeAccountId      String?   @unique
   /** Set when Connect transfers capability is active (refresh-onboarding / successful split). */
   stripeOnboardedAt    DateTime?
+  /** Last known Stripe Connect capabilities snapshot (onboarding errors / refresh). */
+  stripeCapabilities   Json?
   /** Seller VAT number (invoicing; seller remains liable for VAT). */
   vatNumber            String?
   proActivatedAt       DateTime?
@@ -1307,6 +1309,8 @@ model VideoGenerationJob {
 model ProcessedWebhook {
   id        String   @id
   orderId   String?
+  status    String
+  error     String?  @db.Text
   createdAt DateTime @default(now())
 
   @@index([orderId])

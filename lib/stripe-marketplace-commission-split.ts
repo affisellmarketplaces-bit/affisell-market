@@ -1,12 +1,33 @@
 import type { Prisma } from "@prisma/client"
 import type Stripe from "stripe"
 
-import { createConnectTransfer } from "@/lib/stripe-connect-transfer"
 import { logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
 import { prisma } from "@/lib/prisma"
 import { getStripeClient } from "@/lib/stripe"
 
 type Tx = Prisma.TransactionClient
+
+export type ThreeWaySplitError = {
+  role: "supplier" | "affiliate"
+  message: string
+  accountId?: string
+  code?: string
+}
+
+export type ThreeWaySplitResult = {
+  supplierTransfer: Stripe.Transfer | null
+  affiliateTransfer: Stripe.Transfer | null
+  errors: ThreeWaySplitError[]
+}
+
+export async function assertTransfersActive(accountId: string): Promise<Stripe.Account> {
+  const stripe = getStripeClient()
+  const account = await stripe.accounts.retrieve(accountId)
+  if (account.capabilities?.transfers !== "active") {
+    throw new Error(`AFFILIATE_ONBOARDING_REQUIRED:${accountId}`)
+  }
+  return account
+}
 
 export async function findOrderIdsForCheckoutSession(sessionId: string): Promise<string[]> {
   const orders = await prisma.order.findMany({
@@ -30,13 +51,70 @@ async function resolveChargeId(
   return typeof latest === "string" ? latest : latest?.id
 }
 
+function splitError(
+  role: "supplier" | "affiliate",
+  error: unknown,
+  accountId: string
+): ThreeWaySplitError {
+  if (error instanceof Error && error.message.startsWith("AFFILIATE_ONBOARDING_REQUIRED:")) {
+    return { role, message: error.message, accountId, code: "affiliate_onboarding_required" }
+  }
+  const stripeErr =
+    error && typeof error === "object" && "code" in error
+      ? (error as { code?: string; message?: string })
+      : null
+  return {
+    role,
+    message: error instanceof Error ? error.message : String(error),
+    accountId,
+    code: stripeErr?.code,
+  }
+}
+
+async function createTransferSafe(args: {
+  orderId: string
+  role: "supplier" | "affiliate"
+  amount: number
+  destination: string
+  sourceTransaction?: string
+}): Promise<{ transfer: Stripe.Transfer | null; error: ThreeWaySplitError | null }> {
+  const stripe = getStripeClient()
+  try {
+    await assertTransfersActive(args.destination)
+    const transfer = await stripe.transfers.create(
+      {
+        amount: args.amount,
+        currency: "eur",
+        destination: args.destination,
+        transfer_group: args.orderId,
+        ...(args.sourceTransaction ? { source_transaction: args.sourceTransaction } : {}),
+        metadata: { orderId: args.orderId, role: args.role },
+      },
+      { idempotencyKey: `tr_${args.orderId}_${args.role}` }
+    )
+    logStripeWebhookInfo({
+      level: "info",
+      metric: "transfer_created",
+      orderId: args.orderId,
+      role: args.role,
+      amount: args.amount,
+      destination: args.destination,
+      id: transfer.id,
+    })
+    return { transfer, error: null }
+  } catch (error) {
+    return { transfer: null, error: splitError(args.role, error, args.destination) }
+  }
+}
+
 export async function handleMarketplaceThreeWaySplit(
   session: Stripe.Checkout.Session,
   orderId: string,
   tx?: Tx
-) {
+): Promise<ThreeWaySplitResult> {
   const db = tx ?? prisma
   const stripe = getStripeClient()
+  const errors: ThreeWaySplitError[] = []
 
   logStripeWebhookInfo({ metric: "split_start", orderId, sessionId: session.id })
 
@@ -44,22 +122,43 @@ export async function handleMarketplaceThreeWaySplit(
     where: { id: orderId },
     include: { supplier: true, affiliate: true },
   })
-  if (!order) throw new Error(`Order ${orderId} not found`)
+  if (!order) {
+    return {
+      supplierTransfer: null,
+      affiliateTransfer: null,
+      errors: [{ role: "supplier", message: `Order ${orderId} not found` }],
+    }
+  }
 
-  if ((order.supplierPayoutCents ?? 0) > 0 && (order.affiliatePayoutCents ?? 0) > 0) {
+  const supplierAlreadyPaid = (order.supplierPayoutCents ?? 0) > 0
+  const affiliateAlreadyPaid = (order.affiliatePayoutCents ?? 0) > 0
+  if (supplierAlreadyPaid && affiliateAlreadyPaid) {
     logStripeWebhookInfo({ metric: "split_already_settled", orderId })
-    return
+    return { supplierTransfer: null, affiliateTransfer: null, errors: [] }
   }
 
   const totalCents = session.amount_total
-  if (totalCents == null) throw new Error("Session amount_total missing")
+  if (totalCents == null) {
+    return {
+      supplierTransfer: null,
+      affiliateTransfer: null,
+      errors: [{ role: "supplier", message: "Session amount_total missing" }],
+    }
+  }
 
   const supplierDestination = order.supplier.stripeAccountId?.trim()
   const affiliateDestination =
     order.affiliateStripeAccountId?.trim() || order.affiliate?.stripeAccountId?.trim()
 
-  if (!supplierDestination) throw new Error("Supplier stripeAccountId missing")
-  if (!affiliateDestination) throw new Error("Affiliate stripeAccountId missing")
+  if (!supplierDestination) {
+    errors.push({ role: "supplier", message: "Supplier stripeAccountId missing" })
+  }
+  if (!affiliateDestination) {
+    errors.push({ role: "affiliate", message: "Affiliate stripeAccountId missing" })
+  }
+  if (errors.length > 0) {
+    return { supplierTransfer: null, affiliateTransfer: null, errors }
+  }
 
   const supplierPayoutCents = Math.floor(totalCents * 0.6)
   const affiliatePayoutCents = Math.floor(totalCents * 0.2667)
@@ -79,49 +178,128 @@ export async function handleMarketplaceThreeWaySplit(
 
   const chargeId = await resolveChargeId(stripe, session)
 
-  const supplierTransfer = await createConnectTransfer({
-    orderId,
-    role: "supplier",
-    amount: supplierPayoutCents,
-    destination: supplierDestination,
-    sourceTransaction: chargeId,
-  })
+  let supplierTransfer: Stripe.Transfer | null = null
+  let affiliateTransfer: Stripe.Transfer | null = null
 
-  await createConnectTransfer({
-    orderId,
-    role: "affiliate",
-    amount: affiliatePayoutCents,
-    destination: affiliateDestination,
-    sourceTransaction: chargeId,
-  })
+  if (!supplierAlreadyPaid) {
+    const supplierResult = await createTransferSafe({
+      orderId,
+      role: "supplier",
+      amount: supplierPayoutCents,
+      destination: supplierDestination!,
+      sourceTransaction: chargeId,
+    })
+    supplierTransfer = supplierResult.transfer
+    if (supplierResult.error) errors.push(supplierResult.error)
+  }
 
-  await db.order.update({
-    where: { id: orderId },
-    data: {
-      status: "paid",
-      supplierPayoutCents,
-      affiliatePayoutCents,
-      affisellFeeCents,
-      stripeFeesCents: stripeFeeCents,
-      totalCents,
-      stripeSessionId: session.id,
-      stripeChargeId: chargeId ?? order.stripeChargeId,
-      stripeTransferId: supplierTransfer.id,
-      paymentSettlementStatus: "SETTLED",
-    },
-  })
+  if (!affiliateAlreadyPaid) {
+    const affiliateResult = await createTransferSafe({
+      orderId,
+      role: "affiliate",
+      amount: affiliatePayoutCents,
+      destination: affiliateDestination!,
+      sourceTransaction: chargeId,
+    })
+    affiliateTransfer = affiliateResult.transfer
+    if (affiliateResult.error) errors.push(affiliateResult.error)
+  }
 
-  const now = new Date()
-  await db.user.updateMany({
-    where: { stripeAccountId: { in: [supplierDestination, affiliateDestination] } },
-    data: { stripeOnboardedAt: now },
-  })
+  const supplierOk = supplierAlreadyPaid || supplierTransfer != null
+  const affiliateOk = affiliateAlreadyPaid || affiliateTransfer != null
 
-  logStripeWebhookInfo({ metric: "split_end", orderId })
+  if (supplierOk && affiliateOk) {
+    await db.order.update({
+      where: { id: orderId },
+      data: {
+        status: "paid",
+        supplierPayoutCents,
+        affiliatePayoutCents,
+        affisellFeeCents,
+        stripeFeesCents: stripeFeeCents,
+        totalCents,
+        stripeSessionId: session.id,
+        stripeChargeId: chargeId ?? order.stripeChargeId,
+        stripeTransferId: supplierTransfer?.id ?? order.stripeTransferId,
+        paymentSettlementStatus: "SETTLED",
+      },
+    })
+
+    const now = new Date()
+    await db.user.updateMany({
+      where: {
+        stripeAccountId: {
+          in: [supplierDestination!, affiliateDestination!].filter(Boolean),
+        },
+      },
+      data: { stripeOnboardedAt: now },
+    })
+
+    logStripeWebhookInfo({ metric: "split_end", orderId, status: "success" })
+  } else {
+    if (supplierOk && !affiliateAlreadyPaid) {
+      await db.order.update({
+        where: { id: orderId },
+        data: {
+          supplierPayoutCents,
+          affisellFeeCents,
+          stripeFeesCents: stripeFeeCents,
+          totalCents,
+          stripeSessionId: session.id,
+          stripeChargeId: chargeId ?? order.stripeChargeId,
+          stripeTransferId: supplierTransfer?.id ?? order.stripeTransferId,
+          paymentSettlementStatus: "PENDING",
+        },
+      })
+    }
+    logStripeWebhookInfo({
+      metric: "split_end",
+      orderId,
+      status: "partial",
+      errorCount: errors.length,
+    })
+  }
+
+  return { supplierTransfer, affiliateTransfer, errors }
 }
 
 /** @deprecated Utiliser `handleMarketplaceThreeWaySplit` */
 export const handleStripeCommissionSplit = handleMarketplaceThreeWaySplit
+
+export async function resettleMarketplaceOrder(orderId: string): Promise<{
+  ok: boolean
+  error?: string
+  result?: ThreeWaySplitResult
+}> {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: { supplier: true, affiliate: true },
+  })
+  if (!order) return { ok: false, error: "order_not_found" }
+
+  if (!order.supplier.stripeOnboardedAt) {
+    return { ok: false, error: "supplier_not_onboarded" }
+  }
+  if (!order.affiliate?.stripeOnboardedAt) {
+    return { ok: false, error: "affiliate_not_onboarded" }
+  }
+
+  const sessionId = order.stripeSessionId?.split(":line:")[0]?.trim()
+  if (!sessionId || sessionId.startsWith("pending_")) {
+    return { ok: false, error: "no_checkout_session" }
+  }
+
+  const stripe = getStripeClient()
+  const session = await stripe.checkout.sessions.retrieve(sessionId, {
+    expand: ["payment_intent"],
+  })
+  if (session.payment_status !== "paid") {
+    return { ok: false, error: "session_not_paid" }
+  }
+
+  const result = await handleMarketplaceThreeWaySplit(session, orderId)
+  return { ok: result.errors.length === 0, result }
+}
 
 export async function settleMarketplaceOrdersFromCheckoutSession(
   sessionOrId: Stripe.Checkout.Session | string
@@ -145,12 +323,11 @@ export async function settleMarketplaceOrdersFromCheckoutSession(
   const errors: string[] = []
 
   for (const orderId of orderIds) {
-    try {
-      await handleMarketplaceThreeWaySplit(session, orderId)
+    const result = await handleMarketplaceThreeWaySplit(session, orderId)
+    if (result.errors.length === 0) {
       processedOrderIds.push(orderId)
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "settlement_failed"
-      errors.push(`${orderId}:${msg}`)
+    } else {
+      errors.push(`${orderId}:${result.errors.map((e) => e.message).join("|")}`)
     }
   }
 

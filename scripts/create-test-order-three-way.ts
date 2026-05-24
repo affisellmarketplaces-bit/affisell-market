@@ -3,11 +3,13 @@ import { config } from "dotenv"
 config({ path: ".env.local" })
 
 /**
- * Run: npx tsx scripts/create-test-order-three-way.ts
- *      npx tsx scripts/create-test-order-three-way.ts --require-onboarded
+ * Run:
+ *   npx tsx scripts/create-test-order-three-way.ts
+ *   npx tsx scripts/create-test-order-three-way.ts --require-onboarded
+ *   npx tsx scripts/create-test-order-three-way.ts --check-only
  */
 import { randomUUID } from "node:crypto"
-import { PrismaClient } from "@prisma/client"
+import { Prisma, PrismaClient } from "@prisma/client"
 import Stripe from "stripe"
 
 const SUPPLIER_ACCOUNT_ID = "acct_1TaaA6FXp6SP9lqY"
@@ -16,6 +18,7 @@ const CHECKOUT_SUCCESS_URL =
 const CHECKOUT_CANCEL_URL = "http://localhost:3001/cancel"
 
 const requireOnboarded = process.argv.includes("--require-onboarded")
+const checkOnly = process.argv.includes("--check-only")
 
 function requireStripeKey(): string {
   const key = process.env.STRIPE_SECRET_KEY?.trim()
@@ -36,6 +39,7 @@ async function upsertTestUser(args: {
   role: "SUPPLIER" | "AFFILIATE"
   stripeAccountId: string
   stripeOnboardedAt?: Date | null
+  stripeCapabilities?: Prisma.InputJsonValue
 }) {
   await prisma.user.updateMany({
     where: {
@@ -52,6 +56,7 @@ async function upsertTestUser(args: {
       name: args.name,
       role: args.role,
       stripeOnboardedAt: args.stripeOnboardedAt,
+      stripeCapabilities: args.stripeCapabilities ?? undefined,
     },
     create: {
       email: args.email,
@@ -59,8 +64,28 @@ async function upsertTestUser(args: {
       stripeAccountId: args.stripeAccountId,
       role: args.role,
       stripeOnboardedAt: args.stripeOnboardedAt ?? null,
+      stripeCapabilities: args.stripeCapabilities ?? undefined,
     },
   })
+}
+
+async function logAccountCapabilities(
+  stripe: Stripe,
+  label: string,
+  accountId: string
+) {
+  const account = await stripe.accounts.retrieve(accountId)
+  console.log(
+    JSON.stringify({
+      level: "info",
+      metric: "connect_capabilities_check",
+      label,
+      accountId,
+      transfers: account.capabilities?.transfers ?? null,
+      card_payments: account.capabilities?.card_payments ?? null,
+    })
+  )
+  return account
 }
 
 async function createAffiliateWithOnboardingLink(stripe: Stripe) {
@@ -81,7 +106,12 @@ async function createAffiliateWithOnboardingLink(stripe: Stripe) {
     type: "account_onboarding",
   })
 
-  console.log("AFFILIATE_ONBOARDING_URL:", link.url)
+  console.log(
+    JSON.stringify({
+      AFFILIATE_ONBOARDING_URL: link.url,
+      accountId: affiliateAcct.id,
+    })
+  )
 
   return { accountId: affiliateAcct.id, onboardingUrl: link.url }
 }
@@ -92,16 +122,38 @@ async function main() {
 
   const stripe = new Stripe(requireStripeKey())
 
+  const supplierAcct = await logAccountCapabilities(stripe, "supplier", SUPPLIER_ACCOUNT_ID)
+
+  if (checkOnly) {
+    const affiliateId = process.env.TEST_AFFILIATE_STRIPE_ACCOUNT_ID?.trim()
+    if (affiliateId) {
+      await logAccountCapabilities(stripe, "affiliate", affiliateId)
+    } else {
+      console.log(
+        JSON.stringify({
+          level: "info",
+          metric: "check_only",
+          message: "Set TEST_AFFILIATE_STRIPE_ACCOUNT_ID to check affiliate account",
+        })
+      )
+    }
+    return
+  }
+
   const { accountId: affiliateAcctId, onboardingUrl } = await createAffiliateWithOnboardingLink(stripe)
-  console.log("Affiliate:", affiliateAcctId)
 
   const affiliateAccount = await stripe.accounts.retrieve(affiliateAcctId)
   const affiliateTransfersActive = affiliateAccount.capabilities?.transfers === "active"
 
+  await logAccountCapabilities(stripe, "affiliate", affiliateAcctId)
+
   if (requireOnboarded && !affiliateTransfersActive) {
     console.error(
-      "Affiliate transfers not active. Complete onboarding first:\n",
-      onboardingUrl
+      JSON.stringify({
+        level: "error",
+        metric: "affiliate_not_onboarded",
+        AFFILIATE_ONBOARDING_URL: onboardingUrl,
+      })
     )
     process.exit(1)
   }
@@ -111,7 +163,8 @@ async function main() {
     name: "Supplier Test",
     role: "SUPPLIER",
     stripeAccountId: SUPPLIER_ACCOUNT_ID,
-    stripeOnboardedAt: new Date(),
+    stripeOnboardedAt: supplierAcct.capabilities?.transfers === "active" ? new Date() : null,
+    stripeCapabilities: (supplierAcct.capabilities ?? undefined) as Prisma.InputJsonValue | undefined,
   })
 
   const affiliate = await upsertTestUser({
@@ -120,6 +173,7 @@ async function main() {
     role: "AFFILIATE",
     stripeAccountId: affiliateAcctId,
     stripeOnboardedAt: affiliateTransfersActive ? new Date() : null,
+    stripeCapabilities: (affiliateAccount.capabilities ?? undefined) as Prisma.InputJsonValue | undefined,
   })
 
   const product = await prisma.product.create({
@@ -169,7 +223,6 @@ async function main() {
     },
   })
 
-  const supplierAcct = await stripe.accounts.retrieve(SUPPLIER_ACCOUNT_ID)
   if (supplierAcct.capabilities?.transfers !== "active") {
     throw new Error(
       `Supplier transfers not active (got: ${supplierAcct.capabilities?.transfers ?? "undefined"})`
@@ -212,7 +265,14 @@ async function main() {
 main()
   .catch((e) => {
     if (e instanceof Stripe.errors.StripeError) {
-      console.error(`Stripe [${e.code ?? e.type}] ${e.param ?? ""}: ${e.message}`)
+      console.error(
+        JSON.stringify({
+          level: "error",
+          errorCode: e.code ?? e.type,
+          param: e.param ?? null,
+          message: e.message,
+        })
+      )
     } else {
       console.error(e instanceof Error ? e.message : e)
     }
