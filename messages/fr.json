@@ -587,6 +587,9 @@
     "byStore": "par {store}",
     "viewInAR": "Voir en RA",
     "buyNowShort": "Acheter",
+    "priceLabel": "Prix",
+    "colorLabel": "Couleur",
+    "sizeLabel": "Taille",
     "priceFluidityNote": "Le prix affiché peut changer avant le paiement."
   },
   "Filters": {

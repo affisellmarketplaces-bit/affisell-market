@@ -36,7 +36,9 @@ import {
   isMulticolorSwatch,
 } from "@/lib/product-catalog-constants"
 import { shopperCategoryEyebrow, shopperVisibleTags } from "@/lib/product-shopper-tags"
+import { WishlistHeart } from "@/components/wishlist-heart"
 import { addGuestCartItem } from "@/lib/guest-cart"
+import { cn } from "@/lib/utils"
 import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/marketplace-checkout-discount"
 import {
   clampPurchaseQuantity,
@@ -761,16 +763,16 @@ export function MarketplaceListingDetail({
           transition={
             reduceMotion ? { duration: 0 } : { duration: 0.62, ease: [0.22, 1, 0.36, 1] }
           }
-          className="relative max-w-full overflow-x-clip rounded-[2rem] border border-white/75 bg-white/80 p-4 shadow-[0_36px_120px_-40px_rgba(91,33,217,0.32),0_0_0_1px_rgba(255,255,255,0.55)_inset] backdrop-blur-2xl sm:p-7 lg:overflow-visible lg:p-9 dark:border-white/[0.08] dark:bg-zinc-950/65 dark:shadow-[0_40px_120px_-48px_rgba(0,0,0,0.65)]"
+          className="relative max-w-full overflow-x-clip rounded-[2rem] border border-white/75 bg-white/80 p-3 shadow-[0_36px_120px_-40px_rgba(91,33,217,0.32),0_0_0_1px_rgba(255,255,255,0.55)_inset] backdrop-blur-2xl sm:p-7 lg:overflow-visible lg:p-9 dark:border-white/[0.08] dark:bg-zinc-950/65 dark:shadow-[0_40px_120px_-48px_rgba(0,0,0,0.65)]"
         >
           <div
             className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_85%_at_50%_-8%,rgba(139,92,246,0.16),transparent_58%)] dark:bg-[radial-gradient(120%_85%_at_50%_-8%,rgba(167,139,250,0.14),transparent_58%)]"
             aria-hidden
           />
-          <motion.div className="relative grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start lg:gap-x-12 lg:gap-y-8">
+          <motion.div className="relative grid min-w-0 grid-cols-1 gap-2 lg:grid-cols-12 lg:items-start lg:gap-x-12 lg:gap-y-8">
             <nav
               aria-label="Breadcrumb"
-              className="order-first col-span-full flex flex-wrap items-center gap-1 border-b border-zinc-200/70 pb-4 text-xs text-zinc-500 dark:border-zinc-800/80 dark:text-zinc-400"
+              className="order-first col-span-full flex flex-wrap items-center gap-1 border-b border-zinc-200/70 pb-2 text-[11px] text-zinc-500 max-lg:mb-0.5 lg:pb-4 lg:text-xs dark:border-zinc-800/80 dark:text-zinc-400"
             >
               <Link href="/" className="hover:text-zinc-900 dark:hover:text-zinc-200">
                 {breadcrumbT.home}
@@ -791,17 +793,18 @@ export function MarketplaceListingDetail({
             </nav>
 
           <motion.div
-            className="order-2 flex min-w-0 flex-col gap-4 sm:gap-6 lg:order-none lg:col-span-7 lg:row-start-2 lg:gap-8 lg:overflow-visible"
+            className="order-2 flex min-w-0 flex-col gap-2 sm:gap-3 lg:order-none lg:col-span-7 lg:row-start-2 lg:gap-8 lg:overflow-visible"
             initial={reduceMotion ? false : { y: 10 }}
             animate={{ y: 0 }}
             transition={reduceMotion ? { duration: 0 } : { duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           >
-          <section className="min-w-0 space-y-4 lg:overflow-visible">
-            <ProductImageHoverZoom
-              src={hero}
-              alt={name}
-              className="rounded-[1.35rem] border-zinc-200/55 bg-white/90 shadow-[0_28px_70px_-34px_rgba(91,33,217,0.28)] ring-1 ring-violet-500/[0.07] dark:border-zinc-700/80 dark:bg-zinc-950/70 dark:shadow-[0_28px_80px_-36px_rgba(0,0,0,0.55)] dark:ring-violet-400/[0.06] lg:px-3 lg:pb-3 lg:pt-3"
-              frameClassName="rounded-[1.1rem] bg-gradient-to-b from-zinc-50/90 to-white dark:from-zinc-900/90 dark:to-zinc-950"
+          <section className="min-w-0 space-y-2 lg:space-y-4 lg:overflow-visible">
+            <div className="relative max-lg:overflow-hidden max-lg:rounded-xl">
+              <ProductImageHoverZoom
+                src={hero}
+                alt={name}
+                className="max-lg:rounded-xl max-lg:border-zinc-200/80 max-lg:shadow-sm lg:rounded-[1.35rem] lg:border-zinc-200/55 lg:bg-white/90 lg:shadow-[0_28px_70px_-34px_rgba(91,33,217,0.28)] lg:ring-1 lg:ring-violet-500/[0.07] dark:max-lg:border-zinc-700/80 dark:lg:border-zinc-700/80 dark:lg:bg-zinc-950/70 dark:lg:shadow-[0_28px_80px_-36px_rgba(0,0,0,0.55)] dark:lg:ring-violet-400/[0.06] lg:px-3 lg:pb-3 lg:pt-3"
+                frameClassName="max-lg:rounded-xl max-lg:aspect-[1/1] lg:rounded-[1.1rem] lg:bg-gradient-to-b lg:from-zinc-50/90 lg:to-white dark:lg:from-zinc-900/90 dark:lg:to-zinc-950"
               overlay={
                 has3D ? (
                   <span className="pointer-events-none absolute left-4 top-4 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-3 py-1 text-xs font-semibold text-white shadow-md">
@@ -809,9 +812,15 @@ export function MarketplaceListingDetail({
                   </span>
                 ) : null
               }
-            />
+              />
+              <div className="absolute right-2 top-2 z-10 lg:hidden">
+                <div className="rounded-full bg-white/95 p-1 shadow-md ring-1 ring-black/5 backdrop-blur-sm dark:bg-zinc-950/90 dark:ring-white/10">
+                  <WishlistHeart productId={productId} />
+                </div>
+              </div>
+            </div>
 
-            <div className="flex w-full min-w-0 max-w-full touch-pan-x gap-2 overflow-x-auto overscroll-x-contain pb-1 pt-0.5 [scrollbar-width:thin] [mask-image:linear-gradient(to_right,transparent,black_0.5rem,black_calc(100%-0.5rem),transparent)]">
+            <div className="flex w-full min-w-0 max-w-full touch-pan-x gap-1.5 overflow-x-auto overscroll-x-contain py-0.5 [scrollbar-width:thin] [mask-image:linear-gradient(to_right,transparent,black_0.35rem,black_calc(100%-0.35rem),transparent)] lg:gap-2">
               {images.slice(0, 12).map((url, i) => (
                 <button
                   key={`thumb-${i}`}
@@ -822,7 +831,7 @@ export function MarketplaceListingDetail({
                     setGalleryHeroLock(true)
                     setSelectedImage(i)
                   }}
-                  className={`relative aspect-square w-[4.25rem] shrink-0 overflow-hidden rounded-xl border-2 bg-white transition dark:bg-zinc-950 sm:w-[5.25rem] ${
+                  className={`relative aspect-square w-14 shrink-0 overflow-hidden rounded-lg border-2 bg-white transition dark:bg-zinc-950 sm:w-[4.25rem] lg:rounded-xl lg:w-[5.25rem] ${
                     activeThumbIndex >= 0 && activeThumbIndex === i
                       ? "border-violet-600 shadow-sm ring-2 ring-violet-500/25 dark:border-violet-500"
                       : "border-zinc-200/90 opacity-90 ring-1 ring-zinc-200/80 hover:border-zinc-300 hover:opacity-100 dark:border-zinc-700 dark:ring-zinc-800 dark:hover:border-zinc-600"
@@ -873,8 +882,10 @@ export function MarketplaceListingDetail({
           </section>
           </motion.div>
 
-          <aside className="order-3 min-w-0 space-y-4 lg:order-none lg:col-span-5 lg:col-start-8 lg:row-start-2 lg:row-span-2 lg:sticky lg:top-28 lg:self-start">
-            <header className="space-y-3 lg:pt-3">
+          <aside className="order-3 min-w-0 lg:order-none lg:col-span-5 lg:col-start-8 lg:row-start-2 lg:row-span-2 lg:sticky lg:top-28 lg:self-start lg:space-y-4">
+            <div className="max-lg:divide-y max-lg:divide-zinc-100 max-lg:overflow-hidden max-lg:rounded-xl max-lg:border max-lg:border-zinc-200/90 max-lg:bg-white max-lg:shadow-sm dark:max-lg:divide-zinc-800 dark:max-lg:border-zinc-800 dark:max-lg:bg-zinc-950">
+            <div className="max-lg:space-y-2.5 max-lg:px-4 max-lg:pt-3 max-lg:pb-3">
+            <header className="space-y-2 lg:space-y-3 lg:pt-3">
               <motion.div
                 className="relative"
                 initial={reduceMotion ? false : { y: 8 }}
@@ -940,7 +951,7 @@ export function MarketplaceListingDetail({
               </motion.div>
             </header>
 
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
               <StarRatingRow value={reviewSummary.average} count={reviewSummary.count} />
               <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                 {reviewSummary.average.toFixed(1)}
@@ -949,48 +960,54 @@ export function MarketplaceListingDetail({
                 {t(productT.reviews, { count: formatStoreCount(reviewSummary.count) })}
               </a>
               {viewsLast24h >= 12 ? (
-                <span className="inline-flex items-center gap-1 rounded-full border border-orange-200/90 bg-gradient-to-r from-orange-50 to-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-orange-900 shadow-sm dark:border-orange-900/50 dark:from-orange-950/50 dark:to-amber-950/40 dark:text-orange-100">
-                  <TrendingUp className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                <span className="hidden rounded-full border border-orange-200/90 bg-gradient-to-r from-orange-50 to-amber-50 px-2 py-0.5 text-[10px] font-semibold text-orange-900 sm:inline-flex dark:border-orange-900/50 dark:from-orange-950/50 dark:to-amber-950/40 dark:text-orange-100">
+                  <TrendingUp className="mr-0.5 h-3 w-3 shrink-0" aria-hidden />
                   {t(productT.trendingViews24h, { count: formatStoreCount(viewsLast24h) })}
                 </span>
               ) : null}
               {reviewSummary.count > 0 && reviewSummary.average >= 4.2 ? (
-                <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-300">
+                <span className="hidden rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 sm:inline dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-300">
                   {productT.topVentes}
                 </span>
               ) : null}
             </div>
 
-            <div className="lg:hidden">
-              <p className="text-[11px] font-semibold tracking-[0.08em] text-violet-700/90 dark:text-violet-300/90">
-                Price
-              </p>
-              <p className="mt-1 text-3xl font-bold tracking-tight text-zinc-900 tabular-nums dark:text-white">
-                {priceDisplay}
-              </p>
-              {buyerRewardBadge ? (
-                <p className="mt-2">
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-teal-200/90 bg-teal-50/90 px-3 py-1.5 text-xs font-semibold text-teal-900 dark:border-teal-800 dark:bg-teal-950/70 dark:text-teal-100">
-                    <Sparkles className="h-3.5 w-3.5 shrink-0 opacity-80" aria-hidden />
-                    Store offer · {buyerRewardBadge}
-                  </span>
+            <div className="flex items-end justify-between gap-3 lg:hidden">
+              <div className="min-w-0">
+                <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                  {productT.priceLabel}
                 </p>
+                <div className="mt-0.5 flex flex-wrap items-baseline gap-2">
+                  <p className="text-2xl font-bold tracking-tight text-zinc-900 tabular-nums dark:text-white">
+                    {priceDisplay}
+                  </p>
+                  {hasRetailCompare ? (
+                    <span className="rounded-full bg-gradient-to-r from-rose-600 to-orange-500 px-2 py-0.5 text-[11px] font-semibold text-white">
+                      −{discountPct}%
+                    </span>
+                  ) : null}
+                </div>
+                {hasRetailCompare ? (
+                  <p className="mt-1 text-xs text-zinc-500 line-through dark:text-zinc-400">
+                    {fmtMoney(activeRetailPriceEur ?? 0)}
+                  </p>
+                ) : null}
+              </div>
+              {buyerRewardBadge ? (
+                <span className="inline-flex max-w-[48%] shrink-0 items-center gap-1 rounded-full border border-teal-200/90 bg-teal-50/90 px-2.5 py-1 text-[10px] font-semibold leading-tight text-teal-900 dark:border-teal-800 dark:bg-teal-950/70 dark:text-teal-100">
+                  <Sparkles className="h-3 w-3 shrink-0 opacity-80" aria-hidden />
+                  {buyerRewardBadge}
+                </span>
               ) : null}
             </div>
-
-            {partnerHighlightLabel ? (
-              <p className="rounded-xl border border-violet-200/80 bg-violet-50/80 px-3 py-2 text-xs leading-relaxed text-violet-950 dark:border-violet-900/50 dark:bg-violet-950/35 dark:text-violet-100">
-                <span className="font-semibold">Partner highlight:</span> {partnerHighlightLabel}. Shoppers can still
-                pick other colors or sizes below.
-              </p>
-            ) : null}
+            </div>
 
             <div className="listing-price-card-sheen relative max-w-full overflow-hidden rounded-2xl border border-zinc-200/80 bg-gradient-to-br from-white via-violet-50/30 to-white p-4 shadow-sm dark:border-zinc-700/80 dark:from-zinc-900 dark:via-violet-950/20 dark:to-zinc-950 sm:p-5 max-lg:hidden">
               <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-violet-400/15 blur-2xl dark:bg-violet-500/10" aria-hidden />
               <div className="relative flex flex-col gap-4 min-[420px]:flex-row min-[420px]:items-stretch min-[420px]:justify-between min-[420px]:gap-5">
                 <div className="min-w-0 flex-1">
                   <p className="text-[11px] font-semibold tracking-[0.08em] text-violet-700/90 dark:text-violet-300/90">
-                    Price
+                    {productT.priceLabel}
                   </p>
                   <p className="mt-1 text-3xl font-bold tracking-tight text-zinc-900 tabular-nums dark:text-white">{priceDisplay}</p>
                   {buyerRewardBadge ? (
@@ -1048,13 +1065,14 @@ export function MarketplaceListingDetail({
               </div>
             </div>
 
+            <div className="max-lg:space-y-2 max-lg:px-4 max-lg:py-2.5 lg:space-y-4">
             {availableStock <= 5 && availableStock > 0 ? (
-              <p className="rounded-xl border border-amber-200/90 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100">
+              <p className="rounded-lg border border-amber-200/90 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100 lg:rounded-xl lg:py-2 lg:text-sm">
                 {t(productT.onlyLeft, { count: Math.max(1, availableStock) })}
               </p>
             ) : null}
 
-            <div className="grid grid-cols-3 gap-2 rounded-2xl border border-zinc-200/80 bg-zinc-50/80 p-3 text-center dark:border-zinc-800 dark:bg-zinc-900/40">
+            <div className="grid grid-cols-3 gap-1.5 rounded-xl border border-zinc-200/80 bg-zinc-50/80 p-2.5 text-center dark:border-zinc-800 dark:bg-zinc-900/40 lg:gap-2 lg:rounded-2xl lg:p-3">
               <div className="flex flex-col items-center gap-1 px-1">
                 <Truck className="h-4 w-4 text-violet-600 dark:text-violet-400" aria-hidden />
                 <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
@@ -1079,20 +1097,35 @@ export function MarketplaceListingDetail({
                 <span className="text-xs font-medium text-zinc-900 dark:text-zinc-100">{productT.securePayment}</span>
               </div>
             </div>
-            <p className="-mt-3 text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400 lg:-mt-3 lg:text-xs">
               {t(productT.deliveryTo, {
                 city: deliveryPlace,
                 date: etaDate,
               })}
             </p>
+            </div>
+
+            <div className="max-lg:space-y-3 max-lg:px-4 max-lg:py-3 lg:space-y-4">
+            {partnerHighlightLabel ? (
+              <p className="rounded-lg border border-violet-200/70 bg-violet-50/70 px-3 py-2 text-[11px] leading-relaxed text-violet-950 dark:border-violet-900/40 dark:bg-violet-950/30 dark:text-violet-100 lg:rounded-xl lg:text-xs">
+                <span className="font-semibold">Partner highlight:</span> {partnerHighlightLabel}
+              </p>
+            ) : null}
 
             {colorMeta.length > 0 ? (
               <div>
-                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                  {showColorSwatches ? "Color" : "Option"}
-                </p>
+                <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 lg:text-sm lg:normal-case lg:tracking-normal lg:text-zinc-900 dark:lg:text-zinc-100">
+                    {showColorSwatches ? productT.colorLabel : "Option"}
+                  </p>
+                  {selectedColor ? (
+                    <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300 lg:text-sm">
+                      {selectedColor}
+                    </p>
+                  ) : null}
+                </div>
                 {showColorSwatches ? (
-                <div className="mt-2 flex flex-wrap gap-2">
+                <div className="mt-2 flex flex-wrap gap-2.5">
                   {colorMeta.map(({ name: cn, meta }) => (
                     <button
                       key={cn}
@@ -1102,7 +1135,7 @@ export function MarketplaceListingDetail({
                         setSelectedColor(cn)
                         setSelectedImage(imageIndexForColor(cn, colorNames, colorImages, images))
                       }}
-                      className={`h-9 w-9 rounded-full border-2 transition ${
+                      className={`h-10 w-10 rounded-full border-2 transition lg:h-9 lg:w-9 ${
                         selectedColor === cn ? "border-zinc-900 dark:border-white" : "border-zinc-300 dark:border-zinc-600"
                       }`}
                       style={
@@ -1159,7 +1192,16 @@ export function MarketplaceListingDetail({
 
             {sizeOptions.length > 0 ? (
               <div>
-                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{VARIANT_GROUP_LABELS.size}</p>
+                <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 lg:text-sm lg:normal-case lg:font-semibold lg:text-zinc-900 dark:lg:text-zinc-100">
+                    {productT.sizeLabel}
+                  </p>
+                  {selectedSize ? (
+                    <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300 lg:text-sm">
+                      {selectedSize}
+                    </p>
+                  ) : null}
+                </div>
                 <div className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-5">
                   {sizeOptions.map((s) => (
                     <button
@@ -1179,20 +1221,24 @@ export function MarketplaceListingDetail({
               </div>
             ) : null}
             {sizeTip ? (
-              <p className="rounded-xl bg-blue-50 px-3 py-2 text-sm text-blue-900 dark:bg-blue-950/40 dark:text-blue-100">
+              <p className="rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-900 dark:bg-blue-950/40 dark:text-blue-100 lg:rounded-xl lg:text-sm">
                 {sizeTip}
               </p>
             ) : null}
+            </div>
 
             <motion.div
               ref={purchaseDockRef}
               id="listing-purchase-dock"
-              className="relative scroll-mt-28 rounded-[1.65rem] border border-zinc-200/90 bg-white p-5 shadow-[0_22px_56px_-28px_rgba(15,23,42,0.35)] ring-1 ring-black/[0.03] dark:border-zinc-700/90 dark:bg-zinc-950 dark:shadow-black/50 dark:ring-white/[0.04]"
+              className={cn(
+                "relative scroll-mt-28 rounded-[1.65rem] border border-zinc-200/90 bg-white p-5 shadow-[0_22px_56px_-28px_rgba(15,23,42,0.35)] ring-1 ring-black/[0.03] dark:border-zinc-700/90 dark:bg-zinc-950 dark:shadow-black/50 dark:ring-white/[0.04]",
+                "max-lg:rounded-none max-lg:border-0 max-lg:bg-transparent max-lg:p-0 max-lg:px-4 max-lg:pb-4 max-lg:pt-1 max-lg:shadow-none max-lg:ring-0"
+              )}
               initial={reduceMotion ? false : { y: 10 }}
               animate={{ y: 0 }}
               transition={reduceMotion ? { duration: 0 } : { duration: 0.45, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
             >
-              <div className="mb-4 flex items-start gap-2.5">
+              <div className="mb-3 hidden items-start gap-2.5 lg:flex">
                 <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-md shadow-amber-500/25">
                   <Zap className="h-4 w-4" aria-hidden />
                 </span>
@@ -1264,19 +1310,27 @@ export function MarketplaceListingDetail({
                 disabled={cartBusy || buyBusy}
               />
 
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-2.5 lg:gap-3">
+                <div className="flex gap-2 lg:block">
                 <motion.button
                   type="button"
                   disabled={cartBusy || availableStock <= 0}
                   whileHover={{ scale: availableStock > 0 && !cartBusy ? 1.01 : 1 }}
                   whileTap={{ scale: availableStock > 0 && !cartBusy ? 0.99 : 1 }}
                   onClick={(e) => void addToCart(e)}
-                  className="group relative flex h-14 w-full items-center justify-center gap-2 overflow-hidden rounded-full bg-gradient-to-r from-violet-600 via-violet-600 to-fuchsia-600 text-base font-semibold text-white shadow-lg shadow-violet-500/30 transition hover:shadow-xl hover:shadow-violet-500/35 disabled:cursor-not-allowed disabled:opacity-50 dark:shadow-violet-900/40"
+                  className="group relative flex h-12 min-w-0 flex-1 items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-violet-600 via-violet-600 to-fuchsia-600 text-[15px] font-semibold text-white shadow-md shadow-violet-500/25 transition hover:shadow-lg hover:shadow-violet-500/30 disabled:cursor-not-allowed disabled:opacity-50 lg:h-14 lg:w-full lg:rounded-full lg:text-base lg:shadow-lg dark:shadow-violet-900/40"
                 >
                   <span className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 transition group-hover:opacity-100" aria-hidden />
                   <ShoppingBag className="relative h-5 w-5 shrink-0" aria-hidden />
                   <span className="relative">{cartBusy ? "Adding…" : productT.addToCart}</span>
                 </motion.button>
+                <div
+                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-zinc-200/90 bg-zinc-50/90 dark:border-zinc-700 dark:bg-zinc-900/60 lg:hidden"
+                  aria-label={messages.wishlist.title}
+                >
+                  <WishlistHeart productId={productId} />
+                </div>
+                </div>
 
                 <motion.button
                   type="button"
@@ -1284,42 +1338,19 @@ export function MarketplaceListingDetail({
                   whileHover={{ scale: availableStock > 0 && !buyBusy ? 1.012 : 1 }}
                   whileTap={{ scale: availableStock > 0 && !buyBusy ? 0.988 : 1 }}
                   onClick={() => void buyNow()}
-                  className="group relative isolate flex h-14 w-full items-center gap-3 overflow-hidden rounded-full border border-violet-300/45 bg-gradient-to-b from-white/95 to-violet-50/40 px-4 text-left text-base font-semibold text-zinc-900 shadow-[0_0_0_1px_rgba(139,92,246,0.07),0_10px_36px_-14px_rgba(124,58,237,0.42)] ring-1 ring-white/70 backdrop-blur-md transition-[border-color,box-shadow,background-color] duration-300 hover:border-violet-400/60 hover:from-white hover:to-violet-50/55 hover:shadow-[0_0_0_1px_rgba(139,92,246,0.12),0_16px_52px_-12px_rgba(124,58,237,0.52)] disabled:cursor-not-allowed disabled:opacity-50 dark:border-violet-500/35 dark:from-zinc-950/92 dark:to-violet-950/40 dark:text-zinc-50 dark:ring-white/10 dark:hover:border-violet-400/50 dark:hover:to-violet-950/55"
+                  className="group relative flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-xl border border-violet-300/60 bg-white text-[15px] font-semibold text-zinc-900 shadow-sm transition hover:bg-violet-50/50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-violet-500/40 dark:bg-zinc-900 dark:text-zinc-50 dark:hover:bg-violet-950/40 lg:h-14 lg:rounded-full lg:border-violet-300/45 lg:px-4 lg:text-left lg:shadow-[0_0_0_1px_rgba(139,92,246,0.07),0_10px_36px_-14px_rgba(124,58,237,0.42)] lg:ring-1 lg:ring-white/70 lg:backdrop-blur-md"
                 >
-                  <span
-                    className="pointer-events-none absolute inset-0 -z-10 translate-x-[-130%] skew-x-[-12deg] bg-gradient-to-r from-transparent via-white/55 to-transparent opacity-0 transition duration-700 ease-out group-hover:translate-x-[130%] group-hover:opacity-100 dark:via-white/10"
-                    aria-hidden
-                  />
-                  <span
-                    className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-violet-500/[0.07] via-transparent to-fuchsia-500/[0.08] dark:from-violet-400/[0.12] dark:to-fuchsia-500/[0.1]"
-                    aria-hidden
-                  />
-                  {buyBusy ? (
-                    <span className="relative flex flex-1 items-center justify-center py-1 text-center font-medium">
-                      Redirecting…
-                    </span>
-                  ) : (
-                    <>
-                      <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white shadow-lg shadow-violet-500/35 ring-1 ring-white/25 dark:shadow-violet-900/50">
-                        <MousePointerClick className="h-[18px] w-[18px]" strokeWidth={2.25} aria-hidden />
-                      </span>
-                      <span className="relative min-w-0 flex-1 text-[15px] font-semibold leading-snug tracking-tight">
-                        {productT.buyNowOneClick}
-                      </span>
-                      <ArrowRight
-                        className="relative h-5 w-5 shrink-0 text-violet-600 transition duration-300 group-hover:translate-x-0.5 dark:text-violet-400"
-                        aria-hidden
-                      />
-                    </>
-                  )}
+                  <MousePointerClick className="h-4 w-4 shrink-0 text-violet-600 lg:hidden dark:text-violet-400" aria-hidden />
+                  <span className="relative">{buyBusy ? "Redirecting…" : productT.buyNowShort}</span>
+                  <ArrowRight className="hidden h-5 w-5 shrink-0 text-violet-600 lg:block dark:text-violet-400" aria-hidden />
                 </motion.button>
 
-                <div className="grid grid-cols-2 gap-2.5 pt-1">
+                <div className="grid grid-cols-2 gap-2 pt-0.5 lg:gap-2.5 lg:pt-1">
                   <button
                     type="button"
                     disabled={stylistLoading}
                     onClick={() => void openStylist()}
-                    className="flex flex-col items-start gap-0.5 rounded-2xl border border-zinc-200/90 bg-zinc-100/80 px-3.5 py-3 text-left text-sm font-semibold text-zinc-900 transition hover:border-violet-300/80 hover:bg-violet-50/60 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-800/60 dark:text-zinc-100 dark:hover:border-violet-600/50 dark:hover:bg-violet-950/30"
+                    className="flex flex-col items-start gap-0.5 rounded-xl border border-zinc-200/90 bg-zinc-100/80 px-3 py-2.5 text-left text-xs font-semibold text-zinc-900 transition hover:border-violet-300/80 hover:bg-violet-50/60 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-800/60 dark:text-zinc-100 dark:hover:border-violet-600/50 dark:hover:bg-violet-950/30 lg:rounded-2xl lg:px-3.5 lg:py-3 lg:text-sm"
                   >
                     <span className="flex items-center gap-1.5">
                       <Sparkles className="h-4 w-4 text-violet-600 dark:text-violet-400" aria-hidden />
@@ -1332,7 +1363,7 @@ export function MarketplaceListingDetail({
                   <button
                     type="button"
                     onClick={() => void savePriceAlert()}
-                    className="flex flex-col items-start gap-0.5 rounded-2xl border border-zinc-200/90 bg-zinc-100/80 px-3.5 py-3 text-left text-sm font-semibold text-zinc-900 transition hover:border-amber-300/80 hover:bg-amber-50/50 dark:border-zinc-700 dark:bg-zinc-800/60 dark:text-zinc-100 dark:hover:border-amber-700/50 dark:hover:bg-amber-950/25"
+                    className="flex flex-col items-start gap-0.5 rounded-xl border border-zinc-200/90 bg-zinc-100/80 px-3 py-2.5 text-left text-xs font-semibold text-zinc-900 transition hover:border-amber-300/80 hover:bg-amber-50/50 dark:border-zinc-700 dark:bg-zinc-800/60 dark:text-zinc-100 dark:hover:border-amber-700/50 dark:hover:bg-amber-950/25 lg:rounded-2xl lg:px-3.5 lg:py-3 lg:text-sm"
                   >
                     <span className="flex items-center gap-1.5">
                       <Bell className="h-4 w-4 text-amber-600 dark:text-amber-400" aria-hidden />
@@ -1345,6 +1376,7 @@ export function MarketplaceListingDetail({
                 </div>
               </div>
             </motion.div>
+            </div>
 
             {bundleCandidates.length > 0 ? (
               <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950/40">
@@ -1526,7 +1558,7 @@ export function MarketplaceListingDetail({
             {storefront ? (
               <Link
                 href={`/store/${encodeURIComponent(storefront.slug)}`}
-                className="flex items-center gap-3 rounded-2xl border border-zinc-200 p-4 transition hover:border-violet-200 hover:bg-violet-50/40 dark:border-zinc-800 dark:hover:border-violet-900/50 dark:hover:bg-violet-950/20"
+                className="flex items-center gap-3 rounded-xl border border-zinc-200 p-3 transition hover:border-violet-200 hover:bg-violet-50/40 max-lg:mx-0 max-lg:mt-2 lg:rounded-2xl lg:p-4 dark:border-zinc-800 dark:hover:border-violet-900/50 dark:hover:bg-violet-950/20"
               >
                 {storefront.aiAvatarUrl || storefront.logoUrl ? (
                   /* eslint-disable-next-line @next/next/no-img-element -- storefront logo / AI avatar URLs */
