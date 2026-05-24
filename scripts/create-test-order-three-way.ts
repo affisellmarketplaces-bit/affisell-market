@@ -1,6 +1,8 @@
 import { config } from "dotenv"
+import { resolve } from "node:path"
 
-config({ path: ".env.local" })
+config({ path: resolve(process.cwd(), ".env.local") })
+config({ path: resolve(process.cwd(), ".env") })
 
 /**
  * Run: npx tsx scripts/create-test-order-three-way.ts
@@ -9,92 +11,100 @@ import { randomUUID } from "node:crypto"
 import { PrismaClient } from "@prisma/client"
 import Stripe from "stripe"
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+const CHECKOUT_SUCCESS_URL =
+  "http://localhost:3001/success?session_id={CHECKOUT_SESSION_ID}"
+const CHECKOUT_CANCEL_URL = "http://localhost:3001/cancel"
 
-if (!process.env.STRIPE_SECRET_KEY?.startsWith("sk_test_")) {
-  throw new Error("STRIPE_SECRET_KEY invalide ou manquante")
+function requireStripeKey(): string {
+  const key = process.env.STRIPE_SECRET_KEY?.trim()
+  if (!key?.startsWith("sk_test_")) {
+    throw new Error("STRIPE_SECRET_KEY invalide ou manquante (sk_test_… requis)")
+  }
+  console.log("Key OK:", key.substring(0, 15))
+  return key
 }
-console.log("Key OK:", process.env.STRIPE_SECRET_KEY.substring(0, 15))
 
 const prisma = new PrismaClient()
 
 const LINE_TOTAL_CENTS = 14_560
 
+async function createExpressConnectAccount(stripe: Stripe, email: string) {
+  return stripe.accounts.create({
+    type: "express",
+    country: "FR",
+    email,
+    capabilities: {
+      transfers: { requested: true },
+      card_payments: { requested: true },
+    },
+  })
+}
+
+async function upsertTestUser(args: {
+  email: string
+  name: string
+  role: "SUPPLIER" | "AFFILIATE"
+  stripeAccountId: string
+}) {
+  await prisma.user.updateMany({
+    where: {
+      stripeAccountId: args.stripeAccountId,
+      NOT: { email: args.email },
+    },
+    data: { stripeAccountId: null },
+  })
+
+  return prisma.user.upsert({
+    where: { email: args.email },
+    update: { stripeAccountId: args.stripeAccountId, name: args.name, role: args.role },
+    create: {
+      email: args.email,
+      name: args.name,
+      stripeAccountId: args.stripeAccountId,
+      role: args.role,
+    },
+  })
+}
+
 async function main() {
-  // 1. Créer comptes Connect avec transfers activé + auto-onboard
-  const supplierAcct = await stripe.accounts.create({
-    type: "express",
-    country: "FR",
+  console.log("NEXT_PUBLIC_APP_URL:", process.env.NEXT_PUBLIC_APP_URL)
+
+  const stripe = new Stripe(requireStripeKey())
+
+  const envSupplier = process.env.TEST_SUPPLIER_STRIPE_ACCOUNT_ID?.trim()
+  const envAffiliate = process.env.TEST_AFFILIATE_STRIPE_ACCOUNT_ID?.trim()
+
+  let supplierAcctId: string
+  let affiliateAcctId: string
+
+  if (envSupplier && envAffiliate) {
+    supplierAcctId = envSupplier
+    affiliateAcctId = envAffiliate
+    console.log("→ Comptes Connect depuis .env.local")
+  } else {
+    console.log("→ Création comptes Connect (sans onboarding API — ToS via Dashboard si besoin)…")
+    const supplierAcct = await createExpressConnectAccount(stripe, "supplier@test.com")
+    const affiliateAcct = await createExpressConnectAccount(stripe, "affiliate@test.com")
+    supplierAcctId = supplierAcct.id
+    affiliateAcctId = affiliateAcct.id
+  }
+
+  console.log("Supplier:", supplierAcctId, "Affiliate:", affiliateAcctId)
+
+  const supplier = await upsertTestUser({
     email: "supplier@test.com",
-    capabilities: {
-      transfers: { requested: true },
-      card_payments: { requested: true },
-    },
+    name: "Supplier Test",
+    role: "SUPPLIER",
+    stripeAccountId: supplierAcctId,
   })
 
-  const affiliateAcct = await stripe.accounts.create({
-    type: "express",
-    country: "FR",
+  const affiliate = await upsertTestUser({
     email: "affiliate@test.com",
-    capabilities: {
-      transfers: { requested: true },
-      card_payments: { requested: true },
-    },
+    name: "Affiliate Test",
+    role: "AFFILIATE",
+    stripeAccountId: affiliateAcctId,
   })
 
-  // 2. Simuler l'onboarding complet pour activer transfers
-  await stripe.accounts.update(supplierAcct.id, {
-    business_type: "individual",
-    individual: {
-      first_name: "Test",
-      last_name: "Supplier",
-      email: "supplier@test.com",
-      dob: { day: 1, month: 1, year: 1990 },
-      address: { line1: "1 rue test", city: "Paris", postal_code: "75001", country: "FR" },
-    },
-    business_profile: { mcc: "5734", url: "https://test.com" },
-    tos_acceptance: { date: Math.floor(Date.now() / 1000), ip: "127.0.0.1" },
-  })
-
-  await stripe.accounts.update(affiliateAcct.id, {
-    business_type: "individual",
-    individual: {
-      first_name: "Test",
-      last_name: "Affiliate",
-      email: "affiliate@test.com",
-      dob: { day: 1, month: 1, year: 1990 },
-      address: { line1: "1 rue test", city: "Paris", postal_code: "75001", country: "FR" },
-    },
-    business_profile: { mcc: "5734", url: "https://test.com" },
-    tos_acceptance: { date: Math.floor(Date.now() / 1000), ip: "127.0.0.1" },
-  })
-
-  console.log("Supplier:", supplierAcct.id, "Affiliate:", affiliateAcct.id)
-
-  // 3. Upsert users
-  const supplier = await prisma.user.upsert({
-    where: { email: "supplier@test.com" },
-    update: { stripeAccountId: supplierAcct.id },
-    create: {
-      email: "supplier@test.com",
-      name: "Supplier Test",
-      stripeAccountId: supplierAcct.id,
-      role: "SUPPLIER",
-    },
-  })
-
-  const affiliate = await prisma.user.upsert({
-    where: { email: "affiliate@test.com" },
-    update: { stripeAccountId: affiliateAcct.id },
-    create: {
-      email: "affiliate@test.com",
-      name: "Affiliate Test",
-      stripeAccountId: affiliateAcct.id,
-      role: "AFFILIATE",
-    },
-  })
-
-  // 4. Créer produit + listing + order (schéma Affisell)
   const product = await prisma.product.create({
     data: {
       name: "Test 3Way Split",
@@ -136,14 +146,15 @@ async function main() {
       supplierCommissionRateBps: 1000,
       affiliateMarginCents: 4_000,
       affisellCommissionRateBps: 1200,
-      affiliateStripeAccountId: affiliateAcct.id,
+      affiliateStripeAccountId: affiliateAcctId,
       totalCents: LINE_TOTAL_CENTS,
       paymentSettlementStatus: "PENDING",
     },
   })
 
-  // 5. Session checkout
-  console.log("NEXT_PUBLIC_APP_URL:", process.env.NEXT_PUBLIC_APP_URL)
+  console.log("→ Checkout session…")
+  console.log("  success_url:", CHECKOUT_SUCCESS_URL)
+  console.log("  cancel_url:", CHECKOUT_CANCEL_URL)
 
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
@@ -152,14 +163,15 @@ async function main() {
         price_data: {
           currency: "eur",
           product_data: { name: product.name },
-          unit_amount: 14560,
+          unit_amount: LINE_TOTAL_CENTS,
         },
         quantity: 1,
       },
     ],
-    success_url: "http://localhost:3001/success?session_id={CHECKOUT_SESSION_ID}",
-    cancel_url: "http://localhost:3001/cancel",
+    success_url: CHECKOUT_SUCCESS_URL,
+    cancel_url: CHECKOUT_CANCEL_URL,
     metadata: { orderId: order.id },
+    expires_at: Math.floor(Date.now() / 1000) + 86400,
   })
 
   if (!session.url) {
@@ -179,7 +191,11 @@ async function main() {
 
 main()
   .catch((e) => {
-    console.error(e instanceof Error ? e.message : e)
+    if (e instanceof Stripe.errors.StripeError) {
+      console.error(`Stripe [${e.code ?? e.type}] ${e.param ?? ""}: ${e.message}`)
+    } else {
+      console.error(e instanceof Error ? e.message : e)
+    }
     process.exit(1)
   })
   .finally(() => prisma.$disconnect())
