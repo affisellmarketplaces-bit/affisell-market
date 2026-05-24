@@ -1,41 +1,63 @@
-import Link from "next/link"
-import { redirect } from "next/navigation"
-import { getTranslations } from "next-intl/server"
-import { Sparkles } from "lucide-react"
+"use client"
 
-import { auth } from "@/auth"
-import { buttonVariants } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { Suspense, useEffect, useRef, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useSession } from "next-auth/react"
 
-export const dynamic = "force-dynamic"
+function SuccessRedirect() {
+  const searchParams = useSearchParams()
+  const sessionId = searchParams.get("session_id")
+  const welcome = searchParams.get("welcome") === "1"
+  const { status } = useSession()
+  const router = useRouter()
+  const [message, setMessage] = useState("Paiement confirmé. Redirection…")
+  const startedRef = useRef(false)
 
-type Props = { searchParams?: Promise<{ welcome?: string }> | { welcome?: string } }
+  const walletPath = welcome
+    ? "/marketplace/account/wallet?welcome=1"
+    : "/marketplace/account/wallet"
+  const loginPath = `/login?callbackUrl=${encodeURIComponent(walletPath)}`
 
-export default async function CheckoutSuccessPage({ searchParams }: Props) {
-  const t = await getTranslations("success")
-  const session = await auth()
-  const sp = searchParams instanceof Promise ? await searchParams : searchParams
-  const welcome = sp?.welcome === "1"
+  useEffect(() => {
+    if (startedRef.current) return
+    if (status === "loading") return
 
-  if (session?.user?.id && session.user.role === "CUSTOMER") {
-    redirect(welcome ? "/marketplace/account/wallet?welcome=1" : "/marketplace/account/wallet")
-  }
+    startedRef.current = true
 
+    const redirect = () => {
+      if (status === "authenticated") {
+        router.replace(walletPath)
+      } else {
+        router.replace(loginPath)
+      }
+    }
+
+    if (!sessionId) {
+      redirect()
+      return
+    }
+
+    fetch(`/api/stripe/verify-session?session_id=${encodeURIComponent(sessionId)}`)
+      .then(() => redirect())
+      .catch(() => {
+        setMessage("Paiement reçu. Redirection…")
+        redirect()
+      })
+  }, [sessionId, status, router, walletPath, loginPath])
+
+  return <div className="mx-auto max-w-lg px-4 py-20 text-center text-sm text-zinc-600">{message}</div>
+}
+
+export default function SuccessPage() {
   return (
-    <main className="mx-auto max-w-lg px-4 py-20 text-center">
-      <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
-        <Sparkles className="h-7 w-7" aria-hidden />
-      </div>
-      <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{t("purchaseTitle")}</h1>
-      <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">{t("purchaseBody")}</p>
-      <div className="mt-8 flex flex-wrap justify-center gap-3">
-        <Link href="/#explorer" className={cn(buttonVariants({ variant: "bentoAccent", size: "bento" }))}>
-          {t("continueShopping")}
-        </Link>
-        <Link href="/cart" className={cn(buttonVariants({ variant: "bentoOutline", size: "bento" }))}>
-          {t("myCart")}
-        </Link>
-      </div>
-    </main>
+    <Suspense
+      fallback={
+        <div className="mx-auto max-w-lg px-4 py-20 text-center text-sm text-zinc-600">
+          Paiement confirmé. Redirection…
+        </div>
+      }
+    >
+      <SuccessRedirect />
+    </Suspense>
   )
 }

@@ -41,8 +41,11 @@ function checkoutBaseUrls(body: { cancelPath?: string; successPath?: string }) {
   const cancelPath =
     typeof body.cancelPath === "string" && body.cancelPath.startsWith("/") ? body.cancelPath : "/"
 
+  const defaultSuccess = "/success?session_id={CHECKOUT_SESSION_ID}"
   const successPath =
-    typeof body.successPath === "string" && body.successPath.startsWith("/") ? body.successPath : "/success"
+    typeof body.successPath === "string" && body.successPath.startsWith("/")
+      ? body.successPath
+      : defaultSuccess
 
   return { baseUrl, cancelPath, successPath }
 }

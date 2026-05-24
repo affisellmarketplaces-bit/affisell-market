@@ -309,7 +309,7 @@ export default function CartPage() {
             selectedSize: l.selectedSize,
           })),
           cancelPath: "/cart",
-          successPath: "/success?welcome=1",
+          successPath: "/success?session_id={CHECKOUT_SESSION_ID}&welcome=1",
           useRewardCents: Math.min(Math.max(0, Math.round(useRewardCents)), maxApplicableReward),
         }),
       })
