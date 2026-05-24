@@ -8,10 +8,16 @@ describe("buildCategoryScopeProductFilter", () => {
       findMany: vi.fn().mockResolvedValue([{ id: "sub-tab-1" }]),
     }
     const category = {
-      findMany: vi.fn().mockResolvedValue([
-        { id: "root", parentId: null },
-        { id: "leaf", parentId: "root" },
-      ]),
+      findMany: vi
+        .fn()
+        .mockResolvedValueOnce([
+          { id: "root", parentId: null },
+          { id: "leaf", parentId: "root" },
+        ])
+        .mockResolvedValueOnce([
+          { id: "root", name: "Root Dept", fullPath: "Root Dept" },
+          { id: "leaf", name: "Leaf Aisle", fullPath: "Root Dept > Leaf Aisle" },
+        ]),
     }
     const client = { category, subcategory } as unknown as Parameters<
       typeof buildCategoryScopeProductFilter
@@ -19,12 +25,13 @@ describe("buildCategoryScopeProductFilter", () => {
 
     const where = await buildCategoryScopeProductFilter(client, "root")
 
-    expect(where).toEqual({
-      OR: [
+    expect(where.OR).toEqual(
+      expect.arrayContaining([
         { categoryId: { in: expect.arrayContaining(["root", "leaf"]) } },
         { subcategoryId: { in: ["sub-tab-1"] } },
-      ],
-    })
+        { categories: { hasSome: expect.any(Array) } },
+      ])
+    )
     expect(subcategory.findMany).toHaveBeenCalledWith({
       where: { categoryId: { in: expect.arrayContaining(["root", "leaf"]) } },
       select: { id: true },

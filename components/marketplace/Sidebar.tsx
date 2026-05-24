@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useLocale, useTranslations } from "next-intl"
 import useSWR from "swr"
 
-import { ChevronDown, ChevronRight, Grid3x3, Loader2 } from "lucide-react"
+import { ChevronDown, ChevronRight, Grid3x3, LayoutGrid, Loader2 } from "lucide-react"
 
 import { affisellBrand } from "@/lib/affisell-brand"
 import { cn } from "@/lib/utils"
@@ -24,16 +24,25 @@ type Cat = {
 
 interface SidebarProps {
   onCategoryClick?: (catId: string, subId?: string) => void
+  onShowFullCatalog?: () => void
   activeCategoryId?: string | null
   activeSubcategoryId?: string | null
+  catalogTotal?: number
 }
 
-export function Sidebar({ onCategoryClick, activeCategoryId, activeSubcategoryId }: SidebarProps) {
+export function Sidebar({
+  onCategoryClick,
+  onShowFullCatalog,
+  activeCategoryId,
+  activeSubcategoryId,
+  catalogTotal,
+}: SidebarProps) {
   const locale = useLocale()
   const t = useTranslations("marketplace.sidebar")
   const [expandedCats, setExpandedCats] = useState<string[]>([])
   const { data, isLoading } = useSWR<{
     categories: Cat[]
+    catalogTotal?: number
     dbUnavailable?: boolean
     staticFallback?: boolean
     error?: string
@@ -85,6 +94,24 @@ export function Sidebar({ onCategoryClick, activeCategoryId, activeSubcategoryId
       </div>
 
       <div>
+        <button
+          type="button"
+          onClick={() => onShowFullCatalog?.()}
+          className={cn(
+            "flex w-full items-center gap-2 border-b border-border/80 px-4 py-3 text-left text-sm font-semibold transition",
+            !activeCategoryId && !activeSubcategoryId
+              ? "bg-violet-600/10 text-violet-800 dark:bg-violet-500/15 dark:text-violet-200"
+              : "text-zinc-700 hover:bg-muted/60 dark:text-zinc-200"
+          )}
+        >
+          <LayoutGrid className="h-4 w-4 shrink-0" aria-hidden />
+          <span className="flex-1">{t("allCatalog")}</span>
+          {(catalogTotal ?? data.catalogTotal ?? 0) > 0 ? (
+            <span className="rounded-full bg-violet-600/15 px-2 py-0.5 text-[10px] font-bold text-violet-800 dark:text-violet-200">
+              {catalogTotal ?? data.catalogTotal}
+            </span>
+          ) : null}
+        </button>
         {data.categories.map((cat) => {
           const parentActive = activeCategoryId === cat.id && !activeSubcategoryId
           const expanded = expandedCats.includes(cat.id)
@@ -100,7 +127,9 @@ export function Sidebar({ onCategoryClick, activeCategoryId, activeSubcategoryId
                   "group flex w-full items-center justify-between px-4 py-3 text-left text-sm transition-colors",
                   parentActive
                     ? "bg-buyer-muted/80 text-orange-950 dark:bg-buyer-muted dark:text-buyer-light"
-                    : "text-zinc-900 hover:bg-muted/80 dark:text-zinc-100 dark:hover:bg-zinc-800/60"
+                    : cat.count === 0
+                      ? "text-zinc-500 hover:bg-muted/50 dark:text-zinc-500"
+                      : "text-zinc-900 hover:bg-muted/80 dark:text-zinc-100 dark:hover:bg-zinc-800/60"
                 )}
               >
                 <span className="flex min-w-0 items-center gap-2">

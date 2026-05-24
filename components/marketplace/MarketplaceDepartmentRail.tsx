@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils"
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
-type Cat = { id: string; name: string; icon: string; slug: string; order: number }
+type Cat = { id: string; name: string; icon: string; slug: string; order: number; count: number }
 
 export function MarketplaceDepartmentRail({
   activeCategoryId,
@@ -24,7 +24,10 @@ export function MarketplaceDepartmentRail({
   catalogBasePath?: string
 }) {
   const t = useTranslations("marketplace.departmentRail")
-  const { data, isLoading } = useSWR<{ categories: Cat[] }>("/api/categories", fetcher, {
+  const { data, isLoading } = useSWR<{ categories: Cat[]; catalogTotal?: number }>(
+    "/api/categories",
+    fetcher,
+    {
     refreshInterval: 300_000,
   })
 
@@ -46,7 +49,7 @@ export function MarketplaceDepartmentRail({
       </div>
       <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <Link
-          href={catalogBasePath}
+          href={marketplaceCatalogHref(catalogBasePath)}
           className={cn(
             "shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition",
             !activeCategoryId && !activeSubcategoryId
@@ -55,13 +58,16 @@ export function MarketplaceDepartmentRail({
           )}
         >
           {t("allCatalog")}
+          {typeof data.catalogTotal === "number" ? (
+            <span className="ml-1 opacity-80">({data.catalogTotal})</span>
+          ) : null}
         </Link>
         {data.categories.map((c) => {
           const on = activeCategoryId === c.id && !activeSubcategoryId
           return (
             <Link
               key={c.id}
-              href={`${catalogBasePath}?category=${encodeURIComponent(c.id)}`}
+              href={marketplaceCatalogHref(catalogBasePath, { category: c.id })}
               className={cn(
                 affisellBrand.quickLink,
                 "affisell-quick-link--buyer shrink-0 !rounded-full !py-1.5 text-xs",
@@ -71,7 +77,10 @@ export function MarketplaceDepartmentRail({
               <span className={affisellBrand.quickLinkIconBuyer}>
                 <span className="text-base leading-none">{c.icon}</span>
               </span>
-              <span className="max-w-[10rem] truncate">{c.name}</span>
+              <span className="max-w-[10rem] truncate">
+                {c.name}
+                {c.count > 0 ? <span className="ml-1 opacity-70">({c.count})</span> : null}
+              </span>
             </Link>
           )
         })}

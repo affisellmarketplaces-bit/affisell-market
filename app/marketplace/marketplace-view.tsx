@@ -5,7 +5,8 @@ import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { Search, X } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
+import useSWR from "swr"
 
 import { ProductCard, type ProductCardDisplayMode } from "@/components/ProductCard"
 import { ProductCardPreviewToggle } from "@/components/product/ProductCardPreviewToggle"
@@ -24,6 +25,15 @@ import { affisellBrand } from "@/lib/affisell-brand"
 import { cn } from "@/lib/utils"
 
 type ProductRow = Record<string, unknown>
+
+type CategoryNode = {
+  id: string
+  name: string
+  count: number
+  subcategories: { id: string; name: string; count: number }[]
+}
+
+const categoryFetcher = (url: string) => fetch(url).then((r) => r.json())
 
 function normalizeProducts(raw: unknown): ProductRow[] {
   const list: unknown = Array.isArray(raw)
@@ -60,8 +70,15 @@ export function MarketplaceView({
   embedded = false,
 }: MarketplaceViewProps = {}) {
   const t = useTranslations("marketplace.browse")
+  const locale = useLocale()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { data: categoryTree } = useSWR<{
+    categories: CategoryNode[]
+    catalogTotal?: number
+  }>(["/api/categories", locale], () => categoryFetcher("/api/categories"), {
+    refreshInterval: 300_000,
+  })
   const userRole = useUserRole()
   const previewAsCustomer = usePreviewAsCustomer()
   const isAffiliateCatalog = audience === "affiliate" || basePath === AFFILIATE_CATALOG_PATH
@@ -129,16 +146,57 @@ export function MarketplaceView({
       params.set("category", catId)
     }
     const s = params.toString()
-    router.push(`${basePath}${s ? `?${s}` : ""}`)
+    const path = `${basePath}${s ? `?${s}` : ""}`
+    router.push(basePath === "/" ? `${path}#explorer` : path)
   }
 
   const hasFilters = Boolean(
     categoryId || subcategoryId || searchQuery.trim() || attributeFilterKeys.length > 0
   )
 
+  const activeScope = useMemo(() => {
+    const roots = categoryTree?.categories ?? []
+    if (subcategoryId) {
+      for (const root of roots) {
+        const sub = root.subcategories.find((s) => s.id === subcategoryId)
+        if (sub) return { kind: "sub" as const, parent: root, sub }
+      }
+    }
+    if (categoryId) {
+      const root = roots.find((c) => c.id === categoryId)
+      if (root) return { kind: "root" as const, root }
+    }
+    return { kind: "catalog" as const }
+  }, [categoryTree?.categories, categoryId, subcategoryId])
+
+  const activeFilterLabel = useMemo(() => {
+    if (activeScope.kind === "sub") {
+      return t("activeFilterSubcategory", {
+        sub: activeScope.sub.name,
+        parent: activeScope.parent.name,
+      })
+    }
+    if (activeScope.kind === "root") {
+      return t("activeFilterCategory", { name: activeScope.root.name })
+    }
+    return t("activeFilterCatalog")
+  }, [activeScope, t])
+
   function clearFilters() {
-    router.push(basePath)
+    const href = basePath === "/" ? "/#explorer" : basePath
+    router.push(href)
   }
+
+  useEffect(() => {
+    if (!embedded) return
+    if (!categoryId && !subcategoryId) return
+    const el = document.getElementById("explorer")
+    if (!el) return
+    const tId = window.setTimeout(() => {
+      el.scrollIntoView({ behavior: "smooth", block: "start" })
+    }, 80)
+    return () => window.clearTimeout(tId)
+  }, [embedded, categoryId, subcategoryId])
 
   const Shell = embedded ? "section" : "main"
 
@@ -288,13 +346,30 @@ export function MarketplaceView({
           <aside className="flex w-full shrink-0 flex-col gap-4 lg:sticky lg:top-[5.25rem] lg:w-[min(19rem,100%)] lg:max-w-[19rem] lg:self-start">
             <Sidebar
               onCategoryClick={handleCategoryClick}
+              onShowFullCatalog={clearFilters}
               activeCategoryId={categoryId}
               activeSubcategoryId={subcategoryId}
+              catalogTotal={categoryTree?.catalogTotal}
             />
             <MarketplaceFilters categoryId={categoryId} subcategoryId={subcategoryId} />
           </aside>
 
           <div className="min-w-0 flex-1">
+            {hasFilters ? (
+              <div className="mb-4 flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-2 rounded-full border border-violet-200/80 bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-900 dark:border-violet-800/60 dark:bg-violet-950/50 dark:text-violet-100">
+                  {activeFilterLabel}
+                  <button
+                    type="button"
+                    onClick={clearFilters}
+                    className="rounded-full p-0.5 text-violet-700 hover:bg-violet-200/60 dark:text-violet-200"
+                    aria-label={t("resetFilters")}
+                  >
+                    <X className="h-3.5 w-3.5" aria-hidden />
+                  </button>
+                </span>
+              </div>
+            ) : null}
             {loading ? (
               <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
                 {Array.from({ length: 8 }).map((_, i) => (
@@ -306,7 +381,7 @@ export function MarketplaceView({
                 ))}
               </ul>
             ) : products.length === 0 ? (
-              <div className="rounded-3xl border border-dashed border-violet-200/70 bg-white/80 px-6 py-16 text-center shadow-sm backdrop-blur-sm dark:border-violet-900/40 dark:bg-zinc-950/50">
+              <div className="rounded-3xl border border-dashed border-violet-200/70 bg-gradient-to-b from-violet-50/50 via-white to-white px-6 py-16 text-center shadow-sm backdrop-blur-sm dark:border-violet-900/40 dark:from-violet-950/30 dark:via-zinc-950/50 dark:to-zinc-950/50">
                 {dbUnavailable ? (
                   <>
                     <p className="text-lg font-medium text-amber-950 dark:text-amber-100">{t("dbEmptyTitle")}</p>
@@ -315,21 +390,48 @@ export function MarketplaceView({
                     </p>
                     <p className="mx-auto mt-3 max-w-lg text-xs text-zinc-600 dark:text-zinc-400">{t("dbDevHint")}</p>
                   </>
+                ) : searchQuery.trim() ? (
+                  <>
+                    <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{t("emptySearchTitle")}</p>
+                    <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
+                      {t("emptySearchBody", { query: searchQuery.trim() })}
+                    </p>
+                    <Button type="button" className="mt-6 bg-violet-600 hover:bg-violet-700" onClick={clearFilters}>
+                      {t("showAll")}
+                    </Button>
+                  </>
+                ) : activeScope.kind === "sub" ? (
+                  <>
+                    <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{t("emptySubcategoryTitle")}</p>
+                    <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
+                      {t("emptySubcategoryBody", {
+                        sub: activeScope.sub.name,
+                        parent: activeScope.parent.name,
+                      })}
+                    </p>
+                    <Button type="button" className="mt-6 bg-violet-600 hover:bg-violet-700" onClick={clearFilters}>
+                      {t("showAll")}
+                    </Button>
+                  </>
+                ) : activeScope.kind === "root" ? (
+                  <>
+                    <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{t("emptyCategoryTitle")}</p>
+                    <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
+                      {t("emptyCategoryBody", { name: activeScope.root.name })}
+                    </p>
+                    <Button type="button" className="mt-6 bg-violet-600 hover:bg-violet-700" onClick={clearFilters}>
+                      {t("showAll")}
+                    </Button>
+                  </>
                 ) : (
                   <>
-                    <p className="text-lg font-medium text-zinc-900 dark:text-zinc-100">{t("emptyListingTitle")}</p>
+                    <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{t("emptyCatalogTitle")}</p>
                     <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
-                      {hasFilters ? t("emptyFilteredBody") : t("emptyDefaultBody")}
+                      {t("emptyCatalogBody")}
                     </p>
-                    {hasFilters ? (
-                      <Button type="button" className="mt-6 bg-violet-600 hover:bg-violet-700" onClick={clearFilters}>
-                        {t("showAll")}
-                      </Button>
-                    ) : (
-                      <Link href="/shops" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-6 inline-flex")}>
-                        {t("viewStores")}
-                      </Link>
-                    )}
+                    <Link href="/shops" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-6 inline-flex")}>
+                      {t("viewStores")}
+                    </Link>
                   </>
                 )}
               </div>
@@ -339,6 +441,9 @@ export function MarketplaceView({
                   {t("listingCount", { count: products.length })}
                 </strong>
                 {searchQuery.trim() ? t("listingCountForQuery", { query: searchQuery.trim() }) : null}
+                {hasFilters && !searchQuery.trim() ? (
+                  <span className="text-zinc-500 dark:text-zinc-400"> · {activeFilterLabel}</span>
+                ) : null}
               </p>
             )}
             {!loading && products.length > 0 ? (
