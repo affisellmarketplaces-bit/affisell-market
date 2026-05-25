@@ -272,34 +272,39 @@ export async function loadPublicSupplierInvitation(
   const token = normalizeSupplierInviteToken(tokenRaw) ?? tokenRaw.trim().toUpperCase()
   if (!token) return null
 
-  const row = await prisma.affiliateSupplierInvitation.findUnique({
-    where: { token },
-    include: {
-      affiliate: {
-        select: {
-          name: true,
-          store: { select: { name: true, slug: true, logoUrl: true, tiktok: true } },
+  try {
+    const row = await prisma.affiliateSupplierInvitation.findUnique({
+      where: { token },
+      include: {
+        affiliate: {
+          select: {
+            name: true,
+            store: { select: { name: true, slug: true, logoUrl: true, tiktok: true } },
+          },
         },
       },
-    },
-  })
-  if (!row) return null
+    })
+    if (!row) return null
 
-  const store = row.affiliate.store
-  return {
-    token: row.token,
-    status: row.status,
-    expired: row.expiresAt.getTime() < Date.now(),
-    headline: row.headline,
-    personalMessage: row.personalMessage,
-    offeredCommissionPct: row.offeredCommissionPct,
-    categoryHint: row.categoryHint,
-    affiliate: {
-      name: store?.name?.trim() || row.affiliate.name?.trim() || "Créateur Affisell",
-      slug: store?.slug ?? null,
-      logoUrl: store?.logoUrl ?? null,
-      tiktok: store?.tiktok ?? null,
-    },
+    const store = row.affiliate.store
+    return {
+      token: row.token,
+      status: row.status,
+      expired: row.expiresAt.getTime() < Date.now(),
+      headline: row.headline,
+      personalMessage: row.personalMessage,
+      offeredCommissionPct: row.offeredCommissionPct,
+      categoryHint: row.categoryHint,
+      affiliate: {
+        name: store?.name?.trim() || row.affiliate.name?.trim() || "Créateur Affisell",
+        slug: store?.slug ?? null,
+        logoUrl: store?.logoUrl ?? null,
+        tiktok: store?.tiktok ?? null,
+      },
+    }
+  } catch (e) {
+    console.error("[supplier-invite] loadPublicSupplierInvitation failed", e)
+    return null
   }
 }
 

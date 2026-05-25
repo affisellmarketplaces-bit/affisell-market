@@ -12,16 +12,20 @@ export const dynamic = "force-dynamic"
 type Props = { params: Promise<{ token: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { token } = await params
-  const invite = await loadPublicSupplierInvitation(token)
-  if (!invite) return { title: "Invitation introuvable · Affisell" }
-  return {
-    title: `${invite.affiliate.name} vous invite · Affisell`,
-    description: invite.headline,
-    openGraph: {
-      title: invite.headline,
-      description: invite.personalMessage.slice(0, 160) || invite.headline,
-    },
+  try {
+    const { token } = await params
+    const invite = await loadPublicSupplierInvitation(token)
+    if (!invite) return { title: "Invitation introuvable · Affisell" }
+    return {
+      title: `${invite.affiliate.name} vous invite · Affisell`,
+      description: invite.headline,
+      openGraph: {
+        title: invite.headline,
+        description: invite.personalMessage.slice(0, 160) || invite.headline,
+      },
+    }
+  } catch {
+    return { title: "Invitation fournisseur · Affisell" }
   }
 }
 
