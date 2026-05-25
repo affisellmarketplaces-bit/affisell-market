@@ -3,7 +3,7 @@ import { Resend } from "resend"
 
 import { OrderConfirmationEmail } from "@/emails/order-confirmation"
 import { readResendEnv } from "@/lib/env/resend"
-import { appBaseUrl } from "@/lib/stripe-pro"
+import { appBaseUrl } from "@/lib/app-base-url"
 
 const PLACEHOLDER_PRODUCT_IMAGE = "https://via.placeholder.com/64"
 

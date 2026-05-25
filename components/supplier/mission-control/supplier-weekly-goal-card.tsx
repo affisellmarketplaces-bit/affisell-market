@@ -1,5 +1,7 @@
-import type { SupplierWeeklyGoalSnapshot } from "@/lib/supplier-weekly-goal"
-import { WEEKLY_GOAL_BAR_SEGMENTS } from "@/lib/supplier-weekly-goal"
+import {
+  WEEKLY_GOAL_BAR_SEGMENTS,
+  type SupplierWeeklyGoalSnapshot,
+} from "@/lib/supplier-weekly-goal-shared"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { cn } from "@/lib/utils"
 

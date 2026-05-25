@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 import { Suspense } from "react"
 
 import { AffiliateCatalogExperience } from "@/components/affiliate/affiliate-catalog-experience"
-import { auth } from "@/auth"
+import { safeAuth } from "@/lib/safe-auth"
 import { loadAffiliateCatalogHighlights } from "@/lib/affiliate-catalog-query"
 import type { AffiliateCatalogHighlights } from "@/lib/affiliate-catalog-types"
 import { loadHomeMarketplaceStatsSafe } from "@/lib/public-home-data"
@@ -30,7 +30,7 @@ function toUrlSearchParams(raw: Record<string, string | string[] | undefined>): 
 }
 
 export default async function AffiliateCatalogPage({ searchParams }: PageProps) {
-  const session = await auth()
+  const session = await safeAuth()
   const role = session?.user?.role
   if (role === "SUPPLIER") {
     redirect("/dashboard/supplier")

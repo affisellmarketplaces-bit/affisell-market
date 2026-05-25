@@ -5,7 +5,7 @@ import { BarChart3, CircleHelp } from "lucide-react"
 
 import { SupplierWeeklyGoalCard } from "@/components/supplier/mission-control/supplier-weekly-goal-card"
 import type { SupplierMetrics7d } from "@/lib/supplier-mission-control"
-import type { SupplierWeeklyGoalSnapshot } from "@/lib/supplier-weekly-goal"
+import type { SupplierWeeklyGoalSnapshot } from "@/lib/supplier-weekly-goal-shared"
 import { MetricTrend } from "@/components/supplier/mission-control/metric-trend"
 import { cn } from "@/lib/utils"
 

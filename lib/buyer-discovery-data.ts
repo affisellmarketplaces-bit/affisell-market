@@ -1,24 +1,17 @@
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
-import type { HomeProductCard } from "@/lib/home-marketplace-data"
+import {
+  type BuyerCategoryChip,
+  type BuyerListingCard,
+  buyerListingToCardProps,
+} from "@/lib/buyer-discovery-types"
 import { loadHomeBestSellers7d, loadHomeNewArrivals } from "@/lib/home-marketplace-data"
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
-import { inferNicheLabel, type NicheKey } from "@/lib/shop-storefront-data"
+import { inferNicheLabel } from "@/lib/shop-storefront-shared"
 
-export type BuyerCategoryChip = {
-  id: string
-  name: string
-  /** Query value for /shops/browse */
-  browseQuery: string
-  count: number
-}
-
-export type BuyerListingCard = HomeProductCard & {
-  storeSlug: string
-  nicheLabel: NicheKey
-  categories: string[]
-}
+export type { BuyerCategoryChip, BuyerListingCard } from "@/lib/buyer-discovery-types"
+export { buyerListingToCardProps } from "@/lib/buyer-discovery-types"
 
 const listingSelect = {
   id: true,
@@ -220,22 +213,4 @@ export async function loadBuyerListingCount(): Promise<number> {
   return prisma.affiliateProduct.count({
     where: buyerListedAffiliateProductWhere,
   })
-}
-
-export function buyerListingToCardProps(item: BuyerListingCard) {
-  return {
-    listingId: item.listingId,
-    productId: item.productId,
-    title: item.name,
-    name: item.name,
-    image: item.imageUrl ?? undefined,
-    price: item.priceCents / 100,
-    compareAt: item.compareAtCents != null ? item.compareAtCents / 100 : null,
-    freeShipping: item.freeShipping,
-    stock: item.stock,
-    averageRating: item.averageRating,
-    reviewCount: item.reviewCount,
-    store: item.storeName,
-    href: `/shops/${encodeURIComponent(item.storeSlug)}/product/${encodeURIComponent(item.listingId)}`,
-  }
 }

@@ -8,7 +8,7 @@ import {
   formatHoursLeftLabel,
   formatSlaCountdown,
   SUPPLIER_LATE_SHIP_PENALTY_PER_ORDER_CENTS,
-} from "@/lib/supplier-ship-sla"
+} from "@/lib/supplier-ship-sla-shared"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 

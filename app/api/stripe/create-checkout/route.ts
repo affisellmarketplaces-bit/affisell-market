@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
-import { appBaseUrl } from "@/lib/stripe-pro"
+import { appBaseUrl } from "@/lib/app-base-url"
 import { getStripeClient } from "@/lib/stripe"
 import { prisma } from "@/lib/prisma"
 

@@ -1,40 +1,25 @@
 import { prisma } from "@/lib/prisma"
+import {
+  NEW_SUPPLIER_STORE_MS,
+  startOfUtcWeek,
+  SUPPLIER_WEEKLY_GOAL_CENTS,
+  weeklyGoalFilledSegments,
+  weeklyGoalProgressPct,
+  WEEKLY_GOAL_BAR_SEGMENTS,
+  type SupplierWeeklyGoalSnapshot,
+} from "@/lib/supplier-weekly-goal-shared"
+
+export {
+  NEW_SUPPLIER_STORE_MS,
+  startOfUtcWeek,
+  SUPPLIER_WEEKLY_GOAL_CENTS,
+  weeklyGoalFilledSegments,
+  weeklyGoalProgressPct,
+  WEEKLY_GOAL_BAR_SEGMENTS,
+  type SupplierWeeklyGoalSnapshot,
+} from "@/lib/supplier-weekly-goal-shared"
 
 const MARKETPLACE_COUNTABLE = ["paid", "preparing", "shipped", "refunded"] as const
-
-/** First weekly revenue target for new supplier stores (EUR cents). */
-export const SUPPLIER_WEEKLY_GOAL_CENTS = 50_000
-
-/** Show weekly goal card while store is younger than this (ms). */
-export const NEW_SUPPLIER_STORE_MS = 90 * 24 * 60 * 60 * 1000
-
-export const WEEKLY_GOAL_BAR_SEGMENTS = 10
-
-export type SupplierWeeklyGoalSnapshot = {
-  isNewStore: true
-  weekGmvCents: number
-  goalCents: number
-  progressPct: number
-  filledSegments: number
-}
-
-/** Monday 00:00:00.000 UTC for the week containing `d`. */
-export function startOfUtcWeek(d: Date): Date {
-  const x = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()))
-  const day = x.getUTCDay()
-  const daysFromMonday = (day + 6) % 7
-  x.setUTCDate(x.getUTCDate() - daysFromMonday)
-  return x
-}
-
-export function weeklyGoalProgressPct(weekGmvCents: number, goalCents: number): number {
-  if (goalCents <= 0) return 0
-  return Math.min(100, Math.floor((weekGmvCents / goalCents) * 100))
-}
-
-export function weeklyGoalFilledSegments(progressPct: number, segments = WEEKLY_GOAL_BAR_SEGMENTS): number {
-  return Math.min(segments, Math.max(0, Math.round((progressPct / 100) * segments)))
-}
 
 export async function loadSupplierWeeklyGoal(
   supplierId: string,

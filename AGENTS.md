@@ -1,3 +1,8 @@
+## Client components vs Prisma
+
+- `"use client"` modules must **not** value-import `@/lib/*` files that import `@/lib/prisma` (use `*-types.ts`, `*-shared.ts`, or `import type` only).
+- Run `npm run check:client-prisma` before push when touching dashboard/nav/home client UI.
+
 ## Git push
 
 - Never put real API keys in `.env.example` — use empty placeholders only (`GROQ_API_KEY=""`).
