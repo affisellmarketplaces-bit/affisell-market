@@ -113,8 +113,8 @@
       "storesHint": "Toutes les vitrines créateurs",
       "featured": "Boutiques à la une",
       "featuredHint": "Sélection créateurs",
-      "discover": "Discover",
-      "discoverHint": "Tendances & nouveautés",
+      "discover": "Affisell Pulse",
+      "discoverHint": "Feed vertical · achat en 1 tap",
       "liveSearch": "Recherche vivante",
       "liveSearchHint": "Filtre démo « smart »",
       "wishlist": "Wishlist",
@@ -551,6 +551,23 @@
       "save": "Économisez {amount}",
       "percentOff": "−{percent} %"
     }
+  },
+  "pulse": {
+    "brand": "Affisell Pulse",
+    "beta": "Live",
+    "exit": "Catalogue",
+    "forYou": "Sélection pour vous",
+    "share": "Partager",
+    "follow": "Suivre",
+    "following": "Abonné",
+    "add": "Panier",
+    "buyNow": "Acheter",
+    "mute": "Muet",
+    "unmute": "Son",
+    "hint": "Swipe · Double-tap pour aimer · Achat en un tap",
+    "emptyTitle": "Pulse se prépare",
+    "emptyBody": "Les créateurs publient leurs clips. Explorez le catalogue en attendant.",
+    "browseCatalog": "Voir le marketplace"
   },
   "merchantAccount": {
     "account": "Compte",

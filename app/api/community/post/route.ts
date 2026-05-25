@@ -28,6 +28,7 @@ export async function POST(req: Request) {
   const body = (await req.json().catch(() => ({}))) as {
     content?: string
     images?: string[]
+    videoUrl?: string | null
     productId?: string | null
   }
   const content = typeof body.content === "string" ? body.content.trim().slice(0, 8000) : ""
@@ -42,6 +43,11 @@ export async function POST(req: Request) {
         .filter(Boolean)
         .slice(0, 12)
     : []
+
+  const videoUrl =
+    typeof body.videoUrl === "string" && body.videoUrl.trim() && /\.(mp4|webm|mov|m4v)(\?.*)?$/i.test(body.videoUrl.trim())
+      ? body.videoUrl.trim().slice(0, 2048)
+      : null
 
   let productId: string | null =
     typeof body.productId === "string" && body.productId.trim() ? body.productId.trim() : null
@@ -58,6 +64,7 @@ export async function POST(req: Request) {
       storeId: store.id,
       content,
       images,
+      videoUrl,
       productId,
     },
   })

@@ -113,8 +113,8 @@
       "storesHint": "All creator storefronts",
       "featured": "Featured stores",
       "featuredHint": "Curated creators",
-      "discover": "Discover",
-      "discoverHint": "Trends & new arrivals",
+      "discover": "Affisell Pulse",
+      "discoverHint": "Vertical feed · one-tap shop",
       "liveSearch": "Live search",
       "liveSearchHint": "Demo “smart” filter",
       "wishlist": "Wishlist",
@@ -551,6 +551,23 @@
       "save": "Save {amount}",
       "percentOff": "{percent}% off"
     }
+  },
+  "pulse": {
+    "brand": "Affisell Pulse",
+    "beta": "Live",
+    "exit": "Catalog",
+    "forYou": "Picked for you",
+    "share": "Share",
+    "follow": "Follow",
+    "following": "Following",
+    "add": "Bag",
+    "buyNow": "Buy now",
+    "mute": "Mute",
+    "unmute": "Sound on",
+    "hint": "Swipe · Double-tap to like · Shop in one tap",
+    "emptyTitle": "Pulse is warming up",
+    "emptyBody": "Creators are uploading clips. Explore the catalog while the feed fills.",
+    "browseCatalog": "Browse marketplace"
   },
   "merchantAccount": {
     "account": "Account",

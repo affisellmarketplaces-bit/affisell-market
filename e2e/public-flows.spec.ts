@@ -44,7 +44,7 @@ test.describe("public flows", () => {
   test("discover feed shell loads", async ({ page }) => {
     await page.goto("/discover")
     await expect(page).toHaveURL(/\/discover/)
-    await expect(page.locator(".bg-black").first()).toBeVisible({ timeout: 30_000 })
+    await expect(page.getByTestId("affisell-pulse")).toBeVisible({ timeout: 30_000 })
   })
 
   test("legacy /marketplace redirects guests to home explorer", async ({ page }) => {

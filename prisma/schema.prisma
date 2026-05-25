@@ -664,10 +664,16 @@ model CommunityPost {
   store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
   content   String
   images    String[] @default([])
+  /** Short-form clip URL (mp4/webm) for Affisell Pulse feed. */
+  videoUrl  String?
   productId String?
   product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
   likes     Int      @default(0)
+  views     Int      @default(0)
   createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([views])
 }
 
 model Follow {
