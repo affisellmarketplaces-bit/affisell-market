@@ -1,7 +1,11 @@
+import { headers } from "next/headers"
+
 import { AffiliateStorePreviewBanner } from "@/components/shop/AffiliateStorePreviewBanner"
 import { ShopStoreHeader } from "@/components/shop/ShopStoreHeader"
+import { StorefrontThemeStyles } from "@/components/storefront/storefront-theme-styles"
 import { auth } from "@/auth"
 import { loadAffiliateShopStore } from "@/lib/shop-storefront-data"
+import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
 
 export const dynamic = "force-dynamic"
 
@@ -13,6 +17,8 @@ export default async function ShopPublicLayout({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
+  const hdrs = await headers()
+  const isCustomDomain = isCustomDomainHeaders(hdrs)
   const [store, session] = await Promise.all([loadAffiliateShopStore(slug), auth()])
   const isOwner =
     Boolean(session?.user?.id && store?.userId) &&
@@ -21,12 +27,16 @@ export default async function ShopPublicLayout({
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+      {store ? <StorefrontThemeStyles theme={store.theme} /> : null}
       <AffiliateStorePreviewBanner storeSlug={slug} isOwner={isOwner} />
       {store ? (
         <ShopStoreHeader
           storeName={store.name}
           logoUrl={store.logoUrl ?? store.aiAvatarUrl}
           description={store.description}
+          bannerUrl={store.bannerUrl}
+          theme={store.theme}
+          isCustomDomain={isCustomDomain}
         />
       ) : null}
       <main className="min-w-0 overflow-x-clip">{children}</main>

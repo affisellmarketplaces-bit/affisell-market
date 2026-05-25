@@ -162,6 +162,10 @@ model Store {
   description    String?
   customDomain   String?  @unique
   domainVerified Boolean  @default(false)
+  /**
+   * Public storefront branding: `{ "primary"?: "#hex", "accent"?: "#hex" }`.
+   */
+  storefrontTheme Json?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 

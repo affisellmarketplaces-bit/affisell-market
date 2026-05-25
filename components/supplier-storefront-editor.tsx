@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ExternalLink, Palette, Save, Store } from "lucide-react"
+import { ExternalLink, Globe, Palette, Save, Store } from "lucide-react"
 import type { FormEvent } from "react"
 import { useCallback, useEffect, useState } from "react"
 
@@ -9,6 +9,11 @@ import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/compo
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import {
+  DEFAULT_STOREFRONT_THEME,
+  parseStorefrontTheme,
+  type StorefrontTheme,
+} from "@/lib/storefront-theme-shared"
 
 type StoreRow = {
   id: string
@@ -17,6 +22,9 @@ type StoreRow = {
   logoUrl: string | null
   bannerUrl: string | null
   description: string | null
+  storefrontTheme?: unknown
+  customDomain?: string | null
+  domainVerified?: boolean
 }
 
 type Props = {
@@ -28,26 +36,35 @@ export function SupplierStorefrontEditor({ previewHref }: Props) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
+  const [publicStoreUrl, setPublicStoreUrl] = useState<string | null>(null)
   const [name, setName] = useState("")
   const [logoUrl, setLogoUrl] = useState("")
   const [bannerUrl, setBannerUrl] = useState("")
   const [description, setDescription] = useState("")
-  const [accent, setAccent] = useState("#7c3aed")
-  const [primaryHex, setPrimaryHex] = useState("#000000")
+  const [accent, setAccent] = useState(DEFAULT_STOREFRONT_THEME.accent!)
+  const [primaryHex, setPrimaryHex] = useState(DEFAULT_STOREFRONT_THEME.primary!)
 
   const hydrate = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
       const res = await fetch("/api/store/me", { credentials: "include", cache: "no-store" })
-      const json = (await res.json()) as { store?: StoreRow; error?: string }
+      const json = (await res.json()) as {
+        store?: StoreRow
+        publicStoreUrl?: string
+        error?: string
+      }
       if (!res.ok) throw new Error(json.error ?? "Failed to load store")
+      if (json.publicStoreUrl) setPublicStoreUrl(json.publicStoreUrl)
       const st = json.store
       if (st) {
         setName(st.name)
         setLogoUrl(st.logoUrl ?? "")
         setBannerUrl(st.bannerUrl ?? "")
         setDescription(st.description ?? "")
+        const theme = parseStorefrontTheme(st.storefrontTheme) as StorefrontTheme
+        setAccent(theme.accent ?? DEFAULT_STOREFRONT_THEME.accent!)
+        setPrimaryHex(theme.primary ?? DEFAULT_STOREFRONT_THEME.primary!)
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error")
@@ -71,7 +88,8 @@ export function SupplierStorefrontEditor({ previewHref }: Props) {
       fd.set("description", description)
       fd.set("bannerUrl", bannerUrl.trim())
       if (/^https?:\/\//i.test(logoUrl.trim())) fd.set("logoUrl", logoUrl.trim())
-      fd.set("customDomain", "")
+      fd.set("themePrimary", primaryHex)
+      fd.set("themeAccent", accent)
 
       const res = await fetch("/api/store/update", {
         method: "POST",
@@ -80,7 +98,7 @@ export function SupplierStorefrontEditor({ previewHref }: Props) {
       })
       const json = (await res.json()) as { error?: string }
       if (!res.ok) throw new Error(json.error ?? "Could not save")
-      setMessage("Storefront saved.")
+      setMessage("Storefront saved — colors and banner are live on your public shop.")
       await hydrate()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error")
@@ -106,20 +124,35 @@ export function SupplierStorefrontEditor({ previewHref }: Props) {
           <BentoPageHeading
             eyebrow="Branding"
             title="Customize my storefront"
-            description="Update how your shop looks to visitors: name, banner, description, and a live preview."
+            description="Banner, brand colors, and copy — shown on your public supplier shop and custom domain when connected."
             className="max-w-2xl"
           />
-          <Link
-            href={previewHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={cn(
-              "inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 text-sm font-medium text-gray-900 shadow-sm transition hover:bg-gray-50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:hover:bg-zinc-900"
-            )}
-          >
-            <ExternalLink className="size-5" aria-hidden />
-            Preview live
-          </Link>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            {publicStoreUrl ? (
+              <a
+                href={publicStoreUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  "inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-5 text-sm font-medium text-violet-900 transition hover:bg-violet-100 dark:border-violet-900 dark:bg-violet-950/40 dark:text-violet-100"
+                )}
+              >
+                <Globe className="size-5" aria-hidden />
+                Public URL
+              </a>
+            ) : null}
+            <Link
+              href={previewHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                "inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 text-sm font-medium text-gray-900 shadow-sm transition hover:bg-gray-50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:hover:bg-zinc-900"
+              )}
+            >
+              <ExternalLink className="size-5" aria-hidden />
+              Preview on Affisell
+            </Link>
+          </div>
         </div>
 
         {error ? (
@@ -200,8 +233,19 @@ export function SupplierStorefrontEditor({ previewHref }: Props) {
                   onChange={(e) => setAccent(e.target.value)}
                   className="h-12 w-full cursor-pointer rounded-xl border border-gray-200 bg-white dark:border-zinc-700"
                 />
-                <p className="text-xs text-gray-500 dark:text-zinc-500">Demo UI — theme persistence coming later.</p>
+                <p className="text-xs text-gray-500 dark:text-zinc-500">
+                  Used on buttons, gradients, and highlights on your live storefront.
+                </p>
               </div>
+            </div>
+
+            <div
+              className="overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800"
+              style={{
+                background: `linear-gradient(135deg, ${primaryHex} 0%, ${accent} 55%, #fafafa 100%)`,
+              }}
+            >
+              <p className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white/90">Live preview</p>
             </div>
 
             <Button type="submit" variant="bentoSolid" size="bento" disabled={saving} className="w-full sm:w-auto">
@@ -216,13 +260,13 @@ export function SupplierStorefrontEditor({ previewHref }: Props) {
             <Store className="size-6" aria-hidden />
           </span>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Tip</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Custom domain</p>
             <p className="text-sm text-gray-600 dark:text-zinc-400">
-              Logo and slug live in{" "}
+              Connect <strong>yourstore.com</strong> in{" "}
               <Link href="/dashboard/supplier/settings/store" className="font-medium text-[#7C3AED] underline-offset-4 hover:underline">
                 Store profile
               </Link>
-              .
+              . After DNS verification, visitors see your branded shop on your domain.
             </p>
           </div>
           <Palette className="ml-auto hidden size-8 text-gray-300 sm:block dark:text-zinc-600" aria-hidden />

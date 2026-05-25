@@ -1,5 +1,7 @@
 /** Shop directory + product card types/mappers — safe for `"use client"` (no Prisma). */
 
+import type { StorefrontTheme } from "@/lib/storefront-theme-shared"
+
 export type ShopStoreSummary = {
   userId: string
   slug: string
@@ -7,7 +9,9 @@ export type ShopStoreSummary = {
   description: string | null
   logoUrl: string | null
   aiAvatarUrl: string | null
+  bannerUrl: string | null
   nicheLabel: NicheKey
+  theme: StorefrontTheme
 }
 
 export type ShopProductCard = {

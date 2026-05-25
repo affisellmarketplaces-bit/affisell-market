@@ -2,6 +2,7 @@ import type { ComponentType } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import type { Metadata } from "next"
+import { headers } from "next/headers"
 import { notFound } from "next/navigation"
 import {
   BadgeCheck,
@@ -18,7 +19,10 @@ import {
   SupplierStorefrontBrowse,
   type SupplierStorefrontListingSerializable,
 } from "@/components/supplier/supplier-storefront-browse"
+import { StorefrontThemeStyles } from "@/components/storefront/storefront-theme-styles"
 import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
+import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
+import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
 import { primaryProductImage } from "@/lib/product-images"
 import { formatVariantCommissionRange, variantSkuPricingSummary, variantsFromDb } from "@/lib/product-variants"
 import { prisma } from "@/lib/prisma"
@@ -103,6 +107,12 @@ export default async function SupplierStorePreviewPage({ params }: { params: Pro
   })
 
   if (!store || store.user.role !== "SUPPLIER") notFound()
+
+  const hdrs = await headers()
+  const isCustomDomain = isCustomDomainHeaders(hdrs)
+  const theme = parseStorefrontTheme(store.storefrontTheme)
+  const accent = theme.accent ?? "#7c3aed"
+  const primary = theme.primary ?? "#18181b"
 
   const supplierId = store.userId
   const base = appBaseUrl()
@@ -200,35 +210,48 @@ export default async function SupplierStorePreviewPage({ params }: { params: Pro
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       ) : null}
 
+      <StorefrontThemeStyles theme={theme} />
       <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
         <header className="relative overflow-hidden border-b border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-          <div
-            className="pointer-events-none absolute inset-0 opacity-60 dark:opacity-40"
-            style={{
-              backgroundImage: `radial-gradient(ellipse 80% 60% at 10% -10%, rgba(124,58,237,0.28), transparent 55%),
-                radial-gradient(ellipse 60% 50% at 90% 0%, rgba(217,70,239,0.18), transparent 50%)`,
-            }}
-            aria-hidden
-          />
+          {store.bannerUrl ? (
+            <div className="relative h-40 w-full sm:h-48 md:h-56">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={store.bannerUrl} alt="" className="h-full w-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-white via-white/40 to-transparent dark:from-zinc-950 dark:via-zinc-950/50" />
+            </div>
+          ) : (
+            <div
+              className="pointer-events-none absolute inset-0 opacity-60 dark:opacity-40"
+              style={{
+                backgroundImage: `radial-gradient(ellipse 80% 60% at 10% -10%, color-mix(in srgb, ${accent} 35%, transparent), transparent 55%),
+                radial-gradient(ellipse 60% 50% at 90% 0%, color-mix(in srgb, ${primary} 25%, transparent), transparent 50%)`,
+              }}
+              aria-hidden
+            />
+          )}
 
           <div className="relative mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:py-10">
-            <nav
-              className="mb-6 flex flex-wrap items-center gap-1 text-sm text-zinc-500 dark:text-zinc-400"
-              aria-label="Fil d'Ariane"
-            >
-              <Link href="/" className="transition hover:text-zinc-900 dark:hover:text-white">
-                Accueil
-              </Link>
-              <ChevronRight className="h-4 w-4 shrink-0 opacity-50" aria-hidden />
-              <Link
-                href={PUBLIC_MARKETPLACE_BROWSE_PATH}
-                className="transition hover:text-zinc-900 dark:hover:text-white"
+            {!isCustomDomain ? (
+              <nav
+                className="mb-6 flex flex-wrap items-center gap-1 text-sm text-zinc-500 dark:text-zinc-400"
+                aria-label="Fil d'Ariane"
               >
-                Marketplace
-              </Link>
-              <ChevronRight className="h-4 w-4 shrink-0 opacity-50" aria-hidden />
-              <span className="truncate font-medium text-zinc-900 dark:text-zinc-100">{store.name}</span>
-            </nav>
+                <Link href="/" className="transition hover:text-zinc-900 dark:hover:text-white">
+                  Accueil
+                </Link>
+                <ChevronRight className="h-4 w-4 shrink-0 opacity-50" aria-hidden />
+                <Link
+                  href={PUBLIC_MARKETPLACE_BROWSE_PATH}
+                  className="transition hover:text-zinc-900 dark:hover:text-white"
+                >
+                  Marketplace
+                </Link>
+                <ChevronRight className="h-4 w-4 shrink-0 opacity-50" aria-hidden />
+                <span className="truncate font-medium text-zinc-900 dark:text-zinc-100">{store.name}</span>
+              </nav>
+            ) : (
+              <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-zinc-500">Boutique officielle</p>
+            )}
 
             {store.isLive && store.liveUrl?.trim() ? (
               <a

@@ -21,6 +21,7 @@ export { inferNicheLabel, shopProductToCardProps } from "@/lib/shop-storefront-s
 import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
+import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
 
 export async function loadAffiliateShopStore(slug: string): Promise<ShopStoreSummary | null> {
   const store = await prisma.store.findUnique({
@@ -32,6 +33,8 @@ export async function loadAffiliateShopStore(slug: string): Promise<ShopStoreSum
       description: true,
       logoUrl: true,
       aiAvatarUrl: true,
+      bannerUrl: true,
+      storefrontTheme: true,
       user: { select: { role: true } },
     },
   })
@@ -44,7 +47,9 @@ export async function loadAffiliateShopStore(slug: string): Promise<ShopStoreSum
     description: store.description,
     logoUrl: store.logoUrl,
     aiAvatarUrl: store.aiAvatarUrl,
+    bannerUrl: store.bannerUrl,
     nicheLabel: inferNicheLabel(store.description, store.name),
+    theme: parseStorefrontTheme(store.storefrontTheme),
   }
 }
 

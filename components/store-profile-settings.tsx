@@ -10,6 +10,10 @@ import { Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  DEFAULT_STOREFRONT_THEME,
+  parseStorefrontTheme,
+} from "@/lib/storefront-theme-shared"
 import { parseSupplierLogisticsAddress, type SupplierLogisticsAddress } from "@/lib/supplier-logistics-address"
 
 type StoreRow = {
@@ -22,6 +26,7 @@ type StoreRow = {
   description: string | null
   customDomain: string | null
   domainVerified: boolean
+  storefrontTheme?: unknown
   shipFromAddress?: unknown
   returnAddress?: unknown
 }
@@ -82,6 +87,9 @@ export function StoreProfileSettings({ backHref, backLabel }: Props) {
   const [aiAvatarUrl, setAiAvatarUrl] = useState("")
   const [customDomain, setCustomDomain] = useState("")
   const [domainVerified, setDomainVerified] = useState(false)
+  const [publicStoreUrl, setPublicStoreUrl] = useState<string | null>(null)
+  const [themePrimary, setThemePrimary] = useState(DEFAULT_STOREFRONT_THEME.primary!)
+  const [themeAccent, setThemeAccent] = useState(DEFAULT_STOREFRONT_THEME.accent!)
 
   const [shipFrom, setShipFrom] = useState<AddrForm>(() => emptyAddr())
   const [returnAddr, setReturnAddr] = useState<AddrForm>(() => emptyAddr())
@@ -103,10 +111,12 @@ export function StoreProfileSettings({ backHref, backLabel }: Props) {
       const json = (await res.json()) as {
         store?: StoreRow
         dnsTarget?: string
+        publicStoreUrl?: string
         error?: string
       }
       if (!res.ok) throw new Error(json.error ?? "Failed to load profile")
       if (json.dnsTarget) setDnsTarget(json.dnsTarget)
+      if (json.publicStoreUrl) setPublicStoreUrl(json.publicStoreUrl)
       const st = json.store
       if (st) {
         setName(st.name)
@@ -117,6 +127,9 @@ export function StoreProfileSettings({ backHref, backLabel }: Props) {
         setAiAvatarUrl(st.aiAvatarUrl ?? "")
         setCustomDomain(st.customDomain ?? "")
         setDomainVerified(st.domainVerified)
+        const theme = parseStorefrontTheme(st.storefrontTheme)
+        setThemePrimary(theme.primary ?? DEFAULT_STOREFRONT_THEME.primary!)
+        setThemeAccent(theme.accent ?? DEFAULT_STOREFRONT_THEME.accent!)
         const sf = parseSupplierLogisticsAddress(st.shipFromAddress)
         const rt = parseSupplierLogisticsAddress(st.returnAddress)
         setShipFrom(sf ? addrToForm(sf) : emptyAddr())
@@ -146,6 +159,8 @@ export function StoreProfileSettings({ backHref, backLabel }: Props) {
       fd.set("bannerUrl", bannerUrl.trim())
       fd.set("logoUrl", logoUrlInput.trim())
       fd.set("customDomain", customDomain.trim())
+      fd.set("themePrimary", themePrimary)
+      fd.set("themeAccent", themeAccent)
 
       const file = fileRef.current?.files?.[0]
       if (file) fd.append("logo", file)
@@ -726,8 +741,54 @@ export function StoreProfileSettings({ backHref, backLabel }: Props) {
           ) : null}
 
           {customDomain.trim() && domainVerified ? (
-            <p className="mt-2 text-sm text-green-700">Custom domain is verified.</p>
+            <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50/80 p-4 dark:border-emerald-900 dark:bg-emerald-950/30">
+              <p className="text-sm font-medium text-emerald-900 dark:text-emerald-100">Custom domain is verified.</p>
+              {publicStoreUrl ? (
+                <a
+                  href={publicStoreUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 inline-block break-all text-sm font-semibold text-emerald-800 underline underline-offset-2 hover:text-emerald-950 dark:text-emerald-200"
+                >
+                  {publicStoreUrl}
+                </a>
+              ) : null}
+              <p className="mt-2 text-xs text-emerald-800/90 dark:text-emerald-200/80">
+                Add this hostname in Vercel → Project → Domains so SSL is issued, then visitors reach your storefront on your brand.
+              </p>
+            </div>
           ) : null}
+        </section>
+
+        <section>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-zinc-100">Brand colors</h3>
+          <p className="mt-1 text-sm text-gray-500">Applied on your public shop header and accents.</p>
+          <div className="mt-4 grid max-w-xl gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor="theme-primary" className="text-xs font-medium text-gray-600">
+                Primary
+              </label>
+              <input
+                id="theme-primary"
+                type="color"
+                value={themePrimary}
+                onChange={(e) => setThemePrimary(e.target.value)}
+                className="mt-1 h-11 w-full cursor-pointer rounded-lg border border-gray-300"
+              />
+            </div>
+            <div>
+              <label htmlFor="theme-accent" className="text-xs font-medium text-gray-600">
+                Accent
+              </label>
+              <input
+                id="theme-accent"
+                type="color"
+                value={themeAccent}
+                onChange={(e) => setThemeAccent(e.target.value)}
+                className="mt-1 h-11 w-full cursor-pointer rounded-lg border border-gray-300"
+              />
+            </div>
+          </div>
         </section>
 
         <button

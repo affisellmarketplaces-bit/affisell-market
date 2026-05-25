@@ -3,6 +3,13 @@
 - `"use client"` modules must **not** value-import `@/lib/*` files that import `@/lib/prisma` (use `*-types.ts`, `*-shared.ts`, or `import type` only).
 - Run `npm run check:client-prisma` before push when touching dashboard/nav/home client UI.
 
+## Merchant custom domains & storefront theme
+
+- **DNS**: merchants set `CNAME` → `STORE_CNAME_TARGET` (default `cname.affisell.com`), then **Verify** in Store profile (`/dashboard/*/settings/store`).
+- **Routing**: `middleware` calls `/api/store/resolve-host` and rewrites verified hosts to `/shops/:slug` (affiliate) or `/store/supplier/:slug` (supplier). Dashboard/checkout paths redirect to the platform origin.
+- **Vercel**: each verified hostname must be added under Project → Domains (or automated later) for TLS.
+- **Theme**: `Store.storefrontTheme` JSON (`primary`, `accent` hex) — edit in Store profile or supplier **Storefront** page; applied via `StorefrontThemeStyles` on public shops.
+
 ## Git push
 
 - Never put real API keys in `.env.example` — use empty placeholders only (`GROQ_API_KEY=""`).

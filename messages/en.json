@@ -541,6 +541,7 @@
   },
   "boutique": {
     "tagline": "Affiliate storefront",
+    "customDomainTagline": "Official store",
     "subtitle": "Curated products from this promoter.",
     "empty": "This store has no active products.",
     "buy": "Buy Now",

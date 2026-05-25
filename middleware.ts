@@ -10,6 +10,7 @@ import {
 } from "@/lib/affiliate-routes"
 import { LOCALE_COOKIE, localeCookieMaxAgeSec, resolveAppLocale } from "@/lib/i18n-locale"
 import { localeFromPathname, pathnameWithoutLocale } from "@/lib/locale-path"
+import { tryCustomDomainMiddleware } from "@/lib/middleware-custom-domain"
 import { isStaticAppPathname } from "@/lib/reserved-locale-segments"
 
 const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
@@ -120,6 +121,9 @@ function isRedirectLoop(source: string, location: string): boolean {
 
 export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname
+
+  const customDomainResponse = await tryCustomDomainMiddleware(req)
+  if (customDomainResponse) return customDomainResponse
 
   if (HOME_PATHS.has(pathname)) {
     return handleHomePath(req)

@@ -5,6 +5,7 @@ import { mkdir, writeFile } from "fs/promises"
 import { auth } from "@/auth"
 import { allocateUniqueSlug, ensureMerchantStore } from "@/lib/ensure-store"
 import { prisma } from "@/lib/prisma"
+import { themeFromFormFields } from "@/lib/storefront-theme-shared"
 import { normalizeCustomDomain } from "@/lib/verify-store-domain"
 
 export const runtime = "nodejs"
@@ -71,7 +72,16 @@ export async function POST(req: Request) {
 
   const customDomRaw = fd.get("customDomain")
   const customDomainNormalized =
-    normalizeCustomDomain(typeof customDomRaw === "string" ? customDomRaw : "")
+    customDomRaw === null || customDomRaw === undefined
+      ? undefined
+      : normalizeCustomDomain(typeof customDomRaw === "string" ? customDomRaw : "")
+
+  const themePrimary = fd.get("themePrimary")
+  const themeAccent = fd.get("themeAccent")
+  const hasThemeFields = themePrimary !== null || themeAccent !== null
+  const storefrontTheme = hasThemeFields
+    ? themeFromFormFields(themePrimary, themeAccent)
+    : undefined
 
   const logoFile = fd.get("logo")
   let logoUrl: string | null = store.logoUrl
@@ -114,10 +124,13 @@ export async function POST(req: Request) {
 
   const slug = await allocateUniqueSlug(name, store.userId)
   const prevDom = store.customDomain ?? null
-  const customDomain = customDomainNormalized
+  let customDomain = store.customDomain
   let domainVerified = store.domainVerified
-  if ((prevDom ?? "") !== (customDomain ?? "")) {
-    domainVerified = false
+  if (customDomainNormalized !== undefined) {
+    customDomain = customDomainNormalized
+    if ((prevDom ?? "") !== (customDomain ?? "")) {
+      domainVerified = false
+    }
   }
 
   try {
@@ -131,6 +144,7 @@ export async function POST(req: Request) {
         description,
         customDomain,
         domainVerified,
+        ...(storefrontTheme !== undefined ? { storefrontTheme } : {}),
       },
     })
 

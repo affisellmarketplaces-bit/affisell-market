@@ -541,6 +541,7 @@
   },
   "boutique": {
     "tagline": "Vitrine affilié",
+    "customDomainTagline": "Boutique officielle",
     "subtitle": "Produits sélectionnés par ce promoteur.",
     "empty": "Cette boutique n'a pas de produits actifs.",
     "buy": "Acheter",
