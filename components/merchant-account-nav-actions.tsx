@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { signOut } from "next-auth/react"
 import { LogOut, Trash2, UserRound } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useState } from "react"
 
 import { buttonVariants } from "@/components/ui/button"
@@ -21,13 +22,12 @@ export function MerchantAccountNavActions({
   showAccountLink = true,
   showDeleteAccount = false,
 }: Props) {
+  const t = useTranslations("merchantAccount")
   const [busy, setBusy] = useState<"delete" | null>(null)
   const [err, setErr] = useState<string | null>(null)
 
   async function deleteAccount() {
-    const ok = window.confirm(
-      "Delete your account permanently? This cannot be undone. If you have past marketplace orders as merchant, deletion may be blocked."
-    )
+    const ok = window.confirm(t("deleteConfirm"))
     if (!ok) return
     setErr(null)
     setBusy("delete")
@@ -55,7 +55,7 @@ export function MerchantAccountNavActions({
           )}
         >
           <UserRound className="size-4 shrink-0" aria-hidden />
-          Account
+          {t("account")}
         </Link>
       ) : null}
       <button
@@ -67,7 +67,7 @@ export function MerchantAccountNavActions({
         onClick={() => void signOut({ callbackUrl: "/" })}
       >
         <LogOut className="size-4 shrink-0" aria-hidden />
-        Sign out
+        {t("signOut")}
       </button>
       {showDeleteAccount ? (
         <button
@@ -80,7 +80,7 @@ export function MerchantAccountNavActions({
           onClick={() => void deleteAccount()}
         >
           <Trash2 className="size-4 shrink-0" aria-hidden />
-          {busy === "delete" ? "Deleting…" : "Delete account"}
+          {busy === "delete" ? t("deleting") : t("deleteAccount")}
         </button>
       ) : null}
       {err ? <p className="w-full text-xs text-red-600 dark:text-red-400">{err}</p> : null}

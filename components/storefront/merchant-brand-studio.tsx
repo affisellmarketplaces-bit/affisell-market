@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { ExternalLink, Palette, Save, Sparkles } from "lucide-react"
+import { useTranslations } from "next-intl"
 import type { FormEvent } from "react"
 import { useCallback, useEffect, useState } from "react"
 
@@ -34,6 +35,7 @@ type Props = {
 }
 
 export function MerchantBrandStudio({ role, previewHref, profileHref, profileLabel }: Props) {
+  const t = useTranslations("storefront.brandStudio")
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -55,7 +57,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
         publicStoreUrl?: string
         error?: string
       }
-      if (!res.ok) throw new Error(json.error ?? "Failed to load store")
+      if (!res.ok) throw new Error(json.error ?? t("loadFailed"))
       if (json.publicStoreUrl) setPublicStoreUrl(json.publicStoreUrl)
       const st = json.store
       if (st) {
@@ -67,11 +69,11 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
         setPrimaryHex(theme.primary ?? DEFAULT_STOREFRONT_THEME.primary!)
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error")
+      setError(e instanceof Error ? e.message : t("loadFailed"))
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     void hydrate()
@@ -96,28 +98,25 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
         credentials: "include",
       })
       const json = (await res.json()) as { error?: string }
-      if (!res.ok) throw new Error(json.error ?? "Could not save")
-      setMessage("Brand saved — your public storefront is updated.")
+      if (!res.ok) throw new Error(json.error ?? t("saveFailed"))
+      setMessage(t("saved"))
       await hydrate()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error")
+      setError(err instanceof Error ? err.message : t("saveFailed"))
     } finally {
       setSaving(false)
     }
   }
 
-  const eyebrow = role === "AFFILIATE" ? "Creator brand" : "Supplier brand"
-  const title = role === "AFFILIATE" ? "Brand Studio" : "Storefront studio"
-  const desc =
-    role === "AFFILIATE"
-      ? "Your public shop on Affisell and on your own domain — banner, colors, and copy in one place."
-      : "How buyers see your supplier shop: banner, brand colors, and custom domain."
+  const eyebrow = role === "AFFILIATE" ? t("affiliateEyebrow") : t("supplierEyebrow")
+  const title = role === "AFFILIATE" ? t("affiliateTitle") : t("supplierTitle")
+  const desc = role === "AFFILIATE" ? t("affiliateDescription") : t("supplierDescription")
 
   if (loading && !name) {
     return (
       <BentoShell>
         <BentoContainer maxWidth="5xl">
-          <BentoCard className="py-16 text-center text-sm text-gray-600 dark:text-zinc-400">Loading…</BentoCard>
+          <BentoCard className="py-16 text-center text-sm text-gray-600 dark:text-zinc-400">{t("loading")}</BentoCard>
         </BentoContainer>
       </BentoShell>
     )
@@ -144,7 +143,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
                 )}
               >
                 <Sparkles className="size-4" aria-hidden />
-                Live URL
+                {t("liveUrl")}
               </a>
             ) : null}
             <Link
@@ -154,7 +153,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
               className="inline-flex h-11 items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 text-sm font-medium shadow-sm dark:border-zinc-700 dark:bg-zinc-950"
             >
               <ExternalLink className="size-4" aria-hidden />
-              Preview on Affisell
+              {t("previewAffisell")}
             </Link>
           </div>
         </div>
@@ -175,14 +174,14 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
             <form onSubmit={onSubmit} className="space-y-8">
               <div className="space-y-2">
                 <label htmlFor="bs-name" className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-                  Store name
+                  {t("storeName")}
                 </label>
                 <Input id="bs-name" bento value={name} onChange={(e) => setName(e.target.value)} required />
               </div>
 
               <div className="space-y-2">
                 <label htmlFor="bs-banner" className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-                  Hero banner (HTTPS URL)
+                  {t("heroBanner")}
                 </label>
                 <Input
                   id="bs-banner"
@@ -196,7 +195,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
 
               <div className="space-y-2">
                 <label htmlFor="bs-desc" className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-                  Tagline / description
+                  {t("tagline")}
                 </label>
                 <textarea
                   id="bs-desc"
@@ -210,7 +209,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <label htmlFor="bs-primary" className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-                    Primary
+                    {t("primary")}
                   </label>
                   <input
                     id="bs-primary"
@@ -222,7 +221,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="bs-accent" className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-                    Accent
+                    {t("accent")}
                   </label>
                   <input
                     id="bs-accent"
@@ -244,7 +243,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
 
               <Button type="submit" variant="bentoSolid" size="bento" disabled={saving}>
                 <Save className="size-5" aria-hidden />
-                {saving ? "Saving…" : "Save brand"}
+                {saving ? t("saving") : t("saveBrand")}
               </Button>
             </form>
           </BentoCard>
@@ -254,14 +253,19 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
             <BentoCard className="text-sm text-gray-600 dark:text-zinc-400">
               <p className="flex items-center gap-2 font-medium text-gray-900 dark:text-zinc-100">
                 <Palette className="size-4 text-violet-600" aria-hidden />
-                Logo &amp; logistics
+                {t("logoLogisticsTitle")}
               </p>
               <p className="mt-2">
-                Upload logo, AI avatar, ship-from address, and slug in{" "}
-                <Link href={profileHref} className="font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-300">
-                  {profileLabel}
-                </Link>
-                .
+                {t.rich("logoLogisticsBody", {
+                  profileLink: () => (
+                    <Link
+                      href={profileHref}
+                      className="font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
+                    >
+                      {profileLabel}
+                    </Link>
+                  ),
+                })}
               </p>
             </BentoCard>
           </div>

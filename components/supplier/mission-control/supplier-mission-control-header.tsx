@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Plus } from "lucide-react"
+import { getTranslations } from "next-intl/server"
 
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -8,13 +9,15 @@ type Props = {
   storeName: string
 }
 
-export function SupplierMissionControlHeader({ storeName }: Props) {
+export async function SupplierMissionControlHeader({ storeName }: Props) {
+  const t = await getTranslations("supplierDashboard.header")
+
   return (
     <header className="flex flex-col gap-4 border-b border-zinc-200/80 pb-6 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0">
-        <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Mission Control</p>
+        <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{t("eyebrow")}</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-3xl">
-          Bonjour {storeName}
+          {t("greeting", { storeName })}
         </h1>
       </div>
       <Link
@@ -25,7 +28,7 @@ export function SupplierMissionControlHeader({ storeName }: Props) {
         )}
       >
         <Plus className="h-4 w-4" aria-hidden />
-        Nouveau produit
+        {t("newProduct")}
       </Link>
     </header>
   )

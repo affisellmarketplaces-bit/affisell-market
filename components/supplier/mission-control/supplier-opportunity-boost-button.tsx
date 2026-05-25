@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Loader2, Zap } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import type { ProductCommissionOpportunity } from "@/lib/supplier-product-opportunity-shared"
@@ -16,6 +17,7 @@ type Props = {
 
 export function SupplierOpportunityBoostButton({ opportunity, className }: Props) {
   const router = useRouter()
+  const t = useTranslations("supplierDashboard.growth")
   const [loading, setLoading] = useState(false)
 
   const alreadyBoosted = opportunity.currentCommissionPct >= opportunity.suggestedCommissionPct
@@ -31,14 +33,17 @@ export function SupplierOpportunityBoostButton({ opportunity, className }: Props
       })
       if (!res.ok) {
         const j = (await res.json().catch(() => ({}))) as { error?: string }
-        throw new Error(j.error ?? "Mise à jour impossible")
+        throw new Error(j.error ?? t("boostFailed"))
       }
       toast.success(
-        `Commission passée à ${opportunity.suggestedCommissionPct}% sur « ${opportunity.productName} »`
+        t("boostSuccess", {
+          pct: opportunity.suggestedCommissionPct,
+          name: opportunity.productName,
+        })
       )
       router.refresh()
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erreur réseau")
+      toast.error(e instanceof Error ? e.message : t("networkError"))
     } finally {
       setLoading(false)
     }
@@ -61,8 +66,8 @@ export function SupplierOpportunityBoostButton({ opportunity, className }: Props
         <Zap className="h-4 w-4" aria-hidden />
       )}
       {alreadyBoosted
-        ? `Commission à ${opportunity.suggestedCommissionPct}%`
-        : "Proposer +2% commission"}
+        ? t("boostDone", { pct: opportunity.suggestedCommissionPct })
+        : t("boostCta")}
     </button>
   )
 }

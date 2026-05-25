@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import { getLocale } from "next-intl/server"
 
 import { BentoContainer } from "@/components/affisell/bento-ui"
 import { SupplierGrowthSection } from "@/components/supplier/mission-control/supplier-growth-section"
@@ -11,6 +12,7 @@ import { SupplierOnboardingChecklist } from "@/components/supplier/mission-contr
 import { SupplierToolsRow } from "@/components/supplier/mission-control/supplier-tools-row"
 import { SupplierUrgentActions } from "@/components/supplier/mission-control/supplier-urgent-actions"
 import { auth } from "@/auth"
+import { resolveAppLocale } from "@/lib/i18n-locale"
 import { loadSupplierMissionControl } from "@/lib/supplier-mission-control"
 
 export const dynamic = "force-dynamic"
@@ -25,6 +27,7 @@ export default async function DashboardSupplierPage() {
   }
 
   const data = await loadSupplierMissionControl(session.user.id)
+  const locale = resolveAppLocale(await getLocale())
 
   return (
     <main className="min-h-[calc(100dvh-3.75rem)] bg-zinc-50/50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50">
@@ -34,15 +37,15 @@ export default async function DashboardSupplierPage() {
           <SupplierInviteContextBanner />
 
           {data.weeklyGoal && data.metrics7d.hasPriorPeriodData ? (
-            <SupplierWeeklyGoalCard goal={data.weeklyGoal} />
+            <SupplierWeeklyGoalCard goal={data.weeklyGoal} locale={locale} />
           ) : null}
 
           {data.productCount === 0 ? (
             <SupplierOnboardingChecklist storeSlug={data.storeSlug} />
           ) : (
             <>
-              <SupplierUrgentActions urgent={data.urgent} />
-              <SupplierMetricsBar metrics={data.metrics7d} weeklyGoal={data.weeklyGoal} />
+              <SupplierUrgentActions urgent={data.urgent} locale={locale} />
+              <SupplierMetricsBar metrics={data.metrics7d} weeklyGoal={data.weeklyGoal} locale={locale} />
               <SupplierGrowthSection growth={data.growth} />
             </>
           )}

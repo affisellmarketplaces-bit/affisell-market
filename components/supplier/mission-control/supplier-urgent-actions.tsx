@@ -1,11 +1,12 @@
 import Link from "next/link"
 import { CheckCircle2, Plus } from "lucide-react"
+import { getTranslations } from "next-intl/server"
 
 import { SupplierUrgentCarousel } from "@/components/supplier/mission-control/supplier-urgent-carousel"
 import type { SupplierUrgentSnapshot } from "@/lib/supplier-urgent-snapshot"
-import { formatStoreCurrencyFromCents } from "@/lib/market-config"
+import { formatMoneyFromCents } from "@/lib/app-locale-format"
+import type { AppLocale } from "@/lib/i18n-locale"
 import {
-  formatHoursLeftLabel,
   formatSlaCountdown,
   SUPPLIER_LATE_SHIP_PENALTY_PER_ORDER_CENTS,
 } from "@/lib/supplier-ship-sla-shared"
@@ -14,7 +15,10 @@ import { cn } from "@/lib/utils"
 
 type Props = {
   urgent: SupplierUrgentSnapshot
+  locale: AppLocale
 }
+
+type TFn = Awaited<ReturnType<typeof getTranslations<"supplierDashboard.urgent">>>
 
 type SlotProps = {
   active: boolean
@@ -117,7 +121,15 @@ function UrgentSlot({
   )
 }
 
-function buildShipSlot(urgent: SupplierUrgentSnapshot): SlotProps {
+function formatHoursLeftLabelLocalized(hoursLeft: number, t: TFn): string {
+  if (hoursLeft <= 0) return t("slaBreached")
+  const h = Math.floor(hoursLeft)
+  const m = Math.round((hoursLeft - h) * 60)
+  if (h >= 1) return t("hoursLeftUnder", { hours: h })
+  return m > 0 ? t("hoursLeftMinutes", { minutes: m }) : t("hoursLeftUnderOne")
+}
+
+function buildShipSlot(urgent: SupplierUrgentSnapshot, t: TFn, locale: AppLocale): SlotProps {
   const active = urgent.ordersToShip > 0
   const hoursLeft = urgent.ordersToShipHoursLeft
   const late = urgent.ordersToShipSlaLate
@@ -129,11 +141,12 @@ function buildShipSlot(urgent: SupplierUrgentSnapshot): SlotProps {
 
   const countTitle =
     urgent.ordersToShip === 1
-      ? "1 commande à expédier"
-      : `${urgent.ordersToShip} commandes à expédier`
+      ? t("shipTitleOne")
+      : t("shipTitleMany", { count: urgent.ordersToShip })
 
-  const penaltyPerOrder = formatStoreCurrencyFromCents(
-    urgent.ordersToShipPenaltyPerOrderCents || SUPPLIER_LATE_SHIP_PENALTY_PER_ORDER_CENTS
+  const penaltyPerOrder = formatMoneyFromCents(
+    urgent.ordersToShipPenaltyPerOrderCents || SUPPLIER_LATE_SHIP_PENALTY_PER_ORDER_CENTS,
+    locale
   )
 
   return {
@@ -141,40 +154,40 @@ function buildShipSlot(urgent: SupplierUrgentSnapshot): SlotProps {
     title: countTitle,
     titleSubline:
       active && hoursLeft != null && !late
-        ? formatHoursLeftLabel(hoursLeft)
+        ? formatHoursLeftLabelLocalized(hoursLeft, t)
         : active && late
-          ? "SLA dépassé"
+          ? t("slaBreached")
           : undefined,
     metric: !active
-      ? "Aucune en attente"
+      ? t("metricNonePending")
       : late
-        ? "Payées · en retard"
+        ? t("metricPaidLate")
         : remainingMs != null
-          ? `Payées · SLA dans ${formatSlaCountdown(remainingMs)}`
-          : "Payées · en attente",
+          ? t("metricPaidSlaIn", { countdown: formatSlaCountdown(remainingMs) })
+          : t("metricPaidWaiting"),
     consequence:
       active && (urgentSla || late)
-        ? `Pénalité estimée : −${penaltyPerOrder}/commande`
+        ? t("penaltyPerOrder", { amount: penaltyPerOrder })
         : active
-          ? "Risque note acheteur si retard"
+          ? t("buyerRatingRisk")
           : "—",
     href: "/dashboard/supplier/orders",
-    cta: "Expédier",
+    cta: t("ctaShip"),
     tone: urgentSla || late ? "red" : "amber",
     ctaVariant: active ? "default" : "outline",
   }
 }
 
-function buildStockSlot(urgent: SupplierUrgentSnapshot): SlotProps {
+function buildStockSlot(urgent: SupplierUrgentSnapshot, t: TFn): SlotProps {
   const active = urgent.lowStockCount > 0
   const first = urgent.lowStockLines[0]
   const extra = urgent.lowStockCount > 1 ? urgent.lowStockCount - 1 : 0
 
   const title = active
     ? urgent.lowStockCount === 1
-      ? "1 rupture SKU"
-      : `${urgent.lowStockCount} ruptures SKU`
-    : "Ruptures SKU"
+      ? t("stockTitleOne")
+      : t("stockTitleMany", { count: urgent.lowStockCount })
+    : t("stockTitleIdle")
 
   const skuLabel = first
     ? extra > 0
@@ -185,8 +198,10 @@ function buildStockSlot(urgent: SupplierUrgentSnapshot): SlotProps {
   const stockLine =
     first != null
       ? first.stock <= 0
-        ? "0 stock"
-        : `${first.stock} restant${first.stock > 1 ? "s" : ""}`
+        ? t("stockZero")
+        : first.stock > 1
+          ? t("stockRemainingMany", { count: first.stock })
+          : t("stockRemainingOne", { count: first.stock })
       : "—"
 
   const restockHref = first
@@ -196,16 +211,16 @@ function buildStockSlot(urgent: SupplierUrgentSnapshot): SlotProps {
   return {
     active,
     title,
-    metric: active ? skuLabel : "Stocks OK",
+    metric: active ? skuLabel : t("stockOk"),
     consequence: active ? stockLine : "—",
     href: restockHref,
-    cta: "Réassortir",
+    cta: t("ctaRestock"),
     tone: first != null && first.stock <= 0 ? "red" : "amber",
     ctaVariant: active ? "default" : "outline",
   }
 }
 
-function buildMessageSlot(urgent: SupplierUrgentSnapshot): SlotProps {
+function buildMessageSlot(urgent: SupplierUrgentSnapshot, t: TFn): SlotProps {
   const active = urgent.clientMessagesCount > 0
   const n = urgent.clientMessagesCount
 
@@ -213,33 +228,35 @@ function buildMessageSlot(urgent: SupplierUrgentSnapshot): SlotProps {
     active,
     title: active
       ? n === 1
-        ? "1 message client"
-        : `${n} messages client`
-      : "Messages client",
-    metric: active ? "sans réponse" : "Boîte à jour",
+        ? t("messagesTitleOne")
+        : t("messagesTitleMany", { count: n })
+      : t("messagesTitleIdle"),
+    metric: active ? t("metricNoReply") : t("metricInboxClear"),
     consequence: active
       ? urgent.shopRatingImpactPct > 0
-        ? `−${urgent.shopRatingImpactPct} % note shop`
-        : "Réponse attendue"
+        ? t("ratingImpact", { pct: urgent.shopRatingImpactPct })
+        : t("replyExpected")
       : "—",
     href: "/dashboard/supplier/returns",
-    cta: "Répondre",
+    cta: t("ctaReply"),
     tone: "violet",
     ctaVariant: active ? "default" : "outline",
   }
 }
 
-export function SupplierUrgentActions({ urgent }: Props) {
-  const ship = buildShipSlot(urgent)
-  const stock = buildStockSlot(urgent)
-  const message = buildMessageSlot(urgent)
+export async function SupplierUrgentActions({ urgent, locale }: Props) {
+  const t = await getTranslations("supplierDashboard.urgent")
+
+  const ship = buildShipSlot(urgent, t, locale)
+  const stock = buildStockSlot(urgent, t)
+  const message = buildMessageSlot(urgent, t)
 
   const allClear = !ship.active && !stock.active && !message.active
 
   return (
     <section aria-labelledby="urgent-heading" className="space-y-4">
       <h2 id="urgent-heading" className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
-        Actions urgentes
+        {t("title")}
       </h2>
 
       {allClear ? (
@@ -247,15 +264,15 @@ export function SupplierUrgentActions({ urgent }: Props) {
           <div className="flex items-start gap-3">
             <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden />
             <div>
-              <p className="font-semibold text-emerald-950 dark:text-emerald-100">Tout est à jour ✅</p>
+              <p className="font-semibold text-emerald-950 dark:text-emerald-100">{t("allClearTitle")}</p>
               <p className="mt-2 text-sm text-emerald-900/80 dark:text-emerald-200/80">
-                Prochaine étape :{" "}
+                {t("allClearNext")}{" "}
                 <Link
                   href="/dashboard/supplier/products/new"
                   className="inline-flex items-center gap-1 font-semibold text-emerald-800 underline-offset-2 hover:underline dark:text-emerald-200"
                 >
                   <Plus className="h-3.5 w-3.5" aria-hidden />
-                  Ajouter un produit
+                  {t("addProduct")}
                 </Link>
               </p>
             </div>

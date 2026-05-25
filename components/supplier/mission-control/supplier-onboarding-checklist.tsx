@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { CheckCircle2, Circle, Package, Share2, Store } from "lucide-react"
+import { getTranslations } from "next-intl/server"
 
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -8,29 +9,18 @@ type Props = {
   storeSlug: string | null
 }
 
-const steps = [
-  {
-    id: "create",
-    label: "Créer votre première fiche produit",
-    href: "/dashboard/supplier/products/new",
-    Icon: Package,
-  },
-  {
-    id: "publish",
-    label: "Publier sur le marketplace",
-    href: "/dashboard/supplier/products",
-    Icon: Store,
-  },
-  {
-    id: "share",
-    label: "Partager votre catalogue fournisseur",
-    href: null as string | null,
-    Icon: Share2,
-  },
-] as const
+const stepIds = ["create", "publish", "share"] as const
+const stepIcons = { create: Package, publish: Store, share: Share2 } as const
 
-export function SupplierOnboardingChecklist({ storeSlug }: Props) {
+export async function SupplierOnboardingChecklist({ storeSlug }: Props) {
+  const t = await getTranslations("supplierDashboard.onboarding")
   const shareHref = storeSlug ? `/store/supplier/${storeSlug}` : "/marketplace"
+
+  const steps = [
+    { id: "create" as const, href: "/dashboard/supplier/products/new" },
+    { id: "publish" as const, href: "/dashboard/supplier/products" },
+    { id: "share" as const, href: shareHref },
+  ]
 
   return (
     <section
@@ -38,19 +28,18 @@ export function SupplierOnboardingChecklist({ storeSlug }: Props) {
       className="rounded-2xl border border-violet-200/80 bg-gradient-to-br from-violet-50/80 via-white to-white p-6 shadow-sm dark:border-violet-900/50 dark:from-violet-950/30 dark:via-zinc-950 dark:to-zinc-950"
     >
       <h2 id="onboarding-heading" className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-        Démarrez votre boutique
+        {t("title")}
       </h2>
-      <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-        Trois étapes pour passer de zéro à votre première vente affiliée.
-      </p>
+      <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{t("subtitle")}</p>
       <p className="mt-3 rounded-lg border border-amber-200/80 bg-amber-50/90 px-3 py-2 text-xs leading-relaxed text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100">
-        Le Vendeur est seul responsable de la collecte, déclaration et reversement de la TVA.
-        Affisell prélève 12&nbsp;% sur le montant HT (produits et livraison), jamais sur la TVA.
+        {t("vatNotice")}
       </p>
       <ol className="mt-5 space-y-3">
         {steps.map((step, index) => {
-          const href = step.id === "share" ? shareHref : step.href!
+          const Icon = stepIcons[step.id]
           const done = false
+          const labelKey =
+            step.id === "create" ? "stepCreate" : step.id === "publish" ? "stepPublish" : "stepShare"
           return (
             <li key={step.id} className="flex items-start gap-3">
               {done ? (
@@ -61,17 +50,17 @@ export function SupplierOnboardingChecklist({ storeSlug }: Props) {
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
                   <span className="text-zinc-400">{index + 1}. </span>
-                  {step.label}
+                  {t(labelKey)}
                 </p>
                 <Link
-                  href={href}
+                  href={step.href}
                   className={cn(
                     buttonVariants({ variant: "outline", size: "sm" }),
                     "mt-2 gap-1.5 border-violet-200"
                   )}
                 >
-                  <step.Icon className="h-3.5 w-3.5" aria-hidden />
-                  Commencer
+                  <Icon className="h-3.5 w-3.5" aria-hidden />
+                  {t("start")}
                 </Link>
               </div>
             </li>

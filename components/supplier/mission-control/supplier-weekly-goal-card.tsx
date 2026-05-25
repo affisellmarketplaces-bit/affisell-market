@@ -1,17 +1,23 @@
+import { getTranslations } from "next-intl/server"
+
 import {
   WEEKLY_GOAL_BAR_SEGMENTS,
   type SupplierWeeklyGoalSnapshot,
 } from "@/lib/supplier-weekly-goal-shared"
-import { formatStoreCurrencyFromCents } from "@/lib/market-config"
+import { formatMoneyFromCents } from "@/lib/app-locale-format"
+import type { AppLocale } from "@/lib/i18n-locale"
 import { cn } from "@/lib/utils"
 
 type Props = {
   goal: SupplierWeeklyGoalSnapshot
+  locale: AppLocale
 }
 
-export function SupplierWeeklyGoalCard({ goal }: Props) {
-  const gmvLabel = formatStoreCurrencyFromCents(goal.weekGmvCents, { maximumFractionDigits: 0 })
-  const targetLabel = formatStoreCurrencyFromCents(goal.goalCents, { maximumFractionDigits: 0 })
+export async function SupplierWeeklyGoalCard({ goal, locale }: Props) {
+  const t = await getTranslations("supplierDashboard.weeklyGoal")
+
+  const gmvLabel = formatMoneyFromCents(goal.weekGmvCents, locale, { maximumFractionDigits: 0 })
+  const targetLabel = formatMoneyFromCents(goal.goalCents, locale, { maximumFractionDigits: 0 })
   const pctLabel = `${goal.progressPct}%`
 
   return (
@@ -21,13 +27,18 @@ export function SupplierWeeklyGoalCard({ goal }: Props) {
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <p id="weekly-goal-heading" className="text-3xl font-semibold tabular-nums tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-4xl">
+          <p
+            id="weekly-goal-heading"
+            className="text-3xl font-semibold tabular-nums tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-4xl"
+          >
             {gmvLabel}{" "}
-            <span className="text-lg font-medium text-zinc-500 dark:text-zinc-400 sm:text-xl">CA</span>
+            <span className="text-lg font-medium text-zinc-500 dark:text-zinc-400 sm:text-xl">
+              {t("revenueLabel")}
+            </span>
           </p>
           <p className="mt-2 text-sm font-medium text-violet-900 dark:text-violet-200">
-            Nouveau store <span aria-hidden>🎉</span>
-            <span className="text-zinc-500 dark:text-zinc-400"> · Objectif semaine : </span>
+            {t("newStore")} <span aria-hidden>🎉</span>
+            <span className="text-zinc-500 dark:text-zinc-400"> · {t("weekTarget")} </span>
             <span className="text-zinc-800 dark:text-zinc-100">{targetLabel}</span>
           </p>
         </div>
@@ -41,7 +52,7 @@ export function SupplierWeeklyGoalCard({ goal }: Props) {
           aria-valuenow={goal.progressPct}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-label={`Progression objectif hebdomadaire : ${pctLabel}`}
+          aria-label={t("progressAria", { pct: pctLabel })}
         >
           {Array.from({ length: WEEKLY_GOAL_BAR_SEGMENTS }, (_, i) => (
             <span
