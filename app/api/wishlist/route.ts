@@ -10,26 +10,70 @@ function dropPercent(current: number, previous: number | null): number {
   return Math.max(1, Math.round(((previous - current) / previous) * 100))
 }
 
-async function currentPriceForProduct(productId: string): Promise<number | null> {
-  const listing = await prisma.affiliateProduct.findFirst({
+async function currentPricesForProducts(productIds: string[]): Promise<Map<string, number>> {
+  const map = new Map<string, number>()
+  if (productIds.length === 0) return map
+
+  const listings = await prisma.affiliateProduct.findMany({
     where: {
-      productId,
+      productId: { in: productIds },
       isListed: true,
       product: { active: true },
       ...affiliateRoleMarketplaceWhere,
     },
+    select: { productId: true, sellingPriceCents: true },
     orderBy: { id: "asc" },
-    select: { sellingPriceCents: true },
   })
-  return listing?.sellingPriceCents ?? null
+  for (const row of listings) {
+    if (!map.has(row.productId)) map.set(row.productId, row.sellingPriceCents)
+  }
+  return map
+}
+
+async function currentPriceForProduct(productId: string): Promise<number | null> {
+  const map = await currentPricesForProducts([productId])
+  return map.get(productId) ?? null
 }
 
 export async function GET(req: Request) {
   const session = await auth()
   const userId = session?.user?.id
-  if (!userId) return Response.json({ wished: false, items: [] })
+  if (!userId) return Response.json({ wished: false, items: [], statuses: {} })
 
-  const productId = new URL(req.url).searchParams.get("productId")?.trim() || ""
+  const url = new URL(req.url)
+  const idsRaw = url.searchParams.get("ids")?.trim()
+  if (idsRaw) {
+    const ids = [...new Set(idsRaw.split(",").map((s) => s.trim()).filter(Boolean))].slice(0, 48)
+    if (ids.length === 0) return Response.json({ statuses: {} })
+
+    const [items, priceMap] = await Promise.all([
+      prisma.wishlist.findMany({
+        where: { userId, productId: { in: ids } },
+        select: { productId: true, previousPriceCents: true },
+      }),
+      currentPricesForProducts(ids),
+    ])
+    const itemByProduct = new Map(items.map((i) => [i.productId, i]))
+    const statuses: Record<string, { wished: boolean; dropPercent: number }> = {}
+    for (const id of ids) {
+      const item = itemByProduct.get(id)
+      if (!item) {
+        statuses[id] = { wished: false, dropPercent: 0 }
+        continue
+      }
+      const current = priceMap.get(id) ?? null
+      statuses[id] = {
+        wished: true,
+        dropPercent: current != null ? dropPercent(current, item.previousPriceCents) : 0,
+      }
+    }
+    return Response.json(
+      { statuses },
+      { headers: { "Cache-Control": "private, no-store" } }
+    )
+  }
+
+  const productId = url.searchParams.get("productId")?.trim() || ""
   if (productId) {
     const item = await prisma.wishlist.findUnique({
       where: { userId_productId: { userId, productId } },
@@ -56,19 +100,19 @@ export async function GET(req: Request) {
       product: { select: { name: true, images: true } },
     },
   })
-  const priced = await Promise.all(
-    rows.map(async (r) => {
-      const currentPriceCents = await currentPriceForProduct(r.productId)
-      return {
-        productId: r.productId,
-        name: r.product.name,
-        imageUrl: r.product.images[0] ?? null,
-        targetPriceCents: r.targetPriceCents,
-        currentPriceCents,
-        dropPercent: currentPriceCents != null ? dropPercent(currentPriceCents, r.previousPriceCents) : 0,
-      }
-    })
-  )
+  const priceMap = await currentPricesForProducts(rows.map((r) => r.productId))
+  const priced = rows.map((r) => {
+    const currentPriceCents = priceMap.get(r.productId) ?? null
+    return {
+      productId: r.productId,
+      name: r.product.name,
+      imageUrl: r.product.images[0] ?? null,
+      targetPriceCents: r.targetPriceCents,
+      currentPriceCents,
+      dropPercent:
+        currentPriceCents != null ? dropPercent(currentPriceCents, r.previousPriceCents) : 0,
+    }
+  })
   return Response.json({ items: priced })
 }
 

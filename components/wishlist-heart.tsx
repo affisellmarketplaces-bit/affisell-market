@@ -2,6 +2,11 @@
 
 import { useEffect, useState } from "react"
 
+import {
+  subscribeWishlistStatus,
+  type WishlistCardStatus,
+} from "@/lib/wishlist-status-batch"
+
 type Props = {
   productId: string
   className?: string
@@ -13,22 +18,11 @@ export function WishlistHeart({ productId, className }: Props) {
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
-    let active = true
-    void (async () => {
-      try {
-        const res = await fetch(`/api/wishlist?productId=${encodeURIComponent(productId)}`)
-        if (!res.ok) return
-        const data = (await res.json()) as { wished?: boolean; dropPercent?: number }
-        if (!active) return
-        setWished(Boolean(data.wished))
-        setDropPercent(Number(data.dropPercent ?? 0))
-      } catch {
-        // ignore
-      }
-    })()
-    return () => {
-      active = false
+    const apply = (status: WishlistCardStatus) => {
+      setWished(status.wished)
+      setDropPercent(status.dropPercent)
     }
+    return subscribeWishlistStatus(productId, apply)
   }, [productId])
 
   async function toggle() {
@@ -45,7 +39,9 @@ export function WishlistHeart({ productId, className }: Props) {
           typeof window !== "undefined"
             ? `${window.location.pathname}${window.location.search}`
             : "/"
-        window.location.href = `/signup/customer?callbackUrl=${encodeURIComponent(returnTo)}`
+        window.location.assign(
+          `/signup/customer?callbackUrl=${encodeURIComponent(returnTo)}`
+        )
         return
       }
       if (!res.ok) return

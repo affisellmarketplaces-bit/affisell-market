@@ -78,6 +78,8 @@ export function MarketplaceView({
     catalogTotal?: number
   }>(["/api/categories", locale], () => categoryFetcher("/api/categories"), {
     refreshInterval: 300_000,
+    revalidateOnFocus: false,
+    dedupingInterval: 60_000,
   })
   const userRole = useUserRole()
   const previewAsCustomer = usePreviewAsCustomer()
@@ -113,7 +115,8 @@ export function MarketplaceView({
     setDbUnavailable(null)
     const url = qs ? `/api/marketplace/products?${qs}` : `/api/marketplace/products`
 
-    fetch(url)
+    const controller = new AbortController()
+    fetch(url, { signal: controller.signal })
       .then(async (r) => {
         const data = (await r.json()) as {
           products?: unknown
@@ -129,6 +132,7 @@ export function MarketplaceView({
         setDbUnavailable("Could not load listings")
       })
       .finally(() => setLoading(false))
+    return () => controller.abort()
   }, [searchParams])
 
   const handleCategoryClick = (catId: string, subId?: string) => {

@@ -69,14 +69,11 @@ export function MarketplaceListingCard({
   }
 
   async function buyNow(listingId: string) {
-    const res = await fetch("/api/checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ productId: listingId, qty: 1 }),
-      credentials: "include",
-    })
-    const data = (await res.json()) as { url?: string; error?: string }
-    if (data.url) window.location.href = data.url
+    const { startFastCheckout } = await import("@/lib/fast-checkout-client")
+    await startFastCheckout(
+      { productId: listingId, qty: 1 },
+      { loginCallbackUrl: `/marketplace/${listingId}` }
+    )
   }
 
   return (

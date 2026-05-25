@@ -67,11 +67,18 @@ export async function GET() {
       })),
     }))
 
-    return NextResponse.json({
-      categories: localizeCategoryTree(categoriesWithCounts, locale),
-      locale,
-      catalogTotal,
-    })
+    return NextResponse.json(
+      {
+        categories: localizeCategoryTree(categoriesWithCounts, locale),
+        locale,
+        catalogTotal,
+      },
+      {
+        headers: {
+          "Cache-Control": "private, max-age=30, stale-while-revalidate=120",
+        },
+      }
+    )
   } catch (e) {
     console.error("[api/categories]", e)
     const staticCats = staticMarketplaceCategories()

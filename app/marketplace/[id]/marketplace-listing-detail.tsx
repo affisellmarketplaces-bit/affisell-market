@@ -691,24 +691,19 @@ export function MarketplaceListingDetail({
     setBuyBusy(true)
     try {
       const applied = Math.min(Math.max(0, Math.round(useRewardCents)), maxApplicableReward)
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const { startFastCheckout } = await import("@/lib/fast-checkout-client")
+      const result = await startFastCheckout(
+        {
           productId: listingId,
           qty: purchaseQty,
           useRewardCents: applied,
           selectedColor: selectedColor ?? undefined,
           selectedSize: selectedSize ?? undefined,
-        }),
-        credentials: "include",
-      })
-      if (res.status === 401) {
-        router.push(`/login?callbackUrl=${encodeURIComponent(`/marketplace/${listingId}`)}`)
-        return
-      }
-      const data = (await res.json()) as { url?: string }
-      if (data.url) window.location.href = data.url
+        },
+        { loginCallbackUrl: `/marketplace/${listingId}` }
+      )
+      if (result.ok && result.redirected) return
+      if (result.reason === "auth") return
     } finally {
       setBuyBusy(false)
     }
