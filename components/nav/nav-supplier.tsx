@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation"
 import { useTranslations } from "next-intl"
-import { LayoutDashboard, Package, ShoppingCart } from "lucide-react"
+import { Handshake, LayoutDashboard, Package, ShoppingCart } from "lucide-react"
 
 import { LocaleSwitcher } from "@/components/locale-switcher"
 import { FastLink } from "@/components/navigation/fast-link"
@@ -19,6 +19,7 @@ export function NavSupplier() {
     pathname === "/dashboard/supplier" || pathname.startsWith("/dashboard/supplier?")
   const onOrders = pathname.startsWith("/dashboard/supplier/orders")
   const onProducts = pathname.startsWith("/dashboard/supplier/products")
+  const onInviteAffiliate = pathname.startsWith("/dashboard/supplier/invite-affiliate")
 
   return (
     <nav className="mx-auto flex max-w-7xl flex-wrap items-center gap-2 px-1 py-1 text-sm md:flex-nowrap md:gap-3">
@@ -33,6 +34,12 @@ export function NavSupplier() {
         <NavPill href="/dashboard/supplier" label={t("dashboard")} icon={LayoutDashboard} active={onDashboard} />
         <NavPill href="/dashboard/supplier/orders" label={t("orders")} icon={ShoppingCart} active={onOrders} />
         <NavPill href="/dashboard/supplier/products" label={t("products")} icon={Package} active={onProducts} />
+        <NavPill
+          href="/dashboard/supplier/invite-affiliate"
+          label={t("inviteAffiliate")}
+          icon={Handshake}
+          active={onInviteAffiliate}
+        />
       </div>
 
       <div className="order-3 flex w-full flex-wrap items-center justify-end gap-2 md:order-4 md:ml-auto md:w-auto">

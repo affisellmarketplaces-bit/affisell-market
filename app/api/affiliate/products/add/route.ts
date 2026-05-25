@@ -254,6 +254,22 @@ export async function POST(request: Request) {
       },
     })
 
+    if (isListed && !saveDraft) {
+      const { onAffiliateListingLiveFromSupplierInvite } = await import(
+        "@/lib/supplier-affiliate-invitation"
+      )
+      void onAffiliateListingLiveFromSupplierInvite({
+        affiliateId: session.user.id,
+        listingId: row.id,
+        productId: product.id,
+        productName: product.name,
+        commissionRate: Number(product.commissionRate) || 0,
+        variants: product.variants,
+        basePriceCents: product.basePriceCents,
+        images: product.images as string[],
+      }).catch((e) => console.error("[affiliate-invite] listing hook failed", e))
+    }
+
     return NextResponse.json(row, { status: 201 })
   } catch (e: unknown) {
     const code = typeof e === "object" && e && "code" in e ? (e as { code: string }).code : ""

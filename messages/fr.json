@@ -31,7 +31,8 @@
       "badge": "Fournisseur",
       "dashboard": "Tableau de bord",
       "orders": "Commandes",
-      "products": "Produits"
+      "products": "Produits",
+      "inviteAffiliate": "Inviter affilié"
     }
   },
   "PublicNav": {

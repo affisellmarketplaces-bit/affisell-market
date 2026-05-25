@@ -8,6 +8,7 @@ describe("isStaticAppPathname", () => {
     expect(isStaticAppPathname("/contact")).toBe(true)
     expect(isStaticAppPathname("/dashboard/supplier")).toBe(true)
     expect(isStaticAppPathname("/invite/supplier/INV-ABC")).toBe(true)
+    expect(isStaticAppPathname("/invite/affiliate/IAF-ABC")).toBe(true)
   })
 
   it("does not treat locale codes as static app paths", () => {

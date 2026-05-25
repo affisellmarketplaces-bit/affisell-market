@@ -339,6 +339,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           })
         }
       }
+
+      if (u?.role === "AFFILIATE") {
+        const { consumeAffiliateInviteTokenCookie } = await import("@/lib/affiliate-invite-cookie")
+        const inviteToken = await consumeAffiliateInviteTokenCookie()
+        if (inviteToken) {
+          const { claimAffiliateInvitationForUser } = await import("@/lib/supplier-affiliate-invitation")
+          await claimAffiliateInvitationForUser(inviteToken, u.id).catch((e) => {
+            console.error("[auth] affiliate invite claim failed", e)
+          })
+        }
+      }
     },
   },
 })

@@ -90,6 +90,11 @@ model User {
   affiliateSupplierInvitations AffiliateSupplierInvitation[] @relation("AffiliateSupplierInvites")
   /** Set when this supplier registered via an affiliate invite link. */
   supplierInvitationFrom       AffiliateSupplierInvitation?  @relation("SupplierFromInvite")
+
+  /** Invitations sent to onboard affiliates (supplier → affiliate collaboration). */
+  supplierAffiliateInvitations SupplierAffiliateInvitation[] @relation("SupplierAffiliateInvites")
+  /** Set when this affiliate registered via a supplier invite link. */
+  affiliateInvitationFrom      SupplierAffiliateInvitation?  @relation("AffiliateFromSupplierInvite")
 }
 
 /**
@@ -1089,6 +1094,36 @@ model AffiliateSupplierInvitation {
   updatedAt            DateTime  @updatedAt
 
   @@index([affiliateId, createdAt])
+  @@index([status])
+}
+
+/**
+ * Supplier-shared link inviting an affiliate to join Affisell and list the supplier's SKUs.
+ * Public token in URL (`/invite/affiliate/[token]`).
+ */
+model SupplierAffiliateInvitation {
+  id                   String    @id @default(cuid())
+  /** Public slug, e.g. IAF-XXXXXXXXXXXX */
+  token                String    @unique
+  supplierId           String
+  supplier             User      @relation("SupplierAffiliateInvites", fields: [supplierId], references: [id], onDelete: Cascade)
+  headline             String    @default("")
+  personalMessage      String    @default("") @db.Text
+  offeredCommissionPct Float?
+  categoryHint         String?
+  /** OPEN → REGISTERED (signup) → LISTING_LIVE (first public listing of inviter SKU). */
+  status               String    @default("OPEN")
+  viewCount            Int       @default(0)
+  affiliateId          String?   @unique
+  affiliate            User?     @relation("AffiliateFromSupplierInvite", fields: [affiliateId], references: [id], onDelete: SetNull)
+  registeredAt         DateTime?
+  firstListingId       String?
+  listingLiveAt        DateTime?
+  expiresAt            DateTime
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@index([supplierId, createdAt])
   @@index([status])
 }
 

@@ -31,7 +31,8 @@
       "badge": "Supplier",
       "dashboard": "Dashboard",
       "orders": "Orders",
-      "products": "Products"
+      "products": "Products",
+      "inviteAffiliate": "Invite affiliate"
     }
   },
   "PublicNav": {

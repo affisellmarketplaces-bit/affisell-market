@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs"
 
 import { prisma } from "@/lib/prisma"
 import { ensureMerchantStore } from "@/lib/ensure-store"
+import { claimAffiliateInvitationForUser } from "@/lib/supplier-affiliate-invitation"
 import { claimSupplierInvitationForUser } from "@/lib/supplier-invitation"
 
 export const runtime = "nodejs"
@@ -76,6 +77,12 @@ export async function POST(req: Request) {
     if (resolvedRole === "SUPPLIER" && typeof inviteToken === "string" && inviteToken.trim()) {
       await claimSupplierInvitationForUser(inviteToken.trim(), user.id).catch((e) => {
         console.error("[signup] supplier invite claim failed", e)
+      })
+    }
+
+    if (resolvedRole === "AFFILIATE" && typeof inviteToken === "string" && inviteToken.trim()) {
+      await claimAffiliateInvitationForUser(inviteToken.trim(), user.id).catch((e) => {
+        console.error("[signup] affiliate invite claim failed", e)
       })
     }
 

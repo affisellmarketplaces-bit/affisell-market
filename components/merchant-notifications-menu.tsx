@@ -8,6 +8,7 @@ import { createPortal } from "react-dom"
 import { buttonVariants } from "@/components/ui/button"
 import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
 import { SUPPLIER_INVITE_NOTIF } from "@/lib/supplier-invite-notif-constants"
+import { SUPPLIER_AFFILIATE_INVITE_NOTIF } from "@/lib/supplier-affiliate-invite-notif-constants"
 import { cn } from "@/lib/utils"
 
 type NotificationRow = {
@@ -39,7 +40,10 @@ const config: Record<
     ordersHref: "/dashboard/supplier/orders",
     ordersLinkLabel: "Open orders to ship",
     emptyLabel: "No notifications yet.",
-    showOrdersLink: (n) => n.type === "NEW_ORDER" && Boolean(n.orderId),
+    showOrdersLink: (n) =>
+      n.type === "NEW_ORDER" ||
+      n.type === SUPPLIER_AFFILIATE_INVITE_NOTIF.REGISTERED ||
+      n.type === SUPPLIER_AFFILIATE_INVITE_NOTIF.LISTING_LIVE,
   },
   AFFILIATE: {
     apiPath: "/api/affiliate/notifications",
@@ -202,7 +206,11 @@ export function MerchantNotificationsMenu({
                             ? AFFILIATE_CATALOG_PATH
                             : role === "AFFILIATE" && n.type === SUPPLIER_INVITE_NOTIF.REGISTERED
                               ? "/dashboard/affiliate/invite-supplier"
-                              : cfg.ordersHref
+                              : role === "SUPPLIER" &&
+                                  (n.type === SUPPLIER_AFFILIATE_INVITE_NOTIF.REGISTERED ||
+                                    n.type === SUPPLIER_AFFILIATE_INVITE_NOTIF.LISTING_LIVE)
+                                ? "/dashboard/supplier/invite-affiliate"
+                                : cfg.ordersHref
                         }
                         className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-violet-700 hover:underline dark:text-violet-400"
                         onClick={() => setOpen(false)}
@@ -218,7 +226,11 @@ export function MerchantNotificationsMenu({
                               (n.type === SUPPLIER_INVITE_NOTIF.CATALOG_LIVE ||
                                 n.type === SUPPLIER_INVITE_NOTIF.NEW_SUPPLIER_CATALOG)
                             ? "Parcourir le catalogue"
-                            : cfg.ordersLinkLabel}
+                            : role === "SUPPLIER" &&
+                                (n.type === SUPPLIER_AFFILIATE_INVITE_NOTIF.REGISTERED ||
+                                  n.type === SUPPLIER_AFFILIATE_INVITE_NOTIF.LISTING_LIVE)
+                              ? "Voir les invitations affilié"
+                              : cfg.ordersLinkLabel}
                       </Link>
                     ) : null}
                   </div>

@@ -6,5 +6,5 @@ export function isPrismaSchemaMissingError(error: unknown): boolean {
     return error.code === "P2021" || error.code === "P2022"
   }
   const msg = error instanceof Error ? error.message : String(error)
-  return /does not exist|AffiliateSupplierInvitation/i.test(msg)
+  return /does not exist|AffiliateSupplierInvitation|SupplierAffiliateInvitation/i.test(msg)
 }
