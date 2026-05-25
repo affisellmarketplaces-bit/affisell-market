@@ -34,7 +34,8 @@
       "dashboard": "Tableau de bord",
       "orders": "Commandes",
       "products": "Produits",
-      "inviteAffiliate": "Inviter affilié"
+      "inviteAffiliate": "Inviter affilié",
+      "inviteAffiliateShort": "Inviter"
     }
   },
   "PublicNav": {

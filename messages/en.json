@@ -34,7 +34,8 @@
       "dashboard": "Dashboard",
       "orders": "Orders",
       "products": "Products",
-      "inviteAffiliate": "Invite affiliate"
+      "inviteAffiliate": "Invite affiliate",
+      "inviteAffiliateShort": "Invite"
     }
   },
   "PublicNav": {
