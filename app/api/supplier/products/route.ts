@@ -21,11 +21,8 @@ import {
   normalizeCategoryAttributeValues,
   validateVisibleCategoryAttributes,
 } from "@/lib/category-attribute-rules"
-import {
-  defaultAffiliateCommissionPct,
-  normalizeAffiliateCommissionRatePct,
-  parseListingKind,
-} from "@/lib/supplier-commission"
+import { parseListingKind } from "@/lib/supplier-commission"
+import { productCommissionRateForSave } from "@/lib/supplier-product-commission-save"
 import {
   parseCustomColumnsFromBody,
   validateVariantsCustomData,
@@ -107,14 +104,6 @@ export async function POST(req: Request) {
 
   const listingKind = parseListingKind((body as Record<string, unknown>).listingKind)
   const commRaw = commission ?? commissionRate
-  const commFallback = Number.isFinite(Number(commRaw)) ? Number(commRaw) : defaultAffiliateCommissionPct()
-  const normalized = normalizeAffiliateCommissionRatePct(commFallback, listingKind)
-  let rate = defaultAffiliateCommissionPct()
-  if (normalized.ok) {
-    rate = normalized.rate
-  } else if (!saveAsDraft) {
-    return Response.json({ error: normalized.error }, { status: 400 })
-  }
 
   let compareAt: Prisma.Decimal | null = null
   if (saveAsDraft) {
@@ -216,6 +205,22 @@ export async function POST(req: Request) {
     }
   } else if (!saveAsDraft && cents <= 0) {
     return Response.json({ error: "Missing price" }, { status: 400 })
+  }
+
+  const variantCommissionRates =
+    variantSync?.hasVariants && variantSync.variants.length > 0
+      ? variantSync.variants.map((v) => v.commissionRate)
+      : undefined
+  const commissionResolved = productCommissionRateForSave({
+    topLevelRaw: commRaw,
+    variantCommissionRates,
+    listingKind,
+  })
+  let rate = 0
+  if (commissionResolved.ok) {
+    rate = commissionResolved.rate
+  } else if (!saveAsDraft) {
+    return Response.json({ error: commissionResolved.error }, { status: 400 })
   }
 
   const product = await prisma.$transaction(async (tx) => {

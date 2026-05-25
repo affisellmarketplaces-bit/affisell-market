@@ -18,6 +18,15 @@ export function defaultAffiliateCommissionPct(): number {
   return 15
 }
 
+/** Highest commission % among SKU lines (affiliate catalog headline rate). */
+export function maxAffiliateCommissionRatePct(rates: number[]): number {
+  const valid = rates
+    .map((n) => Math.round(Number(n)))
+    .filter((n) => Number.isFinite(n) && n >= 0)
+  if (valid.length === 0) return 0
+  return Math.min(100, Math.max(...valid))
+}
+
 export function normalizeAffiliateCommissionRatePct(
   raw: unknown,
   listingKind: ListingKind

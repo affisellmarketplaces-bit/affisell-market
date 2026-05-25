@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client"
 
+import { affiliateCommissionDisplayPct } from "@/lib/affiliate-product-commission-display"
 import { affiliateDiscoverCardSelect } from "@/lib/affiliate-dashboard-data"
 import { buildCategoryScopeProductFilter } from "@/lib/marketplace-category-product-filter"
 import { prisma } from "@/lib/prisma"
@@ -72,7 +73,11 @@ function normalizeCatalogRow(row: DiscoverRow): AffiliateCatalogProduct {
     colors: row.colors ?? [],
     tags: row.tags ?? [],
     basePriceCents: row.basePriceCents,
-    commissionRate: Number(row.commissionRate) || 0,
+    commissionRate: affiliateCommissionDisplayPct({
+      commissionRate: Number(row.commissionRate) || 0,
+      variants: row.variants,
+      basePriceCents: row.basePriceCents,
+    }),
     deliveryMax: row.deliveryMax,
     createdAt: row.createdAt.toISOString(),
     affiliateProducts: (row.affiliateProducts ?? []).map((a) => ({

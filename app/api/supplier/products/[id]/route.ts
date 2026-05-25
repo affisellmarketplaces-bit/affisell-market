@@ -15,11 +15,8 @@ import {
 import { parseProductMarketplaceMeta } from "@/lib/supplier-product-marketplace-meta"
 import { parseSupplierProductShippingBody } from "@/lib/supplier-product-shipping"
 import { parseSupplierProductImages } from "@/lib/supplier-product-images"
-import {
-  defaultAffiliateCommissionPct,
-  normalizeAffiliateCommissionRatePct,
-  parseListingKind,
-} from "@/lib/supplier-commission"
+import { parseListingKind } from "@/lib/supplier-commission"
+import { productCommissionRateForSave } from "@/lib/supplier-product-commission-save"
 import {
   parseCustomColumnsFromBody,
   parseCustomColumnsFromDb,
@@ -140,7 +137,7 @@ export async function PUT(
   const listingKind = parseListingKind(body.listingKind ?? existingRow.listingKind)
   let priceCents: number
   let compareAt: Prisma.Decimal | null = null
-  let rate: number
+  let rate = existingRow.commissionRate
   let nameResolved: string
   let stock: number
   const draftUpdateOnly = existingRow.isDraft && !publish
@@ -152,13 +149,6 @@ export async function PUT(
       : Math.max(100, existingRow.basePriceCents)
 
     compareAt = parseCompareAtDraftLax(priceCents, body.compareAt ?? null)
-
-    const commRaw = body.commission
-    const commFallback = Number.isFinite(Number(commRaw))
-      ? Number(commRaw)
-      : existingRow.commissionRate
-    const normalized = normalizeAffiliateCommissionRatePct(commFallback, listingKind)
-    rate = normalized.ok ? normalized.rate : defaultAffiliateCommissionPct()
 
     const rawName = typeof body.name === "string" ? body.name.trim() : ""
     nameResolved = (rawName || "Untitled draft").slice(0, 500)
@@ -187,16 +177,6 @@ export async function PUT(
       return Response.json({ error: strict.error }, { status: 400 })
     }
     compareAt = strict.decimal
-
-    const commRaw = body.commission
-    const commFallback = Number.isFinite(Number(commRaw))
-      ? Number(commRaw)
-      : existingRow.commissionRate
-    const normalized = normalizeAffiliateCommissionRatePct(commFallback, listingKind)
-    if (!normalized.ok) {
-      return Response.json({ error: normalized.error }, { status: 400 })
-    }
-    rate = normalized.rate
 
     stock = Math.max(
       0,
@@ -286,6 +266,26 @@ export async function PUT(
         cols,
         rawSkuVariants
       )
+    }
+  }
+
+  const hasCommissionInput = "commission" in body || "commissionRate" in rawBody
+  const variantCommissionRates =
+    variantPatch && !("error" in variantPatch) && variantPatch.hasVariants && variantPatch.variants.length > 0
+      ? variantPatch.variants.map((v) => v.commissionRate)
+      : undefined
+  if (hasCommissionInput || (variantCommissionRates?.length ?? 0) > 0) {
+    const commissionResolved = productCommissionRateForSave({
+      topLevelRaw: hasCommissionInput ? body.commission : undefined,
+      variantCommissionRates,
+      listingKind,
+      fallbackRate: existingRow.commissionRate,
+    })
+    if (!commissionResolved.ok && !draftUpdateOnly) {
+      return Response.json({ error: commissionResolved.error }, { status: 400 })
+    }
+    if (commissionResolved.ok) {
+      rate = commissionResolved.rate
     }
   }
 
@@ -456,7 +456,7 @@ export async function PATCH(
 
   const existingRow = await prisma.product.findFirst({
     where: { id, supplierId: session.user.id },
-    select: { basePriceCents: true, variants: true, listingKind: true },
+    select: { basePriceCents: true, variants: true, listingKind: true, commissionRate: true },
   })
   if (!existingRow) {
     return Response.json({ error: "Not found" }, { status: 404 })
@@ -464,13 +464,23 @@ export async function PATCH(
 
   const commRaw = rawBody.commission ?? rawBody.commissionRate
   const listingKind = parseListingKind(rawBody.listingKind ?? existingRow.listingKind)
+  const hasCommissionInput = commRaw != null && Number.isFinite(Number(commRaw))
+  const variantCommissionRates =
+    variantPatch.hasVariants && variantPatch.variants.length > 0
+      ? variantPatch.variants.map((v) => v.commissionRate)
+      : undefined
   let commissionUpdate: number | undefined
-  if (commRaw != null && Number.isFinite(Number(commRaw))) {
-    const normalized = normalizeAffiliateCommissionRatePct(Number(commRaw), listingKind)
-    if (!normalized.ok) {
-      return Response.json({ error: normalized.error }, { status: 400 })
+  if (hasCommissionInput || (variantCommissionRates?.length ?? 0) > 0) {
+    const commissionResolved = productCommissionRateForSave({
+      topLevelRaw: hasCommissionInput ? Number(commRaw) : undefined,
+      variantCommissionRates,
+      listingKind,
+      fallbackRate: existingRow.commissionRate,
+    })
+    if (!commissionResolved.ok) {
+      return Response.json({ error: commissionResolved.error }, { status: 400 })
     }
-    commissionUpdate = normalized.rate
+    commissionUpdate = commissionResolved.rate
   }
 
   let priceCentsForCompare = existingRow.basePriceCents

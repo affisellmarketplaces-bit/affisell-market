@@ -43,6 +43,7 @@ import {
   affiliateCommissionMaxPct,
   type ListingKind,
   LISTING_KINDS,
+  maxAffiliateCommissionRatePct,
 } from "@/lib/supplier-commission"
 import {
   pathFromLeafId,
@@ -457,15 +458,20 @@ export function SupplierAddProductForm({
   }, [catalogPriceEur, price, specValues.item_volume_ml])
 
   const commissionError = useMemo(() => {
+    const hasSkuLines =
+      variantFormMode === "advanced" && advancedSkuRows.some((r) => r.color.trim())
+    if (commission.trim() === "" && (variantFormMode === "none" || hasSkuLines)) {
+      return null
+    }
     const n = Number(commission)
-    if (!Number.isFinite(n)) return "Enter a valid percentage."
+    if (!Number.isFinite(n)) return "Saisissez un pourcentage valide."
     if (n < 0 || n > commissionMax) {
       return listingKind === "PHYSICAL"
-        ? `Physical goods: commission must be between 0% and ${commissionMax}%.`
-        : `Commission must be between 0% and ${commissionMax}%.`
+        ? `Produit physique : commission entre 0 % et ${commissionMax} %.`
+        : `La commission doit être entre 0 % et ${commissionMax} %.`
     }
     return null
-  }, [commission, commissionMax, listingKind])
+  }, [commission, commissionMax, listingKind, variantFormMode, advancedSkuRows])
 
   useEffect(() => {
     if (variantFormMode !== "simple") {
@@ -835,7 +841,19 @@ export function SupplierAddProductForm({
           parsedListingVariants?.skuCustomColumns
         )
         setVariantFormMode("advanced")
-        setAdvancedSkuRows(apiRows.map(skuTableRowFromApiVariant))
+        const mirrorById = new Map(
+          (parsedListingVariants?.variantRows ?? []).map((line) => [line.id, line])
+        )
+        setAdvancedSkuRows(
+          apiRows.map((row) => {
+            const sku = skuTableRowFromApiVariant(row)
+            const mirror = mirrorById.get(row.id)
+            if (mirror && Number(mirror.commission) > 0) {
+              return { ...sku, commissionRate: Math.round(mirror.commission) }
+            }
+            return sku
+          })
+        )
         setSkuCustomColumns(
           mergeCustomColumnDefinitions(dbCols, legacyCols).map((c) => ({
             ...c,
@@ -1081,7 +1099,20 @@ export function SupplierAddProductForm({
         price: priceN,
         compareAt: compareAt.trim() ? Number(compareAt) : null,
         stock: stockOut,
-        commission: Math.round(Number(commission)),
+        commission: (() => {
+          if (variantFormMode === "advanced") {
+            const filled = advancedSkuRows.filter((r) => r.color.trim())
+            if (filled.length > 0) {
+              const rates = filled.map((r) => r.commissionRate)
+              if (commission.trim() !== "" && Number.isFinite(Number(commission))) {
+                rates.push(Number(commission))
+              }
+              return maxAffiliateCommissionRatePct(rates)
+            }
+          }
+          const n = Number(commission)
+          return Number.isFinite(n) ? Math.round(n) : 0
+        })(),
         listingKind,
         images,
         categoryId: categoryId.trim(),
@@ -1714,11 +1745,14 @@ export function SupplierAddProductForm({
   const simulationSupplierPrice = useMemo(() => catalogPriceEur ?? 0, [catalogPriceEur])
 
   const simulationCommission = useMemo(() => {
-    if (variantFormMode === "advanced" && advancedSkuRows.length > 0) {
-      const row = advancedSkuRows.find((r) => r.color.trim())
-      if (row) return row.commissionRate
+    if (variantFormMode === "advanced") {
+      const filled = advancedSkuRows.filter((r) => r.color.trim())
+      if (filled.length > 0) {
+        return maxAffiliateCommissionRatePct(filled.map((r) => r.commissionRate))
+      }
     }
-    return Math.round(Number(commission) || 15)
+    const n = Number(commission)
+    return Number.isFinite(n) ? Math.round(n) : 0
   }, [variantFormMode, advancedSkuRows, commission])
 
   const simulationCard = (
@@ -2652,7 +2686,12 @@ export function SupplierAddProductForm({
                       </p>
                     </div>
                     <div>
-                      <Label htmlFor="p-comm">Commission offered (%)</Label>
+                      <Label htmlFor="p-comm">
+                        Commission proposée (%)
+                        {variantFormMode === "advanced" && advancedSkuRows.some((r) => r.color.trim())
+                          ? " — défaut nouvelles lignes"
+                          : " — facultatif"}
+                      </Label>
                       <Input
                         id="p-comm"
                         type="number"

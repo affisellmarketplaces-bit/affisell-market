@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client"
 
+import { affiliateCommissionDisplayPct } from "@/lib/affiliate-product-commission-display"
 import { prisma } from "@/lib/prisma"
 import { serializeProductDecimalFields } from "@/lib/serialize-for-client"
 
@@ -66,6 +67,7 @@ const SUPPLIER_DASHBOARD_CATALOG_SELECT_NO_ISDRAFT = {
   name: true,
   basePriceCents: true,
   commissionRate: true,
+  variants: true,
   listingKind: true,
   stock: true,
   active: true,
@@ -118,12 +120,25 @@ export type SupplierDashboardCatalogProduct = Omit<
 > & {
   compareAt: number | null
   isDraft: boolean
+  /** Max commission across SKU lines when applicable (affiliate-facing headline %). */
+  displayCommissionRate: number
 }
 
 function serializeDashboardCatalogRow(
   row: Prisma.ProductGetPayload<{ select: typeof SUPPLIER_DASHBOARD_CATALOG_SELECT_WITH_ISDRAFT }>
 ): SupplierDashboardCatalogProduct {
-  return serializeProductDecimalFields(row) as SupplierDashboardCatalogProduct
+  const base = serializeProductDecimalFields(row) as Omit<
+    SupplierDashboardCatalogProduct,
+    "displayCommissionRate"
+  >
+  return {
+    ...base,
+    displayCommissionRate: affiliateCommissionDisplayPct({
+      commissionRate: row.commissionRate,
+      variants: row.variants,
+      basePriceCents: row.basePriceCents,
+    }),
+  }
 }
 
 export async function findSupplierProductsForDashboardCatalog(where: { supplierId: string }) {

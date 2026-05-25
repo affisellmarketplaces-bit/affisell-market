@@ -20,6 +20,7 @@ export function affiliateDiscoverCardSelect(affiliateId: string): Prisma.Product
     tags: true,
     basePriceCents: true,
     commissionRate: true,
+    variants: true,
     deliveryMax: true,
     createdAt: true,
     affiliateProducts: {

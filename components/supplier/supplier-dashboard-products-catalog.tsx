@@ -290,7 +290,7 @@ export function SupplierDashboardProductsCatalog({
                           Commission
                         </p>
                         <p className="mt-0.5 text-sm font-bold tabular-nums text-violet-950 dark:text-violet-100">
-                          {p.commissionRate}%
+                          {p.displayCommissionRate}%
                         </p>
                       </div>
                     </div>

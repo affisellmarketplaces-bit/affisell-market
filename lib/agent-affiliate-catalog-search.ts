@@ -4,6 +4,7 @@ import type {
   AffiliateAgentProductCard,
   AffiliateAgentSearchToolResult,
 } from "@/lib/agent-affiliate-product-card-types"
+import { affiliateCommissionDisplayPct } from "@/lib/affiliate-product-commission-display"
 import { affiliateDiscoverCardSelect } from "@/lib/affiliate-dashboard-data"
 import { primaryProductImage } from "@/lib/product-images"
 
@@ -23,6 +24,7 @@ function mapRow(
     images: string[]
     basePriceCents: number
     commissionRate: number
+    variants?: unknown
     categories: string[]
     affiliateProducts: { id: string; isListed: boolean }[]
     supplier: { email: string; store: { name: string; slug: string } | null }
@@ -31,6 +33,11 @@ function mapRow(
   const listing = row.affiliateProducts[0]
   const supplierLabel =
     row.supplier.store?.name?.trim() || row.supplier.email
+  const displayCommission = affiliateCommissionDisplayPct({
+    commissionRate: Number(row.commissionRate) || 0,
+    variants: row.variants,
+    basePriceCents: row.basePriceCents,
+  })
   return {
     id: row.id,
     name: row.name,
@@ -38,8 +45,8 @@ function mapRow(
     description: trimDescription(row.description ?? ""),
     supplierLabel,
     basePriceCents: row.basePriceCents,
-    commissionRate: Math.round(Number(row.commissionRate) || 0),
-    marginCents: estimateMarginCents(row.basePriceCents, row.commissionRate),
+    commissionRate: displayCommission,
+    marginCents: estimateMarginCents(row.basePriceCents, displayCommission),
     isInStore: Boolean(listing),
     listingId: listing?.id ?? null,
   }
