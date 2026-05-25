@@ -1,9 +1,34 @@
+import { redirect } from "next/navigation"
 import { Suspense } from "react"
 import { getTranslations } from "next-intl/server"
 
 import { PortalSignInForm } from "@/components/auth/portal-sign-in-form"
+import { auth } from "@/auth"
+import { sanitizeInternalCallbackUrl } from "@/lib/auth-login-portal"
+import { resolvePostLoginRedirect } from "@/lib/login-redirect"
 
-export default async function SupplierLoginPage() {
+type Props = {
+  searchParams: Promise<{ callbackUrl?: string }>
+}
+
+export default async function SupplierLoginPage({ searchParams }: Props) {
+  const sp = await searchParams
+  const callbackUrl = sanitizeInternalCallbackUrl(sp.callbackUrl)
+  const session = await auth()
+  const role = session?.user?.role
+
+  if (session?.user?.id) {
+    if (role === "SUPPLIER") {
+      redirect(resolvePostLoginRedirect("SUPPLIER", callbackUrl))
+    }
+    if (role === "AFFILIATE") {
+      redirect("/dashboard/affiliate")
+    }
+    if (role === "CUSTOMER") {
+      redirect("/shops")
+    }
+  }
+
   const t = await getTranslations("auth")
 
   return (

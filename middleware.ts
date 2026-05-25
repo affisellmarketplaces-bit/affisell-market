@@ -10,6 +10,7 @@ import {
 } from "@/lib/affiliate-routes"
 import { LOCALE_COOKIE, localeCookieMaxAgeSec, resolveAppLocale } from "@/lib/i18n-locale"
 import { localeFromPathname, pathnameWithoutLocale } from "@/lib/locale-path"
+import { loginAffiliatePath, loginSupplierPath, resolvePostLoginRedirect } from "@/lib/login-redirect"
 import { tryCustomDomainMiddleware } from "@/lib/middleware-custom-domain"
 import { isStaticAppPathname } from "@/lib/reserved-locale-segments"
 
@@ -199,11 +200,25 @@ export async function middleware(req: NextRequest) {
       bare.startsWith("/dashboard/affiliate/") ||
       bare.startsWith("/affiliate/")
 
+    const isLoginPath = bare === "/login" || bare.startsWith("/login/")
+
+    if (isLoginPath && loggedIn && role) {
+      const callbackRaw = req.nextUrl.searchParams.get("callbackUrl")
+      const dest = new URL(resolvePostLoginRedirect(role, callbackRaw), req.url)
+      return NextResponse.redirect(dest)
+    }
+
     if (isSupplierArea) {
       if (!loggedIn) return NextResponse.redirect(loginSupplierUrl(req, path))
       if (role !== "SUPPLIER") {
         const u = new URL(req.url)
-        u.pathname = role === "AFFILIATE" ? AFFILIATE_CATALOG_PATH : "/login"
+        if (role === "AFFILIATE") {
+          u.pathname = AFFILIATE_CATALOG_PATH
+        } else if (role === "CUSTOMER") {
+          u.pathname = "/shops"
+        } else {
+          return NextResponse.redirect(new URL(loginSupplierPath(path), req.url))
+        }
         u.search = ""
         return NextResponse.redirect(u)
       }
@@ -213,9 +228,17 @@ export async function middleware(req: NextRequest) {
       if (!loggedIn) return NextResponse.redirect(loginAffiliateUrl(req, path))
       if (role !== "AFFILIATE") {
         const u = new URL(req.url)
-        u.pathname = role === "SUPPLIER" ? "/dashboard/supplier" : "/login"
-        u.search = ""
-        return NextResponse.redirect(u)
+        if (role === "SUPPLIER") {
+          u.pathname = "/dashboard/supplier"
+          u.search = ""
+          return NextResponse.redirect(u)
+        }
+        if (role === "CUSTOMER") {
+          u.pathname = "/shops"
+          u.search = ""
+          return NextResponse.redirect(u)
+        }
+        return NextResponse.redirect(new URL(loginAffiliatePath(path), req.url))
       }
     }
 
