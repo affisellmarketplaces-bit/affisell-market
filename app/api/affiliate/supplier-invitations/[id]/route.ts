@@ -1,6 +1,7 @@
 import { z } from "zod"
 
 import { auth } from "@/auth"
+import { isPrismaSchemaMissingError } from "@/lib/prisma-schema-error"
 import { updateAffiliateSupplierInvitationById } from "@/lib/supplier-invitation"
 
 export const runtime = "nodejs"
@@ -40,10 +41,23 @@ export async function PATCH(
     return Response.json({ error: "Invalid body" }, { status: 400 })
   }
 
-  const invitation = await updateAffiliateSupplierInvitationById(session.user.id, id, parsed.data)
-  if (!invitation) {
-    return Response.json({ error: "Not found or not editable" }, { status: 404 })
+  try {
+    const invitation = await updateAffiliateSupplierInvitationById(session.user.id, id, parsed.data)
+    if (!invitation) {
+      return Response.json({ error: "Not found or not editable" }, { status: 404 })
+    }
+    return Response.json({ invitation })
+  } catch (error) {
+    console.error("[supplier-invitations PATCH]", error)
+    if (isPrismaSchemaMissingError(error)) {
+      return Response.json(
+        {
+          error: "Supplier invitations are not available yet. Run database migrations.",
+          schemaPending: true,
+        },
+        { status: 503 }
+      )
+    }
+    return Response.json({ error: "Failed to update invitation" }, { status: 500 })
   }
-
-  return Response.json({ invitation })
 }

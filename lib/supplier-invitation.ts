@@ -4,14 +4,16 @@ import { requireMerchantUserId } from "@/lib/merchant-tenant-scope"
 import { prisma } from "@/lib/prisma"
 import { ensureInviterDraftListingForInvite } from "@/lib/supplier-invitation-affiliate-listing"
 import {
-  notifySupplierInvitationCatalogLive,
-  notifySupplierInvitationRegistered,
-} from "@/lib/supplier-invitation-notifications"
-import {
   allocateUniqueSupplierInviteToken,
   normalizeSupplierInviteToken,
 } from "@/lib/supplier-invitation-token"
 import { supplierInvitationPublicUrl } from "@/lib/supplier-invitation-url"
+import type {
+  AffiliateInvitationListItem,
+  PublicSupplierInvitationPayload,
+} from "@/lib/supplier-invitation-types"
+
+export type { AffiliateInvitationListItem, PublicSupplierInvitationPayload } from "@/lib/supplier-invitation-types"
 
 export const SUPPLIER_INVITE_STATUS = {
   OPEN: "OPEN",
@@ -20,22 +22,6 @@ export const SUPPLIER_INVITE_STATUS = {
 } as const
 
 export const SUPPLIER_INVITE_TTL_DAYS = 90
-
-export type PublicSupplierInvitationPayload = {
-  token: string
-  status: string
-  expired: boolean
-  headline: string
-  personalMessage: string
-  offeredCommissionPct: number | null
-  categoryHint: string | null
-  affiliate: {
-    name: string
-    slug: string | null
-    logoUrl: string | null
-    tiktok: string | null
-  }
-}
 
 function inviteExpiresAt(from = new Date()): Date {
   const d = new Date(from)
@@ -227,7 +213,9 @@ export async function updateAffiliateSupplierInvitationById(
   return serializeInvitationRow(row)
 }
 
-export async function listAffiliateSupplierInvitations(affiliateUserId: string) {
+export async function listAffiliateSupplierInvitations(
+  affiliateUserId: string
+): Promise<AffiliateInvitationListItem[]> {
   const affiliateId = requireMerchantUserId(affiliateUserId, "affiliate")
   const rows = await prisma.affiliateSupplierInvitation.findMany({
     where: { affiliateId },
@@ -368,6 +356,9 @@ export async function claimSupplierInvitationForUser(
 
   if (wasOpen) {
     try {
+      const { notifySupplierInvitationRegistered } = await import(
+        "@/lib/supplier-invitation-notifications"
+      )
       await notifySupplierInvitationRegistered(invite.id)
     } catch (e) {
       console.error("[supplier-invite] register notify failed", e)
@@ -411,6 +402,9 @@ export async function onSupplierProductPublishedFromInvite(args: {
   }
 
   try {
+    const { notifySupplierInvitationCatalogLive } = await import(
+      "@/lib/supplier-invitation-notifications"
+    )
     await notifySupplierInvitationCatalogLive({
       invitationId: invitation.id,
       productId: args.productId,
@@ -424,7 +418,3 @@ export async function onSupplierProductPublishedFromInvite(args: {
     console.error("[supplier-invite] catalog live notify failed", e)
   }
 }
-
-export type AffiliateInvitationListItem = Awaited<
-  ReturnType<typeof listAffiliateSupplierInvitations>
->[number]

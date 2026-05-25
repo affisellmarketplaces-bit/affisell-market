@@ -2,18 +2,10 @@ import type Stripe from "stripe"
 
 import { prisma } from "@/lib/prisma"
 
+export { appBaseUrl } from "@/lib/app-base-url"
+
 export const PRO_VIDEO_QUOTA = 999_999
 export const FREE_VIDEO_QUOTA = 3
-
-export function appBaseUrl(): string {
-  const raw =
-    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
-    process.env.APP_URL?.trim() ||
-    process.env.VERCEL_URL?.trim()
-  if (!raw) return "http://localhost:3001"
-  if (raw.startsWith("http")) return raw.replace(/\/$/, "")
-  return `https://${raw.replace(/\/$/, "")}`
-}
 
 function checkoutCustomerId(session: Stripe.Checkout.Session): string | null {
   return typeof session.customer === "string" ? session.customer : session.customer?.id ?? null

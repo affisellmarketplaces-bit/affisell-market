@@ -19,7 +19,7 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
-import type { PublicSupplierInvitationPayload } from "@/lib/supplier-invitation"
+import type { PublicSupplierInvitationPayload } from "@/lib/supplier-invitation-types"
 import { cn } from "@/lib/utils"
 
 type Props = {

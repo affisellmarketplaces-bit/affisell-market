@@ -18,10 +18,9 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
-import { SupplierInviteQr } from "@/components/affiliate/supplier-invite-qr"
 import { BentoCard, BentoPageHeading } from "@/components/affisell/bento-ui"
 import { buttonVariants } from "@/components/ui/button"
-import type { AffiliateInvitationListItem } from "@/lib/supplier-invitation"
+import type { AffiliateInvitationListItem } from "@/lib/supplier-invitation-types"
 import {
   buildSupplierInviteSharePayload,
   type SupplierInviteShareChannel,
@@ -57,8 +56,19 @@ export function SupplierInvitationStudio({
     setLoadingList(true)
     try {
       const res = await fetch("/api/affiliate/supplier-invitations", { cache: "no-store" })
-      if (!res.ok) return
-      const j = (await res.json()) as { invitations: AffiliateInvitationListItem[] }
+      const j = (await res.json().catch(() => ({}))) as {
+        invitations?: AffiliateInvitationListItem[]
+        error?: string
+        schemaPending?: boolean
+      }
+      if (!res.ok) {
+        if (j.schemaPending) {
+          toast.error("Invitations fournisseur : migration base de données en attente sur cet environnement.")
+        } else if (j.error) {
+          toast.error(j.error)
+        }
+        return
+      }
       setInvitations(j.invitations ?? [])
       const latest = j.invitations?.find((i) => i.status === "OPEN" && !i.expired) ?? j.invitations?.[0]
       if (latest && !latest.expired) {
@@ -105,9 +115,17 @@ export function SupplierInvitationStudio({
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
           })
-      const j = (await res.json()) as { invitation?: AffiliateInvitationListItem; error?: string }
+      const j = (await res.json().catch(() => ({}))) as {
+        invitation?: AffiliateInvitationListItem
+        error?: string
+        schemaPending?: boolean
+      }
       if (!res.ok) {
-        toast.error(j.error ?? "Impossible d'enregistrer l'invitation.")
+        toast.error(
+          j.schemaPending
+            ? "Migration base de données requise (table invitation fournisseur)."
+            : (j.error ?? "Impossible d'enregistrer l'invitation.")
+        )
         return
       }
       if (j.invitation) {

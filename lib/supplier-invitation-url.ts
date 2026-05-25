@@ -1,4 +1,4 @@
-import { appBaseUrl } from "@/lib/stripe-pro"
+import { appBaseUrl } from "@/lib/app-base-url"
 
 export function supplierInvitationPublicPath(token: string): string {
   return `/invite/supplier/${encodeURIComponent(token)}`
