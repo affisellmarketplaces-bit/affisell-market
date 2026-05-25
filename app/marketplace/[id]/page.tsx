@@ -9,6 +9,7 @@ import {
   listingDisplayTitle,
   listingGalleryUrls,
 } from "@/lib/affiliate-listing-display"
+import { normalizeListingSalesCount } from "@/lib/listing-sales-count"
 import { loadMarketplaceListingPageData } from "@/lib/marketplace-listing-page-loader"
 import { shippingCountryLabel } from "@/lib/product-shipping-display"
 import { mergeColorImagesForProduct, parseProductColorImagesFromDb } from "@/lib/product-color-images"
@@ -200,6 +201,7 @@ export default async function MarketplaceListingPage({
     rows: Array<{
       id: string
       sellingPriceCents: number
+      conversions: number
       customTitle: string | null
       customImages: string[]
       product: { name: string; images: string[] }
@@ -213,6 +215,7 @@ export default async function MarketplaceListingPage({
       title: listingDisplayTitle(r.customTitle, r.product.name),
       image: listingGalleryUrls(r.customImages, r.product.images ?? [])[0] ?? "/placeholder.png",
       priceEur: r.sellingPriceCents / 100,
+      soldCount: normalizeListingSalesCount(r.conversions),
     }))
 
   const oftenBoughtTogether = mapRelated(oftenRaw).slice(0, 3)

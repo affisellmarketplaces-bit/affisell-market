@@ -98,6 +98,28 @@ type RelatedCard = {
   title: string
   image: string
   priceEur: number
+  soldCount?: number
+}
+
+function BuyerRelatedListingTile({ p }: { p: RelatedCard }) {
+  return (
+    <Link
+      href={p.href}
+      className="group rounded-xl border border-zinc-200 p-3 transition-all duration-300 hover:-translate-y-1 hover:border-violet-200/80 hover:bg-zinc-50 hover:shadow-lg hover:shadow-violet-500/5 dark:border-zinc-700 dark:hover:border-violet-800/50 dark:hover:bg-zinc-900"
+    >
+      <div className="relative aspect-square overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800">
+        {p.soldCount ? <ProductSalesBadge count={p.soldCount} variant="overlay" /> : null}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={p.image}
+          alt=""
+          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+        />
+      </div>
+      <p className="mt-2 line-clamp-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">{p.title}</p>
+      <p className="mt-1 text-sm font-semibold tabular-nums text-zinc-700 dark:text-zinc-300">{fmtMoney(p.priceEur)}</p>
+    </Link>
+  )
 }
 
 type SpecRow = { label: string; value: string }
@@ -1514,6 +1536,9 @@ export function MarketplaceListingDetail({
                       <span className="line-clamp-1 flex-1 text-sm text-zinc-800 dark:text-zinc-200">
                         {row.title}
                       </span>
+                      {row.soldCount ? (
+                        <ProductSalesBadge count={row.soldCount} variant="inline" className="shrink-0 scale-90" />
+                      ) : null}
                       <span className="shrink-0 text-xs tabular-nums font-medium text-zinc-600 dark:text-zinc-400">
                         +{fmtMoney(row.priceEur)}
                       </span>
@@ -1844,14 +1869,7 @@ export function MarketplaceListingDetail({
         <h2 className="text-xl font-bold">Frequently bought together</h2>
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
           {oftenBoughtTogether.slice(0, 3).map((p) => (
-            <Link key={p.id} href={p.href} className="rounded-xl border border-zinc-200 p-3 transition-all duration-300 hover:-translate-y-1 hover:bg-zinc-50 hover:shadow-2xl dark:border-zinc-700 dark:hover:bg-zinc-900">
-              <div className="relative aspect-square overflow-hidden rounded-lg">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p.image} alt="" className="h-full w-full object-cover" />
-              </div>
-              <p className="mt-2 line-clamp-2 text-sm font-medium">{p.title}</p>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">{fmtMoney(p.priceEur)}</p>
-            </Link>
+            <BuyerRelatedListingTile key={p.id} p={p} />
           ))}
         </div>
       </section>
@@ -1860,14 +1878,7 @@ export function MarketplaceListingDetail({
         <h2 className="text-xl font-bold">Customers also viewed</h2>
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
           {alsoViewed.slice(0, 3).map((p) => (
-            <Link key={p.id} href={p.href} className="rounded-xl border border-zinc-200 p-3 transition-all duration-300 hover:-translate-y-1 hover:bg-zinc-50 hover:shadow-2xl dark:border-zinc-700 dark:hover:bg-zinc-900">
-              <div className="relative aspect-square overflow-hidden rounded-lg">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p.image} alt="" className="h-full w-full object-cover" />
-              </div>
-              <p className="mt-2 line-clamp-2 text-sm font-medium">{p.title}</p>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">{fmtMoney(p.priceEur)}</p>
-            </Link>
+            <BuyerRelatedListingTile key={p.id} p={p} />
           ))}
         </div>
       </section>

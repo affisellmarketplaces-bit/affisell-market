@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma"
 const RELATED_SELECT = {
   id: true,
   sellingPriceCents: true,
+  conversions: true,
   customTitle: true,
   customImages: true,
   product: {
