@@ -1,12 +1,7 @@
 /**
- * Client-safe marketplace filter helpers (no Prisma).
- * DB logic lives in `@/lib/marketplace-attribute-filters.server` and API routes.
+ * Client-safe marketplace filter helpers (no Prisma, no @prisma/client).
+ * DB logic: `@/lib/marketplace-attribute-filters.server` + API routes.
  */
-
-/** Type-only alias — no `import { Prisma }` (avoids client bundle pulling the client). */
-type PrismaNamespace = {
-  ProductWhereInput: import("@prisma/client").Prisma.ProductWhereInput
-}
 
 import {
   MARKETPLACE_CUSTOM_COLUMN_PREFIX,
@@ -39,12 +34,4 @@ export function parseMarketplaceAttributeFilters(
     out[key] = value
   }
   return out
-}
-
-export function productAttributeFilterClauses(
-  filters: Record<string, string>
-): PrismaNamespace["ProductWhereInput"][] {
-  return Object.entries(filters).map(([key, value]) => ({
-    attributes: { some: { key, value } },
-  }))
 }

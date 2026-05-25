@@ -11,6 +11,7 @@ import {
   parseProductCustomColumnFilters,
 } from "@/lib/product-custom-column-filters"
 import { dbUnavailablePayload } from "@/lib/prisma-db-error"
+import { withPrismaReconnect } from "@/lib/prisma"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -27,12 +28,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json([])
     }
 
-    const defs = await resolveFilterableCategoryAttributes(scopeRootId.trim())
+    const scope = scopeRootId.trim()
+    const defs = await withPrismaReconnect(() => resolveFilterableCategoryAttributes(scope))
     const allowedKeys = new Set(defs.map((d) => d.key))
     const attributeFilters = parseMarketplaceAttributeFilters(sp, allowedKeys)
-    const categoryFacets = await loadMarketplaceFacets(scopeRootId.trim(), attributeFilters, defs)
+    const categoryFacets = await withPrismaReconnect(() =>
+      loadMarketplaceFacets(scope, attributeFilters, defs)
+    )
     const ccFilters = parseProductCustomColumnFilters(sp)
-    const customFacets = await loadProductCustomColumnFacets(scopeRootId.trim(), ccFilters)
+    const customFacets = await withPrismaReconnect(() =>
+      loadProductCustomColumnFacets(scope, ccFilters)
+    )
 
     return NextResponse.json([...categoryFacets, ...customFacets])
   } catch (e) {

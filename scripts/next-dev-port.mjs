@@ -14,6 +14,7 @@ const nextBin = require.resolve("next/dist/bin/next")
 const preferred = Math.max(1024, Math.min(65535, Number(process.env.PORT) || 3001))
 const scanPorts = process.env.PLAYWRIGHT_WEB_SERVER !== "1"
 
+/** Match Next.js dev bind (`::` / dual-stack) — 127.0.0.1-only checks miss EADDRINUSE. */
 function portFree(port) {
   return new Promise((resolve) => {
     const s = createServer()
@@ -26,7 +27,7 @@ function portFree(port) {
     }
     s.once("error", () => finish(false))
     s.once("listening", () => finish(true))
-    s.listen({ port, host: "127.0.0.1", ipv6Only: false })
+    s.listen({ port, host: "::", ipv6Only: false })
   })
 }
 

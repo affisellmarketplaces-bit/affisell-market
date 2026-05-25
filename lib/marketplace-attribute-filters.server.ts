@@ -1,30 +1,34 @@
-import type { CategoryAttribute } from "@prisma/client"
-import type { Prisma } from "@prisma/client"
+import type { CategoryAttribute, Prisma } from "@prisma/client"
 
+import { buildCategorySubtreeGraph } from "@/lib/category-browse"
 import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
 import { buildCategoryScopeProductFilter } from "@/lib/marketplace-category-product-filter"
 import type { MarketplaceFacet, MarketplaceFacetValue } from "@/lib/marketplace-facet-types"
 import {
   isFacetFilterableType,
   parseMarketplaceAttributeFilters,
-  productAttributeFilterClauses,
 } from "@/lib/marketplace-attribute-filters"
-import { prisma } from "@/lib/prisma"
+import { prisma, withPrismaReconnect } from "@/lib/prisma"
 
-/** Walk leaf → ancestors; first node with filterable `CategoryAttribute` rows wins. */
+export function productAttributeFilterClauses(
+  filters: Record<string, string>
+): Prisma.ProductWhereInput[] {
+  return Object.entries(filters).map(([key, value]) => ({
+    attributes: { some: { key, value } },
+  }))
+}
+
+/** Walk leaf → root in memory (one category load, avoids N× findUnique / P2024). */
 async function categoryAncestorChainIds(leafCategoryId: string): Promise<string[]> {
+  const graph = await withPrismaReconnect(() => buildCategorySubtreeGraph(prisma))
   const chain: string[] = []
   const guard = new Set<string>()
-  let current: string | null = leafCategoryId
+  let current: string | null = leafCategoryId.trim()
   let depth = 0
   while (current && !guard.has(current) && depth < 24) {
     guard.add(current)
     chain.push(current)
-    const row: { parentId: string | null } | null = await prisma.category.findUnique({
-      where: { id: current },
-      select: { parentId: true },
-    })
-    current = row?.parentId ?? null
+    current = graph.byId.get(current)?.parentId ?? null
     depth += 1
   }
   return chain
