@@ -3,10 +3,8 @@ import type { Prisma } from "@prisma/client"
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
 import { listingDisplayTitle, listingGalleryUrls } from "@/lib/affiliate-listing-display"
 import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
-import {
-  buildMarketplaceScopedProductWhere,
-  parseMarketplaceAttributeFilters,
-} from "@/lib/marketplace-attribute-filters"
+import { parseMarketplaceAttributeFilters } from "@/lib/marketplace-attribute-filters"
+import { buildMarketplaceScopedProductWhere } from "@/lib/marketplace-attribute-filters.server"
 import {
   parseProductCustomColumnFilters,
   productCustomColumnFilterClauses,

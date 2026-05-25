@@ -1,9 +1,9 @@
 import type { Prisma } from "@prisma/client"
 
 import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
-import { buildMarketplaceScopedProductWhere } from "@/lib/marketplace-attribute-filters"
+import { buildMarketplaceScopedProductWhere } from "@/lib/marketplace-attribute-filters.server"
 import { buildCategoryScopeProductFilter } from "@/lib/marketplace-category-product-filter"
-import type { MarketplaceFacet, MarketplaceFacetValue } from "@/lib/marketplace-attribute-filters"
+import type { MarketplaceFacet, MarketplaceFacetValue } from "@/lib/marketplace-facet-types"
 import {
   CUSTOM_COLUMN_FILTER_PREFIX,
   parseCustomColumnsFromDb,

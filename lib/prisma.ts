@@ -1,3 +1,7 @@
+if (typeof window !== "undefined") {
+  throw new Error("PrismaClient cannot be used in the browser")
+}
+
 import { PrismaClient } from "@prisma/client"
 
 import { getPrismaDatasourceUrl } from "@/lib/prisma-datasource-url"

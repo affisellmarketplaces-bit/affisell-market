@@ -1,11 +1,11 @@
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 
+import { parseMarketplaceAttributeFilters } from "@/lib/marketplace-attribute-filters"
 import {
   loadMarketplaceFacets,
-  parseMarketplaceAttributeFilters,
   resolveFilterableCategoryAttributes,
-} from "@/lib/marketplace-attribute-filters"
+} from "@/lib/marketplace-attribute-filters.server"
 import {
   loadProductCustomColumnFacets,
   parseProductCustomColumnFilters,
