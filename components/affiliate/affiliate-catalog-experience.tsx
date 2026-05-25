@@ -26,11 +26,11 @@ import { MarketplaceDepartmentRail } from "@/components/marketplace/MarketplaceD
 import { Sidebar } from "@/components/marketplace/Sidebar"
 import { Button } from "@/components/ui/button"
 import { AFFILIATE_AGENT_PATH, AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
-import type {
-  AffiliateCatalogHighlights as HighlightsData,
-  AffiliateCatalogProduct,
-} from "@/lib/affiliate-catalog-query"
-import { AFFILIATE_CATALOG_NICHES } from "@/lib/affiliate-catalog-query"
+import {
+  AFFILIATE_CATALOG_NICHES,
+  type AffiliateCatalogHighlights as HighlightsData,
+  type AffiliateCatalogProduct,
+} from "@/lib/affiliate-catalog-types"
 import type { HomeMarketplaceStats } from "@/lib/home-marketplace-cards"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { primaryProductImage } from "@/lib/product-images"

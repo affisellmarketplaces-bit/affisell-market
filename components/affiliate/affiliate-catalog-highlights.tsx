@@ -5,7 +5,7 @@ import { Check, Sparkles, Store, TrendingUp, Zap } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 
-import type { AffiliateCatalogHighlightCard, AffiliateCatalogHighlights } from "@/lib/affiliate-catalog-query"
+import type { AffiliateCatalogHighlightCard, AffiliateCatalogHighlights } from "@/lib/affiliate-catalog-types"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { cn } from "@/lib/utils"
 

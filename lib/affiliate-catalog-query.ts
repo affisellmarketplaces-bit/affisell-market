@@ -2,57 +2,27 @@ import type { Prisma } from "@prisma/client"
 
 import { affiliateCommissionDisplayPct } from "@/lib/affiliate-product-commission-display"
 import { affiliateDiscoverCardSelect } from "@/lib/affiliate-dashboard-data"
+import {
+  AFFILIATE_CATALOG_NICHES,
+  type AffiliateCatalogHighlightCard,
+  type AffiliateCatalogHighlights,
+  type AffiliateCatalogNiche,
+  type AffiliateCatalogProduct,
+} from "@/lib/affiliate-catalog-types"
 import { buildCategoryScopeProductFilter } from "@/lib/marketplace-category-product-filter"
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
 import { publicPartnerSellerLabel } from "@/lib/public-seller-display"
 
+export {
+  AFFILIATE_CATALOG_NICHES,
+  type AffiliateCatalogHighlightCard,
+  type AffiliateCatalogHighlights,
+  type AffiliateCatalogNiche,
+  type AffiliateCatalogProduct,
+} from "@/lib/affiliate-catalog-types"
+
 const MS_DAY = 24 * 60 * 60 * 1000
-
-export const AFFILIATE_CATALOG_NICHES = {
-  fitness: ["fitness", "sport", "Fitness", "Sport", "Exercise", "gym"],
-  tech: ["électronique", "electronique", "informatique", "tech", "Électronique", "Informatique", "Gaming"],
-  maison: ["maison", "Maison", "déco", "décor", "mobilier", "cuisine", "home", "jardin"],
-} as const
-
-export type AffiliateCatalogNiche = keyof typeof AFFILIATE_CATALOG_NICHES
-
-export type AffiliateCatalogProduct = {
-  id: string
-  name: string
-  images: string[]
-  categories: string[]
-  colors: string[]
-  tags: string[]
-  basePriceCents: number
-  commissionRate: number
-  deliveryMax: number | null
-  createdAt: string
-  affiliateProducts: { id: string; isListed: boolean }[]
-  supplier: {
-    email: string
-    store: { name: string; slug: string } | null
-  }
-}
-
-export type AffiliateCatalogHighlightCard = {
-  productId: string
-  name: string
-  imageUrl: string | null
-  basePriceCents: number
-  commissionRate: number
-  marginCents: number
-  soldCount: number
-  isInStore: boolean
-  listingId: string | null
-  supplierLabel: string
-}
-
-export type AffiliateCatalogHighlights = {
-  bestSellers7d: AffiliateCatalogHighlightCard[]
-  newArrivals: AffiliateCatalogHighlightCard[]
-  highMargin: AffiliateCatalogHighlightCard[]
-}
 
 type DiscoverRow = Awaited<
   ReturnType<

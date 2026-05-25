@@ -5,6 +5,7 @@ import { Suspense } from "react"
 import { AffiliateCatalogExperience } from "@/components/affiliate/affiliate-catalog-experience"
 import { auth } from "@/auth"
 import { loadAffiliateCatalogHighlights } from "@/lib/affiliate-catalog-query"
+import type { AffiliateCatalogHighlights } from "@/lib/affiliate-catalog-types"
 import { loadHomeMarketplaceStatsSafe } from "@/lib/public-home-data"
 
 export const dynamic = "force-dynamic"
@@ -40,11 +41,25 @@ export default async function AffiliateCatalogPage({ searchParams }: PageProps) 
 
   const sp = toUrlSearchParams(await searchParams)
 
+  const emptyHighlights: AffiliateCatalogHighlights = {
+    bestSellers7d: [],
+    newArrivals: [],
+    highMargin: [],
+  }
+
   const [stats, highlights] = await Promise.all([
-    loadHomeMarketplaceStatsSafe(),
+    loadHomeMarketplaceStatsSafe().catch((err) => {
+      console.error("[affiliate/catalog] stats failed:", err)
+      return {
+        productCount: 0,
+        avgCommissionPct: 0,
+        productCountLabel: "0",
+        avgCommissionLabel: "0 %",
+      }
+    }),
     loadAffiliateCatalogHighlights(session.user.id, sp).catch((err) => {
       console.error("[affiliate/catalog] highlights failed:", err)
-      return { bestSellers7d: [], newArrivals: [], highMargin: [] }
+      return emptyHighlights
     }),
   ])
 
