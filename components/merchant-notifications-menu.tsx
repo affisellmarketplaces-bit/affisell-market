@@ -7,7 +7,7 @@ import { createPortal } from "react-dom"
 
 import { buttonVariants } from "@/components/ui/button"
 import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
-import { SUPPLIER_INVITE_NOTIF } from "@/lib/supplier-invitation-notifications"
+import { SUPPLIER_INVITE_NOTIF } from "@/lib/supplier-invite-notif-constants"
 import { cn } from "@/lib/utils"
 
 type NotificationRow = {
