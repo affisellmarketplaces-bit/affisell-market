@@ -15,7 +15,10 @@ export type {
 } from "@/lib/home-marketplace-cards"
 export { homeProductToCardProps } from "@/lib/home-marketplace-cards"
 
-import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
+import {
+  buyerListedAffiliateProductWhere,
+  buyerMarketplaceProductWhere,
+} from "@/lib/marketplace-buyer-product-filter"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
@@ -109,10 +112,8 @@ async function firstListingsByProductIds(productIds: string[]): Promise<Map<stri
   if (productIds.length === 0) return new Map()
   const listings = await prisma.affiliateProduct.findMany({
     where: {
-      ...affiliateRoleMarketplaceWhere,
-      isListed: true,
+      ...buyerListedAffiliateProductWhere,
       productId: { in: productIds },
-      product: { active: true, isDraft: false },
     },
     select: listingSelect,
     orderBy: { id: "asc" },
@@ -143,9 +144,9 @@ function storeLabel(row: ListingRow): string {
 
 export async function loadHomeMarketplaceStats(): Promise<HomeMarketplaceStats> {
   const [productCount, avgRow] = await Promise.all([
-    prisma.product.count({ where: { active: true, isDraft: false } }),
+    prisma.product.count({ where: buyerMarketplaceProductWhere }),
     prisma.product.aggregate({
-      where: { active: true, isDraft: false },
+      where: buyerMarketplaceProductWhere,
       _avg: { commissionRate: true },
     }),
   ])
@@ -187,11 +188,7 @@ export async function loadHomeBestSellers7d(limit = 12): Promise<HomeProductCard
 
 export async function loadHomeNewArrivals(limit = 12): Promise<HomeProductCard[]> {
   const listings = await prisma.affiliateProduct.findMany({
-    where: {
-      ...affiliateRoleMarketplaceWhere,
-      isListed: true,
-      product: { active: true, isDraft: false },
-    },
+    where: buyerListedAffiliateProductWhere,
     select: listingSelect,
     orderBy: { product: { createdAt: "desc" } },
     take: 48,
@@ -210,11 +207,7 @@ export async function loadHomeNewArrivals(limit = 12): Promise<HomeProductCard[]
 
 export async function loadHomeHighMargin(limit = 12): Promise<HomeProductCard[]> {
   const listings = await prisma.affiliateProduct.findMany({
-    where: {
-      ...affiliateRoleMarketplaceWhere,
-      isListed: true,
-      product: { active: true, isDraft: false },
-    },
+    where: buyerListedAffiliateProductWhere,
     select: listingSelect,
     take: 120,
   })

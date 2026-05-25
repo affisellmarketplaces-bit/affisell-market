@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client"
 
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
 import { listingDisplayTitle, listingGalleryUrls } from "@/lib/affiliate-listing-display"
-import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
+import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { parseMarketplaceAttributeFilters } from "@/lib/marketplace-attribute-filters"
 import { buildMarketplaceScopedProductWhere } from "@/lib/marketplace-attribute-filters.server"
 import {
@@ -101,8 +101,7 @@ export async function buildMarketplaceAffiliateWhereFromUrl(
     ccClauses.length > 0 ? { AND: [productWhere, ...ccClauses] } : productWhere
 
   const andParts: Prisma.AffiliateProductWhereInput[] = [
-    affiliateRoleMarketplaceWhere,
-    { isListed: true },
+    buyerListedAffiliateProductWhere,
     { product: productWhereWithCustom },
   ]
 

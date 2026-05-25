@@ -1,5 +1,5 @@
 import { auth } from "@/auth"
-import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
+import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -17,9 +17,7 @@ async function currentPricesForProducts(productIds: string[]): Promise<Map<strin
   const listings = await prisma.affiliateProduct.findMany({
     where: {
       productId: { in: productIds },
-      isListed: true,
-      product: { active: true },
-      ...affiliateRoleMarketplaceWhere,
+      ...buyerListedAffiliateProductWhere,
     },
     select: { productId: true, sellingPriceCents: true },
     orderBy: { id: "asc" },

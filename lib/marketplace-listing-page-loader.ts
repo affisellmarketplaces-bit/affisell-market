@@ -1,4 +1,7 @@
-import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
+import {
+  buyerListedAffiliateProductWhere,
+  buyerMarketplaceProductWhere,
+} from "@/lib/marketplace-buyer-product-filter"
 import { prisma } from "@/lib/prisma"
 
 const RELATED_SELECT = {
@@ -117,7 +120,7 @@ export async function loadMarketplaceListingPageData(args: {
     where: {
       id: listingId,
       isListed: true,
-      product: { active: true },
+      product: buyerMarketplaceProductWhere,
       affiliate: {
         role: "AFFILIATE",
         ...(args.storeSlug ? { store: { slug: args.storeSlug } } : {}),
@@ -149,11 +152,10 @@ export async function loadMarketplaceListingPageData(args: {
   const [oftenRaw, viewsLast24h, orderRow] = await Promise.all([
     prisma.affiliateProduct.findMany({
       where: {
-        ...affiliateRoleMarketplaceWhere,
-        isListed: true,
+        ...buyerListedAffiliateProductWhere,
         id: { not: listing.id },
         product: {
-          active: true,
+          ...buyerMarketplaceProductWhere,
           ...(categories.length > 0 ? { categories: { hasSome: categories.slice(0, 3) } } : {}),
         },
       },
@@ -169,10 +171,8 @@ export async function loadMarketplaceListingPageData(args: {
       ? []
       : await prisma.affiliateProduct.findMany({
           where: {
-            ...affiliateRoleMarketplaceWhere,
-            isListed: true,
+            ...buyerListedAffiliateProductWhere,
             id: { notIn: [listing.id, ...oftenRaw.map((r) => r.id)] },
-            product: { active: true },
           },
           orderBy: { createdAt: "desc" },
           select: RELATED_SELECT,

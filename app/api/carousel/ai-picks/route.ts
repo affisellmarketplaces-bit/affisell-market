@@ -1,7 +1,10 @@
 import { auth } from "@/auth"
 import { mapListingToCarousel, viewCountsToday } from "@/lib/carousel-mapper"
 import type { CarouselItemJson } from "@/lib/carousel-types"
-import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
+import {
+  buyerListedAffiliateProductWhere,
+  buyerMarketplaceProductWhere,
+} from "@/lib/marketplace-buyer-product-filter"
 import { dbUnavailablePayload } from "@/lib/prisma-db-error"
 import { prisma } from "@/lib/prisma"
 
@@ -32,10 +35,9 @@ export async function GET(req: Request) {
   const trendingIds = await topSoldProductIds(thirtyDaysAgo, 10)
   const extraRows = await prisma.affiliateProduct.findMany({
     where: {
-      ...affiliateRoleMarketplaceWhere,
-      isListed: true,
+      ...buyerListedAffiliateProductWhere,
       product: {
-        active: true,
+        ...buyerMarketplaceProductWhere,
         ...(trendingIds.length ? { id: { notIn: trendingIds } } : {}),
       },
     },
@@ -60,9 +62,8 @@ export async function GET(req: Request) {
 
   const listings = await prisma.affiliateProduct.findMany({
     where: {
-      ...affiliateRoleMarketplaceWhere,
-      isListed: true,
-      product: { active: true, id: { in: unique } },
+      ...buyerListedAffiliateProductWhere,
+      product: { ...buyerMarketplaceProductWhere, id: { in: unique } },
     },
     select: {
       id: true,

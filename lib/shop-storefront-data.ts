@@ -18,6 +18,7 @@ export type {
 } from "@/lib/shop-storefront-shared"
 export { inferNicheLabel, shopProductToCardProps } from "@/lib/shop-storefront-shared"
 
+import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
 
@@ -57,7 +58,7 @@ export async function loadAffiliateShopProducts(
     where: {
       affiliateId: affiliateUserId,
       isListed: true,
-      product: { active: true, isDraft: false },
+      product: buyerMarketplaceProductWhere,
     },
     select: {
       id: true,

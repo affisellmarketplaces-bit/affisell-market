@@ -1,5 +1,6 @@
 import { auth } from "@/auth"
 import { normalizeCartVariantSignature } from "@/lib/cart-variant"
+import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -36,9 +37,7 @@ export async function POST(req: Request) {
   const listing = await prisma.affiliateProduct.findFirst({
     where: {
       id: affiliateProductId,
-      isListed: true,
-      product: { active: true },
-      affiliate: { role: "AFFILIATE" },
+      ...buyerListedAffiliateProductWhere,
     },
   })
   if (!listing) {

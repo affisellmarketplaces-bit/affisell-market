@@ -11,6 +11,7 @@ import {
   normalizeCartVariantSignature,
   parseCartVariantSignature,
 } from "@/lib/cart-variant"
+import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import {
   fixZeroPaidLinesCents,
   proportionalLinePaidsCents,
@@ -92,9 +93,7 @@ async function loadListing(id: string) {
   return prisma.affiliateProduct.findFirst({
     where: {
       id,
-      isListed: true,
-      product: { active: true },
-      affiliate: { role: "AFFILIATE" },
+      ...buyerListedAffiliateProductWhere,
     },
     include: { product: true, affiliate: true },
   })

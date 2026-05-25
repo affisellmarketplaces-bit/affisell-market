@@ -1,5 +1,5 @@
 import { listingDisplayTitle, listingGalleryUrls } from "@/lib/affiliate-listing-display"
-import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
+import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { prisma } from "@/lib/prisma"
 import { getStripeClient } from "@/lib/stripe"
 import { stripeProductImages } from "@/lib/product-images"
@@ -23,18 +23,14 @@ export async function createCheckoutSession(productId: string, userId?: string) 
     (await prisma.affiliateProduct.findFirst({
       where: {
         id,
-        isListed: true,
-        product: { active: true },
-        ...affiliateRoleMarketplaceWhere,
+        ...buyerListedAffiliateProductWhere,
       },
       include: { product: true },
     })) ??
     (await prisma.affiliateProduct.findFirst({
       where: {
         productId: id,
-        isListed: true,
-        product: { active: true },
-        ...affiliateRoleMarketplaceWhere,
+        ...buyerListedAffiliateProductWhere,
       },
       include: { product: true },
       orderBy: { id: "asc" },

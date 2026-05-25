@@ -1,3 +1,4 @@
+import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { prisma } from "@/lib/prisma"
 import {
   listingDisplayTitle,
@@ -37,7 +38,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }
   }
 
   const listings = await prisma.affiliateProduct.findMany({
-    where: { affiliateId: store.user.id, isListed: true, product: { active: true } },
+    where: { affiliateId: store.user.id, isListed: true, product: buyerMarketplaceProductWhere },
     include: { product: true },
     orderBy: [{ position: "asc" }, { id: "asc" }],
   })

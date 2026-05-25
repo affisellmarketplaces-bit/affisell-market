@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client"
 
 import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
+import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { buildMarketplaceScopedProductWhere } from "@/lib/marketplace-attribute-filters.server"
 import { buildCategoryScopeProductFilter } from "@/lib/marketplace-category-product-filter"
 import type { MarketplaceFacet, MarketplaceFacetValue } from "@/lib/marketplace-facet-types"
@@ -34,9 +35,7 @@ async function scopedProductIds(scopeRootId: string | null): Promise<string[] | 
   const scope = await buildCategoryScopeProductFilter(prisma, scopeRootId.trim())
   const rows = await prisma.product.findMany({
     where: {
-      active: true,
-      isDraft: false,
-      ...scope,
+      AND: [buyerMarketplaceProductWhere, scope],
       affiliateProducts: {
         some: { isListed: true, ...affiliateRoleMarketplaceWhere },
       },

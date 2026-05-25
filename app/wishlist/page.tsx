@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server"
 
 import { auth } from "@/auth"
 import { WishlistHeart } from "@/components/wishlist-heart"
+import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { prisma } from "@/lib/prisma"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 
@@ -31,7 +32,7 @@ export default async function WishlistPage() {
           name: true,
           images: true,
           affiliateProducts: {
-            where: { isListed: true, product: { active: true }, affiliate: { role: "AFFILIATE" } },
+            where: buyerListedAffiliateProductWhere,
             take: 1,
             orderBy: { id: "asc" },
             select: { id: true, sellingPriceCents: true },

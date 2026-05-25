@@ -10,6 +10,7 @@ import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-
 import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { parseFollowersJson } from "@/lib/format-followers"
+import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
 
@@ -94,7 +95,11 @@ export default async function PublicStorefrontPage({ params }: { params: Promise
 
   if (role === "AFFILIATE") {
     const listings = await prisma.affiliateProduct.findMany({
-      where: { affiliateId: store.user.id, isListed: true, product: { active: true } },
+      where: {
+        affiliateId: store.user.id,
+        isListed: true,
+        product: buyerMarketplaceProductWhere,
+      },
       include: { product: true },
       orderBy: [{ position: "asc" }, { id: "asc" }],
     })

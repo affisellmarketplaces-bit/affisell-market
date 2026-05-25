@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
+import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -41,9 +42,7 @@ export async function POST(req: Request) {
     const listing = await prisma.affiliateProduct.findFirst({
       where: {
         id: row.affiliateProductId,
-        isListed: true,
-        product: { active: true },
-        affiliate: { role: "AFFILIATE" },
+        ...buyerListedAffiliateProductWhere,
       },
       include: {
         product: { select: { id: true, supplierSku: true, supplierWholesaleCents: true, supplierId: true } },

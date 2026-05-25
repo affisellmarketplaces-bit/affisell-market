@@ -2,6 +2,7 @@ import type { CategoryAttribute, Prisma } from "@prisma/client"
 
 import { buildCategorySubtreeGraph } from "@/lib/category-browse"
 import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
+import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { buildCategoryScopeProductFilter } from "@/lib/marketplace-category-product-filter"
 import type { MarketplaceFacet, MarketplaceFacetValue } from "@/lib/marketplace-facet-types"
 import {
@@ -70,7 +71,7 @@ export async function buildMarketplaceScopedProductWhere(
   attributeFilters: Record<string, string> = {}
 ): Promise<Prisma.ProductWhereInput> {
   const parts: Prisma.ProductWhereInput[] = [
-    { active: true, isDraft: false },
+    buyerMarketplaceProductWhere,
     {
       affiliateProducts: {
         some: {

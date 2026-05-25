@@ -24,6 +24,7 @@ import {
   buildProductListingMetadata,
   buildProductOfferJsonLd,
 } from "@/lib/product-listing-seo"
+import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { prisma } from "@/lib/prisma"
 
 import { MarketplaceListingDetail } from "./marketplace-listing-detail"
@@ -38,7 +39,7 @@ export async function buildListingMetadataForId(
     where: {
       id: listingId,
       isListed: true,
-      product: { active: true },
+      product: buyerMarketplaceProductWhere,
       affiliate: {
         role: "AFFILIATE",
         ...(storeSlug ? { store: { slug: storeSlug } } : {}),

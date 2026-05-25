@@ -1,4 +1,7 @@
-import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
+import {
+  buyerListedAffiliateProductWhere,
+  buyerMarketplaceProductWhere,
+} from "@/lib/marketplace-buyer-product-filter"
 import { dbUnavailablePayload } from "@/lib/prisma-db-error"
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
@@ -35,7 +38,7 @@ export async function GET() {
 
   const [products, weekCounts] = await Promise.all([
     prisma.product.findMany({
-      where: { id: { in: productIds }, active: true },
+      where: { id: { in: productIds }, ...buyerMarketplaceProductWhere },
     }),
     prisma.order.groupBy({
       by: ["productId"],
@@ -53,10 +56,8 @@ export async function GET() {
 
   const listings = await prisma.affiliateProduct.findMany({
     where: {
-      ...affiliateRoleMarketplaceWhere,
+      ...buyerListedAffiliateProductWhere,
       productId: { in: productIds },
-      isListed: true,
-      product: { active: true },
     },
     include: {
       affiliate: { include: { store: { select: { name: true, slug: true, logoUrl: true, aiAvatarUrl: true } } } },

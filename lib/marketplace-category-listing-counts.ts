@@ -5,14 +5,12 @@ import {
   collectCategorySubtreeIdsFromGraph,
   labelsForCategoryScopeRows,
 } from "@/lib/category-browse"
-import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
+import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { buildMarketplaceAffiliateWhereFromUrl } from "@/lib/marketplace-listings-query"
 import { prisma, withPrismaReconnect } from "@/lib/prisma"
 
 const listedListingWhere: Prisma.AffiliateProductWhereInput = {
-  ...affiliateRoleMarketplaceWhere,
-  isListed: true,
-  product: { active: true, isDraft: false },
+  ...buyerListedAffiliateProductWhere,
   affiliate: { store: { isNot: null } },
 }
 

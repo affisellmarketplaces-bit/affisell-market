@@ -1,7 +1,10 @@
 import type { Prisma, PrismaClient } from "@prisma/client"
 
 import type { AgentProductCard, AgentSearchToolResult } from "@/lib/agent-product-card-types"
-import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
+import {
+  buyerListedAffiliateProductWhere,
+  buyerMarketplaceProductWhere,
+} from "@/lib/marketplace-buyer-product-filter"
 import { primaryProductImage } from "@/lib/product-images"
 import { publicPartnerSellerLabel } from "@/lib/public-seller-display"
 
@@ -17,7 +20,7 @@ async function findSimilarAffiliateListings(
   if (main.length === 0) return []
   const mainIds = main.map((m) => m.id)
   const detail = await db.product.findMany({
-    where: { id: { in: mainIds }, active: true },
+    where: { id: { in: mainIds }, ...buyerMarketplaceProductWhere },
     select: { categories: true },
   })
   const cats = [
@@ -39,10 +42,9 @@ async function findSimilarAffiliateListings(
 
   const similarRows = await db.affiliateProduct.findMany({
     where: {
-      ...affiliateRoleMarketplaceWhere,
-      isListed: true,
+      ...buyerListedAffiliateProductWhere,
       product: {
-        active: true,
+        ...buyerMarketplaceProductWhere,
         id: { notIn: mainIds },
         OR: productOr,
       },
@@ -114,18 +116,16 @@ export async function searchCatalogForAgent(
   ]
 
   const listingWhere: Prisma.AffiliateProductWhereInput = {
-    ...affiliateRoleMarketplaceWhere,
-    isListed: true,
+    ...buyerListedAffiliateProductWhere,
     product: {
-      active: true,
+      ...buyerMarketplaceProductWhere,
       OR: nameOrDescriptionMatch,
     },
   }
 
   const listingWhereAffiliateText: Prisma.AffiliateProductWhereInput = {
-    ...affiliateRoleMarketplaceWhere,
-    isListed: true,
-    product: { active: true },
+    ...buyerListedAffiliateProductWhere,
+    product: buyerMarketplaceProductWhere,
     OR: [
       { customTitle: { contains: q, mode: "insensitive" } },
       { customDescription: { contains: q, mode: "insensitive" } },
@@ -215,7 +215,7 @@ export async function searchCatalogForAgent(
   }
 
   const sample = await db.affiliateProduct.findMany({
-    where: { ...affiliateRoleMarketplaceWhere, isListed: true, product: { active: true } },
+    where: buyerListedAffiliateProductWhere,
     select: { product: { select: { categories: true } } },
     take: 120,
   })

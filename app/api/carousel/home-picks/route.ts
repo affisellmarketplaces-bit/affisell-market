@@ -1,7 +1,10 @@
 import { auth } from "@/auth"
 import { mapListingToCarousel, viewCountsToday } from "@/lib/carousel-mapper"
 import type { CarouselItemJson } from "@/lib/carousel-types"
-import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
+import {
+  buyerListedAffiliateProductWhere,
+  buyerMarketplaceProductWhere,
+} from "@/lib/marketplace-buyer-product-filter"
 import { dbUnavailablePayload } from "@/lib/prisma-db-error"
 import { prisma } from "@/lib/prisma"
 
@@ -44,7 +47,7 @@ export async function GET(req: Request) {
       const viewedProducts =
         viewedIds.length > 0
           ? await prisma.product.findMany({
-              where: { id: { in: viewedIds }, active: true },
+              where: { id: { in: viewedIds }, ...buyerMarketplaceProductWhere },
               select: { categories: true },
             })
           : []
@@ -71,10 +74,9 @@ export async function GET(req: Request) {
 
     const inNiche = await prisma.affiliateProduct.findMany({
       where: {
-        ...affiliateRoleMarketplaceWhere,
-        isListed: true,
+        ...buyerListedAffiliateProductWhere,
         product: {
-          active: true,
+          ...buyerMarketplaceProductWhere,
           categories: { hasSome: categoriesToMatch },
         },
       },
@@ -127,9 +129,8 @@ async function packListings(productIds: string[]): Promise<{ items: CarouselItem
 
   const listings = await prisma.affiliateProduct.findMany({
     where: {
-      ...affiliateRoleMarketplaceWhere,
-      isListed: true,
-      product: { active: true, id: { in: productIds } },
+      ...buyerListedAffiliateProductWhere,
+      product: { ...buyerMarketplaceProductWhere, id: { in: productIds } },
     },
     select: {
       id: true,

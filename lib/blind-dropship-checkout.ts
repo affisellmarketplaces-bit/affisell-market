@@ -3,6 +3,7 @@ import { z } from "zod"
 
 import { auth } from "@/auth"
 import { aggregateBlindOrderSettlement, computeBlindLineSettlement } from "@/lib/blind-dropship-settlement"
+import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { prisma } from "@/lib/prisma"
 import { getStripeClient } from "@/lib/stripe"
 
@@ -43,9 +44,7 @@ async function loadBlindListing(affiliateProductId: string) {
   return prisma.affiliateProduct.findFirst({
     where: {
       id: affiliateProductId,
-      isListed: true,
-      product: { active: true },
-      affiliate: { role: "AFFILIATE" },
+      ...buyerListedAffiliateProductWhere,
     },
     include: {
       product: true,

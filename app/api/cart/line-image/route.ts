@@ -1,4 +1,4 @@
-import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
+import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { prisma } from "@/lib/prisma"
 import { resolveCartLineImageUrl } from "@/lib/cart-line-image"
 
@@ -17,9 +17,7 @@ export async function GET(req: Request) {
   const listing = await prisma.affiliateProduct.findFirst({
     where: {
       id: listingId,
-      isListed: true,
-      product: { active: true },
-      ...affiliateRoleMarketplaceWhere,
+      ...buyerListedAffiliateProductWhere,
     },
     include: { product: true },
   })

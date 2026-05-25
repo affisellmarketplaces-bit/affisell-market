@@ -1,4 +1,4 @@
-import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
+import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { dbUnavailablePayload } from "@/lib/prisma-db-error"
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
@@ -10,11 +10,7 @@ export const dynamic = "force-dynamic"
 export async function GET() {
   try {
   const listings = await prisma.affiliateProduct.findMany({
-    where: {
-      ...affiliateRoleMarketplaceWhere,
-      isListed: true,
-      product: { active: true, isDraft: false },
-    },
+    where: buyerListedAffiliateProductWhere,
     include: {
       product: { select: { id: true, name: true, images: true, createdAt: true } },
       affiliate: { select: { name: true, store: { select: { name: true, slug: true } } } },

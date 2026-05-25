@@ -1,4 +1,4 @@
-import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
+import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
 import type { HomeProductCard } from "@/lib/home-marketplace-data"
 import { loadHomeBestSellers7d, loadHomeNewArrivals } from "@/lib/home-marketplace-data"
@@ -115,9 +115,7 @@ function mapRow(
 export async function loadBuyerListedProducts(limit = 48): Promise<BuyerListingCard[]> {
   const listings = await prisma.affiliateProduct.findMany({
     where: {
-      ...affiliateRoleMarketplaceWhere,
-      isListed: true,
-      product: { active: true, isDraft: false },
+      ...buyerListedAffiliateProductWhere,
       affiliate: { store: { isNot: null } },
     },
     select: listingSelect,
@@ -184,11 +182,7 @@ export async function loadBuyerHomeProductsSafe(limit = 24): Promise<BuyerListin
 
 export async function loadBuyerCategoryChips(max = 10): Promise<BuyerCategoryChip[]> {
   const listings = await prisma.affiliateProduct.findMany({
-    where: {
-      ...affiliateRoleMarketplaceWhere,
-      isListed: true,
-      product: { active: true, isDraft: false },
-    },
+    where: buyerListedAffiliateProductWhere,
     select: { product: { select: { categories: true } } },
     take: 200,
   })
@@ -224,11 +218,7 @@ export async function loadBuyerCategoryChipsSafe(max = 10): Promise<BuyerCategor
 
 export async function loadBuyerListingCount(): Promise<number> {
   return prisma.affiliateProduct.count({
-    where: {
-      ...affiliateRoleMarketplaceWhere,
-      isListed: true,
-      product: { active: true, isDraft: false },
-    },
+    where: buyerListedAffiliateProductWhere,
   })
 }
 
