@@ -99,6 +99,8 @@ Règles:
 - 1 à 3 suggestions, meilleure confiance en premier.
 - confidence entre 0 et 1.
 - Montres/bracelets connectés, smart bands, trackers d'activité → catégories "Moniteurs d'activité" / moniteurs biométriques, jamais connecteurs électroniques ni générateurs de bruit blanc.
+- Dashcam / caméra de voiture / enregistreur multi-canaux → électronique véhicule ou caméras de recul / caméras vidéo, jamais animaux, grilles pour animaux, guides auto, abris de jardin.
+- Ne pas classer sur le seul mot "voiture" : identifier d'abord le type de produit (caméra, audio, accessoire, etc.).
 
 LISTE AUTORISÉE:
 ${listBlock}`

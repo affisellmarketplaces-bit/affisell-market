@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@prisma/client"
 
 import {
+  leafPathsForDetectedIntent,
   scoreProductTextAgainstBreadcrumb,
   suggestLeafCategoriesFromProductText,
 } from "@/lib/category-title-match"
@@ -262,14 +263,21 @@ export function leafPathsForAiCatalog(
   const text = `${title} ${description}`.trim()
   if (!text) return leafPaths.slice(0, MAX_CATALOG_LINES_FOR_AI)
 
+  const out: LeafPath[] = []
+  const seen = new Set<string>()
+  for (const lp of leafPathsForDetectedIntent(title, description, leafPaths, 20)) {
+    if (!seen.has(lp.leafId)) {
+      seen.add(lp.leafId)
+      out.push(lp)
+    }
+  }
+
   const scored = leafPaths.map((lp) => ({
     lp,
     s: scoreTitleAgainstBreadcrumb(text, lp.breadcrumb),
   }))
   scored.sort((a, b) => b.s - a.s)
 
-  const out: LeafPath[] = []
-  const seen = new Set<string>()
   for (const { lp, s } of scored) {
     if (out.length >= MAX_CATALOG_LINES_FOR_AI) break
     if (s > 0 && !seen.has(lp.leafId)) {

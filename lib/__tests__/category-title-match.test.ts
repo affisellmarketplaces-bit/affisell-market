@@ -41,6 +41,29 @@ const FIXTURE_LEAVES: LeafPath[] = [
     breadcrumb: "Vêtements et accessoires > Bijoux > Montres",
     path: [],
   },
+  {
+    leafId: "backup-cam",
+    breadcrumb:
+      "Véhicules et accessoires > Pièces détachées pour véhicules > Électronique pour véhicules > Caméras de recul",
+    path: [],
+  },
+  {
+    leafId: "pet-grid",
+    breadcrumb:
+      "Animaux et articles pour animaux de compagnie > Articles pour animaux de compagnie > Grille de séparation de voiture pour animaux",
+    path: [],
+  },
+  {
+    leafId: "car-guide",
+    breadcrumb: "Médias > Guides d'utilisation > Guides d'utilisation de voitures",
+    path: [],
+  },
+  {
+    leafId: "carport",
+    breadcrumb:
+      "Maison et jardin > Pelouses et jardins > Vie en extérieur > Structures extérieures > Cabanes, garages et auvents pour voitures",
+    path: [],
+  },
 ]
 
 describe("category-title-match", () => {
@@ -82,6 +105,16 @@ describe("category-title-match", () => {
   it("returns empty when title is too vague", () => {
     const picks = suggestLeafCategoriesFromProductText("Pro Max", "", FIXTURE_LEAVES, 3)
     expect(picks).toEqual([])
+  })
+
+  it("ranks vehicle backup cameras above pet car accessories for dashcam title", () => {
+    const title = "Caméra de voiture REDTIGER F17 3 canaux 4K"
+    const picks = suggestLeafCategoriesFromProductText(title, "", FIXTURE_LEAVES, 3)
+
+    expect(picks.length).toBeGreaterThan(0)
+    expect(picks[0]?.leafId).toBe("backup-cam")
+    expect(picks.some((p) => p.leafId === "pet-grid")).toBe(false)
+    expect(picks.some((p) => p.leafId === "car-guide")).toBe(false)
   })
 
   it("offers jewelry watches as alternative for smart band primary", () => {

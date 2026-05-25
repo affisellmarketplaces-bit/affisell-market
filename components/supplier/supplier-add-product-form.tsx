@@ -46,6 +46,7 @@ import {
 } from "@/lib/supplier-commission"
 import {
   pathFromLeafId,
+  scoreProductTextAgainstBreadcrumb,
   type CategoryPathSegment,
   type RecentCategoryEntry,
 } from "@/lib/category-browse"
@@ -517,7 +518,13 @@ export function SupplierAddProductForm({
     const currentId = categoryIdRef.current
     if (currentId === top.leafId) return
 
-    const key = `${debouncedName.trim()}|${debouncedCategoryDescription.trim()}|${top.leafId}`
+    const title = debouncedName.trim()
+    const desc = debouncedCategoryDescription.trim()
+    const breadcrumb = path.map((p) => p.name).join(" > ")
+    const relevance = scoreProductTextAgainstBreadcrumb(`${title} ${desc}`, breadcrumb)
+    if (relevance < 7) return
+
+    const key = `${title}|${desc}|${top.leafId}`
     if (lastTitleParserKeyRef.current === key) return
     lastTitleParserKeyRef.current = key
 

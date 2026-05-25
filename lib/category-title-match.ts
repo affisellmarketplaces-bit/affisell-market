@@ -56,7 +56,18 @@ const WEAK_TOKENS = new Set([
   "bleu",
   "red",
   "new",
+  "voiture",
+  "voitures",
+  "vehicule",
+  "vehicules",
+  "auto",
+  "car",
+  "vehicle",
+  "vehicles",
 ])
+
+/** When title is a camera product, "voiture" alone must not dominate unrelated leaves. */
+const VEHICLE_CONTEXT_WEAK = new Set(["voiture", "voitures", "vehicule", "vehicules", "auto", "car"])
 
 type ProductIntent = {
   id: string
@@ -109,6 +120,45 @@ const PRODUCT_INTENTS: ProductIntent[] = [
     penalize: [/connecteur/i, /composant/i],
   },
   {
+    id: "vehicle_camera",
+    match:
+      /\b(dash\s*cam|dashcam|cam[eé]ra\s+(de\s+)?voiture|camera\s+(de\s+)?voiture|car\s*camera|dvr\s+auto|enregistreur\s+(de\s+)?conduite|triple\s*cam|3\s*canaux|double\s*cam[eé]ra|backup\s*cam|road\s*cam|redtiger|gopro\s+max|front\s*and\s*rear\s*cam)\b/i,
+    boost: [
+      /cam[eé]ras?\s+de\s+recul/i,
+      /electronique\s+pour\s+vehicules/i,
+      /cam[eé]ras?\s+video/i,
+      /cam[eé]ras?\s+de\s+surveillance/i,
+      /appareils\s+photo.*cam[eé]ras/i,
+      /cam[eé]ras?\s+embarqu/i,
+    ],
+    penalize: [
+      /animaux/i,
+      /animaux de compagnie/i,
+      /grille de separation/i,
+      /guides?\s+d['']utilisation/i,
+      /cabanes.*voiture/i,
+      /auvents/i,
+      /garages/i,
+      /pelouses/i,
+      /maison et jardin/i,
+      /\bmedias\b/i,
+      /jouets/i,
+      /vehicules de jeu/i,
+    ],
+  },
+  {
+    id: "camera",
+    match:
+      /\b(cam[eé]ra|camera|webcam|gopro|action\s*cam|mirrorless|reflex|appareil\s+photo\s+num|photographie)\b/i,
+    boost: [
+      /appareils\s+photo.*cam[eé]ras/i,
+      /cam[eé]ras?\s+video/i,
+      /cam[eé]ras?\s+de\s+surveillance/i,
+      /appareils\s+photo\s+num/i,
+    ],
+    penalize: [/animaux/i, /guides?\s+d['']utilisation/i, /grille de separation/i, /connecteur/i],
+  },
+  {
     id: "cookware",
     match:
       /\b(frying\s*pan|skillet|wok|saucepan|cookware|bakeware|marmite|casserole|poele|sauteuse|batterie\s+de\s+cuisine|ustensiles?\s+de\s+cuisine)\b/i,
@@ -125,6 +175,21 @@ const PHRASE_BOOSTS: Array<{ phrase: RegExp; breadcrumb: RegExp; points: number 
   { phrase: /sommeil|sleep/i, breadcrumb: /aides?\s+au\s+sommeil|bruit\s+blanc/i, points: -25 },
   { phrase: /frying\s*pan|skillet|wok/i, breadcrumb: /cookware|bakeware/i, points: 22 },
   { phrase: /frying\s*pan|skillet/i, breadcrumb: /home\s*&\s*kitchen|kitchen/i, points: 8 },
+  {
+    phrase: /cam[eé]ra\s+(de\s+)?voiture|dash\s*cam|dashcam|3\s*canaux/i,
+    breadcrumb: /cam[eé]ras?\s+de\s+recul/i,
+    points: 32,
+  },
+  {
+    phrase: /cam[eé]ra\s+(de\s+)?voiture|dash\s*cam|dashcam/i,
+    breadcrumb: /electronique\s+pour\s+vehicules/i,
+    points: 14,
+  },
+  {
+    phrase: /cam[eé]ra\s+(de\s+)?voiture|dash\s*cam|dashcam/i,
+    breadcrumb: /animaux|grille de separation|guides?\s+d['']utilisation|cabanes|auvents|pelouses/i,
+    points: -45,
+  },
 ]
 
 function normalizeText(s: string): string {
@@ -146,6 +211,40 @@ function activeIntentForText(normText: string): ProductIntent | null {
     if (intent.match.test(normText)) return intent
   }
   return null
+}
+
+/** Leaf paths that match the detected product intent (for AI catalog priming). */
+export function leafPathsForDetectedIntent(
+  title: string,
+  description: string,
+  leafPaths: LeafPath[],
+  limit = 16
+): LeafPath[] {
+  const text = `${title} ${description}`.trim()
+  if (text.length < 2) return []
+  const intent = activeIntentForText(normalizeText(text))
+  if (!intent) return []
+
+  const scored = leafPaths
+    .map((lp) => {
+      const b = normalizeText(lp.breadcrumb)
+      let s = 0
+      for (const rx of intent.boost) if (rx.test(b)) s += 10
+      for (const rx of intent.penalize) if (rx.test(b)) s -= 20
+      return { lp, s }
+    })
+    .filter(({ s }) => s > 0)
+    .sort((a, b) => b.s - a.s)
+
+  const out: LeafPath[] = []
+  const seen = new Set<string>()
+  for (const { lp } of scored) {
+    if (out.length >= limit) break
+    if (seen.has(lp.leafId)) continue
+    seen.add(lp.leafId)
+    out.push(lp)
+  }
+  return out
 }
 
 export function isWearableProductText(title: string, description = ""): boolean {
@@ -220,6 +319,11 @@ export function scoreProductTextAgainstBreadcrumb(text: string, breadcrumb: stri
 
   for (const w of words) {
     if (WEAK_TOKENS.has(w)) {
+      if (intent?.id === "vehicle_camera" && VEHICLE_CONTEXT_WEAK.has(w)) {
+        const cameraCtx = /camera|dash|dvr|canal|canaux|4k|1080|enregistr|recul|surveillance|video/i
+        if (b.includes(w) && !cameraCtx.test(b)) score += 0.15
+        continue
+      }
       if (b.includes(w)) score += intent ? 0.2 : 0
       continue
     }

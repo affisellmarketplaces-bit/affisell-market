@@ -25,6 +25,8 @@ export type SuggestListingCategoriesResult = {
   source: "none" | "empty" | "keyword" | "ai" | "hybrid"
 }
 
+const MIN_KEYWORD_SCORE_FOR_MERGE = 7
+
 function mergeSuggestionsByTitleRelevance(
   title: string,
   description: string,
@@ -34,14 +36,39 @@ function mergeSuggestionsByTitleRelevance(
 ): LeafPath[] {
   const text = `${title} ${description}`.trim()
   const seen = new Set<string>()
-  const combined: LeafPath[] = []
-  for (const lp of [...aiPicks, ...keywordPicks]) {
-    if (seen.has(lp.leafId)) continue
+  const pushUnique = (lp: LeafPath, out: LeafPath[]) => {
+    if (seen.has(lp.leafId)) return
     seen.add(lp.leafId)
-    combined.push(lp)
+    out.push(lp)
   }
+
+  const topAi = aiPicks[0]
+  const topKw = keywordPicks[0]
+  const aiScore = topAi ? scoreProductTextAgainstBreadcrumb(text, topAi.breadcrumb) : 0
+  const kwScore = topKw ? scoreProductTextAgainstBreadcrumb(text, topKw.breadcrumb) : 0
+
+  /** Keep Groq order when keyword ranking would promote false "voiture" / pet matches. */
+  const preferAiOrder =
+    aiPicks.length > 0 &&
+    aiScore >= MIN_KEYWORD_SCORE_FOR_MERGE &&
+    (kwScore < MIN_KEYWORD_SCORE_FOR_MERGE || aiScore >= kwScore * 0.8)
+
+  if (preferAiOrder) {
+    const out: LeafPath[] = []
+    for (const lp of aiPicks) pushUnique(lp, out)
+    for (const lp of keywordPicks) {
+      if (out.length >= limit) break
+      pushUnique(lp, out)
+    }
+    return out.slice(0, limit)
+  }
+
+  const combined: LeafPath[] = []
+  for (const lp of [...aiPicks, ...keywordPicks]) pushUnique(lp, combined)
+
   const aiRank = new Map<string, number>()
   aiPicks.forEach((lp, i) => aiRank.set(lp.leafId, aiPicks.length - i))
+
   return combined
     .map((lp) => ({
       lp,
@@ -57,7 +84,8 @@ const GROQ_SYSTEM = `You are an Affisell marketplace merchandiser. Map the listi
 
 Rules:
 - Infer the primary product type from the full title (e.g. a "MacBook Air" or "iPad Air" is a laptop/tablet computer, not air fryers, air fresheners, or unrelated "air" products).
-- Do not let a single generic substring (air, pro, mini, max, note) override the main noun (laptop, phone, headphones, lamp, etc.).
+- Do not let a single generic substring (air, pro, mini, max, note, voiture, car) override the main noun (laptop, phone, headphones, camera, lamp, etc.).
+- Dashcams / "caméra de voiture" / multi-channel car DVR → vehicle electronics camera leaves (e.g. Caméras de recul, Électronique pour véhicules), never pet car barriers, car user manuals, garden carports, or toy vehicles.
 - Prefer the closest real leaf: computers and similar go under Computers / Laptops / PCs when present, not kitchen or fragrance.
 - If DESCRIPTION is provided, use it together with the title.
 - Smart bands, fitness trackers, connected watches/bracelets → activity / biometric monitor leaves, never phone unlock categories, electronic connectors, or white-noise sleep aids.
@@ -142,13 +170,28 @@ export async function suggestListingCategories(
 
     const merged = mergeSuggestionsByTitleRelevance(t, d, picked, keywordFallback, 3)
     const text = `${t} ${d}`.trim()
-    const suggestions: ListingCategorySuggestion[] = merged.map((lp, i) => {
+    type ScoredSuggestion = ListingCategorySuggestion & { relevanceScore: number }
+    let scored: ScoredSuggestion[] = merged.map((lp) => {
       const s = scoreProductTextAgainstBreadcrumb(text, lp.breadcrumb)
       const tie = picked.findIndex((p) => p.leafId === lp.leafId)
       const confidence =
         tie === 0 ? 0.88 : tie > 0 ? 0.75 - tie * 0.08 : Math.min(0.72, 0.35 + s / 40)
-      return { ...lp, confidence }
+      return { ...lp, confidence, relevanceScore: s }
     })
+    scored = scored.filter(
+      (row) => row.relevanceScore >= MIN_KEYWORD_SCORE_FOR_MERGE || (row.confidence ?? 0) >= 0.75
+    )
+    if (scored.length === 0 && keywordFallback.length > 0) {
+      scored = keywordFallback.slice(0, 3).map((lp) => {
+        const s = scoreProductTextAgainstBreadcrumb(text, lp.breadcrumb)
+        return { ...lp, confidence: Math.min(0.72, 0.35 + s / 40), relevanceScore: s }
+      })
+    }
+    const suggestions: ListingCategorySuggestion[] = scored.map(({ relevanceScore: _rs, ...lp }) => lp)
+
+    const topScore = merged[0]
+      ? scoreProductTextAgainstBreadcrumb(text, merged[0].breadcrumb)
+      : 0
 
     const source =
       picked.length >= 2 && merged.every((lp, i) => picked[i]?.leafId === lp.leafId)
@@ -162,7 +205,8 @@ export async function suggestListingCategories(
     return {
       suggestions,
       alternatives,
-      recommendedLeafId: suggestions[0]?.leafId ?? null,
+      recommendedLeafId:
+        suggestions[0] && topScore >= MIN_KEYWORD_SCORE_FOR_MERGE ? suggestions[0].leafId : null,
       source,
     }
   } catch {
