@@ -512,7 +512,7 @@
       "emptySubcategoryBody": "Aucun article dans « {sub} » ({parent}). Choisissez une autre catégorie ou le catalogue complet.",
       "emptySearchTitle": "Aucun résultat",
       "emptySearchBody": "Aucun article ne correspond à « {query} ». Modifiez votre recherche ou réinitialisez les filtres.",
-      "activeFilterCatalog": "Tout le catalogue",
+      "activeFilterCatalog": "Tous les produits",
       "activeFilterCategory": "Rayon · {name}",
       "activeFilterSubcategory": "{sub} · {parent}",
       "showAll": "Tout afficher",

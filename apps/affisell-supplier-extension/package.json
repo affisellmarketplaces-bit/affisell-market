@@ -1,0 +1,14 @@
+{
+  "name": "@affisell/supplier-extension",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Affisell supplier catalog import from product pages",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "watch": "node scripts/build.mjs --watch"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "typescript": "^5.8.2"
+  }
+}

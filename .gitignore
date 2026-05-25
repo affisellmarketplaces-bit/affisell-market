@@ -2,6 +2,8 @@
 
 # dependencies
 /node_modules
+apps/affisell-supplier-extension/node_modules
+apps/affisell-supplier-extension/dist
 /.pnp
 .pnp.*
 .yarn/*
@@ -40,6 +42,7 @@ yarn-error.log*
 # Env files with secrets — never commit (.env.local, etc.). Rotate DB keys if they leak.
 .env
 .env.local
+.env.pre-local-merge.bak
 .env.development.local
 .env.test.local
 .env.production.local

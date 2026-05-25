@@ -2,21 +2,13 @@ import type { CategoryAttribute, Prisma } from "@prisma/client"
 
 import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
 import { buildCategoryScopeProductFilter } from "@/lib/marketplace-category-product-filter"
+import {
+  MARKETPLACE_CUSTOM_COLUMN_PREFIX,
+  MARKETPLACE_QUERY_RESERVED,
+} from "@/lib/marketplace-query-params"
 import { prisma } from "@/lib/prisma"
 
-export const MARKETPLACE_QUERY_RESERVED = new Set([
-  "categoryId",
-  "category",
-  "subcategoryId",
-  "subcategory",
-  "q",
-  "shipsFrom",
-  "delivery",
-  "freeShipping",
-])
-
-/** Reserved prefix for product SKU custom column filters (`cc_matiere=…`) */
-export const MARKETPLACE_CUSTOM_COLUMN_PREFIX = "cc_"
+export { MARKETPLACE_CUSTOM_COLUMN_PREFIX, MARKETPLACE_QUERY_RESERVED } from "@/lib/marketplace-query-params"
 
 export type MarketplaceFacetValue = { value: string; count: number }
 export type MarketplaceFacet = { key: string; label: string; values: MarketplaceFacetValue[] }

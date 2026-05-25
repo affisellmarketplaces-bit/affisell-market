@@ -137,25 +137,46 @@ export function pathFromLeafId(
   return out.length ? out : null
 }
 
-/** All category ids in a subtree (node + descendants) for marketplace filters. */
-export async function collectCategorySubtreeIds(
-  prisma: PrismaClient,
-  rootId: string
-): Promise<string[]> {
-  const rows = await prisma.category.findMany({
-    select: { id: true, parentId: true },
-  })
+export type CategorySubtreeRow = {
+  id: string
+  parentId: string | null
+  name: string
+  fullPath: string
+}
+
+export type CategorySubtreeGraph = {
+  childrenByParent: Map<string, string[]>
+  byId: Map<string, CategorySubtreeRow>
+}
+
+function buildChildrenByParent(rows: Array<{ id: string; parentId: string | null }>): Map<string, string[]> {
   const childrenByParent = new Map<string, string[]>()
   for (const r of rows) {
     if (!r.parentId) continue
     if (!childrenByParent.has(r.parentId)) childrenByParent.set(r.parentId, [])
     childrenByParent.get(r.parentId)!.push(r.id)
   }
+  return childrenByParent
+}
+
+/** Single `category.findMany` — reuse for all scopes on one request (avoids P2024). */
+export async function buildCategorySubtreeGraph(prisma: PrismaClient): Promise<CategorySubtreeGraph> {
+  const rows = await prisma.category.findMany({
+    select: { id: true, parentId: true, name: true, fullPath: true },
+  })
+  const byId = new Map<string, CategorySubtreeRow>()
+  for (const r of rows) {
+    byId.set(r.id, r)
+  }
+  return { childrenByParent: buildChildrenByParent(rows), byId }
+}
+
+export function collectCategorySubtreeIdsFromGraph(graph: CategorySubtreeGraph, rootId: string): string[] {
   const out = new Set<string>([rootId])
   const stack = [rootId]
   while (stack.length > 0) {
     const id = stack.pop()!
-    for (const kid of childrenByParent.get(id) ?? []) {
+    for (const kid of graph.childrenByParent.get(id) ?? []) {
       if (!out.has(kid)) {
         out.add(kid)
         stack.push(kid)
@@ -163,6 +184,50 @@ export async function collectCategorySubtreeIds(
     }
   }
   return [...out]
+}
+
+export function labelsForCategoryScopeRows(rows: Array<{ name: string; fullPath: string }>): Set<string> {
+  const labels = new Set<string>()
+  for (const row of rows) {
+    const name = row.name.trim()
+    if (name) labels.add(name.toLowerCase())
+    const path = row.fullPath.trim()
+    if (!path) continue
+    labels.add(path.toLowerCase())
+    for (const segment of path.split(">")) {
+      const part = segment.trim().toLowerCase()
+      if (part) labels.add(part)
+    }
+  }
+  return labels
+}
+
+let inflightSubtreeGraph: Promise<CategorySubtreeGraph> | null = null
+
+/** Coalesce parallel `collectCategorySubtreeIds` in the same tick into one DB round-trip. */
+async function loadCategorySubtreeGraphCoalesced(prisma: PrismaClient): Promise<CategorySubtreeGraph> {
+  if (!inflightSubtreeGraph) {
+    inflightSubtreeGraph = buildCategorySubtreeGraph(prisma).finally(() => {
+      queueMicrotask(() => {
+        inflightSubtreeGraph = null
+      })
+    })
+  }
+  return inflightSubtreeGraph
+}
+
+/** Test hook — reset coalesced loader between cases. */
+export function resetCategorySubtreeGraphInflightForTests(): void {
+  inflightSubtreeGraph = null
+}
+
+/** All category ids in a subtree (node + descendants) for marketplace filters. */
+export async function collectCategorySubtreeIds(
+  prisma: PrismaClient,
+  rootId: string
+): Promise<string[]> {
+  const graph = await loadCategorySubtreeGraphCoalesced(prisma)
+  return collectCategorySubtreeIdsFromGraph(graph, rootId)
 }
 
 export async function fetchAllCategoriesForBrowse(prisma: PrismaClient): Promise<BrowseNode[]> {

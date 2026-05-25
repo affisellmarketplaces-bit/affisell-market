@@ -1,0 +1,44 @@
+{
+  "manifest_version": 3,
+  "name": "Affisell — Import fournisseur",
+  "version": "1.0.0",
+  "description": "Importez des produits dans votre catalogue Affisell depuis la page en cours.",
+  "permissions": ["storage", "activeTab", "scripting"],
+  "host_permissions": [
+    "http://localhost:3001/*",
+    "http://127.0.0.1:3001/*",
+    "https://*/*"
+  ],
+  "action": {
+    "default_title": "Affisell Import",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.amazon.com/*",
+        "*://*.amazon.fr/*",
+        "*://*.amazon.de/*",
+        "*://*.amazon.co.uk/*",
+        "*://*.amazon.es/*",
+        "*://*.amazon.it/*",
+        "*://*.aliexpress.com/*",
+        "*://*.aliexpress.us/*",
+        "*://*.temu.com/*",
+        "*://*.shein.com/*",
+        "*://*/products/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

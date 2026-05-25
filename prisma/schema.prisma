@@ -55,6 +55,9 @@ model User {
 
   supplierIntegrations SupplierIntegration[]
 
+  /** Chrome / Firefox extension import tokens (hashed secret). */
+  supplierExtensionTokens SupplierExtensionToken[]
+
   /**
    * Optional blind-dropship API profile for this supplier user (parallel to native Affisell listings).
    */
@@ -111,6 +114,22 @@ model SupplierIntegration {
   updatedAt       DateTime  @updatedAt
 
   @@unique([userId, platform, name])
+  @@index([userId])
+}
+
+/**
+ * Bearer token for the supplier browser extension (catalog import from product pages).
+ */
+model SupplierExtensionToken {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label      String    @default("Browser")
+  tokenHash  String    @unique
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
   @@index([userId])
 }
 

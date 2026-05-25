@@ -3,9 +3,17 @@
  * Vercel production build: Prisma generate → heal Neon (P3009) → migrate deploy → next build.
  */
 import { execSync } from "node:child_process"
+import { existsSync } from "node:fs"
 import { readdirSync } from "node:fs"
-import { join } from "node:path"
+import { join, resolve } from "node:path"
+import { config as loadEnv } from "dotenv"
 import { ensureDirectUrl } from "./ensure-direct-url.mjs"
+
+const root = process.cwd()
+for (const name of [".env.pre-local-merge.bak", ".env", ".env.local"]) {
+  const path = resolve(root, name)
+  if (existsSync(path)) loadEnv({ path, override: true })
+}
 
 const MIGRATION_DIR = join(process.cwd(), "prisma/migrations")
 

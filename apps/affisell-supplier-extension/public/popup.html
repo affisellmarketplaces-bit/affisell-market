@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Affisell Import</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="head">
+      <div class="logo">A</div>
+      <div>
+        <h1>Affisell Import</h1>
+        <p id="status" class="status">—</p>
+      </div>
+    </header>
+
+    <section class="card">
+      <label class="lbl" for="apiBase">URL Affisell</label>
+      <input id="apiBase" type="url" placeholder="http://localhost:3001" />
+      <label class="lbl" for="token">Jeton fournisseur</label>
+      <input id="token" type="password" placeholder="afs_ext_…" autocomplete="off" />
+      <button type="button" id="saveSettings" class="btn secondary">Enregistrer</button>
+    </section>
+
+    <section class="card">
+      <p class="lbl">Page active</p>
+      <p id="pageUrl" class="url">—</p>
+      <p id="platform" class="chip">—</p>
+    </section>
+
+    <section id="preview" class="card preview hidden">
+      <p id="previewTitle" class="preview-title"></p>
+      <p id="previewPrice" class="preview-price"></p>
+      <p id="previewMeta" class="preview-meta"></p>
+    </section>
+
+    <p id="error" class="error hidden"></p>
+
+    <footer class="actions">
+      <button type="button" id="btnPreview" class="btn primary">Analyser</button>
+      <button type="button" id="btnSave" class="btn primary" disabled>Enregistrer brouillon</button>
+    </footer>
+
+    <p class="foot">
+      <a id="linkDash" href="#" target="_blank" rel="noopener">Dashboard extension</a>
+    </p>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

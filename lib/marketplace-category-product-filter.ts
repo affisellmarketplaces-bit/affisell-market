@@ -1,22 +1,10 @@
 import type { Prisma, PrismaClient } from "@prisma/client"
 
-import { collectCategorySubtreeIds } from "@/lib/category-browse"
-
-function collectCategoryLabels(rows: { name: string; fullPath: string }[]): string[] {
-  const labels = new Set<string>()
-  for (const row of rows) {
-    const name = (row.name ?? "").trim()
-    if (name) labels.add(name)
-    const path = (row.fullPath ?? "").trim()
-    if (!path) continue
-    labels.add(path)
-    for (const segment of path.split(">")) {
-      const part = segment.trim()
-      if (part) labels.add(part)
-    }
-  }
-  return [...labels]
-}
+import {
+  buildCategorySubtreeGraph,
+  collectCategorySubtreeIdsFromGraph,
+  labelsForCategoryScopeRows,
+} from "@/lib/category-browse"
 
 /**
  * Products in a category scope: taxonomy `categoryId`, legacy `subcategoryId`, or
@@ -26,12 +14,11 @@ export async function buildCategoryScopeProductFilter(
   client: PrismaClient,
   scopeRootId: string
 ): Promise<Prisma.ProductWhereInput> {
-  const scopeIds = await collectCategorySubtreeIds(client, scopeRootId)
-
-  const scopeRows = await client.category.findMany({
-    where: { id: { in: scopeIds } },
-    select: { id: true, name: true, fullPath: true },
-  })
+  const graph = await buildCategorySubtreeGraph(client)
+  const scopeIds = collectCategorySubtreeIdsFromGraph(graph, scopeRootId)
+  const scopeRows = scopeIds
+    .map((id) => graph.byId.get(id))
+    .filter((r): r is NonNullable<typeof r> => Boolean(r))
 
   const tabularSubIds = (
     await client.subcategory.findMany({
@@ -45,7 +32,7 @@ export async function buildCategoryScopeProductFilter(
     or.push({ subcategoryId: { in: tabularSubIds } })
   }
 
-  const labels = collectCategoryLabels(scopeRows)
+  const labels = [...labelsForCategoryScopeRows(scopeRows)]
   if (labels.length > 0) {
     or.push({ categories: { hasSome: labels } })
   }

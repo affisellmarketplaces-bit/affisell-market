@@ -473,7 +473,7 @@
     "sidebar": {
       "title": "Categories",
       "subtitle": "Browse by department",
-      "allCatalog": "Full catalog",
+      "allCatalog": "All Catalog",
       "offlineHint": "Offline taxonomy — connect DB for live counts",
       "unavailable": "Categories unavailable",
       "empty": "No categories"
@@ -512,7 +512,7 @@
       "emptySubcategoryBody": "No items in « {sub} » ({parent}). Pick another category or the full catalog.",
       "emptySearchTitle": "No results",
       "emptySearchBody": "Nothing matches « {query} ». Change your search or reset filters.",
-      "activeFilterCatalog": "Full catalog",
+      "activeFilterCatalog": "All Products",
       "activeFilterCategory": "Department · {name}",
       "activeFilterSubcategory": "{sub} · {parent}",
       "showAll": "Show all",
@@ -526,7 +526,7 @@
       "ariaLabel": "Affisell departments",
       "badge": "Departments",
       "hint": "Department-store navigation — each department opens its aisles in the left column.",
-      "allCatalog": "Full catalog"
+      "allCatalog": "All Catalog"
     }
   },
   "product": {

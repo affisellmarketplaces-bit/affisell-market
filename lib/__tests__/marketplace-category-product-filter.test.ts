@@ -8,16 +8,10 @@ describe("buildCategoryScopeProductFilter", () => {
       findMany: vi.fn().mockResolvedValue([{ id: "sub-tab-1" }]),
     }
     const category = {
-      findMany: vi
-        .fn()
-        .mockResolvedValueOnce([
-          { id: "root", parentId: null },
-          { id: "leaf", parentId: "root" },
-        ])
-        .mockResolvedValueOnce([
-          { id: "root", name: "Root Dept", fullPath: "Root Dept" },
-          { id: "leaf", name: "Leaf Aisle", fullPath: "Root Dept > Leaf Aisle" },
-        ]),
+      findMany: vi.fn().mockResolvedValue([
+        { id: "root", parentId: null, name: "Root Dept", fullPath: "Root Dept" },
+        { id: "leaf", parentId: "root", name: "Leaf Aisle", fullPath: "Root Dept > Leaf Aisle" },
+      ]),
     }
     const client = { category, subcategory } as unknown as Parameters<
       typeof buildCategoryScopeProductFilter

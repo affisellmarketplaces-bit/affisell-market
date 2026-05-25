@@ -697,12 +697,18 @@ export function SupplierProductImport() {
         <p className="mt-1 text-zinc-600 dark:text-zinc-400">
           Import from CSV, Shopify, AliExpress, or any URL — review and publish to your catalog
         </p>
-        <p className="mt-3">
+        <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
+          <Link
+            href="/dashboard/supplier/extension"
+            className="text-sm font-medium text-violet-600 underline-offset-4 hover:underline dark:text-violet-400"
+          >
+            Extension navigateur (import 1 clic) →
+          </Link>
           <Link
             href="/dashboard/supplier/bulk-import"
             className="text-sm font-medium text-violet-600 underline-offset-4 hover:underline dark:text-violet-400"
           >
-            Bulk Excel import (per-category template, validation, batched publish) →
+            Bulk Excel import →
           </Link>
         </p>
       </div>

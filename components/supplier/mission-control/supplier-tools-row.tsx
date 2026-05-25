@@ -3,6 +3,7 @@ import {
   Landmark,
   Package,
   Plug,
+  Puzzle,
   Upload,
 } from "lucide-react"
 
@@ -11,6 +12,7 @@ import { cn } from "@/lib/utils"
 const tools = [
   { label: "Catalogue", href: "/dashboard/supplier/products", Icon: Package },
   { label: "Import", href: "/dashboard/supplier/import", Icon: Upload },
+  { label: "Extension", href: "/dashboard/supplier/extension", Icon: Puzzle },
   { label: "Finances", href: "/dashboard/supplier/balance", Icon: Landmark },
   { label: "Intégrations", href: "/dashboard/supplier/integrations", Icon: Plug },
 ] as const
