@@ -3,9 +3,10 @@
 import Link from "next/link"
 
 import { ProductDiscountTag } from "@/components/product-discount-tag"
+import { ProductPriceOffer } from "@/components/product/product-price-offer"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { addGuestCartItem } from "@/lib/guest-cart"
-import { formatStoreCurrency } from "@/lib/market-config"
+import { resolveProductDiscount } from "@/lib/product-discount-display"
 
 type Props = {
   detailHref: string
@@ -32,11 +33,8 @@ export function PremiumMarketplaceCard({
   compareAt,
   showPremiumBadge = false,
 }: Props) {
-  const compareN = typeof compareAt === "number" && Number.isFinite(compareAt) ? compareAt : NaN
-  const hasDiscount = Number.isFinite(compareN) && compareN > priceValue
-  const savePct =
-    hasDiscount ? Math.round(((compareN - priceValue) / compareN) * 100) : 0
-  const compareDisplay = hasDiscount ? formatStoreCurrency(compareN) : null
+  const discountOffer = resolveProductDiscount(priceValue, compareAt)
+  const hasDiscount = discountOffer != null
 
   return (
     <Link
@@ -44,7 +42,7 @@ export function PremiumMarketplaceCard({
       className="group flex h-full w-full flex-col rounded-3xl border border-gray-100/90 bg-white/85 p-2 shadow-sm backdrop-blur-sm transition-shadow hover:border-violet-200/80 hover:shadow-lg hover:shadow-violet-500/5 dark:border-zinc-800 dark:bg-zinc-950/60 dark:hover:border-violet-800/50"
     >
       <div className="relative mb-3 aspect-square w-full shrink-0 overflow-hidden rounded-2xl border border-white/50 bg-gradient-to-br from-violet-50/40 to-teal-50/25 dark:border-zinc-800/80 dark:from-violet-950/25 dark:to-teal-950/15">
-        {hasDiscount ? <ProductDiscountTag percent={savePct} /> : null}
+        {hasDiscount ? <ProductDiscountTag percent={discountOffer.percent} /> : null}
         {imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -102,10 +100,7 @@ export function PremiumMarketplaceCard({
             </h3>
           </div>
           <div className="shrink-0 pt-0.5 text-right">
-            <span className="font-medium text-zinc-900 dark:text-zinc-100">{priceDisplay}</span>
-            {compareDisplay ? (
-              <p className="text-compare-at text-xs font-medium tabular-nums line-through">{compareDisplay}</p>
-            ) : null}
+            <ProductPriceOffer price={priceValue} compareAt={compareAt} layout="compact" align="end" />
           </div>
         </div>
         <p className="mt-1 line-clamp-2 h-10 text-sm leading-5 text-zinc-500 dark:text-zinc-400">by {sellerDisplay}</p>

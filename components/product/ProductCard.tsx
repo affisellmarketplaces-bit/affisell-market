@@ -4,7 +4,9 @@ import Link from "next/link"
 import { Heart } from "lucide-react"
 
 import { ProductDiscountTag } from "@/components/product-discount-tag"
+import { ProductPriceOffer } from "@/components/product/product-price-offer"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
+import { resolveProductDiscount } from "@/lib/product-discount-display"
 import { Badge } from "@/components/ui/badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { formatStoreCurrency, formatStoreCurrencyFromCents } from "@/lib/market-config"
@@ -230,8 +232,8 @@ export function ProductCard({ product, mode = "customer", href: hrefProp }: Prod
             : "/marketplace")
   const priceN = p.price
   const compareN = p.compareAt
-  const hasDiscount = compareN != null && compareN > priceN
-  const discount = hasDiscount ? Math.round(((compareN - priceN) / compareN) * 100) : 0
+  const discountOffer = resolveProductDiscount(priceN, compareN)
+  const hasDiscount = discountOffer != null
   const src = p.image || "/placeholder-product.jpg"
   const reward = p.buyerRewardBadge
 
@@ -250,7 +252,7 @@ export function ProductCard({ product, mode = "customer", href: hrefProp }: Prod
       data-show-business-data={showBusiness ? "true" : "false"}
     >
       <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-white/50 bg-gradient-to-br from-violet-50/40 to-teal-50/25 dark:border-zinc-800/80 dark:from-violet-950/25 dark:to-teal-950/15">
-        {hasDiscount ? <ProductDiscountTag percent={discount} /> : null}
+        {hasDiscount ? <ProductDiscountTag percent={discountOffer.percent} /> : null}
         {!showBusiness && p.soldCount != null ? (
           <ProductSalesBadge count={p.soldCount} variant="overlay" />
         ) : null}
@@ -287,11 +289,8 @@ export function ProductCard({ product, mode = "customer", href: hrefProp }: Prod
             </span>
           </p>
         ) : null}
-        <div className="mt-2 flex items-baseline gap-2">
-          <span className="text-xl font-black text-gray-900 dark:text-white">{formatStoreCurrency(priceN)}</span>
-          {hasDiscount && compareN != null ? (
-            <span className="text-compare-at text-sm tabular-nums line-through">{formatStoreCurrency(compareN)}</span>
-          ) : null}
+        <div className="mt-2">
+          <ProductPriceOffer price={priceN} compareAt={compareN} layout="card" />
         </div>
 
         {showBusiness ? (

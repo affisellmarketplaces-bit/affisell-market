@@ -546,6 +546,10 @@
       "eyebrowPopular": "Best-seller",
       "count": "{count, plural, one {# vente} other {# ventes}}",
       "popular": "Populaire · {compact} ventes"
+    },
+    "discount": {
+      "save": "Économisez {amount}",
+      "percentOff": "−{percent} %"
     }
   },
   "merchantAccount": {

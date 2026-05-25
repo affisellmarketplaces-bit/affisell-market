@@ -36,6 +36,7 @@ import {
   isMulticolorSwatch,
 } from "@/lib/product-catalog-constants"
 import { shopperCategoryEyebrow, shopperVisibleTags } from "@/lib/product-shopper-tags"
+import { ProductPriceOffer } from "@/components/product/product-price-offer"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { addGuestCartItem } from "@/lib/guest-cart"
@@ -602,9 +603,6 @@ export function MarketplaceListingDetail({
   const listingPriceEur = activeListingPriceCents / 100
   const hasRetailCompare =
     typeof activeRetailPriceEur === "number" && activeRetailPriceEur > listingPriceEur
-  const discountPct = hasRetailCompare
-    ? Math.round(((activeRetailPriceEur - listingPriceEur) / activeRetailPriceEur) * 100)
-    : 0
   const glanceText = useMemo(() => listingAtAGlance(description, name, tags), [description, name, tags])
 
   /** Short excerpt for the footer details panel (SEO / second entry point without repeating the full body). */
@@ -1029,21 +1027,13 @@ export function MarketplaceListingDetail({
                 <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                   {productT.priceLabel}
                 </p>
-                <div className="mt-0.5 flex flex-wrap items-baseline gap-2">
-                  <p className="text-2xl font-bold tracking-tight text-zinc-900 tabular-nums dark:text-white">
-                    {priceDisplay}
-                  </p>
-                  {hasRetailCompare ? (
-                    <span className="rounded-full bg-gradient-to-r from-rose-600 to-orange-500 px-2 py-0.5 text-[11px] font-semibold text-white">
-                      −{discountPct}%
-                    </span>
-                  ) : null}
+                <div className="mt-0.5">
+                  <ProductPriceOffer
+                    price={listingPriceEur}
+                    compareAt={hasRetailCompare ? activeRetailPriceEur : null}
+                    layout="detail"
+                  />
                 </div>
-                {hasRetailCompare ? (
-                  <p className="mt-1 text-xs text-zinc-500 line-through dark:text-zinc-400">
-                    {fmtMoney(activeRetailPriceEur ?? 0)}
-                  </p>
-                ) : null}
               </div>
               {buyerRewardBadge ? (
                 <span className="inline-flex max-w-[48%] shrink-0 items-center gap-1 rounded-full border border-teal-200/90 bg-teal-50/90 px-2.5 py-1 text-[10px] font-semibold leading-tight text-teal-900 dark:border-teal-800 dark:bg-teal-950/70 dark:text-teal-100">
@@ -1061,19 +1051,18 @@ export function MarketplaceListingDetail({
                   <p className="text-[11px] font-semibold tracking-[0.08em] text-violet-700/90 dark:text-violet-300/90">
                     {productT.priceLabel}
                   </p>
-                  <p className="mt-1 text-3xl font-bold tracking-tight text-zinc-900 tabular-nums dark:text-white">{priceDisplay}</p>
+                  <div className="mt-1">
+                    <ProductPriceOffer
+                      price={listingPriceEur}
+                      compareAt={hasRetailCompare ? activeRetailPriceEur : null}
+                      layout="detail"
+                    />
+                  </div>
                   {buyerRewardBadge ? (
                     <p className="mt-3">
                       <span className="inline-flex items-center gap-1.5 rounded-full border border-teal-200/90 bg-teal-50/90 px-3 py-1.5 text-xs font-semibold text-teal-900 shadow-sm dark:border-teal-800 dark:bg-teal-950/70 dark:text-teal-100">
                         <Sparkles className="h-3.5 w-3.5 shrink-0 opacity-80" aria-hidden />
                         Store offer · {buyerRewardBadge}
-                      </span>
-                    </p>
-                  ) : null}
-                  {hasRetailCompare ? (
-                    <p className="mt-2">
-                      <span className="inline-flex rounded-full bg-gradient-to-r from-rose-600 to-orange-500 px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
-                        −{discountPct}% vs anchor {fmtMoney(activeRetailPriceEur ?? 0)}
                       </span>
                     </p>
                   ) : null}
