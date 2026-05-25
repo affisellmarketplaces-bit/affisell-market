@@ -30,6 +30,7 @@
     "verify:sentry": "tsx scripts/verify-sentry.ts",
     "email:dev": "email dev --dir emails",
     "verify:no-secrets": "node scripts/verify-no-secrets.mjs",
+    "check:client-prisma": "node scripts/check-client-prisma-imports.mjs",
     "push:safe": "node scripts/git-push-safe.mjs",
     "extension:build": "npm run build --prefix apps/affisell-supplier-extension",
     "test:veo": "tsx test-veo.ts",
