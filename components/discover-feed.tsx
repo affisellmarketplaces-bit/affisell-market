@@ -68,7 +68,8 @@ function DiscoverCard({ item }: { item: DiscoverItem }) {
     if (!item.listingId) return
     setCheckoutBusy(true)
     try {
-      const { startFastCheckout } = await import("@/lib/fast-checkout-client")
+      const { fastCheckoutNeedsLogin, fastCheckoutRedirected, startFastCheckout } =
+        await import("@/lib/fast-checkout-client")
       const result = await startFastCheckout(
         {
           productId: item.listingId,
@@ -78,8 +79,8 @@ function DiscoverCard({ item }: { item: DiscoverItem }) {
         },
         { loginCallbackUrl: "/discover" }
       )
-      if (result.ok && result.redirected) return
-      if (result.reason === "auth") {
+      if (fastCheckoutRedirected(result)) return
+      if (fastCheckoutNeedsLogin(result)) {
         router.push(`/login?callbackUrl=${encodeURIComponent("/discover")}`)
       }
     } finally {

@@ -691,7 +691,8 @@ export function MarketplaceListingDetail({
     setBuyBusy(true)
     try {
       const applied = Math.min(Math.max(0, Math.round(useRewardCents)), maxApplicableReward)
-      const { startFastCheckout } = await import("@/lib/fast-checkout-client")
+      const { fastCheckoutNeedsLogin, fastCheckoutRedirected, startFastCheckout } =
+        await import("@/lib/fast-checkout-client")
       const result = await startFastCheckout(
         {
           productId: listingId,
@@ -702,8 +703,8 @@ export function MarketplaceListingDetail({
         },
         { loginCallbackUrl: `/marketplace/${listingId}` }
       )
-      if (result.ok && result.redirected) return
-      if (result.reason === "auth") return
+      if (fastCheckoutRedirected(result)) return
+      if (fastCheckoutNeedsLogin(result)) return
     } finally {
       setBuyBusy(false)
     }

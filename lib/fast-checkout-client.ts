@@ -10,9 +10,23 @@ export type FastCheckoutBody = {
   items?: unknown[]
 }
 
-export type FastCheckoutResult =
-  | { ok: true; redirected: true }
-  | { ok: false; reason: "auth" | "error"; message?: string }
+export type FastCheckoutSuccess = { ok: true; status: "redirected" }
+export type FastCheckoutFailure = {
+  ok: false
+  status: "auth" | "error"
+  message?: string
+}
+export type FastCheckoutResult = FastCheckoutSuccess | FastCheckoutFailure
+
+export function fastCheckoutRedirected(
+  result: FastCheckoutResult
+): result is FastCheckoutSuccess {
+  return result.ok && result.status === "redirected"
+}
+
+export function fastCheckoutNeedsLogin(result: FastCheckoutResult): boolean {
+  return !result.ok && result.status === "auth"
+}
 
 /**
  * One-tap buy: redirect as soon as Stripe URL is returned (`location.assign` + keepalive).
@@ -36,14 +50,14 @@ export async function startFastCheckout(
         `/login?callbackUrl=${encodeURIComponent(returnTo)}`
       )
     }
-    return { ok: false, reason: "auth" }
+    return { ok: false, status: "auth" }
   }
 
   const data = (await res.json()) as { url?: string; error?: string }
   if (data.url) {
     window.location.assign(data.url)
-    return { ok: true, redirected: true }
+    return { ok: true, status: "redirected" }
   }
 
-  return { ok: false, reason: "error", message: data.error }
+  return { ok: false, status: "error", message: data.error }
 }
