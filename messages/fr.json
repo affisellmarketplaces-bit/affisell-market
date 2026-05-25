@@ -541,6 +541,35 @@
     "noDescription": "Pas de description.",
     "soldBy": "Vente via fiche · Fournisseur : {seller}"
   },
+  "storefront": {
+    "domain": {
+      "title": "Votre nom de domaine",
+      "description": "Associez votre domaine (ex. {example}). Vos visiteurs accèdent à votre vitrine brandée ; Affisell assure le routage et le HTTPS après vérification DNS.",
+      "exampleHost": "boutique.fr",
+      "domainName": "Nom de domaine",
+      "placeholder": "boutique.exemple.fr",
+      "saveDomain": "Enregistrer",
+      "saving": "Enregistrement…",
+      "dnsTitle": "DNS — ajoutez cet enregistrement CNAME chez votre registrar",
+      "verifySsl": "Vérifier et activer le HTTPS",
+      "checkingDns": "Vérification DNS et SSL…",
+      "dnsVerified": "DNS vérifié",
+      "domainSaved": "Domaine enregistré.",
+      "domainVerified": "Domaine vérifié",
+      "notVerifiedYet": "Pas encore vérifié",
+      "verificationFailed": "Échec de la vérification",
+      "nameRequired": "Indiquez d’abord le nom de la boutique dans le profil boutique.",
+      "saveFailed": "Impossible d’enregistrer le domaine",
+      "vercelActive": "HTTPS actif",
+      "vercelPending": "HTTPS en attente — propagation DNS",
+      "vercelRegistered": "Domaine enregistré pour l’hébergement",
+      "vercelFailed": "Échec de l’enregistrement hébergement",
+      "vercelSkipped": "Ajoutez le domaine dans Domains du projet pour le HTTPS",
+      "vercelUnknown": "Hébergement pas encore enregistré",
+      "vercelAuto": " · Enregistrement automatique",
+      "vercelManual": " · Ajoutez le domaine dans Domains si le HTTPS ne répond pas"
+    }
+  },
   "boutique": {
     "tagline": "Vitrine affilié",
     "customDomainTagline": "Boutique officielle",

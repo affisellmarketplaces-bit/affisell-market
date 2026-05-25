@@ -1,18 +1,28 @@
-/** Human labels for Vercel domain status — client-safe. */
+/** Keys under `storefront.domain` for Vercel/hosting status — map in UI with next-intl. */
 
-export function vercelDomainStatusLabel(status: string | null | undefined): string {
+export type VercelDomainStatusKey =
+  | "vercelActive"
+  | "vercelPending"
+  | "vercelRegistered"
+  | "vercelFailed"
+  | "vercelSkipped"
+  | "vercelUnknown"
+
+export function vercelDomainStatusMessageKey(
+  status: string | null | undefined
+): VercelDomainStatusKey {
   switch (status) {
     case "active":
-      return "SSL active on Vercel"
+      return "vercelActive"
     case "pending":
-      return "SSL pending — DNS propagating"
+      return "vercelPending"
     case "registered":
-      return "Registered on Vercel"
+      return "vercelRegistered"
     case "failed":
-      return "Vercel registration failed"
+      return "vercelFailed"
     case "skipped":
-      return "Add domain manually in Vercel"
+      return "vercelSkipped"
     default:
-      return "Not registered on Vercel yet"
+      return "vercelUnknown"
   }
 }

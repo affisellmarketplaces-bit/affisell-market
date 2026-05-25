@@ -541,6 +541,35 @@
     "noDescription": "No description.",
     "soldBy": "Sold via listing · Supplier: {seller}"
   },
+  "storefront": {
+    "domain": {
+      "title": "Your own domain",
+      "description": "Use your own domain (e.g. {example}). Visitors see your branded storefront; Affisell handles routing and HTTPS once DNS is verified.",
+      "exampleHost": "yourstore.com",
+      "domainName": "Domain name",
+      "placeholder": "boutique.example.com",
+      "saveDomain": "Save domain",
+      "saving": "Saving…",
+      "dnsTitle": "DNS — add this CNAME at your registrar",
+      "verifySsl": "Verify & enable SSL",
+      "checkingDns": "Checking DNS & SSL…",
+      "dnsVerified": "DNS verified",
+      "domainSaved": "Domain saved.",
+      "domainVerified": "Domain verified",
+      "notVerifiedYet": "Not verified yet",
+      "verificationFailed": "Verification failed",
+      "nameRequired": "Set your store name in Store profile first.",
+      "saveFailed": "Could not save domain",
+      "vercelActive": "SSL active",
+      "vercelPending": "SSL pending — DNS propagating",
+      "vercelRegistered": "Registered for hosting",
+      "vercelFailed": "Hosting registration failed",
+      "vercelSkipped": "Add hostname in project Domains for HTTPS",
+      "vercelUnknown": "Hosting not registered yet",
+      "vercelAuto": " · Auto-registered on hosting",
+      "vercelManual": " · Add hostname in Domains if HTTPS is not live"
+    }
+  },
   "boutique": {
     "tagline": "Affiliate storefront",
     "customDomainTagline": "Official store",

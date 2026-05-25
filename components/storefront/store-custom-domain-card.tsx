@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { CheckCircle2, Globe, Loader2, Shield } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { vercelDomainStatusLabel } from "@/lib/vercel-domain-status-label"
+import { vercelDomainStatusMessageKey } from "@/lib/vercel-domain-status-label"
 import { cn } from "@/lib/utils"
 
 type DomainStatusPayload = {
@@ -25,6 +26,7 @@ type Props = {
 }
 
 export function StoreCustomDomainCard({ className, variant = "default" }: Props) {
+  const t = useTranslations("storefront.domain")
   const [dnsTarget, setDnsTarget] = useState("cname.affisell.com")
   const [customDomain, setCustomDomain] = useState("")
   const [domainVerified, setDomainVerified] = useState(false)
@@ -84,27 +86,26 @@ export function StoreCustomDomainCard({ className, variant = "default" }: Props)
     setMessage(null)
     try {
       const fd = new FormData()
-      fd.set("name", " ") // API requires name — minimal placeholder, user should set name in profile
       const me = await fetch("/api/store/me", { credentials: "include" })
       const meJson = (await me.json()) as { store?: { name?: string } }
       const storeName = meJson.store?.name?.trim()
       if (!storeName) {
-        throw new Error("Set your store name in Store profile first.")
+        throw new Error(t("nameRequired"))
       }
       fd.set("name", storeName)
       fd.set("customDomain", customDomain.trim())
 
       const res = await fetch("/api/store/update", { method: "POST", body: fd, credentials: "include" })
       const json = (await res.json()) as { error?: string; store?: { customDomain?: string | null; domainVerified?: boolean } }
-      if (!res.ok) throw new Error(json.error ?? "Could not save domain")
+      if (!res.ok) throw new Error(json.error ?? t("saveFailed"))
       if (json.store) {
         setCustomDomain(json.store.customDomain ?? "")
         setDomainVerified(json.store.domainVerified ?? false)
       }
-      setMessage("Domain saved.")
+      setMessage(t("domainSaved"))
       await refreshStatus()
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error")
+      setError(e instanceof Error ? e.message : t("saveFailed"))
     } finally {
       setSaving(false)
     }
@@ -129,20 +130,21 @@ export function StoreCustomDomainCard({ className, variant = "default" }: Props)
       if (json.error) throw new Error(json.error)
       if (json.verified) {
         setDomainVerified(true)
-        setMessage(json.message ?? "Domain verified")
+        setMessage(json.message ?? t("domainVerified"))
         if (json.vercel?.status) setVercelStatus(json.vercel.status)
       } else {
-        setMessage(json.message ?? "Not verified yet")
+        setMessage(json.message ?? t("notVerifiedYet"))
       }
       await refreshStatus()
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Verification failed")
+      setError(e instanceof Error ? e.message : t("verificationFailed"))
     } finally {
       setVerifyBusy(false)
     }
   }
 
   const isStudio = variant === "studio"
+  const exampleHost = t("exampleHost")
 
   return (
     <section
@@ -158,16 +160,20 @@ export function StoreCustomDomainCard({ className, variant = "default" }: Props)
           <Globe className="size-5" aria-hidden />
         </span>
         <div className="min-w-0 flex-1">
-          <h3 className="text-base font-semibold text-gray-900 dark:text-zinc-50">Your own domain</h3>
+          <h3 className="text-base font-semibold text-gray-900 dark:text-zinc-50">{t("title")}</h3>
           <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">
-            Like Shopify: visitors open <strong>yourstore.com</strong> and see your branded shop. We handle routing; Vercel issues SSL.
+            {t.rich("description", {
+              example: () => (
+                <strong className="font-semibold text-gray-800 dark:text-zinc-200">{exampleHost}</strong>
+              ),
+            })}
           </p>
         </div>
       </div>
 
       <div className="mt-5 space-y-3">
         <label htmlFor="custom-domain-input" className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-          Domain name
+          {t("domainName")}
         </label>
         <div className="flex flex-col gap-2 sm:flex-row">
           <Input
@@ -177,18 +183,18 @@ export function StoreCustomDomainCard({ className, variant = "default" }: Props)
               setCustomDomain(e.target.value)
               setDomainVerified(false)
             }}
-            placeholder="boutique.example.com"
+            placeholder={t("placeholder")}
             className="flex-1"
           />
           <Button type="button" variant="outline" disabled={saving || verifyBusy} onClick={() => void saveDomain()}>
-            {saving ? "Saving…" : "Save domain"}
+            {saving ? t("saving") : t("saveDomain")}
           </Button>
         </div>
       </div>
 
       {customDomain.trim() && !domainVerified ? (
         <div className="mt-4 rounded-xl border border-amber-200/80 bg-amber-50/90 p-4 text-sm dark:border-amber-900/60 dark:bg-amber-950/30">
-          <p className="font-medium text-amber-950 dark:text-amber-100">DNS — add this CNAME at your registrar</p>
+          <p className="font-medium text-amber-950 dark:text-amber-100">{t("dnsTitle")}</p>
           <code className="mt-2 block break-all rounded-lg bg-white/90 px-3 py-2 text-xs dark:bg-zinc-950">
             {customDomain.trim()} → {dnsTarget}
           </code>
@@ -201,12 +207,12 @@ export function StoreCustomDomainCard({ className, variant = "default" }: Props)
             {verifyBusy ? (
               <>
                 <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />
-                Checking DNS &amp; SSL…
+                {t("checkingDns")}
               </>
             ) : (
               <>
                 <Shield className="mr-2 size-4" aria-hidden />
-                Verify &amp; enable SSL
+                {t("verifySsl")}
               </>
             )}
           </Button>
@@ -217,7 +223,7 @@ export function StoreCustomDomainCard({ className, variant = "default" }: Props)
         <div className="mt-4 space-y-3 rounded-xl border border-emerald-200/80 bg-emerald-50/80 p-4 dark:border-emerald-900/50 dark:bg-emerald-950/25">
           <p className="flex items-center gap-2 text-sm font-medium text-emerald-900 dark:text-emerald-100">
             <CheckCircle2 className="size-4 shrink-0" aria-hidden />
-            DNS verified
+            {t("dnsVerified")}
           </p>
           {publicStoreUrl ? (
             <a
@@ -230,8 +236,8 @@ export function StoreCustomDomainCard({ className, variant = "default" }: Props)
             </a>
           ) : null}
           <p className="text-xs text-emerald-800/90 dark:text-emerald-200/80">
-            {vercelDomainStatusLabel(vercelStatus)}
-            {vercelAuto ? " · Auto-registered on Vercel" : " · Add hostname in Vercel Domains if HTTPS fails"}
+            {t(vercelDomainStatusMessageKey(vercelStatus))}
+            {vercelAuto ? t("vercelAuto") : t("vercelManual")}
           </p>
           {vercelError ? (
             <p className="text-xs text-rose-700 dark:text-rose-300">{vercelError}</p>
