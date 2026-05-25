@@ -593,6 +593,7 @@
     "priceLabel": "Prix",
     "colorLabel": "Couleur",
     "sizeLabel": "Taille",
+    "storageLabel": "Capacité de stockage",
     "priceFluidityNote": "Le prix affiché peut changer avant le paiement."
   },
   "Filters": {

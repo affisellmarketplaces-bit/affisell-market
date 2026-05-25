@@ -593,6 +593,7 @@
     "priceLabel": "Price",
     "colorLabel": "Color",
     "sizeLabel": "Size",
+    "storageLabel": "Storage capacity",
     "priceFluidityNote": "Shown price can change before checkout."
   },
   "Filters": {

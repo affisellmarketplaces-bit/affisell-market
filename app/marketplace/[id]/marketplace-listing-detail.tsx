@@ -61,6 +61,11 @@ import {
   type ProductColorImageRow,
 } from "@/lib/product-color-images"
 import {
+  findVariantRowForShopperSelection,
+  type ShopperVariantSelection,
+} from "@/lib/marketplace-variant-dimensions"
+import type { CustomColumn } from "@/types/product"
+import {
   marketplaceRetailPriceEurForOption,
   marketplaceSellingPriceCentsForOption,
   type ProductVariantsJson,
@@ -116,6 +121,8 @@ type Props = {
   gallery: string[]
   categories: string[]
   colorNames: string[]
+  storageOptions?: string[]
+  customColumns?: CustomColumn[]
   tags: string[]
   variants: ProductVariantsJson | null
   colorImages: ProductColorImageRow[]
@@ -334,6 +341,8 @@ export function MarketplaceListingDetail({
   gallery,
   categories,
   colorNames,
+  storageOptions = [],
+  customColumns = [],
   variants,
   colorImages,
   shipping,
@@ -372,6 +381,8 @@ export function MarketplaceListingDetail({
     return s && s.length > 0 ? s : EMPTY_SIZE_OPTIONS
   }, [variants?.size])
 
+  const initialStorage = useMemo(() => storageOptions[0] ?? null, [storageOptions])
+
   const initialColor = useMemo(() => {
     const p = promotedColor?.trim()
     if (p && colorNames.includes(p)) return p
@@ -399,6 +410,7 @@ export function MarketplaceListingDetail({
   const [galleryHeroLock, setGalleryHeroLock] = useState(false)
   const [selectedColor, setSelectedColor] = useState<string | null>(initialColor)
   const [selectedSize, setSelectedSize] = useState<string | null>(initialSize)
+  const [selectedStorage, setSelectedStorage] = useState<string | null>(initialStorage)
   const [descExpanded, setDescExpanded] = useState(false)
 
   const descriptionIsLong = useMemo(
@@ -476,6 +488,28 @@ export function MarketplaceListingDetail({
     return m
   }, [variants?.variantRows])
 
+  const shopperSelection: ShopperVariantSelection = useMemo(
+    () => ({
+      selectedPrimary: selectedColor,
+      selectedStorage,
+      selectedSize,
+    }),
+    [selectedColor, selectedStorage, selectedSize]
+  )
+
+  const activeVariantRow = useMemo(
+    () =>
+      findVariantRowForShopperSelection({
+        variants,
+        customColumns,
+        selection: shopperSelection,
+      }),
+    [variants, customColumns, shopperSelection]
+  )
+
+  /** Cart / checkout: reuse `selectedSize` when there is no size axis (storage-only). */
+  const cartSelectedSize = selectedSize ?? selectedStorage ?? undefined
+
   const safeImageIndex = Math.min(Math.max(0, selectedImage), Math.max(0, images.length - 1))
 
   const colorRow = useMemo(
@@ -506,27 +540,33 @@ export function MarketplaceListingDetail({
     colorNames,
     colorImages,
   ])
-  const activeListingPriceCents = useMemo(
-    () =>
-      marketplaceSellingPriceCentsForOption({
-        listingSellingPriceCents: listingPriceCents,
-        productBasePriceCents: basePriceCents,
-        variants,
-        optionName: selectedColor,
-      }),
-    [listingPriceCents, basePriceCents, variants, selectedColor]
-  )
+  const activeListingPriceCents = useMemo(() => {
+    if (activeVariantRow && activeVariantRow.priceCents > 0) {
+      const sell = Math.max(0, Math.round(listingPriceCents))
+      const base = Math.max(0, Math.round(basePriceCents))
+      const wholesale = activeVariantRow.priceCents
+      return Math.max(0, sell + (wholesale - base))
+    }
+    return marketplaceSellingPriceCentsForOption({
+      listingSellingPriceCents: listingPriceCents,
+      productBasePriceCents: basePriceCents,
+      variants,
+      optionName: selectedColor,
+    })
+  }, [activeVariantRow, listingPriceCents, basePriceCents, variants, selectedColor])
 
-  const activeRetailPriceEur = useMemo(
-    () =>
-      marketplaceRetailPriceEurForOption({
-        retailPriceEur,
-        productBasePriceCents: basePriceCents,
-        variants,
-        optionName: selectedColor,
-      }),
-    [retailPriceEur, basePriceCents, variants, selectedColor]
-  )
+  const activeRetailPriceEur = useMemo(() => {
+    if (activeVariantRow && activeVariantRow.priceCents > 0 && retailPriceEur != null) {
+      const base = Math.max(0, Math.round(basePriceCents))
+      return retailPriceEur + (activeVariantRow.priceCents - base) / 100
+    }
+    return marketplaceRetailPriceEurForOption({
+      retailPriceEur,
+      productBasePriceCents: basePriceCents,
+      variants,
+      optionName: selectedColor,
+    })
+  }, [activeVariantRow, retailPriceEur, basePriceCents, variants, selectedColor])
 
   const priceDisplay = useMemo(
     () => formatStoreCurrencyFromCents(activeListingPriceCents),
@@ -563,20 +603,19 @@ export function MarketplaceListingDetail({
       : listingPriceEur
   const bundleSaved = bundleAddonSum > 0 ? Math.round((bundleCrossSubtotal - bundlePayToday) * 100) / 100 : 0
 
-  const availableStock = useMemo(
-    () =>
-      resolveListingAvailableStock({
-        productStock: stock,
-        variants,
-        selectedColor,
-        selectedSize,
-      }),
-    [stock, variants, selectedColor, selectedSize]
-  )
+  const availableStock = useMemo(() => {
+    if (activeVariantRow) return Math.max(0, Math.round(activeVariantRow.stock) || 0)
+    return resolveListingAvailableStock({
+      productStock: stock,
+      variants,
+      selectedColor,
+      selectedSize,
+    })
+  }, [activeVariantRow, stock, variants, selectedColor, selectedSize])
 
   useEffect(() => {
     setPurchaseQty((q) => clampPurchaseQuantity(q, availableStock))
-  }, [availableStock, selectedColor, selectedSize, listingId])
+  }, [availableStock, selectedColor, selectedSize, selectedStorage, listingId])
 
   useEffect(() => {
     if (availableStock <= 0) setShowStickyBuy(false)
@@ -652,7 +691,7 @@ export function MarketplaceListingDetail({
           productId: listingId,
           quantity: purchaseQty,
           selectedColor: selectedColor ?? undefined,
-          selectedSize: selectedSize ?? undefined,
+          selectedSize: cartSelectedSize ?? undefined,
         }),
         credentials: "include",
       })
@@ -665,7 +704,7 @@ export function MarketplaceListingDetail({
           sellerName: sellerLabel,
           price: listingPriceEur,
           selectedColor: selectedColor ?? undefined,
-          selectedSize: selectedSize ?? undefined,
+          selectedSize: cartSelectedSize ?? undefined,
         })
         return
       }
@@ -687,7 +726,7 @@ export function MarketplaceListingDetail({
           qty: purchaseQty,
           useRewardCents: applied,
           selectedColor: selectedColor ?? undefined,
-          selectedSize: selectedSize ?? undefined,
+          selectedSize: cartSelectedSize ?? undefined,
         },
         { loginCallbackUrl: `/marketplace/${listingId}` }
       )
@@ -1134,14 +1173,35 @@ export function MarketplaceListingDetail({
                 ) : (
                 <div className="mt-2 flex flex-wrap gap-2">
                   {colorMeta.map(({ name: cn }) => {
-                    const row = variantRowByName.get(cn)
-                    const out = row != null && row.stock <= 0
-                    const optionCents = marketplaceSellingPriceCentsForOption({
-                      listingSellingPriceCents: listingPriceCents,
-                      productBasePriceCents: basePriceCents,
-                      variants,
-                      optionName: cn,
-                    })
+                    const matchedRow =
+                      storageOptions.length > 0
+                        ? findVariantRowForShopperSelection({
+                            variants,
+                            customColumns,
+                            selection: {
+                              selectedPrimary: cn,
+                              selectedStorage,
+                              selectedSize,
+                            },
+                          })
+                        : undefined
+                    const legacyRow = variantRowByName.get(cn)
+                    const out =
+                      (matchedRow != null && matchedRow.stock <= 0) ||
+                      (legacyRow != null && legacyRow.stock <= 0)
+                    const optionCents =
+                      matchedRow && matchedRow.priceCents > 0
+                        ? Math.max(
+                            0,
+                            listingPriceCents +
+                              (matchedRow.priceCents - Math.max(0, basePriceCents))
+                          )
+                        : marketplaceSellingPriceCentsForOption({
+                            listingSellingPriceCents: listingPriceCents,
+                            productBasePriceCents: basePriceCents,
+                            variants,
+                            optionName: cn,
+                          })
                     return (
                       <button
                         key={cn}
@@ -1171,6 +1231,64 @@ export function MarketplaceListingDetail({
                   })}
                 </div>
                 )}
+              </div>
+            ) : null}
+
+            {storageOptions.length > 0 ? (
+              <div>
+                <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 lg:text-sm lg:normal-case lg:tracking-normal lg:text-zinc-900 dark:lg:text-zinc-100">
+                    {productT.storageLabel}
+                  </p>
+                  {selectedStorage ? (
+                    <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300 lg:text-sm">
+                      {selectedStorage}
+                    </p>
+                  ) : null}
+                </div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {storageOptions.map((cap) => {
+                    const row = findVariantRowForShopperSelection({
+                      variants,
+                      customColumns,
+                      selection: {
+                        selectedPrimary: selectedColor,
+                        selectedStorage: cap,
+                        selectedSize,
+                      },
+                    })
+                    const out = row != null && row.stock <= 0
+                    const optionCents =
+                      row && row.priceCents > 0
+                        ? Math.max(
+                            0,
+                            listingPriceCents + (row.priceCents - Math.max(0, basePriceCents))
+                          )
+                        : activeListingPriceCents
+                    return (
+                      <button
+                        key={cap}
+                        type="button"
+                        disabled={out}
+                        onClick={() => setSelectedStorage(cap)}
+                        className={`rounded-xl border px-3 py-2 text-sm font-medium transition ${
+                          selectedStorage === cap
+                            ? "border-violet-600 bg-violet-600 text-white shadow-sm dark:border-violet-500 dark:bg-violet-600"
+                            : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-700 dark:hover:border-zinc-600"
+                        } ${out ? "cursor-not-allowed opacity-40" : ""}`}
+                      >
+                        <span className="block leading-tight">{cap}</span>
+                        <span
+                          className={`mt-0.5 block text-[11px] font-semibold tabular-nums ${
+                            selectedStorage === cap ? "text-white/90" : "text-zinc-500 dark:text-zinc-400"
+                          }`}
+                        >
+                          {formatStoreCurrencyFromCents(optionCents)}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
             ) : null}
 

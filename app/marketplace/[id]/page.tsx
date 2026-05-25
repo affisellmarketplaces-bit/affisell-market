@@ -17,7 +17,12 @@ import {
   buildCustomColumnProductSpecs,
   parseCustomColumnsFromDb,
 } from "@/lib/product-custom-columns"
-import { resolveMarketplaceOptionNames, variantsFromDb } from "@/lib/product-variants"
+import {
+  collectStorageOptionValues,
+  resolveMarketplacePrimaryOptionNames,
+  variantsWithProductVariantRows,
+} from "@/lib/marketplace-variant-dimensions"
+import { variantsFromDb } from "@/lib/product-variants"
 import { primaryProductImage } from "@/lib/product-images"
 import { buildAggregateRatingJsonLd } from "@/lib/reviews/json-ld"
 import {
@@ -133,12 +138,32 @@ export default async function MarketplaceListingPage({
     : []
   const has3D = tags.some((t) => /(?:\b3d\b|\b360\b)/i.test(t))
   const arModel = tags.find((t) => t.toLowerCase().startsWith("ar:"))?.slice(3) ?? null
-  const variantsRaw = variantsFromDb(listing.product.variants)
-  const colorNamesRaw = resolveMarketplaceOptionNames(productColorNames, variantsRaw)
+  const customCols = parseCustomColumnsFromDb(listing.product.customColumns)
+  const variantsRaw = variantsWithProductVariantRows(
+    variantsFromDb(listing.product.variants),
+    listing.product.productVariants ?? [],
+    customCols,
+    listing.product.basePriceCents
+  )
+  const storageOptionsRaw = collectStorageOptionValues({
+    variants: variantsRaw,
+    customColumns: customCols,
+    productVariantCustomData: listing.product.productVariants?.map((v) => v.customData),
+  })
+  const colorNamesRaw = resolveMarketplacePrimaryOptionNames(
+    productColorNames,
+    variantsRaw,
+    storageOptionsRaw
+  )
   const { variants, colorNames } = filterListingForPromotedVariants({
     variants: variantsRaw,
     colorNames: colorNamesRaw,
     promotedVariantKeys: listing.promotedVariantKeys,
+  })
+  const storageOptions = collectStorageOptionValues({
+    variants,
+    customColumns: customCols,
+    productVariantCustomData: listing.product.productVariants?.map((v) => v.customData),
   })
   const colorImages =
     colorNames.length > 0
@@ -215,7 +240,6 @@ export default async function MarketplaceListingPage({
           .filter(Boolean)
       : []
 
-  const customCols = parseCustomColumnsFromDb(listing.product.customColumns)
   const customSpecs = buildCustomColumnProductSpecs(
     customCols,
     listing.product.productVariants ?? []
@@ -279,6 +303,8 @@ export default async function MarketplaceListingPage({
           gallery={gallery}
           categories={categories}
           colorNames={colorNames}
+          storageOptions={storageOptions}
+          customColumns={customCols}
           tags={tags}
           variants={variants}
           colorImages={colorImages}

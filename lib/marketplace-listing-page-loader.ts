@@ -64,7 +64,16 @@ export const listingDetailSelect = {
         orderBy: { label: "asc" as const },
         select: { label: true, key: true, value: true },
       },
-      productVariants: { select: { customData: true } },
+      productVariants: {
+        select: {
+          id: true,
+          color: true,
+          size: true,
+          stock: true,
+          supplierPrice: true,
+          customData: true,
+        },
+      },
     },
   },
   affiliate: {
