@@ -102,8 +102,9 @@ function SortableStoreCard(props: {
   onSelect: () => void
   onEdit: () => void
   onToggleList: () => void
+  onRemove: () => void
 }) {
-  const { listing, selected, onSelect, onEdit, onToggleList } = props
+  const { listing, selected, onSelect, onEdit, onToggleList, onRemove } = props
   const p = listing.product
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -197,13 +198,23 @@ function SortableStoreCard(props: {
           <input type="checkbox" checked={listing.isListed} onChange={() => void onToggleList()} className="accent-emerald-600 dark:accent-emerald-400" />
           Listed
         </label>
-        <button
-          type="button"
-          onClick={() => onEdit()}
-          className="mt-3 inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
-        >
-          <Pencil className="h-4 w-4" aria-hidden /> Edit
-        </button>
+        <div className="mt-3 flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={() => onEdit()}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
+          >
+            <Pencil className="h-4 w-4" aria-hidden /> Edit
+          </button>
+          <button
+            type="button"
+            onClick={() => onRemove()}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-900/50 dark:text-red-300 dark:hover:bg-red-950/40"
+          >
+            <Trash2 className="h-4 w-4" aria-hidden />
+            Remove from storefront
+          </button>
+        </div>
       </div>
     </article>
   )
@@ -371,10 +382,50 @@ export function AffiliateDashboard({ storeId }: Props) {
       body: JSON.stringify(body),
     })
     setSelected(new Set())
-    if (opts.isListed === false) setToast("Unlisted selections")
+    if (opts.isListed === false) setToast("Hidden from storefront (still in your account)")
     else if (opts.isFeatured === true) setToast("Featured selections")
     else setToast("Updated selections")
     void refreshDashboardData()
+  }
+
+  async function removeListingsFromStorefront(listingIds: string[]) {
+    if (!listingIds.length) return
+    const res = await fetch("/api/affiliate/products/bulk", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ ids: listingIds }),
+    })
+    const data = (await res.json().catch(() => ({}))) as {
+      deletedIds?: string[]
+      hiddenIds?: string[]
+      error?: string
+    }
+    if (!res.ok) {
+      setToast(data.error ?? "Could not remove listings")
+      return
+    }
+    const deleted = data.deletedIds?.length ?? 0
+    const hidden = data.hiddenIds?.length ?? 0
+    if (deleted > 0 && hidden > 0) {
+      setToast(
+        `${deleted} removed from storefront · ${hidden} hidden (past sales — re-add from Discover)`
+      )
+    } else if (hidden > 0) {
+      setToast(`${hidden} hidden from storefront (order history kept)`)
+    } else {
+      setToast(deleted === 1 ? "Removed from storefront" : `${deleted} removed from storefront`)
+    }
+    setSelected(new Set())
+    void refreshDashboardData()
+  }
+
+  function confirmRemoveFromStorefront(listingIds: string[], label: string) {
+    if (typeof window === "undefined") return
+    const ok = window.confirm(
+      `${label}\n\nThe product will disappear from your public shop. You can add it again from Discover. Listings with past sales are hidden only (not deleted).`
+    )
+    if (ok) void removeListingsFromStorefront(listingIds)
   }
 
   async function loadProductForModal(productId: string): Promise<CatalogProduct | null> {
@@ -469,12 +520,12 @@ export function AffiliateDashboard({ storeId }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- consume `productId` once on landing
   }, [catalog, catalogLoading, router, searchParams])
 
-  const ids = listings.map((l) => l.id)
-
   const listingsWithProduct = listings.filter((l): l is Listing & { product: CatalogProduct } =>
     Boolean(l.product)
   )
-  const listedLiveCount = listingsWithProduct.filter((l) => l.isListed).length
+  const storefrontListings = listingsWithProduct.filter((l) => l.isListed)
+  const listedLiveCount = storefrontListings.length
+  const ids = storefrontListings.map((l) => l.id)
   const discoverSkuCount = catalog.length
   const addableSkuCount = catalog.filter((p) => !(p.affiliateProducts?.length ?? 0)).length
 
@@ -996,7 +1047,10 @@ export function AffiliateDashboard({ storeId }: Props) {
           ) : null}
           <div className="mb-6 flex flex-wrap items-center gap-3">
             <p className="text-sm font-medium text-gray-700 dark:text-zinc-200">
-              {listings.filter((l) => l.product).length} listings
+              {storefrontListings.length} live on storefront
+              {listingsWithProduct.length > storefrontListings.length
+                ? ` · ${listingsWithProduct.length - storefrontListings.length} hidden`
+                : ""}
             </p>
             <button
               type="button"
@@ -1009,14 +1063,21 @@ export function AffiliateDashboard({ storeId }: Props) {
             <button
               type="button"
               disabled={selected.size === 0}
-              onClick={() => void bulkPatch({ isListed: false })}
+              onClick={() =>
+                confirmRemoveFromStorefront(
+                  [...selected],
+                  selected.size === 1
+                    ? "Remove this product from your storefront?"
+                    : `Remove ${selected.size} products from your storefront?`
+                )
+              }
               className="dash-btn-danger"
             >
-              <Trash2 className="h-3.5 w-3.5" /> Unlist selected
+              <Trash2 className="h-3.5 w-3.5" /> Remove from storefront
             </button>
           </div>
 
-          {!listings.filter((l) => l.product).length ? (
+          {!storefrontListings.length ? (
             <p className="rounded-2xl border border-dashed border-gray-200 bg-white p-10 text-center text-gray-500 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-300">
               No listings yet — add SKUs from <strong className="font-medium text-gray-700 dark:text-zinc-100">Discover</strong>.
             </p>
@@ -1024,10 +1085,7 @@ export function AffiliateDashboard({ storeId }: Props) {
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
               <SortableContext items={ids} strategy={rectSortingStrategy}>
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {[...listings]
-                    .sort(sortAffiliateListingByPosition)
-                    .filter((l): l is Listing & { product: CatalogProduct } => Boolean(l.product))
-                    .map((l) => (
+                  {[...storefrontListings].sort(sortAffiliateListingByPosition).map((l) => (
                       <SortableStoreCard
                         key={l.id}
                         listing={l}
@@ -1042,6 +1100,12 @@ export function AffiliateDashboard({ storeId }: Props) {
                         }
                         onEdit={() => void openEdit(l, l.product)}
                         onToggleList={() => void toggleList(l.id, l.isListed)}
+                        onRemove={() =>
+                          confirmRemoveFromStorefront(
+                            [l.id],
+                            `Remove “${listingDisplayTitle(l.customTitle ?? null, l.product.name)}” from your storefront?`
+                          )
+                        }
                       />
                     ))}
                 </div>

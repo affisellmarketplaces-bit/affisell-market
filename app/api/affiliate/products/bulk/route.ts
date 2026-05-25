@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
+import { removeAffiliateListingsFromStorefront } from "@/lib/affiliate-listing-remove"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -50,4 +51,26 @@ export async function PATCH(request: Request) {
   }
 
   return NextResponse.json({ ok: true })
+}
+
+export async function DELETE(request: Request) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+  if (session.user.role !== "AFFILIATE") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
+
+  const body = (await request.json().catch(() => ({}))) as { ids?: unknown }
+  const ids = Array.isArray(body.ids)
+    ? body.ids.filter((x): x is string => typeof x === "string").slice(0, 200)
+    : []
+
+  if (!ids.length) {
+    return NextResponse.json({ error: "ids required" }, { status: 400 })
+  }
+
+  const result = await removeAffiliateListingsFromStorefront(session.user.id, ids)
+  return NextResponse.json({ ok: true, ...result })
 }
