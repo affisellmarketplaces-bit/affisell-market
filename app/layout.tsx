@@ -1,11 +1,8 @@
-import { Suspense } from "react"
-import { getLocale, getMessages, setRequestLocale } from "next-intl/server"
-
 import { Footer } from "@/components/layout/Footer"
 import { AppHeader } from "@/components/nav/app-header"
 import { RootSessionShell } from "@/app/root-intl-session"
 import { IntlAppProvider } from "@/components/providers/intl-app-provider"
-import { resolveAppLocale } from "@/lib/i18n-locale"
+import { bootstrapRootShell } from "@/lib/safe-root-bootstrap"
 
 import "./globals.css"
 
@@ -13,15 +10,8 @@ export const dynamic = "force-dynamic"
 export const revalidate = 0
 export const fetchCache = "force-no-store"
 
-function HeaderFallback() {
-  return <div className="mx-auto flex h-12 max-w-7xl items-center px-1" aria-hidden />
-}
-
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const locale = resolveAppLocale(await getLocale())
-  setRequestLocale(locale)
-  const messages = await getMessages()
-  const now = new Date()
+  const { locale, messages, now } = await bootstrapRootShell()
 
   return (
     <html lang={locale} suppressHydrationWarning>
@@ -29,9 +19,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <IntlAppProvider locale={locale} messages={messages} now={now}>
           <RootSessionShell>
             <header className="relative z-[100] border-b border-gray-100/90 bg-white/80 px-4 py-3 shadow-sm backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/90">
-              <Suspense fallback={<HeaderFallback />}>
-                <AppHeader />
-              </Suspense>
+              <AppHeader />
             </header>
             {children}
             <Footer />

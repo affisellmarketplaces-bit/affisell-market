@@ -22,8 +22,6 @@ import { inferLoginPortal, isValidEmailIdentifier } from "@/lib/auth-login-porta
 import { verifyBuyerCheckoutMagicToken } from "@/lib/buyer-checkout-magic"
 import { ensureMerchantStore } from "@/lib/ensure-store"
 import { OAUTH_SIGNUP_INTENT_COOKIE, OAUTH_WELCOME_COOKIE } from "@/lib/oauth-cookies"
-import { consumeSupplierInviteTokenCookie } from "@/lib/supplier-invite-cookie"
-import { claimSupplierInvitationForUser } from "@/lib/supplier-invitation"
 import { prisma } from "@/lib/prisma"
 
 const COOKIE_SAFE = process.env.NODE_ENV === "production"
@@ -332,8 +330,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
 
       if (u?.role === "SUPPLIER") {
+        const { consumeSupplierInviteTokenCookie } = await import("@/lib/supplier-invite-cookie")
         const inviteToken = await consumeSupplierInviteTokenCookie()
         if (inviteToken) {
+          const { claimSupplierInvitationForUser } = await import("@/lib/supplier-invitation")
           await claimSupplierInvitationForUser(inviteToken, u.id).catch((e) => {
             console.error("[auth] supplier invite claim failed", e)
           })

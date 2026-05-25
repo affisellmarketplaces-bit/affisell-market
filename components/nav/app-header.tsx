@@ -1,19 +1,8 @@
-import { Suspense } from "react"
+"use client"
 
 import { SiteNav } from "@/components/site-nav"
-import { auth } from "@/auth"
 
-function HeaderFallback() {
-  return <div className="mx-auto flex h-12 max-w-7xl items-center px-1" aria-hidden />
-}
-
-export async function AppHeader() {
-  const session = await auth()
-  const role = session?.user?.role ?? null
-
-  return (
-    <Suspense fallback={<HeaderFallback />}>
-      <SiteNav initialRole={role} />
-    </Suspense>
-  )
+/** Client session via `useSession` inside SiteNav — avoids server `auth()` on every RSC request. */
+export function AppHeader() {
+  return <SiteNav />
 }

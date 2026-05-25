@@ -1,10 +1,20 @@
 import type { ReactNode } from "react"
 import Link from "next/link"
 
-/** Minimal chrome for public invite pages (no merchant dashboard nav). */
+/**
+ * Public supplier invite — minimal chrome (root layout header hidden via CSS).
+ */
 export default function InviteLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-[100dvh]">
+    <div data-invite-shell className="relative min-h-[100dvh]">
+      <style>{`
+        body:has([data-invite-shell]) header[class*="border-b"] {
+          display: none !important;
+        }
+        body:has([data-invite-shell]) footer {
+          display: none !important;
+        }
+      `}</style>
       <header className="absolute left-0 right-0 top-0 z-10 flex items-center justify-between px-4 py-4 md:px-8">
         <Link
           href="/"
