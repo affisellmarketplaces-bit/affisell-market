@@ -835,7 +835,19 @@
     "colorLabel": "Color",
     "sizeLabel": "Size",
     "storageLabel": "Storage capacity",
-    "priceFluidityNote": "Shown price can change before checkout."
+    "priceFluidityNote": "Shown price can change before checkout.",
+    "gallery": {
+      "thumbRail": "Product media",
+      "fullView": "Click to see full view",
+      "video": "Video",
+      "more": "+{count}",
+      "playVideo": "Play product video",
+      "desktopHint": "Select a thumbnail · hover main image to zoom",
+      "lightbox": "Full screen gallery",
+      "close": "Close",
+      "prev": "Previous image",
+      "next": "Next image"
+    }
   },
   "Filters": {
     "smartFilters": "Smart Filters",

@@ -27,7 +27,7 @@ import { ReviewsEngine } from "@/components/reviews/ReviewsEngine"
 
 import { MarketplacePurchaseQuantity } from "@/components/marketplace/marketplace-purchase-quantity"
 import { Button } from "@/components/ui/button"
-import { ProductImageHoverZoom } from "@/components/product-image-hover-zoom"
+import { ProductMediaGallery } from "@/components/product/product-media-gallery"
 import messages from "@/messages/en.json"
 import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
 import {
@@ -847,18 +847,23 @@ export function MarketplaceListingDetail({
           >
           <section className="min-w-0 space-y-2 lg:space-y-4 lg:overflow-visible">
             <div className="relative max-lg:overflow-hidden max-lg:rounded-xl">
-              <ProductImageHoverZoom
-                src={hero}
+              <ProductMediaGallery
+                images={images}
+                heroSrc={hero}
+                activeThumbIndex={activeThumbIndex}
+                onSelectImage={(i) => {
+                  setGalleryHeroLock(true)
+                  setSelectedImage(i)
+                }}
+                videoUrl={galleryListingVideoUrl}
                 alt={name}
-                className="max-lg:rounded-xl max-lg:border-zinc-200/80 max-lg:shadow-sm lg:rounded-[1.35rem] lg:border-zinc-200/55 lg:bg-white/90 lg:shadow-[0_28px_70px_-34px_rgba(91,33,217,0.28)] lg:ring-1 lg:ring-violet-500/[0.07] dark:max-lg:border-zinc-700/80 dark:lg:border-zinc-700/80 dark:lg:bg-zinc-950/70 dark:lg:shadow-[0_28px_80px_-36px_rgba(0,0,0,0.55)] dark:lg:ring-violet-400/[0.06] lg:px-3 lg:pb-3 lg:pt-3"
-                frameClassName="max-lg:rounded-xl max-lg:aspect-[1/1] lg:rounded-[1.1rem] lg:bg-gradient-to-b lg:from-zinc-50/90 lg:to-white dark:lg:from-zinc-900/90 dark:lg:to-zinc-950"
-              overlay={
-                has3D ? (
-                  <span className="pointer-events-none absolute left-4 top-4 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-3 py-1 text-xs font-semibold text-white shadow-md">
-                    {productT.view360}
-                  </span>
-                ) : null
-              }
+                overlay={
+                  has3D ? (
+                    <span className="pointer-events-none absolute left-4 top-4 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-3 py-1 text-xs font-semibold text-white shadow-md">
+                      {productT.view360}
+                    </span>
+                  ) : null
+                }
               />
               <div className="absolute right-2 top-2 z-10 lg:hidden">
                 <div className="rounded-full bg-white/95 p-1 shadow-md ring-1 ring-black/5 backdrop-blur-sm dark:bg-zinc-950/90 dark:ring-white/10">
@@ -866,55 +871,6 @@ export function MarketplaceListingDetail({
                 </div>
               </div>
             </div>
-
-            <div className="flex w-full min-w-0 max-w-full touch-pan-x gap-1.5 overflow-x-auto overscroll-x-contain py-0.5 [scrollbar-width:thin] [mask-image:linear-gradient(to_right,transparent,black_0.35rem,black_calc(100%-0.35rem),transparent)] lg:gap-2">
-              {images.slice(0, 12).map((url, i) => (
-                <button
-                  key={`thumb-${i}`}
-                  type="button"
-                  aria-pressed={activeThumbIndex >= 0 && activeThumbIndex === i}
-                  onClick={(e) => {
-                    e.preventDefault()
-                    setGalleryHeroLock(true)
-                    setSelectedImage(i)
-                  }}
-                  className={`relative aspect-square w-14 shrink-0 overflow-hidden rounded-lg border-2 bg-white transition dark:bg-zinc-950 sm:w-[4.25rem] lg:rounded-xl lg:w-[5.25rem] ${
-                    activeThumbIndex >= 0 && activeThumbIndex === i
-                      ? "border-violet-600 shadow-sm ring-2 ring-violet-500/25 dark:border-violet-500"
-                      : "border-zinc-200/90 opacity-90 ring-1 ring-zinc-200/80 hover:border-zinc-300 hover:opacity-100 dark:border-zinc-700 dark:ring-zinc-800 dark:hover:border-zinc-600"
-                  }`}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={url}
-                    alt=""
-                    className="h-full w-full object-contain p-1.5"
-                    loading="lazy"
-                    decoding="async"
-                    onError={(e) => {
-                      e.currentTarget.src = "/placeholder-product.jpg"
-                    }}
-                  />
-                </button>
-              ))}
-            </div>
-
-            {galleryListingVideoUrl && isDirectMp4Url(galleryListingVideoUrl) ? (
-              <div className="overflow-hidden rounded-[1.1rem] border border-violet-200/70 bg-black shadow-sm dark:border-violet-900/50">
-                <p className="border-b border-violet-100/80 bg-violet-50/80 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-violet-800 dark:border-violet-900/40 dark:bg-violet-950/40 dark:text-violet-200">
-                  Vidéo produit
-                </p>
-                <video
-                  src={galleryListingVideoUrl}
-                  className="aspect-[9/16] max-h-[min(70vh,520px)] w-full bg-black object-contain"
-                  controls
-                  playsInline
-                  preload="metadata"
-                  controlsList="nodownload"
-                  onContextMenu={(e) => e.preventDefault()}
-                />
-              </div>
-            ) : null}
 
             {arModel ? (
               <Button

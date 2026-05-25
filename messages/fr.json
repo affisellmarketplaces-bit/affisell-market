@@ -835,7 +835,19 @@
     "colorLabel": "Couleur",
     "sizeLabel": "Taille",
     "storageLabel": "Capacité de stockage",
-    "priceFluidityNote": "Le prix affiché peut changer avant le paiement."
+    "priceFluidityNote": "Le prix affiché peut changer avant le paiement.",
+    "gallery": {
+      "thumbRail": "Médias produit",
+      "fullView": "Cliquez pour voir la vue complète",
+      "video": "Vidéo",
+      "more": "+{count}",
+      "playVideo": "Lire la vidéo produit",
+      "desktopHint": "Choisissez une vignette · survolez l’image pour zoomer",
+      "lightbox": "Galerie plein écran",
+      "close": "Fermer",
+      "prev": "Image précédente",
+      "next": "Image suivante"
+    }
   },
   "Filters": {
     "smartFilters": "Filtres intelligents",
