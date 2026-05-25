@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 
-import type { PublicShopDirectoryEntry } from "@/lib/shop-storefront-data"
+import type { PublicShopDirectoryEntry } from "@/lib/shop-storefront-shared"
 
 type Props = {
   shops: PublicShopDirectoryEntry[]

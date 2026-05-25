@@ -12,7 +12,7 @@ import {
   YAxis,
 } from "recharts"
 
-import type { HomeBarometerData } from "@/lib/home-marketplace-data"
+import type { HomeBarometerData } from "@/lib/home-marketplace-cards"
 import { formatStoreCurrency } from "@/lib/market-config"
 
 type Cat = HomeBarometerData["categories"][number]

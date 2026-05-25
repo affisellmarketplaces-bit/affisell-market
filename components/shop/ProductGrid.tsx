@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl"
 
 import { ProductCard, type ProductCardDisplayMode } from "@/components/product/ProductCard"
-import { shopProductToCardProps, type ShopProductCard } from "@/lib/shop-storefront-data"
+import { shopProductToCardProps, type ShopProductCard } from "@/lib/shop-storefront-shared"
 
 type Props = {
   storeSlug: string

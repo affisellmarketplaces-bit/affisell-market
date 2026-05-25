@@ -1,5 +1,5 @@
 import { HeroSearchBar } from "@/components/home/HeroSearchBar"
-import type { HomeMarketplaceStats } from "@/lib/home-marketplace-data"
+import type { HomeMarketplaceStats } from "@/lib/home-marketplace-cards"
 
 type Props = {
   stats: HomeMarketplaceStats

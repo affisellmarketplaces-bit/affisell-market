@@ -7,7 +7,7 @@ import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import type { AttachVideoPlacement } from "@/lib/attach-generated-product-video"
+import type { AttachVideoPlacement } from "@/lib/attach-generated-product-video-types"
 
 type AttachResult = {
   placement: AttachVideoPlacement

@@ -31,7 +31,7 @@ import type {
   AffiliateCatalogProduct,
 } from "@/lib/affiliate-catalog-query"
 import { AFFILIATE_CATALOG_NICHES } from "@/lib/affiliate-catalog-query"
-import type { HomeMarketplaceStats } from "@/lib/home-marketplace-data"
+import type { HomeMarketplaceStats } from "@/lib/home-marketplace-cards"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { primaryProductImage } from "@/lib/product-images"
 import { cn } from "@/lib/utils"

@@ -2,7 +2,7 @@ import Link from "next/link"
 import { ArrowUpRight } from "lucide-react"
 
 import { FEATURED_SHOPS_TILE } from "@/lib/buyer-smart-services"
-import type { PublicShopDirectoryEntry } from "@/lib/shop-storefront-data"
+import type { PublicShopDirectoryEntry } from "@/lib/shop-storefront-shared"
 import { cn } from "@/lib/utils"
 
 const tileLinkClass =

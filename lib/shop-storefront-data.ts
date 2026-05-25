@@ -2,49 +2,24 @@ import { Prisma } from "@prisma/client"
 
 import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
 import { listingWarrantyBadgeLabel, resolveProductWarrantyMonths } from "@/lib/product-warranty"
+import {
+  inferNicheLabel,
+  type NicheKey,
+  type PublicShopDirectoryEntry,
+  type ShopProductCard,
+  type ShopStoreSummary,
+} from "@/lib/shop-storefront-shared"
+
+export type {
+  NicheKey,
+  PublicShopDirectoryEntry,
+  ShopProductCard,
+  ShopStoreSummary,
+} from "@/lib/shop-storefront-shared"
+export { inferNicheLabel, shopProductToCardProps } from "@/lib/shop-storefront-shared"
+
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
-
-export type ShopStoreSummary = {
-  userId: string
-  slug: string
-  name: string
-  description: string | null
-  logoUrl: string | null
-  aiAvatarUrl: string | null
-  nicheLabel: NicheKey
-}
-
-export type ShopProductCard = {
-  listingId: string
-  productId: string
-  name: string
-  imageUrl: string | null
-  priceCents: number
-  compareAtCents: number | null
-  freeShipping: boolean
-  stock: number
-  averageRating: number
-  reviewCount: number
-  warrantyLabel?: string | null
-  /** Present only when serialized for affiliate preview (never on public buyer pages). */
-  marginCents?: number
-  commissionPct?: number
-  soldCount?: number
-}
-
-/** Canonical niche key — filters and i18n use this, not a display string. */
-export type NicheKey = "beauty" | "fitness" | "tech" | "home" | "lifestyle"
-
-/** Public directory niche — must match filters on `/shops` and `discovery.niches.*`. */
-export function inferNicheLabel(description: string | null, storeName: string): NicheKey {
-  const text = `${description ?? ""} ${storeName}`.toLowerCase()
-  if (/beaut|beauté|cosmét|cosmetic|makeup|soin|skincare|parfum|spa/.test(text)) return "beauty"
-  if (/fitness|sport|gym|muscu/.test(text)) return "fitness"
-  if (/tech|électron|electron|gaming|informatique/.test(text)) return "tech"
-  if (/maison|déco|deco|cuisine|home/.test(text)) return "home"
-  return "lifestyle"
-}
 
 export async function loadAffiliateShopStore(slug: string): Promise<ShopStoreSummary | null> {
   const store = await prisma.store.findUnique({
@@ -180,17 +155,6 @@ export async function loadAffiliateShopProducts(
     })
 }
 
-export type PublicShopDirectoryEntry = {
-  slug: string
-  name: string
-  logoUrl: string | null
-  nicheLabel: NicheKey
-  /** Aggregate average rating from listed products (0–5). */
-  averageRating: number
-  /** Completed orders attributed to this affiliate’s storefront channel. */
-  orderCount: number
-}
-
 async function loadAffiliateListedRatingAverages(userIds: string[]): Promise<Map<string, number>> {
   const map = new Map<string, number>()
   if (userIds.length === 0) return map
@@ -262,25 +226,4 @@ export async function loadPublicAffiliateShopSlugs(limit = 2000): Promise<string
     take: limit,
   })
   return rows.map((r) => r.slug)
-}
-
-export function shopProductToCardProps(item: ShopProductCard, storeSlug: string) {
-  return {
-    listingId: item.listingId,
-    productId: item.productId,
-    title: item.name,
-    name: item.name,
-    image: item.imageUrl ?? undefined,
-    price: item.priceCents / 100,
-    compareAt: item.compareAtCents != null ? item.compareAtCents / 100 : null,
-    freeShipping: item.freeShipping,
-    warrantyLabel: item.warrantyLabel ?? null,
-    stock: item.stock,
-    averageRating: item.averageRating,
-    reviewCount: item.reviewCount,
-    ...(item.marginCents != null ? { marginCents: item.marginCents } : {}),
-    ...(item.commissionPct != null ? { commissionPct: item.commissionPct } : {}),
-    ...(item.soldCount != null ? { soldCount: item.soldCount } : {}),
-    href: `/shops/${storeSlug}/product/${item.listingId}`,
-  }
 }

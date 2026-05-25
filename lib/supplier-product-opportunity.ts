@@ -1,40 +1,20 @@
-import { affiliateCommissionMaxPct, parseListingKind } from "@/lib/supplier-commission"
+import {
+  estimateExtraSalesFromOpportunity,
+  OPPORTUNITY_COMMISSION_BOOST_PP,
+  suggestCommissionPct,
+  type ProductCommissionOpportunity,
+} from "@/lib/supplier-product-opportunity-shared"
+
+export {
+  estimateExtraSalesFromOpportunity,
+  OPPORTUNITY_COMMISSION_BOOST_PP,
+  suggestCommissionPct,
+  type ProductCommissionOpportunity,
+} from "@/lib/supplier-product-opportunity-shared"
+
 import { prisma } from "@/lib/prisma"
 
 const OPPORTUNITY_LOOKBACK_MS = 7 * 24 * 60 * 60 * 1000
-/** Commission bump offered in Mission Control (percentage points). */
-export const OPPORTUNITY_COMMISSION_BOOST_PP = 2
-
-export type ProductCommissionOpportunity = {
-  productId: string
-  productName: string
-  affiliateViewerCount: number
-  totalViews: number
-  currentCommissionPct: number
-  suggestedCommissionPct: number
-  commissionBoostPct: number
-  /** Estimated extra sales / 7d (affiliateCount × 0.15). */
-  estimatedExtraSales7d: number
-  listingKind: string
-}
-
-export function estimateExtraSalesFromOpportunity(affiliateViewerCount: number): number {
-  const raw = affiliateViewerCount * 0.15
-  return Math.round(raw * 10) / 10
-}
-
-export function suggestCommissionPct(
-  currentPct: number,
-  listingKind: string,
-  boostPp = OPPORTUNITY_COMMISSION_BOOST_PP
-): { suggested: number; boostPp: number } {
-  const max = affiliateCommissionMaxPct(parseListingKind(listingKind))
-  const boost = Math.min(boostPp, Math.max(0, max - currentPct))
-  return {
-    suggested: Math.min(max, currentPct + boost),
-    boostPp: boost,
-  }
-}
 
 export async function loadTopProductCommissionOpportunity(
   supplierId: string

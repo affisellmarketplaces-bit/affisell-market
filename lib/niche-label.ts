@@ -1,4 +1,4 @@
-import type { NicheKey } from "@/lib/shop-storefront-data"
+import type { NicheKey } from "@/lib/shop-storefront-shared"
 
 /** Keys passed to `discovery.niches.*` in messages. */
 export type NicheFilterKey = "all" | NicheKey

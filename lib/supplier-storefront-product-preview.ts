@@ -24,28 +24,9 @@ export const supplierAffiliatePreviewProductSelect = {
   colorImages: true,
 } as const
 
-export type SupplierAffiliatePreviewProduct = {
-  id: string
-  name: string
-  description: string
-  basePriceCents: number
-  compareAt: number | null
-  commissionRate: number
-  listingKind: string
-  stock: number
-  active: boolean
-  isDraft: boolean
-  images: string[]
-  categories: string[]
-  tags: string[]
-  deliveryMin: number
-  deliveryMax: number
-  handlingDays: number
-  shippingCountry: string | null
-  shippingType: string
-  variants: unknown
-  colorImages: unknown
-}
+import type { SupplierAffiliatePreviewProduct } from "@/lib/supplier-affiliate-preview-types"
+
+export type { SupplierAffiliatePreviewProduct } from "@/lib/supplier-affiliate-preview-types"
 
 export async function loadSupplierStorefrontCatalogProduct(params: {
   storeSlug: string

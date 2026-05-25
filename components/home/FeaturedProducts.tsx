@@ -1,5 +1,5 @@
 import { ProductCard, type ProductCardDisplayMode } from "@/components/product/ProductCard"
-import type { HomeProductCard } from "@/lib/home-marketplace-data"
+import type { HomeProductCard } from "@/lib/home-marketplace-cards"
 import {
   homeProductToCardProps,
   homeProductToCardPropsCustomer,

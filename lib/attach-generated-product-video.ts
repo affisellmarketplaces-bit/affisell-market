@@ -1,21 +1,14 @@
+import {
+  type AttachVideoPlacement,
+  isAffisellHostedVideoUrl,
+} from "@/lib/attach-generated-product-video-types"
+
+export type { AttachVideoPlacement } from "@/lib/attach-generated-product-video-types"
+export { isAffisellHostedVideoUrl } from "@/lib/attach-generated-product-video-types"
+
 import { prisma } from "@/lib/prisma"
 
-export type AttachVideoPlacement = "description" | "afterGallery"
-
 const MAX_DESCRIPTION_VIDEOS = 2
-
-export function isAffisellHostedVideoUrl(url: string): boolean {
-  try {
-    const u = new URL(url.trim())
-    if (u.protocol !== "https:" && u.protocol !== "http:") return false
-    const host = u.hostname.toLowerCase()
-    if (host.endsWith(".public.blob.vercel-storage.com")) return true
-    if (host.endsWith(".blob.vercel-storage.com")) return true
-    return /\.mp4(\?|#|$)/i.test(`${u.pathname}${u.search}`)
-  } catch {
-    return false
-  }
-}
 
 function mergeDescriptionVideos(existing: string[], videoUrl: string): string[] {
   const without = existing.filter((u) => u !== videoUrl)

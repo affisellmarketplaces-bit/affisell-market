@@ -1,7 +1,7 @@
 import Link from "next/link"
 
 import { HeroSearchBar } from "@/components/home/HeroSearchBar"
-import type { HomeMarketplaceStats } from "@/lib/home-marketplace-data"
+import type { HomeMarketplaceStats } from "@/lib/home-marketplace-cards"
 import { cn } from "@/lib/utils"
 
 const NICHE_LINKS = [

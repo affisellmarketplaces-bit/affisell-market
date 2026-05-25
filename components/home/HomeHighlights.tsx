@@ -3,8 +3,11 @@
 import { useState } from "react"
 
 import { ProductCard, type ProductCardDisplayMode } from "@/components/ProductCard"
-import type { HomeHighlightsData, HomeProductCard } from "@/lib/home-marketplace-data"
-import { homeProductToCardProps } from "@/lib/home-marketplace-data"
+import {
+  homeProductToCardProps,
+  type HomeHighlightsData,
+  type HomeProductCard,
+} from "@/lib/home-marketplace-cards"
 import { cn } from "@/lib/utils"
 
 type TabId = "bestsellers" | "new" | "margin"

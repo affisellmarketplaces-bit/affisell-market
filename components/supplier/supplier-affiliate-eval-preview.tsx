@@ -19,7 +19,7 @@ import {
 } from "lucide-react"
 
 import { buttonVariants } from "@/components/ui/button"
-import type { SupplierAffiliatePreviewProduct } from "@/lib/supplier-storefront-product-preview"
+import type { SupplierAffiliatePreviewProduct } from "@/lib/supplier-affiliate-preview-types"
 import { listingGalleryUrls } from "@/lib/affiliate-listing-display"
 import { shippingCountryLabel } from "@/lib/product-shipping-display"
 import { parseProductColorImagesFromDb } from "@/lib/product-color-images"

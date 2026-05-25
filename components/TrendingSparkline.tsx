@@ -4,7 +4,7 @@ import { Sparkles, TrendingUp } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
-import type { HomeProductCard } from "@/lib/home-marketplace-data"
+import type { HomeProductCard } from "@/lib/home-marketplace-cards"
 
 type Props = {
   items: HomeProductCard[]

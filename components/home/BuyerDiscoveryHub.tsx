@@ -10,7 +10,7 @@ import { ProductCard } from "@/components/product/ProductCard"
 import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
 import type { BuyerCategoryChip, BuyerListingCard } from "@/lib/buyer-discovery-data"
 import { buyerListingToCardProps } from "@/lib/buyer-discovery-data"
-import type { PublicShopDirectoryEntry } from "@/lib/shop-storefront-data"
+import type { PublicShopDirectoryEntry } from "@/lib/shop-storefront-shared"
 import { NICHE_FILTER_KEYS, type NicheFilterKey } from "@/lib/niche-label"
 import { cn } from "@/lib/utils"
 

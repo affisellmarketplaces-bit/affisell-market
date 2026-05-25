@@ -5,7 +5,7 @@ import { useState } from "react"
 import { Loader2, Zap } from "lucide-react"
 import { toast } from "sonner"
 
-import type { ProductCommissionOpportunity } from "@/lib/supplier-product-opportunity"
+import type { ProductCommissionOpportunity } from "@/lib/supplier-product-opportunity-shared"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 

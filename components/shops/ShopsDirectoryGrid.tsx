@@ -4,8 +4,7 @@ import { useMemo, useState } from "react"
 import { useTranslations } from "next-intl"
 
 import { FeaturedShops } from "@/components/home/FeaturedShops"
-import type { NicheKey } from "@/lib/shop-storefront-data"
-import type { PublicShopDirectoryEntry } from "@/lib/shop-storefront-data"
+import type { NicheKey, PublicShopDirectoryEntry } from "@/lib/shop-storefront-shared"
 import { cn } from "@/lib/utils"
 
 type ShopFilter = "all" | NicheKey

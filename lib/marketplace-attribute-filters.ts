@@ -9,9 +9,9 @@ import {
 import { prisma } from "@/lib/prisma"
 
 export { MARKETPLACE_CUSTOM_COLUMN_PREFIX, MARKETPLACE_QUERY_RESERVED } from "@/lib/marketplace-query-params"
+export type { MarketplaceFacet, MarketplaceFacetValue } from "@/lib/marketplace-facet-types"
 
-export type MarketplaceFacetValue = { value: string; count: number }
-export type MarketplaceFacet = { key: string; label: string; values: MarketplaceFacetValue[] }
+import type { MarketplaceFacet, MarketplaceFacetValue } from "@/lib/marketplace-facet-types"
 
 const FACET_TYPES = new Set(["SELECT", "BOOLEAN", "YES_NO", "MULTI_SELECT", "MULTI"])
 

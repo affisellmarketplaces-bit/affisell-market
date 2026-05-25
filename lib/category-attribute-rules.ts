@@ -2,7 +2,6 @@ import type { CategoryAttribute } from "@prisma/client"
 
 import type { CategoryAttrRow } from "@/components/supplier/category-attribute-fields"
 import { mergeCoreCategoryAttrs } from "@/lib/category-attribute-core"
-import { resolveCategoryAttributesForForm } from "@/lib/category-attribute-resolution"
 
 export type CategoryAttributeValidationRule = {
   min?: number
@@ -194,6 +193,7 @@ export async function validateVisibleCategoryAttributes(
   const cid = categoryId.trim()
   if (!cid) return
 
+  const { resolveCategoryAttributesForForm } = await import("@/lib/category-attribute-resolution")
   const dbRows = await resolveCategoryAttributesForForm(cid)
   const attrs = mergeCoreCategoryAttrs(prismaCategoryAttributesToFormRows(dbRows))
   const values = normalizeCategoryAttributeValues(attributeValues)

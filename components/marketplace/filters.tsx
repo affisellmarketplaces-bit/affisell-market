@@ -9,7 +9,7 @@ import {
   AFFILIATE_CATALOG_PATH,
   PUBLIC_MARKETPLACE_BROWSE_PATH,
 } from "@/lib/affiliate-routes"
-import type { MarketplaceFacet } from "@/lib/marketplace-attribute-filters"
+import type { MarketplaceFacet } from "@/lib/marketplace-facet-types"
 import { cn } from "@/lib/utils"
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
