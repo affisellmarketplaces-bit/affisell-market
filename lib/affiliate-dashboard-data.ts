@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client"
 
+import { filterListingsForAffiliate, requireMerchantUserId } from "@/lib/merchant-tenant-scope"
 import { prisma } from "@/lib/prisma"
 
 const supplierPick = {
@@ -59,6 +60,7 @@ export const affiliateListingCardProductSelect = {
 
 const affiliateListingRowSelect = {
   id: true,
+  affiliateId: true,
   productId: true,
   sellingPriceCents: true,
   customTitle: true,
@@ -83,7 +85,8 @@ const affiliateListingRowSelect = {
 
 export const AFFILIATE_DISCOVER_CATALOG_LIMIT = 24
 
-export async function loadAffiliateDiscoverCatalog(affiliateId: string, opts?: { take?: number }) {
+export async function loadAffiliateDiscoverCatalog(affiliateUserId: string, opts?: { take?: number }) {
+  const affiliateId = requireMerchantUserId(affiliateUserId, "affiliate")
   const take = opts?.take ?? AFFILIATE_DISCOVER_CATALOG_LIMIT
   return prisma.product.findMany({
     where: { active: true, isDraft: false },
@@ -94,12 +97,16 @@ export async function loadAffiliateDiscoverCatalog(affiliateId: string, opts?: {
 }
 
 /** Listings + slim product rows (two small queries). */
-export async function loadAffiliateDashboardListings(affiliateId: string) {
-  const rows = await prisma.affiliateProduct.findMany({
-    where: { affiliateId },
-    select: affiliateListingRowSelect,
-    orderBy: [{ position: "asc" }, { id: "asc" }],
-  })
+export async function loadAffiliateDashboardListings(affiliateUserId: string) {
+  const affiliateId = requireMerchantUserId(affiliateUserId, "affiliate")
+  const rows = filterListingsForAffiliate(
+    await prisma.affiliateProduct.findMany({
+      where: { affiliateId },
+      select: affiliateListingRowSelect,
+      orderBy: [{ position: "asc" }, { id: "asc" }],
+    }),
+    affiliateId
+  )
 
   const productIds = [...new Set(rows.map((r) => r.productId))]
   const products =

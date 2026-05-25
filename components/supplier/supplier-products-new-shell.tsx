@@ -9,7 +9,7 @@ import { SupplierProductAddHub } from "@/components/supplier/supplier-product-ad
  * Single product listing flow by default (`?compose=1`).
  * Optional hub for bulk / assist entry points: `?hub=1`.
  */
-export function SupplierProductsNewShell() {
+export function SupplierProductsNewShell({ ownerUserId }: { ownerUserId: string }) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const editId = searchParams.get("edit")?.trim() ?? ""
@@ -38,6 +38,7 @@ export function SupplierProductsNewShell() {
 
   return (
     <SupplierAddProductForm
+      ownerUserId={ownerUserId}
       onBackToMethods={editId ? undefined : goHub}
       assistShortcuts={Boolean(assistQs) && !editId}
     />

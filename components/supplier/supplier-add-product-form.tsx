@@ -263,6 +263,8 @@ function SectionCard({
 }
 
 type SupplierAddProductFormProps = {
+  /** Logged-in supplier — scopes local draft cache and blocks cross-account hydration. */
+  ownerUserId: string
   /** Shown when the user arrived from the “Add products” hub (not when editing). */
   onBackToMethods?: () => void
   /** URL import + AI shortcut panels on step 1 (chosen from the hub or `?assist=1`). */
@@ -270,6 +272,7 @@ type SupplierAddProductFormProps = {
 }
 
 export function SupplierAddProductForm({
+  ownerUserId,
   onBackToMethods,
   assistShortcuts = false,
 }: SupplierAddProductFormProps) {
@@ -781,6 +784,10 @@ export function SupplierAddProductForm({
       if (!res.ok) {
         throw new Error(typeof data.error === "string" ? data.error : "Failed to load product")
       }
+      const rowSupplierId = typeof data.supplierId === "string" ? data.supplierId : ""
+      if (rowSupplierId && rowSupplierId !== ownerUserId) {
+        throw new Error("Ce produit n’appartient pas à votre compte fournisseur.")
+      }
       setName(String(data.name ?? ""))
       setDescription(String(data.description ?? ""))
       setCategoryId(typeof data.categoryId === "string" ? data.categoryId : "")
@@ -1194,7 +1201,7 @@ export function SupplierAddProductForm({
 
   useEffect(() => {
     if (urlListingId || pendingDraftListingId || hydratedFromCache.current || loadingBrowse) return
-    const c = readSupplierAddProductDraftCache(cacheMode)
+    const c = readSupplierAddProductDraftCache(cacheMode, ownerUserId)
     hydratedFromCache.current = true
     if (!c) return
     if (Date.now() - c.updatedAt > 14 * 24 * 60 * 60 * 1000) return
@@ -1281,7 +1288,7 @@ export function SupplierAddProductForm({
       )
     }
     toast("Restored your last on-device draft for this workflow.", { duration: 4500 })
-  }, [urlListingId, pendingDraftListingId, loadingBrowse, cacheMode])
+  }, [urlListingId, pendingDraftListingId, loadingBrowse, cacheMode, ownerUserId])
 
   const canSaveDraft = !editId || productIsDraft
 
@@ -1415,7 +1422,7 @@ export function SupplierAddProductForm({
     if (editId && !productIsDraft) return
     if (!(name.trim() || description.trim() || categoryId.trim() || images.length > 0 || descriptionIllustrationImages.length > 0 || descriptionIllustrationVideos.length > 0)) return
     const t = window.setTimeout(() => {
-      writeSupplierAddProductDraftCache({
+      writeSupplierAddProductDraftCache(ownerUserId, {
         mode: cacheMode,
         step,
         name,
@@ -1450,6 +1457,7 @@ export function SupplierAddProductForm({
     }, 720)
     return () => window.clearTimeout(t)
   }, [
+    ownerUserId,
     cacheMode,
     step,
     categoryId,
@@ -1599,7 +1607,7 @@ export function SupplierAddProductForm({
           })
           .catch(() => {})
       }
-      clearSupplierAddProductDraftCache()
+      clearSupplierAddProductDraftCache(ownerUserId)
       lastAutosaveJson.current = ""
       toast.success(
         serverId && !productIsDraft ? "Product updated." : "Product published to your catalog."

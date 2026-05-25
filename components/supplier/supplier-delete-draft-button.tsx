@@ -10,6 +10,7 @@ import { clearSupplierAddProductDraftCache } from "@/lib/supplier-add-product-dr
 import { cn } from "@/lib/utils"
 
 type Props = {
+  ownerUserId?: string
   productId: string
   productName?: string
   variant?: "icon" | "button"
@@ -20,6 +21,7 @@ type Props = {
 }
 
 export function SupplierDeleteDraftButton({
+  ownerUserId,
   productId,
   productName,
   variant = "button",
@@ -52,7 +54,7 @@ export function SupplierDeleteDraftButton({
         return
       }
 
-      clearSupplierAddProductDraftCache()
+      clearSupplierAddProductDraftCache(ownerUserId)
       toast.success("Brouillon supprimé.")
       onDeleted?.()
       if (redirectTo) {

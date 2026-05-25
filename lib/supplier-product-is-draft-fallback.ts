@@ -1,6 +1,11 @@
 import { Prisma } from "@prisma/client"
 
 import { affiliateCommissionDisplayPct } from "@/lib/affiliate-product-commission-display"
+import {
+  filterProductsForSupplier,
+  requireMerchantUserId,
+  supplierProductsWhere,
+} from "@/lib/merchant-tenant-scope"
 import { prisma } from "@/lib/prisma"
 import { serializeProductDecimalFields } from "@/lib/serialize-for-client"
 
@@ -64,6 +69,7 @@ const PRODUCT_SCALAR_SELECT_WITH_ISDRAFT = {
 /** Supplier dashboard catalog: storefront grid + management (images & compare-at for buyer-style cards). */
 const SUPPLIER_DASHBOARD_CATALOG_SELECT_NO_ISDRAFT = {
   id: true,
+  supplierId: true,
   name: true,
   basePriceCents: true,
   commissionRate: true,
@@ -141,14 +147,16 @@ function serializeDashboardCatalogRow(
   }
 }
 
-export async function findSupplierProductsForDashboardCatalog(where: { supplierId: string }) {
+export async function findSupplierProductsForDashboardCatalog(supplierUserId: string) {
+  const supplierId = requireMerchantUserId(supplierUserId, "supplier")
+  const where = supplierProductsWhere(supplierId)
   try {
     const rows = await prisma.product.findMany({
       where,
       orderBy: { updatedAt: "desc" },
       select: SUPPLIER_DASHBOARD_CATALOG_SELECT_WITH_ISDRAFT,
     })
-    return rows.map(serializeDashboardCatalogRow)
+    return filterProductsForSupplier(rows, supplierId).map(serializeDashboardCatalogRow)
   } catch (e: unknown) {
     if (!isDraftSchemaOrDbError(e)) throw e
     const rows = await prisma.product.findMany({
@@ -156,20 +164,22 @@ export async function findSupplierProductsForDashboardCatalog(where: { supplierI
       orderBy: { updatedAt: "desc" },
       select: SUPPLIER_DASHBOARD_CATALOG_SELECT_NO_ISDRAFT,
     })
-    return rows.map((r) =>
+    return filterProductsForSupplier(rows, supplierId).map((r) =>
       serializeProductDecimalFields({ ...r, isDraft: false }) as SupplierDashboardCatalogProduct
     )
   }
 }
 
-export async function findSupplierProductsForOwnerApi(where: { supplierId: string }) {
+export async function findSupplierProductsForOwnerApi(supplierUserId: string) {
+  const supplierId = requireMerchantUserId(supplierUserId, "supplier")
+  const where = supplierProductsWhere(supplierId)
   try {
     const rows = await prisma.product.findMany({
       where,
       orderBy: { name: "asc" },
       select: PRODUCT_SCALAR_SELECT_WITH_ISDRAFT,
     })
-    return rows.map(serializeProductDecimalFields)
+    return filterProductsForSupplier(rows, supplierId).map(serializeProductDecimalFields)
   } catch (e: unknown) {
     if (!isDraftSchemaOrDbError(e)) throw e
     const rows = await prisma.product.findMany({
@@ -177,11 +187,14 @@ export async function findSupplierProductsForOwnerApi(where: { supplierId: strin
       orderBy: { name: "asc" },
       select: PRODUCT_SCALAR_SELECT_NO_ISDRAFT,
     })
-    return rows.map((r) => serializeProductDecimalFields({ ...r, isDraft: false }))
+    return filterProductsForSupplier(rows, supplierId).map((r) =>
+      serializeProductDecimalFields({ ...r, isDraft: false })
+    )
   }
 }
 
-export async function findSupplierProductWithAttributesForOwner(id: string, supplierId: string) {
+export async function findSupplierProductWithAttributesForOwner(id: string, supplierUserId: string) {
+  const supplierId = requireMerchantUserId(supplierUserId, "supplier")
   try {
     const row = await prisma.product.findFirst({
       where: { id, supplierId },

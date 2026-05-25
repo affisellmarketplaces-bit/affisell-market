@@ -41,7 +41,7 @@ export default async function SupplierProductsPage({
   const draftsOnly = draftsQs === "1"
 
   const [products, store, partnerListingGroups] = await Promise.all([
-    findSupplierProductsForDashboardCatalog({ supplierId: session.user.id }),
+    findSupplierProductsForDashboardCatalog(session.user.id),
     prisma.store.findUnique({
       where: { userId: session.user.id },
       select: { slug: true, name: true },
@@ -61,7 +61,10 @@ export default async function SupplierProductsPage({
     ? `/store/supplier/${encodeURIComponent(store.slug)}`
     : `/store/supplier/${encodeURIComponent(session.user.id)}`
 
-  const catalogProducts = draftsOnly ? products.filter((p) => p.isDraft) : products
+  /** Vitrine catalogue : brouillons uniquement dans l’onglet dédié — jamais mélangés aux SKU publiés. */
+  const catalogProducts = draftsOnly
+    ? products.filter((p) => p.isDraft)
+    : products.filter((p) => !p.isDraft)
 
   return (
     <BentoShell className="bg-zinc-50/50 dark:bg-zinc-950">
@@ -98,6 +101,7 @@ export default async function SupplierProductsPage({
         </nav>
 
         <SupplierDashboardProductsCatalog
+          ownerUserId={session.user.id}
           products={catalogProducts}
           draftsOnly={draftsOnly}
           storefrontHref={storefrontHref}

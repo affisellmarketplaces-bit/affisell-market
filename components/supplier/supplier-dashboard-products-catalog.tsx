@@ -55,12 +55,14 @@ function statusMeta(p: CatalogProduct) {
 }
 
 export function SupplierDashboardProductsCatalog({
+  ownerUserId,
   products,
   draftsOnly = false,
   storefrontHref,
   storefrontName,
   partnerListingCountByProductId = {},
 }: {
+  ownerUserId: string
   products: CatalogProduct[]
   draftsOnly?: boolean
   storefrontHref: string
@@ -337,6 +339,7 @@ export function SupplierDashboardProductsCatalog({
                           </Link>
                         ) : (
                           <SupplierDeleteDraftButton
+                            ownerUserId={ownerUserId}
                             productId={p.id}
                             productName={p.name}
                             variant="icon"

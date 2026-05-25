@@ -581,9 +581,10 @@ export async function DELETE(
     return Response.json({ error: "Cannot delete a product that has orders" }, { status: 409 })
   }
 
+  const supplierId = session.user.id
   await prisma.$transaction([
     prisma.affiliateProduct.deleteMany({ where: { productId: id } }),
-    prisma.product.delete({ where: { id } }),
+    prisma.product.delete({ where: { id, supplierId } }),
   ])
 
   return new Response(null, { status: 204 })

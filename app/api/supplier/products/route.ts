@@ -21,6 +21,7 @@ import {
   normalizeCategoryAttributeValues,
   validateVisibleCategoryAttributes,
 } from "@/lib/category-attribute-rules"
+import { requireMerchantUserId } from "@/lib/merchant-tenant-scope"
 import { parseListingKind } from "@/lib/supplier-commission"
 import { productCommissionRateForSave } from "@/lib/supplier-product-commission-save"
 import {
@@ -46,9 +47,7 @@ export async function GET() {
   if ((session.user as { role?: string }).role !== "SUPPLIER") {
     return Response.json({ error: "Forbidden" }, { status: 403 })
   }
-  const products = await findSupplierProductsForOwnerApi({
-    supplierId: session.user.id,
-  })
+  const products = await findSupplierProductsForOwnerApi(session.user.id)
   return Response.json(
     products.map((p) => ({
       ...p,
@@ -139,7 +138,7 @@ export async function POST(req: Request) {
         .filter((r) => r.key.length > 0 && r.value.length > 0)
     : []
 
-  const supplierId = (session.user as { id: string }).id
+  const supplierId = requireMerchantUserId(session.user.id, "supplier")
   const displayName = (nameStr || "Untitled draft").slice(0, 500)
 
   if (!saveAsDraft && categoryId) {

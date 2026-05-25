@@ -1,7 +1,9 @@
+import { redirect } from "next/navigation"
 import { Suspense } from "react"
 
 import { BentoShell } from "@/components/affisell/bento-ui"
 import { SupplierProductsNewShell } from "@/components/supplier/supplier-products-new-shell"
+import { auth } from "@/auth"
 
 function SupplierNewProductFallback() {
   return (
@@ -34,10 +36,18 @@ function SupplierNewProductFallback() {
   )
 }
 
-export default function SupplierNewProductPage() {
+export default async function SupplierNewProductPage() {
+  const session = await auth()
+  if (!session?.user?.id) {
+    redirect("/login/supplier?callbackUrl=/dashboard/supplier/products/new")
+  }
+  if (session.user.role !== "SUPPLIER") {
+    redirect("/dashboard")
+  }
+
   return (
     <Suspense fallback={<SupplierNewProductFallback />}>
-      <SupplierProductsNewShell />
+      <SupplierProductsNewShell ownerUserId={session.user.id} />
     </Suspense>
   )
 }

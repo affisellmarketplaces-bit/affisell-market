@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { removeAffiliateListingsFromStorefront } from "@/lib/affiliate-listing-remove"
+import { affiliateListingsWhere } from "@/lib/merchant-tenant-scope"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -34,7 +35,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "isFeatured or isListed required" }, { status: 400 })
   }
 
-  const where = { id: { in: ids }, affiliateId: session.user.id } as const
+  const where = { id: { in: ids }, ...affiliateListingsWhere(session.user.id) }
 
   if (typeof body.isFeatured === "boolean") {
     await prisma.affiliateProduct.updateMany({
