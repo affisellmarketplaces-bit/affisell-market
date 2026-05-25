@@ -34,6 +34,7 @@ import { toast } from "sonner"
 import { BentoShell } from "@/components/affisell/bento-ui"
 import { AttachProductVideoActions } from "@/components/attach-product-video-actions"
 import { SupplierProductDescriptionField } from "@/components/supplier/supplier-product-description-field"
+import { SupplierTitleOptimizer } from "@/components/supplier/supplier-title-optimizer"
 import { SupplierSimpleColorImageField } from "@/components/supplier/supplier-simple-color-image-field"
 import { SupplierProductImageUpload } from "@/components/supplier/supplier-product-image-upload"
 import { Button } from "@/components/ui/button"
@@ -312,7 +313,6 @@ export function SupplierAddProductForm({
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [descriptionBullets, setDescriptionBullets] = useState<string[]>([""])
-  const [aiStoryLoading, setAiStoryLoading] = useState(false)
   const [descriptionIllustrationImages, setDescriptionIllustrationImages] = useState<string[]>([])
   const [descriptionIllustrationVideos, setDescriptionIllustrationVideos] = useState<string[]>([])
   const [categoryId, setCategoryId] = useState("")
@@ -694,38 +694,6 @@ export function SupplierAddProductForm({
       })
     }
   }, [])
-
-  const handleGenerateStoryWithAi = useCallback(async () => {
-    setAiStoryLoading(true)
-    try {
-      const res = await fetch("/api/products/classify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: name.trim(), description: description.trim() }),
-      })
-      let data: { title?: string; bulletPoints?: unknown }
-      try {
-        data = (await res.json()) as { title?: string; bulletPoints?: unknown }
-      } catch {
-        toast.error("IA indisponible, remplis manuellement")
-        return
-      }
-      const rawBullets = Array.isArray(data.bulletPoints)
-        ? data.bulletPoints.filter((x): x is string => typeof x === "string")
-        : []
-      const hasBullets = rawBullets.some((b) => b.trim().length > 0)
-      if (!res.ok || !hasBullets) {
-        toast.error("IA indisponible, remplis manuellement")
-        return
-      }
-      if (data.title?.trim()) setName(data.title.trim().slice(0, 500))
-      setDescriptionBullets(bulletsForAiCopy(rawBullets))
-    } catch {
-      toast.error("IA indisponible, remplis manuellement")
-    } finally {
-      setAiStoryLoading(false)
-    }
-  }, [name, description])
 
   const handleUrlImportApply = useCallback((patch: UrlImportApplyPayload) => {
     categoryManualPickRef.current = false
@@ -1957,46 +1925,22 @@ export function SupplierAddProductForm({
                       description="Name and description appear to affiliates and on your storefront."
                       hasError={hasPublishFieldError("name")}
                     >
-                      <div>
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <Label htmlFor="p-name" className="mb-0">
-                            Title <span className="text-red-600">*</span>
-                          </Label>
-                          <Button
-                            type="button"
-                            size="sm"
-                            disabled={aiStoryLoading}
-                            onClick={() => void handleGenerateStoryWithAi()}
-                            className="gap-1.5 bg-violet-600 text-white shadow-sm shadow-violet-600/20 hover:bg-violet-700 disabled:opacity-60"
-                          >
-                            {aiStoryLoading ? (
-                              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                            ) : (
-                              <span className="text-sm leading-none" aria-hidden>
-                                ✨
-                              </span>
-                            )}
-                            {aiStoryLoading ? "Génération..." : "Titre & points clés IA"}
-                          </Button>
-                        </div>
-                        <Input
-                          id="p-name"
-                          className={cn("mt-1.5 h-11", hasPublishFieldError("name") && PUBLISH_INPUT_ERROR_CLASS)}
-                          value={name}
-                          onChange={(e) => {
-                            setName(e.target.value)
-                            clearPublishFieldError("name")
-                          }}
-                          placeholder="e.g. Wireless earbuds with ANC"
-                          maxLength={500}
-                          aria-invalid={hasPublishFieldError("name")}
-                        />
-                        {hasPublishFieldError("name") ? (
-                          <p className="mt-1 text-xs font-medium text-red-600 dark:text-red-400">
-                            {publishBlockers.find((b) => b.field === "name")?.message}
-                          </p>
-                        ) : null}
-                      </div>
+                      <SupplierTitleOptimizer
+                        title={name}
+                        onTitleChange={(v) => {
+                          setName(v)
+                          clearPublishFieldError("name")
+                        }}
+                        description={description}
+                        descriptionBullets={descriptionBullets}
+                        categoryPathLabel={categoryPathLabel}
+                        productGalleryImages={images}
+                        onBulletsGenerated={(bullets) =>
+                          setDescriptionBullets(bulletsForAiCopy(bullets))
+                        }
+                        hasError={hasPublishFieldError("name")}
+                        errorMessage={publishBlockers.find((b) => b.field === "name")?.message}
+                      />
                       <SupplierProductDescriptionField
                         description={description}
                         onDescriptionChange={setDescription}
@@ -2011,7 +1955,6 @@ export function SupplierAddProductForm({
                           setDescriptionBullets(bulletsForAiCopy(bullets))
                         }
                         categoryPathLabel={categoryPathLabel}
-                        disabled={aiStoryLoading}
                       />
                       <div>
                         <Label className="text-zinc-800 dark:text-zinc-100">Key features</Label>

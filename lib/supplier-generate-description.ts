@@ -1,3 +1,4 @@
+import { normalizeImagePlacements } from "@/lib/description-structure"
 import { GROQ_VISION_MAX_IMAGES } from "@/lib/ai/groq-vision"
 import { groqChatText, GROQ_VISION_MODEL } from "@/lib/ai/groq-client"
 import { generateImageWithHf } from "@/lib/ai/hf-image"
@@ -24,6 +25,12 @@ export type GenerateDescriptionResult = {
   bulletPoints: string[]
   illustrationImages: string[]
   illustrationSource: "kept_user" | "from_gallery" | "generated_hf" | "none"
+  imagePlacements: Array<{
+    section: string
+    role: string
+    caption: string
+    imageIndex: number
+  }>
 }
 
 function stripJsonFence(s: string): string {
@@ -134,7 +141,8 @@ export async function generateSupplierProductDescription(
 {
   "description": string (texte structuré SEO, 400-2200 caractères, sections avec titres en MAJUSCULES sur leur ligne, paragraphes séparés par double saut de ligne; pas de HTML; français commercial),
   "bulletPoints": string[] (4 à 6 puces courtes style marketplace, factuelles),
-  "galleryImageIndices": number[] (optionnel, indices 0..n-1 UNIQUEMENT sur les photos galerie produit — pas les illustrations; max 4)
+  "galleryImageIndices": number[] (optionnel, indices 0..n-1 UNIQUEMENT sur les photos galerie produit — pas les illustrations; max 4),
+  "imagePlacements": { "section": string, "role": "hero"|"lifestyle"|"detail"|"scale"|"packaging", "caption": string, "imageIndex": number }[] (optionnel, une entrée par image galerie choisie — section = titre de bloc ci-dessous)
 }
 
 Structure obligatoire de description (titres exacts sur une ligne):
@@ -146,7 +154,12 @@ POINTS FORTS
 …
 UTILISATION & ENTRETIEN
 …
-POURQUOI CE PRODUIT ?`
+POURQUOI CE PRODUIT ?
+…
+INNOVATION
+…
+
+Pour imagePlacements: associe chaque indice galerie à la section la plus pertinente (ex. détail → POINTS FORTS, lifestyle → POUR QUI ?).`
 
   const userText = [
     `Titre produit: ${title || "(à définir)"}`,
@@ -203,6 +216,7 @@ POURQUOI CE PRODUIT ?`
     description?: unknown
     bulletPoints?: unknown
     galleryImageIndices?: unknown
+    imagePlacements?: unknown
   }
   try {
     parsed = JSON.parse(stripJsonFence(raw)) as typeof parsed
@@ -266,5 +280,6 @@ POURQUOI CE PRODUIT ?`
     bulletPoints: aiBullets,
     illustrationImages,
     illustrationSource,
+    imagePlacements: normalizeImagePlacements(parsed.imagePlacements),
   }
 }

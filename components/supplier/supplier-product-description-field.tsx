@@ -1,8 +1,8 @@
 "use client"
 
-import { useCallback, useId, useRef, useState } from "react"
+import { useCallback, useId, useMemo, useRef, useState } from "react"
 import type { ChangeEvent } from "react"
-import { ImagePlus, Loader2, Sparkles, X } from "lucide-react"
+import { ImagePlus, Layers, Loader2, Sparkles, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { SupplierDescriptionIllustrationFields } from "@/components/supplier/supplier-description-illustration-fields"
@@ -16,6 +16,11 @@ import {
   imageFilesFromDataTransfer,
   processDescriptionIllustrationFile,
 } from "@/lib/description-illustration-image"
+import {
+  type DescriptionImagePlacement,
+  IMAGE_ROLE_LABELS,
+  parseDescriptionSections,
+} from "@/lib/description-structure"
 import { cn } from "@/lib/utils"
 
 const MAX_GALLERY_FOR_AI = 2
@@ -64,6 +69,84 @@ function isHttpsImageUrl(u: string): boolean {
   return /^https?:\/\//i.test(u.trim())
 }
 
+function DescriptionStructurePreview({ text }: { text: string }) {
+  const sections = useMemo(() => parseDescriptionSections(text), [text])
+  if (sections.length === 0) return null
+
+  return (
+    <div className="space-y-2">
+      <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-cyan-700/90 dark:text-cyan-300">
+        <Layers className="size-3.5" aria-hidden />
+        Structure SEO
+      </p>
+      <div className="grid gap-1.5 sm:grid-cols-2">
+        {sections.map((s) => (
+          <div
+            key={s.key}
+            className={cn(
+              "rounded-xl border px-2.5 py-2 text-left",
+              s.body.length > 20
+                ? "border-emerald-200/80 bg-emerald-50/50 dark:border-emerald-900/50 dark:bg-emerald-950/30"
+                : "border-zinc-200/80 bg-zinc-50/50 dark:border-zinc-700 dark:bg-zinc-900/40"
+            )}
+          >
+            <p className="text-[10px] font-bold uppercase tracking-wide text-violet-700 dark:text-violet-300">
+              {s.title}
+            </p>
+            <p className="mt-0.5 line-clamp-2 text-[11px] text-zinc-600 dark:text-zinc-400">
+              {s.body || "—"}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function ImageStrategyBoard({
+  images,
+  placements,
+}: {
+  images: string[]
+  placements: DescriptionImagePlacement[]
+}) {
+  if (images.length === 0) return null
+
+  return (
+    <div className="space-y-2 border-t border-violet-200/40 pt-3 dark:border-violet-900/40">
+      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-fuchsia-700/90 dark:text-fuchsia-300">
+        Placement stratégique des visuels
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {images.map((url, index) => {
+          const placement = placements.find((p) => p.imageIndex === index)
+          const role = placement?.role && placement.role in IMAGE_ROLE_LABELS ? placement.role : "detail"
+          return (
+            <div
+              key={`${index}-${url.slice(0, 24)}`}
+              className="relative w-[calc(50%-0.25rem)] min-w-[140px] max-w-[200px] overflow-hidden rounded-xl border border-white/20 bg-zinc-900/80 shadow-lg sm:w-auto sm:flex-1"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={url} alt="" className="aspect-[4/3] w-full object-cover opacity-95" />
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent p-2">
+                <p className="text-[9px] font-bold uppercase tracking-wider text-cyan-200">
+                  {IMAGE_ROLE_LABELS[role]}
+                </p>
+                {placement?.section ? (
+                  <p className="text-[10px] font-medium text-white">{placement.section}</p>
+                ) : null}
+                {placement?.caption ? (
+                  <p className="line-clamp-2 text-[9px] text-white/75">{placement.caption}</p>
+                ) : null}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 export function SupplierProductDescriptionField({
   description,
   onDescriptionChange,
@@ -81,6 +164,7 @@ export function SupplierProductDescriptionField({
   const [aiLoading, setAiLoading] = useState(false)
   const [imageBusy, setImageBusy] = useState(false)
   const [dragOver, setDragOver] = useState(false)
+  const [imagePlacements, setImagePlacements] = useState<DescriptionImagePlacement[]>([])
   const composerRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const fileInputId = useId()
@@ -167,6 +251,7 @@ export function SupplierProductDescriptionField({
   const removeIllustrationAt = useCallback(
     (index: number) => {
       onIllustrationImagesChange(illustrationImages.filter((_, i) => i !== index))
+      setImagePlacements((prev) => prev.filter((p) => p.imageIndex !== index))
     },
     [illustrationImages, onIllustrationImagesChange]
   )
@@ -211,6 +296,7 @@ export function SupplierProductDescriptionField({
         bulletPoints?: string[]
         illustrationImages?: string[]
         illustrationSource?: string
+        imagePlacements?: DescriptionImagePlacement[]
       }
 
       if (!res.ok) {
@@ -229,20 +315,24 @@ export function SupplierProductDescriptionField({
         onIllustrationImagesChange(data.illustrationImages.slice(0, DESCRIPTION_ILLUSTRATION_MAX))
       }
 
+      if (Array.isArray(data.imagePlacements) && data.imagePlacements.length > 0) {
+        setImagePlacements(data.imagePlacements)
+      }
+
       const source = data.illustrationSource ?? "none"
       const sourceLabel =
         source === "kept_user"
-          ? "vos images d'illustration"
+          ? "vos images"
           : source === "from_gallery"
-            ? "photos produit"
+            ? "galerie produit"
             : source === "generated_hf"
-              ? "image IA"
+              ? "visuel IA"
               : null
 
       toast.success(
         sourceLabel
-          ? `Description SEO générée · illustrations : ${sourceLabel}`
-          : "Description SEO générée"
+          ? `Description structurée · visuels : ${sourceLabel}`
+          : "Description structurée générée"
       )
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "IA indisponible")
@@ -272,7 +362,7 @@ export function SupplierProductDescriptionField({
     <div className="space-y-4">
       <div>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <Label htmlFor="p-desc" className="mb-0">
+          <Label htmlFor="p-desc" className="mb-0 text-zinc-800 dark:text-zinc-100">
             Description
           </Label>
           <Button
@@ -280,123 +370,129 @@ export function SupplierProductDescriptionField({
             size="sm"
             disabled={composerDisabled}
             onClick={() => void handleGenerateDescription()}
-            className="gap-1.5 bg-violet-600 text-white shadow-sm shadow-violet-600/20 hover:bg-violet-700 disabled:opacity-60"
+            className="gap-1.5 border-0 bg-gradient-to-r from-cyan-600 via-violet-600 to-fuchsia-600 text-white shadow-lg shadow-violet-500/20 hover:opacity-95 disabled:opacity-50"
           >
             {aiLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
             ) : (
               <Sparkles className="h-4 w-4" aria-hidden />
             )}
-            {aiLoading ? "Génération..." : "Générer description IA"}
+            {aiLoading ? "Génération…" : "Générer description IA"}
           </Button>
         </div>
         <p className="mt-1 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-          Saisissez vos notes, collez ou déposez des images directement dans la zone ci-dessous — l’IA structure le
-          texte (SEO) et peut illustrer à partir de vos visuels.
+          Studio copy : notes + visuels → texte SEO en blocs (ACCROCHE, POINTS FORTS…) et placement intelligent des
+          images sur la fiche acheteur.
         </p>
 
         <div
-          ref={composerRef}
-          onPasteCapture={handlePaste}
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={(e) => {
-            if (!composerRef.current?.contains(e.relatedTarget as Node)) {
-              setDragOver(false)
-            }
-          }}
           className={cn(
-            "relative mt-1.5 overflow-hidden rounded-xl border bg-zinc-50/50 transition dark:bg-zinc-900/50",
-            dragOver
-              ? "border-violet-400 ring-2 ring-violet-400/25 dark:border-violet-500"
-              : "border-zinc-200 dark:border-zinc-700",
-            "focus-within:border-violet-400 focus-within:bg-white dark:focus-within:border-violet-600"
+            "relative mt-2 overflow-hidden rounded-2xl border shadow-sm",
+            "border-violet-200/50 bg-gradient-to-br from-zinc-950/[0.02] via-white to-violet-50/30",
+            "dark:border-violet-900/40 dark:from-zinc-950 dark:via-zinc-950/90 dark:to-violet-950/20"
           )}
         >
-          {illustrationImages.length > 0 && (
-            <div className="flex flex-wrap gap-2 border-b border-zinc-200/80 bg-white/60 p-2.5 dark:border-zinc-700 dark:bg-zinc-900/60">
-              {illustrationImages.map((url, index) => (
-                <div
-                  key={`${index}-${url.slice(0, 32)}`}
-                  className="group relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-600 dark:bg-zinc-800"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={url} alt="" className="h-full w-full object-cover" />
-                  <button
-                    type="button"
-                    disabled={composerDisabled}
-                    onClick={() => removeIllustrationAt(index)}
-                    className="absolute right-0.5 top-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white opacity-90 shadow hover:bg-red-600 disabled:opacity-50"
-                    aria-label="Retirer l'image"
-                  >
-                    <X className="h-3.5 w-3.5" aria-hidden />
-                  </button>
-                </div>
-              ))}
-              {imageBusy && (
-                <div className="flex h-16 w-16 items-center justify-center rounded-lg border border-dashed border-violet-300 bg-violet-50/80 dark:border-violet-700 dark:bg-violet-950/40">
-                  <Loader2 className="h-5 w-5 animate-spin text-violet-600" aria-hidden />
-                </div>
-              )}
-            </div>
-          )}
+          <div
+            className="pointer-events-none absolute inset-0 opacity-60"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle at 20% 0%, rgba(34,211,238,0.12), transparent 45%), radial-gradient(circle at 80% 100%, rgba(192,38,211,0.1), transparent 40%)",
+            }}
+            aria-hidden
+          />
 
-          {imageBusy && illustrationImages.length === 0 && (
-            <div className="flex items-center gap-2 border-b border-zinc-200/80 px-3 py-2 text-xs text-violet-700 dark:border-zinc-700 dark:text-violet-300">
-              <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
-              Traitement de l’image…
-            </div>
-          )}
-
-          <textarea
-            id="p-desc"
-            className={cn(
-              "min-h-[160px] w-full resize-y bg-transparent px-3 py-2.5 text-sm outline-none",
-              "placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
-            )}
-            value={description}
-            onChange={(e) => onDescriptionChange(e.target.value)}
-            onPaste={handlePaste}
+          <div
+            ref={composerRef}
+            onPasteCapture={handlePaste}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
-            placeholder="Notes, bénéfices, matériaux, public cible… Collez une image (Ctrl+V) ou glissez-la ici."
-            disabled={composerDisabled}
-          />
-
-          <input
-            ref={fileInputRef}
-            id={fileInputId}
-            type="file"
-            accept="image/*"
-            multiple
-            className="sr-only"
-            disabled={composerDisabled}
-            onChange={handleFileInputChange}
-          />
-
-          <p className="flex flex-wrap items-center gap-1.5 border-t border-zinc-200/60 px-3 py-1.5 text-[11px] text-zinc-500 dark:border-zinc-700/80 dark:text-zinc-400">
-            <button
-              type="button"
-              disabled={composerDisabled || illustrationImages.length >= DESCRIPTION_ILLUSTRATION_MAX}
-              onClick={openFilePicker}
-              className="inline-flex shrink-0 items-center gap-1 rounded-md text-violet-600 transition hover:bg-violet-50 hover:text-violet-800 disabled:cursor-not-allowed disabled:opacity-50 dark:text-violet-400 dark:hover:bg-violet-950/50"
-              aria-label="Ajouter une image depuis vos fichiers"
-            >
-              <ImagePlus className="h-3.5 w-3.5" aria-hidden />
-              <span className="font-medium underline decoration-dotted underline-offset-2">
-                Parcourir
-              </span>
-            </button>
-            <span>
-              · Ctrl+V ou glisser-déposer · max. {DESCRIPTION_ILLUSTRATION_MAX} images · min.{" "}
-              {DESCRIPTION_ILLUSTRATION_MIN_W}×{DESCRIPTION_ILLUSTRATION_MIN_H} px
-            </span>
-            {illustrationImages.length > 0 && (
-              <span className="text-violet-600 dark:text-violet-400">
-                · {illustrationImages.length}/{DESCRIPTION_ILLUSTRATION_MAX}
-              </span>
+            onDragLeave={(e) => {
+              if (!composerRef.current?.contains(e.relatedTarget as Node)) {
+                setDragOver(false)
+              }
+            }}
+            className={cn(
+              "relative m-2 overflow-hidden rounded-xl border transition",
+              dragOver
+                ? "border-cyan-400 ring-2 ring-cyan-400/30"
+                : "border-zinc-200/80 dark:border-zinc-700",
+              "focus-within:border-violet-400 focus-within:ring-2 focus-within:ring-violet-400/20"
             )}
-          </p>
+          >
+            {illustrationImages.length > 0 && (
+              <div className="border-b border-zinc-200/60 bg-zinc-900/95 p-2.5 dark:border-zinc-700">
+                <ImageStrategyBoard images={illustrationImages} placements={imagePlacements} />
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {illustrationImages.map((url, index) => (
+                    <div
+                      key={`${index}-${url.slice(0, 32)}`}
+                      className="group relative h-14 w-14 shrink-0 overflow-hidden rounded-lg ring-1 ring-white/20"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={url} alt="" className="h-full w-full object-cover" />
+                      <button
+                        type="button"
+                        disabled={composerDisabled}
+                        onClick={() => removeIllustrationAt(index)}
+                        className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white shadow"
+                        aria-label="Retirer"
+                      >
+                        <X className="h-3 w-3" aria-hidden />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <textarea
+              id="p-desc"
+              className={cn(
+                "min-h-[180px] w-full resize-y bg-transparent px-3 py-3 font-mono text-[13px] leading-relaxed outline-none",
+                "text-zinc-800 placeholder:text-zinc-400 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+              )}
+              value={description}
+              onChange={(e) => onDescriptionChange(e.target.value)}
+              onPaste={handlePaste}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              placeholder={`ACCROCHE\n…\n\nPOUR QUI ?\n…\n\nPOINTS FORTS\n…\n\n(Ctrl+V ou glissez une image)`}
+              disabled={composerDisabled}
+            />
+
+            <input
+              ref={fileInputRef}
+              id={fileInputId}
+              type="file"
+              accept="image/*"
+              multiple
+              className="sr-only"
+              disabled={composerDisabled}
+              onChange={handleFileInputChange}
+            />
+
+            <p className="flex flex-wrap items-center gap-1.5 border-t border-zinc-200/60 px-3 py-2 text-[11px] text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+              <button
+                type="button"
+                disabled={composerDisabled || illustrationImages.length >= DESCRIPTION_ILLUSTRATION_MAX}
+                onClick={openFilePicker}
+                className="inline-flex items-center gap-1 rounded-md font-medium text-violet-600 hover:bg-violet-50 dark:text-violet-400 dark:hover:bg-violet-950/50"
+              >
+                <ImagePlus className="h-3.5 w-3.5" aria-hidden />
+                Parcourir
+              </button>
+              <span>
+                · Ctrl+V · max. {DESCRIPTION_ILLUSTRATION_MAX} · min. {DESCRIPTION_ILLUSTRATION_MIN_W}×
+                {DESCRIPTION_ILLUSTRATION_MIN_H} px
+              </span>
+            </p>
+          </div>
+
+          {description.trim().length > 40 ? (
+            <div className="relative border-t border-violet-200/30 px-3 py-3 dark:border-violet-900/30">
+              <DescriptionStructurePreview text={description} />
+            </div>
+          ) : null}
         </div>
       </div>
 
