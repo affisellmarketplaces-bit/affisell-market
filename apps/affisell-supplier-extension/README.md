@@ -14,6 +14,8 @@ Extension Chrome (Manifest V3) pour importer une fiche produit dans le catalogue
 cd apps/affisell-supplier-extension
 npm install
 npm run build
+# ou en dev (rebuild auto à chaque modification) :
+npm run dev
 ```
 
 Chrome → `chrome://extensions` → Mode développeur → **Charger l’extension non empaquetée** → dossier `dist/`.

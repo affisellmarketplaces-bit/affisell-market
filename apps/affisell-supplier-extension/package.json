@@ -5,7 +5,8 @@
   "description": "Affisell supplier catalog import from product pages",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "watch": "node scripts/build.mjs --watch"
+    "watch": "node scripts/build.mjs --watch",
+    "dev": "npm run watch"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",
