@@ -1,12 +1,14 @@
 "use client"
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
-import { Plus, Trash2, X } from "lucide-react"
+import { Copy, Plus, Trash2, X } from "lucide-react"
+import { toast } from "sonner"
 
 import {
   isCustomCellInvalid,
   SupplierCustomColumnCell,
 } from "@/components/supplier/supplier-custom-column-cell"
+import { SupplierCustomColumnChip } from "@/components/supplier/supplier-custom-column-chip"
 import { SupplierCustomColumnModal } from "@/components/supplier/supplier-custom-column-modal"
 import { SupplierSkuAffiliateMarginCell } from "@/components/supplier/supplier-sku-affiliate-margin-cell"
 import { SupplierSkuColumnToggles } from "@/components/supplier/supplier-sku-column-toggles"
@@ -17,8 +19,10 @@ import { Input } from "@/components/ui/input"
 import { formatStoreCurrency } from "@/lib/market-config"
 import { newVariantRowId } from "@/lib/product-variants"
 import { downloadSupplierSkuCsv } from "@/lib/supplier-sku-csv-export"
+import { buildDuplicateCustomColumn } from "@/lib/product-custom-columns"
 import {
   applyColorImageToRows,
+  copySkuRowCustomColumnKey,
   ensureRowCustomFields,
   firstRowIndexForColor,
   rowCustomData,
@@ -163,6 +167,26 @@ export function SupplierVariantTable({
           })
         )
       }
+    },
+    [customColumns, onCustomColumnsChange, onChange, rowsWithFields]
+  )
+
+  const duplicateCustomColumn = useCallback(
+    (id: string) => {
+      if (customColumns.length >= MAX_CUSTOM_COLUMNS) {
+        toast.error(`Maximum ${MAX_CUSTOM_COLUMNS} colonnes personnalisées.`)
+        return
+      }
+      const col = customColumns.find((c) => c.id === id)
+      if (!col) return
+      const dupDef = buildDuplicateCustomColumn(
+        col,
+        customColumns.map((c) => c.key)
+      )
+      const newCol: SkuCustomColumnDef = { ...dupDef, id: newVariantRowId() }
+      onCustomColumnsChange([...customColumns, newCol])
+      onChange(rowsWithFields.map((r) => copySkuRowCustomColumnKey(r, col.key, newCol.key)))
+      toast.success(`Colonne « ${newCol.label} » dupliquée — modifiez les valeurs par ligne.`)
     },
     [customColumns, onCustomColumnsChange, onChange, rowsWithFields]
   )
@@ -394,6 +418,7 @@ export function SupplierVariantTable({
           customColumns={customColumns}
           onCustomColumnsChange={onCustomColumnsChange}
           onRemoveCustomColumn={removeCustomColumn}
+          onDuplicateCustomColumn={duplicateCustomColumn}
           onOpenCustomColumnModal={() => setCustomColumnModalOpen(true)}
           customColumnCount={customColumns.length}
           maxCustomColumns={MAX_CUSTOM_COLUMNS}
@@ -423,6 +448,22 @@ export function SupplierVariantTable({
                   ? `, ou « Prix barré catalogue à tous » (${formatStoreCurrency(catalogCompareAtEur)}).`
                   : ", ou le champ « Prix barré » au-dessus du tableau pour toutes les lignes."}
               </p>
+            ) : null}
+            {customColumns.length > 0 ? (
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="w-full text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
+                  Colonnes personnalisées :
+                </span>
+                {customColumns.map((col) => (
+                  <SupplierCustomColumnChip
+                    key={col.id}
+                    label={col.label}
+                    disabled={disabled}
+                    onDuplicate={() => duplicateCustomColumn(col.id)}
+                    onRemove={() => removeCustomColumn(col.id)}
+                  />
+                ))}
+              </div>
             ) : null}
             <div className="flex flex-wrap gap-2">
               <Button
@@ -529,8 +570,18 @@ export function SupplierVariantTable({
                   ) : null}
                   {customColumns.map((col) => (
                     <th key={col.id} className="min-w-[100px] px-2 py-2.5">
-                      <span className="inline-flex items-center gap-1">
+                      <span className="inline-flex items-center gap-0.5">
                         {col.label}
+                        <button
+                          type="button"
+                          className="rounded p-0.5 text-zinc-400 hover:bg-violet-100 hover:text-violet-700 dark:hover:bg-violet-950/50 dark:hover:text-violet-300"
+                          disabled={disabled || customColumns.length >= MAX_CUSTOM_COLUMNS}
+                          onClick={() => duplicateCustomColumn(col.id)}
+                          aria-label={`Dupliquer la colonne ${col.label}`}
+                          title="Dupliquer (copie les valeurs par ligne)"
+                        >
+                          <Copy className="h-3 w-3" aria-hidden />
+                        </button>
                         <button
                           type="button"
                           className="rounded p-0.5 text-zinc-400 hover:bg-zinc-200 hover:text-red-600 dark:hover:bg-zinc-700"

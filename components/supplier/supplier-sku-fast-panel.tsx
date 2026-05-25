@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react"
 import { ImagePlus, Plus, Sparkles, Trash2 } from "lucide-react"
+import { toast } from "sonner"
 
 import { SupplierSimpleColorImageField } from "@/components/supplier/supplier-simple-color-image-field"
 import { Button } from "@/components/ui/button"
@@ -25,7 +26,9 @@ import {
 } from "@/lib/supplier-sku-columns"
 import { cn } from "@/lib/utils"
 
+import { SupplierCustomColumnChip } from "@/components/supplier/supplier-custom-column-chip"
 import { SupplierSkuColumnToggles } from "@/components/supplier/supplier-sku-column-toggles"
+import { buildDuplicateCustomColumn } from "@/lib/product-custom-columns"
 
 type Props = {
   skuPrefix: string
@@ -35,6 +38,7 @@ type Props = {
   customColumns: SkuCustomColumnDef[]
   onCustomColumnsChange: (cols: SkuCustomColumnDef[]) => void
   onRemoveCustomColumn: (id: string) => void
+  onDuplicateCustomColumn?: (id: string) => void
   onOpenCustomColumnModal?: () => void
   customColumnCount?: number
   maxCustomColumns?: number
@@ -59,6 +63,7 @@ export function SupplierSkuFastPanel({
   customColumns,
   onCustomColumnsChange,
   onRemoveCustomColumn,
+  onDuplicateCustomColumn,
   onOpenCustomColumnModal,
   customColumnCount = 0,
   maxCustomColumns = 10,
@@ -141,6 +146,41 @@ export function SupplierSkuFastPanel({
       }
     },
     [customColumns, onRemoveCustomColumn]
+  )
+
+  const handleDuplicateCustomColumn = useCallback(
+    (id: string) => {
+      if (onDuplicateCustomColumn) {
+        onDuplicateCustomColumn(id)
+        return
+      }
+      if (customColumns.length >= maxCustomColumns) {
+        toast.error(`Maximum ${maxCustomColumns} colonnes personnalisées.`)
+        return
+      }
+      const col = customColumns.find((c) => c.id === id)
+      if (!col) return
+      const dupDef = buildDuplicateCustomColumn(
+        col,
+        customColumns.map((c) => c.key)
+      )
+      const newCol: SkuCustomColumnDef = { ...dupDef, id: newVariantRowId() }
+      onCustomColumnsChange([...customColumns, newCol])
+      setDefaults((d) => ({
+        ...d,
+        customFieldValues: {
+          ...d.customFieldValues,
+          [newCol.key]: d.customFieldValues[col.key] ?? "",
+        },
+      }))
+      toast.success(`Colonne « ${newCol.label} » dupliquée.`)
+    },
+    [
+      customColumns,
+      maxCustomColumns,
+      onCustomColumnsChange,
+      onDuplicateCustomColumn,
+    ]
   )
 
   const handleGenerate = useCallback(() => {
@@ -529,21 +569,13 @@ export function SupplierSkuFastPanel({
         {customColumns.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {customColumns.map((col) => (
-              <span
+              <SupplierCustomColumnChip
                 key={col.id}
-                className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-zinc-50 py-1 pl-3 pr-1 text-xs font-medium dark:border-zinc-600 dark:bg-zinc-800"
-              >
-                {col.label}
-                <button
-                  type="button"
-                  className="rounded-full p-1 hover:bg-zinc-200 dark:hover:bg-zinc-700"
-                  disabled={disabled}
-                  onClick={() => handleRemoveCustomColumn(col.id)}
-                  aria-label={`Retirer ${col.label}`}
-                >
-                  <Trash2 className="h-3 w-3" />
-                </button>
-              </span>
+                label={col.label}
+                disabled={disabled}
+                onDuplicate={() => handleDuplicateCustomColumn(col.id)}
+                onRemove={() => handleRemoveCustomColumn(col.id)}
+              />
             ))}
           </div>
         ) : null}

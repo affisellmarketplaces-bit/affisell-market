@@ -275,6 +275,23 @@ export function generateSkuTableRowsFromSetup(params: {
   }))
 }
 
+/** Copy custom field values from one column key to another on a SKU row. */
+export function copySkuRowCustomColumnKey(
+  row: SupplierSkuTableRow,
+  fromKey: string,
+  toKey: string
+): SupplierSkuTableRow {
+  const data: VariantCustomData = { ...rowCustomData(row) }
+  if (fromKey in data) data[toKey] = data[fromKey]!
+  else data[toKey] = ""
+
+  const customFields = { ...(row.customFields ?? {}) }
+  if (fromKey in customFields) customFields[toKey] = customFields[fromKey]!
+  else customFields[toKey] = ""
+
+  return { ...row, customData: data, customFields }
+}
+
 export function ensureRowCustomFields(
   rows: SupplierSkuTableRow[],
   columnKeys: string[]

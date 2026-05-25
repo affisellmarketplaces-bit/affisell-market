@@ -72,8 +72,8 @@ export function SupplierSkuColumnToggles({
       {variant === "panel" ? (
         <p className="text-[11px] text-zinc-500">
           Cliquez pour masquer un champ (prix, SKU, stock, prix barré, etc.) qui ne s&apos;applique pas.
-          Les colonnes personnalisées (« Unité », etc.) se retirent avec la poubelle sur chaque
-          étiquette.
+          Les colonnes personnalisées se dupliquent (icône copie) pour varier couleur, SKU ou
+          spécifications par ligne, puis se retirent avec la poubelle.
         </p>
       ) : variant === "toolbar" && !hiddenColumns.includes("compareAt") ? (
         <p className="text-[11px] text-zinc-500">

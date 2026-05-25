@@ -45,6 +45,30 @@ export function labelToCustomColumnKey(label: string): string {
   )
 }
 
+/** Clone column definition with a unique key/label (values copied separately per SKU row). */
+export function buildDuplicateCustomColumn(
+  source: CustomColumn,
+  reservedKeys: Iterable<string>
+): CustomColumn {
+  const keys = new Set(reservedKeys)
+  const base = source.label.trim().slice(0, 24) || "Champ"
+  let label = `${base} (copie)`
+  let key = labelToCustomColumnKey(label)
+  let n = 2
+  while (keys.has(key)) {
+    label = `${base} (${n})`
+    key = labelToCustomColumnKey(label)
+    n += 1
+  }
+  return {
+    key,
+    label: label.slice(0, 32),
+    type: source.type,
+    required: source.required,
+    options: source.options?.length ? [...source.options] : undefined,
+  }
+}
+
 export function parseCustomColumnsFromDb(json: unknown): CustomColumn[] {
   if (!Array.isArray(json)) return []
   const out: CustomColumn[] = []

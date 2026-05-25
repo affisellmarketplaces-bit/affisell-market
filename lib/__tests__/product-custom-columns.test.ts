@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  buildDuplicateCustomColumn,
   customColumnSchema,
   labelToCustomColumnKey,
   parseCustomColumnsFromBody,
@@ -38,6 +39,21 @@ describe("product-custom-columns", () => {
       { color: "Rouge", size: "M", supplierPrice: 10, stock: 1, customData: {} },
     ])
     expect(err).toMatch(/Ligne 2: champ Indice IP requis/)
+  })
+
+  it("builds duplicate column with unique key", () => {
+    const source = {
+      key: "matiere",
+      label: "Matière",
+      type: "text" as const,
+      required: false,
+    }
+    const dup = buildDuplicateCustomColumn(source, ["matiere"])
+    expect(dup.key).not.toBe("matiere")
+    expect(dup.label).toContain("copie")
+    expect(dup.type).toBe("text")
+    const dup2 = buildDuplicateCustomColumn(source, ["matiere", dup.key])
+    expect(dup2.key).not.toBe(dup.key)
   })
 
   it("parses customColumns from API body", () => {
