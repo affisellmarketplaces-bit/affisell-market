@@ -179,6 +179,7 @@ export default async function PublicStorefrontPage({ params }: { params: Promise
                       item.buyerRewardPercent ?? 0
                     )}
                     product={{ id: item.id }}
+                    soldCount={item.conversions}
                   />
                 </li>
               ))

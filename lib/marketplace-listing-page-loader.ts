@@ -20,6 +20,7 @@ const RELATED_SELECT = {
 export const listingDetailSelect = {
   id: true,
   sellingPriceCents: true,
+  conversions: true,
   customTitle: true,
   customImages: true,
   customDescription: true,

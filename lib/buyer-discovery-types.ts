@@ -29,6 +29,7 @@ export function buyerListingToCardProps(item: BuyerListingCard) {
     stock: item.stock,
     averageRating: item.averageRating,
     reviewCount: item.reviewCount,
+    soldCount: item.soldCount,
     store: item.storeName,
     href: `/shops/${encodeURIComponent(item.storeSlug)}/product/${encodeURIComponent(item.listingId)}`,
   }

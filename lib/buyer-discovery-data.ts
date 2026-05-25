@@ -8,6 +8,7 @@ import {
 import { loadHomeBestSellers7d, loadHomeNewArrivals } from "@/lib/home-marketplace-data"
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
+import { normalizeListingSalesCount } from "@/lib/listing-sales-count"
 import { inferNicheLabel } from "@/lib/shop-storefront-shared"
 
 export type { BuyerCategoryChip, BuyerListingCard } from "@/lib/buyer-discovery-types"
@@ -16,6 +17,7 @@ export { buyerListingToCardProps } from "@/lib/buyer-discovery-types"
 const listingSelect = {
   id: true,
   sellingPriceCents: true,
+  conversions: true,
   productId: true,
   customTitle: true,
   customImages: true,
@@ -121,7 +123,7 @@ export async function loadBuyerListedProducts(limit = 48): Promise<BuyerListingC
   for (const row of listings) {
     if (seen.has(row.productId)) continue
     seen.add(row.productId)
-    const card = mapRow(row)
+    const card = mapRow(row, normalizeListingSalesCount(row.conversions))
     if (card) cards.push(card)
     if (cards.length >= limit) break
   }

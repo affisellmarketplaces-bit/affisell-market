@@ -68,6 +68,7 @@ export async function loadAffiliateShopProducts(
     select: {
       id: true,
       sellingPriceCents: true,
+      conversions: true,
       customTitle: true,
       customImages: true,
       showWarranty: true,
@@ -92,21 +93,6 @@ export async function loadAffiliateShopProducts(
     orderBy: [{ position: "asc" }, { id: "asc" }],
     take: limit,
   })
-
-  const soldByProduct = new Map<string, number>()
-  if (includeBusiness && listings.length > 0) {
-    const productIds = [...new Set(listings.map((l) => l.product?.id).filter(Boolean))] as string[]
-    if (productIds.length > 0) {
-      const soldGroups = await prisma.order.groupBy({
-        by: ["productId"],
-        where: { affiliateId: affiliateUserId, productId: { in: productIds } },
-        _count: { _all: true },
-      })
-      for (const g of soldGroups) {
-        soldByProduct.set(g.productId, g._count._all)
-      }
-    }
-  }
 
   const variantProductIds = [
     ...new Set(listings.filter((l) => l.product?.hasVariants).map((l) => l.product!.id)),
@@ -150,11 +136,11 @@ export async function loadAffiliateShopProducts(
         averageRating: p.averageRating,
         reviewCount: p.reviewCount,
         warrantyLabel: listingWarrantyBadgeLabel(l.showWarranty, warrantyMonths),
+        soldCount: l.conversions,
         ...(includeBusiness
           ? {
               marginCents: Math.max(0, l.sellingPriceCents - p.basePriceCents),
               commissionPct: Math.round(Number(p.commissionRate) || 0),
-              soldCount: soldByProduct.get(p.id) ?? 0,
             }
           : {}),
       }

@@ -92,6 +92,7 @@ export function homeProductToCardPropsCustomer(item: HomeProductCard) {
     stock: item.stock,
     averageRating: item.averageRating,
     reviewCount: item.reviewCount,
+    soldCount: item.soldCount,
     href: `/marketplace/${encodeURIComponent(item.listingId)}`,
   }
 }

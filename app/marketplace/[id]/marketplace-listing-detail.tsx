@@ -36,6 +36,7 @@ import {
   isMulticolorSwatch,
 } from "@/lib/product-catalog-constants"
 import { shopperCategoryEyebrow, shopperVisibleTags } from "@/lib/product-shopper-tags"
+import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { addGuestCartItem } from "@/lib/guest-cart"
 import { cn } from "@/lib/utils"
@@ -149,6 +150,8 @@ type Props = {
   ratingBreakdown?: Record<number, number>
   /** PDP views in the last 24h (analytics) — powers a “trending” signal when high enough. */
   viewsLast24h?: number
+  /** Paid units on this listing (AffiliateProduct.conversions). */
+  salesCount?: number
   /** Supplier listing clip shown under the photo gallery (9:16). */
   galleryListingVideoUrl?: string | null
 }
@@ -360,6 +363,7 @@ export function MarketplaceListingDetail({
   writeReviewOrderId = null,
   openWriteReview = false,
   viewsLast24h = 0,
+  salesCount = 0,
   galleryListingVideoUrl = null,
 }: Props) {
   const productT = messages.Product
@@ -974,7 +978,10 @@ export function MarketplaceListingDetail({
               </motion.div>
             </header>
 
-            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-2">
+              {salesCount > 0 ? (
+                <ProductSalesBadge count={salesCount} variant="detail" className="w-full sm:w-auto" />
+              ) : null}
               <StarRatingRow value={reviewSummary.average} count={reviewSummary.count} />
               <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                 {reviewSummary.average.toFixed(1)}

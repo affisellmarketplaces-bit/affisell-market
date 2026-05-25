@@ -327,6 +327,7 @@ export default async function MarketplaceListingPage({
           writeReviewOrderId={writeReviewOrderId}
           openWriteReview={sp.writeReview === "true" && Boolean(writeReviewOrderId)}
           viewsLast24h={viewsLast24h}
+          salesCount={listing.conversions}
           galleryListingVideoUrl={
             typeof p.videoAdUrl === "string" && p.videoAdUrl.trim() ? p.videoAdUrl.trim() : null
           }

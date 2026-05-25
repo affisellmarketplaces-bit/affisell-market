@@ -3,6 +3,7 @@
 import Image from "next/image"
 import Link from "next/link"
 
+import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { addGuestCartItem } from "@/lib/guest-cart"
 
 type Props = {
@@ -23,6 +24,7 @@ type Props = {
   fastShipping?: boolean
   /** Short label e.g. "5% cashback" from affiliate listing */
   buyerRewardBadge?: string | null
+  soldCount?: number
 }
 
 export function MarketplaceListingCard({
@@ -37,6 +39,7 @@ export function MarketplaceListingCard({
   product,
   fastShipping,
   buyerRewardBadge,
+  soldCount = 0,
 }: Props) {
   const listing = {
     id: product.id,
@@ -91,6 +94,7 @@ export function MarketplaceListingCard({
               e.currentTarget.src = "/placeholder.png"
             }}
           />
+          <ProductSalesBadge count={soldCount} variant="overlay" />
           <button
             type="button"
             onClick={(e) => {

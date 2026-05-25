@@ -540,7 +540,13 @@
   },
   "product": {
     "noDescription": "Pas de description.",
-    "soldBy": "Vente via fiche · Fournisseur : {seller}"
+    "soldBy": "Vente via fiche · Fournisseur : {seller}",
+    "sales": {
+      "eyebrowSold": "Ventes",
+      "eyebrowPopular": "Best-seller",
+      "count": "{count, plural, one {# vente} other {# ventes}}",
+      "popular": "Populaire · {compact} ventes"
+    }
   },
   "merchantAccount": {
     "account": "Compte",

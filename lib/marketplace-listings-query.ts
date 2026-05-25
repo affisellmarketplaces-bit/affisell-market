@@ -14,6 +14,7 @@ import {
   resolveProductWarrantyMonths,
 } from "@/lib/product-warranty"
 import { prisma } from "@/lib/prisma"
+import { normalizeListingSalesCount } from "@/lib/listing-sales-count"
 import { publicStoreLabelFromAffiliateRow } from "@/lib/public-seller-display"
 
 export const listingMarketplaceInclude = {
@@ -82,6 +83,7 @@ export function serializeMarketplaceListing(
       warrantyMonths,
       options?.locale ?? "fr"
     ),
+    soldCount: normalizeListingSalesCount(row.conversions),
   }
 }
 
