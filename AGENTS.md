@@ -8,7 +8,8 @@
 - **DNS**: merchants set `CNAME` → `STORE_CNAME_TARGET` (default `cname.affisell.com`), then **Verify** in Store profile (`/dashboard/*/settings/store`).
 - **Routing**: `middleware` calls `/api/store/resolve-host` and rewrites verified hosts to `/shops/:slug` (affiliate) or `/store/supplier/:slug` (supplier). Dashboard/checkout paths redirect to the platform origin.
 - **Vercel**: each verified hostname must be added under Project → Domains (or automated later) for TLS.
-- **Theme**: `Store.storefrontTheme` JSON (`primary`, `accent` hex) — edit in Store profile or supplier **Storefront** page; applied via `StorefrontThemeStyles` on public shops.
+- **Theme**: `Store.storefrontTheme` JSON (`primary`, `accent` hex) — **Brand Studio** (`/dashboard/affiliate/brand-studio`, `/dashboard/supplier/storefront`); applied via `StorefrontThemeStyles` on public shops.
+- **Vercel SSL**: after DNS verify, `POST /api/store/verify-domain` calls Vercel Projects API when `VERCEL_API_TOKEN` + `VERCEL_PROJECT_ID` are set; status in `Store.vercelDomainStatus`, polled via `GET /api/store/domain-status`.
 
 ## Git push
 

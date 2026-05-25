@@ -17,7 +17,12 @@ export default async function AffiliateStoreSettingsPage() {
   return (
     <BentoShell>
       <BentoContainer maxWidth="4xl">
-        <StoreProfileSettings backHref="/dashboard/affiliate" backLabel="Affiliate dashboard" />
+        <StoreProfileSettings
+          backHref="/dashboard/affiliate"
+          backLabel="Affiliate dashboard"
+          brandStudioHref="/dashboard/affiliate/brand-studio"
+          brandStudioLabel="Brand Studio"
+        />
       </BentoContainer>
     </BentoShell>
   )

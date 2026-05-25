@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation"
 import { Suspense } from "react"
 import { useTranslations } from "next-intl"
-import { Handshake, LayoutDashboard, Store, Wallet } from "lucide-react"
+import { Handshake, LayoutDashboard, Palette, Store, Wallet } from "lucide-react"
 
 import { LocaleSwitcher } from "@/components/locale-switcher"
 import { FastLink } from "@/components/navigation/fast-link"
@@ -34,13 +34,15 @@ export function NavAffiliate() {
     pathname === AFFILIATE_CATALOG_PATH || pathname.startsWith(`${AFFILIATE_CATALOG_PATH}/`)
   const onEarnings = pathname.startsWith("/dashboard/affiliate/earnings")
   const onInviteSupplier = pathname.startsWith("/dashboard/affiliate/invite-supplier")
+  const onBrandStudio = pathname.startsWith("/dashboard/affiliate/brand-studio")
   const onDashboard =
     pathname === "/dashboard/affiliate" ||
     (pathname.startsWith("/dashboard/affiliate/") &&
       !onEarnings &&
       !onCatalog &&
       !onAgent &&
-      !onInviteSupplier)
+      !onInviteSupplier &&
+      !onBrandStudio)
 
   return (
     <nav
@@ -88,6 +90,13 @@ export function NavAffiliate() {
           shortLabel={t("earningsShort")}
           icon={Wallet}
           active={onEarnings}
+        />
+        <NavPill
+          href="/dashboard/affiliate/brand-studio"
+          label={t("brandStudio")}
+          shortLabel={t("brandStudioShort")}
+          icon={Palette}
+          active={onBrandStudio}
         />
         <NavPill
           href="/dashboard/affiliate/invite-supplier"

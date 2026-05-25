@@ -37,6 +37,9 @@ function storePayload(row: Awaited<ReturnType<PrismaClient["store"]["findMany"]>
     shipFromAddress: jsonOrNull(shipFromAddress),
     returnAddress: jsonOrNull(returnAddress),
     storefrontTheme: jsonOrNull(storefrontTheme),
+    vercelDomainStatus: rest.vercelDomainStatus ?? null,
+    vercelDomainError: rest.vercelDomainError ?? null,
+    vercelDomainSyncedAt: rest.vercelDomainSyncedAt ?? null,
   } satisfies Prisma.StoreUncheckedCreateInput
 }
 

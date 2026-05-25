@@ -10,10 +10,7 @@ import { Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  DEFAULT_STOREFRONT_THEME,
-  parseStorefrontTheme,
-} from "@/lib/storefront-theme-shared"
+import { StoreCustomDomainCard } from "@/components/storefront/store-custom-domain-card"
 import { parseSupplierLogisticsAddress, type SupplierLogisticsAddress } from "@/lib/supplier-logistics-address"
 
 type StoreRow = {
@@ -69,13 +66,13 @@ function addrToForm(a: SupplierLogisticsAddress): AddrForm {
 type Props = {
   backHref: string
   backLabel: string
+  brandStudioHref?: string
+  brandStudioLabel?: string
 }
 
-export function StoreProfileSettings({ backHref, backLabel }: Props) {
-  const [dnsTarget, setDnsTarget] = useState("cname.affisell.com")
+export function StoreProfileSettings({ backHref, backLabel, brandStudioHref, brandStudioLabel }: Props) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [verifyBusy, setVerifyBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
 
@@ -85,11 +82,6 @@ export function StoreProfileSettings({ backHref, backLabel }: Props) {
   const [logoUrlInput, setLogoUrlInput] = useState("")
   const [previewUrl, setPreviewUrl] = useState("")
   const [aiAvatarUrl, setAiAvatarUrl] = useState("")
-  const [customDomain, setCustomDomain] = useState("")
-  const [domainVerified, setDomainVerified] = useState(false)
-  const [publicStoreUrl, setPublicStoreUrl] = useState<string | null>(null)
-  const [themePrimary, setThemePrimary] = useState(DEFAULT_STOREFRONT_THEME.primary!)
-  const [themeAccent, setThemeAccent] = useState(DEFAULT_STOREFRONT_THEME.accent!)
 
   const [shipFrom, setShipFrom] = useState<AddrForm>(() => emptyAddr())
   const [returnAddr, setReturnAddr] = useState<AddrForm>(() => emptyAddr())
@@ -110,13 +102,9 @@ export function StoreProfileSettings({ backHref, backLabel }: Props) {
       const res = await fetch("/api/store/me", { credentials: "include", cache: "no-store" })
       const json = (await res.json()) as {
         store?: StoreRow
-        dnsTarget?: string
-        publicStoreUrl?: string
         error?: string
       }
       if (!res.ok) throw new Error(json.error ?? "Failed to load profile")
-      if (json.dnsTarget) setDnsTarget(json.dnsTarget)
-      if (json.publicStoreUrl) setPublicStoreUrl(json.publicStoreUrl)
       const st = json.store
       if (st) {
         setName(st.name)
@@ -125,11 +113,6 @@ export function StoreProfileSettings({ backHref, backLabel }: Props) {
         setLogoUrlInput(st.logoUrl ?? "")
         setPreviewUrl(st.logoUrl ?? "")
         setAiAvatarUrl(st.aiAvatarUrl ?? "")
-        setCustomDomain(st.customDomain ?? "")
-        setDomainVerified(st.domainVerified)
-        const theme = parseStorefrontTheme(st.storefrontTheme)
-        setThemePrimary(theme.primary ?? DEFAULT_STOREFRONT_THEME.primary!)
-        setThemeAccent(theme.accent ?? DEFAULT_STOREFRONT_THEME.accent!)
         const sf = parseSupplierLogisticsAddress(st.shipFromAddress)
         const rt = parseSupplierLogisticsAddress(st.returnAddress)
         setShipFrom(sf ? addrToForm(sf) : emptyAddr())
@@ -158,10 +141,6 @@ export function StoreProfileSettings({ backHref, backLabel }: Props) {
       fd.set("description", description)
       fd.set("bannerUrl", bannerUrl.trim())
       fd.set("logoUrl", logoUrlInput.trim())
-      fd.set("customDomain", customDomain.trim())
-      fd.set("themePrimary", themePrimary)
-      fd.set("themeAccent", themeAccent)
-
       const file = fileRef.current?.files?.[0]
       if (file) fd.append("logo", file)
 
@@ -176,8 +155,6 @@ export function StoreProfileSettings({ backHref, backLabel }: Props) {
         setPreviewUrl(json.store.logoUrl ?? "")
         setLogoUrlInput(json.store.logoUrl ?? "")
         setAiAvatarUrl(json.store.aiAvatarUrl ?? "")
-        setCustomDomain(json.store.customDomain ?? "")
-        setDomainVerified(json.store.domainVerified)
       }
       if (fileRef.current) fileRef.current.value = ""
       setMessage("Store profile saved.")
@@ -185,30 +162,6 @@ export function StoreProfileSettings({ backHref, backLabel }: Props) {
       setError(err instanceof Error ? err.message : "Error")
     } finally {
       setSaving(false)
-    }
-  }
-
-  async function verifyDomain() {
-    setVerifyBusy(true)
-    setError(null)
-    setMessage(null)
-    try {
-      const res = await fetch("/api/store/verify-domain", {
-        method: "POST",
-        credentials: "include",
-      })
-      const json = (await res.json()) as { verified?: boolean; message?: string; error?: string }
-      if (json.error) throw new Error(json.error)
-      if (json.verified) {
-        setDomainVerified(true)
-        setMessage(json.message ?? "Domain verified")
-      } else {
-        setMessage(json.message ?? "Not verified yet")
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Verification failed")
-    } finally {
-      setVerifyBusy(false)
     }
   }
 
@@ -320,6 +273,14 @@ export function StoreProfileSettings({ backHref, backLabel }: Props) {
       </Link>
 
       <h1 className="mt-6 text-3xl font-bold text-gray-900">Store Profile</h1>
+      {brandStudioHref ? (
+        <p className="mt-3 text-sm text-gray-600">
+          Banner, brand colors, and custom domain:{" "}
+          <Link href={brandStudioHref} className="font-medium text-violet-700 underline-offset-2 hover:underline">
+            {brandStudioLabel ?? "Brand Studio"}
+          </Link>
+        </p>
+      ) : null}
 
       <form onSubmit={onSubmit} className="mt-8 space-y-10">
         {/* Store name */}
@@ -707,93 +668,9 @@ export function StoreProfileSettings({ backHref, backLabel }: Props) {
           </div>
         </section>
 
-        {/* Custom domain */}
-        <section>
-          <label className="block text-sm font-medium text-gray-800">Custom domain</label>
-          <input
-            value={customDomain}
-            onChange={(e) => {
-              setCustomDomain(e.target.value)
-              setDomainVerified(false)
-            }}
-            placeholder="yourstore.com"
-            className="mt-2 w-full max-w-xl rounded-lg border border-gray-300 px-3 py-2"
-          />
-          <p className="mt-1 text-sm text-gray-500">
-            Enter your own domain. We&apos;ll provide DNS instructions.
-          </p>
-
-          {customDomain.trim() && !domainVerified ? (
-            <div className="mt-3 rounded-lg bg-yellow-50 p-4 text-gray-900">
-              <p className="text-sm font-medium">Add this CNAME record to your DNS:</p>
-              <code className="mt-2 block break-all rounded bg-white px-2 py-1 text-sm">
-                CNAME {customDomain.trim()} → {dnsTarget}
-              </code>
-              <button
-                type="button"
-                disabled={verifyBusy || saving}
-                onClick={() => void verifyDomain()}
-                className="mt-3 rounded-lg border border-amber-300 bg-white px-4 py-2 text-sm font-medium hover:bg-amber-100 disabled:opacity-50"
-              >
-                {verifyBusy ? "Checking…" : "Verify Domain"}
-              </button>
-            </div>
-          ) : null}
-
-          {customDomain.trim() && domainVerified ? (
-            <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50/80 p-4 dark:border-emerald-900 dark:bg-emerald-950/30">
-              <p className="text-sm font-medium text-emerald-900 dark:text-emerald-100">Custom domain is verified.</p>
-              {publicStoreUrl ? (
-                <a
-                  href={publicStoreUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-2 inline-block break-all text-sm font-semibold text-emerald-800 underline underline-offset-2 hover:text-emerald-950 dark:text-emerald-200"
-                >
-                  {publicStoreUrl}
-                </a>
-              ) : null}
-              <p className="mt-2 text-xs text-emerald-800/90 dark:text-emerald-200/80">
-                Add this hostname in Vercel → Project → Domains so SSL is issued, then visitors reach your storefront on your brand.
-              </p>
-            </div>
-          ) : null}
-        </section>
-
-        <section>
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-zinc-100">Brand colors</h3>
-          <p className="mt-1 text-sm text-gray-500">Applied on your public shop header and accents.</p>
-          <div className="mt-4 grid max-w-xl gap-4 sm:grid-cols-2">
-            <div>
-              <label htmlFor="theme-primary" className="text-xs font-medium text-gray-600">
-                Primary
-              </label>
-              <input
-                id="theme-primary"
-                type="color"
-                value={themePrimary}
-                onChange={(e) => setThemePrimary(e.target.value)}
-                className="mt-1 h-11 w-full cursor-pointer rounded-lg border border-gray-300"
-              />
-            </div>
-            <div>
-              <label htmlFor="theme-accent" className="text-xs font-medium text-gray-600">
-                Accent
-              </label>
-              <input
-                id="theme-accent"
-                type="color"
-                value={themeAccent}
-                onChange={(e) => setThemeAccent(e.target.value)}
-                className="mt-1 h-11 w-full cursor-pointer rounded-lg border border-gray-300"
-              />
-            </div>
-          </div>
-        </section>
-
         <button
           type="submit"
-          disabled={saving || verifyBusy}
+          disabled={saving}
           className="rounded-xl bg-black px-6 py-3 font-medium text-white hover:bg-gray-800 disabled:opacity-60"
         >
           {saving ? "Saving…" : "Save Store Profile"}
@@ -802,6 +679,10 @@ export function StoreProfileSettings({ backHref, backLabel }: Props) {
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
         {message ? <p className="text-sm text-green-700">{message}</p> : null}
       </form>
+
+      <div className="mt-10">
+        <StoreCustomDomainCard className="max-w-2xl" />
+      </div>
     </div>
   )
 }

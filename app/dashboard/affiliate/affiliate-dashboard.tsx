@@ -23,6 +23,7 @@ import {
   GripVertical,
   Handshake,
   LayoutGrid,
+  Palette,
   Pencil,
   Search,
   Sparkles,
@@ -641,6 +642,11 @@ export function AffiliateDashboard({ storeId }: Props) {
                         label: "Earnings cockpit",
                         href: "/dashboard/affiliate/earnings",
                         Icon: Wallet,
+                      },
+                      {
+                        label: "Brand Studio",
+                        href: "/dashboard/affiliate/brand-studio",
+                        Icon: Palette,
                       },
                       {
                         label: "Store profile",

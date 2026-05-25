@@ -162,6 +162,10 @@ model Store {
   description    String?
   customDomain   String?  @unique
   domainVerified Boolean  @default(false)
+  /** Vercel project domain registration: registered | pending | active | failed | skipped */
+  vercelDomainStatus   String?
+  vercelDomainError    String?
+  vercelDomainSyncedAt DateTime?
   /**
    * Public storefront branding: `{ "primary"?: "#hex", "accent"?: "#hex" }`.
    */

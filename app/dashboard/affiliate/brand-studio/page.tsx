@@ -7,10 +7,14 @@ import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
 
-export default async function SupplierStorefrontPage() {
+export default async function AffiliateBrandStudioPage() {
   const session = await auth()
-  if (!session?.user?.id) redirect("/login?callbackUrl=/dashboard/supplier/storefront")
-  if (session.user.role !== "SUPPLIER") redirect("/dashboard/supplier")
+  if (!session?.user?.id) {
+    redirect("/login/affiliate?callbackUrl=/dashboard/affiliate/brand-studio")
+  }
+  if (session.user.role !== "AFFILIATE") {
+    redirect("/dashboard/affiliate")
+  }
 
   let store = await prisma.store.findUnique({
     where: { userId: session.user.id },
@@ -30,14 +34,15 @@ export default async function SupplierStorefrontPage() {
       store = { slug: created.slug }
     }
   }
-  if (!store?.slug) redirect("/dashboard/supplier")
-  const previewHref = `/store/supplier/${encodeURIComponent(store.slug)}`
+  if (!store?.slug) redirect("/dashboard/affiliate")
+
+  const previewHref = `/shops/${encodeURIComponent(store.slug)}?preview=affiliate`
 
   return (
     <MerchantBrandStudio
-      role="SUPPLIER"
+      role="AFFILIATE"
       previewHref={previewHref}
-      profileHref="/dashboard/supplier/settings/store"
+      profileHref="/dashboard/affiliate/settings/store"
       profileLabel="Store profile"
     />
   )

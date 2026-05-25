@@ -17,7 +17,12 @@ export default async function SupplierStoreSettingsPage() {
   return (
     <BentoShell>
       <BentoContainer maxWidth="5xl">
-        <StoreProfileSettings backHref="/dashboard/supplier" backLabel="Supplier dashboard" />
+        <StoreProfileSettings
+          backHref="/dashboard/supplier"
+          backLabel="Supplier dashboard"
+          brandStudioHref="/dashboard/supplier/storefront"
+          brandStudioLabel="Storefront studio"
+        />
       </BentoContainer>
     </BentoShell>
   )

@@ -1,5 +1,7 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { provisionStoreCustomDomainOnVercel } from "@/lib/store-domain-provisioning"
+import { isVercelDomainAutoProvisionEnabled } from "@/lib/vercel-project-domains"
 import { customDomainPointsToAffisell } from "@/lib/verify-store-domain"
 
 export const runtime = "nodejs"
@@ -39,5 +41,43 @@ export async function POST() {
     data: { domainVerified: true },
   })
 
-  return Response.json({ verified: true, message: "Domain verified" })
+  let vercel: {
+    status: string
+    message?: string
+    autoProvisionEnabled: boolean
+  } | null = null
+
+  if (isVercelDomainAutoProvisionEnabled()) {
+    const result = await provisionStoreCustomDomainOnVercel(store.id, store.customDomain)
+    vercel = {
+      status: result.status,
+      message: result.message,
+      autoProvisionEnabled: true,
+    }
+  } else {
+    await prisma.store.update({
+      where: { id: store.id },
+      data: {
+        vercelDomainStatus: "skipped",
+        vercelDomainError: null,
+        vercelDomainSyncedAt: new Date(),
+      },
+    })
+    vercel = {
+      status: "skipped",
+      message: "Add this hostname manually in Vercel → Project → Domains for SSL.",
+      autoProvisionEnabled: false,
+    }
+  }
+
+  return Response.json({
+    verified: true,
+    message:
+      vercel?.status === "active"
+        ? "Domain verified. SSL is active on Vercel."
+        : vercel?.status === "pending"
+          ? "Domain verified. SSL on Vercel is pending (DNS can take up to 48h)."
+          : "Domain verified. Configure Vercel Domains if HTTPS is not live yet.",
+    vercel,
+  })
 }

@@ -25,7 +25,9 @@
       "earnings": "Earnings",
       "earningsShort": "Pay",
       "inviteSupplier": "Invite supplier",
-      "inviteSupplierShort": "Invite"
+      "inviteSupplierShort": "Invite",
+      "brandStudio": "Brand Studio",
+      "brandStudioShort": "Brand"
     },
     "supplier": {
       "badge": "Supplier",
