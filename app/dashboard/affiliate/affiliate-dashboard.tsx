@@ -21,6 +21,7 @@ import {
   Eye,
   Filter,
   GripVertical,
+  Handshake,
   LayoutGrid,
   Pencil,
   Search,
@@ -626,6 +627,11 @@ export function AffiliateDashboard({ storeId }: Props) {
                 <nav className="flex flex-wrap gap-2 sm:gap-2.5" aria-label="Quick links">
                   {(
                     [
+                      {
+                        label: "Inviter un fournisseur",
+                        href: "/dashboard/affiliate/invite-supplier",
+                        Icon: Handshake,
+                      },
                       {
                         label: "Browse marketplace",
                         href: AFFILIATE_CATALOG_PATH,

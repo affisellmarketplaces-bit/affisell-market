@@ -4,6 +4,7 @@ import { BentoContainer } from "@/components/affisell/bento-ui"
 import { SupplierGrowthSection } from "@/components/supplier/mission-control/supplier-growth-section"
 import { SupplierMetricsBar } from "@/components/supplier/mission-control/supplier-metrics-bar"
 import { SupplierWeeklyGoalCard } from "@/components/supplier/mission-control/supplier-weekly-goal-card"
+import { SupplierInviteContextBanner } from "@/components/supplier/supplier-invite-context-banner"
 import { SupplierMissionControlHeader } from "@/components/supplier/mission-control/supplier-mission-control-header"
 import { SupplierMissionControlLive } from "@/components/supplier/mission-control/supplier-mission-control-live"
 import { SupplierOnboardingChecklist } from "@/components/supplier/mission-control/supplier-onboarding-checklist"
@@ -30,6 +31,7 @@ export default async function DashboardSupplierPage() {
       <BentoContainer maxWidth="6xl" className="space-y-8 py-8 sm:py-10">
         <SupplierMissionControlLive>
           <SupplierMissionControlHeader storeName={data.storeName} />
+          <SupplierInviteContextBanner />
 
           {data.weeklyGoal && data.metrics7d.hasPriorPeriodData ? (
             <SupplierWeeklyGoalCard goal={data.weeklyGoal} />

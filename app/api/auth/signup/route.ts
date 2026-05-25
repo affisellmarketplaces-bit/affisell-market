@@ -3,19 +3,21 @@ import bcrypt from "bcryptjs"
 
 import { prisma } from "@/lib/prisma"
 import { ensureMerchantStore } from "@/lib/ensure-store"
+import { claimSupplierInvitationForUser } from "@/lib/supplier-invitation"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 export async function POST(req: Request) {
   try {
-    const { email, password, role, name: nameRaw, tiktok, siret } = (await req.json()) as {
+    const { email, password, role, name: nameRaw, tiktok, siret, inviteToken } = (await req.json()) as {
       email?: string
       password?: string
       role?: string
       name?: string
       tiktok?: string
       siret?: string
+      inviteToken?: string
     }
     const emailNormalized = typeof email === "string" ? email.toLowerCase().trim() : ""
     if (!emailNormalized || !password) {
@@ -68,6 +70,12 @@ export async function POST(req: Request) {
       await prisma.store.update({
         where: { id: store.id },
         data: { description: `SIRET: ${siretDigits}` },
+      })
+    }
+
+    if (resolvedRole === "SUPPLIER" && typeof inviteToken === "string" && inviteToken.trim()) {
+      await claimSupplierInvitationForUser(inviteToken.trim(), user.id).catch((e) => {
+        console.error("[signup] supplier invite claim failed", e)
       })
     }
 

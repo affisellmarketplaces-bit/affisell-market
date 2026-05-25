@@ -23,7 +23,9 @@
       "dashboard": "Dashboard",
       "dashboardShort": "Hub",
       "earnings": "Earnings",
-      "earningsShort": "Pay"
+      "earningsShort": "Pay",
+      "inviteSupplier": "Invite supplier",
+      "inviteSupplierShort": "Invite"
     },
     "supplier": {
       "badge": "Supplier",

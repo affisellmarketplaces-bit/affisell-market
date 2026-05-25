@@ -23,7 +23,9 @@
       "dashboard": "Tableau de bord",
       "dashboardShort": "Hub",
       "earnings": "Revenus",
-      "earningsShort": "Pay"
+      "earningsShort": "Pay",
+      "inviteSupplier": "Inviter fournisseur",
+      "inviteSupplierShort": "Inviter"
     },
     "supplier": {
       "badge": "Fournisseur",

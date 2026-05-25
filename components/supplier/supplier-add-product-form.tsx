@@ -269,12 +269,15 @@ type SupplierAddProductFormProps = {
   onBackToMethods?: () => void
   /** URL import + AI shortcut panels on step 1 (chosen from the hub or `?assist=1`). */
   assistShortcuts?: boolean
+  /** Pre-fill commission % from affiliate invite pitch. */
+  inviteCommissionHint?: number | null
 }
 
 export function SupplierAddProductForm({
   ownerUserId,
   onBackToMethods,
   assistShortcuts = false,
+  inviteCommissionHint,
 }: SupplierAddProductFormProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -330,6 +333,11 @@ export function SupplierAddProductForm({
   const [simpleColorRows, setSimpleColorRows] = useState<SupplierSimpleColorRow[]>([])
   const [listingKind, setListingKind] = useState<ListingKind>("PHYSICAL")
   const [commission, setCommission] = useState("15")
+
+  useEffect(() => {
+    if (inviteCommissionHint == null || !Number.isFinite(inviteCommissionHint)) return
+    setCommission(String(Math.min(50, Math.max(0, inviteCommissionHint))))
+  }, [inviteCommissionHint])
 
   const [browse, setBrowse] = useState<BrowsePayload | null>(null)
   const [recentCategories, setRecentCategories] = useState<RecentCategoryEntry[]>([])

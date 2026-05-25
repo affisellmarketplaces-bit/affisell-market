@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { findSupplierProductGuardForPut } from "@/lib/supplier-product-is-draft-fallback"
+import { onSupplierProductPublishedFromInvite } from "@/lib/supplier-invitation"
 import { createNewDropCommunityPost } from "@/lib/community-new-drop"
 import { scheduleProductAutoCategorization } from "@/lib/product-auto-categorize"
 import { parseProductAttributesBody } from "@/lib/supplier-product-attributes"
@@ -399,6 +400,17 @@ export async function PUT(
       } catch {
         /* non-fatal */
       }
+    }
+    if (fresh) {
+      void onSupplierProductPublishedFromInvite({
+        supplierId: session.user.id,
+        productId: fresh.id,
+        productName: fresh.name,
+        commissionRate: fresh.commissionRate,
+        variants: fresh.variants,
+        basePriceCents: fresh.basePriceCents,
+        images: fresh.images,
+      }).catch((e) => console.error("[supplier-invite] publish hook", e))
     }
   }
 

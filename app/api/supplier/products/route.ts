@@ -22,6 +22,7 @@ import {
   validateVisibleCategoryAttributes,
 } from "@/lib/category-attribute-rules"
 import { requireMerchantUserId } from "@/lib/merchant-tenant-scope"
+import { onSupplierProductPublishedFromInvite } from "@/lib/supplier-invitation"
 import { parseListingKind } from "@/lib/supplier-commission"
 import { productCommissionRateForSave } from "@/lib/supplier-product-commission-save"
 import {
@@ -311,6 +312,16 @@ export async function POST(req: Request) {
     if (!categoryId) {
       scheduleProductAutoCategorization(product.id)
     }
+
+    void onSupplierProductPublishedFromInvite({
+      supplierId,
+      productId: product.id,
+      productName: product.name,
+      commissionRate: product.commissionRate,
+      variants: product.variants,
+      basePriceCents: product.basePriceCents,
+      images: product.images,
+    }).catch((e) => console.error("[supplier-invite] publish hook", e))
   }
 
   return Response.json(product, { status: 201 })

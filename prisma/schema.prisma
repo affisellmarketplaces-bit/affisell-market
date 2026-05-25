@@ -85,6 +85,11 @@ model User {
   buyerReviews      Review[]      @relation("BuyerReviews")
   reviewVotes       ReviewVote[]
   reviewReplies     ReviewReply[] @relation("CreatorReviewReplies")
+
+  /** Invitations sent to onboard suppliers (affiliate → supplier collaboration). */
+  affiliateSupplierInvitations AffiliateSupplierInvitation[] @relation("AffiliateSupplierInvites")
+  /** Set when this supplier registered via an affiliate invite link. */
+  supplierInvitationFrom       AffiliateSupplierInvitation?  @relation("SupplierFromInvite")
 }
 
 /**
@@ -1054,6 +1059,37 @@ model Notification {
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
+}
+
+/**
+ * Affiliate-shared link inviting a supplier to join Affisell and list SKUs.
+ * Public token in URL (`/invite/supplier/[token]`).
+ */
+model AffiliateSupplierInvitation {
+  id                   String    @id @default(cuid())
+  /** Public slug, e.g. INV-XXXXXXXXXXXX */
+  token                String    @unique
+  affiliateId          String
+  affiliate            User      @relation("AffiliateSupplierInvites", fields: [affiliateId], references: [id], onDelete: Cascade)
+  headline             String    @default("")
+  personalMessage      String    @default("") @db.Text
+  /** Optional commission pitch shown on the invite (catalog default may differ). */
+  offeredCommissionPct Float?
+  categoryHint         String?
+  /** OPEN → REGISTERED (signup) → CATALOG_LIVE (first published SKU). */
+  status               String    @default("OPEN")
+  viewCount            Int       @default(0)
+  supplierId           String?   @unique
+  supplier             User?     @relation("SupplierFromInvite", fields: [supplierId], references: [id], onDelete: SetNull)
+  registeredAt         DateTime?
+  firstProductId       String?
+  catalogLiveAt        DateTime?
+  expiresAt            DateTime
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@index([affiliateId, createdAt])
+  @@index([status])
 }
 
 model Account {
