@@ -138,19 +138,8 @@ type Props = {
   openWriteReview?: boolean
   /** Shown near price when the affiliate listing offers buyer cashback / bonus */
   buyerRewardBadge?: string | null
-  ratingBreakdown: Record<number, number>
-  reviews: Array<{
-    id: string
-    rating: number
-    author: string
-    country: string | null
-    date: string
-    text: string
-    images: string[]
-    variant: string | null
-    helpful_count: number
-    verified: boolean
-  }>
+  /** Loaded client-side via ReviewsEngine → /api/reviews/product/[id] */
+  ratingBreakdown?: Record<number, number>
   /** PDP views in the last 24h (analytics) — powers a “trending” signal when high enough. */
   viewsLast24h?: number
   /** Supplier listing clip shown under the photo gallery (9:16). */
@@ -359,7 +348,6 @@ export function MarketplaceListingDetail({
   reviewSummary,
   buyerRewardBadge = null,
   ratingBreakdown,
-  reviews: _legacyReviews,
   writeReviewOrderId = null,
   openWriteReview = false,
   viewsLast24h = 0,
@@ -1543,9 +1531,12 @@ export function MarketplaceListingDetail({
                     <p className="mb-2 font-medium text-zinc-800 dark:text-zinc-200">
                       {reviewSummary.average.toFixed(1)} ({formatStoreCount(reviewSummary.count)} reviews)
                     </p>
-                    <p className="text-zinc-600 dark:text-zinc-400">
-                      5★: {ratingBreakdown[5] ?? 0} · 4★: {ratingBreakdown[4] ?? 0} · 3★: {ratingBreakdown[3] ?? 0}
-                    </p>
+                    {ratingBreakdown ? (
+                      <p className="text-zinc-600 dark:text-zinc-400">
+                        5★: {ratingBreakdown[5] ?? 0} · 4★: {ratingBreakdown[4] ?? 0} · 3★:{" "}
+                        {ratingBreakdown[3] ?? 0}
+                      </p>
+                    ) : null}
                   </div>
                 </details>
               </div>
@@ -1715,7 +1706,7 @@ export function MarketplaceListingDetail({
               averageRating: reviewSummary.average,
               reviewCount: reviewSummary.count,
               ugcCount: reviewSummary.ugcCount ?? 0,
-              distribution: ratingBreakdown,
+              distribution: ratingBreakdown ?? { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
             }}
             canWriteReview={Boolean(writeReviewOrderId)}
             writeReviewOrderId={writeReviewOrderId}

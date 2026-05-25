@@ -1,12 +1,11 @@
 import type { Metadata } from "next"
-import { notFound } from "next/navigation"
 
 import MarketplaceListingPage, {
   buildListingMetadataForId,
 } from "@/app/marketplace/[id]/page"
-import { prisma } from "@/lib/prisma"
 
-export const dynamic = "force-dynamic"
+/** Shop PDP — ISR 60s (same listing shell as marketplace, scoped by store slug). */
+export const revalidate = 60
 
 export async function generateMetadata({
   params,
@@ -25,16 +24,9 @@ export default async function ShopsProductPage({
   searchParams: Promise<{ writeReview?: string; orderId?: string }>
 }) {
   const { slug, id } = await params
-  const match = await prisma.affiliateProduct.findFirst({
-    where: {
-      id,
-      isListed: true,
-      product: { active: true },
-      affiliate: { role: "AFFILIATE", store: { slug } },
-    },
-    select: { id: true },
+  return MarketplaceListingPage({
+    params: Promise.resolve({ id }),
+    searchParams,
+    storeSlug: slug,
   })
-  if (!match) notFound()
-
-  return MarketplaceListingPage({ params: Promise.resolve({ id }), searchParams })
 }

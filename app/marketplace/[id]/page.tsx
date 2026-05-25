@@ -9,11 +9,9 @@ import {
   listingDisplayTitle,
   listingGalleryUrls,
 } from "@/lib/affiliate-listing-display"
-import { affiliateRoleMarketplaceWhere } from "@/lib/marketplace-affiliate-listing-filter"
+import { loadMarketplaceListingPageData } from "@/lib/marketplace-listing-page-loader"
 import { shippingCountryLabel } from "@/lib/product-shipping-display"
 import { mergeColorImagesForProduct, parseProductColorImagesFromDb } from "@/lib/product-color-images"
-import { prisma } from "@/lib/prisma"
-import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { publicPartnerSellerLabel } from "@/lib/public-seller-display"
 import {
   buildCustomColumnProductSpecs,
@@ -21,12 +19,12 @@ import {
 } from "@/lib/product-custom-columns"
 import { resolveMarketplaceOptionNames, variantsFromDb } from "@/lib/product-variants"
 import { primaryProductImage } from "@/lib/product-images"
-import { getRatingDistribution } from "@/lib/reviews/stats"
 import { buildAggregateRatingJsonLd } from "@/lib/reviews/json-ld"
 import {
   buildProductListingMetadata,
   buildProductOfferJsonLd,
 } from "@/lib/product-listing-seo"
+import { prisma } from "@/lib/prisma"
 
 import { MarketplaceListingDetail } from "./marketplace-listing-detail"
 
@@ -89,32 +87,24 @@ export async function generateMetadata({
 export default async function MarketplaceListingPage({
   params,
   searchParams,
+  storeSlug,
 }: {
   params: Promise<{ id: string }>
   searchParams: Promise<{ writeReview?: string; orderId?: string }>
+  /** When set (shop PDP), listing must belong to this store — single DB round-trip. */
+  storeSlug?: string
 }) {
-  const { id } = await params
-  const sp = await searchParams
-  const session = await auth()
-  const listing = await prisma.affiliateProduct.findFirst({
-    where: {
-      id,
-      isListed: true,
-      product: { active: true },
-      affiliate: { role: "AFFILIATE" },
-    },
-    include: {
-      product: {
-        include: {
-          attributes: { orderBy: { label: "asc" } },
-          productVariants: { select: { customData: true } },
-        },
-      },
-      affiliate: { include: { store: true } },
-    },
-  })
+  const [{ id }, sp, session] = await Promise.all([params, searchParams, auth()])
 
-  if (!listing?.product) notFound()
+  const loaded = await loadMarketplaceListingPageData({
+    listingId: id,
+    storeSlug,
+    buyerUserId: session?.user?.id ?? null,
+    orderId: sp.orderId ?? null,
+  })
+  if (!loaded) notFound()
+
+  const { listing, oftenRaw, fallbackRaw, viewsLast24h, writeReviewOrderId } = loaded
 
   const st = listing.affiliate.store
   const storefront = st
@@ -162,7 +152,6 @@ export default async function MarketplaceListingPage({
   const p = listing.product
   const sellingEur = listing.sellingPriceCents / 100
   const compareAtEur = p.compareAt != null ? Number(p.compareAt) : null
-  /** Shoppers only see MSRP-style compare-at — never supplier wholesale (`basePriceCents`). */
   const retailPriceEur =
     compareAtEur != null && Number.isFinite(compareAtEur) && compareAtEur > sellingEur ? compareAtEur : undefined
 
@@ -181,65 +170,6 @@ export default async function MarketplaceListingPage({
     freeShippingThresholdEUR: freeThresh,
   }
 
-  const ratingBreakdown = await getRatingDistribution(listing.product.id)
-
-  let writeReviewOrderId: string | null = null
-  if (session?.user?.id && sp.orderId) {
-    const order = await prisma.order.findFirst({
-      where: {
-        id: sp.orderId,
-        buyerUserId: session.user.id,
-        productId: listing.product.id,
-        deliveredAt: { not: null },
-        buyerReview: null,
-      },
-      select: { id: true },
-    })
-    writeReviewOrderId = order?.id ?? null
-  }
-
-  const relatedBaseSelect = {
-    id: true,
-    sellingPriceCents: true,
-    customTitle: true,
-    customImages: true,
-    product: {
-      select: {
-        name: true,
-        images: true,
-      },
-    },
-  } as const
-
-  const oftenRaw = await prisma.affiliateProduct.findMany({
-    where: {
-      ...affiliateRoleMarketplaceWhere,
-      isListed: true,
-      id: { not: listing.id },
-      product: {
-        active: true,
-        ...(categories.length > 0 ? { categories: { hasSome: categories.slice(0, 3) } } : {}),
-      },
-    },
-    select: relatedBaseSelect,
-    take: 3,
-  })
-
-  const fallbackRaw =
-    oftenRaw.length >= 3
-      ? []
-      : await prisma.affiliateProduct.findMany({
-          where: {
-            ...affiliateRoleMarketplaceWhere,
-            isListed: true,
-            id: { notIn: [listing.id, ...oftenRaw.map((r) => r.id)] },
-            product: { active: true },
-          },
-          orderBy: { createdAt: "desc" },
-          select: relatedBaseSelect,
-          take: 3,
-        })
-
   const mapRelated = (
     rows: Array<{
       id: string
@@ -251,7 +181,9 @@ export default async function MarketplaceListingPage({
   ) =>
     rows.map((r) => ({
       id: r.id,
-      href: `/marketplace/${r.id}`,
+      href: storeSlug
+        ? `/shops/${encodeURIComponent(storeSlug)}/product/${r.id}`
+        : `/marketplace/${r.id}`,
       title: listingDisplayTitle(r.customTitle, r.product.name),
       image: listingGalleryUrls(r.customImages, r.product.images ?? [])[0] ?? "/placeholder.png",
       priceEur: r.sellingPriceCents / 100,
@@ -294,21 +226,6 @@ export default async function MarketplaceListingPage({
       .filter((row) => row.label.length > 0 && row.value.length > 0),
   ]
 
-  let viewsLast24h = 0
-  try {
-    const since = new Date()
-    since.setUTCMinutes(since.getUTCMinutes() - 24 * 60)
-    viewsLast24h = await prisma.affisellTrackEvent.count({
-      where: {
-        eventType: "view",
-        productId: listing.product.id,
-        createdAt: { gte: since },
-      },
-    })
-  } catch {
-    viewsLast24h = 0
-  }
-
   const displayName = listingDisplayTitle(listing.customTitle, listing.product.name)
   const seoImage =
     primaryProductImage(listing.customImages) ||
@@ -341,54 +258,52 @@ export default async function MarketplaceListingPage({
         aria-hidden
       />
       <div className="relative mx-auto min-w-0 max-w-6xl px-4 py-8 pb-28 md:px-8 md:py-10 lg:py-12 lg:pb-12">
-      <MarketplaceListingDetail
-        audience="customer"
-        listingId={listing.id}
-        productId={listing.product.id}
-        promotedColor={listing.promotedColor}
-        promotedSize={listing.promotedSize}
-        name={listingDisplayTitle(listing.customTitle, listing.product.name)}
-        description={listingDisplayDescription(
-          listing.customDescription,
-          listing.product.description
-        )}
-        descriptionBullets={descriptionBullets}
-        descriptionIllustrationImages={descriptionIllustrationImages}
-        descriptionIllustrationVideos={descriptionIllustrationVideos}
-        productSpecs={productSpecs}
-        sellerLabel={sellerLabel}
-        storefront={storefront}
-        gallery={gallery}
-        categories={categories}
-        colorNames={colorNames}
-        tags={tags}
-        variants={variants}
-        colorImages={colorImages}
-        shipping={shipping}
-        listingPriceCents={listing.sellingPriceCents}
-        basePriceCents={p.basePriceCents}
-        stock={listing.product.stock}
-        retailPriceEur={retailPriceEur}
-        has3D={has3D}
-        arModel={arModel}
-        oftenBoughtTogether={oftenBoughtTogether}
-        alsoViewed={alsoViewed}
-        reviewSummary={{
-          count: listing.product.reviewCount,
-          average: listing.product.averageRating,
-          sentiment: listing.product.reviewSentiment,
-          ugcCount: listing.product.ugcCount,
-        }}
-        buyerRewardBadge={buyerRewardBadge}
-        ratingBreakdown={ratingBreakdown}
-        reviews={[]}
-        writeReviewOrderId={writeReviewOrderId}
-        openWriteReview={sp.writeReview === "true" && Boolean(writeReviewOrderId)}
-        viewsLast24h={viewsLast24h}
-        galleryListingVideoUrl={
-          typeof p.videoAdUrl === "string" && p.videoAdUrl.trim() ? p.videoAdUrl.trim() : null
-        }
-      />
+        <MarketplaceListingDetail
+          audience="customer"
+          listingId={listing.id}
+          productId={listing.product.id}
+          promotedColor={listing.promotedColor}
+          promotedSize={listing.promotedSize}
+          name={displayName}
+          description={listingDisplayDescription(
+            listing.customDescription,
+            listing.product.description
+          )}
+          descriptionBullets={descriptionBullets}
+          descriptionIllustrationImages={descriptionIllustrationImages}
+          descriptionIllustrationVideos={descriptionIllustrationVideos}
+          productSpecs={productSpecs}
+          sellerLabel={sellerLabel}
+          storefront={storefront}
+          gallery={gallery}
+          categories={categories}
+          colorNames={colorNames}
+          tags={tags}
+          variants={variants}
+          colorImages={colorImages}
+          shipping={shipping}
+          listingPriceCents={listing.sellingPriceCents}
+          basePriceCents={p.basePriceCents}
+          stock={listing.product.stock}
+          retailPriceEur={retailPriceEur}
+          has3D={has3D}
+          arModel={arModel}
+          oftenBoughtTogether={oftenBoughtTogether}
+          alsoViewed={alsoViewed}
+          reviewSummary={{
+            count: listing.product.reviewCount,
+            average: listing.product.averageRating,
+            sentiment: listing.product.reviewSentiment,
+            ugcCount: listing.product.ugcCount,
+          }}
+          buyerRewardBadge={buyerRewardBadge}
+          writeReviewOrderId={writeReviewOrderId}
+          openWriteReview={sp.writeReview === "true" && Boolean(writeReviewOrderId)}
+          viewsLast24h={viewsLast24h}
+          galleryListingVideoUrl={
+            typeof p.videoAdUrl === "string" && p.videoAdUrl.trim() ? p.videoAdUrl.trim() : null
+          }
+        />
       </div>
     </main>
   )
