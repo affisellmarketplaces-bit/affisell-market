@@ -35,6 +35,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "cdn.shopify.com", pathname: "/**" },
       { protocol: "https", hostname: "**.myshopify.com", pathname: "/**" },
       { protocol: "https", hostname: "**.supabase.co", pathname: "/**" },
+      { protocol: "https", hostname: "api.qrserver.com", pathname: "/**" },
     ],
   },
 }
