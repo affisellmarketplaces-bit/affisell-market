@@ -18,9 +18,12 @@
     },
     "affiliate": {
       "agent": "Agent sourcing",
+      "agentShort": "Agent",
       "catalog": "Catalogue",
       "dashboard": "Tableau de bord",
-      "earnings": "Revenus"
+      "dashboardShort": "Hub",
+      "earnings": "Revenus",
+      "earningsShort": "Pay"
     },
     "supplier": {
       "badge": "Fournisseur",

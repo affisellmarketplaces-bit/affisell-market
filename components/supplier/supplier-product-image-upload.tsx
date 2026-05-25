@@ -1,14 +1,14 @@
 "use client"
 
-import { Loader2, Upload, X } from "lucide-react"
-import type { ChangeEvent, CSSProperties } from "react"
-import { useEffect, useState } from "react"
+import { ImagePlus, Loader2, Trash2, Upload } from "lucide-react"
+import type { ChangeEvent, CSSProperties, DragEvent } from "react"
+import { useCallback, useEffect, useId, useRef, useState } from "react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { measureImageFile, processProductImageToDataUrl } from "@/lib/product-image-upload"
+import { processProductGalleryImageFiles } from "@/lib/product-image-upload"
 import { cn } from "@/lib/utils"
 
 const SLOT_COUNT = 9 /** cover + 8 thumbnails */
@@ -23,6 +23,10 @@ function slotsToOrderedUrls(slots: (string | null)[]): string[] {
     if (u) acc.push(u)
     return acc
   }, [])
+}
+
+function revokeIfBlob(url: string | null) {
+  if (url?.startsWith("blob:")) URL.revokeObjectURL(url)
 }
 
 const MAX_HTTP_IMAGE_URL_LEN = 8000
@@ -100,35 +104,6 @@ function BoxPlaceholder({ variant }: { variant: number }) {
           <path d="M12 16v4h16" />
         </svg>
       )
-    case 3:
-      return (
-        <svg className={common} viewBox="0 0 40 40" fill="none" strokeWidth="1.4" aria-hidden>
-          <path d="M10 12h20v22H10z" />
-          <path d="M10 18h20M10 24h12" />
-        </svg>
-      )
-    case 4:
-      return (
-        <svg className={common} viewBox="0 0 40 40" fill="none" strokeWidth="1.4" aria-hidden>
-          <path d="M14 10h16v22H8V16z" />
-          <path d="M14 10v6h16" />
-        </svg>
-      )
-    case 5:
-      return (
-        <svg className={common} viewBox="0 0 40 40" fill="none" strokeWidth="1.4" aria-hidden>
-          <ellipse cx="20" cy="22" rx="14" ry="6" />
-          <path d="M8 22V14l12-6 12 6v8" />
-        </svg>
-      )
-    case 6:
-      return (
-        <svg className={common} viewBox="0 0 40 40" fill="none" strokeWidth="1.4" aria-hidden>
-          <circle cx="22" cy="16" r="7" />
-          <path d="M12 30c2-6 8-10 16-10" />
-          <path d="M8 14h24v20H8z" opacity="0.35" />
-        </svg>
-      )
     default:
       return (
         <svg className={common} viewBox="0 0 40 40" fill="none" strokeWidth="1.4" aria-hidden>
@@ -140,55 +115,174 @@ function BoxPlaceholder({ variant }: { variant: number }) {
   }
 }
 
+function RemoveImageButton({
+  label,
+  onClick,
+  className,
+}: {
+  label: string
+  onClick: () => void
+  className?: string
+}) {
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        onClick()
+      }}
+      className={cn(
+        "absolute z-10 flex items-center justify-center rounded-lg",
+        "bg-zinc-900/50 text-white opacity-0 backdrop-blur-md transition-all duration-200",
+        "hover:bg-zinc-900/70 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50",
+        "group-hover:opacity-100 group-focus-within:opacity-100",
+        className
+      )}
+      aria-label={label}
+    >
+      <Trash2 className="h-4 w-4" strokeWidth={2} aria-hidden />
+    </button>
+  )
+}
+
 export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Props) {
+  const inputId = useId()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [slots, setSlots] = useState<(string | null)[]>(() =>
     Array.from({ length: SLOT_COUNT }, (_, i) => initialUrls?.[i] ?? null)
   )
-  const [busySlot, setBusySlot] = useState<number | null>(null)
+  const [processingSlots, setProcessingSlots] = useState<Set<number>>(() => new Set())
+  const [isBatchUploading, setIsBatchUploading] = useState(false)
+  const [dragActive, setDragActive] = useState(false)
   const [imageUrlDraft, setImageUrlDraft] = useState("")
+
+  const emit = useCallback(
+    (next: (string | null)[]) => {
+      queueMicrotask(() => onImagesChange(slotsToOrderedUrls(next)))
+    },
+    [onImagesChange]
+  )
 
   useEffect(() => {
     const seed = initialUrls?.filter(Boolean) ?? []
     if (seed.length === 0) return
     const next = Array.from({ length: SLOT_COUNT }, (_, i) => initialUrls?.[i] ?? null)
     setSlots(next)
-    queueMicrotask(() => onImagesChange(slotsToOrderedUrls(next)))
+    emit(next)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialUrls?.join("|")])
 
-  const handleFileForSlot = async (slotIndex: number, e: ChangeEvent<HTMLInputElement>) => {
+  const emptySlotIndices = useCallback(
+    () =>
+      slots
+        .map((s, i) => (s || processingSlots.has(i) ? null : i))
+        .filter((i): i is number => i !== null),
+    [slots, processingSlots]
+  )
+
+  const ingestFiles = useCallback(
+    async (fileList: FileList | File[]) => {
+      const files = Array.from(fileList).filter((f) => f.type.startsWith("image/"))
+      if (files.length === 0) {
+        toast.error("Choose image files (JPG, PNG, WebP…).")
+        return
+      }
+
+      const targets = emptySlotIndices()
+      if (targets.length === 0) {
+        toast.error("All slots are full. Remove an image to add more.")
+        return
+      }
+
+      const batch = files.slice(0, targets.length)
+      if (files.length > batch.length) {
+        toast.info(`Only ${batch.length} slot${batch.length === 1 ? "" : "s"} left — added the first ${batch.length} images.`)
+      }
+
+      setIsBatchUploading(true)
+      const slotByFile = new Map<File, number>()
+      batch.forEach((file, i) => slotByFile.set(file, targets[i]!))
+
+      setSlots((prev) => {
+        const next = [...prev]
+        for (const file of batch) {
+          const idx = slotByFile.get(file)!
+          revokeIfBlob(next[idx])
+          next[idx] = URL.createObjectURL(file)
+        }
+        emit(next)
+        return next
+      })
+
+      setProcessingSlots((prev) => {
+        const s = new Set(prev)
+        for (const idx of targets.slice(0, batch.length)) s.add(idx)
+        return s
+      })
+
+      try {
+        const results = await processProductGalleryImageFiles(batch)
+        let added = 0
+        setSlots((prev) => {
+          const next = [...prev]
+          for (const r of results) {
+            const slotIndex = slotByFile.get(r.file)
+            if (slotIndex === undefined) continue
+            revokeIfBlob(next[slotIndex])
+            if (r.ok) {
+              next[slotIndex] = r.dataUrl
+              added += 1
+            } else {
+              next[slotIndex] = null
+              if (r.reason === "min_dimension") {
+                toast.error(
+                  `${r.file.name}: minimum 800×800 px (got ${r.width ?? "?"}×${r.height ?? "?"}).`
+                )
+              } else {
+                toast.error(`Could not process ${r.file.name}.`)
+              }
+            }
+          }
+          emit(next)
+          return next
+        })
+        if (added > 0) {
+          toast.success(added === 1 ? "Photo added" : `${added} photos added`)
+        }
+      } finally {
+        setProcessingSlots(new Set())
+        setIsBatchUploading(false)
+      }
+    },
+    [emptySlotIndices, emit]
+  )
+
+  const handleFileInput = (e: ChangeEvent<HTMLInputElement>) => {
+    const list = e.target.files
+    e.target.value = ""
+    if (list?.length) void ingestFiles(list)
+  }
+
+  const handleFileForSlot = (slotIndex: number, e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     e.target.value = ""
     if (!file) return
-
-    setBusySlot(slotIndex)
-    try {
-      const dimensions = await measureImageFile(file)
-      if (dimensions.width < 800 || dimensions.height < 800) {
-        toast.error(`${file.name}: images must be at least 800×800 px.`)
-        return
-      }
-      const processed = await processProductImageToDataUrl(file)
-      setSlots((prev) => {
-        const next = [...prev]
-        next[slotIndex] = processed
-        queueMicrotask(() => onImagesChange(slotsToOrderedUrls(next)))
-        return next
-      })
-      toast.success(`Added ${file.name}`)
-    } catch {
-      toast.error("Could not process this image.")
-    } finally {
-      setBusySlot(null)
-    }
+    void ingestFiles([file])
   }
 
   const removeAt = (slotIndex: number) => {
     setSlots((prev) => {
       const next = [...prev]
+      revokeIfBlob(next[slotIndex])
       next[slotIndex] = null
-      queueMicrotask(() => onImagesChange(slotsToOrderedUrls(next)))
+      emit(next)
       return next
+    })
+    setProcessingSlots((prev) => {
+      const s = new Set(prev)
+      s.delete(slotIndex)
+      return s
     })
   }
 
@@ -199,7 +293,7 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
       return
     }
     setSlots((prev) => {
-      const emptyIdx = prev.findIndex((s) => !s)
+      const emptyIdx = prev.findIndex((s, i) => !s && !processingSlots.has(i))
       if (emptyIdx < 0) {
         queueMicrotask(() => toast.error("All slots are full. Remove an image first."))
         return prev
@@ -216,6 +310,29 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
     })
   }
 
+  const onDragOver = (e: DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!isBatchUploading) setDragActive(true)
+  }
+
+  const onDragLeave = (e: DragEvent) => {
+    e.preventDefault()
+    setDragActive(false)
+  }
+
+  const onDrop = (e: DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+    if (isBatchUploading) return
+    const files = e.dataTransfer.files
+    if (files?.length) void ingestFiles(files)
+  }
+
+  const busy = isBatchUploading || processingSlots.size > 0
+  const remaining = emptySlotIndices().length
+
   const cellVars: CSSProperties = {
     ["--cell" as string]: "min(5.25rem, 22vw)",
     ["--g" as string]: "0.5rem",
@@ -224,96 +341,156 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-start gap-3" style={cellVars}>
-      {/* Cover image: height matches two thumbnail rows */}
-      <div
-        className="relative shrink-0"
-        style={{ width: "var(--main)", height: "var(--main)", minWidth: "var(--main)" }}
-      >
-        {slots[0] ? (
-          <div className="relative h-full w-full overflow-hidden rounded-lg border border-zinc-200 bg-[#f4f4f5] dark:border-zinc-700 dark:bg-zinc-900">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={slots[0]} alt="" className="h-full w-full object-contain p-2" />
-            <button
-              type="button"
-              onClick={() => removeAt(0)}
-              className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-white shadow hover:bg-red-600"
-              aria-label="Remove cover image"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        ) : (
-          <label className="absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-zinc-300 bg-zinc-50/90 transition hover:border-violet-400 hover:bg-violet-50/60 dark:border-zinc-600 dark:bg-zinc-900/50 dark:hover:border-violet-500">
-            {busySlot === 0 ? (
-              <Loader2 className="h-8 w-8 animate-spin text-violet-600" aria-hidden />
-            ) : (
-              <>
-                <Upload className="h-8 w-8 text-zinc-400" aria-hidden />
-                <span className="px-2 text-center text-xs font-medium text-zinc-600 dark:text-zinc-300">
-                  Import cover image
-                </span>
-              </>
-            )}
-            <input
-              type="file"
-              accept="image/*"
-              className="sr-only"
-              disabled={busySlot !== null}
-              onChange={(e) => void handleFileForSlot(0, e)}
-            />
-          </label>
-        )}
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          ref={fileInputRef}
+          id={inputId}
+          type="file"
+          accept="image/*"
+          multiple
+          className="sr-only"
+          disabled={busy || remaining === 0}
+          onChange={handleFileInput}
+        />
+        <Button
+          type="button"
+          variant="default"
+          size="sm"
+          className="gap-2 rounded-full bg-violet-600 shadow-sm hover:bg-violet-700"
+          disabled={busy || remaining === 0}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          {busy ? (
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+          ) : (
+            <ImagePlus className="h-4 w-4" aria-hidden />
+          )}
+          Add photos
+          {remaining > 0 && remaining < SLOT_COUNT ? (
+            <span className="text-violet-200">({remaining} left)</span>
+          ) : null}
+        </Button>
+        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          Select or drop multiple images — processed in parallel (min. 800×800 px).
+        </p>
       </div>
 
       <div
-        className="grid shrink-0 grid-cols-4 grid-rows-2 gap-2"
-        style={{
-          width: "calc(4 * var(--cell) + 3 * var(--g))",
-          height: "var(--main)",
-          gridTemplateColumns: "repeat(4, var(--cell))",
-          gridTemplateRows: "repeat(2, var(--cell))",
-        }}
+        className={cn(
+          "relative rounded-xl transition-[box-shadow,ring]",
+          dragActive && "ring-2 ring-violet-400/80 ring-offset-2 ring-offset-white dark:ring-offset-zinc-950"
+        )}
+        style={cellVars}
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
       >
-        {Array.from({ length: 8 }, (_, idx) => {
-          const slotIndex = idx + 1
-          const url = slots[slotIndex]
-          return (
-            <div key={slotIndex} className="relative min-h-0 min-w-0">
-              {url ? (
-                <div className="relative h-full w-full overflow-hidden rounded-md bg-zinc-100 dark:bg-zinc-800">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={url} alt="" className="h-full w-full object-contain p-1" />
-                  <button
-                    type="button"
-                    onClick={() => removeAt(slotIndex)}
-                    className="absolute right-0.5 top-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600"
-                    aria-label="Remove image"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              ) : (
-                <label className="absolute inset-0 flex cursor-pointer flex-col items-center justify-center rounded-md bg-zinc-100 transition hover:bg-zinc-200/80 dark:bg-zinc-800 dark:hover:bg-zinc-700/80">
-                  {busySlot === slotIndex ? (
-                    <Loader2 className="h-5 w-5 animate-spin text-violet-600" aria-hidden />
+        {dragActive ? (
+          <div
+            className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-xl bg-violet-500/10 backdrop-blur-[2px]"
+            aria-hidden
+          >
+            <p className="rounded-full bg-white/90 px-4 py-2 text-sm font-medium text-violet-800 shadow-sm dark:bg-zinc-900/90 dark:text-violet-200">
+              Drop to upload
+            </p>
+          </div>
+        ) : null}
+
+        <div className="flex flex-wrap items-start gap-3">
+          <div
+            className="group relative shrink-0"
+            style={{ width: "var(--main)", height: "var(--main)", minWidth: "var(--main)" }}
+          >
+            {slots[0] ? (
+              <div className="relative h-full w-full overflow-hidden rounded-xl border border-zinc-200/90 bg-[#f4f4f5] shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={slots[0]} alt="" className="h-full w-full object-contain p-2" />
+                {processingSlots.has(0) ? (
+                  <div className="absolute inset-0 flex items-center justify-center bg-white/60 dark:bg-zinc-950/50">
+                    <Loader2 className="h-8 w-8 animate-spin text-violet-600" aria-hidden />
+                  </div>
+                ) : null}
+                <RemoveImageButton
+                  label="Remove cover image"
+                  onClick={() => removeAt(0)}
+                  className="right-2 top-2 h-9 w-9"
+                />
+              </div>
+            ) : (
+              <label className="absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-zinc-300/90 bg-zinc-50/90 transition hover:border-violet-400 hover:bg-violet-50/50 dark:border-zinc-600 dark:bg-zinc-900/50 dark:hover:border-violet-500">
+                {processingSlots.has(0) ? (
+                  <Loader2 className="h-8 w-8 animate-spin text-violet-600" aria-hidden />
+                ) : (
+                  <>
+                    <Upload className="h-8 w-8 text-zinc-400" aria-hidden />
+                    <span className="px-2 text-center text-xs font-medium text-zinc-600 dark:text-zinc-300">
+                      Cover photo
+                    </span>
+                  </>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  disabled={busy}
+                  onChange={(e) => void handleFileForSlot(0, e)}
+                />
+              </label>
+            )}
+          </div>
+
+          <div
+            className="grid shrink-0 grid-cols-4 grid-rows-2 gap-2"
+            style={{
+              width: "calc(4 * var(--cell) + 3 * var(--g))",
+              height: "var(--main)",
+              gridTemplateColumns: "repeat(4, var(--cell))",
+              gridTemplateRows: "repeat(2, var(--cell))",
+            }}
+          >
+            {Array.from({ length: 8 }, (_, idx) => {
+              const slotIndex = idx + 1
+              const url = slots[slotIndex]
+              const processing = processingSlots.has(slotIndex)
+              return (
+                <div key={slotIndex} className="group relative min-h-0 min-w-0">
+                  {url ? (
+                    <div className="relative h-full w-full overflow-hidden rounded-lg border border-zinc-200/80 bg-zinc-100 shadow-sm dark:border-zinc-700/80 dark:bg-zinc-800">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={url} alt="" className="h-full w-full object-contain p-1" />
+                      {processing ? (
+                        <div className="absolute inset-0 flex items-center justify-center bg-white/55 dark:bg-zinc-950/45">
+                          <Loader2 className="h-5 w-5 animate-spin text-violet-600" aria-hidden />
+                        </div>
+                      ) : null}
+                      <RemoveImageButton
+                        label="Remove image"
+                        onClick={() => removeAt(slotIndex)}
+                        className="right-1 top-1 h-7 w-7"
+                      />
+                    </div>
                   ) : (
-                    <BoxPlaceholder variant={idx} />
+                    <label className="absolute inset-0 flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-transparent bg-zinc-100/90 transition hover:border-zinc-300 hover:bg-zinc-200/80 dark:bg-zinc-800/90 dark:hover:border-zinc-600 dark:hover:bg-zinc-700/80">
+                      {processing ? (
+                        <Loader2 className="h-5 w-5 animate-spin text-violet-600" aria-hidden />
+                      ) : (
+                        <BoxPlaceholder variant={idx} />
+                      )}
+                      <span className="sr-only">Add image</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="sr-only"
+                        disabled={busy}
+                        onChange={(e) => void handleFileForSlot(slotIndex, e)}
+                      />
+                    </label>
                   )}
-                  <span className="sr-only">Add image</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="sr-only"
-                    disabled={busySlot !== null}
-                    onChange={(e) => void handleFileForSlot(slotIndex, e)}
-                  />
-                </label>
-              )}
-            </div>
-          )
-        })}
-      </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
       </div>
 
       <div className="rounded-lg border border-zinc-200 bg-zinc-50/80 px-3 py-3 dark:border-zinc-700 dark:bg-zinc-900/50">
