@@ -4,18 +4,12 @@ import { getTranslations } from "next-intl/server"
 
 import { SupplierUrgentCarousel } from "@/components/supplier/mission-control/supplier-urgent-carousel"
 import type { SupplierUrgentSnapshot } from "@/lib/supplier-urgent-snapshot"
-import { formatMoneyFromCents } from "@/lib/app-locale-format"
-import type { AppLocale } from "@/lib/i18n-locale"
-import {
-  formatSlaCountdown,
-  SUPPLIER_LATE_SHIP_PENALTY_PER_ORDER_CENTS,
-} from "@/lib/supplier-ship-sla-shared"
+import { formatSlaCountdown } from "@/lib/supplier-ship-sla-shared"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 type Props = {
   urgent: SupplierUrgentSnapshot
-  locale: AppLocale
 }
 
 type TFn = Awaited<ReturnType<typeof getTranslations<"supplierDashboard.urgent">>>
@@ -129,7 +123,7 @@ function formatHoursLeftLabelLocalized(hoursLeft: number, t: TFn): string {
   return m > 0 ? t("hoursLeftMinutes", { minutes: m }) : t("hoursLeftUnderOne")
 }
 
-function buildShipSlot(urgent: SupplierUrgentSnapshot, t: TFn, locale: AppLocale): SlotProps {
+function buildShipSlot(urgent: SupplierUrgentSnapshot, t: TFn): SlotProps {
   const active = urgent.ordersToShip > 0
   const hoursLeft = urgent.ordersToShipHoursLeft
   const late = urgent.ordersToShipSlaLate
@@ -143,11 +137,6 @@ function buildShipSlot(urgent: SupplierUrgentSnapshot, t: TFn, locale: AppLocale
     urgent.ordersToShip === 1
       ? t("shipTitleOne")
       : t("shipTitleMany", { count: urgent.ordersToShip })
-
-  const penaltyPerOrder = formatMoneyFromCents(
-    urgent.ordersToShipPenaltyPerOrderCents || SUPPLIER_LATE_SHIP_PENALTY_PER_ORDER_CENTS,
-    locale
-  )
 
   return {
     active,
@@ -166,11 +155,13 @@ function buildShipSlot(urgent: SupplierUrgentSnapshot, t: TFn, locale: AppLocale
           ? t("metricPaidSlaIn", { countdown: formatSlaCountdown(remainingMs) })
           : t("metricPaidWaiting"),
     consequence:
-      active && (urgentSla || late)
-        ? t("penaltyPerOrder", { amount: penaltyPerOrder })
-        : active
-          ? t("buyerRatingRisk")
-          : "—",
+      active && late
+        ? t("autoCancelConsequence")
+        : active && urgentSla
+          ? t("autoCancelRisk")
+          : active
+            ? t("buyerRatingRisk")
+            : "—",
     href: "/dashboard/supplier/orders",
     cta: t("ctaShip"),
     tone: urgentSla || late ? "red" : "amber",
@@ -244,10 +235,10 @@ function buildMessageSlot(urgent: SupplierUrgentSnapshot, t: TFn): SlotProps {
   }
 }
 
-export async function SupplierUrgentActions({ urgent, locale }: Props) {
+export async function SupplierUrgentActions({ urgent }: Props) {
   const t = await getTranslations("supplierDashboard.urgent")
 
-  const ship = buildShipSlot(urgent, t, locale)
+  const ship = buildShipSlot(urgent, t)
   const stock = buildStockSlot(urgent, t)
   const message = buildMessageSlot(urgent, t)
 

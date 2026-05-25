@@ -44,7 +44,7 @@ export default async function DashboardSupplierPage() {
             <SupplierOnboardingChecklist storeSlug={data.storeSlug} />
           ) : (
             <>
-              <SupplierUrgentActions urgent={data.urgent} locale={locale} />
+              <SupplierUrgentActions urgent={data.urgent} />
               <SupplierMetricsBar metrics={data.metrics7d} weeklyGoal={data.weeklyGoal} locale={locale} />
               <SupplierGrowthSection growth={data.growth} />
             </>

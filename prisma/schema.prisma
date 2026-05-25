@@ -941,6 +941,14 @@ model Order {
   fulfillmentStatus      FulfillmentStatus @default(PENDING)
   fulfillmentErrors      Json?
   paidAt                 DateTime?
+  /**
+   * Ship Pulse deadline (paidAt + 10d, or extended after buyer accepts a delay request).
+   */
+  shipDeadlineAt         DateTime?
+  /** Set when Ship Pulse auto-cancel runs (idempotent with buyer email). */
+  autoCancelledAt        DateTime?
+  fulfillmentMessages    OrderFulfillmentMessage[]
+  shipExtensions         OrderShipExtension[]
   fulfilledAt            DateTime?
   autoFulfillmentBatchId String?
   autoFulfillmentBatch   AutoFulfillmentBatch? @relation(fields: [autoFulfillmentBatchId], references: [id], onDelete: SetNull)
@@ -951,6 +959,7 @@ model Order {
 
   @@index([affiliateId])
   @@index([splitStatus])
+  @@index([supplierId, status, shipDeadlineAt])
 }
 
 model TransferAttempt {
@@ -1008,6 +1017,45 @@ model MerchantPayoutLedger {
   @@index([orderId])
   @@index([blindDropshipOrderId])
   @@index([userId, createdAt])
+}
+
+enum OrderShipExtensionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+/** Buyer ↔ supplier thread on an open marketplace order (delay explanations). */
+model OrderFulfillmentMessage {
+  id           String   @id @default(cuid())
+  orderId      String
+  order        Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  authorRole   String
+  authorUserId String?
+  body         String   @db.Text
+  createdAt    DateTime @default(now())
+
+  @@index([orderId, createdAt])
+}
+
+/** Supplier asks buyer for extra ship time after the initial 10-day window. */
+model OrderShipExtension {
+  id               String                   @id @default(cuid())
+  orderId          String
+  order            Order                    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  reason           String                   @db.Text
+  extraDays        Int
+  status           OrderShipExtensionStatus @default(PENDING)
+  buyerRespondedAt DateTime?
+  buyerNote        String?                  @db.Text
+  newDeadlineAt    DateTime?
+  buyerExpiresAt   DateTime
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+
+  @@index([orderId, status])
+  @@index([status, buyerExpiresAt])
 }
 
 /**

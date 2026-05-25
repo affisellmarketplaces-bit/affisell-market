@@ -10,6 +10,7 @@ import { resolveFulfillmentChannel } from "@/lib/auto-order/resolve-channel"
 import { logAutoOrder } from "@/lib/auto-order/telemetry"
 import type { BatchRunResult, ShippingAddressPayload, SupplierGroup } from "@/lib/auto-order/types"
 import { prisma } from "@/lib/prisma"
+import { computeShipDeadlineAt } from "@/lib/supplier-ship-sla-shared"
 import {
   marketplaceWholesaleCentsForOption,
   variantsFromDb,
@@ -81,11 +82,13 @@ export async function enqueueAutoFulfillmentBatch(stripeSessionId: string): Prom
     },
   })
 
+  const paidAt = new Date()
   await prisma.order.updateMany({
     where: { id: { in: orders.map((o) => o.id) } },
     data: {
       autoFulfillmentBatchId: batch.id,
-      paidAt: new Date(),
+      paidAt,
+      shipDeadlineAt: computeShipDeadlineAt(paidAt),
       fulfillmentStatus: "PENDING",
     },
   })

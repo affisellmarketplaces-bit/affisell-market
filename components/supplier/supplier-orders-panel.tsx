@@ -10,8 +10,11 @@ import {
   Package,
   Truck,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useCallback, useEffect, useState } from "react"
 
+import { ShipPulseBadge } from "@/components/supplier/ship-pulse-badge"
+import { SupplierOrderFulfillmentPanel } from "@/components/supplier/supplier-order-fulfillment-panel"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
@@ -47,6 +50,12 @@ type OrderRow = {
   payoutStatus: string
   payoutEligibleAt: string | null
   supplierPayoutAt: string | null
+  shipPulse: {
+    deadlineAt: string
+    msRemaining: number
+    phase: "safe" | "urgent" | "critical" | "breached"
+    extensionPending?: boolean
+  } | null
 }
 
 type Tab = "to_ship" | "shipped" | "all"
@@ -211,6 +220,7 @@ function OrderMetaChips({ o }: { o: OrderRow }) {
 }
 
 export function SupplierOrdersPanel({ className }: { className?: string }) {
+  const msg = useTranslations("supplierOrders")
   const [tab, setTab] = useState<Tab>("to_ship")
   const [rows, setRows] = useState<OrderRow[] | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -221,13 +231,13 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
     setError(null)
     const res = await fetch(`/api/supplier/orders?tab=${tab}`, { cache: "no-store" })
     if (!res.ok) {
-      setError("Could not load orders")
+      setError(msg("loadError"))
       setRows([])
       return
     }
     const j = (await res.json()) as { orders: OrderRow[] }
     setRows(j.orders)
-  }, [tab])
+  }, [tab, msg])
 
   useEffect(() => {
     void load()
@@ -244,7 +254,7 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
       })
       if (!res.ok) {
         const j = (await res.json().catch(() => ({}))) as { error?: string }
-        setError(j.error ?? "Update failed")
+        setError(j.error ?? msg("updateFailed"))
         return
       }
       await load()
@@ -262,7 +272,7 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
     const t = trackingByOrder[orderId]
     const trackingNumber = t?.number?.trim() ?? ""
     if (!trackingNumber) {
-      setError("Enter a tracking number before marking as shipped.")
+      setError(msg("trackingRequired"))
       return
     }
     await patchOrder(orderId, {
@@ -292,13 +302,13 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
   }
 
   if (rows === null) {
-    return <p className={cn("text-sm text-zinc-500", className)}>Loading…</p>
+    return <p className={cn("text-sm text-zinc-500", className)}>{msg("loading")}</p>
   }
 
   const tabs: { id: Tab; label: string }[] = [
-    { id: "to_ship", label: "To ship" },
-    { id: "shipped", label: "Shipped" },
-    { id: "all", label: "All" },
+    { id: "to_ship", label: msg("tabs.toShip") },
+    { id: "shipped", label: msg("tabs.shipped") },
+    { id: "all", label: msg("tabs.all") },
   ]
 
   return (
@@ -331,7 +341,7 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
         <Card className="border-zinc-200 p-10 text-center dark:border-zinc-700">
           <Package className="mx-auto mb-3 size-9 text-zinc-300 dark:text-zinc-600" aria-hidden />
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            {tab === "to_ship" ? "No orders waiting — new payouts appear here after checkout." : "No orders in this view."}
+            {tab === "to_ship" ? msg("emptyToShip") : msg("emptyTab")}
           </p>
         </Card>
       ) : (
@@ -374,6 +384,24 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
                           </span>
                         </div>
                       </div>
+                      {o.shipPulse ? (
+                        <div className="mt-2">
+                          <ShipPulseBadge
+                            deadlineAt={o.shipPulse.deadlineAt}
+                            msRemaining={o.shipPulse.msRemaining}
+                            phase={o.shipPulse.phase}
+                            extensionPending={o.shipPulse.extensionPending}
+                          />
+                        </div>
+                      ) : null}
+                      {o.fulfillmentSource === "marketplace" &&
+                      (o.status === "paid" || o.status === "preparing") ? (
+                        <SupplierOrderFulfillmentPanel
+                          orderId={o.id}
+                          className="mt-3"
+                          onUpdated={() => void load()}
+                        />
+                      ) : null}
                       <p className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-zinc-500">
                         <span className="font-medium tabular-nums text-zinc-700 dark:text-zinc-300">×{o.quantity}</span>
                         <span aria-hidden>·</span>

@@ -5,6 +5,7 @@ import { computeTransferAmountsFromOrder } from "@/lib/marketplace-split-amounts
 import { logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
 import { prisma } from "@/lib/prisma"
 import { getStripeClient } from "@/lib/stripe"
+import { computeShipDeadlineAt } from "@/lib/supplier-ship-sla-shared"
 
 type Tx = Prisma.TransactionClient
 
@@ -136,6 +137,7 @@ export async function scheduleMarketplaceTransferAttempts(
     }
   }
 
+  const paidAnchor = order.paidAt ?? new Date()
   await db.order.update({
     where: { id: orderId },
     data: {
@@ -148,6 +150,8 @@ export async function scheduleMarketplaceTransferAttempts(
       stripeChargeId: chargeId ?? order.stripeChargeId,
       splitStatus: "PENDING",
       status: "paid",
+      paidAt: order.paidAt ?? paidAnchor,
+      shipDeadlineAt: order.shipDeadlineAt ?? computeShipDeadlineAt(paidAnchor),
       paymentSettlementStatus: "PAID",
       affiliateStripeAccountId: affiliateDestination,
     },

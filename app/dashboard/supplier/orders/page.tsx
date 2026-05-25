@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { Package } from "lucide-react"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
+import { ShipPulsePolicyBanner } from "@/components/supplier/ship-pulse-policy-banner"
 import { SupplierOrdersPanel } from "@/components/supplier/supplier-orders-panel"
 import { auth } from "@/auth"
 import { buttonVariants } from "@/components/ui/button"
@@ -45,6 +46,8 @@ export default async function SupplierOrdersPage() {
           title="Orders to ship"
           description="Paid orders queue here — confirm prep, then add tracking when the parcel leaves."
         />
+
+        <ShipPulsePolicyBanner />
 
         <SupplierOrdersPanel />
       </BentoContainer>

@@ -5,6 +5,7 @@ import { resolveMarketplaceOrderLineImageUrl } from "@/lib/cart-line-image"
 import { formatOrderShippingAddress } from "@/lib/order-shipping-address"
 import { orderPayoutTiming, payoutStatusLabel } from "@/lib/order-payout-policy"
 import { prisma } from "@/lib/prisma"
+import { buildShipPulseSnapshot, resolveShipDeadlineAt } from "@/lib/supplier-ship-sla-shared"
 
 const orderInclude = {
   product: {
@@ -25,6 +26,11 @@ const orderInclude = {
     orderBy: { createdAt: "desc" },
     take: 1,
     select: { id: true, status: true },
+  },
+  shipExtensions: {
+    where: { status: "PENDING" },
+    take: 1,
+    select: { id: true },
   },
 } satisfies Prisma.OrderInclude
 
@@ -65,6 +71,12 @@ export type SupplierFulfillmentOrder = {
   deliveryConfirmedAt: string | null
   supplierPreparingAt: string | null
   canMarkPreparing: boolean
+  /** Ship Pulse countdown (marketplace orders awaiting shipment only). */
+  shipPulse: {
+    deadlineAt: string
+    msRemaining: number
+    phase: "safe" | "urgent" | "critical" | "breached"
+  } | null
 }
 
 type SupplierOrderRow = Prisma.OrderGetPayload<{ include: typeof orderInclude }>
@@ -122,6 +134,26 @@ export function mapMarketplaceOrder(o: SupplierOrderRow): SupplierFulfillmentOrd
     payoutStatus: payoutStatusLabel(o),
     payoutEligibleAt: orderPayoutTiming(o)?.payoutEligibleAt?.toISOString() ?? null,
     deliveryConfirmedAt: o.deliveryConfirmedAt?.toISOString() ?? null,
+    shipPulse:
+      o.status === "paid" || o.status === "preparing"
+        ? (() => {
+            const pulse = buildShipPulseSnapshot(
+              resolveShipDeadlineAt({
+                shipDeadlineAt: o.shipDeadlineAt,
+                paidAt: o.paidAt,
+                createdAt: o.createdAt,
+              }),
+              Date.now(),
+              { extensionPending: o.shipExtensions.length > 0 }
+            )
+            return {
+              deadlineAt: pulse.deadlineAt,
+              msRemaining: pulse.msRemaining,
+              phase: pulse.phase,
+              extensionPending: pulse.extensionPending,
+            }
+          })()
+        : null,
   }
 }
 
@@ -224,6 +256,7 @@ function mapBlindOrder(
           : blindDisplayStatus(order.status),
     payoutEligibleAt: order.payoutEligibleAt?.toISOString() ?? null,
     deliveryConfirmedAt: order.deliveryConfirmedAt?.toISOString() ?? null,
+    shipPulse: null,
   }
 }
 

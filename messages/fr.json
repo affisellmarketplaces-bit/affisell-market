@@ -572,6 +572,8 @@
       "metricPaidWaiting": "Payées · en attente",
       "penaltyPerOrder": "Pénalité estimée : −{amount}/commande",
       "buyerRatingRisk": "Risque note acheteur si retard",
+      "autoCancelRisk": "Après 10 j : message acheteur ou demande de prolongation",
+      "autoCancelConsequence": "Prolongation refusée ou expirée — annulation + remboursement possible",
       "ctaShip": "Expédier",
       "stockTitleOne": "1 rupture SKU",
       "stockTitleMany": "{count} ruptures SKU",
@@ -653,6 +655,47 @@
       "finances": "Finances",
       "integrations": "Intégrations"
     }
+  },
+  "supplierOrders": {
+    "shipPulse": {
+      "label": "Pulse expédition",
+      "safe": "Dans les temps",
+      "urgent": "À expédier vite",
+      "critical": "Dernières heures",
+      "breached": "Échéance dépassée",
+      "policyTitle": "Pulse expédition™ — fenêtre 10 jours",
+      "policyBody": "Vous disposez de {days} jours pour ajouter un suivi ou échanger avec l'acheteur. Ensuite, expliquez le retard et demandez un délai — l'acheteur accepte ou refuse. En cas de refus (ou sans réponse sous 3 jours), la commande peut être annulée avec remboursement.",
+      "policyBadge": "Prolongation validée acheteur",
+      "pendingExtension": "En attente acheteur"
+    },
+    "fulfillment": {
+      "loading": "Chargement de la conversation…",
+      "title": "Échange acheteur",
+      "seller": "Vous",
+      "buyer": "Acheteur",
+      "noMessages": "Pas encore de message — écrivez à l'acheteur en cas de retard.",
+      "messageLabel": "Message à l'acheteur",
+      "messagePlaceholder": "Expliquez la situation (8 caractères min.)…",
+      "sendMessage": "Envoyer à l'acheteur",
+      "pendingBuyer": "Prolongation en attente — l'acheteur a 3 jours pour accepter +{days} j.",
+      "accepted": "Acceptée — à expédier avant le {date}.",
+      "rejected": "Refusée par l'acheteur. Expédiez vite ou la commande peut être annulée.",
+      "extensionIntro": "Après 10 jours : expliquez le retard et demandez des jours supplémentaires (accord acheteur requis).",
+      "reasonPlaceholder": "Pourquoi le retard ? Quand expédiez-vous ? (20 caractères min.)",
+      "extraDaysLabel": "Jours supplémentaires demandés",
+      "requestExtension": "Demander une prolongation"
+    },
+    "tabs": {
+      "toShip": "À expédier",
+      "shipped": "Expédiées",
+      "all": "Toutes"
+    },
+    "emptyToShip": "Aucune commande en attente — les ventes apparaissent ici après paiement.",
+    "emptyTab": "Aucune commande dans cette vue.",
+    "loading": "Chargement…",
+    "loadError": "Impossible de charger les commandes",
+    "trackingRequired": "Saisissez un numéro de suivi avant de marquer comme expédiée.",
+    "updateFailed": "Mise à jour impossible"
   },
   "storefront": {
     "brandStudio": {

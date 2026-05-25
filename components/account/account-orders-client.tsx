@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react"
 import { Package, Sparkles } from "lucide-react"
 
+import { AccountOrderFulfillmentPanel } from "@/components/account/account-order-fulfillment-panel"
 import { BentoCard } from "@/components/affisell/bento-ui"
 import { Button } from "@/components/ui/button"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
@@ -176,6 +177,10 @@ export function AccountOrdersClient({
                 <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
                   Tracking: {o.trackingCarrier ?? "Carrier"} {o.trackingNumber}
                 </p>
+              ) : null}
+              {o.fulfillmentSource !== "blind_dropship" &&
+              (o.status === "paid" || o.status === "preparing") ? (
+                <AccountOrderFulfillmentPanel orderId={o.id} lang={lang} />
               ) : null}
               {o.canConfirmDelivery ? (
                 <div className="mt-3 rounded-lg border border-violet-200 bg-violet-50/80 p-3 dark:border-violet-900/50 dark:bg-violet-950/30">

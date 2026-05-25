@@ -8,6 +8,7 @@ import { earnBuyerRewardIdempotent, redeemBuyerRewardIdempotent } from "@/lib/bu
 import { resolveBuyerUserIdForEarn } from "@/lib/buyer-reward-resolve-user"
 import { computeMarketplaceOrderSettlement } from "@/lib/marketplace-order-settlement"
 import { triggerAutoFulfillmentForStripeSession } from "@/lib/auto-order/enqueue"
+import { computeShipDeadlineAt } from "@/lib/supplier-ship-sla-shared"
 import { logStripeWebhookError } from "@/lib/stripe-webhook-observability"
 import {
   resolveOrderConfirmationImageUrl,
@@ -120,6 +121,7 @@ async function createPaidMarketplaceOrder(
       affisellCommissionRateBps: 1200,
       status: "paid",
       paidAt: new Date(),
+      shipDeadlineAt: computeShipDeadlineAt(new Date()),
       fulfillmentStatus: "PENDING",
       subtotalCents: basePriceCents,
       totalCents: settlement.sellingPriceCents,
@@ -396,6 +398,7 @@ export async function fulfillMarketplaceStripeSession(
           affiliateMarginRetainedCents: settlement.affiliateMarginRetainedCents,
           status: "paid",
           paidAt: new Date(),
+          shipDeadlineAt: computeShipDeadlineAt(new Date()),
           fulfillmentStatus: "PENDING",
           subtotalCents: basePriceCents,
           totalCents: settlement.sellingPriceCents,

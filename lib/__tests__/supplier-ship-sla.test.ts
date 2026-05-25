@@ -17,10 +17,10 @@ describe("formatSlaCountdown", () => {
 })
 
 describe("hoursLeftFromPayment", () => {
-  it("returns 48h minus elapsed time", () => {
+  it("returns 10d minus elapsed time", () => {
     const paymentAt = new Date("2026-01-01T00:00:00Z")
     const nowMs = paymentAt.getTime() + 25 * 3_600_000
-    expect(hoursLeftFromPayment(paymentAt, nowMs)).toBe(23)
+    expect(hoursLeftFromPayment(paymentAt, nowMs)).toBe(240 - 25)
   })
 })
 
@@ -32,14 +32,14 @@ describe("formatHoursLeftLabel", () => {
 })
 
 describe("SUPPLIER_SHIP_SLA_MS", () => {
-  it("is 48 hours", () => {
-    expect(SUPPLIER_SHIP_SLA_MS).toBe(48 * 60 * 60 * 1000)
+  it("is 10 days", () => {
+    expect(SUPPLIER_SHIP_SLA_MS).toBe(10 * 24 * 60 * 60 * 1000)
   })
 })
 
 describe("penalty constants", () => {
-  it("uses 5€ per order and 24h urgent threshold", () => {
+  it("uses 5€ per order and 48h urgent threshold", () => {
     expect(SUPPLIER_LATE_SHIP_PENALTY_PER_ORDER_CENTS).toBe(500)
-    expect(SUPPLIER_SHIP_SLA_URGENT_HOURS).toBe(24)
+    expect(SUPPLIER_SHIP_SLA_URGENT_HOURS).toBe(48)
   })
 })

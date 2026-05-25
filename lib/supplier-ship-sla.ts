@@ -5,6 +5,7 @@ import {
   formatSlaHoursShort,
   hoursLeftFromPayment,
   hoursSincePayment,
+  resolveShipDeadlineAt,
   SUPPLIER_LATE_SHIP_PENALTY_PER_ORDER_CENTS,
   SUPPLIER_SHIP_SLA_HOURS,
   SUPPLIER_SHIP_SLA_MS,
@@ -18,6 +19,7 @@ export {
   formatSlaHoursShort,
   hoursLeftFromPayment,
   hoursSincePayment,
+  resolveShipDeadlineAt,
   SUPPLIER_LATE_SHIP_PENALTY_PER_ORDER_CENTS,
   SUPPLIER_SHIP_SLA_HOURS,
   SUPPLIER_SHIP_SLA_MS,
@@ -25,17 +27,17 @@ export {
   type OrdersToShipSlaSnapshot,
 } from "@/lib/supplier-ship-sla-shared"
 
-function analyzeSla(createdAts: Date[], nowMs: number): Pick<
+function analyzeSla(deadlines: Date[], nowMs: number): Pick<
   OrdersToShipSlaSnapshot,
   "minHoursLeft" | "msUntilBreach" | "isLate" | "isUrgent"
 > {
-  if (createdAts.length === 0) {
+  if (deadlines.length === 0) {
     return { minHoursLeft: null, msUntilBreach: null, isLate: false, isUrgent: false }
   }
 
   let minHoursLeft = Infinity
-  for (const paymentAt of createdAts) {
-    const left = hoursLeftFromPayment(paymentAt, nowMs)
+  for (const deadline of deadlines) {
+    const left = (deadline.getTime() - nowMs) / 3_600_000
     minHoursLeft = Math.min(minHoursLeft, left)
   }
 
@@ -59,7 +61,7 @@ export async function loadOrdersToShipSla(supplierId: string): Promise<OrdersToS
   const [marketplace, blind] = await Promise.all([
     prisma.order.findMany({
       where: { supplierId, status: { in: ["paid", "preparing"] } },
-      select: { createdAt: true },
+      select: { createdAt: true, paidAt: true, shipDeadlineAt: true },
     }),
     blindProfile
       ? prisma.blindDropshipOrder.findMany({
@@ -72,10 +74,18 @@ export async function loadOrdersToShipSla(supplierId: string): Promise<OrdersToS
       : Promise.resolve([]),
   ])
 
-  const createdAts = [...marketplace.map((o) => o.createdAt), ...blind.map((o) => o.createdAt)]
-  const count = createdAts.length
+  const marketplaceDeadlines = marketplace.map((o) =>
+    resolveShipDeadlineAt({
+      shipDeadlineAt: o.shipDeadlineAt,
+      paidAt: o.paidAt,
+      createdAt: o.createdAt,
+    })
+  )
+  const blindDeadlines = blind.map((o) => resolveShipDeadlineAt({ shipDeadlineAt: null, paidAt: null, createdAt: o.createdAt }))
+  const deadlines = [...marketplaceDeadlines, ...blindDeadlines]
+  const count = deadlines.length
   const nowMs = Date.now()
-  const sla = analyzeSla(createdAts, nowMs)
+  const sla = analyzeSla(deadlines, nowMs)
 
   return {
     count,
