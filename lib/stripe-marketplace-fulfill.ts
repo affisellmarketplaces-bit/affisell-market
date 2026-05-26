@@ -6,7 +6,7 @@ import { formatCartVariantLabel, parseCartVariantSignature } from "@/lib/cart-va
 import { buyerEarnCentsForLinePaid } from "@/lib/buyer-reward-earn"
 import { earnBuyerRewardIdempotent, redeemBuyerRewardIdempotent } from "@/lib/buyer-reward-ledger"
 import { resolveBuyerUserIdForEarn } from "@/lib/buyer-reward-resolve-user"
-import { resolveAffisellCommissionRateBpsForProductId } from "@/lib/affisell-platform-commission"
+import { resolveAffisellCommissionRateBpsForProductId } from "@/lib/affisell-platform-commission.server"
 import { computeMarketplaceOrderSettlement } from "@/lib/marketplace-order-settlement"
 import { triggerAutoFulfillmentForStripeSession } from "@/lib/auto-order/enqueue"
 import { computeShipDeadlineAt } from "@/lib/supplier-ship-sla-shared"

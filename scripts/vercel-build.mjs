@@ -168,6 +168,7 @@ try {
   console.log("BUILD_START")
   run("npx prisma generate")
   runMigrations()
+  run("npm run check:client-prisma")
   run("npm run build")
   console.log("\nNext.js build completed")
   console.log("✓ Vercel build completed successfully.")

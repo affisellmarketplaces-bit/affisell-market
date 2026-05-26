@@ -19,12 +19,27 @@ function walk(dir, acc = []) {
 }
 
 function resolveLibModule(libImport) {
-  const base = path.join(ROOT, "lib", libImport.replace(/^@\//, ""))
+  const normalized = libImport.replace(/^@\/lib\//, "").replace(/^lib\//, "")
+  const base = path.join(ROOT, "lib", normalized)
   const candidates = [`${base}.ts`, `${base}.tsx`, path.join(base, "index.ts")]
   for (const p of candidates) {
     if (fs.existsSync(p)) return p
   }
   return null
+}
+
+function libImportLoadsPrisma(libImport, seen = new Set()) {
+  const resolved = resolveLibModule(libImport)
+  if (!resolved || seen.has(resolved)) return false
+  seen.add(resolved)
+  if (loadsPrisma(resolved)) return true
+  const src = fs.readFileSync(resolved, "utf8")
+  const re = /^import\s+(?!type)(?:[\s\S]*?)\s+from\s+["']@\/lib\/([^"']+)["']/gm
+  let m
+  while ((m = re.exec(src))) {
+    if (libImportLoadsPrisma(m[1], seen)) return true
+  }
+  return false
 }
 
 function loadsPrisma(filePath) {
@@ -38,10 +53,19 @@ function isClientFile(filePath, src) {
 
 function parseLibImports(src) {
   const out = []
-  const re = /^import\s+(?!type)(?:[\s\S]*?)\s+from\s+["']@\/lib\/([^"']+)["']/gm
-  let m
-  while ((m = re.exec(src))) {
-    out.push(m[1])
+  for (const line of src.split("\n")) {
+    const trimmed = line.trim()
+    if (!trimmed.startsWith("import ")) continue
+    if (trimmed.startsWith("import type ")) continue
+    const m = trimmed.match(/^import\s+(?:type\s+)?[\s\S]*?\sfrom\s+["']@\/lib\/([^"']+)["']/)
+    if (!m) {
+      const m2 = trimmed.match(/^import\s+(?!type)[\s\S]*?\sfrom\s+["']@\/lib\/([^"']+)["']/)
+      if (m2) out.push(m2[1])
+      continue
+    }
+    if (!trimmed.includes(" import type ") && !trimmed.match(/^import\s+type\s+/)) {
+      out.push(m[1])
+    }
   }
   return out
 }
@@ -61,9 +85,7 @@ for (const file of walk(ROOT)) {
   if (!isClientFile(file, src)) continue
 
   for (const libImport of parseLibImports(src)) {
-    const resolved = resolveLibModule(`@/lib/${libImport}`)
-    if (!resolved) continue
-    if (loadsPrisma(resolved)) {
+    if (libImportLoadsPrisma(libImport)) {
       violations.push({ client: path.relative(ROOT, file), lib: `@/lib/${libImport}` })
     }
   }

@@ -11,7 +11,7 @@ import {
   normalizeCartVariantSignature,
   parseCartVariantSignature,
 } from "@/lib/cart-variant"
-import { resolveAffisellCommissionRateBpsForProductId } from "@/lib/affisell-platform-commission"
+import { resolveAffisellCommissionRateBpsForProductId } from "@/lib/affisell-platform-commission.server"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import {
   fixZeroPaidLinesCents,

@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
-import {
-  affisellCommissionRateBpsToPercent,
-  resolveCategoryAffisellCommissionBps,
-} from "@/lib/affisell-platform-commission"
+import { affisellCommissionRateBpsToPercent } from "@/lib/affisell-platform-commission"
+import { resolveCategoryAffisellCommissionBps } from "@/lib/affisell-platform-commission.server"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"

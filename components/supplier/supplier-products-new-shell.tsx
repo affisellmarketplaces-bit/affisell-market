@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 
 import { SupplierAddProductForm } from "@/components/supplier/supplier-add-product-form"
@@ -59,12 +59,20 @@ export function SupplierProductsNewShell({ ownerUserId }: { ownerUserId: string 
           <SupplierInviteContextBanner fromInviteQuery />
         </BentoContainer>
       ) : null}
-      <SupplierAddProductForm
-        ownerUserId={ownerUserId}
-        onBackToMethods={editId ? undefined : goHub}
-        assistShortcuts={Boolean(assistQs) && !editId}
-        inviteCommissionHint={inviteCommissionHint}
-      />
+      <Suspense
+        fallback={
+          <div className="mx-auto max-w-7xl px-4 py-12 text-center text-sm text-zinc-500">
+            Chargement de l’éditeur…
+          </div>
+        }
+      >
+        <SupplierAddProductForm
+          ownerUserId={ownerUserId}
+          onBackToMethods={editId ? undefined : goHub}
+          assistShortcuts={Boolean(assistQs) && !editId}
+          inviteCommissionHint={inviteCommissionHint}
+        />
+      </Suspense>
     </>
   )
 }

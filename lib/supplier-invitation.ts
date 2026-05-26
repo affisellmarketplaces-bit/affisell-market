@@ -3,10 +3,8 @@ import type { Prisma } from "@prisma/client"
 import { requireMerchantUserId } from "@/lib/merchant-tenant-scope"
 import { prisma } from "@/lib/prisma"
 import { ensureInviterDraftListingForInvite } from "@/lib/supplier-invitation-affiliate-listing"
-import {
-  allocateUniqueSupplierInviteToken,
-  normalizeSupplierInviteToken,
-} from "@/lib/supplier-invitation-token"
+import { allocateUniqueSupplierInviteToken } from "@/lib/supplier-invitation-token.server"
+import { normalizeSupplierInviteToken } from "@/lib/supplier-invitation-token"
 import { supplierInvitationPublicUrl } from "@/lib/supplier-invitation-url"
 import type {
   AffiliateInvitationListItem,

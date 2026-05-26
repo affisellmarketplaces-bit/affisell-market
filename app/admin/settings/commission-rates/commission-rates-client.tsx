@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
 
-import type { CategoryCommissionRow } from "@/lib/admin/commission-rates/load-category-commission-rates"
+import type { CategoryCommissionRow } from "@/lib/admin/commission-rates/types"
 import { affisellCommissionRateBpsToPercent } from "@/lib/affisell-platform-commission"
 import { cn } from "@/lib/utils"
 

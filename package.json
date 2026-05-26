@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "prisma generate && node ./scripts/next-dev-port.mjs",
     "postinstall": "node scripts/prisma-postinstall.mjs",
-    "build": "next build",
+    "build": "npm run check:client-prisma && next build",
     "db:push": "prisma db push",
     "db:local:up": "docker compose up -d",
     "worker:auto-order": "tsx workers/auto-order-worker.ts",

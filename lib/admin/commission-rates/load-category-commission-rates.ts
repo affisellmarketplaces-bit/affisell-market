@@ -1,19 +1,10 @@
+import { affisellCommissionRateBpsToPercent } from "@/lib/affisell-platform-commission"
+import { resolveCategoryAffisellCommissionBps } from "@/lib/affisell-platform-commission.server"
 import { prisma } from "@/lib/prisma"
-import {
-  affisellCommissionRateBpsToPercent,
-  resolveCategoryAffisellCommissionBps,
-} from "@/lib/affisell-platform-commission"
 
-export type CategoryCommissionRow = {
-  id: string
-  name: string
-  fullPath: string
-  isLeaf: boolean
-  affisellCommissionRateBps: number | null
-  effectiveBps: number
-  effectivePercent: number
-  productCount: number
-}
+import type { CategoryCommissionRow } from "@/lib/admin/commission-rates/types"
+
+export type { CategoryCommissionRow } from "@/lib/admin/commission-rates/types"
 
 export async function loadCategoryCommissionRates(options?: {
   search?: string
