@@ -23,7 +23,12 @@ export default async function LegalSlugPage({ params }: Props) {
   const { slug } = await params
   if (!isLegalSlug(slug)) notFound()
 
-  const doc = loadLegalDocument(slug as LegalSlug)
+  let doc
+  try {
+    doc = loadLegalDocument(slug as LegalSlug)
+  } catch {
+    notFound()
+  }
   const allDocs = listLegalDocuments()
 
   return (

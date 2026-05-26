@@ -13,14 +13,26 @@ import { LEGAL_SLUGS, isLegalSlug } from "@/lib/legal/types"
 export type { LegalDocMeta, LegalSlug }
 export { LEGAL_SLUGS, isLegalSlug, slugifyHeading }
 
-const LEGAL_DIR = path.join(process.cwd(), "legal")
+function resolveLegalDir(): string {
+  const candidates = [
+    path.join(process.cwd(), "legal"),
+    path.join(process.cwd(), ".next/standalone/legal"),
+  ]
+  for (const dir of candidates) {
+    if (fs.existsSync(dir)) return dir
+  }
+  return candidates[0]!
+}
 
 export function loadLegalDocument(slug: LegalSlug): {
   meta: LegalDocMeta
   content: string
   headings: { id: string; text: string; level: number }[]
 } {
-  const filePath = path.join(LEGAL_DIR, `${slug}.md`)
+  const filePath = path.join(resolveLegalDir(), `${slug}.md`)
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`Legal document not found: ${slug} (${filePath})`)
+  }
   const raw = fs.readFileSync(filePath, "utf8")
   const { data, content } = matter(raw)
   const lastUpdated =
