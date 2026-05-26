@@ -24,10 +24,10 @@ export function MarketplaceAffisellPulse({ audience = "default" }: Props) {
       cardClass: "from-violet-600 to-indigo-600 text-white shadow-violet-500/25",
     },
     {
-      href: PUBLIC_SHOPS_PATH,
-      label: t("featured"),
-      hint: t("featuredHint"),
-      Icon: Store,
+      href: "/discover",
+      label: t("discoverShort"),
+      hint: t("discoverMarketHint"),
+      Icon: Sparkles,
       cardClass: "from-fuchsia-600 to-pink-600 text-white shadow-fuchsia-500/25",
     },
     {

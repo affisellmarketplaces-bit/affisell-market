@@ -49,7 +49,7 @@ function BuyerServiceTile({ href, label, hint, Icon, accent }: BuyerSmartService
 
 /** Buyer shortcuts anchored on the lower edge of the home hero band. */
 export function HomeBuyerSmartStrip({ featuredShops }: Props) {
-  const [agent, catalogue, boutiques] = BUYER_SMART_SERVICES
+  const [agent, pulse, catalogue] = BUYER_SMART_SERVICES
 
   return (
     <div
@@ -64,9 +64,9 @@ export function HomeBuyerSmartStrip({ featuredShops }: Props) {
       </p>
       <ul className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
         {agent ? <BuyerServiceTile {...agent} /> : null}
+        {pulse ? <BuyerServiceTile {...pulse} /> : null}
         <HomeBuyerFeaturedShopsTile shops={featuredShops} />
         {catalogue ? <BuyerServiceTile {...catalogue} /> : null}
-        {boutiques ? <BuyerServiceTile {...boutiques} /> : null}
       </ul>
     </div>
   )
