@@ -286,17 +286,28 @@ export function SupplierAddProductForm({
   const editId = searchParams.get("edit")?.trim() ?? ""
   const draftIdFromUrl = searchParams.get("draft")?.trim() ?? ""
   const composeQs = searchParams.get("compose") === "1"
-  const urlListingId = editId || draftIdFromUrl
 
   const cacheMode: SupplierAddProductCacheMode = assistShortcuts ? "assist" : composeQs ? "compose" : "plain"
   const tForm = useTranslations("supplier.form")
 
-  const [loadingProduct, setLoadingProduct] = useState(Boolean(urlListingId))
+  /** Server draft ids that 404 (deleted or never synced) — never retry PUT on these. */
+  const [deadServerDraftIds, setDeadServerDraftIds] = useState<readonly string[]>([])
+  const markServerDraftDead = useCallback((id: string) => {
+    setDeadServerDraftIds((prev) => (prev.includes(id) ? prev : [...prev, id]))
+  }, [])
+  const draftIdFromUrlUsable =
+    draftIdFromUrl && !deadServerDraftIds.includes(draftIdFromUrl) ? draftIdFromUrl : ""
+  const urlListingId = editId || draftIdFromUrlUsable
+
+  const [loadingProduct, setLoadingProduct] = useState(
+    () => Boolean(editId || draftIdFromUrl)
+  )
   const [saving, setSaving] = useState(false)
   const [draftSync, setDraftSync] = useState<"idle" | "saving" | "saved" | "error">("idle")
   const [draftSyncAt, setDraftSyncAt] = useState<number | null>(null)
   const [pendingDraftListingId, setPendingDraftListingId] = useState("")
   const [productIsDraft, setProductIsDraft] = useState(false)
+  const autosaveListingId = editId || draftIdFromUrlUsable || pendingDraftListingId
   const step = useSupplierProductWizardStore((s) => s.step)
   const trySetStep = useSupplierProductWizardStore((s) => s.trySetStep)
   const nextWizardStep = useSupplierProductWizardStore((s) => s.nextStep)
@@ -306,9 +317,19 @@ export function SupplierAddProductForm({
   const setSkuErrors = useSupplierProductWizardStore((s) => s.setSkuErrors)
   const skuErrors = useSupplierProductWizardStore((s) => s.skuErrors)
 
-  const autosaveListingId = editId || draftIdFromUrl || pendingDraftListingId
   const lastAutosaveJson = useRef("")
   const hydratedFromCache = useRef(false)
+
+  const replaceProductQuery = useCallback(
+    (mutate: (qs: URLSearchParams) => void) => {
+      const qs = new URLSearchParams(searchParams.toString())
+      mutate(qs)
+      if (composeQs && !qs.has("compose")) qs.set("compose", "1")
+      const next = qs.toString()
+      router.replace(next ? `${pathname}?${next}` : pathname, { scroll: false })
+    },
+    [composeQs, pathname, router, searchParams]
+  )
 
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
@@ -712,10 +733,22 @@ export function SupplierAddProductForm({
   }, [commission])
 
   const loadProduct = useCallback(async (id: string) => {
+    if (deadServerDraftIds.includes(id)) return
     setLoadingProduct(true)
     try {
       const res = await fetch(`/api/supplier/products/${id}`, { credentials: "include" })
       const data = (await res.json()) as Record<string, unknown>
+      if (res.status === 404) {
+        markServerDraftDead(id)
+        setPendingDraftListingId("")
+        replaceProductQuery((qs) => {
+          qs.delete("draft")
+          qs.delete("edit")
+        })
+        if (composeQs) setProductIsDraft(true)
+        toast.message("Brouillon introuvable — un nouveau sera créé à la prochaine sauvegarde.")
+        return
+      }
       if (!res.ok) {
         throw new Error(typeof data.error === "string" ? data.error : "Failed to load product")
       }
@@ -922,11 +955,14 @@ export function SupplierAddProductForm({
       setCategoryAiTag(false)
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to load product")
-      router.replace("/dashboard/supplier/products/new")
+      replaceProductQuery((qs) => {
+        qs.delete("draft")
+        qs.delete("edit")
+      })
     } finally {
       setLoadingProduct(false)
     }
-  }, [router])
+  }, [composeQs, deadServerDraftIds, markServerDraftDead, ownerUserId, replaceProductQuery])
 
   useEffect(() => {
     if (!urlListingId) {
@@ -1280,10 +1316,10 @@ export function SupplierAddProductForm({
           if (json.id) {
             setPendingDraftListingId(json.id)
             setProductIsDraft(true)
-            const qs = new URLSearchParams(searchParams.toString())
-            qs.set("draft", json.id)
-            if (!qs.has("compose")) qs.set("compose", "1")
-            router.replace(`${pathname}?${qs.toString()}`, { scroll: false })
+            replaceProductQuery((qs) => {
+              qs.set("draft", json.id!)
+              if (!qs.has("compose")) qs.set("compose", "1")
+            })
           }
         }
 
@@ -1296,11 +1332,13 @@ export function SupplierAddProductForm({
           })
           const json = (await res.json().catch(() => ({}))) as { error?: string }
           if (res.status === 404) {
+            markServerDraftDead(autosaveListingId)
             setPendingDraftListingId("")
-            const qs = new URLSearchParams(searchParams.toString())
-            qs.delete("draft")
-            qs.delete("edit")
-            router.replace(qs.toString() ? `${pathname}?${qs.toString()}` : pathname, { scroll: false })
+            lastAutosaveJson.current = ""
+            replaceProductQuery((qs) => {
+              qs.delete("draft")
+              qs.delete("edit")
+            })
             await saveViaPost()
           } else if (!res.ok) {
             throw new Error(typeof json.error === "string" ? json.error : "Échec de l'enregistrement")
@@ -1328,8 +1366,10 @@ export function SupplierAddProductForm({
       buildDraftSyncBody,
       canSaveDraft,
       loadingProduct,
+      markServerDraftDead,
       pathname,
       productIsDraft,
+      replaceProductQuery,
       router,
       saving,
       searchParams,
@@ -1510,7 +1550,7 @@ export function SupplierAddProductForm({
     setSpecFormErrors([])
 
     const payload = assembleListingPayload(false)
-    const serverId = editId || draftIdFromUrl || pendingDraftListingId
+    const serverId = autosaveListingId
 
     setSaving(true)
     try {
