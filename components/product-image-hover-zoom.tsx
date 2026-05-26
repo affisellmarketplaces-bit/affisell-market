@@ -11,8 +11,7 @@ import {
 } from "@/lib/product-image-zoom-bounds"
 import { cn } from "@/lib/utils"
 
-/** Magnification factor — higher = closer product detail. */
-const ZOOM = 3.15
+const ZOOM = 2.75
 
 const PLACEHOLDER_SRC = "/placeholder-product.jpg"
 
@@ -24,20 +23,28 @@ type Props = {
   frameClassName?: string
 }
 
+type PointerPct = { x: number; y: number }
+
 /**
- * Desktop (lg+): split-pane loupe — lens tracks the real `object-contain` image;
- * magnified pane stays inside the gallery (no overlap on title / buy box).
+ * Desktop: loupe + zoom pane overlaid on the gallery (layout never shrinks — no jitter).
  */
 export function ProductImageHoverZoom({ src, alt, overlay, className, frameClassName }: Props) {
   const t = useTranslations("Product.gallery")
+  const rootRef = useRef<HTMLDivElement>(null)
   const heroRef = useRef<HTMLDivElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
+  const lensRef = useRef<HTMLDivElement>(null)
+  const zoomPaneRef = useRef<HTMLDivElement>(null)
+  const zoomImgRef = useRef<HTMLImageElement>(null)
+  const imageRectRef = useRef<ContainedImageRect | null>(null)
+  const pctRef = useRef<PointerPct>({ x: 50, y: 50 })
+  const rafRef = useRef(0)
+
   const [pointerInHero, setPointerInHero] = useState(false)
   const [zoomEngaged, setZoomEngaged] = useState(false)
-  const [pct, setPct] = useState({ x: 50, y: 50 })
   const [finePointer, setFinePointer] = useState(false)
   const [displaySrc, setDisplaySrc] = useState(src)
-  const [imageRect, setImageRect] = useState<ContainedImageRect | null>(null)
+  const [hasImageRect, setHasImageRect] = useState(false)
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return
@@ -54,8 +61,55 @@ export function ProductImageHoverZoom({ src, alt, overlay, className, frameClass
     setDisplaySrc(src?.trim() || PLACEHOLDER_SRC)
     setPointerInHero(false)
     setZoomEngaged(false)
-    setPct({ x: 50, y: 50 })
+    pctRef.current = { x: 50, y: 50 }
+    imageRectRef.current = null
+    setHasImageRect(false)
   }, [src])
+
+  const applyLensAndZoom = useCallback(() => {
+    const rect = imageRectRef.current
+    const lens = lensRef.current
+    const zoomImg = zoomImgRef.current
+    const pane = zoomPaneRef.current
+    if (!rect || !lens || !zoomImg || !pane) return
+
+    const { x, y } = pctRef.current
+    const lensW = rect.width / ZOOM
+    const lensH = rect.height / ZOOM
+    const cx = rect.left + (x / 100) * rect.width
+    const cy = rect.top + (y / 100) * rect.height
+    const lensLeft = Math.min(
+      rect.left + rect.width - lensW,
+      Math.max(rect.left, cx - lensW / 2)
+    )
+    const lensTop = Math.min(
+      rect.top + rect.height - lensH,
+      Math.max(rect.top, cy - lensH / 2)
+    )
+
+    lens.style.width = `${lensW}px`
+    lens.style.height = `${lensH}px`
+    lens.style.transform = `translate3d(${lensLeft}px, ${lensTop}px, 0)`
+
+    const zw = rect.width * ZOOM
+    const zh = rect.height * ZOOM
+    zoomImg.style.width = `${zw}px`
+    zoomImg.style.height = `${zh}px`
+
+    const paneW = pane.clientWidth
+    const paneH = pane.clientHeight
+    const tx = paneW * 0.5 - (x / 100) * zw
+    const ty = paneH * 0.5 - (y / 100) * zh
+    zoomImg.style.transform = `translate3d(${tx}px, ${ty}px, 0)`
+  }, [])
+
+  const scheduleApply = useCallback(() => {
+    if (rafRef.current) return
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = 0
+      applyLensAndZoom()
+    })
+  }, [applyLensAndZoom])
 
   const measureImageRect = useCallback(() => {
     const hero = heroRef.current
@@ -65,180 +119,158 @@ export function ProductImageHoverZoom({ src, alt, overlay, className, frameClass
     const nw = img.naturalWidth
     const nh = img.naturalHeight
     if (!nw || !nh) {
-      setImageRect(null)
+      imageRectRef.current = null
+      setHasImageRect(false)
       return
     }
 
     const pad = parsePaddingPx(getComputedStyle(img).padding)
-    setImageRect(
-      computeObjectContainRect(hero.clientWidth, hero.clientHeight, nw, nh, pad)
-    )
-  }, [])
+    const rect = computeObjectContainRect(hero.clientWidth, hero.clientHeight, nw, nh, pad)
+    imageRectRef.current = rect
+    setHasImageRect(rect.width > 0)
+    scheduleApply()
+  }, [scheduleApply])
 
   useEffect(() => {
     const hero = heroRef.current
     if (!hero) return
     measureImageRect()
-    const ro = new ResizeObserver(() => measureImageRect())
+    const ro = new ResizeObserver(() => {
+      window.requestAnimationFrame(measureImageRect)
+    })
     ro.observe(hero)
     return () => ro.disconnect()
   }, [measureImageRect, displaySrc])
 
-  const zoomActive = finePointer && pointerInHero && zoomEngaged && imageRect && imageRect.width > 0
+  const zoomActive = finePointer && pointerInHero && zoomEngaged && hasImageRect
+
+  useEffect(() => {
+    if (!zoomActive) return
+    scheduleApply()
+  }, [zoomActive, scheduleApply])
 
   const onMove = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       const hero = heroRef.current
+      const img = imgRef.current
       if (!hero || !finePointer) return
 
       const r = hero.getBoundingClientRect()
       const localX = e.clientX - r.left
       const localY = e.clientY - r.top
-      const rect = imageRect ?? computeObjectContainRect(
-        hero.clientWidth,
-        hero.clientHeight,
-        imgRef.current?.naturalWidth ?? 0,
-        imgRef.current?.naturalHeight ?? 0,
-        imgRef.current
-          ? parsePaddingPx(getComputedStyle(imgRef.current).padding)
-          : { top: 0, right: 0, bottom: 0, left: 0 }
-      )
+      const rect =
+        imageRectRef.current ??
+        computeObjectContainRect(
+          hero.clientWidth,
+          hero.clientHeight,
+          img?.naturalWidth ?? 0,
+          img?.naturalHeight ?? 0,
+          img ? parsePaddingPx(getComputedStyle(img).padding) : { top: 0, right: 0, bottom: 0, left: 0 }
+        )
 
       const next = pointerPercentInContainedImage(localX, localY, rect)
       if (!next) return
 
-      setZoomEngaged(true)
-      setPct(next)
+      if (!zoomEngaged) setZoomEngaged(true)
+      pctRef.current = next
+      scheduleApply()
     },
-    [finePointer, imageRect]
+    [finePointer, scheduleApply, zoomEngaged]
   )
 
-  const lensW = imageRect ? imageRect.width / ZOOM : 0
-  const lensH = imageRect ? imageRect.height / ZOOM : 0
-  const lensCenterX = imageRect ? imageRect.left + (pct.x / 100) * imageRect.width : 0
-  const lensCenterY = imageRect ? imageRect.top + (pct.y / 100) * imageRect.height : 0
-  const lensLeft = imageRect
-    ? Math.min(
-        imageRect.left + imageRect.width - lensW,
-        Math.max(imageRect.left, lensCenterX - lensW / 2)
-      )
-    : 0
-  const lensTop = imageRect
-    ? Math.min(
-        imageRect.top + imageRect.height - lensH,
-        Math.max(imageRect.top, lensCenterY - lensH / 2)
-      )
-    : 0
+  const onLeave = useCallback(() => {
+    setPointerInHero(false)
+    setZoomEngaged(false)
+    if (lensRef.current) lensRef.current.style.opacity = "0"
+  }, [])
 
-  const zoomedW = imageRect ? imageRect.width * ZOOM : 0
-  const zoomedH = imageRect ? imageRect.height * ZOOM : 0
-  const zoomImgLeft = imageRect ? `calc(50% - ${(pct.x / 100) * zoomedW}px)` : "50%"
-  const zoomImgTop = imageRect ? `calc(50% - ${(pct.y / 100) * zoomedH}px)` : "50%"
+  const onEnter = useCallback(() => {
+    setPointerInHero(true)
+    if (lensRef.current) lensRef.current.style.opacity = "1"
+  }, [])
 
   return (
     <div
+      ref={rootRef}
       className={cn(
         "relative w-full max-w-full overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950",
-        zoomActive && "lg:flex lg:items-stretch lg:gap-0 lg:overflow-hidden",
         className
       )}
     >
       <div
+        ref={heroRef}
         className={cn(
-          "relative min-w-0 transition-[flex-basis] duration-200 ease-out",
-          zoomActive ? "lg:basis-[58%] lg:shrink-0" : "lg:basis-full"
+          "relative flex aspect-[4/5] w-full cursor-crosshair items-center justify-center overflow-hidden bg-zinc-50 sm:aspect-square dark:bg-zinc-900/80",
+          finePointer && pointerInHero && !zoomEngaged && "ring-1 ring-inset ring-violet-400/30 dark:ring-violet-500/25",
+          frameClassName
         )}
+        onPointerEnter={onEnter}
+        onPointerLeave={onLeave}
+        onPointerMove={finePointer ? onMove : undefined}
       >
-        <div
-          ref={heroRef}
-          className={cn(
-            "relative flex aspect-[4/5] w-full cursor-crosshair items-center justify-center overflow-hidden bg-zinc-50 sm:aspect-square dark:bg-zinc-900/80",
-            finePointer && pointerInHero && !zoomEngaged && "ring-1 ring-inset ring-violet-400/30 dark:ring-violet-500/25",
-            frameClassName
-          )}
-          onPointerEnter={() => setPointerInHero(true)}
-          onPointerLeave={() => {
-            setPointerInHero(false)
-            setZoomEngaged(false)
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          ref={imgRef}
+          key={displaySrc}
+          src={displaySrc}
+          alt={alt}
+          draggable={false}
+          decoding="async"
+          className="absolute inset-0 h-full w-full select-none object-contain object-center p-3 sm:p-4"
+          onLoad={measureImageRect}
+          onError={() => {
+            setDisplaySrc((current) =>
+              current === PLACEHOLDER_SRC ? current : PLACEHOLDER_SRC
+            )
           }}
-          onPointerMove={finePointer ? onMove : undefined}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            ref={imgRef}
-            key={displaySrc}
-            src={displaySrc}
-            alt={alt}
-            draggable={false}
-            decoding="async"
-            className="absolute inset-0 h-full w-full select-none object-contain object-center p-3 sm:p-4"
-            onLoad={measureImageRect}
-            onError={() => {
-              setDisplaySrc((current) =>
-                current === PLACEHOLDER_SRC ? current : PLACEHOLDER_SRC
-              )
-            }}
-          />
+        />
 
-          {zoomActive && imageRect ? (
-            <div
-              className="pointer-events-none absolute z-[1] rounded-sm border-2 border-violet-500/90 bg-violet-400/10 shadow-[0_0_0_1px_rgba(255,255,255,0.85)_inset] backdrop-blur-[1px] dark:border-violet-400/80"
-              style={{
-                left: lensLeft,
-                top: lensTop,
-                width: lensW,
-                height: lensH,
-              }}
-              aria-hidden
-            />
-          ) : null}
-
-          {finePointer && pointerInHero && !zoomEngaged ? (
-            <p
-              className="pointer-events-none absolute inset-x-0 bottom-10 z-[2] mx-auto w-fit max-w-[calc(100%-1.5rem)] rounded-full border border-zinc-200/80 bg-white/92 px-3 py-1.5 text-center text-[11px] font-medium text-zinc-600 shadow-sm backdrop-blur-sm dark:border-zinc-600/80 dark:bg-zinc-950/90 dark:text-zinc-300"
-              aria-live="polite"
-            >
-              {t("hoverZoomHint")}
-            </p>
-          ) : null}
-
-          {overlay ? <div className="pointer-events-none absolute inset-0 z-[3]">{overlay}</div> : null}
-        </div>
-      </div>
-
-      {zoomActive && imageRect ? (
         <div
-          role="region"
-          aria-label="Vue rapprochée du produit"
-          className="relative hidden min-h-0 overflow-hidden border-t border-zinc-200/80 bg-gradient-to-br from-zinc-50 via-white to-violet-50/30 dark:border-zinc-700 dark:from-zinc-900 dark:via-zinc-950 dark:to-violet-950/20 lg:block lg:basis-[42%] lg:shrink-0 lg:border-l lg:border-t-0"
-        >
-          <div className="absolute inset-0 overflow-hidden">
+          ref={lensRef}
+          className={cn(
+            "pointer-events-none absolute left-0 top-0 z-[1] rounded-sm border-2 border-violet-500/90 bg-violet-400/10 shadow-[0_0_0_1px_rgba(255,255,255,0.85)_inset] will-change-transform dark:border-violet-400/80",
+            zoomActive ? "opacity-100" : "opacity-0"
+          )}
+          aria-hidden
+        />
+
+        {finePointer && pointerInHero && !zoomEngaged ? (
+          <p
+            className="pointer-events-none absolute inset-x-0 bottom-10 z-[2] mx-auto w-fit max-w-[calc(100%-1.5rem)] rounded-full border border-zinc-200/80 bg-white/92 px-3 py-1.5 text-center text-[11px] font-medium text-zinc-600 shadow-sm backdrop-blur-sm dark:border-zinc-600/80 dark:bg-zinc-950/90 dark:text-zinc-300"
+            aria-live="polite"
+          >
+            {t("hoverZoomHint")}
+          </p>
+        ) : null}
+
+        {overlay ? <div className="pointer-events-none absolute inset-0 z-[3]">{overlay}</div> : null}
+
+        {zoomActive ? (
+          <div
+            ref={zoomPaneRef}
+            role="region"
+            aria-label="Vue rapprochée du produit"
+            className="pointer-events-none absolute inset-y-0 right-0 z-[4] hidden w-[44%] max-w-[280px] overflow-hidden border-l border-zinc-200/90 bg-gradient-to-br from-zinc-50/98 via-white/98 to-violet-50/40 shadow-[-12px_0_32px_-12px_rgba(15,23,42,0.12)] backdrop-blur-[2px] dark:border-zinc-700 dark:from-zinc-900/98 dark:via-zinc-950/98 dark:to-violet-950/30 lg:block"
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
+              ref={zoomImgRef}
               src={displaySrc}
               alt=""
               draggable={false}
               aria-hidden
-              className="absolute max-w-none select-none"
-              style={{
-                width: zoomedW,
-                height: zoomedH,
-                left: zoomImgLeft,
-                top: zoomImgTop,
-                willChange: "left, top",
-                transition: "left 75ms ease-out, top 75ms ease-out",
-              }}
+              className="absolute left-0 top-0 max-w-none select-none will-change-transform"
             />
+            <div
+              className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.025)_1px,transparent_1px)] bg-[size:14px_14px] opacity-50"
+              aria-hidden
+            />
+            <p className="absolute bottom-2 left-2 right-2 rounded-md bg-black/45 px-2 py-1 text-center text-[10px] font-medium tracking-wide text-white/95">
+              {t("zoomDetailLevel", { level: Math.round(ZOOM * 100) })}
+            </p>
           </div>
-          <div
-            className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:14px_14px] opacity-60 dark:opacity-40"
-            aria-hidden
-          />
-          <p className="pointer-events-none absolute bottom-2 left-2 right-2 rounded-md bg-black/45 px-2 py-1 text-center text-[10px] font-medium tracking-wide text-white/95 backdrop-blur-sm">
-            {t("zoomDetailLevel", { level: Math.round(ZOOM * 100) })}
-          </p>
-        </div>
-      ) : null}
+        ) : null}
+      </div>
     </div>
   )
 }
