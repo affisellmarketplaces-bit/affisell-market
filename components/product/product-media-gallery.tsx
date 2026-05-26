@@ -1,11 +1,11 @@
 "use client"
 
-import { AnimatePresence, motion } from "framer-motion"
-import { ChevronLeft, ChevronRight, Film, Maximize2, Play, X } from "lucide-react"
+import { Film, Maximize2, Play } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react"
 import { useTranslations } from "next-intl"
 
 import { MobileProductGalleryCarousel } from "@/components/product/mobile-product-gallery-carousel"
+import { ProductGalleryLightbox } from "@/components/product/product-gallery-lightbox"
 import { ProductImageHoverZoom } from "@/components/product-image-hover-zoom"
 import { isDirectMp4Url } from "@/lib/product-description-video-embed"
 import { cn } from "@/lib/utils"
@@ -92,23 +92,14 @@ export function ProductMediaGallery({
     setLightboxOpen(true)
   }, [safeImages.length])
 
-  const lightboxGo = useCallback(
-    (dir: -1 | 1) => {
-      setLightboxIndex((i) => (i + dir + safeImages.length) % safeImages.length)
+  const handleLightboxIndexChange = useCallback(
+    (i: number) => {
+      setLightboxIndex(i)
+      setMediaMode("image")
+      onSelectImage(i)
     },
-    [safeImages.length]
+    [onSelectImage]
   )
-
-  useEffect(() => {
-    if (!lightboxOpen) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setLightboxOpen(false)
-      if (e.key === "ArrowLeft") lightboxGo(-1)
-      if (e.key === "ArrowRight") lightboxGo(1)
-    }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [lightboxOpen, lightboxGo])
 
   const isThumbActive = (index: number) =>
     mediaMode === "image" && activeThumbIndex >= 0 && activeThumbIndex === index
@@ -269,80 +260,14 @@ export function ProductMediaGallery({
         </div>
       </div>
 
-      <AnimatePresence>
-        {lightboxOpen ? (
-          <motion.div
-            className="fixed inset-0 z-[90] flex flex-col bg-zinc-950/95 backdrop-blur-md"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            role="dialog"
-            aria-modal
-            aria-label={t("lightbox")}
-          >
-            <div className="flex items-center justify-between px-4 py-3 text-white">
-              <span className="text-sm font-medium tabular-nums">
-                {lightboxIndex + 1} / {safeImages.length}
-              </span>
-              <button
-                type="button"
-                onClick={() => setLightboxOpen(false)}
-                className="rounded-full bg-white/10 p-2 hover:bg-white/20"
-                aria-label={t("close")}
-              >
-                <X className="size-5" />
-              </button>
-            </div>
-            <div className="relative flex min-h-0 flex-1 items-center justify-center px-4 pb-8">
-              {safeImages.length > 1 ? (
-                <>
-                  <button
-                    type="button"
-                    className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-3 hover:bg-white/20 md:left-6"
-                    onClick={() => lightboxGo(-1)}
-                    aria-label={t("prev")}
-                  >
-                    <ChevronLeft className="size-6 text-white" />
-                  </button>
-                  <button
-                    type="button"
-                    className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-3 hover:bg-white/20 md:right-6"
-                    onClick={() => lightboxGo(1)}
-                    aria-label={t("next")}
-                  >
-                    <ChevronRight className="size-6 text-white" />
-                  </button>
-                </>
-              ) : null}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={safeImages[lightboxIndex]}
-                alt={alt}
-                className="max-h-[min(78vh,900px)] max-w-full object-contain"
-                onError={(e) => {
-                  e.currentTarget.src = PLACEHOLDER
-                }}
-              />
-            </div>
-            <div className="flex justify-center gap-2 overflow-x-auto px-4 pb-6">
-              {safeImages.map((url, i) => (
-                <button
-                  key={`lb-${i}`}
-                  type="button"
-                  onClick={() => setLightboxIndex(i)}
-                  className={cn(
-                    "h-14 w-14 shrink-0 overflow-hidden rounded-lg border-2",
-                    i === lightboxIndex ? "border-sky-400" : "border-white/20 opacity-70"
-                  )}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={url} alt="" className="h-full w-full object-contain" />
-                </button>
-              ))}
-            </div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+      <ProductGalleryLightbox
+        open={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        images={safeImages}
+        index={lightboxIndex}
+        onIndexChange={handleLightboxIndexChange}
+        alt={alt}
+      />
     </>
   )
 }

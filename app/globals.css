@@ -200,7 +200,8 @@
    * PDP / product page — hairline viewport frame (fine, barely visible).
    * Sits on the outer edges of the screen, not around inner content cards.
    */
-  .affisell-mobile-gallery-track {
+  .affisell-mobile-gallery-track,
+  .affisell-lightbox-track {
     scroll-snap-type: x mandatory;
     scroll-padding-inline: 0;
   }
