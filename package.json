@@ -105,6 +105,7 @@
     "react-hook-form": "^7.76.0",
     "react-markdown": "^10.1.0",
     "react-select": "^5.10.2",
+    "react-swipeable": "^7.0.2",
     "recharts": "^3.8.1",
     "remark-gfm": "^4.0.1",
     "resend": "^6.12.3",
