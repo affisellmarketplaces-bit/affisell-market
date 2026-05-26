@@ -1,4 +1,4 @@
-import { groqChatText } from "@/lib/ai/groq-client"
+import { classifyAffisellProduct } from "@/lib/ai/classify-product"
 import {
   buildCategoryBrowse,
   fetchAllCategoriesForBrowse,
@@ -7,6 +7,7 @@ import {
   suggestLeafCategoriesFromProductText,
   type LeafPath,
 } from "@/lib/category-browse"
+import { suggestCategoriesFromCatalog } from "@/lib/category-marketplace-learning"
 import {
   findWearableCategoryAlternatives,
   isCategorySuggestionViable,
@@ -16,6 +17,8 @@ import type { PrismaClient } from "@prisma/client"
 
 export type ListingCategorySuggestion = LeafPath & {
   confidence?: number
+  /** Where this pick came from (for UI hints). */
+  suggestionSource?: "catalog" | "ai" | "keyword"
 }
 
 export type SuggestListingCategoriesResult = {
@@ -23,12 +26,14 @@ export type SuggestListingCategoriesResult = {
   /** e.g. Bijoux > Montres when primary is activity monitor */
   alternatives: CategoryAlternativeSuggestion[]
   recommendedLeafId: string | null
-  source: "none" | "empty" | "keyword" | "ai" | "hybrid"
+  source: "none" | "empty" | "keyword" | "ai" | "hybrid" | "catalog"
 }
 
 const MIN_KEYWORD_SCORE_FOR_MERGE = 7
 
-function mergeSuggestionsByTitleRelevance(
+export const LISTING_CATEGORY_SUGGESTION_LIMIT = 5
+
+function mergeAiAndKeyword(
   title: string,
   description: string,
   aiPicks: LeafPath[],
@@ -37,77 +42,52 @@ function mergeSuggestionsByTitleRelevance(
 ): LeafPath[] {
   const text = `${title} ${description}`.trim()
   const seen = new Set<string>()
-  const pushUnique = (lp: LeafPath, out: LeafPath[]) => {
+  const out: LeafPath[] = []
+
+  const pushUnique = (lp: LeafPath) => {
     if (seen.has(lp.leafId)) return
     seen.add(lp.leafId)
     out.push(lp)
   }
 
-  const topAi = aiPicks[0]
-  const topKw = keywordPicks[0]
-  const aiScore = topAi ? scoreProductTextAgainstBreadcrumb(text, topAi.breadcrumb) : 0
-  const kwScore = topKw ? scoreProductTextAgainstBreadcrumb(text, topKw.breadcrumb) : 0
-
-  /** Keep Groq order when keyword ranking would promote false "voiture" / pet matches. */
-  const preferAiOrder =
-    aiPicks.length > 0 &&
-    aiScore >= MIN_KEYWORD_SCORE_FOR_MERGE &&
-    (kwScore < MIN_KEYWORD_SCORE_FOR_MERGE || aiScore >= kwScore * 0.8)
-
-  if (preferAiOrder) {
-    const out: LeafPath[] = []
-    for (const lp of aiPicks) pushUnique(lp, out)
-    for (const lp of keywordPicks) {
-      if (out.length >= limit) break
-      pushUnique(lp, out)
-    }
-    return out.slice(0, limit)
+  for (const lp of aiPicks) {
+    if (out.length >= limit) break
+    pushUnique(lp)
+  }
+  for (const lp of keywordPicks) {
+    if (out.length >= limit) break
+    if (isCategorySuggestionViable(text, lp.breadcrumb)) pushUnique(lp)
   }
 
-  const combined: LeafPath[] = []
-  for (const lp of [...aiPicks, ...keywordPicks]) pushUnique(lp, combined)
+  if (out.length >= limit) return out.slice(0, limit)
 
-  const aiRank = new Map<string, number>()
-  aiPicks.forEach((lp, i) => aiRank.set(lp.leafId, aiPicks.length - i))
+  const ranked = [...aiPicks, ...keywordPicks]
+    .filter((lp) => !seen.has(lp.leafId))
+    .map((lp) => ({ lp, s: scoreProductTextAgainstBreadcrumb(text, lp.breadcrumb) }))
+    .filter(({ s }) => s >= MIN_KEYWORD_SCORE_FOR_MERGE)
+    .sort((a, b) => b.s - a.s)
 
-  return combined
-    .map((lp) => ({
-      lp,
-      s: scoreProductTextAgainstBreadcrumb(text, lp.breadcrumb),
-      tie: aiRank.get(lp.leafId) ?? 0,
-    }))
-    .sort((a, b) => (b.s !== a.s ? b.s - a.s : b.tie - a.tie))
-    .map((x) => x.lp)
-    .slice(0, limit)
+  for (const { lp } of ranked) {
+    if (out.length >= limit) break
+    pushUnique(lp)
+  }
+
+  return out.slice(0, limit)
 }
 
-export const LISTING_CATEGORY_SUGGESTION_LIMIT = 5
-
-const GROQ_SYSTEM = `You are an Affisell marketplace merchandiser. Map the listing to up to 5 leaf categories from the ALLOWED list only (each line: CATEGORY_ID<TAB>breadcrumb).
-
-Rules:
-- Infer the primary product type from the full title (e.g. a "MacBook Air" or "iPad Air" is a laptop/tablet computer, not air fryers, air fresheners, or unrelated "air" products).
-- Do not let a single generic substring (air, pro, mini, max, note, voiture, car) override the main noun (laptop, phone, headphones, camera, lamp, etc.).
-- Dashcams / "caméra de voiture" / multi-channel car DVR → vehicle electronics camera leaves (e.g. Caméras de recul, Électronique pour véhicules), never pet car barriers, car user manuals, garden carports, or toy vehicles.
-- Prefer the closest real leaf: computers and similar go under Computers / Laptops / PCs when present, not kitchen or fragrance.
-- If DESCRIPTION is provided, use it together with the title.
-- Smart bands, fitness trackers, connected watches/bracelets → activity / biometric monitor leaves, never phone unlock categories, electronic connectors, or white-noise sleep aids.
-- CarPlay / Android Auto / wireless car adapters / in-dash screens → Véhicules > Électronique pour véhicules (audio/video intégré, mains-libres, GPS auto). NEVER prepaid SIM cards, phone plans, or generic phone accessories.
-- "Car" in CarPlay is not a SIM card or prepaid phone card — ignore téléphonie > cartes prépayées branches.
-- Portable fans / ventilateurs portables / brumisateurs → Maison et jardin > Appareils électroménagers > Chauffage et climatisation > Ventilateurs (especially portable/table). NEVER bike parts (leviers de vitesses), security lamps, surveillance systems, or sports equipment.
-- If the title says ventilateur, the primary category is always a fan leaf — ignore secondary features (lumière, power bank, rechargeable) for unrelated branches.
-- Commodes / meubles de rangement → furniture/storage leaves, never sports or electronics.
-
-Return JSON: {"ids":["id1","id2","id3","id4","id5"]} — only IDs from the list, no invented IDs, no duplicates, best match first (1 to 5 ids).`
-
-/** Single entry point: category suggestions for supplier listing (keyword + optional Groq). */
+/**
+ * Category suggestions for supplier listing — same AI engine as background auto-categorize,
+ * plus keyword scoring guardrails. No manual rule per product type required.
+ */
 export async function suggestListingCategories(
   title: string,
   description: string,
-  client: PrismaClient
+  client: PrismaClient,
+  options?: { imageUrl?: string | null; supplierId?: string }
 ): Promise<SuggestListingCategoriesResult> {
   const t = title.trim()
   const d = description.trim()
+  const text = `${t} ${d}`.trim()
 
   if (t.length < 2) {
     return { suggestions: [], alternatives: [], recommendedLeafId: null, source: "none" }
@@ -127,124 +107,95 @@ export async function suggestListingCategories(
     LISTING_CATEGORY_SUGGESTION_LIMIT + 2
   )
 
-  if (!process.env.GROQ_API_KEY?.trim()) {
-    const suggestions = keywordFallback.slice(0, LISTING_CATEGORY_SUGGESTION_LIMIT).map((lp) => ({ ...lp }))
-    const alternatives = findWearableCategoryAlternatives(t, d, leafPaths, suggestions)
-    return {
-      suggestions,
-      alternatives,
-      recommendedLeafId: suggestions[0]?.leafId ?? null,
-      source: "keyword",
-    }
+  const catalogHits = await suggestCategoriesFromCatalog({
+    title: t,
+    description: d,
+    supplierId: options?.supplierId,
+  })
+  const catalogPicks: LeafPath[] = []
+  for (const hit of catalogHits) {
+    const lp = leafPaths.find((p) => p.leafId === hit.categoryId)
+    if (lp && isCategorySuggestionViable(text, lp.breadcrumb)) catalogPicks.push(lp)
   }
 
   const catalogLeaves = leafPathsForAiCatalog(leafPaths, t, d)
-  const allowed = new Map<string, LeafPath>()
-  const lines: string[] = []
-  for (const lp of catalogLeaves) {
-    allowed.set(lp.leafId, lp)
-    lines.push(`${lp.leafId}\t${lp.breadcrumb}`)
+  const aiBreadcrumbs = catalogLeaves.map((lp) => lp.breadcrumb)
+
+  let aiPicks: LeafPath[] = []
+  let aiConfidences = new Map<string, number>()
+
+  if (process.env.GROQ_API_KEY?.trim()) {
+    const { suggestions: aiRows } = await classifyAffisellProduct(
+      { title: t, description: d, imageUrl: options?.imageUrl },
+      { allowedBreadcrumbs: aiBreadcrumbs, leafPaths: catalogLeaves.length > 0 ? catalogLeaves : leafPaths }
+    )
+
+    for (const row of aiRows) {
+      if (!row.leafId) continue
+      const lp = leafPaths.find((p) => p.leafId === row.leafId)
+      if (!lp || !isCategorySuggestionViable(text, lp.breadcrumb)) continue
+      aiPicks.push(lp)
+      aiConfidences.set(lp.leafId, row.confidence)
+    }
   }
 
-  try {
-    const raw =
-      (await groqChatText({
-        temperature: 0.1,
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: GROQ_SYSTEM },
-          {
-            role: "user",
-            content: `TITLE: ${t}\n${d ? `DESCRIPTION: ${d}\n` : ""}\nALLOWED (id<TAB>breadcrumb):\n${lines.join("\n")}`,
-          },
-        ],
-      })) ?? "{}"
+  const viableKeywords = keywordFallback.filter((lp) => isCategorySuggestionViable(text, lp.breadcrumb))
+  const keywordPicks = viableKeywords.length > 0 ? viableKeywords : keywordFallback
 
-    let ids: string[] = []
-    try {
-      const parsed = JSON.parse(raw) as { ids?: unknown }
-      if (Array.isArray(parsed.ids)) {
-        ids = parsed.ids.filter((x): x is string => typeof x === "string").map((s) => s.trim())
-      }
-    } catch {
-      ids = []
-    }
+  const merged = mergeAiAndKeyword(t, d, aiPicks, keywordPicks, LISTING_CATEGORY_SUGGESTION_LIMIT)
 
-    const text = `${t} ${d}`.trim()
-    const picked: LeafPath[] = []
-    const seen = new Set<string>()
-    for (const id of ids) {
-      if (picked.length >= LISTING_CATEGORY_SUGGESTION_LIMIT) break
-      const lp = allowed.get(id)
-      if (
-        lp &&
-        !seen.has(lp.leafId) &&
-        isCategorySuggestionViable(text, lp.breadcrumb)
-      ) {
-        seen.add(lp.leafId)
-        picked.push(lp)
-      }
-    }
+  const catalogIds = new Set(catalogPicks.map((lp) => lp.leafId))
+  const finalMerged: LeafPath[] = []
+  const seenMerged = new Set<string>()
+  for (const lp of [...catalogPicks, ...merged]) {
+    if (finalMerged.length >= LISTING_CATEGORY_SUGGESTION_LIMIT) break
+    if (seenMerged.has(lp.leafId)) continue
+    seenMerged.add(lp.leafId)
+    finalMerged.push(lp)
+  }
 
-    const viableKeywords = keywordFallback.filter((lp) =>
-      isCategorySuggestionViable(text, lp.breadcrumb)
-    )
-    const merged = mergeSuggestionsByTitleRelevance(
-      t,
-      d,
-      picked,
-      viableKeywords.length > 0 ? viableKeywords : keywordFallback,
-      LISTING_CATEGORY_SUGGESTION_LIMIT
-    )
-    type ScoredSuggestion = ListingCategorySuggestion & { relevanceScore: number }
-    let scored: ScoredSuggestion[] = merged.map((lp) => {
-      const s = scoreProductTextAgainstBreadcrumb(text, lp.breadcrumb)
-      const tie = picked.findIndex((p) => p.leafId === lp.leafId)
-      const confidence =
-        tie === 0 ? 0.88 : tie > 0 ? 0.75 - tie * 0.08 : Math.min(0.72, 0.35 + s / 40)
-      return { ...lp, confidence, relevanceScore: s }
-    })
-    scored = scored.filter(
-      (row) =>
-        isCategorySuggestionViable(text, row.breadcrumb) &&
-        row.relevanceScore >= MIN_KEYWORD_SCORE_FOR_MERGE
-    )
-    if (scored.length === 0 && keywordFallback.length > 0) {
-      scored = keywordFallback.slice(0, LISTING_CATEGORY_SUGGESTION_LIMIT).map((lp) => {
-        const s = scoreProductTextAgainstBreadcrumb(text, lp.breadcrumb)
-        return { ...lp, confidence: Math.min(0.72, 0.35 + s / 40), relevanceScore: s }
-      })
-    }
-    const suggestions: ListingCategorySuggestion[] = scored.map(({ relevanceScore: _rs, ...lp }) => lp)
-
-    const topScore = merged[0]
-      ? scoreProductTextAgainstBreadcrumb(text, merged[0].breadcrumb)
-      : 0
-
-    const source =
-      picked.length >= 2 && merged.every((lp, i) => picked[i]?.leafId === lp.leafId)
-        ? ("ai" as const)
-        : picked.length > 0
-          ? ("hybrid" as const)
-          : ("keyword" as const)
-
-    const alternatives = findWearableCategoryAlternatives(t, d, leafPaths, suggestions)
-
+  const suggestions: ListingCategorySuggestion[] = finalMerged.map((lp) => {
+    const fromCatalog = catalogIds.has(lp.leafId)
+    const hit = catalogHits.find((h) => h.categoryId === lp.leafId)
+    const aiConf = aiConfidences.get(lp.leafId)
+    const score = scoreProductTextAgainstBreadcrumb(text, lp.breadcrumb)
     return {
-      suggestions,
-      alternatives,
-      recommendedLeafId:
-        suggestions[0] && topScore >= MIN_KEYWORD_SCORE_FOR_MERGE ? suggestions[0].leafId : null,
-      source,
+      ...lp,
+      confidence: fromCatalog
+        ? Math.min(0.92, 0.62 + (hit?.score ?? 0) * 0.35)
+        : (aiConf ?? Math.min(0.72, 0.35 + score / 40)),
+      suggestionSource: fromCatalog ? "catalog" : aiConf != null ? "ai" : "keyword",
     }
-  } catch {
-    const suggestions = keywordFallback.slice(0, 3).map((lp) => ({ ...lp }))
-    const alternatives = findWearableCategoryAlternatives(t, d, leafPaths, suggestions)
-    return {
-      suggestions,
-      alternatives,
-      recommendedLeafId: suggestions[0]?.leafId ?? null,
-      source: "keyword",
-    }
+  })
+
+  const topScore = finalMerged[0]
+    ? scoreProductTextAgainstBreadcrumb(text, finalMerged[0].breadcrumb)
+    : 0
+
+  const source: SuggestListingCategoriesResult["source"] =
+    catalogPicks.length > 0 && finalMerged[0] && catalogIds.has(finalMerged[0].leafId)
+      ? "catalog"
+      : aiPicks.length > 0 && finalMerged.some((lp) => aiPicks.some((a) => a.leafId === lp.leafId))
+        ? keywordPicks.some(
+            (lp) =>
+              finalMerged.some(
+                (m) => m.leafId === lp.leafId && !aiPicks.some((a) => a.leafId === lp.leafId)
+              )
+          )
+          ? "hybrid"
+          : "ai"
+        : "keyword"
+
+  const alternatives = findWearableCategoryAlternatives(t, d, leafPaths, suggestions)
+
+  return {
+    suggestions,
+    alternatives,
+    recommendedLeafId:
+      suggestions[0] &&
+      (catalogIds.has(suggestions[0].leafId) || topScore >= MIN_KEYWORD_SCORE_FOR_MERGE)
+        ? suggestions[0].leafId
+        : null,
+    source,
   }
 }

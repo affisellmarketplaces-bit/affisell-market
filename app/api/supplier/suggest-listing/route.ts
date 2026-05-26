@@ -20,10 +20,16 @@ export async function POST(req: Request) {
   const body = (await req.json().catch(() => ({}))) as {
     title?: unknown
     description?: unknown
+    imageUrl?: unknown
   }
   const title = typeof body.title === "string" ? body.title.trim() : ""
   const description = typeof body.description === "string" ? body.description.trim() : ""
+  const imageUrl =
+    typeof body.imageUrl === "string" && body.imageUrl.trim().length > 0 ? body.imageUrl.trim() : undefined
 
-  const result = await suggestListingCategories(title, description, prisma)
+  const result = await suggestListingCategories(title, description, prisma, {
+    imageUrl,
+    supplierId: session.user.id,
+  })
   return NextResponse.json(result)
 }

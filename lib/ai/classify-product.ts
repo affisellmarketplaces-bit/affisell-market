@@ -101,6 +101,10 @@ Règles:
 - Montres/bracelets connectés, smart bands, trackers d'activité → catégories "Moniteurs d'activité" / moniteurs biométriques, jamais connecteurs électroniques ni générateurs de bruit blanc.
 - Dashcam / caméra de voiture / enregistreur multi-canaux → électronique véhicule ou caméras de recul / caméras vidéo, jamais animaux, grilles pour animaux, guides auto, abris de jardin.
 - Ne pas classer sur le seul mot "voiture" : identifier d'abord le type de produit (caméra, audio, accessoire, etc.).
+- Ventilateurs portables / brumisateurs → Chauffage et climatisation > Ventilateurs. Ignorer lumière/power bank comme catégorie principale. Jamais vélo, sport, lampes sécurité, surveillance.
+- Identifier le NOM PRINCIPAL du produit (ventilateur, commode, casque, etc.) avant les adjectifs marketing.
+- CarPlay / Android Auto → électronique véhicule, jamais cartes SIM prépayées.
+- Commodes / meubles → mobilier/rangement, jamais sport ni électronique.
 
 LISTE AUTORISÉE:
 ${listBlock}`

@@ -368,7 +368,7 @@ export function wordMatchesInBreadcrumb(word: string, breadcrumb: string): boole
   return false
 }
 
-function extractWords(text: string): string[] {
+export function extractProductTitleTokens(text: string): string[] {
   const norm = normalizeText(text)
   const out: string[] = []
   const seen = new Set<string>()
@@ -490,7 +490,7 @@ export function findWearableCategoryAlternatives(
 export function scoreProductTextAgainstBreadcrumb(text: string, breadcrumb: string): number {
   const normText = normalizeText(text)
   const b = normalizeText(breadcrumb)
-  const words = extractWords(text)
+  const words = extractProductTitleTokens(text)
   if (words.length === 0 && normText.length < 2) return 0
 
   let score = 0
