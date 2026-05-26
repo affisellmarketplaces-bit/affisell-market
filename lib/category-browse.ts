@@ -6,6 +6,8 @@ import {
   scoreProductTextAgainstBreadcrumb,
   suggestLeafCategoriesFromProductText,
 } from "@/lib/category-title-match"
+import type { ListingProductContext } from "@/lib/listing-product-signal"
+import { scoreListingContextAgainstBreadcrumb } from "@/lib/listing-product-signal"
 
 export {
   isCategorySuggestionViable,
@@ -262,15 +264,27 @@ const MAX_CATALOG_LINES_FOR_AI = 280
  */
 export function leafPathsForAiCatalog(
   leafPaths: LeafPath[],
-  title: string,
-  description: string
+  titleOrContext: string | ListingProductContext,
+  description?: string
 ): LeafPath[] {
-  const text = `${title} ${description}`.trim()
-  if (!text) return leafPaths.slice(0, MAX_CATALOG_LINES_FOR_AI)
+  const ctx: ListingProductContext =
+    typeof titleOrContext === "string"
+      ? {
+          title: titleOrContext.trim(),
+          supplierDetails: (description ?? "").trim(),
+          productName: titleOrContext.trim(),
+          coreTokens: [],
+          classificationFocus: titleOrContext.trim(),
+          nameConfidence: 0.5,
+        }
+      : titleOrContext
+
+  const text = ctx.classificationFocus || ctx.title
+  if (!text.trim()) return leafPaths.slice(0, MAX_CATALOG_LINES_FOR_AI)
 
   const out: LeafPath[] = []
   const seen = new Set<string>()
-  for (const lp of leafPathsForDetectedIntent(title, description, leafPaths, 20)) {
+  for (const lp of leafPathsForDetectedIntent(ctx.title, ctx.supplierDetails, leafPaths, 20)) {
     if (!seen.has(lp.leafId)) {
       seen.add(lp.leafId)
       out.push(lp)
@@ -280,9 +294,11 @@ export function leafPathsForAiCatalog(
   const scored = leafPaths
     .map((lp) => ({
       lp,
-      s: scoreTitleAgainstBreadcrumb(text, lp.breadcrumb),
+      s: scoreListingContextAgainstBreadcrumb(ctx, lp.breadcrumb),
     }))
-    .filter(({ lp }) => isCategorySuggestionViable(text, lp.breadcrumb, 1))
+    .filter(({ lp }) =>
+      isCategorySuggestionViable(`${ctx.classificationFocus} ${ctx.supplierDetails}`.trim(), lp.breadcrumb, 1)
+    )
   scored.sort((a, b) => b.s - a.s)
 
   for (const { lp, s } of scored) {

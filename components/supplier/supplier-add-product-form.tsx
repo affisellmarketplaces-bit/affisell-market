@@ -524,9 +524,14 @@ export function SupplierAddProductForm({
   const {
     suggestions: categorySuggestions,
     alternatives: categoryAlternativeSuggestions,
+    productInsight: categoryProductInsight,
     loading: categorySuggestionsLoading,
-  } =
-    useSupplierCategorySuggestions(debouncedName, debouncedCategoryDescription, browse)
+  } = useSupplierCategorySuggestions(
+    debouncedName,
+    debouncedCategoryDescription,
+    browse,
+    images[0] ?? null
+  )
 
   const applyCategory = useCallback(
     (leafId: string, path: CategoryPathSegment[], origin: CategoryPickOrigin = "manual") => {
@@ -2064,6 +2069,7 @@ export function SupplierAddProductForm({
                             }}
                             suggestions={categorySuggestions}
                             alternativeSuggestions={categoryAlternativeSuggestions}
+                            productInsight={categoryProductInsight}
                             suggestionsLoading={categorySuggestionsLoading}
                             loading={loadingBrowse}
                           />

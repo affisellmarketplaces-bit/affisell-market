@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { ChevronRight, Database, Loader2, Sparkles, Terminal, X } from "lucide-react"
+import { ChevronRight, Database, Loader2, ScanLine, Sparkles, Terminal, X } from "lucide-react"
 
 import { CategoryAutocomplete } from "@/components/supplier/category-autocomplete"
 import { Button } from "@/components/ui/button"
@@ -12,6 +12,8 @@ import type {
   RecentCategoryEntry,
 } from "@/lib/category-browse"
 import type { CategoryAlternativeSuggestion } from "@/lib/category-title-match"
+import type { ListingProductInsight } from "@/lib/listing-product-signal"
+import type { ListingCategorySuggestion } from "@/lib/supplier-suggest-listing"
 import { cn } from "@/lib/utils"
 
 export type BrowsePayload = {
@@ -28,10 +30,12 @@ type Props = {
   recent: RecentCategoryEntry[]
   value: string
   onChange: (leafId: string, path: CategoryPathSegment[], origin?: CategoryPickOrigin) => void
-  /** Merged Groq + keyword suggestions (max 5). */
-  suggestions: LeafPath[]
+  /** Title-first AI + keyword suggestions (max 5). */
+  suggestions: ListingCategorySuggestion[]
   /** e.g. Bijoux > Montres when listing looks like a wearable */
   alternativeSuggestions?: CategoryAlternativeSuggestion[]
+  /** What the engine extracted from the product title. */
+  productInsight?: ListingProductInsight | null
   suggestionsLoading?: boolean
   loading?: boolean
 }
@@ -47,6 +51,7 @@ export function SupplierCategoryPicker({
   onChange,
   suggestions,
   alternativeSuggestions = [],
+  productInsight = null,
   suggestionsLoading,
   loading,
 }: Props) {
@@ -171,6 +176,13 @@ export function SupplierCategoryPicker({
   const showSuggestions =
     suggestionsLoading || suggestions.length > 0 || alternativeSuggestions.length > 0
 
+  const sourceLabel = (src?: ListingCategorySuggestion["suggestionSource"]) => {
+    if (src === "catalog") return "Catalogue"
+    if (src === "ai") return "IA titre"
+    if (src === "keyword") return "Mot-clé"
+    return null
+  }
+
   return (
     <div className="space-y-4">
       <div>
@@ -197,15 +209,36 @@ export function SupplierCategoryPicker({
       ) : null}
 
       {showSuggestions ? (
-        <div className="rounded-lg border border-violet-200 bg-gradient-to-br from-violet-50 to-indigo-50/80 p-4 dark:border-violet-900/60 dark:from-violet-950/40 dark:to-indigo-950/30">
-          <div className="flex items-center gap-2 text-sm font-semibold text-violet-950 dark:text-violet-100">
-            <Sparkles className="h-4 w-4 shrink-0 text-violet-600" aria-hidden />
-            Catégories suggérées
+        <div className="relative overflow-hidden rounded-xl border border-violet-200/90 bg-gradient-to-br from-violet-50 via-white to-indigo-50/90 p-4 shadow-sm ring-1 ring-violet-500/10 dark:border-violet-900/50 dark:from-violet-950/35 dark:via-zinc-950 dark:to-indigo-950/25 dark:ring-violet-400/10">
+          <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-violet-400/15 blur-2xl dark:bg-violet-500/20" aria-hidden />
+          <div className="relative flex items-start gap-2.5">
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-600 text-white shadow-sm">
+              <Sparkles className="h-4 w-4" aria-hidden />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-violet-950 dark:text-violet-100">
+                Suggestions intelligentes
+              </p>
+              <p className="mt-0.5 text-xs leading-relaxed text-violet-900/85 dark:text-violet-200/85">
+                Le moteur analyse d&apos;abord le <strong className="font-semibold">nom du produit</strong> dans
+                votre titre, puis confirme avec vos détails. Cliquez sur « Choisir » — aucune sélection
+                automatique.
+              </p>
+            </div>
           </div>
-          <p className="mt-1 text-xs text-violet-900/80 dark:text-violet-200/80">
-            Propositions à partir du titre et de la description — cliquez sur « Choisir » pour appliquer la catégorie
-            qui vous convient. Aucune sélection automatique.
-          </p>
+
+          {productInsight && !suggestionsLoading ? (
+            <div
+              className="relative mt-3 flex items-start gap-2 rounded-lg border border-violet-200/80 bg-white/80 px-3 py-2 dark:border-violet-800/50 dark:bg-zinc-950/60"
+              role="status"
+            >
+              <ScanLine className="mt-0.5 h-4 w-4 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
+              <p className="text-[11px] leading-relaxed text-violet-950/90 dark:text-violet-100/90">
+                {productInsight.focusLabel}
+              </p>
+            </div>
+          ) : null}
+
           {suggestionsLoading ? (
             <ul className="mt-3 space-y-2">
               {[0, 1, 2, 3, 4].map((i) => (
@@ -220,22 +253,36 @@ export function SupplierCategoryPicker({
             </ul>
           ) : (
             <ul className="mt-3 space-y-2">
-              {suggestions.map((lp, i) => (
+              {suggestions.map((lp, i) => {
+                const badge = sourceLabel(lp.suggestionSource)
+                return (
                 <li
                   key={lp.leafId}
                   className={cn(
-                    "flex flex-wrap items-center justify-between gap-2 rounded-md border px-3 py-2 text-xs",
+                    "flex flex-col gap-2 rounded-lg border px-3 py-2.5 text-xs sm:flex-row sm:items-center sm:justify-between",
                     value === lp.leafId
                       ? "border-violet-400 bg-violet-100/90 dark:border-violet-600 dark:bg-violet-900/40"
-                      : "border-violet-100 bg-white/90 dark:border-violet-900/50 dark:bg-zinc-950/80"
+                      : "border-violet-100/90 bg-white/95 dark:border-violet-900/50 dark:bg-zinc-950/80"
                   )}
                 >
-                  <span className="min-w-0 flex-1 text-zinc-800 dark:text-zinc-200">
-                    <span className="mr-1.5 rounded bg-violet-600/90 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white">
-                      {i + 1}
-                    </span>
-                    {lp.breadcrumb}
-                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="rounded bg-violet-600/90 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white">
+                        {i + 1}
+                      </span>
+                      {badge ? (
+                        <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-violet-800 dark:bg-violet-900/60 dark:text-violet-200">
+                          {badge}
+                        </span>
+                      ) : null}
+                    </div>
+                    <p className="mt-1 text-zinc-800 dark:text-zinc-200">{lp.breadcrumb}</p>
+                    {lp.aiReason ? (
+                      <p className="mt-1 text-[10px] leading-snug text-violet-800/75 dark:text-violet-300/80">
+                        {lp.aiReason}
+                      </p>
+                    ) : null}
+                  </div>
                   <Button
                     type="button"
                     size="xs"
@@ -247,7 +294,7 @@ export function SupplierCategoryPicker({
                     {value === lp.leafId ? "Sélectionnée" : "Choisir"}
                   </Button>
                 </li>
-              ))}
+              )})}
             </ul>
           )}
           {!suggestionsLoading && alternativeSuggestions.length > 0 ? (

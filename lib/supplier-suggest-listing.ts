@@ -1,13 +1,18 @@
-import { classifyAffisellProduct } from "@/lib/ai/classify-product"
+import { classifyListingProductForCategories } from "@/lib/ai/listing-product-classifier"
 import {
   buildCategoryBrowse,
   fetchAllCategoriesForBrowse,
   leafPathsForAiCatalog,
-  scoreProductTextAgainstBreadcrumb,
   suggestLeafCategoriesFromProductText,
   type LeafPath,
 } from "@/lib/category-browse"
 import { suggestCategoriesFromCatalog } from "@/lib/category-marketplace-learning"
+import {
+  buildListingProductContext,
+  listingProductInsight,
+  scoreListingContextAgainstBreadcrumb,
+  type ListingProductInsight,
+} from "@/lib/listing-product-signal"
 import {
   findWearableCategoryAlternatives,
   isCategorySuggestionViable,
@@ -19,6 +24,8 @@ export type ListingCategorySuggestion = LeafPath & {
   confidence?: number
   /** Where this pick came from (for UI hints). */
   suggestionSource?: "catalog" | "ai" | "keyword"
+  /** AI rationale tied to product name (when available). */
+  aiReason?: string
 }
 
 export type SuggestListingCategoriesResult = {
@@ -27,6 +34,8 @@ export type SuggestListingCategoriesResult = {
   alternatives: CategoryAlternativeSuggestion[]
   recommendedLeafId: string | null
   source: "none" | "empty" | "keyword" | "ai" | "hybrid" | "catalog"
+  /** What the engine focused on (title-first). */
+  productInsight: ListingProductInsight | null
 }
 
 const MIN_KEYWORD_SCORE_FOR_MERGE = 7
@@ -34,13 +43,12 @@ const MIN_KEYWORD_SCORE_FOR_MERGE = 7
 export const LISTING_CATEGORY_SUGGESTION_LIMIT = 5
 
 function mergeAiAndKeyword(
-  title: string,
-  description: string,
+  ctx: ReturnType<typeof buildListingProductContext>,
   aiPicks: LeafPath[],
   keywordPicks: LeafPath[],
   limit: number
 ): LeafPath[] {
-  const text = `${title} ${description}`.trim()
+  const viabilityText = `${ctx.classificationFocus} ${ctx.supplierDetails}`.trim()
   const seen = new Set<string>()
   const out: LeafPath[] = []
 
@@ -56,14 +64,14 @@ function mergeAiAndKeyword(
   }
   for (const lp of keywordPicks) {
     if (out.length >= limit) break
-    if (isCategorySuggestionViable(text, lp.breadcrumb)) pushUnique(lp)
+    if (isCategorySuggestionViable(viabilityText, lp.breadcrumb)) pushUnique(lp)
   }
 
   if (out.length >= limit) return out.slice(0, limit)
 
   const ranked = [...aiPicks, ...keywordPicks]
     .filter((lp) => !seen.has(lp.leafId))
-    .map((lp) => ({ lp, s: scoreProductTextAgainstBreadcrumb(text, lp.breadcrumb) }))
+    .map((lp) => ({ lp, s: scoreListingContextAgainstBreadcrumb(ctx, lp.breadcrumb) }))
     .filter(({ s }) => s >= MIN_KEYWORD_SCORE_FOR_MERGE)
     .sort((a, b) => b.s - a.s)
 
@@ -87,22 +95,36 @@ export async function suggestListingCategories(
 ): Promise<SuggestListingCategoriesResult> {
   const t = title.trim()
   const d = description.trim()
-  const text = `${t} ${d}`.trim()
+  let ctx = buildListingProductContext(t, d)
+  const viabilityText = `${ctx.classificationFocus} ${ctx.supplierDetails}`.trim()
+  const insight = listingProductInsight(ctx)
 
   if (t.length < 2) {
-    return { suggestions: [], alternatives: [], recommendedLeafId: null, source: "none" }
+    return {
+      suggestions: [],
+      alternatives: [],
+      recommendedLeafId: null,
+      source: "none",
+      productInsight: null,
+    }
   }
 
   const rows = await fetchAllCategoriesForBrowse(client)
   const { leafPaths } = buildCategoryBrowse(rows)
 
   if (leafPaths.length === 0) {
-    return { suggestions: [], alternatives: [], recommendedLeafId: null, source: "empty" }
+    return {
+      suggestions: [],
+      alternatives: [],
+      recommendedLeafId: null,
+      source: "empty",
+      productInsight: insight,
+    }
   }
 
   const keywordFallback = suggestLeafCategoriesFromProductText(
-    t,
-    d,
+    ctx.classificationFocus,
+    ctx.supplierDetails,
     leafPaths,
     LISTING_CATEGORY_SUGGESTION_LIMIT + 2
   )
@@ -115,34 +137,45 @@ export async function suggestListingCategories(
   const catalogPicks: LeafPath[] = []
   for (const hit of catalogHits) {
     const lp = leafPaths.find((p) => p.leafId === hit.categoryId)
-    if (lp && isCategorySuggestionViable(text, lp.breadcrumb)) catalogPicks.push(lp)
+    if (lp && isCategorySuggestionViable(viabilityText, lp.breadcrumb)) catalogPicks.push(lp)
   }
 
-  const catalogLeaves = leafPathsForAiCatalog(leafPaths, t, d)
+  const catalogLeaves = leafPathsForAiCatalog(leafPaths, ctx)
   const aiBreadcrumbs = catalogLeaves.map((lp) => lp.breadcrumb)
 
   let aiPicks: LeafPath[] = []
   let aiConfidences = new Map<string, number>()
 
+  let aiReasons = new Map<string, string>()
+
   if (process.env.GROQ_API_KEY?.trim()) {
-    const { suggestions: aiRows } = await classifyAffisellProduct(
-      { title: t, description: d, imageUrl: options?.imageUrl },
-      { allowedBreadcrumbs: aiBreadcrumbs, leafPaths: catalogLeaves.length > 0 ? catalogLeaves : leafPaths }
-    )
+    const { identity, suggestions: aiRows } = await classifyListingProductForCategories(ctx, {
+      allowedBreadcrumbs: aiBreadcrumbs,
+      leafPaths: catalogLeaves.length > 0 ? catalogLeaves : leafPaths,
+      imageUrl: options?.imageUrl,
+    })
+
+    if (identity?.productNameFr) {
+      ctx.productName = identity.productNameFr
+      ctx.classificationFocus = identity.productNameFr
+    }
 
     for (const row of aiRows) {
       if (!row.leafId) continue
       const lp = leafPaths.find((p) => p.leafId === row.leafId)
-      if (!lp || !isCategorySuggestionViable(text, lp.breadcrumb)) continue
+      if (!lp || !isCategorySuggestionViable(viabilityText, lp.breadcrumb)) continue
       aiPicks.push(lp)
       aiConfidences.set(lp.leafId, row.confidence)
+      if (row.reason) aiReasons.set(lp.leafId, row.reason)
     }
   }
 
-  const viableKeywords = keywordFallback.filter((lp) => isCategorySuggestionViable(text, lp.breadcrumb))
+  const viableKeywords = keywordFallback.filter((lp) =>
+    isCategorySuggestionViable(viabilityText, lp.breadcrumb)
+  )
   const keywordPicks = viableKeywords.length > 0 ? viableKeywords : keywordFallback
 
-  const merged = mergeAiAndKeyword(t, d, aiPicks, keywordPicks, LISTING_CATEGORY_SUGGESTION_LIMIT)
+  const merged = mergeAiAndKeyword(ctx, aiPicks, keywordPicks, LISTING_CATEGORY_SUGGESTION_LIMIT)
 
   const catalogIds = new Set(catalogPicks.map((lp) => lp.leafId))
   const finalMerged: LeafPath[] = []
@@ -158,18 +191,19 @@ export async function suggestListingCategories(
     const fromCatalog = catalogIds.has(lp.leafId)
     const hit = catalogHits.find((h) => h.categoryId === lp.leafId)
     const aiConf = aiConfidences.get(lp.leafId)
-    const score = scoreProductTextAgainstBreadcrumb(text, lp.breadcrumb)
+    const score = scoreListingContextAgainstBreadcrumb(ctx, lp.breadcrumb)
     return {
       ...lp,
       confidence: fromCatalog
         ? Math.min(0.92, 0.62 + (hit?.score ?? 0) * 0.35)
         : (aiConf ?? Math.min(0.72, 0.35 + score / 40)),
       suggestionSource: fromCatalog ? "catalog" : aiConf != null ? "ai" : "keyword",
+      aiReason: aiReasons.get(lp.leafId),
     }
   })
 
   const topScore = finalMerged[0]
-    ? scoreProductTextAgainstBreadcrumb(text, finalMerged[0].breadcrumb)
+    ? scoreListingContextAgainstBreadcrumb(ctx, finalMerged[0].breadcrumb)
     : 0
 
   const source: SuggestListingCategoriesResult["source"] =
@@ -197,5 +231,6 @@ export async function suggestListingCategories(
         ? suggestions[0].leafId
         : null,
     source,
+    productInsight: listingProductInsight(ctx) ?? insight,
   }
 }

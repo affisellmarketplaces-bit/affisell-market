@@ -1,8 +1,11 @@
 import { prisma } from "@/lib/prisma"
 import {
   extractProductTitleTokens,
-  scoreProductTextAgainstBreadcrumb,
 } from "@/lib/category-title-match"
+import {
+  buildListingProductContext,
+  scoreListingContextAgainstBreadcrumb,
+} from "@/lib/listing-product-signal"
 
 const MIN_TITLE_OVERLAP = 0.35
 const MIN_CATALOG_SCORE = 0.42
@@ -36,12 +39,10 @@ function scoreCatalogMatch(
   existingTitle: string,
   breadcrumb: string
 ): { score: number; overlap: number } {
-  const overlap = titleTokenOverlap(newTitle, existingTitle)
-  const textScore = scoreProductTextAgainstBreadcrumb(
-    `${newTitle} ${newDescription}`,
-    breadcrumb
-  )
-  const score = overlap * 0.55 + textScore * 0.45
+  const ctx = buildListingProductContext(newTitle, newDescription)
+  const overlap = titleTokenOverlap(ctx.classificationFocus, existingTitle)
+  const textScore = scoreListingContextAgainstBreadcrumb(ctx, breadcrumb)
+  const score = overlap * 0.62 + textScore * 0.38
   return { score, overlap }
 }
 
