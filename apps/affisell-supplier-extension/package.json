@@ -6,7 +6,10 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "watch": "node scripts/build.mjs --watch",
-    "dev": "npm run watch"
+    "dev": "npm run watch",
+    "db:migrate": "node ../../scripts/prisma-with-env.mjs migrate deploy",
+    "db:migrate:status": "node ../../scripts/prisma-with-env.mjs migrate status",
+    "db:migrate:dev": "node ../../scripts/prisma-with-env.mjs migrate dev"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",

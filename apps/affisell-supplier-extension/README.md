@@ -2,6 +2,21 @@
 
 Extension Chrome (Manifest V3) pour importer une fiche produit dans le catalogue fournisseur Affisell.
 
+## Base de données (Prisma)
+
+Le schéma Prisma est à la **racine du monorepo** (`affisell-market/prisma/`), pas dans ce dossier.
+
+Depuis l’extension :
+
+```bash
+npm run db:migrate:status   # état des migrations
+npm run db:migrate          # appliquer en prod/staging (Neon)
+```
+
+Depuis la racine `affisell-market` : mêmes commandes via `npm run db:migrate:status` / `db:migrate`.
+
+Ne pas lancer `npx prisma migrate …` ici : Prisma ne trouvera pas `schema.prisma`.
+
 ## Prérequis
 
 1. Appli Affisell en local ou prod (`NEXT_PUBLIC_APP_URL`).
