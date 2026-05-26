@@ -1,7 +1,11 @@
+import {
+  DEFAULT_AFFISELL_COMMISSION_BPS,
+  affisellFeeCentsFromLine,
+} from "@/lib/affisell-platform-commission"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 
-/** Affisell marketplace fee on each storefront sale (percent of line total paid). */
-export const AFFISELL_MARKETPLACE_FEE_PERCENT = 10
+/** @deprecated Use per-category `affisellCommissionRateBps` — kept for docs/tests (10%). */
+export const AFFISELL_MARKETPLACE_FEE_PERCENT = DEFAULT_AFFISELL_COMMISSION_BPS / 100
 
 export type MarketplaceOrderSettlement = {
   sellingPriceCents: number
@@ -21,12 +25,15 @@ export function computeMarketplaceOrderSettlement(args: {
   sellingPriceCents: number
   basePriceCents: number
   supplierCommissionRatePercent: number
+  /** Affisell platform fee in basis points (1000 = 10%). */
+  affisellCommissionRateBps?: number
 }): MarketplaceOrderSettlement {
   const sellingPriceCents = Math.max(0, Math.round(args.sellingPriceCents))
   const basePriceCents = Math.max(0, Math.round(args.basePriceCents))
   const marginCents = Math.max(0, sellingPriceCents - basePriceCents)
-  const affisellFeeCents = Math.floor(
-    (sellingPriceCents * AFFISELL_MARKETPLACE_FEE_PERCENT) / 100
+  const affisellFeeCents = affisellFeeCentsFromLine(
+    sellingPriceCents,
+    args.affisellCommissionRateBps ?? DEFAULT_AFFISELL_COMMISSION_BPS
   )
   const rate = Math.min(100, Math.max(0, Math.round(args.supplierCommissionRatePercent)))
   const affiliateCommissionCents = Math.floor((marginCents * rate) / 100)

@@ -6,6 +6,7 @@ import { formatCartVariantLabel, parseCartVariantSignature } from "@/lib/cart-va
 import { buyerEarnCentsForLinePaid } from "@/lib/buyer-reward-earn"
 import { earnBuyerRewardIdempotent, redeemBuyerRewardIdempotent } from "@/lib/buyer-reward-ledger"
 import { resolveBuyerUserIdForEarn } from "@/lib/buyer-reward-resolve-user"
+import { resolveAffisellCommissionRateBpsForProductId } from "@/lib/affisell-platform-commission"
 import { computeMarketplaceOrderSettlement } from "@/lib/marketplace-order-settlement"
 import { triggerAutoFulfillmentForStripeSession } from "@/lib/auto-order/enqueue"
 import { computeShipDeadlineAt } from "@/lib/supplier-ship-sla-shared"
@@ -84,10 +85,14 @@ async function createPaidMarketplaceOrder(
     optionName,
     productCommissionRate: listing.product.commissionRate,
   })
+  const affisellCommissionRateBps = await resolveAffisellCommissionRateBpsForProductId(
+    listing.productId
+  )
   const settlement = computeMarketplaceOrderSettlement({
     sellingPriceCents: args.paidLineCents,
     basePriceCents,
     supplierCommissionRatePercent,
+    affisellCommissionRateBps,
   })
   const unitSupplierCents = Math.round(basePriceCents / qty)
   const affiliateMarginCents =
@@ -118,7 +123,7 @@ async function createPaidMarketplaceOrder(
       supplierPriceCents: unitSupplierCents * qty,
       supplierCommissionRateBps: Math.round(supplierCommissionRatePercent * 100),
       affiliateMarginCents: affiliateMarginCents * qty,
-      affisellCommissionRateBps: 1200,
+      affisellCommissionRateBps,
       status: "paid",
       paidAt: new Date(),
       shipDeadlineAt: computeShipDeadlineAt(new Date()),
@@ -367,6 +372,9 @@ export async function fulfillMarketplaceStripeSession(
           variants,
           optionName,
         }) * qty
+      const affisellCommissionRateBps = await resolveAffisellCommissionRateBpsForProductId(
+        listing.productId
+      )
       const settlement = computeMarketplaceOrderSettlement({
         sellingPriceCents: paidLineCents,
         basePriceCents,
@@ -375,6 +383,7 @@ export async function fulfillMarketplaceStripeSession(
           optionName,
           productCommissionRate: listing.product.commissionRate,
         }),
+        affisellCommissionRateBps,
       })
       const variantImageUrl =
         resolveMarketplaceOrderLineImageUrl(listing, checkoutVariantLabel, checkoutVariantSignature) ||
@@ -396,6 +405,7 @@ export async function fulfillMarketplaceStripeSession(
           affiliatePayoutCents: settlement.affiliateCommissionCents,
           affisellFeeCents: settlement.affisellFeeCents,
           affiliateMarginRetainedCents: settlement.affiliateMarginRetainedCents,
+          affisellCommissionRateBps,
           status: "paid",
           paidAt: new Date(),
           shipDeadlineAt: computeShipDeadlineAt(new Date()),

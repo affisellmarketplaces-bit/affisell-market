@@ -233,6 +233,12 @@ model Category {
    */
   specs String[] @default([])
 
+  /**
+   * Affisell platform fee on storefront sales in this category (basis points, 1000 = 10%).
+   * Child categories inherit by walking `parentId` when unset (null); default 1000 at DB level.
+   */
+  affisellCommissionRateBps Int?
+
   products Product[]
 
   attributes CategoryAttribute[]
@@ -344,6 +350,12 @@ model Product {
    */
   categoryId String?
   category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  /**
+   * Optional Affisell platform fee override (bps). Takes precedence over category rate.
+   * Distinct from `commissionRate` (supplier → affiliate margin share %).
+   */
+  affisellCommissionRateOverrideBps Int?
 
   subcategoryId String?
   subcategory   Subcategory? @relation(fields: [subcategoryId], references: [id], onDelete: SetNull)
