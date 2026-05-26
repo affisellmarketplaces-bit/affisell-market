@@ -89,7 +89,7 @@ export default async function AboutPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Link href="/creators" className={cn(buttonVariants({ variant: "bento", size: "bento" }))}>
+            <Link href="/creators" className={cn(buttonVariants({ variant: "bentoAccent", size: "bento" }))}>
               {t("cta.creators")}
               <ArrowRight className="ml-1 size-4" aria-hidden />
             </Link>

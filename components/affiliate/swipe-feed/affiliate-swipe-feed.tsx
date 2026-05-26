@@ -19,7 +19,7 @@ import {
   SwipeFiltersSheet,
   swipeFiltersActiveCount,
 } from "@/components/affiliate/swipe-feed/swipe-filters-sheet"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
 import type {
   SwipeFeedFilters,
@@ -411,9 +411,12 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
                   >
                     Recharger
                   </Button>
-                  <Button type="button" variant="outline" asChild className="border-zinc-700">
-                    <Link href={AFFILIATE_CATALOG_PATH}>Catalogue</Link>
-                  </Button>
+                  <Link
+                    href={AFFILIATE_CATALOG_PATH}
+                    className={cn(buttonVariants({ variant: "bentoOutline", size: "bento" }), "border-zinc-700")}
+                  >
+                    Catalogue
+                  </Link>
                 </div>
               </motion.div>
             ) : (
