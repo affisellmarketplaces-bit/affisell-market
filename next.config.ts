@@ -5,6 +5,13 @@ import createNextIntlPlugin from "next-intl/plugin"
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts")
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      { source: "/terms", destination: "/legal/terms-of-service", permanent: true },
+      { source: "/privacy", destination: "/legal/privacy-policy", permanent: true },
+      { source: "/cookies", destination: "/legal/cookies-policy", permanent: true },
+    ]
+  },
   output: "standalone" as const,
   /** Client bundles emit source maps for Sentry (Turbopack + runAfterProductionCompile upload). */
   productionBrowserSourceMaps: true,
