@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client"
 
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
+import { resolveSupplierPayoutCentsFromOrder } from "@/lib/marketplace-order-settlement"
 import {
   isPayoutBlockedByReturn,
   isReadyForMerchantPayout,
@@ -30,6 +31,9 @@ const orderPayoutSelect = {
   payoutEligibleAt: true,
   supplierPayoutAt: true,
   affiliatePayoutAt: true,
+  supplierPayoutCents: true,
+  supplierPriceCents: true,
+  supplierCommissionRateBps: true,
 } as const
 
 export async function confirmOrderDeliveryByBuyer(orderId: string, buyerUserId: string | null, buyerEmail: string) {
@@ -114,7 +118,7 @@ export async function executeOrderMerchantPayout(orderId: string): Promise<{ ok:
       return { ok: false, reason: "not_eligible" }
     }
 
-    const supplierAmount = order.basePriceCents
+    const supplierAmount = resolveSupplierPayoutCentsFromOrder(order)
     const affiliateAmount = order.affiliatePayoutCents + order.affiliateMarginRetainedCents
     const now = new Date()
     let supplierPayoutAt = order.supplierPayoutAt

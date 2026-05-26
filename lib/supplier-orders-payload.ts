@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client"
 import { aggregateBlindLinesForSupplier } from "@/lib/blind-dropship-settlement"
 import { resolveMarketplaceOrderLineImageUrl } from "@/lib/cart-line-image"
 import { formatOrderShippingAddress } from "@/lib/order-shipping-address"
+import { resolveSupplierPayoutCentsFromOrder } from "@/lib/marketplace-order-settlement"
 import { orderPayoutTiming, payoutStatusLabel } from "@/lib/order-payout-policy"
 import { prisma } from "@/lib/prisma"
 import { buildShipPulseSnapshot, resolveShipDeadlineAt } from "@/lib/supplier-ship-sla-shared"
@@ -48,7 +49,7 @@ export type SupplierFulfillmentOrder = {
   supplierNetCents: number
   /** Affisell marketplace fee on partner-channel checkout (does not reduce your wholesale). */
   affisellFeeCents: number
-  /** Commission funded from margin per your listing offer (`commissionRate`). */
+  /** Commission funded from your wholesale per catalog offer (`commissionRate`). */
   affiliateCommissionCents: number
   partnerListingCode: string | null
   createdAt: string
@@ -110,7 +111,7 @@ export function mapMarketplaceOrder(o: SupplierOrderRow): SupplierFulfillmentOrd
     quantity: o.quantity,
     variantLabel: o.variantLabel,
     customerEmail: o.customerEmail,
-    supplierNetCents: o.basePriceCents,
+    supplierNetCents: resolveSupplierPayoutCentsFromOrder(o),
     affisellFeeCents: o.affisellFeeCents,
     affiliateCommissionCents: o.affiliatePayoutCents,
     partnerListingCode: store?.partnerListingCode ?? null,
@@ -210,7 +211,10 @@ function mapBlindOrder(
       affisellFeeCents: it.affisellFeeCents,
       affiliateCommissionCents: it.affiliateCommissionCents,
       affiliateMarginRetainedCents: it.affiliateMarginRetainedCents,
-      supplierNetCents: it.supplierPriceAtOrderCents * it.quantity,
+      supplierNetCents: Math.max(
+        0,
+        it.supplierPriceAtOrderCents * it.quantity - it.affiliateCommissionCents
+      ),
     },
   }))
   const slice = aggregateBlindLinesForSupplier(lineMeta, blindSupplierId)

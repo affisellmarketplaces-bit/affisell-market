@@ -85,20 +85,26 @@ async function createPaidMarketplaceOrder(
     optionName,
     productCommissionRate: listing.product.commissionRate,
   })
+  const supplierCommissionRateBps =
+    listing.product.supplierCommissionRateBps ??
+    Math.round(supplierCommissionRatePercent * 100)
   const affisellCommissionRateBps = await resolveAffisellCommissionRateBpsForProductId(
     listing.productId
   )
+  const lineAffiliateMarginCents =
+    listing.marginCents > 0 ? listing.marginCents * qty : undefined
   const settlement = computeMarketplaceOrderSettlement({
     sellingPriceCents: args.paidLineCents,
-    basePriceCents,
-    supplierCommissionRatePercent,
+    supplierPriceCents: basePriceCents,
+    supplierCommissionRateBps,
+    affiliateMarginCents: lineAffiliateMarginCents,
     affisellCommissionRateBps,
   })
   const unitSupplierCents = Math.round(basePriceCents / qty)
   const affiliateMarginCents =
     listing.marginCents > 0
       ? listing.marginCents
-      : Math.max(0, unitSupplierCents > 0 ? Math.round(settlement.marginCents / qty) : 0)
+      : Math.max(0, unitSupplierCents > 0 ? Math.round(settlement.affiliateMarginRetainedCents / qty) : 0)
 
   const order = await tx.order.create({
     data: {
@@ -121,7 +127,8 @@ async function createPaidMarketplaceOrder(
       affisellFeeCents: settlement.affisellFeeCents,
       affiliateMarginRetainedCents: settlement.affiliateMarginRetainedCents,
       supplierPriceCents: unitSupplierCents * qty,
-      supplierCommissionRateBps: Math.round(supplierCommissionRatePercent * 100),
+      supplierCommissionRateBps,
+      supplierPayoutCents: settlement.supplierNetCents,
       affiliateMarginCents: affiliateMarginCents * qty,
       affisellCommissionRateBps,
       status: "paid",
@@ -375,14 +382,20 @@ export async function fulfillMarketplaceStripeSession(
       const affisellCommissionRateBps = await resolveAffisellCommissionRateBpsForProductId(
         listing.productId
       )
+      const supplierCommissionRateBps =
+        listing.product.supplierCommissionRateBps ??
+        Math.round(
+          commissionRateForOption({
+            variants,
+            optionName,
+            productCommissionRate: listing.product.commissionRate,
+          }) * 100
+        )
       const settlement = computeMarketplaceOrderSettlement({
         sellingPriceCents: paidLineCents,
-        basePriceCents,
-        supplierCommissionRatePercent: commissionRateForOption({
-          variants,
-          optionName,
-          productCommissionRate: listing.product.commissionRate,
-        }),
+        supplierPriceCents: basePriceCents,
+        supplierCommissionRateBps,
+        affiliateMarginCents: listing.marginCents > 0 ? listing.marginCents * qty : undefined,
         affisellCommissionRateBps,
       })
       const variantImageUrl =
@@ -405,6 +418,11 @@ export async function fulfillMarketplaceStripeSession(
           affiliatePayoutCents: settlement.affiliateCommissionCents,
           affisellFeeCents: settlement.affisellFeeCents,
           affiliateMarginRetainedCents: settlement.affiliateMarginRetainedCents,
+          supplierPriceCents: basePriceCents,
+          supplierCommissionRateBps,
+          supplierPayoutCents: settlement.supplierNetCents,
+          affiliateMarginCents:
+            listing.marginCents > 0 ? listing.marginCents * qty : settlement.affiliateMarginRetainedCents,
           affisellCommissionRateBps,
           status: "paid",
           paidAt: new Date(),

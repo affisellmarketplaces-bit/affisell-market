@@ -11,6 +11,7 @@ import { loadSupplierWeeklyGoal, type SupplierWeeklyGoalSnapshot } from "@/lib/s
 
 export type { SupplierUrgentSnapshot } from "@/lib/supplier-urgent-snapshot"
 export type { ProductCommissionOpportunity } from "@/lib/supplier-product-opportunity"
+import { resolveSupplierPayoutCentsFromOrder } from "@/lib/marketplace-order-settlement"
 import { prisma } from "@/lib/prisma"
 
 const MARKETPLACE_COUNTABLE = ["paid", "preparing", "shipped", "refunded"] as const
@@ -95,6 +96,9 @@ type OrderAggRow = {
   quantity: number
   sellingPriceCents: number
   basePriceCents: number
+  supplierPriceCents: number
+  supplierPayoutCents: number
+  supplierCommissionRateBps: number
   affiliatePayoutCents: number
   affisellFeeCents: number
 }
@@ -109,8 +113,7 @@ function aggregateOrders(rows: OrderAggRow[]) {
     orderCount += 1
     gmvCents += o.sellingPriceCents
     commissionCents += o.affiliatePayoutCents
-    supplierNetCents +=
-      o.sellingPriceCents - o.basePriceCents - o.affiliatePayoutCents - o.affisellFeeCents
+    supplierNetCents += resolveSupplierPayoutCentsFromOrder(o)
   }
 
   return { gmvCents, orderCount, supplierNetCents, commissionCents }
@@ -131,6 +134,9 @@ async function fetchMarketplaceOrders(
       quantity: true,
       sellingPriceCents: true,
       basePriceCents: true,
+      supplierPriceCents: true,
+      supplierPayoutCents: true,
+      supplierCommissionRateBps: true,
       affiliatePayoutCents: true,
       affisellFeeCents: true,
     },

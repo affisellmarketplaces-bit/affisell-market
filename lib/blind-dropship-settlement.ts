@@ -17,8 +17,8 @@ export type BlindOrderSettlementTotals = MarketplaceOrderSettlement & {
 export function computeBlindLineSettlement(line: BlindLineSettlementInput): MarketplaceOrderSettlement {
   return computeMarketplaceOrderSettlement({
     sellingPriceCents: line.linePaidCents,
-    basePriceCents: line.wholesaleUnitCents * line.qty,
-    supplierCommissionRatePercent: line.supplierCommissionRatePercent,
+    supplierPriceCents: line.wholesaleUnitCents * line.qty,
+    supplierCommissionRateBps: Math.round(line.supplierCommissionRatePercent * 100),
   })
 }
 

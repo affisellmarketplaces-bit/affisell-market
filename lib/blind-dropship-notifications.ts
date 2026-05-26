@@ -35,7 +35,10 @@ export async function createBlindDropshipPaidNotifications(orderId: string): Pro
       affisellFeeCents: it.affisellFeeCents,
       affiliateCommissionCents: it.affiliateCommissionCents,
       affiliateMarginRetainedCents: it.affiliateMarginRetainedCents,
-      supplierNetCents: it.supplierPriceAtOrderCents * it.quantity,
+      supplierNetCents: Math.max(
+        0,
+        it.supplierPriceAtOrderCents * it.quantity - it.affiliateCommissionCents
+      ),
     } satisfies MarketplaceOrderSettlement,
   }))
 
@@ -46,7 +49,7 @@ export async function createBlindDropshipPaidNotifications(orderId: string): Pro
     affisellFeeCents: order.affisellFeeCents,
     affiliateCommissionCents: order.affiliateCommissionCents,
     affiliateMarginRetainedCents: order.affiliateMarginRetainedCents,
-    supplierNetCents: order.totalCostCents,
+    supplierNetCents: Math.max(0, order.totalCostCents - order.affiliateCommissionCents),
   }
 
   const productSummary =

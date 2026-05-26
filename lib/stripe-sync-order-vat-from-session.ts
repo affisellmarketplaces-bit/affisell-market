@@ -1,5 +1,6 @@
 import type Stripe from "stripe"
 
+import { affisellFeeCentsFromLine } from "@/lib/affisell-platform-commission"
 import { getStripeClient } from "@/lib/stripe"
 import { prisma } from "@/lib/prisma"
 
@@ -56,7 +57,7 @@ export async function syncOrderVatFromCheckoutSession(
 
   const orders = await prisma.order.findMany({
     where: { id: { in: orderIds } },
-    select: { id: true, sellingPriceCents: true },
+    select: { id: true, sellingPriceCents: true, affisellCommissionRateBps: true },
   })
   const weightSum = orders.reduce((s, o) => s + Math.max(0, o.sellingPriceCents), 0)
 
@@ -70,12 +71,18 @@ export async function syncOrderVatFromCheckoutSession(
     const taxCents = Math.round(sessionTax * weight)
     const totalCents = Math.round(sessionTotal * weight)
 
+    const affisellFeeCents = affisellFeeCentsFromLine(
+      subtotalCents,
+      order.affisellCommissionRateBps
+    )
+
     await prisma.order.update({
       where: { id: order.id },
       data: {
         subtotalCents,
         taxCents,
         totalCents,
+        affisellFeeCents,
         taxCountry,
         taxRate: sessionTaxRate,
         stripeCustomerId,

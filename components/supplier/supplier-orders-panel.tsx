@@ -169,14 +169,14 @@ function PayoutStrip({ o }: { o: OrderRow }) {
           <p className="text-2xl font-bold tabular-nums tracking-tight">
             {formatStoreCurrencyFromCents(o.supplierNetCents)}
           </p>
-          <p className="text-[11px] text-violet-100/90">Wholesale · not reduced by partner fees</p>
+          <p className="text-[11px] text-violet-100/90">Net wholesale after partner commission</p>
         </div>
       </div>
       {feesTotal > 0 ? (
         <div className="flex flex-wrap gap-2 sm:flex-col sm:items-end">
           <span
             className="rounded-full bg-zinc-100 px-2.5 py-1 text-[11px] font-medium tabular-nums text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"
-            title="Deducted from partner checkout, not your wholesale"
+            title="Affisell platform fee (HT) on partner checkout — not deducted from your net wholesale"
           >
             Platform −{formatStoreCurrencyFromCents(o.affisellFeeCents)}
           </span>

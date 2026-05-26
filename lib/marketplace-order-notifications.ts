@@ -36,6 +36,8 @@ export async function createMarketplaceOrderNotifications(
         customerEmail: args.customerEmail,
         partnerListingCode: args.partnerListingCode,
         supplierNetCents: args.settlement.supplierNetCents,
+        supplierGrossCents: args.settlement.basePriceCents,
+        affiliateCommissionCents: args.settlement.affiliateCommissionCents,
       }),
       orderId: args.orderId,
     },

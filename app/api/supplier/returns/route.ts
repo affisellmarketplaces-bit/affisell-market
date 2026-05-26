@@ -1,4 +1,5 @@
 import { auth } from "@/auth"
+import { resolveSupplierPayoutCentsFromOrder } from "@/lib/marketplace-order-settlement"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -23,6 +24,10 @@ export async function GET() {
           id: true,
           customerEmail: true,
           basePriceCents: true,
+          supplierPriceCents: true,
+          supplierPayoutCents: true,
+          supplierCommissionRateBps: true,
+          affiliatePayoutCents: true,
           quantity: true,
           createdAt: true,
           affiliate: { select: { store: { select: { partnerListingCode: true } } } },
@@ -54,7 +59,7 @@ export async function GET() {
       order: {
         id: r.order.id,
         customerEmail: r.order.customerEmail,
-        supplierNetCents: r.order.basePriceCents,
+        supplierNetCents: resolveSupplierPayoutCentsFromOrder(r.order),
         partnerListingCode: r.order.affiliate.store?.partnerListingCode ?? null,
         quantity: r.order.quantity,
         orderedAt: r.order.createdAt.toISOString(),
