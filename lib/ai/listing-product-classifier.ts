@@ -94,7 +94,7 @@ export async function classifyListingProductForCategories(
 
   const system = `Tu es le moteur de catégorisation Affisell pour fournisseurs.
 
-Étape A — Identifie le PRODUIT VENDU à partir du TITRE (priorité absolue). Les détails fournisseur ne font que confirmer.
+Étape A — Identifie le PRODUIT VENDU à partir du TITRE UNIQUEMENT (priorité absolue).
 Étape B — Choisis 1 à 3 catégories compatibles UNIQUEMENT dans la liste (copie exacte du libellé).
 
 Réponds en JSON valide:
@@ -112,15 +112,20 @@ Réponds en JSON valide:
 }
 
 Règles identity:
-- productNameFr = nom court du produit (ex. "ventilateur portable", pas la phrase marketing entière).
-- mustNotCategories = rayons à EXCLURE si le titre parle clairement d'autre chose (ex. ventilateur → pas vélo, pas lampes sécurité).
+- productNameFr = nom court du produit extrait du TITRE (ex. "moustiquaire de porte", pas la marque).
+- mustNotCategories = rayons INTERDITS si le titre parle clairement d'autre chose.
+  Ex. moustiquaire → exclure colles, adhésifs, aquarium, artisanat.
+  Ex. ventilateur → exclure vélo, lampes sécurité.
 - confidence 0–1 sur la compréhension du nom produit.
 
 Règles suggestions:
 - "category" = copie exacte d'une ligne de la liste.
-- reason cite le NOM PRODUIT, pas un accessoire secondaire du titre.
-- Montres/bracelets connectés → moniteurs d'activité, jamais bijoux montres classiques.
+- reason cite le NOM PRODUIT du titre, jamais un accessoire (adhésif, magnétique, lampe…).
+- NE JAMAIS classer d'après une description marketing longue — elle est absente ou filtrée volontairement.
+- Moustiquaires / rideaux anti-insectes → Maison et jardin > Habillages de fenêtre > Moustiquaires pour fenêtre
+  OU Équipements sportifs > Camping > Moustiquaires. JAMAIS colles, adhésifs, aquarium.
 - Ventilateurs portables → Chauffage et climatisation > Ventilateurs.
+- Montres/bracelets connectés → moniteurs d'activité, jamais bijoux montres classiques.
 
 LISTE AUTORISÉE:
 ${listBlock}`

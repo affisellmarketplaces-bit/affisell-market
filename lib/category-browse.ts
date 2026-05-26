@@ -7,7 +7,7 @@ import {
   suggestLeafCategoriesFromProductText,
 } from "@/lib/category-title-match"
 import type { ListingProductContext } from "@/lib/listing-product-signal"
-import { scoreListingContextAgainstBreadcrumb } from "@/lib/listing-product-signal"
+import { listingViabilityText, scoreListingContextAgainstBreadcrumb } from "@/lib/listing-product-signal"
 
 export {
   isCategorySuggestionViable,
@@ -271,7 +271,7 @@ export function leafPathsForAiCatalog(
     typeof titleOrContext === "string"
       ? {
           title: titleOrContext.trim(),
-          supplierDetails: (description ?? "").trim(),
+          supplierHints: (description ?? "").trim(),
           productName: titleOrContext.trim(),
           coreTokens: [],
           classificationFocus: titleOrContext.trim(),
@@ -282,9 +282,10 @@ export function leafPathsForAiCatalog(
   const text = ctx.classificationFocus || ctx.title
   if (!text.trim()) return leafPaths.slice(0, MAX_CATALOG_LINES_FOR_AI)
 
+  const viability = listingViabilityText(ctx)
   const out: LeafPath[] = []
   const seen = new Set<string>()
-  for (const lp of leafPathsForDetectedIntent(ctx.title, ctx.supplierDetails, leafPaths, 20)) {
+  for (const lp of leafPathsForDetectedIntent(ctx.classificationFocus, "", leafPaths, 20)) {
     if (!seen.has(lp.leafId)) {
       seen.add(lp.leafId)
       out.push(lp)
@@ -296,9 +297,7 @@ export function leafPathsForAiCatalog(
       lp,
       s: scoreListingContextAgainstBreadcrumb(ctx, lp.breadcrumb),
     }))
-    .filter(({ lp }) =>
-      isCategorySuggestionViable(`${ctx.classificationFocus} ${ctx.supplierDetails}`.trim(), lp.breadcrumb, 1)
-    )
+    .filter(({ lp }) => isCategorySuggestionViable(viability, lp.breadcrumb, 1))
   scored.sort((a, b) => b.s - a.s)
 
   for (const { lp, s } of scored) {

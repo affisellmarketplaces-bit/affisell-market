@@ -39,7 +39,7 @@ function scoreCatalogMatch(
   existingTitle: string,
   breadcrumb: string
 ): { score: number; overlap: number } {
-  const ctx = buildListingProductContext(newTitle, newDescription)
+  const ctx = buildListingProductContext(newTitle, { description: newDescription })
   const overlap = titleTokenOverlap(ctx.classificationFocus, existingTitle)
   const textScore = scoreListingContextAgainstBreadcrumb(ctx, breadcrumb)
   const score = overlap * 0.62 + textScore * 0.38

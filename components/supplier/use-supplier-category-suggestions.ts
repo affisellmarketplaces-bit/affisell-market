@@ -9,15 +9,17 @@ import type { ListingCategorySuggestion } from "@/lib/supplier-suggest-listing"
 
 import type { BrowsePayload } from "./supplier-category-picker"
 
-/** Title-first suggestions via `/api/supplier/suggest-listing`. */
+/** Title-first category suggestions — long SEO description excluded server-side. */
 export function useSupplierCategorySuggestions(
   title: string,
   description: string,
+  bullets: string[],
   browse: BrowsePayload | null,
   imageUrl?: string | null
 ) {
   const [debouncedTitle] = useDebounce(title, 500)
   const [debouncedDescription] = useDebounce(description, 500)
+  const [debouncedBullets] = useDebounce(bullets, 500)
   const [debouncedImageUrl] = useDebounce(imageUrl ?? "", 500)
   const [suggestions, setSuggestions] = useState<ListingCategorySuggestion[]>([])
   const [alternatives, setAlternatives] = useState<CategoryAlternativeSuggestion[]>([])
@@ -47,6 +49,7 @@ export function useSupplierCategorySuggestions(
           body: JSON.stringify({
             title: t,
             description: debouncedDescription.trim(),
+            bullets: debouncedBullets.filter((b) => b.trim().length > 0),
             imageUrl: image,
           }),
           signal: ac.signal,
@@ -77,7 +80,7 @@ export function useSupplierCategorySuggestions(
     })()
 
     return () => ac.abort()
-  }, [browse, debouncedTitle, debouncedDescription, debouncedImageUrl])
+  }, [browse, debouncedTitle, debouncedDescription, debouncedBullets, debouncedImageUrl])
 
   return { suggestions, alternatives, productInsight, loading }
 }

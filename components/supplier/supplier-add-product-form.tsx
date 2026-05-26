@@ -367,12 +367,12 @@ export function SupplierAddProductForm({
   const [loadingBrowse, setLoadingBrowse] = useState(true)
   const [debouncedName] = useDebounce(name, 500)
 
-  const categoryMatchDescription = useMemo(() => {
-    const bullets = descriptionBullets.map((s) => s.trim()).filter(Boolean).join(" ")
-    return [description.trim(), bullets].filter(Boolean).join("\n")
-  }, [description, descriptionBullets])
+  const categoryMatchBullets = useMemo(
+    () => descriptionBullets.map((s) => s.trim()).filter(Boolean),
+    [descriptionBullets]
+  )
 
-  const [debouncedCategoryDescription] = useDebounce(categoryMatchDescription, 500)
+  const [debouncedCategoryBullets] = useDebounce(categoryMatchBullets, 500)
   const [categoryAiTag, setCategoryAiTag] = useState(false)
   const lastTitleParserKeyRef = useRef<string | null>(null)
   const [shippingCountry, setShippingCountry] = useState("")
@@ -528,7 +528,8 @@ export function SupplierAddProductForm({
     loading: categorySuggestionsLoading,
   } = useSupplierCategorySuggestions(
     debouncedName,
-    debouncedCategoryDescription,
+    description,
+    debouncedCategoryBullets,
     browse,
     images[0] ?? null
   )

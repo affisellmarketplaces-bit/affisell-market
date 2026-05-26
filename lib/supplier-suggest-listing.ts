@@ -9,7 +9,9 @@ import {
 import { suggestCategoriesFromCatalog } from "@/lib/category-marketplace-learning"
 import {
   buildListingProductContext,
+  categoryOnlyMatchesDescriptionNoise,
   listingProductInsight,
+  listingViabilityText,
   scoreListingContextAgainstBreadcrumb,
   type ListingProductInsight,
 } from "@/lib/listing-product-signal"
@@ -22,19 +24,15 @@ import type { PrismaClient } from "@prisma/client"
 
 export type ListingCategorySuggestion = LeafPath & {
   confidence?: number
-  /** Where this pick came from (for UI hints). */
   suggestionSource?: "catalog" | "ai" | "keyword"
-  /** AI rationale tied to product name (when available). */
   aiReason?: string
 }
 
 export type SuggestListingCategoriesResult = {
   suggestions: ListingCategorySuggestion[]
-  /** e.g. Bijoux > Montres when primary is activity monitor */
   alternatives: CategoryAlternativeSuggestion[]
   recommendedLeafId: string | null
   source: "none" | "empty" | "keyword" | "ai" | "hybrid" | "catalog"
-  /** What the engine focused on (title-first). */
   productInsight: ListingProductInsight | null
 }
 
@@ -42,13 +40,20 @@ const MIN_KEYWORD_SCORE_FOR_MERGE = 7
 
 export const LISTING_CATEGORY_SUGGESTION_LIMIT = 5
 
+function isViableListingCategory(
+  ctx: ReturnType<typeof buildListingProductContext>,
+  breadcrumb: string
+): boolean {
+  if (categoryOnlyMatchesDescriptionNoise(ctx, breadcrumb)) return false
+  return isCategorySuggestionViable(listingViabilityText(ctx), breadcrumb)
+}
+
 function mergeAiAndKeyword(
   ctx: ReturnType<typeof buildListingProductContext>,
   aiPicks: LeafPath[],
   keywordPicks: LeafPath[],
   limit: number
 ): LeafPath[] {
-  const viabilityText = `${ctx.classificationFocus} ${ctx.supplierDetails}`.trim()
   const seen = new Set<string>()
   const out: LeafPath[] = []
 
@@ -64,7 +69,7 @@ function mergeAiAndKeyword(
   }
   for (const lp of keywordPicks) {
     if (out.length >= limit) break
-    if (isCategorySuggestionViable(viabilityText, lp.breadcrumb)) pushUnique(lp)
+    if (isViableListingCategory(ctx, lp.breadcrumb)) pushUnique(lp)
   }
 
   if (out.length >= limit) return out.slice(0, limit)
@@ -72,7 +77,7 @@ function mergeAiAndKeyword(
   const ranked = [...aiPicks, ...keywordPicks]
     .filter((lp) => !seen.has(lp.leafId))
     .map((lp) => ({ lp, s: scoreListingContextAgainstBreadcrumb(ctx, lp.breadcrumb) }))
-    .filter(({ s }) => s >= MIN_KEYWORD_SCORE_FOR_MERGE)
+    .filter(({ s, lp }) => s >= MIN_KEYWORD_SCORE_FOR_MERGE && isViableListingCategory(ctx, lp.breadcrumb))
     .sort((a, b) => b.s - a.s)
 
   for (const { lp } of ranked) {
@@ -83,20 +88,21 @@ function mergeAiAndKeyword(
   return out.slice(0, limit)
 }
 
-/**
- * Category suggestions for supplier listing — same AI engine as background auto-categorize,
- * plus keyword scoring guardrails. No manual rule per product type required.
- */
 export async function suggestListingCategories(
   title: string,
   description: string,
   client: PrismaClient,
-  options?: { imageUrl?: string | null; supplierId?: string }
+  options?: {
+    imageUrl?: string | null
+    supplierId?: string
+    bullets?: string[]
+  }
 ): Promise<SuggestListingCategoriesResult> {
   const t = title.trim()
-  const d = description.trim()
-  let ctx = buildListingProductContext(t, d)
-  const viabilityText = `${ctx.classificationFocus} ${ctx.supplierDetails}`.trim()
+  let ctx = buildListingProductContext(t, {
+    description: description.trim(),
+    bullets: options?.bullets,
+  })
   const insight = listingProductInsight(ctx)
 
   if (t.length < 2) {
@@ -124,20 +130,20 @@ export async function suggestListingCategories(
 
   const keywordFallback = suggestLeafCategoriesFromProductText(
     ctx.classificationFocus,
-    ctx.supplierDetails,
+    "",
     leafPaths,
     LISTING_CATEGORY_SUGGESTION_LIMIT + 2
   )
 
   const catalogHits = await suggestCategoriesFromCatalog({
     title: t,
-    description: d,
+    description: ctx.supplierHints,
     supplierId: options?.supplierId,
   })
   const catalogPicks: LeafPath[] = []
   for (const hit of catalogHits) {
     const lp = leafPaths.find((p) => p.leafId === hit.categoryId)
-    if (lp && isCategorySuggestionViable(viabilityText, lp.breadcrumb)) catalogPicks.push(lp)
+    if (lp && isViableListingCategory(ctx, lp.breadcrumb)) catalogPicks.push(lp)
   }
 
   const catalogLeaves = leafPathsForAiCatalog(leafPaths, ctx)
@@ -145,7 +151,6 @@ export async function suggestListingCategories(
 
   let aiPicks: LeafPath[] = []
   let aiConfidences = new Map<string, number>()
-
   let aiReasons = new Map<string, string>()
 
   if (process.env.GROQ_API_KEY?.trim()) {
@@ -156,23 +161,20 @@ export async function suggestListingCategories(
     })
 
     if (identity?.productNameFr) {
-      ctx.productName = identity.productNameFr
-      ctx.classificationFocus = identity.productNameFr
+      ctx = { ...ctx, productName: identity.productNameFr, classificationFocus: identity.productNameFr }
     }
 
     for (const row of aiRows) {
       if (!row.leafId) continue
       const lp = leafPaths.find((p) => p.leafId === row.leafId)
-      if (!lp || !isCategorySuggestionViable(viabilityText, lp.breadcrumb)) continue
+      if (!lp || !isViableListingCategory(ctx, lp.breadcrumb)) continue
       aiPicks.push(lp)
       aiConfidences.set(lp.leafId, row.confidence)
       if (row.reason) aiReasons.set(lp.leafId, row.reason)
     }
   }
 
-  const viableKeywords = keywordFallback.filter((lp) =>
-    isCategorySuggestionViable(viabilityText, lp.breadcrumb)
-  )
+  const viableKeywords = keywordFallback.filter((lp) => isViableListingCategory(ctx, lp.breadcrumb))
   const keywordPicks = viableKeywords.length > 0 ? viableKeywords : keywordFallback
 
   const merged = mergeAiAndKeyword(ctx, aiPicks, keywordPicks, LISTING_CATEGORY_SUGGESTION_LIMIT)
@@ -183,6 +185,7 @@ export async function suggestListingCategories(
   for (const lp of [...catalogPicks, ...merged]) {
     if (finalMerged.length >= LISTING_CATEGORY_SUGGESTION_LIMIT) break
     if (seenMerged.has(lp.leafId)) continue
+    if (!isViableListingCategory(ctx, lp.breadcrumb)) continue
     seenMerged.add(lp.leafId)
     finalMerged.push(lp)
   }
@@ -220,7 +223,7 @@ export async function suggestListingCategories(
           : "ai"
         : "keyword"
 
-  const alternatives = findWearableCategoryAlternatives(t, d, leafPaths, suggestions)
+  const alternatives = findWearableCategoryAlternatives(t, ctx.supplierHints, leafPaths, suggestions)
 
   return {
     suggestions,

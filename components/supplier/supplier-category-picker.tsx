@@ -220,9 +220,8 @@ export function SupplierCategoryPicker({
                 Suggestions intelligentes
               </p>
               <p className="mt-0.5 text-xs leading-relaxed text-violet-900/85 dark:text-violet-200/85">
-                Le moteur analyse d&apos;abord le <strong className="font-semibold">nom du produit</strong> dans
-                votre titre, puis confirme avec vos détails. Cliquez sur « Choisir » — aucune sélection
-                automatique.
+                Le moteur analyse le <strong className="font-semibold">nom du produit dans le titre</strong>.
+                La description marketing longue est ignorée — seuls vos points courts (puces) peuvent confirmer.
               </p>
             </div>
           </div>

@@ -235,6 +235,33 @@ const PRODUCT_INTENTS: ProductIntent[] = [
     boost: [/meubles?/i, /rangement/i, /commodes?/i, /armoires?/i, /etageres?/i, /mobilier/i],
     penalize: [/velo/i, /sport/i, /electronique/i, /telephonie/i],
   },
+  {
+    id: "mosquito_screen",
+    match:
+      /\b(moustiquaire|moustiquaires|mosquito\s*net|insect\s*screen|rideau\s*(?:magnetique|anti.?insect|moustiquaire)|filet\s*anti.?moustique|ecran\s*anti.?insect)\b/i,
+    boost: [
+      /moustiquaire/i,
+      /habillages?\s+de\s+fenetre/i,
+      /moustiquaires?\s+pour\s+fenetre/i,
+      /camping.*moustiquaire/i,
+      /moustiquaires?\s+pour\s+parasol/i,
+      /loisirs\s+de\s+plein\s+air/i,
+    ],
+    penalize: [
+      /colle/i,
+      /adhesif/i,
+      /aimant/i,
+      /arts?\s*et\s*loisirs/i,
+      /artisanat/i,
+      /aquarium/i,
+      /poisson/i,
+      /entretien\s+d.?aquarium/i,
+      /thermocoll/i,
+      /bande\s+thermocoll/i,
+      /desinsectisation.*repulsif/i,
+      /pesticide/i,
+    ],
+  },
 ]
 
 const PHRASE_BOOSTS: Array<{ phrase: RegExp; breadcrumb: RegExp; points: number }> = [
@@ -290,11 +317,28 @@ const PHRASE_BOOSTS: Array<{ phrase: RegExp; breadcrumb: RegExp; points: number 
     breadcrumb: /lampes?\s+de\s+securite|surveillance/i,
     points: -30,
   },
+  {
+    phrase: /moustiquaire|mosquito\s*net|rideau\s*magnetique/i,
+    breadcrumb: /moustiquaire|habillages?\s+de\s+fenetre/i,
+    points: 45,
+  },
+  {
+    phrase: /moustiquaire|mosquito\s*net/i,
+    breadcrumb: /camping.*moustiquaire|loisirs\s+de\s+plein\s+air/i,
+    points: 28,
+  },
+  {
+    phrase: /moustiquaire|mosquito\s*net/i,
+    breadcrumb: /colle|adhesif|aimant|aquarium|poisson|artisanat|arts?\s*et\s*loisirs/i,
+    points: -55,
+  },
 ]
 
 const COMPOUND_TERMS: Array<{ pattern: RegExp; token: string }> = [
   { pattern: /\bcar\s*play\b|\bcarplay\b/i, token: "carplay" },
   { pattern: /\bandroid\s*auto\b/i, token: "androidauto" },
+  { pattern: /\bmoustiquaire\s+porte\b|\bporte\s+moustiquaire\b/i, token: "moustiquaire" },
+  { pattern: /\bmoustiquaire\s+(?:magnetique|fenetre|fenêtre)\b/i, token: "moustiquaire" },
 ]
 
 function normalizeText(s: string): string {

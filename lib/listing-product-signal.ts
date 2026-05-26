@@ -14,17 +14,43 @@ const TITLE_NOISE = new RegExp(
 )
 
 const TITLE_SEGMENT_SPLIT = /[|/•·–—]+/
+const MAX_HINTS_CHARS = 220
+/** Prose longer than this requires a title keyword to be kept. */
+const MAX_UNCONFIRMED_PROSE_CHARS = 40
+
+/** Known product head nouns — anchor classification on these, not brands. */
+const PRODUCT_HEAD_NOUN = new RegExp(
+  [
+    "moustiquaire",
+    "ventilateur",
+    "commode",
+    "armoire",
+    "casque",
+    "ecouteur",
+    "montre",
+    "bracelet",
+    "dashcam",
+    "camera",
+    "caméra",
+    "poele",
+    "casserole",
+    "meuble",
+    "etagere",
+    "étagère",
+  ].join("|"),
+  "i"
+)
 
 export type ListingProductContext = {
   /** Raw listing title from supplier */
   title: string
-  /** Description + bullets combined */
-  supplierDetails: string
-  /** Heuristic core product name (from title) */
+  /** Filtered supplier hints (bullets + short specs) — never long SEO prose */
+  supplierHints: string
+  /** Heuristic core product name (from title only) */
   productName: string
   /** Tokens that define what is being sold */
   coreTokens: string[]
-  /** Line used for 80%+ of keyword / catalog scoring */
+  /** Line used for 100% of category scoring */
   classificationFocus: string
   /** 0–1 confidence in heuristic product name */
   nameConfidence: number
@@ -32,8 +58,9 @@ export type ListingProductContext = {
 
 export type ListingProductInsight = {
   productName: string
-  /** Short UI line: what the engine is optimizing for */
   focusLabel: string
+  /** True when a long description was excluded from categorization */
+  descriptionExcluded: boolean
 }
 
 function stripTitleNoise(segment: string): string {
@@ -43,10 +70,97 @@ function stripTitleNoise(segment: string): string {
     .trim()
 }
 
+/** Drop leading brand token when followed by a clear product noun (4umor moustiquaire → moustiquaire). */
+function stripLeadingBrandToken(tokens: string[]): string[] {
+  if (tokens.length < 2) return tokens
+  const nounIdx = tokens.findIndex((t) => PRODUCT_HEAD_NOUN.test(t))
+  if (nounIdx > 0) return tokens.slice(nounIdx)
+  const first = tokens[0]!
+  const second = tokens[1]!
+  const looksLikeBrand =
+    /^[a-z0-9][a-z0-9-]{2,11}$/i.test(first) &&
+    !PRODUCT_HEAD_NOUN.test(first) &&
+    !/^(mini|max|pro|plus|usb|led|pvc|abs)$/i.test(first)
+  if (looksLikeBrand && second.length >= 5) return tokens.slice(1)
+  return tokens
+}
+
+function isLikelyBrandToken(token: string): boolean {
+  return (
+    /^[a-z0-9][a-z0-9-]{2,11}$/i.test(token) &&
+    !PRODUCT_HEAD_NOUN.test(token) &&
+    !/^(mini|max|pro|plus|usb|led|pvc|abs|porte|fenetre)$/i.test(token)
+  )
+}
+
+function anchorProductName(tokens: string[]): { name: string; tokens: string[] } {
+  const stripped = stripLeadingBrandToken(tokens)
+  const nounIdx = stripped.findIndex((t) => PRODUCT_HEAD_NOUN.test(t))
+  if (nounIdx >= 0) {
+    const slice = stripped
+      .slice(nounIdx, nounIdx + 5)
+      .filter((t) => PRODUCT_HEAD_NOUN.test(t) || !isLikelyBrandToken(t))
+    return { name: slice.join(" "), tokens: slice }
+  }
+  const cleaned = stripped.filter((t) => !isLikelyBrandToken(t))
+  return { name: cleaned.slice(0, 5).join(" "), tokens: cleaned.slice(0, 5) }
+}
+
+function proseConfirmsProductTitle(prose: string, titleTokens: string[]): boolean {
+  const norm = prose.toLowerCase()
+  const headTokens = titleTokens.filter((t) => PRODUCT_HEAD_NOUN.test(t) || t.length >= 6)
+  if (headTokens.length === 0) {
+    return titleTokens.some((t) => t.length >= 5 && norm.includes(t))
+  }
+  return headTokens.some((t) => norm.includes(t))
+}
+
 /**
- * Extract the sellable product name from a marketplace title (before AI).
- * Prioritizes the leading segment and strong product tokens.
+ * Build supplier hints for category ONLY — bullets and short specs.
+ * Long SEO/marketing descriptions are excluded unless a sentence confirms the title.
  */
+export function buildSupplierHintsForCategory(
+  title: string,
+  description?: string,
+  bullets?: string[]
+): { hints: string; descriptionExcluded: boolean } {
+  const { coreTokens: titleTokens } = extractProductIdentityFromTitle(title)
+  const parts: string[] = []
+  let descriptionExcluded = false
+
+  for (const raw of bullets ?? []) {
+    const b = raw.trim()
+    if (b.length >= 3 && b.length <= 120) parts.push(b)
+  }
+
+  const prose = (description ?? "").trim()
+  if (prose.length === 0) {
+    return { hints: [...new Set(parts)].join(" | ").slice(0, MAX_HINTS_CHARS), descriptionExcluded }
+  }
+
+  const proseConfirmsTitle = proseConfirmsProductTitle(prose, titleTokens)
+
+  if (prose.length <= MAX_UNCONFIRMED_PROSE_CHARS && proseConfirmsTitle) {
+    parts.push(prose)
+  } else if (proseConfirmsTitle) {
+    for (const chunk of prose.split(/[\n.!?]+/)) {
+      const c = chunk.trim()
+      if (c.length < 8 || c.length > 100) continue
+      if (proseConfirmsProductTitle(c, titleTokens)) parts.push(c)
+    }
+    if (parts.length === (bullets ?? []).filter((b) => b.trim().length >= 3).length) {
+      descriptionExcluded = true
+    }
+  } else {
+    descriptionExcluded = true
+  }
+
+  return {
+    hints: [...new Set(parts)].join(" | ").slice(0, MAX_HINTS_CHARS),
+    descriptionExcluded,
+  }
+}
+
 export function extractProductIdentityFromTitle(title: string): {
   productName: string
   coreTokens: string[]
@@ -63,10 +177,12 @@ export function extractProductIdentityFromTitle(title: string): {
     .filter((s) => s.length >= 2)
 
   const primary = segments[0] ?? stripTitleNoise(raw)
-  const tokens = extractProductTitleTokens(primary)
-  const fallbackTokens = tokens.length > 0 ? tokens : extractProductTitleTokens(stripTitleNoise(raw))
+  let tokens = extractProductTitleTokens(primary)
+  if (tokens.length === 0) tokens = extractProductTitleTokens(stripTitleNoise(raw))
+  const anchored = anchorProductName(tokens)
+  tokens = anchored.tokens
 
-  if (fallbackTokens.length === 0) {
+  if (tokens.length === 0) {
     const words = stripTitleNoise(raw)
       .split(/\s+/)
       .filter((w) => w.length >= 3)
@@ -79,8 +195,8 @@ export function extractProductIdentityFromTitle(title: string): {
     }
   }
 
-  const productName = fallbackTokens.slice(0, 6).join(" ")
-  const head = fallbackTokens.slice(0, 3)
+  const productName = anchored.name
+  const head = tokens.slice(0, 3)
   const confidence = Math.min(
     0.95,
     0.5 +
@@ -89,77 +205,99 @@ export function extractProductIdentityFromTitle(title: string): {
       (segments.length === 1 ? 0.08 : 0)
   )
 
-  return { productName, coreTokens: fallbackTokens, confidence }
+  return { productName, coreTokens: tokens, confidence }
 }
 
 export function buildListingProductContext(
   title: string,
-  supplierDetails?: string
-): ListingProductContext {
+  options?: { description?: string; bullets?: string[] }
+): ListingProductContext & { descriptionExcluded: boolean } {
   const t = title.trim()
-  const d = (supplierDetails ?? "").trim()
+  const { hints, descriptionExcluded } = buildSupplierHintsForCategory(
+    t,
+    options?.description,
+    options?.bullets
+  )
   const { productName, coreTokens, confidence } = extractProductIdentityFromTitle(t)
   const classificationFocus = productName.length >= 3 ? productName : t
 
   return {
     title: t,
-    supplierDetails: d,
+    supplierHints: hints,
     productName,
     coreTokens,
     classificationFocus,
     nameConfidence: confidence,
+    descriptionExcluded,
   }
 }
 
-export function listingProductInsight(ctx: ListingProductContext): ListingProductInsight | null {
+export function listingProductInsight(
+  ctx: ListingProductContext & { descriptionExcluded?: boolean }
+): ListingProductInsight | null {
   if (ctx.title.length < 3) return null
   const name = ctx.productName || ctx.title
+  const base =
+    ctx.productName.length >= 3 && ctx.productName !== ctx.title
+      ? `Analyse centrée sur « ${name} » (nom extrait du titre)`
+      : `Analyse centrée sur le titre : « ${ctx.title.slice(0, 72)}${ctx.title.length > 72 ? "…" : ""} »`
+
   return {
     productName: name,
-    focusLabel:
-      ctx.productName.length >= 3 && ctx.productName !== ctx.title
-        ? `Analyse centrée sur « ${name} » (nom extrait du titre)`
-        : `Analyse centrée sur le titre : « ${ctx.title.slice(0, 72)}${ctx.title.length > 72 ? "…" : ""} »`,
+    focusLabel: ctx.descriptionExcluded
+      ? `${base} — description marketing exclue (ne modifie pas les suggestions)`
+      : base,
+    descriptionExcluded: Boolean(ctx.descriptionExcluded),
   }
 }
 
-/** Title-first breadcrumb score; supplier details only confirm. */
+/** Title-only score — description/hints never inflate unrelated categories. */
 export function scoreListingContextAgainstBreadcrumb(
   ctx: ListingProductContext,
   breadcrumb: string
 ): number {
-  const titleScore = scoreProductTextAgainstBreadcrumb(ctx.classificationFocus, breadcrumb)
+  const focusScore = scoreProductTextAgainstBreadcrumb(ctx.classificationFocus, breadcrumb)
   const rawTitleScore =
     ctx.classificationFocus !== ctx.title
-      ? scoreProductTextAgainstBreadcrumb(ctx.title, breadcrumb) * 0.35
+      ? scoreProductTextAgainstBreadcrumb(ctx.title, breadcrumb) * 0.25
       : 0
-  const detailScore = ctx.supplierDetails
-    ? scoreProductTextAgainstBreadcrumb(ctx.supplierDetails, breadcrumb) * 0.22
-    : 0
-  return titleScore * 0.78 + rawTitleScore + detailScore
+
+  let hintBoost = 0
+  if (ctx.supplierHints.trim()) {
+    const hintScore = scoreProductTextAgainstBreadcrumb(ctx.supplierHints, breadcrumb)
+    if (hintScore >= 7 && focusScore >= 5) {
+      hintBoost = Math.min(hintScore * 0.08, 2.5)
+    }
+  }
+
+  return focusScore + rawTitleScore + hintBoost
+}
+
+/** Text used for viability — title identity only, never full description. */
+export function listingViabilityText(ctx: ListingProductContext): string {
+  return ctx.classificationFocus.trim() || ctx.title.trim()
 }
 
 export function formatListingContextForAi(ctx: ListingProductContext): string {
   const lines = [
-    "═══ PRIORITÉ 1 — NOM DU PRODUIT (TITRE LISTING) ═══",
-    `Titre brut fournisseur: ${ctx.title}`,
-    `Nom produit (extrait, à classer): ${ctx.productName || ctx.title}`,
-    ctx.coreTokens.length
-      ? `Mots-clés produit: ${ctx.coreTokens.join(", ")}`
-      : null,
+    "═══ PRIORITÉ ABSOLUE — TITRE / NOM PRODUIT ═══",
+    `Titre listing: ${ctx.title}`,
+    `Nom produit à classer: ${ctx.productName || ctx.title}`,
+    ctx.coreTokens.length ? `Mots-clés produit (titre): ${ctx.coreTokens.join(", ")}` : null,
     "",
-    "═══ PRIORITÉ 2 — DÉTAILS FOURNISSEUR (confirmation uniquement) ═══",
-    ctx.supplierDetails.trim() || "(aucun détail — se baser uniquement sur le titre)",
+    "═══ INDICES FOURNISSEUR (optionnels, confirmation seulement) ═══",
+    ctx.supplierHints.trim() ||
+      "(aucun — classer UNIQUEMENT d'après le titre / nom produit)",
     "",
-    "═══ RÈGLE DE DÉCISION ═══",
-    "La catégorie doit décrire le TYPE DE PRODUIT du titre (priorité 1).",
-    "Les détails ne doivent jamais changer le type (ex. ventilateur + mention lampe → climatisation/ventilateurs, pas éclairage).",
-    "Ignorer promos, couleurs, dimensions, livraison, marques seules.",
+    "═══ INTERDICTIONS ═══",
+    "- NE PAS classer d'après un texte marketing long (description SEO, storytelling).",
+    "- NE PAS confondre accessoire et produit (ex. moustiquaire + bande adhésive → moustiquaire, PAS colles).",
+    "- NE PAS confondre matériau/mécanisme et produit (magnétique/adhésif ≠ catégorie colles).",
+    "- Le TYPE DE PRODUIT du titre prime toujours sur tout le reste.",
   ]
   return lines.filter((l) => l != null).join("\n")
 }
 
-/** Drop AI picks that contradict extracted product identity. */
 export function breadcrumbConflictsWithIdentity(
   ctx: ListingProductContext,
   breadcrumb: string,
@@ -183,10 +321,39 @@ export function breadcrumbConflictsWithIdentity(
     return true
   }
 
+  const mosquitoLike =
+    /\b(moustiquaire|moustiquaires|mosquito|insect\s*screen|rideau\s*anti.?insect)\b/i.test(focus) ||
+    tokens.some((t) => /moustiquaire|mosquito/.test(t))
+  if (mosquitoLike) {
+    if (
+      /\b(colle|colles|adhesif|adhesifs|aimant|arts?\s*et\s*loisirs|artisanat|aquarium|poisson|entretien\s+d.?aquarium|bande\s+thermocoll|thermocollant)\b/i.test(
+        b
+      )
+    ) {
+      return true
+    }
+  }
+
   for (const ex of aiExcludes) {
     const e = ex.trim().toLowerCase()
     if (e.length >= 4 && b.includes(e)) return true
   }
 
   return false
+}
+
+/** Reject categories that score high only on description noise, not on title. */
+export function categoryOnlyMatchesDescriptionNoise(
+  ctx: ListingProductContext,
+  breadcrumb: string
+): boolean {
+  const titleScore = scoreProductTextAgainstBreadcrumb(ctx.classificationFocus, breadcrumb)
+  if (titleScore >= 6) return false
+
+  if (!ctx.supplierHints.trim()) return titleScore < 4
+
+  const hintScore = scoreProductTextAgainstBreadcrumb(ctx.supplierHints, breadcrumb)
+  const focusScore = scoreListingContextAgainstBreadcrumb(ctx, breadcrumb)
+
+  return hintScore > titleScore + 4 && focusScore < 7
 }
