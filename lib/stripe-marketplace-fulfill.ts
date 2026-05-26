@@ -65,6 +65,8 @@ async function createPaidMarketplaceOrder(
     variantSignature?: string
     partnerListingCode?: string | null
     checkoutAmountTotal: number
+    checkoutSubtotalCents: number
+    checkoutTaxCents: number
     checkoutCurrency: string
   }
 ): Promise<string | null> {
@@ -93,13 +95,20 @@ async function createPaidMarketplaceOrder(
   )
   const lineAffiliateMarginCents =
     listing.marginCents > 0 ? listing.marginCents * qty : undefined
+  const clientLineHtCents = Math.max(0, Math.round(args.paidLineCents))
   const settlement = computeMarketplaceOrderSettlement({
-    sellingPriceCents: args.paidLineCents,
+    sellingPriceCents: clientLineHtCents,
     supplierPriceCents: basePriceCents,
     supplierCommissionRateBps,
     affiliateMarginCents: lineAffiliateMarginCents,
     affisellCommissionRateBps,
+    affisellFeeBaseCents: clientLineHtCents,
   })
+  const lineTaxCents =
+    args.checkoutSubtotalCents > 0 && args.checkoutTaxCents > 0
+      ? Math.round((args.checkoutTaxCents * clientLineHtCents) / args.checkoutSubtotalCents)
+      : 0
+  const lineTotalCents = clientLineHtCents + lineTaxCents
   const unitSupplierCents = Math.round(basePriceCents / qty)
   const affiliateMarginCents =
     listing.marginCents > 0
@@ -135,8 +144,9 @@ async function createPaidMarketplaceOrder(
       paidAt: new Date(),
       shipDeadlineAt: computeShipDeadlineAt(new Date()),
       fulfillmentStatus: "PENDING",
-      subtotalCents: basePriceCents,
-      totalCents: settlement.sellingPriceCents,
+      subtotalCents: settlement.affisellFeeBaseCents,
+      taxCents: lineTaxCents,
+      totalCents: lineTotalCents,
       paymentSettlementStatus: "PENDING",
       affiliateStripeAccountId: listing.affiliate.stripeAccountId?.trim() || null,
       currency: args.checkoutCurrency.toUpperCase(),
@@ -159,6 +169,8 @@ async function createPaidMarketplaceOrder(
     customerEmail: args.customerEmail,
     partnerListingCode: args.partnerListingCode,
     settlement,
+    taxCents: lineTaxCents,
+    totalCents: lineTotalCents,
     imageUrl: variantImageUrl,
   })
 
@@ -219,6 +231,8 @@ export async function fulfillMarketplaceStripeSession(
 ): Promise<void> {
   const sessionId = session.id
   const checkoutAmountTotal = session.amount_total ?? 0
+  const checkoutSubtotalCents = session.amount_subtotal ?? checkoutAmountTotal
+  const checkoutTaxCents = session.total_details?.amount_tax ?? 0
   const checkoutCurrency = session.currency ?? "eur"
   const meta = session.metadata ?? {}
   const buyerUserId = meta.buyerUserId?.trim() || ""
@@ -304,6 +318,8 @@ export async function fulfillMarketplaceStripeSession(
           variantSignature: sigStr,
           partnerListingCode: listing.affiliate.store?.partnerListingCode ?? null,
           checkoutAmountTotal,
+          checkoutSubtotalCents,
+          checkoutTaxCents,
           checkoutCurrency,
         })
 
@@ -391,13 +407,20 @@ export async function fulfillMarketplaceStripeSession(
             productCommissionRate: listing.product.commissionRate,
           }) * 100
         )
+      const clientLineHtCents = Math.max(0, Math.round(paidLineCents))
       const settlement = computeMarketplaceOrderSettlement({
-        sellingPriceCents: paidLineCents,
+        sellingPriceCents: clientLineHtCents,
         supplierPriceCents: basePriceCents,
         supplierCommissionRateBps,
         affiliateMarginCents: listing.marginCents > 0 ? listing.marginCents * qty : undefined,
         affisellCommissionRateBps,
+        affisellFeeBaseCents: clientLineHtCents,
       })
+      const lineTaxCents =
+        checkoutSubtotalCents > 0 && checkoutTaxCents > 0
+          ? Math.round((checkoutTaxCents * clientLineHtCents) / checkoutSubtotalCents)
+          : 0
+      const lineTotalCents = clientLineHtCents + lineTaxCents
       const variantImageUrl =
         resolveMarketplaceOrderLineImageUrl(listing, checkoutVariantLabel, checkoutVariantSignature) ||
         null
@@ -428,8 +451,9 @@ export async function fulfillMarketplaceStripeSession(
           paidAt: new Date(),
           shipDeadlineAt: computeShipDeadlineAt(new Date()),
           fulfillmentStatus: "PENDING",
-          subtotalCents: basePriceCents,
-          totalCents: settlement.sellingPriceCents,
+          subtotalCents: settlement.affisellFeeBaseCents,
+          taxCents: lineTaxCents,
+          totalCents: lineTotalCents,
           paymentSettlementStatus: "PENDING",
           currency: checkoutCurrency.toUpperCase(),
           affiliateStripeAccountId: listing.affiliate.stripeAccountId?.trim() || null,
@@ -452,6 +476,8 @@ export async function fulfillMarketplaceStripeSession(
         customerEmail,
         partnerListingCode: listing.affiliate.store?.partnerListingCode ?? null,
         settlement,
+        taxCents: lineTaxCents,
+        totalCents: lineTotalCents,
         imageUrl: variantImageUrl,
       })
 
@@ -511,6 +537,8 @@ export async function fulfillMarketplaceStripeSession(
       variantSignature: checkoutVariantSignature,
       partnerListingCode: listing.affiliate.store?.partnerListingCode ?? null,
       checkoutAmountTotal,
+      checkoutSubtotalCents,
+      checkoutTaxCents,
       checkoutCurrency,
     })
 

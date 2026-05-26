@@ -1,6 +1,7 @@
 import type Stripe from "stripe"
 
 import { affisellFeeCentsFromLine } from "@/lib/affisell-platform-commission"
+import { recomputeAffiliateMarginRetainedCents } from "@/lib/marketplace-order-settlement"
 import { getStripeClient } from "@/lib/stripe"
 import { prisma } from "@/lib/prisma"
 
@@ -21,13 +22,14 @@ async function orderIdsForStripeSession(sessionId: string): Promise<string[]> {
     where: {
       OR: [{ stripeSessionId: sessionId }, { stripeSessionId: { startsWith: `${sessionId}:line:` } }],
     },
-    select: { id: true, sellingPriceCents: true },
+    select: { id: true, subtotalCents: true, sellingPriceCents: true },
   })
   return orders.map((o) => o.id)
 }
 
 /**
  * After checkout.session.completed + fulfill: persist HT/TVA/TTC from Stripe Tax on each order row.
+ * Affisell fee = % of line HT (supplier + affiliate uplift), never on VAT.
  */
 export async function syncOrderVatFromCheckoutSession(
   sessionId: string
@@ -57,15 +59,29 @@ export async function syncOrderVatFromCheckoutSession(
 
   const orders = await prisma.order.findMany({
     where: { id: { in: orderIds } },
-    select: { id: true, sellingPriceCents: true, affisellCommissionRateBps: true },
+    select: {
+      id: true,
+      sellingPriceCents: true,
+      subtotalCents: true,
+      affisellCommissionRateBps: true,
+      supplierPriceCents: true,
+      basePriceCents: true,
+      affiliatePayoutCents: true,
+      affiliateMarginCents: true,
+    },
   })
-  const weightSum = orders.reduce((s, o) => s + Math.max(0, o.sellingPriceCents), 0)
+  const weightSum = orders.reduce(
+    (s, o) => s + Math.max(0, o.subtotalCents ?? o.sellingPriceCents),
+    0
+  )
 
   const updatedOrderIds: string[] = []
 
   for (const order of orders) {
     const weight =
-      weightSum > 0 ? Math.max(0, order.sellingPriceCents) / weightSum : 1 / Math.max(1, orders.length)
+      weightSum > 0
+        ? Math.max(0, order.subtotalCents ?? order.sellingPriceCents) / weightSum
+        : 1 / Math.max(1, orders.length)
 
     const subtotalCents = Math.round(sessionSubtotal * weight)
     const taxCents = Math.round(sessionTax * weight)
@@ -76,13 +92,33 @@ export async function syncOrderVatFromCheckoutSession(
       order.affisellCommissionRateBps
     )
 
+    const supplierPriceCents = Math.max(
+      0,
+      Math.round(order.supplierPriceCents ?? order.basePriceCents)
+    )
+    const affiliateCommissionCents = Math.max(0, Math.round(order.affiliatePayoutCents ?? 0))
+    const unitListingMargin =
+      order.affiliateMarginCents != null && order.affiliateMarginCents > 0
+        ? order.affiliateMarginCents
+        : undefined
+
+    const affiliateMarginRetainedCents = recomputeAffiliateMarginRetainedCents({
+      clientLineHtCents: subtotalCents,
+      supplierPriceCents,
+      affisellFeeCents,
+      affiliateCommissionCents,
+      fixedListingMarginCents: unitListingMargin,
+    })
+
     await prisma.order.update({
       where: { id: order.id },
       data: {
         subtotalCents,
         taxCents,
         totalCents,
+        sellingPriceCents: subtotalCents,
         affisellFeeCents,
+        affiliateMarginRetainedCents,
         taxCountry,
         taxRate: sessionTaxRate,
         stripeCustomerId,

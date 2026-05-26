@@ -208,6 +208,7 @@ function mapBlindOrder(
       sellingPriceCents: it.linePaidCents,
       basePriceCents: it.supplierPriceAtOrderCents * it.quantity,
       marginCents: it.marginCents,
+      affisellFeeBaseCents: it.linePaidCents,
       affisellFeeCents: it.affisellFeeCents,
       affiliateCommissionCents: it.affiliateCommissionCents,
       affiliateMarginRetainedCents: it.affiliateMarginRetainedCents,

@@ -20,6 +20,8 @@ export async function createMarketplaceOrderNotifications(
     customerEmail: string
     partnerListingCode?: string | null
     settlement: MarketplaceOrderSettlement
+    taxCents?: number | null
+    totalCents?: number | null
     imageUrl?: string | null
   }
 ): Promise<void> {
@@ -53,6 +55,8 @@ export async function createMarketplaceOrderNotifications(
         variantBit: args.variantBit,
         qty: args.qty,
         settlement: args.settlement,
+        taxCents: args.taxCents,
+        totalCents: args.totalCents,
       }),
       orderId: args.orderId,
     },

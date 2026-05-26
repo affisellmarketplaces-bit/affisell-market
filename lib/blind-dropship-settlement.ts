@@ -15,10 +15,12 @@ export type BlindOrderSettlementTotals = MarketplaceOrderSettlement & {
 }
 
 export function computeBlindLineSettlement(line: BlindLineSettlementInput): MarketplaceOrderSettlement {
+  const clientLineHtCents = Math.max(0, Math.round(line.linePaidCents))
   return computeMarketplaceOrderSettlement({
-    sellingPriceCents: line.linePaidCents,
+    sellingPriceCents: clientLineHtCents,
     supplierPriceCents: line.wholesaleUnitCents * line.qty,
     supplierCommissionRateBps: Math.round(line.supplierCommissionRatePercent * 100),
+    affisellFeeBaseCents: clientLineHtCents,
   })
 }
 
@@ -30,6 +32,7 @@ export function aggregateBlindOrderSettlement(
       sellingPriceCents: acc.sellingPriceCents + s.sellingPriceCents,
       basePriceCents: acc.basePriceCents + s.basePriceCents,
       marginCents: acc.marginCents + s.marginCents,
+      affisellFeeBaseCents: acc.affisellFeeBaseCents + s.affisellFeeBaseCents,
       affisellFeeCents: acc.affisellFeeCents + s.affisellFeeCents,
       affiliateCommissionCents: acc.affiliateCommissionCents + s.affiliateCommissionCents,
       affiliateMarginRetainedCents: acc.affiliateMarginRetainedCents + s.affiliateMarginRetainedCents,
@@ -39,6 +42,7 @@ export function aggregateBlindOrderSettlement(
       sellingPriceCents: 0,
       basePriceCents: 0,
       marginCents: 0,
+      affisellFeeBaseCents: 0,
       affisellFeeCents: 0,
       affiliateCommissionCents: 0,
       affiliateMarginRetainedCents: 0,

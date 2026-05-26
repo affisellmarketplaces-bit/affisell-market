@@ -18,6 +18,9 @@ import {
   initialPromotedVariantPick,
   promotedVariantKeysFromPick,
 } from "@/lib/affiliate-storefront-variants"
+import { DEFAULT_AFFISELL_COMMISSION_BPS } from "@/lib/affisell-platform-commission"
+import { computeMarketplaceOrderSettlement } from "@/lib/marketplace-order-settlement"
+import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { formatWarrantyBadgeLabel, resolveProductWarrantyMonths } from "@/lib/product-warranty"
 
 type CatalogProduct = {
@@ -26,6 +29,8 @@ type CatalogProduct = {
   description?: string
   images: string[]
   basePriceCents: number
+  commissionRate?: number
+  supplierCommissionRateBps?: number | null
   colors?: string[]
   variants?: unknown
   hasVariants?: boolean
@@ -195,6 +200,22 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
     if (marginEUR == null || !Number.isFinite(marginEUR) || sup <= 0) return null
     return (marginEUR / sup) * 100
   }, [marginEUR, product])
+
+  const settlementPreview = useMemo(() => {
+    const euro = Number(String(form.priceEUR).replace(",", "."))
+    if (!Number.isFinite(euro) || euro <= 0) return null
+    const clientLineHtCents = Math.round(euro * 100)
+    const supplierCommissionRateBps =
+      product.supplierCommissionRateBps ??
+      Math.round((Number(product.commissionRate) || 11) * 100)
+    return computeMarketplaceOrderSettlement({
+      sellingPriceCents: clientLineHtCents,
+      supplierPriceCents: product.basePriceCents,
+      supplierCommissionRateBps,
+      affisellFeeBaseCents: clientLineHtCents,
+      affisellCommissionRateBps: DEFAULT_AFFISELL_COMMISSION_BPS,
+    })
+  }, [form.priceEUR, product])
 
   const sellingPriceCentsPreview = useMemo(() => {
     const euro = Number(String(form.priceEUR).replace(",", "."))
@@ -726,6 +747,28 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
                       ) : null}
                     </span>
                   </p>
+
+                  {settlementPreview ? (
+                    <p className="rounded-lg border border-violet-100 bg-violet-50/80 px-3 py-2 text-xs leading-relaxed text-violet-950">
+                      <span className="font-semibold">Est. per sale (HT, ex-VAT):</span>{" "}
+                      Affisell fee{" "}
+                      {formatStoreCurrencyFromCents(settlementPreview.affisellFeeCents)} (
+                      {(
+                        (settlementPreview.affisellFeeCents / settlementPreview.affisellFeeBaseCents) *
+                        100
+                      ).toFixed(0)}
+                      % of line HT) · partner commission{" "}
+                      {formatStoreCurrencyFromCents(settlementPreview.affiliateCommissionCents)} · your
+                      net markup{" "}
+                      {formatStoreCurrencyFromCents(settlementPreview.affiliateMarginRetainedCents)} (
+                      total earnings{" "}
+                      {formatStoreCurrencyFromCents(
+                        settlementPreview.affiliateCommissionCents +
+                          settlementPreview.affiliateMarginRetainedCents
+                      )}
+                      )
+                    </p>
+                  ) : null}
 
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>

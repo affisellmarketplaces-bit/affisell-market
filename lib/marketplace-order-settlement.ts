@@ -8,11 +8,14 @@ import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 export const AFFISELL_MARKETPLACE_FEE_PERCENT = DEFAULT_AFFISELL_COMMISSION_BPS / 100
 
 export type MarketplaceOrderSettlement = {
+  /** Client line HT (supplier wholesale + affiliate commercial uplift, ex-VAT). */
   sellingPriceCents: number
   /** Supplier catalog wholesale (HT) for the line. */
   basePriceCents: number
   marginCents: number
-  /** Affisell platform fee (HT base, ex-VAT when `affisellFeeBaseCents` provided). */
+  /** HT base used for Affisell fee (= client line HT before tax). */
+  affisellFeeBaseCents: number
+  /** Affisell platform fee (% of `affisellFeeBaseCents`, never on VAT). */
   affisellFeeCents: number
   /** Commission paid from supplier wholesale to affiliate (`supplierPrice × bps`). */
   affiliateCommissionCents: number
@@ -29,7 +32,10 @@ export type ComputeMarketplaceOrderSettlementInput = {
   supplierCommissionRateBps: number
   affiliateMarginCents?: number
   affisellCommissionRateBps?: number
-  /** HT amount for Affisell fee (ex-VAT). Defaults to `sellingPriceCents`. */
+  /**
+   * HT line total for Affisell fee (catalog + affiliate uplift, ex-VAT).
+   * Defaults to `sellingPriceCents` when checkout lines are tax-exclusive.
+   */
   affisellFeeBaseCents?: number
 }
 
@@ -76,12 +82,12 @@ export function computeMarketplaceOrderSettlement(
   const affiliateCommissionCents = Math.round((supplierPriceCents * bps) / 10_000)
   const supplierNetCents = Math.max(0, supplierPriceCents - affiliateCommissionCents)
 
-  const feeBase = Math.max(
+  const affisellFeeBaseCents = Math.max(
     0,
     Math.round(input.affisellFeeBaseCents ?? sellingPriceCents)
   )
   const affisellFeeCents = affisellFeeCentsFromLine(
-    feeBase,
+    affisellFeeBaseCents,
     input.affisellCommissionRateBps ?? DEFAULT_AFFISELL_COMMISSION_BPS
   )
 
@@ -99,11 +105,32 @@ export function computeMarketplaceOrderSettlement(
     sellingPriceCents,
     basePriceCents: supplierPriceCents,
     marginCents,
+    affisellFeeBaseCents,
     affisellFeeCents,
     affiliateCommissionCents,
     affiliateMarginRetainedCents,
     supplierNetCents,
   }
+}
+
+/** Re-run affiliate markup after HT subtotal / Affisell fee is known (post–Stripe Tax sync). */
+export function recomputeAffiliateMarginRetainedCents(args: {
+  clientLineHtCents: number
+  supplierPriceCents: number
+  affisellFeeCents: number
+  affiliateCommissionCents: number
+  fixedListingMarginCents?: number
+}): number {
+  if (args.fixedListingMarginCents != null && args.fixedListingMarginCents > 0) {
+    return Math.max(0, Math.round(args.fixedListingMarginCents))
+  }
+  return Math.max(
+    0,
+    Math.round(args.clientLineHtCents) -
+      Math.round(args.supplierPriceCents) -
+      Math.round(args.affisellFeeCents) -
+      Math.round(args.affiliateCommissionCents)
+  )
 }
 
 /** Recompute supplier Connect payout from persisted order fields (legacy rows included). */
@@ -212,14 +239,28 @@ export function formatAffiliateNewSaleNotification(args: {
   variantBit: string
   qty: number
   settlement: MarketplaceOrderSettlement
+  taxCents?: number | null
+  totalCents?: number | null
 }): string {
   const { settlement: s } = args
   const variant = args.variantBit ? args.variantBit : ""
   const affiliateTotal = s.affiliateCommissionCents + s.affiliateMarginRetainedCents
+  const ht = s.affisellFeeBaseCents
+  const tax = Math.max(0, Math.round(args.taxCents ?? 0))
+  const ttc =
+    args.totalCents != null && args.totalCents > 0
+      ? Math.round(args.totalCents)
+      : tax > 0
+        ? ht + tax
+        : ht
+  const clientLine =
+    tax > 0 && ttc > ht
+      ? `Client ${money(ttc)} (HT ${money(ht)} + VAT ${money(tax)})`
+      : `Line HT ${money(ht)}`
   return [
     `Sale on your store · ${args.productName}${variant} ×${args.qty}`,
-    `Line total ${money(s.sellingPriceCents)}`,
+    clientLine,
     `Your earnings ${money(affiliateTotal)} (commission ${money(s.affiliateCommissionCents)} + markup ${money(s.affiliateMarginRetainedCents)})`,
-    `Affisell fee ${money(s.affisellFeeCents)} (HT base)`,
+    `Affisell fee ${money(s.affisellFeeCents)} (${money(ht)} HT base)`,
   ].join(" · ")
 }
