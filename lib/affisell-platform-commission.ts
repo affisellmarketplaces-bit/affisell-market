@@ -25,26 +25,31 @@ export function affisellFeeCentsFromLine(sellingPriceCents: number, rateBps: num
   return Math.floor((selling * bps) / 10_000)
 }
 
-const categorySelect = {
-  affisellCommissionRateBps: true,
-  parentId: true,
-} as const
+type CategoryCommissionRow = {
+  affisellCommissionRateBps: number | null
+  parentId: string | null
+}
 
 export async function resolveCategoryAffisellCommissionBps(categoryId: string): Promise<number> {
-  let currentId: string | null = categoryId
+  let parentId: string | null = categoryId
   const visited = new Set<string>()
 
-  while (currentId && !visited.has(currentId)) {
-    visited.add(currentId)
-    const row = await prisma.category.findUnique({
-      where: { id: currentId },
-      select: categorySelect,
+  while (parentId !== null) {
+    if (visited.has(parentId)) break
+    visited.add(parentId)
+
+    const row: CategoryCommissionRow | null = await prisma.category.findUnique({
+      where: { id: parentId },
+      select: {
+        affisellCommissionRateBps: true,
+        parentId: true,
+      },
     })
     if (!row) break
     if (row.affisellCommissionRateBps != null) {
       return clampAffisellCommissionRateBps(row.affisellCommissionRateBps)
     }
-    currentId = row.parentId
+    parentId = row.parentId
   }
 
   return DEFAULT_AFFISELL_COMMISSION_BPS
@@ -57,7 +62,7 @@ export type ProductCommissionSource = {
 
 export function resolveAffisellCommissionRateBpsForProduct(
   product: ProductCommissionSource,
-  categoryBps: number | null | undefined
+  categoryBps?: number | null
 ): number {
   if (product.affisellCommissionRateOverrideBps != null) {
     return clampAffisellCommissionRateBps(product.affisellCommissionRateOverrideBps)
