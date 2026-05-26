@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation"
 import { Suspense } from "react"
 import { useTranslations } from "next-intl"
-import { Handshake, LayoutDashboard, Palette, Store, Wallet } from "lucide-react"
+import { Handshake, LayoutDashboard, Layers, Palette, Store, Wallet } from "lucide-react"
 
 import { LocaleSwitcher } from "@/components/locale-switcher"
 import { FastLink } from "@/components/navigation/fast-link"
@@ -12,7 +12,7 @@ import { QuickNav } from "@/components/navigation/quick-nav"
 import { NavHeaderSearch } from "@/components/nav/nav-header-search"
 import { MerchantAvatarMenu } from "@/components/nav/merchant-avatar-menu"
 import { MerchantNotificationsMenu } from "@/components/merchant-notifications-menu"
-import { AFFILIATE_AGENT_PATH, AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
+import { AFFILIATE_AGENT_PATH, AFFILIATE_CATALOG_PATH, AFFILIATE_HUB_PATH } from "@/lib/affiliate-routes"
 import { cn } from "@/lib/utils"
 
 const navScrollClass =
@@ -60,6 +60,8 @@ export function NavAffiliate() {
   const onAgent = pathname.startsWith(AFFILIATE_AGENT_PATH)
   const onCatalog =
     pathname === AFFILIATE_CATALOG_PATH || pathname.startsWith(`${AFFILIATE_CATALOG_PATH}/`)
+  const onHub =
+    pathname === AFFILIATE_HUB_PATH || pathname.startsWith(`${AFFILIATE_HUB_PATH}/`)
   const onEarnings = pathname.startsWith("/dashboard/affiliate/earnings")
   const onInviteSupplier = pathname.startsWith("/dashboard/affiliate/invite-supplier")
   const onBrandStudio = pathname.startsWith("/dashboard/affiliate/brand-studio")
@@ -68,6 +70,7 @@ export function NavAffiliate() {
     (pathname.startsWith("/dashboard/affiliate/") &&
       !onEarnings &&
       !onCatalog &&
+      !onHub &&
       !onAgent &&
       !onInviteSupplier &&
       !onBrandStudio)
@@ -104,6 +107,13 @@ export function NavAffiliate() {
           label={t("catalog")}
           icon={Store}
           active={onCatalog}
+        />
+        <NavPill
+          href={AFFILIATE_HUB_PATH}
+          label="Swipe Feed"
+          shortLabel="Swipe"
+          icon={Layers}
+          active={onHub}
         />
         <NavPill
           href="/dashboard/affiliate"

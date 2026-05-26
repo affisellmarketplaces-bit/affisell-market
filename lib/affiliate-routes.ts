@@ -1,6 +1,9 @@
 /** Affiliate product discovery (margins, commissions) — not the public buyer marketplace. */
 export const AFFILIATE_CATALOG_PATH = "/dashboard/affiliate/catalog"
 
+/** Swipe Feed hub — Tinder-style product discovery & one-tap listing. */
+export const AFFILIATE_HUB_PATH = "/dashboard/affiliate/hub"
+
 /** Agent IA sourcing (marges, choix SKU vitrine) — pas l’agent shopping acheteur `/agent`. */
 export const AFFILIATE_AGENT_PATH = "/dashboard/affiliate/agent"
 

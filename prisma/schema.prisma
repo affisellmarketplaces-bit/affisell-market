@@ -110,6 +110,9 @@ model User {
   supplierAffiliateInvitations SupplierAffiliateInvitation[] @relation("SupplierAffiliateInvites")
   /** Set when this affiliate registered via a supplier invite link. */
   affiliateInvitationFrom      SupplierAffiliateInvitation?  @relation("AffiliateFromSupplierInvite")
+
+  /** Swipe Feed — like / skip decisions on catalog products. */
+  affiliateSwipes AffiliateSwipe[]
 }
 
 /**
@@ -461,6 +464,7 @@ model Product {
 
   supplier                User                     @relation("SupplierProducts", fields: [supplierId], references: [id])
   affiliateProducts       AffiliateProduct[]
+  affiliateSwipes         AffiliateSwipe[]
   attributes              ProductAttribute[]
   orders                  Order[]
   blindDropshipOrderItems BlindDropshipOrderItem[]
@@ -791,6 +795,25 @@ model AffiliateProduct {
 
   @@unique([affiliateId, productId])
   @@unique([affiliateId, customSlug])
+}
+
+/**
+ * Affiliate Swipe Feed — records like / skip on catalog discovery cards.
+ * Skip hides the product from future feed loads; like is recorded when a listing is created.
+ */
+model AffiliateSwipe {
+  id          String   @id @default(cuid())
+  affiliateId String
+  affiliate   User     @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  /** `like` | `skip` */
+  action      String
+  createdAt   DateTime @default(now())
+
+  @@unique([affiliateId, productId])
+  @@index([affiliateId, action])
+  @@index([affiliateId, createdAt])
 }
 
 model Cart {

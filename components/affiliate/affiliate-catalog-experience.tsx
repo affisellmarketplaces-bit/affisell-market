@@ -25,7 +25,7 @@ import { AffiliateHero } from "@/components/marketplace/AffiliateHero"
 import { MarketplaceDepartmentRail } from "@/components/marketplace/MarketplaceDepartmentRail"
 import { Sidebar } from "@/components/marketplace/Sidebar"
 import { Button } from "@/components/ui/button"
-import { AFFILIATE_AGENT_PATH, AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
+import { AFFILIATE_AGENT_PATH, AFFILIATE_CATALOG_PATH, AFFILIATE_HUB_PATH } from "@/lib/affiliate-routes"
 import {
   AFFILIATE_CATALOG_NICHES,
   type AffiliateCatalogHighlights as HighlightsData,
@@ -64,6 +64,12 @@ const NICHE_PILLS = [
 ] as const
 
 const PULSE_LINKS = [
+  {
+    href: AFFILIATE_HUB_PATH,
+    label: "Swipe Feed",
+    hint: "Lister en 1 geste",
+    className: "from-violet-600 to-fuchsia-600",
+  },
   {
     href: AFFILIATE_AGENT_PATH,
     label: "Agent sourcing",
