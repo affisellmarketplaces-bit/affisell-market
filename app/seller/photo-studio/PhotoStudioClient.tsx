@@ -2,19 +2,27 @@
 
 import Link from "next/link"
 import { useEffect, useMemo, useRef, useState } from "react"
+import { useLocale } from "next-intl"
 import { motion } from "framer-motion"
 import {
   ArrowRight,
   CheckCircle2,
   Download,
+  Globe2,
   ImageIcon,
+  Languages,
   Layers3,
   Sparkles,
   UploadCloud,
   Wand2,
 } from "lucide-react"
 
-type StudioMode = "remove-bg" | "enhance-pro" | "lifestyle" | "erase-text"
+import type { AppLocale } from "@/lib/i18n-locale"
+import { downloadImagesAsZip, safeDownloadFilename } from "@/lib/photo-studio-download"
+import { localeLabel, type PhotoStudioTextSegment } from "@/lib/photo-studio-translate"
+import { renderTranslatedProductImage } from "@/lib/photo-studio-translate-render"
+
+type StudioMode = "remove-bg" | "enhance-pro" | "lifestyle" | "erase-text" | "translate-text"
 type StudioItem = {
   id: string
   file: File
@@ -174,6 +182,7 @@ function incrementTodayUsage() {
 }
 
 export default function PhotoStudioClient() {
+  const buyerLocale = useLocale() as AppLocale
   const inputRef = useRef<HTMLInputElement>(null)
   const maskCanvasRef = useRef<HTMLCanvasElement>(null)
   const drawBoxRef = useRef<HTMLDivElement>(null)
@@ -181,8 +190,10 @@ export default function PhotoStudioClient() {
   const [mode, setMode] = useState<StudioMode>("remove-bg")
   const [items, setItems] = useState<StudioItem[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [checkedIds, setCheckedIds] = useState<Record<string, boolean>>({})
   const [slider, setSlider] = useState(50)
   const [busy, setBusy] = useState(false)
+  const [downloadBusy, setDownloadBusy] = useState(false)
   const [brushSize, setBrushSize] = useState(24)
   const [masksById, setMasksById] = useState<Record<string, string>>({})
 
@@ -190,6 +201,12 @@ export default function PhotoStudioClient() {
   const todayUsage = getTodayUsage()
   const freeLeft = Math.max(0, DAILY_LIMIT_FREE - todayUsage)
   const isEraseMode = mode === "erase-text"
+  const isTranslateMode = mode === "translate-text"
+
+  const checkedProcessedItems = useMemo(
+    () => items.filter((i) => checkedIds[i.id] && i.processedUrl),
+    [items, checkedIds]
+  )
 
   useEffect(() => {
     if (!isEraseMode || !selected || !drawBoxRef.current || !maskCanvasRef.current) return
@@ -250,6 +267,61 @@ export default function PhotoStudioClient() {
       if (!selectedId && merged[0]) setSelectedId(merged[0].id)
       return merged
     })
+    setCheckedIds((prev) => {
+      const out = { ...prev }
+      for (const item of next) out[item.id] = true
+      return out
+    })
+  }
+
+  function toggleChecked(id: string) {
+    setCheckedIds((prev) => ({ ...prev, [id]: !prev[id] }))
+  }
+
+  function selectAllProcessed() {
+    setCheckedIds((prev) => {
+      const out = { ...prev }
+      for (const item of items) {
+        if (item.processedUrl) out[item.id] = true
+      }
+      return out
+    })
+  }
+
+  function clearChecked() {
+    setCheckedIds({})
+  }
+
+  async function downloadCheckedImages() {
+    const targets =
+      checkedProcessedItems.length > 0
+        ? checkedProcessedItems
+        : selected?.processedUrl
+          ? [selected]
+          : []
+    if (!targets.length) return
+    setDownloadBusy(true)
+    try {
+      if (targets.length === 1) {
+        const item = targets[0]!
+        const a = document.createElement("a")
+        a.href = item.processedUrl!
+        a.download = `affisell-studio-${safeDownloadFilename(item.file.name)}`
+        a.click()
+        return
+      }
+      await downloadImagesAsZip(
+        targets.map((item) => ({
+          url: item.processedUrl!,
+          filename: `affisell-studio-${safeDownloadFilename(item.file.name)}`,
+        }))
+      )
+    } catch (e) {
+      console.error(e)
+      window.alert(e instanceof Error ? e.message : "Download failed")
+    } finally {
+      setDownloadBusy(false)
+    }
   }
 
   async function processOne(item: StudioItem) {
@@ -308,6 +380,26 @@ export default function PhotoStudioClient() {
         const mask = masksById[item.id]
         if (!mask) throw new Error("Paint over text/watermark first.")
         result = await localInpaintFromMask(sourceUrl, mask)
+      }
+
+      if (mode === "translate-text") {
+        const translateRes = await fetch("/api/photo-studio/translate-image", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ imageData: sourceUrl, targetLocale: buyerLocale }),
+        })
+        const translateJson = (await translateRes.json().catch(() => ({}))) as {
+          segments?: PhotoStudioTextSegment[]
+          error?: string
+        }
+        if (!translateRes.ok) {
+          throw new Error(translateJson.error ?? "Translation failed")
+        }
+        const segments = Array.isArray(translateJson.segments) ? translateJson.segments : []
+        if (segments.length === 0) {
+          throw new Error("No readable text detected on this image.")
+        }
+        result = await renderTranslatedProductImage(sourceUrl, segments, localInpaintFromMask)
       }
 
       setItems((prev) =>
@@ -409,6 +501,7 @@ export default function PhotoStudioClient() {
                 ["enhance-pro", "Enhance Pro", Sparkles],
                 ["lifestyle", "Lifestyle Mockup", Layers3],
                 ["erase-text", "Erase Text", Wand2],
+                ["translate-text", "Translate text", Languages],
               ] as const).map(([key, label, Icon]) => (
                 <button
                   key={key}
@@ -422,6 +515,19 @@ export default function PhotoStudioClient() {
                 </button>
               ))}
             </div>
+
+            {isTranslateMode ? (
+              <div className="mt-4 rounded-xl border border-teal-800/80 bg-teal-950/40 p-3">
+                <p className="inline-flex items-center gap-1.5 text-xs font-medium text-teal-200">
+                  <Globe2 className="h-3.5 w-3.5" />
+                  Client language: {localeLabel(buyerLocale)}
+                </p>
+                <p className="mt-1 text-[11px] leading-relaxed text-teal-100/80">
+                  Detects text on the photo, erases the original labels, and redraws them in{" "}
+                  {localeLabel(buyerLocale)} for your marketplace buyers.
+                </p>
+              </div>
+            ) : null}
 
             {isEraseMode ? (
               <div className="mt-4 rounded-xl border border-zinc-700 bg-zinc-950/60 p-3">
@@ -528,24 +634,58 @@ export default function PhotoStudioClient() {
                 Paint over text/watermarks in red, then click Process for instant local content-aware fill.
               </p>
             ) : null}
-            <div className="mt-3 grid grid-cols-4 gap-2">
-              {items.map((item) => (
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+              <p className="text-[11px] text-zinc-500">Select for batch download</p>
+              <div className="flex gap-2">
                 <button
+                  type="button"
+                  onClick={selectAllProcessed}
+                  className="rounded-lg border border-zinc-700 px-2 py-1 text-[10px] text-zinc-300 hover:bg-zinc-800"
+                >
+                  All processed
+                </button>
+                <button
+                  type="button"
+                  onClick={clearChecked}
+                  className="rounded-lg border border-zinc-700 px-2 py-1 text-[10px] text-zinc-300 hover:bg-zinc-800"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+            <div className="mt-2 grid grid-cols-4 gap-2">
+              {items.map((item) => (
+                <div
                   key={item.id}
-                  onClick={() => setSelectedId(item.id)}
                   className={`relative aspect-square overflow-hidden rounded-lg border ${
                     selected?.id === item.id ? "border-violet-400" : "border-zinc-700"
                   }`}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={item.processedUrl || item.originalUrl} alt="" className="h-full w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => setSelectedId(item.id)}
+                    className="absolute inset-0 z-0"
+                    aria-label={`Preview ${item.file.name}`}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={item.processedUrl || item.originalUrl} alt="" className="h-full w-full object-cover" />
+                  </button>
+                  <label className="absolute left-1 top-1 z-10 flex cursor-pointer items-center rounded bg-black/55 p-0.5">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(checkedIds[item.id])}
+                      onChange={() => toggleChecked(item.id)}
+                      className="h-3.5 w-3.5 accent-violet-500"
+                      aria-label={`Select ${item.file.name} for download`}
+                    />
+                  </label>
                   {item.status === "processing" ? (
                     <motion.div
-                      className="absolute bottom-0 left-0 h-1 bg-violet-400"
+                      className="absolute bottom-0 left-0 z-10 h-1 bg-violet-400"
                       animate={{ width: `${item.progress}%` }}
                     />
                   ) : null}
-                </button>
+                </div>
               ))}
             </div>
           </section>
@@ -572,15 +712,26 @@ export default function PhotoStudioClient() {
             </div>
 
             <div className="mt-4 grid gap-2">
-              {selected?.processedUrl ? (
-                <a
-                  href={selected.processedUrl}
-                  download={`affisell-studio-${selected.file.name.replace(/\.[^/.]+$/, "")}.jpg`}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-2 text-sm hover:bg-zinc-900"
-                >
-                  <Download className="h-4 w-4" /> Download selected
-                </a>
-              ) : null}
+              <button
+                type="button"
+                disabled={
+                  downloadBusy ||
+                  (checkedProcessedItems.length === 0 && !selected?.processedUrl)
+                }
+                onClick={() => void downloadCheckedImages()}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-2 text-sm hover:bg-zinc-900 disabled:opacity-50"
+              >
+                <Download className="h-4 w-4" />
+                {downloadBusy
+                  ? "Preparing…"
+                  : checkedProcessedItems.length > 1
+                    ? `Download ${checkedProcessedItems.length} (ZIP)`
+                    : checkedProcessedItems.length === 1
+                      ? "Download selected"
+                      : selected?.processedUrl
+                        ? "Download preview"
+                        : "Download selected"}
+              </button>
               <button
                 onClick={useForProduct}
                 disabled={!items.some((i) => i.uploadedUrl)}
