@@ -35,7 +35,8 @@ export function sellingPriceFromMarkup(basePriceCents: number, markupRate: numbe
 
 export async function buildSwipeFeedWhere(
   affiliateId: string,
-  filters: SwipeFeedFilters
+  filters: SwipeFeedFilters,
+  options?: { excludeSkipped?: boolean }
 ): Promise<Prisma.ProductWhereInput> {
   const catalogWhere = await buildAffiliateCatalogProductWhere(filtersToSearchParams(filters))
   const minCommission =
@@ -48,12 +49,15 @@ export async function buildSwipeFeedWhere(
     {
       affiliateProducts: { none: { affiliateId } },
     },
-    {
+  ]
+
+  if (options?.excludeSkipped !== false) {
+    andParts.push({
       affiliateSwipes: {
         none: { affiliateId, action: "skip" },
       },
-    },
-  ]
+    })
+  }
 
   if (minCommission != null) {
     andParts.push({ commissionRate: { gte: minCommission } })
@@ -62,35 +66,18 @@ export async function buildSwipeFeedWhere(
   return { AND: andParts }
 }
 
-export async function loadSwipeFeedProducts(
-  affiliateId: string,
-  filters: SwipeFeedFilters,
-  take = 12
-): Promise<SwipeFeedProduct[]> {
-  const where = await buildSwipeFeedWhere(affiliateId, filters)
-  const limit = Math.min(48, Math.max(3, take))
-
-  const rows = await prisma.product.findMany({
-    where,
-    orderBy: [{ commissionRate: "desc" }, { createdAt: "desc" }],
-    take: limit,
-    select: {
-      id: true,
-      name: true,
-      images: true,
-      categories: true,
-      basePriceCents: true,
-      commissionRate: true,
-      deliveryMax: true,
-      supplier: {
-        select: {
-          email: true,
-          store: { select: { name: true } },
-        },
-      },
-    },
-  })
-
+function mapSwipeFeedRows(
+  rows: Array<{
+    id: string
+    name: string
+    images: unknown
+    categories: string[]
+    basePriceCents: number
+    commissionRate: unknown
+    deliveryMax: number | null
+    supplier: { email: string; store: { name: string } | null }
+  }>
+): SwipeFeedProduct[] {
   return rows.map((p) => {
     const commissionRate = Math.round(Number(p.commissionRate) || 0)
     return {
@@ -106,6 +93,66 @@ export async function loadSwipeFeedProducts(
       deliveryMax: p.deliveryMax,
     }
   })
+}
+
+const productSelect = {
+  id: true,
+  name: true,
+  images: true,
+  categories: true,
+  basePriceCents: true,
+  commissionRate: true,
+  deliveryMax: true,
+  supplier: {
+    select: {
+      email: true,
+      store: { select: { name: true } },
+    },
+  },
+} as const
+
+function isAffiliateSwipeSchemaError(e: unknown): boolean {
+  if (typeof e !== "object" || !e) return false
+  const msg = String((e as { message?: string }).message ?? "")
+  return (
+    msg.includes("AffiliateSwipe") ||
+    msg.includes("affiliateSwipes") ||
+    (e as { code?: string }).code === "P2021"
+  )
+}
+
+export async function loadSwipeFeedProducts(
+  affiliateId: string,
+  filters: SwipeFeedFilters,
+  take = 12
+): Promise<SwipeFeedProduct[]> {
+  const limit = Math.min(48, Math.max(3, take))
+  const orderBy: Prisma.ProductOrderByWithRelationInput[] = [
+    { commissionRate: "desc" },
+    { createdAt: "desc" },
+  ]
+
+  try {
+    const where = await buildSwipeFeedWhere(affiliateId, filters, { excludeSkipped: true })
+    const rows = await prisma.product.findMany({
+      where,
+      orderBy,
+      take: limit,
+      select: productSelect,
+    })
+    return mapSwipeFeedRows(rows)
+  } catch (e) {
+    if (!isAffiliateSwipeSchemaError(e)) throw e
+    console.warn("[swipe-feed] AffiliateSwipe unavailable — loading without skip filter")
+    const where = await buildSwipeFeedWhere(affiliateId, filters, { excludeSkipped: false })
+    const rows = await prisma.product.findMany({
+      where,
+      orderBy,
+      take: limit,
+      select: productSelect,
+    })
+    return mapSwipeFeedRows(rows)
+  }
 }
 
 export async function recordAffiliateSwipe(

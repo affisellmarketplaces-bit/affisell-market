@@ -50,6 +50,8 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
   const [mode, setMode] = useState<"hub" | "swipe">(initialMode)
   const [deck, setDeck] = useState<SwipeFeedProduct[]>([])
   const [loading, setLoading] = useState(false)
+  const [feedExhausted, setFeedExhausted] = useState(false)
+  const [fetchError, setFetchError] = useState<string | null>(null)
   const [filters, setFilters] = useState<SwipeFeedFilters>({})
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [history, setHistory] = useState<SwipeHistoryEntry[]>([])
@@ -74,13 +76,37 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
       if (fetchingRef.current) return
       fetchingRef.current = true
       setLoading(true)
+      setFetchError(null)
       try {
         const qs = buildFeedQuery(filters, 12)
         const res = await fetch(`/api/affiliate/swipe-feed?${qs}`, { cache: "no-store" })
-        const data = (await res.json()) as { products?: SwipeFeedProduct[] }
+        const data = (await res.json().catch(() => ({}))) as {
+          products?: SwipeFeedProduct[]
+          error?: string
+          dbUnavailable?: boolean
+        }
+
+        if (!res.ok) {
+          const msg =
+            data.dbUnavailable
+              ? "Service temporairement indisponible — réessayez dans un instant."
+              : data.error ?? "Impossible de charger le feed"
+          setFetchError(msg)
+          setFeedExhausted(true)
+          showToast(msg)
+          return
+        }
+
         const incoming = data.products ?? []
+        if (incoming.length === 0) {
+          setFeedExhausted(true)
+        } else if (replace) {
+          setFeedExhausted(false)
+        }
+
         setDeck((prev) => {
           if (replace) return incoming
+          if (incoming.length === 0) return prev
           const seen = new Set(prev.map((p) => p.id))
           const merged = [...prev]
           for (const p of incoming) {
@@ -89,6 +115,8 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
           return merged
         })
       } catch {
+        setFetchError("Impossible de charger le feed")
+        setFeedExhausted(true)
         showToast("Impossible de charger le feed")
       } finally {
         setLoading(false)
@@ -100,15 +128,17 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
 
   useEffect(() => {
     if (mode !== "swipe") return
+    setFeedExhausted(false)
     void fetchMore(true)
   }, [mode, filters, fetchMore])
 
   useEffect(() => {
     if (mode !== "swipe") return
-    if (deck.length <= PREFETCH_WHEN_LEFT && !loading) {
+    if (feedExhausted || loading || deck.length === 0) return
+    if (deck.length <= PREFETCH_WHEN_LEFT) {
       void fetchMore(false)
     }
-  }, [deck.length, mode, loading, fetchMore])
+  }, [deck.length, mode, loading, feedExhausted, fetchMore])
 
   const visibleStack = useMemo(() => deck.slice(0, STACK_VISIBLE), [deck])
 
@@ -362,20 +392,29 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
                 className="flex h-full flex-col items-center justify-center rounded-3xl border border-dashed border-zinc-700 bg-zinc-900/50 p-8 text-center"
               >
                 <Layers className="mb-4 size-12 text-zinc-600" aria-hidden />
-                <p className="text-lg font-semibold">Plus de cartes</p>
-                <p className="mt-2 text-sm text-zinc-500">
-                  Ajustez les filtres ou revenez au catalogue.
+                <p className="text-lg font-semibold">
+                  {fetchError ? "Feed indisponible" : "Plus de cartes"}
                 </p>
-                <Button
-                  type="button"
-                  className="mt-6 bg-violet-600 hover:bg-violet-500"
-                  onClick={() => {
-                    setFilters({})
-                    void fetchMore(true)
-                  }}
-                >
-                  Recharger
-                </Button>
+                <p className="mt-2 text-sm text-zinc-500">
+                  {fetchError ??
+                    "Tous les produits disponibles sont listés ou passés. Essayez le catalogue ou réinitialisez les filtres."}
+                </p>
+                <div className="mt-6 flex flex-wrap justify-center gap-3">
+                  <Button
+                    type="button"
+                    className="bg-violet-600 hover:bg-violet-500"
+                    onClick={() => {
+                      setFeedExhausted(false)
+                      setFetchError(null)
+                      void fetchMore(true)
+                    }}
+                  >
+                    Recharger
+                  </Button>
+                  <Button type="button" variant="outline" asChild className="border-zinc-700">
+                    <Link href={AFFILIATE_CATALOG_PATH}>Catalogue</Link>
+                  </Button>
+                </div>
               </motion.div>
             ) : (
               visibleStack.map((product, i) => (
@@ -463,6 +502,8 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
           setFilters(next)
           setDeck([])
           setHistory([])
+          setFeedExhausted(false)
+          setFetchError(null)
         }}
       />
 
