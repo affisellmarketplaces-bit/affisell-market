@@ -14,6 +14,7 @@
       "home": "Home",
       "stores": "Stores",
       "explore": "Explore",
+      "pulse": "Pulse",
       "cart": "Cart"
     },
     "affiliate": {
@@ -838,10 +839,12 @@
     "priceFluidityNote": "Shown price can change before checkout.",
     "gallery": {
       "thumbRail": "Product media",
-      "fullView": "Click to see full view",
+      "fullView": "Full view",
       "video": "Video",
       "more": "+{count}",
       "playVideo": "Play product video",
+      "slideCounter": "{current} / {total}",
+      "goToSlide": "Go to image {index}",
       "desktopHint": "Select a thumbnail · hover main image to zoom",
       "lightbox": "Full screen gallery",
       "close": "Close",

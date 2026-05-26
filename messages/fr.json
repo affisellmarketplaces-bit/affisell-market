@@ -14,6 +14,7 @@
       "home": "Accueil",
       "stores": "Boutiques",
       "explore": "Explorer",
+      "pulse": "Pulse",
       "cart": "Panier"
     },
     "affiliate": {
@@ -838,10 +839,12 @@
     "priceFluidityNote": "Le prix affiché peut changer avant le paiement.",
     "gallery": {
       "thumbRail": "Médias produit",
-      "fullView": "Cliquez pour voir la vue complète",
+      "fullView": "Plein écran",
       "video": "Vidéo",
       "more": "+{count}",
       "playVideo": "Lire la vidéo produit",
+      "slideCounter": "{current} / {total}",
+      "goToSlide": "Aller à l’image {index}",
       "desktopHint": "Choisissez une vignette · survolez l’image pour zoomer",
       "lightbox": "Galerie plein écran",
       "close": "Fermer",

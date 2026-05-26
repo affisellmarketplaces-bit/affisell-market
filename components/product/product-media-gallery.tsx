@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Film, Maximize2, Play, X } from "lucide-reac
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react"
 import { useTranslations } from "next-intl"
 
+import { MobileProductGalleryCarousel } from "@/components/product/mobile-product-gallery-carousel"
 import { ProductImageHoverZoom } from "@/components/product-image-hover-zoom"
 import { isDirectMp4Url } from "@/lib/product-description-video-embed"
 import { cn } from "@/lib/utils"
@@ -207,9 +208,24 @@ export function ProductMediaGallery({
 
         {/* Main stage */}
         <div className="min-w-0 flex-1 space-y-2 lg:overflow-visible">
-          <div className="relative max-lg:overflow-hidden max-lg:rounded-xl lg:overflow-visible lg:rounded-[1.35rem]">
+          <div className="lg:hidden">
+            <MobileProductGalleryCarousel
+              images={safeImages}
+              activeIndex={mediaMode === "video" ? -1 : activeThumbIndex}
+              onSelectIndex={selectImage}
+              videoUrl={hasVideo ? videoUrl : null}
+              alt={alt}
+              overlay={overlay}
+              onOpenLightbox={openLightbox}
+              onVideoActive={() => setMediaMode("video")}
+              onImageActive={() => setMediaMode("image")}
+              className="-mx-1 sm:mx-0"
+            />
+          </div>
+
+          <div className="relative hidden overflow-visible rounded-[1.35rem] lg:block">
             {mediaMode === "video" && hasVideo ? (
-              <div className="relative aspect-square w-full overflow-hidden bg-zinc-950 lg:aspect-[4/3]">
+              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[1.35rem] bg-zinc-950">
                 <video
                   src={videoUrl!}
                   className="h-full w-full object-contain"
@@ -227,67 +243,24 @@ export function ProductMediaGallery({
                 </div>
               </div>
             ) : (
-              <div className="relative lg:z-10 lg:overflow-visible">
+              <div className="relative z-10 overflow-visible">
                 <ProductImageHoverZoom
                   src={heroSrc}
                   alt={alt}
                   overlay={overlay}
-                  className="max-lg:rounded-xl max-lg:border-zinc-200/80 max-lg:shadow-sm lg:overflow-visible lg:rounded-[1.35rem] lg:border-zinc-200/55 lg:bg-white/90 lg:shadow-[0_28px_70px_-34px_rgba(91,33,217,0.28)] lg:ring-1 lg:ring-violet-500/[0.07] dark:max-lg:border-zinc-700/80 dark:lg:border-zinc-700/80 dark:lg:bg-zinc-950/70"
-                  frameClassName="max-lg:rounded-xl max-lg:aspect-square lg:rounded-[1.1rem] lg:aspect-[4/3] lg:bg-gradient-to-b lg:from-zinc-50/95 lg:to-white dark:lg:from-zinc-900/90 dark:lg:to-zinc-950"
+                  className="overflow-visible rounded-[1.35rem] border-zinc-200/55 bg-white/90 shadow-[0_28px_70px_-34px_rgba(91,33,217,0.28)] ring-1 ring-violet-500/[0.07] dark:border-zinc-700/80 dark:bg-zinc-950/70"
+                  frameClassName="rounded-[1.1rem] aspect-[4/3] bg-gradient-to-b from-zinc-50/95 to-white dark:from-zinc-900/90 dark:to-zinc-950"
                 />
                 <button
                   type="button"
                   onClick={() => openLightbox(activeThumbIndex >= 0 ? activeThumbIndex : 0)}
-                  className="pointer-events-auto absolute bottom-3 left-3 z-20 flex items-center gap-1.5 rounded-full border border-sky-200/80 bg-white/95 px-3 py-1.5 text-xs font-semibold text-sky-800 shadow-sm backdrop-blur-sm transition hover:bg-sky-50 dark:border-sky-800/60 dark:bg-zinc-950/90 dark:text-sky-200 dark:hover:bg-sky-950/50 lg:bottom-4 lg:left-4"
+                  className="pointer-events-auto absolute bottom-4 left-4 z-20 flex items-center gap-1.5 rounded-full border border-sky-200/80 bg-white/95 px-3 py-1.5 text-xs font-semibold text-sky-800 shadow-sm backdrop-blur-sm transition hover:bg-sky-50 dark:border-sky-800/60 dark:bg-zinc-950/90 dark:text-sky-200 dark:hover:bg-sky-950/50"
                 >
                   <Maximize2 className="size-3.5 shrink-0" aria-hidden />
                   {t("fullView")}
                 </button>
               </div>
             )}
-          </div>
-
-          {/* Mobile + tablet horizontal rail */}
-          <div
-            className="flex w-full min-w-0 touch-pan-x gap-2 overflow-x-auto overscroll-x-contain py-0.5 [scrollbar-width:thin] lg:hidden"
-            role="tablist"
-            aria-label={t("thumbRail")}
-          >
-            {safeImages.slice(0, 12).map((url, i) => (
-              <button
-                key={`m-${i}`}
-                type="button"
-                role="tab"
-                aria-selected={isThumbActive(i)}
-                onClick={() => selectImage(i)}
-                className={cn(
-                  "relative aspect-square w-16 shrink-0 overflow-hidden rounded-xl border-2 sm:w-[4.5rem]",
-                  isThumbActive(i)
-                    ? "border-sky-500 ring-2 ring-sky-400/25"
-                    : "border-zinc-200 dark:border-zinc-700"
-                )}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={url} alt="" className="h-full w-full object-contain p-1" loading="lazy" />
-              </button>
-            ))}
-            {hasVideo ? (
-              <button
-                type="button"
-                role="tab"
-                aria-selected={mediaMode === "video"}
-                onClick={() => setMediaMode("video")}
-                className={cn(
-                  "relative flex aspect-square w-16 shrink-0 flex-col items-center justify-center rounded-xl border-2 bg-zinc-100 dark:bg-zinc-800 sm:w-[4.5rem]",
-                  mediaMode === "video"
-                    ? "border-sky-500 ring-2 ring-sky-400/25"
-                    : "border-zinc-200 dark:border-zinc-700"
-                )}
-              >
-                <Play className="size-6 text-zinc-700 dark:text-zinc-200" aria-hidden />
-                <span className="mt-1 text-[8px] font-bold uppercase">{t("video")}</span>
-              </button>
-            ) : null}
           </div>
 
           <p className="hidden text-center text-[11px] text-zinc-500 lg:block dark:text-zinc-400">

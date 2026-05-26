@@ -66,6 +66,7 @@
 }
 
 :root {
+  --affisell-mobile-dock-offset: calc(5rem + env(safe-area-inset-bottom));
   --background: #fafafc;
   --foreground: #0f172a;
   --card: #ffffff;
@@ -174,6 +175,19 @@
   }
   html {
     @apply font-sans;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (max-width: 1023px) {
+    .affisell-mobile-shell {
+      padding-bottom: var(--affisell-mobile-dock-offset);
+    }
+  }
+
+  @media (min-width: 768px) {
+    .affisell-mobile-shell {
+      padding-bottom: 0;
+    }
   }
 }
 
@@ -186,6 +200,16 @@
    * PDP / product page — hairline viewport frame (fine, barely visible).
    * Sits on the outer edges of the screen, not around inner content cards.
    */
+  .affisell-mobile-gallery-track {
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 0;
+  }
+
+  .affisell-touch-target {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
+
   .affisell-pdp-viewport {
     position: relative;
   }

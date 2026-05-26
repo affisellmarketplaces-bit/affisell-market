@@ -1888,7 +1888,7 @@ export function MarketplaceListingDetail({
         role="region"
         aria-label={t(productT.stickyBuyHint)}
         aria-hidden={!(availableStock > 0 && showStickyBuy && !showAr && !showStylist)}
-        className="fixed inset-x-0 bottom-0 z-40 max-w-[100vw] px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 sm:px-6"
+        className="fixed inset-x-0 bottom-0 z-[85] max-w-[100vw] px-3 pb-[max(0.85rem,env(safe-area-inset-bottom))] pt-2 sm:px-6 lg:z-40"
         initial={false}
         animate={
           reduceMotion
@@ -1903,7 +1903,7 @@ export function MarketplaceListingDetail({
           pointerEvents: availableStock > 0 && showStickyBuy && !showAr && !showStylist ? "auto" : "none",
         }}
       >
-        <div className="mx-auto flex max-w-3xl items-center gap-3 rounded-2xl border border-zinc-200/90 bg-white/95 px-3 py-2.5 shadow-2xl shadow-zinc-900/12 ring-1 ring-black/[0.05] backdrop-blur-xl dark:border-zinc-700 dark:bg-zinc-950/95 dark:ring-white/10">
+        <div className="mx-auto flex max-w-3xl items-center gap-2.5 rounded-[1.35rem] border border-violet-200/50 bg-white/92 px-3 py-2 shadow-[0_16px_48px_-12px_rgba(91,33,217,0.35)] ring-1 ring-violet-500/10 backdrop-blur-2xl dark:border-violet-900/40 dark:bg-zinc-950/92 dark:ring-violet-400/15 sm:gap-3 sm:rounded-2xl sm:py-2.5">
           <div className="min-w-0 flex-1">
             <p className="truncate text-xs font-semibold leading-tight text-zinc-900 dark:text-zinc-50">{name}</p>
             <p className="text-base font-bold tabular-nums text-violet-700 dark:text-violet-400">{priceDisplay}</p>

@@ -285,7 +285,7 @@ export default async function MarketplaceListingPage({
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_115%_70%_at_50%_-12%,rgba(139,92,246,0.14),transparent_52%)] dark:bg-[radial-gradient(ellipse_115%_70%_at_50%_-12%,rgba(139,92,246,0.22),transparent_55%)]"
         aria-hidden
       />
-      <div className="relative mx-auto min-w-0 max-w-6xl px-4 py-8 pb-28 md:px-8 md:py-10 lg:py-12 lg:pb-12">
+      <div className="relative mx-auto min-w-0 max-w-6xl px-4 py-6 pb-[calc(5.75rem+env(safe-area-inset-bottom))] md:px-8 md:py-10 md:pb-12 lg:py-12">
         <MarketplaceListingDetail
           audience="customer"
           listingId={listing.id}

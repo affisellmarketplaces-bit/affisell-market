@@ -115,7 +115,7 @@ export async function Footer() {
   return (
     <footer
       role="contentinfo"
-      className="relative mt-auto border-t border-white/5 bg-gradient-to-b from-[#0A0A0F] to-black pt-20 pb-8 text-white"
+      className="relative mt-auto hidden border-t border-white/5 bg-gradient-to-b from-[#0A0A0F] to-black pt-20 pb-8 text-white md:block"
     >
       <script
         type="application/ld+json"
