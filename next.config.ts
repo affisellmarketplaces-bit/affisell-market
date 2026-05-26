@@ -22,6 +22,10 @@ const nextConfig: NextConfig = {
       "node_modules/@imgly/background-removal/**",
     ],
   },
+  /** Runtime `fs.readFileSync` for `/legal/[slug]` markdown sources (standalone / Vercel). */
+  outputFileTracingIncludes: {
+    "/legal/[slug]": ["./legal/**/*.md"],
+  },
   serverExternalPackages: ["@imgly/background-removal", "onnxruntime-web"],
   webpack: (config, { isServer }) => {
     if (isServer) {
