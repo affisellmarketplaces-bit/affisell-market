@@ -725,7 +725,17 @@
     "loading": "Loading…",
     "loadError": "Could not load orders",
     "trackingRequired": "Enter a tracking number before marking as shipped.",
-    "updateFailed": "Update failed"
+    "updateFailed": "Update failed",
+    "payout": {
+      "yourPayout": "Your payout",
+      "netWholesaleHint": "Catalog wholesale (partner commission already deducted)",
+      "platformFee": "Platform fee −{amount}",
+      "platformFeeTitle": "Affisell fee on the client line (ex-VAT) — taken from the buyer payment, not from your supplier payout",
+      "partnerCommission": "Partner commission −{amount}",
+      "partnerCommissionTitle": "Affiliate commission on your catalog price — already deducted from “Your payout”",
+      "partnerStoreTitle": "Sold via partner storefront {code}",
+      "partnerStoreRef": "Partner storefront {code}"
+    }
   },
   "storefront": {
     "brandStudio": {

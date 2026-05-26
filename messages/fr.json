@@ -725,7 +725,17 @@
     "loading": "Chargement…",
     "loadError": "Impossible de charger les commandes",
     "trackingRequired": "Saisissez un numéro de suivi avant de marquer comme expédiée.",
-    "updateFailed": "Mise à jour impossible"
+    "updateFailed": "Mise à jour impossible",
+    "payout": {
+      "yourPayout": "Votre versement",
+      "netWholesaleHint": "Prix catalogue HT, commission partenaire déjà déduite",
+      "platformFee": "Frais plateforme −{amount}",
+      "platformFeeTitle": "Frais Affisell (HT) sur le prix client — payés sur le paiement acheteur, pas sur votre versement fournisseur",
+      "partnerCommission": "Commission partenaire −{amount}",
+      "partnerCommissionTitle": "Commission affilié sur votre prix catalogue — déjà déduite du montant « Votre versement »",
+      "partnerStoreTitle": "Vente via la vitrine affilié {code}",
+      "partnerStoreRef": "Vitrine partenaire {code}"
+    }
   },
   "storefront": {
     "brandStudio": {

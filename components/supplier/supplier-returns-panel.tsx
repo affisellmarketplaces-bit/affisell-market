@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 import { useCallback, useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
@@ -52,6 +53,7 @@ function statusLabel(s: string) {
 }
 
 export function SupplierReturnsPanel({ className }: { className?: string }) {
+  const tPayout = useTranslations("supplierOrders.payout")
   const [rows, setRows] = useState<ReturnRow[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
@@ -168,9 +170,12 @@ export function SupplierReturnsPanel({ className }: { className?: string }) {
                 {r.order.partnerListingCode ? (
                   <>
                     {" "}
-                    · Partner listing{" "}
-                    <span className="font-mono font-medium text-zinc-700 dark:text-zinc-300">
-                      {r.order.partnerListingCode}
+                    ·{" "}
+                    <span
+                      className="font-mono font-medium text-zinc-700 dark:text-zinc-300"
+                      title={tPayout("partnerStoreTitle", { code: r.order.partnerListingCode })}
+                    >
+                      {tPayout("partnerStoreRef", { code: r.order.partnerListingCode })}
                     </span>
                   </>
                 ) : null}

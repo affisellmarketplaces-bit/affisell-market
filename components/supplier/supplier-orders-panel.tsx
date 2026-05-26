@@ -157,6 +157,7 @@ function FulfillmentRail({
 }
 
 function PayoutStrip({ o }: { o: OrderRow }) {
+  const t = useTranslations("supplierOrders.payout")
   const feesTotal = o.affisellFeeCents + o.affiliateCommissionCents
   return (
     <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
@@ -165,27 +166,33 @@ function PayoutStrip({ o }: { o: OrderRow }) {
           <Coins className="size-5" aria-hidden />
         </span>
         <div className="min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-violet-100">Your payout</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-violet-100">{t("yourPayout")}</p>
           <p className="text-2xl font-bold tabular-nums tracking-tight">
             {formatStoreCurrencyFromCents(o.supplierNetCents)}
           </p>
-          <p className="text-[11px] text-violet-100/90">Net wholesale after partner commission</p>
+          <p className="text-[11px] text-violet-100/90">{t("netWholesaleHint")}</p>
         </div>
       </div>
       {feesTotal > 0 ? (
         <div className="flex flex-wrap gap-2 sm:flex-col sm:items-end">
-          <span
-            className="rounded-full bg-zinc-100 px-2.5 py-1 text-[11px] font-medium tabular-nums text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"
-            title="Affisell platform fee (HT) on partner checkout — not deducted from your net wholesale"
-          >
-            Platform −{formatStoreCurrencyFromCents(o.affisellFeeCents)}
-          </span>
-          <span
-            className="rounded-full bg-zinc-100 px-2.5 py-1 text-[11px] font-medium tabular-nums text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"
-            title="Partner listing commission"
-          >
-            Listing −{formatStoreCurrencyFromCents(o.affiliateCommissionCents)}
-          </span>
+          {o.affiliateCommissionCents > 0 ? (
+            <span
+              className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-medium tabular-nums text-amber-900 dark:bg-amber-950/40 dark:text-amber-100"
+              title={t("partnerCommissionTitle")}
+            >
+              {t("partnerCommission", {
+                amount: formatStoreCurrencyFromCents(o.affiliateCommissionCents),
+              })}
+            </span>
+          ) : null}
+          {o.affisellFeeCents > 0 ? (
+            <span
+              className="rounded-full bg-zinc-100 px-2.5 py-1 text-[11px] font-medium tabular-nums text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"
+              title={t("platformFeeTitle")}
+            >
+              {t("platformFee", { amount: formatStoreCurrencyFromCents(o.affisellFeeCents) })}
+            </span>
+          ) : null}
         </div>
       ) : null}
     </div>
@@ -193,13 +200,17 @@ function PayoutStrip({ o }: { o: OrderRow }) {
 }
 
 function OrderMetaChips({ o }: { o: OrderRow }) {
+  const t = useTranslations("supplierOrders.payout")
   return (
     <div className="mt-3 flex flex-wrap gap-1.5">
       <span className="rounded-md bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
         {o.customerEmail}
       </span>
       {o.partnerListingCode ? (
-        <span className="rounded-md bg-zinc-100 px-2 py-0.5 font-mono text-[11px] font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+        <span
+          className="rounded-md bg-zinc-100 px-2 py-0.5 font-mono text-[11px] font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+          title={t("partnerStoreTitle", { code: o.partnerListingCode })}
+        >
           {o.partnerListingCode}
         </span>
       ) : null}
