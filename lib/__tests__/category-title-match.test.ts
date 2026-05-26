@@ -3,8 +3,10 @@ import { describe, expect, it } from "vitest"
 import type { LeafPath } from "@/lib/category-browse"
 import {
   findWearableCategoryAlternatives,
+  isCategorySuggestionViable,
   scoreProductTextAgainstBreadcrumb,
   suggestLeafCategoriesFromProductText,
+  wordMatchesInBreadcrumb,
 } from "@/lib/category-title-match"
 
 const FIXTURE_LEAVES: LeafPath[] = [
@@ -64,6 +66,24 @@ const FIXTURE_LEAVES: LeafPath[] = [
       "Maison et jardin > Pelouses et jardins > Vie en extérieur > Structures extérieures > Cabanes, garages et auvents pour voitures",
     path: [],
   },
+  {
+    leafId: "sim-prepaid",
+    breadcrumb:
+      "Appareils électroniques > Communications > Téléphonie > Accessoires pour téléphones mobiles > Cartes prépayées et cartes SIM pour téléphones mobiles > Cartes prépayées pour téléphone portable",
+    path: [],
+  },
+  {
+    leafId: "carplay-headunit",
+    breadcrumb:
+      "Véhicules et accessoires > Pièces détachées pour véhicules > Électronique pour véhicules > Lecteurs et systèmes audio et vidéo intégrés pour véhicules",
+    path: [],
+  },
+  {
+    leafId: "handsfree",
+    breadcrumb:
+      "Véhicules et accessoires > Pièces détachées pour véhicules > Électronique pour véhicules > Kits mains-libres pour véhicules",
+    path: [],
+  },
 ]
 
 describe("category-title-match", () => {
@@ -115,6 +135,46 @@ describe("category-title-match", () => {
     expect(picks[0]?.leafId).toBe("backup-cam")
     expect(picks.some((p) => p.leafId === "pet-grid")).toBe(false)
     expect(picks.some((p) => p.leafId === "car-guide")).toBe(false)
+  })
+
+  it("does not match car inside carte (substring trap)", () => {
+    expect(
+      wordMatchesInBreadcrumb(
+        "car",
+        FIXTURE_LEAVES.find((l) => l.leafId === "sim-prepaid")!.breadcrumb
+      )
+    ).toBe(false)
+    expect(
+      wordMatchesInBreadcrumb(
+        "car",
+        FIXTURE_LEAVES.find((l) => l.leafId === "carplay-headunit")!.breadcrumb
+      )
+    ).toBe(false)
+  })
+
+  it("ranks CarPlay adapters above prepaid SIM leaves", () => {
+    const title = "Adaptateur CarPlay sans Fil pour Apple et Android"
+    const description =
+      "Module multimédia auto, écran tactile, compatible iOS 10+ et Android 10+, installation voiture"
+
+    const simScore = scoreProductTextAgainstBreadcrumb(
+      `${title} ${description}`,
+      FIXTURE_LEAVES.find((l) => l.leafId === "sim-prepaid")!.breadcrumb
+    )
+    const headunitScore = scoreProductTextAgainstBreadcrumb(
+      `${title} ${description}`,
+      FIXTURE_LEAVES.find((l) => l.leafId === "carplay-headunit")!.breadcrumb
+    )
+
+    expect(headunitScore).toBeGreaterThan(simScore)
+    expect(isCategorySuggestionViable(`${title} ${description}`, FIXTURE_LEAVES.find((l) => l.leafId === "sim-prepaid")!.breadcrumb)).toBe(
+      false
+    )
+
+    const picks = suggestLeafCategoriesFromProductText(title, description, FIXTURE_LEAVES, 3)
+    expect(picks.length).toBeGreaterThan(0)
+    expect(picks[0]?.leafId).toBe("carplay-headunit")
+    expect(picks.some((p) => p.leafId === "sim-prepaid")).toBe(false)
   })
 
   it("offers jewelry watches as alternative for smart band primary", () => {

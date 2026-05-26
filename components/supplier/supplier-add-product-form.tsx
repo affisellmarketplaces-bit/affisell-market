@@ -47,6 +47,7 @@ import {
   maxAffiliateCommissionRatePct,
 } from "@/lib/supplier-commission"
 import {
+  isCategorySuggestionViable,
   pathFromLeafId,
   scoreProductTextAgainstBreadcrumb,
   type CategoryPathSegment,
@@ -541,7 +542,9 @@ export function SupplierAddProductForm({
     const title = debouncedName.trim()
     const desc = debouncedCategoryDescription.trim()
     const breadcrumb = path.map((p) => p.name).join(" > ")
-    const relevance = scoreProductTextAgainstBreadcrumb(`${title} ${desc}`, breadcrumb)
+    const productText = `${title} ${desc}`
+    if (!isCategorySuggestionViable(productText, breadcrumb)) return
+    const relevance = scoreProductTextAgainstBreadcrumb(productText, breadcrumb)
     if (relevance < 7) return
 
     const key = `${title}|${desc}|${top.leafId}`

@@ -9,6 +9,7 @@ import {
 } from "@/lib/category-browse"
 import {
   findWearableCategoryAlternatives,
+  isCategorySuggestionViable,
   type CategoryAlternativeSuggestion,
 } from "@/lib/category-title-match"
 import type { PrismaClient } from "@prisma/client"
@@ -89,6 +90,8 @@ Rules:
 - Prefer the closest real leaf: computers and similar go under Computers / Laptops / PCs when present, not kitchen or fragrance.
 - If DESCRIPTION is provided, use it together with the title.
 - Smart bands, fitness trackers, connected watches/bracelets → activity / biometric monitor leaves, never phone unlock categories, electronic connectors, or white-noise sleep aids.
+- CarPlay / Android Auto / wireless car adapters / in-dash screens → Véhicules > Électronique pour véhicules (audio/video intégré, mains-libres, GPS auto). NEVER prepaid SIM cards, phone plans, or generic phone accessories.
+- "Car" in CarPlay is not a SIM card or prepaid phone card — ignore téléphonie > cartes prépayées branches.
 
 Return JSON: {"ids":["id1","id2","id3"]} — only IDs from the list, no invented IDs, no duplicates, best match first.`
 
@@ -157,19 +160,32 @@ export async function suggestListingCategories(
       ids = []
     }
 
+    const text = `${t} ${d}`.trim()
     const picked: LeafPath[] = []
     const seen = new Set<string>()
     for (const id of ids) {
       if (picked.length >= 3) break
       const lp = allowed.get(id)
-      if (lp && !seen.has(lp.leafId)) {
+      if (
+        lp &&
+        !seen.has(lp.leafId) &&
+        isCategorySuggestionViable(text, lp.breadcrumb)
+      ) {
         seen.add(lp.leafId)
         picked.push(lp)
       }
     }
 
-    const merged = mergeSuggestionsByTitleRelevance(t, d, picked, keywordFallback, 3)
-    const text = `${t} ${d}`.trim()
+    const viableKeywords = keywordFallback.filter((lp) =>
+      isCategorySuggestionViable(text, lp.breadcrumb)
+    )
+    const merged = mergeSuggestionsByTitleRelevance(
+      t,
+      d,
+      picked,
+      viableKeywords.length > 0 ? viableKeywords : keywordFallback,
+      3
+    )
     type ScoredSuggestion = ListingCategorySuggestion & { relevanceScore: number }
     let scored: ScoredSuggestion[] = merged.map((lp) => {
       const s = scoreProductTextAgainstBreadcrumb(text, lp.breadcrumb)
@@ -179,7 +195,9 @@ export async function suggestListingCategories(
       return { ...lp, confidence, relevanceScore: s }
     })
     scored = scored.filter(
-      (row) => row.relevanceScore >= MIN_KEYWORD_SCORE_FOR_MERGE || (row.confidence ?? 0) >= 0.75
+      (row) =>
+        isCategorySuggestionViable(text, row.breadcrumb) &&
+        (row.relevanceScore >= MIN_KEYWORD_SCORE_FOR_MERGE || (row.confidence ?? 0) >= 0.75)
     )
     if (scored.length === 0 && keywordFallback.length > 0) {
       scored = keywordFallback.slice(0, 3).map((lp) => {

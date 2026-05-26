@@ -62,9 +62,15 @@ const WEAK_TOKENS = new Set([
   "vehicules",
   "auto",
   "car",
+  "play",
   "vehicle",
   "vehicles",
+  "fil",
+  "sans",
 ])
+
+/** Short tokens must match whole breadcrumb words — avoids "car" inside "carte" / "carplay" noise. */
+const SHORT_TOKEN_MAX_LEN = 4
 
 /** When title is a camera product, "voiture" alone must not dominate unrelated leaves. */
 const VEHICLE_CONTEXT_WEAK = new Set(["voiture", "voitures", "vehicule", "vehicules", "auto", "car"])
@@ -118,6 +124,29 @@ const PRODUCT_INTENTS: ProductIntent[] = [
     match: /\b(ecouteurs?|casque|airpods|earbuds|headphones)\b/i,
     boost: [/ecouteurs?/i, /casques?/i, /audio/i],
     penalize: [/connecteur/i, /composant/i],
+  },
+  {
+    id: "car_infotainment",
+    match:
+      /\b(car\s*play|carplay|android\s*auto|mirrorlink|apple\s*play|adaptateur\s+(auto|vehicule|voiture)|autoradio|poste\s+radio|ecran\s+(auto|vehicule|voiture)|kit\s+multimedia\s+auto|systeme\s+multimedia|lecteur\s+multimedia\s+auto|interface\s+multimedia|boitier\s+carplay|module\s+carplay|sans\s+fil\s+pour\s+(auto|voiture)|wireless\s+carplay)\b/i,
+    boost: [
+      /electronique\s+pour\s+vehicules/i,
+      /lecteurs.*audio.*video.*integres/i,
+      /mains.?libres.*vehicules/i,
+      /systemes?\s+de\s+navigation\s+gps/i,
+      /accessoires\s+pour\s+gps/i,
+      /haut.?parleurs?\s+pour\s+vehicules/i,
+      /amplificateurs?\s+pour\s+vehicules/i,
+    ],
+    penalize: [
+      /cartes?\s+prepayees?/i,
+      /cartes?\s+sim/i,
+      /telephonie/i,
+      /telephones?\s+mobiles?/i,
+      /deverrouill/i,
+      /forfaits?\s+mobiles?/i,
+      /recharge\s+de\s+cartes?/i,
+    ],
   },
   {
     id: "vehicle_camera",
@@ -190,6 +219,21 @@ const PHRASE_BOOSTS: Array<{ phrase: RegExp; breadcrumb: RegExp; points: number 
     breadcrumb: /animaux|grille de separation|guides?\s+d['']utilisation|cabanes|auvents|pelouses/i,
     points: -45,
   },
+  {
+    phrase: /car\s*play|carplay|android\s*auto/i,
+    breadcrumb: /lecteurs.*audio.*video.*integres|electronique\s+pour\s+vehicules/i,
+    points: 36,
+  },
+  {
+    phrase: /car\s*play|carplay|android\s*auto|adaptateur.*(?:auto|voiture|vehicule)/i,
+    breadcrumb: /cartes?\s+prepayees?|cartes?\s+sim|forfaits?\s+mobiles?/i,
+    points: -50,
+  },
+]
+
+const COMPOUND_TERMS: Array<{ pattern: RegExp; token: string }> = [
+  { pattern: /\bcar\s*play\b|\bcarplay\b/i, token: "carplay" },
+  { pattern: /\bandroid\s*auto\b/i, token: "androidauto" },
 ]
 
 function normalizeText(s: string): string {
@@ -199,11 +243,65 @@ function normalizeText(s: string): string {
     .replace(/[\u0300-\u036f]/g, "")
 }
 
+function breadcrumbWordTokens(breadcrumb: string): Set<string> {
+  return new Set(
+    normalizeText(breadcrumb)
+      .split(/[^a-z0-9]+/)
+      .map((w) => w.trim())
+      .filter((w) => w.length >= 2)
+  )
+}
+
+/** Whole-word match in breadcrumb; blocks substring traps (e.g. "car" in "carte"). */
+export function wordMatchesInBreadcrumb(word: string, breadcrumb: string): boolean {
+  const w = word.trim().toLowerCase()
+  if (w.length < 2) return false
+  const tokens = breadcrumbWordTokens(breadcrumb)
+  if (tokens.has(w)) return true
+  if (w.length <= SHORT_TOKEN_MAX_LEN) return false
+
+  const b = normalizeText(breadcrumb)
+  let idx = 0
+  while (idx < b.length) {
+    const at = b.indexOf(w, idx)
+    if (at < 0) return false
+    const before = at === 0 ? "" : b[at - 1]!
+    const after = at + w.length >= b.length ? "" : b[at + w.length]!
+    const isBoundary = (ch: string) => !/[a-z0-9]/.test(ch)
+    if (isBoundary(before) && isBoundary(after)) return true
+    idx = at + 1
+  }
+  return false
+}
+
 function extractWords(text: string): string[] {
-  return normalizeText(text)
-    .split(/[^a-z0-9]+/)
-    .map((w) => w.trim())
-    .filter((w) => w.length >= 3 && !STOP.has(w))
+  const norm = normalizeText(text)
+  const out: string[] = []
+  const seen = new Set<string>()
+
+  const push = (w: string) => {
+    if (w.length < 3 || STOP.has(w) || seen.has(w)) return
+    seen.add(w)
+    out.push(w)
+  }
+
+  for (const { pattern, token } of COMPOUND_TERMS) {
+    if (pattern.test(norm)) push(token)
+  }
+
+  for (const w of norm.split(/[^a-z0-9]+/)) {
+    const t = w.trim()
+    if (t.length < 3 || STOP.has(t)) continue
+    if (t === "carplay" || t === "androidauto") {
+      push(t)
+      continue
+    }
+    if (seen.has("carplay") && (t === "car" || t === "play")) continue
+    if (seen.has("androidauto") && (t === "android" || t === "auto")) continue
+    push(t)
+  }
+
+  return out
 }
 
 function activeIntentForText(normText: string): ProductIntent | null {
@@ -321,18 +419,21 @@ export function scoreProductTextAgainstBreadcrumb(text: string, breadcrumb: stri
     if (WEAK_TOKENS.has(w)) {
       if (intent?.id === "vehicle_camera" && VEHICLE_CONTEXT_WEAK.has(w)) {
         const cameraCtx = /camera|dash|dvr|canal|canaux|4k|1080|enregistr|recul|surveillance|video/i
-        if (b.includes(w) && !cameraCtx.test(b)) score += 0.15
+        if (wordMatchesInBreadcrumb(w, b) && !cameraCtx.test(b)) score += 0.15
         continue
       }
-      if (b.includes(w)) score += intent ? 0.2 : 0
+      if (intent?.id === "car_infotainment" && (w === "car" || w === "auto" || w === "play")) {
+        continue
+      }
+      if (wordMatchesInBreadcrumb(w, b)) score += intent ? 0.2 : 0
       continue
     }
     const lengthBonus = Math.min(w.length, 12) * 0.45
-    if (b.includes(w)) {
+    if (wordMatchesInBreadcrumb(w, b)) {
       score += 3 + lengthBonus
     } else if (w.length >= 6) {
       const stem = w.slice(0, 5)
-      if (stem.length >= 5 && b.includes(stem)) score += 0.35
+      if (stem.length >= 5 && wordMatchesInBreadcrumb(stem, b)) score += 0.35
     }
   }
 
@@ -340,6 +441,23 @@ export function scoreProductTextAgainstBreadcrumb(text: string, breadcrumb: stri
 }
 
 const MIN_SUGGESTION_SCORE = 7
+
+/** Drop suggestions that contradict detected product intent or score too low. */
+export function isCategorySuggestionViable(
+  text: string,
+  breadcrumb: string,
+  minScore = MIN_SUGGESTION_SCORE
+): boolean {
+  const score = scoreProductTextAgainstBreadcrumb(text, breadcrumb)
+  if (score < minScore) return false
+  const intent = activeIntentForText(normalizeText(text.trim()))
+  if (!intent) return true
+  const b = normalizeText(breadcrumb)
+  for (const rx of intent.penalize) {
+    if (rx.test(b) && score < minScore + 12) return false
+  }
+  return true
+}
 
 /**
  * Suggest leaf categories from title + description using intent-aware scoring.

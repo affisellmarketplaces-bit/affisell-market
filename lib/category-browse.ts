@@ -1,12 +1,17 @@
 import type { PrismaClient } from "@prisma/client"
 
 import {
+  isCategorySuggestionViable,
   leafPathsForDetectedIntent,
   scoreProductTextAgainstBreadcrumb,
   suggestLeafCategoriesFromProductText,
 } from "@/lib/category-title-match"
 
-export { scoreProductTextAgainstBreadcrumb, suggestLeafCategoriesFromProductText } from "@/lib/category-title-match"
+export {
+  isCategorySuggestionViable,
+  scoreProductTextAgainstBreadcrumb,
+  suggestLeafCategoriesFromProductText,
+} from "@/lib/category-title-match"
 
 export type BrowseNode = {
   id: string
@@ -272,10 +277,12 @@ export function leafPathsForAiCatalog(
     }
   }
 
-  const scored = leafPaths.map((lp) => ({
-    lp,
-    s: scoreTitleAgainstBreadcrumb(text, lp.breadcrumb),
-  }))
+  const scored = leafPaths
+    .map((lp) => ({
+      lp,
+      s: scoreTitleAgainstBreadcrumb(text, lp.breadcrumb),
+    }))
+    .filter(({ lp }) => isCategorySuggestionViable(text, lp.breadcrumb, 1))
   scored.sort((a, b) => b.s - a.s)
 
   for (const { lp, s } of scored) {
