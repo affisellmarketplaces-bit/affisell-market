@@ -27,6 +27,7 @@ import { ReviewsEngine } from "@/components/reviews/ReviewsEngine"
 
 import { MarketplacePurchaseQuantity } from "@/components/marketplace/marketplace-purchase-quantity"
 import { Button } from "@/components/ui/button"
+import { MobilePdpBuyPanel } from "@/components/product/mobile-pdp-buy-panel"
 import { ProductMediaGallery } from "@/components/product/product-media-gallery"
 import messages from "@/messages/en.json"
 import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
@@ -394,6 +395,7 @@ export function MarketplaceListingDetail({
   const router = useRouter()
   const reduceMotion = useReducedMotion()
   const purchaseDockRef = useRef<HTMLDivElement>(null)
+  const mobilePurchaseRef = useRef<HTMLElement>(null)
   const [showStickyBuy, setShowStickyBuy] = useState(false)
   const [titleExpanded, setTitleExpanded] = useState(false)
   const { headline: titleHeadline, subline: titleSubline } = useMemo(() => splitListingTitle(name), [name])
@@ -460,7 +462,13 @@ export function MarketplaceListingDetail({
 
 
   useEffect(() => {
-    const el = purchaseDockRef.current
+    const pickTarget = () => {
+      if (typeof window === "undefined") return purchaseDockRef.current
+      return window.matchMedia("(max-width: 1023px)").matches
+        ? mobilePurchaseRef.current
+        : purchaseDockRef.current
+    }
+    const el = pickTarget()
     if (!el) return
     const io = new IntersectionObserver(
       ([entry]) => {
@@ -471,7 +479,17 @@ export function MarketplaceListingDetail({
       { threshold: 0, rootMargin: "-72px 0px 0px 0px" }
     )
     io.observe(el)
-    return () => io.disconnect()
+    const mq = window.matchMedia("(max-width: 1023px)")
+    const onMq = () => {
+      io.disconnect()
+      const next = pickTarget()
+      if (next) io.observe(next)
+    }
+    mq.addEventListener("change", onMq)
+    return () => {
+      mq.removeEventListener("change", onMq)
+      io.disconnect()
+    }
   }, [listingId, stock])
 
   /** Sync main + thumbnail index when opening another listing or affiliate default color changes. */
@@ -810,7 +828,7 @@ export function MarketplaceListingDetail({
           transition={
             reduceMotion ? { duration: 0 } : { duration: 0.62, ease: [0.22, 1, 0.36, 1] }
           }
-          className="relative max-w-full max-lg:overflow-x-clip overflow-y-visible rounded-[2rem] border border-white/75 bg-white/80 p-3 shadow-[0_36px_120px_-40px_rgba(91,33,217,0.32),0_0_0_1px_rgba(255,255,255,0.55)_inset] backdrop-blur-2xl sm:p-7 lg:overflow-visible lg:p-9 dark:border-white/[0.08] dark:bg-zinc-950/65 dark:shadow-[0_40px_120px_-48px_rgba(0,0,0,0.65)]"
+          className="relative max-w-full max-lg:overflow-x-clip overflow-y-visible rounded-2xl border border-white/75 bg-white/80 p-2 shadow-[0_36px_120px_-40px_rgba(91,33,217,0.32),0_0_0_1px_rgba(255,255,255,0.55)_inset] backdrop-blur-2xl sm:rounded-[2rem] sm:p-7 lg:overflow-visible lg:p-9 dark:border-white/[0.08] dark:bg-zinc-950/65 dark:shadow-[0_40px_120px_-48px_rgba(0,0,0,0.65)]"
         >
           <div
             className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_85%_at_50%_-8%,rgba(139,92,246,0.16),transparent_58%)] dark:bg-[radial-gradient(120%_85%_at_50%_-8%,rgba(167,139,250,0.14),transparent_58%)]"
@@ -819,7 +837,7 @@ export function MarketplaceListingDetail({
           <motion.div className="relative grid min-w-0 grid-cols-1 gap-2 lg:grid-cols-12 lg:items-start lg:gap-x-12 lg:gap-y-8">
             <nav
               aria-label="Breadcrumb"
-              className="order-first col-span-full flex flex-wrap items-center gap-1 border-b border-zinc-200/70 pb-2 text-[11px] text-zinc-500 max-lg:mb-0.5 lg:pb-4 lg:text-xs dark:border-zinc-800/80 dark:text-zinc-400"
+              className="order-first col-span-full hidden flex-wrap items-center gap-1 border-b border-zinc-200/70 pb-2 text-[11px] text-zinc-500 sm:flex lg:pb-4 lg:text-xs dark:border-zinc-800/80 dark:text-zinc-400"
             >
               <Link href="/" className="hover:text-zinc-900 dark:hover:text-zinc-200">
                 {breadcrumbT.home}
@@ -876,18 +894,80 @@ export function MarketplaceListingDetail({
               <Button
                 size="lg"
                 variant="outline"
-                className="border-zinc-300 text-zinc-900 hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-100 dark:hover:bg-zinc-900"
+                className="hidden border-zinc-300 text-zinc-900 hover:bg-zinc-50 sm:inline-flex dark:border-zinc-600 dark:text-zinc-100 dark:hover:bg-zinc-900"
                 onClick={() => setShowAr(true)}
               >
                 {productT.viewInAR}
               </Button>
             ) : null}
+
+            <MobilePdpBuyPanel
+              ref={mobilePurchaseRef}
+              className="lg:hidden"
+              titleHeadline={titleHeadline}
+              titleSubline={titleSubline}
+              categoryEyebrow={categoryEyebrow}
+              listingPriceEur={listingPriceEur}
+              activeRetailPriceEur={hasRetailCompare ? activeRetailPriceEur : null}
+              hasRetailCompare={hasRetailCompare}
+              salesCount={salesCount}
+              reviewAverage={reviewSummary.average}
+              reviewCount={reviewSummary.count}
+              colorMeta={colorMeta}
+              showColorSwatches={showColorSwatches}
+              selectedColor={selectedColor}
+              onSelectColor={(cn) => {
+                setGalleryHeroLock(false)
+                setSelectedColor(cn)
+                setSelectedImage(imageIndexForColor(cn, colorNames, colorImages, images))
+              }}
+              storageOptions={storageOptions}
+              selectedStorage={selectedStorage}
+              onSelectStorage={setSelectedStorage}
+              isStorageOptionDisabled={(cap) => {
+                const row = findVariantRowForShopperSelection({
+                  variants,
+                  customColumns,
+                  selection: {
+                    selectedPrimary: selectedColor,
+                    selectedStorage: cap,
+                    selectedSize,
+                  },
+                })
+                return row != null && row.stock <= 0
+              }}
+              sizeOptions={sizeOptions}
+              selectedSize={selectedSize}
+              onSelectSize={setSelectedSize}
+              availableStock={availableStock}
+              purchaseQty={purchaseQty}
+              onQuantityChange={setPurchaseQty}
+              cartBusy={cartBusy}
+              buyBusy={buyBusy}
+              onAddToCart={(e) => void addToCart(e)}
+              onBuyNow={() => void buyNow()}
+              productId={productId}
+              formatReviewCount={formatStoreCount}
+              labels={{
+                colorLabel: productT.colorLabel,
+                storageLabel: productT.storageLabel,
+                sizeLabel: productT.sizeLabel,
+                priceLabel: productT.priceLabel,
+                addToCart: productT.addToCart,
+                buyNowShort: productT.buyNowShort,
+                inStock: productT.inStock,
+                outOfStock: productT.outOfStock,
+                quantityOption: (count) => t(productT.quantityOption, { count }),
+                quantityAria: productT.quantityAria,
+                reviews: (count) => t(productT.reviews, { count }),
+              }}
+            />
           </section>
           </motion.div>
 
           <aside className="order-3 min-w-0 lg:order-none lg:col-span-5 lg:col-start-8 lg:row-start-2 lg:row-span-2 lg:sticky lg:top-28 lg:self-start lg:space-y-4">
             <div className="max-lg:divide-y max-lg:divide-zinc-100 max-lg:overflow-hidden max-lg:rounded-xl max-lg:border max-lg:border-zinc-200/90 max-lg:bg-white max-lg:shadow-sm dark:max-lg:divide-zinc-800 dark:max-lg:border-zinc-800 dark:max-lg:bg-zinc-950">
-            <div className="max-lg:space-y-2.5 max-lg:px-4 max-lg:pt-3 max-lg:pb-3">
+            <div className="hidden space-y-2.5 lg:block lg:pt-3 lg:pb-3">
             <header className="space-y-2 lg:space-y-3 lg:pt-3">
               <motion.div
                 className="relative"
@@ -1062,7 +1142,7 @@ export function MarketplaceListingDetail({
               </div>
             </div>
 
-            <div className="max-lg:space-y-2 max-lg:px-4 max-lg:py-2.5 lg:space-y-4">
+            <div className="hidden space-y-2 px-4 py-2.5 lg:block lg:space-y-4 lg:px-0 lg:py-0">
             {availableStock <= 5 && availableStock > 0 ? (
               <p className="rounded-lg border border-amber-200/90 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100 lg:rounded-xl lg:py-2 lg:text-sm">
                 {t(productT.onlyLeft, { count: Math.max(1, availableStock) })}
@@ -1102,7 +1182,7 @@ export function MarketplaceListingDetail({
             </p>
             </div>
 
-            <div className="max-lg:space-y-3 max-lg:px-4 max-lg:py-3 lg:space-y-4">
+            <div className="hidden space-y-3 px-4 py-3 lg:block lg:space-y-4 lg:px-0 lg:py-0">
             {partnerHighlightLabel ? (
               <p className="rounded-lg border border-violet-200/70 bg-violet-50/70 px-3 py-2 text-[11px] leading-relaxed text-violet-950 dark:border-violet-900/40 dark:bg-violet-950/30 dark:text-violet-100 lg:rounded-xl lg:text-xs">
                 <span className="font-semibold">Partner highlight:</span> {partnerHighlightLabel}
@@ -1306,10 +1386,7 @@ export function MarketplaceListingDetail({
             <motion.div
               ref={purchaseDockRef}
               id="listing-purchase-dock"
-              className={cn(
-                "relative scroll-mt-28 rounded-[1.65rem] border border-zinc-200/90 bg-white p-5 shadow-[0_22px_56px_-28px_rgba(15,23,42,0.35)] ring-1 ring-black/[0.03] dark:border-zinc-700/90 dark:bg-zinc-950 dark:shadow-black/50 dark:ring-white/[0.04]",
-                "max-lg:rounded-none max-lg:border-0 max-lg:bg-transparent max-lg:p-0 max-lg:px-4 max-lg:pb-4 max-lg:pt-1 max-lg:shadow-none max-lg:ring-0"
-              )}
+              className="relative hidden scroll-mt-28 rounded-[1.65rem] border border-zinc-200/90 bg-white p-5 shadow-[0_22px_56px_-28px_rgba(15,23,42,0.35)] ring-1 ring-black/[0.03] dark:border-zinc-700/90 dark:bg-zinc-950 dark:shadow-black/50 dark:ring-white/[0.04] lg:block"
               initial={reduceMotion ? false : { y: 10 }}
               animate={{ y: 0 }}
               transition={reduceMotion ? { duration: 0 } : { duration: 0.45, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
@@ -1903,18 +1980,30 @@ export function MarketplaceListingDetail({
           pointerEvents: availableStock > 0 && showStickyBuy && !showAr && !showStylist ? "auto" : "none",
         }}
       >
-        <div className="mx-auto flex max-w-3xl items-center gap-2.5 rounded-[1.35rem] border border-violet-200/50 bg-white/92 px-3 py-2 shadow-[0_16px_48px_-12px_rgba(91,33,217,0.35)] ring-1 ring-violet-500/10 backdrop-blur-2xl dark:border-violet-900/40 dark:bg-zinc-950/92 dark:ring-violet-400/15 sm:gap-3 sm:rounded-2xl sm:py-2.5">
+        <div className="mx-auto flex max-w-3xl items-center gap-2 rounded-[1.35rem] border border-violet-200/50 bg-white/92 px-2.5 py-2 shadow-[0_16px_48px_-12px_rgba(91,33,217,0.35)] ring-1 ring-violet-500/10 backdrop-blur-2xl dark:border-violet-900/40 dark:bg-zinc-950/92 dark:ring-violet-400/15 sm:gap-3 sm:rounded-2xl sm:px-3 sm:py-2.5">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-xs font-semibold leading-tight text-zinc-900 dark:text-zinc-50">{name}</p>
-            <p className="text-base font-bold tabular-nums text-violet-700 dark:text-violet-400">{priceDisplay}</p>
+            <p className="truncate text-[11px] font-semibold leading-tight text-zinc-900 dark:text-zinc-50">
+              {titleHeadline}
+            </p>
+            <p className="text-sm font-bold tabular-nums text-violet-700 dark:text-violet-400 sm:text-base">
+              {priceDisplay}
+            </p>
           </div>
+          <Button
+            type="button"
+            disabled={buyBusy || availableStock <= 0}
+            onClick={() => void buyNow()}
+            className="hidden h-10 shrink-0 rounded-full border border-violet-400/60 bg-white px-3 text-xs font-bold text-violet-800 sm:inline-flex dark:bg-zinc-900 dark:text-violet-200"
+          >
+            {productT.buyNowShort}
+          </Button>
           <Button
             type="button"
             disabled={cartBusy || availableStock <= 0}
             onClick={(e) => void addToCart(e)}
-            className="h-11 shrink-0 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 text-sm font-semibold text-white shadow-lg shadow-violet-500/25 hover:from-violet-500 hover:to-fuchsia-500 disabled:opacity-50"
+            className="h-10 shrink-0 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 text-xs font-bold text-white shadow-lg shadow-violet-500/25 sm:h-11 sm:px-5 sm:text-sm"
           >
-            {cartBusy ? "Adding…" : productT.addToCart}
+            {cartBusy ? "…" : productT.addToCart}
           </Button>
         </div>
       </motion.div>

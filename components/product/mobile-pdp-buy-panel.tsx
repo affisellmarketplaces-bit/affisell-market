@@ -1,0 +1,324 @@
+"use client"
+
+import { motion } from "framer-motion"
+import { MousePointerClick, ShoppingBag, Star } from "lucide-react"
+import Link from "next/link"
+import { forwardRef, type MouseEvent } from "react"
+
+import { MarketplacePurchaseQuantity } from "@/components/marketplace/marketplace-purchase-quantity"
+import { ProductPriceOffer } from "@/components/product/product-price-offer"
+import { ProductSalesBadge } from "@/components/product/product-sales-badge"
+import { WishlistHeart } from "@/components/wishlist-heart"
+import { isMulticolorSwatch } from "@/lib/product-catalog-constants"
+import { cn } from "@/lib/utils"
+
+export type MobilePdpColorMeta = {
+  name: string
+  meta?: { hex: string } | undefined
+}
+
+export type MobilePdpBuyPanelProps = {
+  titleHeadline: string
+  titleSubline: string | null
+  categoryEyebrow: string | null
+  listingPriceEur: number
+  activeRetailPriceEur: number | null
+  hasRetailCompare: boolean
+  salesCount: number
+  reviewAverage: number
+  reviewCount: number
+  reviewsHref?: string
+  colorMeta: MobilePdpColorMeta[]
+  showColorSwatches: boolean
+  selectedColor: string | null
+  onSelectColor: (name: string) => void
+  storageOptions: string[]
+  selectedStorage: string | null
+  onSelectStorage: (cap: string) => void
+  isStorageOptionDisabled?: (cap: string) => boolean
+  sizeOptions: string[]
+  selectedSize: string | null
+  onSelectSize: (size: string) => void
+  availableStock: number
+  purchaseQty: number
+  onQuantityChange: (qty: number) => void
+  cartBusy: boolean
+  buyBusy: boolean
+  onAddToCart: (e: MouseEvent<HTMLButtonElement>) => void
+  onBuyNow: () => void
+  productId: string
+  labels: {
+    colorLabel: string
+    storageLabel: string
+    sizeLabel: string
+    priceLabel: string
+    addToCart: string
+    buyNowShort: string
+    inStock: string
+    outOfStock: string
+    quantityOption: (count: number) => string
+    quantityAria: string
+    reviews: (count: string) => string
+  }
+  formatReviewCount: (n: number) => string
+  className?: string
+}
+
+export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>(
+  function MobilePdpBuyPanel(
+    {
+      titleHeadline,
+      titleSubline,
+      categoryEyebrow,
+      listingPriceEur,
+      activeRetailPriceEur,
+      hasRetailCompare,
+      salesCount,
+      reviewAverage,
+      reviewCount,
+      reviewsHref = "#listing-reviews",
+      colorMeta,
+      showColorSwatches,
+      selectedColor,
+      onSelectColor,
+      storageOptions,
+      selectedStorage,
+      onSelectStorage,
+      isStorageOptionDisabled,
+      sizeOptions,
+      selectedSize,
+      onSelectSize,
+      availableStock,
+      purchaseQty,
+      onQuantityChange,
+      cartBusy,
+      buyBusy,
+      onAddToCart,
+      onBuyNow,
+      productId,
+      labels,
+      formatReviewCount,
+      className,
+    },
+    ref
+  ) {
+    return (
+      <section
+        ref={ref}
+        id="mobile-pdp-buy-panel"
+        className={cn(
+          "scroll-mt-20 space-y-3.5 rounded-2xl border border-violet-200/40 bg-gradient-to-b from-white via-violet-50/25 to-white p-3.5 shadow-[0_20px_50px_-28px_rgba(91,33,217,0.28)] ring-1 ring-violet-500/10 dark:border-violet-900/35 dark:from-zinc-950 dark:via-violet-950/15 dark:to-zinc-950 dark:ring-violet-400/10",
+          className
+        )}
+        aria-label={labels.addToCart}
+      >
+        <header className="space-y-1.5">
+          {categoryEyebrow ? (
+            <span className="inline-block rounded-full bg-violet-600/12 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.16em] text-violet-800 dark:bg-violet-500/15 dark:text-violet-200">
+              {categoryEyebrow}
+            </span>
+          ) : null}
+          <h1 className="text-[1.05rem] font-bold leading-snug tracking-tight text-zinc-900 dark:text-zinc-50">
+            {titleHeadline}
+          </h1>
+          {titleSubline ? (
+            <p className="line-clamp-2 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+              {titleSubline}
+            </p>
+          ) : null}
+          <div className="flex flex-wrap items-center gap-2 pt-0.5">
+            {salesCount > 0 ? (
+              <ProductSalesBadge count={salesCount} variant="detail" className="!w-auto shrink-0" />
+            ) : null}
+            <div className="flex items-center gap-1 text-xs">
+              <div className="flex">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    className={cn(
+                      "size-3.5",
+                      i < Math.round(reviewAverage)
+                        ? "fill-amber-400 text-amber-400"
+                        : "fill-zinc-200 text-zinc-200 dark:fill-zinc-700 dark:text-zinc-700"
+                    )}
+                    aria-hidden
+                  />
+                ))}
+              </div>
+              <span className="font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+                {reviewAverage.toFixed(1)}
+              </span>
+              <Link
+                href={reviewsHref}
+                className="font-medium text-violet-700 dark:text-violet-400"
+              >
+                {labels.reviews(formatReviewCount(reviewCount))}
+              </Link>
+            </div>
+          </div>
+        </header>
+
+        <div className="flex items-end justify-between gap-2 border-y border-zinc-200/70 py-2.5 dark:border-zinc-800/80">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">
+              {labels.priceLabel}
+            </p>
+            <ProductPriceOffer
+              price={listingPriceEur}
+              compareAt={hasRetailCompare ? activeRetailPriceEur : null}
+              layout="detail"
+            />
+          </div>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-200/90 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+            <WishlistHeart productId={productId} />
+          </div>
+        </div>
+
+        {colorMeta.length > 0 ? (
+          <div>
+            <div className="mb-2 flex items-baseline justify-between gap-2">
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">
+                {showColorSwatches ? labels.colorLabel : "Option"}
+              </p>
+              {selectedColor ? (
+                <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">{selectedColor}</p>
+              ) : null}
+            </div>
+            <div className="flex gap-2.5 overflow-x-auto overscroll-x-contain pb-0.5 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {colorMeta.map(({ name: colorName, meta }) =>
+                showColorSwatches ? (
+                  <button
+                    key={colorName}
+                    type="button"
+                    onClick={() => onSelectColor(colorName)}
+                    className={cn(
+                      "relative h-11 w-11 shrink-0 rounded-full border-2 transition active:scale-95",
+                      selectedColor === colorName
+                        ? "border-violet-600 ring-2 ring-violet-400/35 dark:border-violet-400"
+                        : "border-zinc-300 dark:border-zinc-600"
+                    )}
+                    style={
+                      meta && !isMulticolorSwatch(meta)
+                        ? { backgroundColor: meta.hex }
+                        : {
+                            background:
+                              "conic-gradient(red, yellow, lime, cyan, blue, magenta, red)",
+                          }
+                    }
+                    title={colorName}
+                    aria-label={colorName}
+                    aria-pressed={selectedColor === colorName}
+                  />
+                ) : (
+                  <button
+                    key={colorName}
+                    type="button"
+                    onClick={() => onSelectColor(colorName)}
+                    className={cn(
+                      "shrink-0 rounded-full border px-3.5 py-2 text-xs font-semibold transition active:scale-95",
+                      selectedColor === colorName
+                        ? "border-violet-600 bg-violet-600 text-white shadow-md"
+                        : "border-zinc-200 bg-white text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                    )}
+                  >
+                    {colorName}
+                  </button>
+                )
+              )}
+            </div>
+          </div>
+        ) : null}
+
+        {storageOptions.length > 0 ? (
+          <div>
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">
+              {labels.storageLabel}
+            </p>
+            <div className="flex gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {storageOptions.map((cap) => {
+                const disabled = isStorageOptionDisabled?.(cap) ?? false
+                return (
+                  <button
+                    key={cap}
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => onSelectStorage(cap)}
+                    className={cn(
+                      "shrink-0 rounded-full border px-3.5 py-2 text-xs font-semibold transition active:scale-95",
+                      selectedStorage === cap
+                        ? "border-violet-600 bg-violet-600 text-white"
+                        : "border-zinc-200 bg-zinc-50 text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100",
+                      disabled && "cursor-not-allowed opacity-40"
+                    )}
+                  >
+                    {cap}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        ) : null}
+
+        {sizeOptions.length > 0 ? (
+          <div>
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">
+              {labels.sizeLabel}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {sizeOptions.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => onSelectSize(s)}
+                  className={cn(
+                    "min-w-[2.75rem] rounded-full border px-3 py-2 text-xs font-semibold transition active:scale-95",
+                    selectedSize === s
+                      ? "border-violet-600 bg-violet-600 text-white"
+                      : "border-zinc-200 bg-zinc-50 text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                  )}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        <div className="grid grid-cols-[minmax(0,7.5rem)_1fr] gap-2">
+          <MarketplacePurchaseQuantity
+            variant="inline"
+            quantity={purchaseQty}
+            onQuantityChange={onQuantityChange}
+            availableStock={availableStock}
+            inStockLabel={labels.inStock}
+            outOfStockLabel={labels.outOfStock}
+            quantityOptionLabel={labels.quantityOption}
+            quantityAriaLabel={labels.quantityAria}
+            disabled={cartBusy || buyBusy}
+          />
+          <motion.button
+            type="button"
+            disabled={cartBusy || availableStock <= 0}
+            whileTap={{ scale: availableStock > 0 && !cartBusy ? 0.98 : 1 }}
+            onClick={onAddToCart}
+            className="flex h-11 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-sm font-bold text-white shadow-lg shadow-violet-600/30 disabled:opacity-50"
+          >
+            <ShoppingBag className="size-4 shrink-0" aria-hidden />
+            {cartBusy ? "…" : labels.addToCart}
+          </motion.button>
+        </div>
+
+        <motion.button
+          type="button"
+          disabled={buyBusy || availableStock <= 0}
+          whileTap={{ scale: availableStock > 0 && !buyBusy ? 0.98 : 1 }}
+          onClick={() => onBuyNow()}
+          className="flex h-11 w-full items-center justify-center gap-2 rounded-full border-2 border-violet-500/50 bg-white text-sm font-bold text-violet-800 shadow-sm disabled:opacity-50 dark:border-violet-500/40 dark:bg-zinc-900 dark:text-violet-200"
+        >
+          <MousePointerClick className="size-4 shrink-0" aria-hidden />
+          {buyBusy ? "…" : labels.buyNowShort}
+        </motion.button>
+      </section>
+    )
+  }
+)

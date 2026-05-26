@@ -145,7 +145,7 @@ export function MobileProductGalleryCarousel({
             className="relative w-full shrink-0 snap-center snap-always"
             aria-hidden={i !== scrollIndex}
           >
-            <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-zinc-200/70 bg-gradient-to-b from-zinc-50 to-white shadow-[0_20px_50px_-28px_rgba(91,33,217,0.35)] dark:border-zinc-700/80 dark:from-zinc-900 dark:to-zinc-950">
+            <div className="relative aspect-[5/6] max-h-[min(42dvh,22rem)] w-full overflow-hidden rounded-2xl border border-zinc-200/70 bg-gradient-to-b from-zinc-50 to-white shadow-[0_20px_50px_-28px_rgba(91,33,217,0.35)] dark:border-zinc-700/80 dark:from-zinc-900 dark:to-zinc-950 sm:max-h-[min(44dvh,24rem)]">
               {slide.kind === "video" ? (
                 <>
                   <video
@@ -193,10 +193,10 @@ export function MobileProductGalleryCarousel({
           <button
             type="button"
             onClick={() => onOpenLightbox(currentSlide.index)}
-            className="pointer-events-auto flex items-center gap-1 rounded-full border border-white/30 bg-white/90 px-2.5 py-1.5 text-[11px] font-semibold text-zinc-900 shadow-md backdrop-blur-sm active:scale-95 dark:bg-zinc-950/90 dark:text-zinc-50"
+            className="pointer-events-auto flex size-9 items-center justify-center rounded-full border border-white/30 bg-black/45 text-white shadow-lg backdrop-blur-md active:scale-95"
+            aria-label={t("fullView")}
           >
-            <Maximize2 className="size-3.5" aria-hidden />
-            {t("fullView")}
+            <Maximize2 className="size-4" aria-hidden />
           </button>
         ) : isVideoSlide ? (
           <span className="flex items-center gap-1 rounded-full border border-white/25 bg-violet-600/80 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-lg">

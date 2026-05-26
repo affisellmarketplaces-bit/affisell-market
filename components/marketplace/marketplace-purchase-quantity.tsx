@@ -18,6 +18,7 @@ type Props = {
   quantityAriaLabel: string
   className?: string
   disabled?: boolean
+  variant?: "default" | "inline"
 }
 
 export function MarketplacePurchaseQuantity({
@@ -30,16 +31,18 @@ export function MarketplacePurchaseQuantity({
   quantityAriaLabel,
   className,
   disabled = false,
+  variant = "default",
 }: Props) {
   const inStock = availableStock > 0
   const options = purchaseQuantityOptions(availableStock)
   const safeQty = clampPurchaseQuantity(quantity, availableStock)
+  const inline = variant === "inline"
 
   return (
-    <div className={cn("space-y-2", className)}>
+    <div className={cn(inline ? "space-y-1" : "space-y-2", className)}>
       <p
         className={cn(
-          "text-sm font-medium",
+          inline ? "text-[10px] font-semibold uppercase tracking-wide" : "text-sm font-medium",
           inStock ? "text-emerald-700 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
         )}
       >
@@ -47,13 +50,14 @@ export function MarketplacePurchaseQuantity({
       </p>
       <div className="relative">
         <select
-          id="listing-purchase-qty"
+          id={inline ? "listing-purchase-qty-mobile" : "listing-purchase-qty"}
           aria-label={quantityAriaLabel}
           disabled={disabled || !inStock}
           value={safeQty}
           onChange={(e) => onQuantityChange(Number(e.target.value))}
           className={cn(
-            "h-11 w-full appearance-none rounded-full border border-zinc-300 bg-zinc-50/90 pl-4 pr-10 text-sm font-medium text-zinc-900 shadow-sm outline-none transition",
+            "w-full appearance-none rounded-full border border-zinc-300 bg-zinc-50/90 pl-3 pr-8 text-sm font-semibold text-zinc-900 shadow-sm outline-none transition",
+            inline ? "h-11" : "h-11 pl-4 pr-10",
             "focus:border-violet-500 focus:ring-2 focus:ring-violet-500/25",
             "disabled:cursor-not-allowed disabled:opacity-50",
             "dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:border-violet-500"
