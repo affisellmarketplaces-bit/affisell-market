@@ -1,7 +1,12 @@
 import type { AbstractIntlMessages } from "next-intl"
-import { getLocale, getMessages, setRequestLocale } from "next-intl/server"
+import { getLocale, setRequestLocale } from "next-intl/server"
 
+import { routing } from "@/i18n/routing"
 import { DEFAULT_LOCALE, resolveAppLocale, type AppLocale } from "@/lib/i18n-locale"
+import {
+  isDynamicServerUsageError,
+  resolveRequestLocale,
+} from "@/lib/resolve-request-locale"
 
 async function loadMessagesFallback(locale: AppLocale): Promise<AbstractIntlMessages> {
   const mod = await import(`../messages/${locale}.json`)
@@ -14,8 +19,12 @@ export type RootShellBootstrap = {
   now: Date
 }
 
-function logMissingProductionEnv() {
+let loggedMissingProductionEnv = false
+
+function logMissingProductionEnvOnce() {
+  if (loggedMissingProductionEnv || process.env.NEXT_PHASE === "phase-production-build") return
   if (process.env.NODE_ENV !== "production") return
+  loggedMissingProductionEnv = true
   if (!process.env.DATABASE_URL?.trim()) {
     console.error("[bootstrapRootShell] DATABASE_URL is missing on this deployment")
   }
@@ -24,23 +33,35 @@ function logMissingProductionEnv() {
   }
 }
 
-/** Intl + request locale for root layout — never crash the whole app on misconfig. */
+/**
+ * Intl + request locale for root layout.
+ * Enables static pages: `setRequestLocale` + locale resolution without throwing on `headers()`.
+ */
 export async function bootstrapRootShell(): Promise<RootShellBootstrap> {
-  logMissingProductionEnv()
+  logMissingProductionEnvOnce()
+
   try {
-    const locale = resolveAppLocale(await getLocale())
-    setRequestLocale(locale)
-    const messages = await getMessages()
-    return { locale, messages, now: new Date() }
-  } catch (error) {
-    console.error("[bootstrapRootShell] falling back to default locale", error)
-    const locale = DEFAULT_LOCALE
-    try {
-      setRequestLocale(locale)
-    } catch {
-      /* ignore */
-    }
-    const messages = await loadMessagesFallback(locale)
-    return { locale, messages, now: new Date() }
+    setRequestLocale(routing.defaultLocale)
+  } catch {
+    /* static build — request store may be unavailable */
   }
+
+  let locale: AppLocale = DEFAULT_LOCALE
+  try {
+    locale = resolveAppLocale(await getLocale())
+  } catch (error) {
+    if (!isDynamicServerUsageError(error)) {
+      console.warn("[bootstrapRootShell] getLocale failed, resolving locale manually", error)
+    }
+    locale = await resolveRequestLocale(undefined)
+  }
+
+  try {
+    setRequestLocale(locale)
+  } catch {
+    /* ignore */
+  }
+
+  const messages = await loadMessagesFallback(locale)
+  return { locale, messages, now: new Date() }
 }
