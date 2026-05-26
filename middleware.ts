@@ -85,8 +85,23 @@ function syncLocaleCookies(res: NextResponse, locale: string) {
 }
 
 /** Home routes: no next-intl middleware (prevents `/` ↔ `/fr` redirect loops). */
-function handleHomePath(req: NextRequest): NextResponse {
+async function handleHomePath(req: NextRequest): Promise<NextResponse> {
   const pathname = req.nextUrl.pathname
+
+  if (secret) {
+    const token = await getToken({
+      req,
+      secret,
+      secureCookie: secureSessionCookieForRequest(req),
+    })
+    const role = typeof token?.role === "string" ? token.role : undefined
+    if (role === "AFFILIATE") {
+      return NextResponse.redirect(new URL("/dashboard/affiliate", req.url))
+    }
+    if (role === "SUPPLIER") {
+      return NextResponse.redirect(new URL("/dashboard/supplier", req.url))
+    }
+  }
 
   if (pathname === "/en") {
     const u = req.nextUrl.clone()

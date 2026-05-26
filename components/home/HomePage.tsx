@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server"
 
 import { BentoGrid } from "@/components/BentoGrid"
 import { BuyerHeroBlock } from "@/components/BuyerHeroBlock"
+import { BentoGridSkeleton } from "@/components/home/BentoGridSkeleton"
 import { BuyerMarketplaceExplorer } from "@/components/home/BuyerMarketplaceExplorer"
 import { ShimmerSkeleton } from "@/components/marketing/shimmer-skeleton"
 
@@ -22,7 +23,9 @@ export async function HomePage() {
   return (
     <main className="mx-auto max-w-7xl space-y-12 px-4 py-8 sm:px-6 sm:py-10">
       <BuyerHeroBlock />
-      <BentoGrid />
+      <Suspense fallback={<BentoGridSkeleton />}>
+        <BentoGrid />
+      </Suspense>
       <Suspense fallback={<CatalogFallback />}>
         <BuyerMarketplaceExplorer />
       </Suspense>

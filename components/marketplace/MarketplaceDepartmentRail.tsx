@@ -18,20 +18,27 @@ export function MarketplaceDepartmentRail({
   activeCategoryId,
   activeSubcategoryId,
   catalogBasePath = PUBLIC_MARKETPLACE_BROWSE_PATH,
+  categoriesPayload,
 }: {
   activeCategoryId: string | null
   activeSubcategoryId: string | null
   catalogBasePath?: string
+  categoriesPayload?: { categories: Cat[]; catalogTotal?: number }
 }) {
   const t = useTranslations("marketplace.departmentRail")
-  const { data, isLoading } = useSWR<{ categories: Cat[]; catalogTotal?: number }>(
-    "/api/categories",
+  const { data: swrData, isLoading } = useSWR<{ categories: Cat[]; catalogTotal?: number }>(
+    categoriesPayload ? null : "/api/categories",
     fetcher,
     {
-    refreshInterval: 300_000,
-  })
+      fallbackData: categoriesPayload,
+      refreshInterval: 300_000,
+      revalidateOnMount: !categoriesPayload,
+    }
+  )
 
-  if (isLoading || !data?.categories?.length) return null
+  const data = categoriesPayload ?? swrData
+
+  if ((!categoriesPayload && isLoading) || !data?.categories?.length) return null
 
   return (
     <section

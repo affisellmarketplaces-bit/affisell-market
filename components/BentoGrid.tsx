@@ -8,17 +8,17 @@ import { FeaturedStoresCarousel } from "@/components/FeaturedStoresCarousel"
 import { TrendingSparkline } from "@/components/TrendingSparkline"
 import { Link } from "@/i18n/navigation"
 import {
-  loadFeaturedShopsSafe,
-  loadHomeBestSellers7dSafe,
-  loadHomeMarketplaceStatsSafe,
-} from "@/lib/public-home-data"
+  loadFeaturedShopsCached,
+  loadHomeBestSellers7dCached,
+  loadHomeMarketplaceStatsCached,
+} from "@/lib/public-home-cache"
 
 export async function BentoGrid() {
   const t = await getTranslations("home.bento")
   const [stats, shops, trending] = await Promise.all([
-    loadHomeMarketplaceStatsSafe(),
-    loadFeaturedShopsSafe(6),
-    loadHomeBestSellers7dSafe(4),
+    loadHomeMarketplaceStatsCached(),
+    loadFeaturedShopsCached(6),
+    loadHomeBestSellers7dCached(4),
   ])
 
   return (

@@ -65,7 +65,8 @@ export async function loadHomeMarketplaceStatsSafe(): Promise<HomeMarketplaceSta
 }
 
 export async function loadFeaturedShops(limit = 6): Promise<PublicShopDirectoryEntry[]> {
-  const shops = await loadPublicAffiliateShops(500)
+  const pool = Math.min(Math.max(limit * 4, 12), 48)
+  const shops = await loadPublicAffiliateShops(pool)
   return [...shops].sort((a, b) => b.orderCount - a.orderCount).slice(0, limit)
 }
 

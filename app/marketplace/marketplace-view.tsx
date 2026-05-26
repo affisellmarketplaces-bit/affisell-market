@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { Search, X } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useLocale, useTranslations } from "next-intl"
+import { useTranslations } from "next-intl"
 import useSWR from "swr"
 
 import { ProductCard, type ProductCardDisplayMode } from "@/components/ProductCard"
@@ -22,6 +22,7 @@ import { MARKETPLACE_QUERY_RESERVED } from "@/lib/marketplace-query-params"
 import { marketplaceCatalogHref } from "@/lib/marketplace-catalog-url"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { affisellBrand } from "@/lib/affisell-brand"
+import type { HomeMarketplaceShell } from "@/lib/home-marketplace-shell"
 import { cn } from "@/lib/utils"
 
 type ProductRow = Record<string, unknown>
@@ -29,8 +30,11 @@ type ProductRow = Record<string, unknown>
 type CategoryNode = {
   id: string
   name: string
+  icon: string
+  slug: string
+  order: number
   count: number
-  subcategories: { id: string; name: string; count: number }[]
+  subcategories: { id: string; name: string; slug: string; count: number }[]
 }
 
 const categoryFetcher = (url: string) => fetch(url).then((r) => r.json())
@@ -62,25 +66,35 @@ type MarketplaceViewProps = {
   audience?: "affiliate" | "customer"
   /** Home embed: hide page header (hero is above). */
   embedded?: boolean
+  /** Home SSR: skip first client fetch for default catalog + categories. */
+  initialBrowse?: HomeMarketplaceShell
 }
 
 export function MarketplaceView({
   basePath = "/shops/browse",
   audience = "customer",
   embedded = false,
+  initialBrowse,
 }: MarketplaceViewProps = {}) {
   const t = useTranslations("marketplace.browse")
-  const locale = useLocale()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const categoryFallback = initialBrowse
+    ? { categories: initialBrowse.categories as CategoryNode[], catalogTotal: initialBrowse.catalogTotal }
+    : undefined
+
   const { data: categoryTree } = useSWR<{
     categories: CategoryNode[]
     catalogTotal?: number
-  }>(["/api/categories", locale], () => categoryFetcher("/api/categories"), {
+  }>("/api/categories", () => categoryFetcher("/api/categories"), {
+    fallbackData: categoryFallback,
     refreshInterval: 300_000,
     revalidateOnFocus: false,
     dedupingInterval: 60_000,
+    revalidateOnMount: !categoryFallback,
   })
+
+  const categoriesPayload = categoryTree ?? categoryFallback
   const userRole = useUserRole()
   const previewAsCustomer = usePreviewAsCustomer()
   const isAffiliateCatalog = audience === "affiliate" || basePath === AFFILIATE_CATALOG_PATH
@@ -97,8 +111,10 @@ export function MarketplaceView({
   const subcategoryId = searchParams.get("subcategory")
   const searchQuery = searchParams.get("q") ?? ""
 
-  const [products, setProducts] = useState<ProductRow[]>([])
-  const [loading, setLoading] = useState(true)
+  const [products, setProducts] = useState<ProductRow[]>(() =>
+    initialBrowse ? normalizeProducts(initialBrowse.products) : []
+  )
+  const [loading, setLoading] = useState(() => !initialBrowse)
   const [dbUnavailable, setDbUnavailable] = useState<string | null>(null)
 
   const attributeFilterKeys = useMemo(() => {
@@ -111,6 +127,12 @@ export function MarketplaceView({
 
   useEffect(() => {
     const qs = searchParams.toString()
+    if (initialBrowse && qs === "") {
+      setProducts(normalizeProducts(initialBrowse.products))
+      setLoading(false)
+      setDbUnavailable(null)
+      return
+    }
     setLoading(true)
     setDbUnavailable(null)
     const url = qs ? `/api/marketplace/products?${qs}` : `/api/marketplace/products`
@@ -133,7 +155,7 @@ export function MarketplaceView({
       })
       .finally(() => setLoading(false))
     return () => controller.abort()
-  }, [searchParams])
+  }, [searchParams, initialBrowse])
 
   const handleCategoryClick = (catId: string, subId?: string) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -159,7 +181,7 @@ export function MarketplaceView({
   )
 
   const activeScope = useMemo(() => {
-    const roots = categoryTree?.categories ?? []
+    const roots = categoriesPayload?.categories ?? []
     if (subcategoryId) {
       for (const root of roots) {
         const sub = root.subcategories.find((s) => s.id === subcategoryId)
@@ -171,7 +193,7 @@ export function MarketplaceView({
       if (root) return { kind: "root" as const, root }
     }
     return { kind: "catalog" as const }
-  }, [categoryTree?.categories, categoryId, subcategoryId])
+  }, [categoriesPayload?.categories, categoryId, subcategoryId])
 
   const activeFilterLabel = useMemo(() => {
     if (activeScope.kind === "sub") {
@@ -328,6 +350,7 @@ export function MarketplaceView({
           activeCategoryId={categoryId}
           activeSubcategoryId={subcategoryId}
           catalogBasePath={basePath}
+          categoriesPayload={categoriesPayload}
         />
         {!embedded ? (
           <MarketplaceAffisellPulse audience={isCustomerBrowse ? "buyer" : "default"} />
@@ -353,7 +376,8 @@ export function MarketplaceView({
               onShowFullCatalog={clearFilters}
               activeCategoryId={categoryId}
               activeSubcategoryId={subcategoryId}
-              catalogTotal={categoryTree?.catalogTotal}
+              catalogTotal={categoriesPayload?.catalogTotal}
+              categoriesPayload={categoriesPayload}
             />
             <MarketplaceFilters categoryId={categoryId} subcategoryId={subcategoryId} />
           </aside>

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useLocale, useTranslations } from "next-intl"
+import { useTranslations } from "next-intl"
 import useSWR from "swr"
 
 import { ChevronDown, ChevronRight, Grid3x3, LayoutGrid, Loader2 } from "lucide-react"
@@ -28,6 +28,13 @@ interface SidebarProps {
   activeCategoryId?: string | null
   activeSubcategoryId?: string | null
   catalogTotal?: number
+  categoriesPayload?: {
+    categories: Cat[]
+    catalogTotal?: number
+    dbUnavailable?: boolean
+    staticFallback?: boolean
+    error?: string
+  }
 }
 
 export function Sidebar({
@@ -36,19 +43,23 @@ export function Sidebar({
   activeCategoryId,
   activeSubcategoryId,
   catalogTotal,
+  categoriesPayload,
 }: SidebarProps) {
-  const locale = useLocale()
   const t = useTranslations("marketplace.sidebar")
   const [expandedCats, setExpandedCats] = useState<string[]>([])
-  const { data, isLoading } = useSWR<{
+  const { data: swrData, isLoading } = useSWR<{
     categories: Cat[]
     catalogTotal?: number
     dbUnavailable?: boolean
     staticFallback?: boolean
     error?: string
-  }>(["/api/categories", locale], () => fetcher("/api/categories"), {
+  }>(categoriesPayload ? null : "/api/categories", () => fetcher("/api/categories"), {
+    fallbackData: categoriesPayload,
     refreshInterval: (latest) => (latest?.dbUnavailable ? 0 : 300_000),
+    revalidateOnMount: !categoriesPayload,
   })
+
+  const data = categoriesPayload ?? swrData
 
   const toggleCategory = (catId: string) => {
     setExpandedCats((prev) =>
@@ -56,7 +67,7 @@ export function Sidebar({
     )
   }
 
-  if (isLoading) {
+  if (!categoriesPayload && isLoading) {
     return (
       <aside className="flex h-[min(24rem,50vh)] w-full shrink-0 items-center justify-center self-start rounded-2xl border border-border bg-card lg:h-[calc(100vh-5.25rem)] lg:w-full lg:rounded-none lg:border-r lg:border-y-0 lg:border-l-0 lg:sticky lg:top-[5.25rem]">
         <Loader2 className="h-8 w-8 animate-spin text-brand" />
