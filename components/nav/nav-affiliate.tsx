@@ -19,10 +19,38 @@ const navScrollClass =
   "flex min-w-0 items-center gap-0.5 overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
 
 const searchShellClass = cn(
-  "flex w-full min-w-0 items-center rounded-full border border-zinc-200/90 bg-zinc-50/95 pl-1 shadow-sm",
+  "relative z-10 flex w-full min-w-0 items-center rounded-full border border-zinc-200/90 bg-zinc-50/95 pl-1 shadow-sm",
   "ring-violet-500/10 transition-[box-shadow] focus-within:border-violet-300/80 focus-within:ring-2 focus-within:ring-violet-500/25",
   "dark:border-zinc-700/90 dark:bg-zinc-900/90 dark:focus-within:border-violet-500/50"
 )
+
+function AffiliateInviteSupplierButton({
+  className,
+  active,
+  label,
+}: {
+  className?: string
+  active: boolean
+  label: string
+}) {
+  return (
+    <FastLink
+      href="/dashboard/affiliate/invite-supplier"
+      className={cn(
+        "inline-flex size-9 shrink-0 items-center justify-center rounded-full transition-all duration-200",
+        active
+          ? "bg-zinc-900 text-white shadow-md dark:bg-white dark:text-zinc-900"
+          : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800",
+        className
+      )}
+      title={label}
+      aria-label={label}
+      aria-current={active ? "page" : undefined}
+    >
+      <Handshake className="size-4 shrink-0" aria-hidden />
+    </FastLink>
+  )
+}
 
 export function NavAffiliate() {
   const t = useTranslations("nav.affiliate")
@@ -51,8 +79,8 @@ export function NavAffiliate() {
         "mx-auto grid w-full max-w-7xl items-center gap-x-2 gap-y-2 px-1 py-1 text-sm",
         "grid-cols-[auto_1fr_auto]",
         "md:gap-x-3",
-        "lg:grid-cols-[auto_minmax(0,1fr)_minmax(10rem,14rem)_auto]",
-        "xl:grid-cols-[auto_minmax(0,1fr)_minmax(12rem,18rem)_auto]",
+        "lg:grid-cols-[auto_minmax(0,1fr)_auto_minmax(9rem,13rem)_auto]",
+        "xl:grid-cols-[auto_minmax(0,1fr)_auto_minmax(11rem,16rem)_auto]",
         "xl:gap-x-3"
       )}
     >
@@ -67,7 +95,7 @@ export function NavAffiliate() {
         className={cn(
           navScrollClass,
           "col-span-3 col-start-1 row-start-2",
-          "lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:max-w-full lg:overflow-visible"
+          "lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:max-w-full lg:pr-1"
         )}
       >
         <NavPill href={AFFILIATE_AGENT_PATH} label={t("agent")} shortLabel={t("agentShort")} active={onAgent} />
@@ -98,19 +126,18 @@ export function NavAffiliate() {
           icon={Palette}
           active={onBrandStudio}
         />
-        <NavPill
-          href="/dashboard/affiliate/invite-supplier"
-          label={t("inviteSupplier")}
-          shortLabel={t("inviteSupplierShort")}
-          icon={Handshake}
-          active={onInviteSupplier}
-        />
       </div>
+
+      <AffiliateInviteSupplierButton
+        active={onInviteSupplier}
+        label={t("inviteSupplier")}
+        className="col-start-3 row-start-2 hidden shrink-0 lg:col-start-3 lg:row-start-1 lg:inline-flex"
+      />
 
       <Suspense
         fallback={
           <div
-            className="col-span-3 col-start-1 row-start-3 h-10 min-w-0 lg:col-span-1 lg:col-start-3 lg:row-start-1"
+            className="col-span-3 col-start-1 row-start-3 h-10 min-w-0 lg:col-span-1 lg:col-start-4 lg:row-start-1"
             aria-hidden
           />
         }
@@ -118,7 +145,7 @@ export function NavAffiliate() {
         <div
           className={cn(
             "col-span-3 col-start-1 row-start-3 flex min-w-0",
-            "lg:col-span-1 lg:col-start-3 lg:row-start-1 lg:justify-stretch"
+            "lg:col-span-1 lg:col-start-4 lg:row-start-1 lg:justify-stretch"
           )}
         >
           <div className={searchShellClass}>
@@ -134,9 +161,14 @@ export function NavAffiliate() {
       <div
         className={cn(
           "col-start-3 row-start-1 flex shrink-0 items-center justify-end gap-1.5 sm:gap-2",
-          "lg:col-start-4 lg:gap-2.5"
+          "lg:col-start-5 lg:gap-2.5"
         )}
       >
+        <AffiliateInviteSupplierButton
+          active={onInviteSupplier}
+          label={t("inviteSupplier")}
+          className="lg:hidden"
+        />
         <LocaleSwitcher />
         <QuickNav />
         <MerchantNotificationsMenu role="AFFILIATE" />
