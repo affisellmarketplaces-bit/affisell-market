@@ -21,12 +21,13 @@ function jsonOrNull(v: Prisma.JsonValue | null | undefined): Prisma.InputJsonVal
 }
 
 function userPayload(row: Awaited<ReturnType<PrismaClient["user"]["findMany"]>>[number]) {
-  const { supplierRecentCategories, stripeCapabilities, ...rest } = row
+  const { supplierRecentCategories, stripeCapabilities, cookieConsent, ...rest } = row
   return {
     ...rest,
     supplierRecentCategories: (supplierRecentCategories ?? []) as Prisma.InputJsonValue,
     stripeCapabilities: jsonOrNull(stripeCapabilities),
-  }
+    cookieConsent: jsonOrNull(cookieConsent),
+  } satisfies Prisma.UserUncheckedCreateInput
 }
 
 function storePayload(row: Awaited<ReturnType<PrismaClient["store"]["findMany"]>>[number]) {

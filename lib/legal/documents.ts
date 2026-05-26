@@ -1,35 +1,19 @@
+import "server-only"
+
 import fs from "node:fs"
 import path from "node:path"
 
 import matter from "gray-matter"
 
 import { applyLegalPlaceholders } from "@/lib/legal/entity"
+import { slugifyHeading } from "@/lib/legal/slugify-heading"
+import type { LegalDocMeta, LegalSlug } from "@/lib/legal/types"
+import { LEGAL_SLUGS, isLegalSlug } from "@/lib/legal/types"
 
-export type LegalDocMeta = {
-  slug: string
-  title: string
-  description: string
-  lastUpdated: string
-  order: number
-}
-
-export const LEGAL_SLUGS = [
-  "terms-of-service",
-  "terms-supplier",
-  "terms-affiliate",
-  "privacy-policy",
-  "refund-policy",
-  "cookies-policy",
-  "mentions",
-] as const
-
-export type LegalSlug = (typeof LEGAL_SLUGS)[number]
+export type { LegalDocMeta, LegalSlug }
+export { LEGAL_SLUGS, isLegalSlug, slugifyHeading }
 
 const LEGAL_DIR = path.join(process.cwd(), "legal")
-
-export function isLegalSlug(slug: string): slug is LegalSlug {
-  return (LEGAL_SLUGS as readonly string[]).includes(slug)
-}
 
 export function loadLegalDocument(slug: LegalSlug): {
   meta: LegalDocMeta
@@ -75,13 +59,4 @@ function extractHeadings(md: string): { id: string; text: string; level: number 
     out.push({ id, text, level })
   }
   return out
-}
-
-export function slugifyHeading(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
 }

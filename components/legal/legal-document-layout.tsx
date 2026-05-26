@@ -2,7 +2,7 @@ import Link from "next/link"
 
 import { BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
 import { LegalMarkdown } from "@/components/legal/legal-markdown"
-import type { LegalDocMeta } from "@/lib/legal/documents"
+import type { LegalDocMeta } from "@/lib/legal/types"
 import { cn } from "@/lib/utils"
 
 type Props = {

@@ -4,7 +4,7 @@ import Link from "next/link"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 
-import { slugifyHeading } from "@/lib/legal/documents"
+import { slugifyHeading } from "@/lib/legal/slugify-heading"
 import { cn } from "@/lib/utils"
 
 type Props = {
