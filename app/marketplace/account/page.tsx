@@ -151,6 +151,13 @@ export default async function MarketplaceBuyerAccountHomePage() {
 
       <p className="text-center text-sm text-zinc-500 dark:text-zinc-400">
         <Link
+          href="/marketplace/account/gdpr"
+          className="font-medium text-violet-700 underline-offset-4 hover:underline dark:text-violet-400"
+        >
+          {t("gdprCta")}
+        </Link>
+        {" · "}
+        <Link
           href="/#explorer"
           className="font-medium text-violet-700 underline-offset-4 hover:underline dark:text-violet-400"
         >

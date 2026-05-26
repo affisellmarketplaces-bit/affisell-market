@@ -28,7 +28,14 @@ export async function exportUserDataForGdpr(userId: string) {
 
   const [buyerOrders, supplierOrders, affiliateOrders, notifications] = await Promise.all([
     prisma.order.findMany({
-      where: { buyerUserId: userId },
+      where: {
+        OR: [
+          { buyerUserId: userId },
+          ...(user.email
+            ? [{ customerEmail: { equals: user.email.trim(), mode: "insensitive" as const } }]
+            : []),
+        ],
+      },
       take: 500,
       orderBy: { createdAt: "desc" },
       select: {

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useTranslations } from "next-intl"
-import { Gift, MessageCircle } from "lucide-react"
+import { Gift, MessageCircle, Shield } from "lucide-react"
 
 import { BentoCard } from "@/components/affisell/bento-ui"
 
@@ -42,6 +42,24 @@ export function BuyerAccountSidebar() {
               className="mt-3 inline-block text-sm font-medium text-violet-700 underline-offset-4 hover:underline dark:text-violet-300"
             >
               {t("contactCta")}
+            </Link>
+          </div>
+        </div>
+      </BentoCard>
+
+      <BentoCard className="border-zinc-200/80 p-5 dark:border-zinc-800">
+        <div className="flex gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+            <Shield className="size-5" aria-hidden />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-zinc-900 dark:text-white">{t("gdprTitle")}</p>
+            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{t("gdprBody")}</p>
+            <Link
+              href="/marketplace/account/gdpr"
+              className="mt-3 inline-block text-sm font-medium text-violet-700 underline-offset-4 hover:underline dark:text-violet-300"
+            >
+              {t("gdprCta")}
             </Link>
           </div>
         </div>

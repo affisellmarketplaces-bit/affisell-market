@@ -433,6 +433,14 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
 
                       <PayoutStrip o={o} />
                       <OrderMetaChips o={o} />
+                      {o.fulfillmentSource === "marketplace" ? (
+                        <Link
+                          href={`/dashboard/orders/${o.id}`}
+                          className="mt-3 inline-block text-xs font-medium text-violet-700 underline-offset-4 hover:underline dark:text-violet-300"
+                        >
+                          Voir le détail du split →
+                        </Link>
+                      ) : null}
 
                       {o.openReturn ? (
                         <p className="mt-2 text-[11px] text-amber-800 dark:text-amber-200">

@@ -3,16 +3,16 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTranslations } from "next-intl"
-import { CreditCard, LayoutDashboard, Package, ShoppingCart } from "lucide-react"
+import { CreditCard, LayoutDashboard, Package, Shield, ShoppingCart } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-type TabKey = "overview" | "orders" | "wallet" | "cart"
+type TabKey = "overview" | "orders" | "wallet" | "cart" | "gdpr"
 
 const TAB_DEFS: Array<{
   key: TabKey
   href: string
-  labelKey: "overview" | "orders" | "wallet" | "cart"
+  labelKey: "overview" | "orders" | "wallet" | "cart" | "gdpr"
   icon: typeof LayoutDashboard
   exact: boolean
 }> = [
@@ -20,6 +20,7 @@ const TAB_DEFS: Array<{
   { key: "orders", href: "/marketplace/account/orders", labelKey: "orders", icon: Package, exact: false },
   { key: "wallet", href: "/marketplace/account/wallet", labelKey: "wallet", icon: CreditCard, exact: false },
   { key: "cart", href: "/cart", labelKey: "cart", icon: ShoppingCart, exact: false },
+  { key: "gdpr", href: "/marketplace/account/gdpr", labelKey: "gdpr", icon: Shield, exact: false },
 ]
 
 function tabLabel(

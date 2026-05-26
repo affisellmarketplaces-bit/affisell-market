@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { renderOrderInvoicePdf, type InvoiceType } from "@/lib/invoices/order-invoice-pdf"
+import { resolveOrderAccessRole } from "@/lib/order-access"
 import { affisellFeeBaseCentsFromOrder } from "@/lib/marketplace-order-settlement"
 import { prisma } from "@/lib/prisma"
 
@@ -36,11 +37,11 @@ export async function GET(req: Request, { params }: Params) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
 
-  const userId = session.user.id
+  const role = resolveOrderAccessRole(order, session.user)
   const allowed =
-    (type === "SUPPLIER" && order.supplierId === userId) ||
-    (type === "AFFILIATE" && order.affiliateId === userId) ||
-    (type === "CUSTOMER" && order.buyerUserId === userId)
+    (type === "SUPPLIER" && role === "SUPPLIER") ||
+    (type === "AFFILIATE" && role === "AFFILIATE") ||
+    (type === "CUSTOMER" && role === "CUSTOMER")
 
   if (!allowed) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })

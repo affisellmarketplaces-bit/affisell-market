@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useMemo, useState } from "react"
 import { Package, Sparkles } from "lucide-react"
 
@@ -147,6 +148,14 @@ export function AccountOrdersClient({
                 {new Date(o.createdAt).toLocaleDateString()} · ×{o.quantity} · {formatStoreCurrencyFromCents(o.sellingPriceCents)}
                 {orderFulfillmentTag(o.status, lang)}
               </p>
+              {o.fulfillmentSource !== "blind_dropship" ? (
+                <Link
+                  href={`/marketplace/account/orders/${o.id}`}
+                  className="mt-2 inline-block text-xs font-medium text-violet-700 underline-offset-4 hover:underline dark:text-violet-300"
+                >
+                  {lang === "fr" ? "Voir le détail et la facture →" : "View details & invoice →"}
+                </Link>
+              ) : null}
               {o.status === "preparing" ? (
                 <div className="mt-4 overflow-hidden rounded-2xl border border-sky-200/80 bg-gradient-to-br from-sky-50/95 via-white to-violet-50 p-4 shadow-[0_18px_50px_-28px_rgba(14,165,233,0.55)] dark:border-sky-900/50 dark:from-sky-950/45 dark:via-zinc-950 dark:to-violet-950/40">
                   <div className="flex gap-3">
