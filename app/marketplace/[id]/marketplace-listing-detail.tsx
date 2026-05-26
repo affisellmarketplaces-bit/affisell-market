@@ -795,7 +795,7 @@ export function MarketplaceListingDetail({
 
   return (
     <>
-      <div className="relative mb-10 max-w-full overflow-x-clip lg:mb-14">
+      <div className="relative mb-10 max-w-full max-lg:overflow-x-clip lg:mb-14 lg:overflow-visible">
         <motion.div
           className="pointer-events-none absolute -left-1/4 top-[-4.5rem] hidden h-[26rem] w-[26rem] rounded-full bg-violet-500/[0.2] blur-3xl dark:bg-violet-600/[0.14] sm:left-[-8%] sm:top-[-5rem] lg:block"
           aria-hidden
@@ -810,7 +810,7 @@ export function MarketplaceListingDetail({
           transition={
             reduceMotion ? { duration: 0 } : { duration: 0.62, ease: [0.22, 1, 0.36, 1] }
           }
-          className="relative max-w-full overflow-x-clip rounded-[2rem] border border-white/75 bg-white/80 p-3 shadow-[0_36px_120px_-40px_rgba(91,33,217,0.32),0_0_0_1px_rgba(255,255,255,0.55)_inset] backdrop-blur-2xl sm:p-7 lg:overflow-visible lg:p-9 dark:border-white/[0.08] dark:bg-zinc-950/65 dark:shadow-[0_40px_120px_-48px_rgba(0,0,0,0.65)]"
+          className="relative max-w-full max-lg:overflow-x-clip overflow-y-visible rounded-[2rem] border border-white/75 bg-white/80 p-3 shadow-[0_36px_120px_-40px_rgba(91,33,217,0.32),0_0_0_1px_rgba(255,255,255,0.55)_inset] backdrop-blur-2xl sm:p-7 lg:overflow-visible lg:p-9 dark:border-white/[0.08] dark:bg-zinc-950/65 dark:shadow-[0_40px_120px_-48px_rgba(0,0,0,0.65)]"
         >
           <div
             className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_85%_at_50%_-8%,rgba(139,92,246,0.16),transparent_58%)] dark:bg-[radial-gradient(120%_85%_at_50%_-8%,rgba(167,139,250,0.14),transparent_58%)]"
@@ -846,7 +846,7 @@ export function MarketplaceListingDetail({
             transition={reduceMotion ? { duration: 0 } : { duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           >
           <section className="min-w-0 space-y-2 lg:space-y-4 lg:overflow-visible">
-            <div className="relative max-lg:overflow-hidden max-lg:rounded-xl">
+            <div className="relative max-lg:overflow-hidden max-lg:rounded-xl lg:overflow-visible">
               <ProductMediaGallery
                 images={images}
                 heroSrc={hero}

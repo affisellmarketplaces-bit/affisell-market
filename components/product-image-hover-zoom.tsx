@@ -1,6 +1,7 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react"
+import { createPortal } from "react-dom"
 
 import { cn } from "@/lib/utils"
 
@@ -32,6 +33,9 @@ export function ProductImageHoverZoom({ src, alt, overlay, className, frameClass
   const [pct, setPct] = useState({ x: 50, y: 50 })
   const [finePointer, setFinePointer] = useState(false)
   const [displaySrc, setDisplaySrc] = useState(src)
+  const [flyoutRect, setFlyoutRect] = useState<{ top: number; left: number; height: number } | null>(
+    null
+  )
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return
@@ -53,6 +57,35 @@ export function ProductImageHoverZoom({ src, alt, overlay, className, frameClass
 
   const zoomActive = finePointer && pointerInHero && zoomEngaged
 
+  const updateFlyoutRect = useCallback(() => {
+    const el = heroRef.current
+    if (!el) {
+      setFlyoutRect(null)
+      return
+    }
+    const r = el.getBoundingClientRect()
+    const width = 224
+    const height = Math.min(Math.max(r.height, 200), 420)
+    let left = r.right + 12
+    const maxLeft = window.innerWidth - width - 16
+    if (left > maxLeft) left = Math.max(16, r.left - width - 12)
+    setFlyoutRect({ top: r.top, left, height })
+  }, [])
+
+  useLayoutEffect(() => {
+    if (!zoomActive) {
+      setFlyoutRect(null)
+      return
+    }
+    updateFlyoutRect()
+    window.addEventListener("scroll", updateFlyoutRect, true)
+    window.addEventListener("resize", updateFlyoutRect)
+    return () => {
+      window.removeEventListener("scroll", updateFlyoutRect, true)
+      window.removeEventListener("resize", updateFlyoutRect)
+    }
+  }, [zoomActive, updateFlyoutRect])
+
   const onMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       const el = heroRef.current
@@ -62,8 +95,9 @@ export function ProductImageHoverZoom({ src, alt, overlay, className, frameClass
       const x = ((e.clientX - r.left) / Math.max(1, r.width)) * 100
       const y = ((e.clientY - r.top) / Math.max(1, r.height)) * 100
       setPct({ x: Math.min(100, Math.max(0, x)), y: Math.min(100, Math.max(0, y)) })
+      if (finePointer) updateFlyoutRect()
     },
-    [finePointer]
+    [finePointer, updateFlyoutRect]
   )
 
   const lensSpan = 100 / ZOOM
@@ -123,7 +157,7 @@ export function ProductImageHoverZoom({ src, alt, overlay, className, frameClass
           ) : null}
           {finePointer && pointerInHero && !zoomEngaged ? (
             <p
-              className="pointer-events-none absolute inset-x-0 bottom-3 z-[2] mx-auto w-fit max-w-[calc(100%-1.5rem)] rounded-full border border-zinc-200/80 bg-white/90 px-3 py-1.5 text-center text-[11px] font-medium text-zinc-600 shadow-sm backdrop-blur-sm dark:border-zinc-600/80 dark:bg-zinc-950/85 dark:text-zinc-300"
+              className="pointer-events-none absolute inset-x-0 bottom-10 z-[2] mx-auto w-fit max-w-[calc(100%-1.5rem)] rounded-full border border-zinc-200/80 bg-white/90 px-3 py-1.5 text-center text-[11px] font-medium text-zinc-600 shadow-sm backdrop-blur-sm dark:border-zinc-600/80 dark:bg-zinc-950/85 dark:text-zinc-300"
               aria-live="polite"
             >
               Hover image to zoom
@@ -133,28 +167,31 @@ export function ProductImageHoverZoom({ src, alt, overlay, className, frameClass
         </div>
       </div>
 
-      {finePointer ? (
-        <div
-          role="region"
-          aria-label={zoomActive ? "Magnified product image" : "Product image zoom"}
-          aria-hidden={!zoomActive}
-          className={cn(
-            "pointer-events-none absolute z-40 hidden overflow-hidden rounded-xl border border-zinc-200/90 bg-zinc-50 shadow-[0_24px_60px_-20px_rgba(15,23,42,0.45)] transition-[opacity,transform] duration-200 ease-out dark:border-zinc-600 dark:bg-zinc-900/95 lg:block",
-            "left-[calc(100%+0.75rem)] top-0 h-full min-h-[12rem] w-56 xl:w-64",
-            zoomActive ? "translate-x-0 opacity-100" : "translate-x-2 opacity-0"
-          )}
-        >
-          <div
-            className="absolute inset-0 bg-no-repeat transition-[background-position] duration-75 ease-out"
-            style={{
-              backgroundImage: zoomBg,
-              backgroundRepeat: "no-repeat",
-              backgroundSize: `${ZOOM * 100}% auto`,
-              backgroundPosition: `${pct.x}% ${pct.y}%`,
-            }}
-          />
-        </div>
-      ) : null}
+      {finePointer && zoomActive && flyoutRect && typeof document !== "undefined"
+        ? createPortal(
+            <div
+              role="region"
+              aria-label="Magnified product image"
+              className="pointer-events-none fixed z-[200] w-56 overflow-hidden rounded-xl border border-zinc-200/90 bg-zinc-50 shadow-[0_24px_60px_-20px_rgba(15,23,42,0.45)] transition-opacity duration-150 dark:border-zinc-600 dark:bg-zinc-900/95 xl:w-64"
+              style={{
+                top: flyoutRect.top,
+                left: flyoutRect.left,
+                height: flyoutRect.height,
+              }}
+            >
+              <div
+                className="absolute inset-0 bg-no-repeat transition-[background-position] duration-75 ease-out"
+                style={{
+                  backgroundImage: zoomBg,
+                  backgroundRepeat: "no-repeat",
+                  backgroundSize: `${ZOOM * 100}% ${ZOOM * 100}%`,
+                  backgroundPosition: `${pct.x}% ${pct.y}%`,
+                }}
+              />
+            </div>,
+            document.body
+          )
+        : null}
     </div>
   )
 }

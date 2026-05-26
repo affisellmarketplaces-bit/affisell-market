@@ -122,7 +122,12 @@ export function ProductMediaGallery({
 
   return (
     <>
-      <div className={cn("flex min-w-0 flex-col gap-2 sm:gap-3 lg:flex-row lg:gap-4", className)}>
+      <div
+        className={cn(
+          "flex min-w-0 flex-col gap-2 sm:gap-3 lg:flex-row lg:gap-4 lg:overflow-visible",
+          className
+        )}
+      >
         {/* Desktop vertical rail */}
         <div
           className="hidden shrink-0 flex-col gap-2 lg:flex lg:w-[4.75rem] xl:w-[5.25rem]"
@@ -201,8 +206,8 @@ export function ProductMediaGallery({
         </div>
 
         {/* Main stage */}
-        <div className="min-w-0 flex-1 space-y-2">
-          <div className="relative overflow-hidden rounded-xl lg:rounded-[1.35rem]">
+        <div className="min-w-0 flex-1 space-y-2 lg:overflow-visible">
+          <div className="relative max-lg:overflow-hidden max-lg:rounded-xl lg:overflow-visible lg:rounded-[1.35rem]">
             {mediaMode === "video" && hasVideo ? (
               <div className="relative aspect-square w-full overflow-hidden bg-zinc-950 lg:aspect-[4/3]">
                 <video
@@ -222,18 +227,18 @@ export function ProductMediaGallery({
                 </div>
               </div>
             ) : (
-              <div className="relative">
+              <div className="relative lg:z-10 lg:overflow-visible">
                 <ProductImageHoverZoom
                   src={heroSrc}
                   alt={alt}
                   overlay={overlay}
-                  className="max-lg:rounded-xl max-lg:border-zinc-200/80 max-lg:shadow-sm lg:rounded-[1.35rem] lg:border-zinc-200/55 lg:bg-white/90 lg:shadow-[0_28px_70px_-34px_rgba(91,33,217,0.28)] lg:ring-1 lg:ring-violet-500/[0.07] dark:max-lg:border-zinc-700/80 dark:lg:border-zinc-700/80 dark:lg:bg-zinc-950/70"
+                  className="max-lg:rounded-xl max-lg:border-zinc-200/80 max-lg:shadow-sm lg:overflow-visible lg:rounded-[1.35rem] lg:border-zinc-200/55 lg:bg-white/90 lg:shadow-[0_28px_70px_-34px_rgba(91,33,217,0.28)] lg:ring-1 lg:ring-violet-500/[0.07] dark:max-lg:border-zinc-700/80 dark:lg:border-zinc-700/80 dark:lg:bg-zinc-950/70"
                   frameClassName="max-lg:rounded-xl max-lg:aspect-square lg:rounded-[1.1rem] lg:aspect-[4/3] lg:bg-gradient-to-b lg:from-zinc-50/95 lg:to-white dark:lg:from-zinc-900/90 dark:lg:to-zinc-950"
                 />
                 <button
                   type="button"
                   onClick={() => openLightbox(activeThumbIndex >= 0 ? activeThumbIndex : 0)}
-                  className="absolute bottom-3 left-3 z-20 flex items-center gap-1.5 rounded-full border border-sky-200/80 bg-white/95 px-3 py-1.5 text-xs font-semibold text-sky-800 shadow-sm backdrop-blur-sm transition hover:bg-sky-50 dark:border-sky-800/60 dark:bg-zinc-950/90 dark:text-sky-200 dark:hover:bg-sky-950/50 lg:bottom-4 lg:left-4"
+                  className="pointer-events-auto absolute bottom-3 left-3 z-20 flex items-center gap-1.5 rounded-full border border-sky-200/80 bg-white/95 px-3 py-1.5 text-xs font-semibold text-sky-800 shadow-sm backdrop-blur-sm transition hover:bg-sky-50 dark:border-sky-800/60 dark:bg-zinc-950/90 dark:text-sky-200 dark:hover:bg-sky-950/50 lg:bottom-4 lg:left-4"
                 >
                   <Maximize2 className="size-3.5 shrink-0" aria-hidden />
                   {t("fullView")}
