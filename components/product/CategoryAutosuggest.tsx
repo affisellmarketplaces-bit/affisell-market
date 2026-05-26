@@ -3,8 +3,6 @@
 import { Loader2, Sparkles } from "lucide-react"
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import { useDebounce } from "use-debounce"
-import { toast } from "sonner"
-
 import type { BrowsePayload } from "@/components/supplier/supplier-category-picker"
 import { pathFromLeafId, type CategoryPathSegment } from "@/lib/category-browse"
 import { cn } from "@/lib/utils"
@@ -23,7 +21,7 @@ type Props = {
   browse: BrowsePayload | null
   categoryId: string
   onChange: (leafId: string, path: CategoryPathSegment[]) => void
-  /** Fires when a suggestion is applied (auto or click). */
+  /** Fires when the supplier picks a suggestion chip. */
   onAiTagged?: () => void
 }
 
@@ -42,7 +40,6 @@ export function CategoryAutosuggest({
 
   const [loading, setLoading] = useState(false)
   const [suggestions, setSuggestions] = useState<ClassifyApiSuggestion[]>([])
-  const lastAutoKey = useRef<string | null>(null)
   const categoryIdRef = useRef(categoryId)
   const onChangeRef = useRef(onChange)
   const onAiTaggedRef = useRef(onAiTagged)
@@ -53,15 +50,12 @@ export function CategoryAutosuggest({
     onAiTaggedRef.current = onAiTagged
   }, [categoryId, onChange, onAiTagged])
 
-  const applySuggestion = useCallback((row: ClassifyApiSuggestion, mode: "auto" | "click") => {
+  const applySuggestion = useCallback((row: ClassifyApiSuggestion) => {
     if (!browse || !row.leafId) return
     const path = pathFromLeafId(row.leafId, browse.nodes)
     if (!path?.length) return
     onChangeRef.current(row.leafId, path)
     onAiTaggedRef.current?.()
-    if (mode === "auto") {
-      toast.success("Catégorie suggérée par IA")
-    }
   }, [browse])
 
   useEffect(() => {
@@ -94,16 +88,6 @@ export function CategoryAutosuggest({
         if (ac.signal.aborted) return
         const next = Array.isArray(data.suggestions) ? data.suggestions : []
         setSuggestions(next)
-
-        const visible = next.filter((s) => s.confidence > 0.6 && s.leafId)
-        const top = visible[0]
-        if (top && top.confidence > 0.9 && browse) {
-          const key = `${debouncedTitle.trim()}|${debouncedDescription.trim()}|${top.leafId}`
-          if (lastAutoKey.current !== key && top.leafId !== categoryIdRef.current) {
-            lastAutoKey.current = key
-            applySuggestion(top, "auto")
-          }
-        }
       } catch {
         if (!ac.signal.aborted) setSuggestions([])
       } finally {
@@ -140,7 +124,7 @@ export function CategoryAutosuggest({
             <button
               key={`${s.leafId}-${s.category}`}
               type="button"
-              onClick={() => applySuggestion(s, "click")}
+              onClick={() => applySuggestion(s)}
               className={cn(
                 "max-w-full rounded-full border px-3 py-1.5 text-left text-xs font-medium transition",
                 s.leafId === categoryId

@@ -81,7 +81,9 @@ function mergeSuggestionsByTitleRelevance(
     .slice(0, limit)
 }
 
-const GROQ_SYSTEM = `You are an Affisell marketplace merchandiser. Map the listing to exactly 3 leaf categories from the ALLOWED list only (each line: CATEGORY_ID<TAB>breadcrumb).
+export const LISTING_CATEGORY_SUGGESTION_LIMIT = 5
+
+const GROQ_SYSTEM = `You are an Affisell marketplace merchandiser. Map the listing to up to 5 leaf categories from the ALLOWED list only (each line: CATEGORY_ID<TAB>breadcrumb).
 
 Rules:
 - Infer the primary product type from the full title (e.g. a "MacBook Air" or "iPad Air" is a laptop/tablet computer, not air fryers, air fresheners, or unrelated "air" products).
@@ -93,7 +95,7 @@ Rules:
 - CarPlay / Android Auto / wireless car adapters / in-dash screens → Véhicules > Électronique pour véhicules (audio/video intégré, mains-libres, GPS auto). NEVER prepaid SIM cards, phone plans, or generic phone accessories.
 - "Car" in CarPlay is not a SIM card or prepaid phone card — ignore téléphonie > cartes prépayées branches.
 
-Return JSON: {"ids":["id1","id2","id3"]} — only IDs from the list, no invented IDs, no duplicates, best match first.`
+Return JSON: {"ids":["id1","id2","id3","id4","id5"]} — only IDs from the list, no invented IDs, no duplicates, best match first (1 to 5 ids).`
 
 /** Single entry point: category suggestions for supplier listing (keyword + optional Groq). */
 export async function suggestListingCategories(
@@ -115,10 +117,15 @@ export async function suggestListingCategories(
     return { suggestions: [], alternatives: [], recommendedLeafId: null, source: "empty" }
   }
 
-  const keywordFallback = suggestLeafCategoriesFromProductText(t, d, leafPaths, 6)
+  const keywordFallback = suggestLeafCategoriesFromProductText(
+    t,
+    d,
+    leafPaths,
+    LISTING_CATEGORY_SUGGESTION_LIMIT + 2
+  )
 
   if (!process.env.GROQ_API_KEY?.trim()) {
-    const suggestions = keywordFallback.slice(0, 3).map((lp) => ({ ...lp }))
+    const suggestions = keywordFallback.slice(0, LISTING_CATEGORY_SUGGESTION_LIMIT).map((lp) => ({ ...lp }))
     const alternatives = findWearableCategoryAlternatives(t, d, leafPaths, suggestions)
     return {
       suggestions,
@@ -164,7 +171,7 @@ export async function suggestListingCategories(
     const picked: LeafPath[] = []
     const seen = new Set<string>()
     for (const id of ids) {
-      if (picked.length >= 3) break
+      if (picked.length >= LISTING_CATEGORY_SUGGESTION_LIMIT) break
       const lp = allowed.get(id)
       if (
         lp &&
@@ -184,7 +191,7 @@ export async function suggestListingCategories(
       d,
       picked,
       viableKeywords.length > 0 ? viableKeywords : keywordFallback,
-      3
+      LISTING_CATEGORY_SUGGESTION_LIMIT
     )
     type ScoredSuggestion = ListingCategorySuggestion & { relevanceScore: number }
     let scored: ScoredSuggestion[] = merged.map((lp) => {
@@ -200,7 +207,7 @@ export async function suggestListingCategories(
         (row.relevanceScore >= MIN_KEYWORD_SCORE_FOR_MERGE || (row.confidence ?? 0) >= 0.75)
     )
     if (scored.length === 0 && keywordFallback.length > 0) {
-      scored = keywordFallback.slice(0, 3).map((lp) => {
+      scored = keywordFallback.slice(0, LISTING_CATEGORY_SUGGESTION_LIMIT).map((lp) => {
         const s = scoreProductTextAgainstBreadcrumb(text, lp.breadcrumb)
         return { ...lp, confidence: Math.min(0.72, 0.35 + s / 40), relevanceScore: s }
       })

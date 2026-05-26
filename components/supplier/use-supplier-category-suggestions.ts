@@ -8,7 +8,7 @@ import type { CategoryAlternativeSuggestion } from "@/lib/category-title-match"
 
 import type { BrowsePayload } from "./supplier-category-picker"
 
-/** Single source: Groq + keyword merge via `/api/supplier/suggest-listing`. */
+/** Suggestions only (no auto-apply): Groq + keyword merge via `/api/supplier/suggest-listing`. */
 export function useSupplierCategorySuggestions(
   title: string,
   description: string,

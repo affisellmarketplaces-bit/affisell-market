@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { useDebounce } from "use-debounce"
 import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
@@ -47,9 +47,7 @@ import {
   maxAffiliateCommissionRatePct,
 } from "@/lib/supplier-commission"
 import {
-  isCategorySuggestionViable,
   pathFromLeafId,
-  scoreProductTextAgainstBreadcrumb,
   type CategoryPathSegment,
   type RecentCategoryEntry,
 } from "@/lib/category-browse"
@@ -355,8 +353,6 @@ export function SupplierAddProductForm({
 
   const [debouncedCategoryDescription] = useDebounce(categoryMatchDescription, 500)
   const [categoryAiTag, setCategoryAiTag] = useState(false)
-  const categoryIdRef = useRef(categoryId)
-  const categoryManualPickRef = useRef(false)
   const lastTitleParserKeyRef = useRef<string | null>(null)
   const [shippingCountry, setShippingCountry] = useState("")
   const [warehouseType, setWarehouseType] = useState<"" | "local" | "regional" | "international">("")
@@ -504,10 +500,6 @@ export function SupplierAddProductForm({
     return `Avec les lignes SKU, le stock enregistré est la somme des quantités (${sum} sur ${filled.length} ligne${filled.length > 1 ? "s" : ""}).`
   }, [variantFormMode, advancedSkuRows])
 
-  useLayoutEffect(() => {
-    categoryIdRef.current = categoryId
-  }, [categoryId])
-
   const {
     suggestions: categorySuggestions,
     alternatives: categoryAlternativeSuggestions,
@@ -517,7 +509,6 @@ export function SupplierAddProductForm({
 
   const applyCategory = useCallback(
     (leafId: string, path: CategoryPathSegment[], origin: CategoryPickOrigin = "manual") => {
-      if (origin === "manual") categoryManualPickRef.current = true
       setCategoryId(leafId)
       setCategoryPath(path)
       setSpecValues({})
@@ -526,43 +517,6 @@ export function SupplierAddProductForm({
     },
     []
   )
-
-  /** Auto-apply the top suggestion until the supplier picks manually (search or tree). */
-  useEffect(() => {
-    if (categoryManualPickRef.current || categorySuggestionsLoading || !browse) return
-    const top = categorySuggestions[0]
-    if (!top?.leafId) return
-
-    const path = pathFromLeafId(top.leafId, browse.nodes)
-    if (!path?.length) return
-
-    const currentId = categoryIdRef.current
-    if (currentId === top.leafId) return
-
-    const title = debouncedName.trim()
-    const desc = debouncedCategoryDescription.trim()
-    const breadcrumb = path.map((p) => p.name).join(" > ")
-    const productText = `${title} ${desc}`
-    if (!isCategorySuggestionViable(productText, breadcrumb)) return
-    const relevance = scoreProductTextAgainstBreadcrumb(productText, breadcrumb)
-    if (relevance < 7) return
-
-    const key = `${title}|${desc}|${top.leafId}`
-    if (lastTitleParserKeyRef.current === key) return
-    lastTitleParserKeyRef.current = key
-
-    applyCategory(top.leafId, path, "suggested")
-    if (currentId) {
-      toast.info("Catégorie mise à jour selon l’analyse du titre.")
-    }
-  }, [
-    categorySuggestions,
-    categorySuggestionsLoading,
-    browse,
-    debouncedName,
-    debouncedCategoryDescription,
-    applyCategory,
-  ])
 
   useEffect(() => {
     const title = debouncedName.trim()
@@ -702,7 +656,6 @@ export function SupplierAddProductForm({
   }, [])
 
   const handleUrlImportApply = useCallback((patch: UrlImportApplyPayload) => {
-    categoryManualPickRef.current = false
     lastTitleParserKeyRef.current = ""
     setName(patch.name)
     setDescription(patch.description)
@@ -2030,7 +1983,7 @@ export function SupplierAddProductForm({
                       id="add-product-classify"
                       icon={Tag}
                       title="Classification"
-                      description="Suggestions automatiques à partir du titre et de la description, puis recherche ou arbre pour affiner."
+                      description="Choisissez vous-même la catégorie feuille parmi les suggestions, la recherche ou l’arbre Google (FR)."
                       hasError={hasPublishFieldError("category") || hasPublishFieldError("specs")}
                     >
                       <div>

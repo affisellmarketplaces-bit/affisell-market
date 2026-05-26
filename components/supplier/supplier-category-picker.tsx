@@ -28,7 +28,7 @@ type Props = {
   recent: RecentCategoryEntry[]
   value: string
   onChange: (leafId: string, path: CategoryPathSegment[], origin?: CategoryPickOrigin) => void
-  /** Merged Groq + keyword suggestions (max 3). */
+  /** Merged Groq + keyword suggestions (max 5). */
   suggestions: LeafPath[]
   /** e.g. Bijoux > Montres when listing looks like a wearable */
   alternativeSuggestions?: CategoryAlternativeSuggestion[]
@@ -186,6 +186,16 @@ export function SupplierCategoryPicker({
         />
       </div>
 
+      {!value && suggestions.length > 0 && !suggestionsLoading ? (
+        <p
+          className="rounded-lg border border-amber-200/90 bg-amber-50/90 px-3 py-2 text-xs text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-100"
+          role="status"
+        >
+          Aucune catégorie n’est sélectionnée — choisissez une proposition ci-dessous, une catégorie récente, ou
+          parcourez l’arbre.
+        </p>
+      ) : null}
+
       {showSuggestions ? (
         <div className="rounded-lg border border-violet-200 bg-gradient-to-br from-violet-50 to-indigo-50/80 p-4 dark:border-violet-900/60 dark:from-violet-950/40 dark:to-indigo-950/30">
           <div className="flex items-center gap-2 text-sm font-semibold text-violet-950 dark:text-violet-100">
@@ -193,11 +203,12 @@ export function SupplierCategoryPicker({
             Catégories suggérées
           </div>
           <p className="mt-1 text-xs text-violet-900/80 dark:text-violet-200/80">
-            D’après le titre et la description — la meilleure correspondance est appliquée automatiquement.
+            Propositions à partir du titre et de la description — cliquez sur « Choisir » pour appliquer la catégorie
+            qui vous convient. Aucune sélection automatique.
           </p>
           {suggestionsLoading ? (
             <ul className="mt-3 space-y-2">
-              {[0, 1, 2].map((i) => (
+              {[0, 1, 2, 3, 4].map((i) => (
                 <li
                   key={i}
                   className="flex items-center gap-2 rounded-md border border-violet-100/80 bg-white/60 px-3 py-3 dark:border-violet-900/40 dark:bg-zinc-950/50"
@@ -220,11 +231,9 @@ export function SupplierCategoryPicker({
                   )}
                 >
                   <span className="min-w-0 flex-1 text-zinc-800 dark:text-zinc-200">
-                    {i === 0 ? (
-                      <span className="mr-1.5 rounded bg-violet-600 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white">
-                        Recommandé
-                      </span>
-                    ) : null}
+                    <span className="mr-1.5 rounded bg-violet-600/90 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white">
+                      {i + 1}
+                    </span>
                     {lp.breadcrumb}
                   </span>
                   <Button
@@ -235,7 +244,7 @@ export function SupplierCategoryPicker({
                     disabled={value === lp.leafId}
                     onClick={() => applyLeaf(lp, "suggested")}
                   >
-                    {value === lp.leafId ? "Appliquée" : "Appliquer"}
+                    {value === lp.leafId ? "Sélectionnée" : "Choisir"}
                   </Button>
                 </li>
               ))}
@@ -277,7 +286,7 @@ export function SupplierCategoryPicker({
                       disabled={value === alt.leafId}
                       onClick={() => applyLeaf(alt, "suggested")}
                     >
-                      {value === alt.leafId ? "Appliquée" : "Appliquer"}
+                      {value === alt.leafId ? "Sélectionnée" : "Choisir"}
                     </Button>
                   </li>
                 ))}
@@ -308,7 +317,7 @@ export function SupplierCategoryPicker({
                   {breadcrumbFromPath(r.path)}
                 </span>
                 <Button type="button" size="xs" variant="outline" className="shrink-0" onClick={() => applyLeaf(r)}>
-                  Appliquer
+                  Choisir
                 </Button>
               </li>
             ))}
