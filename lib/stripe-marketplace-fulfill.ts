@@ -7,6 +7,7 @@ import { buyerEarnCentsForLinePaid } from "@/lib/buyer-reward-earn"
 import { earnBuyerRewardIdempotent, redeemBuyerRewardIdempotent } from "@/lib/buyer-reward-ledger"
 import { resolveBuyerUserIdForEarn } from "@/lib/buyer-reward-resolve-user"
 import { resolveAffisellCommissionRateBpsForProductId } from "@/lib/affisell-platform-commission.server"
+import { resolveSupplierCommissionRateBpsForProductId } from "@/lib/supplier-commission-rate.server"
 import { computeMarketplaceOrderSettlement } from "@/lib/marketplace-order-settlement"
 import { triggerAutoFulfillmentForStripeSession } from "@/lib/auto-order/enqueue"
 import { computeShipDeadlineAt } from "@/lib/supplier-ship-sla-shared"
@@ -18,7 +19,6 @@ import {
 import { createMarketplaceOrderNotifications } from "@/lib/marketplace-order-notifications"
 import { prisma } from "@/lib/prisma"
 import {
-  commissionRateForOption,
   marketplaceSellingPriceCentsForOption,
   marketplaceWholesaleCentsForOption,
   variantsFromDb,
@@ -82,14 +82,11 @@ async function createPaidMarketplaceOrder(
       variants,
       optionName,
     }) * qty
-  const supplierCommissionRatePercent = commissionRateForOption({
-    variants,
+  const supplierCommissionRateBps = await resolveSupplierCommissionRateBpsForProductId({
+    productId: listing.productId,
     optionName,
-    productCommissionRate: listing.product.commissionRate,
+    variants,
   })
-  const supplierCommissionRateBps =
-    listing.product.supplierCommissionRateBps ??
-    Math.round(supplierCommissionRatePercent * 100)
   const affisellCommissionRateBps = await resolveAffisellCommissionRateBpsForProductId(
     listing.productId
   )
@@ -398,15 +395,11 @@ export async function fulfillMarketplaceStripeSession(
       const affisellCommissionRateBps = await resolveAffisellCommissionRateBpsForProductId(
         listing.productId
       )
-      const supplierCommissionRateBps =
-        listing.product.supplierCommissionRateBps ??
-        Math.round(
-          commissionRateForOption({
-            variants,
-            optionName,
-            productCommissionRate: listing.product.commissionRate,
-          }) * 100
-        )
+      const supplierCommissionRateBps = await resolveSupplierCommissionRateBpsForProductId({
+        productId: listing.productId,
+        optionName,
+        variants,
+      })
       const clientLineHtCents = Math.max(0, Math.round(paidLineCents))
       const settlement = computeMarketplaceOrderSettlement({
         sellingPriceCents: clientLineHtCents,

@@ -12,6 +12,7 @@ import {
   parseCartVariantSignature,
 } from "@/lib/cart-variant"
 import { resolveAffisellCommissionRateBpsForProductId } from "@/lib/affisell-platform-commission.server"
+import { resolveSupplierCommissionRateBpsForProductId } from "@/lib/supplier-commission-rate.server"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import {
   fixZeroPaidLinesCents,
@@ -382,6 +383,11 @@ export async function marketplaceCheckoutPOST(request: Request) {
       : Math.max(0, unitSelling - unitSupplierCents)
   const lineMarginCents = Math.max(0, sellingPriceCents - supplierPriceCents)
   const affisellCommissionRateBps = await resolveAffisellCommissionRateBpsForProductId(product.id)
+  const supplierCommissionRateBps = await resolveSupplierCommissionRateBpsForProductId({
+    productId: product.id,
+    optionName,
+    variants,
+  })
 
   const order = await prisma.order.create({
     data: {
@@ -402,7 +408,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
       affiliatePayoutCents: 0,
       variantLabel: oneShotVariantLabel || null,
       supplierPriceCents: unitSupplierCents * qty,
-      supplierCommissionRateBps: product.supplierCommissionRateBps ?? 1000,
+      supplierCommissionRateBps,
       affiliateMarginCents:
         affiliateProduct.marginCents > 0 ? affiliateProduct.marginCents * qty : unitMarginCents * qty,
       affisellCommissionRateBps,

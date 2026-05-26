@@ -32,6 +32,11 @@ model User {
   stripeCapabilities   Json?
   /** Seller VAT number (invoicing; seller remains liable for VAT). */
   vatNumber            String?
+  /**
+   * Default supplier → affiliate commission (bps) for new catalog rows when product rate unset.
+   * 1100 = 11% of supplier wholesale offered to affiliates.
+   */
+  defaultSupplierCommissionRateBps Int?
   proActivatedAt       DateTime?
 
   accounts Account[]
@@ -238,6 +243,12 @@ model Category {
    * Child categories inherit by walking `parentId` when unset (null); default 1000 at DB level.
    */
   affisellCommissionRateBps Int?
+
+  /**
+   * Default supplier → affiliate commission for products in this category (bps, 1100 = 11%).
+   * Child categories inherit by walking `parentId` when unset.
+   */
+  supplierCommissionRateBps Int?
 
   products Product[]
 
