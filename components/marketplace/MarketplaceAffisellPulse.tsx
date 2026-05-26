@@ -11,9 +11,10 @@ type Props = {
   audience?: "buyer" | "default"
 }
 
-/** Affisell service shortcuts on standalone marketplace pages (not on public home — see HomeBuyerSmartStrip). */
+/** Affisell service shortcuts — hero strip on home; this block repeats above the catalog grid. */
 export function MarketplaceAffisellPulse({ audience = "default" }: Props) {
   const t = useTranslations("home.buyerServices")
+  const tPulse = useTranslations("pulse")
 
   const buyerTiles = [
     {
@@ -25,7 +26,8 @@ export function MarketplaceAffisellPulse({ audience = "default" }: Props) {
     },
     {
       href: "/discover",
-      label: t("discoverShort"),
+      label: t("discover"),
+      liveLabel: tPulse("beta"),
       hint: t("discoverMarketHint"),
       Icon: Sparkles,
       cardClass: "from-fuchsia-600 to-pink-600 text-white shadow-fuchsia-500/25",
@@ -83,7 +85,7 @@ export function MarketplaceAffisellPulse({ audience = "default" }: Props) {
           {t("sectionBuyer")}
         </p>
         <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-          {buyerTiles.map(({ href, label, hint, Icon, cardClass }) => (
+          {buyerTiles.map(({ href, label, hint, Icon, cardClass, liveLabel }) => (
             <li key={href + label}>
               <Link
                 href={href}
@@ -92,9 +94,14 @@ export function MarketplaceAffisellPulse({ audience = "default" }: Props) {
                   cardClass
                 )}
               >
-                <span className="flex items-center gap-2">
+                <span className="flex flex-wrap items-center gap-2">
                   <Icon className="size-4 shrink-0 opacity-95" aria-hidden />
-                  {label}
+                  <span>{label}</span>
+                  {liveLabel ? (
+                    <span className="rounded-full border border-white/25 bg-red-500/90 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white">
+                      {liveLabel}
+                    </span>
+                  ) : null}
                 </span>
                 <span className="text-[11px] font-normal opacity-90">{hint}</span>
               </Link>

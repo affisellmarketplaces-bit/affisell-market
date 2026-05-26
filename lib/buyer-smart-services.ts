@@ -20,6 +20,8 @@ export type BuyerSmartService = {
   accent: string
   /** Solid gradient for marketplace pulse cards */
   cardClass: string
+  /** Red “LIVE” pill (Affisell Pulse feed). */
+  liveBadge?: boolean
 }
 
 /** Unique buyer entry points — one role per tile (no duplicate CTAs on home). */
@@ -34,11 +36,12 @@ export const BUYER_SMART_SERVICES: BuyerSmartService[] = [
   },
   {
     href: "/discover",
-    label: "Discover",
+    label: "Affisell Pulse",
     hint: "Signaux marché",
     Icon: Sparkles,
     accent: "from-fuchsia-400/90 to-pink-500/90",
     cardClass: "from-fuchsia-600 to-pink-600 text-white shadow-fuchsia-500/25",
+    liveBadge: true,
   },
   {
     href: "/#explorer",

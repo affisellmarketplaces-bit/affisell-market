@@ -352,7 +352,7 @@ export function MarketplaceView({
           catalogBasePath={basePath}
           categoriesPayload={categoriesPayload}
         />
-        {!embedded ? (
+        {!embedded || isCustomerBrowse ? (
           <MarketplaceAffisellPulse audience={isCustomerBrowse ? "buyer" : "default"} />
         ) : null}
         {!isAffiliateCatalog && !isCustomerBrowse ? (
