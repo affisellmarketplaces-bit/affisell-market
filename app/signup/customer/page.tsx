@@ -11,6 +11,7 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 
 import { sanitizeInternalCallbackUrl } from "@/lib/auth-login-portal"
+import { LegalSignupConsent } from "@/components/legal/legal-signup-consent"
 
 function CustomerSignupForm() {
   const t = useTranslations("auth")
@@ -21,17 +22,23 @@ function CustomerSignupForm() {
   const returnTo = sanitizeInternalCallbackUrl(rawCallback) ?? (shopSlug ? `/shops/${shopSlug}` : "/marketplace/account")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [termsChecked, setTermsChecked] = useState(false)
+  const [privacyChecked, setPrivacyChecked] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
+    if (!termsChecked || !privacyChecked) {
+      setError("Veuillez accepter les conditions et la politique de confidentialité.")
+      return
+    }
     setLoading(true)
     setError(null)
     const res = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, role: "CUSTOMER" }),
+      body: JSON.stringify({ email, password, role: "CUSTOMER", acceptTerms: true, acceptPrivacy: true }),
     })
     const data = (await res.json()) as { error?: string }
     if (!res.ok) {
@@ -92,6 +99,13 @@ function CustomerSignupForm() {
                 className="w-full rounded-xl border border-gray-300 px-4 py-2.5 outline-none transition focus:border-transparent focus:ring-2 focus:ring-blue-600"
               />
             </div>
+            <LegalSignupConsent
+              role="CUSTOMER"
+              termsChecked={termsChecked}
+              privacyChecked={privacyChecked}
+              onTermsChange={setTermsChecked}
+              onPrivacyChange={setPrivacyChecked}
+            />
             <button
               type="submit"
               disabled={loading}

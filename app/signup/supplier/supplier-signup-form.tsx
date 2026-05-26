@@ -10,6 +10,7 @@ import { useTranslations } from "next-intl"
 
 import { credentialsSignInErrorMessage } from "@/lib/auth-portal-signin-messages"
 import { normalizeSupplierInviteToken } from "@/lib/supplier-invitation-token"
+import { LegalSignupConsent } from "@/components/legal/legal-signup-consent"
 
 export function SupplierSignupForm() {
   const t = useTranslations("auth")
@@ -24,11 +25,17 @@ export function SupplierSignupForm() {
   const [password, setPassword] = useState("")
   const [companyName, setCompanyName] = useState("")
   const [siret, setSiret] = useState("")
+  const [termsChecked, setTermsChecked] = useState(false)
+  const [privacyChecked, setPrivacyChecked] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
+    if (!termsChecked || !privacyChecked) {
+      setError("Veuillez accepter les conditions et la politique de confidentialité.")
+      return
+    }
     setLoading(true)
     setError(null)
     const res = await fetch("/api/auth/signup", {
@@ -40,6 +47,8 @@ export function SupplierSignupForm() {
         role: "SUPPLIER",
         name: companyName.trim() || undefined,
         siret: siret.trim() || undefined,
+        acceptTerms: true,
+        acceptPrivacy: true,
         ...(inviteToken ? { inviteToken } : {}),
       }),
     })
@@ -146,6 +155,13 @@ export function SupplierSignupForm() {
               Le Vendeur est seul responsable de la collecte, déclaration et reversement de la TVA.
               Affisell prélève 12&nbsp;% sur le montant HT (produits et livraison), jamais sur la TVA.
             </p>
+            <LegalSignupConsent
+              role="SUPPLIER"
+              termsChecked={termsChecked}
+              privacyChecked={privacyChecked}
+              onTermsChange={setTermsChecked}
+              onPrivacyChange={setPrivacyChecked}
+            />
             <button
               type="submit"
               disabled={loading}

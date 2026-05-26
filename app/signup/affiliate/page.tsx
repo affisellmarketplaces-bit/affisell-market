@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 
 import { credentialsSignInErrorMessage } from "@/lib/auth-portal-signin-messages"
+import { LegalSignupConsent } from "@/components/legal/legal-signup-consent"
 
 export default function AffiliateSignupPage() {
   const t = useTranslations("auth")
@@ -16,11 +17,17 @@ export default function AffiliateSignupPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [socialHandle, setSocialHandle] = useState("")
+  const [termsChecked, setTermsChecked] = useState(false)
+  const [privacyChecked, setPrivacyChecked] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
+    if (!termsChecked || !privacyChecked) {
+      setError("Veuillez accepter les conditions et la politique de confidentialité.")
+      return
+    }
     setLoading(true)
     setError(null)
     const handle = socialHandle.trim().replace(/^@/, "")
@@ -33,6 +40,8 @@ export default function AffiliateSignupPage() {
         role: "AFFILIATE",
         name: handle || undefined,
         tiktok: handle || undefined,
+        acceptTerms: true,
+        acceptPrivacy: true,
       }),
     })
     const data = (await res.json()) as { error?: string }
@@ -110,6 +119,13 @@ export default function AffiliateSignupPage() {
                 className="w-full rounded-xl border border-gray-300 px-4 py-2.5 outline-none transition focus:ring-2 focus:ring-violet-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
               />
             </div>
+            <LegalSignupConsent
+              role="AFFILIATE"
+              termsChecked={termsChecked}
+              privacyChecked={privacyChecked}
+              onTermsChange={setTermsChecked}
+              onPrivacyChange={setPrivacyChecked}
+            />
             <button
               type="submit"
               disabled={loading}

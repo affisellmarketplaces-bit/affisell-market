@@ -94,6 +94,14 @@ export default async function AccountSettingsPage() {
           </div>
         </BentoCard>
 
+        <BentoCard>
+          <p className="text-sm text-gray-600 dark:text-zinc-300">
+            <Link href="/dashboard/account/gdpr" className="font-medium text-[#7C3AED] underline-offset-4 hover:underline">
+              Données personnelles (RGPD) →
+            </Link>
+          </p>
+        </BentoCard>
+
         {dbUser.role === "SUPPLIER" || dbUser.role === "AFFILIATE" ? (
           <BentoCard className="space-y-4 border-red-100/80 dark:border-red-950/50">
             <div>

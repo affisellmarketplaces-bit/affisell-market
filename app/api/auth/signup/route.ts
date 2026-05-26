@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs"
 
 import { prisma } from "@/lib/prisma"
 import { ensureMerchantStore } from "@/lib/ensure-store"
+import { buildConsentPayload, type MerchantRole } from "@/lib/legal/consent"
 import { claimAffiliateInvitationForUser } from "@/lib/supplier-affiliate-invitation"
 import { claimSupplierInvitationForUser } from "@/lib/supplier-invitation"
 
@@ -11,7 +12,8 @@ export const dynamic = "force-dynamic"
 
 export async function POST(req: Request) {
   try {
-    const { email, password, role, name: nameRaw, tiktok, siret, inviteToken } = (await req.json()) as {
+    const { email, password, role, name: nameRaw, tiktok, siret, inviteToken, acceptTerms, acceptPrivacy } =
+      (await req.json()) as {
       email?: string
       password?: string
       role?: string
@@ -19,10 +21,18 @@ export async function POST(req: Request) {
       tiktok?: string
       siret?: string
       inviteToken?: string
+      acceptTerms?: boolean
+      acceptPrivacy?: boolean
     }
     const emailNormalized = typeof email === "string" ? email.toLowerCase().trim() : ""
     if (!emailNormalized || !password) {
       return NextResponse.json({ error: "Missing email or password" }, { status: 400 })
+    }
+    if (!acceptTerms || !acceptPrivacy) {
+      return NextResponse.json(
+        { error: "Vous devez accepter les conditions et la politique de confidentialité." },
+        { status: 400 }
+      )
     }
 
     const exists = await prisma.user.findUnique({ where: { email: emailNormalized } })
@@ -33,6 +43,7 @@ export async function POST(req: Request) {
     const hash = await bcrypt.hash(password, 10)
     const resolvedRole =
       role === "SUPPLIER" ? "SUPPLIER" : role === "CUSTOMER" ? "CUSTOMER" : "AFFILIATE"
+    const consent = buildConsentPayload(resolvedRole as MerchantRole)
 
     const displayName =
       typeof nameRaw === "string" && nameRaw.trim() ? nameRaw.trim().slice(0, 120) : null
@@ -43,6 +54,7 @@ export async function POST(req: Request) {
         password: hash,
         role: resolvedRole,
         name: displayName,
+        ...consent,
       },
     })
 

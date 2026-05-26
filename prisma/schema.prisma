@@ -37,6 +37,16 @@ model User {
    * 1100 = 11% of supplier wholesale offered to affiliates.
    */
   defaultSupplierCommissionRateBps Int?
+  /** CGU / CGS / CGA acceptance timestamp. */
+  termsAcceptedAt        DateTime?
+  termsAcceptedVersion   String?
+  /** Privacy policy acceptance. */
+  privacyAcceptedAt      DateTime?
+  privacyAcceptedVersion String?
+  /**
+   * Cookie preferences: `{ essential: true, analytics: boolean, marketing: boolean, updatedAt: ISO }`.
+   */
+  cookieConsent          Json?
   proActivatedAt       DateTime?
 
   accounts Account[]
@@ -186,6 +196,10 @@ model Store {
   twitter                String?
   followers              Json?
   showSocialsOnStore     Boolean   @default(true)
+  /**
+   * When false, affiliates do not see supplier net wholesale on order breakdowns.
+   */
+  showRevenueToAffiliate Boolean   @default(false)
   autoSyncFollowersDaily Boolean   @default(false)
   isLive                 Boolean   @default(false)
   livePlatform           String?
