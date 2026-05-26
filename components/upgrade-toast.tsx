@@ -6,9 +6,10 @@ import { toast } from "sonner"
 
 type Props = {
   upgrade?: string
+  sessionId?: string
 }
 
-export function UpgradeToast({ upgrade }: Props) {
+export function UpgradeToast({ upgrade, sessionId }: Props) {
   const router = useRouter()
   const pathname = usePathname()
   const shown = useRef(false)
@@ -18,8 +19,28 @@ export function UpgradeToast({ upgrade }: Props) {
     shown.current = true
 
     if (upgrade === "success") {
-      toast.success("Bienvenue Pro! Vidéos illimitées activées")
-      router.replace(pathname)
+      void (async () => {
+        try {
+          const res = await fetch("/api/stripe/verify-pro", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify(sessionId ? { sessionId } : {}),
+          })
+          const data = (await res.json()) as { isPro?: boolean; error?: string }
+          if (!res.ok || !data.isPro) {
+            throw new Error(data.error ?? "Activation Pro impossible")
+          }
+          toast.success("Bienvenue Pro ! Vidéos illimitées activées")
+        } catch (e) {
+          toast.error(
+            e instanceof Error
+              ? e.message
+              : "Paiement reçu — l’activation Pro peut prendre quelques minutes"
+          )
+        }
+        router.replace(pathname)
+      })()
       return
     }
 

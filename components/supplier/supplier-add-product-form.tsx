@@ -1266,18 +1266,7 @@ export function SupplierAddProductForm({
 
       setDraftSync("saving")
       try {
-        if (autosaveListingId) {
-          const res = await fetch(`/api/supplier/products/${autosaveListingId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify(body),
-          })
-          const json = (await res.json().catch(() => ({}))) as { error?: string }
-          if (!res.ok) {
-            throw new Error(typeof json.error === "string" ? json.error : "Échec de l'enregistrement")
-          }
-        } else {
+        const saveViaPost = async () => {
           const res = await fetch("/api/supplier/products", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -1296,6 +1285,28 @@ export function SupplierAddProductForm({
             if (!qs.has("compose")) qs.set("compose", "1")
             router.replace(`${pathname}?${qs.toString()}`, { scroll: false })
           }
+        }
+
+        if (autosaveListingId) {
+          const res = await fetch(`/api/supplier/products/${autosaveListingId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify(body),
+          })
+          const json = (await res.json().catch(() => ({}))) as { error?: string }
+          if (res.status === 404) {
+            setPendingDraftListingId("")
+            const qs = new URLSearchParams(searchParams.toString())
+            qs.delete("draft")
+            qs.delete("edit")
+            router.replace(qs.toString() ? `${pathname}?${qs.toString()}` : pathname, { scroll: false })
+            await saveViaPost()
+          } else if (!res.ok) {
+            throw new Error(typeof json.error === "string" ? json.error : "Échec de l'enregistrement")
+          }
+        } else {
+          await saveViaPost()
         }
 
         lastAutosaveJson.current = fp

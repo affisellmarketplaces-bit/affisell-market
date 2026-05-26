@@ -17,7 +17,7 @@ export default async function SupplierProductVideoPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ upgrade?: string }>
+  searchParams: Promise<{ upgrade?: string; session_id?: string }>
 }) {
   const session = await auth()
   if (!session?.user?.id) {
@@ -32,7 +32,7 @@ export default async function SupplierProductVideoPage({
   }
 
   const { id } = await params
-  const { upgrade } = await searchParams
+  const { upgrade, session_id: sessionId } = await searchParams
 
   const [product, quotaRow, productVideo] = await Promise.all([
     prisma.product.findFirst({
@@ -53,7 +53,7 @@ export default async function SupplierProductVideoPage({
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-100/90 via-white to-zinc-50 dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900/95">
-      <UpgradeToast upgrade={upgrade} />
+      <UpgradeToast upgrade={upgrade} sessionId={sessionId} />
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:py-12">
         <nav className="mb-8 flex flex-wrap items-center gap-3 text-sm">
           <Link
