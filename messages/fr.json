@@ -850,6 +850,8 @@
       "zoomHint": "Double-tap ou pincez pour zoomer",
       "resetZoom": "Réinitialiser le zoom",
       "desktopHint": "Choisissez une vignette · survolez l’image pour zoomer",
+      "hoverZoomHint": "Survolez l’image pour zoomer",
+      "zoomDetailLevel": "{level} % · vue détaillée",
       "lightbox": "Galerie plein écran",
       "close": "Fermer",
       "prev": "Image précédente",

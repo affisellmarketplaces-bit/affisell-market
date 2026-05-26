@@ -850,6 +850,8 @@
       "zoomHint": "Double-tap or pinch to zoom",
       "resetZoom": "Reset zoom",
       "desktopHint": "Select a thumbnail · hover main image to zoom",
+      "hoverZoomHint": "Hover the image to zoom",
+      "zoomDetailLevel": "{level}% · detail view",
       "lightbox": "Full screen gallery",
       "close": "Close",
       "prev": "Previous image",
