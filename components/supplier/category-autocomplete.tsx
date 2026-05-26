@@ -65,7 +65,7 @@ export function CategoryAutocomplete({
   value,
   onChange,
   disabled,
-  placeholder = "Rechercher dans la taxonomie Google (FR)…",
+  placeholder = "Rechercher dans le catalogue Affisell…",
 }: Props) {
   const selected = useMemo((): CategorySelectOption | null => {
     if (!value || !browse) return null

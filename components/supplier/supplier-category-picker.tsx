@@ -86,7 +86,7 @@ export function SupplierCategoryPicker({
     if (walk.length) setChain(walk)
   }, [browse, value])
 
-  /** One column per tree level (Google taxonomy up to 7 levels). */
+  /** One column per tree level (catalog taxonomy up to 7 levels). */
   const drillColumns = useMemo(() => {
     if (!browse) return [] as string[][]
     const cols: string[][] = [browse.rootIds]
@@ -181,7 +181,7 @@ export function SupplierCategoryPicker({
           browse={browse}
           value={value}
           disabled={loading}
-          placeholder="Rechercher dans la taxonomie Google (FR)…"
+          placeholder="Rechercher dans le catalogue Affisell…"
           onChange={(leafId, path) => onChange(leafId, path, "manual")}
         />
       </div>

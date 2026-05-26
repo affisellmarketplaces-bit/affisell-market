@@ -94,6 +94,9 @@ Rules:
 - Smart bands, fitness trackers, connected watches/bracelets → activity / biometric monitor leaves, never phone unlock categories, electronic connectors, or white-noise sleep aids.
 - CarPlay / Android Auto / wireless car adapters / in-dash screens → Véhicules > Électronique pour véhicules (audio/video intégré, mains-libres, GPS auto). NEVER prepaid SIM cards, phone plans, or generic phone accessories.
 - "Car" in CarPlay is not a SIM card or prepaid phone card — ignore téléphonie > cartes prépayées branches.
+- Portable fans / ventilateurs portables / brumisateurs → Maison et jardin > Appareils électroménagers > Chauffage et climatisation > Ventilateurs (especially portable/table). NEVER bike parts (leviers de vitesses), security lamps, surveillance systems, or sports equipment.
+- If the title says ventilateur, the primary category is always a fan leaf — ignore secondary features (lumière, power bank, rechargeable) for unrelated branches.
+- Commodes / meubles de rangement → furniture/storage leaves, never sports or electronics.
 
 Return JSON: {"ids":["id1","id2","id3","id4","id5"]} — only IDs from the list, no invented IDs, no duplicates, best match first (1 to 5 ids).`
 
@@ -204,7 +207,7 @@ export async function suggestListingCategories(
     scored = scored.filter(
       (row) =>
         isCategorySuggestionViable(text, row.breadcrumb) &&
-        (row.relevanceScore >= MIN_KEYWORD_SCORE_FOR_MERGE || (row.confidence ?? 0) >= 0.75)
+        row.relevanceScore >= MIN_KEYWORD_SCORE_FOR_MERGE
     )
     if (scored.length === 0 && keywordFallback.length > 0) {
       scored = keywordFallback.slice(0, LISTING_CATEGORY_SUGGESTION_LIMIT).map((lp) => {

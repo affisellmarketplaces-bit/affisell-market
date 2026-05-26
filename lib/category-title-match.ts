@@ -194,6 +194,47 @@ const PRODUCT_INTENTS: ProductIntent[] = [
     boost: [/cookware/i, /bakeware/i, /kitchen/i, /cuisine/i, /ustensiles?/i],
     penalize: [/headphones?/i, /audio/i, /connecteur/i, /telephones?\s+mobiles?/i],
   },
+  {
+    id: "portable_fan",
+    match:
+      /\b(ventilateur|ventilateurs|brumisateur|brumisateurs|refroidisseur\s*portable|air\s*cooler|climatiseur\s*portable|fan\s*usb|mini\s*fan|handheld\s*fan)\b/i,
+    boost: [
+      /ventilateurs?\s+portables?/i,
+      /ventilateurs?\s+de\s+table/i,
+      /ventilateurs?\s+muraux/i,
+      /ventilateurs?/i,
+      /brumisateurs?/i,
+      /climatisation/i,
+      /chauffage\s+et\s+climatisation/i,
+    ],
+    penalize: [
+      /velo/i,
+      /cyclisme/i,
+      /vitesses?\s+de\s+velo/i,
+      /transmission/i,
+      /equipements?\s+sportifs/i,
+      /football/i,
+      /securite\s+a\s+domicile/i,
+      /lampes?\s+de\s+securite/i,
+      /surveillance/i,
+      /enregistrement/i,
+      /sport/i,
+      /pieces?\s+detachees/i,
+    ],
+  },
+  {
+    id: "power_bank",
+    match: /\b(power\s*bank|batterie\s+externe|chargeur\s+portable|bank\s*\d+\s*mah|\d+\s*mah)\b/i,
+    boost: [/batteries?\s+externes?/i, /chargeurs?\s+portables?/i, /batteries?\s+pour\s+telephones?/i],
+    penalize: [/velo/i, /cyclisme/i, /surveillance/i, /securite/i, /football/i],
+  },
+  {
+    id: "furniture_storage",
+    match:
+      /\b(commode|armoire|etagere|étagère|meuble\s+de\s+rangement|buffet|placard|dressing|nightstand|chevet)\b/i,
+    boost: [/meubles?/i, /rangement/i, /commodes?/i, /armoires?/i, /etageres?/i, /mobilier/i],
+    penalize: [/velo/i, /sport/i, /electronique/i, /telephonie/i],
+  },
 ]
 
 const PHRASE_BOOSTS: Array<{ phrase: RegExp; breadcrumb: RegExp; points: number }> = [
@@ -229,6 +270,26 @@ const PHRASE_BOOSTS: Array<{ phrase: RegExp; breadcrumb: RegExp; points: number 
     breadcrumb: /cartes?\s+prepayees?|cartes?\s+sim|forfaits?\s+mobiles?/i,
     points: -50,
   },
+  {
+    phrase: /ventilateur\s+portable|mini\s*fan|handheld\s*fan/i,
+    breadcrumb: /ventilateurs?\s+portables?|brumisateurs?/i,
+    points: 42,
+  },
+  {
+    phrase: /ventilateur|brumisateur/i,
+    breadcrumb: /ventilateurs?|climatisation|chauffage\s+et\s+climatisation/i,
+    points: 28,
+  },
+  {
+    phrase: /ventilateur|brumisateur/i,
+    breadcrumb: /velo|cyclisme|vitesses?.*velo|securite|surveillance|football|sport/i,
+    points: -55,
+  },
+  {
+    phrase: /lumiere|lampe/i,
+    breadcrumb: /lampes?\s+de\s+securite|surveillance/i,
+    points: -30,
+  },
 ]
 
 const COMPOUND_TERMS: Array<{ pattern: RegExp; token: string }> = [
@@ -243,6 +304,36 @@ function normalizeText(s: string): string {
     .replace(/[\u0300-\u036f]/g, "")
 }
 
+function frenchWordForms(word: string): string[] {
+  const w = word.toLowerCase()
+  const forms = new Set<string>([w])
+  if (w.length >= 4 && w.endsWith("s") && !w.endsWith("ss") && !w.endsWith("us")) {
+    forms.add(w.slice(0, -1))
+  }
+  if (w.length >= 4 && w.endsWith("x")) {
+    forms.add(w.slice(0, -1))
+  }
+  if (w.length >= 5 && w.endsWith("eaux")) {
+    forms.add(w.slice(0, -1))
+  }
+  return [...forms]
+}
+
+function tokenMatchesSearchWord(token: string, word: string): boolean {
+  if (token === word) return true
+  const tokenForms = frenchWordForms(token)
+  const wordForms = frenchWordForms(word)
+  for (const tf of tokenForms) {
+    for (const wf of wordForms) {
+      if (tf === wf) return true
+      if (wf.length >= 5 && tf.length >= 5 && (tf.startsWith(wf.slice(0, 5)) || wf.startsWith(tf.slice(0, 5)))) {
+        return true
+      }
+    }
+  }
+  return false
+}
+
 function breadcrumbWordTokens(breadcrumb: string): Set<string> {
   return new Set(
     normalizeText(breadcrumb)
@@ -252,19 +343,22 @@ function breadcrumbWordTokens(breadcrumb: string): Set<string> {
   )
 }
 
-/** Whole-word match in breadcrumb; blocks substring traps (e.g. "car" in "carte"). */
+/** Whole-word match in breadcrumb; handles FR plurals (ventilateur ↔ ventilateurs). */
 export function wordMatchesInBreadcrumb(word: string, breadcrumb: string): boolean {
   const w = word.trim().toLowerCase()
   if (w.length < 2) return false
   const tokens = breadcrumbWordTokens(breadcrumb)
-  if (tokens.has(w)) return true
+  for (const token of tokens) {
+    if (tokenMatchesSearchWord(token, w)) return true
+  }
+
   if (w.length <= SHORT_TOKEN_MAX_LEN) return false
 
   const b = normalizeText(breadcrumb)
   let idx = 0
   while (idx < b.length) {
     const at = b.indexOf(w, idx)
-    if (at < 0) return false
+    if (at < 0) break
     const before = at === 0 ? "" : b[at - 1]!
     const after = at + w.length >= b.length ? "" : b[at + w.length]!
     const isBoundary = (ch: string) => !/[a-z0-9]/.test(ch)
@@ -423,6 +517,10 @@ export function scoreProductTextAgainstBreadcrumb(text: string, breadcrumb: stri
         continue
       }
       if (intent?.id === "car_infotainment" && (w === "car" || w === "auto" || w === "play")) {
+        continue
+      }
+      /** Fan titles often mention lumière / power bank as accessories — do not drive security categories. */
+      if (intent?.id === "portable_fan" && (w === "lumiere" || w === "power" || w === "bank")) {
         continue
       }
       if (wordMatchesInBreadcrumb(w, b)) score += intent ? 0.2 : 0

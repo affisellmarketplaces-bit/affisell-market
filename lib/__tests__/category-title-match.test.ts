@@ -84,6 +84,30 @@ const FIXTURE_LEAVES: LeafPath[] = [
       "Véhicules et accessoires > Pièces détachées pour véhicules > Électronique pour véhicules > Kits mains-libres pour véhicules",
     path: [],
   },
+  {
+    leafId: "fan-portable",
+    breadcrumb:
+      "Maison et jardin > Appareils électroménagers > Chauffage et climatisation > Ventilateurs > Ventilateurs portatifs et brumisateurs",
+    path: [],
+  },
+  {
+    leafId: "security-lamp",
+    breadcrumb:
+      "Maison et jardin > Sécurité à domicile et au bureau > Lampes de sécurité",
+    path: [],
+  },
+  {
+    leafId: "surveillance",
+    breadcrumb:
+      "Maison et jardin > Sécurité à domicile et au bureau > Systèmes de surveillance et d'enregistrement",
+    path: [],
+  },
+  {
+    leafId: "bike-shifter",
+    breadcrumb:
+      "Équipements sportifs > Loisirs de plein air > Cyclisme > Pièces détachées vélo > Pièces de transmission de vélo > Leviers de vitesses de vélo",
+    path: [],
+  },
 ]
 
 describe("category-title-match", () => {
@@ -186,5 +210,26 @@ describe("category-title-match", () => {
     expect(alts).toHaveLength(1)
     expect(alts[0]?.leafId).toBe("watches-jewelry")
     expect(alts[0]?.reason).toMatch(/déconseillé/i)
+  })
+
+  it("matches French singular title to plural taxonomy tokens (ventilateur → ventilateurs)", () => {
+    expect(
+      wordMatchesInBreadcrumb(
+        "ventilateur",
+        FIXTURE_LEAVES.find((l) => l.leafId === "fan-portable")!.breadcrumb
+      )
+    ).toBe(true)
+  })
+
+  it("ranks portable fans above security and bike parts for ventilateur title", () => {
+    const title =
+      "Jsdoin Ventilateur portable rechargeable avec Lumière et Power Bank 10000mAh"
+    const picks = suggestLeafCategoriesFromProductText(title, "", FIXTURE_LEAVES, 3)
+
+    expect(picks.length).toBeGreaterThan(0)
+    expect(picks[0]?.leafId).toBe("fan-portable")
+    expect(picks.some((p) => p.leafId === "bike-shifter")).toBe(false)
+    expect(picks.some((p) => p.leafId === "security-lamp")).toBe(false)
+    expect(picks.some((p) => p.leafId === "surveillance")).toBe(false)
   })
 })

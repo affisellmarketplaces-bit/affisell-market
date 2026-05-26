@@ -2034,7 +2034,7 @@ export function SupplierAddProductForm({
                       id="add-product-classify"
                       icon={Tag}
                       title="Classification"
-                      description="Choisissez vous-même la catégorie feuille parmi les suggestions, la recherche ou l’arbre Google (FR)."
+                      description="Choisissez la catégorie feuille via les suggestions IA, la recherche ou l’arbre catalogue Affisell."
                       hasError={hasPublishFieldError("category") || hasPublishFieldError("specs")}
                     >
                       <div>

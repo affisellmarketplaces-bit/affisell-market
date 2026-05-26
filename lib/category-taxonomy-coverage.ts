@@ -1,5 +1,5 @@
 /**
- * Critical Google taxonomy leaves (FR) that product-intent scoring expects.
+ * Critical catalog leaves (FR marketplace taxonomy) that product-intent scoring expects.
  * Used in CI to catch an incomplete `taxonomy-fr.txt` or failed seed.
  *
  * Each entry is matched as a suffix on a full path line in taxonomy-fr.txt.
@@ -12,6 +12,7 @@ export const REQUIRED_TAXONOMY_PATH_SUFFIXES = [
   "Appareils électroniques > Communications > Téléphonie > Téléphones mobiles",
   "Appareils électroniques > Ordinateurs > Ordinateurs portables",
   "Appareils électroniques > Systèmes de navigation GPS",
+  "Maison et jardin > Appareils électroménagers > Chauffage et climatisation > Ventilateurs > Ventilateurs portatifs et brumisateurs",
 ] as const
 
 export function findMissingTaxonomyPaths(
