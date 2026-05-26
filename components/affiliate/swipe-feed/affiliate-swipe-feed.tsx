@@ -14,7 +14,7 @@ import {
 import { AnimatePresence, motion } from "framer-motion"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
-import { SwipeCard } from "@/components/affiliate/swipe-feed/swipe-card"
+import { SwipeCard, type SwipeCardHandle } from "@/components/affiliate/swipe-feed/swipe-card"
 import {
   SwipeFiltersSheet,
   swipeFiltersActiveCount,
@@ -56,8 +56,10 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
   const [sessionStats, setSessionStats] = useState({ listed: 0, skipped: 0 })
   const [busy, setBusy] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [dragProgress, setDragProgress] = useState(0)
   const fetchingRef = useRef(false)
   const deckRef = useRef(deck)
+  const topCardRef = useRef<SwipeCardHandle>(null)
   deckRef.current = deck
 
   const filterCount = swipeFiltersActiveCount(filters)
@@ -110,13 +112,21 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
 
   const visibleStack = useMemo(() => deck.slice(0, STACK_VISIBLE), [deck])
 
+  const requestSwipe = useCallback(
+    (direction: "left" | "right") => {
+      if (busy || deckRef.current.length === 0) return
+      topCardRef.current?.swipe(direction)
+    },
+    [busy]
+  )
+
   const commitSwipe = useCallback(
     async (direction: "left" | "right") => {
       const product = deckRef.current[0]
       if (!product || busy) return
 
       setBusy(true)
-      const action = direction === "right" ? "like" : "skip"
+      setDragProgress(0)
 
       try {
         if (direction === "right") {
@@ -148,6 +158,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
         }
       } catch (e) {
         showToast(e instanceof Error ? e.message : "Erreur réseau")
+        topCardRef.current?.reset()
         setBusy(false)
         return
       }
@@ -193,13 +204,13 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
     if (mode !== "swipe") return
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
-      if (e.key === "ArrowRight") void commitSwipe("right")
-      if (e.key === "ArrowLeft") void commitSwipe("left")
+      if (e.key === "ArrowRight") requestSwipe("right")
+      if (e.key === "ArrowLeft") requestSwipe("left")
       if (e.key === "z" && (e.metaKey || e.ctrlKey)) void handleUndo()
     }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
-  }, [mode, commitSwipe, handleUndo])
+  }, [mode, requestSwipe, handleUndo])
 
   if (mode === "hub") {
     return (
@@ -282,16 +293,26 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
 
   return (
     <div className="relative flex min-h-[calc(100dvh-3.75rem)] flex-col overflow-hidden bg-zinc-950 text-white">
-      <div className="pointer-events-none absolute inset-0 transition-colors duration-700">
+      <div className="pointer-events-none absolute inset-0">
         <motion.div
           className="absolute -left-24 top-0 h-96 w-96 rounded-full bg-violet-600/25 blur-[120px]"
           animate={{ x: [0, 30, 0], opacity: [0.5, 0.7, 0.5] }}
+          style={{ scale: 1 + Math.max(0, dragProgress) * 0.12 }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
           className="absolute -right-16 bottom-20 h-80 w-80 rounded-full bg-fuchsia-600/20 blur-[100px]"
           animate={{ x: [0, -20, 0], opacity: [0.4, 0.65, 0.4] }}
+          style={{ scale: 1 + Math.max(0, -dragProgress) * 0.12 }}
           transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        />
+        <div
+          className="absolute inset-0 bg-emerald-500/10 transition-opacity duration-75"
+          style={{ opacity: Math.max(0, dragProgress) * 0.4 }}
+        />
+        <div
+          className="absolute inset-0 bg-rose-500/10 transition-opacity duration-75"
+          style={{ opacity: Math.max(0, -dragProgress) * 0.4 }}
         />
       </div>
 
@@ -360,11 +381,13 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
               visibleStack.map((product, i) => (
                 <SwipeCard
                   key={product.id}
+                  ref={i === 0 ? topCardRef : undefined}
                   product={product}
                   stackIndex={i}
                   isTop={i === 0 && !busy}
                   markupRate={DEFAULT_MARKUP}
-                  onSwipe={commitSwipe}
+                  onSwipeComplete={commitSwipe}
+                  onDragProgress={i === 0 ? setDragProgress : undefined}
                 />
               ))
             )}
@@ -391,11 +414,11 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
           <button
             type="button"
             disabled={busy || deck.length === 0}
-            onClick={() => void commitSwipe("left")}
-            className="flex size-14 items-center justify-center rounded-full border-2 border-rose-500/40 bg-rose-500/10 text-rose-400 transition-all hover:scale-105 hover:bg-rose-500/20 disabled:opacity-40"
+            onClick={() => requestSwipe("left")}
+            className="group flex size-14 items-center justify-center rounded-full border-2 border-rose-500/40 bg-rose-500/10 text-rose-400 transition-all hover:scale-110 hover:bg-rose-500/25 hover:shadow-[0_0_28px_rgba(251,113,133,0.35)] active:scale-95 disabled:opacity-40"
             aria-label="Passer"
           >
-            <X className="size-7" />
+            <X className="size-7 transition-transform group-active:-translate-x-0.5" />
           </button>
 
           <button
@@ -411,11 +434,11 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
           <button
             type="button"
             disabled={busy || deck.length === 0}
-            onClick={() => void commitSwipe("right")}
-            className="flex size-14 items-center justify-center rounded-full border-2 border-emerald-500/40 bg-emerald-500/10 text-emerald-400 transition-all hover:scale-105 hover:bg-emerald-500/20 disabled:opacity-40"
+            onClick={() => requestSwipe("right")}
+            className="group flex size-14 items-center justify-center rounded-full border-2 border-emerald-500/40 bg-emerald-500/10 text-emerald-400 transition-all hover:scale-110 hover:bg-emerald-500/25 hover:shadow-[0_0_28px_rgba(52,211,153,0.35)] active:scale-95 disabled:opacity-40"
             aria-label="Lister"
           >
-            <Heart className="size-7" />
+            <Heart className="size-7 transition-transform group-active:translate-x-0.5" />
           </button>
 
           <button
