@@ -24,6 +24,7 @@ import {
 import { requireMerchantUserId } from "@/lib/merchant-tenant-scope"
 import { onSupplierProductPublishedFromInvite } from "@/lib/supplier-invitation"
 import { parseListingKind } from "@/lib/supplier-commission"
+import { parseAffisellCommissionOverrideFromBody } from "@/lib/supplier-product-affisell-commission-override"
 import { productCommissionRateForSave } from "@/lib/supplier-product-commission-save"
 import {
   parseCustomColumnsFromBody,
@@ -83,6 +84,10 @@ export async function POST(req: Request) {
   } = body as Record<string, unknown>
   const categoryIdRaw = (body as Record<string, unknown>).categoryId
   const categoryId = typeof categoryIdRaw === "string" ? categoryIdRaw.trim() : ""
+  const affisellOverrideBps = parseAffisellCommissionOverrideFromBody(
+    (body as Record<string, unknown>).affisellCommissionRateOverridePercent ??
+      (body as Record<string, unknown>).affisellCommissionRateOverrideBps
+  )
   const productAttributesRaw = (body as Record<string, unknown>).productAttributes
 
   const nameStr = typeof name === "string" ? name.trim() : ""
@@ -252,6 +257,9 @@ export async function POST(req: Request) {
         active: !saveAsDraft,
         isDraft: saveAsDraft,
         categoryId: categoryId || null,
+        ...(affisellOverrideBps !== undefined
+          ? { affisellCommissionRateOverrideBps: affisellOverrideBps }
+          : {}),
         shippingCountry: ship.shippingCountry,
         warehouseType: ship.warehouseType,
         warehouseCity: ship.warehouseCity,

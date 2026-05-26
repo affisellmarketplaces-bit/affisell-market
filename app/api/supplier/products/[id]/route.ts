@@ -17,6 +17,7 @@ import { parseProductMarketplaceMeta } from "@/lib/supplier-product-marketplace-
 import { parseSupplierProductShippingBody } from "@/lib/supplier-product-shipping"
 import { parseSupplierProductImages } from "@/lib/supplier-product-images"
 import { parseListingKind } from "@/lib/supplier-commission"
+import { parseAffisellCommissionOverrideFromBody } from "@/lib/supplier-product-affisell-commission-override"
 import { productCommissionRateForSave } from "@/lib/supplier-product-commission-save"
 import {
   parseCustomColumnsFromBody,
@@ -67,6 +68,9 @@ export async function GET(
     include: {
       attributes: { orderBy: { label: "asc" } },
       productVariants: { orderBy: { createdAt: "asc" } },
+      category: {
+        select: { id: true, name: true, fullPath: true, affisellCommissionRateBps: true },
+      },
     },
   })
   if (!p) {
@@ -207,6 +211,9 @@ export async function PUT(
   const meta = parseProductMarketplaceMeta(body as unknown as Record<string, unknown>)
   const categoryId =
     typeof body.categoryId === "string" && body.categoryId.trim().length ? body.categoryId.trim() : null
+  const affisellOverridePatch = parseAffisellCommissionOverrideFromBody(
+    rawBody.affisellCommissionRateOverridePercent ?? rawBody.affisellCommissionRateOverrideBps
+  )
   const productAttributes = Array.isArray(body.productAttributes)
     ? body.productAttributes
         .map((row) => (row && typeof row === "object" ? (row as Record<string, unknown>) : null))
@@ -335,6 +342,9 @@ export async function PUT(
         listingKind,
         stock,
         categoryId,
+        ...(affisellOverridePatch !== undefined
+          ? { affisellCommissionRateOverrideBps: affisellOverridePatch }
+          : {}),
         shippingCountry: ship.shippingCountry,
         warehouseType: ship.warehouseType,
         warehouseCity: ship.warehouseCity,

@@ -53,6 +53,7 @@ import {
   type RecentCategoryEntry,
 } from "@/lib/category-browse"
 import { suggestFromTitle, titleSuggestionAttributes } from "@/lib/title-parser"
+import { SupplierAffisellCommissionField } from "@/components/supplier/supplier-affisell-commission-field"
 import {
   SupplierCategoryPicker,
   type BrowsePayload,
@@ -316,6 +317,8 @@ export function SupplierAddProductForm({
   const [descriptionIllustrationImages, setDescriptionIllustrationImages] = useState<string[]>([])
   const [descriptionIllustrationVideos, setDescriptionIllustrationVideos] = useState<string[]>([])
   const [categoryId, setCategoryId] = useState("")
+  const [affisellCommissionOverride, setAffisellCommissionOverride] = useState("")
+  const [loadedAffisellOverrideBps, setLoadedAffisellOverrideBps] = useState<number | null>(null)
   const [categoryPath, setCategoryPath] = useState<CategoryPathSegment[]>([])
   const [images, setImages] = useState<string[]>([])
   const [price, setPrice] = useState("")
@@ -767,6 +770,14 @@ export function SupplierAddProductForm({
       setName(String(data.name ?? ""))
       setDescription(String(data.description ?? ""))
       setCategoryId(typeof data.categoryId === "string" ? data.categoryId : "")
+      const overrideBps = (data as { affisellCommissionRateOverrideBps?: number | null })
+        .affisellCommissionRateOverrideBps
+      setLoadedAffisellOverrideBps(
+        overrideBps != null && Number.isFinite(overrideBps) ? Math.round(overrideBps) : null
+      )
+      setAffisellCommissionOverride(
+        overrideBps != null && Number.isFinite(overrideBps) ? String(overrideBps / 100) : ""
+      )
       setImages(Array.isArray(data.images) ? (data.images as string[]) : [])
       const cents = Number(data.basePriceCents)
       setPrice(Number.isFinite(cents) ? (cents / 100).toFixed(2) : "")
@@ -1099,6 +1110,10 @@ export function SupplierAddProductForm({
         listingKind,
         images,
         categoryId: categoryId.trim(),
+        affisellCommissionRateOverridePercent:
+          affisellCommissionOverride.trim() === ""
+            ? null
+            : Number(affisellCommissionOverride),
         shippingCountry: shippingCountry.trim().toUpperCase().slice(0, 2) || undefined,
         warehouseType: warehouseType || undefined,
         processingTime: Math.round(Number(processingTime) || 1),
@@ -1152,6 +1167,7 @@ export function SupplierAddProductForm({
       listingKind,
       images,
       categoryId,
+      affisellCommissionOverride,
       shippingCountry,
       warehouseType,
       processingTime,
@@ -2046,6 +2062,12 @@ export function SupplierAddProductForm({
                           />
                         </div>
                       </div>
+                      <SupplierAffisellCommissionField
+                        categoryId={categoryId}
+                        value={affisellCommissionOverride}
+                        onChange={setAffisellCommissionOverride}
+                        productOverrideBps={loadedAffisellOverrideBps}
+                      />
                       <div
                         id="product-spec-fields"
                         className={cn(
