@@ -2,6 +2,7 @@
 
 import type { FormEvent, MouseEvent } from "react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { Loader2, Rocket, Sparkles } from "lucide-react"
 
 import { flushAllMerchantDrafts, registerMerchantDraftFlush } from "@/lib/merchant-draft-flush"
 
@@ -22,6 +23,7 @@ import { DEFAULT_AFFISELL_COMMISSION_BPS } from "@/lib/affisell-platform-commiss
 import { computeMarketplaceOrderSettlement } from "@/lib/marketplace-order-settlement"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { formatWarrantyBadgeLabel, resolveProductWarrantyMonths } from "@/lib/product-warranty"
+import { cn } from "@/lib/utils"
 
 type CatalogProduct = {
   id: string
@@ -457,10 +459,10 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
 
   return (
     <div
-      className="max-h-[90vh] w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-xl"
+      className="flex max-h-[92dvh] w-full max-w-xl flex-col overflow-hidden rounded-t-[1.75rem] border border-violet-100/80 bg-white shadow-[0_-12px_48px_rgba(88,28,135,0.18)] sm:max-h-[90vh] sm:rounded-2xl sm:shadow-xl"
       onMouseDown={(e) => e.stopPropagation()}
     >
-      <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+      <div className="flex shrink-0 items-center justify-between border-b border-gray-100 px-4 py-4 sm:px-6">
         <div>
           <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Add to My Store</p>
           <h2 className="text-lg font-semibold text-gray-900">{product.name}</h2>
@@ -475,8 +477,8 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
         </button>
       </div>
 
-      <form onSubmit={handleFormSubmit} className="flex max-h-[calc(90vh-4rem)] flex-col">
-        <div className="flex gap-2 border-b border-gray-50 px-6 py-3">
+      <form onSubmit={handleFormSubmit} className="flex min-h-0 flex-1 flex-col">
+        <div className="flex shrink-0 gap-2 border-b border-gray-50 px-4 py-3 sm:px-6">
           <button
             type="button"
             onClick={() => setForm((f) => ({ ...f, step: 1 }))}
@@ -497,7 +499,7 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
           </button>
         </div>
 
-        <div className="flex-1 space-y-5 overflow-y-auto px-6 py-5">
+        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6">
           {error ? <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}
 
           {form.step === 1 ? (
@@ -1017,23 +1019,61 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 border-t border-gray-100 bg-white px-6 py-4">
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => void submit(true)}
-            className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-800 hover:bg-gray-50 disabled:opacity-60"
-          >
-            Save Draft
-          </button>
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => void submit(false)}
-            className="ml-auto rounded-xl bg-gray-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-60"
-          >
-            Publish to Store
-          </button>
+        <div className="relative shrink-0 border-t border-violet-100/80 bg-white/95 backdrop-blur-xl">
+          <div
+            className="pointer-events-none absolute -top-10 left-0 right-0 h-10 bg-gradient-to-t from-white via-white/90 to-transparent"
+            aria-hidden
+          />
+
+          <div className="flex flex-col gap-2 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:flex-row sm:items-stretch sm:gap-3 sm:px-6 sm:py-4">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void submit(true)}
+              className="order-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-800 transition hover:bg-gray-50 active:scale-[0.99] disabled:opacity-60 sm:order-1 sm:w-auto sm:py-2.5"
+            >
+              Save Draft
+            </button>
+
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void submit(false)}
+              className={cn(
+                "order-1 group relative w-full overflow-hidden rounded-2xl px-5 py-3.5 text-left transition active:scale-[0.99] disabled:opacity-60 sm:order-2 sm:min-w-[220px] sm:flex-1",
+                "bg-gradient-to-r from-violet-600 via-fuchsia-600 to-indigo-600",
+                "shadow-[0_8px_32px_rgba(124,58,237,0.45)] hover:shadow-[0_12px_40px_rgba(124,58,237,0.55)] hover:brightness-105"
+              )}
+            >
+              <span
+                className="pointer-events-none absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.22)_50%,transparent_60%)] opacity-0 transition group-hover:opacity-100 group-hover:animate-[shimmer_1.2s_ease-in-out]"
+                aria-hidden
+              />
+              <span className="pointer-events-none absolute -right-6 -top-6 size-24 rounded-full bg-white/10 blur-2xl" aria-hidden />
+              <span className="relative flex items-center justify-center gap-2.5 sm:justify-between">
+                <span className="flex flex-col items-center gap-0.5 sm:items-start">
+                  <span className="flex items-center gap-2 text-base font-bold tracking-tight text-white">
+                    {busy ? (
+                      <Loader2 className="size-5 animate-spin" aria-hidden />
+                    ) : (
+                      <Rocket className="size-5 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden />
+                    )}
+                    Push to Store
+                  </span>
+                  {marginEUR != null && Number.isFinite(marginEUR) && marginEUR > 0 ? (
+                    <span className="text-xs font-medium text-white/85">
+                      +€{marginEUR.toFixed(2)} margin per sale
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-xs font-medium text-white/80">
+                      <Sparkles className="size-3" aria-hidden />
+                      Live on your storefront
+                    </span>
+                  )}
+                </span>
+              </span>
+            </button>
+          </div>
         </div>
       </form>
 
@@ -1064,7 +1104,7 @@ export function ListingBuilderModal({ open, product, listing, storeSlug, onClose
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 p-0 backdrop-blur-[2px] sm:items-center sm:p-4"
       role="presentation"
       data-overlay="1"
       onMouseDown={onOverlayDown}
