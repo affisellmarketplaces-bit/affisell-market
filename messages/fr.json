@@ -1373,6 +1373,7 @@
     "allCollections": "Tout",
     "gallery": "La galerie",
     "empty": "Aucune pièce Luxe pour le moment. Cochez « Affisell Luxe » sur un produit fournisseur, puis listez-le via un affilié.",
+    "emptyPublic": "L'atelier se prépare. Revenez bientôt pour découvrir la sélection.",
     "tickerEmpty": "Affisell Luxe — excellence curatoriale",
     "curationNote": "Seuls les produits dont la case Affisell Luxe est cochée par le fournisseur apparaissent ici (une fois listés par un affilié)."
   },

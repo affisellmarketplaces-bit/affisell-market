@@ -1,3 +1,4 @@
+import { auth } from "@/auth"
 import { LuxuryAtelierExperience } from "@/components/luxury/luxury-atelier-experience"
 import { loadLuxuryAtelier } from "@/lib/luxury-data.server"
 
@@ -12,8 +13,16 @@ type PageProps = {
   searchParams: Promise<{ collection?: string; piece?: string }>
 }
 
+function isLuxeMerchantHintRole(role: string | undefined | null): boolean {
+  return role === "SUPPLIER" || role === "AFFILIATE"
+}
+
 export default async function LuxePage({ searchParams }: PageProps) {
   const sp = await searchParams
+  const session = await auth()
+  const showMerchantHint = isLuxeMerchantHintRole(
+    (session?.user as { role?: string } | undefined)?.role
+  )
   const payload = await loadLuxuryAtelier()
 
   const collectionSlug = sp.collection?.trim() || null
@@ -32,6 +41,7 @@ export default async function LuxePage({ searchParams }: PageProps) {
     <LuxuryAtelierExperience
       initial={payload}
       initialCollectionSlug={collectionSlug}
+      showMerchantHint={showMerchantHint}
     />
   )
 }

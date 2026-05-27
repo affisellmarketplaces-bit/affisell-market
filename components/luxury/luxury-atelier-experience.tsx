@@ -18,9 +18,15 @@ import { cn } from "@/lib/utils"
 type Props = {
   initial: LuxuryAtelierPayload
   initialCollectionSlug?: string | null
+  /** Supplier / affiliate: onboarding copy for empty vitrine. */
+  showMerchantHint?: boolean
 }
 
-export function LuxuryAtelierExperience({ initial, initialCollectionSlug }: Props) {
+export function LuxuryAtelierExperience({
+  initial,
+  initialCollectionSlug,
+  showMerchantHint = false,
+}: Props) {
   const t = useTranslations("luxe")
   const [payload, setPayload] = useState(initial)
   const [collectionSlug, setCollectionSlug] = useState<string | null>(initialCollectionSlug ?? null)
@@ -255,7 +261,9 @@ export function LuxuryAtelierExperience({ initial, initialCollectionSlug }: Prop
             )}
           >
             <Crown className="mb-4 size-12 text-amber-400/40" aria-hidden />
-            <p className="max-w-md text-base leading-relaxed text-amber-100/70">{t("empty")}</p>
+            <p className="max-w-md text-base leading-relaxed text-amber-100/70">
+              {showMerchantHint ? t("empty") : t("emptyPublic")}
+            </p>
           </div>
         )}
 
@@ -309,7 +317,9 @@ export function LuxuryAtelierExperience({ initial, initialCollectionSlug }: Prop
           </section>
         ) : null}
 
-        <p className="mt-10 text-center text-[11px] text-amber-100/40">{t("curationNote")}</p>
+        {showMerchantHint ? (
+          <p className="mt-10 text-center text-[11px] text-amber-100/40">{t("curationNote")}</p>
+        ) : null}
       </div>
     </div>
   )

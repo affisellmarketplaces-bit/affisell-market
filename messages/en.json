@@ -1373,6 +1373,7 @@
     "allCollections": "All",
     "gallery": "The gallery",
     "empty": "No Luxe pieces yet. Enable Affisell Luxe on a supplier product, then list it through an affiliate.",
+    "emptyPublic": "The atelier is being curated. Check back soon for new pieces.",
     "tickerEmpty": "Affisell Luxe — curated excellence",
     "curationNote": "Only products with Affisell Luxe enabled by the supplier appear here (once listed by an affiliate)."
   },
