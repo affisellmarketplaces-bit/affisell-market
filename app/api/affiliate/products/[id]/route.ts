@@ -40,11 +40,15 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
         select: {
           id: true,
           name: true,
+          description: true,
+          images: true,
           basePriceCents: true,
           variants: true,
           commissionRate: true,
           listingKind: true,
           active: true,
+          category: { select: { fullPath: true, name: true } },
+          attributes: { select: { key: true, label: true, value: true } },
         },
       },
     },
@@ -57,10 +61,15 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   return NextResponse.json({
     listing: {
       id: listing.id,
+      productId: listing.productId,
       sellingPriceCents: listing.sellingPriceCents,
       isListed: listing.isListed,
       customTitle: listing.customTitle,
+      customDescription: listing.customDescription,
       customSlug: listing.customSlug,
+      seoTitle: listing.seoTitle,
+      seoDescription: listing.seoDescription,
+      customImages: listing.customImages,
     },
     product: listing.product,
   })

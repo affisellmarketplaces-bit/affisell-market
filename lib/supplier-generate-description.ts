@@ -1,22 +1,31 @@
-import { normalizeImagePlacements } from "@/lib/description-structure"
+import {
+  DESCRIPTION_SECTION_ORDER,
+  normalizeImagePlacements,
+  parseDescriptionSections,
+} from "@/lib/description-structure"
+import { groqChatText, GROQ_TEXT_MODEL, GROQ_VISION_MODEL } from "@/lib/ai/groq-client"
 import { GROQ_VISION_MAX_IMAGES } from "@/lib/ai/groq-vision"
-import { groqChatText, GROQ_VISION_MODEL } from "@/lib/ai/groq-client"
 import { generateImageWithHf } from "@/lib/ai/hf-image"
+import { extractProductIdentityFromTitle } from "@/lib/listing-product-signal"
 
 const MAX_DATA_URL_LEN = 1_400_000
 const MAX_ILLUSTRATIONS = 4
-/** Max illustration images sent to vision (rest stay on listing as user uploads) */
 const MAX_VISION_ILLUSTRATIONS = 3
+const MIN_SECTIONS_WITH_BODY = 4
+const MIN_SECTION_BODY_LEN = 20
+
+export type ProductSpecRow = { label: string; value: string }
 
 export type GenerateDescriptionRequest = {
   title: string
   notes: string
   bullets: string[]
+  /** Category breadcrumb — tone/context only, must not change product facts */
   categoryPath: string
+  productSpecs?: ProductSpecRow[]
   productImageUrls: string[]
   productImageDataUrls: string[]
   illustrationDataUrls: string[]
-  /** Try Hugging Face lifestyle shot when no illustrations and gallery exists */
   generateMissingIllustrations?: boolean
 }
 
@@ -52,6 +61,199 @@ function normalizeBullets(raw: unknown): string[] {
     .map((s) => s.trim())
     .filter(Boolean)
     .slice(0, 6)
+}
+
+function normalizeText(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+}
+
+/** True when text already has SEO section blocks (not a raw dump). */
+export function hasStructuredDescriptionSections(text: string): boolean {
+  const sections = parseDescriptionSections(text.trim())
+  if (sections.length === 0) return false
+  if (sections.length === 1 && sections[0]!.key === "NOTES") return false
+  const filled = sections.filter((s) => s.body.trim().length >= MIN_SECTION_BODY_LEN)
+  return filled.length >= MIN_SECTIONS_WITH_BODY
+}
+
+/** Detect comma-list / title echo drafts that pollute generation. */
+export function isRawProductFeatureDump(text: string, title: string): boolean {
+  const t = text.trim()
+  if (t.length < 24) return false
+  if (hasStructuredDescriptionSections(t)) return false
+
+  const commas = (t.match(/,/g) ?? []).length
+  const semicolons = (t.match(/;/g) ?? []).length
+  if (commas + semicolons >= 4 && t.length < 800) return true
+
+  const nt = normalizeText(t)
+  const nTitle = normalizeText(title)
+  if (nTitle.length >= 16 && nt.includes(nTitle.slice(0, Math.min(50, nTitle.length)))) {
+    return true
+  }
+
+  if (/^(telephones?|smartphone|produit|article)\s/i.test(t) && commas >= 2) return true
+  return false
+}
+
+/** Keep only useful draft notes — exclude raw title dumps and long unstructured SEO. */
+export function sanitizeDraftNotesForGeneration(notes: string, title: string): string {
+  const n = notes.trim()
+  if (!n) return ""
+  if (isRawProductFeatureDump(n, title)) return ""
+  if (n.length > 500 && !hasStructuredDescriptionSections(n)) return ""
+  return n.slice(0, 1200)
+}
+
+export function buildDescriptionGenerationPrompt(input: {
+  title: string
+  productName: string
+  categoryPath: string
+  specs: ProductSpecRow[]
+  bullets: string[]
+  draftNotes: string
+  galleryCount: number
+}): { system: string; user: string } {
+  const specBlock =
+    input.specs.length > 0
+      ? `Spécifications techniques (faits à intégrer):\n${input.specs.map((s) => `- ${s.label}: ${s.value}`).join("\n")}`
+      : ""
+
+  const bulletBlock =
+    input.bullets.length > 0
+      ? `Points clés fournisseur:\n${input.bullets.map((b) => `- ${b}`).join("\n")}`
+      : ""
+
+  const sectionList = DESCRIPTION_SECTION_ORDER.join("\n")
+
+  const system = `Tu es le rédacteur premium Affisell. Tu produis des fiches produit e-commerce en français:
+- Professionnelles, détaillées, optimisées SEO, orientées conversion.
+- Basées sur le TITRE et les SPECS — jamais sur une liste brute de mots-clés.
+- La catégorie indique le ton du rayon UNIQUEMENT — ne change pas le type de produit, n'invente pas d'autres rayons.
+- N'invente pas de certifications, avis, garanties ou chiffres absents des sources.
+- Chaque section = 2 à 4 phrases fluides (pas de listes à virgules dans le corps).`
+
+  const user = [
+    "═══ PRIORITÉ 1 — PRODUIT (TITRE) ═══",
+    `Titre listing: ${input.title}`,
+    `Nom produit: ${input.productName}`,
+    "",
+    specBlock,
+    bulletBlock,
+    input.draftNotes ? `Brouillon structuré existant (à améliorer, pas recopier tel quel):\n${input.draftNotes}` : "",
+    input.categoryPath
+      ? `Contexte rayon (ton seulement, ne pas recatégoriser): ${input.categoryPath}`
+      : "",
+    input.galleryCount > 0
+      ? `Photos galerie disponibles: ${input.galleryCount} (indices 0..${input.galleryCount - 1})`
+      : "",
+    "",
+    "Réponds en JSON uniquement:",
+    `{`,
+    `  "description": string,`,
+    `  "bulletPoints": string[],`,
+    `  "galleryImageIndices": number[],`,
+    `  "imagePlacements": { "section": string, "role": "hero"|"lifestyle"|"detail"|"scale"|"packaging", "caption": string, "imageIndex": number }[]`,
+    `}`,
+    "",
+    "Structure OBLIGATOIRE de description (titres EXACTS, une ligne chacun, corps en paragraphes):",
+    sectionList,
+    "",
+    "Exigences:",
+    "- 900 à 2200 caractères au total, français commercial premium.",
+    "- ACCROCHE = bénéfice principal en 1-2 phrases percutantes.",
+    "- POINTS FORTS = specs traduites en avantages client.",
+    "- INNOVATION = différenciation réelle (pas de buzzwords vides).",
+    "- Pas de HTML. Double saut de ligne entre sections.",
+    "- bulletPoints: 4 à 6 puces courtes factuelles (max 120 car. chacune).",
+  ]
+    .filter(Boolean)
+    .join("\n")
+
+  return { system, user }
+}
+
+async function callDescriptionModel(
+  system: string,
+  user: string,
+  visionImages: string[]
+): Promise<string> {
+  const useVision = visionImages.length > 0
+  const userContent = useVision
+    ? [
+        { type: "text" as const, text: user },
+        ...visionImages.map((url) => ({
+          type: "image_url" as const,
+          image_url: { url },
+        })),
+      ]
+    : user
+
+  return (
+    (await groqChatText({
+      model: useVision ? GROQ_VISION_MODEL : GROQ_TEXT_MODEL,
+      vision: useVision,
+      temperature: 0.32,
+      max_tokens: 2800,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: userContent },
+      ],
+    })) ?? "{}"
+  )
+}
+
+async function repairUnstructuredDescription(input: {
+  title: string
+  productName: string
+  specs: ProductSpecRow[]
+  bullets: string[]
+  badOutput: string
+}): Promise<string | null> {
+  const sectionList = DESCRIPTION_SECTION_ORDER.join("\n")
+  const raw = await groqChatText({
+    model: GROQ_TEXT_MODEL,
+    temperature: 0.2,
+    max_tokens: 2800,
+    response_format: { type: "json_object" },
+    messages: [
+      {
+        role: "system",
+        content:
+          "Tu restructures des fiches produit Affisell. Transforme tout brouillon en description SEO structurée en français. JSON uniquement.",
+      },
+      {
+        role: "user",
+        content: [
+          `Produit: ${input.productName || input.title}`,
+          `Titre: ${input.title}`,
+          input.specs.length
+            ? `Specs:\n${input.specs.map((s) => `- ${s.label}: ${s.value}`).join("\n")}`
+            : "",
+          input.bullets.length ? `Puces:\n${input.bullets.map((b) => `- ${b}`).join("\n")}` : "",
+          `Brouillon à restructurer (NE PAS recopier en liste à virgules):\n${input.badOutput.slice(0, 1200)}`,
+          "",
+          `Réponds: {"description": string} avec titres EXACTS:\n${sectionList}`,
+        ]
+          .filter(Boolean)
+          .join("\n\n"),
+      },
+    ],
+  })
+
+  if (!raw) return null
+  try {
+    const parsed = JSON.parse(stripJsonFence(raw)) as { description?: unknown }
+    return typeof parsed.description === "string" ? parsed.description.trim() : null
+  } catch {
+    return null
+  }
 }
 
 /** Vision payload: illustrations first, then gallery — never exceeds Groq limit. */
@@ -108,9 +310,13 @@ export async function generateSupplierProductDescription(
   input: GenerateDescriptionRequest
 ): Promise<GenerateDescriptionResult> {
   const title = input.title.trim().slice(0, 500)
-  const notes = input.notes.trim().slice(0, 8000)
+  const { productName } = extractProductIdentityFromTitle(title)
+  const draftNotes = sanitizeDraftNotesForGeneration(input.notes, title)
   const bullets = input.bullets.map((s) => s.trim()).filter(Boolean).slice(0, 6)
   const categoryPath = input.categoryPath.trim().slice(0, 500)
+  const specs = (input.productSpecs ?? [])
+    .filter((s) => s.label.trim() && s.value.trim())
+    .slice(0, 24)
 
   const productImageUrls = input.productImageUrls
     .filter((u) => /^https?:\/\//i.test(u.trim()))
@@ -132,82 +338,20 @@ export async function generateSupplierProductDescription(
     galleryDataUrls: productImageDataUrls,
     galleryUrls: productImageUrls,
   })
-  const useVision = visionImages.length > 0
 
-  const bulletBlock =
-    bullets.length > 0 ? `Points fournisseur:\n${bullets.map((b) => `- ${b}`).join("\n")}` : ""
-
-  const schema = `Réponds en JSON uniquement:
-{
-  "description": string (texte structuré SEO, 400-2200 caractères, sections avec titres en MAJUSCULES sur leur ligne, paragraphes séparés par double saut de ligne; pas de HTML; français commercial),
-  "bulletPoints": string[] (4 à 6 puces courtes style marketplace, factuelles),
-  "galleryImageIndices": number[] (optionnel, indices 0..n-1 UNIQUEMENT sur les photos galerie produit — pas les illustrations; max 4),
-  "imagePlacements": { "section": string, "role": "hero"|"lifestyle"|"detail"|"scale"|"packaging", "caption": string, "imageIndex": number }[] (optionnel, une entrée par image galerie choisie — section = titre de bloc ci-dessous)
-}
-
-Structure obligatoire de description (titres exacts sur une ligne):
-ACCROCHE
-…
-POUR QUI ?
-…
-POINTS FORTS
-…
-UTILISATION & ENTRETIEN
-…
-POURQUOI CE PRODUIT ?
-…
-INNOVATION
-…
-
-Pour imagePlacements: associe chaque indice galerie à la section la plus pertinente (ex. détail → POINTS FORTS, lifestyle → POUR QUI ?).`
-
-  const userText = [
-    `Titre produit: ${title || "(à définir)"}`,
-    `Catégorie: ${categoryPath || "(non définie)"}`,
-    `Notes / brouillon description: ${notes || "(aucune)"}`,
-    bulletBlock,
-    userIllustrations.length > 0
-      ? `Le fournisseur a déjà ${userIllustrations.length} image(s) d'illustration — ne pas inventer de fausses promesses sur le contenu des images.`
-      : galleryPool.length > 0
-        ? `Photos galerie uniquement (${galleryPool.length} image(s), indices 0 à ${galleryPool.length - 1}) pour galleryImageIndices — choisir les plus parlantes pour illustrer la fiche.`
-        : "",
-    schema,
-  ]
-    .filter(Boolean)
-    .join("\n\n")
-
-  const userContent:
-    | string
-    | Array<
-        | { type: "text"; text: string }
-        | { type: "image_url"; image_url: { url: string } }
-      > = useVision
-    ? [
-        { type: "text", text: userText },
-        ...visionImages.map((url) => ({
-          type: "image_url" as const,
-          image_url: { url },
-        })),
-      ]
-    : userText
+  const { system, user } = buildDescriptionGenerationPrompt({
+    title,
+    productName: productName || title,
+    categoryPath,
+    specs,
+    bullets,
+    draftNotes,
+    galleryCount: galleryPool.length,
+  })
 
   let raw: string
   try {
-    raw =
-      (await groqChatText({
-        model: useVision ? GROQ_VISION_MODEL : undefined,
-        vision: useVision,
-        temperature: 0.45,
-        response_format: { type: "json_object" },
-        messages: [
-          {
-            role: "system",
-            content:
-              "Tu rédiges des fiches produit e-commerce optimisées SEO pour Affisell. Reste factuel; n'invente pas de certifications, avis clients ou garanties non mentionnées.",
-          },
-          { role: "user", content: userContent },
-        ],
-      })) ?? "{}"
+    raw = await callDescriptionModel(system, user, visionImages)
   } catch (e: unknown) {
     throw e instanceof Error ? e : new Error(String(e))
   }
@@ -224,10 +368,30 @@ Pour imagePlacements: associe chaque indice galerie à la section la plus pertin
     throw new Error("Réponse IA invalide")
   }
 
-  const description =
+  let description =
     typeof parsed.description === "string" ? parsed.description.trim().slice(0, 8000) : ""
+
   if (!description) {
     throw new Error("Description vide")
+  }
+
+  if (!hasStructuredDescriptionSections(description)) {
+    const repaired = await repairUnstructuredDescription({
+      title,
+      productName: productName || title,
+      specs,
+      bullets,
+      badOutput: description,
+    })
+    if (repaired && hasStructuredDescriptionSections(repaired)) {
+      description = repaired.slice(0, 8000)
+    } else if (repaired) {
+      description = repaired.slice(0, 8000)
+    } else {
+      throw new Error(
+        "La description générée n'est pas structurée. Réessayez ou complétez les specs produit."
+      )
+    }
   }
 
   const bulletPoints = normalizeBullets(parsed.bulletPoints)
@@ -243,11 +407,7 @@ Pour imagePlacements: associe chaque indice galerie à la section la plus pertin
     const indices = Array.isArray(parsed.galleryImageIndices)
       ? parsed.galleryImageIndices.filter((n): n is number => typeof n === "number" && Number.isInteger(n))
       : []
-    const fromGallery = pickGalleryIllustrations(
-      productImageUrls,
-      productImageDataUrls,
-      indices
-    )
+    const fromGallery = pickGalleryIllustrations(productImageUrls, productImageDataUrls, indices)
     if (fromGallery.length > 0) {
       illustrationImages = fromGallery
       illustrationSource = "from_gallery"
@@ -266,9 +426,7 @@ Pour imagePlacements: associe chaque indice galerie à la section la plus pertin
     input.generateMissingIllustrations &&
     process.env.HF_TOKEN?.trim()
   ) {
-    const generated = await generateLifestyleDataUrl(
-      `${title || "product"}. ${notes.slice(0, 400)}`.trim()
-    )
+    const generated = await generateLifestyleDataUrl(`${productName || title}. ${specs.map((s) => s.value).join(", ").slice(0, 200)}`.trim())
     if (generated) {
       illustrationImages = [generated]
       illustrationSource = "generated_hf"

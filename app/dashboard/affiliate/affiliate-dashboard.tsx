@@ -102,11 +102,10 @@ function SortableStoreCard(props: {
   listing: Listing
   selected: boolean
   onSelect: () => void
-  onEdit: () => void
   onToggleList: () => void
   onRemove: () => void
 }) {
-  const { listing, selected, onSelect, onEdit, onToggleList, onRemove } = props
+  const { listing, selected, onSelect, onToggleList, onRemove } = props
   const p = listing.product
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -201,13 +200,12 @@ function SortableStoreCard(props: {
           Listed
         </label>
         <div className="mt-3 flex flex-col gap-2">
-          <button
-            type="button"
-            onClick={() => onEdit()}
+          <Link
+            href={`/dashboard/affiliate/products/${listing.id}/edit`}
             className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
           >
             <Pencil className="h-4 w-4" aria-hidden /> Edit
-          </button>
+          </Link>
           <button
             type="button"
             onClick={() => onRemove()}
@@ -1110,7 +1108,6 @@ export function AffiliateDashboard({ storeId }: Props) {
                             return n
                           })
                         }
-                        onEdit={() => void openEdit(l, l.product)}
                         onToggleList={() => void toggleList(l.id, l.isListed)}
                         onRemove={() =>
                           confirmRemoveFromStorefront(

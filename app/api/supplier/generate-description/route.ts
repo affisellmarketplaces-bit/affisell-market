@@ -34,6 +34,18 @@ export async function POST(req: Request) {
   const notes = typeof body.notes === "string" ? body.notes : typeof body.description === "string" ? body.description : ""
   const categoryPath = typeof body.categoryPath === "string" ? body.categoryPath : ""
 
+  const productSpecs = Array.isArray(body.productSpecs)
+    ? body.productSpecs
+        .filter((row): row is { label: string; value: string } => {
+          if (!row || typeof row !== "object") return false
+          const o = row as Record<string, unknown>
+          return typeof o.label === "string" && typeof o.value === "string"
+        })
+        .map((row) => ({ label: row.label.trim(), value: row.value.trim() }))
+        .filter((row) => row.label.length > 0 && row.value.length > 0)
+        .slice(0, 24)
+    : []
+
   const bullets = Array.isArray(body.bullets)
     ? body.bullets.filter((x): x is string => typeof x === "string")
     : Array.isArray(body.bulletPoints)
@@ -76,6 +88,7 @@ export async function POST(req: Request) {
     notes,
     bullets,
     categoryPath,
+    productSpecs,
     productImageUrls,
     productImageDataUrls,
     illustrationDataUrls,

@@ -665,6 +665,17 @@ export function SupplierAddProductForm({
     [categoryPath]
   )
 
+  const productSpecsForDescription = useMemo(
+    () =>
+      mergedCategoryAttrs
+        .map((a) => ({
+          label: a.label,
+          value: (specValues[a.key] ?? "").trim(),
+        }))
+        .filter((row) => row.value.length > 0),
+    [mergedCategoryAttrs, specValues]
+  )
+
   const handleAiGenerated = useCallback((result: AiPublishResult) => {
     if (result.title?.trim()) setName(result.title.trim().slice(0, 500))
     setDescription(result.description)
@@ -1984,6 +1995,7 @@ export function SupplierAddProductForm({
                           setDescriptionBullets(bulletsForAiCopy(bullets))
                         }
                         categoryPathLabel={categoryPathLabel}
+                        productSpecs={productSpecsForDescription}
                       />
                       <div>
                         <Label className="text-zinc-800 dark:text-zinc-100">Key features</Label>

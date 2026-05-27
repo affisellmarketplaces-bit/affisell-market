@@ -1,19 +1,57 @@
 import { describe, expect, it } from "vitest"
 
-import { GROQ_VISION_MAX_IMAGES } from "@/lib/ai/groq-vision"
-import { buildVisionImagePayload, pickGalleryIllustrations } from "@/lib/supplier-generate-description"
+import {
+  buildDescriptionGenerationPrompt,
+  hasStructuredDescriptionSections,
+  isRawProductFeatureDump,
+  pickGalleryIllustrations,
+  sanitizeDraftNotesForGeneration,
+} from "@/lib/supplier-generate-description"
 
 describe("supplier-generate-description", () => {
-  it("caps vision images at Groq limit", () => {
-    const ill = Array.from({ length: 4 }, (_, i) => `data:image/jpeg;base64,ill${i}`)
-    const gal = Array.from({ length: 4 }, (_, i) => `data:image/jpeg;base64,gal${i}`)
-    const { visionImages } = buildVisionImagePayload({
-      illustrationUrls: ill,
-      galleryDataUrls: gal,
-      galleryUrls: [],
+  it("detects raw comma-separated title dumps", () => {
+    const dump =
+      "Téléphones mobiles 17 Pro Max neufs, 7,3 pouces, smartphone 5G, version mondiale Android, 7800 mAh, GPS, Wifi, double SIM"
+    expect(isRawProductFeatureDump(dump, "17 Pro Max 5G")).toBe(true)
+    expect(sanitizeDraftNotesForGeneration(dump, "17 Pro Max 5G")).toBe("")
+  })
+
+  it("builds title-first prompt with specs and category as tone only", () => {
+    const { system, user } = buildDescriptionGenerationPrompt({
+      title: "Téléphone portable 17 Pro Max 5G, 7.3 pouces",
+      productName: "telephone portable pro max",
+      categoryPath: "Appareils électroniques > Communications > Téléphones mobiles",
+      specs: [{ label: "Brand name", value: "Generic" }, { label: "Taille", value: "7.3 pouces" }],
+      bullets: ["Double SIM", "7800 mAh"],
+      draftNotes: "",
+      galleryCount: 2,
     })
-    expect(visionImages.length).toBeLessThanOrEqual(GROQ_VISION_MAX_IMAGES)
-    expect(visionImages.length).toBe(4)
+    expect(system).toContain("TITRE")
+    expect(user).toContain("17 Pro Max")
+    expect(user).toContain("Brand name")
+    expect(user).toContain("Contexte rayon")
+    expect(user).toContain("ACCROCHE")
+  })
+
+  it("recognizes structured SEO sections", () => {
+    const structured = `ACCROCHE
+Un smartphone pensé pour la productivité mobile.
+
+POUR QUI ?
+Utilisateurs exigeants qui veulent un grand écran.
+
+POINTS FORTS
+Écran 7,3 pouces, double SIM, batterie 7800 mAh.
+
+UTILISATION & ENTRETIEN
+Utilisation quotidienne, charge USB-C 20W.
+
+POURQUOI CE PRODUIT ?
+Rapport écran/autonomie optimisé.
+
+INNOVATION
+Format XL avec Android 15.`
+    expect(hasStructuredDescriptionSections(structured)).toBe(true)
   })
 
   it("picks gallery images by index", () => {

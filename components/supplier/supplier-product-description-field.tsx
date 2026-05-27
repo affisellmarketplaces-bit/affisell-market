@@ -21,6 +21,7 @@ import {
   IMAGE_ROLE_LABELS,
   parseDescriptionSections,
 } from "@/lib/description-structure"
+import { isRawProductFeatureDump } from "@/lib/supplier-generate-description"
 import { cn } from "@/lib/utils"
 
 const MAX_GALLERY_FOR_AI = 2
@@ -58,6 +59,8 @@ type Props = {
   descriptionBullets: string[]
   onBulletPointsGenerated?: (bullets: string[]) => void
   categoryPathLabel: string
+  /** Category spec fields filled by supplier — primary facts for AI copy */
+  productSpecs?: Array<{ label: string; value: string }>
   disabled?: boolean
 }
 
@@ -159,6 +162,7 @@ export function SupplierProductDescriptionField({
   descriptionBullets,
   onBulletPointsGenerated,
   categoryPathLabel,
+  productSpecs = [],
   disabled = false,
 }: Props) {
   const [aiLoading, setAiLoading] = useState(false)
@@ -258,11 +262,20 @@ export function SupplierProductDescriptionField({
 
   const handleGenerateDescription = useCallback(async () => {
     const title = productTitle.trim()
-    const notes = description.trim()
+    const rawNotes = description.trim()
+    const notes =
+      rawNotes && !isRawProductFeatureDump(rawNotes, title) ? rawNotes : ""
     const bullets = descriptionBullets.map((s) => s.trim()).filter(Boolean)
+    const specs = productSpecs.filter((s) => s.label.trim() && s.value.trim())
 
-    if (title.length < 2 && notes.length < 10 && bullets.length === 0 && productGalleryImages.length === 0) {
-      toast.error("Ajoutez un titre, du texte dans la description, des points clés ou des photos produit.")
+    if (
+      title.length < 2 &&
+      notes.length < 10 &&
+      bullets.length === 0 &&
+      specs.length === 0 &&
+      productGalleryImages.length === 0
+    ) {
+      toast.error("Ajoutez un titre, des specs, des points clés ou des photos produit.")
       return
     }
 
@@ -282,6 +295,7 @@ export function SupplierProductDescriptionField({
           title,
           notes,
           bullets,
+          productSpecs: specs,
           categoryPath: categoryPathLabel,
           productImageUrls,
           productImageDataUrls,
@@ -348,6 +362,7 @@ export function SupplierProductDescriptionField({
     onDescriptionChange,
     onIllustrationImagesChange,
     productGalleryImages,
+    productSpecs,
     productTitle,
   ])
 
@@ -381,8 +396,8 @@ export function SupplierProductDescriptionField({
           </Button>
         </div>
         <p className="mt-1 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-          Studio copy : notes + visuels → texte SEO en blocs (ACCROCHE, POINTS FORTS…) et placement intelligent des
-          images sur la fiche acheteur.
+          Studio copy : titre + specs + visuels → fiche SEO structurée (ACCROCHE, POINTS FORTS…). Les listes
+          brutes du titre ne sont pas recopiées ; la catégorie ne modifie pas le contenu.
         </p>
 
         <div
