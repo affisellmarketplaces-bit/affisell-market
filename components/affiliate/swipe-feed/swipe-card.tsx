@@ -143,7 +143,7 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
         y: stackY,
         scale: isTop ? stackScale : stackScale,
       }}
-      initial={stackIndex > 0 ? { scale: stackScale - 0.04, opacity: 0.7 } : false}
+      initial={stackIndex > 0 ? { scale: stackScale - 0.04, opacity: 0.86 } : false}
       animate={{ scale: stackScale, opacity: 1 }}
       transition={{ type: "spring", stiffness: 420, damping: 32 }}
     >
@@ -168,7 +168,7 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
         <article
           className={cn(
             "relative overflow-hidden rounded-[1.85rem]",
-            "border border-white/[0.12] bg-zinc-950/95",
+            "border border-white/[0.12] bg-zinc-950/80",
             "shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_24px_80px_-12px_rgba(88,28,135,0.55)]",
             "ring-1 ring-inset ring-white/[0.06]"
           )}
@@ -225,15 +225,16 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
 
             {/* Scanlines — futuristic HUD */}
             <div
-              className="pointer-events-none absolute inset-0 opacity-[0.07]"
+              className="pointer-events-none absolute inset-0 opacity-[0.035]"
               style={{
                 backgroundImage:
-                  "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.5) 2px, rgba(255,255,255,0.5) 3px)",
+                  "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.26) 2px, rgba(255,255,255,0.26) 3px)",
               }}
             />
 
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/30 to-zinc-950/10" />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-violet-600/10 via-transparent to-fuchsia-600/10" />
+            {/* Overlays: garder le look futuriste sans teinter la photo */}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-zinc-950/65 via-zinc-950/22 to-transparent" />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-violet-500/5 via-transparent to-fuchsia-500/5" />
 
             {/* LIKE stamp */}
             <motion.div
