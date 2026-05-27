@@ -1,6 +1,5 @@
 "use client"
 
-import Image from "next/image"
 import {
   forwardRef,
   useCallback,
@@ -14,10 +13,10 @@ import {
   useTransform,
   type PanInfo,
 } from "framer-motion"
-import { BadgePercent, Clock, Heart, Sparkles, Store, X, Zap } from "lucide-react"
+import { Heart, X } from "lucide-react"
 
+import { AffiliatePromoProductCard } from "@/components/affiliate/affiliate-promo-product-card"
 import type { SwipeFeedProduct } from "@/lib/affiliate-swipe-feed-types"
-import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { cn } from "@/lib/utils"
 
 const SWIPE_THRESHOLD = 72
@@ -25,9 +24,7 @@ const VELOCITY_COMMIT = 420
 const EXIT_X = 640
 
 export type SwipeCardHandle = {
-  /** Animate card off-screen, then invoke `onSwipeComplete`. */
   swipe: (direction: "left" | "right") => void
-  /** Snap back after a failed API call. */
   reset: () => void
 }
 
@@ -47,32 +44,24 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
   const x = useMotionValue(0)
   const exitingRef = useRef(false)
 
-  const rotate = useTransform(x, [-280, 0, 280], [-18, 0, 18])
-  const rotateY = useTransform(x, [-280, 0, 280], [8, 0, -8])
-  const cardScale = useTransform(x, [-180, 0, 180], [0.97, 1, 0.97])
-  const stackScale = 1 - stackIndex * 0.048
-  const stackY = stackIndex * 12
+  const rotate = useTransform(x, [-260, 0, 260], [-10, 0, 10])
+  const cardScale = useTransform(x, [-160, 0, 160], [0.98, 1, 0.98])
+  const stackScale = 1 - stackIndex * 0.04
+  const stackY = stackIndex * 10
 
-  /** Image parallax — moves faster than card for depth. */
-  const imageX = useTransform(x, (v) => v * 0.42)
-  const imageScale = useTransform(x, [-220, 0, 220], [1.12, 1.06, 1.12])
-  const imageRotate = useTransform(x, [-220, 0, 220], [-2, 0, 2])
+  const likeOpacity = useTransform(x, [20, 100], [0, 1])
+  const skipOpacity = useTransform(x, [-100, -20], [1, 0])
+  const likeScale = useTransform(x, [20, 100], [0.85, 1])
+  const skipScale = useTransform(x, [-100, -20], [1, 0.85])
 
-  const likeOpacity = useTransform(x, [18, 110], [0, 1])
-  const skipOpacity = useTransform(x, [-110, -18], [1, 0])
-  const likeScale = useTransform(x, [18, 110], [0.6, 1])
-  const skipScale = useTransform(x, [-110, -18], [1, 0.6])
-
-  const rightGlow = useTransform(x, [0, 140], [0, 0.85])
-  const leftGlow = useTransform(x, [-140, 0], [0.85, 0])
-  const streakRight = useTransform(x, [0, 160], [0, 1])
-  const streakLeft = useTransform(x, [-160, 0], [1, 0])
-  const streakRightX = useTransform(x, [0, 200], [-40, 80])
-  const streakLeftX = useTransform(x, [-200, 0], [-80, 40])
+  const rightGlow = useTransform(x, [0, 120], [0, 0.35])
+  const leftGlow = useTransform(x, [-120, 0], [0.35, 0])
 
   const sellingCents = Math.round(product.basePriceCents * (1 + markupRate))
-  const projectedMargin = Math.max(0, sellingCents - product.basePriceCents)
-  const heat = Math.min(100, product.commissionRate * 4)
+  const displayMargin =
+    product.marginCents > 0
+      ? product.marginCents
+      : Math.max(0, sellingCents - product.basePriceCents)
 
   const flyOut = useCallback(
     async (direction: "left" | "right") => {
@@ -81,15 +70,13 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
       onDragProgress?.(direction === "right" ? 1 : -1)
 
       const target = direction === "right" ? EXIT_X : -EXIT_X
-      await Promise.all([
-        animate(x, target, {
-          type: "spring",
-          stiffness: 520,
-          damping: 34,
-          mass: 0.65,
-          velocity: direction === "right" ? 800 : -800,
-        }),
-      ])
+      await animate(x, target, {
+        type: "spring",
+        stiffness: 480,
+        damping: 32,
+        mass: 0.7,
+        velocity: direction === "right" ? 720 : -720,
+      })
 
       onSwipeComplete(direction)
     },
@@ -109,7 +96,7 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
 
   const handleDrag = (_: unknown, info: PanInfo) => {
     if (!isTop) return
-    const progress = Math.max(-1, Math.min(1, info.offset.x / 140))
+    const progress = Math.max(-1, Math.min(1, info.offset.x / 130))
     onDragProgress?.(progress)
   }
 
@@ -135,195 +122,103 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
   return (
     <motion.div
       className={cn(
-        "absolute inset-x-0 top-0 mx-auto w-full max-w-sm",
+        "absolute inset-x-0 top-0 mx-auto w-full max-w-[340px]",
         !isTop && "pointer-events-none"
       )}
       style={{
         zIndex: 30 - stackIndex,
         y: stackY,
-        scale: isTop ? stackScale : stackScale,
+        scale: stackScale,
       }}
-      initial={stackIndex > 0 ? { scale: stackScale - 0.04, opacity: 0.86 } : false}
-      animate={{ scale: stackScale, opacity: 1 }}
-      transition={{ type: "spring", stiffness: 420, damping: 32 }}
+      initial={stackIndex > 0 ? { scale: stackScale - 0.03, opacity: 0.92 } : false}
+      animate={{ scale: stackScale, opacity: stackIndex === 0 ? 1 : 0.94 - stackIndex * 0.06 }}
+      transition={{ type: "spring", stiffness: 400, damping: 30 }}
     >
       <motion.div
         className={cn(
-          "touch-none select-none [perspective:1200px]",
+          "touch-none select-none",
           isTop && "cursor-grab active:cursor-grabbing"
         )}
         style={{
           x: isTop ? x : 0,
           rotate: isTop ? rotate : 0,
-          rotateY: isTop ? rotateY : 0,
           scale: isTop ? cardScale : 1,
         }}
         drag={isTop ? "x" : false}
         dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={0.55}
+        dragElastic={0.5}
         dragMomentum
         onDrag={handleDrag}
         onDragEnd={handleDragEnd}
       >
-        <article
-          className={cn(
-            "relative overflow-hidden rounded-[1.85rem]",
-            "border border-white/[0.12] bg-zinc-950/80",
-            "shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_24px_80px_-12px_rgba(88,28,135,0.55)]",
-            "ring-1 ring-inset ring-white/[0.06]"
-          )}
-        >
-          {/* Animated holo border */}
-          <div className="pointer-events-none absolute inset-0 z-20 rounded-[1.85rem] bg-gradient-to-br from-violet-500/20 via-transparent to-fuchsia-500/20 opacity-60" />
-          <div className="pointer-events-none absolute inset-[1px] z-20 rounded-[1.82rem] border border-white/10" />
+        <article className="relative">
+          {/* Aura futuriste autour de la carte catalogue */}
+          {isTop ? (
+            <div
+              className="pointer-events-none absolute -inset-3 rounded-[2rem] opacity-80"
+              style={{
+                background:
+                  "conic-gradient(from 180deg at 50% 50%, rgba(139,92,246,0.35), rgba(45,212,191,0.2), rgba(236,72,153,0.25), rgba(139,92,246,0.35))",
+                filter: "blur(18px)",
+              }}
+              aria-hidden
+            />
+          ) : null}
 
-          {/* Directional edge glow */}
           <motion.div
             style={{ opacity: rightGlow }}
-            className="pointer-events-none absolute inset-0 z-10 rounded-[1.85rem] bg-gradient-to-l from-emerald-500/35 via-emerald-500/10 to-transparent"
+            className="pointer-events-none absolute -inset-1 z-0 rounded-[1.65rem] bg-emerald-400/25 blur-md"
           />
           <motion.div
             style={{ opacity: leftGlow }}
-            className="pointer-events-none absolute inset-0 z-10 rounded-[1.85rem] bg-gradient-to-r from-rose-500/35 via-rose-500/10 to-transparent"
+            className="pointer-events-none absolute -inset-1 z-0 rounded-[1.65rem] bg-rose-400/25 blur-md"
           />
 
-          {/* Motion streaks */}
-          <motion.div
-            style={{ opacity: streakRight, x: streakRightX }}
-            className="pointer-events-none absolute inset-y-8 right-0 z-10 w-24 bg-gradient-to-l from-emerald-400/30 to-transparent blur-xl"
-          />
-          <motion.div
-            style={{ opacity: streakLeft, x: streakLeftX }}
-            className="pointer-events-none absolute inset-y-8 left-0 z-10 w-24 bg-gradient-to-r from-rose-400/30 to-transparent blur-xl"
-          />
-
-          <div className="relative aspect-[3/4] w-full overflow-hidden bg-zinc-900">
-            {product.imageUrl ? (
-              <motion.div
-                className="absolute inset-[-8%] will-change-transform"
-                style={{
-                  x: isTop ? imageX : 0,
-                  scale: isTop ? imageScale : 1.06,
-                  rotate: isTop ? imageRotate : 0,
-                }}
-              >
-                <Image
-                  src={product.imageUrl}
-                  alt={product.name}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 640px) 100vw, 384px"
-                  priority={isTop && stackIndex === 0}
-                  draggable={false}
-                />
-              </motion.div>
-            ) : (
-              <div className="flex h-full items-center justify-center text-zinc-600">
-                <Store className="size-16 opacity-40" aria-hidden />
-              </div>
+          <div
+            className={cn(
+              "relative z-10 overflow-hidden rounded-3xl",
+              isTop &&
+                "shadow-[0_20px_50px_-12px_rgba(88,28,135,0.25),0_8px_24px_-8px_rgba(0,0,0,0.12)]",
+              "dark:shadow-[0_24px_60px_-16px_rgba(0,0,0,0.55)]"
             )}
-
-            {/* Scanlines — futuristic HUD */}
-            <div
-              className="pointer-events-none absolute inset-0 opacity-[0.035]"
-              style={{
-                backgroundImage:
-                  "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.26) 2px, rgba(255,255,255,0.26) 3px)",
-              }}
+          >
+            <AffiliatePromoProductCard
+              name={product.name}
+              imageUrl={product.imageUrl}
+              images={product.images}
+              basePriceCents={product.basePriceCents}
+              marginCents={displayMargin}
+              commissionRate={product.commissionRate}
+              supplierLabel={product.supplierLabel}
+              sellingPriceCents={sellingCents}
+              priority={isTop && stackIndex === 0}
+              className="h-full border-0 shadow-none ring-0"
             />
 
-            {/* Overlays: garder le look futuriste sans teinter la photo */}
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-zinc-950/65 via-zinc-950/22 to-transparent" />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-violet-500/5 via-transparent to-fuchsia-500/5" />
-
-            {/* LIKE stamp */}
+            {/* Stamps swipe — n’obscurcissent pas la photo */}
             <motion.div
               style={{ opacity: likeOpacity, scale: likeScale }}
-              className="absolute left-5 top-5 z-20 origin-center"
+              className="pointer-events-none absolute left-3 top-[42%] z-20 -translate-y-1/2"
             >
-              <div className="flex items-center gap-2 rounded-2xl border-2 border-emerald-400/90 bg-emerald-500/25 px-4 py-2.5 shadow-[0_0_24px_rgba(52,211,153,0.45)] backdrop-blur-md">
-                <Heart className="size-5 fill-emerald-300 text-emerald-300" aria-hidden />
-                <span className="text-base font-black uppercase tracking-[0.2em] text-emerald-200">
+              <div className="flex items-center gap-2 rounded-2xl border-2 border-emerald-500 bg-white/95 px-3.5 py-2 shadow-lg shadow-emerald-500/20 backdrop-blur-sm dark:bg-zinc-950/95">
+                <Heart className="size-5 fill-emerald-500 text-emerald-500" aria-hidden />
+                <span className="text-sm font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
                   Lister
                 </span>
               </div>
             </motion.div>
 
-            {/* SKIP stamp */}
             <motion.div
               style={{ opacity: skipOpacity, scale: skipScale }}
-              className="absolute right-5 top-5 z-20 origin-center"
+              className="pointer-events-none absolute right-3 top-[42%] z-20 -translate-y-1/2"
             >
-              <div className="flex items-center gap-2 rounded-2xl border-2 border-rose-400/90 bg-rose-500/25 px-4 py-2.5 shadow-[0_0_24px_rgba(251,113,133,0.45)] backdrop-blur-md">
-                <X className="size-5 text-rose-300" aria-hidden />
-                <span className="text-base font-black uppercase tracking-[0.2em] text-rose-200">
+              <div className="flex items-center gap-2 rounded-2xl border-2 border-rose-500 bg-white/95 px-3.5 py-2 shadow-lg shadow-rose-500/20 backdrop-blur-sm dark:bg-zinc-950/95">
+                <X className="size-5 text-rose-500" aria-hidden />
+                <span className="text-sm font-black uppercase tracking-wider text-rose-700 dark:text-rose-300">
                   Passer
                 </span>
               </div>
             </motion.div>
-
-            <div className="absolute bottom-0 left-0 right-0 z-10 p-5">
-              <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-violet-300/90">
-                <Sparkles className="size-3" aria-hidden />
-                {product.supplierLabel}
-              </p>
-              <h2 className="line-clamp-2 text-xl font-bold leading-snug tracking-tight text-white drop-shadow-lg">
-                {product.name}
-              </h2>
-            </div>
-          </div>
-
-          <div className="relative space-y-3 p-5">
-            <div className="flex items-end justify-between gap-3">
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
-                  Prix fournisseur
-                </p>
-                <p className="text-2xl font-bold tabular-nums tracking-tight text-white">
-                  {formatStoreCurrencyFromCents(product.basePriceCents)}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
-                  Vente +{Math.round(markupRate * 100)}%
-                </p>
-                <p className="bg-gradient-to-r from-violet-200 to-fuchsia-200 bg-clip-text text-lg font-bold tabular-nums text-transparent">
-                  {formatStoreCurrencyFromCents(sellingCents)}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-bold text-emerald-300 ring-1 ring-emerald-400/35">
-                <BadgePercent className="size-3" aria-hidden />
-                {product.commissionRate}% commission
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-violet-500/15 px-3 py-1 text-xs font-semibold text-violet-200 ring-1 ring-violet-400/30">
-                <Zap className="size-3" aria-hidden />+
-                {formatStoreCurrencyFromCents(projectedMargin)}
-              </span>
-              {product.deliveryMax != null && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-zinc-800/80 px-2.5 py-1 text-[11px] text-zinc-400">
-                  <Clock className="size-3" aria-hidden />
-                  {product.deliveryMax}j
-                </span>
-              )}
-            </div>
-
-            <div className="space-y-1.5">
-              <div className="flex justify-between text-[9px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
-                <span>Signal commission</span>
-                <span className="text-violet-400">{heat}%</span>
-              </div>
-              <div className="relative h-1.5 overflow-hidden rounded-full bg-zinc-800/80">
-                <motion.div
-                  className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-400 shadow-[0_0_12px_rgba(167,139,250,0.6)]"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${heat}%` }}
-                  transition={{ type: "spring", stiffness: 120, damping: 20, delay: 0.15 }}
-                />
-              </div>
-            </div>
           </div>
         </article>
       </motion.div>

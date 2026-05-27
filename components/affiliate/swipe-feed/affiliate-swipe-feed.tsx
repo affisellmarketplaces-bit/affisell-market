@@ -322,27 +322,27 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
   }
 
   return (
-    <div className="relative flex min-h-[calc(100dvh-3.75rem)] flex-col overflow-hidden bg-zinc-950 text-white">
+    <div className="relative flex min-h-[calc(100dvh-3.75rem)] flex-col overflow-hidden bg-gradient-to-b from-zinc-50 via-violet-50/40 to-zinc-100 text-zinc-900 dark:from-zinc-950 dark:via-violet-950/30 dark:to-zinc-950 dark:text-zinc-50">
       <div className="pointer-events-none absolute inset-0">
         <motion.div
-          className="absolute -left-24 top-0 h-96 w-96 rounded-full bg-violet-600/25 blur-[120px]"
-          animate={{ x: [0, 30, 0], opacity: [0.5, 0.7, 0.5] }}
-          style={{ scale: 1 + Math.max(0, dragProgress) * 0.12 }}
+          className="absolute -left-24 top-0 h-96 w-96 rounded-full bg-violet-400/20 blur-[100px] dark:bg-violet-600/25"
+          animate={{ x: [0, 30, 0], opacity: [0.4, 0.65, 0.4] }}
+          style={{ scale: 1 + Math.max(0, dragProgress) * 0.08 }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
-          className="absolute -right-16 bottom-20 h-80 w-80 rounded-full bg-fuchsia-600/20 blur-[100px]"
-          animate={{ x: [0, -20, 0], opacity: [0.4, 0.65, 0.4] }}
-          style={{ scale: 1 + Math.max(0, -dragProgress) * 0.12 }}
+          className="absolute -right-16 bottom-20 h-80 w-80 rounded-full bg-teal-400/15 blur-[90px] dark:bg-fuchsia-600/20"
+          animate={{ x: [0, -20, 0], opacity: [0.35, 0.55, 0.35] }}
+          style={{ scale: 1 + Math.max(0, -dragProgress) * 0.08 }}
           transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
         />
         <div
-          className="absolute inset-0 bg-emerald-500/10 transition-opacity duration-75"
-          style={{ opacity: Math.max(0, dragProgress) * 0.4 }}
+          className="absolute inset-0 bg-emerald-400/8 transition-opacity duration-75 dark:bg-emerald-500/10"
+          style={{ opacity: Math.max(0, dragProgress) * 0.5 }}
         />
         <div
-          className="absolute inset-0 bg-rose-500/10 transition-opacity duration-75"
-          style={{ opacity: Math.max(0, -dragProgress) * 0.4 }}
+          className="absolute inset-0 bg-rose-400/8 transition-opacity duration-75 dark:bg-rose-500/10"
+          style={{ opacity: Math.max(0, -dragProgress) * 0.5 }}
         />
       </div>
 
@@ -350,25 +350,25 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
         <button
           type="button"
           onClick={() => setMode("hub")}
-          className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm text-zinc-400 transition-colors hover:bg-zinc-800/80 hover:text-white"
+          className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm text-zinc-600 transition-colors hover:bg-white/80 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/80 dark:hover:text-white"
         >
           <ArrowLeft className="size-4" aria-hidden />
           Hub
         </button>
 
-        <div className="flex items-center gap-2 rounded-full border border-white/10 bg-zinc-900/70 px-3 py-1 text-xs backdrop-blur-md">
-          <Sparkles className="size-3.5 text-violet-400" aria-hidden />
-          <span className="text-emerald-400">{sessionStats.listed} listés</span>
-          <span className="text-zinc-600">·</span>
-          <span className="text-zinc-400">{sessionStats.skipped} passés</span>
+        <div className="flex items-center gap-2 rounded-full border border-zinc-200/80 bg-white/80 px-3 py-1 text-xs shadow-sm backdrop-blur-md dark:border-white/10 dark:bg-zinc-900/70">
+          <Sparkles className="size-3.5 text-violet-600 dark:text-violet-400" aria-hidden />
+          <span className="font-medium text-emerald-700 dark:text-emerald-400">{sessionStats.listed} listés</span>
+          <span className="text-zinc-300 dark:text-zinc-600">·</span>
+          <span className="text-zinc-500 dark:text-zinc-400">{sessionStats.skipped} passés</span>
         </div>
 
         <button
           type="button"
           onClick={() => setFiltersOpen(true)}
           className={cn(
-            "relative inline-flex size-9 items-center justify-center rounded-full border border-white/10 bg-zinc-900/70 backdrop-blur-md transition-colors hover:bg-zinc-800",
-            filterCount > 0 && "border-violet-500/50 text-violet-300"
+            "relative inline-flex size-9 items-center justify-center rounded-full border border-zinc-200/80 bg-white/80 shadow-sm backdrop-blur-md transition-colors hover:bg-white dark:border-white/10 dark:bg-zinc-900/70 dark:hover:bg-zinc-800",
+            filterCount > 0 && "border-violet-400 text-violet-700 dark:border-violet-500/50 dark:text-violet-300"
           )}
           aria-label="Filtres"
         >
@@ -382,7 +382,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
       </header>
 
       <div className="relative z-10 mx-auto w-full max-w-sm flex-1 px-4 pb-4">
-        <div className="relative mx-auto h-[min(62dvh,520px)] w-full max-w-sm">
+        <div className="relative mx-auto h-[min(68dvh,580px)] w-full max-w-[340px]">
           <AnimatePresence mode="popLayout">
             {visibleStack.length === 0 && !loading ? (
               <motion.div
@@ -446,18 +446,18 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
           )}
         </div>
 
-        <p className="mt-3 text-center text-[11px] text-zinc-600">
+        <p className="mt-3 text-center text-[11px] text-zinc-500 dark:text-zinc-500">
           ← Passer · → Lister (+30%) · ⌘Z Annuler
         </p>
       </div>
 
-      <footer className="relative z-10 border-t border-white/5 bg-zinc-950/90 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-xl md:px-6">
-        <div className="mx-auto flex max-w-sm items-center justify-center gap-4">
+      <footer className="relative z-10 border-t border-zinc-200/80 bg-white/85 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-xl dark:border-white/5 dark:bg-zinc-950/90 md:px-6">
+        <div className="mx-auto flex max-w-[340px] items-center justify-center gap-4">
           <button
             type="button"
             disabled={busy || deck.length === 0}
             onClick={() => requestSwipe("left")}
-            className="group flex size-14 items-center justify-center rounded-full border-2 border-rose-500/40 bg-rose-500/10 text-rose-400 transition-all hover:scale-110 hover:bg-rose-500/25 hover:shadow-[0_0_28px_rgba(251,113,133,0.35)] active:scale-95 disabled:opacity-40"
+            className="group flex size-14 items-center justify-center rounded-full border-2 border-rose-300 bg-white text-rose-600 shadow-md transition-all hover:scale-110 hover:border-rose-400 hover:shadow-rose-200/80 active:scale-95 disabled:opacity-40 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-400 dark:hover:bg-rose-500/25"
             aria-label="Passer"
           >
             <X className="size-7 transition-transform group-active:-translate-x-0.5" />
@@ -467,7 +467,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
             type="button"
             disabled={history.length === 0 || busy}
             onClick={() => void handleUndo()}
-            className="flex size-11 items-center justify-center rounded-full border border-zinc-700 bg-zinc-900 text-zinc-300 transition-all hover:border-zinc-500 hover:text-white disabled:opacity-30"
+            className="flex size-11 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 shadow-sm transition-all hover:border-zinc-300 disabled:opacity-30 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
             aria-label="Annuler"
           >
             <RotateCcw className="size-5" />
@@ -477,7 +477,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
             type="button"
             disabled={busy || deck.length === 0}
             onClick={() => requestSwipe("right")}
-            className="group flex size-14 items-center justify-center rounded-full border-2 border-emerald-500/40 bg-emerald-500/10 text-emerald-400 transition-all hover:scale-110 hover:bg-emerald-500/25 hover:shadow-[0_0_28px_rgba(52,211,153,0.35)] active:scale-95 disabled:opacity-40"
+            className="group flex size-14 items-center justify-center rounded-full border-2 border-emerald-300 bg-white text-emerald-600 shadow-md transition-all hover:scale-110 hover:border-emerald-400 hover:shadow-emerald-200/80 active:scale-95 disabled:opacity-40 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/25"
             aria-label="Lister"
           >
             <Heart className="size-7 transition-transform group-active:translate-x-0.5" />
@@ -487,8 +487,8 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
             type="button"
             onClick={() => setFiltersOpen(true)}
             className={cn(
-              "flex size-11 items-center justify-center rounded-full border border-zinc-700 bg-zinc-900 text-zinc-300 transition-all hover:border-violet-500/50 hover:text-violet-300",
-              filterCount > 0 && "border-violet-500/50 text-violet-300"
+              "flex size-11 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 shadow-sm transition-all hover:border-violet-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300",
+              filterCount > 0 && "border-violet-400 text-violet-700 dark:border-violet-500/50 dark:text-violet-300"
             )}
             aria-label="Filtres"
           >
