@@ -42,7 +42,6 @@ export function PulseProductMediaStage({
 
   const current = slides[index] ?? slides[0]
   const hasMultiple = slides.length > 1
-  const atLast = index >= slides.length - 1
 
   useEffect(() => {
     const el = videoRef.current
@@ -57,16 +56,14 @@ export function PulseProductMediaStage({
   }, [active, current?.url, current?.isVideo, muted])
 
   function advance() {
-    if (!hasMultiple || atLast) return
-    setIndex((i) => Math.min(i + 1, slides.length - 1))
+    if (!hasMultiple) return
+    setIndex((i) => (i + 1) % slides.length)
   }
 
   function handleMediaTap(e: MouseEvent<HTMLButtonElement>) {
     e.stopPropagation()
     advance()
   }
-
-  const canAdvance = hasMultiple && !atLast
 
   if (!current) {
     return (
@@ -153,7 +150,7 @@ export function PulseProductMediaStage({
             />
           )}
 
-          {canAdvance ? (
+          {hasMultiple ? (
             <button
               type="button"
               className="absolute inset-0 z-10 cursor-pointer border-0 bg-transparent p-0"
