@@ -117,40 +117,40 @@ export function LuxuryAtelierExperience({ initial, initialCollectionSlug }: Prop
           </div>
         </div>
 
-        <div className="mb-6 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setCollectionSlug(null)}
-            className={cn(
-              affisellBrand.epoxyChip,
-              "rounded-full px-3 py-1.5 text-xs font-semibold transition",
-              !collectionSlug
-                ? "bg-amber-500/30 text-amber-50 ring-1 ring-amber-300/50"
-                : "text-amber-100/70 hover:text-amber-50"
-            )}
-          >
-            {t("allCollections")}
-          </button>
-          {payload.collections.map((col) => (
+        {payload.collections.length > 0 ? (
+          <div className="mb-6 flex flex-wrap gap-2">
             <button
-              key={col.id}
               type="button"
-              onClick={() => setCollectionSlug(col.slug)}
+              onClick={() => setCollectionSlug(null)}
               className={cn(
                 affisellBrand.epoxyChip,
                 "rounded-full px-3 py-1.5 text-xs font-semibold transition",
-                collectionSlug === col.slug
+                !collectionSlug
                   ? "bg-amber-500/30 text-amber-50 ring-1 ring-amber-300/50"
                   : "text-amber-100/70 hover:text-amber-50"
               )}
             >
-              {col.name}
-              {col.pieceCount > 0 ? (
-                <span className="ml-1 tabular-nums text-amber-200/60">({col.pieceCount})</span>
-              ) : null}
+              {t("allCollections")}
             </button>
-          ))}
-        </div>
+            {payload.collections.map((col) => (
+              <button
+                key={col.id}
+                type="button"
+                onClick={() => setCollectionSlug(col.slug)}
+                className={cn(
+                  affisellBrand.epoxyChip,
+                  "rounded-full px-3 py-1.5 text-xs font-semibold transition",
+                  collectionSlug === col.slug
+                    ? "bg-amber-500/30 text-amber-50 ring-1 ring-amber-300/50"
+                    : "text-amber-100/70 hover:text-amber-50"
+                )}
+              >
+                {col.name}
+                <span className="ml-1 tabular-nums text-amber-200/60">({col.pieceCount})</span>
+              </button>
+            ))}
+          </div>
+        ) : null}
 
         {focusPiece ? (
           <motion.article

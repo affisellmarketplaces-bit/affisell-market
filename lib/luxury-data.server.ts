@@ -12,27 +12,6 @@ import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-fi
 import { primaryProductImage } from "@/lib/product-images"
 import { prisma } from "@/lib/prisma"
 
-const DEFAULT_COLLECTIONS = [
-  {
-    slug: "maison-affisell",
-    name: "Maison Affisell",
-    tagline: "Signatures curatoriales",
-    sortOrder: 0,
-  },
-  {
-    slug: "noir-or",
-    name: "Noir & Or",
-    tagline: "Contrastes précieux",
-    sortOrder: 1,
-  },
-  {
-    slug: "voyage-sensoriel",
-    name: "Voyage sensoriel",
-    tagline: "Évasion contemporaine",
-    sortOrder: 2,
-  },
-] as const
-
 function prestigeScore(priceCents: number, conversions: number, hasCompare: boolean): number {
   return Math.min(
     100,
@@ -40,61 +19,7 @@ function prestigeScore(priceCents: number, conversions: number, hasCompare: bool
   )
 }
 
-async function ensureLuxuryCollections(): Promise<void> {
-  for (const c of DEFAULT_COLLECTIONS) {
-    await prisma.luxuryCollection.upsert({
-      where: { slug: c.slug },
-      create: {
-        slug: c.slug,
-        name: c.name,
-        tagline: c.tagline,
-        sortOrder: c.sortOrder,
-        active: true,
-      },
-      update: { name: c.name, tagline: c.tagline, active: true },
-    })
-  }
-}
-
-/** Dev/demo bootstrap only when no supplier-flagged luxury products exist. */
-async function seedLuxuryShowcaseIfEmpty(): Promise<void> {
-  const visible = await prisma.product.count({
-    where: {
-      isLuxury: true,
-      ...buyerMarketplaceProductWhere,
-      affiliateProducts: { some: buyerListedAffiliateProductWhere },
-    },
-  })
-  if (visible > 0) return
-
-  await ensureLuxuryCollections()
-
-  const candidates = await prisma.product.findMany({
-    where: {
-      ...buyerMarketplaceProductWhere,
-      isLuxury: false,
-      affiliateProducts: { some: buyerListedAffiliateProductWhere },
-    },
-    orderBy: [{ basePriceCents: "desc" }, { createdAt: "desc" }],
-    take: 9,
-    select: { id: true },
-  })
-
-  if (candidates.length === 0) return
-
-  const productIds = candidates.map((c) => c.id)
-  await prisma.product.updateMany({
-    where: { id: { in: productIds } },
-    data: { isLuxury: true },
-  })
-
-  console.log("[luxe]", { result: "seeded", products: productIds.length })
-}
-
 export async function loadLuxuryAtelier(): Promise<LuxuryAtelierPayload> {
-  await ensureLuxuryCollections()
-  await seedLuxuryShowcaseIfEmpty()
-
   const now = new Date()
 
   const collectionRows = await prisma.luxuryCollection.findMany({
@@ -198,14 +123,16 @@ export async function loadLuxuryAtelier(): Promise<LuxuryAtelierPayload> {
 
   pieces.sort((a, b) => b.prestigeScore - a.prestigeScore)
 
-  const collections: LuxuryCollectionPublic[] = collectionRows.map((c) => ({
-    id: c.id,
-    slug: c.slug,
-    name: c.name,
-    tagline: c.tagline,
-    coverImageUrl: c.coverImageUrl,
-    pieceCount: c._count.listings,
-  }))
+  const collections: LuxuryCollectionPublic[] = collectionRows
+    .map((c) => ({
+      id: c.id,
+      slug: c.slug,
+      name: c.name,
+      tagline: c.tagline,
+      coverImageUrl: c.coverImageUrl,
+      pieceCount: c._count.listings,
+    }))
+    .filter((c) => c.pieceCount > 0)
 
   const featuredListingId = pieces[0]?.listingId ?? null
 
