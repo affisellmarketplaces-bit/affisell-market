@@ -74,7 +74,12 @@ type Props = {
   listing: SerializedListing | null
   storeSlug: string | null
   onClose: () => void
-  onSaved: () => void
+  onSaved: (result?: { listingId?: string; published?: boolean }) => void
+  /** Swipe feed: pre-fill selling price at base × (1 + rate). */
+  suggestedMarkupRate?: number
+  /** Disable silent draft autosave (swipe cancel must not create drafts). */
+  enableAutosave?: boolean
+  context?: "catalog" | "swipe"
 }
 
 const COLLECTIONS = ["Featured", "Black Friday", "Tech Deals"] as const
@@ -107,7 +112,8 @@ type FormFields = {
 function getListingFormDefaults(
   product: CatalogProduct,
   listing: SerializedListing | null,
-  variantOptions: ReturnType<typeof buildAffiliateVariantOptions>
+  variantOptions: ReturnType<typeof buildAffiliateVariantOptions>,
+  suggestedMarkupRate?: number
 ): Omit<FormFields, "step"> {
   const urls = product.images?.filter(Boolean) ?? []
   const L = listing
@@ -119,6 +125,11 @@ function getListingFormDefaults(
   COLLECTIONS.forEach((c) => {
     selectedCollections[c] = L?.collections.includes(c) ?? false
   })
+  const suggestedCents =
+    suggestedMarkupRate != null && Number.isFinite(suggestedMarkupRate) && suggestedMarkupRate >= 0
+      ? Math.round(product.basePriceCents * (1 + suggestedMarkupRate))
+      : null
+
   return {
     customTitle: L?.customTitle ?? "",
     customDescription: L?.customDescription ?? product.description ?? "",
@@ -128,7 +139,9 @@ function getListingFormDefaults(
     priceEUR:
       L?.sellingPriceCents != null
         ? (L.sellingPriceCents / 100).toFixed(2)
-        : (product.basePriceCents / 100).toFixed(2),
+        : suggestedCents != null
+          ? (suggestedCents / 100).toFixed(2)
+          : (product.basePriceCents / 100).toFixed(2),
     selectedCollections,
     customSlug: L?.customSlug ?? "",
     seoTitle: L?.seoTitle ?? "",
@@ -151,10 +164,22 @@ type BodyProps = {
   listing: SerializedListing | null
   storeSlug: string | null
   onClose: () => void
-  onSaved: () => void
+  onSaved: (result?: { listingId?: string; published?: boolean }) => void
+  suggestedMarkupRate?: number
+  enableAutosave: boolean
+  context: "catalog" | "swipe"
 }
 
-function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved }: BodyProps) {
+function ListingBuilderModalBody({
+  product,
+  listing,
+  storeSlug,
+  onClose,
+  onSaved,
+  suggestedMarkupRate,
+  enableAutosave,
+  context,
+}: BodyProps) {
   const supplierUrls = useMemo(() => product.images?.filter(Boolean) ?? [], [product.images])
   const variantOptions = useMemo(
     () =>
@@ -181,7 +206,7 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
       : null
   const [form, setForm] = useState<FormFields>(() => ({
     step: 1,
-    ...getListingFormDefaults(product, listing, variantOptions),
+    ...getListingFormDefaults(product, listing, variantOptions, suggestedMarkupRate),
   }))
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -367,6 +392,10 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
         })
         const j = (await res.json()) as { error?: string }
         if (!res.ok) throw new Error(j.error ?? "Save failed")
+        if (!opts?.silent) {
+          onSaved({ listingId: listing.id, published: !saveDraft })
+          onClose()
+        }
       } else {
         const extrasParsed = form.extraUrls
           .split(/\n|,/)
@@ -406,11 +435,10 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
         })
         const j = (await res.json()) as { error?: string; id?: string }
         if (!res.ok) throw new Error(j.error ?? "Could not create listing")
-      }
-
-      if (!opts?.silent) {
-        onSaved()
-        onClose()
+        if (!opts?.silent) {
+          onSaved({ listingId: j.id, published: !saveDraft })
+          onClose()
+        }
       }
     } catch (e) {
       if (!opts?.silent) setError(e instanceof Error ? e.message : "Error")
@@ -420,7 +448,7 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
   }
 
   const saveDraftSilent = useCallback(async () => {
-    if (busy) return
+    if (!enableAutosave || busy) return
     const fp = JSON.stringify({ productId: product.id, listingId: listing?.id, form })
     if (fp === lastDraftFingerprint.current) return
     try {
@@ -429,25 +457,27 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
     } catch {
       /* autosave best-effort */
     }
-  }, [busy, form, listing?.id, product.id])
+  }, [busy, enableAutosave, form, listing?.id, product.id])
 
   useEffect(() => {
+    if (!enableAutosave) return
     const timer = window.setTimeout(() => {
       void saveDraftSilent()
     }, 2200)
     return () => window.clearTimeout(timer)
-  }, [form, saveDraftSilent])
+  }, [enableAutosave, form, saveDraftSilent])
 
   useEffect(() => {
+    if (!enableAutosave) return
     const unregister = registerMerchantDraftFlush("affiliate-listing-builder", () => saveDraftSilent())
     return () => {
       void saveDraftSilent()
       unregister()
     }
-  }, [saveDraftSilent])
+  }, [enableAutosave, saveDraftSilent])
 
   async function handleClose() {
-    await saveDraftSilent()
+    if (enableAutosave) await saveDraftSilent()
     onClose()
   }
 
@@ -464,8 +494,15 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
     >
       <div className="flex shrink-0 items-center justify-between border-b border-gray-100 px-4 py-4 sm:px-6">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Add to My Store</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+            {context === "swipe" ? "Swipe → Studio vitrine" : "Add to My Store"}
+          </p>
           <h2 className="text-lg font-semibold text-gray-900">{product.name}</h2>
+          {context === "swipe" ? (
+            <p className="mt-1 text-xs text-violet-700">
+              Ajustez marge, titre et SEO avant publication
+            </p>
+          ) : null}
         </div>
         <button
           type="button"
@@ -486,7 +523,7 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
               form.step === 1 ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-50"
             }`}
           >
-            1 Customize
+            {context === "swipe" ? "1 Personnaliser" : "1 Customize"}
           </button>
           <button
             type="button"
@@ -495,7 +532,7 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
               form.step === 2 ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-50"
             }`}
           >
-            2 SEO &amp; Visibility
+            {context === "swipe" ? "2 SEO & visibilité" : "2 SEO & Visibility"}
           </button>
         </div>
 
@@ -1058,9 +1095,11 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
                     ) : (
                       <Rocket className="size-5 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden />
                     )}
-                    Push to Store
+                    {context === "swipe" ? "Publier en vitrine" : "Push to Store"}
                   </span>
-                  {marginEUR != null && Number.isFinite(marginEUR) && marginEUR > 0 ? (
+                  {context === "swipe" ? (
+                    <span className="text-xs font-medium text-white/85">Publier sur votre vitrine</span>
+                  ) : marginEUR != null && Number.isFinite(marginEUR) && marginEUR > 0 ? (
                     <span className="text-xs font-medium text-white/85">
                       +€{marginEUR.toFixed(2)} margin per sale
                     </span>
@@ -1089,7 +1128,17 @@ function ListingBuilderModalBody({ product, listing, storeSlug, onClose, onSaved
   )
 }
 
-export function ListingBuilderModal({ open, product, listing, storeSlug, onClose, onSaved }: Props) {
+export function ListingBuilderModal({
+  open,
+  product,
+  listing,
+  storeSlug,
+  onClose,
+  onSaved,
+  suggestedMarkupRate,
+  enableAutosave = true,
+  context = "catalog",
+}: Props) {
   const closeRef = useRef(onClose)
 
   useEffect(() => {
@@ -1104,11 +1153,25 @@ export function ListingBuilderModal({ open, product, listing, storeSlug, onClose
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 p-0 backdrop-blur-[2px] sm:items-center sm:p-4"
+      className={cn(
+        "fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4",
+        context === "swipe"
+          ? "bg-zinc-950/70 backdrop-blur-md"
+          : "bg-black/45 backdrop-blur-[2px]"
+      )}
       role="presentation"
       data-overlay="1"
       onMouseDown={onOverlayDown}
     >
+      {context === "swipe" ? (
+        <div
+          className="pointer-events-none absolute inset-0 overflow-hidden"
+          aria-hidden
+        >
+          <div className="absolute -left-32 top-0 h-96 w-96 rounded-full bg-violet-600/30 blur-[100px]" />
+          <div className="absolute -right-24 bottom-0 h-80 w-80 rounded-full bg-fuchsia-600/25 blur-[90px]" />
+        </div>
+      ) : null}
       <ListingBuilderModalBody
         key={`${product.id}-${listing?.id ?? "new"}`}
         product={product}
@@ -1116,6 +1179,9 @@ export function ListingBuilderModal({ open, product, listing, storeSlug, onClose
         storeSlug={storeSlug}
         onClose={onClose}
         onSaved={onSaved}
+        suggestedMarkupRate={suggestedMarkupRate}
+        enableAutosave={enableAutosave}
+        context={context}
       />
     </div>
   )

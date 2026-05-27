@@ -14,6 +14,7 @@ import {
 import { AnimatePresence, motion } from "framer-motion"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
+import { SwipeListingStudio } from "@/components/affiliate/swipe-feed/swipe-listing-studio"
 import { SwipeCard, type SwipeCardHandle } from "@/components/affiliate/swipe-feed/swipe-card"
 import {
   SwipeFiltersSheet,
@@ -59,6 +60,8 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
   const [busy, setBusy] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [dragProgress, setDragProgress] = useState(0)
+  const [studioProduct, setStudioProduct] = useState<SwipeFeedProduct | null>(null)
+  const [studioOpen, setStudioOpen] = useState(false)
   const fetchingRef = useRef(false)
   const deckRef = useRef(deck)
   const topCardRef = useRef<SwipeCardHandle>(null)
@@ -144,10 +147,10 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
 
   const requestSwipe = useCallback(
     (direction: "left" | "right") => {
-      if (busy || deckRef.current.length === 0) return
+      if (busy || studioOpen || deckRef.current.length === 0) return
       topCardRef.current?.swipe(direction)
     },
-    [busy]
+    [busy, studioOpen]
   )
 
   const commitSwipe = useCallback(
@@ -158,34 +161,23 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
       setBusy(true)
       setDragProgress(0)
 
+      if (direction === "right") {
+        setDeck((d) => d.slice(1))
+        setStudioProduct(product)
+        setStudioOpen(true)
+        setBusy(false)
+        return
+      }
+
       try {
-        if (direction === "right") {
-          const res = await fetch("/api/affiliate/listings", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ productId: product.id, markupRate: DEFAULT_MARKUP }),
-          })
-          if (!res.ok) {
-            const err = (await res.json().catch(() => ({}))) as { error?: string }
-            throw new Error(err.error ?? "Listing failed")
-          }
-          const listing = (await res.json()) as { id?: string }
-          setHistory((h) => [
-            { product, action: "like", listingId: listing.id },
-            ...h.slice(0, 19),
-          ])
-          setSessionStats((s) => ({ ...s, listed: s.listed + 1 }))
-          showToast(`✓ ${product.name.slice(0, 40)} listé à +30%`)
-        } else {
-          const res = await fetch("/api/affiliate/swipes", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ productId: product.id, action: "skip" }),
-          })
-          if (!res.ok) throw new Error("Skip failed")
-          setHistory((h) => [{ product, action: "skip" }, ...h.slice(0, 19)])
-          setSessionStats((s) => ({ ...s, skipped: s.skipped + 1 }))
-        }
+        const res = await fetch("/api/affiliate/swipes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productId: product.id, action: "skip" }),
+        })
+        if (!res.ok) throw new Error("Skip failed")
+        setHistory((h) => [{ product, action: "skip" }, ...h.slice(0, 19)])
+        setSessionStats((s) => ({ ...s, skipped: s.skipped + 1 }))
       } catch (e) {
         showToast(e instanceof Error ? e.message : "Erreur réseau")
         topCardRef.current?.reset()
@@ -197,6 +189,39 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
       setBusy(false)
     },
     [busy, showToast]
+  )
+
+  const closeStudio = useCallback(() => {
+    setStudioOpen(false)
+    if (studioProduct) {
+      setDeck((d) => [studioProduct, ...d.filter((p) => p.id !== studioProduct.id)])
+      showToast("Produit remis dans la pile")
+    }
+    setStudioProduct(null)
+  }, [showToast, studioProduct])
+
+  const handleStudioPublished = useCallback(
+    async ({ listingId, product }: { listingId?: string; product: SwipeFeedProduct }) => {
+      try {
+        await fetch("/api/affiliate/swipes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productId: product.id, action: "like" }),
+        })
+        setHistory((h) => [
+          { product, action: "like", listingId },
+          ...h.slice(0, 19),
+        ])
+        setSessionStats((s) => ({ ...s, listed: s.listed + 1 }))
+        showToast(`✓ ${product.name.slice(0, 36)} publié en vitrine`)
+      } catch {
+        showToast("Listé — sync swipe en attente")
+      } finally {
+        setStudioOpen(false)
+        setStudioProduct(null)
+      }
+    },
+    [showToast]
   )
 
   const handleUndo = useCallback(async () => {
@@ -273,8 +298,8 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
               Swipe Feed
             </h1>
             <p className="mt-4 max-w-lg text-lg text-zinc-400">
-              Découvrez des produits en un geste. Swipez à droite pour lister à +30% markup,
-              à gauche pour masquer définitivement.
+              Découvrez des produits en un geste. Swipez à droite pour ouvrir le studio
+              (marge, titre, SEO) avant publication en vitrine.
             </p>
           </motion.div>
 
@@ -302,7 +327,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
 
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
             {[
-              { icon: Heart, label: "Swipe →", desc: "Liste à +30%" },
+              { icon: Heart, label: "Swipe →", desc: "Studio marge + vitrine" },
               { icon: X, label: "Swipe ←", desc: "Masque le SKU" },
               { icon: RotateCcw, label: "Undo", desc: "Annule le dernier" },
             ].map(({ icon: Icon, label, desc }) => (
@@ -447,7 +472,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
         </div>
 
         <p className="mt-3 text-center text-[11px] text-zinc-500 dark:text-zinc-500">
-          ← Passer · → Lister (+30%) · ⌘Z Annuler
+          ← Passer · → Éditer & publier · ⌘Z Annuler
         </p>
       </div>
 
@@ -455,7 +480,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
         <div className="mx-auto flex max-w-[340px] items-center justify-center gap-4">
           <button
             type="button"
-            disabled={busy || deck.length === 0}
+            disabled={busy || studioOpen || deck.length === 0}
             onClick={() => requestSwipe("left")}
             className="group flex size-14 items-center justify-center rounded-full border-2 border-rose-300 bg-white text-rose-600 shadow-md transition-all hover:scale-110 hover:border-rose-400 hover:shadow-rose-200/80 active:scale-95 disabled:opacity-40 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-400 dark:hover:bg-rose-500/25"
             aria-label="Passer"
@@ -475,10 +500,10 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
 
           <button
             type="button"
-            disabled={busy || deck.length === 0}
+            disabled={busy || studioOpen || deck.length === 0}
             onClick={() => requestSwipe("right")}
             className="group flex size-14 items-center justify-center rounded-full border-2 border-emerald-300 bg-white text-emerald-600 shadow-md transition-all hover:scale-110 hover:border-emerald-400 hover:shadow-emerald-200/80 active:scale-95 disabled:opacity-40 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/25"
-            aria-label="Lister"
+            aria-label="Éditer et publier"
           >
             <Heart className="size-7 transition-transform group-active:translate-x-0.5" />
           </button>
@@ -496,6 +521,14 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
           </button>
         </div>
       </footer>
+
+      <SwipeListingStudio
+        product={studioProduct}
+        open={studioOpen}
+        suggestedMarkupRate={DEFAULT_MARKUP}
+        onClose={closeStudio}
+        onPublished={(result) => void handleStudioPublished(result)}
+      />
 
       <SwipeFiltersSheet
         open={filtersOpen}

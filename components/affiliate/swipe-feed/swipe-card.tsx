@@ -203,7 +203,7 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
               <div className="flex items-center gap-2 rounded-2xl border-2 border-emerald-500 bg-white/95 px-3.5 py-2 shadow-lg shadow-emerald-500/20 backdrop-blur-sm dark:bg-zinc-950/95">
                 <Heart className="size-5 fill-emerald-500 text-emerald-500" aria-hidden />
                 <span className="text-sm font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
-                  Lister
+                  Éditer
                 </span>
               </div>
             </motion.div>
