@@ -610,10 +610,14 @@
   }
 
   .affisell-logo-text {
-    @apply affisell-brand-wordmark;
+    position: relative;
+    display: inline-block;
     background: var(--affisell-gradient);
     -webkit-background-clip: text;
     background-clip: text;
+    color: transparent;
+    font-weight: 900;
+    letter-spacing: -0.02em;
     filter: drop-shadow(0 0 12px rgb(109 40 217 / 0.35));
   }
 }
