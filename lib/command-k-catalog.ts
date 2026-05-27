@@ -91,6 +91,15 @@ const CATALOG: CatalogEntry[] = [
     hideForPersona: ["seller"],
   },
   {
+    id: "auctions",
+    segment: "buy",
+    labelKey: "items.auctions",
+    action: "navigate",
+    href: "/auctions",
+    keywords: ["auction", "enchères", "bid", "live", "arena", "arène"],
+    hideForPersona: ["seller"],
+  },
+  {
     id: "become-seller",
     segment: "sell",
     labelKey: "items.becomeSeller",

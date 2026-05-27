@@ -62,6 +62,7 @@ model User {
   storeFollowRelations Follow[]           @relation("UserFollowsStore")
   searchHistory        SearchHistory[]
   wishlists            Wishlist[]
+  auctionBids          AuctionBid[]
 
   /**
    * Supplier add-product: recent category picks JSON [{ leafId, path:[{id,name}] }] max 5
@@ -471,6 +472,7 @@ model Product {
   communityPosts          CommunityPost[]
   wishlists               Wishlist[]
   guestWishlists          GuestWishlist[]
+  auctions                Auction[]
   reviews                 Review[]
   /**
    * AI category suggestions pending manual review (see `ProductReview` model).
@@ -682,6 +684,53 @@ model GuestWishlist {
   @@unique([guestId, productId])
   @@index([productId])
   @@index([guestId, updatedAt])
+}
+
+enum AuctionStatus {
+  SCHEDULED
+  LIVE
+  ENDED
+  CANCELLED
+}
+
+/** Time-boxed product auction on the Affisell Arena. */
+model Auction {
+  id                String        @id @default(cuid())
+  productId         String
+  listingId         String?
+  title             String
+  imageUrl          String?
+  startPriceCents   Int
+  reservePriceCents Int?
+  currentBidCents   Int           @default(0)
+  bidCount          Int           @default(0)
+  startsAt          DateTime
+  endsAt            DateTime
+  status            AuctionStatus @default(LIVE)
+  winnerUserId      String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  product Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  bids    AuctionBid[]
+
+  @@index([status, endsAt])
+  @@index([productId])
+  @@index([listingId])
+}
+
+model AuctionBid {
+  id          String   @id @default(cuid())
+  auctionId   String
+  userId      String
+  amountCents Int
+  createdAt   DateTime @default(now())
+
+  auction Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([auctionId, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
 }
 
 model SearchHistory {

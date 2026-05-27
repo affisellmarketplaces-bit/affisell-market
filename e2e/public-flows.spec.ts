@@ -9,6 +9,7 @@ const PUBLIC_PAGE_PATHS = [
   "/contact",
   "/faq",
   "/discover",
+  "/auctions",
   "/login",
   "/affiliate",
   "/cart",
@@ -51,6 +52,19 @@ test.describe("public flows", () => {
     await page.goto("/marketplace")
     await expect(page).toHaveURL(/#explorer/)
     await expect(page.locator("#explorer")).toBeVisible({ timeout: 30_000 })
+  })
+
+  test("auction arena shell loads", async ({ page }) => {
+    await page.goto("/auctions")
+    await expect(page).toHaveURL(/\/auctions/)
+    await expect(page.getByTestId("auction-arena")).toBeVisible({ timeout: 30_000 })
+  })
+
+  test("GET /api/auctions returns JSON", async ({ request }) => {
+    const res = await request.get("/api/auctions")
+    expect(res.ok()).toBeTruthy()
+    const data = await res.json()
+    expect(Array.isArray(data.lots)).toBeTruthy()
   })
 
   test("GET /api/cart returns JSON (guest)", async ({ request }) => {

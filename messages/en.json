@@ -128,7 +128,9 @@
       "liveSearch": "Live search",
       "liveSearchHint": "Demo “smart” filter",
       "wishlist": "Wishlist",
-      "wishlistHint": "Price alerts & favorites"
+      "wishlistHint": "Price alerts & favorites",
+      "auctions": "Auction Arena",
+      "auctionsHint": "Live bids · futuristic drops"
     }
   },
   "creators": {
@@ -1000,6 +1002,7 @@
       "creatorStores": "Creator stores",
       "cart": "Cart",
       "wishlist": "Wishlist",
+      "auctions": "Auction Arena",
       "myOrders": "My orders",
       "sellerDashboard": "Seller dashboard",
       "listProduct": "List a product",
@@ -1332,6 +1335,27 @@
       "ratingRequired": "Please select a star rating",
       "bodyMin": "Write at least 20 characters"
     }
+  },
+  "auctions": {
+    "eyebrow": "Live protocol",
+    "title": "Affisell Arena",
+    "live": "Live",
+    "back": "Catalog",
+    "subtitle": "Neural-auction window · winner checks out at hammer price",
+    "currentBid": "Current bid",
+    "bids": "Bids",
+    "endsIn": "Ends in",
+    "endingSoon": "Final hour",
+    "heat": "Heat {score}",
+    "leader": "Leader",
+    "bidNow": "Bid",
+    "powerBid": "Surge +10%",
+    "viewProduct": "Product page",
+    "moreLots": "More live lots",
+    "empty": "Arena warming up — new lots drop every few minutes.",
+    "tickerEmpty": "Be the first to bid on Affisell Arena",
+    "bidPlaced": "Bid registered on-chain ✦",
+    "bidFailed": "Could not place bid"
   },
   "errors": {
     "notFound": {

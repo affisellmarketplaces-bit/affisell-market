@@ -128,7 +128,9 @@
       "liveSearch": "Recherche vivante",
       "liveSearchHint": "Filtre démo « smart »",
       "wishlist": "Wishlist",
-      "wishlistHint": "Alertes prix & favoris"
+      "wishlistHint": "Alertes prix & favoris",
+      "auctions": "Arène enchères",
+      "auctionsHint": "Enchères live · drops futuristes"
     }
   },
   "creators": {
@@ -1000,6 +1002,7 @@
       "creatorStores": "Boutiques créateurs",
       "cart": "Panier",
       "wishlist": "Favoris",
+      "auctions": "Arène enchères",
       "myOrders": "Mes commandes",
       "sellerDashboard": "Tableau de bord vendeur",
       "listProduct": "Mettre en vente",
@@ -1332,6 +1335,27 @@
       "ratingRequired": "Choisissez une note",
       "bodyMin": "Écrivez au moins 20 caractères"
     }
+  },
+  "auctions": {
+    "eyebrow": "Protocole live",
+    "title": "Arène Affisell",
+    "live": "Live",
+    "back": "Catalogue",
+    "subtitle": "Fenêtre d'enchères neuronale · le gagnant paie au prix marteau",
+    "currentBid": "Enchère actuelle",
+    "bids": "Enchères",
+    "endsIn": "Fin dans",
+    "endingSoon": "Dernière heure",
+    "heat": "Heat {score}",
+    "leader": "Leader",
+    "bidNow": "Enchérir",
+    "powerBid": "Surge +10%",
+    "viewProduct": "Fiche produit",
+    "moreLots": "Autres lots live",
+    "empty": "L'arène s'échauffe — nouveaux lots toutes les quelques minutes.",
+    "tickerEmpty": "Soyez le premier à enchérir sur l'Arène Affisell",
+    "bidPlaced": "Enchère enregistrée ✦",
+    "bidFailed": "Enchère impossible"
   },
   "errors": {
     "notFound": {

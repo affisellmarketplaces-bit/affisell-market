@@ -13,6 +13,7 @@ export const BUYER_WARM_ROUTES = [
   "/login",
   "/cart",
   "/wishlist",
+  "/auctions",
 ] as const
 
 export const AFFILIATE_WARM_ROUTES = [
