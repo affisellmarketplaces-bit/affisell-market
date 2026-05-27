@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import { requireSupplierSession } from "@/lib/dashboard-session"
 import { getLocale } from "next-intl/server"
 
 import { BentoContainer } from "@/components/affisell/bento-ui"
@@ -11,22 +12,32 @@ import { SupplierMissionControlLive } from "@/components/supplier/mission-contro
 import { SupplierOnboardingChecklist } from "@/components/supplier/mission-control/supplier-onboarding-checklist"
 import { SupplierToolsRow } from "@/components/supplier/mission-control/supplier-tools-row"
 import { SupplierUrgentActions } from "@/components/supplier/mission-control/supplier-urgent-actions"
-import { auth } from "@/auth"
 import { resolveAppLocale } from "@/lib/i18n-locale"
 import { loadSupplierMissionControl } from "@/lib/supplier-mission-control"
 
 export const dynamic = "force-dynamic"
 
 export default async function DashboardSupplierPage() {
-  const session = await auth()
-  if (!session?.user?.id) {
-    redirect("/login/supplier?callbackUrl=/dashboard/supplier")
-  }
-  if (session.user.role !== "SUPPLIER") {
-    redirect("/dashboard")
+  const session = await requireSupplierSession("/dashboard/supplier")
+
+
+  let data: Awaited<ReturnType<typeof loadSupplierMissionControl>>
+  try {
+    data = await loadSupplierMissionControl(session.user.id)
+  } catch (error) {
+    console.error("[supplier/dashboard] mission control failed", error)
+    return (
+      <main className="min-h-[calc(100dvh-3.75rem)] bg-zinc-50/50 px-4 py-16 text-center dark:bg-zinc-950">
+        <p className="text-sm font-medium text-zinc-800 dark:text-zinc-100">
+          Tableau de bord temporairement indisponible
+        </p>
+        <p className="mt-2 text-sm text-zinc-500">
+          Réessayez dans quelques instants — la connexion base de données a échoué.
+        </p>
+      </main>
+    )
   }
 
-  const data = await loadSupplierMissionControl(session.user.id)
   const locale = resolveAppLocale(await getLocale())
 
   return (

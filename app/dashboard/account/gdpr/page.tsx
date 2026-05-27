@@ -1,17 +1,17 @@
 import Link from "next/link"
+import { requireMerchantSession } from "@/lib/dashboard-session"
 import { redirect } from "next/navigation"
 
 import { BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { GdprAccountPanel } from "@/components/legal/gdpr-account-panel"
-import { auth } from "@/auth"
 
 export const metadata = {
   title: "Données personnelles (RGPD) | Affisell",
 }
 
 export default async function GdprAccountPage() {
-  const session = await auth()
-  if (!session?.user?.id) redirect("/login?callbackUrl=/dashboard/account/gdpr")
+  const session = await requireMerchantSession("/dashboard/account/gdpr")
+
 
   return (
     <BentoShell>

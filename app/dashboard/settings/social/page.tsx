@@ -1,19 +1,17 @@
 import Link from "next/link"
+import { requireMerchantSession } from "@/lib/dashboard-session"
 import { redirect } from "next/navigation"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { SocialSettingsForm, type SerializedStoreSocial } from "@/components/social-settings-form"
-import { auth } from "@/auth"
 import { ensureMerchantStore } from "@/lib/ensure-store"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
 
 export default async function DashboardSocialSettingsPage() {
-  const session = await auth()
-  if (!session?.user) {
-    redirect("/login?callbackUrl=/dashboard/settings/social")
-  }
+  const session = await requireMerchantSession("/dashboard/settings/social")
+
   const role = (session.user as { role?: string }).role
   if (role !== "SUPPLIER" && role !== "AFFILIATE") {
     redirect("/marketplace")

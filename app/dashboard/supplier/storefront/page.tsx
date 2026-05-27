@@ -1,16 +1,15 @@
 import { redirect } from "next/navigation"
+import { requireSupplierSession } from "@/lib/dashboard-session"
 
 import { MerchantBrandStudio } from "@/components/storefront/merchant-brand-studio"
-import { auth } from "@/auth"
 import { ensureMerchantStore } from "@/lib/ensure-store"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
 
 export default async function SupplierStorefrontPage() {
-  const session = await auth()
-  if (!session?.user?.id) redirect("/login?callbackUrl=/dashboard/supplier/storefront")
-  if (session.user.role !== "SUPPLIER") redirect("/dashboard/supplier")
+  const session = await requireSupplierSession("/dashboard/supplier/storefront")
+
 
   let store = await prisma.store.findUnique({
     where: { userId: session.user.id },

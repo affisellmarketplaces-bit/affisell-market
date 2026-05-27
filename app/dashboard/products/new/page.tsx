@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
+import { requireMerchantSession } from "@/lib/dashboard-session"
 
-import { auth } from "@/auth"
 
 export const dynamic = "force-dynamic"
 
@@ -8,10 +8,7 @@ export const dynamic = "force-dynamic"
  *  IA catégorie : section Classification dans `components/supplier/supplier-add-product-form`.
  */
 export default async function LegacyDashboardNewProductPage() {
-  const session = await auth()
-  if (!session?.user?.id) {
-    redirect("/login?callbackUrl=/dashboard/products/new")
-  }
+  const session = await requireMerchantSession("/dashboard/products/new")
   if (session.user.role === "SUPPLIER") {
     redirect("/dashboard/supplier/products/new")
   }

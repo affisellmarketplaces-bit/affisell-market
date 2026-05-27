@@ -1,9 +1,9 @@
 import Link from "next/link"
+import { requireMerchantSession } from "@/lib/dashboard-session"
 import { notFound, redirect } from "next/navigation"
 
 import { BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
 import { OrderDetailPanel } from "@/components/legal/order-detail-panel"
-import { auth } from "@/auth"
 import { orderDetailBackHref, resolveOrderAccessRole } from "@/lib/order-access"
 import { prisma } from "@/lib/prisma"
 
@@ -12,8 +12,8 @@ export const dynamic = "force-dynamic"
 type Props = { params: Promise<{ id: string }> }
 
 export default async function DashboardOrderDetailPage({ params }: Props) {
-  const session = await auth()
-  if (!session?.user?.id) redirect("/login?callbackUrl=/dashboard/orders")
+  const session = await requireMerchantSession("/dashboard/orders/[id]")
+
 
   const { id } = await params
   const order = await prisma.order.findUnique({

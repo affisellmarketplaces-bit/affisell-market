@@ -1,15 +1,15 @@
 import Link from "next/link"
+import { requireMerchantSession } from "@/lib/dashboard-session"
 import { redirect } from "next/navigation"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { ConnectedAccountsPanel } from "@/components/connected-accounts-panel"
 import { MerchantAccountNavActions } from "@/components/merchant-account-nav-actions"
-import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 
 export default async function AccountSettingsPage() {
-  const session = await auth()
-  if (!session?.user?.id) redirect("/login?callbackUrl=/dashboard/settings/account")
+  const session = await requireMerchantSession("/dashboard/settings/account")
+
 
   const userId = session.user.id
 

@@ -1,8 +1,8 @@
 import Link from "next/link"
+import { requireSupplierSession } from "@/lib/dashboard-session"
 
 import { BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
 import { SupplierDashboardProductsCatalog } from "@/components/supplier/supplier-dashboard-products-catalog"
-import { auth } from "@/auth"
 import { findSupplierProductsForDashboardCatalog } from "@/lib/supplier-product-is-draft-fallback"
 import { prisma } from "@/lib/prisma"
 import { cn } from "@/lib/utils"
@@ -14,28 +14,8 @@ export default async function SupplierProductsPage({
 }: {
   searchParams: Promise<{ drafts?: string }>
 }) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return (
-      <BentoShell>
-        <BentoContainer maxWidth="4xl" className="py-16 text-center text-sm text-zinc-600">
-          <Link href="/login/supplier?callbackUrl=/dashboard/supplier/products" className="font-medium text-violet-700 underline">
-            Connexion
-          </Link>{" "}
-          requise pour gérer le catalogue.
-        </BentoContainer>
-      </BentoShell>
-    )
-  }
-  if (session.user.role !== "SUPPLIER") {
-    return (
-      <BentoShell>
-        <BentoContainer maxWidth="4xl" className="py-16 text-center text-sm text-zinc-600">
-          Accès réservé aux fournisseurs.
-        </BentoContainer>
-      </BentoShell>
-    )
-  }
+  const session = await requireSupplierSession("/dashboard/supplier/products")
+
 
   const { drafts: draftsQs } = await searchParams
   const draftsOnly = draftsQs === "1"

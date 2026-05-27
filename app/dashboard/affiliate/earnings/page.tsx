@@ -1,18 +1,23 @@
-import { redirect } from "next/navigation"
+import { requireAffiliateSession } from "@/lib/dashboard-session"
 
 import { MerchantPulseHub } from "@/components/merchant/merchant-pulse-hub"
-import { auth } from "@/auth"
-import { loadAffiliateEarningsPulse } from "@/lib/merchant-earnings-pulse"
+import {
+  emptyAffiliateEarningsPulse,
+  loadAffiliateEarningsPulse,
+} from "@/lib/merchant-earnings-pulse"
+import { loadOrFallback } from "@/lib/safe-server-data"
 
 export const dynamic = "force-dynamic"
 
 export default async function AffiliateEarningsPage() {
-  const session = await auth()
-  if (!session?.user?.id) redirect("/login?callbackUrl=/dashboard/affiliate/earnings")
-  if (session.user.role === "SUPPLIER") redirect("/dashboard/supplier")
-  if (session.user.role !== "AFFILIATE") redirect("/dashboard/affiliate/catalog")
+  const session = await requireAffiliateSession("/dashboard/affiliate/earnings")
 
-  const data = await loadAffiliateEarningsPulse(session.user.id)
+
+  const data = await loadOrFallback(
+    "affiliate/earnings",
+    () => loadAffiliateEarningsPulse(session.user.id),
+    emptyAffiliateEarningsPulse()
+  )
 
   return (
     <MerchantPulseHub

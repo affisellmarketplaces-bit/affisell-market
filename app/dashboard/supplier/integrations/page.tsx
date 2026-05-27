@@ -1,9 +1,9 @@
 import { headers } from "next/headers"
+import { requireSupplierSession } from "@/lib/dashboard-session"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { ArrowLeft, RefreshCw } from "lucide-react"
 
-import { auth } from "@/auth"
 import { SupplierIntegrationsPanel } from "@/components/supplier/supplier-integrations-panel"
 import { buttonVariants } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -14,13 +14,8 @@ import { cn } from "@/lib/utils"
 export const dynamic = "force-dynamic"
 
 export default async function SupplierIntegrationsPage() {
-  const session = await auth()
-  if (!session?.user?.id) {
-    redirect("/login?callbackUrl=/dashboard/supplier/integrations")
-  }
-  if (session.user.role !== "SUPPLIER") {
-    redirect("/dashboard")
-  }
+  const session = await requireSupplierSession("/dashboard/supplier/integrations")
+
 
   const h = await headers()
   const host = h.get("x-forwarded-host") ?? h.get("host")

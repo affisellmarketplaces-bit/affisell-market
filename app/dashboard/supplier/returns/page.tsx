@@ -1,9 +1,9 @@
 import Link from "next/link"
+import { requireSupplierSession } from "@/lib/dashboard-session"
 import { redirect } from "next/navigation"
 import { Undo2 } from "lucide-react"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
-import { auth } from "@/auth"
 import { SupplierReturnsPanel } from "@/components/supplier/supplier-returns-panel"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -11,13 +11,8 @@ import { cn } from "@/lib/utils"
 export const dynamic = "force-dynamic"
 
 export default async function SupplierReturnsPage() {
-  const session = await auth()
-  if (!session?.user?.id) {
-    redirect("/login?callbackUrl=/dashboard/supplier/returns")
-  }
-  if (session.user.role !== "SUPPLIER") {
-    redirect("/dashboard")
-  }
+  const session = await requireSupplierSession("/dashboard/supplier/returns")
+
 
   return (
     <BentoShell>

@@ -1,9 +1,8 @@
 import type { Metadata } from "next"
-import { redirect } from "next/navigation"
+import { requireAffiliateSession } from "@/lib/dashboard-session"
 import { Suspense } from "react"
 
 import { AffiliateAgentChat } from "@/components/affiliate/AffiliateAgentChat"
-import { auth } from "@/auth"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -16,10 +15,7 @@ export const metadata: Metadata = {
 }
 
 export default async function AffiliateAgentPage() {
-  const session = await auth()
-  const role = session?.user?.role
-  if (role === "SUPPLIER") redirect("/dashboard/supplier")
-  if (role !== "AFFILIATE") redirect("/login/affiliate")
+  await requireAffiliateSession("/dashboard/affiliate/agent")
 
   return (
     <main className="min-h-[calc(100dvh-3.75rem)] bg-gradient-to-b from-violet-50/40 via-white to-zinc-50 dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900">

@@ -1,18 +1,14 @@
 import Link from "next/link"
+import { requireSupplierSession } from "@/lib/dashboard-session"
 import { redirect } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 
 import { BentoShell } from "@/components/affisell/bento-ui"
 import { SupplierExtensionConnect } from "@/components/supplier/supplier-extension-connect"
-import { auth } from "@/auth"
 
 export default async function SupplierExtensionPage() {
-  const session = await auth()
-  if (!session?.user?.id) {
-    redirect("/login/supplier?callbackUrl=/dashboard/supplier/extension")
-  }
-  if (session.user.role === "AFFILIATE") redirect("/dashboard/affiliate")
-  if (session.user.role !== "SUPPLIER") redirect("/marketplace")
+  const session = await requireSupplierSession("/dashboard/supplier/extension")
+
 
   return (
     <BentoShell>

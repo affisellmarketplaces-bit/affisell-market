@@ -1,17 +1,23 @@
-import { redirect } from "next/navigation"
+import { requireSupplierSession } from "@/lib/dashboard-session"
 
 import { MerchantPulseHub } from "@/components/merchant/merchant-pulse-hub"
-import { auth } from "@/auth"
-import { loadSupplierEarningsPulse } from "@/lib/merchant-earnings-pulse"
+import {
+  emptySupplierEarningsPulse,
+  loadSupplierEarningsPulse,
+} from "@/lib/merchant-earnings-pulse"
+import { loadOrFallback } from "@/lib/safe-server-data"
 
 export const dynamic = "force-dynamic"
 
 export default async function SupplierBalancePage() {
-  const session = await auth()
-  if (!session?.user?.id) redirect("/login?callbackUrl=/dashboard/supplier/balance")
-  if (session.user.role !== "SUPPLIER") redirect("/dashboard")
+  const session = await requireSupplierSession("/dashboard/supplier/balance")
 
-  const data = await loadSupplierEarningsPulse(session.user.id)
+
+  const data = await loadOrFallback(
+    "supplier/balance",
+    () => loadSupplierEarningsPulse(session.user.id),
+    emptySupplierEarningsPulse()
+  )
 
   return (
     <MerchantPulseHub

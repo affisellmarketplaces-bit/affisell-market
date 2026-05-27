@@ -28,12 +28,18 @@ function resolveLibModule(libImport) {
   return null
 }
 
+function libFileIsServerOnly(filePath) {
+  const src = fs.readFileSync(filePath, "utf8")
+  return src.includes('"server-only"') || src.includes("'server-only'")
+}
+
 function libImportLoadsPrisma(libImport, seen = new Set()) {
   const resolved = resolveLibModule(libImport)
   if (!resolved || seen.has(resolved)) return false
   seen.add(resolved)
-  if (loadsPrisma(resolved)) return true
+  if (loadsPrisma(resolved) || libFileIsServerOnly(resolved)) return true
   const src = fs.readFileSync(resolved, "utf8")
+  if (/\bfrom\s+["']openai["']/.test(src)) return true
   const re = /^import\s+(?!type)(?:[\s\S]*?)\s+from\s+["']@\/lib\/([^"']+)["']/gm
   let m
   while ((m = re.exec(src))) {
@@ -96,7 +102,9 @@ if (violations.length > 0) {
   for (const v of violations) {
     console.error(`  ${v.client} → ${v.lib}`)
   }
-  console.error("\nFix: move types/constants to a *-types.ts or *-shared.ts file without Prisma.")
+  console.error(
+    "\nFix: move types/constants to a *-types.ts or *-shared.ts file without Prisma/OpenAI/server-only."
+  )
   process.exit(1)
 }
 

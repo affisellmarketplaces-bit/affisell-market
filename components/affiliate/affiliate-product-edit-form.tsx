@@ -8,8 +8,10 @@ import { toast } from "sonner"
 
 import { BentoCard, BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
 import { Button } from "@/components/ui/button"
-import { formatAffiliateListingDescriptionFromAi } from "@/lib/affiliate-product-generate-description"
-import type { ProductDescriptionAiResult } from "@/lib/affiliate-product-generate-description"
+import {
+  formatAffiliateListingDescriptionFromAi,
+  type ProductDescriptionAiResult,
+} from "@/lib/affiliate-product-description-shared"
 
 type ListingPayload = {
   listing: {

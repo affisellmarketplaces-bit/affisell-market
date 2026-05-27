@@ -1,8 +1,8 @@
 import Image from "next/image"
+import { requireSupplierSession } from "@/lib/dashboard-session"
 import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
 
-import { auth } from "@/auth"
 import { GenerateVideoButton } from "@/components/GenerateVideoButton"
 import { SupplierProductPricingPanel } from "@/components/supplier/supplier-product-pricing-panel"
 import { UpgradeToast } from "@/components/upgrade-toast"
@@ -19,17 +19,8 @@ export default async function SupplierProductVideoPage({
   params: Promise<{ id: string }>
   searchParams: Promise<{ upgrade?: string; session_id?: string }>
 }) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    redirect("/login?callbackUrl=/dashboard/supplier/products")
-  }
-  if (session.user.role !== "SUPPLIER") {
-    return (
-      <div className="mx-auto max-w-3xl px-4 py-16 text-center text-sm text-zinc-600">
-        Supplier access only.
-      </div>
-    )
-  }
+  const session = await requireSupplierSession("/dashboard/supplier/products/[id]")
+
 
   const { id } = await params
   const { upgrade, session_id: sessionId } = await searchParams

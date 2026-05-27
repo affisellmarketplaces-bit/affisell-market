@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
+import { requireSupplierSession } from "@/lib/dashboard-session"
 import type { Metadata } from "next"
 
-import { auth } from "@/auth"
 import { SupplierAffiliateEvalPreview } from "@/components/supplier/supplier-affiliate-eval-preview"
 import { prisma } from "@/lib/prisma"
 import { loadSupplierStorefrontCatalogProduct } from "@/lib/supplier-storefront-product-preview"
@@ -14,8 +14,8 @@ export async function generateMetadata({
 }: {
   params: Promise<{ productId: string }>
 }): Promise<Metadata> {
-  const session = await auth()
-  if (!session?.user?.id || session.user.role !== "SUPPLIER") return { title: "Preview" }
+  const session = await requireSupplierSession("/dashboard/supplier/products/affiliate-preview/[productId]")
+
   const { productId } = await params
   const id = productId?.trim()
   if (!id) return { title: "Preview" }
@@ -34,8 +34,9 @@ export default async function SupplierAffiliatePreviewPage({
 }: {
   params: Promise<{ productId: string }>
 }) {
-  const session = await auth()
-  if (!session?.user?.id || session.user.role !== "SUPPLIER") notFound()
+  const session = await requireSupplierSession(
+    `/dashboard/supplier/products/affiliate-preview/${(await params).productId}`
+  )
 
   const { productId } = await params
   const id = productId?.trim()

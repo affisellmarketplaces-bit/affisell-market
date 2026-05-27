@@ -1,16 +1,12 @@
 import { redirect } from "next/navigation"
+import { requireMerchantSession } from "@/lib/dashboard-session"
 
-import { auth } from "@/auth"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
 export default async function DashboardRootPage() {
-  const session = await auth()
-  if (!session?.user) redirect("/login")
-
+  const session = await requireMerchantSession("/dashboard")
   if (session.user.role === "SUPPLIER") redirect("/dashboard/supplier")
-  if (session.user.role === "CUSTOMER") redirect("/marketplace/account")
-
   redirect("/dashboard/affiliate")
 }

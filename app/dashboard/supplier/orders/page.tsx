@@ -1,11 +1,11 @@
 import Link from "next/link"
+import { requireSupplierSession } from "@/lib/dashboard-session"
 import { redirect } from "next/navigation"
 import { Package } from "lucide-react"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { ShipPulsePolicyBanner } from "@/components/supplier/ship-pulse-policy-banner"
 import { SupplierOrdersPanel } from "@/components/supplier/supplier-orders-panel"
-import { auth } from "@/auth"
 import { buttonVariants } from "@/components/ui/button"
 import { countSupplierOrdersToShip } from "@/lib/supplier-orders-payload"
 import { cn } from "@/lib/utils"
@@ -13,13 +13,8 @@ import { cn } from "@/lib/utils"
 export const dynamic = "force-dynamic"
 
 export default async function SupplierOrdersPage() {
-  const session = await auth()
-  if (!session?.user?.id) {
-    redirect("/login?callbackUrl=/dashboard/supplier/orders")
-  }
-  if (session.user.role !== "SUPPLIER") {
-    redirect("/dashboard")
-  }
+  const session = await requireSupplierSession("/dashboard/supplier/orders")
+
 
   const toShipCount = await countSupplierOrdersToShip(session.user.id)
 

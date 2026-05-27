@@ -1,9 +1,8 @@
 import type { Metadata } from "next"
-import { redirect } from "next/navigation"
 import { Suspense } from "react"
 
 import { AffiliateSwipeFeed } from "@/components/affiliate/swipe-feed/affiliate-swipe-feed"
-import { safeAuth } from "@/lib/safe-auth"
+import { requireAffiliateSession } from "@/lib/dashboard-session"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -19,14 +18,7 @@ type PageProps = {
 }
 
 export default async function AffiliateHubPage({ searchParams }: PageProps) {
-  const session = await safeAuth()
-  const role = session?.user?.role
-  if (role === "SUPPLIER") {
-    redirect("/dashboard/supplier")
-  }
-  if (role !== "AFFILIATE" || !session?.user?.id) {
-    redirect("/login/affiliate")
-  }
+  await requireAffiliateSession("/dashboard/affiliate/hub")
 
   const sp = await searchParams
   const modeRaw = typeof sp.mode === "string" ? sp.mode : Array.isArray(sp.mode) ? sp.mode[0] : ""

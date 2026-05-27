@@ -2,7 +2,7 @@ import { redirect } from "next/navigation"
 
 import { BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
 import { SupplierInvitationStudio } from "@/components/affiliate/supplier-invitation-studio"
-import { safeAuth } from "@/lib/safe-auth"
+import { requireAffiliateSession } from "@/lib/dashboard-session"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
@@ -30,9 +30,7 @@ async function resolveAffiliateDisplayName(user: {
 }
 
 export default async function AffiliateInviteSupplierPage() {
-  const session = await safeAuth()
-  if (!session?.user?.id) redirect("/login/affiliate?callbackUrl=/dashboard/affiliate/invite-supplier")
-  if (session.user.role !== "AFFILIATE") redirect("/dashboard/affiliate")
+  const session = await requireAffiliateSession("/dashboard/affiliate/invite-supplier")
 
   const affiliateDisplayName = await resolveAffiliateDisplayName(session.user)
 

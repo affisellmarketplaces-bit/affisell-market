@@ -259,6 +259,41 @@ async function supplierSparkline(supplierUserId: string, days: number): Promise<
   return out
 }
 
+const EMPTY_PULSE_BAND = {
+  unitsSold: 0,
+  grossRoleCents: 0,
+  commissionCents: 0,
+  markupCents: 0,
+}
+
+export function emptyAffiliateEarningsPulse(): Awaited<ReturnType<typeof loadAffiliateEarningsPulse>> {
+  return {
+    role: "AFFILIATE",
+    paidOutCents: 0,
+    bands: [
+      { band: "today", label: "Today", ...EMPTY_PULSE_BAND },
+      { band: "month", label: "This month", ...EMPTY_PULSE_BAND },
+      { band: "year", label: "Year to date", ...EMPTY_PULSE_BAND },
+    ],
+    sparkline: [],
+    recentLedger: [],
+  }
+}
+
+export function emptySupplierEarningsPulse(): Awaited<ReturnType<typeof loadSupplierEarningsPulse>> {
+  return {
+    role: "SUPPLIER",
+    paidOutCents: 0,
+    bands: [
+      { band: "today", label: "Today", unitsSold: 0, grossRoleCents: 0 },
+      { band: "month", label: "This month", unitsSold: 0, grossRoleCents: 0 },
+      { band: "year", label: "Year to date", unitsSold: 0, grossRoleCents: 0 },
+    ],
+    sparkline: [],
+    recentLedger: [],
+  }
+}
+
 export async function loadAffiliateEarningsPulse(affiliateId: string) {
   const now = new Date()
   const t0 = startOfUtcDay(now)
