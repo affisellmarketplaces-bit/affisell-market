@@ -19,7 +19,7 @@ import {
   type GuestCartItem,
 } from "@/lib/guest-cart"
 import { CartCheckoutIdentitySheet } from "@/components/cart/cart-checkout-identity-sheet"
-import { mergeGuestCartToServer } from "@/lib/merge-guest-cart-client"
+import { mergeGuestBuyerSessionToServer } from "@/lib/merge-guest-cart-client"
 import { formatStoreCurrency } from "@/lib/market-config"
 
 type CartLine = {
@@ -333,7 +333,7 @@ export default function CartPage() {
 
   async function afterIdentity() {
     setIdentityOpen(false)
-    await mergeGuestCartToServer()
+    await mergeGuestBuyerSessionToServer()
     await refreshCart()
     await proceedToStripe()
   }

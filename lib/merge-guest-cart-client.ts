@@ -30,3 +30,31 @@ export async function mergeGuestCartToServer(): Promise<{ merged: number }> {
   console.log("[merge-guest-cart-client]", { merged, result: "ok" })
   return { merged }
 }
+
+/** Merge guest likes (cookie) into authenticated wishlist after sign-in. */
+export async function mergeGuestWishlistToServer(): Promise<{ merged: number }> {
+  const res = await fetch("/api/wishlist/merge-guest", {
+    method: "POST",
+    credentials: "include",
+  })
+  const data = (await res.json().catch(() => ({}))) as { merged?: number; error?: string }
+  if (!res.ok) {
+    console.error("[merge-guest-wishlist-client]", { status: res.status, error: data.error })
+    return { merged: 0 }
+  }
+  const merged = Number(data.merged ?? 0)
+  console.log("[merge-guest-wishlist-client]", { merged, result: "ok" })
+  return { merged }
+}
+
+/** Cart + wishlist merge after buyer login. */
+export async function mergeGuestBuyerSessionToServer(): Promise<{
+  cartMerged: number
+  wishlistMerged: number
+}> {
+  const [cart, wishlist] = await Promise.all([
+    mergeGuestCartToServer(),
+    mergeGuestWishlistToServer(),
+  ])
+  return { cartMerged: cart.merged, wishlistMerged: wishlist.merged }
+}

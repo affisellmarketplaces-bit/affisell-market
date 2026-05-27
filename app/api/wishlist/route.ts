@@ -1,4 +1,9 @@
 import { auth } from "@/auth"
+import { getOrCreateGuestWishlistId, readGuestWishlistId } from "@/lib/guest-wishlist-id"
+import {
+  guestWishlistProductIds,
+  toggleGuestWishlist,
+} from "@/lib/guest-wishlist-server"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { countProductLikes, countProductLikesSingle } from "@/lib/product-like-count"
 import { prisma } from "@/lib/prisma"
@@ -37,6 +42,7 @@ async function currentPriceForProduct(productId: string): Promise<number | null>
 export async function GET(req: Request) {
   const session = await auth()
   const userId = session?.user?.id
+  const guestId = userId ? null : await readGuestWishlistId()
 
   const url = new URL(req.url)
   const idsRaw = url.searchParams.get("ids")?.trim()
@@ -44,7 +50,7 @@ export async function GET(req: Request) {
     const ids = [...new Set(idsRaw.split(",").map((s) => s.trim()).filter(Boolean))].slice(0, 48)
     if (ids.length === 0) return Response.json({ statuses: {} })
 
-    const [likeCounts, userItems, priceMap] = await Promise.all([
+    const [likeCounts, userItems, guestWished, priceMap] = await Promise.all([
       countProductLikes(ids),
       userId
         ? prisma.wishlist.findMany({
@@ -52,6 +58,7 @@ export async function GET(req: Request) {
             select: { productId: true, previousPriceCents: true },
           })
         : Promise.resolve([]),
+      guestId ? guestWishlistProductIds(guestId, ids) : Promise.resolve(new Set<string>()),
       currentPricesForProducts(ids),
     ])
     const itemByProduct = new Map(userItems.map((i) => [i.productId, i]))
@@ -60,7 +67,7 @@ export async function GET(req: Request) {
       const item = itemByProduct.get(id)
       const current = priceMap.get(id) ?? null
       statuses[id] = {
-        wished: Boolean(item),
+        wished: Boolean(item) || guestWished.has(id),
         dropPercent:
           item && current != null ? dropPercent(current, item.previousPriceCents) : 0,
         likeCount: likeCounts.get(id) ?? 0,
@@ -82,7 +89,9 @@ export async function GET(req: Request) {
     })
     if (!item) {
       const likeCount = await countProductLikesSingle(productId)
-      return Response.json({ wished: false, likeCount })
+      const guestWished =
+        guestId && (await guestWishlistProductIds(guestId, [productId])).has(productId)
+      return Response.json({ wished: guestWished, likeCount })
     }
     const current = await currentPriceForProduct(productId)
     const likeCount = await countProductLikesSingle(productId)
@@ -125,7 +134,6 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const session = await auth()
   const userId = session?.user?.id
-  if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 })
 
   const body = (await req.json().catch(() => ({}))) as {
     productId?: string
@@ -139,6 +147,12 @@ export async function POST(req: Request) {
     select: { id: true },
   })
   if (!product) return Response.json({ error: "Product not found" }, { status: 404 })
+
+  if (!userId) {
+    const guestId = await getOrCreateGuestWishlistId()
+    const result = await toggleGuestWishlist(guestId, productId)
+    return Response.json(result)
+  }
 
   const exists = await prisma.wishlist.findUnique({
     where: { userId_productId: { userId, productId } },

@@ -470,6 +470,7 @@ model Product {
   blindDropshipOrderItems BlindDropshipOrderItem[]
   communityPosts          CommunityPost[]
   wishlists               Wishlist[]
+  guestWishlists          GuestWishlist[]
   reviews                 Review[]
   /**
    * AI category suggestions pending manual review (see `ProductReview` model).
@@ -666,6 +667,21 @@ model Wishlist {
   @@unique([userId, productId])
   @@index([userId, updatedAt])
   @@index([productId, updatedAt])
+}
+
+/** Anonymous buyer saves (likes) before account creation; merged into Wishlist on sign-in. */
+model GuestWishlist {
+  id        String   @id @default(cuid())
+  guestId   String
+  productId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([guestId, productId])
+  @@index([productId])
+  @@index([guestId, updatedAt])
 }
 
 model SearchHistory {

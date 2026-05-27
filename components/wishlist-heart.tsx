@@ -8,6 +8,7 @@ import {
   subscribeWishlistStatus,
   type WishlistCardStatus,
 } from "@/lib/wishlist-status-batch"
+import { toggleProductWishlist } from "@/lib/wishlist-toggle-client"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -43,29 +44,22 @@ export function WishlistHeart({ productId, className }: Props) {
     const prevWished = wished
     const prevCount = likeCount
     try {
-      const res = await fetch("/api/wishlist/toggle", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId }),
-      })
-      if (res.status === 401) {
-        const returnTo =
-          typeof window !== "undefined"
-            ? `${window.location.pathname}${window.location.search}`
-            : "/"
-        window.location.assign(
-          `/signup/customer?callbackUrl=${encodeURIComponent(returnTo)}`
-        )
+      const result = await toggleProductWishlist(productId)
+      if (!result.ok) {
+        console.error("[wishlist-heart]", { productId, error: result.error })
         return
       }
-      if (!res.ok) return
-      const data = (await res.json()) as { wished?: boolean; likeCount?: number }
-      const nextWished = Boolean(data.wished)
+      const nextWished = result.wished
       setWished(nextWished)
-      if (typeof data.likeCount === "number") {
-        setLikeCount(Math.max(0, data.likeCount))
+      if (typeof result.likeCount === "number") {
+        setLikeCount(Math.max(0, result.likeCount))
       } else {
-        setLikeCount(Math.max(0, prevCount + (nextWished && !prevWished ? 1 : !nextWished && prevWished ? -1 : 0)))
+        setLikeCount(
+          Math.max(
+            0,
+            prevCount + (nextWished && !prevWished ? 1 : !nextWished && prevWished ? -1 : 0)
+          )
+        )
       }
       if (!nextWished) setDropPercent(0)
     } finally {

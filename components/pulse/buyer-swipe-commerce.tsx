@@ -26,6 +26,7 @@ import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { buttonVariants } from "@/components/ui/button"
 import { addToBuyerCart } from "@/lib/cart-add-client"
 import { buyNowWithoutLogin } from "@/lib/guest-buy-now-client"
+import { toggleProductWishlist } from "@/lib/wishlist-toggle-client"
 import { affisellBrand } from "@/lib/affisell-brand"
 import { discoverSwipeHref } from "@/lib/discover-swipe-url"
 import type { PulseFeedItem } from "@/lib/pulse-feed-types"
@@ -204,25 +205,17 @@ export function BuyerSwipeCommerce({
   const saveDrop = useCallback(
     async (item: PulseFeedItem) => {
       if (!item.productId) return
-      const res = await fetch("/api/wishlist/toggle", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: item.productId }),
-      })
-      if (res.status === 401) {
-        router.push(
-          `/signup/customer?callbackUrl=${encodeURIComponent(
-            discoverSwipeHref({ category: categoryId, subcategory: subcategoryId })
-          )}`
-        )
-        return
-      }
-      if (res.ok) {
-        console.log("[buyer-swipe-commerce]", { productId: item.productId, result: "save-drop" })
+      const result = await toggleProductWishlist(item.productId)
+      if (result.ok) {
+        console.log("[buyer-swipe-commerce]", {
+          productId: item.productId,
+          result: "save-drop",
+          wished: result.wished,
+        })
         showToast(t("saveDrop"))
       }
     },
-    [categoryId, subcategoryId, router, showToast, t]
+    [showToast, t]
   )
 
   const buyNow = useCallback(
