@@ -68,6 +68,7 @@ export async function loadLuxuryAtelier(): Promise<LuxuryAtelierPayload> {
           name: true,
           images: true,
           compareAt: true,
+          isLuxury: true,
         },
       },
       affiliate: {
@@ -81,6 +82,8 @@ export async function loadLuxuryAtelier(): Promise<LuxuryAtelierPayload> {
   const pieces: LuxuryPiecePublic[] = []
 
   for (const row of listings) {
+    if (!row.product.isLuxury) continue
+
     const displayTier =
       row.luxuryTier === LUXURY_TIER_COLLECTION && row.luxuryCollection
         ? LUXURY_TIER_COLLECTION

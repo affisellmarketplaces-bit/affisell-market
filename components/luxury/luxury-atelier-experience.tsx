@@ -248,9 +248,15 @@ export function LuxuryAtelierExperience({ initial, initialCollectionSlug }: Prop
             </div>
           </motion.article>
         ) : (
-          <p className="rounded-2xl border border-amber-500/20 bg-black/40 px-4 py-16 text-center text-amber-100/60">
-            {t("empty")}
-          </p>
+          <div
+            className={cn(
+              affisellBrand.epoxySurface,
+              "flex flex-col items-center justify-center rounded-[1.75rem] border border-amber-500/15 px-6 py-20 text-center"
+            )}
+          >
+            <Crown className="mb-4 size-12 text-amber-400/40" aria-hidden />
+            <p className="max-w-md text-base leading-relaxed text-amber-100/70">{t("empty")}</p>
+          </div>
         )}
 
         {filteredPieces.length > 1 ? (
