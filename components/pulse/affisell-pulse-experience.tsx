@@ -67,6 +67,7 @@ function PulseClip({
 }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const viewed = useRef(false)
+  const mediaFitClass = "h-full w-full object-contain"
 
   useEffect(() => {
     if (!item.isVideo || !videoRef.current) return
@@ -91,32 +92,60 @@ function PulseClip({
   return (
     <div className="absolute inset-0">
       {item.mediaUrl ? (
-        item.isVideo ? (
-          <video
-            ref={videoRef}
-            src={item.mediaUrl}
-            className="h-full w-full object-cover"
-            muted={muted}
-            loop
-            playsInline
-            preload={active ? "auto" : "metadata"}
-          />
-        ) : (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={item.mediaUrl}
-            alt=""
-            className={cn(
-              "h-full w-full object-cover transition-transform duration-[8s] ease-out",
-              active && "scale-105"
+        <>
+          {/* Backdrop keeps immersion while foreground stays fully visible. */}
+          <div className="absolute inset-0">
+            {item.isVideo ? (
+              <video
+                src={item.mediaUrl}
+                className="h-full w-full object-cover scale-105 opacity-45 blur-xl"
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                aria-hidden
+              />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={item.mediaUrl}
+                alt=""
+                className="h-full w-full object-cover scale-105 opacity-45 blur-xl"
+                aria-hidden
+              />
             )}
-          />
-        )
+          </div>
+
+          <div className="relative z-[1] h-full w-full px-2 py-3 sm:px-3 sm:py-4">
+            {item.isVideo ? (
+              <video
+                ref={videoRef}
+                src={item.mediaUrl}
+                className={cn(mediaFitClass, "drop-shadow-[0_20px_50px_rgba(0,0,0,0.45)]")}
+                muted={muted}
+                loop
+                playsInline
+                preload={active ? "auto" : "metadata"}
+              />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={item.mediaUrl}
+                alt=""
+                className={cn(
+                  mediaFitClass,
+                  "drop-shadow-[0_20px_50px_rgba(0,0,0,0.45)] transition-transform duration-[8s] ease-out",
+                  active && "scale-[1.015]"
+                )}
+              />
+            )}
+          </div>
+        </>
       ) : (
         <div className="flex h-full items-center justify-center bg-zinc-950 text-zinc-500">—</div>
       )}
       <div
-        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/85"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/45 via-transparent to-black/82"
         aria-hidden
       />
       <div
