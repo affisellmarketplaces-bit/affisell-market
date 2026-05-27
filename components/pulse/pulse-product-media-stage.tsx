@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion"
 import Image from "next/image"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react"
 
 import { affisellBrand } from "@/lib/affisell-brand"
 import type { PulseFeedItem } from "@/lib/pulse-feed-types"
@@ -61,6 +61,13 @@ export function PulseProductMediaStage({
     setIndex((i) => Math.min(i + 1, slides.length - 1))
   }
 
+  function handleMediaTap(e: MouseEvent<HTMLButtonElement>) {
+    e.stopPropagation()
+    advance()
+  }
+
+  const canAdvance = hasMultiple && !atLast
+
   if (!current) {
     return (
       <div className={cn("flex h-full items-center justify-center bg-zinc-900 text-zinc-500", className)}>
@@ -107,34 +114,33 @@ export function PulseProductMediaStage({
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={current.url}
-          className="relative z-[1] flex h-full w-full cursor-pointer items-center justify-center p-3"
+          className="relative z-[1] flex h-full w-full items-center justify-center p-3"
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 1.01 }}
           transition={{ duration: 0.22 }}
-          onTap={(e) => {
-            e.stopPropagation()
-            advance()
-          }}
         >
           {current.isVideo ? (
             <video
               ref={videoRef}
               key={current.url}
               src={current.url}
-              className="max-h-full max-w-full object-contain drop-shadow-[0_24px_48px_rgba(0,0,0,0.5)]"
+              className="pointer-events-none max-h-full max-w-full object-contain drop-shadow-[0_24px_48px_rgba(0,0,0,0.5)]"
               muted={muted}
               loop
               playsInline
               autoPlay={active}
               preload={active ? "auto" : "metadata"}
+              controls={false}
+              disablePictureInPicture
+              controlsList="nodownload nofullscreen noplaybackrate"
             />
           ) : current.url.startsWith("http") ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={current.url}
               alt=""
-              className="max-h-full max-w-full object-contain drop-shadow-[0_24px_48px_rgba(0,0,0,0.5)]"
+              className="pointer-events-none max-h-full max-w-full object-contain drop-shadow-[0_24px_48px_rgba(0,0,0,0.5)]"
             />
           ) : (
             <Image
@@ -142,10 +148,20 @@ export function PulseProductMediaStage({
               alt=""
               width={400}
               height={400}
-              className="max-h-full max-w-full object-contain"
+              className="pointer-events-none max-h-full max-w-full object-contain"
               unoptimized
             />
           )}
+
+          {canAdvance ? (
+            <button
+              type="button"
+              className="absolute inset-0 z-10 cursor-pointer border-0 bg-transparent p-0"
+              aria-label={`Media ${index + 1} of ${slides.length}, tap for next`}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={handleMediaTap}
+            />
+          ) : null}
         </motion.div>
       </AnimatePresence>
 
