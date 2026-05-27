@@ -4,23 +4,12 @@ import { listingDisplayTitle, listingGalleryUrls } from "@/lib/affiliate-listing
 import { normalizeListingSalesCount } from "@/lib/listing-sales-count"
 import { buildMarketplaceAffiliateWhereFromUrl } from "@/lib/marketplace-listings-query"
 import type { PulseFeedItem } from "@/lib/pulse-feed-types"
+import {
+  buildPulseMediaGallery,
+  pickPulsePrimaryMedia,
+} from "@/lib/pulse-media-gallery"
 import { primaryProductImage } from "@/lib/product-images"
 import { prisma } from "@/lib/prisma"
-
-const VIDEO_RE = /\.(mp4|webm|mov|m4v)(\?.*)?$/i
-
-function isVideoUrl(url: string): boolean {
-  return VIDEO_RE.test(url.trim())
-}
-
-function pickMedia(urls: string[]): { mediaUrl: string | null; isVideo: boolean } {
-  const cleaned = urls.filter((u) => typeof u === "string" && u.trim())
-  const video = cleaned.find((u) => isVideoUrl(u))
-  if (video) return { mediaUrl: video.trim(), isVideo: true }
-  const first = cleaned[0]?.trim() || null
-  if (!first) return { mediaUrl: null, isVideo: false }
-  return { mediaUrl: first, isVideo: isVideoUrl(first) }
-}
 
 function compareAtCents(
   priceCents: number,
@@ -67,7 +56,7 @@ export async function loadBuyerSwipeFeedItems(
           basePriceCents: true,
           compareAt: true,
           videoAdUrl: true,
-          videos: { take: 1, select: { videoUrl: true } },
+          videos: { select: { videoUrl: true }, orderBy: { createdAt: "desc" } },
         },
       },
       affiliate: {
@@ -87,14 +76,15 @@ export async function loadBuyerSwipeFeedItems(
     const store = row.affiliate.store
     if (!store?.slug) continue
 
-    const gallery = [
+    const galleryUrls = [
       ...listingGalleryUrls(row.customImages ?? [], p.images ?? []),
       ...(p.videoAdUrl?.trim() ? [p.videoAdUrl.trim()] : []),
-      ...(p.videos[0]?.videoUrl?.trim() ? [p.videos[0].videoUrl.trim()] : []),
+      ...p.videos.map((v) => v.videoUrl).filter(Boolean),
     ]
-    const { mediaUrl, isVideo } = pickMedia(gallery)
+    const mediaGallery = buildPulseMediaGallery(galleryUrls)
+    const primary = pickPulsePrimaryMedia(galleryUrls)
     const fallback =
-      mediaUrl ||
+      primary?.url ||
       primaryProductImage(p.images) ||
       listingGalleryUrls(row.customImages ?? [], p.images ?? [])[0] ||
       null
@@ -117,7 +107,8 @@ export async function loadBuyerSwipeFeedItems(
       compareAtCents: compareAtCents(priceCents, p.basePriceCents, p.compareAt),
       soldCount: normalizeListingSalesCount(row.conversions),
       mediaUrl: fallback,
-      isVideo: isVideo || isVideoUrl(fallback),
+      isVideo: primary?.isVideo ?? false,
+      mediaGallery: mediaGallery.length > 0 ? mediaGallery : undefined,
       likes: 0,
       views: 0,
       boosted: row.conversions > 0,

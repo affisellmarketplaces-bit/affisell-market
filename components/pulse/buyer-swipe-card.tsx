@@ -19,11 +19,12 @@ import {
   ShoppingBag,
   Zap,
 } from "lucide-react"
-import Image from "next/image"
 
 import { affisellBrand } from "@/lib/affisell-brand"
 import type { PulseFeedItem } from "@/lib/pulse-feed-types"
 import { cn } from "@/lib/utils"
+
+import { PulseProductMediaStage } from "@/components/pulse/pulse-product-media-stage"
 
 const SWIPE_THRESHOLD = 64
 const VELOCITY_COMMIT = 380
@@ -160,61 +161,7 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
             "relative flex h-full flex-col overflow-hidden rounded-[1.75rem]"
           )}
         >
-          <div className="relative min-h-0 flex-1 overflow-hidden bg-zinc-900">
-            <div className="absolute inset-0">
-              {item.isVideo ? (
-                <video
-                  src={item.mediaUrl}
-                  className="h-full w-full object-cover opacity-40 blur-xl scale-105"
-                  muted
-                  loop
-                  playsInline
-                  preload="metadata"
-                  aria-hidden
-                />
-              ) : (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={item.mediaUrl}
-                  alt=""
-                  className="h-full w-full object-cover opacity-40 blur-xl scale-105"
-                  aria-hidden
-                />
-              )}
-            </div>
-            <div className="relative z-[1] flex h-full w-full items-center justify-center p-3">
-              {item.isVideo ? (
-                <video
-                  src={item.mediaUrl}
-                  className="max-h-full max-w-full object-contain drop-shadow-[0_24px_48px_rgba(0,0,0,0.5)]"
-                  muted
-                  loop
-                  playsInline
-                  preload={isTop ? "auto" : "metadata"}
-                />
-              ) : item.mediaUrl.startsWith("http") ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={item.mediaUrl}
-                  alt=""
-                  className="max-h-full max-w-full object-contain drop-shadow-[0_24px_48px_rgba(0,0,0,0.5)]"
-                />
-              ) : (
-                <Image
-                  src={item.mediaUrl}
-                  alt=""
-                  width={400}
-                  height={400}
-                  className="max-h-full max-w-full object-contain"
-                  unoptimized
-                />
-              )}
-            </div>
-            <div
-              className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/75"
-              aria-hidden
-            />
-          </div>
+          <PulseProductMediaStage item={item} active={isTop} className="relative min-h-0 flex-1" />
 
           <motion.div
             style={{ opacity: cartOpacity }}

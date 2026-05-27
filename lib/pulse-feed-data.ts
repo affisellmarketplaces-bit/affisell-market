@@ -1,25 +1,14 @@
-import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
+import { listingDisplayTitle, listingGalleryUrls, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { normalizeListingSalesCount } from "@/lib/listing-sales-count"
 import type { PulseFeedItem, PulseFeedSource } from "@/lib/pulse-feed-types"
+import {
+  buildPulseMediaGallery,
+  pickPulsePrimaryMedia,
+} from "@/lib/pulse-media-gallery"
 import { primaryProductImage } from "@/lib/product-images"
 import { prisma } from "@/lib/prisma"
-
-const VIDEO_RE = /\.(mp4|webm|mov|m4v)(\?.*)?$/i
-
-function isVideoUrl(url: string): boolean {
-  return VIDEO_RE.test(url.trim())
-}
-
-function pickMedia(urls: string[]): { mediaUrl: string | null; isVideo: boolean } {
-  const cleaned = urls.filter((u) => typeof u === "string" && u.trim())
-  const video = cleaned.find((u) => isVideoUrl(u))
-  if (video) return { mediaUrl: video.trim(), isVideo: true }
-  const first = cleaned[0]?.trim() || null
-  if (!first) return { mediaUrl: null, isVideo: false }
-  return { mediaUrl: first, isVideo: isVideoUrl(first) }
-}
 
 function pulseScore(opts: {
   likes: number
@@ -133,7 +122,7 @@ export async function loadPulseFeedItems(opts?: {
         compareAt: true,
         videoAdUrl: true,
         createdAt: true,
-        videos: { take: 1, select: { videoUrl: true } },
+        videos: { select: { videoUrl: true }, orderBy: { createdAt: "desc" } },
       },
     }),
   ])
@@ -156,13 +145,24 @@ export async function loadPulseFeedItems(opts?: {
     if (!prev || score > prev.score) byKey.set(key, { ...item, score })
   }
 
+  function itemWithGallery(
+    base: Omit<PulseFeedItem, "mediaGallery">,
+    galleryUrls: string[]
+  ): PulseFeedItem {
+    const mediaGallery = buildPulseMediaGallery(galleryUrls)
+    return {
+      ...base,
+      mediaGallery: mediaGallery.length > 0 ? mediaGallery : undefined,
+    }
+  }
+
   for (const row of communityRows) {
     const urls = [
       ...(row.videoUrl?.trim() ? [row.videoUrl.trim()] : []),
       ...(row.images ?? []),
     ]
-    const { mediaUrl, isVideo } = pickMedia(urls)
-    if (!mediaUrl) continue
+    const primary = pickPulsePrimaryMedia(urls)
+    if (!primary) continue
 
     const listing = row.productId
       ? await resolveBestListing(row.productId)
@@ -189,32 +189,35 @@ export async function loadPulseFeedItems(opts?: {
       : row.content.slice(0, 120)
 
     upsert(
-      {
-        id: row.id,
-        source: "community",
-        productId: row.productId ?? p?.id ?? "",
-        listingId,
-        storeSlug,
-        storeName: store.name,
-        storeAvatarUrl: store.aiAvatarUrl || store.logoUrl,
-        title,
-        caption: row.content.slice(0, 280),
-        priceCents,
-        compareAtCents,
-        soldCount: normalizeListingSalesCount(listing?.conversions),
-        mediaUrl,
-        isVideo,
-        likes: row.likes,
-        views: row.views,
-        boosted: Boolean(boosted),
-        href: listingId
-          ? storeSlug
-            ? `/shops/${encodeURIComponent(storeSlug)}/product/${listingId}`
-            : `/marketplace/${listingId}`
-          : storeSlug
-            ? `/store/${encodeURIComponent(storeSlug)}`
-            : "/marketplace",
-      },
+      itemWithGallery(
+        {
+          id: row.id,
+          source: "community",
+          productId: row.productId ?? p?.id ?? "",
+          listingId,
+          storeSlug,
+          storeName: store.name,
+          storeAvatarUrl: store.aiAvatarUrl || store.logoUrl,
+          title,
+          caption: row.content.slice(0, 280),
+          priceCents,
+          compareAtCents,
+          soldCount: normalizeListingSalesCount(listing?.conversions),
+          mediaUrl: primary.url,
+          isVideo: primary.isVideo,
+          likes: row.likes,
+          views: row.views,
+          boosted: Boolean(boosted),
+          href: listingId
+            ? storeSlug
+              ? `/shops/${encodeURIComponent(storeSlug)}/product/${listingId}`
+              : `/marketplace/${listingId}`
+            : storeSlug
+              ? `/store/${encodeURIComponent(storeSlug)}`
+              : "/marketplace",
+        },
+        urls
+      ),
       pulseScore({
         likes: row.likes,
         views: row.views,
@@ -230,14 +233,14 @@ export async function loadPulseFeedItems(opts?: {
     if (!listing?.product) continue
     const p = listing.product
     const store = listing.affiliate.store
-    const imageFallback = pickMedia(p.images ?? []).mediaUrl
+    const imageFallback = pickPulsePrimaryMedia(p.images ?? [])?.url
     const mediaCandidates = [
       prod.videoAdUrl?.trim(),
-      prod.videos[0]?.videoUrl?.trim(),
+      ...prod.videos.map((v) => v.videoUrl),
       imageFallback,
     ].filter((u): u is string => Boolean(u))
-    const { mediaUrl, isVideo } = pickMedia(mediaCandidates)
-    if (!mediaUrl || !isVideo) continue
+    const primary = pickPulsePrimaryMedia(mediaCandidates)
+    if (!primary?.isVideo) continue
 
     const boosted = touchedProductIds.has(prod.id) || [...queryWords].some((w) => p.name.toLowerCase().includes(w))
     const priceCents = listing.sellingPriceCents
@@ -253,28 +256,31 @@ export async function loadPulseFeedItems(opts?: {
     const storeSlug = store?.slug ?? null
 
     upsert(
-      {
-        id: `product-${prod.id}`,
-        source: "product",
-        productId: prod.id,
-        listingId,
-        storeSlug,
-        storeName: store?.name ?? null,
-        storeAvatarUrl: store?.aiAvatarUrl || store?.logoUrl || null,
-        title: listingDisplayTitle(listing.customTitle, p.name),
-        caption: null,
-        priceCents,
-        compareAtCents,
-        soldCount: normalizeListingSalesCount(listing.conversions),
-        mediaUrl,
-        isVideo: true,
-        likes: 0,
-        views: 0,
-        boosted: Boolean(boosted),
-        href: storeSlug
-          ? `/shops/${encodeURIComponent(storeSlug)}/product/${listingId}`
-          : `/marketplace/${listingId}`,
-      },
+      itemWithGallery(
+        {
+          id: `product-${prod.id}`,
+          source: "product",
+          productId: prod.id,
+          listingId,
+          storeSlug,
+          storeName: store?.name ?? null,
+          storeAvatarUrl: store?.aiAvatarUrl || store?.logoUrl || null,
+          title: listingDisplayTitle(listing.customTitle, p.name),
+          caption: null,
+          priceCents,
+          compareAtCents,
+          soldCount: normalizeListingSalesCount(listing.conversions),
+          mediaUrl: primary.url,
+          isVideo: true,
+          likes: 0,
+          views: 0,
+          boosted: Boolean(boosted),
+          href: storeSlug
+            ? `/shops/${encodeURIComponent(storeSlug)}/product/${listingId}`
+            : `/marketplace/${listingId}`,
+        },
+        mediaCandidates
+      ),
       pulseScore({
         likes: 0,
         views: 0,
@@ -309,6 +315,7 @@ export async function loadPulseFeedItems(opts?: {
             basePriceCents: true,
             compareAt: true,
             videoAdUrl: true,
+            videos: { select: { videoUrl: true }, orderBy: { createdAt: "desc" } },
           },
         },
         affiliate: {
@@ -323,13 +330,13 @@ export async function loadPulseFeedItems(opts?: {
       const p = row.product
       const store = row.affiliate.store
       if (!store?.slug) continue
-      const gallery = [
-        ...(row.customImages ?? []),
-        ...(p.images ?? []),
+      const galleryUrls = [
+        ...listingGalleryUrls(row.customImages ?? [], p.images ?? []),
         ...(p.videoAdUrl?.trim() ? [p.videoAdUrl.trim()] : []),
+        ...p.videos.map((v) => v.videoUrl).filter(Boolean),
       ]
-      const { mediaUrl, isVideo } = pickMedia(gallery)
-      if (!mediaUrl) continue
+      const primary = pickPulsePrimaryMedia(galleryUrls)
+      if (!primary) continue
       const key = `product-fallback-${row.id}`
       if ([...byKey.keys()].some((k) => k.includes(p.id))) continue
 
@@ -343,30 +350,33 @@ export async function loadPulseFeedItems(opts?: {
             : null
 
       upsert(
-        {
-          id: key,
-          source: "product",
-          productId: p.id,
-          listingId: row.id,
-          storeSlug: store.slug,
-          storeName: store.name,
-          storeAvatarUrl: store.aiAvatarUrl || store.logoUrl,
-          title: listingDisplayTitle(row.customTitle, p.name),
-          caption: null,
-          priceCents,
-          compareAtCents,
-          soldCount: normalizeListingSalesCount(row.conversions),
-          mediaUrl:
-            mediaUrl ||
-            listingPrimaryImageUrl(row.customImages, p.images) ||
-            primaryProductImage(p.images) ||
-            "/placeholder-product.jpg",
-          isVideo,
-          likes: 0,
-          views: 0,
-          boosted: touchedProductIds.has(p.id),
-          href: `/shops/${encodeURIComponent(store.slug)}/product/${row.id}`,
-        },
+        itemWithGallery(
+          {
+            id: key,
+            source: "product",
+            productId: p.id,
+            listingId: row.id,
+            storeSlug: store.slug,
+            storeName: store.name,
+            storeAvatarUrl: store.aiAvatarUrl || store.logoUrl,
+            title: listingDisplayTitle(row.customTitle, p.name),
+            caption: null,
+            priceCents,
+            compareAtCents,
+            soldCount: normalizeListingSalesCount(row.conversions),
+            mediaUrl:
+              primary.url ||
+              listingPrimaryImageUrl(row.customImages, p.images) ||
+              primaryProductImage(p.images) ||
+              "/placeholder-product.jpg",
+            isVideo: primary.isVideo,
+            likes: 0,
+            views: 0,
+            boosted: touchedProductIds.has(p.id),
+            href: `/shops/${encodeURIComponent(store.slug)}/product/${row.id}`,
+          },
+          galleryUrls
+        ),
         pulseScore({
           likes: 0,
           views: 0,

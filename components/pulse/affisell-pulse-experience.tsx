@@ -20,6 +20,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { ProductPriceOffer } from "@/components/product/product-price-offer"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
+import { PulseProductMediaStage } from "@/components/pulse/pulse-product-media-stage"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { addToBuyerCart } from "@/lib/cart-add-client"
 import { buyNowWithoutLogin } from "@/lib/guest-buy-now-client"
@@ -68,20 +69,7 @@ function PulseClip({
   muted: boolean
   onView: () => void
 }) {
-  const videoRef = useRef<HTMLVideoElement>(null)
   const viewed = useRef(false)
-  const mediaFitClass = "h-full w-full object-contain"
-
-  useEffect(() => {
-    if (!item.isVideo || !videoRef.current) return
-    const el = videoRef.current
-    el.muted = muted
-    if (active) void el.play().catch(() => {})
-    else {
-      el.pause()
-      el.currentTime = 0
-    }
-  }, [active, item.isVideo, muted])
 
   useEffect(() => {
     if (!active || viewed.current) return
@@ -95,55 +83,12 @@ function PulseClip({
   return (
     <div className="absolute inset-0">
       {item.mediaUrl ? (
-        <>
-          {/* Backdrop keeps immersion while foreground stays fully visible. */}
-          <div className="absolute inset-0">
-            {item.isVideo ? (
-              <video
-                src={item.mediaUrl}
-                className="h-full w-full object-cover scale-105 opacity-45 blur-xl"
-                muted
-                loop
-                playsInline
-                preload="metadata"
-                aria-hidden
-              />
-            ) : (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={item.mediaUrl}
-                alt=""
-                className="h-full w-full object-cover scale-105 opacity-45 blur-xl"
-                aria-hidden
-              />
-            )}
-          </div>
-
-          <div className="relative z-[1] h-full w-full px-2 py-3 sm:px-3 sm:py-4">
-            {item.isVideo ? (
-              <video
-                ref={videoRef}
-                src={item.mediaUrl}
-                className={cn(mediaFitClass, "drop-shadow-[0_20px_50px_rgba(0,0,0,0.45)]")}
-                muted={muted}
-                loop
-                playsInline
-                preload={active ? "auto" : "metadata"}
-              />
-            ) : (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={item.mediaUrl}
-                alt=""
-                className={cn(
-                  mediaFitClass,
-                  "drop-shadow-[0_20px_50px_rgba(0,0,0,0.45)] transition-transform duration-[8s] ease-out",
-                  active && "scale-[1.015]"
-                )}
-              />
-            )}
-          </div>
-        </>
+        <PulseProductMediaStage
+          item={item}
+          active={active}
+          muted={muted}
+          className="absolute inset-0"
+        />
       ) : (
         <div className="flex h-full items-center justify-center bg-zinc-950 text-zinc-500">—</div>
       )}

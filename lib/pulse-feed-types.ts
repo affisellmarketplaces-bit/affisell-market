@@ -1,5 +1,10 @@
 /** Affisell Pulse — buyer vertical feed (client-safe types). */
 
+export type PulseMediaSlide = {
+  url: string
+  isVideo: boolean
+}
+
 export type PulseFeedSource = "community" | "product"
 
 export type PulseFeedItem = {
@@ -17,6 +22,8 @@ export type PulseFeedItem = {
   soldCount: number
   mediaUrl: string
   isVideo: boolean
+  /** All product images + videos — tap to cycle in Pulse / Swipe. */
+  mediaGallery?: PulseMediaSlide[]
   likes: number
   views: number
   boosted: boolean
