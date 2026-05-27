@@ -41,11 +41,13 @@ import type { CSSProperties } from "react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import AffiliateLiveStore from "@/components/affiliate/affiliate-live-store"
+import { DiscoverListingActions } from "@/components/affiliate/discover-listing-actions"
 import { BentoStat } from "@/components/affisell/bento-ui"
 import {
   ListingBuilderModal,
   type SerializedListing,
 } from "@/components/affiliate/listing-builder-modal"
+import { resolveCatalogListingState } from "@/lib/affiliate-catalog-listing-state"
 import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
 import { COLORS, isMulticolorSwatch } from "@/lib/product-catalog-constants"
@@ -240,6 +242,7 @@ export function AffiliateDashboard({ storeId }: Props) {
   const [toast, setToast] = useState<string | null>(null)
   const [modalProduct, setModalProduct] = useState<CatalogProduct | null>(null)
   const [modalListing, setModalListing] = useState<SerializedListing | null>(null)
+  const [releasingListingId, setReleasingListingId] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -463,6 +466,24 @@ export function AffiliateDashboard({ storeId }: Props) {
     if (listingRow && p) void openEdit(listingRow, p)
   }
 
+  function openEditByListingId(productId: string, listingId: string) {
+    const listingRow = listings.find((l) => l.id === listingId)
+    const p =
+      catalog.find((x) => x.id === productId) ??
+      (listingRow?.product && listingRow.product.id === productId ? listingRow.product : null)
+    if (listingRow && p) void openEdit(listingRow, p)
+    else openEditModal(productId)
+  }
+
+  async function releaseDiscoverListing(listingId: string) {
+    setReleasingListingId(listingId)
+    try {
+      await removeListingsFromStorefront([listingId])
+    } finally {
+      setReleasingListingId(null)
+    }
+  }
+
   async function openEdit(listing: Listing, p: CatalogProduct) {
     const full = (await loadProductForModal(p.id)) ?? p
     setModalProduct(full)
@@ -546,7 +567,9 @@ export function AffiliateDashboard({ storeId }: Props) {
 
   const filteredDiscover = useMemo(() => {
     let rows = [...catalog]
-    if (discoverUnlistedOnly) rows = rows.filter((p) => !(p.affiliateProducts?.length ?? 0))
+    if (discoverUnlistedOnly) {
+      rows = rows.filter((p) => resolveCatalogListingState(p.affiliateProducts).kind !== "live")
+    }
     const q = discoverQ.trim().toLowerCase()
     if (q) {
       rows = rows.filter((p) => {
@@ -876,9 +899,11 @@ export function AffiliateDashboard({ storeId }: Props) {
             ) : (
         <section className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredDiscover.map((p) => {
-            const isAdded = (p.affiliateProducts?.length ?? 0) > 0
+            const listingState = resolveCatalogListingState(p.affiliateProducts)
+            const isLive = listingState.kind === "live"
+            const isHidden = listingState.kind === "hidden"
             const thumb = primaryProductImage(p.images) || "/placeholder.png"
-            const fresh = !isAdded && isSkuFresh(p.createdAt)
+            const fresh = listingState.kind === "none" && isSkuFresh(p.createdAt)
             const supplierBrand = supplierDisplayLabel(p)
             const supplierHref = p.supplier.store?.slug?.trim()
               ? `/store/supplier/${encodeURIComponent(p.supplier.store.slug)}`
@@ -888,17 +913,25 @@ export function AffiliateDashboard({ storeId }: Props) {
               <article
                 id={`catalog-product-${p.id}`}
                 key={p.id}
-                className={`relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 transition hover:ring-violet-200/90 dark:bg-zinc-950 dark:ring-zinc-800 dark:hover:ring-violet-900/50 ${
-                  isAdded ? "opacity-[0.72]" : ""
-                }`}
+                className={cn(
+                  "relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 transition hover:ring-violet-200/90 dark:bg-zinc-950 dark:hover:ring-violet-900/50",
+                  isLive && "ring-emerald-200/90 dark:ring-emerald-900/50",
+                  isHidden && "ring-amber-200/90 dark:ring-amber-900/40",
+                  !isLive && !isHidden && "ring-gray-100 dark:ring-zinc-800"
+                )}
               >
-                {isAdded ? (
+                {isLive ? (
                   <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-full bg-green-600 px-2 py-1 text-xs text-white shadow-sm">
                     <Check className="h-3 w-3" aria-hidden />
                     In your store
                   </div>
                 ) : null}
-                {!isAdded && fresh ? (
+                {isHidden ? (
+                  <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-full bg-amber-500 px-2 py-1 text-xs font-medium text-white shadow-sm">
+                    Off storefront
+                  </div>
+                ) : null}
+                {listingState.kind === "none" && fresh ? (
                   <div className="pointer-events-none absolute left-3 top-3 z-10">
                     <span className="rounded-full bg-sky-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow">
                       New
@@ -995,32 +1028,16 @@ export function AffiliateDashboard({ storeId }: Props) {
                   ) : (
                     <p className="-mt-1 truncate text-xs text-zinc-400 dark:text-zinc-500">{supplierBrand}</p>
                   )}
-                  {isAdded ? (
-                    <>
-                      <button
-                        type="button"
-                        disabled
-                        className="mt-3 w-full cursor-not-allowed rounded-2xl bg-gray-100 py-3 text-sm font-semibold text-gray-500 dark:bg-zinc-800 dark:text-zinc-300"
-                      >
-                        Already in your store
-                      </button>
-                      <button
-                        type="button"
-                        className="mt-2 w-full text-sm text-green-600 hover:text-green-700"
-                        onClick={() => openEditModal(p.id)}
-                      >
-                        Edit listing →
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      type="button"
-                      className="mt-3 w-full rounded-2xl bg-gradient-to-r from-zinc-900 to-zinc-800 py-3 text-sm font-semibold text-white shadow-md hover:from-zinc-800 hover:to-zinc-900 dark:from-white dark:to-zinc-100 dark:text-zinc-950"
-                      onClick={() => openCreate(p)}
-                    >
-                      Add to my store
-                    </button>
-                  )}
+                  <DiscoverListingActions
+                    state={listingState}
+                    locale="en"
+                    releasing={
+                      listingState.kind !== "none" && releasingListingId === listingState.listingId
+                    }
+                    onAdd={() => void openCreate(p)}
+                    onEdit={(listingId) => openEditByListingId(p.id, listingId)}
+                    onRelease={releaseDiscoverListing}
+                  />
                 </div>
               </article>
             )

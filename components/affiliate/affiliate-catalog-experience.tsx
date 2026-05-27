@@ -17,6 +17,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 
 import { AffiliateCatalogHighlights } from "@/components/affiliate/affiliate-catalog-highlights"
+import { DiscoverListingActions } from "@/components/affiliate/discover-listing-actions"
 import {
   ListingBuilderModal,
   type SerializedListing,
@@ -26,6 +27,7 @@ import { MarketplaceDepartmentRail } from "@/components/marketplace/MarketplaceD
 import { Sidebar } from "@/components/marketplace/Sidebar"
 import { Button } from "@/components/ui/button"
 import { AFFILIATE_AGENT_PATH, AFFILIATE_CATALOG_PATH, AFFILIATE_HUB_PATH } from "@/lib/affiliate-routes"
+import { resolveCatalogListingState } from "@/lib/affiliate-catalog-listing-state"
 import {
   AFFILIATE_CATALOG_NICHES,
   type AffiliateCatalogHighlights as HighlightsData,
@@ -118,6 +120,7 @@ export function AffiliateCatalogExperience({ stats, initialHighlights }: Props) 
 
   const [modalProduct, setModalProduct] = useState<CatalogProduct | null>(null)
   const [modalListing, setModalListing] = useState<SerializedListing | null>(null)
+  const [releasingListingId, setReleasingListingId] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const toastTimer = useRef<number | null>(null)
   const productDeepLinkConsumed = useRef(false)
@@ -169,6 +172,48 @@ export function AffiliateCatalogExperience({ stats, initialHighlights }: Props) 
     setToast(msg)
     if (toastTimer.current) window.clearTimeout(toastTimer.current)
     toastTimer.current = window.setTimeout(() => setToast(null), 3200)
+  }
+
+  async function refreshCatalogProducts() {
+    const params = new URLSearchParams(searchParams.toString())
+    if (sort !== "new") params.set("sort", sort)
+    const qs = params.toString()
+    try {
+      const r = await fetch(`/api/affiliate/discover-catalog${qs ? `?${qs}` : ""}`, { credentials: "include" })
+      const data = (await r.json()) as { products?: AffiliateCatalogProduct[] }
+      if (r.ok && Array.isArray(data.products)) setProducts(data.products)
+    } catch {
+      // catalog refresh is best-effort after release
+    }
+  }
+
+  async function releaseFromStorefront(listingId: string) {
+    setReleasingListingId(listingId)
+    try {
+      const res = await fetch("/api/affiliate/products/bulk", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ ids: [listingId] }),
+      })
+      const data = (await res.json().catch(() => ({}))) as {
+        deletedIds?: string[]
+        hiddenIds?: string[]
+        error?: string
+      }
+      if (!res.ok) {
+        showToast(data.error ?? "Impossible de libérer la fiche")
+        return
+      }
+      const hidden = data.hiddenIds?.length ?? 0
+      const deleted = data.deletedIds?.length ?? 0
+      if (hidden > 0) showToast("Retiré de la vitrine — prêt à réimporter")
+      else if (deleted > 0) showToast("Produit libéré — de nouveau dans Discover")
+      else showToast("Fiche retirée de la vitrine")
+      await refreshCatalogProducts()
+    } finally {
+      setReleasingListingId(null)
+    }
   }
 
   async function loadProductForModal(productId: string): Promise<CatalogProduct | null> {
@@ -244,7 +289,8 @@ export function AffiliateCatalogExperience({ stats, initialHighlights }: Props) 
     const row = products.find((p) => p.id === pid)
     if (!row) return
     productDeepLinkConsumed.current = true
-    const listingId = row.affiliateProducts[0]?.id ?? null
+    const listingState = resolveCatalogListingState(row.affiliateProducts)
+    const listingId = listingState.kind !== "none" ? listingState.listingId : null
     void (listingId ? openEdit(pid, listingId) : openCreate(pid))
     const params = new URLSearchParams(searchParams.toString())
     params.delete("productId")
@@ -476,8 +522,10 @@ export function AffiliateCatalogExperience({ stats, initialHighlights }: Props) 
               ) : (
                 <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                   {products.map((p) => {
-                    const isAdded = (p.affiliateProducts?.length ?? 0) > 0
-                    const listingId = p.affiliateProducts[0]?.id
+                    const listingState = resolveCatalogListingState(p.affiliateProducts)
+                    const isLive = listingState.kind === "live"
+                    const isHidden = listingState.kind === "hidden"
+                    const listingId = listingState.kind !== "none" ? listingState.listingId : undefined
                     const thumb = primaryProductImage(p.images) || "/placeholder-product.jpg"
                     const margin = Math.round((p.basePriceCents * (Number(p.commissionRate) || 0)) / 100)
                     const supplierHref = p.supplier.store?.slug
@@ -487,14 +535,21 @@ export function AffiliateCatalogExperience({ stats, initialHighlights }: Props) 
                       <article
                         key={p.id}
                         className={cn(
-                          "relative flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm ring-1 ring-zinc-100 transition hover:shadow-lg dark:bg-zinc-950 dark:ring-zinc-800",
-                          isAdded ? "border-emerald-200/80" : "border-zinc-100 hover:border-violet-200"
+                          "relative flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm ring-1 transition hover:shadow-lg dark:bg-zinc-950 dark:ring-zinc-800",
+                          isLive && "border-emerald-200/80 ring-emerald-200/60",
+                          isHidden && "border-amber-200/80 ring-amber-200/60",
+                          !isLive && !isHidden && "border-zinc-100 ring-zinc-100 hover:border-violet-200"
                         )}
                       >
-                        {isAdded ? (
+                        {isLive ? (
                           <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-full bg-emerald-600 px-2 py-1 text-xs text-white shadow">
                             <Check className="h-3 w-3" aria-hidden />
                             En vitrine
+                          </div>
+                        ) : null}
+                        {isHidden ? (
+                          <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-full bg-amber-500 px-2 py-1 text-xs font-medium text-white shadow">
+                            Hors vitrine
                           </div>
                         ) : null}
                         <button
@@ -563,24 +618,16 @@ export function AffiliateCatalogExperience({ stats, initialHighlights }: Props) 
                           ) : (
                             <p className="truncate text-xs text-zinc-400">{supplierLabel(p)}</p>
                           )}
-                          {isAdded && listingId ? (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              className="mt-2 w-full border-emerald-200 text-emerald-800"
-                              onClick={() => void openEdit(p.id, listingId)}
-                            >
-                              Modifier ma fiche vitrine
-                            </Button>
-                          ) : (
-                            <Button
-                              type="button"
-                              className="mt-2 w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500"
-                              onClick={() => void openCreate(p.id)}
-                            >
-                              Ajouter à ma vitrine
-                            </Button>
-                          )}
+                          <DiscoverListingActions
+                            state={listingState}
+                            locale="fr"
+                            releasing={
+                              listingState.kind !== "none" && releasingListingId === listingState.listingId
+                            }
+                            onAdd={() => void openCreate(p.id)}
+                            onEdit={(id) => void openEdit(p.id, id)}
+                            onRelease={releaseFromStorefront}
+                          />
                         </div>
                       </article>
                     )
@@ -605,14 +652,7 @@ export function AffiliateCatalogExperience({ stats, initialHighlights }: Props) 
           setModalProduct(null)
           setModalListing(null)
           showToast("Fiche enregistrée sur votre vitrine")
-          const params = new URLSearchParams(searchParams.toString())
-          const qs = params.toString()
-          void fetch(`/api/affiliate/discover-catalog${qs ? `?${qs}` : ""}`, { credentials: "include" })
-            .then(async (r) => {
-              const data = (await r.json()) as { products?: AffiliateCatalogProduct[] }
-              if (r.ok && Array.isArray(data.products)) setProducts(data.products)
-            })
-            .catch(() => {})
+          void refreshCatalogProducts()
         }}
       />
 
