@@ -10,6 +10,7 @@ const PUBLIC_PAGE_PATHS = [
   "/faq",
   "/discover",
   "/auctions",
+  "/luxe",
   "/login",
   "/affiliate",
   "/cart",
@@ -59,6 +60,19 @@ test.describe("public flows", () => {
     expect([301, 302, 307, 308]).toContain(res.status())
     const location = res.headers().location ?? ""
     expect(location).toMatch(/\/$|\/en$|\/fr$/)
+  })
+
+  test("luxe atelier shell loads", async ({ page }) => {
+    await page.goto("/luxe")
+    await expect(page).toHaveURL(/\/luxe/)
+    await expect(page.getByTestId("luxe-atelier")).toBeVisible({ timeout: 30_000 })
+  })
+
+  test("GET /api/luxe returns JSON", async ({ request }) => {
+    const res = await request.get("/api/luxe")
+    expect(res.ok()).toBeTruthy()
+    const data = await res.json()
+    expect(Array.isArray(data.pieces)).toBeTruthy()
   })
 
   test("auction arena shell loads", async ({ page }) => {

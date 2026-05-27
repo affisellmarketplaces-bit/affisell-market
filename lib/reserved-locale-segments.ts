@@ -23,6 +23,7 @@ export const RESERVED_LOCALE_SEGMENTS = new Set([
   "invite",
   "legal",
   "login",
+  "luxe",
   "marketplace",
   "onboarding",
   "order-success",

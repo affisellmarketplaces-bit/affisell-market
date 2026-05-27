@@ -130,7 +130,9 @@
       "wishlist": "Wishlist",
       "wishlistHint": "Price alerts & favorites",
       "auctions": "Auction Arena",
-      "auctionsHint": "Live bids · futuristic drops"
+      "auctionsHint": "Live bids · futuristic drops",
+      "luxe": "Affisell Luxe",
+      "luxeHint": "Curated luxury & collections"
     }
   },
   "creators": {
@@ -1003,6 +1005,7 @@
       "cart": "Cart",
       "wishlist": "Wishlist",
       "auctions": "Auction Arena",
+      "luxe": "Affisell Luxe",
       "myOrders": "My orders",
       "sellerDashboard": "Seller dashboard",
       "listProduct": "List a product",
@@ -1356,6 +1359,22 @@
     "tickerEmpty": "Be the first to bid on Affisell Arena",
     "bidPlaced": "Bid registered on-chain ✦",
     "bidFailed": "Could not place bid"
+  },
+  "luxe": {
+    "eyebrow": "Private selection",
+    "title": "Affisell Luxe",
+    "back": "Catalog",
+    "subtitle": "Curated pieces · authenticated creators · limited visibility",
+    "badgeLuxe": "Luxe",
+    "badgeCollection": "Collection",
+    "prestige": "Prestige {score}",
+    "acquire": "Acquire",
+    "viewPiece": "View piece",
+    "allCollections": "All",
+    "gallery": "The gallery",
+    "empty": "The atelier is being curated. Creators can mark listings as Luxe or assign a collection.",
+    "tickerEmpty": "Affisell Luxe — curated excellence",
+    "curationNote": "Only listings explicitly marked Luxe or assigned to an active collection appear here."
   },
   "errors": {
     "notFound": {

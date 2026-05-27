@@ -480,6 +480,8 @@ export function AffiliateDashboard({ storeId }: Props) {
       seoTitle: listing.seoTitle,
       seoDescription: listing.seoDescription,
       collections: listing.collections ?? [],
+      luxuryTier: listing.luxuryTier ?? "NONE",
+      luxuryCollectionId: listing.luxuryCollectionId ?? null,
       isListed: listing.isListed,
       isFeatured: listing.isFeatured,
       promotedColor: listing.promotedColor ?? null,

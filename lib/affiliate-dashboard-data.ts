@@ -70,6 +70,8 @@ const affiliateListingRowSelect = {
   seoTitle: true,
   seoDescription: true,
   collections: true,
+  luxuryTier: true,
+  luxuryCollectionId: true,
   isListed: true,
   isFeatured: true,
   clicks: true,

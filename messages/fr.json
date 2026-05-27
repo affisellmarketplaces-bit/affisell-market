@@ -130,7 +130,9 @@
       "wishlist": "Wishlist",
       "wishlistHint": "Alertes prix & favoris",
       "auctions": "Arène enchères",
-      "auctionsHint": "Enchères live · drops futuristes"
+      "auctionsHint": "Enchères live · drops futuristes",
+      "luxe": "Affisell Luxe",
+      "luxeHint": "Sélection luxe & collections"
     }
   },
   "creators": {
@@ -1003,6 +1005,7 @@
       "cart": "Panier",
       "wishlist": "Favoris",
       "auctions": "Arène enchères",
+      "luxe": "Affisell Luxe",
       "myOrders": "Mes commandes",
       "sellerDashboard": "Tableau de bord vendeur",
       "listProduct": "Mettre en vente",
@@ -1356,6 +1359,22 @@
     "tickerEmpty": "Soyez le premier à enchérir sur l'Arène Affisell",
     "bidPlaced": "Enchère enregistrée ✦",
     "bidFailed": "Enchère impossible"
+  },
+  "luxe": {
+    "eyebrow": "Sélection privée",
+    "title": "Affisell Luxe",
+    "back": "Catalogue",
+    "subtitle": "Pièces curatoriales · créateurs authentifiés · visibilité limitée",
+    "badgeLuxe": "Luxe",
+    "badgeCollection": "Collection",
+    "prestige": "Prestige {score}",
+    "acquire": "Acquérir",
+    "viewPiece": "Voir la pièce",
+    "allCollections": "Tout",
+    "gallery": "La galerie",
+    "empty": "L'atelier se prépare. Les créateurs peuvent marquer une fiche Luxe ou l'assigner à une collection.",
+    "tickerEmpty": "Affisell Luxe — excellence curatoriale",
+    "curationNote": "Seules les fiches explicitement marquées Luxe ou rattachées à une collection active apparaissent ici."
   },
   "errors": {
     "notFound": {

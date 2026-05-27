@@ -20,6 +20,12 @@ import {
   promotedVariantKeysFromPick,
 } from "@/lib/affiliate-storefront-variants"
 import { DEFAULT_AFFISELL_COMMISSION_BPS } from "@/lib/affisell-platform-commission"
+import {
+  LUXURY_TIER_COLLECTION,
+  LUXURY_TIER_LUXE,
+  LUXURY_TIER_NONE,
+  type LuxuryTier,
+} from "@/lib/luxury-constants"
 import { computeMarketplaceOrderSettlement } from "@/lib/marketplace-order-settlement"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { formatWarrantyBadgeLabel, resolveProductWarrantyMonths } from "@/lib/product-warranty"
@@ -55,6 +61,8 @@ export type SerializedListing = {
   seoTitle?: string | null
   seoDescription?: string | null
   collections: string[]
+  luxuryTier?: string
+  luxuryCollectionId?: string | null
   isListed: boolean
   isFeatured?: boolean
   clicks?: number
@@ -107,6 +115,8 @@ type FormFields = {
   promotedSize: string
   promotedVariantPick: Record<string, boolean>
   showWarranty: boolean
+  luxuryTier: LuxuryTier
+  luxuryCollectionId: string
 }
 
 function getListingFormDefaults(
@@ -156,6 +166,11 @@ function getListingFormDefaults(
       L?.promotedVariantKeys
     ),
     showWarranty: Boolean(L?.showWarranty),
+    luxuryTier:
+      L?.luxuryTier === LUXURY_TIER_LUXE || L?.luxuryTier === LUXURY_TIER_COLLECTION
+        ? (L.luxuryTier as LuxuryTier)
+        : LUXURY_TIER_NONE,
+    luxuryCollectionId: L?.luxuryCollectionId ?? "",
   }
 }
 
@@ -383,6 +398,9 @@ function ListingBuilderModalBody({
           promotedSize: form.promotedSize.trim() || null,
           promotedVariantKeys,
           showWarranty: form.showWarranty,
+          luxuryTier: form.luxuryTier,
+          luxuryCollectionId:
+            form.luxuryTier === LUXURY_TIER_COLLECTION ? form.luxuryCollectionId || null : null,
         }
         const res = await fetch(`/api/affiliate/products/${listing.id}`, {
           method: "PATCH",
@@ -425,6 +443,9 @@ function ListingBuilderModalBody({
           promotedSize: form.promotedSize.trim() || null,
           promotedVariantKeys,
           showWarranty: form.showWarranty,
+          luxuryTier: form.luxuryTier,
+          luxuryCollectionId:
+            form.luxuryTier === LUXURY_TIER_COLLECTION ? form.luxuryCollectionId || null : null,
         }
 
         const res = await fetch("/api/affiliate/products/add", {
@@ -978,6 +999,51 @@ function ListingBuilderModalBody({
                 </div>
               ) : null}
 
+              <div className="rounded-xl border border-amber-200/80 bg-gradient-to-br from-amber-50/90 to-white p-4 dark:border-amber-900/40 dark:from-amber-950/30 dark:to-zinc-900">
+                <p className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-amber-50">
+                  <span aria-hidden>✦</span> Affisell Luxe
+                </p>
+                <p className="mt-1 text-xs text-gray-600 dark:text-amber-100/60">
+                  Seuls les produits marqués <strong>Luxe</strong> ou rattachés à une{" "}
+                  <strong>collection</strong> apparaissent sur /luxe.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {(
+                    [
+                      { id: LUXURY_TIER_NONE, label: "Aucun" },
+                      { id: LUXURY_TIER_LUXE, label: "Luxe" },
+                      { id: LUXURY_TIER_COLLECTION, label: "Collection" },
+                    ] as const
+                  ).map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() =>
+                        setForm((f) => ({
+                          ...f,
+                          luxuryTier: opt.id,
+                          luxuryCollectionId:
+                            opt.id === LUXURY_TIER_COLLECTION ? f.luxuryCollectionId : "",
+                        }))
+                      }
+                      className={`rounded-full px-3 py-1 text-xs font-medium ring-1 transition ${
+                        form.luxuryTier === opt.id
+                          ? "bg-amber-700 text-white ring-amber-800"
+                          : "bg-white text-gray-700 ring-gray-200 hover:bg-amber-50 dark:bg-zinc-900 dark:text-amber-100"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+                {form.luxuryTier === LUXURY_TIER_COLLECTION ? (
+                  <LuxuryCollectionPicker
+                    value={form.luxuryCollectionId}
+                    onChange={(id) => setForm((f) => ({ ...f, luxuryCollectionId: id }))}
+                  />
+                ) : null}
+              </div>
+
               <div>
                 <p className="text-sm font-medium text-gray-800">Collections</p>
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -1125,6 +1191,43 @@ function ListingBuilderModalBody({
         </div>
       ) : null}
     </div>
+  )
+}
+
+function LuxuryCollectionPicker({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (id: string) => void
+}) {
+  const [options, setOptions] = useState<Array<{ id: string; name: string }>>([])
+
+  useEffect(() => {
+    void fetch("/api/luxe", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { collections?: Array<{ id: string; name: string }> } | null) => {
+        if (data?.collections) setOptions(data.collections)
+      })
+      .catch(() => {})
+  }, [])
+
+  return (
+    <label className="mt-3 block text-sm text-gray-800 dark:text-amber-100">
+      <span className="font-medium">Collection Luxe</span>
+      <select
+        className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm dark:border-amber-900/50 dark:bg-zinc-950 dark:text-amber-50"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        <option value="">Choisir une collection…</option>
+        {options.map((o) => (
+          <option key={o.id} value={o.id}>
+            {o.name}
+          </option>
+        ))}
+      </select>
+    </label>
   )
 }
 

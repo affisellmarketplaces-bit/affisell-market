@@ -817,6 +817,13 @@ model AffiliateProduct {
   seoDescription String?
   collections    String[] @default([])
 
+  /**
+   * Affisell Luxe window: only `LUXE` or `COLLECTION` (+ active `LuxuryCollection`) appear on `/luxe`.
+   */
+  luxuryTier           String            @default("NONE")
+  luxuryCollectionId   String?
+  luxuryCollection     LuxuryCollection? @relation(fields: [luxuryCollectionId], references: [id], onDelete: SetNull)
+
   isListed   Boolean @default(true)
   isFeatured Boolean @default(false)
   position   Int     @default(0)
@@ -860,6 +867,24 @@ model AffiliateProduct {
 
   @@unique([affiliateId, productId])
   @@unique([affiliateId, customSlug])
+  @@index([luxuryTier, isListed])
+}
+
+/** Curated luxury collection — listings must have `luxuryTier = COLLECTION` + this id. */
+model LuxuryCollection {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  name          String
+  tagline       String?
+  coverImageUrl String?
+  sortOrder     Int      @default(0)
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  listings AffiliateProduct[]
+
+  @@index([active, sortOrder])
 }
 
 /**

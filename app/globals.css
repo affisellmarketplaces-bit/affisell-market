@@ -933,4 +933,44 @@
       opacity: 0;
     }
   }
+
+  .affisell-luxe-atelier {
+    @apply relative min-h-[100dvh] overflow-x-hidden bg-[#070605] text-amber-50;
+    background-image:
+      radial-gradient(ellipse 100% 70% at 50% -15%, rgba(180, 134, 11, 0.28), transparent 55%),
+      radial-gradient(ellipse 60% 50% at 0% 100%, rgba(109, 40, 217, 0.12), transparent 50%),
+      radial-gradient(ellipse 50% 40% at 100% 60%, rgba(251, 191, 36, 0.08), transparent 45%);
+  }
+
+  .affisell-luxe-shimmer {
+    background: linear-gradient(
+      105deg,
+      transparent 40%,
+      rgba(251, 191, 36, 0.06) 50%,
+      transparent 60%
+    );
+    background-size: 200% 100%;
+    animation: luxe-shimmer 8s ease-in-out infinite;
+  }
+
+  @keyframes luxe-shimmer {
+    0%,
+    100% {
+      background-position: 200% 0;
+    }
+    50% {
+      background-position: -200% 0;
+    }
+  }
+
+  .affisell-luxe-hero {
+    box-shadow:
+      0 0 0 1px rgba(251, 191, 36, 0.15),
+      0 0 80px rgba(180, 134, 11, 0.2),
+      0 32px 96px rgba(0, 0, 0, 0.65);
+  }
+
+  .affisell-luxe-ticker {
+    animation: auction-ticker 36s linear infinite;
+  }
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useTranslations } from "next-intl"
-import { Brain, Gavel, LayoutGrid, Sparkles, Store } from "lucide-react"
+import { Brain, Crown, Gavel, LayoutGrid, Sparkles, Store } from "lucide-react"
 
 import { PUBLIC_SHOPS_PATH } from "@/lib/affiliate-routes"
 import { affisellBrand } from "@/lib/affisell-brand"
@@ -31,6 +31,13 @@ export function MarketplaceAffisellPulse({ audience = "default" }: Props) {
       hint: t("auctionsHint"),
       Icon: Gavel,
       cardClass: "from-rose-600 via-fuchsia-600 to-violet-700 text-white shadow-fuchsia-500/30",
+    },
+    {
+      href: "/luxe",
+      label: t("luxe"),
+      hint: t("luxeHint"),
+      Icon: Crown,
+      cardClass: "from-amber-700 via-yellow-600 to-amber-900 text-amber-50 shadow-amber-900/40",
     },
     {
       href: "/discover",

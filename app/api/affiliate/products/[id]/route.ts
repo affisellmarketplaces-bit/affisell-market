@@ -6,6 +6,7 @@ import { auth } from "@/auth"
 import { parsePromotedVariantPatch } from "@/lib/affiliate-promoted-variant"
 import { parsePromotedVariantKeysBody } from "@/lib/affiliate-storefront-variants"
 import { resolveBuyerRewardForListing } from "@/lib/affiliate-buyer-reward-request"
+import { buildLuxuryListingPatch } from "@/lib/luxury-listing-patch"
 import { slugifyListingSlug } from "@/lib/affiliate-listing-display"
 import { parseShowWarrantyFlag, resolveProductWarrantyMonths } from "@/lib/product-warranty"
 import { removeAffiliateListingsFromStorefront } from "@/lib/affiliate-listing-remove"
@@ -169,6 +170,12 @@ export async function PATCH(
 
   const cols = parseCollections(body.collections)
   if (cols !== undefined) data.collections = cols
+
+  const luxuryPatch = await buildLuxuryListingPatch(body)
+  if (!luxuryPatch.ok) {
+    return NextResponse.json({ error: luxuryPatch.error }, { status: luxuryPatch.status })
+  }
+  Object.assign(data, luxuryPatch.data)
 
   if (typeof body.listInStore === "boolean") data.isListed = body.listInStore
   if (typeof body.isListed === "boolean") data.isListed = body.isListed

@@ -4,6 +4,7 @@ import { auth } from "@/auth"
 import { parsePromotedVariantPatch } from "@/lib/affiliate-promoted-variant"
 import { parsePromotedVariantKeysBody } from "@/lib/affiliate-storefront-variants"
 import { resolveBuyerRewardForListing } from "@/lib/affiliate-buyer-reward-request"
+import { resolveLuxuryListingCreateFields } from "@/lib/luxury-listing-patch"
 import { slugifyListingSlug } from "@/lib/affiliate-listing-display"
 import { parseShowWarrantyFlag, resolveProductWarrantyMonths } from "@/lib/product-warranty"
 import { prisma } from "@/lib/prisma"
@@ -106,6 +107,10 @@ export async function POST(request: Request) {
   const seoDescription = typeof body.seoDescription === "string" ? body.seoDescription.trim().slice(0, 160) : ""
 
   const collections = parseCollections(body.collections)
+  const luxuryRes = await resolveLuxuryListingCreateFields(body)
+  if (!luxuryRes.ok) {
+    return NextResponse.json({ error: luxuryRes.error }, { status: luxuryRes.status })
+  }
   const listToggle =
     typeof body.listInStore === "boolean"
       ? body.listInStore
@@ -226,6 +231,8 @@ export async function POST(request: Request) {
         seoTitle: seoTitle.length ? seoTitle : null,
         seoDescription: seoDescription.length ? seoDescription : null,
         collections,
+        luxuryTier: luxuryRes.fields.luxuryTier,
+        luxuryCollectionId: luxuryRes.fields.luxuryCollectionId,
         isListed,
         isFeatured,
         position,
@@ -244,6 +251,8 @@ export async function POST(request: Request) {
         seoTitle: seoTitle.length ? seoTitle : undefined,
         seoDescription: seoDescription.length ? seoDescription : undefined,
         collections,
+        luxuryTier: luxuryRes.fields.luxuryTier,
+        luxuryCollectionId: luxuryRes.fields.luxuryCollectionId,
         isListed,
         isFeatured,
         buyerRewardKind: reward.buyerRewardKind,

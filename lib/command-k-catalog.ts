@@ -100,6 +100,15 @@ const CATALOG: CatalogEntry[] = [
     hideForPersona: ["seller"],
   },
   {
+    id: "luxe",
+    segment: "buy",
+    labelKey: "items.luxe",
+    action: "navigate",
+    href: "/luxe",
+    keywords: ["luxe", "luxury", "premium", "collection", "haute"],
+    hideForPersona: ["seller"],
+  },
+  {
     id: "become-seller",
     segment: "sell",
     labelKey: "items.becomeSeller",
