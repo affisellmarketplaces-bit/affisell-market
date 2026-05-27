@@ -40,7 +40,8 @@ import { shopperCategoryEyebrow, shopperVisibleTags } from "@/lib/product-shoppe
 import { ProductPriceOffer } from "@/components/product/product-price-offer"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
-import { addGuestCartItem } from "@/lib/guest-cart"
+import { addToBuyerCart } from "@/lib/cart-add-client"
+import { buyNowWithoutLogin } from "@/lib/guest-buy-now-client"
 import { cn } from "@/lib/utils"
 import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/marketplace-checkout-discount"
 import {
@@ -726,31 +727,23 @@ export function MarketplaceListingDetail({
     e?.stopPropagation()
     setCartBusy(true)
     try {
-      const res = await fetch("/api/cart/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          productId: listingId,
-          quantity: purchaseQty,
-          selectedColor: selectedColor ?? undefined,
-          selectedSize: cartSelectedSize ?? undefined,
-        }),
-        credentials: "include",
+      const result = await addToBuyerCart({
+        productId: listingId,
+        qty: purchaseQty,
+        title: name,
+        imageUrl: hero,
+        sellerName: sellerLabel,
+        price: listingPriceEur,
+        selectedColor: selectedColor ?? undefined,
+        selectedSize: cartSelectedSize ?? undefined,
       })
-      if (res.status === 401) {
-        addGuestCartItem({
-          productId: listingId,
-          qty: purchaseQty,
-          title: name,
-          imageUrl: hero,
-          sellerName: sellerLabel,
-          price: listingPriceEur,
-          selectedColor: selectedColor ?? undefined,
-          selectedSize: cartSelectedSize ?? undefined,
-        })
+      if (!result.ok) return
+      if (result.mode === "server") {
+        router.push("/cart")
         return
       }
-      if (res.ok) router.push("/cart")
+      const { toast } = await import("sonner")
+      toast.success(messages.cart.guestAdded, { description: messages.cart.guestAddedBody })
     } finally {
       setCartBusy(false)
     }
@@ -760,20 +753,25 @@ export function MarketplaceListingDetail({
     setBuyBusy(true)
     try {
       const applied = Math.min(Math.max(0, Math.round(useRewardCents)), maxApplicableReward)
-      const { fastCheckoutNeedsLogin, fastCheckoutRedirected, startFastCheckout } =
-        await import("@/lib/fast-checkout-client")
-      const result = await startFastCheckout(
+      await buyNowWithoutLogin(
         {
           productId: listingId,
           qty: purchaseQty,
           useRewardCents: applied,
           selectedColor: selectedColor ?? undefined,
           selectedSize: cartSelectedSize ?? undefined,
+          cancelPath: `/marketplace/${listingId}`,
         },
-        { loginCallbackUrl: `/marketplace/${listingId}` }
+        {
+          productId: listingId,
+          title: name,
+          imageUrl: hero,
+          sellerName: sellerLabel,
+          price: listingPriceEur,
+          selectedColor: selectedColor ?? undefined,
+          selectedSize: cartSelectedSize ?? undefined,
+        }
       )
-      if (fastCheckoutRedirected(result)) return
-      if (fastCheckoutNeedsLogin(result)) return
     } finally {
       setBuyBusy(false)
     }

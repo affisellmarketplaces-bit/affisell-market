@@ -5,8 +5,9 @@ import Link from "next/link"
 import { ExternalLink, Palette, Ruler, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 import type { CSSProperties } from "react"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react"
 
+import { CartCheckoutAutoOpen } from "@/components/cart/cart-checkout-auto-open"
 import { COLORS, isMulticolorSwatch } from "@/lib/product-catalog-constants"
 import { normalizeCartVariantSignature, parseCartVariantSignature } from "@/lib/cart-variant"
 import { guestCartLineId, parseGuestCartLineId } from "@/lib/guest-cart-line-id"
@@ -18,6 +19,7 @@ import {
   type GuestCartItem,
 } from "@/lib/guest-cart"
 import { CartCheckoutIdentitySheet } from "@/components/cart/cart-checkout-identity-sheet"
+import { mergeGuestCartToServer } from "@/lib/merge-guest-cart-client"
 import { formatStoreCurrency } from "@/lib/market-config"
 
 type CartLine = {
@@ -331,6 +333,7 @@ export default function CartPage() {
 
   async function afterIdentity() {
     setIdentityOpen(false)
+    await mergeGuestCartToServer()
     await refreshCart()
     await proceedToStripe()
   }
@@ -364,7 +367,18 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-50 via-white to-violet-50/30 py-8 dark:from-zinc-950 dark:via-zinc-950 dark:to-violet-950/15">
+      <Suspense fallback={null}>
+        <CartCheckoutAutoOpen
+          enabled={!loading && !isAuthed && lines.length > 0}
+          onOpen={() => setIdentityOpen(true)}
+        />
+      </Suspense>
       <div className="mx-auto max-w-3xl px-4">
+        {!isAuthed ? (
+          <p className="mb-6 rounded-2xl border border-violet-200/80 bg-violet-50/80 px-4 py-3 text-sm text-violet-900 dark:border-violet-800/50 dark:bg-violet-950/30 dark:text-violet-100">
+            {t("guestCheckoutHint")}
+          </p>
+        ) : null}
         <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">{t("title")}</h1>

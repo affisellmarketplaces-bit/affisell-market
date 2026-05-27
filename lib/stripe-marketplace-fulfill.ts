@@ -5,6 +5,7 @@ import { resolveMarketplaceOrderLineImageUrl } from "@/lib/cart-line-image"
 import { formatCartVariantLabel, parseCartVariantSignature } from "@/lib/cart-variant"
 import { buyerEarnCentsForLinePaid } from "@/lib/buyer-reward-earn"
 import { earnBuyerRewardIdempotent, redeemBuyerRewardIdempotent } from "@/lib/buyer-reward-ledger"
+import { ensureBuyerUserIdFromStripeCheckout } from "@/lib/ensure-buyer-from-stripe-checkout"
 import { resolveBuyerUserIdForEarn } from "@/lib/buyer-reward-resolve-user"
 import { resolveAffisellCommissionRateBpsForProductId } from "@/lib/affisell-platform-commission.server"
 import { resolveSupplierCommissionRateBpsForProductId } from "@/lib/supplier-commission-rate.server"
@@ -232,7 +233,12 @@ export async function fulfillMarketplaceStripeSession(
   const checkoutTaxCents = session.total_details?.amount_tax ?? 0
   const checkoutCurrency = session.currency ?? "eur"
   const meta = session.metadata ?? {}
-  const buyerUserId = meta.buyerUserId?.trim() || ""
+  let buyerUserId = meta.buyerUserId?.trim() || ""
+  if (!buyerUserId) {
+    const stripePhone = session.customer_details?.phone?.trim() || null
+    buyerUserId =
+      (await ensureBuyerUserIdFromStripeCheckout(customerEmail, stripePhone)) ?? ""
+  }
   const appliedRewardCents = Math.max(0, Math.round(parseInt(meta.appliedRewardCents ?? "0", 10) || 0))
   const linePaids = parseLinePaids(meta.linePaids)
 

@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 
 import { trackAffisellEvent } from "@/lib/affisell-track-client"
 import type { CarouselItemJson } from "@/lib/carousel-types"
-import { addGuestCartItem } from "@/lib/guest-cart"
+import { addToBuyerCart } from "@/lib/cart-add-client"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { cn } from "@/lib/utils"
 import { WishlistHeart } from "@/components/wishlist-heart"
@@ -186,20 +186,12 @@ export function AffisellCarouselCard({
               e.preventDefault()
               e.stopPropagation()
               trackAffisellEvent("add_to_cart", item.productId)
-              void fetch("/api/cart/add", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ productId: item.listingId, qty: 1 }),
-              }).then((r) => {
-                if (r.status === 401) {
-                  addGuestCartItem({
-                    productId: item.listingId,
-                    qty: 1,
-                    title: item.name,
-                    price: item.priceCents / 100,
-                    imageUrl: item.imageUrl || "/placeholder.png",
-                  })
-                }
+              void addToBuyerCart({
+                productId: item.listingId,
+                qty: 1,
+                title: item.name,
+                price: item.priceCents / 100,
+                imageUrl: item.imageUrl || "/placeholder.png",
               })
             }}
           >

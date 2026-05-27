@@ -31,9 +31,13 @@ export function fastCheckoutNeedsLogin(result: FastCheckoutResult): boolean {
 /**
  * One-tap buy: redirect as soon as Stripe URL is returned (`location.assign` + keepalive).
  */
+/**
+ * One-tap buy → Stripe Checkout. No login required beforehand;
+ * Stripe collects email/phone; buyer account is created after payment if needed.
+ */
 export async function startFastCheckout(
   body: FastCheckoutBody,
-  options?: { loginCallbackUrl?: string }
+  _options?: { loginCallbackUrl?: string }
 ): Promise<FastCheckoutResult> {
   const res = await fetch("/api/checkout", {
     method: "POST",
@@ -43,20 +47,14 @@ export async function startFastCheckout(
     keepalive: true,
   })
 
-  if (res.status === 401) {
-    const returnTo = options?.loginCallbackUrl
-    if (returnTo) {
-      window.location.assign(
-        `/login?callbackUrl=${encodeURIComponent(returnTo)}`
-      )
-    }
-    return { ok: false, status: "auth" }
-  }
-
   const data = (await res.json()) as { url?: string; error?: string }
   if (data.url) {
     window.location.assign(data.url)
     return { ok: true, status: "redirected" }
+  }
+
+  if (res.status === 401) {
+    return { ok: false, status: "auth", message: data.error }
   }
 
   return { ok: false, status: "error", message: data.error }

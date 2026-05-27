@@ -305,6 +305,9 @@
     "itemCount": "{count, plural, one {# item} other {# items}}",
     "itemCountHint": "{count, plural, one {# item} other {# items}} · your choices (color, size) are saved",
     "subtotal": "Subtotal ({count, plural, one {# item} other {# items}})",
+    "guestCheckoutHint": "No account needed to add items. At checkout, enter your email or mobile — we create your Affisell buyer account automatically.",
+    "guestAdded": "Added to cart",
+    "guestAddedBody": "Keep shopping or checkout whenever you're ready.",
     "identity": {
       "beforePay": "Before payment",
       "title": "Continue with your identity",

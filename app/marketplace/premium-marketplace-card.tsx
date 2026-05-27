@@ -5,7 +5,7 @@ import Link from "next/link"
 import { ProductDiscountTag } from "@/components/product-discount-tag"
 import { ProductPriceOffer } from "@/components/product/product-price-offer"
 import { WishlistHeart } from "@/components/wishlist-heart"
-import { addGuestCartItem } from "@/lib/guest-cart"
+import { addToBuyerCart } from "@/lib/cart-add-client"
 import { resolveProductDiscount } from "@/lib/product-discount-display"
 
 type Props = {
@@ -69,21 +69,13 @@ export function PremiumMarketplaceCard({
           onClick={(e) => {
             e.preventDefault()
             e.stopPropagation()
-            void fetch("/api/cart/add", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ productId: listingId, qty: 1 }),
-            }).then((r) => {
-              if (r.status === 401) {
-                addGuestCartItem({
-                  productId: listingId,
-                  qty: 1,
-                  title: name,
-                  price: priceValue,
-                  imageUrl: imageUrl || "/placeholder.png",
-                  sellerName: sellerDisplay,
-                })
-              }
+            void addToBuyerCart({
+              productId: listingId,
+              qty: 1,
+              title: name,
+              price: priceValue,
+              imageUrl: imageUrl || "/placeholder.png",
+              sellerName: sellerDisplay,
             })
           }}
           className="absolute bottom-2 left-2 right-2 z-20 rounded-xl bg-white py-2.5 text-sm font-medium text-black opacity-0 shadow-lg transition-opacity hover:bg-zinc-100 group-hover:opacity-100"

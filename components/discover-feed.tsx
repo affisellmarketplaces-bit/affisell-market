@@ -4,7 +4,8 @@ import { motion } from "framer-motion"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 
-import { addGuestCartItem } from "@/lib/guest-cart"
+import { addToBuyerCart } from "@/lib/cart-add-client"
+import { buyNowWithoutLogin } from "@/lib/guest-buy-now-client"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { WishlistHeart } from "@/components/wishlist-heart"
 
@@ -45,20 +46,13 @@ function DiscoverCard({ item }: { item: DiscoverItem }) {
     if (!item.listingId) return
     setCartBusy(true)
     try {
-      const res = await fetch("/api/cart/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: item.listingId, qty: 1 }),
+      await addToBuyerCart({
+        productId: item.listingId,
+        qty: 1,
+        title: item.name,
+        price: item.priceCents / 100,
+        imageUrl: item.mediaUrl || "/placeholder.png",
       })
-      if (res.status === 401) {
-        addGuestCartItem({
-          productId: item.listingId,
-          qty: 1,
-          title: item.name,
-          price: item.priceCents / 100,
-          imageUrl: item.mediaUrl || "/placeholder.png",
-        })
-      }
     } finally {
       setCartBusy(false)
     }
@@ -68,21 +62,20 @@ function DiscoverCard({ item }: { item: DiscoverItem }) {
     if (!item.listingId) return
     setCheckoutBusy(true)
     try {
-      const { fastCheckoutNeedsLogin, fastCheckoutRedirected, startFastCheckout } =
-        await import("@/lib/fast-checkout-client")
-      const result = await startFastCheckout(
+      await buyNowWithoutLogin(
         {
           productId: item.listingId,
           qty: 1,
           successPath: "/discover?success=true",
           cancelPath: "/discover",
         },
-        { loginCallbackUrl: "/discover" }
+        {
+          productId: item.listingId,
+          title: item.name,
+          price: item.priceCents / 100,
+          imageUrl: item.mediaUrl || "/placeholder.png",
+        }
       )
-      if (fastCheckoutRedirected(result)) return
-      if (fastCheckoutNeedsLogin(result)) {
-        router.push(`/login?callbackUrl=${encodeURIComponent("/discover")}`)
-      }
     } finally {
       setCheckoutBusy(false)
     }

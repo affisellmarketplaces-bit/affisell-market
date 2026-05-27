@@ -24,7 +24,8 @@ import {
 import { ProductPriceOffer } from "@/components/product/product-price-offer"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { buttonVariants } from "@/components/ui/button"
-import { addGuestCartItem } from "@/lib/guest-cart"
+import { addToBuyerCart } from "@/lib/cart-add-client"
+import { buyNowWithoutLogin } from "@/lib/guest-buy-now-client"
 import { affisellBrand } from "@/lib/affisell-brand"
 import { discoverSwipeHref } from "@/lib/discover-swipe-url"
 import type { PulseFeedItem } from "@/lib/pulse-feed-types"
@@ -185,22 +186,17 @@ export function BuyerSwipeCommerce({
   const addToCart = useCallback(
     async (item: PulseFeedItem) => {
       if (!item.listingId) return
-      const res = await fetch("/api/cart/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: item.listingId, qty: 1 }),
+      const result = await addToBuyerCart({
+        productId: item.listingId,
+        qty: 1,
+        title: item.title,
+        price: item.priceCents / 100,
+        imageUrl: item.mediaUrl,
       })
-      if (res.status === 401) {
-        addGuestCartItem({
-          productId: item.listingId,
-          qty: 1,
-          title: item.title,
-          price: item.priceCents / 100,
-          imageUrl: item.mediaUrl,
-        })
+      if (result.ok) {
+        console.log("[buyer-swipe-commerce]", { listingId: item.listingId, result: "cart" })
+        showToast(t("cartAdded"))
       }
-      console.log("[buyer-swipe-commerce]", { listingId: item.listingId, result: "cart" })
-      showToast(t("cartAdded"))
     },
     [showToast, t]
   )
@@ -232,27 +228,22 @@ export function BuyerSwipeCommerce({
   const buyNow = useCallback(
     async (item: PulseFeedItem) => {
       if (!item.listingId) return
-      const { fastCheckoutNeedsLogin, fastCheckoutRedirected, startFastCheckout } =
-        await import("@/lib/fast-checkout-client")
-      const result = await startFastCheckout(
+      await buyNowWithoutLogin(
         {
           productId: item.listingId,
           qty: 1,
           successPath: "/discover?success=true",
           cancelPath: discoverSwipeHref({ category: categoryId, subcategory: subcategoryId }),
         },
-        { loginCallbackUrl: discoverSwipeHref({ category: categoryId, subcategory: subcategoryId }) }
+        {
+          productId: item.listingId,
+          title: item.title,
+          price: item.priceCents / 100,
+          imageUrl: item.mediaUrl,
+        }
       )
-      if (fastCheckoutRedirected(result)) return
-      if (fastCheckoutNeedsLogin(result)) {
-        router.push(
-          `/login?callbackUrl=${encodeURIComponent(
-            discoverSwipeHref({ category: categoryId, subcategory: subcategoryId })
-          )}`
-        )
-      }
     },
-    [categoryId, subcategoryId, router]
+    [categoryId, subcategoryId]
   )
 
   const advanceDeck = useCallback((productId: string) => {

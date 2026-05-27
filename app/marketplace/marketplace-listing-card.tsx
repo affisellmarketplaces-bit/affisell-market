@@ -4,7 +4,8 @@ import Image from "next/image"
 import Link from "next/link"
 
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
-import { addGuestCartItem } from "@/lib/guest-cart"
+import { addToBuyerCart } from "@/lib/cart-add-client"
+import { buyNowWithoutLogin } from "@/lib/guest-buy-now-client"
 
 type Props = {
   detailHref: string
@@ -48,22 +49,13 @@ export function MarketplaceListingCard({
   }
 
   async function addToCart(listingId: string) {
-    const res = await fetch("/api/cart/add", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ productId: listingId, qty: 1 }),
-      credentials: "include",
+    await addToBuyerCart({
+      productId: listingId,
+      qty: 1,
+      title: name,
+      imageUrl: listing.image,
+      sellerName: sellerDisplay,
     })
-    if (res.status === 401) {
-      addGuestCartItem({
-        productId: listingId,
-        qty: 1,
-        title: name,
-        imageUrl: listing.image,
-        sellerName: sellerDisplay,
-      })
-      return
-    }
   }
 
   function recordClick() {
@@ -72,10 +64,14 @@ export function MarketplaceListingCard({
   }
 
   async function buyNow(listingId: string) {
-    const { startFastCheckout } = await import("@/lib/fast-checkout-client")
-    await startFastCheckout(
-      { productId: listingId, qty: 1 },
-      { loginCallbackUrl: `/marketplace/${listingId}` }
+    await buyNowWithoutLogin(
+      { productId: listingId, qty: 1, cancelPath: `/marketplace/${listingId}` },
+      {
+        productId: listingId,
+        title: name,
+        imageUrl: listing.image,
+        sellerName: sellerDisplay,
+      }
     )
   }
 

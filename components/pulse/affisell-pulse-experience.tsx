@@ -21,7 +21,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ProductPriceOffer } from "@/components/product/product-price-offer"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
-import { addGuestCartItem } from "@/lib/guest-cart"
+import { addToBuyerCart } from "@/lib/cart-add-client"
+import { buyNowWithoutLogin } from "@/lib/guest-buy-now-client"
 import { formatStoreCount, formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { affisellBrand } from "@/lib/affisell-brand"
 import { discoverSwipeHref } from "@/lib/discover-swipe-url"
@@ -262,20 +263,13 @@ function PulseCard({
     if (!item.listingId) return
     setCartBusy(true)
     try {
-      const res = await fetch("/api/cart/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: item.listingId, qty: 1 }),
+      await addToBuyerCart({
+        productId: item.listingId,
+        qty: 1,
+        title: item.title,
+        price: item.priceCents / 100,
+        imageUrl: item.mediaUrl,
       })
-      if (res.status === 401) {
-        addGuestCartItem({
-          productId: item.listingId,
-          qty: 1,
-          title: item.title,
-          price: item.priceCents / 100,
-          imageUrl: item.mediaUrl,
-        })
-      }
     } finally {
       setCartBusy(false)
     }
@@ -285,21 +279,20 @@ function PulseCard({
     if (!item.listingId) return
     setCheckoutBusy(true)
     try {
-      const { fastCheckoutNeedsLogin, fastCheckoutRedirected, startFastCheckout } =
-        await import("@/lib/fast-checkout-client")
-      const result = await startFastCheckout(
+      await buyNowWithoutLogin(
         {
           productId: item.listingId,
           qty: 1,
           successPath: "/discover?success=true",
           cancelPath: "/discover",
         },
-        { loginCallbackUrl: "/discover" }
+        {
+          productId: item.listingId,
+          title: item.title,
+          price: item.priceCents / 100,
+          imageUrl: item.mediaUrl,
+        }
       )
-      if (fastCheckoutRedirected(result)) return
-      if (fastCheckoutNeedsLogin(result)) {
-        router.push(`/login?callbackUrl=${encodeURIComponent("/discover")}`)
-      }
     } finally {
       setCheckoutBusy(false)
     }
