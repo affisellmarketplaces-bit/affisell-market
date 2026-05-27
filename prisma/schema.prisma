@@ -428,6 +428,10 @@ model Product {
   deliveryDays           Int?
   freeShipping           Boolean @default(false)
   /**
+   * Supplier opt-in: product may appear on `/luxe` when listed by an affiliate.
+   */
+  isLuxury               Boolean @default(false)
+  /**
    * Display source label (e.g. "seed"); API may expose as `supplier` string.
    */
   supplierTag            String?
@@ -486,6 +490,7 @@ model Product {
   @@index([shippingType])
   @@index([basePriceCents])
   @@index([isOnSale])
+  @@index([isLuxury])
   @@index([createdAt])
 }
 

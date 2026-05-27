@@ -384,6 +384,7 @@ export function SupplierAddProductForm({
   const [shipsFrom, setShipsFrom] = useState("")
   const [deliveryDays, setDeliveryDays] = useState("")
   const [freeShipping, setFreeShipping] = useState(false)
+  const [isLuxury, setIsLuxury] = useState(false)
   const [supplierTag, setSupplierTag] = useState("")
   const [categoryAttrs, setCategoryAttrs] = useState<CategoryAttrRow[]>([])
   const [specValues, setSpecValues] = useState<Record<string, string>>({})
@@ -805,6 +806,7 @@ export function SupplierAddProductForm({
       const dd = data.deliveryDays
       setDeliveryDays(dd != null && Number.isFinite(Number(dd)) ? String(dd) : "")
       setFreeShipping(Boolean(data.freeShipping))
+      setIsLuxury(Boolean(data.isLuxury))
       setSupplierTag(typeof data.supplierTag === "string" ? data.supplierTag : "")
       const colorsRaw = data.colors
       const colorList = Array.isArray(colorsRaw)
@@ -1139,6 +1141,7 @@ export function SupplierAddProductForm({
               ? Math.round(Number(deliveryDays))
               : undefined,
         freeShipping,
+        isLuxury,
         supplierTag: supplierTag.trim() || undefined,
         descriptionBullets: descriptionBullets.map((s) => s.trim()).filter(Boolean),
         descriptionIllustrationImages,
@@ -1186,6 +1189,7 @@ export function SupplierAddProductForm({
       shipsFrom,
       deliveryDays,
       freeShipping,
+      isLuxury,
       supplierTag,
       descriptionBullets,
       descriptionIllustrationImages,
@@ -1231,6 +1235,7 @@ export function SupplierAddProductForm({
     setShipsFrom(c.shipsFrom)
     setDeliveryDays(c.deliveryDays)
     setFreeShipping(c.freeShipping)
+    setIsLuxury(Boolean(c.isLuxury))
     setSupplierTag(c.supplierTag)
     setSpecValues(c.specValues)
     setDescriptionBullets(c.descriptionBullets?.length ? c.descriptionBullets : [""])
@@ -1459,6 +1464,7 @@ export function SupplierAddProductForm({
         shipsFrom,
         deliveryDays,
         freeShipping,
+        isLuxury,
         supplierTag,
         specValues,
         descriptionBullets,
@@ -1488,6 +1494,7 @@ export function SupplierAddProductForm({
     descriptionIllustrationVideos,
     editId,
     freeShipping,
+    isLuxury,
     images,
     listingKind,
     name,
@@ -2633,6 +2640,29 @@ export function SupplierAddProductForm({
                       <Label htmlFor="m-free" className="font-normal leading-snug text-zinc-700 dark:text-zinc-300">
                         Offer free shipping (shows in marketplace filters when enabled)
                       </Label>
+                    </div>
+                    <div className="flex items-start gap-3 rounded-2xl border border-amber-200/80 bg-gradient-to-br from-amber-50/90 to-white p-4 sm:col-span-2 dark:border-amber-900/50 dark:from-amber-950/30 dark:to-zinc-950">
+                      <input
+                        id="m-luxe"
+                        type="checkbox"
+                        checked={isLuxury}
+                        onChange={(e) => setIsLuxury(e.target.checked)}
+                        className="mt-1 h-4 w-4 rounded border-zinc-300 text-amber-600 focus:ring-amber-500 dark:border-zinc-600"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <Label
+                          htmlFor="m-luxe"
+                          className="flex items-center gap-2 font-medium leading-snug text-amber-950 dark:text-amber-100"
+                        >
+                          <Sparkles className="h-4 w-4 shrink-0 text-amber-600" aria-hidden />
+                          Affisell Luxe
+                        </Label>
+                        <p className="mt-1 text-sm font-normal leading-snug text-amber-900/80 dark:text-amber-200/80">
+                          Cochez pour afficher ce produit dans la vitrine premium{" "}
+                          <span className="whitespace-nowrap">/luxe</span> une fois qu’un affilié l’a listé.
+                          Sans cette case, il n’y apparaît pas.
+                        </p>
+                      </div>
                     </div>
                     <div className="sm:col-span-2">
                       <Label htmlFor="m-tag">Catalog label (optional)</Label>

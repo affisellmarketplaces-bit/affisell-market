@@ -56,60 +56,39 @@ async function ensureLuxuryCollections(): Promise<void> {
   }
 }
 
-/** Dev/demo bootstrap only when no curated luxury listings exist. */
+/** Dev/demo bootstrap only when no supplier-flagged luxury products exist. */
 async function seedLuxuryShowcaseIfEmpty(): Promise<void> {
-  const visible = await prisma.affiliateProduct.count({
+  const visible = await prisma.product.count({
     where: {
-      luxuryTier: { in: [LUXURY_TIER_LUXE, LUXURY_TIER_COLLECTION] },
-      ...buyerListedAffiliateProductWhere,
+      isLuxury: true,
+      ...buyerMarketplaceProductWhere,
+      affiliateProducts: { some: buyerListedAffiliateProductWhere },
     },
   })
   if (visible > 0) return
 
   await ensureLuxuryCollections()
-  const collections = await prisma.luxuryCollection.findMany({
-    where: { active: true },
-    orderBy: { sortOrder: "asc" },
-    select: { id: true, slug: true },
-  })
-  const maison = collections.find((c) => c.slug === "maison-affisell") ?? collections[0]
-  if (!maison) return
 
-  const candidates = await prisma.affiliateProduct.findMany({
+  const candidates = await prisma.product.findMany({
     where: {
-      ...buyerListedAffiliateProductWhere,
-      product: buyerMarketplaceProductWhere,
-      luxuryTier: "NONE",
+      ...buyerMarketplaceProductWhere,
+      isLuxury: false,
+      affiliateProducts: { some: buyerListedAffiliateProductWhere },
     },
-    orderBy: [{ sellingPriceCents: "desc" }, { conversions: "desc" }],
-    take: 12,
+    orderBy: [{ basePriceCents: "desc" }, { createdAt: "desc" }],
+    take: 9,
     select: { id: true },
   })
 
   if (candidates.length === 0) return
 
-  const luxeIds = candidates.slice(0, 3).map((c) => c.id)
-  const collectionIds = candidates.slice(3, 9).map((c) => c.id)
-
-  if (luxeIds.length > 0) {
-    await prisma.affiliateProduct.updateMany({
-      where: { id: { in: luxeIds } },
-      data: { luxuryTier: LUXURY_TIER_LUXE, luxuryCollectionId: null },
-    })
-  }
-  if (collectionIds.length > 0) {
-    await prisma.affiliateProduct.updateMany({
-      where: { id: { in: collectionIds } },
-      data: { luxuryTier: LUXURY_TIER_COLLECTION, luxuryCollectionId: maison.id },
-    })
-  }
-
-  console.log("[luxe]", {
-    result: "seeded",
-    luxe: luxeIds.length,
-    collection: collectionIds.length,
-    collectionSlug: maison.slug,
+  const productIds = candidates.map((c) => c.id)
+  await prisma.product.updateMany({
+    where: { id: { in: productIds } },
+    data: { isLuxury: true },
   })
+
+  console.log("[luxe]", { result: "seeded", products: productIds.length })
 }
 
 export async function loadLuxuryAtelier(): Promise<LuxuryAtelierPayload> {
@@ -133,6 +112,7 @@ export async function loadLuxuryAtelier(): Promise<LuxuryAtelierPayload> {
             where: {
               luxuryTier: LUXURY_TIER_COLLECTION,
               ...buyerListedAffiliateProductWhere,
+              product: { isLuxury: true },
             },
           },
         },
@@ -143,14 +123,7 @@ export async function loadLuxuryAtelier(): Promise<LuxuryAtelierPayload> {
   const listings = await prisma.affiliateProduct.findMany({
     where: {
       ...buyerListedAffiliateProductWhere,
-      product: buyerMarketplaceProductWhere,
-      OR: [
-        { luxuryTier: LUXURY_TIER_LUXE },
-        {
-          luxuryTier: LUXURY_TIER_COLLECTION,
-          luxuryCollection: { active: true },
-        },
-      ],
+      product: { ...buyerMarketplaceProductWhere, isLuxury: true },
     },
     orderBy: [{ sellingPriceCents: "desc" }, { conversions: "desc" }],
     take: 48,
@@ -183,8 +156,11 @@ export async function loadLuxuryAtelier(): Promise<LuxuryAtelierPayload> {
   const pieces: LuxuryPiecePublic[] = []
 
   for (const row of listings) {
-    if (!isLuxuryTierVisible(row.luxuryTier)) continue
-    if (row.luxuryTier === LUXURY_TIER_COLLECTION && !row.luxuryCollection) continue
+    const displayTier =
+      row.luxuryTier === LUXURY_TIER_COLLECTION && row.luxuryCollection
+        ? LUXURY_TIER_COLLECTION
+        : LUXURY_TIER_LUXE
+    if (!isLuxuryTierVisible(displayTier)) continue
 
     const store = row.affiliate.store
     if (!store?.slug) continue
@@ -211,9 +187,11 @@ export async function loadLuxuryAtelier(): Promise<LuxuryAtelierPayload> {
       storeSlug: store.slug,
       storeName: store.name,
       href: `/shops/${encodeURIComponent(store.slug)}/product/${row.id}`,
-      tier: row.luxuryTier as LuxuryPiecePublic["tier"],
-      collectionId: row.luxuryCollection?.id ?? null,
-      collectionName: row.luxuryCollection?.name ?? null,
+      tier: displayTier as LuxuryPiecePublic["tier"],
+      collectionId:
+        displayTier === LUXURY_TIER_COLLECTION ? (row.luxuryCollection?.id ?? null) : null,
+      collectionName:
+        displayTier === LUXURY_TIER_COLLECTION ? (row.luxuryCollection?.name ?? null) : null,
       prestigeScore: prestigeScore(row.sellingPriceCents, row.conversions, compareAtCents != null),
     })
   }

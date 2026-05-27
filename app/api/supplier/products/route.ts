@@ -272,6 +272,7 @@ export async function POST(req: Request) {
         shipsFrom: meta.shipsFrom,
         deliveryDays: meta.deliveryDays,
         freeShipping: meta.freeShipping,
+        isLuxury: meta.isLuxury,
         supplierTag: meta.supplierTag,
         customColumns:
           customColumns.length > 0

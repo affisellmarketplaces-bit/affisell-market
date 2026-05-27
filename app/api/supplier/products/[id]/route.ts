@@ -357,6 +357,7 @@ export async function PUT(
         shipsFrom: meta.shipsFrom,
         deliveryDays: meta.deliveryDays,
         freeShipping: meta.freeShipping,
+        isLuxury: meta.isLuxury,
         supplierTag: meta.supplierTag,
         ...("customColumns" in rawBody
           ? {

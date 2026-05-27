@@ -1374,7 +1374,7 @@
     "gallery": "La galerie",
     "empty": "L'atelier se prépare. Les créateurs peuvent marquer une fiche Luxe ou l'assigner à une collection.",
     "tickerEmpty": "Affisell Luxe — excellence curatoriale",
-    "curationNote": "Seules les fiches explicitement marquées Luxe ou rattachées à une collection active apparaissent ici."
+    "curationNote": "Seuls les produits dont la case Affisell Luxe est cochée par le fournisseur apparaissent ici (une fois listés par un affilié)."
   },
   "errors": {
     "notFound": {

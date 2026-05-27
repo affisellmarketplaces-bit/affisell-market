@@ -45,6 +45,7 @@ export type SupplierAddProductCachePayload = {
   shipsFrom: string
   deliveryDays: string
   freeShipping: boolean
+  isLuxury?: boolean
   supplierTag: string
   specValues: Record<string, string>
   /** “About this item” lines (same order as PDP bullets). */

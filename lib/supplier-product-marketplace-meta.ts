@@ -1,8 +1,9 @@
-/** Optional marketplace-facing fields on Product (shipsFrom, deliveryDays, freeShipping, supplierTag). */
+/** Optional marketplace-facing fields on Product (shipsFrom, deliveryDays, freeShipping, supplierTag, isLuxury). */
 export function parseProductMarketplaceMeta(body: Record<string, unknown>): {
   shipsFrom: string | null
   deliveryDays: number | null
   freeShipping: boolean
+  isLuxury: boolean
   supplierTag: string | null
 } {
   const shipsFromRaw = body.shipsFrom
@@ -24,9 +25,15 @@ export function parseProductMarketplaceMeta(body: Record<string, unknown>): {
     body.freeShipping === 1 ||
     body.freeShipping === "1"
 
+  const isLuxury =
+    body.isLuxury === true ||
+    body.isLuxury === "true" ||
+    body.isLuxury === 1 ||
+    body.isLuxury === "1"
+
   const st = body.supplierTag
   const supplierTag =
     typeof st === "string" && st.trim() ? st.trim().slice(0, 64) : null
 
-  return { shipsFrom, deliveryDays, freeShipping, supplierTag }
+  return { shipsFrom, deliveryDays, freeShipping, isLuxury, supplierTag }
 }

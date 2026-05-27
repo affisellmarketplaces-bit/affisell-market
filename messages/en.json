@@ -1374,7 +1374,7 @@
     "gallery": "The gallery",
     "empty": "The atelier is being curated. Creators can mark listings as Luxe or assign a collection.",
     "tickerEmpty": "Affisell Luxe — curated excellence",
-    "curationNote": "Only listings explicitly marked Luxe or assigned to an active collection appear here."
+    "curationNote": "Only products with Affisell Luxe enabled by the supplier appear here (once listed by an affiliate)."
   },
   "errors": {
     "notFound": {
