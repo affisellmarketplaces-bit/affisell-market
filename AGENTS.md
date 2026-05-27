@@ -14,6 +14,7 @@
 ## Git push
 
 - Never put real API keys in `.env.example` — use empty placeholders only (`GROQ_API_KEY=""`).
+- **Video Pro paywall (founder pause)**: default **paused** — suppliers can generate unlimited Veo videos without Stripe Pro. UI shows « Mode test — générations illimitées ». To **reactivate** the 3-video limit + « Passer Pro »: set Vercel env `VIDEO_PAYWALL_PAUSED=0` (see `lib/video-quota-constants.ts`).
 - Before pushing: `npm run push:safe` → `node scripts/git-push-safe.mjs` (secret scan, `git fetch` / `pull --rebase` / `push` with **timeouts**, no interactive Git prompts).
 - Optional hook (once per clone): `git config core.hooksPath .githooks` then `chmod +x .githooks/pre-push`.
 

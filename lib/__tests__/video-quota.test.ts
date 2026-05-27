@@ -1,9 +1,19 @@
-import { describe, expect, it, vi, afterEach } from "vitest"
+import { describe, expect, it, vi, afterEach, beforeEach } from "vitest"
 
 import { FREE_VIDEO_LIMIT } from "@/lib/video-quota-constants"
 import { isQuotaExceeded, quotaSnapshot } from "@/lib/video-quota"
 
+/** Paywall active (founder pause off) for unit tests. */
+function withPaywallActive() {
+  vi.stubEnv("VIDEO_PAYWALL_PAUSED", "0")
+  vi.stubEnv("VIDEO_PAYWALL_DISABLED", "0")
+}
+
 describe("video quota", () => {
+  beforeEach(() => {
+    withPaywallActive()
+  })
+
   afterEach(() => {
     vi.unstubAllEnvs()
   })
@@ -30,7 +40,16 @@ describe("video quota", () => {
     expect(snap.paywallBypass).toBe(false)
   })
 
-  it("bypasses paywall when VIDEO_PAYWALL_DISABLED=1", () => {
+  it("bypasses paywall when founder pause is default (no env)", () => {
+    vi.unstubAllEnvs()
+    expect(isQuotaExceeded({ videoCount: 99, isPro: false })).toBe(false)
+    const snap = quotaSnapshot({ videoCount: 99, isPro: false })
+    expect(snap.paywallBypass).toBe(true)
+    expect(snap.remaining).toBe(Number.MAX_SAFE_INTEGER)
+  })
+
+  it("bypasses paywall when VIDEO_PAYWALL_DISABLED=1 and pause off", () => {
+    vi.stubEnv("VIDEO_PAYWALL_PAUSED", "0")
     vi.stubEnv("VIDEO_PAYWALL_DISABLED", "1")
     expect(isQuotaExceeded({ videoCount: 99, isPro: false })).toBe(false)
     const snap = quotaSnapshot({ videoCount: 99, isPro: false })
@@ -38,8 +57,8 @@ describe("video quota", () => {
     expect(snap.remaining).toBe(Number.MAX_SAFE_INTEGER)
   })
 
-  it("re-enables paywall when VIDEO_PAYWALL_DISABLED=0", () => {
-    vi.stubEnv("VIDEO_PAYWALL_DISABLED", "0")
+  it("re-enables paywall when founder pause is off", () => {
+    withPaywallActive()
     expect(isQuotaExceeded({ videoCount: FREE_VIDEO_LIMIT, isPro: false })).toBe(true)
   })
 })
