@@ -65,9 +65,11 @@ export function PulseProductMediaStage({
     advance()
   }
 
+  const isPhoto = Boolean(current && !current.isVideo)
+
   if (!current) {
     return (
-      <div className={cn("flex h-full items-center justify-center bg-zinc-900 text-zinc-500", className)}>
+      <div className={cn("flex h-full items-center justify-center bg-white text-zinc-400", className)}>
         —
       </div>
     )
@@ -75,7 +77,11 @@ export function PulseProductMediaStage({
 
   return (
     <div
-      className={cn("relative min-h-0 flex-1 overflow-hidden bg-zinc-900", className)}
+      className={cn(
+        "relative min-h-0 flex-1 overflow-hidden",
+        isPhoto ? "bg-white" : "bg-zinc-950",
+        className
+      )}
       role={hasMultiple ? "button" : undefined}
       tabIndex={hasMultiple ? 0 : undefined}
       aria-label={hasMultiple ? `Media ${index + 1} of ${slides.length}` : undefined}
@@ -98,20 +104,26 @@ export function PulseProductMediaStage({
             preload="metadata"
           />
         ) : (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            key={`bg-${current.url}`}
-            src={current.url}
-            alt=""
-            className="h-full w-full scale-105 object-cover opacity-40 blur-xl"
-          />
+          <>
+            <div className="absolute inset-0 bg-white" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              key={`bg-${current.url}`}
+              src={current.url}
+              alt=""
+              className="h-full w-full scale-110 object-contain opacity-[0.14] blur-2xl"
+            />
+          </>
         )}
       </div>
 
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={current.url}
-          className="relative z-[1] flex h-full w-full items-center justify-center p-3"
+          className={cn(
+            "relative z-[1] flex h-full w-full items-center justify-center",
+            isPhoto ? "p-1.5 sm:p-2" : "p-3"
+          )}
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 1.01 }}
@@ -137,15 +149,16 @@ export function PulseProductMediaStage({
             <img
               src={current.url}
               alt=""
-              className="pointer-events-none max-h-full max-w-full object-contain drop-shadow-[0_24px_48px_rgba(0,0,0,0.5)]"
+              className="pointer-events-none h-full w-full object-contain object-center"
             />
           ) : (
             <Image
               src={current.url}
               alt=""
-              width={400}
-              height={400}
-              className="pointer-events-none max-h-full max-w-full object-contain"
+              width={512}
+              height={512}
+              className="pointer-events-none h-full w-full object-contain object-center"
+              sizes="(max-width: 420px) 100vw, 380px"
               unoptimized
             />
           )}
@@ -163,7 +176,12 @@ export function PulseProductMediaStage({
       </AnimatePresence>
 
       <div
-        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/75"
+        className={cn(
+          "pointer-events-none absolute inset-0",
+          isPhoto
+            ? "bg-gradient-to-b from-white/0 via-white/0 to-zinc-200/50"
+            : "bg-gradient-to-b from-black/40 via-transparent to-black/75"
+        )}
         aria-hidden
       />
 
@@ -171,7 +189,10 @@ export function PulseProductMediaStage({
         <div
           className={cn(
             affisellBrand.epoxyChip,
-            "pointer-events-none absolute bottom-3 left-1/2 z-20 -translate-x-1/2 rounded-full px-2.5 py-1 text-[10px] font-semibold tabular-nums text-white/90"
+            "pointer-events-none absolute bottom-3 left-1/2 z-20 -translate-x-1/2 rounded-full px-2.5 py-1 text-[10px] font-semibold tabular-nums",
+            isPhoto
+              ? "bg-zinc-900/75 text-white ring-1 ring-black/10"
+              : "text-white/90"
           )}
         >
           {index + 1}/{slides.length}
