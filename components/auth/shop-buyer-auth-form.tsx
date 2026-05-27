@@ -7,6 +7,7 @@ import { signIn } from "next-auth/react"
 import { useTranslations } from "next-intl"
 import { useMemo, useState } from "react"
 
+import { forgotPasswordHref } from "@/lib/auth-forgot-password-href"
 import { credentialsSignInErrorMessage } from "@/lib/auth-portal-signin-messages"
 import { sanitizeInternalCallbackUrl } from "@/lib/auth-login-portal"
 
@@ -107,9 +108,19 @@ export function ShopBuyerAuthForm({ storeName, shopSlug, mode }: Props) {
             />
           </div>
           <div>
-            <label htmlFor="shop-buyer-password" className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              {tShop("password")}
-            </label>
+            <div className="mb-1.5 flex items-center justify-between gap-2">
+              <label htmlFor="shop-buyer-password" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                {tShop("password")}
+              </label>
+              {mode === "login" ? (
+                <Link
+                  href={forgotPasswordHref(null)}
+                  className="text-xs font-medium text-zinc-700 underline-offset-2 hover:underline dark:text-zinc-300"
+                >
+                  {t("passwordReset.forgotLink")}
+                </Link>
+              ) : null}
+            </div>
             <input
               id="shop-buyer-password"
               type="password"

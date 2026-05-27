@@ -23,3 +23,18 @@ export class NonSupplierOnSupplierPortal extends CredentialsSignin {
 export class EmailIdentifierRequired extends CredentialsSignin {
   code = "email_required_not_id"
 }
+
+/** Email not registered on Affisell. */
+export class AccountNotFound extends CredentialsSignin {
+  code = "account_not_found"
+}
+
+/** Password does not match the hash on file. */
+export class InvalidPassword extends CredentialsSignin {
+  code = "invalid_password"
+}
+
+/** Account exists but only OAuth sign-in (no password set yet). */
+export class PasswordLoginNotAvailable extends CredentialsSignin {
+  code = "password_login_unavailable"
+}

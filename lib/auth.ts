@@ -12,10 +12,13 @@ import Google from "next-auth/providers/google"
 import Twitter from "next-auth/providers/twitter"
 
 import {
+  AccountNotFound,
   AffiliateBlockedOnSupplierPortal,
   EmailIdentifierRequired,
+  InvalidPassword,
   NonAffiliateOnAffiliatePortal,
   NonSupplierOnSupplierPortal,
+  PasswordLoginNotAvailable,
   SupplierBlockedOnAffiliatePortal,
 } from "@/lib/auth-credentials-errors"
 import { inferLoginPortal, isValidEmailIdentifier } from "@/lib/auth-login-portal"
@@ -168,9 +171,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new EmailIdentifierRequired()
         }
         const userRow = await prisma.user.findUnique({ where: { email: emailRaw } })
-        if (!userRow?.password) return null
+        if (!userRow) throw new AccountNotFound()
+        if (!userRow.password) throw new PasswordLoginNotAvailable()
         const ok = await bcrypt.compare(passwordRaw, userRow.password)
-        if (!ok) return null
+        if (!ok) throw new InvalidPassword()
 
         const portal = inferLoginPortal(c?.callbackUrl?.toString())
         if (portal === "AFFILIATE") {

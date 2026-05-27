@@ -9,6 +9,7 @@ import { useMemo, useState } from "react"
 
 import type { LoginPortal } from "@/lib/auth-login-portal"
 import { sanitizeInternalCallbackUrl } from "@/lib/auth-login-portal"
+import { forgotPasswordHref } from "@/lib/auth-forgot-password-href"
 import { credentialsSignInErrorMessage } from "@/lib/auth-portal-signin-messages"
 
 type Props = {
@@ -45,6 +46,7 @@ export function PortalSignInForm({
   const safeCallback = sanitizeInternalCallbackUrl(rawCallback)
   const resolvedCallback = safeCallback ?? defaultCallback
 
+  const passwordResetDone = search.get("reset") === "1"
   const oauthError = search.get("error")
   const resolvedError =
     error ??
@@ -85,6 +87,12 @@ export function PortalSignInForm({
           <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-100">{title}</h1>
           <p className="mt-2 text-gray-600 dark:text-zinc-400">{subtitle}</p>
         </div>
+
+        {passwordResetDone ? (
+          <p className="mb-4 rounded-xl bg-emerald-50 px-3 py-2 text-center text-sm text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
+            {t("passwordReset.resetSuccessLogin")}
+          </p>
+        ) : null}
 
         {resolvedError ? (
           <p className="mb-4 rounded-xl bg-red-50 px-3 py-2 text-center text-sm text-red-700 dark:bg-red-950 dark:text-red-200">
@@ -136,12 +144,20 @@ export function PortalSignInForm({
             />
           </div>
           <div>
-            <label
-              htmlFor="portal-signin-password"
-              className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-zinc-300"
-            >
-              {t("password")}
-            </label>
+            <div className="mb-1.5 flex items-center justify-between gap-2">
+              <label
+                htmlFor="portal-signin-password"
+                className="block text-sm font-medium text-gray-700 dark:text-zinc-300"
+              >
+                {t("password")}
+              </label>
+              <Link
+                href={forgotPasswordHref(portal)}
+                className="text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
+              >
+                {t("passwordReset.forgotLink")}
+              </Link>
+            </div>
             <input
               id="portal-signin-password"
               type="password"
