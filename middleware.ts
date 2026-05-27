@@ -145,6 +145,14 @@ export async function middleware(req: NextRequest) {
     return handleHomePath(req)
   }
 
+  const bareEarly = pathnameWithoutLocale(pathname)
+  if (bareEarly === "/home") {
+    const u = req.nextUrl.clone()
+    const urlLocale = localeFromPathname(pathname)
+    u.pathname = urlLocale ? `/${urlLocale}` : "/"
+    return NextResponse.redirect(u, 308)
+  }
+
   if (isStaticAppPathname(pathname)) {
     return nextWithPathname(req)
   }

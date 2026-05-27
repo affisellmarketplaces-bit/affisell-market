@@ -54,6 +54,13 @@ test.describe("public flows", () => {
     await expect(page.locator("#explorer")).toBeVisible({ timeout: 30_000 })
   })
 
+  test("GET /home redirects to home", async ({ request }) => {
+    const res = await request.get("/home", { maxRedirects: 0 })
+    expect([301, 302, 307, 308]).toContain(res.status())
+    const location = res.headers().location ?? ""
+    expect(location).toMatch(/\/$|\/en$|\/fr$/)
+  })
+
   test("auction arena shell loads", async ({ page }) => {
     await page.goto("/auctions")
     await expect(page).toHaveURL(/\/auctions/)

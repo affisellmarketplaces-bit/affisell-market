@@ -53,7 +53,7 @@ const CATALOG: CatalogEntry[] = [
     segment: "buy",
     labelKey: "items.home",
     action: "navigate",
-    href: "/home",
+    href: "/",
     keywords: ["home", "accueil"],
   },
   {
@@ -279,7 +279,7 @@ export function buildCommandKCatalog(
     if (entry.showOnlyWhenLoggedOut && loggedIn) return false
     return true
   }).map((entry) => {
-    if (entry.id === "home" && entry.href === "/home") {
+    if (entry.id === "home" && (entry.href === "/home" || entry.href === "/")) {
       return { ...entry, href: "/" }
     }
     const { hideForPersona: _h, showOnlyWhenLoggedIn: _a, showOnlyWhenLoggedOut: _b, ...item } =
