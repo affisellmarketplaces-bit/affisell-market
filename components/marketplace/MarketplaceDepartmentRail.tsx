@@ -43,7 +43,10 @@ export function MarketplaceDepartmentRail({
 
   return (
     <section
-      className="mt-6 overflow-hidden rounded-2xl border border-violet-200/60 bg-gradient-to-r from-violet-50/95 via-white to-fuchsia-50/80 p-4 shadow-sm dark:border-violet-900/40 dark:from-violet-950/40 dark:via-zinc-950 dark:to-fuchsia-950/30"
+      className={cn(
+        affisellBrand.epoxySurfaceLight,
+        "mt-6 overflow-hidden rounded-2xl p-4"
+      )}
       aria-label={t("ariaLabel")}
     >
       <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -74,7 +77,10 @@ export function MarketplaceDepartmentRail({
           <Link
             href={discoverSwipeHref()}
             title={t("swipeAll")}
-            className="flex size-8 shrink-0 items-center justify-center rounded-full border border-fuchsia-300/80 bg-gradient-to-br from-fuchsia-600 to-violet-600 text-white shadow-md transition hover:scale-105"
+            className={cn(
+              affisellBrand.epoxyCta,
+              "flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-fuchsia-600 to-violet-600 text-white transition hover:scale-105"
+            )}
             aria-label={t("swipeAll")}
           >
             <Zap className="size-3.5" aria-hidden />
@@ -103,7 +109,10 @@ export function MarketplaceDepartmentRail({
               <Link
                 href={discoverSwipeHref({ category: c.id })}
                 title={t("swipeCategory", { name: c.name })}
-                className="flex size-8 shrink-0 items-center justify-center rounded-full border border-violet-200/80 bg-violet-600/90 text-white shadow transition hover:scale-105 dark:border-violet-700"
+                className={cn(
+                  affisellBrand.epoxyCta,
+                  "flex size-8 shrink-0 items-center justify-center rounded-full bg-violet-600/95 text-white transition hover:scale-105"
+                )}
                 aria-label={t("swipeCategory", { name: c.name })}
               >
                 <Zap className="size-3.5" aria-hidden />

@@ -21,6 +21,7 @@ import {
   swipeFiltersActiveCount,
 } from "@/components/affiliate/swipe-feed/swipe-filters-sheet"
 import { Button, buttonVariants } from "@/components/ui/button"
+import { affisellBrand } from "@/lib/affisell-brand"
 import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
 import type {
   SwipeFeedFilters,
@@ -300,7 +301,8 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
 
   if (mode === "hub") {
     return (
-      <div className="relative min-h-[calc(100dvh-3.75rem)] overflow-hidden bg-zinc-950 text-white">
+      <div className={cn(affisellBrand.epoxyPage, "relative min-h-[calc(100dvh-3.75rem)] overflow-hidden")}>
+        <div className={affisellBrand.epoxyCanvas} aria-hidden />
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute -left-32 top-20 h-72 w-72 rounded-full bg-violet-600/30 blur-[100px]" />
           <div className="absolute -right-20 bottom-32 h-80 w-80 rounded-full bg-fuchsia-600/25 blur-[100px]" />
@@ -337,7 +339,10 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
           <motion.button
             type="button"
             onClick={() => setMode("swipe")}
-            className="group relative mt-10 w-full overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-violet-600/40 via-fuchsia-600/30 to-indigo-700/40 p-8 text-left shadow-2xl shadow-violet-950/50 transition-transform hover:scale-[1.02] active:scale-[0.99]"
+            className={cn(
+              affisellBrand.epoxySurface,
+              "group relative mt-10 w-full overflow-hidden rounded-3xl p-8 text-left transition-transform hover:scale-[1.02] active:scale-[0.99]"
+            )}
             whileHover={{ y: -2 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -378,7 +383,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
   }
 
   return (
-    <div className="relative flex min-h-[calc(100dvh-3.75rem)] flex-col overflow-hidden bg-gradient-to-b from-zinc-50 via-violet-50/40 to-zinc-100 text-zinc-900 dark:from-zinc-950 dark:via-violet-950/30 dark:to-zinc-950 dark:text-zinc-50">
+    <div className="relative flex min-h-[calc(100dvh-3.75rem)] flex-col overflow-hidden bg-gradient-to-b from-zinc-50 via-violet-50/40 to-zinc-100 text-zinc-900 dark:from-zinc-950 dark:via-violet-950/30 dark:to-zinc-950 dark:text-zinc-50 dark:[&_.epoxy-chip]:text-zinc-100">
       <div className="pointer-events-none absolute inset-0">
         <motion.div
           className="absolute -left-24 top-0 h-96 w-96 rounded-full bg-violet-400/20 blur-[100px] dark:bg-violet-600/25"
@@ -412,7 +417,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
           Hub
         </button>
 
-        <div className="flex items-center gap-2 rounded-full border border-zinc-200/80 bg-white/80 px-3 py-1 text-xs shadow-sm backdrop-blur-md dark:border-white/10 dark:bg-zinc-900/70">
+        <div className={cn(affisellBrand.epoxyChip, "flex items-center gap-2 rounded-full px-3 py-1 text-xs text-zinc-800 dark:text-zinc-100")}>
           <Sparkles className="size-3.5 text-violet-600 dark:text-violet-400" aria-hidden />
           <span className="font-medium text-emerald-700 dark:text-emerald-400">{sessionStats.listed} listés</span>
           <span className="text-zinc-300 dark:text-zinc-600">·</span>
@@ -515,7 +520,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
         </p>
       </div>
 
-      <footer className="relative z-10 border-t border-zinc-200/80 bg-white/85 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-xl dark:border-white/5 dark:bg-zinc-950/90 md:px-6">
+      <footer className={cn(affisellBrand.epoxyPanel, "relative z-10 mx-3 mb-3 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:px-6")}>
         <div className="mx-auto flex max-w-[340px] items-center justify-center gap-4">
           <button
             type="button"

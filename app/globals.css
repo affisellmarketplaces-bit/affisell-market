@@ -196,6 +196,263 @@
     background: var(--affisell-gradient);
   }
 
+  /* —— Affisell epoxy resin (transparent glossy) —— */
+  .epoxy-surface {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    border: 1px solid color-mix(in srgb, white 32%, transparent);
+    background:
+      linear-gradient(
+        148deg,
+        color-mix(in srgb, white 26%, transparent) 0%,
+        color-mix(in srgb, white 8%, transparent) 42%,
+        color-mix(in srgb, black 6%, transparent) 100%
+      ),
+      radial-gradient(95% 75% at 8% 0%, rgb(139 92 246 / 0.22), transparent 58%),
+      radial-gradient(75% 65% at 100% 100%, rgb(6 182 212 / 0.18), transparent 52%),
+      radial-gradient(50% 40% at 50% 100%, rgb(236 72 153 / 0.08), transparent 55%),
+      color-mix(in srgb, #0c0f1a 38%, transparent);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.42),
+      inset 0 -1px 0 rgb(255 255 255 / 0.06),
+      inset 0 -14px 32px rgb(0 0 0 / 0.18),
+      0 16px 40px rgb(5 8 22 / 0.38);
+  }
+
+  .epoxy-surface::before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(
+      115deg,
+      transparent 28%,
+      rgb(255 255 255 / 0.32) 46%,
+      transparent 64%
+    );
+    transform: translateX(-120%) skewX(-14deg);
+    animation: affisell-epoxy-sheen 9s ease-in-out infinite;
+    mix-blend-mode: screen;
+  }
+
+  .epoxy-surface::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    opacity: 0.55;
+    background: radial-gradient(
+      ellipse 120% 80% at 50% -20%,
+      rgb(255 255 255 / 0.12),
+      transparent 55%
+    );
+  }
+
+  .epoxy-chip {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, white 34%, transparent);
+    background:
+      linear-gradient(
+        160deg,
+        color-mix(in srgb, white 24%, transparent),
+        color-mix(in srgb, white 4%, transparent) 45%,
+        color-mix(in srgb, black 14%, transparent)
+      );
+    backdrop-filter: blur(14px) saturate(150%);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.36),
+      0 8px 26px rgb(8 10 26 / 0.32);
+  }
+
+  .epoxy-cta {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    border: 1px solid rgb(255 255 255 / 0.28);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.45),
+      inset 0 -8px 20px rgb(0 0 0 / 0.12),
+      0 12px 28px rgb(82 35 183 / 0.38);
+  }
+
+  .epoxy-cta::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: linear-gradient(
+      110deg,
+      transparent 26%,
+      rgb(255 255 255 / 0.38) 50%,
+      transparent 74%
+    );
+    transform: translateX(-130%) skewX(-14deg);
+    animation: affisell-epoxy-sheen 7.5s ease-in-out infinite;
+  }
+
+  .epoxy-surface--light {
+    border: 1px solid color-mix(in srgb, var(--brand) 18%, white 40%);
+    background:
+      linear-gradient(
+        148deg,
+        color-mix(in srgb, white 72%, transparent) 0%,
+        color-mix(in srgb, white 45%, transparent) 50%,
+        color-mix(in srgb, #ede9fe 35%, transparent) 100%
+      ),
+      radial-gradient(90% 70% at 0% 0%, rgb(139 92 246 / 0.12), transparent 55%),
+      radial-gradient(70% 60% at 100% 100%, rgb(6 182 212 / 0.08), transparent 50%);
+    backdrop-filter: blur(16px) saturate(140%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.85),
+      0 12px 32px rgb(109 40 217 / 0.08);
+  }
+
+  .dark .epoxy-surface--light {
+    border-color: color-mix(in srgb, var(--brand-light) 25%, white 10%);
+    background:
+      linear-gradient(
+        148deg,
+        color-mix(in srgb, white 10%, transparent) 0%,
+        color-mix(in srgb, black 12%, transparent) 100%
+      ),
+      radial-gradient(90% 70% at 0% 0%, rgb(139 92 246 / 0.2), transparent 55%),
+      color-mix(in srgb, #0c0f1a 42%, transparent);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.12),
+      0 12px 36px rgb(5 8 22 / 0.34);
+  }
+
+  .affisell-epoxy-page {
+    color: #f8fafc;
+    background-color: #070a12;
+    background-image:
+      radial-gradient(ellipse 90% 55% at 50% -15%, rgb(109 40 217 / 0.28), transparent 58%),
+      radial-gradient(ellipse 70% 50% at 100% 50%, rgb(6 182 212 / 0.12), transparent 55%),
+      radial-gradient(ellipse 60% 45% at 0% 80%, rgb(236 72 153 / 0.1), transparent 50%),
+      linear-gradient(180deg, #0a0e18 0%, #070a12 45%, #05070d 100%);
+  }
+
+  .affisell-epoxy-canvas {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    opacity: 0.35;
+    background-image:
+      linear-gradient(rgb(255 255 255 / 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(255 255 255 / 0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, black, transparent 75%);
+  }
+
+  .affisell-brand-wordmark {
+    position: relative;
+    display: inline-block;
+    background: linear-gradient(
+      105deg,
+      #e0f2fe 0%,
+      #c4b5fd 28%,
+      #f0abfc 52%,
+      #67e8f9 78%,
+      #e9d5ff 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 18px rgb(139 92 246 / 0.45));
+  }
+
+  .affisell-brand-wordmark--sm {
+    font-size: inherit;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+  }
+
+  .epoxy-gesture-badge {
+    border: 1px solid color-mix(in srgb, white 34%, transparent);
+    background:
+      linear-gradient(
+        160deg,
+        color-mix(in srgb, white 24%, transparent),
+        color-mix(in srgb, black 14%, transparent)
+      );
+    backdrop-filter: blur(14px) saturate(150%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.36),
+      0 8px 26px rgb(8 10 26 / 0.32);
+  }
+
+  .epoxy-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    border-radius: 1rem;
+    padding: 0.5rem 0;
+    font-size: 10px;
+    font-weight: 600;
+    transition: transform 0.15s ease;
+  }
+
+  .epoxy-action-btn:active:not(:disabled) {
+    transform: scale(0.95);
+  }
+
+  .epoxy-action-btn:disabled {
+    opacity: 0.4;
+  }
+
+  .epoxy-action-btn--buy {
+    border: 1px solid color-mix(in srgb, #c4b5fd 50%, transparent);
+    background: linear-gradient(145deg, rgb(124 58 237 / 0.92), rgb(192 38 211 / 0.88));
+    font-weight: 700;
+    color: white;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.4),
+      0 10px 28px rgb(124 58 237 / 0.45);
+  }
+
+  .epoxy-action-btn--cart {
+    border: 1px solid color-mix(in srgb, #6ee7b7 40%, transparent);
+    color: rgb(209 250 229);
+    background: linear-gradient(160deg, rgb(16 185 129 / 0.35), rgb(5 46 22 / 0.5));
+  }
+
+  .epoxy-action-btn--drop {
+    border: 1px solid color-mix(in srgb, #fcd34d 40%, transparent);
+    color: rgb(254 243 199);
+    background: linear-gradient(160deg, rgb(245 158 11 / 0.32), rgb(69 26 3 / 0.45));
+  }
+
+  .epoxy-toast {
+    border: 1px solid color-mix(in srgb, white 34%, transparent);
+    border-radius: 1rem;
+    padding: 0.75rem 1.25rem;
+    text-align: center;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: white;
+    backdrop-filter: blur(14px) saturate(150%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.36),
+      0 12px 32px rgb(8 10 26 / 0.4);
+  }
+
+  .epoxy-aura {
+    pointer-events: none;
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(80px);
+    mix-blend-mode: screen;
+  }
+
   /**
    * PDP / product page — hairline viewport frame (fine, barely visible).
    * Sits on the outer edges of the screen, not around inner content cards.
@@ -250,7 +507,35 @@
   }
 
   .affisell-header-shell {
-    @apply relative overflow-hidden rounded-3xl border border-brand/20 bg-white/85 shadow-sm shadow-brand/10 ring-1 ring-black/[0.03] backdrop-blur-md dark:border-brand/30 dark:bg-zinc-950/75 dark:ring-white/10;
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.5rem;
+    border: 1px solid color-mix(in srgb, var(--brand) 22%, white 18%);
+    background:
+      linear-gradient(
+        148deg,
+        color-mix(in srgb, white 26%, transparent) 0%,
+        color-mix(in srgb, white 8%, transparent) 42%,
+        color-mix(in srgb, black 6%, transparent) 100%
+      ),
+      radial-gradient(95% 75% at 8% 0%, rgb(139 92 246 / 0.18), transparent 58%),
+      color-mix(in srgb, white 88%, transparent);
+    backdrop-filter: blur(18px) saturate(160%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.42),
+      0 16px 40px rgb(5 8 22 / 0.12);
+  }
+
+  .dark .affisell-header-shell {
+    background:
+      linear-gradient(
+        148deg,
+        color-mix(in srgb, white 12%, transparent) 0%,
+        color-mix(in srgb, black 8%, transparent) 100%
+      ),
+      radial-gradient(95% 75% at 8% 0%, rgb(139 92 246 / 0.22), transparent 58%),
+      color-mix(in srgb, #0c0f1a 55%, transparent);
+    border-color: color-mix(in srgb, var(--brand-light) 28%, white 8%);
   }
 
   .affisell-header-mesh {
@@ -325,10 +610,21 @@
   }
 
   .affisell-logo-text {
+    @apply affisell-brand-wordmark;
     background: var(--affisell-gradient);
     -webkit-background-clip: text;
     background-clip: text;
-    color: transparent;
+    filter: drop-shadow(0 0 12px rgb(109 40 217 / 0.35));
+  }
+}
+
+@keyframes affisell-epoxy-sheen {
+  0%,
+  100% {
+    transform: translateX(-130%) skewX(-14deg);
+  }
+  50% {
+    transform: translateX(130%) skewX(-14deg);
   }
 }
 
@@ -381,6 +677,12 @@
 
 @media (prefers-reduced-motion: reduce) {
   .listing-price-card-sheen::after {
+    animation: none;
+    opacity: 0;
+  }
+
+  .epoxy-surface::before,
+  .epoxy-cta::after {
     animation: none;
     opacity: 0;
   }

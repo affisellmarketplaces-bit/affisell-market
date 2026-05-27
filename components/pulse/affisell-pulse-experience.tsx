@@ -23,6 +23,8 @@ import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { addGuestCartItem } from "@/lib/guest-cart"
 import { formatStoreCount, formatStoreCurrencyFromCents } from "@/lib/market-config"
+import { affisellBrand } from "@/lib/affisell-brand"
+import { discoverSwipeHref } from "@/lib/discover-swipe-url"
 import type { PulseFeedItem } from "@/lib/pulse-feed-types"
 import { cn } from "@/lib/utils"
 
@@ -417,7 +419,7 @@ function PulseCard({
         className="absolute inset-x-0 bottom-0 z-20 px-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="rounded-2xl border border-white/10 bg-black/45 p-4 shadow-2xl backdrop-blur-xl">
+        <div className={cn(affisellBrand.epoxyPanel, "p-4")}>
           <div className="flex flex-wrap items-center gap-2">
             {item.boosted ? (
               <span className="inline-flex items-center gap-1 rounded-full border border-cyan-400/40 bg-cyan-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-cyan-100">
@@ -458,7 +460,10 @@ function PulseCard({
               type="button"
               disabled={!item.listingId || checkoutBusy}
               onClick={() => void oneTapCheckout()}
-              className="relative flex flex-1 items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-violet-600 via-fuchsia-600 to-cyan-500 py-2.5 text-sm font-bold text-white shadow-lg shadow-violet-500/30 disabled:opacity-40"
+              className={cn(
+                affisellBrand.epoxyCta,
+                "relative flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 via-fuchsia-600 to-cyan-500 py-2.5 text-sm font-bold text-white disabled:opacity-40"
+              )}
             >
               <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.25)_50%,transparent_75%)]" aria-hidden />
               {checkoutBusy ? "…" : t("buyNow")}
@@ -505,8 +510,12 @@ export function AffisellPulseExperience({ items, viewerLoggedIn = false }: Props
     return (
       <div
         data-testid="affisell-pulse"
-        className="flex min-h-[100dvh] flex-col items-center justify-center bg-zinc-950 px-6 text-center text-white"
+        className={cn(
+          affisellBrand.epoxyPage,
+          "relative flex min-h-[100dvh] flex-col items-center justify-center px-6 text-center"
+        )}
       >
+        <div className={affisellBrand.epoxyCanvas} aria-hidden />
         <Sparkles className="mb-4 size-12 text-violet-400" />
         <p className="text-lg font-semibold">{t("emptyTitle")}</p>
         <p className="mt-2 max-w-sm text-sm text-zinc-400">{t("emptyBody")}</p>
@@ -523,8 +532,9 @@ export function AffisellPulseExperience({ items, viewerLoggedIn = false }: Props
   return (
     <div
       data-testid="affisell-pulse"
-      className="fixed inset-0 z-[140] flex flex-col bg-black text-white"
+      className={cn(affisellBrand.epoxyPage, "fixed inset-0 z-[140] flex flex-col")}
     >
+      <div className={affisellBrand.epoxyCanvas} aria-hidden />
       <div className="pointer-events-none absolute inset-0 z-0 opacity-30">
         <div className="absolute -left-1/4 top-0 h-[50vh] w-[70vw] rounded-full bg-violet-600/40 blur-[100px]" />
         <div className="absolute -right-1/4 bottom-0 h-[40vh] w-[60vw] rounded-full bg-cyan-500/30 blur-[90px]" />
@@ -534,20 +544,24 @@ export function AffisellPulseExperience({ items, viewerLoggedIn = false }: Props
         <PulseProgress active={activeIndex} total={safeItems.length} />
         <div className="flex items-center justify-between px-3 pb-2 pt-2">
           <Link
-            href="/marketplace"
-            className="flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium backdrop-blur-md ring-1 ring-white/15"
+            href="/#explorer"
+            className={cn(affisellBrand.epoxyChip, "flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium text-white/90")}
           >
             <ArrowLeft className="size-4" />
             {t("exit")}
           </Link>
           <div className="flex items-center gap-2">
-            <span className="bg-gradient-to-r from-cyan-300 via-violet-200 to-fuchsia-300 bg-clip-text text-sm font-black tracking-tight text-transparent">
-              {t("brand")}
-            </span>
-            <span className="rounded-full border border-white/20 bg-white/5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-white/80">
+            <span className={affisellBrand.brandWordmark}>{t("brand")}</span>
+            <span className={cn(affisellBrand.epoxyChip, "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-white/90")}>
               {t("beta")}
             </span>
           </div>
+          <Link
+            href={discoverSwipeHref()}
+            className={cn(affisellBrand.epoxyChip, "rounded-full px-2 py-1 text-[10px] font-semibold text-cyan-200")}
+          >
+            Swipe
+          </Link>
           <span className="tabular-nums text-xs text-white/70">
             {activeIndex + 1}/{safeItems.length}
           </span>

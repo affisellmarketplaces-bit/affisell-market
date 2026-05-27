@@ -52,7 +52,7 @@ export function PublicNav() {
     >
       <Link href="/" className="col-start-1 row-start-1 shrink-0">
         <motion.span
-          className="text-lg font-bold affisell-logo-text"
+          className={cn("text-lg font-bold affisell-logo-text", "affisell-brand-wordmark")}
           whileHover={{ scale: 1.03 }}
           transition={{ duration: 0.2 }}
         >

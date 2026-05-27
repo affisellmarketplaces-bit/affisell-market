@@ -24,6 +24,7 @@ import Image from "next/image"
 
 import { ProductPriceOffer } from "@/components/product/product-price-offer"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
+import { affisellBrand } from "@/lib/affisell-brand"
 import type { PulseFeedItem } from "@/lib/pulse-feed-types"
 import { cn } from "@/lib/utils"
 
@@ -159,7 +160,7 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
         onDrag={handleDrag}
         onDragEnd={handleDragEnd}
       >
-        <article className="relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-zinc-950 shadow-2xl shadow-violet-950/40">
+        <article className={cn(affisellBrand.epoxySurface, "relative overflow-hidden rounded-[1.75rem]")}>
           <div className="relative aspect-[3/4] w-full overflow-hidden bg-zinc-900">
             <div className="absolute inset-0">
               {item.isVideo ? (
@@ -220,9 +221,9 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
             style={{ opacity: cartOpacity }}
             className="pointer-events-none absolute left-1/2 top-8 z-20 -translate-x-1/2"
           >
-            <div className="flex items-center gap-2 rounded-2xl border-2 border-emerald-400 bg-emerald-500/20 px-4 py-2 backdrop-blur-md">
+            <div className={cn(affisellBrand.epoxyGestureBadge, "flex items-center gap-2 border-emerald-300/50 text-emerald-100")}>
               <ShoppingBag className="size-5 text-emerald-300" />
-              <span className="text-xs font-black uppercase tracking-wider text-emerald-100">Panier</span>
+              <span className="text-xs font-black uppercase tracking-wider">Panier</span>
             </div>
           </motion.div>
 
@@ -230,9 +231,9 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
             style={{ opacity: saveOpacity }}
             className="pointer-events-none absolute bottom-32 left-1/2 z-20 -translate-x-1/2"
           >
-            <div className="flex items-center gap-2 rounded-2xl border-2 border-amber-400 bg-amber-500/20 px-4 py-2 backdrop-blur-md">
+            <div className={cn(affisellBrand.epoxyGestureBadge, "flex items-center gap-2 border-amber-300/50 text-amber-100")}>
               <Bookmark className="size-5 text-amber-200" />
-              <span className="text-xs font-black uppercase tracking-wider text-amber-100">Save Drop</span>
+              <span className="text-xs font-black uppercase tracking-wider">Save Drop</span>
             </div>
           </motion.div>
 
@@ -240,9 +241,9 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
             style={{ opacity: buyOpacity }}
             className="pointer-events-none absolute right-4 top-1/2 z-20 -translate-y-1/2"
           >
-            <div className="flex items-center gap-2 rounded-2xl border-2 border-violet-400 bg-violet-500/25 px-3 py-2 backdrop-blur-md">
+            <div className={cn(affisellBrand.epoxyGestureBadge, "flex items-center gap-2 border-violet-300/50 text-violet-100")}>
               <Zap className="size-5 text-violet-200" />
-              <span className="text-xs font-black uppercase tracking-wider text-violet-100">Acheter</span>
+              <span className="text-xs font-black uppercase tracking-wider">Acheter</span>
             </div>
           </motion.div>
 
@@ -250,13 +251,13 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
             style={{ opacity: skipOpacity }}
             className="pointer-events-none absolute left-4 top-1/2 z-20 -translate-y-1/2"
           >
-            <div className="flex items-center gap-2 rounded-2xl border-2 border-zinc-400 bg-white/10 px-3 py-2 backdrop-blur-md">
-              <ChevronLeft className="size-5 text-white" />
-              <span className="text-xs font-black uppercase tracking-wider text-white">Suivant</span>
+            <div className={cn(affisellBrand.epoxyGestureBadge, "flex items-center gap-2 text-white")}>
+              <ChevronLeft className="size-5" />
+              <span className="text-xs font-black uppercase tracking-wider">Suivant</span>
             </div>
           </motion.div>
 
-          <div className="relative border-t border-white/10 bg-gradient-to-b from-zinc-950/95 to-black p-4">
+          <div className="relative z-[2] border-t border-white/10 p-4">
             <div className="flex flex-wrap items-center gap-2">
               {item.boosted ? (
                 <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-cyan-100 ring-1 ring-cyan-400/30">

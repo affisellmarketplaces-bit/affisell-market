@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl"
 import { Brain, LayoutGrid, Sparkles, Store } from "lucide-react"
 
 import { PUBLIC_SHOPS_PATH } from "@/lib/affiliate-routes"
+import { affisellBrand } from "@/lib/affisell-brand"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -78,7 +79,7 @@ export function MarketplaceAffisellPulse({ audience = "default" }: Props) {
   if (audience === "buyer") {
     return (
       <section
-        className="mt-4 rounded-2xl border border-zinc-200/80 bg-gradient-to-br from-zinc-50/95 via-white to-violet-50/40 p-4 shadow-sm dark:border-zinc-800 dark:from-zinc-900/50 dark:via-zinc-950 dark:to-violet-950/20"
+        className={cn(affisellBrand.epoxySurfaceLight, "mt-4 rounded-2xl p-4")}
         aria-label={t("aria")}
       >
         <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">

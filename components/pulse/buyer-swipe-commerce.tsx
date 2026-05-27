@@ -23,6 +23,7 @@ import {
 } from "@/components/pulse/buyer-swipe-card"
 import { buttonVariants } from "@/components/ui/button"
 import { addGuestCartItem } from "@/lib/guest-cart"
+import { affisellBrand } from "@/lib/affisell-brand"
 import { discoverSwipeHref } from "@/lib/discover-swipe-url"
 import type { PulseFeedItem } from "@/lib/pulse-feed-types"
 import { cn } from "@/lib/utils"
@@ -323,19 +324,28 @@ export function BuyerSwipeCommerce({
     return (
       <div
         data-testid="affisell-pulse"
-        className="flex min-h-[100dvh] flex-col items-center justify-center bg-zinc-950 px-6 text-center text-white"
+        className={cn(
+          affisellBrand.epoxyPage,
+          "relative flex min-h-[100dvh] flex-col items-center justify-center px-6 text-center"
+        )}
       >
-        <Sparkles className="mb-4 size-12 text-violet-400" aria-hidden />
+        <div className={affisellBrand.epoxyCanvas} aria-hidden />
+        <div className={cn(affisellBrand.epoxyPanel, "relative z-10 max-w-sm p-8")}>
+        <Sparkles className="mx-auto mb-4 size-12 text-violet-300" aria-hidden />
         <p className="text-lg font-semibold">{tPulse("emptyTitle")}</p>
-        <p className="mt-2 max-w-sm text-sm text-zinc-400">
+        <p className="mt-2 text-sm text-zinc-300">
           {categoryLabel ? t("emptyCategory", { name: categoryLabel }) : tPulse("emptyBody")}
         </p>
         <Link
           href={exitHref}
-          className="mt-6 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 px-6 py-2.5 text-sm font-semibold"
+          className={cn(
+            affisellBrand.epoxyCta,
+            "mt-6 inline-flex rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 px-6 py-2.5 text-sm font-semibold"
+          )}
         >
           {tPulse("browseCatalog")}
         </Link>
+        </div>
       </div>
     )
   }
@@ -343,8 +353,9 @@ export function BuyerSwipeCommerce({
   return (
     <div
       data-testid="affisell-pulse"
-      className="fixed inset-0 z-[140] flex flex-col bg-zinc-950 text-white"
+      className={cn(affisellBrand.epoxyPage, "fixed inset-0 z-[140] flex flex-col")}
     >
+      <div className={affisellBrand.epoxyCanvas} aria-hidden />
       <div className="pointer-events-none absolute inset-0">
         <motion.div
           className="absolute -left-24 top-0 h-96 w-96 rounded-full bg-emerald-500/20 blur-[100px]"
@@ -363,24 +374,22 @@ export function BuyerSwipeCommerce({
       </div>
 
       <header className="relative z-40 shrink-0 px-3 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))]">
-        <div className="flex items-center justify-between gap-2">
+        <div className={cn(affisellBrand.epoxyPanel, "mx-auto flex max-w-[420px] items-center justify-between gap-2 px-3 py-2")}>
           <Link
             href={exitHref}
-            className="flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium backdrop-blur-md ring-1 ring-white/15"
+            className={cn(affisellBrand.epoxyChip, "flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium text-white/90")}
           >
             <ArrowLeft className="size-4" aria-hidden />
             {tPulse("exit")}
           </Link>
           <div className="flex flex-col items-center">
-            <span className="bg-gradient-to-r from-cyan-300 via-violet-200 to-fuchsia-300 bg-clip-text text-sm font-black tracking-tight text-transparent">
-              {tPulse("brand")}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="rounded-full border border-red-400/50 bg-red-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase text-red-100">
+            <span className={affisellBrand.brandWordmark}>{tPulse("brand")}</span>
+            <span className="mt-1 flex items-center gap-1.5">
+              <span className={cn(affisellBrand.epoxyChip, "rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase text-red-100")}>
                 {tPulse("beta")}
               </span>
               {replayMode ? (
-                <span className="rounded-full border border-violet-400/40 bg-violet-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase text-violet-100">
+                <span className={cn(affisellBrand.epoxyChip, "rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase text-violet-100")}>
                   {t("rewindBadge")}
                 </span>
               ) : null}
@@ -389,7 +398,7 @@ export function BuyerSwipeCommerce({
               <p className="mt-0.5 max-w-[12rem] truncate text-[10px] text-zinc-400">{categoryLabel}</p>
             ) : null}
           </div>
-          <span className="tabular-nums text-xs text-white/70">
+          <span className={cn(affisellBrand.epoxyChip, "tabular-nums rounded-full px-2 py-1 text-xs text-white/80")}>
             {deck.length > 0 ? deck.length : "—"}
           </span>
         </div>
@@ -426,13 +435,13 @@ export function BuyerSwipeCommerce({
         <p className="mt-3 text-center text-[11px] text-zinc-400">{t("hint")}</p>
       </div>
 
-      <footer className="relative z-40 shrink-0 border-t border-white/10 bg-black/60 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-xl">
+      <footer className={cn(affisellBrand.epoxyPanel, "relative z-40 mx-3 mb-3 shrink-0 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]")}>
         <div className="mx-auto grid max-w-[380px] grid-cols-5 gap-2">
           <button
             type="button"
             disabled={busy || deck.length === 0}
             onClick={() => requestSwipe("left")}
-            className="flex flex-col items-center gap-1 rounded-2xl border border-white/15 bg-white/5 py-2 text-[10px] font-semibold disabled:opacity-40"
+            className={affisellBrand.epoxyActionBtn}
             aria-label={t("skip")}
           >
             <ChevronLeft className="size-5" />
@@ -442,7 +451,7 @@ export function BuyerSwipeCommerce({
             type="button"
             disabled={busy || deck.length === 0}
             onClick={() => requestSwipe("up")}
-            className="flex flex-col items-center gap-1 rounded-2xl border border-emerald-400/30 bg-emerald-500/15 py-2 text-[10px] font-semibold text-emerald-100 disabled:opacity-40"
+            className={affisellBrand.epoxyActionCart}
             aria-label={t("cart")}
           >
             <ShoppingBag className="size-5" />
@@ -452,7 +461,7 @@ export function BuyerSwipeCommerce({
             type="button"
             disabled={skippedPool.length === 0 || busy}
             onClick={handleUndo}
-            className="flex flex-col items-center gap-1 rounded-2xl border border-white/15 bg-white/5 py-2 text-[10px] font-semibold disabled:opacity-30"
+            className={affisellBrand.epoxyActionBtn}
             aria-label={t("undo")}
           >
             <RotateCcw className="size-5" />
@@ -462,7 +471,7 @@ export function BuyerSwipeCommerce({
             type="button"
             disabled={busy || deck.length === 0}
             onClick={() => requestSwipe("right")}
-            className="flex flex-col items-center gap-1 rounded-2xl border border-violet-400/40 bg-gradient-to-br from-violet-600/80 to-fuchsia-600/80 py-2 text-[10px] font-bold disabled:opacity-40"
+            className={affisellBrand.epoxyActionBuy}
             aria-label={t("buy")}
           >
             <Zap className="size-5" />
@@ -472,7 +481,7 @@ export function BuyerSwipeCommerce({
             type="button"
             disabled={busy || deck.length === 0}
             onClick={() => requestSwipe("down")}
-            className="flex flex-col items-center gap-1 rounded-2xl border border-amber-400/30 bg-amber-500/15 py-2 text-[10px] font-semibold text-amber-100 disabled:opacity-40"
+            className={affisellBrand.epoxyActionDrop}
             aria-label={t("saveDrop")}
           >
             <Bookmark className="size-5" />
@@ -496,7 +505,10 @@ export function BuyerSwipeCommerce({
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="fixed bottom-36 left-1/2 z-50 max-w-[90vw] -translate-x-1/2 rounded-2xl border border-white/15 bg-zinc-900/95 px-5 py-3 text-center text-sm font-medium text-white shadow-2xl backdrop-blur-md"
+            className={cn(
+              affisellBrand.epoxyToast,
+              "fixed bottom-36 left-1/2 z-50 max-w-[90vw] -translate-x-1/2"
+            )}
             role="status"
           >
             {toast}
