@@ -67,6 +67,8 @@
 
 :root {
   --affisell-mobile-dock-offset: calc(5rem + env(safe-area-inset-bottom));
+  --affisell-swipe-dock-h: 13.5rem;
+  --affisell-swipe-product-strip-h: 5.5rem;
   --background: #fafafc;
   --foreground: #0f172a;
   --card: #ffffff;
@@ -172,6 +174,23 @@
     @apply text-foreground antialiased;
     background-color: var(--background);
     background-image: linear-gradient(180deg, #f5f3ff 0%, #fafafc 32%, #fafafc 100%);
+  }
+
+  body.affisell-epoxy-atmosphere {
+    background-color: #f8f7fc;
+    background-image:
+      radial-gradient(ellipse 85% 55% at 50% -12%, rgb(139 92 246 / 0.14), transparent 58%),
+      radial-gradient(ellipse 55% 45% at 100% 88%, rgb(6 182 212 / 0.09), transparent 52%),
+      radial-gradient(ellipse 50% 40% at 0% 70%, rgb(236 72 153 / 0.06), transparent 48%),
+      linear-gradient(180deg, #f3f0ff 0%, #fafafc 36%, #fafafc 100%);
+  }
+
+  .dark body.affisell-epoxy-atmosphere {
+    background-color: #0b0f1a;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -8%, rgb(109 40 217 / 0.22), transparent 55%),
+      radial-gradient(ellipse 60% 45% at 100% 100%, rgb(6 182 212 / 0.1), transparent 50%),
+      linear-gradient(180deg, #151b2e 0%, #0b0f1a 42%, #0b0f1a 100%);
   }
   html {
     @apply font-sans;
@@ -453,6 +472,53 @@
     mix-blend-mode: screen;
   }
 
+  .affisell-swipe-commerce {
+    --affisell-swipe-dock-h: 15.5rem;
+  }
+
+  .affisell-swipe-dock-panel {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.38),
+      0 -8px 32px rgb(5 8 22 / 0.45);
+  }
+
+  .affisell-swipe-toast {
+    bottom: calc(var(--affisell-swipe-dock-h) + 1.25rem + env(safe-area-inset-bottom));
+  }
+
+  .affisell-mobile-dock-epoxy {
+    border: 1px solid color-mix(in srgb, var(--brand) 20%, white 35%);
+    background:
+      linear-gradient(
+        148deg,
+        color-mix(in srgb, white 68%, transparent) 0%,
+        color-mix(in srgb, white 42%, transparent) 50%,
+        color-mix(in srgb, #ede9fe 30%, transparent) 100%
+      ),
+      radial-gradient(90% 70% at 0% 0%, rgb(139 92 246 / 0.14), transparent 55%);
+    backdrop-filter: blur(20px) saturate(155%);
+    -webkit-backdrop-filter: blur(20px) saturate(155%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.72),
+      0 12px 40px rgb(109 40 217 / 0.14),
+      0 8px 24px rgb(15 23 42 / 0.1);
+  }
+
+  .dark .affisell-mobile-dock-epoxy {
+    border-color: color-mix(in srgb, var(--brand-light) 22%, white 8%);
+    background:
+      linear-gradient(
+        148deg,
+        color-mix(in srgb, white 12%, transparent) 0%,
+        color-mix(in srgb, black 10%, transparent) 100%
+      ),
+      radial-gradient(90% 70% at 0% 0%, rgb(139 92 246 / 0.22), transparent 55%),
+      color-mix(in srgb, #0c0f1a 52%, transparent);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.14),
+      0 12px 40px rgb(5 8 22 / 0.42);
+  }
+
   /**
    * PDP / product page — hairline viewport frame (fine, barely visible).
    * Sits on the outer edges of the screen, not around inner content cards.
@@ -509,6 +575,7 @@
   .affisell-header-shell {
     position: relative;
     overflow: hidden;
+    isolation: isolate;
     border-radius: 1.5rem;
     border: 1px solid color-mix(in srgb, var(--brand) 22%, white 18%);
     background:
@@ -519,11 +586,31 @@
         color-mix(in srgb, black 6%, transparent) 100%
       ),
       radial-gradient(95% 75% at 8% 0%, rgb(139 92 246 / 0.18), transparent 58%),
+      radial-gradient(70% 60% at 100% 100%, rgb(6 182 212 / 0.08), transparent 50%),
       color-mix(in srgb, white 88%, transparent);
     backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 0.42),
+      inset 0 -1px 0 rgb(255 255 255 / 0.06),
       0 16px 40px rgb(5 8 22 / 0.12);
+  }
+
+  .affisell-header-shell::before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(
+      115deg,
+      transparent 28%,
+      rgb(255 255 255 / 0.28) 46%,
+      transparent 64%
+    );
+    transform: translateX(-120%) skewX(-14deg);
+    animation: affisell-epoxy-sheen 11s ease-in-out infinite;
+    mix-blend-mode: screen;
   }
 
   .dark .affisell-header-shell {

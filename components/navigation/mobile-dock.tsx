@@ -8,6 +8,7 @@ import { useEffect, useState } from "react"
 
 import { FastLink } from "@/components/navigation/fast-link"
 import { PUBLIC_MARKETPLACE_BROWSE_PATH, PUBLIC_SHOPS_PATH } from "@/lib/affiliate-routes"
+import { affisellBrand } from "@/lib/affisell-brand"
 import { guestCartCount } from "@/lib/guest-cart"
 import { shouldHideMobileDock } from "@/lib/mobile-shell"
 import { cn } from "@/lib/utils"
@@ -75,7 +76,12 @@ export function MobileDock() {
       aria-label={t("aria")}
       className="pointer-events-none fixed inset-x-0 bottom-0 z-[90] px-3 pb-[max(0.4rem,env(safe-area-inset-bottom))] md:hidden"
     >
-      <ul className="pointer-events-auto mx-auto flex max-w-lg items-end justify-between gap-0.5 rounded-[1.85rem] border border-white/30 bg-white/82 p-1.5 shadow-[0_12px_40px_-12px_rgba(79,70,229,0.45),0_8px_24px_rgba(15,23,42,0.12)] ring-1 ring-violet-500/10 backdrop-blur-2xl dark:border-zinc-700/60 dark:bg-zinc-950/88 dark:ring-violet-400/15">
+      <ul
+        className={cn(
+          affisellBrand.epoxySurfaceLight,
+          "affisell-mobile-dock-epoxy pointer-events-auto mx-auto flex max-w-lg items-end justify-between gap-0.5 rounded-[1.85rem] p-1.5 ring-1 ring-violet-500/10 dark:ring-violet-400/15"
+        )}
+      >
         {dockItems.map(({ href, label, icon: Icon, match, ...rest }) => {
           const featured = "featured" in rest && rest.featured
           const active = match(pathname)

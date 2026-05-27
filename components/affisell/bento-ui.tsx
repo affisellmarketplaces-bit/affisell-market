@@ -1,5 +1,6 @@
 import type { ComponentProps, ReactNode } from "react"
 
+import { affisellBrand } from "@/lib/affisell-brand"
 import { cn } from "@/lib/utils"
 
 /** Page chrome under the site header — use inside routes; root `body` already has the pastel gradient. */
@@ -40,7 +41,8 @@ export function BentoCard({ className, children, ...rest }: ComponentProps<"div"
   return (
     <div
       className={cn(
-        "rounded-3xl border border-gray-100 bg-white/80 p-6 shadow-sm backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/75 md:p-8",
+        affisellBrand.epoxySurfaceLight,
+        "rounded-3xl p-6 md:p-8",
         className
       )}
       {...rest}

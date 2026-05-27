@@ -21,6 +21,8 @@ import {
   type BuyerSwipeCardHandle,
   type BuyerSwipeDirection,
 } from "@/components/pulse/buyer-swipe-card"
+import { ProductPriceOffer } from "@/components/product/product-price-offer"
+import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { buttonVariants } from "@/components/ui/button"
 import { addGuestCartItem } from "@/lib/guest-cart"
 import { affisellBrand } from "@/lib/affisell-brand"
@@ -162,6 +164,7 @@ export function BuyerSwipeCommerce({
   }, [loading, busy, feedExhausted, deck.length, skippedPool, showToast, t])
 
   const visibleStack = useMemo(() => deck.slice(0, STACK_VISIBLE), [deck])
+  const activeItem = deck[0] ?? null
 
   const recordView = useCallback((item: PulseFeedItem) => {
     void fetch("/api/pulse/view", {
@@ -350,10 +353,17 @@ export function BuyerSwipeCommerce({
     )
   }
 
+  const activePriceEur = activeItem ? activeItem.priceCents / 100 : 0
+  const activeCompareEur =
+    activeItem?.compareAtCents != null ? activeItem.compareAtCents / 100 : null
+
   return (
     <div
       data-testid="affisell-pulse"
-      className={cn(affisellBrand.epoxyPage, "fixed inset-0 z-[140] flex flex-col")}
+      className={cn(
+        affisellBrand.epoxyPage,
+        "affisell-swipe-commerce fixed inset-0 z-[140] grid grid-rows-[auto_minmax(0,1fr)_auto]"
+      )}
     >
       <div className={affisellBrand.epoxyCanvas} aria-hidden />
       <div className="pointer-events-none absolute inset-0">
@@ -404,13 +414,13 @@ export function BuyerSwipeCommerce({
         </div>
       </header>
 
-      <div className="relative z-10 mx-auto w-full max-w-[380px] flex-1 px-3 pb-2">
-        <div className="relative mx-auto h-[min(62dvh,560px)] w-full">
+      <main className="relative z-10 min-h-0 px-3 py-2">
+        <div className="relative mx-auto h-full w-full max-w-[380px]">
           <AnimatePresence mode="popLayout">
             {visibleStack.length === 0 && loading ? (
               <motion.div
                 key="loading"
-                className="flex h-full items-center justify-center"
+                className="flex h-full min-h-[12rem] items-center justify-center"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
               >
@@ -431,12 +441,59 @@ export function BuyerSwipeCommerce({
             )}
           </AnimatePresence>
         </div>
+      </main>
 
-        <p className="mt-3 text-center text-[11px] text-zinc-400">{t("hint")}</p>
-      </div>
+      <footer className="affisell-swipe-dock relative z-50 shrink-0 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        {activeItem ? (
+          <div
+            className={cn(
+              affisellBrand.epoxyPanel,
+              "relative z-10 mx-auto mb-2 max-w-[380px] px-3 py-2.5"
+            )}
+          >
+            <div className="flex flex-wrap items-center gap-2">
+              {activeItem.boosted ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-cyan-100 ring-1 ring-cyan-400/30">
+                  <Sparkles className="size-3" aria-hidden />
+                  Hot
+                </span>
+              ) : null}
+              {activeItem.soldCount > 0 ? (
+                <ProductSalesBadge
+                  count={activeItem.soldCount}
+                  variant="inline"
+                  className="!bg-white/10 !text-white"
+                />
+              ) : null}
+            </div>
+            <h2 className="mt-1.5 line-clamp-2 text-[15px] font-semibold leading-snug text-white">
+              {activeItem.title}
+            </h2>
+            {activeItem.priceCents > 0 ? (
+              <div className="mt-1.5 [&_p]:!text-white/70 [&_span]:!text-white">
+                <ProductPriceOffer
+                  price={activePriceEur}
+                  compareAt={activeCompareEur}
+                  layout="compact"
+                />
+              </div>
+            ) : null}
+            {activeItem.storeName ? (
+              <p className="mt-1 truncate text-xs text-zinc-400">{activeItem.storeName}</p>
+            ) : null}
+          </div>
+        ) : null}
 
-      <footer className={cn(affisellBrand.epoxyPanel, "relative z-40 mx-3 mb-3 shrink-0 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]")}>
-        <div className="mx-auto grid max-w-[380px] grid-cols-5 gap-2">
+        <div
+          className={cn(
+            affisellBrand.epoxyPanel,
+            "affisell-swipe-dock-panel relative mx-auto max-w-[380px] px-4 py-3"
+          )}
+        >
+        <p className="mb-2 text-center text-[10px] font-medium uppercase tracking-wider text-zinc-500">
+          {t("hint")}
+        </p>
+        <div className="grid grid-cols-5 gap-2">
           <button
             type="button"
             disabled={busy || deck.length === 0}
@@ -488,14 +545,19 @@ export function BuyerSwipeCommerce({
             Drop
           </button>
         </div>
-        <div className="mx-auto mt-3 flex max-w-[380px] justify-center gap-2">
+        <div className="mt-2 flex justify-center border-t border-white/8 pt-2">
           <Link
             href={discoverSwipeHref({ category: categoryId, subcategory: subcategoryId, layout: "scroll" })}
-            className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "text-zinc-400 hover:text-white")}
+            className={cn(
+              affisellBrand.epoxyChip,
+              buttonVariants({ variant: "ghost", size: "sm" }),
+              "rounded-full text-zinc-300 hover:text-white"
+            )}
           >
-            <Layers className="mr-1 size-3.5" />
+            <Layers className="mr-1 size-3.5" aria-hidden />
             {t("scrollMode")}
           </Link>
+        </div>
         </div>
       </footer>
 
@@ -507,7 +569,7 @@ export function BuyerSwipeCommerce({
             exit={{ opacity: 0 }}
             className={cn(
               affisellBrand.epoxyToast,
-              "fixed bottom-36 left-1/2 z-50 max-w-[90vw] -translate-x-1/2"
+              "affisell-swipe-toast fixed left-1/2 z-[160] max-w-[90vw] -translate-x-1/2"
             )}
             role="status"
           >

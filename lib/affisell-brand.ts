@@ -30,4 +30,7 @@ export const affisellBrand = {
   epoxyActionDrop: "epoxy-action-btn epoxy-action-btn--drop",
   epoxyToast: "epoxy-toast epoxy-chip",
   brandWordmark: "affisell-brand-wordmark affisell-brand-wordmark--sm",
+  epoxyAtmosphere: "affisell-epoxy-atmosphere",
+  mobileDockEpoxy: "affisell-mobile-dock-epoxy",
+  swipeDock: "affisell-swipe-dock",
 } as const

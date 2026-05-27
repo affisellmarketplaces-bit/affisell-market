@@ -17,13 +17,10 @@ import {
   Bookmark,
   ChevronLeft,
   ShoppingBag,
-  Sparkles,
   Zap,
 } from "lucide-react"
 import Image from "next/image"
 
-import { ProductPriceOffer } from "@/components/product/product-price-offer"
-import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { affisellBrand } from "@/lib/affisell-brand"
 import type { PulseFeedItem } from "@/lib/pulse-feed-types"
 import { cn } from "@/lib/utils"
@@ -63,9 +60,6 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
   const saveOpacity = useTransform(y, [20, 90], [0, 1])
   const buyOpacity = useTransform(x, [20, 90], [0, 1])
   const skipOpacity = useTransform(x, [-90, -20], [1, 0])
-
-  const priceEur = item.priceCents / 100
-  const compareEur = item.compareAtCents != null ? item.compareAtCents / 100 : null
 
   const flyOut = useCallback(
     async (direction: BuyerSwipeDirection) => {
@@ -145,14 +139,14 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
   return (
     <motion.div
       className={cn(
-        "absolute inset-x-0 top-0 mx-auto w-full max-w-[360px]",
+        "absolute inset-0 mx-auto h-full w-full max-w-[360px]",
         !isTop && "pointer-events-none"
       )}
       style={{ zIndex: 30 - stackIndex, y: stackY, scale: stackScale }}
       animate={{ scale: stackScale, opacity: stackIndex === 0 ? 1 : 0.92 - stackIndex * 0.06 }}
     >
       <motion.div
-        className={cn("touch-none select-none", isTop && "cursor-grab active:cursor-grabbing")}
+        className={cn("h-full touch-none select-none", isTop && "cursor-grab active:cursor-grabbing")}
         style={{ x: isTop ? x : 0, y: isTop ? y : 0, rotate: isTop ? rotate : 0 }}
         drag={isTop}
         dragElastic={0.45}
@@ -160,8 +154,13 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
         onDrag={handleDrag}
         onDragEnd={handleDragEnd}
       >
-        <article className={cn(affisellBrand.epoxySurface, "relative overflow-hidden rounded-[1.75rem]")}>
-          <div className="relative aspect-[3/4] w-full overflow-hidden bg-zinc-900">
+        <article
+          className={cn(
+            affisellBrand.epoxySurface,
+            "relative flex h-full flex-col overflow-hidden rounded-[1.75rem]"
+          )}
+        >
+          <div className="relative min-h-0 flex-1 overflow-hidden bg-zinc-900">
             <div className="absolute inset-0">
               {item.isVideo ? (
                 <video
@@ -229,7 +228,7 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
 
           <motion.div
             style={{ opacity: saveOpacity }}
-            className="pointer-events-none absolute bottom-32 left-1/2 z-20 -translate-x-1/2"
+            className="pointer-events-none absolute bottom-[38%] left-1/2 z-20 -translate-x-1/2"
           >
             <div className={cn(affisellBrand.epoxyGestureBadge, "flex items-center gap-2 border-amber-300/50 text-amber-100")}>
               <Bookmark className="size-5 text-amber-200" />
@@ -256,29 +255,6 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
               <span className="text-xs font-black uppercase tracking-wider">Suivant</span>
             </div>
           </motion.div>
-
-          <div className="relative z-[2] border-t border-white/10 p-4">
-            <div className="flex flex-wrap items-center gap-2">
-              {item.boosted ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-cyan-100 ring-1 ring-cyan-400/30">
-                  <Sparkles className="size-3" />
-                  Hot
-                </span>
-              ) : null}
-              {item.soldCount > 0 ? (
-                <ProductSalesBadge count={item.soldCount} variant="inline" className="!bg-white/10 !text-white" />
-              ) : null}
-            </div>
-            <h2 className="mt-2 line-clamp-2 text-[15px] font-semibold leading-snug text-white">{item.title}</h2>
-            {item.priceCents > 0 ? (
-              <div className="mt-2 [&_span]:!text-white [&_p]:!text-white/70">
-                <ProductPriceOffer price={priceEur} compareAt={compareEur} layout="compact" />
-              </div>
-            ) : null}
-            {item.storeName ? (
-              <p className="mt-2 truncate text-xs text-zinc-400">{item.storeName}</p>
-            ) : null}
-          </div>
         </article>
       </motion.div>
     </motion.div>
