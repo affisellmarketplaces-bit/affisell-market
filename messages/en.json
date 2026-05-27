@@ -90,6 +90,13 @@
       }
     },
     "loadingCatalog": "Loading catalog…",
+    "catalogError": {
+      "eyebrow": "Catalog unavailable",
+      "title": "Could not show products here",
+      "body": "Loading failed on this device. Retry or open the full catalog.",
+      "retry": "Try again",
+      "browse": "Open catalog"
+    },
     "buyerBanner": {
       "title": "Shopping as a buyer?",
       "body": "Browse creator storefronts.",

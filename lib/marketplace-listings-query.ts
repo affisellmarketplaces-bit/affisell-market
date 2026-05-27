@@ -43,9 +43,36 @@ export type MarketplaceListingRow = Prisma.AffiliateProductGetPayload<{
   include: typeof listingMarketplaceInclude
 }>
 
+/** Home `#explorer` — smaller payload for mobile RSC/hydration. */
+export const HOME_MARKETPLACE_LISTINGS_TAKE = 24
+
+export const listingMarketplaceIncludeLite = {
+  product: {
+    select: {
+      id: true,
+      name: true,
+      images: true,
+      compareAt: true,
+      stock: true,
+      categoryId: true,
+      hasVariants: true,
+    },
+  },
+  affiliate: {
+    select: {
+      name: true,
+      store: { select: { name: true, slug: true } },
+    },
+  },
+} satisfies Prisma.AffiliateProductInclude
+
+export type MarketplaceListingRowLite = Prisma.AffiliateProductGetPayload<{
+  include: typeof listingMarketplaceIncludeLite
+}>
+
 export function serializeMarketplaceListing(
-  row: MarketplaceListingRow,
-  options?: { warrantyMonths?: number | null; locale?: string }
+  row: MarketplaceListingRow | MarketplaceListingRowLite,
+  options?: { warrantyMonths?: number | null; locale?: string; lite?: boolean }
 ) {
   const p = row.product
   const compareNum = p.compareAt != null ? Number(p.compareAt) : null
@@ -54,12 +81,14 @@ export function serializeMarketplaceListing(
   const warrantyMonths =
     options?.warrantyMonths !== undefined
       ? options.warrantyMonths
-      : resolveProductWarrantyMonths({
-          variants: p.variants,
-          hasVariants: p.hasVariants,
-        })
+      : options?.lite
+        ? null
+        : resolveProductWarrantyMonths({
+            variants: "variants" in p ? p.variants : undefined,
+            hasVariants: p.hasVariants,
+          })
 
-  return {
+  const base = {
     id: row.id,
     listingId: row.id,
     productId: p.id,
@@ -69,7 +98,6 @@ export function serializeMarketplaceListing(
     sellingPriceCents: row.sellingPriceCents,
     compareAt: compareNum != null && Number.isFinite(compareNum) ? compareNum : null,
     image: gallery[0] ?? null,
-    images: gallery,
     stock: p.stock,
     store: publicStoreLabelFromAffiliateRow(row.affiliate),
     isBestSeller: row.isFeatured,
@@ -84,6 +112,15 @@ export function serializeMarketplaceListing(
       options?.locale ?? "fr"
     ),
     soldCount: normalizeListingSalesCount(row.conversions),
+  }
+
+  if (options?.lite) {
+    return base
+  }
+
+  return {
+    ...base,
+    images: gallery,
   }
 }
 
@@ -120,17 +157,36 @@ export async function buildMarketplaceAffiliateWhereFromUrl(
   return { AND: andParts }
 }
 
-export async function fetchMarketplaceListings(searchParams: URLSearchParams, take = 120) {
+export async function fetchMarketplaceListings(
+  searchParams: URLSearchParams,
+  take = 120,
+  options?: { lite?: boolean }
+) {
   const where = await buildMarketplaceAffiliateWhereFromUrl(searchParams)
-  const rows = await prisma.affiliateProduct.findMany({
-    where,
-    include: listingMarketplaceInclude,
-    orderBy: [{ isFeatured: "desc" }, { clicks: "desc" }, { updatedAt: "desc" }],
-    take,
-  })
+  const lite = options?.lite === true
+  const rows = lite
+    ? await prisma.affiliateProduct.findMany({
+        where,
+        include: listingMarketplaceIncludeLite,
+        orderBy: [{ isFeatured: "desc" }, { clicks: "desc" }, { updatedAt: "desc" }],
+        take,
+      })
+    : await prisma.affiliateProduct.findMany({
+        where,
+        include: listingMarketplaceInclude,
+        orderBy: [{ isFeatured: "desc" }, { clicks: "desc" }, { updatedAt: "desc" }],
+        take,
+      })
 
+  if (lite) {
+    return (rows as MarketplaceListingRowLite[]).map((row) =>
+      serializeMarketplaceListing(row, { lite: true })
+    )
+  }
+
+  const fullRows = rows as MarketplaceListingRow[]
   const variantProductIds = [
-    ...new Set(rows.filter((r) => r.product.hasVariants).map((r) => r.product.id)),
+    ...new Set(fullRows.filter((r) => r.product.hasVariants).map((r) => r.product.id)),
   ]
   const variantRows =
     variantProductIds.length > 0
@@ -146,7 +202,7 @@ export async function fetchMarketplaceListings(searchParams: URLSearchParams, ta
     variantsByProductId.set(variant.productId, list)
   }
 
-  return rows.map((row) => {
+  return fullRows.map((row) => {
     const productVariants = variantsByProductId.get(row.product.id)
     const warrantyMonths = resolveProductWarrantyMonths({
       variants: row.product.variants,
@@ -155,4 +211,9 @@ export async function fetchMarketplaceListings(searchParams: URLSearchParams, ta
     })
     return serializeMarketplaceListing(row, { warrantyMonths })
   })
+}
+
+/** Buyer home SSR — capped listings, no variant blobs (keeps RSC under Next cache limits). */
+export async function fetchMarketplaceListingsForHome(searchParams: URLSearchParams) {
+  return fetchMarketplaceListings(searchParams, HOME_MARKETPLACE_LISTINGS_TAKE, { lite: true })
 }

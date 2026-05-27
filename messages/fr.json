@@ -90,6 +90,13 @@
       }
     },
     "loadingCatalog": "Chargement du catalogue…",
+    "catalogError": {
+      "eyebrow": "Catalogue indisponible",
+      "title": "Impossible d'afficher les produits ici",
+      "body": "Le chargement a échoué sur cet appareil. Réessayez ou ouvrez le catalogue complet.",
+      "retry": "Réessayer",
+      "browse": "Voir le catalogue"
+    },
     "buyerBanner": {
       "title": "Vous achetez ?",
       "body": "Parcourez les boutiques créateurs.",

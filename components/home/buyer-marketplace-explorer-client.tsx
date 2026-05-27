@@ -1,6 +1,7 @@
 "use client"
 
-import { MarketplaceView } from "@/app/marketplace/marketplace-view"
+import { HomeCatalogErrorBoundary } from "@/components/home/home-catalog-error-boundary"
+import { MarketplaceViewSuspense } from "@/components/home/marketplace-view-suspense"
 import type { HomeMarketplaceShell } from "@/lib/home-marketplace-shell"
 
 type Props = {
@@ -8,5 +9,9 @@ type Props = {
 }
 
 export function BuyerMarketplaceExplorerClient({ shell }: Props) {
-  return <MarketplaceView basePath="/" audience="customer" embedded initialBrowse={shell} />
+  return (
+    <HomeCatalogErrorBoundary>
+      <MarketplaceViewSuspense shell={shell} />
+    </HomeCatalogErrorBoundary>
+  )
 }

@@ -15,9 +15,9 @@ export function StaggerIn({ children, className }: Props) {
     <motion.div
       className={className}
       variants={staggerContainer}
-      initial="hidden"
+      initial={false}
       whileInView="visible"
-      viewport={{ once: true, margin: "-60px" }}
+      viewport={{ once: true, margin: "-60px", amount: 0.12 }}
     >
       {children}
     </motion.div>
