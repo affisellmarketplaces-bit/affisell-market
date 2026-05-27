@@ -3,9 +3,10 @@
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 import useSWR from "swr"
-import { Sparkles } from "lucide-react"
+import { Sparkles, Zap } from "lucide-react"
 
 import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
+import { discoverSwipeHref } from "@/lib/discover-swipe-url"
 import { marketplaceCatalogHref } from "@/lib/marketplace-catalog-url"
 import { affisellBrand } from "@/lib/affisell-brand"
 import { cn } from "@/lib/utils"
@@ -55,40 +56,59 @@ export function MarketplaceDepartmentRail({
         </p>
       </div>
       <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <Link
-          href={marketplaceCatalogHref(catalogBasePath)}
-          className={cn(
-            "shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition",
-            !activeCategoryId && !activeSubcategoryId
-              ? "border-violet-500 bg-violet-600 text-white shadow-md"
-              : "border-zinc-200/80 bg-white/90 text-zinc-700 hover:border-violet-300 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-200"
-          )}
-        >
-          {t("allCatalog")}
-          {typeof data.catalogTotal === "number" ? (
-            <span className="ml-1 opacity-80">({data.catalogTotal})</span>
-          ) : null}
-        </Link>
+        <div className="flex shrink-0 items-center gap-1">
+          <Link
+            href={marketplaceCatalogHref(catalogBasePath)}
+            className={cn(
+              "rounded-full border px-3.5 py-1.5 text-xs font-semibold transition",
+              !activeCategoryId && !activeSubcategoryId
+                ? "border-violet-500 bg-violet-600 text-white shadow-md"
+                : "border-zinc-200/80 bg-white/90 text-zinc-700 hover:border-violet-300 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-200"
+            )}
+          >
+            {t("allCatalog")}
+            {typeof data.catalogTotal === "number" ? (
+              <span className="ml-1 opacity-80">({data.catalogTotal})</span>
+            ) : null}
+          </Link>
+          <Link
+            href={discoverSwipeHref()}
+            title={t("swipeAll")}
+            className="flex size-8 shrink-0 items-center justify-center rounded-full border border-fuchsia-300/80 bg-gradient-to-br from-fuchsia-600 to-violet-600 text-white shadow-md transition hover:scale-105"
+            aria-label={t("swipeAll")}
+          >
+            <Zap className="size-3.5" aria-hidden />
+          </Link>
+        </div>
         {data.categories.map((c) => {
           const on = activeCategoryId === c.id && !activeSubcategoryId
           return (
-            <Link
-              key={c.id}
-              href={marketplaceCatalogHref(catalogBasePath, { category: c.id })}
-              className={cn(
-                affisellBrand.quickLink,
-                "affisell-quick-link--buyer shrink-0 !rounded-full !py-1.5 text-xs",
-                on ? "ring-2 ring-violet-400 ring-offset-1 ring-offset-violet-50 dark:ring-offset-zinc-950" : ""
-              )}
-            >
-              <span className={affisellBrand.quickLinkIconBuyer}>
-                <span className="text-base leading-none">{c.icon}</span>
-              </span>
-              <span className="max-w-[10rem] truncate">
-                {c.name}
-                {c.count > 0 ? <span className="ml-1 opacity-70">({c.count})</span> : null}
-              </span>
-            </Link>
+            <div key={c.id} className="flex shrink-0 items-center gap-1">
+              <Link
+                href={marketplaceCatalogHref(catalogBasePath, { category: c.id })}
+                className={cn(
+                  affisellBrand.quickLink,
+                  "affisell-quick-link--buyer shrink-0 !rounded-full !py-1.5 text-xs",
+                  on ? "ring-2 ring-violet-400 ring-offset-1 ring-offset-violet-50 dark:ring-offset-zinc-950" : ""
+                )}
+              >
+                <span className={affisellBrand.quickLinkIconBuyer}>
+                  <span className="text-base leading-none">{c.icon}</span>
+                </span>
+                <span className="max-w-[10rem] truncate">
+                  {c.name}
+                  {c.count > 0 ? <span className="ml-1 opacity-70">({c.count})</span> : null}
+                </span>
+              </Link>
+              <Link
+                href={discoverSwipeHref({ category: c.id })}
+                title={t("swipeCategory", { name: c.name })}
+                className="flex size-8 shrink-0 items-center justify-center rounded-full border border-violet-200/80 bg-violet-600/90 text-white shadow transition hover:scale-105 dark:border-violet-700"
+                aria-label={t("swipeCategory", { name: c.name })}
+              >
+                <Zap className="size-3.5" aria-hidden />
+              </Link>
+            </div>
           )
         })}
       </div>

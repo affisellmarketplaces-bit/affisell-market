@@ -542,7 +542,9 @@
       "ariaLabel": "Affisell departments",
       "badge": "Departments",
       "hint": "Department-store navigation — each department opens its aisles in the left column.",
-      "allCatalog": "All Catalog"
+      "allCatalog": "All Catalog",
+      "swipeAll": "Swipe full catalog",
+      "swipeCategory": "Swipe {name}"
     }
   },
   "product": {
@@ -574,7 +576,23 @@
     "hint": "Swipe · Double-tap to like · Shop in one tap",
     "emptyTitle": "Pulse is warming up",
     "emptyBody": "Creators are uploading clips. Explore the catalog while the feed fills.",
-    "browseCatalog": "Browse marketplace"
+    "browseCatalog": "Browse marketplace",
+    "commerce": {
+      "hint": "↑ Cart · ← Next · → Buy · ↓ Save Drop",
+      "cart": "Add to cart",
+      "cartShort": "Cart",
+      "cartAdded": "Added to cart",
+      "buy": "Buy now",
+      "buyShort": "Buy",
+      "skip": "Next product",
+      "skipShort": "Next",
+      "saveDrop": "Save Drop — wishlist + price alert",
+      "undo": "Product back in stack",
+      "rewindOn": "New arrivals done — Rewind mode on",
+      "rewindBadge": "Rewind",
+      "scrollMode": "Vertical scroll mode",
+      "emptyCategory": "No listed products in {name} yet."
+    }
   },
   "merchantAccount": {
     "account": "Account",
