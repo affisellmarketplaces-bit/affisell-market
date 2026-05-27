@@ -33,6 +33,17 @@ const DEFAULT_MARKUP = 0.3
 const STACK_VISIBLE = 3
 const PREFETCH_WHEN_LEFT = 3
 
+function shuffleProducts(products: SwipeFeedProduct[]): SwipeFeedProduct[] {
+  const next = [...products]
+  for (let i = next.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1))
+    const tmp = next[i]
+    next[i] = next[j]!
+    next[j] = tmp!
+  }
+  return next
+}
+
 function buildFeedQuery(filters: SwipeFeedFilters, take: number): string {
   const params = new URLSearchParams()
   params.set("take", String(take))
@@ -57,6 +68,8 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [history, setHistory] = useState<SwipeHistoryEntry[]>([])
   const [sessionStats, setSessionStats] = useState({ listed: 0, skipped: 0 })
+  const [skippedReplayPool, setSkippedReplayPool] = useState<SwipeFeedProduct[]>([])
+  const [replayMode, setReplayMode] = useState(false)
   const [busy, setBusy] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [dragProgress, setDragProgress] = useState(0)
@@ -105,6 +118,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
           setFeedExhausted(true)
         } else if (replace) {
           setFeedExhausted(false)
+          setReplayMode(false)
         }
 
         setDeck((prev) => {
@@ -143,6 +157,17 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
     }
   }, [deck.length, mode, loading, feedExhausted, fetchMore])
 
+  useEffect(() => {
+    if (mode !== "swipe") return
+    if (loading || busy || studioOpen) return
+    if (!feedExhausted || deck.length > 0) return
+    if (skippedReplayPool.length === 0) return
+    setReplayMode(true)
+    setFeedExhausted(false)
+    setDeck(shuffleProducts(skippedReplayPool))
+    showToast("Nouveaux SKU terminés — mode Rewind activé")
+  }, [mode, loading, busy, studioOpen, feedExhausted, deck.length, skippedReplayPool, showToast])
+
   const visibleStack = useMemo(() => deck.slice(0, STACK_VISIBLE), [deck])
 
   const requestSwipe = useCallback(
@@ -178,6 +203,10 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
         if (!res.ok) throw new Error("Skip failed")
         setHistory((h) => [{ product, action: "skip" }, ...h.slice(0, 19)])
         setSessionStats((s) => ({ ...s, skipped: s.skipped + 1 }))
+        setSkippedReplayPool((pool) => {
+          if (pool.some((p) => p.id === product.id)) return pool
+          return [...pool, product]
+        })
       } catch (e) {
         showToast(e instanceof Error ? e.message : "Erreur réseau")
         topCardRef.current?.reset()
@@ -217,6 +246,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
       } catch {
         showToast("Listé — sync swipe en attente")
       } finally {
+        setSkippedReplayPool((pool) => pool.filter((p) => p.id !== product.id))
         setStudioOpen(false)
         setStudioProduct(null)
       }
@@ -235,6 +265,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
           method: "DELETE",
         })
         setSessionStats((s) => ({ ...s, skipped: Math.max(0, s.skipped - 1) }))
+        setSkippedReplayPool((pool) => pool.filter((p) => p.id !== last.product.id))
       } else if (last.listingId) {
         await fetch(`/api/affiliate/products/${encodeURIComponent(last.listingId)}`, {
           method: "DELETE",
@@ -386,6 +417,12 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
           <span className="font-medium text-emerald-700 dark:text-emerald-400">{sessionStats.listed} listés</span>
           <span className="text-zinc-300 dark:text-zinc-600">·</span>
           <span className="text-zinc-500 dark:text-zinc-400">{sessionStats.skipped} passés</span>
+          {replayMode ? (
+            <>
+              <span className="text-zinc-300 dark:text-zinc-600">·</span>
+              <span className="font-semibold text-violet-700 dark:text-violet-300">Rewind</span>
+            </>
+          ) : null}
         </div>
 
         <button
@@ -472,7 +509,9 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
         </div>
 
         <p className="mt-3 text-center text-[11px] text-zinc-500 dark:text-zinc-500">
-          ← Passer · → Éditer & publier · ⌘Z Annuler
+          {replayMode
+            ? "Mode Rewind · vos SKUs passés reviennent pour une seconde chance"
+            : "← Passer · → Éditer & publier · ⌘Z Annuler"}
         </p>
       </div>
 
@@ -538,6 +577,8 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
           setFilters(next)
           setDeck([])
           setHistory([])
+          setSkippedReplayPool([])
+          setReplayMode(false)
           setFeedExhausted(false)
           setFetchError(null)
         }}
