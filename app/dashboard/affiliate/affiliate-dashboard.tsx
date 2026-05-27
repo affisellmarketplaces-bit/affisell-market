@@ -29,7 +29,6 @@ import {
   Sparkles,
   Store,
   TrendingUp,
-  Trash2,
   UserRound,
   UsersRound,
   Wallet,
@@ -105,9 +104,8 @@ function SortableStoreCard(props: {
   selected: boolean
   onSelect: () => void
   onToggleList: () => void
-  onRemove: () => void
 }) {
-  const { listing, selected, onSelect, onToggleList, onRemove } = props
+  const { listing, selected, onSelect, onToggleList } = props
   const p = listing.product
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -208,14 +206,6 @@ function SortableStoreCard(props: {
           >
             <Pencil className="h-4 w-4" aria-hidden /> Edit
           </Link>
-          <button
-            type="button"
-            onClick={() => onRemove()}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-900/50 dark:text-red-300 dark:hover:bg-red-950/40"
-          >
-            <Trash2 className="h-4 w-4" aria-hidden />
-            Remove from storefront
-          </button>
         </div>
       </div>
     </article>
@@ -423,14 +413,6 @@ export function AffiliateDashboard({ storeId }: Props) {
     void refreshDashboardData()
   }
 
-  function confirmRemoveFromStorefront(listingIds: string[], label: string) {
-    if (typeof window === "undefined") return
-    const ok = window.confirm(
-      `${label}\n\nThe product will disappear from your public shop. You can add it again from Discover. Listings with past sales are hidden only (not deleted).`
-    )
-    if (ok) void removeListingsFromStorefront(listingIds)
-  }
-
   async function loadProductForModal(productId: string): Promise<CatalogProduct | null> {
     const cached = catalog.find((x) => x.id === productId)
     if (cached?.description != null && cached.variants !== undefined) return cached
@@ -533,8 +515,8 @@ export function AffiliateDashboard({ storeId }: Props) {
       document.getElementById(`catalog-product-${pid}`)?.scrollIntoView({ behavior: "smooth", block: "center" })
     })
 
-    const isAdded = (p.affiliateProducts?.length ?? 0) > 0
-    void (isAdded ? openEditModal(pid) : openCreate(p))
+  const listingState = resolveCatalogListingState(p.affiliateProducts)
+  void (listingState.kind === "none" ? openCreate(p) : openEditModal(pid))
 
     router.replace("/dashboard/affiliate", { scroll: false })
     // One-shot deep link — handlers intentionally omitted from deps
@@ -1087,21 +1069,6 @@ export function AffiliateDashboard({ storeId }: Props) {
             >
               Feature selected
             </button>
-            <button
-              type="button"
-              disabled={selected.size === 0}
-              onClick={() =>
-                confirmRemoveFromStorefront(
-                  [...selected],
-                  selected.size === 1
-                    ? "Remove this product from your storefront?"
-                    : `Remove ${selected.size} products from your storefront?`
-                )
-              }
-              className="dash-btn-danger"
-            >
-              <Trash2 className="h-3.5 w-3.5" /> Remove from storefront
-            </button>
           </div>
 
           {!storefrontListings.length ? (
@@ -1126,12 +1093,6 @@ export function AffiliateDashboard({ storeId }: Props) {
                           })
                         }
                         onToggleList={() => void toggleList(l.id, l.isListed)}
-                        onRemove={() =>
-                          confirmRemoveFromStorefront(
-                            [l.id],
-                            `Remove “${listingDisplayTitle(l.customTitle ?? null, l.product.name)}” from your storefront?`
-                          )
-                        }
                       />
                     ))}
                 </div>

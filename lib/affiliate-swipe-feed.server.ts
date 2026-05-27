@@ -47,7 +47,7 @@ export async function buildSwipeFeedWhere(
   const andParts: Prisma.ProductWhereInput[] = [
     catalogWhere,
     {
-      affiliateProducts: { none: { affiliateId } },
+      affiliateProducts: { none: { affiliateId, isListed: true } },
     },
   ]
 
