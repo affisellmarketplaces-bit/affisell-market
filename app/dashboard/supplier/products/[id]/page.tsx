@@ -63,10 +63,14 @@ export default async function SupplierProductVideoPage({
 
         <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">{product.name}</h1>
 
-        {!snapshot.isPro ? (
+        {!snapshot.isPro && !snapshot.paywallBypass ? (
           <p className="mt-2 text-sm text-muted-foreground">
             <span className="font-medium text-zinc-900 dark:text-zinc-100">{snapshot.remaining}</span>
             /{FREE_VIDEO_LIMIT} vidéos restantes
+          </p>
+        ) : snapshot.paywallBypass ? (
+          <p className="mt-2 text-sm font-medium text-amber-800 dark:text-amber-300">
+            Mode test — générations vidéo illimitées (paywall désactivé)
           </p>
         ) : null}
 
@@ -105,6 +109,7 @@ export default async function SupplierProductVideoPage({
             videoLimit: snapshot.videoLimit,
             remaining: snapshot.remaining,
             isPro: snapshot.isPro,
+            paywallBypass: snapshot.paywallBypass,
           }}
           initialVideoUrl={productVideo?.videoUrl ?? null}
           initialStyle={productVideo?.style ?? null}

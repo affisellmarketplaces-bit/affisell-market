@@ -33,6 +33,7 @@ export type VideoQuotaInfo = {
   videoLimit: number
   remaining: number
   isPro: boolean
+  paywallBypass?: boolean
   /** @deprecated use videoCount */
   videoQuota?: number
   /** @deprecated use videoCount */
@@ -92,7 +93,8 @@ export function GenerateVideoButton({
   const styleValid =
     effectiveStyle.length >= MIN_STYLE_LENGTH && effectiveStyle.length <= MAX_STYLE_LENGTH
 
-  const quotaReached = paywall || (!quota.isPro && quota.videoCount >= FREE_VIDEO_LIMIT)
+  const quotaReached =
+    paywall || (!quota.paywallBypass && !quota.isPro && quota.remaining <= 0)
   const showRegenerate = Boolean(videoUrl)
 
   const refreshQuota = useCallback(async () => {
@@ -101,7 +103,7 @@ export function GenerateVideoButton({
       if (!res.ok) return
       const data = (await res.json()) as VideoQuotaInfo
       setQuota(data)
-      setPaywall(!data.isPro && data.videoCount >= FREE_VIDEO_LIMIT)
+      setPaywall(!data.paywallBypass && !data.isPro && data.remaining <= 0)
     } catch {
       /* ignore */
     }
@@ -134,19 +136,22 @@ export function GenerateVideoButton({
     videoLimit?: number
     remaining?: number
     isPro?: boolean
+    paywallBypass?: boolean
     videoUsed?: number
     videoQuota?: number
   }) {
     const count = data.videoCount ?? data.videoUsed
     if (typeof count !== "number") return
     const limit = data.videoLimit ?? data.videoQuota ?? FREE_VIDEO_LIMIT
+    const remaining = data.remaining ?? Math.max(0, limit - count)
     setQuota({
       videoCount: count,
       videoLimit: limit,
-      remaining: data.remaining ?? Math.max(0, limit - count),
+      remaining,
       isPro: Boolean(data.isPro),
+      paywallBypass: Boolean(data.paywallBypass),
     })
-    setPaywall(!data.isPro && count >= FREE_VIDEO_LIMIT)
+    setPaywall(!data.paywallBypass && !data.isPro && remaining <= 0)
   }
 
   async function runGenerate(regenerate: boolean) {
@@ -247,7 +252,11 @@ export function GenerateVideoButton({
   return (
     <div className={cn("space-y-4", className)}>
       <p className="text-sm text-muted-foreground">
-        {quota.isPro ? (
+        {quota.paywallBypass ? (
+          <span className="font-medium text-amber-800 dark:text-amber-300">
+            Mode test — générations illimitées
+          </span>
+        ) : quota.isPro ? (
           <span className="font-medium text-violet-700 dark:text-violet-300">Pro — vidéos illimitées</span>
         ) : (
           <>

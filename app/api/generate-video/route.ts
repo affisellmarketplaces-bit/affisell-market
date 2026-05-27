@@ -5,8 +5,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { uploadVideoToVercelBlob } from "@/lib/video-storage"
 import { videoLog } from "@/lib/video-logger"
-import { FREE_VIDEO_LIMIT } from "@/lib/video-quota-constants"
-import { fetchUserVideoQuota, paywallResponse, quotaSnapshot } from "@/lib/video-quota"
+import { fetchUserVideoQuota, isQuotaExceeded, paywallResponse, quotaSnapshot } from "@/lib/video-quota"
 import {
   downloadGcsUri,
   extractVideoBytesFromVeoResponse,
@@ -69,6 +68,7 @@ function quotaJson(snapshot: ReturnType<typeof quotaSnapshot>) {
     videoLimit: snapshot.videoLimit,
     remaining: snapshot.remaining,
     isPro: snapshot.isPro,
+    paywallBypass: snapshot.paywallBypass,
   }
 }
 
@@ -127,7 +127,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Quota gate before any Veo work (including regenerate)
-  if (!user.isPro && user.videoCount >= FREE_VIDEO_LIMIT) {
+  if (isQuotaExceeded(user)) {
     videoLog.warn("generate-video.quota", { userId: session.user.id, videoCount: user.videoCount })
     return paywallResponse()
   }
