@@ -2,21 +2,9 @@ import { cookies, headers } from "next/headers"
 import { hasLocale } from "next-intl"
 
 import { routing } from "@/i18n/routing"
+import { isDynamicServerUsageError } from "@/lib/dynamic-server-error"
 import { DEFAULT_LOCALE, LOCALE_COOKIE, resolveAppLocale, type AppLocale } from "@/lib/i18n-locale"
 import { localeFromPathname } from "@/lib/locale-path"
-
-function isDynamicServerUsageError(error: unknown): boolean {
-  if (!error || typeof error !== "object") return false
-  const digest = "digest" in error ? String((error as { digest?: string }).digest) : ""
-  if (digest === "DYNAMIC_SERVER_USAGE") return true
-  const message = error instanceof Error ? error.message : String(error)
-  return (
-    message.includes("DYNAMIC_SERVER_USAGE") ||
-    message.includes("couldn't be rendered statically") ||
-    message.includes("used `headers`") ||
-    message.includes("used `cookies`")
-  )
-}
 
 async function pathnameFromRequestHeaders(): Promise<string> {
   try {

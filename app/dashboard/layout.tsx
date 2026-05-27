@@ -4,6 +4,10 @@ import { DashboardAutoDraft } from "@/components/dashboard/dashboard-auto-draft"
 import { OAuthWelcomeToast } from "@/components/oauth-welcome-toast"
 import { OAUTH_WELCOME_COOKIE } from "@/lib/oauth-cookies"
 
+/** Auth + cookies on every merchant route — never static at build time. */
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const jar = await cookies()
   const welcome = jar.get(OAUTH_WELCOME_COOKIE)?.value
