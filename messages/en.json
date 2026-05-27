@@ -924,7 +924,13 @@
     "title": "My favorites",
     "subtitle": "Saved products from the catalog — price alerts included.",
     "empty": "No favorites yet. Add products from the marketplace (♥ on a product page).",
-    "browse": "Browse catalog"
+    "browse": "Browse catalog",
+    "heart": {
+      "add": "Add to favorites",
+      "remove": "Remove from favorites",
+      "count": "{count, plural, one {# like} other {# likes}}",
+      "dropSinceYesterday": "since yesterday"
+    }
   },
   "faq": {
     "metaTitle": "FAQ — Affisell",

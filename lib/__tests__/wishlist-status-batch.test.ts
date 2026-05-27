@@ -14,8 +14,8 @@ describe("wishlist-status-batch", () => {
         ok: true,
         json: async () => ({
           statuses: {
-            p1: { wished: true, dropPercent: 5 },
-            p2: { wished: false, dropPercent: 0 },
+            p1: { wished: true, dropPercent: 5, likeCount: 12 },
+            p2: { wished: false, dropPercent: 0, likeCount: 3 },
           },
         }),
       })

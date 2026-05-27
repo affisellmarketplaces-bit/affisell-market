@@ -1,5 +1,6 @@
 import { auth } from "@/auth"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
+import { countProductLikes, countProductLikesSingle } from "@/lib/product-like-count"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -36,7 +37,6 @@ async function currentPriceForProduct(productId: string): Promise<number | null>
 export async function GET(req: Request) {
   const session = await auth()
   const userId = session?.user?.id
-  if (!userId) return Response.json({ wished: false, items: [], statuses: {} })
 
   const url = new URL(req.url)
   const idsRaw = url.searchParams.get("ids")?.trim()
@@ -44,25 +44,26 @@ export async function GET(req: Request) {
     const ids = [...new Set(idsRaw.split(",").map((s) => s.trim()).filter(Boolean))].slice(0, 48)
     if (ids.length === 0) return Response.json({ statuses: {} })
 
-    const [items, priceMap] = await Promise.all([
-      prisma.wishlist.findMany({
-        where: { userId, productId: { in: ids } },
-        select: { productId: true, previousPriceCents: true },
-      }),
+    const [likeCounts, userItems, priceMap] = await Promise.all([
+      countProductLikes(ids),
+      userId
+        ? prisma.wishlist.findMany({
+            where: { userId, productId: { in: ids } },
+            select: { productId: true, previousPriceCents: true },
+          })
+        : Promise.resolve([]),
       currentPricesForProducts(ids),
     ])
-    const itemByProduct = new Map(items.map((i) => [i.productId, i]))
-    const statuses: Record<string, { wished: boolean; dropPercent: number }> = {}
+    const itemByProduct = new Map(userItems.map((i) => [i.productId, i]))
+    const statuses: Record<string, { wished: boolean; dropPercent: number; likeCount: number }> = {}
     for (const id of ids) {
       const item = itemByProduct.get(id)
-      if (!item) {
-        statuses[id] = { wished: false, dropPercent: 0 }
-        continue
-      }
       const current = priceMap.get(id) ?? null
       statuses[id] = {
-        wished: true,
-        dropPercent: current != null ? dropPercent(current, item.previousPriceCents) : 0,
+        wished: Boolean(item),
+        dropPercent:
+          item && current != null ? dropPercent(current, item.previousPriceCents) : 0,
+        likeCount: likeCounts.get(id) ?? 0,
       }
     }
     return Response.json(
@@ -71,17 +72,24 @@ export async function GET(req: Request) {
     )
   }
 
+  if (!userId) return Response.json({ wished: false, items: [], statuses: {} })
+
   const productId = url.searchParams.get("productId")?.trim() || ""
   if (productId) {
     const item = await prisma.wishlist.findUnique({
       where: { userId_productId: { userId, productId } },
       select: { targetPriceCents: true, previousPriceCents: true, productId: true },
     })
-    if (!item) return Response.json({ wished: false })
+    if (!item) {
+      const likeCount = await countProductLikesSingle(productId)
+      return Response.json({ wished: false, likeCount })
+    }
     const current = await currentPriceForProduct(productId)
+    const likeCount = await countProductLikesSingle(productId)
     return Response.json({
       wished: true,
       productId,
+      likeCount,
       targetPriceCents: item.targetPriceCents,
       dropPercent: current != null ? dropPercent(current, item.previousPriceCents) : 0,
     })
@@ -139,7 +147,9 @@ export async function POST(req: Request) {
 
   if (exists) {
     await prisma.wishlist.delete({ where: { userId_productId: { userId, productId } } })
-    return Response.json({ wished: false })
+    const likeCount = await countProductLikesSingle(productId)
+    console.log("[wishlist]", { productId, result: "unliked", likeCount })
+    return Response.json({ wished: false, likeCount })
   }
 
   const targetPriceCents =
@@ -157,5 +167,7 @@ export async function POST(req: Request) {
     },
   })
 
-  return Response.json({ wished: true })
+  const likeCount = await countProductLikesSingle(productId)
+  console.log("[wishlist]", { productId, result: "liked", likeCount })
+  return Response.json({ wished: true, likeCount })
 }

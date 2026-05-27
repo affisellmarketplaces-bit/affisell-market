@@ -924,7 +924,13 @@
     "title": "Mes favoris",
     "subtitle": "Produits enregistrés via ♥ sur le catalogue — alertes prix incluses.",
     "empty": "Aucun favori pour le moment. Ajoutez des produits depuis le marketplace (icône ♥ sur une fiche).",
-    "browse": "Explorer le catalogue"
+    "browse": "Explorer le catalogue",
+    "heart": {
+      "add": "Ajouter aux favoris",
+      "remove": "Retirer des favoris",
+      "count": "{count, plural, one {# favori} other {# favoris}}",
+      "dropSinceYesterday": "depuis hier"
+    }
   },
   "faq": {
     "metaTitle": "FAQ — Affisell",

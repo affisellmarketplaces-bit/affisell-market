@@ -1,26 +1,38 @@
 "use client"
 
+import { Heart } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useEffect, useState } from "react"
 
 import {
   subscribeWishlistStatus,
   type WishlistCardStatus,
 } from "@/lib/wishlist-status-batch"
+import { cn } from "@/lib/utils"
 
 type Props = {
   productId: string
   className?: string
 }
 
+function formatLikeCount(n: number): string {
+  if (n >= 10_000) return `${Math.floor(n / 1000)}k`
+  if (n >= 1_000) return `${(n / 1000).toFixed(1).replace(/\.0$/, "")}k`
+  return String(n)
+}
+
 export function WishlistHeart({ productId, className }: Props) {
+  const t = useTranslations("wishlist.heart")
   const [wished, setWished] = useState(false)
   const [dropPercent, setDropPercent] = useState(0)
+  const [likeCount, setLikeCount] = useState(0)
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
     const apply = (status: WishlistCardStatus) => {
       setWished(status.wished)
       setDropPercent(status.dropPercent)
+      setLikeCount(status.likeCount)
     }
     return subscribeWishlistStatus(productId, apply)
   }, [productId])
@@ -28,6 +40,8 @@ export function WishlistHeart({ productId, className }: Props) {
   async function toggle() {
     if (busy) return
     setBusy(true)
+    const prevWished = wished
+    const prevCount = likeCount
     try {
       const res = await fetch("/api/wishlist/toggle", {
         method: "POST",
@@ -45,36 +59,63 @@ export function WishlistHeart({ productId, className }: Props) {
         return
       }
       if (!res.ok) return
-      const data = (await res.json()) as { wished?: boolean }
-      setWished(Boolean(data.wished))
-      if (!data.wished) setDropPercent(0)
+      const data = (await res.json()) as { wished?: boolean; likeCount?: number }
+      const nextWished = Boolean(data.wished)
+      setWished(nextWished)
+      if (typeof data.likeCount === "number") {
+        setLikeCount(Math.max(0, data.likeCount))
+      } else {
+        setLikeCount(Math.max(0, prevCount + (nextWished && !prevWished ? 1 : !nextWished && prevWished ? -1 : 0)))
+      }
+      if (!nextWished) setDropPercent(0)
     } finally {
       setBusy(false)
     }
   }
 
+  const showCount = likeCount > 0
+
   return (
-    <div className={className}>
+    <div className={cn("flex flex-col items-end gap-1", className)}>
       <button
         type="button"
-        aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
+        aria-label={wished ? t("remove") : t("add")}
+        aria-pressed={wished}
         onClick={(e) => {
           e.preventDefault()
           e.stopPropagation()
           void toggle()
         }}
         disabled={busy}
-        className={
+        className={cn(
+          "inline-flex min-h-9 items-center gap-1 rounded-full px-2.5 py-1.5 shadow-md backdrop-blur-md transition-all duration-200 active:scale-95",
           wished
-            ? "rounded-full bg-rose-500/95 px-2 py-1 text-xs font-bold text-white shadow"
-            : "rounded-full bg-black/55 px-2 py-1 text-xs font-bold text-white shadow"
-        }
+            ? "bg-rose-500/95 text-white ring-2 ring-rose-300/60"
+            : "bg-white/92 text-zinc-700 ring-1 ring-black/8 hover:bg-white dark:bg-zinc-900/88 dark:text-zinc-200 dark:ring-white/10"
+        )}
       >
-        {wished ? "♥" : "♡"}
+        <Heart
+          className={cn(
+            "size-4 shrink-0 transition-colors duration-200",
+            wished ? "fill-white text-white" : "fill-transparent text-zinc-600 dark:text-zinc-300"
+          )}
+          aria-hidden
+        />
+        {showCount ? (
+          <span
+            className={cn(
+              "min-w-[1ch] text-xs font-bold tabular-nums leading-none",
+              wished ? "text-white" : "text-zinc-800 dark:text-zinc-100"
+            )}
+            aria-label={t("count", { count: likeCount })}
+          >
+            {formatLikeCount(likeCount)}
+          </span>
+        ) : null}
       </button>
       {wished && dropPercent > 0 ? (
-        <p className="mt-1 rounded bg-emerald-600/90 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-          🔔 -{dropPercent}% since yesterday
+        <p className="rounded bg-emerald-600/90 px-1.5 py-0.5 text-[10px] font-semibold text-white shadow">
+          🔔 -{dropPercent}% {t("dropSinceYesterday")}
         </p>
       ) : null}
     </div>
