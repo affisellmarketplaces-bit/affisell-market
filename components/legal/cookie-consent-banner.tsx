@@ -3,7 +3,10 @@
 import Link from "next/link"
 import { useEffect, useState } from "react"
 
+import { usePathname } from "next/navigation"
+
 import { COOKIE_CONSENT_COOKIE, type CookieConsentPrefs } from "@/lib/legal/consent"
+import { isImmersiveBuyerRoute } from "@/lib/mobile-chrome"
 import { cn } from "@/lib/utils"
 
 const MAX_AGE = 60 * 60 * 24 * 395
@@ -38,6 +41,7 @@ async function syncConsentToAccount(prefs: CookieConsentPrefs) {
 }
 
 export function CookieConsentBanner() {
+  const pathname = usePathname() ?? ""
   const [visible, setVisible] = useState(false)
   const [customize, setCustomize] = useState(false)
   const [analytics, setAnalytics] = useState(false)
@@ -78,12 +82,16 @@ export function CookieConsentBanner() {
   }
 
   if (!visible) return null
+  if (isImmersiveBuyerRoute(pathname)) return null
 
   return (
     <div
       role="dialog"
       aria-labelledby="cookie-banner-title"
-      className="fixed inset-x-0 bottom-0 z-[100] border-t border-zinc-200 bg-white/95 p-4 shadow-2xl backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/95 sm:p-6"
+      className={cn(
+        "fixed inset-x-0 z-[85] border-t border-zinc-200 bg-white/95 p-4 shadow-2xl backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/95 sm:p-6",
+        "bottom-[var(--affisell-mobile-dock-offset)] md:bottom-0"
+      )}
     >
       <div className="mx-auto flex max-w-4xl flex-col gap-4">
         <div>

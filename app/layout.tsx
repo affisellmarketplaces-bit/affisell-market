@@ -20,7 +20,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="affisell-mobile-shell affisell-epoxy-atmosphere min-h-screen text-gray-900 [font-family:Inter,system-ui] dark:text-zinc-50">
         <IntlAppProvider locale={locale} messages={messages} now={now}>
           <RootSessionShell>
-            <header className="relative z-[100] px-3 pt-2 md:px-4 md:pt-3">
+            <header className="affisell-global-site-header relative z-[100] px-3 pt-2 md:px-4 md:pt-3">
               <div className="affisell-header-shell relative mx-auto max-w-7xl">
                 <div className="affisell-header-mesh pointer-events-none absolute inset-0" aria-hidden />
                 <div className="relative z-[2]">

@@ -65,6 +65,13 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+@media (max-width: 767px) {
+  body.affisell-immersive-buyer .affisell-global-site-header,
+  body.affisell-immersive-buyer .affisell-site-footer {
+    display: none;
+  }
+}
+
 :root {
   --affisell-mobile-dock-offset: calc(5rem + env(safe-area-inset-bottom));
   --affisell-swipe-dock-h: 13.5rem;

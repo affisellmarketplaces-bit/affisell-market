@@ -34,18 +34,33 @@ export default async function DiscoverPage({ searchParams }: PageProps) {
   let categoryLabel: string | null = null
   const scopeId = subcategoryId ?? categoryId
   if (scopeId) {
-    const cat = await prisma.category.findUnique({
-      where: { id: scopeId },
-      select: { name: true },
-    })
-    categoryLabel = cat?.name ?? null
+    try {
+      const cat = await prisma.category.findUnique({
+        where: { id: scopeId },
+        select: { name: true },
+      })
+      categoryLabel = cat?.name ?? null
+    } catch (e) {
+      console.error("[discover]", {
+        scopeId,
+        error: e instanceof Error ? e.message : String(e),
+      })
+    }
   }
 
   if (layout === "scroll") {
-    const items = await loadPulseFeedItems({
-      userId: session?.user?.id ?? null,
-      limit: 40,
-    })
+    let items: Awaited<ReturnType<typeof loadPulseFeedItems>> = []
+    try {
+      items = await loadPulseFeedItems({
+        userId: session?.user?.id ?? null,
+        limit: 40,
+      })
+    } catch (e) {
+      console.error("[discover]", {
+        layout: "scroll",
+        error: e instanceof Error ? e.message : String(e),
+      })
+    }
     return (
       <AffisellPulseExperience
         items={items}
@@ -54,7 +69,15 @@ export default async function DiscoverPage({ searchParams }: PageProps) {
     )
   }
 
-  const items = await loadBuyerSwipeFeedItems(feedParams, { limit: 24 })
+  let items: Awaited<ReturnType<typeof loadBuyerSwipeFeedItems>> = []
+  try {
+    items = await loadBuyerSwipeFeedItems(feedParams, { limit: 24 })
+  } catch (e) {
+    console.error("[discover]", {
+      layout: "swipe",
+      error: e instanceof Error ? e.message : String(e),
+    })
+  }
 
   return (
     <BuyerSwipeCommerce

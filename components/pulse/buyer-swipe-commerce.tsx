@@ -88,13 +88,31 @@ export function BuyerSwipeCommerce({
   const [dragGlow, setDragGlow] = useState({ x: 0, y: 0 })
 
   const fetchingRef = useRef(false)
+  const fetchErrorToastShownRef = useRef(false)
+  const rewindAnnouncedRef = useRef(false)
+  const toastTimerRef = useRef<number | null>(null)
+  const lastToastRef = useRef<{ msg: string; at: number } | null>(null)
   const deckRef = useRef(deck)
   const topCardRef = useRef<BuyerSwipeCardHandle>(null)
   deckRef.current = deck
 
-  const showToast = useCallback((msg: string) => {
+  const showToast = useCallback((msg: string, opts?: { force?: boolean }) => {
+    const now = Date.now()
+    const last = lastToastRef.current
+    if (
+      !opts?.force &&
+      last &&
+      (last.msg === msg || now - last.at < 2400)
+    ) {
+      return
+    }
+    lastToastRef.current = { msg, at: now }
     setToast(msg)
-    window.setTimeout(() => setToast(null), 2800)
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+    toastTimerRef.current = window.setTimeout(() => {
+      setToast(null)
+      toastTimerRef.current = null
+    }, 2600)
   }, [])
 
   const fetchMore = useCallback(
@@ -114,14 +132,20 @@ export function BuyerSwipeCommerce({
           const msg = data.error ?? "Impossible de charger le feed"
           setFetchError(msg)
           setFeedExhausted(true)
-          showToast(msg)
+          if (!fetchErrorToastShownRef.current) {
+            fetchErrorToastShownRef.current = true
+            showToast(msg, { force: true })
+          }
           return
         }
+        setFetchError(null)
+        fetchErrorToastShownRef.current = false
         const incoming = (data.products ?? []).filter((p) => p.mediaUrl && p.listingId)
         if (incoming.length === 0) setFeedExhausted(true)
         else if (replace) {
           setFeedExhausted(false)
           setReplayMode(false)
+          rewindAnnouncedRef.current = false
         }
         setDeck((prev) => {
           if (replace) return incoming
@@ -159,10 +183,12 @@ export function BuyerSwipeCommerce({
     if (loading || busy) return
     if (!feedExhausted || deck.length > 0) return
     if (skippedPool.length === 0) return
+    if (rewindAnnouncedRef.current) return
+    rewindAnnouncedRef.current = true
     setReplayMode(true)
     setFeedExhausted(false)
     setDeck(shuffleItems(skippedPool))
-    showToast(t("rewindOn"))
+    showToast(t("rewindOn"), { force: true })
   }, [loading, busy, feedExhausted, deck.length, skippedPool, showToast, t])
 
   const visibleStack = useMemo(() => deck.slice(0, STACK_VISIBLE), [deck])
@@ -368,6 +394,17 @@ export function BuyerSwipeCommerce({
       </div>
 
       <header className="relative z-40 shrink-0 px-3 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))]">
+        {fetchError ? (
+          <p
+            role="alert"
+            className={cn(
+              affisellBrand.epoxyChip,
+              "mx-auto mb-2 max-w-[420px] rounded-xl px-3 py-2 text-center text-xs text-amber-100"
+            )}
+          >
+            {fetchError}
+          </p>
+        ) : null}
         <div className={cn(affisellBrand.epoxyPanel, "mx-auto flex max-w-[420px] items-center justify-between gap-2 px-3 py-2")}>
           <Link
             href={exitHref}

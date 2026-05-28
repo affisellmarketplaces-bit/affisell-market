@@ -10,13 +10,14 @@ import { FastLink } from "@/components/navigation/fast-link"
 import { PUBLIC_MARKETPLACE_BROWSE_PATH, PUBLIC_SHOPS_PATH } from "@/lib/affiliate-routes"
 import { affisellBrand } from "@/lib/affisell-brand"
 import { guestCartCount } from "@/lib/guest-cart"
-import { shouldHideMobileDock } from "@/lib/mobile-shell"
+import { barePathname, shouldHideMobileDock } from "@/lib/mobile-chrome"
 import { cn } from "@/lib/utils"
 
 /** Floating thumb dock for public buyers (mobile). */
 export function MobileDock() {
   const t = useTranslations("nav.dock")
   const pathname = usePathname() ?? ""
+  const bare = barePathname(pathname)
   const { data: session } = useSession()
   const role = session?.user?.role
   const [cartCount, setCartCount] = useState(0)
@@ -26,7 +27,7 @@ export function MobileDock() {
       href: "/",
       label: t("home"),
       icon: Home,
-      match: (p: string) => p === "/" || p === "/en" || p === "/fr",
+      match: (p: string) => p === "/",
     },
     {
       href: PUBLIC_MARKETPLACE_BROWSE_PATH,
@@ -84,7 +85,7 @@ export function MobileDock() {
       >
         {dockItems.map(({ href, label, icon: Icon, match, ...rest }) => {
           const featured = "featured" in rest && rest.featured
-          const active = match(pathname)
+          const active = match(bare)
           const showCartBadge = href === "/cart" && cartCount > 0
           return (
             <li key={href} className={cn("flex flex-1 justify-center", featured && "-mt-3")}>
