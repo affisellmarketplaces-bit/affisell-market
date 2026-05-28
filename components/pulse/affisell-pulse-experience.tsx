@@ -501,7 +501,7 @@ export function AffisellPulseExperience({ items, viewerLoggedIn = false }: Props
               href={discoverSwipeHref()}
               className={cn(affisellBrand.epoxyChip, "rounded-full px-2 py-1 text-[10px] font-semibold text-cyan-200")}
             >
-              Swipe
+              {t("swipeMode")}
             </Link>
             <span className="tabular-nums text-xs text-white/70">
               {activeIndex + 1}/{safeItems.length}

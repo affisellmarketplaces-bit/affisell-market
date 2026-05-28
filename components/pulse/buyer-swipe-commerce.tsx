@@ -480,7 +480,7 @@ export function BuyerSwipeCommerce({
               {activeItem.boosted ? (
                 <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-cyan-100 ring-1 ring-cyan-400/30">
                   <Sparkles className="size-3" aria-hidden />
-                  Hot
+                  {t("hotBadge")}
                 </span>
               ) : null}
               {activeItem.soldCount > 0 ? (
@@ -547,7 +547,7 @@ export function BuyerSwipeCommerce({
             aria-label={t("undo")}
           >
             <RotateCcw className="size-5" />
-            Undo
+            {t("undoShort")}
           </button>
           <button
             type="button"
@@ -567,7 +567,7 @@ export function BuyerSwipeCommerce({
             aria-label={t("saveDrop")}
           >
             <Bookmark className="size-5" />
-            Drop
+            {t("saveDropShort")}
           </button>
         </div>
         <div className="mt-2 flex justify-center border-t border-white/8 pt-2">

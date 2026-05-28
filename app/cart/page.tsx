@@ -66,25 +66,28 @@ function guestToLine(item: GuestCartItem): CartLine {
     selectedSize: item.selectedSize?.trim() || null,
     product: {
       id: item.productId,
-      title: item.title || "Product",
+      title: item.title || "—",
       price: Number.isFinite(Number(item.price)) ? Number(item.price) : 0,
       imageUrl: item.imageUrl || "/placeholder.png",
     },
   }
 }
 
-function selectionChips(row: CartLine): { kind: "color" | "size"; label: string; value: string }[] {
+function selectionChips(
+  row: CartLine,
+  labels: { color: string; size: string }
+): { kind: "color" | "size"; label: string; value: string }[] {
   const out: { kind: "color" | "size"; label: string; value: string }[] = []
   if (row.selectedColor?.trim()) {
-    out.push({ kind: "color", label: "Color", value: row.selectedColor.trim() })
+    out.push({ kind: "color", label: labels.color, value: row.selectedColor.trim() })
   }
   if (row.selectedSize?.trim()) {
-    out.push({ kind: "size", label: "Size", value: row.selectedSize.trim() })
+    out.push({ kind: "size", label: labels.size, value: row.selectedSize.trim() })
   }
   if (out.length > 0) return out
   const p = parseCartVariantSignature(row.variantSignature)
-  if (p.color) out.push({ kind: "color", label: "Color", value: p.color })
-  if (p.size) out.push({ kind: "size", label: "Size", value: p.size })
+  if (p.color) out.push({ kind: "color", label: labels.color, value: p.color })
+  if (p.size) out.push({ kind: "size", label: labels.size, value: p.size })
   return out
 }
 
@@ -125,6 +128,10 @@ export default function CartPage() {
   const [rewardBalanceCents, setRewardBalanceCents] = useState(0)
   const [useRewardCents, setUseRewardCents] = useState(0)
   const guestImagesResolvedKey = useRef("")
+  const selectionLabels = useMemo(
+    () => ({ color: t("colorLabel"), size: t("sizeLabel") }),
+    [t]
+  )
 
   useEffect(() => {
     const ac = new AbortController()
@@ -395,7 +402,7 @@ export default function CartPage() {
         <div className="space-y-4">
           {lines.map((row) => {
             const lineTotal = row.product.price * row.qty
-            const chips = selectionChips(row)
+            const chips = selectionChips(row, selectionLabels)
             const frameColor =
               row.selectedColor?.trim() || chips.find((c) => c.kind === "color")?.value || null
             return (
@@ -435,14 +442,14 @@ export default function CartPage() {
                           {row.product.title}
                         </h3>
                         <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-                          by {row.sellerName || "Verified Seller"}
+                          {t("bySeller", { seller: row.sellerName || t("verifiedSeller") })}
                         </p>
                       </div>
                       <Link
                         href={`/marketplace/${row.product.id}`}
                         className="inline-flex shrink-0 items-center gap-1 rounded-full border border-zinc-200 px-2.5 py-1 text-xs font-medium text-zinc-600 transition hover:border-violet-300 hover:text-violet-700 dark:border-zinc-700 dark:text-zinc-300 dark:hover:border-violet-600 dark:hover:text-violet-300"
                       >
-                        View <ExternalLink className="h-3 w-3 opacity-70" aria-hidden />
+                        {t("view")} <ExternalLink className="h-3 w-3 opacity-70" aria-hidden />
                       </Link>
                     </div>
 
@@ -450,7 +457,7 @@ export default function CartPage() {
                       <div className="mt-3 rounded-xl border border-violet-100 bg-gradient-to-r from-violet-50/90 to-fuchsia-50/40 px-3 py-2.5 dark:border-violet-900/40 dark:from-violet-950/40 dark:to-fuchsia-950/20">
                         <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-violet-700 dark:text-violet-300">
                           <Sparkles className="h-3 w-3" aria-hidden />
-                          Your selection
+                          {t("yourSelection")}
                         </p>
                         <div className="mt-2 flex flex-wrap gap-2">
                           {chips.map((c) => (
@@ -473,8 +480,7 @@ export default function CartPage() {
 
                     {chips.length === 0 ? (
                       <p className="mt-3 rounded-lg border border-dashed border-zinc-200 bg-zinc-50/80 px-3 py-2 text-xs text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900/40 dark:text-zinc-400">
-                        No color or size recorded for this line — pick options on the product page when you add to
-                        cart.
+                        {t("noColorSize")}
                       </p>
                     ) : null}
 
@@ -515,7 +521,7 @@ export default function CartPage() {
                               d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                             />
                           </svg>
-                          Remove
+                          {t("remove")}
                         </button>
                       </div>
                     </div>
@@ -536,14 +542,16 @@ export default function CartPage() {
           </div>
           {isAuthed && rewardBalanceCents > 0 ? (
             <div className="mb-4 rounded-xl border border-teal-100 bg-teal-50/60 p-4 dark:border-teal-900/50 dark:bg-teal-950/30">
-              <p className="text-sm font-semibold text-teal-900 dark:text-teal-100">Cashback disponible</p>
+              <p className="text-sm font-semibold text-teal-900 dark:text-teal-100">{t("cashbackAvailable")}</p>
               <p className="mt-1 text-xs text-teal-800 dark:text-teal-200/90">
-                Balance {formatStoreCurrency(rewardBalanceCents / 100)} · up to{" "}
-                {formatStoreCurrency(maxApplicableReward / 100)} usable
-                (€{MIN_CARD_EUR.toFixed(2)} minimum card charge stays on the order).
+                {t("balanceUpToUsable", {
+                  balance: formatStoreCurrency(rewardBalanceCents / 100),
+                  usable: formatStoreCurrency(maxApplicableReward / 100),
+                  minCard: MIN_CARD_EUR.toFixed(2),
+                })}
               </p>
               <label htmlFor="use-reward" className="mt-3 block text-xs font-medium text-teal-900 dark:text-teal-100">
-                Apply at checkout (EUR)
+                {t("applyAtCheckout")}
               </label>
               <div className="mt-1 flex flex-wrap items-center gap-3">
                 <input
@@ -564,21 +572,21 @@ export default function CartPage() {
                   className="rounded-lg border border-teal-200 bg-white px-2 py-1 text-xs font-medium text-teal-900 hover:bg-teal-50 dark:border-teal-700 dark:bg-zinc-900 dark:text-teal-100"
                   onClick={() => setUseRewardCents(maxApplicableReward)}
                 >
-                  Max
+                  {t("max")}
                 </button>
                 <button
                   type="button"
                   className="rounded-lg border border-teal-200 bg-white px-2 py-1 text-xs font-medium text-teal-900 hover:bg-teal-50 dark:border-teal-700 dark:bg-zinc-900 dark:text-teal-100"
                   onClick={() => setUseRewardCents(0)}
                 >
-                  None
+                  {t("none")}
                 </button>
               </div>
             </div>
           ) : null}
           {!isAuthed ? (
             <p className="mb-3 text-center text-xs text-zinc-500 dark:text-zinc-400">
-              E-mail ou mobile demandé avant le paiement · compte client et cashback automatiques
+              {t("emailOrPhoneBeforePayment")}
             </p>
           ) : null}
           <button
@@ -587,13 +595,13 @@ export default function CartPage() {
             onClick={() => void checkout()}
             className="mb-3 w-full rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 py-3.5 text-sm font-semibold text-white shadow-md transition hover:opacity-95 disabled:opacity-60"
           >
-            {checkoutBusy ? "Redirection…" : "Valider mon achat"}
+            {checkoutBusy ? t("redirecting") : t("validatePurchase")}
           </button>
           <Link
             href="/#explorer"
             className="flex w-full items-center justify-center rounded-full border-2 border-zinc-900 py-3 text-center text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50 dark:border-zinc-100 dark:text-zinc-50 dark:hover:bg-zinc-800"
           >
-            Continuer mes achats
+            {t("continueShopping")}
           </Link>
         </div>
         <CartCheckoutIdentitySheet

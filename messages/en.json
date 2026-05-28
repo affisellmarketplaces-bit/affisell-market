@@ -334,6 +334,23 @@
     "guestCheckoutHint": "No account needed to add items. At checkout, enter your email or mobile — we create your Affisell buyer account automatically.",
     "guestAdded": "Added to cart",
     "guestAddedBody": "Keep shopping or checkout whenever you're ready.",
+    "colorLabel": "Color",
+    "sizeLabel": "Size",
+    "verifiedSeller": "Verified Seller",
+    "bySeller": "by {seller}",
+    "view": "View",
+    "yourSelection": "Your selection",
+    "noColorSize": "No color or size recorded for this line — pick options on the product page when you add to cart.",
+    "remove": "Remove",
+    "cashbackAvailable": "Cashback available",
+    "balanceUpToUsable": "Balance {balance} · up to {usable} usable (€{minCard} minimum card charge stays on the order).",
+    "applyAtCheckout": "Apply at checkout (EUR)",
+    "max": "Max",
+    "none": "None",
+    "emailOrPhoneBeforePayment": "Email or mobile required before payment · customer account and cashback are automatic",
+    "redirecting": "Redirecting…",
+    "validatePurchase": "Complete purchase",
+    "continueShopping": "Continue shopping",
     "identity": {
       "beforePay": "Before payment",
       "title": "Continue with your identity",
@@ -602,6 +619,7 @@
     "brand": "Affisell Pulse",
     "beta": "LIVE",
     "exit": "Catalog",
+    "swipeMode": "Swipe",
     "forYou": "Picked for you",
     "share": "Share",
     "follow": "Follow",
@@ -619,12 +637,15 @@
       "cart": "Add to cart",
       "cartShort": "Cart",
       "cartAdded": "Added to cart",
+      "hotBadge": "Hot",
       "buy": "Buy now",
       "buyShort": "Buy",
       "skip": "Next product",
       "skipShort": "Next",
       "saveDrop": "Save Drop — wishlist + price alert",
+      "saveDropShort": "Save",
       "undo": "Product back in stack",
+      "undoShort": "Undo",
       "rewindOn": "New arrivals done — Rewind mode on",
       "rewindBadge": "Rewind",
       "scrollMode": "Vertical scroll mode",
@@ -1212,7 +1233,7 @@
           "readMin": "4 min",
           "sections": {
             "intro": "Trust is a product feature. Affisell ships a full GDPR stack: signup consent capture, cookie banner with analytics gating, data export JSON and account deletion flows.",
-            "s1": { "title": "Legal document hub", "body": "Terms for buyers, suppliers and affiliates, privacy policy, refund rules and French mentions légales — all versioned and linked from signup and footer." },
+            "s1": { "title": "Legal document hub", "body": "Terms for buyers, suppliers and affiliates, privacy policy, refund rules and legal notices — all versioned and linked from signup and footer." },
             "s2": { "title": "Self-service rights", "body": "Merchants and marketplace buyers access /dashboard/account/gdpr or /marketplace/account/gdpr to export their data or request deletion, subject to financial record retention." },
             "s3": { "title": "Why it matters", "body": "Creator businesses operate across EU markets. Built-in compliance reduces legal risk and signals professionalism to brand partners evaluating your storefront." }
           }
@@ -1335,7 +1356,7 @@
         "body": "For interviews, data requests or event speaking — we respond within 2 business days."
       },
       "legalNote": "Legal entity details in",
-      "legalLink": "mentions légales"
+      "legalLink": "legal notices"
     }
   },
   "reviews": {

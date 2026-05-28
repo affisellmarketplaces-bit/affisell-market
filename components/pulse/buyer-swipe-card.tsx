@@ -13,6 +13,7 @@ import {
   useTransform,
   type PanInfo,
 } from "framer-motion"
+import { useTranslations } from "next-intl"
 import {
   Bookmark,
   ChevronLeft,
@@ -49,6 +50,7 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
   { item, stackIndex, isTop, onSwipeComplete, onDragProgress },
   ref
 ) {
+  const t = useTranslations("pulse.commerce")
   const x = useMotionValue(0)
   const y = useMotionValue(0)
   const exitingRef = useRef(false)
@@ -169,7 +171,7 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
           >
             <div className={cn(affisellBrand.epoxyGestureBadge, "flex items-center gap-2 border-emerald-300/50 text-emerald-100")}>
               <ShoppingBag className="size-5 text-emerald-300" />
-              <span className="text-xs font-black uppercase tracking-wider">Panier</span>
+              <span className="text-xs font-black uppercase tracking-wider">{t("cartShort")}</span>
             </div>
           </motion.div>
 
@@ -179,7 +181,7 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
           >
             <div className={cn(affisellBrand.epoxyGestureBadge, "flex items-center gap-2 border-amber-300/50 text-amber-100")}>
               <Bookmark className="size-5 text-amber-200" />
-              <span className="text-xs font-black uppercase tracking-wider">Save Drop</span>
+              <span className="text-xs font-black uppercase tracking-wider">{t("saveDropShort")}</span>
             </div>
           </motion.div>
 
@@ -189,7 +191,7 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
           >
             <div className={cn(affisellBrand.epoxyGestureBadge, "flex items-center gap-2 border-violet-300/50 text-violet-100")}>
               <Zap className="size-5 text-violet-200" />
-              <span className="text-xs font-black uppercase tracking-wider">Acheter</span>
+              <span className="text-xs font-black uppercase tracking-wider">{t("buyShort")}</span>
             </div>
           </motion.div>
 
@@ -199,7 +201,7 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
           >
             <div className={cn(affisellBrand.epoxyGestureBadge, "flex items-center gap-2 text-white")}>
               <ChevronLeft className="size-5" />
-              <span className="text-xs font-black uppercase tracking-wider">Suivant</span>
+              <span className="text-xs font-black uppercase tracking-wider">{t("skipShort")}</span>
             </div>
           </motion.div>
         </article>
