@@ -406,7 +406,8 @@
     "filterAria": "Filtrer par univers",
     "featuredEmpty": "Les créateurs ouvrent leurs boutiques. Revenez demain.",
     "visitStore": "Voir la boutique",
-    "ordersCount": "{count, plural, one {# commande} other {# commandes}}"
+    "ordersCount": "{count, plural, one {# commande} other {# commandes}}",
+    "browseCta": "Toutes les boutiques"
   },
   "discovery": {
     "eyebrow": "Explorer",
@@ -817,7 +818,25 @@
       "loadFailed": "Impossible de charger la boutique",
       "saveFailed": "Enregistrement impossible",
       "logoLogisticsTitle": "Logo & logistique",
-      "logoLogisticsBody": "Logo, avatar IA, adresse d'expédition et slug dans {profileLink}."
+      "logoLogisticsBody": "Logo, avatar IA, adresse d'expédition et slug dans {profileLink}.",
+      "nameBadges": {
+        "sectionTitle": "Style du nom de boutique",
+        "sectionHint": "Bande futuriste affichée sur votre vitrine publique (ex. parallélogramme, néon, hologramme).",
+        "parallelogram": "Parallélogramme",
+        "parallelogramDesc": "Bande inclinée signature — look Affisell par défaut.",
+        "neonSlab": "Dalle néon",
+        "neonSlabDesc": "Parallélogramme lumineux avec halo accent.",
+        "holoRibbon": "Ruban holographique",
+        "holoRibbonDesc": "Dégradé animé cyan / violet.",
+        "quantumFold": "Pli quantique",
+        "quantumFoldDesc": "Double couche en relief futuriste.",
+        "orbitRing": "Anneau orbital",
+        "orbitRingDesc": "Capsule circulaire avec anneau animé.",
+        "chromeBeam": "Faisceau chrome",
+        "chromeBeamDesc": "Métal brossé incliné, contraste premium.",
+        "classic": "Classique",
+        "classicDesc": "Texte simple sans bande."
+      }
     },
     "domain": {
       "title": "Votre nom de domaine",

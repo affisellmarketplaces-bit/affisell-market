@@ -11,6 +11,11 @@ import { StoreCustomDomainCard } from "@/components/storefront/store-custom-doma
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import { StoreNameBadgePicker } from "@/components/storefront/store-name-badge-picker"
+import {
+  DEFAULT_STORE_NAME_BADGE,
+  type StoreNameBadgeStyle,
+} from "@/lib/store-name-badge-styles"
 import {
   DEFAULT_STOREFRONT_THEME,
   parseStorefrontTheme,
@@ -46,6 +51,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
   const [description, setDescription] = useState("")
   const [accent, setAccent] = useState(DEFAULT_STOREFRONT_THEME.accent!)
   const [primaryHex, setPrimaryHex] = useState(DEFAULT_STOREFRONT_THEME.primary!)
+  const [nameBadge, setNameBadge] = useState<StoreNameBadgeStyle>(DEFAULT_STORE_NAME_BADGE)
 
   const hydrate = useCallback(async () => {
     setLoading(true)
@@ -67,6 +73,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
         const theme = parseStorefrontTheme(st.storefrontTheme)
         setAccent(theme.accent ?? DEFAULT_STOREFRONT_THEME.accent!)
         setPrimaryHex(theme.primary ?? DEFAULT_STOREFRONT_THEME.primary!)
+        setNameBadge(theme.nameBadge ?? DEFAULT_STORE_NAME_BADGE)
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : t("loadFailed"))
@@ -91,6 +98,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
       fd.set("bannerUrl", bannerUrl.trim())
       fd.set("themePrimary", primaryHex)
       fd.set("themeAccent", accent)
+      fd.set("themeNameBadge", nameBadge)
 
       const res = await fetch("/api/store/update", {
         method: "POST",
@@ -239,6 +247,14 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
                   background: `linear-gradient(120deg, ${primaryHex}, ${accent})`,
                 }}
                 aria-hidden
+              />
+
+              <StoreNameBadgePicker
+                value={nameBadge}
+                onChange={setNameBadge}
+                previewName={name.trim() || "Ecom Store"}
+                accent={accent}
+                primary={primaryHex}
               />
 
               <Button type="submit" variant="bentoSolid" size="bento" disabled={saving}>

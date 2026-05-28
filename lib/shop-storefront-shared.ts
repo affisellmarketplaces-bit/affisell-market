@@ -1,5 +1,6 @@
 /** Shop directory + product card types/mappers — safe for `"use client"` (no Prisma). */
 
+import type { StoreNameBadgeStyle } from "@/lib/store-name-badge-styles"
 import type { StorefrontTheme } from "@/lib/storefront-theme-shared"
 
 export type ShopStoreSummary = {
@@ -40,6 +41,9 @@ export type PublicShopDirectoryEntry = {
   nicheLabel: NicheKey
   averageRating: number
   orderCount: number
+  nameBadge?: StoreNameBadgeStyle
+  themeAccent?: string
+  themePrimary?: string
 }
 
 export function inferNicheLabel(description: string | null, storeName: string): NicheKey {

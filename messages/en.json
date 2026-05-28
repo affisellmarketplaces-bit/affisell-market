@@ -406,7 +406,8 @@
     "filterAria": "Filter by niche",
     "featuredEmpty": "Creators are opening their stores. Check back soon.",
     "visitStore": "Visit store",
-    "ordersCount": "{count, plural, one {# order} other {# orders}}"
+    "ordersCount": "{count, plural, one {# order} other {# orders}}",
+    "browseCta": "All stores"
   },
   "discovery": {
     "eyebrow": "Explore",
@@ -817,7 +818,25 @@
       "loadFailed": "Failed to load store",
       "saveFailed": "Could not save",
       "logoLogisticsTitle": "Logo & logistics",
-      "logoLogisticsBody": "Upload logo, AI avatar, ship-from address, and slug in {profileLink}."
+      "logoLogisticsBody": "Upload logo, AI avatar, ship-from address, and slug in {profileLink}.",
+      "nameBadges": {
+        "sectionTitle": "Store name display",
+        "sectionHint": "Futuristic band on your public storefront (parallelogram, neon, holographic, and more).",
+        "parallelogram": "Parallelogram",
+        "parallelogramDesc": "Signature skewed band — default Affisell look.",
+        "neonSlab": "Neon slab",
+        "neonSlabDesc": "Glowing parallelogram with accent halo.",
+        "holoRibbon": "Holo ribbon",
+        "holoRibbonDesc": "Animated cyan / violet gradient.",
+        "quantumFold": "Quantum fold",
+        "quantumFoldDesc": "Layered futuristic depth.",
+        "orbitRing": "Orbit ring",
+        "orbitRingDesc": "Pill shape with spinning ring.",
+        "chromeBeam": "Chrome beam",
+        "chromeBeamDesc": "Metallic skew, premium contrast.",
+        "classic": "Classic",
+        "classicDesc": "Plain text, no band."
+      }
     },
     "domain": {
       "title": "Your own domain",

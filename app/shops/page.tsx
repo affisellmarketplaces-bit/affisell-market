@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 
+import { AllStoresTriangleBadge } from "@/components/storefront/all-stores-triangle-badge"
 import { FeaturedShops } from "@/components/home/FeaturedShops"
 import { ShopsDirectoryGrid } from "@/components/shops/ShopsDirectoryGrid"
 import { loadPublicAffiliateShops } from "@/lib/shop-storefront-data"
@@ -32,9 +33,14 @@ export default async function ShopsDirectoryPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <header className="mb-8 space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">{t("title")}</h1>
-        <p className="max-w-xl text-sm text-zinc-600 dark:text-zinc-400">{t("subtitle")}</p>
+      <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">{t("title")}</h1>
+          <p className="max-w-xl text-sm text-zinc-600 dark:text-zinc-400">{t("subtitle")}</p>
+        </div>
+        <AllStoresTriangleBadge href="/shops/browse" accent="#7c3aed">
+          {t("browseCta")}
+        </AllStoresTriangleBadge>
       </header>
 
       {shops.length === 0 ? (

@@ -5,7 +5,7 @@ import { mkdir, writeFile } from "fs/promises"
 import { auth } from "@/auth"
 import { allocateUniqueSlug, ensureMerchantStore } from "@/lib/ensure-store"
 import { prisma } from "@/lib/prisma"
-import { themeFromFormFields } from "@/lib/storefront-theme-shared"
+import { parseStorefrontTheme, themeFromFormFields } from "@/lib/storefront-theme-shared"
 import { normalizeCustomDomain } from "@/lib/verify-store-domain"
 
 export const runtime = "nodejs"
@@ -78,9 +78,16 @@ export async function POST(req: Request) {
 
   const themePrimary = fd.get("themePrimary")
   const themeAccent = fd.get("themeAccent")
-  const hasThemeFields = themePrimary !== null || themeAccent !== null
+  const themeNameBadge = fd.get("themeNameBadge")
+  const hasThemeFields =
+    themePrimary !== null || themeAccent !== null || themeNameBadge !== null
+  const existingTheme = parseStorefrontTheme(store.storefrontTheme)
   const storefrontTheme = hasThemeFields
-    ? themeFromFormFields(themePrimary, themeAccent)
+    ? themeFromFormFields(
+        themePrimary !== null ? themePrimary : existingTheme.primary,
+        themeAccent !== null ? themeAccent : existingTheme.accent,
+        themeNameBadge !== null ? themeNameBadge : existingTheme.nameBadge
+      )
     : undefined
 
   const logoFile = fd.get("logo")

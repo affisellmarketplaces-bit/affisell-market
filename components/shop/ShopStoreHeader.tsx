@@ -3,6 +3,8 @@
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 
+import { AllStoresTriangleBadge } from "@/components/storefront/all-stores-triangle-badge"
+import { StoreNameBadge } from "@/components/storefront/store-name-badge"
 import type { StorefrontTheme } from "@/lib/storefront-theme-shared"
 import { cn } from "@/lib/utils"
 
@@ -27,6 +29,8 @@ export function ShopStoreHeader({
   const t = useTranslations("boutique")
   const tNav = useTranslations("PublicNav")
   const accent = theme?.accent ?? "#7c3aed"
+  const primary = theme?.primary ?? "#18181b"
+  const nameBadge = theme?.nameBadge ?? "parallelogram"
 
   return (
     <header className="border-b border-zinc-200/90 bg-white dark:border-zinc-800 dark:bg-zinc-950">
@@ -87,7 +91,13 @@ export function ShopStoreHeader({
           ) : (
             <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">{t("customDomainTagline")}</p>
           )}
-          <h1 className="truncate text-xl font-bold text-zinc-900 dark:text-zinc-50 sm:text-2xl">{storeName}</h1>
+          <StoreNameBadge
+            name={storeName}
+            style={nameBadge}
+            accent={accent}
+            primary={primary}
+            size="store"
+          />
           {description ? (
             <p className="mt-0.5 line-clamp-2 text-sm text-zinc-600 dark:text-zinc-400">{description}</p>
           ) : null}
@@ -100,12 +110,9 @@ export function ShopStoreHeader({
             >
               {tNav("marketplace")}
             </Link>
-            <Link
-              href="/shops"
-              className="text-zinc-600 underline-offset-2 hover:underline dark:text-zinc-400"
-            >
+            <AllStoresTriangleBadge href="/shops" accent={accent}>
               {t("allStores")}
-            </Link>
+            </AllStoresTriangleBadge>
           </div>
         ) : null}
       </div>

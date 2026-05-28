@@ -6,6 +6,7 @@ import { useMemo, useState } from "react"
 import { useTranslations } from "next-intl"
 import { ArrowRight, Search, Sparkles, Store } from "lucide-react"
 
+import { AllStoresTriangleBadge } from "@/components/storefront/all-stores-triangle-badge"
 import { ProductCard } from "@/components/product/ProductCard"
 import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
 import {
@@ -290,12 +291,9 @@ export function BuyerDiscoveryHub({ shops, products, categories }: Props) {
               </li>
             ))}
           </ul>
-          <Link
-            href="/shops"
-            className="mt-6 inline-flex text-sm font-semibold text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
-          >
+          <AllStoresTriangleBadge href="/shops" className="mt-6" accent="#7c3aed">
             {t("allStores")}
-          </Link>
+          </AllStoresTriangleBadge>
         </div>
       ) : null}
     </section>

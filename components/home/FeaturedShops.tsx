@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 
+import { StoreNameBadge } from "@/components/storefront/store-name-badge"
 import type { PublicShopDirectoryEntry } from "@/lib/shop-storefront-shared"
 
 type Props = {
@@ -46,7 +47,17 @@ export function FeaturedShops({ shops, emptyMessage }: Props) {
                 </span>
               )}
               <div className="min-w-0 flex-1">
-                <p className="truncate font-semibold text-zinc-900 dark:text-zinc-50">{shop.name}</p>
+                {shop.nameBadge && shop.nameBadge !== "classic" ? (
+                  <StoreNameBadge
+                    name={shop.name}
+                    style={shop.nameBadge}
+                    accent={shop.themeAccent}
+                    primary={shop.themePrimary}
+                    size="preview"
+                  />
+                ) : (
+                  <p className="truncate font-semibold text-zinc-900 dark:text-zinc-50">{shop.name}</p>
+                )}
                 <p className="text-xs text-zinc-500">{t(`niches.${shop.nicheLabel}`)}</p>
                 <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
                   ⭐ {rating} · {ordersLabel}

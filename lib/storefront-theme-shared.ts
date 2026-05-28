@@ -1,8 +1,18 @@
 /** Storefront theme — safe for `"use client"` (no Prisma). */
 
+import {
+  DEFAULT_STORE_NAME_BADGE,
+  parseStoreNameBadgeStyle,
+  type StoreNameBadgeStyle,
+} from "@/lib/store-name-badge-styles"
+
+export type { StoreNameBadgeStyle } from "@/lib/store-name-badge-styles"
+
 export type StorefrontTheme = {
   primary?: string
   accent?: string
+  /** Futuristic store name band on public vitrine. */
+  nameBadge?: StoreNameBadgeStyle
 }
 
 const HEX_RE = /^#[0-9a-f]{6}$/i
@@ -28,7 +38,8 @@ export function parseStorefrontTheme(raw: unknown): StorefrontTheme {
   const o = raw as Record<string, unknown>
   const primary = normalizeHexColor(o.primary) ?? DEFAULT_STOREFRONT_THEME.primary
   const accent = normalizeHexColor(o.accent) ?? DEFAULT_STOREFRONT_THEME.accent
-  return { primary, accent }
+  const nameBadge = parseStoreNameBadgeStyle(o.nameBadge)
+  return { primary, accent, nameBadge }
 }
 
 export function themeToCssVars(theme: StorefrontTheme): Record<string, string> {
@@ -39,9 +50,17 @@ export function themeToCssVars(theme: StorefrontTheme): Record<string, string> {
   }
 }
 
-export function themeFromFormFields(primaryRaw: unknown, accentRaw: unknown): StorefrontTheme {
+export function themeFromFormFields(
+  primaryRaw: unknown,
+  accentRaw: unknown,
+  nameBadgeRaw?: unknown
+): StorefrontTheme {
   return {
     primary: normalizeHexColor(primaryRaw) ?? DEFAULT_STOREFRONT_THEME.primary,
     accent: normalizeHexColor(accentRaw) ?? DEFAULT_STOREFRONT_THEME.accent,
+    nameBadge:
+      nameBadgeRaw !== undefined && nameBadgeRaw !== null
+        ? parseStoreNameBadgeStyle(nameBadgeRaw)
+        : DEFAULT_STORE_NAME_BADGE,
   }
 }

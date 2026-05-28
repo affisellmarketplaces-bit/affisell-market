@@ -180,6 +180,7 @@ export async function loadPublicAffiliateShops(limit = 500): Promise<PublicShopD
       aiAvatarUrl: true,
       description: true,
       userId: true,
+      storefrontTheme: true,
     },
     orderBy: { name: "asc" },
     take: limit,
@@ -199,14 +200,20 @@ export async function loadPublicAffiliateShops(limit = 500): Promise<PublicShopD
 
   const orderCountByAffiliate = new Map(orderGroups.map((g) => [g.affiliateId, g._count._all]))
 
-  return stores.map((s) => ({
-    slug: s.slug,
-    name: s.name,
-    logoUrl: s.logoUrl ?? s.aiAvatarUrl,
-    nicheLabel: inferNicheLabel(s.description, s.name),
-    averageRating: ratingMap.get(s.userId) ?? 0,
-    orderCount: orderCountByAffiliate.get(s.userId) ?? 0,
-  }))
+  return stores.map((s) => {
+    const theme = parseStorefrontTheme(s.storefrontTheme)
+    return {
+      slug: s.slug,
+      name: s.name,
+      logoUrl: s.logoUrl ?? s.aiAvatarUrl,
+      nicheLabel: inferNicheLabel(s.description, s.name),
+      averageRating: ratingMap.get(s.userId) ?? 0,
+      orderCount: orderCountByAffiliate.get(s.userId) ?? 0,
+      nameBadge: theme.nameBadge,
+      themeAccent: theme.accent,
+      themePrimary: theme.primary,
+    }
+  })
 }
 
 /** Slugs only — sitemap-friendly. */

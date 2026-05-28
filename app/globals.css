@@ -973,4 +973,162 @@
   .affisell-luxe-ticker {
     animation: auction-ticker 36s linear infinite;
   }
+
+  /* —— Store name badges (Brand Studio) —— */
+  .affisell-store-name-badge__label {
+    color: #fff;
+    padding: 0.35rem 1.1rem;
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  .affisell-store-name-badge--parallelogram .affisell-store-name-badge__label {
+    background: linear-gradient(
+      118deg,
+      var(--badge-primary, #18181b) 0%,
+      color-mix(in srgb, var(--badge-accent, #7c3aed) 88%, #fff) 100%
+    );
+    transform: skewX(-12deg);
+    box-shadow: 4px 6px 0 color-mix(in srgb, var(--badge-accent, #7c3aed) 45%, transparent);
+  }
+
+  .affisell-store-name-badge--parallelogram {
+    transform: skewX(12deg);
+  }
+
+  .affisell-store-name-badge--neon-slab .affisell-store-name-badge__label {
+    background: linear-gradient(90deg, var(--badge-primary, #0f0f12), var(--badge-accent, #7c3aed));
+    transform: skewX(-10deg);
+    box-shadow:
+      0 0 24px color-mix(in srgb, var(--badge-accent, #7c3aed) 55%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.35);
+  }
+
+  .affisell-store-name-badge--neon-slab {
+    transform: skewX(10deg);
+  }
+
+  .affisell-store-name-badge--holo-ribbon .affisell-store-name-badge__label {
+    background: linear-gradient(
+      120deg,
+      var(--badge-accent, #7c3aed),
+      #22d3ee,
+      var(--badge-accent, #a78bfa),
+      var(--badge-primary, #18181b)
+    );
+    background-size: 220% 100%;
+    animation: store-badge-holo 5s ease infinite;
+    transform: skewX(-8deg);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+  }
+
+  .affisell-store-name-badge--holo-ribbon {
+    transform: skewX(8deg);
+  }
+
+  @keyframes store-badge-holo {
+    0%,
+    100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  .affisell-store-name-badge--quantum-fold {
+    transform: skewX(11deg);
+  }
+
+  .affisell-store-name-badge--quantum-fold .affisell-store-name-badge__shadow {
+    position: absolute;
+    inset: 4px -4px -4px 8px;
+    background: color-mix(in srgb, var(--badge-accent, #7c3aed) 70%, #000);
+    transform: skewX(-12deg);
+    opacity: 0.85;
+    z-index: 0;
+  }
+
+  .affisell-store-name-badge--quantum-fold .affisell-store-name-badge__label {
+    background: linear-gradient(135deg, var(--badge-primary, #18181b), var(--badge-accent, #7c3aed));
+    transform: skewX(-12deg);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .affisell-store-name-badge--orbit-ring {
+    padding: 3px;
+    border-radius: 9999px;
+    background: conic-gradient(
+      from 120deg,
+      var(--badge-accent, #7c3aed),
+      transparent,
+      var(--badge-accent, #7c3aed)
+    );
+    animation: store-badge-orbit 6s linear infinite;
+  }
+
+  @keyframes store-badge-orbit {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .affisell-store-name-badge--orbit-ring .affisell-store-name-badge__label {
+    border-radius: 9999px;
+    background: var(--badge-primary, #18181b);
+    padding: 0.4rem 1.25rem;
+    transform: none;
+    color: #fafafa;
+  }
+
+  .affisell-store-name-badge--chrome-beam .affisell-store-name-badge__label {
+    background: linear-gradient(
+      180deg,
+      #f4f4f5 0%,
+      color-mix(in srgb, var(--badge-accent, #7c3aed) 35%, #a1a1aa) 45%,
+      var(--badge-primary, #27272a) 100%
+    );
+    transform: skewX(-14deg);
+    color: var(--badge-primary, #18181b);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+    box-shadow:
+      0 8px 20px rgba(0, 0, 0, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .affisell-store-name-badge--chrome-beam {
+    transform: skewX(14deg);
+  }
+
+  /* Triangular « All stores » chip */
+  .affisell-all-stores-triangle {
+    position: relative;
+    isolation: isolate;
+    min-height: 2.5rem;
+  }
+
+  .affisell-all-stores-triangle__shape {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--badge-accent, #7c3aed) 90%, #fff),
+      var(--badge-accent, #5b21b6)
+    );
+    clip-path: polygon(8% 0%, 100% 0%, 100% 100%, 0% 100%);
+    box-shadow:
+      0 0 20px color-mix(in srgb, var(--badge-accent, #7c3aed) 40%, transparent),
+      4px 4px 0 rgba(0, 0, 0, 0.15);
+    transition: filter 0.2s ease;
+  }
+
+  .affisell-all-stores-triangle:hover .affisell-all-stores-triangle__shape {
+    filter: brightness(1.08);
+  }
+
+  .affisell-all-stores-triangle__label {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  }
 }
