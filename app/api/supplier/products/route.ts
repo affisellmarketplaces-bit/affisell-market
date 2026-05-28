@@ -21,6 +21,7 @@ import {
   normalizeCategoryAttributeValues,
   validateVisibleCategoryAttributes,
 } from "@/lib/category-attribute-rules"
+import { normalizeLeafCategoryId } from "@/lib/category-leaf-guard"
 import { requireMerchantUserId } from "@/lib/merchant-tenant-scope"
 import { onSupplierProductPublishedFromInvite } from "@/lib/supplier-invitation"
 import { parseListingKind } from "@/lib/supplier-commission"
@@ -83,7 +84,18 @@ export async function POST(req: Request) {
     stock,
   } = body as Record<string, unknown>
   const categoryIdRaw = (body as Record<string, unknown>).categoryId
-  const categoryId = typeof categoryIdRaw === "string" ? categoryIdRaw.trim() : ""
+  let categoryId = ""
+  try {
+    categoryId = (await normalizeLeafCategoryId(categoryIdRaw)) ?? ""
+  } catch (e) {
+    if (e instanceof Error && e.message === "CATEGORY_NOT_FOUND") {
+      return Response.json({ error: "Unknown category" }, { status: 400 })
+    }
+    if (e instanceof Error && e.message === "CATEGORY_NOT_LEAF") {
+      return Response.json({ error: "Category must be a leaf node" }, { status: 400 })
+    }
+    throw e
+  }
   const affisellOverrideBps = parseAffisellCommissionOverrideFromBody(
     (body as Record<string, unknown>).affisellCommissionRateOverridePercent ??
       (body as Record<string, unknown>).affisellCommissionRateOverrideBps

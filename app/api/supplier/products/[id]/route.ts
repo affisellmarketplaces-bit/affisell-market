@@ -19,6 +19,7 @@ import { parseSupplierProductImages } from "@/lib/supplier-product-images"
 import { parseListingKind } from "@/lib/supplier-commission"
 import { parseAffisellCommissionOverrideFromBody } from "@/lib/supplier-product-affisell-commission-override"
 import { productCommissionRateForSave } from "@/lib/supplier-product-commission-save"
+import { normalizeLeafCategoryId } from "@/lib/category-leaf-guard"
 import {
   parseCustomColumnsFromBody,
   parseCustomColumnsFromDb,
@@ -209,8 +210,18 @@ export async function PUT(
   const attr = parseProductAttributesBody(body as unknown as Record<string, unknown>)
   const ship = parseSupplierProductShippingBody(body as unknown as Record<string, unknown>)
   const meta = parseProductMarketplaceMeta(body as unknown as Record<string, unknown>)
-  const categoryId =
-    typeof body.categoryId === "string" && body.categoryId.trim().length ? body.categoryId.trim() : null
+  let categoryId: string | null = null
+  try {
+    categoryId = await normalizeLeafCategoryId(body.categoryId)
+  } catch (e) {
+    if (e instanceof Error && e.message === "CATEGORY_NOT_FOUND") {
+      return Response.json({ error: "Unknown category" }, { status: 400 })
+    }
+    if (e instanceof Error && e.message === "CATEGORY_NOT_LEAF") {
+      return Response.json({ error: "Category must be a leaf node" }, { status: 400 })
+    }
+    throw e
+  }
   const affisellOverridePatch = parseAffisellCommissionOverrideFromBody(
     rawBody.affisellCommissionRateOverridePercent ?? rawBody.affisellCommissionRateOverrideBps
   )

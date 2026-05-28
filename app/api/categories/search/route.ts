@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 
 import type { LeafPath } from "@/lib/category-browse"
-import { resolveCategoryPathSegments } from "@/lib/category-path"
+import { resolveCategoryPathSegmentsMap } from "@/lib/category-path"
 import { scoreProductTextAgainstBreadcrumb } from "@/lib/category-title-match"
 import { prisma } from "@/lib/prisma"
 
@@ -36,9 +36,13 @@ export async function GET(req: Request) {
       take: MAX_RESULTS * 2,
     })
 
+    const pathByLeafId = await resolveCategoryPathSegmentsMap(
+      prisma,
+      rows.map((row) => row.id)
+    )
     const results: Array<LeafPath & { relevanceScore?: number }> = []
     for (const row of rows) {
-      const path = await resolveCategoryPathSegments(prisma, row.id)
+      const path = pathByLeafId.get(row.id) ?? []
       if (!path.length) continue
       const breadcrumb = row.fullPath || path.map((p) => p.name).join(" > ")
       const relevanceScore = titleHint
