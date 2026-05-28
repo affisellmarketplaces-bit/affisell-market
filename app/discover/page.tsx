@@ -1,4 +1,5 @@
 import { auth } from "@/auth"
+import type { Session } from "next-auth"
 import { AffisellPulseExperience } from "@/components/pulse/affisell-pulse-experience"
 import { BuyerSwipeCommerce } from "@/components/pulse/buyer-swipe-commerce"
 import { loadBuyerSwipeFeedItems } from "@/lib/buyer-swipe-feed.server"
@@ -22,7 +23,15 @@ type PageProps = {
 
 export default async function DiscoverPage({ searchParams }: PageProps) {
   const sp = await searchParams
-  const session = await auth()
+  let session: Session | null = null
+  try {
+    session = await auth()
+  } catch (e) {
+    console.error("[discover]", {
+      stage: "auth",
+      error: e instanceof Error ? e.message : String(e),
+    })
+  }
   const layout = sp.layout === "scroll" ? "scroll" : "swipe"
 
   const categoryId = sp.category?.trim() || null

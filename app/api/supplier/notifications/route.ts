@@ -15,39 +15,48 @@ export async function GET() {
     return Response.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  const [rows, unreadCount] = await Promise.all([
-    prisma.notification.findMany({
-      where: { userId: session.user.id },
-      orderBy: { createdAt: "desc" },
-      take: 50,
-    }),
-    prisma.notification.count({
-      where: { userId: session.user.id, read: false },
-    }),
-  ])
+  try {
+    const [rows, unreadCount] = await Promise.all([
+      prisma.notification.findMany({
+        where: { userId: session.user.id },
+        orderBy: { createdAt: "desc" },
+        take: 50,
+      }),
+      prisma.notification.count({
+        where: { userId: session.user.id, read: false },
+      }),
+    ])
 
-  const orderIds = rows.map((n) => n.orderId).filter((id): id is string => Boolean(id))
-  const orderImages =
-    orderIds.length > 0
-      ? await prisma.order.findMany({
-          where: { id: { in: orderIds }, supplierId: session.user.id },
-          select: { id: true, variantImageUrl: true },
-        })
-      : []
-  const imageByOrderId = new Map(orderImages.map((o) => [o.id, o.variantImageUrl]))
+    const orderIds = rows.map((n) => n.orderId).filter((id): id is string => Boolean(id))
+    const orderImages =
+      orderIds.length > 0
+        ? await prisma.order.findMany({
+            where: { id: { in: orderIds }, supplierId: session.user.id },
+            select: { id: true, variantImageUrl: true },
+          })
+        : []
+    const imageByOrderId = new Map(orderImages.map((o) => [o.id, o.variantImageUrl]))
 
-  return Response.json({
-    unreadCount,
-    notifications: rows.map((n) => ({
-      id: n.id,
-      type: n.type,
-      message: n.message,
-      imageUrl: n.imageUrl?.trim() || imageByOrderId.get(n.orderId ?? "")?.trim() || null,
-      orderId: n.orderId,
-      read: n.read,
-      createdAt: n.createdAt.toISOString(),
-    })),
-  })
+    return Response.json({
+      unreadCount,
+      notifications: rows.map((n) => ({
+        id: n.id,
+        type: n.type,
+        message: n.message,
+        imageUrl: n.imageUrl?.trim() || imageByOrderId.get(n.orderId ?? "")?.trim() || null,
+        orderId: n.orderId,
+        read: n.read,
+        createdAt: n.createdAt.toISOString(),
+      })),
+    })
+  } catch (error) {
+    console.error("[supplier-notifications]", {
+      userId: session.user.id,
+      stage: "get",
+      error: error instanceof Error ? error.message : String(error),
+    })
+    return Response.json({ unreadCount: 0, notifications: [] }, { status: 200 })
+  }
 }
 
 const patchSchema = z
@@ -77,22 +86,31 @@ export async function PATCH(req: Request) {
     return Response.json({ error: "Invalid body" }, { status: 400 })
   }
 
-  if (parsed.data.markAllRead) {
+  try {
+    if (parsed.data.markAllRead) {
+      await prisma.notification.updateMany({
+        where: { userId: session.user.id, read: false },
+        data: { read: true },
+      })
+      return Response.json({ ok: true })
+    }
+
+    const ids = parsed.data.ids
+    if (!ids?.length) {
+      return Response.json({ error: "Provide markAllRead or ids" }, { status: 400 })
+    }
+
     await prisma.notification.updateMany({
-      where: { userId: session.user.id, read: false },
+      where: { userId: session.user.id, id: { in: ids } },
       data: { read: true },
     })
     return Response.json({ ok: true })
+  } catch (error) {
+    console.error("[supplier-notifications]", {
+      userId: session.user.id,
+      stage: "patch",
+      error: error instanceof Error ? error.message : String(error),
+    })
+    return Response.json({ ok: false, error: "Temporary notification outage" }, { status: 503 })
   }
-
-  const ids = parsed.data.ids
-  if (!ids?.length) {
-    return Response.json({ error: "Provide markAllRead or ids" }, { status: 400 })
-  }
-
-  await prisma.notification.updateMany({
-    where: { userId: session.user.id, id: { in: ids } },
-    data: { read: true },
-  })
-  return Response.json({ ok: true })
 }
