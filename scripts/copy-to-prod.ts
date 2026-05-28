@@ -21,10 +21,17 @@ function jsonOrNull(v: Prisma.JsonValue | null | undefined): Prisma.InputJsonVal
 }
 
 function userPayload(row: Awaited<ReturnType<PrismaClient["user"]["findMany"]>>[number]) {
-  const { supplierRecentCategories, stripeCapabilities, cookieConsent, ...rest } = row
+  const {
+    supplierRecentCategories,
+    supplierMetrics,
+    stripeCapabilities,
+    cookieConsent,
+    ...rest
+  } = row
   return {
     ...rest,
     supplierRecentCategories: (supplierRecentCategories ?? []) as Prisma.InputJsonValue,
+    supplierMetrics: jsonOrNull(supplierMetrics),
     stripeCapabilities: jsonOrNull(stripeCapabilities),
     cookieConsent: jsonOrNull(cookieConsent),
   } satisfies Prisma.UserUncheckedCreateInput
