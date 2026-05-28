@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react"
 import { useCallback, useEffect, useState } from "react"
 
 import { AffiliateCommissionCard } from "@/components/affiliate-commission-card"
+import { VerifiedBadge } from "@/components/suppliers/verified-badge"
 import { formatStoreCurrency } from "@/lib/market-config"
 import { variantsFromDb, type ProductVariantLine } from "@/lib/product-variants"
 
@@ -25,6 +26,9 @@ type AffiliateProductPayload = {
     commissionRate: number
     listingKind: string
     active: boolean
+    supplier: {
+      isVerifiedSupplier: boolean
+    }
   }
 }
 
@@ -195,6 +199,7 @@ export default function DashboardProductDetailPage() {
         <p className="text-xs font-semibold uppercase tracking-wide text-violet-600 dark:text-violet-400">
           Affiliate listing
         </p>
+        {product.supplier.isVerifiedSupplier ? <VerifiedBadge className="mt-2" /> : null}
         <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">{displayTitle}</h1>
         <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
           Listing ID <span className="font-mono text-xs">{listing.id}</span>

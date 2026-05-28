@@ -190,6 +190,7 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
               marginCents={displayMargin}
               commissionRate={product.commissionRate}
               supplierLabel={product.supplierLabel}
+              isVerifiedSupplier={product.isVerifiedSupplier}
               sellingPriceCents={sellingCents}
               priority={isTop && stackIndex === 0}
               className="h-full border-0 shadow-none ring-0"

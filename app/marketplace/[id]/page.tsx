@@ -274,6 +274,12 @@ export default async function MarketplaceListingPage({
   if (aggregateRating && productJsonLd && typeof productJsonLd === "object") {
     ;(productJsonLd as Record<string, unknown>).aggregateRating = aggregateRating
   }
+  if (listing.product.supplier.isVerifiedSupplier && productJsonLd && typeof productJsonLd === "object") {
+    ;(productJsonLd as Record<string, unknown>).brand = {
+      "@type": "Brand",
+      name: listing.product.supplier.name?.trim() || "Affisell+ Supplier",
+    }
+  }
 
   return (
     <main className="affisell-pdp-viewport relative min-h-screen w-full max-w-[100vw] overflow-x-clip bg-gradient-to-b from-zinc-100/95 via-white to-violet-100/45 dark:from-zinc-950 dark:via-zinc-950 dark:to-violet-950/30">
@@ -302,6 +308,7 @@ export default async function MarketplaceListingPage({
           descriptionIllustrationVideos={descriptionIllustrationVideos}
           productSpecs={productSpecs}
           sellerLabel={sellerLabel}
+          isVerifiedSupplier={listing.product.supplier.isVerifiedSupplier}
           storefront={storefront}
           gallery={gallery}
           categories={categories}

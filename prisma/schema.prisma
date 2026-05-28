@@ -22,6 +22,11 @@ model User {
   videoQuota    Int       @default(3)
   videoCount    Int       @default(0) @map("videoUsed")
   isPro         Boolean   @default(false)
+  /** Affisell+ supplier trust badge eligibility (role SUPPLIER only). */
+  isVerifiedSupplier Boolean @default(false)
+  verifiedAt         DateTime?
+  /** Rolling 90-day quality metrics snapshot { rating, disputeRate, shippingSLA48h }. */
+  supplierMetrics    Json?
   stripeCustomerId     String?   @unique
   stripeSubscriptionId String?   @unique
   /** Stripe Connect Express/Standard account for marketplace seller payouts. */
@@ -115,6 +120,19 @@ model User {
 
   /** Swipe Feed — like / skip decisions on catalog products. */
   affiliateSwipes AffiliateSwipe[]
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  action     String
+  entityType String
+  entityId   String?
+  actorId    String?
+  payload    Json?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([action, createdAt])
 }
 
 /**

@@ -26,6 +26,7 @@ import { Fragment, Suspense, useEffect, useMemo, useRef, useState, type MouseEve
 import { ReviewsEngine } from "@/components/reviews/ReviewsEngine"
 
 import { MarketplacePurchaseQuantity } from "@/components/marketplace/marketplace-purchase-quantity"
+import { VerifiedBadge } from "@/components/suppliers/verified-badge"
 import { Button } from "@/components/ui/button"
 import { MobilePdpBuyPanel } from "@/components/product/mobile-pdp-buy-panel"
 import { ProductMediaGallery } from "@/components/product/product-media-gallery"
@@ -33,7 +34,6 @@ import messages from "@/messages/en.json"
 import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
 import {
   COLORS,
-  VARIANT_GROUP_LABELS,
   isMulticolorSwatch,
 } from "@/lib/product-catalog-constants"
 import { shopperCategoryEyebrow, shopperVisibleTags } from "@/lib/product-shopper-tags"
@@ -42,7 +42,6 @@ import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { addToBuyerCart } from "@/lib/cart-add-client"
 import { buyNowWithoutLogin } from "@/lib/guest-buy-now-client"
-import { cn } from "@/lib/utils"
 import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/marketplace-checkout-discount"
 import {
   clampPurchaseQuantity,
@@ -143,6 +142,7 @@ type Props = {
   descriptionIllustrationVideos?: string[]
   productSpecs?: SpecRow[]
   sellerLabel: string
+  isVerifiedSupplier?: boolean
   storefront: StorefrontInfo | null
   gallery: string[]
   categories: string[]
@@ -364,6 +364,7 @@ export function MarketplaceListingDetail({
   descriptionIllustrationVideos = [],
   productSpecs = [],
   sellerLabel,
+  isVerifiedSupplier = false,
   storefront,
   tags,
   gallery,
@@ -977,6 +978,11 @@ export function MarketplaceListingDetail({
                   className="pointer-events-none absolute -left-3 top-0 hidden h-full w-0.5 rounded-full bg-gradient-to-b from-violet-500 via-fuchsia-500 to-transparent opacity-80 lg:block"
                   aria-hidden
                 />
+                <div className="pl-0 lg:pl-2">
+                  {isVerifiedSupplier ? (
+                    <VerifiedBadge className="mb-2" />
+                  ) : null}
+                </div>
                 <h1 className="text-balance pl-0 lg:pl-2">
                   <span className="block text-[1.35rem] font-bold leading-[1.15] tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-[1.65rem]">
                     {titleHeadline}

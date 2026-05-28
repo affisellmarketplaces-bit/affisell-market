@@ -75,7 +75,7 @@ function mapSwipeFeedRows(
     basePriceCents: number
     commissionRate: unknown
     deliveryMax: number | null
-    supplier: { email: string; store: { name: string } | null }
+    supplier: { email: string; isVerifiedSupplier: boolean; store: { name: string } | null }
   }>
 ): SwipeFeedProduct[] {
   return rows.map((p) => {
@@ -90,6 +90,7 @@ function mapSwipeFeedRows(
       commissionRate,
       marginCents: estimateMarginCents(p.basePriceCents, commissionRate),
       supplierLabel: supplierLabel(p),
+      isVerifiedSupplier: p.supplier.isVerifiedSupplier,
       deliveryMax: p.deliveryMax,
     }
   })
@@ -106,6 +107,7 @@ const productSelect = {
   supplier: {
     select: {
       email: true,
+      isVerifiedSupplier: true,
       store: { select: { name: true } },
     },
   },

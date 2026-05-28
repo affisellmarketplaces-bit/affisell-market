@@ -10,6 +10,7 @@ export const LEGAL_SLUGS = [
   "terms-of-service",
   "terms-supplier",
   "terms-affiliate",
+  "affisell-plus",
   "privacy-policy",
   "refund-policy",
   "cookies-policy",

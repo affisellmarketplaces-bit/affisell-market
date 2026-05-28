@@ -7,6 +7,7 @@ import { ArrowLeft, Loader2, Save, Sparkles } from "lucide-react"
 import { toast } from "sonner"
 
 import { BentoCard, BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
+import { VerifiedBadge } from "@/components/suppliers/verified-badge"
 import { Button } from "@/components/ui/button"
 import {
   formatAffiliateListingDescriptionFromAi,
@@ -28,6 +29,7 @@ type ListingPayload = {
     name: string
     description: string
     images: string[]
+    supplier?: { isVerifiedSupplier?: boolean }
     attributes?: Array<{ key: string; label: string; value: string }>
   }
 }
@@ -48,6 +50,7 @@ export function AffiliateProductEditForm() {
   const [seoDescription, setSeoDescription] = useState("")
   const [customDescription, setCustomDescription] = useState("")
   const [aiPreview, setAiPreview] = useState<ProductDescriptionAiResult | null>(null)
+  const payloadProductId = payload?.product.id ?? ""
 
   const load = useCallback(async () => {
     if (!listingId) return
@@ -79,12 +82,12 @@ export function AffiliateProductEditForm() {
   }, [load])
 
   const handleGenerate = useCallback(async () => {
-    if (!payload?.product.id) return
+    if (!payloadProductId) return
     setAiLoading(true)
     setError(null)
     try {
       const res = await fetch(
-        `/api/products/${encodeURIComponent(payload.product.id)}/generate-description`,
+        `/api/products/${encodeURIComponent(payloadProductId)}/generate-description`,
         { method: "POST", credentials: "include" }
       )
       const data = (await res.json()) as ProductDescriptionAiResult & { error?: string }
@@ -103,7 +106,7 @@ export function AffiliateProductEditForm() {
     } finally {
       setAiLoading(false)
     }
-  }, [customTitle, payload?.product.id])
+  }, [customTitle, payloadProductId])
 
   const handleSave = useCallback(async () => {
     if (!listingId) return
@@ -186,6 +189,7 @@ export function AffiliateProductEditForm() {
 
         <BentoCard className="space-y-6 p-6">
           <div>
+            {payload?.product.supplier?.isVerifiedSupplier ? <VerifiedBadge className="mb-2" /> : null}
             <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">Éditer le listing</h1>
             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
               {productName} — copy optimisée conversion (GPT-4o). N&apos;impacte pas la catégorie catalogue.

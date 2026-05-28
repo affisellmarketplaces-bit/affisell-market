@@ -48,6 +48,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
           commissionRate: true,
           listingKind: true,
           active: true,
+          supplier: { select: { isVerifiedSupplier: true } },
           category: { select: { fullPath: true, name: true } },
           attributes: { select: { key: true, label: true, value: true } },
         },

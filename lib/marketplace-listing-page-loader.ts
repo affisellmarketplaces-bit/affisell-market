@@ -76,6 +76,12 @@ export const listingDetailSelect = {
           customData: true,
         },
       },
+      supplier: {
+        select: {
+          name: true,
+          isVerifiedSupplier: true,
+        },
+      },
     },
   },
   affiliate: {

@@ -3,6 +3,7 @@
 import Image from "next/image"
 import { Check, Store } from "lucide-react"
 
+import { VerifiedBadge } from "@/components/suppliers/verified-badge"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { primaryProductImage } from "@/lib/product-images"
 import { cn } from "@/lib/utils"
@@ -15,6 +16,7 @@ export type AffiliatePromoProductCardProps = {
   marginCents: number
   commissionRate: number
   supplierLabel: string
+  isVerifiedSupplier?: boolean
   /** Prix de vente suggéré (ex. +30 % markup) — affiché en sous-ligne discrète. */
   sellingPriceCents?: number
   className?: string
@@ -33,6 +35,7 @@ export function AffiliatePromoProductCard({
   marginCents,
   commissionRate,
   supplierLabel,
+  isVerifiedSupplier = false,
   sellingPriceCents,
   className,
   listed = false,
@@ -115,10 +118,13 @@ export function AffiliatePromoProductCard({
           </li>
         </ul>
 
-        <p className="mt-auto flex items-center gap-1 truncate pt-1 text-[11px] text-zinc-500 dark:text-zinc-400">
-          <Store className="size-3 shrink-0 opacity-70" aria-hidden />
-          {supplierLabel}
-        </p>
+        <div className="mt-auto flex items-center justify-between gap-2 pt-1">
+          <p className="flex min-w-0 items-center gap-1 truncate text-[11px] text-zinc-500 dark:text-zinc-400">
+            <Store className="size-3 shrink-0 opacity-70" aria-hidden />
+            <span className="truncate">{supplierLabel}</span>
+          </p>
+          {isVerifiedSupplier ? <VerifiedBadge className="shrink-0" /> : null}
+        </div>
       </div>
     </div>
   )

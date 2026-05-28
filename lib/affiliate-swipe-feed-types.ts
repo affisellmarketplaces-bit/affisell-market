@@ -12,6 +12,7 @@ export type SwipeFeedProduct = {
   /** Estimated affiliate margin at default markup (cents). */
   marginCents: number
   supplierLabel: string
+  isVerifiedSupplier: boolean
   deliveryMax: number | null
 }
 
