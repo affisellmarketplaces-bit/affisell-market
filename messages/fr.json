@@ -105,7 +105,7 @@
     "footerCreator": "Tu es créateur ?",
     "footerSupplier": "Tu es fournisseur ?",
     "footerSupplierCta": "Ouvrir un compte fournisseur",
-    "footerCreatorCta": "Devenir affilié",
+    "footerCreatorCta": "Devenir ambassadeur",
     "footerNavAria": "Espace partenaires",
     "pickedEmpty": "Aucune suggestion pour cette niche pour le moment.",
     "featuredProductsEmpty": "Aucun produit mis en avant pour le moment.",
@@ -245,7 +245,7 @@
     "signupLoginFail": "Compte créé mais la connexion a échoué. Essayez de vous connecter.",
     "roleHint": "Type de compte",
     "roleSupplier": "Fournisseur",
-    "roleAffiliate": "Affilié",
+      "roleAffiliate": "Ambassadeur",
     "noAccount": "Pas encore de compte ?",
     "hasAccount": "Déjà inscrit ?",
     "continueGoogle": "Continuer avec Google",
@@ -255,7 +255,7 @@
       "title": "Connexion Affisell",
       "subtitle": "Choisissez votre espace professionnel. Les acheteurs se connectent depuis la boutique de leur créateur.",
       "creatorTitle": "Je suis Créateur",
-      "creatorHint": "Catalogue affilié & boutique",
+      "creatorHint": "Catalogue ambassadeur & boutique",
       "supplierTitle": "Je suis Fournisseur",
       "supplierHint": "Produits & commandes B2B",
       "buyerNote": "Tu es acheteur ?",
@@ -305,7 +305,7 @@
       "oauthFailed": "La connexion a échoué. Réessayez ou utilisez l’e-mail et le mot de passe.",
       "affiliate": {
         "title": "Espace Créateur",
-        "subtitle": "Accède à ton dashboard créateur et à ton catalogue affilié",
+        "subtitle": "Accède à ton dashboard créateur et à ton catalogue ambassadeur",
         "signup": "Créer mon espace créateur"
       },
       "supplier": {
@@ -315,8 +315,8 @@
       },
       "errors": {
         "supplier_on_affiliate_portal": "Connexion refusée : ce compte est un compte fournisseur. Utilisez la connexion vendeur (espace supplier).",
-        "affiliate_on_supplier_portal": "Connexion refusée : ce compte est affilié. Utilisez la connexion affilié, pas l’espace fournisseur.",
-        "non_affiliate_on_affiliate_portal": "Connexion refusée : seuls les comptes affiliés sont autorisés pour cette destination.",
+        "affiliate_on_supplier_portal": "Connexion refusée : ce compte est ambassadeur. Utilisez la connexion ambassadeur, pas l’espace fournisseur.",
+        "non_affiliate_on_affiliate_portal": "Connexion refusée : seuls les comptes ambassadeur sont autorisés pour cette destination.",
         "non_supplier_on_supplier_portal": "Connexion refusée : seuls les comptes fournisseur sont autorisés pour cette destination.",
         "email_required_not_id": "Connexion refusée : saisissez votre adresse e-mail (pas un identifiant interne / ID)."
       }
@@ -396,7 +396,7 @@
   },
   "shops": {
     "metaTitle": "Boutiques créateurs - Affisell",
-    "metaDescription": "Parcourez les boutiques Affisell des créateurs affiliés.",
+    "metaDescription": "Parcourez les boutiques Affisell des créateurs ambassadeurs.",
     "title": "Boutiques créateurs",
     "subtitle": "Achetez directement auprès de vos créateurs préférés",
     "filterAll": "Toutes",
@@ -412,7 +412,7 @@
   "discovery": {
     "eyebrow": "Explorer",
     "title": "Trouvez votre créateur, puis votre produit",
-    "subtitle": "Chaque article est vendu par une boutique affiliée vérifiée — filtrez par univers, rayon ou créateur préféré.",
+    "subtitle": "Chaque article est vendu par une boutique ambassadeur vérifiée — filtrez par univers, rayon ou créateur préféré.",
     "fullMarketplace": "Marketplace complète",
     "searchLabel": "Rechercher un produit ou une boutique",
     "searchPlaceholder": "Rechercher un produit, une boutique, un rayon…",
@@ -488,7 +488,7 @@
     "myStore": "Ma boutique",
     "supplierCatalog": "Catalogue fournisseurs",
     "sales": "Ventes",
-    "dashboardTagline": "Espace affilié",
+    "dashboardTagline": "Hub Ambassadeur",
     "hello": "Bonjour,",
     "guestName": "vous",
     "publicStoreLead": "Votre vitrine publique :",
@@ -522,7 +522,7 @@
     "title": "Marketplace",
     "subtitle": "Fiches vitrine actives",
     "empty": "Aucune fiche pour le moment.",
-    "sellerLabel": "Vendu par un affilié",
+    "sellerLabel": "Vendu par un ambassadeur",
     "sidebar": {
       "title": "Catégories",
       "subtitle": "Parcourir par rayon",
@@ -1099,7 +1099,7 @@
       "exploreCatalog": "Explorer le catalogue",
       "topCreators": "Top créateurs",
       "liveShopping": "Live Shopping",
-      "affiliateProgram": "Programme affilié"
+      "affiliateProgram": "Programme Ambassadeur"
     },
     "company": {
       "title": "Entreprise",
@@ -1138,36 +1138,36 @@
       "stores": "Boutiques créateurs",
       "listings": "Fiches live",
       "catalog": "SKU catalogue",
-      "commission": "Commission affilié moy."
+      "commission": "Commission ambassadeur moy."
     },
     "about": {
       "metaTitle": "À propos d'Affisell — Marketplace créateur-first",
-      "metaDescription": "Affisell connecte fournisseurs vérifiés, vitrines affiliées et acheteurs avec commissions transparentes et conformité UE.",
+      "metaDescription": "Affisell connecte fournisseurs vérifiés, vitrines ambassadeur et acheteurs avec commissions transparentes et conformité UE.",
       "eyebrow": "Entreprise",
       "title": "L'infrastructure commerce des créateurs",
-      "description": "Affisell est une marketplace pensée pour les créateurs : les fournisseurs listent leur catalogue grossiste, les affiliés lancent une vitrine en minutes, les acheteurs achètent avec une transparence totale des frais.",
+      "description": "Affisell est une marketplace pensée pour les créateurs : les fournisseurs listent leur catalogue grossiste, les ambassadeurs lancent une vitrine en minutes, les acheteurs achètent avec une transparence totale des frais.",
       "mission": {
         "title": "Notre mission",
         "body": "Les créateurs doivent pouvoir monétiser leur audience sans stock, entrepôt ni marges opaques. Affisell orchestre la boucle complète — sync catalogue, checkout, expédition fournisseur, virements Stripe Connect et signaux de confiance conformes RGPD.",
         "body2": "Basés à Marseille, nous shippons EU-first avec checkout multi-devises, commissions variables par catégorie, et des outils comme Swipe Feed, Agent sourcing et Pulse discovery."
       },
       "values": {
-        "0": { "title": "Vitrines créateurs", "body": "Chaque affilié obtient une boutique brandée, des fiches custom, des rewards acheteur et du merchandising drag-and-drop — en ligne en moins de 2 minutes." },
+        "0": { "title": "Vitrines créateurs", "body": "Chaque ambassadeur obtient une boutique brandée, des fiches custom, des rewards acheteur et du merchandising drag-and-drop — en ligne en moins de 2 minutes." },
         "1": { "title": "Portée fournisseurs", "body": "Les marques uploadent une fois, distribuent via des milliers de vitrines avec routage commande automatisé et sync stock temps réel." },
-        "2": { "title": "Économie transparente", "body": "Chaque commande affiche le grossiste, la marge affilié, les frais plateforme et le prix acheteur — sans déductions cachées." },
+        "2": { "title": "Économie transparente", "body": "Chaque commande affiche le grossiste, la marge ambassadeur, les frais plateforme et le prix acheteur — sans déductions cachées." },
         "3": { "title": "Confiance native", "body": "Hub légal, export/suppression RGPD, bandeau cookies, factures PDF et explainers commission intégrés au produit." }
       },
       "timeline": {
         "title": "Construire en public",
         "items": {
-          "2024": { "year": "2024", "title": "Fondation Affisell", "body": "MVP marketplace : catalogue fournisseur, vitrines affiliées et split payouts Stripe Connect." },
-          "2025a": { "year": "2025", "title": "Agent & Pulse", "body": "Agent IA sourcing affilié, feed discovery vertical et intégrations API fournisseurs." },
+          "2024": { "year": "2024", "title": "Fondation Affisell", "body": "MVP marketplace : catalogue fournisseur, vitrines ambassadeur et split payouts Stripe Connect." },
+          "2025a": { "year": "2025", "title": "Agent & Pulse", "body": "Agent IA sourcing ambassadeur, feed discovery vertical et intégrations API fournisseurs." },
           "2025b": { "year": "2025", "title": "Moteur de settlement", "body": "Split tripartite avec commissions par catégorie, frais plateforme HT et UI transparence fournisseur." },
-          "2026": { "year": "2026", "title": "Swipe Feed & stack RGPD", "body": "Listing en un geste pour affiliés, hub documents légaux, dashboards RGPD et génération factures." }
+          "2026": { "year": "2026", "title": "Swipe Feed & stack RGPD", "body": "Listing en un geste pour ambassadeurs, hub documents légaux, dashboards RGPD et génération factures." }
         }
       },
       "hq": { "title": "Siège" },
-      "cta": { "creators": "Devenir créateur", "catalog": "Catalogue affilié" }
+      "cta": { "creators": "Devenir créateur", "catalog": "Catalogue ambassadeur" }
     },
     "blog": {
       "metaTitle": "Blog Affisell — Produit & creator economy",
@@ -1180,28 +1180,28 @@
       "posts": {
         "swipe-feed-affiliate-hub": {
           "title": "Swipe Feed : lister un produit en un geste",
-          "excerpt": "Les affiliés découvrent le catalogue façon Tinder, listent à +30% en swipant à droite, et ne revoient jamais les SKU passés.",
+          "excerpt": "Les ambassadeurs découvrent le catalogue façon Tinder, listent à +30% en swipant à droite, et ne revoient jamais les SKU passés.",
           "date": "2026-05-19",
           "category": "Produit",
           "readMin": "4 min",
           "sections": {
-            "intro": "Le sourcing affilié, c'était le scroll infini dans une grille. Swipe Feed transforme la découverte en flux mobile natif — avec undo, filtres commission et stack de 3 cartes préchargées.",
+            "intro": "Le sourcing ambassadeur, c'était le scroll infini dans une grille. Swipe Feed transforme la découverte en flux mobile natif — avec undo, filtres commission et stack de 3 cartes préchargées.",
             "s1": { "title": "Comment ça marche", "body": "Swipe droite pour publier une fiche à votre markup par défaut (+30% sur le prix fournisseur). Swipe gauche pour masquer définitivement un SKU. Chaque décision est enregistrée pour un feed toujours pertinent." },
             "s2": { "title": "Conçu pour la vitesse", "body": "Parallax framer-motion, commit basé sur la vélocité et UX animation-first : la carte s'envole avant l'appel API — l'interface reste instantanée même sur réseau lent." },
-            "s3": { "title": "Essayer", "body": "Ouvrez le Hub affilié depuis la nav dashboard ou allez sur /dashboard/affiliate/hub?mode=swipe. Combinez avec l'Agent sourcing pour analyser les marges des picks à fort intent." }
+            "s3": { "title": "Essayer", "body": "Ouvrez le Hub Ambassadeur depuis la nav dashboard ou allez sur /dashboard/affiliate/hub?mode=swipe. Combinez avec l'Agent sourcing pour analyser les marges des picks à fort intent." }
           }
         },
         "commission-transparency": {
           "title": "Transparence commission sur chaque commande",
-          "excerpt": "Fournisseurs, affiliés et acheteurs voient exactement comment se répartissent grossiste, markup, frais plateforme et TVA.",
+          "excerpt": "Fournisseurs, ambassadeurs et acheteurs voient exactement comment se répartissent grossiste, markup, frais plateforme et TVA.",
           "date": "2026-05-12",
           "category": "Confiance",
           "readMin": "5 min",
           "sections": {
             "intro": "Les marketplaces opaques cachent qui gagne quoi. Affisell expose le settlement complet sur les pages commande marchands, reçus acheteur et factures PDF.",
-            "s1": { "title": "Taux variables", "body": "La commission cascade des defaults catégorie vers les profils fournisseur jusqu'aux SKU — des catégories à forte marge peuvent offrir de meilleures economics affilié sans tableurs manuels." },
+            "s1": { "title": "Taux variables", "body": "La commission cascade des defaults catégorie vers les profils fournisseur jusqu'aux SKU — des catégories à forte marge peuvent offrir de meilleures economics ambassadeur sans tableurs manuels." },
             "s2": { "title": "Clarté fournisseur", "body": "Les dashboards fournisseur nomment les déductions commission partenaire et frais plateforme — pas de vague « ajustement ». Les previews payout correspondent au virement Stripe Connect." },
-            "s3": { "title": "CommissionExplainer", "body": "UI embarquée sur le détail commande explique le calcul en langage clair, avec liens vers les CGU affilié et fournisseur." }
+            "s3": { "title": "CommissionExplainer", "body": "UI embarquée sur le détail commande explique le calcul en langage clair, avec liens vers les CGU ambassadeur et fournisseur." }
           }
         },
         "gdpr-marketplace-trust": {
@@ -1212,7 +1212,7 @@
           "readMin": "4 min",
           "sections": {
             "intro": "La confiance est une feature produit. Affisell shippe un stack RGPD complet : consentement signup, bandeau cookies avec analytics gated, export JSON et flux suppression compte.",
-            "s1": { "title": "Hub documents légaux", "body": "CGU acheteur, fournisseur et affilié, politique confidentialité, remboursements et mentions légales — versionnés et liés depuis signup et footer." },
+            "s1": { "title": "Hub documents légaux", "body": "CGU acheteur, fournisseur et ambassadeur, politique confidentialité, remboursements et mentions légales — versionnés et liés depuis signup et footer." },
             "s2": { "title": "Droits self-service", "body": "Marchands et acheteurs accèdent à /dashboard/account/gdpr ou /marketplace/account/gdpr pour exporter leurs données ou demander suppression, sous réserve de conservation comptable." },
             "s3": { "title": "Pourquoi c'est clé", "body": "Les business créateurs opèrent dans toute l'UE. Une conformité intégrée réduit le risque juridique et rassure les marques partenaires qui évaluent votre vitrine." }
           }
@@ -1227,7 +1227,7 @@
             "intro": "Affisell retire la charge ops du commerce créateur : pas d'entrepôt, pas de MAJ stock manuelle, pas de setup gateway from scratch.",
             "s1": { "title": "Catalogue → vitrine", "body": "Parcourez le catalogue discovery filtré par niche, commission ou marge. Le Listing Builder custom titre, images, slug SEO et cashback acheteur." },
             "s2": { "title": "Votre marque, nos rails", "body": "Domaines custom, brand studio, collections featured et preview live — pendant que Stripe Connect route grossiste et votre markup automatiquement." },
-            "s3": { "title": "Commencer", "body": "Créez un compte affilié gratuit, connectez les payouts, publiez votre première fiche. La plupart des créateurs voient leur première vente dans la semaine." }
+            "s3": { "title": "Commencer", "body": "Créez un compte ambassadeur gratuit, connectez les payouts, publiez votre première fiche. La plupart des créateurs voient leur première vente dans la semaine." }
           }
         }
       }
@@ -1237,7 +1237,7 @@
       "metaDescription": "Rejoignez l'équipe qui construit la marketplace créateur-first — remote-friendly, Marseille.",
       "eyebrow": "Carrières",
       "title": "Construisez la creator economy avec nous",
-      "description": "Petite équipe product-obsessed à Marseille (remote-friendly). Scalez catalogue fournisseur, tooling affilié et confiance acheteur.",
+      "description": "Petite équipe product-obsessed à Marseille (remote-friendly). Scalez catalogue fournisseur, tooling ambassadeur et confiance acheteur.",
       "culture": {
         "title": "Notre façon de travailler",
         "body": "Affisell est early-stage avec du trafic prod : vous shippez chaque semaine pour de vrais marchands, avec ownership bout-en-bout et contact direct créateurs/fournisseurs.",

@@ -597,7 +597,7 @@ export function AffiliateDashboard({ storeId }: Props) {
             <p className="mt-1 text-violet-900/90 dark:text-violet-200/90">
               Configurez votre boutique ci-dessous, puis explorez le{" "}
               <Link href={AFFILIATE_CATALOG_PATH} className="font-medium underline underline-offset-2">
-                catalogue affilié
+                catalogue ambassadeur
               </Link>{" "}
               pour ajouter vos premiers produits.
             </p>

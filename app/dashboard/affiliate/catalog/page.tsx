@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic"
 export const revalidate = 0
 
 export const metadata: Metadata = {
-  title: "Catalogue affilié — Affisell",
+  title: "Catalogue ambassadeur — Affisell",
   robots: { index: false, follow: false },
 }
 

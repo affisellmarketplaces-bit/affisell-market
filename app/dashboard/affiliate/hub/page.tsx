@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic"
 export const revalidate = 0
 
 export const metadata: Metadata = {
-  title: "Hub affilié — Swipe Feed | Affisell",
+  title: "Hub Ambassadeur — Swipe Feed | Affisell",
   description: "Découvrez et listez des produits en mode Swipe Feed.",
   robots: { index: false, follow: false },
 }

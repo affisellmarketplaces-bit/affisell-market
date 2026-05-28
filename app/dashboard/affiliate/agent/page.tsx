@@ -10,7 +10,7 @@ export const revalidate = 0
 export const metadata: Metadata = {
   title: "Agent sourcing — Affisell",
   description:
-    "Agent IA pour affiliés : analysez marges et commissions, choisissez les produits à promouvoir sur votre vitrine.",
+    "Agent IA pour ambassadeurs : analysez marges et commissions, choisissez les produits à promouvoir sur votre vitrine.",
   robots: { index: false, follow: false },
 }
 
@@ -22,7 +22,7 @@ export default async function AffiliateAgentPage() {
       <div className="mx-auto max-w-5xl px-4 py-8 md:px-8">
         <header className="mb-8 text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-600 dark:text-violet-400">
-            Affilié · Intelligence produit
+            Ambassadeur · Intelligence produit
           </p>
           <h1 className="mt-2 text-balance text-3xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
             Analysez. Choisissez. Mettez en vitrine.

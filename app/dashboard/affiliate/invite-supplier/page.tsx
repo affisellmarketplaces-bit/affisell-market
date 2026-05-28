@@ -21,11 +21,11 @@ async function resolveAffiliateDisplayName(user: {
       store?.name?.trim() ||
       user.name?.trim() ||
       user.email?.split("@")[0] ||
-      "Affilié"
+      "Ambassadeur"
     )
   } catch (error) {
     console.error("[invite-supplier] store lookup failed", error)
-    return user.name?.trim() || user.email?.split("@")[0] || "Affilié"
+    return user.name?.trim() || user.email?.split("@")[0] || "Ambassadeur"
   }
 }
 

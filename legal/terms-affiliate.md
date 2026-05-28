@@ -15,7 +15,15 @@ Les présentes Conditions générales affilié (« **CGA** ») complètent les [
 
 1.1. L'Affilié agit en **professionnel ou non-professionnel** selon sa déclaration. Il est seul responsable de ses obligations fiscales et sociales (URSSAF, TVA, déclaration de revenus).
 
-1.2. Affisell n'est pas employeur de l'Affilié.
+### Article 1.2 - Terminologie "Ambassadeur"
+
+Le terme "Ambassadeur", utilisé à des fins marketing, désigne exclusivement un Partenaire Affilié indépendant tel que défini à l'article 1.1.
+
+L'utilisation de ce terme ne crée aucun lien de subordination, mandat de représentation, ni contrat de travail entre l'Ambassadeur et Affisell ou ses Fournisseurs.
+
+L'Ambassadeur agit en son nom propre, pour son compte, et demeure seul responsable de ses obligations fiscales, sociales et légales.
+
+1.3. Affisell n'est pas employeur de l'Affilié.
 
 ## Article 2 — Listings et markup
 
