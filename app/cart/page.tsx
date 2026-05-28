@@ -340,7 +340,7 @@ export default function CartPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-violet-50/40 py-8 dark:from-zinc-950 dark:to-violet-950/20">
+      <div className="affisell-cart-page min-h-screen bg-gradient-to-b from-zinc-50 to-violet-50/40 py-8 pb-[var(--affisell-mobile-dock-offset)] dark:from-zinc-950 dark:to-violet-950/20 md:pb-8">
         <div className="mx-auto max-w-3xl px-4">
           <p className="text-sm text-zinc-500">{t("loading")}</p>
         </div>
@@ -350,7 +350,7 @@ export default function CartPage() {
 
   if (lines.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-violet-50/40 py-8 dark:from-zinc-950 dark:to-violet-950/20">
+      <div className="affisell-cart-page min-h-screen bg-gradient-to-b from-zinc-50 to-violet-50/40 py-8 pb-[var(--affisell-mobile-dock-offset)] dark:from-zinc-950 dark:to-violet-950/20 md:pb-8">
         <div className="mx-auto max-w-3xl px-4">
           <h1 className="mb-2 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">{t("title")}</h1>
           <p className="text-zinc-600 dark:text-zinc-400">{t("empty")}</p>
@@ -366,7 +366,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-50 via-white to-violet-50/30 py-8 dark:from-zinc-950 dark:via-zinc-950 dark:to-violet-950/15">
+    <div className="affisell-cart-page min-h-screen bg-gradient-to-b from-zinc-50 via-white to-violet-50/30 py-8 pb-[var(--affisell-mobile-dock-offset)] dark:from-zinc-950 dark:via-zinc-950 dark:to-violet-950/15 md:pb-8">
       <Suspense fallback={null}>
         <CartCheckoutAutoOpen
           enabled={!loading && !isAuthed && lines.length > 0}

@@ -2,6 +2,8 @@
 
 import Link from "next/link"
 import { Sparkles } from "lucide-react"
+
+import { PulseHeaderCartLink } from "@/components/pulse/pulse-header-cart-link"
 import { useEffect } from "react"
 import { useTranslations } from "next-intl"
 
@@ -34,6 +36,9 @@ export default function DiscoverError({
       )}
     >
       <div className={affisellBrand.epoxyCanvas} aria-hidden />
+      <div className="absolute right-4 top-[max(0.75rem,env(safe-area-inset-top))] z-20">
+        <PulseHeaderCartLink />
+      </div>
       <div className={cn(affisellBrand.epoxyPanel, "relative z-10 max-w-sm p-8")}>
         <Sparkles className="mx-auto mb-4 size-10 text-violet-300" aria-hidden />
         <p className="text-lg font-semibold text-white">{tErr("title")}</p>

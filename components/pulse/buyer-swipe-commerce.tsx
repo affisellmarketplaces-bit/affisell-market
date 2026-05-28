@@ -21,6 +21,7 @@ import {
   type BuyerSwipeCardHandle,
   type BuyerSwipeDirection,
 } from "@/components/pulse/buyer-swipe-card"
+import { PulseHeaderCartLink } from "@/components/pulse/pulse-header-cart-link"
 import { ProductPriceOffer } from "@/components/product/product-price-offer"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { buttonVariants } from "@/components/ui/button"
@@ -429,9 +430,12 @@ export function BuyerSwipeCommerce({
               <p className="mt-0.5 max-w-[12rem] truncate text-[10px] text-zinc-400">{categoryLabel}</p>
             ) : null}
           </div>
-          <span className={cn(affisellBrand.epoxyChip, "tabular-nums rounded-full px-2 py-1 text-xs text-white/80")}>
-            {deck.length > 0 ? deck.length : "—"}
-          </span>
+          <div className="flex items-center gap-2">
+            <PulseHeaderCartLink />
+            <span className={cn(affisellBrand.epoxyChip, "tabular-nums rounded-full px-2 py-1 text-xs text-white/80")}>
+              {deck.length > 0 ? deck.length : "—"}
+            </span>
+          </div>
         </div>
       </header>
 
