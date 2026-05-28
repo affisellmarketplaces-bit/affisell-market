@@ -108,6 +108,26 @@ const PRODUCT_INTENTS: ProductIntent[] = [
     ],
   },
   {
+    id: "electric_scooter",
+    match:
+      /\b(trottinette\s*electrique|trottinettes?\s*electriques|scooter\s*electrique|e-?scooter|kick\s*scooter|patinette\s*electrique|trottinette\s+tout[- ]terrain)\b/i,
+    boost: [
+      /trottinettes?/i,
+      /loisirs\s+de\s+plein\s+air/i,
+      /equipements?\s+sportifs/i,
+      /vehicules?\s+electriques?/i,
+    ],
+    penalize: [
+      /stop-?trottoir/i,
+      /chevalets?\s+stop/i,
+      /signaletique/i,
+      /enseignes?\s+publicitaires/i,
+      /trotteurs?\s+et\s+tables/i,
+      /jouets?\s+pour\s+bebes/i,
+      /bebes?\s+et\s+tout-petits/i,
+    ],
+  },
+  {
     id: "smartphone",
     match: /\b(iphone|smartphone|galaxy\s*s\d|pixel\s*\d|oneplus|redmi\s*note|telephone\s*portable)\b/i,
     boost: [/telephones?\s+mobiles?/i, /smartphones?/i, /telephones?\s+portables?/i],
@@ -266,6 +286,16 @@ const PRODUCT_INTENTS: ProductIntent[] = [
 
 const PHRASE_BOOSTS: Array<{ phrase: RegExp; breadcrumb: RegExp; points: number }> = [
   { phrase: /montre\s+connect/i, breadcrumb: /moniteurs?\s+d['']activit/i, points: 18 },
+  {
+    phrase: /trottinette\s+electrique|scooter\s*electrique|e-?scooter/i,
+    breadcrumb: /trottinettes?/i,
+    points: 28,
+  },
+  {
+    phrase: /trottinette|scooter\s+electrique/i,
+    breadcrumb: /stop-?trottoir|chevalets?\s+stop/i,
+    points: -40,
+  },
   { phrase: /bracelet\s+connect/i, breadcrumb: /moniteurs?\s+d['']activit/i, points: 18 },
   { phrase: /smart\s*band|mi\s*band/i, breadcrumb: /moniteurs?\s+d['']activit/i, points: 20 },
   { phrase: /sommeil|sleep/i, breadcrumb: /moniteurs?\s+d['']activit/i, points: 4 },

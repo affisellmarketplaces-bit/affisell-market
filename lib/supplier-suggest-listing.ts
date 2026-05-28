@@ -225,15 +225,40 @@ export async function suggestListingCategories(
 
   const alternatives = findWearableCategoryAlternatives(t, ctx.supplierHints, leafPaths, suggestions)
 
+  let finalSuggestions = suggestions
+  let finalTopScore = topScore
+  let finalSource = source
+
+  if (finalSuggestions.length === 0) {
+    const rescue = suggestLeafCategoriesFromProductText(
+      t,
+      ctx.supplierHints,
+      leafPaths,
+      LISTING_CATEGORY_SUGGESTION_LIMIT
+    )
+    finalSuggestions = rescue.map((lp) => {
+      const score = scoreListingContextAgainstBreadcrumb(ctx, lp.breadcrumb)
+      return {
+        ...lp,
+        confidence: Math.min(0.72, 0.35 + score / 40),
+        suggestionSource: "keyword" as const,
+      }
+    })
+    finalTopScore = rescue[0] ? scoreListingContextAgainstBreadcrumb(ctx, rescue[0].breadcrumb) : 0
+    finalSource = finalSuggestions.length > 0 ? "keyword" : source
+  }
+
   return {
-    suggestions,
+    suggestions: finalSuggestions,
     alternatives,
     recommendedLeafId:
-      suggestions[0] &&
-      (catalogIds.has(suggestions[0].leafId) || topScore >= MIN_KEYWORD_SCORE_FOR_MERGE)
-        ? suggestions[0].leafId
+      finalSuggestions[0] &&
+      (catalogIds.has(finalSuggestions[0].leafId) ||
+        finalTopScore >= MIN_KEYWORD_SCORE_FOR_MERGE ||
+        (finalSource === "keyword" && finalTopScore >= 5))
+        ? finalSuggestions[0].leafId
         : null,
-    source,
+    source: finalSource,
     productInsight: listingProductInsight(ctx) ?? insight,
   }
 }

@@ -108,6 +108,17 @@ const FIXTURE_LEAVES: LeafPath[] = [
       "Équipements sportifs > Loisirs de plein air > Cyclisme > Pièces détachées vélo > Pièces de transmission de vélo > Leviers de vitesses de vélo",
     path: [],
   },
+  {
+    leafId: "stop-trottoir",
+    breadcrumb:
+      "Entreprise et industrie > Signalétique > Chevalets stop-trottoir et enseignes publicitaires de jardin",
+    path: [],
+  },
+  {
+    leafId: "scooter-leaf",
+    breadcrumb: "Équipements sportifs > Loisirs de plein air > Trottinettes",
+    path: [],
+  },
 ]
 
 describe("category-title-match", () => {
@@ -231,5 +242,23 @@ describe("category-title-match", () => {
     expect(picks.some((p) => p.leafId === "bike-shifter")).toBe(false)
     expect(picks.some((p) => p.leafId === "security-lamp")).toBe(false)
     expect(picks.some((p) => p.leafId === "surveillance")).toBe(false)
+  })
+
+  it("ranks trottinettes above stop-trottoir signage for electric scooter title", () => {
+    const title =
+      "Scooter-Trottinette électrique tout-terrain pour adultes, trottinette électrique, 1000W"
+    const stopScore = scoreProductTextAgainstBreadcrumb(
+      title,
+      FIXTURE_LEAVES.find((l) => l.leafId === "stop-trottoir")!.breadcrumb
+    )
+    const scooterScore = scoreProductTextAgainstBreadcrumb(
+      title,
+      FIXTURE_LEAVES.find((l) => l.leafId === "scooter-leaf")!.breadcrumb
+    )
+
+    expect(scooterScore).toBeGreaterThan(stopScore)
+    const picks = suggestLeafCategoriesFromProductText(title, "", FIXTURE_LEAVES, 3)
+    expect(picks[0]?.leafId).toBe("scooter-leaf")
+    expect(picks.some((p) => p.leafId === "stop-trottoir")).toBe(false)
   })
 })
