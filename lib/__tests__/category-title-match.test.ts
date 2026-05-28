@@ -35,7 +35,8 @@ const FIXTURE_LEAVES: LeafPath[] = [
   },
   {
     leafId: "phone",
-    breadcrumb: "Appareils électroniques > Communications > Téléphones mobiles",
+    breadcrumb:
+      "Appareils électroniques > Communications > Téléphonie > Téléphones mobiles",
     path: [],
   },
   {
@@ -117,6 +118,23 @@ const FIXTURE_LEAVES: LeafPath[] = [
   {
     leafId: "scooter-leaf",
     breadcrumb: "Équipements sportifs > Loisirs de plein air > Trottinettes",
+    path: [],
+  },
+  {
+    leafId: "phone-jammer",
+    breadcrumb:
+      "Appareils électroniques > Accessoires électroniques > Brouilleurs de signal > Brouilleurs de téléphone mobile",
+    path: [],
+  },
+  {
+    leafId: "leggings-collants",
+    breadcrumb: "Vêtements et accessoires > Vêtements > Sous-vêtements et chaussettes > Collants",
+    path: [],
+  },
+  {
+    leafId: "football-pants",
+    breadcrumb:
+      "Vêtements et accessoires > Vêtements > Vêtements fitness et sports > Pantalons de football américain",
     path: [],
   },
 ]
@@ -242,6 +260,39 @@ describe("category-title-match", () => {
     expect(picks.some((p) => p.leafId === "bike-shifter")).toBe(false)
     expect(picks.some((p) => p.leafId === "security-lamp")).toBe(false)
     expect(picks.some((p) => p.leafId === "surveillance")).toBe(false)
+  })
+
+  it("ranks mobile phones above signal jammers for téléphones mobiles title", () => {
+    const title = "Téléphones mobiles 17 Pro Max neufs, 7,3 pouces"
+    const phoneScore = scoreProductTextAgainstBreadcrumb(
+      title,
+      FIXTURE_LEAVES.find((l) => l.leafId === "phone")!.breadcrumb
+    )
+    const jammerScore = scoreProductTextAgainstBreadcrumb(
+      title,
+      FIXTURE_LEAVES.find((l) => l.leafId === "phone-jammer")!.breadcrumb
+    )
+
+    expect(phoneScore).toBeGreaterThan(jammerScore)
+    const picks = suggestLeafCategoriesFromProductText(title, "", FIXTURE_LEAVES, 3)
+    expect(picks[0]?.leafId).toBe("phone")
+    expect(picks.some((p) => p.leafId === "phone-jammer")).toBe(false)
+  })
+
+  it("ranks collants above american football pants for leggings title", () => {
+    const title = "Leonie Leggings Anti Cellulite 3D Femme Original"
+    const collantsScore = scoreProductTextAgainstBreadcrumb(
+      title,
+      FIXTURE_LEAVES.find((l) => l.leafId === "leggings-collants")!.breadcrumb
+    )
+    const footballScore = scoreProductTextAgainstBreadcrumb(
+      title,
+      FIXTURE_LEAVES.find((l) => l.leafId === "football-pants")!.breadcrumb
+    )
+
+    expect(collantsScore).toBeGreaterThan(footballScore)
+    const picks = suggestLeafCategoriesFromProductText(title, "", FIXTURE_LEAVES, 3)
+    expect(picks[0]?.leafId).toBe("leggings-collants")
   })
 
   it("ranks trottinettes above stop-trottoir signage for electric scooter title", () => {

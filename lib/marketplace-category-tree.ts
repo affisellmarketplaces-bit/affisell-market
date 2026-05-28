@@ -10,6 +10,8 @@ export type MarketplaceCategoryTreeNode = {
   id: string
   name: string
   googleId?: number | string | null
+  /** Full Google taxonomy breadcrumb (localized with tree). */
+  fullPath: string
   icon: string
   slug: string
   order: number
@@ -18,6 +20,7 @@ export type MarketplaceCategoryTreeNode = {
     id: string
     name: string
     googleId?: number | string | null
+    fullPath: string
     slug: string
     count: number
   }[]
@@ -40,6 +43,7 @@ async function loadMarketplaceCategoryTreeUncached(
         id: true,
         name: true,
         googleId: true,
+        fullPath: true,
         icon: true,
         slug: true,
         order: true,
@@ -48,6 +52,7 @@ async function loadMarketplaceCategoryTreeUncached(
             id: true,
             name: true,
             googleId: true,
+            fullPath: true,
             slug: true,
           },
           orderBy: { name: "asc" },
@@ -63,22 +68,29 @@ async function loadMarketplaceCategoryTreeUncached(
   }))
   const { catalogTotal, byRootId, bySubId } = await computeMarketplaceCategoryTreeCounts(treeInput)
 
-  const categoriesWithCounts = categories.map((cat) => ({
-    id: cat.id,
-    name: cat.name,
-    googleId: cat.googleId,
-    icon: cat.icon,
-    slug: cat.slug,
-    order: cat.order,
-    count: byRootId[cat.id] ?? 0,
-    subcategories: cat.children.map((sub) => ({
-      id: sub.id,
-      name: sub.name,
-      googleId: sub.googleId,
-      slug: sub.slug,
-      count: bySubId[sub.id] ?? 0,
-    })),
-  }))
+  const categoriesWithCounts = categories
+    .map((cat) => ({
+      id: cat.id,
+      name: cat.name,
+      googleId: cat.googleId,
+      fullPath: cat.fullPath,
+      icon: cat.icon,
+      slug: cat.slug,
+      order: cat.order,
+      count: byRootId[cat.id] ?? 0,
+      subcategories: cat.children.map((sub) => ({
+        id: sub.id,
+        name: sub.name,
+        googleId: sub.googleId,
+        fullPath: sub.fullPath,
+        slug: sub.slug,
+        count: bySubId[sub.id] ?? 0,
+      })),
+    }))
+    .sort((a, b) => {
+      if (b.count !== a.count) return b.count - a.count
+      return a.order - b.order
+    })
 
   return {
     categories: localizeCategoryTree(categoriesWithCounts, locale),

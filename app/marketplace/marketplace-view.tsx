@@ -30,11 +30,12 @@ type ProductRow = Record<string, unknown>
 type CategoryNode = {
   id: string
   name: string
+  fullPath?: string
   icon: string
   slug: string
   order: number
   count: number
-  subcategories: { id: string; name: string; slug: string; count: number }[]
+  subcategories: { id: string; name: string; slug: string; count: number; fullPath?: string }[]
 }
 
 const categoryFetcher = (url: string) => fetch(url).then((r) => r.json())

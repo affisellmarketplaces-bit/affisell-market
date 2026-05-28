@@ -129,9 +129,47 @@ const PRODUCT_INTENTS: ProductIntent[] = [
   },
   {
     id: "smartphone",
-    match: /\b(iphone|smartphone|galaxy\s*s\d|pixel\s*\d|oneplus|redmi\s*note|telephone\s*portable)\b/i,
-    boost: [/telephones?\s+mobiles?/i, /smartphones?/i, /telephones?\s+portables?/i],
-    penalize: [/connecteur/i, /composant/i, /moniteurs?\s+d['']activit/i],
+    match:
+      /\b(iphone|smartphones?|galaxy\s*s\d|pixel\s*\d|oneplus|redmi\s*note|telephones?\s+mobiles?|telephone\s*portable|pro\s+max\s+neufs?|android\s+14)\b/i,
+    boost: [
+      /telephones?\s+mobiles?/i,
+      /smartphones?/i,
+      /telephones?\s+portables?/i,
+      /telephonie/i,
+      /deverrouill/i,
+      /sous\s+contrat/i,
+    ],
+    penalize: [
+      /connecteur/i,
+      /composant/i,
+      /moniteurs?\s+d['']activit/i,
+      /brouilleurs?/i,
+      /signal/i,
+      /cartes?\s+prepayees?/i,
+      /cartes?\s+sim/i,
+      /forfaits?\s+mobiles?/i,
+      /recharge\s+de\s+cartes?/i,
+    ],
+  },
+  {
+    id: "hair_steamer_cap",
+    match:
+      /\b(bonnet\s+(?:de\s+)?(?:nuit|cheveux|satin)|bonnets?\s+chauffants?|casque\s+(?:a\s+)?vapeur|hair\s+steamer|steam\s+cap|satin\s+cap|cheveux\s+boucles|soin\s+des\s+cheveux)\b/i,
+    boost: [/casques?\s+a\s+vapeur/i, /bonnets?\s+chauffants?/i, /soin\s+des\s+cheveux/i],
+    penalize: [/decolorants?/i, /colorations?/i, /teintures?/i, /shampooings?/i],
+  },
+  {
+    id: "womens_leggings",
+    match:
+      /\b(legging|leggings|anti[- ]?cellulite|collant|collants|yoga\s+pants|pantalon\s+gainant|cuissardes?\s+femme)\b/i,
+    boost: [
+      /collants?/i,
+      /vetements?\s+fitness/i,
+      /sous-vetements/i,
+      /pantalons?\s+de\s+yoga/i,
+      /tenues?\s+de\s+cyclisme/i,
+    ],
+    penalize: [/football\s+americain/i, /football\b/i, /ballons?/i, /jouets?/i],
   },
   {
     id: "laptop",
@@ -298,6 +336,41 @@ const PHRASE_BOOSTS: Array<{ phrase: RegExp; breadcrumb: RegExp; points: number 
   },
   { phrase: /bracelet\s+connect/i, breadcrumb: /moniteurs?\s+d['']activit/i, points: 18 },
   { phrase: /smart\s*band|mi\s*band/i, breadcrumb: /moniteurs?\s+d['']activit/i, points: 20 },
+  {
+    phrase: /telephones?\s+mobiles?|smartphones?/i,
+    breadcrumb: /telephones?\s+mobiles?/i,
+    points: 48,
+  },
+  {
+    phrase: /telephones?\s+mobiles?|smartphones?/i,
+    breadcrumb: /cartes?\s+prepayees?|cartes?\s+sim|forfaits?\s+mobiles?|prepayes?/i,
+    points: -50,
+  },
+  {
+    phrase: /telephones?\s+mobiles?\s+17|neufs?,?\s*7[,.]?\d|pro\s+max/i,
+    breadcrumb: /deverrouill/i,
+    points: 35,
+  },
+  {
+    phrase: /telephones?\s+mobiles?\s+17|neufs?,?\s*7[,.]?\d|pro\s+max/i,
+    breadcrumb: /prepayes?|cartes?\s+sim/i,
+    points: -60,
+  },
+  {
+    phrase: /telephones?\s+mobiles?|smartphones?/i,
+    breadcrumb: /brouilleurs?.*telephone|brouilleurs?\s+de\s+signal/i,
+    points: -55,
+  },
+  {
+    phrase: /legging|leggings|anti[- ]?cellulite/i,
+    breadcrumb: /collants?/i,
+    points: 42,
+  },
+  {
+    phrase: /legging|leggings|anti[- ]?cellulite/i,
+    breadcrumb: /football\s+americain|football\b/i,
+    points: -45,
+  },
   { phrase: /sommeil|sleep/i, breadcrumb: /moniteurs?\s+d['']activit/i, points: 4 },
   { phrase: /sommeil|sleep/i, breadcrumb: /aides?\s+au\s+sommeil|bruit\s+blanc/i, points: -25 },
   { phrase: /frying\s*pan|skillet|wok/i, breadcrumb: /cookware|bakeware/i, points: 22 },

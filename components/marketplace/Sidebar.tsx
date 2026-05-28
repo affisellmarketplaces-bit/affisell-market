@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils"
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
-type Sub = { id: string; name: string; slug: string; count: number }
+type Sub = { id: string; name: string; slug: string; count: number; fullPath?: string }
 type Cat = {
   id: string
   name: string
@@ -19,6 +19,7 @@ type Cat = {
   slug: string
   order: number
   count: number
+  fullPath?: string
   subcategories: Sub[]
 }
 
@@ -130,6 +131,7 @@ export function Sidebar({
             <div key={cat.id} className="border-b border-border/80">
               <button
                 type="button"
+                title={cat.fullPath ?? cat.name}
                 onClick={() => {
                   toggleCategory(cat.id)
                   onCategoryClick?.(cat.id)
@@ -177,15 +179,21 @@ export function Sidebar({
                     <button
                       key={sub.id}
                       type="button"
+                      title={sub.fullPath ?? `${cat.name} > ${sub.name}`}
                       onClick={() => onCategoryClick?.(cat.id, sub.id)}
                       className={cn(
-                        "flex w-full items-center justify-between border-l-2 py-2 pl-11 pr-4 text-left text-sm transition",
+                        "flex w-full flex-col items-stretch border-l-2 py-2 pl-11 pr-4 text-left text-sm transition",
                         subActive
                           ? "border-buyer bg-buyer-muted/70 font-medium text-orange-950 dark:border-buyer dark:bg-buyer-muted dark:text-buyer-light"
                           : "border-transparent text-zinc-600 hover:border-brand/30 hover:bg-brand-muted/40 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                       )}
                     >
                       <span className="min-w-0 truncate">{sub.name}</span>
+                      {sub.fullPath ? (
+                        <span className="mt-0.5 line-clamp-2 text-[10px] font-normal leading-snug text-zinc-500 dark:text-zinc-500">
+                          {sub.fullPath}
+                        </span>
+                      ) : null}
                       {sub.count > 0 ? (
                         <span className="shrink-0 rounded-full bg-brand-muted px-2 py-0.5 text-[10px] font-bold text-brand">
                           {sub.count}

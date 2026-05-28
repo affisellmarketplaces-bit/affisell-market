@@ -5,6 +5,7 @@ export function staticMarketplaceCategories() {
   return MARKETPLACE_CATEGORY_TAXONOMY_EN.map((root, order) => ({
     id: `static:${root.slug}`,
     name: root.name,
+    fullPath: root.name,
     icon: root.icon,
     slug: root.slug,
     order,
@@ -12,6 +13,7 @@ export function staticMarketplaceCategories() {
     subcategories: root.channels.map((ch) => ({
       id: `static:${root.slug}:${ch.name.toLowerCase().replace(/\s+/g, "-")}`,
       name: ch.name,
+      fullPath: `${root.name} > ${ch.name}`,
       slug: ch.name
         .toLowerCase()
         .replace(/'/g, "")
