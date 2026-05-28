@@ -28,6 +28,7 @@
     "db:copy": "tsx scripts/copy-to-prod.ts",
     "db:backfill-images": "tsx prisma/backfill-product-images.ts",
     "reclassify-products": "tsx scripts/reclassify-products.ts",
+    "check:categories": "tsx scripts/check-categories.ts",
     "verify:sentry": "tsx scripts/verify-sentry.ts",
     "email:dev": "email dev --dir emails",
     "verify:no-secrets": "node scripts/verify-no-secrets.mjs",
