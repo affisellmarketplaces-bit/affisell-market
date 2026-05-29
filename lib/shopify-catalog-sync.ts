@@ -69,7 +69,7 @@ export async function syncShopifyIntegrationRecord(
   options?: { bodyDraft?: boolean }
 ): Promise<
   | { ok: true; summary: ShopifySyncSummary }
-  | { ok: false; error: string; summary?: Partial<ShopifySyncSummary> }
+  | { ok: false; error: string; summary?: ShopifySyncSummary }
 > {
   const parsed = parseShopifyIntegrationConfig(integration.config)
   if (!parsed) {
@@ -182,12 +182,16 @@ export async function runShopifyAutoSyncCron(): Promise<{
       continue
     }
     const out = await syncShopifyIntegrationRecord(row)
-    results.push({
-      id: row.id,
-      ok: out.ok,
-      summary: out.ok ? out.summary : out.summary,
-      error: out.ok ? undefined : out.error,
-    })
+    if (out.ok) {
+      results.push({ id: row.id, ok: true, summary: out.summary })
+    } else {
+      results.push({
+        id: row.id,
+        ok: false,
+        error: out.error,
+        ...(out.summary ? { summary: out.summary } : {}),
+      })
+    }
   }
 
   console.log("[cron.sync-shopify]", {
