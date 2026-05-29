@@ -9,6 +9,7 @@ import {
   AFFILIATE_CATALOG_PATH,
   PUBLIC_MARKETPLACE_BROWSE_PATH,
 } from "@/lib/affiliate-routes"
+import { DISCOVERY_FACET_KEYS } from "@/lib/marketplace-discovery-facets"
 import type { MarketplaceFacet } from "@/lib/marketplace-facet-types"
 import { cn } from "@/lib/utils"
 
@@ -17,7 +18,24 @@ const fetcher = (url: string) => fetch(url).then((r) => r.json())
 type Props = {
   categoryId: string | null
   subcategoryId?: string | null
+  departmentNames?: Record<string, string>
   className?: string
+}
+
+const PRICE_LABELS: Record<string, { fr: string; en: string }> = {
+  under25: { fr: "Moins de 25 €", en: "Under €25" },
+  "25-100": { fr: "25 – 100 €", en: "€25 – €100" },
+  over100: { fr: "Plus de 100 €", en: "Over €100" },
+}
+
+const SHIP_LABELS: Record<string, { fr: string; en: string }> = {
+  fr: { fr: "France", en: "France" },
+  eu: { fr: "Union européenne", en: "European Union" },
+}
+
+const DELIVERY_LABELS: Record<string, { fr: string; en: string }> = {
+  under3: { fr: "≤ 3 jours", en: "≤ 3 days" },
+  under7: { fr: "≤ 7 jours", en: "≤ 7 days" },
 }
 
 function facetParams(categoryId: string | null, subcategoryId: string | null | undefined) {
@@ -34,14 +52,20 @@ function catalogBaseFromPath(pathname: string): string {
   return PUBLIC_MARKETPLACE_BROWSE_PATH
 }
 
-export function MarketplaceFilters({ categoryId, subcategoryId, className }: Props) {
+export function MarketplaceFilters({
+  categoryId,
+  subcategoryId,
+  departmentNames,
+  className,
+}: Props) {
   const t = useTranslations("marketplace.browse")
   const tAuth = useTranslations("auth")
   const router = useRouter()
   const pathname = usePathname() ?? ""
   const catalogBase = catalogBaseFromPath(pathname)
   const searchParams = useSearchParams()
-  const scopeId = subcategoryId ?? categoryId
+  const deptParam = searchParams.get("dept")
+  const scopeId = subcategoryId ?? categoryId ?? deptParam
 
   const qs = facetParams(categoryId, subcategoryId)
   for (const [key, value] of searchParams.entries()) {
@@ -51,7 +75,7 @@ export function MarketplaceFilters({ categoryId, subcategoryId, className }: Pro
     qs.set(key, value)
   }
 
-  const facetsUrl = scopeId ? `/api/marketplace/facets?${qs.toString()}` : null
+  const facetsUrl = `/api/marketplace/facets?${qs.toString()}`
 
   const { data, isLoading } = useSWR<MarketplaceFacet[] | { facets?: MarketplaceFacet[] }>(
     facetsUrl,
@@ -63,23 +87,37 @@ export function MarketplaceFilters({ categoryId, subcategoryId, className }: Pro
 
   const toggleValue = (key: string, value: string) => {
     const next = new URLSearchParams(searchParams.toString())
-    if (next.get(key) === value) next.delete(key)
-    else next.set(key, value)
+    if (next.get(key) === value) {
+      next.delete(key)
+    } else {
+      next.set(key, value)
+      if (key === "dept") {
+        next.delete("category")
+        next.delete("subcategory")
+        next.delete("categoryId")
+        next.delete("subcategoryId")
+      }
+    }
     const s = next.toString()
     router.push(`${catalogBase}${s ? `?${s}` : ""}`)
   }
 
-  if (!scopeId) {
-    return (
-      <aside
-        className={cn(
-          "rounded-2xl border border-zinc-200 bg-white p-4 text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400",
-          className
-        )}
-      >
-        {t("pickCategory")}
-      </aside>
-    )
+  function facetValueLabel(facetKey: string, value: string): string {
+    if (facetKey === "dept" && departmentNames?.[value]) return departmentNames[value]!
+    if (facetKey === "price") {
+      const row = PRICE_LABELS[value]
+      if (row) return row.fr
+    }
+    if (facetKey === "shipsFrom") {
+      const row = SHIP_LABELS[value]
+      if (row) return row.fr
+    }
+    if (facetKey === "delivery") {
+      const row = DELIVERY_LABELS[value]
+      if (row) return row.fr
+    }
+    if (facetKey === "freeShipping" && value === "1") return t("freeShippingFacet")
+    return value
   }
 
   return (
@@ -128,7 +166,9 @@ export function MarketplaceFilters({ categoryId, subcategoryId, className }: Pro
                         onChange={() => toggleValue(facet.key, row.value)}
                       />
                       <span className="min-w-0 flex-1 leading-snug text-zinc-700 dark:text-zinc-300">
-                        {row.value}
+                        {DISCOVERY_FACET_KEYS.has(facet.key)
+                          ? facetValueLabel(facet.key, row.value)
+                          : row.value}
                         <span className="text-zinc-400 dark:text-zinc-500"> ({row.count})</span>
                       </span>
                     </label>

@@ -9,6 +9,8 @@ export const MARKETPLACE_QUERY_RESERVED = new Set([
   "shipsFrom",
   "delivery",
   "freeShipping",
+  "price",
+  "dept",
 ])
 
 /** Reserved prefix for product SKU custom column filters (`cc_matiere=…`) */

@@ -543,10 +543,23 @@
     "sidebar": {
       "title": "Categories",
       "subtitle": "Browse by department",
+      "genealogyHint": "Full Google tree — expand any branch",
+      "expandBranch": "Expand branch",
       "allCatalog": "All Catalog",
       "offlineHint": "Offline taxonomy — connect DB for live counts",
       "unavailable": "Categories unavailable",
       "empty": "No categories"
+    },
+    "search": {
+      "label": "Search the catalog",
+      "placeholder": "Product, brand, category…",
+      "submit": "Search",
+      "loading": "Suggestions…",
+      "noResults": "No suggestions — press Search to run full results",
+      "categories": "Categories",
+      "products": "Products",
+      "priceFrom": "From €{price}",
+      "seeAllResults": "See all results"
     },
     "browse": {
       "ariaEmbedded": "Explore and shop",
@@ -566,6 +579,7 @@
       "noFacets": "No filters for this category.",
       "filtersTitle": "Filters",
       "filtersHint": "By product attribute",
+      "freeShippingFacet": "Free shipping",
       "embeddedEyebrow": "Shopping · Live",
       "embeddedTitle": "Discover & shop",
       "embeddedSubtitle": "Use the purple hero search, the departments below, or the shopping agent to refine your picks.",

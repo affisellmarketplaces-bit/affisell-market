@@ -13,9 +13,12 @@ import {
   listingWarrantyBadgeLabel,
   resolveProductWarrantyMonths,
 } from "@/lib/product-warranty"
+import { parseDeptFacetValue, parsePriceFacet } from "@/lib/marketplace-discovery-facets"
+import { searchMarketplaceListingHits, orderByListingSearchHits } from "@/lib/marketplace-search.server"
 import { prisma } from "@/lib/prisma"
 import { normalizeListingSalesCount } from "@/lib/listing-sales-count"
 import { publicStoreLabelFromAffiliateRow } from "@/lib/public-seller-display"
+import { marketplaceProductFilterFromSearchParams } from "@/lib/marketplace-listing-filters"
 
 export const listingMarketplaceInclude = {
   product: {
@@ -127,7 +130,11 @@ export function serializeMarketplaceListing(
 export async function buildMarketplaceAffiliateWhereFromUrl(
   searchParams: URLSearchParams
 ): Promise<Prisma.AffiliateProductWhereInput> {
-  const categoryId = searchParams.get("categoryId") ?? searchParams.get("category")
+  const deptRaw = searchParams.get("dept")
+  const categoryId =
+    searchParams.get("categoryId") ??
+    searchParams.get("category") ??
+    (deptRaw ? parseDeptFacetValue(deptRaw) : null)
   const subcategoryId = searchParams.get("subcategoryId") ?? searchParams.get("subcategory")
   const scopeRootId = subcategoryId ?? categoryId
   const q = (searchParams.get("q") ?? "").trim()
@@ -136,25 +143,48 @@ export async function buildMarketplaceAffiliateWhereFromUrl(
   const customColumnFilters = parseProductCustomColumnFilters(searchParams)
   const productWhere = await buildMarketplaceScopedProductWhere(scopeRootId, attributeFilters)
   const ccClauses = productCustomColumnFilterClauses(customColumnFilters)
+
+  const legacyFilter = marketplaceProductFilterFromSearchParams(
+    Object.fromEntries(searchParams.entries())
+  )
+  const priceFilter = parsePriceFacet(searchParams.get("price"))
+
+  const productAnd: Prisma.ProductWhereInput[] = [productWhere]
+  if (legacyFilter) productAnd.push(legacyFilter)
+  if (priceFilter) productAnd.push(priceFilter)
+  if (ccClauses.length > 0) productAnd.push(...ccClauses)
+
   const productWhereWithCustom: Prisma.ProductWhereInput =
-    ccClauses.length > 0 ? { AND: [productWhere, ...ccClauses] } : productWhere
+    productAnd.length === 1 ? productAnd[0]! : { AND: productAnd }
 
   const andParts: Prisma.AffiliateProductWhereInput[] = [
     buyerListedAffiliateProductWhere,
+    { affiliate: { store: { isNot: null } } },
     { product: productWhereWithCustom },
   ]
 
-  if (q) {
-    andParts.push({
-      OR: [
-        { customTitle: { contains: q, mode: "insensitive" } },
-        { product: { name: { contains: q, mode: "insensitive" } } },
-        { product: { description: { contains: q, mode: "insensitive" } } },
-      ],
+  if (q.length >= 2) {
+    const hits = await searchMarketplaceListingHits(q, {
+      scopeCategoryId: scopeRootId,
+      limit: 200,
     })
+    const ids = hits.map((h) => h.listingId)
+    if (ids.length > 0) {
+      andParts.push({ id: { in: ids } })
+    } else {
+      andParts.push({ id: { in: ["__no_search_match__"] } })
+    }
   }
 
   return { AND: andParts }
+}
+
+export async function marketplaceListingOrderFromUrl(
+  searchParams: URLSearchParams
+): Promise<Prisma.AffiliateProductOrderByWithRelationInput[] | "search"> {
+  const q = (searchParams.get("q") ?? "").trim()
+  if (q.length >= 2) return "search"
+  return [{ isFeatured: "desc" }, { conversions: "desc" }, { clicks: "desc" }, { updatedAt: "desc" }]
 }
 
 export async function fetchMarketplaceListings(
@@ -163,20 +193,70 @@ export async function fetchMarketplaceListings(
   options?: { lite?: boolean }
 ) {
   const where = await buildMarketplaceAffiliateWhereFromUrl(searchParams)
+  const orderMode = await marketplaceListingOrderFromUrl(searchParams)
+  const q = (searchParams.get("q") ?? "").trim()
   const lite = options?.lite === true
-  const rows = lite
-    ? await prisma.affiliateProduct.findMany({
-        where,
-        include: listingMarketplaceIncludeLite,
-        orderBy: [{ isFeatured: "desc" }, { clicks: "desc" }, { updatedAt: "desc" }],
-        take,
-      })
-    : await prisma.affiliateProduct.findMany({
-        where,
-        include: listingMarketplaceInclude,
-        orderBy: [{ isFeatured: "desc" }, { clicks: "desc" }, { updatedAt: "desc" }],
-        take,
-      })
+
+  let searchHits: Awaited<ReturnType<typeof searchMarketplaceListingHits>> = []
+  if (orderMode === "search" && q.length >= 2) {
+    const deptParam = searchParams.get("dept")
+    const categoryId =
+      searchParams.get("categoryId") ??
+      searchParams.get("category") ??
+      searchParams.get("subcategoryId") ??
+      searchParams.get("subcategory") ??
+      (deptParam ? parseDeptFacetValue(deptParam) : null)
+    searchHits = await searchMarketplaceListingHits(q, {
+      scopeCategoryId: categoryId,
+      limit: Math.max(take, 200),
+    })
+  }
+
+  const defaultOrder: Prisma.AffiliateProductOrderByWithRelationInput[] = [
+    { isFeatured: "desc" },
+    { conversions: "desc" },
+    { clicks: "desc" },
+    { updatedAt: "desc" },
+  ]
+
+  const fetchRows = async (idsInOrder?: string[]) => {
+    if (idsInOrder && idsInOrder.length > 0) {
+      const chunk = idsInOrder.slice(0, take)
+      const rows = lite
+        ? await prisma.affiliateProduct.findMany({
+            where: { ...where, id: { in: chunk } },
+            include: listingMarketplaceIncludeLite,
+          })
+        : await prisma.affiliateProduct.findMany({
+            where: { ...where, id: { in: chunk } },
+            include: listingMarketplaceInclude,
+          })
+      const ordered = orderByListingSearchHits(
+        chunk,
+        searchHits.length > 0 ? searchHits : chunk.map((id, i) => ({ listingId: id, score: chunk.length - i }))
+      )
+      const byId = new Map(rows.map((r) => [r.id, r]))
+      return ordered.map((id) => byId.get(id)).filter((r): r is NonNullable<typeof r> => Boolean(r))
+    }
+    return lite
+      ? prisma.affiliateProduct.findMany({
+          where,
+          include: listingMarketplaceIncludeLite,
+          orderBy: defaultOrder,
+          take,
+        })
+      : prisma.affiliateProduct.findMany({
+          where,
+          include: listingMarketplaceInclude,
+          orderBy: defaultOrder,
+          take,
+        })
+  }
+
+  const rows =
+    orderMode === "search" && searchHits.length > 0
+      ? await fetchRows(searchHits.map((h) => h.listingId))
+      : await fetchRows()
 
   if (lite) {
     return (rows as MarketplaceListingRowLite[]).map((row) =>

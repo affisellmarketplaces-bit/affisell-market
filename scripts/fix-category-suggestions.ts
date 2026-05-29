@@ -34,6 +34,11 @@ async function main() {
   await prisma.$executeRaw`CREATE EXTENSION IF NOT EXISTS pg_trgm;`
   await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS category_name_trgm_idx ON "Category" USING gin (name gin_trgm_ops);`
   await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS product_name_trgm_idx ON "Product" USING gin (name gin_trgm_ops);`
+  await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS product_description_trgm_idx ON "Product" USING gin (description gin_trgm_ops);`
+  await prisma.$executeRaw`
+    CREATE INDEX IF NOT EXISTS affiliate_product_custom_title_trgm_idx
+    ON "AffiliateProduct" USING gin ("customTitle" gin_trgm_ops);
+  `
   await prisma.$executeRaw`ANALYZE "Category";`
   await prisma.$executeRaw`ANALYZE "Product";`
 

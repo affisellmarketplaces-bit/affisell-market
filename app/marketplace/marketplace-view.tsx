@@ -17,7 +17,8 @@ import { canShowBusinessProductData } from "@/lib/user-role"
 import { MarketplaceFilters } from "@/components/marketplace/filters"
 import { MarketplaceAffisellPulse } from "@/components/marketplace/MarketplaceAffisellPulse"
 import { MarketplaceDepartmentRail } from "@/components/marketplace/MarketplaceDepartmentRail"
-import { Sidebar } from "@/components/marketplace/Sidebar"
+import { CategoryTreeExplorer } from "@/components/marketplace/CategoryTreeExplorer"
+import { MarketplaceSearchBox } from "@/components/marketplace/MarketplaceSearchBox"
 import { MARKETPLACE_QUERY_RESERVED } from "@/lib/marketplace-query-params"
 import { marketplaceCatalogHref } from "@/lib/marketplace-catalog-url"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -158,7 +159,7 @@ export function MarketplaceView({
     return () => controller.abort()
   }, [searchParams, initialBrowse])
 
-  const handleCategoryClick = (catId: string, subId?: string) => {
+  const handleCategoryClick = (nodeId: string) => {
     const params = new URLSearchParams(searchParams.toString())
     for (const key of [...params.keys()]) {
       if (!MARKETPLACE_QUERY_RESERVED.has(key)) params.delete(key)
@@ -167,11 +168,8 @@ export function MarketplaceView({
     params.delete("subcategory")
     params.delete("categoryId")
     params.delete("subcategoryId")
-    if (subId) {
-      params.set("subcategory", subId)
-    } else {
-      params.set("category", catId)
-    }
+    params.delete("dept")
+    params.set("category", nodeId)
     const s = params.toString()
     const path = `${basePath}${s ? `?${s}` : ""}`
     router.push(basePath === "/" ? `${path}#explorer` : path)
@@ -181,8 +179,23 @@ export function MarketplaceView({
     categoryId || subcategoryId || searchQuery.trim() || attributeFilterKeys.length > 0
   )
 
+  const scopeNodeId = subcategoryId ?? categoryId
+
+  const { data: breadcrumbData } = useSWR<{ path: Array<{ id: string; name: string; fullPath: string }> }>(
+    scopeNodeId ? `/api/categories/breadcrumb?id=${encodeURIComponent(scopeNodeId)}` : null,
+    (url: string) => fetch(url).then((r) => r.json()),
+    { revalidateOnFocus: false }
+  )
+
   const activeScope = useMemo(() => {
     const roots = categoriesPayload?.categories ?? []
+    const nodeId = scopeNodeId
+    if (!nodeId) return { kind: "catalog" as const }
+
+    if (breadcrumbData?.path?.length) {
+      return { kind: "path" as const, path: breadcrumbData.path }
+    }
+
     if (subcategoryId) {
       for (const root of roots) {
         const sub = root.subcategories.find((s) => s.id === subcategoryId)
@@ -193,10 +206,14 @@ export function MarketplaceView({
       const root = roots.find((c) => c.id === categoryId)
       if (root) return { kind: "root" as const, root }
     }
-    return { kind: "catalog" as const }
-  }, [categoriesPayload?.categories, categoryId, subcategoryId])
+    return { kind: "node" as const, nodeId }
+  }, [categoriesPayload?.categories, categoryId, subcategoryId, scopeNodeId, breadcrumbData?.path])
 
   const activeFilterLabel = useMemo(() => {
+    if (activeScope.kind === "path") {
+      const leaf = activeScope.path[activeScope.path.length - 1]
+      return leaf?.fullPath ?? leaf?.name ?? t("activeFilterCatalog")
+    }
     if (activeScope.kind === "sub") {
       return t("activeFilterSubcategory", {
         sub: activeScope.sub.name,
@@ -205,6 +222,9 @@ export function MarketplaceView({
     }
     if (activeScope.kind === "root") {
       return t("activeFilterCategory", { name: activeScope.root.name })
+    }
+    if (activeScope.kind === "node") {
+      return t("activeFilterCategory", { name: activeScope.nodeId })
     }
     return t("activeFilterCatalog")
   }, [activeScope, t])
@@ -347,6 +367,10 @@ export function MarketplaceView({
           </div>
         )}
 
+        <div className="mt-4 max-w-3xl">
+          <MarketplaceSearchBox basePath={basePath} />
+        </div>
+
         <MarketplaceDepartmentRail
           activeCategoryId={categoryId}
           activeSubcategoryId={subcategoryId}
@@ -372,15 +396,22 @@ export function MarketplaceView({
 
         <div className="mt-8 flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
           <aside className="flex w-full shrink-0 flex-col gap-4 lg:sticky lg:top-[5.25rem] lg:w-[min(19rem,100%)] lg:max-w-[19rem] lg:self-start">
-            <Sidebar
+            <CategoryTreeExplorer
               onCategoryClick={handleCategoryClick}
               onShowFullCatalog={clearFilters}
-              activeCategoryId={categoryId}
-              activeSubcategoryId={subcategoryId}
+              activeCategoryId={scopeNodeId}
               catalogTotal={categoriesPayload?.catalogTotal}
               categoriesPayload={categoriesPayload}
             />
-            <MarketplaceFilters categoryId={categoryId} subcategoryId={subcategoryId} />
+            <MarketplaceFilters
+              categoryId={categoryId}
+              subcategoryId={subcategoryId}
+              departmentNames={
+                categoriesPayload?.categories
+                  ? Object.fromEntries(categoriesPayload.categories.map((c) => [c.id, c.name]))
+                  : undefined
+              }
+            />
           </aside>
 
           <div className="min-w-0 flex-1">

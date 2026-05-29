@@ -33,6 +33,8 @@
     "verify:category-suggestions": "tsx scripts/verify-category-suggestions.ts",
     "reclassify-orphans": "tsx scripts/reclassify-orphan-products.ts",
     "reclassify-active-catalog": "tsx scripts/reclassify-active-catalog.ts",
+    "sync:category-labels": "tsx scripts/sync-product-category-labels.ts",
+    "index:marketplace-search": "tsx scripts/fix-category-suggestions.ts",
     "verify:sentry": "tsx scripts/verify-sentry.ts",
     "email:dev": "email dev --dir emails",
     "verify:no-secrets": "node scripts/verify-no-secrets.mjs",

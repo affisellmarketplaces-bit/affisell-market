@@ -543,10 +543,23 @@
     "sidebar": {
       "title": "Catégories",
       "subtitle": "Parcourir par rayon",
+      "genealogyHint": "Arbre Google complet — développez chaque branche",
+      "expandBranch": "Développer la branche",
       "allCatalog": "Tout le catalogue",
       "offlineHint": "Taxonomie hors ligne — connectez la base pour les compteurs",
       "unavailable": "Catégories indisponibles",
       "empty": "Aucune catégorie"
+    },
+    "search": {
+      "label": "Rechercher dans le catalogue",
+      "placeholder": "Produit, marque, catégorie…",
+      "submit": "Rechercher",
+      "loading": "Suggestions…",
+      "noResults": "Aucune suggestion — validez pour lancer la recherche",
+      "categories": "Catégories",
+      "products": "Produits",
+      "priceFrom": "À partir de {price} €",
+      "seeAllResults": "Voir tous les résultats"
     },
     "browse": {
       "ariaEmbedded": "Explorer et acheter",
@@ -566,6 +579,7 @@
       "noFacets": "Aucun filtre pour cette catégorie.",
       "filtersTitle": "Filtres",
       "filtersHint": "Comme sur Amazon — par caractéristique",
+      "freeShippingFacet": "Livraison offerte",
       "embeddedEyebrow": "Shopping · Live",
       "embeddedTitle": "Découvrir & acheter",
       "embeddedSubtitle": "Utilisez la recherche du bandeau violet, les rayons ci-dessous ou l’agent shopping pour affiner.",

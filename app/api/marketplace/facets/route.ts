@@ -1,11 +1,15 @@
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 
+import { cookies } from "next/headers"
+
+import { LOCALE_COOKIE, resolveAppLocale } from "@/lib/i18n-locale"
 import { parseMarketplaceAttributeFilters } from "@/lib/marketplace-attribute-filters"
 import {
   loadMarketplaceFacets,
   resolveFilterableCategoryAttributes,
 } from "@/lib/marketplace-attribute-filters.server"
+import { loadGlobalMarketplaceDiscoveryFacets } from "@/lib/marketplace-discovery-facets"
 import {
   loadProductCustomColumnFacets,
   parseProductCustomColumnFilters,
@@ -24,8 +28,12 @@ export async function GET(request: NextRequest) {
     const subcategoryId = sp.get("subcategoryId") ?? sp.get("subcategory")
     const scopeRootId = subcategoryId ?? categoryId
 
+    const cookieStore = await cookies()
+    const locale = resolveAppLocale(cookieStore.get(LOCALE_COOKIE)?.value)
+
     if (!scopeRootId?.trim()) {
-      return NextResponse.json([])
+      const globalFacets = await withPrismaReconnect(() => loadGlobalMarketplaceDiscoveryFacets(locale))
+      return NextResponse.json(globalFacets)
     }
 
     const scope = scopeRootId.trim()
