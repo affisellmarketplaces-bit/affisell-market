@@ -1,4 +1,4 @@
-import { HeroSearchBar } from "@/components/home/HeroSearchBar"
+import { MarketplaceSearchBox } from "@/components/marketplace/MarketplaceSearchBox"
 import type { HomeMarketplaceStats } from "@/lib/home-marketplace-cards"
 
 type Props = {
@@ -21,7 +21,7 @@ export function Hero({ stats }: Props) {
           pro, pensée pour les créateurs affiliés.
         </p>
         <div className="mt-8 w-full">
-          <HeroSearchBar className="mx-auto" />
+          <MarketplaceSearchBox className="mx-auto" />
         </div>
         <p className="mt-4 text-sm font-medium tabular-nums text-zinc-600 dark:text-zinc-400">
           <span className="text-zinc-900 dark:text-zinc-100">{stats.productCountLabel} produits</span>

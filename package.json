@@ -35,6 +35,8 @@
     "reclassify-active-catalog": "tsx scripts/reclassify-active-catalog.ts",
     "sync:category-labels": "tsx scripts/sync-product-category-labels.ts",
     "index:marketplace-search": "tsx scripts/fix-category-suggestions.ts",
+    "check:discovery": "tsx scripts/check-discovery-health.ts",
+    "discovery:bootstrap": "tsx scripts/discovery-bootstrap.ts",
     "verify:sentry": "tsx scripts/verify-sentry.ts",
     "email:dev": "email dev --dir emails",
     "verify:no-secrets": "node scripts/verify-no-secrets.mjs",

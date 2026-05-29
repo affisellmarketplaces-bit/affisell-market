@@ -1,6 +1,6 @@
 import Link from "next/link"
 
-import { HeroSearchBar } from "@/components/home/HeroSearchBar"
+import { MarketplaceSearchBox } from "@/components/marketplace/MarketplaceSearchBox"
 import type { HomeMarketplaceStats } from "@/lib/home-marketplace-cards"
 import { cn } from "@/lib/utils"
 
@@ -29,7 +29,7 @@ export function AffiliateHero({ stats }: Props) {
           Filtrez par rayon ou domaine, explorez les tendances, puis publiez chaque SKU sur votre boutique vitrine en un clic.
         </p>
         <div className="mt-8 w-full">
-          <HeroSearchBar className="mx-auto" catalogPath="/dashboard/affiliate/catalog" />
+          <MarketplaceSearchBox className="mx-auto" basePath="/dashboard/affiliate/catalog" />
         </div>
         <div className="mt-4 flex flex-wrap justify-center gap-2">
           {NICHE_LINKS.map((n) => (
