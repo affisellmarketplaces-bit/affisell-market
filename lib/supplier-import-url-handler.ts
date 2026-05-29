@@ -36,7 +36,7 @@ type ImportedReview = {
   sentiment: ReviewSentiment
 }
 
-type ImportedProduct = {
+export type SupplierScrapedProduct = {
   title: string
   description: string
   ai_title: string
@@ -87,6 +87,24 @@ type ImportedProduct = {
   quality_score: number
   is_duplicate: boolean
   seo_keywords: string[]
+}
+
+/** @deprecated use SupplierScrapedProduct */
+type ImportedProduct = SupplierScrapedProduct
+
+export type SupplierUrlScrapeOk = {
+  ok: true
+  product: SupplierScrapedProduct
+  platform: Platform
+  method: string
+  warnings: string[]
+}
+
+export type SupplierUrlScrapeErr = {
+  ok: false
+  error: string
+  status: number
+  useAliExpressApi?: boolean
 }
 
 function asRec(v: unknown): Record<string, unknown> {
@@ -250,25 +268,31 @@ export type SupplierImportUrlBody = {
   options?: { markup?: number; aiRewrite?: boolean }
 }
 
-/** Scrape a product URL for a supplier (dashboard or browser extension). */
-export async function handleSupplierImportUrl(
-  _supplierId: string,
-  body: SupplierImportUrlBody
-): Promise<NextResponse> {
+export type ScrapeSupplierProductOptions = {
+  /** When false (default), AliExpress URLs return useAliExpressApi for the official API path. */
+  allowAliExpressScrape?: boolean
+}
+
+/** Scrape a product page into a normalized supplier import payload (no HTTP response). */
+export async function scrapeSupplierProductFromUrl(
+  body: SupplierImportUrlBody,
+  scrapeOptions?: ScrapeSupplierProductOptions
+): Promise<SupplierUrlScrapeOk | SupplierUrlScrapeErr> {
   try {
     const rawUrl = txt(body.url)
-    if (!rawUrl) return NextResponse.json({ error: "Missing URL" }, { status: 400 })
+    if (!rawUrl) {
+      return { ok: false, error: "Missing URL", status: 400 }
+    }
 
     const platform = detectPlatform(rawUrl)
-    if (platform === "aliexpress") {
-      return NextResponse.json(
-        {
-          error:
-            "AliExpress utilise l’API officielle Affisell (onglet AliExpress), pas ScrapingBee.",
-          useAliExpressApi: true,
-        },
-        { status: 400 }
-      )
+    if (platform === "aliexpress" && !scrapeOptions?.allowAliExpressScrape) {
+      return {
+        ok: false,
+        error:
+          "AliExpress : utilisez l’import agent (API) ou l’onglet AliExpress officiel.",
+        status: 400,
+        useAliExpressApi: true,
+      }
     }
     const url = normalizeImportUrl(rawUrl, platform)
     let product: ImportedProduct | null = null
@@ -349,28 +373,46 @@ export async function handleSupplierImportUrl(
       )
     }
 
-    return NextResponse.json({
-      products: [product],
-      success: true,
-      platform,
-      method,
-      warnings,
-      innovations: {
-        quality_score: product.quality_score,
-        duplicate: product.is_duplicate,
-        profit: `$${product.profit_per_sale.toFixed(2)}/sale`,
-        roi: `${product.roi}%`,
-      },
-    })
+    return { ok: true, product, platform, method, warnings }
   } catch (error: unknown) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Import failed",
+      status: 422,
+    }
+  }
+}
+
+/** Scrape a product URL for a supplier (dashboard or browser extension). */
+export async function handleSupplierImportUrl(
+  _supplierId: string,
+  body: SupplierImportUrlBody
+): Promise<NextResponse> {
+  const out = await scrapeSupplierProductFromUrl(body)
+  if (!out.ok) {
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "Import failed",
+        error: out.error,
         success: false,
+        ...(out.useAliExpressApi ? { useAliExpressApi: true } : {}),
       },
-      { status: 422 }
+      { status: out.status }
     )
   }
+  const { product, platform, method, warnings } = out
+  return NextResponse.json({
+    products: [product],
+    success: true,
+    platform,
+    method,
+    warnings,
+    innovations: {
+      quality_score: product.quality_score,
+      duplicate: product.is_duplicate,
+      profit: `$${product.profit_per_sale.toFixed(2)}/sale`,
+      roi: `${product.roi}%`,
+    },
+  })
 }
 
 async function scrapeWithDirectFetch(

@@ -255,6 +255,9 @@ export type UrlImportFormPatch = {
   shippingCost: string
   specValuesPatch: Record<string, string>
   variants: UrlImportVariantApply
+  /** Optional AI-suggested Affisell category leaf id */
+  categoryId?: string
+  categoryBreadcrumb?: string
 }
 
 export function guessIso2Country(label: string): string {

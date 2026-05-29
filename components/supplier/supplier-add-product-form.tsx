@@ -87,6 +87,7 @@ import {
   SupplierUrlImportPanel,
   type UrlImportApplyPayload,
 } from "@/components/supplier/supplier-url-import-panel"
+import { SupplierAiImportAgent } from "@/components/supplier/supplier-ai-import-agent"
 import {
   clearSupplierAddProductDraftCache,
   readSupplierAddProductDraftCache,
@@ -718,6 +719,7 @@ export function SupplierAddProductForm({
     setDeliveryMax(patch.deliveryMax)
     setShippingCost(patch.shippingCost)
     setSpecValues((prev) => ({ ...prev, ...patch.specValuesPatch }))
+    if (patch.categoryId?.trim()) setCategoryId(patch.categoryId.trim())
 
     const { mode, sizes, simpleColors, variantRows } = patch.variants
     setVariantFormMode(mode)
@@ -1946,6 +1948,11 @@ export function SupplierAddProductForm({
                     description="Pull in data from a URL or let AI draft copy—optional, but fast when you’re in a hurry."
                   >
                     <div className="space-y-8 border-t border-violet-200/50 pt-6 dark:border-violet-900/30">
+                      <SupplierAiImportAgent
+                        categoryAttrs={mergedCategoryAttrs}
+                        commissionPct={commission}
+                        onApply={handleUrlImportApply}
+                      />
                       <SupplierUrlImportPanel
                         categoryAttrs={mergedCategoryAttrs}
                         commissionPct={commission}
