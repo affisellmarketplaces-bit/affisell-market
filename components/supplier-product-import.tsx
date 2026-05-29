@@ -834,24 +834,21 @@ export function SupplierProductImport() {
 
       {importMethod === "shopify" ? (
         <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-950">
-          <h3 className="mb-3 font-semibold text-zinc-900 dark:text-zinc-100">Connect Shopify Store</h3>
-          <input
-            type="text"
-            placeholder="yourstore.myshopify.com"
-            className="mb-3 w-full rounded-lg border border-zinc-300 px-4 py-3 dark:border-zinc-600 dark:bg-zinc-900"
-          />
-          <button
-            type="button"
-            className="w-full rounded-lg bg-[#96bf48] px-6 py-3 font-medium text-white hover:bg-[#7da83a]"
+          <h3 className="mb-2 font-semibold text-zinc-900 dark:text-zinc-100">Shopify catalog sync</h3>
+          <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+            Connect your store once, then import or update drafts idempotently (stable SKU per Shopify
+            product). Enable auto-sync to refresh stock and prices on the cron schedule.
+          </p>
+          <Link
+            href="/dashboard/supplier/integrations"
+            className="inline-flex w-full items-center justify-center rounded-lg bg-[#96bf48] px-6 py-3 font-medium text-white hover:bg-[#7da83a]"
           >
-            Connect &amp; Sync Products
-          </button>
-          <div className="mt-4 rounded-lg bg-zinc-50 p-3 text-sm dark:bg-zinc-900">
-            <p className="mb-1 font-medium text-zinc-900 dark:text-zinc-100">Auto-sync enabled (coming soon)</p>
-            <p className="text-zinc-600 dark:text-zinc-400">
-              Products will update when you change them in Shopify.
-            </p>
-          </div>
+            Open integrations → connect Shopify
+          </Link>
+          <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400">
+            Cron: <code className="rounded bg-zinc-100 px-1 dark:bg-zinc-800">GET /api/cron/sync-shopify</code>{" "}
+            with <code className="rounded bg-zinc-100 px-1 dark:bg-zinc-800">Authorization: Bearer CRON_SECRET</code>
+          </p>
         </div>
       ) : null}
 

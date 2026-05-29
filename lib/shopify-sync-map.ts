@@ -57,13 +57,15 @@ export function shopifyProductToImportRow(
 
   const handle =
     typeof product.handle === "string" ? product.handle.trim() : ""
-  const idPart =
-    product.id != null ? String(product.id).replace(/\D/g, "").slice(0, 16) : ""
+  const shopifyProductId =
+    product.id != null ? String(product.id).replace(/\D/g, "").slice(0, 32) : ""
   const skuFromVariant =
     typeof v0.sku === "string" && v0.sku.trim() ? v0.sku.trim().slice(0, 80) : ""
   const sku =
-    skuFromVariant ||
-    (handle ? `sfy-${handle}`.slice(0, 80) : `sfy-${idPart || Date.now()}`)
+    shopifyProductId.length > 0
+      ? `sfy-pid-${shopifyProductId}`.slice(0, 80)
+      : skuFromVariant ||
+        (handle ? `sfy-${handle}`.slice(0, 80) : `sfy-${Date.now()}`)
 
   const productType =
     typeof product.product_type === "string"
@@ -92,6 +94,8 @@ export function shopifyProductToImportRow(
     source_url: sourceUrl,
     status: "draft",
     tags: ["shopify-sync"],
+    shopify_product_id: shopifyProductId,
+    import_source: "shopify",
   }
 }
 

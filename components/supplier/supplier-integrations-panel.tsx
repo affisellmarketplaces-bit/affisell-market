@@ -137,6 +137,36 @@ export function SupplierIntegrationsPanel({ initialIntegrations }: Props) {
     await load()
   }
 
+  async function toggleAutoSync(id: string, config: Record<string, unknown>) {
+    const next = config.autoSync !== false ? false : true
+    setBusyId(`as-${id}`)
+    const res = await fetch(`/api/supplier/integrations/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ config: { autoSync: next } }),
+    })
+    setBusyId(null)
+    if (!res.ok) {
+      const data = (await res.json().catch(() => ({}))) as { error?: string }
+      setError(data.error ?? "Could not update auto-sync")
+      return
+    }
+    await load()
+  }
+
+  function formatSyncSummary(summary: unknown): string | null {
+    if (!summary || typeof summary !== "object" || Array.isArray(summary)) return null
+    const s = summary as Record<string, unknown>
+    const fetched = Number(s.fetched)
+    const created = Number(s.created)
+    const updated = Number(s.updated)
+    if (!Number.isFinite(fetched)) return null
+    const parts = [`${fetched} fetched`]
+    if (Number.isFinite(created) && created > 0) parts.push(`${created} new`)
+    if (Number.isFinite(updated) && updated > 0) parts.push(`${updated} updated`)
+    return parts.join(" · ")
+  }
+
   async function removeIntegration(id: string) {
     if (!confirm("Remove this integration?")) return
     await fetch(`/api/supplier/integrations/${id}`, { method: "DELETE" })
@@ -307,6 +337,16 @@ export function SupplierIntegrationsPanel({ initialIntegrations }: Props) {
                 <div className="flex flex-wrap gap-2">
                   {row.platform === "shopify" ? (
                     <>
+                      <label className="flex cursor-pointer items-center gap-2 rounded-md border border-zinc-200 px-2 py-1 text-xs dark:border-zinc-700">
+                        <input
+                          type="checkbox"
+                          className="rounded"
+                          checked={row.config.autoSync !== false}
+                          disabled={busyId === `as-${row.id}`}
+                          onChange={() => void toggleAutoSync(row.id, row.config)}
+                        />
+                        Auto-sync (cron)
+                      </label>
                       <button
                         type="button"
                         className={cn(buttonVariants({ size: "sm", variant: "outline" }))}
@@ -326,7 +366,7 @@ export function SupplierIntegrationsPanel({ initialIntegrations }: Props) {
                         ) : (
                           <RefreshCw className="mr-2 h-4 w-4" aria-hidden />
                         )}
-                        Import drafts
+                        Sync now
                       </button>
                     </>
                   ) : null}

@@ -129,6 +129,7 @@ function mergeImportTags(extra: unknown): string[] {
 export type SupplierProductsImportExecOk = {
   ok: true
   createdCount: number
+  updatedCount: number
   products: Array<{ id: string; name: string; sku: string }>
 }
 
@@ -142,8 +143,10 @@ export async function executeSupplierProductsImport(args: {
   supplierId: string
   productsRaw: unknown[]
   bodyDraft: boolean
+  /** Match by supplierSku / sourceUrl and update stock & pricing instead of duplicating. */
+  upsert?: boolean
 }): Promise<SupplierProductsImportExecOk | SupplierProductsImportExecErr> {
-  const { supplierId, productsRaw, bodyDraft } = args
+  const { supplierId, productsRaw, bodyDraft, upsert = false } = args
 
   if (!Array.isArray(productsRaw) || productsRaw.length === 0) {
     return { ok: false, error: "products array required", status: 400 }
@@ -163,6 +166,7 @@ export async function executeSupplierProductsImport(args: {
   })
 
   let createdCount = 0
+  let updatedCount = 0
   const createdProducts: Array<{ id: string; name: string; sku: string }> = []
 
   for (const raw of productsRaw) {
@@ -403,71 +407,128 @@ export async function executeSupplierProductsImport(args: {
 
     const attr = parseProductAttributesBody(attrBody)
 
-    const product = await prisma.product.create({
-      data: {
-        supplierId,
-        name: nameStr.slice(0, 500),
-        description: desc.slice(0, 8000),
-        images,
-        colorImages:
-          attr.colorImages === null
-            ? Prisma.DbNull
-            : (attr.colorImages as unknown as Prisma.InputJsonValue),
-        categories: attr.categories,
-        colors:
-          attr.colors.length > 0 ? attr.colors : colorNames.slice(0, 24),
-        tags: attr.tags,
-        variants:
-          attr.variants === null
-            ? Prisma.DbNull
-            : (attr.variants as unknown as Prisma.InputJsonValue),
-        basePriceCents,
-        commissionRate,
-        listingKind,
-        stock: stockN,
-        active,
-        shippingCountry: ship.shippingCountry,
-        warehouseType: ship.warehouseType,
-        warehouseCity: ship.warehouseCity,
-        processingTime: ship.processingTime,
-        deliveryMin: ship.deliveryMin,
-        deliveryMax: ship.deliveryMax,
-        shippingMethods: ship.shippingMethods,
-        freeShippingThreshold: ship.freeShippingThreshold,
-        shippingCost: ship.shippingCost,
-        shipsFrom: shipsFromText ?? undefined,
-        deliveryDays: deliveryMid ?? undefined,
-        supplierTag: "import",
-      },
-    })
+    const importSource =
+      typeof p.import_source === "string" && p.import_source.trim()
+        ? p.import_source.trim().slice(0, 40)
+        : "import"
 
-    createdCount++
+    const productData = {
+      name: nameStr.slice(0, 500),
+      description: desc.slice(0, 8000),
+      images,
+      colorImages:
+        attr.colorImages === null
+          ? Prisma.DbNull
+          : (attr.colorImages as unknown as Prisma.InputJsonValue),
+      categories: attr.categories,
+      colors: attr.colors.length > 0 ? attr.colors : colorNames.slice(0, 24),
+      tags: attr.tags,
+      variants:
+        attr.variants === null
+          ? Prisma.DbNull
+          : (attr.variants as unknown as Prisma.InputJsonValue),
+      basePriceCents,
+      commissionRate,
+      listingKind,
+      stock: stockN,
+      shippingCountry: ship.shippingCountry,
+      warehouseType: ship.warehouseType,
+      warehouseCity: ship.warehouseCity,
+      processingTime: ship.processingTime,
+      deliveryMin: ship.deliveryMin,
+      deliveryMax: ship.deliveryMax,
+      shippingMethods: ship.shippingMethods,
+      freeShippingThreshold: ship.freeShippingThreshold,
+      shippingCost: ship.shippingCost,
+      shipsFrom: shipsFromText ?? undefined,
+      deliveryDays: deliveryMid ?? undefined,
+      supplierSku: baseSku,
+      sourceUrl: src || undefined,
+      importSource,
+    }
+
+    let productId: string
+    let productName: string
+    let wasCreated = false
+
+    if (upsert) {
+      const existing = await prisma.product.findFirst({
+        where: {
+          supplierId,
+          OR: [
+            { supplierSku: baseSku },
+            ...(src ? [{ sourceUrl: src }] : []),
+          ],
+        },
+        select: { id: true, name: true, active: true, categoryId: true },
+      })
+
+      if (existing) {
+        const updated = await prisma.product.update({
+          where: { id: existing.id },
+          data: productData,
+        })
+        productId = updated.id
+        productName = updated.name
+        updatedCount++
+        if (!existing.categoryId) {
+          scheduleProductAutoCategorization(existing.id)
+        }
+      } else {
+        const created = await prisma.product.create({
+          data: {
+            supplierId,
+            ...productData,
+            active,
+            supplierTag: "import",
+          },
+        })
+        productId = created.id
+        productName = created.name
+        wasCreated = true
+        createdCount++
+      }
+    } else {
+      const created = await prisma.product.create({
+        data: {
+          supplierId,
+          ...productData,
+          active,
+          supplierTag: "import",
+        },
+      })
+      productId = created.id
+      productName = created.name
+      wasCreated = true
+      createdCount++
+    }
+
     createdProducts.push({
-      id: product.id,
-      name: product.name,
+      id: productId,
+      name: productName,
       sku: baseSku,
     })
 
-    if (active && supplierStore) {
+    if (wasCreated && active && supplierStore) {
       try {
         await createNewDropCommunityPost({
           storeId: supplierStore.id,
-          productId: product.id,
-          productName: product.name,
+          productId,
+          productName,
         })
       } catch {
         /* non-fatal */
       }
     }
 
-    if (active) {
-      scheduleProductAutoCategorization(product.id)
+    if (wasCreated && active) {
+      scheduleProductAutoCategorization(productId)
     }
   }
 
-  if (createdCount === 0) {
-    return { ok: false, error: "No valid products to create", status: 400 }
+  if (createdCount === 0 && updatedCount === 0) {
+    return { ok: false, error: "No valid products to import", status: 400 }
   }
 
-  return { ok: true, createdCount, products: createdProducts }
+  return { ok: true, createdCount, updatedCount, products: createdProducts }
 }
