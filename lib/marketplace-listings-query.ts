@@ -13,7 +13,8 @@ import {
   listingWarrantyBadgeLabel,
   resolveProductWarrantyMonths,
 } from "@/lib/product-warranty"
-import { parseDeptFacetValue, parsePriceFacet } from "@/lib/marketplace-discovery-facets"
+import { parseDeptFacetValue } from "@/lib/marketplace-discovery-facets-shared"
+import { parsePriceFacet } from "@/lib/marketplace-discovery-facets"
 import { searchMarketplaceListingHits, orderByListingSearchHits } from "@/lib/marketplace-search.server"
 import { prisma } from "@/lib/prisma"
 import { normalizeListingSalesCount } from "@/lib/listing-sales-count"

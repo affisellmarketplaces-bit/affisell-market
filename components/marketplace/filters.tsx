@@ -9,7 +9,7 @@ import {
   AFFILIATE_CATALOG_PATH,
   PUBLIC_MARKETPLACE_BROWSE_PATH,
 } from "@/lib/affiliate-routes"
-import { DISCOVERY_FACET_KEYS } from "@/lib/marketplace-discovery-facets"
+import { DISCOVERY_FACET_KEYS } from "@/lib/marketplace-discovery-facets-shared"
 import type { MarketplaceFacet } from "@/lib/marketplace-facet-types"
 import { cn } from "@/lib/utils"
 

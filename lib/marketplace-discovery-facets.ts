@@ -1,24 +1,26 @@
 import type { Prisma } from "@prisma/client"
 
+import type { AppLocale } from "@/lib/i18n-locale"
+import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
+import {
+  MARKETPLACE_DELIVERY_FACET_KEY,
+  MARKETPLACE_DEPT_FACET_KEY,
+  MARKETPLACE_FREE_SHIP_FACET_KEY,
+  MARKETPLACE_PRICE_FACET_KEY,
+  MARKETPLACE_SHIPS_FACET_KEY,
+  parseDeptFacetValue,
+} from "@/lib/marketplace-discovery-facets-shared"
 import { loadMarketplaceCategoryTreeCached } from "@/lib/marketplace-category-tree"
 import type { MarketplaceFacet } from "@/lib/marketplace-facet-types"
-import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { prisma, withPrismaReconnect } from "@/lib/prisma"
-import type { AppLocale } from "@/lib/i18n-locale"
 
-const PRICE_FACET_KEY = "price"
-const SHIPS_FACET_KEY = "shipsFrom"
-const DELIVERY_FACET_KEY = "delivery"
-const FREE_SHIP_FACET_KEY = "freeShipping"
-const DEPT_FACET_KEY = "dept"
+export { DISCOVERY_FACET_KEYS, parseDeptFacetValue } from "@/lib/marketplace-discovery-facets-shared"
 
-export const DISCOVERY_FACET_KEYS = new Set([
-  PRICE_FACET_KEY,
-  SHIPS_FACET_KEY,
-  DELIVERY_FACET_KEY,
-  FREE_SHIP_FACET_KEY,
-  DEPT_FACET_KEY,
-])
+const PRICE_FACET_KEY = MARKETPLACE_PRICE_FACET_KEY
+const SHIPS_FACET_KEY = MARKETPLACE_SHIPS_FACET_KEY
+const DELIVERY_FACET_KEY = MARKETPLACE_DELIVERY_FACET_KEY
+const FREE_SHIP_FACET_KEY = MARKETPLACE_FREE_SHIP_FACET_KEY
+const DEPT_FACET_KEY = MARKETPLACE_DEPT_FACET_KEY
 
 type Labels = { fr: Record<string, string>; en: Record<string, string> }
 
@@ -180,6 +182,3 @@ export function parsePriceFacet(value: string | null): Prisma.ProductWhereInput 
   }
 }
 
-export function parseDeptFacetValue(raw: string): string {
-  return raw.split("|")[0]?.trim() ?? raw.trim()
-}
