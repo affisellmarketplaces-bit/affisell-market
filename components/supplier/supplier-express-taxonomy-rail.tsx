@@ -4,6 +4,7 @@ import { Check, Loader2, ScanLine, Sparkles, X } from "lucide-react"
 
 import type { PendingCategoryConfirmation } from "@/components/supplier/supplier-category-confirm-types"
 import type { CategoryPathSegment } from "@/lib/category-browse"
+import { hasListingClassificationSignal } from "@/lib/supplier-auto-category-policy"
 import type { ListingProductInsight } from "@/lib/listing-product-signal"
 import type { ListingCategorySuggestion } from "@/lib/supplier-suggest-listing"
 import type { SupplierCategorySuggestMeta } from "@/components/supplier/use-supplier-category-suggestions"
@@ -52,7 +53,8 @@ export function SupplierExpressTaxonomyRail({
   const awaitingConfirm =
     pendingConfirm != null && categoryId !== pendingConfirm.leafId
   const confirmed = Boolean(categoryId && pathLabel && !awaitingConfirm)
-  const scanning = loading && (name.trim().length >= 3 || Boolean(imageUrl))
+  const readyToScan = hasListingClassificationSignal(name, imageUrl)
+  const scanning = loading && readyToScan
 
   return (
     <div
@@ -157,14 +159,24 @@ export function SupplierExpressTaxonomyRail({
               </p>
             ) : null}
           </div>
-        ) : (
+        ) : !readyToScan ? (
           <div className="flex items-start gap-2 text-sm text-zinc-600 dark:text-zinc-400">
             <ScanLine className="mt-0.5 h-4 w-4 shrink-0 text-violet-500" aria-hidden />
             <p>
-              Ajoutez une <strong>photo</strong> et un <strong>nom</strong> — une proposition de
-              catégorie apparaîtra ici à confirmer.
+              {name.trim().length < 3 && !imageUrl ? (
+                <>
+                  Saisissez le <strong>titre</strong> (3 car. min.), puis la <strong>photo</strong>{" "}
+                  — le scan démarre ensuite.
+                </>
+              ) : name.trim().length < 3 ? (
+                <>Saisissez le <strong>titre</strong> du produit pour lancer le scan IA.</>
+              ) : (
+                <>Ajoutez la <strong>photo principale</strong> pour lancer le scan IA.</>
+              )}
             </p>
           </div>
+        ) : (
+          <p className="text-xs text-zinc-500">Analyse titre + photo en cours de préparation…</p>
         )}
       </div>
 

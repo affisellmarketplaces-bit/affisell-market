@@ -18,7 +18,7 @@ export type SupplierCategorySuggestMeta = {
   source: string
 }
 
-/** Photo + title → live taxonomy suggestions (vision-first when image present). */
+/** Title + main photo → live taxonomy suggestions (vision-first when both are set). */
 export function useSupplierCategorySuggestions(
   title: string,
   description: string,

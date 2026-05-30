@@ -25,10 +25,12 @@ export function shouldSuggestCategoryConfirmation(opts: {
 /** @deprecated Use shouldSuggestCategoryConfirmation — kept for API field naming. */
 export const shouldAutoApplyCategorySuggestion = shouldSuggestCategoryConfirmation
 
-/** Trigger listing suggest API when we have enough signal. */
+export const LISTING_CLASSIFY_MIN_TITLE_LEN = 3
+export const LISTING_CLASSIFY_MIN_IMAGE_URL_LEN = 8
+
+/** Trigger listing suggest API only when title and main photo are both present. */
 export function hasListingClassificationSignal(title: string, imageUrl?: string | null): boolean {
   const t = title.trim()
-  const img = imageUrl?.trim()
-  if (img && img.length > 8) return true
-  return t.length >= 3
+  const img = imageUrl?.trim() ?? ""
+  return t.length >= LISTING_CLASSIFY_MIN_TITLE_LEN && img.length > LISTING_CLASSIFY_MIN_IMAGE_URL_LEN
 }

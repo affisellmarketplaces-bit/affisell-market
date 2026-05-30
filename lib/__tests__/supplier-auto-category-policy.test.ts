@@ -6,10 +6,12 @@ import {
 } from "@/lib/supplier-auto-category-policy"
 
 describe("supplier-auto-category-policy", () => {
-  it("allows image-only signal", () => {
-    expect(hasListingClassificationSignal("", "https://cdn.example.com/a.jpg")).toBe(true)
-    expect(hasListingClassificationSignal("ab", null)).toBe(false)
-    expect(hasListingClassificationSignal("Commode 6 tiroirs", null)).toBe(true)
+  it("requires title and image before classification", () => {
+    const img = "https://cdn.example.com/a.jpg"
+    expect(hasListingClassificationSignal("", img)).toBe(false)
+    expect(hasListingClassificationSignal("ab", img)).toBe(false)
+    expect(hasListingClassificationSignal("Commode 6 tiroirs", null)).toBe(false)
+    expect(hasListingClassificationSignal("Stylo multifonction", img)).toBe(true)
   })
 
   it("prompts confirmation for AI with image at lower threshold", () => {

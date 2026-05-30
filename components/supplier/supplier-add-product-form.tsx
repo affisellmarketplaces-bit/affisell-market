@@ -2086,31 +2086,57 @@ export function SupplierAddProductForm({
                   id="add-product-express"
                   icon={ScanLine}
                   variant="accent"
-                  title="Scan IA — Photo & catégorie"
-                  description="Ajoutez d’abord la photo principale et le nom : l’arbre Affisell se remplit tout seul."
+                  title="Scan IA — Titre & photo"
+                  description="Renseignez le titre puis la photo principale : la taxonomie IA ne démarre qu’une fois les deux sont renseignés."
                   hasError={hasPublishFieldError("images") || hasPublishFieldError("name")}
                 >
                   <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
-                    <div id="add-product-media">
-                      <Label className="text-zinc-900 dark:text-zinc-100">
-                        <span className="text-red-600">*</span> Photo principale
-                      </Label>
-                      <p className="mt-0.5 text-xs text-zinc-500">
-                        La vision IA lit cette image pour classer le produit.
-                      </p>
-                      {hasPublishFieldError("images") ? (
-                        <p className="mt-1 text-xs font-medium text-red-600">
-                          {publishBlockers.find((b) => b.field === "images")?.message}
+                    <div className="space-y-6">
+                      <div id="add-product-title-express">
+                        <Label htmlFor="express-product-title" className="text-zinc-900 dark:text-zinc-100">
+                          <span className="text-red-600">*</span> Titre produit
+                        </Label>
+                        <p className="mt-0.5 text-xs text-zinc-500">
+                          Minimum 3 caractères — utilisé avec la photo pour classer le produit.
                         </p>
-                      ) : null}
-                      <div className="mt-3">
-                        <SupplierProductImageUpload
-                          initialUrls={images}
-                          onImagesChange={(urls) => {
-                            setImages(urls)
-                            if (urls.length > 0) clearPublishFieldError("images")
+                        {hasPublishFieldError("name") ? (
+                          <p className="mt-1 text-xs font-medium text-red-600">
+                            {publishBlockers.find((b) => b.field === "name")?.message}
+                          </p>
+                        ) : null}
+                        <Input
+                          id="express-product-title"
+                          className="mt-2"
+                          value={name}
+                          onChange={(e) => {
+                            setName(e.target.value)
+                            clearPublishFieldError("name")
                           }}
+                          placeholder="Ex. Stylo multifonction LED stylet"
+                          autoComplete="off"
                         />
+                      </div>
+                      <div id="add-product-media">
+                        <Label className="text-zinc-900 dark:text-zinc-100">
+                          <span className="text-red-600">*</span> Photo principale
+                        </Label>
+                        <p className="mt-0.5 text-xs text-zinc-500">
+                          La vision IA lit cette image avec le titre pour proposer la catégorie.
+                        </p>
+                        {hasPublishFieldError("images") ? (
+                          <p className="mt-1 text-xs font-medium text-red-600">
+                            {publishBlockers.find((b) => b.field === "images")?.message}
+                          </p>
+                        ) : null}
+                        <div className="mt-3">
+                          <SupplierProductImageUpload
+                            initialUrls={images}
+                            onImagesChange={(urls) => {
+                              setImages(urls)
+                              if (urls.length > 0) clearPublishFieldError("images")
+                            }}
+                          />
+                        </div>
                       </div>
                     </div>
                     <div className="space-y-4">
