@@ -501,6 +501,8 @@ model Product {
    * AI category suggestions pending manual review (see `ProductReview` model).
    */
   productReviews          ProductReview[]
+  /** AliExpress auto-buy source (1:1). */
+  supplierLink            SupplierLink?
 
   @@index([categoryId])
   @@index([aliexpressProductId])
@@ -1136,6 +1138,7 @@ model Order {
   supplierFulfillmentLinks SupplierFulfillmentOrderLine[]
   stripeRefunds            OrderStripeRefund[]
   transferAttempts         TransferAttempt[]
+  autoBuyLog               FulfillmentLog?
 
   @@index([affiliateId])
   @@index([splitStatus])
@@ -1689,6 +1692,56 @@ model VideoGenerationJob {
 
   @@index([productId])
   @@index([status])
+}
+
+/** AliExpress sourcing + auto-buy config (1:1 Product). */
+model SupplierLink {
+  id        String   @id @default(cuid())
+  productId String   @unique
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  aeProductId     String
+  aeSkuId         String?
+  aeShopId        String   @default("")
+  aePriceCents    Int
+  aeShippingCents Int      @default(0)
+  aeUrl           String
+
+  autoBuyEnabled Boolean  @default(true)
+  lastSyncAt     DateTime?
+  isActive       Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([aeProductId])
+}
+
+/** Per marketplace order — AliExpress auto-buy lifecycle (distinct from Order.fulfillmentStatus). */
+model FulfillmentLog {
+  id            String        @id @default(cuid())
+  orderId       String        @unique
+  order         Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  /** Affisell 1 order = 1 product — mirrors orderId for API compatibility. */
+  orderItemId   String
+  status        AutoBuyStatus @default(PENDING)
+  aeOrderId     String?
+  aeTracking    String?
+  virtualCardId String?
+  errorMsg      String?       @db.Text
+  attempts      Int           @default(0)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([status])
+}
+
+enum AutoBuyStatus {
+  PENDING
+  BUYING
+  BOUGHT
+  FAILED
+  REFUNDED
 }
 
 /** Stripe webhook idempotence (event.id = evt_…). */

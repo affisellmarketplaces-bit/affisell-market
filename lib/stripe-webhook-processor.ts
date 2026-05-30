@@ -252,6 +252,16 @@ async function dispatchStripeEvent(
       const blindId = pi.metadata?.blindDropshipOrderId?.trim()
       if (!blindId || pi.metadata?.flow !== "blind_dropship") {
         try {
+          const { triggerAutoBuyForPaymentIntent } = await import("@/lib/fulfillment/auto-buy")
+          await triggerAutoBuyForPaymentIntent(pi)
+        } catch (e) {
+          logStripeWebhookError({
+            metric: "auto_buy_payment_intent_trigger_failed",
+            paymentIntentId: pi.id,
+          })
+          captureStripeWebhookException(e, { paymentIntentId: pi.id })
+        }
+        try {
           await processMarketplaceCommissionForPaymentIntent(pi)
         } catch (error) {
           await handleStripeTransferError(error, null, tx)

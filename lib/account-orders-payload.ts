@@ -40,6 +40,23 @@ export type BuyerOrderRow = {
     buyerTrackingNumber: string | null
   } | null
   lastReturn: { id: string; status: string; createdAt: string; terminal: boolean } | null
+  autoBuy?: {
+    status: string
+    labelFr: string
+    labelEn: string
+    aeTracking: string | null
+  } | null
+}
+
+function autoBuyBuyerLabels(status: string): { labelFr: string; labelEn: string } {
+  const map: Record<string, { labelFr: string; labelEn: string }> = {
+    PENDING: { labelFr: "Achat fournisseur en attente", labelEn: "Supplier purchase pending" },
+    BUYING: { labelFr: "Achat fournisseur en cours", labelEn: "Supplier purchase in progress" },
+    BOUGHT: { labelFr: "Expédié par fournisseur", labelEn: "Shipped by supplier" },
+    FAILED: { labelFr: "Problème fournisseur", labelEn: "Supplier issue" },
+    REFUNDED: { labelFr: "Remboursé (rupture stock)", labelEn: "Refunded (out of stock)" },
+  }
+  return map[status] ?? { labelFr: "Fournisseur", labelEn: "Supplier" }
 }
 
 function blindReturnWindowEnds(createdAt: Date): Date {
@@ -60,6 +77,9 @@ export async function buildBuyerOrdersPayloadForEmail(customerEmail: string): Pr
       include: {
         product: { select: { id: true, name: true, images: true } },
         returns: { orderBy: { createdAt: "desc" } },
+        autoBuyLog: {
+          select: { status: true, aeTracking: true },
+        },
       },
     }),
     prisma.blindDropshipOrder.findMany({
@@ -131,6 +151,13 @@ export async function buildBuyerOrdersPayloadForEmail(customerEmail: string): Pr
             status: latest.status,
             createdAt: latest.createdAt.toISOString(),
             terminal: isTerminalReturnStatus(latest.status),
+          }
+        : null,
+      autoBuy: o.autoBuyLog
+        ? {
+            status: o.autoBuyLog.status,
+            ...autoBuyBuyerLabels(o.autoBuyLog.status),
+            aeTracking: o.autoBuyLog.aeTracking,
           }
         : null,
     }

@@ -40,6 +40,12 @@ type OrderRow = {
     buyerTrackingNumber: string | null
   } | null
   lastReturn: { id: string; status: string; createdAt: string; terminal: boolean } | null
+  autoBuy?: {
+    status: string
+    labelFr: string
+    labelEn: string
+    aeTracking: string | null
+  } | null
 }
 
 function statusLabel(status: string) {
@@ -182,7 +188,17 @@ export function AccountOrdersClient({
                   </div>
                 </div>
               ) : null}
-              {o.trackingNumber ? (
+              {o.autoBuy ? (
+                <p className="mt-2 text-xs font-medium text-violet-800 dark:text-violet-200">
+                  {lang === "fr" ? o.autoBuy.labelFr : o.autoBuy.labelEn}
+                  {o.autoBuy.aeTracking
+                    ? ` · ${lang === "fr" ? "Suivi" : "Tracking"}: ${o.autoBuy.aeTracking}`
+                    : o.trackingNumber
+                      ? ` · ${o.trackingCarrier ?? "AliExpress"} ${o.trackingNumber}`
+                      : null}
+                </p>
+              ) : null}
+              {o.trackingNumber && !o.autoBuy?.aeTracking ? (
                 <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
                   Tracking: {o.trackingCarrier ?? "Carrier"} {o.trackingNumber}
                 </p>

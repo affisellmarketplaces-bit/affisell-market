@@ -40,6 +40,19 @@ export async function resolveFulfillmentChannel(
     return { channel: "BLIND_REST", providerId: provider.id }
   }
 
+  const supplierLink = await prisma.supplierLink.findUnique({
+    where: { productId: product.id },
+    select: { isActive: true, autoBuyEnabled: true, aeProductId: true },
+  })
+  if (
+    supplierLink?.isActive &&
+    supplierLink.autoBuyEnabled &&
+    supplierLink.aeProductId.trim()
+  ) {
+    const provider = await ensurePlatformProvider("aliexpress", "ALIEXPRESS", "AliExpress")
+    return { channel: "ALIEXPRESS", providerId: provider.id }
+  }
+
   if (product.importSource === "aliexpress" && product.aliexpressProductId) {
     const provider = await ensurePlatformProvider("aliexpress", "ALIEXPRESS", "AliExpress")
     return { channel: "ALIEXPRESS", providerId: provider.id }
