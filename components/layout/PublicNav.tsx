@@ -60,7 +60,7 @@ export function PublicNav() {
         </motion.span>
       </Link>
 
-      <div className="col-start-3 row-start-1 flex shrink-0 items-center justify-end gap-1.5 sm:gap-2 lg:col-start-4">
+      <div className="relative z-20 col-start-3 row-start-1 flex shrink-0 items-center justify-end gap-1.5 sm:gap-2 lg:col-start-4">
         <LanguageSwitcher />
         <ThemeToggle />
         <Link

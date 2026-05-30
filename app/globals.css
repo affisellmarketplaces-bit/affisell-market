@@ -581,8 +581,10 @@
 
   .affisell-header-shell {
     position: relative;
-    overflow: hidden;
-    isolation: isolate;
+    /* Visible so locale / account dropdowns are not clipped below the bar */
+    overflow: visible;
+    /* Avoid trapping header dropdowns under page bands (hero) */
+    isolation: auto;
     border-radius: 1.5rem;
     border: 1px solid color-mix(in srgb, var(--brand) 22%, white 18%);
     background:
@@ -645,6 +647,10 @@
 
   .dark .affisell-header-mesh {
     opacity: 0.28;
+  }
+
+  .affisell-locale-menu {
+    z-index: 300;
   }
 
   .affisell-badge {
