@@ -59,6 +59,28 @@ function autoBuyBuyerLabels(status: string): { labelFr: string; labelEn: string 
   return map[status] ?? { labelFr: "Fournisseur", labelEn: "Supplier" }
 }
 
+type AutoBuyLogSnippet = { status: string; aeTracking: string | null }
+
+async function loadAutoBuyLogsByOrderId(
+  orderIds: string[]
+): Promise<Map<string, AutoBuyLogSnippet>> {
+  if (orderIds.length === 0) return new Map()
+
+  try {
+    const logs = await prisma.fulfillmentLog.findMany({
+      where: { orderId: { in: orderIds } },
+      select: { orderId: true, status: true, aeTracking: true },
+    })
+    return new Map(logs.map((log) => [log.orderId, log]))
+  } catch (e) {
+    console.warn("[account-orders]", {
+      metric: "auto_buy_log_query_skipped",
+      error: e instanceof Error ? e.message : String(e),
+    })
+    return new Map()
+  }
+}
+
 function blindReturnWindowEnds(createdAt: Date): Date {
   const d = new Date(createdAt)
   d.setDate(d.getDate() + 30)
@@ -77,9 +99,6 @@ export async function buildBuyerOrdersPayloadForEmail(customerEmail: string): Pr
       include: {
         product: { select: { id: true, name: true, images: true } },
         returns: { orderBy: { createdAt: "desc" } },
-        autoBuyLog: {
-          select: { status: true, aeTracking: true },
-        },
       },
     }),
     prisma.blindDropshipOrder.findMany({
@@ -98,7 +117,10 @@ export async function buildBuyerOrdersPayloadForEmail(customerEmail: string): Pr
     }),
   ])
 
+  const autoBuyByOrderId = await loadAutoBuyLogsByOrderId(marketplaceOrders.map((o) => o.id))
+
   const rows: BuyerOrderRow[] = marketplaceOrders.map((o) => {
+    const autoBuyLog = autoBuyByOrderId.get(o.id)
     const active = getActiveReturn(o.returns)
     const latest = o.returns[0] ?? null
     return {
@@ -153,11 +175,11 @@ export async function buildBuyerOrdersPayloadForEmail(customerEmail: string): Pr
             terminal: isTerminalReturnStatus(latest.status),
           }
         : null,
-      autoBuy: o.autoBuyLog
+      autoBuy: autoBuyLog
         ? {
-            status: o.autoBuyLog.status,
-            ...autoBuyBuyerLabels(o.autoBuyLog.status),
-            aeTracking: o.autoBuyLog.aeTracking,
+            status: autoBuyLog.status,
+            ...autoBuyBuyerLabels(autoBuyLog.status),
+            aeTracking: autoBuyLog.aeTracking,
           }
         : null,
     }
