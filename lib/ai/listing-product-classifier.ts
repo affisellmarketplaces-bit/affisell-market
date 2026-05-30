@@ -91,11 +91,23 @@ export async function classifyListingProductForCategories(
 
   const listBlock = options.allowedBreadcrumbs.join("\n")
   const contextBlock = formatListingContextForAi(ctx)
+  const imageUrl = options.imageUrl?.trim()
+  const visionFirst = Boolean(imageUrl)
 
-  const system = `Tu es le moteur de catégorisation Affisell pour fournisseurs.
+  const systemHead = visionFirst
+    ? `Tu es le moteur de catégorisation Affisell (mode vision + titre).
 
-Étape A — Identifie le PRODUIT VENDU à partir du TITRE UNIQUEMENT (priorité absolue).
+Étape A — Analyse la PHOTO du produit : forme, usage, matériau, catégorie e-commerce évidente.
+Étape B — Croise avec le TITRE fournisseur (s'il est court ou absent, la photo prime).
+Étape C — Choisis 1 à 3 catégories UNIQUEMENT dans la liste (copie exacte du libellé).
+`
+    : `Tu es le moteur de catégorisation Affisell pour fournisseurs.
+
+Étape A — Identifie le PRODUIT VENDU à partir du TITRE (priorité absolue).
 Étape B — Choisis 1 à 3 catégories compatibles UNIQUEMENT dans la liste (copie exacte du libellé).
+`
+
+  const systemTail = `
 
 Réponds en JSON valide:
 {
@@ -112,7 +124,7 @@ Réponds en JSON valide:
 }
 
 Règles identity:
-- productNameFr = nom court du produit extrait du TITRE (ex. "moustiquaire de porte", pas la marque).
+- productNameFr = nom court du produit (photo + titre), sans marque marketing.
 - mustNotCategories = rayons INTERDITS si le titre parle clairement d'autre chose.
   Ex. moustiquaire → exclure colles, adhésifs, aquarium, artisanat.
   Ex. ventilateur → exclure vélo, lampes sécurité.
@@ -120,7 +132,7 @@ Règles identity:
 
 Règles suggestions:
 - "category" = copie exacte d'une ligne de la liste.
-- reason cite le NOM PRODUIT du titre, jamais un accessoire (adhésif, magnétique, lampe…).
+- reason cite le type de produit identifié (photo ou titre), jamais un accessoire seul (adhésif, lampe…).
 - NE JAMAIS classer d'après une description marketing longue — elle est absente ou filtrée volontairement.
 - Moustiquaires / rideaux anti-insectes → Maison et jardin > Habillages de fenêtre > Moustiquaires pour fenêtre
   OU Équipements sportifs > Camping > Moustiquaires. JAMAIS colles, adhésifs, aquarium.
@@ -130,8 +142,11 @@ Règles suggestions:
 LISTE AUTORISÉE:
 ${listBlock}`
 
-  const imageUrl = options.imageUrl?.trim()
-  const userText = contextBlock
+  const system = systemHead + systemTail
+
+  const userText = visionFirst
+    ? `${contextBlock}\n\nConsigne: si le titre est vide ou générique, déduis le produit uniquement depuis l'image.`
+    : contextBlock
   const userContent = imageUrl
     ? [
         { type: "text" as const, text: userText },

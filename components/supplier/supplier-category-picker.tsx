@@ -178,7 +178,7 @@ export function SupplierCategoryPicker({
 
   const sourceLabel = (src?: ListingCategorySuggestion["suggestionSource"]) => {
     if (src === "catalog") return "Catalogue"
-    if (src === "ai") return "IA titre"
+    if (src === "ai") return "IA vision"
     if (src === "keyword") return "Mot-clé"
     return null
   }
@@ -220,8 +220,9 @@ export function SupplierCategoryPicker({
                 Suggestions intelligentes
               </p>
               <p className="mt-0.5 text-xs leading-relaxed text-violet-900/85 dark:text-violet-200/85">
-                Le moteur analyse le <strong className="font-semibold">nom du produit dans le titre</strong>.
-                La description marketing longue est ignorée — seuls vos points courts (puces) peuvent confirmer.
+                Le moteur analyse la <strong className="font-semibold">photo</strong> et le{" "}
+                <strong className="font-semibold">nom</strong> sur l’arbre Affisell. La description longue
+                est ignorée pour la taxonomie.
               </p>
             </div>
           </div>

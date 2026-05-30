@@ -22,6 +22,11 @@ import {
 } from "@/lib/category-title-match"
 import type { PrismaClient } from "@prisma/client"
 
+import {
+  hasListingClassificationSignal,
+  shouldAutoApplyCategorySuggestion,
+} from "@/lib/supplier-auto-category-policy"
+
 export type ListingCategorySuggestion = LeafPath & {
   confidence?: number
   suggestionSource?: "catalog" | "ai" | "keyword"
@@ -32,8 +37,13 @@ export type SuggestListingCategoriesResult = {
   suggestions: ListingCategorySuggestion[]
   alternatives: CategoryAlternativeSuggestion[]
   recommendedLeafId: string | null
+  /** True when recommendedLeafId is strong enough for silent auto-apply in the form. */
+  autoApplyRecommended: boolean
   source: "none" | "empty" | "keyword" | "ai" | "hybrid" | "catalog"
   productInsight: ListingProductInsight | null
+  visionUsed: boolean
+  /** Filled from vision when supplier title is empty/short. */
+  suggestedProductName: string | null
 }
 
 const MIN_KEYWORD_SCORE_FOR_MERGE = 7
@@ -99,21 +109,28 @@ export async function suggestListingCategories(
   }
 ): Promise<SuggestListingCategoriesResult> {
   const t = title.trim()
-  let ctx = buildListingProductContext(t, {
-    description: description.trim(),
-    bullets: options?.bullets,
-  })
-  const insight = listingProductInsight(ctx)
+  const imageUrl = options?.imageUrl?.trim() || null
+  const visionUsed = Boolean(imageUrl)
 
-  if (t.length < 2) {
+  if (!hasListingClassificationSignal(t, imageUrl)) {
     return {
       suggestions: [],
       alternatives: [],
       recommendedLeafId: null,
+      autoApplyRecommended: false,
       source: "none",
       productInsight: null,
+      visionUsed,
+      suggestedProductName: null,
     }
   }
+
+  const titleForCtx = t.length >= 2 ? t : visionUsed ? "Produit" : t
+  let ctx = buildListingProductContext(titleForCtx, {
+    description: description.trim(),
+    bullets: options?.bullets,
+  })
+  const insight = listingProductInsight(ctx)
 
   const rows = await fetchAllCategoriesForBrowse(client)
   const { leafPaths } = buildCategoryBrowse(rows)
@@ -123,8 +140,11 @@ export async function suggestListingCategories(
       suggestions: [],
       alternatives: [],
       recommendedLeafId: null,
+      autoApplyRecommended: false,
       source: "empty",
       productInsight: insight,
+      visionUsed,
+      suggestedProductName: null,
     }
   }
 
@@ -152,16 +172,20 @@ export async function suggestListingCategories(
   let aiPicks: LeafPath[] = []
   let aiConfidences = new Map<string, number>()
   let aiReasons = new Map<string, string>()
+  let suggestedProductName: string | null = null
 
   if (process.env.GROQ_API_KEY?.trim()) {
     const { identity, suggestions: aiRows } = await classifyListingProductForCategories(ctx, {
       allowedBreadcrumbs: aiBreadcrumbs,
       leafPaths: catalogLeaves.length > 0 ? catalogLeaves : leafPaths,
-      imageUrl: options?.imageUrl,
+      imageUrl,
     })
 
     if (identity?.productNameFr) {
       ctx = { ...ctx, productName: identity.productNameFr, classificationFocus: identity.productNameFr }
+      if (t.length < 5 && identity.productNameFr.length >= 3) {
+        suggestedProductName = identity.productNameFr
+      }
     }
 
     for (const row of aiRows) {
@@ -248,17 +272,42 @@ export async function suggestListingCategories(
     finalSource = finalSuggestions.length > 0 ? "keyword" : source
   }
 
+  const top = finalSuggestions[0] ?? null
+  const autoApplyRecommended =
+    top != null &&
+    shouldAutoApplyCategorySuggestion({
+      confidence: top.confidence ?? 0,
+      suggestionSource: top.suggestionSource,
+      hasImage: visionUsed,
+    })
+
+  const recommendedLeafId =
+    top &&
+    (autoApplyRecommended ||
+      catalogIds.has(top.leafId) ||
+      finalTopScore >= MIN_KEYWORD_SCORE_FOR_MERGE ||
+      (finalSource === "keyword" && finalTopScore >= 5))
+      ? top.leafId
+      : null
+
+  const baseInsight = listingProductInsight(ctx) ?? insight
+  const productInsightOut: ListingProductInsight | null = baseInsight
+    ? {
+        ...baseInsight,
+        focusLabel: visionUsed
+          ? `Scan photo + titre → ${baseInsight.productName}`
+          : baseInsight.focusLabel,
+      }
+    : null
+
   return {
     suggestions: finalSuggestions,
     alternatives,
-    recommendedLeafId:
-      finalSuggestions[0] &&
-      (catalogIds.has(finalSuggestions[0].leafId) ||
-        finalTopScore >= MIN_KEYWORD_SCORE_FOR_MERGE ||
-        (finalSource === "keyword" && finalTopScore >= 5))
-        ? finalSuggestions[0].leafId
-        : null,
+    recommendedLeafId,
+    autoApplyRecommended,
     source: finalSource,
-    productInsight: listingProductInsight(ctx) ?? insight,
+    productInsight: productInsightOut,
+    visionUsed,
+    suggestedProductName,
   }
 }

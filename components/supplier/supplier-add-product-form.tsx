@@ -18,6 +18,7 @@ import {
   Trash2,
   Package,
   Sparkles,
+  ScanLine,
   Globe2,
   Layers,
   Store,
@@ -71,7 +72,9 @@ import {
   type WizardQualityItem,
 } from "@/components/supplier/supplier-wizard-quality-panel"
 import { useSupplierProductWizardStore, type WizardStep } from "@/stores/supplier-product-wizard-store"
+import { SupplierExpressTaxonomyRail } from "@/components/supplier/supplier-express-taxonomy-rail"
 import { useSupplierCategorySuggestions } from "@/components/supplier/use-supplier-category-suggestions"
+import { shouldAutoApplyCategorySuggestion } from "@/lib/supplier-auto-category-policy"
 import {
   mergeCoreCategoryAttrs,
   missingRequiredCategorySpecs,
@@ -375,6 +378,9 @@ export function SupplierAddProductForm({
 
   const [debouncedCategoryBullets] = useDebounce(categoryMatchBullets, 500)
   const [categoryAiTag, setCategoryAiTag] = useState(false)
+  const [categoryManualLock, setCategoryManualLock] = useState(false)
+  const lastAutoCategoryFingerprintRef = useRef("")
+  const lastSuggestedTitleRef = useRef("")
   const lastTitleParserKeyRef = useRef<string | null>(null)
   const [shippingCountry, setShippingCountry] = useState("")
   const [warehouseType, setWarehouseType] = useState<"" | "local" | "regional" | "international">("")
@@ -528,6 +534,7 @@ export function SupplierAddProductForm({
     alternatives: categoryAlternativeSuggestions,
     productInsight: categoryProductInsight,
     loading: categorySuggestionsLoading,
+    meta: categorySuggestMeta,
   } = useSupplierCategorySuggestions(
     debouncedName,
     description,
@@ -536,6 +543,8 @@ export function SupplierAddProductForm({
     images[0] ?? null
   )
 
+  const topCategorySuggestion = categorySuggestions[0] ?? null
+
   const applyCategory = useCallback(
     (leafId: string, path: CategoryPathSegment[], origin: CategoryPickOrigin = "manual") => {
       setCategoryId(leafId)
@@ -543,9 +552,25 @@ export function SupplierAddProductForm({
       setSpecValues({})
       setSpecFormErrors([])
       setCategoryAiTag(origin === "suggested")
+      if (origin === "manual") setCategoryManualLock(true)
     },
     []
   )
+
+  useEffect(() => {
+    lastAutoCategoryFingerprintRef.current = ""
+    lastSuggestedTitleRef.current = ""
+    setCategoryManualLock(false)
+  }, [images[0], debouncedName])
+
+  useEffect(() => {
+    const suggested = categorySuggestMeta.suggestedProductName?.trim()
+    if (!suggested || name.trim().length >= 5) return
+    if (lastSuggestedTitleRef.current === suggested) return
+    lastSuggestedTitleRef.current = suggested
+    setName(suggested)
+    toast.info("Nom produit suggéré depuis la photo", { description: suggested })
+  }, [categorySuggestMeta.suggestedProductName, name])
 
   useEffect(() => {
     const title = debouncedName.trim()
@@ -1685,6 +1710,58 @@ export function SupplierAddProductForm({
     setPublishBlockers((prev) => prev.filter((b) => b.field !== field))
   }, [])
 
+  useEffect(() => {
+    if (categoryManualLock || !browse || categorySuggestionsLoading) return
+
+    const leafId =
+      categorySuggestMeta.recommendedLeafId &&
+      categorySuggestions.some((s) => s.leafId === categorySuggestMeta.recommendedLeafId)
+        ? categorySuggestMeta.recommendedLeafId
+        : topCategorySuggestion?.leafId ?? null
+
+    const pick =
+      categorySuggestions.find((s) => s.leafId === leafId) ?? topCategorySuggestion
+
+    if (!pick?.leafId) return
+
+    const autoOk =
+      categorySuggestMeta.autoApplyRecommended ||
+      shouldAutoApplyCategorySuggestion({
+        confidence: pick.confidence ?? 0,
+        suggestionSource: pick.suggestionSource,
+        hasImage: Boolean(images[0]?.trim()),
+      })
+
+    if (!autoOk) return
+    if (categoryId === pick.leafId) return
+
+    const fingerprint = `${images[0] ?? ""}|${debouncedName}|${pick.leafId}`
+    if (lastAutoCategoryFingerprintRef.current === fingerprint) return
+    lastAutoCategoryFingerprintRef.current = fingerprint
+
+    const path = pathFromLeafId(pick.leafId, browse.nodes)
+    if (!path?.length) return
+
+    applyCategory(pick.leafId, path, "suggested")
+    clearPublishFieldError("category")
+    toast.success("Catégorie appliquée automatiquement", {
+      description: pick.breadcrumb,
+    })
+  }, [
+    applyCategory,
+    browse,
+    categoryId,
+    categoryManualLock,
+    categorySuggestMeta.autoApplyRecommended,
+    categorySuggestMeta.recommendedLeafId,
+    categorySuggestions,
+    categorySuggestionsLoading,
+    clearPublishFieldError,
+    debouncedName,
+    images,
+    topCategorySuggestion,
+  ])
+
   const applyPublishBlockers = useCallback(
     (blockers: PublishBlocker[]) => {
       if (blockers.length === 0) return
@@ -1762,7 +1839,7 @@ export function SupplierAddProductForm({
         anchorId: "add-product-classify",
       },
       { id: "specs", label: "Specs", done: step1Checklist.specs, anchorId: "product-spec-fields" },
-      { id: "photos", label: "Photos", done: step1Checklist.images, anchorId: "add-product-media" },
+      { id: "photos", label: "Photos", done: step1Checklist.images, anchorId: "add-product-express" },
       {
         id: "price",
         label: "Prix",
@@ -1918,6 +1995,13 @@ export function SupplierAddProductForm({
                     <button
                       type="button"
                       className={jumpBtnClass}
+                      onClick={() => scrollToSection("add-product-express")}
+                    >
+                      Scan IA
+                    </button>
+                    <button
+                      type="button"
+                      className={jumpBtnClass}
                       onClick={() => scrollToSection("add-product-story")}
                     >
                       {tForm("jumpStory")}
@@ -1928,13 +2012,6 @@ export function SupplierAddProductForm({
                       onClick={() => scrollToSection("add-product-classify")}
                     >
                       Category & specs
-                    </button>
-                    <button
-                      type="button"
-                      className={jumpBtnClass}
-                      onClick={() => scrollToSection("add-product-media")}
-                    >
-                      Photos
                     </button>
                   </div>
                 </div>
@@ -1970,13 +2047,60 @@ export function SupplierAddProductForm({
                   </SectionCard>
                 ) : null}
 
+                <SectionCard
+                  id="add-product-express"
+                  icon={ScanLine}
+                  variant="accent"
+                  title="Scan IA — Photo & catégorie"
+                  description="Ajoutez d’abord la photo principale et le nom : l’arbre Affisell se remplit tout seul."
+                  hasError={hasPublishFieldError("images") || hasPublishFieldError("name")}
+                >
+                  <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+                    <div id="add-product-media">
+                      <Label className="text-zinc-900 dark:text-zinc-100">
+                        <span className="text-red-600">*</span> Photo principale
+                      </Label>
+                      <p className="mt-0.5 text-xs text-zinc-500">
+                        La vision IA lit cette image pour classer le produit.
+                      </p>
+                      {hasPublishFieldError("images") ? (
+                        <p className="mt-1 text-xs font-medium text-red-600">
+                          {publishBlockers.find((b) => b.field === "images")?.message}
+                        </p>
+                      ) : null}
+                      <div className="mt-3">
+                        <SupplierProductImageUpload
+                          initialUrls={images}
+                          onImagesChange={(urls) => {
+                            setImages(urls)
+                            if (urls.length > 0) clearPublishFieldError("images")
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <SupplierExpressTaxonomyRail
+                        name={name}
+                        imageUrl={images[0] ?? null}
+                        categoryPath={categoryPath}
+                        categoryId={categoryId}
+                        categoryAiTag={categoryAiTag}
+                        loading={categorySuggestionsLoading}
+                        meta={categorySuggestMeta}
+                        topSuggestion={topCategorySuggestion}
+                        productInsight={categoryProductInsight}
+                      />
+                    </div>
+                  </div>
+                </SectionCard>
+
                 <div className="grid gap-8 xl:grid-cols-12 xl:gap-x-10 xl:items-start">
                   <div className="space-y-8 xl:col-span-5">
                     <SectionCard
                       id="add-product-story"
                       icon={Package}
                       title="Product story"
-                      description="Name and description appear to affiliates and on your storefront."
+                      description="Nom optimisé et description pour les affiliés et votre boutique."
                       hasError={hasPublishFieldError("name")}
                     >
                       <SupplierTitleOptimizer
@@ -2131,55 +2255,23 @@ export function SupplierAddProductForm({
                     </SectionCard>
                   </div>
 
-                  <div className="space-y-8 xl:col-span-12">
-                    <SectionCard
-                      id="add-product-media"
-                      icon={ImageIcon}
-                      title="Visual assets"
-                      description="Strong photos convert—multiple angles and lifestyle shots win."
-                      hasError={hasPublishFieldError("images")}
-                    >
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <Label className="inline-flex items-center gap-1 text-zinc-900 dark:text-zinc-100">
-                          <span className="text-red-600">*</span>
-                          Images
-                        </Label>
-                        <button
-                          type="button"
-                          className="rounded-full p-0.5 text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-                          title="Five or more images typically perform best."
-                          aria-label="Image count tip"
-                        >
-                          <CircleHelp className="h-4 w-4 shrink-0" aria-hidden />
-                        </button>
-                      </div>
-                      <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-                        Upload several angles; five or more is ideal for marketplace trust.
-                      </p>
-                      {hasPublishFieldError("images") ? (
-                        <p className="text-xs font-medium text-red-600 dark:text-red-400">
-                          {publishBlockers.find((b) => b.field === "images")?.message}
-                        </p>
-                      ) : null}
-                      <div className="mt-3 space-y-4">
-                        <SupplierProductImageUpload
-                          initialUrls={images}
-                          onImagesChange={(urls) => {
-                            setImages(urls)
-                            if (urls.length > 0) clearPublishFieldError("images")
+                  {editId ? (
+                    <div className="space-y-8 xl:col-span-12">
+                      <SectionCard
+                        id="add-product-media-extra"
+                        icon={ImageIcon}
+                        title="Vidéo produit"
+                        description="Optionnel — vidéo attachée au listing."
+                      >
+                        <AttachProductVideoActions
+                          productId={editId}
+                          onAttached={(result) => {
+                            setDescriptionIllustrationVideos(result.descriptionIllustrationVideos)
                           }}
                         />
-                        {editId ? (
-                          <AttachProductVideoActions
-                            productId={editId}
-                            onAttached={(result) => {
-                              setDescriptionIllustrationVideos(result.descriptionIllustrationVideos)
-                            }}
-                          />
-                        ) : null}
-                      </div>
-                    </SectionCard>
-                  </div>
+                      </SectionCard>
+                    </div>
+                  ) : null}
                 </div>
 
                 <div className="flex flex-col gap-3 border-t border-zinc-200 pt-6 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-end">
