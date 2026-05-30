@@ -14,6 +14,8 @@ import { cn } from "@/lib/utils"
 type Props = {
   productId: string
   className?: string
+  ariaLabelAdd?: string
+  ariaLabelRemove?: string
 }
 
 function formatLikeCount(n: number): string {
@@ -22,7 +24,12 @@ function formatLikeCount(n: number): string {
   return String(n)
 }
 
-export function WishlistHeart({ productId, className }: Props) {
+export function WishlistHeart({
+  productId,
+  className,
+  ariaLabelAdd,
+  ariaLabelRemove,
+}: Props) {
   const t = useTranslations("wishlist.heart")
   const [wished, setWished] = useState(false)
   const [dropPercent, setDropPercent] = useState(0)
@@ -73,7 +80,7 @@ export function WishlistHeart({ productId, className }: Props) {
     <div className={cn("flex flex-col items-end gap-1", className)}>
       <button
         type="button"
-        aria-label={wished ? t("remove") : t("add")}
+        aria-label={wished ? ariaLabelRemove ?? t("remove") : ariaLabelAdd ?? t("add")}
         aria-pressed={wished}
         onClick={(e) => {
           e.preventDefault()

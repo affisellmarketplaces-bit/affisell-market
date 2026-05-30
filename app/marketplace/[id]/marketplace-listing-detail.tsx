@@ -30,6 +30,7 @@ import { VerifiedBadge } from "@/components/suppliers/verified-badge"
 import { Button } from "@/components/ui/button"
 import { MobilePdpBuyPanel } from "@/components/product/mobile-pdp-buy-panel"
 import { ProductMediaGallery } from "@/components/product/product-media-gallery"
+import { ProductVideoWishlistOverlay } from "@/components/product/product-video-wishlist-overlay"
 import messages from "@/messages/en.json"
 import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
 import {
@@ -276,9 +277,11 @@ function StarRatingRow({ value, count }: { value: number; count: number }) {
 }
 
 function DescriptionIllustrativeMedia({
+  productId,
   images,
   videos,
 }: {
+  productId: string
   images: string[]
   videos: string[]
 }) {
@@ -308,40 +311,45 @@ function DescriptionIllustrativeMedia({
             const vm = !yt ? vimeoEmbedSrc(url) : null
             const mp4 = !yt && !vm && isDirectMp4Url(url)
             return (
-              <li key={url} className="overflow-hidden rounded-xl border border-zinc-200 bg-black/5 dark:border-zinc-700">
-                {yt ? (
-                  <iframe
-                    title="Product video"
-                    src={yt}
-                    className="aspect-video w-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                    loading="lazy"
-                  />
-                ) : vm ? (
-                  <iframe
-                    title="Product video"
-                    src={vm}
-                    className="aspect-video w-full"
-                    allow="autoplay; fullscreen; picture-in-picture"
-                    allowFullScreen
-                    loading="lazy"
-                  />
-                ) : mp4 ? (
-                  <video
-                    src={url}
-                    className="aspect-video w-full bg-black"
-                    controls
-                    playsInline
-                    preload="metadata"
-                    controlsList="nodownload"
-                    onContextMenu={(e) => e.preventDefault()}
-                  />
-                ) : (
-                  <p className="p-3 text-xs text-zinc-500">
-                    Unsupported video link — use YouTube, Vimeo, or a direct .mp4 URL.
-                  </p>
-                )}
+              <li key={url}>
+                <ProductVideoWishlistOverlay
+                  productId={productId}
+                  className="rounded-xl border border-zinc-200 bg-black/5 dark:border-zinc-700"
+                >
+                  {yt ? (
+                    <iframe
+                      title="Product video"
+                      src={yt}
+                      className="aspect-video w-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                      loading="lazy"
+                    />
+                  ) : vm ? (
+                    <iframe
+                      title="Product video"
+                      src={vm}
+                      className="aspect-video w-full"
+                      allow="autoplay; fullscreen; picture-in-picture"
+                      allowFullScreen
+                      loading="lazy"
+                    />
+                  ) : mp4 ? (
+                    <video
+                      src={url}
+                      className="aspect-video w-full bg-black"
+                      controls
+                      playsInline
+                      preload="metadata"
+                      controlsList="nodownload"
+                      onContextMenu={(e) => e.preventDefault()}
+                    />
+                  ) : (
+                    <p className="p-3 text-xs text-zinc-500">
+                      Unsupported video link — use YouTube, Vimeo, or a direct .mp4 URL.
+                    </p>
+                  )}
+                </ProductVideoWishlistOverlay>
               </li>
             )
           })}
@@ -873,6 +881,7 @@ export function MarketplaceListingDetail({
                   setSelectedImage(i)
                 }}
                 videoUrl={galleryListingVideoUrl}
+                productId={productId}
                 alt={name}
                 overlay={
                   has3D ? (
@@ -1836,6 +1845,7 @@ export function MarketplaceListingDetail({
                   </button>
                 ) : null}
                 <DescriptionIllustrativeMedia
+                  productId={productId}
                   images={descriptionIllustrationImages}
                   videos={descriptionIllustrationVideos}
                 />

@@ -5,6 +5,7 @@ import { Film, Maximize2, Play } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { useTranslations } from "next-intl"
 
+import { ProductVideoWishlistOverlay } from "@/components/product/product-video-wishlist-overlay"
 import { cn } from "@/lib/utils"
 
 const PLACEHOLDER = "/placeholder-product.jpg"
@@ -14,6 +15,7 @@ export type MobileProductGalleryCarouselProps = {
   activeIndex: number
   onSelectIndex: (index: number) => void
   videoUrl?: string | null
+  productId?: string
   alt: string
   overlay?: ReactNode
   onOpenLightbox: (index: number) => void
@@ -31,6 +33,7 @@ export function MobileProductGalleryCarousel({
   activeIndex,
   onSelectIndex,
   videoUrl,
+  productId,
   alt,
   overlay,
   onOpenLightbox,
@@ -147,7 +150,7 @@ export function MobileProductGalleryCarousel({
           >
             <div className="relative aspect-[5/6] max-h-[min(42dvh,22rem)] w-full overflow-hidden rounded-2xl border border-zinc-200/70 bg-gradient-to-b from-zinc-50 to-white shadow-[0_20px_50px_-28px_rgba(91,33,217,0.35)] dark:border-zinc-700/80 dark:from-zinc-900 dark:to-zinc-950 sm:max-h-[min(44dvh,24rem)]">
               {slide.kind === "video" ? (
-                <>
+                <ProductVideoWishlistOverlay productId={productId ?? ""} className="h-full w-full">
                   <video
                     src={videoUrl!}
                     className="h-full w-full object-contain"
@@ -157,13 +160,13 @@ export function MobileProductGalleryCarousel({
                     controlsList="nodownload"
                     onContextMenu={(e) => e.preventDefault()}
                   />
-                  <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center gap-1.5 bg-gradient-to-b from-black/55 to-transparent px-3 py-2.5">
+                  <div className="pointer-events-none absolute inset-x-0 top-0 z-[1] flex items-center gap-1.5 bg-gradient-to-b from-black/55 to-transparent px-3 py-2.5 pr-14">
                     <Film className="size-3.5 text-white/90" aria-hidden />
                     <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/95">
                       {t("video")}
                     </p>
                   </div>
-                </>
+                </ProductVideoWishlistOverlay>
               ) : (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}

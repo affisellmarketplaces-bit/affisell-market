@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import { useTranslations } from "next-intl"
 
 import { MobileProductGalleryCarousel } from "@/components/product/mobile-product-gallery-carousel"
+import { ProductVideoWishlistOverlay } from "@/components/product/product-video-wishlist-overlay"
 import { ProductGalleryLightbox } from "@/components/product/product-gallery-lightbox"
 import { ProductImageHoverZoom } from "@/components/product-image-hover-zoom"
 import { isDirectMp4Url } from "@/lib/product-description-video-embed"
@@ -19,6 +20,8 @@ export type ProductMediaGalleryProps = {
   activeThumbIndex: number
   onSelectImage: (index: number) => void
   videoUrl?: string | null
+  /** Enables ♥ on gallery video (wishlist + like count). */
+  productId?: string
   alt: string
   overlay?: ReactNode
   className?: string
@@ -39,6 +42,7 @@ export function ProductMediaGallery({
   activeThumbIndex,
   onSelectImage,
   videoUrl,
+  productId,
   alt,
   overlay,
   className,
@@ -205,6 +209,7 @@ export function ProductMediaGallery({
               activeIndex={mediaMode === "video" ? -1 : activeThumbIndex}
               onSelectIndex={selectImage}
               videoUrl={hasVideo ? videoUrl : null}
+              productId={productId}
               alt={alt}
               overlay={overlay}
               onOpenLightbox={openLightbox}
@@ -216,7 +221,10 @@ export function ProductMediaGallery({
 
           <div className="relative hidden overflow-visible rounded-[1.35rem] lg:block">
             {mediaMode === "video" && hasVideo ? (
-              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[1.35rem] bg-zinc-950">
+              <ProductVideoWishlistOverlay
+                productId={productId ?? ""}
+                className="aspect-[4/3] w-full rounded-[1.35rem] bg-zinc-950"
+              >
                 <video
                   src={videoUrl!}
                   className="h-full w-full object-contain"
@@ -227,12 +235,12 @@ export function ProductMediaGallery({
                   controlsList="nodownload"
                   onContextMenu={(e) => e.preventDefault()}
                 />
-                <div className="pointer-events-none absolute inset-x-0 top-0 bg-gradient-to-b from-black/50 to-transparent px-3 py-2">
+                <div className="pointer-events-none absolute inset-x-0 top-0 z-[1] bg-gradient-to-b from-black/50 to-transparent px-3 py-2 pr-16">
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/90">
                     {t("video")}
                   </p>
                 </div>
-              </div>
+              </ProductVideoWishlistOverlay>
             ) : (
               <div className="relative z-10 overflow-visible">
                 <ProductImageHoverZoom

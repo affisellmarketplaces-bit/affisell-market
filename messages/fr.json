@@ -1008,6 +1008,8 @@
     "heart": {
       "add": "Ajouter aux favoris",
       "remove": "Retirer des favoris",
+      "addVideo": "J'aime cette vidéo",
+      "removeVideo": "Retirer mon like vidéo",
       "count": "{count, plural, one {# favori} other {# favoris}}",
       "dropSinceYesterday": "depuis hier"
     }
