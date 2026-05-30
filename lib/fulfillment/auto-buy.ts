@@ -2,6 +2,7 @@ import type Stripe from "stripe"
 import { captureException } from "@sentry/nextjs"
 
 import { AliExpressClient } from "@/lib/aliexpress-open-api"
+import { isAeDryRun } from "@/lib/fulfillment/ae-dry-run"
 import { placeAliExpressDsOrder } from "@/lib/fulfillment/ae-ds-order"
 import { runAliExpressBrowserCheckout } from "@/lib/fulfillment/ae-browser-checkout"
 import { enqueueAutoBuyJob } from "@/lib/fulfillment/bullmq/auto-buy.queue"
@@ -226,6 +227,17 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
     amountCents,
   })
 
+  if (isAeDryRun()) {
+    await completeAutoBuyDryRun({
+      fulfillmentLogId: log.id,
+      orderId: log.orderId,
+      aeSkuId,
+      quantity: log.order.quantity,
+      shippingName: shippingAddress.name ?? null,
+    })
+    return
+  }
+
   let virtualCardId: string | null = log.virtualCardId
   let cardNumber = ""
   let cardExpMonth = 0
@@ -315,6 +327,53 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
   if (virtualCardId) await freezeAutoBuyVirtualCard(virtualCardId)
 
   logAutoBuy("bought", { orderId: log.orderId, aeOrderId, fulfillmentLogId: log.id })
+}
+
+type AutoBuyDryRunInput = {
+  fulfillmentLogId: string
+  orderId: string
+  aeSkuId: string | null
+  quantity: number
+  shippingName: string | null
+}
+
+/** Skip Stripe Issuing + AE order commit; mark log BOUGHT for pipeline testing. */
+async function completeAutoBuyDryRun(input: AutoBuyDryRunInput): Promise<{ success: true; dryRun: true }> {
+  const dryRunOrderId = `DRY_RUN_${Date.now()}`
+
+  console.log("[auto-buy] DRY_RUN enabled - stopping before payment")
+  console.log("[auto-buy] Would have paid with card •••• 0005")
+  console.log("[auto-buy] Product:", input.aeSkuId, "Qty:", input.quantity)
+  console.log("[auto-buy] Shipping to:", input.shippingName ?? "(unknown)")
+
+  await prisma.$transaction(async (tx) => {
+    await tx.fulfillmentLog.update({
+      where: { id: input.fulfillmentLogId },
+      data: {
+        status: "BOUGHT",
+        aeOrderId: dryRunOrderId,
+        errorMsg: "DRY_RUN - payment skipped",
+      },
+    })
+    await tx.order.update({
+      where: { id: input.orderId },
+      data: {
+        fulfilledAt: new Date(),
+        fulfillmentStatus: "ORDERED",
+        supplierPreparingAt: new Date(),
+      },
+    })
+  })
+
+  logAutoBuy("dry_run_complete", {
+    fulfillmentLogId: input.fulfillmentLogId,
+    orderId: input.orderId,
+    aeOrderId: dryRunOrderId,
+    aeSkuId: input.aeSkuId,
+    quantity: input.quantity,
+  })
+
+  return { success: true, dryRun: true }
 }
 
 async function failAutoBuy(

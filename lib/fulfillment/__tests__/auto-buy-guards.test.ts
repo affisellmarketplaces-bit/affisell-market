@@ -11,6 +11,12 @@ describe("auto-buy guards", () => {
     expect(isAutoBuyDisabled()).toBe(true)
   })
 
+  it("isAeDryRun when AE_DRY_RUN=true", async () => {
+    vi.stubEnv("AE_DRY_RUN", "true")
+    const { isAeDryRun } = await import("@/lib/fulfillment/ae-dry-run")
+    expect(isAeDryRun()).toBe(true)
+  })
+
   it("autoBuyCardAmountCents adds shipping and margin", async () => {
     const { autoBuyCardAmountCents } = await import("@/lib/fulfillment/stripe-issuing-card")
     expect(autoBuyCardAmountCents(500, 200)).toBe(800)
