@@ -70,11 +70,11 @@ export function SupplierExpressTaxonomyRail({
       <div className="relative flex flex-wrap items-center gap-2">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-600 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
           <Sparkles className="h-3 w-3" aria-hidden />
-          Taxonomie IA
+          Catégorie suggérée
         </span>
         {meta.visionUsed ? (
           <span className="rounded-full border border-cyan-400/50 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-800 dark:text-cyan-200">
-            Vision
+            Photo
           </span>
         ) : null}
         {awaitingConfirm ? (
@@ -94,7 +94,7 @@ export function SupplierExpressTaxonomyRail({
           <div className="flex items-center gap-3 text-sm text-violet-900 dark:text-violet-100">
             <Loader2 className="h-5 w-5 shrink-0 animate-spin text-violet-600" aria-hidden />
             <div>
-              <p className="font-medium">Scan du produit en cours…</p>
+              <p className="font-medium">Analyse du produit en cours…</p>
               <p className="text-xs text-violet-800/80 dark:text-violet-200/80">
                 {meta.visionUsed
                   ? "Analyse photo + titre sur l’arbre Affisell"
@@ -166,12 +166,12 @@ export function SupplierExpressTaxonomyRail({
               {name.trim().length < 3 && !imageUrl ? (
                 <>
                   Saisissez le <strong>titre</strong> (3 car. min.), puis la <strong>photo</strong>{" "}
-                  — le scan démarre ensuite.
+                  — l’analyse démarre ensuite.
                 </>
               ) : name.trim().length < 3 ? (
-                <>Saisissez le <strong>titre</strong> du produit pour lancer le scan IA.</>
+                <>Saisissez le <strong>titre</strong> du produit pour lancer l’analyse.</>
               ) : (
-                <>Ajoutez la <strong>photo principale</strong> pour lancer le scan IA.</>
+                <>Ajoutez la <strong>photo principale</strong> pour lancer l’analyse.</>
               )}
             </p>
           </div>

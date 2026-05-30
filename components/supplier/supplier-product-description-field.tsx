@@ -42,7 +42,7 @@ function parseGenerateDescriptionError(raw: string): string {
     /* plain text */
   }
   if (/too many images/i.test(trimmed)) {
-    return "Trop d'images pour l'IA (max. 4). Gardez au plus 3 illustrations, ou retirez des photos galerie."
+    return "Trop d'images pour la génération (max. 4). Gardez au plus 3 illustrations, ou retirez des photos galerie."
   }
   return trimmed.length > 200 ? `${trimmed.slice(0, 200)}…` : trimmed
 }
@@ -340,7 +340,7 @@ export function SupplierProductDescriptionField({
           : source === "from_gallery"
             ? "galerie produit"
             : source === "generated_hf"
-              ? "visuel IA"
+              ? "visuel généré"
               : null
 
       toast.success(
@@ -349,7 +349,7 @@ export function SupplierProductDescriptionField({
           : "Description structurée générée"
       )
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "IA indisponible")
+      toast.error(e instanceof Error ? e.message : "Service indisponible")
     } finally {
       setAiLoading(false)
     }
@@ -392,7 +392,7 @@ export function SupplierProductDescriptionField({
             ) : (
               <Sparkles className="h-4 w-4" aria-hidden />
             )}
-            {aiLoading ? "Génération…" : "Générer description IA"}
+            {aiLoading ? "Génération…" : "Générer la description"}
           </Button>
         </div>
         <p className="mt-1 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">

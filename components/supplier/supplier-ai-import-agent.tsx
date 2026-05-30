@@ -33,7 +33,7 @@ type AgentCategory = {
 const STEP_LABELS: Record<string, string> = {
   detect: "Détection marketplace",
   fetch: "Extraction produit",
-  enrich: "Enrichissement IA",
+  enrich: "Enrichissement des données",
   categorize: "Catégorie Affisell",
   done: "Prêt pour relecture",
 }
@@ -167,7 +167,7 @@ export function SupplierAiImportAgent({ categoryAttrs, commissionPct, onApply }:
     const bits: string[] = []
     if (patch.images.length) bits.push(`${patch.images.length} photo(s)`)
     if (patch.variants.mode !== "none") bits.push("variantes")
-    if (patch.categoryId) bits.push("catégorie IA")
+    if (patch.categoryId) bits.push("catégorie suggérée")
     toast.success(
       bits.length
         ? `Fiche remplie (${bits.join(", ")}) — modifiez puis publiez.`
@@ -186,7 +186,7 @@ export function SupplierAiImportAgent({ categoryAttrs, commissionPct, onApply }:
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
-                Agent IA — Import produit
+                Import automatique produit
               </h2>
               <Badge className="border-0 bg-violet-600 text-white hover:bg-violet-600">
                 <Sparkles className="mr-1 h-3 w-3" aria-hidden />
@@ -194,8 +194,8 @@ export function SupplierAiImportAgent({ categoryAttrs, commissionPct, onApply }:
               </Badge>
             </div>
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-              Collez un lien ({SUPPORTED_MARKETPLACE_LABELS}…). L’IA extrait photos, prix, description,
-              variantes et propose une catégorie. Vous validez avant publication.
+              Collez un lien ({SUPPORTED_MARKETPLACE_LABELS}…). Extraction des photos, prix, description,
+              variantes et proposition de catégorie. Vous validez avant publication.
             </p>
           </div>
         </div>
@@ -250,7 +250,7 @@ export function SupplierAiImportAgent({ categoryAttrs, commissionPct, onApply }:
             ) : (
               <>
                 <Wand2 className="mr-2 h-4 w-4" aria-hidden />
-                Analyser avec l’IA
+                Analyser le lien
               </>
             )}
           </Button>
@@ -304,7 +304,7 @@ export function SupplierAiImportAgent({ categoryAttrs, commissionPct, onApply }:
               <p className="font-medium text-zinc-900 dark:text-zinc-50 line-clamp-2">{preview.title}</p>
               <p className="mt-1 text-zinc-600 dark:text-zinc-400">
                 {preview.marketplace} · {preview.method}
-                {preview.aiEnriched ? " · IA" : ""}
+                {preview.aiEnriched ? " · enrichi" : ""}
               </p>
               {preview.price > 0 ? (
                 <p className="mt-1 text-violet-700 dark:text-violet-300">

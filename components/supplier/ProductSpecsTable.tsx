@@ -60,7 +60,7 @@ export default function ProductSpecsTable({
       setValues(prev => ({...prev,...data.specs }))
       toast.success('Specs auto-filled')
     } catch {
-      toast.error('AI fill failed')
+      toast.error('Remplissage automatique impossible')
     }
     setLoading(false)
   }
@@ -103,7 +103,7 @@ export default function ProductSpecsTable({
           </Button>
           <Button size="sm" onClick={handleAutoFill} disabled={loading}>
             <Sparkles className="w-4 h-4 mr-2" />
-            {loading? 'Filling...' : 'Auto-fill with AI'}
+            {loading? 'Remplissage…' : 'Remplir automatiquement'}
           </Button>
         </div>
       </div>

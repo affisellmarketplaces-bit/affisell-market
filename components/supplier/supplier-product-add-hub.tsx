@@ -112,7 +112,7 @@ export function SupplierProductAddHub({ onStartManual, onStartWithAssist }: Prop
                     Ajouter des produits
                   </h1>
                   <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 sm:text-[15px]">
-                    Créez une fiche produit complète, ou utilisez l’import / l’IA pour aller plus vite. Tout reste en
+                    Créez une fiche produit complète, ou utilisez l’import et les raccourcis pour aller plus vite. Tout reste en
                     brouillon jusqu’à publication.
                   </p>
                 </div>
@@ -168,7 +168,7 @@ export function SupplierProductAddHub({ onStartManual, onStartWithAssist }: Prop
                 className="border-0 bg-transparent p-0 shadow-none backdrop-blur-none dark:bg-transparent"
                 label="Ways to add"
                 value="4"
-                hint="Manual card, bulk Excel, URL import, AI assist"
+                hint="Fiche manuelle, Excel, import URL, assisté"
               />
               <BentoStat
                 className="border-0 bg-transparent p-0 shadow-none backdrop-blur-none dark:bg-transparent"
@@ -205,7 +205,7 @@ export function SupplierProductAddHub({ onStartManual, onStartWithAssist }: Prop
         </header>
 
         <p className="mt-8 text-sm text-gray-600 dark:text-zinc-400">
-          Autres méthodes — import en masse, URL, synchronisation ou aide IA.
+          Autres méthodes — import en masse, URL, synchronisation ou rédaction assistée.
         </p>
 
         <ul className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -275,10 +275,10 @@ export function SupplierProductAddHub({ onStartManual, onStartWithAssist }: Prop
               <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600 text-white shadow-md shadow-violet-600/20">
                 <Sparkles className="h-5 w-5" aria-hidden />
               </span>
-              <h2 className="mt-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">Draft with AI & shortcuts</h2>
+              <h2 className="mt-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">Fiche assistée & raccourcis</h2>
               <p className="mt-2 text-left text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                Opens the editor with URL import and AI panels at the top—get a head start, then refine everything
-                before publish.
+                Ouvre l’éditeur avec import URL et panneaux d’aide en haut — préremplissage rapide, puis relecture avant
+                publication.
               </p>
               <span
                 className={cn(

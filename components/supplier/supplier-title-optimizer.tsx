@@ -100,7 +100,7 @@ export function SupplierTitleOptimizer({
 
       toast.success("Titre & accroches optimisés")
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "IA indisponible")
+      toast.error(e instanceof Error ? e.message : "Service indisponible")
     } finally {
       setLoading(false)
     }
@@ -133,7 +133,7 @@ export function SupplierTitleOptimizer({
           ) : (
             <Sparkles className="h-4 w-4" aria-hidden />
           )}
-          {loading ? "Optimisation…" : "Titre & points clés IA"}
+          {loading ? "Optimisation…" : "Optimiser titre & points clés"}
         </Button>
       </div>
 

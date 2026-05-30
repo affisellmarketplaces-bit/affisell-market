@@ -2032,7 +2032,7 @@ export function SupplierAddProductForm({
                       className={jumpBtnClass}
                       onClick={() => scrollToSection("add-product-express")}
                     >
-                      Scan IA
+                      Classification
                     </button>
                     <button
                       type="button"
@@ -2057,7 +2057,7 @@ export function SupplierAddProductForm({
                     icon={Zap}
                     variant="accent"
                     title="Shortcuts"
-                    description="Pull in data from a URL or let AI draft copy—optional, but fast when you’re in a hurry."
+                    description="Import URL ou assistant de rédaction — optionnel, pour aller plus vite."
                   >
                     <div className="space-y-8 border-t border-violet-200/50 pt-6 dark:border-violet-900/30">
                       <SupplierAiImportAgent
@@ -2086,8 +2086,8 @@ export function SupplierAddProductForm({
                   id="add-product-express"
                   icon={ScanLine}
                   variant="accent"
-                  title="Scan IA — Titre & photo"
-                  description="Renseignez le titre puis la photo principale : la taxonomie IA ne démarre qu’une fois les deux sont renseignés."
+                  title="Classification — Titre & photo"
+                  description="Renseignez le titre puis la photo principale : la proposition de catégorie ne démarre qu’une fois les deux sont renseignés."
                   hasError={hasPublishFieldError("images") || hasPublishFieldError("name")}
                 >
                   <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
@@ -2121,7 +2121,7 @@ export function SupplierAddProductForm({
                           <span className="text-red-600">*</span> Photo principale
                         </Label>
                         <p className="mt-0.5 text-xs text-zinc-500">
-                          La vision IA lit cette image avec le titre pour proposer la catégorie.
+                          La photo et le titre servent à proposer une catégorie dans le catalogue Affisell.
                         </p>
                         {hasPublishFieldError("images") ? (
                           <p className="mt-1 text-xs font-medium text-red-600">
@@ -2254,7 +2254,7 @@ export function SupplierAddProductForm({
                       id="add-product-classify"
                       icon={Tag}
                       title="Classification"
-                      description="Choisissez la catégorie feuille via les suggestions IA, la recherche ou l’arbre catalogue Affisell."
+                      description="Choisissez la catégorie feuille via les suggestions, la recherche ou l’arbre catalogue Affisell."
                       hasError={hasPublishFieldError("category") || hasPublishFieldError("specs")}
                     >
                       <div>
@@ -2264,7 +2264,7 @@ export function SupplierAddProductForm({
                           </span>
                           {categoryAiTag ? (
                             <span className="rounded-full bg-violet-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
-                              IA
+                              Suggéré
                             </span>
                           ) : null}
                         </Label>

@@ -178,7 +178,7 @@ export function SupplierCategoryPicker({
 
   const sourceLabel = (src?: ListingCategorySuggestion["suggestionSource"]) => {
     if (src === "catalog") return "Catalogue"
-    if (src === "ai") return "IA vision"
+    if (src === "ai") return "Photo"
     if (src === "keyword") return "Mot-clé"
     return null
   }

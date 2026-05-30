@@ -335,7 +335,7 @@ export function SupplierDashboardProductsCatalog({
                             )}
                           >
                             <Video className="h-3.5 w-3.5 opacity-70" aria-hidden />
-                            Vidéo IA
+                            Vidéo produit
                           </Link>
                         ) : (
                           <SupplierDeleteDraftButton

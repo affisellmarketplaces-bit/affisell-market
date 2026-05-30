@@ -221,7 +221,7 @@ export function SupplierAiPublishPanel({
           </div>
           <div className="min-w-0 flex-1 space-y-3">
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-50">Publish with AI</h2>
+              <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-50">Publication assistée</h2>
               <Badge
                 variant="secondary"
                 className="border border-sky-200 bg-sky-100 text-sky-900 dark:border-sky-800 dark:bg-sky-950 dark:text-sky-100"
@@ -233,7 +233,7 @@ export function SupplierAiPublishPanel({
               Open the assistant, add your notes and photos, then generate a full listing draft.
             </p>
             <Button type="button" size="sm" onClick={openDialog}>
-              Generate with AI
+              Ouvrir l’assistant
             </Button>
           </div>
         </div>
@@ -258,7 +258,7 @@ export function SupplierAiPublishPanel({
               <div className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-violet-600" aria-hidden />
                 <h2 id={`${dialogId}-title`} className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
-                  AI listing assistant
+                  Assistant fiche produit
                 </h2>
               </div>
               <button
@@ -284,7 +284,7 @@ export function SupplierAiPublishPanel({
                 />
               </div>
               <div>
-                <Label htmlFor={`${dialogId}-notes`}>Notes for the AI</Label>
+                <Label htmlFor={`${dialogId}-notes`}>Notes produit</Label>
                 <textarea
                   id={`${dialogId}-notes`}
                   className="mt-1.5 min-h-[100px] w-full rounded-md border border-zinc-200 bg-transparent px-3 py-2 text-sm dark:border-zinc-700"
@@ -359,7 +359,7 @@ export function SupplierAiPublishPanel({
                     Generating…
                   </>
                 ) : (
-                  "Run AI"
+                  "Générer"
                 )}
               </Button>
             </div>
