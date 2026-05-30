@@ -20,7 +20,13 @@ export async function POST(
 
   try {
     const resolved = await resolveSupplierLinkFromAeInput(aeUrl)
-    return NextResponse.json({ ok: true, resolved })
+    return NextResponse.json({
+      ok: true,
+      resolved: {
+        ...resolved,
+        aeSkus: resolved.aeSkus ?? [],
+      },
+    })
   } catch (e) {
     const message = e instanceof AliExpressApiError ? e.message : e instanceof Error ? e.message : "resolve_failed"
     return NextResponse.json({ ok: false, error: message }, { status: 400 })

@@ -9,7 +9,23 @@ export async function loadAdminProductSupplierLink(productId: string) {
       aliexpressProductId: true,
       sourceUrl: true,
       autoFulfill: true,
-      supplierLink: true,
+      hasVariants: true,
+      supplierLink: {
+        include: {
+          variantMappings: {
+            include: {
+              productVariant: {
+                select: { id: true, color: true, size: true, sku: true },
+              },
+            },
+            orderBy: { aeLabel: "asc" },
+          },
+        },
+      },
+      productVariants: {
+        select: { id: true, color: true, size: true, sku: true, publicPrice: true },
+        orderBy: [{ color: "asc" }, { size: "asc" }],
+      },
     },
   })
 }

@@ -1,4 +1,5 @@
 import { mapAliExpressGetProductResponse } from "@/lib/aliexpress-product-map"
+import { parseAeProductSkusFromPayload } from "@/lib/fulfillment/ae-product-skus"
 import {
   AliExpressApiError,
   AliExpressClient,
@@ -14,6 +15,7 @@ export type ResolvedSupplierLinkFields = {
   aePriceCents: number
   aeShippingCents: number
   aeUrl: string
+  aeSkus?: import("@/lib/fulfillment/ae-product-skus").AeProductSkuRow[]
 }
 
 function asRecord(v: unknown): Record<string, unknown> | null {
@@ -94,13 +96,16 @@ export async function resolveSupplierLinkFromAeInput(
   const client = await createAliExpressClient()
   const raw = await client.getProduct(aeProductId)
   const mapped = mapAliExpressGetProductResponse(raw, aeProductId)
+  const aeSkus = parseAeProductSkusFromPayload(raw, aeProductId)
+  const firstSku = aeSkus.find((s) => s.aeSkuId) ?? aeSkus[0]
 
   return {
     aeProductId,
-    aeSkuId: parseFirstSkuId(raw),
+    aeSkuId: firstSku?.aeSkuId || parseFirstSkuId(raw),
     aeShopId: parseShopId(raw),
-    aePriceCents: mapped.basePriceCents,
+    aePriceCents: firstSku?.aePriceCents ?? mapped.basePriceCents,
     aeShippingCents: 0,
     aeUrl,
+    aeSkus,
   }
 }

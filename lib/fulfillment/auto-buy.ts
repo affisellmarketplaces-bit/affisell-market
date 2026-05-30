@@ -13,6 +13,7 @@ import {
   loadAutoBuyVirtualCardSecrets,
 } from "@/lib/fulfillment/stripe-issuing-card"
 import { parseShipping } from "@/lib/fulfillment/shipping-address"
+import { resolveSupplierSkuForOrder } from "@/lib/fulfillment/resolve-supplier-sku"
 import { initiateMarketplaceOrderRefund } from "@/lib/stripe-refund-marketplace-order"
 import { notifyOrderCancelled } from "@/lib/emails/notify-order-cancelled"
 import { prisma } from "@/lib/prisma"
@@ -43,7 +44,12 @@ export async function enqueueAutoBuyForStripeSession(stripeSessionId: string): P
       status: "paid",
     },
     include: {
-      product: { include: { supplierLink: true } },
+      product: {
+        include: {
+          supplierLink: { include: { variantMappings: true } },
+          productVariants: { select: { id: true, color: true, size: true } },
+        },
+      },
       autoBuyLog: { select: { id: true, status: true, attempts: true } },
     },
     orderBy: { createdAt: "asc" },
@@ -145,7 +151,12 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
     include: {
       order: {
         include: {
-          product: { include: { supplierLink: true } },
+          product: {
+            include: {
+              supplierLink: { include: { variantMappings: true } },
+              productVariants: { select: { id: true, color: true, size: true } },
+            },
+          },
         },
       },
     },
@@ -170,7 +181,50 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
   })
 
   const shippingAddress = parseShipping(log.order.shippingAddress)
-  const amountCents = autoBuyCardAmountCents(link.aePriceCents, link.aeShippingCents)
+  const resolvedSku = resolveSupplierSkuForOrder(
+    {
+      aeSkuId: link.aeSkuId,
+      aePriceCents: link.aePriceCents,
+      aeShippingCents: link.aeShippingCents,
+    },
+    link.variantMappings,
+    {
+      variantLabel: log.order.variantLabel,
+      quantity: log.order.quantity,
+    },
+    log.order.product.productVariants
+  )
+
+  if (
+    link.variantMappings.length > 0 &&
+    (resolvedSku.source === "unmatched" || !resolvedSku.aeSkuId)
+  ) {
+    await failAutoBuy(
+      log.id,
+      log.orderId,
+      `VARIANT_SKU_UNMATCHED:${log.order.variantLabel ?? ""}`,
+      nextAttempt
+    )
+    logAutoBuy("variant_sku_unmatched", {
+      orderId: log.orderId,
+      variantLabel: log.order.variantLabel,
+      mappingCount: link.variantMappings.length,
+    })
+    return
+  }
+
+  const aeSkuId = resolvedSku.aeSkuId ?? link.aeSkuId
+  const amountCents = autoBuyCardAmountCents(
+    resolvedSku.aePriceCents,
+    resolvedSku.aeShippingCents
+  )
+
+  logAutoBuy("sku_resolved", {
+    orderId: log.orderId,
+    source: resolvedSku.source,
+    aeSkuId,
+    amountCents,
+  })
 
   let virtualCardId: string | null = log.virtualCardId
   let cardNumber = ""
@@ -207,7 +261,7 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
 
   const ds = await placeAliExpressDsOrder({
     aeProductId: link.aeProductId,
-    aeSkuId: link.aeSkuId,
+    aeSkuId,
     quantity: log.order.quantity,
     shippingAddress,
   })
@@ -220,7 +274,7 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
   } else if (virtualCardId && cardNumber) {
     const browser = await runAliExpressBrowserCheckout({
       aeUrl: link.aeUrl,
-      aeSkuId: link.aeSkuId,
+      aeSkuId,
       shippingAddress,
       cardNumber,
       cardExpMonth,

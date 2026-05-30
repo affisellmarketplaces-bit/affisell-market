@@ -1,9 +1,20 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
+import { replaceSupplierLinkVariants } from "@/lib/admin/products/upsert-supplier-link-variants"
 import { requireAdminSession } from "@/lib/admin/require-admin-session"
 import { parseAliExpressProductId } from "@/lib/aliexpress-product-id"
 import { prisma } from "@/lib/prisma"
+
+const variantMappingSchema = z.object({
+  productVariantId: z.string().nullable().optional(),
+  matchColor: z.string().nullable().optional(),
+  matchSize: z.string().nullable().optional(),
+  aeSkuId: z.string().min(1),
+  aePriceCents: z.number().int().min(0),
+  aeShippingCents: z.number().int().min(0).optional(),
+  aeLabel: z.string().nullable().optional(),
+})
 
 const patchSchema = z.object({
   aeUrl: z.string().min(8).optional(),
@@ -14,6 +25,7 @@ const patchSchema = z.object({
   aeShippingCents: z.number().int().min(0).optional(),
   autoBuyEnabled: z.boolean().optional(),
   isActive: z.boolean().optional(),
+  variantMappings: z.array(variantMappingSchema).optional(),
 })
 
 export async function GET(
@@ -26,7 +38,17 @@ export async function GET(
   }
 
   const { id } = await ctx.params
-  const link = await prisma.supplierLink.findUnique({ where: { productId: id } })
+  const link = await prisma.supplierLink.findUnique({
+    where: { productId: id },
+    include: {
+      variantMappings: {
+        include: {
+          productVariant: { select: { id: true, color: true, size: true, sku: true } },
+        },
+        orderBy: { aeLabel: "asc" },
+      },
+    },
+  })
   return NextResponse.json({ link })
 }
 
@@ -102,7 +124,27 @@ export async function PATCH(
     })
   }
 
-  console.log("[admin-supplier-link]", { productId, aeProductId: link.aeProductId })
+  if (body.variantMappings !== undefined) {
+    await replaceSupplierLinkVariants(prisma, link.id, body.variantMappings)
+  }
 
-  return NextResponse.json({ link })
+  const linkWithVariants = await prisma.supplierLink.findUnique({
+    where: { id: link.id },
+    include: {
+      variantMappings: {
+        include: {
+          productVariant: { select: { id: true, color: true, size: true, sku: true } },
+        },
+        orderBy: { aeLabel: "asc" },
+      },
+    },
+  })
+
+  console.log("[admin-supplier-link]", {
+    productId,
+    aeProductId: link.aeProductId,
+    variantMappingCount: body.variantMappings?.length ?? null,
+  })
+
+  return NextResponse.json({ link: linkWithVariants ?? link })
 }
