@@ -277,6 +277,12 @@ export function OrdersPageClient() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Link
+            href="/admin/auto-fulfill"
+            className={cn(buttonVariants({ variant: "default", size: "sm" }))}
+          >
+            Auto-Fulfill
+          </Link>
+          <Link
             href="/admin/stripe-health"
             className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
           >

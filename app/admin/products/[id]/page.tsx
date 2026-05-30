@@ -29,8 +29,11 @@ export default async function AdminProductSupplierLinkPage({ params }: Props) {
             <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">{product.name}</h1>
             <p className="mt-1 font-mono text-xs text-zinc-500">{product.id}</p>
           </div>
-          <Link href="/admin/orders" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
-            Admin
+          <Link
+            href="/admin/auto-fulfill"
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+          >
+            ← Auto-Fulfill
           </Link>
         </div>
 

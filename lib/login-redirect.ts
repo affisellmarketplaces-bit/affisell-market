@@ -34,5 +34,9 @@ export function resolvePostLoginRedirect(
   if (role === "CUSTOMER") {
     return safe ?? "/shops"
   }
+  if (role === "ADMIN") {
+    if (safe?.startsWith("/admin")) return safe
+    return "/admin/auto-fulfill"
+  }
   return safe ?? "/"
 }

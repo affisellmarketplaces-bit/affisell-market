@@ -1,0 +1,42 @@
+import { redirect } from "next/navigation"
+import { Suspense } from "react"
+
+import { PortalSignInForm } from "@/components/auth/portal-sign-in-form"
+import { auth } from "@/auth"
+import { sanitizeInternalCallbackUrl } from "@/lib/auth-login-portal"
+import { resolvePostLoginRedirect } from "@/lib/login-redirect"
+
+type Props = {
+  searchParams: Promise<{ callbackUrl?: string }>
+}
+
+export default async function AdminLoginPage({ searchParams }: Props) {
+  const sp = await searchParams
+  const callbackUrl = sanitizeInternalCallbackUrl(sp.callbackUrl) ?? "/admin/auto-fulfill"
+  const session = await auth()
+  const role = session?.user?.role
+
+  if (session?.user?.id && role === "ADMIN") {
+    redirect(resolvePostLoginRedirect("ADMIN", callbackUrl))
+  }
+
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center text-sm text-zinc-500">
+          Chargement…
+        </div>
+      }
+    >
+      <PortalSignInForm
+        portal={null}
+        title="Connexion Affisell Admin"
+        subtitle="Accès plateforme : auto-fulfill, commandes, fournisseurs API."
+        defaultCallback="/admin/auto-fulfill"
+        signupHref="/login"
+        signupLabel="Retour"
+        showSocialSignIn={false}
+      />
+    </Suspense>
+  )
+}

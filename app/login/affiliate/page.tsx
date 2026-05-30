@@ -27,6 +27,9 @@ export default async function AffiliateLoginPage({ searchParams }: Props) {
     if (role === "CUSTOMER") {
       redirect(callbackUrl ?? "/shops")
     }
+    if (role === "ADMIN") {
+      redirect(resolvePostLoginRedirect("ADMIN", callbackUrl))
+    }
   }
 
   const t = await getTranslations("auth")

@@ -8,6 +8,7 @@ import {
   getPlaceSupplierOrderDlq,
   getPlaceSupplierOrderQueue,
 } from "@/lib/auto-order/bullmq/place-order.queue"
+import { getAutoBuyQueue } from "@/lib/fulfillment/bullmq/auto-buy.queue"
 import { isAutoOrderQueueEnabled } from "@/lib/auto-order/redis"
 
 export const BULL_BOARD_BASE_PATH = "/admin/queues/board"
@@ -32,6 +33,10 @@ function buildBoardApp(): express.Application {
         readOnlyMode: false,
         description: "Checkout batch fulfillment",
       }),
+      new BullMQAdapter(getAutoBuyQueue(), {
+        readOnlyMode: false,
+        description: "AliExpress auto-buy (FulfillmentLog)",
+      }),
     ],
     serverAdapter,
     options: {
@@ -39,6 +44,7 @@ function buildBoardApp(): express.Application {
         boardTitle: "Affisell Fulfillment",
         boardLogo: { path: "/favicon.ico", width: 32, height: 32 },
         miscLinks: [
+          { text: "Auto-Fulfill", url: "/admin/auto-fulfill" },
           { text: "Admin reviews", url: "/admin/reviews" },
           { text: "Auto-order retry API", url: "/api/auto-order/retry" },
         ],
