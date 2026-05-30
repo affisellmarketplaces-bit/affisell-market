@@ -1,11 +1,13 @@
 "use client"
 
-import { Loader2, ScanLine, Sparkles } from "lucide-react"
+import { Check, Loader2, ScanLine, Sparkles, X } from "lucide-react"
 
+import type { PendingCategoryConfirmation } from "@/components/supplier/supplier-category-confirm-types"
 import type { CategoryPathSegment } from "@/lib/category-browse"
 import type { ListingProductInsight } from "@/lib/listing-product-signal"
 import type { ListingCategorySuggestion } from "@/lib/supplier-suggest-listing"
 import type { SupplierCategorySuggestMeta } from "@/components/supplier/use-supplier-category-suggestions"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -18,6 +20,9 @@ type Props = {
   meta: SupplierCategorySuggestMeta
   topSuggestion: ListingCategorySuggestion | null
   productInsight: ListingProductInsight | null
+  pendingConfirm: PendingCategoryConfirmation | null
+  onConfirmPending: () => void
+  onDismissPending: () => void
 }
 
 function confidencePct(conf?: number) {
@@ -35,13 +40,18 @@ export function SupplierExpressTaxonomyRail({
   meta,
   topSuggestion,
   productInsight,
+  pendingConfirm,
+  onConfirmPending,
+  onDismissPending,
 }: Props) {
   const pathLabel =
     categoryPath.length > 0
       ? categoryPath.map((s) => s.name).join(" › ")
       : topSuggestion?.breadcrumb ?? null
 
-  const ready = Boolean(categoryId && pathLabel)
+  const awaitingConfirm =
+    pendingConfirm != null && categoryId !== pendingConfirm.leafId
+  const confirmed = Boolean(categoryId && pathLabel && !awaitingConfirm)
   const scanning = loading && (name.trim().length >= 3 || Boolean(imageUrl))
 
   return (
@@ -65,9 +75,14 @@ export function SupplierExpressTaxonomyRail({
             Vision
           </span>
         ) : null}
-        {categoryAiTag && ready ? (
+        {awaitingConfirm ? (
+          <span className="rounded-full border border-amber-400/60 bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-900 dark:text-amber-100">
+            À confirmer
+          </span>
+        ) : null}
+        {categoryAiTag && confirmed ? (
           <span className="rounded-full bg-emerald-600/90 px-2 py-0.5 text-[10px] font-bold uppercase text-white">
-            Auto
+            Confirmée
           </span>
         ) : null}
       </div>
@@ -85,20 +100,58 @@ export function SupplierExpressTaxonomyRail({
               </p>
             </div>
           </div>
-        ) : ready && pathLabel ? (
+        ) : awaitingConfirm && pendingConfirm ? (
+          <div className="space-y-3">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-800 dark:text-amber-200">
+              Catégorie proposée — validation requise
+            </p>
+            <p className="font-mono text-sm font-semibold leading-snug text-violet-950 dark:text-violet-50">
+              {pendingConfirm.breadcrumb}
+            </p>
+            {pendingConfirm.reason ? (
+              <p className="text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+                {pendingConfirm.reason}
+              </p>
+            ) : null}
+            <p className="text-[11px] tabular-nums text-zinc-500">
+              Confiance {confidencePct(pendingConfirm.confidence)}
+            </p>
+            <div className="flex flex-wrap gap-2 pt-1">
+              <Button
+                type="button"
+                size="sm"
+                className="gap-1.5 bg-violet-600 hover:bg-violet-700"
+                onClick={onConfirmPending}
+              >
+                <Check className="h-4 w-4" aria-hidden />
+                Confirmer cette catégorie
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="gap-1.5"
+                onClick={onDismissPending}
+              >
+                <X className="h-4 w-4" aria-hidden />
+                Choisir moi-même
+              </Button>
+            </div>
+          </div>
+        ) : confirmed && pathLabel ? (
           <div className="space-y-2">
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-500">
-              Catégorie détectée
+              Catégorie validée
             </p>
             <p className="font-mono text-sm font-semibold leading-snug text-violet-950 dark:text-violet-50">
               {pathLabel}
             </p>
-            {topSuggestion?.aiReason ? (
+            {topSuggestion?.aiReason && categoryAiTag ? (
               <p className="text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
                 {topSuggestion.aiReason}
               </p>
             ) : null}
-            {topSuggestion?.confidence != null ? (
+            {topSuggestion?.confidence != null && categoryAiTag ? (
               <p className="text-[11px] tabular-nums text-emerald-700 dark:text-emerald-300">
                 Confiance {confidencePct(topSuggestion.confidence)}
               </p>
@@ -108,19 +161,18 @@ export function SupplierExpressTaxonomyRail({
           <div className="flex items-start gap-2 text-sm text-zinc-600 dark:text-zinc-400">
             <ScanLine className="mt-0.5 h-4 w-4 shrink-0 text-violet-500" aria-hidden />
             <p>
-              Ajoutez une <strong>photo</strong> et un <strong>nom</strong> — la catégorie Affisell
-              s’affichera ici automatiquement.
+              Ajoutez une <strong>photo</strong> et un <strong>nom</strong> — une proposition de
+              catégorie apparaîtra ici à confirmer.
             </p>
           </div>
         )}
       </div>
 
-      {productInsight && !scanning ? (
+      {productInsight && !scanning && !awaitingConfirm ? (
         <p className="relative mt-2 text-[11px] text-violet-900/85 dark:text-violet-200/85">
           {productInsight.focusLabel}
         </p>
       ) : null}
-
     </div>
   )
 }

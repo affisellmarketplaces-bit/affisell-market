@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import {
   hasListingClassificationSignal,
-  shouldAutoApplyCategorySuggestion,
+  shouldSuggestCategoryConfirmation,
 } from "@/lib/supplier-auto-category-policy"
 
 describe("supplier-auto-category-policy", () => {
@@ -12,16 +12,16 @@ describe("supplier-auto-category-policy", () => {
     expect(hasListingClassificationSignal("Commode 6 tiroirs", null)).toBe(true)
   })
 
-  it("auto-applies AI with image at lower threshold", () => {
+  it("prompts confirmation for AI with image at lower threshold", () => {
     expect(
-      shouldAutoApplyCategorySuggestion({
+      shouldSuggestCategoryConfirmation({
         confidence: 0.75,
         suggestionSource: "ai",
         hasImage: true,
       })
     ).toBe(true)
     expect(
-      shouldAutoApplyCategorySuggestion({
+      shouldSuggestCategoryConfirmation({
         confidence: 0.75,
         suggestionSource: "ai",
         hasImage: false,

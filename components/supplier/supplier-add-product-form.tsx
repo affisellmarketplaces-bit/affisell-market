@@ -72,9 +72,10 @@ import {
   type WizardQualityItem,
 } from "@/components/supplier/supplier-wizard-quality-panel"
 import { useSupplierProductWizardStore, type WizardStep } from "@/stores/supplier-product-wizard-store"
+import type { PendingCategoryConfirmation } from "@/components/supplier/supplier-category-confirm-types"
 import { SupplierExpressTaxonomyRail } from "@/components/supplier/supplier-express-taxonomy-rail"
 import { useSupplierCategorySuggestions } from "@/components/supplier/use-supplier-category-suggestions"
-import { shouldAutoApplyCategorySuggestion } from "@/lib/supplier-auto-category-policy"
+import { shouldSuggestCategoryConfirmation } from "@/lib/supplier-auto-category-policy"
 import {
   mergeCoreCategoryAttrs,
   missingRequiredCategorySpecs,
@@ -379,7 +380,9 @@ export function SupplierAddProductForm({
   const [debouncedCategoryBullets] = useDebounce(categoryMatchBullets, 500)
   const [categoryAiTag, setCategoryAiTag] = useState(false)
   const [categoryManualLock, setCategoryManualLock] = useState(false)
-  const lastAutoCategoryFingerprintRef = useRef("")
+  const [pendingCategoryConfirm, setPendingCategoryConfirm] =
+    useState<PendingCategoryConfirmation | null>(null)
+  const dismissedCategoryFingerprintsRef = useRef<Set<string>>(new Set())
   const lastSuggestedTitleRef = useRef("")
   const lastTitleParserKeyRef = useRef<string | null>(null)
   const [shippingCountry, setShippingCountry] = useState("")
@@ -552,15 +555,19 @@ export function SupplierAddProductForm({
       setSpecValues({})
       setSpecFormErrors([])
       setCategoryAiTag(origin === "suggested")
-      if (origin === "manual") setCategoryManualLock(true)
+      if (origin === "manual") {
+        setCategoryManualLock(true)
+        setPendingCategoryConfirm(null)
+      }
     },
     []
   )
 
   useEffect(() => {
-    lastAutoCategoryFingerprintRef.current = ""
+    dismissedCategoryFingerprintsRef.current.clear()
     lastSuggestedTitleRef.current = ""
     setCategoryManualLock(false)
+    setPendingCategoryConfirm(null)
   }, [images[0], debouncedName])
 
   useEffect(() => {
@@ -1722,33 +1729,42 @@ export function SupplierAddProductForm({
     const pick =
       categorySuggestions.find((s) => s.leafId === leafId) ?? topCategorySuggestion
 
-    if (!pick?.leafId) return
+    if (!pick?.leafId) {
+      setPendingCategoryConfirm(null)
+      return
+    }
 
-    const autoOk =
+    const confirmOk =
       categorySuggestMeta.autoApplyRecommended ||
-      shouldAutoApplyCategorySuggestion({
+      shouldSuggestCategoryConfirmation({
         confidence: pick.confidence ?? 0,
         suggestionSource: pick.suggestionSource,
         hasImage: Boolean(images[0]?.trim()),
       })
 
-    if (!autoOk) return
-    if (categoryId === pick.leafId) return
+    if (!confirmOk) {
+      setPendingCategoryConfirm(null)
+      return
+    }
+    if (categoryId === pick.leafId) {
+      setPendingCategoryConfirm(null)
+      return
+    }
 
     const fingerprint = `${images[0] ?? ""}|${debouncedName}|${pick.leafId}`
-    if (lastAutoCategoryFingerprintRef.current === fingerprint) return
-    lastAutoCategoryFingerprintRef.current = fingerprint
+    if (dismissedCategoryFingerprintsRef.current.has(fingerprint)) return
 
-    const path = pathFromLeafId(pick.leafId, browse.nodes)
-    if (!path?.length) return
-
-    applyCategory(pick.leafId, path, "suggested")
-    clearPublishFieldError("category")
-    toast.success("Catégorie appliquée automatiquement", {
-      description: pick.breadcrumb,
+    setPendingCategoryConfirm((prev) => {
+      if (prev?.fingerprint === fingerprint) return prev
+      return {
+        leafId: pick.leafId,
+        breadcrumb: pick.breadcrumb,
+        confidence: pick.confidence ?? 0,
+        reason: pick.aiReason ?? null,
+        fingerprint,
+      }
     })
   }, [
-    applyCategory,
     browse,
     categoryId,
     categoryManualLock,
@@ -1756,11 +1772,30 @@ export function SupplierAddProductForm({
     categorySuggestMeta.recommendedLeafId,
     categorySuggestions,
     categorySuggestionsLoading,
-    clearPublishFieldError,
     debouncedName,
     images,
     topCategorySuggestion,
   ])
+
+  const confirmPendingCategory = useCallback(() => {
+    if (!pendingCategoryConfirm || !browse) return
+    const path = pathFromLeafId(pendingCategoryConfirm.leafId, browse.nodes)
+    if (!path?.length) return
+    applyCategory(pendingCategoryConfirm.leafId, path, "suggested")
+    clearPublishFieldError("category")
+    setPendingCategoryConfirm(null)
+    toast.success("Catégorie confirmée", {
+      description: pendingCategoryConfirm.breadcrumb,
+    })
+  }, [applyCategory, browse, clearPublishFieldError, pendingCategoryConfirm])
+
+  const dismissPendingCategory = useCallback(() => {
+    if (pendingCategoryConfirm) {
+      dismissedCategoryFingerprintsRef.current.add(pendingCategoryConfirm.fingerprint)
+    }
+    setPendingCategoryConfirm(null)
+    setCategoryManualLock(true)
+  }, [pendingCategoryConfirm])
 
   const applyPublishBlockers = useCallback(
     (blockers: PublishBlocker[]) => {
@@ -2089,6 +2124,9 @@ export function SupplierAddProductForm({
                         meta={categorySuggestMeta}
                         topSuggestion={topCategorySuggestion}
                         productInsight={categoryProductInsight}
+                        pendingConfirm={pendingCategoryConfirm}
+                        onConfirmPending={confirmPendingCategory}
+                        onDismissPending={dismissPendingCategory}
                       />
                     </div>
                   </div>
