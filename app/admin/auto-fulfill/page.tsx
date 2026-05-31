@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic"
 export default function AdminAutoFulfillPage() {
   const killSwitch = process.env.DISABLE_AUTO_BUY === "true"
   return (
-    <main className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <main className="min-h-screen bg-zinc-50/80 dark:bg-zinc-950">
       <AutoFulfillPageClient killSwitch={killSwitch} />
     </main>
   )

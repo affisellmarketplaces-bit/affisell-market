@@ -20,12 +20,15 @@ type DataTableProps<TData> = {
   data: TData[]
   columns: ColumnDef<TData, unknown>[]
   emptyMessage?: string
+  /** Sans bordure externe (déjà dans un shell parent). */
+  embedded?: boolean
 }
 
 export function DataTable<TData>({
   data,
   columns,
   emptyMessage = "No results.",
+  embedded = false,
 }: DataTableProps<TData>) {
   const table = useReactTable({
     data,
@@ -34,7 +37,13 @@ export function DataTable<TData>({
   })
 
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+    <div
+      className={
+        embedded
+          ? "overflow-hidden rounded-2xl bg-white dark:bg-zinc-950"
+          : "rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900"
+      }
+    >
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((hg) => (
