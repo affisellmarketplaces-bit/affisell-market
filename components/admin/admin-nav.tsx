@@ -17,7 +17,11 @@ const LINKS = [
   { href: "/admin/reviews", label: "Avis" },
 ] as const
 
-export function AdminNav() {
+type AdminNavProps = {
+  user?: AdminAuthUser | null
+}
+
+export function AdminNav({ user }: AdminNavProps) {
   const pathname = usePathname()
 
   return (

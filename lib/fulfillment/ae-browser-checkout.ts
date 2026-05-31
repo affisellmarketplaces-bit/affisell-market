@@ -47,7 +47,7 @@ export async function runAliExpressBrowserCheckout(
   const mapping = input.variantMapping ?? null
   const mappingKeys = mapping ? Object.keys(mapping).length : 0
 
-  if (mappingKeys > 0 && listingUrl) {
+  if (mapping && mappingKeys > 0 && listingUrl) {
     const launched = await launchAeBrowserPage()
     if (!launched.ok) {
       console.log("[auto-buy] browser variant select skipped", {

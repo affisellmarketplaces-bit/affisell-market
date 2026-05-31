@@ -57,6 +57,7 @@ function productPayload(row: Awaited<ReturnType<PrismaClient["product"]["findMan
     colorImages: jsonOrNull(row.colorImages),
     variants: jsonOrNull(row.variants),
     customColumns: jsonOrNull(row.customColumns),
+    variantMapping: jsonOrNull(row.variantMapping),
   } satisfies Prisma.ProductUncheckedCreateInput
 }
 
