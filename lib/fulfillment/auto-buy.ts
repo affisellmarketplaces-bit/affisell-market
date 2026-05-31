@@ -20,6 +20,14 @@ import { notifyOrderCancelled } from "@/lib/emails/notify-order-cancelled"
 import { prisma } from "@/lib/prisma"
 const MAX_ATTEMPTS = 3
 const RETRY_DELAY_MS = 10 * 60 * 1000
+export const MAX_DAILY_ORDERS = 1000
+export const MAX_ORDER_VALUE_EUR = 500
+
+function startOfTodayUtc(): Date {
+  const d = new Date()
+  d.setHours(0, 0, 0, 0)
+  return d
+}
 
 export function isAutoBuyDisabled(): boolean {
   return (
@@ -166,6 +174,26 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
   if (!log) return
   if (log.status === "BOUGHT" || log.status === "REFUNDED") return
 
+  const todayOrders = await prisma.fulfillmentLog.count({
+    where: {
+      status: "BOUGHT",
+      createdAt: { gte: startOfTodayUtc() },
+      NOT: { aeOrderId: { startsWith: "DRY_RUN_" } },
+    },
+  })
+
+  if (todayOrders >= MAX_DAILY_ORDERS) {
+    await prisma.fulfillmentLog.update({
+      where: { id: fulfillmentLogId },
+      data: {
+        status: "FAILED",
+        errorMsg: `DAILY_ORDER_LIMIT_REACHED: ${MAX_DAILY_ORDERS} commandes max`,
+      },
+    })
+    logAutoBuy("daily_limit_reached", { fulfillmentLogId, todayOrders })
+    throw new Error("DAILY_ORDER_LIMIT_REACHED")
+  }
+
   const link = log.order.product.supplierLink
   if (!link?.isActive || !link.autoBuyEnabled) {
     await prisma.fulfillmentLog.update({
@@ -226,6 +254,18 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
     aeSkuId,
     amountCents,
   })
+
+  if (amountCents > MAX_ORDER_VALUE_EUR * 100) {
+    await prisma.fulfillmentLog.update({
+      where: { id: fulfillmentLogId },
+      data: {
+        status: "FAILED",
+        errorMsg: `ORDER_VALUE_TOO_HIGH: ${amountCents / 100}€ > ${MAX_ORDER_VALUE_EUR}€`,
+      },
+    })
+    logAutoBuy("order_value_too_high", { fulfillmentLogId, amountCents })
+    throw new Error("ORDER_VALUE_TOO_HIGH")
+  }
 
   if (isAeDryRun()) {
     await completeAutoBuyDryRun({

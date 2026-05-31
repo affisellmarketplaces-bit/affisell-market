@@ -4,6 +4,7 @@
  */
 import { createBatchFulfillWorker, createPlaceSupplierOrderWorker } from "@/lib/auto-order/bullmq/place-order.queue"
 import { createAutoBuyWorker } from "@/lib/fulfillment/bullmq/auto-buy.queue"
+import { MAX_DAILY_ORDERS, MAX_ORDER_VALUE_EUR } from "@/lib/fulfillment/auto-buy"
 import { getRedisUrl } from "@/lib/auto-order/redis"
 
 const DRY_RUN = process.env.AE_DRY_RUN === "true"
@@ -29,6 +30,10 @@ async function main() {
   if (DRY_RUN) {
     console.info("[auto-order-worker] AE_DRY_RUN=true — auto-buy stops before payment (card / AE commit)")
   }
+
+  console.log(
+    `[auto-buy] Limits: ${MAX_DAILY_ORDERS} orders/day, ${MAX_ORDER_VALUE_EUR}€/order max`
+  )
 
   const shutdown = async () => {
     await Promise.all([placeWorker.close(), batchWorker.close(), autoBuyWorker.close()])
