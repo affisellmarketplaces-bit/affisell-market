@@ -5,7 +5,7 @@ import { CheckCircle2, Link2, Loader2, Rocket, Zap } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
-  buildAeImportBookmarklet,
+  buildUniversalAeImportBookmarklet,
   isAffisellAeCaptureMessage,
   isAliExpressOrigin,
 } from "@/lib/fulfillment/ae-import-bookmarklet"
@@ -39,7 +39,7 @@ type Props = {
 
 type Phase = "idle" | "waiting" | "received"
 
-const BOOKMARKLET_INSTALLED_KEY = "affisell.aeImportBookmarklet.v2"
+const BOOKMARKLET_INSTALLED_KEY = "affisell.aeImportBookmarklet.v3"
 const POLL_MS = 350
 const POLL_MAX = 90
 
@@ -65,8 +65,8 @@ export function AeExpressImportLauncher({ productId, aeUrl, disabled, onCapture 
   }, [])
 
   const bookmarkletHref = useMemo(
-    () => buildAeImportBookmarklet({ appOrigin, productId }),
-    [appOrigin, productId]
+    () => buildUniversalAeImportBookmarklet(appOrigin),
+    [appOrigin]
   )
 
   const stopPolling = useCallback(() => {
@@ -225,11 +225,11 @@ export function AeExpressImportLauncher({ productId, aeUrl, disabled, onCapture 
 
         {!bookmarkletInstalled ? (
           <div className="mt-4 rounded-xl border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
-            <strong>Important :</strong> réinstallez le favori{" "}
-            <a href={bookmarkletHref} onClick={markInstalled} className="font-semibold underline">
-              Affisell Import AE
+            <strong>Important :</strong> installez le favori depuis{" "}
+            <a href="/admin/ae-bookmarklet" className="font-semibold underline">
+              /admin/ae-bookmarklet
             </a>{" "}
-            (glisser dans la barre de favoris) — version mise à jour requise.
+            (lien universel v3).
           </div>
         ) : null}
 

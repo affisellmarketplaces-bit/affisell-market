@@ -16,9 +16,10 @@ describe("ae-capture-token", () => {
     expect(verifyAeCaptureToken(token, "other", productId)).toBe(false)
   })
 
-  it("roundtrips window.name payload", () => {
-    const name = buildAeCaptureWindowName("s1", "tok.test")
+  it("roundtrips window.name payload with product id", () => {
+    const name = buildAeCaptureWindowName("prod1", "s1", "tok.test")
     expect(parseAeCaptureWindowName(name)).toEqual({
+      productId: "prod1",
       sessionId: "s1",
       captureToken: "tok.test",
     })

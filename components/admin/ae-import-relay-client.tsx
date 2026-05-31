@@ -95,7 +95,7 @@ export function AeImportRelayClient({
 
   useEffect(() => {
     startPolling()
-    const windowName = buildAeCaptureWindowName(sessionId, captureToken)
+    const windowName = buildAeCaptureWindowName(productId, sessionId, captureToken)
     const aeWin = window.open("about:blank", "affisellAeProduct")
     if (aeWin) {
       try {
@@ -138,7 +138,7 @@ export function AeImportRelayClient({
             startPolling()
             const aeWin = window.open("about:blank", "affisellAeProduct")
             if (aeWin) {
-              aeWin.name = buildAeCaptureWindowName(sessionId, captureToken)
+              aeWin.name = buildAeCaptureWindowName(productId, sessionId, captureToken)
               aeWin.location.replace(aeTarget)
             }
             setStatus("waiting")

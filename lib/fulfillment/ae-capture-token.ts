@@ -48,15 +48,26 @@ export function verifyAeCaptureToken(
 }
 
 /** Persisted on `window.name` when opening AliExpress (survives hash stripping). */
-export function buildAeCaptureWindowName(sessionId: string, captureToken: string): string {
-  return `affisellAfc|${sessionId}|${captureToken}`
+export function buildAeCaptureWindowName(
+  productId: string,
+  sessionId: string,
+  captureToken: string
+): string {
+  return `affisellAfc|${productId}|${sessionId}|${captureToken}`
 }
 
 export function parseAeCaptureWindowName(name: string): {
+  productId?: string
   sessionId: string
   captureToken: string
 } | null {
-  const m = name.match(/^affisellAfc\|([^|]+)\|(.+)$/)
-  if (!m?.[1] || !m[2]) return null
-  return { sessionId: m[1], captureToken: m[2] }
+  const m4 = name.match(/^affisellAfc\|([^|]+)\|([^|]+)\|(.+)$/)
+  if (m4?.[1] && m4[2] && m4[3]) {
+    return { productId: m4[1], sessionId: m4[2], captureToken: m4[3] }
+  }
+  const m2 = name.match(/^affisellAfc\|([^|]+)\|(.+)$/)
+  if (m2?.[1] && m2[2]) {
+    return { sessionId: m2[1], captureToken: m2[2] }
+  }
+  return null
 }

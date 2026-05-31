@@ -1,19 +1,16 @@
 import { describe, expect, it } from "vitest"
 
 import {
-  buildAeImportBookmarklet,
+  buildUniversalAeImportBookmarklet,
   isAffisellAeCaptureMessage,
   isAliExpressOrigin,
 } from "@/lib/fulfillment/ae-import-bookmarklet"
 
 describe("ae-import-bookmarklet", () => {
-  it("builds javascript: href with product id", () => {
-    const href = buildAeImportBookmarklet({
-      appOrigin: "https://affisell.com",
-      productId: "prod_123",
-    })
+  it("builds universal javascript: href", () => {
+    const href = buildUniversalAeImportBookmarklet("https://affisell.com")
     expect(href.startsWith("javascript:")).toBe(true)
-    expect(decodeURIComponent(href)).toContain("prod_123")
+    expect(decodeURIComponent(href)).toContain("affisellAfc")
     expect(decodeURIComponent(href)).toContain("__AER_DATA__")
   })
 
