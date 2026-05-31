@@ -1,13 +1,17 @@
 "use client"
 
 import { useCallback, useMemo, useState } from "react"
-import { ExternalLink, Plus, Trash2 } from "lucide-react"
+import { ExternalLink, Plus, Sparkles, Trash2 } from "lucide-react"
 
 import { AffisellPlatformFeesExplainer } from "@/components/shared/affisell-platform-fees-explainer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import type { AdminProductSupplierLinkRow } from "@/lib/admin/products/load-product-supplier-link"
+import {
+  applyAeVariantSuggestions,
+  type AeVariantMappingRowInput,
+} from "@/lib/fulfillment/apply-ae-variant-suggestions"
 import type { AeProductSkuRow } from "@/lib/fulfillment/ae-product-skus"
 
 type LinkState = {
@@ -20,14 +24,22 @@ type LinkState = {
   autoBuyEnabled: boolean
 }
 
-type VariantMappingFormRow = {
-  key: string
+type VariantMappingFormRow = AeVariantMappingRowInput
+
+type AeResolveSource = "api" | "page" | "paste"
+
+type AeSuggestion = {
   productVariantId: string
-  matchColor: string
-  matchSize: string
   aeSkuId: string
+  matchColor: string | null
   aePriceCents: number
   aeLabel: string
+}
+
+function sourceLabel(source?: AeResolveSource): string {
+  if (source === "api") return "API AliExpress"
+  if (source === "paste") return "JSON collé"
+  return "page AE (sans API)"
 }
 
 function newRowKey() {
@@ -88,44 +100,122 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [aeSkuCatalog, setAeSkuCatalog] = useState<AeProductSkuRow[]>([])
+  const [lastSuggestions, setLastSuggestions] = useState<AeSuggestion[]>([])
+  const [showPaste, setShowPaste] = useState(false)
+  const [aerPaste, setAerPaste] = useState("")
+  const [lastSource, setLastSource] = useState<AeResolveSource | null>(null)
 
   const productVariants = product.productVariants ?? []
   const hasVariantCatalog = productVariants.length > 0 || variantRows.length > 0
 
-  const resolveFromUrl = useCallback(async () => {
-    if (!form.aeUrl.trim()) return
-    setResolveBusy(true)
-    setError(null)
-    try {
-      const res = await fetch(`/api/admin/products/${product.id}/resolve-ae-url`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ aeUrl: form.aeUrl.trim() }),
-      })
-      const data = (await res.json()) as {
-        ok?: boolean
-        resolved?: LinkState & { aeSkuId: string | null; aeSkus?: AeProductSkuRow[] }
-        error?: string
+  const resolveFromUrl = useCallback(
+    async (opts?: { aerDataPaste?: unknown }) => {
+      if (!form.aeUrl.trim()) return
+      setResolveBusy(true)
+      setError(null)
+      try {
+        const res = await fetch(`/api/admin/products/${product.id}/resolve-ae-url`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            aeUrl: form.aeUrl.trim(),
+            ...(opts?.aerDataPaste !== undefined ? { aerDataPaste: opts.aerDataPaste } : {}),
+          }),
+        })
+        const data = (await res.json()) as {
+          ok?: boolean
+          resolved?: LinkState & {
+            aeSkuId: string | null
+            aeSkus?: AeProductSkuRow[]
+            source?: AeResolveSource
+          }
+          suggestions?: AeSuggestion[]
+          error?: string
+        }
+        if (!res.ok || !data.ok || !data.resolved) {
+          setError(data.error ?? "Import AliExpress impossible")
+          return
+        }
+        setForm((f) => ({
+          ...f,
+          aeProductId: data.resolved!.aeProductId,
+          aeSkuId: data.resolved!.aeSkuId ?? f.aeSkuId,
+          aeShopId: data.resolved!.aeShopId || f.aeShopId,
+          aePriceCents: data.resolved!.aePriceCents || f.aePriceCents,
+          aeShippingCents: data.resolved!.aeShippingCents,
+          aeUrl: data.resolved!.aeUrl,
+        }))
+        if (data.resolved.aeSkus?.length) setAeSkuCatalog(data.resolved.aeSkus)
+        if (data.suggestions?.length) setLastSuggestions(data.suggestions)
+        setLastSource(data.resolved.source ?? null)
+        const skuN = data.resolved.aeSkus?.length ?? 0
+        setMessage(
+          skuN > 0
+            ? `${skuN} SKU importé(s) depuis ${sourceLabel(data.resolved.source)}.`
+            : "Product ID rempli — importez la page AE ou collez __AER_DATA__."
+        )
+      } finally {
+        setResolveBusy(false)
       }
-      if (!res.ok || !data.ok || !data.resolved) {
-        setError(data.error ?? "Résolution AliExpress impossible")
-        return
-      }
-      setForm((f) => ({
-        ...f,
-        aeProductId: data.resolved!.aeProductId,
-        aeSkuId: data.resolved!.aeSkuId ?? "",
-        aeShopId: data.resolved!.aeShopId,
-        aePriceCents: data.resolved!.aePriceCents,
-        aeShippingCents: data.resolved!.aeShippingCents,
-        aeUrl: data.resolved!.aeUrl,
-      }))
-      if (data.resolved.aeSkus?.length) setAeSkuCatalog(data.resolved.aeSkus)
-      setMessage("Champs remplis depuis l’API AliExpress.")
-    } finally {
-      setResolveBusy(false)
+    },
+    [form.aeUrl, product.id]
+  )
+
+  function importFromPaste() {
+    const raw = aerPaste.trim()
+    if (!raw) {
+      setError("Collez le JSON __AER_DATA__ depuis la console du navigateur.")
+      return
     }
-  }, [form.aeUrl, product.id])
+    let parsed: unknown
+    try {
+      parsed = JSON.parse(raw) as unknown
+    } catch {
+      setError("JSON invalide — copiez window.__AER_DATA__ sans guillemets autour.")
+      return
+    }
+    void resolveFromUrl({ aerDataPaste: parsed })
+  }
+
+  function autoMapVariants() {
+    if (lastSuggestions.length === 0 && aeSkuCatalog.length === 0) {
+      setError("Importez d’abord le catalogue AE (page ou JSON).")
+      return
+    }
+    const suggestions: AeSuggestion[] =
+      lastSuggestions.length > 0
+        ? lastSuggestions
+        : productVariants.flatMap((pv) => {
+            const color = pv.color?.trim()
+            if (!color) return []
+            const ae = aeSkuCatalog.find((s) =>
+              s.aeLabel.toLowerCase().includes(color.toLowerCase())
+            )
+            if (!ae?.aeSkuId) return []
+            return [
+              {
+                productVariantId: pv.id,
+                aeSkuId: ae.aeSkuId,
+                matchColor: ae.matchColor,
+                aePriceCents: ae.aePriceCents,
+                aeLabel: ae.aeLabel,
+              },
+            ]
+          })
+
+    const { rows: next, filled, skipped } = applyAeVariantSuggestions(
+      variantRows,
+      suggestions,
+      aeSkuCatalog
+    )
+    setVariantRows(next)
+    setMessage(
+      filled > 0
+        ? `${filled} variante(s) mappée(s)${skipped > 0 ? ` — ${skipped} déjà remplie(s)` : ""}.`
+        : "Aucune ligne vide à remplir — vérifiez les couleurs ou choisissez manuellement."
+    )
+    setError(null)
+  }
 
   const payloadVariantMappings = useMemo(
     () =>
@@ -143,6 +233,16 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
   )
 
   async function save() {
+    if (
+      form.autoBuyEnabled &&
+      !form.aeSkuId.trim() &&
+      payloadVariantMappings.length === 0
+    ) {
+      setError(
+        "Auto-buy activé : renseignez le SKU par défaut ou mappez au moins une variante."
+      )
+      return
+    }
     setBusy(true)
     setError(null)
     setMessage(null)
@@ -216,11 +316,8 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
     <section className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
       <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Lien fournisseur (AliExpress)</h2>
       <p className="mt-1 text-sm text-zinc-500">
-        SKU Affisell internes + mapping manuel AE (plus d’import auto des SKU). Créez un produit via{" "}
-        <a href="/admin/products/new" className="text-violet-700 underline dark:text-violet-300">
-          Produit AE
-        </a>
-        .
+        Sans API AliExpress : importez le catalogue depuis la page produit (ScrapingBee ou JSON{" "}
+        <code className="text-[11px]">__AER_DATA__</code>), puis mappez les variantes.
       </p>
       {product.affisellSku ? (
         <p className="mt-2 font-mono text-xs text-violet-800 dark:text-violet-200">
@@ -246,6 +343,44 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
             onBlur={() => void resolveFromUrl()}
             placeholder="https://www.aliexpress.com/item/…"
           />
+          <p className="mt-1 text-[11px] text-zinc-500">
+            {lastSource
+              ? `Dernier import : ${sourceLabel(lastSource)}`
+              : "Blur = import automatique depuis la page AE (sans API officielle)."}
+          </p>
+        </div>
+
+        <div className="rounded-lg border border-dashed border-zinc-200 p-3 dark:border-zinc-700">
+          <button
+            type="button"
+            className="text-xs font-medium text-violet-800 underline dark:text-violet-200"
+            onClick={() => setShowPaste((v) => !v)}
+          >
+            {showPaste ? "Masquer" : "Coller JSON __AER_DATA__ (sans ScrapingBee)"}
+          </button>
+          {showPaste ? (
+            <div className="mt-2 space-y-2">
+              <p className="text-[11px] text-zinc-500">
+                Sur la page AE : F12 → Console →{" "}
+                <code className="text-[10px]">copy(JSON.stringify(window.__AER_DATA__))</code>
+              </p>
+              <textarea
+                className="min-h-[80px] w-full rounded-md border border-zinc-200 bg-white p-2 font-mono text-[11px] dark:border-zinc-700 dark:bg-zinc-950"
+                value={aerPaste}
+                onChange={(e) => setAerPaste(e.target.value)}
+                placeholder='{"pageModule":{...}}'
+              />
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                disabled={resolveBusy}
+                onClick={importFromPaste}
+              >
+                Importer depuis JSON
+              </Button>
+            </div>
+          ) : null}
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -298,6 +433,10 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
+                <Button type="button" size="sm" variant="secondary" onClick={autoMapVariants}>
+                  <Sparkles className="mr-1 h-3.5 w-3.5" />
+                  Mapper auto
+                </Button>
                 <Button type="button" size="sm" variant="outline" onClick={addEmptyRow}>
                   <Plus className="mr-1 h-3.5 w-3.5" />
                   Ligne
@@ -484,8 +623,13 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
             <ExternalLink className="mr-2 h-4 w-4" />
             Tester le lien
           </Button>
-          <Button type="button" variant="secondary" disabled={resolveBusy} onClick={() => void resolveFromUrl()}>
-            {resolveBusy ? "API…" : "Rafraîchir depuis AE"}
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={resolveBusy}
+            onClick={() => void resolveFromUrl()}
+          >
+            {resolveBusy ? "Import…" : "Importer depuis la page AE"}
           </Button>
           <Button type="button" disabled={busy} onClick={() => void save()}>
             {busy ? "Enregistrement…" : "Enregistrer"}

@@ -1,4 +1,6 @@
 import { mapAliExpressGetProductResponse } from "@/lib/aliexpress-product-map"
+import { parseAeSkusFromPagePayload } from "@/lib/fulfillment/ae-page-skus"
+import { fetchAliExpressProductHtml } from "@/lib/fulfillment/fetch-ae-page-html"
 import { parseAeProductSkusFromPayload } from "@/lib/fulfillment/ae-product-skus"
 import {
   AliExpressApiError,
@@ -16,6 +18,8 @@ export type ResolvedSupplierLinkFields = {
   aeShippingCents: number
   aeUrl: string
   aeSkus?: import("@/lib/fulfillment/ae-product-skus").AeProductSkuRow[]
+  /** api = Open Platform, page = scrape __AER_DATA__, paste = JSON collé */
+  source?: "api" | "page" | "paste"
 }
 
 function asRecord(v: unknown): Record<string, unknown> | null {
@@ -71,9 +75,68 @@ function parseFirstSkuId(payload: unknown): string | null {
   return null
 }
 
+/** Resolve from pasted __AER_DATA__ JSON (no network). */
+export function resolveSupplierLinkFromAerPaste(
+  aeProductId: string,
+  aerPayload: unknown,
+  aeUrl?: string
+): ResolvedSupplierLinkFields {
+  const parsed = parseAeSkusFromPagePayload(aerPayload)
+  const firstSku = parsed.aeSkus.find((s) => s.aeSkuId) ?? parsed.aeSkus[0]
+
+  return {
+    aeProductId,
+    aeSkuId: firstSku?.aeSkuId ?? null,
+    aeShopId: parsed.aeShopId,
+    aePriceCents: firstSku?.aePriceCents ?? parsed.aePriceCents,
+    aeShippingCents: 0,
+    aeUrl: normalizeAeUrl(aeProductId, aeUrl),
+    aeSkus: parsed.aeSkus,
+    source: "paste",
+  }
+}
+
+/** Scrape product page HTML when Open API is unavailable. */
+export async function resolveSupplierLinkFromAePage(
+  aeProductId: string,
+  aeUrl: string
+): Promise<ResolvedSupplierLinkFields> {
+  const fetched = await fetchAliExpressProductHtml(aeUrl)
+  if (!fetched.ok) {
+    throw new AliExpressApiError(fetched.error)
+  }
+
+  const parsed = parseAeSkusFromPagePayload(null, { html: fetched.html })
+  if (parsed.aeSkus.length === 0) {
+    throw new AliExpressApiError(
+      "JSON produit introuvable sur la page — ouvrez la page AE, copiez window.__AER_DATA__ et collez-le ci-dessous."
+    )
+  }
+
+  const firstSku = parsed.aeSkus.find((s) => s.aeSkuId) ?? parsed.aeSkus[0]
+  console.log("[supplier-link-resolve]", {
+    aeProductId,
+    source: "page",
+    skuCount: parsed.aeSkus.length,
+    aeShopId: parsed.aeShopId,
+  })
+
+  return {
+    aeProductId,
+    aeSkuId: firstSku?.aeSkuId ?? null,
+    aeShopId: parsed.aeShopId,
+    aePriceCents: firstSku?.aePriceCents ?? parsed.aePriceCents,
+    aeShippingCents: 0,
+    aeUrl: normalizeAeUrl(aeProductId, aeUrl),
+    aeSkus: parsed.aeSkus,
+    source: "page",
+  }
+}
+
 /** Resolve AliExpress URL or product id → supplier link fields (Open API when configured). */
 export async function resolveSupplierLinkFromAeInput(
-  input: string
+  input: string,
+  opts?: { aerDataPaste?: unknown }
 ): Promise<ResolvedSupplierLinkFields> {
   const aeProductId = parseAliExpressProductId(input)
   if (!aeProductId) {
@@ -82,15 +145,12 @@ export async function resolveSupplierLinkFromAeInput(
 
   const aeUrl = normalizeAeUrl(aeProductId, input)
 
+  if (opts?.aerDataPaste !== undefined) {
+    return resolveSupplierLinkFromAerPaste(aeProductId, opts.aerDataPaste, aeUrl)
+  }
+
   if (!AliExpressClient.isConfigured()) {
-    return {
-      aeProductId,
-      aeSkuId: null,
-      aeShopId: "",
-      aePriceCents: 0,
-      aeShippingCents: 0,
-      aeUrl,
-    }
+    return await resolveSupplierLinkFromAePage(aeProductId, aeUrl)
   }
 
   const client = await createAliExpressClient()
@@ -107,5 +167,6 @@ export async function resolveSupplierLinkFromAeInput(
     aeShippingCents: 0,
     aeUrl,
     aeSkus,
+    source: "api",
   }
 }
