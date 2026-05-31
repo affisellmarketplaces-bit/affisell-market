@@ -53,6 +53,7 @@ import {
   type RecentCategoryEntry,
 } from "@/lib/category-browse"
 import { suggestFromTitle, titleSuggestionAttributes } from "@/lib/title-parser"
+import type { ListingCategorySuggestion } from "@/lib/supplier-suggest-listing"
 import { SupplierAffisellCommissionField } from "@/components/supplier/supplier-affisell-commission-field"
 import {
   SupplierCategoryPicker,
@@ -73,6 +74,7 @@ import {
 } from "@/components/supplier/supplier-wizard-quality-panel"
 import { useSupplierProductWizardStore, type WizardStep } from "@/stores/supplier-product-wizard-store"
 import type { PendingCategoryConfirmation } from "@/components/supplier/supplier-category-confirm-types"
+import { SupplierExpressFieldBand } from "@/components/supplier/supplier-express-field-band"
 import { SupplierExpressTaxonomyRail } from "@/components/supplier/supplier-express-taxonomy-rail"
 import { useSupplierCategorySuggestions } from "@/components/supplier/use-supplier-category-suggestions"
 import { shouldSuggestCategoryConfirmation } from "@/lib/supplier-auto-category-policy"
@@ -1777,18 +1779,6 @@ export function SupplierAddProductForm({
     topCategorySuggestion,
   ])
 
-  const confirmPendingCategory = useCallback(() => {
-    if (!pendingCategoryConfirm || !browse) return
-    const path = pathFromLeafId(pendingCategoryConfirm.leafId, browse.nodes)
-    if (!path?.length) return
-    applyCategory(pendingCategoryConfirm.leafId, path, "suggested")
-    clearPublishFieldError("category")
-    setPendingCategoryConfirm(null)
-    toast.success("Catégorie confirmée", {
-      description: pendingCategoryConfirm.breadcrumb,
-    })
-  }, [applyCategory, browse, clearPublishFieldError, pendingCategoryConfirm])
-
   const dismissPendingCategory = useCallback(() => {
     if (pendingCategoryConfirm) {
       dismissedCategoryFingerprintsRef.current.add(pendingCategoryConfirm.fingerprint)
@@ -1796,6 +1786,23 @@ export function SupplierAddProductForm({
     setPendingCategoryConfirm(null)
     setCategoryManualLock(true)
   }, [pendingCategoryConfirm])
+
+  const selectExpressCategory = useCallback(
+    (suggestion: ListingCategorySuggestion) => {
+      if (!browse) return
+      const path = pathFromLeafId(suggestion.leafId, browse.nodes)
+      if (!path?.length) return
+      applyCategory(suggestion.leafId, path, "suggested")
+      clearPublishFieldError("category")
+      setPendingCategoryConfirm(null)
+      setCategoryManualLock(true)
+      if (pendingCategoryConfirm) {
+        dismissedCategoryFingerprintsRef.current.add(pendingCategoryConfirm.fingerprint)
+      }
+      toast.success("Catégorie sélectionnée", { description: suggestion.breadcrumb })
+    },
+    [applyCategory, browse, clearPublishFieldError, pendingCategoryConfirm]
+  )
 
   const applyPublishBlockers = useCallback(
     (blockers: PublishBlocker[]) => {
@@ -2087,16 +2094,16 @@ export function SupplierAddProductForm({
                   icon={ScanLine}
                   variant="accent"
                   title="Classification — Titre & photo"
-                  description="Renseignez le titre puis la photo principale : la proposition de catégorie ne démarre qu’une fois les deux sont renseignés."
+                  description="Renseignez le titre puis la photo principale : plusieurs catégories suggérées apparaissent une fois les deux sont renseignés."
                   hasError={hasPublishFieldError("images") || hasPublishFieldError("name")}
                 >
                   <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
                     <div className="space-y-6">
                       <div id="add-product-title-express">
-                        <Label htmlFor="express-product-title" className="text-zinc-900 dark:text-zinc-100">
-                          <span className="text-red-600">*</span> Titre produit
-                        </Label>
-                        <p className="mt-0.5 text-xs text-zinc-500">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <SupplierExpressFieldBand required>Titre produit</SupplierExpressFieldBand>
+                        </div>
+                        <p className="mt-2 text-xs text-zinc-500">
                           Minimum 3 caractères — utilisé avec la photo pour classer le produit.
                         </p>
                         {hasPublishFieldError("name") ? (
@@ -2117,10 +2124,10 @@ export function SupplierAddProductForm({
                         />
                       </div>
                       <div id="add-product-media">
-                        <Label className="text-zinc-900 dark:text-zinc-100">
-                          <span className="text-red-600">*</span> Photo principale
-                        </Label>
-                        <p className="mt-0.5 text-xs text-zinc-500">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <SupplierExpressFieldBand required>Photo principale</SupplierExpressFieldBand>
+                        </div>
+                        <p className="mt-2 text-xs text-zinc-500">
                           La photo et le titre servent à proposer une catégorie dans le catalogue Affisell.
                         </p>
                         {hasPublishFieldError("images") ? (
@@ -2148,10 +2155,11 @@ export function SupplierAddProductForm({
                         categoryAiTag={categoryAiTag}
                         loading={categorySuggestionsLoading}
                         meta={categorySuggestMeta}
+                        suggestions={categorySuggestions}
                         topSuggestion={topCategorySuggestion}
                         productInsight={categoryProductInsight}
                         pendingConfirm={pendingCategoryConfirm}
-                        onConfirmPending={confirmPendingCategory}
+                        onSelectSuggestion={selectExpressCategory}
                         onDismissPending={dismissPendingCategory}
                       />
                     </div>
