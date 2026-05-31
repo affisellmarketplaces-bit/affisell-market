@@ -35,12 +35,76 @@ export function slugSkuPart(value: string, maxLen: number): string {
     .toUpperCase() || "SKU"
 }
 
+export const VARIANT_SKU_MAX_LEN = 64
+
 /** Suggested SKU: `PRD-NOI-S` from color + size. */
 export function suggestVariantSku(prefix: string, color: string, size: string | null | undefined): string {
   const base = slugSkuPart(prefix || "PRD", 8)
   const c = slugSkuPart(color, 6)
   const s = size?.trim() ? slugSkuPart(size, 6) : ""
-  return s ? `${base}-${c}-${s}` : `${base}-${c}`
+  const raw = s ? `${base}-${c}-${s}` : `${base}-${c}`
+  return raw.slice(0, VARIANT_SKU_MAX_LEN)
+}
+
+/** SKU suggestion with longer color slug (évite collisions type KJY-P02 vs KJY-P02S). */
+export function suggestVariantSkuFromRow(
+  prefix: string,
+  color: string,
+  size: string | null | undefined
+): string {
+  const base = slugSkuPart(prefix || "PRD", 12)
+  const c = slugSkuPart(color, 14)
+  const s = size?.trim() ? slugSkuPart(size, 8) : ""
+  const raw = s ? `${base}-${c}-${s}` : `${base}-${c}`
+  return raw.slice(0, VARIANT_SKU_MAX_LEN)
+}
+
+export type FillMissingVariantSkusResult = {
+  rows: SupplierSkuTableRow[]
+  /** Lignes où un SKU vide a été rempli. */
+  filled: number
+  /** Aperçu pour toast (max 5). */
+  previews: string[]
+}
+
+/**
+ * Remplit les SKU vides à partir couleur + taille ; ne modifie pas les SKU déjà saisis.
+ * Garantit l’unicité dans le tableau (suffixe -02, -03… si collision).
+ */
+export function fillMissingVariantSkus(
+  rows: SupplierSkuTableRow[],
+  skuPrefix: string
+): FillMissingVariantSkusResult {
+  const used = new Set<string>()
+  for (const r of rows) {
+    const existing = r.sku?.trim()
+    if (existing) used.add(existing.toLowerCase())
+  }
+
+  let filled = 0
+  const previews: string[] = []
+
+  const next = rows.map((row) => {
+    if (row.sku?.trim()) return row
+    const color = row.color.trim()
+    if (!color) return row
+
+    let candidate = suggestVariantSkuFromRow(skuPrefix, color, row.size)
+    let seq = 2
+    while (used.has(candidate.toLowerCase())) {
+      const suffix = `-${String(seq).padStart(2, "0")}`
+      candidate = `${candidate.slice(0, Math.max(1, VARIANT_SKU_MAX_LEN - suffix.length))}${suffix}`
+      seq += 1
+      if (seq > 99) break
+    }
+
+    used.add(candidate.toLowerCase())
+    filled += 1
+    if (previews.length < 5) previews.push(candidate)
+    return { ...row, sku: candidate }
+  })
+
+  return { rows: next, filled, previews }
 }
 
 export type SkuCombination = { color: string; size: string | null }

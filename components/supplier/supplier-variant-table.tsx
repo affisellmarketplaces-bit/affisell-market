@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
-import { Copy, Plus, Trash2, X } from "lucide-react"
+import { Copy, Plus, Sparkles, Trash2, X } from "lucide-react"
 import { toast } from "sonner"
 
 import {
@@ -24,6 +24,7 @@ import {
   applyColorImageToRows,
   copySkuRowCustomColumnKey,
   ensureRowCustomFields,
+  fillMissingVariantSkus,
   firstRowIndexForColor,
   rowCustomData,
   type SkuCustomColumnDef,
@@ -333,6 +334,36 @@ export function SupplierVariantTable({
     onChange(rowsWithFields.map((r) => ({ ...r, compareAtEur: catalogCompareAtEur })))
   }, [rowsWithFields, onChange, catalogCompareAtEur])
 
+  const applyGeneratedSkus = useCallback(() => {
+    const missingColor = rowsWithFields.some((r) => !r.sku?.trim() && !r.color.trim())
+    if (missingColor) {
+      toast.info("Couleur requise", {
+        description: "Chaque ligne sans SKU doit avoir une couleur pour générer un code.",
+      })
+      return
+    }
+
+    const { rows: next, filled, previews } = fillMissingVariantSkus(rowsWithFields, skuPrefix)
+    if (filled === 0) {
+      toast.info("Rien à générer", {
+        description: "Tous les SKU sont déjà renseignés sur les lignes avec une couleur.",
+      })
+      return
+    }
+
+    onChange(next)
+    const previewText = previews.join(" · ")
+    toast.success(
+      filled === 1 ? "1 SKU généré" : `${filled} SKU générés`,
+      {
+        description:
+          previewText.length > 0
+            ? `${previewText}${filled > previews.length ? " …" : ""}`
+            : undefined,
+      }
+    )
+  }, [rowsWithFields, onChange, skuPrefix])
+
   const firstErrorRef = useRef<HTMLTableRowElement | null>(null)
 
   useEffect(() => {
@@ -499,6 +530,18 @@ export function SupplierVariantTable({
               Prix vide = {formatStoreCurrency(baseSupplier)} (catalogue affiliés)
             </p>
             <div className="flex flex-wrap gap-2">
+              {showSkuCol ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={disabled || rowsWithFields.length === 0}
+                  className="gap-1.5 rounded-full bg-violet-600 shadow-sm hover:bg-violet-700"
+                  onClick={applyGeneratedSkus}
+                >
+                  <Sparkles className="h-4 w-4" aria-hidden />
+                  Générer les SKU
+                </Button>
+              ) : null}
               {showSupplierPriceCol ? (
                 <Button
                   type="button"

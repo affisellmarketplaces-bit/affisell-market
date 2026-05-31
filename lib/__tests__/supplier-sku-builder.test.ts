@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest"
 
 import {
   buildSkuCombinations,
+  fillMissingVariantSkus,
   generateSkuTableRows,
   parseCommaList,
   suggestVariantSku,
+  suggestVariantSkuFromRow,
   validateSupplierSkuTableRows,
 } from "@/lib/supplier-sku-builder"
 
@@ -33,6 +35,41 @@ describe("supplier-sku-builder", () => {
     })
     expect(rows).toHaveLength(4)
     expect(rows[0]?.sku).toBe("BON-NOIR-S")
+  })
+
+  it("suggestVariantSkuFromRow keeps distinct codes for similar color labels", () => {
+    const a = suggestVariantSkuFromRow("PRD", "KJY-P02-with Remote", null)
+    const b = suggestVariantSkuFromRow("PRD", "KJY-P02S-with Light", null)
+    expect(a).not.toBe(b)
+  })
+
+  it("fillMissingVariantSkus fills empty rows without overwriting", () => {
+    const rows = [
+      {
+        id: "1",
+        color: "KJY-P02-with Remote",
+        size: null,
+        sku: null,
+        supplierPrice: 35.79,
+        stock: 300,
+        commissionRate: 14,
+      },
+      {
+        id: "2",
+        color: "KJY-P02S-with Light",
+        size: null,
+        sku: "MANUAL-SKU",
+        supplierPrice: 42.79,
+        stock: 300,
+        commissionRate: 14,
+      },
+    ]
+    const { rows: next, filled, previews } = fillMissingVariantSkus(rows, "PRD")
+    expect(filled).toBe(1)
+    expect(next[0]?.sku?.trim()).toBeTruthy()
+    expect(next[1]?.sku).toBe("MANUAL-SKU")
+    expect(previews).toHaveLength(1)
+    expect(new Set(next.map((r) => r.sku?.toLowerCase())).size).toBe(2)
   })
 
   it("flags duplicate SKU in validation", () => {
