@@ -7,6 +7,12 @@ import {
   mergeCoreCategoryAttrs,
 } from "@/lib/category-attribute-core"
 import type { CategoryAttributeValidationRule } from "@/lib/category-attribute-rules"
+import {
+  buildCategorySelectSuggestions,
+  categorySelectAllowsFreeText,
+  datalistIdForAttribute,
+  freeTextSelectPlaceholder,
+} from "@/lib/category-attribute-select-ui"
 import { filterVisibleCategoryAttributes } from "@/lib/category-attribute-rules"
 import { cn } from "@/lib/utils"
 
@@ -99,6 +105,9 @@ export function CategoryAttributeFields({ attributes, loading, values, onChange,
           const tp = normType(attr.type)
 
           const isSelect = tp === "SELECT" && attr.options.length > 0
+          const isFreeTextSelect = isSelect && categorySelectAllowsFreeText(attr)
+          const selectSuggestions = isFreeTextSelect ? buildCategorySelectSuggestions(attr) : []
+          const datalistId = isFreeTextSelect ? datalistIdForAttribute(attr.id) : undefined
           const isMulti = (tp === "MULTI_SELECT" || tp === "MULTI") && attr.options.length > 0
           const isBool = tp === "BOOLEAN" || tp === "YES_NO"
           const isTextarea = tp === "TEXTAREA" || tp === "LONG_TEXT"
@@ -169,7 +178,29 @@ export function CategoryAttributeFields({ attributes, loading, values, onChange,
                 </select>
               ) : null}
 
-              {isSelect ? (
+              {isFreeTextSelect ? (
+                <>
+                  <Input
+                    className={cn("mt-1.5", hasError && "border-red-500 focus-visible:ring-red-500/25")}
+                    type="text"
+                    list={datalistId}
+                    value={v}
+                    onChange={(e) => setKey(attr.key, e.target.value)}
+                    placeholder={freeTextSelectPlaceholder(attr)}
+                    autoComplete="off"
+                  />
+                  <datalist id={datalistId}>
+                    {selectSuggestions.map((opt) => (
+                      <option key={opt} value={opt} />
+                    ))}
+                  </datalist>
+                  <p className="mt-1 text-[10px] leading-snug text-zinc-500 dark:text-zinc-400">
+                    Saisie libre — suggestions cliquables sous le champ (marque, RAM, stockage, etc.).
+                  </p>
+                </>
+              ) : null}
+
+              {isSelect && !isFreeTextSelect ? (
                 <select
                   className={cn(
                     "mt-1.5 flex h-9 w-full rounded-md border bg-white px-2 text-sm shadow-sm outline-none focus:ring-2",
@@ -188,7 +219,7 @@ export function CategoryAttributeFields({ attributes, loading, values, onChange,
                 </select>
               ) : null}
 
-              {!isSelect && !isMulti && !isBool && isTextarea ? (
+              {!isSelect && !isFreeTextSelect && !isMulti && !isBool && isTextarea ? (
                 <textarea
                   className={cn(
                     "mt-1.5 min-h-[88px] w-full rounded-md border bg-white px-2.5 py-2 text-sm shadow-sm outline-none focus:ring-2",
@@ -203,7 +234,7 @@ export function CategoryAttributeFields({ attributes, loading, values, onChange,
                 />
               ) : null}
 
-              {!isSelect && !isMulti && !isBool && !isTextarea ? (
+              {!isSelect && !isFreeTextSelect && !isMulti && !isBool && !isTextarea ? (
                 <Input
                   className={cn("mt-1.5", hasError && "border-red-500 focus-visible:ring-red-500/25")}
                   type={tp === "NUMBER" || tp === "DECIMAL" ? "number" : "text"}

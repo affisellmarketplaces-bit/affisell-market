@@ -8,9 +8,10 @@ export const CORE_SPEC_FIELDS_PRESET: CategoryAttrRow[] = [
     label: "Marque",
     type: "TEXT",
     unit: null,
-    options: [],
+    options: ["Générique", "Generic"],
     required: true,
     order: -300,
+    helpText: "Saisie libre — « Générique » si pas de marque connue.",
   },
   {
     id: "aff-core-size",
