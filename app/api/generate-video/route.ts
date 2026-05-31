@@ -5,6 +5,10 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { uploadVideoToVercelBlob } from "@/lib/video-storage"
 import { videoLog } from "@/lib/video-logger"
+import {
+  buildVideoPromptWithReferences,
+  fetchImageAsVeoReference,
+} from "@/lib/veo-reference-image"
 import { fetchUserVideoQuota, isQuotaExceeded, paywallResponse, quotaSnapshot } from "@/lib/video-quota"
 import {
   downloadGcsUri,
@@ -32,8 +36,40 @@ function veoErrorStatus(code: VeoGenerationError["code"]): number {
   return 502
 }
 
-function buildPrompt(productName: string, style: string): string {
-  return `${style.trim()} product video ad for ${productName.trim()}, vertical 9:16, ${DURATION_SECONDS} seconds, cinematic lighting, no watermark text.`
+function parseReferenceUrls(body: unknown): { imageUrls: string[]; videoUrls: string[] } {
+  if (!body || typeof body !== "object") {
+    return { imageUrls: [], videoUrls: [] }
+  }
+  const b = body as { referenceImageUrls?: unknown; referenceVideoUrls?: unknown }
+
+  const imageUrls = Array.isArray(b.referenceImageUrls)
+    ? b.referenceImageUrls
+        .filter((u): u is string => typeof u === "string")
+        .map((u) => u.trim())
+        .filter((u) => u.startsWith("https://"))
+        .slice(0, 4)
+    : []
+
+  const videoUrls = Array.isArray(b.referenceVideoUrls)
+    ? b.referenceVideoUrls
+        .filter((u): u is string => typeof u === "string")
+        .map((u) => u.trim())
+        .filter((u) => u.startsWith("https://"))
+        .slice(0, 2)
+    : []
+
+  return { imageUrls, videoUrls }
+}
+
+function buildPrompt(
+  productName: string,
+  style: string,
+  refs: { imageUrls: string[]; videoUrls: string[] }
+): string {
+  return buildVideoPromptWithReferences(productName, style, {
+    imageUrls: refs.imageUrls,
+    videoUrls: refs.videoUrls,
+  })
 }
 
 function parseStyleFromBody(body: unknown): { style: string } | { error: string } {
@@ -110,6 +146,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsedStyle.error }, { status: 400 })
   }
   const { style } = parsedStyle
+  const refs = parseReferenceUrls(body)
+  const hasReferences = refs.imageUrls.length > 0 || refs.videoUrls.length > 0
 
   const quotaRow = await fetchUserVideoQuota(session.user.id)
   if (!quotaRow) {
@@ -132,12 +170,12 @@ export async function POST(req: NextRequest) {
     return paywallResponse()
   }
 
-  const prompt = buildPrompt(productName, style)
+  const prompt = buildPrompt(productName, style, refs)
 
   if (regenerate) {
     await prisma.productVideo.deleteMany({ where: { productId } })
     videoLog.info("generate-video.regenerate", { productId, userId: session.user.id })
-  } else {
+  } else if (!hasReferences) {
     const existing = await prisma.productVideo.findUnique({
       where: { productId },
     })
@@ -157,6 +195,13 @@ export async function POST(req: NextRequest) {
       await prisma.productVideo.deleteMany({ where: { productId } })
       videoLog.info("generate-video.style-changed", { productId, userId: session.user.id })
     }
+  } else {
+    await prisma.productVideo.deleteMany({ where: { productId } })
+    videoLog.info("generate-video.reference-refresh", {
+      productId,
+      imageCount: refs.imageUrls.length,
+      videoCount: refs.videoUrls.length,
+    })
   }
 
   const config = getVeoConfig()
@@ -165,13 +210,36 @@ export async function POST(req: NextRequest) {
     productName,
     style,
     regenerate,
+    referenceImages: refs.imageUrls.length,
+    referenceVideos: refs.videoUrls.length,
     userId: session.user.id,
     videoCount: user.videoCount,
   })
 
   try {
+    const instance: {
+      prompt: string
+      image?: { bytesBase64Encoded: string; mimeType: string }
+    } = { prompt }
+
+    if (refs.imageUrls[0]) {
+      try {
+        const refImage = await fetchImageAsVeoReference(refs.imageUrls[0])
+        instance.image = {
+          bytesBase64Encoded: refImage.bytesBase64Encoded,
+          mimeType: refImage.mimeType,
+        }
+      } catch (refErr) {
+        videoLog.warn("generate-video.reference-image", {
+          productId,
+          url: refs.imageUrls[0],
+          error: refErr instanceof Error ? refErr.message : String(refErr),
+        })
+      }
+    }
+
     const { operationName } = await veoPredictLongRunning(config, {
-      instances: [{ prompt }],
+      instances: [instance],
       parameters: {
         aspectRatio: FORMAT,
         durationSeconds: DURATION_SECONDS,

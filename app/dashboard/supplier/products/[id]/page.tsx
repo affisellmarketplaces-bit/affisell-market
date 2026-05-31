@@ -104,6 +104,7 @@ export default async function SupplierProductVideoPage({
           className="mt-6"
           productId={product.id}
           productName={product.name}
+          productImages={images}
           quota={{
             videoCount: snapshot.videoCount,
             videoLimit: snapshot.videoLimit,

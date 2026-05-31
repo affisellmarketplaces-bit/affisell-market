@@ -136,7 +136,10 @@ function classifyOperationError(error: unknown): VeoGenerationError {
 }
 
 type VeoPredictBody = {
-  instances: Array<{ prompt: string; image?: { gcsUri?: string; bytesBase64Encoded?: string } }>
+  instances: Array<{
+    prompt: string
+    image?: { gcsUri?: string; bytesBase64Encoded?: string; mimeType?: string }
+  }>
   parameters: Record<string, unknown>
 }
 

@@ -6,6 +6,11 @@ import { Loader2, RefreshCw, Sparkles } from "lucide-react"
 import { toast } from "sonner"
 
 import { AttachProductVideoActions } from "@/components/attach-product-video-actions"
+import {
+  CreativeReferenceAssets,
+  referencesToApiPayload,
+  type CreativeReferenceAsset,
+} from "@/components/CreativeReferenceAssets"
 import { Button } from "@/components/ui/button"
 import {
   Select,
@@ -46,6 +51,8 @@ type Props = {
   quota: VideoQuotaInfo
   initialVideoUrl?: string | null
   initialStyle?: string | null
+  /** Images produit — sélection rapide comme référence visuelle */
+  productImages?: string[]
   className?: string
 }
 
@@ -70,6 +77,7 @@ export function GenerateVideoButton({
   quota: initialQuota,
   initialVideoUrl,
   initialStyle,
+  productImages = [],
   className,
 }: Props) {
   const initial = useMemo(() => resolveInitialStyle(initialStyle), [initialStyle])
@@ -84,6 +92,7 @@ export function GenerateVideoButton({
   const [selectedPreset, setSelectedPreset] = useState<string>(initial.preset)
   const [customStyle, setCustomStyle] = useState(initial.custom)
   const [quota, setQuota] = useState(initialQuota)
+  const [references, setReferences] = useState<CreativeReferenceAsset[]>([])
 
   const selectValue = styleMode === "custom" ? CUSTOM_STYLE_VALUE : selectedPreset
 
@@ -194,6 +203,8 @@ export function GenerateVideoButton({
     } else {
       body.style = effectiveStyle
     }
+
+    Object.assign(body, referencesToApiPayload(references))
 
     try {
       const res = await fetch("/api/generate-video", {
@@ -326,6 +337,13 @@ export function GenerateVideoButton({
           </p>
         </div>
       ) : null}
+
+      <CreativeReferenceAssets
+        productImages={productImages}
+        references={references}
+        onChange={setReferences}
+        disabled={loading || quotaReached}
+      />
 
       {showRegenerate ? (
         <p className="text-xs text-muted-foreground">
