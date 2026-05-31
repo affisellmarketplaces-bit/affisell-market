@@ -12,11 +12,12 @@ export const dynamic = "force-dynamic"
 type Props = { params: Promise<{ id: string }> }
 
 export default async function AdminProductSupplierLinkPage({ params }: Props) {
-  const session = await auth()
-  if (!session?.user?.id) redirect("/login?callbackUrl=/admin/products")
-  if ((session.user as { role?: string }).role !== "ADMIN") redirect("/")
-
   const { id } = await params
+  const session = await auth()
+  if (!session?.user?.id) {
+    redirect(`/login/admin?callbackUrl=/admin/products/${id}`)
+  }
+  if ((session.user as { role?: string }).role !== "ADMIN") redirect("/")
   const product = await loadAdminProductSupplierLink(id)
   if (!product) notFound()
 

@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
+import { AdminAuthActions, type AdminAuthUser } from "@/components/admin/admin-auth-actions"
 import { cn } from "@/lib/utils"
 
 const LINKS = [
@@ -48,12 +49,15 @@ export function AdminNav() {
             )
           })}
         </nav>
-        <Link
-          href="/"
-          className="text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
-        >
-          Site public
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/"
+            className="text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+          >
+            Site public
+          </Link>
+          <AdminAuthActions user={user} />
+        </div>
       </div>
     </header>
   )
