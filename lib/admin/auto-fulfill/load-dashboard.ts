@@ -127,7 +127,16 @@ export async function loadAdminAutoFulfillDashboard(
             aeWholesaleCents: true,
             supplierFeeCents: true,
             affiliateFeeCents: true,
-            product: { select: { id: true, name: true } },
+            product: {
+              select: {
+                id: true,
+                name: true,
+                autoBuyEnabled: true,
+                supplierLink: {
+                  select: { isActive: true, autoBuyEnabled: true },
+                },
+              },
+            },
           },
         },
       },
