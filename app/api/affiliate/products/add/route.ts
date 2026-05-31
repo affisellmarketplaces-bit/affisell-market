@@ -7,6 +7,7 @@ import { resolveBuyerRewardForListing } from "@/lib/affiliate-buyer-reward-reque
 import { resolveLuxuryListingCreateFields } from "@/lib/luxury-listing-patch"
 import { slugifyListingSlug } from "@/lib/affiliate-listing-display"
 import { parseShowWarrantyFlag, resolveProductWarrantyMonths } from "@/lib/product-warranty"
+import { computeAffiliateListingMarginCents } from "@/lib/affiliate-listing-margin"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -135,6 +136,11 @@ export async function POST(request: Request) {
 
   const isFeatured = typeof body.isFeatured === "boolean" ? body.isFeatured : collections.includes("Featured")
 
+  const marginCents = computeAffiliateListingMarginCents(
+    sellingPriceCents,
+    product.basePriceCents
+  )
+
   const maxPos = await prisma.affiliateProduct.aggregate({
     where: { affiliateId: session.user.id },
     _max: { position: true },
@@ -224,6 +230,7 @@ export async function POST(request: Request) {
         affiliateId: session.user.id,
         productId,
         sellingPriceCents,
+        marginCents,
         customTitle,
         customDescription,
         customImages,
@@ -244,6 +251,7 @@ export async function POST(request: Request) {
       },
       update: {
         sellingPriceCents,
+        marginCents,
         customTitle,
         customDescription,
         customImages,

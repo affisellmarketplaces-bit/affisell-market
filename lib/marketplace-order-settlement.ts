@@ -233,6 +233,24 @@ export function formatSupplierNewOrderNotification(args: {
   ].join(" · ")
 }
 
+/** Align notification amounts with persisted order row (Phase 1 fees / markup). */
+export function affiliateSaleNotificationSettlement(
+  settlement: MarketplaceOrderSettlement,
+  orderAmounts: {
+    affiliateMarginRetainedCents: number
+    affisellFeeCents: number
+  }
+): MarketplaceOrderSettlement {
+  return {
+    ...settlement,
+    affiliateMarginRetainedCents: Math.max(
+      0,
+      Math.round(orderAmounts.affiliateMarginRetainedCents)
+    ),
+    affisellFeeCents: Math.max(0, Math.round(orderAmounts.affisellFeeCents)),
+  }
+}
+
 /** Affiliate inbox: sale on their storefront with earnings breakdown. */
 export function formatAffiliateNewSaleNotification(args: {
   productName: string

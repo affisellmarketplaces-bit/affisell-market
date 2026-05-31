@@ -10,6 +10,7 @@ import { buildLuxuryListingPatch } from "@/lib/luxury-listing-patch"
 import { slugifyListingSlug } from "@/lib/affiliate-listing-display"
 import { parseShowWarrantyFlag, resolveProductWarrantyMonths } from "@/lib/product-warranty"
 import { removeAffiliateListingsFromStorefront } from "@/lib/affiliate-listing-remove"
+import { computeAffiliateListingMarginCents } from "@/lib/affiliate-listing-margin"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -185,6 +186,10 @@ export async function PATCH(
   let nextSellingCents = listing.sellingPriceCents
   if (typeof data.sellingPriceCents === "number") {
     nextSellingCents = data.sellingPriceCents
+    data.marginCents = computeAffiliateListingMarginCents(
+      nextSellingCents,
+      listing.product.basePriceCents
+    )
   }
 
   const rewardRes = resolveBuyerRewardForListing({

@@ -13,7 +13,10 @@ import {
   computePhase1OrderFees,
   phase1AffiliateMarginRetainedCents,
 } from "@/lib/marketplace-phase1-fees"
-import { computeMarketplaceOrderSettlement } from "@/lib/marketplace-order-settlement"
+import {
+  affiliateSaleNotificationSettlement,
+  computeMarketplaceOrderSettlement,
+} from "@/lib/marketplace-order-settlement"
 import { triggerAutoFulfillmentForStripeSession } from "@/lib/auto-order/enqueue"
 import { computeShipDeadlineAt } from "@/lib/supplier-ship-sla-shared"
 import { logStripeWebhookError } from "@/lib/stripe-webhook-observability"
@@ -206,7 +209,10 @@ async function createPaidMarketplaceOrder(
     qty,
     customerEmail: args.customerEmail,
     partnerListingCode: args.partnerListingCode,
-    settlement,
+    settlement: affiliateSaleNotificationSettlement(settlement, {
+      affiliateMarginRetainedCents,
+      affisellFeeCents: phase1Fees.affisellFeeTotalCents,
+    }),
     taxCents: lineTaxCents,
     totalCents: lineTotalCents,
     imageUrl: variantImageUrl,
