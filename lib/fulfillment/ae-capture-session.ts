@@ -1,3 +1,5 @@
+import { Prisma } from "@prisma/client"
+
 import { prisma } from "@/lib/prisma"
 
 const SESSION_TTL_MS = 15 * 60 * 1000
@@ -58,7 +60,7 @@ export async function consumeAeCaptureSession(
       id: sessionId,
       productId,
       expiresAt: { gt: new Date() },
-      result: { not: null },
+      result: { not: Prisma.DbNull },
     },
     select: { id: true, result: true },
   })
