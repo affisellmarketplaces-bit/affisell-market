@@ -1,6 +1,8 @@
 import { requireSupplierSession } from "@/lib/dashboard-session"
 
+import { AffisellPlatformFeesExplainer } from "@/components/shared/affisell-platform-fees-explainer"
 import { MerchantPulseHub } from "@/components/merchant/merchant-pulse-hub"
+import { prisma } from "@/lib/prisma"
 import {
   emptySupplierEarningsPulse,
   loadSupplierEarningsPulse,
@@ -31,6 +33,7 @@ export default async function SupplierBalancePage() {
       sparkline={data.sparkline}
       recentLedger={data.recentLedger}
       backHref="/dashboard/supplier"
-    />
+      />
+    </div>
   )
 }

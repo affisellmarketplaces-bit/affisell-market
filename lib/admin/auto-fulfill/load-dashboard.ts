@@ -1,5 +1,6 @@
 import type { AutoBuyStatus } from "@prisma/client"
 
+import { orderUsesAffisellAutoBuy } from "@/lib/marketplace-supplier-fee"
 import { prisma } from "@/lib/prisma"
 
 export type AdminAutoFulfillProductRow = {
@@ -31,6 +32,7 @@ export type AdminAutoFulfillLogRow = {
   aeWholesaleCents: number | null
   supplierFeeCents: number
   affiliateFeeCents: number
+  usesAffisellAutoBuy: boolean
   createdAt: string
   updatedAt: string
 }
@@ -170,6 +172,10 @@ export async function loadAdminAutoFulfillDashboard(
       aeWholesaleCents: log.order.aeWholesaleCents,
       supplierFeeCents: log.order.supplierFeeCents,
       affiliateFeeCents: log.order.affiliateFeeCents,
+      usesAffisellAutoBuy: orderUsesAffisellAutoBuy({
+        supplierLink: log.order.product.supplierLink,
+        productAutoBuyEnabled: log.order.product.autoBuyEnabled,
+      }),
       createdAt: log.createdAt.toISOString(),
       updatedAt: log.updatedAt.toISOString(),
     })),

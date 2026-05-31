@@ -5,7 +5,13 @@ import { useDeferredValue, useMemo, useState } from "react"
 import useSWR from "swr"
 import type { ColumnDef } from "@tanstack/react-table"
 
+import { AffisellPlatformFeesExplainer } from "@/components/shared/affisell-platform-fees-explainer"
 import { DataTable } from "@/components/admin/data-table"
+import { formatFeeBpsPercent } from "@/lib/marketplace-fee-display"
+import {
+  DEFAULT_SUPPLIER_FEE_BPS_AUTO_BUY,
+  DEFAULT_SUPPLIER_FEE_BPS_CATALOG,
+} from "@/lib/marketplace-phase1-fees"
 import { fetchAdminAutoFulfillDashboard } from "@/lib/admin/auto-fulfill/fetch"
 import type {
   AdminAutoFulfillLogRow,
@@ -263,7 +269,19 @@ export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boo
           <div className="text-[10px] tabular-nums leading-relaxed text-zinc-600 dark:text-zinc-400">
             <p>Client {centsToEur(row.original.clientTotalCents)}</p>
             <p>Wholesale AE {centsToEur(row.original.aeWholesaleCents)}</p>
-            <p>Fee supplier {centsToEur(row.original.supplierFeeCents)}</p>
+            <p>
+              Fee supplier {centsToEur(row.original.supplierFeeCents)}
+              <span className="text-zinc-400">
+                {" "}
+                (
+                {formatFeeBpsPercent(
+                  row.original.usesAffisellAutoBuy
+                    ? DEFAULT_SUPPLIER_FEE_BPS_AUTO_BUY
+                    : DEFAULT_SUPPLIER_FEE_BPS_CATALOG
+                )}{" "}
+                {row.original.usesAffisellAutoBuy ? "auto-buy" : "catalogue"})
+              </span>
+            </p>
             <p>Fee affiliate {centsToEur(row.original.affiliateFeeCents)}</p>
           </div>
         ),
@@ -335,6 +353,8 @@ export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boo
           </p>
         ) : null}
       </div>
+
+      <AffisellPlatformFeesExplainer className="mb-8 max-w-2xl" variant="admin" />
 
       {stats ? (
         <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">

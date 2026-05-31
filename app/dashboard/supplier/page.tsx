@@ -3,7 +3,9 @@ import { requireSupplierSession } from "@/lib/dashboard-session"
 import { getLocale } from "next-intl/server"
 
 import { BentoContainer } from "@/components/affisell/bento-ui"
+import { AffisellPlatformFeesExplainer } from "@/components/shared/affisell-platform-fees-explainer"
 import { SupplierGrowthSection } from "@/components/supplier/mission-control/supplier-growth-section"
+import { prisma } from "@/lib/prisma"
 import { SupplierMetricsBar } from "@/components/supplier/mission-control/supplier-metrics-bar"
 import { SupplierWeeklyGoalCard } from "@/components/supplier/mission-control/supplier-weekly-goal-card"
 import { SupplierInviteContextBanner } from "@/components/supplier/supplier-invite-context-banner"
@@ -40,12 +42,23 @@ export default async function DashboardSupplierPage() {
 
   const locale = resolveAppLocale(await getLocale())
 
+  const feeUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: {
+      supplierFeeBps: true,
+      supplierFeeBpsCatalog: true,
+      supplierFeeBpsAutoBuy: true,
+    },
+  })
+
   return (
     <main className="min-h-[calc(100dvh-3.75rem)] bg-zinc-50/50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50">
       <BentoContainer maxWidth="6xl" className="space-y-8 py-8 sm:py-10">
         <SupplierMissionControlLive>
           <SupplierMissionControlHeader storeName={data.storeName} />
           <SupplierInviteContextBanner />
+
+          <AffisellPlatformFeesExplainer variant="compact" supplierOverrides={feeUser} />
 
           {data.weeklyGoal && data.metrics7d.hasPriorPeriodData ? (
             <SupplierWeeklyGoalCard goal={data.weeklyGoal} locale={locale} />

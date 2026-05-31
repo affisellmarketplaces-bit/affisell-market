@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from "react"
 import { ExternalLink, Plus, Trash2 } from "lucide-react"
 
+import { AffisellPlatformFeesExplainer } from "@/components/shared/affisell-platform-fees-explainer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -227,6 +228,12 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
           {product.supplierSku ? ` · AE ${product.supplierSku}` : ""}
         </p>
       ) : null}
+
+      <AffisellPlatformFeesExplainer
+        className="mt-4"
+        variant="product"
+        highlightAutoBuy={form.autoBuyEnabled}
+      />
 
       <div className="mt-4 space-y-4">
         <div>
