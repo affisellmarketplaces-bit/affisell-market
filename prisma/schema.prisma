@@ -42,8 +42,12 @@ model User {
    * 1100 = 11% of supplier wholesale offered to affiliates.
    */
   defaultSupplierCommissionRateBps Int?
-  /** Phase 1: Affisell fee on supplier wholesale (bps), default 12 %. */
+  /** Phase 1 legacy: overrides both catalog + auto-buy fee bps when set. */
   supplierFeeBps            Int?
+  /** Phase 1: fee on supplier wholesale — catalogue natif (défaut 10 %). */
+  supplierFeeBpsCatalog     Int?
+  /** Phase 1: fee on supplier wholesale — ligne auto-buy AE (défaut 17 %). */
+  supplierFeeBpsAutoBuy     Int?
   /** Phase 1: Affisell fee on affiliate earnings (bps), default 20 %. */
   affiliatePlatformFeeBps   Int?
   /** CGU / CGS / CGA acceptance timestamp. */

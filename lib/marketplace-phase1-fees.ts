@@ -2,8 +2,14 @@
 
 import { clampAffisellCommissionRateBps } from "@/lib/affisell-platform-commission"
 
-/** 12 % on supplier wholesale (AE / catalog HT). */
+/** @deprecated Use {@link DEFAULT_SUPPLIER_FEE_BPS_CATALOG} or {@link DEFAULT_SUPPLIER_FEE_BPS_AUTO_BUY}. */
 export const DEFAULT_SUPPLIER_FEE_BPS = 1200
+
+/** Catalogue natif : fournisseur expédie, pas d’auto-achat AE Affisell. */
+export const DEFAULT_SUPPLIER_FEE_BPS_CATALOG = 1000
+
+/** Auto-buy AE : carte Issuing, worker, mapping, risque ops. */
+export const DEFAULT_SUPPLIER_FEE_BPS_AUTO_BUY = 1700
 
 /** 20 % on affiliate earnings (commission + markup retained). */
 export const DEFAULT_AFFILIATE_PLATFORM_FEE_BPS = 2000
@@ -16,7 +22,7 @@ export type Phase1OrderFees = {
 }
 
 export function resolveSupplierFeeBps(bps: number | null | undefined): number {
-  if (bps == null) return DEFAULT_SUPPLIER_FEE_BPS
+  if (bps == null) return DEFAULT_SUPPLIER_FEE_BPS_CATALOG
   return clampAffisellCommissionRateBps(bps)
 }
 
@@ -29,6 +35,7 @@ export function computePhase1OrderFees(opts: {
   wholesaleTotalCents: number
   affiliateCommissionCents: number
   affiliateMarginRetainedCents: number
+  /** Pre-resolved bps (prefer {@link resolveSupplierFeeBpsForOrder}). */
   supplierFeeBps?: number | null
   affiliatePlatformFeeBps?: number | null
 }): Phase1OrderFees {
@@ -38,7 +45,10 @@ export function computePhase1OrderFees(opts: {
     Math.round(opts.affiliateCommissionCents) + Math.round(opts.affiliateMarginRetainedCents)
   )
 
-  const supplierBps = resolveSupplierFeeBps(opts.supplierFeeBps)
+  const supplierBps =
+    opts.supplierFeeBps != null
+      ? resolveSupplierFeeBps(opts.supplierFeeBps)
+      : DEFAULT_SUPPLIER_FEE_BPS_CATALOG
   const affiliateBps = resolveAffiliatePlatformFeeBps(opts.affiliatePlatformFeeBps)
 
   const supplierFeeCents = Math.round((wholesale * supplierBps) / 10_000)

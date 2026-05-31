@@ -4,6 +4,10 @@ import {
   computePhase1OrderFees,
   phase1AffiliateMarginRetainedCents,
 } from "@/lib/marketplace-phase1-fees"
+import {
+  orderUsesAffisellAutoBuy,
+  resolveSupplierFeeBpsForOrder,
+} from "@/lib/marketplace-supplier-fee"
 import { getStripeClient } from "@/lib/stripe"
 import { prisma } from "@/lib/prisma"
 
@@ -76,7 +80,17 @@ export async function syncOrderVatFromCheckoutSession(
       affiliateFeeCents: true,
       product: {
         select: {
-          supplier: { select: { supplierFeeBps: true } },
+          autoBuyEnabled: true,
+          supplier: {
+            select: {
+              supplierFeeBps: true,
+              supplierFeeBpsCatalog: true,
+              supplierFeeBpsAutoBuy: true,
+            },
+          },
+          supplierLink: {
+            select: { isActive: true, autoBuyEnabled: true },
+          },
         },
       },
       affiliate: { select: { affiliatePlatformFeeBps: true } },
@@ -110,6 +124,15 @@ export async function syncOrderVatFromCheckoutSession(
         : undefined
 
     const wholesaleForFees = order.aeWholesaleCents ?? supplierPriceCents
+    const usesAffisellAutoBuy = orderUsesAffisellAutoBuy({
+      supplierLink: order.product.supplierLink,
+      productAutoBuyEnabled: order.product.autoBuyEnabled,
+    })
+    const supplierFeeBps = resolveSupplierFeeBpsForOrder({
+      usesAffisellAutoBuy,
+      supplier: order.product.supplier,
+    })
+
     const phase1Fees = computePhase1OrderFees({
       wholesaleTotalCents: wholesaleForFees,
       affiliateCommissionCents,
@@ -117,7 +140,7 @@ export async function syncOrderVatFromCheckoutSession(
         order.affiliateMarginRetainedCents > 0
           ? order.affiliateMarginRetainedCents
           : Math.max(0, subtotalCents - supplierPriceCents - affiliateCommissionCents),
-      supplierFeeBps: order.product.supplier.supplierFeeBps,
+      supplierFeeBps,
       affiliatePlatformFeeBps: order.affiliate.affiliatePlatformFeeBps,
     })
 

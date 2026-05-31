@@ -14,6 +14,10 @@ import {
   phase1AffiliateMarginRetainedCents,
 } from "@/lib/marketplace-phase1-fees"
 import {
+  orderUsesAffisellAutoBuy,
+  resolveSupplierFeeBpsForOrder,
+} from "@/lib/marketplace-supplier-fee"
+import {
   affiliateSaleNotificationSettlement,
   computeMarketplaceOrderSettlement,
 } from "@/lib/marketplace-order-settlement"
@@ -37,7 +41,13 @@ type Tx = Prisma.TransactionClient
 const listingWithProductInclude = {
   product: {
     include: {
-      supplier: { select: { supplierFeeBps: true } },
+      supplier: {
+        select: {
+          supplierFeeBps: true,
+          supplierFeeBpsCatalog: true,
+          supplierFeeBpsAutoBuy: true,
+        },
+      },
     },
   },
   affiliate: {
@@ -117,7 +127,15 @@ async function createPaidMarketplaceOrder(
 
   const supplierLink = await tx.supplierLink.findUnique({
     where: { productId: listing.productId },
-    select: { aePriceCents: true },
+    select: { aePriceCents: true, isActive: true, autoBuyEnabled: true },
+  })
+  const usesAffisellAutoBuy = orderUsesAffisellAutoBuy({
+    supplierLink,
+    productAutoBuyEnabled: listing.product.autoBuyEnabled,
+  })
+  const supplierFeeBps = resolveSupplierFeeBpsForOrder({
+    usesAffisellAutoBuy,
+    supplier: listing.product.supplier,
   })
   const wholesaleForFees = supplierLink?.aePriceCents
     ? supplierLink.aePriceCents * qty
@@ -130,8 +148,16 @@ async function createPaidMarketplaceOrder(
     wholesaleTotalCents: wholesaleForFees,
     affiliateCommissionCents: settlement.affiliateCommissionCents,
     affiliateMarginRetainedCents: settlement.affiliateMarginRetainedCents,
-    supplierFeeBps: listing.product.supplier.supplierFeeBps,
+    supplierFeeBps,
     affiliatePlatformFeeBps: listing.affiliate.affiliatePlatformFeeBps,
+  })
+
+  console.log("[marketplace-fees]", {
+    productId: listing.productId,
+    usesAffisellAutoBuy,
+    supplierFeeBps,
+    supplierFeeCents: phase1Fees.supplierFeeCents,
+    affiliateFeeCents: phase1Fees.affiliateFeeCents,
   })
 
   const affiliateMarginRetainedCents = phase1AffiliateMarginRetainedCents({
