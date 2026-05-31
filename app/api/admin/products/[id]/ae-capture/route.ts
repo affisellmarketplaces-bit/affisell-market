@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 
 import { requireAdminSession } from "@/lib/admin/require-admin-session"
+import { storeAeCaptureSessionResult } from "@/lib/fulfillment/ae-capture-session"
 import { resolveSupplierLinkFromAerPaste } from "@/lib/fulfillment/supplier-link-resolve"
 import { suggestVariantMappings } from "@/lib/fulfillment/resolve-supplier-sku"
 import { parseAliExpressProductId } from "@/lib/aliexpress-product-id"
@@ -10,6 +11,7 @@ import { prisma } from "@/lib/prisma"
 const bodySchema = z.object({
   aeUrl: z.string().min(4),
   aerData: z.unknown(),
+  sessionId: z.string().min(4).optional(),
 })
 
 function aeCaptureCors(origin: string | null): HeadersInit {
@@ -32,7 +34,6 @@ export async function OPTIONS(req: Request) {
   return new NextResponse(null, { status: 204, headers: aeCaptureCors(origin) })
 }
 
-/** Fallback when bookmarklet submits a form (no window.opener). */
 export async function POST(
   req: Request,
   ctx: { params: Promise<{ id: string }> }
@@ -80,11 +81,21 @@ export async function POST(
   const aeSkus = resolved.aeSkus ?? []
   const suggestions = suggestVariantMappings(product.productVariants, aeSkus)
 
+  const payload = {
+    resolved: { ...resolved, aeSkus },
+    suggestions,
+  }
+
+  if (body.sessionId) {
+    await storeAeCaptureSessionResult(body.sessionId, productId, payload)
+  }
+
   console.log("[admin-ae-capture]", {
     productId,
     aeProductId,
     skuCount: aeSkus.length,
     suggestionCount: suggestions.length,
+    sessionId: body.sessionId ?? null,
   })
 
   const appBase = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "https://affisell.com"
@@ -94,13 +105,5 @@ export async function POST(
     return NextResponse.redirect(returnUrl, { headers: cors })
   }
 
-  return NextResponse.json(
-    {
-      ok: true,
-      returnUrl,
-      resolved: { ...resolved, aeSkus },
-      suggestions,
-    },
-    { headers: cors }
-  )
+  return NextResponse.json({ ok: true, returnUrl, ...payload }, { headers: cors })
 }

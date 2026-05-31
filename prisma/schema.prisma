@@ -1798,6 +1798,17 @@ enum AutoBuyStatus {
   REFUNDED
 }
 
+/** Short-lived buffer: bookmarklet POST → admin poll (serverless-safe). */
+model AdminAeCaptureSession {
+  id        String   @id @default(cuid())
+  productId String
+  result    Json?
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@index([productId, expiresAt])
+}
+
 /** Stripe webhook idempotence (event.id = evt_…). */
 model ProcessedWebhook {
   id        String   @id

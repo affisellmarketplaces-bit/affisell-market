@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { ExternalLink, Plus, Sparkles, Trash2 } from "lucide-react"
 
-import { AeExpressImportLauncher } from "@/components/admin/ae-express-import-launcher"
+import { AeExpressImportLauncher, type AeCaptureResult } from "@/components/admin/ae-express-import-launcher"
 
 import { AffisellPlatformFeesExplainer } from "@/components/shared/affisell-platform-fees-explainer"
 import { Button } from "@/components/ui/button"
@@ -16,6 +16,7 @@ import {
   type AeVariantMappingRowInput,
 } from "@/lib/fulfillment/apply-ae-variant-suggestions"
 import type { AeProductSkuRow } from "@/lib/fulfillment/ae-product-skus"
+import { parseAliExpressProductId } from "@/lib/aliexpress-product-id"
 
 type LinkState = {
   aeUrl: string
@@ -99,7 +100,6 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
     mappingsFromProduct(product)
   )
   const [busy, setBusy] = useState(false)
-  const [resolveBusy, setResolveBusy] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [aeSkuCatalog, setAeSkuCatalog] = useState<AeProductSkuRow[]>([])
@@ -110,75 +110,51 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
   const productVariants = product.productVariants ?? []
   const hasVariantCatalog = productVariants.length > 0 || variantRows.length > 0
 
-  const resolveFromUrl = useCallback(
-    async (opts?: { aerDataPaste?: unknown; aeUrlOverride?: string }) => {
-      const url = (opts?.aeUrlOverride ?? form.aeUrl).trim()
-      if (!url) return
-      setResolveBusy(true)
-      setError(null)
-      try {
-        const res = await fetch(`/api/admin/products/${product.id}/resolve-ae-url`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            aeUrl: url,
-            ...(opts?.aerDataPaste !== undefined ? { aerDataPaste: opts.aerDataPaste } : {}),
-          }),
-        })
-        const data = (await res.json()) as {
-          ok?: boolean
-          resolved?: LinkState & {
-            aeSkuId: string | null
-            aeSkus?: AeProductSkuRow[]
-            source?: AeResolveSource
-          }
-          suggestions?: AeSuggestion[]
-          error?: string
-        }
-        if (!res.ok || !data.ok || !data.resolved) {
-          setError(data.error ?? "Import AliExpress impossible")
-          return
-        }
-        setForm((f) => ({
-          ...f,
-          aeProductId: data.resolved!.aeProductId,
-          aeSkuId: data.resolved!.aeSkuId ?? f.aeSkuId,
-          aeShopId: data.resolved!.aeShopId || f.aeShopId,
-          aePriceCents: data.resolved!.aePriceCents || f.aePriceCents,
-          aeShippingCents: data.resolved!.aeShippingCents,
-          aeUrl: data.resolved!.aeUrl,
-        }))
-        if (data.resolved.aeSkus?.length) setAeSkuCatalog(data.resolved.aeSkus)
-        if (data.suggestions?.length) setLastSuggestions(data.suggestions)
-        setLastSource(data.resolved.source ?? null)
-        const skuN = data.resolved.aeSkus?.length ?? 0
-        setMessage(
-          skuN > 0
-            ? `${skuN} SKU importé(s) depuis ${sourceLabel(data.resolved.source)}.`
-            : "Product ID rempli — utilisez Import Express."
+  useEffect(() => {
+    const id = parseAliExpressProductId(form.aeUrl)
+    if (id && id !== form.aeProductId) {
+      setForm((f) => ({ ...f, aeProductId: id }))
+    }
+  }, [form.aeUrl, form.aeProductId])
+
+  const applyCaptureResult = useCallback((result: AeCaptureResult) => {
+    const resolved = result.resolved
+    setError(null)
+    setForm((f) => ({
+      ...f,
+      aeProductId: resolved.aeProductId,
+      aeSkuId: resolved.aeSkuId ?? f.aeSkuId,
+      aeShopId: resolved.aeShopId || f.aeShopId,
+      aePriceCents: resolved.aePriceCents || f.aePriceCents,
+      aeShippingCents: resolved.aeShippingCents,
+      aeUrl: resolved.aeUrl || f.aeUrl,
+    }))
+    if (resolved.aeSkus?.length) setAeSkuCatalog(resolved.aeSkus)
+    if (result.suggestions?.length) {
+      setLastSuggestions(result.suggestions)
+      setVariantRows((current) => {
+        const { rows: next, filled } = applyAeVariantSuggestions(
+          current,
+          result.suggestions,
+          resolved.aeSkus ?? []
         )
-        if (data.suggestions?.length) {
-          setVariantRows((current) => {
-            const { rows: next, filled } = applyAeVariantSuggestions(
-              current,
-              data.suggestions ?? [],
-              data.resolved!.aeSkus ?? []
-            )
-            return filled > 0 ? next : current
-          })
-        }
-      } finally {
-        setResolveBusy(false)
-      }
-    },
-    [form.aeUrl, product.id]
-  )
+        return filled > 0 ? next : current
+      })
+    }
+    setLastSource("paste")
+    const skuN = resolved.aeSkus?.length ?? 0
+    setMessage(
+      skuN > 0
+        ? `${skuN} SKU importé(s) — vérifiez puis enregistrez.`
+        : "Import reçu — vérifiez les champs."
+    )
+  }, [])
 
   const applyExpressCapture = useCallback(
-    async (payload: { aeUrl: string; aerData: unknown }) => {
-      await resolveFromUrl({ aerDataPaste: payload.aerData, aeUrlOverride: payload.aeUrl })
+    (result: AeCaptureResult) => {
+      applyCaptureResult(result)
     },
-    [resolveFromUrl]
+    [applyCaptureResult]
   )
 
   useEffect(() => {
@@ -362,7 +338,6 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
         <AeExpressImportLauncher
           productId={product.id}
           aeUrl={form.aeUrl}
-          disabled={resolveBusy}
           onCapture={applyExpressCapture}
         />
 
@@ -605,14 +580,6 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
           <Button type="button" variant="outline" onClick={() => window.open(form.aeUrl, "_blank")}>
             <ExternalLink className="mr-2 h-4 w-4" />
             Tester le lien
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={resolveBusy}
-            onClick={() => void resolveFromUrl()}
-          >
-            {resolveBusy ? "Import…" : "Importer depuis la page AE"}
           </Button>
           <Button type="button" disabled={busy} onClick={() => void save()}>
             {busy ? "Enregistrement…" : "Enregistrer"}
