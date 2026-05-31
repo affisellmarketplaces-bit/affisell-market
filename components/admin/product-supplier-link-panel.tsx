@@ -84,7 +84,6 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
   )
   const [busy, setBusy] = useState(false)
   const [resolveBusy, setResolveBusy] = useState(false)
-  const [syncBusy, setSyncBusy] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [aeSkuCatalog, setAeSkuCatalog] = useState<AeProductSkuRow[]>([])
@@ -126,84 +125,6 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
       setResolveBusy(false)
     }
   }, [form.aeUrl, product.id])
-
-  const syncAeSkus = useCallback(async () => {
-    setSyncBusy(true)
-    setError(null)
-    try {
-      const res = await fetch(`/api/admin/products/${product.id}/supplier-link/sync-ae-skus`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ aeUrl: form.aeUrl.trim() || undefined }),
-      })
-      const data = (await res.json()) as {
-        ok?: boolean
-        aeSkus?: AeProductSkuRow[]
-        suggestions?: {
-          productVariantId: string
-          aeSkuId: string
-          matchColor: string | null
-          aePriceCents: number
-          aeLabel: string
-        }[]
-        resolved?: LinkState & { aeSkuId: string | null }
-        error?: string
-      }
-      if (!res.ok || !data.ok) {
-        setError(data.error ?? "Import SKU impossible")
-        return
-      }
-      if (data.resolved) {
-        setForm((f) => ({
-          ...f,
-          aeProductId: data.resolved!.aeProductId,
-          aeSkuId: data.resolved!.aeSkuId ?? f.aeSkuId,
-          aeShopId: data.resolved!.aeShopId,
-          aePriceCents: data.resolved!.aePriceCents,
-          aeShippingCents: data.resolved!.aeShippingCents,
-          aeUrl: data.resolved!.aeUrl,
-        }))
-      }
-      if (data.aeSkus?.length) setAeSkuCatalog(data.aeSkus)
-
-      if (data.suggestions && data.suggestions.length > 0) {
-        setVariantRows(
-          data.suggestions.map((s) => {
-            const pv = productVariants.find((v) => v.id === s.productVariantId)
-            return {
-              key: newRowKey(),
-              productVariantId: s.productVariantId,
-              matchColor: s.matchColor ?? pv?.color ?? "",
-              matchSize: pv?.size ?? "",
-              aeSkuId: s.aeSkuId,
-              aePriceCents: s.aePriceCents,
-              aeLabel: s.aeLabel,
-            }
-          })
-        )
-        setMessage(`${data.aeSkus?.length ?? 0} SKU AE — ${data.suggestions.length} correspondance(s) proposée(s).`)
-      } else if (data.aeSkus?.length) {
-        setVariantRows(
-          data.aeSkus
-            .filter((s) => s.aeSkuId)
-            .map((s) => ({
-              key: newRowKey(),
-              productVariantId: "",
-              matchColor: s.matchColor ?? "",
-              matchSize: s.matchSize ?? "",
-              aeSkuId: s.aeSkuId,
-              aePriceCents: s.aePriceCents,
-              aeLabel: s.aeLabel,
-            }))
-        )
-        setMessage(`${data.aeSkus.length} SKU importés — vérifiez les couleurs puis enregistrez.`)
-      } else {
-        setMessage("Aucun SKU détaillé — utilisez le SKU par défaut ci-dessus.")
-      }
-    } finally {
-      setSyncBusy(false)
-    }
-  }, [form.aeUrl, product.id, productVariants])
 
   const payloadVariantMappings = useMemo(
     () =>
@@ -294,8 +215,18 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
     <section className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
       <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Lien fournisseur (AliExpress)</h2>
       <p className="mt-1 text-sm text-zinc-500">
-        Auto-buy à chaque commande payée — mappez chaque couleur Affisell vers un SKU AE et son prix d’achat.
+        SKU Affisell internes + mapping manuel AE (plus d’import auto des SKU). Créez un produit via{" "}
+        <a href="/admin/products/new" className="text-violet-700 underline dark:text-violet-300">
+          Produit AE
+        </a>
+        .
       </p>
+      {product.affisellSku ? (
+        <p className="mt-2 font-mono text-xs text-violet-800 dark:text-violet-200">
+          SKU Affisell : {product.affisellSku}
+          {product.supplierSku ? ` · AE ${product.supplierSku}` : ""}
+        </p>
+      ) : null}
 
       <div className="mt-4 space-y-4">
         <div>
@@ -360,9 +291,6 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button type="button" size="sm" variant="secondary" disabled={syncBusy} onClick={() => void syncAeSkus()}>
-                  {syncBusy ? "Import…" : "Importer les SKU AE"}
-                </Button>
                 <Button type="button" size="sm" variant="outline" onClick={addEmptyRow}>
                   <Plus className="mr-1 h-3.5 w-3.5" />
                   Ligne
@@ -522,8 +450,8 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
           </div>
         ) : (
           <p className="rounded-lg border border-zinc-100 bg-zinc-50 px-3 py-2 text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
-            Produit sans lignes <code className="text-[11px]">ProductVariant</code> — seul le SKU par défaut
-            s’applique. Cliquez « Importer les SKU AE » pour préremplir depuis AliExpress.
+            Produit sans lignes <code className="text-[11px]">ProductVariant</code> — saisissez le SKU AE par défaut
+            et le mapping variantes sur la fiche produit (création admin).
           </p>
         )}
 
@@ -552,11 +480,6 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
           <Button type="button" variant="secondary" disabled={resolveBusy} onClick={() => void resolveFromUrl()}>
             {resolveBusy ? "API…" : "Rafraîchir depuis AE"}
           </Button>
-          {!hasVariantCatalog ? (
-            <Button type="button" variant="secondary" disabled={syncBusy} onClick={() => void syncAeSkus()}>
-              {syncBusy ? "Import…" : "Importer les SKU AE"}
-            </Button>
-          ) : null}
           <Button type="button" disabled={busy} onClick={() => void save()}>
             {busy ? "Enregistrement…" : "Enregistrer"}
           </Button>

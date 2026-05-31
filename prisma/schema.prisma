@@ -347,6 +347,8 @@ model Subcategory {
 
 model Product {
   id                            String   @id @default(cuid())
+  /** Internal Affisell SKU (AFF-00001). */
+  affisellSku                   String?  @unique
   supplierId                    String
   name                          String
   description                   String
@@ -470,6 +472,12 @@ model Product {
   sourceProductId        String?
   sourceSkuId            String?
   sourceUrl              String?
+  /**
+   * Manual AE variant picker map for browser auto-buy, e.g. { "Color": "Black", "Size": "M" }.
+   */
+  variantMapping         Json?
+  /** Phase 1 AE auto-buy enabled (admin); synced with SupplierLink when present. */
+  autoBuyEnabled         Boolean              @default(false)
   fulfillmentDelayHours  Int                  @default(0)
   /** Minimum margin in basis points (1500 = 15%). */
   minMarginBps           Int                  @default(1500)
@@ -524,8 +532,14 @@ model ProductVariant {
   productId     String
   product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   sku           String?
+  /** AE attribute map for this row, e.g. { "Color": "Black", "Size": "M" }. */
+  attributes    Json?
+  /** AliExpress SKU id when known (manual). */
+  supplierSku   String?
   color         String?
   size          String?
+  /** Wholesale HT cents (preferred for AE auto-buy when set). */
+  wholesalePriceCents Int?
   /** Prix payé au fournisseur (wholesale). */
   supplierPrice Decimal  @db.Decimal(10, 2)
   /** Prix affiché client (selling). */

@@ -31,7 +31,7 @@ export async function PATCH(
 
   await prisma.product.update({
     where: { id: productId },
-    data: { autoFulfill: enabled },
+    data: { autoFulfill: enabled, autoBuyEnabled: enabled },
   })
 
   if (product.supplierLink) {

@@ -14,6 +14,8 @@ import {
   loadAutoBuyVirtualCardSecrets,
 } from "@/lib/fulfillment/stripe-issuing-card"
 import { parseShipping } from "@/lib/fulfillment/shipping-address"
+import { mergeAeVariantMappingForOrder } from "@/lib/fulfillment/merge-ae-variant-mapping"
+import { resolveManualSupplierSku } from "@/lib/fulfillment/resolve-manual-supplier-sku"
 import { resolveSupplierSkuForOrder } from "@/lib/fulfillment/resolve-supplier-sku"
 import { initiateMarketplaceOrderRefund } from "@/lib/stripe-refund-marketplace-order"
 import { notifyOrderCancelled } from "@/lib/emails/notify-order-cancelled"
@@ -56,7 +58,16 @@ export async function enqueueAutoBuyForStripeSession(stripeSessionId: string): P
       product: {
         include: {
           supplierLink: { include: { variantMappings: true } },
-          productVariants: { select: { id: true, color: true, size: true } },
+          productVariants: {
+            select: {
+              id: true,
+              color: true,
+              size: true,
+              attributes: true,
+              supplierSku: true,
+              wholesalePriceCents: true,
+            },
+          },
         },
       },
       autoBuyLog: { select: { id: true, status: true, attempts: true } },
@@ -172,7 +183,16 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
           product: {
             include: {
               supplierLink: { include: { variantMappings: true } },
-              productVariants: { select: { id: true, color: true, size: true } },
+              productVariants: {
+                select: {
+                  id: true,
+                  color: true,
+                  size: true,
+                  attributes: true,
+                  supplierSku: true,
+                  wholesalePriceCents: true,
+                },
+              },
             },
           },
         },
@@ -204,7 +224,9 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
   }
 
   const link = log.order.product.supplierLink
-  if (!link?.isActive || !link.autoBuyEnabled) {
+  const productAutoBuy =
+    log.order.product.autoBuyEnabled || log.order.product.autoFulfill
+  if (!link?.isActive || (!link.autoBuyEnabled && !productAutoBuy)) {
     await prisma.fulfillmentLog.update({
       where: { id: log.id },
       data: { status: "FAILED", errorMsg: "NO_SUPPLIER_LINK" },
@@ -219,7 +241,7 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
   })
 
   const shippingAddress = parseShipping(log.order.shippingAddress)
-  const resolvedSku = resolveSupplierSkuForOrder(
+  let resolvedSku = resolveSupplierSkuForOrder(
     {
       aeSkuId: link.aeSkuId,
       aePriceCents: link.aePriceCents,
@@ -233,9 +255,31 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
     log.order.product.productVariants
   )
 
+  const manualSku = resolveManualSupplierSku(
+    {
+      supplierSku: log.order.product.supplierSku,
+      supplierWholesaleCents: log.order.product.supplierWholesaleCents,
+      variantMapping: log.order.product.variantMapping,
+      productVariants: log.order.product.productVariants,
+    },
+    { variantLabel: log.order.variantLabel },
+    link.aePriceCents,
+    link.aeShippingCents
+  )
+  if (manualSku && (!resolvedSku.aeSkuId || resolvedSku.source === "unmatched")) {
+    resolvedSku = manualSku
+  }
+
+  const { mapping: aeVariantMapping } = mergeAeVariantMappingForOrder({
+    productVariantMapping: log.order.product.variantMapping,
+    productVariants: log.order.product.productVariants,
+    order: { variantLabel: log.order.variantLabel },
+  })
+
   if (
     link.variantMappings.length > 0 &&
-    (resolvedSku.source === "unmatched" || !resolvedSku.aeSkuId)
+    (resolvedSku.source === "unmatched" || !resolvedSku.aeSkuId) &&
+    !manualSku?.aeSkuId
   ) {
     await failAutoBuy(
       log.id,
@@ -346,6 +390,8 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
     const browser = await runAliExpressBrowserCheckout({
       aeUrl: link.aeUrl,
       aeSkuId,
+      supplierUrl: log.order.product.sourceUrl ?? link.aeUrl,
+      variantMapping: Object.keys(aeVariantMapping).length > 0 ? aeVariantMapping : null,
       quantity: log.order.quantity,
       shippingAddress,
       cardNumber,

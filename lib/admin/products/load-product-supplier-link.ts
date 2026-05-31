@@ -6,9 +6,14 @@ export async function loadAdminProductSupplierLink(productId: string) {
     select: {
       id: true,
       name: true,
+      affisellSku: true,
       aliexpressProductId: true,
       sourceUrl: true,
+      variantMapping: true,
+      supplierSku: true,
+      supplierWholesaleCents: true,
       autoFulfill: true,
+      autoBuyEnabled: true,
       hasVariants: true,
       supplierLink: {
         include: {

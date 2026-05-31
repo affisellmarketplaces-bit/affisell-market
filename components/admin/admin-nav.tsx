@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 
 const LINKS = [
   { href: "/admin/auto-fulfill", label: "Auto-Fulfill" },
+  { href: "/admin/products/new", label: "Produit AE" },
   { href: "/admin/orders", label: "Commandes" },
   { href: "/admin/providers", label: "Fournisseurs API" },
   { href: "/admin/stripe-health", label: "Stripe" },
