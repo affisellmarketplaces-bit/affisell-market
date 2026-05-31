@@ -9,6 +9,10 @@ import { ensureBuyerUserIdFromStripeCheckout } from "@/lib/ensure-buyer-from-str
 import { resolveBuyerUserIdForEarn } from "@/lib/buyer-reward-resolve-user"
 import { resolveAffisellCommissionRateBpsForProductId } from "@/lib/affisell-platform-commission.server"
 import { resolveSupplierCommissionRateBpsForProductId } from "@/lib/supplier-commission-rate.server"
+import {
+  computePhase1OrderFees,
+  phase1AffiliateMarginRetainedCents,
+} from "@/lib/marketplace-phase1-fees"
 import { computeMarketplaceOrderSettlement } from "@/lib/marketplace-order-settlement"
 import { triggerAutoFulfillmentForStripeSession } from "@/lib/auto-order/enqueue"
 import { computeShipDeadlineAt } from "@/lib/supplier-ship-sla-shared"
@@ -28,10 +32,15 @@ import {
 type Tx = Prisma.TransactionClient
 
 const listingWithProductInclude = {
-  product: true,
+  product: {
+    include: {
+      supplier: { select: { supplierFeeBps: true } },
+    },
+  },
   affiliate: {
     select: {
       stripeAccountId: true,
+      affiliatePlatformFeeBps: true,
       store: { select: { partnerListingCode: true } },
     },
   },
@@ -102,6 +111,34 @@ async function createPaidMarketplaceOrder(
     affisellCommissionRateBps,
     affisellFeeBaseCents: clientLineHtCents,
   })
+
+  const supplierLink = await tx.supplierLink.findUnique({
+    where: { productId: listing.productId },
+    select: { aePriceCents: true },
+  })
+  const wholesaleForFees = supplierLink?.aePriceCents
+    ? supplierLink.aePriceCents * qty
+    : basePriceCents
+  const aeWholesaleCents = supplierLink?.aePriceCents
+    ? supplierLink.aePriceCents * qty
+    : null
+
+  const phase1Fees = computePhase1OrderFees({
+    wholesaleTotalCents: wholesaleForFees,
+    affiliateCommissionCents: settlement.affiliateCommissionCents,
+    affiliateMarginRetainedCents: settlement.affiliateMarginRetainedCents,
+    supplierFeeBps: listing.product.supplier.supplierFeeBps,
+    affiliatePlatformFeeBps: listing.affiliate.affiliatePlatformFeeBps,
+  })
+
+  const affiliateMarginRetainedCents = phase1AffiliateMarginRetainedCents({
+    clientLineHtCents,
+    supplierPriceCents: basePriceCents,
+    affiliateCommissionCents: settlement.affiliateCommissionCents,
+    affiliateFeeCents: phase1Fees.affiliateFeeCents,
+    fixedListingMarginCents: lineAffiliateMarginCents,
+  })
+
   const lineTaxCents =
     args.checkoutSubtotalCents > 0 && args.checkoutTaxCents > 0
       ? Math.round((args.checkoutTaxCents * clientLineHtCents) / args.checkoutSubtotalCents)
@@ -111,7 +148,7 @@ async function createPaidMarketplaceOrder(
   const affiliateMarginCents =
     listing.marginCents > 0
       ? listing.marginCents
-      : Math.max(0, unitSupplierCents > 0 ? Math.round(settlement.affiliateMarginRetainedCents / qty) : 0)
+      : Math.max(0, unitSupplierCents > 0 ? Math.round(affiliateMarginRetainedCents / qty) : 0)
 
   const order = await tx.order.create({
     data: {
@@ -131,8 +168,11 @@ async function createPaidMarketplaceOrder(
       marginCents: settlement.marginCents,
       commissionCents: settlement.affiliateCommissionCents,
       affiliatePayoutCents: settlement.affiliateCommissionCents,
-      affisellFeeCents: settlement.affisellFeeCents,
-      affiliateMarginRetainedCents: settlement.affiliateMarginRetainedCents,
+      affisellFeeCents: phase1Fees.affisellFeeTotalCents,
+      supplierFeeCents: phase1Fees.supplierFeeCents,
+      affiliateFeeCents: phase1Fees.affiliateFeeCents,
+      aeWholesaleCents,
+      affiliateMarginRetainedCents,
       supplierPriceCents: unitSupplierCents * qty,
       supplierCommissionRateBps,
       supplierPayoutCents: settlement.supplierNetCents,

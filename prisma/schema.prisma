@@ -42,6 +42,10 @@ model User {
    * 1100 = 11% of supplier wholesale offered to affiliates.
    */
   defaultSupplierCommissionRateBps Int?
+  /** Phase 1: Affisell fee on supplier wholesale (bps), default 12 %. */
+  supplierFeeBps            Int?
+  /** Phase 1: Affisell fee on affiliate earnings (bps), default 20 %. */
+  affiliatePlatformFeeBps   Int?
   /** CGU / CGS / CGA acceptance timestamp. */
   termsAcceptedAt        DateTime?
   termsAcceptedVersion   String?
@@ -1044,6 +1048,12 @@ model Order {
    * Affisell marketplace fee (default 10% of line total paid).
    */
   affisellFeeCents         Int                 @default(0)
+  /** Phase 1: platform fee on supplier wholesale (AE/catalog HT). */
+  supplierFeeCents         Int                 @default(0)
+  /** Phase 1: platform fee on affiliate earnings (commission + markup). */
+  affiliateFeeCents        Int                 @default(0)
+  /** Snapshot AE purchase price HT (centimes) at checkout when SupplierLink exists. */
+  aeWholesaleCents         Int?
   /**
    * Affiliate markup kept above supplier commission offer (`margin − affiliate payout`).
    */

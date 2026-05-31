@@ -1,7 +1,9 @@
 import type Stripe from "stripe"
 
-import { affisellFeeCentsFromLine } from "@/lib/affisell-platform-commission"
-import { recomputeAffiliateMarginRetainedCents } from "@/lib/marketplace-order-settlement"
+import {
+  computePhase1OrderFees,
+  phase1AffiliateMarginRetainedCents,
+} from "@/lib/marketplace-phase1-fees"
 import { getStripeClient } from "@/lib/stripe"
 import { prisma } from "@/lib/prisma"
 
@@ -68,6 +70,16 @@ export async function syncOrderVatFromCheckoutSession(
       basePriceCents: true,
       affiliatePayoutCents: true,
       affiliateMarginCents: true,
+      affiliateMarginRetainedCents: true,
+      aeWholesaleCents: true,
+      supplierFeeCents: true,
+      affiliateFeeCents: true,
+      product: {
+        select: {
+          supplier: { select: { supplierFeeBps: true } },
+        },
+      },
+      affiliate: { select: { affiliatePlatformFeeBps: true } },
     },
   })
   const weightSum = orders.reduce(
@@ -87,11 +99,6 @@ export async function syncOrderVatFromCheckoutSession(
     const taxCents = Math.round(sessionTax * weight)
     const totalCents = Math.round(sessionTotal * weight)
 
-    const affisellFeeCents = affisellFeeCentsFromLine(
-      subtotalCents,
-      order.affisellCommissionRateBps
-    )
-
     const supplierPriceCents = Math.max(
       0,
       Math.round(order.supplierPriceCents ?? order.basePriceCents)
@@ -102,11 +109,23 @@ export async function syncOrderVatFromCheckoutSession(
         ? order.affiliateMarginCents
         : undefined
 
-    const affiliateMarginRetainedCents = recomputeAffiliateMarginRetainedCents({
+    const wholesaleForFees = order.aeWholesaleCents ?? supplierPriceCents
+    const phase1Fees = computePhase1OrderFees({
+      wholesaleTotalCents: wholesaleForFees,
+      affiliateCommissionCents,
+      affiliateMarginRetainedCents:
+        order.affiliateMarginRetainedCents > 0
+          ? order.affiliateMarginRetainedCents
+          : Math.max(0, subtotalCents - supplierPriceCents - affiliateCommissionCents),
+      supplierFeeBps: order.product.supplier.supplierFeeBps,
+      affiliatePlatformFeeBps: order.affiliate.affiliatePlatformFeeBps,
+    })
+
+    const affiliateMarginRetainedCents = phase1AffiliateMarginRetainedCents({
       clientLineHtCents: subtotalCents,
       supplierPriceCents,
-      affisellFeeCents,
       affiliateCommissionCents,
+      affiliateFeeCents: phase1Fees.affiliateFeeCents,
       fixedListingMarginCents: unitListingMargin,
     })
 
@@ -117,7 +136,9 @@ export async function syncOrderVatFromCheckoutSession(
         taxCents,
         totalCents,
         sellingPriceCents: subtotalCents,
-        affisellFeeCents,
+        affisellFeeCents: phase1Fees.affisellFeeTotalCents,
+        supplierFeeCents: phase1Fees.supplierFeeCents,
+        affiliateFeeCents: phase1Fees.affiliateFeeCents,
         affiliateMarginRetainedCents,
         taxCountry,
         taxRate: sessionTaxRate,

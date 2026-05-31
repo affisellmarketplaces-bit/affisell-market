@@ -27,6 +27,11 @@ const LOG_BADGE: Record<
   REFUNDED: "outline",
 }
 
+function centsToEur(cents: number | null | undefined): string {
+  if (cents == null || !Number.isFinite(cents)) return "—"
+  return `${(cents / 100).toFixed(2)} €`
+}
+
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-xl border border-zinc-200 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900">
@@ -36,12 +41,55 @@ function StatCard({ label, value }: { label: string; value: number }) {
   )
 }
 
+function AutoBuyToggle({
+  productId,
+  enabled,
+  hasLink,
+  onToggled,
+}: {
+  productId: string
+  enabled: boolean
+  hasLink: boolean
+  onToggled: () => void
+}) {
+  const [busy, setBusy] = useState(false)
+  return (
+    <div className="flex flex-col gap-1">
+      <button
+        type="button"
+        disabled={busy}
+        className={cn(
+          "rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase transition",
+          enabled
+            ? "bg-emerald-600 text-white"
+            : "border border-zinc-300 bg-zinc-100 text-zinc-600 dark:border-zinc-600 dark:bg-zinc-800"
+        )}
+        onClick={() => {
+          setBusy(true)
+          void fetch(`/api/admin/products/${productId}/auto-buy-toggle`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ enabled: !enabled }),
+          })
+            .then(() => onToggled())
+            .finally(() => setBusy(false))
+        }}
+      >
+        {busy ? "…" : enabled ? "ON" : "OFF"}
+      </button>
+      {!hasLink ? (
+        <span className="text-[9px] text-amber-700 dark:text-amber-300">Sans lien AE</span>
+      ) : null}
+    </div>
+  )
+}
+
 export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boolean }) {
   const [q, setQ] = useState("")
   const deferredQ = useDeferredValue(q)
 
   const swrKey = useMemo(() => ["admin-auto-fulfill", deferredQ] as const, [deferredQ])
-  const { data, isLoading, error } = useSWR(swrKey, () => fetchAdminAutoFulfillDashboard(deferredQ), {
+  const { data, isLoading, error, mutate } = useSWR(swrKey, () => fetchAdminAutoFulfillDashboard(deferredQ), {
     keepPreviousData: true,
   })
 
@@ -84,16 +132,14 @@ export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boo
       {
         id: "autoBuy",
         header: "Auto-Buy",
-        cell: ({ row }) =>
-          row.original.autoBuyEnabled ? (
-            <Badge variant="default" className="text-[10px]">
-              ON
-            </Badge>
-          ) : (
-            <Badge variant="outline" className="text-[10px]">
-              OFF
-            </Badge>
-          ),
+        cell: ({ row }) => (
+          <AutoBuyToggle
+            productId={row.original.id}
+            enabled={row.original.autoBuyEnabled}
+            hasLink={row.original.hasSupplierLink}
+            onToggled={() => void mutate()}
+          />
+        ),
       },
       {
         id: "ae",
@@ -119,7 +165,7 @@ export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boo
         ),
       },
     ],
-    []
+    [mutate]
   )
 
   const logColumns = useMemo<ColumnDef<AdminAutoFulfillLogRow, unknown>[]>(
@@ -145,6 +191,18 @@ export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boo
         header: "Client",
         cell: ({ row }) => (
           <span className="max-w-[160px] truncate text-xs text-zinc-600">{row.original.customerEmail}</span>
+        ),
+      },
+      {
+        id: "economics",
+        header: "Économie",
+        cell: ({ row }) => (
+          <div className="text-[10px] tabular-nums leading-relaxed text-zinc-600 dark:text-zinc-400">
+            <p>Client {centsToEur(row.original.clientTotalCents)}</p>
+            <p>Wholesale AE {centsToEur(row.original.aeWholesaleCents)}</p>
+            <p>Fee supplier {centsToEur(row.original.supplierFeeCents)}</p>
+            <p>Fee affiliate {centsToEur(row.original.affiliateFeeCents)}</p>
+          </div>
         ),
       },
       {
@@ -188,7 +246,7 @@ export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boo
         ),
       },
     ],
-    []
+    [mutate]
   )
 
   const stats = data?.stats

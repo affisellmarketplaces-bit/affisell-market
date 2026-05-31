@@ -27,6 +27,10 @@ export type AdminAutoFulfillLogRow = {
   aeOrderId: string | null
   aeTracking: string | null
   errorMsg: string | null
+  clientTotalCents: number | null
+  aeWholesaleCents: number | null
+  supplierFeeCents: number
+  affiliateFeeCents: number
   createdAt: string
   updatedAt: string
 }
@@ -116,6 +120,11 @@ export async function loadAdminAutoFulfillDashboard(
           select: {
             id: true,
             customerEmail: true,
+            totalCents: true,
+            sellingPriceCents: true,
+            aeWholesaleCents: true,
+            supplierFeeCents: true,
+            affiliateFeeCents: true,
             product: { select: { id: true, name: true } },
           },
         },
@@ -157,6 +166,10 @@ export async function loadAdminAutoFulfillDashboard(
       aeOrderId: log.aeOrderId,
       aeTracking: log.aeTracking,
       errorMsg: log.errorMsg,
+      clientTotalCents: log.order.totalCents ?? log.order.sellingPriceCents,
+      aeWholesaleCents: log.order.aeWholesaleCents,
+      supplierFeeCents: log.order.supplierFeeCents,
+      affiliateFeeCents: log.order.affiliateFeeCents,
       createdAt: log.createdAt.toISOString(),
       updatedAt: log.updatedAt.toISOString(),
     })),

@@ -159,7 +159,16 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
     where: { id: fulfillmentLogId },
     include: {
       order: {
-        include: {
+        select: {
+          id: true,
+          variantLabel: true,
+          quantity: true,
+          shippingAddress: true,
+          totalCents: true,
+          sellingPriceCents: true,
+          supplierFeeCents: true,
+          affiliateFeeCents: true,
+          aeWholesaleCents: true,
           product: {
             include: {
               supplierLink: { include: { variantMappings: true } },
@@ -248,22 +257,31 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
     resolvedSku.aeShippingCents
   )
 
+  const clientTotalCents =
+    log.order.totalCents ??
+    log.order.sellingPriceCents ??
+    amountCents * log.order.quantity
+
   logAutoBuy("sku_resolved", {
     orderId: log.orderId,
     source: resolvedSku.source,
     aeSkuId,
     amountCents,
+    clientTotalCents,
+    supplierFeeCents: log.order.supplierFeeCents,
+    affiliateFeeCents: log.order.affiliateFeeCents,
+    aeWholesaleCents: log.order.aeWholesaleCents,
   })
 
-  if (amountCents > MAX_ORDER_VALUE_EUR * 100) {
+  if (clientTotalCents > MAX_ORDER_VALUE_EUR * 100) {
     await prisma.fulfillmentLog.update({
       where: { id: fulfillmentLogId },
       data: {
         status: "FAILED",
-        errorMsg: `ORDER_VALUE_TOO_HIGH: ${amountCents / 100}€ > ${MAX_ORDER_VALUE_EUR}€`,
+        errorMsg: `ORDER_VALUE_TOO_HIGH: ${(clientTotalCents / 100).toFixed(2)}€ > ${MAX_ORDER_VALUE_EUR}€`,
       },
     })
-    logAutoBuy("order_value_too_high", { fulfillmentLogId, amountCents })
+    logAutoBuy("order_value_too_high", { fulfillmentLogId, clientTotalCents })
     throw new Error("ORDER_VALUE_TOO_HIGH")
   }
 
@@ -274,6 +292,7 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
       aeSkuId,
       quantity: log.order.quantity,
       shippingName: shippingAddress.name ?? null,
+      aeWholesaleCents: resolvedSku.aePriceCents * log.order.quantity,
     })
     return
   }
@@ -327,6 +346,7 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
     const browser = await runAliExpressBrowserCheckout({
       aeUrl: link.aeUrl,
       aeSkuId,
+      quantity: log.order.quantity,
       shippingAddress,
       cardNumber,
       cardExpMonth,
@@ -354,12 +374,14 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
         errorMsg: null,
       },
     })
+    const aeWholesaleSnapshot = Math.max(0, resolvedSku.aePriceCents * log.order.quantity)
     await tx.order.update({
       where: { id: log.orderId },
       data: {
         fulfilledAt: new Date(),
         fulfillmentStatus: "ORDERED",
         supplierPreparingAt: new Date(),
+        aeWholesaleCents: log.order.aeWholesaleCents ?? aeWholesaleSnapshot,
       },
     })
   })
@@ -375,6 +397,7 @@ type AutoBuyDryRunInput = {
   aeSkuId: string | null
   quantity: number
   shippingName: string | null
+  aeWholesaleCents?: number | null
 }
 
 /** Skip Stripe Issuing + AE order commit; mark log BOUGHT for pipeline testing. */
@@ -401,6 +424,9 @@ async function completeAutoBuyDryRun(input: AutoBuyDryRunInput): Promise<{ succe
         fulfilledAt: new Date(),
         fulfillmentStatus: "ORDERED",
         supplierPreparingAt: new Date(),
+        ...(input.aeWholesaleCents != null && input.aeWholesaleCents > 0
+          ? { aeWholesaleCents: input.aeWholesaleCents }
+          : {}),
       },
     })
   })
