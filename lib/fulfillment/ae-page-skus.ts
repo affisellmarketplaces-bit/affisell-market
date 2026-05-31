@@ -135,7 +135,10 @@ export function parseAeSkusFromPagePayload(
 ): AePageParseResult {
   let aer = asRec(payload)
   if (!aer && opts?.html) {
-    aer = extractWindowJson(opts.html, ["__AER_DATA__"])
+    aer =
+      extractWindowJson(opts.html, ["__AER_DATA__"]) ??
+      extractWindowJson(opts.html, ["__INIT_DATA__"]) ??
+      extractWindowJson(opts.html, ["runParams"])
   }
   if (!aer) {
     return { aeSkus: [], aePriceCents: 0, aeShopId: "", title: "" }

@@ -109,7 +109,7 @@ export async function resolveSupplierLinkFromAePage(
   const parsed = parseAeSkusFromPagePayload(null, { html: fetched.html })
   if (parsed.aeSkus.length === 0) {
     throw new AliExpressApiError(
-      "JSON produit introuvable sur la page — ouvrez la page AE, copiez window.__AER_DATA__ et collez-le ci-dessous."
+      "Catalogue introuvable côté serveur — utilisez Import Express (1 clic depuis votre navigateur)."
     )
   }
 

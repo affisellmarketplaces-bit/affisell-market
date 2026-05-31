@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { Suspense } from "react"
 import { notFound, redirect } from "next/navigation"
 
 import { ProductSupplierLinkPanel } from "@/components/admin/product-supplier-link-panel"
@@ -38,7 +39,9 @@ export default async function AdminProductSupplierLinkPage({ params }: Props) {
           </Link>
         </div>
 
-        <ProductSupplierLinkPanel product={product} />
+        <Suspense fallback={<div className="h-40 animate-pulse rounded-xl bg-zinc-200 dark:bg-zinc-800" />}>
+          <ProductSupplierLinkPanel product={product} />
+        </Suspense>
       </div>
     </main>
   )

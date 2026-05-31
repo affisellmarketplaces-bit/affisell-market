@@ -1,7 +1,10 @@
 "use client"
 
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import { ExternalLink, Plus, Sparkles, Trash2 } from "lucide-react"
+
+import { AeExpressImportLauncher } from "@/components/admin/ae-express-import-launcher"
 
 import { AffisellPlatformFeesExplainer } from "@/components/shared/affisell-platform-fees-explainer"
 import { Button } from "@/components/ui/button"
@@ -101,16 +104,16 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
   const [error, setError] = useState<string | null>(null)
   const [aeSkuCatalog, setAeSkuCatalog] = useState<AeProductSkuRow[]>([])
   const [lastSuggestions, setLastSuggestions] = useState<AeSuggestion[]>([])
-  const [showPaste, setShowPaste] = useState(false)
-  const [aerPaste, setAerPaste] = useState("")
   const [lastSource, setLastSource] = useState<AeResolveSource | null>(null)
+  const searchParams = useSearchParams()
 
   const productVariants = product.productVariants ?? []
   const hasVariantCatalog = productVariants.length > 0 || variantRows.length > 0
 
   const resolveFromUrl = useCallback(
-    async (opts?: { aerDataPaste?: unknown }) => {
-      if (!form.aeUrl.trim()) return
+    async (opts?: { aerDataPaste?: unknown; aeUrlOverride?: string }) => {
+      const url = (opts?.aeUrlOverride ?? form.aeUrl).trim()
+      if (!url) return
       setResolveBusy(true)
       setError(null)
       try {
@@ -118,7 +121,7 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            aeUrl: form.aeUrl.trim(),
+            aeUrl: url,
             ...(opts?.aerDataPaste !== undefined ? { aerDataPaste: opts.aerDataPaste } : {}),
           }),
         })
@@ -152,8 +155,18 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
         setMessage(
           skuN > 0
             ? `${skuN} SKU importé(s) depuis ${sourceLabel(data.resolved.source)}.`
-            : "Product ID rempli — importez la page AE ou collez __AER_DATA__."
+            : "Product ID rempli — utilisez Import Express."
         )
+        if (data.suggestions?.length) {
+          setVariantRows((current) => {
+            const { rows: next, filled } = applyAeVariantSuggestions(
+              current,
+              data.suggestions ?? [],
+              data.resolved!.aeSkus ?? []
+            )
+            return filled > 0 ? next : current
+          })
+        }
       } finally {
         setResolveBusy(false)
       }
@@ -161,21 +174,18 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
     [form.aeUrl, product.id]
   )
 
-  function importFromPaste() {
-    const raw = aerPaste.trim()
-    if (!raw) {
-      setError("Collez le JSON __AER_DATA__ depuis la console du navigateur.")
-      return
+  const applyExpressCapture = useCallback(
+    async (payload: { aeUrl: string; aerData: unknown }) => {
+      await resolveFromUrl({ aerDataPaste: payload.aerData, aeUrlOverride: payload.aeUrl })
+    },
+    [resolveFromUrl]
+  )
+
+  useEffect(() => {
+    if (searchParams.get("aeImported") === "1") {
+      setMessage("Catalogue AliExpress importé — vérifiez les champs puis enregistrez.")
     }
-    let parsed: unknown
-    try {
-      parsed = JSON.parse(raw) as unknown
-    } catch {
-      setError("JSON invalide — copiez window.__AER_DATA__ sans guillemets autour.")
-      return
-    }
-    void resolveFromUrl({ aerDataPaste: parsed })
-  }
+  }, [searchParams])
 
   function autoMapVariants() {
     if (lastSuggestions.length === 0 && aeSkuCatalog.length === 0) {
@@ -316,8 +326,8 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
     <section className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
       <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Lien fournisseur (AliExpress)</h2>
       <p className="mt-1 text-sm text-zinc-500">
-        Sans API AliExpress : importez le catalogue depuis la page produit (ScrapingBee ou JSON{" "}
-        <code className="text-[11px]">__AER_DATA__</code>), puis mappez les variantes.
+        Import Express : votre navigateur lit la fiche AliExpress et remplit SKU, prix et variantes
+        automatiquement — sans API officielle.
       </p>
       {product.affisellSku ? (
         <p className="mt-2 font-mono text-xs text-violet-800 dark:text-violet-200">
@@ -340,48 +350,21 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
             className="mt-1"
             value={form.aeUrl}
             onChange={(e) => setForm((f) => ({ ...f, aeUrl: e.target.value }))}
-            onBlur={() => void resolveFromUrl()}
             placeholder="https://www.aliexpress.com/item/…"
           />
-          <p className="mt-1 text-[11px] text-zinc-500">
-            {lastSource
-              ? `Dernier import : ${sourceLabel(lastSource)}`
-              : "Blur = import automatique depuis la page AE (sans API officielle)."}
-          </p>
-        </div>
-
-        <div className="rounded-lg border border-dashed border-zinc-200 p-3 dark:border-zinc-700">
-          <button
-            type="button"
-            className="text-xs font-medium text-violet-800 underline dark:text-violet-200"
-            onClick={() => setShowPaste((v) => !v)}
-          >
-            {showPaste ? "Masquer" : "Coller JSON __AER_DATA__ (sans ScrapingBee)"}
-          </button>
-          {showPaste ? (
-            <div className="mt-2 space-y-2">
-              <p className="text-[11px] text-zinc-500">
-                Sur la page AE : F12 → Console →{" "}
-                <code className="text-[10px]">copy(JSON.stringify(window.__AER_DATA__))</code>
-              </p>
-              <textarea
-                className="min-h-[80px] w-full rounded-md border border-zinc-200 bg-white p-2 font-mono text-[11px] dark:border-zinc-700 dark:bg-zinc-950"
-                value={aerPaste}
-                onChange={(e) => setAerPaste(e.target.value)}
-                placeholder='{"pageModule":{...}}'
-              />
-              <Button
-                type="button"
-                size="sm"
-                variant="secondary"
-                disabled={resolveBusy}
-                onClick={importFromPaste}
-              >
-                Importer depuis JSON
-              </Button>
-            </div>
+          {lastSource ? (
+            <p className="mt-1 text-[11px] text-zinc-500">
+              Dernier import : {sourceLabel(lastSource)}
+            </p>
           ) : null}
         </div>
+
+        <AeExpressImportLauncher
+          productId={product.id}
+          aeUrl={form.aeUrl}
+          disabled={resolveBusy}
+          onCapture={applyExpressCapture}
+        />
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>

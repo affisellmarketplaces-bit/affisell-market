@@ -45,7 +45,7 @@ export async function fetchAliExpressProductHtml(aeUrl: string): Promise<AePageH
         ok: false,
         error: apiKey
           ? "Page AE inaccessible — vérifiez l’URL ou les crédits ScrapingBee."
-          : "Page AE inaccessible — ajoutez SCRAPINGBEE_API_KEY ou collez le JSON __AER_DATA__.",
+          : "Page AE inaccessible — utilisez Import Express (favori navigateur).",
       }
     }
     console.log("[ae-page-fetch]", { url, source: "direct", bytes: html.length })
@@ -56,7 +56,7 @@ export async function fetchAliExpressProductHtml(aeUrl: string): Promise<AePageH
       ok: false,
       error: apiKey
         ? `Fetch AE échoué : ${msg}`
-        : `Fetch AE échoué : ${msg}. Collez le JSON __AER_DATA__ depuis la console du navigateur.`,
+        : `Fetch AE échoué : ${msg}. Utilisez Import Express depuis l’admin.`,
     }
   }
 }
