@@ -41,6 +41,69 @@ function StatCard({ label, value }: { label: string; value: number }) {
   )
 }
 
+function RetryAutoBuyButton({
+  fulfillmentLogId,
+  status,
+  attempts,
+  onDone,
+}: {
+  fulfillmentLogId: string
+  status: AdminAutoFulfillLogRow["status"]
+  attempts: number
+  onDone: () => void
+}) {
+  const canRetry =
+    status === "PENDING" ||
+    status === "BUYING" ||
+    (status === "FAILED" && attempts < 3)
+
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+
+  if (!canRetry) return null
+
+  const errorLabel: Record<string, string> = {
+    auto_buy_in_progress: "En cours (< 10 min)",
+    no_supplier_link_or_auto_buy_off: "Lien AE / auto-buy OFF",
+    queue_enqueue_failed: "Redis / file KO",
+    auto_buy_disabled: "Kill switch actif",
+    max_attempts_reached: "3 tentatives max",
+  }
+
+  return (
+    <div className="flex flex-col gap-0.5">
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        disabled={busy}
+        className="h-7 text-[10px]"
+        onClick={() => {
+          setBusy(true)
+          setErr(null)
+          void fetch(`/api/admin/auto-fulfill/logs/${fulfillmentLogId}/retry`, {
+            method: "POST",
+          })
+            .then(async (res) => {
+              const body = (await res.json()) as { error?: string }
+              if (!res.ok) {
+                const code = body.error ?? "retry_failed"
+                setErr(errorLabel[code] ?? code)
+                return
+              }
+              onDone()
+            })
+            .catch(() => setErr("network_error"))
+            .finally(() => setBusy(false))
+        }}
+      >
+        {busy ? "…" : "Relancer"}
+      </Button>
+      {err ? <span className="max-w-[72px] truncate text-[9px] text-red-600">{err}</span> : null}
+    </div>
+  )
+}
+
 function AutoBuyToggle({
   productId,
   enabled,
@@ -234,15 +297,23 @@ export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boo
         ),
       },
       {
-        id: "order",
+        id: "actions",
         header: "",
         cell: ({ row }) => (
-          <Link
-            href={`/admin/orders/${row.original.orderId}`}
-            className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
-          >
-            Commande
-          </Link>
+          <div className="flex flex-col items-end gap-1">
+            <RetryAutoBuyButton
+              fulfillmentLogId={row.original.id}
+              status={row.original.status}
+              attempts={row.original.attempts}
+              onDone={() => void mutate()}
+            />
+            <Link
+              href={`/admin/orders/${row.original.orderId}`}
+              className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "h-7 text-[10px]")}
+            >
+              Commande
+            </Link>
+          </div>
         ),
       },
     ],

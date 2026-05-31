@@ -20,7 +20,7 @@ import { resolveSupplierSkuForOrder } from "@/lib/fulfillment/resolve-supplier-s
 import { initiateMarketplaceOrderRefund } from "@/lib/stripe-refund-marketplace-order"
 import { notifyOrderCancelled } from "@/lib/emails/notify-order-cancelled"
 import { prisma } from "@/lib/prisma"
-const MAX_ATTEMPTS = 3
+export const MAX_ATTEMPTS = 3
 const RETRY_DELAY_MS = 10 * 60 * 1000
 export const MAX_DAILY_ORDERS = 1000
 export const MAX_ORDER_VALUE_EUR = 500
