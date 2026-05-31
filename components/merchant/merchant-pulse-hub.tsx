@@ -1,4 +1,5 @@
 import Link from "next/link"
+import type { ReactNode } from "react"
 import type { DailySpark, PulseBandRow } from "@/lib/merchant-earnings-pulse"
 import { affisellBrand } from "@/lib/affisell-brand"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
@@ -25,6 +26,8 @@ type Props = {
   sparkline: DailySpark[]
   recentLedger: LedgerMini[]
   backHref: string
+  /** Contenu inséré après le hero (ex. grille frais fournisseur) */
+  leadingSlot?: ReactNode
 }
 
 function SparkRibbon({ data }: { data: DailySpark[] }) {
@@ -87,6 +90,7 @@ export function MerchantPulseHub({
   sparkline,
   recentLedger,
   backHref,
+  leadingSlot,
 }: Props) {
   return (
     <BentoShell>
@@ -139,6 +143,8 @@ export function MerchantPulseHub({
             </div>
           </div>
         </BentoCard>
+
+        {leadingSlot}
 
         <div className="grid gap-4 md:grid-cols-3">
           {bands.map((b) => (

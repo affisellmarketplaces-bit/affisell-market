@@ -25,6 +25,11 @@ export type SupplierFeeRatesDisplay = {
   usesLegacyOverride: boolean
 }
 
+/** Label court pour logs / tableaux (auto-buy AE vs expédition catalogue). */
+export function supplierFeeModeLabel(usesAffisellAutoBuy: boolean): "auto-buy" | "catalogue" {
+  return usesAffisellAutoBuy ? "auto-buy" : "catalogue"
+}
+
 export function supplierFeeRatesDisplay(
   supplier?: SupplierFeeUserOverrides | null,
   affiliatePlatformFeeBps?: number | null

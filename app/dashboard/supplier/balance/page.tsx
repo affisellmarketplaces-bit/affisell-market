@@ -14,12 +14,21 @@ export const dynamic = "force-dynamic"
 export default async function SupplierBalancePage() {
   const session = await requireSupplierSession("/dashboard/supplier/balance")
 
-
-  const data = await loadOrFallback(
-    "supplier/balance",
-    () => loadSupplierEarningsPulse(session.user.id),
-    emptySupplierEarningsPulse()
-  )
+  const [data, feeUser] = await Promise.all([
+    loadOrFallback(
+      "supplier/balance",
+      () => loadSupplierEarningsPulse(session.user.id),
+      emptySupplierEarningsPulse()
+    ),
+    prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        supplierFeeBps: true,
+        supplierFeeBpsCatalog: true,
+        supplierFeeBpsAutoBuy: true,
+      },
+    }),
+  ])
 
   return (
     <MerchantPulseHub
@@ -33,7 +42,9 @@ export default async function SupplierBalancePage() {
       sparkline={data.sparkline}
       recentLedger={data.recentLedger}
       backHref="/dashboard/supplier"
-      />
-    </div>
+      leadingSlot={
+        <AffisellPlatformFeesExplainer variant="supplier" supplierOverrides={feeUser} />
+      }
+    />
   )
 }

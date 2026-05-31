@@ -1,11 +1,20 @@
 import { describe, expect, it } from "vitest"
 
-import { formatFeeBpsPercent, supplierFeeRatesDisplay } from "@/lib/marketplace-fee-display"
+import {
+  formatFeeBpsPercent,
+  supplierFeeModeLabel,
+  supplierFeeRatesDisplay,
+} from "@/lib/marketplace-fee-display"
 
 describe("marketplace-fee-display", () => {
   it("formats bps as percent", () => {
     expect(formatFeeBpsPercent(1000)).toBe("10 %")
     expect(formatFeeBpsPercent(1700)).toBe("17 %")
+  })
+
+  it("labels fee mode for logs", () => {
+    expect(supplierFeeModeLabel(true)).toBe("auto-buy")
+    expect(supplierFeeModeLabel(false)).toBe("catalogue")
   })
 
   it("shows distinct catalog and auto-buy defaults", () => {
