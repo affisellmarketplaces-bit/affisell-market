@@ -8,21 +8,13 @@ import { LogIn, LogOut } from "lucide-react"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-export type AdminAuthUser = {
-  email?: string | null
-  name?: string | null
-}
-
-type Props = {
-  /** Server session hint (avoids flash before client hydrates). */
-  user?: AdminAuthUser | null
-}
-
-export function AdminAuthActions({ user }: Props) {
+export function AdminAuthActions() {
   const pathname = usePathname()
-  const { status } = useSession()
-  const connected = status === "authenticated" || Boolean(user?.email || user?.name)
-  const displayName = user?.name?.trim() || user?.email?.trim() || "Admin"
+  const { data: session, status } = useSession()
+  const connected = status === "authenticated"
+  const displayName =
+    session?.user?.name?.trim() || session?.user?.email?.trim() || "Admin"
+  const userEmail = session?.user?.email ?? null
 
   const callbackUrl = encodeURIComponent(pathname || "/admin/auto-fulfill")
 
@@ -33,7 +25,7 @@ export function AdminAuthActions({ user }: Props) {
       <div className="flex shrink-0 items-center gap-2">
         <span
           className="hidden max-w-[140px] truncate text-xs text-zinc-500 sm:inline"
-          title={user?.email ?? undefined}
+          title={userEmail ?? undefined}
         >
           {displayName}
         </span>
@@ -44,7 +36,7 @@ export function AdminAuthActions({ user }: Props) {
             "gap-1.5 border-violet-200 text-violet-900 hover:bg-violet-50 dark:border-violet-800 dark:text-violet-100 dark:hover:bg-violet-950/50"
           )}
           onClick={() => {
-            console.log("[admin-auth] sign_out", { email: user?.email ?? null })
+            console.log("[admin-auth] sign_out", { email: userEmail })
             void signOut({ callbackUrl: "/login/admin" })
           }}
         >

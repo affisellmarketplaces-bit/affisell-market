@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
-import { AdminAuthActions, type AdminAuthUser } from "@/components/admin/admin-auth-actions"
+import { AdminAuthActions } from "@/components/admin/admin-auth-actions"
 import { cn } from "@/lib/utils"
 
 const LINKS = [
@@ -17,11 +17,7 @@ const LINKS = [
   { href: "/admin/reviews", label: "Avis" },
 ] as const
 
-type AdminNavProps = {
-  user?: AdminAuthUser | null
-}
-
-export function AdminNav({ user }: AdminNavProps) {
+export function AdminNav() {
   const pathname = usePathname()
 
   return (
@@ -60,7 +56,7 @@ export function AdminNav({ user }: AdminNavProps) {
           >
             Site public
           </Link>
-          <AdminAuthActions user={user} />
+          <AdminAuthActions />
         </div>
       </div>
     </header>

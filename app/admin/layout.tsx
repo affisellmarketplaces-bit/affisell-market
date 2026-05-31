@@ -16,12 +16,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <>
-      <AdminNav
-        user={{
-          email: session.user.email ?? null,
-          name: session.user.name ?? null,
-        }}
-      />
+      <AdminNav />
       {children}
     </>
   )
