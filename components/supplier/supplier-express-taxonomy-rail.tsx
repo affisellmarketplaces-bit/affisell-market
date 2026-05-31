@@ -1,6 +1,6 @@
 "use client"
 
-import { Loader2, ScanLine, Sparkles } from "lucide-react"
+import { ChevronRight, Loader2, ScanLine, Sparkles } from "lucide-react"
 
 import type { PendingCategoryConfirmation } from "@/components/supplier/supplier-category-confirm-types"
 import type { CategoryPathSegment } from "@/lib/category-browse"
@@ -24,7 +24,8 @@ type Props = {
   productInsight: ListingProductInsight | null
   pendingConfirm: PendingCategoryConfirmation | null
   onSelectSuggestion: (suggestion: ListingCategorySuggestion) => void
-  onDismissPending: () => void
+  /** Scroll vers l’arbre / recherche catégorie manuelle (section Classification). */
+  onBrowseCatalogManually: () => void
 }
 
 function confidencePct(conf?: number) {
@@ -54,7 +55,7 @@ export function SupplierExpressTaxonomyRail({
   productInsight,
   pendingConfirm,
   onSelectSuggestion,
-  onDismissPending,
+  onBrowseCatalogManually,
 }: Props) {
   const pathLabel =
     categoryPath.length > 0
@@ -224,14 +225,21 @@ export function SupplierExpressTaxonomyRail({
         )}
       </div>
 
-      {visibleSuggestions.length > 0 && !scanning && !confirmed ? (
-        <button
+      {!scanning && readyToScan ? (
+        <Button
           type="button"
-          className="relative mt-3 text-[11px] font-medium text-violet-700 underline underline-offset-2 hover:text-violet-900 dark:text-violet-300 dark:hover:text-violet-100"
-          onClick={onDismissPending}
+          variant="outline"
+          size="sm"
+          className="relative mt-3 w-full justify-between gap-2 rounded-xl border-violet-300/80 bg-white/90 text-left text-xs font-semibold text-violet-800 shadow-sm hover:border-violet-400 hover:bg-violet-50 dark:border-violet-700 dark:bg-zinc-950/80 dark:text-violet-100 dark:hover:bg-violet-950/50"
+          onClick={onBrowseCatalogManually}
         >
-          Aucune ne convient — parcourir l’arbre catalogue plus bas
-        </button>
+          <span>
+            {confirmed
+              ? "Modifier la catégorie dans le catalogue"
+              : "Aucune ne convient — chercher la catégorie moi-même"}
+          </span>
+          <ChevronRight className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
+        </Button>
       ) : null}
 
       {productInsight && !scanning && !confirmed ? (

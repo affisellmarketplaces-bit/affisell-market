@@ -100,6 +100,7 @@ export function CategoryAutocomplete({
   return (
     <AsyncSelect<CategorySelectOption, false>
       instanceId="affisell-category-google-fr"
+      inputId="supplier-manual-category-search"
       cacheOptions
       defaultOptions={false}
       isDisabled={disabled}

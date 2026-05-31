@@ -1787,6 +1787,22 @@ export function SupplierAddProductForm({
     setCategoryManualLock(true)
   }, [pendingCategoryConfirm])
 
+  const browseCatalogManually = useCallback(() => {
+    dismissPendingCategory()
+    scrollToSection("add-product-classify")
+    window.setTimeout(() => {
+      const root = document.getElementById("add-product-classify")
+      const input =
+        root?.querySelector<HTMLInputElement>("#supplier-manual-category-search") ??
+        root?.querySelector<HTMLInputElement>("input")
+      input?.focus()
+      input?.scrollIntoView({ behavior: "smooth", block: "center" })
+    }, 350)
+    toast.info("Recherche manuelle", {
+      description: "Utilisez la recherche ou l’arbre catalogue dans la section Classification.",
+    })
+  }, [dismissPendingCategory, scrollToSection])
+
   const selectExpressCategory = useCallback(
     (suggestion: ListingCategorySuggestion) => {
       if (!browse) return
@@ -2160,7 +2176,7 @@ export function SupplierAddProductForm({
                         productInsight={categoryProductInsight}
                         pendingConfirm={pendingCategoryConfirm}
                         onSelectSuggestion={selectExpressCategory}
-                        onDismissPending={dismissPendingCategory}
+                        onBrowseCatalogManually={browseCatalogManually}
                       />
                     </div>
                   </div>
