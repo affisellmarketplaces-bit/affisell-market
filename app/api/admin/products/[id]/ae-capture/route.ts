@@ -3,6 +3,7 @@ import { z } from "zod"
 
 import { requireAdminSession } from "@/lib/admin/require-admin-session"
 import { storeAeCaptureSessionResult } from "@/lib/fulfillment/ae-capture-session"
+import { verifyAeCaptureToken } from "@/lib/fulfillment/ae-capture-token"
 import { resolveSupplierLinkFromAerPaste } from "@/lib/fulfillment/supplier-link-resolve"
 import { suggestVariantMappings } from "@/lib/fulfillment/resolve-supplier-sku"
 import { parseAliExpressProductId } from "@/lib/aliexpress-product-id"
@@ -12,6 +13,7 @@ const bodySchema = z.object({
   aeUrl: z.string().min(4),
   aerData: z.unknown(),
   sessionId: z.string().min(4).optional(),
+  captureToken: z.string().min(8).optional(),
 })
 
 function aeCaptureCors(origin: string | null): HeadersInit {
@@ -23,10 +25,24 @@ function aeCaptureCors(origin: string | null): HeadersInit {
   }
   return {
     "Access-Control-Allow-Origin": origin,
-    "Access-Control-Allow-Credentials": "true",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
   }
+}
+
+async function isAuthorizedCapture(
+  productId: string,
+  body: z.infer<typeof bodySchema>
+): Promise<boolean> {
+  if (
+    body.sessionId &&
+    body.captureToken &&
+    verifyAeCaptureToken(body.captureToken, body.sessionId, productId)
+  ) {
+    return true
+  }
+  const auth = await requireAdminSession()
+  return auth.ok
 }
 
 export async function OPTIONS(req: Request) {
@@ -41,11 +57,6 @@ export async function POST(
   const origin = req.headers.get("origin")
   const cors = aeCaptureCors(origin)
 
-  const auth = await requireAdminSession()
-  if (!auth.ok) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status, headers: cors })
-  }
-
   const { id: productId } = await ctx.params
   const contentType = req.headers.get("content-type") ?? ""
 
@@ -59,6 +70,10 @@ export async function POST(
       return NextResponse.json({ error: "invalid_payload" }, { status: 400, headers: cors })
     }
     body = bodySchema.parse(JSON.parse(raw))
+  }
+
+  if (!(await isAuthorizedCapture(productId, body))) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401, headers: cors })
   }
 
   const product = await prisma.product.findUnique({
@@ -96,6 +111,7 @@ export async function POST(
     skuCount: aeSkus.length,
     suggestionCount: suggestions.length,
     sessionId: body.sessionId ?? null,
+    viaToken: Boolean(body.captureToken),
   })
 
   const appBase = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "https://affisell.com"

@@ -39,7 +39,7 @@ type Props = {
 
 type Phase = "idle" | "waiting" | "received"
 
-const BOOKMARKLET_INSTALLED_KEY = "affisell.aeImportBookmarklet.v1"
+const BOOKMARKLET_INSTALLED_KEY = "affisell.aeImportBookmarklet.v2"
 const POLL_MS = 350
 const POLL_MAX = 90
 
@@ -163,8 +163,12 @@ export function AeExpressImportLauncher({ productId, aeUrl, disabled, onCapture 
         method: "POST",
         credentials: "include",
       })
-      const data = (await res.json()) as { sessionId?: string; error?: string }
-      if (!res.ok || !data.sessionId) {
+      const data = (await res.json()) as {
+        sessionId?: string
+        captureToken?: string
+        error?: string
+      }
+      if (!res.ok || !data.sessionId || !data.captureToken) {
         setPhase("idle")
         setHint(data.error ?? "Session import impossible")
         return
@@ -175,6 +179,7 @@ export function AeExpressImportLauncher({ productId, aeUrl, disabled, onCapture 
       const relayUrl = `/admin/products/${productId}/import-relay?${new URLSearchParams({
         aeUrl: url,
         sessionId: data.sessionId,
+        captureToken: data.captureToken,
       }).toString()}`
 
       window.open(
@@ -220,15 +225,11 @@ export function AeExpressImportLauncher({ productId, aeUrl, disabled, onCapture 
 
         {!bookmarkletInstalled ? (
           <div className="mt-4 rounded-xl border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
-            <strong>Étape 0 :</strong> glissez{" "}
-            <a
-              href={bookmarkletHref}
-              onClick={markInstalled}
-              className="font-semibold underline"
-            >
+            <strong>Important :</strong> réinstallez le favori{" "}
+            <a href={bookmarkletHref} onClick={markInstalled} className="font-semibold underline">
               Affisell Import AE
             </a>{" "}
-            dans votre barre de favoris (une seule fois).
+            (glisser dans la barre de favoris) — version mise à jour requise.
           </div>
         ) : null}
 

@@ -3,13 +3,14 @@ import { redirect } from "next/navigation"
 import { AeImportRelayClient } from "@/components/admin/ae-import-relay-client"
 import { auth } from "@/auth"
 import { createAeCaptureSession } from "@/lib/fulfillment/ae-capture-session"
+import { createAeCaptureToken } from "@/lib/fulfillment/ae-capture-token"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
 
 type Props = {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ aeUrl?: string; sessionId?: string }>
+  searchParams: Promise<{ aeUrl?: string; sessionId?: string; captureToken?: string }>
 }
 
 export default async function AeImportRelayPage({ params, searchParams }: Props) {
@@ -30,6 +31,8 @@ export default async function AeImportRelayPage({ params, searchParams }: Props)
   if (!aeUrl.includes("aliexpress")) redirect(`/admin/products/${productId}`)
 
   const sessionId = sp.sessionId?.trim() || (await createAeCaptureSession(productId))
+  const captureToken =
+    sp.captureToken?.trim() || createAeCaptureToken(sessionId, productId)
   const appOrigin =
     process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "https://affisell.com"
 
@@ -37,6 +40,7 @@ export default async function AeImportRelayPage({ params, searchParams }: Props)
     <AeImportRelayClient
       productId={productId}
       sessionId={sessionId}
+      captureToken={captureToken}
       aeUrl={aeUrl}
       appOrigin={appOrigin}
     />
