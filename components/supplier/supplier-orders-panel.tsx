@@ -11,13 +11,17 @@ import {
   Truck,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 
 import { ShipPulseBadge } from "@/components/supplier/ship-pulse-badge"
 import { SupplierOrderFulfillmentPanel } from "@/components/supplier/supplier-order-fulfillment-panel"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
+import {
+  isShipDeadlineBreached,
+  isShipDeadlineCritical,
+} from "@/lib/supplier-ship-sla-shared"
 import { cn } from "@/lib/utils"
 
 type OrderRow = {
@@ -303,14 +307,36 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
     }))
   }
 
-  function statusBadgeClass(status: OrderRow["status"]) {
+  function statusBadgeClass(status: OrderRow["status"], shipPulse: OrderRow["shipPulse"]) {
+    if (isShipDeadlineBreached(shipPulse)) {
+      return "bg-red-600 text-white shadow-sm dark:bg-red-700"
+    }
     if (status === "shipped")
       return "bg-emerald-100 text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-200"
     if (status === "preparing") {
       return "bg-sky-100 text-sky-900 dark:bg-sky-950/50 dark:text-sky-200"
     }
+    if (isShipDeadlineCritical(shipPulse)) {
+      return "bg-red-100 text-red-900 dark:bg-red-950/60 dark:text-red-200"
+    }
     return "bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-200"
   }
+
+  const displayRows = useMemo(() => {
+    if (!rows) return null
+    if (tab !== "to_ship") return rows
+    return [...rows].sort((a, b) => {
+      const aLate = isShipDeadlineBreached(a.shipPulse)
+      const bLate = isShipDeadlineBreached(b.shipPulse)
+      if (aLate !== bLate) return aLate ? -1 : 1
+      const aCritical = isShipDeadlineCritical(a.shipPulse)
+      const bCritical = isShipDeadlineCritical(b.shipPulse)
+      if (aCritical !== bCritical) return aCritical ? -1 : 1
+      const aMs = a.shipPulse?.msRemaining ?? Number.POSITIVE_INFINITY
+      const bMs = b.shipPulse?.msRemaining ?? Number.POSITIVE_INFINITY
+      return aMs - bMs
+    })
+  }, [rows, tab])
 
   if (rows === null) {
     return <p className={cn("text-sm text-zinc-500", className)}>{msg("loading")}</p>
@@ -348,7 +374,7 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
         </p>
       ) : null}
 
-      {rows.length === 0 ? (
+      {(displayRows ?? []).length === 0 ? (
         <Card className="border-zinc-200 p-10 text-center dark:border-zinc-700">
           <Package className="mx-auto mb-3 size-9 text-zinc-300 dark:text-zinc-600" aria-hidden />
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -356,12 +382,21 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
           </p>
         </Card>
       ) : (
-        rows.map((o) => {
+        (displayRows ?? []).map((o) => {
           const shipTo = splitShipTo(o.shippingAddressFormatted)
+          const shipLate = isShipDeadlineBreached(o.shipPulse)
+          const shipCritical = isShipDeadlineCritical(o.shipPulse)
           return (
             <Card
               key={o.id}
-              className="overflow-hidden border-zinc-200/90 shadow-sm dark:border-zinc-700"
+              className={cn(
+                "overflow-hidden shadow-sm",
+                shipLate
+                  ? "border-2 border-red-500 bg-red-50/70 ring-2 ring-red-500/25 dark:border-red-600 dark:bg-red-950/35 dark:ring-red-500/20"
+                  : shipCritical
+                    ? "border border-red-300 bg-red-50/40 dark:border-red-800/80 dark:bg-red-950/25"
+                    : "border-zinc-200/90 dark:border-zinc-700"
+              )}
             >
               <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(220px,280px)]">
                 <div className="border-b border-zinc-100 p-4 dark:border-zinc-800 sm:p-5 lg:border-b-0 lg:border-r">
@@ -388,7 +423,7 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
                           <span
                             className={cn(
                               "rounded-full px-2 py-0.5 text-[11px] font-semibold",
-                              statusBadgeClass(o.status)
+                              statusBadgeClass(o.status, o.shipPulse)
                             )}
                           >
                             {o.displayStatus}

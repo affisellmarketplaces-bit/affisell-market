@@ -123,6 +123,22 @@ export function formatHoursLeftLabel(hoursLeft: number): string {
 }
 
 /** @deprecated Prefer formatHoursLeftLabel */
+/** True when the 10-day ship window has elapsed (supplier pressure UI). */
+export function isShipDeadlineBreached(
+  pulse: Pick<ShipPulseSnapshot, "phase" | "msRemaining"> | null | undefined
+): boolean {
+  if (!pulse) return false
+  return pulse.phase === "breached" || pulse.msRemaining <= 0
+}
+
+/** Last hours before breach — show warning styling. */
+export function isShipDeadlineCritical(
+  pulse: Pick<ShipPulseSnapshot, "phase" | "msRemaining"> | null | undefined
+): boolean {
+  if (!pulse || isShipDeadlineBreached(pulse)) return false
+  return pulse.phase === "critical"
+}
+
 export function formatSlaHoursShort(ms: number): string {
   const hours = Math.max(0, Math.ceil(ms / 3_600_000))
   if (hours >= 24) {

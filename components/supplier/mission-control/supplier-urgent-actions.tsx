@@ -75,7 +75,11 @@ function UrgentSlot({
         <p
           className={cn(
             "text-xs font-medium",
-            active ? "text-zinc-600 dark:text-zinc-300" : "text-zinc-400 dark:text-zinc-600"
+            active && tone === "red"
+              ? "font-bold text-red-700 dark:text-red-300"
+              : active
+                ? "text-zinc-600 dark:text-zinc-300"
+                : "text-zinc-400 dark:text-zinc-600"
           )}
         >
           {metric}
@@ -164,8 +168,8 @@ function buildShipSlot(urgent: SupplierUrgentSnapshot, t: TFn): SlotProps {
             : "—",
     href: "/dashboard/supplier/orders",
     cta: t("ctaShip"),
-    tone: urgentSla || late ? "red" : "amber",
-    ctaVariant: active ? "default" : "outline",
+    tone: late ? "red" : urgentSla ? "red" : "amber",
+    ctaVariant: active && (late || urgentSla) ? "default" : "outline",
   }
 }
 

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   buildShipPulseSnapshot,
   computeShipDeadlineAt,
+  isShipDeadlineBreached,
   resolveShipDeadlineAt,
   SUPPLIER_SHIP_SLA_MS,
 } from "@/lib/supplier-ship-sla-shared"
@@ -21,6 +22,13 @@ describe("buildShipPulseSnapshot", () => {
     const snap = buildShipPulseSnapshot(deadline, deadline.getTime() + 60_000)
     expect(snap.phase).toBe("breached")
     expect(snap.msRemaining).toBeLessThanOrEqual(0)
+  })
+
+  it("isShipDeadlineBreached when phase is breached", () => {
+    const deadline = new Date("2026-01-01T00:00:00Z")
+    const snap = buildShipPulseSnapshot(deadline, deadline.getTime() + 60_000)
+    expect(isShipDeadlineBreached(snap)).toBe(true)
+    expect(isShipDeadlineBreached({ phase: "urgent", msRemaining: 3_600_000 })).toBe(false)
   })
 
   it("marks critical under 6h", () => {
