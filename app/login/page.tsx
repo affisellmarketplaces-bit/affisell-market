@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server"
 
 import { auth } from "@/auth"
 import { buttonVariants } from "@/components/ui/button"
-import { resolvePostLoginRedirect } from "@/lib/login-redirect"
+import { loginCustomerPath, resolvePostLoginRedirect } from "@/lib/login-redirect"
 import { sanitizeInternalCallbackUrl } from "@/lib/auth-login-portal"
 import { cn } from "@/lib/utils"
 
@@ -29,6 +29,7 @@ export default async function LoginSelectorPage({ searchParams }: Props) {
   const supplierHref = callbackUrl
     ? `/login/supplier?callbackUrl=${encodeURIComponent(callbackUrl)}`
     : "/login/supplier"
+  const customerHref = loginCustomerPath(callbackUrl)
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4 py-12 dark:bg-zinc-950">
@@ -56,10 +57,16 @@ export default async function LoginSelectorPage({ searchParams }: Props) {
           </Link>
         </div>
 
-        <p className="mt-8 text-center text-sm text-gray-600 dark:text-zinc-400">
-          {t("buyerNote")}{" "}
-          <span className="font-medium text-gray-800 dark:text-zinc-200">{t("buyerHint")}</span> {t("buyerButton")}
-        </p>
+        <div className="mt-8 rounded-xl border border-violet-200 bg-violet-50/80 p-4 text-center dark:border-violet-900/50 dark:bg-violet-950/30">
+          <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">{t("buyerNote")}</p>
+          <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">{t("buyerHint")}</p>
+          <Link
+            href={customerHref}
+            className={cn(buttonVariants({ size: "sm", variant: "default" }), "mt-3 bg-violet-600 hover:bg-violet-700")}
+          >
+            {t("buyerButton")}
+          </Link>
+        </div>
 
         <p className="mt-6 text-center text-sm text-gray-600 dark:text-zinc-400">
           {t("noAccount")}{" "}

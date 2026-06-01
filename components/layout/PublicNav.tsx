@@ -13,6 +13,7 @@ import { NavHeaderSearch } from "@/components/nav/nav-header-search"
 import { NavPill } from "@/components/navigation/nav-pill"
 import { Link, usePathname } from "@/i18n/navigation"
 import { buttonVariants } from "@/components/ui/button"
+import { loginCustomerPath, MARKETPLACE_BUYER_ORDERS_PATH } from "@/lib/login-redirect"
 import { cn } from "@/lib/utils"
 
 function useCartCount(): number {
@@ -44,6 +45,11 @@ export function PublicNav() {
   const onHome = pathname === "/"
   const onShops = pathname === "/shops" || pathname.startsWith("/shops/")
   const onMarketplace = pathname === "/marketplace" || pathname.startsWith("/marketplace")
+  const isBuyerContext =
+    pathname === "/track-order" || pathname.startsWith("/marketplace/account")
+  const signInHref = isBuyerContext
+    ? loginCustomerPath(MARKETPLACE_BUYER_ORDERS_PATH)
+    : "/login"
 
   return (
     <nav
@@ -89,7 +95,7 @@ export function PublicNav() {
             <span className="hidden md:inline">{t("myAccount")}</span>
           </Link>
         ) : (
-          <Link href="/login" className={cn(buttonVariants({ size: "sm" }))}>
+          <Link href={signInHref} className={cn(buttonVariants({ size: "sm" }))}>
             {t("signIn")}
           </Link>
         )}

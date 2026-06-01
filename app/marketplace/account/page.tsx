@@ -16,7 +16,7 @@ export default async function MarketplaceBuyerAccountHomePage() {
   const t = await getTranslations("buyerAccount")
   const session = await auth()
   if (!session?.user?.id || !session.user.email) {
-    redirect("/login?callbackUrl=/marketplace/account")
+    redirect("/login/customer?callbackUrl=/marketplace/account")
   }
 
   const overview = await loadBuyerAccountOverview(session.user.id, session.user.email)

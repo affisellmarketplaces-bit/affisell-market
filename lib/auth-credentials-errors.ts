@@ -20,6 +20,11 @@ export class NonSupplierOnSupplierPortal extends CredentialsSignin {
   code = "non_supplier_on_supplier_portal"
 }
 
+/** Affiliate or supplier on buyer account login (marketplace account). */
+export class NonCustomerOnCustomerPortal extends CredentialsSignin {
+  code = "non_customer_on_customer_portal"
+}
+
 export class EmailIdentifierRequired extends CredentialsSignin {
   code = "email_required_not_id"
 }

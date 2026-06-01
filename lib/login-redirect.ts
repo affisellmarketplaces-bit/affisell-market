@@ -15,6 +15,20 @@ export function loginSelectorPath(callbackUrl?: string | null): string {
   return safe ? `/login?callbackUrl=${encodeURIComponent(safe)}` : "/login"
 }
 
+/** Buyer login — marketplace account, order tracking, post-checkout. */
+export function loginCustomerPath(callbackUrl?: string | null): string {
+  const safe = sanitizeInternalCallbackUrl(callbackUrl)
+  return safe ? `/login/customer?callbackUrl=${encodeURIComponent(safe)}` : "/login/customer"
+}
+
+export function signupCustomerPath(callbackUrl?: string | null): string {
+  const safe = sanitizeInternalCallbackUrl(callbackUrl)
+  return safe ? `/signup/customer?callbackUrl=${encodeURIComponent(safe)}` : "/signup/customer"
+}
+
+/** Default post-login target for marketplace buyers. */
+export const MARKETPLACE_BUYER_ORDERS_PATH = "/marketplace/account/orders"
+
 /** Safe redirect target after a successful merchant sign-in. */
 export function resolvePostLoginRedirect(
   role: string | undefined | null,

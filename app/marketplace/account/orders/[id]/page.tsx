@@ -13,7 +13,7 @@ type Props = { params: Promise<{ id: string }> }
 export default async function MarketplaceBuyerOrderDetailPage({ params }: Props) {
   const session = await auth()
   if (!session?.user?.id) {
-    redirect("/login?callbackUrl=/marketplace/account/orders")
+    redirect("/login/customer?callbackUrl=/marketplace/account/orders")
   }
 
   const { id } = await params

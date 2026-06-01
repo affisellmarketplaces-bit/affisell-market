@@ -11,7 +11,7 @@ export const metadata = {
 export default async function MarketplaceBuyerGdprPage() {
   const session = await auth()
   if (!session?.user?.id) {
-    redirect("/login?callbackUrl=/marketplace/account/gdpr")
+    redirect("/login/customer?callbackUrl=/marketplace/account/gdpr")
   }
 
   return (

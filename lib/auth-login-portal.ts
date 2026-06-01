@@ -3,7 +3,7 @@
  * only that role may authenticate (see `lib/auth.ts` credentials `authorize`).
  * Neutral URLs (marketplace, /dashboard root, etc.) do not enforce a portal.
  */
-export type LoginPortal = "AFFILIATE" | "SUPPLIER"
+export type LoginPortal = "AFFILIATE" | "SUPPLIER" | "CUSTOMER"
 
 export function inferLoginPortal(callbackUrl: string | undefined | null): LoginPortal | null {
   if (!callbackUrl || typeof callbackUrl !== "string") return null
@@ -17,6 +17,15 @@ export function inferLoginPortal(callbackUrl: string | undefined | null): LoginP
   }
   const q = path.split("?")[0] ?? path
   const lower = q.toLowerCase()
+  if (
+    lower.startsWith("/marketplace/account") ||
+    lower.startsWith("/login/customer") ||
+    lower.startsWith("/signup/customer") ||
+    lower === "/track-order" ||
+    lower.startsWith("/track-order/")
+  ) {
+    return "CUSTOMER"
+  }
   if (
     lower.includes("/dashboard/supplier") ||
     lower.includes("/signup/supplier") ||
@@ -32,7 +41,6 @@ export function inferLoginPortal(callbackUrl: string | undefined | null): LoginP
     lower.includes("/onboarding/affiliate") ||
     lower.includes("/auth/signin/affiliate") ||
     lower.startsWith("/affiliate/") ||
-    lower.startsWith("/marketplace") ||
     lower.includes("/dashboard/affiliate/catalog")
   ) {
     return "AFFILIATE"

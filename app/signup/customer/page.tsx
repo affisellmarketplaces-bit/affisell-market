@@ -11,6 +11,7 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 
 import { sanitizeInternalCallbackUrl } from "@/lib/auth-login-portal"
+import { loginCustomerPath } from "@/lib/login-redirect"
 import { LegalSignupConsent } from "@/components/legal/legal-signup-consent"
 
 function CustomerSignupForm() {
@@ -50,13 +51,14 @@ function CustomerSignupForm() {
       email,
       password,
       redirect: false,
-      callbackUrl: "/shops/browse",
+      callbackUrl: returnTo,
     })
     setLoading(false)
     if (login?.error) {
       setError(credentialsSignInErrorMessage(login.code, t) ?? t("signupLoginFail"))
+    } else {
+      router.push(returnTo)
     }
-    else router.push("/marketplace/account")
   }
 
   return (
@@ -137,7 +139,7 @@ function CustomerSignupForm() {
             href={
               shopSlug
                 ? `/shops/${shopSlug}/login?callbackUrl=${encodeURIComponent(returnTo)}`
-                : `/login?callbackUrl=${encodeURIComponent(returnTo)}`
+                : loginCustomerPath(returnTo)
             }
             className="font-medium text-blue-600 hover:text-blue-700"
           >

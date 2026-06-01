@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic"
 export default async function MarketplaceBuyerOrdersPage() {
   const session = await auth()
   if (!session?.user?.email) {
-    redirect("/login?callbackUrl=/marketplace/account/orders")
+    redirect("/login/customer?callbackUrl=/marketplace/account/orders")
   }
 
   const payload = await buildBuyerOrdersPayloadForEmail(session.user.email)

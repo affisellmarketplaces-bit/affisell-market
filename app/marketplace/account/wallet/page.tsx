@@ -43,7 +43,7 @@ export default async function MarketplaceBuyerWalletPage({ searchParams }: Props
   ])
 
   if (!user) {
-    redirect("/login?callbackUrl=/marketplace/account/wallet")
+    redirect("/login/customer?callbackUrl=/marketplace/account/wallet")
   }
 
   const balance = user.buyerRewardBalanceCents ?? 0

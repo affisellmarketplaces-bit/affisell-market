@@ -57,7 +57,7 @@ function SuccessContent() {
             confirmation ou connectez-vous pour voir vos commandes.
           </p>
           <div className="flex flex-wrap gap-3">
-            <Link href="/login?callbackUrl=/marketplace/account/orders" className={cn(buttonVariants())}>
+            <Link href="/login/customer?callbackUrl=/marketplace/account/orders" className={cn(buttonVariants())}>
               Se connecter
             </Link>
             <Link href="/" className={cn(buttonVariants({ variant: "outline" }))}>
@@ -97,7 +97,7 @@ function SuccessContent() {
             Voir mes commandes
           </Link>
           <Link
-            href="/login?callbackUrl=/marketplace/account/orders"
+            href="/login/customer?callbackUrl=/marketplace/account/orders"
             className={cn(buttonVariants({ variant: "bentoOutline", size: "bento" }))}
           >
             Se connecter
