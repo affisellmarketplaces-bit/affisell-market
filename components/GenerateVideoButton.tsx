@@ -311,39 +311,72 @@ export function GenerateVideoButton({
       </div>
 
       {styleMode === "custom" ? (
-        <div className="space-y-1.5">
-          <label htmlFor="video-custom-style" className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-            Votre prompt
-          </label>
-          <textarea
-            id="video-custom-style"
-            className="min-h-[100px] w-full max-w-md rounded-xl border border-zinc-200 bg-zinc-50/50 px-3 py-2 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-500/20 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900"
-            value={customStyle}
-            onChange={(e) => setCustomStyle(e.target.value)}
-            disabled={loading || quotaReached}
-            placeholder="Ex : slow motion sur fond noir, voix off française, ambiance premium…"
-            maxLength={MAX_STYLE_LENGTH}
+        <div className="relative max-w-2xl overflow-hidden rounded-2xl border border-violet-500/20 bg-gradient-to-b from-zinc-900 via-zinc-950 to-zinc-900 p-4 shadow-xl sm:p-5">
+          <div
+            className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-fuchsia-600/20 blur-3xl"
+            aria-hidden
           />
-          <p
-            className={cn(
-              "text-xs",
-              styleValid ? "text-muted-foreground" : "text-amber-700 dark:text-amber-400"
-            )}
-          >
-            {effectiveStyle.length}/{MAX_STYLE_LENGTH} caractères
-            {effectiveStyle.length > 0 && effectiveStyle.length < MIN_STYLE_LENGTH
-              ? ` — minimum ${MIN_STYLE_LENGTH}`
-              : null}
-          </p>
-        </div>
-      ) : null}
+          <div
+            className="pointer-events-none absolute -bottom-16 -left-16 h-40 w-40 rounded-full bg-cyan-500/15 blur-3xl"
+            aria-hidden
+          />
 
-      <CreativeReferenceAssets
-        productImages={productImages}
-        references={references}
-        onChange={setReferences}
-        disabled={loading || quotaReached}
-      />
+          <div className="relative space-y-4">
+            <div className="flex items-center gap-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white shadow-lg shadow-violet-900/50">
+                <Sparkles className="h-4 w-4" aria-hidden />
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-white">Studio créatif personnalisé</p>
+                <p className="text-[11px] text-zinc-400">
+                  Prompt + références visuelles pour guider Veo
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label htmlFor="video-custom-style" className="text-xs font-medium uppercase tracking-wider text-zinc-400">
+                Votre prompt
+              </label>
+              <textarea
+                id="video-custom-style"
+                className="min-h-[110px] w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/25 disabled:cursor-not-allowed disabled:opacity-50"
+                value={customStyle}
+                onChange={(e) => setCustomStyle(e.target.value)}
+                disabled={loading || quotaReached}
+                placeholder="Ex : slow motion sur fond noir, voix off française, ambiance premium, macro sur le produit…"
+                maxLength={MAX_STYLE_LENGTH}
+              />
+              <p
+                className={cn(
+                  "text-xs",
+                  styleValid ? "text-zinc-500" : "text-amber-400"
+                )}
+              >
+                {effectiveStyle.length}/{MAX_STYLE_LENGTH} caractères
+                {effectiveStyle.length > 0 && effectiveStyle.length < MIN_STYLE_LENGTH
+                  ? ` — minimum ${MIN_STYLE_LENGTH}`
+                  : null}
+              </p>
+            </div>
+
+            <CreativeReferenceAssets
+              variant="studio"
+              productImages={productImages}
+              references={references}
+              onChange={setReferences}
+              disabled={loading || quotaReached}
+            />
+          </div>
+        </div>
+      ) : (
+        <CreativeReferenceAssets
+          productImages={productImages}
+          references={references}
+          onChange={setReferences}
+          disabled={loading || quotaReached}
+        />
+      )}
 
       {showRegenerate ? (
         <p className="text-xs text-muted-foreground">
