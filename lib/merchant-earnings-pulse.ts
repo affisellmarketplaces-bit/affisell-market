@@ -1,3 +1,4 @@
+import { netAffiliateTransferCents } from "@/lib/marketplace-phase1-fees"
 import { prisma } from "@/lib/prisma"
 
 const MARKETPLACE_DONE = ["paid", "preparing", "shipped"] as const
@@ -61,6 +62,8 @@ async function affiliateBand(
         quantity: true,
         affiliatePayoutCents: true,
         affiliateMarginRetainedCents: true,
+        affiliateFeeCents: true,
+        affiliateMarginCents: true,
       },
     }),
     prisma.blindDropshipOrder.findMany({
@@ -80,11 +83,18 @@ async function affiliateBand(
   let unitsSold = 0
   let commissionCents = 0
   let markupCents = 0
+  let netRoleCents = 0
 
   for (const o of marketOrders) {
     unitsSold += o.quantity
     commissionCents += o.affiliatePayoutCents
     markupCents += o.affiliateMarginRetainedCents
+    netRoleCents += netAffiliateTransferCents({
+      affiliatePayoutCents: o.affiliatePayoutCents,
+      affiliateMarginRetainedCents: o.affiliateMarginRetainedCents,
+      affiliateFeeCents: o.affiliateFeeCents,
+      affiliateMarginCents: o.affiliateMarginCents,
+    })
   }
   for (const o of blindOrders) {
     unitsSold += o.items.reduce((s, it) => s + it.quantity, 0)
@@ -94,7 +104,7 @@ async function affiliateBand(
 
   return {
     unitsSold,
-    grossRoleCents: commissionCents + markupCents,
+    grossRoleCents: netRoleCents,
     commissionCents,
     markupCents,
   }
@@ -155,7 +165,7 @@ async function affiliateSparkline(affiliateId: string, days: number): Promise<Da
         status: { in: [...MARKETPLACE_DONE] },
         createdAt: { gte: from, lte: to },
       },
-      select: { quantity: true, createdAt: true, affiliatePayoutCents: true, affiliateMarginRetainedCents: true },
+      select: { quantity: true, createdAt: true, affiliatePayoutCents: true, affiliateMarginRetainedCents: true, affiliateFeeCents: true, affiliateMarginCents: true },
     }),
     prisma.blindDropshipOrder.findMany({
       where: {
@@ -182,7 +192,16 @@ async function affiliateSparkline(affiliateId: string, days: number): Promise<Da
 
   for (const o of marketOrders) {
     const key = o.createdAt.toISOString().slice(0, 10)
-    bump(key, o.quantity, o.affiliatePayoutCents + o.affiliateMarginRetainedCents)
+    bump(
+      key,
+      o.quantity,
+      netAffiliateTransferCents({
+        affiliatePayoutCents: o.affiliatePayoutCents,
+        affiliateMarginRetainedCents: o.affiliateMarginRetainedCents,
+        affiliateFeeCents: o.affiliateFeeCents,
+        affiliateMarginCents: o.affiliateMarginCents,
+      })
+    )
   }
   for (const o of blindOrders) {
     const key = o.createdAt.toISOString().slice(0, 10)

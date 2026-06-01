@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import {
   AFFISELL_MARKETPLACE_FEE_PERCENT,
+  affiliateSaleNotificationSettlement,
   computeMarketplaceOrderSettlement,
   formatAffiliateNewSaleNotification,
   formatSupplierNewOrderNotification,
@@ -54,7 +55,7 @@ describe("marketplace order settlement", () => {
     ).toBe(ht)
   })
 
-  it("affiliate notification shows HT base and TTC when tax provided", () => {
+  it("affiliate notification shows earnings base for platform fee", () => {
     const s = computeMarketplaceOrderSettlement({
       sellingPriceCents: 10_000,
       supplierPriceCents: 6_000,
@@ -65,14 +66,18 @@ describe("marketplace order settlement", () => {
       productName: "Widget",
       variantBit: "",
       qty: 1,
-      settlement: s,
+      settlement: affiliateSaleNotificationSettlement(s, {
+        affiliateMarginRetainedCents: 3_100,
+        affiliatePlatformFeeCents: 620,
+      }),
       taxCents: 2_000,
       totalCents: 12_000,
     })
     expect(msg).toContain("Client")
     expect(msg).toContain("HT")
     expect(msg).toContain("VAT")
-    expect(msg).toContain("HT base")
+    expect(msg).toContain("earnings base")
+    expect(msg).toContain("− fee")
   })
 
   it("recomputeAffiliateMarginRetainedCents after HT sync", () => {

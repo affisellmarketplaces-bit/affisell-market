@@ -76,6 +76,7 @@ export async function scheduleMarketplaceTransferAttempts(
     sellingPriceCents: order.sellingPriceCents,
     affiliatePayoutCents: order.affiliatePayoutCents,
     affiliateMarginRetainedCents: order.affiliateMarginRetainedCents,
+    affiliateFeeCents: order.affiliateFeeCents,
     affisellFeeCents: order.affisellFeeCents,
     supplierPriceCents: order.supplierPriceCents,
     affiliateMarginCents: order.affiliateMarginCents,

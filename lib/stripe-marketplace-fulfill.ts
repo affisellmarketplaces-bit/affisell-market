@@ -144,10 +144,14 @@ async function createPaidMarketplaceOrder(
     ? supplierLink.aePriceCents * qty
     : null
 
+  const grossAffiliateMarkupCents =
+    lineAffiliateMarginCents ??
+    Math.max(0, clientLineHtCents - basePriceCents - settlement.affiliateCommissionCents)
+
   const phase1Fees = computePhase1OrderFees({
     wholesaleTotalCents: wholesaleForFees,
     affiliateCommissionCents: settlement.affiliateCommissionCents,
-    affiliateMarginRetainedCents: settlement.affiliateMarginRetainedCents,
+    affiliateMarginRetainedCents: grossAffiliateMarkupCents,
     supplierFeeBps,
     affiliatePlatformFeeBps: listing.affiliate.affiliatePlatformFeeBps,
   })
@@ -237,7 +241,7 @@ async function createPaidMarketplaceOrder(
     partnerListingCode: args.partnerListingCode,
     settlement: affiliateSaleNotificationSettlement(settlement, {
       affiliateMarginRetainedCents,
-      affisellFeeCents: phase1Fees.affisellFeeTotalCents,
+      affiliatePlatformFeeCents: phase1Fees.affiliateFeeCents,
     }),
     taxCents: lineTaxCents,
     totalCents: lineTotalCents,

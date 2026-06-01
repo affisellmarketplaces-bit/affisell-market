@@ -133,13 +133,15 @@ export async function syncOrderVatFromCheckoutSession(
       supplier: order.product.supplier,
     })
 
+    const grossAffiliateMarkupCents =
+      unitListingMargin != null
+        ? unitListingMargin
+        : Math.max(0, subtotalCents - supplierPriceCents - affiliateCommissionCents)
+
     const phase1Fees = computePhase1OrderFees({
       wholesaleTotalCents: wholesaleForFees,
       affiliateCommissionCents,
-      affiliateMarginRetainedCents:
-        order.affiliateMarginRetainedCents > 0
-          ? order.affiliateMarginRetainedCents
-          : Math.max(0, subtotalCents - supplierPriceCents - affiliateCommissionCents),
+      affiliateMarginRetainedCents: grossAffiliateMarkupCents,
       supplierFeeBps,
       affiliatePlatformFeeBps: order.affiliate.affiliatePlatformFeeBps,
     })

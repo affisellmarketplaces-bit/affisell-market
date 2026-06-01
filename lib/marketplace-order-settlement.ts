@@ -17,6 +17,8 @@ export type MarketplaceOrderSettlement = {
   affisellFeeBaseCents: number
   /** Affisell platform fee (% of `affisellFeeBaseCents`, never on VAT). */
   affisellFeeCents: number
+  /** Affiliate-side platform fee (% of commission + markup). */
+  affiliatePlatformFeeCents?: number
   /** Commission paid from supplier wholesale to affiliate (`supplierPrice × bps`). */
   affiliateCommissionCents: number
   /** Affiliate markup above wholesale (listing margin). */
@@ -238,7 +240,7 @@ export function affiliateSaleNotificationSettlement(
   settlement: MarketplaceOrderSettlement,
   orderAmounts: {
     affiliateMarginRetainedCents: number
-    affisellFeeCents: number
+    affiliatePlatformFeeCents: number
   }
 ): MarketplaceOrderSettlement {
   return {
@@ -247,7 +249,7 @@ export function affiliateSaleNotificationSettlement(
       0,
       Math.round(orderAmounts.affiliateMarginRetainedCents)
     ),
-    affisellFeeCents: Math.max(0, Math.round(orderAmounts.affisellFeeCents)),
+    affiliatePlatformFeeCents: Math.max(0, Math.round(orderAmounts.affiliatePlatformFeeCents)),
   }
 }
 
@@ -262,7 +264,9 @@ export function formatAffiliateNewSaleNotification(args: {
 }): string {
   const { settlement: s } = args
   const variant = args.variantBit ? args.variantBit : ""
-  const affiliateTotal = s.affiliateCommissionCents + s.affiliateMarginRetainedCents
+  const grossEarnings = s.affiliateCommissionCents + s.affiliateMarginRetainedCents
+  const affiliateFee = Math.max(0, Math.round(s.affiliatePlatformFeeCents ?? 0))
+  const netEarnings = Math.max(0, grossEarnings - affiliateFee)
   const ht = s.affisellFeeBaseCents
   const tax = Math.max(0, Math.round(args.taxCents ?? 0))
   const ttc =
@@ -275,10 +279,16 @@ export function formatAffiliateNewSaleNotification(args: {
     tax > 0 && ttc > ht
       ? `Client ${money(ttc)} (HT ${money(ht)} + VAT ${money(tax)})`
       : `Line HT ${money(ht)}`
+  const feeLine =
+    affiliateFee > 0
+      ? `Affisell fee ${money(affiliateFee)} (${money(grossEarnings)} earnings base)`
+      : null
   return [
     `Sale on your store · ${args.productName}${variant} ×${args.qty}`,
     clientLine,
-    `Your earnings ${money(affiliateTotal)} (commission ${money(s.affiliateCommissionCents)} + markup ${money(s.affiliateMarginRetainedCents)})`,
-    `Affisell fee ${money(s.affisellFeeCents)} (${money(ht)} HT base)`,
-  ].join(" · ")
+    `Your earnings ${money(netEarnings)} (commission ${money(s.affiliateCommissionCents)} + markup ${money(s.affiliateMarginRetainedCents)}${affiliateFee > 0 ? ` − fee ${money(affiliateFee)}` : ""})`,
+    feeLine,
+  ]
+    .filter(Boolean)
+    .join(" · ")
 }

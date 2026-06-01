@@ -1,3 +1,4 @@
+import { grossAffiliateEarningsCents } from "@/lib/marketplace-phase1-fees"
 import { affisellFeeBaseCentsFromOrder } from "@/lib/marketplace-order-settlement"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 
@@ -26,6 +27,7 @@ export function buildOrderCommissionBreakdown(order: {
   totalCents?: number | null
   affiliatePayoutCents: number
   affiliateMarginRetainedCents: number
+  affiliateFeeCents?: number | null
   affisellFeeCents: number
   supplierPayoutCents?: number | null
   marginCents: number
@@ -38,12 +40,15 @@ export function buildOrderCommissionBreakdown(order: {
   const supplierNet = Math.max(0, order.supplierPayoutCents ?? supplierGross - order.affiliatePayoutCents)
   const affiliateCommission = Math.max(0, order.affiliatePayoutCents)
   const affiliateMarkup = Math.max(0, order.affiliateMarginRetainedCents)
+  const affiliatePlatformFee = Math.max(0, order.affiliateFeeCents ?? 0)
+  const affiliateGross = grossAffiliateEarningsCents(affiliateCommission, affiliateMarkup)
+  const affiliateNet = Math.max(0, affiliateGross - affiliatePlatformFee)
   const affisellFee = Math.max(0, order.affisellFeeCents)
 
   return {
     clientHtCents: clientHt,
     clientTtcCents: clientTtc,
-    affiliateTotalCents: affiliateCommission + affiliateMarkup,
+    affiliateTotalCents: affiliateNet,
     supplierNetCents: supplierNet,
     affisellFeeCents: affisellFee,
     rows: [
@@ -57,19 +62,28 @@ export function buildOrderCommissionBreakdown(order: {
         hint: "Prélevée sur le wholesale fournisseur",
       },
       {
-        label: "Markup affilié (net)",
+        label: "Markup affilié",
         amountCents: affiliateMarkup,
-        hint: "Après frais plateforme sur la ligne HT",
+        hint: "Marge commerciale sur votre prix boutique",
       },
       {
-        label: "Frais plateforme Affisell",
+        label: "Frais plateforme Affisell (affilié)",
+        amountCents: affiliatePlatformFee,
+        hint: "% de vos gains (commission + markup)",
+      },
+      {
+        label: "Frais plateforme Affisell (total commande)",
         amountCents: affisellFee,
-        hint: "% du HT client — non déduit du net fournisseur",
+        hint: "Inclut la part fournisseur — non déduit du net fournisseur",
       },
       { label: "Net fournisseur", amountCents: supplierNet },
       {
-        label: "Gain affilié total",
-        amountCents: affiliateCommission + affiliateMarkup,
+        label: "Gain affilié net",
+        amountCents: affiliateNet,
+        hint:
+          affiliatePlatformFee > 0
+            ? `Brut ${formatStoreCurrencyFromCents(affiliateGross)} − fee affilié`
+            : undefined,
       },
     ],
   }

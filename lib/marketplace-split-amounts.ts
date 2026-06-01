@@ -1,3 +1,4 @@
+import { netAffiliateTransferCents } from "@/lib/marketplace-phase1-fees"
 import {
   resolveSupplierPayoutCentsFromOrder,
   type MarketplaceOrderSettlement,
@@ -9,6 +10,7 @@ export type OrderSplitInput = {
   affiliatePayoutCents: number
   affiliateMarginRetainedCents: number
   affisellFeeCents: number
+  affiliateFeeCents?: number | null
   supplierPriceCents: number
   affiliateMarginCents: number
   supplierCommissionRateBps: number
@@ -31,18 +33,20 @@ function estimateStripeFeeCents(lineTotalCents: number): number {
 
 /**
  * Supplier: net wholesale (catalog − commission offered to affiliate).
- * Affiliate: supplier commission share + listing margin.
- * Affisell: platform fee on HT (stored on order; not a Connect transfer).
+ * Affiliate: commission + markup minus affiliate-side platform fee when applicable.
+ * Affisell: supplier + affiliate platform fees (stored on order; not a Connect transfer).
  */
 export function computeTransferAmountsFromOrder(order: OrderSplitInput): MarketplaceTransferAmounts {
   const lineTotalCents = Math.max(0, Math.round(order.sellingPriceCents))
   const stripeFeeCents = estimateStripeFeeCents(lineTotalCents)
 
   const supplierPayoutCents = resolveSupplierPayoutCentsFromOrder(order)
-  const affiliateTransferCents = Math.max(
-    0,
-    Math.round(order.affiliatePayoutCents + order.affiliateMarginRetainedCents)
-  )
+  const affiliateTransferCents = netAffiliateTransferCents({
+    affiliatePayoutCents: order.affiliatePayoutCents,
+    affiliateMarginRetainedCents: order.affiliateMarginRetainedCents,
+    affiliateFeeCents: order.affiliateFeeCents,
+    affiliateMarginCents: order.affiliateMarginCents,
+  })
   const affisellFeeCents = Math.max(0, Math.round(order.affisellFeeCents))
 
   return {

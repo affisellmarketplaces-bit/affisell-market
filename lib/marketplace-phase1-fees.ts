@@ -31,6 +31,39 @@ export function resolveAffiliatePlatformFeeBps(bps: number | null | undefined): 
   return clampAffisellCommissionRateBps(bps)
 }
 
+/** Gross partner gain before Affisell platform fee on affiliate earnings. */
+export function grossAffiliateEarningsCents(
+  affiliateCommissionCents: number,
+  affiliateMarkupCents: number
+): number {
+  return Math.max(
+    0,
+    Math.round(affiliateCommissionCents) + Math.round(affiliateMarkupCents)
+  )
+}
+
+/**
+ * Connect / ledger net to affiliate.
+ * Fixed listing margin: fee is on gross earnings and subtracted at payout.
+ * Residual margin: fee already deducted from stored markup.
+ */
+export function netAffiliateTransferCents(args: {
+  affiliatePayoutCents: number
+  affiliateMarginRetainedCents: number
+  affiliateFeeCents?: number | null
+  affiliateMarginCents?: number | null
+}): number {
+  const commission = Math.max(0, Math.round(args.affiliatePayoutCents))
+  const margin = Math.max(0, Math.round(args.affiliateMarginRetainedCents))
+  const fee = Math.max(0, Math.round(args.affiliateFeeCents ?? 0))
+  const gross = commission + margin
+  const hasFixedListingMargin = (args.affiliateMarginCents ?? 0) > 0
+  if (hasFixedListingMargin && fee > 0) {
+    return Math.max(0, gross - fee)
+  }
+  return gross
+}
+
 export function computePhase1OrderFees(opts: {
   wholesaleTotalCents: number
   affiliateCommissionCents: number

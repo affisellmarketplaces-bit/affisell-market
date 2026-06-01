@@ -18,6 +18,7 @@ type OrderSnapshot = {
   totalCents?: number | null
   affiliatePayoutCents: number
   affiliateMarginRetainedCents: number
+  affiliateFeeCents?: number | null
   affisellFeeCents: number
   supplierPayoutCents?: number | null
   marginCents: number
@@ -39,9 +40,9 @@ function filterRowsForRole(
   return rows
     .map((row) => {
       if (role === "SUPPLIER") {
-        if (row.label === "Markup affilié (net)" || row.label === "Gain affilié total") {
-          return { ...row, hidden: true }
-        }
+      if (row.label === "Markup affilié" || row.label === "Gain affilié net") {
+        return { ...row, hidden: true }
+      }
       }
       if (role === "AFFILIATE") {
         if (row.label === "Net fournisseur" && !showRevenueToAffiliate) {
@@ -50,15 +51,19 @@ function filterRowsForRole(
         if (row.label === "Catalogue fournisseur (HT)" && !showRevenueToAffiliate) {
           return { ...row, hidden: true }
         }
+        if (row.label === "Frais plateforme Affisell (total commande)") {
+          return { ...row, hidden: true }
+        }
       }
       if (role === "CUSTOMER") {
         if (
           row.label === "Catalogue fournisseur (HT)" ||
           row.label === "Commission partenaire" ||
-          row.label === "Markup affilié (net)" ||
+          row.label === "Markup affilié" ||
           row.label === "Net fournisseur" ||
-          row.label === "Gain affilié total" ||
-          row.label === "Frais plateforme Affisell"
+          row.label === "Gain affilié net" ||
+          row.label === "Frais plateforme Affisell (affilié)" ||
+          row.label === "Frais plateforme Affisell (total commande)"
         ) {
           return { ...row, hidden: true }
         }
@@ -89,7 +94,7 @@ export function CommissionExplainer({ role, order, showRevenueToAffiliate = fals
     >
       <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">{headline}</h3>
       <p className="mt-1 text-xs text-zinc-500">
-        Montants HT sauf mention TTC · base fee Affisell = ligne HT client
+        Montants HT sauf mention TTC · fee affilié = % de vos gains (commission + markup)
       </p>
       <table className="mt-4 w-full text-sm">
         <tbody>

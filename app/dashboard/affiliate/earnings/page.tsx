@@ -24,7 +24,7 @@ export default async function AffiliateEarningsPage() {
       role="AFFILIATE"
       eyebrow="Partner commerce"
       title="Earnings cockpit"
-      description="Commission from your storefront rate plus markup on every sale. Only you and Affisell ops see markup — suppliers never see it."
+      description="Commission from your storefront rate plus markup on every sale, minus Affisell platform fee on your earnings. Only you and Affisell ops see markup — suppliers never see it."
       paidOutLabel="Paid out via ledger"
       paidOutCents={data.paidOutCents}
       bands={data.bands}
