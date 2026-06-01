@@ -26,9 +26,9 @@ export function isProductionEmailDelivery(): boolean {
 }
 
 /**
- * - Production + domaine vérifié → intendedTo (client / compte).
- * - Production + sandbox Resend → intendedTo + warning (config Vercel à corriger).
- * - Dev/preview + sandbox → TEST_EMAIL_TO uniquement (limite Resend).
+ * - Production → always intendedTo (never block; never require TEST_EMAIL_TO).
+ * - Dev/preview + sandbox → TEST_EMAIL_TO if set, else intendedTo (Resend may reject).
+ * - Dev/preview + verified domain → intendedTo.
  */
 export function resolveResendRecipient({
   intendedTo,
@@ -43,21 +43,26 @@ export function resolveResendRecipient({
   const sandbox = isResendSandboxFrom(fromEmail)
   const production = isProductionEmailDelivery()
 
-  if (!sandbox || production) {
-    if (sandbox && production) {
+  if (production) {
+    if (sandbox) {
       console.warn("[resend]", {
         result: "sandbox_from_in_production",
-        hint: "Set RESEND_FROM_EMAIL to your verified domain (e.g. noreply@affisell.com) on Vercel",
+        hint: "Set RESEND_FROM_EMAIL to your verified domain on Vercel (e.g. noreply@affisell.com)",
       })
     }
     return { to: normalized, devRedirect: false }
   }
 
-  if (!testEmailTo.trim()) {
-    throw new Error("TEST_EMAIL_TO required")
+  if (!sandbox) {
+    return { to: normalized, devRedirect: false }
   }
 
-  return { to: testEmailTo.trim().toLowerCase(), devRedirect: true }
+  const testTo = testEmailTo.trim().toLowerCase()
+  if (testTo) {
+    return { to: testTo, devRedirect: true }
+  }
+
+  return { to: normalized, devRedirect: false }
 }
 
 export function logResendRecipient(

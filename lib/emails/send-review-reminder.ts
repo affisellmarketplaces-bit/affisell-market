@@ -4,7 +4,6 @@ import { Resend } from "resend"
 import { ReviewReminderEmail } from "@/emails/review-reminder"
 import {
   readResendDeliveryConfig,
-  resendSandboxNeedsTestInbox,
   resolveResendDeliveryRecipient,
 } from "@/lib/emails/resend-delivery"
 import {
@@ -53,10 +52,6 @@ export async function sendReviewReminderEmail(
   if (!config) {
     return { ok: false, error: "RESEND_API_KEY not configured" }
   }
-  if (resendSandboxNeedsTestInbox(config)) {
-    return { ok: false, error: "TEST_EMAIL_TO required" }
-  }
-
   const resend = new Resend(config.apiKey)
   const { to } = resolveResendDeliveryRecipient("review-reminder", order.customerEmail, config)
   const shortOrderId = order.id.slice(-6).toUpperCase()

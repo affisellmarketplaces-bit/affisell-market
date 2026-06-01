@@ -39,6 +39,18 @@ describe("resolveResendRecipient", () => {
     expect(result.devRedirect).toBe(true)
   })
 
+  it("uses intended recipient in dev when sandbox has no TEST_EMAIL_TO", () => {
+    vi.stubEnv("VERCEL_ENV", "development")
+    vi.stubEnv("NODE_ENV", "development")
+    const result = resolveResendRecipient({
+      intendedTo: "client@example.com",
+      fromEmail: "Affisell <onboarding@resend.dev>",
+      testEmailTo: "",
+    })
+    expect(result.to).toBe("client@example.com")
+    expect(result.devRedirect).toBe(false)
+  })
+
   it("sends to intended with verified domain in dev", () => {
     vi.stubEnv("NODE_ENV", "development")
     const result = resolveResendRecipient({

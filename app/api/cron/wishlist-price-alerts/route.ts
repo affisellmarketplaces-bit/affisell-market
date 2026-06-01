@@ -2,7 +2,6 @@ import { Resend } from "resend"
 
 import {
   readResendDeliveryConfig,
-  resendSandboxNeedsTestInbox,
   resolveResendDeliveryRecipient,
 } from "@/lib/emails/resend-delivery"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
@@ -47,7 +46,6 @@ export async function GET(req: Request) {
 
   const resendConfig = readResendDeliveryConfig()
   const resend = resendConfig ? new Resend(resendConfig.apiKey) : null
-  const sandboxBlocked = resendConfig ? resendSandboxNeedsTestInbox(resendConfig) : true
   let emailsSent = 0
   let updates = 0
 
@@ -59,7 +57,7 @@ export async function GET(req: Request) {
     const reachedTarget = w.targetPriceCents != null && current <= w.targetPriceCents
     const shouldAlert = sinceYesterday > 0 || reachedTarget
 
-    if (shouldAlert && resend && resendConfig && !sandboxBlocked && w.user.email) {
+    if (shouldAlert && resend && resendConfig && w.user.email) {
       const pct = sinceYesterday > 0 ? ` (-${sinceYesterday}% depuis hier)` : ""
       const targetLine =
         w.targetPriceCents != null

@@ -4,7 +4,6 @@ import { Resend } from "resend"
 import { OrderConfirmationEmail } from "@/emails/order-confirmation"
 import {
   readResendDeliveryConfig,
-  resendSandboxNeedsTestInbox,
   resolveResendDeliveryRecipient,
 } from "@/lib/emails/resend-delivery"
 import { appBaseUrl } from "@/lib/app-base-url"
@@ -67,11 +66,6 @@ export async function sendOrderConfirmationEmail({
     console.error("[Resend] Order confirmation skipped: missing RESEND_API_KEY")
     return
   }
-  if (resendSandboxNeedsTestInbox(config)) {
-    console.error("[Resend] Order confirmation skipped: TEST_EMAIL_TO required when using onboarding@resend.dev")
-    return
-  }
-
   const resend = new Resend(config.apiKey)
   const { to } = resolveResendDeliveryRecipient("order-confirmation", customerEmail, config)
   const shortOrderId = orderId.slice(-6).toUpperCase()

@@ -4,7 +4,6 @@ import { Resend } from "resend"
 import { PaymentFailedEmail } from "@/emails/payment-failed"
 import {
   readResendDeliveryConfig,
-  resendSandboxNeedsTestInbox,
   resolveResendDeliveryRecipient,
 } from "@/lib/emails/resend-delivery"
 import {
@@ -65,10 +64,6 @@ export async function sendPaymentFailedEmail(
     const message = e instanceof Error ? e.message : "billing_portal_failed"
     console.error("[payment-failed] billing portal", { orderId: order.id, error: message })
     return { ok: false, error: message }
-  }
-
-  if (resendSandboxNeedsTestInbox(config)) {
-    return { ok: false, error: "TEST_EMAIL_TO required" }
   }
 
   const resend = new Resend(config.apiKey)

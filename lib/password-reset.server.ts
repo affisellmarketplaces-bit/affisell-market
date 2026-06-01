@@ -26,8 +26,8 @@ export async function requestPasswordReset(emailRaw: string): Promise<void> {
   const email = emailRaw.trim().toLowerCase()
   if (!isValidEmailIdentifier(email)) return
 
-  const user = await prisma.user.findUnique({
-    where: { email },
+  const user = await prisma.user.findFirst({
+    where: { email: { equals: email, mode: "insensitive" } },
     select: { id: true, email: true, name: true, role: true },
   })
   if (!user) {
