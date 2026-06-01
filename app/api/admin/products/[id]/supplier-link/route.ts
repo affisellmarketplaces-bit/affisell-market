@@ -3,6 +3,7 @@ import { z } from "zod"
 
 import { replaceSupplierLinkVariants } from "@/lib/admin/products/upsert-supplier-link-variants"
 import { requireAdminSession } from "@/lib/admin/require-admin-session"
+import { isValidAeSkuId, normalizeAeSkuCandidate } from "@/lib/fulfillment/map-catalog-skus-to-ae"
 import { parseAliExpressProductId } from "@/lib/aliexpress-product-id"
 import { prisma } from "@/lib/prisma"
 
@@ -10,7 +11,12 @@ const variantMappingSchema = z.object({
   productVariantId: z.string().nullable().optional(),
   matchColor: z.string().nullable().optional(),
   matchSize: z.string().nullable().optional(),
-  aeSkuId: z.string().min(1),
+  aeSkuId: z
+    .string()
+    .min(1)
+    .refine((v) => isValidAeSkuId(v), {
+      message: "SKU AE invalide — attendu un identifiant numérique AliExpress (10–22 chiffres).",
+    }),
   aePriceCents: z.number().int().min(0),
   aeShippingCents: z.number().int().min(0).optional(),
   aeLabel: z.string().nullable().optional(),
@@ -84,12 +90,17 @@ export async function PATCH(
     body.aeUrl?.trim() ||
     (aeProductId ? `https://www.aliexpress.com/item/${aeProductId}.html` : "")
 
+  const normalizedDefaultAeSkuId =
+    body.aeSkuId !== undefined && body.aeSkuId !== null
+      ? normalizeAeSkuCandidate(body.aeSkuId) || null
+      : undefined
+
   const link = await prisma.supplierLink.upsert({
     where: { productId },
     create: {
       productId,
       aeProductId: aeProductId ?? "",
-      aeSkuId: body.aeSkuId ?? null,
+      aeSkuId: normalizedDefaultAeSkuId ?? null,
       aeShopId: body.aeShopId ?? "",
       aePriceCents: body.aePriceCents ?? 0,
       aeShippingCents: body.aeShippingCents ?? 0,
@@ -100,7 +111,7 @@ export async function PATCH(
     },
     update: {
       ...(aeProductId ? { aeProductId } : {}),
-      ...(body.aeSkuId !== undefined ? { aeSkuId: body.aeSkuId } : {}),
+      ...(normalizedDefaultAeSkuId !== undefined ? { aeSkuId: normalizedDefaultAeSkuId } : {}),
       ...(body.aeShopId !== undefined ? { aeShopId: body.aeShopId } : {}),
       ...(body.aePriceCents !== undefined ? { aePriceCents: body.aePriceCents } : {}),
       ...(body.aeShippingCents !== undefined ? { aeShippingCents: body.aeShippingCents } : {}),
@@ -118,7 +129,9 @@ export async function PATCH(
         aliexpressProductId: aeProductId,
         importSource: "aliexpress",
         sourceUrl: aeUrl,
-        ...(body.aeSkuId !== undefined ? { sourceSkuId: body.aeSkuId } : {}),
+        ...(normalizedDefaultAeSkuId !== undefined
+          ? { sourceSkuId: normalizedDefaultAeSkuId }
+          : {}),
         ...(body.autoBuyEnabled !== undefined ? { autoFulfill: body.autoBuyEnabled } : {}),
       },
     })

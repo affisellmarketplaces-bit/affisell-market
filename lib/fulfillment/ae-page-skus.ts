@@ -1,4 +1,5 @@
 import { extractWindowJson } from "@/lib/import-url-scrape"
+import { normalizeAeSkuCandidate } from "@/lib/fulfillment/map-catalog-skus-to-ae"
 import { canonicalVariantColorKey } from "@/lib/fulfillment/variant-color-match"
 import type { AeProductSkuRow } from "@/lib/fulfillment/ae-product-skus"
 
@@ -111,14 +112,19 @@ function parsePriceCentsFromSkuVal(skuVal: Record<string, unknown>): number {
 }
 
 function pickSkuId(row: Record<string, unknown>, skuVal: Record<string, unknown>): string {
-  return (
-    txt(row.skuId) ||
-    txt(row.sku_id) ||
-    txt(row.id) ||
-    txt(skuVal.skuId) ||
-    txt(skuVal.sku_id) ||
-    ""
-  )
+  const candidates = [
+    txt(row.skuId),
+    txt(row.sku_id),
+    txt(skuVal.skuId),
+    txt(skuVal.sku_id),
+    txt(skuVal.id),
+    txt(row.id),
+  ]
+  for (const raw of candidates) {
+    const normalized = normalizeAeSkuCandidate(raw)
+    if (normalized) return normalized
+  }
+  return ""
 }
 
 export type AePageParseResult = {

@@ -1,4 +1,5 @@
 import { mapAliExpressGetProductResponse } from "@/lib/aliexpress-product-map"
+import { normalizeAeSkuCandidate } from "@/lib/fulfillment/map-catalog-skus-to-ae"
 import { unwrapAliExpressMethodResponse } from "@/lib/aliexpress-open-api"
 import { canonicalVariantColorKey } from "@/lib/fulfillment/variant-color-match"
 
@@ -124,9 +125,10 @@ export function parseAeProductSkusFromPayload(payload: unknown, aeProductId: str
   const rows: AeProductSkuRow[] = []
 
   for (const sku of skus) {
-    const aeSkuId =
-      pickString(sku, ["sku_id", "skuId", "ae_sku_id", "id"]) ||
+    const rawId =
+      pickString(sku, ["sku_id", "skuId", "ae_sku_id"]) ||
       (sku.sku_id != null ? String(sku.sku_id) : "")
+    const aeSkuId = normalizeAeSkuCandidate(rawId) ?? ""
     if (!aeSkuId) continue
 
     const { color, size, label } = parseSkuProperties(sku)

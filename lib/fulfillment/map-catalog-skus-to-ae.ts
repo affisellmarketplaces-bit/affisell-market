@@ -5,6 +5,10 @@ import { canonicalVariantColorKey, variantColorsMatch } from "@/lib/fulfillment/
  * AliExpress auto-buy expects numeric sku_id from the AE catalogue (not Affisell catalogue SKU).
  * Suppliers often paste AE sku_id into ProductVariant.sku when listing on Affisell.
  */
+export function isValidAeSkuId(raw: string): boolean {
+  return normalizeAeSkuCandidate(raw) !== null
+}
+
 export function normalizeAeSkuCandidate(raw: string): string | null {
   const trimmed = raw.trim()
   if (!trimmed) return null
@@ -50,7 +54,8 @@ export function applySupplierCatalogSkusToMappingRows(
   let skipped = 0
 
   const next = rows.map((row) => {
-    if (row.aeSkuId.trim()) {
+    const existing = row.aeSkuId.trim()
+    if (existing && isValidAeSkuId(existing)) {
       skipped += 1
       return row
     }

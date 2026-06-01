@@ -1,3 +1,4 @@
+import { isValidAeSkuId } from "@/lib/fulfillment/map-catalog-skus-to-ae"
 import type { AeProductSkuRow } from "@/lib/fulfillment/ae-product-skus"
 import {
   canonicalVariantColorKey,
@@ -40,14 +41,15 @@ export function applyAeVariantSuggestions(
   const usedAe = new Set<string>()
   for (const r of rows) {
     const id = r.aeSkuId.trim()
-    if (id) usedAe.add(id)
+    if (id && isValidAeSkuId(id)) usedAe.add(id)
   }
 
   let filled = 0
   let skipped = 0
 
   const next = rows.map((row) => {
-    if (row.aeSkuId.trim()) {
+    const existing = row.aeSkuId.trim()
+    if (existing && isValidAeSkuId(existing)) {
       skipped += 1
       return row
     }
@@ -62,7 +64,7 @@ export function applyAeVariantSuggestions(
         return variantColorsMatch(s.matchColor, row.matchColor)
       })
 
-    if (!pick?.aeSkuId || usedAe.has(pick.aeSkuId)) return row
+    if (!pick?.aeSkuId || !isValidAeSkuId(pick.aeSkuId) || usedAe.has(pick.aeSkuId)) return row
 
     usedAe.add(pick.aeSkuId)
     filled += 1

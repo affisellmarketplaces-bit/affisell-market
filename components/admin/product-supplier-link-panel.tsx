@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "next/navigation"
-import { ExternalLink, Package, Plus, RefreshCw, Sparkles, Trash2 } from "lucide-react"
+import { CloudDownload, ExternalLink, Package, Plus, RefreshCw, Sparkles, Trash2 } from "lucide-react"
 
 import { AeExpressImportLauncher, type AeCaptureResult } from "@/components/admin/ae-express-import-launcher"
 import { AePasteCatalogPanel } from "@/components/admin/ae-paste-catalog-panel"
@@ -19,6 +19,7 @@ import {
 import type { AeProductSkuRow } from "@/lib/fulfillment/ae-product-skus"
 import {
   applySupplierCatalogSkusToMappingRows,
+  isValidAeSkuId,
   normalizeAeSkuCandidate,
   resolveDefaultAeSkuFromProduct,
 } from "@/lib/fulfillment/map-catalog-skus-to-ae"
@@ -86,7 +87,7 @@ function mappingsFromProduct(product: AdminProductSupplierLinkRow): VariantMappi
       productVariantId: m.productVariantId ?? "",
       matchColor: m.matchColor ?? m.productVariant?.color ?? "",
       matchSize: m.matchSize ?? m.productVariant?.size ?? "",
-      aeSkuId: m.aeSkuId,
+      aeSkuId: normalizeAeSkuCandidate(m.aeSkuId) ?? "",
       aePriceCents: m.aePriceCents,
       aeLabel: m.aeLabel ?? "",
     }))
@@ -132,7 +133,7 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
     setForm((f) => ({
       ...f,
       aeProductId: resolved.aeProductId,
-      aeSkuId: resolved.aeSkuId ?? f.aeSkuId,
+      aeSkuId: normalizeAeSkuCandidate(resolved.aeSkuId ?? "") || f.aeSkuId,
       aeShopId: resolved.aeShopId || f.aeShopId,
       aePriceCents: resolved.aePriceCents || f.aePriceCents,
       aeShippingCents: resolved.aeShippingCents,
@@ -142,12 +143,12 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
     if (result.suggestions?.length) {
       setLastSuggestions(result.suggestions)
       setVariantRows((current) => {
-        const { rows: next, filled } = applyAeVariantSuggestions(
+        const { rows: next } = applyAeVariantSuggestions(
           current,
           result.suggestions,
           resolved.aeSkus ?? []
         )
-        return filled > 0 ? next : current
+        return next
       })
     }
     setLastSource("paste")
@@ -194,6 +195,81 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
     setMessage(
       `${filled} ligne(s) remplie(s) depuis le catalogue fournisseur${skipped > 0 ? ` · ${skipped} déjà renseignée(s)` : ""}.`
     )
+  }
+
+  async function fetchCatalogFromServer() {
+    const url = form.aeUrl.trim()
+    if (!url.includes("aliexpress") && !form.aeProductId.trim()) {
+      setError("URL AliExpress requise.")
+      return
+    }
+    setBusy(true)
+    setError(null)
+    setMessage(null)
+    try {
+      const res = await fetch(`/api/admin/products/${product.id}/resolve-ae-url`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ aeUrl: url || `https://www.aliexpress.com/item/${form.aeProductId}.html` }),
+      })
+      const data = (await res.json()) as {
+        ok?: boolean
+        error?: string
+        resolved?: AeCaptureResult["resolved"]
+        suggestions?: AeCaptureResult["suggestions"]
+      }
+      if (!res.ok || !data.ok || !data.resolved) {
+        setError(
+          data.error ??
+            "Impossible de lire la fiche AE côté serveur — essayez Import Express ou collez le JSON."
+        )
+        return
+      }
+      const skuCount = data.resolved.aeSkus?.length ?? 0
+      if (skuCount === 0) {
+        setError(
+          "Aucun SKU AE numérique trouvé sur cette fiche. Utilisez Import Express depuis votre navigateur ou le JSON __AER_DATA__."
+        )
+        return
+      }
+      applyCaptureResult({
+        resolved: data.resolved,
+        suggestions: data.suggestions ?? [],
+      })
+      setLastSource(data.resolved.source === "api" ? "api" : "page")
+      setMessage(
+        `${skuCount} SKU AE récupéré(s) (${sourceLabel(data.resolved.source === "api" ? "api" : "page")}). Cliquez « Mapper auto » puis Enregistrer.`
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  function clearInvalidAeSkus() {
+    let cleared = 0
+    setVariantRows((rows) =>
+      rows.map((r) => {
+        if (r.aeSkuId.trim() && !isValidAeSkuId(r.aeSkuId)) {
+          cleared += 1
+          return { ...r, aeSkuId: "" }
+        }
+        return r
+      })
+    )
+    setForm((f) => {
+      if (f.aeSkuId.trim() && !isValidAeSkuId(f.aeSkuId)) {
+        cleared += 1
+        return { ...f, aeSkuId: "" }
+      }
+      return f
+    })
+    setMessage(
+      cleared > 0
+        ? `${cleared} SKU invalide(s) effacé(s) (ex. PID-BLACK) — récupérez le catalogue AE.`
+        : "Tous les SKU AE sont déjà au bon format."
+    )
+    setError(null)
   }
 
   async function syncViaAliExpressApi() {
@@ -289,6 +365,14 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
   )
 
   async function save() {
+    const invalidRows = variantRows.filter((r) => r.aeSkuId.trim() && !isValidAeSkuId(r.aeSkuId))
+    if (invalidRows.length > 0 || (form.aeSkuId.trim() && !isValidAeSkuId(form.aeSkuId))) {
+      setError(
+        "SKU AE invalides (ex. PID-BLACK). Effacez-les ou utilisez « Récupérer catalogue (serveur) » pour obtenir les vrais identifiants numériques AliExpress."
+      )
+      return
+    }
+
     if (
       form.autoBuyEnabled &&
       !form.aeSkuId.trim() &&
@@ -423,12 +507,22 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
           <Button
             type="button"
             size="sm"
+            className="border-0 bg-violet-600 text-white hover:bg-violet-700"
+            disabled={busy}
+            onClick={() => void fetchCatalogFromServer()}
+          >
+            <CloudDownload className="mr-1 h-3.5 w-3.5" />
+            Récupérer catalogue (serveur)
+          </Button>
+          <Button
+            type="button"
+            size="sm"
             variant="secondary"
             disabled={busy || productVariants.length === 0}
             onClick={mapFromSupplierSkus}
           >
             <Package className="mr-1 h-3.5 w-3.5" />
-            SKU fournisseur → SKU AE
+            SKU fournisseur (si numériques)
           </Button>
           <Button
             type="button"
@@ -438,7 +532,10 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
             onClick={() => void syncViaAliExpressApi()}
           >
             <RefreshCw className="mr-1 h-3.5 w-3.5" />
-            Sync API AliExpress
+            Sync API
+          </Button>
+          <Button type="button" size="sm" variant="ghost" disabled={busy} onClick={clearInvalidAeSkus}>
+            Effacer SKU invalides
           </Button>
         </div>
 
@@ -586,8 +683,13 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
                       <td className="py-2 pr-2">
                         <div className="flex gap-1">
                           <Input
-                            className="h-8 min-w-[100px] font-mono text-xs"
+                            className={`h-8 min-w-[100px] font-mono text-xs ${
+                              row.aeSkuId.trim() && !isValidAeSkuId(row.aeSkuId)
+                                ? "border-red-500 ring-1 ring-red-400"
+                                : ""
+                            }`}
                             value={row.aeSkuId}
+                            placeholder="120000…"
                             onChange={(e) =>
                               setVariantRows((rows) =>
                                 rows.map((r) =>

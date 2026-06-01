@@ -1,3 +1,4 @@
+import { isValidAeSkuId } from "@/lib/fulfillment/map-catalog-skus-to-ae"
 import { colorNameFromVariantLabel } from "@/lib/cart-line-image"
 import { parseCartVariantSignature } from "@/lib/cart-variant"
 import {
@@ -174,7 +175,7 @@ export function suggestVariantMappings(
     const pvColor = pv.color ? canonicalVariantColorKey(pv.color) : ""
     if (!pvColor) continue
     const ae = aeSkus.find((s) => {
-      if (!s.aeSkuId || usedAe.has(s.aeSkuId)) return false
+      if (!s.aeSkuId || !isValidAeSkuId(s.aeSkuId) || usedAe.has(s.aeSkuId)) return false
       if (s.matchColor && variantColorsMatch(s.matchColor, pvColor)) return true
       return variantColorsMatch(s.aeLabel, pv.color)
     })
