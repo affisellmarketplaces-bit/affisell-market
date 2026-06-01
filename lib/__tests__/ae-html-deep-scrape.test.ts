@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 
+import { parseAeCatalogFromHtml } from "@/lib/fulfillment/ae-catalog-from-html"
 import { parseAeCatalogFromHtmlDeep } from "@/lib/fulfillment/ae-html-deep-scrape"
 
 describe("parseAeCatalogFromHtmlDeep", () => {
@@ -36,5 +37,18 @@ describe("parseAeCatalogFromHtmlDeep", () => {
     expect(parsed.aeSkus.map((s) => s.matchColor)).toEqual(
       expect.arrayContaining(["black", "silver", "white"])
     )
+  })
+
+  it("decodes unicode-escaped skuId in saved pages", () => {
+    const html = `<html>"skuId":\\u0031\\u0032\\u0030\\u0030\\u0030\\u0030\\u0034\\u0038\\u0034\\u0037\\u0032\\u0031\\u0037\\u0031\\u0038\\u0036\\u0036</html>`
+    const parsed = parseAeCatalogFromHtml(html, "https://www.aliexpress.it/item/1005010063076436.html")
+    expect(parsed.aeSkus.length).toBeGreaterThan(0)
+    expect(parsed.aeSkus[0]?.aeSkuId).toBe("12000048472171866")
+  })
+
+  it("merges record scrape with plain skuId regex", () => {
+    const html = `"skuId":"1200001111111111" fragment without skuAttr`
+    const parsed = parseAeCatalogFromHtmlDeep(html, "https://www.aliexpress.com/item/1.html")
+    expect(parsed.aeSkus.length).toBe(1)
   })
 })

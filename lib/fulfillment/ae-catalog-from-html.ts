@@ -1,4 +1,8 @@
-import { parseAeCatalogFromHtmlDeep } from "@/lib/fulfillment/ae-html-deep-scrape"
+import {
+  normalizeHtmlForJsonScan,
+  parseAeCatalogFromHtmlDeep,
+} from "@/lib/fulfillment/ae-html-deep-scrape"
+import { extractLooseAeSkuRowsFromHtml } from "@/lib/fulfillment/ae-html-loose-sku-extract"
 import { parseAliExpressHtml, extractWindowJson } from "@/lib/import-url-scrape"
 import { normalizeAerRoot } from "@/lib/fulfillment/ae-aer-normalize"
 import { parseAeSkusFromPagePayload, type AePageParseResult } from "@/lib/fulfillment/ae-page-skus"
@@ -40,21 +44,27 @@ function skusFromLegacyHtml(html: string, url: string): AeProductSkuRow[] {
 
 /** Best-effort SKU catalogue from AE product HTML (AER + legacy + OpenGraph). */
 export function parseAeCatalogFromHtml(html: string, url: string): AePageParseResult {
-  const primary = parseAeSkusFromPagePayload(null, { html, url })
+  const normalized = normalizeHtmlForJsonScan(html)
+
+  const primary = parseAeSkusFromPagePayload(null, { html: normalized, url })
   if (primary.aeSkus.length > 0) return primary
 
   const aer =
-    extractWindowJson(html, ["__AER_DATA__"]) ??
-    extractWindowJson(html, ["__INIT_DATA__"]) ??
-    extractWindowJson(html, ["runParams"])
+    extractWindowJson(normalized, ["__AER_DATA__"]) ??
+    extractWindowJson(normalized, ["__RET_DATA__"]) ??
+    extractWindowJson(normalized, ["__INIT_DATA__"]) ??
+    extractWindowJson(normalized, ["runParams"])
 
-  const normalized = normalizeAerRoot(aer)
-  if (normalized) {
-    const fromBlob = parseAeSkusFromPagePayload(normalized, { url })
+  const aerRoot = normalizeAerRoot(aer)
+  if (aerRoot) {
+    const fromBlob = parseAeSkusFromPagePayload(aerRoot, { url })
     if (fromBlob.aeSkus.length > 0) return fromBlob
   }
 
-  const legacySkus = skusFromLegacyHtml(html, url)
+  const deep = parseAeCatalogFromHtmlDeep(normalized, url)
+  if (deep.aeSkus.length > 0) return deep
+
+  const legacySkus = skusFromLegacyHtml(normalized, url)
   if (legacySkus.length > 0) {
     const prices = legacySkus.map((s) => s.aePriceCents).filter((p) => p > 0)
     return {
@@ -65,8 +75,16 @@ export function parseAeCatalogFromHtml(html: string, url: string): AePageParseRe
     }
   }
 
-  const deep = parseAeCatalogFromHtmlDeep(html, url)
-  if (deep.aeSkus.length > 0) return deep
+  const loose = extractLooseAeSkuRowsFromHtml(normalized, url)
+  if (loose.length > 0) {
+    const prices = loose.map((s) => s.aePriceCents).filter((p) => p > 0)
+    return {
+      aeSkus: loose,
+      aePriceCents: prices.length > 0 ? Math.min(...prices) : 0,
+      aeShopId: primary.aeShopId,
+      title: primary.title,
+    }
+  }
 
   return primary
 }

@@ -116,8 +116,10 @@ function pickSkuId(row: Record<string, unknown>, skuVal: Record<string, unknown>
   const candidates = [
     txt(row.skuId),
     txt(row.sku_id),
+    txt(row.skuIdStr),
     txt(skuVal.skuId),
     txt(skuVal.sku_id),
+    txt(skuVal.skuIdStr),
     txt(skuVal.id),
     txt(row.id),
   ]
@@ -144,6 +146,7 @@ export function parseAeSkusFromPagePayload(
   if (!aer && opts?.html) {
     const extracted =
       extractWindowJson(opts.html, ["__AER_DATA__"]) ??
+      extractWindowJson(opts.html, ["__RET_DATA__"]) ??
       extractWindowJson(opts.html, ["__INIT_DATA__"]) ??
       extractWindowJson(opts.html, ["runParams"])
     aer = normalizeAerRoot(extracted) ?? asRec(extracted)
