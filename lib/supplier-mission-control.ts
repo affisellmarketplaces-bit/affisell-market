@@ -100,7 +100,9 @@ type OrderAggRow = {
   supplierPayoutCents: number
   supplierCommissionRateBps: number
   affiliatePayoutCents: number
-  affisellFeeCents: number
+  supplierFeeCents: number
+  usesAffisellAutoBuy: boolean
+  aeWholesaleCents: number | null
 }
 
 function aggregateOrders(rows: OrderAggRow[]) {
@@ -138,7 +140,9 @@ async function fetchMarketplaceOrders(
       supplierPayoutCents: true,
       supplierCommissionRateBps: true,
       affiliatePayoutCents: true,
-      affisellFeeCents: true,
+      supplierFeeCents: true,
+      usesAffisellAutoBuy: true,
+      aeWholesaleCents: true,
     },
   })
 }

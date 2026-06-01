@@ -3,6 +3,10 @@ import {
   affisellFeeCentsFromLine,
 } from "@/lib/affisell-platform-commission"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
+import {
+  resolveOrderSupplierSettlement,
+  type ResolveOrderSupplierSettlementInput,
+} from "@/lib/marketplace-supplier-fee"
 
 /** @deprecated Use per-category `affisellCommissionRateBps` — kept for docs/tests (10%). */
 export const AFFISELL_MARKETPLACE_FEE_PERCENT = DEFAULT_AFFISELL_COMMISSION_BPS / 100
@@ -71,7 +75,7 @@ function normalizeSettlementInput(
 /**
  * Marketplace settlement:
  * - Affiliate commission = % of supplier wholesale (commission offered on catalog).
- * - Supplier net = wholesale − that commission (Affisell fee stays on platform, HT base).
+ * - Supplier net (before platform fee) = wholesale − partner commission; Phase 1 fee applied at payout.
  */
 export function computeMarketplaceOrderSettlement(
   args: ComputeMarketplaceOrderSettlementInput | LegacyMarketplaceOrderSettlementInput
@@ -135,28 +139,21 @@ export function recomputeAffiliateMarginRetainedCents(args: {
   )
 }
 
-/** Recompute supplier Connect payout from persisted order fields (legacy rows included). */
-export function resolveSupplierPayoutCentsFromOrder(order: {
-  supplierPayoutCents?: number | null
-  supplierPriceCents?: number | null
-  basePriceCents: number
-  supplierCommissionRateBps?: number | null
-  affiliatePayoutCents?: number | null
-}): number {
+/** Recompute supplier Connect payout (catalog vs auto-buy fee, legacy rows included). */
+export function resolveSupplierPayoutCentsFromOrder(
+  order: ResolveOrderSupplierSettlementInput
+): number {
+  const settlement = resolveOrderSupplierSettlement({
+    ...order,
+    supplier: order.supplier ?? {},
+  })
+  const hasFrozenMode =
+    order.usesAffisellAutoBuy === true || order.usesAffisellAutoBuy === false
   const stored = order.supplierPayoutCents
-  if (stored != null && stored > 0) return Math.round(stored)
-
-  const supplierPrice = Math.max(
-    0,
-    Math.round(order.supplierPriceCents ?? order.basePriceCents)
-  )
-  const bps = Math.max(0, Math.round(order.supplierCommissionRateBps ?? 0))
-  if (bps > 0) {
-    return Math.max(0, supplierPrice - Math.round((supplierPrice * bps) / 10_000))
+  if (hasFrozenMode && stored != null && stored > 0) {
+    return Math.round(stored)
   }
-
-  const commission = Math.max(0, Math.round(order.affiliatePayoutCents ?? 0))
-  return Math.max(0, supplierPrice - commission)
+  return settlement.supplierNetPayoutCents
 }
 
 /** HT base for Affisell fee when order row has VAT breakdown. */
@@ -205,7 +202,7 @@ function money(cents: number): string {
   return formatStoreCurrencyFromCents(cents)
 }
 
-/** Supplier inbox: net wholesale (after partner commission) + opaque partner ref. */
+/** Supplier inbox: net wholesale after partner + Affisell platform fee. */
 export function formatSupplierNewOrderNotification(args: {
   productName: string
   variantBit: string
@@ -215,23 +212,38 @@ export function formatSupplierNewOrderNotification(args: {
   supplierNetCents: number
   supplierGrossCents?: number
   affiliateCommissionCents?: number
+  supplierPlatformFeeCents?: number
+  usesAffisellAutoBuy?: boolean
 }): string {
   const variant = args.variantBit ? args.variantBit : ""
   const ref =
     args.partnerListingCode?.trim() ? ` · Partner listing ${args.partnerListingCode.trim()}` : ""
   const gross = args.supplierGrossCents
   const commission = args.affiliateCommissionCents
+  const platformFee = Math.max(0, Math.round(args.supplierPlatformFeeCents ?? 0))
+  const channel =
+    args.usesAffisellAutoBuy === true
+      ? "auto-buy"
+      : args.usesAffisellAutoBuy === false
+        ? "catalogue"
+        : null
   const netLine =
-    gross != null &&
-    commission != null &&
-    commission > 0 &&
-    gross > args.supplierNetCents
-      ? ` · Net wholesale ${money(args.supplierNetCents)} (catalog ${money(gross)} − partner ${money(commission)})`
-      : ` · Your net wholesale (COGS): ${money(args.supplierNetCents)}`
+    gross != null && gross > args.supplierNetCents
+      ? [
+          `Net wholesale ${money(args.supplierNetCents)} (catalog ${money(gross)}`,
+          commission != null && commission > 0 ? `− partner ${money(commission)}` : null,
+          platformFee > 0
+            ? `− Affisell ${money(platformFee)}${channel ? ` · ${channel}` : ""}`
+            : null,
+          ")",
+        ]
+          .filter(Boolean)
+          .join(" ")
+      : `Your net wholesale (COGS): ${money(args.supplierNetCents)}`
 
   return [
     `New order to ship · ${args.productName}${variant} ×${args.qty} · ${args.customerEmail}${ref}`,
-    netLine.replace(/^ · /, ""),
+    netLine,
   ].join(" · ")
 }
 

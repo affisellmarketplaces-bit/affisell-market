@@ -20,6 +20,9 @@ export async function createMarketplaceOrderNotifications(
     customerEmail: string
     partnerListingCode?: string | null
     settlement: MarketplaceOrderSettlement
+    supplierNetCents: number
+    supplierPlatformFeeCents: number
+    usesAffisellAutoBuy: boolean
     taxCents?: number | null
     totalCents?: number | null
     imageUrl?: string | null
@@ -37,9 +40,11 @@ export async function createMarketplaceOrderNotifications(
         qty: args.qty,
         customerEmail: args.customerEmail,
         partnerListingCode: args.partnerListingCode,
-        supplierNetCents: args.settlement.supplierNetCents,
+        supplierNetCents: args.supplierNetCents,
         supplierGrossCents: args.settlement.basePriceCents,
         affiliateCommissionCents: args.settlement.affiliateCommissionCents,
+        supplierPlatformFeeCents: args.supplierPlatformFeeCents,
+        usesAffisellAutoBuy: args.usesAffisellAutoBuy,
       }),
       orderId: args.orderId,
     },

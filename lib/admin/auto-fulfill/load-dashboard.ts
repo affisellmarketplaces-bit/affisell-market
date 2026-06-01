@@ -125,6 +125,7 @@ export async function loadAdminAutoFulfillDashboard(
             totalCents: true,
             sellingPriceCents: true,
             aeWholesaleCents: true,
+            usesAffisellAutoBuy: true,
             supplierFeeCents: true,
             affiliateFeeCents: true,
             product: {
@@ -181,10 +182,12 @@ export async function loadAdminAutoFulfillDashboard(
       aeWholesaleCents: log.order.aeWholesaleCents,
       supplierFeeCents: log.order.supplierFeeCents,
       affiliateFeeCents: log.order.affiliateFeeCents,
-      usesAffisellAutoBuy: orderUsesAffisellAutoBuy({
-        supplierLink: log.order.product.supplierLink,
-        productAutoBuyEnabled: log.order.product.autoBuyEnabled,
-      }),
+      usesAffisellAutoBuy:
+        log.order.usesAffisellAutoBuy ??
+        orderUsesAffisellAutoBuy({
+          supplierLink: log.order.product.supplierLink,
+          productAutoBuyEnabled: log.order.product.autoBuyEnabled,
+        }),
       createdAt: log.createdAt.toISOString(),
       updatedAt: log.updatedAt.toISOString(),
     })),

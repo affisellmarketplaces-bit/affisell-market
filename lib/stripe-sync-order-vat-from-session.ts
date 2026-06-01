@@ -1,12 +1,10 @@
 import type Stripe from "stripe"
 
+import { phase1AffiliateMarginRetainedCents } from "@/lib/marketplace-phase1-fees"
 import {
-  computePhase1OrderFees,
-  phase1AffiliateMarginRetainedCents,
-} from "@/lib/marketplace-phase1-fees"
-import {
-  orderUsesAffisellAutoBuy,
-  resolveSupplierFeeBpsForOrder,
+  buildPhase1FeesForOrderLine,
+  netSupplierPayoutCents,
+  resolveOrderUsesAffisellAutoBuy,
 } from "@/lib/marketplace-supplier-fee"
 import { getStripeClient } from "@/lib/stripe"
 import { prisma } from "@/lib/prisma"
@@ -76,6 +74,7 @@ export async function syncOrderVatFromCheckoutSession(
       affiliateMarginCents: true,
       affiliateMarginRetainedCents: true,
       aeWholesaleCents: true,
+      usesAffisellAutoBuy: true,
       supplierFeeCents: true,
       affiliateFeeCents: true,
       product: {
@@ -123,14 +122,10 @@ export async function syncOrderVatFromCheckoutSession(
         ? order.affiliateMarginCents
         : undefined
 
-    const wholesaleForFees = order.aeWholesaleCents ?? supplierPriceCents
-    const usesAffisellAutoBuy = orderUsesAffisellAutoBuy({
+    const usesAffisellAutoBuy = resolveOrderUsesAffisellAutoBuy({
+      usesAffisellAutoBuy: order.usesAffisellAutoBuy,
       supplierLink: order.product.supplierLink,
       productAutoBuyEnabled: order.product.autoBuyEnabled,
-    })
-    const supplierFeeBps = resolveSupplierFeeBpsForOrder({
-      usesAffisellAutoBuy,
-      supplier: order.product.supplier,
     })
 
     const grossAffiliateMarkupCents =
@@ -138,11 +133,13 @@ export async function syncOrderVatFromCheckoutSession(
         ? unitListingMargin
         : Math.max(0, subtotalCents - supplierPriceCents - affiliateCommissionCents)
 
-    const phase1Fees = computePhase1OrderFees({
-      wholesaleTotalCents: wholesaleForFees,
+    const phase1Fees = buildPhase1FeesForOrderLine({
+      usesAffisellAutoBuy,
+      supplier: order.product.supplier,
+      supplierPriceCents,
+      aeWholesaleCents: order.aeWholesaleCents,
       affiliateCommissionCents,
       affiliateMarginRetainedCents: grossAffiliateMarkupCents,
-      supplierFeeBps,
       affiliatePlatformFeeBps: order.affiliate.affiliatePlatformFeeBps,
     })
 
@@ -152,6 +149,12 @@ export async function syncOrderVatFromCheckoutSession(
       affiliateCommissionCents,
       affiliateFeeCents: phase1Fees.affiliateFeeCents,
       fixedListingMarginCents: unitListingMargin,
+    })
+
+    const supplierPayoutCents = netSupplierPayoutCents({
+      supplierPriceCents,
+      affiliateCommissionCents,
+      supplierFeeCents: phase1Fees.supplierFeeCents,
     })
 
     await prisma.order.update({
@@ -164,6 +167,8 @@ export async function syncOrderVatFromCheckoutSession(
         affisellFeeCents: phase1Fees.affisellFeeTotalCents,
         supplierFeeCents: phase1Fees.supplierFeeCents,
         affiliateFeeCents: phase1Fees.affiliateFeeCents,
+        supplierPayoutCents,
+        usesAffisellAutoBuy,
         affiliateMarginRetainedCents,
         taxCountry,
         taxRate: sessionTaxRate,

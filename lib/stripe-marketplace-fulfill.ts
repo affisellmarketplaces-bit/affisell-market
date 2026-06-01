@@ -10,12 +10,12 @@ import { resolveBuyerUserIdForEarn } from "@/lib/buyer-reward-resolve-user"
 import { resolveAffisellCommissionRateBpsForProductId } from "@/lib/affisell-platform-commission.server"
 import { resolveSupplierCommissionRateBpsForProductId } from "@/lib/supplier-commission-rate.server"
 import {
-  computePhase1OrderFees,
   phase1AffiliateMarginRetainedCents,
 } from "@/lib/marketplace-phase1-fees"
 import {
+  buildPhase1FeesForOrderLine,
+  netSupplierPayoutCents,
   orderUsesAffisellAutoBuy,
-  resolveSupplierFeeBpsForOrder,
 } from "@/lib/marketplace-supplier-fee"
 import {
   affiliateSaleNotificationSettlement,
@@ -133,33 +133,30 @@ async function createPaidMarketplaceOrder(
     supplierLink,
     productAutoBuyEnabled: listing.product.autoBuyEnabled,
   })
-  const supplierFeeBps = resolveSupplierFeeBpsForOrder({
-    usesAffisellAutoBuy,
-    supplier: listing.product.supplier,
-  })
-  const wholesaleForFees = supplierLink?.aePriceCents
-    ? supplierLink.aePriceCents * qty
-    : basePriceCents
-  const aeWholesaleCents = supplierLink?.aePriceCents
-    ? supplierLink.aePriceCents * qty
-    : null
+  const aeWholesaleCents =
+    usesAffisellAutoBuy && supplierLink?.aePriceCents
+      ? supplierLink.aePriceCents * qty
+      : null
 
   const grossAffiliateMarkupCents =
     lineAffiliateMarginCents ??
     Math.max(0, clientLineHtCents - basePriceCents - settlement.affiliateCommissionCents)
 
-  const phase1Fees = computePhase1OrderFees({
-    wholesaleTotalCents: wholesaleForFees,
+  const phase1Fees = buildPhase1FeesForOrderLine({
+    usesAffisellAutoBuy,
+    supplier: listing.product.supplier,
+    supplierPriceCents: basePriceCents,
+    aeWholesaleCents,
     affiliateCommissionCents: settlement.affiliateCommissionCents,
     affiliateMarginRetainedCents: grossAffiliateMarkupCents,
-    supplierFeeBps,
     affiliatePlatformFeeBps: listing.affiliate.affiliatePlatformFeeBps,
   })
 
   console.log("[marketplace-fees]", {
     productId: listing.productId,
     usesAffisellAutoBuy,
-    supplierFeeBps,
+    supplierFeeBps: phase1Fees.supplierFeeBps,
+    wholesaleForFeesCents: phase1Fees.wholesaleForFeesCents,
     supplierFeeCents: phase1Fees.supplierFeeCents,
     affiliateFeeCents: phase1Fees.affiliateFeeCents,
   })
@@ -170,6 +167,12 @@ async function createPaidMarketplaceOrder(
     affiliateCommissionCents: settlement.affiliateCommissionCents,
     affiliateFeeCents: phase1Fees.affiliateFeeCents,
     fixedListingMarginCents: lineAffiliateMarginCents,
+  })
+
+  const supplierNetPayoutCents = netSupplierPayoutCents({
+    supplierPriceCents: basePriceCents,
+    affiliateCommissionCents: settlement.affiliateCommissionCents,
+    supplierFeeCents: phase1Fees.supplierFeeCents,
   })
 
   const lineTaxCents =
@@ -205,10 +208,11 @@ async function createPaidMarketplaceOrder(
       supplierFeeCents: phase1Fees.supplierFeeCents,
       affiliateFeeCents: phase1Fees.affiliateFeeCents,
       aeWholesaleCents,
+      usesAffisellAutoBuy,
       affiliateMarginRetainedCents,
       supplierPriceCents: unitSupplierCents * qty,
       supplierCommissionRateBps,
-      supplierPayoutCents: settlement.supplierNetCents,
+      supplierPayoutCents: supplierNetPayoutCents,
       affiliateMarginCents: affiliateMarginCents * qty,
       affisellCommissionRateBps,
       status: "paid",
@@ -243,6 +247,9 @@ async function createPaidMarketplaceOrder(
       affiliateMarginRetainedCents,
       affiliatePlatformFeeCents: phase1Fees.affiliateFeeCents,
     }),
+    supplierNetCents: supplierNetPayoutCents,
+    supplierPlatformFeeCents: phase1Fees.supplierFeeCents,
+    usesAffisellAutoBuy,
     taxCents: lineTaxCents,
     totalCents: lineTotalCents,
     imageUrl: variantImageUrl,
@@ -491,6 +498,43 @@ export async function fulfillMarketplaceStripeSession(
         affisellCommissionRateBps,
         affisellFeeBaseCents: clientLineHtCents,
       })
+      const dupSupplierLink = await tx.supplierLink.findUnique({
+        where: { productId: listing.productId },
+        select: { aePriceCents: true, isActive: true, autoBuyEnabled: true },
+      })
+      const dupUsesAutoBuy = orderUsesAffisellAutoBuy({
+        supplierLink: dupSupplierLink,
+        productAutoBuyEnabled: listing.product.autoBuyEnabled,
+      })
+      const dupAeWholesale =
+        dupUsesAutoBuy && dupSupplierLink?.aePriceCents
+          ? dupSupplierLink.aePriceCents * qty
+          : null
+      const dupGrossMarkup =
+        listing.marginCents > 0
+          ? listing.marginCents * qty
+          : Math.max(0, clientLineHtCents - basePriceCents - settlement.affiliateCommissionCents)
+      const dupPhase1Fees = buildPhase1FeesForOrderLine({
+        usesAffisellAutoBuy: dupUsesAutoBuy,
+        supplier: listing.product.supplier,
+        supplierPriceCents: basePriceCents,
+        aeWholesaleCents: dupAeWholesale,
+        affiliateCommissionCents: settlement.affiliateCommissionCents,
+        affiliateMarginRetainedCents: dupGrossMarkup,
+        affiliatePlatformFeeBps: listing.affiliate.affiliatePlatformFeeBps,
+      })
+      const dupSupplierNetPayout = netSupplierPayoutCents({
+        supplierPriceCents: basePriceCents,
+        affiliateCommissionCents: settlement.affiliateCommissionCents,
+        supplierFeeCents: dupPhase1Fees.supplierFeeCents,
+      })
+      const dupAffiliateMargin = phase1AffiliateMarginRetainedCents({
+        clientLineHtCents,
+        supplierPriceCents: basePriceCents,
+        affiliateCommissionCents: settlement.affiliateCommissionCents,
+        affiliateFeeCents: dupPhase1Fees.affiliateFeeCents,
+        fixedListingMarginCents: listing.marginCents > 0 ? listing.marginCents * qty : undefined,
+      })
       const lineTaxCents =
         checkoutSubtotalCents > 0 && checkoutTaxCents > 0
           ? Math.round((checkoutTaxCents * clientLineHtCents) / checkoutSubtotalCents)
@@ -514,11 +558,15 @@ export async function fulfillMarketplaceStripeSession(
           marginCents: settlement.marginCents,
           commissionCents: settlement.affiliateCommissionCents,
           affiliatePayoutCents: settlement.affiliateCommissionCents,
-          affisellFeeCents: settlement.affisellFeeCents,
-          affiliateMarginRetainedCents: settlement.affiliateMarginRetainedCents,
+          affisellFeeCents: dupPhase1Fees.affisellFeeTotalCents,
+          supplierFeeCents: dupPhase1Fees.supplierFeeCents,
+          affiliateFeeCents: dupPhase1Fees.affiliateFeeCents,
+          aeWholesaleCents: dupAeWholesale,
+          usesAffisellAutoBuy: dupUsesAutoBuy,
+          affiliateMarginRetainedCents: dupAffiliateMargin,
           supplierPriceCents: basePriceCents,
           supplierCommissionRateBps,
-          supplierPayoutCents: settlement.supplierNetCents,
+          supplierPayoutCents: dupSupplierNetPayout,
           affiliateMarginCents:
             listing.marginCents > 0 ? listing.marginCents * qty : settlement.affiliateMarginRetainedCents,
           affisellCommissionRateBps,
@@ -550,7 +598,13 @@ export async function fulfillMarketplaceStripeSession(
         qty,
         customerEmail,
         partnerListingCode: listing.affiliate.store?.partnerListingCode ?? null,
-        settlement,
+        settlement: affiliateSaleNotificationSettlement(settlement, {
+          affiliateMarginRetainedCents: dupAffiliateMargin,
+          affiliatePlatformFeeCents: dupPhase1Fees.affiliateFeeCents,
+        }),
+        supplierNetCents: dupSupplierNetPayout,
+        supplierPlatformFeeCents: dupPhase1Fees.supplierFeeCents,
+        usesAffisellAutoBuy: dupUsesAutoBuy,
         taxCents: lineTaxCents,
         totalCents: lineTotalCents,
         imageUrl: variantImageUrl,

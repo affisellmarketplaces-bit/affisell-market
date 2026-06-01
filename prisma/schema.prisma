@@ -1073,6 +1073,11 @@ model Order {
   /** Snapshot AE purchase price HT (centimes) at checkout when SupplierLink exists. */
   aeWholesaleCents         Int?
   /**
+   * Frozen at payment: true = Affisell AE auto-buy (17 % fee base on AE wholesale when set).
+   * false = native supplier catalogue shipment (10 % on catalog wholesale).
+   */
+  usesAffisellAutoBuy      Boolean             @default(false)
+  /**
    * Affiliate markup kept above supplier commission offer (`margin − affiliate payout`).
    */
   affiliateMarginRetainedCents Int             @default(0)

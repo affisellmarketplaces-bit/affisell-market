@@ -5,8 +5,11 @@ import {
   DEFAULT_SUPPLIER_FEE_BPS_CATALOG,
 } from "@/lib/marketplace-phase1-fees"
 import {
+  buildPhase1FeesForOrderLine,
   orderUsesAffisellAutoBuy,
+  resolveOrderUsesAffisellAutoBuy,
   resolveSupplierFeeBpsForOrder,
+  wholesaleCentsForSupplierPlatformFee,
 } from "@/lib/marketplace-supplier-fee"
 
 describe("orderUsesAffisellAutoBuy", () => {
@@ -73,5 +76,54 @@ describe("resolveSupplierFeeBpsForOrder", () => {
         supplier: { supplierFeeBps: 1500, supplierFeeBpsAutoBuy: 2000 },
       })
     ).toBe(1500)
+  })
+})
+
+describe("wholesaleCentsForSupplierPlatformFee", () => {
+  it("uses catalog wholesale when not auto-buy even if AE price exists", () => {
+    expect(
+      wholesaleCentsForSupplierPlatformFee({
+        usesAffisellAutoBuy: false,
+        supplierPriceCents: 59_804,
+        aeWholesaleCents: 45_000,
+      })
+    ).toBe(59_804)
+  })
+
+  it("uses AE wholesale only in auto-buy mode", () => {
+    expect(
+      wholesaleCentsForSupplierPlatformFee({
+        usesAffisellAutoBuy: true,
+        supplierPriceCents: 59_804,
+        aeWholesaleCents: 45_000,
+      })
+    ).toBe(45_000)
+  })
+})
+
+describe("resolveOrderUsesAffisellAutoBuy", () => {
+  it("prefers checkout snapshot over live link", () => {
+    expect(
+      resolveOrderUsesAffisellAutoBuy({
+        usesAffisellAutoBuy: false,
+        supplierLink: { isActive: true, autoBuyEnabled: true },
+      })
+    ).toBe(false)
+  })
+})
+
+describe("buildPhase1FeesForOrderLine", () => {
+  it("applies 10% on catalog wholesale for catalogue channel", () => {
+    const fees = buildPhase1FeesForOrderLine({
+      usesAffisellAutoBuy: false,
+      supplier: {},
+      supplierPriceCents: 10_000,
+      aeWholesaleCents: 8_000,
+      affiliateCommissionCents: 1_000,
+      affiliateMarginRetainedCents: 500,
+    })
+    expect(fees.supplierFeeBps).toBe(DEFAULT_SUPPLIER_FEE_BPS_CATALOG)
+    expect(fees.wholesaleForFeesCents).toBe(10_000)
+    expect(fees.supplierFeeCents).toBe(1_000)
   })
 })

@@ -91,7 +91,7 @@ describe("marketplace order settlement", () => {
     ).toBe(1_650)
   })
 
-  it("supplier notification shows net after partner commission", () => {
+  it("supplier notification shows net after partner and platform fee", () => {
     const s = computeMarketplaceOrderSettlement({
       sellingPriceCents: 5_000,
       supplierPriceCents: 3_000,
@@ -103,27 +103,31 @@ describe("marketplace order settlement", () => {
       qty: 1,
       customerEmail: "buyer@test.com",
       partnerListingCode: "AFS-TESTCODE1",
-      supplierNetCents: s.supplierNetCents,
+      supplierNetCents: 2_400,
       supplierGrossCents: s.basePriceCents,
       affiliateCommissionCents: s.affiliateCommissionCents,
+      supplierPlatformFeeCents: 300,
     })
     expect(msg).toContain("Net wholesale")
+    expect(msg).toContain("− Affisell")
     expect(msg).toContain("Partner listing AFS-TESTCODE1")
     expect(msg).not.toContain("Cool Store")
   })
 
-  it("resolveSupplierPayoutCentsFromOrder prefers stored payout", () => {
+  it("resolveSupplierPayoutCentsFromOrder prefers stored payout when mode frozen", () => {
     expect(
       resolveSupplierPayoutCentsFromOrder({
-        supplierPayoutCents: 5_100,
+        usesAffisellAutoBuy: false,
+        supplierPayoutCents: 4_500,
+        supplierFeeCents: 600,
         basePriceCents: 6_000,
         supplierPriceCents: 6_000,
         supplierCommissionRateBps: 1_500,
       })
-    ).toBe(5_100)
+    ).toBe(4_500)
   })
 
-  it("resolveSupplierPayoutCentsFromOrder recomputes legacy rows", () => {
+  it("resolveSupplierPayoutCentsFromOrder deducts catalog fee on legacy rows", () => {
     expect(
       resolveSupplierPayoutCentsFromOrder({
         supplierPayoutCents: 0,
@@ -131,6 +135,6 @@ describe("marketplace order settlement", () => {
         supplierPriceCents: 27_489,
         supplierCommissionRateBps: 1_100,
       })
-    ).toBe(24_465)
+    ).toBe(21_716)
   })
 })

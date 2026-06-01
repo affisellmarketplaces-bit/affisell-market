@@ -47,8 +47,8 @@ export type SupplierFulfillmentOrder = {
   customerEmail: string
   /** Supplier wholesale / COGS for the line (your payout basis). */
   supplierNetCents: number
-  /** Affisell marketplace fee on partner-channel checkout (does not reduce your wholesale). */
-  affisellFeeCents: number
+  /** Affisell platform fee on your wholesale (catalogue / auto-buy %). */
+  supplierPlatformFeeCents: number
   /** Commission funded from your wholesale per catalog offer (`commissionRate`). */
   affiliateCommissionCents: number
   partnerListingCode: string | null
@@ -112,7 +112,7 @@ export function mapMarketplaceOrder(o: SupplierOrderRow): SupplierFulfillmentOrd
     variantLabel: o.variantLabel,
     customerEmail: o.customerEmail,
     supplierNetCents: resolveSupplierPayoutCentsFromOrder(o),
-    affisellFeeCents: o.affisellFeeCents,
+    supplierPlatformFeeCents: Math.max(0, o.supplierFeeCents ?? 0),
     affiliateCommissionCents: o.affiliatePayoutCents,
     partnerListingCode: store?.partnerListingCode ?? null,
     createdAt: o.createdAt.toISOString(),

@@ -19,6 +19,10 @@ type OrderSnapshot = {
   affiliatePayoutCents: number
   affiliateMarginRetainedCents: number
   affiliateFeeCents?: number | null
+  supplierFeeCents?: number | null
+  usesAffisellAutoBuy?: boolean | null
+  aeWholesaleCents?: number | null
+  supplierCommissionRateBps?: number | null
   affisellFeeCents: number
   supplierPayoutCents?: number | null
   marginCents: number
@@ -40,9 +44,14 @@ function filterRowsForRole(
   return rows
     .map((row) => {
       if (role === "SUPPLIER") {
-      if (row.label === "Markup affilié" || row.label === "Gain affilié net") {
-        return { ...row, hidden: true }
-      }
+        if (
+          row.label === "Markup affilié" ||
+          row.label === "Gain affilié net" ||
+          row.label === "Frais plateforme Affisell (affilié)" ||
+          row.label === "Frais plateforme Affisell (total commande)"
+        ) {
+          return { ...row, hidden: true }
+        }
       }
       if (role === "AFFILIATE") {
         if (row.label === "Net fournisseur" && !showRevenueToAffiliate) {

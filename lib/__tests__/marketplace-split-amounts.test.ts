@@ -11,14 +11,15 @@ describe("computeTransferAmountsFromOrder", () => {
       affiliateMarginRetainedCents: 500,
       affiliateFeeCents: 280,
       affisellFeeCents: 1_000,
+      supplierFeeCents: 600,
       supplierPriceCents: 6_000,
       affiliateMarginCents: 500,
       supplierCommissionRateBps: 1_500,
       affisellCommissionRateBps: 1_000,
-      supplierPayoutCents: 5_100,
+      supplierPayoutCents: 4_500,
     })
 
-    expect(amounts.supplierPayoutCents).toBe(5_100)
+    expect(amounts.supplierPayoutCents).toBe(4_500)
     expect(amounts.affiliateTransferCents).toBe(1_120)
     expect(amounts.affisellFeeCents).toBe(1_000)
   })

@@ -47,6 +47,20 @@ export function grossAffiliateEarningsCents(
  * Fixed listing margin: fee is on gross earnings and subtracted at payout.
  * Residual margin: fee already deducted from stored markup.
  */
+/** Net Connect payout to supplier after partner commission and Affisell wholesale fee. */
+export function netSupplierPayoutCents(args: {
+  supplierPriceCents: number
+  affiliateCommissionCents: number
+  supplierFeeCents: number
+}): number {
+  return Math.max(
+    0,
+    Math.round(args.supplierPriceCents) -
+      Math.round(args.affiliateCommissionCents) -
+      Math.round(args.supplierFeeCents)
+  )
+}
+
 export function netAffiliateTransferCents(args: {
   affiliatePayoutCents: number
   affiliateMarginRetainedCents: number

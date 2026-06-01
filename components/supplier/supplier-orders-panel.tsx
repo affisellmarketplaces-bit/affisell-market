@@ -32,7 +32,7 @@ type OrderRow = {
   variantLabel: string | null
   customerEmail: string
   supplierNetCents: number
-  affisellFeeCents: number
+  supplierPlatformFeeCents: number
   affiliateCommissionCents: number
   partnerListingCode: string | null
   createdAt: string
@@ -158,7 +158,7 @@ function FulfillmentRail({
 
 function PayoutStrip({ o }: { o: OrderRow }) {
   const t = useTranslations("supplierOrders.payout")
-  const feesTotal = o.affisellFeeCents + o.affiliateCommissionCents
+  const feesTotal = o.supplierPlatformFeeCents + o.affiliateCommissionCents
   return (
     <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
       <div className="flex items-center gap-3 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 px-4 py-3 text-white shadow-lg shadow-violet-600/20">
@@ -185,12 +185,12 @@ function PayoutStrip({ o }: { o: OrderRow }) {
               })}
             </span>
           ) : null}
-          {o.affisellFeeCents > 0 ? (
+          {o.supplierPlatformFeeCents > 0 ? (
             <span
               className="rounded-full bg-zinc-100 px-2.5 py-1 text-[11px] font-medium tabular-nums text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"
               title={t("platformFeeTitle")}
             >
-              {t("platformFee", { amount: formatStoreCurrencyFromCents(o.affisellFeeCents) })}
+              {t("platformFee", { amount: formatStoreCurrencyFromCents(o.supplierPlatformFeeCents) })}
             </span>
           ) : null}
         </div>
