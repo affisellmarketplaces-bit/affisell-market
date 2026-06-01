@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { CloudDownload, ExternalLink, Package, Plus, RefreshCw, Sparkles, Trash2 } from "lucide-react"
 
+import { AeCatalogImportHub } from "@/components/admin/ae-catalog-import-hub"
 import { AeExpressImportLauncher, type AeCaptureResult } from "@/components/admin/ae-express-import-launcher"
 import { AePasteCatalogPanel } from "@/components/admin/ae-paste-catalog-panel"
 
@@ -37,7 +38,7 @@ type LinkState = {
 
 type VariantMappingFormRow = AeVariantMappingRowInput
 
-type AeResolveSource = "api" | "page" | "paste"
+type AeResolveSource = "api" | "page" | "paste" | "html"
 
 type AeSuggestion = {
   productVariantId: string
@@ -50,6 +51,7 @@ type AeSuggestion = {
 function sourceLabel(source?: AeResolveSource): string {
   if (source === "api") return "API AliExpress"
   if (source === "paste") return "JSON collé"
+  if (source === "html") return "fichier HTML"
   return "page AE (sans API)"
 }
 
@@ -152,7 +154,7 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
       })
     }
     const src = resolved.source
-    if (src === "api" || src === "page" || src === "paste") {
+    if (src === "api" || src === "page" || src === "paste" || src === "html") {
       setLastSource(src)
     } else {
       setLastSource("paste")
@@ -500,55 +502,68 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
           ) : null}
         </div>
 
-        <AePasteCatalogPanel
+        <AeCatalogImportHub
           productId={product.id}
           aeUrl={form.aeUrl}
           disabled={busy}
           onCapture={applyCaptureResult}
+          onAutoMap={() => window.setTimeout(() => autoMapVariants(), 0)}
         />
 
-        <AeExpressImportLauncher
-          productId={product.id}
-          aeUrl={form.aeUrl}
-          disabled={busy}
-          onCapture={applyExpressCapture}
-        />
-
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            size="sm"
-            className="border-0 bg-violet-600 text-white hover:bg-violet-700"
-            disabled={busy}
-            onClick={() => void fetchCatalogFromServer()}
-          >
-            <CloudDownload className="mr-1 h-3.5 w-3.5" />
-            Récupérer catalogue (serveur)
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="secondary"
-            disabled={busy || productVariants.length === 0}
-            onClick={mapFromSupplierSkus}
-          >
-            <Package className="mr-1 h-3.5 w-3.5" />
-            SKU fournisseur (si numériques)
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            disabled={busy}
-            onClick={() => void syncViaAliExpressApi()}
-          >
-            <RefreshCw className="mr-1 h-3.5 w-3.5" />
-            Sync API
-          </Button>
-          <Button type="button" size="sm" variant="ghost" disabled={busy} onClick={clearInvalidAeSkus}>
-            Effacer SKU invalides
-          </Button>
-        </div>
+        <details className="rounded-xl border border-zinc-200 bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-950/50">
+          <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            Méthodes avancées (favori, JSON, API manuelle)
+          </summary>
+          <div className="space-y-4 border-t border-zinc-200 px-4 pb-4 pt-3 dark:border-zinc-800">
+            <AePasteCatalogPanel
+              productId={product.id}
+              aeUrl={form.aeUrl}
+              disabled={busy}
+              onCapture={applyCaptureResult}
+            />
+            <AeExpressImportLauncher
+              productId={product.id}
+              aeUrl={form.aeUrl}
+              disabled={busy}
+              onCapture={applyExpressCapture}
+            />
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={busy}
+                onClick={() => void fetchCatalogFromServer()}
+              >
+                <CloudDownload className="mr-1 h-3.5 w-3.5" />
+                Serveur (legacy)
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                disabled={busy || productVariants.length === 0}
+                onClick={mapFromSupplierSkus}
+              >
+                <Package className="mr-1 h-3.5 w-3.5" />
+                SKU fournisseur
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={busy}
+                onClick={() => void syncViaAliExpressApi()}
+              >
+                <RefreshCw className="mr-1 h-3.5 w-3.5" />
+                Sync API
+              </Button>
+              <Button type="button" size="sm" variant="ghost" disabled={busy} onClick={clearInvalidAeSkus}>
+                Effacer SKU invalides
+              </Button>
+            </div>
+          </div>
+        </details>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
