@@ -7,9 +7,12 @@ const withNextIntl = createNextIntlPlugin("./i18n/request.ts")
 const nextConfig: NextConfig = {
   async redirects() {
     return [
-      { source: "/terms", destination: "/legal/terms-of-service", permanent: true },
-      { source: "/privacy", destination: "/legal/privacy-policy", permanent: true },
+      { source: "/terms", destination: "/cgu", permanent: true },
       { source: "/cookies", destination: "/legal/cookies-policy", permanent: true },
+      { source: "/legal/privacy-policy", destination: "/privacy", permanent: true },
+      { source: "/legal/mentions", destination: "/mentions-legales", permanent: true },
+      { source: "/legal/refund-policy", destination: "/returns", permanent: true },
+      { source: "/legal/terms-of-service", destination: "/cgu", permanent: true },
     ]
   },
   output: "standalone" as const,

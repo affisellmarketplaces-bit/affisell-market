@@ -53,8 +53,9 @@ export async function sendResendEmail(args: {
   intendedTo: string
   subject: string
   html: string
+  replyTo?: string
 }): Promise<{ ok: true; resendId?: string } | { ok: false; error: string }> {
-  const { context, config, intendedTo, subject, html } = args
+  const { context, config, intendedTo, subject, html, replyTo } = args
   const resend = new Resend(config.apiKey)
 
   let recipient: ResolveResendRecipientResult
@@ -70,6 +71,7 @@ export async function sendResendEmail(args: {
       to,
       subject,
       html,
+      ...(replyTo?.trim() ? { reply_to: replyTo.trim() } : {}),
     })
     return { data: data ?? null, error: error ?? null }
   }

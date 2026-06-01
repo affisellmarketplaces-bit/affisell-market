@@ -1,4 +1,4 @@
-import { Footer } from "@/components/layout/Footer"
+import { Footer } from "@/components/Footer"
 import { AppHeader } from "@/components/nav/app-header"
 import { RootSessionShell } from "@/app/root-intl-session"
 import { IntlAppProvider } from "@/components/providers/intl-app-provider"
