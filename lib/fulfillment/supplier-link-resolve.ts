@@ -1,4 +1,5 @@
 import { mapAliExpressGetProductResponse } from "@/lib/aliexpress-product-map"
+import { parseAeCatalogFromHtml } from "@/lib/fulfillment/ae-catalog-from-html"
 import { parseAeSkusFromPagePayload } from "@/lib/fulfillment/ae-page-skus"
 import { fetchAliExpressProductHtml } from "@/lib/fulfillment/fetch-ae-page-html"
 import { parseAeProductSkusFromPayload } from "@/lib/fulfillment/ae-product-skus"
@@ -97,40 +98,66 @@ export function resolveSupplierLinkFromAerPaste(
 }
 
 /** Scrape product page HTML when Open API is unavailable. */
+function aeFetchUrlCandidates(aeProductId: string, aeUrl: string): string[] {
+  const seen = new Set<string>()
+  const out: string[] = []
+  const add = (u: string) => {
+    const t = u.trim()
+    if (!t || seen.has(t)) return
+    seen.add(t)
+    out.push(t)
+  }
+  add(normalizeAeUrl(aeProductId, aeUrl))
+  add(`https://www.aliexpress.com/item/${aeProductId}.html`)
+  add(`https://fr.aliexpress.com/item/${aeProductId}.html`)
+  return out
+}
+
 export async function resolveSupplierLinkFromAePage(
   aeProductId: string,
   aeUrl: string
 ): Promise<ResolvedSupplierLinkFields> {
-  const fetched = await fetchAliExpressProductHtml(aeUrl)
-  if (!fetched.ok) {
-    throw new AliExpressApiError(fetched.error)
+  const candidates = aeFetchUrlCandidates(aeProductId, aeUrl)
+  let lastError = "Page AE inaccessible."
+
+  for (const url of candidates) {
+    const fetched = await fetchAliExpressProductHtml(url)
+    if (!fetched.ok) {
+      lastError = fetched.error
+      continue
+    }
+
+    const parsed = parseAeCatalogFromHtml(fetched.html, url)
+    if (parsed.aeSkus.length === 0) {
+      lastError =
+        "Catalogue JSON introuvable dans la page — AliExpress bloque souvent le serveur. Utilisez Import Express."
+      continue
+    }
+
+    const firstSku = parsed.aeSkus.find((s) => s.aeSkuId) ?? parsed.aeSkus[0]
+    console.log("[supplier-link-resolve]", {
+      aeProductId,
+      source: "page",
+      fetchUrl: url,
+      skuCount: parsed.aeSkus.length,
+      aeShopId: parsed.aeShopId,
+    })
+
+    return {
+      aeProductId,
+      aeSkuId: firstSku?.aeSkuId ?? null,
+      aeShopId: parsed.aeShopId,
+      aePriceCents: firstSku?.aePriceCents ?? parsed.aePriceCents,
+      aeShippingCents: 0,
+      aeUrl: normalizeAeUrl(aeProductId, aeUrl),
+      aeSkus: parsed.aeSkus,
+      source: "page",
+    }
   }
 
-  const parsed = parseAeSkusFromPagePayload(null, { html: fetched.html })
-  if (parsed.aeSkus.length === 0) {
-    throw new AliExpressApiError(
-      "Catalogue introuvable côté serveur — utilisez Import Express (1 clic depuis votre navigateur)."
-    )
-  }
-
-  const firstSku = parsed.aeSkus.find((s) => s.aeSkuId) ?? parsed.aeSkus[0]
-  console.log("[supplier-link-resolve]", {
-    aeProductId,
-    source: "page",
-    skuCount: parsed.aeSkus.length,
-    aeShopId: parsed.aeShopId,
-  })
-
-  return {
-    aeProductId,
-    aeSkuId: firstSku?.aeSkuId ?? null,
-    aeShopId: parsed.aeShopId,
-    aePriceCents: firstSku?.aePriceCents ?? parsed.aePriceCents,
-    aeShippingCents: 0,
-    aeUrl: normalizeAeUrl(aeProductId, aeUrl),
-    aeSkus: parsed.aeSkus,
-    source: "page",
-  }
+  throw new AliExpressApiError(
+    `${lastError} Configurez SCRAPINGBEE_API_KEY ou utilisez Import Express (favori navigateur).`
+  )
 }
 
 /** Resolve AliExpress URL or product id → supplier link fields (Open API when configured). */
@@ -153,20 +180,30 @@ export async function resolveSupplierLinkFromAeInput(
     return await resolveSupplierLinkFromAePage(aeProductId, aeUrl)
   }
 
-  const client = await createAliExpressClient()
-  const raw = await client.getProduct(aeProductId)
-  const mapped = mapAliExpressGetProductResponse(raw, aeProductId)
-  const aeSkus = parseAeProductSkusFromPayload(raw, aeProductId)
-  const firstSku = aeSkus.find((s) => s.aeSkuId) ?? aeSkus[0]
+  try {
+    const client = await createAliExpressClient()
+    const raw = await client.getProduct(aeProductId)
+    const mapped = mapAliExpressGetProductResponse(raw, aeProductId)
+    const aeSkus = parseAeProductSkusFromPayload(raw, aeProductId).filter((s) => s.aeSkuId)
+    if (aeSkus.length === 0) {
+      console.log("[supplier-link-resolve]", { aeProductId, apiEmpty: true, fallback: "page" })
+      return await resolveSupplierLinkFromAePage(aeProductId, aeUrl)
+    }
+    const firstSku = aeSkus[0]
 
-  return {
-    aeProductId,
-    aeSkuId: firstSku?.aeSkuId || parseFirstSkuId(raw),
-    aeShopId: parseShopId(raw),
-    aePriceCents: firstSku?.aePriceCents ?? mapped.basePriceCents,
-    aeShippingCents: 0,
-    aeUrl,
-    aeSkus,
-    source: "api",
+    return {
+      aeProductId,
+      aeSkuId: firstSku?.aeSkuId || parseFirstSkuId(raw),
+      aeShopId: parseShopId(raw),
+      aePriceCents: firstSku?.aePriceCents ?? mapped.basePriceCents,
+      aeShippingCents: 0,
+      aeUrl,
+      aeSkus,
+      source: "api",
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    console.log("[supplier-link-resolve]", { aeProductId, apiError: msg, fallback: "page" })
+    return await resolveSupplierLinkFromAePage(aeProductId, aeUrl)
   }
 }

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  appendAeCaptureContextToUrl,
+  buildSessionAeImportBookmarklet,
   buildUniversalAeImportBookmarklet,
   isAffisellAeCaptureMessage,
   isAliExpressOrigin,
@@ -32,6 +34,30 @@ describe("ae-import-bookmarklet", () => {
         "p1"
       )
     ).toBe(false)
+  })
+
+  it("embeds session in session bookmarklet", () => {
+    const href = buildSessionAeImportBookmarklet(
+      "https://affisell.com",
+      "prod_1",
+      "sess_abc",
+      "tok.xyz"
+    )
+    const decoded = decodeURIComponent(href)
+    expect(decoded).toContain("prod_1")
+    expect(decoded).toContain("sess_abc")
+    expect(decoded).toContain("EMBED")
+  })
+
+  it("appends capture hash to ae url", () => {
+    const url = appendAeCaptureContextToUrl(
+      "https://fr.aliexpress.com/item/123.html",
+      "prod_1",
+      "sess_abc",
+      "tok.xyz"
+    )
+    expect(url).toContain("#")
+    expect(url).toContain("affisellAfc")
   })
 
   it("detects aliexpress origins", () => {

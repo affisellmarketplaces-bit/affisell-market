@@ -94,6 +94,16 @@ export async function POST(
 
   const resolved = resolveSupplierLinkFromAerPaste(aeProductId, body.aerData, body.aeUrl)
   const aeSkus = resolved.aeSkus ?? []
+  if (aeSkus.length === 0) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Aucun SKU AE numérique dans la page — attendez le chargement complet ou réessayez le favori.",
+      },
+      { status: 400, headers: cors }
+    )
+  }
   const suggestions = suggestVariantMappings(product.productVariants, aeSkus)
 
   const payload = {

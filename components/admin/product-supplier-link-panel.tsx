@@ -151,7 +151,12 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
         return next
       })
     }
-    setLastSource("paste")
+    const src = resolved.source
+    if (src === "api" || src === "page" || src === "paste") {
+      setLastSource(src)
+    } else {
+      setLastSource("paste")
+    }
     const skuN = resolved.aeSkus?.length ?? 0
     setMessage(
       skuN > 0
@@ -453,11 +458,17 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
   }
 
   return (
-    <section className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-      <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Lien fournisseur (AliExpress)</h2>
-      <p className="mt-1 text-sm text-zinc-500">
-        Import Express : votre navigateur lit la fiche AliExpress et remplit SKU, prix et variantes
-        automatiquement — sans API officielle.
+    <section className="relative overflow-hidden rounded-2xl border border-zinc-200/80 bg-gradient-to-b from-white to-zinc-50/80 p-6 shadow-sm dark:border-zinc-800 dark:from-zinc-900 dark:to-zinc-950">
+      <div
+        className="pointer-events-none absolute -right-20 -top-20 h-40 w-40 rounded-full bg-violet-500/10 blur-3xl dark:bg-violet-500/20"
+        aria-hidden
+      />
+      <h2 className="relative text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+        Lien fournisseur · AliExpress
+      </h2>
+      <p className="relative mt-1 text-sm text-zinc-500">
+        Studio d&apos;import neural : pont navigateur, scrape serveur ou API — SKU AE numériques pour
+        l&apos;auto-buy.
       </p>
       <div className="mt-3 rounded-lg border border-amber-200/80 bg-amber-50/90 px-3 py-2.5 text-xs leading-relaxed text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-100">
         <strong>SKU Affisell</strong> ({product.affisellSku ?? "—"}) = référence catalogue interne.{" "}

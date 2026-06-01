@@ -1,4 +1,5 @@
 import { extractWindowJson } from "@/lib/import-url-scrape"
+import { normalizeAerRoot } from "@/lib/fulfillment/ae-aer-normalize"
 import { normalizeAeSkuCandidate } from "@/lib/fulfillment/map-catalog-skus-to-ae"
 import { canonicalVariantColorKey } from "@/lib/fulfillment/variant-color-match"
 import type { AeProductSkuRow } from "@/lib/fulfillment/ae-product-skus"
@@ -139,12 +140,13 @@ export function parseAeSkusFromPagePayload(
   payload: unknown,
   opts?: { url?: string; html?: string }
 ): AePageParseResult {
-  let aer = asRec(payload)
+  let aer = normalizeAerRoot(payload) ?? asRec(payload)
   if (!aer && opts?.html) {
-    aer =
+    const extracted =
       extractWindowJson(opts.html, ["__AER_DATA__"]) ??
       extractWindowJson(opts.html, ["__INIT_DATA__"]) ??
       extractWindowJson(opts.html, ["runParams"])
+    aer = normalizeAerRoot(extracted) ?? asRec(extracted)
   }
   if (!aer) {
     return { aeSkus: [], aePriceCents: 0, aeShopId: "", title: "" }
