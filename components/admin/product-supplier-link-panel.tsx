@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "next/navigation"
-import { ExternalLink, Plus, Sparkles, Trash2 } from "lucide-react"
+import { ExternalLink, Package, Plus, RefreshCw, Sparkles, Trash2 } from "lucide-react"
 
 import { AeExpressImportLauncher, type AeCaptureResult } from "@/components/admin/ae-express-import-launcher"
+import { AePasteCatalogPanel } from "@/components/admin/ae-paste-catalog-panel"
 
 import { AffisellPlatformFeesExplainer } from "@/components/shared/affisell-platform-fees-explainer"
 import { Button } from "@/components/ui/button"
@@ -16,6 +17,11 @@ import {
   type AeVariantMappingRowInput,
 } from "@/lib/fulfillment/apply-ae-variant-suggestions"
 import type { AeProductSkuRow } from "@/lib/fulfillment/ae-product-skus"
+import {
+  applySupplierCatalogSkusToMappingRows,
+  normalizeAeSkuCandidate,
+  resolveDefaultAeSkuFromProduct,
+} from "@/lib/fulfillment/map-catalog-skus-to-ae"
 import { parseAliExpressProductId } from "@/lib/aliexpress-product-id"
 
 type LinkState = {
@@ -52,8 +58,11 @@ function newRowKey() {
 
 function variantLabel(pv: { color: string | null; size: string | null; sku: string | null }) {
   const parts = [pv.color, pv.size].filter(Boolean)
-  if (parts.length > 0) return parts.join(" · ")
-  return pv.sku ?? "Variante"
+  const base = parts.length > 0 ? parts.join(" · ") : "Variante"
+  const ae = pv.sku ? normalizeAeSkuCandidate(pv.sku) : null
+  if (ae) return `${base} (SKU AE ${ae.slice(0, 8)}…)`
+  if (pv.sku?.trim()) return `${base} · ${pv.sku.trim().slice(0, 24)}`
+  return base
 }
 
 function initialLink(product: AdminProductSupplierLinkRow): LinkState {
@@ -162,6 +171,67 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
       setMessage("Catalogue AliExpress importé — vérifiez les champs puis enregistrez.")
     }
   }, [searchParams])
+
+  function mapFromSupplierSkus() {
+    const { rows: next, filled, skipped } = applySupplierCatalogSkusToMappingRows(
+      variantRows,
+      productVariants
+    )
+    setVariantRows(next)
+
+    const defaultAe = resolveDefaultAeSkuFromProduct(product.supplierSku, productVariants)
+    if (defaultAe && !form.aeSkuId.trim()) {
+      setForm((f) => ({ ...f, aeSkuId: defaultAe }))
+    }
+
+    setError(null)
+    if (filled === 0) {
+      setError(
+        "Aucun SKU AE détecté dans les variantes fournisseur. Le SKU Affisell catalogue ne suffit pas — renseignez le sku_id AliExpress (10–22 chiffres) dans chaque variante côté supplier, ou importez le catalogue AE."
+      )
+      return
+    }
+    setMessage(
+      `${filled} ligne(s) remplie(s) depuis le catalogue fournisseur${skipped > 0 ? ` · ${skipped} déjà renseignée(s)` : ""}.`
+    )
+  }
+
+  async function syncViaAliExpressApi() {
+    if (!form.aeUrl.trim().includes("aliexpress") && !form.aeProductId.trim()) {
+      setError("URL ou Product ID AliExpress requis.")
+      return
+    }
+    setBusy(true)
+    setError(null)
+    setMessage(null)
+    try {
+      const res = await fetch(`/api/admin/products/${product.id}/supplier-link/sync-ae-skus`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ aeUrl: form.aeUrl }),
+      })
+      const data = (await res.json()) as {
+        ok?: boolean
+        error?: string
+        resolved?: AeCaptureResult["resolved"]
+        aeSkus?: AeProductSkuRow[]
+        suggestions?: AeCaptureResult["suggestions"]
+      }
+      if (!res.ok || !data.ok || !data.resolved) {
+        setError(data.error ?? "Sync API impossible — utilisez import express, JSON ou SKU fournisseur.")
+        return
+      }
+      applyCaptureResult({
+        resolved: { ...data.resolved, aeSkus: data.aeSkus ?? [] },
+        suggestions: data.suggestions ?? [],
+      })
+      setLastSource("api")
+      setMessage("Catalogue récupéré via API AliExpress.")
+    } finally {
+      setBusy(false)
+    }
+  }
 
   function autoMapVariants() {
     if (lastSuggestions.length === 0 && aeSkuCatalog.length === 0) {
@@ -305,12 +375,12 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
         Import Express : votre navigateur lit la fiche AliExpress et remplit SKU, prix et variantes
         automatiquement — sans API officielle.
       </p>
-      {product.affisellSku ? (
-        <p className="mt-2 font-mono text-xs text-violet-800 dark:text-violet-200">
-          SKU Affisell : {product.affisellSku}
-          {product.supplierSku ? ` · AE ${product.supplierSku}` : ""}
-        </p>
-      ) : null}
+      <div className="mt-3 rounded-lg border border-amber-200/80 bg-amber-50/90 px-3 py-2.5 text-xs leading-relaxed text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-100">
+        <strong>SKU Affisell</strong> ({product.affisellSku ?? "—"}) = référence catalogue interne.{" "}
+        <strong>SKU AE</strong> = identifiant numérique AliExpress (auto-buy). Si le fournisseur a saisi le{" "}
+        <code className="rounded bg-amber-100/80 px-1 text-[10px] dark:bg-amber-900/50">sku_id</code> AE dans
+        chaque variante, utilisez <strong>SKU fournisseur → AE</strong> sans le favori.
+      </div>
 
       <AffisellPlatformFeesExplainer
         className="mt-4"
@@ -338,8 +408,39 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
         <AeExpressImportLauncher
           productId={product.id}
           aeUrl={form.aeUrl}
+          disabled={busy}
           onCapture={applyExpressCapture}
         />
+
+        <AePasteCatalogPanel
+          productId={product.id}
+          aeUrl={form.aeUrl}
+          disabled={busy}
+          onCapture={applyCaptureResult}
+        />
+
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            disabled={busy || productVariants.length === 0}
+            onClick={mapFromSupplierSkus}
+          >
+            <Package className="mr-1 h-3.5 w-3.5" />
+            SKU fournisseur → SKU AE
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={busy}
+            onClick={() => void syncViaAliExpressApi()}
+          >
+            <RefreshCw className="mr-1 h-3.5 w-3.5" />
+            Sync API AliExpress
+          </Button>
+        </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
@@ -391,9 +492,13 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
+                <Button type="button" size="sm" variant="secondary" onClick={mapFromSupplierSkus}>
+                  <Package className="mr-1 h-3.5 w-3.5" />
+                  SKU fournisseur
+                </Button>
                 <Button type="button" size="sm" variant="secondary" onClick={autoMapVariants}>
                   <Sparkles className="mr-1 h-3.5 w-3.5" />
-                  Mapper auto
+                  Mapper auto (couleurs)
                 </Button>
                 <Button type="button" size="sm" variant="outline" onClick={addEmptyRow}>
                   <Plus className="mr-1 h-3.5 w-3.5" />
@@ -412,7 +517,8 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
               <table className="w-full min-w-[640px] text-left text-sm">
                 <thead>
                   <tr className="border-b border-zinc-200 text-[11px] uppercase tracking-wide text-zinc-500 dark:border-zinc-700">
-                    <th className="pb-2 pr-2 font-medium">Affisell</th>
+                    <th className="pb-2 pr-2 font-medium">Variante</th>
+                    <th className="pb-2 pr-2 font-medium">SKU fourn.</th>
                     <th className="pb-2 pr-2 font-medium">Couleur</th>
                     <th className="pb-2 pr-2 font-medium">SKU AE</th>
                     <th className="pb-2 pr-2 font-medium">Prix (¢)</th>
@@ -451,6 +557,17 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
                             </option>
                           ))}
                         </select>
+                      </td>
+                      <td className="py-2 pr-2 font-mono text-[10px] text-zinc-500">
+                        {(() => {
+                          const pv = productVariants.find(
+                            (v) => v.id === row.productVariantId
+                          )
+                          const raw = pv?.sku?.trim()
+                          if (!raw) return "—"
+                          const ae = normalizeAeSkuCandidate(raw)
+                          return ae ? `✓ ${ae.slice(0, 10)}…` : raw.slice(0, 14)
+                        })()}
                       </td>
                       <td className="py-2 pr-2">
                         <Input
