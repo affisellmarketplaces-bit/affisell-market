@@ -56,9 +56,11 @@ function post(ORIGIN,d,c,pid){
       aerData:d
     })
   }).then(function(r){return r.json();}).then(function(j){
-    if(j.ok){alert("\\u2705 Catalogue import\\u00e9 ! Retournez sur Affisell.");}
-    else alert(j.error||"Erreur import");
-  }).catch(function(){alert("Erreur r\\u00e9seau Affisell.");});
+    if(j.ok){
+      try{window.opener&&window.opener.postMessage({type:"AFFISELL_AE_CAPTURE_OK",productId:pid},"*");}catch(e){}
+      alert("\\u2705 Catalogue envoy\\u00e9 ! Retournez sur l\\u2019onglet Affisell (les champs se remplissent en 1–2 s).");
+    }else alert(j.error||"Erreur import");
+  }).catch(function(e){alert("R\\u00e9seau Affisell ("+ORIGIN+") \\u2014 v\\u00e9rifiez que le favori pointe vers le bon domaine.");});
 }
 function run(ORIGIN,EMBED){
   var c=readCtx(EMBED);

@@ -51,20 +51,34 @@ export async function readAeCaptureSessionResult(
   return row?.result ?? null
 }
 
+/** Peek result without deleting — safe for concurrent pollers (relay + admin tab). */
+export async function peekAeCaptureSession(
+  sessionId: string,
+  productId: string
+): Promise<unknown | null> {
+  return readAeCaptureSessionResult(sessionId, productId)
+}
+
+export async function acknowledgeAeCaptureSession(
+  sessionId: string,
+  productId: string
+): Promise<boolean> {
+  const deleted = await prisma.adminAeCaptureSession.deleteMany({
+    where: {
+      id: sessionId,
+      productId,
+    },
+  })
+  return deleted.count > 0
+}
+
+/** @deprecated Prefer peek + acknowledge */
 export async function consumeAeCaptureSession(
   sessionId: string,
   productId: string
 ): Promise<unknown | null> {
-  const row = await prisma.adminAeCaptureSession.findFirst({
-    where: {
-      id: sessionId,
-      productId,
-      expiresAt: { gt: new Date() },
-      result: { not: Prisma.DbNull },
-    },
-    select: { id: true, result: true },
-  })
-  if (!row?.result) return null
-  await prisma.adminAeCaptureSession.delete({ where: { id: row.id } }).catch(() => {})
-  return row.result
+  const result = await peekAeCaptureSession(sessionId, productId)
+  if (!result) return null
+  await acknowledgeAeCaptureSession(sessionId, productId)
+  return result
 }

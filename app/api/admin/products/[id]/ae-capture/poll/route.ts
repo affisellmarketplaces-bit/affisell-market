@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server"
 
 import { requireAdminSession } from "@/lib/admin/require-admin-session"
-import { consumeAeCaptureSession } from "@/lib/fulfillment/ae-capture-session"
+import {
+  consumeAeCaptureSession,
+  peekAeCaptureSession,
+} from "@/lib/fulfillment/ae-capture-session"
 
 export async function GET(
   req: Request,
@@ -13,12 +16,17 @@ export async function GET(
   }
 
   const { id: productId } = await ctx.params
-  const sessionId = new URL(req.url).searchParams.get("sessionId")?.trim()
+  const url = new URL(req.url)
+  const sessionId = url.searchParams.get("sessionId")?.trim()
   if (!sessionId) {
     return NextResponse.json({ error: "session_required" }, { status: 400 })
   }
 
-  const result = await consumeAeCaptureSession(sessionId, productId)
+  const consume = url.searchParams.get("consume") === "1"
+  const result = consume
+    ? await consumeAeCaptureSession(sessionId, productId)
+    : await peekAeCaptureSession(sessionId, productId)
+
   if (!result) {
     return NextResponse.json({ ok: true, ready: false })
   }

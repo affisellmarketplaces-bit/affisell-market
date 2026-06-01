@@ -87,7 +87,7 @@ export function AeImportRelayClient({
         return
       }
       void fetch(
-        `/api/admin/products/${productId}/ae-capture/poll?sessionId=${encodeURIComponent(sessionId)}`,
+        `/api/admin/products/${productId}/ae-capture/poll?sessionId=${encodeURIComponent(sessionId)}&consume=1`,
         { credentials: "include" }
       )
         .then((r) => r.json())

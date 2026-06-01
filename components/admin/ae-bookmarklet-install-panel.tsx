@@ -32,6 +32,14 @@ export function AeBookmarkletInstallPanel({ bookmarkletHref, appOrigin }: Props)
         </p>
         <a
           href={bookmarkletHref}
+          onClick={() => {
+            try {
+              localStorage.setItem("affisell.aeImportBookmarklet.v5", "1")
+              localStorage.setItem("affisell.aeImportBookmarklet.origin", appOrigin)
+            } catch {
+              /* ignore */
+            }
+          }}
           className="mt-4 inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-violet-950 hover:bg-violet-50"
           title="Glisser vers la barre de favoris"
         >

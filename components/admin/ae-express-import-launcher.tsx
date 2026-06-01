@@ -6,9 +6,10 @@ import {
   Copy,
   Link2,
   Loader2,
-  MousePointerClick,
+  RefreshCw,
   Rocket,
   Sparkles,
+  X,
   Zap,
 } from "lucide-react"
 
@@ -48,11 +49,13 @@ type Props = {
   onCapture: (result: AeCaptureResult) => void
 }
 
-type Phase = "idle" | "waiting" | "received"
+type Phase = "idle" | "waiting" | "stalled" | "received"
 
-const BOOKMARKLET_INSTALLED_KEY = "affisell.aeImportBookmarklet.v4"
-const POLL_MS = 500
-const POLL_MAX = 240
+const BOOKMARKLET_INSTALLED_KEY = "affisell.aeImportBookmarklet.v5"
+const BOOKMARKLET_ORIGIN_KEY = "affisell.aeImportBookmarklet.origin"
+const POLL_MS = 200
+const POLL_MAX = 300
+const STALL_SEC = 25
 
 function isCaptureDoneMessage(
   data: unknown,
@@ -77,7 +80,11 @@ export function AeExpressImportLauncher({ productId, aeUrl, disabled, onCapture 
     captureToken: string
   } | null>(null)
   const [copied, setCopied] = useState(false)
+  const [waitSec, setWaitSec] = useState(0)
+  const [originMismatch, setOriginMismatch] = useState(false)
   const pollRef = useRef<number | null>(null)
+  const waitTickRef = useRef<number | null>(null)
+  const sessionIdRef = useRef<string | null>(null)
 
   const appOrigin = useMemo(() => {
     if (typeof window !== "undefined") return window.location.origin
@@ -104,6 +111,10 @@ export function AeExpressImportLauncher({ productId, aeUrl, disabled, onCapture 
       window.clearInterval(pollRef.current)
       pollRef.current = null
     }
+    if (waitTickRef.current != null) {
+      window.clearInterval(waitTickRef.current)
+      waitTickRef.current = null
+    }
   }, [])
 
   const finishCapture = useCallback(
@@ -111,79 +122,146 @@ export function AeExpressImportLauncher({ productId, aeUrl, disabled, onCapture 
       stopPolling()
       setPhase("received")
       setSessionCapture(null)
+      sessionIdRef.current = null
       onCapture(result)
       setHint(null)
+      setWaitSec(0)
       window.setTimeout(() => setPhase("idle"), 2500)
     },
     [onCapture, stopPolling]
   )
 
+  const tryReceive = useCallback(
+    async (sessionId: string, consume: boolean): Promise<boolean> => {
+      try {
+        const q = new URLSearchParams({ sessionId })
+        if (consume) q.set("consume", "1")
+        const res = await fetch(`/api/admin/products/${productId}/ae-capture/poll?${q}`, {
+          credentials: "include",
+          cache: "no-store",
+        })
+        const data = (await res.json()) as {
+          ready?: boolean
+          resolved?: AeCaptureResult["resolved"]
+          suggestions?: AeCaptureResult["suggestions"]
+        }
+        if (!data.ready || !data.resolved) return false
+        finishCapture({
+          resolved: data.resolved,
+          suggestions: data.suggestions ?? [],
+        })
+        return true
+      } catch {
+        return false
+      }
+    },
+    [finishCapture, productId]
+  )
+
   const startPolling = useCallback(
     (sessionId: string) => {
       stopPolling()
+      sessionIdRef.current = sessionId
+      setWaitSec(0)
+      setPhase("waiting")
+
+      void tryReceive(sessionId, true)
+
+      waitTickRef.current = window.setInterval(() => {
+        setWaitSec((s) => {
+          const next = s + 1
+          if (next >= STALL_SEC) setPhase((p) => (p === "waiting" ? "stalled" : p))
+          return next
+        })
+      }, 1000)
+
       let attempts = 0
-      pollRef.current = window.setInterval(() => {
+      const tick = () => {
         attempts += 1
         if (attempts > POLL_MAX) {
           stopPolling()
-          setPhase("idle")
+          setPhase("stalled")
           setHint(
-            "Délai dépassé. Sur AliExpress : favori « Affisell Import AE » ou le lien session ci-dessous."
+            "Délai dépassé. Sur l’onglet AliExpress : clic sur le favori « Affisell Import AE », puis « Vérifier maintenant »."
           )
           return
         }
-        void fetch(
-          `/api/admin/products/${productId}/ae-capture/poll?sessionId=${encodeURIComponent(sessionId)}`,
-          { credentials: "include" }
-        )
-          .then((r) => r.json())
-          .then((data: { ready?: boolean; resolved?: AeCaptureResult["resolved"]; suggestions?: AeCaptureResult["suggestions"] }) => {
-            if (!data.ready || !data.resolved) return
-            finishCapture({
-              resolved: data.resolved,
-              suggestions: data.suggestions ?? [],
-            })
-          })
-          .catch(() => {})
-      }, POLL_MS)
+        void tryReceive(sessionId, true)
+      }
+
+      tick()
+      pollRef.current = window.setInterval(tick, POLL_MS)
     },
-    [finishCapture, productId, stopPolling]
+    [stopPolling, tryReceive]
   )
+
+  const cancelWaiting = useCallback(() => {
+    stopPolling()
+    setPhase("idle")
+    setSessionCapture(null)
+    sessionIdRef.current = null
+    setWaitSec(0)
+    setHint("Import annulé.")
+  }, [stopPolling])
+
+  const checkNow = useCallback(() => {
+    const sid = sessionIdRef.current
+    if (!sid) return
+    setHint("Vérification…")
+    void tryReceive(sid, true).then((ok) => {
+      if (!ok) setHint("Pas encore reçu — cliquez le favori sur la page AliExpress, puis réessayez.")
+    })
+  }, [tryReceive])
 
   useEffect(() => {
     try {
       setBookmarkletInstalled(localStorage.getItem(BOOKMARKLET_INSTALLED_KEY) === "1")
+      const savedOrigin = localStorage.getItem(BOOKMARKLET_ORIGIN_KEY)
+      if (savedOrigin && savedOrigin !== appOrigin) setOriginMismatch(true)
     } catch {
       setBookmarkletInstalled(false)
     }
     return () => stopPolling()
-  }, [stopPolling])
+  }, [appOrigin, stopPolling])
 
   useEffect(() => {
     function onMessage(event: MessageEvent) {
+      if (event.data && typeof event.data === "object") {
+        const rec = event.data as Record<string, unknown>
+        if (rec.type === "AFFISELL_AE_CAPTURE_OK" && sessionIdRef.current) {
+          void tryReceive(sessionIdRef.current, true)
+        }
+      }
       if (isCaptureDoneMessage(event.data, productId) && event.origin === appOrigin) {
-        finishCapture({
-          resolved: event.data.resolved,
-          suggestions: event.data.suggestions ?? [],
-        })
+        const sid = sessionIdRef.current
+        if (sid) {
+          finishCapture({
+            resolved: event.data.resolved,
+            suggestions: event.data.suggestions ?? [],
+          })
+        }
         return
       }
       if (!isAliExpressOrigin(event.origin)) return
       if (!isAffisellAeCaptureMessage(event.data, productId)) return
-      setHint("Données reçues — finalisation…")
+      setHint("Données AE détectées — synchronisation…")
+      const sid = sessionIdRef.current
+      if (sid) void tryReceive(sid, true)
     }
     window.addEventListener("message", onMessage)
     return () => window.removeEventListener("message", onMessage)
-  }, [appOrigin, finishCapture, productId])
+  }, [appOrigin, finishCapture, productId, tryReceive])
 
   const markInstalled = useCallback(() => {
     try {
       localStorage.setItem(BOOKMARKLET_INSTALLED_KEY, "1")
+      localStorage.setItem(BOOKMARKLET_ORIGIN_KEY, appOrigin)
+      setOriginMismatch(false)
     } catch {
       /* ignore */
     }
     setBookmarkletInstalled(true)
-  }, [])
+  }, [appOrigin])
 
   const copySessionLink = useCallback(async () => {
     if (!sessionBookmarkletHref) return
@@ -191,8 +269,9 @@ export function AeExpressImportLauncher({ productId, aeUrl, disabled, onCapture 
       await navigator.clipboard.writeText(sessionBookmarkletHref)
       setCopied(true)
       window.setTimeout(() => setCopied(false), 2000)
+      setHint("Lien copié — créez un favori sur AliExpress avec cette URL (champ Adresse).")
     } catch {
-      setHint("Copiez le lien session manuellement (bouton ci-dessous).")
+      setHint("Sélectionnez et copiez le lien session manuellement.")
     }
   }, [sessionBookmarkletHref])
 
@@ -200,7 +279,7 @@ export function AeExpressImportLauncher({ productId, aeUrl, disabled, onCapture 
     const url = aeUrl.trim()
     if (!url.includes("aliexpress")) return
     setPhase("waiting")
-    setHint("Ouverture du pont quantique Affisell ↔ AliExpress…")
+    setHint("Ouverture AliExpress…")
 
     try {
       const res = await fetch(`/api/admin/products/${productId}/ae-capture/session`, {
@@ -221,19 +300,11 @@ export function AeExpressImportLauncher({ productId, aeUrl, disabled, onCapture 
       setSessionCapture({ sessionId: data.sessionId, captureToken: data.captureToken })
       startPolling(data.sessionId)
 
-      const relayUrl = `/admin/products/${productId}/import-relay?${new URLSearchParams({
-        aeUrl: url,
-        sessionId: data.sessionId,
-        captureToken: data.captureToken,
-      }).toString()}`
+      const aeTarget = appendAeCaptureContextToUrl(url, productId, data.sessionId, data.captureToken)
+      window.open(aeTarget, "affisellAeProduct", "noopener,noreferrer")
 
-      window.open(
-        relayUrl,
-        "affisellAeRelay",
-        "popup=yes,width=480,height=520,left=80,top=80"
-      )
       setHint(
-        "Étape 2 : sur la page AliExpress ouverte, cliquez le favori Affisell Import AE (ou le lien session violet)."
+        "Onglet AliExpress ouvert → cliquez le favori « Affisell Import AE » sur la fiche produit (1–3 s après)."
       )
     } catch {
       setPhase("idle")
@@ -242,6 +313,7 @@ export function AeExpressImportLauncher({ productId, aeUrl, disabled, onCapture 
   }, [aeUrl, productId, startPolling])
 
   const canLaunch = aeUrl.trim().includes("aliexpress") && !disabled
+  const isWaiting = phase === "waiting" || phase === "stalled"
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-cyan-400/30 shadow-2xl shadow-violet-950/40">
@@ -263,108 +335,139 @@ export function AeExpressImportLauncher({ productId, aeUrl, disabled, onCapture 
           <div>
             <p className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.28em] text-cyan-300/90">
               <Sparkles className="h-3.5 w-3.5" aria-hidden />
-              Neural Bridge · v4
+              Neural Bridge · v5
             </p>
             <h3 className="mt-1 bg-gradient-to-r from-white via-violet-100 to-cyan-200 bg-clip-text text-xl font-bold tracking-tight text-transparent">
               Import Express AliExpress
             </h3>
-            <p className="mt-1 max-w-lg text-sm text-violet-100/70">
-              Votre navigateur lit la fiche AE et injecte SKU, prix et variantes — sans API officielle.
-            </p>
           </div>
           {phase === "received" ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/40 bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-200 shadow-lg shadow-emerald-500/20">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/40 bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-200">
               <CheckCircle2 className="h-4 w-4" aria-hidden />
-              Catalogue synchronisé
+              Reçu
             </span>
-          ) : phase === "waiting" ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-100">
+          ) : isWaiting ? (
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ${
+                phase === "stalled"
+                  ? "border border-orange-400/40 bg-orange-500/15 text-orange-100"
+                  : "border border-amber-400/40 bg-amber-500/15 text-amber-100"
+              }`}
+            >
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-              Écoute active…
+              {phase === "stalled" ? `En attente · ${waitSec}s` : `Écoute · ${waitSec}s`}
             </span>
           ) : null}
         </div>
       </div>
 
       <div className="relative space-y-4 px-5 py-5">
-        {!bookmarkletInstalled ? (
-          <div className="rounded-xl border border-amber-400/25 bg-gradient-to-r from-amber-500/10 to-orange-500/5 px-4 py-3 text-sm text-amber-50">
-            <strong className="text-amber-200">Installation unique :</strong> glissez le favori depuis{" "}
-            <a href="/admin/ae-bookmarklet" className="font-semibold text-cyan-300 underline">
+        {originMismatch ? (
+          <div className="rounded-xl border border-red-400/40 bg-red-500/15 px-4 py-3 text-sm text-red-50">
+            <strong>Favori incompatible :</strong> installé pour un autre domaine que{" "}
+            <code className="text-xs">{appOrigin}</code>. Réinstallez depuis{" "}
+            <a href="/admin/ae-bookmarklet" className="underline">
               /admin/ae-bookmarklet
-            </a>
+            </a>{" "}
+            (sur ce même site).
           </div>
         ) : null}
 
-        <div className="grid gap-3 sm:grid-cols-3">
-          {[
-            { n: "01", t: "Lancer le pont", d: "Ouvre AliExpress avec contexte sécurisé" },
-            { n: "02", t: "Favori Import AE", d: "1 clic sur la fiche produit AE" },
-            { n: "03", t: "Auto-remplissage", d: "SKU + prix mappés ici" },
-          ].map((step) => (
-            <div
-              key={step.n}
-              className="rounded-xl border border-white/10 bg-white/5 px-3 py-3 backdrop-blur-sm"
-            >
-              <p className="font-mono text-[10px] text-cyan-400/90">{step.n}</p>
-              <p className="mt-0.5 text-sm font-semibold text-white">{step.t}</p>
-              <p className="mt-0.5 text-[11px] text-violet-200/60">{step.d}</p>
-            </div>
-          ))}
-        </div>
+        {!bookmarkletInstalled ? (
+          <div className="rounded-xl border border-amber-400/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-50">
+            Installez le favori depuis{" "}
+            <a href="/admin/ae-bookmarklet" className="font-semibold text-cyan-300 underline">
+              /admin/ae-bookmarklet
+            </a>{" "}
+            (glisser le bouton blanc vers la barre de favoris).
+          </div>
+        ) : null}
 
         <div className="flex flex-wrap items-center gap-2">
           <Button
             type="button"
-            disabled={!canLaunch || phase === "waiting"}
-            className="border-0 bg-gradient-to-r from-cyan-400 to-violet-500 font-semibold text-zinc-950 shadow-lg shadow-violet-500/30 hover:from-cyan-300 hover:to-violet-400"
+            disabled={!canLaunch || isWaiting}
+            className="border-0 bg-gradient-to-r from-cyan-400 to-violet-500 font-semibold text-zinc-950"
             onClick={() => void launchImport()}
           >
             <Rocket className="mr-2 h-4 w-4" aria-hidden />
             Lancer import express
           </Button>
 
+          {isWaiting ? (
+            <>
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                className="border-white/20 bg-white/10 text-white hover:bg-white/20"
+                onClick={checkNow}
+              >
+                <RefreshCw className="mr-1 h-3.5 w-3.5" />
+                Vérifier maintenant
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="text-violet-200 hover:bg-white/10"
+                onClick={cancelWaiting}
+              >
+                <X className="mr-1 h-3.5 w-3.5" />
+                Annuler
+              </Button>
+            </>
+          ) : null}
+
           {!bookmarkletInstalled ? (
             <a
               href={universalBookmarkletHref}
               onClick={markInstalled}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs font-medium text-white/90 backdrop-blur hover:bg-white/10"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs text-white/90"
             >
               <Link2 className="h-3.5 w-3.5" aria-hidden />
-              Installer favori universel
+              Installer favori
             </a>
-          ) : null}
-
-          {phase === "waiting" && sessionBookmarkletHref ? (
-            <>
-              <a
-                href={sessionBookmarkletHref}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-violet-400/50 bg-violet-500/20 px-3 py-2 text-xs font-semibold text-violet-100 hover:bg-violet-500/30"
-                title="À utiliser sur l’onglet AliExpress si le favori ne détecte pas la session"
-              >
-                <MousePointerClick className="h-3.5 w-3.5" aria-hidden />
-                Lien session (AE)
-              </a>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="text-violet-200 hover:bg-white/10 hover:text-white"
-                onClick={() => void copySessionLink()}
-              >
-                <Copy className="mr-1 h-3.5 w-3.5" />
-                {copied ? "Copié" : "Copier lien"}
-              </Button>
-            </>
           ) : null}
         </div>
 
-        {phase === "waiting" ? (
-          <div className="flex items-center gap-2 rounded-lg border border-cyan-500/20 bg-cyan-500/5 px-3 py-2">
-            <Zap className="h-4 w-4 shrink-0 text-cyan-400 animate-pulse" aria-hidden />
-            <p className="text-xs text-cyan-100/90">
-              Le contexte est aussi passé dans l&apos;URL AliExpress (#affisellAfc). Si le favori échoue,
-              utilisez <strong>Lien session</strong> sur la fiche AE.
+        {isWaiting && sessionBookmarkletHref ? (
+          <div className="rounded-xl border border-violet-400/30 bg-violet-500/10 px-4 py-3 text-sm text-violet-50">
+            <p className="font-semibold text-violet-100">Étape 2 — sur l’onglet AliExpress</p>
+            <ol className="mt-2 list-decimal space-y-1 pl-4 text-xs text-violet-200/90">
+              <li>Attendez que la fiche produit soit chargée.</li>
+              <li>
+                Cliquez le favori <strong>Affisell Import AE</strong> dans la barre de favoris.
+              </li>
+              <li>
+                Si rien ne se passe : copiez le lien session, créez un favori AE, ou réinstallez le
+                favori depuis <code className="text-[10px]">{appOrigin}</code>.
+              </li>
+            </ol>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                className="bg-white/10 text-white"
+                onClick={() => void copySessionLink()}
+              >
+                <Copy className="mr-1 h-3.5 w-3.5" />
+                {copied ? "Copié" : "Copier lien session"}
+              </Button>
+              <span className="self-center text-[10px] text-violet-300/70">
+                (ne cliquez pas « Lien session » ici — il faut le favori sur AE)
+              </span>
+            </div>
+          </div>
+        ) : null}
+
+        {phase === "stalled" ? (
+          <div className="flex items-center gap-2 rounded-lg border border-orange-500/30 bg-orange-500/10 px-3 py-2">
+            <Zap className="h-4 w-4 text-orange-300" aria-hidden />
+            <p className="text-xs text-orange-100">
+              Toujours rien ? Favori installé sur <strong>{appOrigin}</strong> ? Cliquez le favori sur
+              AliExpress puis <strong>Vérifier maintenant</strong>.
             </p>
           </div>
         ) : null}
