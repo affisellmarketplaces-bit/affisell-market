@@ -21,7 +21,8 @@ describe("computeTransferAmountsFromOrder", () => {
 
     expect(amounts.supplierPayoutCents).toBe(4_500)
     expect(amounts.affiliateTransferCents).toBe(1_120)
-    expect(amounts.affisellFeeCents).toBe(1_000)
+    expect(amounts.affiliateFeeCents).toBe(280)
+    expect(amounts.supplierFeeCents).toBe(600)
   })
 
   it("recomputes supplier net for legacy orders without supplierPayoutCents", () => {
@@ -38,7 +39,7 @@ describe("computeTransferAmountsFromOrder", () => {
       supplierPayoutCents: 0,
     })
 
-    expect(amounts.supplierPayoutCents).toBe(7_200)
+    expect(amounts.supplierPayoutCents).toBe(6_400)
     expect(amounts.affiliateTransferCents).toBe(2_800)
   })
 })

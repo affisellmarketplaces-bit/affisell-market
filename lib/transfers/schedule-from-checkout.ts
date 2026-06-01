@@ -1,7 +1,11 @@
 import type { Prisma } from "@prisma/client"
 import type Stripe from "stripe"
 
-import { computeTransferAmountsFromOrder } from "@/lib/marketplace-split-amounts"
+import {
+  computeTransferAmountsFromOrder,
+  logPhase1SplitCheck,
+  orderSplitInputFromOrder,
+} from "@/lib/marketplace-split-amounts"
 import { logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
 import { prisma } from "@/lib/prisma"
 import { getStripeClient } from "@/lib/stripe"
@@ -71,17 +75,17 @@ export async function scheduleMarketplaceTransferAttempts(
     return { orderId, scheduled: false, reason: "missing_connect_account" }
   }
 
-  const amounts = computeTransferAmountsFromOrder({
-    basePriceCents: order.basePriceCents,
-    sellingPriceCents: order.sellingPriceCents,
-    affiliatePayoutCents: order.affiliatePayoutCents,
-    affiliateMarginRetainedCents: order.affiliateMarginRetainedCents,
-    affiliateFeeCents: order.affiliateFeeCents,
-    affisellFeeCents: order.affisellFeeCents,
-    supplierPriceCents: order.supplierPriceCents,
-    affiliateMarginCents: order.affiliateMarginCents,
-    supplierCommissionRateBps: order.supplierCommissionRateBps,
-    affisellCommissionRateBps: order.affisellCommissionRateBps,
+  const splitInput = orderSplitInputFromOrder(order)
+  const amounts = computeTransferAmountsFromOrder(splitInput)
+
+  const subtotalForCheck = order.subtotalCents ?? order.sellingPriceCents
+  logPhase1SplitCheck(orderId, {
+    subtotalCents: subtotalForCheck,
+    supplierPayoutCents: amounts.supplierPayoutCents,
+    affiliateTransferCents: amounts.affiliateTransferCents,
+    supplierFeeCents: amounts.supplierFeeCents,
+    affiliateFeeCents: amounts.affiliateFeeCents,
+    usesAffisellAutoBuy: order.usesAffisellAutoBuy,
   })
 
   const chargeId = await resolveChargeId(stripe, session)
@@ -165,6 +169,9 @@ export async function scheduleMarketplaceTransferAttempts(
     supplierPayoutCents: amounts.supplierPayoutCents,
     affiliateTransferCents: amounts.affiliateTransferCents,
     affisellFeeCents: amounts.affisellFeeCents,
+    supplierFeeCents: amounts.supplierFeeCents,
+    affiliateFeeCents: amounts.affiliateFeeCents,
+    usesAffisellAutoBuy: order.usesAffisellAutoBuy,
     supplierScheduled: Boolean(supplierDestination && amounts.supplierPayoutCents > 0),
     affiliateScheduled: Boolean(affiliateDestination && amounts.affiliateTransferCents > 0),
   })

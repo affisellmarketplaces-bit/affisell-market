@@ -44,8 +44,8 @@ export function grossAffiliateEarningsCents(
 
 /**
  * Connect / ledger net to affiliate.
- * Fixed listing margin: fee is on gross earnings and subtracted at payout.
- * Residual margin: fee already deducted from stored markup.
+ * Fixed listing margin (`affiliateMarginCents` > 0): fee on commission + gross markup.
+ * Residual margin: `affiliateMarginRetainedCents` already net after Phase 1 fee.
  */
 /** Net Connect payout to supplier after partner commission and Affisell wholesale fee. */
 export function netSupplierPayoutCents(args: {
@@ -68,14 +68,15 @@ export function netAffiliateTransferCents(args: {
   affiliateMarginCents?: number | null
 }): number {
   const commission = Math.max(0, Math.round(args.affiliatePayoutCents))
-  const margin = Math.max(0, Math.round(args.affiliateMarginRetainedCents))
+  const marginRetained = Math.max(0, Math.round(args.affiliateMarginRetainedCents))
+  const listingMarginGross = Math.max(0, Math.round(args.affiliateMarginCents ?? 0))
   const fee = Math.max(0, Math.round(args.affiliateFeeCents ?? 0))
-  const gross = commission + margin
-  const hasFixedListingMargin = (args.affiliateMarginCents ?? 0) > 0
-  if (hasFixedListingMargin && fee > 0) {
-    return Math.max(0, gross - fee)
+
+  if (listingMarginGross > 0 && fee > 0) {
+    const earningsGross = commission + listingMarginGross
+    return Math.max(0, earningsGross - fee)
   }
-  return gross
+  return commission + marginRetained
 }
 
 export function computePhase1OrderFees(opts: {

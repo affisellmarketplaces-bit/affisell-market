@@ -19,11 +19,11 @@ describe("supplier net payout", () => {
 })
 
 describe("affiliate net earnings", () => {
-  it("deducts platform fee from fixed listing margin payout", () => {
+  it("deducts platform fee from gross listing margin at transfer", () => {
     expect(
       netAffiliateTransferCents({
         affiliatePayoutCents: 8_971,
-        affiliateMarginRetainedCents: 17_941,
+        affiliateMarginRetainedCents: 12_559,
         affiliateFeeCents: 5_382,
         affiliateMarginCents: 17_941,
       })

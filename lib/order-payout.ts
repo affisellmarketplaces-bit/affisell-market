@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client"
 
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
+import { netAffiliateTransferCents } from "@/lib/marketplace-phase1-fees"
 import { resolveSupplierPayoutCentsFromOrder } from "@/lib/marketplace-order-settlement"
 import {
   isPayoutBlockedByReturn,
@@ -24,6 +25,12 @@ const orderPayoutSelect = {
   basePriceCents: true,
   affiliatePayoutCents: true,
   affiliateMarginRetainedCents: true,
+  affiliateFeeCents: true,
+  affiliateMarginCents: true,
+  supplierFeeCents: true,
+  supplierPayoutCents: true,
+  usesAffisellAutoBuy: true,
+  aeWholesaleCents: true,
   deliveredAt: true,
   shippedAt: true,
   deliveryConfirmedAt: true,
@@ -31,7 +38,6 @@ const orderPayoutSelect = {
   payoutEligibleAt: true,
   supplierPayoutAt: true,
   affiliatePayoutAt: true,
-  supplierPayoutCents: true,
   supplierPriceCents: true,
   supplierCommissionRateBps: true,
 } as const
@@ -118,8 +124,22 @@ export async function executeOrderMerchantPayout(orderId: string): Promise<{ ok:
       return { ok: false, reason: "not_eligible" }
     }
 
-    const supplierAmount = resolveSupplierPayoutCentsFromOrder(order)
-    const affiliateAmount = order.affiliatePayoutCents + order.affiliateMarginRetainedCents
+    const supplierAmount = resolveSupplierPayoutCentsFromOrder({
+      basePriceCents: order.basePriceCents,
+      supplierPriceCents: order.supplierPriceCents,
+      supplierCommissionRateBps: order.supplierCommissionRateBps,
+      affiliatePayoutCents: order.affiliatePayoutCents,
+      supplierFeeCents: order.supplierFeeCents,
+      usesAffisellAutoBuy: order.usesAffisellAutoBuy,
+      aeWholesaleCents: order.aeWholesaleCents,
+      supplierPayoutCents: order.supplierPayoutCents,
+    })
+    const affiliateAmount = netAffiliateTransferCents({
+      affiliatePayoutCents: order.affiliatePayoutCents,
+      affiliateMarginRetainedCents: order.affiliateMarginRetainedCents,
+      affiliateFeeCents: order.affiliateFeeCents,
+      affiliateMarginCents: order.affiliateMarginCents,
+    })
     const now = new Date()
     let supplierPayoutAt = order.supplierPayoutAt
     let affiliatePayoutAt = order.affiliatePayoutAt
@@ -192,6 +212,14 @@ export async function clawbackOrderPayoutsOnRefund(orderId: string): Promise<voi
       basePriceCents: true,
       affiliatePayoutCents: true,
       affiliateMarginRetainedCents: true,
+      affiliateFeeCents: true,
+      affiliateMarginCents: true,
+      supplierPayoutCents: true,
+      supplierPriceCents: true,
+      supplierCommissionRateBps: true,
+      supplierFeeCents: true,
+      usesAffisellAutoBuy: true,
+      aeWholesaleCents: true,
       supplierPayoutAt: true,
       affiliatePayoutAt: true,
       product: { select: { name: true } },
@@ -203,7 +231,18 @@ export async function clawbackOrderPayoutsOnRefund(orderId: string): Promise<voi
 
   await prisma.$transaction(async (tx) => {
     if (order.supplierPayoutAt) {
-      const amount = order.basePriceCents
+      const amount =
+        order.supplierPayoutCents > 0
+          ? order.supplierPayoutCents
+          : resolveSupplierPayoutCentsFromOrder({
+              basePriceCents: order.basePriceCents,
+              supplierPriceCents: order.supplierPriceCents,
+              supplierCommissionRateBps: order.supplierCommissionRateBps,
+              affiliatePayoutCents: order.affiliatePayoutCents,
+              supplierFeeCents: order.supplierFeeCents,
+              usesAffisellAutoBuy: order.usesAffisellAutoBuy,
+              aeWholesaleCents: order.aeWholesaleCents,
+            })
       try {
         await recordMerchantPayoutEntry(tx, {
           orderId: order.id,
@@ -228,7 +267,12 @@ export async function clawbackOrderPayoutsOnRefund(orderId: string): Promise<voi
     }
 
     if (order.affiliatePayoutAt) {
-      const amount = order.affiliatePayoutCents + order.affiliateMarginRetainedCents
+      const amount = netAffiliateTransferCents({
+        affiliatePayoutCents: order.affiliatePayoutCents,
+        affiliateMarginRetainedCents: order.affiliateMarginRetainedCents,
+        affiliateFeeCents: order.affiliateFeeCents,
+        affiliateMarginCents: order.affiliateMarginCents,
+      })
       if (amount > 0) {
         try {
           await recordMerchantPayoutEntry(tx, {
