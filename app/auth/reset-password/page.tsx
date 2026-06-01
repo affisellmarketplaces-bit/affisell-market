@@ -14,7 +14,7 @@ export default async function ResetPasswordPage({ searchParams }: PageProps) {
 
   return (
     <Suspense fallback={<div className="flex min-h-screen items-center justify-center">{t("loading")}</div>}>
-      <ResetPasswordForm token={token} />
+      <ResetPasswordForm token={token} key={token || "empty"} />
     </Suspense>
   )
 }

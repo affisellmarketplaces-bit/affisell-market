@@ -21,27 +21,44 @@ export function PasswordResetEmail({ name, resetUrl }: PasswordResetEmailProps) 
     <Html lang="fr">
       <Head />
       <Preview>Réinitialisez votre mot de passe Affisell</Preview>
-      <Body style={{ backgroundColor: "#f4f4f5", fontFamily: "system-ui, sans-serif" }}>
-        <Container style={{ margin: "0 auto", padding: "32px 16px", maxWidth: "480px" }}>
-          <Heading style={{ fontSize: "22px", color: "#18181b" }}>Mot de passe oublié</Heading>
-          <Text style={{ color: "#3f3f46", lineHeight: 1.5 }}>{greeting}</Text>
-          <Text style={{ color: "#3f3f46", lineHeight: 1.5 }}>
-            Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe. Ce lien expire
-            dans 1 heure.
+      <Body style={{ backgroundColor: "#09090b", fontFamily: "system-ui, sans-serif" }}>
+        <Container style={{ margin: "0 auto", padding: "40px 20px", maxWidth: "480px" }}>
+          <Text
+            style={{
+              color: "#c4b5fd",
+              fontSize: "11px",
+              fontWeight: 700,
+              letterSpacing: "0.2em",
+              textTransform: "uppercase",
+              marginBottom: "8px",
+            }}
+          >
+            Sécurité Affisell
+          </Text>
+          <Heading style={{ fontSize: "26px", color: "#fafafa", margin: "0 0 16px" }}>
+            Réinitialiser votre mot de passe
+          </Heading>
+          <Text style={{ color: "#a1a1aa", lineHeight: 1.6, margin: "0 0 24px" }}>{greeting}</Text>
+          <Text style={{ color: "#a1a1aa", lineHeight: 1.6, margin: "0 0 28px" }}>
+            Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe. Ce lien expire dans
+            1 heure.
           </Text>
           <Button
             href={resetUrl}
             style={{
-              backgroundColor: "#2563eb",
+              background: "linear-gradient(90deg, #7c3aed, #d946ef, #22d3ee)",
               color: "#ffffff",
-              padding: "12px 20px",
-              borderRadius: "12px",
-              fontWeight: 600,
+              padding: "14px 28px",
+              borderRadius: "16px",
+              fontWeight: 700,
+              fontSize: "15px",
+              textDecoration: "none",
+              display: "inline-block",
             }}
           >
             Réinitialiser mon mot de passe
           </Button>
-          <Text style={{ color: "#71717a", fontSize: "13px", lineHeight: 1.5 }}>
+          <Text style={{ color: "#71717a", fontSize: "13px", lineHeight: 1.6, marginTop: "28px" }}>
             Si vous n&apos;avez pas demandé cette réinitialisation, ignorez cet e-mail.
           </Text>
         </Container>

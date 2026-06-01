@@ -1,10 +1,12 @@
 "use client"
 
 import type { FormEvent } from "react"
-import Link from "next/link"
+import { Mail } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useState } from "react"
 
+import { PasswordResetCtaButton } from "@/components/auth/password-reset-cta-button"
+import { PasswordResetShell } from "@/components/auth/password-reset-shell"
 import type { LoginPortal } from "@/lib/auth-login-portal"
 
 type Props = {
@@ -16,6 +18,9 @@ function loginBackHref(portal: LoginPortal | null | undefined): string {
   if (portal === "SUPPLIER") return "/login/supplier"
   return "/login"
 }
+
+const inputClass =
+  "w-full rounded-xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-white outline-none transition placeholder:text-zinc-600 focus:border-violet-400/50 focus:ring-2 focus:ring-violet-500/30"
 
 export function ForgotPasswordForm({ portal = null }: Props) {
   const t = useTranslations("auth.passwordReset")
@@ -49,54 +54,52 @@ export function ForgotPasswordForm({ portal = null }: Props) {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4 py-12 dark:bg-zinc-950">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-sm dark:bg-zinc-900">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-100">{t("forgotTitle")}</h1>
-        <p className="mt-2 text-sm text-gray-600 dark:text-zinc-400">{t("forgotSubtitle")}</p>
-
-        {sent ? (
-          <p className="mt-6 rounded-xl bg-emerald-50 px-3 py-3 text-sm text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
+    <PasswordResetShell
+      portal={portal}
+      badge={t("secureBadge")}
+      title={t("forgotTitle")}
+      subtitle={t("forgotSubtitle")}
+      backHref={loginBackHref(portal)}
+      backLabel={t("backToLogin")}
+    >
+      {sent ? (
+        <div className="space-y-4 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/15 ring-1 ring-emerald-400/30">
+            <Mail className="h-5 w-5 text-emerald-300" aria-hidden />
+          </div>
+          <p className="rounded-2xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm leading-relaxed text-emerald-100">
             {t("forgotSuccess")}
           </p>
-        ) : (
-          <>
-            {error ? (
-              <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-center text-sm text-red-700 dark:bg-red-950 dark:text-red-200">
-                {error}
-              </p>
-            ) : null}
-            <form onSubmit={onSubmit} className="mt-6 space-y-4">
-              <div>
-                <label htmlFor="forgot-email" className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-zinc-300">
-                  {tAuth("email")}
-                </label>
-                <input
-                  id="forgot-email"
-                  type="email"
-                  required
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-xl border border-gray-300 px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-xl bg-blue-600 py-2.5 font-medium text-white hover:bg-blue-700 disabled:opacity-60"
-              >
-                {loading ? tAuth("connecting") : t("sendResetLink")}
-              </button>
-            </form>
-          </>
-        )}
-
-        <p className="mt-6 text-center text-sm text-gray-600 dark:text-zinc-400">
-          <Link href={loginBackHref(portal)} className="font-medium text-blue-600 hover:underline dark:text-blue-400">
-            {t("backToLogin")}
-          </Link>
-        </p>
-      </div>
-    </div>
+        </div>
+      ) : (
+        <>
+          {error ? (
+            <p className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-center text-sm text-red-200">
+              {error}
+            </p>
+          ) : null}
+          <form onSubmit={onSubmit} className="space-y-5">
+            <div>
+              <label htmlFor="forgot-email" className="mb-2 block text-sm font-medium text-zinc-300">
+                {tAuth("email")}
+              </label>
+              <input
+                id="forgot-email"
+                type="email"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="vous@exemple.com"
+                className={inputClass}
+              />
+            </div>
+            <PasswordResetCtaButton loading={loading} disabled={!email.trim()}>
+              {t("sendResetLink")}
+            </PasswordResetCtaButton>
+          </form>
+        </>
+      )}
+    </PasswordResetShell>
   )
 }

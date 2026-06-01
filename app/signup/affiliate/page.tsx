@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 
 import { credentialsSignInErrorMessage } from "@/lib/auth-portal-signin-messages"
+import { PasswordResetForgotLink } from "@/components/auth/password-reset-forgot-link"
 import { LegalSignupConsent } from "@/components/legal/legal-signup-consent"
 
 export default function AffiliateSignupPage() {
@@ -47,7 +48,12 @@ export default function AffiliateSignupPage() {
     const data = (await res.json()) as { error?: string }
     if (!res.ok) {
       setLoading(false)
-      setError(data.error ?? t("signupFail"))
+      const err = data.error ?? ""
+      if (err === "Email already in use") {
+        setError("email_exists")
+      } else {
+        setError(err || t("signupFail"))
+      }
       return
     }
     const login = await signIn("credentials", {
@@ -105,9 +111,15 @@ export default function AffiliateSignupPage() {
               />
             </div>
             <div>
-              <label htmlFor="affiliate-password" className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-zinc-300">
-                {t("password")}
-              </label>
+              <div className="mb-1.5 flex items-center justify-between gap-2">
+                <label
+                  htmlFor="affiliate-password"
+                  className="block text-sm font-medium text-gray-700 dark:text-zinc-300"
+                >
+                  {t("password")}
+                </label>
+                <PasswordResetForgotLink portal="AFFILIATE" />
+              </div>
               <input
                 id="affiliate-password"
                 type="password"
@@ -133,7 +145,27 @@ export default function AffiliateSignupPage() {
             >
               {loading ? t("creating") : tSignup("createButton")}
             </button>
-            {error ? <p className="text-center text-sm text-red-600 dark:text-red-400">{error}</p> : null}
+            {error === "email_exists" ? (
+              <div className="rounded-2xl border border-violet-300/40 bg-gradient-to-br from-violet-500/10 to-fuchsia-500/5 px-4 py-4 text-center dark:border-violet-500/30">
+                <p className="text-sm leading-relaxed text-violet-950 dark:text-violet-100">
+                  {tSignup("emailExistsHint")}
+                </p>
+                <Link
+                  href="/auth/forgot-password?portal=affiliate"
+                  className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 via-fuchsia-600 to-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-500/25 transition hover:brightness-110"
+                >
+                  {tSignup("resetPasswordCta")}
+                </Link>
+                <p className="mt-3 text-xs text-zinc-600 dark:text-zinc-400">
+                  {tSignup("hasAccount")}{" "}
+                  <Link href="/login/affiliate" className="font-medium text-violet-700 dark:text-violet-300">
+                    {tSignup("signIn")}
+                  </Link>
+                </p>
+              </div>
+            ) : error ? (
+              <p className="text-center text-sm text-red-600 dark:text-red-400">{error}</p>
+            ) : null}
           </form>
         </div>
 

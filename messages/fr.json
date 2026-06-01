@@ -223,6 +223,7 @@
     "account_not_found": "Aucun compte Affisell avec cet e-mail.",
     "password_login_unavailable": "Ce compte utilise une connexion sociale. Connectez-vous avec Google ou définissez un mot de passe via « Mot de passe oublié ».",
     "passwordReset": {
+      "secureBadge": "Sécurité Affisell",
       "forgotLink": "Mot de passe oublié ?",
       "forgotTitle": "Réinitialiser le mot de passe",
       "forgotSubtitle": "Indiquez l’e-mail de votre compte. Nous vous enverrons un lien valide 1 heure.",
@@ -290,7 +291,9 @@
       "socialPlaceholder": "@votre_pseudo",
       "createButton": "Créer mon espace",
       "hasAccount": "Déjà créateur ?",
-      "signIn": "Se connecter"
+      "signIn": "Se connecter",
+      "emailExistsHint": "Cet e-mail est déjà enregistré. Réinitialisez votre mot de passe ou connectez-vous.",
+      "resetPasswordCta": "Réinitialiser mon mot de passe"
     },
     "signupSupplier": {
       "createTitle": "Créer mon compte fournisseur",

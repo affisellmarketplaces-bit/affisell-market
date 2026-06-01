@@ -26,7 +26,7 @@ export async function requestPasswordReset(emailRaw: string): Promise<void> {
 
   const user = await prisma.user.findUnique({
     where: { email },
-    select: { id: true, email: true, name: true },
+    select: { id: true, email: true, name: true, role: true },
   })
   if (!user) {
     console.log("[auth-forgot-password]", { email, result: "unknown_email" })
@@ -44,7 +44,13 @@ export async function requestPasswordReset(emailRaw: string): Promise<void> {
     }),
   ])
 
-  const resetUrl = `${resolveAppUrl()}/auth/reset-password?token=${encodeURIComponent(token)}`
+  const portalParam =
+    user.role === "AFFILIATE"
+      ? "&portal=affiliate"
+      : user.role === "SUPPLIER"
+        ? "&portal=supplier"
+        : ""
+  const resetUrl = `${resolveAppUrl()}/auth/reset-password?token=${encodeURIComponent(token)}${portalParam}`
   const sent = await sendPasswordResetEmail({
     to: user.email,
     name: user.name,

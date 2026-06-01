@@ -9,7 +9,7 @@ import { useMemo, useState } from "react"
 
 import type { LoginPortal } from "@/lib/auth-login-portal"
 import { sanitizeInternalCallbackUrl } from "@/lib/auth-login-portal"
-import { forgotPasswordHref } from "@/lib/auth-forgot-password-href"
+import { PasswordResetForgotLink } from "@/components/auth/password-reset-forgot-link"
 import { credentialsSignInErrorMessage } from "@/lib/auth-portal-signin-messages"
 
 type Props = {
@@ -151,12 +151,10 @@ export function PortalSignInForm({
               >
                 {t("password")}
               </label>
-              <Link
-                href={forgotPasswordHref(portal)}
-                className="text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
-              >
-                {t("passwordReset.forgotLink")}
-              </Link>
+              <PasswordResetForgotLink
+                portal={portal}
+                className="text-xs text-violet-600 hover:text-violet-700 dark:text-violet-400"
+              />
             </div>
             <input
               id="portal-signin-password"

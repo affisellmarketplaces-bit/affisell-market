@@ -223,6 +223,7 @@
     "account_not_found": "No Affisell account found with this email.",
     "password_login_unavailable": "This account uses social sign-in. Use Google or set a password via “Forgot password”.",
     "passwordReset": {
+      "secureBadge": "Affisell secure access",
       "forgotLink": "Forgot password?",
       "forgotTitle": "Reset your password",
       "forgotSubtitle": "Enter your account email. We’ll send a link valid for 1 hour.",
@@ -290,7 +291,9 @@
       "socialPlaceholder": "@your_handle",
       "createButton": "Create my space",
       "hasAccount": "Already a creator?",
-      "signIn": "Sign in"
+      "signIn": "Sign in",
+      "emailExistsHint": "This email is already registered. Reset your password or sign in.",
+      "resetPasswordCta": "Reset my password"
     },
     "signupSupplier": {
       "createTitle": "Sell on Affisell",
