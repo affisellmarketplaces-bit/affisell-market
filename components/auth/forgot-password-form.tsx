@@ -70,6 +70,10 @@ export function ForgotPasswordForm({ portal = null }: Props) {
           <p className="rounded-2xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm leading-relaxed text-emerald-100">
             {t("forgotSuccess")}
           </p>
+          <p className="rounded-xl border border-violet-400/25 bg-violet-500/10 px-4 py-2.5 text-center text-sm font-medium text-violet-100">
+            {email.trim().toLowerCase()}
+          </p>
+          <p className="text-xs leading-relaxed text-zinc-500">{t("forgotSuccessHint")}</p>
         </div>
       ) : (
         <>

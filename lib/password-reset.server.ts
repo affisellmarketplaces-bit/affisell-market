@@ -5,6 +5,8 @@ import { createHash, randomBytes } from "node:crypto"
 import bcrypt from "bcryptjs"
 
 import { resolveAppUrl } from "@/lib/emails/send-order-confirmation"
+import type { PasswordResetPortal } from "@/emails/password-reset"
+import { maskEmailForLog } from "@/lib/emails/mask-email"
 import { sendPasswordResetEmail } from "@/lib/emails/send-password-reset"
 import { isValidEmailIdentifier } from "@/lib/auth-login-portal"
 import { prisma } from "@/lib/prisma"
@@ -44,21 +46,26 @@ export async function requestPasswordReset(emailRaw: string): Promise<void> {
     }),
   ])
 
-  const portalParam =
+  const portal: PasswordResetPortal =
     user.role === "AFFILIATE"
-      ? "&portal=affiliate"
+      ? "affiliate"
       : user.role === "SUPPLIER"
-        ? "&portal=supplier"
-        : ""
+        ? "supplier"
+        : null
+  const portalParam = portal ? `&portal=${portal}` : ""
   const resetUrl = `${resolveAppUrl()}/auth/reset-password?token=${encodeURIComponent(token)}${portalParam}`
+  const accountEmail = user.email.trim().toLowerCase()
+
   const sent = await sendPasswordResetEmail({
-    to: user.email,
+    accountEmail,
     name: user.name,
     resetUrl,
+    portal,
   })
 
   console.log("[auth-forgot-password]", {
     userId: user.id,
+    accountEmail: maskEmailForLog(accountEmail),
     result: sent.ok ? "email_sent" : "email_skipped",
     error: sent.ok ? undefined : sent.error,
   })
