@@ -45,7 +45,44 @@ function readCtx(EMBED){
   if(hash.indexOf("affisellAfc|")===0)return parseCtxFromString(hash);
   return null;
 }
-function post(ORIGIN,d,c,pid){
+function deliverOpener(ORIGIN,d,c,pid){
+  if(!window.opener||window.opener.closed)return false;
+  try{
+    window.opener.postMessage({
+      type:"AFFISELL_AE_CAPTURE",
+      productId:pid,
+      aeUrl:location.href.split("#")[0],
+      aerData:d,
+      sessionId:c.sessionId,
+      captureToken:c.captureToken
+    },ORIGIN);
+    alert("\\u2705 Catalogue envoy\\u00e9 \\u00e0 Affisell ! Retournez sur l\\u2019onglet admin.");
+    return true;
+  }catch(e){return false;}
+}
+function postForm(ORIGIN,d,c,pid){
+  try{
+    var f=document.createElement("form");
+    f.method="POST";
+    f.action=ORIGIN+"/api/admin/products/"+pid+"/ae-capture";
+    f.target="_blank";
+    f.style.display="none";
+    var inp=document.createElement("input");
+    inp.name="payload";
+    inp.value=JSON.stringify({
+      sessionId:c.sessionId,
+      captureToken:c.captureToken,
+      aeUrl:location.href.split("#")[0],
+      aerData:d
+    });
+    f.appendChild(inp);
+    document.body.appendChild(f);
+    f.submit();
+    alert("\\u2705 Envoi Affisell (nouvel onglet). Revenez sur l\\u2019admin.");
+    return true;
+  }catch(e){return false;}
+}
+function postFetch(ORIGIN,d,c,pid){
   fetch(ORIGIN+"/api/admin/products/"+pid+"/ae-capture",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
@@ -57,22 +94,27 @@ function post(ORIGIN,d,c,pid){
     })
   }).then(function(r){return r.json();}).then(function(j){
     if(j.ok){
-      try{window.opener&&window.opener.postMessage({type:"AFFISELL_AE_CAPTURE_OK",productId:pid},"*");}catch(e){}
-      alert("\\u2705 Catalogue envoy\\u00e9 ! Retournez sur l\\u2019onglet Affisell (les champs se remplissent en 1–2 s).");
+      try{window.opener&&window.opener.postMessage({type:"AFFISELL_AE_CAPTURE_OK",productId:pid},ORIGIN);}catch(e){}
+      alert("\\u2705 Catalogue import\\u00e9 ! Retournez sur Affisell.");
     }else alert(j.error||"Erreur import");
-  }).catch(function(e){alert("R\\u00e9seau Affisell ("+ORIGIN+") \\u2014 v\\u00e9rifiez que le favori pointe vers le bon domaine.");});
+  }).catch(function(){alert("R\\u00e9seau bloqu\\u00e9 — utilisez le pont (Import Express ouvert depuis Affisell).");});
+}
+function deliver(ORIGIN,d,c,pid){
+  if(deliverOpener(ORIGIN,d,c,pid))return;
+  if(postForm(ORIGIN,d,c,pid))return;
+  postFetch(ORIGIN,d,c,pid);
 }
 function run(ORIGIN,EMBED){
   var c=readCtx(EMBED);
-  if(!c||!c.sessionId){alert("Lancez d\\u2019abord Import Express sur Affisell, puis recliquez ici.");return;}
+  if(!c||!c.sessionId){alert("Lancez d\\u2019abord \\u00ab Import Express \\u00bb sur Affisell, puis recliquez ici.");return;}
   var pid=(c.productId||"").replace(/[^a-zA-Z0-9_-]/g,"");
   if(!pid){alert("Session invalide \\u2014 relancez Import Express.");return;}
   var d=pickSync();
-  if(d){post(ORIGIN,d,c,pid);return;}
+  if(d){deliver(ORIGIN,d,c,pid);return;}
   fetch(location.href.split("#")[0],{credentials:"include"}).then(function(r){return r.text();}).then(function(html){
     var d2=fromHtml(html);
     if(!d2){alert("Catalogue AE introuvable. Attendez le chargement complet de la page.");return;}
-    post(ORIGIN,d2,c,pid);
+    deliver(ORIGIN,d2,c,pid);
   }).catch(function(){alert("Impossible de lire la page AE.");});
 }
 `
@@ -130,6 +172,7 @@ export function isAffisellAeCaptureMessage(
   type: "AFFISELL_AE_CAPTURE"
   productId: string
   sessionId?: string
+  captureToken?: string
   aeUrl: string
   aerData: unknown
 } {

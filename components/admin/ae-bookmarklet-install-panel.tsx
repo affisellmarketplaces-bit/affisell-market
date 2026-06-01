@@ -34,7 +34,7 @@ export function AeBookmarkletInstallPanel({ bookmarkletHref, appOrigin }: Props)
           href={bookmarkletHref}
           onClick={() => {
             try {
-              localStorage.setItem("affisell.aeImportBookmarklet.v5", "1")
+              localStorage.setItem("affisell.aeImportBookmarklet.v6", "1")
               localStorage.setItem("affisell.aeImportBookmarklet.origin", appOrigin)
             } catch {
               /* ignore */

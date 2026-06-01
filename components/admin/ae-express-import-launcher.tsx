@@ -51,7 +51,7 @@ type Props = {
 
 type Phase = "idle" | "waiting" | "stalled" | "received"
 
-const BOOKMARKLET_INSTALLED_KEY = "affisell.aeImportBookmarklet.v5"
+const BOOKMARKLET_INSTALLED_KEY = "affisell.aeImportBookmarklet.v6"
 const BOOKMARKLET_ORIGIN_KEY = "affisell.aeImportBookmarklet.origin"
 const POLL_MS = 200
 const POLL_MAX = 300
@@ -85,6 +85,8 @@ export function AeExpressImportLauncher({ productId, aeUrl, disabled, onCapture 
   const pollRef = useRef<number | null>(null)
   const waitTickRef = useRef<number | null>(null)
   const sessionIdRef = useRef<string | null>(null)
+  const sessionCaptureRef = useRef(sessionCapture)
+  sessionCaptureRef.current = sessionCapture
 
   const appOrigin = useMemo(() => {
     if (typeof window !== "undefined") return window.location.origin
@@ -131,6 +133,45 @@ export function AeExpressImportLauncher({ productId, aeUrl, disabled, onCapture 
     [onCapture, stopPolling]
   )
 
+  const ingestAerPayload = useCallback(
+    async (payload: {
+      aeUrl: string
+      aerData: unknown
+      sessionId?: string
+      captureToken?: string
+    }): Promise<boolean> => {
+      const sc = sessionCaptureRef.current
+      setHint("Réception catalogue…")
+      try {
+        const res = await fetch(`/api/admin/products/${productId}/ae-capture`, {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            aeUrl: payload.aeUrl,
+            aerData: payload.aerData,
+            sessionId: payload.sessionId ?? sc?.sessionId ?? sessionIdRef.current ?? undefined,
+            captureToken: payload.captureToken ?? sc?.captureToken,
+          }),
+        })
+        const data = (await res.json()) as AeCaptureResult & { error?: string; ok?: boolean }
+        if (!res.ok || !data.resolved) {
+          setHint(data.error ?? "Import impossible — essayez Plan B (JSON).")
+          return false
+        }
+        finishCapture({
+          resolved: data.resolved,
+          suggestions: data.suggestions ?? [],
+        })
+        return true
+      } catch {
+        setHint("Erreur réseau lors de l’import.")
+        return false
+      }
+    },
+    [finishCapture, productId]
+  )
+
   const tryReceive = useCallback(
     async (sessionId: string, consume: boolean): Promise<boolean> => {
       try {
@@ -164,8 +205,6 @@ export function AeExpressImportLauncher({ productId, aeUrl, disabled, onCapture 
       sessionIdRef.current = sessionId
       setWaitSec(0)
       setPhase("waiting")
-
-      void tryReceive(sessionId, true)
 
       waitTickRef.current = window.setInterval(() => {
         setWaitSec((s) => {
@@ -242,15 +281,19 @@ export function AeExpressImportLauncher({ productId, aeUrl, disabled, onCapture 
         }
         return
       }
-      if (!isAliExpressOrigin(event.origin)) return
-      if (!isAffisellAeCaptureMessage(event.data, productId)) return
-      setHint("Données AE détectées — synchronisation…")
-      const sid = sessionIdRef.current
-      if (sid) void tryReceive(sid, true)
+      if (isAffisellAeCaptureMessage(event.data, productId)) {
+        if (!isAliExpressOrigin(event.origin) && event.origin !== appOrigin) return
+        void ingestAerPayload({
+          aeUrl: event.data.aeUrl,
+          aerData: event.data.aerData,
+          sessionId: event.data.sessionId,
+          captureToken: event.data.captureToken,
+        })
+      }
     }
     window.addEventListener("message", onMessage)
     return () => window.removeEventListener("message", onMessage)
-  }, [appOrigin, finishCapture, productId, tryReceive])
+  }, [appOrigin, finishCapture, ingestAerPayload, productId, tryReceive])
 
   const markInstalled = useCallback(() => {
     try {
@@ -335,7 +378,7 @@ export function AeExpressImportLauncher({ productId, aeUrl, disabled, onCapture 
           <div>
             <p className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.28em] text-cyan-300/90">
               <Sparkles className="h-3.5 w-3.5" aria-hidden />
-              Neural Bridge · v5
+              Neural Bridge · v6
             </p>
             <h3 className="mt-1 bg-gradient-to-r from-white via-violet-100 to-cyan-200 bg-clip-text text-xl font-bold tracking-tight text-transparent">
               Import Express AliExpress

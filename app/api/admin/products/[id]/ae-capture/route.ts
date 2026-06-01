@@ -99,7 +99,7 @@ export async function POST(
       {
         ok: false,
         error:
-          "Aucun SKU AE numérique dans la page — attendez le chargement complet ou réessayez le favori.",
+          "Aucun SKU AE numérique — sur AliExpress : F12 → Console → copy(JSON.stringify(window.__AER_DATA__)) puis Plan B.",
       },
       { status: 400, headers: cors }
     )

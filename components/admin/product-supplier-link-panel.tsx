@@ -500,18 +500,18 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
           ) : null}
         </div>
 
-        <AeExpressImportLauncher
-          productId={product.id}
-          aeUrl={form.aeUrl}
-          disabled={busy}
-          onCapture={applyExpressCapture}
-        />
-
         <AePasteCatalogPanel
           productId={product.id}
           aeUrl={form.aeUrl}
           disabled={busy}
           onCapture={applyCaptureResult}
+        />
+
+        <AeExpressImportLauncher
+          productId={product.id}
+          aeUrl={form.aeUrl}
+          disabled={busy}
+          onCapture={applyExpressCapture}
         />
 
         <div className="flex flex-wrap gap-2">
