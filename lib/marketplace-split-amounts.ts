@@ -11,6 +11,9 @@ export type OrderSplitInput = {
   affiliateMarginRetainedCents: number
   affisellFeeCents: number
   affiliateFeeCents?: number | null
+  supplierFeeCents?: number | null
+  usesAffisellAutoBuy?: boolean | null
+  aeWholesaleCents?: number | null
   supplierPriceCents: number
   affiliateMarginCents: number
   supplierCommissionRateBps: number

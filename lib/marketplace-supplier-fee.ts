@@ -99,7 +99,8 @@ export type ResolveOrderSupplierSettlementInput = {
   usesAffisellAutoBuy?: boolean | null
   supplierLink?: SupplierLinkAutoBuyHint
   productAutoBuyEnabled?: boolean
-  supplier: SupplierFeeUserOverrides
+  /** Supplier fee overrides; defaults to platform catalogue/auto-buy bps when omitted. */
+  supplier?: SupplierFeeUserOverrides
   supplierPriceCents?: number | null
   basePriceCents: number
   affiliatePayoutCents?: number | null
@@ -121,6 +122,7 @@ export type OrderSupplierSettlement = {
 export function resolveOrderSupplierSettlement(
   input: ResolveOrderSupplierSettlementInput
 ): OrderSupplierSettlement {
+  const supplier = input.supplier ?? {}
   const usesAffisellAutoBuy = resolveOrderUsesAffisellAutoBuy(input)
   const supplierPrice = Math.max(
     0,
@@ -140,7 +142,7 @@ export function resolveOrderSupplierSettlement(
 
   const supplierFeeBps = resolveSupplierFeeBpsForOrder({
     usesAffisellAutoBuy,
-    supplier: input.supplier,
+    supplier,
   })
 
   const hasFrozenMode = input.usesAffisellAutoBuy === true || input.usesAffisellAutoBuy === false

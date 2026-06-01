@@ -23,9 +23,9 @@ describe("affiliateSaleNotificationSettlement", () => {
     }
     const s = affiliateSaleNotificationSettlement(base, {
       affiliateMarginRetainedCents: 79,
-      affisellFeeCents: 180,
+      affiliatePlatformFeeCents: 180,
     })
     expect(s.affiliateMarginRetainedCents).toBe(79)
-    expect(s.affisellFeeCents).toBe(180)
+    expect(s.affiliatePlatformFeeCents).toBe(180)
   })
 })

@@ -233,7 +233,7 @@ function mapBlindOrder(
     variantLabel: null,
     customerEmail: order.customerEmail,
     supplierNetCents: slice.supplierNetCents,
-    affisellFeeCents: slice.affisellFeeCents,
+    supplierPlatformFeeCents: slice.affisellFeeCents,
     affiliateCommissionCents: slice.affiliateCommissionCents,
     partnerListingCode: store?.partnerListingCode ?? null,
     createdAt: order.createdAt.toISOString(),
