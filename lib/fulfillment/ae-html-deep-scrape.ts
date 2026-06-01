@@ -1,11 +1,5 @@
-import {
-  buildSkuPropertyLookup,
-  labelsFromSkuAttr,
-  parseAeSkusFromPagePayload,
-  type AePageParseResult,
-} from "@/lib/fulfillment/ae-page-skus"
+import { parseAeSkusFromPagePayload, type AePageParseResult } from "@/lib/fulfillment/ae-page-skus"
 import { normalizeAeSkuCandidate } from "@/lib/fulfillment/map-catalog-skus-to-ae"
-import { canonicalVariantColorKey } from "@/lib/fulfillment/variant-color-match"
 import type { AeProductSkuRow } from "@/lib/fulfillment/ae-product-skus"
 
 function asRec(v: unknown): Record<string, unknown> | null {
@@ -18,7 +12,7 @@ function txt(v: unknown): string {
   return ""
 }
 
-/** Decode common encodings in saved AE pages (Safari/Chrome, AE IT unicode escapes). */
+/** Decode common encodings in saved AE pages (Safari/Chrome, AE unicode escapes). */
 export function normalizeHtmlForJsonScan(html: string): string {
   return html
     .replace(/\\u0022/gi, '"')
@@ -102,9 +96,6 @@ function tryParseEmbeddedBlobs(html: string, url: string): AePageParseResult | n
     "window.__AER_DATA__=",
     "var __AER_DATA__ = ",
     "__AER_DATA__=",
-    "window.__RET_DATA__ = ",
-    "window.__RET_DATA__=",
-    "__RET_DATA__=",
     "window.__INIT_DATA__ = ",
     "window.runParams = ",
     "runParams = ",
@@ -167,69 +158,15 @@ function buildPayloadFromSkuLists(
   return parsed.aeSkus.length > 0 ? parsed : null
 }
 
-function parsePriceFromSkuFragment(fragment: string): number {
-  const m = fragment.match(/"skuActivityAmount"\s*:\s*\{\s*"value"\s*:\s*"?([\d.]+)"?/i)
-  if (!m?.[1]) return 0
-  const n = Number(m[1])
-  return n > 0 ? Math.max(100, Math.round(n * 100)) : 0
-}
-
-/** Extract skuId + skuAttr (+ price) from minified JSON fragments in saved HTML. */
-function scrapeSkuRecordsFromHtml(
-  html: string,
-  propertyLists: unknown[][] = []
-): AeProductSkuRow[] {
-  const mergedProps = propertyLists.flat()
-  const lookup =
-    mergedProps.length > 0
-      ? buildSkuPropertyLookup({ productSKUPropertyList: mergedProps })
-      : new Map<string, { propName: string; displayName: string }>()
-
-  const rows: AeProductSkuRow[] = []
-  const seen = new Set<string>()
-
-  const blockPatterns = [
-    /\{\s*"skuId"\s*:\s*['"]?(\d{10,22})['"]?\s*,\s*"skuAttr"\s*:\s*"([^"]+)"[\s\S]{0,800}?\}/gi,
-    /\{\s*"skuAttr"\s*:\s*"([^"]+)"\s*,\s*"skuId"\s*:\s*['"]?(\d{10,22})['"]?[\s\S]{0,800}?\}/gi,
-  ]
-
-  for (let i = 0; i < blockPatterns.length; i++) {
-    const blockRe = blockPatterns[i]!
-    const reversed = i === 1
-    for (const m of html.matchAll(blockRe)) {
-      const aeSkuId = normalizeAeSkuCandidate(reversed ? (m[2] ?? "") : (m[1] ?? ""))
-      if (!aeSkuId || seen.has(aeSkuId)) continue
-      seen.add(aeSkuId)
-
-      const skuAttr = reversed ? (m[1] ?? "") : (m[2] ?? "")
-      const fragment = m[0] ?? ""
-      const { parts, color, size } = labelsFromSkuAttr(skuAttr, lookup)
-      const label = parts.length > 0 ? parts.join(" · ") : aeSkuId
-
-      rows.push({
-        aeSkuId,
-        aeLabel: label,
-        matchColor: color ? canonicalVariantColorKey(color) : null,
-        matchSize: size?.trim() || null,
-        aePriceCents: parsePriceFromSkuFragment(fragment),
-        stock: 0,
-      })
-    }
-  }
-
-  return rows
-}
-
-function scrapePlainSkuIdsFromHtml(html: string): AeProductSkuRow[] {
+function scrapeSkuIdsByRegex(html: string): AeProductSkuRow[] {
   const rows: AeProductSkuRow[] = []
   const seen = new Set<string>()
 
   const patterns = [
-    /"skuId"\s*:\s*['"]?(\d{10,22})['"]?/gi,
-    /'skuId'\s*:\s*['"]?(\d{10,22})['"]?/gi,
-    /"sku_id"\s*:\s*['"]?(\d{10,22})['"]?/gi,
-    /"skuIdStr"\s*:\s*['"]?(\d{10,22})['"]?/gi,
-    /skuId["']?\s*[:=]\s*['"]?(\d{10,22})/gi,
+    /"skuId"\s*:\s*"?(\d{10,22})"?/gi,
+    /"sku_id"\s*:\s*"?(\d{10,22})"?/gi,
+    /"skuIdStr"\s*:\s*"?(\d{10,22})"?/gi,
+    /skuId["']?\s*[:=]\s*["']?(\d{10,22})/gi,
   ]
 
   for (const re of patterns) {
@@ -248,27 +185,6 @@ function scrapePlainSkuIdsFromHtml(html: string): AeProductSkuRow[] {
     }
   }
 
-  return rows
-}
-
-function mergeAeSkuRows(...groups: AeProductSkuRow[][]): AeProductSkuRow[] {
-  const out: AeProductSkuRow[] = []
-  const seen = new Set<string>()
-  for (const group of groups) {
-    for (const row of group) {
-      if (!row.aeSkuId || seen.has(row.aeSkuId)) continue
-      seen.add(row.aeSkuId)
-      out.push(row)
-    }
-  }
-  return out
-}
-
-function scrapeSkuIdsByRegex(html: string, propertyLists: unknown[][] = []): AeProductSkuRow[] {
-  const fromRecords = scrapeSkuRecordsFromHtml(html, propertyLists)
-  const fromPlain = scrapePlainSkuIdsFromHtml(html)
-  const rows = mergeAeSkuRows(fromRecords, fromPlain)
-
   const priceRe = /"skuActivityAmount"\s*:\s*\{\s*"value"\s*:\s*"?([\d.]+)"?/gi
   const prices: number[] = []
   for (const m of html.matchAll(priceRe)) {
@@ -279,7 +195,7 @@ function scrapeSkuIdsByRegex(html: string, propertyLists: unknown[][] = []): AeP
     const minPrice = Math.min(...prices)
     return rows.map((r, i) => ({
       ...r,
-      aePriceCents: r.aePriceCents > 0 ? r.aePriceCents : (prices[i] ?? minPrice),
+      aePriceCents: prices[i] ?? minPrice,
     }))
   }
 
@@ -300,7 +216,7 @@ export function parseAeCatalogFromHtmlDeep(html: string, url: string): AePagePar
   const fromLists = buildPayloadFromSkuLists(skuLists, propertyLists, url)
   if (fromLists && fromLists.aeSkus.length > 0) return fromLists
 
-  const regexSkus = scrapeSkuIdsByRegex(normalized, propertyLists)
+  const regexSkus = scrapeSkuIdsByRegex(normalized)
   if (regexSkus.length > 0) {
     const prices = regexSkus.map((s) => s.aePriceCents).filter((p) => p > 0)
     return {

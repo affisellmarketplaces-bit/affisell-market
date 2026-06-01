@@ -2,7 +2,6 @@ import {
   normalizeHtmlForJsonScan,
   parseAeCatalogFromHtmlDeep,
 } from "@/lib/fulfillment/ae-html-deep-scrape"
-import { extractLooseAeSkuRowsFromHtml } from "@/lib/fulfillment/ae-html-loose-sku-extract"
 import { parseAliExpressHtml, extractWindowJson } from "@/lib/import-url-scrape"
 import { normalizeAerRoot } from "@/lib/fulfillment/ae-aer-normalize"
 import { parseAeSkusFromPagePayload, type AePageParseResult } from "@/lib/fulfillment/ae-page-skus"
@@ -42,7 +41,7 @@ function skusFromLegacyHtml(html: string, url: string): AeProductSkuRow[] {
   return rows
 }
 
-/** Best-effort SKU catalogue from AE product HTML (AER + legacy + OpenGraph). */
+/** Best-effort SKU catalogue from AE product HTML (AER + legacy + deep regex). */
 export function parseAeCatalogFromHtml(html: string, url: string): AePageParseResult {
   const normalized = normalizeHtmlForJsonScan(html)
 
@@ -51,7 +50,6 @@ export function parseAeCatalogFromHtml(html: string, url: string): AePageParseRe
 
   const aer =
     extractWindowJson(normalized, ["__AER_DATA__"]) ??
-    extractWindowJson(normalized, ["__RET_DATA__"]) ??
     extractWindowJson(normalized, ["__INIT_DATA__"]) ??
     extractWindowJson(normalized, ["runParams"])
 
@@ -60,9 +58,6 @@ export function parseAeCatalogFromHtml(html: string, url: string): AePageParseRe
     const fromBlob = parseAeSkusFromPagePayload(aerRoot, { url })
     if (fromBlob.aeSkus.length > 0) return fromBlob
   }
-
-  const deep = parseAeCatalogFromHtmlDeep(normalized, url)
-  if (deep.aeSkus.length > 0) return deep
 
   const legacySkus = skusFromLegacyHtml(normalized, url)
   if (legacySkus.length > 0) {
@@ -75,16 +70,8 @@ export function parseAeCatalogFromHtml(html: string, url: string): AePageParseRe
     }
   }
 
-  const loose = extractLooseAeSkuRowsFromHtml(normalized, url)
-  if (loose.length > 0) {
-    const prices = loose.map((s) => s.aePriceCents).filter((p) => p > 0)
-    return {
-      aeSkus: loose,
-      aePriceCents: prices.length > 0 ? Math.min(...prices) : 0,
-      aeShopId: primary.aeShopId,
-      title: primary.title,
-    }
-  }
+  const deep = parseAeCatalogFromHtmlDeep(normalized, url)
+  if (deep.aeSkus.length > 0) return deep
 
   return primary
 }
