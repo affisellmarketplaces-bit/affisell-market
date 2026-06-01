@@ -23,7 +23,7 @@ export async function uploadSupplierVideoFile(file: File): Promise<string> {
   const form = new FormData()
   form.append("file", file)
 
-  const res = await fetch("/api/generate-video/reference", {
+  const res = await fetch("/api/supplier/upload-media", {
     method: "POST",
     credentials: "include",
     body: form,
