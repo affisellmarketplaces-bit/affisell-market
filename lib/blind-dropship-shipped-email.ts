@@ -1,8 +1,10 @@
 import { Resend } from "resend"
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
-
-const FROM = process.env.RESEND_FROM_EMAIL?.trim() || "Affisell <onboarding@resend.dev>"
+import {
+  readResendDeliveryConfig,
+  resendSandboxNeedsTestInbox,
+  resolveResendDeliveryRecipient,
+} from "@/lib/emails/resend-delivery"
 
 export async function sendBlindDropshipShippedEmail(args: {
   to: string
@@ -10,11 +12,24 @@ export async function sendBlindDropshipShippedEmail(args: {
   carrier: string
   trackingNumber: string
 }): Promise<{ ok: boolean; error?: string }> {
-  if (!resend) return { ok: false, error: "RESEND_API_KEY not configured" }
+  const config = readResendDeliveryConfig()
+  if (!config) return { ok: false, error: "RESEND_API_KEY not configured" }
+  if (resendSandboxNeedsTestInbox(config)) {
+    return { ok: false, error: "TEST_EMAIL_TO required" }
+  }
+
+  const resend = new Resend(config.apiKey)
+  let recipient: string
+  try {
+    recipient = resolveResendDeliveryRecipient("blind-dropship-shipped", args.to, config).to
+  } catch {
+    return { ok: false, error: "invalid_recipient" }
+  }
+
   try {
     await resend.emails.send({
-      from: FROM,
-      to: args.to,
+      from: config.from,
+      to: recipient,
       subject: "Your order has shipped",
       html: `
         <div style="font-family:system-ui,sans-serif;max-width:560px;margin:0 auto;padding:24px">

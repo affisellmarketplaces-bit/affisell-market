@@ -2,7 +2,11 @@ import { render } from "@react-email/render"
 import { Resend } from "resend"
 
 import { DeliveredNotificationEmail } from "@/emails/delivered-notification"
-import { readResendEnv } from "@/lib/env/resend"
+import {
+  readResendDeliveryConfig,
+  resendSandboxNeedsTestInbox,
+  resolveResendDeliveryRecipient,
+} from "@/lib/emails/resend-delivery"
 import {
   resolveAppUrl,
   resolveOrderConfirmationImageUrl,
@@ -39,21 +43,18 @@ function resolveCustomerName(
 export async function sendDeliveredNotificationEmail(
   order: DeliveredNotificationOrderPayload
 ): Promise<{ ok: boolean; error?: string }> {
-  const { apiKey, fromEmail, testEmailTo } = readResendEnv()
-  if (!apiKey || !fromEmail) {
-    console.error("[Resend] Delivered notification skipped: missing RESEND_API_KEY or RESEND_FROM_EMAIL")
+  const config = readResendDeliveryConfig()
+  if (!config) {
+    console.error("[Resend] Delivered notification skipped: missing RESEND_API_KEY")
     return { ok: false, error: "RESEND_API_KEY not configured" }
   }
-
-  const resend = new Resend(apiKey)
-  const FROM = fromEmail
-
-  if (FROM.includes("onboarding@resend.dev") && !testEmailTo) {
+  if (resendSandboxNeedsTestInbox(config)) {
     console.error("[Resend] Delivered notification skipped: TEST_EMAIL_TO required when using onboarding@resend.dev")
     return { ok: false, error: "TEST_EMAIL_TO required" }
   }
 
-  const to = FROM.includes("onboarding@resend.dev") ? testEmailTo : order.customerEmail
+  const resend = new Resend(config.apiKey)
+  const { to } = resolveResendDeliveryRecipient("delivered-notification", order.customerEmail, config)
   const base = resolveAppUrl()
   const orderUrl = `${base}/marketplace/account/orders`
   const reviewUrl = `${base}/marketplace/${order.affiliateProductId}?writeReview=true&orderId=${order.id}`
@@ -77,7 +78,7 @@ export async function sendDeliveredNotificationEmail(
   )
 
   const { data, error } = await resend.emails.send({
-    from: FROM,
+    from: config.from,
     to,
     subject: `Votre commande #${shortOrderId} est livrée`,
     html,

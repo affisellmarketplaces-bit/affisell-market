@@ -7,10 +7,10 @@ import {
 } from "@/emails/password-reset"
 import { maskEmailForLog } from "@/lib/emails/mask-email"
 import {
-  logResendRecipient,
-  resolveResendRecipient,
-} from "@/lib/emails/resolve-resend-recipient"
-import { readResendEnv } from "@/lib/env/resend"
+  readResendDeliveryConfig,
+  resendSandboxNeedsTestInbox,
+  resolveResendDeliveryRecipient,
+} from "@/lib/emails/resend-delivery"
 
 export async function sendPasswordResetEmail({
   accountEmail,
@@ -30,32 +30,33 @@ export async function sendPasswordResetEmail({
     return { ok: false, error: "invalid_account_email" }
   }
 
-  const { apiKey, fromEmail, testEmailTo } = readResendEnv()
-  if (!apiKey) {
+  const config = readResendDeliveryConfig()
+  if (!config) {
     console.error("[auth-forgot-password]", { result: "no_resend_key" })
     return { ok: false, error: "RESEND_API_KEY not configured" }
   }
-
-  const FROM = fromEmail || "Affisell <onboarding@resend.dev>"
-
-  let recipient: string
-  let devRedirect = false
-  try {
-    const resolved = resolveResendRecipient({
-      accountEmail: normalizedAccount,
-      fromEmail: FROM,
-      testEmailTo,
-    })
-    recipient = resolved.to
-    devRedirect = resolved.devRedirect
-    logResendRecipient("auth-forgot-password", normalizedAccount, resolved)
-  } catch {
+  if (resendSandboxNeedsTestInbox(config)) {
     console.error("[auth-forgot-password]", {
       result: "skipped",
       reason: "TEST_EMAIL_TO required with onboarding@resend.dev",
       accountEmail: maskEmailForLog(normalizedAccount),
     })
     return { ok: false, error: "TEST_EMAIL_TO required" }
+  }
+
+  let recipient: string
+  let devRedirect = false
+  try {
+    const resolved = resolveResendDeliveryRecipient(
+      "auth-forgot-password",
+      normalizedAccount,
+      config
+    )
+    recipient = resolved.to
+    devRedirect = resolved.devRedirect
+  } catch {
+    console.error("[auth-forgot-password]", { result: "invalid_recipient" })
+    return { ok: false, error: "invalid_account_email" }
   }
 
   const html = await render(
@@ -69,9 +70,9 @@ export async function sendPasswordResetEmail({
 
   const subject = `Réinitialisez votre mot de passe · ${normalizedAccount}`
 
-  const resend = new Resend(apiKey)
+  const resend = new Resend(config.apiKey)
   const { data, error } = await resend.emails.send({
-    from: FROM,
+    from: config.from,
     to: recipient,
     subject,
     html,

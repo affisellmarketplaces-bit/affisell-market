@@ -1,12 +1,16 @@
 import { Resend } from "resend"
 
+import {
+  readResendDeliveryConfig,
+  resendSandboxNeedsTestInbox,
+  resolveResendDeliveryRecipient,
+} from "@/lib/emails/resend-delivery"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
 function dropPercent(current: number, previous: number | null): number {
   if (!previous || previous <= 0 || current >= previous) return 0
@@ -41,7 +45,9 @@ export async function GET(req: Request) {
     },
   })
 
-  const from = process.env.RESEND_FROM_EMAIL || "Affisell <alerts@affisell.com>"
+  const resendConfig = readResendDeliveryConfig()
+  const resend = resendConfig ? new Resend(resendConfig.apiKey) : null
+  const sandboxBlocked = resendConfig ? resendSandboxNeedsTestInbox(resendConfig) : true
   let emailsSent = 0
   let updates = 0
 
@@ -53,15 +59,16 @@ export async function GET(req: Request) {
     const reachedTarget = w.targetPriceCents != null && current <= w.targetPriceCents
     const shouldAlert = sinceYesterday > 0 || reachedTarget
 
-    if (shouldAlert && resend && w.user.email) {
+    if (shouldAlert && resend && resendConfig && !sandboxBlocked && w.user.email) {
       const pct = sinceYesterday > 0 ? ` (-${sinceYesterday}% depuis hier)` : ""
       const targetLine =
         w.targetPriceCents != null
           ? `<p>Votre prix cible: <strong>${(w.targetPriceCents / 100).toFixed(2)} EUR</strong></p>`
           : ""
+      const { to } = resolveResendDeliveryRecipient("wishlist-price-alert", w.user.email, resendConfig)
       await resend.emails.send({
-        from,
-        to: w.user.email,
+        from: resendConfig.from,
+        to,
         subject: `Baisse de prix: ${w.product.name}`,
         html: `<p>Bonjour ${w.user.name?.trim() || ""},</p>
 <p>Le produit <strong>${w.product.name}</strong> a baissé${pct}.</p>

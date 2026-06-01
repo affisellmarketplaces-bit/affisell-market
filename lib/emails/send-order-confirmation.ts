@@ -2,7 +2,11 @@ import { render } from "@react-email/render"
 import { Resend } from "resend"
 
 import { OrderConfirmationEmail } from "@/emails/order-confirmation"
-import { readResendEnv } from "@/lib/env/resend"
+import {
+  readResendDeliveryConfig,
+  resendSandboxNeedsTestInbox,
+  resolveResendDeliveryRecipient,
+} from "@/lib/emails/resend-delivery"
 import { appBaseUrl } from "@/lib/app-base-url"
 
 const PLACEHOLDER_PRODUCT_IMAGE = "https://via.placeholder.com/64"
@@ -58,21 +62,18 @@ export async function sendOrderConfirmationEmail({
   orderUrl?: string
   trackingUrl?: string
 }) {
-  const { apiKey, fromEmail, testEmailTo } = readResendEnv()
-  if (!apiKey || !fromEmail) {
-    console.error("[Resend] Order confirmation skipped: missing RESEND_API_KEY or RESEND_FROM_EMAIL")
+  const config = readResendDeliveryConfig()
+  if (!config) {
+    console.error("[Resend] Order confirmation skipped: missing RESEND_API_KEY")
     return
   }
-
-  const resend = new Resend(apiKey)
-  const FROM = fromEmail
-
-  if (FROM.includes("onboarding@resend.dev") && !testEmailTo) {
+  if (resendSandboxNeedsTestInbox(config)) {
     console.error("[Resend] Order confirmation skipped: TEST_EMAIL_TO required when using onboarding@resend.dev")
     return
   }
 
-  const to = FROM.includes("onboarding@resend.dev") ? testEmailTo : customerEmail
+  const resend = new Resend(config.apiKey)
+  const { to } = resolveResendDeliveryRecipient("order-confirmation", customerEmail, config)
   const shortOrderId = orderId.slice(-6).toUpperCase()
   const resolvedOrderUrl = orderUrl ?? `${resolveAppUrl()}/orders/${orderId}`
 
@@ -91,7 +92,7 @@ export async function sendOrderConfirmationEmail({
   )
 
   const { data, error } = await resend.emails.send({
-    from: FROM,
+    from: config.from,
     to,
     subject: `Commande Affisell #${shortOrderId} confirmée`,
     html,

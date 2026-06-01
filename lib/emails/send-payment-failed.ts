@@ -2,7 +2,11 @@ import { render } from "@react-email/render"
 import { Resend } from "resend"
 
 import { PaymentFailedEmail } from "@/emails/payment-failed"
-import { readResendEnv } from "@/lib/env/resend"
+import {
+  readResendDeliveryConfig,
+  resendSandboxNeedsTestInbox,
+  resolveResendDeliveryRecipient,
+} from "@/lib/emails/resend-delivery"
 import {
   resolveAppUrl,
   resolveOrderConfirmationImageUrl,
@@ -49,8 +53,8 @@ export async function sendPaymentFailedEmail(
   order: PaymentFailedOrderPayload,
   stripeCustomerId: string
 ): Promise<{ ok: boolean; error?: string; updatePaymentUrl?: string }> {
-  const { apiKey, fromEmail, testEmailTo } = readResendEnv()
-  if (!apiKey || !fromEmail) {
+  const config = readResendDeliveryConfig()
+  if (!config) {
     return { ok: false, error: "RESEND_API_KEY not configured" }
   }
 
@@ -63,14 +67,12 @@ export async function sendPaymentFailedEmail(
     return { ok: false, error: message }
   }
 
-  const resend = new Resend(apiKey)
-  const FROM = fromEmail
-
-  if (FROM.includes("onboarding@resend.dev") && !testEmailTo) {
+  if (resendSandboxNeedsTestInbox(config)) {
     return { ok: false, error: "TEST_EMAIL_TO required" }
   }
 
-  const to = FROM.includes("onboarding@resend.dev") ? testEmailTo : order.customerEmail
+  const resend = new Resend(config.apiKey)
+  const { to } = resolveResendDeliveryRecipient("payment-failed", order.customerEmail, config)
   const shortOrderId = order.id.slice(-6).toUpperCase()
 
   const html = await render(
@@ -87,7 +89,7 @@ export async function sendPaymentFailedEmail(
   )
 
   const { data, error } = await resend.emails.send({
-    from: FROM,
+    from: config.from,
     to,
     subject: `Action requise : paiement refusé pour #${shortOrderId}`,
     html,

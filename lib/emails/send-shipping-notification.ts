@@ -2,7 +2,11 @@ import { render } from "@react-email/render"
 import { Resend } from "resend"
 
 import { ShippingNotificationEmail } from "@/emails/shipping-notification"
-import { readResendEnv } from "@/lib/env/resend"
+import {
+  readResendDeliveryConfig,
+  resendSandboxNeedsTestInbox,
+  resolveResendDeliveryRecipient,
+} from "@/lib/emails/resend-delivery"
 import {
   resolveAppUrl,
   resolveOrderConfirmationImageUrl,
@@ -43,21 +47,18 @@ export type ShippingNotificationOrderPayload = {
 export async function sendShippingNotificationEmail(
   order: ShippingNotificationOrderPayload
 ): Promise<{ ok: boolean; error?: string }> {
-  const { apiKey, fromEmail, testEmailTo } = readResendEnv()
-  if (!apiKey || !fromEmail) {
-    console.error("[Resend] Shipping notification skipped: missing RESEND_API_KEY or RESEND_FROM_EMAIL")
+  const config = readResendDeliveryConfig()
+  if (!config) {
+    console.error("[Resend] Shipping notification skipped: missing RESEND_API_KEY")
     return { ok: false, error: "RESEND_API_KEY not configured" }
   }
-
-  const resend = new Resend(apiKey)
-  const FROM = fromEmail
-
-  if (FROM.includes("onboarding@resend.dev") && !testEmailTo) {
+  if (resendSandboxNeedsTestInbox(config)) {
     console.error("[Resend] Shipping notification skipped: TEST_EMAIL_TO required when using onboarding@resend.dev")
     return { ok: false, error: "TEST_EMAIL_TO required" }
   }
 
-  const to = FROM.includes("onboarding@resend.dev") ? testEmailTo : order.customerEmail
+  const resend = new Resend(config.apiKey)
+  const { to } = resolveResendDeliveryRecipient("shipping-notification", order.customerEmail, config)
   const orderUrl = `${resolveAppUrl()}/orders/${order.id}`
   const trackingUrl =
     order.trackingUrl?.trim() ||
@@ -83,7 +84,7 @@ export async function sendShippingNotificationEmail(
   )
 
   const { data, error } = await resend.emails.send({
-    from: FROM,
+    from: config.from,
     to,
     subject: `Votre commande #${shortOrderId} est expédiée`,
     html,
