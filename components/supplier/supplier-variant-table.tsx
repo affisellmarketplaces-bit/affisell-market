@@ -14,6 +14,7 @@ import { SupplierSkuAffiliateMarginCell } from "@/components/supplier/supplier-s
 import { SupplierSkuColumnToggles } from "@/components/supplier/supplier-sku-column-toggles"
 import { SupplierSkuFastPanel } from "@/components/supplier/supplier-sku-fast-panel"
 import { SupplierSimpleColorImageField } from "@/components/supplier/supplier-simple-color-image-field"
+import { SupplierVariantVideoField } from "@/components/supplier/supplier-variant-video-field"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { formatStoreCurrency } from "@/lib/market-config"
@@ -913,16 +914,11 @@ export function SupplierVariantTable({
                         ) : null}
                         {showVideoCol ? (
                           <td className="px-2 py-1.5">
-                            <Input
-                              className="h-9 min-w-[120px] text-xs"
-                              value={row.videoUrl ?? ""}
+                            <SupplierVariantVideoField
+                              compact
+                              value={row.videoUrl ?? null}
                               disabled={disabled}
-                              placeholder="https://…"
-                              onChange={(e) =>
-                                updateRow(index, {
-                                  videoUrl: e.target.value.trim() || null,
-                                })
-                              }
+                              onChange={(videoUrl) => updateRow(index, { videoUrl })}
                             />
                           </td>
                         ) : null}

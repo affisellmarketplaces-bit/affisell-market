@@ -6,6 +6,7 @@ import { toast } from "sonner"
 
 import { SupplierSimpleColorImageField } from "@/components/supplier/supplier-simple-color-image-field"
 import { Button } from "@/components/ui/button"
+import { SupplierVariantVideoField } from "@/components/supplier/supplier-variant-video-field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { formatStoreCurrency } from "@/lib/market-config"
@@ -510,14 +511,14 @@ export function SupplierSkuFastPanel({
           ) : null}
           {showVideo ? (
             <div>
-              <Label className="text-xs">Lien vidéo démo</Label>
-              <Input
-                className="mt-1 h-10 text-sm"
-                disabled={disabled}
-                value={defaults.videoUrl ?? ""}
-                onChange={(e) => setDefault({ videoUrl: e.target.value.trim() || null })}
-                placeholder="https://…"
-              />
+              <Label className="text-xs">Vidéo démo (lien ou fichier)</Label>
+              <div className="mt-1">
+                <SupplierVariantVideoField
+                  value={defaults.videoUrl ?? null}
+                  disabled={disabled}
+                  onChange={(videoUrl) => setDefault({ videoUrl })}
+                />
+              </div>
             </div>
           ) : null}
         </div>

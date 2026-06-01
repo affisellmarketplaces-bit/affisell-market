@@ -6,6 +6,7 @@ import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
 import { resolveImageLinkUrl } from "@/components/supplier/supplier-product-image-upload"
+import { SupplierVariantVideoField } from "@/components/supplier/supplier-variant-video-field"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -203,22 +204,24 @@ export function SupplierDescriptionIllustrationFields({
           {hideImageGrid ? "Vidéos illustratives" : "Illustrative videos"}
         </Label>
         <p className="mt-0.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-          YouTube, Vimeo, or direct HTTPS <code className="rounded bg-zinc-100 px-1 dark:bg-zinc-800">.mp4</code> link
-          — max {MAX_VIDEOS}.
+          YouTube, Vimeo, lien <code className="rounded bg-zinc-100 px-1 dark:bg-zinc-800">.mp4</code> ou import
+          fichier (MP4, WebM, MOV — max 48 Mo) — {MAX_VIDEOS} vidéos max.
         </p>
-        <div className="mt-2 space-y-2">
-          <Input
-            value={v0}
-            onChange={(e) => setVideoAt(0, e.target.value)}
-            placeholder="https://www.youtube.com/watch?v=…"
-            className="h-10"
-          />
-          <Input
-            value={v1}
-            onChange={(e) => setVideoAt(1, e.target.value)}
-            placeholder="Second video URL (optional)"
-            className="h-10"
-          />
+        <div className="mt-2 space-y-3">
+          <div>
+            <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-zinc-500">Vidéo 1</p>
+            <SupplierVariantVideoField
+              value={v0 || null}
+              onChange={(url) => setVideoAt(0, url ?? "")}
+            />
+          </div>
+          <div>
+            <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-zinc-500">Vidéo 2</p>
+            <SupplierVariantVideoField
+              value={v1 || null}
+              onChange={(url) => setVideoAt(1, url ?? "")}
+            />
+          </div>
         </div>
       </div>
     </div>
