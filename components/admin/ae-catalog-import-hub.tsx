@@ -57,6 +57,7 @@ export function AeCatalogImportHub({ productId, aeUrl, disabled, onCapture, onAu
       })
       onAutoMap?.()
       const n = data.resolved.aeSkus?.length ?? 0
+      const mapped = data.suggestions?.length ?? 0
       const src =
         data.source === "api"
           ? "API"
@@ -65,7 +66,9 @@ export function AeCatalogImportHub({ productId, aeUrl, disabled, onCapture, onAu
             : data.source === "paste"
               ? "JSON"
               : "serveur"
-      setSuccess(`${n} SKU importé(s) (${src}) — vérifiez le tableau puis Enregistrer.`)
+      setSuccess(
+        `${n} SKU catalogue (${src})${mapped > 0 ? ` · ${mapped} suggestion(s) couleur` : ""} — vérifiez le tableau puis Enregistrer.`
+      )
       setError(null)
       setHtmlFile(null)
       setJsonPaste("")

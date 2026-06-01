@@ -19,4 +19,22 @@ describe("parseAeCatalogFromHtmlDeep", () => {
     const parsed = parseAeCatalogFromHtmlDeep(html, "https://www.aliexpress.com/item/1.html")
     expect(parsed.aeSkus.length).toBe(2)
   })
+
+  it("extracts multiple skuId+skuAttr blocks with property labels", () => {
+    const html = `<html>
+    "productSKUPropertyList":[{"skuPropertyId":"14","skuPropertyName":"Color","skuPropertyValues":[
+      {"propertyValueId":"691","propertyValueDisplayName":"Black"},
+      {"propertyValueId":"692","propertyValueDisplayName":"Silver"},
+      {"propertyValueId":"693","propertyValueDisplayName":"White"}
+    ]}]
+    {"skuId":"1200001111111111","skuAttr":"14:691","skuVal":{"skuActivityAmount":{"value":"7.50"}}}
+    {"skuId":"1200002222222222","skuAttr":"14:692","skuVal":{"skuActivityAmount":{"value":"7.50"}}}
+    {"skuId":"1200003333333333","skuAttr":"14:693","skuVal":{"skuActivityAmount":{"value":"7.50"}}}
+    </html>`
+    const parsed = parseAeCatalogFromHtmlDeep(html, "https://www.aliexpress.com/item/1.html")
+    expect(parsed.aeSkus.length).toBe(3)
+    expect(parsed.aeSkus.map((s) => s.matchColor)).toEqual(
+      expect.arrayContaining(["black", "silver", "white"])
+    )
+  })
 })

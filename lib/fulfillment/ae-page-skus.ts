@@ -26,7 +26,7 @@ type PropValueMeta = {
 }
 
 /** Build lookup `propertyId:valueId` → label from productSKUPropertyList. */
-function buildSkuPropertyLookup(
+export function buildSkuPropertyLookup(
   skuModule: Record<string, unknown>
 ): Map<string, PropValueMeta> {
   const out = new Map<string, PropValueMeta>()
@@ -70,7 +70,7 @@ function parseSkuAttrSegment(segment: string): { propId: string; valueId: string
   return { propId, valueId: valuePart }
 }
 
-function labelsFromSkuAttr(
+export function labelsFromSkuAttr(
   skuAttr: string,
   lookup: Map<string, PropValueMeta>
 ): { parts: string[]; attributes: Record<string, string>; color: string | null; size: string | null } {

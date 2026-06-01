@@ -13,10 +13,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import type { AdminProductSupplierLinkRow } from "@/lib/admin/products/load-product-supplier-link"
+import { applyImportedAeCatalogToVariantRows } from "@/lib/fulfillment/apply-ae-catalog-to-rows"
 import {
   applyAeVariantSuggestions,
   type AeVariantMappingRowInput,
 } from "@/lib/fulfillment/apply-ae-variant-suggestions"
+import { suggestVariantMappings } from "@/lib/fulfillment/resolve-supplier-sku"
 import type { AeProductSkuRow } from "@/lib/fulfillment/ae-product-skus"
 import {
   applySupplierCatalogSkusToMappingRows,
@@ -129,43 +131,57 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
     }
   }, [form.aeUrl, form.aeProductId])
 
-  const applyCaptureResult = useCallback((result: AeCaptureResult) => {
-    const resolved = result.resolved
-    setError(null)
-    setForm((f) => ({
-      ...f,
-      aeProductId: resolved.aeProductId,
-      aeSkuId: normalizeAeSkuCandidate(resolved.aeSkuId ?? "") || f.aeSkuId,
-      aeShopId: resolved.aeShopId || f.aeShopId,
-      aePriceCents: resolved.aePriceCents || f.aePriceCents,
-      aeShippingCents: resolved.aeShippingCents,
-      aeUrl: resolved.aeUrl || f.aeUrl,
-    }))
-    if (resolved.aeSkus?.length) setAeSkuCatalog(resolved.aeSkus)
-    if (result.suggestions?.length) {
-      setLastSuggestions(result.suggestions)
-      setVariantRows((current) => {
-        const { rows: next } = applyAeVariantSuggestions(
-          current,
-          result.suggestions,
-          resolved.aeSkus ?? []
+  const applyCaptureResult = useCallback(
+    (result: AeCaptureResult) => {
+      const resolved = result.resolved
+      const aeSkus = resolved.aeSkus ?? []
+      setError(null)
+      setForm((f) => ({
+        ...f,
+        aeProductId: resolved.aeProductId,
+        aeSkuId: normalizeAeSkuCandidate(resolved.aeSkuId ?? "") || f.aeSkuId,
+        aeShopId: resolved.aeShopId || f.aeShopId,
+        aePriceCents: resolved.aePriceCents || f.aePriceCents,
+        aeShippingCents: resolved.aeShippingCents,
+        aeUrl: resolved.aeUrl || f.aeUrl,
+      }))
+
+      if (aeSkus.length > 0) {
+        setAeSkuCatalog(aeSkus)
+        const suggestions =
+          result.suggestions?.length > 0
+            ? result.suggestions
+            : suggestVariantMappings(productVariants, aeSkus)
+        setLastSuggestions(suggestions)
+
+        const { rows: mapped, catalogSize, mappedRows } = applyImportedAeCatalogToVariantRows(
+          variantRows,
+          productVariants,
+          aeSkus,
+          suggestions
         )
-        return next
-      })
-    }
-    const src = resolved.source
-    if (src === "api" || src === "page" || src === "paste" || src === "html") {
-      setLastSource(src)
-    } else {
-      setLastSource("paste")
-    }
-    const skuN = resolved.aeSkus?.length ?? 0
-    setMessage(
-      skuN > 0
-        ? `${skuN} SKU importé(s) — vérifiez puis enregistrez.`
-        : "Import reçu — vérifiez les champs."
-    )
-  }, [])
+        setVariantRows(mapped)
+        setMessage(
+          `${catalogSize} SKU dans le catalogue · ${mappedRows}/${variantRows.length} variante(s) mappée(s) — enregistrez.`
+        )
+        if (catalogSize < variantRows.length) {
+          setError(
+            `Seulement ${catalogSize} SKU trouvé(s) dans la source — pour 3 couleurs, utilisez l’option JSON (F12 → copy __AER_DATA__).`
+          )
+        }
+      } else {
+        setMessage("Import reçu — aucun SKU AE dans la source.")
+      }
+
+      const src = resolved.source
+      if (src === "api" || src === "page" || src === "paste" || src === "html") {
+        setLastSource(src)
+      } else {
+        setLastSource("paste")
+      }
+    },
+    [productVariants]
+  )
 
   const applyExpressCapture = useCallback(
     (result: AeCaptureResult) => {
@@ -342,15 +358,17 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
             ]
           })
 
-    const { rows: next, filled, skipped } = applyAeVariantSuggestions(
+    const { rows: next, mappedRows } = applyImportedAeCatalogToVariantRows(
       variantRows,
-      suggestions,
-      aeSkuCatalog
+      productVariants,
+      aeSkuCatalog,
+      suggestions
     )
     setVariantRows(next)
+    const filled = mappedRows
     setMessage(
       filled > 0
-        ? `${filled} variante(s) mappée(s)${skipped > 0 ? ` — ${skipped} déjà remplie(s)` : ""}.`
+        ? `${filled} variante(s) mappée(s) sur ${variantRows.length}.`
         : "Aucune ligne vide à remplir — vérifiez les couleurs ou choisissez manuellement."
     )
     setError(null)
