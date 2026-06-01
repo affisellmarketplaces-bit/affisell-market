@@ -19,8 +19,8 @@ export type ResolvedSupplierLinkFields = {
   aeShippingCents: number
   aeUrl: string
   aeSkus?: import("@/lib/fulfillment/ae-product-skus").AeProductSkuRow[]
-  /** api = Open Platform, page = scrape __AER_DATA__, paste = JSON collé */
-  source?: "api" | "page" | "paste"
+  /** api = Open Platform, page = scrape __AER_DATA__, paste = JSON collé, html = fichier .html */
+  source?: "api" | "page" | "paste" | "html"
 }
 
 function asRecord(v: unknown): Record<string, unknown> | null {
