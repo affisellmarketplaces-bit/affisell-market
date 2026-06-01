@@ -38,7 +38,7 @@ function buildPayload(
   const aeSkus = resolved.aeSkus ?? []
   if (aeSkus.length === 0) {
     throw new AliExpressApiError(
-      "Aucun SKU AE numérique trouvé dans cette source — essayez l’import par fichier HTML."
+      "Aucun SKU AE trouvé. Sur AliExpress : F12 → Console → copy(JSON.stringify(window.__AER_DATA__)) → collez dans Option 1 JSON."
     )
   }
   return {

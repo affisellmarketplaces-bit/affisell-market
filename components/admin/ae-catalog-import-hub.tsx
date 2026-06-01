@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react"
 import {
+  Check,
   CheckCircle2,
+  ClipboardCopy,
   FileUp,
   Loader2,
   Server,
@@ -12,6 +14,7 @@ import {
 
 import type { AeCaptureResult } from "@/components/admin/ae-express-import-launcher"
 import { Button } from "@/components/ui/button"
+import { AE_CONSOLE_COPY_SNIPPET } from "@/lib/fulfillment/parse-pasted-aer-json"
 
 type Props = {
   productId: string
@@ -32,6 +35,8 @@ export function AeCatalogImportHub({ productId, aeUrl, disabled, onCapture, onAu
   const [success, setSuccess] = useState<string | null>(null)
   const [diag, setDiag] = useState<Diagnostics | null>(null)
   const [htmlFile, setHtmlFile] = useState<File | null>(null)
+  const [jsonPaste, setJsonPaste] = useState("")
+  const [snippetCopied, setSnippetCopied] = useState(false)
 
   useEffect(() => {
     void fetch(`/api/admin/products/${productId}/supplier-link/import-catalog`, {
@@ -44,8 +49,32 @@ export function AeCatalogImportHub({ productId, aeUrl, disabled, onCapture, onAu
       .catch(() => {})
   }, [productId])
 
+  const applyResult = useCallback(
+    (data: AeCaptureResult & { source?: string }) => {
+      onCapture({
+        resolved: data.resolved,
+        suggestions: data.suggestions ?? [],
+      })
+      onAutoMap?.()
+      const n = data.resolved.aeSkus?.length ?? 0
+      const src =
+        data.source === "api"
+          ? "API"
+          : data.source === "html"
+            ? "HTML"
+            : data.source === "paste"
+              ? "JSON"
+              : "serveur"
+      setSuccess(`${n} SKU importé(s) (${src}) — vérifiez le tableau puis Enregistrer.`)
+      setError(null)
+      setHtmlFile(null)
+      setJsonPaste("")
+    },
+    [onAutoMap, onCapture]
+  )
+
   const runImport = useCallback(
-    async (mode: "auto" | "html") => {
+    async (body: FormData | Record<string, unknown>) => {
       const url = aeUrl.trim()
       if (!url.includes("aliexpress")) {
         setError("Collez d’abord l’URL AliExpress du produit.")
@@ -57,24 +86,19 @@ export function AeCatalogImportHub({ productId, aeUrl, disabled, onCapture, onAu
       setSuccess(null)
 
       try {
-        let res: Response
-        if (mode === "html" && htmlFile) {
-          const form = new FormData()
-          form.set("aeUrl", url)
-          form.set("htmlFile", htmlFile)
-          res = await fetch(`/api/admin/products/${productId}/supplier-link/import-catalog`, {
-            method: "POST",
-            credentials: "include",
-            body: form,
-          })
-        } else {
-          res = await fetch(`/api/admin/products/${productId}/supplier-link/import-catalog`, {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ aeUrl: url }),
-          })
-        }
+        const res =
+          body instanceof FormData
+            ? await fetch(`/api/admin/products/${productId}/supplier-link/import-catalog`, {
+                method: "POST",
+                credentials: "include",
+                body,
+              })
+            : await fetch(`/api/admin/products/${productId}/supplier-link/import-catalog`, {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ aeUrl: url, ...body }),
+              })
 
         const data = (await res.json()) as AeCaptureResult & {
           ok?: boolean
@@ -89,46 +113,38 @@ export function AeCatalogImportHub({ productId, aeUrl, disabled, onCapture, onAu
           throw new Error(data.error ?? "Import impossible")
         }
 
-        onCapture({
-          resolved: data.resolved,
-          suggestions: data.suggestions ?? [],
-        })
-        onAutoMap?.()
-
-        const n = data.resolved.aeSkus?.length ?? 0
-        const src =
-          data.source === "api"
-            ? "API AliExpress"
-            : data.source === "html"
-              ? "fichier HTML"
-              : data.source === "paste"
-                ? "JSON"
-                : "serveur"
-        setSuccess(`${n} SKU importé(s) via ${src}. Vérifiez le tableau puis Enregistrer.`)
-        setHtmlFile(null)
+        applyResult(data)
       } catch (e) {
         const msg = e instanceof Error ? e.message : "Échec import"
-        setError(
-          `${msg} — Si l’import auto échoue : sur AliExpress → Clic droit → « Enregistrer sous » → Page Web complète (.html), puis déposez le fichier ci-dessous.`
-        )
+        setError(msg)
       } finally {
         setBusy(false)
       }
     },
-    [aeUrl, htmlFile, onAutoMap, onCapture, productId]
+    [aeUrl, applyResult, productId]
   )
+
+  const copySnippet = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(AE_CONSOLE_COPY_SNIPPET)
+      setSnippetCopied(true)
+      window.setTimeout(() => setSnippetCopied(false), 2000)
+    } catch {
+      setError("Copiez la commande console manuellement (bloc ci-dessous).")
+    }
+  }, [])
 
   return (
     <div className="relative overflow-hidden rounded-2xl border-2 border-emerald-500/40 bg-gradient-to-br from-emerald-950/30 via-zinc-950 to-zinc-900 shadow-xl">
       <div className="border-b border-emerald-500/20 bg-emerald-500/10 px-5 py-4">
         <p className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em] text-emerald-300">
           <Sparkles className="h-3.5 w-3.5" aria-hidden />
-          Import catalogue · méthode fiable
+          Import catalogue
         </p>
         <h3 className="mt-1 text-lg font-bold text-white">Récupérer les SKU AliExpress</h3>
         <p className="mt-1 text-sm text-emerald-100/70">
-          Sans favori ni console : enregistrez la page AE en HTML ou laissez le serveur tenter
-          l’API / ScrapingBee.
+          Si le fichier HTML échoue (page vide côté Safari), utilisez l’option JSON — 30 secondes,
+          sans favori.
         </p>
       </div>
 
@@ -136,42 +152,66 @@ export function AeCatalogImportHub({ productId, aeUrl, disabled, onCapture, onAu
         {diag ? (
           <div className="flex flex-wrap gap-2 text-[11px]">
             <span
-              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 ${
-                diag.apiConfigured
-                  ? "bg-emerald-500/20 text-emerald-200"
-                  : "bg-zinc-800 text-zinc-400"
-              }`}
+              className={`rounded-full px-2.5 py-1 ${diag.apiConfigured ? "bg-emerald-500/20 text-emerald-200" : "bg-zinc-800 text-zinc-400"}`}
             >
-              <Server className="h-3 w-3" aria-hidden />
-              API AE {diag.apiConfigured ? "OK" : "non configurée"}
+              API AE {diag.apiConfigured ? "OK" : "off"}
             </span>
             <span
-              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 ${
-                diag.scrapingBeeConfigured
-                  ? "bg-emerald-500/20 text-emerald-200"
-                  : "bg-zinc-800 text-zinc-400"
-              }`}
+              className={`rounded-full px-2.5 py-1 ${diag.scrapingBeeConfigured ? "bg-emerald-500/20 text-emerald-200" : "bg-zinc-800 text-zinc-400"}`}
             >
-              ScrapingBee {diag.scrapingBeeConfigured ? "OK" : "absent"}
+              ScrapingBee {diag.scrapingBeeConfigured ? "OK" : "off"}
             </span>
           </div>
         ) : null}
 
-        <div className="rounded-xl border border-white/10 bg-black/30 p-4">
-          <p className="text-sm font-semibold text-white">Option A — Fichier HTML (recommandé)</p>
-          <ol className="mt-2 list-decimal space-y-1 pl-4 text-xs text-zinc-300">
-            <li>Ouvrez la fiche produit sur AliExpress (même URL que ci-dessus).</li>
-            <li>
-              <kbd className="rounded bg-zinc-800 px-1">Clic droit</kbd> →{" "}
-              <strong>Enregistrer sous…</strong> → <strong>Page Web, complète</strong> (.html).
-            </li>
-            <li>Déposez le fichier ici → <strong>Importer le HTML</strong>.</li>
+        <div className="rounded-xl border-2 border-cyan-500/30 bg-cyan-500/5 p-4">
+          <p className="text-sm font-semibold text-cyan-100">Option 1 — JSON console (le plus fiable)</p>
+          <ol className="mt-2 list-decimal space-y-1 pl-4 text-xs text-cyan-100/80">
+            <li>Fiche produit AliExpress → <kbd className="rounded bg-black/40 px-1">F12</kbd> → Console</li>
+            <li>Collez la commande → Entrée (JSON copié)</li>
+            <li>Collez ici → Importer le JSON</li>
           </ol>
+          <code className="mt-2 block break-all rounded bg-black/50 p-2 font-mono text-[10px] text-cyan-50">
+            {AE_CONSOLE_COPY_SNIPPET}
+          </code>
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            className="mt-2 border-cyan-500/30 bg-cyan-500/10 text-cyan-100"
+            onClick={() => void copySnippet()}
+          >
+            {snippetCopied ? <Check className="mr-1 h-3.5 w-3.5" /> : <ClipboardCopy className="mr-1 h-3.5 w-3.5" />}
+            {snippetCopied ? "Copié" : "Copier la commande"}
+          </Button>
+          <textarea
+            className="mt-3 min-h-[72px] w-full rounded-lg border border-cyan-500/30 bg-zinc-950 px-3 py-2 font-mono text-[11px] text-cyan-50"
+            placeholder="Collez le JSON ici (Ctrl+V)"
+            value={jsonPaste}
+            disabled={disabled || busy}
+            onChange={(e) => setJsonPaste(e.target.value)}
+          />
+          <Button
+            type="button"
+            className="mt-2 w-full bg-cyan-600 hover:bg-cyan-500"
+            disabled={disabled || busy || !jsonPaste.trim()}
+            onClick={() => void runImport({ aerJson: jsonPaste })}
+          >
+            {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Importer le JSON
+          </Button>
+        </div>
 
-          <label className="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-emerald-500/40 bg-emerald-500/5 px-4 py-6 transition hover:bg-emerald-500/10">
-            <FileUp className="h-8 w-8 text-emerald-400" aria-hidden />
-            <span className="mt-2 text-sm font-medium text-emerald-100">
-              {htmlFile ? htmlFile.name : "Choisir le fichier .html"}
+        <div className="rounded-xl border border-white/10 bg-black/30 p-4">
+          <p className="text-sm font-semibold text-white">Option 2 — Fichier HTML</p>
+          <p className="mt-1 text-xs text-zinc-400">
+            Chrome : Page complète. Si échec → utilisez l’option 1 (le .html ne contient souvent pas les
+            SKU).
+          </p>
+          <label className="mt-3 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-emerald-500/40 bg-emerald-500/5 px-4 py-5">
+            <FileUp className="h-7 w-7 text-emerald-400" aria-hidden />
+            <span className="mt-2 text-xs text-emerald-100">
+              {htmlFile ? htmlFile.name : "Fichier .html"}
             </span>
             <input
               type="file"
@@ -181,33 +221,34 @@ export function AeCatalogImportHub({ productId, aeUrl, disabled, onCapture, onAu
               onChange={(e) => setHtmlFile(e.target.files?.[0] ?? null)}
             />
           </label>
-
           <Button
             type="button"
-            className="mt-3 w-full bg-emerald-600 hover:bg-emerald-500"
+            className="mt-2 w-full bg-emerald-600 hover:bg-emerald-500"
             disabled={disabled || busy || !htmlFile}
-            onClick={() => void runImport("html")}
+            onClick={() => {
+              if (!htmlFile) return
+              const form = new FormData()
+              form.set("aeUrl", aeUrl.trim())
+              form.set("htmlFile", htmlFile)
+              void runImport(form)
+            }}
           >
-            {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+            <Upload className="mr-2 h-4 w-4" />
             Importer le HTML
           </Button>
         </div>
 
         <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-          <p className="text-sm font-semibold text-white">Option B — Serveur (API ou scrape)</p>
-          <p className="mt-1 text-xs text-zinc-400">
-            Fonctionne si <code className="text-[10px]">ALIEXPRESS_*</code> ou{" "}
-            <code className="text-[10px]">SCRAPINGBEE_API_KEY</code> est sur Vercel.
-          </p>
+          <p className="text-sm font-semibold text-white">Option 3 — Serveur</p>
           <Button
             type="button"
             variant="secondary"
-            className="mt-3 w-full border-white/15 bg-white/10 text-white hover:bg-white/15"
+            className="mt-2 w-full border-white/15 bg-white/10 text-white"
             disabled={disabled || busy}
-            onClick={() => void runImport("auto")}
+            onClick={() => void runImport({})}
           >
-            {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Importer automatiquement
+            {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Server className="mr-2 h-4 w-4" />}
+            API / ScrapingBee
           </Button>
         </div>
 
@@ -218,8 +259,13 @@ export function AeCatalogImportHub({ productId, aeUrl, disabled, onCapture, onAu
           </p>
         ) : null}
         {error ? (
-          <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+          <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs leading-relaxed text-red-200">
             {error}
+            <br />
+            <span className="mt-1 block text-red-300/90">
+              → Utilisez <strong>Option 1 JSON</strong> : sur AliExpress, F12, commande copiée, Entrée,
+              puis collez ici.
+            </span>
           </p>
         ) : null}
       </div>

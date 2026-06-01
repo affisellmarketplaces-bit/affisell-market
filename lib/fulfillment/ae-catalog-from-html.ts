@@ -1,3 +1,4 @@
+import { parseAeCatalogFromHtmlDeep } from "@/lib/fulfillment/ae-html-deep-scrape"
 import { parseAliExpressHtml, extractWindowJson } from "@/lib/import-url-scrape"
 import { normalizeAerRoot } from "@/lib/fulfillment/ae-aer-normalize"
 import { parseAeSkusFromPagePayload, type AePageParseResult } from "@/lib/fulfillment/ae-page-skus"
@@ -63,6 +64,9 @@ export function parseAeCatalogFromHtml(html: string, url: string): AePageParseRe
       title: primary.title,
     }
   }
+
+  const deep = parseAeCatalogFromHtmlDeep(html, url)
+  if (deep.aeSkus.length > 0) return deep
 
   return primary
 }
