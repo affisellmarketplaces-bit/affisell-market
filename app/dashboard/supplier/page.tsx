@@ -13,9 +13,12 @@ import { SupplierMissionControlHeader } from "@/components/supplier/mission-cont
 import { SupplierMissionControlLive } from "@/components/supplier/mission-control/supplier-mission-control-live"
 import { SupplierOnboardingChecklist } from "@/components/supplier/mission-control/supplier-onboarding-checklist"
 import { SupplierToolsRow } from "@/components/supplier/mission-control/supplier-tools-row"
+import { SupplierTrustLadderCard } from "@/components/supplier/mission-control/supplier-trust-ladder-card"
 import { SupplierUrgentActions } from "@/components/supplier/mission-control/supplier-urgent-actions"
-import { resolveAppLocale } from "@/lib/i18n-locale"
+import { loadSupplierTrustSnapshot } from "@/lib/supplier/compute-supplier-trust-tier"
+import { coerceSupplierTrustTier } from "@/lib/supplier/supplier-trust-tier-shared"
 import { loadSupplierMissionControl } from "@/lib/supplier-mission-control"
+import { resolveAppLocale } from "@/lib/i18n-locale"
 
 export const dynamic = "force-dynamic"
 
@@ -42,14 +45,21 @@ export default async function DashboardSupplierPage() {
 
   const locale = resolveAppLocale(await getLocale())
 
-  const feeUser = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: {
-      supplierFeeBps: true,
-      supplierFeeBpsCatalog: true,
-      supplierFeeBpsAutoBuy: true,
-    },
-  })
+  const [feeUser, trustSnapshot] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        supplierFeeBps: true,
+        supplierFeeBpsCatalog: true,
+        supplierFeeBpsAutoBuy: true,
+        supplierTrustTier: true,
+      },
+    }),
+    loadSupplierTrustSnapshot(session.user.id),
+  ])
+
+  const trustTier = coerceSupplierTrustTier(feeUser?.supplierTrustTier, false)
+  const displayTier = trustTier !== "NONE" ? trustTier : trustSnapshot.tier
 
   return (
     <main className="min-h-[calc(100dvh-3.75rem)] bg-zinc-50/50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50">
@@ -59,6 +69,12 @@ export default async function DashboardSupplierPage() {
           <SupplierInviteContextBanner />
 
           <AffisellPlatformFeesExplainer variant="compact" supplierOverrides={feeUser} />
+
+          <SupplierTrustLadderCard
+            tier={displayTier}
+            metrics={trustSnapshot.metrics}
+            locale={locale === "en" ? "en" : "fr"}
+          />
 
           {data.weeklyGoal && data.metrics7d.hasPriorPeriodData ? (
             <SupplierWeeklyGoalCard goal={data.weeklyGoal} locale={locale} />

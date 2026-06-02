@@ -27,7 +27,7 @@ import { ReviewsEngine } from "@/components/reviews/ReviewsEngine"
 
 import { FlexiblePaymentBadge } from "@/components/checkout/flexible-payment-badge"
 import { MarketplacePurchaseQuantity } from "@/components/marketplace/marketplace-purchase-quantity"
-import { VerifiedBadge } from "@/components/suppliers/verified-badge"
+import { SupplierTrustBadge } from "@/components/suppliers/supplier-trust-badge"
 import { Button } from "@/components/ui/button"
 import { MobilePdpBuyPanel } from "@/components/product/mobile-pdp-buy-panel"
 import { ProductMediaGallery } from "@/components/product/product-media-gallery"
@@ -145,6 +145,7 @@ type Props = {
   productSpecs?: SpecRow[]
   sellerLabel: string
   isVerifiedSupplier?: boolean
+  supplierTrustTier?: string | null
   storefront: StorefrontInfo | null
   gallery: string[]
   categories: string[]
@@ -374,6 +375,7 @@ export function MarketplaceListingDetail({
   productSpecs = [],
   sellerLabel,
   isVerifiedSupplier = false,
+  supplierTrustTier = null,
   storefront,
   tags,
   gallery,
@@ -989,9 +991,12 @@ export function MarketplaceListingDetail({
                   aria-hidden
                 />
                 <div className="pl-0 lg:pl-2">
-                  {isVerifiedSupplier ? (
-                    <VerifiedBadge className="mb-2" />
-                  ) : null}
+                  <SupplierTrustBadge
+                    tier={supplierTrustTier}
+                    isVerifiedSupplier={isVerifiedSupplier}
+                    className="mb-2"
+                    size="md"
+                  />
                 </div>
                 <h1 className="text-balance pl-0 lg:pl-2">
                   <span className="block text-[1.35rem] font-bold leading-[1.15] tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-[1.65rem]">

@@ -1,4 +1,9 @@
 import { prisma } from "@/lib/prisma"
+import { countSupplierSuccessfulOrders } from "@/lib/supplier/compute-supplier-trust-tier"
+import {
+  resolveSupplierTrustTier,
+  type SupplierTrustTier,
+} from "@/lib/supplier/supplier-trust-tier-shared"
 
 const LOOKBACK_DAYS = 90
 const SHIPPING_SLA_HOURS = 48
@@ -85,17 +90,35 @@ export async function runVerifySuppliersCron() {
   const { since90d, since48h } = buildCutoffs(now)
   const suppliers = await prisma.user.findMany({
     where: { role: "SUPPLIER" },
-    select: { id: true, isVerifiedSupplier: true },
+    select: { id: true, isVerifiedSupplier: true, supplierTrustTier: true },
   })
 
   let verifiedNow = 0
   let revokedNow = 0
+  let tierUpgrades = 0
+  let tierDowngrades = 0
 
   for (const supplier of suppliers) {
     const metrics = await computeSupplierMetrics(supplier.id, since90d, since48h)
-    const nextVerified = qualifies(metrics)
+    const successfulOrders = await countSupplierSuccessfulOrders(supplier.id)
+    const trustMetrics = {
+      successfulOrders,
+      rating: metrics.rating,
+      disputeRate: metrics.disputeRate,
+      shippingSla48h: metrics.shippingSLA48h,
+    }
+    const nextTier: SupplierTrustTier = resolveSupplierTrustTier(trustMetrics)
+    const nextVerified = qualifies(metrics) || nextTier !== "NONE"
+    const prevTier = (supplier.supplierTrustTier ?? "NONE") as SupplierTrustTier
+
     if (nextVerified && !supplier.isVerifiedSupplier) verifiedNow += 1
     if (!nextVerified && supplier.isVerifiedSupplier) revokedNow += 1
+    if (nextTier !== prevTier) {
+      const rank = (t: SupplierTrustTier) =>
+        t === "ORBITAL" ? 3 : t === "FORGE" ? 2 : t === "SPARK" ? 1 : 0
+      if (rank(nextTier) > rank(prevTier)) tierUpgrades += 1
+      else tierDowngrades += 1
+    }
 
     await prisma.$transaction([
       prisma.user.update({
@@ -103,7 +126,11 @@ export async function runVerifySuppliersCron() {
         data: {
           isVerifiedSupplier: nextVerified,
           verifiedAt: nextVerified ? (supplier.isVerifiedSupplier ? undefined : now) : null,
-          supplierMetrics: metrics,
+          supplierMetrics: { ...metrics, successfulOrders },
+          supplierTrustTier: nextTier,
+          supplierTrustTierAt:
+            nextTier === "NONE" ? null : nextTier !== prevTier ? now : undefined,
+          supplierSuccessfulOrders: successfulOrders,
         },
       }),
       prisma.auditLog.create({
@@ -113,6 +140,9 @@ export async function runVerifySuppliersCron() {
           entityId: supplier.id,
           payload: {
             metrics,
+            successfulOrders,
+            trustTier: nextTier,
+            previousTrustTier: prevTier,
             verified: nextVerified,
             threshold: {
               minRating: MIN_RATING,
@@ -128,6 +158,8 @@ export async function runVerifySuppliersCron() {
     console.log("[verify-suppliers]", {
       supplierId: supplier.id,
       verified: nextVerified,
+      trustTier: nextTier,
+      successfulOrders,
       metrics,
     })
   }
@@ -136,6 +168,8 @@ export async function runVerifySuppliersCron() {
     scanned: suppliers.length,
     verifiedNow,
     revokedNow,
+    tierUpgrades,
+    tierDowngrades,
     at: now.toISOString(),
   }
 }

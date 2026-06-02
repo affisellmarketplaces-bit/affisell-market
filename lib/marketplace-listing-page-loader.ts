@@ -80,6 +80,7 @@ export const listingDetailSelect = {
         select: {
           name: true,
           isVerifiedSupplier: true,
+          supplierTrustTier: true,
         },
       },
     },

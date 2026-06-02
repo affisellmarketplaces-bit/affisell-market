@@ -274,7 +274,13 @@ export default async function MarketplaceListingPage({
   if (aggregateRating && productJsonLd && typeof productJsonLd === "object") {
     ;(productJsonLd as Record<string, unknown>).aggregateRating = aggregateRating
   }
-  if (listing.product.supplier.isVerifiedSupplier && productJsonLd && typeof productJsonLd === "object") {
+  if (
+    (listing.product.supplier.isVerifiedSupplier ||
+      (listing.product.supplier.supplierTrustTier &&
+        listing.product.supplier.supplierTrustTier !== "NONE")) &&
+    productJsonLd &&
+    typeof productJsonLd === "object"
+  ) {
     ;(productJsonLd as Record<string, unknown>).brand = {
       "@type": "Brand",
       name: listing.product.supplier.name?.trim() || "Affisell+ Supplier",
@@ -309,6 +315,7 @@ export default async function MarketplaceListingPage({
           productSpecs={productSpecs}
           sellerLabel={sellerLabel}
           isVerifiedSupplier={listing.product.supplier.isVerifiedSupplier}
+          supplierTrustTier={listing.product.supplier.supplierTrustTier}
           storefront={storefront}
           gallery={gallery}
           categories={categories}

@@ -27,6 +27,11 @@ model User {
   verifiedAt         DateTime?
   /** Rolling 90-day quality metrics snapshot { rating, disputeRate, shippingSLA48h }. */
   supplierMetrics    Json?
+  /** Trust ladder: NONE | SPARK | FORGE | ORBITAL (1M+ orders = ORBITAL blue badge). */
+  supplierTrustTier       String   @default("NONE")
+  supplierTrustTierAt     DateTime?
+  /** Cached successful paid orders count (recomputed by verify-suppliers cron). */
+  supplierSuccessfulOrders Int     @default(0)
   stripeCustomerId     String?   @unique
   stripeSubscriptionId String?   @unique
   /** Stripe Connect Express/Standard account for marketplace seller payouts. */
