@@ -79,7 +79,7 @@ export function MarketplaceBuyerAuthForm({
       window.location.assign(returnTo)
       return
     }
-    setError(credentialsSignInErrorMessage(res?.code, t) ?? t("invalidCredentials"))
+    setError(credentialsSignInErrorMessage(res?.code, res?.error, t) ?? t("invalidCredentials"))
   }
 
   const title = mode === "login" ? tBuyer("loginTitle") : tBuyer("signupTitle")

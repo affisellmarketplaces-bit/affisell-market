@@ -77,7 +77,7 @@ export function PortalSignInForm({
       window.location.assign(signInCallback)
       return
     }
-    setError(credentialsSignInErrorMessage(res?.code, t) ?? t("invalidCredentials"))
+    setError(credentialsSignInErrorMessage(res?.code, res?.error, t) ?? t("invalidCredentials"))
   }
 
   return (
