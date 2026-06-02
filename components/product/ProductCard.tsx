@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Heart } from "lucide-react"
+import { Heart, Sparkles } from "lucide-react"
 
 import { ProductDiscountTag } from "@/components/product-discount-tag"
 import { ProductPriceOffer } from "@/components/product/product-price-offer"
@@ -34,6 +34,8 @@ export type ProductCardProduct = {
   stock?: number
   averageRating?: number
   reviewCount?: number
+  isSponsored?: boolean
+  sponsorPlacement?: string | null
 }
 
 type ProductCardProps = {
@@ -112,6 +114,11 @@ function coerceProduct(p: ProductCardProps["product"]) {
     stock,
     averageRating,
     reviewCount,
+    isSponsored: Boolean(o.isSponsored),
+    sponsorPlacement:
+      typeof o.sponsorPlacement === "string" && o.sponsorPlacement.trim()
+        ? o.sponsorPlacement.trim()
+        : null,
   }
 }
 
@@ -256,7 +263,12 @@ export function ProductCard({ product, mode = "customer", href: hrefProp }: Prod
         {!showBusiness && p.soldCount != null ? (
           <ProductSalesBadge count={p.soldCount} variant="overlay" />
         ) : null}
-        {p.isBestSeller ? (
+        {p.isSponsored ? (
+          <Badge className="absolute bottom-2 left-2 z-10 gap-1 rounded-full border-0 bg-gradient-to-r from-violet-600 to-cyan-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-lg shadow-violet-900/40 hover:from-violet-500 hover:to-cyan-400">
+            <Sparkles className="size-3" aria-hidden />
+            Promote
+          </Badge>
+        ) : p.isBestSeller ? (
           <Badge className="absolute bottom-2 left-2 z-10 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm hover:bg-amber-500">
             Best Seller
           </Badge>

@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation"
 import { useTranslations } from "next-intl"
-import { Handshake, LayoutDashboard, Package, ShoppingCart } from "lucide-react"
+import { Handshake, LayoutDashboard, Package, Rocket, ShoppingCart } from "lucide-react"
 
 import { LocaleSwitcher } from "@/components/locale-switcher"
 import { FastLink } from "@/components/navigation/fast-link"
@@ -24,6 +24,7 @@ export function NavSupplier() {
   const onOrders = pathname.startsWith("/dashboard/supplier/orders")
   const onProducts = pathname.startsWith("/dashboard/supplier/products")
   const onInviteAffiliate = pathname.startsWith("/dashboard/supplier/invite-affiliate")
+  const onPromote = pathname.startsWith("/dashboard/supplier/promote")
 
   return (
     <nav
@@ -41,6 +42,13 @@ export function NavSupplier() {
         <NavPill href="/dashboard/supplier" label={t("dashboard")} icon={LayoutDashboard} active={onDashboard} />
         <NavPill href="/dashboard/supplier/orders" label={t("orders")} icon={ShoppingCart} active={onOrders} />
         <NavPill href="/dashboard/supplier/products" label={t("products")} icon={Package} active={onProducts} />
+        <NavPill
+          href="/dashboard/supplier/promote"
+          label="Promote"
+          shortLabel="Boost"
+          icon={Rocket}
+          active={onPromote}
+        />
         <NavPill
           href="/dashboard/supplier/invite-affiliate"
           label={t("inviteAffiliate")}

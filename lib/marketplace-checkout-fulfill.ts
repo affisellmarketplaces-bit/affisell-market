@@ -1,5 +1,6 @@
 import type Stripe from "stripe"
 
+import { SPONSOR_FLOW_METADATA } from "@/lib/sponsor/sponsor-constants"
 import { extractMarketplaceCheckoutCustomer } from "@/lib/marketplace-checkout-session"
 import { fulfillMarketplaceStripeSession } from "@/lib/stripe-marketplace-fulfill"
 import { syncOrderVatFromCheckoutSession } from "@/lib/stripe-sync-order-vat-from-session"
@@ -11,6 +12,7 @@ export async function ensureMarketplaceCheckoutFulfilled(
 ): Promise<void> {
   if (session.mode !== "payment" || session.payment_status !== "paid") return
   if (session.metadata?.flow === "blind_dropship") return
+  if (session.metadata?.flow === SPONSOR_FLOW_METADATA) return
 
   const { customerEmail, shippingAddress } = extractMarketplaceCheckoutCustomer(session)
 

@@ -128,6 +128,8 @@ model User {
 
   /** Swipe Feed — like / skip decisions on catalog products. */
   affiliateSwipes AffiliateSwipe[]
+
+  sponsorCampaigns SponsorCampaign[] @relation("SponsorCampaignPayer")
 }
 
 model AuditLog {
@@ -505,6 +507,7 @@ model Product {
   supplier                User                     @relation("SupplierProducts", fields: [supplierId], references: [id])
   affiliateProducts       AffiliateProduct[]
   affiliateSwipes         AffiliateSwipe[]
+  sponsorCampaigns      SponsorCampaign[]
   attributes              ProductAttribute[]
   orders                  Order[]
   blindDropshipOrderItems BlindDropshipOrderItem[]
@@ -915,9 +918,44 @@ model AffiliateProduct {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
+  sponsorCampaigns SponsorCampaign[]
+
   @@unique([affiliateId, productId])
   @@unique([affiliateId, customSlug])
   @@index([luxuryTier, isListed])
+}
+
+/**
+ * Paid product placement — supplier or affiliate funds visibility via % of catalog HT (`basePriceCents`).
+ */
+model SponsorCampaign {
+  id                 String    @id @default(cuid())
+  payerUserId        String
+  payerRole          String
+  productId          String
+  affiliateProductId String?
+  sponsorRateBps     Int
+  htCentsSnapshot    Int
+  feeCents           Int
+  durationDays       Int
+  placement          String
+  status             String    @default("PENDING_PAYMENT")
+  boostScore         Int       @default(0)
+  setsListingFeatured Boolean  @default(false)
+  startsAt           DateTime?
+  endsAt             DateTime?
+  stripeCheckoutSessionId String? @unique
+  stripePaymentIntentId   String? @unique
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  payer            User              @relation("SponsorCampaignPayer", fields: [payerUserId], references: [id], onDelete: Cascade)
+  product          Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  affiliateProduct AffiliateProduct? @relation(fields: [affiliateProductId], references: [id], onDelete: SetNull)
+
+  @@index([status, endsAt])
+  @@index([affiliateProductId, status])
+  @@index([productId, status, payerRole])
 }
 
 /** Curated luxury collection — listings must have `luxuryTier = COLLECTION` + this id. */

@@ -20,6 +20,10 @@ import { prisma } from "@/lib/prisma"
 import { normalizeListingSalesCount } from "@/lib/listing-sales-count"
 import { publicStoreLabelFromAffiliateRow } from "@/lib/public-seller-display"
 import { marketplaceProductFilterFromSearchParams } from "@/lib/marketplace-listing-filters"
+import {
+  loadActiveSponsorBoostByListingId,
+  sortListingsBySponsorBoost,
+} from "@/lib/sponsor/sponsor-marketplace-rank"
 
 export const listingMarketplaceInclude = {
   product: {
@@ -116,6 +120,8 @@ export function serializeMarketplaceListing(
       options?.locale ?? "fr"
     ),
     soldCount: normalizeListingSalesCount(row.conversions),
+    isSponsored: false,
+    sponsorPlacement: null as string | null,
   }
 
   if (options?.lite) {
@@ -259,13 +265,23 @@ export async function fetchMarketplaceListings(
       ? await fetchRows(searchHits.map((h) => h.listingId))
       : await fetchRows()
 
+  const sponsorBoostMap = await loadActiveSponsorBoostByListingId()
+  const rankedRows = sortListingsBySponsorBoost(rows, sponsorBoostMap)
+
   if (lite) {
-    return (rows as MarketplaceListingRowLite[]).map((row) =>
-      serializeMarketplaceListing(row, { lite: true })
-    )
+    return (rankedRows as MarketplaceListingRowLite[]).map((row) => {
+      const boost = sponsorBoostMap.get(row.id)
+      const serialized = serializeMarketplaceListing(row, { lite: true })
+      if (!boost) return serialized
+      return {
+        ...serialized,
+        isSponsored: true,
+        sponsorPlacement: boost.placement,
+      }
+    })
   }
 
-  const fullRows = rows as MarketplaceListingRow[]
+  const fullRows = rankedRows as MarketplaceListingRow[]
   const variantProductIds = [
     ...new Set(fullRows.filter((r) => r.product.hasVariants).map((r) => r.product.id)),
   ]
@@ -283,14 +299,21 @@ export async function fetchMarketplaceListings(
     variantsByProductId.set(variant.productId, list)
   }
 
-  return fullRows.map((row) => {
+  return (rankedRows as MarketplaceListingRow[]).map((row) => {
     const productVariants = variantsByProductId.get(row.product.id)
     const warrantyMonths = resolveProductWarrantyMonths({
       variants: row.product.variants,
       hasVariants: row.product.hasVariants,
       productVariants,
     })
-    return serializeMarketplaceListing(row, { warrantyMonths })
+    const serialized = serializeMarketplaceListing(row, { warrantyMonths })
+    const boost = sponsorBoostMap.get(row.id)
+    if (!boost) return serialized
+    return {
+      ...serialized,
+      isSponsored: true,
+      sponsorPlacement: boost.placement,
+    }
   })
 }
 

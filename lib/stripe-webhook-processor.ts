@@ -24,6 +24,10 @@ import {
   activateProFromCheckoutSession,
   deactivateProFromSubscription,
 } from "@/lib/stripe-pro"
+import {
+  activateSponsorCampaignFromCheckout,
+  isSponsorCheckoutSession,
+} from "@/lib/sponsor/activate-sponsor-campaign"
 import { inngest } from "@/inngest/client"
 
 export type WebhookProcessResult = {
@@ -159,6 +163,11 @@ async function processCheckoutSessionCompleted(
   if (session.mode === "subscription" && session.payment_status === "paid") {
     await activateProFromCheckoutSession(session)
     return { orderId: session.metadata?.orderId ?? null, status: "success", error: null }
+  }
+
+  if (session.mode === "payment" && session.payment_status === "paid" && isSponsorCheckoutSession(session)) {
+    await activateSponsorCampaignFromCheckout(session, tx)
+    return { orderId: null, status: "success", error: null }
   }
 
   if (session.mode === "payment" && session.payment_status === "paid") {

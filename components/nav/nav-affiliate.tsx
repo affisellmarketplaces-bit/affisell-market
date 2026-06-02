@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation"
 import { Suspense } from "react"
 import { useTranslations } from "next-intl"
-import { Handshake, LayoutDashboard, Layers, Palette, Store, Wallet } from "lucide-react"
+import { Handshake, LayoutDashboard, Layers, Palette, Rocket, Store, Wallet } from "lucide-react"
 
 import { LocaleSwitcher } from "@/components/locale-switcher"
 import { FastLink } from "@/components/navigation/fast-link"
@@ -65,6 +65,7 @@ export function NavAffiliate() {
   const onEarnings = pathname.startsWith("/dashboard/affiliate/earnings")
   const onInviteSupplier = pathname.startsWith("/dashboard/affiliate/invite-supplier")
   const onBrandStudio = pathname.startsWith("/dashboard/affiliate/brand-studio")
+  const onPromote = pathname.startsWith("/dashboard/affiliate/promote")
   const onDashboard =
     pathname === "/dashboard/affiliate" ||
     (pathname.startsWith("/dashboard/affiliate/") &&
@@ -73,7 +74,8 @@ export function NavAffiliate() {
       !onHub &&
       !onAgent &&
       !onInviteSupplier &&
-      !onBrandStudio)
+      !onBrandStudio &&
+      !onPromote)
 
   return (
     <nav
@@ -114,6 +116,13 @@ export function NavAffiliate() {
           shortLabel="Swipe"
           icon={Layers}
           active={onHub}
+        />
+        <NavPill
+          href="/dashboard/affiliate/promote"
+          label="Promote"
+          shortLabel="Boost"
+          icon={Rocket}
+          active={onPromote}
         />
         <NavPill
           href="/dashboard/affiliate"

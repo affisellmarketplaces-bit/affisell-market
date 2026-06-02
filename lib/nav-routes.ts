@@ -22,12 +22,14 @@ export const AFFILIATE_WARM_ROUTES = [
   AFFILIATE_CATALOG_PATH,
   AFFILIATE_AGENT_PATH,
   "/dashboard/affiliate/earnings",
+  "/dashboard/affiliate/promote",
 ] as const
 
 export const SUPPLIER_WARM_ROUTES = [
   "/dashboard/supplier",
   "/dashboard/supplier/products",
   "/dashboard/supplier/orders",
+  "/dashboard/supplier/promote",
 ] as const
 
 /** Quick navigation catalog lives in `@/lib/command-k-catalog`. */
