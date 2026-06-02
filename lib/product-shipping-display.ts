@@ -5,7 +5,13 @@ const COUNTRY_LABEL: Record<string, string> = {
   IT: "Italy",
   US: "United States",
   CN: "China",
-  UK: "United Kingdom",
+  GB: "United Kingdom",
+  BE: "Belgium",
+  NL: "Netherlands",
+  PT: "Portugal",
+  CH: "Switzerland",
+  CA: "Canada",
+  PL: "Poland",
 }
 
 export function shippingCountryLabel(code: string | null | undefined): string {

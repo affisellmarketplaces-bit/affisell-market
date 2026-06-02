@@ -1,67 +1,89 @@
-import type { Metadata } from "next"
 import Link from "next/link"
+import { getLocale, getTranslations } from "next-intl/server"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
+import { ShippingCarrierDirectory } from "@/components/shipping/shipping-carrier-directory"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-export const metadata: Metadata = {
-  title: "Livraison | Affisell",
-  description: "Délais de livraison Affisell, suivi colis et expédition sécurisée.",
+export async function generateMetadata() {
+  const t = await getTranslations("shipping")
+  return { title: t("metaTitle") }
 }
 
-export default function ShippingPage() {
+export default async function ShippingPage() {
+  const t = await getTranslations("shipping")
+  const locale = (await getLocale()) === "en" ? "en" : "fr"
+
+  const carrierLabels = {
+    title: t("carriersTitle"),
+    subtitle: t("carriersSubtitle"),
+    originLabel: t("originLabel"),
+    destinationLabel: t("destinationLabel"),
+    reliability: t("reliability"),
+    popular: t("popular"),
+    eta: t("eta"),
+    etaUnit: t("etaUnit"),
+    empty: t("empty"),
+    tierPremium: t("tierPremium"),
+    tierStandard: t("tierStandard"),
+    tierEconomy: t("tierEconomy"),
+    tagExpress: t("tagExpress"),
+    tagTracked: t("tagTracked"),
+    tagPickup: t("tagPickup"),
+    tagInternational: t("tagInternational"),
+    tagLastMile: t("tagLastMile"),
+    tagMarketplace: t("tagMarketplace"),
+    routeSummary: t("routeSummary"),
+  }
+
   return (
     <BentoShell>
       <BentoContainer maxWidth="4xl" className="space-y-8 py-12">
-        <BentoPageHeading
-          eyebrow="Livraison"
-          title="Livraison & suivi"
-          description="Expédition par nos partenaires fournisseurs — suivi et notifications automatiques à chaque étape."
-        />
+        <BentoPageHeading eyebrow={t("eyebrow")} title={t("title")} description={t("description")} />
+
+        <ShippingCarrierDirectory locale={locale} labels={carrierLabels} />
 
         <BentoCard className="space-y-4 p-6">
-          <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Délais indicatifs</h2>
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{t("delaysTitle")}</h2>
           <ul className="list-disc space-y-2 pl-5 text-sm text-zinc-700 dark:text-zinc-300">
             <li>
-              <strong>France &amp; UE :</strong> 3 à 7 jours ouvrés après expédition (selon produit et entrepôt).
+              <strong>{t("delayEu")}</strong>
             </li>
-            <li>
-              <strong>International :</strong> 7 à 14 jours ouvrés — douanes éventuelles à la charge de l&apos;acheteur.
-            </li>
-            <li>Le délai exact est affiché sur la fiche produit avant paiement.</li>
+            <li>{t("delayIntl")}</li>
+            <li>{t("delayProduct")}</li>
           </ul>
         </BentoCard>
 
         <BentoCard className="space-y-4 p-6">
-          <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Suivi automatique</h2>
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{t("trackingTitle")}</h2>
           <ol className="list-decimal space-y-2 pl-5 text-sm text-zinc-700 dark:text-zinc-300">
-            <li>E-mail de confirmation dès le paiement validé (Stripe).</li>
-            <li>E-mail d&apos;expédition avec numéro de suivi transporteur.</li>
-            <li>E-mail à la livraison + rappel avis J+7.</li>
+            <li>{t("tracking1")}</li>
+            <li>{t("tracking2")}</li>
+            <li>{t("tracking3")}</li>
           </ol>
           <div className="flex flex-wrap gap-3 pt-2">
             <Link href="/track-order" className={cn(buttonVariants({ variant: "bentoSolid", size: "bento" }))}>
-              Suivre ma commande
+              {t("trackCta")}
             </Link>
-            <Link href="/marketplace/account/orders" className={cn(buttonVariants({ variant: "bentoOutline", size: "bento" }))}>
-              Mes commandes
+            <Link
+              href="/marketplace/account/orders"
+              className={cn(buttonVariants({ variant: "bentoOutline", size: "bento" }))}
+            >
+              {t("ordersCta")}
             </Link>
           </div>
         </BentoCard>
 
         <BentoCard className="space-y-3 p-6">
-          <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Retard ou colis manquant ?</h2>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Si le délai affiché est dépassé sans tracking, notre système Ship Pulse peut annuler et rembourser
-            automatiquement. Sinon, consultez l&apos;assistant support ou la FAQ.
-          </p>
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{t("issueTitle")}</h2>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">{t("issueBody")}</p>
           <div className="flex flex-wrap gap-3">
             <Link href="/support" className={cn(buttonVariants({ variant: "bentoAccent", size: "bento" }))}>
-              Assistant support
+              {t("supportCta")}
             </Link>
             <Link href="/faq" className={cn(buttonVariants({ variant: "bentoOutline", size: "bento" }))}>
-              FAQ
+              {t("faqCta")}
             </Link>
           </div>
         </BentoCard>
