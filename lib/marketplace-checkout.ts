@@ -26,6 +26,7 @@ import {
   variantsFromDb,
 } from "@/lib/product-variants"
 import { stripeProductImages } from "@/lib/product-images"
+import { marketplaceCheckoutPaymentSessionOptions } from "@/lib/marketplace-checkout-payment-methods"
 import {
   buildHtLineItem,
   marketplaceCheckoutTaxOptions,
@@ -251,7 +252,7 @@ async function checkoutFromItems(
 
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "payment",
-    payment_method_types: ["card"],
+    ...marketplaceCheckoutPaymentSessionOptions(),
     line_items: stripeLineItems,
     ...marketplaceCheckoutTaxOptions(),
     success_url: `${baseUrl}${successPath}`,
@@ -421,7 +422,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
 
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "payment",
-    payment_method_types: ["card"],
+    ...marketplaceCheckoutPaymentSessionOptions(),
     line_items: stripeLineItems,
     ...marketplaceCheckoutTaxOptions(),
     success_url: `${baseUrl}${successPath}`,

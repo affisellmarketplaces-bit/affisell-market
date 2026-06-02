@@ -342,6 +342,14 @@
       }
     }
   },
+  "checkout": {
+    "flexiblePayment": {
+      "title": "Flexible checkout",
+      "installments": "or {count}× {amount} interest-free",
+      "footnote": "Klarna on secure Stripe checkout · eligibility depends on your profile",
+      "cardAlso": "Card"
+    }
+  },
   "cart": {
     "title": "Cart",
     "loading": "Loading cart…",

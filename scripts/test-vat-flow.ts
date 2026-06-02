@@ -18,6 +18,7 @@ config({ path: resolve(process.cwd(), ".env.local") })
 config({ path: resolve(process.cwd(), ".env") })
 
 import { calculateRefundSplit, calculateSplit, COMMISSION_RATE } from "../lib/commission"
+import { marketplaceCheckoutPaymentSessionOptions } from "../lib/marketplace-checkout-payment-methods"
 import { marketplaceCheckoutTaxOptions } from "../lib/marketplace-stripe-checkout"
 import { prisma } from "../lib/prisma"
 import { getStripeClient } from "../lib/stripe"
@@ -204,7 +205,7 @@ async function createCheckoutSession(args: {
 
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
-    payment_method_types: ["card"],
+    ...marketplaceCheckoutPaymentSessionOptions(),
     line_items: [
       {
         price_data: {

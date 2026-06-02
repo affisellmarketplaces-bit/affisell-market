@@ -342,6 +342,14 @@
       }
     }
   },
+  "checkout": {
+    "flexiblePayment": {
+      "title": "Paiement flexible",
+      "installments": "ou {count}× {amount} sans frais",
+      "footnote": "Klarna au paiement sécurisé Stripe · éligibilité selon votre profil",
+      "cardAlso": "Carte bancaire"
+    }
+  },
   "cart": {
     "title": "Panier",
     "loading": "Chargement du panier…",

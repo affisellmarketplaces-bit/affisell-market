@@ -25,6 +25,7 @@ import { Fragment, Suspense, useEffect, useMemo, useRef, useState, type MouseEve
 
 import { ReviewsEngine } from "@/components/reviews/ReviewsEngine"
 
+import { FlexiblePaymentBadge } from "@/components/checkout/flexible-payment-badge"
 import { MarketplacePurchaseQuantity } from "@/components/marketplace/marketplace-purchase-quantity"
 import { VerifiedBadge } from "@/components/suppliers/verified-badge"
 import { Button } from "@/components/ui/button"
@@ -1091,6 +1092,11 @@ export function MarketplaceListingDetail({
                 </span>
               ) : null}
             </div>
+            <FlexiblePaymentBadge
+              amountCents={buyNowLineSubtotalCents}
+              compact
+              className="mt-3 lg:hidden"
+            />
             </div>
 
             <div className="listing-price-card-sheen relative max-w-full overflow-hidden rounded-2xl border border-zinc-200/80 bg-gradient-to-br from-white via-violet-50/30 to-white p-4 shadow-sm dark:border-zinc-700/80 dark:from-zinc-900 dark:via-violet-950/20 dark:to-zinc-950 sm:p-5 max-lg:hidden">
@@ -1115,6 +1121,7 @@ export function MarketplaceListingDetail({
                       </span>
                     </p>
                   ) : null}
+                  <FlexiblePaymentBadge amountCents={buyNowLineSubtotalCents} className="mt-3" />
                 </div>
 
                 <div className="flex min-w-0 flex-col justify-center gap-2 border-t border-zinc-200/70 pt-3 min-[420px]:w-[10.25rem] min-[420px]:shrink-0 min-[420px]:border-l min-[420px]:border-t-0 min-[420px]:pl-5 min-[420px]:pt-0 dark:border-zinc-700/80">

@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl"
 import type { CSSProperties } from "react"
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react"
 
+import { FlexiblePaymentBadge } from "@/components/checkout/flexible-payment-badge"
 import { CartCheckoutAutoOpen } from "@/components/cart/cart-checkout-auto-open"
 import { COLORS, isMulticolorSwatch } from "@/lib/product-catalog-constants"
 import { normalizeCartVariantSignature, parseCartVariantSignature } from "@/lib/cart-variant"
@@ -589,6 +590,7 @@ export default function CartPage() {
               {t("emailOrPhoneBeforePayment")}
             </p>
           ) : null}
+          <FlexiblePaymentBadge amountCents={subtotalCents} className="mb-4" />
           <button
             type="button"
             disabled={checkoutBusy}
