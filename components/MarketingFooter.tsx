@@ -6,8 +6,8 @@ export async function MarketingFooter() {
   const t = await getTranslations("footer")
 
   return (
-    <footer className="border-t border-gray-100 pt-12 dark:border-gray-800">
-      <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+    <footer className="affisell-site-footer mt-auto shrink-0 border-t border-gray-100 dark:border-gray-800">
+      <div className="affisell-site-footer__pad grid gap-8 px-4 pt-12 sm:px-6 lg:px-8 lg:pb-12">
         <div>
           <p className="font-bold text-zinc-900 dark:text-zinc-50">Affisell</p>
           <ul className="mt-4 space-y-2 text-sm text-zinc-600 dark:text-zinc-400">

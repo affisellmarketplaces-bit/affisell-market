@@ -14,4 +14,9 @@ describe("shouldHideMobileDock", () => {
     expect(shouldHideMobileDock("/marketplace")).toBe(false)
     expect(shouldHideMobileDock("/cart")).toBe(false)
   })
+
+  it("hides on auth flows", () => {
+    expect(shouldHideMobileDock("/login")).toBe(true)
+    expect(shouldHideMobileDock("/signup/supplier")).toBe(true)
+  })
 })

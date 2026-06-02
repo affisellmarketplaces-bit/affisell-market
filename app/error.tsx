@@ -55,7 +55,7 @@ export default function AppError({
   }, [error])
 
   return (
-    <main className="mx-auto flex min-h-[60vh] max-w-lg flex-col justify-center px-6 py-16">
+    <main className="affisell-error-main">
       <p className="text-xs font-semibold uppercase tracking-widest text-violet-600 dark:text-violet-400">
         {t.label}
       </p>

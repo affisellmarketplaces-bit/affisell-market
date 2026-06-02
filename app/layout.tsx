@@ -17,10 +17,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body className="affisell-mobile-shell affisell-epoxy-atmosphere min-h-screen text-gray-900 [font-family:Inter,system-ui] dark:text-zinc-50">
+      <body className="affisell-mobile-shell affisell-epoxy-atmosphere flex min-h-dvh flex-col text-gray-900 [font-family:Inter,system-ui] dark:text-zinc-50">
         <IntlAppProvider locale={locale} messages={messages} now={now}>
           <RootSessionShell>
-            <header className="affisell-global-site-header relative z-[200] px-3 pt-2 md:px-4 md:pt-3">
+            <header className="affisell-global-site-header relative z-[200] shrink-0 px-3 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-4 md:pt-3">
               <div className="affisell-header-shell relative mx-auto max-w-7xl overflow-visible">
                 <div className="affisell-header-mesh pointer-events-none absolute inset-0" aria-hidden />
                 <div className="relative z-[2]">
@@ -28,7 +28,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </div>
               </div>
             </header>
-            {children}
+            <div className="affisell-page-shell">{children}</div>
             <Footer />
           </RootSessionShell>
         </IntlAppProvider>

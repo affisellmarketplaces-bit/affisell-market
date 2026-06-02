@@ -22,8 +22,8 @@ export default function GlobalError({
 
   return (
     <html lang="fr">
-      <body className="min-h-dvh bg-zinc-50 text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-50">
-        <main className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center px-6 py-16">
+      <body className="min-h-dvh bg-zinc-50 pb-[max(1.5rem,env(safe-area-inset-bottom))] text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-50">
+        <main className="affisell-error-main min-h-dvh">
           <p className="text-xs font-semibold uppercase tracking-widest text-violet-600 dark:text-violet-400">
             Erreur
           </p>

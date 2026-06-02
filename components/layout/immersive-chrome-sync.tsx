@@ -3,19 +3,23 @@
 import { usePathname } from "next/navigation"
 import { useEffect } from "react"
 
-import { isImmersiveBuyerRoute } from "@/lib/mobile-chrome"
+import { isImmersiveBuyerRoute, shouldHideMobileDock } from "@/lib/mobile-chrome"
 
-const BODY_CLASS = "affisell-immersive-buyer"
+const BODY_IMMERSIVE_CLASS = "affisell-immersive-buyer"
+const BODY_DOCK_OFF_CLASS = "affisell-mobile-dock-off"
 
-/** Hides global header/footer on mobile for full-screen buyer routes (Pulse, Luxe, …). */
+/** Syncs body classes for immersive routes + mobile dock/footer spacing. */
 export function ImmersiveChromeSync() {
   const pathname = usePathname() ?? ""
 
   useEffect(() => {
     const immersive = isImmersiveBuyerRoute(pathname)
-    document.body.classList.toggle(BODY_CLASS, immersive)
+    const dockOff = immersive || shouldHideMobileDock(pathname)
+    document.body.classList.toggle(BODY_IMMERSIVE_CLASS, immersive)
+    document.body.classList.toggle(BODY_DOCK_OFF_CLASS, dockOff)
     return () => {
-      document.body.classList.remove(BODY_CLASS)
+      document.body.classList.remove(BODY_IMMERSIVE_CLASS)
+      document.body.classList.remove(BODY_DOCK_OFF_CLASS)
     }
   }, [pathname])
 

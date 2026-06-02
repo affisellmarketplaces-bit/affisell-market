@@ -17,7 +17,7 @@ export default function DashboardError({
   }, [error])
 
   return (
-    <main className="mx-auto max-w-lg px-6 py-16">
+    <main className="affisell-error-main">
       <p className="text-xs font-semibold uppercase tracking-widest text-violet-600 dark:text-violet-400">
         Dashboard error
       </p>

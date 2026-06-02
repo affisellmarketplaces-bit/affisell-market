@@ -41,9 +41,9 @@ export function Footer() {
   return (
     <footer
       role="contentinfo"
-      className="mt-auto border-t border-gray-800 bg-gray-900 text-gray-300"
+      className="affisell-site-footer mt-auto shrink-0 border-t border-gray-800 bg-gray-900 text-gray-300"
     >
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <div className="affisell-site-footer__pad mx-auto max-w-7xl px-4 pt-12 sm:px-6 lg:px-8 lg:pb-12">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <nav aria-labelledby="footer-affisell-heading">
             <h2 id="footer-affisell-heading" className="text-sm font-semibold uppercase tracking-wider text-white">

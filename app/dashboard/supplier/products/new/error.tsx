@@ -17,7 +17,7 @@ export default function SupplierNewProductError({
   }, [error])
 
   return (
-    <main className="mx-auto max-w-lg px-6 py-16">
+    <main className="affisell-error-main">
       <p className="text-xs font-semibold uppercase tracking-widest text-teal-700 dark:text-teal-400">
         Fiche produit
       </p>

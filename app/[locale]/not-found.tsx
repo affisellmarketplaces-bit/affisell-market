@@ -9,7 +9,7 @@ export default function LocaleNotFound() {
   const t = useTranslations("errors.notFound")
 
   return (
-    <main className="mx-auto flex min-h-[60vh] max-w-lg flex-col items-center justify-center px-6 py-16 text-center">
+    <main className="affisell-error-main items-center text-center">
       <Image
         src="/illustrations/empty-search.svg"
         alt=""
