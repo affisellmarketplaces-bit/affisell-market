@@ -3,8 +3,6 @@ export function credentialsSignInErrorKey(code: string | undefined): string | nu
   switch (code) {
     case "supplier_on_affiliate_portal":
     case "affiliate_on_supplier_portal":
-    case "non_customer_on_customer_portal":
-      return t("non_customer_on_customer_portal")
     case "non_affiliate_on_affiliate_portal":
     case "non_supplier_on_supplier_portal":
     case "non_customer_on_customer_portal":
