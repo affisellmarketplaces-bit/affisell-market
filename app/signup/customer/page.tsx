@@ -21,8 +21,11 @@ function CustomerSignupForm() {
   const shopSlug = search.get("shop")?.trim() || null
   const rawCallback = search.get("callbackUrl")
   const returnTo = sanitizeInternalCallbackUrl(rawCallback) ?? (shopSlug ? `/shops/${shopSlug}` : "/marketplace/account")
+  const [buyerType, setBuyerType] = useState<"INDIVIDUAL" | "PROFESSIONAL">("INDIVIDUAL")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [companyName, setCompanyName] = useState("")
+  const [siret, setSiret] = useState("")
   const [termsChecked, setTermsChecked] = useState(false)
   const [privacyChecked, setPrivacyChecked] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -36,10 +39,24 @@ function CustomerSignupForm() {
     }
     setLoading(true)
     setError(null)
+    if (buyerType === "PROFESSIONAL" && siret.replace(/\D/g, "").length !== 14) {
+      setError("SIRET à 14 chiffres requis pour un compte professionnel.")
+      setLoading(false)
+      return
+    }
     const res = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, role: "CUSTOMER", acceptTerms: true, acceptPrivacy: true }),
+      body: JSON.stringify({
+        email,
+        password,
+        role: "CUSTOMER",
+        buyerAccountType: buyerType,
+        name: buyerType === "PROFESSIONAL" ? companyName.trim() || undefined : undefined,
+        siret: buyerType === "PROFESSIONAL" ? siret : undefined,
+        acceptTerms: true,
+        acceptPrivacy: true,
+      }),
     })
     const data = (await res.json()) as { error?: string }
     if (!res.ok) {
@@ -71,6 +88,64 @@ function CustomerSignupForm() {
 
         <div className="rounded-2xl bg-white p-8 shadow-sm">
           <form onSubmit={onSubmit} className="space-y-5">
+            <div>
+              <p className="mb-2 text-sm font-medium text-gray-700">Type de compte</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setBuyerType("INDIVIDUAL")}
+                  className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition ${
+                    buyerType === "INDIVIDUAL"
+                      ? "border-blue-600 bg-blue-50 text-blue-900"
+                      : "border-gray-200 text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  Particulier
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBuyerType("PROFESSIONAL")}
+                  className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition ${
+                    buyerType === "PROFESSIONAL"
+                      ? "border-blue-600 bg-blue-50 text-blue-900"
+                      : "border-gray-200 text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  Professionnel
+                </button>
+              </div>
+            </div>
+            {buyerType === "PROFESSIONAL" ? (
+              <>
+                <div>
+                  <label htmlFor="customer-company" className="mb-1.5 block text-sm font-medium text-gray-700">
+                    Raison sociale
+                  </label>
+                  <input
+                    id="customer-company"
+                    type="text"
+                    required
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    className="w-full rounded-xl border border-gray-300 px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-600"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="customer-siret" className="mb-1.5 block text-sm font-medium text-gray-700">
+                    SIRET
+                  </label>
+                  <input
+                    id="customer-siret"
+                    type="text"
+                    required
+                    inputMode="numeric"
+                    value={siret}
+                    onChange={(e) => setSiret(e.target.value.replace(/\D/g, "").slice(0, 14))}
+                    className="w-full rounded-xl border border-gray-300 px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-600"
+                  />
+                </div>
+              </>
+            ) : null}
             <div>
               <label htmlFor="customer-email" className="mb-1.5 block text-sm font-medium text-gray-700">
                 Email

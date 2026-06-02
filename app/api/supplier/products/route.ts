@@ -22,6 +22,7 @@ import {
   validateVisibleCategoryAttributes,
 } from "@/lib/category-attribute-rules"
 import { normalizeLeafCategoryId } from "@/lib/category-leaf-guard"
+import { merchantVerificationGate } from "@/lib/merchant-legal/require-merchant-verified"
 import { requireMerchantUserId } from "@/lib/merchant-tenant-scope"
 import { onSupplierProductPublishedFromInvite } from "@/lib/supplier-invitation"
 import { parseListingKind } from "@/lib/supplier-commission"
@@ -73,6 +74,16 @@ export async function POST(req: Request) {
 
   const body = await req.json()
   const saveAsDraft = Boolean((body as Record<string, unknown>).saveAsDraft)
+
+  if (!saveAsDraft) {
+    const gate = await merchantVerificationGate(session.user.id)
+    if (!gate.allowed) {
+      return Response.json(
+        { error: "merchant_verification_pending", verificationStatus: gate.status },
+        { status: 403 }
+      )
+    }
+  }
   const {
     name,
     basePriceCents: basePriceCentsRaw,

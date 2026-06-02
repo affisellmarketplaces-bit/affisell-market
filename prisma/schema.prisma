@@ -135,6 +135,85 @@ model User {
   affiliateSwipes AffiliateSwipe[]
 
   sponsorCampaigns SponsorCampaign[] @relation("SponsorCampaignPayer")
+
+  /** KYC / legal onboarding for SUPPLIER & AFFILIATE (status + documents). */
+  merchantLegalProfile MerchantLegalProfile?
+
+  /**
+   * CUSTOMER checkout account: INDIVIDUAL (particulier) or PROFESSIONAL (facturation pro).
+   */
+  buyerAccountType String?
+}
+
+/**
+ * Merchant legal status + verification (supplier / affiliate signup).
+ */
+model MerchantLegalProfile {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /**
+   * PARTICULIER | AUTO_ENTREPRENEUR | EI_PROFESSIONAL | COMPANY | ASSOCIATION | FOREIGN
+   */
+  legalStatus        String
+  /**
+   * PENDING_REVIEW | APPROVED | REJECTED | NEEDS_MORE_INFO
+   */
+  verificationStatus String   @default("PENDING_REVIEW")
+  legalEntityName    String?
+  tradeName          String?
+  siret              String?
+  vatNumber          String?
+  rnaNumber          String?
+  countryCode        String   @default("FR")
+  submittedAt        DateTime @default(now())
+  reviewedAt         DateTime?
+  rejectionReason    String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  documents MerchantLegalDocument[]
+
+  @@index([verificationStatus])
+  @@index([legalStatus])
+}
+
+model MerchantLegalDocument {
+  id            String   @id @default(cuid())
+  profileId     String
+  profile       MerchantLegalProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  /**
+   * IDENTITY_FRONT | IDENTITY_BACK | KBIS_OR_INSEE | SIRET_ATTESTATION | VAT_CERTIFICATE |
+   * COMPANY_STATUTES | PROOF_OF_ADDRESS | FOREIGN_REGISTRATION | RNA_RECEIPT | ASSOCIATION_STATUTES
+   */
+  documentType  String
+  fileUrl       String
+  fileName      String?
+  mimeType      String?
+  fileSizeBytes Int?
+  uploadedAt    DateTime @default(now())
+
+  @@unique([profileId, documentType])
+  @@index([profileId])
+}
+
+/**
+ * Pre-signup document uploads (claimed on account creation, then deleted).
+ */
+model SignupDocumentDraft {
+  id            String   @id @default(cuid())
+  draftId       String
+  documentType  String
+  fileUrl       String
+  fileName      String?
+  mimeType      String?
+  fileSizeBytes Int?
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+
+  @@unique([draftId, documentType])
+  @@index([draftId])
+  @@index([expiresAt])
 }
 
 model AuditLog {

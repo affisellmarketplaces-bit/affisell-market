@@ -2,11 +2,24 @@ import { NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 
 import { rateLimitClientKey, rateLimitResponse } from "@/lib/api-rate-limit"
+import { logBusiness } from "@/lib/business-log"
 import { prisma } from "@/lib/prisma"
 import { ensureMerchantStore } from "@/lib/ensure-store"
 import { buildConsentPayload, type MerchantRole } from "@/lib/legal/consent"
+import {
+  clearSignupDrafts,
+  loadSignupDrafts,
+  persistMerchantLegalProfile,
+} from "@/lib/merchant-legal/persist-merchant-legal-profile"
+import { validateMerchantSignupPayload } from "@/lib/merchant-legal/validate-merchant-signup"
+import {
+  BUYER_ACCOUNT_TYPES,
+  type BuyerAccountType,
+} from "@/lib/merchant-legal/merchant-legal-status-shared"
+import type { MerchantDocumentType, MerchantLegalStatus } from "@/lib/merchant-legal/merchant-legal-status-shared"
 import { claimAffiliateInvitationForUser } from "@/lib/supplier-affiliate-invitation"
 import { claimSupplierInvitationForUser } from "@/lib/supplier-invitation"
+import { isValidSignupDraftId } from "@/lib/signup-draft-id"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -20,8 +33,7 @@ export async function POST(req: Request) {
   if (limited) return limited
 
   try {
-    const { email, password, role, name: nameRaw, tiktok, siret, inviteToken, acceptTerms, acceptPrivacy } =
-      (await req.json()) as {
+    const body = (await req.json()) as {
       email?: string
       password?: string
       role?: string
@@ -31,7 +43,34 @@ export async function POST(req: Request) {
       inviteToken?: string
       acceptTerms?: boolean
       acceptPrivacy?: boolean
+      signupDraftId?: string
+      legalStatus?: string
+      legalEntityName?: string
+      tradeName?: string
+      vatNumber?: string
+      rnaNumber?: string
+      countryCode?: string
+      buyerAccountType?: string
     }
+    const {
+      email,
+      password,
+      role,
+      name: nameRaw,
+      tiktok,
+      siret,
+      inviteToken,
+      acceptTerms,
+      acceptPrivacy,
+      signupDraftId,
+      legalStatus,
+      legalEntityName,
+      tradeName,
+      vatNumber,
+      rnaNumber,
+      countryCode,
+      buyerAccountType,
+    } = body
     const emailNormalized = typeof email === "string" ? email.toLowerCase().trim() : ""
     if (!emailNormalized || !password) {
       return NextResponse.json({ error: "Missing email or password" }, { status: 400 })
@@ -53,6 +92,74 @@ export async function POST(req: Request) {
       role === "SUPPLIER" ? "SUPPLIER" : role === "CUSTOMER" ? "CUSTOMER" : "AFFILIATE"
     const consent = buildConsentPayload(resolvedRole as MerchantRole)
 
+    let buyerType: BuyerAccountType | null = null
+    if (resolvedRole === "CUSTOMER") {
+      const raw = buyerAccountType?.trim().toUpperCase() ?? "INDIVIDUAL"
+      buyerType = (BUYER_ACCOUNT_TYPES as readonly string[]).includes(raw)
+        ? (raw as BuyerAccountType)
+        : "INDIVIDUAL"
+    }
+
+    type MerchantLegalPayload = {
+      legalStatus: MerchantLegalStatus
+      legalEntityName: string | null
+      tradeName: string | null
+      siret: string | null
+      vatNumber: string | null
+      rnaNumber: string | null
+      countryCode: string
+      documents: Array<{
+        documentType: MerchantDocumentType
+        fileUrl: string
+        fileName: string | null
+        mimeType: string | null
+        fileSizeBytes: number | null
+      }>
+    }
+
+    let merchantLegal: MerchantLegalPayload | null = null
+    let pendingDraftId: string | null = null
+
+    if (resolvedRole === "SUPPLIER" || resolvedRole === "AFFILIATE") {
+      const draftId = signupDraftId?.trim() ?? ""
+      if (!isValidSignupDraftId(draftId)) {
+        return NextResponse.json({ error: "signup_draft_required" }, { status: 400 })
+      }
+      const draftRows = await loadSignupDrafts(draftId)
+      const validated = validateMerchantSignupPayload(
+        resolvedRole,
+        {
+          legalStatus: legalStatus ?? "",
+          legalEntityName,
+          tradeName,
+          siret,
+          vatNumber,
+          rnaNumber,
+          countryCode,
+        },
+        draftRows.map((r) => ({ documentType: r.documentType, fileUrl: r.fileUrl }))
+      )
+      if (!validated.ok) {
+        logBusiness("signup", { result: "legal_validation_failed", error: validated.error, role: resolvedRole })
+        return NextResponse.json({ error: validated.error }, { status: 400 })
+      }
+      const byType = new Map(draftRows.map((r) => [r.documentType, r]))
+      merchantLegal = {
+        ...validated.data,
+        documents: validated.data.documents.map((d) => {
+          const row = byType.get(d.documentType)
+          return {
+            documentType: d.documentType,
+            fileUrl: d.fileUrl,
+            fileName: row?.fileName ?? null,
+            mimeType: row?.mimeType ?? null,
+            fileSizeBytes: row?.fileSizeBytes ?? null,
+          }
+        }),
+      }
+      pendingDraftId = draftId
+    }
+
     const displayName =
       typeof nameRaw === "string" && nameRaw.trim() ? nameRaw.trim().slice(0, 120) : null
 
@@ -62,6 +169,7 @@ export async function POST(req: Request) {
         password: hash,
         role: resolvedRole,
         name: displayName,
+        buyerAccountType: buyerType,
         ...consent,
       },
     })
@@ -87,7 +195,25 @@ export async function POST(req: Request) {
       })
     }
 
-    if (store && siretDigits && resolvedRole === "SUPPLIER") {
+    if (merchantLegal) {
+      await persistMerchantLegalProfile({
+        userId: user.id,
+        legalStatus: merchantLegal.legalStatus,
+        legalEntityName: merchantLegal.legalEntityName,
+        tradeName: merchantLegal.tradeName,
+        siret: merchantLegal.siret,
+        vatNumber: merchantLegal.vatNumber,
+        rnaNumber: merchantLegal.rnaNumber,
+        countryCode: merchantLegal.countryCode,
+        documents: merchantLegal.documents,
+      })
+      if (pendingDraftId) await clearSignupDrafts(pendingDraftId)
+      logBusiness("signup", {
+        result: "merchant_legal_submitted",
+        userId: user.id,
+        legalStatus: merchantLegal.legalStatus,
+      })
+    } else if (store && siretDigits && resolvedRole === "SUPPLIER") {
       await prisma.store.update({
         where: { id: store.id },
         data: { description: `SIRET: ${siretDigits}` },
