@@ -36,7 +36,7 @@ function verifyWebhookSignature(rawBody: string, signature: string | null): bool
   const gate = webhookSecretGate(secret)
   if (gate === "missing_prod") return "missing_prod"
   if (gate === "missing_sig") return true
-  if (!signature) return false
+  if (!secret || !signature) return false
   const expected = createHmac("sha256", secret).update(rawBody).digest("hex")
   const sig = signature.replace(/^sha256=/, "")
   try {
