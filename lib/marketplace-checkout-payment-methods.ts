@@ -1,11 +1,14 @@
-import type Stripe from "stripe"
-
 /** Klarna pay-in-3 typical EU minimum (Stripe may enforce per country). */
 export const KLARNA_ELIGIBLE_MIN_CENTS = 35_00
 
 export const MARKETPLACE_BNPL_INSTALLMENTS = 3
 
-const MARKETPLACE_CHECKOUT_PAYMENT_METHOD_TYPES = ["card", "klarna"] as const satisfies readonly Stripe.Checkout.SessionCreateParams.PaymentMethodType[]
+export type MarketplaceCheckoutPaymentMethodType = "card" | "klarna"
+
+const MARKETPLACE_CHECKOUT_PAYMENT_METHOD_TYPES: readonly MarketplaceCheckoutPaymentMethodType[] = [
+  "card",
+  "klarna",
+]
 
 export function isMarketplaceBnplEnabled(): boolean {
   return process.env.MARKETPLACE_BNPL_ENABLED !== "0"
@@ -25,10 +28,9 @@ export function klarnaInstallmentCents(
 }
 
 /** Stripe Checkout session payment methods for marketplace buyer flows. */
-export function marketplaceCheckoutPaymentSessionOptions(): Pick<
-  Stripe.Checkout.SessionCreateParams,
-  "payment_method_types"
-> {
+export function marketplaceCheckoutPaymentSessionOptions(): {
+  payment_method_types: MarketplaceCheckoutPaymentMethodType[]
+} {
   if (!isMarketplaceBnplEnabled()) {
     return { payment_method_types: ["card"] }
   }
