@@ -4,6 +4,7 @@ import type { Prisma } from "@prisma/client"
 import { type NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 
+import { webhookSecretGate } from "@/lib/require-production-secret"
 import { notifyOrderDelivered } from "@/lib/emails/notify-order-delivered"
 import { notifyMarketplaceOrderShipped } from "@/lib/emails/notify-order-shipped"
 import {
@@ -30,9 +31,11 @@ const webhookSchema = z.object({
   event: z.string().optional(),
 })
 
-function verifyWebhookSignature(rawBody: string, signature: string | null): boolean {
+function verifyWebhookSignature(rawBody: string, signature: string | null): boolean | "missing_prod" {
   const secret = process.env.SUPPLIER_ORDER_WEBHOOK_SECRET?.trim()
-  if (!secret) return true
+  const gate = webhookSecretGate(secret)
+  if (gate === "missing_prod") return "missing_prod"
+  if (gate === "missing_sig") return true
   if (!signature) return false
   const expected = createHmac("sha256", secret).update(rawBody).digest("hex")
   const sig = signature.replace(/^sha256=/, "")
@@ -47,7 +50,11 @@ export async function POST(req: NextRequest) {
   const rawBody = await req.text()
   const signature = req.headers.get("x-affisell-signature") ?? req.headers.get("x-signature")
 
-  if (!verifyWebhookSignature(rawBody, signature)) {
+  const sigCheck = verifyWebhookSignature(rawBody, signature)
+  if (sigCheck === "missing_prod") {
+    return NextResponse.json({ error: "webhook_secret_not_configured" }, { status: 503 })
+  }
+  if (!sigCheck) {
     return NextResponse.json({ error: "invalid_signature" }, { status: 401 })
   }
 

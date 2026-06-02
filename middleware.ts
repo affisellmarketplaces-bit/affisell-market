@@ -37,6 +37,12 @@ function loginSupplierUrl(req: NextRequest, pathWithSearch: string) {
   return u
 }
 
+function loginAdminUrl(req: NextRequest, pathWithSearch: string) {
+  const u = new URL("/login/admin", req.url)
+  u.searchParams.set("callbackUrl", pathWithSearch)
+  return u
+}
+
 function legacyAuthRedirect(req: NextRequest, pathname: string): NextResponse | null {
   const { searchParams } = req.nextUrl
   const callback = searchParams.get("callbackUrl")
@@ -265,6 +271,23 @@ export async function middleware(req: NextRequest) {
       }
     }
 
+    const isAdminArea = bare === "/admin" || bare.startsWith("/admin/")
+    if (isAdminArea) {
+      if (!loggedIn) return NextResponse.redirect(loginAdminUrl(req, path))
+      if (role !== "ADMIN") {
+        const u = new URL(req.url)
+        if (role === "SUPPLIER") {
+          u.pathname = "/dashboard/supplier"
+        } else if (role === "AFFILIATE") {
+          u.pathname = AFFILIATE_CATALOG_PATH
+        } else {
+          u.pathname = "/shops"
+        }
+        u.search = ""
+        return NextResponse.redirect(u)
+      }
+    }
+
     const isMarketplaceBuyerAccount =
       bare === "/marketplace/account" || bare.startsWith("/marketplace/account/")
     if (isMarketplaceBuyerAccount) {
@@ -322,6 +345,8 @@ export const config = {
     "/marketplace/:path*",
     "/store",
     "/store/:path*",
+    "/admin",
+    "/admin/:path*",
     "/dashboard",
     "/dashboard/:path*",
     "/affiliate/:path*",

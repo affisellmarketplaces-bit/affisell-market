@@ -2,9 +2,19 @@ import { withSentryConfig } from "@sentry/nextjs"
 import type { NextConfig } from "next"
 import createNextIntlPlugin from "next-intl/plugin"
 
+import { buildSecurityHeaders } from "@/lib/security-headers"
+
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts")
 
 const nextConfig: NextConfig = {
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [...buildSecurityHeaders()],
+      },
+    ]
+  },
   async redirects() {
     return [
       { source: "/terms", destination: "/cgu", permanent: true },

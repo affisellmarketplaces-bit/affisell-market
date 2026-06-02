@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
+import { rateLimitClientKey, rateLimitResponse } from "@/lib/api-rate-limit"
 import { logBusiness } from "@/lib/business-log"
 import { readResendDeliveryConfig, sendResendEmail } from "@/lib/emails/resend-delivery"
 import {
@@ -14,9 +15,18 @@ const schema = z.object({
   email: z.string().trim().email().max(254),
   subject: z.string().trim().min(3).max(200),
   message: z.string().trim().min(10).max(5000),
+  /** Honeypot — must stay empty (bots fill hidden fields). */
+  website: z.string().max(0).optional(),
 })
 
 export async function POST(req: Request) {
+  const limited = rateLimitResponse(rateLimitClientKey(req), {
+    prefix: "contact",
+    limit: 6,
+    windowMs: 60 * 60 * 1000,
+  })
+  if (limited) return limited
+
   let body: unknown
   try {
     body = await req.json()
@@ -29,7 +39,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "invalid_fields" }, { status: 400 })
   }
 
-  const { name, email, subject, message } = parsed.data
+  const { name, email, subject, message, website } = parsed.data
+  if (website && website.length > 0) {
+    logBusiness("contact", { result: "blocked", reason: "honeypot" })
+    return NextResponse.json({ ok: true, ticketRef: "SPAM" })
+  }
   const { supportEmail } = readCompanyLegal()
   const ticketRef = makeTicketRef()
 

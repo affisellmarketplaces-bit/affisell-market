@@ -9,6 +9,7 @@ import {
 import { z } from "zod"
 
 import { auth } from "@/auth"
+import { validateAgentMessages } from "@/lib/agent-message-bounds"
 import { rateLimitClientKey, rateLimitResponse } from "@/lib/api-rate-limit"
 import { searchSupplierCatalogForAffiliateAgent } from "@/lib/agent-affiliate-catalog-search"
 import type { AffiliateAgentProductCard } from "@/lib/agent-affiliate-product-card-types"
@@ -79,6 +80,12 @@ export async function POST(req: Request) {
   })
   if (limited) return limited
 
+  const messages = parsed.messages as UIMessage[]
+  const bounds = validateAgentMessages(messages)
+  if (!bounds.ok) {
+    return Response.json({ error: bounds.error }, { status: 400 })
+  }
+
   if (!process.env.GROQ_API_KEY?.trim()) {
     return Response.json(
       { error: "GROQ_API_KEY is not configured." },
@@ -88,7 +95,6 @@ export async function POST(req: Request) {
 
   const affiliateId = session.user.id
   const historyCtx: AgentHistoryContext = { userId: affiliateId, sessionId: null }
-  const messages = parsed.messages as UIMessage[]
 
   let modelMessages: Awaited<ReturnType<typeof convertToModelMessages>>
   try {

@@ -10,6 +10,7 @@ import {
 import { z } from "zod"
 
 import { auth } from "@/auth"
+import { validateAgentMessages } from "@/lib/agent-message-bounds"
 import { rateLimitClientKey, rateLimitResponse } from "@/lib/api-rate-limit"
 import { createCheckoutSession } from "@/lib/agent-checkout"
 import { searchCatalogForAgent } from "@/lib/agent-catalog-search"
@@ -112,12 +113,17 @@ export async function POST(req: Request) {
   })
   if (limited) return limited
 
+  const messages = messagesUnknown as UIMessage[]
+  const bounds = validateAgentMessages(messages)
+  if (!bounds.ok) {
+    return Response.json({ error: bounds.error }, { status: 400 })
+  }
+
   const historyCtx: AgentHistoryContext = {
     userId,
     sessionId: userId ? null : sessionIdFromBody,
   }
 
-  const messages = messagesUnknown as UIMessage[]
   const lastUser = [...messages].reverse().find((m) => m.role === "user")
   const lastUserText = lastUser ? messageText(lastUser) : ""
   const hasBuyIntent = BUY_INTENT_RE.test(lastUserText)

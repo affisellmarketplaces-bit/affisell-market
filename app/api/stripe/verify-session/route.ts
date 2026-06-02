@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 
+import { rateLimitClientKey, rateLimitResponse } from "@/lib/api-rate-limit"
 import { ensureMarketplaceCheckoutFulfilled } from "@/lib/marketplace-checkout-fulfill"
 import { findOrderIdsForCheckoutSession } from "@/lib/stripe-marketplace-commission-split"
 import { getStripeClient } from "@/lib/stripe"
@@ -9,6 +10,13 @@ export const dynamic = "force-dynamic"
 
 /** Buyer lands here after Stripe Checkout — idempotent backup if the webhook was delayed or dropped. */
 export async function GET(req: NextRequest) {
+  const limited = rateLimitResponse(rateLimitClientKey(req), {
+    prefix: "stripe-verify-session",
+    limit: 30,
+    windowMs: 60_000,
+  })
+  if (limited) return limited
+
   const sessionId = req.nextUrl.searchParams.get("session_id")
   if (!sessionId) {
     return NextResponse.json({ error: "Missing session_id" }, { status: 400 })

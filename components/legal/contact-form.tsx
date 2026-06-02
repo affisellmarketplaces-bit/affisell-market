@@ -67,6 +67,14 @@ export function ContactForm({ supportEmail, className }: Props) {
       </div>
 
       <form onSubmit={onSubmit} className="space-y-4">
+        <input
+          type="text"
+          name="website"
+          tabIndex={-1}
+          autoComplete="off"
+          className="pointer-events-none absolute left-[-9999px] h-0 w-0 opacity-0"
+          aria-hidden
+        />
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="contact-name">Nom</Label>

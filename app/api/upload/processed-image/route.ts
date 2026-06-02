@@ -55,7 +55,10 @@ async function readImagePayload(req: Request): Promise<{ mime: string; bytes: Ui
 
 export async function POST(req: Request) {
   const session = await auth()
-  const bypassDevAuth = process.env.NODE_ENV !== "production" && process.env.PHOTO_STUDIO_DEV_BYPASS === "1"
+  const bypassDevAuth =
+    process.env.NODE_ENV !== "production" &&
+    process.env.VERCEL !== "1" &&
+    process.env.PHOTO_STUDIO_DEV_BYPASS === "1"
   const effectiveUserId = session?.user?.id || (bypassDevAuth ? "dev-local" : "")
   const effectiveRole = session?.user?.role || (bypassDevAuth ? "SUPPLIER" : "")
 

@@ -1,6 +1,7 @@
 import { groq } from "@ai-sdk/groq"
 import { convertToModelMessages, streamText, type UIMessage } from "ai"
 
+import { validateAgentMessages } from "@/lib/agent-message-bounds"
 import { rateLimitClientKey, rateLimitResponse } from "@/lib/api-rate-limit"
 import { logBusiness } from "@/lib/business-log"
 import { resolveAppUrl } from "@/lib/emails/send-order-confirmation"
@@ -50,6 +51,11 @@ export async function POST(req: Request) {
   }
 
   const messages = parsed.messages as UIMessage[]
+  const bounds = validateAgentMessages(messages)
+  if (!bounds.ok) {
+    return Response.json({ error: bounds.error }, { status: 400 })
+  }
+
   const lastUser = [...messages].reverse().find((m) => m.role === "user")
   const queryPreview = lastUser ? messageText(lastUser).slice(0, 80) : ""
 

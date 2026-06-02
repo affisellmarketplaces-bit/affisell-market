@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 
+import { rateLimitClientKey, rateLimitResponse } from "@/lib/api-rate-limit"
 import { prisma } from "@/lib/prisma"
 import { ensureMerchantStore } from "@/lib/ensure-store"
 import { buildConsentPayload, type MerchantRole } from "@/lib/legal/consent"
@@ -11,6 +12,13 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 export async function POST(req: Request) {
+  const limited = rateLimitResponse(rateLimitClientKey(req), {
+    prefix: "signup",
+    limit: 8,
+    windowMs: 60 * 60 * 1000,
+  })
+  if (limited) return limited
+
   try {
     const { email, password, role, name: nameRaw, tiktok, siret, inviteToken, acceptTerms, acceptPrivacy } =
       (await req.json()) as {
