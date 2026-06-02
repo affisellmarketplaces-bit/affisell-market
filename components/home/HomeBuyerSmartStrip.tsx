@@ -68,7 +68,7 @@ export async function HomeBuyerSmartStrip({ featuredShops }: Props) {
   const t = await getTranslations("home.buyerServices")
   const tPulse = await getTranslations("pulse")
 
-  const [agent, pulse, catalogue, , support, wishlist] = BUYER_SMART_SERVICES
+  const [agent, pulse, catalogue] = BUYER_SMART_SERVICES
   const agentTile = agent
     ? { ...agent, label: t("agent"), hint: t("agentHint") }
     : null
@@ -82,12 +82,6 @@ export async function HomeBuyerSmartStrip({ featuredShops }: Props) {
     : null
   const catalogueTile = catalogue
     ? { ...catalogue, label: t("catalog"), hint: t("catalogHint") }
-    : null
-  const supportTile = support
-    ? { ...support, label: t("support"), hint: t("supportHint") }
-    : null
-  const wishlistTile = wishlist
-    ? { ...wishlist, label: t("wishlist"), hint: t("wishlistHint") }
     : null
 
   return (
@@ -106,8 +100,6 @@ export async function HomeBuyerSmartStrip({ featuredShops }: Props) {
         {pulseTile ? <BuyerServiceTile {...pulseTile} /> : null}
         <HomeBuyerFeaturedShopsTile shops={featuredShops} />
         {catalogueTile ? <BuyerServiceTile {...catalogueTile} /> : null}
-        {supportTile ? <BuyerServiceTile {...supportTile} /> : null}
-        {wishlistTile ? <BuyerServiceTile {...wishlistTile} /> : null}
       </ul>
     </div>
   )
