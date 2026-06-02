@@ -344,9 +344,9 @@
   },
   "checkout": {
     "flexiblePayment": {
-      "title": "Flexible checkout",
-      "installments": "or {count}× {amount} interest-free",
-      "footnote": "Klarna on secure Stripe checkout · eligibility depends on your profile",
+      "title": "Smart checkout",
+      "installments": "{count}× {amount} with no interest",
+      "footnote": "Instant Klarna flow. Offer subject to eligibility.",
       "cardAlso": "Card"
     }
   },
@@ -1217,22 +1217,55 @@
         "body2": "Headquartered in Marseille, we ship EU-first with multi-currency checkout, variable commissions by category, and tooling like Swipe Feed, Agent sourcing and Pulse discovery."
       },
       "values": {
-        "0": { "title": "Creator storefronts", "body": "Each affiliate gets a branded shop, custom listings, buyer rewards and drag-and-drop merchandising — live in under 2 minutes." },
-        "1": { "title": "Supplier reach", "body": "Brands upload once, distribute through thousands of creator stores with automated order routing and real-time stock sync." },
-        "2": { "title": "Transparent economics", "body": "Every order shows supplier wholesale, affiliate markup, platform fee and buyer price — no hidden deductions." },
-        "3": { "title": "Trust by design", "body": "Legal hub, GDPR export/delete, cookie consent, invoice PDFs and commission explainers built into the product." }
+        "0": {
+          "title": "Creator storefronts",
+          "body": "Each affiliate gets a branded shop, custom listings, buyer rewards and drag-and-drop merchandising — live in under 2 minutes."
+        },
+        "1": {
+          "title": "Supplier reach",
+          "body": "Brands upload once, distribute through thousands of creator stores with automated order routing and real-time stock sync."
+        },
+        "2": {
+          "title": "Transparent economics",
+          "body": "Every order shows supplier wholesale, affiliate markup, platform fee and buyer price — no hidden deductions."
+        },
+        "3": {
+          "title": "Trust by design",
+          "body": "Legal hub, GDPR export/delete, cookie consent, invoice PDFs and commission explainers built into the product."
+        }
       },
       "timeline": {
         "title": "Building in public",
         "items": {
-          "2024": { "year": "2024", "title": "Affisell founded", "body": "Marketplace MVP: supplier catalog, affiliate storefronts and Stripe Connect split payouts." },
-          "2025a": { "year": "2025", "title": "Agent & Pulse", "body": "AI sourcing agent for affiliates, vertical discovery feed and supplier API integrations." },
-          "2025b": { "year": "2025", "title": "Settlement engine", "body": "Three-way split with category-level commission rates, HT-based platform fees and supplier transparency UI." },
-          "2026": { "year": "2026", "title": "Swipe Feed & GDPR stack", "body": "One-gesture listing for affiliates, legal document hub, buyer/merchant GDPR dashboards and invoice generation." }
+          "2024": {
+            "year": "2024",
+            "title": "Affisell founded",
+            "body": "Marketplace MVP: supplier catalog, affiliate storefronts and Stripe Connect split payouts."
+          },
+          "2026": {
+            "year": "2026",
+            "title": "Swipe Feed & GDPR stack",
+            "body": "One-gesture listing for affiliates, legal document hub, buyer/merchant GDPR dashboards and invoice generation."
+          },
+          "2025a": {
+            "year": "2025",
+            "title": "Agent & Pulse",
+            "body": "AI sourcing agent for affiliates, vertical discovery feed and supplier API integrations."
+          },
+          "2025b": {
+            "year": "2025",
+            "title": "Settlement engine",
+            "body": "Three-way split with category-level commission rates, HT-based platform fees and supplier transparency UI."
+          }
         }
       },
-      "hq": { "title": "Headquarters" },
-      "cta": { "creators": "Become a creator", "catalog": "Browse affiliate catalog" }
+      "hq": {
+        "title": "Headquarters"
+      },
+      "cta": {
+        "creators": "Become a creator",
+        "catalog": "Browse affiliate catalog"
+      }
     },
     "blog": {
       "metaTitle": "Affisell Blog — Product & creator economy",
@@ -1251,9 +1284,18 @@
           "readMin": "4 min",
           "sections": {
             "intro": "Creator discovery used to mean endless grid scrolling. Swipe Feed turns affiliate sourcing into a focused, mobile-native flow — with undo, commission filters and a three-card preload stack.",
-            "s1": { "title": "How it works", "body": "Swipe right to publish a listing at your default markup (30% above supplier price). Swipe left to permanently hide a SKU from your feed. Every decision is stored so your feed stays fresh and relevant." },
-            "s2": { "title": "Built for speed", "body": "Framer Motion parallax, velocity-based commits and animation-first UX mean the card flies off-screen before the API call — so the interface feels instant even on slower networks." },
-            "s3": { "title": "Try it", "body": "Open the Affiliate Hub from your dashboard nav or go directly to /dashboard/affiliate/hub?mode=swipe. Combine with Agent sourcing for margin analysis on high-intent picks." }
+            "s1": {
+              "title": "How it works",
+              "body": "Swipe right to publish a listing at your default markup (30% above supplier price). Swipe left to permanently hide a SKU from your feed. Every decision is stored so your feed stays fresh and relevant."
+            },
+            "s2": {
+              "title": "Built for speed",
+              "body": "Framer Motion parallax, velocity-based commits and animation-first UX mean the card flies off-screen before the API call — so the interface feels instant even on slower networks."
+            },
+            "s3": {
+              "title": "Try it",
+              "body": "Open the Affiliate Hub from your dashboard nav or go directly to /dashboard/affiliate/hub?mode=swipe. Combine with Agent sourcing for margin analysis on high-intent picks."
+            }
           }
         },
         "commission-transparency": {
@@ -1264,9 +1306,18 @@
           "readMin": "5 min",
           "sections": {
             "intro": "Opaque marketplaces hide who earns what. Affisell exposes the full settlement breakdown on merchant order pages, buyer receipts and PDF invoices.",
-            "s1": { "title": "Variable rates", "body": "Commission cascades from category defaults to supplier profiles to individual SKUs — so high-margin categories can offer better affiliate economics without manual spreadsheets." },
-            "s2": { "title": "Supplier clarity", "body": "Supplier dashboards label deductions as partner commission and platform fee — not vague “adjustments”. Payout previews match what lands in Stripe Connect." },
-            "s3": { "title": "CommissionExplainer", "body": "Embedded UI on order detail pages walks each party through the math in plain language, with links to legal terms for affiliates and suppliers." }
+            "s1": {
+              "title": "Variable rates",
+              "body": "Commission cascades from category defaults to supplier profiles to individual SKUs — so high-margin categories can offer better affiliate economics without manual spreadsheets."
+            },
+            "s2": {
+              "title": "Supplier clarity",
+              "body": "Supplier dashboards label deductions as partner commission and platform fee — not vague “adjustments”. Payout previews match what lands in Stripe Connect."
+            },
+            "s3": {
+              "title": "CommissionExplainer",
+              "body": "Embedded UI on order detail pages walks each party through the math in plain language, with links to legal terms for affiliates and suppliers."
+            }
           }
         },
         "gdpr-marketplace-trust": {
@@ -1277,9 +1328,18 @@
           "readMin": "4 min",
           "sections": {
             "intro": "Trust is a product feature. Affisell ships a full GDPR stack: signup consent capture, cookie banner with analytics gating, data export JSON and account deletion flows.",
-            "s1": { "title": "Legal document hub", "body": "Terms for buyers, suppliers and affiliates, privacy policy, refund rules and legal notices — all versioned and linked from signup and footer." },
-            "s2": { "title": "Self-service rights", "body": "Merchants and marketplace buyers access /dashboard/account/gdpr or /marketplace/account/gdpr to export their data or request deletion, subject to financial record retention." },
-            "s3": { "title": "Why it matters", "body": "Creator businesses operate across EU markets. Built-in compliance reduces legal risk and signals professionalism to brand partners evaluating your storefront." }
+            "s1": {
+              "title": "Legal document hub",
+              "body": "Terms for buyers, suppliers and affiliates, privacy policy, refund rules and legal notices — all versioned and linked from signup and footer."
+            },
+            "s2": {
+              "title": "Self-service rights",
+              "body": "Merchants and marketplace buyers access /dashboard/account/gdpr or /marketplace/account/gdpr to export their data or request deletion, subject to financial record retention."
+            },
+            "s3": {
+              "title": "Why it matters",
+              "body": "Creator businesses operate across EU markets. Built-in compliance reduces legal risk and signals professionalism to brand partners evaluating your storefront."
+            }
           }
         },
         "creator-storefront-60s": {
@@ -1290,9 +1350,18 @@
           "readMin": "3 min",
           "sections": {
             "intro": "Affisell removes the ops burden from creator commerce: no warehouse, no manual stock updates, no payment gateway setup from scratch.",
-            "s1": { "title": "Catalog → storefront", "body": "Browse the affiliate discovery catalog filtered by niche, commission or margin. Listing Builder lets you customize title, images, SEO slug and buyer cashback rewards." },
-            "s2": { "title": "Your brand, our rails", "body": "Custom domains, theme studio, featured collections and live store preview — while Stripe Connect routes supplier wholesale and your markup automatically." },
-            "s3": { "title": "Start today", "body": "Create a free affiliate account, connect payouts, and publish your first listing. Most creators see their first sale within the first week." }
+            "s1": {
+              "title": "Catalog → storefront",
+              "body": "Browse the affiliate discovery catalog filtered by niche, commission or margin. Listing Builder lets you customize title, images, SEO slug and buyer cashback rewards."
+            },
+            "s2": {
+              "title": "Your brand, our rails",
+              "body": "Custom domains, theme studio, featured collections and live store preview — while Stripe Connect routes supplier wholesale and your markup automatically."
+            },
+            "s3": {
+              "title": "Start today",
+              "body": "Create a free affiliate account, connect payouts, and publish your first listing. Most creators see their first sale within the first week."
+            }
           }
         }
       }
@@ -1371,28 +1440,64 @@
       },
       "facts": {
         "title": "Company facts",
-        "founded": { "label": "Founded", "value": "2024 · Marseille, France" },
-        "hq": { "label": "HQ", "value": "Affisell SAS · EU" },
-        "model": { "label": "Model", "value": "B2B2C marketplace (supplier · affiliate · buyer)" },
-        "stack": { "label": "Stack", "value": "Next.js, PostgreSQL, Stripe Connect, Vercel" },
-        "compliance": { "label": "Compliance", "value": "GDPR hub, versioned legal docs, invoice PDFs" }
+        "founded": {
+          "label": "Founded",
+          "value": "2024 · Marseille, France"
+        },
+        "hq": {
+          "label": "HQ",
+          "value": "Affisell SAS · EU"
+        },
+        "model": {
+          "label": "Model",
+          "value": "B2B2C marketplace (supplier · affiliate · buyer)"
+        },
+        "stack": {
+          "label": "Stack",
+          "value": "Next.js, PostgreSQL, Stripe Connect, Vercel"
+        },
+        "compliance": {
+          "label": "Compliance",
+          "value": "GDPR hub, versioned legal docs, invoice PDFs"
+        }
       },
       "assets": {
         "title": "Brand assets",
         "description": "Email press@affisell.com for vector logos, UI screenshots and executive bios.",
         "items": {
-          "logo": { "label": "Logo pack (SVG/PNG)", "subject": "Affisell logo pack request" },
-          "screenshots": { "label": "Product screenshots", "subject": "Affisell product screenshots" },
-          "founder": { "label": "Founder bio & headshot", "subject": "Affisell founder bio request" }
+          "logo": {
+            "label": "Logo pack (SVG/PNG)",
+            "subject": "Affisell logo pack request"
+          },
+          "screenshots": {
+            "label": "Product screenshots",
+            "subject": "Affisell product screenshots"
+          },
+          "founder": {
+            "label": "Founder bio & headshot",
+            "subject": "Affisell founder bio request"
+          }
         }
       },
       "news": {
         "title": "Recent news",
         "read": "Read →",
         "items": {
-          "n1": { "title": "Swipe Feed launches for affiliates", "date": "May 2026", "href": "/blog/swipe-feed-affiliate-hub" },
-          "n2": { "title": "Commission transparency on all orders", "date": "May 2026", "href": "/blog/commission-transparency" },
-          "n3": { "title": "GDPR hub for merchants & buyers", "date": "May 2026", "href": "/blog/gdpr-marketplace-trust" }
+          "n1": {
+            "title": "Swipe Feed launches for affiliates",
+            "date": "May 2026",
+            "href": "/blog/swipe-feed-affiliate-hub"
+          },
+          "n2": {
+            "title": "Commission transparency on all orders",
+            "date": "May 2026",
+            "href": "/blog/commission-transparency"
+          },
+          "n3": {
+            "title": "GDPR hub for merchants & buyers",
+            "date": "May 2026",
+            "href": "/blog/gdpr-marketplace-trust"
+          }
         }
       },
       "contact": {

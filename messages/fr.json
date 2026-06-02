@@ -247,7 +247,7 @@
     "signupLoginFail": "Compte créé mais la connexion a échoué. Essayez de vous connecter.",
     "roleHint": "Type de compte",
     "roleSupplier": "Fournisseur",
-      "roleAffiliate": "Ambassadeur",
+    "roleAffiliate": "Ambassadeur",
     "noAccount": "Pas encore de compte ?",
     "hasAccount": "Déjà inscrit ?",
     "continueGoogle": "Continuer avec Google",
@@ -344,10 +344,10 @@
   },
   "checkout": {
     "flexiblePayment": {
-      "title": "Paiement flexible",
-      "installments": "ou {count}× {amount} sans frais",
-      "footnote": "Klarna au paiement sécurisé Stripe · éligibilité selon votre profil",
-      "cardAlso": "Carte bancaire"
+      "title": "Paiement intelligent",
+      "installments": "{count}× {amount} sans frais",
+      "footnote": "Activation instantanee via Klarna. Offre selon eligibilite.",
+      "cardAlso": "CB"
     }
   },
   "cart": {
@@ -457,7 +457,7 @@
   "discovery": {
     "eyebrow": "Explorer",
     "title": "Trouvez votre créateur, puis votre produit",
-      "subtitle": "Chaque article est vendu par une boutique ambassadeur vérifiée — filtrez par univers, rayon ou créateur préféré.",
+    "subtitle": "Chaque article est vendu par une boutique ambassadeur vérifiée — filtrez par univers, rayon ou créateur préféré.",
     "fullMarketplace": "Marketplace complète",
     "searchLabel": "Rechercher un produit ou une boutique",
     "searchPlaceholder": "Rechercher un produit, une boutique, un rayon…",
@@ -1217,22 +1217,55 @@
         "body2": "Basés à Marseille, nous privilégions l'Europe avec un paiement multi-devises, des commissions variables par catégorie, et des outils comme Swipe Feed, Agent sourcing et Pulse discovery."
       },
       "values": {
-        "0": { "title": "Vitrines créateurs", "body": "Chaque ambassadeur obtient une boutique brandée, des fiches custom, des rewards acheteur et du merchandising drag-and-drop — en ligne en moins de 2 minutes." },
-        "1": { "title": "Portée fournisseurs", "body": "Les marques uploadent une fois, distribuent via des milliers de vitrines avec routage commande automatisé et sync stock temps réel." },
-        "2": { "title": "Économie transparente", "body": "Chaque commande affiche le grossiste, la marge ambassadeur, les frais plateforme et le prix acheteur — sans déductions cachées." },
-        "3": { "title": "Confiance native", "body": "Hub légal, export/suppression RGPD, bandeau cookies, factures PDF et explainers commission intégrés au produit." }
+        "0": {
+          "title": "Vitrines créateurs",
+          "body": "Chaque ambassadeur obtient une boutique brandée, des fiches custom, des rewards acheteur et du merchandising drag-and-drop — en ligne en moins de 2 minutes."
+        },
+        "1": {
+          "title": "Portée fournisseurs",
+          "body": "Les marques uploadent une fois, distribuent via des milliers de vitrines avec routage commande automatisé et sync stock temps réel."
+        },
+        "2": {
+          "title": "Économie transparente",
+          "body": "Chaque commande affiche le grossiste, la marge ambassadeur, les frais plateforme et le prix acheteur — sans déductions cachées."
+        },
+        "3": {
+          "title": "Confiance native",
+          "body": "Hub légal, export/suppression RGPD, bandeau cookies, factures PDF et explainers commission intégrés au produit."
+        }
       },
       "timeline": {
         "title": "Construire en public",
         "items": {
-          "2024": { "year": "2024", "title": "Fondation Affisell", "body": "MVP marketplace : catalogue fournisseur, vitrines ambassadeur et split payouts Stripe Connect." },
-          "2025a": { "year": "2025", "title": "Agent & Pulse", "body": "Agent IA sourcing ambassadeur, feed discovery vertical et intégrations API fournisseurs." },
-          "2025b": { "year": "2025", "title": "Moteur de settlement", "body": "Split tripartite avec commissions par catégorie, frais plateforme HT et UI transparence fournisseur." },
-          "2026": { "year": "2026", "title": "Swipe Feed & pile RGPD", "body": "Publication en un geste pour ambassadeurs, hub documents légaux, tableaux de bord RGPD et génération de factures." }
+          "2024": {
+            "year": "2024",
+            "title": "Fondation Affisell",
+            "body": "MVP marketplace : catalogue fournisseur, vitrines ambassadeur et split payouts Stripe Connect."
+          },
+          "2026": {
+            "year": "2026",
+            "title": "Swipe Feed & pile RGPD",
+            "body": "Publication en un geste pour ambassadeurs, hub documents légaux, tableaux de bord RGPD et génération de factures."
+          },
+          "2025a": {
+            "year": "2025",
+            "title": "Agent & Pulse",
+            "body": "Agent IA sourcing ambassadeur, feed discovery vertical et intégrations API fournisseurs."
+          },
+          "2025b": {
+            "year": "2025",
+            "title": "Moteur de settlement",
+            "body": "Split tripartite avec commissions par catégorie, frais plateforme HT et UI transparence fournisseur."
+          }
         }
       },
-      "hq": { "title": "Siège" },
-      "cta": { "creators": "Devenir créateur", "catalog": "Catalogue ambassadeur" }
+      "hq": {
+        "title": "Siège"
+      },
+      "cta": {
+        "creators": "Devenir créateur",
+        "catalog": "Catalogue ambassadeur"
+      }
     },
     "blog": {
       "metaTitle": "Blog Affisell — Produit & creator economy",
@@ -1251,9 +1284,18 @@
           "readMin": "4 min",
           "sections": {
             "intro": "Le sourcing ambassadeur, c'était le défilement infini dans une grille. Swipe Feed transforme la découverte en flux mobile natif — avec annulation, filtres commission et pile de 3 cartes préchargées.",
-            "s1": { "title": "Comment ça marche", "body": "Swipe droite pour publier une fiche à votre markup par défaut (+30% sur le prix fournisseur). Swipe gauche pour masquer définitivement un SKU. Chaque décision est enregistrée pour un feed toujours pertinent." },
-            "s2": { "title": "Conçu pour la vitesse", "body": "Parallax framer-motion, commit basé sur la vélocité et UX animation-first : la carte s'envole avant l'appel API — l'interface reste instantanée même sur réseau lent." },
-            "s3": { "title": "Essayer", "body": "Ouvrez le Hub Ambassadeur depuis la navigation tableau de bord ou allez sur /dashboard/affiliate/hub?mode=swipe. Combinez avec l'Agent sourcing pour analyser les marges des sélections à forte intention." }
+            "s1": {
+              "title": "Comment ça marche",
+              "body": "Swipe droite pour publier une fiche à votre markup par défaut (+30% sur le prix fournisseur). Swipe gauche pour masquer définitivement un SKU. Chaque décision est enregistrée pour un feed toujours pertinent."
+            },
+            "s2": {
+              "title": "Conçu pour la vitesse",
+              "body": "Parallax framer-motion, commit basé sur la vélocité et UX animation-first : la carte s'envole avant l'appel API — l'interface reste instantanée même sur réseau lent."
+            },
+            "s3": {
+              "title": "Essayer",
+              "body": "Ouvrez le Hub Ambassadeur depuis la navigation tableau de bord ou allez sur /dashboard/affiliate/hub?mode=swipe. Combinez avec l'Agent sourcing pour analyser les marges des sélections à forte intention."
+            }
           }
         },
         "commission-transparency": {
@@ -1264,9 +1306,18 @@
           "readMin": "5 min",
           "sections": {
             "intro": "Les marketplaces opaques cachent qui gagne quoi. Affisell expose le settlement complet sur les pages commande marchands, reçus acheteur et factures PDF.",
-            "s1": { "title": "Taux variables", "body": "La commission cascade des defaults catégorie vers les profils fournisseur jusqu'aux SKU — des catégories à forte marge peuvent offrir de meilleures economics ambassadeur sans tableurs manuels." },
-            "s2": { "title": "Clarté fournisseur", "body": "Les dashboards fournisseur nomment les déductions commission partenaire et frais plateforme — pas de vague « ajustement ». Les previews payout correspondent au virement Stripe Connect." },
-            "s3": { "title": "CommissionExplainer", "body": "UI embarquée sur le détail commande explique le calcul en langage clair, avec liens vers les CGU ambassadeur et fournisseur." }
+            "s1": {
+              "title": "Taux variables",
+              "body": "La commission cascade des defaults catégorie vers les profils fournisseur jusqu'aux SKU — des catégories à forte marge peuvent offrir de meilleures economics ambassadeur sans tableurs manuels."
+            },
+            "s2": {
+              "title": "Clarté fournisseur",
+              "body": "Les dashboards fournisseur nomment les déductions commission partenaire et frais plateforme — pas de vague « ajustement ». Les previews payout correspondent au virement Stripe Connect."
+            },
+            "s3": {
+              "title": "CommissionExplainer",
+              "body": "UI embarquée sur le détail commande explique le calcul en langage clair, avec liens vers les CGU ambassadeur et fournisseur."
+            }
           }
         },
         "gdpr-marketplace-trust": {
@@ -1277,9 +1328,18 @@
           "readMin": "4 min",
           "sections": {
             "intro": "La confiance est une feature produit. Affisell shippe un stack RGPD complet : consentement signup, bandeau cookies avec analytics gated, export JSON et flux suppression compte.",
-            "s1": { "title": "Hub documents légaux", "body": "CGU acheteur, fournisseur et ambassadeur, politique confidentialité, remboursements et mentions légales — versionnés et liés depuis signup et footer." },
-            "s2": { "title": "Droits self-service", "body": "Marchands et acheteurs accèdent à /dashboard/account/gdpr ou /marketplace/account/gdpr pour exporter leurs données ou demander suppression, sous réserve de conservation comptable." },
-            "s3": { "title": "Pourquoi c'est clé", "body": "Les business créateurs opèrent dans toute l'UE. Une conformité intégrée réduit le risque juridique et rassure les marques partenaires qui évaluent votre vitrine." }
+            "s1": {
+              "title": "Hub documents légaux",
+              "body": "CGU acheteur, fournisseur et ambassadeur, politique confidentialité, remboursements et mentions légales — versionnés et liés depuis signup et footer."
+            },
+            "s2": {
+              "title": "Droits self-service",
+              "body": "Marchands et acheteurs accèdent à /dashboard/account/gdpr ou /marketplace/account/gdpr pour exporter leurs données ou demander suppression, sous réserve de conservation comptable."
+            },
+            "s3": {
+              "title": "Pourquoi c'est clé",
+              "body": "Les business créateurs opèrent dans toute l'UE. Une conformité intégrée réduit le risque juridique et rassure les marques partenaires qui évaluent votre vitrine."
+            }
           }
         },
         "creator-storefront-60s": {
@@ -1290,9 +1350,18 @@
           "readMin": "3 min",
           "sections": {
             "intro": "Affisell retire la charge ops du commerce créateur : pas d'entrepôt, pas de MAJ stock manuelle, pas de setup gateway from scratch.",
-            "s1": { "title": "Catalogue → vitrine", "body": "Parcourez le catalogue discovery filtré par niche, commission ou marge. Le Listing Builder custom titre, images, slug SEO et cashback acheteur." },
-            "s2": { "title": "Votre marque, nos rails", "body": "Domaines personnalisés, studio de marque, collections mises en avant et aperçu en direct — pendant que Stripe Connect route le grossiste et votre marge automatiquement." },
-            "s3": { "title": "Commencer", "body": "Créez un compte ambassadeur gratuit, connectez les payouts, publiez votre première fiche. La plupart des créateurs voient leur première vente dans la semaine." }
+            "s1": {
+              "title": "Catalogue → vitrine",
+              "body": "Parcourez le catalogue discovery filtré par niche, commission ou marge. Le Listing Builder custom titre, images, slug SEO et cashback acheteur."
+            },
+            "s2": {
+              "title": "Votre marque, nos rails",
+              "body": "Domaines personnalisés, studio de marque, collections mises en avant et aperçu en direct — pendant que Stripe Connect route le grossiste et votre marge automatiquement."
+            },
+            "s3": {
+              "title": "Commencer",
+              "body": "Créez un compte ambassadeur gratuit, connectez les payouts, publiez votre première fiche. La plupart des créateurs voient leur première vente dans la semaine."
+            }
           }
         }
       }
@@ -1371,28 +1440,64 @@
       },
       "facts": {
         "title": "Faits clés",
-        "founded": { "label": "Fondation", "value": "2024 · Marseille, France" },
-        "hq": { "label": "Siège", "value": "Affisell SAS · UE" },
-        "model": { "label": "Modèle", "value": "Marketplace B2B2C (fournisseur · affilié · acheteur)" },
-        "stack": { "label": "Stack", "value": "Next.js, PostgreSQL, Stripe Connect, Vercel" },
-        "compliance": { "label": "Conformité", "value": "Hub RGPD, docs légaux versionnés, factures PDF" }
+        "founded": {
+          "label": "Fondation",
+          "value": "2024 · Marseille, France"
+        },
+        "hq": {
+          "label": "Siège",
+          "value": "Affisell SAS · UE"
+        },
+        "model": {
+          "label": "Modèle",
+          "value": "Marketplace B2B2C (fournisseur · affilié · acheteur)"
+        },
+        "stack": {
+          "label": "Stack",
+          "value": "Next.js, PostgreSQL, Stripe Connect, Vercel"
+        },
+        "compliance": {
+          "label": "Conformité",
+          "value": "Hub RGPD, docs légaux versionnés, factures PDF"
+        }
       },
       "assets": {
         "title": "Assets marque",
         "description": "Écrivez à press@affisell.com pour logos vectoriels, screenshots UI et bios dirigeants.",
         "items": {
-          "logo": { "label": "Pack logo (SVG/PNG)", "subject": "Demande pack logo Affisell" },
-          "screenshots": { "label": "Screenshots produit", "subject": "Demande screenshots Affisell" },
-          "founder": { "label": "Bio & photo fondateur", "subject": "Demande bio fondateur Affisell" }
+          "logo": {
+            "label": "Pack logo (SVG/PNG)",
+            "subject": "Demande pack logo Affisell"
+          },
+          "screenshots": {
+            "label": "Screenshots produit",
+            "subject": "Demande screenshots Affisell"
+          },
+          "founder": {
+            "label": "Bio & photo fondateur",
+            "subject": "Demande bio fondateur Affisell"
+          }
         }
       },
       "news": {
         "title": "Actualités récentes",
         "read": "Lire →",
         "items": {
-          "n1": { "title": "Lancement Swipe Feed affiliés", "date": "Mai 2026", "href": "/blog/swipe-feed-affiliate-hub" },
-          "n2": { "title": "Transparence commission sur toutes les commandes", "date": "Mai 2026", "href": "/blog/commission-transparency" },
-          "n3": { "title": "Hub RGPD marchands & acheteurs", "date": "Mai 2026", "href": "/blog/gdpr-marketplace-trust" }
+          "n1": {
+            "title": "Lancement Swipe Feed affiliés",
+            "date": "Mai 2026",
+            "href": "/blog/swipe-feed-affiliate-hub"
+          },
+          "n2": {
+            "title": "Transparence commission sur toutes les commandes",
+            "date": "Mai 2026",
+            "href": "/blog/commission-transparency"
+          },
+          "n3": {
+            "title": "Hub RGPD marchands & acheteurs",
+            "date": "Mai 2026",
+            "href": "/blog/gdpr-marketplace-trust"
+          }
         }
       },
       "contact": {
