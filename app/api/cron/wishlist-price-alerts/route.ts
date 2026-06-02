@@ -1,5 +1,6 @@
 import { Resend } from "resend"
 
+import { authorizeCronRequest } from "@/lib/cron/authorize-cron-request"
 import {
   readResendDeliveryConfig,
   resolveResendDeliveryRecipient,
@@ -17,13 +18,8 @@ function dropPercent(current: number, previous: number | null): number {
 }
 
 export async function GET(req: Request) {
-  const secret = process.env.CRON_SECRET?.trim()
-  if (secret) {
-    const authHeader = req.headers.get("authorization") || ""
-    if (authHeader !== `Bearer ${secret}`) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 })
-    }
-  }
+  const denied = authorizeCronRequest(req)
+  if (denied) return denied
 
   const rows = await prisma.wishlist.findMany({
     take: 500,

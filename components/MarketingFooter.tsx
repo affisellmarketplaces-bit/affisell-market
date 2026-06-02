@@ -53,11 +53,18 @@ export async function MarketingFooter() {
               </Link>
             </li>
             <li>
-              <span>{t("shipping")}</span>
+              <Link href="/shipping" className="hover:text-[#6366F1]">
+                {t("shipping")}
+              </Link>
             </li>
             <li>
-              <Link href="/faq#cashback" className="hover:text-[#6366F1]">
+              <Link href="/returns" className="hover:text-[#6366F1]">
                 {t("returns")}
+              </Link>
+            </li>
+            <li>
+              <Link href="/support" className="hover:text-[#6366F1]">
+                Support IA
               </Link>
             </li>
           </ul>

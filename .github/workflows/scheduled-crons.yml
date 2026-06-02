@@ -1,0 +1,58 @@
+name: Scheduled crons
+
+# Vercel Hobby crons are once/day — run ops jobs via GitHub Actions.
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+
+jobs:
+  frequent:
+    if: github.event.schedule == '*/30 * * * *' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger frequent cron routes
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          VERCEL_APP_URL: ${{ secrets.VERCEL_APP_URL }}
+        run: |
+          if [ -z "$CRON_SECRET" ] || [ -z "$VERCEL_APP_URL" ]; then
+            echo "Set GitHub secrets CRON_SECRET and VERCEL_APP_URL"
+            exit 1
+          fi
+          BASE="${VERCEL_APP_URL%/}"
+          AUTH="Authorization: Bearer ${CRON_SECRET}"
+          for path in \
+            "/api/cron/enforce-supplier-ship-sla" \
+            "/api/cron/sync-supplier-orders" \
+            "/api/cron/expire-sponsor-campaigns" \
+            "/api/cron/process-order-payouts"
+          do
+            echo "→ GET ${path}"
+            curl -fsS -H "$AUTH" "${BASE}${path}" || echo "WARN: ${path} failed"
+          done
+
+  daily:
+    if: github.event.schedule == '0 9 * * *' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger daily cron routes
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          VERCEL_APP_URL: ${{ secrets.VERCEL_APP_URL }}
+        run: |
+          if [ -z "$CRON_SECRET" ] || [ -z "$VERCEL_APP_URL" ]; then
+            echo "Set GitHub secrets CRON_SECRET and VERCEL_APP_URL"
+            exit 1
+          fi
+          BASE="${VERCEL_APP_URL%/}"
+          AUTH="Authorization: Bearer ${CRON_SECRET}"
+          for path in \
+            "/api/cron/review-reminder" \
+            "/api/cron/wishlist-price-alerts" \
+            "/api/cron/stripe-health"
+          do
+            echo "→ GET ${path}"
+            curl -fsS -H "$AUTH" "${BASE}${path}" || echo "WARN: ${path} failed"
+          done

@@ -1,3 +1,4 @@
+import { authorizeCronRequest } from "@/lib/cron/authorize-cron-request"
 import { openBlindSecret } from "@/lib/blind-dropship-crypto"
 import { buildSupplierAdapterFromConfig } from "@/lib/suppliers/build-rest-adapter"
 import { prisma } from "@/lib/prisma"
@@ -6,13 +7,8 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 export async function GET(req: Request) {
-  const secret = process.env.CRON_SECRET?.trim()
-  if (secret) {
-    const authHeader = req.headers.get("authorization") || ""
-    if (authHeader !== `Bearer ${secret}`) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 })
-    }
-  }
+  const denied = authorizeCronRequest(req)
+  if (denied) return denied
 
   const suppliers = await prisma.blindDropshipSupplier.findMany({
     where: { isBlindDropship: true, apiType: "rest" },

@@ -76,6 +76,8 @@ export function Footer() {
             </h2>
             <ul className="mt-4 space-y-2">
               <FooterLink href="/faq">FAQ</FooterLink>
+              <FooterLink href="/support">Assistant support</FooterLink>
+              <FooterLink href="/shipping">Livraison</FooterLink>
               <FooterLink href="/contact">Contact</FooterLink>
               <FooterLink href="/track-order">Suivre ma commande</FooterLink>
             </ul>

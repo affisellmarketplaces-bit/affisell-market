@@ -2,7 +2,10 @@ import Link from "next/link"
 import { getTranslations } from "next-intl/server"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
+import { FaqAccordion } from "@/components/support/faq-accordion"
+import { SupportAgentChat } from "@/components/support/support-agent-chat"
 import { buttonVariants } from "@/components/ui/button"
+import { FAQ_SECTIONS } from "@/lib/support/faq-content"
 import { cn } from "@/lib/utils"
 
 export async function generateMetadata() {
@@ -13,25 +16,53 @@ export async function generateMetadata() {
 export default async function FaqPage() {
   const t = await getTranslations("faq")
 
+  const sections = FAQ_SECTIONS.map((section) => ({
+    id: section.id,
+    title: t(section.titleKey),
+    items: section.items.map((item) => ({
+      id: item.id,
+      question: t(item.qKey),
+      answer: t(item.aKey),
+    })),
+  }))
+
   return (
     <BentoShell>
-      <BentoContainer maxWidth="4xl" className="space-y-8 py-12">
+      <BentoContainer maxWidth="4xl" className="space-y-10 py-12">
         <BentoPageHeading eyebrow={t("eyebrow")} title={t("title")} description={t("description")} />
 
-        <BentoCard id="cashback" className="scroll-mt-24 p-6">
-          <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{t("cashbackTitle")}</h2>
-          <p className="mt-3 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{t("cashbackBody")}</p>
-          <Link
-            href="/marketplace/account/wallet"
-            className={cn(buttonVariants({ variant: "bentoAccent", size: "bento" }), "mt-4 inline-flex")}
-          >
-            {t("walletCta")}
-          </Link>
+        <FaqAccordion sections={sections} />
+
+        <BentoCard className="flex flex-wrap items-center justify-between gap-4 p-5">
+          <div>
+            <p className="text-sm font-semibold text-zinc-900 dark:text-white">{t("stillNeedHelp")}</p>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">{t("stillNeedHelpBody")}</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/support" className={cn(buttonVariants({ variant: "bentoAccent", size: "bento" }))}>
+              {t("supportAgentCta")}
+            </Link>
+            <Link href="/contact" className={cn(buttonVariants({ variant: "bentoOutline", size: "bento" }))}>
+              {t("contactCta")}
+            </Link>
+          </div>
         </BentoCard>
+
+        <div>
+          <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-white">{t("agentInlineTitle")}</h2>
+          <SupportAgentChat />
+        </div>
+
+        <Link
+          href="/marketplace/account/wallet"
+          className="inline-flex text-sm font-medium text-violet-700 underline-offset-4 hover:underline dark:text-violet-300"
+        >
+          {t("walletCta")}
+        </Link>
 
         <Link
           href="/#explorer"
-          className="text-sm font-medium text-violet-700 underline-offset-4 hover:underline dark:text-violet-300"
+          className="block text-sm font-medium text-violet-700 underline-offset-4 hover:underline dark:text-violet-300"
         >
           {t("backMarketplace")}
         </Link>

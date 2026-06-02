@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
+import { logBusiness } from "@/lib/business-log"
 import { readResendDeliveryConfig, sendResendEmail } from "@/lib/emails/resend-delivery"
+import {
+  makeTicketRef,
+  sendContactAcknowledgmentEmail,
+} from "@/lib/emails/send-contact-acknowledgment"
 import { readCompanyLegal } from "@/lib/legal/company-env"
 
 const schema = z.object({
@@ -26,9 +31,10 @@ export async function POST(req: Request) {
 
   const { name, email, subject, message } = parsed.data
   const { supportEmail } = readCompanyLegal()
+  const ticketRef = makeTicketRef()
 
   const html = `
-    <h2>Contact Affisell</h2>
+    <h2>Contact Affisell — #${ticketRef}</h2>
     <p><strong>Nom :</strong> ${escapeHtml(name)}</p>
     <p><strong>Email :</strong> ${escapeHtml(email)}</p>
     <p><strong>Sujet :</strong> ${escapeHtml(subject)}</p>
@@ -38,7 +44,7 @@ export async function POST(req: Request) {
 
   const config = readResendDeliveryConfig()
   if (!config) {
-    console.log("[contact]", { error: "no_resend_key" })
+    logBusiness("contact", { result: "failed", reason: "no_resend_key" })
     return NextResponse.json({ ok: false, error: "email_not_configured" }, { status: 503 })
   }
 
@@ -52,15 +58,23 @@ export async function POST(req: Request) {
   })
 
   if (!sent.ok) {
-    console.log("[contact]", { error: sent.error, from: email })
+    logBusiness("contact", { result: "failed", ticketRef, error: sent.error, from: email })
     return NextResponse.json(
       { ok: false, error: "email_send_failed" },
       { status: 503 }
     )
   }
 
-  console.log("[contact]", { result: "sent", supportEmail, from: email })
-  return NextResponse.json({ ok: true })
+  void sendContactAcknowledgmentEmail({ name, email, subject, ticketRef }).catch((err) => {
+    logBusiness("contact-ack", {
+      result: "async_failed",
+      ticketRef,
+      error: err instanceof Error ? err.message : String(err),
+    })
+  })
+
+  logBusiness("contact", { result: "sent", ticketRef, supportEmail, from: email })
+  return NextResponse.json({ ok: true, ticketRef })
 }
 
 function escapeHtml(s: string): string {

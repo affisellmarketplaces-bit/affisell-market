@@ -21,6 +21,7 @@ export function ContactForm({ supportEmail, className }: Props) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [ticketRef, setTicketRef] = useState<string | null>(null)
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
@@ -33,11 +34,12 @@ export function ContactForm({ supportEmail, className }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, subject, message }),
       })
-      const data = (await res.json()) as { ok?: boolean; error?: string }
+      const data = (await res.json()) as { ok?: boolean; error?: string; ticketRef?: string }
       if (!res.ok || !data.ok) {
         throw new Error(data.error ?? "Envoi impossible")
       }
       setSuccess(true)
+      setTicketRef(data.ticketRef ?? null)
       setName("")
       setEmail("")
       setSubject("")
@@ -127,7 +129,16 @@ export function ContactForm({ supportEmail, className }: Props) {
         ) : null}
         {success ? (
           <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
-            Message envoyé. Nous vous répondons sous 2 jours ouvrés en général.
+            Message envoyé{ticketRef ? ` — réf. #${ticketRef}` : ""}. Un accusé de réception vous a été envoyé par
+            e-mail. Réponse sous 48 h ouvrées en général. Consultez aussi la{" "}
+            <a href="/faq" className="font-semibold underline">
+              FAQ
+            </a>{" "}
+            ou l&apos;{" "}
+            <a href="/support" className="font-semibold underline">
+              assistant support
+            </a>
+            .
           </p>
         ) : null}
 

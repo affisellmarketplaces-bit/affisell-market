@@ -256,6 +256,13 @@ async function dispatchStripeEvent(
       await handleStripeChargeRefunded(event.data.object as Stripe.Charge)
       return { orderId: null, status: "success", error: null }
     }
+    case "checkout.session.expired": {
+      const { handleStripeCheckoutSessionExpired } = await import(
+        "@/lib/stripe-checkout-session-expired"
+      )
+      await handleStripeCheckoutSessionExpired(event.data.object as Stripe.Checkout.Session)
+      return { orderId: null, status: "success", error: null }
+    }
     case "payment_intent.succeeded": {
       const pi = event.data.object as Stripe.PaymentIntent
       const blindId = pi.metadata?.blindDropshipOrderId?.trim()

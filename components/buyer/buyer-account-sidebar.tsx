@@ -38,10 +38,16 @@ export function BuyerAccountSidebar() {
             <p className="text-sm font-semibold text-zinc-900 dark:text-white">{t("supportTitle")}</p>
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{t("supportBody")}</p>
             <Link
-              href="/contact"
+              href="/support"
               className="mt-3 inline-block text-sm font-medium text-violet-700 underline-offset-4 hover:underline dark:text-violet-300"
             >
               {t("contactCta")}
+            </Link>
+            <Link
+              href="/faq"
+              className="mt-2 block text-xs font-medium text-zinc-500 underline-offset-4 hover:underline dark:text-zinc-400"
+            >
+              FAQ
             </Link>
           </div>
         </div>
