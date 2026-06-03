@@ -38,6 +38,7 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import type { CSSProperties } from "react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useTranslations } from "next-intl"
 
 import AffiliateLiveStore from "@/components/affiliate/affiliate-live-store"
 import { DiscoverListingActions } from "@/components/affiliate/discover-listing-actions"
@@ -217,6 +218,8 @@ type Props = {
 }
 
 export function AffiliateDashboard({ storeId }: Props) {
+  const tHub = useTranslations("affiliate.hub")
+  const tAffiliate = useTranslations("affiliate")
   const router = useRouter()
   const searchParams = useSearchParams()
   const productDeepLinkConsumed = useRef(false)
@@ -608,7 +611,7 @@ export function AffiliateDashboard({ storeId }: Props) {
             role="alert"
             className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100"
           >
-            <p className="font-semibold">Storefront data unavailable</p>
+            <p className="font-semibold">{tHub("storefrontUnavailable")}</p>
             <p className="mt-1 text-amber-900/90 dark:text-amber-200/90">{bootstrapError}</p>
           </div>
         ) : null}
@@ -619,52 +622,51 @@ export function AffiliateDashboard({ storeId }: Props) {
               <div className="min-w-0 flex-1 space-y-4">
                 <div className={affisellBrand.badgeAffiliate}>
                   <Sparkles className="h-3.5 w-3.5" aria-hidden />
-                  Affiliate hub
+                  {tAffiliate("dashboardTagline")}
                 </div>
                 <div>
                   <h1 className="text-balance text-3xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
-                    Your branded storefront
+                    {tHub("storefrontTitle")}
                   </h1>
                   <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-300 sm:text-[15px]">
-                    Discover products to sell, set your prices and margins, and manage what shoppers see in your public
-                    store—all from here.
+                    {tHub("storefrontSubtitle")}
                   </p>
                 </div>
                 <nav className="flex flex-wrap gap-2 sm:gap-2.5" aria-label="Quick links">
                   {(
                     [
                       {
-                        label: "Inviter un fournisseur",
+                        label: tHub("inviteSupplier"),
                         href: "/dashboard/affiliate/invite-supplier",
                         Icon: Handshake,
                       },
                       {
-                        label: "Browse marketplace",
+                        label: tHub("browseMarketplace"),
                         href: AFFILIATE_CATALOG_PATH,
                         Icon: Compass,
                       },
                       {
-                        label: "Earnings cockpit",
+                        label: tHub("earningsCockpit"),
                         href: "/dashboard/affiliate/earnings",
                         Icon: Wallet,
                       },
                       {
-                        label: "Brand Studio",
+                        label: tHub("brandStudio"),
                         href: "/dashboard/affiliate/brand-studio",
                         Icon: Palette,
                       },
                       {
-                        label: "Store profile",
+                        label: tHub("storeProfile"),
                         href: "/dashboard/affiliate/settings/store",
                         Icon: Store,
                       },
                       {
-                        label: "Community & social",
+                        label: tHub("communitySocial"),
                         href: "/dashboard/settings/social",
                         Icon: UsersRound,
                       },
                       {
-                        label: "Account & security",
+                        label: tHub("accountSecurity"),
                         href: "/dashboard/settings/account",
                         Icon: UserRound,
                       },
@@ -698,7 +700,7 @@ export function AffiliateDashboard({ storeId }: Props) {
                     onClick={() => viewStore()}
                     className={cn("inline-flex flex-1 items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold", affisellBrand.ctaBrand)}
                   >
-                    <Eye className="h-4 w-4 shrink-0" aria-hidden /> Open public store
+                    <Eye className="h-4 w-4 shrink-0" aria-hidden /> {tHub("openPublicStore")}
                   </button>
                 </div>
               </div>
@@ -707,11 +709,11 @@ export function AffiliateDashboard({ storeId }: Props) {
             <div className="mt-8 grid gap-6 border-t border-gray-100/90 pt-8 dark:border-zinc-800 sm:grid-cols-3">
               <BentoStat
                 className="border-0 bg-transparent p-0 shadow-none backdrop-blur-none dark:bg-transparent"
-                label="Discover feed"
+                label={tHub("discoverFeed")}
                 value={
                   <>
                     {discoverSkuCount}
-                    <span className="ml-1 text-base font-medium text-gray-500 dark:text-zinc-300">SKUs</span>
+                    <span className="ml-1 text-base font-medium text-gray-500 dark:text-zinc-300">{tHub("skus")}</span>
                   </>
                 }
                 hint={
@@ -727,13 +729,13 @@ export function AffiliateDashboard({ storeId }: Props) {
               />
               <BentoStat
                 className="border-0 bg-transparent p-0 shadow-none backdrop-blur-none dark:bg-transparent"
-                label="Your listings"
+                label={tHub("yourListings")}
                 value={listingsWithProduct.length}
                 hint="Curated resale rows in builder & store"
               />
               <BentoStat
                 className="border-0 bg-transparent p-0 shadow-none backdrop-blur-none dark:bg-transparent"
-                label="Live on storefront"
+                label={tHub("liveOnStorefront")}
                 value={listedLiveCount}
                 valueClassName="text-[#10B981] dark:text-emerald-400"
                 hint="Visible SKUs shoppers can checkout"
