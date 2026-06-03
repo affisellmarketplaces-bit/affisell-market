@@ -1,3 +1,5 @@
+import { pathnameWithoutLocale } from "@/lib/locale-path"
+
 /**
  * First URL segments that are real app routes, not `app/[locale]` locale codes.
  * Keep in sync when adding top-level routes beside `en` / `fr`.
@@ -19,6 +21,7 @@ export const RESERVED_LOCALE_SEGMENTS = new Set([
   "contact",
   "creators",
   "dashboard",
+  "demo",
   "discover",
   "faq",
   "home",
@@ -52,6 +55,7 @@ export const RESERVED_LOCALE_SEGMENTS = new Set([
 
 /** True when the first path segment is an app route (not `en` / `fr`). Used by middleware. */
 export function isStaticAppPathname(pathname: string): boolean {
-  const segment = pathname.split("/").filter(Boolean)[0]
+  const bare = pathnameWithoutLocale(pathname)
+  const segment = bare.split("/").filter(Boolean)[0]
   return segment != null && RESERVED_LOCALE_SEGMENTS.has(segment)
 }

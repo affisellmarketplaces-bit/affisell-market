@@ -353,5 +353,7 @@ export const config = {
     "/agent",
     "/creators",
     "/partners",
+    "/demo",
+    "/demo/:path*",
   ],
 }
