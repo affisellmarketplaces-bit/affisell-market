@@ -873,7 +873,60 @@
       "import": "Import",
       "extension": "Extension",
       "finances": "Finances",
-      "integrations": "Intégrations"
+      "integrations": "Intégrations",
+      "supply": "Supply"
+    },
+    "supplyHub": {
+      "eyebrow": "Affisell Supply Bridge",
+      "title": "Supply Hub",
+      "subtitle": "Branchez vos chaînes, suivez catalogue et auto-achat — sans changer vos flux de commande actuels.",
+      "connectorsTitle": "Connecteurs",
+      "capabilitiesAria": "Capacités du connecteur",
+      "openChannel": "Ouvrir",
+      "footerNote": "Les canaux Phase 2–3 s’activent au fur et à mesure des partenariats API. Aucun auto-buy n’est déclenché depuis cette page.",
+      "phase": "Phase {n}",
+      "totals": {
+        "skus": "SKUs",
+        "autoBuy": "Auto-buy",
+        "sync": "Sync actifs"
+      },
+      "status": {
+        "live": "Live",
+        "connected": "Branché",
+        "setup": "À configurer",
+        "native": "Stock interne",
+        "roadmap": "Bientôt"
+      },
+      "capabilities": {
+        "catalog": "Catalogue",
+        "orders": "Commandes",
+        "negotiate": "Négo",
+        "packaging": "Pack"
+      },
+      "capState": {
+        "live": "Disponible",
+        "beta": "Bêta",
+        "soon": "Bientôt",
+        "off": "—"
+      },
+      "stats": {
+        "linked": "{count} SKU liés",
+        "autoBuy": "{count} en auto-buy"
+      },
+      "hints": {
+        "aliexpressPlatform": "Clés Open Platform à configurer côté plateforme (import API).",
+        "aliexpressAutoBuy": "Liez vos fiches et activez l’auto-buy par SKU.",
+        "factoryRest": "Connectez une API REST usine / grossiste (intégrations ou partenaire blind)."
+      },
+      "channels": {
+        "native": { "name": "Stock Affisell" },
+        "aliexpress": { "name": "AliExpress" },
+        "factory": { "name": "Usine / REST" },
+        "bigbuy": { "name": "BigBuy" },
+        "cj": { "name": "CJ Dropshipping" },
+        "amazon": { "name": "Amazon" },
+        "manual": { "name": "Manuel" }
+      }
     }
   },
   "supplierOrders": {

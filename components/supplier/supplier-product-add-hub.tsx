@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
   ChevronRight,
+  Layers,
   Link2,
   LogOut,
   Package,
@@ -241,6 +242,27 @@ export function SupplierProductAddHub({ onStartManual, onStartWithAssist }: Prop
               </p>
               <span className="mt-6 text-sm font-medium text-violet-700 group-hover:underline dark:text-violet-400">
                 Configure integrations →
+              </span>
+            </Link>
+          </li>
+
+          <li>
+            <Link
+              href="/dashboard/supplier/supply"
+              className={cn(
+                cardBase,
+                "border-violet-200/60 bg-gradient-to-br from-violet-50/80 to-zinc-50 hover:border-violet-300 dark:border-violet-900/50 dark:from-violet-950/30 dark:to-zinc-950 dark:hover:border-violet-700"
+              )}
+            >
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-200">
+                <Layers className="h-5 w-5" aria-hidden />
+              </span>
+              <h2 className="mt-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">Supply Hub</h2>
+              <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                AliExpress, usines REST, BigBuy &amp; CJ — statut catalogue et auto-buy en un coup d’œil.
+              </p>
+              <span className="mt-6 text-sm font-medium text-violet-700 group-hover:underline dark:text-violet-400">
+                Open Supply Hub →
               </span>
             </Link>
           </li>

@@ -873,7 +873,60 @@
       "import": "Import",
       "extension": "Extension",
       "finances": "Finances",
-      "integrations": "Integrations"
+      "integrations": "Integrations",
+      "supply": "Supply"
+    },
+    "supplyHub": {
+      "eyebrow": "Affisell Supply Bridge",
+      "title": "Supply Hub",
+      "subtitle": "Plug in your supply chains, track catalog and auto-buy — without changing your current order flows.",
+      "connectorsTitle": "Connectors",
+      "capabilitiesAria": "Connector capabilities",
+      "openChannel": "Open",
+      "footerNote": "Phase 2–3 channels unlock as API partnerships go live. No auto-buy is triggered from this page.",
+      "phase": "Phase {n}",
+      "totals": {
+        "skus": "SKUs",
+        "autoBuy": "Auto-buy",
+        "sync": "Active sync"
+      },
+      "status": {
+        "live": "Live",
+        "connected": "Connected",
+        "setup": "Setup",
+        "native": "In-house",
+        "roadmap": "Soon"
+      },
+      "capabilities": {
+        "catalog": "Catalog",
+        "orders": "Orders",
+        "negotiate": "RFQ",
+        "packaging": "Pack"
+      },
+      "capState": {
+        "live": "Available",
+        "beta": "Beta",
+        "soon": "Soon",
+        "off": "—"
+      },
+      "stats": {
+        "linked": "{count} linked SKUs",
+        "autoBuy": "{count} auto-buy"
+      },
+      "hints": {
+        "aliexpressPlatform": "Open Platform keys must be configured on the platform (API import).",
+        "aliexpressAutoBuy": "Link listings and enable auto-buy per SKU.",
+        "factoryRest": "Connect a factory / wholesaler REST API (integrations or blind partner)."
+      },
+      "channels": {
+        "native": { "name": "Affisell stock" },
+        "aliexpress": { "name": "AliExpress" },
+        "factory": { "name": "Factory / REST" },
+        "bigbuy": { "name": "BigBuy" },
+        "cj": { "name": "CJ Dropshipping" },
+        "amazon": { "name": "Amazon" },
+        "manual": { "name": "Manual" }
+      }
     }
   },
   "supplierOrders": {

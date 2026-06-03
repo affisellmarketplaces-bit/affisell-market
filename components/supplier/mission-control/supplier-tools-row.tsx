@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Landmark, Package, Plug, Puzzle, Upload } from "lucide-react"
+import { Landmark, Layers, Package, Plug, Puzzle, Upload } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
 import { cn } from "@/lib/utils"
@@ -10,6 +10,7 @@ const toolKeys = [
   { key: "extension" as const, href: "/dashboard/supplier/extension", Icon: Puzzle },
   { key: "finances" as const, href: "/dashboard/supplier/balance", Icon: Landmark },
   { key: "integrations" as const, href: "/dashboard/supplier/integrations", Icon: Plug },
+  { key: "supply" as const, href: "/dashboard/supplier/supply", Icon: Layers },
 ]
 
 export async function SupplierToolsRow() {
