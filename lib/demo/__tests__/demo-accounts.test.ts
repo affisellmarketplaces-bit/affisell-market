@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { isDemoLabEmail } from "@/lib/demo/demo-accounts-shared"
 import {
@@ -14,7 +14,6 @@ const ENV_KEYS = [
   "DEMO_AFFILIATE_PASSWORD",
   "DEMO_BUYER_PASSWORD",
   "VERCEL_ENV",
-  "NODE_ENV",
 ] as const
 
 function snapshotEnv(): Record<string, string | undefined> {
@@ -38,10 +37,11 @@ describe("demo accounts config", () => {
 
   afterEach(() => {
     restoreEnv(before)
+    vi.unstubAllEnvs()
   })
 
   it("isDemoLabEnabled respects DEMO_LAB_ENABLED and VERCEL_ENV preview", () => {
-    process.env.NODE_ENV = "production"
+    vi.stubEnv("NODE_ENV", "production")
     delete process.env.VERCEL_ENV
     delete process.env.DEMO_LAB_ENABLED
     expect(isDemoLabEnabled()).toBe(false)

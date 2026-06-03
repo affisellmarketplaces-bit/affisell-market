@@ -21,8 +21,8 @@ export default async function AffiliatePromotePage() {
   }))
 
   return (
-    <div className="min-h-[calc(100dvh-3.75rem)] bg-zinc-100/90 px-4 py-8 dark:bg-zinc-950">
-      <div className="mx-auto max-w-6xl">
+    <div className="min-h-[calc(100dvh-3.75rem)] overflow-x-clip bg-zinc-100/90 px-3 py-6 dark:bg-zinc-950 sm:px-4 sm:py-8">
+      <div className="mx-auto min-w-0 max-w-6xl">
         <SponsorBoostStudio role="AFFILIATE" items={items} />
       </div>
     </div>

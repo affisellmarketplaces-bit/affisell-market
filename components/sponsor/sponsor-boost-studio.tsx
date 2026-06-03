@@ -173,7 +173,7 @@ export function SponsorBoostStudio({ role, items }: Props) {
   const boostRingLen = 2 * Math.PI * 15.5
 
   return (
-    <div className="relative overflow-hidden rounded-[1.75rem] border border-violet-500/20 bg-zinc-950 shadow-2xl shadow-violet-950/40">
+    <div className="relative overflow-x-clip rounded-[1.75rem] border border-violet-500/20 bg-zinc-950 shadow-2xl shadow-violet-950/40">
       <div
         className="pointer-events-none absolute inset-0 bg-gradient-to-br from-violet-950/80 via-zinc-950 to-cyan-950/50"
         aria-hidden
@@ -187,8 +187,8 @@ export function SponsorBoostStudio({ role, items }: Props) {
         aria-hidden
       />
 
-      <div className="relative z-10 p-5 sm:p-8 lg:p-10">
-        <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div className="relative z-10 min-w-0 p-4 pb-28 sm:p-8 sm:pb-8 lg:p-10 xl:pb-10">
+        <header className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="min-w-0">
             <p className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.28em] text-violet-300">
               <Zap className="size-3.5 shrink-0" aria-hidden />
@@ -214,8 +214,8 @@ export function SponsorBoostStudio({ role, items }: Props) {
           </div>
         </header>
 
-        <div className="mt-8 grid gap-6 xl:grid-cols-12 xl:gap-8">
-          <section className="flex flex-col gap-4 xl:col-span-5">
+        <div className="mt-6 flex flex-col gap-6 sm:mt-8 xl:grid xl:grid-cols-12 xl:gap-8">
+          <section className="order-2 flex min-w-0 flex-col gap-3 sm:gap-4 xl:order-1 xl:col-span-5">
             <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">
               <Target className="size-3.5" aria-hidden />
               {t("target")}
@@ -253,7 +253,7 @@ export function SponsorBoostStudio({ role, items }: Props) {
               </div>
             ) : null}
 
-            <div className="max-h-[min(280px,40vh)] min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain rounded-2xl border border-white/10 bg-black/25 p-2 pr-1">
+            <div className="max-h-[min(11rem,28dvh)] min-h-0 space-y-2 overflow-y-auto overscroll-contain rounded-2xl border border-white/10 bg-black/25 p-2 pr-1 sm:max-h-[min(280px,40vh)]">
               {items.length === 0 ? (
                 <p className="px-3 py-6 text-center text-sm text-zinc-500">{t("noProducts")}</p>
               ) : (
@@ -285,7 +285,9 @@ export function SponsorBoostStudio({ role, items }: Props) {
                         ) : null}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-zinc-100">{item.label}</p>
+                        <p className="line-clamp-2 text-sm font-medium leading-snug text-zinc-100">
+                          {item.label}
+                        </p>
                         <p className="text-xs tabular-nums text-zinc-500">
                           {formatStoreCurrencyFromCents(item.htCents)} HT
                         </p>
@@ -297,7 +299,7 @@ export function SponsorBoostStudio({ role, items }: Props) {
             </div>
           </section>
 
-          <section className="flex flex-col gap-5 rounded-2xl border border-white/10 bg-zinc-900/90 p-5 backdrop-blur-sm sm:p-6 xl:col-span-7">
+          <section className="order-1 flex min-w-0 flex-col gap-4 rounded-2xl border border-white/10 bg-zinc-900/90 p-4 backdrop-blur-sm sm:gap-5 sm:p-6 xl:order-2 xl:col-span-7">
             <div>
               <div className="flex items-end justify-between gap-3">
                 <label className="text-xs font-medium text-zinc-400">{t("investment")}</label>
@@ -347,7 +349,7 @@ export function SponsorBoostStudio({ role, items }: Props) {
 
             <div>
               <p className="text-xs font-medium text-zinc-400">{t("placement.label")}</p>
-              <div className="mt-2 grid gap-2 sm:grid-cols-3">
+              <div className="mt-2 grid grid-cols-1 gap-2 min-[400px]:grid-cols-3">
                 {SPONSOR_PLACEMENTS.map((p) => {
                   const Icon = PLACEMENT_ICONS[p]
                   const active = placement === p
@@ -357,21 +359,23 @@ export function SponsorBoostStudio({ role, items }: Props) {
                       type="button"
                       onClick={() => setPlacement(p)}
                       className={cn(
-                        "flex flex-col items-start gap-2 rounded-xl border px-3 py-3 text-left transition",
+                        "flex min-h-[3.25rem] flex-row items-center gap-3 rounded-xl border px-3 py-3 text-left transition min-[400px]:min-h-0 min-[400px]:flex-col min-[400px]:items-start",
                         active
                           ? "border-cyan-400/50 bg-cyan-500/10 text-cyan-50"
                           : "border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600"
                       )}
                     >
-                      <Icon className={cn("size-4", active ? "text-cyan-300" : "text-zinc-500")} aria-hidden />
-                      <span className="text-xs font-semibold leading-tight">{t(`placement.${p}`)}</span>
+                      <Icon className={cn("size-4 shrink-0", active ? "text-cyan-300" : "text-zinc-500")} aria-hidden />
+                      <span className="text-xs font-semibold leading-snug min-[400px]:leading-tight">
+                        {t(`placement.${p}`)}
+                      </span>
                     </button>
                   )
                 })}
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
+            <div className="grid grid-cols-1 gap-4 min-[480px]:grid-cols-[1fr_auto] min-[480px]:items-end">
               <div className="rounded-2xl border border-violet-500/30 bg-gradient-to-br from-violet-600/25 to-zinc-900 p-4">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-violet-200/90">
                   {t("budget")}
@@ -438,7 +442,7 @@ export function SponsorBoostStudio({ role, items }: Props) {
               type="button"
               disabled={!selected || paying || !quote}
               onClick={() => void launchBoost()}
-              className="h-12 w-full rounded-2xl bg-gradient-to-r from-violet-600 to-cyan-500 text-base font-semibold text-white shadow-lg shadow-violet-900/50 hover:from-violet-500 hover:to-cyan-400 disabled:opacity-40"
+              className="hidden h-12 w-full rounded-2xl bg-gradient-to-r from-violet-600 to-cyan-500 text-base font-semibold text-white shadow-lg shadow-violet-900/50 hover:from-violet-500 hover:to-cyan-400 disabled:opacity-40 xl:flex"
             >
               {paying ? (
                 <Loader2 className="size-5 animate-spin" aria-hidden />
@@ -451,6 +455,39 @@ export function SponsorBoostStudio({ role, items }: Props) {
             </Button>
           </section>
         </div>
+
+        {quote ? (
+          <div
+            className="fixed inset-x-0 bottom-0 z-50 border-t border-violet-500/30 bg-zinc-950/95 px-4 py-3 backdrop-blur-xl supports-[backdrop-filter]:bg-zinc-950/85 xl:hidden"
+            style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+          >
+            <div className="mx-auto flex max-w-6xl min-w-0 items-center gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-violet-200/90">
+                  {t("budget")}
+                </p>
+                <p className="truncate text-xl font-bold tabular-nums text-white">
+                  {loadingQuote ? "…" : formatStoreCurrencyFromCents(quote.feeCents)}
+                </p>
+              </div>
+              <Button
+                type="button"
+                disabled={!selected || paying}
+                onClick={() => void launchBoost()}
+                className="h-11 shrink-0 rounded-2xl bg-gradient-to-r from-violet-600 to-cyan-500 px-5 text-sm font-semibold text-white shadow-lg shadow-violet-900/50"
+              >
+                {paying ? (
+                  <Loader2 className="size-5 animate-spin" aria-hidden />
+                ) : (
+                  <>
+                    <Rocket className="mr-1.5 size-4 shrink-0" aria-hidden />
+                    {t("cta")}
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        ) : null}
 
         {campaigns.length > 0 ? (
           <section className="relative z-10 mt-8 rounded-2xl border border-zinc-800 bg-zinc-900 p-5 sm:p-6">
