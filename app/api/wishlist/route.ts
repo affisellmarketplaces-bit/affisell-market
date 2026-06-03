@@ -2,6 +2,7 @@ import { auth } from "@/auth"
 import { getOrCreateGuestWishlistId, readGuestWishlistId } from "@/lib/guest-wishlist-id"
 import {
   guestWishlistProductIds,
+  listGuestWishlistForDisplay,
   toggleGuestWishlist,
 } from "@/lib/guest-wishlist-server"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
@@ -79,7 +80,22 @@ export async function GET(req: Request) {
     )
   }
 
-  if (!userId) return Response.json({ wished: false, items: [], statuses: {} })
+  if (!userId) {
+    const productId = url.searchParams.get("productId")?.trim() || ""
+    if (productId) {
+      const guestWished =
+        guestId && (await guestWishlistProductIds(guestId, [productId])).has(productId)
+      const likeCount = await countProductLikesSingle(productId)
+      return Response.json({ wished: guestWished, likeCount })
+    }
+
+    if (guestId) {
+      const rows = await listGuestWishlistForDisplay(guestId)
+      return Response.json({ items: rows })
+    }
+
+    return Response.json({ wished: false, items: [], statuses: {} })
+  }
 
   const productId = url.searchParams.get("productId")?.trim() || ""
   if (productId) {

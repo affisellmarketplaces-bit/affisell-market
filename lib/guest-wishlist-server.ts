@@ -1,5 +1,6 @@
 import "server-only"
 
+import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { countProductLikesSingle } from "@/lib/product-like-count"
 import { prisma } from "@/lib/prisma"
 
@@ -41,6 +42,57 @@ export async function toggleGuestWishlist(
   const likeCount = await countProductLikesSingle(productId)
   console.log("[guest-wishlist]", { productId, guestId, result: "liked", likeCount })
   return { wished: true, likeCount }
+}
+
+export type WishlistDisplayRow = {
+  productId: string
+  name: string
+  imageUrl: string | null
+  listingId: string | null
+  currentPriceCents: number | null
+  targetPriceCents: number | null
+  dropPercent: number
+}
+
+/** Guest favorites for `/wishlist` page (no account required). */
+export async function listGuestWishlistForDisplay(guestId: string): Promise<WishlistDisplayRow[]> {
+  const guestIdNorm = guestId.trim()
+  if (!guestIdNorm) return []
+
+  const rows = await prisma.guestWishlist.findMany({
+    where: { guestId: guestIdNorm },
+    orderBy: { updatedAt: "desc" },
+    take: 100,
+    include: {
+      product: {
+        select: {
+          id: true,
+          name: true,
+          images: true,
+          affiliateProducts: {
+            where: buyerListedAffiliateProductWhere,
+            take: 1,
+            orderBy: { id: "asc" },
+            select: { id: true, sellingPriceCents: true },
+          },
+        },
+      },
+    },
+  })
+
+  return rows.map((w) => {
+    const listing = w.product.affiliateProducts[0] ?? null
+    const current = listing?.sellingPriceCents ?? null
+    return {
+      productId: w.productId,
+      name: w.product.name,
+      imageUrl: w.product.images[0] ?? null,
+      listingId: listing?.id ?? null,
+      currentPriceCents: current,
+      targetPriceCents: null,
+      dropPercent: 0,
+    }
+  })
 }
 
 /** Idempotent: copy guest likes into authenticated wishlist after sign-in. */

@@ -1239,6 +1239,12 @@
     "subtitle": "Produits enregistrés via ♥ sur le catalogue — alertes prix incluses.",
     "empty": "Aucun favori pour le moment. Ajoutez des produits depuis le marketplace (icône ♥ sur une fiche).",
     "browse": "Explorer le catalogue",
+    "viewProduct": "Voir",
+    "targetPrice": "Cible {price}",
+    "dropBadge": "🔔 -{pct}% {since}",
+    "noImage": "Sans image",
+    "guestBanner": "Enregistré sur cet appareil. Créez un compte gratuit pour synchroniser vos favoris et activer les alertes prix.",
+    "guestBannerCta": "Créer un compte gratuit",
     "heart": {
       "add": "Ajouter aux favoris",
       "remove": "Retirer des favoris",

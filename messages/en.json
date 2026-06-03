@@ -1239,6 +1239,12 @@
     "subtitle": "Saved products from the catalog — price alerts included.",
     "empty": "No favorites yet. Add products from the marketplace (♥ on a product page).",
     "browse": "Browse catalog",
+    "viewProduct": "View",
+    "targetPrice": "Target {price}",
+    "dropBadge": "🔔 -{pct}% {since}",
+    "noImage": "No image",
+    "guestBanner": "Saved on this device. Create a free account to sync favorites and get price alerts.",
+    "guestBannerCta": "Create free account",
     "heart": {
       "add": "Add to favorites",
       "remove": "Remove from favorites",

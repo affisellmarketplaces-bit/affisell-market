@@ -95,8 +95,9 @@ test.describe("public flows", () => {
     expect(Array.isArray(data)).toBeTruthy()
   })
 
-  test("wishlist sends guests to customer signup", async ({ page }) => {
+  test("wishlist page loads for guests", async ({ page }) => {
     await page.goto("/wishlist")
-    await expect(page).toHaveURL(/\/signup\/customer/)
+    await expect(page).toHaveURL(/\/wishlist/)
+    await expect(page.getByRole("heading", { name: /My favorites|Mes favoris/i })).toBeVisible()
   })
 })

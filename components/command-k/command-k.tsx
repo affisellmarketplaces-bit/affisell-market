@@ -150,10 +150,6 @@ export function CommandK() {
       }
       const href = item.href
       if (!href) return
-      if (href === "/wishlist" && !session?.user?.id) {
-        router.push(`/signup/customer?callbackUrl=${encodeURIComponent("/wishlist")}`)
-        return
-      }
       router.push(href)
     },
     [router, session?.user?.id]
