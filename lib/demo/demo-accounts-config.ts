@@ -19,15 +19,47 @@ function envTrim(key: string): string | undefined {
   return v?.length ? v : undefined
 }
 
-export function isDemoLabEnabled(): boolean {
+/** Explicit opt-out (prod safety). */
+export function isDemoLabExplicitlyDisabled(): boolean {
   const v = envTrim("DEMO_LAB_ENABLED")?.toLowerCase()
-  return v === "1" || v === "true"
+  return v === "0" || v === "false"
 }
 
-export function getDemoLabPublicState(): { enabled: boolean; configured: boolean } {
+/**
+ * Demo Lab on by default for local dev + Vercel Preview (PR / branch URLs).
+ * Production requires DEMO_LAB_ENABLED=1 unless explicitly disabled.
+ */
+export function isDemoLabEnabled(): boolean {
+  if (isDemoLabExplicitlyDisabled()) return false
+
+  const flag = envTrim("DEMO_LAB_ENABLED")?.toLowerCase()
+  if (flag === "1" || flag === "true") return true
+
+  const vercelEnv = envTrim("VERCEL_ENV")
+  if (vercelEnv === "preview") return true
+
+  if (process.env.NODE_ENV !== "production") return true
+
+  return false
+}
+
+export type DemoLabPublicState = {
+  enabled: boolean
+  configured: boolean
+  /** Why the portal is hidden or degraded (for support / Metabase). */
+  mode: "ready" | "disabled" | "not_configured"
+}
+
+export function getDemoLabPublicState(): DemoLabPublicState {
   const enabled = isDemoLabEnabled()
-  const configured = enabled && resolveDemoPassword("supplier") !== null
-  return { enabled, configured }
+  if (!enabled) {
+    return { enabled: false, configured: false, mode: "disabled" }
+  }
+  const configured = resolveDemoPassword("supplier") !== null
+  if (!configured) {
+    return { enabled: true, configured: false, mode: "not_configured" }
+  }
+  return { enabled: true, configured: true, mode: "ready" }
 }
 
 export function resolveDemoPassword(persona: DemoPersonaKey): string | null {

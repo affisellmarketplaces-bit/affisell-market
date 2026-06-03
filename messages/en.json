@@ -1904,8 +1904,8 @@
       "badge": "Sandbox live",
       "enter": "Enter demo",
       "entering": "Signing in…",
-      "disabled": "Demo accounts are disabled on this environment.",
-      "notConfigured": "Set DEMO_LAB_ENABLED=1 and DEMO_LAB_PASSWORD (or per-role passwords) on the server.",
+      "disabled": "Demo Lab is off (production without DEMO_LAB_ENABLED=1, or DEMO_LAB_ENABLED=0).",
+      "notConfigured": "Add DEMO_LAB_PASSWORD in Vercel → Environment Variables → Preview (and Production if needed), then redeploy. Vercel Preview enables Demo Lab automatically.",
       "rateLimited": "Too many attempts — try again in a few minutes.",
       "signinFailed": "Sign-in failed. Check demo configuration or retry.",
       "personas": {

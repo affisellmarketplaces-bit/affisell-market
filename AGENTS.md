@@ -11,6 +11,14 @@
 - **Theme**: `Store.storefrontTheme` JSON (`primary`, `accent` hex) — **Brand Studio** (`/dashboard/affiliate/brand-studio`, `/dashboard/supplier/storefront`); applied via `StorefrontThemeStyles` on public shops.
 - **Vercel SSL**: after DNS verify, `POST /api/store/verify-domain` calls Vercel Projects API when `VERCEL_API_TOKEN` + `VERCEL_PROJECT_ID` are set; status in `Store.vercelDomainStatus`, polled via `GET /api/store/domain-status`.
 
+## Demo Lab (`/demo`)
+
+- **Public**: parcours + feedback sans compte (`POST /api/demo/feedback`).
+- **1-clic**: `DEMO_LAB_PASSWORD` (server) + `enterDemoLabAction` — emails `*@demo.affisell.com`.
+- **Vercel Preview** (`VERCEL_ENV=preview`): Demo Lab **activé automatiquement** ; il suffit d’ajouter `DEMO_LAB_PASSWORD` sur l’env **Preview** puis redeploy.
+- **Production**: `DEMO_LAB_ENABLED=1` + `DEMO_LAB_PASSWORD`, ou `DEMO_LAB_ENABLED=0` pour couper.
+- Seed idempotent: `npm run demo:ensure` (même `DATABASE_URL` que le déploiement).
+
 ## Git push
 
 - Never put real API keys in `.env.example` — use empty placeholders only (`GROQ_API_KEY=""`).

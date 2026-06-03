@@ -13,6 +13,8 @@ const ENV_KEYS = [
   "DEMO_SUPPLIER_PASSWORD",
   "DEMO_AFFILIATE_PASSWORD",
   "DEMO_BUYER_PASSWORD",
+  "VERCEL_ENV",
+  "NODE_ENV",
 ] as const
 
 function snapshotEnv(): Record<string, string | undefined> {
@@ -38,11 +40,22 @@ describe("demo accounts config", () => {
     restoreEnv(before)
   })
 
-  it("isDemoLabEnabled respects DEMO_LAB_ENABLED", () => {
+  it("isDemoLabEnabled respects DEMO_LAB_ENABLED and VERCEL_ENV preview", () => {
+    process.env.NODE_ENV = "production"
+    delete process.env.VERCEL_ENV
     delete process.env.DEMO_LAB_ENABLED
     expect(isDemoLabEnabled()).toBe(false)
+
+    process.env.VERCEL_ENV = "preview"
+    expect(isDemoLabEnabled()).toBe(true)
+
+    delete process.env.VERCEL_ENV
     process.env.DEMO_LAB_ENABLED = "1"
     expect(isDemoLabEnabled()).toBe(true)
+
+    process.env.DEMO_LAB_ENABLED = "0"
+    process.env.VERCEL_ENV = "preview"
+    expect(isDemoLabEnabled()).toBe(false)
   })
 
   it("resolveDemoPassword prefers DEMO_LAB_PASSWORD", () => {
@@ -55,9 +68,17 @@ describe("demo accounts config", () => {
     process.env.DEMO_LAB_ENABLED = "1"
     delete process.env.DEMO_LAB_PASSWORD
     delete process.env.DEMO_SUPPLIER_PASSWORD
-    expect(getDemoLabPublicState()).toEqual({ enabled: true, configured: false })
+    expect(getDemoLabPublicState()).toEqual({
+      enabled: true,
+      configured: false,
+      mode: "not_configured",
+    })
     process.env.DEMO_LAB_PASSWORD = "x"
-    expect(getDemoLabPublicState()).toEqual({ enabled: true, configured: true })
+    expect(getDemoLabPublicState()).toEqual({
+      enabled: true,
+      configured: true,
+      mode: "ready",
+    })
   })
 
   it("isDemoLabEmail detects sandbox emails", () => {
