@@ -49,7 +49,7 @@ export function FlexiblePaymentBadge({ amountCents, compact = false, className }
         aria-hidden
       />
 
-      <div className="relative flex items-center justify-between gap-3">
+      <div className="relative flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
         <div className="flex min-w-0 items-baseline gap-2">
           <span
             className={cn(
@@ -61,7 +61,7 @@ export function FlexiblePaymentBadge({ amountCents, compact = false, className }
           </span>
           <span
             className={cn(
-              "truncate font-bold tabular-nums text-white",
+              "font-bold tabular-nums whitespace-nowrap text-white",
               compact ? "text-base" : "text-lg"
             )}
           >

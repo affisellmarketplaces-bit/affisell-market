@@ -25,7 +25,7 @@ import { Fragment, Suspense, useEffect, useMemo, useRef, useState, type MouseEve
 
 import { ReviewsEngine } from "@/components/reviews/ReviewsEngine"
 
-import { FlexiblePaymentBadge } from "@/components/checkout/flexible-payment-badge"
+import { ListingPriceActionCard } from "@/components/marketplace/listing-price-action-card"
 import { MarketplacePurchaseQuantity } from "@/components/marketplace/marketplace-purchase-quantity"
 import { SupplierTrustBadge } from "@/components/suppliers/supplier-trust-badge"
 import { Button } from "@/components/ui/button"
@@ -39,7 +39,6 @@ import {
   isMulticolorSwatch,
 } from "@/lib/product-catalog-constants"
 import { shopperCategoryEyebrow, shopperVisibleTags } from "@/lib/product-shopper-tags"
-import { ProductPriceOffer } from "@/components/product/product-price-offer"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { addToBuyerCart } from "@/lib/cart-add-client"
@@ -957,6 +956,10 @@ export function MarketplaceListingDetail({
               buyBusy={buyBusy}
               onAddToCart={(e) => void addToCart(e)}
               onBuyNow={() => void buyNow()}
+              buyNowLineSubtotalCents={buyNowLineSubtotalCents}
+              priceFluidityNote={productT.priceFluidityNote}
+              buyerRewardBadge={buyerRewardBadge}
+              reduceMotion={reduceMotion}
               productId={productId}
               formatReviewCount={formatStoreCount}
               labels={{
@@ -1077,95 +1080,21 @@ export function MarketplaceListingDetail({
               ) : null}
             </div>
 
-            <div className="flex items-end justify-between gap-3 lg:hidden">
-              <div className="min-w-0">
-                <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                  {productT.priceLabel}
-                </p>
-                <div className="mt-0.5">
-                  <ProductPriceOffer
-                    price={listingPriceEur}
-                    compareAt={hasRetailCompare ? activeRetailPriceEur : null}
-                    layout="detail"
-                  />
-                </div>
-              </div>
-              {buyerRewardBadge ? (
-                <span className="inline-flex max-w-[48%] shrink-0 items-center gap-1 rounded-full border border-teal-200/90 bg-teal-50/90 px-2.5 py-1 text-[10px] font-semibold leading-tight text-teal-900 dark:border-teal-800 dark:bg-teal-950/70 dark:text-teal-100">
-                  <Sparkles className="h-3 w-3 shrink-0 opacity-80" aria-hidden />
-                  {buyerRewardBadge}
-                </span>
-              ) : null}
-            </div>
-            <FlexiblePaymentBadge
-              amountCents={buyNowLineSubtotalCents}
-              compact
-              className="mt-3 lg:hidden"
+            <ListingPriceActionCard
+              className="max-lg:hidden"
+              priceLabel={productT.priceLabel}
+              listingPriceEur={listingPriceEur}
+              activeRetailPriceEur={hasRetailCompare ? activeRetailPriceEur : null}
+              hasRetailCompare={hasRetailCompare}
+              buyerRewardBadge={buyerRewardBadge}
+              buyNowLineSubtotalCents={buyNowLineSubtotalCents}
+              buyBusy={buyBusy}
+              availableStock={availableStock}
+              onBuyNow={() => void buyNow()}
+              priceFluidityNote={productT.priceFluidityNote}
+              buyNowShort={productT.buyNowShort}
+              reduceMotion={reduceMotion}
             />
-            </div>
-
-            <div className="listing-price-card-sheen relative max-w-full overflow-hidden rounded-2xl border border-zinc-200/80 bg-gradient-to-br from-white via-violet-50/30 to-white p-4 shadow-sm dark:border-zinc-700/80 dark:from-zinc-900 dark:via-violet-950/20 dark:to-zinc-950 sm:p-5 max-lg:hidden">
-              <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-violet-400/15 blur-2xl dark:bg-violet-500/10" aria-hidden />
-              <div className="relative flex flex-col gap-4 min-[420px]:flex-row min-[420px]:items-stretch min-[420px]:justify-between min-[420px]:gap-5">
-                <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-semibold tracking-[0.08em] text-violet-700/90 dark:text-violet-300/90">
-                    {productT.priceLabel}
-                  </p>
-                  <div className="mt-1">
-                    <ProductPriceOffer
-                      price={listingPriceEur}
-                      compareAt={hasRetailCompare ? activeRetailPriceEur : null}
-                      layout="detail"
-                    />
-                  </div>
-                  {buyerRewardBadge ? (
-                    <p className="mt-3">
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-teal-200/90 bg-teal-50/90 px-3 py-1.5 text-xs font-semibold text-teal-900 shadow-sm dark:border-teal-800 dark:bg-teal-950/70 dark:text-teal-100">
-                        <Sparkles className="h-3.5 w-3.5 shrink-0 opacity-80" aria-hidden />
-                        Store offer · {buyerRewardBadge}
-                      </span>
-                    </p>
-                  ) : null}
-                  <FlexiblePaymentBadge amountCents={buyNowLineSubtotalCents} className="mt-3" />
-                </div>
-
-                <div className="flex min-w-0 flex-col justify-center gap-2 border-t border-zinc-200/70 pt-3 min-[420px]:w-[10.25rem] min-[420px]:shrink-0 min-[420px]:border-l min-[420px]:border-t-0 min-[420px]:pl-5 min-[420px]:pt-0 dark:border-zinc-700/80">
-                  <motion.button
-                    type="button"
-                    disabled={buyBusy || availableStock <= 0}
-                    whileHover={{ scale: availableStock > 0 && !buyBusy ? 1.02 : 1 }}
-                    whileTap={{ scale: availableStock > 0 && !buyBusy ? 0.98 : 1 }}
-                    onClick={() => void buyNow()}
-                    className="relative flex h-11 w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-sm font-semibold text-white shadow-md shadow-violet-500/25 ring-1 ring-white/15 transition hover:shadow-lg hover:shadow-violet-500/30 disabled:cursor-not-allowed disabled:opacity-50 dark:ring-white/10"
-                  >
-                    <span
-                      className="pointer-events-none absolute inset-0 bg-[linear-gradient(110deg,transparent_30%,rgba(255,255,255,0.22)_50%,transparent_70%)] opacity-0 transition-opacity duration-500 hover:opacity-100"
-                      aria-hidden
-                    />
-                    <MousePointerClick className="relative h-4 w-4 shrink-0 opacity-90" aria-hidden />
-                    <span className="relative">{buyBusy ? "Redirecting…" : productT.buyNowShort}</span>
-                  </motion.button>
-                  <p
-                    className="flex items-start gap-2 rounded-lg border border-amber-200/70 bg-amber-50/80 px-2.5 py-2 text-[10px] font-medium leading-snug text-amber-950 dark:border-amber-900/45 dark:bg-amber-950/30 dark:text-amber-100"
-                    role="note"
-                  >
-                    <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-700 dark:text-amber-300" aria-hidden />
-                    <span className="min-w-0 flex-1">
-                      {productT.priceFluidityNote}
-                      {!reduceMotion ? (
-                        <span className="mt-1.5 flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-wider text-amber-800/90 dark:text-amber-200/90">
-                          <span className="relative flex h-1.5 w-1.5 shrink-0">
-                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-500/55 opacity-75" />
-                            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-amber-600 dark:bg-amber-400" />
-                          </span>
-                          Live listing
-                        </span>
-                      ) : null}
-                    </span>
-                  </p>
-                </div>
-              </div>
-            </div>
 
             <div className="hidden space-y-2 px-4 py-2.5 lg:block lg:space-y-4 lg:px-0 lg:py-0">
             {availableStock <= 5 && availableStock > 0 ? (

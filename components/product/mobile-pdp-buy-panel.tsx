@@ -1,12 +1,12 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { MousePointerClick, ShoppingBag, Star } from "lucide-react"
+import { ShoppingBag, Star } from "lucide-react"
 import Link from "next/link"
 import { forwardRef, type MouseEvent } from "react"
 
 import { MarketplacePurchaseQuantity } from "@/components/marketplace/marketplace-purchase-quantity"
-import { ProductPriceOffer } from "@/components/product/product-price-offer"
+import { ListingPriceActionCard } from "@/components/marketplace/listing-price-action-card"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { isMulticolorSwatch } from "@/lib/product-catalog-constants"
@@ -46,6 +46,10 @@ export type MobilePdpBuyPanelProps = {
   buyBusy: boolean
   onAddToCart: (e: MouseEvent<HTMLButtonElement>) => void
   onBuyNow: () => void
+  buyNowLineSubtotalCents: number
+  priceFluidityNote: string
+  buyerRewardBadge?: string | null
+  reduceMotion?: boolean
   productId: string
   labels: {
     colorLabel: string
@@ -95,6 +99,10 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
       buyBusy,
       onAddToCart,
       onBuyNow,
+      buyNowLineSubtotalCents,
+      priceFluidityNote,
+      buyerRewardBadge = null,
+      reduceMotion = false,
       productId,
       labels,
       formatReviewCount,
@@ -126,7 +134,8 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
               {titleSubline}
             </p>
           ) : null}
-          <div className="flex flex-wrap items-center gap-2 pt-0.5">
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5">
+            <div className="flex flex-wrap items-center gap-2">
             {salesCount > 0 ? (
               <ProductSalesBadge count={salesCount} variant="detail" className="!w-auto shrink-0" />
             ) : null}
@@ -155,24 +164,27 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
                 {labels.reviews(formatReviewCount(reviewCount))}
               </Link>
             </div>
+            </div>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-200/90 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+              <WishlistHeart productId={productId} />
+            </div>
           </div>
         </header>
 
-        <div className="flex items-end justify-between gap-2 border-y border-zinc-200/70 py-2.5 dark:border-zinc-800/80">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">
-              {labels.priceLabel}
-            </p>
-            <ProductPriceOffer
-              price={listingPriceEur}
-              compareAt={hasRetailCompare ? activeRetailPriceEur : null}
-              layout="detail"
-            />
-          </div>
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-200/90 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-            <WishlistHeart productId={productId} />
-          </div>
-        </div>
+        <ListingPriceActionCard
+          priceLabel={labels.priceLabel}
+          listingPriceEur={listingPriceEur}
+          activeRetailPriceEur={activeRetailPriceEur}
+          hasRetailCompare={hasRetailCompare}
+          buyerRewardBadge={buyerRewardBadge ?? null}
+          buyNowLineSubtotalCents={buyNowLineSubtotalCents}
+          buyBusy={buyBusy}
+          availableStock={availableStock}
+          onBuyNow={onBuyNow}
+          priceFluidityNote={priceFluidityNote}
+          buyNowShort={labels.buyNowShort}
+          reduceMotion={reduceMotion}
+        />
 
         {colorMeta.length > 0 ? (
           <div>
@@ -307,17 +319,6 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
             {cartBusy ? "…" : labels.addToCart}
           </motion.button>
         </div>
-
-        <motion.button
-          type="button"
-          disabled={buyBusy || availableStock <= 0}
-          whileTap={{ scale: availableStock > 0 && !buyBusy ? 0.98 : 1 }}
-          onClick={() => onBuyNow()}
-          className="flex h-11 w-full items-center justify-center gap-2 rounded-full border-2 border-violet-500/50 bg-white text-sm font-bold text-violet-800 shadow-sm disabled:opacity-50 dark:border-violet-500/40 dark:bg-zinc-900 dark:text-violet-200"
-        >
-          <MousePointerClick className="size-4 shrink-0" aria-hidden />
-          {buyBusy ? "…" : labels.buyNowShort}
-        </motion.button>
       </section>
     )
   }
