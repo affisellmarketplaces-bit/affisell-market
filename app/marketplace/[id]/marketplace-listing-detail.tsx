@@ -959,7 +959,7 @@ export function MarketplaceListingDetail({
               buyNowLineSubtotalCents={buyNowLineSubtotalCents}
               priceFluidityNote={productT.priceFluidityNote}
               buyerRewardBadge={buyerRewardBadge}
-              reduceMotion={reduceMotion}
+              reduceMotion={reduceMotion ?? false}
               productId={productId}
               formatReviewCount={formatStoreCount}
               labels={{
@@ -1093,8 +1093,9 @@ export function MarketplaceListingDetail({
               onBuyNow={() => void buyNow()}
               priceFluidityNote={productT.priceFluidityNote}
               buyNowShort={productT.buyNowShort}
-              reduceMotion={reduceMotion}
+              reduceMotion={reduceMotion ?? false}
             />
+            </div>
 
             <div className="hidden space-y-2 px-4 py-2.5 lg:block lg:space-y-4 lg:px-0 lg:py-0">
             {availableStock <= 5 && availableStock > 0 ? (
