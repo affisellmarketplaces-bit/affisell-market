@@ -7,14 +7,18 @@ import { useTranslations } from "next-intl"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-export function ThemeToggle() {
+export function ThemeToggle({ className }: { className?: string }) {
   const { theme, setTheme } = useTheme()
   const t = useTranslations("PublicNav")
 
   return (
     <button
       type="button"
-      className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "relative px-2")}
+      className={cn(
+        buttonVariants({ variant: "ghost", size: "sm" }),
+        "relative h-9 w-9 shrink-0 p-0 sm:w-auto sm:px-2",
+        className
+      )}
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
       aria-label={t("themeToggle")}
     >

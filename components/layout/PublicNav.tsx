@@ -80,9 +80,7 @@ export function PublicNav() {
 
       <div className="relative z-20 col-start-3 row-start-1 flex min-w-0 shrink items-center justify-end gap-1 sm:gap-2 lg:col-start-4">
         <LanguageSwitcher />
-        <span className="hidden sm:inline-flex">
-          <ThemeToggle />
-        </span>
+        <ThemeToggle className="shrink-0" />
         <Link
           href="/cart"
           className={cn(
