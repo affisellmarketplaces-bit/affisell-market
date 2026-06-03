@@ -1897,6 +1897,32 @@
         }
       }
     },
+    "demoAccounts": {
+      "eyebrow": "Accès neural",
+      "title": "Entrer en bac à sable — 1 clic",
+      "subtitle": "Comptes préconfigurés avec catalogue démo, KYC validé et dashboards complets. Aucune carte bancaire.",
+      "badge": "Sandbox live",
+      "enter": "Entrer en démo",
+      "entering": "Connexion…",
+      "disabled": "Les comptes démo sont désactivés sur cet environnement.",
+      "notConfigured": "Activez DEMO_LAB_ENABLED=1 et DEMO_LAB_PASSWORD (ou mots de passe par rôle) côté serveur.",
+      "rateLimited": "Trop de tentatives — réessayez dans quelques minutes.",
+      "signinFailed": "Connexion impossible. Vérifiez la configuration démo ou réessayez.",
+      "personas": {
+        "supplier": {
+          "title": "Fournisseur démo",
+          "hint": "Supply Hub, import, SKU sandbox"
+        },
+        "affiliate": {
+          "title": "Affilié démo",
+          "hint": "Hub, listings, marge sur le SKU lab"
+        },
+        "buyer": {
+          "title": "Acheteur démo",
+          "hint": "Compte marketplace, suivi commandes"
+        }
+      }
+    },
     "feedback": {
       "title": "Votre avis compte",
       "subtitle": "De 1 à 5 — quelle est votre impression globale de ce parcours ?",

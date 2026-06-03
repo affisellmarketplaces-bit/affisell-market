@@ -47,6 +47,7 @@
     "extension:dev": "npm run dev --prefix apps/affisell-supplier-extension",
     "test:veo": "tsx test-veo.ts",
     "test:veo:pipeline": "tsx scripts/test-veo-pipeline.ts",
+    "demo:ensure": "tsx scripts/ensure-demo-lab-users.ts",
     "test:vat": "tsx scripts/test-vat-flow.ts",
     "test:vat:math": "tsx scripts/test-vat-flow.ts --math-only",
     "test:vat:check": "tsx scripts/check-order-vat.ts",

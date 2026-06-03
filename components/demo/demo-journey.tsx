@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server"
 import { ArrowRight, Lock } from "lucide-react"
 
 import { DemoFeedbackForm } from "@/components/demo/demo-feedback-form"
+import { DemoSandboxPortalSection } from "@/components/demo/demo-sandbox-portal-section"
 import {
   DEMO_JOURNEY_STEPS,
   type DemoJourneyStep,
@@ -32,6 +33,8 @@ export async function DemoJourney({ persona }: Props) {
         </p>
         <p className="mt-4 text-xs text-amber-200/90">{t("sandboxNotice")}</p>
       </header>
+
+      <DemoSandboxPortalSection focusPersona={persona} />
 
       <ol className="space-y-3">
         {steps.map((step, index) => (

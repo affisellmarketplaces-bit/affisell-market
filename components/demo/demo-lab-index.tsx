@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server"
 import { ArrowRight, ShoppingBag, Store, Users } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
+import { DemoSandboxPortalSection } from "@/components/demo/demo-sandbox-portal-section"
 import { DEMO_PERSONAS, type DemoPersonaKey } from "@/lib/demo/demo-shared"
 import { cn } from "@/lib/utils"
 
@@ -30,6 +31,8 @@ export async function DemoLabIndex() {
           {t("heroSubtitle")}
         </p>
       </section>
+
+      <DemoSandboxPortalSection />
 
       <ul className="grid gap-5 sm:grid-cols-3">
         {DEMO_PERSONAS.map((persona) => {

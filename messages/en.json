@@ -1897,6 +1897,32 @@
         }
       }
     },
+    "demoAccounts": {
+      "eyebrow": "Neural access",
+      "title": "Enter the sandbox — one tap",
+      "subtitle": "Pre-built accounts with demo catalog, approved KYC, and full dashboards. No card required.",
+      "badge": "Sandbox live",
+      "enter": "Enter demo",
+      "entering": "Signing in…",
+      "disabled": "Demo accounts are disabled on this environment.",
+      "notConfigured": "Set DEMO_LAB_ENABLED=1 and DEMO_LAB_PASSWORD (or per-role passwords) on the server.",
+      "rateLimited": "Too many attempts — try again in a few minutes.",
+      "signinFailed": "Sign-in failed. Check demo configuration or retry.",
+      "personas": {
+        "supplier": {
+          "title": "Demo supplier",
+          "hint": "Supply Hub, import, sandbox SKU"
+        },
+        "affiliate": {
+          "title": "Demo affiliate",
+          "hint": "Hub, listings, margin on lab SKU"
+        },
+        "buyer": {
+          "title": "Demo buyer",
+          "hint": "Marketplace account, order tracking"
+        }
+      }
+    },
     "feedback": {
       "title": "Your feedback matters",
       "subtitle": "1 to 5 — how was this journey overall?",

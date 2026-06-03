@@ -17,27 +17,36 @@ export function rateLimitClientKey(req: Request, userId?: string | null): string
  * Fixed-window limiter (in-memory). Fine for single-node / dev; in serverless use Redis (e.g. Upstash).
  * @returns 429 NextResponse or null when allowed.
  */
-export function rateLimitResponse(
+export function consumeRateLimit(
   key: string,
   opts: { limit: number; windowMs: number; prefix?: string }
-): NextResponse | null {
+): { ok: true } | { ok: false; retrySec: number } {
   const mapKey = `${opts.prefix ?? "rl"}:${key}`
   const now = Date.now()
   const b = buckets.get(mapKey)
   if (!b || now >= b.resetAt) {
     buckets.set(mapKey, { resetAt: now + opts.windowMs, count: 1 })
-    return null
+    return { ok: true }
   }
   if (b.count >= opts.limit) {
     const retrySec = Math.max(1, Math.ceil((b.resetAt - now) / 1000))
-    return NextResponse.json(
-      { error: "Too many requests. Please try again in a moment." },
-      {
-        status: 429,
-        headers: { "Retry-After": String(retrySec) },
-      }
-    )
+    return { ok: false, retrySec }
   }
   b.count += 1
-  return null
+  return { ok: true }
+}
+
+export function rateLimitResponse(
+  key: string,
+  opts: { limit: number; windowMs: number; prefix?: string }
+): NextResponse | null {
+  const result = consumeRateLimit(key, opts)
+  if (result.ok) return null
+  return NextResponse.json(
+    { error: "Too many requests. Please try again in a moment." },
+    {
+      status: 429,
+      headers: { "Retry-After": String(result.retrySec) },
+    }
+  )
 }
