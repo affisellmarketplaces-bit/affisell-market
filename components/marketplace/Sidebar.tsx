@@ -6,6 +6,7 @@ import useSWR from "swr"
 
 import { ChevronDown, ChevronRight, Grid3x3, LayoutGrid, Loader2 } from "lucide-react"
 
+import { CategoryGlyph } from "@/components/marketplace/CategoryGlyph"
 import { affisellBrand } from "@/lib/affisell-brand"
 import { cn } from "@/lib/utils"
 
@@ -145,8 +146,8 @@ export function Sidebar({
                       : "text-zinc-900 hover:bg-muted/80 dark:text-zinc-100 dark:hover:bg-zinc-800/60"
                 )}
               >
-                <span className="flex min-w-0 items-center gap-2">
-                  <span className="shrink-0 text-lg">{cat.icon}</span>
+                <span className="flex min-w-0 items-center gap-2.5">
+                  <CategoryGlyph name={cat.name} slug={cat.slug} fullPath={cat.fullPath} icon={cat.icon} size="sm" />
                   <span className="font-semibold">{cat.name}</span>
                 </span>
                 <span className="flex shrink-0 items-center gap-2">

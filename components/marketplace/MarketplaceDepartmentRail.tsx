@@ -8,6 +8,7 @@ import { Sparkles, Zap } from "lucide-react"
 import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
 import { discoverSwipeHref } from "@/lib/discover-swipe-url"
 import { marketplaceCatalogHref } from "@/lib/marketplace-catalog-url"
+import { CategoryGlyph } from "@/components/marketplace/CategoryGlyph"
 import { affisellBrand } from "@/lib/affisell-brand"
 import { cn } from "@/lib/utils"
 
@@ -98,9 +99,7 @@ export function MarketplaceDepartmentRail({
                   on ? "ring-2 ring-violet-400 ring-offset-1 ring-offset-violet-50 dark:ring-offset-zinc-950" : ""
                 )}
               >
-                <span className={affisellBrand.quickLinkIconBuyer}>
-                  <span className="text-base leading-none">{c.icon}</span>
-                </span>
+                <CategoryGlyph name={c.name} slug={c.slug} icon={c.icon} size="xs" />
                 <span className="max-w-[10rem] truncate">
                   {c.name}
                   {c.count > 0 ? <span className="ml-1 opacity-70">({c.count})</span> : null}

@@ -6,6 +6,7 @@ import useSWR from "swr"
 
 import { ChevronDown, ChevronRight, Grid3x3, LayoutGrid, Loader2 } from "lucide-react"
 
+import { CategoryGlyph } from "@/components/marketplace/CategoryGlyph"
 import { affisellBrand } from "@/lib/affisell-brand"
 import { cn } from "@/lib/utils"
 
@@ -305,8 +306,15 @@ export function CategoryTreeExplorer({
                       : "text-zinc-900 dark:text-zinc-100"
                 )}
               >
-                <span className="flex items-center gap-2">
-                  <span>{root.icon}</span>
+                <span className="flex items-center gap-2.5">
+                  <CategoryGlyph
+                    name={root.name}
+                    slug={root.slug}
+                    fullPath={root.fullPath}
+                    icon={root.icon}
+                    size="sm"
+                    inSheet={inSheet}
+                  />
                   <span className="truncate">{root.name}</span>
                 </span>
                 {root.count > 0 ? (
