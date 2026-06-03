@@ -463,6 +463,7 @@ export function MarketplaceView({
                         ? Object.fromEntries(categoriesPayload.categories.map((c) => [c.id, c.name]))
                         : undefined
                     }
+                    inSheet
                   />
                 }
               />

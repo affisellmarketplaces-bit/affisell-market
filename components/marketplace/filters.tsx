@@ -20,6 +20,7 @@ type Props = {
   subcategoryId?: string | null
   departmentNames?: Record<string, string>
   className?: string
+  inSheet?: boolean
 }
 
 const PRICE_LABELS: Record<string, { fr: string; en: string }> = {
@@ -57,6 +58,7 @@ export function MarketplaceFilters({
   subcategoryId,
   departmentNames,
   className,
+  inSheet = false,
 }: Props) {
   const t = useTranslations("marketplace.browse")
   const tAuth = useTranslations("auth")
@@ -123,28 +125,35 @@ export function MarketplaceFilters({
   return (
     <aside
       className={cn(
-        "w-full shrink-0 space-y-5 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 lg:w-52",
+        "w-full shrink-0 space-y-5 rounded-2xl border p-4 lg:w-52",
+        inSheet
+          ? "border-0 bg-transparent text-zinc-100"
+          : "border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900",
         className
       )}
     >
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-          {t("filtersTitle")}
-        </p>
-        <p className="mt-0.5 text-[11px] text-zinc-500 dark:text-zinc-400">{t("filtersHint")}</p>
-      </div>
+      {!inSheet ? (
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+            {t("filtersTitle")}
+          </p>
+          <p className="mt-0.5 text-[11px] text-zinc-500 dark:text-zinc-400">{t("filtersHint")}</p>
+        </div>
+      ) : null}
 
       {isLoading ? (
-        <div className="flex items-center gap-2 text-sm text-zinc-500">
+        <div className={cn("flex items-center gap-2 text-sm", inSheet ? "text-zinc-400" : "text-zinc-500")}>
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
           {tAuth("loading")}
         </div>
       ) : facets.length === 0 ? (
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("noFacets")}</p>
+        <p className={cn("text-xs", inSheet ? "text-zinc-400" : "text-zinc-500 dark:text-zinc-400")}>{t("noFacets")}</p>
       ) : (
         facets.map((facet) => (
           <div key={facet.key}>
-            <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">{facet.label}</p>
+            <p className={cn("text-xs font-semibold", inSheet ? "text-violet-200" : "text-zinc-800 dark:text-zinc-200")}>
+              {facet.label}
+            </p>
             <ul className="mt-2 max-h-48 space-y-1.5 overflow-y-auto pr-1">
               {facet.values.map((row) => {
                 const checked = searchParams.get(facet.key) === row.value
@@ -154,8 +163,14 @@ export function MarketplaceFilters({
                     <label
                       htmlFor={inputId}
                       className={cn(
-                        "flex cursor-pointer items-start gap-2 rounded-lg px-1.5 py-1 text-sm transition hover:bg-zinc-50 dark:hover:bg-zinc-800/80",
-                        checked && "bg-violet-50 dark:bg-violet-950/40"
+                        "flex cursor-pointer items-start gap-2 rounded-lg px-1.5 py-1 text-sm transition",
+                        inSheet
+                          ? checked
+                            ? "bg-violet-500/20"
+                            : "hover:bg-white/[0.04]"
+                          : checked
+                            ? "bg-violet-50 dark:bg-violet-950/40"
+                            : "hover:bg-zinc-50 dark:hover:bg-zinc-800/80"
                       )}
                     >
                       <input
@@ -165,11 +180,19 @@ export function MarketplaceFilters({
                         checked={checked}
                         onChange={() => toggleValue(facet.key, row.value)}
                       />
-                      <span className="min-w-0 flex-1 leading-snug text-zinc-700 dark:text-zinc-300">
+                      <span
+                        className={cn(
+                          "min-w-0 flex-1 leading-snug",
+                          inSheet ? "text-zinc-200" : "text-zinc-700 dark:text-zinc-300"
+                        )}
+                      >
                         {DISCOVERY_FACET_KEYS.has(facet.key)
                           ? facetValueLabel(facet.key, row.value)
                           : row.value}
-                        <span className="text-zinc-400 dark:text-zinc-500"> ({row.count})</span>
+                        <span className={inSheet ? "text-zinc-500" : "text-zinc-400 dark:text-zinc-500"}>
+                          {" "}
+                          ({row.count})
+                        </span>
                       </span>
                     </label>
                   </li>
