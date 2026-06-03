@@ -1462,6 +1462,8 @@
       "shipping": "Livraison",
       "contact": "Contact",
       "trackOrder": "Suivre ma commande",
+      "mobileTagline": "Marketplace créateurs · paiement sécurisé · support 24/7",
+      "stripeNoticeShort": "Carte bancaire · 3D Secure · TVA conforme UE",
       "vatNotice": "TVA collectée et reversée conformément à la réglementation applicable.",
       "stripeNotice": "Paiements sécurisés par Stripe (carte bancaire, 3D Secure lorsque requis).",
       "copyright": "© {year} Affisell — {name} — SIRET {siret} —",

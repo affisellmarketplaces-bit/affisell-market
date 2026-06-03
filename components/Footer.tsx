@@ -1,15 +1,18 @@
 import Link from "next/link"
 import { getTranslations } from "next-intl/server"
+import type { ReactNode } from "react"
 
+import { FooterMobileShell } from "@/components/footer/footer-mobile-shell"
 import { readCompanyLegal } from "@/lib/legal/company-env"
+import type { FooterGlobalContent } from "@/lib/footer-global-sections"
 import { cn } from "@/lib/utils"
 
-function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
+function FooterLink({ href, children }: { href: string; children: ReactNode }) {
   return (
     <li>
       <Link
         href={href}
-        className="text-sm text-gray-300 transition-colors hover:text-white"
+        className="text-sm text-zinc-400 transition-colors hover:text-violet-200"
       >
         {children}
       </Link>
@@ -20,7 +23,7 @@ function FooterLink({ href, children }: { href: string; children: React.ReactNod
 function StripeTrustBadge() {
   return (
     <div
-      className="inline-flex items-center rounded-lg border border-gray-700 bg-gray-800/80 px-3 py-1.5"
+      className="inline-flex items-center rounded-lg border border-violet-500/25 bg-violet-950/40 px-3 py-1.5"
       role="img"
       aria-label="Stripe"
     >
@@ -34,12 +37,66 @@ export async function Footer() {
   const company = readCompanyLegal()
   const year = new Date().getFullYear()
 
+  const mobileContent: FooterGlobalContent = {
+    siteTitle: t("siteTitle"),
+    tagline: t("mobileTagline"),
+    sections: [
+      {
+        id: "affisell",
+        title: t("siteTitle"),
+        links: [
+          { href: "/about", label: t("about") },
+          { href: "/how-it-works", label: t("howItWorks") },
+          { href: "/affiliate", label: t("affiliateProgram") },
+          { href: "/supplier", label: t("becomeSupplier") },
+          { href: "/demo", label: t("demoLab") },
+        ],
+      },
+      {
+        id: "legal",
+        title: t("legalTitle"),
+        links: [
+          { href: "/cgv", label: t("cgv") },
+          { href: "/cgu", label: t("cgu") },
+          { href: "/mentions-legales", label: t("legalNotice") },
+          { href: "/privacy", label: t("privacyPolicy") },
+          { href: "/returns", label: t("returns") },
+        ],
+      },
+      {
+        id: "support",
+        title: t("supportTitle"),
+        links: [
+          { href: "/faq", label: t("faq") },
+          { href: "/support", label: t("supportAssistant") },
+          { href: "/shipping", label: t("shipping") },
+          { href: "/contact", label: t("contact") },
+          { href: "/track-order", label: t("trackOrder") },
+        ],
+      },
+    ],
+    quickLinks: [
+      { href: "/faq", label: t("faq") },
+      { href: "/support", label: t("supportAssistant") },
+      { href: "/track-order", label: t("trackOrder") },
+    ],
+    paymentTitle: t("paymentTitle"),
+    vatNotice: t("vatNotice"),
+    stripeNotice: t("stripeNotice"),
+    stripeNoticeShort: t("stripeNoticeShort"),
+    copyrightLine: t("copyright", { year, name: company.name, siret: company.siret }),
+    odrLink: t("odrLink"),
+    odrHref: "https://ec.europa.eu/consumers/odr",
+  }
+
   return (
     <footer
       role="contentinfo"
-      className="affisell-site-footer mt-auto shrink-0 border-t border-gray-800 bg-gray-900 text-gray-300"
+      className="affisell-site-footer relative mt-auto shrink-0 overflow-hidden border-t border-white/[0.06] bg-gradient-to-b from-zinc-950 to-black text-zinc-300"
     >
-      <div className="affisell-site-footer__pad mx-auto max-w-7xl px-4 pt-12 sm:px-6 lg:px-8 lg:pb-12">
+      <FooterMobileShell content={mobileContent} />
+
+      <div className="affisell-site-footer__pad mx-auto hidden max-w-7xl px-4 pt-12 sm:px-6 md:block lg:px-8 lg:pb-12">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <nav aria-labelledby="footer-affisell-heading">
             <h2
@@ -98,15 +155,15 @@ export async function Footer() {
             </h2>
             <div className="mt-4 space-y-3">
               <StripeTrustBadge />
-              <p className="text-sm leading-relaxed text-gray-400">{t("vatNotice")}</p>
-              <p className="text-sm leading-relaxed text-gray-400">{t("stripeNotice")}</p>
+              <p className="text-sm leading-relaxed text-zinc-500">{t("vatNotice")}</p>
+              <p className="text-sm leading-relaxed text-zinc-500">{t("stripeNotice")}</p>
             </div>
           </div>
         </div>
 
         <div
           className={cn(
-            "mt-10 border-t border-gray-800 pt-6 text-center text-xs text-gray-500 sm:text-left"
+            "mt-10 border-t border-white/[0.08] pt-6 text-center text-xs text-zinc-600 sm:text-left"
           )}
         >
           <p>
@@ -115,7 +172,7 @@ export async function Footer() {
               href="https://ec.europa.eu/consumers/odr"
               target="_blank"
               rel="noopener noreferrer"
-              className="underline underline-offset-2 transition-colors hover:text-white"
+              className="underline underline-offset-2 transition-colors hover:text-violet-300"
             >
               {t("odrLink")}
             </a>

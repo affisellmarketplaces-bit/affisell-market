@@ -1462,6 +1462,8 @@
       "shipping": "Shipping",
       "contact": "Contact",
       "trackOrder": "Track my order",
+      "mobileTagline": "Creator marketplace · secure checkout · 24/7 support",
+      "stripeNoticeShort": "Card · 3D Secure · EU VAT compliant",
       "vatNotice": "VAT collected and remitted in line with applicable regulations.",
       "stripeNotice": "Payments secured by Stripe (card, 3D Secure when required).",
       "copyright": "© {year} Affisell — {name} — SIRET {siret} —",
