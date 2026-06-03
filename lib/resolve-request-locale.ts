@@ -30,16 +30,15 @@ async function localeFromRequestCookies(): Promise<AppLocale | null> {
 
 /**
  * Server locale resolution (single source of truth):
- * 1. `[locale]` segment / next-intl `requestLocale` (static-safe)
- * 2. `/fr` in `x-affisell-pathname` (runtime)
- * 3. `affisell_locale` cookie (runtime)
+ * 1. `/fr` (or `/en`) in `x-affisell-pathname` — explicit URL
+ * 2. `affisell_locale` cookie — user preference on cookie-driven routes
+ * 3. next-intl `requestLocale` / `[locale]` segment (static pages)
  * 4. default `en`
+ *
+ * Cookie must win over next-intl default on `/marketplace`, `/dashboard`, etc.
+ * Otherwise LocaleServerSync would reload again after a language switch (visible flicker).
  */
 export async function resolveRequestLocale(requested: string | undefined): Promise<AppLocale> {
-  if (requested && hasLocale(routing.locales, requested)) {
-    return requested as AppLocale
-  }
-
   const pathname = await pathnameFromRequestHeaders()
   const pathLocale = localeFromPathname(pathname)
   if (pathLocale && hasLocale(routing.locales, pathLocale)) {
@@ -48,6 +47,10 @@ export async function resolveRequestLocale(requested: string | undefined): Promi
 
   const cookieLocale = await localeFromRequestCookies()
   if (cookieLocale) return cookieLocale
+
+  if (requested && hasLocale(routing.locales, requested)) {
+    return requested as AppLocale
+  }
 
   return DEFAULT_LOCALE
 }

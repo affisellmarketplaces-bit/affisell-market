@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { usePathname } from "next/navigation"
 import { useLocale, useTranslations } from "next-intl"
-import { motion, AnimatePresence } from "framer-motion"
+import { AnimatePresence, motion } from "framer-motion"
 import { ChevronDown } from "lucide-react"
 
 import { hrefForLocaleSwitch } from "@/lib/client-locale-path"
@@ -36,7 +36,6 @@ export function LanguageSwitcher({ className }: { className?: string }) {
   const pathname = usePathname() ?? ""
   const t = useTranslations("CommandK")
   const [open, setOpen] = useState(false)
-  const [pending, setPending] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [menuPos, setMenuPos] = useState<MenuPosition | null>(null)
   const btnRef = useRef<HTMLButtonElement>(null)
@@ -106,13 +105,12 @@ export function LanguageSwitcher({ className }: { className?: string }) {
   }, [open])
 
   function select(next: AppLocale) {
-    if (next === locale || pending) return
-    setLocaleCookie(next)
+    if (next === locale) return
     setOpen(false)
-    setPending(true)
     const { pathname, search, hash } = window.location
     const target = hrefForLocaleSwitch(pathname, search, hash, next)
-    window.location.assign(target)
+    setLocaleCookie(next)
+    window.location.replace(target)
   }
 
   const menuPortal =
@@ -156,7 +154,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
     ) : null
 
   return (
-    <div className={cn("relative", pending && "opacity-70", className)}>
+    <div className={cn("relative", className)}>
       <button
         ref={btnRef}
         type="button"
@@ -171,16 +169,10 @@ export function LanguageSwitcher({ className }: { className?: string }) {
         aria-label={t("languageSwitcher")}
         aria-expanded={open}
         aria-haspopup="listbox"
-        disabled={pending}
       >
-        <motion.span
-          key={locale}
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="text-base"
-        >
+        <span className="text-base" aria-hidden>
           {FLAGS[locale]}
-        </motion.span>
+        </span>
         <span className="hidden sm:inline">{locale.toUpperCase()}</span>
         <ChevronDown
           className={cn("h-3 w-3 opacity-60 transition", open && "rotate-180")}

@@ -15,7 +15,7 @@ type Props = {
 
 /**
  * Client mirror of server locale + messages (single source of truth).
- * Locale switches use a full navigation + `LocaleServerSync` reload — no cookie override here.
+ * Locale switches use a single full navigation (cookie + optional `/fr` prefix) — no client override.
  */
 export function IntlAppProvider({ locale, messages, now, children }: Props) {
   useEffect(() => {
