@@ -54,7 +54,7 @@ export function PublicNav() {
   return (
     <nav
       aria-label="Main"
-      className="mx-auto grid w-full max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-x-2 gap-y-2.5 px-2 py-2 text-sm sm:gap-x-3 lg:grid-cols-[auto_auto_minmax(0,1fr)_auto] lg:gap-x-4"
+      className="mx-auto grid w-full min-w-0 max-w-7xl grid-cols-[minmax(0,auto)_minmax(0,1fr)_minmax(0,auto)] items-center gap-x-1.5 gap-y-2 px-1.5 py-2 text-sm sm:gap-x-3 sm:px-2 lg:grid-cols-[auto_auto_minmax(0,1fr)_auto] lg:gap-x-4"
     >
       <Link href="/" className="col-start-1 row-start-1 shrink-0">
         <motion.span
@@ -66,17 +66,22 @@ export function PublicNav() {
         </motion.span>
       </Link>
 
-      <div className="relative z-20 col-start-3 row-start-1 flex shrink-0 items-center justify-end gap-1.5 sm:gap-2 lg:col-start-4">
+      <div className="relative z-20 col-start-3 row-start-1 flex min-w-0 shrink items-center justify-end gap-1 sm:gap-2 lg:col-start-4">
         <LanguageSwitcher />
-        <ThemeToggle />
+        <span className="hidden sm:inline-flex">
+          <ThemeToggle />
+        </span>
         <Link
           href="/cart"
-          className={cn(buttonVariants({ variant: "outline", size: "sm" }), "relative gap-1.5")}
+          className={cn(
+            buttonVariants({ variant: "outline", size: "sm" }),
+            "relative h-9 gap-1 px-2 sm:gap-1.5 sm:px-3"
+          )}
           aria-label={t("cartAria")}
         >
           <>
             <ShoppingCart className="size-4 shrink-0" aria-hidden />
-            <span className="hidden sm:inline">{t("cart")}</span>
+            <span className="hidden md:inline">{t("cart")}</span>
             {cartCount > 0 ? (
               <motion.span
                 key={cartCount}
@@ -95,8 +100,12 @@ export function PublicNav() {
             <span className="hidden md:inline">{t("myAccount")}</span>
           </Link>
         ) : (
-          <Link href={signInHref} className={cn(buttonVariants({ size: "sm" }))}>
-            {t("signIn")}
+          <Link
+            href={signInHref}
+            className={cn(buttonVariants({ size: "sm" }), "h-9 shrink-0 px-2.5 text-xs sm:px-4 sm:text-sm")}
+          >
+            <User className="size-4 sm:hidden" aria-hidden />
+            <span className="hidden sm:inline">{t("signIn")}</span>
           </Link>
         )}
       </div>
@@ -128,12 +137,12 @@ export function PublicNav() {
             <button
               type="button"
               onClick={() => window.dispatchEvent(new Event(COMMAND_K_OPEN_EVENT))}
-              className="mr-1.5 inline-flex shrink-0 items-center gap-1 rounded-full border border-zinc-200/80 bg-white/90 px-2 py-1 text-[10px] font-semibold text-zinc-600 shadow-sm transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-800 dark:border-zinc-600 dark:bg-zinc-800/90 dark:text-zinc-300 dark:hover:border-violet-600 dark:hover:bg-violet-950/50 dark:hover:text-violet-200"
+              className="mr-1 hidden shrink-0 items-center gap-1 rounded-full border border-zinc-200/80 bg-white/90 px-2 py-1 text-[10px] font-semibold text-zinc-600 shadow-sm transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-800 sm:mr-1.5 sm:inline-flex dark:border-zinc-600 dark:bg-zinc-800/90 dark:text-zinc-300 dark:hover:border-violet-600 dark:hover:bg-violet-950/50 dark:hover:text-violet-200"
               aria-label={`${tCmd("triggerLabel")} (⌘K)`}
             >
               <Zap className="h-3 w-3 text-[#6366F1]" aria-hidden />
-              <span className="hidden sm:inline">{tCmd("triggerLabel")}</span>
-              <kbd className="rounded border border-zinc-200/90 bg-zinc-50 px-1 font-mono dark:border-zinc-600 dark:bg-zinc-900">
+              <span className="hidden md:inline">{tCmd("triggerLabel")}</span>
+              <kbd className="hidden rounded border border-zinc-200/90 bg-zinc-50 px-1 font-mono lg:inline dark:border-zinc-600 dark:bg-zinc-900">
                 {t("cmdKBadge")}
               </kbd>
             </button>

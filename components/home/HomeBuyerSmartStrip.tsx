@@ -95,7 +95,7 @@ export async function HomeBuyerSmartStrip({ featuredShops }: Props) {
       >
         {t("sectionBuyer")}
       </p>
-      <ul className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+      <ul className="grid min-w-0 grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
         {agentTile ? <BuyerServiceTile {...agentTile} /> : null}
         {pulseTile ? <BuyerServiceTile {...pulseTile} /> : null}
         <HomeBuyerFeaturedShopsTile shops={featuredShops} />

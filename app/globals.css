@@ -249,6 +249,33 @@ body.affisell-demo-lab .affisell-site-footer {
   }
 
   @media (max-width: 767px) {
+    html,
+    body.affisell-mobile-shell {
+      overflow-x: hidden;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .affisell-global-site-header {
+      max-width: 100%;
+      overflow-x: clip;
+    }
+
+    .affisell-header-shell {
+      overflow: hidden;
+    }
+
+    .affisell-header-shell::before {
+      animation: none;
+      opacity: 0;
+    }
+
+    .affisell-page-shell {
+      min-width: 0;
+      max-width: 100%;
+      overflow-x: clip;
+    }
+
     .affisell-site-footer__pad {
       padding-bottom: max(5.25rem, calc(4.75rem + env(safe-area-inset-bottom)));
     }

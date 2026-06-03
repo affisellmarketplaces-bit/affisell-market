@@ -14,10 +14,10 @@ export async function BuyerHeroBlock() {
   ])
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-violet-500/20 bg-gradient-to-br from-violet-700 via-indigo-800 to-sky-900 px-4 py-12 text-white shadow-xl sm:px-10 sm:py-16">
+    <section className="relative w-full min-w-0 max-w-full overflow-hidden rounded-3xl border border-violet-500/20 bg-gradient-to-br from-violet-700 via-indigo-800 to-sky-900 px-4 py-10 text-white shadow-xl sm:px-10 sm:py-16">
       <HeroGradientBg />
-      <div className="relative mx-auto max-w-4xl text-center">
-        <h1 className="text-balance text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
+      <div className="relative mx-auto w-full min-w-0 max-w-4xl text-center">
+        <h1 className="text-balance text-3xl font-bold tracking-tight sm:text-5xl md:text-6xl">
           {t("title")}{" "}
           <span className="bg-gradient-to-r from-violet-200 via-fuchsia-200 to-sky-200 bg-[length:200%_auto] bg-clip-text text-transparent animate-[gradient-shift_6s_ease_infinite]">
             {t("titleHighlight")}

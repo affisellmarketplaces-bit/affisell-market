@@ -7,13 +7,13 @@ export function HeroGradientBg() {
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(255,255,255,0.18),transparent)]" />
       <motion.div
-        className="absolute -left-1/4 top-0 h-[120%] w-[70%] rounded-full bg-violet-400/30 blur-[80px]"
-        animate={{ x: [0, 40, 0], y: [0, 20, 0] }}
+        className="absolute -left-1/4 top-0 h-[100%] w-[55%] rounded-full bg-violet-400/30 blur-[60px] max-md:w-[45%] max-md:blur-[50px]"
+        animate={{ x: [0, 24, 0], y: [0, 12, 0] }}
         transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.div
-        className="absolute -right-1/4 top-1/4 h-[90%] w-[60%] rounded-full bg-sky-400/25 blur-[90px]"
-        animate={{ x: [0, -30, 0], y: [0, 30, 0] }}
+        className="absolute -right-1/4 top-1/4 h-[80%] w-[50%] rounded-full bg-sky-400/25 blur-[70px] max-md:w-[40%] max-md:blur-[50px]"
+        animate={{ x: [0, -20, 0], y: [0, 18, 0] }}
         transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
       />
       <div

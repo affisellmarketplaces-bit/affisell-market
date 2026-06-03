@@ -75,12 +75,12 @@ export function MobileDock() {
   return (
     <nav
       aria-label={t("aria")}
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-[90] px-3 pb-[max(0.4rem,env(safe-area-inset-bottom))] md:hidden"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-[90] w-full max-w-[100vw] overflow-x-clip px-3 pb-[max(0.4rem,env(safe-area-inset-bottom))] md:hidden"
     >
       <ul
         className={cn(
           affisellBrand.epoxySurfaceLight,
-          "affisell-mobile-dock-epoxy pointer-events-auto mx-auto flex max-w-lg items-end justify-between gap-0.5 rounded-[1.85rem] p-1.5 ring-1 ring-violet-500/10 dark:ring-violet-400/15"
+          "affisell-mobile-dock-epoxy pointer-events-auto mx-auto flex w-full max-w-md items-end justify-between gap-0.5 rounded-[1.85rem] p-1.5 ring-1 ring-violet-500/10 dark:ring-violet-400/15"
         )}
       >
         {dockItems.map(({ href, label, icon: Icon, match, ...rest }) => {
@@ -92,7 +92,7 @@ export function MobileDock() {
               <FastLink
                 href={href}
                 className={cn(
-                  "relative flex w-full max-w-[4.25rem] flex-col items-center gap-0.5 rounded-2xl px-1.5 py-2 text-[9px] font-bold uppercase tracking-wide transition-all duration-200 active:scale-95",
+                  "relative flex w-full min-w-0 max-w-[4.25rem] flex-col items-center gap-0.5 rounded-2xl px-1 py-2 text-[8px] font-bold uppercase tracking-wide transition-all duration-200 active:scale-95 sm:px-1.5 sm:text-[9px]",
                   featured &&
                     !active &&
                     "rounded-[1.15rem] bg-gradient-to-br from-violet-600 via-fuchsia-600 to-violet-700 text-white shadow-lg shadow-violet-600/35 ring-2 ring-white/50 dark:ring-zinc-900/80",
