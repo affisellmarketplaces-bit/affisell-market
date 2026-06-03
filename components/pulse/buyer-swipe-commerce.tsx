@@ -130,7 +130,7 @@ export function BuyerSwipeCommerce({
           error?: string
         }
         if (!res.ok) {
-          const msg = data.error ?? "Impossible de charger le feed"
+          const msg = data.error ?? t("feedLoadFailed")
           setFetchError(msg)
           setFeedExhausted(true)
           if (!fetchErrorToastShownRef.current) {
@@ -158,7 +158,7 @@ export function BuyerSwipeCommerce({
           return merged
         })
       } catch {
-        setFetchError("Impossible de charger le feed")
+        setFetchError(t("feedLoadFailed"))
         setFeedExhausted(true)
       } finally {
         setLoading(false)
@@ -290,7 +290,7 @@ export function BuyerSwipeCommerce({
           setSkippedPool((pool) => (pool.some((p) => p.id === item.id) ? pool : [...pool, item]))
         }
       } catch (e) {
-        showToast(e instanceof Error ? e.message : "Erreur")
+        showToast(e instanceof Error ? e.message : t("genericError"))
         topCardRef.current?.reset()
         setBusy(false)
         return

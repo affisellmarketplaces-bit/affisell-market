@@ -15,7 +15,8 @@ import { loginCustomerPath } from "@/lib/login-redirect"
 import { LegalSignupConsent } from "@/components/legal/legal-signup-consent"
 
 function CustomerSignupForm() {
-  const t = useTranslations("auth")
+  const t = useTranslations("auth.customerSignup")
+  const tAuth = useTranslations("auth")
   const router = useRouter()
   const search = useSearchParams()
   const shopSlug = search.get("shop")?.trim() || null
@@ -34,13 +35,13 @@ function CustomerSignupForm() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
     if (!termsChecked || !privacyChecked) {
-      setError("Veuillez accepter les conditions et la politique de confidentialité.")
+      setError(t("acceptTermsError"))
       return
     }
     setLoading(true)
     setError(null)
     if (buyerType === "PROFESSIONAL" && siret.replace(/\D/g, "").length !== 14) {
-      setError("SIRET à 14 chiffres requis pour un compte professionnel.")
+      setError(t("siretError"))
       setLoading(false)
       return
     }
@@ -61,7 +62,7 @@ function CustomerSignupForm() {
     const data = (await res.json()) as { error?: string }
     if (!res.ok) {
       setLoading(false)
-      setError(data.error ?? "Signup failed")
+      setError(data.error ?? t("signupFail"))
       return
     }
     const login = await signIn("credentials", {
@@ -72,7 +73,7 @@ function CustomerSignupForm() {
     })
     setLoading(false)
     if (login?.error) {
-      setError(credentialsSignInErrorMessage(login.code, t) ?? t("signupLoginFail"))
+      setError(credentialsSignInErrorMessage(login.code, tAuth) ?? tAuth("signupLoginFail"))
     } else {
       router.push(returnTo)
     }
@@ -82,14 +83,14 @@ function CustomerSignupForm() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-10">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-900">Shop & Get Up to 20% Back</h1>
-          <p className="mt-2 text-gray-600">Get up to 20% cashback on every purchase</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t("heroTitle")}</h1>
+          <p className="mt-2 text-gray-600">{t("heroSubtitle")}</p>
         </div>
 
         <div className="rounded-2xl bg-white p-8 shadow-sm">
           <form onSubmit={onSubmit} className="space-y-5">
             <div>
-              <p className="mb-2 text-sm font-medium text-gray-700">Type de compte</p>
+              <p className="mb-2 text-sm font-medium text-gray-700">{t("accountTypeLabel")}</p>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
@@ -100,7 +101,7 @@ function CustomerSignupForm() {
                       : "border-gray-200 text-gray-700 hover:border-gray-300"
                   }`}
                 >
-                  Particulier
+                  {t("individual")}
                 </button>
                 <button
                   type="button"
@@ -111,7 +112,7 @@ function CustomerSignupForm() {
                       : "border-gray-200 text-gray-700 hover:border-gray-300"
                   }`}
                 >
-                  Professionnel
+                  {t("professional")}
                 </button>
               </div>
             </div>
@@ -119,7 +120,7 @@ function CustomerSignupForm() {
               <>
                 <div>
                   <label htmlFor="customer-company" className="mb-1.5 block text-sm font-medium text-gray-700">
-                    Raison sociale
+                    {t("companyName")}
                   </label>
                   <input
                     id="customer-company"
@@ -132,7 +133,7 @@ function CustomerSignupForm() {
                 </div>
                 <div>
                   <label htmlFor="customer-siret" className="mb-1.5 block text-sm font-medium text-gray-700">
-                    SIRET
+                    {t("siret")}
                   </label>
                   <input
                     id="customer-siret"
@@ -148,7 +149,7 @@ function CustomerSignupForm() {
             ) : null}
             <div>
               <label htmlFor="customer-email" className="mb-1.5 block text-sm font-medium text-gray-700">
-                Email
+                {t("email")}
               </label>
               <input
                 id="customer-email"
@@ -163,7 +164,7 @@ function CustomerSignupForm() {
             </div>
             <div>
               <label htmlFor="customer-password" className="mb-1.5 block text-sm font-medium text-gray-700">
-                Password
+                {t("password")}
               </label>
               <input
                 id="customer-password"
@@ -188,7 +189,7 @@ function CustomerSignupForm() {
               disabled={loading}
               className="w-full rounded-xl bg-blue-600 py-2.5 font-medium text-white shadow-sm transition-colors hover:bg-blue-700 disabled:opacity-60"
             >
-              {loading ? "Creating account…" : "Create account"}
+              {loading ? t("submitLoading") : t("submit")}
             </button>
             {error ? <p className="text-center text-sm text-red-600">{error}</p> : null}
           </form>
@@ -196,20 +197,20 @@ function CustomerSignupForm() {
           <div className="mt-6 border-t border-gray-100 pt-6">
             <div className="space-y-2.5 text-sm text-gray-600">
               <div className="flex items-center gap-2">
-                <span className="text-green-600">✓</span> Up to 20% cashback credited instantly
+                <span className="text-green-600">✓</span> {t("benefitCashback")}
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-green-600">✓</span> Bonus credits for reviews & referrals
+                <span className="text-green-600">✓</span> {t("benefitReviews")}
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-green-600">✓</span> Support creators you love
+                <span className="text-green-600">✓</span> {t("benefitCreators")}
               </div>
             </div>
           </div>
         </div>
 
         <p className="mt-6 text-center text-sm text-gray-600">
-          Already have an account?{" "}
+          {t("alreadyAccount")}{" "}
           <Link
             href={
               shopSlug
@@ -218,7 +219,7 @@ function CustomerSignupForm() {
             }
             className="font-medium text-blue-600 hover:text-blue-700"
           >
-            Sign in
+            {t("signIn")}
           </Link>
         </p>
       </div>
@@ -226,9 +227,16 @@ function CustomerSignupForm() {
   )
 }
 
+function CustomerSignupLoading() {
+  const t = useTranslations("auth")
+  return (
+    <div className="flex min-h-screen items-center justify-center">{t("loading")}</div>
+  )
+}
+
 export default function CustomerSignupPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Chargement…</div>}>
+    <Suspense fallback={<CustomerSignupLoading />}>
       <CustomerSignupForm />
     </Suspense>
   )

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 import { Suspense } from "react"
+import { getTranslations } from "next-intl/server"
 
 import { AdminAuthActions } from "@/components/admin/admin-auth-actions"
 import { PortalSignInForm } from "@/components/auth/portal-sign-in-form"
@@ -16,6 +17,8 @@ export default async function AdminLoginPage({ searchParams }: Props) {
   const callbackUrl = sanitizeInternalCallbackUrl(sp.callbackUrl) ?? "/admin/auto-fulfill"
   const session = await auth()
   const role = session?.user?.role
+  const t = await getTranslations("auth")
+  const tAdmin = await getTranslations("auth.adminLogin")
 
   if (session?.user?.id && role === "ADMIN") {
     redirect(resolvePostLoginRedirect("ADMIN", callbackUrl))
@@ -30,18 +33,18 @@ export default async function AdminLoginPage({ searchParams }: Props) {
       <Suspense
         fallback={
           <div className="flex min-h-[80vh] items-center justify-center text-sm text-zinc-500">
-            Chargement…
+            {t("loading")}
           </div>
         }
       >
         <PortalSignInForm
-        portal={null}
-        title="Connexion Affisell Admin"
-        subtitle="Accès plateforme : auto-fulfill, commandes, fournisseurs API."
-        defaultCallback="/admin/auto-fulfill"
-        signupHref="/login"
-        signupLabel="Retour"
-        showSocialSignIn={false}
+          portal={null}
+          title={tAdmin("title")}
+          subtitle={tAdmin("subtitle")}
+          defaultCallback="/admin/auto-fulfill"
+          signupHref="/login"
+          signupLabel={tAdmin("back")}
+          showSocialSignIn={false}
         />
       </Suspense>
     </div>

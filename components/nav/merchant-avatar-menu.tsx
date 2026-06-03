@@ -5,6 +5,7 @@ import { signOut, useSession } from "next-auth/react"
 import { LogOut, Settings } from "lucide-react"
 import { useLayoutEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
+import { useTranslations } from "next-intl"
 
 import { cn } from "@/lib/utils"
 
@@ -13,6 +14,7 @@ type Props = {
 }
 
 export function MerchantAvatarMenu({ className }: Props) {
+  const t = useTranslations("nav.accountMenu")
   const { data: session } = useSession()
   const [open, setOpen] = useState(false)
   const btnRef = useRef<HTMLButtonElement>(null)
@@ -33,7 +35,7 @@ export function MerchantAvatarMenu({ className }: Props) {
       <button
         ref={btnRef}
         type="button"
-        aria-label="Menu compte"
+        aria-label={t("aria")}
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         className="flex size-9 items-center justify-center overflow-hidden rounded-full border border-violet-200/80 bg-violet-100 text-sm font-semibold text-violet-900 ring-offset-2 transition hover:ring-2 hover:ring-violet-400/50 dark:border-violet-800/60 dark:bg-violet-950 dark:text-violet-100"
@@ -52,7 +54,7 @@ export function MerchantAvatarMenu({ className }: Props) {
               <button
                 type="button"
                 className="fixed inset-0 z-[200] cursor-default bg-transparent"
-                aria-label="Fermer le menu"
+                aria-label={t("close")}
                 onClick={() => setOpen(false)}
               />
               <div
@@ -70,7 +72,7 @@ export function MerchantAvatarMenu({ className }: Props) {
                   onClick={() => setOpen(false)}
                 >
                   <Settings className="size-4 shrink-0 opacity-70" aria-hidden />
-                  Paramètres
+                  {t("settings")}
                 </Link>
                 <button
                   type="button"
@@ -79,7 +81,7 @@ export function MerchantAvatarMenu({ className }: Props) {
                   onClick={() => void signOut({ callbackUrl: "/" })}
                 >
                   <LogOut className="size-4 shrink-0 opacity-70" aria-hidden />
-                  Déconnexion
+                  {t("signOut")}
                 </button>
               </div>
             </>,

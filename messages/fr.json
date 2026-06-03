@@ -37,6 +37,12 @@
       "products": "Produits",
       "inviteAffiliate": "Inviter affilié",
       "inviteAffiliateShort": "Inviter"
+    },
+    "accountMenu": {
+      "aria": "Menu compte",
+      "close": "Fermer le menu",
+      "settings": "Paramètres",
+      "signOut": "Déconnexion"
     }
   },
   "PublicNav": {
@@ -255,6 +261,11 @@
     "continueGoogle": "Continuer avec Google",
     "orPassword": "Ou avec mot de passe",
     "loading": "Chargement…",
+    "adminLogin": {
+      "title": "Connexion Affisell Admin",
+      "subtitle": "Accès plateforme : auto-fulfill, commandes, fournisseurs API.",
+      "back": "Retour"
+    },
     "loginSelector": {
       "title": "Connexion Affisell",
       "subtitle": "Choisissez votre espace professionnel. Les acheteurs se connectent depuis la boutique de leur créateur.",
@@ -283,6 +294,27 @@
       "alreadyClient": "Déjà client ?",
       "signupFail": "Inscription impossible",
       "backTrackOrder": "← Suivre ma commande"
+    },
+    "customerSignup": {
+      "heroTitle": "Achetez et récupérez jusqu'à 20 %",
+      "heroSubtitle": "Jusqu'à 20 % de cashback sur chaque achat",
+      "accountTypeLabel": "Type de compte",
+      "individual": "Particulier",
+      "professional": "Professionnel",
+      "companyName": "Raison sociale",
+      "siret": "SIRET",
+      "email": "E-mail",
+      "password": "Mot de passe",
+      "submit": "Créer mon compte",
+      "submitLoading": "Création du compte…",
+      "benefitCashback": "Jusqu'à 20 % de cashback crédité instantanément",
+      "benefitReviews": "Bonus pour avis et parrainages",
+      "benefitCreators": "Soutenez vos créateurs préférés",
+      "alreadyAccount": "Vous avez déjà un compte ?",
+      "signIn": "Se connecter",
+      "acceptTermsError": "Veuillez accepter les conditions et la politique de confidentialité.",
+      "siretError": "SIRET à 14 chiffres requis pour un compte professionnel.",
+      "signupFail": "Inscription impossible"
     },
     "shopBuyer": {
       "loginTitle": "Mon compte — {store}",
@@ -613,6 +645,11 @@
     "redirecting": "Redirection…",
     "catalogNoDescription": "Pas de description",
     "supplierPrefix": "Fournisseur",
+    "swipeFeed": {
+      "feedLoadFailed": "Impossible de charger le feed",
+      "serviceUnavailable": "Service temporairement indisponible — réessayez dans un instant.",
+      "genericError": "Une erreur est survenue"
+    },
     "mySelection": "Mes fiches en vitrine",
     "selectionHint": "Choisissez des produits dans le catalogue et fixez votre prix public.",
     "toggleListing": "Visible sur le marketplace et la recherche",
@@ -760,7 +797,9 @@
       "rewindBadge": "Relance",
       "scrollMode": "Mode défilement vertical",
       "scrollModeShort": "Scroll",
-      "emptyCategory": "Aucun produit listé dans {name} pour l’instant."
+      "emptyCategory": "Aucun produit listé dans {name} pour l’instant.",
+      "feedLoadFailed": "Impossible de charger le feed",
+      "genericError": "Une erreur est survenue"
     }
   },
   "merchantAccount": {
@@ -1243,6 +1282,24 @@
     "tagMarketplace": "Marketplace",
     "routeSummary": "{origin} → {destination} · {count} service(s)"
   },
+  "pages": {
+    "trackOrder": {
+      "metaTitle": "Suivre ma commande | Affisell",
+      "metaDescription": "Suivi de commande Affisell — numéro de suivi et statut dans votre espace client.",
+      "eyebrow": "Livraison",
+      "title": "Suivre ma commande",
+      "description": "Connectez-vous avec votre compte client Affisell (même e-mail que lors du paiement) pour voir le statut, le suivi et gérer un retour.",
+      "stepLogin": "Se connecter ou créer un compte client avec l'e-mail utilisé lors du paiement.",
+      "stepOrders": "Ouvrez « Mes commandes » pour le détail et le suivi transporteur.",
+      "stepEmail": "Un e-mail de confirmation vous est envoyé à chaque étape clé.",
+      "signIn": "Se connecter",
+      "createAccount": "Créer un compte client",
+      "myOrders": "Mes commandes",
+      "contactSupport": "Contacter le support",
+      "proNote": "Vous êtes créateur ou fournisseur ?",
+      "proLogin": "Connexion professionnelle"
+    }
+  },
   "contact": {
     "metaTitle": "Contact — Affisell",
     "eyebrow": "Support",
@@ -1318,6 +1375,31 @@
     }
   },
   "footer": {
+    "global": {
+      "siteTitle": "Affisell",
+      "legalTitle": "Légal",
+      "supportTitle": "Support",
+      "paymentTitle": "Paiement sécurisé",
+      "about": "À propos",
+      "howItWorks": "Comment ça marche",
+      "affiliateProgram": "Programme affilié",
+      "becomeSupplier": "Devenir fournisseur",
+      "demoLab": "Demo Lab",
+      "cgv": "CGV",
+      "cgu": "CGU",
+      "legalNotice": "Mentions légales",
+      "privacyPolicy": "Politique de confidentialité",
+      "returns": "Retours & remboursements",
+      "faq": "FAQ",
+      "supportAssistant": "Assistant support",
+      "shipping": "Livraison",
+      "contact": "Contact",
+      "trackOrder": "Suivre ma commande",
+      "vatNotice": "TVA collectée et reversée conformément à la réglementation applicable.",
+      "stripeNotice": "Paiements sécurisés par Stripe (carte bancaire, 3D Secure lorsque requis).",
+      "copyright": "© {year} Affisell — {name} — SIRET {siret} —",
+      "odrLink": "Règlement des litiges en ligne (UE)"
+    },
     "about": "À propos",
     "contact": "Contact",
     "terms": "Conditions",

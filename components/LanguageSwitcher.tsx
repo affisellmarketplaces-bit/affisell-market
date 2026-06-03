@@ -2,14 +2,13 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { useLocale, useTranslations } from "next-intl"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronDown } from "lucide-react"
 
 import { hrefForLocaleSwitch } from "@/lib/client-locale-path"
 import { isDemoLabRoute } from "@/lib/demo/demo-routes"
-import { dispatchAffisellLocaleChange } from "@/lib/i18n-locale-events"
 import { LOCALE_COOKIE, localeCookieMaxAgeSec, type AppLocale } from "@/lib/i18n-locale"
 import { cn } from "@/lib/utils"
 
@@ -35,7 +34,6 @@ type MenuPosition = {
 export function LanguageSwitcher({ className }: { className?: string }) {
   const locale = useLocale() as AppLocale
   const pathname = usePathname() ?? ""
-  const router = useRouter()
   const t = useTranslations("CommandK")
   const [open, setOpen] = useState(false)
   const [pending, setPending] = useState(false)
@@ -110,17 +108,10 @@ export function LanguageSwitcher({ className }: { className?: string }) {
   function select(next: AppLocale) {
     if (next === locale || pending) return
     setLocaleCookie(next)
-    dispatchAffisellLocaleChange(next)
     setOpen(false)
     setPending(true)
     const { pathname, search, hash } = window.location
     const target = hrefForLocaleSwitch(pathname, search, hash, next)
-    const current = `${pathname}${search}${hash}`
-    if (target === current) {
-      router.refresh()
-      window.setTimeout(() => setPending(false), 400)
-      return
-    }
     window.location.assign(target)
   }
 

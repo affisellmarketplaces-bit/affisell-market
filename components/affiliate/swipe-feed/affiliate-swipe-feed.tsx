@@ -13,6 +13,7 @@ import {
 } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useTranslations } from "next-intl"
 
 import { SwipeListingStudio } from "@/components/affiliate/swipe-feed/swipe-listing-studio"
 import { SwipeCard, type SwipeCardHandle } from "@/components/affiliate/swipe-feed/swipe-card"
@@ -60,6 +61,7 @@ type Props = {
 }
 
 export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
+  const tSwipe = useTranslations("affiliate.swipeFeed")
   const [mode, setMode] = useState<"hub" | "swipe">(initialMode)
   const [deck, setDeck] = useState<SwipeFeedProduct[]>([])
   const [loading, setLoading] = useState(false)
@@ -106,8 +108,8 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
         if (!res.ok) {
           const msg =
             data.dbUnavailable
-              ? "Service temporairement indisponible — réessayez dans un instant."
-              : data.error ?? "Impossible de charger le feed"
+              ? tSwipe("serviceUnavailable")
+              : data.error ?? tSwipe("feedLoadFailed")
           setFetchError(msg)
           setFeedExhausted(true)
           showToast(msg)
@@ -133,15 +135,15 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
           return merged
         })
       } catch {
-        setFetchError("Impossible de charger le feed")
+        setFetchError(tSwipe("feedLoadFailed"))
         setFeedExhausted(true)
-        showToast("Impossible de charger le feed")
+        showToast(tSwipe("feedLoadFailed"))
       } finally {
         setLoading(false)
         fetchingRef.current = false
       }
     },
-    [filters, showToast]
+    [filters, showToast, tSwipe]
   )
 
   useEffect(() => {

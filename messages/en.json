@@ -37,6 +37,12 @@
       "products": "Products",
       "inviteAffiliate": "Invite affiliate",
       "inviteAffiliateShort": "Invite"
+    },
+    "accountMenu": {
+      "aria": "Account menu",
+      "close": "Close menu",
+      "settings": "Settings",
+      "signOut": "Sign out"
     }
   },
   "PublicNav": {
@@ -255,6 +261,11 @@
     "continueGoogle": "Continue with Google",
     "orPassword": "Or use password",
     "loading": "Loading…",
+    "adminLogin": {
+      "title": "Affisell Admin sign in",
+      "subtitle": "Platform access: auto-fulfill, orders, supplier API.",
+      "back": "Back"
+    },
     "loginSelector": {
       "title": "Sign in to Affisell",
       "subtitle": "Choose your professional space. Buyers sign in from their creator's store.",
@@ -283,6 +294,27 @@
       "alreadyClient": "Already a customer?",
       "signupFail": "Could not sign up",
       "backTrackOrder": "← Track my order"
+    },
+    "customerSignup": {
+      "heroTitle": "Shop & Get Up to 20% Back",
+      "heroSubtitle": "Get up to 20% cashback on every purchase",
+      "accountTypeLabel": "Account type",
+      "individual": "Individual",
+      "professional": "Business",
+      "companyName": "Company name",
+      "siret": "SIRET (France)",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Create account",
+      "submitLoading": "Creating account…",
+      "benefitCashback": "Up to 20% cashback credited instantly",
+      "benefitReviews": "Bonus credits for reviews & referrals",
+      "benefitCreators": "Support creators you love",
+      "alreadyAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "acceptTermsError": "Please accept the terms and privacy policy.",
+      "siretError": "A 14-digit SIRET is required for business accounts.",
+      "signupFail": "Could not sign up"
     },
     "shopBuyer": {
       "loginTitle": "My account — {store}",
@@ -613,6 +645,11 @@
     "redirecting": "Redirecting…",
     "catalogNoDescription": "No description",
     "supplierPrefix": "Supplier",
+    "swipeFeed": {
+      "feedLoadFailed": "Could not load the feed",
+      "serviceUnavailable": "Service temporarily unavailable — try again in a moment.",
+      "genericError": "Something went wrong"
+    },
     "mySelection": "My storefront listings",
     "selectionHint": "Pick products from the catalog and set your retail price.",
     "toggleListing": "Listed on marketplace & search",
@@ -760,7 +797,9 @@
       "rewindBadge": "Rewind",
       "scrollMode": "Vertical scroll mode",
       "scrollModeShort": "Scroll",
-      "emptyCategory": "No listed products in {name} yet."
+      "emptyCategory": "No listed products in {name} yet.",
+      "feedLoadFailed": "Could not load the feed",
+      "genericError": "Something went wrong"
     }
   },
   "merchantAccount": {
@@ -1243,6 +1282,24 @@
     "tagMarketplace": "Marketplace",
     "routeSummary": "{origin} → {destination} · {count} carrier(s)"
   },
+  "pages": {
+    "trackOrder": {
+      "metaTitle": "Track my order | Affisell",
+      "metaDescription": "Affisell order tracking — status and carrier updates in your customer account.",
+      "eyebrow": "Delivery",
+      "title": "Track my order",
+      "description": "Sign in with your Affisell customer account (same email as checkout) to see status, tracking, and manage a return.",
+      "stepLogin": "Sign in or create a customer account with the email used at checkout.",
+      "stepOrders": "Open “My orders” for details and carrier tracking.",
+      "stepEmail": "A confirmation email is sent at each key step.",
+      "signIn": "Sign in",
+      "createAccount": "Create customer account",
+      "myOrders": "My orders",
+      "contactSupport": "Contact support",
+      "proNote": "Creator or supplier?",
+      "proLogin": "Professional sign in"
+    }
+  },
   "contact": {
     "metaTitle": "Contact — Affisell",
     "eyebrow": "Support",
@@ -1318,6 +1375,31 @@
     }
   },
   "footer": {
+    "global": {
+      "siteTitle": "Affisell",
+      "legalTitle": "Legal",
+      "supportTitle": "Support",
+      "paymentTitle": "Secure payment",
+      "about": "About",
+      "howItWorks": "How it works",
+      "affiliateProgram": "Affiliate program",
+      "becomeSupplier": "Become a supplier",
+      "demoLab": "Demo Lab",
+      "cgv": "Terms of sale (CGV)",
+      "cgu": "Terms of use",
+      "legalNotice": "Legal notice",
+      "privacyPolicy": "Privacy policy",
+      "returns": "Returns & refunds",
+      "faq": "FAQ",
+      "supportAssistant": "Support assistant",
+      "shipping": "Shipping",
+      "contact": "Contact",
+      "trackOrder": "Track my order",
+      "vatNotice": "VAT collected and remitted in line with applicable regulations.",
+      "stripeNotice": "Payments secured by Stripe (card, 3D Secure when required).",
+      "copyright": "© {year} Affisell — {name} — SIRET {siret} —",
+      "odrLink": "EU online dispute resolution"
+    },
     "about": "About",
     "contact": "Contact",
     "terms": "Terms",
