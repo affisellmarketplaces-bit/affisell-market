@@ -413,10 +413,9 @@
   },
   "checkout": {
     "flexiblePayment": {
-      "title": "Smart checkout",
-      "installments": "{count}× {amount} with no interest",
-      "footnote": "Instant Klarna flow. Offer subject to eligibility.",
-      "cardAlso": "Card"
+      "aria": "Pay in {count} interest-free installments of {amount} — Klarna or card",
+      "zeroApr": "0%",
+      "methods": "Klarna · Card"
     }
   },
   "cart": {

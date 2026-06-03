@@ -413,10 +413,9 @@
   },
   "checkout": {
     "flexiblePayment": {
-      "title": "Paiement intelligent",
-      "installments": "{count}× {amount} sans frais",
-      "footnote": "Activation instantanee via Klarna. Offre selon eligibilite.",
-      "cardAlso": "CB"
+      "aria": "Paiement en {count} fois sans frais de {amount} — Klarna ou carte",
+      "zeroApr": "0 %",
+      "methods": "Klarna · CB"
     }
   },
   "cart": {
