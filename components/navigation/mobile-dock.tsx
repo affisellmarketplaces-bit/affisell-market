@@ -4,12 +4,12 @@ import { Home, Search, ShoppingBag, Sparkles, Store } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { useTranslations } from "next-intl"
-import { useEffect, useState } from "react"
 
+import { CartCountBadge } from "@/components/cart/cart-count-badge"
 import { FastLink } from "@/components/navigation/fast-link"
+import { useBuyerCartCount } from "@/hooks/use-buyer-cart-count"
 import { PUBLIC_MARKETPLACE_BROWSE_PATH, PUBLIC_SHOPS_PATH } from "@/lib/affiliate-routes"
 import { affisellBrand } from "@/lib/affisell-brand"
-import { guestCartCount } from "@/lib/guest-cart"
 import { barePathname, shouldHideMobileDock } from "@/lib/mobile-chrome"
 import { cn } from "@/lib/utils"
 
@@ -20,7 +20,7 @@ export function MobileDock() {
   const bare = barePathname(pathname)
   const { data: session } = useSession()
   const role = session?.user?.role
-  const [cartCount, setCartCount] = useState(0)
+  const cartCount = useBuyerCartCount()
 
   const dockItems = [
     {
@@ -58,17 +58,6 @@ export function MobileDock() {
     },
   ] as const
 
-  useEffect(() => {
-    const sync = () => setCartCount(guestCartCount())
-    sync()
-    window.addEventListener("affisell:cart-updated", sync)
-    window.addEventListener("affisell:cart-added", sync)
-    return () => {
-      window.removeEventListener("affisell:cart-updated", sync)
-      window.removeEventListener("affisell:cart-added", sync)
-    }
-  }, [])
-
   if (role === "AFFILIATE" || role === "SUPPLIER") return null
   if (shouldHideMobileDock(pathname)) return null
 
@@ -86,7 +75,6 @@ export function MobileDock() {
         {dockItems.map(({ href, label, icon: Icon, match, ...rest }) => {
           const featured = "featured" in rest && rest.featured
           const active = match(bare)
-          const showCartBadge = href === "/cart" && cartCount > 0
           return (
             <li key={href} className={cn("flex flex-1 justify-center", featured && "-mt-3")}>
               <FastLink
@@ -111,11 +99,7 @@ export function MobileDock() {
                   aria-hidden
                   strokeWidth={featured ? 2.25 : 2}
                 />
-                {showCartBadge ? (
-                  <span className="absolute -right-0.5 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-fuchsia-500 px-1 text-[9px] font-bold text-white ring-2 ring-white dark:ring-zinc-950">
-                    {cartCount > 9 ? "9+" : cartCount}
-                  </span>
-                ) : null}
+                {href === "/cart" ? <CartCountBadge count={cartCount} size="sm" /> : null}
                 <span className="max-w-full truncate">{label}</span>
               </FastLink>
             </li>

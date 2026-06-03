@@ -20,6 +20,7 @@ import {
   type GuestCartItem,
 } from "@/lib/guest-cart"
 import { CartCheckoutIdentitySheet } from "@/components/cart/cart-checkout-identity-sheet"
+import { dispatchCartUpdated } from "@/lib/buyer-cart-count-client"
 import { mergeGuestBuyerSessionToServer } from "@/lib/merge-guest-cart-client"
 import { formatStoreCurrency } from "@/lib/market-config"
 
@@ -285,6 +286,7 @@ export default function CartPage() {
       body: JSON.stringify({ itemId }),
     })
     await refreshCart()
+    dispatchCartUpdated()
   }
 
   async function setQty(lineId: string, next: number) {
@@ -301,6 +303,7 @@ export default function CartPage() {
       body: JSON.stringify({ quantity: next }),
     })
     await refreshCart()
+    dispatchCartUpdated()
   }
 
   async function proceedToStripe() {

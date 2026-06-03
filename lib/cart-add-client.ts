@@ -1,6 +1,7 @@
 "use client"
 
-import { addGuestCartItem, type GuestCartItem } from "@/lib/guest-cart"
+import { addGuestCartItem, type CartAddedEventDetail, type GuestCartItem } from "@/lib/guest-cart"
+import { dispatchCartUpdated } from "@/lib/buyer-cart-count-client"
 
 export type AddToBuyerCartInput = {
   productId: string
@@ -18,8 +19,12 @@ export type AddToBuyerCartResult =
   | { ok: false; error: string }
 
 function notifyCartUpdated() {
+  dispatchCartUpdated()
+}
+
+function notifyCartAdded(detail: CartAddedEventDetail) {
   if (typeof window === "undefined") return
-  window.dispatchEvent(new CustomEvent("affisell:cart-updated"))
+  window.dispatchEvent(new CustomEvent<CartAddedEventDetail>("affisell:cart-added", { detail }))
 }
 
 /** Add to cart without login — server cart when signed in, local guest cart otherwise. */
@@ -28,6 +33,7 @@ export async function addToBuyerCart(input: AddToBuyerCartInput): Promise<AddToB
   if (!productId) return { ok: false, error: "Missing product" }
 
   const qty = Math.max(1, Math.min(99, Math.round(Number(input.qty)) || 1))
+  const variantSignature = [input.selectedColor, input.selectedSize].filter(Boolean).join("|")
 
   const res = await fetch("/api/cart/add", {
     method: "POST",
@@ -44,6 +50,12 @@ export async function addToBuyerCart(input: AddToBuyerCartInput): Promise<AddToB
 
   if (res.ok) {
     notifyCartUpdated()
+    notifyCartAdded({
+      productId,
+      productName: input.title?.trim() || "Product",
+      qtyAdded: qty,
+      variantSignature,
+    })
     console.log("[cart-add-client]", { productId, result: "server" })
     return { ok: true, mode: "server" }
   }

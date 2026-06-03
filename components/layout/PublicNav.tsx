@@ -1,12 +1,13 @@
 "use client"
 
 import Link from "next/link"
-import { Suspense, useEffect, useState } from "react"
+import { Suspense } from "react"
 import { Home, Menu, Search, ShoppingCart, Store, User, Zap } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { useTranslations } from "next-intl"
 import { motion } from "framer-motion"
 
+import { CartCountBadge } from "@/components/cart/cart-count-badge"
 import { COMMAND_K_OPEN_EVENT } from "@/components/CommandK"
 import { LanguageSwitcher } from "@/components/LanguageSwitcher"
 import { ThemeToggle } from "@/components/marketing/theme-toggle"
@@ -14,27 +15,10 @@ import { NavHeaderSearch } from "@/components/nav/nav-header-search"
 import { NavPill } from "@/components/navigation/nav-pill"
 import { Link as LocaleLink, usePathname } from "@/i18n/navigation"
 import { buttonVariants } from "@/components/ui/button"
+import { useBuyerCartCount } from "@/hooks/use-buyer-cart-count"
 import { loginCustomerPath, MARKETPLACE_BUYER_ORDERS_PATH } from "@/lib/login-redirect"
 import { openMobileBuyerHub } from "@/lib/buyer-hub-events"
 import { cn } from "@/lib/utils"
-
-function useCartCount(): number {
-  const [count, setCount] = useState(0)
-  const { data: session } = useSession()
-
-  useEffect(() => {
-    if (!session?.user?.id) {
-      setCount(0)
-      return
-    }
-    fetch("/api/cart")
-      .then((r) => r.json())
-      .then((lines: unknown[]) => setCount(Array.isArray(lines) ? lines.length : 0))
-      .catch(() => setCount(0))
-  }, [session?.user?.id])
-
-  return count
-}
 
 export function PublicNav() {
   const t = useTranslations("PublicNav")
@@ -43,7 +27,7 @@ export function PublicNav() {
   const pathname = usePathname()
   const { data: session, status } = useSession()
   const isCustomer = session?.user?.role === "CUSTOMER"
-  const cartCount = useCartCount()
+  const cartCount = useBuyerCartCount()
 
   const onHome = pathname === "/"
   const onShops = pathname === "/shops" || pathname.startsWith("/shops/")
@@ -53,6 +37,8 @@ export function PublicNav() {
   const signInHref = isBuyerContext
     ? loginCustomerPath(MARKETPLACE_BUYER_ORDERS_PATH)
     : "/login"
+
+  const cartAria = cartCount > 0 ? `${t("cartAria")} (${cartCount})` : t("cartAria")
 
   return (
     <nav
@@ -87,21 +73,12 @@ export function PublicNav() {
             buttonVariants({ variant: "outline", size: "sm" }),
             "relative h-9 gap-1 px-2 sm:gap-1.5 sm:px-3"
           )}
-          aria-label={t("cartAria")}
+          aria-label={cartAria}
         >
           <>
             <ShoppingCart className="size-4 shrink-0" aria-hidden />
             <span className="hidden md:inline">{t("cart")}</span>
-            {cartCount > 0 ? (
-              <motion.span
-                key={cartCount}
-                initial={{ scale: 0.6 }}
-                animate={{ scale: 1 }}
-                className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#6366F1] px-1 text-[10px] font-bold text-white"
-              >
-                {cartCount > 9 ? "9+" : cartCount}
-              </motion.span>
-            ) : null}
+            <CartCountBadge count={cartCount} size="md" />
           </>
         </Link>
         {status !== "loading" && isCustomer ? (
