@@ -2,12 +2,13 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useLocale, useTranslations } from "next-intl"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronDown } from "lucide-react"
 
 import { hrefForLocaleSwitch } from "@/lib/client-locale-path"
+import { isDemoLabRoute } from "@/lib/demo/demo-routes"
 import { dispatchAffisellLocaleChange } from "@/lib/i18n-locale-events"
 import { LOCALE_COOKIE, localeCookieMaxAgeSec, type AppLocale } from "@/lib/i18n-locale"
 import { cn } from "@/lib/utils"
@@ -21,10 +22,19 @@ function setLocaleCookie(locale: AppLocale) {
   document.cookie = `NEXT_LOCALE=;path=/;max-age=0;SameSite=Lax`
 }
 
-type MenuPosition = { top: number; left: number; minWidth: number }
+const MENU_ESTIMATED_HEIGHT_PX = 92
+
+type MenuPosition = {
+  top?: number
+  bottom?: number
+  left: number
+  minWidth: number
+  openUpward: boolean
+}
 
 export function LanguageSwitcher({ className }: { className?: string }) {
   const locale = useLocale() as AppLocale
+  const pathname = usePathname() ?? ""
   const router = useRouter()
   const t = useTranslations("CommandK")
   const [open, setOpen] = useState(false)
@@ -38,12 +48,29 @@ export function LanguageSwitcher({ className }: { className?: string }) {
     const btn = btnRef.current
     if (!btn) return
     const r = btn.getBoundingClientRect()
+    const spaceBelow = window.innerHeight - r.bottom
+    const openUpward =
+      isDemoLabRoute(pathname) || spaceBelow < MENU_ESTIMATED_HEIGHT_PX + 12
+    const left = r.right
+    const minWidth = Math.max(r.width, 136)
+
+    if (openUpward) {
+      setMenuPos({
+        bottom: window.innerHeight - r.top + 4,
+        left,
+        minWidth,
+        openUpward: true,
+      })
+      return
+    }
+
     setMenuPos({
       top: r.bottom + 4,
-      left: r.right,
-      minWidth: Math.max(r.width, 136),
+      left,
+      minWidth,
+      openUpward: false,
     })
-  }, [])
+  }, [pathname])
 
   useEffect(() => {
     setMounted(true)
@@ -103,13 +130,14 @@ export function LanguageSwitcher({ className }: { className?: string }) {
         {open ? (
           <motion.ul
             ref={menuRef}
-            initial={{ opacity: 0, y: 4, scale: 0.95 }}
+            initial={{ opacity: 0, y: menuPos.openUpward ? -4 : 4, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 4, scale: 0.95 }}
+            exit={{ opacity: 0, y: menuPos.openUpward ? -4 : 4, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="affisell-locale-menu fixed overflow-hidden rounded-xl border border-zinc-200 bg-white py-1 shadow-xl dark:border-zinc-700 dark:bg-zinc-950"
+            className="affisell-locale-menu fixed z-[9999] overflow-hidden rounded-xl border border-zinc-200 bg-white py-1 shadow-xl dark:border-zinc-700 dark:bg-zinc-950"
             style={{
-              top: menuPos.top,
+              top: menuPos.openUpward ? undefined : menuPos.top,
+              bottom: menuPos.openUpward ? menuPos.bottom : undefined,
               left: menuPos.left,
               minWidth: menuPos.minWidth,
               transform: "translateX(-100%)",

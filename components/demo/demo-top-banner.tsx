@@ -7,7 +7,7 @@ export async function DemoTopBanner() {
 
   return (
     <div
-      className="sticky top-0 z-[190] border-b border-violet-500/25 bg-zinc-950/95 px-4 py-2 text-center text-white backdrop-blur-md"
+      className="sticky top-0 z-30 border-b border-violet-500/25 bg-zinc-950/95 px-4 py-2 text-center text-white backdrop-blur-md"
       role="status"
     >
       <p className="inline-flex items-center justify-center gap-2 text-xs font-semibold tracking-wide text-violet-200">

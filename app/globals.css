@@ -77,6 +77,18 @@ body.affisell-demo-lab .affisell-site-footer {
   display: none;
 }
 
+/* Locale dropdown (portaled) must sit above sticky demo banner + header clip */
+body.affisell-demo-lab .affisell-global-site-header,
+body.affisell-demo-lab .affisell-header-shell {
+  overflow: visible;
+}
+
+@media (max-width: 767px) {
+  body.affisell-demo-lab .affisell-header-shell {
+    overflow: visible;
+  }
+}
+
 :root {
   --affisell-mobile-dock-offset: calc(5rem + env(safe-area-inset-bottom));
   --affisell-swipe-dock-h: 13.5rem;
@@ -742,7 +754,7 @@ body.affisell-demo-lab .affisell-site-footer {
   }
 
   .affisell-locale-menu {
-    z-index: 300;
+    z-index: 9999;
   }
 
   .affisell-badge {
