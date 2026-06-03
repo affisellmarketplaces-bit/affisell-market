@@ -17,20 +17,16 @@ function FooterLink({ href, children }: { href: string; children: ReactNode }) {
   )
 }
 
-function StripeMark() {
+/** Legible Stripe mention (SVG wordmark was often misread as gibberish at small size). */
+function StripeTrustBadge() {
   return (
-    <svg
-      className="h-7 w-auto text-gray-300"
-      viewBox="0 0 60 25"
-      xmlns="http://www.w3.org/2000/svg"
+    <div
+      className="inline-flex items-center rounded-lg border border-gray-700 bg-gray-800/80 px-3 py-1.5"
       role="img"
       aria-label="Stripe"
     >
-      <path
-        fill="currentColor"
-        d="M59.64 14.28h-8.06c.19 1.93 1.6 2.55 3.15 2.55 1.64 0 2.96-.37 4.05-.95v3.32a8.33 8.33 0 0 1-4.56 1.1c-4.01 0-6.83-2.5-6.83-7.48 0-4.75 2.72-7.7 6.48-7.7 3.92 0 5.98 2.97 5.98 7.38 0 .4-.04 1.12-.1 1.78zm-5.92-5.62c-1.03 0-2.17.73-2.17 2.58h4.25c0-1.85-1.07-2.58-2.08-2.58zM40.95 20.3c-1.44 0-2.32-.8-2.9-1.68l-.23 1.48h-3.76V.64h4.1v9.98c.6-1.12 1.48-1.85 2.76-1.85 2.38 0 3.72 2.02 3.72 5.88s-1.34 5.15-3.69 5.15zm-.98-9.3c-1.03 0-1.9.73-2.1 1.63v5.62c.2.85.98 1.52 2.1 1.52 1.6 0 2.48-1.5 2.48-4.3 0-2.85-.88-4.47-2.48-4.47zM28.24 20.3c-3.4 0-5.92-2.48-5.92-7.38 0-4.93 2.52-7.7 6.08-7.7 3.28 0 5.64 2.1 5.64 6.48v1.12H22.5c.15 2.52 1.55 3.8 3.72 3.8 1.48 0 2.6-.3 3.55-.85v3.4a8.46 8.46 0 0 1-3.53.73zm.98-12.1c-1.5 0-2.45 1.05-2.54 2.8h5.08c-.1-1.75-1.05-2.8-2.54-2.8zM14.25 20.05H10.1V.64h4.1v19.41zM6.66 20.05H2.51V.64h4.1v19.41z"
-      />
-    </svg>
+      <span className="text-base font-semibold tracking-tight text-[#635BFF]">Stripe</span>
+    </div>
   )
 }
 
@@ -88,7 +84,7 @@ export function Footer() {
               Paiement sécurisé
             </h2>
             <div className="mt-4 space-y-3">
-              <StripeMark />
+              <StripeTrustBadge />
               <p className="text-sm leading-relaxed text-gray-400">
                 TVA collectée et reversée conformément à la réglementation applicable.
               </p>
