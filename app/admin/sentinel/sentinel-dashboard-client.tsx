@@ -2,14 +2,18 @@
 
 import Link from "next/link"
 import { useCallback, useMemo, useState, useTransition } from "react"
-import { Activity, Radar, RefreshCw, Shield, Zap } from "lucide-react"
+import { Activity, BarChart3, Radar, RefreshCw, Shield, Zap } from "lucide-react"
 import { toast } from "sonner"
 
+import { SentinelTrendStrip } from "@/app/admin/sentinel/sentinel-trend-strip"
 import {
   DOMAINS,
   SENTINEL_DOMAIN_LABEL,
   SEVERITIES,
+  isExternalPlaybookUrl,
+  sentinelPlaybookKind,
   sentinelPlaybookLabel,
+  sentinelPlaybookSecondaryUrl,
   sentinelPlaybookUrl,
 } from "@/lib/sentinel/sentinel-shared"
 import { computeSentinelScore } from "@/lib/sentinel/score"
@@ -45,6 +49,7 @@ export function SentinelDashboardClient({ initial }: Props) {
   const [filter, setFilter] = useState<SentinelSeverity | "all">("all")
   const [pending, startTransition] = useTransition()
   const [resolvingId, setResolvingId] = useState<string | null>(null)
+  const [playbookId, setPlaybookId] = useState<string | null>(null)
 
   const filtered = useMemo(() => {
     if (filter === "all") return data.signals
@@ -93,6 +98,18 @@ export function SentinelDashboardClient({ initial }: Props) {
       .finally(() => setResolvingId(null))
   }, [])
 
+  const runPlaybook = useCallback((signalId: string) => {
+    setPlaybookId(signalId)
+    void fetch(`/api/admin/sentinel/${signalId}/playbook`, { method: "POST", credentials: "include" })
+      .then(async (res) => {
+        const body = (await res.json()) as { error?: string; queue?: string }
+        if (!res.ok) throw new Error(body.error ?? "Playbook failed")
+        toast.success(`Auto-buy relancé (${body.queue ?? "queue"})`)
+      })
+      .catch((e) => toast.error(e instanceof Error ? e.message : "Action impossible"))
+      .finally(() => setPlaybookId(null))
+  }, [])
+
   return (
     <div className="min-h-[calc(100dvh-3.5rem)] bg-zinc-950 text-zinc-100">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(139,92,246,0.18),transparent)]" />
@@ -107,7 +124,7 @@ export function SentinelDashboardClient({ initial }: Props) {
               Ops Command Center
             </h1>
             <p className="mt-1 max-w-xl text-sm text-zinc-400">
-              Détection automatique — paiements, webhooks, auto-fulfill, catalogue, i18n, providers.
+              Détection automatique — paiements, webhooks, auto-fulfill, catalogue, i18n, Sentry, providers.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -187,6 +204,25 @@ export function SentinelDashboardClient({ initial }: Props) {
           </div>
         </div>
 
+        <div className="mt-4">
+          <SentinelTrendStrip points={data.trend7d} />
+        </div>
+
+        {data.metabaseEmbedUrl ? (
+          <section className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
+            <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+              <BarChart3 className="size-3.5" aria-hidden />
+              Metabase · ops metrics
+            </div>
+            <iframe
+              title="Metabase ops dashboard"
+              src={data.metabaseEmbedUrl}
+              className="h-[420px] w-full border-0 bg-zinc-950"
+              loading="lazy"
+            />
+          </section>
+        ) : null}
+
         <section className="mt-8">
           <div className="mb-3 flex items-center justify-between gap-2">
             <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-zinc-400">
@@ -212,6 +248,10 @@ export function SentinelDashboardClient({ initial }: Props) {
             <ul className="space-y-3">
               {filtered.map((s) => {
                 const href = sentinelPlaybookUrl(s.playbook, s.entityId ?? null)
+                const kind = sentinelPlaybookKind(s.playbook)
+                const secondaryHref = sentinelPlaybookSecondaryUrl(s.playbook)
+                const playbookBtnClass =
+                  "inline-flex items-center justify-center rounded-lg bg-violet-600 px-3 py-2 text-xs font-semibold text-white hover:bg-violet-500"
                 return (
                   <li
                     key={s.id}
@@ -237,12 +277,36 @@ export function SentinelDashboardClient({ initial }: Props) {
                         </p>
                       </div>
                       <div className="flex shrink-0 flex-col gap-2">
-                        {href ? (
-                          <Link
-                            href={href}
-                            className="inline-flex items-center justify-center rounded-lg bg-violet-600 px-3 py-2 text-xs font-semibold text-white hover:bg-violet-500"
+                        {kind === "action" ? (
+                          <Button
+                            type="button"
+                            size="sm"
+                            disabled={playbookId === s.id}
+                            onClick={() => runPlaybook(s.id)}
+                            className="bg-violet-600 text-xs font-semibold text-white hover:bg-violet-500"
                           >
                             {sentinelPlaybookLabel(s.playbook)}
+                          </Button>
+                        ) : href && isExternalPlaybookUrl(href) ? (
+                          <a
+                            href={href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={playbookBtnClass}
+                          >
+                            {sentinelPlaybookLabel(s.playbook)}
+                          </a>
+                        ) : href ? (
+                          <Link href={href} className={playbookBtnClass}>
+                            {sentinelPlaybookLabel(s.playbook)}
+                          </Link>
+                        ) : null}
+                        {secondaryHref ? (
+                          <Link
+                            href={secondaryHref}
+                            className="text-center text-[11px] text-violet-400 hover:underline"
+                          >
+                            Voir les logs
                           </Link>
                         ) : null}
                         <Button

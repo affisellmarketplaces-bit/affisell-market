@@ -14,6 +14,10 @@ export type SentinelPlaybook =
   | "open-order"
   | "open-providers"
   | "run-discovery-bootstrap"
+  | "retry-auto-buy"
+  | "open-sentry"
+
+export type SentinelPlaybookKind = "link" | "action"
 
 export type SentinelSignalInput = {
   severity: SentinelSeverity
@@ -36,10 +40,19 @@ export type SentinelSignalRow = SentinelSignalInput & {
 
 export type SentinelDomainCounts = Record<SentinelDomain, { open: number; p0: number }>
 
+export type SentinelTrendPoint = {
+  day: string
+  score: number
+  openP0: number
+  openTotal: number
+}
+
 export type SentinelDashboard = {
   score: number
   scannedAt: string
   openCounts: Record<SentinelSeverity, number>
   domainCounts: SentinelDomainCounts
   signals: SentinelSignalRow[]
+  trend7d: SentinelTrendPoint[]
+  metabaseEmbedUrl: string | null
 }

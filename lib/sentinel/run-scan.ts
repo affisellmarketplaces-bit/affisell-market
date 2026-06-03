@@ -2,10 +2,12 @@ import { collectCatalogHealthSignals } from "@/lib/sentinel/collectors/catalog-h
 import { collectFulfillmentFailedSignals } from "@/lib/sentinel/collectors/fulfillment-failed"
 import { collectI18nParitySignals } from "@/lib/sentinel/collectors/i18n-parity"
 import { collectProviderErrorSignals } from "@/lib/sentinel/collectors/provider-errors"
+import { collectSentryIssueSignals } from "@/lib/sentinel/collectors/sentry-issues"
 import { collectStripeStuckSignals } from "@/lib/sentinel/collectors/stripe-stuck"
 import { collectWebhookErrorSignals } from "@/lib/sentinel/collectors/webhook-errors"
 import { withSignalIds } from "@/lib/sentinel/signal-id"
-import type { SentinelSignalInput } from "@/lib/sentinel/types"
+import type { SentinelSeverity, SentinelSignalInput } from "@/lib/sentinel/types"
+import { saveSentinelScanSnapshot } from "@/lib/sentinel/trend-7d"
 import { opsWebhookAlert } from "@/lib/ops-webhook"
 import { prisma } from "@/lib/prisma"
 
@@ -25,6 +27,7 @@ async function collectAllSignals(): Promise<SentinelSignalInput[]> {
     collectCatalogHealthSignals(),
     collectI18nParitySignals(),
     collectProviderErrorSignals(),
+    collectSentryIssueSignals(),
   ])
   return batches.flat()
 }
@@ -86,6 +89,24 @@ export async function runSentinelScan(opts?: { alertNewP0?: boolean }): Promise<
   }
 
   const open = await prisma.opsSignal.count({ where: { resolvedAt: null } })
+
+  const openBySeverity = await prisma.opsSignal.groupBy({
+    by: ["severity"],
+    where: { resolvedAt: null },
+    _count: { _all: true },
+  })
+  const openCounts: Record<SentinelSeverity, number> = { P0: 0, P1: 0, P2: 0, P3: 0 }
+  for (const row of openBySeverity) {
+    const sev = row.severity as SentinelSeverity
+    if (sev in openCounts) openCounts[sev] = row._count._all
+  }
+
+  await saveSentinelScanSnapshot({
+    scannedAt,
+    openCounts,
+    detected: signals.length,
+    resolved: toResolve.length,
+  })
 
   console.log("[sentinel]", {
     detected: signals.length,

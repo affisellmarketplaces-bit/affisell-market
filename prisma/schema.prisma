@@ -1976,6 +1976,21 @@ model OpsSignal {
   @@index([domain, code])
 }
 
+/** Sentinel scan history — health score trend (one row per cron/manual scan). */
+model OpsScanSnapshot {
+  id        String   @id @default(cuid())
+  scannedAt DateTime @default(now())
+  score     Int
+  openP0    Int      @default(0)
+  openP1    Int      @default(0)
+  openP2    Int      @default(0)
+  openP3    Int      @default(0)
+  detected  Int      @default(0)
+  resolved  Int      @default(0)
+
+  @@index([scannedAt])
+}
+
 /** Stripe webhook idempotence (event.id = evt_…). */
 model ProcessedWebhook {
   id        String   @id

@@ -25,8 +25,8 @@ export async function collectFulfillmentFailedSignals(): Promise<SentinelSignalI
     title: `Auto-buy failed — ${log.order.product?.name?.slice(0, 48) ?? log.orderId}`,
     detail: log.errorMsg?.trim() || `Auto-buy failed after ${log.attempts} attempt(s). Order ${log.orderId}.`,
     metric: log.attempts,
-    entityType: "order",
-    entityId: log.orderId,
-    playbook: "open-auto-fulfill" as const,
+    entityType: "fulfillmentLog",
+    entityId: log.id,
+    playbook: "retry-auto-buy" as const,
   }))
 }

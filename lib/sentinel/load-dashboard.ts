@@ -1,5 +1,7 @@
 import { computeSentinelScore } from "@/lib/sentinel/score"
+import { buildMetabaseEmbedUrl } from "@/lib/sentinel/metabase-embed"
 import { DOMAINS, SEVERITIES } from "@/lib/sentinel/sentinel-shared"
+import { loadSentinelTrend7d } from "@/lib/sentinel/trend-7d"
 import type {
   SentinelDashboard,
   SentinelDomain,
@@ -21,11 +23,18 @@ function emptyDomainCounts(): SentinelDomainCounts {
 }
 
 export async function loadSentinelDashboard(): Promise<SentinelDashboard> {
-  const rows = await prisma.opsSignal.findMany({
-    where: { resolvedAt: null },
-    orderBy: [{ severity: "asc" }, { lastSeenAt: "desc" }],
-    take: 100,
-  })
+  const [rows, lastScan, trend7d] = await Promise.all([
+    prisma.opsSignal.findMany({
+      where: { resolvedAt: null },
+      orderBy: [{ severity: "asc" }, { lastSeenAt: "desc" }],
+      take: 100,
+    }),
+    prisma.opsSignal.findFirst({
+      orderBy: { lastSeenAt: "desc" },
+      select: { lastSeenAt: true },
+    }),
+    loadSentinelTrend7d(),
+  ])
 
   const openCounts: Record<SentinelSeverity, number> = { P0: 0, P1: 0, P2: 0, P3: 0 }
   const domainCounts = emptyDomainCounts()
@@ -39,11 +48,6 @@ export async function loadSentinelDashboard(): Promise<SentinelDashboard> {
       if (sev === "P0") domainCounts[dom].p0 += 1
     }
   }
-
-  const lastScan = await prisma.opsSignal.findFirst({
-    orderBy: { lastSeenAt: "desc" },
-    select: { lastSeenAt: true },
-  })
 
   const signals: SentinelSignalRow[] = rows.map((r) => ({
     id: r.id,
@@ -67,6 +71,8 @@ export async function loadSentinelDashboard(): Promise<SentinelDashboard> {
     openCounts,
     domainCounts,
     signals,
+    trend7d,
+    metabaseEmbedUrl: buildMetabaseEmbedUrl(),
   }
 }
 
