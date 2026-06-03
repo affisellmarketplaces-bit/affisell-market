@@ -5,8 +5,13 @@ import { useCallback, useMemo, useState, useTransition } from "react"
 import { Activity, Radar, RefreshCw, Shield, Zap } from "lucide-react"
 import { toast } from "sonner"
 
-import { DOMAINS, SEVERITIES } from "@/lib/sentinel/load-dashboard"
-import { sentinelPlaybookLabel, sentinelPlaybookUrl } from "@/lib/sentinel/playbooks"
+import {
+  DOMAINS,
+  SENTINEL_DOMAIN_LABEL,
+  SEVERITIES,
+  sentinelPlaybookLabel,
+  sentinelPlaybookUrl,
+} from "@/lib/sentinel/sentinel-shared"
 import { computeSentinelScore } from "@/lib/sentinel/score"
 import type { SentinelDashboard, SentinelSeverity } from "@/lib/sentinel/types"
 import { Badge } from "@/components/ui/badge"
@@ -22,15 +27,6 @@ const SEV_STYLE: Record<SentinelSeverity, string> = {
   P1: "border-amber-500/40 bg-amber-500/10 text-amber-100",
   P2: "border-sky-500/35 bg-sky-500/10 text-sky-100",
   P3: "border-zinc-500/40 bg-zinc-500/10 text-zinc-200",
-}
-
-const DOMAIN_LABEL: Record<(typeof DOMAINS)[number], string> = {
-  stripe: "Stripe",
-  fulfillment: "Auto-fulfill",
-  webhook: "Webhooks",
-  catalog: "Catalogue",
-  platform: "Platform",
-  providers: "Providers",
 }
 
 function formatWhen(iso: string) {
@@ -176,7 +172,7 @@ export function SentinelDashboardClient({ initial }: Props) {
             <ul className="space-y-2">
               {DOMAINS.map((d) => (
                 <li key={d} className="flex items-center justify-between text-sm">
-                  <span className="text-zinc-300">{DOMAIN_LABEL[d]}</span>
+                  <span className="text-zinc-300">{SENTINEL_DOMAIN_LABEL[d]}</span>
                   <span className="tabular-nums text-zinc-500">
                     {data.domainCounts[d].open}
                     {data.domainCounts[d].p0 > 0 ? (
@@ -228,7 +224,7 @@ export function SentinelDashboardClient({ initial }: Props) {
                             {s.severity}
                           </Badge>
                           <Badge variant="secondary" className="text-[10px] uppercase text-zinc-400">
-                            {DOMAIN_LABEL[s.domain]}
+                            {SENTINEL_DOMAIN_LABEL[s.domain]}
                           </Badge>
                           {s.metric != null ? (
                             <span className="text-[10px] tabular-nums text-zinc-500">×{s.metric}</span>
