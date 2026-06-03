@@ -13,7 +13,7 @@ function emptyTrend7d(): SentinelTrendPoint[] {
     d.setUTCDate(d.getUTCDate() - i)
     points.push({
       day: d.toISOString().slice(0, 10),
-      score: 100,
+      score: null,
       openP0: 0,
       openTotal: 0,
     })

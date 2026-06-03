@@ -42,7 +42,8 @@ export type SentinelDomainCounts = Record<SentinelDomain, { open: number; p0: nu
 
 export type SentinelTrendPoint = {
   day: string
-  score: number
+  /** null = no scan snapshot that day */
+  score: number | null
   openP0: number
   openTotal: number
 }
