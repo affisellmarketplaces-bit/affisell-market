@@ -21,11 +21,13 @@ async function CatalogFallback() {
 /** Buyer home — violet hero + bento + catalog (visual unchanged, copy via next-intl). */
 export async function HomePage() {
   return (
-    <main className="mx-auto w-full min-w-0 max-w-7xl space-y-12 overflow-x-clip px-4 py-8 sm:px-6 sm:py-10">
+    <main className="mx-auto w-full min-w-0 max-w-7xl space-y-5 overflow-x-clip px-4 py-5 sm:space-y-12 sm:px-6 sm:py-10">
       <BuyerHeroBlock />
-      <Suspense fallback={<BentoGridSkeleton />}>
-        <BentoGrid />
-      </Suspense>
+      <div className="hidden md:block">
+        <Suspense fallback={<BentoGridSkeleton />}>
+          <BentoGrid />
+        </Suspense>
+      </div>
       <Suspense fallback={<CatalogFallback />}>
         <BuyerMarketplaceExplorer />
       </Suspense>

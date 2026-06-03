@@ -1,7 +1,7 @@
 "use client"
 
 import { Suspense, useEffect, useState } from "react"
-import { Home, Search, ShoppingCart, Store, User, Zap } from "lucide-react"
+import { Home, Menu, Search, ShoppingCart, Store, User, Zap } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { useTranslations } from "next-intl"
 import { motion } from "framer-motion"
@@ -14,6 +14,7 @@ import { NavPill } from "@/components/navigation/nav-pill"
 import { Link, usePathname } from "@/i18n/navigation"
 import { buttonVariants } from "@/components/ui/button"
 import { loginCustomerPath, MARKETPLACE_BUYER_ORDERS_PATH } from "@/lib/login-redirect"
+import { openMobileBuyerHub } from "@/lib/buyer-hub-events"
 import { cn } from "@/lib/utils"
 
 function useCartCount(): number {
@@ -36,6 +37,7 @@ function useCartCount(): number {
 
 export function PublicNav() {
   const t = useTranslations("PublicNav")
+  const tHub = useTranslations("marketplace.mobileHub")
   const tCmd = useTranslations("CommandK")
   const pathname = usePathname()
   const { data: session, status } = useSession()
@@ -65,6 +67,15 @@ export function PublicNav() {
           Affisell
         </motion.span>
       </Link>
+
+      <button
+        type="button"
+        onClick={openMobileBuyerHub}
+        className="col-start-2 row-start-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200/90 bg-zinc-50/95 text-zinc-700 shadow-sm transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-800 dark:border-zinc-700/90 dark:bg-zinc-900/90 dark:text-zinc-200 dark:hover:border-violet-500/50 dark:hover:bg-violet-950/40 lg:hidden"
+        aria-label={tHub("openMenu")}
+      >
+        <Menu className="size-4" aria-hidden />
+      </button>
 
       <div className="relative z-20 col-start-3 row-start-1 flex min-w-0 shrink items-center justify-end gap-1 sm:gap-2 lg:col-start-4">
         <LanguageSwitcher />

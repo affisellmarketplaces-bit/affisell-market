@@ -760,6 +760,7 @@
       "freeShippingFacet": "Free shipping",
       "embeddedEyebrow": "Shopping · Live",
       "embeddedTitle": "Discover & shop",
+      "embeddedTitleMobile": "Product catalog",
       "embeddedSubtitle": "Use the purple hero search, the departments below, or the shopping agent to refine your picks.",
       "resultsFor": "Results for",
       "dbUnavailableTitle": "Marketplace temporarily unavailable",
@@ -783,6 +784,21 @@
       "listingCountForQuery": " for « {query} »",
       "dbEmptyTitle": "Database temporarily unavailable",
       "dbDevHint": "Local dev: run npm run db:local:setup and set DATABASE_URL in .env.local to postgresql://affisell:affisell@localhost:5433/affisell"
+    },
+    "mobileHub": {
+      "title": "Affisell Hub",
+      "subtitle": "Services, Pulse, Luxe & more — without leaving the catalog.",
+      "openMenu": "Open menu",
+      "close": "Close",
+      "menu": "Menu",
+      "categories": "Categories",
+      "filters": "Filters",
+      "categoriesTitle": "Categories",
+      "filtersTitle": "Product filters",
+      "loading": "Loading…",
+      "listingShort": "{count, plural, one {# listing} other {# listings}}",
+      "desktopHintTitle": "On desktop",
+      "desktopHintBody": "Featured cards and trends stay visible above the catalog."
     },
     "departmentRail": {
       "ariaLabel": "Affisell departments",

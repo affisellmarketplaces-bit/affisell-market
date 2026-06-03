@@ -760,6 +760,7 @@
       "freeShippingFacet": "Livraison offerte",
       "embeddedEyebrow": "Shopping · Live",
       "embeddedTitle": "Découvrir & acheter",
+      "embeddedTitleMobile": "Catalogue produits",
       "embeddedSubtitle": "Utilisez la recherche du bandeau violet, les rayons ci-dessous ou l’agent shopping pour affiner.",
       "resultsFor": "Résultats pour",
       "dbUnavailableTitle": "Marketplace temporairement indisponible",
@@ -783,6 +784,21 @@
       "listingCountForQuery": " pour « {query} »",
       "dbEmptyTitle": "Base de données temporairement indisponible",
       "dbDevHint": "En local : lancez npm run db:local:setup et définissez DATABASE_URL dans .env.local sur postgresql://affisell:affisell@localhost:5433/affisell"
+    },
+    "mobileHub": {
+      "title": "Hub Affisell",
+      "subtitle": "Services, Pulse, Luxe & plus — sans quitter le catalogue.",
+      "openMenu": "Ouvrir le menu",
+      "close": "Fermer",
+      "menu": "Menu",
+      "categories": "Catég.",
+      "filters": "Filtres",
+      "categoriesTitle": "Catégories",
+      "filtersTitle": "Filtres produit",
+      "loading": "Chargement…",
+      "listingShort": "{count, plural, one {# annonce} other {# annonces}}",
+      "desktopHintTitle": "Sur desktop",
+      "desktopHintBody": "Les cartes À la une et tendances restent visibles au-dessus du catalogue."
     },
     "departmentRail": {
       "ariaLabel": "Rayons Affisell",

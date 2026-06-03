@@ -45,7 +45,7 @@ export function MarketplaceDepartmentRail({
     <section
       className={cn(
         affisellBrand.epoxySurfaceLight,
-        "mt-6 overflow-hidden rounded-2xl p-4"
+        "mt-3 overflow-hidden rounded-2xl p-3 sm:mt-6 sm:p-4"
       )}
       aria-label={t("ariaLabel")}
     >
@@ -54,7 +54,7 @@ export function MarketplaceDepartmentRail({
           <Sparkles className="size-3" aria-hidden />
           {t("badge")}
         </span>
-        <p className="text-xs font-medium text-violet-950/80 dark:text-violet-100/85">
+        <p className="hidden text-xs font-medium text-violet-950/80 sm:block dark:text-violet-100/85">
           {t("hint")}
         </p>
       </div>

@@ -32,14 +32,17 @@ export function SheetContent({
   className,
   children,
 }: {
-  side?: "left" | "right"
+  side?: "left" | "right" | "bottom"
   className?: string
   children: React.ReactNode
 }) {
   const ctx = React.useContext(SheetContext)
   if (!ctx || !ctx.open) return null
 
-  const sideClass = side === "left" ? "left-0" : "right-0"
+  const panelClass =
+    side === "bottom"
+      ? "left-0 right-0 top-auto max-h-[min(88dvh,720px)] w-full rounded-t-3xl"
+      : cn("bottom-0 top-0 w-[22rem] max-w-[92vw]", side === "left" ? "left-0" : "right-0")
 
   return (
     <div className="fixed inset-0 z-50">
@@ -49,13 +52,7 @@ export function SheetContent({
         className="absolute inset-0 bg-black/40"
         onClick={() => ctx.onOpenChange(false)}
       />
-      <div
-        className={cn(
-          "absolute bottom-0 top-0 w-[22rem] max-w-[92vw] border-border bg-background shadow-2xl",
-          sideClass,
-          className
-        )}
-      >
+      <div className={cn("absolute border-border bg-background shadow-2xl", panelClass, className)}>
         {children}
       </div>
     </div>

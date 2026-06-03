@@ -16,6 +16,7 @@ import { useUserRole } from "@/hooks/useUserRole"
 import { canShowBusinessProductData } from "@/lib/user-role"
 import { MarketplaceFilters } from "@/components/marketplace/filters"
 import { MarketplaceAffisellPulse } from "@/components/marketplace/MarketplaceAffisellPulse"
+import { MobileCatalogChrome } from "@/components/marketplace/mobile-catalog-chrome"
 import { MarketplaceDepartmentRail } from "@/components/marketplace/MarketplaceDepartmentRail"
 import { CategoryTreeExplorer } from "@/components/marketplace/CategoryTreeExplorer"
 import { MarketplaceSearchBox } from "@/components/marketplace/MarketplaceSearchBox"
@@ -101,6 +102,7 @@ export function MarketplaceView({
   const previewAsCustomer = usePreviewAsCustomer()
   const isAffiliateCatalog = audience === "affiliate" || basePath === AFFILIATE_CATALOG_PATH
   const isCustomerBrowse = audience === "customer"
+  const mobileCatalogShell = embedded && isCustomerBrowse
   const showBusinessData =
     !isCustomerBrowse &&
     (isAffiliateCatalog || (canShowBusinessProductData(userRole) && !previewAsCustomer))
@@ -253,7 +255,7 @@ export function MarketplaceView({
       aria-label={embedded ? t("ariaEmbedded") : undefined}
       className={cn(
         "text-zinc-900 dark:text-zinc-50",
-        embedded ? "scroll-mt-24" : "min-h-[calc(100dvh-3.75rem)]"
+        embedded ? "scroll-mt-20 sm:scroll-mt-24" : "min-h-[calc(100dvh-3.75rem)]"
       )}
     >
       <div className={cn("mx-auto max-w-7xl", embedded ? "py-2" : "px-4 py-8 md:px-8 md:py-10")}>
@@ -332,42 +334,54 @@ export function MarketplaceView({
           </div>
         </header>
         ) : (
-          <div className="mb-6 space-y-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-teal-700 dark:text-teal-300">
-                  {t("embeddedEyebrow")}
-                </p>
-                <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-3xl">
-                  {t("embeddedTitle")}
-                </h2>
-                <p className="mt-1 max-w-xl text-sm text-zinc-600 dark:text-zinc-400">
-                  {t("embeddedSubtitle")}
-                </p>
+          <>
+            <div className="mb-6 hidden space-y-4 md:block">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-teal-700 dark:text-teal-300">
+                    {t("embeddedEyebrow")}
+                  </p>
+                  <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-3xl">
+                    {t("embeddedTitle")}
+                  </h2>
+                  <p className="mt-1 max-w-xl text-sm text-zinc-600 dark:text-zinc-400">
+                    {t("embeddedSubtitle")}
+                  </p>
+                </div>
+                {hasFilters ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={clearFilters}
+                    className="shrink-0 gap-1.5"
+                  >
+                    <X className="h-4 w-4" aria-hidden />
+                    {t("resetFilters")}
+                  </Button>
+                ) : null}
               </div>
-              {hasFilters ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={clearFilters}
-                  className="shrink-0 gap-1.5"
-                >
-                  <X className="h-4 w-4" aria-hidden />
-                  {t("resetFilters")}
-                </Button>
+              {searchQuery.trim() ? (
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  {t("resultsFor")}{" "}
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">&ldquo;{searchQuery.trim()}&rdquo;</span>
+                </p>
               ) : null}
             </div>
-            {searchQuery.trim() ? (
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                {t("resultsFor")}{" "}
-                <span className="font-semibold text-zinc-900 dark:text-zinc-100">&ldquo;{searchQuery.trim()}&rdquo;</span>
-              </p>
+            {mobileCatalogShell ? (
+              <div className="mb-3 md:hidden">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-teal-600 dark:text-teal-300">
+                  {t("embeddedEyebrow")}
+                </p>
+                <h2 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">
+                  {t("embeddedTitleMobile")}
+                </h2>
+              </div>
             ) : null}
-          </div>
+          </>
         )}
 
-        <div className="mt-4 max-w-3xl">
+        <div className={cn("mt-4 max-w-3xl", mobileCatalogShell && "hidden md:block")}>
           <MarketplaceSearchBox basePath={basePath} />
         </div>
 
@@ -378,7 +392,9 @@ export function MarketplaceView({
           categoriesPayload={categoriesPayload}
         />
         {!embedded || isCustomerBrowse ? (
-          <MarketplaceAffisellPulse audience={isCustomerBrowse ? "buyer" : "default"} />
+          <div className={cn(mobileCatalogShell && "hidden md:block")}>
+            <MarketplaceAffisellPulse audience={isCustomerBrowse ? "buyer" : "default"} />
+          </div>
         ) : null}
         {!isAffiliateCatalog && !isCustomerBrowse ? (
           <ProductCardPreviewToggle className="mt-4" />
@@ -394,8 +410,8 @@ export function MarketplaceView({
           </div>
         ) : null}
 
-        <div className="mt-8 flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
-          <aside className="flex w-full shrink-0 flex-col gap-4 lg:sticky lg:top-[5.25rem] lg:w-[min(19rem,100%)] lg:max-w-[19rem] lg:self-start">
+        <div className="mt-4 flex flex-col gap-6 md:mt-8 lg:flex-row lg:items-start lg:gap-8">
+          <aside className="hidden w-full shrink-0 flex-col gap-4 lg:sticky lg:top-[5.25rem] lg:flex lg:w-[min(19rem,100%)] lg:max-w-[19rem] lg:self-start">
             <CategoryTreeExplorer
               onCategoryClick={handleCategoryClick}
               onShowFullCatalog={clearFilters}
@@ -415,8 +431,44 @@ export function MarketplaceView({
           </aside>
 
           <div className="min-w-0 flex-1">
+            {mobileCatalogShell ? (
+              <MobileCatalogChrome
+                productCount={products.length}
+                loading={loading}
+                hasFilters={hasFilters}
+                activeFilterLabel={activeFilterLabel}
+                onClearFilters={clearFilters}
+                categoriesPanel={(close) => (
+                  <CategoryTreeExplorer
+                    onCategoryClick={(id) => {
+                      handleCategoryClick(id)
+                      close()
+                    }}
+                    onShowFullCatalog={() => {
+                      clearFilters()
+                      close()
+                    }}
+                    activeCategoryId={scopeNodeId}
+                    catalogTotal={categoriesPayload?.catalogTotal}
+                    categoriesPayload={categoriesPayload}
+                    inSheet
+                  />
+                )}
+                filtersPanel={
+                  <MarketplaceFilters
+                    categoryId={categoryId}
+                    subcategoryId={subcategoryId}
+                    departmentNames={
+                      categoriesPayload?.categories
+                        ? Object.fromEntries(categoriesPayload.categories.map((c) => [c.id, c.name]))
+                        : undefined
+                    }
+                  />
+                }
+              />
+            ) : null}
             {hasFilters ? (
-              <div className="mb-4 flex flex-wrap items-center gap-2">
+              <div className="mb-4 hidden flex-wrap items-center gap-2 md:flex">
                 <span className="inline-flex items-center gap-2 rounded-full border border-violet-200/80 bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-900 dark:border-violet-800/60 dark:bg-violet-950/50 dark:text-violet-100">
                   {activeFilterLabel}
                   <button
@@ -496,7 +548,7 @@ export function MarketplaceView({
                 )}
               </div>
             ) : (
-              <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+              <p className="mb-4 hidden text-sm text-zinc-600 dark:text-zinc-400 md:block">
                 <strong className="font-semibold text-zinc-900 dark:text-zinc-100">
                   {t("listingCount", { count: products.length })}
                 </strong>

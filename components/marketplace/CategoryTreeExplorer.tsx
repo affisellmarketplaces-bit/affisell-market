@@ -46,6 +46,8 @@ type Props = {
     categories: CategoryTreeRoot[]
     catalogTotal?: number
   }
+  /** Mobile bottom sheet — drop sidebar max-height chrome. */
+  inSheet?: boolean
 }
 
 function BranchChildren({
@@ -175,6 +177,7 @@ export function CategoryTreeExplorer({
   activeCategoryId,
   catalogTotal,
   categoriesPayload,
+  inSheet = false,
 }: Props) {
   const t = useTranslations("marketplace.sidebar")
   const [expandedIds, setExpandedIds] = useState<string[]>([])
@@ -206,7 +209,14 @@ export function CategoryTreeExplorer({
   }
 
   return (
-    <aside className="flex max-h-[min(32rem,60vh)] w-full shrink-0 flex-col overflow-y-auto rounded-2xl border border-border bg-card lg:max-h-[calc(100vh-5.25rem)] lg:rounded-none lg:border-r lg:border-y-0 lg:border-l-0">
+    <aside
+      className={cn(
+        "flex w-full shrink-0 flex-col overflow-y-auto rounded-2xl border border-border bg-card",
+        inSheet
+          ? "max-h-none border-0 bg-transparent"
+          : "max-h-[min(32rem,60vh)] lg:max-h-[calc(100vh-5.25rem)] lg:rounded-none lg:border-r lg:border-y-0 lg:border-l-0"
+      )}
+    >
       <div className={cn("sticky top-0 z-10 px-4 py-4", affisellBrand.gradientBar)}>
         <h2 className="flex items-center gap-2 text-lg font-black uppercase tracking-wider text-white drop-shadow-sm">
           <Grid3x3 className="h-5 w-5" strokeWidth={3} />
