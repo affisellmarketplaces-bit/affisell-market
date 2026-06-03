@@ -18,6 +18,8 @@ type Props = {
   active?: boolean
   /** When false, video audio can play (scroll mode). Default muted for swipe. */
   muted?: boolean
+  /** Skip fade-in on first paint (swipe top card). */
+  instantReveal?: boolean
   className?: string
   onTapAdvance?: () => void
 }
@@ -26,6 +28,7 @@ export function PulseProductMediaStage({
   item,
   active = true,
   muted = true,
+  instantReveal = false,
   className,
 }: Props) {
   const slides = useMemo(() => resolvePulseMediaSlides(item), [item])
@@ -124,10 +127,10 @@ export function PulseProductMediaStage({
             "relative z-[1] flex h-full w-full items-center justify-center",
             isPhoto ? "p-1.5 sm:p-2" : "p-3"
           )}
-          initial={{ opacity: 0, scale: 0.98 }}
+          initial={instantReveal ? false : { opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 1.01 }}
-          transition={{ duration: 0.22 }}
+          transition={{ duration: instantReveal ? 0.08 : 0.14 }}
         >
           {current.isVideo ? (
             <video

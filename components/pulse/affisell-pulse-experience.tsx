@@ -21,6 +21,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ProductPriceOffer } from "@/components/product/product-price-offer"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { PulseHeaderCartLink } from "@/components/pulse/pulse-header-cart-link"
+import { PulseLayoutModeLink } from "@/components/pulse/pulse-layout-mode-link"
 import { PulseProductMediaStage } from "@/components/pulse/pulse-product-media-stage"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { addToBuyerCart } from "@/lib/cart-add-client"
@@ -88,6 +89,7 @@ function PulseClip({
           item={item}
           active={active}
           muted={muted}
+          instantReveal={active}
           className="absolute inset-0"
         />
       ) : (
@@ -497,12 +499,7 @@ export function AffisellPulseExperience({ items, viewerLoggedIn = false }: Props
           </div>
           <div className="flex items-center gap-2">
             <PulseHeaderCartLink />
-            <Link
-              href={discoverSwipeHref()}
-              className={cn(affisellBrand.epoxyChip, "rounded-full px-2 py-1 text-[10px] font-semibold text-cyan-200")}
-            >
-              {t("swipeMode")}
-            </Link>
+            <PulseLayoutModeLink target="swipe" label={t("swipeMode")} variant="chip" />
             <span className="tabular-nums text-xs text-white/70">
               {activeIndex + 1}/{safeItems.length}
             </span>

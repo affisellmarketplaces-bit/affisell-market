@@ -163,7 +163,12 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
             "relative flex h-full flex-col overflow-hidden rounded-[1.75rem]"
           )}
         >
-          <PulseProductMediaStage item={item} active={isTop} className="relative min-h-0 flex-1" />
+          <PulseProductMediaStage
+            item={item}
+            active={isTop}
+            instantReveal={isTop && stackIndex === 0}
+            className="relative min-h-0 flex-1"
+          />
 
           <motion.div
             style={{ opacity: cartOpacity }}

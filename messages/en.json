@@ -759,6 +759,7 @@
       "rewindOn": "New arrivals done — Rewind mode on",
       "rewindBadge": "Rewind",
       "scrollMode": "Vertical scroll mode",
+      "scrollModeShort": "Scroll",
       "emptyCategory": "No listed products in {name} yet."
     }
   },

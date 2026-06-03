@@ -5,7 +5,6 @@ import {
   ArrowLeft,
   Bookmark,
   ChevronLeft,
-  Layers,
   RotateCcw,
   ShoppingBag,
   Sparkles,
@@ -22,9 +21,9 @@ import {
   type BuyerSwipeDirection,
 } from "@/components/pulse/buyer-swipe-card"
 import { PulseHeaderCartLink } from "@/components/pulse/pulse-header-cart-link"
+import { PulseLayoutModeLink } from "@/components/pulse/pulse-layout-mode-link"
 import { ProductPriceOffer } from "@/components/product/product-price-offer"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
-import { buttonVariants } from "@/components/ui/button"
 import { addToBuyerCart } from "@/lib/cart-add-client"
 import { buyNowWithoutLogin } from "@/lib/guest-buy-now-client"
 import { toggleProductWishlist } from "@/lib/wishlist-toggle-client"
@@ -334,6 +333,16 @@ export function BuyerSwipeCommerce({
     ? `/?category=${encodeURIComponent(categoryId)}#explorer`
     : "/#explorer"
 
+  const scrollHref = discoverSwipeHref({
+    category: categoryId,
+    subcategory: subcategoryId,
+    layout: "scroll",
+  })
+
+  useEffect(() => {
+    router.prefetch(scrollHref)
+  }, [router, scrollHref])
+
   if (deck.length === 0 && !loading && feedExhausted && skippedPool.length === 0) {
     return (
       <div
@@ -431,6 +440,12 @@ export function BuyerSwipeCommerce({
             ) : null}
           </div>
           <div className="flex items-center gap-2">
+            <PulseLayoutModeLink
+              target="scroll"
+              label={t("scrollModeShort")}
+              categoryId={categoryId}
+              subcategoryId={subcategoryId}
+            />
             <PulseHeaderCartLink />
             <span className={cn(affisellBrand.epoxyChip, "tabular-nums rounded-full px-2 py-1 text-xs text-white/80")}>
               {deck.length > 0 ? deck.length : "—"}
@@ -469,6 +484,15 @@ export function BuyerSwipeCommerce({
       </main>
 
       <footer className="affisell-swipe-dock relative z-50 shrink-0 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="mx-auto mb-2 flex justify-center">
+          <PulseLayoutModeLink
+            target="scroll"
+            label={t("scrollMode")}
+            categoryId={categoryId}
+            subcategoryId={subcategoryId}
+            variant="rail"
+          />
+        </div>
         {activeItem ? (
           <div
             className={cn(
@@ -569,19 +593,6 @@ export function BuyerSwipeCommerce({
             <Bookmark className="size-5" />
             {t("saveDropShort")}
           </button>
-        </div>
-        <div className="mt-2 flex justify-center border-t border-white/8 pt-2">
-          <Link
-            href={discoverSwipeHref({ category: categoryId, subcategory: subcategoryId, layout: "scroll" })}
-            className={cn(
-              affisellBrand.epoxyChip,
-              buttonVariants({ variant: "ghost", size: "sm" }),
-              "rounded-full text-zinc-300 hover:text-white"
-            )}
-          >
-            <Layers className="mr-1 size-3.5" aria-hidden />
-            {t("scrollMode")}
-          </Link>
         </div>
         </div>
       </footer>

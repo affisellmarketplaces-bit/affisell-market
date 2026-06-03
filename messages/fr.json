@@ -759,6 +759,7 @@
       "rewindOn": "Nouveautés terminées — mode Rewind activé",
       "rewindBadge": "Relance",
       "scrollMode": "Mode défilement vertical",
+      "scrollModeShort": "Scroll",
       "emptyCategory": "Aucun produit listé dans {name} pour l’instant."
     }
   },

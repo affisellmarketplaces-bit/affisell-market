@@ -558,6 +558,29 @@ body.affisell-demo-lab .affisell-site-footer {
       0 -8px 32px rgb(5 8 22 / 0.45);
   }
 
+  /** Pulse layout toggle — visible immediately, no epoxy sheen delay */
+  .affisell-pulse-mode-toggle {
+    opacity: 1;
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  .affisell-pulse-mode-toggle::before {
+    animation: none;
+  }
+
+  .affisell-pulse-mode-toggle[class*="ring-violet"] {
+    background:
+      linear-gradient(
+        135deg,
+        color-mix(in srgb, rgb(139 92 246) 35%, transparent),
+        color-mix(in srgb, rgb(6 182 212) 22%, transparent)
+      );
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.28),
+      0 0 24px rgb(139 92 246 / 0.22);
+  }
+
   .affisell-swipe-toast {
     bottom: calc(var(--affisell-swipe-dock-h) + 1.25rem + env(safe-area-inset-bottom));
   }
