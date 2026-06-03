@@ -24,9 +24,6 @@ export function sponsorStatusTone(
   }
 }
 
-export function placementShortKey(placement: string): `placement.${SponsorPlacement}` | null {
-  if (placement === "HOME_SPOTLIGHT" || placement === "CATEGORY_TOP" || placement === "SEARCH_BOOST") {
-    return `placement.${placement}` as `placement.${SponsorPlacement}`
-  }
-  return null
+export function isSponsorPlacement(placement: string): placement is SponsorPlacement {
+  return placement === "HOME_SPOTLIGHT" || placement === "CATEGORY_TOP" || placement === "SEARCH_BOOST"
 }

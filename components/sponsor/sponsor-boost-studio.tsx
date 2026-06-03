@@ -23,7 +23,7 @@ import {
   SPONSOR_PLACEMENTS,
   type SponsorPlacement,
 } from "@/lib/sponsor/sponsor-constants"
-import { placementShortKey, sponsorStatusTone } from "@/lib/sponsor/sponsor-status-ui"
+import { isSponsorPlacement, sponsorStatusTone } from "@/lib/sponsor/sponsor-status-ui"
 import { cn } from "@/lib/utils"
 
 type CatalogItem =
@@ -346,7 +346,7 @@ export function SponsorBoostStudio({ role, items }: Props) {
             </div>
 
             <div>
-              <p className="text-xs font-medium text-zinc-400">{t("placement")}</p>
+              <p className="text-xs font-medium text-zinc-400">{t("placement.label")}</p>
               <div className="mt-2 grid gap-2 sm:grid-cols-3">
                 {SPONSOR_PLACEMENTS.map((p) => {
                   const Icon = PLACEMENT_ICONS[p]
@@ -464,7 +464,6 @@ export function SponsorBoostStudio({ role, items }: Props) {
                   c.affiliateProduct?.product.name ??
                   c.product.name
                 const tone = sponsorStatusTone(c.status)
-                const placementKey = placementShortKey(c.placement)
                 return (
                   <li
                     key={c.id}
@@ -485,7 +484,9 @@ export function SponsorBoostStudio({ role, items }: Props) {
                         {t(`status.${c.status}`, { defaultValue: c.status })}
                       </span>
                       <span className="text-zinc-500">
-                        {placementKey ? t(placementKey) : c.placement}
+                        {isSponsorPlacement(c.placement)
+                          ? t(`placement.${c.placement}`)
+                          : c.placement}
                       </span>
                       <span className="font-semibold tabular-nums text-zinc-200">
                         {formatStoreCurrencyFromCents(c.feeCents)}

@@ -1790,10 +1790,12 @@
     "noProducts": "Aucun produit éligible.",
     "investment": "Investissement HT",
     "duration": "Durée",
-    "placement": "Placement",
-    "placement.HOME_SPOTLIGHT": "Spotlight accueil",
-    "placement.CATEGORY_TOP": "Top catégorie",
-    "placement.SEARCH_BOOST": "Boost recherche",
+    "placement": {
+      "label": "Placement",
+      "HOME_SPOTLIGHT": "Spotlight accueil",
+      "CATEGORY_TOP": "Top catégorie",
+      "SEARCH_BOOST": "Boost recherche"
+    },
     "budget": "Budget estimé",
     "quoteMeta": "Score {score} · {rate} % HT · {days} j",
     "boostPower": "Puissance",
@@ -1801,10 +1803,12 @@
     "cta": "Activer Boost",
     "checkoutError": "Erreur paiement",
     "recentCampaigns": "Campagnes récentes",
-    "status.PENDING_PAYMENT": "Paiement en attente",
-    "status.ACTIVE": "Active",
-    "status.EXPIRED": "Expirée",
-    "status.CANCELLED": "Annulée"
+    "status": {
+      "PENDING_PAYMENT": "Paiement en attente",
+      "ACTIVE": "Active",
+      "EXPIRED": "Expirée",
+      "CANCELLED": "Annulée"
+    }
   },
   "demoLab": {
     "eyebrow": "Affisell Demo Lab",

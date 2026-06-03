@@ -1790,10 +1790,12 @@
     "noProducts": "No eligible products.",
     "investment": "Wholesale investment",
     "duration": "Duration",
-    "placement": "Placement",
-    "placement.HOME_SPOTLIGHT": "Home spotlight",
-    "placement.CATEGORY_TOP": "Category top",
-    "placement.SEARCH_BOOST": "Search boost",
+    "placement": {
+      "label": "Placement",
+      "HOME_SPOTLIGHT": "Home spotlight",
+      "CATEGORY_TOP": "Category top",
+      "SEARCH_BOOST": "Search boost"
+    },
     "budget": "Estimated budget",
     "quoteMeta": "Score {score} · {rate}% HT · {days}d",
     "boostPower": "Power",
@@ -1801,10 +1803,12 @@
     "cta": "Activate Boost",
     "checkoutError": "Payment error",
     "recentCampaigns": "Recent campaigns",
-    "status.PENDING_PAYMENT": "Pending payment",
-    "status.ACTIVE": "Active",
-    "status.EXPIRED": "Expired",
-    "status.CANCELLED": "Cancelled"
+    "status": {
+      "PENDING_PAYMENT": "Pending payment",
+      "ACTIVE": "Active",
+      "EXPIRED": "Expired",
+      "CANCELLED": "Cancelled"
+    }
   },
   "demoLab": {
     "eyebrow": "Affisell Demo Lab",
