@@ -24,6 +24,7 @@ jobs:
           BASE="${VERCEL_APP_URL%/}"
           AUTH="Authorization: Bearer ${CRON_SECRET}"
           for path in \
+            "/api/cron/sentinel-scan" \
             "/api/cron/enforce-supplier-ship-sla" \
             "/api/cron/sync-supplier-orders" \
             "/api/cron/expire-sponsor-campaigns" \

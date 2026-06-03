@@ -1956,6 +1956,26 @@ model AdminAeCaptureSession {
   @@index([productId, expiresAt])
 }
 
+/** Admin Sentinel — auto-detected ops issues (id = stable hash, idempotent upsert). */
+model OpsSignal {
+  id         String    @id
+  severity   String
+  domain     String
+  code       String
+  title      String
+  detail     String    @db.Text
+  metric     Int?
+  entityType String?
+  entityId   String?
+  playbook   String?
+  detectedAt DateTime  @default(now())
+  resolvedAt DateTime?
+  lastSeenAt DateTime  @default(now())
+
+  @@index([resolvedAt, severity, lastSeenAt])
+  @@index([domain, code])
+}
+
 /** Stripe webhook idempotence (event.id = evt_…). */
 model ProcessedWebhook {
   id        String   @id
