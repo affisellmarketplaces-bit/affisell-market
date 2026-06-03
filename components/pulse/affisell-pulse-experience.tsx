@@ -252,7 +252,7 @@ function PulseCard({
 
   return (
     <article
-      className="relative h-[100dvh] w-full snap-start snap-always overflow-hidden bg-black"
+      className="relative h-full w-full snap-start snap-always overflow-hidden bg-black"
       onClick={onDoubleTap}
     >
       <PulseClip item={item} active={active} muted={muted} onView={recordView} />
@@ -271,7 +271,7 @@ function PulseCard({
       </AnimatePresence>
 
       {/* Right action rail */}
-      <div className="absolute bottom-28 right-3 z-30 flex flex-col items-center gap-4">
+      <div className="absolute bottom-[calc(7.5rem+env(safe-area-inset-bottom))] right-2 z-30 flex flex-col items-center gap-2.5 sm:bottom-28 sm:right-3 sm:gap-4">
         {item.storeSlug ? (
           <Link
             href={`/shops/${encodeURIComponent(item.storeSlug)}`}
@@ -358,11 +358,11 @@ function PulseCard({
 
       {/* Bottom commerce panel */}
       <div
-        className="absolute inset-x-0 bottom-0 z-20 px-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
+        className="absolute inset-x-0 bottom-0 z-20 px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))] sm:px-4 sm:pb-[max(1rem,env(safe-area-inset-bottom))]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className={cn(affisellBrand.epoxyPanel, "p-4")}>
-          <div className="flex flex-wrap items-center gap-2">
+        <div className={cn(affisellBrand.epoxyPanel, "p-3 sm:p-4")}>
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             {item.boosted ? (
               <span className="inline-flex items-center gap-1 rounded-full border border-cyan-400/40 bg-cyan-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-cyan-100">
                 <Zap className="size-3" aria-hidden />
@@ -373,14 +373,14 @@ function PulseCard({
               <ProductSalesBadge count={item.soldCount} variant="inline" className="!bg-white/10 !text-white !ring-white/20" />
             ) : null}
           </div>
-          <Link href={item.href} className="mt-2 block">
-            <h2 className="line-clamp-2 text-base font-semibold leading-snug text-white">{item.title}</h2>
+          <Link href={item.href} className="mt-1.5 block sm:mt-2">
+            <h2 className="line-clamp-2 text-sm font-semibold leading-snug text-white sm:text-base">{item.title}</h2>
           </Link>
           {item.caption ? (
-            <p className="mt-1 line-clamp-2 text-xs text-white/75">{item.caption}</p>
+            <p className="mt-0.5 line-clamp-1 text-[11px] text-white/75 sm:mt-1 sm:line-clamp-2 sm:text-xs">{item.caption}</p>
           ) : null}
           {item.priceCents > 0 ? (
-            <div className="mt-3 [&_span]:!text-white [&_p]:!text-white/70">
+            <div className="mt-2 sm:mt-3 [&_span]:!text-white [&_p]:!text-white/70">
               <ProductPriceOffer
                 price={priceEur}
                 compareAt={compareEur}
@@ -388,12 +388,12 @@ function PulseCard({
               />
             </div>
           ) : null}
-          <div className="mt-3 flex gap-2">
+          <div className="mt-2 flex gap-2 sm:mt-3">
             <button
               type="button"
               disabled={!item.listingId || cartBusy}
               onClick={() => void oneTapAdd()}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/10 py-2.5 text-sm font-semibold text-white backdrop-blur disabled:opacity-40"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-white/25 bg-white/10 py-2 text-xs font-semibold text-white backdrop-blur disabled:opacity-40 sm:gap-2 sm:py-2.5 sm:text-sm"
             >
               <ShoppingBag className="size-4" />
               {cartBusy ? "…" : t("add")}
@@ -404,7 +404,7 @@ function PulseCard({
               onClick={() => void oneTapCheckout()}
               className={cn(
                 affisellBrand.epoxyCta,
-                "relative flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 via-fuchsia-600 to-cyan-500 py-2.5 text-sm font-bold text-white disabled:opacity-40"
+                "relative flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-600 via-fuchsia-600 to-cyan-500 py-2 text-xs font-bold text-white disabled:opacity-40 sm:gap-2 sm:py-2.5 sm:text-sm"
               )}
             >
               <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.25)_50%,transparent_75%)]" aria-hidden />
@@ -482,37 +482,46 @@ export function AffisellPulseExperience({ items, viewerLoggedIn = false }: Props
         <div className="absolute -right-1/4 bottom-0 h-[40vh] w-[60vw] rounded-full bg-cyan-500/30 blur-[90px]" />
       </div>
 
-      <header className="relative z-40 shrink-0">
+      <header className="affisell-pulse-scroll-header relative z-40 shrink-0">
         <PulseProgress active={activeIndex} total={safeItems.length} />
-        <div className="flex items-center justify-between px-3 pb-2 pt-2">
+        <div className="flex items-center justify-between gap-1 px-2 pb-1 pt-1.5 sm:gap-2 sm:px-3 sm:pb-2 sm:pt-2">
           <Link
             href="/#explorer"
-            className={cn(affisellBrand.epoxyChip, "flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium text-white/90")}
+            className={cn(
+              affisellBrand.epoxyChip,
+              "flex items-center gap-1.5 rounded-full px-2 py-1 text-[11px] font-medium text-white/90 sm:gap-2 sm:px-3 sm:py-1.5 sm:text-xs"
+            )}
           >
-            <ArrowLeft className="size-4" />
-            {t("exit")}
+            <ArrowLeft className="size-3.5 sm:size-4" />
+            <span className="hidden sm:inline">{t("exit")}</span>
           </Link>
-          <div className="flex items-center gap-2">
-            <span className={affisellBrand.brandWordmark}>{t("brand")}</span>
-            <span className={cn(affisellBrand.epoxyChip, "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-white/90")}>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className={cn(affisellBrand.brandWordmark, "text-[13px] sm:text-sm")}>{t("brand")}</span>
+            <span
+              className={cn(
+                affisellBrand.epoxyChip,
+                "rounded-full px-1.5 py-px text-[8px] font-semibold uppercase tracking-widest text-white/90 sm:px-2 sm:py-0.5 sm:text-[10px]"
+              )}
+            >
               {t("beta")}
             </span>
           </div>
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <LanguageSwitcher className="shrink-0 [&_button]:border-white/15 [&_button]:bg-black/40 [&_button]:text-white" />
+          <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2">
+            <LanguageSwitcher className="shrink-0 scale-[0.88] sm:scale-100 [&_button]:border-white/15 [&_button]:bg-black/40 [&_button]:text-white" />
             <PulseHeaderCartLink />
             <PulseLayoutModeLink target="swipe" label={t("swipeMode")} variant="chip" />
-            <span className="tabular-nums text-xs text-white/70">
+            <span className="tabular-nums text-[10px] text-white/70 sm:text-xs">
               {activeIndex + 1}/{safeItems.length}
             </span>
           </div>
         </div>
       </header>
 
-      <div className="relative z-10 min-h-0 flex-1 snap-y snap-mandatory overflow-y-auto overscroll-y-contain scroll-smooth">
+      <div className="affisell-pulse-scroll relative z-10 min-h-0 flex-1 snap-y snap-mandatory overflow-y-auto overscroll-y-contain scroll-smooth">
         {safeItems.map((item, idx) => (
           <section
             key={`${item.source}-${item.id}`}
+            className="h-full snap-start snap-always"
             ref={(el) => {
               refs.current[idx] = el
             }}
@@ -528,10 +537,6 @@ export function AffisellPulseExperience({ items, viewerLoggedIn = false }: Props
           </section>
         ))}
       </div>
-
-      <p className="relative z-40 shrink-0 px-4 py-2 text-center text-[10px] text-white/40">
-        {t("hint")}
-      </p>
     </div>
   )
 }

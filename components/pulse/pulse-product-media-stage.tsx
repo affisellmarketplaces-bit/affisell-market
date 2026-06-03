@@ -192,7 +192,7 @@ export function PulseProductMediaStage({
         <div
           className={cn(
             affisellBrand.epoxyChip,
-            "pointer-events-none absolute bottom-3 left-1/2 z-20 -translate-x-1/2 rounded-full px-2.5 py-1 text-[10px] font-semibold tabular-nums",
+            "pointer-events-none absolute bottom-2 left-1/2 z-20 -translate-x-1/2 rounded-full px-2 py-0.5 text-[9px] font-semibold tabular-nums sm:bottom-3 sm:px-2.5 sm:py-1 sm:text-[10px]",
             isPhoto
               ? "bg-zinc-900/75 text-white ring-1 ring-black/10"
               : "text-white/90"

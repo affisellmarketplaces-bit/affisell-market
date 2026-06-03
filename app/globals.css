@@ -91,8 +91,9 @@ body.affisell-demo-lab .affisell-header-shell {
 
 :root {
   --affisell-mobile-dock-offset: calc(5rem + env(safe-area-inset-bottom));
-  --affisell-swipe-dock-h: 13.5rem;
-  --affisell-swipe-product-strip-h: 5.5rem;
+  --affisell-swipe-dock-h: 4.25rem;
+  --affisell-swipe-product-strip-h: 0px;
+  --affisell-swipe-header-h: 3rem;
   --background: #fafafc;
   --foreground: #0f172a;
   --card: #ffffff;
@@ -561,7 +562,50 @@ body.affisell-demo-lab .affisell-header-shell {
   }
 
   .affisell-swipe-commerce {
-    --affisell-swipe-dock-h: 15.5rem;
+    --affisell-swipe-dock-h: 4.25rem;
+    --affisell-swipe-header-h: 3rem;
+  }
+
+  @media (min-width: 640px) {
+    .affisell-swipe-commerce {
+      --affisell-swipe-dock-h: 7.5rem;
+      --affisell-swipe-header-h: 3.75rem;
+    }
+  }
+
+  .affisell-swipe-commerce-ribbon {
+    background:
+      linear-gradient(
+        to top,
+        rgb(5 8 22 / 0.96) 0%,
+        rgb(5 8 22 / 0.72) 42%,
+        rgb(5 8 22 / 0.28) 72%,
+        transparent 100%
+      );
+    backdrop-filter: blur(2px);
+  }
+
+  .affisell-swipe-commerce-ribbon::before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: auto 12% 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(139 92 246 / 0.55),
+      rgb(34 211 238 / 0.45),
+      transparent
+    );
+  }
+
+  .affisell-swipe-stage {
+    padding-bottom: max(0.35rem, env(safe-area-inset-bottom));
+  }
+
+  .affisell-pulse-scroll > section {
+    scroll-snap-stop: always;
   }
 
   .affisell-swipe-dock-panel {

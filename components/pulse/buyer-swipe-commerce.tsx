@@ -383,7 +383,7 @@ export function BuyerSwipeCommerce({
       data-testid="affisell-pulse"
       className={cn(
         affisellBrand.epoxyPage,
-        "affisell-swipe-commerce fixed inset-0 z-[140] grid grid-rows-[auto_minmax(0,1fr)_auto]"
+        "affisell-swipe-commerce fixed inset-0 z-[140] flex flex-col"
       )}
     >
       <div className={affisellBrand.epoxyCanvas} aria-hidden />
@@ -404,44 +404,64 @@ export function BuyerSwipeCommerce({
         />
       </div>
 
-      <header className="relative z-40 shrink-0 px-3 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))]">
+      <header className="affisell-swipe-header relative z-40 shrink-0 px-2 pb-1 pt-[max(0.5rem,env(safe-area-inset-top))] sm:px-3 sm:pb-2 sm:pt-[max(0.75rem,env(safe-area-inset-top))]">
         {fetchError ? (
           <p
             role="alert"
             className={cn(
               affisellBrand.epoxyChip,
-              "mx-auto mb-2 max-w-[420px] rounded-xl px-3 py-2 text-center text-xs text-amber-100"
+              "mx-auto mb-1.5 max-w-[420px] rounded-xl px-2.5 py-1.5 text-center text-[11px] text-amber-100 sm:mb-2 sm:px-3 sm:py-2 sm:text-xs"
             )}
           >
             {fetchError}
           </p>
         ) : null}
-        <div className={cn(affisellBrand.epoxyPanel, "mx-auto flex max-w-[420px] items-center justify-between gap-2 px-3 py-2")}>
+        <div
+          className={cn(
+            affisellBrand.epoxyPanel,
+            "mx-auto flex max-w-[420px] items-center justify-between gap-1 px-2 py-1.5 sm:gap-2 sm:px-3 sm:py-2"
+          )}
+        >
           <Link
             href={exitHref}
-            className={cn(affisellBrand.epoxyChip, "flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium text-white/90")}
+            className={cn(
+              affisellBrand.epoxyChip,
+              "flex items-center gap-1.5 rounded-full px-2 py-1 text-[11px] font-medium text-white/90 sm:gap-2 sm:px-3 sm:py-1.5 sm:text-xs"
+            )}
           >
-            <ArrowLeft className="size-4" aria-hidden />
-            {tPulse("exit")}
+            <ArrowLeft className="size-3.5 sm:size-4" aria-hidden />
+            <span className="hidden sm:inline">{tPulse("exit")}</span>
           </Link>
-          <div className="flex flex-col items-center">
-            <span className={affisellBrand.brandWordmark}>{tPulse("brand")}</span>
-            <span className="mt-1 flex items-center gap-1.5">
-              <span className={cn(affisellBrand.epoxyChip, "rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase text-red-100")}>
+          <div className="flex min-w-0 flex-col items-center">
+            <span className={cn(affisellBrand.brandWordmark, "text-[13px] sm:text-sm")}>{tPulse("brand")}</span>
+            <span className="mt-0.5 flex items-center gap-1 sm:mt-1 sm:gap-1.5">
+              <span
+                className={cn(
+                  affisellBrand.epoxyChip,
+                  "rounded-full px-1.5 py-px text-[8px] font-bold uppercase text-red-100 sm:py-0.5 sm:text-[9px]"
+                )}
+              >
                 {tPulse("beta")}
               </span>
               {replayMode ? (
-                <span className={cn(affisellBrand.epoxyChip, "rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase text-violet-100")}>
+                <span
+                  className={cn(
+                    affisellBrand.epoxyChip,
+                    "rounded-full px-1.5 py-px text-[8px] font-bold uppercase text-violet-100 sm:py-0.5 sm:text-[9px]"
+                  )}
+                >
                   {t("rewindBadge")}
                 </span>
               ) : null}
             </span>
             {categoryLabel ? (
-              <p className="mt-0.5 max-w-[12rem] truncate text-[10px] text-zinc-400">{categoryLabel}</p>
+              <p className="mt-0.5 hidden max-w-[12rem] truncate text-[10px] text-zinc-400 sm:block">
+                {categoryLabel}
+              </p>
             ) : null}
           </div>
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <LanguageSwitcher className="shrink-0 [&_button]:border-white/15 [&_button]:bg-black/40 [&_button]:text-white" />
+          <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2">
+            <LanguageSwitcher className="shrink-0 scale-[0.88] sm:scale-100 [&_button]:border-white/15 [&_button]:bg-black/40 [&_button]:text-white" />
             <PulseLayoutModeLink
               target="scroll"
               label={t("scrollModeShort")}
@@ -449,20 +469,25 @@ export function BuyerSwipeCommerce({
               subcategoryId={subcategoryId}
             />
             <PulseHeaderCartLink />
-            <span className={cn(affisellBrand.epoxyChip, "tabular-nums rounded-full px-2 py-1 text-xs text-white/80")}>
+            <span
+              className={cn(
+                affisellBrand.epoxyChip,
+                "hidden tabular-nums rounded-full px-2 py-1 text-xs text-white/80 sm:inline-flex"
+              )}
+            >
               {deck.length > 0 ? deck.length : "—"}
             </span>
           </div>
         </div>
       </header>
 
-      <main className="relative z-10 min-h-0 px-3 py-2">
-        <div className="relative mx-auto h-full w-full max-w-[380px]">
+      <main className="affisell-swipe-stage relative z-10 flex min-h-0 flex-1 flex-col px-2 pb-1 sm:px-3 sm:pb-2">
+        <div className="relative mx-auto min-h-0 w-full max-w-[380px] flex-1">
           <AnimatePresence mode="popLayout">
             {visibleStack.length === 0 && loading ? (
               <motion.div
                 key="loading"
-                className="flex h-full min-h-[12rem] items-center justify-center"
+                className="flex h-full min-h-[10rem] items-center justify-center"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
               >
@@ -482,122 +507,110 @@ export function BuyerSwipeCommerce({
               ))
             )}
           </AnimatePresence>
-        </div>
-      </main>
 
-      <footer className="affisell-swipe-dock relative z-50 shrink-0 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-        <div className="mx-auto mb-2 flex justify-center">
-          <PulseLayoutModeLink
-            target="scroll"
-            label={t("scrollMode")}
-            categoryId={categoryId}
-            subcategoryId={subcategoryId}
-            variant="rail"
-          />
-        </div>
-        {activeItem ? (
-          <div
-            className={cn(
-              affisellBrand.epoxyPanel,
-              "relative z-10 mx-auto mb-2 max-w-[380px] px-3 py-2.5"
-            )}
-          >
-            <div className="flex flex-wrap items-center gap-2">
-              {activeItem.boosted ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-cyan-100 ring-1 ring-cyan-400/30">
-                  <Sparkles className="size-3" aria-hidden />
-                  {t("hotBadge")}
-                </span>
-              ) : null}
-              {activeItem.soldCount > 0 ? (
-                <ProductSalesBadge
-                  count={activeItem.soldCount}
-                  variant="inline"
-                  className="!bg-white/10 !text-white"
-                />
-              ) : null}
-            </div>
-            <h2 className="mt-1.5 line-clamp-2 text-[15px] font-semibold leading-snug text-white">
-              {activeItem.title}
-            </h2>
-            {activeItem.priceCents > 0 ? (
-              <div className="mt-1.5 [&_p]:!text-white/70 [&_span]:!text-white">
-                <ProductPriceOffer
-                  price={activePriceEur}
-                  compareAt={activeCompareEur}
-                  layout="compact"
-                />
+          {activeItem ? (
+            <div className="affisell-swipe-commerce-ribbon pointer-events-none absolute inset-x-0 bottom-0 z-40">
+              <div className="pointer-events-auto px-2.5 pb-2 pt-10 sm:px-3 sm:pb-2.5 sm:pt-12">
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                  {activeItem.boosted ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/25 px-1.5 py-px text-[9px] font-bold uppercase text-cyan-100 ring-1 ring-cyan-400/35 backdrop-blur-sm sm:px-2 sm:py-0.5 sm:text-[10px]">
+                      <Sparkles className="size-2.5 sm:size-3" aria-hidden />
+                      {t("hotBadge")}
+                    </span>
+                  ) : null}
+                  {activeItem.soldCount > 0 ? (
+                    <ProductSalesBadge
+                      count={activeItem.soldCount}
+                      variant="inline"
+                      className="!bg-black/35 !text-white !ring-white/20 backdrop-blur-sm"
+                    />
+                  ) : null}
+                </div>
+                <h2 className="mt-1 line-clamp-2 text-[13px] font-semibold leading-tight text-white drop-shadow-sm sm:mt-1.5 sm:text-[15px] sm:leading-snug">
+                  {activeItem.title}
+                </h2>
+                {activeItem.priceCents > 0 ? (
+                  <div className="mt-0.5 [&_p]:!text-white/75 [&_span]:!text-white sm:mt-1">
+                    <ProductPriceOffer
+                      price={activePriceEur}
+                      compareAt={activeCompareEur}
+                      layout="compact"
+                    />
+                  </div>
+                ) : null}
+                {activeItem.storeName ? (
+                  <p className="mt-0.5 truncate text-[10px] text-white/55 sm:mt-1 sm:text-xs sm:text-zinc-300">
+                    {activeItem.storeName}
+                  </p>
+                ) : null}
               </div>
-            ) : null}
-            {activeItem.storeName ? (
-              <p className="mt-1 truncate text-xs text-zinc-400">{activeItem.storeName}</p>
-            ) : null}
-          </div>
-        ) : null}
+            </div>
+          ) : null}
+        </div>
 
         <div
           className={cn(
             affisellBrand.epoxyPanel,
-            "affisell-swipe-dock-panel relative mx-auto max-w-[380px] px-4 py-3"
+            "affisell-swipe-dock affisell-swipe-dock-panel relative z-50 mx-auto w-full max-w-[380px] shrink-0 px-2 py-2 sm:px-4 sm:py-3"
           )}
         >
-        <p className="mb-2 text-center text-[10px] font-medium uppercase tracking-wider text-zinc-500">
-          {t("hint")}
-        </p>
-        <div className="grid grid-cols-5 gap-2">
-          <button
-            type="button"
-            disabled={busy || deck.length === 0}
-            onClick={() => requestSwipe("left")}
-            className={affisellBrand.epoxyActionBtn}
-            aria-label={t("skip")}
-          >
-            <ChevronLeft className="size-5" />
-            {t("skipShort")}
-          </button>
-          <button
-            type="button"
-            disabled={busy || deck.length === 0}
-            onClick={() => requestSwipe("up")}
-            className={affisellBrand.epoxyActionCart}
-            aria-label={t("cart")}
-          >
-            <ShoppingBag className="size-5" />
-            {t("cartShort")}
-          </button>
-          <button
-            type="button"
-            disabled={skippedPool.length === 0 || busy}
-            onClick={handleUndo}
-            className={affisellBrand.epoxyActionBtn}
-            aria-label={t("undo")}
-          >
-            <RotateCcw className="size-5" />
-            {t("undoShort")}
-          </button>
-          <button
-            type="button"
-            disabled={busy || deck.length === 0}
-            onClick={() => requestSwipe("right")}
-            className={affisellBrand.epoxyActionBuy}
-            aria-label={t("buy")}
-          >
-            <Zap className="size-5" />
-            {t("buyShort")}
-          </button>
-          <button
-            type="button"
-            disabled={busy || deck.length === 0}
-            onClick={() => requestSwipe("down")}
-            className={affisellBrand.epoxyActionDrop}
-            aria-label={t("saveDrop")}
-          >
-            <Bookmark className="size-5" />
-            {t("saveDropShort")}
-          </button>
+          <p className="mb-1.5 hidden text-center text-[10px] font-medium uppercase tracking-wider text-zinc-500 sm:mb-2 sm:block">
+            {t("hint")}
+          </p>
+          <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
+            <button
+              type="button"
+              disabled={busy || deck.length === 0}
+              onClick={() => requestSwipe("left")}
+              className={cn(affisellBrand.epoxyActionBtn, "max-sm:aspect-square max-sm:justify-center max-sm:py-2")}
+              aria-label={t("skip")}
+            >
+              <ChevronLeft className="size-[18px] sm:size-5" />
+              <span className="max-sm:sr-only">{t("skipShort")}</span>
+            </button>
+            <button
+              type="button"
+              disabled={busy || deck.length === 0}
+              onClick={() => requestSwipe("up")}
+              className={cn(affisellBrand.epoxyActionCart, "max-sm:aspect-square max-sm:justify-center max-sm:py-2")}
+              aria-label={t("cart")}
+            >
+              <ShoppingBag className="size-[18px] sm:size-5" />
+              <span className="max-sm:sr-only">{t("cartShort")}</span>
+            </button>
+            <button
+              type="button"
+              disabled={skippedPool.length === 0 || busy}
+              onClick={handleUndo}
+              className={cn(affisellBrand.epoxyActionBtn, "max-sm:aspect-square max-sm:justify-center max-sm:py-2")}
+              aria-label={t("undo")}
+            >
+              <RotateCcw className="size-[18px] sm:size-5" />
+              <span className="max-sm:sr-only">{t("undoShort")}</span>
+            </button>
+            <button
+              type="button"
+              disabled={busy || deck.length === 0}
+              onClick={() => requestSwipe("right")}
+              className={cn(affisellBrand.epoxyActionBuy, "max-sm:aspect-square max-sm:justify-center max-sm:py-2")}
+              aria-label={t("buy")}
+            >
+              <Zap className="size-[18px] sm:size-5" />
+              <span className="max-sm:sr-only">{t("buyShort")}</span>
+            </button>
+            <button
+              type="button"
+              disabled={busy || deck.length === 0}
+              onClick={() => requestSwipe("down")}
+              className={cn(affisellBrand.epoxyActionDrop, "max-sm:aspect-square max-sm:justify-center max-sm:py-2")}
+              aria-label={t("saveDrop")}
+            >
+              <Bookmark className="size-[18px] sm:size-5" />
+              <span className="max-sm:sr-only">{t("saveDropShort")}</span>
+            </button>
+          </div>
         </div>
-        </div>
-      </footer>
+      </main>
 
       <AnimatePresence>
         {toast ? (

@@ -160,7 +160,7 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
         <article
           className={cn(
             affisellBrand.epoxySurface,
-            "relative flex h-full flex-col overflow-hidden rounded-[1.75rem]"
+            "relative flex h-full flex-col overflow-hidden rounded-[1.35rem] sm:rounded-[1.75rem]"
           )}
         >
           <PulseProductMediaStage
