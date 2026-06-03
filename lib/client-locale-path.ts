@@ -1,16 +1,9 @@
 import { routing } from "@/i18n/routing"
 import type { AppLocale } from "@/lib/i18n-locale"
-
-const LOCALE_PATTERN = new RegExp(`^/(${routing.locales.join("|")})(?=/|$)`)
-
-/** Routes under `app/[locale]/` — only these get `/fr` in the URL. */
-const URL_LOCALIZED_PATHS = new Set(["/", "/agent", "/creators", "/partners"])
+import { pathnameWithoutLocale, URL_LOCALIZED_PATHS } from "@/lib/locale-path"
 
 export function pathnameWithoutLocaleClient(pathname: string): string {
-  const m = pathname.match(LOCALE_PATTERN)
-  if (!m) return pathname
-  const rest = pathname.slice(m[0].length)
-  return rest === "" ? "/" : rest
+  return pathnameWithoutLocale(pathname)
 }
 
 /** Build target URL after locale switch (cookie + optional path prefix). */

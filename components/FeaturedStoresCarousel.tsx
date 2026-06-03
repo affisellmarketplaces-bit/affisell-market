@@ -4,7 +4,7 @@ import useEmblaCarousel from "embla-carousel-react"
 import { useEffect } from "react"
 import { Store } from "lucide-react"
 
-import { Link } from "@/i18n/navigation"
+import Link from "next/link"
 import type { PublicShopDirectoryEntry } from "@/lib/shop-storefront-shared"
 
 type Props = { shops: PublicShopDirectoryEntry[] }

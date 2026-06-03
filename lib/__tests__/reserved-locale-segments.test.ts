@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { isStaticAppPathname, RESERVED_LOCALE_SEGMENTS } from "@/lib/reserved-locale-segments"
+import { isStaticAppPathname, RESERVED_LOCALE_SEGMENTS, staticAppRewriteTarget } from "@/lib/reserved-locale-segments"
 
 describe("isStaticAppPathname", () => {
   it("treats app routes as static, not locales", () => {
@@ -24,5 +24,14 @@ describe("isStaticAppPathname", () => {
     expect(isStaticAppPathname("/fr")).toBe(false)
     expect(isStaticAppPathname("/en")).toBe(false)
     expect(RESERVED_LOCALE_SEGMENTS.has("fr")).toBe(false)
+  })
+
+  it("rewrites locale-prefixed static routes to bare app paths", () => {
+    expect(staticAppRewriteTarget("/fr/login")).toBe("/login")
+    expect(staticAppRewriteTarget("/fr/login/customer")).toBe("/login/customer")
+    expect(staticAppRewriteTarget("/en/signup/customer")).toBe("/signup/customer")
+    expect(staticAppRewriteTarget("/login")).toBeNull()
+    expect(staticAppRewriteTarget("/fr")).toBeNull()
+    expect(staticAppRewriteTarget("/fr/creators")).toBeNull()
   })
 })

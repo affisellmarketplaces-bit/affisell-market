@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { Suspense, useEffect, useState } from "react"
 import { Home, Menu, Search, ShoppingCart, Store, User, Zap } from "lucide-react"
 import { useSession } from "next-auth/react"
@@ -11,7 +12,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher"
 import { ThemeToggle } from "@/components/marketing/theme-toggle"
 import { NavHeaderSearch } from "@/components/nav/nav-header-search"
 import { NavPill } from "@/components/navigation/nav-pill"
-import { Link, usePathname } from "@/i18n/navigation"
+import { Link as LocaleLink, usePathname } from "@/i18n/navigation"
 import { buttonVariants } from "@/components/ui/button"
 import { loginCustomerPath, MARKETPLACE_BUYER_ORDERS_PATH } from "@/lib/login-redirect"
 import { openMobileBuyerHub } from "@/lib/buyer-hub-events"
@@ -58,7 +59,7 @@ export function PublicNav() {
       aria-label="Main"
       className="mx-auto grid w-full min-w-0 max-w-7xl grid-cols-[minmax(0,auto)_minmax(0,1fr)_minmax(0,auto)] items-center gap-x-1.5 gap-y-2 px-1.5 py-2 text-sm sm:gap-x-3 sm:px-2 lg:grid-cols-[auto_auto_minmax(0,1fr)_auto] lg:gap-x-4"
     >
-      <Link href="/" className="col-start-1 row-start-1 shrink-0">
+      <LocaleLink href="/" className="col-start-1 row-start-1 shrink-0">
         <motion.span
           className={cn("text-lg font-bold affisell-logo-text", "affisell-brand-wordmark")}
           whileHover={{ scale: 1.03 }}
@@ -66,7 +67,7 @@ export function PublicNav() {
         >
           Affisell
         </motion.span>
-      </Link>
+      </LocaleLink>
 
       <button
         type="button"

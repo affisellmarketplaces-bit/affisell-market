@@ -1,4 +1,4 @@
-import { pathnameWithoutLocale } from "@/lib/locale-path"
+import { localeFromPathname, pathnameWithoutLocale, URL_LOCALIZED_PATHS } from "@/lib/locale-path"
 
 /**
  * First URL segments that are real app routes, not `app/[locale]` locale codes.
@@ -58,4 +58,14 @@ export function isStaticAppPathname(pathname: string): boolean {
   const bare = pathnameWithoutLocale(pathname)
   const segment = bare.split("/").filter(Boolean)[0]
   return segment != null && RESERVED_LOCALE_SEGMENTS.has(segment)
+}
+
+/** `/fr/login` → `/login` when the route lives outside `app/[locale]`. */
+export function staticAppRewriteTarget(pathname: string): string | null {
+  if (!isStaticAppPathname(pathname)) return null
+  const urlLocale = localeFromPathname(pathname)
+  if (!urlLocale) return null
+  const bare = pathnameWithoutLocale(pathname)
+  if (bare === pathname || URL_LOCALIZED_PATHS.has(bare)) return null
+  return bare
 }

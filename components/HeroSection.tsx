@@ -3,7 +3,7 @@
 import { motion } from "framer-motion"
 import { useTranslations } from "next-intl"
 
-import { Link as LocaleLink } from "@/i18n/navigation"
+import NextLink from "next/link"
 import { fadeSlideUp, motionTransition } from "@/lib/motion-presets"
 import { cn } from "@/lib/utils"
 
@@ -60,7 +60,7 @@ export function HeroSection({ variant, className }: Props) {
         <p className="mx-auto mt-4 max-w-2xl text-sm text-violet-100/95 sm:text-base">{t("sub")}</p>
         {variant !== "buyer" ? (
           <div className="mt-8">
-            <LocaleLink
+            <NextLink
               href={
                 variant === "creators"
                   ? "/signup/affiliate?role=creator"
@@ -69,7 +69,7 @@ export function HeroSection({ variant, className }: Props) {
               className="inline-flex rounded-2xl bg-[#6366F1] px-8 py-3.5 text-base font-semibold shadow-lg transition-all duration-200 hover:scale-[1.02] hover:bg-[#5558E3] hover:shadow-xl"
             >
               {t("cta")}
-            </LocaleLink>
+            </NextLink>
           </div>
         ) : null}
       </motion.div>

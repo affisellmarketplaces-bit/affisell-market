@@ -12,7 +12,7 @@ import { LOCALE_COOKIE, localeCookieMaxAgeSec, resolveAppLocale } from "@/lib/i1
 import { localeFromPathname, pathnameWithoutLocale } from "@/lib/locale-path"
 import { loginAffiliatePath, loginSupplierPath, resolvePostLoginRedirect } from "@/lib/login-redirect"
 import { tryCustomDomainMiddleware } from "@/lib/middleware-custom-domain"
-import { isStaticAppPathname } from "@/lib/reserved-locale-segments"
+import { isStaticAppPathname, staticAppRewriteTarget } from "@/lib/reserved-locale-segments"
 
 const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
 const FORCED_CUSTOMER_HEADER = "x-affisell-view-role"
@@ -147,6 +147,24 @@ function isRedirectLoop(source: string, location: string): boolean {
   }
 }
 
+function rewriteStaticAppPath(req: NextRequest): NextResponse | null {
+  const pathname = req.nextUrl.pathname
+  const bare = staticAppRewriteTarget(pathname)
+  if (!bare) return null
+
+  const urlLocale = localeFromPathname(pathname)
+  if (!urlLocale) return null
+
+  const rewriteUrl = req.nextUrl.clone()
+  rewriteUrl.pathname = bare
+
+  const requestHeaders = new Headers(req.headers)
+  requestHeaders.set("x-affisell-pathname", pathname)
+  const res = NextResponse.rewrite(rewriteUrl, { request: { headers: requestHeaders } })
+  syncLocaleCookies(res, urlLocale)
+  return res
+}
+
 export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname
 
@@ -166,6 +184,8 @@ export async function middleware(req: NextRequest) {
   }
 
   if (isStaticAppPathname(pathname)) {
+    const rewritten = rewriteStaticAppPath(req)
+    if (rewritten) return rewritten
     return nextWithPathname(req)
   }
 

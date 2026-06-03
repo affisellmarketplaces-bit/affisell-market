@@ -14,3 +14,6 @@ export function localeFromPathname(pathname: string): string | null {
   const m = pathname.match(LOCALE_PATTERN)
   return m?.[1] ?? null
 }
+
+/** Routes under `app/[locale]/` — only these get `/fr` in the URL. */
+export const URL_LOCALIZED_PATHS = new Set(["/", "/agent", "/creators", "/partners"])
