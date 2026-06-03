@@ -5,7 +5,7 @@ type CartLineQty = { qty?: number; quantity?: number }
 /** Total units in cart (sums line quantities, not just line count). */
 export function sumBuyerCartLines(lines: unknown[]): number {
   if (!Array.isArray(lines)) return 0
-  return lines.reduce((sum, row) => {
+  return lines.reduce<number>((sum, row) => {
     if (!row || typeof row !== "object") return sum
     const line = row as CartLineQty
     const q = line.qty ?? line.quantity ?? 1
