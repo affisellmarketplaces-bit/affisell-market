@@ -250,7 +250,10 @@ export default async function MarketplaceListingPage({
   const productSpecs = [
     ...customSpecs,
     ...(listing.product.attributes ?? [])
-      .map((row) => ({ label: String(row.label || row.key || "").trim(), value: row.value.trim() }))
+      .map((row) => ({
+        label: String(row.label || row.key || "").trim(),
+        value: String(row.value ?? "").trim(),
+      }))
       .filter((row) => row.label.length > 0 && row.value.length > 0),
   ]
 

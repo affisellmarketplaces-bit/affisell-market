@@ -2,6 +2,7 @@ import {
   buyerListedAffiliateProductWhere,
   buyerMarketplaceProductWhere,
 } from "@/lib/marketplace-buyer-product-filter"
+import { isPrismaMissingColumnError } from "@/lib/prisma-missing-column"
 import { prisma } from "@/lib/prisma"
 
 const RELATED_SELECT = {
@@ -18,6 +19,7 @@ const RELATED_SELECT = {
   },
 } as const
 
+/** PDP select — omits `supplierTrustTier` so DBs without migration still load. */
 export const listingDetailSelect = {
   id: true,
   sellingPriceCents: true,
@@ -34,6 +36,7 @@ export const listingDetailSelect = {
   product: {
     select: {
       id: true,
+      supplierId: true,
       name: true,
       description: true,
       descriptionBullets: true,
@@ -80,7 +83,6 @@ export const listingDetailSelect = {
         select: {
           name: true,
           isVerifiedSupplier: true,
-          supplierTrustTier: true,
         },
       },
     },
@@ -102,13 +104,67 @@ export const listingDetailSelect = {
   },
 } as const
 
-export type ListingDetailRow = NonNullable<
+type ListingWhere = {
+  id: string
+  isListed: boolean
+  product: typeof buyerMarketplaceProductWhere
+  affiliate: {
+    role: string
+    store?: { slug: string }
+  }
+}
+
+type ListingDetailRowBase = NonNullable<
   Awaited<
     ReturnType<
       typeof prisma.affiliateProduct.findFirst<{ select: typeof listingDetailSelect }>
     >
   >
 >
+
+export type ListingDetailRow = ListingDetailRowBase & {
+  product: ListingDetailRowBase["product"] & {
+    supplier: ListingDetailRowBase["product"]["supplier"] & {
+      supplierTrustTier: string
+    }
+  }
+}
+
+async function loadSupplierTrustTier(supplierId: string): Promise<string> {
+  try {
+    const row = await prisma.user.findUnique({
+      where: { id: supplierId },
+      select: { supplierTrustTier: true },
+    })
+    return row?.supplierTrustTier ?? "NONE"
+  } catch (error: unknown) {
+    if (isPrismaMissingColumnError(error, "supplierTrustTier")) {
+      return "NONE"
+    }
+    throw error
+  }
+}
+
+async function findListingDetailRow(where: ListingWhere): Promise<ListingDetailRow | null> {
+  const row = await prisma.affiliateProduct.findFirst({
+    where,
+    select: listingDetailSelect,
+  })
+  if (!row?.product) return null
+
+  const supplierTrustTier = await loadSupplierTrustTier(row.product.supplierId)
+
+  return {
+    ...row,
+    product: {
+      ...row.product,
+      supplier: {
+        ...row.product.supplier,
+        supplierTrustTier,
+      },
+    },
+  } as ListingDetailRow
+}
 
 async function countViewsLast24h(productId: string): Promise<number> {
   try {
@@ -134,17 +190,14 @@ export async function loadMarketplaceListingPageData(args: {
 }) {
   const listingId = args.listingId.trim()
 
-  const listing = await prisma.affiliateProduct.findFirst({
-    where: {
-      id: listingId,
-      isListed: true,
-      product: buyerMarketplaceProductWhere,
-      affiliate: {
-        role: "AFFILIATE",
-        ...(args.storeSlug ? { store: { slug: args.storeSlug } } : {}),
-      },
+  const listing = await findListingDetailRow({
+    id: listingId,
+    isListed: true,
+    product: buyerMarketplaceProductWhere,
+    affiliate: {
+      role: "AFFILIATE",
+      ...(args.storeSlug ? { store: { slug: args.storeSlug } } : {}),
     },
-    select: listingDetailSelect,
   })
 
   if (!listing?.product) return null
