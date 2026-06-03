@@ -1778,6 +1778,104 @@
     "tickerEmpty": "Affisell Luxe — excellence curatoriale",
     "curationNote": "Seuls les produits dont la case Affisell Luxe est cochée par le fournisseur apparaissent ici (une fois listés par un affilié)."
   },
+  "demoLab": {
+    "eyebrow": "Affisell Demo Lab",
+    "title": "Essayez Affisell",
+    "heroSubtitle": "Trois parcours guidés — fournisseur, affilié, acheteur. Aucun paiement réel. Votre avis façonne la suite.",
+    "startJourney": "Lancer le parcours",
+    "sandboxNotice": "Mode bac à sable : commandes et paiements ne sont pas exécutés en production réelle.",
+    "requiresAuth": "Connexion requise pour cette étape",
+    "tryStep": "Essayer",
+    "privacyNote": "Les avis peuvent inclure un e-mail optionnel — conservés 12 mois max, jamais revendus.",
+    "backToDemo": "Tous les parcours",
+    "banner": "Demo Lab — exploration sans engagement",
+    "personas": {
+      "supplier": {
+        "title": "Parcours fournisseur",
+        "subtitle": "Supply Hub, import catalogue, vue affilié — puis donnez-nous votre avis.",
+        "cardTitle": "Fournisseur",
+        "cardBody": "Sourcer, publier et fulfiller pour le réseau d'affiliés."
+      },
+      "affiliate": {
+        "title": "Parcours affilié",
+        "subtitle": "Découvrir, lister, estimer vos marges — en quelques clics.",
+        "cardTitle": "Affilié",
+        "cardBody": "Merchandising et commissions sur le catalogue Affisell."
+      },
+      "buyer": {
+        "title": "Parcours acheteur",
+        "subtitle": "Parcourir le marketplace, la confiance checkout, le support.",
+        "cardTitle": "Acheteur",
+        "cardBody": "Expérience d'achat sur les boutiques créateurs."
+      }
+    },
+    "steps": {
+      "supplier": {
+        "supply": {
+          "title": "Supply Hub",
+          "body": "Vue unifiée AliExpress, usines REST et canaux à venir."
+        },
+        "import": {
+          "title": "Importer un SKU",
+          "body": "URL, extension ou API — brouillon avant publication."
+        },
+        "preview": {
+          "title": "Vue affilié",
+          "body": "Voyez commission et checklist comme vos partenaires."
+        },
+        "publish": {
+          "title": "Créer un compte fournisseur",
+          "body": "Inscription rapide pour tester le dashboard complet."
+        }
+      },
+      "affiliate": {
+        "discover": {
+          "title": "Discover",
+          "body": "Flux live shopping et vitrines créateurs."
+        },
+        "catalog": {
+          "title": "Marketplace",
+          "body": "Parcourir les offres listables et marges indicatives."
+        },
+        "hub": {
+          "title": "Hub affilié",
+          "body": "Revenus, listings et outils de promotion."
+        },
+        "join": {
+          "title": "Rejoindre",
+          "body": "Créer un compte affilié en 2 minutes."
+        }
+      },
+      "buyer": {
+        "browse": {
+          "title": "Explorer",
+          "body": "Catalogue marketplace et filtres."
+        },
+        "shop": {
+          "title": "Boutiques",
+          "body": "Parcours shop créateur et fiche produit."
+        },
+        "trust": {
+          "title": "Confiance",
+          "body": "FAQ livraison, retours et paiement sécurisé."
+        },
+        "account": {
+          "title": "Compte acheteur",
+          "body": "Suivi commande et espace client."
+        }
+      }
+    },
+    "feedback": {
+      "title": "Votre avis compte",
+      "subtitle": "De 1 à 5 — quelle est votre impression globale de ce parcours ?",
+      "scoreAria": "Note globale",
+      "commentPlaceholder": "Ce qui vous a plu, ce qui manque… (optionnel)",
+      "emailPlaceholder": "E-mail pour un suivi (optionnel)",
+      "submit": "Envoyer mon avis",
+      "thanks": "Merci — votre retour alimente la roadmap Affisell.",
+      "error": "Envoi impossible. Réessayez dans un instant."
+    }
+  },
   "errors": {
     "notFound": {
       "title": "Page introuvable",

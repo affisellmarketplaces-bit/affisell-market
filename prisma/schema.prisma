@@ -1925,6 +1925,26 @@ enum AutoBuyStatus {
   REFUNDED
 }
 
+enum DemoPersona {
+  SUPPLIER
+  AFFILIATE
+  BUYER
+}
+
+/** In-app demo lab — structured UX feedback (suppliers, affiliates, buyers). */
+model DemoFeedback {
+  id        String      @id @default(cuid())
+  persona   DemoPersona
+  score     Int
+  comment   String?     @db.Text
+  email     String?
+  locale    String?
+  stepId    String?
+  createdAt DateTime    @default(now())
+
+  @@index([persona, createdAt])
+}
+
 /** Short-lived buffer: bookmarklet POST → admin poll (serverless-safe). */
 model AdminAeCaptureSession {
   id        String   @id @default(cuid())

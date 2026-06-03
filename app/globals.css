@@ -72,6 +72,11 @@
   }
 }
 
+/* Demo Lab — focus parcours, footer plateforme masqué */
+body.affisell-demo-lab .affisell-site-footer {
+  display: none;
+}
+
 :root {
   --affisell-mobile-dock-offset: calc(5rem + env(safe-area-inset-bottom));
   --affisell-swipe-dock-h: 13.5rem;

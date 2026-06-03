@@ -50,6 +50,7 @@ export function Footer() {
               <FooterLink href="/how-it-works">Comment ça marche</FooterLink>
               <FooterLink href="/affiliate">Programme affilié</FooterLink>
               <FooterLink href="/supplier">Devenir fournisseur</FooterLink>
+              <FooterLink href="/demo">Demo Lab</FooterLink>
             </ul>
           </nav>
 

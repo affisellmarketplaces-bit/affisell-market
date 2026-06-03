@@ -1778,6 +1778,104 @@
     "tickerEmpty": "Affisell Luxe — curated excellence",
     "curationNote": "Only products with Affisell Luxe enabled by the supplier appear here (once listed by an affiliate)."
   },
+  "demoLab": {
+    "eyebrow": "Affisell Demo Lab",
+    "title": "Try Affisell",
+    "heroSubtitle": "Three guided paths — supplier, affiliate, buyer. No real payments. Your feedback shapes what we ship next.",
+    "startJourney": "Start journey",
+    "sandboxNotice": "Sandbox mode — orders and payouts are not executed on live production rails.",
+    "requiresAuth": "Sign-in required for this step",
+    "tryStep": "Try it",
+    "privacyNote": "Feedback may include an optional email — kept up to 12 months, never sold.",
+    "backToDemo": "All journeys",
+    "banner": "Demo Lab — explore with zero commitment",
+    "personas": {
+      "supplier": {
+        "title": "Supplier journey",
+        "subtitle": "Supply Hub, catalog import, affiliate preview — then tell us what you think.",
+        "cardTitle": "Supplier",
+        "cardBody": "Source, publish, and fulfill for the affiliate network."
+      },
+      "affiliate": {
+        "title": "Affiliate journey",
+        "subtitle": "Discover, list, and estimate margins in a few clicks.",
+        "cardTitle": "Affiliate",
+        "cardBody": "Merchandising and commissions on the Affisell catalog."
+      },
+      "buyer": {
+        "title": "Buyer journey",
+        "subtitle": "Browse the marketplace, checkout trust, and support.",
+        "cardTitle": "Buyer",
+        "cardBody": "Shop creator storefronts end to end."
+      }
+    },
+    "steps": {
+      "supplier": {
+        "supply": {
+          "title": "Supply Hub",
+          "body": "Unified view of AliExpress, factory REST, and upcoming channels."
+        },
+        "import": {
+          "title": "Import a SKU",
+          "body": "URL, extension, or API — draft before you publish."
+        },
+        "preview": {
+          "title": "Affiliate preview",
+          "body": "See commission and checklist like your partners do."
+        },
+        "publish": {
+          "title": "Create a supplier account",
+          "body": "Quick signup to test the full dashboard."
+        }
+      },
+      "affiliate": {
+        "discover": {
+          "title": "Discover",
+          "body": "Live shopping feed and creator storefronts."
+        },
+        "catalog": {
+          "title": "Marketplace",
+          "body": "Browse listable offers and indicative margins."
+        },
+        "hub": {
+          "title": "Affiliate hub",
+          "body": "Earnings, listings, and promotion tools."
+        },
+        "join": {
+          "title": "Join",
+          "body": "Create an affiliate account in minutes."
+        }
+      },
+      "buyer": {
+        "browse": {
+          "title": "Explore",
+          "body": "Marketplace catalog and filters."
+        },
+        "shop": {
+          "title": "Stores",
+          "body": "Creator shop flow and product pages."
+        },
+        "trust": {
+          "title": "Trust",
+          "body": "FAQ on shipping, returns, and secure payment."
+        },
+        "account": {
+          "title": "Buyer account",
+          "body": "Order tracking and customer space."
+        }
+      }
+    },
+    "feedback": {
+      "title": "Your feedback matters",
+      "subtitle": "1 to 5 — how was this journey overall?",
+      "scoreAria": "Overall score",
+      "commentPlaceholder": "What worked, what's missing… (optional)",
+      "emailPlaceholder": "Email for follow-up (optional)",
+      "submit": "Send feedback",
+      "thanks": "Thank you — your input feeds the Affisell roadmap.",
+      "error": "Could not send. Please try again shortly."
+    }
+  },
   "errors": {
     "notFound": {
       "title": "Page not found",
