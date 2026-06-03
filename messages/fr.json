@@ -1158,6 +1158,8 @@
     "empty": "Cette boutique n'a pas de produits actifs.",
     "buy": "Acheter",
     "allStores": "Toutes les boutiques",
+    "allStoresShort": "Boutiques",
+    "navAria": "Navigation marketplace Affisell",
     "noProducts": "Aucun produit disponible pour le moment."
   },
   "success": {

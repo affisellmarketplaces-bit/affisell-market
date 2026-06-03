@@ -1158,6 +1158,8 @@
     "empty": "This store has no active products.",
     "buy": "Buy Now",
     "allStores": "All stores",
+    "allStoresShort": "Stores",
+    "navAria": "Affisell marketplace navigation",
     "noProducts": "No products available yet."
   },
   "success": {
