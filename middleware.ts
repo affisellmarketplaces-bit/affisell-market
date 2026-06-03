@@ -69,11 +69,17 @@ function legacyAuthRedirect(req: NextRequest, pathname: string): NextResponse | 
 
 function nextWithPathname(req: NextRequest, extraHeaders?: Record<string, string>): NextResponse {
   const requestHeaders = new Headers(req.headers)
-  requestHeaders.set("x-affisell-pathname", req.nextUrl.pathname)
+  const pathname = req.nextUrl.pathname
+  requestHeaders.set("x-affisell-pathname", pathname)
   for (const [key, value] of Object.entries(extraHeaders ?? {})) {
     requestHeaders.set(key, value)
   }
-  return NextResponse.next({ request: { headers: requestHeaders } })
+  const res = NextResponse.next({ request: { headers: requestHeaders } })
+  const urlLocale = localeFromPathname(pathname)
+  const cookieLocale =
+    req.cookies.get(LOCALE_COOKIE)?.value ?? req.cookies.get("NEXT_LOCALE")?.value
+  syncLocaleCookies(res, urlLocale ?? resolveAppLocale(cookieLocale ?? routing.defaultLocale))
+  return res
 }
 
 function withForcedCustomerRole(req: NextRequest): NextResponse {

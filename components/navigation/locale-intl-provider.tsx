@@ -3,23 +3,8 @@
 import { useEffect, useState } from "react"
 import { NextIntlClientProvider, type AbstractIntlMessages } from "next-intl"
 
-import {
-  APP_TIME_ZONE,
-  DEFAULT_LOCALE,
-  LOCALE_COOKIE,
-  resolveAppLocale,
-  type AppLocale,
-} from "@/lib/i18n-locale"
-import en from "@/messages/en.json"
-import fr from "@/messages/fr.json"
-
-const MESSAGES: Record<AppLocale, AbstractIntlMessages> = { en, fr }
-
-function readLocaleFromCookie(): AppLocale {
-  if (typeof document === "undefined") return DEFAULT_LOCALE
-  const match = document.cookie.match(new RegExp(`(?:^|; )${LOCALE_COOKIE}=(en|fr)`))
-  return resolveAppLocale(match?.[1])
-}
+import { APP_TIME_ZONE, resolveAppLocale, type AppLocale } from "@/lib/i18n-locale"
+import { CLIENT_MESSAGES, readLocaleFromDocumentCookie } from "@/lib/i18n-messages-client"
 
 type Props = {
   children: React.ReactNode
@@ -31,13 +16,13 @@ export function LocaleIntlProvider({ children }: Props) {
   const [locale, setLocale] = useState<AppLocale>(envDefault)
 
   useEffect(() => {
-    setLocale(readLocaleFromCookie())
+    setLocale(readLocaleFromDocumentCookie())
   }, [])
 
   return (
     <NextIntlClientProvider
       locale={locale}
-      messages={MESSAGES[locale]}
+      messages={CLIENT_MESSAGES[locale]}
       timeZone={APP_TIME_ZONE}
       now={new Date()}
     >

@@ -48,7 +48,10 @@ export async function bootstrapRootShell(): Promise<RootShellBootstrap> {
 
   let locale: AppLocale = DEFAULT_LOCALE
   try {
-    locale = resolveAppLocale(await getLocale())
+    const fromIntl = await getLocale()
+    locale = await resolveRequestLocale(
+      typeof fromIntl === "string" ? fromIntl : undefined
+    )
   } catch (error) {
     if (!isDynamicServerUsageError(error)) {
       console.warn("[bootstrapRootShell] getLocale failed, resolving locale manually", error)

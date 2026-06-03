@@ -20,6 +20,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { ProductPriceOffer } from "@/components/product/product-price-offer"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
+import { LanguageSwitcher } from "@/components/LanguageSwitcher"
 import { PulseHeaderCartLink } from "@/components/pulse/pulse-header-cart-link"
 import { PulseLayoutModeLink } from "@/components/pulse/pulse-layout-mode-link"
 import { PulseProductMediaStage } from "@/components/pulse/pulse-product-media-stage"
@@ -497,7 +498,8 @@ export function AffisellPulseExperience({ items, viewerLoggedIn = false }: Props
               {t("beta")}
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <LanguageSwitcher className="shrink-0 [&_button]:border-white/15 [&_button]:bg-black/40 [&_button]:text-white" />
             <PulseHeaderCartLink />
             <PulseLayoutModeLink target="swipe" label={t("swipeMode")} variant="chip" />
             <span className="tabular-nums text-xs text-white/70">

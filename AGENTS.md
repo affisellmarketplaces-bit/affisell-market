@@ -11,6 +11,13 @@
 - **Theme**: `Store.storefrontTheme` JSON (`primary`, `accent` hex) — **Brand Studio** (`/dashboard/affiliate/brand-studio`, `/dashboard/supplier/storefront`); applied via `StorefrontThemeStyles` on public shops.
 - **Vercel SSL**: after DNS verify, `POST /api/store/verify-domain` calls Vercel Projects API when `VERCEL_API_TOKEN` + `VERCEL_PROJECT_ID` are set; status in `Store.vercelDomainStatus`, polled via `GET /api/store/domain-status`.
 
+## i18n (FR / EN)
+
+- Cookie `affisell_locale` drives UI on most routes (`/marketplace`, `/dashboard`, `/discover`, etc.).
+- URL prefix `/fr` only on `/`, `/agent`, `/creators`, `/partners` — switcher updates path + cookie there.
+- Elsewhere: cookie + `router.refresh()` + client `IntlAppProvider` event (`affisell:locale-change`).
+- Switcher: header (public/supplier/affiliate), `app/login|signup/layout`, Pulse + Demo Lab immersive pages.
+
 ## Demo Lab (`/demo`)
 
 - **Public**: parcours + feedback sans compte (`POST /api/demo/feedback`).

@@ -20,6 +20,7 @@ import {
   type BuyerSwipeCardHandle,
   type BuyerSwipeDirection,
 } from "@/components/pulse/buyer-swipe-card"
+import { LanguageSwitcher } from "@/components/LanguageSwitcher"
 import { PulseHeaderCartLink } from "@/components/pulse/pulse-header-cart-link"
 import { PulseLayoutModeLink } from "@/components/pulse/pulse-layout-mode-link"
 import { ProductPriceOffer } from "@/components/product/product-price-offer"
@@ -439,7 +440,8 @@ export function BuyerSwipeCommerce({
               <p className="mt-0.5 max-w-[12rem] truncate text-[10px] text-zinc-400">{categoryLabel}</p>
             ) : null}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <LanguageSwitcher className="shrink-0 [&_button]:border-white/15 [&_button]:bg-black/40 [&_button]:text-white" />
             <PulseLayoutModeLink
               target="scroll"
               label={t("scrollModeShort")}
