@@ -16,7 +16,7 @@
 - Cookie `affisell_locale` drives UI on most routes (`/marketplace`, `/dashboard`, `/discover`, etc.).
 - URL prefix `/fr` only on `/`, `/agent`, `/creators`, `/partners` — switcher updates path + cookie there.
 - Elsewhere: cookie + `router.refresh()` + client `IntlAppProvider` event (`affisell:locale-change`).
-- Switcher: header (public/supplier/affiliate), `app/login|signup/layout`, Pulse + Demo Lab immersive pages.
+- Switcher: header (public/supplier/affiliate), `app/login|signup/layout`, Pulse immersive pages (Demo Lab uses global header).
 
 ## Demo Lab (`/demo`)
 
