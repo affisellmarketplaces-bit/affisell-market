@@ -1243,8 +1243,8 @@
     "targetPrice": "Cible {price}",
     "dropBadge": "🔔 -{pct}% {since}",
     "noImage": "Sans image",
-    "guestBanner": "Enregistré sur cet appareil. Créez un compte gratuit pour synchroniser vos favoris et activer les alertes prix.",
-    "guestBannerCta": "Créer un compte gratuit",
+      "guestBanner": "Pas de compte requis — touchez ♥ sur une fiche pour enregistrer vos favoris sur cet appareil.",
+      "guestBannerCta": "Optionnel : compte gratuit pour synchroniser et recevoir les alertes prix",
     "heart": {
       "add": "Ajouter aux favoris",
       "remove": "Retirer des favoris",

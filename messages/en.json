@@ -1243,8 +1243,8 @@
     "targetPrice": "Target {price}",
     "dropBadge": "🔔 -{pct}% {since}",
     "noImage": "No image",
-    "guestBanner": "Saved on this device. Create a free account to sync favorites and get price alerts.",
-    "guestBannerCta": "Create free account",
+      "guestBanner": "No account needed — tap ♥ on any product to save favorites on this device.",
+      "guestBannerCta": "Optional: free account to sync and get price alerts",
     "heart": {
       "add": "Add to favorites",
       "remove": "Remove from favorites",
