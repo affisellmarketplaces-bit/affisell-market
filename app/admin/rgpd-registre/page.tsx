@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-const LAST_UPDATED = "2026-06-03"
+const LAST_UPDATED = "2026-06-04"
 
 export default async function AdminRgpdRegistrePage() {
   const session = await auth()

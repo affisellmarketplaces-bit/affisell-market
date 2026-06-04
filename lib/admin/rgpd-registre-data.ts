@@ -6,6 +6,7 @@ export type RgpdRegistreRow = {
   duree: string
   destinataires: string
   transfertHorsUe: string
+  mesuresSecurite: string
 }
 
 export const RGPD_REGISTRE_COLUMNS = [
@@ -15,32 +16,36 @@ export const RGPD_REGISTRE_COLUMNS = [
   "Durée",
   "Destinataires",
   "Transfert hors UE",
+  "Mesures sécurité",
 ] as const
 
 export const RGPD_REGISTRE_ROWS: RgpdRegistreRow[] = [
   {
     finalite: "Inscription",
     baseLegale: "Contrat",
-    donnees: "email, ip",
+    donnees: "email, ip, ua",
     duree: "3 ans",
     destinataires: "Stripe, Vercel",
     transfertHorsUe: "USA clauses types",
+    mesuresSecurite: "Chiffrement, 2FA",
   },
   {
     finalite: "Paiement",
     baseLegale: "Contrat",
-    donnees: "CB via Stripe",
+    donnees: "IBAN via Stripe",
     duree: "5 ans comptable",
     destinataires: "Stripe IE",
     transfertHorsUe: "Non",
+    mesuresSecurite: "PCI-DSS Stripe",
   },
   {
-    finalite: "Marketing",
+    finalite: "Analytics",
     baseLegale: "Consentement",
-    donnees: "email",
-    duree: "jusqu'opt-out",
-    destinataires: "Resend US",
+    donnees: "cookie_id",
+    duree: "13 mois",
+    destinataires: "Google US",
     transfertHorsUe: "USA clauses types",
+    mesuresSecurite: "Consent mode v2",
   },
 ]
 
@@ -62,6 +67,7 @@ export function buildRgpdRegistreCsv(rows: RgpdRegistreRow[] = RGPD_REGISTRE_ROW
       row.duree,
       row.destinataires,
       row.transfertHorsUe,
+      row.mesuresSecurite,
     ]
       .map(escapeCsvCell)
       .join(";")

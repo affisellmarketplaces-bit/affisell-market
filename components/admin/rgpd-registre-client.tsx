@@ -58,7 +58,7 @@ export function RgpdRegistreClient({ rows, lastUpdated }: Props) {
 
       <div className="mt-8 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] border-collapse text-left text-sm">
+          <table className="w-full min-w-[960px] border-collapse text-left text-sm">
             <thead>
               <tr className="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950/80">
                 {RGPD_REGISTRE_COLUMNS.map((col) => (
@@ -89,6 +89,7 @@ export function RgpdRegistreClient({ rows, lastUpdated }: Props) {
                   <td className="px-4 py-3 text-zinc-700 dark:text-zinc-300">{row.duree}</td>
                   <td className="px-4 py-3 text-zinc-700 dark:text-zinc-300">{row.destinataires}</td>
                   <td className="px-4 py-3 text-zinc-700 dark:text-zinc-300">{row.transfertHorsUe}</td>
+                  <td className="px-4 py-3 text-zinc-700 dark:text-zinc-300">{row.mesuresSecurite}</td>
                 </tr>
               ))}
             </tbody>
