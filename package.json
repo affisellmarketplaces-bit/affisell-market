@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "prisma generate && node ./scripts/next-dev-port.mjs",
+    "dev": "npx prisma generate && node ./scripts/next-dev-port.mjs",
     "postinstall": "node scripts/prisma-postinstall.mjs",
     "build": "prisma generate && npm run check:client-prisma && next build",
     "db:push": "prisma db push",
