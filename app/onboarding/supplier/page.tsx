@@ -17,9 +17,5 @@ export default async function SupplierOnboardingPage() {
     select: { status: true },
   })
 
-  if (invite && invite.status !== "CATALOG_LIVE") {
-    redirect("/dashboard/supplier/products/new?fromInvite=1&compose=1")
-  }
-
-  redirect("/dashboard/supplier")
+  redirect("/supplier/onboarding")
 }

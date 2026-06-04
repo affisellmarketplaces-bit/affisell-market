@@ -23,6 +23,8 @@ const nextConfig: NextConfig = {
       { source: "/legal/mentions", destination: "/mentions-legales", permanent: true },
       { source: "/legal/refund-policy", destination: "/returns", permanent: true },
       { source: "/legal/terms-of-service", destination: "/cgu", permanent: true },
+      { source: "/legal/terms-supplier", destination: "/cga", permanent: true },
+      { source: "/legal/terms-affiliate", destination: "/cgs", permanent: true },
     ]
   },
   output: "standalone" as const,

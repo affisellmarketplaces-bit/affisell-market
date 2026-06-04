@@ -11,9 +11,7 @@ export function SupplierSignupForm() {
     normalizeSupplierInviteToken(searchParams.get("invite") ?? "") ??
     normalizeSupplierInviteToken(searchParams.get("token") ?? "")
 
-  const afterLogin = inviteToken
-    ? "/dashboard/supplier/products/new?fromInvite=1&compose=1"
-    : "/dashboard/verification"
+  const afterLogin = "/supplier/onboarding"
 
   return (
     <MerchantLegalSignupWizard

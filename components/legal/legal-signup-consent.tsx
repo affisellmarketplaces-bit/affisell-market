@@ -3,7 +3,7 @@
 import Link from "next/link"
 
 import type { MerchantRole } from "@/lib/legal/consent"
-import { termsLabelForRole, termsSlugForRole } from "@/lib/legal/consent"
+import { roleTermsHrefForRole, roleTermsLabelForRole } from "@/lib/legal/role-terms"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -28,8 +28,8 @@ export function LegalSignupConsent({
   onRoleTermsChange,
   className,
 }: Props) {
-  const termsSlug = termsSlugForRole(role)
-  const roleTermsLabel = termsLabelForRole(role).replace(/^CGU et /, "")
+  const roleTermsHref = roleTermsHrefForRole(role)
+  const roleTermsLabel = roleTermsLabelForRole(role)
   const isMerchant = role === "SUPPLIER" || role === "AFFILIATE"
 
   return (
@@ -68,7 +68,7 @@ export function LegalSignupConsent({
           <span>
             J&apos;accepte les{" "}
             <Link
-              href={`/legal/${termsSlug}`}
+              href={roleTermsHref}
               target="_blank"
               rel="noopener noreferrer"
               className="font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"

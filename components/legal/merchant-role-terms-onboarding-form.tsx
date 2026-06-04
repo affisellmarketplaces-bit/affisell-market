@@ -5,41 +5,38 @@ import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
-import { LegalSignupConsent } from "@/components/legal/legal-signup-consent"
+import { RoleTermsAcceptCheckbox } from "@/components/legal/role-terms-accept-checkbox"
+import { roleTermsHrefForRole, roleTermsLabelForRole } from "@/lib/legal/role-terms"
 import { cn } from "@/lib/utils"
 
 type Props = {
+  role: "SUPPLIER" | "AFFILIATE"
   nextHref: string
   className?: string
 }
 
-export function AffiliateCguOnboardingForm({ nextHref, className }: Props) {
+export function MerchantRoleTermsOnboardingForm({ role, nextHref, className }: Props) {
   const router = useRouter()
-  const [cguChecked, setCguChecked] = useState(false)
   const [roleTermsChecked, setRoleTermsChecked] = useState(false)
-  const [privacyChecked, setPrivacyChecked] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const canSubmit = cguChecked && roleTermsChecked && privacyChecked && !loading
+  const label = roleTermsLabelForRole(role)
+  const href = roleTermsHrefForRole(role)
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!canSubmit) {
-      setError("Veuillez accepter les CGU, les CGS et la politique de confidentialité.")
+    if (!roleTermsChecked) {
+      setError(`Vous devez accepter les ${label} pour continuer.`)
       return
     }
     setLoading(true)
     setError(null)
 
-    const res = await fetch("/api/user/cgu-acceptance", {
+    const res = await fetch("/api/user/role-terms-acceptance", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        acceptCgu: true,
-        acceptRoleTerms: true,
-        acceptPrivacy: true,
-      }),
+      body: JSON.stringify({ acceptRoleTerms: true }),
     })
     const data = (await res.json().catch(() => ({}))) as { error?: string }
     setLoading(false)
@@ -56,28 +53,31 @@ export function AffiliateCguOnboardingForm({ nextHref, className }: Props) {
   return (
     <form onSubmit={onSubmit} className={cn("space-y-6", className)}>
       <p className="text-sm text-zinc-600 dark:text-zinc-400">
-        Pour activer votre compte affilié, confirmez votre acceptation des documents légaux en vigueur.
+        Dernière étape : acceptez les {label} applicables à votre compte {role === "SUPPLIER" ? "fournisseur" : "affilié"}.
       </p>
-      <LegalSignupConsent
-        role="AFFILIATE"
-        cguChecked={cguChecked}
-        privacyChecked={privacyChecked}
-        onCguChange={setCguChecked}
-        onPrivacyChange={setPrivacyChecked}
-        roleTermsChecked={roleTermsChecked}
-        onRoleTermsChange={setRoleTermsChecked}
+      <RoleTermsAcceptCheckbox
+        role={role}
+        checked={roleTermsChecked}
+        onChange={setRoleTermsChecked}
       />
       <button
         type="submit"
-        disabled={!canSubmit}
-        className="w-full rounded-xl bg-violet-600 py-2.5 text-sm font-semibold text-white hover:bg-violet-500 disabled:opacity-50"
+        disabled={!roleTermsChecked || loading}
+        className={cn(
+          "w-full rounded-xl py-2.5 text-sm font-semibold text-white disabled:opacity-50",
+          role === "SUPPLIER" ? "bg-emerald-600 hover:bg-emerald-500" : "bg-violet-600 hover:bg-violet-500"
+        )}
       >
         {loading ? "Enregistrement…" : "Continuer"}
       </button>
       {error ? <p className="text-center text-sm text-rose-600 dark:text-rose-300">{error}</p> : null}
       <p className="text-center text-xs text-zinc-500">
+        <Link href={href} className="underline-offset-2 hover:underline">
+          Lire les {label} en entier
+        </Link>
+        {" · "}
         <Link href="/cgu" className="underline-offset-2 hover:underline">
-          Lire les CGU en entier
+          CGU
         </Link>
       </p>
     </form>

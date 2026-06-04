@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils"
 const LEGAL_NAV = [
   { href: "/cgv", label: "CGV" },
   { href: "/cgu", label: "CGU" },
+  { href: "/cga", label: "CGA" },
+  { href: "/cgs", label: "CGS" },
   { href: "/mentions-legales", label: "Mentions légales" },
   { href: "/privacy", label: "Confidentialité" },
   { href: "/returns", label: "Retours" },
