@@ -1,5 +1,6 @@
 import { readCompanyLegal } from "@/lib/legal/company-env"
 import { CGA_LAST_UPDATED_LABEL } from "@/lib/legal/cga"
+import { legalPlatformFeeLabels } from "@/lib/legal/fee-labels"
 
 /** CGA — Conditions générales fournisseur (`/conditions-fournisseur`). */
 export function CgaDocumentBody() {
@@ -23,15 +24,32 @@ export function CgaDocumentBody() {
         produit et les reversements liés à votre activité sur la Plateforme Affisell.
       </p>
 
-      <h2>Article 2 — Commission plateforme</h2>
+      <h2>Article 2 — Frais plateforme Affisell</h2>
       <p>
-        2.1. Affisell prélève une <strong>commission de 12 % HT</strong> sur chaque ligne de commande
-        réglée via la Plateforme, sauf barème catégorie ou produit affiché différemment sur votre espace
-        fournisseur.
+        2.1. Les frais par défaut (HT, hors TVA collectée) sont :
+      </p>
+      <ul>
+        <li>
+          <strong>Catalogue natif</strong> (vous expédiez) :{" "}
+          <strong>{legalPlatformFeeLabels.supplierCatalog}</strong> sur le montant HT concerné ;
+        </li>
+        <li>
+          <strong>Parcours auto-buy AE</strong> (achat automatisé Affisell) :{" "}
+          <strong>{legalPlatformFeeLabels.supplierAutoBuy}</strong> ;
+        </li>
+        <li>
+          un barème <strong>catégorie</strong>, <strong>produit</strong> ou <strong>compte fournisseur</strong>{" "}
+          peut s&apos;appliquer lorsqu&apos;il est affiché dans votre espace ou sur la fiche produit.
+        </li>
+      </ul>
+      <p>
+        2.2. Sur certaines commandes historiques, un taux unique de{" "}
+        <strong>{legalPlatformFeeLabels.legacyOrderHtPercent} HT</strong> (produits + livraison, hors TVA) peut
+        figurer sur la commande ; il est indicatif du barème en vigueur à la date de vente.
       </p>
       <p>
-        2.2. La commission est déduite avant reversement ; elle couvre l&apos;hébergement marketplace, le
-        paiement Stripe, la médiation et les outils opérationnels (analytics, Ship Pulse, litiges).
+        2.3. Les frais couvrent l&apos;hébergement marketplace, Stripe (paiement, Connect, 3D Secure), la
+        médiation litiges et les outils opérationnels (analytics, notifications, conformité).
       </p>
 
       <h2>Article 3 — Délai d&apos;expédition</h2>
@@ -62,13 +80,25 @@ export function CgaDocumentBody() {
         </li>
       </ul>
 
-      <h2>Article 5 — Reversements (payout)</h2>
+      <h2>Article 5 — Reversements (payout) Stripe Connect</h2>
       <p>
-        5.1. Les reversements s&apos;effectuent via <strong>Stripe Connect</strong>, en principe à{" "}
-        <strong>J+2 ouvrés</strong> après confirmation de livraison ou preuve de remise au transporteur,
-        sous réserve de litige, chargeback ou obligation légale de conservation.
+        5.1. Les reversements s&apos;effectuent via <strong>Stripe Connect</strong> après livraison effective et,
+        le cas échéant, <strong>confirmation acheteur</strong> ou délai de silence réglementaire (voir CGU).
+        Le versement net intervient en principe sous <strong>
+          {legalPlatformFeeLabels.payoutDaysAfterBuyerConfirm} jours calendaires
+        </strong>{" "}
+        après confirmation de réception par l&apos;acheteur, sous réserve de litige, chargeback, KYC incomplet ou
+        obligation légale de conservation.
       </p>
-      <p>5.2. Affisell peut différer un payout en cas de suspicion de fraude ou de non-conformité produit.</p>
+      <p>
+        5.2. Vous maintenez un compte Connect valide (identité, IBAN, informations fiscales). Affisell peut
+        bloquer un payout en cas de suspicion de fraude, de non-conformité produit ou d&apos;injonction
+        d&apos;une autorité.
+      </p>
+      <p>
+        5.3. Les montants affichés dans le dashboard sont <strong>indicatifs</strong> jusqu&apos;à validation
+        Stripe et passage en statut payé.
+      </p>
 
       <h2>Article 6 — Garantie produit et conformité</h2>
       <p>

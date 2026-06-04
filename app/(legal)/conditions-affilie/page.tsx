@@ -7,7 +7,7 @@ import { CGS_VERSION } from "@/lib/legal/cgs"
 export const metadata: Metadata = {
   title: "Conditions affilié | Affisell",
   description:
-    "Conditions générales de services affilié — commission 20 %, Loi Influenceurs, publicité loyale, seuil 5 000 €/an.",
+    "Conditions générales affilié — frais plateforme sur gains, Loi Influenceurs, publicité loyale, seuil 5 000 €/an, Stripe Connect.",
 }
 
 export default function ConditionsAffiliePage() {

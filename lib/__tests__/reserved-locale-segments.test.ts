@@ -6,6 +6,10 @@ describe("isStaticAppPathname", () => {
   it("treats app routes as static, not locales", () => {
     expect(isStaticAppPathname("/agent")).toBe(true)
     expect(isStaticAppPathname("/contact")).toBe(true)
+    expect(isStaticAppPathname("/conditions-affilie")).toBe(true)
+    expect(isStaticAppPathname("/conditions-fournisseur")).toBe(true)
+    expect(isStaticAppPathname("/cookies")).toBe(true)
+    expect(isStaticAppPathname("/reaccept-terms")).toBe(true)
     expect(isStaticAppPathname("/legal/mentions")).toBe(true)
     expect(isStaticAppPathname("/about")).toBe(true)
     expect(isStaticAppPathname("/blog")).toBe(true)

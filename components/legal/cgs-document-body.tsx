@@ -1,5 +1,6 @@
 import { readCompanyLegal } from "@/lib/legal/company-env"
 import { CGS_LAST_UPDATED_LABEL } from "@/lib/legal/cgs"
+import { legalPlatformFeeLabels } from "@/lib/legal/fee-labels"
 
 /** CGS — Conditions générales affilié / créateur (`/conditions-affilie`). */
 export function CgsDocumentBody() {
@@ -23,15 +24,19 @@ export function CgsDocumentBody() {
         commissions et vos obligations de transparence vis-à-vis du public.
       </p>
 
-      <h2>Article 2 — Commission affilié</h2>
+      <h2>Article 2 — Rémunération et frais plateforme</h2>
       <p>
-        2.1. Votre rémunération combine la marge ou commission négociée sur chaque listing et une{" "}
-        <strong>commission plateforme Affisell de 20 %</strong> prélevée sur vos gains nets, sauf mention
-        contraire sur le catalogue ou un programme promotionnel.
+        2.1. Votre rémunération combine la <strong>commission ou marge</strong> négociée avec le Fournisseur sur
+        chaque listing et, le cas échéant, votre markup vitrine.
       </p>
       <p>
-        2.2. Les montants affichés dans votre dashboard sont indicatifs jusqu&apos;à confirmation du payout
-        Stripe Connect.
+        2.2. Affisell prélève par défaut <strong>{legalPlatformFeeLabels.affiliateEarnings}</strong> sur vos{" "}
+        <strong>gains affilié bruts</strong> (commission + markup retenu selon le mode de listing), sauf barème
+        affiché sur le catalogue, un programme promotionnel ou une dérogation contractuelle.
+      </p>
+      <p>
+        2.3. Les montants affichés dans votre dashboard sont <strong>indicatifs</strong> jusqu&apos;au payout
+        Stripe Connect validé et peuvent évoluer en cas de remboursement, litige ou chargeback.
       </p>
 
       <h2>Article 3 — Loi relative à l&apos;influence commerciale</h2>
