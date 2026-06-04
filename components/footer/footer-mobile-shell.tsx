@@ -2,25 +2,22 @@
 
 import Link from "next/link"
 import { useState } from "react"
-import { ChevronDown, ExternalLink, ShieldCheck } from "lucide-react"
+import { ChevronDown, ExternalLink, ShieldCheck, Sparkles } from "lucide-react"
 
+import {
+  footerHeroCard,
+  footerHeroLink,
+  footerHeroPillBtn,
+  footerHeroTagline,
+  footerHeroTitle,
+  footerLiveBadge,
+  footerStripeBadge,
+} from "@/components/footer/footer-hero-tokens"
 import type { FooterGlobalContent } from "@/lib/footer-global-sections"
 import { cn } from "@/lib/utils"
 
 type Props = {
   content: FooterGlobalContent
-}
-
-function StripeBadge() {
-  return (
-    <span
-      className="inline-flex shrink-0 items-center rounded-lg border border-violet-500/30 bg-violet-950/50 px-2.5 py-1"
-      role="img"
-      aria-label="Stripe"
-    >
-      <span className="text-sm font-bold tracking-tight text-[#635BFF]">Stripe</span>
-    </span>
-  )
 }
 
 function FooterAccordion({
@@ -34,7 +31,7 @@ function FooterAccordion({
 }) {
   const panelId = `footer-panel-${section.id}`
   return (
-    <div className="border-b border-white/[0.08]">
+    <div className="border-b border-white/10 last:border-b-0">
       <button
         type="button"
         id={`footer-trigger-${section.id}`}
@@ -43,11 +40,12 @@ function FooterAccordion({
         onClick={onToggle}
         className="flex w-full items-center justify-between gap-3 py-3.5 text-left"
       >
-        <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-300">
-          {section.title}
-        </span>
+        <span className={footerHeroTitle}>{section.title}</span>
         <ChevronDown
-          className={cn("size-4 shrink-0 text-violet-400 transition-transform duration-200", open && "rotate-180")}
+          className={cn(
+            "size-4 shrink-0 text-[#C4B5FD] transition-transform duration-200",
+            open && "rotate-180"
+          )}
           aria-hidden
         />
       </button>
@@ -55,10 +53,7 @@ function FooterAccordion({
         <ul id={panelId} role="list" className="space-y-2.5 pb-4 pl-0.5">
           {section.links.map((link) => (
             <li key={link.href + link.label}>
-              <Link
-                href={link.href}
-                className="text-sm text-zinc-400 transition hover:text-violet-200"
-              >
+              <Link href={link.href} className={footerHeroLink}>
                 {link.label}
               </Link>
             </li>
@@ -74,41 +69,34 @@ export function FooterMobileShell({ content }: Props) {
 
   return (
     <div className="relative md:hidden">
-      <div className="affisell-footer-future__mesh pointer-events-none absolute inset-0 opacity-60" aria-hidden />
-      <div
-        className="pointer-events-none absolute inset-x-0 -top-24 h-32 bg-[radial-gradient(ellipse_80%_60%_at_50%_100%,rgba(139,92,246,0.22),transparent)]"
-        aria-hidden
-      />
-
-      <div className="relative border-t border-white/[0.06] bg-[#030308] px-4 pt-8 text-zinc-300">
-        <div className="affisell-footer-future__scanline mb-6 h-px w-full max-w-xs" aria-hidden />
+      <div className="relative px-4 pt-8">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <Link href="/" className="inline-block">
-              <span className="bg-gradient-to-r from-violet-300 via-fuchsia-300 to-sky-300 bg-clip-text text-xl font-bold text-transparent">
+            <Link href="/" className="inline-flex flex-wrap items-center gap-2">
+              <span className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-400/90 to-indigo-500/90 shadow-inner">
+                <Sparkles className="size-4 text-white" aria-hidden />
+              </span>
+              <span className="bg-gradient-to-r from-violet-200 via-fuchsia-200 to-sky-200 bg-clip-text text-xl font-bold text-transparent">
                 {content.siteTitle}
               </span>
+              <span className={footerLiveBadge}>Live</span>
             </Link>
-            <p className="mt-1 max-w-[16rem] text-xs leading-relaxed text-zinc-500">{content.tagline}</p>
+            <p className={cn("mt-2 max-w-[16rem]", footerHeroTagline)}>{content.tagline}</p>
           </div>
-          <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
-            <ShieldCheck className="size-4" aria-hidden />
+          <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 backdrop-blur-lg">
+            <ShieldCheck className="size-4 text-violet-200" aria-hidden />
           </span>
         </div>
 
         <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {content.quickLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="shrink-0 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11px] font-semibold text-zinc-200 backdrop-blur-sm transition hover:border-violet-500/40 hover:bg-violet-500/10 hover:text-violet-100"
-            >
+            <Link key={link.href} href={link.href} className={footerHeroPillBtn}>
               {link.label}
             </Link>
           ))}
         </div>
 
-        <div className="mt-5 overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl">
+        <div className={cn(footerHeroCard, "mt-5 overflow-hidden p-0")}>
           {content.sections.map((section) => (
             <FooterAccordion
               key={section.id}
@@ -119,23 +107,21 @@ export function FooterMobileShell({ content }: Props) {
           ))}
         </div>
 
-        <div className="mt-4 flex items-start gap-3 rounded-2xl border border-violet-500/20 bg-violet-500/[0.06] p-3">
-          <StripeBadge />
+        <div className={cn(footerHeroCard, "mt-4 flex items-start gap-3 p-3")}>
+          <span className={footerStripeBadge}>Stripe</span>
           <div className="min-w-0 space-y-1">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-violet-200/90">
-              {content.paymentTitle}
-            </p>
-            <p className="text-[11px] leading-snug text-zinc-400">{content.stripeNoticeShort}</p>
+            <p className={footerHeroTitle}>{content.paymentTitle}</p>
+            <p className="text-[11px] leading-snug text-violet-100/85">{content.stripeNoticeShort}</p>
           </div>
         </div>
 
-        <p className="affisell-site-footer__pad mt-5 pb-0 text-center text-[10px] leading-relaxed text-zinc-600">
+        <p className="affisell-site-footer__pad mt-5 pb-0 text-center text-[10px] leading-relaxed text-violet-100/70">
           {content.copyrightLine}{" "}
           <a
             href={content.odrHref}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-0.5 text-zinc-500 underline underline-offset-2 transition hover:text-violet-300"
+            className="inline-flex items-center gap-0.5 text-zinc-300 underline decoration-[#8B5CF6]/50 underline-offset-2 transition-all hover:text-white"
           >
             {content.odrLink}
             <ExternalLink className="size-2.5" aria-hidden />

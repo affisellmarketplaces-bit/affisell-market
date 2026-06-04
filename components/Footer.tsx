@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server"
 
 import { FooterDesktopFuture } from "@/components/footer/footer-desktop-future"
 import { FooterMobileShell } from "@/components/footer/footer-mobile-shell"
+import { footerHeroGrid, footerHeroShell } from "@/components/footer/footer-hero-tokens"
 import { readCompanyLegal } from "@/lib/legal/company-env"
 import type { FooterGlobalContent } from "@/lib/footer-global-sections"
 
@@ -68,15 +69,26 @@ export async function Footer() {
   return (
     <footer
       role="contentinfo"
-      className="affisell-site-footer affisell-footer-future relative mt-auto shrink-0 overflow-hidden border-t border-white/[0.06] bg-[#030308] text-zinc-300"
+      className={`affisell-site-footer affisell-footer-future ${footerHeroShell}`}
     >
-      <FooterMobileShell
-        content={{
-          ...footerContent,
-          tagline: t("mobileTagline"),
-        }}
+      <div className={footerHeroGrid} aria-hidden />
+      <div
+        className="pointer-events-none absolute -left-1/4 top-0 h-2/3 w-1/2 rounded-full bg-violet-500/20 blur-[80px]"
+        aria-hidden
       />
-      <FooterDesktopFuture content={footerContent} />
+      <div
+        className="pointer-events-none absolute -right-1/4 bottom-0 h-1/2 w-1/2 rounded-full bg-sky-500/15 blur-[70px]"
+        aria-hidden
+      />
+      <div className="relative z-10">
+        <FooterMobileShell
+          content={{
+            ...footerContent,
+            tagline: t("mobileTagline"),
+          }}
+        />
+        <FooterDesktopFuture content={footerContent} />
+      </div>
     </footer>
   )
 }

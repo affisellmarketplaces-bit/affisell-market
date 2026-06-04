@@ -1015,57 +1015,6 @@ body.affisell-demo-lab .affisell-header-shell {
     width: 100%;
   }
 
-  .affisell-footer-future__mesh {
-    background-image:
-      linear-gradient(rgba(139, 92, 246, 0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(139, 92, 246, 0.04) 1px, transparent 1px);
-    background-size: 48px 48px;
-    mask-image: linear-gradient(to bottom, black 0%, transparent 85%);
-  }
-
-  .affisell-footer-future__orb {
-    filter: blur(80px);
-  }
-
-  .affisell-footer-future__orb--violet {
-    background: radial-gradient(circle, rgba(139, 92, 246, 0.35) 0%, transparent 70%);
-  }
-
-  .affisell-footer-future__orb--cyan {
-    background: radial-gradient(circle, rgba(34, 211, 238, 0.25) 0%, transparent 70%);
-  }
-
-  .affisell-footer-future__scanline {
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(139, 92, 246, 0.6),
-      rgba(34, 211, 238, 0.6),
-      transparent
-    );
-    background-size: 200% 100%;
-    animation: affisell-footer-scan 8s ease-in-out infinite;
-  }
-
-  @keyframes affisell-footer-scan {
-    0%,
-    100% {
-      background-position: 0% 50%;
-      opacity: 0.5;
-    }
-    50% {
-      background-position: 100% 50%;
-      opacity: 1;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .affisell-footer-future__scanline {
-      animation: none;
-      opacity: 0.7;
-    }
-  }
-
   /** Dashboard / Bento — secondary copy legible on dark surfaces (WCAG-friendly). */
   .dash-muted {
     @apply text-gray-600 dark:text-zinc-300;
