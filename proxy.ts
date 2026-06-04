@@ -172,7 +172,8 @@ function rewriteStaticAppPath(req: NextRequest): NextResponse | null {
   return res
 }
 
-export async function middleware(req: NextRequest) {
+/** Next.js 16+ proxy (ex-middleware). */
+export async function proxy(req: NextRequest) {
   const pathname = req.nextUrl.pathname
 
   const customDomainResponse = await tryCustomDomainMiddleware(req)
@@ -374,6 +375,9 @@ export async function middleware(req: NextRequest) {
 
   return intlResponse
 }
+
+/** @deprecated Alias — use `proxy`. */
+export const middleware = proxy
 
 export const config = {
   matcher: [
