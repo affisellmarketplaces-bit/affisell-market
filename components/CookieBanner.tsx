@@ -1,6 +1,6 @@
 "use client"
 
-import CookieConsent, { Cookies } from "react-cookie-consent"
+import CookieConsent from "react-cookie-consent"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
@@ -10,6 +10,7 @@ import {
   COOKIE_CONSENT_CHANGED_EVENT,
   COOKIE_CONSENT_MAX_AGE_DAYS,
   readCookieConsentPrefsFromDocument,
+  removeNonEssentialCookies,
 } from "@/lib/legal/cookie-consent-runtime"
 import { COOKIE_CONSENT_COOKIE } from "@/lib/legal/consent"
 import { isImmersiveBuyerRoute } from "@/lib/mobile-chrome"
@@ -35,7 +36,7 @@ export default function CookieBanner() {
       marketing: false,
       updatedAt: new Date().toISOString(),
     })
-    removeGaCookies()
+    removeNonEssentialCookies()
   }
 
   return (
@@ -74,22 +75,6 @@ export default function CookieBanner() {
       </span>
     </CookieConsent>
   )
-}
-
-function removeGaCookies(): void {
-  const host = typeof window !== "undefined" ? window.location.hostname : ""
-  const names = typeof document !== "undefined"
-    ? document.cookie.split(";").map((c) => c.trim().split("=")[0])
-    : []
-  for (const name of names) {
-    if (name === "_ga" || name.startsWith("_ga_") || name === "_gid") {
-      Cookies.remove(name, { path: "/" })
-      if (host) {
-        Cookies.remove(name, { path: "/", domain: host })
-        Cookies.remove(name, { path: "/", domain: `.${host}` })
-      }
-    }
-  }
 }
 
 /** Gate Vercel Analytics / PostHog sur consentement analytics. */

@@ -1,5 +1,3 @@
-import { Cookies } from "react-cookie-consent"
-
 import {
   COOKIE_CONSENT_COOKIE,
   COOKIE_CONSENT_PREFS_COOKIE,
@@ -7,11 +5,11 @@ import {
   parseCookieConsent,
 } from "@/lib/legal/consent"
 
-/** 6 mois max — recommandation CNIL 2024. */
-export const COOKIE_CONSENT_MAX_AGE_DAYS = 180
-
-export const COOKIE_CONSENT_GRANTED_EVENT = "cookieConsentGranted"
-export const COOKIE_CONSENT_CHANGED_EVENT = "affisell:cookie-consent"
+export {
+  COOKIE_CONSENT_MAX_AGE_DAYS,
+  COOKIE_CONSENT_GRANTED_EVENT,
+  COOKIE_CONSENT_CHANGED_EVENT,
+} from "@/lib/legal/cookie-consent-constants"
 
 export function readCookieConsentPrefsFromDocument(): CookieConsentPrefs | null {
   if (typeof document === "undefined") return null
@@ -48,16 +46,16 @@ export function hasAnalyticsConsent(): boolean {
 }
 
 export function persistCookieConsentPrefs(prefs: CookieConsentPrefs): void {
-  const maxAge = COOKIE_CONSENT_MAX_AGE_DAYS * 24 * 60 * 60
+  const maxAge = 180 * 24 * 60 * 60
   const optionalGranted = prefs.analytics || prefs.marketing
   const bannerValue = optionalGranted ? "true" : "false"
 
   document.cookie = `${COOKIE_CONSENT_PREFS_COOKIE}=${encodeURIComponent(JSON.stringify(prefs))};path=/;max-age=${maxAge};SameSite=Lax`
   document.cookie = `${COOKIE_CONSENT_COOKIE}=${bannerValue};path=/;max-age=${maxAge};SameSite=Lax`
 
-  window.dispatchEvent(new CustomEvent(COOKIE_CONSENT_CHANGED_EVENT, { detail: prefs }))
+  window.dispatchEvent(new CustomEvent("affisell:cookie-consent", { detail: prefs }))
   if (optionalGranted) {
-    document.dispatchEvent(new Event(COOKIE_CONSENT_GRANTED_EVENT))
+    document.dispatchEvent(new Event("cookieConsentGranted"))
   }
 }
 
@@ -72,6 +70,11 @@ export function applyGtagConsent(prefs: Pick<CookieConsentPrefs, "analytics" | "
   })
 }
 
+function deleteBrowserCookie(name: string, path: string, domain?: string): void {
+  const base = `${name}=;path=${path};max-age=0;SameSite=Lax`
+  document.cookie = domain ? `${base};domain=${domain}` : base
+}
+
 export function removeNonEssentialCookies(): void {
   if (typeof document === "undefined") return
   const host = window.location.hostname
@@ -82,9 +85,11 @@ export function removeNonEssentialCookies(): void {
 
   for (const name of names) {
     if (name === "_ga" || name.startsWith("_ga_") || name === "_gid" || name.startsWith("_gat")) {
-      Cookies.remove(name, { path: "/" })
-      Cookies.remove(name, { path: "/", domain: host })
-      Cookies.remove(name, { path: "/", domain: `.${host}` })
+      deleteBrowserCookie(name, "/")
+      if (host) {
+        deleteBrowserCookie(name, "/", host)
+        deleteBrowserCookie(name, "/", `.${host}`)
+      }
     }
   }
 }
@@ -110,7 +115,7 @@ export function applyConsentChoice(prefs: CookieConsentPrefs): void {
   if (!prefs.analytics && !prefs.marketing) {
     removeNonEssentialCookies()
   } else {
-    document.dispatchEvent(new Event(COOKIE_CONSENT_GRANTED_EVENT))
+    document.dispatchEvent(new Event("cookieConsentGranted"))
   }
   void syncConsentToAccount(prefs)
   console.log("[cookie-consent]", {

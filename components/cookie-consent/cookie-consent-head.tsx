@@ -1,6 +1,6 @@
 import Script from "next/script"
 
-import { COOKIE_CONSENT_GRANTED_EVENT } from "@/lib/legal/cookie-consent-runtime"
+import { COOKIE_CONSENT_GRANTED_EVENT } from "@/lib/legal/cookie-consent-constants"
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim()
 

@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+.pnpm-store/
 apps/affisell-supplier-extension/node_modules
 apps/affisell-supplier-extension/dist
 /.pnp
