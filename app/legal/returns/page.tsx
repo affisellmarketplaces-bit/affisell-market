@@ -1,24 +1,8 @@
-import type { Metadata } from "next"
-import Link from "next/link"
+import { redirect } from "next/navigation"
 
-export const metadata: Metadata = {
-  title: "Returns & Refunds | Affisell",
-  description: "[TODO] Final EU legal copy to be inserted (GDPR, mediation, company IDs via NEXT_PUBLIC_* env).",
-}
+import { EU_LEGAL_ALIAS_TARGETS } from "@/lib/legal/eu-legal-alias-targets"
 
-export default function EuLegalAliasPage() {
-  return (
-    <main className="mx-auto max-w-3xl px-4 py-14 prose prose-zinc dark:prose-invert">
-      <h1>Returns & Refunds</h1>
-      <p className="not-prose rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-900 dark:text-amber-200">
-        <strong>[TODO] Final EU legal copy to be inserted (GDPR, mediation, company IDs via NEXT_PUBLIC_* env).</strong>
-      </p>
-      <p className="not-prose text-sm text-zinc-600 dark:text-zinc-400">
-        Interim canonical page:{" "}
-        <Link href="/returns" className="font-medium text-violet-600 underline dark:text-violet-300">
-          /returns
-        </Link>
-      </p>
-    </main>
-  )
+/** Alias EU → page canonique (/returns). */
+export default function EuLegalReturnsAliasPage() {
+  redirect(EU_LEGAL_ALIAS_TARGETS["returns"])
 }

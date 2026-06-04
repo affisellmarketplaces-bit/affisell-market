@@ -41,10 +41,10 @@ function NavColumn({
   accent: string
 }) {
   return (
-    <nav className={cn(footerHeroCardTile, "min-h-[12rem] justify-between")}>
+    <nav className={cn(footerHeroCardTile, "min-h-0 overflow-visible")}>
       <span className={cn(footerHeroGlow, accent)} aria-hidden />
       <h2 className={cn("relative", footerHeroTitle)}>{title}</h2>
-      <ul className="relative mt-4 space-y-2.5">
+      <ul className="relative mt-4 space-y-2.5 pb-1">
         {links.map((link) => (
           <FutureLink key={link.href + link.label} href={link.href}>
             {link.label}
