@@ -22,6 +22,12 @@ export function ensureDirectUrl() {
     }
     parsed.searchParams.delete("pgbouncer")
     parsed.searchParams.delete("connection_limit")
+    if (!parsed.searchParams.has("sslmode")) {
+      parsed.searchParams.set("sslmode", "require")
+    }
+    if (!parsed.searchParams.has("connect_timeout")) {
+      parsed.searchParams.set("connect_timeout", "60")
+    }
     const query = parsed.searchParams.toString()
     parsed.search = query ? `?${query}` : ""
     direct = parsed.toString()
