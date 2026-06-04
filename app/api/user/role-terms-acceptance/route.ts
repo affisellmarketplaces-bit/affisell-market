@@ -3,7 +3,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { logBusiness } from "@/lib/business-log"
 import { buildRoleTermsPayload } from "@/lib/legal/role-terms"
-import { logTermsAcceptance } from "@/lib/legal/terms-acceptance-log"
+import { logTermsAcceptanceFromRequest } from "@/lib/terms-logger"
 import { setTermsOkCookie } from "@/lib/legal/terms-acceptance-cookie"
 import { termsLogTypeForRole } from "@/lib/legal-versions"
 import { prisma } from "@/lib/prisma"
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     result: "ok",
   })
 
-  await logTermsAcceptance(req, user.id, termsLogTypeForRole(role))
+  await logTermsAcceptanceFromRequest(req, user.id, termsLogTypeForRole(role))
 
   const res = NextResponse.json({
     ok: true,

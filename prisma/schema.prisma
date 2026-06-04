@@ -154,15 +154,17 @@ model User {
 model TermsAcceptanceLog {
   id        String   @id @default(cuid())
   userId    String
+  /// `cgu` | `conditions-fournisseur` | `conditions-affilie`
   type      String
   version   String
   ip        String
-  userAgent String
+  userAgent String   @db.Text
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, type])
+  @@index([createdAt])
 }
 
 /**
