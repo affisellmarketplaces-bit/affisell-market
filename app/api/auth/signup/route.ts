@@ -1,7 +1,15 @@
+import * as Sentry from "@sentry/nextjs"
 import { NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 
 import { rateLimitClientKey, rateLimitResponse } from "@/lib/api-rate-limit"
+import {
+  clientIpFromRequest,
+  errorMessage,
+  errorStackSnippet,
+  flushLogs,
+  logger,
+} from "@/lib/logger"
 import { logBusiness } from "@/lib/business-log"
 import { prisma } from "@/lib/prisma"
 import { ensureMerchantStore } from "@/lib/ensure-store"
@@ -26,15 +34,22 @@ import { isValidSignupDraftId } from "@/lib/signup-draft-id"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-export async function POST(req: Request) {
-  const limited = rateLimitResponse(rateLimitClientKey(req), {
-    prefix: "signup",
-    limit: 8,
-    windowMs: 60 * 60 * 1000,
-  })
-  if (limited) return limited
+const ROUTE = "auth/signup"
 
+export async function POST(req: Request) {
   try {
+    const ip = clientIpFromRequest(req)
+    const limited = rateLimitResponse(rateLimitClientKey(req), {
+      prefix: "signup",
+      limit: 8,
+      windowMs: 60 * 60 * 1000,
+    })
+    if (limited) {
+      await logger.warn("Signup rate limited", { route: ROUTE, ip })
+      return limited
+    }
+
+    await logger.info("Signup attempt", { route: ROUTE, ip })
     const body = (await req.json()) as {
       email?: string
       password?: string
@@ -260,10 +275,18 @@ export async function POST(req: Request) {
       })
     }
 
+    await logger.info("Signup success", { route: ROUTE, ip, role: resolvedRole })
     return NextResponse.json({ ok: true }, { status: 201 })
   } catch (e: unknown) {
-    console.error("[signup]", e)
-    const message = e instanceof Error ? e.message : "Server error"
+    Sentry.captureException(e)
+    await logger.error("Signup failed", {
+      route: ROUTE,
+      error: errorMessage(e),
+      stack: errorStackSnippet(e),
+    })
+    const message = errorMessage(e)
     return NextResponse.json({ error: message }, { status: 500 })
+  } finally {
+    await flushLogs()
   }
 }
