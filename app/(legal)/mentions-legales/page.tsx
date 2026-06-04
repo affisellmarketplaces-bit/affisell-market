@@ -30,6 +30,11 @@ export default function MentionsLegalesPage() {
         <li>
           <strong>SIRET :</strong> {c.siret}
         </li>
+        {c.tva ? (
+          <li>
+            <strong>N° TVA intracommunautaire :</strong> FR{c.tva}
+          </li>
+        ) : null}
         <li>
           <strong>Siège social :</strong> {c.address}
         </li>
@@ -58,8 +63,8 @@ export default function MentionsLegalesPage() {
         CM2C - 14 rue Saint-Jean, 75017 Paris
         <br />
         Site :{" "}
-        <a href="https://www.cm2c.net" target="_blank" rel="noopener noreferrer">
-          https://www.cm2c.net
+        <a href={c.mediatorUrl} target="_blank" rel="noopener noreferrer">
+          {c.mediatorUrl.replace(/^https?:\/\//, "")}
         </a>
         <br />
         Email : <a href="mailto:contact@cm2c.net">contact@cm2c.net</a>

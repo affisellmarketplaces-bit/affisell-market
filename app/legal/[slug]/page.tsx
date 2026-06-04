@@ -1,7 +1,8 @@
 import type { Metadata } from "next"
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 
 import { LegalDocumentLayout } from "@/components/legal/legal-document-layout"
+import { LEGAL_MARKDOWN_CANONICAL_REDIRECTS } from "@/lib/legal/markdown-canonical-redirects"
 import { isLegalSlug, listLegalDocuments, loadLegalDocument, type LegalSlug } from "@/lib/legal/documents"
 
 export const dynamic = "force-dynamic"
@@ -21,6 +22,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function LegalSlugPage({ params }: Props) {
   const { slug } = await params
+  const canonical = LEGAL_MARKDOWN_CANONICAL_REDIRECTS[slug]
+  if (canonical) {
+    redirect(canonical)
+  }
   if (!isLegalSlug(slug)) notFound()
 
   let doc

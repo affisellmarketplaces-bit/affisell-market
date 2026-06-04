@@ -7,7 +7,7 @@ import { CompanyNav } from "@/components/company/company-nav"
 import { LiveStatsStrip } from "@/components/company/live-stats-strip"
 import { buttonVariants } from "@/components/ui/button"
 import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
-import { AFFISELL_LEGAL } from "@/lib/legal/entity"
+import { readAffisellLegalEntity } from "@/lib/legal/company-env"
 import { cn } from "@/lib/utils"
 
 export async function generateMetadata() {
@@ -20,6 +20,7 @@ const TIMELINE_KEYS = ["2024", "2025a", "2025b", "2026"] as const
 
 export default async function AboutPage() {
   const t = await getTranslations("companyPages.about")
+  const legal = readAffisellLegalEntity()
 
   return (
     <BentoShell>
@@ -78,13 +79,13 @@ export default async function AboutPage() {
               <Users className="size-5 text-violet-500" aria-hidden />
               {t("hq.title")}
             </h2>
-            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{AFFISELL_LEGAL.address}</p>
+            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{legal.address}</p>
             <p className="mt-1 text-sm">
               <a
-                href={`mailto:${AFFISELL_LEGAL.email}`}
+                href={`mailto:${legal.email}`}
                 className="font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
               >
-                {AFFISELL_LEGAL.email}
+                {legal.email}
               </a>
             </p>
           </div>

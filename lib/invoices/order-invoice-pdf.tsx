@@ -1,7 +1,7 @@
 import React from "react"
 import { Document, Page, StyleSheet, Text, View, renderToBuffer } from "@react-pdf/renderer"
 
-import { AFFISELL_LEGAL } from "@/lib/legal/entity"
+import { readAffisellLegalEntity } from "@/lib/legal/company-env"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 
 const styles = StyleSheet.create({
@@ -32,7 +32,9 @@ function money(cents: number) {
 }
 
 function InvoiceDocument({ type, order }: { type: InvoiceType; order: OrderInvoiceData }) {
-  const legalFooter = `${AFFISELL_LEGAL.companyName} · SIREN ${AFFISELL_LEGAL.siren} · TVA FR${AFFISELL_LEGAL.tva} · ${AFFISELL_LEGAL.address}`
+  const legal = readAffisellLegalEntity()
+  const tvaSuffix = legal.tva ? ` · TVA FR${legal.tva}` : ""
+  const legalFooter = `${legal.companyName} · SIREN ${legal.siren}${tvaSuffix} · ${legal.address}`
 
   let title = "Document"
   let lines: { label: string; amount: string }[] = []
@@ -57,7 +59,7 @@ function InvoiceDocument({ type, order }: { type: InvoiceType; order: OrderInvoi
       <Page size="A4" style={styles.page}>
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.meta}>
-          {AFFISELL_LEGAL.companyName} · Commande {order.orderId.slice(0, 12)} · {order.createdAt}
+          {legal.companyName} · Commande {order.orderId.slice(0, 12)} · {order.createdAt}
         </Text>
         <Text style={styles.meta}>Produit : {order.productName}</Text>
         {type === "CUSTOMER" ? <Text style={styles.meta}>Client : {order.customerEmail}</Text> : null}

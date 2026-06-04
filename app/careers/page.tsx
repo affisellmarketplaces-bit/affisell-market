@@ -5,7 +5,7 @@ import { Briefcase, MapPin, ArrowRight } from "lucide-react"
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { CompanyNav } from "@/components/company/company-nav"
 import { CAREER_SLUGS } from "@/lib/company/types"
-import { AFFISELL_LEGAL } from "@/lib/legal/entity"
+import { readAffisellLegalEntity } from "@/lib/legal/company-env"
 import { cn } from "@/lib/utils"
 
 export async function generateMetadata() {
@@ -15,6 +15,7 @@ export async function generateMetadata() {
 
 export default async function CareersPage() {
   const t = await getTranslations("companyPages.careers")
+  const legal = readAffisellLegalEntity()
 
   return (
     <BentoShell>
@@ -87,7 +88,7 @@ export default async function CareersPage() {
           >
             careers@affisell.com
           </a>
-          <p className="mt-3 text-xs text-zinc-500">{AFFISELL_LEGAL.companyName} · {AFFISELL_LEGAL.address}</p>
+          <p className="mt-3 text-xs text-zinc-500">{legal.companyName} · {legal.address}</p>
         </BentoCard>
       </BentoContainer>
     </BentoShell>
