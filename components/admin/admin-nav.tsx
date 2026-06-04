@@ -16,6 +16,7 @@ const LINKS = [
   { href: "/admin/queues", label: "Queues" },
   { href: "/admin/splits", label: "Splits" },
   { href: "/admin/reviews", label: "Avis" },
+  { href: "/admin/rgpd-registre", label: "RGPD" },
 ] as const
 
 export function AdminNav() {
@@ -36,7 +37,8 @@ export function AdminNav() {
                 pathname.startsWith(`${link.href}/`)) ||
               (link.href === "/admin/sentinel" && pathname.startsWith("/admin/sentinel")) ||
               (link.href === "/admin/auto-fulfill" &&
-                (pathname.startsWith("/admin/products") || pathname === "/admin/auto-fulfill"))
+                (pathname.startsWith("/admin/products") || pathname === "/admin/auto-fulfill")) ||
+              (link.href === "/admin/rgpd-registre" && pathname.startsWith("/admin/rgpd-registre"))
             return (
               <Link
                 key={link.href}
