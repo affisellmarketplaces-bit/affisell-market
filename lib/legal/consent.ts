@@ -55,4 +55,8 @@ export function parseCookieConsent(raw: unknown): CookieConsentPrefs | null {
   }
 }
 
+/** Valeur `true` / `false` (react-cookie-consent) ou JSON legacy. */
 export const COOKIE_CONSENT_COOKIE = "affisell_cookie_consent"
+
+/** Préférences granulaires (analytics / marketing). */
+export const COOKIE_CONSENT_PREFS_COOKIE = "affisell_cookie_prefs"

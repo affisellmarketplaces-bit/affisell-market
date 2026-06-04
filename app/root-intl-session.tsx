@@ -2,7 +2,6 @@
 
 import { SessionProvider } from "next-auth/react"
 import { AnalyticsGated } from "@/components/legal/analytics-gated"
-import { CookieConsentBanner } from "@/components/legal/cookie-consent-banner"
 import { ImmersiveChromeSync } from "@/components/layout/immersive-chrome-sync"
 import { NavigationShell } from "@/components/navigation/navigation-shell"
 import { MobileAwareToaster } from "@/components/providers/mobile-aware-toaster"
@@ -16,7 +15,6 @@ export function RootSessionShell({ children }: { children: React.ReactNode }) {
         <NavigationShell />
         {children}
         <MobileAwareToaster />
-        <CookieConsentBanner />
         <AnalyticsGated />
       </SessionProvider>
     </ThemeProvider>

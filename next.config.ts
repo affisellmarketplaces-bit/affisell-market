@@ -18,7 +18,7 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/terms", destination: "/cgu", permanent: true },
-      { source: "/cookies", destination: "/legal/cookies-policy", permanent: true },
+      { source: "/legal/cookies-policy", destination: "/cookies", permanent: true },
       { source: "/legal/privacy-policy", destination: "/privacy", permanent: true },
       { source: "/legal/mentions", destination: "/mentions-legales", permanent: true },
       { source: "/legal/refund-policy", destination: "/returns", permanent: true },

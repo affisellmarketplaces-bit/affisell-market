@@ -90,7 +90,7 @@ export function GdprAccountPanel() {
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Consentements cookies</h2>
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
           Gérez les catégories analytics et marketing.{" "}
-          <Link href="/legal/cookies-policy" className="text-violet-700 underline-offset-2 hover:underline dark:text-violet-300">
+          <Link href="/cookies" className="text-violet-700 underline-offset-2 hover:underline dark:text-violet-300">
             Politique cookies
           </Link>
         </p>

@@ -62,6 +62,7 @@ export async function Footer() {
           { href: "/conditions-affilie", label: t("affiliateConditions") },
           { href: "/mentions-legales", label: t("legalNotice") },
           { href: "/privacy", label: t("privacyPolicy") },
+          { href: "/cookies", label: t("cookieSettings") },
           { href: "/returns", label: t("returns") },
         ],
       },
@@ -130,6 +131,7 @@ export async function Footer() {
               <FooterLink href="/conditions-affilie">{t("affiliateConditions")}</FooterLink>
               <FooterLink href="/mentions-legales">{t("legalNotice")}</FooterLink>
               <FooterLink href="/privacy">{t("privacyPolicy")}</FooterLink>
+              <FooterLink href="/cookies">{t("cookieSettings")}</FooterLink>
               <FooterLink href="/returns">{t("returns")}</FooterLink>
             </ul>
           </nav>

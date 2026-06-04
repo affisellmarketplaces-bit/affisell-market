@@ -1,5 +1,7 @@
 import { Footer } from "@/components/Footer"
 import { AppHeader } from "@/components/nav/app-header"
+import { CookieConsentHeadScripts } from "@/components/cookie-consent/cookie-consent-head"
+import CookieBanner from "@/components/CookieBanner"
 import { RootSessionShell } from "@/app/root-intl-session"
 import { IntlAppProvider } from "@/components/providers/intl-app-provider"
 import { bootstrapRootShell } from "@/lib/safe-root-bootstrap"
@@ -18,6 +20,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className="affisell-mobile-shell affisell-epoxy-atmosphere flex min-h-dvh flex-col text-gray-900 [font-family:Inter,system-ui] dark:text-zinc-50">
+        <CookieConsentHeadScripts />
         <IntlAppProvider locale={locale} messages={messages} now={now}>
           <RootSessionShell>
             <header className="affisell-global-site-header relative z-[200] w-full max-w-full shrink-0 overflow-x-clip px-3 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-4 md:pt-3">
@@ -31,6 +34,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <div className="affisell-page-shell">{children}</div>
             <Footer />
           </RootSessionShell>
+          <CookieBanner />
         </IntlAppProvider>
       </body>
     </html>

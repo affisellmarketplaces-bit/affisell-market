@@ -11,6 +11,7 @@ const LEGAL_NAV = [
   { href: "/conditions-affilie", label: "Affilié" },
   { href: "/mentions-legales", label: "Mentions légales" },
   { href: "/privacy", label: "Confidentialité" },
+  { href: "/cookies", label: "Cookies" },
   { href: "/returns", label: "Retours" },
   { href: "/contact", label: "Contact" },
 ] as const
