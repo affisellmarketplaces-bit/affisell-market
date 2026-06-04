@@ -29,16 +29,32 @@ export async function Footer() {
       {
         id: "legal",
         title: t("legalTitle"),
-        links: [
-          { href: "/cgv", label: t("cgv") },
-          { href: "/cgu", label: t("cgu") },
-          { href: "/conditions-fournisseur", label: t("supplierConditions") },
-          { href: "/conditions-affilie", label: t("affiliateConditions") },
-          { href: "/mentions-legales", label: t("legalNotice") },
-          { href: "/privacy", label: t("privacyPolicy") },
-          { href: "/cookies", label: t("cookieSettings") },
-          { href: "/returns", label: t("returns") },
-        ],
+        links: (() => {
+          const legalLinks = [
+            { href: "/cgv", label: t("cgv") },
+            { href: "/cgu", label: t("cgu") },
+            { href: "/conditions-fournisseur", label: t("supplierConditions") },
+            { href: "/conditions-affilie", label: t("affiliateConditions") },
+            { href: "/mentions-legales", label: t("legalNotice") },
+            { href: "/privacy", label: t("privacyPolicy") },
+            { href: "/cookies", label: t("cookieSettings") },
+            { href: "/returns", label: t("returns") },
+          ]
+          const euAliasLinks = [
+            { href: "/legal/terms-of-sale", label: t("cgv") },
+            { href: "/legal/privacy-policy", label: t("privacyPolicy") },
+            { href: "/legal/cookie-policy", label: t("cookieSettings") },
+            { href: "/legal/legal-notice", label: t("legalNotice") },
+            { href: "/legal/returns", label: t("returns") },
+          ]
+          const existingHrefs = new Set(legalLinks.map((l) => l.href))
+          for (const link of euAliasLinks) {
+            if (existingHrefs.has(link.href)) continue
+            legalLinks.push(link)
+            existingHrefs.add(link.href)
+          }
+          return legalLinks
+        })(),
       },
       {
         id: "support",
