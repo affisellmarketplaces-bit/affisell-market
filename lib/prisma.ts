@@ -2,11 +2,13 @@ if (typeof window !== "undefined") {
   throw new Error("PrismaClient cannot be used in the browser")
 }
 
-import { PrismaClient } from "@prisma/client"
+import { Prisma, PrismaClient } from "@prisma/client"
 
+import {
+  isRetryablePrismaConnectionError,
+  prismaErrorCode,
+} from "@/lib/prisma-connection-error"
 import { getPrismaDatasourceUrl } from "@/lib/prisma-datasource-url"
-
-const PRISMA_RETRYABLE = new Set(["P1017", "P2024", "P1001"])
 
 type PrismaGlobal = typeof globalThis & {
   __affisellPrisma?: PrismaClient
@@ -15,14 +17,11 @@ type PrismaGlobal = typeof globalThis & {
 
 const globalForPrisma = globalThis as PrismaGlobal
 
-function prismaErrorCode(error: unknown): string {
-  if (typeof error === "object" && error !== null && "code" in error) {
-    return String((error as { code: string }).code)
-  }
-  return ""
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-function createPrismaClient(): PrismaClient {
+function createBasePrismaClient(): PrismaClient {
   const url = getPrismaDatasourceUrl()
   globalForPrisma.__affisellPrismaUrl = url
 
@@ -37,11 +36,132 @@ function createPrismaClient(): PrismaClient {
   })
 }
 
+function modelDelegateKey(model: string): string {
+  if (!model) return ""
+  return model.charAt(0).toLowerCase() + model.slice(1)
+}
+
+type QueryExtensionArgs = {
+  model: string
+  operation: string
+  args: unknown
+  query: (args: unknown) => Promise<unknown>
+}
+
+async function runQueryOnFreshClient({
+  model,
+  operation,
+  args,
+}: Omit<QueryExtensionArgs, "query">): Promise<unknown> {
+  const client = getPrismaSingleton() as PrismaClient & Record<string, unknown>
+  const key = modelDelegateKey(model)
+
+  if (!key) {
+    const rootOp = client[operation]
+    if (typeof rootOp === "function") {
+      return (rootOp as (a: unknown) => Promise<unknown>).call(client, args)
+    }
+    throw new Error(`[prisma] unknown root operation ${operation}`)
+  }
+
+  const delegate = client[key] as Record<string, (a: unknown) => Promise<unknown>> | undefined
+  const op = delegate?.[operation]
+  if (!op) {
+    throw new Error(`[prisma] unknown delegate ${key}.${operation}`)
+  }
+  return op.call(delegate, args)
+}
+
+async function executeWithReconnect({
+  model,
+  operation,
+  args,
+  query,
+}: QueryExtensionArgs): Promise<unknown> {
+  const maxRetries = 2
+  let lastError: unknown
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      if (attempt === 0) {
+        return await query(args)
+      }
+      return await runQueryOnFreshClient({ model, operation, args })
+    } catch (error) {
+      lastError = error
+      if (!isRetryablePrismaConnectionError(error) || attempt >= maxRetries) {
+        throw error
+      }
+      const delayMs = 50 * (attempt + 1) ** 2
+      console.warn(
+        `[prisma] ${prismaErrorCode(error) || "connection"} — reset & retry ${attempt + 1}/${maxRetries} in ${delayMs}ms`
+      )
+      await resetPrismaClient()
+      await sleep(delayMs)
+      try {
+        await getPrismaSingleton().$connect()
+      } catch {
+        /* next attempt may still succeed */
+      }
+    }
+  }
+
+  throw lastError
+}
+
+function createPrismaClient(): PrismaClient {
+  const base = createBasePrismaClient()
+  const extended = base.$extends({
+    name: "affisell-reconnect",
+    query: {
+      $allModels: {
+        async $allOperations(ctx) {
+          return executeWithReconnect({
+            model: ctx.model,
+            operation: ctx.operation,
+            args: ctx.args,
+            query: ctx.query,
+          })
+        },
+      },
+      async $queryRaw(ctx) {
+        return executeWithReconnect({
+          model: "",
+          operation: "$queryRaw",
+          args: ctx.args,
+          query: ctx.query,
+        })
+      },
+      async $executeRaw(ctx) {
+        return executeWithReconnect({
+          model: "",
+          operation: "$executeRaw",
+          args: ctx.args,
+          query: ctx.query,
+        })
+      },
+    },
+  })
+  return extended as unknown as PrismaClient
+}
+
 function assertPrismaServerOnly(): void {
   if (typeof window !== "undefined") {
     throw new Error(
       "[prisma] PrismaClient is server-only — import query constants from @/lib/marketplace-query-params in client components"
     )
+  }
+}
+
+/** Drop cached engine after pooler/admin disconnect (E57P01 / P1017). */
+export async function resetPrismaClient(): Promise<void> {
+  const cached = globalForPrisma.__affisellPrisma
+  globalForPrisma.__affisellPrisma = undefined
+  if (!cached) return
+  try {
+    await cached.$disconnect()
+  } catch {
+    /* stale socket */
   }
 }
 
@@ -78,19 +198,26 @@ export const prisma: PrismaClient = new Proxy({} as PrismaClient, {
 
 /** Warm pool on server boot (instrumentation). */
 export async function connectPrismaWithRetry(): Promise<void> {
-  try {
-    await prisma.$connect()
-  } catch (e) {
-    console.warn("[prisma] $connect:", e)
+  const maxAttempts = 3
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      await prisma.$connect()
+      await prisma.$queryRaw(Prisma.sql`SELECT 1`)
+      return
+    } catch (e) {
+      if (!isRetryablePrismaConnectionError(e) || attempt >= maxAttempts - 1) {
+        console.warn("[prisma] $connect:", e)
+        return
+      }
+      console.warn(`[prisma] warm connect retry ${attempt + 1}/${maxAttempts - 1}`)
+      await resetPrismaClient()
+      await sleep(80 * (attempt + 1))
+    }
   }
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
 /**
- * Retry transient Neon / pool errors (P1017 disconnect, P2024 pool timeout).
+ * Retry transient Neon / pool errors (P1017, P2024, E57P01 admin terminate).
  */
 export async function withPrismaReconnect<T>(
   fn: () => Promise<T>,
@@ -104,17 +231,19 @@ export async function withPrismaReconnect<T>(
       return await fn()
     } catch (error) {
       lastError = error
-      const code = prismaErrorCode(error)
-      if (!PRISMA_RETRYABLE.has(code) || attempt >= maxRetries) {
+      if (!isRetryablePrismaConnectionError(error) || attempt >= maxRetries) {
         throw error
       }
-      const delayMs = 40 * (attempt + 1) ** 2
-      console.warn(`[prisma] ${code} — retry ${attempt + 1}/${maxRetries} in ${delayMs}ms`)
+      const delayMs = 50 * (attempt + 1) ** 2
+      console.warn(
+        `[prisma] ${prismaErrorCode(error) || "connection"} — retry ${attempt + 1}/${maxRetries} in ${delayMs}ms`
+      )
+      await resetPrismaClient()
       await sleep(delayMs)
       try {
-        await prisma.$connect()
+        await getPrismaSingleton().$connect()
       } catch {
-        /* next attempt may still succeed */
+        /* next attempt */
       }
     }
   }

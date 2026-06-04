@@ -49,7 +49,10 @@ export function augmentPrismaDatasourceUrl(rawUrl: string): string {
 }
 
 export function getPrismaDatasourceUrl(): string {
-  const raw = process.env.DATABASE_URL?.trim()
+  const isDev = process.env.NODE_ENV === "development"
+  const useDirectInDev =
+    isDev && process.env.PRISMA_USE_DIRECT_DEV === "1" && process.env.DIRECT_URL?.trim()
+  const raw = (useDirectInDev ? process.env.DIRECT_URL : process.env.DATABASE_URL)?.trim()
   if (!raw) {
     throw new Error("DATABASE_URL is not set")
   }
