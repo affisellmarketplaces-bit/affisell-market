@@ -74,12 +74,14 @@ export function FooterMobileShell({ content }: Props) {
 
   return (
     <div className="relative md:hidden">
+      <div className="affisell-footer-future__mesh pointer-events-none absolute inset-0 opacity-60" aria-hidden />
       <div
         className="pointer-events-none absolute inset-x-0 -top-24 h-32 bg-[radial-gradient(ellipse_80%_60%_at_50%_100%,rgba(139,92,246,0.22),transparent)]"
         aria-hidden
       />
 
-      <div className="relative border-t border-white/[0.06] bg-gradient-to-b from-zinc-950 via-[#07070d] to-black px-4 pt-8 text-zinc-300">
+      <div className="relative border-t border-white/[0.06] bg-[#030308] px-4 pt-8 text-zinc-300">
+        <div className="affisell-footer-future__scanline mb-6 h-px w-full max-w-xs" aria-hidden />
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <Link href="/" className="inline-block">
