@@ -26,6 +26,7 @@ import {
   variantsFromDb,
 } from "@/lib/product-variants"
 import { stripeProductImages } from "@/lib/product-images"
+import { stripeCheckoutAllowedCountries } from "@/lib/eu-market-countries"
 import { marketplaceCheckoutPaymentSessionOptions } from "@/lib/marketplace-checkout-payment-methods"
 import {
   buildHtLineItem,
@@ -260,7 +261,7 @@ async function checkoutFromItems(
     customer_creation: "always",
     billing_address_collection: "required",
     shipping_address_collection: {
-      allowed_countries: ["US", "CA", "GB", "FR", "DE", "ES", "IT", "PT", "BE", "NL", "CH"],
+      allowed_countries: stripeCheckoutAllowedCountries(),
     },
     phone_number_collection: { enabled: true },
     payment_intent_data: {
@@ -430,7 +431,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
     customer_creation: "always",
     billing_address_collection: "required",
     shipping_address_collection: {
-      allowed_countries: ["US", "CA", "GB", "FR", "DE", "ES", "IT", "PT", "BE", "NL", "CH"],
+      allowed_countries: stripeCheckoutAllowedCountries(),
     },
     phone_number_collection: { enabled: true },
     payment_intent_data: {

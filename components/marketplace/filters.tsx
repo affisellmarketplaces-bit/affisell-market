@@ -2,7 +2,7 @@
 
 import { Loader2 } from "lucide-react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import useSWR from "swr"
 
 import {
@@ -34,6 +34,13 @@ const SHIP_LABELS: Record<string, { fr: string; en: string }> = {
   eu: { fr: "Union européenne", en: "European Union" },
 }
 
+function shipsFromLabel(value: string, locale: string, euShipsLabel: string): string {
+  if (value === "eu") return euShipsLabel
+  const row = SHIP_LABELS[value]
+  if (!row) return value
+  return locale === "en" ? row.en : row.fr
+}
+
 const DELIVERY_LABELS: Record<string, { fr: string; en: string }> = {
   under3: { fr: "≤ 3 jours", en: "≤ 3 days" },
   under7: { fr: "≤ 7 jours", en: "≤ 7 days" },
@@ -62,6 +69,7 @@ export function MarketplaceFilters({
 }: Props) {
   const t = useTranslations("marketplace.browse")
   const tAuth = useTranslations("auth")
+  const locale = useLocale()
   const router = useRouter()
   const pathname = usePathname() ?? ""
   const catalogBase = catalogBaseFromPath(pathname)
@@ -111,8 +119,7 @@ export function MarketplaceFilters({
       if (row) return row.fr
     }
     if (facetKey === "shipsFrom") {
-      const row = SHIP_LABELS[value]
-      if (row) return row.fr
+      return shipsFromLabel(value, locale, t("euShipsLabel"))
     }
     if (facetKey === "delivery") {
       const row = DELIVERY_LABELS[value]

@@ -739,6 +739,15 @@
       "priceFrom": "À partir de {price} €",
       "seeAllResults": "Voir tous les résultats"
     },
+    "euCoverage": {
+      "aria": "Couverture livraison Europe",
+      "badge": "Pan-UE",
+      "eyebrow": "{euCount} pays UE",
+      "title": "Achetez dans toute l’Europe — une seule marketplace",
+      "subtitle": "Paiement vers {count} pays · prix en EUR · TVA calculée au checkout",
+      "stripeTax": "Stripe Tax",
+      "footnote": "La livraison dépend de la zone d’expédition de chaque fournisseur. Filtrez par « Union européenne » dans la colonne filtres."
+    },
     "browse": {
       "ariaEmbedded": "Explorer et acheter",
       "eyebrowBuyer": "Découvrir · Acheter",
@@ -757,6 +766,7 @@
       "noFacets": "Aucun filtre pour cette catégorie.",
       "filtersTitle": "Filtres",
       "filtersHint": "Comme sur Amazon — par caractéristique",
+      "euShipsLabel": "Union européenne (27 pays)",
       "freeShippingFacet": "Livraison offerte",
       "embeddedEyebrow": "Shopping · Live",
       "embeddedTitle": "Découvrir & acheter",

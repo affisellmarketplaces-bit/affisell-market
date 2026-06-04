@@ -12,6 +12,7 @@ import {
 } from "@/lib/marketplace-discovery-facets-shared"
 import { loadMarketplaceCategoryTreeCached } from "@/lib/marketplace-category-tree"
 import type { MarketplaceFacet } from "@/lib/marketplace-facet-types"
+import { EU_MEMBER_COUNT, prismaProductShipsFromEuWhere } from "@/lib/eu-market-countries"
 import { prisma, withPrismaReconnect } from "@/lib/prisma"
 
 export { DISCOVERY_FACET_KEYS, parseDeptFacetValue } from "@/lib/marketplace-discovery-facets-shared"
@@ -88,9 +89,7 @@ export async function loadGlobalMarketplaceDiscoveryFacets(
     listingCount({ sellingPriceCents: { gt: 2500, lte: 10000 } }),
     listingCount({ sellingPriceCents: { gt: 10000 } }),
     countListingsForProductWhere({ shippingCountry: "FR" }),
-    countListingsForProductWhere({
-      OR: [{ shippingCountry: { in: ["FR", "DE", "ES", "IT", "BE", "NL"] } }, { warehouseType: "regional" }],
-    }),
+    countListingsForProductWhere(prismaProductShipsFromEuWhere()),
     countListingsForProductWhere({ deliveryMax: { lte: 3 } }),
     countListingsForProductWhere({ deliveryMax: { lte: 7 } }),
     countListingsForProductWhere({
@@ -125,7 +124,13 @@ export async function loadGlobalMarketplaceDiscoveryFacets(
 
   const shipValues = [
     { value: "fr", count: frShip, label: isEn ? "France" : "France" },
-    { value: "eu", count: euShip, label: isEn ? "European Union" : "Union européenne" },
+    {
+      value: "eu",
+      count: euShip,
+      label: isEn
+        ? `European Union (${EU_MEMBER_COUNT} countries)`
+        : `Union européenne (${EU_MEMBER_COUNT} pays)`,
+    },
   ].filter((v) => v.count > 0)
 
   if (shipValues.length > 0) {

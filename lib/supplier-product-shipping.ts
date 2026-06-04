@@ -1,8 +1,9 @@
 import { Prisma } from "@prisma/client"
 
+import { EU_MEMBER_SET as EU_COUNTRIES } from "@/lib/eu-market-countries"
+
 const WAREHOUSE_TYPES = new Set(["local", "regional", "international"])
 const METHOD_KEYS = new Set(["standard", "express", "pickup"])
-const EU_COUNTRIES = new Set(["FR", "DE", "ES", "IT"])
 
 export type ParsedProductShipping = {
   shippingCountry: string | null

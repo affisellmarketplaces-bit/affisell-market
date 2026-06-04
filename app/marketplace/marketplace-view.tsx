@@ -15,6 +15,7 @@ import { usePreviewAsCustomer } from "@/hooks/usePreviewAsCustomer"
 import { useUserRole } from "@/hooks/useUserRole"
 import { canShowBusinessProductData } from "@/lib/user-role"
 import { MarketplaceFilters } from "@/components/marketplace/filters"
+import { EuCoverageBanner } from "@/components/marketplace/eu-coverage-banner"
 import { MarketplaceAffisellPulse } from "@/components/marketplace/MarketplaceAffisellPulse"
 import { MobileCatalogChrome } from "@/components/marketplace/mobile-catalog-chrome"
 import { MarketplaceDepartmentRail } from "@/components/marketplace/MarketplaceDepartmentRail"
@@ -393,6 +394,7 @@ export function MarketplaceView({
         />
         {!embedded || isCustomerBrowse ? (
           <div className={cn(mobileCatalogShell && "hidden md:block")}>
+            {isCustomerBrowse ? <EuCoverageBanner className="mb-4" /> : null}
             <MarketplaceAffisellPulse audience={isCustomerBrowse ? "buyer" : "default"} />
           </div>
         ) : null}

@@ -739,6 +739,15 @@
       "priceFrom": "From €{price}",
       "seeAllResults": "See all results"
     },
+    "euCoverage": {
+      "aria": "European delivery coverage",
+      "badge": "Pan-EU",
+      "eyebrow": "{euCount} EU markets",
+      "title": "Shop across Europe — one marketplace",
+      "subtitle": "Checkout to {count} countries · prices in EUR · VAT calculated at payment",
+      "stripeTax": "Stripe Tax",
+      "footnote": "Delivery depends on each supplier’s shipping zone. Filter by « European Union » in the sidebar."
+    },
     "browse": {
       "ariaEmbedded": "Explore and shop",
       "eyebrowBuyer": "Discover · Shop",
@@ -757,6 +766,7 @@
       "noFacets": "No filters for this category.",
       "filtersTitle": "Filters",
       "filtersHint": "By product attribute",
+      "euShipsLabel": "European Union (27 countries)",
       "freeShippingFacet": "Free shipping",
       "embeddedEyebrow": "Shopping · Live",
       "embeddedTitle": "Discover & shop",
