@@ -12,6 +12,13 @@ import { LOCALE_COOKIE, localeCookieMaxAgeSec, resolveAppLocale } from "@/lib/i1
 import { localeFromPathname, pathnameWithoutLocale } from "@/lib/locale-path"
 import { loginAffiliatePath, loginSupplierPath, resolvePostLoginRedirect } from "@/lib/login-redirect"
 import { tryCustomDomainMiddleware } from "@/lib/middleware-custom-domain"
+import {
+  isMerchantTermsExemptPath,
+  isMerchantTermsGatedPath,
+  isReacceptTermsPath,
+  merchantTermsGateOk,
+  reacceptTermsUrl,
+} from "@/lib/middleware-terms-gate"
 import { isStaticAppPathname, staticAppRewriteTarget } from "@/lib/reserved-locale-segments"
 
 const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
@@ -295,6 +302,17 @@ export async function middleware(req: NextRequest) {
         }
         return NextResponse.redirect(new URL(loginAffiliatePath(path), req.url))
       }
+    }
+
+    if (
+      loggedIn &&
+      (role === "SUPPLIER" || role === "AFFILIATE") &&
+      isMerchantTermsGatedPath(bare) &&
+      !isMerchantTermsExemptPath(bare) &&
+      !isReacceptTermsPath(bare) &&
+      !merchantTermsGateOk(req, role, token)
+    ) {
+      return NextResponse.redirect(reacceptTermsUrl(req, path))
     }
 
     const isAdminArea = bare === "/admin" || bare.startsWith("/admin/")

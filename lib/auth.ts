@@ -282,19 +282,43 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return true
     },
 
-    async jwt({ token, user }) {
-      if (!user?.id) return token as JWT
+    async jwt({ token, user, trigger }) {
+      const userId =
+        user?.id ?? (typeof token.sub === "string" ? token.sub : undefined)
+      if (!userId) return token as JWT
+
+      const shouldRefresh = Boolean(user?.id) || trigger === "update"
+      if (!shouldRefresh && token.role) return token as JWT
 
       const row = await prisma.user.findUnique({
-        where: { id: user.id },
-        select: { role: true, image: true, name: true, email: true },
+        where: { id: userId },
+        select: {
+          role: true,
+          image: true,
+          name: true,
+          email: true,
+          termsAcceptedVersion: true,
+          cguVersion: true,
+        },
       })
-      token.id = user.id
-      token.role = row?.role ?? (user as { role?: string }).role ?? "CUSTOMER"
-      token.email = row?.email ?? user.email ?? token.email
+
+      token.id = userId
+      token.role = row?.role ?? (user as { role?: string }).role ?? (token.role as string) ?? "CUSTOMER"
+      token.termsAcceptedVersion = row?.termsAcceptedVersion ?? null
+      token.cguVersion = row?.cguVersion ?? null
+      token.email = row?.email ?? user?.email ?? (token.email as string | undefined)
       token.picture =
-        typeof row?.image === "string" ? row.image : typeof user.image === "string" ? user.image : (token.picture as string | undefined)
-      token.name = typeof row?.name === "string" ? row.name : typeof user.name === "string" ? user.name : (token.name as string | undefined)
+        typeof row?.image === "string"
+          ? row.image
+          : typeof user?.image === "string"
+            ? user.image
+            : (token.picture as string | undefined)
+      token.name =
+        typeof row?.name === "string"
+          ? row.name
+          : typeof user?.name === "string"
+            ? user.name
+            : (token.name as string | undefined)
       return token as JWT
     },
 

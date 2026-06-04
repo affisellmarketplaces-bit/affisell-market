@@ -1,6 +1,8 @@
-import { CGA_VERSION } from "@/lib/legal/cga"
-import { CGS_VERSION } from "@/lib/legal/cgs"
 import type { MerchantRole } from "@/lib/legal/consent"
+import {
+  CURRENT_TERMS_VERSION,
+  isRoleTermsVersionCurrent,
+} from "@/lib/legal-versions"
 
 export function roleTermsHrefForRole(role: MerchantRole): string {
   if (role === "SUPPLIER") return "/conditions-fournisseur"
@@ -15,24 +17,25 @@ export function roleTermsLabelForRole(role: MerchantRole): string {
 }
 
 export function roleTermsVersionKey(role: MerchantRole): string {
-  return role === "SUPPLIER" ? `cga:${CGA_VERSION}` : `cgs:${CGS_VERSION}`
+  if (role === "SUPPLIER") return CURRENT_TERMS_VERSION.SUPPLIER
+  if (role === "AFFILIATE") return CURRENT_TERMS_VERSION.AFFILIATE
+  return ""
 }
 
 export function hasRoleTermsAccepted(
   termsAcceptedVersion: string | null | undefined,
   role: MerchantRole
 ): boolean {
-  if (!termsAcceptedVersion?.trim()) return false
-  const expected = roleTermsVersionKey(role)
-  if (termsAcceptedVersion === expected) return true
+  if (role !== "SUPPLIER" && role !== "AFFILIATE") return false
+  if (isRoleTermsVersionCurrent(role, termsAcceptedVersion)) return true
   const legacySlug = role === "SUPPLIER" ? "terms-supplier" : "terms-affiliate"
-  return termsAcceptedVersion.includes(legacySlug) || termsAcceptedVersion.includes(expected.split(":")[0]!)
+  return Boolean(termsAcceptedVersion?.includes(legacySlug))
 }
 
 export function buildRoleTermsPayload(role: "SUPPLIER" | "AFFILIATE") {
   const now = new Date()
   return {
     termsAcceptedAt: now,
-    termsAcceptedVersion: roleTermsVersionKey(role),
+    termsAcceptedVersion: CURRENT_TERMS_VERSION[role],
   }
 }

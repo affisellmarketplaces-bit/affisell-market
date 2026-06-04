@@ -142,10 +142,27 @@ model User {
   /** KYC / legal onboarding for SUPPLIER & AFFILIATE (status + documents). */
   merchantLegalProfile MerchantLegalProfile?
 
+  termsAcceptanceLogs TermsAcceptanceLog[]
+
   /**
    * CUSTOMER checkout account: INDIVIDUAL (particulier) or PROFESSIONAL (facturation pro).
    */
   buyerAccountType String?
+}
+
+/** Preuve horodatée d'acceptation CGU / conditions (art. 1366 C. civ.). */
+model TermsAcceptanceLog {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  version   String
+  ip        String
+  userAgent String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
 }
 
 /**

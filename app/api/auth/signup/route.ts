@@ -6,6 +6,8 @@ import { logBusiness } from "@/lib/business-log"
 import { prisma } from "@/lib/prisma"
 import { ensureMerchantStore } from "@/lib/ensure-store"
 import { buildConsentPayload, type MerchantRole } from "@/lib/legal/consent"
+import { logTermsAcceptance } from "@/lib/legal/terms-acceptance-log"
+import { termsLogTypeForRole } from "@/lib/legal-versions"
 import {
   clearSignupDrafts,
   loadSignupDrafts,
@@ -189,6 +191,16 @@ export async function POST(req: Request) {
         ...consent,
       },
     })
+
+    if (cguOk) {
+      await logTermsAcceptance(req, user.id, "cgu")
+    }
+    if (
+      (resolvedRole === "SUPPLIER" || resolvedRole === "AFFILIATE") &&
+      roleTermsOk
+    ) {
+      await logTermsAcceptance(req, user.id, termsLogTypeForRole(resolvedRole))
+    }
 
     let store = null
     if (resolvedRole === "AFFILIATE" || resolvedRole === "SUPPLIER") {

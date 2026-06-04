@@ -49,6 +49,24 @@ export default function MentionsLegalesPage() {
         Formulaire : <a href="/contact">/contact</a>
       </p>
 
+      <h2>Médiation de la consommation</h2>
+      <p>
+        Conformément à l&apos;article L.612-1 du Code de la consommation, le consommateur peut recourir
+        gratuitement au service de médiation CM2C.
+      </p>
+      <p>
+        CM2C - 14 rue Saint-Jean, 75017 Paris
+        <br />
+        Site :{" "}
+        <a href="https://www.cm2c.net" target="_blank" rel="noopener noreferrer">
+          https://www.cm2c.net
+        </a>
+        <br />
+        Email : <a href="mailto:contact@cm2c.net">contact@cm2c.net</a>
+        <br />
+        Téléphone : 01 89 47 00 14
+      </p>
+
       <h2>Hébergeur</h2>
       <p>
         <strong>Vercel Inc.</strong>
