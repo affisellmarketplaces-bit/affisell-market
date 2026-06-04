@@ -1,7 +1,7 @@
 import { readCompanyLegal } from "@/lib/legal/company-env"
 import { CGA_LAST_UPDATED_LABEL } from "@/lib/legal/cga"
 
-/** CGA — Conditions générales fournisseur (`/cga`). */
+/** CGA — Conditions générales fournisseur (`/conditions-fournisseur`). */
 export function CgaDocumentBody() {
   const c = readCompanyLegal()
 

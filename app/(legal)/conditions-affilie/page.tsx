@@ -5,12 +5,12 @@ import { LegalPageShell } from "@/components/legal/legal-page-shell"
 import { CGS_VERSION } from "@/lib/legal/cgs"
 
 export const metadata: Metadata = {
-  title: "CGS Affilié | Affisell",
+  title: "Conditions affilié | Affisell",
   description:
     "Conditions générales de services affilié — commission 20 %, Loi Influenceurs, publicité loyale, seuil 5 000 €/an.",
 }
 
-export default function CgsPage() {
+export default function ConditionsAffiliePage() {
   return (
     <LegalPageShell
       title="Conditions générales de services — Affilié (CGS)"

@@ -23,8 +23,10 @@ const nextConfig: NextConfig = {
       { source: "/legal/mentions", destination: "/mentions-legales", permanent: true },
       { source: "/legal/refund-policy", destination: "/returns", permanent: true },
       { source: "/legal/terms-of-service", destination: "/cgu", permanent: true },
-      { source: "/legal/terms-supplier", destination: "/cga", permanent: true },
-      { source: "/legal/terms-affiliate", destination: "/cgs", permanent: true },
+      { source: "/cga", destination: "/conditions-fournisseur", permanent: true },
+      { source: "/cgs", destination: "/conditions-affilie", permanent: true },
+      { source: "/legal/terms-supplier", destination: "/conditions-fournisseur", permanent: true },
+      { source: "/legal/terms-affiliate", destination: "/conditions-affilie", permanent: true },
     ]
   },
   output: "standalone" as const,

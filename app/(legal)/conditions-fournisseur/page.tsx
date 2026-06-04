@@ -5,12 +5,12 @@ import { LegalPageShell } from "@/components/legal/legal-page-shell"
 import { CGA_VERSION } from "@/lib/legal/cga"
 
 export const metadata: Metadata = {
-  title: "CGA Fournisseur | Affisell",
+  title: "Conditions fournisseur | Affisell",
   description:
     "Conditions générales fournisseur — commission 12 %, SLA 72h, pénalités stock, payout J+2, garantie produit.",
 }
 
-export default function CgaPage() {
+export default function ConditionsFournisseurPage() {
   return (
     <LegalPageShell
       title="Conditions générales fournisseur (CGA)"

@@ -1,7 +1,7 @@
 import { readCompanyLegal } from "@/lib/legal/company-env"
 import { CGS_LAST_UPDATED_LABEL } from "@/lib/legal/cgs"
 
-/** CGS — Conditions générales affilié / créateur (`/cgs`). */
+/** CGS — Conditions générales affilié / créateur (`/conditions-affilie`). */
 export function CgsDocumentBody() {
   const c = readCompanyLegal()
 

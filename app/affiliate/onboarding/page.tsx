@@ -69,7 +69,7 @@ export default async function AffiliateOnboardingPage() {
             <MerchantRoleTermsOnboardingForm role="AFFILIATE" nextHref={nextHref} />
           </BentoCard>
           <p className="mt-6 text-center text-sm text-zinc-500">
-            <Link href="/cgs" className="text-violet-700 hover:underline dark:text-violet-300">
+            <Link href="/conditions-affilie" className="text-violet-700 hover:underline dark:text-violet-300">
               Lire les CGS
             </Link>
           </p>

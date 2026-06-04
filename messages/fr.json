@@ -1456,6 +1456,8 @@
       "demoLab": "Demo Lab",
       "cgv": "CGV",
       "cgu": "CGU",
+      "supplierConditions": "Conditions fournisseur",
+      "affiliateConditions": "Conditions affilié",
       "legalNotice": "Mentions légales",
       "privacyPolicy": "Politique de confidentialité",
       "returns": "Retours & remboursements",

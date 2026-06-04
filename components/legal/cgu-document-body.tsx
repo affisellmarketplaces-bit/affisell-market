@@ -55,7 +55,8 @@ export function CguDocumentBody() {
       <p>
         1.3. Les CGU s&apos;appliquent à tout Utilisateur de la Plateforme. Les Fournisseurs et Affiliés
         sont également soumis à leurs conditions spécifiques respectives (
-        <a href="/cga">CGA</a> fournisseur, <a href="/cgs">CGS</a> affilié).
+        <a href="/conditions-fournisseur">CGA</a> fournisseur, <a href="/conditions-affilie">CGS</a>{" "}
+        affilié).
       </p>
 
       <h2>Article 2 — Définitions</h2>

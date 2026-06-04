@@ -3,8 +3,8 @@ import { CGS_VERSION } from "@/lib/legal/cgs"
 import type { MerchantRole } from "@/lib/legal/consent"
 
 export function roleTermsHrefForRole(role: MerchantRole): string {
-  if (role === "SUPPLIER") return "/cga"
-  if (role === "AFFILIATE") return "/cgs"
+  if (role === "SUPPLIER") return "/conditions-fournisseur"
+  if (role === "AFFILIATE") return "/conditions-affilie"
   return "/cgu"
 }
 

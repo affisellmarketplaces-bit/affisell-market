@@ -58,6 +58,8 @@ export async function Footer() {
         links: [
           { href: "/cgv", label: t("cgv") },
           { href: "/cgu", label: t("cgu") },
+          { href: "/conditions-fournisseur", label: t("supplierConditions") },
+          { href: "/conditions-affilie", label: t("affiliateConditions") },
           { href: "/mentions-legales", label: t("legalNotice") },
           { href: "/privacy", label: t("privacyPolicy") },
           { href: "/returns", label: t("returns") },
@@ -124,6 +126,8 @@ export async function Footer() {
             <ul className="mt-4 space-y-2">
               <FooterLink href="/cgv">{t("cgv")}</FooterLink>
               <FooterLink href="/cgu">{t("cgu")}</FooterLink>
+              <FooterLink href="/conditions-fournisseur">{t("supplierConditions")}</FooterLink>
+              <FooterLink href="/conditions-affilie">{t("affiliateConditions")}</FooterLink>
               <FooterLink href="/mentions-legales">{t("legalNotice")}</FooterLink>
               <FooterLink href="/privacy">{t("privacyPolicy")}</FooterLink>
               <FooterLink href="/returns">{t("returns")}</FooterLink>
