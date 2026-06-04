@@ -7,7 +7,7 @@ export default function AffiliateSignupPage() {
     <MerchantLegalSignupWizard
       role="AFFILIATE"
       accent="violet"
-      afterLoginPath="/dashboard/verification"
+      afterLoginPath="/affiliate/onboarding"
       defaultSocialHandle
     />
   )

@@ -9,6 +9,8 @@ export async function exportUserDataForGdpr(userId: string) {
       name: true,
       role: true,
       createdAt: true,
+      cguAcceptedAt: true,
+      cguVersion: true,
       termsAcceptedAt: true,
       termsAcceptedVersion: true,
       privacyAcceptedAt: true,

@@ -12,5 +12,5 @@ export default async function AffiliateOnboardingPage() {
     redirect("/login")
   }
 
-  redirect("/dashboard/affiliate?welcome=1")
+  redirect("/affiliate/onboarding")
 }

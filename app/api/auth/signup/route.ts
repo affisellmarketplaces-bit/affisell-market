@@ -41,7 +41,9 @@ export async function POST(req: Request) {
       tiktok?: string
       siret?: string
       inviteToken?: string
+      acceptCgu?: boolean
       acceptTerms?: boolean
+      acceptRoleTerms?: boolean
       acceptPrivacy?: boolean
       signupDraftId?: string
       legalStatus?: string
@@ -60,7 +62,9 @@ export async function POST(req: Request) {
       tiktok,
       siret,
       inviteToken,
+      acceptCgu,
       acceptTerms,
+      acceptRoleTerms,
       acceptPrivacy,
       signupDraftId,
       legalStatus,
@@ -75,9 +79,23 @@ export async function POST(req: Request) {
     if (!emailNormalized || !password) {
       return NextResponse.json({ error: "Missing email or password" }, { status: 400 })
     }
-    if (!acceptTerms || !acceptPrivacy) {
+
+    const resolvedRole =
+      role === "SUPPLIER" ? "SUPPLIER" : role === "CUSTOMER" ? "CUSTOMER" : "AFFILIATE"
+
+    const cguOk = Boolean(acceptCgu ?? acceptTerms)
+    const privacyOk = Boolean(acceptPrivacy)
+    const roleTermsOk =
+      resolvedRole === "CUSTOMER" ? true : Boolean(acceptRoleTerms ?? acceptTerms)
+    if (!cguOk || !privacyOk) {
       return NextResponse.json(
-        { error: "Vous devez accepter les conditions et la politique de confidentialité." },
+        { error: "Vous devez accepter les CGU et la politique de confidentialité." },
+        { status: 400 }
+      )
+    }
+    if (!roleTermsOk) {
+      return NextResponse.json(
+        { error: "Vous devez accepter les conditions spécifiques à votre rôle (CGA ou CGS)." },
         { status: 400 }
       )
     }
@@ -88,8 +106,6 @@ export async function POST(req: Request) {
     }
 
     const hash = await bcrypt.hash(password, 10)
-    const resolvedRole =
-      role === "SUPPLIER" ? "SUPPLIER" : role === "CUSTOMER" ? "CUSTOMER" : "AFFILIATE"
     const consent = buildConsentPayload(resolvedRole as MerchantRole)
 
     let buyerType: BuyerAccountType | null = null

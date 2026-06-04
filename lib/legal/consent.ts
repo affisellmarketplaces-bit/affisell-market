@@ -1,3 +1,4 @@
+import { CGU_VERSION } from "@/lib/legal/cgu"
 import { LEGAL_DOC_VERSION } from "@/lib/legal/entity"
 
 export type MerchantRole = "SUPPLIER" | "AFFILIATE" | "CUSTOMER"
@@ -17,10 +18,24 @@ export function termsLabelForRole(role: MerchantRole): string {
 export function buildConsentPayload(role: MerchantRole) {
   const now = new Date()
   return {
-    termsAcceptedAt: now,
-    termsAcceptedVersion: `${LEGAL_DOC_VERSION}:${termsSlugForRole(role)}`,
+    cguAcceptedAt: now,
+    cguVersion: CGU_VERSION,
     privacyAcceptedAt: now,
     privacyAcceptedVersion: `${LEGAL_DOC_VERSION}:privacy-policy`,
+    ...(role !== "CUSTOMER"
+      ? {
+          termsAcceptedAt: now,
+          termsAcceptedVersion: `${LEGAL_DOC_VERSION}:${termsSlugForRole(role)}`,
+        }
+      : {}),
+  }
+}
+
+export function buildCguOnlyPayload() {
+  const now = new Date()
+  return {
+    cguAcceptedAt: now,
+    cguVersion: CGU_VERSION,
   }
 }
 

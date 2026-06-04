@@ -10,6 +10,7 @@ import { useMemo, useState } from "react"
 import { forgotPasswordHref } from "@/lib/auth-forgot-password-href"
 import { credentialsSignInErrorMessage } from "@/lib/auth-portal-signin-messages"
 import { sanitizeInternalCallbackUrl } from "@/lib/auth-login-portal"
+import { LegalSignupConsent } from "@/components/legal/legal-signup-consent"
 import {
   MARKETPLACE_BUYER_ORDERS_PATH,
   signupCustomerPath,
@@ -29,6 +30,8 @@ export function MarketplaceBuyerAuthForm({
   const search = useSearchParams()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [cguChecked, setCguChecked] = useState(false)
+  const [privacyChecked, setPrivacyChecked] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -49,6 +52,11 @@ export function MarketplaceBuyerAuthForm({
     setLoading(true)
 
     if (mode === "signup") {
+      if (!cguChecked || !privacyChecked) {
+        setLoading(false)
+        setError(tBuyer("acceptTermsError"))
+        return
+      }
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -56,7 +64,7 @@ export function MarketplaceBuyerAuthForm({
           email: email.trim().toLowerCase(),
           password,
           role: "CUSTOMER",
-          acceptTerms: true,
+          acceptCgu: true,
           acceptPrivacy: true,
         }),
       })
@@ -145,9 +153,18 @@ export function MarketplaceBuyerAuthForm({
               className="w-full rounded-xl border border-zinc-300 px-4 py-2.5 outline-none focus:ring-2 focus:ring-violet-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
             />
           </div>
+          {mode === "signup" ? (
+            <LegalSignupConsent
+              role="CUSTOMER"
+              cguChecked={cguChecked}
+              privacyChecked={privacyChecked}
+              onCguChange={setCguChecked}
+              onPrivacyChange={setPrivacyChecked}
+            />
+          ) : null}
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || (mode === "signup" && (!cguChecked || !privacyChecked))}
             className="w-full rounded-xl bg-violet-600 py-2.5 font-medium text-white hover:bg-violet-700 disabled:opacity-60"
           >
             {loading

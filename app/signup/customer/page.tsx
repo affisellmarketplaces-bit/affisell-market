@@ -27,14 +27,14 @@ function CustomerSignupForm() {
   const [password, setPassword] = useState("")
   const [companyName, setCompanyName] = useState("")
   const [siret, setSiret] = useState("")
-  const [termsChecked, setTermsChecked] = useState(false)
+  const [cguChecked, setCguChecked] = useState(false)
   const [privacyChecked, setPrivacyChecked] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!termsChecked || !privacyChecked) {
+    if (!cguChecked || !privacyChecked) {
       setError(t("acceptTermsError"))
       return
     }
@@ -55,7 +55,7 @@ function CustomerSignupForm() {
         buyerAccountType: buyerType,
         name: buyerType === "PROFESSIONAL" ? companyName.trim() || undefined : undefined,
         siret: buyerType === "PROFESSIONAL" ? siret : undefined,
-        acceptTerms: true,
+        acceptCgu: true,
         acceptPrivacy: true,
       }),
     })
@@ -179,14 +179,14 @@ function CustomerSignupForm() {
             </div>
             <LegalSignupConsent
               role="CUSTOMER"
-              termsChecked={termsChecked}
+              cguChecked={cguChecked}
               privacyChecked={privacyChecked}
-              onTermsChange={setTermsChecked}
+              onCguChange={setCguChecked}
               onPrivacyChange={setPrivacyChecked}
             />
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !cguChecked || !privacyChecked}
               className="w-full rounded-xl bg-blue-600 py-2.5 font-medium text-white shadow-sm transition-colors hover:bg-blue-700 disabled:opacity-60"
             >
               {loading ? t("submitLoading") : t("submit")}

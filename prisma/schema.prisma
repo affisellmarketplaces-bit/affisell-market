@@ -55,7 +55,10 @@ model User {
   supplierFeeBpsAutoBuy     Int?
   /** Phase 1: Affisell fee on affiliate earnings (bps), default 20 %. */
   affiliatePlatformFeeBps   Int?
-  /** CGU / CGS / CGA acceptance timestamp. */
+  /** CGU acceptance (`/cgu`). */
+  cguAcceptedAt          DateTime?
+  cguVersion             String?
+  /** CGS / CGA (role-specific) acceptance timestamp. */
   termsAcceptedAt        DateTime?
   termsAcceptedVersion   String?
   /** Privacy policy acceptance. */

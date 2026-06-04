@@ -90,7 +90,8 @@ export function MerchantLegalSignupWizard({
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [socialHandle, setSocialHandle] = useState("")
-  const [termsChecked, setTermsChecked] = useState(false)
+  const [cguChecked, setCguChecked] = useState(false)
+  const [roleTermsChecked, setRoleTermsChecked] = useState(false)
   const [privacyChecked, setPrivacyChecked] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -134,7 +135,7 @@ export function MerchantLegalSignupWizard({
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!legalStatus || !termsChecked || !privacyChecked) return
+    if (!legalStatus || !cguChecked || !roleTermsChecked || !privacyChecked) return
     setLoading(true)
     setError(null)
 
@@ -155,7 +156,8 @@ export function MerchantLegalSignupWizard({
         siret: siret.trim() || undefined,
         vatNumber: vatNumber.trim() || undefined,
         rnaNumber: rnaNumber.trim() || undefined,
-        acceptTerms: true,
+        acceptCgu: true,
+        acceptRoleTerms: true,
         acceptPrivacy: true,
         ...(inviteToken ? { inviteToken } : {}),
       }),
@@ -404,9 +406,11 @@ export function MerchantLegalSignupWizard({
                 />
                 <LegalSignupConsent
                   role={role}
-                  termsChecked={termsChecked}
+                  cguChecked={cguChecked}
+                  roleTermsChecked={roleTermsChecked}
                   privacyChecked={privacyChecked}
-                  onTermsChange={setTermsChecked}
+                  onCguChange={setCguChecked}
+                  onRoleTermsChange={setRoleTermsChecked}
                   onPrivacyChange={setPrivacyChecked}
                 />
                 {role === "SUPPLIER" ? (
@@ -416,7 +420,7 @@ export function MerchantLegalSignupWizard({
                 ) : null}
                 <button
                   type="submit"
-                  disabled={loading || !termsChecked || !privacyChecked}
+                  disabled={loading || !cguChecked || !roleTermsChecked || !privacyChecked}
                   className={cn(
                     "w-full rounded-xl py-2.5 text-sm font-semibold text-white disabled:opacity-60",
                     accent === "emerald" ? "bg-emerald-600 hover:bg-emerald-500" : "bg-violet-600 hover:bg-violet-500"

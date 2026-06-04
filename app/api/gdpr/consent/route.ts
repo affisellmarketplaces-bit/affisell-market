@@ -14,10 +14,18 @@ export async function GET() {
   }
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { cookieConsent: true, termsAcceptedAt: true, privacyAcceptedAt: true },
+    select: {
+      cookieConsent: true,
+      cguAcceptedAt: true,
+      cguVersion: true,
+      termsAcceptedAt: true,
+      privacyAcceptedAt: true,
+    },
   })
   return NextResponse.json({
     cookieConsent: parseCookieConsent(user?.cookieConsent),
+    cguAcceptedAt: user?.cguAcceptedAt,
+    cguVersion: user?.cguVersion,
     termsAcceptedAt: user?.termsAcceptedAt,
     privacyAcceptedAt: user?.privacyAcceptedAt,
   })
