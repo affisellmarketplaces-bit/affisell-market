@@ -16,6 +16,7 @@ import { useUserRole } from "@/hooks/useUserRole"
 import { canShowBusinessProductData } from "@/lib/user-role"
 import { MarketplaceFilters } from "@/components/marketplace/filters"
 import { EuCoverageBanner } from "@/components/marketplace/eu-coverage-banner"
+import { OfferModeQuickRail } from "@/components/marketplace/offer-mode-quick-rail"
 import { MarketplaceAffisellPulse } from "@/components/marketplace/MarketplaceAffisellPulse"
 import { MobileCatalogChrome } from "@/components/marketplace/mobile-catalog-chrome"
 import { MarketplaceDepartmentRail } from "@/components/marketplace/MarketplaceDepartmentRail"
@@ -378,7 +379,12 @@ export function MarketplaceView({
         />
         {!embedded ? (
           <div>
-            {isCustomerBrowse ? <EuCoverageBanner className="mb-4" /> : null}
+            {isCustomerBrowse ? (
+              <>
+                <EuCoverageBanner className="mb-4" />
+                <OfferModeQuickRail basePath={basePath} className="mb-4" />
+              </>
+            ) : null}
             <MarketplaceAffisellPulse audience={isCustomerBrowse ? "buyer" : "default"} />
           </div>
         ) : null}
@@ -423,7 +429,10 @@ export function MarketplaceView({
 
           <div className="min-w-0 flex-1">
             {embedded && isCustomerBrowse ? (
-              <EuCoverageBanner className="mb-3 sm:mb-4" variant="compact" />
+              <>
+                <EuCoverageBanner className="mb-3 sm:mb-4" variant="compact" />
+                <OfferModeQuickRail basePath={basePath} className="mb-3 sm:mb-4" />
+              </>
             ) : null}
             {mobileCatalogShell ? (
               <MobileCatalogChrome
