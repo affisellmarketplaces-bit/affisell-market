@@ -1,11 +1,9 @@
 import { Suspense } from "react"
 import { getTranslations } from "next-intl/server"
 
-import { BentoGrid } from "@/components/BentoGrid"
 import { BuyerHeroBlock } from "@/components/BuyerHeroBlock"
-import { BentoGridSkeleton } from "@/components/home/BentoGridSkeleton"
 import { BuyerMarketplaceExplorer } from "@/components/home/BuyerMarketplaceExplorer"
-import { HomeOrbitalServicesRail } from "@/components/home/HomeOrbitalServicesRail"
+import { HomeTrustHandoff } from "@/components/home/HomeTrustHandoff"
 import { ShimmerSkeleton } from "@/components/marketing/shimmer-skeleton"
 
 async function CatalogFallback() {
@@ -19,7 +17,7 @@ async function CatalogFallback() {
   )
 }
 
-/** Buyer home — hero → catalogue immédiat → stats glass → rail orbital. */
+/** Buyer home — hero → catalogue → handoff confiance (footer global suit). */
 export async function HomePage() {
   return (
     <main className="mx-auto w-full min-w-0 max-w-7xl space-y-4 overflow-x-clip px-4 py-4 sm:space-y-8 sm:px-6 sm:py-8">
@@ -27,10 +25,7 @@ export async function HomePage() {
       <Suspense fallback={<CatalogFallback />}>
         <BuyerMarketplaceExplorer />
       </Suspense>
-      <Suspense fallback={<BentoGridSkeleton />}>
-        <BentoGrid />
-      </Suspense>
-      <HomeOrbitalServicesRail />
+      <HomeTrustHandoff />
     </main>
   )
 }

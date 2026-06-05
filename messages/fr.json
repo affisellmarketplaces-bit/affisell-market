@@ -118,7 +118,17 @@
     "orbitalRail": {
       "eyebrow": "Au-delà du catalogue",
       "title": "Expériences signature",
-      "subtitle": "Enchères, luxe et favoris — le support reste dans le pied de page."
+      "subtitle": "Enchères live et sélection luxe — deux univers premium."
+    },
+    "trustHandoff": {
+      "eyebrow": "Univers premium",
+      "title": "Au-delà du catalogue standard",
+      "trustTitle": "Achat protégé",
+      "trustBody": "Paiement Stripe · escrow vendeur · retours 14 jours UE.",
+      "trustReturns": "Retours",
+      "trustShipping": "Livraison",
+      "trustSupport": "Support",
+      "trustFootnote": "Pan-UE · TVA Stripe Tax · médiation ODR"
     },
     "buyerServices": {
       "sectionBuyer": "Acheter malin sur Affisell",
@@ -1519,6 +1529,8 @@
       "howItWorks": "Comment ça marche",
       "howSellingWorks": "Comment vendre",
       "browseCatalog": "Explorer le catalogue",
+      "auctions": "Arène enchères",
+      "luxe": "Affisell Luxe",
       "buyerProtection": "Achat protégé · retours",
       "buyerProtectionShort": "Achat protégé",
       "wishlist": "Wishlist",

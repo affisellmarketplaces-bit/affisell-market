@@ -118,7 +118,17 @@
     "orbitalRail": {
       "eyebrow": "Beyond the catalog",
       "title": "Signature experiences",
-      "subtitle": "Auctions, luxury, and favorites — support lives in the site footer."
+      "subtitle": "Live auctions and curated luxury — two premium worlds."
+    },
+    "trustHandoff": {
+      "eyebrow": "Premium verticals",
+      "title": "Beyond the standard catalog",
+      "trustTitle": "Protected checkout",
+      "trustBody": "Stripe payments · seller escrow · 14-day EU returns.",
+      "trustReturns": "Returns",
+      "trustShipping": "Shipping",
+      "trustSupport": "Support",
+      "trustFootnote": "Pan-EU · Stripe Tax · EU ODR mediation"
     },
     "buyerServices": {
       "sectionBuyer": "Shop smarter on Affisell",
@@ -1519,6 +1529,8 @@
       "howItWorks": "How it works",
       "howSellingWorks": "How selling works",
       "browseCatalog": "Browse catalog",
+      "auctions": "Auction Arena",
+      "luxe": "Affisell Luxe",
       "buyerProtection": "Protected checkout · returns",
       "buyerProtectionShort": "Protected checkout",
       "wishlist": "Wishlist",

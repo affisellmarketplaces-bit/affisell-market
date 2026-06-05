@@ -21,6 +21,8 @@ export function buildFooterGlobalContent(
         title: t("buyTitle"),
         links: [
           { href: PUBLIC_MARKETPLACE_BROWSE_PATH, label: t("browseCatalog") },
+          { href: "/auctions", label: t("auctions") },
+          { href: "/luxe", label: t("luxe") },
           { href: "/how-it-works", label: t("howItWorks") },
           { href: "/returns", label: t("buyerProtection") },
           { href: "/track-order", label: t("trackOrder") },
