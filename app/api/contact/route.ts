@@ -8,6 +8,7 @@ import {
   makeTicketRef,
   sendContactAcknowledgmentEmail,
 } from "@/lib/emails/send-contact-acknowledgment"
+import { persistSupportTicket } from "@/lib/admin/support/persist-support-ticket"
 import { readCompanyLegal } from "@/lib/legal/company-env"
 
 const schema = z.object({
@@ -77,6 +78,16 @@ export async function POST(req: Request) {
       { ok: false, error: "email_send_failed" },
       { status: 503 }
     )
+  }
+
+  try {
+    await persistSupportTicket({ ticketRef, name, email, subject, message })
+  } catch (err) {
+    console.log("[contact]", {
+      result: "ticket_persist_failed",
+      ticketRef,
+      error: err instanceof Error ? err.message : String(err),
+    })
   }
 
   void sendContactAcknowledgmentEmail({ name, email, subject, ticketRef }).catch((err) => {
