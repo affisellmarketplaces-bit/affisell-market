@@ -41,7 +41,7 @@ export function EuCoverageBanner({ className, variant = "buyer" }: Props) {
           </span>
           <div className="min-w-0">
             <p className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full border border-white/25 bg-[#EF4444]/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+              <span className="rounded-full border border-white/25 bg-violet-500/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider shadow-sm shadow-violet-950/30">
                 {t("badge")}
               </span>
               <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-violet-200/90">
@@ -63,11 +63,11 @@ export function EuCoverageBanner({ className, variant = "buyer" }: Props) {
         </div>
         <ul className="flex shrink-0 flex-wrap gap-2 sm:max-w-[14rem] sm:justify-end">
           <li className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-violet-100">
-            <Sparkles className="size-3.5 text-fuchsia-300" aria-hidden />
+            <Sparkles className="size-3.5 text-violet-200" aria-hidden />
             EUR
           </li>
           <li className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-violet-100">
-            <ShieldCheck className="size-3.5 text-emerald-300" aria-hidden />
+            <ShieldCheck className="size-3.5 text-indigo-200" aria-hidden />
             {t("stripeTax")}
           </li>
           <li className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-2.5 py-1 text-[10px] font-semibold text-violet-100/90">

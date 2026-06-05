@@ -18,6 +18,7 @@ import { useTranslations } from "next-intl"
 
 import { MOBILE_BUYER_HUB_OPEN_EVENT } from "@/lib/buyer-hub-events"
 import { PUBLIC_SHOPS_PATH } from "@/lib/affiliate-routes"
+import { BUYER_TILE_ACCENTS } from "@/lib/home-buyer-accent-palette"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 
@@ -49,14 +50,14 @@ export function MobileBuyerHub() {
       label: t("agent"),
       hint: t("agentHint"),
       Icon: Brain,
-      cardClass: "from-violet-600 to-indigo-600",
+      cardClass: BUYER_TILE_ACCENTS.agent.card,
     },
     {
       href: "/discover",
       label: t("discover"),
       hint: t("discoverMarketHint"),
       Icon: Sparkles,
-      cardClass: "from-fuchsia-600 to-pink-600",
+      cardClass: BUYER_TILE_ACCENTS.pulse.card,
       liveLabel: tPulse("beta"),
     },
     {
@@ -64,42 +65,42 @@ export function MobileBuyerHub() {
       label: t("auctions"),
       hint: t("auctionsHint"),
       Icon: Gavel,
-      cardClass: "from-rose-600 via-fuchsia-600 to-violet-700",
+      cardClass: BUYER_TILE_ACCENTS.auctions.card,
     },
     {
       href: "/luxe",
       label: t("luxe"),
       hint: t("luxeHint"),
       Icon: Crown,
-      cardClass: "from-amber-700 via-yellow-600 to-amber-900",
+      cardClass: BUYER_TILE_ACCENTS.luxe.card,
     },
     {
       href: "/#explorer",
       label: t("catalog"),
       hint: t("catalogHint"),
       Icon: LayoutGrid,
-      cardClass: "from-sky-600 to-cyan-600",
+      cardClass: BUYER_TILE_ACCENTS.catalog.card,
     },
     {
       href: PUBLIC_SHOPS_PATH,
       label: t("stores"),
       hint: t("storesHint"),
       Icon: Store,
-      cardClass: "from-amber-600 to-orange-600",
+      cardClass: BUYER_TILE_ACCENTS.stores.card,
     },
     {
       href: "/wishlist",
       label: t("wishlist"),
       hint: t("wishlistHint"),
       Icon: Heart,
-      cardClass: "from-rose-600 to-red-500",
+      cardClass: BUYER_TILE_ACCENTS.wishlist.card,
     },
     {
       href: "/support",
       label: t("support"),
       hint: t("supportHint"),
       Icon: Bot,
-      cardClass: "from-emerald-600 to-teal-600",
+      cardClass: BUYER_TILE_ACCENTS.support.card,
     },
   ]
 

@@ -115,6 +115,11 @@
     "footerNavAria": "Espace partenaires",
     "pickedEmpty": "Aucune suggestion pour cette niche pour le moment.",
     "featuredProductsEmpty": "Aucun produit mis en avant pour le moment.",
+    "orbitalRail": {
+      "eyebrow": "Au-delà du catalogue",
+      "title": "Explorez l'univers Affisell",
+      "subtitle": "Enchères, luxe, support & plus — une couche indigo."
+    },
     "buyerServices": {
       "sectionBuyer": "Acheter malin sur Affisell",
       "sectionDefault": "Plus qu'un marketplace — couche Affisell",

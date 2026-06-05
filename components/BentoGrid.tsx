@@ -22,12 +22,16 @@ export async function BentoGrid() {
   ])
 
   return (
-    <StaggerIn className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <StaggerIn className="grid gap-3 md:grid-cols-2 lg:grid-cols-4 md:gap-4">
       <StaggerItem>
-        <BentoCard title={t("agentShopping.title")} description={t("agentShopping.description")}>
+        <BentoCard
+          variant="glass-indigo"
+          title={t("agentShopping.title")}
+          description={t("agentShopping.description")}
+        >
           <Link
             href="/agent"
-            className="inline-flex items-center gap-2 rounded-xl bg-indigo-50 px-3 py-2 text-sm font-medium text-[#6366F1] dark:bg-indigo-950"
+            className="relative inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-violet-100 backdrop-blur-md transition hover:bg-white/15 hover:text-white"
           >
             <Bot className="h-4 w-4" aria-hidden />
             AI
@@ -36,6 +40,7 @@ export async function BentoGrid() {
       </StaggerItem>
       <StaggerItem className="md:col-span-2 lg:col-span-1">
         <BentoCard
+          variant="glass-indigo"
           title={t("featuredStores.title")}
           description={t("featuredStores.description")}
           colSpan="wide"
@@ -44,14 +49,18 @@ export async function BentoGrid() {
         </BentoCard>
       </StaggerItem>
       <StaggerItem>
-        <BentoCard title={t("liveCatalog.title")} description={t("liveCatalog.description")}>
-          <p className="text-3xl font-bold text-[#6366F1]">
+        <BentoCard
+          variant="glass-indigo"
+          title={t("liveCatalog.title")}
+          description={t("liveCatalog.description")}
+        >
+          <p className="relative text-3xl font-bold text-violet-200">
             <AnimatedCounter end={stats.productCount} suffix={t("liveCatalog.counterSuffix")} />
           </p>
         </BentoCard>
       </StaggerItem>
       <StaggerItem>
-        <BentoCard title={t("trending.title")} description={t("trending.description")}>
+        <BentoCard variant="glass-indigo" title={t("trending.title")} description={t("trending.description")}>
           <TrendingSparkline items={trending} />
         </BentoCard>
       </StaggerItem>

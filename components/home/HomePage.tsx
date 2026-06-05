@@ -5,6 +5,7 @@ import { BentoGrid } from "@/components/BentoGrid"
 import { BuyerHeroBlock } from "@/components/BuyerHeroBlock"
 import { BentoGridSkeleton } from "@/components/home/BentoGridSkeleton"
 import { BuyerMarketplaceExplorer } from "@/components/home/BuyerMarketplaceExplorer"
+import { HomeOrbitalServicesRail } from "@/components/home/HomeOrbitalServicesRail"
 import { ShimmerSkeleton } from "@/components/marketing/shimmer-skeleton"
 
 async function CatalogFallback() {
@@ -18,19 +19,18 @@ async function CatalogFallback() {
   )
 }
 
-/** Buyer home — violet hero + bento + catalog (visual unchanged, copy via next-intl). */
+/** Buyer home — hero → catalogue immédiat → stats glass → rail orbital. */
 export async function HomePage() {
   return (
-    <main className="mx-auto w-full min-w-0 max-w-7xl space-y-5 overflow-x-clip px-4 py-5 sm:space-y-12 sm:px-6 sm:py-10">
+    <main className="mx-auto w-full min-w-0 max-w-7xl space-y-4 overflow-x-clip px-4 py-4 sm:space-y-8 sm:px-6 sm:py-8">
       <BuyerHeroBlock />
-      <div className="hidden md:block">
-        <Suspense fallback={<BentoGridSkeleton />}>
-          <BentoGrid />
-        </Suspense>
-      </div>
       <Suspense fallback={<CatalogFallback />}>
         <BuyerMarketplaceExplorer />
       </Suspense>
+      <Suspense fallback={<BentoGridSkeleton />}>
+        <BentoGrid />
+      </Suspense>
+      <HomeOrbitalServicesRail />
     </main>
   )
 }

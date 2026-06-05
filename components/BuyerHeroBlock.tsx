@@ -24,7 +24,7 @@ export async function BuyerHeroBlock() {
           </span>
         </h1>
         <p className="mx-auto mt-3 max-w-2xl text-pretty text-sm text-violet-100/95 sm:mt-4 sm:text-base">{t("sub")}</p>
-        <div className="mx-auto mt-6 hidden max-w-xl sm:mt-8 sm:block">
+        <div className="mx-auto mt-5 max-w-xl sm:mt-8">
           <BuyerHeroSearch />
         </div>
         <div className="mt-5 flex flex-col items-center gap-3 sm:mt-8 sm:gap-4">

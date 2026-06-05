@@ -6,13 +6,14 @@ import { Brain, Bot, Crown, Gavel, Heart, LayoutGrid, Sparkles, Store } from "lu
 
 import { PUBLIC_SHOPS_PATH } from "@/lib/affiliate-routes"
 import { affisellBrand } from "@/lib/affisell-brand"
+import { BUYER_TILE_ACCENTS } from "@/lib/home-buyer-accent-palette"
 import { cn } from "@/lib/utils"
 
 type Props = {
   audience?: "buyer" | "default"
 }
 
-/** Affisell service shortcuts — hero strip on home; this block repeats above the catalog grid. */
+/** Affisell service shortcuts — pages catalogue standalone (pas sur home embed). */
 export function MarketplaceAffisellPulse({ audience = "default" }: Props) {
   const t = useTranslations("home.buyerServices")
   const tPulse = useTranslations("pulse")
@@ -23,21 +24,21 @@ export function MarketplaceAffisellPulse({ audience = "default" }: Props) {
       label: t("agent"),
       hint: t("agentHint"),
       Icon: Brain,
-      cardClass: "from-violet-600 to-indigo-600 text-white shadow-violet-500/25",
+      cardClass: `${BUYER_TILE_ACCENTS.agent.card} text-white shadow-violet-500/25`,
     },
     {
       href: "/auctions",
       label: t("auctions"),
       hint: t("auctionsHint"),
       Icon: Gavel,
-      cardClass: "from-rose-600 via-fuchsia-600 to-violet-700 text-white shadow-fuchsia-500/30",
+      cardClass: `${BUYER_TILE_ACCENTS.auctions.card} text-white shadow-violet-500/25`,
     },
     {
       href: "/luxe",
       label: t("luxe"),
       hint: t("luxeHint"),
       Icon: Crown,
-      cardClass: "from-amber-700 via-yellow-600 to-amber-900 text-amber-50 shadow-amber-900/40",
+      cardClass: `${BUYER_TILE_ACCENTS.luxe.card} text-white shadow-violet-500/25`,
     },
     {
       href: "/discover",
@@ -45,35 +46,35 @@ export function MarketplaceAffisellPulse({ audience = "default" }: Props) {
       liveLabel: tPulse("beta"),
       hint: t("discoverMarketHint"),
       Icon: Sparkles,
-      cardClass: "from-fuchsia-600 to-pink-600 text-white shadow-fuchsia-500/25",
+      cardClass: `${BUYER_TILE_ACCENTS.pulse.card} text-white shadow-fuchsia-500/25`,
     },
     {
       href: "/#explorer",
       label: t("catalog"),
       hint: t("catalogHint"),
       Icon: LayoutGrid,
-      cardClass: "from-sky-600 to-cyan-600 text-white shadow-sky-500/25",
+      cardClass: `${BUYER_TILE_ACCENTS.catalog.card} text-white shadow-indigo-500/25`,
     },
     {
       href: PUBLIC_SHOPS_PATH,
       label: t("stores"),
       hint: t("storesHint"),
       Icon: Store,
-      cardClass: "from-amber-600 to-orange-600 text-white shadow-amber-500/25",
+      cardClass: `${BUYER_TILE_ACCENTS.stores.card} text-white shadow-violet-500/25`,
     },
     {
       href: "/support",
       label: t("support"),
       hint: t("supportHint"),
       Icon: Bot,
-      cardClass: "from-emerald-600 to-teal-600 text-white shadow-emerald-500/25",
+      cardClass: `${BUYER_TILE_ACCENTS.support.card} text-white shadow-violet-500/25`,
     },
     {
       href: "/wishlist",
       label: t("wishlist"),
       hint: t("wishlistHint"),
       Icon: Heart,
-      cardClass: "from-rose-600 to-red-500 text-white shadow-rose-500/25",
+      cardClass: `${BUYER_TILE_ACCENTS.wishlist.card} text-white shadow-fuchsia-500/25`,
     },
   ]
 
@@ -82,25 +83,25 @@ export function MarketplaceAffisellPulse({ audience = "default" }: Props) {
       href: "/agent",
       label: t("agent"),
       hint: t("agentHint"),
-      className: "from-violet-600 to-indigo-600 text-white shadow-violet-500/25",
+      className: `${BUYER_TILE_ACCENTS.agent.card} text-white shadow-violet-500/25`,
     },
     {
       href: "/discover",
       label: t("discover"),
       hint: t("discoverHint"),
-      className: "from-fuchsia-600 to-pink-600 text-white shadow-fuchsia-500/25",
+      className: `${BUYER_TILE_ACCENTS.pulse.card} text-white shadow-fuchsia-500/25`,
     },
     {
       href: "/shops/browse?q=smart",
       label: t("liveSearch"),
       hint: t("liveSearchHint"),
-      className: "from-sky-600 to-cyan-600 text-white shadow-sky-500/25",
+      className: `${BUYER_TILE_ACCENTS.catalog.card} text-white shadow-indigo-500/25`,
     },
     {
       href: "/wishlist",
       label: t("wishlist"),
       hint: t("wishlistHint"),
-      className: "from-amber-600 to-orange-600 text-white shadow-amber-500/25",
+      className: `${BUYER_TILE_ACCENTS.wishlist.card} text-white shadow-fuchsia-500/25`,
     },
   ]
 
@@ -143,10 +144,10 @@ export function MarketplaceAffisellPulse({ audience = "default" }: Props) {
 
   return (
     <section
-      className="mt-4 rounded-2xl border border-zinc-200/80 bg-gradient-to-br from-zinc-50/95 via-white to-violet-50/40 p-4 shadow-sm dark:border-zinc-800 dark:from-zinc-900/50 dark:via-zinc-950 dark:to-violet-950/20"
+      className="mt-4 rounded-2xl border border-violet-500/15 bg-gradient-to-br from-[#1E1B4B]/5 via-white to-violet-50/40 p-4 shadow-sm dark:border-violet-900/30 dark:from-violet-950/30 dark:via-zinc-950 dark:to-indigo-950/20"
       aria-label={t("aria")}
     >
-      <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+      <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-violet-600/80 dark:text-violet-300/80">
         {t("sectionDefault")}
       </p>
       <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
