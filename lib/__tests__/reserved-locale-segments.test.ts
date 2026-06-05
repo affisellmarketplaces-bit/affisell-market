@@ -6,6 +6,7 @@ describe("isStaticAppPathname", () => {
   it("treats app routes as static, not locales", () => {
     expect(isStaticAppPathname("/agent")).toBe(true)
     expect(isStaticAppPathname("/contact")).toBe(true)
+    expect(isStaticAppPathname("/accessibilite")).toBe(true)
     expect(isStaticAppPathname("/conditions-affilie")).toBe(true)
     expect(isStaticAppPathname("/conditions-fournisseur")).toBe(true)
     expect(isStaticAppPathname("/cookies")).toBe(true)
@@ -34,6 +35,7 @@ describe("isStaticAppPathname", () => {
 
   it("rewrites locale-prefixed static routes to bare app paths", () => {
     expect(staticAppRewriteTarget("/fr/login")).toBe("/login")
+    expect(staticAppRewriteTarget("/fr/accessibilite")).toBe("/accessibilite")
     expect(staticAppRewriteTarget("/fr/login/customer")).toBe("/login/customer")
     expect(staticAppRewriteTarget("/en/signup/customer")).toBe("/signup/customer")
     expect(staticAppRewriteTarget("/login")).toBeNull()
