@@ -47,6 +47,7 @@ describe("order-transfer-gating", () => {
     trackingNumber: "TRK1",
     deliveredAt: new Date("2026-06-03"),
     deliveryConfirmedAt: null as Date | null,
+    deliveryConfirmedBy: null as string | null,
     payoutEligibleAt: null as Date | null,
     fulfillmentStatus: "SHIPPED" as const,
   }

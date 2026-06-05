@@ -126,6 +126,7 @@ async function processOneAttempt(
     trackingNumber: attempt.order.trackingNumber,
     deliveredAt: attempt.order.deliveredAt,
     deliveryConfirmedAt: attempt.order.deliveryConfirmedAt,
+    deliveryConfirmedBy: attempt.order.deliveryConfirmedBy,
     payoutEligibleAt: attempt.order.payoutEligibleAt,
     fulfillmentStatus: attempt.order.fulfillmentStatus,
     autoBuyLogStatus: attempt.order.autoBuyLog?.status ?? null,

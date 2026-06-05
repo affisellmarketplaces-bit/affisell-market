@@ -79,6 +79,7 @@ export async function loadSupplierEscrowSummary(supplierUserId: string): Promise
         trackingNumber: order.trackingNumber,
         deliveredAt: null,
         deliveryConfirmedAt: null,
+        deliveryConfirmedBy: null,
         payoutEligibleAt: null,
         fulfillmentStatus: order.fulfillmentStatus,
         autoBuyLogStatus: order.autoBuyLog?.status ?? null,

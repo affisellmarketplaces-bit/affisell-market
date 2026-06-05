@@ -25,6 +25,7 @@ export type OrderTransferGateSnapshot = {
   trackingNumber: string | null
   deliveredAt: Date | null
   deliveryConfirmedAt: Date | null
+  deliveryConfirmedBy: string | null
   payoutEligibleAt: Date | null
   fulfillmentStatus: FulfillmentStatus
   autoBuyLogStatus?: string | null
