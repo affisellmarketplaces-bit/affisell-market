@@ -1,4 +1,5 @@
 import type { AppLocale } from "@/lib/i18n-locale"
+import { LOCALE_LABELS } from "@/lib/i18n-locale-meta"
 
 export type PhotoStudioTextSegment = {
   original: string
@@ -17,13 +18,8 @@ export type PhotoStudioTranslateResponse = {
   sourceLocale?: string
 }
 
-const LOCALE_LABEL: Record<AppLocale, string> = {
-  en: "English",
-  fr: "French",
-}
-
 export function localeLabel(locale: AppLocale): string {
-  return LOCALE_LABEL[locale]
+  return LOCALE_LABELS[locale]
 }
 
 export function parsePhotoStudioTranslatePayload(
