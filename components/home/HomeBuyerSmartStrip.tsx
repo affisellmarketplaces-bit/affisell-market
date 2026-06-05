@@ -3,6 +3,7 @@ import { ArrowUpRight } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
 import { HomeBuyerFeaturedShopsTile } from "@/components/home/HomeBuyerFeaturedShopsTile"
+import { HomeBuyerPremiumRow } from "@/components/home/HomeBuyerPremiumRow"
 import { BUYER_SMART_SERVICES, type BuyerSmartService } from "@/lib/buyer-smart-services"
 import type { PublicShopDirectoryEntry } from "@/lib/shop-storefront-shared"
 import { cn } from "@/lib/utils"
@@ -101,6 +102,7 @@ export async function HomeBuyerSmartStrip({ featuredShops }: Props) {
         <HomeBuyerFeaturedShopsTile shops={featuredShops} />
         {catalogueTile ? <BuyerServiceTile {...catalogueTile} /> : null}
       </ul>
+      <HomeBuyerPremiumRow />
     </div>
   )
 }
