@@ -78,8 +78,7 @@
     "bento": {
       "agentShopping": {
         "title": "Agent Shopping",
-        "description": "L'IA trouve les produits pour vous",
-        "cta": "Lancer l'agent"
+        "description": "L'IA trouve les produits pour vous"
       },
       "featuredStores": {
         "title": "Boutiques à la une",
@@ -118,16 +117,12 @@
     "featuredProductsEmpty": "Aucun produit mis en avant pour le moment.",
     "orbitalRail": {
       "eyebrow": "Au-delà du catalogue",
-      "title": "Explorez l'univers Affisell",
-      "subtitle": "Enchères, luxe, vitrines, support & favoris — une couche indigo."
-    },
-    "discoverTiers": {
-      "tier1Eyebrow": "Live · données",
-      "tier1Title": "Agent · Boutiques · Catalogue · Tendances",
-      "tier3Eyebrow": "Confiance",
-      "tier3Title": "Achat protégé Affisell"
+      "title": "Expériences signature",
+      "subtitle": "Enchères live et sélection luxe — deux univers premium."
     },
     "trustHandoff": {
+      "eyebrow": "Univers premium",
+      "title": "Au-delà du catalogue standard",
       "trustTitle": "Achat protégé",
       "trustBody": "Paiement Stripe · escrow vendeur · retours 14 jours UE.",
       "trustReturns": "Retours",

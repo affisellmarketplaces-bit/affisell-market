@@ -78,8 +78,7 @@
     "bento": {
       "agentShopping": {
         "title": "Agent Shopping",
-        "description": "AI finds products for you",
-        "cta": "Launch agent"
+        "description": "AI finds products for you"
       },
       "featuredStores": {
         "title": "Featured Stores",
@@ -118,16 +117,12 @@
     "featuredProductsEmpty": "No featured products yet.",
     "orbitalRail": {
       "eyebrow": "Beyond the catalog",
-      "title": "Explore the Affisell universe",
-      "subtitle": "Auctions, luxury, stores, support & favorites — one indigo layer."
-    },
-    "discoverTiers": {
-      "tier1Eyebrow": "Live · data",
-      "tier1Title": "Agent · Stores · Catalog · Trending",
-      "tier3Eyebrow": "Trust",
-      "tier3Title": "Affisell protected checkout"
+      "title": "Signature experiences",
+      "subtitle": "Live auctions and curated luxury — two premium worlds."
     },
     "trustHandoff": {
+      "eyebrow": "Premium verticals",
+      "title": "Beyond the standard catalog",
       "trustTitle": "Protected checkout",
       "trustBody": "Stripe payments · seller escrow · 14-day EU returns.",
       "trustReturns": "Returns",
