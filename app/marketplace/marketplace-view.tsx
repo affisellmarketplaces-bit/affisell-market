@@ -17,6 +17,7 @@ import { canShowBusinessProductData } from "@/lib/user-role"
 import { MarketplaceFilters } from "@/components/marketplace/filters"
 import { EuCoverageBanner } from "@/components/marketplace/eu-coverage-banner"
 import { OfferModeQuickRail } from "@/components/marketplace/offer-mode-quick-rail"
+import { MarketplaceBrowseDepartmentsRail } from "@/components/marketplace/marketplace-browse-departments-rail"
 import { MarketplaceAffisellPulse } from "@/components/marketplace/MarketplaceAffisellPulse"
 import { MobileCatalogChrome } from "@/components/marketplace/mobile-catalog-chrome"
 import { MarketplaceDepartmentRail } from "@/components/marketplace/MarketplaceDepartmentRail"
@@ -377,6 +378,13 @@ export function MarketplaceView({
           catalogBasePath={basePath}
           categoriesPayload={categoriesPayload}
         />
+        {isCustomerBrowse ? (
+          <MarketplaceBrowseDepartmentsRail
+            activeCategoryId={categoryId}
+            catalogBasePath={basePath}
+            className={embedded ? "mt-3" : "mt-3 sm:mt-4"}
+          />
+        ) : null}
         {!embedded ? (
           <div>
             {isCustomerBrowse ? (

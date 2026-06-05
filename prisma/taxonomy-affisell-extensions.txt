@@ -1,0 +1,7 @@
+# Affisell taxonomy extensions (optional, idempotent upsert)
+#
+# Format: one line per custom node (googleId null). Parent MUST already exist in Google FR taxonomy.
+#   Parent Full Path > New Node Name
+#
+# Example (uncomment only when a genuine gap is confirmed):
+# Arts et loisirs > Loisirs et arts créatifs > Articles de collection > Automobilia

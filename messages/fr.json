@@ -777,6 +777,11 @@
         "eyebrow": "Économie circulaire",
         "clear": "Tout afficher"
       },
+      "browseDepartmentsRail": {
+        "ariaLabel": "Explorer par univers",
+        "eyebrow": "Univers populaires",
+        "hint": "Libellés familiers — chaque bouton ouvre le rayon Google correspondant."
+      },
       "embeddedEyebrow": "Shopping · Live",
       "embeddedTitle": "Découvrir & acheter",
       "embeddedTitleMobile": "Catalogue produits",

@@ -1,7 +1,7 @@
 /** Build catalog browse URL with optional category filters (home embed adds #explorer). */
 export function marketplaceCatalogHref(
   catalogBasePath: string,
-  params?: { category?: string; subcategory?: string } | URLSearchParams
+  params?: { category?: string; subcategory?: string; q?: string } | URLSearchParams
 ): string {
   const sp =
     params instanceof URLSearchParams
@@ -10,6 +10,7 @@ export function marketplaceCatalogHref(
           const next = new URLSearchParams()
           if (params?.category) next.set("category", params.category)
           if (params?.subcategory) next.set("subcategory", params.subcategory)
+          if (params?.q) next.set("q", params.q)
           return next
         })()
   const qs = sp.toString()

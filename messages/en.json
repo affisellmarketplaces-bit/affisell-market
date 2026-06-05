@@ -777,6 +777,11 @@
         "eyebrow": "Circular economy",
         "clear": "Show all"
       },
+      "browseDepartmentsRail": {
+        "ariaLabel": "Browse by department",
+        "eyebrow": "Popular departments",
+        "hint": "Familiar labels — each opens the matching Google taxonomy aisle."
+      },
       "embeddedEyebrow": "Shopping · Live",
       "embeddedTitle": "Discover & shop",
       "embeddedTitleMobile": "Product catalog",
