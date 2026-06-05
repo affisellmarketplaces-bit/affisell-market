@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils"
 
 const LINKS = [
   { href: "/admin/sentinel", label: "Sentinel" },
+  { href: "/admin/kyc", label: "KYC" },
   { href: "/admin/auto-fulfill", label: "Auto-Fulfill" },
   { href: "/admin/products/new", label: "Produit AE" },
   { href: "/admin/orders", label: "Commandes" },
@@ -38,6 +39,7 @@ export function AdminNav() {
                 link.href !== "/admin/sentinel" &&
                 pathname.startsWith(`${link.href}/`)) ||
               (link.href === "/admin/sentinel" && pathname.startsWith("/admin/sentinel")) ||
+              (link.href === "/admin/kyc" && pathname.startsWith("/admin/kyc")) ||
               (link.href === "/admin/auto-fulfill" &&
                 (pathname.startsWith("/admin/products") || pathname === "/admin/auto-fulfill")) ||
               (link.href === "/crm" && pathname.startsWith("/crm")) ||

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 
+import { loadAdminKycDetail } from "@/lib/admin/merchant-kyc/load-kyc-queue"
 import { requireAdminSession } from "@/lib/admin/require-admin-session"
 import { logBusiness } from "@/lib/business-log"
 import { prisma } from "@/lib/prisma"
@@ -8,6 +9,22 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 type Ctx = { params: Promise<{ userId: string }> }
+
+/** Admin: détail dossier KYC + documents. */
+export async function GET(_req: Request, ctx: Ctx) {
+  const gate = await requireAdminSession()
+  if (!gate.ok) {
+    return NextResponse.json({ error: gate.error }, { status: gate.status })
+  }
+
+  const { userId } = await ctx.params
+  const detail = await loadAdminKycDetail(userId)
+  if (!detail) {
+    return NextResponse.json({ error: "profile_not_found" }, { status: 404 })
+  }
+
+  return NextResponse.json({ detail })
+}
 
 /** Admin: approve or reject merchant KYC. */
 export async function PATCH(req: Request, ctx: Ctx) {
