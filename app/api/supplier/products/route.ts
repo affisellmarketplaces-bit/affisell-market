@@ -7,6 +7,11 @@ import { decimalToNumber } from "@/lib/serialize-for-client"
 import { createNewDropCommunityPost } from "@/lib/community-new-drop"
 import { parseProductAttributesBody } from "@/lib/supplier-product-attributes"
 import { parseProductMarketplaceMeta } from "@/lib/supplier-product-marketplace-meta"
+import {
+  parseProductOfferBody,
+  resolveSupplierCatalogPriceCents,
+} from "@/lib/supplier-product-offer-mode"
+import { validateOfferModePublish } from "@/lib/product-offer-mode"
 import { parseSupplierProductShippingBody } from "@/lib/supplier-product-shipping"
 import { parseSupplierProductImages } from "@/lib/supplier-product-images"
 import { parseCompareAtDraftLax, parseCompareAtStrict } from "@/lib/supplier-product-compare-at"
@@ -118,17 +123,19 @@ export async function POST(req: Request) {
     return Response.json({ error: "Missing name" }, { status: 400 })
   }
 
+  const offer = parseProductOfferBody(body as Record<string, unknown>)
+
   let cents: number
   if (Number.isFinite(Number(price))) {
     cents = Math.round(Number(price) * 100)
   } else if (basePriceCentsRaw != null) {
     cents = Math.round(Number(basePriceCentsRaw))
   } else if (saveAsDraft) {
-    cents = 100
+    cents = offer.offerMode === "DONATION" ? 0 : 100
   } else {
     cents = 0
   }
-  let normalizedPriceCents = Math.max(100, cents || 100)
+  let normalizedPriceCents = resolveSupplierCatalogPriceCents(offer.offerMode, cents, saveAsDraft)
 
   const listingKind = parseListingKind((body as Record<string, unknown>).listingKind)
   const commRaw = commission ?? commissionRate
@@ -225,14 +232,25 @@ export async function POST(req: Request) {
       if (variantSync.hasVariants && variantSync.variants.length > 0) {
         const minEur = Math.min(...variantSync.variants.map((v) => v.supplierPrice))
         if (Number.isFinite(minEur) && minEur > 0) {
-          normalizedPriceCents = Math.max(100, Math.round(minEur * 100))
+          normalizedPriceCents = resolveSupplierCatalogPriceCents(
+            offer.offerMode,
+            Math.round(minEur * 100),
+            saveAsDraft
+          )
         }
-      } else if (!saveAsDraft && cents <= 0) {
+      } else if (!saveAsDraft && cents <= 0 && offer.offerMode !== "DONATION") {
         return Response.json({ error: "Missing price" }, { status: 400 })
       }
     }
-  } else if (!saveAsDraft && cents <= 0) {
+  } else if (!saveAsDraft && cents <= 0 && offer.offerMode !== "DONATION") {
     return Response.json({ error: "Missing price" }, { status: 400 })
+  }
+
+  if (!saveAsDraft) {
+    const offerErr = validateOfferModePublish(offer.offerMode, offer.minOrderQuantity)
+    if (offerErr) {
+      return Response.json({ error: offerErr }, { status: 400 })
+    }
   }
 
   const variantCommissionRates =
@@ -297,6 +315,9 @@ export async function POST(req: Request) {
         freeShipping: meta.freeShipping,
         isLuxury: meta.isLuxury,
         supplierTag: meta.supplierTag,
+        offerMode: offer.offerMode,
+        minOrderQuantity: offer.minOrderQuantity,
+        isRefurbished: offer.isRefurbished,
         customColumns:
           customColumns.length > 0
             ? (customColumns as unknown as Prisma.InputJsonValue)

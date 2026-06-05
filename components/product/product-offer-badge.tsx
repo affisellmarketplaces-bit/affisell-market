@@ -1,0 +1,26 @@
+"use client"
+
+import type { OfferModeBadge } from "@/lib/product-offer-mode"
+import { cn } from "@/lib/utils"
+
+type Props = {
+  badge: OfferModeBadge
+  variant?: "overlay" | "inline"
+  className?: string
+}
+
+export function ProductOfferBadge({ badge, variant = "overlay", className }: Props) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold tracking-tight",
+        badge.tone,
+        variant === "overlay" && "absolute left-2 top-2 z-10 shadow-sm backdrop-blur-sm",
+        className
+      )}
+    >
+      <span aria-hidden>{badge.icon}</span>
+      {badge.shortLabel}
+    </span>
+  )
+}

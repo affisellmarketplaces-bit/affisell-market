@@ -773,6 +773,10 @@
       "filtersHint": "Comme sur Amazon — par caractéristique",
       "euShipsLabel": "Union européenne (27 pays)",
       "freeShippingFacet": "Livraison offerte",
+      "offerRail": {
+        "eyebrow": "Économie circulaire",
+        "clear": "Tout afficher"
+      },
       "embeddedEyebrow": "Shopping · Live",
       "embeddedTitle": "Découvrir & acheter",
       "embeddedTitleMobile": "Catalogue produits",
@@ -836,6 +840,9 @@
     "discount": {
       "save": "Économisez {amount}",
       "percentOff": "−{percent} %"
+    },
+    "offer": {
+      "free": "Gratuit"
     }
   },
   "pulse": {

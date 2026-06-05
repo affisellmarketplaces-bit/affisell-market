@@ -20,6 +20,7 @@ import { prisma } from "@/lib/prisma"
 import { normalizeListingSalesCount } from "@/lib/listing-sales-count"
 import { publicStoreLabelFromAffiliateRow } from "@/lib/public-seller-display"
 import { marketplaceProductFilterFromSearchParams } from "@/lib/marketplace-listing-filters"
+import { offerModeBadge, parseProductOfferMode } from "@/lib/product-offer-mode"
 import {
   loadActiveSponsorBoostByListingId,
   sortListingsBySponsorBoost,
@@ -37,6 +38,8 @@ export const listingMarketplaceInclude = {
       categoryId: true,
       variants: true,
       hasVariants: true,
+      offerMode: true,
+      minOrderQuantity: true,
     },
   },
   affiliate: {
@@ -64,6 +67,8 @@ export const listingMarketplaceIncludeLite = {
       stock: true,
       categoryId: true,
       hasVariants: true,
+      offerMode: true,
+      minOrderQuantity: true,
     },
   },
   affiliate: {
@@ -96,6 +101,16 @@ export function serializeMarketplaceListing(
             hasVariants: p.hasVariants,
           })
 
+  const offerMode = parseProductOfferMode(
+    "offerMode" in p ? (p as { offerMode?: string }).offerMode : "STANDARD"
+  )
+  const minOrderQuantity =
+    "minOrderQuantity" in p && typeof (p as { minOrderQuantity?: number }).minOrderQuantity === "number"
+      ? Math.max(1, (p as { minOrderQuantity: number }).minOrderQuantity)
+      : 1
+  const locale = options?.locale ?? "fr"
+  const offerBadge = offerModeBadge(offerMode, locale === "en" ? "en" : "fr")
+
   const base = {
     id: row.id,
     listingId: row.id,
@@ -104,6 +119,9 @@ export function serializeMarketplaceListing(
     title,
     price: row.sellingPriceCents / 100,
     sellingPriceCents: row.sellingPriceCents,
+    offerMode,
+    minOrderQuantity,
+    offerBadge,
     compareAt: compareNum != null && Number.isFinite(compareNum) ? compareNum : null,
     image: gallery[0] ?? null,
     stock: p.stock,

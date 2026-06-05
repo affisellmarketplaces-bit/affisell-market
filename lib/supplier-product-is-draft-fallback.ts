@@ -43,6 +43,8 @@ const PRODUCT_SCALAR_SELECT_NO_ISDRAFT = {
   isRefurbished: true,
   hasCoupon: true,
   isEcoFriendly: true,
+  offerMode: true,
+  minOrderQuantity: true,
   shippingCountry: true,
   warehouseType: true,
   warehouseCity: true,

@@ -6,10 +6,13 @@ import {
   MARKETPLACE_DELIVERY_FACET_KEY,
   MARKETPLACE_DEPT_FACET_KEY,
   MARKETPLACE_FREE_SHIP_FACET_KEY,
+  MARKETPLACE_OFFER_FACET_KEY,
   MARKETPLACE_PRICE_FACET_KEY,
   MARKETPLACE_SHIPS_FACET_KEY,
   parseDeptFacetValue,
 } from "@/lib/marketplace-discovery-facets-shared"
+import { offerFacetSlug, offerModeBadge } from "@/lib/product-offer-mode"
+import type { ProductOfferMode } from "@/lib/product-offer-mode"
 import { loadMarketplaceCategoryTreeCached } from "@/lib/marketplace-category-tree"
 import type { MarketplaceFacet } from "@/lib/marketplace-facet-types"
 import { EU_MEMBER_COUNT, prismaProductShipsFromEuWhere } from "@/lib/eu-market-countries"
@@ -22,6 +25,14 @@ const SHIPS_FACET_KEY = MARKETPLACE_SHIPS_FACET_KEY
 const DELIVERY_FACET_KEY = MARKETPLACE_DELIVERY_FACET_KEY
 const FREE_SHIP_FACET_KEY = MARKETPLACE_FREE_SHIP_FACET_KEY
 const DEPT_FACET_KEY = MARKETPLACE_DEPT_FACET_KEY
+const OFFER_FACET_KEY = MARKETPLACE_OFFER_FACET_KEY
+
+const OFFER_FACET_MODES: ProductOfferMode[] = [
+  "REFURBISHED",
+  "SECOND_HAND",
+  "WHOLESALE_ONLY",
+  "DONATION",
+]
 
 type Labels = { fr: Record<string, string>; en: Record<string, string> }
 
@@ -32,6 +43,7 @@ const FACET_LABELS: Labels = {
     [DELIVERY_FACET_KEY]: "Délai de livraison",
     [FREE_SHIP_FACET_KEY]: "Livraison",
     [DEPT_FACET_KEY]: "Rayons",
+    [OFFER_FACET_KEY]: "Type d'offre",
   },
   en: {
     [PRICE_FACET_KEY]: "Price",
@@ -39,6 +51,7 @@ const FACET_LABELS: Labels = {
     [DELIVERY_FACET_KEY]: "Delivery time",
     [FREE_SHIP_FACET_KEY]: "Shipping",
     [DEPT_FACET_KEY]: "Departments",
+    [OFFER_FACET_KEY]: "Offer type",
   },
 }
 
@@ -84,7 +97,14 @@ export async function loadGlobalMarketplaceDiscoveryFacets(
       })
     )
 
-  const [under25, mid, over100, frShip, euShip, under3, under7, freeShip] = await Promise.all([
+  const offerCountsPromise = Promise.all(
+    OFFER_FACET_MODES.map((mode) =>
+      countListingsForProductWhere({ offerMode: mode }).then((count) => ({ mode, count }))
+    )
+  )
+
+  const [under25, mid, over100, frShip, euShip, under3, under7, freeShip, offerCounts] =
+    await Promise.all([
     listingCount({ sellingPriceCents: { lte: 2500 } }),
     listingCount({ sellingPriceCents: { gt: 2500, lte: 10000 } }),
     listingCount({ sellingPriceCents: { gt: 10000 } }),
@@ -95,6 +115,7 @@ export async function loadGlobalMarketplaceDiscoveryFacets(
     countListingsForProductWhere({
       OR: [{ freeShipping: true }, { freeShippingThreshold: { gt: 0 } }],
     }),
+    offerCountsPromise,
   ])
 
   const isEn = locale === "en"
@@ -159,6 +180,23 @@ export async function loadGlobalMarketplaceDiscoveryFacets(
       key: FREE_SHIP_FACET_KEY,
       label: facetLabel(FREE_SHIP_FACET_KEY, locale),
       values: [{ value: "1", count: freeShip }],
+    })
+  }
+
+  const offerValues = offerCounts
+    .map(({ mode, count }) => {
+      const slug = offerFacetSlug(mode)
+      const badge = offerModeBadge(mode, isEn ? "en" : "fr")
+      if (!slug || !badge || count <= 0) return null
+      return { value: slug, count, label: badge.shortLabel }
+    })
+    .filter((v): v is { value: string; count: number; label: string } => v != null)
+
+  if (offerValues.length > 0) {
+    facets.push({
+      key: OFFER_FACET_KEY,
+      label: facetLabel(OFFER_FACET_KEY, locale),
+      values: offerValues.map((v) => ({ value: v.value, count: v.count })),
     })
   }
 

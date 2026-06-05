@@ -570,6 +570,12 @@ model Product {
   isRefurbished Boolean @default(false)
   hasCoupon     Boolean @default(false)
   isEcoFriendly Boolean @default(false)
+  /**
+   * STANDARD | REFURBISHED | SECOND_HAND | WHOLESALE_ONLY | DONATION
+   */
+  offerMode         String @default("STANDARD")
+  /** Minimum units per order (MOQ) — enforced for WHOLESALE_ONLY. */
+  minOrderQuantity  Int    @default(1)
 
   shippingCountry       String?
   warehouseType         String?
@@ -660,6 +666,7 @@ model Product {
   @@index([basePriceCents])
   @@index([isOnSale])
   @@index([isLuxury])
+  @@index([offerMode])
   @@index([createdAt])
 }
 

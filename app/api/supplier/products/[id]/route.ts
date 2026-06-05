@@ -14,6 +14,11 @@ import {
   parseDescriptionIllustrationVideos,
 } from "@/lib/supplier-product-description-illustrations"
 import { parseProductMarketplaceMeta } from "@/lib/supplier-product-marketplace-meta"
+import {
+  parseProductOfferBody,
+  resolveSupplierCatalogPriceCents,
+} from "@/lib/supplier-product-offer-mode"
+import { validateOfferModePublish } from "@/lib/product-offer-mode"
 import { parseSupplierProductShippingBody } from "@/lib/supplier-product-shipping"
 import { parseSupplierProductImages } from "@/lib/supplier-product-images"
 import { parseListingKind } from "@/lib/supplier-commission"
@@ -122,6 +127,11 @@ export async function PUT(
     return Response.json({ error: "Not found" }, { status: 404 })
   }
 
+  const existingOfferRow = await prisma.product.findUnique({
+    where: { id },
+    select: { offerMode: true, isRefurbished: true, minOrderQuantity: true },
+  })
+
   if (!existingRow.isDraft && saveAsDraftReq) {
     return Response.json({ error: "This listing is live—use Publish to update it." }, { status: 400 })
   }
@@ -147,12 +157,14 @@ export async function PUT(
   let nameResolved: string
   let stock: number
   const draftUpdateOnly = existingRow.isDraft && !publish
+  const offer = parseProductOfferBody(rawBody, existingOfferRow ?? undefined)
 
   if (draftUpdateOnly) {
     const priceNum = Number(body.price)
-    priceCents = Number.isFinite(priceNum) && priceNum >= 0
-      ? Math.max(100, Math.round(priceNum * 100))
-      : Math.max(100, existingRow.basePriceCents)
+    priceCents =
+      Number.isFinite(priceNum) && priceNum >= 0
+        ? resolveSupplierCatalogPriceCents(offer.offerMode, Math.round(priceNum * 100), true)
+        : resolveSupplierCatalogPriceCents(offer.offerMode, existingRow.basePriceCents, true)
 
     compareAt = parseCompareAtDraftLax(priceCents, body.compareAt ?? null)
 
@@ -176,7 +188,10 @@ export async function PUT(
     if (!Number.isFinite(price) || price < 0) {
       return Response.json({ error: "Invalid price" }, { status: 400 })
     }
-    priceCents = Math.max(100, Math.round(price * 100))
+    if (price <= 0 && offer.offerMode !== "DONATION") {
+      return Response.json({ error: "Invalid price" }, { status: 400 })
+    }
+    priceCents = resolveSupplierCatalogPriceCents(offer.offerMode, Math.round(price * 100), false)
 
     const strict = parseCompareAtStrict(priceCents, body.compareAt ?? null)
     if (!strict.ok) {
@@ -193,6 +208,13 @@ export async function PUT(
   }
 
   const activatingFromDraft = Boolean(existingRow.isDraft && publish)
+
+  if (publish || activatingFromDraft) {
+    const offerErr = validateOfferModePublish(offer.offerMode, offer.minOrderQuantity)
+    if (offerErr) {
+      return Response.json({ error: offerErr }, { status: 400 })
+    }
+  }
   const desc = typeof body.description === "string" ? body.description.trim() : ""
   const descriptionBulletsPatch =
     "descriptionBullets" in rawBody
@@ -370,6 +392,9 @@ export async function PUT(
         freeShipping: meta.freeShipping,
         isLuxury: meta.isLuxury,
         supplierTag: meta.supplierTag,
+        offerMode: offer.offerMode,
+        minOrderQuantity: offer.minOrderQuantity,
+        isRefurbished: offer.isRefurbished,
         ...("customColumns" in rawBody
           ? {
               customColumns:

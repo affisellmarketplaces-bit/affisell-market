@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl"
 
 import { formatStoreCurrency } from "@/lib/market-config"
+import { isDonationListing, parseProductOfferMode } from "@/lib/product-offer-mode"
 import { resolveProductDiscount } from "@/lib/product-discount-display"
 import { cn } from "@/lib/utils"
 
@@ -14,6 +15,7 @@ type Props = {
   layout?: Layout
   align?: "start" | "end"
   className?: string
+  offerMode?: string
 }
 
 export function ProductPriceOffer({
@@ -22,9 +24,26 @@ export function ProductPriceOffer({
   layout = "card",
   align = "start",
   className,
+  offerMode,
 }: Props) {
   const t = useTranslations("product.discount")
+  const tOffer = useTranslations("product.offer")
+  const mode = parseProductOfferMode(offerMode)
   const offer = resolveProductDiscount(price, compareAt)
+
+  if (isDonationListing(mode, Math.round(price * 100))) {
+    return (
+      <span
+        className={cn(
+          "font-black tracking-tight text-emerald-600 dark:text-emerald-400",
+          layout === "detail" ? "text-3xl" : layout === "compact" ? "text-lg" : "text-xl",
+          className
+        )}
+      >
+        {tOffer("free")}
+      </span>
+    )
+  }
 
   if (!offer) {
     return (

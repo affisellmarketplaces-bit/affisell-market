@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Heart, Sparkles } from "lucide-react"
 
 import { ProductDiscountTag } from "@/components/product-discount-tag"
+import { ProductOfferBadge } from "@/components/product/product-offer-badge"
 import { ProductPriceOffer } from "@/components/product/product-price-offer"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { resolveProductDiscount } from "@/lib/product-discount-display"
@@ -36,6 +37,9 @@ export type ProductCardProduct = {
   reviewCount?: number
   isSponsored?: boolean
   sponsorPlacement?: string | null
+  offerMode?: string
+  minOrderQuantity?: number
+  offerBadge?: { label: string; shortLabel: string; tone: string; icon: string } | null
 }
 
 type ProductCardProps = {
@@ -119,6 +123,11 @@ function coerceProduct(p: ProductCardProps["product"]) {
       typeof o.sponsorPlacement === "string" && o.sponsorPlacement.trim()
         ? o.sponsorPlacement.trim()
         : null,
+    offerMode: typeof o.offerMode === "string" ? o.offerMode : "STANDARD",
+    minOrderQuantity:
+      typeof o.minOrderQuantity === "number" ? Math.max(1, o.minOrderQuantity) : 1,
+    offerBadge:
+      o.offerBadge && typeof o.offerBadge === "object" ? (o.offerBadge as ProductCardProduct["offerBadge"]) : null,
   }
 }
 
@@ -259,6 +268,7 @@ export function ProductCard({ product, mode = "customer", href: hrefProp }: Prod
       data-show-business-data={showBusiness ? "true" : "false"}
     >
       <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-white/50 bg-gradient-to-br from-violet-50/40 to-teal-50/25 dark:border-zinc-800/80 dark:from-violet-950/25 dark:to-teal-950/15">
+        {p.offerBadge ? <ProductOfferBadge badge={p.offerBadge} /> : null}
         {hasDiscount ? <ProductDiscountTag percent={discountOffer.percent} /> : null}
         {!showBusiness && p.soldCount != null ? (
           <ProductSalesBadge count={p.soldCount} variant="overlay" />
@@ -302,8 +312,18 @@ export function ProductCard({ product, mode = "customer", href: hrefProp }: Prod
           </p>
         ) : null}
         <div className="mt-2">
-          <ProductPriceOffer price={priceN} compareAt={compareN} layout="card" />
+          <ProductPriceOffer
+            price={priceN}
+            compareAt={compareN}
+            layout="card"
+            offerMode={p.offerMode}
+          />
         </div>
+        {p.offerMode === "WHOLESALE_ONLY" && p.minOrderQuantity > 1 ? (
+          <p className="mt-1 text-[10px] font-semibold text-indigo-700 dark:text-indigo-300">
+            MOQ {p.minOrderQuantity} unités
+          </p>
+        ) : null}
 
         {showBusiness ? (
           <>

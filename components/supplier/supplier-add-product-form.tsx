@@ -15,6 +15,7 @@ import {
   Loader2,
   LogOut,
   Plus,
+  Recycle,
   Trash2,
   Package,
   Sparkles,
@@ -52,6 +53,12 @@ import {
   type CategoryPathSegment,
   type RecentCategoryEntry,
 } from "@/lib/category-browse"
+import {
+  DEFAULT_PRODUCT_OFFER_MODE,
+  normalizeMinOrderQuantity,
+  parseProductOfferMode,
+  type ProductOfferMode,
+} from "@/lib/product-offer-mode"
 import { suggestFromTitle, titleSuggestionAttributes } from "@/lib/title-parser"
 import type { ListingCategorySuggestion } from "@/lib/supplier-suggest-listing"
 import { SupplierAffisellCommissionField } from "@/components/supplier/supplier-affisell-commission-field"
@@ -61,6 +68,7 @@ import {
   type CategoryPickOrigin,
 } from "@/components/supplier/supplier-category-picker"
 import { SupplierDeleteDraftButton } from "@/components/supplier/supplier-delete-draft-button"
+import { SupplierOfferModePicker } from "@/components/supplier/supplier-offer-mode-picker"
 import {
   SupplierVariantTable,
   type EditableVariantRow,
@@ -397,6 +405,8 @@ export function SupplierAddProductForm({
   const [deliveryDays, setDeliveryDays] = useState("")
   const [freeShipping, setFreeShipping] = useState(false)
   const [isLuxury, setIsLuxury] = useState(false)
+  const [offerMode, setOfferMode] = useState<ProductOfferMode>(DEFAULT_PRODUCT_OFFER_MODE)
+  const [minOrderQuantity, setMinOrderQuantity] = useState(1)
   const [supplierTag, setSupplierTag] = useState("")
   const [categoryAttrs, setCategoryAttrs] = useState<CategoryAttrRow[]>([])
   const [specValues, setSpecValues] = useState<Record<string, string>>({})
@@ -843,6 +853,18 @@ export function SupplierAddProductForm({
       setDeliveryDays(dd != null && Number.isFinite(Number(dd)) ? String(dd) : "")
       setFreeShipping(Boolean(data.freeShipping))
       setIsLuxury(Boolean(data.isLuxury))
+      setOfferMode(
+        parseProductOfferMode(
+          data.offerMode,
+          data.isRefurbished ? "REFURBISHED" : DEFAULT_PRODUCT_OFFER_MODE
+        )
+      )
+      setMinOrderQuantity(
+        normalizeMinOrderQuantity(
+          parseProductOfferMode(data.offerMode),
+          data.minOrderQuantity
+        )
+      )
       setSupplierTag(typeof data.supplierTag === "string" ? data.supplierTag : "")
       const colorsRaw = data.colors
       const colorList = Array.isArray(colorsRaw)
@@ -1178,6 +1200,8 @@ export function SupplierAddProductForm({
               : undefined,
         freeShipping,
         isLuxury,
+        offerMode,
+        minOrderQuantity,
         supplierTag: supplierTag.trim() || undefined,
         descriptionBullets: descriptionBullets.map((s) => s.trim()).filter(Boolean),
         descriptionIllustrationImages,
@@ -1226,6 +1250,8 @@ export function SupplierAddProductForm({
       deliveryDays,
       freeShipping,
       isLuxury,
+      offerMode,
+      minOrderQuantity,
       supplierTag,
       descriptionBullets,
       descriptionIllustrationImages,
@@ -1272,6 +1298,13 @@ export function SupplierAddProductForm({
     setDeliveryDays(c.deliveryDays)
     setFreeShipping(c.freeShipping)
     setIsLuxury(Boolean(c.isLuxury))
+    if (c.offerMode) {
+      const mode = parseProductOfferMode(c.offerMode)
+      setOfferMode(mode)
+      if (c.minOrderQuantity != null) {
+        setMinOrderQuantity(normalizeMinOrderQuantity(mode, c.minOrderQuantity))
+      }
+    }
     setSupplierTag(c.supplierTag)
     setSpecValues(c.specValues)
     setDescriptionBullets(c.descriptionBullets?.length ? c.descriptionBullets : [""])
@@ -1501,6 +1534,8 @@ export function SupplierAddProductForm({
         deliveryDays,
         freeShipping,
         isLuxury,
+        offerMode,
+        minOrderQuantity,
         supplierTag,
         specValues,
         descriptionBullets,
@@ -1531,6 +1566,8 @@ export function SupplierAddProductForm({
     editId,
     freeShipping,
     isLuxury,
+    offerMode,
+    minOrderQuantity,
     images,
     listingKind,
     name,
@@ -2786,6 +2823,22 @@ export function SupplierAddProductForm({
             ) : (
               <>
                 <div className="space-y-8">
+                <SectionCard
+                  icon={Recycle}
+                  title="Type d'offre"
+                  description="Reconditionné, seconde main, gros ou don — badge visible sur le marketplace."
+                >
+                  <SupplierOfferModePicker
+                    value={offerMode}
+                    minOrderQuantity={minOrderQuantity}
+                    onChange={(mode) => {
+                      setOfferMode(mode)
+                      setMinOrderQuantity(normalizeMinOrderQuantity(mode, minOrderQuantity))
+                    }}
+                    onMoqChange={setMinOrderQuantity}
+                  />
+                </SectionCard>
+
                 <SectionCard
                   icon={Globe2}
                   title="Marketplace delivery"

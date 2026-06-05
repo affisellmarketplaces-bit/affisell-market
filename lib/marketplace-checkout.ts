@@ -27,6 +27,11 @@ import {
 } from "@/lib/product-variants"
 import { stripeProductImages } from "@/lib/product-images"
 import { stripeCheckoutAllowedCountries } from "@/lib/eu-market-countries"
+import {
+  isDonationListing,
+  parseProductOfferMode,
+  resolvePurchaseMinQty,
+} from "@/lib/product-offer-mode"
 import { marketplaceCheckoutPaymentSessionOptions } from "@/lib/marketplace-checkout-payment-methods"
 import {
   buildHtLineItem,
@@ -91,6 +96,31 @@ function lineSellingPriceCents(
     variants,
     optionName: checkoutOptionName(row),
   })
+}
+
+function validateOfferCheckoutLine(
+  listing: NonNullable<Awaited<ReturnType<typeof loadListing>>>,
+  qty: number,
+  lineSubtotalCents: number
+): NextResponse | null {
+  const offerMode = parseProductOfferMode(listing.product.offerMode)
+  const minQty = resolvePurchaseMinQty(offerMode, listing.product.minOrderQuantity)
+  if (qty < minQty) {
+    return NextResponse.json(
+      {
+        error: "wholesale_moq_not_met",
+        minOrderQuantity: minQty,
+      },
+      { status: 400 }
+    )
+  }
+  if (isDonationListing(offerMode, lineSubtotalCents)) {
+    return NextResponse.json(
+      { error: "donation_requires_contact" },
+      { status: 400 }
+    )
+  }
+  return null
 }
 
 async function loadListing(id: string) {
@@ -189,6 +219,16 @@ async function checkoutFromItems(
     if (!listing || !listing.product.active || !listing.product.supplierId) {
       return NextResponse.json({ error: "Listing not found or inactive" }, { status: 404 })
     }
+    const parsed = parseCartVariantSignature(row.variantSignature)
+    const unit = lineSellingPriceCents(listing, {
+      variantSignature: row.variantSignature,
+      selectedColor: parsed.color,
+      selectedSize: parsed.size,
+    })
+    const lineSubtotal = unit * row.qty
+    const offerGate = validateOfferCheckoutLine(listing, row.qty, lineSubtotal)
+    if (offerGate) return offerGate
+
     loaded.push({
       affiliateProductId: row.affiliateProductId,
       qty: row.qty,
@@ -341,6 +381,8 @@ export async function marketplaceCheckoutPOST(request: Request) {
     selectedSize: body.selectedSize,
   })
   const lineSubtotal = unitSelling * qty
+  const offerGate = validateOfferCheckoutLine(listing, qty, lineSubtotal)
+  if (offerGate) return offerGate
   const requestedReward =
     typeof body.useRewardCents === "number" && Number.isFinite(body.useRewardCents)
       ? body.useRewardCents

@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client"
 
 import { AFFISELL_CATEGORIES } from "@/lib/affisell-categories"
 import { prismaProductShipsFromEuWhere } from "@/lib/eu-market-countries"
+import { parseOfferFacetValue } from "@/lib/product-offer-mode"
 
 const AFFISELL_CATEGORY_SET = new Set<string>(AFFISELL_CATEGORIES as readonly string[])
 
@@ -13,6 +14,7 @@ export function marketplaceProductFilterFromSearchParams(
   const delivery = typeof sp.delivery === "string" ? sp.delivery : ""
   const freeOnly = sp.freeShipping === "1" || sp.freeShipping === "true"
   const categoryRaw = typeof sp.category === "string" ? sp.category.trim() : ""
+  const offerRaw = typeof sp.offer === "string" ? sp.offer : ""
 
   const parts: Prisma.ProductWhereInput[] = []
 
@@ -45,6 +47,11 @@ export function marketplaceProductFilterFromSearchParams(
         { freeShipping: true },
       ],
     })
+  }
+
+  const offerMode = offerRaw ? parseOfferFacetValue(offerRaw) : null
+  if (offerMode) {
+    parts.push({ offerMode })
   }
 
   if (parts.length === 0) return null

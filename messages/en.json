@@ -773,6 +773,10 @@
       "filtersHint": "By product attribute",
       "euShipsLabel": "European Union (27 countries)",
       "freeShippingFacet": "Free shipping",
+      "offerRail": {
+        "eyebrow": "Circular economy",
+        "clear": "Show all"
+      },
       "embeddedEyebrow": "Shopping · Live",
       "embeddedTitle": "Discover & shop",
       "embeddedTitleMobile": "Product catalog",
@@ -836,6 +840,9 @@
     "discount": {
       "save": "Save {amount}",
       "percentOff": "{percent}% off"
+    },
+    "offer": {
+      "free": "Free"
     }
   },
   "pulse": {

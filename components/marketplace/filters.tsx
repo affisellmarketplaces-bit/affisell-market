@@ -9,7 +9,8 @@ import {
   AFFILIATE_CATALOG_PATH,
   PUBLIC_MARKETPLACE_BROWSE_PATH,
 } from "@/lib/affiliate-routes"
-import { DISCOVERY_FACET_KEYS } from "@/lib/marketplace-discovery-facets-shared"
+import { DISCOVERY_FACET_KEYS, MARKETPLACE_OFFER_FACET_KEY } from "@/lib/marketplace-discovery-facets-shared"
+import { offerModeBadge, parseOfferFacetValue } from "@/lib/product-offer-mode"
 import type { MarketplaceFacet } from "@/lib/marketplace-facet-types"
 import { cn } from "@/lib/utils"
 
@@ -126,6 +127,10 @@ export function MarketplaceFilters({
       if (row) return row.fr
     }
     if (facetKey === "freeShipping" && value === "1") return t("freeShippingFacet")
+    if (facetKey === MARKETPLACE_OFFER_FACET_KEY) {
+      const mode = parseOfferFacetValue(value)
+      if (mode) return offerModeBadge(mode, locale === "en" ? "en" : "fr")?.shortLabel ?? value
+    }
     return value
   }
 
