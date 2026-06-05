@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server"
 
 import { BuyerHeroBlock } from "@/components/BuyerHeroBlock"
 import { BuyerMarketplaceExplorer } from "@/components/home/BuyerMarketplaceExplorer"
-import { HomeTrustHandoff } from "@/components/home/HomeTrustHandoff"
+import { HomeBuyerServicesBand } from "@/components/home/HomeBuyerServicesBand"
 import { ShimmerSkeleton } from "@/components/marketing/shimmer-skeleton"
 
 async function CatalogFallback() {
@@ -17,7 +17,7 @@ async function CatalogFallback() {
   )
 }
 
-/** Buyer home — hero → catalogue → handoff confiance (footer global suit). */
+/** Buyer home — hero → catalogue → bande services violette → footer global. */
 export async function HomePage() {
   return (
     <main className="mx-auto w-full min-w-0 max-w-7xl space-y-4 overflow-x-clip px-4 py-4 sm:space-y-8 sm:px-6 sm:py-8">
@@ -25,7 +25,7 @@ export async function HomePage() {
       <Suspense fallback={<CatalogFallback />}>
         <BuyerMarketplaceExplorer />
       </Suspense>
-      <HomeTrustHandoff />
+      <HomeBuyerServicesBand />
     </main>
   )
 }
