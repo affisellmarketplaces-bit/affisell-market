@@ -36,9 +36,7 @@ export async function BuyerHeroBlock() {
             {t("creatorLink")}
           </Link>
         </div>
-        <div className="hidden sm:block">
-          <HomeBuyerSmartStrip featuredShops={featuredShops} />
-        </div>
+        <HomeBuyerSmartStrip featuredShops={featuredShops} />
       </div>
     </section>
   )
