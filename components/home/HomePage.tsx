@@ -19,7 +19,7 @@ async function CatalogFallback() {
 /** Buyer home — hero (services + premium) → catalogue → footer global. */
 export async function HomePage() {
   return (
-    <main className="mx-auto w-full min-w-0 max-w-7xl space-y-4 overflow-x-clip px-4 py-4 sm:space-y-8 sm:px-6 sm:py-8">
+    <main className="mx-auto w-full min-w-0 max-w-7xl space-y-3 overflow-x-clip px-3 py-3 sm:space-y-8 sm:px-6 sm:py-8">
       <BuyerHeroBlock />
       <Suspense fallback={<CatalogFallback />}>
         <BuyerMarketplaceExplorer />

@@ -14,20 +14,20 @@ export async function BuyerHeroBlock() {
   ])
 
   return (
-    <section className="relative w-full min-w-0 max-w-full overflow-hidden rounded-3xl border border-violet-500/20 bg-gradient-to-br from-violet-700 via-indigo-800 to-sky-900 px-4 py-7 text-white shadow-xl sm:px-10 sm:py-16">
+    <section className="relative w-full min-w-0 max-w-full overflow-hidden rounded-2xl border border-violet-500/20 bg-gradient-to-br from-violet-700 via-indigo-800 to-sky-900 px-3 py-5 text-white shadow-xl sm:rounded-3xl sm:px-6 sm:py-7 md:px-10 md:py-16">
       <HeroGradientBg />
       <div className="relative mx-auto w-full min-w-0 max-w-4xl text-center">
-        <h1 className="text-balance text-2xl font-bold tracking-tight sm:text-5xl md:text-6xl">
+        <h1 className="text-balance text-[1.35rem] font-bold leading-tight tracking-tight sm:text-2xl md:text-5xl lg:text-6xl">
           {t("title")}{" "}
           <span className="bg-gradient-to-r from-violet-200 via-fuchsia-200 to-sky-200 bg-[length:200%_auto] bg-clip-text text-transparent animate-[gradient-shift_6s_ease_infinite]">
             {t("titleHighlight")}
           </span>
         </h1>
-        <p className="mx-auto mt-3 max-w-2xl text-pretty text-sm text-violet-100/95 sm:mt-4 sm:text-base">{t("sub")}</p>
-        <div className="mx-auto mt-5 max-w-xl sm:mt-8">
+        <p className="mx-auto mt-2 max-w-2xl text-pretty text-xs leading-relaxed text-violet-100/95 sm:mt-4 sm:text-base">{t("sub")}</p>
+        <div className="mx-auto mt-4 max-w-xl sm:mt-8">
           <BuyerHeroSearch />
         </div>
-        <div className="mt-5 flex flex-col items-center gap-3 sm:mt-8 sm:gap-4">
+        <div className="mt-4 flex flex-col items-center gap-2.5 sm:mt-8 sm:gap-4">
           <GlowCtaLink href="/#explorer">{t("ctaPrimary")}</GlowCtaLink>
           <Link
             href="/creators"

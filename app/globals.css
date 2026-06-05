@@ -1312,3 +1312,26 @@ body.affisell-demo-lab .affisell-header-shell {
     background-position: -200% 0;
   }
 }
+
+@media (max-width: 1023px) {
+  .home-buyer-tiles-scroll::before,
+  .home-buyer-tiles-scroll::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    bottom: 0.5rem;
+    z-index: 1;
+    width: 1.25rem;
+  }
+
+  .home-buyer-tiles-scroll::before {
+    left: 0;
+    background: linear-gradient(to right, rgb(76 29 149 / 0.55), transparent);
+  }
+
+  .home-buyer-tiles-scroll::after {
+    right: 0;
+    background: linear-gradient(to left, rgb(30 58 138 / 0.55), transparent);
+  }
+}
