@@ -8,6 +8,7 @@ import {
 } from "@/lib/supplier-orders-payload"
 import { toSupplierFulfillmentOrderPublic } from "@/lib/supplier-orders-public-api"
 import { notifyMarketplaceOrderShipped } from "@/lib/emails/notify-order-shipped"
+import { triggerOrderTransferRelease } from "@/lib/trigger-order-transfer-release"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -160,6 +161,8 @@ export async function PATCH(
     trackingNumber: tracking,
     carrier,
   })
+
+  triggerOrderTransferRelease(updated.id)
 
   return Response.json({ order: toSupplierFulfillmentOrderPublic(mapMarketplaceOrder(updated)) })
 }

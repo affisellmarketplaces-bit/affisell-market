@@ -8,6 +8,8 @@ import {
   type ProductCommissionOpportunity,
 } from "@/lib/supplier-product-opportunity"
 import { loadSupplierWeeklyGoal, type SupplierWeeklyGoalSnapshot } from "@/lib/supplier-weekly-goal"
+import { loadSupplierEscrowSummary } from "@/lib/supplier-escrow-summary.server"
+import type { SupplierEscrowSummary } from "@/lib/supplier-escrow-shared"
 
 export type { SupplierUrgentSnapshot } from "@/lib/supplier-urgent-snapshot"
 export type { ProductCommissionOpportunity } from "@/lib/supplier-product-opportunity"
@@ -64,6 +66,7 @@ export type SupplierMissionControlData = {
   metrics7d: SupplierMetrics7d
   growth: SupplierGrowthSnapshot
   weeklyGoal: SupplierWeeklyGoalSnapshot | null
+  escrow: SupplierEscrowSummary
 }
 
 export function pctChange(current: number, previous: number): number | null {
@@ -264,6 +267,7 @@ export async function loadSupplierMissionControl(
     totalSkus,
     skusWithSales,
     dormantSkus,
+    escrow,
   ] = await Promise.all([
     storePromise,
     prisma.product.count({
@@ -288,6 +292,7 @@ export async function loadSupplierMissionControl(
       })
       .then((rows) => rows.length),
     loadDormantSkus(supplierUserId),
+    loadSupplierEscrowSummary(supplierUserId),
   ])
 
   const weeklyGoal = await loadSupplierWeeklyGoal(supplierUserId, store?.createdAt ?? null)
@@ -319,5 +324,6 @@ export async function loadSupplierMissionControl(
       dormantSkus,
     },
     weeklyGoal,
+    escrow,
   }
 }

@@ -1,6 +1,7 @@
 import type { Prisma, TransferRole } from "@prisma/client"
 import Stripe from "stripe"
 
+import { evaluateTransferReleaseForRole } from "@/lib/order-transfer-gating"
 import { computeSplitStatusFromAttempts } from "@/lib/transfers/compute-split-status"
 import { alertSplitTransferFailed } from "@/lib/transfers/split-slack-alert"
 import { logStripeWebhookError, logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
@@ -14,6 +15,7 @@ export type ProcessTransfersResult = {
   processed: number
   success: number
   failed: number
+  held: number
   duration_ms: number
 }
 
@@ -96,13 +98,51 @@ async function notifyTerminalFailure(args: {
 
 async function processOneAttempt(
   attemptId: string
-): Promise<"success" | "failed" | "skipped"> {
+): Promise<"success" | "failed" | "skipped" | "held"> {
   const attempt = await prisma.transferAttempt.findUnique({
     where: { id: attemptId },
-    include: { order: true },
+    include: {
+      order: {
+        include: {
+          returns: { select: { status: true } },
+          autoBuyLog: { select: { status: true } },
+          supplierFulfillmentLinks: {
+            select: {
+              supplierFulfillmentOrder: { select: { status: true } },
+            },
+          },
+        },
+      },
+    },
   })
   if (!attempt || attempt.status !== "PENDING" || attempt.attempts >= MAX_ATTEMPTS) {
     return "skipped"
+  }
+
+  const gate = evaluateTransferReleaseForRole(attempt.role, {
+    status: attempt.order.status,
+    usesAffisellAutoBuy: attempt.order.usesAffisellAutoBuy,
+    shippedAt: attempt.order.shippedAt,
+    trackingNumber: attempt.order.trackingNumber,
+    deliveredAt: attempt.order.deliveredAt,
+    deliveryConfirmedAt: attempt.order.deliveryConfirmedAt,
+    payoutEligibleAt: attempt.order.payoutEligibleAt,
+    fulfillmentStatus: attempt.order.fulfillmentStatus,
+    autoBuyLogStatus: attempt.order.autoBuyLog?.status ?? null,
+    supplierJobStatuses: attempt.order.supplierFulfillmentLinks.map(
+      (l) => l.supplierFulfillmentOrder.status
+    ),
+    returns: attempt.order.returns,
+  })
+
+  if (!gate.eligible) {
+    console.log("[transfer-gating]", {
+      orderId: attempt.orderId,
+      role: attempt.role,
+      phase: gate.phase,
+      reason: gate.reason,
+    })
+    return "held"
   }
 
   const stripe = getStripeClient()
@@ -246,11 +286,13 @@ export async function runProcessTransfersJob(options?: {
 
   let success = 0
   let failed = 0
+  let held = 0
 
   for (const row of pending) {
     const outcome = await processOneAttempt(row.id)
     if (outcome === "success") success += 1
     if (outcome === "failed") failed += 1
+    if (outcome === "held") held += 1
   }
 
   const duration_ms = Date.now() - started
@@ -262,15 +304,17 @@ export async function runProcessTransfersJob(options?: {
     processed,
     success,
     failed,
+    held,
     duration_ms,
+    orderId: options?.orderId ?? null,
   })
 
   if (failed > 0 && process.env.SENTRY_DSN?.trim()) {
     Sentry.captureMessage("Resettle failures", {
       level: "warning",
-      extra: { failed, processed, success, metric },
+      extra: { failed, processed, success, held, metric },
     })
   }
 
-  return { processed, success, failed, duration_ms }
+  return { processed, success, failed, held, duration_ms }
 }

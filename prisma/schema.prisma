@@ -1247,6 +1247,15 @@ model Order {
   /** Snapshot AE purchase price HT (centimes) at checkout when SupplierLink exists. */
   aeWholesaleCents         Int?
   /**
+   * Auto-buy escrow: HT reserved on platform to pay supplier upstream (AE/CJ/…).
+   * Null for native catalogue shipment.
+   */
+  upstreamCogsCents        Int?
+  /**
+   * Supplier Connect transfer snapshot (= supplierPayoutCents at checkout).
+   */
+  supplierMarginCents      Int?
+  /**
    * Frozen at payment: true = Affisell AE auto-buy (17 % fee base on AE wholesale when set).
    * false = native supplier catalogue shipment (10 % on catalog wholesale).
    */

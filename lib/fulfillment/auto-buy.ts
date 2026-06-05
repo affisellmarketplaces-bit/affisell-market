@@ -435,6 +435,8 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
   if (virtualCardId) await freezeAutoBuyVirtualCard(virtualCardId)
 
   logAutoBuy("bought", { orderId: log.orderId, aeOrderId, fulfillmentLogId: log.id })
+  const { triggerOrderTransferRelease } = await import("@/lib/trigger-order-transfer-release")
+  triggerOrderTransferRelease(log.orderId)
 }
 
 type AutoBuyDryRunInput = {
@@ -577,6 +579,8 @@ export async function syncAutoBuyTracking(limit = 100): Promise<
 
       results.push({ fulfillmentLogId: log.id, updated: true })
       logAutoBuy("tracking_synced", { orderId: log.orderId, tracking: tracking.number })
+      const { triggerOrderTransferRelease } = await import("@/lib/trigger-order-transfer-release")
+      triggerOrderTransferRelease(log.orderId)
     } catch (e) {
       results.push({
         fulfillmentLogId: log.id,

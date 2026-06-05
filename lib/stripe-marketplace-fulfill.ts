@@ -21,6 +21,7 @@ import {
   affiliateSaleNotificationSettlement,
   computeMarketplaceOrderSettlement,
 } from "@/lib/marketplace-order-settlement"
+import { computeOrderEscrowAllocation } from "@/lib/order-escrow-allocation"
 import { triggerAutoFulfillmentForStripeSession } from "@/lib/auto-order/enqueue"
 import { computeShipDeadlineAt } from "@/lib/supplier-ship-sla-shared"
 import { logStripeWebhookError } from "@/lib/stripe-webhook-observability"
@@ -175,6 +176,12 @@ async function createPaidMarketplaceOrder(
     supplierFeeCents: phase1Fees.supplierFeeCents,
   })
 
+  const escrowAllocation = computeOrderEscrowAllocation({
+    usesAffisellAutoBuy,
+    aeWholesaleCents,
+    supplierPayoutCents: supplierNetPayoutCents,
+  })
+
   const lineTaxCents =
     args.checkoutSubtotalCents > 0 && args.checkoutTaxCents > 0
       ? Math.round((args.checkoutTaxCents * clientLineHtCents) / args.checkoutSubtotalCents)
@@ -208,6 +215,8 @@ async function createPaidMarketplaceOrder(
       supplierFeeCents: phase1Fees.supplierFeeCents,
       affiliateFeeCents: phase1Fees.affiliateFeeCents,
       aeWholesaleCents,
+      upstreamCogsCents: escrowAllocation.upstreamCogsCents,
+      supplierMarginCents: escrowAllocation.supplierMarginCents,
       usesAffisellAutoBuy,
       affiliateMarginRetainedCents,
       supplierPriceCents: unitSupplierCents * qty,
@@ -528,6 +537,11 @@ export async function fulfillMarketplaceStripeSession(
         affiliateCommissionCents: settlement.affiliateCommissionCents,
         supplierFeeCents: dupPhase1Fees.supplierFeeCents,
       })
+      const dupEscrow = computeOrderEscrowAllocation({
+        usesAffisellAutoBuy: dupUsesAutoBuy,
+        aeWholesaleCents: dupAeWholesale,
+        supplierPayoutCents: dupSupplierNetPayout,
+      })
       const dupAffiliateMargin = phase1AffiliateMarginRetainedCents({
         clientLineHtCents,
         supplierPriceCents: basePriceCents,
@@ -562,6 +576,8 @@ export async function fulfillMarketplaceStripeSession(
           supplierFeeCents: dupPhase1Fees.supplierFeeCents,
           affiliateFeeCents: dupPhase1Fees.affiliateFeeCents,
           aeWholesaleCents: dupAeWholesale,
+          upstreamCogsCents: dupEscrow.upstreamCogsCents,
+          supplierMarginCents: dupEscrow.supplierMarginCents,
           usesAffisellAutoBuy: dupUsesAutoBuy,
           affiliateMarginRetainedCents: dupAffiliateMargin,
           supplierPriceCents: basePriceCents,

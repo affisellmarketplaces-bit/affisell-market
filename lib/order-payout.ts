@@ -81,6 +81,9 @@ export async function confirmOrderDeliveryByBuyer(orderId: string, buyerUserId: 
     },
   })
 
+  const { triggerOrderTransferRelease } = await import("@/lib/trigger-order-transfer-release")
+  triggerOrderTransferRelease(orderId)
+
   return {
     ok: true as const,
     payoutEligibleAt: payoutEligibleAt.toISOString(),
@@ -326,6 +329,11 @@ export async function processDueOrderPayouts(limit = 100): Promise<{
   }
 
   const blind = await processDueBlindDropshipPayouts(limit)
+
+  const { triggerOrderTransferRelease } = await import("@/lib/trigger-order-transfer-release")
+  for (const { id } of candidates) {
+    triggerOrderTransferRelease(id)
+  }
 
   return {
     marketplace: { processed: candidates.length, paid, skipped },

@@ -2,6 +2,10 @@ import type { Prisma } from "@prisma/client"
 import type Stripe from "stripe"
 
 import {
+  computeOrderEscrowAllocation,
+  resolveOrderEscrowAllocation,
+} from "@/lib/order-escrow-allocation"
+import {
   computeTransferAmountsFromOrder,
   logPhase1SplitCheck,
   orderSplitInputFromOrder,
@@ -77,6 +81,14 @@ export async function scheduleMarketplaceTransferAttempts(
 
   const splitInput = orderSplitInputFromOrder(order)
   const amounts = computeTransferAmountsFromOrder(splitInput)
+  const escrow =
+    order.supplierMarginCents != null
+      ? resolveOrderEscrowAllocation(order)
+      : computeOrderEscrowAllocation({
+          usesAffisellAutoBuy: order.usesAffisellAutoBuy,
+          aeWholesaleCents: order.aeWholesaleCents,
+          supplierPayoutCents: amounts.supplierPayoutCents,
+        })
 
   const subtotalForCheck = order.subtotalCents ?? order.sellingPriceCents
   logPhase1SplitCheck(orderId, {
@@ -126,7 +138,7 @@ export async function scheduleMarketplaceTransferAttempts(
   }
 
   if (supplierDestination && amounts.supplierPayoutCents > 0) {
-    await upsertAttempt("SUPPLIER", amounts.supplierPayoutCents, supplierDestination)
+    await upsertAttempt("SUPPLIER", escrow.supplierMarginCents, supplierDestination)
   }
   if (affiliateDestination && amounts.affiliateTransferCents > 0) {
     await upsertAttempt("AFFILIATE", amounts.affiliateTransferCents, affiliateDestination)
@@ -149,6 +161,8 @@ export async function scheduleMarketplaceTransferAttempts(
       totalCents: amounts.lineTotalCents,
       supplierPayoutCents: amounts.supplierPayoutCents,
       affiliatePayoutCents: amounts.affiliateTransferCents,
+      upstreamCogsCents: escrow.upstreamCogsCents,
+      supplierMarginCents: escrow.supplierMarginCents,
       affisellFeeCents: amounts.affisellFeeCents,
       stripeFeesCents: amounts.stripeFeeCents,
       stripeSessionId: order.stripeSessionId || session.id,

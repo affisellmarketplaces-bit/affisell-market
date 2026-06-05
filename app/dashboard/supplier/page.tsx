@@ -4,6 +4,7 @@ import { getLocale } from "next-intl/server"
 
 import { BentoContainer } from "@/components/affisell/bento-ui"
 import { AffisellPlatformFeesExplainer } from "@/components/shared/affisell-platform-fees-explainer"
+import { SupplierEscrowPulseCard } from "@/components/supplier/mission-control/supplier-escrow-pulse-card"
 import { SupplierGrowthSection } from "@/components/supplier/mission-control/supplier-growth-section"
 import { prisma } from "@/lib/prisma"
 import { SupplierMetricsBar } from "@/components/supplier/mission-control/supplier-metrics-bar"
@@ -73,6 +74,11 @@ export default async function DashboardSupplierPage() {
           <SupplierTrustLadderCard
             tier={displayTier}
             metrics={trustSnapshot.metrics}
+            locale={locale === "en" ? "en" : "fr"}
+          />
+
+          <SupplierEscrowPulseCard
+            summary={data.escrow}
             locale={locale === "en" ? "en" : "fr"}
           />
 
