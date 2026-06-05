@@ -34,7 +34,7 @@ export async function BentoGrid() {
             className="relative inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-violet-100 backdrop-blur-md transition hover:bg-white/15 hover:text-white"
           >
             <Bot className="h-4 w-4" aria-hidden />
-            AI
+            {t("agentShopping.cta")}
           </Link>
         </BentoCard>
       </StaggerItem>
