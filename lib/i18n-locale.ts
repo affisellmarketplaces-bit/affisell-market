@@ -1,6 +1,6 @@
 export const LOCALE_COOKIE = "affisell_locale"
 export const APP_TIME_ZONE = "Europe/Paris"
-export const SUPPORTED_LOCALES = ["en", "fr"] as const
+export const SUPPORTED_LOCALES = ["en", "fr", "de", "es", "it", "nl", "pl"] as const
 export type AppLocale = (typeof SUPPORTED_LOCALES)[number]
 
 export const DEFAULT_LOCALE: AppLocale = "en"

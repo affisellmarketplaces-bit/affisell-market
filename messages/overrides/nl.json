@@ -1,0 +1,142 @@
+{
+  "PublicNav": {
+    "home": "Home",
+    "marketplace": "Marketplace",
+    "creatorStores": "Creator-winkels",
+    "creatorStoresShort": "Creators",
+    "searchPlaceholder": "Producten zoeken…",
+    "searchLabel": "Zoeken",
+    "signIn": "Inloggen",
+    "myAccount": "Mijn account",
+    "cart": "Winkelwagen",
+    "cartAria": "Winkelwagen",
+    "themeToggle": "Thema wisselen"
+  },
+  "home": {
+    "meta": {
+      "title": "Affisell — Creator marketplace",
+      "description": "Gecureerde producten van je favoriete creators. Snelle verzending, veilig afrekenen."
+    },
+    "hero": {
+      "title": "Winkels gecureerd door je favoriete",
+      "titleHighlight": "creators",
+      "sub": "Snelle verzending · Veilig betalen · 14 dagen retour",
+      "searchPlaceholder": "Zoek producten, merken, niches…",
+      "searchLabel": "Producten zoeken",
+      "searchSubmit": "Zoeken",
+      "ctaPrimary": "Catalogus verkennen",
+      "creatorLink": "Ben je creator? Verkoop op Affisell →"
+    },
+    "loadingCatalog": "Catalogus laden…",
+    "orbitalRail": {
+      "eyebrow": "Voorbij de catalogus",
+      "title": "Ontdek het Affisell-universum",
+      "subtitle": "Veilingen, luxe, support & meer — één indigo laag."
+    },
+    "buyerServices": {
+      "sectionBuyer": "Slim shoppen op Affisell",
+      "agent": "Shopping-agent",
+      "agentHint": "AI-adviseur voor het juiste product",
+      "catalog": "Live catalogus",
+      "catalogHint": "Afdelingen, filters & productpagina's",
+      "stores": "Winkels",
+      "storesHint": "Alle creator-storefronts",
+      "discover": "Affisell Pulse",
+      "discoverMarketHint": "Marktsignalen",
+      "wishlist": "Verlanglijst",
+      "wishlistHint": "Prijsalerts & favorieten",
+      "support": "Support-assistent",
+      "supportHint": "Bestellingen, verzending, retouren · 24/7",
+      "auctions": "Veiling-arena",
+      "auctionsHint": "Live biedingen · futuristische drops",
+      "luxe": "Affisell Luxe",
+      "luxeHint": "Gecureerde luxe & collecties"
+    }
+  },
+  "cart": {
+    "title": "Winkelwagen",
+    "loading": "Winkelwagen laden…",
+    "empty": "Je winkelwagen is leeg",
+    "discoverProducts": "Producten ontdekken",
+    "validatePurchase": "Aankoop voltooien",
+    "continueShopping": "Verder winkelen"
+  },
+  "marketplace": {
+    "euCoverage": {
+      "aria": "Pan-EU dekking",
+      "badge": "Pan-EU",
+      "eyebrow": "{euCount} EU-markten",
+      "title": "Shop door heel Europa — één marketplace",
+      "subtitle": "Checkout naar {count} landen · prijzen in EUR · BTW bij betaling",
+      "stripeTax": "Stripe Tax",
+      "footnote": "Levering hangt af van de verzendzone van elke leverancier."
+    },
+    "browse": {
+      "ariaEmbedded": "Ontdekken en shoppen",
+      "embeddedEyebrow": "Shoppen · Live",
+      "embeddedTitle": "Ontdek & shop",
+      "embeddedTitleMobile": "Productcatalogus",
+      "embeddedSubtitle": "Gebruik de hero-zoekbalk, afdelingen of de shopping-agent.",
+      "resetFilters": "Reset",
+      "placeholderBuyer": "Zoek producten, merken, creators…",
+      "listingCount": "{count, plural, one {# aanbieding} other {# aanbiedingen}}",
+      "showAll": "Alles tonen",
+      "viewStores": "Winkels bekijken",
+      "emptyCatalogTitle": "Catalogus nog leeg",
+      "emptySearchTitle": "Geen resultaten"
+    },
+    "mobileHub": {
+      "title": "Affisell Hub",
+      "subtitle": "Services, Pulse, Luxe & meer — zonder de catalogus te verlaten.",
+      "close": "Sluiten"
+    },
+    "departmentRail": {
+      "ariaLabel": "Affisell-afdelingen",
+      "badge": "Afdelingen",
+      "allCatalog": "Volledige catalogus"
+    }
+  },
+  "footer": {
+    "global": {
+      "legalTitle": "Juridisch",
+      "supportTitle": "Support",
+      "paymentTitle": "Veilig betalen",
+      "faq": "FAQ",
+      "contact": "Contact",
+      "trackOrder": "Bestelling volgen",
+      "mobileTagline": "Creator marketplace · veilig afrekenen · support 24/7",
+      "desktopTagline": "Marketplace-infrastructuur voor affiliates en leveranciers in Europa."
+    }
+  },
+  "CommandK": {
+    "languageSwitcher": "Taal",
+    "triggerLabel": "Snelle navigatie",
+    "placeholder": "Waarheen? Zoek producten of pagina's…",
+    "empty": "Geen bestemming",
+    "groups": {
+      "buy": "KOPEN",
+      "sell": "VERKOPEN",
+      "account": "ACCOUNT"
+    },
+    "items": {
+      "home": "Home",
+      "marketplace": "Marketplace",
+      "creatorStores": "Creator-winkels",
+      "cart": "Winkelwagen",
+      "wishlist": "Verlanglijst",
+      "signIn": "Inloggen"
+    }
+  },
+  "errors": {
+    "notFound": {
+      "title": "Pagina niet gevonden",
+      "body": "Deze pagina bestaat niet.",
+      "home": "Naar home"
+    },
+    "page": {
+      "title": "Er ging iets mis",
+      "retry": "Opnieuw",
+      "home": "Home"
+    }
+  }
+}

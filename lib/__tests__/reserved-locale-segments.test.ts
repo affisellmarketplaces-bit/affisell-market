@@ -28,6 +28,8 @@ describe("isStaticAppPathname", () => {
     expect(isStaticAppPathname("/fr")).toBe(false)
     expect(isStaticAppPathname("/en")).toBe(false)
     expect(RESERVED_LOCALE_SEGMENTS.has("fr")).toBe(false)
+    expect(RESERVED_LOCALE_SEGMENTS.has("de")).toBe(false)
+    expect(RESERVED_LOCALE_SEGMENTS.has("es")).toBe(false)
   })
 
   it("rewrites locale-prefixed static routes to bare app paths", () => {

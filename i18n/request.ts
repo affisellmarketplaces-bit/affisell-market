@@ -1,6 +1,7 @@
 import { getRequestConfig } from "next-intl/server"
 
 import { APP_TIME_ZONE } from "@/lib/i18n-locale"
+import { loadAppMessages } from "@/lib/i18n-load-messages"
 import { resolveRequestLocale } from "@/lib/resolve-request-locale"
 
 export default getRequestConfig(async ({ requestLocale }) => {
@@ -13,6 +14,6 @@ export default getRequestConfig(async ({ requestLocale }) => {
     locale,
     timeZone: APP_TIME_ZONE,
     now: new Date(),
-    messages: (await import(`../messages/${locale}.json`)).default,
+    messages: loadAppMessages(locale),
   }
 })

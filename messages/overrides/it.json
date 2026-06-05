@@ -1,0 +1,142 @@
+{
+  "PublicNav": {
+    "home": "Home",
+    "marketplace": "Marketplace",
+    "creatorStores": "Negozi creator",
+    "creatorStoresShort": "Creator",
+    "searchPlaceholder": "Cerca prodotti…",
+    "searchLabel": "Cerca",
+    "signIn": "Accedi",
+    "myAccount": "Il mio account",
+    "cart": "Carrello",
+    "cartAria": "Carrello",
+    "themeToggle": "Cambia tema"
+  },
+  "home": {
+    "meta": {
+      "title": "Affisell — Marketplace per creator",
+      "description": "Prodotti selezionati dai tuoi creator preferiti. Spedizione rapida, checkout sicuro."
+    },
+    "hero": {
+      "title": "Negozi curati dai tuoi",
+      "titleHighlight": "creator preferiti",
+      "sub": "Spedizione rapida · Pagamento sicuro · Resi 14 giorni",
+      "searchPlaceholder": "Cerca prodotti, brand, nicchie…",
+      "searchLabel": "Cerca prodotti",
+      "searchSubmit": "Cerca",
+      "ctaPrimary": "Esplora il catalogo",
+      "creatorLink": "Sei un creator? Vendi su Affisell →"
+    },
+    "loadingCatalog": "Caricamento catalogo…",
+    "orbitalRail": {
+      "eyebrow": "Oltre il catalogo",
+      "title": "Esplora l'universo Affisell",
+      "subtitle": "Aste, lusso, supporto e altro — un layer indaco."
+    },
+    "buyerServices": {
+      "sectionBuyer": "Acquista smart su Affisell",
+      "agent": "Agente shopping",
+      "agentHint": "Consulente IA per il prodotto giusto",
+      "catalog": "Catalogo live",
+      "catalogHint": "Reparti, filtri e schede prodotto",
+      "stores": "Negozi",
+      "storesHint": "Tutte le vetrine creator",
+      "discover": "Affisell Pulse",
+      "discoverMarketHint": "Segnali di mercato",
+      "wishlist": "Lista desideri",
+      "wishlistHint": "Avvisi prezzo e preferiti",
+      "support": "Assistente supporto",
+      "supportHint": "Ordini, spedizione, resi · 24/7",
+      "auctions": "Arena aste",
+      "auctionsHint": "Offerte live · drop futuristici",
+      "luxe": "Affisell Luxe",
+      "luxeHint": "Lusso e collezioni curate"
+    }
+  },
+  "cart": {
+    "title": "Carrello",
+    "loading": "Caricamento carrello…",
+    "empty": "Il carrello è vuoto",
+    "discoverProducts": "Scopri prodotti",
+    "validatePurchase": "Completa l'acquisto",
+    "continueShopping": "Continua lo shopping"
+  },
+  "marketplace": {
+    "euCoverage": {
+      "aria": "Copertura Pan-UE",
+      "badge": "Pan-UE",
+      "eyebrow": "{euCount} mercati UE",
+      "title": "Acquista in tutta Europa — un marketplace",
+      "subtitle": "Checkout in {count} paesi · prezzi in EUR · IVA al pagamento",
+      "stripeTax": "Stripe Tax",
+      "footnote": "La consegna dipende dalla zona di spedizione del fornitore."
+    },
+    "browse": {
+      "ariaEmbedded": "Esplora e acquista",
+      "embeddedEyebrow": "Shopping · Live",
+      "embeddedTitle": "Scopri e acquista",
+      "embeddedTitleMobile": "Catalogo prodotti",
+      "embeddedSubtitle": "Usa la ricerca hero, i reparti o l'agente shopping.",
+      "resetFilters": "Reimposta",
+      "placeholderBuyer": "Cerca prodotti, brand, creator…",
+      "listingCount": "{count, plural, one {# annuncio} other {# annunci}}",
+      "showAll": "Mostra tutto",
+      "viewStores": "Sfoglia negozi",
+      "emptyCatalogTitle": "Catalogo vuoto per ora",
+      "emptySearchTitle": "Nessun risultato"
+    },
+    "mobileHub": {
+      "title": "Hub Affisell",
+      "subtitle": "Servizi, Pulse, Luxe e altro — senza lasciare il catalogo.",
+      "close": "Chiudi"
+    },
+    "departmentRail": {
+      "ariaLabel": "Reparti Affisell",
+      "badge": "Reparti",
+      "allCatalog": "Catalogo completo"
+    }
+  },
+  "footer": {
+    "global": {
+      "legalTitle": "Legale",
+      "supportTitle": "Supporto",
+      "paymentTitle": "Pagamento sicuro",
+      "faq": "FAQ",
+      "contact": "Contatto",
+      "trackOrder": "Traccia ordine",
+      "mobileTagline": "Marketplace creator · checkout sicuro · supporto 24/7",
+      "desktopTagline": "Infrastruttura marketplace per affiliati e fornitori in Europa."
+    }
+  },
+  "CommandK": {
+    "languageSwitcher": "Lingua",
+    "triggerLabel": "Navigazione rapida",
+    "placeholder": "Dove andare? Cerca prodotti o pagine…",
+    "empty": "Nessuna destinazione",
+    "groups": {
+      "buy": "ACQUISTA",
+      "sell": "VENDI",
+      "account": "ACCOUNT"
+    },
+    "items": {
+      "home": "Home",
+      "marketplace": "Marketplace",
+      "creatorStores": "Negozi creator",
+      "cart": "Carrello",
+      "wishlist": "Lista desideri",
+      "signIn": "Accedi"
+    }
+  },
+  "errors": {
+    "notFound": {
+      "title": "Pagina non trovata",
+      "body": "Questa pagina non esiste.",
+      "home": "Torna alla home"
+    },
+    "page": {
+      "title": "Qualcosa è andato storto",
+      "retry": "Riprova",
+      "home": "Home"
+    }
+  }
+}

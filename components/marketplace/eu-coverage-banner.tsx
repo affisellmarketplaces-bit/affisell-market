@@ -71,7 +71,7 @@ export function EuCoverageBanner({ className, variant = "buyer" }: Props) {
             {t("stripeTax")}
           </li>
           <li className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-2.5 py-1 text-[10px] font-semibold text-violet-100/90">
-            {locale === "fr" ? "FR · EN" : "EN · FR"}
+            {locale.toUpperCase()} · EN
           </li>
         </ul>
       </div>

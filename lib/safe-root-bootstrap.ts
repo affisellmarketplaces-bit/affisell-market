@@ -2,16 +2,12 @@ import type { AbstractIntlMessages } from "next-intl"
 import { getLocale, setRequestLocale } from "next-intl/server"
 
 import { routing } from "@/i18n/routing"
-import { DEFAULT_LOCALE, resolveAppLocale, type AppLocale } from "@/lib/i18n-locale"
+import { DEFAULT_LOCALE, type AppLocale } from "@/lib/i18n-locale"
+import { loadAppMessages } from "@/lib/i18n-load-messages"
 import {
   isDynamicServerUsageError,
   resolveRequestLocale,
 } from "@/lib/resolve-request-locale"
-
-async function loadMessagesFallback(locale: AppLocale): Promise<AbstractIntlMessages> {
-  const mod = await import(`../messages/${locale}.json`)
-  return mod.default as AbstractIntlMessages
-}
 
 export type RootShellBootstrap = {
   locale: AppLocale
@@ -65,6 +61,6 @@ export async function bootstrapRootShell(): Promise<RootShellBootstrap> {
     /* ignore */
   }
 
-  const messages = await loadMessagesFallback(locale)
+  const messages = loadAppMessages(locale)
   return { locale, messages, now: new Date() }
 }

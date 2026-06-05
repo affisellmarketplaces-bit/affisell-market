@@ -1,7 +1,17 @@
 import type { AppLocale } from "@/lib/i18n-locale"
 
+const BCP47_BY_LOCALE: Record<AppLocale, string> = {
+  en: "en-GB",
+  fr: "fr-FR",
+  de: "de-DE",
+  es: "es-ES",
+  it: "it-IT",
+  nl: "nl-NL",
+  pl: "pl-PL",
+}
+
 export function bcp47ForAppLocale(locale: AppLocale): string {
-  return locale === "fr" ? "fr-FR" : "en-GB"
+  return BCP47_BY_LOCALE[locale] ?? "en-GB"
 }
 
 export function formatMoneyFromCents(

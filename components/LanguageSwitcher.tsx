@@ -9,11 +9,14 @@ import { ChevronDown } from "lucide-react"
 
 import { hrefForLocaleSwitch } from "@/lib/client-locale-path"
 import { isDemoLabRoute } from "@/lib/demo/demo-routes"
-import { LOCALE_COOKIE, localeCookieMaxAgeSec, type AppLocale } from "@/lib/i18n-locale"
+import {
+  LOCALE_COOKIE,
+  SUPPORTED_LOCALES,
+  localeCookieMaxAgeSec,
+  type AppLocale,
+} from "@/lib/i18n-locale"
+import { LOCALE_FLAGS, LOCALE_LABELS } from "@/lib/i18n-locale-meta"
 import { cn } from "@/lib/utils"
-
-const FLAGS: Record<AppLocale, string> = { en: "🇬🇧", fr: "🇫🇷" }
-const LABELS: Record<AppLocale, string> = { en: "English", fr: "Français" }
 
 function setLocaleCookie(locale: AppLocale) {
   const maxAge = localeCookieMaxAgeSec()
@@ -123,7 +126,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: menuPos.openUpward ? -4 : 4, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="affisell-locale-menu fixed z-[9999] overflow-hidden rounded-xl border border-zinc-200 bg-white py-1 shadow-xl dark:border-zinc-700 dark:bg-zinc-950"
+            className="affisell-locale-menu fixed z-[9999] max-h-[min(70dvh,20rem)] overflow-y-auto rounded-xl border border-zinc-200 bg-white py-1 shadow-xl dark:border-zinc-700 dark:bg-zinc-950"
             style={{
               top: menuPos.openUpward ? undefined : menuPos.top,
               bottom: menuPos.openUpward ? menuPos.bottom : undefined,
@@ -133,7 +136,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
             }}
             role="listbox"
           >
-            {(["en", "fr"] as const).map((code) => (
+            {SUPPORTED_LOCALES.map((code) => (
               <li key={code} role="option" aria-selected={locale === code}>
                 <button
                   type="button"
@@ -143,8 +146,8 @@ export function LanguageSwitcher({ className }: { className?: string }) {
                     locale === code && "bg-violet-50 text-violet-700 dark:bg-violet-950/50"
                   )}
                 >
-                  <span>{FLAGS[code]}</span>
-                  {LABELS[code]}
+                  <span>{LOCALE_FLAGS[code]}</span>
+                  {LOCALE_LABELS[code]}
                 </button>
               </li>
             ))}
@@ -171,7 +174,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
         aria-haspopup="listbox"
       >
         <span className="text-base" aria-hidden>
-          {FLAGS[locale]}
+          {LOCALE_FLAGS[locale]}
         </span>
         <span className="hidden sm:inline">{locale.toUpperCase()}</span>
         <ChevronDown

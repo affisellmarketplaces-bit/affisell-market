@@ -136,7 +136,7 @@ async function handleHomePath(req: NextRequest): Promise<NextResponse> {
     req.cookies.get(LOCALE_COOKIE)?.value ?? req.cookies.get("NEXT_LOCALE")?.value
   syncLocaleCookies(
     res,
-    urlLocale ?? (pathname === "/fr" ? "fr" : resolveAppLocale(cookieLocale ?? routing.defaultLocale))
+    urlLocale ?? resolveAppLocale(cookieLocale ?? routing.defaultLocale)
   )
   return res
 }
@@ -145,8 +145,13 @@ function isRedirectLoop(source: string, location: string): boolean {
   try {
     const targetPath = new URL(location, "http://localhost").pathname
     return (
-      (source === "/" && (targetPath === "/fr" || targetPath === "/en")) ||
-      (source === "/fr" && targetPath === "/") ||
+      (source === "/" &&
+        routing.locales
+          .filter((l) => l !== routing.defaultLocale)
+          .some((l) => targetPath === `/${l}`)) ||
+      routing.locales
+        .filter((l) => l !== routing.defaultLocale)
+        .some((l) => source === `/${l}` && targetPath === "/") ||
       (source === "/en" && targetPath === "/")
     )
   } catch {
