@@ -843,7 +843,8 @@
       "hint": "Navigation type grand comptoir — chaque rayon ouvre ses allées dans la colonne de gauche.",
       "allCatalog": "Tout le catalogue",
       "swipeAll": "Swipe tout le catalogue",
-      "swipeCategory": "Swipe {name}"
+      "swipeCategory": "Swipe {name}",
+      "marqueeHint": "Survolez pour parcourir"
     }
   },
   "product": {

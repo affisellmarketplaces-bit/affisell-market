@@ -843,7 +843,8 @@
       "hint": "Department-store navigation — each department opens its aisles in the left column.",
       "allCatalog": "All Catalog",
       "swipeAll": "Swipe full catalog",
-      "swipeCategory": "Swipe {name}"
+      "swipeCategory": "Swipe {name}",
+      "marqueeHint": "Hover to browse"
     }
   },
   "product": {

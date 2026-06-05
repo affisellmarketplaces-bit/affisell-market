@@ -1335,3 +1335,86 @@ body.affisell-demo-lab .affisell-header-shell {
     background: linear-gradient(to left, rgb(30 58 138 / 0.55), transparent);
   }
 }
+
+/* Catalog department rail — infinite marquee band */
+.affisell-department-marquee {
+  position: relative;
+}
+
+.affisell-department-marquee::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset-inline: 0.75rem;
+  top: 2.65rem;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(139 92 246 / 0.45) 20%,
+    rgb(217 70 239 / 0.55) 50%,
+    rgb(139 92 246 / 0.45) 80%,
+    transparent
+  );
+  opacity: 0.85;
+}
+
+.affisell-marquee--active {
+  --marquee-fade: 2.75rem;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    black var(--marquee-fade),
+    black calc(100% - var(--marquee-fade)),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black var(--marquee-fade),
+    black calc(100% - var(--marquee-fade)),
+    transparent
+  );
+}
+
+.affisell-marquee__track--animate {
+  animation: affisell-marquee-scroll linear infinite;
+  will-change: transform;
+}
+
+@media (hover: hover) {
+  .affisell-marquee--active:hover .affisell-marquee__track--animate {
+    animation-play-state: paused;
+  }
+}
+
+.affisell-marquee--active:active .affisell-marquee__track--animate,
+.affisell-marquee--active:focus-within .affisell-marquee__track--animate {
+  animation-play-state: paused;
+}
+
+@keyframes affisell-marquee-scroll {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .affisell-marquee--active {
+    -webkit-mask-image: none;
+    mask-image: none;
+    overflow-x: auto;
+  }
+
+  .affisell-marquee--active .affisell-marquee__track--animate {
+    animation: none;
+    transform: none;
+  }
+
+  .affisell-marquee__row[aria-hidden="true"] {
+    display: none;
+  }
+}
