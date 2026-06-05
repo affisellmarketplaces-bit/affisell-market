@@ -1,13 +1,15 @@
 "use client"
 
-import { useCallback, useMemo, useState } from "react"
+import { Fragment, useCallback, useMemo, useState } from "react"
 import { useTranslations } from "next-intl"
 import useSWR from "swr"
 
 import { ChevronDown, ChevronRight, Grid3x3, LayoutGrid, Loader2 } from "lucide-react"
 
 import { CategoryGlyph } from "@/components/marketplace/CategoryGlyph"
+import { TriDashSeparator } from "@/components/ui/tri-dash-separator"
 import { affisellBrand } from "@/lib/affisell-brand"
+import { chunkCategoryRoots } from "@/lib/category-tree-tiers"
 import { cn } from "@/lib/utils"
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
@@ -182,6 +184,148 @@ function CategoryTreeNodeRow({
   )
 }
 
+function CategoryTreeRootBlock({
+  root,
+  activeCategoryId,
+  activeRoot,
+  expandedIds,
+  toggle,
+  onSelect,
+  inSheet,
+  t,
+}: {
+  root: CategoryTreeRoot
+  activeCategoryId?: string | null
+  activeRoot?: CategoryTreeRoot
+  expandedIds: string[]
+  toggle: (id: string) => void
+  onSelect: (id: string) => void
+  inSheet: boolean
+  t: ReturnType<typeof useTranslations<"marketplace.sidebar">>
+}) {
+  const rootExpanded = expandedIds.includes(root.id) || activeRoot?.id === root.id
+  const rootActive = activeCategoryId === root.id
+
+  return (
+    <div className={cn("border-b", inSheet ? "border-white/10" : "border-border/80")}>
+      <div className="flex items-center px-2">
+        <button
+          type="button"
+          aria-expanded={rootExpanded}
+          onClick={() => toggle(root.id)}
+          className={cn("shrink-0 p-2", inSheet ? "text-violet-400" : "text-zinc-400")}
+        >
+          {rootExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+        </button>
+        <button
+          type="button"
+          title={root.fullPath ?? root.name}
+          onClick={() => onSelect(root.id)}
+          className={cn(
+            "flex min-w-0 flex-1 items-center justify-between py-3 pr-3 text-left text-sm font-semibold transition",
+            rootActive
+              ? inSheet
+                ? "text-violet-300"
+                : "text-buyer"
+              : inSheet
+                ? "text-zinc-50 hover:text-violet-100"
+                : "text-zinc-900 dark:text-zinc-100"
+          )}
+        >
+          <span className="flex items-center gap-2.5">
+            <CategoryGlyph
+              name={root.name}
+              slug={root.slug}
+              fullPath={root.fullPath}
+              icon={root.icon}
+              size="sm"
+              inSheet={inSheet}
+            />
+            <span className="truncate">{root.name}</span>
+          </span>
+          {root.count > 0 ? (
+            <span
+              className={cn(
+                "rounded-full px-2 py-0.5 text-[10px] font-bold",
+                inSheet ? "bg-white/10 text-zinc-300" : "text-zinc-500"
+              )}
+            >
+              {root.count}
+            </span>
+          ) : null}
+        </button>
+      </div>
+
+      {rootExpanded ? (
+        <div className="pb-1">
+          {root.subcategories.map((sub) => {
+            const subExpanded = expandedIds.includes(sub.id)
+            const subActive = activeCategoryId === sub.id
+            return (
+              <div key={sub.id}>
+                <div className="flex items-stretch pl-8">
+                  <button
+                    type="button"
+                    onClick={() => toggle(sub.id)}
+                    className={cn("shrink-0 py-2 pr-1", inSheet ? "text-violet-400" : "text-zinc-400")}
+                    aria-label={t("expandBranch")}
+                  >
+                    <ChevronRight className={cn("h-3.5 w-3.5 transition", subExpanded && "rotate-90")} />
+                  </button>
+                  <button
+                    type="button"
+                    title={sub.fullPath ?? `${root.name} > ${sub.name}`}
+                    onClick={() => onSelect(sub.id)}
+                    className={cn(
+                      "flex min-w-0 flex-1 flex-col border-l-2 py-2 pr-3 text-left text-sm transition",
+                      subActive
+                        ? inSheet
+                          ? "border-violet-400 bg-violet-500/15 font-medium text-violet-50"
+                          : "border-buyer bg-buyer-muted/70 font-medium"
+                        : inSheet
+                          ? "border-transparent text-zinc-300 hover:border-violet-500/35 hover:bg-white/[0.04]"
+                          : "border-transparent text-zinc-600 dark:text-zinc-400"
+                    )}
+                  >
+                    <span className="truncate">{sub.name}</span>
+                    {sub.fullPath ? (
+                      <span className={cn("mt-0.5 line-clamp-2 text-[10px]", inSheet ? "text-zinc-500" : "text-zinc-500")}>
+                        {sub.fullPath}
+                      </span>
+                    ) : null}
+                  </button>
+                </div>
+                {subExpanded ? (
+                  <BranchChildren
+                    parentId={sub.id}
+                    depth={2}
+                    activeCategoryId={activeCategoryId}
+                    expandedIds={expandedIds}
+                    onToggle={toggle}
+                    onSelect={onSelect}
+                    inSheet={inSheet}
+                  />
+                ) : null}
+              </div>
+            )
+          })}
+          {root.subcategories.length === 0 ? (
+            <BranchChildren
+              parentId={root.id}
+              depth={1}
+              activeCategoryId={activeCategoryId}
+              expandedIds={expandedIds}
+              onToggle={toggle}
+              onSelect={onSelect}
+              inSheet={inSheet}
+            />
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 export function CategoryTreeExplorer({
   onCategoryClick,
   onShowFullCatalog,
@@ -210,6 +354,8 @@ export function CategoryTreeExplorer({
     () => roots.find((r) => r.id === activeCategoryId || r.subcategories.some((s) => s.id === activeCategoryId)),
     [roots, activeCategoryId]
   )
+
+  const rootTiers = useMemo(() => chunkCategoryRoots(roots), [roots])
 
   if (!roots.length) {
     return (
@@ -277,130 +423,26 @@ export function CategoryTreeExplorer({
         ) : null}
       </button>
 
-      {roots.map((root) => {
-        const rootExpanded = expandedIds.includes(root.id) || activeRoot?.id === root.id
-        const rootActive = activeCategoryId === root.id
-        return (
-          <div key={root.id} className={cn("border-b", inSheet ? "border-white/10" : "border-border/80")}>
-            <div className="flex items-center px-2">
-              <button
-                type="button"
-                aria-expanded={rootExpanded}
-                onClick={() => toggle(root.id)}
-                className={cn("shrink-0 p-2", inSheet ? "text-violet-400" : "text-zinc-400")}
-              >
-                {rootExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-              </button>
-              <button
-                type="button"
-                title={root.fullPath ?? root.name}
-                onClick={() => onSelect(root.id)}
-                className={cn(
-                  "flex min-w-0 flex-1 items-center justify-between py-3 pr-3 text-left text-sm font-semibold transition",
-                  rootActive
-                    ? inSheet
-                      ? "text-violet-300"
-                      : "text-buyer"
-                    : inSheet
-                      ? "text-zinc-50 hover:text-violet-100"
-                      : "text-zinc-900 dark:text-zinc-100"
-                )}
-              >
-                <span className="flex items-center gap-2.5">
-                  <CategoryGlyph
-                    name={root.name}
-                    slug={root.slug}
-                    fullPath={root.fullPath}
-                    icon={root.icon}
-                    size="sm"
-                    inSheet={inSheet}
-                  />
-                  <span className="truncate">{root.name}</span>
-                </span>
-                {root.count > 0 ? (
-                  <span
-                    className={cn(
-                      "rounded-full px-2 py-0.5 text-[10px] font-bold",
-                      inSheet ? "bg-white/10 text-zinc-300" : "text-zinc-500"
-                    )}
-                  >
-                    {root.count}
-                  </span>
-                ) : null}
-              </button>
-            </div>
-
-            {rootExpanded ? (
-              <div className="pb-1">
-                {root.subcategories.map((sub) => {
-                  const subExpanded = expandedIds.includes(sub.id)
-                  const subActive = activeCategoryId === sub.id
-                  return (
-                    <div key={sub.id}>
-                      <div className="flex items-stretch pl-8">
-                        <button
-                          type="button"
-                          onClick={() => toggle(sub.id)}
-                          className={cn("shrink-0 py-2 pr-1", inSheet ? "text-violet-400" : "text-zinc-400")}
-                          aria-label={t("expandBranch")}
-                        >
-                          <ChevronRight
-                            className={cn("h-3.5 w-3.5 transition", subExpanded && "rotate-90")}
-                          />
-                        </button>
-                        <button
-                          type="button"
-                          title={sub.fullPath ?? `${root.name} > ${sub.name}`}
-                          onClick={() => onSelect(sub.id)}
-                          className={cn(
-                            "flex min-w-0 flex-1 flex-col border-l-2 py-2 pr-3 text-left text-sm transition",
-                            subActive
-                              ? inSheet
-                                ? "border-violet-400 bg-violet-500/15 font-medium text-violet-50"
-                                : "border-buyer bg-buyer-muted/70 font-medium"
-                              : inSheet
-                                ? "border-transparent text-zinc-300 hover:border-violet-500/35 hover:bg-white/[0.04]"
-                                : "border-transparent text-zinc-600 dark:text-zinc-400"
-                          )}
-                        >
-                          <span className="truncate">{sub.name}</span>
-                          {sub.fullPath ? (
-                            <span className={cn("mt-0.5 line-clamp-2 text-[10px]", inSheet ? "text-zinc-500" : "text-zinc-500")}>
-                              {sub.fullPath}
-                            </span>
-                          ) : null}
-                        </button>
-                      </div>
-                      {subExpanded ? (
-                        <BranchChildren
-                          parentId={sub.id}
-                          depth={2}
-                          activeCategoryId={activeCategoryId}
-                          expandedIds={expandedIds}
-                          onToggle={toggle}
-                          onSelect={onSelect}
-                          inSheet={inSheet}
-                        />
-                      ) : null}
-                    </div>
-                  )
-                })}
-                {root.subcategories.length === 0 ? (
-                  <BranchChildren
-                    parentId={root.id}
-                    depth={1}
-                    activeCategoryId={activeCategoryId}
-                    expandedIds={expandedIds}
-                    onToggle={toggle}
-                    onSelect={onSelect}
-                    inSheet={inSheet}
-                  />
-                ) : null}
-              </div>
-            ) : null}
-          </div>
-        )
-      })}
+      {rootTiers.map((tier, tierIndex) => (
+        <Fragment key={`tier-${tierIndex}`}>
+          {tierIndex > 0 ? (
+            <TriDashSeparator compact inSheet={inSheet} className={cn(inSheet ? "px-3" : "px-2")} />
+          ) : null}
+          {tier.map((root) => (
+            <CategoryTreeRootBlock
+              key={root.id}
+              root={root}
+              activeCategoryId={activeCategoryId}
+              activeRoot={activeRoot}
+              expandedIds={expandedIds}
+              toggle={toggle}
+              onSelect={onSelect}
+              inSheet={inSheet}
+              t={t}
+            />
+          ))}
+        </Fragment>
+      ))}
     </aside>
   )
 }

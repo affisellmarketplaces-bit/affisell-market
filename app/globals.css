@@ -1418,3 +1418,25 @@ body.affisell-demo-lab .affisell-header-shell {
     display: none;
   }
 }
+
+.affisell-tri-dash-center {
+  box-shadow: 0 0 12px rgb(139 92 246 / 0.35);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .affisell-tri-dash-center {
+    animation: affisell-tri-dash-pulse 3.2s ease-in-out infinite;
+  }
+}
+
+@keyframes affisell-tri-dash-pulse {
+  0%,
+  100% {
+    opacity: 0.72;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 1;
+    filter: brightness(1.15);
+  }
+}
