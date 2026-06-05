@@ -134,7 +134,6 @@
       "sectionBuyer": "Shop smarter on Affisell",
       "sectionDefault": "More than a marketplace — the Affisell layer",
       "aria": "Affisell services",
-      "featuredBadge": "Top",
       "agent": "Shopping agent",
       "agentHint": "AI advisor to find the right product",
       "catalog": "Live catalog",
@@ -157,12 +156,7 @@
       "auctionsHint": "Live bids · futuristic drops",
       "luxe": "Affisell Luxe",
       "luxeHint": "Curated luxury & collections"
-    },
-    "buyerServicesBand": {
-      "eyebrow": "Shop smarter on Affisell",
-      "title": "Your Affisell shortcuts",
-      "subtitle": "AI agent · market signals · creators · live catalog"
-    },
+    }
   },
   "creators": {
     "meta": {

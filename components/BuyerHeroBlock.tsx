@@ -2,11 +2,16 @@ import { getTranslations } from "next-intl/server"
 
 import { BuyerHeroSearch } from "@/components/BuyerHeroSearch"
 import { GlowCtaLink } from "@/components/GlowCtaLink"
+import { HomeBuyerSmartStrip } from "@/components/home/HomeBuyerSmartStrip"
 import { HeroGradientBg } from "@/components/marketing/hero-gradient-bg"
 import { Link } from "@/i18n/navigation"
+import { loadFeaturedShopsCached } from "@/lib/public-home-cache"
 
 export async function BuyerHeroBlock() {
-  const t = await getTranslations("home.hero")
+  const [t, featuredShops] = await Promise.all([
+    getTranslations("home.hero"),
+    loadFeaturedShopsCached(6),
+  ])
 
   return (
     <section className="relative w-full min-w-0 max-w-full overflow-hidden rounded-3xl border border-violet-500/20 bg-gradient-to-br from-violet-700 via-indigo-800 to-sky-900 px-4 py-7 text-white shadow-xl sm:px-10 sm:py-16">
@@ -31,6 +36,7 @@ export async function BuyerHeroBlock() {
             {t("creatorLink")}
           </Link>
         </div>
+        <HomeBuyerSmartStrip featuredShops={featuredShops} />
       </div>
     </section>
   )
