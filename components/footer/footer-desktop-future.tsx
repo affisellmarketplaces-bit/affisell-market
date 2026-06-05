@@ -2,8 +2,11 @@
 
 import type { ReactNode } from "react"
 import Link from "next/link"
-import { ArrowUpRight, Lock, ShieldCheck, Sparkles, Zap } from "lucide-react"
+import { ArrowUpRight, Globe2, Lock, ShieldCheck, Sparkles, Zap } from "lucide-react"
 
+import { FooterLegalBar } from "@/components/footer/footer-legal-bar"
+import { FooterSocialOrbit } from "@/components/footer/footer-social-orbit"
+import { FooterTrustBeacon } from "@/components/footer/footer-trust-beacon"
 import {
   footerHeroCardTile,
   footerHeroGlow,
@@ -15,6 +18,7 @@ import {
   footerStripeBadge,
 } from "@/components/footer/footer-hero-tokens"
 import type { FooterGlobalContent } from "@/lib/footer-global-sections"
+import { footerSectionAccent } from "@/lib/footer-section-accents"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -60,10 +64,6 @@ function NavColumn({
 }
 
 export function FooterDesktopFuture({ content }: Props) {
-  const affisell = content.sections.find((s) => s.id === "affisell")
-  const legal = content.sections.find((s) => s.id === "legal")
-  const support = content.sections.find((s) => s.id === "support")
-
   return (
     <div className="affisell-footer-future__desktop relative hidden md:block">
       <div className="affisell-site-footer__pad relative mx-auto max-w-7xl px-4 pb-12 pt-14 sm:px-6 lg:px-8">
@@ -92,40 +92,35 @@ export function FooterDesktopFuture({ content }: Props) {
               ))}
             </div>
 
-            <div className="relative mt-8 flex flex-wrap gap-2">
+            <FooterSocialOrbit links={content.socialLinks} className="relative mt-6" />
+
+            <div className="relative mt-6 flex flex-wrap gap-2">
               <span className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-lg">
                 <ShieldCheck className="size-3.5 text-violet-200" aria-hidden />
                 EU · RGPD
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-lg">
+                <Globe2 className="size-3.5 text-sky-200" aria-hidden />
+                {content.panEuBadge}
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-lg">
                 <Zap className="size-3.5 text-sky-200" aria-hidden />
                 3D Secure
               </span>
             </div>
+
+            <FooterTrustBeacon beacon={content.trustBeacon} className="relative mt-6" />
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-3 lg:col-span-8">
-            {affisell ? (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 lg:col-span-8">
+            {content.sections.map((section) => (
               <NavColumn
-                title={affisell.title}
-                links={affisell.links}
-                accent="from-violet-400/90 to-indigo-500/90"
+                key={section.id}
+                title={section.title}
+                links={section.links}
+                accent={footerSectionAccent(section.id)}
               />
-            ) : null}
-            {legal ? (
-              <NavColumn
-                title={legal.title}
-                links={legal.links}
-                accent="from-fuchsia-400/90 to-pink-500/90"
-              />
-            ) : null}
-            {support ? (
-              <NavColumn
-                title={support.title}
-                links={support.links}
-                accent="from-sky-400/90 to-cyan-500/90"
-              />
-            ) : null}
+            ))}
           </div>
         </div>
 
@@ -149,22 +144,7 @@ export function FooterDesktopFuture({ content }: Props) {
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col gap-3 border-t border-white/20 pt-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-[11px] leading-relaxed text-violet-100/70">
-            {content.copyrightLine}{" "}
-            <a
-              href={content.odrHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-zinc-300 underline decoration-[#8B5CF6]/50 underline-offset-2 transition-all hover:translate-x-0.5 hover:text-white"
-            >
-              {content.odrLink}
-            </a>
-          </p>
-          <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-violet-100/50">
-            Affisell · {new Date().getFullYear()}
-          </p>
-        </div>
+        <FooterLegalBar content={content} className="mt-10" />
       </div>
     </div>
   )

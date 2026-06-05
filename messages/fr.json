@@ -1398,6 +1398,39 @@
       "proLogin": "Connexion professionnelle"
     }
   },
+  "legalPages": {
+    "accessibility": {
+      "metaTitle": "Accessibilité — Affisell",
+      "metaDescription": "Engagement accessibilité Affisell — navigation clavier, contrastes, retours utilisateurs.",
+      "eyebrow": "Accessibilité",
+      "title": "Affisell pour tous",
+      "description": "Nous améliorons en continu l'expérience pour les personnes en situation de handicap — sur web mobile et desktop.",
+      "commitmentTitle": "Nos engagements WCAG",
+      "commitments": {
+        "perceivable": {
+          "title": "Perceptible",
+          "body": "Contrastes renforcés, textes redimensionnables, alternatives visuelles sur les éléments clés."
+        },
+        "operable": {
+          "title": "Utilisable",
+          "body": "Navigation clavier, zones tactiles suffisantes, pas de piège au focus sur les parcours d'achat."
+        },
+        "understandable": {
+          "title": "Compréhensible",
+          "body": "Libellés explicites, messages d'erreur actionnables, parcours checkout linéaire."
+        },
+        "robust": {
+          "title": "Robuste",
+          "body": "Composants testés sur navigateurs modernes et lecteurs d'écran courants."
+        }
+      },
+      "statusTitle": "État d'avancement",
+      "statusBody": "Affisell vise la conformité WCAG 2.1 niveau AA sur les parcours acheteur publics. Certaines pages dashboard pro sont encore en cours d'alignement.",
+      "feedbackBody": "Un blocage d'accessibilité ? Écrivez à {email} avec la page et votre appareil — nous priorisons les correctifs.",
+      "contactCta": "Signaler un problème",
+      "faqCta": "Consulter la FAQ"
+    }
+  },
   "contact": {
     "metaTitle": "Contact — Affisell",
     "eyebrow": "Support",
@@ -1475,14 +1508,28 @@
   "footer": {
     "global": {
       "siteTitle": "Affisell",
+      "buyTitle": "Acheter",
+      "sellTitle": "Vendre",
+      "companyTitle": "Entreprise",
+      "helpTitle": "Aide",
       "legalTitle": "Légal",
       "supportTitle": "Support",
       "paymentTitle": "Paiement sécurisé",
       "about": "À propos",
       "howItWorks": "Comment ça marche",
+      "howSellingWorks": "Comment vendre",
+      "browseCatalog": "Explorer le catalogue",
+      "buyerProtection": "Achat protégé · retours",
+      "buyerProtectionShort": "Achat protégé",
+      "wishlist": "Wishlist",
+      "becomeCreator": "Devenir créateur",
       "affiliateProgram": "Programme affilié",
       "becomeSupplier": "Devenir fournisseur",
       "demoLab": "Demo Lab",
+      "blog": "Blog",
+      "careers": "Carrières",
+      "press": "Presse",
+      "accessibility": "Accessibilité",
       "cgv": "CGV",
       "cgu": "CGU",
       "supplierConditions": "Conditions fournisseur",
@@ -1496,13 +1543,24 @@
       "shipping": "Livraison",
       "contact": "Contact",
       "trackOrder": "Suivre ma commande",
+      "trustBeaconTitle": "Achat protégé Affisell",
+      "trustBeaconHint": "Paiement Stripe · escrow vendeur · retours 14 jours UE",
+      "trustBeaconCta": "Voir la politique",
+      "panEuBadge": "Pan-UE · 27 marchés",
+      "localeLabel": "Langue & région",
       "mobileTagline": "Marketplace créateurs · paiement sécurisé · support 24/7",
       "desktopTagline": "L'infrastructure marketplace où affiliés et fournisseurs scalent en Europe — paiement Stripe, conformité UE, zéro friction.",
       "stripeNoticeShort": "Carte bancaire · 3D Secure · TVA conforme UE",
       "vatNotice": "TVA collectée et reversée conformément à la réglementation applicable.",
       "stripeNotice": "Paiements sécurisés par Stripe (carte bancaire, 3D Secure lorsque requis).",
       "copyright": "© {year} Affisell — {name} — SIRET {siret} —",
-      "odrLink": "Règlement des litiges en ligne (UE)"
+      "odrLink": "Règlement des litiges en ligne (UE)",
+      "social": {
+        "x": "Affisell sur X",
+        "instagram": "Affisell sur Instagram",
+        "tiktok": "Affisell sur TikTok",
+        "discord": "Affisell sur Discord"
+      }
     },
     "about": "À propos",
     "contact": "Contact",

@@ -1398,6 +1398,39 @@
       "proLogin": "Professional sign in"
     }
   },
+  "legalPages": {
+    "accessibility": {
+      "metaTitle": "Accessibility — Affisell",
+      "metaDescription": "Affisell accessibility commitment — keyboard navigation, contrast, user feedback.",
+      "eyebrow": "Accessibility",
+      "title": "Affisell for everyone",
+      "description": "We continuously improve the experience for people with disabilities — on mobile and desktop web.",
+      "commitmentTitle": "Our WCAG commitments",
+      "commitments": {
+        "perceivable": {
+          "title": "Perceivable",
+          "body": "Stronger contrast, resizable text, visual alternatives on key elements."
+        },
+        "operable": {
+          "title": "Operable",
+          "body": "Keyboard navigation, adequate touch targets, no focus traps on checkout flows."
+        },
+        "understandable": {
+          "title": "Understandable",
+          "body": "Clear labels, actionable error messages, linear checkout paths."
+        },
+        "robust": {
+          "title": "Robust",
+          "body": "Components tested on modern browsers and common screen readers."
+        }
+      },
+      "statusTitle": "Current status",
+      "statusBody": "Affisell targets WCAG 2.1 Level AA on public buyer journeys. Some pro dashboard pages are still being aligned.",
+      "feedbackBody": "Hit an accessibility blocker? Email {email} with the page and device — we prioritize fixes.",
+      "contactCta": "Report an issue",
+      "faqCta": "Browse FAQ"
+    }
+  },
   "contact": {
     "metaTitle": "Contact — Affisell",
     "eyebrow": "Support",
@@ -1475,14 +1508,28 @@
   "footer": {
     "global": {
       "siteTitle": "Affisell",
+      "buyTitle": "Buy",
+      "sellTitle": "Sell",
+      "companyTitle": "Company",
+      "helpTitle": "Help",
       "legalTitle": "Legal",
       "supportTitle": "Support",
       "paymentTitle": "Secure payment",
       "about": "About",
       "howItWorks": "How it works",
+      "howSellingWorks": "How selling works",
+      "browseCatalog": "Browse catalog",
+      "buyerProtection": "Protected checkout · returns",
+      "buyerProtectionShort": "Protected checkout",
+      "wishlist": "Wishlist",
+      "becomeCreator": "Become a creator",
       "affiliateProgram": "Affiliate program",
       "becomeSupplier": "Become a supplier",
       "demoLab": "Demo Lab",
+      "blog": "Blog",
+      "careers": "Careers",
+      "press": "Press",
+      "accessibility": "Accessibility",
       "cgv": "Terms of sale (CGV)",
       "cgu": "Terms of use",
       "supplierConditions": "Supplier terms",
@@ -1496,13 +1543,24 @@
       "shipping": "Shipping",
       "contact": "Contact",
       "trackOrder": "Track my order",
+      "trustBeaconTitle": "Affisell protected checkout",
+      "trustBeaconHint": "Stripe payments · seller escrow · 14-day EU returns",
+      "trustBeaconCta": "Read the policy",
+      "panEuBadge": "Pan-EU · 27 markets",
+      "localeLabel": "Language & region",
       "mobileTagline": "Creator marketplace · secure checkout · 24/7 support",
       "desktopTagline": "The marketplace infrastructure where affiliates and suppliers scale in Europe — Stripe payments, EU compliance, zero friction.",
       "stripeNoticeShort": "Card · 3D Secure · EU VAT compliant",
       "vatNotice": "VAT collected and remitted in line with applicable regulations.",
       "stripeNotice": "Payments secured by Stripe (card, 3D Secure when required).",
       "copyright": "© {year} Affisell — {name} — SIRET {siret} —",
-      "odrLink": "EU online dispute resolution"
+      "odrLink": "EU online dispute resolution",
+      "social": {
+        "x": "Affisell on X",
+        "instagram": "Affisell on Instagram",
+        "tiktok": "Affisell on TikTok",
+        "discord": "Affisell on Discord"
+      }
     },
     "about": "About",
     "contact": "Contact",

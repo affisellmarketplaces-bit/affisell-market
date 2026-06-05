@@ -2,8 +2,11 @@
 
 import Link from "next/link"
 import { useState } from "react"
-import { ChevronDown, ExternalLink, ShieldCheck, Sparkles } from "lucide-react"
+import { ChevronDown, Globe2, ShieldCheck, Sparkles } from "lucide-react"
 
+import { FooterLegalBar } from "@/components/footer/footer-legal-bar"
+import { FooterSocialOrbit } from "@/components/footer/footer-social-orbit"
+import { FooterTrustBeaconCompact } from "@/components/footer/footer-trust-beacon"
 import {
   footerHeroCard,
   footerHeroLink,
@@ -96,6 +99,17 @@ export function FooterMobileShell({ content }: Props) {
           ))}
         </div>
 
+        <FooterTrustBeaconCompact beacon={content.trustBeacon} className="mt-4" />
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          <span className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-white">
+            <Globe2 className="size-3 text-sky-200" aria-hidden />
+            {content.panEuBadge}
+          </span>
+        </div>
+
+        <FooterSocialOrbit links={content.socialLinks} className="mt-4" />
+
         <div className={cn(footerHeroCard, "mt-5 overflow-hidden p-0")}>
           {content.sections.map((section) => (
             <FooterAccordion
@@ -115,18 +129,7 @@ export function FooterMobileShell({ content }: Props) {
           </div>
         </div>
 
-        <p className="affisell-site-footer__pad mt-5 pb-0 text-center text-[10px] leading-relaxed text-violet-100/70">
-          {content.copyrightLine}{" "}
-          <a
-            href={content.odrHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-0.5 text-zinc-300 underline decoration-[#8B5CF6]/50 underline-offset-2 transition-all hover:text-white"
-          >
-            {content.odrLink}
-            <ExternalLink className="size-2.5" aria-hidden />
-          </a>
-        </p>
+        <FooterLegalBar content={content} className="affisell-site-footer__pad mt-5 pb-0" />
       </div>
     </div>
   )
