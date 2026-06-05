@@ -745,13 +745,15 @@
       "seeAllResults": "See all results"
     },
     "euCoverage": {
-      "aria": "European delivery coverage",
+      "aria": "Pan-European marketplace",
       "badge": "Pan-EU",
       "eyebrow": "{euCount} EU markets",
-      "title": "Shop across Europe — one marketplace",
+      "title": "Europe · one checkout",
       "subtitle": "Checkout to {count} countries · prices in EUR · VAT calculated at payment",
-      "stripeTax": "Stripe Tax",
-      "footnote": "Delivery depends on each supplier’s shipping zone. Filter by « European Union » in the sidebar."
+      "metricEu": "EU",
+      "metricCountries": "countries",
+      "stripeTax": "VAT",
+      "footnote": "Shipping depends on supplier zone. Filter « European Union » in the sidebar."
     },
     "browse": {
       "ariaEmbedded": "Explore and shop",

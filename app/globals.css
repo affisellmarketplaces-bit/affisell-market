@@ -963,6 +963,16 @@ body.affisell-demo-lab .affisell-header-shell {
   }
 }
 
+@keyframes eu-scan {
+  0%,
+  100% {
+    transform: translateX(-120%);
+  }
+  50% {
+    transform: translateX(220%);
+  }
+}
+
 @keyframes gradient-shift {
   0%,
   100% {

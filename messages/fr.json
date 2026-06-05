@@ -745,13 +745,15 @@
       "seeAllResults": "Voir tous les résultats"
     },
     "euCoverage": {
-      "aria": "Couverture livraison Europe",
+      "aria": "Marketplace paneuropéenne",
       "badge": "Pan-UE",
       "eyebrow": "{euCount} pays UE",
-      "title": "Achetez dans toute l’Europe — une seule marketplace",
+      "title": "Europe · un checkout",
       "subtitle": "Paiement vers {count} pays · prix en EUR · TVA calculée au checkout",
-      "stripeTax": "Stripe Tax",
-      "footnote": "La livraison dépend de la zone d’expédition de chaque fournisseur. Filtrez par « Union européenne » dans la colonne filtres."
+      "metricEu": "UE",
+      "metricCountries": "pays",
+      "stripeTax": "TVA",
+      "footnote": "Livraison selon la zone du fournisseur. Filtre « Union européenne » dans la colonne filtres."
     },
     "browse": {
       "ariaEmbedded": "Explorer et acheter",

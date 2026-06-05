@@ -22,7 +22,7 @@ export function MarketplaceBrowseDepartmentsRail({
   catalogBasePath,
   className,
 }: Props) {
-  const t = useTranslations("marketplace.browseDepartmentsRail")
+  const t = useTranslations("marketplace.browse.browseDepartmentsRail")
   const locale = useLocale()
   const pathname = usePathname() ?? "/"
   const searchParams = useSearchParams()
