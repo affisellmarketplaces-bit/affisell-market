@@ -42,6 +42,8 @@
     "email:dev": "email dev --dir emails",
     "verify:no-secrets": "node scripts/verify-no-secrets.mjs",
     "check:client-prisma": "node scripts/check-client-prisma-imports.mjs",
+    "i18n:parity": "node scripts/i18n-parity-check.mjs",
+    "i18n:translate": "node scripts/i18n-translate-locale.mjs",
     "push:safe": "node scripts/git-push-safe.mjs",
     "extension:build": "npm run build --prefix apps/affisell-supplier-extension",
     "extension:dev": "npm run dev --prefix apps/affisell-supplier-extension",

@@ -1,7 +1,8 @@
+import { FULL_MESSAGE_BUNDLE_LOCALES } from "@/lib/i18n-ready-locales"
 import type { AppLocale } from "@/lib/i18n-locale"
 
 /** Full message bundles — no partial EN/FR mixing in the switcher. */
-export const FULLY_TRANSLATED_LOCALES = ["en", "fr"] as const
+export const FULLY_TRANSLATED_LOCALES = FULL_MESSAGE_BUNDLE_LOCALES
 export type FullyTranslatedLocale = (typeof FULLY_TRANSLATED_LOCALES)[number]
 
 export const LOCALE_SWITCHER_OPTIONS = FULLY_TRANSLATED_LOCALES
