@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
+import { loginCustomerPath, shopBuyerLoginPath } from "@/lib/login-redirect"
 import { ProductPriceOffer } from "@/components/product/product-price-offer"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { LanguageSwitcher } from "@/components/LanguageSwitcher"
@@ -176,7 +177,11 @@ function PulseCard({
   async function toggleFollow() {
     if (!item.storeSlug) return
     if (!viewerLoggedIn) {
-      router.push(`/login?callbackUrl=${encodeURIComponent("/discover")}`)
+      router.push(
+        item.storeSlug
+          ? shopBuyerLoginPath(item.storeSlug, "/discover")
+          : loginCustomerPath("/discover")
+      )
       return
     }
     const res = await fetch("/api/follow", {

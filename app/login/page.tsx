@@ -57,16 +57,15 @@ export default async function LoginSelectorPage({ searchParams }: Props) {
           </Link>
         </div>
 
-        <div className="mt-8 rounded-xl border border-violet-200 bg-violet-50/80 p-4 text-center dark:border-violet-900/50 dark:bg-violet-950/30">
-          <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">{t("buyerNote")}</p>
-          <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">{t("buyerHint")}</p>
+        <p className="mt-8 text-center text-xs text-zinc-500 dark:text-zinc-400">
+          {t("buyerNote")}{" "}
           <Link
             href={customerHref}
-            className={cn(buttonVariants({ size: "sm", variant: "default" }), "mt-3 bg-violet-600 hover:bg-violet-700")}
+            className="font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
           >
-            {t("buyerButton")}
+            {t("buyerLink")}
           </Link>
-        </div>
+        </p>
 
         <p className="mt-6 text-center text-sm text-gray-600 dark:text-zinc-400">
           {t("noAccount")}{" "}

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { useCallback, useState } from "react"
 
 import { PUBLIC_SHOPS_PATH } from "@/lib/affiliate-routes"
+import { shopBuyerLoginPath } from "@/lib/login-redirect"
 import { formatFollowers, type FollowersJson } from "@/lib/format-followers"
 
 function cleanHandle(h: string | null | undefined) {
@@ -71,7 +72,7 @@ export function StoreSocialBar(props: Props) {
 
   const toggleFollow = useCallback(async () => {
     if (!viewerLoggedIn) {
-      router.push(`/login?callbackUrl=${encodeURIComponent(`/shops/${storeSlug}`)}`)
+      router.push(shopBuyerLoginPath(storeSlug))
       return
     }
     setBusy(true)
@@ -94,7 +95,7 @@ export function StoreSocialBar(props: Props) {
 
   function onMessage() {
     if (!viewerLoggedIn) {
-      router.push(`/login?callbackUrl=${encodeURIComponent(`/shops/${storeSlug}`)}`)
+      router.push(shopBuyerLoginPath(storeSlug))
       return
     }
     const el = document.getElementById("community")

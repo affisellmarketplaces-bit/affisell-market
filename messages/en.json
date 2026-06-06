@@ -292,6 +292,7 @@
       "buyerNote": "Did you shop on Affisell?",
       "buyerHint": "Customer account: orders, tracking, and returns.",
       "buyerButton": "Customer sign in",
+      "buyerLink": "Customer sign in →",
       "noAccount": "No creator account yet?",
       "createSpace": "Create my space"
     },
