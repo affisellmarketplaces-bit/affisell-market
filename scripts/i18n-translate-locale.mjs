@@ -63,6 +63,30 @@ function chunkObject(obj, size) {
   return chunks
 }
 
+const GROQ_MODEL = process.env.GROQ_I18N_MODEL?.trim() || "llama-3.3-70b-versatile"
+const MAX_RATE_LIMIT_RETRIES = 12
+
+function parseRetryAfterSeconds(err) {
+  const header = err?.headers?.get?.("retry-after")
+  if (header) {
+    const n = Number(header)
+    if (Number.isFinite(n) && n > 0) return Math.ceil(n)
+  }
+  const msg = err?.error?.error?.message ?? err?.message ?? ""
+  const match = msg.match(/try again in (?:(\d+)h)?(?:(\d+)m)?([\d.]+)s/i)
+  if (match) {
+    const h = Number(match[1] || 0)
+    const m = Number(match[2] || 0)
+    const s = Number(match[3] || 0)
+    return Math.ceil(h * 3600 + m * 60 + s)
+  }
+  return 120
+}
+
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms))
+}
+
 async function translateBatch(groq, flatBatch, langLabel) {
   const prompt = `You are a professional UI translator for Affisell, a European creator marketplace.
 
@@ -79,24 +103,38 @@ Rules:
 Input JSON:
 ${JSON.stringify(flatBatch, null, 2)}`
 
-  const completion = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
-    messages: [{ role: "user", content: prompt }],
-    response_format: { type: "json_object" },
-    temperature: 0.1,
-    max_tokens: 8192,
-  })
+  for (let attempt = 0; attempt <= MAX_RATE_LIMIT_RETRIES; attempt++) {
+    try {
+      const completion = await groq.chat.completions.create({
+        model: GROQ_MODEL,
+        messages: [{ role: "user", content: prompt }],
+        response_format: { type: "json_object" },
+        temperature: 0.1,
+        max_tokens: 8192,
+      })
 
-  const raw = completion.choices[0]?.message?.content?.trim()
-  if (!raw) throw new Error("empty_groq_response")
+      const raw = completion.choices[0]?.message?.content?.trim()
+      if (!raw) throw new Error("empty_groq_response")
 
-  const parsed = JSON.parse(raw)
-  for (const key of Object.keys(flatBatch)) {
-    if (typeof parsed[key] !== "string") {
-      throw new Error(`missing_or_invalid_key:${key}`)
+      const parsed = JSON.parse(raw)
+      for (const key of Object.keys(flatBatch)) {
+        if (typeof parsed[key] !== "string") {
+          throw new Error(`missing_or_invalid_key:${key}`)
+        }
+      }
+      return parsed
+    } catch (err) {
+      const is429 = err?.status === 429 || err?.error?.error?.code === "rate_limit_exceeded"
+      if (!is429 || attempt === MAX_RATE_LIMIT_RETRIES) throw err
+      const waitSec = parseRetryAfterSeconds(err)
+      console.log(
+        `[i18n-translate] rate limited (${GROQ_MODEL}), waiting ${waitSec}s (attempt ${attempt + 1}/${MAX_RATE_LIMIT_RETRIES})`,
+      )
+      await sleep(waitSec * 1000)
     }
   }
-  return parsed
+
+  throw new Error("rate_limit_retries_exhausted")
 }
 
 async function translateNamespace(groq, namespace, enSubtree, langLabel) {
@@ -109,7 +147,7 @@ async function translateNamespace(groq, namespace, enSubtree, langLabel) {
     console.log(`[i18n-translate]   ${namespace} batch ${i + 1}/${chunks.length}`)
     const translated = await translateBatch(groq, chunks[i], langLabel)
     Object.assign(merged, translated)
-    await new Promise((r) => setTimeout(r, 400))
+    await sleep(400)
   }
 
   return unflattenLeaves(merged)[namespace]
