@@ -20,6 +20,8 @@ import { prisma } from "@/lib/prisma"
 import { normalizeListingSalesCount } from "@/lib/listing-sales-count"
 import { publicStoreLabelFromAffiliateRow } from "@/lib/public-seller-display"
 import { marketplaceProductFilterFromSearchParams } from "@/lib/marketplace-listing-filters"
+import { DEFAULT_LOCALE, type AppLocale } from "@/lib/i18n-locale"
+import { resolveBinaryCopyLocale } from "@/lib/i18n-ui-locale"
 import { offerModeBadge, parseProductOfferMode } from "@/lib/product-offer-mode"
 import {
   loadActiveSponsorBoostByListingId,
@@ -108,8 +110,9 @@ export function serializeMarketplaceListing(
     "minOrderQuantity" in p && typeof (p as { minOrderQuantity?: number }).minOrderQuantity === "number"
       ? Math.max(1, (p as { minOrderQuantity: number }).minOrderQuantity)
       : 1
-  const locale = options?.locale ?? "fr"
-  const offerBadge = offerModeBadge(offerMode, locale === "en" ? "en" : "fr")
+  const locale = (options?.locale ?? DEFAULT_LOCALE) as AppLocale
+  const copyLocale = resolveBinaryCopyLocale(locale)
+  const offerBadge = offerModeBadge(offerMode, copyLocale)
 
   const base = {
     id: row.id,
@@ -135,7 +138,7 @@ export function serializeMarketplaceListing(
     warrantyLabel: listingWarrantyBadgeLabel(
       row.showWarranty,
       warrantyMonths,
-      options?.locale ?? "fr"
+      copyLocale
     ),
     soldCount: normalizeListingSalesCount(row.conversions),
     isSponsored: false,

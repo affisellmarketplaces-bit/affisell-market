@@ -11,10 +11,10 @@ import { hrefForLocaleSwitch } from "@/lib/client-locale-path"
 import { isDemoLabRoute } from "@/lib/demo/demo-routes"
 import {
   LOCALE_COOKIE,
-  SUPPORTED_LOCALES,
   localeCookieMaxAgeSec,
   type AppLocale,
 } from "@/lib/i18n-locale"
+import { LOCALE_SWITCHER_OPTIONS } from "@/lib/i18n-ui-locale"
 import { LOCALE_FLAGS, LOCALE_LABELS } from "@/lib/i18n-locale-meta"
 import { cn } from "@/lib/utils"
 
@@ -136,7 +136,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
             }}
             role="listbox"
           >
-            {SUPPORTED_LOCALES.map((code) => (
+            {LOCALE_SWITCHER_OPTIONS.map((code) => (
               <li key={code} role="option" aria-selected={locale === code}>
                 <button
                   type="button"

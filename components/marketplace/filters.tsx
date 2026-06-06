@@ -11,6 +11,7 @@ import {
 } from "@/lib/affiliate-routes"
 import { DISCOVERY_FACET_KEYS, MARKETPLACE_OFFER_FACET_KEY } from "@/lib/marketplace-discovery-facets-shared"
 import { offerModeBadge, parseOfferFacetValue } from "@/lib/product-offer-mode"
+import { resolveBinaryCopyLocale } from "@/lib/i18n-ui-locale"
 import type { MarketplaceFacet } from "@/lib/marketplace-facet-types"
 import { cn } from "@/lib/utils"
 
@@ -39,7 +40,7 @@ function shipsFromLabel(value: string, locale: string, euShipsLabel: string): st
   if (value === "eu") return euShipsLabel
   const row = SHIP_LABELS[value]
   if (!row) return value
-  return locale === "en" ? row.en : row.fr
+  return resolveBinaryCopyLocale(locale) === "en" ? row.en : row.fr
 }
 
 const DELIVERY_LABELS: Record<string, { fr: string; en: string }> = {
@@ -117,19 +118,19 @@ export function MarketplaceFilters({
     if (facetKey === "dept" && departmentNames?.[value]) return departmentNames[value]!
     if (facetKey === "price") {
       const row = PRICE_LABELS[value]
-      if (row) return row.fr
+      if (row) return resolveBinaryCopyLocale(locale) === "en" ? row.en : row.fr
     }
     if (facetKey === "shipsFrom") {
       return shipsFromLabel(value, locale, t("euShipsLabel"))
     }
     if (facetKey === "delivery") {
       const row = DELIVERY_LABELS[value]
-      if (row) return row.fr
+      if (row) return resolveBinaryCopyLocale(locale) === "en" ? row.en : row.fr
     }
     if (facetKey === "freeShipping" && value === "1") return t("freeShippingFacet")
     if (facetKey === MARKETPLACE_OFFER_FACET_KEY) {
       const mode = parseOfferFacetValue(value)
-      if (mode) return offerModeBadge(mode, locale === "en" ? "en" : "fr")?.shortLabel ?? value
+      if (mode) return offerModeBadge(mode, resolveBinaryCopyLocale(locale))?.shortLabel ?? value
     }
     return value
   }

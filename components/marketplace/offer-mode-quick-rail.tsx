@@ -6,6 +6,7 @@ import { Gift, Package, Recycle, RefreshCw } from "lucide-react"
 
 import { MARKETPLACE_OFFER_FACET_KEY } from "@/lib/marketplace-discovery-facets-shared"
 import { offerFacetSlug, offerModeBadge, type ProductOfferMode } from "@/lib/product-offer-mode"
+import { resolveBinaryCopyLocale } from "@/lib/i18n-ui-locale"
 import { cn } from "@/lib/utils"
 
 const RAIL_MODES: ProductOfferMode[] = [
@@ -57,7 +58,7 @@ export function OfferModeQuickRail({ basePath, className }: Props) {
         </p>
         {RAIL_MODES.map((mode) => {
           const slug = offerFacetSlug(mode)
-          const badge = offerModeBadge(mode, locale === "en" ? "en" : "fr")
+          const badge = offerModeBadge(mode, resolveBinaryCopyLocale(locale))
           if (!slug || !badge) return null
           const Icon = RAIL_ICONS[mode as keyof typeof RAIL_ICONS]
           const active = activeOffer === slug

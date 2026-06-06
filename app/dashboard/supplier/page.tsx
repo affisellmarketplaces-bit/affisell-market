@@ -20,6 +20,7 @@ import { loadSupplierTrustSnapshot } from "@/lib/supplier/compute-supplier-trust
 import { coerceSupplierTrustTier } from "@/lib/supplier/supplier-trust-tier-shared"
 import { loadSupplierMissionControl } from "@/lib/supplier-mission-control"
 import { resolveAppLocale } from "@/lib/i18n-locale"
+import { resolveBinaryCopyLocale } from "@/lib/i18n-ui-locale"
 
 export const dynamic = "force-dynamic"
 
@@ -45,6 +46,7 @@ export default async function DashboardSupplierPage() {
   }
 
   const locale = resolveAppLocale(await getLocale())
+  const copyLocale = resolveBinaryCopyLocale(locale)
 
   const [feeUser, trustSnapshot] = await Promise.all([
     prisma.user.findUnique({
@@ -74,12 +76,12 @@ export default async function DashboardSupplierPage() {
           <SupplierTrustLadderCard
             tier={displayTier}
             metrics={trustSnapshot.metrics}
-            locale={locale === "en" ? "en" : "fr"}
+            locale={copyLocale}
           />
 
           <SupplierEscrowPulseCard
             summary={data.escrow}
-            locale={locale === "en" ? "en" : "fr"}
+            locale={copyLocale}
           />
 
           {data.weeklyGoal && data.metrics7d.hasPriorPeriodData ? (

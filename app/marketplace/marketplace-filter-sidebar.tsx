@@ -1,7 +1,7 @@
 import Link from "next/link"
+import { getTranslations } from "next-intl/server"
 
 import { SmartFilters } from "@/components/marketplace/SmartFilters"
-import messages from "@/messages/en.json"
 import { AFFISELL_CATEGORIES } from "@/lib/affisell-categories"
 
 export type MarketplaceFilterParams = {
@@ -38,39 +38,39 @@ function chipClass(active: boolean) {
   }`
 }
 
-export function MarketplaceFilterSidebar({ current }: { current: MarketplaceFilterParams }) {
+export async function MarketplaceFilterSidebar({ current }: { current: MarketplaceFilterParams }) {
   const c = current
-  const t = messages.Filters
+  const t = await getTranslations("Filters")
 
   return (
     <aside className="w-full shrink-0 space-y-6 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900 lg:w-56">
-      <FilterGroup title={t.smartFilters}>
+      <FilterGroup title={t("smartFilters")}>
         <SmartFilters
           items={[
             {
               id: "trending",
-              label: t.trendingNow,
+              label: t("trendingNow"),
               icon: "🔥",
               href: href({ ...c, delivery: c.delivery === "under3" ? undefined : "under3" }),
               active: c.delivery === "under3",
             },
             {
               id: "ships24h",
-              label: t.ships24h,
+              label: t("ships24h"),
               icon: "⚡",
               href: href({ ...c, shipsFrom: c.shipsFrom === "fr" ? undefined : "fr" }),
               active: c.shipsFrom === "fr",
             },
             {
               id: "under100",
-              label: t.under100,
+              label: t("under100"),
               icon: "💎",
               href: href({ ...c }),
               active: false,
             },
             {
               id: "topRated",
-              label: t.topRated45,
+              label: t("topRated45"),
               icon: "⭐",
               href: href({ ...c }),
               active: false,
@@ -80,7 +80,7 @@ export function MarketplaceFilterSidebar({ current }: { current: MarketplaceFilt
       </FilterGroup>
 
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{t.category}</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{t("category")}</p>
         <div className="mt-2 max-h-64 space-y-1 overflow-y-auto pr-1">
           {AFFISELL_CATEGORIES.map((cat) => {
             const isAll = cat === "All Departments"
@@ -99,80 +99,80 @@ export function MarketplaceFilterSidebar({ current }: { current: MarketplaceFilt
                     : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
                 }`}
               >
-              {cat === "All Departments" ? t.allDepartments : cat}
+                {cat === "All Departments" ? t("allDepartments") : cat}
               </Link>
             )
           })}
         </div>
       </div>
 
-      <FilterGroup title="Style">
+      <FilterGroup title={t("styleTitle")}>
         <label className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
           <input type="checkbox" className="accent-violet-600" />
-          Minimalist
+          {t("styleMinimalist")}
         </label>
         <label className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
           <input type="checkbox" className="accent-violet-600" />
-          Streetwear
+          {t("styleStreetwear")}
         </label>
         <label className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
           <input type="checkbox" className="accent-violet-600" />
-          Business
+          {t("styleBusiness")}
         </label>
       </FilterGroup>
 
-      <FilterGroup title="Price">
+      <FilterGroup title={t("priceTitle")}>
         <input type="range" min={0} max={500} defaultValue={250} className="w-full accent-violet-600" />
         <div className="flex justify-between text-xs text-zinc-500">
-          <span>$0</span>
-          <span>$500</span>
+          <span>{t("priceMin")}</span>
+          <span>{t("priceMax")}</span>
         </div>
       </FilterGroup>
 
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Ships from</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{t("shipsFromTitle")}</p>
         <div className="mt-2 flex flex-wrap gap-2">
           <Link
             href={href({ ...c, shipsFrom: c.shipsFrom === "fr" ? undefined : "fr" })}
             className={`${chipClass(c.shipsFrom === "fr")} focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95`}
           >
-            France
+            {t("shipsFrance")}
           </Link>
           <Link
             href={href({ ...c, shipsFrom: c.shipsFrom === "eu" ? undefined : "eu" })}
             className={`${chipClass(c.shipsFrom === "eu")} focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95`}
           >
-            EU
+            {t("shipsEu")}
           </Link>
           <Link
             href={href({ ...c, shipsFrom: c.shipsFrom === "worldwide" ? undefined : "worldwide" })}
             className={`${chipClass(c.shipsFrom === "worldwide")} focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95`}
           >
-            Worldwide
+            {t("shipsWorldwide")}
           </Link>
         </div>
       </div>
 
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Delivery</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{t("deliveryTitle")}</p>
         <div className="mt-2 flex flex-wrap gap-2">
           <Link
             href={href({ ...c, delivery: c.delivery === "under3" ? undefined : "under3" })}
             className={`${chipClass(c.delivery === "under3")} focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95`}
           >
-            Under 3 days
+            {t("deliveryUnder3")}
           </Link>
           <Link
             href={href({ ...c, delivery: c.delivery === "under7" ? undefined : "under7" })}
             className={`${chipClass(c.delivery === "under7")} focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95`}
           >
-            Under 7 days
+            {t("deliveryUnder7")}
           </Link>
         </div>
       </div>
 
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Offers</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{t("offersTitle")}</p>
         <Link
           href={href({ ...c, freeShipping: c.freeShipping === "1" ? undefined : "1" })}
           className={`mt-2 flex w-full items-center justify-center rounded-xl px-3 py-2 text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95 ${
@@ -181,7 +181,7 @@ export function MarketplaceFilterSidebar({ current }: { current: MarketplaceFilt
               : "bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
           }`}
         >
-          {c.freeShipping === "1" ? "✓ Free shipping offers" : "Free shipping only"}
+          {c.freeShipping === "1" ? t("freeShippingActive") : t("freeShippingOnly")}
         </Link>
       </div>
 
@@ -190,7 +190,7 @@ export function MarketplaceFilterSidebar({ current }: { current: MarketplaceFilt
           href="/shops/browse"
           className="block text-center text-xs font-medium text-zinc-500 underline hover:text-zinc-800 dark:hover:text-zinc-200"
         >
-          Clear all filters
+          {t("clearAll")}
         </Link>
       )}
     </aside>

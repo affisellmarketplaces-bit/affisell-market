@@ -21,6 +21,7 @@ import {
   Zap,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useLocale } from "next-intl"
 import { Fragment, Suspense, useEffect, useMemo, useRef, useState, type MouseEvent } from "react"
 
 import { ReviewsEngine } from "@/components/reviews/ReviewsEngine"
@@ -32,7 +33,8 @@ import { Button } from "@/components/ui/button"
 import { MobilePdpBuyPanel } from "@/components/product/mobile-pdp-buy-panel"
 import { ProductMediaGallery } from "@/components/product/product-media-gallery"
 import { ProductVideoWishlistOverlay } from "@/components/product/product-video-wishlist-overlay"
-import messages from "@/messages/en.json"
+import type { AppLocale } from "@/lib/i18n-locale"
+import { CLIENT_MESSAGES } from "@/lib/i18n-load-messages"
 import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
 import {
   COLORS,
@@ -402,6 +404,8 @@ export function MarketplaceListingDetail({
   salesCount = 0,
   galleryListingVideoUrl = null,
 }: Props) {
+  const locale = useLocale() as AppLocale
+  const messages = CLIENT_MESSAGES[locale] as typeof import("@/messages/en.json")
   const productT = messages.Product
   const breadcrumbT = messages.Breadcrumb
   const router = useRouter()

@@ -1282,7 +1282,25 @@
     "under100": "Moins de 100 $",
     "topRated45": "Note 4,5+",
     "category": "Catégorie",
-    "allDepartments": "Tous les rayons"
+    "allDepartments": "Tous les rayons",
+    "styleTitle": "Style",
+    "styleMinimalist": "Minimaliste",
+    "styleStreetwear": "Streetwear",
+    "styleBusiness": "Business",
+    "priceTitle": "Prix",
+    "priceMin": "0 €",
+    "priceMax": "500 €",
+    "shipsFromTitle": "Expédition depuis",
+    "shipsFrance": "France",
+    "shipsEu": "UE",
+    "shipsWorldwide": "Monde",
+    "deliveryTitle": "Livraison",
+    "deliveryUnder3": "Sous 3 jours",
+    "deliveryUnder7": "Sous 7 jours",
+    "offersTitle": "Offres",
+    "freeShippingActive": "✓ Offres livraison gratuite",
+    "freeShippingOnly": "Livraison gratuite uniquement",
+    "clearAll": "Effacer tous les filtres"
   },
   "Breadcrumb": {
     "home": "Accueil",
@@ -1408,6 +1426,22 @@
       "contactSupport": "Contacter le support",
       "proNote": "Vous êtes créateur ou fournisseur ?",
       "proLogin": "Connexion professionnelle"
+    }
+  },
+  "legal": {
+    "nav": {
+      "ariaLabel": "Documents légaux",
+      "eyebrow": "Affisell — Marketplace UE",
+      "lastUpdated": "Dernière mise à jour : {date}",
+      "cgv": "CGV",
+      "cgu": "CGU",
+      "supplier": "Fournisseur",
+      "affiliate": "Affilié",
+      "legalNotice": "Mentions légales",
+      "privacy": "Confidentialité",
+      "cookies": "Cookies",
+      "returns": "Retours",
+      "contact": "Contact"
     }
   },
   "legalPages": {

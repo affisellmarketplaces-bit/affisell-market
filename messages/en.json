@@ -1282,7 +1282,25 @@
     "under100": "Under $100",
     "topRated45": "Top Rated 4.5+",
     "category": "Category",
-    "allDepartments": "All Departments"
+    "allDepartments": "All Departments",
+    "styleTitle": "Style",
+    "styleMinimalist": "Minimalist",
+    "styleStreetwear": "Streetwear",
+    "styleBusiness": "Business",
+    "priceTitle": "Price",
+    "priceMin": "$0",
+    "priceMax": "$500",
+    "shipsFromTitle": "Ships from",
+    "shipsFrance": "France",
+    "shipsEu": "EU",
+    "shipsWorldwide": "Worldwide",
+    "deliveryTitle": "Delivery",
+    "deliveryUnder3": "Under 3 days",
+    "deliveryUnder7": "Under 7 days",
+    "offersTitle": "Offers",
+    "freeShippingActive": "✓ Free shipping offers",
+    "freeShippingOnly": "Free shipping only",
+    "clearAll": "Clear all filters"
   },
   "Breadcrumb": {
     "home": "Home",
@@ -1408,6 +1426,22 @@
       "contactSupport": "Contact support",
       "proNote": "Creator or supplier?",
       "proLogin": "Professional sign in"
+    }
+  },
+  "legal": {
+    "nav": {
+      "ariaLabel": "Legal documents",
+      "eyebrow": "Affisell — EU marketplace",
+      "lastUpdated": "Last updated: {date}",
+      "cgv": "Terms of sale",
+      "cgu": "Terms of use",
+      "supplier": "Supplier",
+      "affiliate": "Affiliate",
+      "legalNotice": "Legal notice",
+      "privacy": "Privacy",
+      "cookies": "Cookies",
+      "returns": "Returns",
+      "contact": "Contact"
     }
   },
   "legalPages": {

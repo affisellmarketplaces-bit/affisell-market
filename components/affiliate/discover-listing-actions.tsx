@@ -2,10 +2,12 @@
 
 import { AnimatePresence, motion } from "framer-motion"
 import { Loader2, Pencil, Rocket, Sparkles, Undo2, Zap } from "lucide-react"
+import { useLocale } from "next-intl"
 import { useCallback, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import type { CatalogListingState } from "@/lib/affiliate-catalog-listing-state"
+import { resolveBinaryCopyLocale } from "@/lib/i18n-ui-locale"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -49,13 +51,15 @@ const copy = {
 
 export function DiscoverListingActions({
   state,
-  locale = "fr",
+  locale: localeProp,
   releasing = false,
   onAdd,
   onEdit,
   onRelease,
   className,
 }: Props) {
+  const localeFromContext = useLocale()
+  const locale = localeProp ?? resolveBinaryCopyLocale(localeFromContext)
   const t = copy[locale]
   const [releaseOpen, setReleaseOpen] = useState(false)
   const [pendingId, setPendingId] = useState<string | null>(null)
