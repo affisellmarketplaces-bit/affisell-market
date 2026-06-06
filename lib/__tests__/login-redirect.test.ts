@@ -2,11 +2,8 @@ import { describe, expect, it } from "vitest"
 
 import {
   loginAffiliatePath,
-  loginCustomerPath,
   loginSelectorPath,
   resolvePostLoginRedirect,
-  resolvePublicSignInHref,
-  shopBuyerLoginPath,
 } from "@/lib/login-redirect"
 
 describe("login-redirect", () => {
@@ -29,25 +26,5 @@ describe("login-redirect", () => {
 
   it("sends supplier away from affiliate callback", () => {
     expect(resolvePostLoginRedirect("SUPPLIER", "/dashboard/affiliate")).toBe("/dashboard/supplier")
-  })
-
-  it("routes public sign-in to customer portal on buyer surfaces", () => {
-    expect(resolvePublicSignInHref("/")).toBe(loginCustomerPath("/marketplace/account/orders"))
-    expect(resolvePublicSignInHref("/marketplace")).toBe(loginCustomerPath("/marketplace/account/orders"))
-    expect(resolvePublicSignInHref("/cart")).toContain("/login/customer")
-  })
-
-  it("routes shop pages to contextual shop login", () => {
-    expect(resolvePublicSignInHref("/shops/marie")).toBe(
-      shopBuyerLoginPath("marie", "/shops/marie")
-    )
-  })
-
-  it("routes pro surfaces to merchant login", () => {
-    expect(resolvePublicSignInHref("/dashboard/affiliate")).toBe(
-      loginAffiliatePath("/dashboard/affiliate")
-    )
-    expect(resolvePublicSignInHref("/creators")).toBe(loginAffiliatePath("/creators"))
-    expect(resolvePublicSignInHref("/login")).toBe(loginSelectorPath("/login"))
   })
 })

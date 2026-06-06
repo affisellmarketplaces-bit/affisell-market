@@ -16,7 +16,7 @@ import { NavPill } from "@/components/navigation/nav-pill"
 import { Link as LocaleLink, usePathname } from "@/i18n/navigation"
 import { buttonVariants } from "@/components/ui/button"
 import { useBuyerCartCount } from "@/hooks/use-buyer-cart-count"
-import { resolvePublicSignInHref } from "@/lib/login-redirect"
+import { loginCustomerPath, MARKETPLACE_BUYER_ORDERS_PATH } from "@/lib/login-redirect"
 import { openMobileBuyerHub } from "@/lib/buyer-hub-events"
 import { cn } from "@/lib/utils"
 
@@ -32,7 +32,11 @@ export function PublicNav() {
   const onHome = pathname === "/"
   const onShops = pathname === "/shops" || pathname.startsWith("/shops/")
   const onMarketplace = pathname === "/marketplace" || pathname.startsWith("/marketplace")
-  const signInHref = resolvePublicSignInHref(pathname)
+  const isBuyerContext =
+    pathname === "/track-order" || pathname.startsWith("/marketplace/account")
+  const signInHref = isBuyerContext
+    ? loginCustomerPath(MARKETPLACE_BUYER_ORDERS_PATH)
+    : "/login"
 
   const cartAria = cartCount > 0 ? `${t("cartAria")} (${cartCount})` : t("cartAria")
 

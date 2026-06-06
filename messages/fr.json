@@ -292,7 +292,6 @@
       "buyerNote": "Vous avez commandé sur Affisell ?",
       "buyerHint": "Compte client : commandes, suivi colis et retours.",
       "buyerButton": "Connexion compte client",
-      "buyerLink": "Connexion compte client →",
       "noAccount": "Pas encore de compte créateur ?",
       "createSpace": "Créer mon espace"
     },
