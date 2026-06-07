@@ -2275,23 +2275,23 @@
   },
   "orderReturns": {
     "reasons": {
-      "NOT_AS_DESCRIBED": "Item not as described",
-      "DEFECTIVE_OR_BROKEN": "Defective or broken",
-      "WRONG_ITEM": "Wrong item received",
-      "SIZE_OR_FIT": "Size or fit issue",
-      "CHANGED_MIND": "Changed mind",
-      "DAMAGED_IN_SHIPPING": "Damaged in shipping",
-      "OTHER": "Other"
+      "NOT_AS_DESCRIBED": "商品不符描述",
+      "DEFECTIVE_OR_BROKEN": "商品有缺陷或破损",
+      "WRONG_ITEM": "收到错误商品",
+      "SIZE_OR_FIT": "尺寸或合身问题",
+      "CHANGED_MIND": "改变主意",
+      "DAMAGED_IN_SHIPPING": "在运输中损坏",
+      "OTHER": "其他"
     },
     "autoBuy": {
-      "PENDING": "Supplier purchase pending",
-      "BUYING": "Supplier purchase in progress",
-      "BOUGHT": "Shipped by supplier",
-      "FAILED": "Supplier issue",
-      "REFUNDED": "Refunded (out of stock)",
-      "DEFAULT": "Supplier"
+      "PENDING": "供应商购买待处理",
+      "BUYING": "供应商购买中",
+      "BOUGHT": "供应商已发货",
+      "FAILED": "供应商问题",
+      "REFUNDED": "已退款（缺货）",
+      "DEFAULT": "供应商"
     },
-    "trackingLabel": "Tracking"
+    "trackingLabel": "跟踪"
   },
   "emails": {
     "shared": {

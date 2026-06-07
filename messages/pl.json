@@ -2275,23 +2275,23 @@
   },
   "orderReturns": {
     "reasons": {
-      "NOT_AS_DESCRIBED": "Item not as described",
-      "DEFECTIVE_OR_BROKEN": "Defective or broken",
-      "WRONG_ITEM": "Wrong item received",
-      "SIZE_OR_FIT": "Size or fit issue",
-      "CHANGED_MIND": "Changed mind",
-      "DAMAGED_IN_SHIPPING": "Damaged in shipping",
-      "OTHER": "Other"
+      "NOT_AS_DESCRIBED": "Produkt niezgodny z opisem",
+      "DEFECTIVE_OR_BROKEN": "Wadliwy lub uszkodzony",
+      "WRONG_ITEM": "Otrzymano niewłaściwy przedmiot",
+      "SIZE_OR_FIT": "Problem z rozmiarem lub dopasowaniem",
+      "CHANGED_MIND": "Zmiana decyzji",
+      "DAMAGED_IN_SHIPPING": "Uszkodzony podczas transportu",
+      "OTHER": "Inny"
     },
     "autoBuy": {
-      "PENDING": "Supplier purchase pending",
-      "BUYING": "Supplier purchase in progress",
-      "BOUGHT": "Shipped by supplier",
-      "FAILED": "Supplier issue",
-      "REFUNDED": "Refunded (out of stock)",
-      "DEFAULT": "Supplier"
+      "PENDING": "Oczekiwanie na zakup od dostawcy",
+      "BUYING": "Trwa zakup od dostawcy",
+      "BOUGHT": "Wysłany przez dostawcę",
+      "FAILED": "Problem z dostawcą",
+      "REFUNDED": "Zwrot pieniędzy (brak w magazynie)",
+      "DEFAULT": "Dostawca"
     },
-    "trackingLabel": "Tracking"
+    "trackingLabel": "Śledzenie"
   },
   "emails": {
     "shared": {

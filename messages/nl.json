@@ -2275,23 +2275,23 @@
   },
   "orderReturns": {
     "reasons": {
-      "NOT_AS_DESCRIBED": "Item not as described",
-      "DEFECTIVE_OR_BROKEN": "Defective or broken",
-      "WRONG_ITEM": "Wrong item received",
-      "SIZE_OR_FIT": "Size or fit issue",
-      "CHANGED_MIND": "Changed mind",
-      "DAMAGED_IN_SHIPPING": "Damaged in shipping",
-      "OTHER": "Other"
+      "NOT_AS_DESCRIBED": "Niet zoals beschreven",
+      "DEFECTIVE_OR_BROKEN": "Defect of kapot",
+      "WRONG_ITEM": "Verkeerd artikel ontvangen",
+      "SIZE_OR_FIT": "Maat of pasprobleem",
+      "CHANGED_MIND": "Van gedachten veranderd",
+      "DAMAGED_IN_SHIPPING": "Beschadigd tijdens verzending",
+      "OTHER": "Anders"
     },
     "autoBuy": {
-      "PENDING": "Supplier purchase pending",
-      "BUYING": "Supplier purchase in progress",
-      "BOUGHT": "Shipped by supplier",
-      "FAILED": "Supplier issue",
-      "REFUNDED": "Refunded (out of stock)",
-      "DEFAULT": "Supplier"
+      "PENDING": "Inkoop bij leverancier in behandeling",
+      "BUYING": "Inkoop bij leverancier in uitvoering",
+      "BOUGHT": "Verzonden door leverancier",
+      "FAILED": "Probleem bij leverancier",
+      "REFUNDED": "Terugbetaald (niet op voorraad)",
+      "DEFAULT": "Leverancier"
     },
-    "trackingLabel": "Tracking"
+    "trackingLabel": "Volgnummer"
   },
   "emails": {
     "shared": {
