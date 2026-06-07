@@ -2237,6 +2237,74 @@
       "error": "Envoi impossible. Réessayez dans un instant."
     }
   },
+  "accountOrders": {
+    "empty": "Aucune commande pour ce compte.",
+    "fulfillmentTag": {
+      "preparing": " · Préparation en cours",
+      "shipped": " · Expédiée",
+      "paid": " · Confirmée"
+    },
+    "viewDetails": "Voir le détail et la facture →",
+    "preparing": {
+      "title": "Votre vendeur prépare l'envoi",
+      "body": "Le produit est pris en charge et emballé. Vous recevrez le suivi dès l'expédition.",
+      "since": "Mise à jour"
+    },
+    "trackingLine": "Suivi : {carrier} {number}",
+    "carrierDefault": "Transporteur",
+    "blindBadge": "Blind",
+    "confirmDelivery": {
+      "body": "Reçu et satisfait ? Confirmez la livraison — les paiements vendeur partent après {confirmDays} jours. Sans confirmation, ils peuvent quand même être débloqués {autoDays} jours après l'expédition. Votre droit de rétractation reste ouvert pendant le délai de retour.",
+      "cta": "Confirmer réception et satisfaction",
+      "error": "Confirmation impossible"
+    },
+    "deliveryConfirmed": "Livraison confirmée · {date}",
+    "payoutFrom": " · paiements marchands à partir du {date}",
+    "return": {
+      "label": "Retour : ",
+      "status": {
+        "REQUESTED": "En attente vendeur",
+        "AWAITING_SHIPMENT": "Renvoyer l'article",
+        "IN_TRANSIT": "Retour en transit",
+        "RECEIVED": "Reçu — remboursement en cours",
+        "REFUNDED": "Remboursé",
+        "REJECTED": "Refusé",
+        "CANCELLED": "Annulé"
+      },
+      "cancelRequest": "Annuler la demande",
+      "cancelError": "Annulation impossible",
+      "lastReturn": "Dernier retour : {status} · {date}",
+      "windowEnded": "Délai de retour terminé le {date}.",
+      "form": {
+        "reasonLabel": "Motif",
+        "detailsPlaceholder": "Détails (optionnel)",
+        "submit": "Demander un retour",
+        "error": "Demande impossible"
+      },
+      "trackingForm": {
+        "hint": "Expédiez l'article à l'adresse de votre confirmation de commande, puis ajoutez le suivi ici.",
+        "carrierPlaceholder": "Transporteur (ex. Colissimo, Chronopost)",
+        "numberPlaceholder": "Numéro de suivi",
+        "submit": "Envoyer le suivi",
+        "error": "Enregistrement impossible"
+      }
+    },
+    "fulfillmentPanel": {
+      "loading": "Chargement…",
+      "title": "Suivi expédition",
+      "seller": "Vendeur",
+      "buyer": "Vous",
+      "extensionAsk": "Le vendeur demande {days} jours supplémentaires :",
+      "accept": "Accepter le délai",
+      "reject": "Refuser (la commande peut être annulée)",
+      "notePlaceholder": "Note optionnelle au vendeur",
+      "reply": "Répondre au vendeur",
+      "send": "Envoyer",
+      "messagePlaceholder": "Votre message…",
+      "accepted": "Vous avez accepté le délai.",
+      "rejected": "Vous avez refusé le délai."
+    }
+  },
   "orderReturns": {
     "reasons": {
       "NOT_AS_DESCRIBED": "Article non conforme à la description",

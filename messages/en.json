@@ -2237,6 +2237,74 @@
       "error": "Could not send. Please try again shortly."
     }
   },
+  "accountOrders": {
+    "empty": "No orders yet for this account.",
+    "fulfillmentTag": {
+      "preparing": " · Preparing your order",
+      "shipped": " · Shipped",
+      "paid": " · Confirmed"
+    },
+    "viewDetails": "View details & invoice →",
+    "preparing": {
+      "title": "Your seller is preparing shipment",
+      "body": "They've confirmed your order is being packed. Tracking appears the moment the carrier scans the parcel.",
+      "since": "Since"
+    },
+    "trackingLine": "Tracking: {carrier} {number}",
+    "carrierDefault": "Carrier",
+    "blindBadge": "Blind",
+    "confirmDelivery": {
+      "body": "Received and satisfied? Confirm delivery — seller payouts run after {confirmDays} days. Without confirmation, payouts may still release after {autoDays} days from shipment. Your statutory withdrawal right remains during the return window.",
+      "cta": "Confirm receipt & satisfaction",
+      "error": "Could not confirm"
+    },
+    "deliveryConfirmed": "Delivery confirmed · {date}",
+    "payoutFrom": " · merchant payouts from {date}",
+    "return": {
+      "label": "Return: ",
+      "status": {
+        "REQUESTED": "Awaiting seller",
+        "AWAITING_SHIPMENT": "Ship item back",
+        "IN_TRANSIT": "Return in transit",
+        "RECEIVED": "Received — refund pending",
+        "REFUNDED": "Refunded",
+        "REJECTED": "Rejected",
+        "CANCELLED": "Cancelled"
+      },
+      "cancelRequest": "Cancel request",
+      "cancelError": "Could not cancel",
+      "lastReturn": "Last return: {status} · {date}",
+      "windowEnded": "Return window ended on {date}.",
+      "form": {
+        "reasonLabel": "Reason",
+        "detailsPlaceholder": "Details (optional)",
+        "submit": "Request return",
+        "error": "Request failed"
+      },
+      "trackingForm": {
+        "hint": "Ship the item to the address from your order confirmation, then add tracking here.",
+        "carrierPlaceholder": "Carrier (e.g. Colissimo, Chronopost)",
+        "numberPlaceholder": "Tracking number",
+        "submit": "Submit tracking",
+        "error": "Could not save tracking"
+      }
+    },
+    "fulfillmentPanel": {
+      "loading": "Loading…",
+      "title": "Shipping update",
+      "seller": "Seller",
+      "buyer": "You",
+      "extensionAsk": "The seller requests {days} extra days to ship:",
+      "accept": "Accept extra time",
+      "reject": "Refuse (order may be cancelled)",
+      "notePlaceholder": "Optional note to the seller",
+      "reply": "Reply to seller",
+      "send": "Send",
+      "messagePlaceholder": "Your message…",
+      "accepted": "You accepted the extension.",
+      "rejected": "You refused the extension."
+    }
+  },
   "orderReturns": {
     "reasons": {
       "NOT_AS_DESCRIBED": "Item not as described",

@@ -177,8 +177,82 @@ async function translateNamespace(groq, namespace, enSubtree, langLabel) {
   return unflattenLeaves(merged)[namespace]
 }
 
+function getAtPath(obj, path) {
+  if (!path) return obj
+  return path.split(".").reduce((o, k) => (o && typeof o === "object" ? o[k] : undefined), obj)
+}
+
+function deepMerge(base, override) {
+  /** @type {Record<string, unknown>} */
+  const out = { ...(base ?? {}) }
+  for (const key of Object.keys(override)) {
+    const baseVal = out[key]
+    const overrideVal = override[key]
+    if (
+      overrideVal &&
+      typeof overrideVal === "object" &&
+      !Array.isArray(overrideVal) &&
+      baseVal &&
+      typeof baseVal === "object" &&
+      !Array.isArray(baseVal)
+    ) {
+      out[key] = deepMerge(baseVal, overrideVal)
+    } else {
+      out[key] = overrideVal
+    }
+  }
+  return out
+}
+
+async function translateFlatSubpath(groq, subpath, enSubtree, langLabel) {
+  const flat = flattenLeaves(enSubtree, subpath)
+  const chunks = chunkObject(flat, MAX_LEAVES_PER_BATCH)
+  /** @type {Record<string, string>} */
+  const merged = {}
+
+  for (let i = 0; i < chunks.length; i++) {
+    console.log(`[i18n-translate]   ${subpath} batch ${i + 1}/${chunks.length}`)
+    const translated = await translateBatch(groq, chunks[i], langLabel)
+    Object.assign(merged, translated)
+    await sleep(400)
+  }
+
+  return unflattenLeaves(merged)
+}
+
+async function translateSubpath(groq, locale, out, subpath, langLabel, onlyKeys) {
+  let enSubtree = getAtPath(en, subpath)
+  if (!enSubtree || typeof enSubtree !== "object") {
+    throw new Error(`unknown_subpath:${subpath}`)
+  }
+  if (onlyKeys?.length) {
+    enSubtree = Object.fromEntries(
+      onlyKeys.filter((k) => enSubtree[k] != null).map((k) => [k, enSubtree[k]]),
+    )
+  }
+  if (Object.keys(enSubtree).length === 0) {
+    throw new Error(`empty_subpath:${subpath}`)
+  }
+
+  const translatedRoot = await translateFlatSubpath(groq, subpath, enSubtree, langLabel)
+  const translatedSubtree = getAtPath(translatedRoot, subpath) ?? translatedRoot
+  const current = getAtPath(out, subpath)
+  const merged = deepMerge(
+    current && typeof current === "object" ? current : {},
+    translatedSubtree && typeof translatedSubtree === "object" ? translatedSubtree : {},
+  )
+  const parts = subpath.split(".")
+  let cur = out
+  for (let i = 0; i < parts.length - 1; i++) {
+    const part = parts[i]
+    if (!cur[part] || typeof cur[part] !== "object") cur[part] = {}
+    cur = cur[part]
+  }
+  cur[parts[parts.length - 1]] = merged
+}
+
 async function translateLocale(locale, options = {}) {
-  const { namespace: namespaceOnly, force = false } = options
+  const { namespace: namespaceOnly, subpath, onlyKeys, force = false } = options
   const langLabel = LOCALE_NAMES[locale]
   if (!langLabel) throw new Error(`unsupported_locale:${locale}`)
 
@@ -191,6 +265,16 @@ async function translateLocale(locale, options = {}) {
   const out = fs.existsSync(target)
     ? JSON.parse(fs.readFileSync(target, "utf8"))
     : {}
+
+  if (subpath) {
+    console.log(
+      `[i18n-translate] ${locale} (${langLabel}) — subpath ${subpath}${onlyKeys?.length ? ` [only ${onlyKeys.join(",")}]` : ""}`,
+    )
+    await translateSubpath(groq, locale, out, subpath, langLabel, onlyKeys)
+    fs.writeFileSync(target, `${JSON.stringify(out, null, 2)}\n`, "utf8")
+    console.log(`[i18n-translate] wrote ${target}`)
+    return
+  }
 
   const namespaces = namespaceOnly ? [namespaceOnly] : Object.keys(en)
   if (namespaceOnly && !(namespaceOnly in en)) {
@@ -216,11 +300,19 @@ async function translateLocale(locale, options = {}) {
 
 const argLocale = process.argv.find((a) => a.startsWith("--locale="))?.split("=")[1]
 const argNamespace = process.argv.find((a) => a.startsWith("--namespace="))?.split("=")[1]
+const argSubpath = process.argv.find((a) => a.startsWith("--subpath="))?.split("=")[1]
+const argOnly = process.argv.find((a) => a.startsWith("--only="))?.split("=")[1]
+const onlyKeys = argOnly ? argOnly.split(",").map((s) => s.trim()).filter(Boolean) : undefined
 const forceNamespace = process.argv.includes("--force")
 const runAll = process.argv.includes("--all")
 
 async function main() {
-  const options = { namespace: argNamespace, force: forceNamespace }
+  const options = {
+    namespace: argNamespace,
+    subpath: argSubpath,
+    onlyKeys,
+    force: forceNamespace,
+  }
   if (runAll) {
     for (const locale of Object.keys(LOCALE_NAMES)) {
       await translateLocale(locale, options)
@@ -229,7 +321,7 @@ async function main() {
   }
   if (!argLocale) {
     console.error(
-      "Usage: node scripts/i18n-translate-locale.mjs --locale=de [--namespace=emails] [--force] | --all",
+      "Usage: node scripts/i18n-translate-locale.mjs --locale=de [--namespace=emails] [--subpath=marketplace.browse --only=facetPrice,facetDelivery] [--force] | --all",
     )
     process.exit(1)
   }
