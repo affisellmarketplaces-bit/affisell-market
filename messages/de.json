@@ -1498,5 +1498,20 @@
       "contactCta": "Ein Problem melden",
       "faqCta": "FAQ durchsuchen"
     }
+  },
+  "contact": {
+    "metaTitle": "Kontakt — Affisell",
+    "eyebrow": "Support",
+    "title": "Kontaktiere Affisell",
+    "description": "Fragen zu einer Bestellung, einer Rücksendung oder deinem Cashback-Wallet? Schreibe uns eine E-Mail — wir antworten innerhalb von 2 Werktagen.",
+    "emailLabel": "E-Mail:",
+    "backAccount": "← Zurück zu meinem Konto"
+  },
+  "agent": {
+    "metaTitle": "Einkaufsagent — Affisell",
+    "metaDescription": "KI-Einkaufsberater für Käufer — entdecken und vergleichen Sie Marktplatzprodukte.",
+    "eyebrow": "Käufer",
+    "heroTitle": "Finden. Vergleichen. Kaufen.",
+    "heroSub": "Ihr KI-Einkaufsberater — durchsuchen Sie den Live-Marktplatz in Echtzeit"
   }
 }
