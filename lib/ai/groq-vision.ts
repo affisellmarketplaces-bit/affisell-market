@@ -51,7 +51,27 @@ export function capVisionImagesInMessages(
   })
 }
 
+export function isGroqRateLimitError(err: unknown): boolean {
+  if (err && typeof err === "object" && "status" in err) {
+    const status = (err as { status?: unknown }).status
+    if (status === 429 || status === 413) return true
+  }
+  const raw =
+    err instanceof Error
+      ? err.message
+      : err && typeof err === "object" && "message" in err
+        ? String((err as { message: unknown }).message)
+        : String(err)
+  return /rate limit|rate_limit|429|tokens per day|tokens per minute|too many requests/i.test(raw)
+}
+
 export function normalizeGroqClientError(err: unknown): Error {
+  if (isGroqRateLimitError(err)) {
+    return new Error(
+      "Quota IA Groq atteint pour aujourd'hui. Réessayez demain — vos textes et images restent enregistrés."
+    )
+  }
+
   const raw =
     err instanceof Error
       ? err.message
@@ -71,6 +91,11 @@ export function normalizeGroqClientError(err: unknown): Error {
     if (inner && /too many images/i.test(inner)) {
       return new Error(
         "Trop d'images pour l'IA (maximum 4). Gardez au plus 3–4 illustrations ou retirez des photos galerie."
+      )
+    }
+    if (inner && isGroqRateLimitError({ message: inner })) {
+      return new Error(
+        "Quota IA Groq atteint pour aujourd'hui. Réessayez demain — vos textes et images restent enregistrés."
       )
     }
     if (inner) return new Error(inner)

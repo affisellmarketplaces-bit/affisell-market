@@ -32,6 +32,9 @@ const MAX_ILLUSTRATIONS_FOR_AI = 3
 
 function parseGenerateDescriptionError(raw: string): string {
   const trimmed = raw.trim()
+  if (/rate limit|rate_limit|429|tokens per day|tokens per minute|quota ia/i.test(trimmed)) {
+    return "Quota IA atteint pour aujourd'hui. Réessayez demain — vos textes et images sont conservés."
+  }
   try {
     const outer = JSON.parse(trimmed) as { error?: { message?: string } | string; message?: string }
     const inner =

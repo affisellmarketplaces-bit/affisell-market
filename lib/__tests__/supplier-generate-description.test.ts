@@ -8,6 +8,7 @@ import {
   isSpecSheetDraftNotes,
   pickGalleryIllustrations,
   sanitizeDraftNotesForGeneration,
+  shouldUseVisionForDescription,
 } from "@/lib/supplier-generate-description"
 
 describe("supplier-generate-description", () => {
@@ -79,5 +80,26 @@ Format XL avec Android 15.`
     const urls = ["https://cdn.example/a.jpg"]
     const out = pickGalleryIllustrations(urls, dataUrls, [0, 2])
     expect(out).toEqual(["data:image/jpeg;base64,aaa", "https://cdn.example/a.jpg"])
+  })
+
+  it("skips vision when product facts are already in text/specs", () => {
+    expect(
+      shouldUseVisionForDescription({
+        specs: [{ label: "Matériau", value: "POLYESTER" }],
+        draftNotes: "",
+        bullets: [],
+        title: "Sac fourre-tout",
+        visionImageCount: 3,
+      })
+    ).toBe(false)
+    expect(
+      shouldUseVisionForDescription({
+        specs: [],
+        draftNotes: "",
+        bullets: [],
+        title: "Produit",
+        visionImageCount: 2,
+      })
+    ).toBe(true)
   })
 })

@@ -3,7 +3,7 @@ import {
   normalizeImagePlacements,
   parseDescriptionSections,
 } from "@/lib/description-structure"
-import { groqChatText, GROQ_TEXT_MODEL, GROQ_VISION_MODEL } from "@/lib/ai/groq-client"
+import { groqChatText, GROQ_TEXT_MODEL, GROQ_VISION_MODEL, isGroqRateLimitError } from "@/lib/ai/groq-client"
 import { GROQ_VISION_MAX_IMAGES } from "@/lib/ai/groq-vision"
 import { generateImageWithHf } from "@/lib/ai/hf-image"
 import { extractProductIdentityFromTitle } from "@/lib/listing-product-signal"
@@ -296,6 +296,32 @@ export function buildDescriptionGenerationPrompt(input: {
   return { system, user }
 }
 
+/** Vision burns scout TPD — skip when title/specs/notes already describe the product. */
+export function shouldUseVisionForDescription(input: {
+  specs: ProductSpecRow[]
+  draftNotes: string
+  bullets: string[]
+  title: string
+  visionImageCount: number
+}): boolean {
+  if (input.visionImageCount === 0) return false
+  const richContext =
+    input.specs.length >= 1 ||
+    input.draftNotes.length >= 24 ||
+    input.bullets.length >= 1 ||
+    input.title.trim().length >= 8
+  return !richContext
+}
+
+function appendSkippedVisionNote(user: string, illustrationCount: number, galleryCount: number): string {
+  if (illustrationCount === 0 && galleryCount === 0) return user
+  return [
+    user,
+    "",
+    `Visuels fournis (${illustrationCount} illustration(s), ${galleryCount} photo(s) galerie) — intègre-les dans imagePlacements sans inventer de détails visuels non mentionnés dans le titre/specs.`,
+  ].join("\n")
+}
+
 async function callDescriptionModel(
   system: string,
   user: string,
@@ -325,6 +351,24 @@ async function callDescriptionModel(
       ],
     })) ?? "{}"
   )
+}
+
+async function callDescriptionModelSafe(
+  system: string,
+  user: string,
+  visionImages: string[],
+  preferVision: boolean
+): Promise<string> {
+  const tryVision = preferVision && visionImages.length > 0
+  try {
+    return await callDescriptionModel(system, user, tryVision ? visionImages : [])
+  } catch (err) {
+    if (tryVision && isGroqRateLimitError(err)) {
+      console.log("[supplier-generate-description]", { event: "vision_rate_limit_text_fallback" })
+      return await callDescriptionModel(system, user, [])
+    }
+    throw err instanceof Error ? err : new Error(String(err))
+  }
 }
 
 async function repairUnstructuredDescription(input: {
@@ -459,7 +503,7 @@ export async function generateSupplierProductDescription(
     galleryUrls: productImageUrls,
   })
 
-  const { system, user } = buildDescriptionGenerationPrompt({
+  const { system, user: baseUser } = buildDescriptionGenerationPrompt({
     title,
     productName: productName || title,
     categoryPath,
@@ -469,10 +513,40 @@ export async function generateSupplierProductDescription(
     galleryCount: galleryPool.length,
   })
 
+  const preferVision = shouldUseVisionForDescription({
+    specs,
+    draftNotes,
+    bullets,
+    title,
+    visionImageCount: visionImages.length,
+  })
+  const user = preferVision
+    ? baseUser
+    : appendSkippedVisionNote(baseUser, userIllustrations.length, galleryPool.length)
+
   let raw: string
   try {
-    raw = await callDescriptionModel(system, user, visionImages)
+    raw = await callDescriptionModelSafe(system, user, visionImages, preferVision)
   } catch (e: unknown) {
+    if (isGroqRateLimitError(e)) {
+      console.log("[supplier-generate-description]", { event: "rate_limit_recover_local" })
+      const recovered = await recoverEmptyDescription({
+        title,
+        productName: productName || title,
+        specs,
+        bullets,
+        draftNotes: draftNotes || rawNotes.slice(0, 2000),
+      })
+      if (recovered) {
+        return {
+          description: recovered,
+          bulletPoints: bullets,
+          illustrationImages: userIllustrations,
+          illustrationSource: userIllustrations.length > 0 ? "kept_user" : "none",
+          imagePlacements: [],
+        }
+      }
+    }
     throw e instanceof Error ? e : new Error(String(e))
   }
 
@@ -491,7 +565,7 @@ export async function generateSupplierProductDescription(
   let description =
     typeof parsed.description === "string" ? parsed.description.trim().slice(0, 8000) : ""
 
-  if (!description && visionImages.length > 0) {
+  if (!description && visionImages.length > 0 && preferVision) {
     console.log("[supplier-generate-description]", {
       event: "empty_description_retry_text",
       title,

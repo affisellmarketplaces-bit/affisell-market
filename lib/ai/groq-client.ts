@@ -3,13 +3,14 @@ import Groq from "groq-sdk"
 import {
   capVisionImagesInMessages,
   GROQ_VISION_MAX_IMAGES,
+  isGroqRateLimitError,
   normalizeGroqClientError,
 } from "@/lib/ai/groq-vision"
 
 export const GROQ_TEXT_MODEL = "llama-3.1-8b-instant"
 export const GROQ_VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
 
-export { GROQ_VISION_MAX_IMAGES }
+export { GROQ_VISION_MAX_IMAGES, isGroqRateLimitError }
 
 export function getGroqApiKey(): string | null {
   const key = process.env.GROQ_API_KEY?.trim()
