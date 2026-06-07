@@ -35,7 +35,14 @@ function getS3Client(): S3Client | null {
 }
 
 export function normalizeSupplierMediaFilename(input: string): string {
-  return input.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9-_]/g, "-").slice(0, 64) || "media"
+  return (
+    input
+      .replace(/\.[^/.]+$/, "")
+      .replace(/[^a-zA-Z0-9-_]/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "")
+      .slice(0, 64) || "media"
+  )
 }
 
 export function extensionForSupplierFile(

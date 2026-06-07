@@ -2394,5 +2394,73 @@
       "cta": "Wznów mój zakup",
       "footer": "Pytania? Sprawdź FAQ lub asystenta wsparcia na Affisell."
     }
+  },
+  "accountOrders": {
+    "empty": "Brak zamówień dla tego konta.",
+    "fulfillmentTag": {
+      "preparing": " · Przygotowywanie zamówienia",
+      "shipped": " · Wysłano",
+      "paid": " · Potwierdzone"
+    },
+    "viewDetails": "Szczegóły i faktura →",
+    "preparing": {
+      "title": "Sprzedawca przygotowuje wysyłkę",
+      "body": "Potwierdzono, że zamówienie jest pakowane. Śledzenie pojawi się, gdy przewoźnik zeskanuje paczkę.",
+      "since": "Od"
+    },
+    "trackingLine": "Śledzenie: {carrier} {number}",
+    "carrierDefault": "Przewoźnik",
+    "blindBadge": "Blind",
+    "confirmDelivery": {
+      "body": "Otrzymano i jesteś zadowolony? Potwierdź dostawę — wypłaty dla sprzedawcy po {confirmDays} dniach. Bez potwierdzenia wypłaty mogą zostać zwolnione po {autoDays} dniach od wysyłki. Twoje ustawowe prawo odstąpienia obowiązuje w okresie zwrotu.",
+      "cta": "Potwierdź odbiór i satysfakcję",
+      "error": "Nie udało się potwierdzić"
+    },
+    "deliveryConfirmed": "Dostawa potwierdzona · {date}",
+    "payoutFrom": " · wypłaty dla sprzedawcy od {date}",
+    "return": {
+      "label": "Zwrot: ",
+      "status": {
+        "REQUESTED": "Oczekiwanie na sprzedawcę",
+        "AWAITING_SHIPMENT": "Wyślij produkt z powrotem",
+        "IN_TRANSIT": "Zwrot w drodze",
+        "RECEIVED": "Otrzymano — zwrot w toku",
+        "REFUNDED": "Zwrócono",
+        "REJECTED": "Odrzucono",
+        "CANCELLED": "Anulowano"
+      },
+      "cancelRequest": "Anuluj wniosek",
+      "cancelError": "Nie udało się anulować",
+      "lastReturn": "Ostatni zwrot: {status} · {date}",
+      "windowEnded": "Okno zwrotu zakończyło się {date}.",
+      "form": {
+        "reasonLabel": "Powód",
+        "detailsPlaceholder": "Szczegóły (opcjonalnie)",
+        "submit": "Złóż wniosek o zwrot",
+        "error": "Wniosek nie powiódł się"
+      },
+      "trackingForm": {
+        "hint": "Wyślij produkt na adres z potwierdzenia zamówienia, następnie dodaj śledzenie tutaj.",
+        "carrierPlaceholder": "Przewoźnik (np. InPost, DPD)",
+        "numberPlaceholder": "Numer śledzenia",
+        "submit": "Wyślij śledzenie",
+        "error": "Nie udało się zapisać śledzenia"
+      }
+    },
+    "fulfillmentPanel": {
+      "loading": "Ładowanie…",
+      "title": "Aktualizacja wysyłki",
+      "seller": "Sprzedawca",
+      "buyer": "Ty",
+      "extensionAsk": "Sprzedawca prosi o {days} dodatkowych dni na wysyłkę:",
+      "accept": "Zaakceptuj dodatkowy czas",
+      "reject": "Odmów (zamówienie może zostać anulowane)",
+      "notePlaceholder": "Opcjonalna notatka do sprzedawcy",
+      "reply": "Odpowiedz sprzedawcy",
+      "send": "Wyślij",
+      "messagePlaceholder": "Twoja wiadomość…",
+      "accepted": "Zaakceptowałeś przedłużenie.",
+      "rejected": "Odrzuciłeś przedłużenie."
+    }
   }
 }

@@ -16,7 +16,7 @@ describe("i18n merge", () => {
 
   it("loadAppMessages de has German hero and EN fallback for dashboard", () => {
     const de = loadAppMessages("de")
-    expect((de.home as { hero: { title: string } }).hero.title).toContain("Shops")
+    expect((de.home as { hero: { title: string } }).hero.title).toContain("Geschäfte")
     expect((de.supplier as { badge?: string })?.badge ?? (de as { nav: { brand: string } }).nav.brand).toBeTruthy()
   })
 })

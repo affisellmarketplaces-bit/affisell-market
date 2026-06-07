@@ -2394,5 +2394,73 @@
       "cta": "Mijn aankoop hervatten",
       "footer": "Vragen? Bekijk de FAQ of de ondersteuningsassistent op Affisell."
     }
+  },
+  "accountOrders": {
+    "empty": "Nog geen bestellingen voor dit account.",
+    "fulfillmentTag": {
+      "preparing": " · Uw bestelling wordt voorbereid",
+      "shipped": " · Verzonden",
+      "paid": " · Bevestigd"
+    },
+    "viewDetails": "Details & factuur bekijken →",
+    "preparing": {
+      "title": "Uw verkoper bereidt de verzending voor",
+      "body": "De verkoper heeft bevestigd dat uw bestelling wordt ingepakt. Tracking verschijnt zodra de vervoerder het pakket scant.",
+      "since": "Sinds"
+    },
+    "trackingLine": "Tracking: {carrier} {number}",
+    "carrierDefault": "Vervoerder",
+    "blindBadge": "Blind",
+    "confirmDelivery": {
+      "body": "Ontvangen en tevreden? Bevestig de levering — uitbetalingen aan de verkoper volgen na {confirmDays} dagen. Zonder bevestiging kunnen uitbetalingen nog steeds na {autoDays} dagen na verzending worden vrijgegeven. Uw wettelijk herroepingsrecht blijft gelden tijdens het retourvenster.",
+      "cta": "Ontvangst & tevredenheid bevestigen",
+      "error": "Kon niet bevestigen"
+    },
+    "deliveryConfirmed": "Levering bevestigd · {date}",
+    "payoutFrom": " · uitbetalingen aan verkoper vanaf {date}",
+    "return": {
+      "label": "Retour: ",
+      "status": {
+        "REQUESTED": "Wacht op verkoper",
+        "AWAITING_SHIPMENT": "Artikel terugsturen",
+        "IN_TRANSIT": "Retour onderweg",
+        "RECEIVED": "Ontvangen — terugbetaling in behandeling",
+        "REFUNDED": "Terugbetaald",
+        "REJECTED": "Afgewezen",
+        "CANCELLED": "Geannuleerd"
+      },
+      "cancelRequest": "Verzoek annuleren",
+      "cancelError": "Kon niet annuleren",
+      "lastReturn": "Laatste retour: {status} · {date}",
+      "windowEnded": "Retourvenster eindigde op {date}.",
+      "form": {
+        "reasonLabel": "Reden",
+        "detailsPlaceholder": "Details (optioneel)",
+        "submit": "Retour aanvragen",
+        "error": "Verzoek mislukt"
+      },
+      "trackingForm": {
+        "hint": "Stuur het artikel naar het adres uit uw orderbevestiging en voeg hier tracking toe.",
+        "carrierPlaceholder": "Vervoerder (bijv. PostNL, DHL)",
+        "numberPlaceholder": "Trackingnummer",
+        "submit": "Tracking indienen",
+        "error": "Kon tracking niet opslaan"
+      }
+    },
+    "fulfillmentPanel": {
+      "loading": "Laden…",
+      "title": "Verzendupdate",
+      "seller": "Verkoper",
+      "buyer": "U",
+      "extensionAsk": "De verkoper vraagt {days} extra dagen om te verzenden:",
+      "accept": "Extra tijd accepteren",
+      "reject": "Weigeren (bestelling kan worden geannuleerd)",
+      "notePlaceholder": "Optionele notitie aan verkoper",
+      "reply": "Antwoord aan verkoper",
+      "send": "Verzenden",
+      "messagePlaceholder": "Uw bericht…",
+      "accepted": "U heeft de verlenging geaccepteerd.",
+      "rejected": "U heeft de verlenging geweigerd."
+    }
   }
 }

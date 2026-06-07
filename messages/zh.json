@@ -2394,5 +2394,73 @@
       "cta": "恢复我的购买",
       "footer": "有问题？请查看常见问题或 Affisell 上的支持助手。"
     }
+  },
+  "accountOrders": {
+    "empty": "此账户暂无订单。",
+    "fulfillmentTag": {
+      "preparing": " · 正在准备您的订单",
+      "shipped": " · 已发货",
+      "paid": " · 已确认"
+    },
+    "viewDetails": "查看详情和发票 →",
+    "preparing": {
+      "title": "卖家正在准备发货",
+      "body": "卖家已确认正在打包您的订单。承运商扫描包裹后将显示物流信息。",
+      "since": "自"
+    },
+    "trackingLine": "物流：{carrier} {number}",
+    "carrierDefault": "承运商",
+    "blindBadge": "盲发",
+    "confirmDelivery": {
+      "body": "已收到且满意？确认收货 — 卖家款项将在 {confirmDays} 天后结算。未确认时，发货后 {autoDays} 天仍可能释放款项。法定退货权在退货期内仍然有效。",
+      "cta": "确认收货与满意",
+      "error": "无法确认"
+    },
+    "deliveryConfirmed": "已确认收货 · {date}",
+    "payoutFrom": " · 商家款项自 {date} 起",
+    "return": {
+      "label": "退货：",
+      "status": {
+        "REQUESTED": "等待卖家处理",
+        "AWAITING_SHIPMENT": "寄回商品",
+        "IN_TRANSIT": "退货运输中",
+        "RECEIVED": "已收到 — 退款处理中",
+        "REFUNDED": "已退款",
+        "REJECTED": "已拒绝",
+        "CANCELLED": "已取消"
+      },
+      "cancelRequest": "取消申请",
+      "cancelError": "无法取消",
+      "lastReturn": "最近退货：{status} · {date}",
+      "windowEnded": "退货窗口已于 {date} 结束。",
+      "form": {
+        "reasonLabel": "原因",
+        "detailsPlaceholder": "详情（可选）",
+        "submit": "申请退货",
+        "error": "申请失败"
+      },
+      "trackingForm": {
+        "hint": "将商品寄至订单确认中的地址，然后在此添加物流信息。",
+        "carrierPlaceholder": "承运商（如顺丰、DHL）",
+        "numberPlaceholder": "物流单号",
+        "submit": "提交物流",
+        "error": "无法保存物流信息"
+      }
+    },
+    "fulfillmentPanel": {
+      "loading": "加载中…",
+      "title": "发货更新",
+      "seller": "卖家",
+      "buyer": "您",
+      "extensionAsk": "卖家请求额外 {days} 天发货时间：",
+      "accept": "接受延长时间",
+      "reject": "拒绝（订单可能被取消）",
+      "notePlaceholder": "给卖家的可选备注",
+      "reply": "回复卖家",
+      "send": "发送",
+      "messagePlaceholder": "您的消息…",
+      "accepted": "您已接受延期。",
+      "rejected": "您已拒绝延期。"
+    }
   }
 }
