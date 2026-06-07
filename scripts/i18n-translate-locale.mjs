@@ -2,6 +2,7 @@
 /**
  * Build a full messages/{locale}.json from messages/en.json via Groq.
  * Usage: GROQ_API_KEY=… node scripts/i18n-translate-locale.mjs --locale=de
+ *        node scripts/i18n-translate-locale.mjs --locale=de --namespace=emails --force
  *        node scripts/i18n-translate-locale.mjs --all
  */
 import fs from "node:fs"
@@ -176,7 +177,8 @@ async function translateNamespace(groq, namespace, enSubtree, langLabel) {
   return unflattenLeaves(merged)[namespace]
 }
 
-async function translateLocale(locale) {
+async function translateLocale(locale, options = {}) {
+  const { namespace: namespaceOnly, force = false } = options
   const langLabel = LOCALE_NAMES[locale]
   if (!langLabel) throw new Error(`unsupported_locale:${locale}`)
 
@@ -190,11 +192,17 @@ async function translateLocale(locale) {
     ? JSON.parse(fs.readFileSync(target, "utf8"))
     : {}
 
-  const namespaces = Object.keys(en)
-  console.log(`[i18n-translate] ${locale} (${langLabel}) — ${namespaces.length} namespaces`)
+  const namespaces = namespaceOnly ? [namespaceOnly] : Object.keys(en)
+  if (namespaceOnly && !(namespaceOnly in en)) {
+    throw new Error(`unknown_namespace:${namespaceOnly}`)
+  }
+
+  console.log(
+    `[i18n-translate] ${locale} (${langLabel}) — ${namespaces.length} namespace(s)${force ? " [force]" : ""}`,
+  )
 
   for (const ns of namespaces) {
-    if (out[ns] != null) {
+    if (out[ns] != null && !force) {
       console.log(`[i18n-translate] skip ${ns} (already present)`)
       continue
     }
@@ -207,20 +215,25 @@ async function translateLocale(locale) {
 }
 
 const argLocale = process.argv.find((a) => a.startsWith("--locale="))?.split("=")[1]
+const argNamespace = process.argv.find((a) => a.startsWith("--namespace="))?.split("=")[1]
+const forceNamespace = process.argv.includes("--force")
 const runAll = process.argv.includes("--all")
 
 async function main() {
+  const options = { namespace: argNamespace, force: forceNamespace }
   if (runAll) {
     for (const locale of Object.keys(LOCALE_NAMES)) {
-      await translateLocale(locale)
+      await translateLocale(locale, options)
     }
     return
   }
   if (!argLocale) {
-    console.error("Usage: node scripts/i18n-translate-locale.mjs --locale=de | --all")
+    console.error(
+      "Usage: node scripts/i18n-translate-locale.mjs --locale=de [--namespace=emails] [--force] | --all",
+    )
     process.exit(1)
   }
-  await translateLocale(argLocale)
+  await translateLocale(argLocale, options)
 }
 
 main().catch((e) => {
