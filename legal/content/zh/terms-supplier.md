@@ -1,77 +1,77 @@
 ---
-title: Supplier General Terms (SGT)
-description: Terms applicable to professionals selling on Affisell.
+title: 供应商一般条款（SGT）
+description: 适用于在 Affisell 上销售的专业人士的条款。
 lastUpdated: 2026-05-26
 order: 2
 ---
 
-# Supplier General Terms (SGT)
+# 供应商一般条款（SGT）
 
-**Last updated: {{LAST_UPDATED}}**
+**最后更新：{{LAST_UPDATED}}**
 
-These Supplier General Terms ("**SGT**") supplement the [GTU](/legal/terms-of-service) and govern the relationship between **Affisell SAS** ({{SIREN}}, {{ADRESSE}}) and any professional registered as a **Supplier**.
+本供应商一般条款（「**SGT**」）补充[GTU](/legal/terms-of-service)，规范 **Affisell SAS**（{{SIREN}}，{{ADRESSE}}）与任何注册为**供应商**的专业人士之间的关系。
 
-## Article 1 — Qualification and information obligations
+## 第 1 条 — 资质与信息义务
 
-1.1. The Supplier declares that they are a professional with a valid SIRET/SIREN number and, where applicable, an intra-community VAT number.
+1.1. 供应商声明其为专业人士，持有有效 SIRET/SIREN 编号，并在适用情况下持有欧盟增值税号。
 
-1.2. The Supplier warrants the accuracy of product pages (price, stock, compliance, legal warranties).
+1.2. 供应商保证产品页面信息准确（价格、库存、合规性、法定担保）。
 
-## Article 2 — Affisell commission and affiliate commission
+## 第 2 条 — Affisell 佣金与联盟佣金
 
-2.1. **Affisell platform commission**: deducted from the **net amount excluding VAT** paid by the Buyer (line base excluding VAT), according to the rate applicable to the category or product (default indicative rate: **10%**).
+2.1. **Affisell 平台佣金**：从买方支付的**不含增值税净额**（不含税行基数）中扣除，按适用于类别或产品的费率计算（默认参考费率：**10%**）。
 
-2.2. **Affiliate commission (deal)**: percentage of the **catalogue wholesale price** paid to the Affiliate, set by the Supplier between **0% and 15%** (or according to documented commercial agreement). This commission is **deducted from the net amount paid to the Supplier**.
+2.2. **联盟佣金（deal）**：支付给联盟伙伴的**目录批发价**百分比，由供应商在 **0% 至 15%** 之间设定（或根据书面商业协议）。该佣金**从支付给供应商的净额中扣除**。
 
-2.3. The rates applicable to each order are **fixed at the time of sale** (snapshot on the order).
+2.3. 适用于每笔订单的费率在**销售时固定**（订单快照）。
 
-## Article 3 — Pricing and channel parity
+## 第 3 条 — 定价与渠道平价
 
-3.1. The Supplier undertakes that the **Affisell catalogue price** (wholesale excluding VAT) shall be **less than or equal to** prices offered on their other equivalent B2B distribution channels for the same SKU, subject to duly indicated temporary promotions.
+3.1. 供应商承诺 **Affisell 目录价**（不含增值税批发价）**小于或等于**其其他同等 B2B 分销渠道对同一 SKU 提供的价格，已妥善标明的临时促销除外。
 
-3.2. Any price increase must respect reasonable notice for active listings.
+3.2. 任何涨价须对活跃列表给予合理通知期。
 
-## Article 4 — Shipping, SLA and penalties
+## 第 4 条 — 发货、SLA 与处罚
 
-4.1. **Default SLA**: shipping within **48 business hours** after payment, unless otherwise indicated on the product page.
+4.1. **默认 SLA**：付款后 **48 个工作小时**内发货，除非产品页面另有说明。
 
-4.2. In the event of unjustified delay beyond the "Ship Pulse" period (10 days + extension procedure), Affisell may:
-- notify the Buyer;
-- authorize cancellation and refund;
-- apply a **penalty** or downgrade listing ranking.
+4.2. 如在「Ship Pulse」期限（10 天 + 延期程序）之外发生无正当理由的延迟，Affisell 可：
+- 通知买方；
+- 授权取消并退款；
+- 施加**处罚**或降低列表排名。
 
-4.3. **RMA** (return merchandise authorization) return costs related to non-conformity attributable to the Supplier are borne by the Supplier.
+4.3. 因供应商责任导致不符合约定相关的 **RMA**（退货授权）退货运费由供应商承担。
 
-## Article 5 — Stripe Connect payments
+## 第 5 条 — Stripe Connect 支付
 
-5.1. The Supplier must complete **Stripe Connect** onboarding to receive payouts.
+5.1. 供应商须完成 **Stripe Connect** 入驻方可收款。
 
-5.2. The **payout** occurs in principle at **D+7** after eligibility (confirmed delivery / legal period), excluding dispute or clawback.
+5.2. **付款**原则上在符合资格条件后 **D+7**（确认交付/法定期限）进行，争议或追回情形除外。
 
-5.3. Affisell may offset amounts owed in the event of a Buyer refund or validated penalty.
+5.3. 如向买方退款或处罚经确认，Affisell 可抵扣应付金额。
 
-## Article 6 — Self-billing
+## 第 6 条 — 自开票
 
-6.1. The Supplier accepts the **self-billing** mechanism for Affisell commissions: Affisell issues or has issued the necessary accounting documents based on transaction data.
+6.1. 供应商接受 Affisell 佣金的**自开票**机制：Affisell 根据交易数据开具或安排开具必要的会计文件。
 
-6.2. The Supplier retains their own invoicing obligations to the Buyer (sales invoice) where required by law.
+6.2. 供应商保留向买方开票（销售发票）的自身义务（法律要求时）。
 
-## Article 7 — Product compliance and withdrawal
+## 第 7 条 — 产品合规与撤回
 
-7.1. The Supplier is solely responsible for compliance (safety, labelling, REACH, etc.).
+7.1. 供应商单独对产品合规性（安全、标签、REACH 等）负责。
 
-7.2. In the event of a product recall, the Supplier must inform Affisell within 24 hours and withdraw the SKU.
+7.2. 如发生产品召回，供应商须在 24 小时内通知 Affisell 并下架 SKU。
 
-## Article 8 — Termination
+## 第 8 条 — 终止
 
-8.1. The Supplier may terminate their account with 30 days' notice, subject to fulfilment of orders in progress.
+8.1. 供应商可提前 30 天通知终止账户，但须履行进行中的订单。
 
-8.2. Affisell may terminate automatically in the event of serious breach (fraud, counterfeiting, repeated SLA failure, misleading prices).
+8.2. 如发生严重违约（欺诈、假冒、屡次未达 SLA、误导性定价），Affisell 可自动终止。
 
-## Article 9 — Liability
+## 第 9 条 — 责任
 
-Affisell's liability towards the Supplier is limited in accordance with the GTU. The Supplier indemnifies Affisell against any claim related to their products or content.
+Affisell 对供应商的责任按 GTU 限制。供应商就与其产品或内容相关的任何索赔向 Affisell 作出赔偿。
 
-## Article 10 — Contact
+## 第 10 条 — 联系方式
 
-{{EMAIL}} — DPO: {{DPO}}
+{{EMAIL}} — DPO：{{DPO}}

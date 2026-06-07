@@ -1,108 +1,108 @@
 ---
-title: General Terms of Use (GTU)
-description: Tripartite GTU of the Affisell marketplace — buyers, affiliates and suppliers.
+title: Algemene Gebruiksvoorwaarden (AGV)
+description: Tripartiete AGV van de Affisell-marktplaats — kopers, affiliates en leveranciers.
 lastUpdated: 2026-05-26
 order: 1
 ---
 
-# Affisell Platform General Terms of Use
+# Algemene Gebruiksvoorwaarden van het Affisell-platform
 
-**Last updated: {{LAST_UPDATED}}**
+**Laatst bijgewerkt: {{LAST_UPDATED}}**
 
-These General Terms of Use ("**GTU**") govern access to and use of the **Affisell** platform (hereinafter the "**Platform**"), published by **Affisell SAS**, a simplified joint-stock company with a capital of {{CAPITAL}} euros, registered with the RCS of Aix-en-Provence under number {{SIREN}}, with its registered office at {{ADRESSE}}, intra-community VAT number FR{{TVA}} (hereinafter "**Affisell**", "**we**").
+Deze Algemene Gebruiksvoorwaarden («**AGV**») regelen de toegang tot en het gebruik van het **Affisell**-platform (hierna het «**Platform**»), uitgegeven door **Affisell SAS**, een vereenvoudigde naamloze vennootschap met een kapitaal van {{CAPITAL}} euro, ingeschreven bij het RCS van Aix-en-Provence onder nummer {{SIREN}}, met statutaire zetel te {{ADRESSE}}, intracommunautair btw-nummer FR{{TVA}} (hierna «**Affisell**», «**wij**»).
 
-## Article 1 — Purpose and scope
+## Artikel 1 — Doel en toepassingsgebied
 
-1.1. Affisell provides an online marketplace enabling **Suppliers** to offer products, **Affiliates** (creators / partners) to market them via a dedicated storefront, and **Buyers** to purchase these products.
+1.1. Affisell biedt een online marktplaats waarmee **Leveranciers** producten kunnen aanbieden, **Affiliates** (creators / partners) deze via een toegewijde storefront kunnen commercialiseren, en **Kopers** deze producten kunnen aankopen.
 
-1.2. Affisell acts as a **host** within the meaning of Law No. 2004-575 of 21 June 2004 on confidence in the digital economy (LCEN). **Affisell is not the seller** of products offered on the Platform, unless expressly stated otherwise on a product page.
+1.2. Affisell treedt op als **host** in de zin van Wet nr. 2004-575 van 21 juni 2004 inzake het vertrouwen in de digitale economie (LCEN). **Affisell is niet de verkoper** van producten die op het Platform worden aangeboden, tenzij uitdrukkelijk anders vermeld op een productpagina.
 
-1.3. The GTU apply to any User of the Platform. Suppliers and Affiliates are also subject to their respective specific terms ([Supplier TOS](/legal/terms-supplier), [Affiliate TOS](/legal/terms-affiliate)).
+1.3. De AGV zijn van toepassing op elke Gebruiker van het Platform. Leveranciers en Affiliates zijn eveneens onderworpen aan hun respectieve specifieke voorwaarden ([Leveranciers-AV](/legal/terms-supplier), [Affiliate-AV](/legal/terms-affiliate)).
 
-## Article 2 — Definitions
+## Artikel 2 — Definities
 
-- **Buyer**: natural or legal person placing an order via the Platform.
-- **Affiliate**: partner marketing a Supplier's products via an Affisell listing.
-- **Supplier**: professional offering products on the Platform.
-- **Listing**: product page customized by an Affiliate (price, media, description).
-- **Order**: sales contract concluded between the Buyer and the Supplier, facilitated by Affisell.
+- **Koper**: natuurlijke of rechtspersoon die een bestelling plaatst via het Platform.
+- **Affiliate**: partner die producten van een Leverancier commercialiseert via een Affisell-listing.
+- **Leverancier**: professional die producten op het Platform aanbiedt.
+- **Listing**: productpagina aangepast door een Affiliate (prijs, media, beschrijving).
+- **Bestelling**: koopcontract gesloten tussen de Koper en de Leverancier, gefaciliteerd door Affisell.
 
-## Article 3 — Registration and account
+## Artikel 3 — Registratie en account
 
-3.1. Registration requires accurate information and acceptance of the GTU and the [Privacy Policy](/legal/privacy-policy).
+3.1. Registratie vereist accurate informatie en acceptatie van de AGV en het [Privacybeleid](/legal/privacy-policy).
 
-3.2. The User is responsible for the confidentiality of their credentials.
+3.2. De Gebruiker is verantwoordelijk voor de vertrouwelijkheid van zijn inloggegevens.
 
-3.3. Affisell may suspend or terminate an account in the event of GTU violation, fraud, counterfeiting, or breach of public order.
+3.3. Affisell kan een account opschorten of beëindigen bij schending van de AGV, fraude, namaak of inbreuk op de openbare orde.
 
-## Article 4 — Affisell's role and tripartite relationship
+## Artikel 4 — Rol van Affisell en tripartiete relatie
 
-4.1. The product sales contract is concluded **directly between the Buyer and the Supplier**. The Affiliate receives remuneration (commission and/or margin) according to listing and catalogue parameters.
+4.1. Het productkoopcontract wordt **rechtstreeks gesloten tussen de Koper en de Leverancier**. De Affiliate ontvangt een vergoeding (commissie en/of marge) volgens de listing- en catalogusparameters.
 
-4.2. Affisell receives a **platform commission** calculated on the **net amount excluding VAT** of the order line (excluding VAT), according to the applicable scale (default rate **10%**, variable by category or product).
+4.2. Affisell ontvangt een **platformcommissie** berekend op het **nettobedrag exclusief btw** van de bestelregel (basis exclusief btw), volgens de toepasselijke schaal (standaardtarief **10 %**, variabel per categorie of product).
 
-4.3. Payments are processed via **Stripe** (Stripe Connect for Supplier and Affiliate payouts). Affisell is not a payment institution.
+4.3. Betalingen worden verwerkt via **Stripe** (Stripe Connect voor uitbetalingen aan Leverancier en Affiliate). Affisell is geen betaalinstelling.
 
-## Article 5 — Prices, VAT and invoicing
+## Artikel 5 — Prijzen, btw en facturering
 
-5.1. Prices displayed to the Buyer may be shown inclusive of tax when VAT is collected via Stripe Tax or an equivalent mechanism.
+5.1. Prijzen die aan de Koper worden getoond, kunnen inclusief belastingen worden weergegeven wanneer btw wordt geïnd via Stripe Tax of een equivalent mechanisme.
 
-5.2. The Supplier remains responsible for their tax obligations (VAT, invoicing). Affisell provides transaction data to facilitate accounting.
+5.2. De Leverancier blijft verantwoordelijk voor zijn fiscale verplichtingen (btw, facturering). Affisell verstrekt transactiegegevens om de boekhouding te vergemakkelijken.
 
-## Article 6 — Payments and payouts
+## Artikel 6 — Betalingen en uitbetalingen
 
-6.1. Payouts to Suppliers and Affiliates are made via **Stripe Connect**, in principle **7 days** after delivery confirmation or applicable legal period (D+7), subject to dispute, return, or chargeback.
+6.1. Uitbetalingen aan Leveranciers en Affiliates geschieden via **Stripe Connect**, in principe **7 dagen** na leveringsbevestiging of de toepasselijke wettelijke termijn (D+7), behoudens geschil, retour of chargeback.
 
-6.2. Affisell may temporarily withhold funds in the event of suspected fraud, non-compliance, or legal obligation.
+6.2. Affisell kan tijdelijk fondsen inhouden bij vermoeden van fraude, niet-naleving of wettelijke verplichting.
 
-6.3. In the event of a Buyer refund, commissions may be subject to proportional **clawback** (see [Refund Policy](/legal/refund-policy)).
+6.3. Bij terugbetaling aan de Koper kunnen commissies onderworpen zijn aan proportionele **terugvordering** (zie [Terugbetalingsbeleid](/legal/refund-policy)).
 
-## Article 7 — Delivery and shipping SLA
+## Artikel 7 — Levering en verzend-SLA
 
-7.1. The Supplier undertakes to ship within a maximum period of **48 business hours** after payment, unless a longer period is displayed on the product page or an extension is agreed via the "Ship Pulse" tool.
+7.1. De Leverancier verbindt zich ertoe te verzenden binnen een maximale termijn van **48 werkuren** na betaling, tenzij een langere termijn op de productpagina wordt weergegeven of een verlenging wordt overeengekomen via de tool «Ship Pulse».
 
-7.2. Repeated failure to meet the SLA may result in penalties, delisting, or termination (see Supplier TOS).
+7.2. Herhaaldelijk niet-naleven van de SLA kan leiden tot sancties, delisting of beëindiging (zie Leveranciers-AV).
 
-## Article 8 — Right of withdrawal and returns
+## Artikel 8 — Herroepingsrecht en retouren
 
-8.1. The consumer Buyer benefits from a **14-day** right of withdrawal for eligible goods, subject to legal exceptions (Articles L221-28 et seq. of the French Consumer Code).
+8.1. De consument-Koper profiteert van een herroepingsrecht van **14 dagen** voor in aanmerking komende goederen, behoudens wettelijke uitzonderingen (artikelen L221-28 en volgende van het Franse Consumentenwetboek).
 
-8.2. Practical procedures are detailed in the [Refund Policy](/legal/refund-policy).
+8.2. Praktische procedures worden beschreven in het [Terugbetalingsbeleid](/legal/refund-policy).
 
-## Article 9 — Intellectual property
+## Artikel 9 — Intellectueel eigendom
 
-9.1. The Platform, its brand, code, and editorial content are protected. Any unauthorized reproduction is prohibited.
+9.1. Het Platform, het merk, de code en de redactionele inhoud zijn beschermd. Elke ongeautoriseerde reproductie is verboden.
 
-9.2. Affiliates and Suppliers warrant that they hold the rights to the content they publish (images, texts, videos).
+9.2. Affiliates en Leveranciers garanderen dat zij de rechten bezitten op de inhoud die zij publiceren (afbeeldingen, teksten, video's).
 
-## Article 10 — Liability
+## Artikel 10 — Aansprakelijkheid
 
-10.1. Affisell is subject to a best-efforts obligation regarding Platform availability.
+10.1. Affisell is onderworpen aan een inspanningsverplichting met betrekking tot de beschikbaarheid van het Platform.
 
-10.2. Affisell is not liable for content published by Users, nor for Supplier breaches (non-conformity, delay), within the limits permitted by law.
+10.2. Affisell is niet aansprakelijk voor inhoud gepubliceerd door Gebruikers, noch voor inbreuken door de Leverancier (niet-conformiteit, vertraging), binnen de door de wet toegestane grenzen.
 
-10.3. In the event of proven fault by Affisell, liability is limited to the amount of commissions received on the Order concerned over the preceding twelve (12) months.
+10.3. Bij bewezen schuld van Affisell is de aansprakelijkheid beperkt tot het bedrag van de ontvangen commissies op de betreffende Bestelling gedurende de voorafgaande twaalf (12) maanden.
 
-## Article 11 — Personal data
+## Artikel 11 — Persoonsgegevens
 
-Data processing is described in the [Privacy Policy](/legal/privacy-policy). The User may exercise their GDPR rights from [their GDPR space](/dashboard/account/gdpr).
+Gegevensverwerking wordt beschreven in het [Privacybeleid](/legal/privacy-policy). De Gebruiker kan zijn GDPR-rechten uitoefenen vanuit [zijn GDPR-ruimte](/dashboard/account/gdpr).
 
-## Article 12 — Cookies
+## Artikel 12 — Cookies
 
-See the [Cookie Policy](/legal/cookies-policy).
+Zie het [Cookiebeleid](/legal/cookies-policy).
 
-## Article 13 — GTU amendments
+## Artikel 13 — Wijziging van de AGV
 
-Affisell may amend the GTU. Users will be informed in the event of a substantial change. Continued use constitutes acceptance where permitted by law.
+Affisell kan de AGV wijzigen. Gebruikers worden geïnformeerd bij een substantiële wijziging. Voortgezet gebruik geldt als acceptatie waar de wet dit toestaat.
 
-## Article 14 — Applicable law and disputes
+## Artikel 14 — Toepasselijk recht en geschillen
 
-14.1. The GTU are governed by **French law**.
+14.1. De AGV worden beheerst door **Frans recht**.
 
-14.2. In the event of a dispute with a consumer, mandatory rules of their country of residence may apply. An amicable solution shall be sought beforehand at {{EMAIL}}.
+14.2. Bij een geschil met een consument kunnen de dwingende regels van zijn land van verblijf van toepassing zijn. Eerst wordt een minnelijke oplossing gezocht via {{EMAIL}}.
 
-14.3. Failing that, jurisdiction of the courts within the jurisdiction of Affisell's registered office, subject to specific attribution imposed by law.
+14.3. Bij gebrek aan overeenstemming: bevoegdheid van de rechtbanken binnen het rechtsgebied van de statutaire zetel van Affisell, behoudens specifieke door de wet opgelegde attributie.
 
-## Article 15 — Contact
+## Artikel 15 — Contact
 
 **Affisell SAS** — {{ADRESSE}} — {{EMAIL}} — DPO: {{DPO}}

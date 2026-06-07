@@ -1,49 +1,49 @@
 ---
-title: Legal Mentions
-description: 'Publisher, host and Affisell contacts'
+title: Note legali
+description: 'Editore, host e contatti Affisell'
 lastUpdated: 2026-05-26T00:00:00.000Z
 order: 0
 ---
 
-# Legal Notices
+# Note legali
 
-**Last updated: {{LAST_UPDATED}}**
+**Ultimo aggiornamento: {{LAST_UPDATED}}**
 
-## Site Publisher
+## Editore del sito
 
 **Affisell SAS**  
-Simplified joint-stock company with a capital of **{{CAPITAL}}** euros  
-Head office: {{ADRESSE}}  
+Società per azioni semplificata con capitale di **{{CAPITAL}}** euro  
+Sede legale: {{ADRESSE}}  
 RCS: {{RCS}}  
-SIREN number: {{SIREN}}  
-VAT number: **FR{{TVA}}**  
+Numero SIREN: {{SIREN}}  
+Partita IVA: **FR{{TVA}}**  
 Email: [{{EMAIL}}](mailto:contact@affisell.com)  
-Publisher: the legal representative of Affisell SAS
+Direttore della pubblicazione: il rappresentante legale di Affisell SAS
 
 ## Host
 
 **Vercel Inc.**  
-440 N Barranca Ave #4133, Covina, CA 91723, United States  
-Website: [vercel.com](https://vercel.com)
+440 N Barranca Ave #4133, Covina, CA 91723, Stati Uniti  
+Sito web: [vercel.com](https://vercel.com)
 
-## Contact
+## Contatto
 
-- General support: {{EMAIL}}  
-- Data protection (DPO): {{DPO}}
+- Assistenza generale: {{EMAIL}}  
+- Protezione dei dati (DPO): {{DPO}}
 
-## Intellectual Property
+## Proprietà intellettuale
 
-The entire Affisell site (structure, texts, graphics, logo) is protected. Any unauthorized reproduction constitutes an infringement.
+L'intero sito Affisell (struttura, testi, grafica, logo) è protetto. Qualsiasi riproduzione non autorizzata costituisce una violazione.
 
-## Consumer Mediation
+## Mediazione dei consumatori
 
-In accordance with Articles L612-1 and following of the Consumer Code, the consumer buyer can freely use a consumer mediator in the event of a dispute not resolved with the professional seller.
+In conformità agli articoli L612-1 e seguenti del Codice del Consumo, l'acquirente consumatore può ricorrere liberamente a un mediatore dei consumatori in caso di controversia non risolta con il venditore professionale.
 
-## Contractual Documents
+## Documenti contrattuali
 
-- [Platform TOS](/legal/terms-of-service)
-- [Supplier TOS](/legal/terms-supplier)
-- [Affiliate TOS](/legal/terms-affiliate)
-- [Privacy Policy](/legal/privacy-policy)
-- [Refund Policy](/legal/refund-policy)
-- [Cookies Policy](/legal/cookies-policy)
+- [CGU della piattaforma](/legal/terms-of-service)
+- [CGU del fornitore](/legal/terms-supplier)
+- [CGU dell'affiliato](/legal/terms-affiliate)
+- [Informativa sulla privacy](/legal/privacy-policy)
+- [Politica di rimborso](/legal/refund-policy)
+- [Politica sui cookie](/legal/cookies-policy)

@@ -1,67 +1,67 @@
 ---
-title: Privacy Policy
-description: 'Affisell RGPD Policy — processing, legal basis, rights.'
+title: 隐私政策
+description: 'Affisell GDPR 政策 — 处理、法律依据、权利。'
 lastUpdated: 2026-05-26T00:00:00.000Z
 order: 4
 ---
 
-# Privacy Policy (GDPR)
+# 隐私政策（GDPR）
 
-**Last updated: {{LAST_UPDATED}}**
+**最后更新：{{LAST_UPDATED}}**
 
-## Article 1 — Data Controller
+## 第 1 条 — 数据控制者
 
-**Affisell SAS** — {{ADRESSE}} — SIREN {{SIREN}} — VAT FR{{TVA}}  
-Contact: {{EMAIL}} — Data Protection Officer (DPO): **{{DPO}}**
+**Affisell SAS** — {{ADRESSE}} — SIREN {{SIREN}} — 增值税 FR{{TVA}}  
+联系方式：{{EMAIL}} — 数据保护官（DPO）：**{{DPO}}**
 
-## Article 2 — Collected Data
+## 第 2 条 — 收集的数据
 
-| Category | Examples | Purpose |
+| 类别 | 示例 | 目的 |
 |-----------|----------|----------|
-| Identity & Account | Email, name, role (Buyer / Affiliate / Supplier) | Account creation, authentication |
-| Company | Business name, SIRET (supplier) | KYC, invoicing |
-| Payment | Stripe identifiers, IBAN (via Stripe Connect) | Payment, payouts |
-| Order | Shipping address, purchase history | Contract execution |
-| Technical | Logs, IP, cookies (see [Cookie Policy](/legal/cookies-policy)) | Security, service improvement |
-| Content | Product images, descriptions | Marketplace hosting |
+| 身份与账户 | 邮箱、姓名、角色（买方/联盟伙伴/供应商） | 账户创建、身份验证 |
+| 企业 | 商号、SIRET（供应商） | KYC、开票 |
+| 支付 | Stripe 标识符、IBAN（通过 Stripe Connect） | 支付、付款 |
+| 订单 | 收货地址、购买历史 | 合同履行 |
+| 技术 | 日志、IP、Cookie（见 [Cookie 政策](/legal/cookies-policy)） | 安全、服务改进 |
+| 内容 | 产品图片、描述 | 市场托管 |
 
-## Article 3 — Legal Bases
+## 第 3 条 — 法律依据
 
-- **Contract execution** (art. 6.1.b GDPR): account, orders, payments, support.
-- **Legal obligation** (art. 6.1.c): accounting records, fraud prevention.
-- **Legitimate interest** (art. 6.1.f): security, aggregated analytics, product improvement.
-- **Consent** (art. 6.1.a): non-essential cookies, marketing if enabled.
+- **合同履行**（GDPR 第 6.1.b 条）：账户、订单、支付、支持。
+- **法律义务**（第 6.1.c 条）：会计记录、防欺诈。
+- **合法利益**（第 6.1.f 条）：安全、汇总分析、产品改进。
+- **同意**（第 6.1.a 条）：非必要 Cookie、启用时的营销。
 
-## Article 4 — Recipients
+## 第 4 条 — 接收方
 
-- **Stripe, Inc.** — payment and Connect (transfer outside EU framed by standard contractual clauses).
-- **Vercel Inc.** — application hosting.
-- **Suppliers and Affiliates** — data strictly necessary for order execution.
-- Competent authorities upon legal request.
+- **Stripe, Inc.** — 支付与 Connect（向欧盟外传输受标准合同条款约束）。
+- **Vercel Inc.** — 应用托管。
+- **供应商与联盟伙伴** — 履行订单所严格必需的数据。
+- 主管机关依法要求时。
 
-## Article 5 — Retention Periods
+## 第 5 条 — 保留期限
 
-- Active account: duration of the contractual relationship.
-- Order and accounting data: **3 years** after the end of the business relationship, unless longer legal obligation.
-- Technical logs: up to **12 months** unless security incident.
-- Cookies: as per [Cookie Policy](/legal/cookies-policy).
+- 活跃账户：合同关系存续期间。
+- 订单及会计数据：业务关系结束后 **3 年**，除非法律义务更长。
+- 技术日志：最长 **12 个月**，安全事件除外。
+- Cookie：按 [Cookie 政策](/legal/cookies-policy)。
 
-## Article 6 — Your Rights
+## 第 6 条 — 您的权利
 
-You have the rights of **access**, **rectification**, **erasure**, **limitation**, **objection**, **portability**, and withdrawal of consent.
+您享有**访问**、**更正**、**删除**、**限制**、**反对**、**可携带**及撤回同意的权利。
 
-Exercise: **{{DPO}}** or [GDPR](/dashboard/account/gdpr) space (JSON/CSV export, account deletion, consent management).
+行使方式：**{{DPO}}** 或 [GDPR](/dashboard/account/gdpr) 空间（JSON/CSV 导出、账户删除、同意管理）。
 
-Complaint: CNIL — www.cnil.fr
+投诉：CNIL — www.cnil.fr
 
-## Article 7 — Security
+## 第 7 条 — 安全
 
-Appropriate measures: transit encryption (HTTPS), password hashing, restricted access, backups.
+适当措施：传输加密（HTTPS）、密码哈希、受限访问、备份。
 
-## Article 8 — Transfers outside the EU
+## 第 8 条 — 向欧盟外传输
 
-When subcontractors are located outside the EEA, Affisell ensures appropriate guarantees (SCC, adequacy decision, or equivalent mechanism).
+当分包商位于欧洲经济区以外时，Affisell 确保适当保障（SCC、充分性决定或等效机制）。
 
-## Article 9 — Amendments
+## 第 9 条 — 修订
 
-Any substantial modification will be brought to your attention (email or banner).
+任何重大修改将通知您（电子邮件或横幅）。

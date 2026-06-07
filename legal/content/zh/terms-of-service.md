@@ -1,108 +1,108 @@
 ---
-title: General Terms of Use (GTU)
-description: Tripartite GTU of the Affisell marketplace — buyers, affiliates and suppliers.
+title: 一般使用条款（GTU）
+description: Affisell 市场三方使用条款 — 买方、联盟伙伴与供应商。
 lastUpdated: 2026-05-26
 order: 1
 ---
 
-# Affisell Platform General Terms of Use
+# Affisell 平台一般使用条款
 
-**Last updated: {{LAST_UPDATED}}**
+**最后更新：{{LAST_UPDATED}}**
 
-These General Terms of Use ("**GTU**") govern access to and use of the **Affisell** platform (hereinafter the "**Platform**"), published by **Affisell SAS**, a simplified joint-stock company with a capital of {{CAPITAL}} euros, registered with the RCS of Aix-en-Provence under number {{SIREN}}, with its registered office at {{ADRESSE}}, intra-community VAT number FR{{TVA}} (hereinafter "**Affisell**", "**we**").
+本一般使用条款（「**GTU**」）规范对 **Affisell** 平台（以下简称「**平台**」）的访问与使用。平台由 **Affisell SAS** 发布，该公司为简化股份有限公司，注册资本 {{CAPITAL}} 欧元，在 Aix-en-Provence RCS 注册，编号 {{SIREN}}，注册地址 {{ADRESSE}}，欧盟增值税号 FR{{TVA}}（以下简称「**Affisell**」、「**我们**」）。
 
-## Article 1 — Purpose and scope
+## 第 1 条 — 目的与范围
 
-1.1. Affisell provides an online marketplace enabling **Suppliers** to offer products, **Affiliates** (creators / partners) to market them via a dedicated storefront, and **Buyers** to purchase these products.
+1.1. Affisell 提供在线市场，使**供应商**能够提供产品、**联盟伙伴**（创作者/合作伙伴）通过专属店面进行推广，**买方**能够购买这些产品。
 
-1.2. Affisell acts as a **host** within the meaning of Law No. 2004-575 of 21 June 2004 on confidence in the digital economy (LCEN). **Affisell is not the seller** of products offered on the Platform, unless expressly stated otherwise on a product page.
+1.2. Affisell 作为 2004 年 6 月 21 日第 2004-575 号《数字经济信任法》（LCEN）意义上的**托管方**。**Affisell 并非**平台上所提供产品的卖方，除非产品页面另有明确说明。
 
-1.3. The GTU apply to any User of the Platform. Suppliers and Affiliates are also subject to their respective specific terms ([Supplier TOS](/legal/terms-supplier), [Affiliate TOS](/legal/terms-affiliate)).
+1.3. GTU 适用于平台的任何用户。供应商与联盟伙伴还须遵守各自专项条款（[供应商条款](/legal/terms-supplier)、[联盟伙伴条款](/legal/terms-affiliate)）。
 
-## Article 2 — Definitions
+## 第 2 条 — 定义
 
-- **Buyer**: natural or legal person placing an order via the Platform.
-- **Affiliate**: partner marketing a Supplier's products via an Affisell listing.
-- **Supplier**: professional offering products on the Platform.
-- **Listing**: product page customized by an Affiliate (price, media, description).
-- **Order**: sales contract concluded between the Buyer and the Supplier, facilitated by Affisell.
+- **买方**：通过平台下单的自然人或法人。
+- **联盟伙伴**：通过 Affisell 商品列表推广供应商产品的合作伙伴。
+- **供应商**：在平台上提供产品的专业人士。
+- **商品列表**：由联盟伙伴定制的产品页面（价格、媒体、描述）。
+- **订单**：买方与供应商之间订立的销售合同，由 Affisell 促成。
 
-## Article 3 — Registration and account
+## 第 3 条 — 注册与账户
 
-3.1. Registration requires accurate information and acceptance of the GTU and the [Privacy Policy](/legal/privacy-policy).
+3.1. 注册须提供准确信息，并接受 GTU 及[隐私政策](/legal/privacy-policy)。
 
-3.2. The User is responsible for the confidentiality of their credentials.
+3.2. 用户对其凭证的保密性负责。
 
-3.3. Affisell may suspend or terminate an account in the event of GTU violation, fraud, counterfeiting, or breach of public order.
+3.3. 如违反 GTU、存在欺诈、假冒或破坏公共秩序，Affisell 可暂停或终止账户。
 
-## Article 4 — Affisell's role and tripartite relationship
+## 第 4 条 — Affisell 的角色与三方关系
 
-4.1. The product sales contract is concluded **directly between the Buyer and the Supplier**. The Affiliate receives remuneration (commission and/or margin) according to listing and catalogue parameters.
+4.1. 产品销售合同**直接在买方与供应商之间**订立。联盟伙伴根据列表及目录参数获得报酬（佣金和/或加价）。
 
-4.2. Affisell receives a **platform commission** calculated on the **net amount excluding VAT** of the order line (excluding VAT), according to the applicable scale (default rate **10%**, variable by category or product).
+4.2. Affisell 收取**平台佣金**，按订单行**不含增值税的净额**（不含税基数）计算，适用相应费率（默认费率 **10%**，因类别或产品而异）。
 
-4.3. Payments are processed via **Stripe** (Stripe Connect for Supplier and Affiliate payouts). Affisell is not a payment institution.
+4.3. 支付通过 **Stripe** 处理（供应商与联盟伙伴付款使用 Stripe Connect）。Affisell 并非支付机构。
 
-## Article 5 — Prices, VAT and invoicing
+## 第 5 条 — 价格、增值税与开票
 
-5.1. Prices displayed to the Buyer may be shown inclusive of tax when VAT is collected via Stripe Tax or an equivalent mechanism.
+5.1. 向买方显示的价格可在通过 Stripe Tax 或等效机制征收增值税时含税显示。
 
-5.2. The Supplier remains responsible for their tax obligations (VAT, invoicing). Affisell provides transaction data to facilitate accounting.
+5.2. 供应商仍对其税务义务（增值税、开票）负责。Affisell 提供交易数据以便利账务处理。
 
-## Article 6 — Payments and payouts
+## 第 6 条 — 支付与付款
 
-6.1. Payouts to Suppliers and Affiliates are made via **Stripe Connect**, in principle **7 days** after delivery confirmation or applicable legal period (D+7), subject to dispute, return, or chargeback.
+6.1. 向供应商与联盟伙伴的付款通过 **Stripe Connect** 进行，原则上在确认交付或适用法定期限后 **7 天**（D+7），争议、退货或拒付情形除外。
 
-6.2. Affisell may temporarily withhold funds in the event of suspected fraud, non-compliance, or legal obligation.
+6.2. 如怀疑欺诈、不合规或存在法律义务，Affisell 可暂时扣留资金。
 
-6.3. In the event of a Buyer refund, commissions may be subject to proportional **clawback** (see [Refund Policy](/legal/refund-policy)).
+6.3. 如向买方退款，佣金可能按比例**追回**（见[退款政策](/legal/refund-policy)）。
 
-## Article 7 — Delivery and shipping SLA
+## 第 7 条 — 交付与发货 SLA
 
-7.1. The Supplier undertakes to ship within a maximum period of **48 business hours** after payment, unless a longer period is displayed on the product page or an extension is agreed via the "Ship Pulse" tool.
+7.1. 供应商承诺在付款后最多 **48 个工作小时**内发货，除非产品页面显示更长时限，或通过「Ship Pulse」工具同意延期。
 
-7.2. Repeated failure to meet the SLA may result in penalties, delisting, or termination (see Supplier TOS).
+7.2. 屡次未达 SLA 可能导致处罚、下架或终止（见供应商条款）。
 
-## Article 8 — Right of withdrawal and returns
+## 第 8 条 — 撤回权与退货
 
-8.1. The consumer Buyer benefits from a **14-day** right of withdrawal for eligible goods, subject to legal exceptions (Articles L221-28 et seq. of the French Consumer Code).
+8.1. 消费者买方对符合条件的商品享有 **14 天**撤回权，法律例外情形除外（法国《消费者法典》第 L221-28 条及后续条款）。
 
-8.2. Practical procedures are detailed in the [Refund Policy](/legal/refund-policy).
+8.2. 具体操作程序详见[退款政策](/legal/refund-policy)。
 
-## Article 9 — Intellectual property
+## 第 9 条 — 知识产权
 
-9.1. The Platform, its brand, code, and editorial content are protected. Any unauthorized reproduction is prohibited.
+9.1. 平台及其品牌、代码和编辑内容均受保护。禁止任何未经授权的复制。
 
-9.2. Affiliates and Suppliers warrant that they hold the rights to the content they publish (images, texts, videos).
+9.2. 联盟伙伴与供应商保证对其发布的内容（图片、文字、视频）拥有权利。
 
-## Article 10 — Liability
+## 第 10 条 — 责任
 
-10.1. Affisell is subject to a best-efforts obligation regarding Platform availability.
+10.1. Affisell 对平台可用性承担合理注意义务。
 
-10.2. Affisell is not liable for content published by Users, nor for Supplier breaches (non-conformity, delay), within the limits permitted by law.
+10.2. 在法律允许的范围内，Affisell 不对用户发布的内容或供应商违约（不符合约定、延迟）承担责任。
 
-10.3. In the event of proven fault by Affisell, liability is limited to the amount of commissions received on the Order concerned over the preceding twelve (12) months.
+10.3. 如 Affisell 存在经证实的过错，责任限于过去十二（12）个月内就该订单收取的佣金金额。
 
-## Article 11 — Personal data
+## 第 11 条 — 个人数据
 
-Data processing is described in the [Privacy Policy](/legal/privacy-policy). The User may exercise their GDPR rights from [their GDPR space](/dashboard/account/gdpr).
+数据处理详见[隐私政策](/legal/privacy-policy)。用户可从[其 GDPR 空间](/dashboard/account/gdpr)行使 GDPR 权利。
 
-## Article 12 — Cookies
+## 第 12 条 — Cookie
 
-See the [Cookie Policy](/legal/cookies-policy).
+见 [Cookie 政策](/legal/cookies-policy)。
 
-## Article 13 — GTU amendments
+## 第 13 条 — GTU 修订
 
-Affisell may amend the GTU. Users will be informed in the event of a substantial change. Continued use constitutes acceptance where permitted by law.
+Affisell 可修订 GTU。如有重大变更将通知用户。在法律允许的情况下，继续使用即构成接受。
 
-## Article 14 — Applicable law and disputes
+## 第 14 条 — 适用法律与争议
 
-14.1. The GTU are governed by **French law**.
+14.1. GTU 受**法国法律**管辖。
 
-14.2. In the event of a dispute with a consumer, mandatory rules of their country of residence may apply. An amicable solution shall be sought beforehand at {{EMAIL}}.
+14.2. 如与消费者发生争议，可能适用其居住国的强制性规定。应事先通过 {{EMAIL}} 寻求友好解决。
 
-14.3. Failing that, jurisdiction of the courts within the jurisdiction of Affisell's registered office, subject to specific attribution imposed by law.
+14.3. 如未能达成协议，由 Affisell 注册地管辖范围内的法院管辖，但须遵守法律规定的特别管辖。
 
-## Article 15 — Contact
+## 第 15 条 — 联系方式
 
-**Affisell SAS** — {{ADRESSE}} — {{EMAIL}} — DPO: {{DPO}}
+**Affisell SAS** — {{ADRESSE}} — {{EMAIL}} — DPO：{{DPO}}

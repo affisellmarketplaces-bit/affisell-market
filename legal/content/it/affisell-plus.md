@@ -1,36 +1,36 @@
 ---
-title: Affisell+ — Verified Supplier Criteria
-description: Eligibility conditions for the Affisell+ badge for suppliers.
+title: Affisell+ — Criteri fornitore verificato
+description: Condizioni di idoneità per il badge Affisell+ per i fornitori.
 order: 4
 lastUpdated: '2026-05-28'
 ---
 
-# Affisell+ Programme
+# Programma Affisell+
 
-The **Affisell+** badge distinguishes suppliers who maintain a high level of service over a 90-day sliding window.
+Il badge **Affisell+** distingue i fornitori che mantengono un elevato livello di servizio su una finestra mobile di 90 giorni.
 
-## 1) Automatic Criteria
+## 1) Criteri automatici
 
-The badge is automatically awarded when the following three conditions are met:
+Il badge viene assegnato automaticamente quando sono soddisfatte le tre condizioni seguenti:
 
-- **Average rating > 4.6 / 5**
-- **Dispute rate < 1.5 %**
-- **Shipping rate within 48h > 95 %**
+- **Valutazione media > 4,6 / 5**
+- **Tasso di controversie < 1,5 %**
+- **Tasso di spedizione entro 48 h > 95 %**
 
-These metrics are recalculated daily through a scheduled process.
+Queste metriche vengono ricalcolate quotidianamente tramite un processo pianificato.
 
-## 2) Calculation Method
+## 2) Metodo di calcolo
 
-- **Average rating** : average of reviews published related to the supplier's orders.
-- **Dispute rate** : ratio of orders that generated a non-rejected return/dispute file.
-- **48h shipping SLA** : proportion of paid orders shipped within 48 hours.
+- **Valutazione media**: media delle recensioni pubblicate relative agli ordini del fornitore.
+- **Tasso di controversie**: rapporto tra ordini che hanno generato un fascicolo di reso/controversia non respinto.
+- **SLA spedizione 48 h**: proporzione di ordini pagati spediti entro 48 ore.
 
-## 3) Award and Withdrawal
+## 3) Assegnazione e revoca
 
-- The badge is visible only in the interface (product cards, product pages, ambassador hub).
-- The award is not contractual or definitive.
-- If the metrics fall below the thresholds, the badge can be automatically withdrawn at the next recalculation.
+- Il badge è visibile solo nell'interfaccia (schede prodotto, pagine prodotto, hub ambassador).
+- L'assegnazione non è contrattuale né definitiva.
+- Se le metriche scendono sotto le soglie, il badge può essere revocato automaticamente al successivo ricalcolo.
 
-## 4) Transparency
+## 4) Trasparenza
 
-Affisell maintains an internal history of recalculation (timestamp, metrics, status) to ensure traceability and continuous improvement of the programme.
+Affisell mantiene uno storico interno dei ricalcoli (timestamp, metriche, stato) per garantire tracciabilità e miglioramento continuo del programma.

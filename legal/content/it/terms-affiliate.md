@@ -1,74 +1,74 @@
 ---
-title: Affiliate General Terms (AGT)
-description: Terms applicable to Affisell creators and partners.
+title: Condizioni Generali dell'Affiliato (CGA)
+description: Condizioni applicabili a creatori e partner Affisell.
 lastUpdated: 2026-05-26
 order: 3
 ---
 
-# Affiliate General Terms (AGT)
+# Condizioni Generali dell'Affiliato (CGA)
 
-**Last updated: {{LAST_UPDATED}}**
+**Ultimo aggiornamento: {{LAST_UPDATED}}**
 
-These Affiliate General Terms ("**AGT**") supplement the [GTU](/legal/terms-of-service) and govern the relationship between **Affisell SAS** and any partner registered as an **Affiliate** (creator, influencer, reseller).
+Le presenti Condizioni Generali dell'Affiliato («**CGA**») integrano le [CGU](/legal/terms-of-service) e regolano il rapporto tra **Affisell SAS** e qualsiasi partner registrato come **Affiliato** (creatore, influencer, rivenditore).
 
-## Article 1 — Status
+## Articolo 1 — Status
 
-1.1. The Affiliate acts as a **professional or non-professional** according to their declaration. They are solely responsible for their tax and social obligations (URSSAF, VAT, income tax declaration).
+1.1. L'Affiliato agisce come **professionista o non professionista** secondo la propria dichiarazione. È l'unico responsabile dei propri obblighi fiscali e sociali (URSSAF, IVA, dichiarazione dei redditi).
 
-### Article 1.2 — "Ambassador" terminology
+### Articolo 1.2 — Terminologia «Ambassador»
 
-The term "Ambassador", used for marketing purposes, designates exclusively an independent Affisell Affiliate Partner as defined in Article 1.1.
+Il termine «Ambassador», utilizzato a fini di marketing, designa esclusivamente un Affiliato indipendente Affisell come definito all'articolo 1.1.
 
-Use of this term does not create any subordination relationship, representation mandate, or employment contract between the Ambassador and Affisell or its Suppliers.
+L'uso di questo termine non crea alcun rapporto di subordinazione, mandato di rappresentanza o contratto di lavoro tra l'Ambassador e Affisell o i suoi Fornitori.
 
-The Ambassador acts in their own name, on their own account, and remains solely responsible for their tax, social, and legal obligations.
+L'Ambassador agisce in proprio nome, per proprio conto, e resta l'unico responsabile dei propri obblighi fiscali, sociali e legali.
 
-1.3. Affisell is not the employer of the Affiliate.
+1.3. Affisell non è il datore di lavoro dell'Affiliato.
 
-## Article 2 — Listings and markup
+## Articolo 2 — Listing e margine commerciale
 
-2.1. The Affiliate may freely set their **commercial markup** between **0% and 120%** above the Supplier catalogue price, within the Platform's technical limits.
+2.1. L'Affiliato può fissare liberamente il proprio **margine commerciale** tra **0 % e 120 %** sopra il prezzo di catalogo del Fornitore, entro i limiti tecnici della Piattaforma.
 
-2.2. The **net selling price** displayed to the Buyer = catalogue price + markup (excluding VAT and excluding Affisell platform fees integrated into the payment flow).
+2.2. Il **prezzo di vendita netto** visualizzato all'Acquirente = prezzo di catalogo + margine (al netto dell'IVA e al netto delle commissioni di piattaforma Affisell integrate nel flusso di pagamento).
 
-2.3. The Affiliate undertakes not to mislead the Buyer regarding the origin, characteristics, or availability of the product.
+2.3. L'Affiliato si impegna a non indurre in errore l'Acquirente riguardo all'origine, alle caratteristiche o alla disponibilità del prodotto.
 
-## Article 3 — Supplier commission
+## Articolo 3 — Commissione del fornitore
 
-3.1. The Supplier may offer a **commission** (percentage of the catalogue) paid to the Affiliate in addition to the markup. This commission is **funded by the Supplier**, not by Affisell.
+3.1. Il Fornitore può offrire una **commissione** (percentuale del catalogo) pagata all'Affiliato oltre al margine. Questa commissione è **finanziata dal Fornitore**, non da Affisell.
 
-3.2. Total Affiliate earnings on a sale = **Supplier commission + net markup** (after Affisell fees calculated on the customer net base according to the GTU).
+3.2. I guadagni totali dell'Affiliato su una vendita = **commissione del Fornitore + margine netto** (dopo le commissioni Affisell calcolate sulla base netta del cliente secondo le CGU).
 
-## Article 4 — Payments
+## Articolo 4 — Pagamenti
 
-4.1. Affiliate payouts are made via **Stripe Connect**, in principle at **D+7** after eligibility, subject to clawback in the event of a refund.
+4.1. I versamenti all'Affiliato sono effettuati tramite **Stripe Connect**, in linea di principio a **D+7** dopo l'idoneità, soggetti a recupero in caso di rimborso.
 
-4.2. Affisell provides transaction statements; the Affiliate issues their invoices or receipts according to their legal status.
+4.2. Affisell fornisce estratti conto delle transazioni; l'Affiliato emette le proprie fatture o ricevute secondo il proprio status legale.
 
-## Article 5 — Content and ethics
+## Articolo 5 — Contenuti ed etica
 
-5.1. Prohibited: spam, misleading advertising, counterfeiting, hateful or illegal content, unauthorized use of third-party brands.
+5.1. Vietato: spam, pubblicità ingannevole, contraffazione, contenuti di odio o illegali, uso non autorizzato di marchi di terzi.
 
-5.2. The Affiliate complies with third-party platform rules (Meta, TikTok, etc.) when sharing Affisell links.
+5.2. L'Affiliato rispetta le regole delle piattaforme terze (Meta, TikTok, ecc.) quando condivide link Affisell.
 
-5.3. Affisell may remove a listing or suspend an account without notice in the event of a violation.
+5.3. Affisell può rimuovere un listing o sospendere un account senza preavviso in caso di violazione.
 
-## Article 6 — Data and confidentiality
+## Articolo 6 — Dati e riservatezza
 
-6.1. The Affiliate accesses only Buyer data strictly necessary for the sale (order email, shipping address via the Supplier).
+6.1. L'Affiliato accede solo ai dati dell'Acquirente strettamente necessari per la vendita (email dell'ordine, indirizzo di spedizione tramite il Fornitore).
 
-6.2. The Supplier may hide their wholesale net detail from the Affiliate according to storefront settings (`showRevenueToAffiliate`).
+6.2. Il Fornitore può nascondere il dettaglio netto all'ingrosso all'Affiliato secondo le impostazioni dello storefront (`showRevenueToAffiliate`).
 
-## Article 7 — Intellectual property
+## Articolo 7 — Proprietà intellettuale
 
-The Affiliate grants Affisell a non-exclusive licence to display their storefront content on the Platform.
+L'Affiliato concede ad Affisell una licenza non esclusiva per visualizzare i contenuti del proprio storefront sulla Piattaforma.
 
-## Article 8 — Termination
+## Articolo 8 — Risoluzione
 
-8.1. The Affiliate may close their account; orders in progress remain fulfilled.
+8.1. L'Affiliato può chiudere il proprio account; gli ordini in corso restano adempiuti.
 
-8.2. Affisell may terminate in the event of fraud, AGT non-compliance, or harmful reputation.
+8.2. Affisell può risolvere in caso di frode, inadempimento delle CGA o reputazione dannosa.
 
-## Article 9 — Contact
+## Articolo 9 — Contatto
 
 {{EMAIL}} — DPO: {{DPO}}

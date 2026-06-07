@@ -1,51 +1,51 @@
 ---
-title: Refund and Withdrawal Policy
-description: 14-day right of withdrawal, refunds and clawback.
+title: Politica di rimborso e recesso
+description: Diritto di recesso di 14 giorni, rimborsi e recupero delle commissioni.
 lastUpdated: 2026-05-26
 order: 5
 ---
 
-# Refund and Withdrawal Policy
+# Politica di rimborso e recesso
 
-**Last updated: {{LAST_UPDATED}}**
+**Ultimo aggiornamento: {{LAST_UPDATED}}**
 
-## Article 1 — Scope
+## Articolo 1 — Ambito di applicazione
 
-This policy applies to purchases made on the **Affisell** marketplace by **consumer Buyers** (natural persons acting outside their professional activity), subject to legal exceptions.
+La presente politica si applica agli acquisti effettuati sul marketplace **Affisell** da **Acquirenti consumatori** (persone fisiche che agiscono al di fuori della propria attività professionale), salvo eccezioni legali.
 
-## Article 2 — Right of withdrawal (14 days)
+## Articolo 2 — Diritto di recesso (14 giorni)
 
-2.1. In accordance with Articles L221-18 et seq. of the French Consumer Code, the Buyer has a period of **14 days** from receipt of the goods to exercise their right of withdrawal, **without having to justify their decision**.
+2.1. In conformità agli articoli L221-18 e seguenti del Codice del Consumo francese, l'Acquirente dispone di un periodo di **14 giorni** dalla ricezione dei beni per esercitare il diritto di recesso, **senza dover giustificare la propria decisione**.
 
-2.2. **Exceptions** (non-exhaustive list): customized goods, sealed goods that cannot be returned for hygiene reasons, goods liable to deteriorate rapidly, unsealed recordings, services fully performed before the end of the period with express agreement.
+2.2. **Eccezioni** (elenco non esaustivo): beni personalizzati, beni sigillati che non possono essere restituiti per motivi igienici, beni suscettibili di deteriorarsi rapidamente, registrazioni non sigillate, servizi eseguiti integralmente prima della fine del periodo con accordo espresso.
 
-2.3. To exercise this right, the Buyer opens a request from their order space or contacts support via {{EMAIL}}.
+2.3. Per esercitare questo diritto, l'Acquirente apre una richiesta dal proprio spazio ordini o contatta l'assistenza tramite {{EMAIL}}.
 
-## Article 3 — Return procedures
+## Articolo 3 — Procedure di reso
 
-3.1. Unless non-conformity is attributable to the Supplier, **return shipping costs** may remain borne by the Buyer, unless a contrary provision is displayed.
+3.1. Salvo che la non conformità sia imputabile al Fornitore, le **spese di spedizione del reso** possono rimanere a carico dell'Acquirente, salvo diversa disposizione visualizzata.
 
-3.2. The product must be returned in its original condition, with accessories and packaging where reasonable.
+3.2. Il prodotto deve essere restituito nelle condizioni originali, con accessori e imballaggio ove ragionevole.
 
-## Article 4 — Refund
+## Articolo 4 — Rimborso
 
-4.1. The refund is processed on the **gross price actually paid** by the Buyer (including standard delivery charges where applicable), within a maximum period of **14 days** from receipt of the returned goods or proof of return shipment, whichever occurs first.
+4.1. Il rimborso è elaborato sul **prezzo lordo effettivamente pagato** dall'Acquirente (incluse le spese di consegna standard ove applicabile), entro un periodo massimo di **14 giorni** dalla ricezione dei beni restituiti o dalla prova di spedizione del reso, a seconda di quale evento si verifichi per primo.
 
-4.2. The refund is processed via **Stripe** to the original payment method where possible.
+4.2. Il rimborso è elaborato tramite **Stripe** sul metodo di pagamento originale ove possibile.
 
-## Article 5 — Commission clawback
+## Articolo 5 — Recupero delle commissioni
 
-5.1. In the event of a validated full or partial refund:
-- the **Supplier** bears the wholesale refund and proportional affiliate commissions;
-- the **Affiliate** sees their earnings **clawed back** pro rata to the refunded amount;
-- the **Affisell commission** is adjusted pro rata to the refunded net base excluding VAT.
+5.1. In caso di rimborso totale o parziale convalidato:
+- il **Fornitore** sostiene il rimborso all'ingrosso e le commissioni affiliate proporzionali;
+- l'**Affiliato** vede i propri guadagni **recuperati** in proporzione all'importo rimborsato;
+- la **commissione Affisell** è adeguata in proporzione alla base netta rimborsata al netto dell'IVA.
 
-5.2. If a payout has already been made, Affisell may offset against future flows or request a refund via Stripe Connect.
+5.2. Se un pagamento è già stato effettuato, Affisell può compensare su flussi futuri o richiedere un rimborso tramite Stripe Connect.
 
-## Article 6 — Non-conformity and legal warranties
+## Articolo 6 — Non conformità e garanzie legali
 
-Legal warranties of conformity (Art. L217-4 French Consumer Code) and against hidden defects (Art. 1641 French Civil Code) apply. The Supplier is primarily responsible; Affisell facilitates mediation.
+Le garanzie legali di conformità (art. L217-4 Codice del Consumo francese) e contro i vizi occulti (art. 1641 Codice Civile francese) si applicano. Il Fornitore è il principale responsabile; Affisell facilita la mediazione.
 
-## Article 7 — Contact
+## Articolo 7 — Contatto
 
 {{EMAIL}} — DPO: {{DPO}}

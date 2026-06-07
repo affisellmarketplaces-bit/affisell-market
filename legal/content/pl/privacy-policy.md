@@ -1,67 +1,67 @@
 ---
-title: Privacy Policy
-description: 'Affisell RGPD Policy — processing, legal basis, rights.'
+title: Polityka prywatności
+description: 'Polityka RODO Affisell — przetwarzanie, podstawa prawna, prawa.'
 lastUpdated: 2026-05-26T00:00:00.000Z
 order: 4
 ---
 
-# Privacy Policy (GDPR)
+# Polityka prywatności (RODO)
 
-**Last updated: {{LAST_UPDATED}}**
+**Ostatnia aktualizacja: {{LAST_UPDATED}}**
 
-## Article 1 — Data Controller
+## Artykuł 1 — Administrator danych
 
 **Affisell SAS** — {{ADRESSE}} — SIREN {{SIREN}} — VAT FR{{TVA}}  
-Contact: {{EMAIL}} — Data Protection Officer (DPO): **{{DPO}}**
+Kontakt: {{EMAIL}} — Inspektor Ochrony Danych (IOD): **{{DPO}}**
 
-## Article 2 — Collected Data
+## Artykuł 2 — Zbierane dane
 
-| Category | Examples | Purpose |
+| Kategoria | Przykłady | Cel |
 |-----------|----------|----------|
-| Identity & Account | Email, name, role (Buyer / Affiliate / Supplier) | Account creation, authentication |
-| Company | Business name, SIRET (supplier) | KYC, invoicing |
-| Payment | Stripe identifiers, IBAN (via Stripe Connect) | Payment, payouts |
-| Order | Shipping address, purchase history | Contract execution |
-| Technical | Logs, IP, cookies (see [Cookie Policy](/legal/cookies-policy)) | Security, service improvement |
-| Content | Product images, descriptions | Marketplace hosting |
+| Tożsamość i konto | E-mail, imię, rola (Kupujący / Partner afiliacyjny / Dostawca) | Utworzenie konta, uwierzytelnianie |
+| Firma | Nazwa handlowa, SIRET (dostawca) | KYC, fakturowanie |
+| Płatność | Identyfikatory Stripe, IBAN (przez Stripe Connect) | Płatność, wypłaty |
+| Zamówienie | Adres wysyłki, historia zakupów | Wykonanie umowy |
+| Techniczne | Logi, IP, pliki cookie (zob. [Polityka plików cookie](/legal/cookies-policy)) | Bezpieczeństwo, ulepszanie usługi |
+| Treść | Zdjęcia produktów, opisy | Hosting marketplace |
 
-## Article 3 — Legal Bases
+## Artykuł 3 — Podstawy prawne
 
-- **Contract execution** (art. 6.1.b GDPR): account, orders, payments, support.
-- **Legal obligation** (art. 6.1.c): accounting records, fraud prevention.
-- **Legitimate interest** (art. 6.1.f): security, aggregated analytics, product improvement.
-- **Consent** (art. 6.1.a): non-essential cookies, marketing if enabled.
+- **Wykonanie umowy** (art. 6.1.b RODO): konto, zamówienia, płatności, wsparcie.
+- **Obowiązek prawny** (art. 6.1.c): zapisy księgowe, zapobieganie oszustwom.
+- **Prawnie uzasadniony interes** (art. 6.1.f): bezpieczeństwo, zagregowana analityka, ulepszanie produktu.
+- **Zgoda** (art. 6.1.a): nieistotne pliki cookie, marketing jeśli włączony.
 
-## Article 4 — Recipients
+## Artykuł 4 — Odbiorcy
 
-- **Stripe, Inc.** — payment and Connect (transfer outside EU framed by standard contractual clauses).
-- **Vercel Inc.** — application hosting.
-- **Suppliers and Affiliates** — data strictly necessary for order execution.
-- Competent authorities upon legal request.
+- **Stripe, Inc.** — płatność i Connect (transfer poza UE ujęty standardowymi klauzulami umownymi).
+- **Vercel Inc.** — hosting aplikacji.
+- **Dostawcy i Partnerzy afiliacyjni** — dane ściśle niezbędne do realizacji zamówienia.
+- Właściwe organy na żądanie prawne.
 
-## Article 5 — Retention Periods
+## Artykuł 5 — Okresy przechowywania
 
-- Active account: duration of the contractual relationship.
-- Order and accounting data: **3 years** after the end of the business relationship, unless longer legal obligation.
-- Technical logs: up to **12 months** unless security incident.
-- Cookies: as per [Cookie Policy](/legal/cookies-policy).
+- Aktywne konto: czas trwania relacji umownej.
+- Dane zamówień i księgowe: **3 lata** po zakończeniu relacji biznesowej, chyba że dłuższy obowiązek prawny.
+- Logi techniczne: do **12 miesięcy**, chyba że incydent bezpieczeństwa.
+- Pliki cookie: zgodnie z [Polityką plików cookie](/legal/cookies-policy).
 
-## Article 6 — Your Rights
+## Artykuł 6 — Państwa prawa
 
-You have the rights of **access**, **rectification**, **erasure**, **limitation**, **objection**, **portability**, and withdrawal of consent.
+Mają Państwo prawo do **dostępu**, **sprostowania**, **usunięcia**, **ograniczenia**, **sprzeciwu**, **przenoszenia danych** oraz wycofania zgody.
 
-Exercise: **{{DPO}}** or [GDPR](/dashboard/account/gdpr) space (JSON/CSV export, account deletion, consent management).
+Wykonanie: **{{DPO}}** lub przestrzeń [RODO](/dashboard/account/gdpr) (eksport JSON/CSV, usunięcie konta, zarządzanie zgodą).
 
-Complaint: CNIL — www.cnil.fr
+Skarga: CNIL — www.cnil.fr
 
-## Article 7 — Security
+## Artykuł 7 — Bezpieczeństwo
 
-Appropriate measures: transit encryption (HTTPS), password hashing, restricted access, backups.
+Odpowiednie środki: szyfrowanie w tranzycie (HTTPS), hashowanie haseł, ograniczony dostęp, kopie zapasowe.
 
-## Article 8 — Transfers outside the EU
+## Artykuł 8 — Transfery poza UE
 
-When subcontractors are located outside the EEA, Affisell ensures appropriate guarantees (SCC, adequacy decision, or equivalent mechanism).
+Gdy podwykonawcy znajdują się poza EOG, Affisell zapewnia odpowiednie zabezpieczenia (SCC, decyzja o adekwatności lub równoważny mechanizm).
 
-## Article 9 — Amendments
+## Artykuł 9 — Zmiany
 
-Any substantial modification will be brought to your attention (email or banner).
+Każda istotna modyfikacja zostanie Państwu zakomunikowana (e-mail lub baner).

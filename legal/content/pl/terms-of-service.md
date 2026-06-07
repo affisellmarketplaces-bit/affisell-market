@@ -1,108 +1,108 @@
 ---
-title: General Terms of Use (GTU)
-description: Tripartite GTU of the Affisell marketplace — buyers, affiliates and suppliers.
+title: Ogólne Warunki Użytkowania (OWU)
+description: Trójstronne OWU marketplace Affisell — kupujący, partnerzy afiliacyjni i dostawcy.
 lastUpdated: 2026-05-26
 order: 1
 ---
 
-# Affisell Platform General Terms of Use
+# Ogólne Warunki Użytkowania platformy Affisell
 
-**Last updated: {{LAST_UPDATED}}**
+**Ostatnia aktualizacja: {{LAST_UPDATED}}**
 
-These General Terms of Use ("**GTU**") govern access to and use of the **Affisell** platform (hereinafter the "**Platform**"), published by **Affisell SAS**, a simplified joint-stock company with a capital of {{CAPITAL}} euros, registered with the RCS of Aix-en-Provence under number {{SIREN}}, with its registered office at {{ADRESSE}}, intra-community VAT number FR{{TVA}} (hereinafter "**Affisell**", "**we**").
+Niniejsze Ogólne Warunki Użytkowania («**OWU**») regulują dostęp do platformy **Affisell** (dalej «**Platforma**») i jej użytkowanie, publikowanej przez **Affisell SAS**, spółkę z ograniczoną odpowiedzialnością uproszczoną z kapitałem {{CAPITAL}} euro, wpisaną do RCS Aix-en-Provence pod numerem {{SIREN}}, ze siedzibą pod adresem {{ADRESSE}}, numer VAT UE FR{{TVA}} (dalej «**Affisell**», «**my**»).
 
-## Article 1 — Purpose and scope
+## Artykuł 1 — Przedmiot i zakres
 
-1.1. Affisell provides an online marketplace enabling **Suppliers** to offer products, **Affiliates** (creators / partners) to market them via a dedicated storefront, and **Buyers** to purchase these products.
+1.1. Affisell zapewnia marketplace online umożliwiający **Dostawcom** oferowanie produktów, **Partnerom afiliacyjnym** (twórcom / partnerom) ich promowanie za pośrednictwem dedykowanego sklepu oraz **Kupującym** zakup tych produktów.
 
-1.2. Affisell acts as a **host** within the meaning of Law No. 2004-575 of 21 June 2004 on confidence in the digital economy (LCEN). **Affisell is not the seller** of products offered on the Platform, unless expressly stated otherwise on a product page.
+1.2. Affisell działa jako **host** w rozumieniu ustawy nr 2004-575 z 21 czerwca 2004 r. o zaufaniu do gospodarki cyfrowej (LCEN). **Affisell nie jest sprzedawcą** produktów oferowanych na Platformie, chyba że na stronie produktu wyraźnie wskazano inaczej.
 
-1.3. The GTU apply to any User of the Platform. Suppliers and Affiliates are also subject to their respective specific terms ([Supplier TOS](/legal/terms-supplier), [Affiliate TOS](/legal/terms-affiliate)).
+1.3. OWU mają zastosowanie do każdego Użytkownika Platformy. Dostawcy i Partnerzy afiliacyjni podlegają również swoim odpowiednim warunkom szczególnym ([OWU Dostawcy](/legal/terms-supplier), [OWU Partnera afiliacyjnego](/legal/terms-affiliate)).
 
-## Article 2 — Definitions
+## Artykuł 2 — Definicje
 
-- **Buyer**: natural or legal person placing an order via the Platform.
-- **Affiliate**: partner marketing a Supplier's products via an Affisell listing.
-- **Supplier**: professional offering products on the Platform.
-- **Listing**: product page customized by an Affiliate (price, media, description).
-- **Order**: sales contract concluded between the Buyer and the Supplier, facilitated by Affisell.
+- **Kupujący**: osoba fizyczna lub prawna składająca zamówienie za pośrednictwem Platformy.
+- **Partner afiliacyjny**: partner promujący produkty Dostawcy za pośrednictwem listingu Affisell.
+- **Dostawca**: profesjonalista oferujący produkty na Platformie.
+- **Listing**: strona produktu dostosowana przez Partnera afiliacyjnego (cena, media, opis).
+- **Zamówienie**: umowa sprzedaży zawarta między Kupującym a Dostawcą, ułatwiona przez Affisell.
 
-## Article 3 — Registration and account
+## Artykuł 3 — Rejestracja i konto
 
-3.1. Registration requires accurate information and acceptance of the GTU and the [Privacy Policy](/legal/privacy-policy).
+3.1. Rejestracja wymaga dokładnych informacji oraz akceptacji OWU i [Polityki prywatności](/legal/privacy-policy).
 
-3.2. The User is responsible for the confidentiality of their credentials.
+3.2. Użytkownik jest odpowiedzialny za poufność swoich danych logowania.
 
-3.3. Affisell may suspend or terminate an account in the event of GTU violation, fraud, counterfeiting, or breach of public order.
+3.3. Affisell może zawiesić lub zamknąć konto w przypadku naruszenia OWU, oszustwa, podrabiania lub naruszenia porządku publicznego.
 
-## Article 4 — Affisell's role and tripartite relationship
+## Artykuł 4 — Rola Affisell i relacja trójstronna
 
-4.1. The product sales contract is concluded **directly between the Buyer and the Supplier**. The Affiliate receives remuneration (commission and/or margin) according to listing and catalogue parameters.
+4.1. Umowa sprzedaży produktu jest zawierana **bezpośrednio między Kupującym a Dostawcą**. Partner afiliacyjny otrzymuje wynagrodzenie (prowizję i/lub marżę) zgodnie z parametrami listingu i katalogu.
 
-4.2. Affisell receives a **platform commission** calculated on the **net amount excluding VAT** of the order line (excluding VAT), according to the applicable scale (default rate **10%**, variable by category or product).
+4.2. Affisell pobiera **prowizję platformy** obliczaną od **kwoty netto bez VAT** linii zamówienia (baza bez VAT), zgodnie z obowiązującą skalą (domyślna stawka **10 %**, zmienna według kategorii lub produktu).
 
-4.3. Payments are processed via **Stripe** (Stripe Connect for Supplier and Affiliate payouts). Affisell is not a payment institution.
+4.3. Płatności są przetwarzane za pośrednictwem **Stripe** (Stripe Connect dla wypłat Dostawcy i Partnera afiliacyjnego). Affisell nie jest instytucją płatniczą.
 
-## Article 5 — Prices, VAT and invoicing
+## Artykuł 5 — Ceny, VAT i fakturowanie
 
-5.1. Prices displayed to the Buyer may be shown inclusive of tax when VAT is collected via Stripe Tax or an equivalent mechanism.
+5.1. Ceny wyświetlane Kupującemu mogą być podawane z podatkiem, gdy VAT jest pobierany za pośrednictwem Stripe Tax lub równoważnego mechanizmu.
 
-5.2. The Supplier remains responsible for their tax obligations (VAT, invoicing). Affisell provides transaction data to facilitate accounting.
+5.2. Dostawca pozostaje odpowiedzialny za swoje zobowiązania podatkowe (VAT, fakturowanie). Affisell dostarcza dane transakcyjne ułatwiające księgowość.
 
-## Article 6 — Payments and payouts
+## Artykuł 6 — Płatności i wypłaty
 
-6.1. Payouts to Suppliers and Affiliates are made via **Stripe Connect**, in principle **7 days** after delivery confirmation or applicable legal period (D+7), subject to dispute, return, or chargeback.
+6.1. Wypłaty dla Dostawców i Partnerów afiliacyjnych są realizowane za pośrednictwem **Stripe Connect**, zasadniczo **7 dni** po potwierdzeniu dostawy lub obowiązującym okresie prawnym (D+7), z wyłączeniem sporu, zwrotu lub chargebacku.
 
-6.2. Affisell may temporarily withhold funds in the event of suspected fraud, non-compliance, or legal obligation.
+6.2. Affisell może tymczasowo wstrzymać środki w przypadku podejrzenia oszustwa, niezgodności lub obowiązku prawnego.
 
-6.3. In the event of a Buyer refund, commissions may be subject to proportional **clawback** (see [Refund Policy](/legal/refund-policy)).
+6.3. W przypadku zwrotu środków Kupującemu prowizje mogą podlegać proporcjonalnemu **odzyskaniu** (zob. [Polityka zwrotów](/legal/refund-policy)).
 
-## Article 7 — Delivery and shipping SLA
+## Artykuł 7 — Dostawa i SLA wysyłki
 
-7.1. The Supplier undertakes to ship within a maximum period of **48 business hours** after payment, unless a longer period is displayed on the product page or an extension is agreed via the "Ship Pulse" tool.
+7.1. Dostawca zobowiązuje się do wysyłki w maksymalnym terminie **48 godzin roboczych** po płatności, chyba że na stronie produktu wyświetlono dłuższy okres lub uzgodniono przedłużenie za pomocą narzędzia «Ship Pulse».
 
-7.2. Repeated failure to meet the SLA may result in penalties, delisting, or termination (see Supplier TOS).
+7.2. Powtarzające się niedotrzymanie SLA może skutkować karami, usunięciem z listingu lub rozwiązaniem umowy (zob. OWU Dostawcy).
 
-## Article 8 — Right of withdrawal and returns
+## Artykuł 8 — Prawo odstąpienia i zwroty
 
-8.1. The consumer Buyer benefits from a **14-day** right of withdrawal for eligible goods, subject to legal exceptions (Articles L221-28 et seq. of the French Consumer Code).
+8.1. Kupujący-konsument korzysta z prawa odstąpienia wynoszącego **14 dni** dla kwalifikujących się towarów, z zastrzeżeniem wyjątków prawnych (artykuły L221-28 i następne francuskiego Kodeksu Konsumenckiego).
 
-8.2. Practical procedures are detailed in the [Refund Policy](/legal/refund-policy).
+8.2. Procedury praktyczne są szczegółowo opisane w [Polityce zwrotów](/legal/refund-policy).
 
-## Article 9 — Intellectual property
+## Artykuł 9 — Własność intelektualna
 
-9.1. The Platform, its brand, code, and editorial content are protected. Any unauthorized reproduction is prohibited.
+9.1. Platforma, jej marka, kod i treści redakcyjne są chronione. Każde nieautoryzowane powielanie jest zabronione.
 
-9.2. Affiliates and Suppliers warrant that they hold the rights to the content they publish (images, texts, videos).
+9.2. Partnerzy afiliacyjni i Dostawcy gwarantują, że posiadają prawa do publikowanych treści (obrazy, teksty, filmy).
 
-## Article 10 — Liability
+## Artykuł 10 — Odpowiedzialność
 
-10.1. Affisell is subject to a best-efforts obligation regarding Platform availability.
+10.1. Affisell podlega obowiązkowi należytej staranności w zakresie dostępności Platformy.
 
-10.2. Affisell is not liable for content published by Users, nor for Supplier breaches (non-conformity, delay), within the limits permitted by law.
+10.2. Affisell nie ponosi odpowiedzialności za treści publikowane przez Użytkowników ani za naruszenia Dostawcy (brak zgodności, opóźnienie), w granicach dozwolonych przez prawo.
 
-10.3. In the event of proven fault by Affisell, liability is limited to the amount of commissions received on the Order concerned over the preceding twelve (12) months.
+10.3. W przypadku udowodnionej winy Affisell odpowiedzialność jest ograniczona do kwoty prowizji otrzymanych za dane Zamówienie w ciągu poprzednich dwunastu (12) miesięcy.
 
-## Article 11 — Personal data
+## Artykuł 11 — Dane osobowe
 
-Data processing is described in the [Privacy Policy](/legal/privacy-policy). The User may exercise their GDPR rights from [their GDPR space](/dashboard/account/gdpr).
+Przetwarzanie danych jest opisane w [Polityce prywatności](/legal/privacy-policy). Użytkownik może wykonywać swoje prawa RODO z [przestrzeni RODO](/dashboard/account/gdpr).
 
-## Article 12 — Cookies
+## Artykuł 12 — Pliki cookie
 
-See the [Cookie Policy](/legal/cookies-policy).
+Zob. [Polityka plików cookie](/legal/cookies-policy).
 
-## Article 13 — GTU amendments
+## Artykuł 13 — Zmiany OWU
 
-Affisell may amend the GTU. Users will be informed in the event of a substantial change. Continued use constitutes acceptance where permitted by law.
+Affisell może zmieniać OWU. Użytkownicy zostaną poinformowani w przypadku istotnej zmiany. Dalsze korzystanie stanowi akceptację, gdy prawo na to pozwala.
 
-## Article 14 — Applicable law and disputes
+## Artykuł 14 — Prawo właściwe i spory
 
-14.1. The GTU are governed by **French law**.
+14.1. OWU podlegają **prawu francuskiemu**.
 
-14.2. In the event of a dispute with a consumer, mandatory rules of their country of residence may apply. An amicable solution shall be sought beforehand at {{EMAIL}}.
+14.2. W przypadku sporu z konsumentem mogą mieć zastosowanie imperatywne przepisy jego kraju zamieszkania. Wcześniej poszukuje się polubownego rozwiązania pod adresem {{EMAIL}}.
 
-14.3. Failing that, jurisdiction of the courts within the jurisdiction of Affisell's registered office, subject to specific attribution imposed by law.
+14.3. W razie braku porozumienia — właściwość sądów właściwych dla siedziby Affisell, z zastrzeżeniem szczególnej atrybucji nałożonej przez prawo.
 
-## Article 15 — Contact
+## Artykuł 15 — Kontakt
 
-**Affisell SAS** — {{ADRESSE}} — {{EMAIL}} — DPO: {{DPO}}
+**Affisell SAS** — {{ADRESSE}} — {{EMAIL}} — IOD: {{DPO}}

@@ -1,51 +1,51 @@
 ---
-title: Refund and Withdrawal Policy
-description: 14-day right of withdrawal, refunds and clawback.
+title: Terugbetalings- en herroepingsbeleid
+description: 14-daags herroepingsrecht, terugbetalingen en terugvordering van commissies.
 lastUpdated: 2026-05-26
 order: 5
 ---
 
-# Refund and Withdrawal Policy
+# Terugbetalings- en herroepingsbeleid
 
-**Last updated: {{LAST_UPDATED}}**
+**Laatst bijgewerkt: {{LAST_UPDATED}}**
 
-## Article 1 — Scope
+## Artikel 1 — Toepassingsgebied
 
-This policy applies to purchases made on the **Affisell** marketplace by **consumer Buyers** (natural persons acting outside their professional activity), subject to legal exceptions.
+Dit beleid is van toepassing op aankopen op de **Affisell**-marktplaats door **consumenten-kopers** (natuurlijke personen die handelen buiten hun beroepsactiviteit), behoudens wettelijke uitzonderingen.
 
-## Article 2 — Right of withdrawal (14 days)
+## Artikel 2 — Herroepingsrecht (14 dagen)
 
-2.1. In accordance with Articles L221-18 et seq. of the French Consumer Code, the Buyer has a period of **14 days** from receipt of the goods to exercise their right of withdrawal, **without having to justify their decision**.
+2.1. Overeenkomstig de artikelen L221-18 en volgende van het Franse Consumentenwetboek heeft de Koper een termijn van **14 dagen** vanaf ontvangst van de goederen om het herroepingsrecht uit te oefenen, **zonder zijn beslissing te hoeven rechtvaardigen**.
 
-2.2. **Exceptions** (non-exhaustive list): customized goods, sealed goods that cannot be returned for hygiene reasons, goods liable to deteriorate rapidly, unsealed recordings, services fully performed before the end of the period with express agreement.
+2.2. **Uitzonderingen** (niet-uitputtende lijst): gepersonaliseerde goederen, verzegelde goederen die om hygiënische redenen niet kunnen worden geretourneerd, goederen die snel kunnen bederven, niet-verzegelde opnames, diensten volledig uitgevoerd vóór het einde van de termijn met uitdrukkelijke toestemming.
 
-2.3. To exercise this right, the Buyer opens a request from their order space or contacts support via {{EMAIL}}.
+2.3. Om dit recht uit te oefenen, opent de Koper een verzoek vanuit zijn bestelruimte of neemt contact op met de support via {{EMAIL}}.
 
-## Article 3 — Return procedures
+## Artikel 3 — Retourprocedures
 
-3.1. Unless non-conformity is attributable to the Supplier, **return shipping costs** may remain borne by the Buyer, unless a contrary provision is displayed.
+3.1. Tenzij niet-conformiteit aan de Leverancier kan worden toegeschreven, kunnen de **retourverzendkosten** voor rekening van de Koper blijven, tenzij een tegengestelde bepaling wordt weergegeven.
 
-3.2. The product must be returned in its original condition, with accessories and packaging where reasonable.
+3.2. Het product moet in originele staat worden geretourneerd, met accessoires en verpakking waar redelijk.
 
-## Article 4 — Refund
+## Artikel 4 — Terugbetaling
 
-4.1. The refund is processed on the **gross price actually paid** by the Buyer (including standard delivery charges where applicable), within a maximum period of **14 days** from receipt of the returned goods or proof of return shipment, whichever occurs first.
+4.1. De terugbetaling wordt verwerkt op de **brutoprijs die daadwerkelijk door de Koper is betaald** (inclusief standaard verzendkosten waar van toepassing), binnen een maximale termijn van **14 dagen** vanaf ontvangst van de geretourneerde goederen of bewijs van retourverzending, naar gelang wat het eerst plaatsvindt.
 
-4.2. The refund is processed via **Stripe** to the original payment method where possible.
+4.2. De terugbetaling wordt verwerkt via **Stripe** naar de oorspronkelijke betaalmethode waar mogelijk.
 
-## Article 5 — Commission clawback
+## Artikel 5 — Terugvordering van commissies
 
-5.1. In the event of a validated full or partial refund:
-- the **Supplier** bears the wholesale refund and proportional affiliate commissions;
-- the **Affiliate** sees their earnings **clawed back** pro rata to the refunded amount;
-- the **Affisell commission** is adjusted pro rata to the refunded net base excluding VAT.
+5.1. Bij een gevalideerde volledige of gedeeltelijke terugbetaling:
+- draagt de **Leverancier** de groothandelsterugbetaling en proportionele affiliate-commissies;
+- ziet de **Affiliate** zijn inkomsten **teruggevorderd** naar rato van het terugbetaalde bedrag;
+- wordt de **Affisell-commissie** naar rato aangepast aan de terugbetaalde netto basis exclusief btw.
 
-5.2. If a payout has already been made, Affisell may offset against future flows or request a refund via Stripe Connect.
+5.2. Als een uitbetaling al is gedaan, kan Affisell verrekenen met toekomstige stromen of een terugbetaling aanvragen via Stripe Connect.
 
-## Article 6 — Non-conformity and legal warranties
+## Artikel 6 — Niet-conformiteit en wettelijke garanties
 
-Legal warranties of conformity (Art. L217-4 French Consumer Code) and against hidden defects (Art. 1641 French Civil Code) apply. The Supplier is primarily responsible; Affisell facilitates mediation.
+Wettelijke conformiteitsgaranties (art. L217-4 Frans Consumentenwetboek) en tegen verborgen gebreken (art. 1641 Frans Burgerlijk Wetboek) zijn van toepassing. De Leverancier is primair verantwoordelijk; Affisell faciliteert bemiddeling.
 
-## Article 7 — Contact
+## Artikel 7 — Contact
 
 {{EMAIL}} — DPO: {{DPO}}

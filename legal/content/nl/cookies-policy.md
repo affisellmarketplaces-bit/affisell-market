@@ -1,50 +1,50 @@
 ---
-title: Cookie Policy
-description: 'Essential, analytics, and marketing cookies on Affisell.'
+title: Cookiebeleid
+description: 'Essentiële, analytische en marketingcookies op Affisell.'
 lastUpdated: 2026-05-26T00:00:00.000Z
 order: 6
 ---
 
-# Cookie Policy
+# Cookiebeleid
 
-**Last updated: {{LAST_UPDATED}}**
+**Laatst bijgewerkt: {{LAST_UPDATED}}**
 
-## Article 1 — What is a cookie?
+## Artikel 1 — Wat is een cookie?
 
-A cookie is a text file deposited on your terminal when you visit the Platform. Similar trackers (localStorage, pixels) may be used for the same purposes.
+Een cookie is een tekstbestand dat op uw apparaat wordt geplaatst wanneer u het Platform bezoekt. Vergelijkbare trackers (localStorage, pixels) kunnen voor dezelfde doeleinden worden gebruikt.
 
-## Article 2 — Consent Banner
+## Artikel 2 — Toestemmingsbanner
 
-On your first visit, a banner (Axeptio style) allows you to accept, refuse, or customize non-essential categories. You can modify your choice at any time from [Manage cookies](/dashboard/account/gdpr) or the "Cookies" link at the bottom of the page.
+Bij uw eerste bezoek kunt u via een banner (Axeptio-stijl) niet-essentiële categorieën accepteren, weigeren of aanpassen. U kunt uw keuze op elk moment wijzigen via [Cookies beheren](/dashboard/account/gdpr) of de link «Cookies» onderaan de pagina.
 
-## Article 3 — Categories
+## Artikel 3 — Categorieën
 
-### 3.1 — Essential Cookies (required)
+### 3.1 — Essentiële cookies (vereist)
 
-| Cookie | Purpose | Duration |
+| Cookie | Doel | Duur |
 |--------|----------|-------|
-| Session NextAuth | Authentication | Session |
-| `affisell_locale` | Language | 1 year |
-| `affisell_cookie_consent` | Remember your choices | 13 months |
+| NextAuth-sessie | Authenticatie | Sessie |
+| `affisell_locale` | Taal | 1 jaar |
+| `affisell_cookie_consent` | Uw keuzes onthouden | 13 maanden |
 
-**Legal basis**: legitimate interest / service execution. No consent required.
+**Rechtsgrond**: gerechtvaardigd belang / uitvoering van de dienst. Geen toestemming vereist.
 
-### 3.2 — Analytics Cookies
+### 3.2 — Analytische cookies
 
-| Tool | Purpose |
+| Tool | Doel |
 |-------|----------|
-| Vercel Analytics | Aggregate audience measurement, performance |
+| Vercel Analytics | Geaggregeerde audiencemeting, prestaties |
 
-**Legal basis**: consent. Deposited only if you accept the "Analytics" category.
+**Rechtsgrond**: toestemming. Alleen geplaatst als u de categorie «Analytisch» accepteert.
 
-### 3.3 — Marketing Cookies
+### 3.3 — Marketingcookies
 
-Reserved for future remarketing tools or advertising partners. **No third-party marketing cookie is enabled by default** without your explicit consent.
+Gereserveerd voor toekomstige remarketingtools of advertentiepartners. **Geen marketingcookie van derden is standaard ingeschakeld** zonder uw uitdrukkelijke toestemming.
 
-## Article 4 — Browser Settings
+## Artikel 4 — Browserinstellingen
 
-You can block cookies through your browser settings. Some features (login, cart) may no longer work.
+U kunt cookies blokkeren via uw browserinstellingen. Sommige functies (inloggen, winkelwagen) werken mogelijk niet meer.
 
-## Article 5 — Contact
+## Artikel 5 — Contact
 
-Questions: {{DPO}} — <mailto:{{EMAIL}}>{{EMAIL}}</mailto>
+Vragen: {{DPO}} — <mailto:{{EMAIL}}>{{EMAIL}}</mailto>

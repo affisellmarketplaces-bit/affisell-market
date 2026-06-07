@@ -1,51 +1,51 @@
 ---
-title: Refund and Withdrawal Policy
-description: 14-day right of withdrawal, refunds and clawback.
+title: 退款与撤回政策
+description: 14 天撤回权、退款及佣金追回。
 lastUpdated: 2026-05-26
 order: 5
 ---
 
-# Refund and Withdrawal Policy
+# 退款与撤回政策
 
-**Last updated: {{LAST_UPDATED}}**
+**最后更新：{{LAST_UPDATED}}**
 
-## Article 1 — Scope
+## 第 1 条 — 适用范围
 
-This policy applies to purchases made on the **Affisell** marketplace by **consumer Buyers** (natural persons acting outside their professional activity), subject to legal exceptions.
+本政策适用于**消费者买方**（在其职业活动之外行事的自然人）在 **Affisell** 市场上进行的购买，法律例外情形除外。
 
-## Article 2 — Right of withdrawal (14 days)
+## 第 2 条 — 撤回权（14 天）
 
-2.1. In accordance with Articles L221-18 et seq. of the French Consumer Code, the Buyer has a period of **14 days** from receipt of the goods to exercise their right of withdrawal, **without having to justify their decision**.
+2.1. 根据法国《消费者法典》第 L221-18 条及后续条款，买方自收到商品之日起享有 **14 天**撤回权，**无需说明理由**。
 
-2.2. **Exceptions** (non-exhaustive list): customized goods, sealed goods that cannot be returned for hygiene reasons, goods liable to deteriorate rapidly, unsealed recordings, services fully performed before the end of the period with express agreement.
+2.2. **例外**（非穷尽列举）：定制商品、因卫生原因无法退回的密封商品、易快速变质的商品、已拆封的音像制品、在期限结束前经明确同意已完全履行的服务。
 
-2.3. To exercise this right, the Buyer opens a request from their order space or contacts support via {{EMAIL}}.
+2.3. 行使此项权利时，买方可从订单空间发起申请，或通过 {{EMAIL}} 联系客服。
 
-## Article 3 — Return procedures
+## 第 3 条 — 退货程序
 
-3.1. Unless non-conformity is attributable to the Supplier, **return shipping costs** may remain borne by the Buyer, unless a contrary provision is displayed.
+3.1. 除非不符合约定应归责于供应商，**退货运费**可能由买方承担，除非页面另有规定。
 
-3.2. The product must be returned in its original condition, with accessories and packaging where reasonable.
+3.2. 产品须以原始状态退回，在合理情况下应包含配件及包装。
 
-## Article 4 — Refund
+## 第 4 条 — 退款
 
-4.1. The refund is processed on the **gross price actually paid** by the Buyer (including standard delivery charges where applicable), within a maximum period of **14 days** from receipt of the returned goods or proof of return shipment, whichever occurs first.
+4.1. 退款按买方**实际支付的含税价格**（含适用时的标准运费）处理，自收到退回商品或退货发货证明起（以较早者为准），最长 **14 天**内完成。
 
-4.2. The refund is processed via **Stripe** to the original payment method where possible.
+4.2. 在可能的情况下，通过 **Stripe** 退回原支付方式。
 
-## Article 5 — Commission clawback
+## 第 5 条 — 佣金追回
 
-5.1. In the event of a validated full or partial refund:
-- the **Supplier** bears the wholesale refund and proportional affiliate commissions;
-- the **Affiliate** sees their earnings **clawed back** pro rata to the refunded amount;
-- the **Affisell commission** is adjusted pro rata to the refunded net base excluding VAT.
+5.1. 如全额或部分退款经确认：
+- **供应商**承担批发退款及相应比例的联盟佣金；
+- **联盟伙伴**的收益按退款金额**按比例追回**；
+- **Affisell 佣金**按退款净额（不含增值税）相应调整。
 
-5.2. If a payout has already been made, Affisell may offset against future flows or request a refund via Stripe Connect.
+5.2. 如已付款，Affisell 可从未来流水抵扣，或通过 Stripe Connect 要求退款。
 
-## Article 6 — Non-conformity and legal warranties
+## 第 6 条 — 不符合约定与法定担保
 
-Legal warranties of conformity (Art. L217-4 French Consumer Code) and against hidden defects (Art. 1641 French Civil Code) apply. The Supplier is primarily responsible; Affisell facilitates mediation.
+法定符合性担保（法国《消费者法典》第 L217-4 条）及针对隐藏缺陷的担保（法国《民法典》第 1641 条）适用。供应商负主要责任；Affisell 协助调解。
 
-## Article 7 — Contact
+## 第 7 条 — 联系方式
 
-{{EMAIL}} — DPO: {{DPO}}
+{{EMAIL}} — DPO：{{DPO}}

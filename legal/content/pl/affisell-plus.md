@@ -1,36 +1,36 @@
 ---
-title: Affisell+ — Verified Supplier Criteria
-description: Eligibility conditions for the Affisell+ badge for suppliers.
+title: Affisell+ — Kryteria zweryfikowanego dostawcy
+description: Warunki kwalifikacji do odznaki Affisell+ dla dostawców.
 order: 4
 lastUpdated: '2026-05-28'
 ---
 
-# Affisell+ Programme
+# Program Affisell+
 
-The **Affisell+** badge distinguishes suppliers who maintain a high level of service over a 90-day sliding window.
+Odznaka **Affisell+** wyróżnia dostawców utrzymujących wysoki poziom obsługi w oknie przesuwnym 90 dni.
 
-## 1) Automatic Criteria
+## 1) Kryteria automatyczne
 
-The badge is automatically awarded when the following three conditions are met:
+Odznaka jest przyznawana automatycznie, gdy spełnione są następujące trzy warunki:
 
-- **Average rating > 4.6 / 5**
-- **Dispute rate < 1.5 %**
-- **Shipping rate within 48h > 95 %**
+- **Średnia ocena > 4,6 / 5**
+- **Wskaźnik sporów < 1,5 %**
+- **Wskaźnik wysyłki w 48 h > 95 %**
 
-These metrics are recalculated daily through a scheduled process.
+Te wskaźniki są przeliczane codziennie w zaplanowanym procesie.
 
-## 2) Calculation Method
+## 2) Metoda obliczania
 
-- **Average rating** : average of reviews published related to the supplier's orders.
-- **Dispute rate** : ratio of orders that generated a non-rejected return/dispute file.
-- **48h shipping SLA** : proportion of paid orders shipped within 48 hours.
+- **Średnia ocena**: średnia opublikowanych recenzji związanych z zamówieniami dostawcy.
+- **Wskaźnik sporów**: stosunek zamówień, które wygenerowały niewyłączony plik zwrotu/sporu.
+- **SLA wysyłki 48 h**: udział opłaconych zamówień wysłanych w ciągu 48 godzin.
 
-## 3) Award and Withdrawal
+## 3) Przyznanie i cofnięcie
 
-- The badge is visible only in the interface (product cards, product pages, ambassador hub).
-- The award is not contractual or definitive.
-- If the metrics fall below the thresholds, the badge can be automatically withdrawn at the next recalculation.
+- Odznaka jest widoczna wyłącznie w interfejsie (karty produktów, strony produktów, hub ambasadorów).
+- Przyznanie nie jest umowne ani ostateczne.
+- Jeśli wskaźniki spadną poniżej progów, odznaka może zostać automatycznie cofnięta przy następnym przeliczeniu.
 
-## 4) Transparency
+## 4) Przejrzystość
 
-Affisell maintains an internal history of recalculation (timestamp, metrics, status) to ensure traceability and continuous improvement of the programme.
+Affisell prowadzi wewnętrzną historię przeliczeń (znacznik czasu, wskaźniki, status) w celu zapewnienia identyfikowalności i ciągłego doskonalenia programu.

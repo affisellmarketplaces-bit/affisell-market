@@ -1,49 +1,49 @@
 ---
-title: Legal Mentions
-description: 'Publisher, host and Affisell contacts'
+title: 法律声明
+description: '发布者、托管方及 Affisell 联系方式'
 lastUpdated: 2026-05-26T00:00:00.000Z
 order: 0
 ---
 
-# Legal Notices
+# 法律声明
 
-**Last updated: {{LAST_UPDATED}}**
+**最后更新：{{LAST_UPDATED}}**
 
-## Site Publisher
+## 网站发布者
 
 **Affisell SAS**  
-Simplified joint-stock company with a capital of **{{CAPITAL}}** euros  
-Head office: {{ADRESSE}}  
-RCS: {{RCS}}  
-SIREN number: {{SIREN}}  
-VAT number: **FR{{TVA}}**  
-Email: [{{EMAIL}}](mailto:contact@affisell.com)  
-Publisher: the legal representative of Affisell SAS
+简化股份有限公司，注册资本 **{{CAPITAL}}** 欧元  
+注册地址：{{ADRESSE}}  
+RCS：{{RCS}}  
+SIREN 编号：{{SIREN}}  
+增值税号：**FR{{TVA}}**  
+电子邮件：[{{EMAIL}}](mailto:contact@affisell.com)  
+发布负责人：Affisell SAS 法定代表人
 
-## Host
+## 托管方
 
 **Vercel Inc.**  
 440 N Barranca Ave #4133, Covina, CA 91723, United States  
-Website: [vercel.com](https://vercel.com)
+网站：[vercel.com](https://vercel.com)
 
-## Contact
+## 联系方式
 
-- General support: {{EMAIL}}  
-- Data protection (DPO): {{DPO}}
+- 一般支持：{{EMAIL}}  
+- 数据保护（DPO）：{{DPO}}
 
-## Intellectual Property
+## 知识产权
 
-The entire Affisell site (structure, texts, graphics, logo) is protected. Any unauthorized reproduction constitutes an infringement.
+Affisell 整站（结构、文字、图形、标识）均受保护。任何未经授权的复制均构成侵权。
 
-## Consumer Mediation
+## 消费者调解
 
-In accordance with Articles L612-1 and following of the Consumer Code, the consumer buyer can freely use a consumer mediator in the event of a dispute not resolved with the professional seller.
+根据《消费者法典》第 L612-1 条及后续条款，消费者买方可在与专业卖方未能解决争议时，自由选择消费者调解员。
 
-## Contractual Documents
+## 合同文件
 
-- [Platform TOS](/legal/terms-of-service)
-- [Supplier TOS](/legal/terms-supplier)
-- [Affiliate TOS](/legal/terms-affiliate)
-- [Privacy Policy](/legal/privacy-policy)
-- [Refund Policy](/legal/refund-policy)
-- [Cookies Policy](/legal/cookies-policy)
+- [平台使用条款](/legal/terms-of-service)
+- [供应商条款](/legal/terms-supplier)
+- [联盟伙伴条款](/legal/terms-affiliate)
+- [隐私政策](/legal/privacy-policy)
+- [退款政策](/legal/refund-policy)
+- [Cookie 政策](/legal/cookies-policy)

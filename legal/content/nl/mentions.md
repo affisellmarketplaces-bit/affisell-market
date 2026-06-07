@@ -1,49 +1,49 @@
 ---
-title: Legal Mentions
-description: 'Publisher, host and Affisell contacts'
+title: Juridische vermeldingen
+description: 'Uitgever, host en Affisell-contacten'
 lastUpdated: 2026-05-26T00:00:00.000Z
 order: 0
 ---
 
-# Legal Notices
+# Juridische vermeldingen
 
-**Last updated: {{LAST_UPDATED}}**
+**Laatst bijgewerkt: {{LAST_UPDATED}}**
 
-## Site Publisher
+## Uitgever van de site
 
 **Affisell SAS**  
-Simplified joint-stock company with a capital of **{{CAPITAL}}** euros  
-Head office: {{ADRESSE}}  
+Vereenvoudigde naamloze vennootschap met een kapitaal van **{{CAPITAL}}** euro  
+Statutaire zetel: {{ADRESSE}}  
 RCS: {{RCS}}  
-SIREN number: {{SIREN}}  
-VAT number: **FR{{TVA}}**  
-Email: [{{EMAIL}}](mailto:contact@affisell.com)  
-Publisher: the legal representative of Affisell SAS
+SIREN-nummer: {{SIREN}}  
+Btw-nummer: **FR{{TVA}}**  
+E-mail: [{{EMAIL}}](mailto:contact@affisell.com)  
+Uitgever: de wettelijke vertegenwoordiger van Affisell SAS
 
 ## Host
 
 **Vercel Inc.**  
-440 N Barranca Ave #4133, Covina, CA 91723, United States  
+440 N Barranca Ave #4133, Covina, CA 91723, Verenigde Staten  
 Website: [vercel.com](https://vercel.com)
 
 ## Contact
 
-- General support: {{EMAIL}}  
-- Data protection (DPO): {{DPO}}
+- Algemene support: {{EMAIL}}  
+- Gegevensbescherming (DPO): {{DPO}}
 
-## Intellectual Property
+## Intellectueel eigendom
 
-The entire Affisell site (structure, texts, graphics, logo) is protected. Any unauthorized reproduction constitutes an infringement.
+De gehele Affisell-site (structuur, teksten, grafiek, logo) is beschermd. Elke ongeautoriseerde reproductie vormt een inbreuk.
 
-## Consumer Mediation
+## Consumentenbemiddeling
 
-In accordance with Articles L612-1 and following of the Consumer Code, the consumer buyer can freely use a consumer mediator in the event of a dispute not resolved with the professional seller.
+Overeenkomstig de artikelen L612-1 en volgende van het Consumentenwetboek kan de consument-koper vrijelijk een consumentenbemiddelaar raadplegen bij een geschil dat niet met de professionele verkoper is opgelost.
 
-## Contractual Documents
+## Contractuele documenten
 
-- [Platform TOS](/legal/terms-of-service)
-- [Supplier TOS](/legal/terms-supplier)
-- [Affiliate TOS](/legal/terms-affiliate)
-- [Privacy Policy](/legal/privacy-policy)
-- [Refund Policy](/legal/refund-policy)
-- [Cookies Policy](/legal/cookies-policy)
+- [Platform-AV](/legal/terms-of-service)
+- [Leveranciers-AV](/legal/terms-supplier)
+- [Affiliate-AV](/legal/terms-affiliate)
+- [Privacybeleid](/legal/privacy-policy)
+- [Terugbetalingsbeleid](/legal/refund-policy)
+- [Cookiebeleid](/legal/cookies-policy)

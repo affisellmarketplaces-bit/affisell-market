@@ -1,49 +1,49 @@
 ---
-title: Legal Mentions
-description: 'Publisher, host and Affisell contacts'
+title: Informacje prawne
+description: 'Wydawca, hosting i kontakty Affisell'
 lastUpdated: 2026-05-26T00:00:00.000Z
 order: 0
 ---
 
-# Legal Notices
+# Informacje prawne
 
-**Last updated: {{LAST_UPDATED}}**
+**Ostatnia aktualizacja: {{LAST_UPDATED}}**
 
-## Site Publisher
+## Wydawca serwisu
 
 **Affisell SAS**  
-Simplified joint-stock company with a capital of **{{CAPITAL}}** euros  
-Head office: {{ADRESSE}}  
+Spółka z ograniczoną odpowiedzialnością uproszczona z kapitałem **{{CAPITAL}}** euro  
+Siedziba: {{ADRESSE}}  
 RCS: {{RCS}}  
-SIREN number: {{SIREN}}  
-VAT number: **FR{{TVA}}**  
-Email: [{{EMAIL}}](mailto:contact@affisell.com)  
-Publisher: the legal representative of Affisell SAS
+Numer SIREN: {{SIREN}}  
+Numer VAT: **FR{{TVA}}**  
+E-mail: [{{EMAIL}}](mailto:contact@affisell.com)  
+Wydawca: przedstawiciel prawny Affisell SAS
 
-## Host
+## Hosting
 
 **Vercel Inc.**  
-440 N Barranca Ave #4133, Covina, CA 91723, United States  
-Website: [vercel.com](https://vercel.com)
+440 N Barranca Ave #4133, Covina, CA 91723, Stany Zjednoczone  
+Strona internetowa: [vercel.com](https://vercel.com)
 
-## Contact
+## Kontakt
 
-- General support: {{EMAIL}}  
-- Data protection (DPO): {{DPO}}
+- Ogólne wsparcie: {{EMAIL}}  
+- Ochrona danych (IOD): {{DPO}}
 
-## Intellectual Property
+## Własność intelektualna
 
-The entire Affisell site (structure, texts, graphics, logo) is protected. Any unauthorized reproduction constitutes an infringement.
+Cała witryna Affisell (struktura, teksty, grafika, logo) jest chroniona. Każde nieautoryzowane powielanie stanowi naruszenie.
 
-## Consumer Mediation
+## Mediacja konsumencka
 
-In accordance with Articles L612-1 and following of the Consumer Code, the consumer buyer can freely use a consumer mediator in the event of a dispute not resolved with the professional seller.
+Zgodnie z artykułami L612-1 i następnymi Kodeksu Konsumenckiego kupujący-konsument może swobodnie skorzystać z mediatora konsumenckiego w przypadku sporu nierozwiązanego ze sprzedawcą profesjonalnym.
 
-## Contractual Documents
+## Dokumenty umowne
 
-- [Platform TOS](/legal/terms-of-service)
-- [Supplier TOS](/legal/terms-supplier)
-- [Affiliate TOS](/legal/terms-affiliate)
-- [Privacy Policy](/legal/privacy-policy)
-- [Refund Policy](/legal/refund-policy)
-- [Cookies Policy](/legal/cookies-policy)
+- [OWU platformy](/legal/terms-of-service)
+- [OWU dostawcy](/legal/terms-supplier)
+- [OWU partnera afiliacyjnego](/legal/terms-affiliate)
+- [Polityka prywatności](/legal/privacy-policy)
+- [Polityka zwrotów](/legal/refund-policy)
+- [Polityka plików cookie](/legal/cookies-policy)

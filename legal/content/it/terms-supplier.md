@@ -1,77 +1,77 @@
 ---
-title: Supplier General Terms (SGT)
-description: Terms applicable to professionals selling on Affisell.
+title: Condizioni Generali del Fornitore (CGF)
+description: Condizioni applicabili ai professionisti che vendono su Affisell.
 lastUpdated: 2026-05-26
 order: 2
 ---
 
-# Supplier General Terms (SGT)
+# Condizioni Generali del Fornitore (CGF)
 
-**Last updated: {{LAST_UPDATED}}**
+**Ultimo aggiornamento: {{LAST_UPDATED}}**
 
-These Supplier General Terms ("**SGT**") supplement the [GTU](/legal/terms-of-service) and govern the relationship between **Affisell SAS** ({{SIREN}}, {{ADRESSE}}) and any professional registered as a **Supplier**.
+Le presenti Condizioni Generali del Fornitore («**CGF**») integrano le [CGU](/legal/terms-of-service) e regolano il rapporto tra **Affisell SAS** ({{SIREN}}, {{ADRESSE}}) e qualsiasi professionista registrato come **Fornitore**.
 
-## Article 1 — Qualification and information obligations
+## Articolo 1 — Qualificazione e obblighi informativi
 
-1.1. The Supplier declares that they are a professional with a valid SIRET/SIREN number and, where applicable, an intra-community VAT number.
+1.1. Il Fornitore dichiara di essere un professionista con un numero SIRET/SIREN valido e, ove applicabile, una partita IVA intracomunitaria.
 
-1.2. The Supplier warrants the accuracy of product pages (price, stock, compliance, legal warranties).
+1.2. Il Fornitore garantisce l'accuratezza delle pagine prodotto (prezzo, stock, conformità, garanzie legali).
 
-## Article 2 — Affisell commission and affiliate commission
+## Articolo 2 — Commissione Affisell e commissione affiliato
 
-2.1. **Affisell platform commission**: deducted from the **net amount excluding VAT** paid by the Buyer (line base excluding VAT), according to the rate applicable to the category or product (default indicative rate: **10%**).
+2.1. **Commissione piattaforma Affisell**: dedotta dall'**importo netto al netto dell'IVA** pagato dall'Acquirente (base riga al netto dell'IVA), secondo l'aliquota applicabile alla categoria o al prodotto (aliquota indicativa predefinita: **10 %**).
 
-2.2. **Affiliate commission (deal)**: percentage of the **catalogue wholesale price** paid to the Affiliate, set by the Supplier between **0% and 15%** (or according to documented commercial agreement). This commission is **deducted from the net amount paid to the Supplier**.
+2.2. **Commissione affiliato (deal)**: percentuale del **prezzo all'ingrosso di catalogo** pagata all'Affiliato, fissata dal Fornitore tra **0 % e 15 %** (o secondo accordo commerciale documentato). Questa commissione è **dedotta dall'importo netto pagato al Fornitore**.
 
-2.3. The rates applicable to each order are **fixed at the time of sale** (snapshot on the order).
+2.3. Le aliquote applicabili a ciascun ordine sono **fissate al momento della vendita** (istantanea sull'ordine).
 
-## Article 3 — Pricing and channel parity
+## Articolo 3 — Prezzi e parità dei canali
 
-3.1. The Supplier undertakes that the **Affisell catalogue price** (wholesale excluding VAT) shall be **less than or equal to** prices offered on their other equivalent B2B distribution channels for the same SKU, subject to duly indicated temporary promotions.
+3.1. Il Fornitore si impegna affinché il **prezzo di catalogo Affisell** (all'ingrosso al netto dell'IVA) sia **inferiore o uguale** ai prezzi offerti sui propri altri canali di distribuzione B2B equivalenti per lo stesso SKU, salvo promozioni temporanee debitamente indicate.
 
-3.2. Any price increase must respect reasonable notice for active listings.
+3.2. Qualsiasi aumento di prezzo deve rispettare un preavviso ragionevole per i listing attivi.
 
-## Article 4 — Shipping, SLA and penalties
+## Articolo 4 — Spedizione, SLA e sanzioni
 
-4.1. **Default SLA**: shipping within **48 business hours** after payment, unless otherwise indicated on the product page.
+4.1. **SLA predefinito**: spedizione entro **48 ore lavorative** dal pagamento, salvo diversa indicazione nella pagina prodotto.
 
-4.2. In the event of unjustified delay beyond the "Ship Pulse" period (10 days + extension procedure), Affisell may:
-- notify the Buyer;
-- authorize cancellation and refund;
-- apply a **penalty** or downgrade listing ranking.
+4.2. In caso di ritardo ingiustificato oltre il periodo «Ship Pulse» (10 giorni + procedura di proroga), Affisell può:
+- notificare l'Acquirente;
+- autorizzare l'annullamento e il rimborso;
+- applicare una **sanzione** o degradare il posizionamento del listing.
 
-4.3. **RMA** (return merchandise authorization) return costs related to non-conformity attributable to the Supplier are borne by the Supplier.
+4.3. I costi di reso **RMA** (autorizzazione al reso della merce) relativi a non conformità imputabile al Fornitore sono a carico del Fornitore.
 
-## Article 5 — Stripe Connect payments
+## Articolo 5 — Pagamenti Stripe Connect
 
-5.1. The Supplier must complete **Stripe Connect** onboarding to receive payouts.
+5.1. Il Fornitore deve completare l'onboarding **Stripe Connect** per ricevere i versamenti.
 
-5.2. The **payout** occurs in principle at **D+7** after eligibility (confirmed delivery / legal period), excluding dispute or clawback.
+5.2. Il **versamento** avviene in linea di principio a **D+7** dopo l'idoneità (consegna confermata / periodo legale), esclusa controversia o recupero.
 
-5.3. Affisell may offset amounts owed in the event of a Buyer refund or validated penalty.
+5.3. Affisell può compensare importi dovuti in caso di rimborso all'Acquirente o sanzione convalidata.
 
-## Article 6 — Self-billing
+## Articolo 6 — Autofatturazione
 
-6.1. The Supplier accepts the **self-billing** mechanism for Affisell commissions: Affisell issues or has issued the necessary accounting documents based on transaction data.
+6.1. Il Fornitore accetta il meccanismo di **autofatturazione** per le commissioni Affisell: Affisell emette o fa emettere i documenti contabili necessari sulla base dei dati di transazione.
 
-6.2. The Supplier retains their own invoicing obligations to the Buyer (sales invoice) where required by law.
+6.2. Il Fornitore conserva i propri obblighi di fatturazione verso l'Acquirente (fattura di vendita) ove richiesto dalla legge.
 
-## Article 7 — Product compliance and withdrawal
+## Articolo 7 — Conformità del prodotto e ritiro
 
-7.1. The Supplier is solely responsible for compliance (safety, labelling, REACH, etc.).
+7.1. Il Fornitore è l'unico responsabile della conformità (sicurezza, etichettatura, REACH, ecc.).
 
-7.2. In the event of a product recall, the Supplier must inform Affisell within 24 hours and withdraw the SKU.
+7.2. In caso di richiamo di un prodotto, il Fornitore deve informare Affisell entro 24 ore e ritirare lo SKU.
 
-## Article 8 — Termination
+## Articolo 8 — Risoluzione
 
-8.1. The Supplier may terminate their account with 30 days' notice, subject to fulfilment of orders in progress.
+8.1. Il Fornitore può chiudere il proprio account con un preavviso di 30 giorni, fatto salvo l'adempimento degli ordini in corso.
 
-8.2. Affisell may terminate automatically in the event of serious breach (fraud, counterfeiting, repeated SLA failure, misleading prices).
+8.2. Affisell può risolvere automaticamente in caso di violazione grave (frode, contraffazione, mancato rispetto ripetuto dello SLA, prezzi fuorvianti).
 
-## Article 9 — Liability
+## Articolo 9 — Responsabilità
 
-Affisell's liability towards the Supplier is limited in accordance with the GTU. The Supplier indemnifies Affisell against any claim related to their products or content.
+La responsabilità di Affisell verso il Fornitore è limitata in conformità alle CGU. Il Fornitore indennizza Affisell da qualsiasi reclamo relativo ai propri prodotti o contenuti.
 
-## Article 10 — Contact
+## Articolo 10 — Contatto
 
 {{EMAIL}} — DPO: {{DPO}}

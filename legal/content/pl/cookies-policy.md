@@ -1,50 +1,50 @@
 ---
-title: Cookie Policy
-description: 'Essential, analytics, and marketing cookies on Affisell.'
+title: Polityka plików cookie
+description: 'Pliki cookie niezbędne, analityczne i marketingowe na Affisell.'
 lastUpdated: 2026-05-26T00:00:00.000Z
 order: 6
 ---
 
-# Cookie Policy
+# Polityka plików cookie
 
-**Last updated: {{LAST_UPDATED}}**
+**Ostatnia aktualizacja: {{LAST_UPDATED}}**
 
-## Article 1 — What is a cookie?
+## Artykuł 1 — Czym jest plik cookie?
 
-A cookie is a text file deposited on your terminal when you visit the Platform. Similar trackers (localStorage, pixels) may be used for the same purposes.
+Plik cookie to plik tekstowy zapisywany na Państwa urządzeniu podczas odwiedzania Platformy. Podobne trackery (localStorage, piksele) mogą być używane do tych samych celów.
 
-## Article 2 — Consent Banner
+## Artykuł 2 — Baner zgody
 
-On your first visit, a banner (Axeptio style) allows you to accept, refuse, or customize non-essential categories. You can modify your choice at any time from [Manage cookies](/dashboard/account/gdpr) or the "Cookies" link at the bottom of the page.
+Podczas pierwszej wizyty baner (w stylu Axeptio) umożliwia akceptację, odrzucenie lub dostosowanie kategorii nieistotnych. Mogą Państwo zmienić swój wybór w dowolnym momencie z [Zarządzaj plikami cookie](/dashboard/account/gdpr) lub linku «Cookies» u dołu strony.
 
-## Article 3 — Categories
+## Artykuł 3 — Kategorie
 
-### 3.1 — Essential Cookies (required)
+### 3.1 — Pliki cookie niezbędne (wymagane)
 
-| Cookie | Purpose | Duration |
+| Plik cookie | Cel | Czas trwania |
 |--------|----------|-------|
-| Session NextAuth | Authentication | Session |
-| `affisell_locale` | Language | 1 year |
-| `affisell_cookie_consent` | Remember your choices | 13 months |
+| Sesja NextAuth | Uwierzytelnianie | Sesja |
+| `affisell_locale` | Język | 1 rok |
+| `affisell_cookie_consent` | Zapamiętanie wyborów | 13 miesięcy |
 
-**Legal basis**: legitimate interest / service execution. No consent required.
+**Podstawa prawna**: prawnie uzasadniony interes / wykonanie usługi. Zgoda nie jest wymagana.
 
-### 3.2 — Analytics Cookies
+### 3.2 — Pliki cookie analityczne
 
-| Tool | Purpose |
+| Narzędzie | Cel |
 |-------|----------|
-| Vercel Analytics | Aggregate audience measurement, performance |
+| Vercel Analytics | Zagregowany pomiar odbiorców, wydajność |
 
-**Legal basis**: consent. Deposited only if you accept the "Analytics" category.
+**Podstawa prawna**: zgoda. Zapisywane tylko po zaakceptowaniu kategorii «Analityczne».
 
-### 3.3 — Marketing Cookies
+### 3.3 — Pliki cookie marketingowe
 
-Reserved for future remarketing tools or advertising partners. **No third-party marketing cookie is enabled by default** without your explicit consent.
+Zarezerwowane dla przyszłych narzędzi remarketingowych lub partnerów reklamowych. **Żaden marketingowy plik cookie stron trzecich nie jest domyślnie włączony** bez wyraźnej zgody.
 
-## Article 4 — Browser Settings
+## Artykuł 4 — Ustawienia przeglądarki
 
-You can block cookies through your browser settings. Some features (login, cart) may no longer work.
+Mogą Państwo zablokować pliki cookie w ustawieniach przeglądarki. Niektóre funkcje (logowanie, koszyk) mogą przestać działać.
 
-## Article 5 — Contact
+## Artykuł 5 — Kontakt
 
-Questions: {{DPO}} — <mailto:{{EMAIL}}>{{EMAIL}}</mailto>
+Pytania: {{DPO}} — <mailto:{{EMAIL}}>{{EMAIL}}</mailto>

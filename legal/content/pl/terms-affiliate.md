@@ -1,74 +1,74 @@
 ---
-title: Affiliate General Terms (AGT)
-description: Terms applicable to Affisell creators and partners.
+title: Ogólne Warunki Partnera Afiliacyjnego (OWPA)
+description: Warunki mające zastosowanie do twórców i partnerów Affisell.
 lastUpdated: 2026-05-26
 order: 3
 ---
 
-# Affiliate General Terms (AGT)
+# Ogólne Warunki Partnera Afiliacyjnego (OWPA)
 
-**Last updated: {{LAST_UPDATED}}**
+**Ostatnia aktualizacja: {{LAST_UPDATED}}**
 
-These Affiliate General Terms ("**AGT**") supplement the [GTU](/legal/terms-of-service) and govern the relationship between **Affisell SAS** and any partner registered as an **Affiliate** (creator, influencer, reseller).
+Niniejsze Ogólne Warunki Partnera Afiliacyjnego («**OWPA**») uzupełniają [OWU](/legal/terms-of-service) i regulują relację między **Affisell SAS** a każdym partnerem zarejestrowanym jako **Partner afiliacyjny** (twórca, influencer, odsprzedawca).
 
-## Article 1 — Status
+## Artykuł 1 — Status
 
-1.1. The Affiliate acts as a **professional or non-professional** according to their declaration. They are solely responsible for their tax and social obligations (URSSAF, VAT, income tax declaration).
+1.1. Partner afiliacyjny działa jako **profesjonalista lub nieprofesjonalista** zgodnie ze swoją deklaracją. Jest wyłącznie odpowiedzialny za swoje zobowiązania podatkowe i społeczne (URSSAF, VAT, deklaracja podatku dochodowego).
 
-### Article 1.2 — "Ambassador" terminology
+### Artykuł 1.2 — Terminologia «Ambassador»
 
-The term "Ambassador", used for marketing purposes, designates exclusively an independent Affisell Affiliate Partner as defined in Article 1.1.
+Termin «Ambassador», używany w celach marketingowych, oznacza wyłącznie niezależnego Partnera afiliacyjnego Affisell zdefiniowanego w artykule 1.1.
 
-Use of this term does not create any subordination relationship, representation mandate, or employment contract between the Ambassador and Affisell or its Suppliers.
+Użycie tego terminu nie tworzy żadnej relacji podporządkowania, pełnomocnictwa reprezentacji ani umowy o pracę między Ambassadorem a Affisell lub jego Dostawcami.
 
-The Ambassador acts in their own name, on their own account, and remains solely responsible for their tax, social, and legal obligations.
+Ambassador działa we własnym imieniu, na własny rachunek i pozostaje wyłącznie odpowiedzialny za swoje zobowiązania podatkowe, społeczne i prawne.
 
-1.3. Affisell is not the employer of the Affiliate.
+1.3. Affisell nie jest pracodawcą Partnera afiliacyjnego.
 
-## Article 2 — Listings and markup
+## Artykuł 2 — Listingi i marża handlowa
 
-2.1. The Affiliate may freely set their **commercial markup** between **0% and 120%** above the Supplier catalogue price, within the Platform's technical limits.
+2.1. Partner afiliacyjny może swobodnie ustalać swoją **marżę handlową** między **0 % a 120 %** powyżej ceny katalogowej Dostawcy, w granicach technicznych Platformy.
 
-2.2. The **net selling price** displayed to the Buyer = catalogue price + markup (excluding VAT and excluding Affisell platform fees integrated into the payment flow).
+2.2. **Cena sprzedaży netto** wyświetlana Kupującemu = cena katalogowa + marża (bez VAT i bez opłat platformy Affisell zintegrowanych z przepływem płatności).
 
-2.3. The Affiliate undertakes not to mislead the Buyer regarding the origin, characteristics, or availability of the product.
+2.3. Partner afiliacyjny zobowiązuje się nie wprowadzać Kupującego w błąd co do pochodzenia, cech lub dostępności produktu.
 
-## Article 3 — Supplier commission
+## Artykuł 3 — Prowizja dostawcy
 
-3.1. The Supplier may offer a **commission** (percentage of the catalogue) paid to the Affiliate in addition to the markup. This commission is **funded by the Supplier**, not by Affisell.
+3.1. Dostawca może oferować **prowizję** (procent katalogu) wypłacaną Partnerowi afiliacyjnemu oprócz marży. Ta prowizja jest **finansowana przez Dostawcę**, nie przez Affisell.
 
-3.2. Total Affiliate earnings on a sale = **Supplier commission + net markup** (after Affisell fees calculated on the customer net base according to the GTU).
+3.2. Całkowite zarobki Partnera afiliacyjnego ze sprzedaży = **prowizja Dostawcy + marża netto** (po opłatach Affisell obliczonych od bazy netto klienta zgodnie z OWU).
 
-## Article 4 — Payments
+## Artykuł 4 — Płatności
 
-4.1. Affiliate payouts are made via **Stripe Connect**, in principle at **D+7** after eligibility, subject to clawback in the event of a refund.
+4.1. Wypłaty Partnera afiliacyjnego są realizowane za pośrednictwem **Stripe Connect**, zasadniczo w **D+7** po spełnieniu warunków, z możliwością odzyskania w przypadku zwrotu środków.
 
-4.2. Affisell provides transaction statements; the Affiliate issues their invoices or receipts according to their legal status.
+4.2. Affisell dostarcza zestawienia transakcji; Partner afiliacyjny wystawia faktury lub pokwitowania zgodnie ze swoim statusem prawnym.
 
-## Article 5 — Content and ethics
+## Artykuł 5 — Treści i etyka
 
-5.1. Prohibited: spam, misleading advertising, counterfeiting, hateful or illegal content, unauthorized use of third-party brands.
+5.1. Zabronione: spam, reklama wprowadzająca w błąd, podrabianie, treści nienawiści lub nielegalne, nieautoryzowane użycie marek osób trzecich.
 
-5.2. The Affiliate complies with third-party platform rules (Meta, TikTok, etc.) when sharing Affisell links.
+5.2. Partner afiliacyjny przestrzega zasad platform trzecich (Meta, TikTok itd.) przy udostępnianiu linków Affisell.
 
-5.3. Affisell may remove a listing or suspend an account without notice in the event of a violation.
+5.3. Affisell może usunąć listing lub zawiesić konto bez uprzedzenia w przypadku naruszenia.
 
-## Article 6 — Data and confidentiality
+## Artykuł 6 — Dane i poufność
 
-6.1. The Affiliate accesses only Buyer data strictly necessary for the sale (order email, shipping address via the Supplier).
+6.1. Partner afiliacyjny ma dostęp wyłącznie do danych Kupującego ściśle niezbędnych do sprzedaży (e-mail zamówienia, adres wysyłki za pośrednictwem Dostawcy).
 
-6.2. The Supplier may hide their wholesale net detail from the Affiliate according to storefront settings (`showRevenueToAffiliate`).
+6.2. Dostawca może ukryć szczegół hurtowy netto przed Partnerem afiliacyjnym zgodnie z ustawieniami sklepu (`showRevenueToAffiliate`).
 
-## Article 7 — Intellectual property
+## Artykuł 7 — Własność intelektualna
 
-The Affiliate grants Affisell a non-exclusive licence to display their storefront content on the Platform.
+Partner afiliacyjny udziela Affisell niewyłącznej licencji na wyświetlanie treści swojego sklepu na Platformie.
 
-## Article 8 — Termination
+## Artykuł 8 — Rozwiązanie
 
-8.1. The Affiliate may close their account; orders in progress remain fulfilled.
+8.1. Partner afiliacyjny może zamknąć konto; zamówienia w toku pozostają realizowane.
 
-8.2. Affisell may terminate in the event of fraud, AGT non-compliance, or harmful reputation.
+8.2. Affisell może rozwiązać umowę w przypadku oszustwa, naruszenia OWPA lub szkodliwej reputacji.
 
-## Article 9 — Contact
+## Artykuł 9 — Kontakt
 
-{{EMAIL}} — DPO: {{DPO}}
+{{EMAIL}} — IOD: {{DPO}}

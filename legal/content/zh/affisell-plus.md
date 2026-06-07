@@ -1,36 +1,36 @@
 ---
-title: Affisell+ — Verified Supplier Criteria
-description: Eligibility conditions for the Affisell+ badge for suppliers.
+title: Affisell+ — 认证供应商标准
+description: 供应商获得 Affisell+ 徽章的资格条件。
 order: 4
 lastUpdated: '2026-05-28'
 ---
 
-# Affisell+ Programme
+# Affisell+ 计划
 
-The **Affisell+** badge distinguishes suppliers who maintain a high level of service over a 90-day sliding window.
+**Affisell+** 徽章用于表彰在 90 天滚动窗口内保持高水平服务的供应商。
 
-## 1) Automatic Criteria
+## 1）自动标准
 
-The badge is automatically awarded when the following three conditions are met:
+满足以下三项条件时，徽章将自动授予：
 
-- **Average rating > 4.6 / 5**
-- **Dispute rate < 1.5 %**
-- **Shipping rate within 48h > 95 %**
+- **平均评分 > 4.6 / 5**
+- **争议率 < 1.5 %**
+- **48 小时内发货率 > 95 %**
 
-These metrics are recalculated daily through a scheduled process.
+这些指标通过定时任务每日重新计算。
 
-## 2) Calculation Method
+## 2）计算方法
 
-- **Average rating** : average of reviews published related to the supplier's orders.
-- **Dispute rate** : ratio of orders that generated a non-rejected return/dispute file.
-- **48h shipping SLA** : proportion of paid orders shipped within 48 hours.
+- **平均评分**：与供应商订单相关的已发布评价的平均值。
+- **争议率**：产生未被驳回的退货/争议记录的订单占比。
+- **48 小时发货 SLA**：在 48 小时内发货的已付款订单比例。
 
-## 3) Award and Withdrawal
+## 3）授予与撤销
 
-- The badge is visible only in the interface (product cards, product pages, ambassador hub).
-- The award is not contractual or definitive.
-- If the metrics fall below the thresholds, the badge can be automatically withdrawn at the next recalculation.
+- 徽章仅在界面中可见（产品卡片、产品页面、大使中心）。
+- 授予不具有合同效力，亦非永久有效。
+- 若指标低于阈值，徽章可在下次重新计算时自动撤销。
 
-## 4) Transparency
+## 4）透明度
 
-Affisell maintains an internal history of recalculation (timestamp, metrics, status) to ensure traceability and continuous improvement of the programme.
+Affisell 保留内部重新计算历史记录（时间戳、指标、状态），以确保可追溯性及计划的持续改进。

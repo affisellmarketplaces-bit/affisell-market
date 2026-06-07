@@ -1,77 +1,77 @@
 ---
-title: Supplier General Terms (SGT)
-description: Terms applicable to professionals selling on Affisell.
+title: Algemene Voorwaarden Leverancier (AVL)
+description: Voorwaarden van toepassing op professionals die op Affisell verkopen.
 lastUpdated: 2026-05-26
 order: 2
 ---
 
-# Supplier General Terms (SGT)
+# Algemene Voorwaarden Leverancier (AVL)
 
-**Last updated: {{LAST_UPDATED}}**
+**Laatst bijgewerkt: {{LAST_UPDATED}}**
 
-These Supplier General Terms ("**SGT**") supplement the [GTU](/legal/terms-of-service) and govern the relationship between **Affisell SAS** ({{SIREN}}, {{ADRESSE}}) and any professional registered as a **Supplier**.
+Deze Algemene Voorwaarden Leverancier («**AVL**») vullen de [AGV](/legal/terms-of-service) aan en regelen de relatie tussen **Affisell SAS** ({{SIREN}}, {{ADRESSE}}) en elke professional geregistreerd als **Leverancier**.
 
-## Article 1 — Qualification and information obligations
+## Artikel 1 — Kwalificatie en informatieverplichtingen
 
-1.1. The Supplier declares that they are a professional with a valid SIRET/SIREN number and, where applicable, an intra-community VAT number.
+1.1. De Leverancier verklaart een professional te zijn met een geldig SIRET/SIREN-nummer en, indien van toepassing, een intracommunautair btw-nummer.
 
-1.2. The Supplier warrants the accuracy of product pages (price, stock, compliance, legal warranties).
+1.2. De Leverancier garandeert de juistheid van productpagina's (prijs, voorraad, conformiteit, wettelijke garanties).
 
-## Article 2 — Affisell commission and affiliate commission
+## Artikel 2 — Affisell-commissie en affiliate-commissie
 
-2.1. **Affisell platform commission**: deducted from the **net amount excluding VAT** paid by the Buyer (line base excluding VAT), according to the rate applicable to the category or product (default indicative rate: **10%**).
+2.1. **Affisell-platformcommissie**: afgetrokken van het **nettobedrag exclusief btw** betaald door de Koper (regelbasis exclusief btw), volgens het tarief dat van toepassing is op de categorie of het product (indicatief standaardtarief: **10 %**).
 
-2.2. **Affiliate commission (deal)**: percentage of the **catalogue wholesale price** paid to the Affiliate, set by the Supplier between **0% and 15%** (or according to documented commercial agreement). This commission is **deducted from the net amount paid to the Supplier**.
+2.2. **Affiliate-commissie (deal)**: percentage van de **catalogusgroothandelsprijs** betaald aan de Affiliate, vastgesteld door de Leverancier tussen **0 % en 15 %** (of volgens gedocumenteerde commerciële overeenkomst). Deze commissie wordt **afgetrokken van het nettobedrag betaald aan de Leverancier**.
 
-2.3. The rates applicable to each order are **fixed at the time of sale** (snapshot on the order).
+2.3. De tarieven die op elke bestelling van toepassing zijn, worden **vastgelegd op het moment van verkoop** (momentopname op de bestelling).
 
-## Article 3 — Pricing and channel parity
+## Artikel 3 — Prijzen en kanaalpariteit
 
-3.1. The Supplier undertakes that the **Affisell catalogue price** (wholesale excluding VAT) shall be **less than or equal to** prices offered on their other equivalent B2B distribution channels for the same SKU, subject to duly indicated temporary promotions.
+3.1. De Leverancier verbindt zich ertoe dat de **Affisell-catalogusprijs** (groothandel exclusief btw) **kleiner dan of gelijk aan** prijzen aangeboden op zijn andere equivalente B2B-distributiekanalen voor dezelfde SKU is, behoudens tijdelijke promoties die naar behoren zijn aangegeven.
 
-3.2. Any price increase must respect reasonable notice for active listings.
+3.2. Elke prijsverhoging moet redelijke kennisgeving respecteren voor actieve listings.
 
-## Article 4 — Shipping, SLA and penalties
+## Artikel 4 — Verzending, SLA en sancties
 
-4.1. **Default SLA**: shipping within **48 business hours** after payment, unless otherwise indicated on the product page.
+4.1. **Standaard-SLA**: verzending binnen **48 werkuren** na betaling, tenzij anders vermeld op de productpagina.
 
-4.2. In the event of unjustified delay beyond the "Ship Pulse" period (10 days + extension procedure), Affisell may:
-- notify the Buyer;
-- authorize cancellation and refund;
-- apply a **penalty** or downgrade listing ranking.
+4.2. Bij ongerechtvaardigde vertraging voorbij de «Ship Pulse»-periode (10 dagen + verlengingsprocedure) kan Affisell:
+- de Koper informeren;
+- annulering en terugbetaling autoriseren;
+- een **sanctie** toepassen of de listing-ranking verlagen.
 
-4.3. **RMA** (return merchandise authorization) return costs related to non-conformity attributable to the Supplier are borne by the Supplier.
+4.3. **RMA**-retourkosten (return merchandise authorization) gerelateerd aan niet-conformiteit toeschrijfbaar aan de Leverancier zijn voor rekening van de Leverancier.
 
-## Article 5 — Stripe Connect payments
+## Artikel 5 — Stripe Connect-betalingen
 
-5.1. The Supplier must complete **Stripe Connect** onboarding to receive payouts.
+5.1. De Leverancier moet **Stripe Connect**-onboarding voltooien om uitbetalingen te ontvangen.
 
-5.2. The **payout** occurs in principle at **D+7** after eligibility (confirmed delivery / legal period), excluding dispute or clawback.
+5.2. De **uitbetaling** vindt in principe plaats op **D+7** na geschiktheid (bevestigde levering / wettelijke termijn), exclusief geschil of terugvordering.
 
-5.3. Affisell may offset amounts owed in the event of a Buyer refund or validated penalty.
+5.3. Affisell kan verschuldigde bedragen verrekenen bij terugbetaling aan de Koper of gevalideerde sanctie.
 
-## Article 6 — Self-billing
+## Artikel 6 — Self-billing
 
-6.1. The Supplier accepts the **self-billing** mechanism for Affisell commissions: Affisell issues or has issued the necessary accounting documents based on transaction data.
+6.1. De Leverancier accepteert het **self-billing**-mechanisme voor Affisell-commissies: Affisell geeft of laat de nodige boekhoudkundige documenten uit op basis van transactiegegevens.
 
-6.2. The Supplier retains their own invoicing obligations to the Buyer (sales invoice) where required by law.
+6.2. De Leverancier behoudt zijn eigen factureringsverplichtingen jegens de Koper (verkoopfactuur) waar de wet dit vereist.
 
-## Article 7 — Product compliance and withdrawal
+## Artikel 7 — Productconformiteit en terugtrekking
 
-7.1. The Supplier is solely responsible for compliance (safety, labelling, REACH, etc.).
+7.1. De Leverancier is als enige verantwoordelijk voor conformiteit (veiligheid, etikettering, REACH, enz.).
 
-7.2. In the event of a product recall, the Supplier must inform Affisell within 24 hours and withdraw the SKU.
+7.2. Bij productterugroeping moet de Leverancier Affisell binnen 24 uur informeren en de SKU intrekken.
 
-## Article 8 — Termination
+## Artikel 8 — Beëindiging
 
-8.1. The Supplier may terminate their account with 30 days' notice, subject to fulfilment of orders in progress.
+8.1. De Leverancier kan zijn account beëindigen met 30 dagen opzegtermijn, onder voorbehoud van uitvoering van lopende bestellingen.
 
-8.2. Affisell may terminate automatically in the event of serious breach (fraud, counterfeiting, repeated SLA failure, misleading prices).
+8.2. Affisell kan automatisch beëindigen bij ernstige schending (fraude, namaak, herhaaldelijk SLA-niet-naleven, misleidende prijzen).
 
-## Article 9 — Liability
+## Artikel 9 — Aansprakelijkheid
 
-Affisell's liability towards the Supplier is limited in accordance with the GTU. The Supplier indemnifies Affisell against any claim related to their products or content.
+De aansprakelijkheid van Affisell jegens de Leverancier is beperkt overeenkomstig de AGV. De Leverancier vrijwaart Affisell tegen elke claim gerelateerd aan zijn producten of inhoud.
 
-## Article 10 — Contact
+## Artikel 10 — Contact
 
 {{EMAIL}} — DPO: {{DPO}}

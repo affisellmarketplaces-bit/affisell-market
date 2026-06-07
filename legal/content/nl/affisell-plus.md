@@ -1,36 +1,36 @@
 ---
-title: Affisell+ — Verified Supplier Criteria
-description: Eligibility conditions for the Affisell+ badge for suppliers.
+title: Affisell+ — Criteria voor geverifieerde leverancier
+description: Voorwaarden voor geschiktheid voor het Affisell+-badge voor leveranciers.
 order: 4
 lastUpdated: '2026-05-28'
 ---
 
-# Affisell+ Programme
+# Affisell+-programma
 
-The **Affisell+** badge distinguishes suppliers who maintain a high level of service over a 90-day sliding window.
+Het **Affisell+**-badge onderscheidt leveranciers die gedurende een glijdend venster van 90 dagen een hoog serviceniveau handhaven.
 
-## 1) Automatic Criteria
+## 1) Automatische criteria
 
-The badge is automatically awarded when the following three conditions are met:
+Het badge wordt automatisch toegekend wanneer aan de volgende drie voorwaarden is voldaan:
 
-- **Average rating > 4.6 / 5**
-- **Dispute rate < 1.5 %**
-- **Shipping rate within 48h > 95 %**
+- **Gemiddelde beoordeling > 4,6 / 5**
+- **Geschillenpercentage < 1,5 %**
+- **Verzendpercentage binnen 48 u > 95 %**
 
-These metrics are recalculated daily through a scheduled process.
+Deze statistieken worden dagelijks herberekend via een gepland proces.
 
-## 2) Calculation Method
+## 2) Berekeningsmethode
 
-- **Average rating** : average of reviews published related to the supplier's orders.
-- **Dispute rate** : ratio of orders that generated a non-rejected return/dispute file.
-- **48h shipping SLA** : proportion of paid orders shipped within 48 hours.
+- **Gemiddelde beoordeling**: gemiddelde van gepubliceerde beoordelingen gerelateerd aan de bestellingen van de leverancier.
+- **Geschillenpercentage**: verhouding van bestellingen die een niet-afgewezen retour-/geschillendossier hebben gegenereerd.
+- **48u-verzend-SLA**: aandeel betaalde bestellingen verzonden binnen 48 uur.
 
-## 3) Award and Withdrawal
+## 3) Toekenning en intrekking
 
-- The badge is visible only in the interface (product cards, product pages, ambassador hub).
-- The award is not contractual or definitive.
-- If the metrics fall below the thresholds, the badge can be automatically withdrawn at the next recalculation.
+- Het badge is alleen zichtbaar in de interface (productkaarten, productpagina's, ambassador-hub).
+- De toekenning is niet contractueel of definitief.
+- Als de statistieken onder de drempels vallen, kan het badge bij de volgende herberekening automatisch worden ingetrokken.
 
-## 4) Transparency
+## 4) Transparantie
 
-Affisell maintains an internal history of recalculation (timestamp, metrics, status) to ensure traceability and continuous improvement of the programme.
+Affisell onderhoudt een interne herberekeningsgeschiedenis (tijdstempel, statistieken, status) om traceerbaarheid en continue verbetering van het programma te waarborgen.

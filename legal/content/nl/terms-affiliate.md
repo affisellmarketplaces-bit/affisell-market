@@ -1,74 +1,74 @@
 ---
-title: Affiliate General Terms (AGT)
-description: Terms applicable to Affisell creators and partners.
+title: Algemene Voorwaarden Affiliate (AVA)
+description: Voorwaarden van toepassing op Affisell-creators en -partners.
 lastUpdated: 2026-05-26
 order: 3
 ---
 
-# Affiliate General Terms (AGT)
+# Algemene Voorwaarden Affiliate (AVA)
 
-**Last updated: {{LAST_UPDATED}}**
+**Laatst bijgewerkt: {{LAST_UPDATED}}**
 
-These Affiliate General Terms ("**AGT**") supplement the [GTU](/legal/terms-of-service) and govern the relationship between **Affisell SAS** and any partner registered as an **Affiliate** (creator, influencer, reseller).
+Deze Algemene Voorwaarden Affiliate («**AVA**») vullen de [AGV](/legal/terms-of-service) aan en regelen de relatie tussen **Affisell SAS** en elke partner geregistreerd als **Affiliate** (creator, influencer, wederverkoper).
 
-## Article 1 — Status
+## Artikel 1 — Status
 
-1.1. The Affiliate acts as a **professional or non-professional** according to their declaration. They are solely responsible for their tax and social obligations (URSSAF, VAT, income tax declaration).
+1.1. De Affiliate handelt als **professional of niet-professional** volgens zijn verklaring. Hij is als enige verantwoordelijk voor zijn fiscale en sociale verplichtingen (URSSAF, btw, inkomstenbelastingaangifte).
 
-### Article 1.2 — "Ambassador" terminology
+### Artikel 1.2 — Terminologie «Ambassador»
 
-The term "Ambassador", used for marketing purposes, designates exclusively an independent Affisell Affiliate Partner as defined in Article 1.1.
+De term «Ambassador», gebruikt voor marketingdoeleinden, duidt uitsluitend een onafhankelijke Affisell Affiliate Partner aan zoals gedefinieerd in artikel 1.1.
 
-Use of this term does not create any subordination relationship, representation mandate, or employment contract between the Ambassador and Affisell or its Suppliers.
+Het gebruik van deze term creëert geen ondergeschiktheidsrelatie, vertegenwoordigingsmandaat of arbeidsovereenkomst tussen de Ambassador en Affisell of zijn Leveranciers.
 
-The Ambassador acts in their own name, on their own account, and remains solely responsible for their tax, social, and legal obligations.
+De Ambassador handelt op eigen naam, voor eigen rekening, en blijft als enige verantwoordelijk voor zijn fiscale, sociale en juridische verplichtingen.
 
-1.3. Affisell is not the employer of the Affiliate.
+1.3. Affisell is niet de werkgever van de Affiliate.
 
-## Article 2 — Listings and markup
+## Artikel 2 — Listings en commerciële opslag
 
-2.1. The Affiliate may freely set their **commercial markup** between **0% and 120%** above the Supplier catalogue price, within the Platform's technical limits.
+2.1. De Affiliate kan vrij zijn **commerciële opslag** vaststellen tussen **0 % en 120 %** boven de catalogusprijs van de Leverancier, binnen de technische limieten van het Platform.
 
-2.2. The **net selling price** displayed to the Buyer = catalogue price + markup (excluding VAT and excluding Affisell platform fees integrated into the payment flow).
+2.2. De **netto verkoopprijs** getoond aan de Koper = catalogusprijs + opslag (exclusief btw en exclusief Affisell-platformkosten geïntegreerd in de betalingsstroom).
 
-2.3. The Affiliate undertakes not to mislead the Buyer regarding the origin, characteristics, or availability of the product.
+2.3. De Affiliate verbindt zich ertoe de Koper niet te misleiden over de herkomst, kenmerken of beschikbaarheid van het product.
 
-## Article 3 — Supplier commission
+## Artikel 3 — Leverancierscommissie
 
-3.1. The Supplier may offer a **commission** (percentage of the catalogue) paid to the Affiliate in addition to the markup. This commission is **funded by the Supplier**, not by Affisell.
+3.1. De Leverancier kan een **commissie** (percentage van de catalogus) aanbieden betaald aan de Affiliate naast de opslag. Deze commissie wordt **gefinancierd door de Leverancier**, niet door Affisell.
 
-3.2. Total Affiliate earnings on a sale = **Supplier commission + net markup** (after Affisell fees calculated on the customer net base according to the GTU).
+3.2. Totale Affiliate-inkomsten op een verkoop = **leverancierscommissie + netto opslag** (na Affisell-kosten berekend op de klantnettobasis volgens de AGV).
 
-## Article 4 — Payments
+## Artikel 4 — Betalingen
 
-4.1. Affiliate payouts are made via **Stripe Connect**, in principle at **D+7** after eligibility, subject to clawback in the event of a refund.
+4.1. Affiliate-uitbetalingen geschieden via **Stripe Connect**, in principe op **D+7** na geschiktheid, onderworpen aan terugvordering bij terugbetaling.
 
-4.2. Affisell provides transaction statements; the Affiliate issues their invoices or receipts according to their legal status.
+4.2. Affisell verstrekt transactieoverzichten; de Affiliate geeft zijn facturen of ontvangstbewijzen uit volgens zijn juridische status.
 
-## Article 5 — Content and ethics
+## Artikel 5 — Inhoud en ethiek
 
-5.1. Prohibited: spam, misleading advertising, counterfeiting, hateful or illegal content, unauthorized use of third-party brands.
+5.1. Verboden: spam, misleidende reclame, namaak, haatdragende of illegale inhoud, ongeautoriseerd gebruik van merken van derden.
 
-5.2. The Affiliate complies with third-party platform rules (Meta, TikTok, etc.) when sharing Affisell links.
+5.2. De Affiliate houdt zich aan de regels van platforms van derden (Meta, TikTok, enz.) bij het delen van Affisell-links.
 
-5.3. Affisell may remove a listing or suspend an account without notice in the event of a violation.
+5.3. Affisell kan een listing verwijderen of een account zonder kennisgeving opschorten bij schending.
 
-## Article 6 — Data and confidentiality
+## Artikel 6 — Gegevens en vertrouwelijkheid
 
-6.1. The Affiliate accesses only Buyer data strictly necessary for the sale (order email, shipping address via the Supplier).
+6.1. De Affiliate heeft alleen toegang tot Kopergegevens die strikt noodzakelijk zijn voor de verkoop (bestel-e-mail, verzendadres via de Leverancier).
 
-6.2. The Supplier may hide their wholesale net detail from the Affiliate according to storefront settings (`showRevenueToAffiliate`).
+6.2. De Leverancier kan zijn groothandelnetto-detail verbergen voor de Affiliate volgens storefront-instellingen (`showRevenueToAffiliate`).
 
-## Article 7 — Intellectual property
+## Artikel 7 — Intellectueel eigendom
 
-The Affiliate grants Affisell a non-exclusive licence to display their storefront content on the Platform.
+De Affiliate verleent Affisell een niet-exclusieve licentie om zijn storefront-inhoud op het Platform weer te geven.
 
-## Article 8 — Termination
+## Artikel 8 — Beëindiging
 
-8.1. The Affiliate may close their account; orders in progress remain fulfilled.
+8.1. De Affiliate kan zijn account sluiten; lopende bestellingen blijven worden uitgevoerd.
 
-8.2. Affisell may terminate in the event of fraud, AGT non-compliance, or harmful reputation.
+8.2. Affisell kan beëindigen bij fraude, niet-naleving van de AVA of schadelijke reputatie.
 
-## Article 9 — Contact
+## Artikel 9 — Contact
 
 {{EMAIL}} — DPO: {{DPO}}

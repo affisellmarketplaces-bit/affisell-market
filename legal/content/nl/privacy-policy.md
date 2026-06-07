@@ -1,67 +1,67 @@
 ---
-title: Privacy Policy
-description: 'Affisell RGPD Policy — processing, legal basis, rights.'
+title: Privacybeleid
+description: 'Affisell GDPR-beleid — verwerking, rechtsgrond, rechten.'
 lastUpdated: 2026-05-26T00:00:00.000Z
 order: 4
 ---
 
-# Privacy Policy (GDPR)
+# Privacybeleid (GDPR)
 
-**Last updated: {{LAST_UPDATED}}**
+**Laatst bijgewerkt: {{LAST_UPDATED}}**
 
-## Article 1 — Data Controller
+## Artikel 1 — Verwerkingsverantwoordelijke
 
-**Affisell SAS** — {{ADRESSE}} — SIREN {{SIREN}} — VAT FR{{TVA}}  
-Contact: {{EMAIL}} — Data Protection Officer (DPO): **{{DPO}}**
+**Affisell SAS** — {{ADRESSE}} — SIREN {{SIREN}} — btw FR{{TVA}}  
+Contact: {{EMAIL}} — Functionaris Gegevensbescherming (DPO): **{{DPO}}**
 
-## Article 2 — Collected Data
+## Artikel 2 — Verzamelde gegevens
 
-| Category | Examples | Purpose |
+| Categorie | Voorbeelden | Doel |
 |-----------|----------|----------|
-| Identity & Account | Email, name, role (Buyer / Affiliate / Supplier) | Account creation, authentication |
-| Company | Business name, SIRET (supplier) | KYC, invoicing |
-| Payment | Stripe identifiers, IBAN (via Stripe Connect) | Payment, payouts |
-| Order | Shipping address, purchase history | Contract execution |
-| Technical | Logs, IP, cookies (see [Cookie Policy](/legal/cookies-policy)) | Security, service improvement |
-| Content | Product images, descriptions | Marketplace hosting |
+| Identiteit en account | E-mail, naam, rol (Koper / Affiliate / Leverancier) | Accountaanmaak, authenticatie |
+| Bedrijf | Handelsnaam, SIRET (leverancier) | KYC, facturering |
+| Betaling | Stripe-identificatoren, IBAN (via Stripe Connect) | Betaling, uitbetalingen |
+| Bestelling | Verzendadres, aankoopgeschiedenis | Contractuitvoering |
+| Technisch | Logs, IP, cookies (zie [Cookiebeleid](/legal/cookies-policy)) | Beveiliging, dienstverbetering |
+| Inhoud | Productafbeeldingen, beschrijvingen | Marktplaatshosting |
 
-## Article 3 — Legal Bases
+## Artikel 3 — Rechtsgronden
 
-- **Contract execution** (art. 6.1.b GDPR): account, orders, payments, support.
-- **Legal obligation** (art. 6.1.c): accounting records, fraud prevention.
-- **Legitimate interest** (art. 6.1.f): security, aggregated analytics, product improvement.
-- **Consent** (art. 6.1.a): non-essential cookies, marketing if enabled.
+- **Contractuitvoering** (art. 6.1.b GDPR): account, bestellingen, betalingen, support.
+- **Wettelijke verplichting** (art. 6.1.c): boekhoudkundige registers, fraudepreventie.
+- **Gerechtvaardigd belang** (art. 6.1.f): beveiliging, geaggregeerde analytics, productverbetering.
+- **Toestemming** (art. 6.1.a): niet-essentiële cookies, marketing indien ingeschakeld.
 
-## Article 4 — Recipients
+## Artikel 4 — Ontvangers
 
-- **Stripe, Inc.** — payment and Connect (transfer outside EU framed by standard contractual clauses).
-- **Vercel Inc.** — application hosting.
-- **Suppliers and Affiliates** — data strictly necessary for order execution.
-- Competent authorities upon legal request.
+- **Stripe, Inc.** — betaling en Connect (overdracht buiten EU ingekaderd door standaardcontractuele clausules).
+- **Vercel Inc.** — applicatiehosting.
+- **Leveranciers en Affiliates** — gegevens strikt noodzakelijk voor besteluitvoering.
+- Bevoegde autoriteiten op wettelijk verzoek.
 
-## Article 5 — Retention Periods
+## Artikel 5 — Bewaartermijnen
 
-- Active account: duration of the contractual relationship.
-- Order and accounting data: **3 years** after the end of the business relationship, unless longer legal obligation.
-- Technical logs: up to **12 months** unless security incident.
-- Cookies: as per [Cookie Policy](/legal/cookies-policy).
+- Actief account: duur van de contractuele relatie.
+- Bestel- en boekhoudgegevens: **3 jaar** na einde van de zakelijke relatie, tenzij langere wettelijke verplichting.
+- Technische logs: tot **12 maanden** behoudens beveiligingsincident.
+- Cookies: volgens het [Cookiebeleid](/legal/cookies-policy).
 
-## Article 6 — Your Rights
+## Artikel 6 — Uw rechten
 
-You have the rights of **access**, **rectification**, **erasure**, **limitation**, **objection**, **portability**, and withdrawal of consent.
+U heeft de rechten op **inzage**, **rectificatie**, **wissing**, **beperking**, **bezwaar**, **overdraagbaarheid** en intrekking van toestemming.
 
-Exercise: **{{DPO}}** or [GDPR](/dashboard/account/gdpr) space (JSON/CSV export, account deletion, consent management).
+Uitoefening: **{{DPO}}** of [GDPR](/dashboard/account/gdpr)-ruimte (JSON/CSV-export, accountverwijdering, toestemmingsbeheer).
 
-Complaint: CNIL — www.cnil.fr
+Klacht: CNIL — www.cnil.fr
 
-## Article 7 — Security
+## Artikel 7 — Beveiliging
 
-Appropriate measures: transit encryption (HTTPS), password hashing, restricted access, backups.
+Passende maatregelen: versleuteling in transit (HTTPS), wachtwoordhashing, beperkte toegang, back-ups.
 
-## Article 8 — Transfers outside the EU
+## Artikel 8 — Overdrachten buiten de EU
 
-When subcontractors are located outside the EEA, Affisell ensures appropriate guarantees (SCC, adequacy decision, or equivalent mechanism).
+Wanneer onderaannemers buiten de EER zijn gevestigd, waarborgt Affisell passende garanties (SCC, adequaatheidsbesluit of equivalent mechanisme).
 
-## Article 9 — Amendments
+## Artikel 9 — Wijzigingen
 
-Any substantial modification will be brought to your attention (email or banner).
+Elke substantiële wijziging wordt aan u meegedeeld (e-mail of banner).

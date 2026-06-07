@@ -1,50 +1,50 @@
 ---
-title: Cookie Policy
-description: 'Essential, analytics, and marketing cookies on Affisell.'
+title: Cookie 政策
+description: 'Affisell 上的必要、分析及营销 Cookie。'
 lastUpdated: 2026-05-26T00:00:00.000Z
 order: 6
 ---
 
-# Cookie Policy
+# Cookie 政策
 
-**Last updated: {{LAST_UPDATED}}**
+**最后更新：{{LAST_UPDATED}}**
 
-## Article 1 — What is a cookie?
+## 第 1 条 — 什么是 Cookie？
 
-A cookie is a text file deposited on your terminal when you visit the Platform. Similar trackers (localStorage, pixels) may be used for the same purposes.
+Cookie 是您访问平台时存储在终端上的文本文件。可能使用类似追踪器（localStorage、像素）达到相同目的。
 
-## Article 2 — Consent Banner
+## 第 2 条 — 同意横幅
 
-On your first visit, a banner (Axeptio style) allows you to accept, refuse, or customize non-essential categories. You can modify your choice at any time from [Manage cookies](/dashboard/account/gdpr) or the "Cookies" link at the bottom of the page.
+首次访问时，横幅（Axeptio 风格）允许您接受、拒绝或自定义非必要类别。您可随时通过[管理 Cookie](/dashboard/account/gdpr)或页面底部的「Cookie」链接修改选择。
 
-## Article 3 — Categories
+## 第 3 条 — 类别
 
-### 3.1 — Essential Cookies (required)
+### 3.1 — 必要 Cookie（必需）
 
-| Cookie | Purpose | Duration |
+| Cookie | 用途 | 期限 |
 |--------|----------|-------|
-| Session NextAuth | Authentication | Session |
-| `affisell_locale` | Language | 1 year |
-| `affisell_cookie_consent` | Remember your choices | 13 months |
+| NextAuth 会话 | 身份验证 | 会话 |
+| `affisell_locale` | 语言 | 1 年 |
+| `affisell_cookie_consent` | 记住您的选择 | 13 个月 |
 
-**Legal basis**: legitimate interest / service execution. No consent required.
+**法律依据**：合法利益/服务履行。无需同意。
 
-### 3.2 — Analytics Cookies
+### 3.2 — 分析 Cookie
 
-| Tool | Purpose |
+| 工具 | 用途 |
 |-------|----------|
-| Vercel Analytics | Aggregate audience measurement, performance |
+| Vercel Analytics | 汇总受众测量、性能 |
 
-**Legal basis**: consent. Deposited only if you accept the "Analytics" category.
+**法律依据**：同意。仅在您接受「分析」类别时放置。
 
-### 3.3 — Marketing Cookies
+### 3.3 — 营销 Cookie
 
-Reserved for future remarketing tools or advertising partners. **No third-party marketing cookie is enabled by default** without your explicit consent.
+保留用于未来的再营销工具或广告合作伙伴。**未经您明确同意，默认不启用任何第三方营销 Cookie**。
 
-## Article 4 — Browser Settings
+## 第 4 条 — 浏览器设置
 
-You can block cookies through your browser settings. Some features (login, cart) may no longer work.
+您可通过浏览器设置阻止 Cookie。部分功能（登录、购物车）可能无法使用。
 
-## Article 5 — Contact
+## 第 5 条 — 联系方式
 
-Questions: {{DPO}} — <mailto:{{EMAIL}}>{{EMAIL}}</mailto>
+咨询：{{DPO}} — <mailto:{{EMAIL}}>{{EMAIL}}</mailto>

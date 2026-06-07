@@ -1,48 +1,48 @@
 ---
-title: General Terms of Sale (GTS)
-description: Applicable to purchases made on the Affisell marketplace by consumers located in the European Union.
+title: Ogólne Warunki Sprzedaży (OWS)
+description: Mają zastosowanie do zakupów dokonanych na marketplace Affisell przez konsumentów zlokalizowanych w Unii Europejskiej.
 lastUpdated: 2026-06-01
 order: 0
 ---
 
-# General Terms of Sale (GTS)
+# Ogólne Warunki Sprzedaży (OWS)
 
-**Last updated: {{LAST_UPDATED}}**
+**Ostatnia aktualizacja: {{LAST_UPDATED}}**
 
-## 1. Seller identity and Affisell's role
+## 1. Tożsamość sprzedawcy i rola Affisell
 
-**{{COMPANY_NAME}}** ({{ADRESSE}}, SIRET {{SIRET}}) operates the Affisell platform. For each order, the product sales contract is concluded between you (the customer) and the **Supplier** identified on the product page. Affisell acts as **agent and technical intermediary** (payment, invoicing, mediation): **Affisell is not the seller** of the goods, unless explicitly stated otherwise.
+**{{COMPANY_NAME}}** ({{ADRESSE}}, SIRET {{SIRET}}) prowadzi platformę Affisell. W przypadku każdego zamówienia umowa sprzedaży produktu zostaje zawarta między Państwem (klientem) a **Dostawcą** wskazanym na stronie produktu. Affisell działa jako **agent i pośrednik techniczny** (płatność, fakturowanie, mediacja): **Affisell nie jest sprzedawcą** towarów, chyba że wyraźnie wskazano inaczej.
 
-## 2. Prices, VAT and invoicing
+## 2. Ceny, VAT i fakturowanie
 
-Prices displayed include applicable VAT at the time of order when the "VAT included" notice appears on the product page. The invoice is issued in the name of {{COMPANY_NAME}} as billing intermediary or according to the tax rules applicable to the Supplier. Delivery charges, where applicable, are indicated before payment validation.
+Wyświetlane ceny obejmują obowiązujący VAT w momencie zamówienia, gdy na stronie produktu pojawia się informacja «VAT wliczony». Faktura jest wystawiana w imieniu {{COMPANY_NAME}} jako pośrednika fakturowania lub zgodnie z przepisami podatkowymi mającymi zastosowanie do Dostawcy. Koszty dostawy, jeśli mają zastosowanie, są wskazywane przed zatwierdzeniem płatności.
 
-## 3. Payment
+## 3. Płatność
 
-Payment is made online via **Stripe** (bank card and compatible payment methods). The order is confirmed only after payment acceptance by the banking institution.
+Płatność odbywa się online za pośrednictwem **Stripe** (karta bankowa i kompatybilne metody płatności). Zamówienie jest potwierdzane dopiero po akceptacji płatności przez instytucję bankową.
 
-## 4. Delivery — indicative timeframes
+## 4. Dostawa — orientacyjne terminy
 
-Products offered on Affisell frequently originate from warehouses located in Asia or Europe. Unless otherwise indicated on the product page, the **estimated delivery time is 15 to 30 business days** from order confirmation, excluding force majeure, customs inspection, or stock shortage. A tracking number is provided when the Supplier ships it.
+Produkty oferowane na Affisell często pochodzą z magazynów zlokalizowanych w Azji lub Europie. O ile na stronie produktu nie wskazano inaczej, **szacowany czas dostawy wynosi od 15 do 30 dni roboczych** od potwierdzenia zamówienia, z wyłączeniem siły wyższej, kontroli celnej lub braku zapasów. Numer śledzenia jest podawany, gdy Dostawca realizuje wysyłkę.
 
-## 5. Right of withdrawal (14 days — EU)
+## 5. Prawo odstąpienia (14 dni — UE)
 
-In accordance with Articles L221-18 et seq. of the French Consumer Code, you have a period of **14 calendar days** from receipt of the product to exercise your right of withdrawal, without having to provide reasons. The product must be returned in its original condition, unused, with packaging intact. **Return shipping costs are borne by you**, unless the product is defective, non-compliant, or applicable law requires otherwise.
+Zgodnie z artykułami L221-18 i następnymi francuskiego Kodeksu Konsumenckiego, mają Państwo okres **14 dni kalendarzowych** od otrzymania produktu na skorzystanie z prawa odstąpienia, bez konieczności podawania przyczyn. Produkt musi zostać zwrócony w stanie oryginalnym, nieużywany, z nienaruszonym opakowaniem. **Koszty zwrotu ponosi klient**, chyba że produkt jest wadliwy, niezgodny lub obowiązujące prawo stanowi inaczej.
 
-To exercise this right: contact us at [{{SUPPORT_EMAIL}}](mailto:{{SUPPORT_EMAIL}}) or via the [Returns & Refunds](/returns) page.
+Aby skorzystać z tego prawa: skontaktuj się z nami pod adresem [{{SUPPORT_EMAIL}}](mailto:{{SUPPORT_EMAIL}}) lub za pośrednictwem strony [Zwroty i refundacje](/returns).
 
-## 6. Refund
+## 6. Zwrot środków
 
-After receipt and inspection of the return (or agreement on proof of defect), the refund is processed to the original payment method, **within 14 days**, in accordance with Article L221-24 of the French Consumer Code. Initial delivery charges may be refunded according to cases provided by law.
+Po otrzymaniu i sprawdzeniu zwrotu (lub uzgodnieniu dowodu wady) zwrot środków jest realizowany na pierwotną metodę płatności, **w ciągu 14 dni**, zgodnie z artykułem L221-24 francuskiego Kodeksu Konsumenckiego. Początkowe koszty dostawy mogą zostać zwrócone zgodnie z przypadkami przewidzianymi przez prawo.
 
-## 7. Legal warranties
+## 7. Gwarancje ustawowe
 
-You benefit from the legal warranty of conformity and, where applicable, the warranty against hidden defects. In the event of a proven defect, contact support with photos; a solution (exchange, refund without return for small amounts) may be offered according to our returns policy.
+Korzystają Państwo z ustawowej gwarancji zgodności oraz, w stosownych przypadkach, gwarancji na wady ukryte. W przypadku udowodnionej wady skontaktuj się z pomocą techniczną ze zdjęciami; może zostać zaproponowane rozwiązanie (wymiana, zwrot bez odesłania towaru przy niewielkich kwotach) zgodnie z naszą polityką zwrotów.
 
-## 8. Disputes and mediation
+## 8. Spory i mediacja
 
-In the event of a complaint, first contact [{{SUPPORT_EMAIL}}](mailto:{{SUPPORT_EMAIL}}). Failing amicable resolution, you may use consumer mediation or the [European Online Dispute Resolution platform](https://ec.europa.eu/consumers/odr). The competent court remains that provided for by applicable law rules, subject to mandatory protective provisions for consumers in your country of residence.
+W przypadku reklamacji najpierw skontaktuj się z [{{SUPPORT_EMAIL}}](mailto:{{SUPPORT_EMAIL}}). W razie braku polubownego rozwiązania można skorzystać z mediacji konsumenckiej lub [Europejskiej platformy internetowego rozstrzygania sporów](https://ec.europa.eu/consumers/odr). Właściwy sąd pozostaje tym przewidzianym przez obowiązujące normy prawne, z zastrzeżeniem imperatywnych przepisów ochronnych dla konsumentów w kraju zamieszkania.
 
-## 9. Personal data
+## 9. Dane osobowe
 
-The processing of your data is described in our [privacy policy](/privacy).
+Przetwarzanie Państwa danych jest opisane w naszej [polityce prywatności](/privacy).

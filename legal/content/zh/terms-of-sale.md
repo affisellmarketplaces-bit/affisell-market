@@ -1,48 +1,48 @@
 ---
-title: General Terms of Sale (GTS)
-description: Applicable to purchases made on the Affisell marketplace by consumers located in the European Union.
+title: 一般销售条款（GTS）
+description: 适用于欧盟境内消费者在 Affisell 市场上进行的购买。
 lastUpdated: 2026-06-01
 order: 0
 ---
 
-# General Terms of Sale (GTS)
+# 一般销售条款（GTS）
 
-**Last updated: {{LAST_UPDATED}}**
+**最后更新：{{LAST_UPDATED}}**
 
-## 1. Seller identity and Affisell's role
+## 1. 卖方身份与 Affisell 的角色
 
-**{{COMPANY_NAME}}** ({{ADRESSE}}, SIRET {{SIRET}}) operates the Affisell platform. For each order, the product sales contract is concluded between you (the customer) and the **Supplier** identified on the product page. Affisell acts as **agent and technical intermediary** (payment, invoicing, mediation): **Affisell is not the seller** of the goods, unless explicitly stated otherwise.
+**{{COMPANY_NAME}}**（{{ADRESSE}}，SIRET {{SIRET}}）运营 Affisell 平台。对于每笔订单，产品销售合同在您（客户）与产品页面上标明的**供应商**之间订立。Affisell 作为**代理人和技术中介**（支付、开票、调解）：**Affisell 并非商品卖方**，除非另有明确说明。
 
-## 2. Prices, VAT and invoicing
+## 2. 价格、增值税与开票
 
-Prices displayed include applicable VAT at the time of order when the "VAT included" notice appears on the product page. The invoice is issued in the name of {{COMPANY_NAME}} as billing intermediary or according to the tax rules applicable to the Supplier. Delivery charges, where applicable, are indicated before payment validation.
+当产品页面显示「含增值税」提示时，所示价格包含下单时适用的增值税。发票以 {{COMPANY_NAME}} 名义作为开票中介开具，或根据适用于供应商的税务规则开具。运费（如适用）在确认付款前予以标明。
 
-## 3. Payment
+## 3. 支付
 
-Payment is made online via **Stripe** (bank card and compatible payment methods). The order is confirmed only after payment acceptance by the banking institution.
+通过 **Stripe** 在线支付（银行卡及兼容支付方式）。订单仅在银行机构接受付款后方予确认。
 
-## 4. Delivery — indicative timeframes
+## 4. 配送 — 参考时限
 
-Products offered on Affisell frequently originate from warehouses located in Asia or Europe. Unless otherwise indicated on the product page, the **estimated delivery time is 15 to 30 business days** from order confirmation, excluding force majeure, customs inspection, or stock shortage. A tracking number is provided when the Supplier ships it.
+Affisell 上提供的商品通常来自亚洲或欧洲的仓库。除非产品页面另有说明，**预计配送时间为订单确认后 15 至 30 个工作日**，不包括不可抗力、海关查验或缺货。供应商发货后将提供物流追踪号。
 
-## 5. Right of withdrawal (14 days — EU)
+## 5. 撤回权（14 天 — 欧盟）
 
-In accordance with Articles L221-18 et seq. of the French Consumer Code, you have a period of **14 calendar days** from receipt of the product to exercise your right of withdrawal, without having to provide reasons. The product must be returned in its original condition, unused, with packaging intact. **Return shipping costs are borne by you**, unless the product is defective, non-compliant, or applicable law requires otherwise.
+根据法国《消费者法典》第 L221-18 条及后续条款，自收到产品之日起，您享有 **14 个自然日**的撤回权，无需说明理由。产品须以原始状态退回，未使用且包装完好。**退货运费由您承担**，除非产品存在缺陷、不符合约定或适用法律另有规定。
 
-To exercise this right: contact us at [{{SUPPORT_EMAIL}}](mailto:{{SUPPORT_EMAIL}}) or via the [Returns & Refunds](/returns) page.
+行使此项权利：请通过 [{{SUPPORT_EMAIL}}](mailto:{{SUPPORT_EMAIL}}) 联系我们，或访问[退货与退款](/returns)页面。
 
-## 6. Refund
+## 6. 退款
 
-After receipt and inspection of the return (or agreement on proof of defect), the refund is processed to the original payment method, **within 14 days**, in accordance with Article L221-24 of the French Consumer Code. Initial delivery charges may be refunded according to cases provided by law.
+在收到并检查退货（或就缺陷证据达成一致）后，退款将退回原支付方式，**在 14 天内**完成，符合法国《消费者法典》第 L221-24 条。初始运费可根据法律规定的情形予以退还。
 
-## 7. Legal warranties
+## 7. 法定担保
 
-You benefit from the legal warranty of conformity and, where applicable, the warranty against hidden defects. In the event of a proven defect, contact support with photos; a solution (exchange, refund without return for small amounts) may be offered according to our returns policy.
+您享有法定符合性担保，并在适用情况下享有针对隐藏缺陷的担保。如经证实的缺陷，请附照片联系客服；可根据退货政策提供解决方案（换货、小额无需退货的退款）。
 
-## 8. Disputes and mediation
+## 8. 争议与调解
 
-In the event of a complaint, first contact [{{SUPPORT_EMAIL}}](mailto:{{SUPPORT_EMAIL}}). Failing amicable resolution, you may use consumer mediation or the [European Online Dispute Resolution platform](https://ec.europa.eu/consumers/odr). The competent court remains that provided for by applicable law rules, subject to mandatory protective provisions for consumers in your country of residence.
+如有投诉，请先联系 [{{SUPPORT_EMAIL}}](mailto:{{SUPPORT_EMAIL}})。如未能友好解决，可使用消费者调解或[欧盟在线争议解决平台](https://ec.europa.eu/consumers/odr)。管辖法院仍为适用法律所规定的法院，但须遵守您居住国对消费者实施的强制性保护规定。
 
-## 9. Personal data
+## 9. 个人数据
 
-The processing of your data is described in our [privacy policy](/privacy).
+对您数据的处理详见我们的[隐私政策](/privacy)。

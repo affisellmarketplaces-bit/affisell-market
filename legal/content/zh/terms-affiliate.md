@@ -1,74 +1,74 @@
 ---
-title: Affiliate General Terms (AGT)
-description: Terms applicable to Affisell creators and partners.
+title: 联盟伙伴一般条款（AGT）
+description: 适用于 Affisell 创作者与合作伙伴的条款。
 lastUpdated: 2026-05-26
 order: 3
 ---
 
-# Affiliate General Terms (AGT)
+# 联盟伙伴一般条款（AGT）
 
-**Last updated: {{LAST_UPDATED}}**
+**最后更新：{{LAST_UPDATED}}**
 
-These Affiliate General Terms ("**AGT**") supplement the [GTU](/legal/terms-of-service) and govern the relationship between **Affisell SAS** and any partner registered as an **Affiliate** (creator, influencer, reseller).
+本联盟伙伴一般条款（「**AGT**」）补充[GTU](/legal/terms-of-service)，规范 **Affisell SAS** 与任何注册为**联盟伙伴**（创作者、影响者、经销商）的合作伙伴之间的关系。
 
-## Article 1 — Status
+## 第 1 条 — 身份
 
-1.1. The Affiliate acts as a **professional or non-professional** according to their declaration. They are solely responsible for their tax and social obligations (URSSAF, VAT, income tax declaration).
+1.1. 联盟伙伴根据其声明作为**专业人士或非专业人士**行事。其单独对其税务及社保义务（URSSAF、增值税、所得税申报）负责。
 
-### Article 1.2 — "Ambassador" terminology
+### 第 1.2 条 —「大使」术语
 
-The term "Ambassador", used for marketing purposes, designates exclusively an independent Affisell Affiliate Partner as defined in Article 1.1.
+「大使」一词用于营销目的，仅指第 1.1 条所定义的独立 Affisell 联盟伙伴。
 
-Use of this term does not create any subordination relationship, representation mandate, or employment contract between the Ambassador and Affisell or its Suppliers.
+使用该术语并不在大使与 Affisell 或其供应商之间建立从属关系、代表授权或劳动合同。
 
-The Ambassador acts in their own name, on their own account, and remains solely responsible for their tax, social, and legal obligations.
+大使以其自身名义、自负盈亏行事，并单独对其税务、社保及法律义务负责。
 
-1.3. Affisell is not the employer of the Affiliate.
+1.3. Affisell 并非联盟伙伴的雇主。
 
-## Article 2 — Listings and markup
+## 第 2 条 — 商品列表与加价
 
-2.1. The Affiliate may freely set their **commercial markup** between **0% and 120%** above the Supplier catalogue price, within the Platform's technical limits.
+2.1. 联盟伙伴可在平台技术限制内，于供应商目录价之上自由设定 **0% 至 120%** 的**商业加价**。
 
-2.2. The **net selling price** displayed to the Buyer = catalogue price + markup (excluding VAT and excluding Affisell platform fees integrated into the payment flow).
+2.2. 向买方显示的**净售价** = 目录价 + 加价（不含增值税，且不含纳入支付流程的 Affisell 平台费用）。
 
-2.3. The Affiliate undertakes not to mislead the Buyer regarding the origin, characteristics, or availability of the product.
+2.3. 联盟伙伴承诺不就产品的来源、特性或供应情况误导买方。
 
-## Article 3 — Supplier commission
+## 第 3 条 — 供应商佣金
 
-3.1. The Supplier may offer a **commission** (percentage of the catalogue) paid to the Affiliate in addition to the markup. This commission is **funded by the Supplier**, not by Affisell.
+3.1. 供应商可提供**佣金**（目录百分比）支付给联盟伙伴，作为加价之外的报酬。该佣金由**供应商**出资，而非 Affisell。
 
-3.2. Total Affiliate earnings on a sale = **Supplier commission + net markup** (after Affisell fees calculated on the customer net base according to the GTU).
+3.2. 联盟伙伴在单笔销售中的总收益 = **供应商佣金 + 净加价**（扣除按 GTU 基于客户净基数计算的 Affisell 费用后）。
 
-## Article 4 — Payments
+## 第 4 条 — 支付
 
-4.1. Affiliate payouts are made via **Stripe Connect**, in principle at **D+7** after eligibility, subject to clawback in the event of a refund.
+4.1. 联盟伙伴付款通过 **Stripe Connect** 进行，原则上在符合资格条件后 **D+7**，退款时可能追回。
 
-4.2. Affisell provides transaction statements; the Affiliate issues their invoices or receipts according to their legal status.
+4.2. Affisell 提供交易对账单；联盟伙伴根据其法律身份开具发票或收据。
 
-## Article 5 — Content and ethics
+## 第 5 条 — 内容与伦理
 
-5.1. Prohibited: spam, misleading advertising, counterfeiting, hateful or illegal content, unauthorized use of third-party brands.
+5.1. 禁止：垃圾信息、误导性广告、假冒、仇恨或非法内容、未经授权使用第三方品牌。
 
-5.2. The Affiliate complies with third-party platform rules (Meta, TikTok, etc.) when sharing Affisell links.
+5.2. 分享 Affisell 链接时，联盟伙伴须遵守第三方平台规则（Meta、TikTok 等）。
 
-5.3. Affisell may remove a listing or suspend an account without notice in the event of a violation.
+5.3. 如有违规，Affisell 可不经通知移除列表或暂停账户。
 
-## Article 6 — Data and confidentiality
+## 第 6 条 — 数据与保密
 
-6.1. The Affiliate accesses only Buyer data strictly necessary for the sale (order email, shipping address via the Supplier).
+6.1. 联盟伙伴仅可访问销售所严格必需的买方数据（订单邮箱、通过供应商的收货地址）。
 
-6.2. The Supplier may hide their wholesale net detail from the Affiliate according to storefront settings (`showRevenueToAffiliate`).
+6.2. 供应商可根据店面设置向联盟伙伴隐藏批发净额明细（`showRevenueToAffiliate`）。
 
-## Article 7 — Intellectual property
+## 第 7 条 — 知识产权
 
-The Affiliate grants Affisell a non-exclusive licence to display their storefront content on the Platform.
+联盟伙伴授予 Affisell 非独占许可，以在平台上展示其店面内容。
 
-## Article 8 — Termination
+## 第 8 条 — 终止
 
-8.1. The Affiliate may close their account; orders in progress remain fulfilled.
+8.1. 联盟伙伴可关闭账户；进行中的订单仍须履行。
 
-8.2. Affisell may terminate in the event of fraud, AGT non-compliance, or harmful reputation.
+8.2. 如存在欺诈、违反 AGT 或损害声誉，Affisell 可终止合作。
 
-## Article 9 — Contact
+## 第 9 条 — 联系方式
 
-{{EMAIL}} — DPO: {{DPO}}
+{{EMAIL}} — DPO：{{DPO}}
