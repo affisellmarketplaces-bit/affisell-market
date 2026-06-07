@@ -829,15 +829,15 @@
       "listingCountForQuery": " per « {query} »",
       "dbEmptyTitle": "Database temporaneamente non disponibile",
       "dbDevHint": "Local dev: esegui npm run db:local:setup e impostalo DATABASE_URL in .env.local a postgresql://affisell:affisell@localhost:5433/affisell",
-      "facetShipsFromFrance": "France",
+      "facetShipsFromFrance": "Francia",
       "facetPrice": {
-        "under25": "Under €25",
+        "under25": "Sotto €25",
         "25-100": "€25 – €100",
-        "over100": "Over €100"
+        "over100": "Oltre €100"
       },
       "facetDelivery": {
-        "under3": "≤ 3 days",
-        "under7": "≤ 7 days"
+        "under3": "≤ 3 giorni",
+        "under7": "≤ 7 giorni"
       }
     },
     "mobileHub": {
@@ -2393,6 +2393,74 @@
       "body": "Hai iniziato un acquisto su Affisell. La tua selezione è ancora disponibile — checkout sicuro con Stripe e consegna tracciata.",
       "cta": "Riprendi il mio acquisto",
       "footer": "Domande? Controlla la FAQ o l'assistente di supporto su Affisell."
+    }
+  },
+  "accountOrders": {
+    "empty": "Nessun ordine ancora per questo account.",
+    "fulfillmentTag": {
+      "preparing": " · Preparazione dell'ordine",
+      "shipped": " · Spedito",
+      "paid": " · Confermato"
+    },
+    "viewDetails": "Visualizza dettagli e fattura →",
+    "preparing": {
+      "title": "Il tuo venditore sta preparando la spedizione",
+      "body": "Hanno confermato che il tuo ordine è in fase di imballaggio. Il tracking apparirà non appena il corriere scansionerà il pacco.",
+      "since": "Dal"
+    },
+    "trackingLine": "Tracking: {carrier} {number}",
+    "carrierDefault": "Corriere",
+    "blindBadge": "Non visibile",
+    "confirmDelivery": {
+      "body": "Ricevuto e soddisfatto? Conferma la consegna — i pagamenti ai venditori vengono eseguiti dopo {confirmDays} giorni. Senza conferma, i pagamenti potrebbero comunque essere rilasciati dopo {autoDays} giorni dalla spedizione. Il tuo diritto di recesso legale rimane valido durante la finestra di reso.",
+      "cta": "Conferma ricezione e soddisfazione",
+      "error": "Impossibile confermare"
+    },
+    "deliveryConfirmed": "Consegna confermata · {date}",
+    "payoutFrom": " · pagamenti ai commercianti dal {date}",
+    "return": {
+      "label": "Reso: ",
+      "status": {
+        "REQUESTED": "In attesa del venditore",
+        "AWAITING_SHIPMENT": "Spedisci l'articolo",
+        "IN_TRANSIT": "Reso in transito",
+        "RECEIVED": "Ricevuto — rimborso in attesa",
+        "REFUNDED": "Rimborsato",
+        "REJECTED": "Rifiutato",
+        "CANCELLED": "Annullato"
+      },
+      "cancelRequest": "Annulla richiesta",
+      "cancelError": "Impossibile annullare",
+      "lastReturn": "Ultimo reso: {status} · {date}",
+      "windowEnded": "La finestra di reso è scaduta il {date}.",
+      "form": {
+        "reasonLabel": "Motivo",
+        "detailsPlaceholder": "Dettagli (opzionale)",
+        "submit": "Richiedi reso",
+        "error": "Richiesta fallita"
+      },
+      "trackingForm": {
+        "hint": "Spedisci l'articolo all'indirizzo indicato nella conferma dell'ordine, poi aggiungi il tracking qui.",
+        "carrierPlaceholder": "Corriere (ad es. Colissimo, Chronopost)",
+        "numberPlaceholder": "Numero di tracking",
+        "submit": "Invia tracciamento",
+        "error": "Impossibile salvare il tracciamento"
+      }
+    },
+    "fulfillmentPanel": {
+      "loading": "Caricamento…",
+      "title": "Aggiornamento spedizione",
+      "seller": "Venditore",
+      "buyer": "Tu",
+      "extensionAsk": "Il venditore richiede {days} giorni extra per la spedizione:",
+      "accept": "Accetta tempo extra",
+      "reject": "Rifiuta (l'ordine potrebbe essere annullato)",
+      "notePlaceholder": "Nota opzionale al venditore",
+      "reply": "Rispondi al venditore",
+      "send": "Invia",
+      "messagePlaceholder": "Il tuo messaggio…",
+      "accepted": "Hai accettato la proroga.",
+      "rejected": "Hai rifiutato la proroga."
     }
   }
 }

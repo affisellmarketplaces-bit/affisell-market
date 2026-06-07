@@ -829,15 +829,15 @@
       "listingCountForQuery": " para « {query} »",
       "dbEmptyTitle": "Base de datos temporalmente no disponible",
       "dbDevHint": "Desarrollo local: ejecuta npm run db:local:setup y establece DATABASE_URL en .env.local a postgresql://affisell:affisell@localhost:5433/affisell",
-      "facetShipsFromFrance": "France",
+      "facetShipsFromFrance": "Francia",
       "facetPrice": {
-        "under25": "Under €25",
+        "under25": "Menos de €25",
         "25-100": "€25 – €100",
-        "over100": "Over €100"
+        "over100": "Más de €100"
       },
       "facetDelivery": {
-        "under3": "≤ 3 days",
-        "under7": "≤ 7 days"
+        "under3": "≤ 3 días",
+        "under7": "≤ 7 días"
       }
     },
     "mobileHub": {
@@ -2393,6 +2393,74 @@
       "body": "Inició una compra en Affisell. Su selección todavía está disponible — pago seguro con Stripe y entrega rastreada.",
       "cta": "Reanudar mi compra",
       "footer": "¿Preguntas? Consulte la FAQ o el asistente de soporte en Affisell."
+    }
+  },
+  "accountOrders": {
+    "empty": "No hay pedidos aún para esta cuenta.",
+    "fulfillmentTag": {
+      "preparing": " · Preparando tu pedido",
+      "shipped": " · Enviado",
+      "paid": " · Confirmado"
+    },
+    "viewDetails": "Ver detalles y factura →",
+    "preparing": {
+      "title": "Tu vendedor está preparando el envío",
+      "body": "Han confirmado que tu pedido se está preparando. El seguimiento aparece en el momento en que el transportista escanea el paquete.",
+      "since": "Desde"
+    },
+    "trackingLine": "Seguimiento: {carrier} {number}",
+    "carrierDefault": "Transportista",
+    "blindBadge": "Ciego",
+    "confirmDelivery": {
+      "body": "¿Recibido y satisfecho? Confirma la entrega — los pagos a los vendedores se realizan después de {confirmDays} días. Sin confirmación, los pagos pueden seguir realizándose después de {autoDays} días desde el envío. Tu derecho de retracto legal sigue vigente durante el plazo de devolución.",
+      "cta": "Confirmar recepción y satisfacción",
+      "error": "No se pudo confirmar"
+    },
+    "deliveryConfirmed": "Entrega confirmada · {date}",
+    "payoutFrom": " · pagos a comerciantes desde {date}",
+    "return": {
+      "label": "Devolución: ",
+      "status": {
+        "REQUESTED": "Esperando al vendedor",
+        "AWAITING_SHIPMENT": "Enviar el artículo de vuelta",
+        "IN_TRANSIT": "Devolución en tránsito",
+        "RECEIVED": "Recibido — reembolso pendiente",
+        "REFUNDED": "Reembolsado",
+        "REJECTED": "Rechazado",
+        "CANCELLED": "Cancelado"
+      },
+      "cancelRequest": "Cancelar solicitud",
+      "cancelError": "No se pudo cancelar",
+      "lastReturn": "Última devolución: {status} · {date}",
+      "windowEnded": "El plazo de devolución finalizó el {date}.",
+      "form": {
+        "reasonLabel": "Motivo",
+        "detailsPlaceholder": "Detalles (opcional)",
+        "submit": "Solicitar devolución",
+        "error": "La solicitud falló"
+      },
+      "trackingForm": {
+        "hint": "Envía el artículo a la dirección de tu confirmación de pedido, luego agrega el seguimiento aquí.",
+        "carrierPlaceholder": "Transportista (por ejemplo, Correos, MRW)",
+        "numberPlaceholder": "Número de seguimiento",
+        "submit": "Enviar seguimiento",
+        "error": "No se pudo guardar el seguimiento"
+      }
+    },
+    "fulfillmentPanel": {
+      "loading": "Cargando…",
+      "title": "Actualización de envío",
+      "seller": "Vendedor",
+      "buyer": "Tú",
+      "extensionAsk": "El vendedor solicita {days} días extra para enviar:",
+      "accept": "Aceptar tiempo extra",
+      "reject": "Rechazar (el pedido puede ser cancelado)",
+      "notePlaceholder": "Nota opcional al vendedor",
+      "reply": "Responder al vendedor",
+      "send": "Enviar",
+      "messagePlaceholder": "Tu mensaje…",
+      "accepted": "Aceptaste la prórroga.",
+      "rejected": "Rechazaste la prórroga."
     }
   }
 }

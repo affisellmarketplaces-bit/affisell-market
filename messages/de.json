@@ -829,15 +829,15 @@
       "listingCountForQuery": " für « {query} »",
       "dbEmptyTitle": "Datenbank vorübergehend nicht verfügbar",
       "dbDevHint": "Lokale Entwicklung: Führen Sie npm run db:local:setup aus und setzen Sie DATABASE_URL in .env.local auf postgresql://affisell:affisell@localhost:5433/affisell",
-      "facetShipsFromFrance": "France",
+      "facetShipsFromFrance": "Frankreich",
       "facetPrice": {
-        "under25": "Under €25",
-        "25-100": "€25 – €100",
-        "over100": "Over €100"
+        "under25": "Unter 25€",
+        "25-100": "25€ – 100€",
+        "over100": "Über 100€"
       },
       "facetDelivery": {
-        "under3": "≤ 3 days",
-        "under7": "≤ 7 days"
+        "under3": "≤ 3 Tage",
+        "under7": "≤ 7 Tage"
       }
     },
     "mobileHub": {
@@ -2393,6 +2393,74 @@
       "body": "Sie haben einen Kauf auf Affisell begonnen. Ihre Auswahl ist noch verfügbar — sicherer Stripe-Checkout und nachverfolgte Lieferung.",
       "cta": "Meinen Kauf fortsetzen",
       "footer": "Fragen? Überprüfen Sie die FAQ oder den Support-Assistenten auf Affisell."
+    }
+  },
+  "accountOrders": {
+    "empty": "Noch keine Bestellungen für dieses Konto.",
+    "fulfillmentTag": {
+      "preparing": " · Vorbereitung Ihrer Bestellung",
+      "shipped": " · Versandt",
+      "paid": " · Bestätigt"
+    },
+    "viewDetails": "Details & Rechnung anzeigen →",
+    "preparing": {
+      "title": "Ihr Verkäufer bereitet den Versand vor",
+      "body": "Er hat bestätigt, dass Ihre Bestellung verpackt wird. Die Tracking-Informationen erscheinen, sobald der Spediteur das Paket scannet.",
+      "since": "Seit"
+    },
+    "trackingLine": "Tracking: {carrier} {number}",
+    "carrierDefault": "Spediteur",
+    "blindBadge": "Blind",
+    "confirmDelivery": {
+      "body": "Erhalten und zufrieden? Lieferung bestätigen — Auszahlungen an den Verkäufer erfolgen nach {confirmDays} Tagen. Ohne Bestätigung können Auszahlungen dennoch nach {autoDays} Tagen nach Versand freigegeben werden. Ihr gesetzliches Widerrufsrecht bleibt während des Rückgabefensters bestehen.",
+      "cta": "Erhalt und Zufriedenheit bestätigen",
+      "error": "Konnte nicht bestätigen"
+    },
+    "deliveryConfirmed": "Lieferung bestätigt · {date}",
+    "payoutFrom": " · Auszahlungen an den Händler ab {date}",
+    "return": {
+      "label": "Rückgabe: ",
+      "status": {
+        "REQUESTED": "Warte auf Verkäufer",
+        "AWAITING_SHIPMENT": "Artikel zurücksenden",
+        "IN_TRANSIT": "Rückgabe unterwegs",
+        "RECEIVED": "Erhalten — Rückerstattung ausstehend",
+        "REFUNDED": "Rückerstattet",
+        "REJECTED": "Abgelehnt",
+        "CANCELLED": "Abgebrochen"
+      },
+      "cancelRequest": "Anfrage abbrechen",
+      "cancelError": "Konnte nicht abbrechen",
+      "lastReturn": "Letzte Rückgabe: {status} · {date}",
+      "windowEnded": "Rückgabefenster endete am {date}.",
+      "form": {
+        "reasonLabel": "Grund",
+        "detailsPlaceholder": "Details (optional)",
+        "submit": "Rückgabe anfordern",
+        "error": "Anfrage fehlgeschlagen"
+      },
+      "trackingForm": {
+        "hint": "Senden Sie das Produkt an die Adresse aus Ihrer Bestätigung, dann fügen Sie hier die Tracking-Informationen hinzu.",
+        "carrierPlaceholder": "Spediteur (z.B. Colissimo, Chronopost)",
+        "numberPlaceholder": "Tracking-Nummer",
+        "submit": "Tracking übermitteln",
+        "error": "Konnte Tracking nicht speichern"
+      }
+    },
+    "fulfillmentPanel": {
+      "loading": "Lade…",
+      "title": "Versandupdate",
+      "seller": "Verkäufer",
+      "buyer": "Sie",
+      "extensionAsk": "Der Verkäufer bittet um {days} zusätzliche Tage zum Versand:",
+      "accept": "Zusätzliche Zeit akzeptieren",
+      "reject": "Ablehnen (Bestellung kann storniert werden)",
+      "notePlaceholder": "Optional: Notiz an den Verkäufer",
+      "reply": "Antwort an Verkäufer",
+      "send": "Senden",
+      "messagePlaceholder": "Ihre Nachricht…",
+      "accepted": "Sie haben die Verlängerung akzeptiert.",
+      "rejected": "Sie haben die Verlängerung abgelehnt."
     }
   }
 }

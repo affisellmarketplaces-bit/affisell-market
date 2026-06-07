@@ -829,15 +829,15 @@
       "listingCountForQuery": " voor « {query} »",
       "dbEmptyTitle": "Database tijdelijk niet beschikbaar",
       "dbDevHint": "Locaal dev: run npm run db:local:setup en zet DATABASE_URL in .env.local op postgresql://affisell:affisell@localhost:5433/affisell",
-      "facetShipsFromFrance": "France",
+      "facetShipsFromFrance": "Frankrijk",
       "facetPrice": {
-        "under25": "Under €25",
+        "under25": "Onder €25",
         "25-100": "€25 – €100",
-        "over100": "Over €100"
+        "over100": "Boven €100"
       },
       "facetDelivery": {
-        "under3": "≤ 3 days",
-        "under7": "≤ 7 days"
+        "under3": "≤ 3 dagen",
+        "under7": "≤ 7 dagen"
       }
     },
     "mobileHub": {

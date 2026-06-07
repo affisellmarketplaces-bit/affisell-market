@@ -829,15 +829,15 @@
       "listingCountForQuery": " for « {query} »",
       "dbEmptyTitle": "数据库暂时不可用",
       "dbDevHint": "本地开发: 运行 npm run db:local:setup 并在 .env.local 中设置 DATABASE_URL 为 postgresql://affisell:affisell@localhost:5433/affisell",
-      "facetShipsFromFrance": "France",
+      "facetShipsFromFrance": "法国",
       "facetPrice": {
-        "under25": "Under €25",
+        "under25": "低于 €25",
         "25-100": "€25 – €100",
-        "over100": "Over €100"
+        "over100": "高于 €100"
       },
       "facetDelivery": {
-        "under3": "≤ 3 days",
-        "under7": "≤ 7 days"
+        "under3": "≤ 3 天",
+        "under7": "≤ 7 天"
       }
     },
     "mobileHub": {
