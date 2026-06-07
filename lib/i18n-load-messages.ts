@@ -6,12 +6,11 @@ import en from "@/messages/en.json"
 import fr from "@/messages/fr.json"
 import de from "@/messages/de.json"
 import es from "@/messages/es.json"
-import itOverrides from "@/messages/overrides/it.json"
+import it from "@/messages/it.json"
 import nlOverrides from "@/messages/overrides/nl.json"
 import plOverrides from "@/messages/overrides/pl.json"
 
 const PARTIAL_LOCALE_OVERRIDES: Partial<Record<AppLocale, AbstractIntlMessages>> = {
-  it: itOverrides as AbstractIntlMessages,
   nl: nlOverrides as AbstractIntlMessages,
   pl: plOverrides as AbstractIntlMessages,
 }
@@ -22,6 +21,7 @@ export function loadAppMessages(locale: AppLocale): AbstractIntlMessages {
   if (locale === "fr") return fr as AbstractIntlMessages
   if (locale === "de") return de as AbstractIntlMessages
   if (locale === "es") return es as AbstractIntlMessages
+  if (locale === "it") return it as AbstractIntlMessages
   const overrides = PARTIAL_LOCALE_OVERRIDES[locale]
   if (!overrides) return en as AbstractIntlMessages
   return deepMergeMessages(en as AbstractIntlMessages, overrides)
