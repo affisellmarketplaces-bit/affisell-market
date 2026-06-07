@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 
 import { completeProductVideoJob, failProductVideoJob } from "@/lib/product-video-completion"
-import { verifyMetaWebhookSignature } from "@/lib/meta-ai-webhook"
+import { authorizeMetaWebhookRequest } from "@/lib/meta-ai-webhook"
 import { prisma } from "@/lib/prisma"
 import { videoLog } from "@/lib/video-logger"
 
@@ -16,29 +16,28 @@ type WebhookBody = {
   thumbnailUrl?: string
   status?: string
   error?: string
-  secret?: string
 }
 
 export async function POST(req: NextRequest) {
   const rawBody = await req.text()
+  const signature =
+    req.headers.get("x-meta-signature") ?? req.headers.get("x-hub-signature-256")
+
+  const authResult = authorizeMetaWebhookRequest(rawBody, signature)
+  if (authResult === "missing_prod") {
+    videoLog.warn("meta.webhook.secret_not_configured")
+    return NextResponse.json({ error: "webhook_secret_not_configured" }, { status: 503 })
+  }
+  if (authResult === "unauthorized") {
+    videoLog.warn("meta.webhook.unauthorized")
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   let body: WebhookBody
   try {
     body = JSON.parse(rawBody) as WebhookBody
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
-  }
-
-  const secret = process.env.META_WEBHOOK_SECRET?.trim()
-  const signature =
-    req.headers.get("x-meta-signature") ?? req.headers.get("x-hub-signature-256")
-
-  if (secret) {
-    const sigOk = verifyMetaWebhookSignature(rawBody, signature, secret)
-    const legacyOk = body.secret === secret
-    if (!sigOk && !legacyOk) {
-      videoLog.warn("meta.webhook.unauthorized")
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
   }
 
   const jobId = body.jobId?.trim()
