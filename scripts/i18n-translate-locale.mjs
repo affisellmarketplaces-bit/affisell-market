@@ -65,6 +65,7 @@ function chunkObject(obj, size) {
 
 const GROQ_MODEL = process.env.GROQ_I18N_MODEL?.trim() || "llama-3.3-70b-versatile"
 const MAX_RATE_LIMIT_RETRIES = 12
+const MAX_BATCH_RETRIES = 3
 
 function parseRetryAfterSeconds(err) {
   const header = err?.headers?.get?.("retry-after")
@@ -103,40 +104,54 @@ Rules:
 Input JSON:
 ${JSON.stringify(flatBatch, null, 2)}`
 
-  for (let attempt = 0; attempt <= MAX_RATE_LIMIT_RETRIES; attempt++) {
-    try {
-      const completion = await groq.chat.completions.create({
-        model: GROQ_MODEL,
-        messages: [{ role: "user", content: prompt }],
-        response_format: { type: "json_object" },
-        temperature: 0.1,
-        max_tokens: Math.min(8192, Math.max(512, Object.keys(flatBatch).length * 120 + 256)),
-      })
+  for (let batchAttempt = 0; batchAttempt < MAX_BATCH_RETRIES; batchAttempt++) {
+    for (let attempt = 0; attempt <= MAX_RATE_LIMIT_RETRIES; attempt++) {
+      try {
+        const completion = await groq.chat.completions.create({
+          model: GROQ_MODEL,
+          messages: [{ role: "user", content: prompt }],
+          response_format: { type: "json_object" },
+          temperature: 0.1,
+          max_tokens: Math.min(8192, Math.max(512, Object.keys(flatBatch).length * 120 + 256)),
+        })
 
-      const raw = completion.choices[0]?.message?.content?.trim()
-      if (!raw) throw new Error("empty_groq_response")
+        const raw = completion.choices[0]?.message?.content?.trim()
+        if (!raw) throw new Error("empty_groq_response")
 
-      const parsed = JSON.parse(raw)
-      for (const key of Object.keys(flatBatch)) {
-        if (typeof parsed[key] !== "string") {
-          throw new Error(`missing_or_invalid_key:${key}`)
+        const parsed = JSON.parse(raw)
+        for (const key of Object.keys(flatBatch)) {
+          if (typeof parsed[key] !== "string") {
+            throw new Error(`missing_or_invalid_key:${key}`)
+          }
         }
+        return parsed
+      } catch (err) {
+        const is429 = err?.status === 429 || err?.error?.error?.code === "rate_limit_exceeded"
+        const is413 = err?.status === 413
+        if (is413) throw err
+        if (!is429 || attempt === MAX_RATE_LIMIT_RETRIES) {
+          const retryable =
+            err instanceof SyntaxError ||
+            (err instanceof Error && err.message.startsWith("missing_or_invalid_key:"))
+          if (retryable && batchAttempt < MAX_BATCH_RETRIES - 1) {
+            console.log(
+              `[i18n-translate] batch incomplete (${err instanceof Error ? err.message : "parse_error"}), retry ${batchAttempt + 2}/${MAX_BATCH_RETRIES}`,
+            )
+            await sleep(800)
+            break
+          }
+          throw err
+        }
+        const waitSec = parseRetryAfterSeconds(err)
+        console.log(
+          `[i18n-translate] rate limited (${GROQ_MODEL}), waiting ${waitSec}s (attempt ${attempt + 1}/${MAX_RATE_LIMIT_RETRIES})`,
+        )
+        await sleep(waitSec * 1000)
       }
-      return parsed
-    } catch (err) {
-      const is429 = err?.status === 429 || err?.error?.error?.code === "rate_limit_exceeded"
-      const is413 = err?.status === 413
-      if (is413) throw err
-      if (!is429 || attempt === MAX_RATE_LIMIT_RETRIES) throw err
-      const waitSec = parseRetryAfterSeconds(err)
-      console.log(
-        `[i18n-translate] rate limited (${GROQ_MODEL}), waiting ${waitSec}s (attempt ${attempt + 1}/${MAX_RATE_LIMIT_RETRIES})`,
-      )
-      await sleep(waitSec * 1000)
     }
   }
 
-  throw new Error("rate_limit_retries_exhausted")
+  throw new Error("batch_retries_exhausted")
 }
 
 async function translateNamespace(groq, namespace, enSubtree, langLabel) {

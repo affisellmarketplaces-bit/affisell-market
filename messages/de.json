@@ -1513,5 +1513,754 @@
     "eyebrow": "Käufer",
     "heroTitle": "Finden. Vergleichen. Kaufen.",
     "heroSub": "Ihr KI-Einkaufsberater — durchsuchen Sie den Live-Marktplatz in Echtzeit"
+  },
+  "marketplacePulse": {
+    "hint": "Filter nach Abteilung oder Nische, Trends erkunden, dann jede SKU in einem Klick auf dein Storefront veröffentlichen."
+  },
+  "supplierStore": {
+    "metaDescription": "{name} — {name} Händler-Shop auf Affisell. Durchsuchen Sie das Katalog und kaufen Sie mit Vertrauen.",
+    "creatorCtaTitle": "Sind Sie ein Kreativ- oder Händler?",
+    "creatorCtaBody": "Käufer bestellen über die Affisell-Produktseiten. Kreative verwalten ihre Angebote über ihren Dashboard.",
+    "becomeCreator": "Werden Sie Kreativ"
+  },
+  "AI": {
+    "pickedForYou": "Für Sie ausgewählt von Affisell AI",
+    "trending": "Trending",
+    "views": "{count} Ansichten",
+    "add": "Hinzufügen",
+    "whyRecommended": "Warum empfohlen? Affisell AI-Auswahl auf der Grundlage von Trends und Ihrer Aktivität.",
+    "offerEndsIn": "Angebot endet in {time}"
+  },
+  "ProductCommon": {
+    "addToCart": "Zum Warenkorb hinzufügen",
+    "buyNow": "Jetzt kaufen",
+    "delivery": "Lieferung {days} Tage",
+    "premium": "Premium",
+    "topRated": "Hoch bewertet"
+  },
+  "CommandK": {
+    "languageSwitcher": "Sprache",
+    "triggerLabel": "Schnelle Navigation",
+    "placeholder": "Wohin gehen? Produkte oder Seiten suchen…",
+    "empty": "Keine Zieladresse gefunden",
+    "escape": "esc",
+    "productsGroup": "PRODUKTE",
+    "openQuickNav": "Schnelle Navigation öffnen",
+    "groups": {
+      "buy": "KAUFEN",
+      "sell": "VERKAUFE",
+      "account": "KONTO"
+    },
+    "items": {
+      "home": "Zuhause",
+      "marketplace": "Marktplatz",
+      "creatorStores": "Kreativ-Shop",
+      "cart": "Warenkorb",
+      "wishlist": "Wunschzettel",
+      "auctions": "Auktion Arena",
+      "luxe": "Affisell Luxe",
+      "myOrders": "Meine Bestellungen",
+      "sellerDashboard": "Verkäufer-Backend",
+      "listProduct": "Produkt eintragen",
+      "mySales": "Meine Verkäufe",
+      "becomeSeller": "Werde Kreativ",
+      "becomePartner": "Werde Partner",
+      "analytics": "Analyse",
+      "payouts": "Auszahlungen",
+      "signIn": "Anmelden",
+      "createBuyerAccount": "Käuferkonto erstellen",
+      "settings": "Einstellungen",
+      "signOut": "Abmelden"
+    }
+  },
+  "footer": {
+    "global": {
+      "siteTitle": "Affisell",
+      "buyTitle": "Kauf",
+      "sellTitle": "Verkauf",
+      "companyTitle": "Unternehmen",
+      "helpTitle": "Hilfe",
+      "legalTitle": "Rechtliches",
+      "supportTitle": "Support",
+      "paymentTitle": "Sichere Zahlung",
+      "about": "Über uns",
+      "howItWorks": "Wie es funktioniert",
+      "howSellingWorks": "Wie Verkaufen funktioniert",
+      "browseCatalog": "Katalog durchsuchen",
+      "auctions": "Auktion Arena",
+      "luxe": "Affisell Luxe",
+      "buyerProtection": "Geschützter Checkout · Rückgaben",
+      "buyerProtectionShort": "Geschützter Checkout",
+      "wishlist": "Wunschzettel",
+      "becomeCreator": "Werde Kreativ",
+      "affiliateProgram": "Partnerprogramm",
+      "becomeSupplier": "Werde Lieferant",
+      "demoLab": "Demo Lab",
+      "blog": "Blog",
+      "careers": "Karriere",
+      "press": "Presse",
+      "accessibility": "Barrierefreiheit",
+      "cgv": "Verkaufsbedingungen (CGV)",
+      "cgu": "Nutzungsbedingungen",
+      "supplierConditions": "Lieferantenbedingungen",
+      "affiliateConditions": "Partnerbedingungen",
+      "legalNotice": "Rechtliche Hinweise",
+      "privacyPolicy": "Datenschutzrichtlinie",
+      "cookieSettings": "Cookie-Einstellungen",
+      "returns": "Rückgaben & Rückerstattungen",
+      "faq": "FAQ",
+      "supportAssistant": "Support-Assistent",
+      "shipping": "Versand",
+      "contact": "Kontakt",
+      "trackOrder": "Meine Bestellung verfolgen",
+      "trustBeaconTitle": "Affisell geschützter Checkout",
+      "trustBeaconHint": "Stripe-Zahlungen · Verkäufer-Escrow · 14-tägige EU-Rückgaberecht",
+      "trustBeaconCta": "Lesen Sie die Richtlinie",
+      "panEuBadge": "Pan-EU · 27 Märkte",
+      "localeLabel": "Sprache & Region",
+      "mobileTagline": "Ersteller-Marktplatz · sichere Zahlung · 24/7-Unterstützung",
+      "desktopTagline": "Die Infrastruktur des Marktplatzes, an der Affiliate-Marketing-Experten und Lieferanten in Europa skalieren – Stripe-Zahlungen, EU-Kompliance, null Frustration.",
+      "stripeNoticeShort": "Karte · 3D-Secure · EU-MWSt-konform",
+      "vatNotice": "MWSt wird gesammelt und an die anwendbaren Vorschriften zurückgezahlt.",
+      "stripeNotice": "Zahlungen werden durch Stripe (Karte, 3D-Secure bei Bedarf) gesichert.",
+      "copyright": "  {year} Affisell — {name} — SIRET {siret} —",
+      "odrLink": "EU-Online-Streitbeilegungsverfahren",
+      "social": {
+        "x": "Affisell auf X",
+        "instagram": "Affisell auf Instagram",
+        "tiktok": "Affisell auf TikTok",
+        "discord": "Affisell auf Discord"
+      }
+    },
+    "about": "Über",
+    "contact": "Kontakt",
+    "terms": "Bedingungen",
+    "privacy": "Datenschutz",
+    "cookies": "Cookies",
+    "sellTitle": "Verkaufen",
+    "becomeCreator": "Werde Ersteller",
+    "becomePartner": "Werde Partner",
+    "helpTitle": "Hilfe",
+    "faq": "FAQ",
+    "shipping": "Versand",
+    "returns": "Rückgaben",
+    "cta": {
+      "creator": {
+        "title": "Werde Ersteller",
+        "text": "Starte deinen Laden in 60s",
+        "cta": "Verkaufe los →"
+      },
+      "supplier": {
+        "title": "Für Lieferanten",
+        "text": "Produkte auflisten, globale Reichweite erzielen",
+        "cta": "Produkte importieren →"
+      },
+      "agent": {
+        "title": "Agenten-Shop",
+        "text": "Lassen Sie AI die besten Angebote finden",
+        "cta": "Agent ausprobieren →"
+      }
+    },
+    "brand": {
+      "tagline": "Der Marketplace für Kreative"
+    },
+    "product": {
+      "title": "Produkt",
+      "exploreCatalog": "Katalog erkunden",
+      "topCreators": "Top-Kreative",
+      "liveShopping": "Live-Shopping",
+      "affiliateProgram": "Affiliate-Programm"
+    },
+    "company": {
+      "title": "Unternehmen",
+      "about": "Über uns",
+      "blog": "Blog",
+      "careers": "Karriere",
+      "press": "Pressekit"
+    },
+    "newsletter": {
+      "title": "Immer auf dem Laufenden",
+      "subtext": "Produktstarts + Tipps für Kreative. 1x/Monat.",
+      "placeholder": "you@creator.com",
+      "submit": "Abonnieren",
+      "disclaimer": "Kein Spam. Abbestellen jederzeit möglich.",
+      "success": "Sie sind dabei — herzlich willkommen!"
+    },
+    "subfooter": {
+      "copyright": "© {year} Affisell, Inc. In Marseille hergestellt 🇫🇷"
+    },
+    "social": {
+      "x": "Affisell auf X",
+      "instagram": "Affisell auf Instagram",
+      "tiktok": "Affisell auf TikTok",
+      "discord": "Affisell auf Discord"
+    }
+  },
+  "companyPages": {
+    "nav": {
+      "aria": "Firmen",
+      "about": "Über",
+      "blog": "Blog",
+      "careers": "Karriere",
+      "press": "Pressekit"
+    },
+    "stats": {
+      "stores": "Händlerläden",
+      "listings": "Live-Artikel",
+      "catalog": "Katalog-Produkte",
+      "commission": "Durchschnittliche Affiliate-Provision"
+    },
+    "about": {
+      "metaTitle": "Über Affisell — Creator-first-Marktplatz",
+      "metaDescription": "Affisell verbindet verifizierte Lieferanten, Händlerläden und Käufer mit transparenten Provisionen und EU-Grad-Kompliance.",
+      "eyebrow": "Firmen",
+      "title": "Handelsinfrastruktur für Kreative",
+      "description": "Affisell ist ein Creator-first-Marktplatz: Lieferanten listen ihr Wholesales-Katalog, Affiliate-Partner starten einen eigenen Händlerladen in Minuten und Käufer kaufen mit voller Transparenz der Provisionen.",
+      "mission": {
+        "title": "Unsere Mission",
+        "body": "Wir glauben, dass Kreative ihre Zielgruppe ohne Lagerbestände, Lagerverwaltung oder Provisionen berechnen sollten. Affisell orchestriert den gesamten Prozess — Katalog-Synchronisierung, Zahlungsabwicklung, Lieferanten-Erfüllung, Stripe-Connect-Payouts und GDPR-konforme Vertrauenssignale.",
+        "body2": "Mit Sitz in Marseille liefern wir EU-weit mit Multiwährungs-Zahlungsabwicklung, variablen Provisionen nach Kategorie und Werkzeugen wie Swipe-Feed, Agent-Sourcing und Pulse-Entdeckung."
+      },
+      "values": {
+        "0": {
+          "title": "Händlerläden",
+          "body": "Jeder Affiliate erhält einen eigenen Händlerladen, eigene Artikel, Käuferbelohnungen und Drag-and-Drop-Merchandising — live in weniger als 2 Minuten."
+        },
+        "1": {
+          "title": "Lieferantenreichweite",
+          "body": "Marken laden einmal hoch, verteilen sich über Tausende von Händlerläden mit automatischer Bestellrouten und Echtzeit-Stocksynchronisierung."
+        },
+        "2": {
+          "title": "Transparenz in der Ökonomie",
+          "body": "Jeder Auftrag zeigt den Lieferanten-Wholesale, den Affiliate-Margen, die Plattformgebühr und den Käuferpreis — keine versteckten Abzüge."
+        },
+        "3": {
+          "title": "Vertrauen durch Design",
+          "body": "Rechtshub, GDPR-Export/Löschen, Cookie-Konsent, Rechnung-PDFs und Provisionserklärungen sind im Produkt integriert."
+        }
+      },
+      "timeline": {
+        "title": "Öffentliches Bauen",
+        "items": {
+          "2024": {
+            "year": "2024",
+            "title": "Affisell gegründet",
+            "body": "Marktplatz-MVP: Lieferanten-Katalog, Affiliate-Händler und Stripe-Connect-Split-Payouts."
+          },
+          "2026": {
+            "year": "2026",
+            "title": "Swipe-Feed & GDPR-Stack",
+            "body": "Ein-Zug-Listing für Affiliate-Partner, rechtliche Dokumentenhub, Käufer-/Händler-GDPR-Dashboards und Rechnungserstellung."
+          },
+          "2025a": {
+            "year": "2025",
+            "title": "Agent & Pulse",
+            "body": "KI-basierte Sourcing-Agentur für Affiliate-Partner, vertikale Entdeckungsfeed und Lieferanten-API-Integrations."
+          },
+          "2025b": {
+            "year": "2025",
+            "title": "Settlement engine",
+            "body": "Dreifach-Split mit Kategorie-Ebene-Kommissionssätzen, HT-basierte Plattformgebühren und Anbietertransparenz-UI."
+          }
+        }
+      },
+      "hq": {
+        "title": "Hauptsitz"
+      },
+      "cta": {
+        "creators": "Werde Kreativ",
+        "catalog": "Browsere Affiliate-Katalog"
+      }
+    },
+    "blog": {
+      "metaTitle": "Affisell Blog — Produkt- & Kreativwirtschaft",
+      "metaDescription": "Aktualisierungen zu Markt-Features, Kommissionstransparenz und Kreativwerkzeugen von der Affisell-Team.",
+      "eyebrow": "Blog",
+      "title": "Inside Affisell",
+      "description": "Produktstarts, Marktökonomie und Kreativ-Playbooks — geschrieben vom Team, das Affisell baut.",
+      "readMore": "Lese Artikel",
+      "backToBlog": "Alle Artikel",
+      "posts": {
+        "swipe-feed-affiliate-hub": {
+          "title": "Swipe Feed: Liste Produkte in einem Gestus",
+          "excerpt": "Affiliates können nun den Katalog-SKUs Tinder-Style entdecken, bei einem Rechtsdreh um +30% Markup verkaufen und keine Produkte mehr überspringen.",
+          "date": "2026-05-19",
+          "category": "Produkt",
+          "readMin": "4 min",
+          "sections": {
+            "intro": "Kreativ-Entdeckung bedeutete früher endlose Grid-Scrolling. Swipe Feed wandelt Affiliate-Sourcing in einen fokussierten, mobilen-Nativen-Flow um — mit Undo, Kommissionsfiltern und einer drei-Karten-Präloader-Stack.",
+            "s1": {
+              "title": "Wie es funktioniert",
+              "body": "Rechtsdreh, um eine Liste bei deinem Standard-Markup (30% über den Anbieterpreis) zu veröffentlichen. Linksdrücken, um ein SKU dauerhaft aus deinem Feed zu verstecken. Jede Entscheidung wird gespeichert, damit dein Feed frisch und relevant bleibt."
+            },
+            "s2": {
+              "title": "Für Geschwindigkeit gebaut",
+              "body": "Framer Motion-Parallax, Geschwindigkeits-basierte Commits und Animation-erster UX bedeuten, dass die Karte vor der API-Anfrage vom Bildschirm fliegt — damit die Schnittstelle sofort fühlt, selbst auf langsamen Netzwerken."
+            },
+            "s3": {
+              "title": "Probieren Sie es aus",
+              "body": "Öffnen Sie den Affiliate-Hub aus der Navigationsleiste Ihres Dashboards oder gehen Sie direkt zu /dashboard/affiliate/hub?mode=swipe. Kombinieren Sie dies mit Agent-Sourcing für Margin-Analyse auf hochintensiven Picks."
+            }
+          }
+        },
+        "commission-transparency": {
+          "title": "Kommissionstransparenz auf jedem Auftrag",
+          "excerpt": "Anbieter, Affiliates und Käufer sehen jetzt genau, wie sich Großhandelspreis, Markup, Plattformgebühren und MwSt. auf jeder Zeile aufteilen.",
+          "date": "2026-05-12",
+          "category": "Vertrauen",
+          "readMin": "5 min",
+          "sections": {
+            "intro": "Unklare Märkte verbergen, wer was verdient. Affisell offenbart die vollständige Abrechnung auf Verkäufer-Auftragsseiten, Käufer-Belegen und PDF-Rechnungen.",
+            "s1": {
+              "title": "Variable Sätze",
+              "body": "Kommissionen kaskadierend von Kategorie-Standard bis Anbieter-Profil bis einzelnen SKUs — damit hochmarginale Kategorien bessere Affiliate-Wirtschaft ohne manuelle Ausgaben anbieten können."
+            },
+            "s2": {
+              "title": "Anbieter-Klarheit",
+              "body": "Anbieter-Dashboards bezeichnen Abzüge als Partner-Kommission und Plattformgebühr — nicht vage „Anpassungen“. Auszahlungsvorschau passt sich, was in Stripe Connect landet."
+            },
+            "s3": {
+              "title": "Kommissionserklärung",
+              "body": "Integrierte Benutzeroberfläche auf Bestellbestätigungsseiten führt jede Partei durch die Mathematik in einfachen Sprache, mit Links zu rechtlichen Bedingungen für Affiliate-Marketing-Partner und Lieferanten."
+            }
+          }
+        },
+        "gdpr-marketplace-trust": {
+          "title": "GDPR-Hub für Händler und Käufer",
+          "excerpt": "Exportieren, löschen, Cookie-Einstellungen und Versionsverwaltung von rechtlichen Zustimmungen — native in Affisell-Konten, keine nachträglich eingebauten PDFs.",
+          "date": "2026-05-05",
+          "category": "Kontrollen",
+          "readMin": "4 min",
+          "sections": {
+            "intro": "Vertrauen ist ein Produktfeature. Affisell liefert ein vollständiges GDPR-Set: Registrierungs-Zustimmungserfassung, Cookie-Banner mit Analytics-Gating, Datenexport-JSON und Konto-Löschungsflows.",
+            "s1": {
+              "title": "Rechtliche Dokumentenhub",
+              "body": "Bedingungen für Käufer, Lieferanten und Affiliate-Marketing-Partner, Datenschutzrichtlinie, Rückerstattungsregeln und rechtliche Hinweise — alle versioniert und von der Registrierung und Fußzeile verlinkt."
+            },
+            "s2": {
+              "title": "Selbstbedienungsrechte",
+              "body": "Händler und Marktplatz-Käufer haben Zugriff auf /dashboard/account/gdpr oder /marketplace/account/gdpr, um ihre Daten zu exportieren oder die Löschung zu beantragen, unter Berücksichtigung der Aufbewahrung von Finanzunterlagen."
+            },
+            "s3": {
+              "title": "Warum es wichtig ist",
+              "body": "Kreative Unternehmen betreiben EU-Märkte. Integrierte Compliance reduziert rechtliche Risiken und signalisiert Professionalität bei der Bewertung Ihres Händler-Storefronts."
+            }
+          }
+        },
+        "creator-storefront-60s": {
+          "title": "Erstellen Sie einen Händler-Storefront in 60 Sekunden",
+          "excerpt": "Wählen Sie einen Lieferanten-SKU, setzen Sie Ihren Gewinnmargen, veröffentlichen Sie — Affisell handhabt die Zahlungsabwicklung, die Bestellbestätigungsbenachrichtigungen und die wöchentlichen Zahlungen.",
+          "date": "2026-04-20",
+          "category": "Kreative",
+          "readMin": "3 min",
+          "sections": {
+            "intro": "Affisell entfernt die Betriebslast von kreativen Handel: keine Lager, keine manuelle Lagerbestandsaktualisierungen, keine Zahlungsgateway-Einrichtung von Grund auf.",
+            "s1": {
+              "title": "Katalog → Händler-Storefront",
+              "body": "Durchsuchen Sie den Affiliate-Entdeckungskatalog nach Nische, Provision oder Gewinnmarge. Der Listing Builder ermöglicht die Anpassung von Titel, Bildern, SEO-Slug und Käufer-Rabattzusagen."
+            },
+            "s2": {
+              "title": "Ihr Markenname, unsere Bahnen",
+              "body": "Benutzerdefinierte Domains, Theme-Studio, gefeaturete Sammlungen und Live-Store-Vorschau — während Stripe Connect den Lieferanten-Wholesale und Ihren Gewinnmargen automatisch routet."
+            },
+            "s3": {
+              "title": "Beginnen Sie heute",
+              "body": "Erstellen Sie ein kostenloses Affiliate-Konto, verbinden Sie Zahlungen und veröffentlichen Sie Ihre erste Liste. Die meisten Kreative sehen ihren ersten Verkauf innerhalb der ersten Woche."
+            }
+          }
+        }
+      }
+    },
+    "careers": {
+      "metaTitle": "Karrieren bei Affisell",
+      "metaDescription": "Betreten Sie das Team, das den kreativen Markt aufbaut — remote-freundliche Rollen in Ingenieurswesen, kreativer Erfolg und Lieferantenpartnerschaften.",
+      "eyebrow": "Karrieren",
+      "title": "Bauen Sie die kreative Wirtschaft mit uns",
+      "description": "Wir sind ein kleines, produktsüchtiges Team in Marseille (remote-freundlich). Hilfen Sie uns, den Lieferantenkatalog, die Affiliate-Tooling und die Käufervertrauenswürdigkeit zu skalieren.",
+      "culture": {
+        "title": "Wie wir arbeiten",
+        "body": "Affisell ist in der Frühphase mit Produktionsverkehr: Sie liefern wöchentlich an echte Händler, besitzen Ergebnisse von Anfang bis Ende und sprechen direkt mit Kreativen und Lieferanten.",
+        "perks": {
+          "remote": "Remote-freundlich über EU-Zeitzone",
+          "impact": "Hohe Verantwortung — keine Ticketfabrik",
+          "stack": "Next.js 16, Prisma, Stripe Connect, Vercel",
+          "equity": "Bedeutungsvolle Frühzeit-Equity"
+        }
+      },
+      "openRoles": "Offene Stellen",
+      "apply": "Bewerben",
+      "spontaneous": "Keine passende Rolle? Senden Sie eine Notiz mit dem, was Sie bei Affisell aufbauen möchten.",
+      "roles": {
+        "fullstack-engineer": {
+          "title": "Full-stack-Engineer",
+          "summary": "Besitzen Sie Funktionen des Marketplaces von der Prisma-Schema bis hin zu einer polierten Benutzeroberfläche — Überprüfungen, Affiliate-Tooling, Lieferanten-Dashboards.",
+          "location": "Marseille / Remote EU",
+          "type": "Vollzeit",
+          "team": "Engineering",
+          "applySubject": "Anwendung — Full-stack-Engineer",
+          "requirements": {
+            "r1": "Starke TypeScript, React und SQL (PostgreSQL)",
+            "r2": "Erfahrung mit Zahlungen oder Marketplaces ist ein Plus",
+            "r3": "Bequem mit Next.js App Router und Serverkomponenten"
+          }
+        },
+        "creator-success": {
+          "title": "Erfolgskoordinator für Kreative",
+          "summary": "Kreative anmelden, die Qualität von Listen verbessern und Produktinformationen an das Engineering zurückgeben.",
+          "location": "Remote EU",
+          "type": "Vollzeit",
+          "team": "Wachstum",
+          "applySubject": "Anwendung — Erfolgskoordinator für Kreative",
+          "requirements": {
+            "r1": "Fließende FR/EN; Erfahrung mit Kreativ- oder E-Commerce-Gemeinschaften",
+            "r2": "Analytisch — bequem mit Kommissions- und Umsatzdaten",
+            "r3": "Einfühlungsvermögen für Kreative, die Audienzvertrauen und Margen ausbalancieren"
+          }
+        },
+        "supplier-partnerships": {
+          "title": "Lieferantenpartnerschaften (B2B)",
+          "summary": "Marken finden, Kataloge über API oder Bulk-Import anmelden und Kommissionsstrukturen gemeinsam gestalten.",
+          "location": "Remote EU",
+          "type": "Vollzeit / Vertrag",
+          "team": "Partnerschaften",
+          "applySubject": "Anwendung — Lieferantenpartnerschaften",
+          "requirements": {
+            "r1": "Bewährte Leistung in Marketplaces, Wholesales oder D2C-Markenpartnerschaften",
+            "r2": "Versteht Einheitenwirtschaft: Wholesales, Markup, Rückgaben",
+            "r3": "Bereit, gelegentlich für Lieferantenbesprechungen in der EU zu reisen"
+          }
+        }
+      }
+    },
+    "press": {
+      "metaTitle": "Affisell Press Kit",
+      "metaDescription": "Medienressourcen, Unternehmensfakten und Pressekontakt für Affisell — der Kreativitätsmarkt.",
+      "eyebrow": "Presse",
+      "title": "Pressekit",
+      "description": "Fakten, Boilerplate und Assets für Journalisten, die über den Creator-Commerce, die Marketplace-Infrastruktur und die EU-Retail-Tech berichten.",
+      "boilerplate": {
+        "title": "Boilerplate",
+        "short": "Affisell ist ein von Kreativen geführter Marketplace, der verifizierte Anbieter, Affiliate-Fachgeschäfte und Käufer miteinander verbindet – mit transparenten Provisionen und integrierten EU-Kompliance.",
+        "long": "Gegründet in Marseille, ermöglicht Affisell es Kreativen, in Minuten eigene Marken-Shops zu starten, ohne Inventar. Anbieter verteilen ihr Katalog über Affiliate-Netzwerke mit automatisierter Lieferung und Stripe-Connect-Payouts. Die Plattform umfasst AI-gestützte Sourcing-Tools, Swipe-Feed-Entdeckung, Pulse-Vertikale-Shopping, GDPR-Selbstdienst und itemisierte Provisionen auf jedem Auftrag."
+      },
+      "facts": {
+        "title": "Unternehmensfakten",
+        "founded": {
+          "label": "Gegründet",
+          "value": "2024 · Marseille, Frankreich"
+        },
+        "hq": {
+          "label": "Hauptsitz",
+          "value": "Affisell SAS · EU"
+        },
+        "model": {
+          "label": "Modell",
+          "value": "B2B2C-Marktplatz (Anbieter · Affiliate · Käufer)"
+        },
+        "stack": {
+          "label": "Stack",
+          "value": "Next.js, PostgreSQL, Stripe Connect, Vercel"
+        },
+        "compliance": {
+          "label": "Compliance",
+          "value": "GDPR-Hub, versionierte Rechtsdokumente, Rechnung-PDFs"
+        }
+      },
+      "assets": {
+        "title": "Markenassets",
+        "description": "Senden Sie eine E-Mail an press@affisell.com, um Vektor-Logos, UI-Screenshots und Executive-Bios zu erhalten.",
+        "items": {
+          "logo": {
+            "label": "Logo-Paket (SVG/PNG)",
+            "subject": "Anfrage für das Affisell-Logo-Paket"
+          },
+          "screenshots": {
+            "label": "Produkt-Screenshots",
+            "subject": "Affisell-Produkt-Screenshots"
+          },
+          "founder": {
+            "label": "Gründer-Bio & Kopfshot",
+            "subject": "Anfrage für das Affisell-Gründer-Bio"
+          }
+        }
+      },
+      "news": {
+        "title": "Neueste Nachrichten",
+        "read": "Lesen →",
+        "items": {
+          "n1": {
+            "title": "Swipe-Feed startet für Affiliate",
+            "date": "Mai 2026",
+            "href": "/blog/swipe-feed-affiliate-hub"
+          },
+          "n2": {
+            "title": "Transparenz bei allen Aufträgen",
+            "date": "Mai 2026",
+            "href": "/blog/commission-transparency"
+          },
+          "n3": {
+            "title": "GDPR-Hub für Händler und Käufer",
+            "date": "Mai 2026",
+            "href": "/blog/gdpr-marketplace-trust"
+          }
+        }
+      },
+      "contact": {
+        "title": "Kontakt für Medien",
+        "body": "Für Interviews, Datenanfragen oder Vorträge – wir antworten innerhalb von 2 Geschäftstagen."
+      },
+      "legalNote": "Rechtliche Unternehmensdetails in",
+      "legalLink": "Rechtliche Hinweise"
+    }
+  },
+  "reviews": {
+    "title": "Kundenrezensionen",
+    "writeReview": "Eine Rezension schreiben",
+    "ugcCount": "{count} mit Fotos oder Video",
+    "distribution": "Ratingsverteilung",
+    "sortLabel": "Rezensionen sortieren",
+    "loadMore": "Mehr Rezensionen laden",
+    "emptyTitle": "Sei der erste, der rezensiert",
+    "emptyBody": "Teile deine Erfahrung mit Fotos oder Video – es hilft anderen Käufern, eine Entscheidung zu treffen.",
+    "filters": {
+      "all": "Alle",
+      "photos": "Fotos",
+      "fiveStar": "5★",
+      "verified": "Gewährleistet"
+    },
+    "sort": {
+      "top": "Beliebteste",
+      "recent": "Neueste",
+      "rating": "Höchste Bewertung",
+      "media": "Mit Medien"
+    },
+    "write": {
+      "eyebrow": "Vertrauensmaschine",
+      "title": "Teile deine Erfahrung",
+      "close": "Schließen",
+      "tapStars": "Klicken, um zu bewerten",
+      "headline": "Überschrift (optional)",
+      "headlinePlaceholder": "Fasse es in einer Zeile zusammen",
+      "experience": "Deine Rezension",
+      "bodyPlaceholder": "Was gefiel dir? Gibt es etwas, das wir verbessern sollten?",
+      "photosVideos": "Fotos & Video",
+      "removeMedia": "Entfernen",
+      "aiImprove": "Verbessern mit AI",
+      "aiLoading": "Polieren…",
+      "aiError": "AI-Assistent nicht verfügbar",
+      "submit": "Rezension veröffentlichen",
+      "submitting": "Veröffentlichen…",
+      "submitError": "Könnte die Rezension nicht veröffentlichen",
+      "ratingRequired": "Bitte wähle eine Sternbewertung aus",
+      "bodyMin": "Schreibe mindestens 20 Zeichen"
+    }
+  },
+  "auctions": {
+    "eyebrow": "Live Protokoll",
+    "title": "Affisell Arena",
+    "live": "Live",
+    "back": "Katalog",
+    "subtitle": "Neural-Auktionfenster · Gewinner prüft den Hammerpreis",
+    "currentBid": "Aktueller Gebot",
+    "bids": "Gebote",
+    "endsIn": "Endet in",
+    "endingSoon": "Letzte Stunde",
+    "heat": "Hitze {score}",
+    "leader": "Führender",
+    "bidNow": "Bieten",
+    "powerBid": "Surge +10%",
+    "viewProduct": "Produktseite",
+    "moreLots": "Mehr Live-Lots",
+    "empty": "Arena erwärmt sich — neue Lots fallen alle paar Minuten.",
+    "tickerEmpty": "Seien Sie der erste, der auf Affisell Arena bietet",
+    "bidPlaced": "Gebot auf der Blockchain registriert ✦",
+    "bidFailed": "Kann kein Gebot abgeben"
+  },
+  "luxe": {
+    "eyebrow": "Private Auswahl",
+    "title": "Affisell Luxe",
+    "back": "Katalog",
+    "subtitle": "Gekürte Stücke · authentifizierte Künstler · eingeschränkte Sichtbarkeit",
+    "badgeLuxe": "Luxe",
+    "badgeCollection": "Sammlung",
+    "prestige": "Prestige {score}",
+    "acquire": "Erwerben",
+    "viewPiece": "Stück ansehen",
+    "allCollections": "Alle",
+    "gallery": "Die Galerie",
+    "empty": "Noch keine Luxe-Stücke. Aktivieren Sie Affisell Luxe auf einem Lieferantenprodukt, dann listen Sie es über einen Affiliate ein.",
+    "emptyPublic": "Das Atelier wird gekürzt. Überprüfen Sie bald wieder für neue Stücke.",
+    "tickerEmpty": "Affisell Luxe — gekürzte Exzellenz",
+    "curationNote": "Nur Produkte mit Affisell Luxe aktiviert durch den Lieferanten erscheinen hier (sobald sie von einem Affiliate aufgeführt werden)."
+  },
+  "sponsorBoost": {
+    "eyebrow": "Affisell Boost",
+    "title": "Intelligente Werbung",
+    "subtitleSupplier": "Stimuliere dein Katalog über alle Affiliate-Shops hinweg. Zahlst eine % des Großhandels-Preises — Premium-Platzierung mit Live-Score.",
+    "subtitleAffiliate": "Schiebe deine Liste an die Spitze des Marktplatzes. Der ROI ist auf dem Live-Boost-Score sichtbar.",
+    "liveScore": "Live-Boost-Score",
+    "target": "Ziel",
+    "selectedSku": "Aktives SKU",
+    "htPrice": "Großhandelspreis {price}",
+    "noProducts": "Keine geeigneten Produkte.",
+    "investment": "Großhandelsinvestition",
+    "duration": "Dauer",
+    "placement": {
+      "label": "Platzierung",
+      "HOME_SPOTLIGHT": "Hauptfokus",
+      "CATEGORY_TOP": "Kategorie oben",
+      "SEARCH_BOOST": "Suchbooster"
+    },
+    "budget": "Schätzung des Budgets",
+    "quoteMeta": "Score {score} · {rate}% HT · {days}d",
+    "boostPower": "Leistung",
+    "boostPowerAria": "Boost-Score {score}",
+    "cta": "Aktiviere Boost",
+    "checkoutError": "Bezahlfehler",
+    "recentCampaigns": "Jüngste Kampagnen",
+    "status": {
+      "PENDING_PAYMENT": "Ausstehende Zahlung",
+      "ACTIVE": "Aktiv",
+      "EXPIRED": "Abgelaufen",
+      "CANCELLED": "Storniert"
+    }
+  },
+  "demoLab": {
+    "eyebrow": "Affisell Demo Lab",
+    "title": "Versuchen Sie Affisell",
+    "heroSubtitle": "Drei geführte Wege — Lieferant, Affiliate, Käufer. Keine echten Zahlungen. Ihre Rückmeldung prägt, was wir als Nächstes liefern.",
+    "startJourney": "Reise beginnen",
+    "sandboxNotice": "Sandbox-Modus — Bestellungen und Auszahlungen werden nicht auf den lebenden Produktionsbahnen ausgeführt.",
+    "requiresAuth": "Anmeldung erforderlich für diesen Schritt",
+    "tryStep": "Probieren Sie es",
+    "privacyNote": "Rückmeldungen können eine optionalen E-Mail enthalten — aufbewahrt bis zu 12 Monaten, niemals verkauft.",
+    "backToDemo": "Alle Reisen",
+    "banner": "Demo-Lab — erkunden Sie mit null Verpflichtung",
+    "personas": {
+      "supplier": {
+        "title": "Lieferant-Reise",
+        "subtitle": "Supply Hub, Katalogimport, Affiliate-Vorschau — dann sagen Sie uns, was Sie denken.",
+        "cardTitle": "Lieferant",
+        "cardBody": "Quellen, veröffentlichen und erfüllen für das Affiliate-Netzwerk."
+      },
+      "affiliate": {
+        "title": "Affiliate-Reise",
+        "subtitle": "Entdecken, Liste und schätzen Margen in wenigen Klicks.",
+        "cardTitle": "Affiliate",
+        "cardBody": "Merchandising und Provisionen auf dem Affisell-Katalog."
+      },
+      "buyer": {
+        "title": "Käufer-Reise",
+        "subtitle": "Durchsuchen Sie das Markt, überprüfen Sie die Vertrauenswürdigkeit und unterstützen Sie.",
+        "cardTitle": "Käufer",
+        "cardBody": "Shop Creator-Verkaufsstellen von Anfang bis Ende."
+      }
+    },
+    "steps": {
+      "supplier": {
+        "supply": {
+          "title": "Supply Hub",
+          "body": "Einheitlicher Ansicht von AliExpress, Fabrik-REST und zukünftigen Kanälen."
+        },
+        "import": {
+          "title": "Importieren Sie einen SKU",
+          "body": "URL, Erweiterung oder API — Entwurf, bevor Sie veröffentlichen."
+        },
+        "preview": {
+          "title": "Affiliate-Vorschau",
+          "body": "Siehe Provision und Checkliste wie Ihre Partner."
+        },
+        "publish": {
+          "title": "Erstellen Sie ein Lieferantenkonto",
+          "body": "Schnelle Registrierung, um das vollständige Dashboard zu testen."
+        }
+      },
+      "affiliate": {
+        "discover": {
+          "title": "Entdecken",
+          "body": "Lebendige Shopping-Feed und Creator-Verkaufsstellen."
+        },
+        "catalog": {
+          "title": "Marktplatz",
+          "body": "Durchsuchen Sie die Liste der Angebote und die anzeigenden Margen."
+        },
+        "hub": {
+          "title": "Affiliate-Hub",
+          "body": "Einnahmen, Angebote und Werbemöglichkeiten."
+        },
+        "join": {
+          "title": "Beitreten",
+          "body": "Erstellen Sie ein Affiliate-Konto in Minuten."
+        }
+      },
+      "buyer": {
+        "browse": {
+          "title": "Entdecken",
+          "body": "Marktplatz-Katalog und Filter."
+        },
+        "shop": {
+          "title": "Läden",
+          "body": "Shop-Fluss des Erstellers und Produktseiten."
+        },
+        "trust": {
+          "title": "Vertrauen",
+          "body": "FAQ zu Versand, Rückgabe und sicheren Zahlungen."
+        },
+        "account": {
+          "title": "Käuferkonto",
+          "body": "Bestellverfolgung und Kundenbereich."
+        }
+      }
+    },
+    "demoAccounts": {
+      "eyebrow": "Neurale Zugriffsmöglichkeit",
+      "title": "Eingeben Sie den Sandbox — ein Tastendruck",
+      "subtitle": "Vorkonfigurierte Konten mit Demo-Katalog, genehmigter KYC und vollständigen Dashboards. Keine Kreditkarte erforderlich.",
+      "badge": "Sandbox live",
+      "enter": "Demo ein",
+      "entering": "Anmeldung…",
+      "disabled": "Demo Lab ist aus (Produktion ohne DEMO_LAB_ENABLED=1 oder DEMO_LAB_ENABLED=0).",
+      "notConfigured": "Fügen Sie DEMO_LAB_PASSWORD in Vercel → Umgebungsvariablen → Preview (und Produktion wenn erforderlich) ein, dann neu bereitstellen. Vercel Preview aktiviert Demo Lab automatisch.",
+      "rateLimited": "Zu viele Versuche — versuchen Sie es in einigen Minuten erneut.",
+      "signinFailed": "Anmeldung fehlgeschlagen. Überprüfen Sie die Demo-Konfiguration oder versuchen Sie es erneut.",
+      "personas": {
+        "supplier": {
+          "title": "Demo-Anbieter",
+          "hint": "Supply Hub, Import, Sandbox-Produkt"
+        },
+        "affiliate": {
+          "title": "Demo-Affiliate",
+          "hint": "Hub, Angebote, Margen auf Lab-Produkt"
+        },
+        "buyer": {
+          "title": "Demo-Käufer",
+          "hint": "Marktplatz-Konto, Bestellverfolgung"
+        }
+      }
+    },
+    "feedback": {
+      "title": "Ihre Meinung zählt",
+      "subtitle": "1 bis 5 — wie war diese Reise insgesamt?",
+      "scoreAria": "Gesamtpunktzahl",
+      "commentPlaceholder": "Was funktionierte, was fehlt… (optional)",
+      "emailPlaceholder": "E-Mail für Nachverfolgung (optional)",
+      "submit": "Feedback senden",
+      "thanks": "Vielen Dank — Ihre Eingabe ernährt den Affisell-Roadmap.",
+      "error": "Konnte nicht senden. Bitte versuchen Sie es erneut in Kürze."
+    }
+  },
+  "errors": {
+    "notFound": {
+      "title": "Seite nicht gefunden",
+      "body": "Diese Seite existiert nicht oder wurde verschoben.",
+      "home": "Zurück nach Hause"
+    },
+    "page": {
+      "label": "Ein Fehler ist aufgetreten",
+      "title": "Ein Problem ist aufgetreten",
+      "body": "Ein Fehler ist aufgetreten, während diese Seite geladen wurde. Sie können es erneut versuchen oder zur Startseite zurückkehren.",
+      "retry": "Erneut versuchen",
+      "home": "Zurück zur Startseite"
+    }
   }
 }
