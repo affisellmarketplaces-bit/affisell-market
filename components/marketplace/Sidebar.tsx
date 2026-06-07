@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import useSWR from "swr"
 
 import { ChevronDown, ChevronRight, Grid3x3, LayoutGrid, Loader2 } from "lucide-react"
@@ -48,6 +48,7 @@ export function Sidebar({
   categoriesPayload,
 }: SidebarProps) {
   const t = useTranslations("marketplace.sidebar")
+  const locale = useLocale()
   const [expandedCats, setExpandedCats] = useState<string[]>([])
   const { data: swrData, isLoading } = useSWR<{
     categories: Cat[]
@@ -55,11 +56,15 @@ export function Sidebar({
     dbUnavailable?: boolean
     staticFallback?: boolean
     error?: string
-  }>(categoriesPayload ? null : "/api/categories", () => fetcher("/api/categories"), {
-    fallbackData: categoriesPayload,
-    refreshInterval: (latest) => (latest?.dbUnavailable ? 0 : 300_000),
-    revalidateOnMount: !categoriesPayload,
-  })
+  }>(
+    categoriesPayload ? null : `/api/categories?locale=${locale}`,
+    () => fetcher("/api/categories"),
+    {
+      fallbackData: categoriesPayload,
+      refreshInterval: (latest) => (latest?.dbUnavailable ? 0 : 300_000),
+      revalidateOnMount: !categoriesPayload,
+    }
+  )
 
   const data = categoriesPayload ?? swrData
 

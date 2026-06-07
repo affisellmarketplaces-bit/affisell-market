@@ -6,7 +6,9 @@ import {
   type BrowseDepartmentTarget,
   type ResolvedBrowseDepartment,
 } from "@/lib/taxonomy/browse-departments-shared"
+import { localizeCategoryName } from "@/lib/google-taxonomy-locale"
 import type { AppLocale } from "@/lib/i18n-locale"
+import { resolveBinaryCopyLocale } from "@/lib/i18n-ui-locale"
 import { prisma, withPrismaReconnect } from "@/lib/prisma"
 
 export type BrowseDepartmentsPayload = {
@@ -16,46 +18,73 @@ export type BrowseDepartmentsPayload = {
 
 async function resolveTarget(
   target: BrowseDepartmentTarget
-): Promise<{ categoryId: string | null; searchQuery: string | null }> {
+): Promise<{
+  categoryId: string | null
+  searchQuery: string | null
+  googleId: number | null
+  name: string | null
+}> {
   if (target.kind === "search") {
-    return { categoryId: null, searchQuery: target.queryFr }
+    return { categoryId: null, searchQuery: target.queryFr, googleId: null, name: null }
   }
 
   if (target.kind === "googleRoot") {
     const row = await withPrismaReconnect(() =>
       prisma.category.findFirst({
         where: { parentId: null, name: target.rootNameFr },
-        select: { id: true },
+        select: { id: true, googleId: true, name: true },
       })
     )
-    return { categoryId: row?.id ?? null, searchQuery: null }
+    return {
+      categoryId: row?.id ?? null,
+      searchQuery: null,
+      googleId: row?.googleId ?? null,
+      name: row?.name ?? null,
+    }
   }
 
   const row = await withPrismaReconnect(() =>
     prisma.category.findFirst({
       where: { fullPath: target.fullPathFr },
-      select: { id: true },
+      select: { id: true, googleId: true, name: true },
     })
   )
-  return { categoryId: row?.id ?? null, searchQuery: null }
+  return {
+    categoryId: row?.id ?? null,
+    searchQuery: null,
+    googleId: row?.googleId ?? null,
+    name: row?.name ?? null,
+  }
 }
 
-function labelFor(def: BrowseDepartmentDef, locale: AppLocale): string {
-  return locale === "en" ? def.labelEn : def.labelFr
+function marketingLabel(def: BrowseDepartmentDef, locale: AppLocale): string {
+  return resolveBinaryCopyLocale(locale) === "fr" ? def.labelFr : def.labelEn
+}
+
+function departmentLabel(
+  def: BrowseDepartmentDef,
+  locale: AppLocale,
+  resolved: { googleId: number | null; name: string | null; searchQuery: string | null }
+): string {
+  if (resolved.searchQuery) return marketingLabel(def, locale)
+  if (resolved.googleId != null && resolved.name) {
+    return localizeCategoryName({ googleId: resolved.googleId, name: resolved.name }, locale)
+  }
+  return marketingLabel(def, locale)
 }
 
 async function loadBrowseDepartmentsUncached(locale: AppLocale): Promise<BrowseDepartmentsPayload> {
   const departments: ResolvedBrowseDepartment[] = []
 
   for (const def of AFFISELL_BROWSE_DEPARTMENTS) {
-    const { categoryId, searchQuery } = await resolveTarget(def.target)
+    const resolved = await resolveTarget(def.target)
     departments.push({
       id: def.id,
       icon: def.icon,
-      label: labelFor(def, locale),
-      categoryId,
-      searchQuery,
-      resolved: Boolean(categoryId || searchQuery),
+      label: departmentLabel(def, locale, resolved),
+      categoryId: resolved.categoryId,
+      searchQuery: resolved.searchQuery,
+      resolved: Boolean(resolved.categoryId || resolved.searchQuery),
     })
   }
 

@@ -29,7 +29,7 @@ export function MarketplaceBrowseDepartmentsRail({
   const basePath = catalogBasePath ?? pathname
 
   const { data, isLoading } = useSWR<{ departments: ResolvedBrowseDepartment[] }>(
-    `/api/taxonomy/browse-departments`,
+    `/api/taxonomy/browse-departments?locale=${locale}`,
     fetcher,
     { revalidateOnFocus: false, refreshInterval: 300_000 }
   )

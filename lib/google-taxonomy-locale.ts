@@ -3,8 +3,19 @@ import path from "node:path"
 
 import type { AppLocale } from "@/lib/i18n-locale"
 
-let enByGoogleId: Map<number, string> | null = null
-let enFullPathByGoogleId: Map<number, string> | null = null
+const TAXONOMY_FILE_BY_LOCALE: Record<AppLocale, string> = {
+  en: "taxonomy-en.txt",
+  fr: "taxonomy-fr.txt",
+  de: "taxonomy-de.txt",
+  es: "taxonomy-es.txt",
+  it: "taxonomy-it.txt",
+  nl: "taxonomy-nl.txt",
+  pl: "taxonomy-pl.txt",
+  zh: "taxonomy-zh.txt",
+}
+
+const nameByLocale = new Map<AppLocale, Map<number, string>>()
+const fullPathByLocale = new Map<AppLocale, Map<number, string>>()
 
 function parseTaxonomyFile(fileName: string): Map<number, string> {
   const filePath = path.join(process.cwd(), "prisma", fileName)
@@ -44,35 +55,49 @@ function parseTaxonomyFullPaths(fileName: string): Map<number, string> {
   return map
 }
 
-function loadEnByGoogleId(): Map<number, string> {
-  if (!enByGoogleId) {
-    try {
-      enByGoogleId = parseTaxonomyFile("taxonomy-en.txt")
-    } catch {
-      enByGoogleId = new Map()
-    }
+function loadNameMap(locale: AppLocale): Map<number, string> {
+  const cached = nameByLocale.get(locale)
+  if (cached) return cached
+
+  const fileName = TAXONOMY_FILE_BY_LOCALE[locale]
+  try {
+    const map = parseTaxonomyFile(fileName)
+    nameByLocale.set(locale, map)
+    return map
+  } catch (error) {
+    console.error("[google-taxonomy-locale] load failed", { locale, fileName, error })
+    const fallback = locale === "en" ? new Map<number, string>() : loadNameMap("en")
+    nameByLocale.set(locale, fallback)
+    return fallback
   }
-  return enByGoogleId
 }
 
-function loadEnFullPathByGoogleId(): Map<number, string> {
-  if (!enFullPathByGoogleId) {
-    try {
-      enFullPathByGoogleId = parseTaxonomyFullPaths("taxonomy-en.txt")
-    } catch {
-      enFullPathByGoogleId = new Map()
-    }
+function loadFullPathMap(locale: AppLocale): Map<number, string> {
+  const cached = fullPathByLocale.get(locale)
+  if (cached) return cached
+
+  const fileName = TAXONOMY_FILE_BY_LOCALE[locale]
+  try {
+    const map = parseTaxonomyFullPaths(fileName)
+    fullPathByLocale.set(locale, map)
+    return map
+  } catch (error) {
+    console.error("[google-taxonomy-locale] load fullPath failed", { locale, fileName, error })
+    const fallback = locale === "en" ? new Map<number, string>() : loadFullPathMap("en")
+    fullPathByLocale.set(locale, fallback)
+    return fallback
   }
-  return enFullPathByGoogleId
 }
 
-/** Display label for a category row stored with Google taxonomy (FR in DB). */
+/** Display label for a category row stored with Google taxonomy (FR names in DB). */
 export function localizeCategoryName(
   row: { googleId: number | null; name: string },
   locale: AppLocale
 ): string {
-  if (locale !== "en" || row.googleId == null) return row.name
-  return loadEnByGoogleId().get(row.googleId) ?? row.name
+  if (row.googleId == null) return row.name
+  const localized = loadNameMap(locale).get(row.googleId)
+  if (localized) return localized
+  return loadNameMap("en").get(row.googleId) ?? row.name
 }
 
 /** Full genealogical path (Google taxonomy) localized for marketplace browse. */
@@ -80,8 +105,10 @@ export function localizeCategoryFullPath(
   row: { googleId: number | null; fullPath: string },
   locale: AppLocale
 ): string {
-  if (locale !== "en" || row.googleId == null) return row.fullPath
-  return loadEnFullPathByGoogleId().get(row.googleId) ?? row.fullPath
+  if (row.googleId == null) return row.fullPath
+  const localized = loadFullPathMap(locale).get(row.googleId)
+  if (localized) return localized
+  return loadFullPathMap("en").get(row.googleId) ?? row.fullPath
 }
 
 export function localizeCategoryTree<
