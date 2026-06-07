@@ -1,5 +1,6 @@
 import { auth } from "@/auth"
 import {
+  extractProductSpecsFromNotes,
   generateSupplierProductDescription,
   type GenerateDescriptionRequest,
 } from "@/lib/supplier-generate-description"
@@ -66,10 +67,17 @@ export async function POST(req: Request) {
 
   const generateMissingIllustrations = body.generateMissingIllustrations !== false
 
+  const specsFromNotes = extractProductSpecsFromNotes(notes)
+  const mergedSpecCount = new Set([
+    ...productSpecs.map((s) => s.label.toLowerCase()),
+    ...specsFromNotes.map((s) => s.label.toLowerCase()),
+  ]).size
+
   if (
     title.trim().length < 2 &&
     notes.trim().length < 10 &&
     bullets.length === 0 &&
+    mergedSpecCount === 0 &&
     productImageUrls.length === 0 &&
     productImageDataUrls.length === 0 &&
     illustrationDataUrls.length === 0

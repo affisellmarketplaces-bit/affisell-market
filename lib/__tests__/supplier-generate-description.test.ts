@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest"
 
 import {
   buildDescriptionGenerationPrompt,
+  extractProductSpecsFromNotes,
   hasStructuredDescriptionSections,
   isRawProductFeatureDump,
+  isSpecSheetDraftNotes,
   pickGalleryIllustrations,
   sanitizeDraftNotesForGeneration,
 } from "@/lib/supplier-generate-description"
@@ -14,6 +16,24 @@ describe("supplier-generate-description", () => {
       "Téléphones mobiles 17 Pro Max neufs, 7,3 pouces, smartphone 5G, version mondiale Android, 7800 mAh, GPS, Wifi, double SIM"
     expect(isRawProductFeatureDump(dump, "17 Pro Max 5G")).toBe(true)
     expect(sanitizeDraftNotesForGeneration(dump, "17 Pro Max 5G")).toBe("")
+  })
+
+  it("keeps AliExpress-style spec sheets in draft notes", () => {
+    const sheet = `Sac fourre-tout classique uni pour femme
+
+Lieu d'origine
+Province du GUANG DONG
+
+Matériau de doublure
+POLYESTER
+
+Type de sacs à main
+Cabas`
+    expect(isSpecSheetDraftNotes(sheet)).toBe(true)
+    expect(sanitizeDraftNotesForGeneration(sheet, "Sac fourre-tout")).toContain("POLYESTER")
+    const specs = extractProductSpecsFromNotes(sheet)
+    expect(specs.some((s) => s.label.toLowerCase().includes("matériau"))).toBe(true)
+    expect(specs.some((s) => s.value === "POLYESTER")).toBe(true)
   })
 
   it("builds title-first prompt with specs and category as tone only", () => {

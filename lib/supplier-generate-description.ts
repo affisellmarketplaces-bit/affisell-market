@@ -101,15 +101,133 @@ export function isRawProductFeatureDump(text: string, title: string): boolean {
   return false
 }
 
-/** Keep only useful draft notes — exclude raw title dumps and long unstructured SEO. */
+function looksLikeSpecLabel(line: string): boolean {
+  const words = line.split(/\s+/).filter(Boolean)
+  if (line.length < 2 || line.length > 80) return false
+  if (words.length > 12) return false
+  if (words.length === 1) return false
+  if (line.length > 55 && /[,;]/.test(line)) return false
+  if (words.length >= 6 && !/^(type|mat[eé]riau|lieu|taille|couleur|origine|poids|dimension|marque|mod[eè]le)\b/i.test(line)) {
+    return false
+  }
+  return true
+}
+
+function looksLikeSpecValue(line: string): boolean {
+  return line.length >= 1 && line.length <= 240
+}
+
+/** Import scrapes: "Label: value" or label line + value line (AliExpress, 1688…). */
+export function extractProductSpecsFromNotes(notes: string): ProductSpecRow[] {
+  const lines = notes
+    .replace(/\r\n/g, "\n")
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean)
+  const specs: ProductSpecRow[] = []
+  const seen = new Set<string>()
+
+  const push = (label: string, value: string) => {
+    const l = label.trim()
+    const v = value.trim()
+    if (!l || !v) return
+    const key = normalizeText(l)
+    if (seen.has(key)) return
+    seen.add(key)
+    specs.push({ label: l, value: v })
+  }
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]!
+    const colon = line.match(/^([^:]{2,80}):\s*(.+)$/)
+    if (colon) {
+      push(colon[1]!, colon[2]!)
+      continue
+    }
+    if (i + 1 >= lines.length) continue
+    const next = lines[i + 1]!
+    if (looksLikeSpecLabel(line) && looksLikeSpecValue(next) && !looksLikeSpecLabel(next)) {
+      push(line, next)
+      i++
+    }
+  }
+
+  return specs.slice(0, 24)
+}
+
+export function isSpecSheetDraftNotes(notes: string): boolean {
+  return extractProductSpecsFromNotes(notes).length >= 2
+}
+
+function mergeProductSpecs(primary: ProductSpecRow[], extra: ProductSpecRow[]): ProductSpecRow[] {
+  const out: ProductSpecRow[] = []
+  const seen = new Set<string>()
+  for (const row of [...primary, ...extra]) {
+    const label = row.label.trim()
+    const value = row.value.trim()
+    if (!label || !value) continue
+    const key = normalizeText(label)
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push({ label, value })
+    if (out.length >= 24) break
+  }
+  return out
+}
+
+/** Keep spec sheets and SEO sections; strip only raw keyword dumps. */
 export function sanitizeDraftNotesForGeneration(notes: string, title: string): string {
   const n = notes.trim()
   if (!n) return ""
   if (isRawProductFeatureDump(n, title)) return ""
-  if (n.length > 500 && !hasStructuredDescriptionSections(n)) return ""
+  if (hasStructuredDescriptionSections(n) || isSpecSheetDraftNotes(n)) {
+    return n.slice(0, 2000)
+  }
+  if (n.length > 500) return ""
   return n.slice(0, 1200)
 }
 
+function buildFallbackDraftForRepair(input: {
+  title: string
+  productName: string
+  specs: ProductSpecRow[]
+  draftNotes: string
+  bullets: string[]
+}): string {
+  const parts = [
+    input.title ? `Titre: ${input.title}` : "",
+    input.productName && input.productName !== input.title ? `Produit: ${input.productName}` : "",
+    input.specs.length
+      ? `Caractéristiques:\n${input.specs.map((s) => `- ${s.label}: ${s.value}`).join("\n")}`
+      : "",
+    input.bullets.length ? `Points:\n${input.bullets.map((b) => `- ${b}`).join("\n")}` : "",
+    input.draftNotes ? `Notes fournisseur:\n${input.draftNotes}` : "",
+  ].filter(Boolean)
+  return parts.join("\n\n").slice(0, 2400)
+}
+
+async function recoverEmptyDescription(input: {
+  title: string
+  productName: string
+  specs: ProductSpecRow[]
+  bullets: string[]
+  draftNotes: string
+}): Promise<string | null> {
+  const fallbackDraft = buildFallbackDraftForRepair(input)
+  if (!fallbackDraft.trim()) return null
+
+  const repaired = await repairUnstructuredDescription({
+    title: input.title,
+    productName: input.productName,
+    specs: input.specs,
+    bullets: input.bullets,
+    badOutput: fallbackDraft,
+  })
+  if (repaired?.trim()) return repaired.trim().slice(0, 8000)
+  return null
+}
+
+/** Build Groq prompt for structured SEO description generation. */
 export function buildDescriptionGenerationPrompt(input: {
   title: string
   productName: string
@@ -311,12 +429,14 @@ export async function generateSupplierProductDescription(
 ): Promise<GenerateDescriptionResult> {
   const title = input.title.trim().slice(0, 500)
   const { productName } = extractProductIdentityFromTitle(title)
-  const draftNotes = sanitizeDraftNotesForGeneration(input.notes, title)
+  const rawNotes = input.notes.trim()
+  const draftNotes = sanitizeDraftNotesForGeneration(rawNotes, title)
   const bullets = input.bullets.map((s) => s.trim()).filter(Boolean).slice(0, 6)
   const categoryPath = input.categoryPath.trim().slice(0, 500)
-  const specs = (input.productSpecs ?? [])
-    .filter((s) => s.label.trim() && s.value.trim())
-    .slice(0, 24)
+  const specs = mergeProductSpecs(
+    (input.productSpecs ?? []).filter((s) => s.label.trim() && s.value.trim()),
+    extractProductSpecsFromNotes(rawNotes)
+  )
 
   const productImageUrls = input.productImageUrls
     .filter((u) => /^https?:\/\//i.test(u.trim()))
@@ -371,8 +491,46 @@ export async function generateSupplierProductDescription(
   let description =
     typeof parsed.description === "string" ? parsed.description.trim().slice(0, 8000) : ""
 
+  if (!description && visionImages.length > 0) {
+    console.log("[supplier-generate-description]", {
+      event: "empty_description_retry_text",
+      title,
+      specCount: specs.length,
+    })
+    try {
+      const retryRaw = await callDescriptionModel(system, user, [])
+      const retryParsed = JSON.parse(stripJsonFence(retryRaw)) as typeof parsed
+      parsed = retryParsed
+      description =
+        typeof retryParsed.description === "string"
+          ? retryParsed.description.trim().slice(0, 8000)
+          : ""
+    } catch (retryErr) {
+      console.error("[supplier-generate-description] text retry failed", retryErr)
+    }
+  }
+
   if (!description) {
-    throw new Error("Description vide")
+    console.log("[supplier-generate-description]", {
+      event: "empty_description_recover",
+      title,
+      specCount: specs.length,
+      draftLen: draftNotes.length,
+    })
+    description =
+      (await recoverEmptyDescription({
+        title,
+        productName: productName || title,
+        specs,
+        bullets,
+        draftNotes: draftNotes || rawNotes.slice(0, 2000),
+      })) ?? ""
+  }
+
+  if (!description) {
+    throw new Error(
+      "Impossible de générer la description avec les informations fournies. Complétez les specs ou réessayez."
+    )
   }
 
   if (!hasStructuredDescriptionSections(description)) {

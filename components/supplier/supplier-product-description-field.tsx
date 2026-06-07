@@ -21,7 +21,10 @@ import {
   IMAGE_ROLE_LABELS,
   parseDescriptionSections,
 } from "@/lib/description-structure"
-import { isRawProductFeatureDump } from "@/lib/supplier-generate-description"
+import {
+  extractProductSpecsFromNotes,
+  sanitizeDraftNotesForGeneration,
+} from "@/lib/supplier-generate-description"
 import { cn } from "@/lib/utils"
 
 const MAX_GALLERY_FOR_AI = 2
@@ -263,17 +266,28 @@ export function SupplierProductDescriptionField({
   const handleGenerateDescription = useCallback(async () => {
     const title = productTitle.trim()
     const rawNotes = description.trim()
-    const notes =
-      rawNotes && !isRawProductFeatureDump(rawNotes, title) ? rawNotes : ""
+    const notes = sanitizeDraftNotesForGeneration(rawNotes, title)
     const bullets = descriptionBullets.map((s) => s.trim()).filter(Boolean)
-    const specs = productSpecs.filter((s) => s.label.trim() && s.value.trim())
+    const specsFromFields = productSpecs.filter((s) => s.label.trim() && s.value.trim())
+    const specsFromNotes = extractProductSpecsFromNotes(rawNotes)
+    const specKeys = new Set<string>()
+    const specs: Array<{ label: string; value: string }> = []
+    for (const row of [...specsFromFields, ...specsFromNotes]) {
+      const key = row.label.trim().toLowerCase()
+      if (!row.value.trim() || specKeys.has(key)) continue
+      specKeys.add(key)
+      specs.push({ label: row.label.trim(), value: row.value.trim() })
+      if (specs.length >= 24) break
+    }
 
     if (
       title.length < 2 &&
       notes.length < 10 &&
+      rawNotes.length < 10 &&
       bullets.length === 0 &&
       specs.length === 0 &&
-      productGalleryImages.length === 0
+      productGalleryImages.length === 0 &&
+      illustrationImages.length === 0
     ) {
       toast.error("Ajoutez un titre, des specs, des points clés ou des photos produit.")
       return
@@ -293,7 +307,7 @@ export function SupplierProductDescriptionField({
         credentials: "include",
         body: JSON.stringify({
           title,
-          notes,
+          notes: rawNotes,
           bullets,
           productSpecs: specs,
           categoryPath: categoryPathLabel,
