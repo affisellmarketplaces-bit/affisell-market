@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { rateLimitResponse } from "@/lib/api-rate-limit"
+import { rateLimitResponse, rateLimitResponseAsync } from "@/lib/api-rate-limit"
 
 describe("rateLimitResponse", () => {
   it("allows requests under the limit", () => {
@@ -16,6 +16,16 @@ describe("rateLimitResponse", () => {
     expect(rateLimitResponse(k, opts)).toBeNull()
     expect(rateLimitResponse(k, opts)).toBeNull()
     const res = rateLimitResponse(k, opts)
+    expect(res).not.toBeNull()
+    expect(res!.status).toBe(429)
+  })
+
+  it("rateLimitResponseAsync falls back to in-memory without REDIS_URL", async () => {
+    const k = `test-async-${Math.random()}`
+    const opts = { limit: 2, windowMs: 60_000, prefix: "t3" }
+    expect(await rateLimitResponseAsync(k, opts)).toBeNull()
+    expect(await rateLimitResponseAsync(k, opts)).toBeNull()
+    const res = await rateLimitResponseAsync(k, opts)
     expect(res).not.toBeNull()
     expect(res!.status).toBe(429)
   })

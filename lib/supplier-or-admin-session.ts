@@ -1,4 +1,5 @@
 import type { Session } from "next-auth"
+import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 
@@ -12,4 +13,15 @@ export async function requireSupplierOrAdminSession(): Promise<Session | null> {
   if (!session?.user?.id) return null
   if (!isSupplierOrAdminRole(session.user.role)) return null
   return session
+}
+
+/** API route guard — returns 403 when session is missing or not supplier/admin. */
+export async function requireSupplierOrAdminApi(): Promise<
+  { ok: true; session: Session } | { ok: false; response: NextResponse }
+> {
+  const session = await requireSupplierOrAdminSession()
+  if (!session) {
+    return { ok: false, response: NextResponse.json({ error: "Forbidden" }, { status: 403 }) }
+  }
+  return { ok: true, session }
 }

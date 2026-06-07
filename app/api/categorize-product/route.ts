@@ -1,10 +1,10 @@
-export const dynamic = "force-dynamic"
-export const revalidate = 0
-
 import { NextResponse } from "next/server"
 
 import { groqChatText } from "@/lib/ai/groq-client"
-import { rateLimitClientKey, rateLimitResponse } from "@/lib/api-rate-limit"
+import { guardSupplierAiRoute } from "@/lib/ai-route-guards"
+
+export const dynamic = "force-dynamic"
+export const revalidate = 0
 
 const BROAD_DEPARTMENT_CHOICES = [
   "Computers",
@@ -28,12 +28,8 @@ const BROAD_DEPARTMENT_CHOICES = [
 const FALLBACK = ["Electronics", "Computers", "Office Products"] as const
 
 export async function POST(req: Request) {
-  const limited = rateLimitResponse(rateLimitClientKey(req, null), {
-    prefix: "categorize-product",
-    limit: 40,
-    windowMs: 60_000,
-  })
-  if (limited) return limited
+  const gate = await guardSupplierAiRoute(req, "categorize-product")
+  if (!gate.ok) return gate.response
 
   const body = await req.json().catch(() => ({}))
   const title = typeof body.title === "string" ? body.title : ""

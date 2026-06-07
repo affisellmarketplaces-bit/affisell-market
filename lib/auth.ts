@@ -85,19 +85,19 @@ function oauthProviders(): NonNullable<NextAuthConfig["providers"]> {
   const gId = env("GOOGLE_CLIENT_ID")
   const gSec = env("GOOGLE_CLIENT_SECRET")
   if (gId && gSec) {
-    list.push(Google({ clientId: gId, clientSecret: gSec, allowDangerousEmailAccountLinking: true }))
+    list.push(Google({ clientId: gId, clientSecret: gSec, allowDangerousEmailAccountLinking: false }))
   }
 
   const fId = env("FACEBOOK_CLIENT_ID")
   const fSec = env("FACEBOOK_CLIENT_SECRET")
   if (fId && fSec) {
-    list.push(Facebook({ clientId: fId, clientSecret: fSec, allowDangerousEmailAccountLinking: true }))
+    list.push(Facebook({ clientId: fId, clientSecret: fSec, allowDangerousEmailAccountLinking: false }))
   }
 
   const appleId = env("APPLE_ID")
   const appleSec = env("APPLE_SECRET")
   if (appleId && appleSec) {
-    list.push(Apple({ clientId: appleId, clientSecret: appleSec, allowDangerousEmailAccountLinking: true }))
+    list.push(Apple({ clientId: appleId, clientSecret: appleSec, allowDangerousEmailAccountLinking: false }))
   }
 
   const txId = env("TWITTER_CLIENT_ID")
@@ -107,7 +107,7 @@ function oauthProviders(): NonNullable<NextAuthConfig["providers"]> {
       Twitter({
         clientId: txId,
         clientSecret: txSec,
-        allowDangerousEmailAccountLinking: true,
+        allowDangerousEmailAccountLinking: false,
         // OAuth 2.0 mode (Twitter types omit this union field in some releases)
         ...( { version: "2.0" } as Record<string, string> ),
         userinfo:

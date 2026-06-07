@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 
 import { CATEGORIES_AFFISELL } from "@/lib/ai/categories"
 import { classifyAffisellProduct } from "@/lib/ai/classify-product"
+import { guardSupplierAiRoute } from "@/lib/ai-route-guards"
 import { buildCategoryBrowse, fetchAllCategoriesForBrowse } from "@/lib/category-browse"
 import { prisma } from "@/lib/prisma"
 
@@ -19,6 +20,9 @@ type ClassifyCategoryResponseJson = {
 }
 
 export async function POST(req: Request): Promise<NextResponse<ClassifyCategoryResponseJson>> {
+  const gate = await guardSupplierAiRoute(req, "products-classify-category")
+  if (!gate.ok) return gate.response
+
   let body: unknown
   try {
     body = await req.json()

@@ -1,11 +1,19 @@
 import { NextResponse } from "next/server"
 
+import { rateLimitClientKey, rateLimitResponseAsync } from "@/lib/api-rate-limit"
 import { requestPasswordReset } from "@/lib/password-reset.server"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 export async function POST(req: Request) {
+  const limited = await rateLimitResponseAsync(rateLimitClientKey(req), {
+    prefix: "auth-forgot-password",
+    limit: 5,
+    windowMs: 15 * 60_000,
+  })
+  if (limited) return limited
+
   try {
     const body = (await req.json()) as { email?: string }
     const email = typeof body.email === "string" ? body.email : ""

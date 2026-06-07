@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { groqChatText, GROQ_TEXT_MODEL } from "@/lib/ai/groq-client"
+import { guardSupplierAiRoute } from "@/lib/ai-route-guards"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -32,6 +33,9 @@ function parseCopyPayload(raw: unknown): ClassifyCopyResponse {
 }
 
 export async function POST(req: Request): Promise<NextResponse<ClassifyCopyResponse>> {
+  const gate = await guardSupplierAiRoute(req, "products-classify")
+  if (!gate.ok) return gate.response
+
   if (!process.env.GROQ_API_KEY?.trim()) {
     return emptyCopy()
   }

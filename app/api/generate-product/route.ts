@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server"
 
 import { groqChatText } from "@/lib/ai/groq-client"
+import { guardSupplierAiRoute } from "@/lib/ai-route-guards"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
 export async function POST(req: Request) {
+  const gate = await guardSupplierAiRoute(req, "generate-product")
+  if (!gate.ok) return gate.response
+
   try {
     const { productTitle, imageUrl }: { productTitle?: string; imageUrl?: string } = await req.json()
     if (!productTitle && !imageUrl) {
