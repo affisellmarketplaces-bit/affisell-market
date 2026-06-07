@@ -1,0 +1,2266 @@
+{
+  "nav": {
+    "brand": "Affisell",
+    "home": "Inicio",
+    "dashboard": "Tablero",
+    "marketplace": "Mercado",
+    "signup": "Crear cuenta",
+    "login": "Iniciar sesión",
+    "searchAria": "Buscar",
+    "searchProducts": "Buscar productos…",
+    "searchCatalog": "Buscar catálogo…",
+    "dock": {
+      "aria": "Navegación rápida",
+      "home": "Inicio",
+      "stores": "Tiendas",
+      "explore": "Explorar",
+      "pulse": "Pulse",
+      "cart": "Carrito"
+    },
+    "affiliate": {
+      "agent": "Agente de fuentes",
+      "agentShort": "Agente",
+      "catalog": "Catálogo",
+      "dashboard": "Tablero",
+      "dashboardShort": "Centro",
+      "earnings": "Ganancias",
+      "earningsShort": "Pago",
+      "inviteSupplier": "Invitar proveedor",
+      "inviteSupplierShort": "Invitar",
+      "brandStudio": "Estudio de marcas",
+      "brandStudioShort": "Marca"
+    },
+    "supplier": {
+      "badge": "Proveedor",
+      "dashboard": "Tablero",
+      "orders": "Pedidos",
+      "products": "Productos",
+      "inviteAffiliate": "Invitar agente",
+      "inviteAffiliateShort": "Invitar"
+    },
+    "accountMenu": {
+      "aria": "Menú de cuenta",
+      "close": "Cerrar menú",
+      "settings": "Configuración",
+      "signOut": "Cerrar sesión"
+    }
+  },
+  "PublicNav": {
+    "home": "Inicio",
+    "marketplace": "Mercado",
+    "creatorStores": "Tiendas de creadores",
+    "creatorStoresShort": "Creadores",
+    "searchPlaceholder": "Buscar productos…",
+    "searchLabel": "Buscar",
+    "cmdKBadge": "⌘K",
+    "signIn": "Iniciar sesión",
+    "myAccount": "Mi cuenta",
+    "cart": "Carrito",
+    "cartAria": "Carrito de compras",
+    "themeToggle": "Alternar tema"
+  },
+  "home": {
+    "meta": {
+      "title": "Affisell — Tienda de creadores de productos",
+      "description": "Compre productos curados de tus creadores favoritos. Envío rápido, pago seguro."
+    },
+    "hero": {
+      "title": "Tiendas curadas por tus creadores favoritos",
+      "titleHighlight": "creadores",
+      "sub": "Envío rápido · Pago seguro · 14 días de devolución",
+      "searchPlaceholder": "Buscar productos, marcas, nichos…",
+      "searchLabel": "Buscar productos",
+      "searchSubmit": "Buscar",
+      "cmdKHint": "Navegación rápida",
+      "ctaPrimary": "Explorar catálogo",
+      "creatorLink": "¿Eres un creador? Vende en Affisell →"
+    },
+    "bento": {
+      "agentShopping": {
+        "title": "Compras de agente",
+        "description": "El AI encuentra productos para ti"
+      },
+      "featuredStores": {
+        "title": "Tiendas destacadas",
+        "description": "Tiendas de creadores curadas"
+      },
+      "liveCatalog": {
+        "title": "Catálogo en vivo",
+        "description": "Productos disponibles ahora",
+        "counterSuffix": "+ productos"
+      },
+      "trending": {
+        "title": "Tendencias ahora",
+        "description": "Elecciones populares de esta semana",
+        "empty": "—"
+      }
+    },
+    "loadingCatalog": "Cargando catálogo…",
+    "catalogError": {
+      "eyebrow": "Catálogo no disponible",
+      "title": "No se pueden mostrar productos aquí",
+      "body": "La carga falló en este dispositivo. Vuelve a intentarlo o abre el catálogo completo.",
+      "retry": "Volver a intentarlo",
+      "browse": "Abrir catálogo"
+    },
+    "buyerBanner": {
+      "title": "¿Comprando como comprador?",
+      "body": "Explora tiendas de creadores.",
+      "cta": "Explora tiendas →"
+    },
+    "footerCreator": "¿Eres un creador?",
+    "footerSupplier": "¿Eres un proveedor?",
+    "footerSupplierCta": "Abrir una cuenta de proveedor",
+    "footerCreatorCta": "Convertirse en afiliado",
+    "footerNavAria": "Espacios de socios",
+    "pickedEmpty": "No hay sugerencias para este nicho aún.",
+    "featuredProductsEmpty": "No hay productos destacados aún.",
+    "orbitalRail": {
+      "eyebrow": "Más allá del catálogo",
+      "title": "Experiencias de firma",
+      "subtitle": "Subastas en vivo y lujo curado — dos mundos premium."
+    },
+    "trustHandoff": {
+      "eyebrow": "Verticals premium",
+      "title": "Más allá del catálogo estándar",
+      "trustTitle": "Pago seguro",
+      "trustBody": "Pagos con Stripe · escrow del vendedor · devoluciones de 14 días en la UE.",
+      "trustReturns": "Devoluciones",
+      "trustShipping": "Envío",
+      "trustSupport": "Soporte",
+      "trustFootnote": "Pan-UE · Impuestos de Stripe · mediación ODR de la UE"
+    },
+    "buyerServices": {
+      "sectionBuyer": "Compre con más inteligencia en Affisell",
+      "sectionDefault": "Más que una plataforma de comercio electrónico — la capa de Affisell",
+      "aria": "Servicios de Affisell",
+      "featuredBadge": "Destacado",
+      "agent": "Agente de compras",
+      "agentHint": "Asesor AI para encontrar el producto correcto",
+      "catalog": "Catálogo en vivo",
+      "catalogHint": "Departamentos, filtros y páginas de productos",
+      "stores": "Tiendas",
+      "storesHint": "Todos los escaparates de creadores",
+      "featured": "Tiendas destacadas",
+      "featuredHint": "Creadores curados",
+      "discover": "Pulso de Affisell",
+      "discoverShort": "Descubre",
+      "discoverMarketHint": "Señales del mercado",
+      "discoverHint": "Alimentación vertical · tienda con un solo toque",
+      "liveSearch": "Búsqueda en vivo",
+      "liveSearchHint": "Demo “filtro inteligente”",
+      "wishlist": "Lista de deseos",
+      "wishlistHint": "Alertas de precio y favoritos",
+      "support": "Asistente de soporte",
+      "supportHint": "Pedidos, envío, devoluciones · 24/7",
+      "auctions": "Auction Arena",
+      "auctionsHint": "Live bids · futuristic drops",
+      "luxe": "Affisell Luxe",
+      "luxeHint": "Curated luxury & collections"
+    }
+  },
+  "creators": {
+    "meta": {
+      "title": "Vende en Affisell — Tienda de creadores",
+      "description": "Monetiza tu audiencia con cero inventario. Selecciona productos, nosotros enviamos."
+    },
+    "hero": {
+      "title": "Monetiza tu audiencia en 2 minutos",
+      "sub": "Cero inventario. Cero riesgo. Selecciona productos, nosotros enviamos.",
+      "cta": "Crea tu tienda gratuita",
+      "badgeCreators": "500+ creadores",
+      "badgeRevenue": "Ingresos promedio de $2,400/mes",
+      "badgeSetup": "Configuración en 2 minutos"
+    },
+    "features": {
+      "pick": {
+        "title": "Selecciona productos",
+        "description": "Elige entre 1M+ productos de proveedores verificados"
+      },
+      "sync": {
+        "title": "Sincronización automática",
+        "description": "Precios, stock y órdenes sincronizados automáticamente"
+      },
+      "paid": {
+        "title": "Recibe pagos",
+        "description": "Pagos semanales. Mantén un margen del 15–30%"
+      }
+    },
+    "social": {
+      "title": "Creadores creciendo con Affisell",
+      "quote1": "Lancé en una noche y obtuve mi primera venta la misma semana.",
+      "quote2": "No almacén, no tickets de soporte para envíos — Affisell se encarga de ello.",
+      "revenueTag": "{amount}/mo"
+    },
+    "preview": {
+      "title": "Tu panel de creadores",
+      "hint": "Pasa el ratón para explorar la interfaz"
+    },
+    "footerLink": "Eres una marca? Únete a nosotros →",
+    "ctaFinal": "Comienza a vender hoy"
+  },
+  "partners": {
+    "meta": {
+      "title": "Affisell Partners — Distribución de proveedores",
+      "description": "Distribuye a través de tiendas de creadores con automatización de API."
+    },
+    "hero": {
+      "title": "Distribuye a través de 10,000+ creadores",
+      "sub": "Integración de API. Pedidos automatizados. Pagos seguros.",
+      "cta": "Convertirse en un socio"
+    },
+    "features": {
+      "reach": {
+        "title": "Alcance",
+        "description": "Accede a audiencias comprometidas a través de tiendas de creadores"
+      },
+      "automation": {
+        "title": "Automatización",
+        "description": "Los pedidos se envían directamente a su almacén o a través de API"
+      },
+      "control": {
+        "title": "Control",
+        "description": "Establece tus precios, gestiona tu inventario en tiempo real"
+      }
+    },
+    "steps": {
+      "title": "Cómo funciona",
+      "step1": "Conecta API",
+      "step2": "Los creadores listan tus productos",
+      "step3": "Nosotros te enviamos los pedidos"
+    },
+    "ctaFinal": "Solicita convertirte en un socio",
+    "backCreators": "← Creadores"
+  },
+  "auth": {
+    "signin": "Iniciar sesión",
+    "signup": "Crear cuenta",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "signupTitle": "Crear tu cuenta",
+    "submitLogin": "Iniciar sesión",
+    "submitSignup": "Crear cuenta",
+    "creating": "Creando…",
+    "connecting": "Iniciando sesión…",
+    "invalidCredentials": "Correo electrónico o contraseña inválidos.",
+    "invalid_password": "Contraseña incorrecta.",
+    "account_not_found": "No se encontró ninguna cuenta de Affisell con este correo electrónico.",
+    "password_login_unavailable": "Esta cuenta utiliza la autenticación social. Utiliza Google o establece una contraseña a través de “Olvidé mi contraseña”.",
+    "passwordReset": {
+      "secureBadge": "Acceso seguro de Affisell",
+      "forgotLink": "¿Olvidé mi contraseña?",
+      "forgotTitle": "Restablece tu contraseña",
+      "forgotSubtitle": "Ingresa tu correo electrónico de cuenta. Enviarémos un enlace válido durante 1 hora.",
+      "sendResetLink": "Enviar enlace de restablecimiento",
+      "forgotSuccess": "Si existe una cuenta de Affisell vinculada a esta dirección, se envió el enlace de restablecimiento allí.",
+      "forgotSuccessHint": "Abre la bandeja de entrada de esa cuenta (incluyendo spam). El correo electrónico muestra la dirección de la cuenta vinculada.",
+      "requestFailed": "No se pudo enviar el correo electrónico. Intenta de nuevo.",
+      "backToLogin": "← Volver a iniciar sesión",
+      "resetTitle": "Nueva contraseña",
+      "resetSubtitle": "Elige una contraseña con al menos 8 caracteres.",
+      "newPassword": "Nueva contraseña",
+      "confirmPassword": "Confirmar contraseña",
+      "savePassword": "Guardar contraseña",
+      "passwordTooShort": "La contraseña debe tener al menos 8 caracteres.",
+      "passwordMismatch": "Las contraseñas no coinciden.",
+      "invalidToken": "Este enlace es inválido o ha expirado. Solicita uno nuevo.",
+      "resetFailed": "No se pudo actualizar tu contraseña.",
+      "resetSuccessLogin": "Contraseña actualizada. Puedes iniciar sesión ahora."
+    },
+    "signupFail": "No se pudo registrar.",
+    "signupLoginFail": "Cuenta creada pero inicio de sesión fallido. Intenta iniciar sesión.",
+    "roleHint": "Tipo de cuenta",
+    "roleSupplier": "Proveedor",
+    "roleAffiliate": "Afiliado",
+    "noAccount": "¿No tiene cuenta?",
+    "hasAccount": "¿Ya está registrado?",
+    "continueGoogle": "Continuar con Google",
+    "orPassword": "O use contraseña",
+    "loading": "Cargando…",
+    "adminLogin": {
+      "title": "Iniciar sesión en Affisell Admin",
+      "subtitle": "Acceso a la plataforma: auto-llenado, órdenes, API del proveedor.",
+      "back": "Atrás"
+    },
+    "loginSelector": {
+      "title": "Iniciar sesión en Affisell",
+      "subtitle": "Elige tu espacio profesional. Los compradores inician sesión desde su tienda del creador.",
+      "creatorTitle": "Soy un Creador",
+      "creatorHint": "Catálogo de afiliados y tienda",
+      "supplierTitle": "Soy un Proveedor",
+      "supplierHint": "Productos y órdenes B2B",
+      "buyerNote": "¿Ha comprado en Affisell?",
+      "buyerHint": "Cuenta de cliente: órdenes, seguimiento y devoluciones.",
+      "buyerButton": "Iniciar sesión como cliente",
+      "noAccount": "¿No tiene cuenta de creador aún?",
+      "createSpace": "Crear mi espacio"
+    },
+    "non_customer_on_customer_portal": "Esta cuenta no es una cuenta de comprador. Utilice el inicio de sesión del creador o proveedor en su lugar.",
+    "marketplaceBuyer": {
+      "loginTitle": "Cuenta de cliente de Affisell",
+      "signupTitle": "Crear una cuenta de cliente",
+      "loginHint": "Inicie sesión con el correo electrónico que utilizó al comprar en Affisell.",
+      "signupHint": "Cree una cuenta para seguir las órdenes y gestionar las devoluciones.",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "submitLogin": "Iniciar sesión",
+      "submitSignup": "Crear mi cuenta",
+      "noAccount": "¿No tiene cuenta aún?",
+      "signUpLink": "Crear una cuenta de cliente",
+      "alreadyClient": "¿Ya es cliente?",
+      "signupFail": "No se pudo crear la cuenta",
+      "backTrackOrder": "← Seguir mi orden"
+    },
+    "customerSignup": {
+      "heroTitle": "Compra y obtén hasta un 20% de devolución",
+      "heroSubtitle": "Obtén hasta un 20% de devolución en cada compra",
+      "accountTypeLabel": "Tipo de cuenta",
+      "individual": "Individual",
+      "professional": "Negocio",
+      "companyName": "Nombre de la empresa",
+      "siret": "SIRET (Francia)",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "submit": "Crear cuenta",
+      "submitLoading": "Creando cuenta…",
+      "benefitCashback": "Hasta un 20% de devolución creditado de inmediato",
+      "benefitReviews": "Créditos adicionales por reseñas y referidos",
+      "benefitCreators": "Apoya a los creadores que amas",
+      "alreadyAccount": "¿Ya tienes una cuenta?",
+      "signIn": "Iniciar sesión",
+      "acceptTermsError": "Por favor, acepta los términos y la política de privacidad.",
+      "siretError": "Se requiere un SIRET de 14 dígitos para las cuentas de negocio.",
+      "signupFail": "No se pudo crear la cuenta"
+    },
+    "shopBuyer": {
+      "loginTitle": "Mi cuenta — {store}",
+      "signupTitle": "Crear cuenta — {store}",
+      "loginHint": "Inicia sesión para seguir los pedidos de esta tienda.",
+      "signupHint": "Crea una cuenta para realizar el pago más rápido en esta tienda.",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "submitLogin": "Iniciar sesión",
+      "submitSignup": "Crear mi cuenta",
+      "toggleSignup": "Crear una cuenta",
+      "toggleLogin": "Iniciar sesión",
+      "backToStore": "← Volver a la tienda",
+      "signupHintExtended": "Regístrate para realizar pedidos y seguir las compras.",
+      "noAccount": "¿No tienes cuenta?",
+      "signUpLink": "Regístrate",
+      "alreadyClient": "¿Ya eres cliente?",
+      "signupFail": "No se pudo crear la cuenta"
+    },
+    "signupAffiliate": {
+      "createTitle": "Crear mi espacio de creador de Affisell",
+      "title": "Espacio de creador",
+      "subtitle": "Accede al catálogo y lanza tu tienda en 5 minutos",
+      "socialLabel": "Handle de TikTok / Instagram",
+      "socialPlaceholder": "@tu_handle",
+      "createButton": "Crear mi espacio",
+      "hasAccount": "¿Ya eres creador?",
+      "signIn": "Iniciar sesión",
+      "emailExistsHint": "Este correo electrónico ya está registrado. Reinicia tu contraseña o inicia sesión.",
+      "resetPasswordCta": "Reinicia mi contraseña"
+    },
+    "signupSupplier": {
+      "createTitle": "Vender en Affisell",
+      "title": "Espacio de proveedor",
+      "subtitle": "Millares de creadores pueden vender tus productos",
+      "createButton": "Crear mi cuenta",
+      "hasAccount": "¿Ya eres socio?",
+      "signIn": "Iniciar sesión"
+    },
+    "merchantLegal": {
+      "badge": "Verificación de Affisell · Capa de confianza",
+      "titleSupplier": "Inscripción de proveedor segura",
+      "titleAffiliate": "Inscripción de creador segura",
+      "subtitle": "Elige tu estado legal, sube los documentos requeridos — activación en 24-48 horas.",
+      "stepStatus": "Estado legal",
+      "stepIdentity": "Identidad y negocio",
+      "stepDocuments": "Documentos requeridos",
+      "stepAccount": "Acceso a la cuenta",
+      "continue": "Continuar",
+      "back": "Atrás",
+      "submit": "Presentar mi solicitud",
+      "documentsHint": "Cifrado en tránsito · PDF o imagen · 8 MB máximo.",
+      "required": "Requerido",
+      "optional": "Opcional",
+      "fieldLegalName": "Nombre legal o nombre completo",
+      "fieldTradeName": "Nombre comercial",
+      "fieldVat": "Número de VAT de la UE",
+      "fieldRna": "Número de RNA (asociación)",
+      "fieldSocial": "Handle de TikTok / Instagram",
+      "fieldPassword": "Contraseña",
+      "vatNotice": "Los vendedores siguen siendo responsables de IVA. Las comisiones de Affisell se aplican a las cantidades netas excluyendo IVA.",
+      "hasAccountSupplier": "¿Ya eres un socio?",
+      "hasAccountAffiliate": "¿Ya eres un creador?",
+      "signIn": "Iniciar sesión",
+      "statusParticulierTitle": "Individual",
+      "statusParticulierSub": "Creador o vendedor sin negocio registrado",
+      "statusAutoEntrepreneurTitle": "Autónomo / pequeña empresa",
+      "statusAutoEntrepreneurSub": "Autónomo · prueba de URSSAF / INSEE",
+      "statusEiTitle": "Profesional (sociedad de un solo propietario)",
+      "statusEiSub": "Negocio individual registrado",
+      "statusCompanyTitle": "Compañía",
+      "statusCompanySub": "Sociedad limitada, SAS, Inc. · extracto de registro y DNI de representante legal",
+      "statusAssociationTitle": "Sin fines de lucro / asociación",
+      "statusAssociationSub": "RNA y estatutos",
+      "statusForeignTitle": "Compañía extranjera",
+      "statusForeignSub": "Fuera de Francia · extracto de registro local",
+      "docIdentityFront": "Documento de identidad (frente)",
+      "docIdentityBack": "Documento de identidad (detrás)",
+      "docKbis": "Extracto de registro de la empresa (< 3 meses)",
+      "docSiretAttestation": "SIRET / prueba de registro de la empresa",
+      "docVat": "Certificado de IVA",
+      "docStatutes": "Estatutos",
+      "docProofAddress": "Prueba de dirección (< 3 meses)",
+      "docForeignReg": "Documento de registro extranjero",
+      "docRna": "RNA / anuncio en el boletín oficial",
+      "errDraft": "Sesión de documento expirada — refresque la página.",
+      "errStatus": "Estado legal inválido.",
+      "errEntityName": "Nombre legal o completo es requerido.",
+      "errSiret": "SIRET de 14 dígitos requerido para este estado.",
+      "errRna": "Número de RNA requerido.",
+      "errMissingDoc": "Suba todos los documentos requeridos.",
+      "errUpload": "Subida fallida — inténtelo de nuevo.",
+      "errFileSize": "Archivo demasiado grande (8 MB máximo).",
+      "errFileType": "Formato no soportado (PDF, JPG, PNG, WebP).",
+      "verification": {
+        "eyebrow": "Solicitud en revisión",
+        "title": "Verificación de cuenta",
+        "subtitle": "Estamos revisando sus documentos. Se le notificará por correo electrónico una vez aprobado.",
+        "legalStatus": "Estado declarado",
+        "body": "Puede navegar por su panel de control en modo de solo lectura. La publicación de catálogos se desbloquea después de la aprobación.",
+        "dashboardLink": "Abrir panel de control",
+        "status_PENDING_REVIEW": "En revisión",
+        "status_REJECTED": "Solicitud rechazada — contacte con el soporte",
+        "status_NEEDS_MORE_INFO": "Se solicitan documentos adicionales"
+      }
+    },
+    "portal": {
+      "accessDenied": "Acceso denegado: esta cuenta no coincide con el espacio solicitado.",
+      "oauthFailed": "Acceso fallido. Inténtelo de nuevo o utilice correo electrónico y contraseña.",
+      "affiliate": {
+        "title": "Espacio del creador",
+        "subtitle": "Acceda a su panel de control del creador y al catálogo de afiliados",
+        "signup": "Crear mi espacio del creador"
+      },
+      "supplier": {
+        "title": "Espacio del proveedor",
+        "subtitle": "Administre productos, pedidos y cumplimiento B2B",
+        "signup": "Crear una cuenta de proveedor"
+      },
+      "errors": {
+        "supplier_on_affiliate_portal": "Acceso denegado: esta es una cuenta de proveedor. Utilice la autenticación de proveedor.",
+        "affiliate_on_supplier_portal": "Acceso denegado: esta es una cuenta de afiliado. Utilice la autenticación de afiliado, no de proveedor.",
+        "non_affiliate_on_affiliate_portal": "Acceso denegado: solo se permiten cuentas de afiliados aquí.",
+        "non_supplier_on_supplier_portal": "Acceso denegado: solo se permiten cuentas de proveedor aquí.",
+        "email_required_not_id": "Acceso denegado: ingrese su dirección de correo electrónico (no un ID interno)."
+      }
+    }
+  },
+  "checkout": {
+    "flexiblePayment": {
+      "aria": "Paga en {count} cuotas sin interés de {amount} — Klarna o tarjeta",
+      "zeroApr": "0%",
+      "methods": "Klarna · Tarjeta"
+    }
+  },
+  "cart": {
+    "title": "Carrito",
+    "loading": "Cargando carrito…",
+    "empty": "Tu carrito está vacío",
+    "discoverProducts": "Descubre productos",
+    "explore": "← Explora",
+    "itemCount": "{count, plural, one {# item} other {# items}}",
+    "itemCountHint": "{count, plural, one {# item} other {# items}} · tus opciones (color, tamaño) están guardadas",
+    "subtotal": "Subtotal ({count, plural, one {# item} other {# items}})",
+    "guestCheckoutHint": "No se necesita cuenta para agregar items. Al realizar el pago, ingresa tu correo electrónico o móvil — se crea automáticamente tu cuenta de comprador de Affisell.",
+    "guestAdded": "Agregado al carrito",
+    "guestAddedBody": "Sigue comprando o realiza el pago cuando estés listo.",
+    "colorLabel": "Color",
+    "sizeLabel": "Tamaño",
+    "verifiedSeller": "Vendedor verificado",
+    "bySeller": "por {seller}",
+    "view": "Ver",
+    "yourSelection": "Tu selección",
+    "noColorSize": "No se ha registrado color o tamaño para esta línea — selecciona opciones en la página del producto cuando agregues al carrito.",
+    "remove": "Eliminar",
+    "cashbackAvailable": "Disponible cashback",
+    "balanceUpToUsable": "Saldo {balance} · hasta {usable} usable (€{minCard} se queda en la orden como cargo mínimo de la tarjeta).",
+    "applyAtCheckout": "Aplicar en el pago (EUR)",
+    "max": "Máx",
+    "none": "Ninguno",
+    "emailOrPhoneBeforePayment": "Correo electrónico o móvil requerido antes del pago · cuenta de cliente y cashback son automáticos",
+    "redirecting": "Redirigiendo…",
+    "validatePurchase": "Realizar compra",
+    "continueShopping": "Seguir comprando",
+    "identity": {
+      "beforePay": "Antes del pago",
+      "title": "Continúa con tu identidad",
+      "subtitle": "Se crea automáticamente una cuenta de comprador para seguir los pedidos y el cashback.",
+      "close": "Cerrar",
+      "emailTab": "Correo electrónico",
+      "phoneTab": "Teléfono",
+      "emailLabel": "Dirección de correo electrónico",
+      "emailPlaceholder": "you@example.com",
+      "phoneLabel": "Número de teléfono móvil",
+      "phonePlaceholder": "+1 555 000 0000",
+      "preparing": "Preparando…",
+      "continueCheckout": "Continuar al pago",
+      "legalNote": "Al continuar, acepta crear una cuenta de comprador de Affisell para recompensas de cashback.",
+      "identifyFailed": "No se pudo continuar. Intenta de nuevo.",
+      "signInFailed": "Falló la autenticación de inicio de sesión después de la identificación.",
+      "networkError": "Red no disponible. Intenta de nuevo."
+    }
+  },
+  "buyerAccount": {
+    "navAria": "Área del cliente",
+    "overview": "Resumen",
+    "orders": "Pedidos",
+    "wallet": "Billetera",
+    "cart": "Carrito",
+    "gdpr": "Privacidad",
+    "defaultName": "Mi cuenta",
+    "hubTitle": "Todo para tus compras",
+    "hubSubtitle": "Pedidos, billetera y favoritos en un lugar.",
+    "noOrders": "Aún no tienes pedidos",
+    "discoverProducts": "Descubre productos",
+    "viewOrders": "Ver pedidos",
+    "viewCart": "Ver carrito",
+    "walletPromo": "Descuentos exclusivos",
+    "walletPromoHint": "Hasta un 70% de descuento en artículos seleccionados",
+    "walletPromoCta": "Ver ofertas →",
+    "supportTitle": "Soporte",
+    "supportBody": "¿Tienes alguna pregunta? Ponte en contacto",
+    "contactCta": "Contactanos →",
+    "gdprTitle": "Datos personales",
+    "gdprBody": "Exportación de datos GDPR, cookies y eliminación de cuenta",
+    "gdprCta": "Administra mis datos →",
+    "sidebarAria": "Beneficios y soporte",
+    "welcomeEyebrow": "Bienvenido",
+    "browseMarketplace": "Explora la plataforma",
+    "noOrdersHint": "Descubre productos tendenciales y gana cashback",
+    "ordersTitle": "Pedidos y devoluciones",
+    "ordersBody": "Ver pedidos pagados, devoluciones en curso y plazos",
+    "walletTitle": "Billetera",
+    "walletAvailable": "{amount} disponible",
+    "walletBody": "Cashback en productos de socios — se aplica automáticamente en el pago",
+    "viewWallet": "Ver billetera",
+    "cashbackFaq": "¿Cómo gano cashback?",
+    "cartEmptyTitle": "Tu carrito está vacío",
+    "cartEmptyBody": "Añade artículos de la plataforma para realizar el pago",
+    "startShopping": "Comienza a comprar",
+    "cartTitle": "Tu carrito",
+    "cartPending": "{count, plural, one {# item waiting} other {# items waiting}}",
+    "backMarketplace": "← Volver a la tienda"
+  },
+  "shops": {
+    "metaTitle": "Tiendas de creadores — Affisell",
+    "metaDescription": "Explora las tiendas de Affisell de creadores afiliados.",
+    "title": "Tiendas de creadores",
+    "subtitle": "Compra directamente de tus creadores favoritos",
+    "filterAll": "Todos",
+    "emptyCategory": "Aún no hay tiendas en esta categoría.",
+    "storeMetaTitle": "{name} — Tienda de {niche}",
+    "storeMetaDescription": "Descubre la selección de {name} en {niche}.",
+    "filterAria": "Filtrar por nicho",
+    "featuredEmpty": "Los creadores están abriendo sus tiendas. Vuelve pronto.",
+    "visitStore": "Visita tienda",
+    "ordersCount": "{count, plural, one {# pedido} other {# pedidos}}",
+    "browseCta": "Todas las tiendas"
+  },
+  "discovery": {
+    "eyebrow": "Explora",
+    "title": "Encuentra a tu creador, luego tu producto",
+    "subtitle": "Cada artículo se vende en una tienda de afiliados verificada — filtra por nicho, categoría o creador favorito.",
+    "fullMarketplace": "Mercado completo",
+    "searchLabel": "Buscar un producto o tienda",
+    "searchPlaceholder": "Buscar productos, tiendas, categorías…",
+    "creators": "Creadores",
+    "allCreators": "Todos",
+    "nichesLabel": "Nichos",
+    "categoriesLabel": "Categorías",
+    "allCatalog": "Catálogo completo",
+    "productCount": "{count, plural, one {# producto} other {# productos}}",
+    "atStore": " en ",
+    "thisCreator": "este creador",
+    "viewStore": "Ver tienda",
+    "emptyTitle": "No hay productos para estos filtros",
+    "emptyBody": "Amplía tu búsqueda o explora el mercado completo.",
+    "viewAllProducts": "Ver todos los productos",
+    "storesSection": "Tiendas",
+    "storesTitle": "Tus creadores en Affisell",
+    "allStores": "Todas las tiendas →",
+    "niches": {
+      "all": "Todos",
+      "fitness": "Fitness",
+      "tech": "Tecnología",
+      "beauty": "Belleza",
+      "home": "Hogar",
+      "lifestyle": "Estilo de vida"
+    }
+  },
+  "supplier": {
+    "form": {
+      "loadingListing": "Cargando lista…",
+      "breadcrumbCatalog": "Catálogo",
+      "breadcrumbDraft": "Borrador",
+      "breadcrumbEdit": "Editar producto",
+      "breadcrumbNew": "Nuevo producto",
+      "publishBlockedTitle": "No se puede publicar — corrige los campos resaltados",
+      "onThisPage": "En esta página",
+      "jumpShortcuts": "Atajos",
+      "jumpStory": "Historia",
+      "saveDraft": "Guardar borrador"
+    },
+    "myProducts": "Mis productos",
+    "addProduct": "Agregar producto",
+    "ordersToShip": "Pedidos para enviar",
+    "dashboardTagline": "Herramientas del proveedor",
+    "hello": "Hola,",
+    "guestName": "allí",
+    "newProductTitle": "Nuevo producto",
+    "newProductHint": "Los afiliados establecen un precio de venta al por menor a partir del precio base; su margen se divide según su tasa de comisión para pagos.",
+    "productNamePlaceholder": "Nombre del producto",
+    "basePricePlaceholder": "Precio base (EUR)",
+    "commissionRatePlaceholder": "Comisión % de margen",
+    "imagePlaceholder": "URL de la imagen",
+    "descriptionPlaceholder": "Descripción",
+    "saving": "Guardando…",
+    "createFailed": "No se pudo crear el producto.",
+    "updateFailed": "No se pudo actualizar el producto.",
+    "errorUnknown": "Algo salió mal.",
+    "emptyProducts": "Aún no hay productos.",
+    "noImage": "No hay imagen",
+    "statusActive": "Activo",
+    "statusInactive": "Inactivo",
+    "toggleActive": "Desactivar lista",
+    "toggleInactive": "Activar lista",
+    "basePriceLabel": "Precio base",
+    "commissionLabel": "Comisión (participación de margen)",
+    "ordersEmpty": "No hay pedidos aún.",
+    "customerEmail": "Correo electrónico del cliente",
+    "shipTo": "Enviar a",
+    "orderTotal": "Total del pedido",
+    "productCol": "Producto"
+  },
+  "affiliate": {
+    "myStore": "Mi Tienda",
+    "supplierCatalog": "Catálogo del Proveedor",
+    "sales": "Ventas",
+    "dashboardTagline": "Centro de Afiliados",
+    "hello": "Hola,",
+    "guestName": "allí",
+    "publicStoreLead": "Tu tienda pública:",
+    "addToStore": "Agregar a Mi Tienda",
+    "sellingPriceLabel": "Tu precio de venta (EUR)",
+    "marginNote": "{rate}% de tu margen se te va a ti cuando se complete la venta.",
+    "addFailedToast": "No se pudo agregar la lista.",
+    "addedToast": "Agregado a tu tienda.",
+    "redirecting": "Redirigiendo…",
+    "catalogNoDescription": "Sin descripción",
+    "supplierPrefix": "Proveedor",
+    "swipeFeed": {
+      "feedLoadFailed": "No se pudo cargar la alimentación",
+      "serviceUnavailable": "Servicio temporalmente no disponible — inténtalo de nuevo en un momento.",
+      "genericError": "Algo salió mal"
+    },
+    "liveStore": {
+      "openAria": "Abrir visitantes en vivo",
+      "liveBadge": "EN VIVO • {count, plural, one {# visitante} other {# visitantes}}",
+      "eyebrow": "Tienda en vivo",
+      "title": "Visitantes",
+      "close": "Cerrar",
+      "activeNow": "Activo ahora",
+      "demoNote": "Visitantes de demo (datos de vista previa)",
+      "cartLeft": "{time} restante",
+      "sendDiscount": "Enviar 10% de descuento",
+      "startChat": "Iniciar chat",
+      "messagePlaceholder": "Escribe un mensaje…",
+      "send": "Enviar",
+      "today": "Hoy",
+      "visitorsToday": "visitantes",
+      "salesToday": "ventas",
+      "revenueToday": "ingresos",
+      "hourlyTraffic": "Tráfico por hora",
+      "dismiss": "Cerrar",
+      "toastDiscount": "Demo: {name} con un 10% de descuento (popup)",
+      "toastMessage": "Demo: mensaje en cola para {name}",
+      "demoVisitors": {
+        "emma": {
+          "action": "carrito: Vela de lavanda"
+        },
+        "julien": {
+          "action": "carrito: Altavoz portátil"
+        },
+        "anonymous": {
+          "action": "página de inicio"
+        },
+        "lina": {
+          "action": "viendo Bolsa cruzada de cuero"
+        }
+      }
+    },
+    "hub": {
+      "storefrontTitle": "Tu tienda de marca",
+      "storefrontSubtitle": "Descubre productos para vender, establece tus precios y márgenes y gestiona lo que los compradores ven en tu tienda pública—todo desde aquí.",
+      "inviteSupplier": "Invitar proveedor",
+      "browseMarketplace": "Explorar mercado",
+      "earningsCockpit": "Cockpit de ganancias",
+      "brandStudio": "Estudio de marca",
+      "storeProfile": "Perfil de tienda",
+      "communitySocial": "Comunidad y social",
+      "accountSecurity": "Cuenta y seguridad",
+      "openPublicStore": "Abrir tienda pública",
+      "discoverFeed": "Alimentador de descubrimiento",
+      "yourListings": "Tus listados",
+      "liveOnStorefront": "En vivo en tienda",
+      "skus": "SKUs",
+      "storefrontUnavailable": "Datos de tienda no disponibles"
+    },
+    "mySelection": "Mis listados de tienda",
+    "selectionHint": "Elige productos del catálogo y establece tu precio de venta.",
+    "toggleListing": "Listado en mercado y búsqueda",
+    "hideListing": "Oculto del mercado",
+    "cancel": "Cancelar",
+    "listingActiveHelp": "Cuando está apagado, los compradores no pueden realizar el pago de este SKU desde tu tienda o /marketplace.",
+    "recentSales": "Ventas y pagos",
+    "dateCol": "Fecha",
+    "productCol": "Producto",
+    "payoutCol": "Tu pago",
+    "noImage": "Sin imagen",
+    "kPayoutMonth": "Pago (a lo largo de la vida)",
+    "kOrders": "Pedidos",
+    "orderSnippet": "Orden {id}",
+    "revenueSubtitle": "Últimos 30 días — estimados pagos (EUR céntimos)",
+    "revenueLabel": "Pago",
+    "revenue30": "Tendencia de pago"
+  },
+  "marketplace": {
+    "title": "Mercado",
+    "subtitle": "Listados de tiendas activas",
+    "empty": "Nada listado aún.",
+    "sellerLabel": "Vendido por afiliado",
+    "sidebar": {
+      "title": "Categorías",
+      "subtitle": "Navegar por departamento",
+      "genealogyHint": "Arbol de Google completo — expandir cualquier rama",
+      "expandBranch": "Expandir rama",
+      "allCatalog": "Todo el Catálogo",
+      "offlineHint": "Taxonomía offline — conectar DB para contar en vivo",
+      "unavailable": "Categorías no disponibles",
+      "empty": "Sin categorías"
+    },
+    "search": {
+      "label": "Buscar el catálogo",
+      "placeholder": "Producto, marca, categoría…",
+      "submit": "Buscar",
+      "loading": "Sugerencias…",
+      "noResults": "Sin sugerencias — presiona Buscar para ejecutar resultados completos",
+      "categories": "Categorías",
+      "products": "Productos",
+      "priceFrom": "Desde €{price}",
+      "seeAllResults": "Ver todos los resultados"
+    },
+    "euCoverage": {
+      "aria": "Mercado pan-europeo",
+      "badge": "Pan-EU",
+      "eyebrow": "{euCount} mercados de la UE",
+      "title": "Europa · un pago",
+      "subtitle": "Pagar a {count} países · precios en EUR · IVA calculado en el pago",
+      "metricEu": "UE",
+      "metricCountries": "países",
+      "stripeTax": "IVA",
+      "footnote": "El envío depende de la zona del proveedor. Filtrar « Unión Europea » en el menú lateral."
+    },
+    "browse": {
+      "ariaEmbedded": "Explorar y comprar",
+      "eyebrowBuyer": "Descubrir · Comprar",
+      "eyebrowCatalog": "Catálogo · Vender",
+      "titleBuyer": "Mercado",
+      "titleCatalog": "Catálogo de productos",
+      "subtitleBuyer": "Listados en vivo de tiendas de creadores — buscar, filtrar por departamento y abrir la página de producto.",
+      "subtitleCatalog": "Explorar listados de proveedores, comparar márgenes y plazos de entrega, y agregar SKU a tu tienda.",
+      "resetFilters": "Restablecer",
+      "searchCatalog": "Buscar catálogo",
+      "searchProduct": "Buscar un producto",
+      "placeholderCatalog": "Buscar productos, marcas…",
+      "placeholderBuyer": "Buscar productos, marcas, creadores…",
+      "pickCategory": "Elegir una categoría para mostrar filtros de productos.",
+      "loadingFacets": "Cargando filtros…",
+      "noFacets": "No hay filtros para esta categoría.",
+      "filtersTitle": "Filtros",
+      "filtersHint": "Por atributo del producto",
+      "euShipsLabel": "Unión Europea (27 países)",
+      "freeShippingFacet": "Envío gratis",
+      "offerRail": {
+        "eyebrow": "Economía circular",
+        "clear": "Mostrar todo"
+      },
+      "browseDepartmentsRail": {
+        "ariaLabel": "Explorar por departamento",
+        "eyebrow": "Departamentos populares",
+        "hint": "Etiquetas familiares — cada una abre el correspondiente almacén de Google."
+      },
+      "embeddedEyebrow": "Compras · En vivo",
+      "embeddedTitle": "Descubre y compra",
+      "embeddedTitleMobile": "Catálogo de productos",
+      "embeddedSubtitle": "Utiliza la búsqueda hero de color púrpura, los departamentos debajo, o el agente de compras para refinar tus opciones.",
+      "resultsFor": "Resultados para",
+      "dbUnavailableTitle": "Mercado temporalmente no disponible",
+      "emptyListingTitle": "Aún no hay listados",
+      "emptyFilteredBody": "Intenta otra búsqueda o departamento, o restablece tus filtros.",
+      "emptyDefaultBody": "Los creadores publican listados con el tiempo — vuelve pronto.",
+      "emptyCatalogTitle": "El catálogo está vacío por ahora",
+      "emptyCatalogBody": "No hay artículos disponibles para comprar aún. Vuelve pronto o explora tiendas de socios.",
+      "emptyCategoryTitle": "No hay artículos en este departamento",
+      "emptyCategoryBody": "No se encontraron artículos en « {name} ». Intenta otro departamento o ve el catálogo completo.",
+      "emptySubcategoryTitle": "No hay artículos en este almacén",
+      "emptySubcategoryBody": "No hay artículos en « {sub} » ({parent}). Elige otra categoría o el catálogo completo.",
+      "emptySearchTitle": "No hay resultados",
+      "emptySearchBody": "Nada coincide con « {query} ». Cambia tu búsqueda o resetea los filtros.",
+      "activeFilterCatalog": "Todos los productos",
+      "activeFilterCategory": "Departamento · {name}",
+      "activeFilterSubcategory": "{sub} · {parent}",
+      "showAll": "Mostrar todo",
+      "viewStores": "Explora tiendas",
+      "listingCount": "{count, plural, one {# lista} other {# listas}}",
+      "listingCountForQuery": " para « {query} »",
+      "dbEmptyTitle": "Base de datos temporalmente no disponible",
+      "dbDevHint": "Desarrollo local: ejecuta npm run db:local:setup y establece DATABASE_URL en .env.local a postgresql://affisell:affisell@localhost:5433/affisell"
+    },
+    "mobileHub": {
+      "title": "Affisell Hub",
+      "subtitle": "Servicios, Pulse, Luxe & más — sin salir del catálogo.",
+      "openMenu": "Abrir menú",
+      "close": "Cerrar",
+      "menu": "Menú",
+      "categories": "Categorías",
+      "filters": "Filtros",
+      "categoriesTitle": "Categorías",
+      "filtersTitle": "Filtros de productos",
+      "loading": "Cargando…",
+      "listingShort": "{count, plural, one {# lista} other {# listas}}",
+      "desktopHintTitle": "En escritorio",
+      "desktopHintBody": "Las tarjetas destacadas y las tendencias permanecen visibles por encima del catálogo."
+    },
+    "departmentRail": {
+      "ariaLabel": "Departamentos de Affisell",
+      "badge": "Departamentos",
+      "hint": "Navegación de tienda por departamentos — cada departamento abre sus pasillos en la columna izquierda.",
+      "allCatalog": "Todo el catálogo",
+      "swipeAll": "Desliza todo el catálogo",
+      "swipeCategory": "Desliza {name}",
+      "marqueeHint": "Pasa el ratón para explorar"
+    }
+  },
+  "product": {
+    "noDescription": "No description.",
+    "soldBy": "Vendido a través de la lista · Proveedor: {seller}",
+    "sales": {
+      "eyebrowSold": "Ventas",
+      "eyebrowPopular": "Mejor vendedor",
+      "count": "{count, plural, one {# venta} other {# ventas}}",
+      "popular": "Popular · {compact} vendido"
+    },
+    "discount": {
+      "save": "Ahorra {amount}",
+      "percentOff": "{percent}% de descuento"
+    },
+    "offer": {
+      "free": "Gratis"
+    }
+  },
+  "pulse": {
+    "brand": "Affisell Pulse",
+    "beta": "LIVE",
+    "exit": "Catálogo",
+    "swipeMode": "Desliza",
+    "forYou": "Elegido para ti",
+    "share": "Compartir",
+    "follow": "Seguir",
+    "following": "Siguiendo",
+    "add": "Bolsa",
+    "buyNow": "Comprar ahora",
+    "mute": "Silenciar",
+    "unmute": "Sonido activado",
+    "hint": "Desliza · Dobla para gustar · Compra en un solo toque",
+    "emptyTitle": "Pulse se está calentando",
+    "emptyBody": "Los creadores están subiendo clips. Explora el catálogo mientras se llena la alimentación.",
+    "browseCatalog": "Explora el mercado",
+    "commerce": {
+      "hint": "↑ Carrito · ← Siguiente · → Comprar · ↓ Guardar Drop",
+      "cart": "Agregar al carrito",
+      "cartShort": "Carrito",
+      "cartAdded": "Agregado al carrito",
+      "hotBadge": "Caliente",
+      "buy": "Comprar ahora",
+      "buyShort": "Comprar",
+      "skip": "Siguiente producto",
+      "skipShort": "Siguiente",
+      "saveDrop": "Guardar Drop — lista de deseos + alerta de precio",
+      "saveDropShort": "Guardar",
+      "undo": "Producto de nuevo en la pila",
+      "undoShort": "Deshacer",
+      "rewindOn": "Llegaron nuevos productos — Modo de retroceso activado",
+      "rewindBadge": "Retroceso",
+      "scrollMode": "Modo de desplazamiento vertical",
+      "scrollModeShort": "Desplazar",
+      "emptyCategory": "No hay productos listados en {name} aún.",
+      "feedLoadFailed": "No se pudo cargar la alimentación",
+      "genericError": "Algo salió mal"
+    }
+  },
+  "merchantAccount": {
+    "account": "Cuenta",
+    "signOut": "Cerrar sesión",
+    "deleteAccount": "Eliminar cuenta",
+    "deleting": "Eliminando…",
+    "deleteConfirm": "¿Desea eliminar su cuenta permanentemente? Esto no puede ser deshecho. Si tiene pedidos pasados en el mercado como vendedor, la eliminación puede estar bloqueada."
+  },
+  "supplierDashboard": {
+    "header": {
+      "eyebrow": "Centro de control",
+      "greeting": "Hola {storeName}",
+      "newProduct": "Nuevo producto"
+    },
+    "urgent": {
+      "title": "Acciones urgentes",
+      "allClearTitle": "Estás al día",
+      "allClearNext": "Paso siguiente:",
+      "addProduct": "Agregar un producto",
+      "shipTitleOne": "1 pedido para enviar",
+      "shipTitleMany": "{count} pedidos para enviar",
+      "slaBreached": "SLA excedido",
+      "hoursLeftUnder": "< {hours}h",
+      "hoursLeftMinutes": "{minutes} min",
+      "hoursLeftUnderOne": "< 1h",
+      "metricNonePending": "Ninguno pendiente",
+      "metricPaidLate": "Pagado · tarde",
+      "metricPaidSlaIn": "Pagado · SLA en {countdown}",
+      "metricPaidWaiting": "Pagado · esperando envío",
+      "penaltyPerOrder": "Penalización estimada: −{amount}/pedido",
+      "buyerRatingRisk": "Calificación del comprador en riesgo si se retrasa",
+      "autoCancelRisk": "Después de 10 días: enviar mensaje al comprador o solicitar una extensión",
+      "autoCancelConsequence": "Extensión rechazada o expirada — cancelación y devolución pueden ejecutarse",
+      "ctaShip": "Enviar ahora",
+      "stockTitleOne": "1 SKU fuera de stock",
+      "stockTitleMany": "{count} SKU agotados",
+      "stockTitleIdle": "SKU agotados",
+      "stockOk": "Stock saludable",
+      "stockZero": "0 en stock",
+      "stockRemainingOne": "{count} quedan",
+      "stockRemainingMany": "{count} quedan",
+      "ctaRestock": "Reponer",
+      "messagesTitleOne": "1 mensaje del cliente",
+      "messagesTitleMany": "{count} mensajes del cliente",
+      "messagesTitleIdle": "Mensajes del cliente",
+      "metricNoReply": "esperando respuesta",
+      "metricInboxClear": "Bandeja de entrada limpia",
+      "ratingImpact": "−{pct}% calificación de tienda",
+      "replyExpected": "Respuesta esperada",
+      "ctaReply": "Responder"
+    },
+    "metrics": {
+      "title": "Rendimiento · últimos 7 días",
+      "notEnoughHistory": "No hay suficiente historia para comparar dos semanas aún.",
+      "trendsAfterWeek": "Las tendencias aparecerán después de tu primera semana de ventas completa.",
+      "gmv": "Ingresos",
+      "orders": "Pedidos",
+      "netMargin": "Márgen neto (est.)",
+      "netMarginTooltip": "Ingresos − costo de productos − comisiones de afiliados",
+      "affiliateCommissions": "Comisiones de afiliados",
+      "topSku": "Top SKU 7d",
+      "stockoutIn3d": "Agotamiento en 3d",
+      "unitsSoldOne": "{count} unidad vendida",
+      "unitsSoldMany": "{count} unidades vendidas",
+      "stockRemaining": "{stock} en stock (~{days}d restantes)",
+      "vsPrior": "vs 7d anterior",
+      "stable": "estable",
+      "naVsPrior": "n/a vs 7d anterior"
+    },
+    "weeklyGoal": {
+      "revenueLabel": "Ingresos",
+      "newStore": "Nueva tienda",
+      "weekTarget": "Objetivo semanal:",
+      "progressAria": "Progreso del objetivo semanal: {pct}"
+    },
+    "onboarding": {
+      "title": "Lanzar tu tienda",
+      "subtitle": "Tres pasos desde cero hasta tu primera venta de afiliado.",
+      "vatNotice": "Tú eres responsable de recopilar, declarar y remitir IVA. Affisell cobra un 12% sobre la cantidad bruta (productos y envío), nunca sobre IVA.",
+      "stepCreate": "Crear tu primera lista de productos",
+      "stepPublish": "Publicar en el mercado",
+      "stepShare": "Compartir tu catálogo de proveedores",
+      "start": "Empezar"
+    },
+    "growth": {
+      "opportunities": "Oportunidades",
+      "noOpportunity": "No se han detectado oportunidades en los últimos 7 días. Publica más SKU visibles en el mercado.",
+      "affiliateInterestOne": "{count} afiliado interesado en",
+      "affiliateInterestMany": "{count} afiliados interesados en",
+      "estimateSalesOne": "+{count} venta / 7d",
+      "estimateSalesMany": "+{count} ventas / 7d",
+      "commissionFromTo": "Comisión {from}% → {to}%",
+      "viewListing": "Ver lista",
+      "catalogPerformance": "Rendimiento del catálogo",
+      "adoptionRate": "tasa de adopción (7d)",
+      "skuBreakdown": "{withSales} SKUs con ventas · {total} SKUs activas",
+      "dormantTitle": "SKUs inactivos (30d)",
+      "dormantNone": "Todos los SKUs activos tuvieron una venta reciente.",
+      "ctaBoost": "Mejorar",
+      "ctaArchive": "Archivar",
+      "boostDone": "Comisión en {pct}%",
+      "boostCta": "Ofrecer +2% de comisión",
+      "boostSuccess": "Comisión establecida en {pct}% en “{name}”",
+      "boostFailed": "No se pudo actualizar",
+      "networkError": "Error de red"
+    },
+    "tools": {
+      "title": "Herramientas",
+      "catalog": "Catálogo",
+      "import": "Importar",
+      "extension": "Extensión",
+      "finances": "Finanzas",
+      "integrations": "Integraciones",
+      "supply": "Suministro"
+    },
+    "supplyHub": {
+      "eyebrow": "Affisell Supply Bridge",
+      "title": "Centro de suministro",
+      "subtitle": "Conecta tus cadenas de suministro, sigue el catálogo y auto-compra — sin cambiar tus flujos de pedido actuales.",
+      "connectorsTitle": "Conectores",
+      "capabilitiesAria": "Capacidades del conector",
+      "openChannel": "Abierto",
+      "footerNote": "Fases 2-3 de los canales se desbloquean cuando las asociaciones de API vayan en vivo. No se activa auto-compra desde esta página.",
+      "phase": "Fase {n}",
+      "totals": {
+        "skus": "SKUs",
+        "autoBuy": "Auto-compra",
+        "sync": "Sincronización activa"
+      },
+      "status": {
+        "live": "En vivo",
+        "connected": "Conectado",
+        "setup": "Configuración",
+        "native": "Propio",
+        "roadmap": "Próximamente"
+      },
+      "capabilities": {
+        "catalog": "Catálogo",
+        "orders": "Pedidos",
+        "negotiate": "RFQ",
+        "packaging": "Embalaje"
+      },
+      "capState": {
+        "live": "Disponible",
+        "beta": "Beta",
+        "soon": "Próximamente",
+        "off": "—"
+      },
+      "stats": {
+        "linked": "{count} productos vinculados",
+        "autoBuy": "{count} auto-compra"
+      },
+      "hints": {
+        "aliexpressPlatform": "Las claves de plataforma de AliExpress deben configurarse en la plataforma (importación de API).",
+        "aliexpressAutoBuy": "Conecta listados y habilita la auto-compra por SKU.",
+        "factoryRest": "Conecta una fábrica / proveedor de wholesaler REST API (integraciones o socio ciego)."
+      },
+      "channels": {
+        "native": {
+          "name": "Stock de Affisell"
+        },
+        "aliexpress": {
+          "name": "AliExpress"
+        },
+        "factory": {
+          "name": "Fábrica / REST"
+        },
+        "bigbuy": {
+          "name": "BigBuy"
+        },
+        "cj": {
+          "name": "CJ Dropshipping"
+        },
+        "amazon": {
+          "name": "Amazon"
+        },
+        "manual": {
+          "name": "Manual"
+        }
+      }
+    }
+  },
+  "supplierOrders": {
+    "shipPulse": {
+      "label": "Ship Pulse",
+      "safe": "En camino",
+      "urgent": "Envíe pronto",
+      "critical": "Últimas horas",
+      "breached": "Plazo vencido",
+      "policyTitle": "Ship Pulse™ — ventana de 10 días",
+      "policyBody": "Tiene {days} días para agregar seguimiento o hablar con el comprador. Después de eso, explique cualquier retraso y solicite más tiempo — el comprador acepta o rechaza. Si rechazan (o no responden en 3 días), la orden puede ser cancelada con reembolso.",
+      "policyBadge": "Extensión aprobada por el comprador",
+      "pendingExtension": "Esperando a la respuesta del comprador"
+    },
+    "fulfillment": {
+      "loading": "Cargando la conversación…",
+      "title": "Conversación con el comprador",
+      "seller": "Tú",
+      "buyer": "Comprador",
+      "noMessages": "Aún no hay mensajes — escribe al comprador si estás retrasado.",
+      "messageLabel": "Mensaje al comprador",
+      "messagePlaceholder": "Explica la situación (min. 8 caracteres)…",
+      "sendMessage": "Enviar al comprador",
+      "pendingBuyer": "Extensión pendiente — el comprador tiene 3 días para aceptar +{days} días.",
+      "accepted": "El comprador aceptó — envíe antes de {date}.",
+      "rejected": "El comprador rechazó la extensión. Envíe ahora o la orden puede ser cancelada.",
+      "extensionIntro": "Pasado el plazo de 10 días: explique el retraso y solicite más días (el comprador debe aceptar).",
+      "reasonPlaceholder": "¿Por qué está retrasado? ¿Cuándo enviará? (min. 20 caracteres)",
+      "extraDaysLabel": "Días adicionales solicitados",
+      "requestExtension": "Solicite extensión al comprador"
+    },
+    "tabs": {
+      "toShip": "Para enviar",
+      "shipped": "Enviado",
+      "all": "Todos"
+    },
+    "emptyToShip": "No hay órdenes pendientes — nuevas pagos aparecen aquí después de la finalización del pago.",
+    "emptyTab": "No hay órdenes en esta vista.",
+    "loading": "Cargando…",
+    "loadError": "No se pudo cargar las órdenes",
+    "trackingRequired": "Ingrese un número de seguimiento antes de marcar como enviado.",
+    "updateFailed": "Actualización fallida",
+    "payout": {
+      "yourPayout": "Su pago",
+      "netWholesaleHint": "Catálogo al por mayor (comisión de socio ya deducida)",
+      "platformFee": "Tarifa de plataforma −{amount}",
+      "platformFeeTitle": "Tarifa de Affisell en la línea del cliente (ex-VAT) — se toma del pago del comprador, no de su pago al proveedor",
+      "partnerCommission": "Comisión de socio −{amount}",
+      "partnerCommissionTitle": "Comisión de afiliado en el precio de su catálogo — ya deducida de \"Su pago\"",
+      "partnerStoreTitle": "Vendido a través de la tienda de socios {code}",
+      "partnerStoreRef": "Tienda de socios {code}"
+    }
+  },
+  "storefront": {
+    "brandStudio": {
+      "loading": "Cargando…",
+      "affiliateEyebrow": "Marca del creador",
+      "supplierEyebrow": "Marca del proveedor",
+      "affiliateTitle": "Estudio de marca",
+      "supplierTitle": "Estudio de tienda",
+      "affiliateDescription": "Tu tienda pública en Affisell y en tu propio dominio — banner, colores y copia en un lugar.",
+      "supplierDescription": "Cómo los compradores ven tu tienda de proveedor: banner, colores de marca y dominio personalizado.",
+      "liveUrl": "URL en vivo",
+      "previewAffisell": "Previsualizar en Affisell",
+      "storeName": "Nombre de la tienda",
+      "heroBanner": "Banner de héroe (HTTPS URL)",
+      "tagline": "Línea de título / descripción",
+      "primary": "Principal",
+      "accent": "Acento",
+      "saveBrand": "Guardar marca",
+      "saving": "Guardando…",
+      "saved": "Marca guardada — tu tienda pública se ha actualizado.",
+      "loadFailed": "Falló la carga de la tienda",
+      "saveFailed": "No se pudo guardar",
+      "logoLogisticsTitle": "Logo y logística",
+      "logoLogisticsBody": "Subir logo, avatar AI, dirección de envío y slug en {profileLink}.",
+      "nameBadges": {
+        "sectionTitle": "Mostrar nombre de la tienda",
+        "sectionHint": "Banda futurista en tu tienda pública (paralelogramo, neón, holograma y más).",
+        "parallelogram": "Paralelogramo",
+        "parallelogramDesc": "Banda inclinada firmada — aspecto por defecto de Affisell.",
+        "neonSlab": "Lámina de neón",
+        "neonSlabDesc": "Paralelogramo brillante con halo de acento.",
+        "holoRibbon": "Cinta holográfica",
+        "holoRibbonDesc": "Gradiente ciano / violeta animado.",
+        "quantumFold": "Plegado cuántico",
+        "quantumFoldDesc": "Profundidad futurista en capas.",
+        "orbitRing": "Anillo de órbita",
+        "orbitRingDesc": "Forma de píldora con anillo giratorio.",
+        "chromeBeam": "Hélice de cromo",
+        "chromeBeamDesc": "Eslabón metálico inclinado, contraste premium.",
+        "classic": "Clásico",
+        "classicDesc": "Texto plano, sin banda."
+      }
+    },
+    "domain": {
+      "title": "Tu propio dominio",
+      "description": "Utiliza tu propio dominio (por ejemplo {example}). Los visitantes ven tu tienda con marca; Affisell maneja la ruta y HTTPS una vez verificado el DNS.",
+      "exampleHost": "yourstore.com",
+      "domainName": "Nombre de dominio",
+      "placeholder": "boutique.example.com",
+      "saveDomain": "Guardar dominio",
+      "saving": "Guardando…",
+      "dnsTitle": "DNS — agrega este CNAME en tu registrador",
+      "verifySsl": "Verificar y habilitar SSL",
+      "checkingDns": "Verificando DNS & SSL…",
+      "dnsVerified": "DNS verificado",
+      "domainSaved": "Dominio guardado.",
+      "domainVerified": "Dominio verificado",
+      "notVerifiedYet": "No verificado aún",
+      "verificationFailed": "Verificación fallida",
+      "nameRequired": "Establece el nombre de tu tienda en el perfil de tienda primero.",
+      "saveFailed": "No se pudo guardar el dominio",
+      "vercelActive": "SSL activo",
+      "vercelPending": "SSL pendiente — DNS propagando",
+      "vercelRegistered": "Registrado para alojamiento",
+      "vercelFailed": "Registro de alojamiento fallido",
+      "vercelSkipped": "Agrega el nombre de host en Proyectos > Dominios para HTTPS",
+      "vercelUnknown": "Alojamiento no registrado aún",
+      "vercelAuto": " · Registrado automáticamente en alojamiento",
+      "vercelManual": " · Agrega el nombre de host en Dominios si HTTPS no está vivo"
+    }
+  },
+  "boutique": {
+    "tagline": "Tienda de afiliados",
+    "customDomainTagline": "Tienda oficial",
+    "subtitle": "Productos curados de este promotor.",
+    "empty": "Esta tienda no tiene productos activos.",
+    "buy": "Comprar Ahora",
+    "allStores": "Todas las tiendas",
+    "allStoresShort": "Tiendas",
+    "navAria": "Navegación del mercado de Affisell",
+    "noProducts": "No hay productos disponibles aún."
+  },
+  "success": {
+    "title": "¡Gracias!",
+    "body": "Su pago se ha realizado con éxito. Recibirá una confirmación por correo electrónico.",
+    "backHome": "Volver a casa",
+    "thankYou": "¡Gracias!",
+    "continueShopping": "Seguir comprando",
+    "purchaseTitle": "Muchas gracias por tu compra",
+    "purchaseBody": "Su pago se está verificando. Recibirá un correo electrónico de seguimiento una vez que el pedido sea validado.",
+    "myCart": "Mi carrito"
+  },
+  "cancel": {
+    "title": "Checkout cancelado",
+    "body": "No se realizó cargo. Puedes regresar a navegar por listados.",
+    "backMarketplace": "Mercado"
+  },
+  "Product": {
+    "view360": "360° View",
+    "premium": "Premium",
+    "addToCart": "Agregar al carrito",
+    "buyNowOneClick": "Comprar ahora con 1-haz clic",
+    "buyNowItem": "Comprar este artículo",
+    "inStock": "En stock",
+    "outOfStock": "Agotado",
+    "quantity": "Cantidad",
+    "quantityOption": "Cantidad: {count}",
+    "quantityAria": "Seleccionar cantidad",
+    "howToWear": "Cómo estilizar",
+    "howToStyleSub": "Ideas de AI para esta elección",
+    "alertPriceDrop": "Notificarme si baja el precio",
+    "priceAlertSub": "Correo electrónico cuando esta tienda reduzca el precio",
+    "priceAlertSavedSub": "Estás en la lista para bajas de precio.",
+    "actionStackHint": "Pago seguro · cumplimiento rápido",
+    "topVentes": "Valorado con más estrellas",
+    "liveViewers": "{count} personas están viendo esto",
+    "trendingViews24h": "Tendencia · {count} vistas en 24h",
+    "stickyBuyHint": "Comprar rápido mientras navegas",
+    "onlyLeft": "Solo {count} quedan en stock",
+    "delivery48h": "Entrega en 2 días",
+    "return30d": "Devoluciones en 30 días",
+    "securePayment": "Pago seguro",
+    "deliveryTo": "Entrega a {city}: {date}",
+    "aiSummary": "Resumen de AI",
+    "reviews": "{count} reseñas",
+    "byStore": "de {store}",
+    "viewInAR": "Ver en AR",
+    "buyNowShort": "Comprar ahora",
+    "priceLabel": "Precio",
+    "colorLabel": "Color",
+    "sizeLabel": "Talla",
+    "storageLabel": "Capacidad de almacenamiento",
+    "priceFluidityNote": "El precio mostrado puede cambiar antes del pago.",
+    "gallery": {
+      "thumbRail": "Galería de productos",
+      "fullView": "Vista completa",
+      "video": "Video",
+      "more": "+{count}",
+      "playVideo": "Reproducir video del producto",
+      "slideCounter": "{current} / {total}",
+      "goToSlide": "Ir a la imagen {index}",
+      "lightboxProgress": "Progreso de la galería",
+      "swipeToClose": "Desliza hacia abajo para cerrar",
+      "zoomHint": "Haz doble clic o pincha para ampliar",
+      "resetZoom": "Restablecer zoom",
+      "desktopHint": "Selecciona una miniatura · haz pasar el ratón sobre la imagen principal para ampliar",
+      "hoverZoomHint": "Haz pasar el ratón sobre la imagen para ampliar",
+      "zoomDetailLevel": "{level}% · vista de detalles",
+      "lightbox": "Galería en pantalla completa",
+      "close": "Cerrar",
+      "prev": "Imagen anterior",
+      "next": "Imagen siguiente"
+    }
+  },
+  "Filters": {
+    "smartFilters": "Filtros inteligentes",
+    "trendingNow": "Tendencias ahora",
+    "ships24h": "Envía en 24h",
+    "under100": "Menos de $100",
+    "topRated45": "Valorado con 4.5+",
+    "category": "Categoría",
+    "allDepartments": "Todos los departamentos",
+    "styleTitle": "Estilo",
+    "styleMinimalist": "Minimalista",
+    "styleStreetwear": "Streetwear",
+    "styleBusiness": "Negocio",
+    "priceTitle": "Precio",
+    "priceMin": "$0",
+    "priceMax": "$500",
+    "shipsFromTitle": "Envía desde",
+    "shipsFrance": "Francia",
+    "shipsEu": "UE",
+    "shipsWorldwide": "Mundial",
+    "deliveryTitle": "Entrega",
+    "deliveryUnder3": "Menos de 3 días",
+    "deliveryUnder7": "Menos de 7 días",
+    "offersTitle": "Ofertas",
+    "freeShippingActive": "✓ Ofertas con envío gratis",
+    "freeShippingOnly": "Solo envío gratis",
+    "clearAll": "Borrar todos los filtros"
+  },
+  "Breadcrumb": {
+    "home": "Inicio",
+    "fashion": "Moda",
+    "blazers": "Blazers"
+  },
+  "Menu": {
+    "helloSignin": "Hola, inicia sesión",
+    "searchAskAi": "Buscar o preguntar a la IA..."
+  },
+  "wishlist": {
+    "title": "Mis favoritos",
+    "subtitle": "Productos guardados del catálogo — incluye alertas de precio.",
+    "empty": "No hay favoritos aún. Agrega productos del mercado (♥ en la página del producto).",
+    "browse": "Explora el catálogo",
+    "viewProduct": "Ver",
+    "targetPrice": "Precio objetivo {price}",
+    "dropBadge": "🔔 -{pct}% {since}",
+    "noImage": "Sin imagen",
+    "guestBanner": "No es necesario tener cuenta — toca ♥ en cualquier producto para guardar favoritos en este dispositivo.",
+    "guestBannerCta": "Opcional: cuenta gratuita para sincronizar y obtener alertas de precio",
+    "heart": {
+      "add": "Agregar a favoritos",
+      "remove": "Quitar de favoritos",
+      "addVideo": "Me gusta este video",
+      "removeVideo": "No me gusta este video",
+      "count": "{count, plural, one {# like} other {# likes}}",
+      "dropSinceYesterday": "desde ayer"
+    }
+  },
+  "faq": {
+    "metaTitle": "Preguntas frecuentes — Affisell",
+    "eyebrow": "Ayuda",
+    "title": "Preguntas frecuentes",
+    "description": "Pedidos, envío, devoluciones y pago — respuestas instantáneas antes de contactar con el soporte.",
+    "sectionOrders": "Pedidos",
+    "sectionShipping": "Envío",
+    "sectionReturns": "Devoluciones y reembolsos",
+    "sectionPayment": "Pago",
+    "sectionPerks": "Beneficios",
+    "trackQ": "¿Dónde está mi pedido?",
+    "trackA": "Inicie sesión con el correo electrónico utilizado en el pago, luego abra Mis pedidos. Verá el estado, el seguimiento y las opciones de devolución. Se envían correos electrónicos automáticos en cada paso (confirmación, envío, entrega).",
+    "confirmQ": "No recibí un correo electrónico de confirmación",
+    "confirmA": "Verifique el correo electrónico de spam y el correo electrónico ingresado en el pago. Si el pago con Stripe tuvo éxito, el pedido aparece en Mis pedidos dentro de 2 minutos. De lo contrario, contáctenos con la fecha de cargo y el monto.",
+    "cancelQ": "Puedo cancelar mi pedido?",
+    "cancelA": "Antes de la entrega, la cancelación puede ser posible a través del soporte o automáticamente si el vendedor falla en el plazo de envío (Pulso de envío). Una vez enviado, solo se puede realizar una devolución después de la entrega.",
+    "delayQ": "¿Cuáles son los plazos de entrega?",
+    "delayA": "Francia y UE: típicamente 3-7 días laborables después del envío. La estimación se muestra en la página del producto. Internacional: 7-14 días laborables dependiendo del destino.",
+    "lateQ": "Mi paquete llegó tarde",
+    "lateA": "Verifique el seguimiento del transportista en Mis pedidos primero. Si no aparece el seguimiento después del plazo establecido, nuestro sistema puede cancelar automáticamente y reembolsar. De lo contrario, utilice el asistente de soporte o el formulario de contacto.",
+    "returnQ": "¿Cómo devuelvo un producto?",
+    "returnA": "Tiene 14 días después de la entrega (UE). Abra una solicitud desde Mis pedidos o lea nuestra política de devoluciones. El artículo debe estar sin usar, en su embalaje original.",
+    "refundQ": "¿Cuándo recibiré el reembolso?",
+    "refundA": "Después de que recibamos e inspeccionemos la devolución: 5-10 días laborables a su método de pago original. La cancelación automática (sin envío) desencadena un reembolso de Stripe dentro de 48 horas.",
+    "defectQ": "¿El producto es defectuoso o es el artículo incorrecto?",
+    "defectA": "Contáctenos dentro de 48 horas con fotos y número de pedido. Ofreceremos un intercambio o reembolso según nuestros términos.",
+    "methodsQ": "¿Qué métodos de pago acepta?",
+    "methodsA": "Pago seguro con Stripe: tarjeta (3D Secure) y Klarna (instalmentes sin intereses) cuando sea elegible. Affisell nunca almacena detalles de la tarjeta.",
+    "failedQ": "Mi pago fue rechazado",
+    "failedA": "Intente con otra tarjeta o contáctese con su banco. Asegúrese de que la dirección de facturación coincida con la tarjeta. No se realiza cargo si el pago falla.",
+    "cashbackTitle": "¿Cómo puedo ganar cashback?",
+    "cashbackBody": "En las páginas de productos de socios, parte del precio puede ser creditada a su billetera después de que se confirme el pago. Inicie sesión antes del pago: el saldo se aplica automáticamente en su próxima compra elegible.",
+    "stillNeedHelp": "¿Necesita ayuda adicional?",
+    "stillNeedHelpBody": "El asistente de soporte responde las 24 horas del día. Para disputas complejas, nuestro equipo responde dentro de 2 días laborables.",
+    "supportAgentCta": "Asistente de soporte",
+    "contactCta": "Contacto humano",
+    "agentInlineTitle": "Pregúntale a tu pregunta",
+    "walletCta": "Ver mi billetera",
+    "backMarketplace": "← Volver al catálogo"
+  },
+  "shipping": {
+    "metaTitle": "Envío — Affisell",
+    "eyebrow": "Envío",
+    "title": "Entrega y seguimiento",
+    "description": "Enviado por nuestros socios proveedores — notificaciones de seguimiento automáticas en cada paso.",
+    "delaysTitle": "Tiempo estimado de entrega",
+    "delayEu": "Francia y UE: 3–7 días laborables después de la expedición (dependiente del producto y el almacén).",
+    "delayIntl": "Internacional: 7–14 días — puede aplicarse una tarifa de aduanas al comprador.",
+    "delayProduct": "La estimación exacta se muestra en la página del producto antes de realizar el pago.",
+    "trackingTitle": "Seguimiento automático",
+    "tracking1": "Correo electrónico de confirmación una vez que se realiza el pago con Stripe.",
+    "tracking2": "Correo electrónico de envío con número de seguimiento del transportista.",
+    "tracking3": "Correo electrónico de entrega + recordatorio de revisión al día 7.",
+    "trackCta": "Seguir mi pedido",
+    "ordersCta": "Mis pedidos",
+    "issueTitle": "Paquete retrasado o perdido?",
+    "issueBody": "Si el plazo indicado pasa sin que se muestre el seguimiento, Ship Pulse puede cancelar automáticamente y devolver el dinero. De lo contrario, utilice el asistente de soporte o la sección de preguntas frecuentes.",
+    "supportCta": "Asistente de soporte",
+    "faqCta": "Preguntas frecuentes",
+    "carriersTitle": "Transportistas por país",
+    "carriersSubtitle": "Servicios populares y confiables por país de envío y país de origen — lista de referencia de Affisell.",
+    "originLabel": "País de envío",
+    "destinationLabel": "País de destino",
+    "reliability": "Fiabilidad",
+    "popular": "Popular",
+    "eta": "ETA",
+    "etaUnit": "días",
+    "empty": "No se ha listado ningún transportista para esta ruta. El proveedor puede utilizar un servicio local equivalente con seguimiento.",
+    "tierPremium": "Premium",
+    "tierStandard": "Estándar",
+    "tierEconomy": "Economía",
+    "tagExpress": "Express",
+    "tagTracked": "Seguido",
+    "tagPickup": "Punto de recogida",
+    "tagInternational": "Internacional",
+    "tagLastMile": "Último kilómetro",
+    "tagMarketplace": "Mercado",
+    "routeSummary": "{origin} → {destination} · {count} proveedor(es)"
+  },
+  "pages": {
+    "trackOrder": {
+      "metaTitle": "Track my order | Affisell",
+      "metaDescription": "Affisell order tracking — status and carrier updates in your customer account.",
+      "eyebrow": "Delivery",
+      "title": "Track my order",
+      "description": "Inicie sesión con su cuenta de cliente de Affisell (el mismo correo electrónico que en el pago) para ver el estado, el seguimiento y gestionar un reembolso.",
+      "stepLogin": "Inicie sesión o cree una cuenta de cliente con el correo electrónico utilizado en el pago.",
+      "stepOrders": "Abra “Mis órdenes” para detalles y seguimiento del transportista.",
+      "stepEmail": "Se envía un correo electrónico de confirmación en cada paso clave.",
+      "signIn": "Iniciar sesión",
+      "createAccount": "Crear cuenta de cliente",
+      "myOrders": "Mis órdenes",
+      "contactSupport": "Contactar con soporte",
+      "proNote": "Creador o proveedor?",
+      "proLogin": "Iniciar sesión profesional"
+    }
+  },
+  "legal": {
+    "nav": {
+      "ariaLabel": "Documentos legales",
+      "eyebrow": "Affisell — mercado europeo",
+      "lastUpdated": "Última actualización: {date}",
+      "cgv": "Condiciones de venta",
+      "cgu": "Condiciones de uso",
+      "supplier": "Proveedor",
+      "affiliate": "Afiliado",
+      "legalNotice": "Aviso legal",
+      "privacy": "Privacidad",
+      "cookies": "Cookies",
+      "returns": "Devoluciones",
+      "contact": "Contacto"
+    }
+  },
+  "legalPages": {
+    "accessibility": {
+      "metaTitle": "Accesibilidad — Affisell",
+      "metaDescription": "Compromiso de accesibilidad de Affisell — navegación por teclado, contraste, retroalimentación del usuario.",
+      "eyebrow": "Accesibilidad",
+      "title": "Affisell para todos",
+      "description": "Continuamos mejorando la experiencia para personas con discapacidades — en móviles y web de escritorio.",
+      "commitmentTitle": "Nuestros compromisos de WCAG",
+      "commitments": {
+        "perceivable": {
+          "title": "Perceible",
+          "body": "Mayor contraste, texto ajustable, alternativas visuales en elementos clave."
+        },
+        "operable": {
+          "title": "Operable",
+          "body": "Navegación por teclado, objetivos de toque adecuados, sin trampas de enfoque en flujos de pago."
+        },
+        "understandable": {
+          "title": "Entendible",
+          "body": "Etiquetas claras, mensajes de error de acción, rutas de pago lineales."
+        },
+        "robust": {
+          "title": "Robusto",
+          "body": "Componentes probados en navegadores modernos y lectoras de pantalla comunes."
+        }
+      },
+      "statusTitle": "Estado actual",
+      "statusBody": "Affisell apunta a WCAG 2.1 Nivel AA en viajes de comprador público. Algunas páginas de panel pro aún están siendo alineadas.",
+      "feedbackBody": "Has encontrado un bloqueador de accesibilidad? Envía un correo electrónico a {email} con la página y el dispositivo — priorizamos las correcciones.",
+      "contactCta": "Reportar un problema",
+      "faqCta": "Explorar FAQ"
+    }
+  },
+  "contact": {
+    "metaTitle": "Contacto — Affisell",
+    "eyebrow": "Soporte",
+    "title": "Contactar a Affisell",
+    "description": "Tiene alguna pregunta sobre un pedido, un reembolso o su billetera de cashback? Envíenos un correo electrónico — respondemos dentro de 2 días laborables.",
+    "emailLabel": "Correo electrónico:",
+    "backAccount": "← Volver a mi cuenta"
+  },
+  "agent": {
+    "metaTitle": "Agente de compras — Affisell",
+    "metaDescription": "Asesor de compras con inteligencia artificial para compradores — descubre y compara productos del mercado.",
+    "eyebrow": "Comprador",
+    "heroTitle": "Encuentra. Compara. Compra.",
+    "heroSub": "Tu asesor de compras con inteligencia artificial — busca el mercado en tiempo real"
+  },
+  "marketplacePulse": {
+    "hint": "Filtrar por departamento o nicho, explora tendencias, luego publica cada SKU en tu tienda en un solo clic."
+  },
+  "supplierStore": {
+    "metaDescription": "{name} — tienda de proveedor en Affisell. Explora el catálogo y compra con confianza.",
+    "creatorCtaTitle": "¿Eres un creador o proveedor?",
+    "creatorCtaBody": "Los compradores realizan pedidos a través de las páginas de productos de Affisell. Los creadores gestionan sus listados desde su panel de control.",
+    "becomeCreator": "Hazte creador"
+  },
+  "AI": {
+    "pickedForYou": "Selección de Affisell AI para ti",
+    "trending": "Tendencias",
+    "views": "{count} vistas",
+    "add": "Agregar",
+    "whyRecommended": "¿Por qué recomendado? Selección de Affisell AI basada en tendencias y tu actividad.",
+    "offerEndsIn": "Oferta termina en {time}"
+  },
+  "ProductCommon": {
+    "addToCart": "Agregar al carrito",
+    "buyNow": "Comprar ahora",
+    "delivery": "Entrega {days} días",
+    "premium": "Premium",
+    "topRated": "Mejor valorado"
+  },
+  "CommandK": {
+    "languageSwitcher": "Idioma",
+    "triggerLabel": "Navegación rápida",
+    "placeholder": "¿A dónde ir? Buscar productos o páginas…",
+    "empty": "No se encontró destino",
+    "escape": "esc",
+    "productsGroup": "PRODUCTOS",
+    "openQuickNav": "Abrir navegación rápida",
+    "groups": {
+      "buy": "COMPRAR",
+      "sell": "VENDER",
+      "account": "CUENTA"
+    },
+    "items": {
+      "home": "Inicio",
+      "marketplace": "Mercado",
+      "creatorStores": "Tiendas de creadores",
+      "cart": "Carrito",
+      "wishlist": "Lista de deseos",
+      "auctions": "Arena de subastas",
+      "luxe": "Affisell Luxe",
+      "myOrders": "Mis órdenes",
+      "sellerDashboard": "Panel de control de vendedor",
+      "listProduct": "Listar un producto",
+      "mySales": "Mis ventas",
+      "becomeSeller": "Convertirse en creador",
+      "becomePartner": "Convertirse en socio",
+      "analytics": "Análisis",
+      "payouts": "Pagos",
+      "signIn": "Iniciar sesión",
+      "createBuyerAccount": "Crear cuenta de comprador",
+      "settings": "Configuración",
+      "signOut": "Cerrar sesión"
+    }
+  },
+  "footer": {
+    "global": {
+      "siteTitle": "Affisell",
+      "buyTitle": "Comprar",
+      "sellTitle": "Vender",
+      "companyTitle": "Empresa",
+      "helpTitle": "Ayuda",
+      "legalTitle": "Legal",
+      "supportTitle": "Soporte",
+      "paymentTitle": "Pago seguro",
+      "about": "Acerca de",
+      "howItWorks": "Cómo funciona",
+      "howSellingWorks": "Cómo vender",
+      "browseCatalog": "Explorar catálogo",
+      "auctions": "Arena de subastas",
+      "luxe": "Affisell Luxe",
+      "buyerProtection": "Pago seguro · devoluciones",
+      "buyerProtectionShort": "Pago seguro",
+      "wishlist": "Lista de deseos",
+      "becomeCreator": "Convertirse en creador",
+      "affiliateProgram": "Programa de afiliados",
+      "becomeSupplier": "Convertirse en proveedor",
+      "demoLab": "Laboratorio de demostración",
+      "blog": "Blog",
+      "careers": "Carreras",
+      "press": "Prensa",
+      "accessibility": "Accesibilidad",
+      "cgv": "Condiciones de venta (CGV)",
+      "cgu": "Condiciones de uso",
+      "supplierConditions": "Condiciones de proveedor",
+      "affiliateConditions": "Condiciones de afiliado",
+      "legalNotice": "Aviso legal",
+      "privacyPolicy": "Política de privacidad",
+      "cookieSettings": "Configuración de cookies",
+      "returns": "Devoluciones y reembolsos",
+      "faq": "Preguntas frecuentes",
+      "supportAssistant": "Asistente de soporte",
+      "shipping": "Envío",
+      "contact": "Contacto",
+      "trackOrder": "Seguir mi pedido",
+      "trustBeaconTitle": "Pago seguro con Affisell",
+      "trustBeaconHint": "Pagos con Stripe · depósito del vendedor · devoluciones de 14 días en la UE",
+      "trustBeaconCta": "Leer la política",
+      "panEuBadge": "Pan-EU · 27 mercados",
+      "localeLabel": "Idioma y región",
+      "mobileTagline": "Mercado de creadores · pago seguro · soporte 24/7",
+      "desktopTagline": "La infraestructura del mercado donde los afiliados y proveedores escalan en Europa — pagos con Stripe, cumplimiento de la UE, sin fricción.",
+      "stripeNoticeShort": "Tarjeta · 3D Secure · compatible con IVA de la UE",
+      "vatNotice": "Se recauda y remite IVA según las regulaciones aplicables.",
+      "stripeNotice": "Pagos seguros con Stripe (tarjeta, 3D Secure cuando sea necesario).",
+      "copyright": "© {year} Affisell — {name} — SIRET {siret} —",
+      "odrLink": "Resolución de disputas en línea de la UE",
+      "social": {
+        "x": "Affisell en X",
+        "instagram": "Affisell en Instagram",
+        "tiktok": "Affisell en TikTok",
+        "discord": "Affisell en Discord"
+      }
+    },
+    "about": "Acerca de",
+    "contact": "Contacto",
+    "terms": "Términos",
+    "privacy": "Privacidad",
+    "cookies": "Cookies",
+    "sellTitle": "Vender",
+    "becomeCreator": "Convertirse en creador",
+    "becomePartner": "Convertirse en socio",
+    "helpTitle": "Ayuda",
+    "faq": "Preguntas frecuentes",
+    "shipping": "Envío",
+    "returns": "Devoluciones",
+    "cta": {
+      "creator": {
+        "title": "Convertirse en Creador",
+        "text": "Lanzar su tienda en 60s",
+        "cta": "Comenzar a vender →"
+      },
+      "supplier": {
+        "title": "Para Proveedores",
+        "text": "Listar productos, obtener alcance global",
+        "cta": "Importar productos →"
+      },
+      "agent": {
+        "title": "Tienda de Agentes",
+        "text": "Deje que la IA encuentre las mejores ofertas",
+        "cta": "Intenta Agent →"
+      }
+    },
+    "brand": {
+      "tagline": "El marketplace para creadores"
+    },
+    "product": {
+      "title": "Producto",
+      "exploreCatalog": "Explora el catálogo",
+      "topCreators": "Creadores destacados",
+      "liveShopping": "Tienda en vivo",
+      "affiliateProgram": "Programa de afiliados"
+    },
+    "company": {
+      "title": "Compañía",
+      "about": "Acerca de",
+      "blog": "Blog",
+      "careers": "Empleos",
+      "press": "Kit de prensa"
+    },
+    "newsletter": {
+      "title": "Mantente al tanto",
+      "subtext": "Lanzamientos de productos + consejos para creadores. 1x/mes.",
+      "placeholder": "you@creator.com",
+      "submit": "Suscribirse",
+      "disclaimer": "Sin spam. Desuscribirse en cualquier momento.",
+      "success": "Estás dentro — bienvenido al loop."
+    },
+    "subfooter": {
+      "copyright": "© {year} Affisell, Inc. Hecho en Marsella 🇫🇷"
+    },
+    "social": {
+      "x": "Affisell en X",
+      "instagram": "Affisell en Instagram",
+      "tiktok": "Affisell en TikTok",
+      "discord": "Affisell en Discord"
+    }
+  },
+  "companyPages": {
+    "nav": {
+      "aria": "Empresa",
+      "about": "Acerca de",
+      "blog": "Blog",
+      "careers": "Carreras",
+      "press": "Kit de prensa"
+    },
+    "stats": {
+      "stores": "Tiendas de creadores",
+      "listings": "Listados en vivo",
+      "catalog": "Catálogo de SKU",
+      "commission": "Comisión de afiliado promedio"
+    },
+    "about": {
+      "metaTitle": "Acerca de Affisell — Mercado de creadores",
+      "metaDescription": "Affisell conecta proveedores verificados, tiendas de creadores y compradores con comisiones transparentes y cumplimiento de la UE.",
+      "eyebrow": "Empresa",
+      "title": "Infraestructura comercial para creadores",
+      "description": "Affisell es un mercado de creadores: los proveedores publican un catálogo de wholesale, los afiliados lanzan tiendas de marca en minutos, y los compradores compran con transparencia de tarifas completas.",
+      "mission": {
+        "title": "Nuestra misión",
+        "body": "Creemos que los creadores deben monetizar su audiencia sin tener inventario, gestionar almacenes ni adivinar márgenes. Affisell coordina el ciclo completo — sincronización de catálogo, pago de Stripe Connect y señales de confianza GDPR.",
+        "body2": "Con sede en Marsella, enviamos primero a la UE con pago de múltiples monedas, comisiones variables por categoría y herramientas como Swipe Feed, Agent de fuentes y descubrimiento de Pulse."
+      },
+      "values": {
+        "0": {
+          "title": "Tiendas de creadores",
+          "body": "Cada afiliado obtiene una tienda de marca, listados personalizados, recompensas para compradores y merchandising arrastrado y soltado — vivo en menos de 2 minutos."
+        },
+        "1": {
+          "title": "Alcance de proveedores",
+          "body": "Las marcas suben una vez, distribuyen a través de miles de tiendas de creadores con enrutamiento de órdenes automatizado y sincronización de stock en tiempo real."
+        },
+        "2": {
+          "title": "Economía transparente",
+          "body": "Cada orden muestra el precio de wholesale del proveedor, el margen del afiliado, la tarifa de la plataforma y el precio del comprador — sin deducciones ocultas."
+        },
+        "3": {
+          "title": "Confianza por diseño",
+          "body": "Centro legal, exportación y eliminación GDPR, consentimiento de cookies, PDF de facturas y explicadores de comisiones integrados en el producto."
+        }
+      },
+      "timeline": {
+        "title": "Construyendo en público",
+        "items": {
+          "2024": {
+            "year": "2024",
+            "title": "Fundación de Affisell",
+            "body": "MVP de mercado: catálogo de proveedores, tiendas de afiliados y pagos de Stripe Connect divididos."
+          },
+          "2026": {
+            "year": "2026",
+            "title": "Swipe Feed & Pila de GDPR",
+            "body": "Listado de una sola gesto para afiliados, centro de documentos legales, paneles de GDPR para compradores y vendedores y generación de facturas."
+          },
+          "2025a": {
+            "year": "2025",
+            "title": "Agente & Pulse",
+            "body": "Agente de fuentes AI para afiliados, feed de descubrimiento vertical y integraciones de API de proveedores."
+          },
+          "2025b": {
+            "year": "2025",
+            "title": "Motor de pago",
+            "body": "División de tres vías con tasas de comisión por categoría, tarifas de plataforma basadas en HT y transparencia de proveedores UI."
+          }
+        }
+      },
+      "hq": {
+        "title": "Sede central"
+      },
+      "cta": {
+        "creators": "Convertirse en creador",
+        "catalog": "Explorar el catálogo de afiliados"
+      }
+    },
+    "blog": {
+      "metaTitle": "Blog de Affisell — Productos y economía de creadores",
+      "metaDescription": "Actualizaciones sobre características del mercado, transparencia de comisiones y herramientas para creadores desde el equipo de Affisell.",
+      "eyebrow": "Blog",
+      "title": "Dentro de Affisell",
+      "description": "Lanzamientos de productos, economía del mercado y planes de juego para creadores — escritos por el equipo que construye Affisell.",
+      "readMore": "Leer el artículo",
+      "backToBlog": "Todos los artículos",
+      "posts": {
+        "swipe-feed-affiliate-hub": {
+          "title": "Swipe Feed: listar productos en un solo gesto",
+          "excerpt": "Los afiliados pueden descubrir ahora los SKUs del catálogo de manera Tinder, listar a +30% de margen en swipe derecho y nunca ver productos omitidos de nuevo.",
+          "date": "2026-05-19",
+          "category": "Producto",
+          "readMin": "4 min",
+          "sections": {
+            "intro": "La descubierta de creadores solía significar la navegación interminable por grillas. Swipe Feed convierte la búsqueda de afiliados en un flujo enfocado y nativo de móvil — con deshacer, filtros de comisiones y una pila de carga de tres tarjetas.",
+            "s1": {
+              "title": "¿Cómo funciona?",
+              "body": "Swipe derecho para publicar una lista a tu margen por defecto (30% por encima del precio del proveedor). Swipe izquierdo para ocultar permanentemente un SKU de tu feed. Cada decisión se almacena para que tu feed se mantenga fresco y relevante."
+            },
+            "s2": {
+              "title": "Construido para la velocidad",
+              "body": "Paralaje de Framer Motion, compromisos basados en velocidad y UX basado en animación significan que la tarjeta vuela fuera de la pantalla antes de la llamada a la API — para que la interfaz se sienta instantánea incluso en redes más lentas."
+            },
+            "s3": {
+              "title": "Prueba",
+              "body": "Abre el Hub de Afiliados desde la navegación de tu panel de control o ve directamente a /dashboard/affiliate/hub?mode=swipe. Combina con la fuente de Agent para el análisis de margen en selecciones de alta intención."
+            }
+          }
+        },
+        "commission-transparency": {
+          "title": "Transparencia de comisiones en cada orden",
+          "excerpt": "Los proveedores, afiliados y compradores ven exactamente cómo se divide el precio de venta, la margen, las tarifas de plataforma y el IVA en cada línea.",
+          "date": "2026-05-12",
+          "category": "Confianza",
+          "readMin": "5 min",
+          "sections": {
+            "intro": "Los mercados opacos ocultan quién gana qué. Affisell expone el desglose completo del pago en las páginas de pedidos de proveedores, recibos de compradores y facturas PDF.",
+            "s1": {
+              "title": "Tasas variables",
+              "body": "Las comisiones se propagan desde los valores por defecto de categoría hasta los perfiles de proveedores y los SKUs individuales — para que las categorías de alta margen puedan ofrecer mejores economías para afiliados sin hojas de cálculo manuales."
+            },
+            "s2": {
+              "title": "Claridad de proveedores",
+              "body": "Las tablas de dashboards de proveedores etiquetan las deducciones como comisión de socio y tarifa de plataforma — no ajustes vagues. Las previsualizaciones de pago coinciden con lo que llega a Stripe Connect."
+            },
+            "s3": {
+              "title": "CommissionExplainer",
+              "body": "Embedded UI on order detail pages walks each party through the math in plain language, with links to legal terms for affiliates and suppliers."
+            }
+          }
+        },
+        "gdpr-marketplace-trust": {
+          "title": "GDPR hub for merchants and buyers",
+          "excerpt": "Export, delete, cookie preferences and legal consent versioning — native to Affisell accounts, not bolted-on PDFs.",
+          "date": "2026-05-05",
+          "category": "Compliance",
+          "readMin": "4 min",
+          "sections": {
+            "intro": "Trust is a product feature. Affisell ships a full GDPR stack: signup consent capture, cookie banner with analytics gating, data export JSON and account deletion flows.",
+            "s1": {
+              "title": "Legal document hub",
+              "body": "Terms for buyers, suppliers and affiliates, privacy policy, refund rules and legal notices — all versioned and linked from signup and footer."
+            },
+            "s2": {
+              "title": "Self-service rights",
+              "body": "Merchants and marketplace buyers access /dashboard/account/gdpr or /marketplace/account/gdpr to export their data or request deletion, subject to financial record retention."
+            },
+            "s3": {
+              "title": "Why it matters",
+              "body": "Creator businesses operate across EU markets. Built-in compliance reduces legal risk and signals professionalism to brand partners evaluating your storefront."
+            }
+          }
+        },
+        "creator-storefront-60s": {
+          "title": "Launch a creator storefront in 60 seconds",
+          "excerpt": "Pick a supplier SKU, set your margin, publish — Affisell handles checkout, fulfillment notifications and weekly payouts.",
+          "date": "2026-04-20",
+          "category": "Creators",
+          "readMin": "3 min",
+          "sections": {
+            "intro": "Affisell removes the ops burden from creator commerce: no warehouse, no manual stock updates, no payment gateway setup from scratch.",
+            "s1": {
+              "title": "Catalog → storefront",
+              "body": "Browse the affiliate discovery catalog filtered by niche, commission or margin. Listing Builder lets you customize title, images, SEO slug and buyer cashback rewards."
+            },
+            "s2": {
+              "title": "Your brand, our rails",
+              "body": "Custom domains, theme studio, featured collections and live store preview — while Stripe Connect routes supplier wholesale and your markup automatically."
+            },
+            "s3": {
+              "title": "Start today",
+              "body": "Create a free affiliate account, connect payouts, and publish your first listing. Most creators see their first sale within the first week."
+            }
+          }
+        }
+      }
+    },
+    "careers": {
+      "metaTitle": "Careers at Affisell",
+      "metaDescription": "Join the team building the creator-first marketplace — remote-friendly roles in engineering, creator success and supplier partnerships.",
+      "eyebrow": "Careers",
+      "title": "Build the creator economy with us",
+      "description": "We're a small, product-obsessed team in Marseille (remote-friendly). Help us scale supplier catalog, affiliate tooling and buyer trust.",
+      "culture": {
+        "title": "How we work",
+        "body": "Affisell is early-stage with production traffic: you'll ship to real merchants weekly, own outcomes end-to-end, and talk directly to creators and suppliers.",
+        "perks": {
+          "remote": "Remote-friendly across EU time zones",
+          "impact": "High ownership — no ticket factory",
+          "stack": "Next.js 16, Prisma, Stripe Connect, Vercel",
+          "equity": "Equidad temprana en la empresa"
+        }
+      },
+      "openRoles": "Puestos abiertos",
+      "apply": "Aplicar",
+      "spontaneous": "¿No ves tu rol? Envía un mensaje con lo que te gustaría construir en Affisell.",
+      "roles": {
+        "fullstack-engineer": {
+          "title": "Ingeniero Full-stack",
+          "summary": "Propietario de características de mercado desde el esquema de Prisma hasta la interfaz de usuario pulida — verificación de pagos, herramientas de afiliados, paneles de proveedores.",
+          "location": "Marsella / Remoto EU",
+          "type": "Tiempo completo",
+          "team": "Ingeniería",
+          "applySubject": "Solicitud — Ingeniero Full-stack",
+          "requirements": {
+            "r1": "Fuerte en TypeScript, React y SQL (PostgreSQL)",
+            "r2": "Experiencia con pagos o mercados es un plus",
+            "r3": "Confortable con Next.js App Router y componentes de servidor"
+          }
+        },
+        "creator-success": {
+          "title": "Gerente de Éxito del Creador",
+          "summary": "Incorpora a afiliados, mejora la calidad de las listas y alimenta las pautas de productos de vuelta a la ingeniería.",
+          "location": "Remoto EU",
+          "type": "Tiempo completo",
+          "team": "Crecimiento",
+          "applySubject": "Solicitud — Éxito del Creador",
+          "requirements": {
+            "r1": "Fluente FR/EN; experiencia con comunidades de creadores o comercio electrónico",
+            "r2": "Análitico — cómodo leyendo datos de comisiones y conversión",
+            "r3": "Empatía para creadores que equilibran la confianza del público y las márgenes"
+          }
+        },
+        "supplier-partnerships": {
+          "title": "Alianzas con Proveedores (B2B)",
+          "summary": "Fuente de marcas, incorpora catálogo mediante API o importación en masa y co-diseña estructuras de comisiones.",
+          "location": "Remoto EU",
+          "type": "Tiempo completo / Contrato",
+          "team": "Alianzas",
+          "applySubject": "Solicitud — Alianzas con Proveedores",
+          "requirements": {
+            "r1": "Rastro en mercado, wholesale o D2C de marcas",
+            "r2": "Entiende la economía de unidades: wholesale, markup, devoluciones",
+            "r3": "Dispuesto a viajar ocasionalmente para reuniones con proveedores en EU"
+          }
+        }
+      }
+    },
+    "press": {
+      "metaTitle": "Kit de Prensa de Affisell",
+      "metaDescription": "Recursos de medios, hechos de la empresa y contacto de prensa para Affisell — el mercado de creadores.",
+      "eyebrow": "Prensa",
+      "title": "Press Kit",
+      "description": "Facts, boilerplate and assets for journalists covering creator commerce, marketplace infrastructure and EU retail tech.",
+      "boilerplate": {
+        "title": "Boilerplate",
+        "short": "Affisell es una plataforma de mercado para creadores que conecta proveedores verificados, tiendas de afiliados y compradores — con comisiones transparentes y cumplimiento de la UE integrado.",
+        "long": "Fundada en Marsella, Affisell permite a los creadores lanzar tiendas con marca en minutos sin inventario. Los proveedores distribuyen catálogo a través de redes de afiliados con cumplimiento automático y pagos de Stripe Connect. La plataforma incluye herramientas de búsqueda AI, Swipe Feed de descubrimiento, Pulse de compras verticales, servicio de autoatención de GDPR y desglose de comisiones detallado en cada pedido."
+      },
+      "facts": {
+        "title": "Hechos de la empresa",
+        "founded": {
+          "label": "Fundada",
+          "value": "2024 · Marsella, Francia"
+        },
+        "hq": {
+          "label": "Sede central",
+          "value": "Affisell SAS · UE"
+        },
+        "model": {
+          "label": "Modelo",
+          "value": "Plataforma de mercado B2B2C (proveedor · afiliado · comprador)"
+        },
+        "stack": {
+          "label": "Pila",
+          "value": "Next.js, PostgreSQL, Stripe Connect, Vercel"
+        },
+        "compliance": {
+          "label": "Cumplimiento",
+          "value": "Centro de cumplimiento de GDPR, documentos legales versionados, PDF de facturas"
+        }
+      },
+      "assets": {
+        "title": "Activos de la marca",
+        "description": "Envíe un correo electrónico a press@affisell.com para solicitar logos vectoriales, capturas de pantalla de UI y biografías de ejecutivos.",
+        "items": {
+          "logo": {
+            "label": "Paquete de logos (SVG/PNG)",
+            "subject": "Solicitud de paquete de logos de Affisell"
+          },
+          "screenshots": {
+            "label": "Capturas de pantalla de productos",
+            "subject": "Capturas de pantalla de productos de Affisell"
+          },
+          "founder": {
+            "label": "Biografía y foto del fundador",
+            "subject": "Solicitud de biografía del fundador de Affisell"
+          }
+        }
+      },
+      "news": {
+        "title": "Noticias recientes",
+        "read": "Leer →",
+        "items": {
+          "n1": {
+            "title": "Swipe Feed se lanza para afiliados",
+            "date": "Mayo 2026",
+            "href": "/blog/swipe-feed-affiliate-hub"
+          },
+          "n2": {
+            "title": "Transparencia de comisiones en todos los pedidos",
+            "date": "Mayo 2026",
+            "href": "/blog/commission-transparency"
+          },
+          "n3": {
+            "title": "Centro de cumplimiento de GDPR para comerciantes y compradores",
+            "date": "Mayo 2026",
+            "href": "/blog/gdpr-marketplace-trust"
+          }
+        }
+      },
+      "contact": {
+        "title": "Prensa y contacto",
+        "body": "Para entrevistas, solicitudes de datos o conferencias — respondemos dentro de 2 días laborables."
+      },
+      "legalNote": "Detalles de la entidad legal en",
+      "legalLink": "avisos legales"
+    }
+  },
+  "reviews": {
+    "title": "Reseñas de clientes",
+    "writeReview": "Escribe una reseña",
+    "ugcCount": "{count} con fotos o video",
+    "distribution": "Distribución de calificaciones",
+    "sortLabel": "Ordenar reseñas",
+    "loadMore": "Cargar más reseñas",
+    "emptyTitle": "Sé el primero en reseñar",
+    "emptyBody": "Comparte tu experiencia con fotos o video — ayuda a otros compradores a tomar una decisión.",
+    "filters": {
+      "all": "Todos",
+      "photos": "Fotos",
+      "fiveStar": "5★",
+      "verified": "Verificado"
+    },
+    "sort": {
+      "top": "Más útiles",
+      "recent": "Más recientes",
+      "rating": "Calificación más alta",
+      "media": "Con medios"
+    },
+    "write": {
+      "eyebrow": "Trust Engine",
+      "title": "Comparte tu experiencia",
+      "close": "Cerrar",
+      "tapStars": "Toca para calificar",
+      "headline": "Título (opcional)",
+      "headlinePlaceholder": "Resumen en una línea",
+      "experience": "Tu reseña",
+      "bodyPlaceholder": "¿Qué te gustó? ¿Qué podríamos mejorar?",
+      "photosVideos": "Fotos y video",
+      "removeMedia": "Eliminar",
+      "aiImprove": "Mejorar con IA",
+      "aiLoading": "Mejorando…",
+      "aiError": "Asistencia de IA no disponible",
+      "submit": "Publicar reseña",
+      "submitting": "Publicando…",
+      "submitError": "No se pudo publicar la reseña",
+      "ratingRequired": "Por favor selecciona una calificación de estrellas",
+      "bodyMin": "Escribe al menos 20 caracteres"
+    }
+  },
+  "auctions": {
+    "eyebrow": "Protocol en vivo",
+    "title": "Affisell Arena",
+    "live": "En vivo",
+    "back": "Catálogo",
+    "subtitle": "Ventana de subasta neural · el ganador se retira a precio de martillo",
+    "currentBid": "Última oferta",
+    "bids": "Ofertas",
+    "endsIn": "Termina en",
+    "endingSoon": "Última hora",
+    "heat": "Calor {score}",
+    "leader": "Líder",
+    "bidNow": "Oferta",
+    "powerBid": "Surge +10%",
+    "viewProduct": "Página del producto",
+    "moreLots": "Más lotes en vivo",
+    "empty": "La arena se calienta — nuevos lotes caen cada pocos minutos.",
+    "tickerEmpty": "Sé el primero en ofrecer en Affisell Arena",
+    "bidPlaced": "Oferta registrada en cadena ✦",
+    "bidFailed": "No se pudo colocar la oferta"
+  },
+  "luxe": {
+    "eyebrow": "Selección privada",
+    "title": "Affisell Luxe",
+    "back": "Catálogo",
+    "subtitle": "Piezas curadas · creadores autenticados · visibilidad limitada",
+    "badgeLuxe": "Luxe",
+    "badgeCollection": "Colección",
+    "prestige": "Prestigio {score}",
+    "acquire": "Adquirir",
+    "viewPiece": "Ver pieza",
+    "allCollections": "Todos",
+    "gallery": "La galería",
+    "empty": "Aún no hay piezas de Luxe. Activa Affisell Luxe en un producto de proveedor, luego lista a través de un afiliado.",
+    "emptyPublic": "El atelier está siendo curado. Vuelve pronto para ver nuevas piezas.",
+    "tickerEmpty": "Affisell Luxe — excelencia curada",
+    "curationNote": "Solo aparecen aquí los productos con Affisell Luxe habilitados por el proveedor (una vez listados por un afiliado)."
+  },
+  "sponsorBoost": {
+    "eyebrow": "Affisell Boost",
+    "title": "Promoción inteligente",
+    "subtitleSupplier": "Aumenta tu catálogo en todas las tiendas de afiliados. Paga un % de HT de costo de venta — colocación premium con puntuación en vivo.",
+    "subtitleAffiliate": "Envía tu lista a la parte superior del mercado de productos. ROI visible en la puntuación de impulso en vivo.",
+    "liveScore": "Puntuación de impulso en vivo",
+    "target": "Objetivo",
+    "selectedSku": "SKU activo",
+    "htPrice": "Inversión de costo de venta",
+    "noProducts": "No hay productos elegibles.",
+    "investment": "Inversión de costo de venta",
+    "duration": "Duración",
+    "placement": {
+      "label": "Colocación",
+      "HOME_SPOTLIGHT": "Destacado en la página principal",
+      "CATEGORY_TOP": "En la parte superior de la categoría",
+      "SEARCH_BOOST": "Impulso en la búsqueda"
+    },
+    "budget": "Presupuesto estimado",
+    "quoteMeta": "Puntuación {score} · {rate}% HT · {days}d",
+    "boostPower": "Potencia",
+    "boostPowerAria": "Puntuación de impulso {score}",
+    "cta": "Activar Impulso",
+    "checkoutError": "Error de pago",
+    "recentCampaigns": "Campañas recientes",
+    "status": {
+      "PENDING_PAYMENT": "Pendiente de pago",
+      "ACTIVE": "Activo",
+      "EXPIRED": "Vencido",
+      "CANCELLED": "Cancelado"
+    }
+  },
+  "demoLab": {
+    "eyebrow": "Affisell Demo Lab",
+    "title": "Try Affisell",
+    "heroSubtitle": "Tres caminos guiados — proveedor, afiliado, comprador. Sin pagos reales. Su retroalimentación moldea lo que enviamos a continuación.",
+    "startJourney": "Comienza el viaje",
+    "sandboxNotice": "Modo de arena — las órdenes y los pagos no se ejecutan en los raíles de producción en vivo.",
+    "requiresAuth": "Iniciar sesión requerido para este paso",
+    "tryStep": "Prueba",
+    "privacyNote": "La retroalimentación puede incluir un correo electrónico opcional — se conserva durante hasta 12 meses, nunca se vende.",
+    "backToDemo": "Todos los viajes",
+    "banner": "Demo Lab — explora con cero compromiso",
+    "personas": {
+      "supplier": {
+        "title": "Viaje del proveedor",
+        "subtitle": "Centro de suministro, importación de catálogo, visor de afiliado — luego díganos qué piensan.",
+        "cardTitle": "Proveedor",
+        "cardBody": "Fuente, publicación y cumplimiento para la red de afiliados."
+      },
+      "affiliate": {
+        "title": "Viaje del afiliado",
+        "subtitle": "Descubre, lista y estima márgenes en unos pocos clics.",
+        "cardTitle": "Afiliado",
+        "cardBody": "Merchandising y comisiones en el catálogo de Affisell."
+      },
+      "buyer": {
+        "title": "Viaje del comprador",
+        "subtitle": "Explora el mercado, confía en el pago y apoya.",
+        "cardTitle": "Comprador",
+        "cardBody": "Compra tiendas de creadores de principio a fin."
+      }
+    },
+    "steps": {
+      "supplier": {
+        "supply": {
+          "title": "Centro de suministro",
+          "body": "Vista unificada de AliExpress, fábrica REST y canales próximos."
+        },
+        "import": {
+          "title": "Importar un SKU",
+          "body": "URL, extensión o API — boceto antes de publicar."
+        },
+        "preview": {
+          "title": "Visor de afiliado",
+          "body": "Ver comisiones y lista de verificación como lo hacen tus socios."
+        },
+        "publish": {
+          "title": "Crear una cuenta de proveedor",
+          "body": "Registro rápido para probar el panel completo."
+        }
+      },
+      "affiliate": {
+        "discover": {
+          "title": "Descubre",
+          "body": "Alimentación de compras en vivo y tiendas de creadores."
+        },
+        "catalog": {
+          "title": "Mercado",
+          "body": "Explora ofertas listables y márgenes indicativos."
+        },
+        "hub": {
+          "title": "Centro de afiliados",
+          "body": "Ganancias, listados y herramientas de promoción."
+        },
+        "join": {
+          "title": "Unirse",
+          "body": "Crear una cuenta de afiliado en minutos."
+        }
+      },
+      "buyer": {
+        "browse": {
+          "title": "Explorar",
+          "body": "Catálogo de la plataforma y filtros."
+        },
+        "shop": {
+          "title": "Tiendas",
+          "body": "Flujo de tienda del creador y páginas de productos."
+        },
+        "trust": {
+          "title": "Confianza",
+          "body": "Preguntas frecuentes sobre envío, devolución y pago seguro."
+        },
+        "account": {
+          "title": "Cuenta del comprador",
+          "body": "Seguimiento de pedidos y espacio del cliente."
+        }
+      }
+    },
+    "demoAccounts": {
+      "eyebrow": "Acceso neural",
+      "title": "Ingresar al entorno de pruebas — un solo toque",
+      "subtitle": "Cuentas preconfiguradas con catálogo de demo, KYC aprobado y paneles completos. No se requiere tarjeta.",
+      "badge": "Entorno de pruebas en vivo",
+      "enter": "Ingresar a la demo",
+      "entering": "Iniciando sesión…",
+      "disabled": "Demo Lab está desactivado (producción sin DEMO_LAB_ENABLED=1, o DEMO_LAB_ENABLED=0).",
+      "notConfigured": "Agregar DEMO_LAB_PASSWORD en Vercel → Variables de entorno → Previsualización (y producción si es necesario), luego redeploy. Vercel Previsualización habilita Demo Lab automáticamente.",
+      "rateLimited": "Demasiados intentos — inténtelo de nuevo en unos minutos.",
+      "signinFailed": "Falló la autenticación. Verifique la configuración de la demo o inténtelo de nuevo.",
+      "personas": {
+        "supplier": {
+          "title": "Proveedor de demo",
+          "hint": "Supply Hub, importación, SKU de sandbox"
+        },
+        "affiliate": {
+          "title": "Afiliado de demo",
+          "hint": "Hub, listados, margen en SKU de laboratorio"
+        },
+        "buyer": {
+          "title": "Comprador de demo",
+          "hint": "Cuenta de la plataforma, seguimiento de pedidos"
+        }
+      }
+    },
+    "feedback": {
+      "title": "Tu retroalimentación importa",
+      "subtitle": "1 a 5 — ¿cómo fue esta experiencia en general?",
+      "scoreAria": "Puntuación general",
+      "commentPlaceholder": "¿Qué funcionó, qué falta… (opcional)?",
+      "emailPlaceholder": "Correo electrónico para seguimiento (opcional)",
+      "submit": "Enviar retroalimentación",
+      "thanks": "Gracias — tu input alimenta el roadmap de Affisell.",
+      "error": "No se pudo enviar. Inténtelo de nuevo en unos momentos."
+    }
+  },
+  "errors": {
+    "notFound": {
+      "title": "Página no encontrada",
+      "body": "Esta página no existe o ha sido movida.",
+      "home": "Volver a casa"
+    },
+    "page": {
+      "label": "Algo salió mal",
+      "title": "Se nos ha producido un problema",
+      "body": "Se ha producido un problema al cargar esta página. Puede intentarlo de nuevo o volver a la página de inicio.",
+      "retry": "Intentarlo de nuevo",
+      "home": "Inicio"
+    }
+  }
+}
