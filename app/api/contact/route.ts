@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
+import { persistSupportTicket } from "@/lib/admin/support/persist-support-ticket"
 import { rateLimitClientKey, rateLimitResponse } from "@/lib/api-rate-limit"
 import { logBusiness } from "@/lib/business-log"
 import { readResendDeliveryConfig, sendResendEmail } from "@/lib/emails/resend-delivery"
