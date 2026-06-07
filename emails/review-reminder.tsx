@@ -15,36 +15,31 @@ import {
   Row,
 } from "@react-email/components"
 
+import type { ReviewReminderEmailCopy } from "@/lib/emails/load-email-copy"
+
 export interface ReviewReminderEmailProps {
   orderId: string
-  customerName: string
   productName: string
   productImageUrl: string
-  deliveredAt: string
   reviewUrl: string
+  copy: ReviewReminderEmailCopy
 }
 
 export const ReviewReminderEmail = ({
-  orderId,
-  customerName,
   productName,
   productImageUrl,
-  deliveredAt,
   reviewUrl,
+  copy,
 }: ReviewReminderEmailProps) => {
-  const shortOrderId = orderId.slice(-6).toUpperCase()
-
   return (
     <Html>
       <Head />
-      <Preview>Un avis sur votre commande #{shortOrderId}?</Preview>
+      <Preview>{copy.preview}</Preview>
       <Body style={main}>
         <Container style={container}>
-          <Heading style={h1}>Votre avis nous intéresse</Heading>
-          <Text style={greeting}>Bonjour {customerName},</Text>
-          <Text style={bodyText}>
-            Vous avez reçu votre commande le {deliveredAt}. Comment s&apos;est passé votre expérience?
-          </Text>
+          <Heading style={h1}>{copy.heading}</Heading>
+          <Text style={greeting}>{copy.greeting}</Text>
+          <Text style={bodyText}>{copy.body}</Text>
 
           <Row
             style={{
@@ -69,9 +64,7 @@ export const ReviewReminderEmail = ({
           </Row>
 
           <Section style={{ textAlign: "center", margin: "24px 0" }}>
-            <Text style={{ fontWeight: "600", margin: "0 0 16px" }}>
-              Notez votre achat en 30 secondes
-            </Text>
+            <Text style={{ fontWeight: "600", margin: "0 0 16px" }}>{copy.ctaTitle}</Text>
             <Button
               href={reviewUrl}
               style={{
@@ -83,20 +76,15 @@ export const ReviewReminderEmail = ({
                 fontWeight: "600",
               }}
             >
-              Laisser un avis
+              {copy.ctaReview}
             </Button>
           </Section>
 
-          <Text style={footerNote}>
-            Vous recevez ce mail une seule fois. Merci de faire grandir Affisell.
-          </Text>
+          <Text style={footerNote}>{copy.footerNote}</Text>
 
           <Hr style={hr} />
 
-          <Text style={footer}>
-            Affisell -{" "}
-            <Link href="https://affisell-market.vercel.app">affisell-market.vercel.app</Link>
-          </Text>
+          <Text style={footer}>{copy.footer}</Text>
         </Container>
       </Body>
     </Html>
@@ -125,12 +113,20 @@ const productNameStyle = {
 
 ReviewReminderEmail.PreviewProps = {
   orderId: "clpreview00000005",
-  customerName: "Marie",
   productName: "Casque Bluetooth Pro",
   productImageUrl: "https://via.placeholder.com/64",
-  deliveredAt: "12 mai 2026",
   reviewUrl:
     "https://affisell-market.vercel.app/marketplace/clpreview00000005?writeReview=true&orderId=clpreview00000005",
+  copy: {
+    preview: "Un avis sur votre commande #000005 ?",
+    heading: "Votre avis nous intéresse",
+    greeting: "Bonjour Marie,",
+    body: "Vous avez reçu votre commande le 12 mai 2026. Comment s'est passé votre expérience ?",
+    ctaTitle: "Notez votre achat en 30 secondes",
+    ctaReview: "Laisser un avis",
+    footerNote: "Vous recevez ce mail une seule fois. Merci de faire grandir Affisell.",
+    footer: "Affisell — affisell-market.vercel.app",
+  },
 } satisfies ReviewReminderEmailProps
 
 export default ReviewReminderEmail

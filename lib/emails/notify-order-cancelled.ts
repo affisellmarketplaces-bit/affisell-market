@@ -32,6 +32,7 @@ export async function notifyOrderCancelled(
       sellingPriceCents: true,
       variantImageUrl: true,
       shippingAddress: true,
+      buyerLocale: true,
       product: { select: { name: true, images: true } },
     },
   })
@@ -40,6 +41,7 @@ export async function notifyOrderCancelled(
   const result = await sendCancelledNotificationEmail(order, {
     cancelReason: options?.cancelReason,
     refundAmountCents: options?.refundAmountCents,
+    locale: order.buyerLocale,
   })
   return { sent: result.ok, error: result.error }
 }

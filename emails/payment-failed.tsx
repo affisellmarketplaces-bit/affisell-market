@@ -11,38 +11,34 @@ import {
   Text,
   Section,
   Hr,
-  Link,
   Row,
 } from "@react-email/components"
 
+import type { PaymentFailedEmailCopy } from "@/lib/emails/load-email-copy"
+
 export interface PaymentFailedEmailProps {
   orderId: string
-  customerName: string
   productName: string
   productImageUrl: string
   updatePaymentUrl: string
+  copy: PaymentFailedEmailCopy
 }
 
 export const PaymentFailedEmail = ({
-  orderId,
-  customerName,
   productName,
   productImageUrl,
   updatePaymentUrl,
+  copy,
 }: PaymentFailedEmailProps) => {
-  const shortOrderId = orderId.slice(-6).toUpperCase()
-
   return (
     <Html>
       <Head />
-      <Preview>Action requise : échec paiement #{shortOrderId}</Preview>
+      <Preview>{copy.preview}</Preview>
       <Body style={main}>
         <Container style={container}>
-          <Heading style={h1}>Action requise</Heading>
-          <Text style={greeting}>Bonjour {customerName},</Text>
-          <Text style={bodyText}>
-            Votre carte a expiré. Mettez à jour en 1 clic pour éviter l&apos;annulation.
-          </Text>
+          <Heading style={h1}>{copy.heading}</Heading>
+          <Text style={greeting}>{copy.greeting}</Text>
+          <Text style={bodyText}>{copy.body}</Text>
 
           <Row
             style={{
@@ -78,20 +74,15 @@ export const PaymentFailedEmail = ({
                 fontWeight: "600",
               }}
             >
-              Mettre à jour ma carte
+              {copy.ctaUpdate}
             </Button>
           </Section>
 
-          <Text style={footerNote}>
-            Lien sécurisé Stripe — aucune saisie de carte sur Affisell.
-          </Text>
+          <Text style={footerNote}>{copy.footerNote}</Text>
 
           <Hr style={hr} />
 
-          <Text style={footer}>
-            Affisell -{" "}
-            <Link href="https://affisell-market.vercel.app">affisell-market.vercel.app</Link>
-          </Text>
+          <Text style={footer}>{copy.footer}</Text>
         </Container>
       </Body>
     </Html>
@@ -120,10 +111,18 @@ const productNameStyle = {
 
 PaymentFailedEmail.PreviewProps = {
   orderId: "clpreview00000006",
-  customerName: "Marie",
   productName: "Casque Bluetooth Pro",
   productImageUrl: "https://via.placeholder.com/64",
   updatePaymentUrl: "https://billing.stripe.com/session/test_portal",
+  copy: {
+    preview: "Action requise : échec paiement #000006",
+    heading: "Action requise",
+    greeting: "Bonjour Marie,",
+    body: "Votre carte a expiré ou a été refusée. Mettez à jour en 1 clic pour éviter l'annulation.",
+    ctaUpdate: "Mettre à jour ma carte",
+    footerNote: "Lien sécurisé Stripe — aucune saisie de carte sur Affisell.",
+    footer: "Affisell — affisell-market.vercel.app",
+  },
 } satisfies PaymentFailedEmailProps
 
 export default PaymentFailedEmail

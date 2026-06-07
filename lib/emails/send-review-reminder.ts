@@ -3,13 +3,20 @@ import { Resend } from "resend"
 
 import { ReviewReminderEmail } from "@/emails/review-reminder"
 import {
+  defaultEmailCustomerName,
+  loadReviewReminderEmailCopy,
+  reviewReminderEmailSubject,
+} from "@/lib/emails/load-email-copy"
+import {
   readResendDeliveryConfig,
   resolveResendDeliveryRecipient,
 } from "@/lib/emails/resend-delivery"
+import { resolveEmailLocale } from "@/lib/emails/resolve-email-locale"
 import {
   resolveAppUrl,
   resolveOrderConfirmationImageUrl,
 } from "@/lib/emails/send-order-confirmation"
+import type { AppLocale } from "@/lib/i18n-locale"
 
 export type ReviewReminderOrderPayload = {
   id: string
@@ -26,7 +33,7 @@ export type ReviewReminderOrderPayload = {
   }
 }
 
-function resolveCustomerName(order: ReviewReminderOrderPayload): string {
+function resolveCustomerName(order: ReviewReminderOrderPayload, locale: AppLocale): string {
   if (order.buyer?.name?.trim()) return order.buyer.name.trim()
   if (order.customerName?.trim()) return order.customerName.trim()
   if (order.shippingAddress && typeof order.shippingAddress === "object" && !Array.isArray(order.shippingAddress)) {
@@ -34,47 +41,45 @@ function resolveCustomerName(order: ReviewReminderOrderPayload): string {
     if (typeof name === "string" && name.trim()) return name.trim()
   }
   const local = order.customerEmail.split("@")[0]?.trim()
-  return local || "Client"
-}
-
-function formatDeliveredAtFr(date: Date): string {
-  return date.toLocaleDateString("fr-FR", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  })
+  return local || defaultEmailCustomerName(locale)
 }
 
 export async function sendReviewReminderEmail(
-  order: ReviewReminderOrderPayload
+  order: ReviewReminderOrderPayload,
+  options?: { locale?: AppLocale | string | null }
 ): Promise<{ ok: boolean; error?: string }> {
+  const locale = resolveEmailLocale(options?.locale)
   const config = readResendDeliveryConfig()
   if (!config) {
     return { ok: false, error: "RESEND_API_KEY not configured" }
   }
   const resend = new Resend(config.apiKey)
   const { to } = resolveResendDeliveryRecipient("review-reminder", order.customerEmail, config)
-  const shortOrderId = order.id.slice(-6).toUpperCase()
   const reviewUrl = `${resolveAppUrl()}/marketplace/${order.affiliateProductId}?writeReview=true&orderId=${order.id}`
+
+  const copy = loadReviewReminderEmailCopy(locale, {
+    orderId: order.id,
+    customerName: resolveCustomerName(order, locale),
+    deliveredAt: order.deliveredAt,
+  })
 
   const html = await render(
     ReviewReminderEmail({
       orderId: order.id,
-      customerName: resolveCustomerName(order),
       productName: order.product.name,
       productImageUrl: resolveOrderConfirmationImageUrl({
         productImages: order.product.images,
         variantImageUrl: order.variantImageUrl,
       }),
-      deliveredAt: formatDeliveredAtFr(order.deliveredAt),
       reviewUrl,
+      copy,
     })
   )
 
   const { data, error } = await resend.emails.send({
     from: config.from,
     to,
-    subject: `Que pensez-vous de votre commande #${shortOrderId} ?`,
+    subject: reviewReminderEmailSubject(locale, order.id),
     html,
   })
 
@@ -82,6 +87,6 @@ export async function sendReviewReminderEmail(
     console.error("[Resend] Review reminder error:", error)
     return { ok: false, error: error.message }
   }
-  console.log("[Resend] Review reminder sent:", data?.id)
+  console.log("[review-reminder]", { orderId: order.id, result: "email_sent", resendId: data?.id })
   return { ok: true }
 }

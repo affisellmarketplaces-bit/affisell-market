@@ -66,7 +66,7 @@ export async function runReviewReminderCron(
       product: row.product,
     }
 
-    const result = await sendReviewReminderEmail(order)
+    const result = await sendReviewReminderEmail(order, { locale: row.buyerLocale })
     if (!result.ok) {
       errors.push(`${row.id}:${result.error ?? "send_failed"}`)
       skipped += 1

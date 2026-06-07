@@ -20,6 +20,7 @@ export async function notifyMarketplaceOrderShipped(
       trackingCarrier: true,
       variantImageUrl: true,
       shippingAddress: true,
+      buyerLocale: true,
       product: { select: { name: true, images: true } },
     },
   })
@@ -28,15 +29,18 @@ export async function notifyMarketplaceOrderShipped(
   const trackingNumber = tracking?.trackingNumber ?? order.trackingNumber
   if (!trackingNumber) return
 
-  void sendShippingNotificationEmail({
-    id: order.id,
-    customerEmail: order.customerEmail,
-    quantity: order.quantity,
-    trackingNumber,
-    trackingCarrier: tracking?.carrier ?? order.trackingCarrier,
-    trackingUrl: tracking?.trackingUrl ?? undefined,
-    variantImageUrl: order.variantImageUrl,
-    shippingAddress: order.shippingAddress,
-    product: order.product,
-  })
+  void sendShippingNotificationEmail(
+    {
+      id: order.id,
+      customerEmail: order.customerEmail,
+      quantity: order.quantity,
+      trackingNumber,
+      trackingCarrier: tracking?.carrier ?? order.trackingCarrier,
+      trackingUrl: tracking?.trackingUrl ?? undefined,
+      variantImageUrl: order.variantImageUrl,
+      shippingAddress: order.shippingAddress,
+      product: order.product,
+    },
+    { locale: order.buyerLocale }
+  )
 }

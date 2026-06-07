@@ -12,6 +12,7 @@ export async function notifyOrderDelivered(orderId: string): Promise<void> {
       affiliateProductId: true,
       variantImageUrl: true,
       shippingAddress: true,
+      buyerLocale: true,
       deliveredAt: true,
       fulfillmentStatus: true,
       buyerReview: { select: { id: true } },
@@ -20,13 +21,16 @@ export async function notifyOrderDelivered(orderId: string): Promise<void> {
   })
   if (!order?.customerEmail || order.fulfillmentStatus !== "DELIVERED" || order.buyerReview) return
 
-  await sendDeliveredNotificationEmail({
-    id: order.id,
-    customerEmail: order.customerEmail,
-    quantity: order.quantity,
-    affiliateProductId: order.affiliateProductId,
-    variantImageUrl: order.variantImageUrl,
-    shippingAddress: order.shippingAddress,
-    product: order.product,
-  })
+  await sendDeliveredNotificationEmail(
+    {
+      id: order.id,
+      customerEmail: order.customerEmail,
+      quantity: order.quantity,
+      affiliateProductId: order.affiliateProductId,
+      variantImageUrl: order.variantImageUrl,
+      shippingAddress: order.shippingAddress,
+      product: order.product,
+    },
+    { locale: order.buyerLocale }
+  )
 }

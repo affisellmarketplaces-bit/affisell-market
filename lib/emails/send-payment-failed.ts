@@ -3,14 +3,21 @@ import { Resend } from "resend"
 
 import { PaymentFailedEmail } from "@/emails/payment-failed"
 import {
+  defaultEmailCustomerName,
+  loadPaymentFailedEmailCopy,
+  paymentFailedEmailSubject,
+} from "@/lib/emails/load-email-copy"
+import {
   readResendDeliveryConfig,
   resolveResendDeliveryRecipient,
 } from "@/lib/emails/resend-delivery"
+import { resolveEmailLocale } from "@/lib/emails/resolve-email-locale"
 import {
   resolveAppUrl,
   resolveOrderConfirmationImageUrl,
 } from "@/lib/emails/send-order-confirmation"
 import { getStripeClient } from "@/lib/stripe"
+import type { AppLocale } from "@/lib/i18n-locale"
 
 export type PaymentFailedOrderPayload = {
   id: string
@@ -25,7 +32,7 @@ export type PaymentFailedOrderPayload = {
   }
 }
 
-function resolveCustomerName(order: PaymentFailedOrderPayload): string {
+function resolveCustomerName(order: PaymentFailedOrderPayload, locale: AppLocale): string {
   if (order.buyer?.name?.trim()) return order.buyer.name.trim()
   if (order.customerName?.trim()) return order.customerName.trim()
   if (order.shippingAddress && typeof order.shippingAddress === "object" && !Array.isArray(order.shippingAddress)) {
@@ -33,7 +40,7 @@ function resolveCustomerName(order: PaymentFailedOrderPayload): string {
     if (typeof name === "string" && name.trim()) return name.trim()
   }
   const local = order.customerEmail.split("@")[0]?.trim()
-  return local || "Client"
+  return local || defaultEmailCustomerName(locale)
 }
 
 export async function createStripeBillingPortalUrl(stripeCustomerId: string): Promise<string> {
@@ -50,8 +57,10 @@ export async function createStripeBillingPortalUrl(stripeCustomerId: string): Pr
 
 export async function sendPaymentFailedEmail(
   order: PaymentFailedOrderPayload,
-  stripeCustomerId: string
+  stripeCustomerId: string,
+  options?: { locale?: AppLocale | string | null }
 ): Promise<{ ok: boolean; error?: string; updatePaymentUrl?: string }> {
+  const locale = resolveEmailLocale(options?.locale)
   const config = readResendDeliveryConfig()
   if (!config) {
     return { ok: false, error: "RESEND_API_KEY not configured" }
@@ -68,25 +77,29 @@ export async function sendPaymentFailedEmail(
 
   const resend = new Resend(config.apiKey)
   const { to } = resolveResendDeliveryRecipient("payment-failed", order.customerEmail, config)
-  const shortOrderId = order.id.slice(-6).toUpperCase()
+
+  const copy = loadPaymentFailedEmailCopy(locale, {
+    orderId: order.id,
+    customerName: resolveCustomerName(order, locale),
+  })
 
   const html = await render(
     PaymentFailedEmail({
       orderId: order.id,
-      customerName: resolveCustomerName(order),
       productName: order.product.name,
       productImageUrl: resolveOrderConfirmationImageUrl({
         productImages: order.product.images,
         variantImageUrl: order.variantImageUrl,
       }),
       updatePaymentUrl,
+      copy,
     })
   )
 
   const { data, error } = await resend.emails.send({
     from: config.from,
     to,
-    subject: `Action requise : paiement refusé pour #${shortOrderId}`,
+    subject: paymentFailedEmailSubject(locale, order.id),
     html,
   })
 
@@ -95,8 +108,9 @@ export async function sendPaymentFailedEmail(
     return { ok: false, error: error.message }
   }
 
-  console.log("[payment-failed] email_sent", {
+  console.log("[payment-failed]", {
     orderId: order.id,
+    result: "email_sent",
     resendId: data?.id,
     metric: "payment_failed_email_sent",
   })

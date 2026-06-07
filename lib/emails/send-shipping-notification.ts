@@ -3,29 +3,20 @@ import { Resend } from "resend"
 
 import { ShippingNotificationEmail } from "@/emails/shipping-notification"
 import {
+  loadShippingNotificationEmailCopy,
+  shippingNotificationEmailSubject,
+} from "@/lib/emails/load-email-copy"
+import {
   readResendDeliveryConfig,
   resolveResendDeliveryRecipient,
 } from "@/lib/emails/resend-delivery"
+import { resolveEmailLocale } from "@/lib/emails/resolve-email-locale"
 import {
   resolveAppUrl,
   resolveOrderConfirmationImageUrl,
 } from "@/lib/emails/send-order-confirmation"
-
-const PLACEHOLDER_PRODUCT_IMAGE = "https://via.placeholder.com/64"
-
-function resolveCustomerName(
-  customerName: string | undefined,
-  customerEmail: string,
-  shippingAddress?: unknown
-): string {
-  if (customerName?.trim()) return customerName.trim()
-  if (shippingAddress && typeof shippingAddress === "object" && !Array.isArray(shippingAddress)) {
-    const name = (shippingAddress as Record<string, unknown>).name
-    if (typeof name === "string" && name.trim()) return name.trim()
-  }
-  const local = customerEmail.split("@")[0]?.trim()
-  return local || "Client"
-}
+import type { AppLocale } from "@/lib/i18n-locale"
+import { tMessage } from "@/lib/i18n-pick-message"
 
 export type ShippingNotificationOrderPayload = {
   id: string
@@ -44,8 +35,10 @@ export type ShippingNotificationOrderPayload = {
 }
 
 export async function sendShippingNotificationEmail(
-  order: ShippingNotificationOrderPayload
+  order: ShippingNotificationOrderPayload,
+  options?: { locale?: AppLocale | string | null }
 ): Promise<{ ok: boolean; error?: string }> {
+  const locale = resolveEmailLocale(options?.locale)
   const config = readResendDeliveryConfig()
   if (!config) {
     console.error("[Resend] Shipping notification skipped: missing RESEND_API_KEY")
@@ -57,30 +50,37 @@ export async function sendShippingNotificationEmail(
   const trackingUrl =
     order.trackingUrl?.trim() ||
     `${resolveAppUrl()}/marketplace/account/orders`
-  const carrier = order.trackingCarrier?.trim() || "Transporteur"
-  const shortOrderId = order.id.slice(-6).toUpperCase()
+  const carrier =
+    order.trackingCarrier?.trim() ||
+    tMessage(locale, "emails.shippingNotification.defaultCarrier", "Carrier")
+
+  const copy = loadShippingNotificationEmailCopy(locale, {
+    orderId: order.id,
+    quantity: order.quantity,
+    trackingNumber: order.trackingNumber,
+    carrier,
+  })
 
   const html = await render(
     ShippingNotificationEmail({
       orderId: order.id,
-      customerName: resolveCustomerName(order.customerName, order.customerEmail, order.shippingAddress),
       productName: order.product.name,
       productImageUrl: resolveOrderConfirmationImageUrl({
         productImages: order.product.images,
         variantImageUrl: order.variantImageUrl,
       }),
-      quantity: order.quantity,
       trackingUrl,
       trackingNumber: order.trackingNumber,
       carrier,
       orderUrl,
+      copy,
     })
   )
 
   const { data, error } = await resend.emails.send({
     from: config.from,
     to,
-    subject: `Votre commande #${shortOrderId} est expédiée`,
+    subject: shippingNotificationEmailSubject(locale, order.id),
     html,
   })
 
@@ -88,6 +88,6 @@ export async function sendShippingNotificationEmail(
     console.error("[Resend] Shipping notification error:", error)
     return { ok: false, error: error.message }
   }
-  console.log("[Resend] Shipping notification sent:", data?.id)
+  console.log("[shipping-notification]", { orderId: order.id, result: "email_sent", resendId: data?.id })
   return { ok: true }
 }

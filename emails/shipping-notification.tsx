@@ -15,37 +15,33 @@ import {
   Row,
 } from "@react-email/components"
 
+import type { ShippingNotificationEmailCopy } from "@/lib/emails/load-email-copy"
+
 export interface ShippingNotificationEmailProps {
   orderId: string
-  customerName: string
   productName: string
   productImageUrl: string
-  quantity: number
   trackingUrl: string
   trackingNumber: string
   carrier: string
   orderUrl: string
+  copy: ShippingNotificationEmailCopy
 }
 
 export const ShippingNotificationEmail = ({
-  orderId,
   productName,
   productImageUrl,
-  quantity,
   trackingUrl,
-  trackingNumber,
-  carrier,
   orderUrl,
+  copy,
 }: ShippingNotificationEmailProps) => {
-  const shortOrderId = orderId.slice(-6).toUpperCase()
-
   return (
     <Html>
       <Head />
-      <Preview>Votre commande #{shortOrderId} est en route</Preview>
+      <Preview>{copy.preview}</Preview>
       <Body style={main}>
         <Container style={container}>
-          <Heading style={h1}>Bonne nouvelle, votre colis est parti!</Heading>
+          <Heading style={h1}>{copy.heading}</Heading>
 
           <Row
             style={{
@@ -66,7 +62,7 @@ export const ShippingNotificationEmail = ({
             </Column>
             <Column style={{ paddingLeft: "16px" }}>
               <Text style={productNameStyle}>{productName}</Text>
-              <Text style={qtyStyle}>Quantité: {quantity}</Text>
+              <Text style={qtyStyle}>{copy.quantity}</Text>
             </Column>
           </Row>
 
@@ -78,10 +74,8 @@ export const ShippingNotificationEmail = ({
               margin: "24px 0",
             }}
           >
-            <Text style={{ fontWeight: "600", margin: "0 0 8px" }}>
-              Numéro de suivi : {trackingNumber}
-            </Text>
-            <Text style={{ margin: "0 0 16px", color: "#666" }}>Transporteur : {carrier}</Text>
+            <Text style={{ fontWeight: "600", margin: "0 0 8px" }}>{copy.trackingNumber}</Text>
+            <Text style={{ margin: "0 0 16px", color: "#666" }}>{copy.carrier}</Text>
             <Button
               href={trackingUrl}
               style={{
@@ -93,22 +87,19 @@ export const ShippingNotificationEmail = ({
                 fontWeight: "600",
               }}
             >
-              Suivre mon colis
+              {copy.ctaTrack}
             </Button>
           </Section>
 
           <Section style={{ textAlign: "center", marginTop: "32px" }}>
             <Button href={orderUrl} style={buttonStyle}>
-              Voir ma commande
+              {copy.ctaOrder}
             </Button>
           </Section>
 
           <Hr style={hr} />
 
-          <Text style={footer}>
-            Affisell -{" "}
-            <Link href="https://affisell-market.vercel.app">affisell-market.vercel.app</Link>
-          </Text>
+          <Text style={footer}>{copy.footer}</Text>
         </Container>
       </Body>
     </Html>
@@ -144,14 +135,22 @@ const buttonStyle = {
 
 ShippingNotificationEmail.PreviewProps = {
   orderId: "clpreview00000002",
-  customerName: "Marie",
   productName: "Casque Bluetooth Pro",
   productImageUrl: "https://via.placeholder.com/64",
-  quantity: 1,
   trackingUrl: "https://www.colissimo.fr/portail_colissimo/suivre-un-colis",
   trackingNumber: "8Q12345678901",
   carrier: "Colissimo",
   orderUrl: "https://affisell-market.vercel.app/orders/clpreview00000002",
+  copy: {
+    preview: "Votre commande #000002 est en route",
+    heading: "Bonne nouvelle, votre colis est parti !",
+    quantity: "Quantité : 1",
+    trackingNumber: "Numéro de suivi : 8Q12345678901",
+    carrier: "Transporteur : Colissimo",
+    ctaTrack: "Suivre mon colis",
+    ctaOrder: "Voir ma commande",
+    footer: "Affisell — affisell-market.vercel.app",
+  },
 } satisfies ShippingNotificationEmailProps
 
 export default ShippingNotificationEmail

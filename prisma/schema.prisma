@@ -1216,6 +1216,8 @@ model Order {
    * Logged-in buyer when checkout carried `buyerUserId` metadata (optional).
    */
   buyerUserId              String?
+  /** Checkout UI locale snapshot for transactional emails (en, fr, de, …). */
+  buyerLocale              String?             @db.VarChar(8)
   buyer                    User?               @relation("BuyerMarketplaceOrders", fields: [buyerUserId], references: [id], onDelete: SetNull)
   customerEmail            String
   shippingAddress          Json

@@ -2258,6 +2258,13 @@
     "trackingLabel": "Suivi"
   },
   "emails": {
+    "shared": {
+      "quantity": "Quantité : {quantity}",
+      "greeting": "Bonjour {customerName},",
+      "ctaOrder": "Voir ma commande",
+      "defaultCustomerName": "Client",
+      "footerBrand": "Affisell — affisell-market.vercel.app"
+    },
     "orderConfirmation": {
       "preview": "Commande Affisell #{orderId} confirmée",
       "heading": "Merci pour votre commande",
@@ -2267,6 +2274,89 @@
       "ctaOrder": "Voir ma commande",
       "ctaTracking": "Suivre mon colis",
       "footer": "Une question ? Répondez à cet e-mail ou consultez votre compte."
+    },
+    "shippingNotification": {
+      "preview": "Votre commande #{orderId} est en route",
+      "subject": "Votre commande #{orderId} est expédiée",
+      "heading": "Bonne nouvelle, votre colis est parti !",
+      "trackingNumber": "Numéro de suivi : {trackingNumber}",
+      "carrier": "Transporteur : {carrier}",
+      "defaultCarrier": "Transporteur",
+      "ctaTrack": "Suivre mon colis"
+    },
+    "deliveredNotification": {
+      "preview": "Votre commande #{orderId} a été livrée",
+      "subject": "Votre commande #{orderId} est livrée",
+      "heading": "Colis livré !",
+      "greeting": "Bonjour {customerName}, votre commande est arrivée.",
+      "reviewTitle": "Votre avis compte",
+      "reviewBody": "Satisfait de votre achat ? Partagez votre expérience en 30 secondes.",
+      "ctaReview": "Laisser un avis",
+      "ctaRepurchase": "Racheter"
+    },
+    "cancelledNotification": {
+      "preview": "Votre commande #{orderId} a été annulée",
+      "subject": "Votre commande #{orderId} a été annulée",
+      "heading": "Commande annulée",
+      "greeting": "Bonjour {customerName}, votre commande #{orderId} a été annulée.",
+      "refundAmount": "Montant remboursé : {amount} {currency}",
+      "refundHint": "Le remboursement apparaît sur votre compte sous 5 à 10 jours ouvrés.",
+      "reasonPrefix": "Motif : {reason}",
+      "ctaSupport": "Contacter le support"
+    },
+    "reviewReminder": {
+      "preview": "Un avis sur votre commande #{orderId} ?",
+      "subject": "Que pensez-vous de votre commande #{orderId} ?",
+      "heading": "Votre avis nous intéresse",
+      "body": "Vous avez reçu votre commande le {deliveredAt}. Comment s'est passé votre expérience ?",
+      "ctaTitle": "Notez votre achat en 30 secondes",
+      "ctaReview": "Laisser un avis",
+      "footerNote": "Vous recevez ce mail une seule fois. Merci de faire grandir Affisell."
+    },
+    "paymentFailed": {
+      "preview": "Action requise : échec paiement #{orderId}",
+      "subject": "Action requise : paiement refusé pour #{orderId}",
+      "heading": "Action requise",
+      "body": "Votre carte a expiré ou a été refusée. Mettez à jour en 1 clic pour éviter l'annulation.",
+      "ctaUpdate": "Mettre à jour ma carte",
+      "footerNote": "Lien sécurisé Stripe — aucune saisie de carte sur Affisell."
+    },
+    "passwordReset": {
+      "preview": "Réinitialisez votre mot de passe Affisell — {accountEmail}",
+      "subject": "Réinitialisez votre mot de passe · {accountEmail}",
+      "badge": "Sécurité Affisell · Accès sécurisé",
+      "title": "Réinitialisez votre mot de passe",
+      "greetingNamed": "Bonjour {name},",
+      "greetingGeneric": "Bonjour,",
+      "body": "Vous avez demandé un nouveau mot de passe. Ce lien est lié au compte ci-dessous et expire dans 1 heure.",
+      "accountLabel": "Compte concerné",
+      "portalAffiliate": "Espace créateur",
+      "portalSupplier": "Espace fournisseur",
+      "portalDefault": "Compte Affisell",
+      "cta": "Réinitialiser mon mot de passe",
+      "fallbackLabel": "Si le bouton ne s'ouvre pas, copiez ce lien :",
+      "footerNote": "Vous n'êtes pas à l'origine de cette demande ? Ignorez cet e-mail — votre mot de passe reste inchangé.",
+      "legal": "© Affisell — marketplace d'affiliation · affisell.com"
+    },
+    "contactAcknowledgment": {
+      "preview": "Message reçu — Affisell #{ticketRef}",
+      "subject": "[Affisell] Message reçu — #{ticketRef}",
+      "heading": "Message bien reçu",
+      "body": "Nous avons bien reçu votre demande concernant « {subject} ». Notre équipe vous répond sous 48 h ouvrées en général.",
+      "reference": "Référence : #{ticketRef}",
+      "cardTitle": "En attendant, ces liens résolvent 80 % des questions :",
+      "faqLink": "FAQ — commandes, livraison, retours",
+      "ordersLink": "Mes commandes — suivi et retours",
+      "ctaFaq": "Ouvrir la FAQ",
+      "footer": "Besoin d'ajouter un détail ? Répondez à cet e-mail ou écrivez à {supportEmail} en citant #{ticketRef}."
+    },
+    "abandonedCheckout": {
+      "preview": "Votre sélection Affisell vous attend — {productName}",
+      "subject": "Votre sélection vous attend — {productName}",
+      "heading": "Votre panier vous attend",
+      "body": "Vous aviez commencé un achat sur Affisell. Votre sélection est toujours disponible — paiement sécurisé Stripe, livraison suivie.",
+      "cta": "Reprendre mon achat",
+      "footer": "Une question ? Consultez la FAQ ou l'assistant support sur Affisell."
     }
   },
   "errors": {

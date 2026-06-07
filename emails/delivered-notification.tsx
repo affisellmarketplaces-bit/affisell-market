@@ -11,41 +11,37 @@ import {
   Text,
   Section,
   Hr,
-  Link,
   Row,
 } from "@react-email/components"
 
+import type { DeliveredNotificationEmailCopy } from "@/lib/emails/load-email-copy"
+
 export interface DeliveredNotificationEmailProps {
   orderId: string
-  customerName: string
   productName: string
   productImageUrl: string
-  quantity: number
   orderUrl: string
   reviewUrl: string
   repurchaseUrl: string
+  copy: DeliveredNotificationEmailCopy
 }
 
 export const DeliveredNotificationEmail = ({
-  orderId,
-  customerName,
   productName,
   productImageUrl,
-  quantity,
   orderUrl,
   reviewUrl,
   repurchaseUrl,
+  copy,
 }: DeliveredNotificationEmailProps) => {
-  const shortOrderId = orderId.slice(-6).toUpperCase()
-
   return (
     <Html>
       <Head />
-      <Preview>Votre commande #{shortOrderId} a été livrée</Preview>
+      <Preview>{copy.preview}</Preview>
       <Body style={main}>
         <Container style={container}>
-          <Heading style={h1}>Colis livré!</Heading>
-          <Text style={greeting}>Bonjour {customerName}, votre commande est arrivée.</Text>
+          <Heading style={h1}>{copy.heading}</Heading>
+          <Text style={greeting}>{copy.greeting}</Text>
 
           <Row
             style={{
@@ -66,7 +62,7 @@ export const DeliveredNotificationEmail = ({
             </Column>
             <Column style={{ paddingLeft: "16px" }}>
               <Text style={productNameStyle}>{productName}</Text>
-              <Text style={qtyStyle}>Quantité: {quantity}</Text>
+              <Text style={qtyStyle}>{copy.quantity}</Text>
             </Column>
           </Row>
 
@@ -80,11 +76,9 @@ export const DeliveredNotificationEmail = ({
             }}
           >
             <Text style={{ fontWeight: "600", margin: "0 0 12px", fontSize: "16px" }}>
-              Votre avis compte
+              {copy.reviewTitle}
             </Text>
-            <Text style={{ margin: "0 0 16px", color: "#666", fontSize: "14px" }}>
-              Satisfait de votre achat? Partagez votre expérience en 30 secondes.
-            </Text>
+            <Text style={{ margin: "0 0 16px", color: "#666", fontSize: "14px" }}>{copy.reviewBody}</Text>
             <Button
               href={reviewUrl}
               style={{
@@ -96,7 +90,7 @@ export const DeliveredNotificationEmail = ({
                 fontWeight: "600",
               }}
             >
-              Laisser un avis
+              {copy.ctaReview}
             </Button>
           </Section>
 
@@ -113,7 +107,7 @@ export const DeliveredNotificationEmail = ({
                 marginRight: "12px",
               }}
             >
-              Racheter
+              {copy.ctaRepurchase}
             </Button>
             <Button
               href={orderUrl}
@@ -127,16 +121,13 @@ export const DeliveredNotificationEmail = ({
                 border: "1px solid #5469d4",
               }}
             >
-              Voir ma commande
+              {copy.ctaOrder}
             </Button>
           </Section>
 
           <Hr style={hr} />
 
-          <Text style={footer}>
-            Affisell -{" "}
-            <Link href="https://affisell-market.vercel.app">affisell-market.vercel.app</Link>
-          </Text>
+          <Text style={footer}>{copy.footer}</Text>
         </Container>
       </Body>
     </Html>
@@ -164,14 +155,24 @@ const qtyStyle = { fontSize: "14px", color: "#666", margin: "0" }
 
 DeliveredNotificationEmail.PreviewProps = {
   orderId: "clpreview00000003",
-  customerName: "Marie",
   productName: "Casque Bluetooth Pro",
   productImageUrl: "https://via.placeholder.com/64",
-  quantity: 1,
   orderUrl: "https://affisell-market.vercel.app/marketplace/account/orders",
   reviewUrl:
     "https://affisell-market.vercel.app/marketplace/clpreview00000003?writeReview=true&orderId=clpreview00000003",
   repurchaseUrl: "https://affisell-market.vercel.app/marketplace/clpreview00000003?ref=repurchase",
+  copy: {
+    preview: "Votre commande #000003 a été livrée",
+    heading: "Colis livré !",
+    greeting: "Bonjour Marie, votre commande est arrivée.",
+    quantity: "Quantité : 1",
+    reviewTitle: "Votre avis compte",
+    reviewBody: "Satisfait de votre achat ? Partagez votre expérience en 30 secondes.",
+    ctaReview: "Laisser un avis",
+    ctaRepurchase: "Racheter",
+    ctaOrder: "Voir ma commande",
+    footer: "Affisell — affisell-market.vercel.app",
+  },
 } satisfies DeliveredNotificationEmailProps
 
 export default DeliveredNotificationEmail

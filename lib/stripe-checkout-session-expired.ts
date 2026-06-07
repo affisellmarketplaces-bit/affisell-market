@@ -2,16 +2,22 @@ import type Stripe from "stripe"
 
 import { AbandonedCheckoutEmail } from "@/emails/abandoned-checkout"
 import { logBusiness } from "@/lib/business-log"
+import {
+  abandonedCheckoutEmailSubject,
+  defaultEmailCustomerName,
+  loadAbandonedCheckoutEmailCopy,
+} from "@/lib/emails/load-email-copy"
 import { sendResendReactEmail } from "@/lib/emails/resend-delivery"
+import { resolveEmailLocale } from "@/lib/emails/resolve-email-locale"
 import { resolveAppUrl, resolveOrderConfirmationImageUrl } from "@/lib/emails/send-order-confirmation"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { prisma } from "@/lib/prisma"
 
-function resolveCustomerName(email: string, session: Stripe.Checkout.Session): string {
+function resolveCustomerName(email: string, session: Stripe.Checkout.Session, locale: string): string {
   const fromDetails = session.customer_details?.name?.trim()
   if (fromDetails) return fromDetails
   const local = email.split("@")[0]?.trim()
-  return local || "Client"
+  return local || defaultEmailCustomerName(resolveEmailLocale(locale))
 }
 
 function resolveProductUrl(affiliateProductId: string): string {
@@ -31,6 +37,7 @@ export async function handleStripeCheckoutSessionExpired(
   const meta = session.metadata ?? {}
   const orderId = meta.orderId?.trim()
   const affiliateProductId = meta.affiliateProductId?.trim()
+  const locale = resolveEmailLocale(meta.locale)
 
   if (orderId) {
     await prisma.order.updateMany({
@@ -73,17 +80,26 @@ export async function handleStripeCheckoutSessionExpired(
     variantImageUrl: null,
   })
 
+  const baseUrl = resolveAppUrl()
+  const customerName = resolveCustomerName(email, session, meta.locale)
+  const copy = loadAbandonedCheckoutEmailCopy(locale, {
+    customerName,
+    productName: listing.product.name,
+  })
+
   const sent = await sendResendReactEmail({
     context: "abandoned-checkout",
     intendedTo: email,
-    subject: `Votre sélection vous attend — ${listing.product.name}`,
+    subject: abandonedCheckoutEmailSubject(locale, listing.product.name),
     template: AbandonedCheckoutEmail,
     props: {
-      customerName: resolveCustomerName(email, session),
       productName: listing.product.name,
       productImageUrl: productImageUrl || undefined,
       productUrl: resolveProductUrl(listing.id),
       priceLabel: formatStoreCurrencyFromCents(listing.sellingPriceCents),
+      faqUrl: `${baseUrl}/faq`,
+      supportUrl: `${baseUrl}/support`,
+      copy,
     },
   })
 
@@ -91,6 +107,7 @@ export async function handleStripeCheckoutSessionExpired(
     sessionId: session.id,
     orderId: orderId ?? null,
     affiliateProductId,
+    locale,
     result: sent.ok ? "email_sent" : "email_failed",
     error: sent.ok ? undefined : sent.error,
   })

@@ -38,6 +38,8 @@ import {
   marketplaceCheckoutTaxOptions,
   type MarketplaceStripeLineItem,
 } from "@/lib/marketplace-stripe-checkout"
+import { resolveRequestLocale } from "@/lib/resolve-request-locale"
+import { resolveAppLocale } from "@/lib/i18n-locale"
 import { getStripeClient } from "@/lib/stripe"
 
 function checkoutBaseUrls(body: { cancelPath?: string; successPath?: string }) {
@@ -185,7 +187,8 @@ function computePaidLinesWithReward(args: {
 /** Stripe Checkout for multiple marketplace lines (EUR). */
 async function checkoutFromItems(
   lines: CartLineInput[],
-  opts: { cancelPath?: string; successPath?: string; useRewardCents?: number }
+  opts: { cancelPath?: string; successPath?: string; useRewardCents?: number },
+  checkoutLocale: string
 ) {
   const stripe = getStripeClient()
   const session = await auth()
@@ -315,6 +318,7 @@ async function checkoutFromItems(
       cartLines: JSON.stringify(normalized),
       appliedRewardCents: String(appliedCents),
       linePaids: JSON.stringify(paidLineCents),
+      locale: checkoutLocale,
       ...(primarySupplierId ? { sellerId: primarySupplierId } : {}),
       ...(buyerUserId ? { buyerUserId } : {}),
     },
@@ -330,6 +334,7 @@ async function checkoutFromItems(
 /** Stripe Checkout for an AffiliateProduct listing (EUR). */
 export async function marketplaceCheckoutPOST(request: Request) {
   const stripe = getStripeClient()
+  const checkoutLocale = resolveAppLocale(await resolveRequestLocale(undefined))
   const body = (await request.json().catch(() => ({}))) as {
     affiliateProductId?: string
     productId?: string
@@ -343,7 +348,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
   }
 
   if (Array.isArray(body.items) && body.items.length > 0) {
-    return checkoutFromItems(body.items, body)
+    return checkoutFromItems(body.items, body, checkoutLocale)
   }
 
   const affiliateProductId =
@@ -443,6 +448,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
       affiliateProductId: affiliateProduct.id,
       quantity: qty,
       customerEmail: "",
+      buyerLocale: checkoutLocale,
       shippingAddress: {},
       stripeSessionId: `pending_${randomUUID()}`,
       basePriceCents: supplierPriceCents,
@@ -498,6 +504,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
       checkoutQty: String(qty),
       checkoutVariantLabel: oneShotVariantLabel || "",
       checkoutVariantSignature: oneShotVariantSignature || "",
+      locale: checkoutLocale,
       ...(buyerUserId ? { buyerUserId } : {}),
     },
   })

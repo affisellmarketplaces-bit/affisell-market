@@ -6,6 +6,7 @@ import {
   loadOrderConfirmationEmailCopy,
   orderConfirmationEmailSubject,
 } from "@/lib/emails/load-email-copy"
+import { resolveEmailLocale } from "@/lib/emails/resolve-email-locale"
 import type { AppLocale } from "@/lib/i18n-locale"
 import {
   readResendDeliveryConfig,
@@ -54,7 +55,7 @@ export async function sendOrderConfirmationEmail({
   customerName,
   orderUrl,
   trackingUrl,
-  locale = "fr",
+  locale,
 }: {
   orderId: string
   productName: string
@@ -66,8 +67,9 @@ export async function sendOrderConfirmationEmail({
   customerName?: string
   orderUrl?: string
   trackingUrl?: string
-  locale?: AppLocale
+  locale?: AppLocale | string | null
 }) {
+  const resolvedLocale = resolveEmailLocale(locale)
   const config = readResendDeliveryConfig()
   if (!config) {
     console.error("[Resend] Order confirmation skipped: missing RESEND_API_KEY")
@@ -76,7 +78,7 @@ export async function sendOrderConfirmationEmail({
   const resend = new Resend(config.apiKey)
   const { to } = resolveResendDeliveryRecipient("order-confirmation", customerEmail, config)
   const resolvedOrderUrl = orderUrl ?? `${resolveAppUrl()}/orders/${orderId}`
-  const emailCopy = loadOrderConfirmationEmailCopy(locale, {
+  const emailCopy = loadOrderConfirmationEmailCopy(resolvedLocale, {
     orderId,
     quantity,
     total,
@@ -101,7 +103,7 @@ export async function sendOrderConfirmationEmail({
   const { data, error } = await resend.emails.send({
     from: config.from,
     to,
-    subject: orderConfirmationEmailSubject(locale, orderId),
+    subject: orderConfirmationEmailSubject(resolvedLocale, orderId),
     html,
   })
 

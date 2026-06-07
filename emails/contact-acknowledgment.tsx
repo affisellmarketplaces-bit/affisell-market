@@ -11,64 +11,53 @@ import {
   Text,
 } from "@react-email/components"
 
+import type { ContactAcknowledgmentEmailCopy } from "@/lib/emails/load-email-copy"
+
 export interface ContactAcknowledgmentEmailProps {
-  customerName: string
-  subject: string
-  ticketRef: string
   faqUrl: string
   ordersUrl: string
   supportEmail: string
+  copy: ContactAcknowledgmentEmailCopy
 }
 
 export const ContactAcknowledgmentEmail = ({
-  customerName,
-  subject,
-  ticketRef,
   faqUrl,
   ordersUrl,
   supportEmail,
+  copy,
 }: ContactAcknowledgmentEmailProps) => {
   return (
     <Html>
       <Head />
-      <Preview>Message reçu — Affisell #{ticketRef}</Preview>
+      <Preview>{copy.preview}</Preview>
       <Body style={main}>
         <Container style={container}>
-          <Heading style={h1}>Message bien reçu</Heading>
-          <Text style={text}>Bonjour {customerName},</Text>
-          <Text style={text}>
-            Nous avons bien reçu votre demande concernant « {subject} ». Notre équipe vous répond sous{" "}
-            <strong>48 h ouvrées</strong> en général.
-          </Text>
-          <Text style={muted}>Référence : #{ticketRef}</Text>
+          <Heading style={h1}>{copy.heading}</Heading>
+          <Text style={text}>{copy.greeting}</Text>
+          <Text style={text}>{copy.body}</Text>
+          <Text style={muted}>{copy.reference}</Text>
 
           <Section style={card}>
-            <Text style={cardTitle}>En attendant, ces liens résolvent 80 % des questions :</Text>
+            <Text style={cardTitle}>{copy.cardTitle}</Text>
             <Text style={text}>
               •{" "}
               <Link href={faqUrl} style={link}>
-                FAQ — commandes, livraison, retours
+                {copy.faqLink}
               </Link>
             </Text>
             <Text style={text}>
               •{" "}
               <Link href={ordersUrl} style={link}>
-                Mes commandes — suivi et retours
+                {copy.ordersLink}
               </Link>
             </Text>
           </Section>
 
           <Button href={faqUrl} style={button}>
-            Ouvrir la FAQ
+            {copy.ctaFaq}
           </Button>
 
-          <Text style={footer}>
-            Besoin d&apos;ajouter un détail ? Répondez à cet e-mail ou écrivez à{" "}
-            <Link href={`mailto:${supportEmail}`} style={link}>
-              {supportEmail}
-            </Link>
-            en citant #{ticketRef}.
-          </Text>
+          <Text style={footer}>{copy.footer}</Text>
         </Container>
       </Body>
     </Html>
@@ -76,12 +65,22 @@ export const ContactAcknowledgmentEmail = ({
 }
 
 ContactAcknowledgmentEmail.PreviewProps = {
-  customerName: "Marie",
-  subject: "Où est ma commande ?",
-  ticketRef: "A4F2B1",
   faqUrl: "https://affisell.com/faq",
   ordersUrl: "https://affisell.com/marketplace/account/orders",
   supportEmail: "support@affisell.com",
+  copy: {
+    preview: "Message reçu — Affisell #A4F2B1",
+    heading: "Message bien reçu",
+    greeting: "Bonjour Marie,",
+    body: "Nous avons bien reçu votre demande concernant « Où est ma commande ? ». Notre équipe vous répond sous 48 h ouvrées en général.",
+    reference: "Référence : #A4F2B1",
+    cardTitle: "En attendant, ces liens résolvent 80 % des questions :",
+    faqLink: "FAQ — commandes, livraison, retours",
+    ordersLink: "Mes commandes — suivi et retours",
+    ctaFaq: "Ouvrir la FAQ",
+    footer:
+      "Besoin d'ajouter un détail ? Répondez à cet e-mail ou écrivez à support@affisell.com en citant #A4F2B1.",
+  },
 } satisfies ContactAcknowledgmentEmailProps
 
 export default ContactAcknowledgmentEmail

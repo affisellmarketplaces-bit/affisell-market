@@ -8,7 +8,7 @@ import {
   makeTicketRef,
   sendContactAcknowledgmentEmail,
 } from "@/lib/emails/send-contact-acknowledgment"
-import { persistSupportTicket } from "@/lib/admin/support/persist-support-ticket"
+import { resolveRequestLocale } from "@/lib/resolve-request-locale"
 import { readCompanyLegal } from "@/lib/legal/company-env"
 
 const schema = z.object({
@@ -90,7 +90,13 @@ export async function POST(req: Request) {
     })
   }
 
-  void sendContactAcknowledgmentEmail({ name, email, subject, ticketRef }).catch((err) => {
+  void sendContactAcknowledgmentEmail({
+    name,
+    email,
+    subject,
+    ticketRef,
+    locale: await resolveRequestLocale(undefined),
+  }).catch((err) => {
     logBusiness("contact-ack", {
       result: "async_failed",
       ticketRef,

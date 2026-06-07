@@ -92,6 +92,7 @@ async function createPaidMarketplaceOrder(
     checkoutSubtotalCents: number
     checkoutTaxCents: number
     checkoutCurrency: string
+    buyerLocale?: string | null
   }
 ): Promise<string | null> {
   const { listing, qty } = args
@@ -201,6 +202,7 @@ async function createPaidMarketplaceOrder(
       supplierId: listing.product.supplierId,
       affiliateId: listing.affiliateId,
       buyerUserId: args.buyerUserId,
+      buyerLocale: args.buyerLocale?.trim() || null,
       customerEmail: args.customerEmail,
       quantity: qty,
       shippingAddress: args.shippingAddress,
@@ -287,6 +289,7 @@ async function createPaidMarketplaceOrder(
       currency: args.checkoutCurrency,
       customerEmail: args.customerEmail,
       customerName: shippingName,
+      locale: args.buyerLocale,
     })
   } catch (e) {
     logStripeWebhookError({
@@ -325,6 +328,7 @@ export async function fulfillMarketplaceStripeSession(
   const checkoutTaxCents = session.total_details?.amount_tax ?? 0
   const checkoutCurrency = session.currency ?? "eur"
   const meta = session.metadata ?? {}
+  const buyerLocale = meta.locale?.trim() || null
   let buyerUserId = meta.buyerUserId?.trim() || ""
   if (!buyerUserId) {
     const stripePhone = session.customer_details?.phone?.trim() || null
@@ -416,6 +420,7 @@ export async function fulfillMarketplaceStripeSession(
           checkoutSubtotalCents,
           checkoutTaxCents,
           checkoutCurrency,
+          buyerLocale,
         })
 
         if (earnUserId && orderId) {
@@ -562,6 +567,7 @@ export async function fulfillMarketplaceStripeSession(
         where: { id: dup.id },
         data: {
           buyerUserId: earnUserId || null,
+          buyerLocale: buyerLocale || undefined,
           customerEmail,
           shippingAddress,
           quantity: qty,
@@ -648,6 +654,7 @@ export async function fulfillMarketplaceStripeSession(
           currency: checkoutCurrency,
           customerEmail,
           customerName: shippingName,
+          locale: buyerLocale,
         })
       } catch (e) {
         logStripeWebhookError({
@@ -685,6 +692,7 @@ export async function fulfillMarketplaceStripeSession(
       checkoutSubtotalCents,
       checkoutTaxCents,
       checkoutCurrency,
+      buyerLocale,
     })
 
     if (earnUserId && orderId) {

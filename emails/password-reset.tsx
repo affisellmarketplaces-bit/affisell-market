@@ -12,81 +12,55 @@ import {
   Text,
 } from "@react-email/components"
 
+import type { PasswordResetEmailCopy } from "@/lib/emails/load-email-copy"
+
 export type PasswordResetPortal = "affiliate" | "supplier" | null
 
 export type PasswordResetEmailProps = {
-  name?: string | null
-  /** Email linked to the Affisell account (shown in body + used as recipient in production). */
   accountEmail: string
   resetUrl: string
-  portal?: PasswordResetPortal
+  copy: PasswordResetEmailCopy
 }
 
-const portalLabel: Record<NonNullable<PasswordResetPortal>, string> = {
-  affiliate: "Espace créateur",
-  supplier: "Espace fournisseur",
-}
-
-export function PasswordResetEmail({
-  name,
-  accountEmail,
-  resetUrl,
-  portal = null,
-}: PasswordResetEmailProps) {
-  const greeting = name?.trim() ? `Bonjour ${name.trim()},` : "Bonjour,"
-  const spaceLabel = portal ? portalLabel[portal] : "Compte Affisell"
-
+export function PasswordResetEmail({ accountEmail, resetUrl, copy }: PasswordResetEmailProps) {
   return (
     <Html lang="fr">
       <Head />
-      <Preview>
-        Réinitialisez votre mot de passe Affisell — {accountEmail}
-      </Preview>
+      <Preview>{copy.preview}</Preview>
       <Body style={page}>
         <Container style={outer}>
           <Section style={glowWrap}>
             <Section style={card}>
-              <Text style={badge}>Sécurité Affisell · Accès sécurisé</Text>
+              <Text style={badge}>{copy.badge}</Text>
 
-              <Heading style={title}>Réinitialisez votre mot de passe</Heading>
-              <Text style={subtitle}>{greeting}</Text>
-              <Text style={bodyText}>
-                Vous avez demandé un nouveau mot de passe. Ce lien est lié au compte ci-dessous et
-                expire dans <strong style={{ color: "#e4e4e7" }}>1 heure</strong>.
-              </Text>
+              <Heading style={title}>{copy.title}</Heading>
+              <Text style={subtitle}>{copy.greeting}</Text>
+              <Text style={bodyText}>{copy.body}</Text>
 
               <Section style={accountBox}>
-                <Text style={accountLabel}>Compte concerné</Text>
+                <Text style={accountLabel}>{copy.accountLabel}</Text>
                 <Text style={accountEmailStyle}>{accountEmail}</Text>
-                <Text style={portalChip}>{spaceLabel}</Text>
+                <Text style={portalChip}>{copy.spaceLabel}</Text>
               </Section>
 
               <Section style={{ textAlign: "center" as const, margin: "28px 0 20px" }}>
                 <Button href={resetUrl} style={ctaButton}>
-                  Réinitialiser mon mot de passe
+                  {copy.cta}
                 </Button>
               </Section>
 
-              <Text style={fallbackLabel}>Si le bouton ne s&apos;ouvre pas, copiez ce lien :</Text>
+              <Text style={fallbackLabel}>{copy.fallbackLabel}</Text>
               <Link href={resetUrl} style={fallbackLink}>
                 {resetUrl}
               </Link>
 
               <Hr style={divider} />
 
-              <Text style={footerNote}>
-                Vous n&apos;êtes pas à l&apos;origine de cette demande ? Ignorez cet e-mail — votre
-                mot de passe reste inchangé.
-              </Text>
+              <Text style={footerNote}>{copy.footerNote}</Text>
             </Section>
           </Section>
 
-          <Text style={legal}>
-            © Affisell — marketplace d&apos;affiliation ·{" "}
-            <Link href="https://affisell.com" style={legalLink}>
-              affisell.com
-            </Link>
-          </Text>
+          <Text style={legal}>{copy.legal}</Text>
         </Container>
       </Body>
     </Html>
@@ -240,16 +214,23 @@ const legal = {
   textAlign: "center" as const,
 }
 
-const legalLink = {
-  color: "#a78bfa",
-  textDecoration: "underline",
-}
-
 PasswordResetEmail.PreviewProps = {
-  name: "Nelson",
   accountEmail: "dreamdealsprice@gmail.com",
   resetUrl: "https://affisell-market.vercel.app/auth/reset-password?token=preview&portal=affiliate",
-  portal: "affiliate",
+  copy: {
+    preview: "Réinitialisez votre mot de passe Affisell — dreamdealsprice@gmail.com",
+    badge: "Sécurité Affisell · Accès sécurisé",
+    title: "Réinitialisez votre mot de passe",
+    greeting: "Bonjour Nelson,",
+    body: "Vous avez demandé un nouveau mot de passe. Ce lien est lié au compte ci-dessous et expire dans 1 heure.",
+    accountLabel: "Compte concerné",
+    spaceLabel: "Espace créateur",
+    cta: "Réinitialiser mon mot de passe",
+    fallbackLabel: "Si le bouton ne s'ouvre pas, copiez ce lien :",
+    footerNote:
+      "Vous n'êtes pas à l'origine de cette demande ? Ignorez cet e-mail — votre mot de passe reste inchangé.",
+    legal: "© Affisell — marketplace d'affiliation · affisell.com",
+  },
 } satisfies PasswordResetEmailProps
 
 export default PasswordResetEmail

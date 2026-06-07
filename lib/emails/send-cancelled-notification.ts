@@ -3,13 +3,20 @@ import { Resend } from "resend"
 
 import { CancelledNotificationEmail } from "@/emails/cancelled-notification"
 import {
+  cancelledNotificationEmailSubject,
+  defaultEmailCustomerName,
+  loadCancelledNotificationEmailCopy,
+} from "@/lib/emails/load-email-copy"
+import {
   readResendDeliveryConfig,
   resolveResendDeliveryRecipient,
 } from "@/lib/emails/resend-delivery"
+import { resolveEmailLocale } from "@/lib/emails/resolve-email-locale"
 import {
   resolveAppUrl,
   resolveOrderConfirmationImageUrl,
 } from "@/lib/emails/send-order-confirmation"
+import type { AppLocale } from "@/lib/i18n-locale"
 
 export type CancelledNotificationOrderPayload = {
   id: string
@@ -28,7 +35,8 @@ export type CancelledNotificationOrderPayload = {
 function resolveCustomerName(
   customerName: string | undefined,
   customerEmail: string,
-  shippingAddress?: unknown
+  shippingAddress: unknown,
+  locale: AppLocale
 ): string {
   if (customerName?.trim()) return customerName.trim()
   if (shippingAddress && typeof shippingAddress === "object" && !Array.isArray(shippingAddress)) {
@@ -36,7 +44,7 @@ function resolveCustomerName(
     if (typeof name === "string" && name.trim()) return name.trim()
   }
   const local = customerEmail.split("@")[0]?.trim()
-  return local || "Client"
+  return local || defaultEmailCustomerName(locale)
 }
 
 function formatMoney(cents: number): string {
@@ -48,8 +56,10 @@ export async function sendCancelledNotificationEmail(
   options?: {
     cancelReason?: string
     refundAmountCents?: number
+    locale?: AppLocale | string | null
   }
 ): Promise<{ ok: boolean; error?: string }> {
+  const locale = resolveEmailLocale(options?.locale)
   const config = readResendDeliveryConfig()
   if (!config) {
     console.error("[Resend] Cancelled notification skipped: missing RESEND_API_KEY")
@@ -60,34 +70,42 @@ export async function sendCancelledNotificationEmail(
   const base = resolveAppUrl()
   const orderUrl = `${base}/marketplace/account/orders`
   const supportUrl = `${base}/contact?order=${order.id}`
-  const shortOrderId = order.id.slice(-6).toUpperCase()
-  const totalAmount = formatMoney(order.sellingPriceCents)
   const refundCents = options?.refundAmountCents ?? order.sellingPriceCents
   const currency = "EUR"
+  const customerName = resolveCustomerName(
+    order.customerName,
+    order.customerEmail,
+    order.shippingAddress,
+    locale
+  )
+
+  const copy = loadCancelledNotificationEmailCopy(locale, {
+    orderId: order.id,
+    quantity: order.quantity,
+    customerName,
+    refundAmount: formatMoney(refundCents),
+    currency,
+    cancelReason: options?.cancelReason,
+  })
 
   const html = await render(
     CancelledNotificationEmail({
       orderId: order.id,
-      customerName: resolveCustomerName(order.customerName, order.customerEmail, order.shippingAddress),
       productName: order.product.name,
       productImageUrl: resolveOrderConfirmationImageUrl({
         productImages: order.product.images,
         variantImageUrl: order.variantImageUrl,
       }),
-      quantity: order.quantity,
-      totalAmount,
-      currency,
-      cancelReason: options?.cancelReason,
-      refundAmount: formatMoney(refundCents),
       orderUrl,
       supportUrl,
+      copy,
     })
   )
 
   const { data, error } = await resend.emails.send({
     from: config.from,
     to,
-    subject: `Votre commande #${shortOrderId} a été annulée`,
+    subject: cancelledNotificationEmailSubject(locale, order.id),
     html,
   })
 
@@ -95,6 +113,6 @@ export async function sendCancelledNotificationEmail(
     console.error("[Resend] Cancelled notification error:", error)
     return { ok: false, error: error.message }
   }
-  console.log("[Resend] Cancelled notification sent:", data?.id)
+  console.log("[cancelled-notification]", { orderId: order.id, result: "email_sent", resendId: data?.id })
   return { ok: true }
 }
