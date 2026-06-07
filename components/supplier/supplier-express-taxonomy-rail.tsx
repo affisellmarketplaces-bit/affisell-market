@@ -1,6 +1,7 @@
 "use client"
 
 import { ChevronRight, Loader2, ScanLine, Sparkles } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import type { PendingCategoryConfirmation } from "@/components/supplier/supplier-category-confirm-types"
 import type { CategoryPathSegment } from "@/lib/category-browse"
@@ -24,20 +25,12 @@ type Props = {
   productInsight: ListingProductInsight | null
   pendingConfirm: PendingCategoryConfirmation | null
   onSelectSuggestion: (suggestion: ListingCategorySuggestion) => void
-  /** Scroll vers l’arbre / recherche catégorie manuelle (section Classification). */
   onBrowseCatalogManually: () => void
 }
 
 function confidencePct(conf?: number) {
   if (conf == null || !Number.isFinite(conf)) return null
   return `${Math.round(conf * 100)} %`
-}
-
-function sourceLabel(src?: ListingCategorySuggestion["suggestionSource"]) {
-  if (src === "catalog") return "Catalogue"
-  if (src === "ai") return "Photo"
-  if (src === "keyword") return "Mot-clé"
-  return null
 }
 
 const MAX_SUGGESTIONS = 5
@@ -57,6 +50,15 @@ export function SupplierExpressTaxonomyRail({
   onSelectSuggestion,
   onBrowseCatalogManually,
 }: Props) {
+  const t = useTranslations("supplier.expressTaxonomy")
+
+  const sourceLabel = (src?: ListingCategorySuggestion["suggestionSource"]) => {
+    if (src === "catalog") return t("sourceCatalog")
+    if (src === "ai") return t("sourceAi")
+    if (src === "keyword") return t("sourceKeyword")
+    return null
+  }
+
   const pathLabel =
     categoryPath.length > 0
       ? categoryPath.map((s) => s.name).join(" › ")
@@ -84,27 +86,27 @@ export function SupplierExpressTaxonomyRail({
       <div className="relative flex flex-wrap items-center gap-2">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-600 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
           <Sparkles className="h-3 w-3" aria-hidden />
-          Catégories suggérées
+          {t("badge")}
         </span>
         {meta.visionUsed ? (
           <span className="rounded-full border border-cyan-400/50 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-800 dark:text-cyan-200">
-            Photo
+            {t("photoBadge")}
           </span>
         ) : null}
         {awaitingConfirm ? (
           <span className="rounded-full border border-amber-400/60 bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-900 dark:text-amber-100">
-            À valider
+            {t("pendingBadge")}
           </span>
         ) : null}
         {categoryAiTag && confirmed ? (
           <span className="rounded-full bg-emerald-600/90 px-2 py-0.5 text-[10px] font-bold uppercase text-white">
-            Confirmée
+            {t("confirmedBadge")}
           </span>
         ) : null}
       </div>
 
       <p className="relative mt-2 text-xs leading-relaxed text-violet-900/90 dark:text-violet-200/90">
-        Choisissez la catégorie qui correspond le mieux à votre article parmi les propositions ci-dessous.
+        {t("chooseHint")}
       </p>
 
       <div className="relative mt-3 min-h-[3.5rem]">
@@ -112,18 +114,16 @@ export function SupplierExpressTaxonomyRail({
           <div className="flex items-center gap-3 text-sm text-violet-900 dark:text-violet-100">
             <Loader2 className="h-5 w-5 shrink-0 animate-spin text-violet-600" aria-hidden />
             <div>
-              <p className="font-medium">Analyse du produit en cours…</p>
+              <p className="font-medium">{t("analyzingTitle")}</p>
               <p className="text-xs text-violet-800/80 dark:text-violet-200/80">
-                {meta.visionUsed
-                  ? "Analyse photo + titre sur l’arbre Affisell"
-                  : "Analyse du titre sur l’arbre Affisell"}
+                {meta.visionUsed ? t("analyzingVision") : t("analyzingTitleOnly")}
               </p>
             </div>
           </div>
         ) : confirmed && pathLabel ? (
           <div className="space-y-2">
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-500">
-              Catégorie validée
+              {t("validatedLabel")}
             </p>
             <p className="font-mono text-sm font-semibold leading-snug text-violet-950 dark:text-violet-50">
               {pathLabel}
@@ -135,7 +135,7 @@ export function SupplierExpressTaxonomyRail({
             ) : null}
             {topSuggestion?.confidence != null && categoryAiTag ? (
               <p className="text-[11px] tabular-nums text-emerald-700 dark:text-emerald-300">
-                Confiance {confidencePct(topSuggestion.confidence)}
+                {t("confidence", { pct: confidencePct(topSuggestion.confidence) ?? "" })}
               </p>
             ) : null}
           </div>
@@ -143,16 +143,14 @@ export function SupplierExpressTaxonomyRail({
           <div className="flex items-start gap-2 text-sm text-zinc-600 dark:text-zinc-400">
             <ScanLine className="mt-0.5 h-4 w-4 shrink-0 text-violet-500" aria-hidden />
             <p>
-              {name.trim().length < 3 && !imageUrl ? (
-                <>
-                  Saisissez le <strong>titre</strong> (3 car. min.), puis la <strong>photo</strong>{" "}
-                  — les catégories proposées apparaîtront ici.
-                </>
-              ) : name.trim().length < 3 ? (
-                <>Saisissez le <strong>titre</strong> du produit pour lancer l’analyse.</>
-              ) : (
-                <>Ajoutez la <strong>photo principale</strong> pour lancer l’analyse.</>
-              )}
+              {name.trim().length < 3 && !imageUrl
+                ? t("emptyBoth", {
+                    title: t("titleWord"),
+                    photo: t("photoWord"),
+                  })
+                : name.trim().length < 3
+                  ? t("emptyTitle", { title: t("titleWord") })
+                  : t("emptyPhoto", { mainPhoto: t("mainPhotoWord") })}
             </p>
           </div>
         ) : visibleSuggestions.length > 0 ? (
@@ -180,7 +178,7 @@ export function SupplierExpressTaxonomyRail({
                       </span>
                       {isRecommended ? (
                         <span className="rounded-full bg-amber-500/90 px-2 py-0.5 text-[9px] font-bold uppercase text-white">
-                          Recommandée
+                          {t("recommended")}
                         </span>
                       ) : null}
                       {badge ? (
@@ -199,7 +197,7 @@ export function SupplierExpressTaxonomyRail({
                     ) : null}
                     {lp.confidence != null ? (
                       <p className="mt-0.5 text-[10px] tabular-nums text-zinc-500">
-                        Confiance {confidencePct(lp.confidence)}
+                        {t("confidence", { pct: confidencePct(lp.confidence) ?? "" })}
                       </p>
                     ) : null}
                   </div>
@@ -214,14 +212,14 @@ export function SupplierExpressTaxonomyRail({
                     disabled={isSelected}
                     onClick={() => onSelectSuggestion(lp)}
                   >
-                    {isSelected ? "Sélectionnée" : "Choisir"}
+                    {isSelected ? t("selected") : t("select")}
                   </Button>
                 </li>
               )
             })}
           </ul>
         ) : (
-          <p className="text-xs text-zinc-500">Analyse titre + photo en cours de préparation…</p>
+          <p className="text-xs text-zinc-500">{t("preparingAnalysis")}</p>
         )}
       </div>
 
@@ -233,11 +231,7 @@ export function SupplierExpressTaxonomyRail({
           className="relative mt-3 w-full justify-between gap-2 rounded-xl border-violet-300/80 bg-white/90 text-left text-xs font-semibold text-violet-800 shadow-sm hover:border-violet-400 hover:bg-violet-50 dark:border-violet-700 dark:bg-zinc-950/80 dark:text-violet-100 dark:hover:bg-violet-950/50"
           onClick={onBrowseCatalogManually}
         >
-          <span>
-            {confirmed
-              ? "Modifier la catégorie dans le catalogue"
-              : "Aucune ne convient — chercher la catégorie moi-même"}
-          </span>
+          <span>{confirmed ? t("editCategory") : t("browseManualAlt")}</span>
           <ChevronRight className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
         </Button>
       ) : null}

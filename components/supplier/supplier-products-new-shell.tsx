@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { useTranslations } from "next-intl"
 
 import { SupplierAddProductForm } from "@/components/supplier/supplier-add-product-form"
 import { SupplierInviteContextBanner } from "@/components/supplier/supplier-invite-context-banner"
@@ -13,6 +14,7 @@ import { BentoContainer } from "@/components/affisell/bento-ui"
  * Optional hub for bulk / assist entry points: `?hub=1`.
  */
 export function SupplierProductsNewShell({ ownerUserId }: { ownerUserId: string }) {
+  const tForm = useTranslations("supplier.form")
   const router = useRouter()
   const searchParams = useSearchParams()
   const editId = searchParams.get("edit")?.trim() ?? ""
@@ -62,7 +64,7 @@ export function SupplierProductsNewShell({ ownerUserId }: { ownerUserId: string 
       <Suspense
         fallback={
           <div className="mx-auto max-w-7xl px-4 py-12 text-center text-sm text-zinc-500">
-            Chargement de l’éditeur…
+            {tForm("loadingEditor")}
           </div>
         }
       >

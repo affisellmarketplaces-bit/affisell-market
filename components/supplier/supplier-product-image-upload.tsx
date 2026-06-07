@@ -3,6 +3,7 @@
 import { ImagePlus, Loader2, Trash2, Upload } from "lucide-react"
 import type { ChangeEvent, CSSProperties, DragEvent } from "react"
 import { useCallback, useEffect, useId, useRef, useState } from "react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -147,6 +148,7 @@ function RemoveImageButton({
 }
 
 export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Props) {
+  const t = useTranslations("supplier.images")
   const inputId = useId()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [slots, setSlots] = useState<(string | null)[]>(() =>
@@ -365,14 +367,12 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
           ) : (
             <ImagePlus className="h-4 w-4" aria-hidden />
           )}
-          Add photos
+          {t("addPhotos")}
           {remaining > 0 && remaining < SLOT_COUNT ? (
-            <span className="text-violet-200">({remaining} left)</span>
+            <span className="text-violet-200">{t("photosLeft", { count: remaining })}</span>
           ) : null}
         </Button>
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          Select or drop multiple images — processed in parallel (min. 800×800 px).
-        </p>
+        <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("selectDropHint")}</p>
       </div>
 
       <div
@@ -391,7 +391,7 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
             aria-hidden
           >
             <p className="rounded-full bg-white/90 px-4 py-2 text-sm font-medium text-violet-800 shadow-sm dark:bg-zinc-900/90 dark:text-violet-200">
-              Drop to upload
+              {t("dropToUpload")}
             </p>
           </div>
         ) : null}
@@ -411,7 +411,7 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
                   </div>
                 ) : null}
                 <RemoveImageButton
-                  label="Remove cover image"
+                  label={t("removeCover")}
                   onClick={() => removeAt(0)}
                   className="right-2 top-2 h-9 w-9"
                 />
@@ -424,7 +424,7 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
                   <>
                     <Upload className="h-8 w-8 text-zinc-400" aria-hidden />
                     <span className="px-2 text-center text-xs font-medium text-zinc-600 dark:text-zinc-300">
-                      Cover photo
+                      {t("coverPhoto")}
                     </span>
                   </>
                 )}

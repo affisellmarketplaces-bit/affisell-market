@@ -1,6 +1,7 @@
 "use client"
 
 import { CheckCircle2, Circle } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { cn } from "@/lib/utils"
 
@@ -29,6 +30,7 @@ function progressTextTone(pct: number): string {
 }
 
 export function SupplierWizardQualityPanel({ items, className }: Props) {
+  const t = useTranslations("supplier.quality")
   const done = items.filter((i) => i.done).length
   const pct = items.length > 0 ? Math.round((done / items.length) * 100) : 0
 
@@ -51,7 +53,7 @@ export function SupplierWizardQualityPanel({ items, className }: Props) {
     >
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-          Qualité fiche
+          {t("title")}
         </p>
         <p className={cn("text-sm font-bold tabular-nums", progressTextTone(pct))}>{pct}%</p>
       </div>

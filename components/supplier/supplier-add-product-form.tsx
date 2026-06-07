@@ -304,6 +304,7 @@ export function SupplierAddProductForm({
 
   const cacheMode: SupplierAddProductCacheMode = assistShortcuts ? "assist" : composeQs ? "compose" : "plain"
   const tForm = useTranslations("supplier.form")
+  const tQuality = useTranslations("supplier.quality")
 
   /** Server draft ids that 404 (deleted or never synced) — never retry PUT on these. */
   const [deadServerDraftIds, setDeadServerDraftIds] = useState<readonly string[]>([])
@@ -1926,25 +1927,25 @@ export function SupplierAddProductForm({
 
   const wizardQualityItems: WizardQualityItem[] = useMemo(
     () => [
-      { id: "title", label: "Titre", done: step1Checklist.title, anchorId: "p-name" },
+      { id: "title", label: tQuality("checklistTitle"), done: step1Checklist.title, anchorId: "p-name" },
       {
         id: "category",
-        label: "Catégorie",
+        label: tQuality("checklistCategory"),
         done: step1Checklist.category,
         anchorId: "add-product-classify",
       },
-      { id: "specs", label: "Specs", done: step1Checklist.specs, anchorId: "product-spec-fields" },
-      { id: "photos", label: "Photos", done: step1Checklist.images, anchorId: "add-product-express" },
+      { id: "specs", label: tQuality("checklistSpecs"), done: step1Checklist.specs, anchorId: "product-spec-fields" },
+      { id: "photos", label: tQuality("checklistPhotos"), done: step1Checklist.images, anchorId: "add-product-express" },
       {
         id: "price",
-        label: "Prix",
+        label: tQuality("checklistPrice"),
         done: variantSkuPricingActive
           ? minSupplierPriceEurFromSkuRows(advancedSkuRows) != null
           : Number(price) > 0 && !priceError,
         anchorId: "add-product-pricing",
       },
     ],
-    [step1Checklist, variantSkuPricingActive, advancedSkuRows, price, priceError]
+    [step1Checklist, variantSkuPricingActive, advancedSkuRows, price, priceError, tQuality]
   )
 
   const simulationSupplierPrice = useMemo(() => catalogPriceEur ?? 0, [catalogPriceEur])
@@ -2092,7 +2093,7 @@ export function SupplierAddProductForm({
                       className={jumpBtnClass}
                       onClick={() => scrollToSection("add-product-express")}
                     >
-                      Classification
+                      {tForm("jumpClassification")}
                     </button>
                     <button
                       type="button"
@@ -2106,7 +2107,7 @@ export function SupplierAddProductForm({
                       className={jumpBtnClass}
                       onClick={() => scrollToSection("add-product-classify")}
                     >
-                      Category & specs
+                      {tForm("jumpCategorySpecs")}
                     </button>
                   </div>
                 </div>
@@ -2116,8 +2117,8 @@ export function SupplierAddProductForm({
                     id="add-product-shortcuts"
                     icon={Zap}
                     variant="accent"
-                    title="Shortcuts"
-                    description="Import URL ou assistant de rédaction — optionnel, pour aller plus vite."
+                    title={tForm("sectionShortcutsTitle")}
+                    description={tForm("sectionShortcutsDescription")}
                   >
                     <div className="space-y-8 border-t border-violet-200/50 pt-6 dark:border-violet-900/30">
                       <SupplierAiImportAgent
@@ -2146,19 +2147,17 @@ export function SupplierAddProductForm({
                   id="add-product-express"
                   icon={ScanLine}
                   variant="accent"
-                  title="Classification — Titre & photo"
-                  description="Renseignez le titre puis la photo principale : plusieurs catégories suggérées apparaissent une fois les deux sont renseignés."
+                  title={tForm("sectionExpressTitle")}
+                  description={tForm("sectionExpressDescription")}
                   hasError={hasPublishFieldError("images") || hasPublishFieldError("name")}
                 >
                   <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
                     <div className="space-y-6">
                       <div id="add-product-title-express">
                         <div className="flex flex-wrap items-center gap-2">
-                          <SupplierExpressFieldBand required>Titre produit</SupplierExpressFieldBand>
+                          <SupplierExpressFieldBand required>{tForm("productTitleLabel")}</SupplierExpressFieldBand>
                         </div>
-                        <p className="mt-2 text-xs text-zinc-500">
-                          Minimum 3 caractères — utilisé avec la photo pour classer le produit.
-                        </p>
+                        <p className="mt-2 text-xs text-zinc-500">{tForm("productTitleHint")}</p>
                         {hasPublishFieldError("name") ? (
                           <p className="mt-1 text-xs font-medium text-red-600">
                             {publishBlockers.find((b) => b.field === "name")?.message}
@@ -2172,17 +2171,15 @@ export function SupplierAddProductForm({
                             setName(e.target.value)
                             clearPublishFieldError("name")
                           }}
-                          placeholder="Ex. Stylo multifonction LED stylet"
+                          placeholder={tForm("productTitlePlaceholder")}
                           autoComplete="off"
                         />
                       </div>
                       <div id="add-product-media">
                         <div className="flex flex-wrap items-center gap-2">
-                          <SupplierExpressFieldBand required>Photo principale</SupplierExpressFieldBand>
+                          <SupplierExpressFieldBand required>{tForm("mainPhotoLabel")}</SupplierExpressFieldBand>
                         </div>
-                        <p className="mt-2 text-xs text-zinc-500">
-                          La photo et le titre servent à proposer une catégorie dans le catalogue Affisell.
-                        </p>
+                        <p className="mt-2 text-xs text-zinc-500">{tForm("mainPhotoHint")}</p>
                         {hasPublishFieldError("images") ? (
                           <p className="mt-1 text-xs font-medium text-red-600">
                             {publishBlockers.find((b) => b.field === "images")?.message}
@@ -2314,18 +2311,18 @@ export function SupplierAddProductForm({
                     <SectionCard
                       id="add-product-classify"
                       icon={Tag}
-                      title="Classification"
-                      description="Choisissez la catégorie feuille via les suggestions, la recherche ou l’arbre catalogue Affisell."
+                      title={tForm("sectionClassifyTitle")}
+                      description={tForm("sectionClassifyDescription")}
                       hasError={hasPublishFieldError("category") || hasPublishFieldError("specs")}
                     >
                       <div>
                         <Label className="inline-flex items-center gap-2">
                           <span>
-                            Catégorie <span className="text-red-600">*</span>
+                            {tForm("categoryLabel")} <span className="text-red-600">*</span>
                           </span>
                           {categoryAiTag ? (
                             <span className="rounded-full bg-violet-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
-                              Suggéré
+                              {tForm("categorySuggestedBadge")}
                             </span>
                           ) : null}
                         </Label>
