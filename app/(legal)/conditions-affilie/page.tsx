@@ -1,23 +1,14 @@
 import type { Metadata } from "next"
 
-import { CgsDocumentBody } from "@/components/legal/cgs-document-body"
-import { LegalPageShell } from "@/components/legal/legal-page-shell"
-import { CGS_VERSION } from "@/lib/legal/cgs"
+import {
+  generateLocalizedLegalMetadata,
+  LocalizedLegalPage,
+} from "@/components/legal/localized-legal-page"
 
-export const metadata: Metadata = {
-  title: "Conditions affilié | Affisell",
-  description:
-    "Conditions générales affilié — frais plateforme sur gains, Loi Influenceurs, publicité loyale, seuil 5 000 €/an, Stripe Connect.",
+export async function generateMetadata(): Promise<Metadata> {
+  return generateLocalizedLegalMetadata("terms-affiliate")
 }
 
 export default function ConditionsAffiliePage() {
-  return (
-    <LegalPageShell
-      title="Conditions générales de services — Affilié (CGS)"
-      description="Règles pour les créateurs et partenaires Affiliates sur Affisell."
-      lastUpdated={CGS_VERSION}
-    >
-      <CgsDocumentBody />
-    </LegalPageShell>
-  )
+  return <LocalizedLegalPage slug="terms-affiliate" />
 }

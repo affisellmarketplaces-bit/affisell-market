@@ -1,23 +1,26 @@
 import type { Metadata } from "next"
 
 import { CookiesSettingsClient } from "@/components/cookies/cookies-settings-client"
-import { LegalPageShell } from "@/components/legal/legal-page-shell"
+import { LegalMarkdown } from "@/components/legal/legal-markdown"
+import {
+  generateLocalizedLegalMetadata,
+  LocalizedLegalPage,
+} from "@/components/legal/localized-legal-page"
+import { loadLocalizedLegalDocumentForRequest } from "@/lib/legal/localized-content"
 
-export const metadata: Metadata = {
-  title: "Gestion des cookies | Affisell",
-  description: "Paramétrage des cookies analytics et essentiels — conformité CNIL 2024.",
+export async function generateMetadata(): Promise<Metadata> {
+  return generateLocalizedLegalMetadata("cookies-policy")
 }
 
-const LAST_UPDATED = "2026-06-03"
+export default async function CookiesPage() {
+  const doc = await loadLocalizedLegalDocumentForRequest("cookies-policy")
 
-export default function CookiesPage() {
   return (
-    <LegalPageShell
-      title="Gestion des cookies"
-      description="Choisissez les traceurs autorisés. Aucun cookie non essentiel avant votre action."
-      lastUpdated={LAST_UPDATED}
-    >
-      <CookiesSettingsClient />
-    </LegalPageShell>
+    <LocalizedLegalPage slug="cookies-policy">
+      <LegalMarkdown content={doc.content} />
+      <div className="mt-10 border-t border-zinc-200 pt-8 dark:border-zinc-800">
+        <CookiesSettingsClient />
+      </div>
+    </LocalizedLegalPage>
   )
 }

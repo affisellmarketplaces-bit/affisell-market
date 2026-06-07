@@ -206,8 +206,8 @@ export async function Footer() {
         >
           <p>{t("subfooter.copyright", { year })}</p>
           <nav aria-label="Legal" className="flex flex-wrap gap-x-6 gap-y-2">
-            <Link href="/legal/mentions" className="footer-gradient-link">
-              Mentions légales
+            <Link href="/mentions-legales" className="footer-gradient-link">
+              {t("global.legalNotice")}
             </Link>
             <Link href="/legal/terms-of-service" className="footer-gradient-link">
               {t("terms")}
@@ -219,7 +219,7 @@ export async function Footer() {
               {t("cookies")}
             </Link>
             <Link href="/legal/refund-policy" className="footer-gradient-link">
-              Remboursements
+              {t("global.returns")}
             </Link>
           </nav>
         </div>

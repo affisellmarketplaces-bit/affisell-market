@@ -1477,6 +1477,13 @@
     }
   },
   "legalPages": {
+    "shell": {
+      "documentsEyebrow": "法律文件",
+      "legalNoticeLink": "法律声明",
+      "docNavAriaLabel": "法律文件",
+      "tocLabel": "目录",
+      "lastUpdated": "最后更新：{date}"
+    },
     "accessibility": {
       "metaTitle": "Accessibility — Affisell",
       "metaDescription": "Affisell accessibility commitment — keyboard navigation, contrast, user feedback.",

@@ -1477,6 +1477,13 @@
     }
   },
   "legalPages": {
+    "shell": {
+      "documentsEyebrow": "Juridische documenten",
+      "legalNoticeLink": "Colofon",
+      "docNavAriaLabel": "Juridische documenten",
+      "tocLabel": "Inhoud",
+      "lastUpdated": "Laatst bijgewerkt: {date}"
+    },
     "accessibility": {
       "metaTitle": "Toegankelijkheid — Affisell",
       "metaDescription": "Toegankelijkheidsovereenkomst van Affisell — toetsenbordnavigatie, contrast, gebruikersfeedback.",

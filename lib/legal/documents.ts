@@ -6,9 +6,14 @@ import path from "node:path"
 import matter from "gray-matter"
 
 import { applyLegalPlaceholders } from "@/lib/legal/entity"
+import {
+  loadLocalizedLegalDocument,
+  type LocalizedLegalSlug,
+} from "@/lib/legal/localized-content"
 import { slugifyHeading } from "@/lib/legal/slugify-heading"
 import type { LegalDocMeta, LegalSlug } from "@/lib/legal/types"
 import { LEGAL_SLUGS, isLegalSlug } from "@/lib/legal/types"
+import type { AppLocale } from "@/lib/i18n-locale"
 
 export type { LegalDocMeta, LegalSlug }
 export { LEGAL_SLUGS, isLegalSlug, slugifyHeading }
@@ -24,7 +29,7 @@ function resolveLegalDir(): string {
   return candidates[0]!
 }
 
-export function loadLegalDocument(slug: LegalSlug): {
+function loadLegacyLegalDocument(slug: LegalSlug): {
   meta: LegalDocMeta
   content: string
   headings: { id: string; text: string; level: number }[]
@@ -56,10 +61,6 @@ export function loadLegalDocument(slug: LegalSlug): {
   }
 }
 
-export function listLegalDocuments(): LegalDocMeta[] {
-  return LEGAL_SLUGS.map((slug) => loadLegalDocument(slug).meta).sort((a, b) => a.order - b.order)
-}
-
 function extractHeadings(md: string): { id: string; text: string; level: number }[] {
   const out: { id: string; text: string; level: number }[] = []
   for (const line of md.split("\n")) {
@@ -71,4 +72,24 @@ function extractHeadings(md: string): { id: string; text: string; level: number 
     out.push({ id, text, level })
   }
   return out
+}
+
+export function loadLegalDocument(
+  slug: LegalSlug,
+  locale: AppLocale = "fr"
+): {
+  meta: LegalDocMeta
+  content: string
+  headings: { id: string; text: string; level: number }[]
+} {
+  try {
+    const doc = loadLocalizedLegalDocument(slug as LocalizedLegalSlug, locale)
+    return { meta: doc.meta, content: doc.content, headings: doc.headings }
+  } catch {
+    return loadLegacyLegalDocument(slug)
+  }
+}
+
+export function listLegalDocuments(locale: AppLocale = "fr"): LegalDocMeta[] {
+  return LEGAL_SLUGS.map((slug) => loadLegalDocument(slug, locale).meta).sort((a, b) => a.order - b.order)
 }

@@ -1477,6 +1477,13 @@
     }
   },
   "legalPages": {
+    "shell": {
+      "documentsEyebrow": "Documenti legali",
+      "legalNoticeLink": "Note legali",
+      "docNavAriaLabel": "Documenti legali",
+      "tocLabel": "Sommario",
+      "lastUpdated": "Ultimo aggiornamento: {date}"
+    },
     "accessibility": {
       "metaTitle": "Accessibilità — Affisell",
       "metaDescription": "Impegno di Affisell per l'accessibilità — navigazione con tastiera, contrasto, feedback dell'utente.",

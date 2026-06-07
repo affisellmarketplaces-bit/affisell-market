@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { getTranslations } from "next-intl/server"
 
 import { BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
 import { LegalMarkdown } from "@/components/legal/legal-markdown"
@@ -12,7 +13,8 @@ type Props = {
   allDocs: LegalDocMeta[]
 }
 
-export function LegalDocumentLayout({ meta, content, headings, allDocs }: Props) {
+export async function LegalDocumentLayout({ meta, content, headings, allDocs }: Props) {
+  const t = await getTranslations("legalPages.shell")
   const toc = headings.filter((h) => h.level <= 3)
 
   return (
@@ -21,25 +23,25 @@ export function LegalDocumentLayout({ meta, content, headings, allDocs }: Props)
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400">
-              Documents légaux
+              {t("documentsEyebrow")}
             </p>
             <h1 className="mt-1 text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">{meta.title}</h1>
             {meta.description ? (
               <p className="mt-2 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">{meta.description}</p>
             ) : null}
-            <p className="mt-2 text-xs text-zinc-500">Dernière mise à jour : {meta.lastUpdated}</p>
+            <p className="mt-2 text-xs text-zinc-500">{t("lastUpdated", { date: meta.lastUpdated })}</p>
           </div>
           <Link
-            href="/legal/mentions"
+            href="/mentions-legales"
             className="text-sm font-medium text-violet-700 underline-offset-4 hover:underline dark:text-violet-300"
           >
-            Mentions légales
+            {t("legalNoticeLink")}
           </Link>
         </div>
 
         <div className="grid gap-10 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[240px_minmax(0,1fr)_200px]">
           <aside className="lg:sticky lg:top-24 lg:self-start">
-            <nav aria-label="Documents légaux" className="space-y-1">
+            <nav aria-label={t("docNavAriaLabel")} className="space-y-1">
               {allDocs.map((doc) => (
                 <Link
                   key={doc.slug}
@@ -63,7 +65,7 @@ export function LegalDocumentLayout({ meta, content, headings, allDocs }: Props)
 
           {toc.length > 0 ? (
             <aside className="hidden xl:block xl:sticky xl:top-24 xl:self-start">
-              <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Sommaire</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">{t("tocLabel")}</p>
               <ul className="mt-3 space-y-2 text-sm">
                 {toc.map((h) => (
                   <li key={h.id} style={{ paddingLeft: (h.level - 1) * 12 }}>

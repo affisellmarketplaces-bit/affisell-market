@@ -1477,6 +1477,13 @@
     }
   },
   "legalPages": {
+    "shell": {
+      "documentsEyebrow": "Rechtliche Dokumente",
+      "legalNoticeLink": "Impressum",
+      "docNavAriaLabel": "Rechtliche Dokumente",
+      "tocLabel": "Inhalt",
+      "lastUpdated": "Zuletzt aktualisiert: {date}"
+    },
     "accessibility": {
       "metaTitle": "Barrierefreiheit — Affisell",
       "metaDescription": "Affisell Barrierefreiheitsverpflichtung — Tastaturnavigation, Kontrast, Benutzerfeedback.",
@@ -1610,7 +1617,7 @@
       "careers": "Karriere",
       "press": "Presse",
       "accessibility": "Barrierefreiheit",
-      "cgv": "Verkaufsbedingungen (CGV)",
+      "cgv": "Verkaufsbedingungen",
       "cgu": "Nutzungsbedingungen",
       "supplierConditions": "Lieferantenbedingungen",
       "affiliateConditions": "Partnerbedingungen",
