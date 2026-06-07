@@ -8,6 +8,7 @@ const BCP47_BY_LOCALE: Record<AppLocale, string> = {
   it: "it-IT",
   nl: "nl-NL",
   pl: "pl-PL",
+  zh: "zh-CN",
 }
 
 export function bcp47ForAppLocale(locale: AppLocale): string {

@@ -28,7 +28,7 @@ const enKeys = new Set(messageKeys(en))
 
 const locales = process.argv.slice(2).length
   ? process.argv.slice(2)
-  : ["fr", "de", "es", "it", "nl", "pl"]
+  : ["fr", "de", "es", "it", "nl", "pl", "zh"]
 
 let failed = false
 

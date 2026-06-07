@@ -19,6 +19,7 @@ const LOCALE_NAMES = {
   it: "Italian (Italiano)",
   nl: "Dutch (Nederlands)",
   pl: "Polish (Polski)",
+  zh: "Simplified Chinese (简体中文)",
 }
 
 const MAX_LEAVES_PER_BATCH = Number(process.env.GROQ_I18N_BATCH_SIZE) || 35
@@ -112,7 +113,10 @@ ${JSON.stringify(flatBatch, null, 2)}`
           messages: [{ role: "user", content: prompt }],
           response_format: { type: "json_object" },
           temperature: 0.1,
-          max_tokens: Math.min(8192, Math.max(512, Object.keys(flatBatch).length * 120 + 256)),
+          max_tokens: Math.min(
+            8192,
+            Math.max(1024, Object.keys(flatBatch).length * 220 + JSON.stringify(flatBatch).length),
+          ),
         })
 
         const raw = completion.choices[0]?.message?.content?.trim()
@@ -128,14 +132,16 @@ ${JSON.stringify(flatBatch, null, 2)}`
       } catch (err) {
         const is429 = err?.status === 429 || err?.error?.error?.code === "rate_limit_exceeded"
         const is413 = err?.status === 413
+        const isJsonFail = err?.status === 400 && err?.error?.error?.code === "json_validate_failed"
         if (is413) throw err
         if (!is429 || attempt === MAX_RATE_LIMIT_RETRIES) {
           const retryable =
+            isJsonFail ||
             err instanceof SyntaxError ||
             (err instanceof Error && err.message.startsWith("missing_or_invalid_key:"))
           if (retryable && batchAttempt < MAX_BATCH_RETRIES - 1) {
             console.log(
-              `[i18n-translate] batch incomplete (${err instanceof Error ? err.message : "parse_error"}), retry ${batchAttempt + 2}/${MAX_BATCH_RETRIES}`,
+              `[i18n-translate] batch incomplete (${isJsonFail ? "json_validate_failed" : err instanceof Error ? err.message : "parse_error"}), retry ${batchAttempt + 2}/${MAX_BATCH_RETRIES}`,
             )
             await sleep(800)
             break

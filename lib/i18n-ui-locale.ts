@@ -25,6 +25,7 @@ export function intlLocaleTag(locale: AppLocale): string {
     it: "it-IT",
     nl: "nl-NL",
     pl: "pl-PL",
+    zh: "zh-CN",
   }
   return tags[locale] ?? "en-GB"
 }

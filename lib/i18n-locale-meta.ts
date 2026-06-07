@@ -8,6 +8,7 @@ export const LOCALE_FLAGS: Record<AppLocale, string> = {
   it: "🇮🇹",
   nl: "🇳🇱",
   pl: "🇵🇱",
+  zh: "🇨🇳",
 }
 
 export const LOCALE_LABELS: Record<AppLocale, string> = {
@@ -18,4 +19,5 @@ export const LOCALE_LABELS: Record<AppLocale, string> = {
   it: "Italiano",
   nl: "Nederlands",
   pl: "Polski",
+  zh: "中文",
 }

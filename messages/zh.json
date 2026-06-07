@@ -1,0 +1,2266 @@
+{
+  "nav": {
+    "brand": "Affisell",
+    "home": "首页",
+    "dashboard": "控制台",
+    "marketplace": "市场",
+    "signup": "创建账户",
+    "login": "登录",
+    "searchAria": "搜索",
+    "searchProducts": "搜索产品…",
+    "searchCatalog": "搜索目录…",
+    "dock": {
+      "aria": "快速导航",
+      "home": "首页",
+      "stores": "商店",
+      "explore": "探索",
+      "pulse": "脉冲",
+      "cart": "购物车"
+    },
+    "affiliate": {
+      "agent": "采购代理",
+      "agentShort": "代理",
+      "catalog": "目录",
+      "dashboard": "控制台",
+      "dashboardShort": "中心",
+      "earnings": "收益",
+      "earningsShort": "收益",
+      "inviteSupplier": "邀请供应商",
+      "inviteSupplierShort": "邀请",
+      "brandStudio": "品牌工作室",
+      "brandStudioShort": "品牌"
+    },
+    "supplier": {
+      "badge": "供应商",
+      "dashboard": "仪表盘",
+      "orders": "订单",
+      "products": "产品",
+      "inviteAffiliate": "邀请合作伙伴",
+      "inviteAffiliateShort": "邀请"
+    },
+    "accountMenu": {
+      "aria": "账户菜单",
+      "close": "关闭菜单",
+      "settings": "设置",
+      "signOut": "注销"
+    }
+  },
+  "PublicNav": {
+    "home": "首页",
+    "marketplace": "市场",
+    "creatorStores": "创作者商店",
+    "creatorStoresShort": "创作者",
+    "searchPlaceholder": "搜索产品…",
+    "searchLabel": "搜索",
+    "cmdKBadge": "⌘K",
+    "signIn": "登录",
+    "myAccount": "我的账户",
+    "cart": "购物车",
+    "cartAria": "购物车",
+    "themeToggle": "切换主题"
+  },
+  "home": {
+    "meta": {
+      "title": "Affisell — Creator storefront marketplace",
+      "description": "Shop curated products from your favorite creators. Fast shipping, secure checkout."
+    },
+    "hero": {
+      "title": "Stores curated by your favorite",
+      "titleHighlight": "creators",
+      "sub": "Fast shipping · Secure payment · 14-day returns",
+      "searchPlaceholder": "Search products, brands, niches…",
+      "searchLabel": "Search products",
+      "searchSubmit": "Search",
+      "cmdKHint": "Quick nav",
+      "ctaPrimary": "Explore catalog",
+      "creatorLink": "Are you a creator? Sell on Affisell →"
+    },
+    "bento": {
+      "agentShopping": {
+        "title": "Agent Shopping",
+        "description": "AI 为你找到产品"
+      },
+      "featuredStores": {
+        "title": "推荐商店",
+        "description": "精选创作者商店"
+      },
+      "liveCatalog": {
+        "title": "实时目录",
+        "description": "当前可用产品",
+        "counterSuffix": "+ 产品"
+      },
+      "trending": {
+        "title": "当前热门",
+        "description": "本周热门推荐",
+        "empty": "—"
+      }
+    },
+    "loadingCatalog": "正在加载目录…",
+    "catalogError": {
+      "eyebrow": "目录不可用",
+      "title": "无法在此显示产品",
+      "body": "设备加载失败。请重试或打开完整目录。",
+      "retry": "再试一次",
+      "browse": "打开目录"
+    },
+    "buyerBanner": {
+      "title": "作为买家购物?",
+      "body": "浏览创作者商店。",
+      "cta": "浏览商店 →"
+    },
+    "footerCreator": "您是创作者吗?",
+    "footerSupplier": "您是供应商吗?",
+    "footerSupplierCta": "开通供应商账户",
+    "footerCreatorCta": "成为推广员",
+    "footerNavAria": "合作空间",
+    "pickedEmpty": "此领域暂无推荐",
+    "featuredProductsEmpty": "目前没有推荐产品。",
+    "orbitalRail": {
+      "eyebrow": "超出目录",
+      "title": "签名体验",
+      "subtitle": "实时拍卖和精选奢侈品 — 两种高端世界。"
+    },
+    "trustHandoff": {
+      "eyebrow": "高端垂直",
+      "title": "超出标准目录",
+      "trustTitle": "受保护的结算",
+      "trustBody": "Stripe 支付 · 卖家保管 · 14 天欧盟退货。",
+      "trustReturns": "退货",
+      "trustShipping": "物流",
+      "trustSupport": "支持",
+      "trustFootnote": "泛欧 · Stripe 税务 · 欧盟 ODR 调解"
+    },
+    "buyerServices": {
+      "sectionBuyer": "在 Affisell 上购物更智慧",
+      "sectionDefault": "超越市场平台 — Affisell 层",
+      "aria": "Affisell 服务",
+      "featuredBadge": "Top",
+      "agent": "购物代理",
+      "agentHint": "AI 咨询员找到合适产品",
+      "catalog": "直播目录",
+      "catalogHint": "部门、过滤器 & 产品页面",
+      "stores": "商店",
+      "storesHint": "所有创作者商店",
+      "featured": "推荐商店",
+      "featuredHint": "精选创作者",
+      "discover": "Affisell Pulse",
+      "discoverShort": "发现",
+      "discoverMarketHint": "市场信号",
+      "discoverHint": "垂直feed · 一键商店",
+      "liveSearch": "实时搜索",
+      "liveSearchHint": "演示“智能”过滤器",
+      "wishlist": "心愿单",
+      "wishlistHint": "价格提醒 & 收藏",
+      "support": "支持助手",
+      "supportHint": "订单, 发货, 退货 · 24/7",
+      "auctions": "拍卖场",
+      "auctionsHint": "实时竞价 · 未来降落",
+      "luxe": "Affisell Luxe",
+      "luxeHint": "精选奢侈品与收藏"
+    }
+  },
+  "creators": {
+    "meta": {
+      "title": "在 Affisell 上出售 — 个人商店",
+      "description": "零库存，零风险。挑选产品，我们运送。"
+    },
+    "hero": {
+      "title": "在 2 分钟内赚取收入",
+      "sub": "零库存，零风险。挑选产品，我们运送。",
+      "cta": "创建您的免费商店",
+      "badgeCreators": "500+ 个创作者",
+      "badgeRevenue": "平均每月 $2,400",
+      "badgeSetup": "2 分钟设置"
+    },
+    "features": {
+      "pick": {
+        "title": "挑选产品",
+        "description": "从认证供应商中挑选 1,000,000+ 个产品"
+      },
+      "sync": {
+        "title": "自动同步",
+        "description": "自动同步价格、库存和订单"
+      },
+      "paid": {
+        "title": "获得报酬",
+        "description": "每周付款。保留 15–30% 利润"
+      }
+    },
+    "social": {
+      "title": "与 Affisell 成长的创作者",
+      "quote1": "我在一晚上启动并在同一周内实现了首笔销售。",
+      "quote2": "无仓库，无运输支持票据 — Affisell 负责处理。",
+      "revenueTag": "{amount}/mo"
+    },
+    "preview": {
+      "title": "您的创作者控制台",
+      "hint": "悬停以探索界面"
+    },
+    "footerLink": "您是品牌？与我们合作 →",
+    "ctaFinal": "立即开始销售"
+  },
+  "partners": {
+    "meta": {
+      "title": "Affisell 合作伙伴 — 供应商分销",
+      "description": "通过 API 自动化与创作者商店进行分销。"
+    },
+    "hero": {
+      "title": "通过 10,000+ 个创作者分销",
+      "sub": "API 集成。自动订单。安全支付。",
+      "cta": "成为合作伙伴"
+    },
+    "features": {
+      "reach": {
+        "title": "覆盖范围",
+        "description": "通过创作者商店访问活跃的受众"
+      },
+      "automation": {
+        "title": "自动化",
+        "description": "订单直接发送到您的仓库或通过 API"
+      },
+      "control": {
+        "title": "控制",
+        "description": "设置价格，实时管理库存"
+      }
+    },
+    "steps": {
+      "title": "如何运作",
+      "step1": "连接 API",
+      "step2": "创作者上架产品",
+      "step3": "我们会将订单发送给你"
+    },
+    "ctaFinal": "申请成为我们的合作伙伴",
+    "backCreators": "← 创作者"
+  },
+  "auth": {
+    "signin": "登录",
+    "signup": "创建账户",
+    "email": "邮箱",
+    "password": "密码",
+    "signupTitle": "创建您的账户",
+    "submitLogin": "登录",
+    "submitSignup": "创建账户",
+    "creating": "创建中…",
+    "connecting": "登录中…",
+    "invalidCredentials": "无效的邮箱或密码。",
+    "invalid_password": "密码错误。",
+    "account_not_found": "未找到与此邮箱相关的Affisell账户。",
+    "password_login_unavailable": "此账户使用社交登录。使用 Google 或通过“忘记密码”设置密码。",
+    "passwordReset": {
+      "secureBadge": "Affisell secure access",
+      "forgotLink": "忘记密码？",
+      "forgotTitle": "重置密码",
+      "forgotSubtitle": "输入您的账户邮箱。我们将发送一个有效期为 1 小时的链接。",
+      "sendResetLink": "发送重置链接",
+      "forgotSuccess": "如果该地址与 Affisell 账户相关联，则重置链接已发送到那里。",
+      "forgotSuccessHint": "打开该账户的收件箱（包括垃圾邮件）。邮件显示相关账户地址。",
+      "requestFailed": "无法发送电子邮件。请再试一次。",
+      "backToLogin": "← 返回登录",
+      "resetTitle": "新密码",
+      "resetSubtitle": "选择至少 8 个字符的密码。",
+      "newPassword": "新密码",
+      "confirmPassword": "确认密码",
+      "savePassword": "保存密码",
+      "passwordTooShort": "密码至少需要 8 个字符。",
+      "passwordMismatch": "密码不匹配。",
+      "invalidToken": "该链接无效或已过期。请重新申请。",
+      "resetFailed": "无法更新您的密码。",
+      "resetSuccessLogin": "密码更新成功。您可以现在登录。"
+    },
+    "signupFail": "注册失败。",
+    "signupLoginFail": "账户创建成功但登录失败。请尝试登录。",
+    "roleHint": "账户类型",
+    "roleSupplier": "供应商",
+    "roleAffiliate": "Affiliate",
+    "noAccount": "没有账户？",
+    "hasAccount": "已经注册过？",
+    "continueGoogle": "继续使用 Google",
+    "orPassword": "或使用密码",
+    "loading": "正在加载…",
+    "adminLogin": {
+      "title": "Affisell 管理员登录",
+      "subtitle": "平台访问：自动填充、订单、供应商 API。",
+      "back": "返回"
+    },
+    "loginSelector": {
+      "title": "登录 Affisell",
+      "subtitle": "选择您的专业空间。买家从他们的创作者商店登录。",
+      "creatorTitle": "我是创作者",
+      "creatorHint": "Affisell Affiliate catalog & storefront",
+      "supplierTitle": "我是供应商",
+      "supplierHint": "产品 & B2B 订单",
+      "buyerNote": "您曾在 Affisell 购物吗?",
+      "buyerHint": "客户账户: 订单、跟踪和退货。",
+      "buyerButton": "客户登录",
+      "noAccount": "您还没有创建者账户?",
+      "createSpace": "创建我的空间"
+    },
+    "non_customer_on_customer_portal": "此账户不是买家账户。使用创建者或供应商登录。",
+    "marketplaceBuyer": {
+      "loginTitle": "Affisell 客户账户",
+      "signupTitle": "创建客户账户",
+      "loginHint": "使用您在 Affisell 购物时使用的电子邮件登录。",
+      "signupHint": "创建账户以跟踪订单和管理退货。",
+      "email": "Email",
+      "password": "密码",
+      "submitLogin": "登录",
+      "submitSignup": "创建我的账户",
+      "noAccount": "还没有账户?",
+      "signUpLink": "创建客户账户",
+      "alreadyClient": "已经是客户了?",
+      "signupFail": "无法注册",
+      "backTrackOrder": "← 跟踪我的订单"
+    },
+    "customerSignup": {
+      "heroTitle": "购物并获得最高20%的返现",
+      "heroSubtitle": "每笔购买最高返现20%的现金",
+      "accountTypeLabel": "账户类型",
+      "individual": "个人",
+      "professional": "商业",
+      "companyName": "公司名称",
+      "siret": "SIRET (法国)",
+      "email": "电子邮件",
+      "password": "密码",
+      "submit": "创建账户",
+      "submitLoading": "创建账户中…",
+      "benefitCashback": "即时获得最高20%的返现",
+      "benefitReviews": "通过评论和推荐获得奖励积分",
+      "benefitCreators": "支持您喜欢的创作者",
+      "alreadyAccount": "已经有账户了吗？",
+      "signIn": "登录",
+      "acceptTermsError": "请接受条款和隐私政策。",
+      "siretError": "商家账户需要 14 位 SIRET。",
+      "signupFail": "无法注册"
+    },
+    "shopBuyer": {
+      "loginTitle": "我的账户 — {store}",
+      "signupTitle": "创建账户 — {store}",
+      "loginHint": "登录以跟踪此商店的订单。",
+      "signupHint": "创建账户以在此商店更快地结账。",
+      "email": "电子邮件",
+      "password": "密码",
+      "submitLogin": "登录",
+      "submitSignup": "创建我的账户",
+      "toggleSignup": "创建账户",
+      "toggleLogin": "登录",
+      "backToStore": "← 回到商店",
+      "signupHintExtended": "注册以下单和跟踪订单。",
+      "noAccount": "还没有账户?",
+      "signUpLink": "注册",
+      "alreadyClient": "已经是客户了?",
+      "signupFail": "无法注册"
+    },
+    "signupAffiliate": {
+      "createTitle": "创建我的Affisell创作者空间",
+      "title": "创作者空间",
+      "subtitle": "在5分钟内访问目录并启动您的商店",
+      "socialLabel": "TikTok / Instagram handle",
+      "socialPlaceholder": "@your_handle",
+      "createButton": "创建我的空间",
+      "hasAccount": "已经是创作者了吗?",
+      "signIn": "登录",
+      "emailExistsHint": "此邮箱已注册。重置密码或登录。",
+      "resetPasswordCta": "重置我的密码"
+    },
+    "signupSupplier": {
+      "createTitle": "在 Affisell 上出售",
+      "title": "供应商空间",
+      "subtitle": "数千个创作者可以出售你的产品",
+      "createButton": "创建我的账户",
+      "hasAccount": "已经是合作伙伴了吗?",
+      "signIn": "Sign in"
+    },
+    "merchantLegal": {
+      "badge": "Affisell verification · Trust Layer",
+      "titleSupplier": "Secure supplier onboarding",
+      "titleAffiliate": "Secure creator onboarding",
+      "subtitle": "Pick your legal status, upload required documents — activation within 24–48h.",
+      "stepStatus": "Legal status",
+      "stepIdentity": "Identity & business",
+      "stepDocuments": "Required documents",
+      "stepAccount": "Account access",
+      "continue": "Continue",
+      "back": "Back",
+      "submit": "Submit my application",
+      "documentsHint": "在传输过程中加密 · PDF 或图像 · 最大 8 MB。",
+      "required": "必填",
+      "optional": "选填",
+      "fieldLegalName": "法律名称或全名",
+      "fieldTradeName": "商业名称",
+      "fieldVat": "欧盟 VAT 号码",
+      "fieldRna": "RNA 号码 (协会)",
+      "fieldSocial": "TikTok / Instagram 处理",
+      "fieldPassword": "密码",
+      "vatNotice": "卖家仍然负责 VAT。Affisell 费用适用于净金额不含 VAT。",
+      "hasAccountSupplier": "已经是合作伙伴吗?",
+      "hasAccountAffiliate": "已经是创作者吗?",
+      "signIn": "Sign in",
+      "statusParticulierTitle": "个人",
+      "statusParticulierSub": "个人创作者或卖家",
+      "statusAutoEntrepreneurTitle": "个体工商户",
+      "statusAutoEntrepreneurSub": "个体工商户 · URSSAF / INSEE 证明",
+      "statusEiTitle": "个人企业",
+      "statusEiSub": "注册的个人企业",
+      "statusCompanyTitle": "公司",
+      "statusCompanySub": "有限责任公司、有限责任公司、公司 · 注册登记册和法定代表人身份证",
+      "statusAssociationTitle": "非营利组织/协会",
+      "statusAssociationSub": "RNA & 章程",
+      "statusForeignTitle": "外国公司",
+      "statusForeignSub": "在法国以外 · 局部注册提取",
+      "docIdentityFront": "身份证件（正面）",
+      "docIdentityBack": "身份证件（背面）",
+      "docKbis": "公司注册提取（< 3 个月）",
+      "docSiretAttestation": "SIRET / 商业注册证明",
+      "docVat": "VAT 证书",
+      "docStatutes": "公司章程",
+      "docProofAddress": "居住证明（< 3 个月）",
+      "docForeignReg": "境外注册文件",
+      "docRna": "RNA / 官方公报通知",
+      "errDraft": "文件会话过期 — 刷新页面。",
+      "errStatus": "法律状态无效。",
+      "errEntityName": "需要提供完整的姓名或法人名称。",
+      "errSiret": "此状态下需要14位SIRET。",
+      "errRna": "RNA号码是必需的。",
+      "errMissingDoc": "请上传所有必需的文件。",
+      "errUpload": "上传失败 — 请再试一次。",
+      "errFileSize": "文件过大（最大8MB）。",
+      "errFileType": "不支持的格式（PDF、JPG、PNG、WebP）。",
+      "verification": {
+        "eyebrow": "正在审核中",
+        "title": "账户验证",
+        "subtitle": "我们正在审核您的文件。您将通过电子邮件收到批准通知。",
+        "legalStatus": "申报状态",
+        "body": "您可以在只读模式下浏览您的仪表板。批准后才可发布目录。",
+        "dashboardLink": "打开控制台",
+        "status_PENDING_REVIEW": "待审核",
+        "status_REJECTED": "申请被拒绝 — 联系支持",
+        "status_NEEDS_MORE_INFO": "需要更多信息"
+      }
+    },
+    "portal": {
+      "accessDenied": "登录被拒绝: 该账户不匹配所请求的空间。",
+      "oauthFailed": "登录失败。再试一次或使用电子邮件和密码。",
+      "affiliate": {
+        "title": "创作者空间",
+        "subtitle": "访问创作者控制台和推广目录",
+        "signup": "创建我的创作者空间"
+      },
+      "supplier": {
+        "title": "供应商空间",
+        "subtitle": "管理产品、订单和B2B履约",
+        "signup": "创建供应商账户"
+      },
+      "errors": {
+        "supplier_on_affiliate_portal": "登录被拒绝：这是一个供应商账户。使用供应商登录。",
+        "affiliate_on_supplier_portal": "登录被拒绝：这是一个推广员账户。使用推广员登录，而不是供应商。",
+        "non_affiliate_on_affiliate_portal": "登录被拒绝：只有推广员账户允许在此登录。",
+        "non_supplier_on_supplier_portal": "登录被拒绝：只有供应商账户允许在此登录。",
+        "email_required_not_id": "登录被拒绝：请输入您的电子邮件地址（不是内部 ID）。"
+      }
+    }
+  },
+  "checkout": {
+    "flexiblePayment": {
+      "aria": "在 {count} 次免息分期中支付 {amount} — Klarna 或卡",
+      "zeroApr": "0%",
+      "methods": "Klarna · Card"
+    }
+  },
+  "cart": {
+    "title": "购物车",
+    "loading": "正在加载购物车…",
+    "empty": "您的购物车是空的",
+    "discoverProducts": "发现产品",
+    "explore": "← 探索",
+    "itemCount": "{count, plural, one {# item} other {# items}}",
+    "itemCountHint": "{count, plural, one {# item} other {# items}} · 保存了您的选择（颜色，尺寸）",
+    "subtotal": "小计 ({count, plural, one {# item} other {# items}})",
+    "guestCheckoutHint": "无需账户即可添加商品。结账时，请输入您的电子邮件或手机 — 我们将自动创建您的Affisell买家账户。",
+    "guestAdded": "已添加到购物车",
+    "guestAddedBody": "继续购物或在您准备时结账。",
+    "colorLabel": "颜色",
+    "sizeLabel": "Size",
+    "verifiedSeller": "Verified Seller",
+    "bySeller": "by {seller}",
+    "view": "View",
+    "yourSelection": "Your selection",
+    "noColorSize": "No color or size recorded for this line — pick options on the product page when you add to cart.",
+    "remove": "Remove",
+    "cashbackAvailable": "Cashback available",
+    "balanceUpToUsable": "余额 {balance} · 可用至 {usable} (€{minCard} 最低卡费将留在订单上).",
+    "applyAtCheckout": "Apply at checkout (EUR)",
+    "max": "Max",
+    "none": "None",
+    "emailOrPhoneBeforePayment": "Email 或手机需要在付款前 · 购买者账户和返现自动创建",
+    "redirecting": "正在重定向…",
+    "validatePurchase": "完成购买",
+    "continueShopping": "继续购物",
+    "identity": {
+      "beforePay": "付款前",
+      "title": "继续使用您的身份",
+      "subtitle": "购买者账户自动创建以跟踪订单和返现。",
+      "close": "关闭",
+      "emailTab": "Email",
+      "phoneTab": "手机",
+      "emailLabel": "电子邮件地址",
+      "emailPlaceholder": "你@example.com",
+      "phoneLabel": "手机号码",
+      "phonePlaceholder": "+1 555 000 0000",
+      "preparing": "正在准备中…",
+      "continueCheckout": "继续支付",
+      "legalNote": "继续后，您同意为现金返利创建Affisell买家账户。",
+      "identifyFailed": "无法继续。请再试一次。",
+      "signInFailed": "身份识别后登录失败。",
+      "networkError": "网络不可用。请再试一次。"
+    }
+  },
+  "buyerAccount": {
+    "navAria": "客户区域",
+    "overview": "概览",
+    "orders": "订单",
+    "wallet": "钱包",
+    "cart": "购物车",
+    "gdpr": "隐私",
+    "defaultName": "我的账户",
+    "hubTitle": "为您的购买准备的一切",
+    "hubSubtitle": "订单、钱包和收藏在一个地方。",
+    "noOrders": "还没有订单",
+    "discoverProducts": "发现产品",
+    "viewOrders": "查看订单",
+    "viewCart": "查看购物车",
+    "walletPromo": "独家折扣",
+    "walletPromoHint": "已选商品最高可享70%折扣",
+    "walletPromoCta": "查看优惠 →",
+    "supportTitle": "支持",
+    "supportBody": "有问题吗？联系我们",
+    "contactCta": "联系我们 →",
+    "gdprTitle": "个人数据",
+    "gdprBody": "GDPR数据导出、Cookie管理和账户删除",
+    "gdprCta": "管理我的数据 →",
+    "sidebarAria": "优惠和支持",
+    "welcomeEyebrow": "欢迎",
+    "browseMarketplace": "浏览市场",
+    "noOrdersHint": "发现热门产品并赚取返现",
+    "ordersTitle": "订单与退货",
+    "ordersBody": "查看已付订单、退货进行中和截止日期",
+    "walletTitle": "钱包",
+    "walletAvailable": "{amount}可用",
+    "walletBody": "合作伙伴产品的返现 — 购物车结算时自动应用",
+    "viewWallet": "查看钱包",
+    "cashbackFaq": "如何赚取返现?",
+    "cartEmptyTitle": "您的购物车是空的",
+    "cartEmptyBody": "从市场添加项目并结算",
+    "startShopping": "开始购物",
+    "cartTitle": "您的购物车",
+    "cartPending": "{count, plural, one {# item waiting} other {# items waiting}}",
+    "backMarketplace": "← 回到市场"
+  },
+  "shops": {
+    "metaTitle": "创作者商店 — Affisell",
+    "metaDescription": "浏览Affisell由affiliate创作者创建的商店。",
+    "title": "创作者商店",
+    "subtitle": "直接从您的喜爱创作者处购物",
+    "filterAll": "全部",
+    "emptyCategory": "该类别下尚无商店。",
+    "storeMetaTitle": "{name} — {niche} 商店",
+    "storeMetaDescription": "发现{name}的{niche}选择。",
+    "filterAria": "按类别过滤",
+    "featuredEmpty": "创作者正在开设商店。稍后再来看看。",
+    "visitStore": "访问商店",
+    "ordersCount": "{count, plural, one {# 单笔订单} other {# 单笔订单}}",
+    "browseCta": "所有商店"
+  },
+  "discovery": {
+    "eyebrow": "Explore",
+    "title": "找到你的创作者，然后找到你的产品",
+    "subtitle": "每个项目都由认证的合作商店出售 — 根据专长、类别或最喜欢的创作者进行过滤。",
+    "fullMarketplace": "全市场",
+    "searchLabel": "搜索产品或商店",
+    "searchPlaceholder": "搜索产品、商店、类别…",
+    "creators": "创作者",
+    "allCreators": "所有",
+    "nichesLabel": "专长",
+    "categoriesLabel": "类别",
+    "allCatalog": "整个目录",
+    "productCount": "{count, plural, one {# product} other {# products}}",
+    "atStore": " 在 ",
+    "thisCreator": "这个创作者",
+    "viewStore": "查看商店",
+    "emptyTitle": "这些过滤器下的产品为空",
+    "emptyBody": "扩大您的搜索或浏览整个市场。",
+    "viewAllProducts": "查看所有产品",
+    "storesSection": "商店",
+    "storesTitle": "您在Affisell上的创作者",
+    "allStores": "所有商店 →",
+    "niches": {
+      "all": "全部",
+      "fitness": "健身",
+      "tech": "科技",
+      "beauty": "美容",
+      "home": "家居",
+      "lifestyle": "生活方式"
+    }
+  },
+  "supplier": {
+    "form": {
+      "loadingListing": "正在加载商品…",
+      "breadcrumbCatalog": "目录",
+      "breadcrumbDraft": "草稿",
+      "breadcrumbEdit": "编辑商品",
+      "breadcrumbNew": "新商品",
+      "publishBlockedTitle": "无法发布 — 修复突出显示的字段",
+      "onThisPage": "在本页",
+      "jumpShortcuts": "快捷键",
+      "jumpStory": "故事",
+      "saveDraft": "保存草稿"
+    },
+    "myProducts": "我的商品",
+    "addProduct": "添加商品",
+    "ordersToShip": "待发货订单",
+    "dashboardTagline": "供应商工具",
+    "hello": "您好，",
+    "guestName": "您",
+    "newProductTitle": "新产品",
+    "newProductHint": "Affiliates set a retail price at or above base price; their margin is split by your commission rate for payouts.",
+    "productNamePlaceholder": "产品名称",
+    "basePricePlaceholder": "基础价格 (EUR)",
+    "commissionRatePlaceholder": "佣金 % 的利润",
+    "imagePlaceholder": "图片 URL",
+    "descriptionPlaceholder": "描述",
+    "saving": "正在保存…",
+    "createFailed": "创建产品失败。",
+    "updateFailed": "更新产品失败。",
+    "errorUnknown": "发生未知错误。",
+    "emptyProducts": "尚未添加产品。",
+    "noImage": "无图片",
+    "statusActive": "激活",
+    "statusInactive": "已停用",
+    "toggleActive": "停用产品",
+    "toggleInactive": "激活产品",
+    "basePriceLabel": "基础价格",
+    "commissionLabel": "佣金（利润分成）",
+    "ordersEmpty": "尚未有订单",
+    "customerEmail": "客户邮箱",
+    "shipTo": "送货至",
+    "orderTotal": "订单总额",
+    "productCol": "产品"
+  },
+  "affiliate": {
+    "myStore": "我的商店",
+    "supplierCatalog": "供应商目录",
+    "sales": "销售",
+    "dashboardTagline": "推广中心",
+    "hello": "您好，",
+    "guestName": "您",
+    "publicStoreLead": "您的公共商店:",
+    "addToStore": "添加到我的商店",
+    "sellingPriceLabel": "您的销售价格 (EUR)",
+    "marginNote": "{rate}% 的利润将归您所有，交易完成时。",
+    "addFailedToast": "添加列表失败。",
+    "addedToast": "已添加到您的商店。",
+    "redirecting": "正在重定向…",
+    "catalogNoDescription": "无描述",
+    "supplierPrefix": "供应商",
+    "swipeFeed": {
+      "feedLoadFailed": "无法加载feed",
+      "serviceUnavailable": "服务暂时不可用 — 试试再试",
+      "genericError": "发生了错误"
+    },
+    "liveStore": {
+      "openAria": "打开实时访客",
+      "liveBadge": "实时 • {count, plural, one {# 位访客} other {# 位访客}}",
+      "eyebrow": "实时商店",
+      "title": "访客",
+      "close": "关闭",
+      "activeNow": "当前活跃",
+      "demoNote": "Demo visitors (preview data)",
+      "cartLeft": "{time} left",
+      "sendDiscount": "发送 10% 折扣",
+      "startChat": "开始聊天",
+      "messagePlaceholder": "Type a message…",
+      "send": "发送",
+      "today": "今天",
+      "visitorsToday": "{count, plural, one {# 位访客} other {# 位访客}}",
+      "salesToday": "{count, plural, one {#笔} other {#笔}}",
+      "revenueToday": "{price}",
+      "hourlyTraffic": "每小时流量",
+      "dismiss": "关闭",
+      "toastDiscount": "Demo: {count}折扣",
+      "toastMessage": "Demo: {name}的消息已排队",
+      "demoVisitors": {
+        "emma": {
+          "action": "购物车: Lavender Candle"
+        },
+        "julien": {
+          "action": "购物车: Portable Speaker"
+        },
+        "anonymous": {
+          "action": "首页"
+        },
+        "lina": {
+          "action": "查看Leather crossbody bag"
+        }
+      }
+    },
+    "hub": {
+      "storefrontTitle": "您的品牌商店",
+      "storefrontSubtitle": "从这里发现可售产品、设置价格和利润率以及管理在您的公共商店中显示的内容。",
+      "inviteSupplier": "邀请供应商",
+      "browseMarketplace": "浏览市场",
+      "earningsCockpit": "收益驾驶舱",
+      "brandStudio": "品牌工作室",
+      "storeProfile": "商店资料",
+      "communitySocial": "社区 & 社交",
+      "accountSecurity": "账户 & 安全",
+      "openPublicStore": "开启公共商店",
+      "discoverFeed": "发现频道",
+      "yourListings": "您的商品",
+      "liveOnStorefront": "在商店前台直播",
+      "skus": "SKU",
+      "storefrontUnavailable": "商店前台数据不可用"
+    },
+    "mySelection": "我的商店前台商品",
+    "selectionHint": "从商品目录中选择商品并设置您的零售价格。",
+    "toggleListing": "在市场上列出商品 & 搜索",
+    "hideListing": "隐藏在市场上",
+    "cancel": "取消",
+    "listingActiveHelp": "当关闭时，买家无法从您的商店或/marketplace购买此SKU。",
+    "recentSales": "销售额和付款",
+    "dateCol": "日期",
+    "productCol": "产品",
+    "payoutCol": "您的付款",
+    "noImage": "无图像",
+    "kPayoutMonth": "付款（终身）",
+    "kOrders": "订单",
+    "orderSnippet": "订单{id}",
+    "revenueSubtitle": "最近 30 天 — 预估付款 (欧元分)",
+    "revenueLabel": "佣金",
+    "revenue30": "佣金趋势"
+  },
+  "marketplace": {
+    "title": "市场",
+    "subtitle": "活跃商店列表",
+    "empty": "还没有列表。",
+    "sellerLabel": "由代理商出售",
+    "sidebar": {
+      "title": "分类",
+      "subtitle": "按部门浏览",
+      "genealogyHint": "全 Google 树 — 展开任何分支",
+      "expandBranch": "展开分支",
+      "allCatalog": "所有目录",
+      "offlineHint": "离线分类 — 连接数据库获取实时统计",
+      "unavailable": "分类不可用",
+      "empty": "没有分类"
+    },
+    "search": {
+      "label": "在目录中搜索",
+      "placeholder": "产品、品牌、类别…",
+      "submit": "搜索",
+      "loading": "建议中…",
+      "noResults": "无建议 — 点击搜索以显示全部结果",
+      "categories": "类别",
+      "products": "产品",
+      "priceFrom": "从 €{price}",
+      "seeAllResults": "查看全部结果"
+    },
+    "euCoverage": {
+      "aria": "泛欧市场",
+      "badge": "泛欧",
+      "eyebrow": "{euCount} 个欧盟市场",
+      "title": "欧洲 · one checkout",
+      "subtitle": "Checkout to {count} countries · prices in EUR · VAT calculated at payment",
+      "metricEu": "EU",
+      "metricCountries": "countries",
+      "stripeTax": "VAT",
+      "footnote": "Shipping depends on supplier zone. Filter « European Union » in the sidebar."
+    },
+    "browse": {
+      "ariaEmbedded": "Explore and shop",
+      "eyebrowBuyer": "Discover · Shop",
+      "eyebrowCatalog": "Catalog · Resell",
+      "titleBuyer": "Marketplace",
+      "titleCatalog": "Product catalog",
+      "subtitleBuyer": "Live listings from creator stores — search, filter by department, and open a product page.",
+      "subtitleCatalog": "浏览供应商清单，比较利润率和交货时间，然后将SKU添加到您的商店。",
+      "resetFilters": "重置",
+      "searchCatalog": "搜索目录",
+      "searchProduct": "搜索产品",
+      "placeholderCatalog": "搜索产品，品牌…",
+      "placeholderBuyer": "搜索产品，品牌，创作者…",
+      "pickCategory": "选择一个类别来显示产品筛选器。",
+      "loadingFacets": "加载筛选器…",
+      "noFacets": "此类别无筛选器。",
+      "filtersTitle": "筛选器",
+      "filtersHint": "按产品属性",
+      "euShipsLabel": "欧洲联盟（27个国家）",
+      "freeShippingFacet": "免运费",
+      "offerRail": {
+        "eyebrow": "循环经济",
+        "clear": "显示全部"
+      },
+      "browseDepartmentsRail": {
+        "ariaLabel": "按部门浏览",
+        "eyebrow": "热门部门",
+        "hint": "熟悉的标签 — 每个标签都打开匹配的Google分类 aisle。"
+      },
+      "embeddedEyebrow": "购物 · 直播",
+      "embeddedTitle": "发现 & 购物",
+      "embeddedTitleMobile": "产品目录",
+      "embeddedSubtitle": "使用紫色英雄搜索、以下部门或购物代理来精选您的产品。",
+      "resultsFor": "结果为",
+      "dbUnavailableTitle": "市场暂时不可用",
+      "emptyListingTitle": "暂无上架商品",
+      "emptyFilteredBody": "尝试另一个搜索或部门，或重置您的过滤器。",
+      "emptyDefaultBody": "创作者会随时间发布上架商品 — 不久后再来看看。",
+      "emptyCatalogTitle": "目录暂无内容",
+      "emptyCatalogBody": "暂无可购买商品。稍后再来或浏览合作商店。",
+      "emptyCategoryTitle": "此部门暂无商品",
+      "emptyCategoryBody": "在 « {name} » 中未找到商品。尝试另一个部门或浏览全目录。",
+      "emptySubcategoryTitle": "此类别暂无商品",
+      "emptySubcategoryBody": "在 « {sub} » ({parent}) 中暂无商品。选择另一个类别或全目录。",
+      "emptySearchTitle": "无结果",
+      "emptySearchBody": " « {query} » 未匹配任何内容。改变您的搜索或重置过滤器。",
+      "activeFilterCatalog": "所有商品",
+      "activeFilterCategory": "分类 · {name}",
+      "activeFilterSubcategory": "{sub} · {parent}",
+      "showAll": "显示全部",
+      "viewStores": "浏览商店",
+      "listingCount": "{count, plural, one {# 件} other {# 件}}",
+      "listingCountForQuery": " for « {query} »",
+      "dbEmptyTitle": "数据库暂时不可用",
+      "dbDevHint": "本地开发: 运行 npm run db:local:setup 并在 .env.local 中设置 DATABASE_URL 为 postgresql://affisell:affisell@localhost:5433/affisell"
+    },
+    "mobileHub": {
+      "title": "Affisell Hub",
+      "subtitle": "服务、Pulse、Luxe & 更多 —— 不离开目录。",
+      "openMenu": "打开菜单",
+      "close": "关闭",
+      "menu": "菜单",
+      "categories": "分类",
+      "filters": "筛选",
+      "categoriesTitle": "分类",
+      "filtersTitle": "产品筛选",
+      "loading": "加载中…",
+      "listingShort": "{count, plural, one {# 个商品} other {# 个商品}}",
+      "desktopHintTitle": "在桌面上",
+      "desktopHintBody": "推荐卡片和趋势将始终在目录上方可见。"
+    },
+    "departmentRail": {
+      "ariaLabel": "Affisell 部门",
+      "badge": "部门",
+      "hint": "部门导航 — 每个部门打开左边栏的货架。",
+      "allCatalog": "全部目录",
+      "swipeAll": "滑动浏览全部目录",
+      "swipeCategory": "滑动浏览 {name}",
+      "marqueeHint": "鼠标悬停浏览"
+    }
+  },
+  "product": {
+    "noDescription": "没有描述。",
+    "soldBy": "通过列表销售 · 供应商:{seller}",
+    "sales": {
+      "eyebrowSold": "销售",
+      "eyebrowPopular": "热卖",
+      "count": "{count, plural, one {# sale} other {# sales}}",
+      "popular": "热门 · {compact}售出"
+    },
+    "discount": {
+      "save": "节省{amount}",
+      "percentOff": "{percent}%折扣"
+    },
+    "offer": {
+      "free": "免费"
+    }
+  },
+  "pulse": {
+    "brand": "Affisell Pulse",
+    "beta": "LIVE",
+    "exit": "Catalog",
+    "swipeMode": "Swipe",
+    "forYou": "为你精选",
+    "share": "Share",
+    "follow": "关注",
+    "following": "正在关注",
+    "add": "Bag",
+    "buyNow": "立即购买",
+    "mute": "静音",
+    "unmute": "声音开启",
+    "hint": "滑动 · 双击喜欢 · 一键购物",
+    "emptyTitle": "Pulse正在启动",
+    "emptyBody": "创作者正在上传视频。浏览目录等待内容更新。",
+    "browseCatalog": "浏览市场",
+    "commerce": {
+      "hint": "↑ 购物车 · ← 下一件 · → 购买 · ↓ 保存",
+      "cart": "添加到购物车",
+      "cartShort": "购物车",
+      "cartAdded": "已添加到购物车",
+      "hotBadge": "热门",
+      "buy": "立即购买",
+      "buyShort": "购买",
+      "skip": "下一件商品",
+      "skipShort": "Next",
+      "saveDrop": "Save Drop — wishlist + price alert",
+      "saveDropShort": "Save",
+      "undo": "Product back in stack",
+      "undoShort": "Undo",
+      "rewindOn": "New arrivals done — Rewind mode on",
+      "rewindBadge": "Rewind",
+      "scrollMode": "Vertical scroll mode",
+      "scrollModeShort": "Scroll",
+      "emptyCategory": "当前{name}分类中暂无商品。",
+      "feedLoadFailed": "无法加载feed",
+      "genericError": "出现错误"
+    }
+  },
+  "merchantAccount": {
+    "account": "账户",
+    "signOut": "退出",
+    "deleteAccount": "删除账户",
+    "deleting": "正在删除…",
+    "deleteConfirm": "您确定要永久删除您的账户吗? 这不能被撤销。如果您曾经作为商家在市场上有过订单，删除可能会被阻止。"
+  },
+  "supplierDashboard": {
+    "header": {
+      "eyebrow": "任务控制台",
+      "greeting": "你好 {storeName}",
+      "newProduct": "新产品"
+    },
+    "urgent": {
+      "title": "紧急行动",
+      "allClearTitle": "你已经全部处理",
+      "allClearNext": "下一步:",
+      "addProduct": "添加产品",
+      "shipTitleOne": "1 个订单需要发货",
+      "shipTitleMany": "{count} 个订单需要发货",
+      "slaBreached": "服务水平目标超出",
+      "hoursLeftUnder": "< {hours}h",
+      "hoursLeftMinutes": "{minutes} 分钟",
+      "hoursLeftUnderOne": "< 1h",
+      "metricNonePending": "None pending",
+      "metricPaidLate": "Paid · late",
+      "metricPaidSlaIn": "Paid · SLA in {countdown}",
+      "metricPaidWaiting": "Paid · awaiting shipment",
+      "penaltyPerOrder": "Estimated penalty: −{amount}/order",
+      "buyerRatingRisk": "Buyer rating at risk if delayed",
+      "autoCancelRisk": "After 10 days: message buyer or request an extension",
+      "autoCancelConsequence": "Extension refused or expired — cancellation + refund may run",
+      "ctaShip": "Ship now",
+      "stockTitleOne": "1 SKU out of stock",
+      "stockTitleMany": "{count} SKU stockouts",
+      "stockTitleIdle": "SKU 库存不足",
+      "stockOk": "库存健康",
+      "stockZero": "0 在库",
+      "stockRemainingOne": "{count} 个剩余",
+      "stockRemainingMany": "{count} 个剩余",
+      "ctaRestock": "补货",
+      "messagesTitleOne": "1 个客户消息",
+      "messagesTitleMany": "{count} 个客户消息",
+      "messagesTitleIdle": "客户消息",
+      "metricNoReply": "等待回复",
+      "metricInboxClear": "收件箱清空",
+      "ratingImpact": "−{pct}% 店铺评分",
+      "replyExpected": "回复预期",
+      "ctaReply": "回复"
+    },
+    "metrics": {
+      "title": "表现 · 最近 7 天",
+      "notEnoughHistory": "还没有足够的历史数据来比较两周。",
+      "trendsAfterWeek": "趋势将在您完成第一周销售后出现。",
+      "gmv": "收入",
+      "orders": "订单",
+      "netMargin": "净利润率 (估计)",
+      "netMarginTooltip": "收入 - 产品成本 - 佣金",
+      "affiliateCommissions": "佣金",
+      "topSku": "7d 最热销 SKU",
+      "stockoutIn3d": "3d 内缺货",
+      "unitsSoldOne": "{count} 个单位已售",
+      "unitsSoldMany": "{count} 个单位已售",
+      "stockRemaining": "{stock} 在库存 (~{days}d 左)",
+      "vsPrior": "vs prior 7d",
+      "stable": "稳定",
+      "naVsPrior": "n/a vs prior 7d"
+    },
+    "weeklyGoal": {
+      "revenueLabel": "收入",
+      "newStore": "新店",
+      "weekTarget": "周目标:",
+      "progressAria": "周目标进度: {pct}"
+    },
+    "onboarding": {
+      "title": "启动您的商店",
+      "subtitle": "从零到第一笔推广销售的三个步骤。",
+      "vatNotice": "您完全负责收集、申报和缴纳增值税。Affisell 将 12% 的费用收取于净额（产品和运费）上，而不是增值税。",
+      "stepCreate": "创建您的第一个产品列表",
+      "stepPublish": "在市场上发布",
+      "stepShare": "分享您的供应商目录",
+      "start": "开始"
+    },
+    "growth": {
+      "opportunities": "机会",
+      "noOpportunity": "最近 7 天未检测到机会。发布更多在市场上可见的 SKU。",
+      "affiliateInterestOne": "{count} 个联盟商对",
+      "affiliateInterestMany": "{count} 个联盟商对",
+      "estimateSalesOne": "+{count}笔销售/7天",
+      "estimateSalesMany": "+{count}笔销售/7天",
+      "commissionFromTo": "佣金 {from}% → {to}%",
+      "viewListing": "查看列表",
+      "catalogPerformance": "目录表现",
+      "adoptionRate": "采用率 (7d)",
+      "skuBreakdown": "{withSales} 有销售的 SKU · {total} 活跃 SKU",
+      "dormantTitle": "30 天内无销售的 SKU",
+      "dormantNone": "所有活跃 SKU 都有最近的销售。",
+      "ctaBoost": "提升",
+      "ctaArchive": "归档",
+      "boostDone": "佣金为 {pct}%",
+      "boostCta": "提供 +2% 佣金",
+      "boostSuccess": "设置 {pct}% 佣金于 “{name}”",
+      "boostFailed": "无法更新",
+      "networkError": "网络错误"
+    },
+    "tools": {
+      "title": "工具",
+      "catalog": "目录",
+      "import": "导入",
+      "extension": "扩展",
+      "finances": "财务",
+      "integrations": "集成",
+      "supply": "供应"
+    },
+    "supplyHub": {
+      "eyebrow": "Affisell Supply Bridge",
+      "title": "供应中心",
+      "subtitle": "连接您的供应链，跟踪目录和自动购买——无需更改当前订单流程。",
+      "connectorsTitle": "连接器",
+      "capabilitiesAria": "供应商中心功能",
+      "openChannel": "Open",
+      "footerNote": "阶段 2–3 通道解锁时 API 合作伙伴上线。从此页面不会触发自动购买。",
+      "phase": "阶段 {n}",
+      "totals": {
+        "skus": "SKU",
+        "autoBuy": "自动购买",
+        "sync": "同步"
+      },
+      "status": {
+        "live": "在线",
+        "connected": "已连接",
+        "setup": "设置",
+        "native": "自有",
+        "roadmap": "即将推出"
+      },
+      "capabilities": {
+        "catalog": "Catalog",
+        "orders": "Orders",
+        "negotiate": "RFQ",
+        "packaging": "Pack"
+      },
+      "capState": {
+        "live": "Available",
+        "beta": "Beta",
+        "soon": "Soon",
+        "off": "—"
+      },
+      "stats": {
+        "linked": "{count} linked SKUs",
+        "autoBuy": "{count} auto-buy"
+      },
+      "hints": {
+        "aliexpressPlatform": "Open Platform keys must be configured on the platform (API import).",
+        "aliexpressAutoBuy": "Link listings and enable auto-buy per SKU.",
+        "factoryRest": "连接一个工厂/批发商REST API (整合或盲目合作伙伴)."
+      },
+      "channels": {
+        "native": {
+          "name": "Affisell stock"
+        },
+        "aliexpress": {
+          "name": "AliExpress"
+        },
+        "factory": {
+          "name": "工厂/REST"
+        },
+        "bigbuy": {
+          "name": "BigBuy"
+        },
+        "cj": {
+          "name": "CJ Dropshipping"
+        },
+        "amazon": {
+          "name": "Amazon"
+        },
+        "manual": {
+          "name": "手动"
+        }
+      }
+    }
+  },
+  "supplierOrders": {
+    "shipPulse": {
+      "label": "Ship Pulse",
+      "safe": "On track",
+      "urgent": "Ship soon",
+      "critical": "Last hours",
+      "breached": "Deadline passed",
+      "policyTitle": "Ship Pulse™ — 10-day window",
+      "policyBody": "您有 {days} 天的时间添加跟踪信息或与买家联系。如果超过该时间，需要解释延迟并请求额外时间 — 买家同意或拒绝。如果他们拒绝（或在 3 天内未回复），订单可能会被取消并退款。",
+      "policyBadge": "Buyer-approved extensions",
+      "pendingExtension": "Awaiting buyer"
+    },
+    "fulfillment": {
+      "loading": "Loading conversation…",
+      "title": "Buyer conversation",
+      "seller": "You",
+      "buyer": "买家",
+      "noMessages": "暂无消息 — 如果延迟，请与买家联系。",
+      "messageLabel": "给买家留言",
+      "messagePlaceholder": "说明情况（最少8个字符）…",
+      "sendMessage": "发送给买家",
+      "pendingBuyer": "延长期限待定 — 买家有{days}天时间接受。",
+      "accepted": "买家接受了延长期限 — 截止{date}前发货。",
+      "rejected": "买家拒绝了延长期限。现在发货，否则订单可能会被取消。",
+      "extensionIntro": "超过10天的延长期限：解释延迟并请求额外的时间（买家必须接受）。",
+      "reasonPlaceholder": "为什么会延迟？何时发货？（最少20个字符）",
+      "extraDaysLabel": "额外的延长期限",
+      "requestExtension": "向买家请求延长期限"
+    },
+    "tabs": {
+      "toShip": "待发货",
+      "shipped": "已发货",
+      "all": "全部"
+    },
+    "emptyToShip": "无待发货订单 — 购买后付款将出现在此处。",
+    "emptyTab": "此视图中无订单。",
+    "loading": "加载中…",
+    "loadError": "无法加载订单",
+    "trackingRequired": "在标记为已发货之前，请输入跟踪号。",
+    "updateFailed": "更新失败",
+    "payout": {
+      "yourPayout": "您的付款",
+      "netWholesaleHint": "目录批发价（已扣除合作伙伴佣金）",
+      "platformFee": "平台费用 −{amount}",
+      "platformFeeTitle": "Affisell 费用在客户线 (ex-VAT) — 来自买家付款，而不是您的供应商付款",
+      "partnerCommission": "合作伙伴佣金 −{amount}",
+      "partnerCommissionTitle": "在您的目录价格上附加的Affiliate佣金 — 已从“您的付款”中扣除",
+      "partnerStoreTitle": "通过合作伙伴商店销售 {code}",
+      "partnerStoreRef": "合作伙伴商店 {code}"
+    }
+  },
+  "storefront": {
+    "brandStudio": {
+      "loading": "正在加载…",
+      "affiliateEyebrow": "创作者品牌",
+      "supplierEyebrow": "供应商品牌",
+      "affiliateTitle": "品牌工作室",
+      "supplierTitle": "商店工作室",
+      "affiliateDescription": "在 Affisell 和您的个人域名上创建您的公共商店 — banner、颜色和副本在一个地方。",
+      "supplierDescription": "买家看到您的供应商商店的方式: banner、品牌颜色和自定义域名。",
+      "liveUrl": "实时 URL",
+      "previewAffisell": "在 Affisell 上预览",
+      "storeName": "商店名称",
+      "heroBanner": "英雄 banner (HTTPS URL)",
+      "tagline": "标语/描述",
+      "primary": "主要",
+      "accent": "突出",
+      "saveBrand": "保存品牌",
+      "saving": "正在保存…",
+      "saved": "品牌已保存 — 您的公共商店已更新。",
+      "loadFailed": "加载商店失败",
+      "saveFailed": "无法保存",
+      "logoLogisticsTitle": "Logo & 物流",
+      "logoLogisticsBody": "在 {profileLink} 中上传 logo、AI 头像、发货地址和 slug。",
+      "nameBadges": {
+        "sectionTitle": "商店名称显示",
+        "sectionHint": "在您的公共商店上显示未来主义的标签 (平行四边形、霓虹、全息等)。",
+        "parallelogram": "平行四边形",
+        "parallelogramDesc": "签名斜形带 — 默认Affisell样式。",
+        "neonSlab": "霓虹板",
+        "neonSlabDesc": "发光的平行四边形带有光环效果。",
+        "holoRibbon": "全息带",
+        "holoRibbonDesc": "动态的青紫色渐变。",
+        "quantumFold": "量子折叠",
+        "quantumFoldDesc": "层次感丰富的未来主义效果。",
+        "orbitRing": "轨道环",
+        "orbitRingDesc": "圆形带有旋转环效果。",
+        "chromeBeam": "铬光束",
+        "chromeBeamDesc": "金属光泽，高对比度。",
+        "classic": "经典",
+        "classicDesc": "简洁文本，带无边框。"
+      }
+    },
+    "domain": {
+      "title": "您的个人域名",
+      "description": "使用您的个人域名（例如 {example}）。访问者看到您的品牌商店；Affisell 处理路由和 HTTPS 一旦 DNS 验证通过。",
+      "exampleHost": "yourstore.com",
+      "domainName": "域名",
+      "placeholder": "boutique.example.com",
+      "saveDomain": "保存域名",
+      "saving": "正在保存…",
+      "dnsTitle": "DNS — 在您的注册商添加此 CNAME",
+      "verifySsl": "验证并启用 SSL",
+      "checkingDns": "正在检查 DNS & SSL…",
+      "dnsVerified": "DNS 验证通过",
+      "domainSaved": "域名已保存。",
+      "domainVerified": "域名已验证",
+      "notVerifiedYet": "尚未验证",
+      "verificationFailed": "验证失败",
+      "nameRequired": "请先在商店配置中设置店铺名称。",
+      "saveFailed": "无法保存域名",
+      "vercelActive": "SSL已激活",
+      "vercelPending": "SSL待激活 — DNS正在传播",
+      "vercelRegistered": "已注册为主机",
+      "vercelFailed": "主机注册失败",
+      "vercelSkipped": "请在项目域名中添加主机名以启用HTTPS",
+      "vercelUnknown": "主机尚未注册",
+      "vercelAuto": " · 在 Vercel 自动注册",
+      "vercelManual": " · 在域名中添加主机名，如果 HTTPS 未启用，请在域名中添加"
+    }
+  },
+  "boutique": {
+    "tagline": "推广商店",
+    "customDomainTagline": "官方店铺",
+    "subtitle": "这个推广商店精选的产品。",
+    "empty": "这个店铺目前没有活跃的产品。",
+    "buy": "立即购买",
+    "allStores": "所有店铺",
+    "allStoresShort": "店铺",
+    "navAria": "Affisell市场导航",
+    "noProducts": "目前还没有可用产品。"
+  },
+  "success": {
+    "title": "感谢!",
+    "body": "您的付款成功。您将收到一封确认电子邮件。",
+    "backHome": "返回首页",
+    "thankYou": "感谢!",
+    "continueShopping": "继续购物",
+    "purchaseTitle": "感谢您的购买",
+    "purchaseBody": "您的付款正在确认中。您将收到一封跟踪电子邮件一旦订单被验证。",
+    "myCart": "我的购物车"
+  },
+  "cancel": {
+    "title": "订单已取消",
+    "body": "未产生任何费用。您可以返回浏览列表。",
+    "backMarketplace": "市场"
+  },
+  "Product": {
+    "view360": "360° View",
+    "premium": "Premium",
+    "addToCart": "Add to Cart",
+    "buyNowOneClick": "Buy Now with 1-Click",
+    "buyNowItem": "Buy this item",
+    "inStock": "In stock",
+    "outOfStock": "Out of stock",
+    "quantity": "Quantity",
+    "quantityOption": "Qty: {count}",
+    "quantityAria": "Select quantity",
+    "howToWear": "How to style",
+    "howToStyleSub": "AI ideas for this pick",
+    "alertPriceDrop": "价格下降提醒",
+    "priceAlertSub": "当价格下降时发送邮件",
+    "priceAlertSavedSub": "您已加入价格下降通知列表。",
+    "actionStackHint": "安全支付 · 快速发货",
+    "topVentes": "热门",
+    "liveViewers": "{count} 人正在浏览",
+    "trendingViews24h": "热门 · {count} 次浏览在过去 24 小时内",
+    "stickyBuyHint": "快速购买",
+    "onlyLeft": "仅剩下 {count} 件",
+    "delivery48h": "48 小时内发货",
+    "return30d": "30 天退货",
+    "securePayment": "安全支付",
+    "deliveryTo": "送货到 {city}: {date}",
+    "aiSummary": "AI Summary",
+    "reviews": "{count} 个评论",
+    "byStore": "由 {store}",
+    "viewInAR": "在 AR 中查看",
+    "buyNowShort": "立即购买",
+    "priceLabel": "价格",
+    "colorLabel": "颜色",
+    "sizeLabel": "尺寸",
+    "storageLabel": "存储容量",
+    "priceFluidityNote": "显示价格可能在结账前会发生变化。",
+    "gallery": {
+      "thumbRail": "产品媒体",
+      "fullView": "全屏预览",
+      "video": "视频",
+      "more": "+{count}",
+      "playVideo": "播放产品视频",
+      "slideCounter": "{current} / {total}",
+      "goToSlide": "跳转到图片 {index}",
+      "lightboxProgress": "画廊进度",
+      "swipeToClose": "向下滑动关闭",
+      "zoomHint": "双击或捏捏放大",
+      "resetZoom": "重置缩放",
+      "desktopHint": "选择缩略图 · 鼠标悬停主图像以放大",
+      "hoverZoomHint": "鼠标悬停以放大",
+      "zoomDetailLevel": "{level}% · detail view",
+      "lightbox": "全屏画廊",
+      "close": "关闭",
+      "prev": "上一张",
+      "next": "下一张"
+    }
+  },
+  "Filters": {
+    "smartFilters": "智能过滤器",
+    "trendingNow": "趋势",
+    "ships24h": "24小时内发货",
+    "under100": "价格不超过100美元",
+    "topRated45": "评分4.5+",
+    "category": "类别",
+    "allDepartments": "所有部门",
+    "styleTitle": "风格",
+    "styleMinimalist": "简约",
+    "styleStreetwear": "街头风",
+    "styleBusiness": "商务",
+    "priceTitle": "价格",
+    "priceMin": "$0",
+    "priceMax": "$500",
+    "shipsFromTitle": "从哪里发货",
+    "shipsFrance": "法国",
+    "shipsEu": "EU",
+    "shipsWorldwide": "全球",
+    "deliveryTitle": "发货",
+    "deliveryUnder3": "3天内",
+    "deliveryUnder7": "7天内",
+    "offersTitle": "优惠",
+    "freeShippingActive": "✓ 免费运费",
+    "freeShippingOnly": "仅免费运费",
+    "clearAll": "清除所有筛选"
+  },
+  "Breadcrumb": {
+    "home": "首页",
+    "fashion": "时尚",
+    "blazers": "风衣"
+  },
+  "Menu": {
+    "helloSignin": "你好，登录",
+    "searchAskAi": "搜索或问 AI..."
+  },
+  "wishlist": {
+    "title": "我的收藏",
+    "subtitle": "从目录中保存的产品 — 价格提醒包含在内。",
+    "empty": "还没有收藏。从市场上添加产品（♥ 在产品页面上）。",
+    "browse": "浏览目录",
+    "viewProduct": "查看",
+    "targetPrice": "目标 {price}",
+    "dropBadge": "🔔 -{pct}% {since}",
+    "noImage": "没有图片",
+    "guestBanner": "无需账号 — 点击♥ 在任何产品上保存收藏在此设备上。",
+    "guestBannerCta": "可选：免费账号同步并获取价格提醒",
+    "heart": {
+      "add": "添加到收藏",
+      "remove": "从收藏中移除",
+      "addVideo": "喜欢这个视频",
+      "removeVideo": "不喜欢这个视频",
+      "count": "{count, plural, one {# like} other {# likes}}",
+      "dropSinceYesterday": "从昨天开始"
+    }
+  },
+  "faq": {
+    "metaTitle": "FAQ — Affisell",
+    "eyebrow": "Help",
+    "title": "常见问题",
+    "description": "订单、发货、退货、支付 — 即时答案，避免联系客服。",
+    "sectionOrders": "订单",
+    "sectionShipping": "发货",
+    "sectionReturns": "退货与退款",
+    "sectionPayment": "支付",
+    "sectionPerks": "优惠",
+    "trackQ": "我的订单在哪里?",
+    "trackA": "使用checkout时的邮箱登录，打开我的订单。您会看到状态、跟踪信息和退货选项。每个步骤都会自动发送确认邮件（确认、发货、送达）。",
+    "confirmQ": "我没有收到确认邮件",
+    "confirmA": "检查垃圾邮件并确认在结账时输入的电子邮件。如果 Stripe 支付成功，订单将在 2 分钟内出现在我的订单中。否则，请与我们联系并提供收费日期和金额。",
+    "cancelQ": "我能否取消我的订单?",
+    "cancelA": "在发货前，可能通过支持或自动方式（Ship Pulse）取消订单。如果已发货，只能在收到商品后进行退货。",
+    "delayQ": "什么是发货时间?",
+    "delayA": "法国 & EU：通常在发货后 3–7 个工作日内。产品页面上显示的预估时间。国际：7–14 个工作日，取决于目的地。",
+    "lateQ": "我的包裹迟到了",
+    "lateA": "首先检查 My 订单中的运输跟踪。如果在预期的截止日期后没有跟踪信息，我们的系统可能会自动取消并退款。否则，请使用支持助手或联系表格。",
+    "returnQ": "如何退回商品?",
+    "returnA": "您有 14 天的退货期限（EU）。从 My 订单中打开一个请求或阅读我们的退货政策。商品必须未使用，原包装完整。",
+    "refundQ": "何时会退款给我?",
+    "refundA": "我们收到并检查退货后：5–10 个工作日退回到您的原始付款方式。非发货（自动取消）将在 48 小时内通过 Stripe 进行退款。",
+    "defectQ": "商品有缺陷或错误",
+    "defectA": "在48小时内与照片和订单号联系我们。我们将根据我们的条款提供交换或退款。",
+    "methodsQ": "您接受哪些付款方式?",
+    "methodsA": "安全的Stripe支付：卡（3D安全），并且在符合条件时，Klarna（无息分期付款）。Affisell从未存储卡详细信息。",
+    "failedQ": "我的付款被拒绝",
+    "failedA": "尝试另一个卡或联系您的银行。确保账单地址与卡匹配。付款失败时不会产生任何费用。",
+    "cashbackTitle": "如何获得返现?",
+    "cashbackBody": "在合作伙伴产品页面上，部分价格将在付款确认后转入您的钱包。登录前结账：余额将自动应用于您的下一个符合条件的购买。",
+    "stillNeedHelp": "还需要帮助吗?",
+    "stillNeedHelpBody": "支持助手24/7响应。对于复杂的争议，我们的团队在2个工作日内回复。",
+    "supportAgentCta": "支持助手",
+    "contactCta": "人工联系",
+    "agentInlineTitle": "问您的问题",
+    "walletCta": "查看我的钱包",
+    "backMarketplace": "← 返回目录"
+  },
+  "shipping": {
+    "metaTitle": "Shipping — Affisell",
+    "eyebrow": "Shipping",
+    "title": "配送 & 跟踪",
+    "description": "由我们的供应商伙伴发货 — 每个步骤都会自动发送跟踪通知。",
+    "delaysTitle": "预计交货时间",
+    "delayEu": "法国 & EU: 发货后 3–7 个工作日 (产品和仓库依赖).",
+    "delayIntl": "国际: 7–14 个工作日 — 可能会向买家收取海关费用.",
+    "delayProduct": "在结账前在产品页面显示的准确估计时间.",
+    "trackingTitle": "自动跟踪",
+    "tracking1": "确认电子邮件一旦 Stripe 支付成功。",
+    "tracking2": "运输电子邮件与运营商跟踪号码。",
+    "tracking3": "送达电子邮件 + 7 天后回顾提醒。",
+    "trackCta": "跟踪我的订单",
+    "ordersCta": "我的订单",
+    "issueTitle": "包裹迟到或丢失?",
+    "issueBody": "如果预计截止日期过后没有跟踪信息，Ship Pulse 可能会自动取消并退款。否则，请使用支持助手或FAQ。",
+    "supportCta": "支持助手",
+    "faqCta": "FAQ",
+    "carriersTitle": "国家运费服务",
+    "carriersSubtitle": "Affisell参考列表中的可靠服务，按发货地和收货地国家分类。",
+    "originLabel": "发货地国家",
+    "destinationLabel": "收货地国家",
+    "reliability": "可靠性",
+    "popular": "流行",
+    "eta": "预计到货时间",
+    "etaUnit": "天",
+    "empty": "此路线没有列出运输商。供应商可能使用等效的跟踪本地服务。",
+    "tierPremium": "高级",
+    "tierStandard": "标准",
+    "tierEconomy": "经济",
+    "tagExpress": "快递",
+    "tagTracked": "跟踪",
+    "tagPickup": "取货点",
+    "tagInternational": "国际",
+    "tagLastMile": "最后一英里",
+    "tagMarketplace": "市场",
+    "routeSummary": "{origin} → {destination} · {count} 个运输商"
+  },
+  "pages": {
+    "trackOrder": {
+      "metaTitle": "Track my order | Affisell",
+      "metaDescription": "Affisell order tracking — status and carrier updates in your customer account.",
+      "eyebrow": "Delivery",
+      "title": "Track my order",
+      "description": "Sign in with your Affisell customer account (same email as checkout) to see status, tracking, and manage a return.",
+      "stepLogin": "Sign in or create a customer account with the email used at checkout.",
+      "stepOrders": "Open “My orders” for details and carrier tracking.",
+      "stepEmail": "A confirmation email is sent at each key step.",
+      "signIn": "Sign in",
+      "createAccount": "创建客户账户",
+      "myOrders": "我的订单",
+      "contactSupport": "联系支持",
+      "proNote": "创作者还是供应商?",
+      "proLogin": "专业登录"
+    }
+  },
+  "legal": {
+    "nav": {
+      "ariaLabel": "法律文件",
+      "eyebrow": "Affisell — EU marketplace",
+      "lastUpdated": "最后更新: {date}",
+      "cgv": "销售条款",
+      "cgu": "使用条款",
+      "supplier": "供应商",
+      "affiliate": "推广商",
+      "legalNotice": "法律公告",
+      "privacy": "隐私",
+      "cookies": "Cookie",
+      "returns": "退货",
+      "contact": "联系我们"
+    }
+  },
+  "legalPages": {
+    "accessibility": {
+      "metaTitle": "Accessibility — Affisell",
+      "metaDescription": "Affisell accessibility commitment — keyboard navigation, contrast, user feedback.",
+      "eyebrow": "Accessibility",
+      "title": "Affisell for everyone",
+      "description": "We continuously improve the experience for people with disabilities — on mobile and desktop web.",
+      "commitmentTitle": "Our WCAG commitments",
+      "commitments": {
+        "perceivable": {
+          "title": "Perceivable",
+          "body": "Stronger contrast, resizable text, visual alternatives on key elements."
+        },
+        "operable": {
+          "title": "可操作",
+          "body": "键盘导航、合理的触摸目标、在结帐流程中没有焦点陷阱。"
+        },
+        "understandable": {
+          "title": "可理解",
+          "body": "清晰的标签、可执行的错误消息、线性的结帐路径。"
+        },
+        "robust": {
+          "title": "健壮",
+          "body": "组件在现代浏览器和常见屏幕阅读器上进行了测试。"
+        }
+      },
+      "statusTitle": "当前状态",
+      "statusBody": "Affisell 在公共买家旅程中目标 WCAG 2.1 Level AA。一些专业仪表板页面仍在被对齐中。",
+      "feedbackBody": "遇到可访问性阻塞? 请将页面和设备发送给 {email} — 我们优先修复。",
+      "contactCta": "报告问题",
+      "faqCta": "浏览FAQ"
+    }
+  },
+  "contact": {
+    "metaTitle": "联系我们 — Affisell",
+    "eyebrow": "支持",
+    "title": "联系 Affisell",
+    "description": "关于订单、退货或返现钱包的问题？邮件我们 — 我们在 2 个工作日内回复。",
+    "emailLabel": "电子邮件：",
+    "backAccount": "← 返回我的账户"
+  },
+  "agent": {
+    "metaTitle": "购物代理人 — Affisell",
+    "metaDescription": "AI 购物顾问 — 发现并比较市场产品。",
+    "eyebrow": "买家",
+    "heroTitle": "找到。比较。购买。",
+    "heroSub": "您的 AI 购物顾问 — 实时搜索市场"
+  },
+  "marketplacePulse": {
+    "hint": "根据部门或专题过滤，探索趋势，然后在一个点击中将每个SKU发布到您的商店中。"
+  },
+  "supplierStore": {
+    "metaDescription": "{name} — {name}供应商商店。浏览目录并放心购物。",
+    "creatorCtaTitle": "您是创作者或供应商吗?",
+    "creatorCtaBody": "买家通过Affisell产品页面下单。创作者从控制台管理列表。",
+    "becomeCreator": "成为创作者"
+  },
+  "AI": {
+    "pickedForYou": "由 Affisell AI 选中",
+    "trending": "趋势",
+    "views": "{count} 次浏览",
+    "add": "添加",
+    "whyRecommended": "为什么推荐? Affisell AI 根据趋势和您的活动进行选择。",
+    "offerEndsIn": "offer 结束在 {time}"
+  },
+  "ProductCommon": {
+    "addToCart": "加入购物车",
+    "buyNow": "立即购买",
+    "delivery": "发货 {days} 天",
+    "premium": "高级",
+    "topRated": "最高评分"
+  },
+  "CommandK": {
+    "languageSwitcher": "语言",
+    "triggerLabel": "快速导航",
+    "placeholder": "去哪儿? 搜索产品或页面…",
+    "empty": "未找到目的地",
+    "escape": "esc",
+    "productsGroup": "产品",
+    "openQuickNav": "打开快速导航",
+    "groups": {
+      "buy": "购买",
+      "sell": "出售",
+      "account": "账户"
+    },
+    "items": {
+      "home": "首页",
+      "marketplace": "市场",
+      "creatorStores": "创作者商店",
+      "cart": "购物车",
+      "wishlist": "心愿单",
+      "auctions": "拍卖场",
+      "luxe": "Affisell Luxe",
+      "myOrders": "我的订单",
+      "sellerDashboard": "卖家控制台",
+      "listProduct": "上架产品",
+      "mySales": "我的销售",
+      "becomeSeller": "成为创作者",
+      "becomePartner": "成为合作伙伴",
+      "analytics": "分析",
+      "payouts": "结算",
+      "signIn": "登录",
+      "createBuyerAccount": "创建买家账户",
+      "settings": "设置",
+      "signOut": "注销"
+    }
+  },
+  "footer": {
+    "global": {
+      "siteTitle": "Affisell",
+      "buyTitle": "购买",
+      "sellTitle": "出售",
+      "companyTitle": "公司",
+      "helpTitle": "帮助",
+      "legalTitle": "法律",
+      "supportTitle": "支持",
+      "paymentTitle": "安全支付",
+      "about": "关于",
+      "howItWorks": "如何工作",
+      "howSellingWorks": "如何卖东西",
+      "browseCatalog": "浏览目录",
+      "auctions": "拍卖场",
+      "luxe": "Affisell Luxe",
+      "buyerProtection": "受保护的结账 · 退货",
+      "buyerProtectionShort": "受保护的结账",
+      "wishlist": "心愿单",
+      "becomeCreator": "成为创作者",
+      "affiliateProgram": "推广计划",
+      "becomeSupplier": "成为供应商",
+      "demoLab": "演示实验室",
+      "blog": "博客",
+      "careers": "职业发展",
+      "press": "媒体报道",
+      "accessibility": "辅助功能",
+      "cgv": "销售条款 (CGV)",
+      "cgu": "使用条款",
+      "supplierConditions": "供应商条款",
+      "affiliateConditions": "推广商条款",
+      "legalNotice": "法律公告",
+      "privacyPolicy": "隐私政策",
+      "cookieSettings": "cookie设置",
+      "returns": "退货与退款",
+      "faq": "FAQ",
+      "supportAssistant": "支持助手",
+      "shipping": "运费",
+      "contact": "联系",
+      "trackOrder": "跟踪我的订单",
+      "trustBeaconTitle": "Affisell保护的结算",
+      "trustBeaconHint": "Stripe支付 · 卖家保管 · 14天欧盟退货",
+      "trustBeaconCta": "阅读政策",
+      "panEuBadge": "Pan-EU · 27 个市场",
+      "localeLabel": "语言 & 地区",
+      "mobileTagline": "创作者市场 · 安全支付 · 24/7 支持",
+      "desktopTagline": "欧洲中，推动创作者和供应商在欧洲规模化的市场基础设施 — 支付由 Stripe 提供，欧盟合规，零摩擦。",
+      "stripeNoticeShort": "卡 · 3D Secure · 欧盟 VAT 合规",
+      "vatNotice": "根据适用的法规收集和返还 VAT。",
+      "stripeNotice": "通过 Stripe 保证支付安全 (卡, 3D Secure 如需)",
+      "copyright": "© {year} Affisell — {name} — SIRET {siret} —",
+      "odrLink": "EU online dispute resolution",
+      "social": {
+        "x": "Affisell on X",
+        "instagram": "Affisell on Instagram",
+        "tiktok": "Affisell on TikTok",
+        "discord": "Affisell on Discord"
+      }
+    },
+    "about": "本当",
+    "contact": "联系",
+    "terms": "条款",
+    "privacy": "隐私",
+    "cookies": "Cookie",
+    "sellTitle": "卖出",
+    "becomeCreator": "成为创作者",
+    "becomePartner": "成为合作伙伴",
+    "helpTitle": "帮助",
+    "faq": "常见问题",
+    "shipping": "Shipping",
+    "returns": "Returns",
+    "cta": {
+      "creator": {
+        "title": "成为创作者",
+        "text": "在 60s 内启动您的商店",
+        "cta": "开始出售 →"
+      },
+      "supplier": {
+        "title": "供货商",
+        "text": "列出产品，获取全球范围",
+        "cta": "导入产品 →"
+      },
+      "agent": {
+        "title": "代理商购物",
+        "text": "让 AI 找到最好的交易",
+        "cta": "试试 Agent →"
+      }
+    },
+    "brand": {
+      "tagline": "创作者优先的市场"
+    },
+    "product": {
+      "title": "产品",
+      "exploreCatalog": "浏览目录",
+      "topCreators": "顶级创作者",
+      "liveShopping": "直播购物",
+      "affiliateProgram": "推广计划"
+    },
+    "company": {
+      "title": "公司",
+      "about": "关于",
+      "blog": "博客",
+      "careers": "职业",
+      "press": "媒体包"
+    },
+    "newsletter": {
+      "title": "保持联系",
+      "subtext": "产品降价 + 创作者建议。1 次/月。",
+      "placeholder": "you@creator.com",
+      "submit": "订阅",
+      "disclaimer": "不发送垃圾邮件。随时取消订阅。",
+      "success": "你已加入 — 欢迎加入我们的社区。"
+    },
+    "subfooter": {
+      "copyright": "  {year} 年 Affisell, Inc.  由马赛制作 🇫🇷"
+    },
+    "social": {
+      "x": "Affisell on X",
+      "instagram": "Affisell on Instagram",
+      "tiktok": "Affisell on TikTok",
+      "discord": "Affisell on Discord"
+    }
+  },
+  "companyPages": {
+    "nav": {
+      "aria": "公司",
+      "about": "关于",
+      "blog": "博客",
+      "careers": "职业",
+      "press": "Press Kit"
+    },
+    "stats": {
+      "stores": "创作者商店",
+      "listings": "直播商品",
+      "catalog": "目录SKU",
+      "commission": "平均联盟佣金"
+    },
+    "about": {
+      "metaTitle": "关于 Affisell — 优先创作者的市场",
+      "metaDescription": "Affisell连接了经过验证的供应商、创作者商店和买家，透明的佣金和欧盟级的合规性。",
+      "eyebrow": "公司",
+      "title": "创作者基础设施",
+      "description": "Affisell 是一个以创作者为中心的市场平台:供应商列出批发目录,合作伙伴在几分钟内启动品牌商店,买家可以透明地查看费用。",
+      "mission": {
+        "title": "我们的使命",
+        "body": "我们认为创作者应该在不持有库存,管理仓库,或猜测利润的情况下,通过他们的观众赚钱。Affisellorchestrates整个循环 ——目录同步,结算,供应商履行,Stripe Connect付款和GDPR兼容的信任信号。",
+        "body2": "总部位于马赛，我们以欧洲优先的多币种结算方式运营，根据类别不同收取可变的佣金，并提供工具，如Swipe Feed、Agent采购和Pulse发现。"
+      },
+      "values": {
+        "0": {
+          "title": "创作者商店",
+          "body": "每个推广员都有一个品牌商店，自定义列表，买家奖励和拖放商品化——在2分钟内即可上线。"
+        },
+        "1": {
+          "title": "供应商覆盖",
+          "body": "品牌上传一次，通过自动化订单路由和实时库存同步，分销到数千个创作者商店。"
+        },
+        "2": {
+          "title": "透明经济",
+          "body": "每笔订单显示供应商零售价、推广商加价、平台费用和买家价格——无任何隐含扣除。"
+        },
+        "3": {
+          "title": "信任设计",
+          "body": "法律中心，GDPR导出/删除，cookie同意，发票PDF和佣金解释器集成到产品中。"
+        }
+      },
+      "timeline": {
+        "title": "公开开发",
+        "items": {
+          "2024": {
+            "year": "2024",
+            "title": "Affisell成立",
+            "body": "市场营销 MVP: 供应商目录、推广商店面和 Stripe Connect 分账。"
+          },
+          "2026": {
+            "year": "2026",
+            "title": "Swipe Feed & GDPR 栈",
+            "body": "一键式推广商列表、法律文件库、买家/卖家 GDPR 面板和发票生成"
+          },
+          "2025a": {
+            "year": "2025",
+            "title": "系统亡唯器",
+            "body": "机器系统亡唯器为常安为亡唯器，游戏查看源和商品端给计程合送"
+          },
+          "2025b": {
+            "year": "2025",
+            "title": "结算引擎",
+            "body": "三方分成方案，分类级别佣金率，HT基准平台费和供应商透明度UI。"
+          }
+        }
+      },
+      "hq": {
+        "title": "总部"
+      },
+      "cta": {
+        "creators": "成为创作者",
+        "catalog": "浏览合作目录"
+      }
+    },
+    "blog": {
+      "metaTitle": "Affisell Blog — 产品 & 创作者经济",
+      "metaDescription": "市场平台功能、佣金透明度和创作者工具的更新信息。",
+      "eyebrow": "博客",
+      "title": "Affisell内部",
+      "description": "产品发布、市场经济和创作者指南 — 由Affisell团队撰写。",
+      "readMore": "阅读文章",
+      "backToBlog": "所有文章",
+      "posts": {
+        "swipe-feed-affiliate-hub": {
+          "title": "Swipe Feed: 在一个手势中列出产品",
+          "excerpt": "Affiliates现在可以用Tinder风格的方式发现目录SKU，通过右滑增加+30%的标记，并且再也不用看到跳过的产品了。",
+          "date": "2026-05-19",
+          "category": "Product",
+          "readMin": "4 min",
+          "sections": {
+            "intro": "之前的创作者发现方式意味着无尽的网格滚动。Swipe Feed 将推广来源转变为专注的、移动本土流程——具有撤销、佣金过滤器和三张卡preload堆栈。",
+            "s1": {
+              "title": "常成为事子",
+              "body": "向右滑动以在默认标记价（供应商价格的30%以上）发布一个列表。向左滑动以永久隐藏一个SKU从您的流程。每个决定都存储在您的流程中保持新鲜和相关"
+            },
+            "s2": {
+              "title": "为速度而生",
+              "body": "Framer Motion 漫游效果、基于速度的提交和动画优先的用户体验意味着卡片在 API 请求之前就飞出屏幕——所以即使在较慢的网络下，界面也会感觉瞬间。"
+            },
+            "s3": {
+              "title": "试试",
+              "body": "从您的导航栏打开 Affiliate Hub 或直接前往 /dashboard/affiliate/hub?mode=swipe。结合 Agent 源头分析高意图选择的利润率"
+            }
+          }
+        },
+        "commission-transparency": {
+          "title": "每笔订单的佣金透明度",
+          "excerpt": "供应商、推广商和买家现在可以看到每一笔订单上的olesale、加价、平台费用和VAT的分配情况。",
+          "date": "2026-05-12",
+          "category": "信任",
+          "readMin": "5 min",
+          "sections": {
+            "intro": "不透明的市场中，谁赚了多少钱都是秘密。Affisell 在商家订单页面、买家收据和 PDF 发票中全面披露结算分成细节。",
+            "s1": {
+              "title": "变动率",
+              "body": "分类默认、供应商资料和单个 SKU 的佣金会层层传递 —— 这样高利润分类可以提供更好的affiliate经济条件而无需手动使用电子表格。"
+            },
+            "s2": {
+              "title": "供应商透明度",
+              "body": "供应商仪表板以“合作伙伴佣金”和“平台费用”标记扣除项，而不是模糊的“调整”。付款预览与 Stripe Connect 中的内容匹配。"
+            },
+            "s3": {
+              "title": "CommissionExplainer",
+              "body": "订单详细页面上的嵌入式 UI 将每个方通过简单语言解释数学，附有供应商和推广商的法律条款链接。"
+            }
+          }
+        },
+        "gdpr-marketplace-trust": {
+          "title": "商户和买家数据保护中心",
+          "excerpt": "导出、删除、cookie偏好和法律同意版本控制 — native到Affisell账户，而不是附加的PDF。",
+          "date": "2026-05-05",
+          "category": "合规",
+          "readMin": "4 min",
+          "sections": {
+            "intro": "信任是一个产品功能。Affisell 提供了一个完整的 GDPR 栈：注册同意捕获、cookie 宣传栏与分析门控、数据导出 JSON 和账户删除流程。",
+            "s1": {
+              "title": "法律文件中心",
+              "body": "购买者、供应商和推广商的条款、隐私政策、退款规则和法律公告 —— 所有版本都已链接到注册和底部菜单中。"
+            },
+            "s2": {
+              "title": "自助权利",
+              "body": "商家和市场买家可以访问 /dashboard/account/gdpr 或 /marketplace/account/gdpr 来导出他们的数据或请求删除，受财务记录保留条款的约束。"
+            },
+            "s3": {
+              "title": "为什么它很重要",
+              "body": "创作者业务在欧盟市场运营。内置的合规性减少了法律风险并向评估您的商店的品牌伙伴发送了专业信号。"
+            }
+          }
+        },
+        "creator-storefront-60s": {
+          "title": "在 60 秒内启动创作者商店",
+          "excerpt": "选择供应商 SKU、设置您的利润率、发布 — Affisell 将处理结算、履约通知和每周付款。",
+          "date": "2026-04-20",
+          "category": "创作者",
+          "readMin": "3 min",
+          "sections": {
+            "intro": "Affisell 将创作者商业中的运营负担从中去除：无仓库，无手动库存更新，无从头设置付款网关。",
+            "s1": {
+              "title": "Catalog → storefront",
+              "body": "浏览按专题、佣金或利润率过滤的推广发现目录。Listing Builder 让您自定义标题、图片、SEO slug 和买家现金返利奖励。"
+            },
+            "s2": {
+              "title": "您的品牌,我们的轨道",
+              "body": "自定义域名,主题工作室,特色集合和实时商店预览 — 而 Stripe Connect 将供应商批发和您的标记自动路由。"
+            },
+            "s3": {
+              "title": "立即开始",
+              "body": "创建一个免费的合作伙伴账户,连接付款,并发布您的第一个列表项。大多数创作者在第一周内就能看到第一个销售额。"
+            }
+          }
+        }
+      }
+    },
+    "careers": {
+      "metaTitle": "Affisell的工作机会",
+      "metaDescription": "加入我们团队，构建创作者优先的市场平台 — 工程、创作者成功和供应商合作远程兼职机会",
+      "eyebrow": "工作机会",
+      "title": "与我们一起构建创作者经济",
+      "description": "我们是一家小型、产品痴迷的团队，位于马赛（远程友好）。帮助我们扩大供应商目录、合作伙伴工具和买家信任。",
+      "culture": {
+        "title": "我们如何工作",
+        "body": "Affisell 是早期阶段的生产流量：您将每周将产品交付给真正的商家，负责从头到尾的结果，并直接与创作者和供应商交流。",
+        "perks": {
+          "remote": "远程友好，覆盖欧洲时区",
+          "impact": "高拥有权 — 无门票工厂",
+          "stack": "Next.js 16, Prisma, Stripe Connect, Vercel",
+          "equity": "有意义的早期团队股权"
+        }
+      },
+      "openRoles": "开放职位",
+      "apply": "申请",
+      "spontaneous": "找不到你的角色？发送一封邮件告诉我们你想在 Affisell 做什么。",
+      "roles": {
+        "fullstack-engineer": {
+          "title": "全栈工程师",
+          "summary": "从 Prisma schema 到精美 UI — 检查结算，推广工具，供应商控制台。",
+          "location": "马赛/远程EU",
+          "type": "全职",
+          "team": "工程团队",
+          "applySubject": "申请——全栈工程师",
+          "requirements": {
+            "r1": "强大的TypeScript、React和SQL（PostgreSQL）",
+            "r2": "与支付或市场相关的经验是加分项",
+            "r3": "熟悉Next.js App Router和服务器组件"
+          }
+        },
+        "creator-success": {
+          "title": "创作者成功经理",
+          "summary": "接纳合作伙伴，提高列表质量，反馈产品洞察给工程团队。",
+          "location": "远程 EU",
+          "type": "全职",
+          "team": "增长",
+          "applySubject": "申请 — 成功创作者",
+          "requirements": {
+            "r1": "流利的法语/英语; 有创作者或电子商务社区经验",
+            "r2": "分析能力 — 舒适地阅读佣金和转化数据",
+            "r3": "理解创作者在维护观众信任和利润之间的平衡"
+          }
+        },
+        "supplier-partnerships": {
+          "title": "供应商合作伙伴 (B2B)",
+          "summary": "获取品牌、通过 API 或批量导入 onboard 目录，并与我们合作设计佣金结构。",
+          "location": "远程 EU",
+          "type": "全职 / 合同",
+          "team": "供应商合作伙伴团队",
+          "applySubject": "供应商合作伙伴申请",
+          "requirements": {
+            "r1": "在市场、批发或D2C品牌合作方面有丰富经验",
+            "r2": "了解单元经济学：批发、加价、退货",
+            "r3": "愿意偶尔出差参加供应商会议"
+          }
+        }
+      }
+    },
+    "press": {
+      "metaTitle": "Affisell Press Kit",
+      "metaDescription": "媒体资源、公司事实和联系方式为Affisell — 一个以创作者为首的市场平台。",
+      "eyebrow": "Press",
+      "title": "Press Kit",
+      "description": "Facts, boilerplate and assets for journalists covering creator commerce, marketplace infrastructure and EU retail tech.",
+      "boilerplate": {
+        "title": "Boilerplate",
+        "short": "Affisell 是一个优先考虑创作者的市场平台，连接了验证的供应商、affiliate 商店和买家 —— 以透明的佣金和内置的 EU 合规为特色。",
+        "long": "在马赛成立，Affisell让创作者在几分钟内启动品牌商店，无需库存。供应商通过自动化的配送和Stripe Connect付款通过affiliate网络分发目录。该平台包括AI采购工具、Swipe Feed发现、Pulse垂直购物、GDPR自助服务和每笔订单的详细佣金分解。"
+      },
+      "facts": {
+        "title": "公司事实",
+        "founded": {
+          "label": "成立",
+          "value": "2024 · 马赛, 法国"
+        },
+        "hq": {
+          "label": "总部",
+          "value": "Affisell SAS · EU"
+        },
+        "model": {
+          "label": "模式",
+          "value": "B2B2C 市场平台 (供应商 · 代理商 · 买家)"
+        },
+        "stack": {
+          "label": "Stack",
+          "value": "Next.js, PostgreSQL, Stripe Connect, Vercel"
+        },
+        "compliance": {
+          "label": "合规性",
+          "value": "GDPR中心, 版本化法律文件, 发票PDF"
+        }
+      },
+      "assets": {
+        "title": "品牌资产",
+        "description": "邮件发送至 press@affisell.com 以获取向量Logo、UI截图和执行人员简介。",
+        "items": {
+          "logo": {
+            "label": "Logo包（SVG/PNG）",
+            "subject": "Affisell logo包请求"
+          },
+          "screenshots": {
+            "label": "产品截图",
+            "subject": "Affisell 产品截图"
+          },
+          "founder": {
+            "label": "创始人简介 & 头像",
+            "subject": "Affisell 创始人简介申请"
+          }
+        }
+      },
+      "news": {
+        "title": "最新新闻",
+        "read": "阅读 →",
+        "items": {
+          "n1": {
+            "title": "推广商 Swipe Feed 上线",
+            "date": "2026 年 5 月",
+            "href": "/blog/swipe-feed-affiliate-hub"
+          },
+          "n2": {
+            "title": "所有订单的佣金透明度",
+            "date": "2026年5月",
+            "href": "/blog/commission-transparency"
+          },
+          "n3": {
+            "title": "商家与买家隐私保护中心",
+            "date": "2026年5月",
+            "href": "/blog/gdpr-marketplace-trust"
+          }
+        }
+      },
+      "contact": {
+        "title": "媒体联系人",
+        "body": "对于采访、数据请求或演讲邀请，我们在2个工作日内回复。"
+      },
+      "legalNote": "法律实体细节在",
+      "legalLink": "法律公告"
+    }
+  },
+  "reviews": {
+    "title": "客户评价",
+    "writeReview": "写一条评价",
+    "ugcCount": "{count} 有照片或视频",
+    "distribution": "评价分布",
+    "sortLabel": "按评论排序",
+    "loadMore": "加载更多评论",
+    "emptyTitle": "成为第一个评论者",
+    "emptyBody": "分享您的体验，使用照片或视频 — 这有助于其他购物者做出决定。",
+    "filters": {
+      "all": "全部",
+      "photos": "照片",
+      "fiveStar": "5★",
+      "verified": "认证"
+    },
+    "sort": {
+      "top": "最有帮助",
+      "recent": "最新",
+      "rating": "最高评分",
+      "media": "带有媒体"
+    },
+    "write": {
+      "eyebrow": "信任引擎",
+      "title": "分享你的体验",
+      "close": "关闭",
+      "tapStars": "点击评分",
+      "headline": "标题 (可选)",
+      "headlinePlaceholder": "用一句话总结",
+      "experience": "您的评论",
+      "bodyPlaceholder": "您喜欢什么?我们应该改进什么?",
+      "photosVideos": "照片 & 视频",
+      "removeMedia": "移除",
+      "aiImprove": "AI 提升",
+      "aiLoading": "打磨中…",
+      "aiError": "AI 助手不可用",
+      "submit": "发布评论",
+      "submitting": "正在发布…",
+      "submitError": "无法发布评论",
+      "ratingRequired": "请为此评价选择星级",
+      "bodyMin": "请至少输入20个字符"
+    }
+  },
+  "auctions": {
+    "eyebrow": "实时协议",
+    "title": "Affisell Arena",
+    "live": "实时",
+    "back": "目录",
+    "subtitle": "神经拍卖窗口 · 赢家在拍卖价格核实",
+    "currentBid": "当前出价",
+    "bids": "投标",
+    "endsIn": "剩余时间",
+    "endingSoon": "最后一小时",
+    "heat": "热度 {score}",
+    "leader": "领先者",
+    "bidNow": "竞拍",
+    "powerBid": "Surge +10%",
+    "viewProduct": "查看产品",
+    "moreLots": "更多实时拍卖",
+    "empty": "竞拍场正在热身 — 每几分钟都会有新拍卖",
+    "tickerEmpty": "成为Affisell竞拍场的第一位投标者",
+    "bidPlaced": "在链上注册了投标 ✦",
+    "bidFailed": "无法投标"
+  },
+  "luxe": {
+    "eyebrow": "私人精选",
+    "title": "Affisell Luxe",
+    "back": "目录",
+    "subtitle": "精选作品 · 认证创作者 · 有限可见性",
+    "badgeLuxe": "Luxe",
+    "badgeCollection": "Collection",
+    "prestige": "豪华 {score}",
+    "acquire": "获取",
+    "viewPiece": "查看作品",
+    "allCollections": "全部",
+    "gallery": "画廊",
+    "empty": "目前没有Luxe作品。启用Affisell Luxe供应商产品，然后通过Affiliate列表它。",
+    "emptyPublic": "工作室正在筛选中。稍后再来看看新作品。",
+    "tickerEmpty": "Affisell Luxe — 精选品",
+    "curationNote": "只有供应商开启了Affisell Luxe的产品才会出现在这里（由代理商上架后）"
+  },
+  "sponsorBoost": {
+    "eyebrow": "Affisell Boost",
+    "title": "智能推广",
+    "subtitleSupplier": "在每个合作商店中提升您的目录。付费一部分零售价 — 高级置顶与实时评分。",
+    "subtitleAffiliate": "将您的列表推到市场的顶部。实时提升分数可见于ROI",
+    "liveScore": "实时加速分数",
+    "target": "目标",
+    "selectedSku": "激活SKU",
+    "htPrice": "批发{price}",
+    "noProducts": "无符合条件的产品。",
+    "investment": "批发投资",
+    "duration": "有效期",
+    "placement": {
+      "label": "放置位置",
+      "HOME_SPOTLIGHT": "首页焦点",
+      "CATEGORY_TOP": "分类顶部",
+      "SEARCH_BOOST": "搜索加速"
+    },
+    "budget": "预估预算",
+    "quoteMeta": "评分 {score} · {rate}% HT · {days}d",
+    "boostPower": "Power",
+    "boostPowerAria": "Boost score {score}",
+    "cta": "激活 Boost",
+    "checkoutError": "支付错误",
+    "recentCampaigns": "最近活动",
+    "status": {
+      "PENDING_PAYMENT": "待付款",
+      "ACTIVE": "活动中",
+      "EXPIRED": "已过期",
+      "CANCELLED": "已取消"
+    }
+  },
+  "demoLab": {
+    "eyebrow": "Affisell Demo Lab",
+    "title": "试用 Affisell",
+    "heroSubtitle": "三条引导路径 — 供应商、推广商、买家。无真实付款。您的反馈将影响我们下一步的产品。",
+    "startJourney": "开始旅程",
+    "sandboxNotice": "沙盒模式 — 订单和付款在生产环境中不会执行。",
+    "requiresAuth": "本步骤需要登录",
+    "tryStep": "试试",
+    "privacyNote": "反馈可能包含可选的电子邮件 — 保留 12 个月，永不出售。",
+    "backToDemo": "所有旅程",
+    "banner": "Demo Lab — 无风险探索",
+    "personas": {
+      "supplier": {
+        "title": "供应商旅程",
+        "subtitle": "供应中心、目录导入、affiliate预览 — 然后告诉我们你的想法。",
+        "cardTitle": "供应商",
+        "cardBody": "供应商,发布和履行为联盟网络。"
+      },
+      "affiliate": {
+        "title": "联盟旅程",
+        "subtitle": "在几次点击中发现、列出和估计利润率",
+        "cardTitle": "推广员",
+        "cardBody": "在Affisell目录中进行商品推广和佣金"
+      },
+      "buyer": {
+        "title": "买家旅程",
+        "subtitle": "浏览市场、建立信任、支持",
+        "cardTitle": "买家",
+        "cardBody": "购物商家商店端到端。"
+      }
+    },
+    "steps": {
+      "supplier": {
+        "supply": {
+          "title": "供货中心",
+          "body": "AliExpress、工厂 REST 和即将推出的渠道的统一视图。"
+        },
+        "import": {
+          "title": "导入 SKU",
+          "body": "URL、扩展名或 API — 在发布前预览一下。"
+        },
+        "preview": {
+          "title": "Affisell 预览",
+          "body": "就像你的合作伙伴一样看到佣金和检查清单。"
+        },
+        "publish": {
+          "title": "创建供应商账户",
+          "body": "快速注册测试完整的仪表板。"
+        }
+      },
+      "affiliate": {
+        "discover": {
+          "title": "发现",
+          "body": "直播购物流和创作者商店"
+        },
+        "catalog": {
+          "title": "市场",
+          "body": "浏览可上架的商品和指示性利润率。"
+        },
+        "hub": {
+          "title": "推广中心",
+          "body": "收益、上架商品和促销工具"
+        },
+        "join": {
+          "title": "加入",
+          "body": "几分钟内创建一个推广账户。"
+        }
+      },
+      "buyer": {
+        "browse": {
+          "title": "浏览",
+          "body": "市场目录和筛选器"
+        },
+        "shop": {
+          "title": "商店",
+          "body": "创作者商店流程和产品页面。"
+        },
+        "trust": {
+          "title": "信任",
+          "body": "关于运输、退货和安全支付的常见问题"
+        },
+        "account": {
+          "title": "买家账户",
+          "body": "订单跟踪和客户空间。"
+        }
+      }
+    },
+    "demoAccounts": {
+      "eyebrow": "神经访问",
+      "title": "进入沙盒 — 一键",
+      "subtitle": "预建账户，带有演示目录、通过KYC和完整仪表板。无需信用卡。",
+      "badge": "沙盒直播",
+      "enter": "进入演示",
+      "entering": "正在签入…",
+      "disabled": "Demo Lab is off (production without DEMO_LAB_ENABLED=1, or DEMO_LAB_ENABLED=0).",
+      "notConfigured": "在 Vercel → Environment Variables → Preview (并且 Production 如果需要) 中添加 DEMO_LAB_PASSWORD，重新部署后即可启用 Demo Lab。",
+      "rateLimited": "尝试次数过多 — 试试几分钟后再试。",
+      "signinFailed": "登录失败。检查 demo 配置或重试。",
+      "personas": {
+        "supplier": {
+          "title": "Demo 供应商",
+          "hint": "供货中心，导入，沙盒 SKU"
+        },
+        "affiliate": {
+          "title": "Demo 代理",
+          "hint": "中心，列表，实验室 SKU 的利润"
+        },
+        "buyer": {
+          "title": "示例买家",
+          "hint": "市场账户，订单跟踪"
+        }
+      }
+    },
+    "feedback": {
+      "title": "您的反馈很重要",
+      "subtitle": "1 到 5 — 这次旅程整体如何?",
+      "scoreAria": "整体评分",
+      "commentPlaceholder": "什么地方做得好，什么地方还需要改进…（可选）",
+      "emailPlaceholder": "留下联系方式（可选）",
+      "submit": "提交反馈",
+      "thanks": "感谢您 — 您的反馈为 Affisell 路线图提供了动力。",
+      "error": "发送失败。请稍后再试一次。"
+    }
+  },
+  "errors": {
+    "notFound": {
+      "title": "页面未找到",
+      "body": "页面不存在或已移动。",
+      "home": "返回首页"
+    },
+    "page": {
+      "label": "发生错误",
+      "title": "出现问题",
+      "body": "页面加载时出现问题。您可以重试或返回首页。",
+      "retry": "再试一次",
+      "home": "首页"
+    }
+  }
+}

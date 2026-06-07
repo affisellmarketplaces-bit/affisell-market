@@ -1,5 +1,5 @@
 import { bcp47ForAppLocale } from "@/lib/app-locale-format"
-import type { AppLocale } from "@/lib/i18n-locale"
+import { isAppLocale, type AppLocale } from "@/lib/i18n-locale"
 
 /** Listing sales counts for buyer-facing social proof (no Prisma). */
 
@@ -15,11 +15,7 @@ export function shouldShowBuyerSalesCount(count: number): boolean {
 /** Compact number for badges (e.g. 1.2k). */
 export function formatSalesCountCompact(count: number, locale: string): string {
   const n = normalizeListingSalesCount(count)
-  const loc = bcp47ForAppLocale(
-    (["en", "fr", "de", "es", "it", "nl", "pl"] as const).includes(locale as AppLocale)
-      ? (locale as AppLocale)
-      : "en"
-  )
+  const loc = bcp47ForAppLocale(isAppLocale(locale) ? locale : "en")
   if (n >= 10_000) {
     return new Intl.NumberFormat(loc, {
       notation: "compact",
