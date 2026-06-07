@@ -786,6 +786,16 @@
       "filtersHint": "Comme sur Amazon — par caractéristique",
       "euShipsLabel": "Union européenne (27 pays)",
       "freeShippingFacet": "Livraison offerte",
+      "facetShipsFromFrance": "France",
+      "facetPrice": {
+        "under25": "Moins de 25 €",
+        "25-100": "25 – 100 €",
+        "over100": "Plus de 100 €"
+      },
+      "facetDelivery": {
+        "under3": "≤ 3 jours",
+        "under7": "≤ 7 jours"
+      },
       "offerRail": {
         "eyebrow": "Économie circulaire",
         "clear": "Tout afficher"
@@ -2225,6 +2235,38 @@
       "submit": "Envoyer mon avis",
       "thanks": "Merci — votre retour alimente la roadmap Affisell.",
       "error": "Envoi impossible. Réessayez dans un instant."
+    }
+  },
+  "orderReturns": {
+    "reasons": {
+      "NOT_AS_DESCRIBED": "Article non conforme à la description",
+      "DEFECTIVE_OR_BROKEN": "Défectueux ou cassé",
+      "WRONG_ITEM": "Mauvais article reçu",
+      "SIZE_OR_FIT": "Taille ou coupe",
+      "CHANGED_MIND": "Changement d’avis",
+      "DAMAGED_IN_SHIPPING": "Endommagé pendant l’envoi",
+      "OTHER": "Autre"
+    },
+    "autoBuy": {
+      "PENDING": "Achat fournisseur en attente",
+      "BUYING": "Achat fournisseur en cours",
+      "BOUGHT": "Expédié par fournisseur",
+      "FAILED": "Problème fournisseur",
+      "REFUNDED": "Remboursé (rupture stock)",
+      "DEFAULT": "Fournisseur"
+    },
+    "trackingLabel": "Suivi"
+  },
+  "emails": {
+    "orderConfirmation": {
+      "preview": "Commande Affisell #{orderId} confirmée",
+      "heading": "Merci pour votre commande",
+      "orderNumber": "Commande #{orderId}",
+      "quantity": "Quantité : {quantity}",
+      "total": "Total : {total} {currency}",
+      "ctaOrder": "Voir ma commande",
+      "ctaTracking": "Suivre mon colis",
+      "footer": "Une question ? Répondez à cet e-mail ou consultez votre compte."
     }
   },
   "errors": {

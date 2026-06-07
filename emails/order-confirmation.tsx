@@ -15,6 +15,8 @@ import {
   Row,
 } from "@react-email/components"
 
+import type { OrderConfirmationEmailCopy } from "@/lib/emails/load-email-copy"
+
 export interface OrderConfirmationEmailProps {
   orderId: string
   productName: string
@@ -25,10 +27,10 @@ export interface OrderConfirmationEmailProps {
   customerName: string
   orderUrl: string
   trackingUrl?: string
+  copy: OrderConfirmationEmailCopy
 }
 
 export const OrderConfirmationEmail = ({
-  orderId,
   productName,
   productImageUrl,
   quantity,
@@ -36,16 +38,15 @@ export const OrderConfirmationEmail = ({
   currency,
   orderUrl,
   trackingUrl,
+  copy,
 }: OrderConfirmationEmailProps) => {
-  const shortOrderId = orderId.slice(-6).toUpperCase()
-
   return (
     <Html>
       <Head />
-      <Preview>Commande Affisell #{shortOrderId} confirmée</Preview>
+      <Preview>{copy.preview}</Preview>
       <Body style={main}>
         <Container style={container}>
-          <Heading style={h1}>Merci pour votre commande</Heading>
+          <Heading style={h1}>{copy.heading}</Heading>
 
           <Row
             style={{
@@ -66,21 +67,19 @@ export const OrderConfirmationEmail = ({
             </Column>
             <Column style={{ paddingLeft: "16px" }}>
               <Text style={productNameStyle}>{productName}</Text>
-              <Text style={qtyStyle}>Quantité: {quantity}</Text>
-              <Text style={qtyStyle}>
-                Total: {total} {currency}
-              </Text>
+              <Text style={qtyStyle}>{copy.quantity}</Text>
+              <Text style={qtyStyle}>{copy.total}</Text>
             </Column>
           </Row>
 
           <Section style={{ textAlign: "center", margin: "32px 0" }}>
             <Button href={orderUrl} style={buttonStyle}>
-              Voir ma commande
+              {copy.ctaOrder}
             </Button>
             {trackingUrl ? (
               <Text style={{ fontSize: "12px", color: "#666", marginTop: "12px" }}>
                 <Link href={trackingUrl} style={{ color: "#5469d4" }}>
-                  Suivre mon colis
+                  {copy.ctaTracking}
                 </Link>
               </Text>
             ) : null}
@@ -88,10 +87,7 @@ export const OrderConfirmationEmail = ({
 
           <Hr style={hr} />
 
-          <Text style={footer}>
-            Affisell -{" "}
-            <Link href="https://affisell-market.vercel.app">affisell-market.vercel.app</Link>
-          </Text>
+          <Text style={footer}>{copy.footer}</Text>
         </Container>
       </Body>
     </Html>
@@ -134,6 +130,15 @@ OrderConfirmationEmail.PreviewProps = {
   currency: "EUR",
   customerName: "Marie",
   orderUrl: "https://affisell-market.vercel.app/orders/clpreview00000001",
+  copy: {
+    preview: "Commande Affisell #000001 confirmée",
+    heading: "Merci pour votre commande",
+    quantity: "Quantité : 1",
+    total: "Total : 49.99 EUR",
+    ctaOrder: "Voir ma commande",
+    ctaTracking: "Suivre mon colis",
+    footer: "Une question ? Répondez à cet e-mail ou consultez votre compte.",
+  },
 } satisfies OrderConfirmationEmailProps
 
 export default OrderConfirmationEmail

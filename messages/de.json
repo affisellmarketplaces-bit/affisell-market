@@ -828,7 +828,17 @@
       "listingCount": "{count, plural, one {# Anzeige} other {# Anzeigen}}",
       "listingCountForQuery": " für « {query} »",
       "dbEmptyTitle": "Datenbank vorübergehend nicht verfügbar",
-      "dbDevHint": "Lokale Entwicklung: Führen Sie npm run db:local:setup aus und setzen Sie DATABASE_URL in .env.local auf postgresql://affisell:affisell@localhost:5433/affisell"
+      "dbDevHint": "Lokale Entwicklung: Führen Sie npm run db:local:setup aus und setzen Sie DATABASE_URL in .env.local auf postgresql://affisell:affisell@localhost:5433/affisell",
+      "facetShipsFromFrance": "France",
+      "facetPrice": {
+        "under25": "Under €25",
+        "25-100": "€25 – €100",
+        "over100": "Over €100"
+      },
+      "facetDelivery": {
+        "under3": "≤ 3 days",
+        "under7": "≤ 7 days"
+      }
     },
     "mobileHub": {
       "title": "Affisell Hub",
@@ -2261,6 +2271,38 @@
       "body": "Ein Fehler ist aufgetreten, während diese Seite geladen wurde. Sie können es erneut versuchen oder zur Startseite zurückkehren.",
       "retry": "Erneut versuchen",
       "home": "Zurück zur Startseite"
+    }
+  },
+  "orderReturns": {
+    "reasons": {
+      "NOT_AS_DESCRIBED": "Item not as described",
+      "DEFECTIVE_OR_BROKEN": "Defective or broken",
+      "WRONG_ITEM": "Wrong item received",
+      "SIZE_OR_FIT": "Size or fit issue",
+      "CHANGED_MIND": "Changed mind",
+      "DAMAGED_IN_SHIPPING": "Damaged in shipping",
+      "OTHER": "Other"
+    },
+    "autoBuy": {
+      "PENDING": "Supplier purchase pending",
+      "BUYING": "Supplier purchase in progress",
+      "BOUGHT": "Shipped by supplier",
+      "FAILED": "Supplier issue",
+      "REFUNDED": "Refunded (out of stock)",
+      "DEFAULT": "Supplier"
+    },
+    "trackingLabel": "Tracking"
+  },
+  "emails": {
+    "orderConfirmation": {
+      "preview": "Affisell order #{orderId} confirmed",
+      "heading": "Thank you for your order",
+      "orderNumber": "Order #{orderId}",
+      "quantity": "Qty: {quantity}",
+      "total": "Total: {total} {currency}",
+      "ctaOrder": "View my order",
+      "ctaTracking": "Track shipment",
+      "footer": "Questions? Reply to this email or visit your account."
     }
   }
 }

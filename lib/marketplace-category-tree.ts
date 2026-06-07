@@ -106,7 +106,7 @@ export async function loadMarketplaceCategoryTree(
     return await loadMarketplaceCategoryTreeUncached(locale)
   } catch (error) {
     console.error("[marketplace-category-tree]", error)
-    const staticCats = staticMarketplaceCategories()
+    const staticCats = staticMarketplaceCategories(locale)
     return {
       categories: localizeCategoryTree(staticCats, locale),
       catalogTotal: 0,

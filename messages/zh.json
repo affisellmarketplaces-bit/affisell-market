@@ -828,7 +828,17 @@
       "listingCount": "{count, plural, one {# 件} other {# 件}}",
       "listingCountForQuery": " for « {query} »",
       "dbEmptyTitle": "数据库暂时不可用",
-      "dbDevHint": "本地开发: 运行 npm run db:local:setup 并在 .env.local 中设置 DATABASE_URL 为 postgresql://affisell:affisell@localhost:5433/affisell"
+      "dbDevHint": "本地开发: 运行 npm run db:local:setup 并在 .env.local 中设置 DATABASE_URL 为 postgresql://affisell:affisell@localhost:5433/affisell",
+      "facetShipsFromFrance": "France",
+      "facetPrice": {
+        "under25": "Under €25",
+        "25-100": "€25 – €100",
+        "over100": "Over €100"
+      },
+      "facetDelivery": {
+        "under3": "≤ 3 days",
+        "under7": "≤ 7 days"
+      }
     },
     "mobileHub": {
       "title": "Affisell Hub",
@@ -2261,6 +2271,38 @@
       "body": "页面加载时出现问题。您可以重试或返回首页。",
       "retry": "再试一次",
       "home": "首页"
+    }
+  },
+  "orderReturns": {
+    "reasons": {
+      "NOT_AS_DESCRIBED": "Item not as described",
+      "DEFECTIVE_OR_BROKEN": "Defective or broken",
+      "WRONG_ITEM": "Wrong item received",
+      "SIZE_OR_FIT": "Size or fit issue",
+      "CHANGED_MIND": "Changed mind",
+      "DAMAGED_IN_SHIPPING": "Damaged in shipping",
+      "OTHER": "Other"
+    },
+    "autoBuy": {
+      "PENDING": "Supplier purchase pending",
+      "BUYING": "Supplier purchase in progress",
+      "BOUGHT": "Shipped by supplier",
+      "FAILED": "Supplier issue",
+      "REFUNDED": "Refunded (out of stock)",
+      "DEFAULT": "Supplier"
+    },
+    "trackingLabel": "Tracking"
+  },
+  "emails": {
+    "orderConfirmation": {
+      "preview": "Affisell order #{orderId} confirmed",
+      "heading": "Thank you for your order",
+      "orderNumber": "Order #{orderId}",
+      "quantity": "Qty: {quantity}",
+      "total": "Total: {total} {currency}",
+      "ctaOrder": "View my order",
+      "ctaTracking": "Track shipment",
+      "footer": "Questions? Reply to this email or visit your account."
     }
   }
 }

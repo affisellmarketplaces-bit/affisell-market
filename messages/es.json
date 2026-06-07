@@ -828,7 +828,17 @@
       "listingCount": "{count, plural, one {# lista} other {# listas}}",
       "listingCountForQuery": " para « {query} »",
       "dbEmptyTitle": "Base de datos temporalmente no disponible",
-      "dbDevHint": "Desarrollo local: ejecuta npm run db:local:setup y establece DATABASE_URL en .env.local a postgresql://affisell:affisell@localhost:5433/affisell"
+      "dbDevHint": "Desarrollo local: ejecuta npm run db:local:setup y establece DATABASE_URL en .env.local a postgresql://affisell:affisell@localhost:5433/affisell",
+      "facetShipsFromFrance": "France",
+      "facetPrice": {
+        "under25": "Under €25",
+        "25-100": "€25 – €100",
+        "over100": "Over €100"
+      },
+      "facetDelivery": {
+        "under3": "≤ 3 days",
+        "under7": "≤ 7 days"
+      }
     },
     "mobileHub": {
       "title": "Affisell Hub",
@@ -2261,6 +2271,38 @@
       "body": "Se ha producido un problema al cargar esta página. Puede intentarlo de nuevo o volver a la página de inicio.",
       "retry": "Intentarlo de nuevo",
       "home": "Inicio"
+    }
+  },
+  "orderReturns": {
+    "reasons": {
+      "NOT_AS_DESCRIBED": "Item not as described",
+      "DEFECTIVE_OR_BROKEN": "Defective or broken",
+      "WRONG_ITEM": "Wrong item received",
+      "SIZE_OR_FIT": "Size or fit issue",
+      "CHANGED_MIND": "Changed mind",
+      "DAMAGED_IN_SHIPPING": "Damaged in shipping",
+      "OTHER": "Other"
+    },
+    "autoBuy": {
+      "PENDING": "Supplier purchase pending",
+      "BUYING": "Supplier purchase in progress",
+      "BOUGHT": "Shipped by supplier",
+      "FAILED": "Supplier issue",
+      "REFUNDED": "Refunded (out of stock)",
+      "DEFAULT": "Supplier"
+    },
+    "trackingLabel": "Tracking"
+  },
+  "emails": {
+    "orderConfirmation": {
+      "preview": "Affisell order #{orderId} confirmed",
+      "heading": "Thank you for your order",
+      "orderNumber": "Order #{orderId}",
+      "quantity": "Qty: {quantity}",
+      "total": "Total: {total} {currency}",
+      "ctaOrder": "View my order",
+      "ctaTracking": "Track shipment",
+      "footer": "Questions? Reply to this email or visit your account."
     }
   }
 }

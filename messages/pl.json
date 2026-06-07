@@ -828,7 +828,17 @@
       "listingCount": "{count, plural, one {# oferta} other {# oferty}}",
       "listingCountForQuery": " dla « {query} »",
       "dbEmptyTitle": "Baza danych tymczasowo niedostępna",
-      "dbDevHint": "Local dev: uruchom npm run db:local:setup i ustaw DATABASE_URL w .env.local na postgresql://affisell:affisell@localhost:5433/affisell"
+      "dbDevHint": "Local dev: uruchom npm run db:local:setup i ustaw DATABASE_URL w .env.local na postgresql://affisell:affisell@localhost:5433/affisell",
+      "facetShipsFromFrance": "France",
+      "facetPrice": {
+        "under25": "Under €25",
+        "25-100": "€25 – €100",
+        "over100": "Over €100"
+      },
+      "facetDelivery": {
+        "under3": "≤ 3 days",
+        "under7": "≤ 7 days"
+      }
     },
     "mobileHub": {
       "title": "Affisell Hub",
@@ -2261,6 +2271,38 @@
       "body": "Wystąpił błąd podczas ładowania strony. Możesz spróbować ponownie lub wrócić na stronę główną.",
       "retry": "Spróbuj ponownie",
       "home": "Domu"
+    }
+  },
+  "orderReturns": {
+    "reasons": {
+      "NOT_AS_DESCRIBED": "Item not as described",
+      "DEFECTIVE_OR_BROKEN": "Defective or broken",
+      "WRONG_ITEM": "Wrong item received",
+      "SIZE_OR_FIT": "Size or fit issue",
+      "CHANGED_MIND": "Changed mind",
+      "DAMAGED_IN_SHIPPING": "Damaged in shipping",
+      "OTHER": "Other"
+    },
+    "autoBuy": {
+      "PENDING": "Supplier purchase pending",
+      "BUYING": "Supplier purchase in progress",
+      "BOUGHT": "Shipped by supplier",
+      "FAILED": "Supplier issue",
+      "REFUNDED": "Refunded (out of stock)",
+      "DEFAULT": "Supplier"
+    },
+    "trackingLabel": "Tracking"
+  },
+  "emails": {
+    "orderConfirmation": {
+      "preview": "Affisell order #{orderId} confirmed",
+      "heading": "Thank you for your order",
+      "orderNumber": "Order #{orderId}",
+      "quantity": "Qty: {quantity}",
+      "total": "Total: {total} {currency}",
+      "ctaOrder": "View my order",
+      "ctaTracking": "Track shipment",
+      "footer": "Questions? Reply to this email or visit your account."
     }
   }
 }

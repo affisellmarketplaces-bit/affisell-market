@@ -12,10 +12,12 @@ import {
   type CarrierTier,
   type ShippingCarrierDef,
 } from "@/lib/shipping/carrier-directory"
+import type { AppLocale } from "@/lib/i18n-locale"
+import { pickBinaryLabel } from "@/lib/i18n-ui-locale"
 import { cn } from "@/lib/utils"
 
 type Props = {
-  locale?: "fr" | "en"
+  locale?: AppLocale
   labels: {
     title: string
     subtitle: string
@@ -73,7 +75,7 @@ function CarrierRow({
   labels,
 }: {
   carrier: ShippingCarrierDef
-  locale: "fr" | "en"
+  locale: AppLocale
   labels: Props["labels"]
 }) {
   return (
@@ -98,7 +100,10 @@ function CarrierRow({
             </span>
           </div>
           <p className="mt-1.5 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-            {locale === "fr" ? carrier.trackingHintFr : carrier.trackingHintEn}
+            {pickBinaryLabel(
+              { fr: carrier.trackingHintFr, en: carrier.trackingHintEn },
+              locale
+            )}
           </p>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {carrier.tags.map((tag) => (
@@ -163,7 +168,7 @@ export function ShippingCarrierDirectory({ locale = "fr", labels }: Props) {
           >
             {SHIPPING_ORIGIN_COUNTRIES.map((c) => (
               <option key={c.code} value={c.code}>
-                {c.flag} {locale === "fr" ? c.labelFr : c.labelEn}
+                {c.flag} {countryLabel(c.code, locale)}
               </option>
             ))}
           </select>
@@ -179,7 +184,7 @@ export function ShippingCarrierDirectory({ locale = "fr", labels }: Props) {
           >
             {SHIPPING_DESTINATION_COUNTRIES.map((c) => (
               <option key={c.code} value={c.code}>
-                {c.flag} {locale === "fr" ? c.labelFr : c.labelEn}
+                {c.flag} {countryLabel(c.code, locale)}
               </option>
             ))}
           </select>

@@ -28,11 +28,12 @@ Legacy paths redirect: `/` → `/en`, `/creators` → `/en/creators`.
 
 ### i18n stack
 
-- `i18n/routing.ts` — locales `en` \| `fr`, prefix always
+- `i18n/routing.ts` — locales `en` | `fr` | `de` | `es` | `it` | `nl` | `pl` | `zh`
 - `i18n/request.ts` — messages + cookie `affisell_locale`
 - `middleware.ts` — next-intl + auth (merged)
-- `messages/en.json`, `messages/fr.json` — all UI copy
-- `components/LanguageSwitcher.tsx` — dropdown FR/EN
+- `messages/{locale}.json` — full UI bundles (1722+ keys each)
+- `scripts/i18n-translate-locale.mjs` — Groq batch translate + parity check
+- `components/LanguageSwitcher.tsx` — 8-locale dropdown
 
 ### Key UI components
 

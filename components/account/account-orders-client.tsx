@@ -8,7 +8,13 @@ import { AccountOrderFulfillmentPanel } from "@/components/account/account-order
 import { BentoCard } from "@/components/affisell/bento-ui"
 import { Button } from "@/components/ui/button"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
-import { RETURN_REASON_CODES, RETURN_REASON_LABELS } from "@/lib/order-return-types"
+import {
+  getAutoBuyStatusLabel,
+  getReturnReasonLabel,
+  RETURN_REASON_CODES,
+} from "@/lib/order-return-types"
+import type { AppLocale } from "@/lib/i18n-locale"
+import { tMessage } from "@/lib/i18n-pick-message"
 import { cn } from "@/lib/utils"
 
 type OrderRow = {
@@ -87,7 +93,11 @@ export function AccountOrdersClient({
   const [error, setError] = useState<string | null>(null)
 
   const reasonOptions = useMemo(
-    () => RETURN_REASON_CODES.map((code) => ({ code, label: RETURN_REASON_LABELS[code][lang] })),
+    () =>
+      RETURN_REASON_CODES.map((code) => ({
+        code,
+        label: getReturnReasonLabel(code, lang as AppLocale),
+      })),
     [lang]
   )
 
@@ -190,9 +200,9 @@ export function AccountOrdersClient({
               ) : null}
               {o.autoBuy ? (
                 <p className="mt-2 text-xs font-medium text-violet-800 dark:text-violet-200">
-                  {lang === "fr" ? o.autoBuy.labelFr : o.autoBuy.labelEn}
+                  {getAutoBuyStatusLabel(o.autoBuy.status, lang as AppLocale)}
                   {o.autoBuy.aeTracking
-                    ? ` · ${lang === "fr" ? "Suivi" : "Tracking"}: ${o.autoBuy.aeTracking}`
+                    ? ` · ${tMessage(lang as AppLocale, "orderReturns.trackingLabel", "Tracking")}: ${o.autoBuy.aeTracking}`
                     : o.trackingNumber
                       ? ` · ${o.trackingCarrier ?? "AliExpress"} ${o.trackingNumber}`
                       : null}

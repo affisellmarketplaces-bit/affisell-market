@@ -16,6 +16,7 @@ const TAXONOMY_FILE_BY_LOCALE: Record<AppLocale, string> = {
 
 const nameByLocale = new Map<AppLocale, Map<number, string>>()
 const fullPathByLocale = new Map<AppLocale, Map<number, string>>()
+const englishLeafToGoogleId = new Map<string, number>()
 
 function parseTaxonomyFile(fileName: string): Map<number, string> {
   const filePath = path.join(process.cwd(), "prisma", fileName)
@@ -55,6 +56,13 @@ function parseTaxonomyFullPaths(fileName: string): Map<number, string> {
   return map
 }
 
+function indexEnglishLeafNames(map: Map<number, string>): void {
+  if (englishLeafToGoogleId.size > 0) return
+  for (const [googleId, name] of map) {
+    englishLeafToGoogleId.set(name.toLowerCase(), googleId)
+  }
+}
+
 function loadNameMap(locale: AppLocale): Map<number, string> {
   const cached = nameByLocale.get(locale)
   if (cached) return cached
@@ -63,6 +71,7 @@ function loadNameMap(locale: AppLocale): Map<number, string> {
   try {
     const map = parseTaxonomyFile(fileName)
     nameByLocale.set(locale, map)
+    if (locale === "en") indexEnglishLeafNames(map)
     return map
   } catch (error) {
     console.error("[google-taxonomy-locale] load failed", { locale, fileName, error })
@@ -87,6 +96,15 @@ function loadFullPathMap(locale: AppLocale): Map<number, string> {
     fullPathByLocale.set(locale, fallback)
     return fallback
   }
+}
+
+/** Static EN taxonomy fallback — match leaf name against Google EN taxonomy. */
+export function localizeEnglishLeafName(englishName: string, locale: AppLocale): string {
+  if (locale === "en") return englishName
+  loadNameMap("en")
+  const googleId = englishLeafToGoogleId.get(englishName.trim().toLowerCase())
+  if (googleId == null) return englishName
+  return localizeCategoryName({ googleId, name: englishName }, locale)
 }
 
 /** Display label for a category row stored with Google taxonomy (FR names in DB). */

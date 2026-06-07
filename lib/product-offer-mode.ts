@@ -89,6 +89,8 @@ export function resolvePurchaseMinQty(offerMode: ProductOfferMode, minOrderQuant
   return 1
 }
 
+import type { AppLocale } from "@/lib/i18n-locale"
+
 export type OfferModeBadge = {
   label: string
   shortLabel: string
@@ -96,7 +98,7 @@ export type OfferModeBadge = {
   icon: string
 }
 
-export function offerModeBadge(mode: ProductOfferMode, locale: "fr" | "en" = "fr"): OfferModeBadge | null {
+export function offerModeBadge(mode: ProductOfferMode, locale: AppLocale = "fr"): OfferModeBadge | null {
   const fr: Record<ProductOfferMode, OfferModeBadge | null> = {
     STANDARD: null,
     REFURBISHED: {
@@ -151,7 +153,7 @@ export function offerModeBadge(mode: ProductOfferMode, locale: "fr" | "en" = "fr
       icon: "🎁",
     },
   }
-  return (locale === "en" ? en : fr)[mode]
+  return (locale === "fr" ? fr : en)[mode]
 }
 
 export function isDonationListing(offerMode: ProductOfferMode, priceCents: number): boolean {

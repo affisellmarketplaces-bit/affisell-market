@@ -6,6 +6,7 @@ import {
   isGroqRateLimitError,
   normalizeGroqClientError,
 } from "@/lib/ai/groq-vision"
+import { hasOpenAiFallback, openaiChatText } from "@/lib/ai/openai-chat-fallback"
 
 export const GROQ_TEXT_MODEL = "llama-3.1-8b-instant"
 export const GROQ_VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
@@ -33,26 +34,76 @@ export type GroqChatOptions = {
   vision?: boolean
 }
 
+function prepareMessages(
+  options: GroqChatOptions
+): Groq.Chat.Completions.ChatCompletionMessageParam[] {
+  return options.vision || options.model === GROQ_VISION_MODEL
+    ? capVisionImagesInMessages(options.messages, GROQ_VISION_MAX_IMAGES)
+    : options.messages
+}
+
+async function groqChatTextDirect(
+  groq: Groq,
+  options: GroqChatOptions
+): Promise<string | null> {
+  const messages = prepareMessages(options)
+  const completion = await groq.chat.completions.create({
+    model: options.model ?? (options.vision ? GROQ_VISION_MODEL : GROQ_TEXT_MODEL),
+    messages,
+    temperature: options.temperature ?? 0.2,
+    max_tokens: options.max_tokens,
+    response_format: options.response_format,
+  })
+  return completion.choices[0]?.message?.content?.trim() ?? null
+}
+
+function shouldFallbackToOpenAi(err: unknown): boolean {
+  if (isGroqRateLimitError(err)) return true
+  const raw =
+    err instanceof Error
+      ? err.message
+      : err && typeof err === "object" && "message" in err
+        ? String((err as { message: unknown }).message)
+        : String(err)
+  return /503|502|504|service unavailable|overloaded|timeout/i.test(raw)
+}
+
+async function tryOpenAiFallback(
+  options: GroqChatOptions,
+  reason: string
+): Promise<string | null> {
+  if (!hasOpenAiFallback()) return null
+  console.log("[groq-client]", { event: "openai_fallback", reason })
+  return openaiChatText({
+    messages: options.messages,
+    temperature: options.temperature,
+    max_tokens: options.max_tokens,
+    response_format: options.response_format,
+    vision: options.vision || options.model === GROQ_VISION_MODEL,
+    model: options.model,
+  })
+}
+
 export async function groqChatText(options: GroqChatOptions): Promise<string | null> {
   const groq = createGroqClient()
-  if (!groq) return null
 
-  const messages =
-    options.vision || options.model === GROQ_VISION_MODEL
-      ? capVisionImagesInMessages(options.messages, GROQ_VISION_MAX_IMAGES)
-      : options.messages
-
-  try {
-    const completion = await groq.chat.completions.create({
-      model: options.model ?? (options.vision ? GROQ_VISION_MODEL : GROQ_TEXT_MODEL),
-      messages,
-      temperature: options.temperature ?? 0.2,
-      max_tokens: options.max_tokens,
-      response_format: options.response_format,
-    })
-
-    return completion.choices[0]?.message?.content?.trim() ?? null
-  } catch (err: unknown) {
-    throw normalizeGroqClientError(err)
+  if (groq) {
+    try {
+      return await groqChatTextDirect(groq, options)
+    } catch (err: unknown) {
+      if (shouldFallbackToOpenAi(err)) {
+        const fallback = await tryOpenAiFallback(
+          options,
+          isGroqRateLimitError(err) ? "groq_rate_limit" : "groq_unavailable"
+        )
+        if (fallback) return fallback
+      }
+      throw normalizeGroqClientError(err)
+    }
   }
+
+  const openaiOnly = await tryOpenAiFallback(options, "no_groq_key")
+  if (openaiOnly) return openaiOnly
+
+  return null
 }

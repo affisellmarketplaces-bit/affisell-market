@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Generates messages/overrides/{de,es,it,nl,pl}.json — buyer-critical namespaces.
- * Run: node scripts/seed-buyer-locale-overrides.mjs
+ * @deprecated Full bundles live in messages/{locale}.json — overrides/ removed.
+ * Kept for reference only. Do not run in CI.
  */
 import { writeFileSync } from "node:fs"
 import { join, dirname } from "node:path"

@@ -1,5 +1,8 @@
 /** ISO 3166-1 alpha-2 — destinations Affisell checkout + origines fournisseurs courantes. */
 
+import type { AppLocale } from "@/lib/i18n-locale"
+import { intlLocaleTag, pickBinaryLabel } from "@/lib/i18n-ui-locale"
+
 export type ShippingCountry = {
   code: string
   labelFr: string
@@ -425,9 +428,20 @@ export function resolveCarriersForRoute(originCode: string, destinationCode: str
   })
 }
 
-export function countryLabel(code: string, locale: "fr" | "en"): string {
+export function countryLabel(code: string, locale: AppLocale | "fr" | "en"): string {
+  const normalized = code.trim().toUpperCase()
+  if (!normalized) return code
+
+  try {
+    const intl = new Intl.DisplayNames([intlLocaleTag(locale as AppLocale)], { type: "region" })
+    const localized = intl.of(normalized)
+    if (localized) return localized
+  } catch {
+    /* Intl unavailable */
+  }
+
   const all = [...SHIPPING_DESTINATION_COUNTRIES, ...SHIPPING_ORIGIN_COUNTRIES]
-  const row = all.find((c) => c.code === code.toUpperCase())
+  const row = all.find((c) => c.code === normalized)
   if (!row) return code
-  return locale === "fr" ? row.labelFr : row.labelEn
+  return pickBinaryLabel({ fr: row.labelFr, en: row.labelEn }, locale)
 }

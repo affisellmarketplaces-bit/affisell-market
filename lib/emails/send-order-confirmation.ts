@@ -3,6 +3,11 @@ import { Resend } from "resend"
 
 import { OrderConfirmationEmail } from "@/emails/order-confirmation"
 import {
+  loadOrderConfirmationEmailCopy,
+  orderConfirmationEmailSubject,
+} from "@/lib/emails/load-email-copy"
+import type { AppLocale } from "@/lib/i18n-locale"
+import {
   readResendDeliveryConfig,
   resolveResendDeliveryRecipient,
 } from "@/lib/emails/resend-delivery"
@@ -49,6 +54,7 @@ export async function sendOrderConfirmationEmail({
   customerName,
   orderUrl,
   trackingUrl,
+  locale = "fr",
 }: {
   orderId: string
   productName: string
@@ -60,6 +66,7 @@ export async function sendOrderConfirmationEmail({
   customerName?: string
   orderUrl?: string
   trackingUrl?: string
+  locale?: AppLocale
 }) {
   const config = readResendDeliveryConfig()
   if (!config) {
@@ -68,8 +75,13 @@ export async function sendOrderConfirmationEmail({
   }
   const resend = new Resend(config.apiKey)
   const { to } = resolveResendDeliveryRecipient("order-confirmation", customerEmail, config)
-  const shortOrderId = orderId.slice(-6).toUpperCase()
   const resolvedOrderUrl = orderUrl ?? `${resolveAppUrl()}/orders/${orderId}`
+  const emailCopy = loadOrderConfirmationEmailCopy(locale, {
+    orderId,
+    quantity,
+    total,
+    currency: currency.toUpperCase(),
+  })
 
   const html = await render(
     OrderConfirmationEmail({
@@ -82,13 +94,14 @@ export async function sendOrderConfirmationEmail({
       customerName: resolveCustomerName(customerName, customerEmail),
       orderUrl: resolvedOrderUrl,
       trackingUrl: trackingUrl || undefined,
+      copy: emailCopy,
     })
   )
 
   const { data, error } = await resend.emails.send({
     from: config.from,
     to,
-    subject: `Commande Affisell #${shortOrderId} confirmée`,
+    subject: orderConfirmationEmailSubject(locale, orderId),
     html,
   })
 
