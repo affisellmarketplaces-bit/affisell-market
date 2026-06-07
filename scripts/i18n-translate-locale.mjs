@@ -21,7 +21,7 @@ const LOCALE_NAMES = {
   pl: "Polish (Polski)",
 }
 
-const MAX_LEAVES_PER_BATCH = 35
+const MAX_LEAVES_PER_BATCH = Number(process.env.GROQ_I18N_BATCH_SIZE) || 35
 
 function flattenLeaves(obj, prefix = "") {
   /** @type {Record<string, string>} */
@@ -110,7 +110,7 @@ ${JSON.stringify(flatBatch, null, 2)}`
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
         temperature: 0.1,
-        max_tokens: 8192,
+        max_tokens: Math.min(8192, Math.max(512, Object.keys(flatBatch).length * 120 + 256)),
       })
 
       const raw = completion.choices[0]?.message?.content?.trim()
@@ -125,6 +125,8 @@ ${JSON.stringify(flatBatch, null, 2)}`
       return parsed
     } catch (err) {
       const is429 = err?.status === 429 || err?.error?.error?.code === "rate_limit_exceeded"
+      const is413 = err?.status === 413
+      if (is413) throw err
       if (!is429 || attempt === MAX_RATE_LIMIT_RETRIES) throw err
       const waitSec = parseRetryAfterSeconds(err)
       console.log(
