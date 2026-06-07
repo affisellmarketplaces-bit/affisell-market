@@ -8,6 +8,7 @@ export const FULL_MESSAGE_BUNDLE_LOCALES = [
   "es",
   "it",
   "nl",
+  "pl",
 ] as const satisfies readonly AppLocale[]
 
 export function isFullMessageBundleLocale(locale: string): locale is AppLocale {
