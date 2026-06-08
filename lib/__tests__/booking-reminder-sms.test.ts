@@ -4,6 +4,18 @@ import { bookingReminderSmsBody } from "@/lib/sms/send-booking-reminder-sms"
 import { normalizeE164Phone } from "@/lib/sms/twilio-delivery"
 
 describe("booking reminder sms", () => {
+  it("builds FR restaurant reminder SMS", () => {
+    const body = bookingReminderSmsBody({
+      productName: "Le Comptoir",
+      passUrl: "https://affisell.com/booking/pass/abc",
+      startsAtIso: "2026-06-10T20:00:00.000Z",
+      listingKind: "RESTAURANT",
+      locale: "fr",
+    })
+    expect(body).toContain("Table")
+    expect(body).toContain("Le Comptoir")
+  })
+
   it("builds FR cinema copy with pass URL", () => {
     const body = bookingReminderSmsBody({
       productName: "Dune Part Two",

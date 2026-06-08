@@ -1,6 +1,14 @@
 import { maskEmailForLog } from "@/lib/emails/mask-email"
-import { isExperienceListingKind } from "@/lib/booking/types"
+import { bookingVerticalCopyFamily } from "@/lib/booking/vertical-copy"
 import type { BookingSnapshot } from "@/lib/booking/types"
+
+function inboxKindLabel(listingKind: string): string {
+  const family = bookingVerticalCopyFamily(listingKind)
+  if (family === "restaurant") return "Table"
+  if (family === "museum") return "Visite"
+  if (family === "experience") return "Séance"
+  return "RDV"
+}
 
 export function formatSupplierBookingConfirmedInbox(args: {
   productName: string
@@ -10,15 +18,15 @@ export function formatSupplierBookingConfirmedInbox(args: {
   seatLabels: string[]
   customerEmail: string
 }): string {
-  const experience = isExperienceListingKind(args.listingKind)
+  const family = bookingVerticalCopyFamily(args.listingKind)
   const when = formatWhenShort(args.startsAtIso)
   const seats =
     args.seatLabels.length > 0
       ? ` · ${args.seatLabels.join(", ")}`
-      : experience
+      : family !== "service"
         ? ` · ×${args.quantity}`
         : ""
-  const kind = experience ? "Séance" : "RDV"
+  const kind = inboxKindLabel(args.listingKind)
   return `Réservation confirmée · ${kind} ${when} · ${args.productName}${seats} · ${maskEmailForLog(args.customerEmail)}`
 }
 

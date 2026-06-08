@@ -27,6 +27,11 @@ describe("supplier booking alerts", () => {
     expect(copy.subject("Salon")).toBe("Réservation · Salon")
   })
 
+  it("returns FR restaurant alert copy", () => {
+    const copy = copyForSupplierBookingAlert("fr", "RESTAURANT")
+    expect(copy.heading).toContain("Table")
+  })
+
   it("returns EN digest copy", () => {
     const copy = copyForSupplierBookingDigest("en")
     expect(copy.subject(3, "Monday")).toContain("3 booking")

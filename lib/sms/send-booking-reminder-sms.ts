@@ -1,6 +1,6 @@
 import { bookingPassPath } from "@/lib/booking/pass-token"
 import { parseBookingSnapshot } from "@/lib/booking/snapshot"
-import { isExperienceListingKind } from "@/lib/booking/types"
+import { bookingVerticalCopyFamily } from "@/lib/booking/vertical-copy"
 import { resolveAppUrl } from "@/lib/emails/send-order-confirmation"
 import { resolveEmailLocale } from "@/lib/emails/resolve-email-locale"
 import type { AppLocale } from "@/lib/i18n-locale"
@@ -17,7 +17,7 @@ export function bookingReminderSmsBody(args: {
   listingKind: string
   locale: AppLocale
 }): string {
-  const experience = isExperienceListingKind(args.listingKind)
+  const family = bookingVerticalCopyFamily(args.listingKind)
   const d = new Date(args.startsAtIso)
   const timeLabel = Number.isFinite(d.getTime())
     ? d.toLocaleString(args.locale === "fr" ? "fr-FR" : "en-GB", {
@@ -27,14 +27,28 @@ export function bookingReminderSmsBody(args: {
     : args.startsAtIso
 
   if (args.locale === "fr") {
-    return experience
-      ? `Affisell · ${args.productName} dans ~2 h (${timeLabel}). Passe : ${args.passUrl}`
-      : `Affisell · RDV ${args.productName} dans ~2 h (${timeLabel}). Passe : ${args.passUrl}`
+    if (family === "restaurant") {
+      return `Affisell · Table ${args.productName} dans ~2 h (${timeLabel}). Passe : ${args.passUrl}`
+    }
+    if (family === "museum") {
+      return `Affisell · Visite ${args.productName} dans ~2 h (${timeLabel}). Passe : ${args.passUrl}`
+    }
+    if (family === "experience") {
+      return `Affisell · ${args.productName} dans ~2 h (${timeLabel}). Passe : ${args.passUrl}`
+    }
+    return `Affisell · RDV ${args.productName} dans ~2 h (${timeLabel}). Passe : ${args.passUrl}`
   }
 
-  return experience
-    ? `Affisell · ${args.productName} in ~2 h (${timeLabel}). Pass: ${args.passUrl}`
-    : `Affisell · ${args.productName} appointment in ~2 h (${timeLabel}). Pass: ${args.passUrl}`
+  if (family === "restaurant") {
+    return `Affisell · Table at ${args.productName} in ~2 h (${timeLabel}). Pass: ${args.passUrl}`
+  }
+  if (family === "museum") {
+    return `Affisell · Visit ${args.productName} in ~2 h (${timeLabel}). Pass: ${args.passUrl}`
+  }
+  if (family === "experience") {
+    return `Affisell · ${args.productName} in ~2 h (${timeLabel}). Pass: ${args.passUrl}`
+  }
+  return `Affisell · ${args.productName} appointment in ~2 h (${timeLabel}). Pass: ${args.passUrl}`
 }
 
 export async function sendBookingReminderSms(args: {

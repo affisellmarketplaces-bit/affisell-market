@@ -4,7 +4,10 @@ import { Resend } from "resend"
 import { BookingReminderEmail } from "@/emails/booking-reminder"
 import { bookingPassPath } from "@/lib/booking/pass-token"
 import { parseBookingSnapshot } from "@/lib/booking/snapshot"
-import { isExperienceListingKind } from "@/lib/booking/types"
+import {
+  bookingVerticalCopyFamily,
+  type BookingVerticalCopyFamily,
+} from "@/lib/booking/vertical-copy"
 import { resolveAppUrl } from "@/lib/emails/send-order-confirmation"
 import { resolveEmailLocale } from "@/lib/emails/resolve-email-locale"
 import type { AppLocale } from "@/lib/i18n-locale"
@@ -24,62 +27,159 @@ type CopyPack = {
   subject: (productName: string) => string
 }
 
-function copyFor(
-  locale: AppLocale,
-  kind: BookingReminderKind,
-  listingKind: string
-): CopyPack {
-  const experience = isExperienceListingKind(listingKind)
-  const fr = locale === "fr"
-  const de = locale === "de"
-
-  if (kind === "day") {
-    if (experience) {
-      return fr
-        ? {
-            preview: "Votre séance approche — demain",
-            heading: "Rappel séance",
-            intro: "Votre séance cinéma est demain. Ouvrez votre passe QR pour l'entrée.",
-            cta: "Ouvrir mon passe",
-            whenLabel: "Date & heure",
-            venueLabel: "Lieu",
-            seatsLabel: "Places",
-            footer: "Besoin d'annuler ? Consultez vos commandes sur Affisell (selon conditions).",
-            subject: (n) => `Demain · ${n}`,
-          }
-        : {
-            preview: fr ? "Votre rendez-vous approche — demain" : "Your appointment is tomorrow",
-            heading: fr ? "Rappel rendez-vous" : de ? "Terminerinnerung" : "Appointment reminder",
-            intro: fr
-              ? "Votre rendez-vous est demain. Présentez votre passe QR à l'accueil."
-              : de
-                ? "Ihr Termin ist morgen. Zeigen Sie Ihren Affisell-Pass beim Check-in."
-                : "Your appointment is tomorrow. Show your Affisell QR pass at check-in.",
-            cta: fr ? "Ouvrir mon passe" : de ? "Pass öffnen" : "Open my pass",
-            whenLabel: fr ? "Date & heure" : de ? "Datum & Uhrzeit" : "Date & time",
-            venueLabel: fr ? "Lieu" : de ? "Ort" : "Venue",
-            seatsLabel: fr ? "Places" : de ? "Plätze" : "Seats",
-            footer: fr
-              ? "Besoin d'annuler ? Consultez vos commandes sur Affisell."
-              : "Need to cancel? Visit your orders on Affisell.",
-            subject: (n) => (fr ? `Demain · ${n}` : `Tomorrow · ${n}`),
-          }
-    }
-
-    return {
-      preview: "Your booking is tomorrow",
-      heading: "Booking reminder",
-      intro: "Your booking is tomorrow. Open your pass for a smooth check-in.",
-      cta: "Open my pass",
-      whenLabel: "Date & time",
-      venueLabel: "Venue",
-      seatsLabel: "Seats",
-      footer: "Need help? Reply to this email or visit your orders on Affisell.",
-      subject: (n) => `Tomorrow · ${n}`,
-    }
+function dayCopy(fr: boolean, family: BookingVerticalCopyFamily): CopyPack {
+  if (family === "restaurant") {
+    return fr
+      ? {
+          preview: "Votre réservation est demain",
+          heading: "Rappel réservation",
+          intro: "Votre table est réservée demain. Ayez votre passe QR prêt à l'accueil.",
+          cta: "Ouvrir mon passe",
+          whenLabel: "Date & heure",
+          venueLabel: "Restaurant",
+          seatsLabel: "Couverts",
+          footer: "Besoin d'annuler ? Consultez vos commandes sur Affisell.",
+          subject: (n) => `Demain · ${n}`,
+        }
+      : {
+          preview: "Your reservation is tomorrow",
+          heading: "Reservation reminder",
+          intro: "Your table is booked for tomorrow. Have your QR pass ready at the host stand.",
+          cta: "Open my pass",
+          whenLabel: "Date & time",
+          venueLabel: "Restaurant",
+          seatsLabel: "Covers",
+          footer: "Need to cancel? Visit your orders on Affisell.",
+          subject: (n) => `Tomorrow · ${n}`,
+        }
   }
+  if (family === "museum") {
+    return fr
+      ? {
+          preview: "Votre visite est demain",
+          heading: "Rappel visite",
+          intro: "Votre créneau d'entrée est demain. Présentez votre passe QR à l'accueil.",
+          cta: "Ouvrir mon passe",
+          whenLabel: "Créneau",
+          venueLabel: "Musée",
+          seatsLabel: "Billets",
+          footer: "Besoin d'annuler ? Consultez vos commandes sur Affisell.",
+          subject: (n) => `Demain · ${n}`,
+        }
+      : {
+          preview: "Your visit is tomorrow",
+          heading: "Visit reminder",
+          intro: "Your entry slot is tomorrow. Show your QR pass at the museum entrance.",
+          cta: "Open my pass",
+          whenLabel: "Entry slot",
+          venueLabel: "Museum",
+          seatsLabel: "Tickets",
+          footer: "Need to cancel? Visit your orders on Affisell.",
+          subject: (n) => `Tomorrow · ${n}`,
+        }
+  }
+  if (family === "experience") {
+    return fr
+      ? {
+          preview: "Votre séance approche — demain",
+          heading: "Rappel séance",
+          intro: "Votre séance est demain. Ouvrez votre passe QR pour l'entrée.",
+          cta: "Ouvrir mon passe",
+          whenLabel: "Date & heure",
+          venueLabel: "Lieu",
+          seatsLabel: "Places",
+          footer: "Besoin d'annuler ? Consultez vos commandes sur Affisell.",
+          subject: (n) => `Demain · ${n}`,
+        }
+      : {
+          preview: "Your screening is tomorrow",
+          heading: "Screening reminder",
+          intro: "Your screening is tomorrow. Open your QR pass for entry.",
+          cta: "Open my pass",
+          whenLabel: "Date & time",
+          venueLabel: "Venue",
+          seatsLabel: "Seats",
+          footer: "Need to cancel? Visit your orders on Affisell.",
+          subject: (n) => `Tomorrow · ${n}`,
+        }
+  }
+  return fr
+    ? {
+        preview: "Votre rendez-vous approche — demain",
+        heading: "Rappel rendez-vous",
+        intro: "Votre rendez-vous est demain. Présentez votre passe QR à l'accueil.",
+        cta: "Ouvrir mon passe",
+        whenLabel: "Date & heure",
+        venueLabel: "Lieu",
+        seatsLabel: "Places",
+        footer: "Besoin d'annuler ? Consultez vos commandes sur Affisell.",
+        subject: (n) => `Demain · ${n}`,
+      }
+    : {
+        preview: "Your appointment is tomorrow",
+        heading: "Appointment reminder",
+        intro: "Your appointment is tomorrow. Show your QR pass at check-in.",
+        cta: "Open my pass",
+        whenLabel: "Date & time",
+        venueLabel: "Venue",
+        seatsLabel: "Seats",
+        footer: "Need to cancel? Visit your orders on Affisell.",
+        subject: (n) => `Tomorrow · ${n}`,
+      }
+}
 
-  if (experience) {
+function hourCopy(fr: boolean, family: BookingVerticalCopyFamily): CopyPack {
+  if (family === "restaurant") {
+    return fr
+      ? {
+          preview: "Votre table dans 2 heures",
+          heading: "C'est bientôt l'heure",
+          intro: "Votre service commence dans environ 2 heures. Ayez votre passe prêt.",
+          cta: "Ouvrir mon passe",
+          whenLabel: "Date & heure",
+          venueLabel: "Restaurant",
+          seatsLabel: "Couverts",
+          footer: "Retrouvez votre passe via le bouton ci-dessus.",
+          subject: (n) => `Dans 2 h · ${n}`,
+        }
+      : {
+          preview: "Your table is in 2 hours",
+          heading: "Starting soon",
+          intro: "Your service starts in about 2 hours. Have your pass ready.",
+          cta: "Open my pass",
+          whenLabel: "Date & time",
+          venueLabel: "Restaurant",
+          seatsLabel: "Covers",
+          footer: "Open your pass using the button above.",
+          subject: (n) => `In 2 hours · ${n}`,
+        }
+  }
+  if (family === "museum") {
+    return fr
+      ? {
+          preview: "Votre visite dans 2 heures",
+          heading: "C'est bientôt l'heure",
+          intro: "Votre créneau d'entrée commence dans environ 2 heures. Ayez votre passe prêt.",
+          cta: "Ouvrir mon passe",
+          whenLabel: "Créneau",
+          venueLabel: "Musée",
+          seatsLabel: "Billets",
+          footer: "Retrouvez votre passe via le bouton ci-dessus.",
+          subject: (n) => `Dans 2 h · ${n}`,
+        }
+      : {
+          preview: "Your visit starts in 2 hours",
+          heading: "Starting soon",
+          intro: "Your entry slot starts in about 2 hours. Have your QR pass ready.",
+          cta: "Open my pass",
+          whenLabel: "Entry slot",
+          venueLabel: "Museum",
+          seatsLabel: "Tickets",
+          footer: "Open your pass using the button above.",
+          subject: (n) => `In 2 hours · ${n}`,
+        }
+  }
+  if (family === "experience") {
     return fr
       ? {
           preview: "Votre séance dans 2 heures",
@@ -104,7 +204,6 @@ function copyFor(
           subject: (n) => `In 2 hours · ${n}`,
         }
   }
-
   return fr
     ? {
         preview: "Votre rendez-vous dans 2 heures",
@@ -128,6 +227,16 @@ function copyFor(
         footer: "Open your pass using the button above.",
         subject: (n) => `In 2 hours · ${n}`,
       }
+}
+
+function copyFor(
+  locale: AppLocale,
+  kind: BookingReminderKind,
+  listingKind: string
+): CopyPack {
+  const family = bookingVerticalCopyFamily(listingKind)
+  const fr = locale === "fr"
+  return kind === "day" ? dayCopy(fr, family) : hourCopy(fr, family)
 }
 
 function formatStartsAtLabel(iso: string, locale: AppLocale): string {

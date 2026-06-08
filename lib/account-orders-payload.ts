@@ -59,6 +59,7 @@ export type BuyerOrderRow = {
   bookingConfirmedAt: string | null
   bookingPassPath: string | null
   bookingIcalPath: string | null
+  bookingListingKind: string | null
   canCancelBooking: boolean
   bookingCancelDeadlineAt: string | null
 }
@@ -211,6 +212,7 @@ export async function buildBuyerOrdersPayloadForEmail(customerEmail: string): Pr
         o.bookingToken && o.bookingConfirmedAt && !o.bookingCancelledAt
           ? `/api/booking/pass/${encodeURIComponent(o.bookingToken)}/ical`
           : null,
+      bookingListingKind: o.listingKindSnapshot,
       canCancelBooking: (() => {
         if (!isBookableListingKind(o.listingKindSnapshot) || !o.bookingConfirmedAt) return false
         if (o.status === "refunded" || o.status === "cancelled") return false
@@ -279,6 +281,7 @@ export async function buildBuyerOrdersPayloadForEmail(customerEmail: string): Pr
       bookingConfirmedAt: null,
       bookingPassPath: null,
       bookingIcalPath: null,
+      bookingListingKind: null,
       canCancelBooking: false,
       bookingCancelDeadlineAt: null,
     })

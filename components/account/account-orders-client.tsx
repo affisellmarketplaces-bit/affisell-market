@@ -7,6 +7,7 @@ import { CalendarPlus, Package, Sparkles, CalendarClock, Zap } from "lucide-reac
 import { AccountOrderFulfillmentPanel } from "@/components/account/account-order-fulfillment-panel"
 import { BentoCard } from "@/components/affisell/bento-ui"
 import { Button } from "@/components/ui/button"
+import { buyerBookingOrderCardCopy } from "@/lib/booking/vertical-copy"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import {
   getAutoBuyStatusLabel,
@@ -59,6 +60,7 @@ type OrderRow = {
   bookingConfirmedAt?: string | null
   bookingPassPath?: string | null
   bookingIcalPath?: string | null
+  bookingListingKind?: string | null
   canCancelBooking?: boolean
   bookingCancelDeadlineAt?: string | null
 }
@@ -171,7 +173,9 @@ export function AccountOrdersClient({
         </p>
       ) : null}
 
-      {orders.map((o) => (
+      {orders.map((o) => {
+        const bookingCopy = buyerBookingOrderCardCopy(o.bookingListingKind, lang)
+        return (
         <BentoCard key={o.id} className="py-5 md:py-6">
           <div className="flex gap-5">
             <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-gray-100 dark:bg-zinc-800">
@@ -231,12 +235,10 @@ export function AccountOrdersClient({
                 <div className="mt-4 overflow-hidden rounded-2xl border border-cyan-300/50 bg-gradient-to-br from-cyan-950 via-slate-950 to-violet-950 p-4 text-white shadow-[0_0_60px_-20px_rgba(6,182,212,0.6)]">
                   <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">
                     <CalendarClock className="h-3.5 w-3.5 text-amber-300" aria-hidden />
-                    {lang === "fr" ? "Rendez-vous confirmé" : "Appointment confirmed"}
+                    {bookingCopy.title}
                   </p>
                   <p className="mt-2 text-sm leading-relaxed text-cyan-100/90">
-                    {lang === "fr"
-                      ? "Votre passe est prêt — présentez-le à l'accueil du salon."
-                      : "Your pass is ready — show it at salon check-in."}
+                    {bookingCopy.hint}
                   </p>
                   {o.bookingConfirmedAt ? (
                     <p className="mt-1 text-[11px] text-cyan-300/70">
@@ -250,7 +252,7 @@ export function AccountOrdersClient({
                       className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:from-cyan-500 hover:to-indigo-500"
                     >
                       <Sparkles className="h-4 w-4" aria-hidden />
-                      {lang === "fr" ? "Ouvrir mon passe" : "Open my pass"}
+                      {bookingCopy.cta}
                     </Link>
                     {o.bookingIcalPath ? (
                       <a
@@ -282,9 +284,7 @@ export function AccountOrdersClient({
                           ? lang === "fr"
                             ? "Annulation…"
                             : "Cancelling…"
-                          : lang === "fr"
-                            ? "Annuler le rendez-vous"
-                            : "Cancel appointment"}
+                          : bookingCopy.cancelCta}
                       </Button>
                     </div>
                   ) : null}
@@ -444,7 +444,8 @@ export function AccountOrdersClient({
             </div>
           </div>
         </BentoCard>
-      ))}
+        )
+      })}
     </div>
   )
 }

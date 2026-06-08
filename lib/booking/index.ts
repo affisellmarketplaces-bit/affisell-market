@@ -12,6 +12,10 @@ export {
   isSingleGuestBookingKind,
 } from "@/lib/booking/vertical-presets"
 export {
+  bookingVerticalCopyFamily,
+  buyerBookingOrderCardCopy,
+} from "@/lib/booking/vertical-copy"
+export {
   BOOKABLE_LISTING_KINDS,
   bookingListingKindLabel,
   isBookableListingKind,
