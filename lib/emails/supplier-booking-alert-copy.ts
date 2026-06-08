@@ -139,17 +139,90 @@ export function copyForSupplierBookingAlert(
   return alertEn(family)
 }
 
-export function copyForSupplierBookingDigest(locale: AppLocale): SupplierBookingDigestCopy {
-  if (locale === "fr") {
+function digestFr(family: BookingVerticalCopyFamily | "mixed"): SupplierBookingDigestCopy {
+  if (family === "restaurant") {
     return {
-      preview: "Vos réservations du jour",
-      heading: "Agenda du jour",
-      intro: "Voici les invités attendus aujourd'hui — check-in depuis votre dashboard.",
+      preview: "Vos tables du jour",
+      heading: "Service du jour",
+      intro: "Voici les clients attendus aujourd'hui — check-in à l'accueil depuis votre dashboard.",
       cta: "Ouvrir check-in",
       footer: "Rappel automatique Affisell — zéro export manuel.",
-      guestLabel: "Invité",
-      seatsLabel: "Places",
-      subject: (count, dateLabel) => `${count} réservation(s) · ${dateLabel}`,
+      guestLabel: "Client",
+      seatsLabel: "Couverts",
+      subject: (count, dateLabel) => `${count} table(s) · ${dateLabel}`,
+    }
+  }
+  if (family === "museum") {
+    return {
+      preview: "Vos visites du jour",
+      heading: "Entrées du jour",
+      intro: "Voici les visiteurs attendus aujourd'hui — check-in à l'entrée depuis votre dashboard.",
+      cta: "Ouvrir check-in",
+      footer: "Rappel automatique Affisell — zéro export manuel.",
+      guestLabel: "Visiteur",
+      seatsLabel: "Billets",
+      subject: (count, dateLabel) => `${count} visite(s) · ${dateLabel}`,
+    }
+  }
+  if (family === "experience") {
+    return {
+      preview: "Vos séances du jour",
+      heading: "Programme du jour",
+      intro: "Voici les spectateurs attendus aujourd'hui — check-in depuis votre dashboard.",
+      cta: "Ouvrir check-in",
+      footer: "Rappel automatique Affisell — zéro export manuel.",
+      guestLabel: "Acheteur",
+      seatsLabel: "Sièges",
+      subject: (count, dateLabel) => `${count} séance(s) · ${dateLabel}`,
+    }
+  }
+  return {
+    preview: "Vos réservations du jour",
+    heading: "Agenda du jour",
+    intro: "Voici les invités attendus aujourd'hui — check-in depuis votre dashboard.",
+    cta: "Ouvrir check-in",
+    footer: "Rappel automatique Affisell — zéro export manuel.",
+    guestLabel: "Invité",
+    seatsLabel: "Places",
+    subject: (count, dateLabel) => `${count} réservation(s) · ${dateLabel}`,
+  }
+}
+
+function digestEn(family: BookingVerticalCopyFamily | "mixed"): SupplierBookingDigestCopy {
+  if (family === "restaurant") {
+    return {
+      preview: "Today's tables",
+      heading: "Today's service",
+      intro: "Guests expected today — check them in at the host stand from your dashboard.",
+      cta: "Open check-in",
+      footer: "Affisell automatic reminder — no manual export.",
+      guestLabel: "Guest",
+      seatsLabel: "Covers",
+      subject: (count, dateLabel) => `${count} table(s) · ${dateLabel}`,
+    }
+  }
+  if (family === "museum") {
+    return {
+      preview: "Today's visits",
+      heading: "Today's entries",
+      intro: "Visitors expected today — check them in at the entrance from your dashboard.",
+      cta: "Open check-in",
+      footer: "Affisell automatic reminder — no manual export.",
+      guestLabel: "Visitor",
+      seatsLabel: "Tickets",
+      subject: (count, dateLabel) => `${count} visit(s) · ${dateLabel}`,
+    }
+  }
+  if (family === "experience") {
+    return {
+      preview: "Today's screenings",
+      heading: "Today's schedule",
+      intro: "Guests expected today — check them in from your dashboard.",
+      cta: "Open check-in",
+      footer: "Affisell automatic reminder — no manual export.",
+      guestLabel: "Buyer",
+      seatsLabel: "Seats",
+      subject: (count, dateLabel) => `${count} screening(s) · ${dateLabel}`,
     }
   }
   return {
@@ -162,4 +235,15 @@ export function copyForSupplierBookingDigest(locale: AppLocale): SupplierBooking
     seatsLabel: "Seats",
     subject: (count, dateLabel) => `${count} booking(s) · ${dateLabel}`,
   }
+}
+
+export function copyForSupplierBookingDigest(
+  locale: AppLocale,
+  listingKind?: string | null
+): SupplierBookingDigestCopy {
+  const family: BookingVerticalCopyFamily | "mixed" = listingKind
+    ? bookingVerticalCopyFamily(listingKind)
+    : "mixed"
+  if (locale === "fr") return digestFr(family)
+  return digestEn(family)
 }

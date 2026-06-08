@@ -80,6 +80,7 @@ export async function runBookingSupplierDigestCron(
         seatLabels: snapshot?.seatLabels ?? [],
         quantity: snapshot?.quantity ?? row.quantity,
         customerEmail: row.customerEmail,
+        listingKind: snapshot?.listingKind ?? null,
       }
     })
 

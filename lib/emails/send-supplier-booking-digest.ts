@@ -1,6 +1,7 @@
 import { render } from "@react-email/render"
 
 import { SupplierBookingDigestEmail } from "@/emails/supplier-booking-digest"
+import { resolveDigestListingKind } from "@/lib/booking/vertical-copy"
 import { copyForSupplierBookingDigest } from "@/lib/emails/supplier-booking-alert-copy"
 import { maskEmailForLog } from "@/lib/emails/mask-email"
 import { resolveEmailLocale } from "@/lib/emails/resolve-email-locale"
@@ -15,6 +16,7 @@ export type SupplierDigestOrderRow = {
   seatLabels: string[]
   quantity: number
   customerEmail: string
+  listingKind?: string | null
 }
 
 function formatDateLabel(date: Date, locale: AppLocale): string {
@@ -48,7 +50,8 @@ export async function sendSupplierBookingDigestEmail(args: {
   }
 
   const locale = resolveEmailLocale(args.locale)
-  const copy = copyForSupplierBookingDigest(locale)
+  const digestListingKind = resolveDigestListingKind(args.rows)
+  const copy = copyForSupplierBookingDigest(locale, digestListingKind)
   const dateLabel = formatDateLabel(args.day, locale)
 
   const { to } = resolveResendDeliveryRecipient(

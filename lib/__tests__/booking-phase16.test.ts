@@ -4,7 +4,9 @@ import { formatSupplierBookingConfirmedInbox } from "@/lib/booking/supplier-aler
 import {
   bookingVerticalCopyFamily,
   buyerBookingOrderCardCopy,
+  resolveDigestListingKind,
 } from "@/lib/booking/vertical-copy"
+import { copyForSupplierBookingDigest } from "@/lib/emails/supplier-booking-alert-copy"
 import { copyForSupplierBookingAlert } from "@/lib/emails/supplier-booking-alert-copy"
 import { bookingReminderSmsBody } from "@/lib/sms/send-booking-reminder-sms"
 
@@ -39,6 +41,27 @@ describe("booking phase 16 vertical copy polish", () => {
     const museum = copyForSupplierBookingAlert("en", "MUSEUM")
     expect(restaurant.heading).toContain("Table")
     expect(museum.heading).toContain("Entry")
+  })
+
+  it("resolves digest listing kind when rows share one vertical", () => {
+    expect(
+      resolveDigestListingKind([
+        { listingKind: "RESTAURANT" },
+        { listingKind: "RESTAURANT" },
+      ])
+    ).toBe("RESTAURANT")
+    expect(
+      resolveDigestListingKind([
+        { listingKind: "RESTAURANT" },
+        { listingKind: "MUSEUM" },
+      ])
+    ).toBeNull()
+  })
+
+  it("builds museum supplier digest copy", () => {
+    const copy = copyForSupplierBookingDigest("fr", "MUSEUM")
+    expect(copy.preview).toContain("visites")
+    expect(copy.seatsLabel).toBe("Billets")
   })
 
   it("formats supplier inbox for restaurant", () => {

@@ -14,6 +14,7 @@ export {
 export {
   bookingVerticalCopyFamily,
   buyerBookingOrderCardCopy,
+  resolveDigestListingKind,
 } from "@/lib/booking/vertical-copy"
 export {
   BOOKABLE_LISTING_KINDS,

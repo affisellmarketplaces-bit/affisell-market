@@ -32,8 +32,21 @@ describe("supplier booking alerts", () => {
     expect(copy.heading).toContain("Table")
   })
 
-  it("returns EN digest copy", () => {
+  it("returns EN generic digest copy when listing kind omitted", () => {
     const copy = copyForSupplierBookingDigest("en")
     expect(copy.subject(3, "Monday")).toContain("3 booking")
+  })
+
+  it("returns FR restaurant digest copy", () => {
+    const copy = copyForSupplierBookingDigest("fr", "RESTAURANT")
+    expect(copy.heading).toContain("Service")
+    expect(copy.seatsLabel).toBe("Couverts")
+    expect(copy.subject(2, "lundi")).toContain("table")
+  })
+
+  it("returns EN museum digest copy", () => {
+    const copy = copyForSupplierBookingDigest("en", "MUSEUM")
+    expect(copy.heading).toContain("entries")
+    expect(copy.guestLabel).toBe("Visitor")
   })
 })

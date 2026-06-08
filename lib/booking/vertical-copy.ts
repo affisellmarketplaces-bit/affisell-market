@@ -13,6 +13,17 @@ export function bookingVerticalCopyFamily(kind: string | null | undefined): Book
   return "service"
 }
 
+/** J-0 digest uses vertical copy only when every row shares the same family. */
+export function resolveDigestListingKind(
+  rows: ReadonlyArray<{ listingKind?: string | null }>
+): string | null {
+  if (rows.length === 0) return null
+  const families = new Set(rows.map((row) => bookingVerticalCopyFamily(row.listingKind)))
+  if (families.size !== 1) return null
+  const kind = rows.find((row) => row.listingKind?.trim())?.listingKind?.trim()
+  return kind ?? null
+}
+
 export type BuyerBookingOrderCardCopy = {
   title: string
   hint: string
