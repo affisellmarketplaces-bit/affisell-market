@@ -66,6 +66,34 @@ export function SupplierBookingSeatLayoutPanel({
       {config.preset === "CINEMA_VIP" ? (
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
+            <Label htmlFor="seat-layout-vip-surcharge" className="text-cyan-100">
+              {t("vipSurchargeLabel")}
+            </Label>
+            <Input
+              id="seat-layout-vip-surcharge"
+              type="number"
+              min={0}
+              max={500}
+              step={0.5}
+              className="mt-1.5 border-white/15 bg-black/30 text-white"
+              value={
+                config.vipSeatSurchargeCents != null
+                  ? String((config.vipSeatSurchargeCents / 100).toFixed(2))
+                  : ""
+              }
+              onChange={(e) => {
+                const euros = Number(e.target.value)
+                if (!Number.isFinite(euros) || e.target.value.trim() === "") {
+                  onChange({ ...config, vipSeatSurchargeCents: undefined })
+                  return
+                }
+                const cents = Math.max(0, Math.min(500_00, Math.round(euros * 100)))
+                onChange({ ...config, vipSeatSurchargeCents: cents })
+              }}
+              placeholder={t("vipSurchargePlaceholder")}
+            />
+          </div>
+          <div>
             <Label htmlFor="seat-layout-cols" className="text-cyan-100">
               {t("colsLabel")}
             </Label>

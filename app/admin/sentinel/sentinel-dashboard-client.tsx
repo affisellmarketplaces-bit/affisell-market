@@ -5,6 +5,7 @@ import { useCallback, useMemo, useState, useTransition } from "react"
 import { Activity, BarChart3, Radar, RefreshCw, Shield, Zap } from "lucide-react"
 import { toast } from "sonner"
 
+import { AdminBookingStatsStrip } from "@/components/admin/admin-booking-stats-strip"
 import { SentinelTrendStrip } from "@/app/admin/sentinel/sentinel-trend-strip"
 import {
   DOMAINS,
@@ -142,6 +143,8 @@ export function SentinelDashboardClient({ initial }: Props) {
             <span className="text-xs text-zinc-500">Dernier scan : {formatWhen(data.scannedAt)}</span>
           </div>
         </div>
+
+        <AdminBookingStatsStrip className="mt-6" />
 
         <div className="mt-8 grid gap-4 md:grid-cols-[minmax(0,200px)_1fr] lg:grid-cols-[220px_1fr_1fr]">
           <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 shadow-inner shadow-black/30 backdrop-blur-xl">

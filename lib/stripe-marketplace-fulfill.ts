@@ -421,9 +421,9 @@ export async function fulfillMarketplaceStripeSession(
   const checkoutCurrency = session.currency ?? "eur"
   const meta = session.metadata ?? {}
   const buyerLocale = meta.locale?.trim() || null
+  const stripePhone = session.customer_details?.phone?.trim() || null
   let buyerUserId = meta.buyerUserId?.trim() || ""
   if (!buyerUserId) {
-    const stripePhone = session.customer_details?.phone?.trim() || null
     buyerUserId =
       (await ensureBuyerUserIdFromStripeCheckout(customerEmail, stripePhone)) ?? ""
   }
@@ -667,6 +667,7 @@ export async function fulfillMarketplaceStripeSession(
           buyerLocale: buyerLocale || undefined,
           listingKindSnapshot: listing.product.listingKind.trim().toUpperCase(),
           customerEmail,
+          ...(stripePhone ? { customerPhone: stripePhone } : {}),
           shippingAddress,
           quantity: qty,
           variantLabel: checkoutVariantLabel || null,

@@ -750,7 +750,9 @@
         "screenLabel": "Screen",
         "legendStandard": "Standard",
         "legendVip": "VIP",
-        "legendBlocked": "Blocked"
+        "legendBlocked": "Blocked",
+        "vipSurchargeLabel": "VIP surcharge (€ per seat)",
+        "vipSurchargePlaceholder": "E.g. 3.00"
       }
     },
     "quality": {

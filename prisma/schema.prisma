@@ -1306,9 +1306,13 @@ model Order {
   bookingReminderDaySentAt  DateTime?
   /** Idempotent H-2 (~2h) booking reminder email. */
   bookingReminderHourSentAt DateTime?
+  /** Idempotent H-2 (~2h) booking reminder SMS (Twilio). */
+  bookingReminderHourSmsSentAt DateTime?
   bookingSeats             BookingSeat[]
   buyer                    User?               @relation("BuyerMarketplaceOrders", fields: [buyerUserId], references: [id], onDelete: SetNull)
   customerEmail            String
+  /** E.164 from Stripe Checkout phone collection — booking SMS H-2. */
+  customerPhone            String?
   shippingAddress          Json
   /**
    * Line quantity for this order row (multi-item checkout uses one row per SKU).

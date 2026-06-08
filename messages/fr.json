@@ -700,6 +700,8 @@
         "colsLabel": "Places par rangée",
         "blockedLabel": "Places bloquées (séparées par des virgules)",
         "blockedPlaceholder": "Ex. A1, A2",
+        "vipSurchargeLabel": "Supplément VIP (€ / place)",
+        "vipSurchargePlaceholder": "Ex. 3,00",
         "previewTitle": "Aperçu du plan",
         "previewHint": "Vert = standard · violet = VIP · ♿ = non réservable.",
         "screenLabel": "Écran",

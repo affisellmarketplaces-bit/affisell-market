@@ -700,6 +700,8 @@
         "colsLabel": "Seats per row",
         "blockedLabel": "Blocked seats (comma-separated)",
         "blockedPlaceholder": "E.g. A1, A2",
+        "vipSurchargeLabel": "VIP surcharge (€ per seat)",
+        "vipSurchargePlaceholder": "E.g. 3.00",
         "previewTitle": "Layout preview",
         "previewHint": "Green = standard · violet = VIP · ♿ = not bookable.",
         "screenLabel": "Screen",

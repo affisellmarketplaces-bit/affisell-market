@@ -37,6 +37,8 @@ import {
   validateBookableListingCheckout,
   validateBookingCartLine,
 } from "@/lib/booking/checkout-validation"
+import { resolveSeatLayoutConfig } from "@/lib/booking/seat-layout"
+import { computeBookingLineSubtotalCents } from "@/lib/booking/seat-pricing"
 import { reserveBookingSlotHoldInTransaction } from "@/lib/booking/slot-hold"
 import { marketplaceCheckoutPaymentSessionOptions } from "@/lib/marketplace-checkout-payment-methods"
 import {
@@ -409,7 +411,22 @@ export async function marketplaceCheckoutPOST(request: Request) {
     selectedColor: body.selectedColor,
     selectedSize: body.selectedSize,
   })
-  const lineSubtotal = unitSelling * checkoutQty
+  const pricing = computeBookingLineSubtotalCents({
+    unitSellingCents: unitSelling,
+    quantity: checkoutQty,
+    seatLabels: checkoutSeatLabels,
+    listingKind: product.listingKind,
+    seatLayout: resolveSeatLayoutConfig(product.bookingSeatLayout, product.listingKind),
+  })
+  const lineSubtotal = pricing.lineSubtotalCents
+  if (pricing.vipSurchargeTotalCents > 0) {
+    console.log("[booking]", {
+      result: "vip_surcharge_applied",
+      affiliateProductId,
+      vipSeatCount: pricing.vipSeatCount,
+      vipSurchargeTotalCents: pricing.vipSurchargeTotalCents,
+    })
+  }
   const offerGate = validateOfferCheckoutLine(listing, checkoutQty, lineSubtotal)
   if (offerGate) return offerGate
   const requestedReward =

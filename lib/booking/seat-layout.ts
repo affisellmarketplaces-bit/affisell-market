@@ -10,6 +10,8 @@ export type BookingSeatLayoutConfig = {
   aisleAfterCols?: number[]
   /** Seat labels reserved (wheelchair companion…) — not bookable. */
   blockedLabels?: string[]
+  /** Extra HT cents per VIP seat (EXPERIENCE checkout). */
+  vipSeatSurchargeCents?: number
 }
 
 export type SeatLayoutCell = {
@@ -62,12 +64,19 @@ export function parseBookingSeatLayout(raw: unknown): BookingSeatLayoutConfig | 
     ? [...new Set(o.blockedLabels.map((v) => String(v).trim()).filter(Boolean))].slice(0, 50)
     : undefined
 
+  const surchargeRaw = Math.round(Number(o.vipSeatSurchargeCents))
+  const vipSeatSurchargeCents =
+    Number.isFinite(surchargeRaw) && surchargeRaw >= 0 && surchargeRaw <= 500_00
+      ? surchargeRaw
+      : undefined
+
   return {
     preset,
     ...(cols !== undefined ? { cols } : {}),
     ...(vipRowIndices && vipRowIndices.length > 0 ? { vipRowIndices } : {}),
     ...(aisleAfterCols && aisleAfterCols.length > 0 ? { aisleAfterCols } : {}),
     ...(blockedLabels && blockedLabels.length > 0 ? { blockedLabels } : {}),
+    ...(vipSeatSurchargeCents !== undefined ? { vipSeatSurchargeCents } : {}),
   }
 }
 
@@ -95,6 +104,9 @@ function normalizeLayoutConfig(
     vipRowIndices: config.vipRowIndices ?? DEFAULT_CINEMA_VIP_LAYOUT.vipRowIndices,
     aisleAfterCols: config.aisleAfterCols ?? DEFAULT_CINEMA_VIP_LAYOUT.aisleAfterCols,
     blockedLabels: config.blockedLabels,
+    ...(config.vipSeatSurchargeCents !== undefined
+      ? { vipSeatSurchargeCents: config.vipSeatSurchargeCents }
+      : {}),
   }
 }
 
