@@ -58,6 +58,7 @@ function productPayload(row: Awaited<ReturnType<PrismaClient["product"]["findMan
     variants: jsonOrNull(row.variants),
     customColumns: jsonOrNull(row.customColumns),
     variantMapping: jsonOrNull(row.variantMapping),
+    bookingSeatLayout: jsonOrNull(row.bookingSeatLayout),
   } satisfies Prisma.ProductUncheckedCreateInput
 }
 

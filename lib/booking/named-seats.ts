@@ -1,6 +1,11 @@
 import type { Prisma } from "@prisma/client"
 
-import { buildSeatLayout, usesNamedSeatMap } from "@/lib/booking/seat-layout"
+import {
+  buildSeatLayout,
+  resolveSeatLayoutConfig,
+  type BookingSeatLayoutConfig,
+  usesNamedSeatMap,
+} from "@/lib/booking/seat-layout"
 import { prisma } from "@/lib/prisma"
 
 type Tx = Prisma.TransactionClient
@@ -9,26 +14,34 @@ export type PublicSeatCell = {
   label: string
   rowIndex: number
   colIndex: number
-  status: "OPEN" | "HELD" | "BOOKED"
+  displayColIndex: number
+  tier: "STANDARD" | "VIP"
+  status: "OPEN" | "HELD" | "BOOKED" | "BLOCKED"
 }
 
 export async function provisionNamedSeatsForSlot(
   tx: Tx,
-  args: { slotId: string; capacity: number; listingKind: string }
+  args: {
+    slotId: string
+    capacity: number
+    listingKind: string
+    seatLayout?: BookingSeatLayoutConfig | null
+  }
 ): Promise<number> {
   if (!usesNamedSeatMap(args.listingKind, args.capacity)) return 0
 
   const existing = await tx.bookingSeat.count({ where: { slotId: args.slotId } })
   if (existing > 0) return existing
 
-  const layout = buildSeatLayout(args.capacity)
+  const config = resolveSeatLayoutConfig(args.seatLayout, args.listingKind)
+  const layout = buildSeatLayout(args.capacity, config)
   await tx.bookingSeat.createMany({
     data: layout.map((cell) => ({
       slotId: args.slotId,
       label: cell.label,
       rowIndex: cell.rowIndex,
       colIndex: cell.colIndex,
-      status: "OPEN",
+      status: cell.blocked ? "BLOCKED" : "OPEN",
     })),
     skipDuplicates: true,
   })
@@ -65,11 +78,45 @@ export async function listPublicSeatMap(slotId: string): Promise<PublicSeatCell[
     if (status === "HELD" && row.holdExpiresAt && row.holdExpiresAt.getTime() < now.getTime()) {
       status = "OPEN"
     }
+    if (status === "BLOCKED") {
+      return {
+        label: row.label,
+        rowIndex: row.rowIndex,
+        colIndex: row.colIndex,
+        displayColIndex: row.colIndex,
+        tier: "STANDARD" as const,
+        status: "BLOCKED" as const,
+      }
+    }
     return {
       label: row.label,
       rowIndex: row.rowIndex,
       colIndex: row.colIndex,
+      displayColIndex: row.colIndex,
+      tier: "STANDARD" as const,
       status,
+    }
+  })
+}
+
+export async function listPublicSeatMapWithLayout(
+  slotId: string,
+  layoutConfig: BookingSeatLayoutConfig
+): Promise<PublicSeatCell[]> {
+  const cells = await listPublicSeatMap(slotId)
+  if (cells.length === 0) return cells
+
+  const template = buildSeatLayout(cells.length, layoutConfig)
+  const metaByLabel = new Map(template.map((c) => [c.label, c]))
+
+  return cells.map((seat) => {
+    const meta = metaByLabel.get(seat.label)
+    if (!meta) return seat
+    return {
+      ...seat,
+      displayColIndex: meta.displayColIndex,
+      tier: meta.tier,
+      status: meta.blocked || seat.status === "BLOCKED" ? "BLOCKED" : seat.status,
     }
   })
 }
@@ -98,7 +145,11 @@ export async function reserveNamedSeatsInTransaction(
   for (const seat of seats) {
     const expiredHold =
       seat.status === "HELD" && seat.holdExpiresAt && seat.holdExpiresAt.getTime() < now.getTime()
-    if (seat.status === "BOOKED" || (seat.status === "HELD" && !expiredHold)) {
+    if (
+      seat.status === "BLOCKED" ||
+      seat.status === "BOOKED" ||
+      (seat.status === "HELD" && !expiredHold)
+    ) {
       return { ok: false, error: "booking_seat_unavailable" }
     }
   }

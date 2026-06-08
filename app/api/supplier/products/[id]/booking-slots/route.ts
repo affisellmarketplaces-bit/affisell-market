@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
+import { resolveSeatLayoutConfig } from "@/lib/booking/seat-layout"
 import { listPublicBookingSlots } from "@/lib/booking/slot-availability"
 import { isBookableListingKind, isServiceListingKind } from "@/lib/booking/types"
 import { prisma } from "@/lib/prisma"
@@ -12,6 +13,7 @@ async function assertOwnProduct(supplierId: string, productId: string) {
       id: true,
       listingKind: true,
       bookingDurationMinutes: true,
+      bookingSeatLayout: true,
     },
   })
 }
@@ -137,6 +139,7 @@ export async function POST(
       slotId: created.id,
       capacity,
       listingKind: product.listingKind,
+      seatLayout: resolveSeatLayoutConfig(product.bookingSeatLayout, product.listingKind),
     })
 
     return created

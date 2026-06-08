@@ -800,6 +800,21 @@
           "cancelled": "Booking was cancelled",
           "checkInFailed": "Check-in failed"
         }
+      },
+      "seatLayout": {
+        "title": "Cinema seat map",
+        "description": "VIP front rows, center aisles, and blocked wheelchair spots apply to new showtimes only.",
+        "presetGrid": "Simple grid",
+        "presetCinemaVip": "Cinema VIP",
+        "colsLabel": "Seats per row",
+        "blockedLabel": "Blocked seats (comma-separated)",
+        "blockedPlaceholder": "E.g. A1, A2",
+        "previewTitle": "Layout preview",
+        "previewHint": "Green = standard · violet = VIP · ♿ = not bookable.",
+        "screenLabel": "Screen",
+        "legendStandard": "Standard",
+        "legendVip": "VIP",
+        "legendBlocked": "Blocked"
       }
     },
     "digitalDelivery": {
@@ -1499,7 +1514,10 @@
       "loadingSeatMap": "Loading seat map…",
       "selectSeatsRequired": "Pick at least one seat on the map.",
       "selectedSeats": "{count} seat(s): {labels}",
-      "seatLabelAria": "Seat {label} — {status}"
+      "seatLabelAria": "Seat {label} — {status}",
+      "seatMapCinemaHint": "Pick your seats — VIP rows in violet, aisles in the center.",
+      "seatMapScreen": "Screen",
+      "seatMapVip": "VIP"
     }
   },
   "Filters": {

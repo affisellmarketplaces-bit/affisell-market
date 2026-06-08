@@ -3,9 +3,11 @@
 import { CalendarClock, MapPin, Sparkles, Timer } from "lucide-react"
 import { useTranslations } from "next-intl"
 
+import { SupplierBookingSeatLayoutPanel } from "@/components/supplier/supplier-booking-seat-layout-panel"
 import { SupplierBookingSlotsManager } from "@/components/supplier/supplier-booking-slots-manager"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import type { BookingSeatLayoutConfig } from "@/lib/booking/seat-layout"
 import { isExperienceListingKind, isServiceListingKind } from "@/lib/booking/types"
 import { cn } from "@/lib/utils"
 
@@ -16,10 +18,13 @@ type Props = {
   bookingCancellationHours: string
   bookingVenueLabel: string
   bookingInstantConfirm: boolean
+  bookingSeatLayout: BookingSeatLayoutConfig
+  slotPreviewCapacity: number
   onDurationChange: (v: string) => void
   onCancellationHoursChange: (v: string) => void
   onVenueLabelChange: (v: string) => void
   onInstantDeliveryChange: (v: boolean) => void
+  onSeatLayoutChange: (v: BookingSeatLayoutConfig) => void
   className?: string
 }
 
@@ -30,10 +35,13 @@ export function SupplierBookingHubPanel({
   bookingCancellationHours,
   bookingVenueLabel,
   bookingInstantConfirm,
+  bookingSeatLayout,
+  slotPreviewCapacity,
   onDurationChange,
   onCancellationHoursChange,
   onVenueLabelChange,
   onInstantDeliveryChange,
+  onSeatLayoutChange,
   className,
 }: Props) {
   const t = useTranslations("supplier.booking")
@@ -129,6 +137,14 @@ export function SupplierBookingHubPanel({
           />
         </div>
       </div>
+
+      {isExperience ? (
+        <SupplierBookingSeatLayoutPanel
+          config={bookingSeatLayout}
+          previewCapacity={slotPreviewCapacity}
+          onChange={onSeatLayoutChange}
+        />
+      ) : null}
 
       {productId ? (
         <SupplierBookingSlotsManager productId={productId} listingKind={listingKind} />

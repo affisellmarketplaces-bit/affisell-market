@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
-import { listPublicSeatMap } from "@/lib/booking/named-seats"
+import { listPublicSeatMapWithLayout } from "@/lib/booking/named-seats"
+import { gridColumnCount, resolveSeatLayoutConfig } from "@/lib/booking/seat-layout"
 import { isBookableListingKind } from "@/lib/booking/types"
 import { prisma } from "@/lib/prisma"
 
@@ -21,18 +22,28 @@ export async function GET(req: Request) {
     select: {
       id: true,
       capacity: true,
-      product: { select: { listingKind: true } },
+      product: { select: { listingKind: true, bookingSeatLayout: true } },
     },
   })
   if (!slot || !isBookableListingKind(slot.product.listingKind)) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
 
-  const seats = await listPublicSeatMap(slotId)
+  const layoutConfig = resolveSeatLayoutConfig(
+    slot.product.bookingSeatLayout,
+    slot.product.listingKind
+  )
+  const seats = await listPublicSeatMapWithLayout(slotId, layoutConfig)
   return NextResponse.json({
     slotId,
     capacity: slot.capacity,
     seats,
     hasNamedSeats: seats.length > 0,
+    layout: {
+      preset: layoutConfig.preset,
+      gridCols: gridColumnCount(layoutConfig),
+      aisleAfterCols: layoutConfig.aisleAfterCols ?? [],
+      vipRowIndices: layoutConfig.vipRowIndices ?? [],
+    },
   })
 }

@@ -1,11 +1,16 @@
 import { DEFAULT_BOOKING_CANCELLATION_HOURS } from "@/lib/booking/cancellation-policy"
+import {
+  parseBookingSeatLayout,
+  type BookingSeatLayoutConfig,
+} from "@/lib/booking/seat-layout"
 import { isBookableListingKind } from "@/lib/booking/types"
-
 export type ParsedProductBookingSettings = {
   bookingDurationMinutes: number | null
   bookingCancellationHours: number
   bookingVenueLabel: string | null
   bookingInstantConfirm: boolean
+  /** Present only when `bookingSeatLayout` key is in the request body. */
+  bookingSeatLayout?: BookingSeatLayoutConfig | null
 }
 
 export function parseProductBookingBody(body: Record<string, unknown>): ParsedProductBookingSettings {
@@ -35,11 +40,19 @@ export function parseProductBookingBody(body: Record<string, unknown>): ParsedPr
       ? true
       : instantRaw === true || instantRaw === "true" || instantRaw === 1 || instantRaw === "1"
 
+  const layoutProvided = "bookingSeatLayout" in body
+  const bookingSeatLayout = layoutProvided
+    ? body.bookingSeatLayout === null
+      ? null
+      : parseBookingSeatLayout(body.bookingSeatLayout)
+    : undefined
+
   return {
     bookingDurationMinutes,
     bookingCancellationHours,
     bookingVenueLabel,
     bookingInstantConfirm,
+    ...(layoutProvided ? { bookingSeatLayout } : {}),
   }
 }
 

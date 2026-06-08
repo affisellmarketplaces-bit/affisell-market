@@ -55,6 +55,14 @@ import {
   validateDigitalDeliveryForPublish,
 } from "@/lib/digital-delivery/parse-product-digital"
 import {
+  DEFAULT_CINEMA_VIP_LAYOUT,
+  DEFAULT_GRID_LAYOUT,
+  parseBookingSeatLayout,
+  resolveSeatLayoutConfig,
+  type BookingSeatLayoutConfig,
+} from "@/lib/booking/seat-layout"
+import { isExperienceListingKind } from "@/lib/booking/types"
+import {
   pathFromLeafId,
   type CategoryPathSegment,
   type RecentCategoryEntry,
@@ -386,6 +394,8 @@ export function SupplierAddProductForm({
   const [bookingCancellationHours, setBookingCancellationHours] = useState("24")
   const [bookingVenueLabel, setBookingVenueLabel] = useState("")
   const [bookingInstantConfirm, setBookingInstantConfirm] = useState(true)
+  const [bookingSeatLayout, setBookingSeatLayout] =
+    useState<BookingSeatLayoutConfig>(DEFAULT_CINEMA_VIP_LAYOUT)
   const [commission, setCommission] = useState("15")
 
   useEffect(() => {
@@ -878,6 +888,14 @@ export function SupplierAddProductForm({
           ? true
           : Boolean(data.bookingInstantConfirm)
       )
+      const parsedSeatLayout = parseBookingSeatLayout(data.bookingSeatLayout)
+      setBookingSeatLayout(
+        parsedSeatLayout
+          ? resolveSeatLayoutConfig(parsedSeatLayout, lk)
+          : isExperienceListingKind(lk)
+            ? { ...DEFAULT_CINEMA_VIP_LAYOUT }
+            : { ...DEFAULT_GRID_LAYOUT }
+      )
       setCommission(String(data.commissionRate ?? 15))
       setShippingCountry(String(data.shippingCountry ?? ""))
       const wt = String(data.warehouseType ?? "")
@@ -1224,6 +1242,7 @@ export function SupplierAddProductForm({
         bookingCancellationHours: Math.round(Number(bookingCancellationHours)) || 24,
         bookingVenueLabel: bookingVenueLabel.trim() || null,
         bookingInstantConfirm,
+        bookingSeatLayout: isExperienceListingKind(listingKind) ? bookingSeatLayout : null,
         images,
         categoryId: categoryId.trim(),
         affisellCommissionRateOverridePercent:
@@ -1291,6 +1310,7 @@ export function SupplierAddProductForm({
       bookingCancellationHours,
       bookingVenueLabel,
       bookingInstantConfirm,
+      bookingSeatLayout,
       images,
       categoryId,
       affisellCommissionOverride,
@@ -3083,10 +3103,13 @@ export function SupplierAddProductForm({
                   bookingCancellationHours={bookingCancellationHours}
                   bookingVenueLabel={bookingVenueLabel}
                   bookingInstantConfirm={bookingInstantConfirm}
+                  bookingSeatLayout={bookingSeatLayout}
+                  slotPreviewCapacity={30}
                   onDurationChange={setBookingDurationMinutes}
                   onCancellationHoursChange={setBookingCancellationHours}
                   onVenueLabelChange={setBookingVenueLabel}
                   onInstantDeliveryChange={setBookingInstantConfirm}
+                  onSeatLayoutChange={setBookingSeatLayout}
                   className="scroll-mt-28"
                 />
 

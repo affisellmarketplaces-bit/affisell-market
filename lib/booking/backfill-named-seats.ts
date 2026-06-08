@@ -1,5 +1,5 @@
 import { provisionNamedSeatsForSlot } from "@/lib/booking/named-seats"
-import { usesNamedSeatMap } from "@/lib/booking/seat-layout"
+import { resolveSeatLayoutConfig, usesNamedSeatMap } from "@/lib/booking/seat-layout"
 import { prisma } from "@/lib/prisma"
 
 export type BackfillNamedSeatsResult = {
@@ -19,7 +19,7 @@ export async function backfillNamedSeatsForExperienceSlots(): Promise<BackfillNa
     select: {
       id: true,
       capacity: true,
-      product: { select: { listingKind: true } },
+      product: { select: { listingKind: true, bookingSeatLayout: true } },
     },
     orderBy: { startsAt: "asc" },
   })
@@ -35,6 +35,10 @@ export async function backfillNamedSeatsForExperienceSlots(): Promise<BackfillNa
         slotId: slot.id,
         capacity: slot.capacity,
         listingKind: slot.product.listingKind,
+        seatLayout: resolveSeatLayoutConfig(
+          slot.product.bookingSeatLayout,
+          slot.product.listingKind
+        ),
       })
     )
 

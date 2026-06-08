@@ -543,6 +543,8 @@ model Product {
   bookingVenueLabel             String?
   /** When true, booking is confirmed instantly after payment (Phase 1+). */
   bookingInstantConfirm         Boolean  @default(true)
+  /** Cinema seat map preset — see lib/booking/seat-layout.ts (EXPERIENCE only). */
+  bookingSeatLayout             Json?
   bookingSlots                  BookingSlot[]
   stock                         Int      @default(0)
   active                        Boolean  @default(true)

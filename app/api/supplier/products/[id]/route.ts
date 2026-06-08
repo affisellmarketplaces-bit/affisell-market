@@ -408,6 +408,14 @@ export async function PUT(
         bookingCancellationHours: bookingParsed.bookingCancellationHours,
         bookingVenueLabel: bookingParsed.bookingVenueLabel,
         bookingInstantConfirm: bookingParsed.bookingInstantConfirm,
+        ...("bookingSeatLayout" in rawBody
+          ? {
+              bookingSeatLayout:
+                bookingParsed.bookingSeatLayout === null || bookingParsed.bookingSeatLayout === undefined
+                  ? Prisma.DbNull
+                  : (bookingParsed.bookingSeatLayout as Prisma.InputJsonValue),
+            }
+          : {}),
         stock,
         categoryId,
         ...(affisellOverridePatch !== undefined

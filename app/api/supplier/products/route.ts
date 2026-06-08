@@ -326,6 +326,14 @@ export async function POST(req: Request) {
         bookingCancellationHours: bookingParsed.bookingCancellationHours,
         bookingVenueLabel: bookingParsed.bookingVenueLabel,
         bookingInstantConfirm: bookingParsed.bookingInstantConfirm,
+        ...(bookingParsed.bookingSeatLayout !== undefined
+          ? {
+              bookingSeatLayout:
+                bookingParsed.bookingSeatLayout === null
+                  ? Prisma.DbNull
+                  : (bookingParsed.bookingSeatLayout as Prisma.InputJsonValue),
+            }
+          : {}),
         stock: stockN,
         active: !saveAsDraft,
         isDraft: saveAsDraft,
