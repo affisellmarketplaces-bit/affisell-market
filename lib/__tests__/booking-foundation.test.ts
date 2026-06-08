@@ -18,20 +18,25 @@ import { isSlotBookable } from "@/lib/booking/slot-availability"
 import { parseListingKind } from "@/lib/supplier-commission"
 
 describe("booking foundation phase 0", () => {
-  it("parses SERVICE and EXPERIENCE listing kinds", () => {
+  it("parses bookable listing kinds", () => {
     expect(parseListingKind("SERVICE")).toBe("SERVICE")
     expect(parseListingKind("EXPERIENCE")).toBe("EXPERIENCE")
+    expect(parseListingKind("RESTAURANT")).toBe("RESTAURANT")
+    expect(parseListingKind("MUSEUM")).toBe("MUSEUM")
     expect(isBookableListingKind("SERVICE")).toBe(true)
+    expect(isBookableListingKind("RESTAURANT")).toBe(true)
     expect(isBookableListingKind("PHYSICAL")).toBe(false)
   })
 
-  it("enables SERVICE and EXPERIENCE checkout in phase 1", () => {
+  it("enables all booking vertical checkouts", () => {
     expect(BOOKING_SERVICE_CHECKOUT_LIVE).toBe(true)
     expect(BOOKING_EXPERIENCE_CHECKOUT_LIVE).toBe(true)
     expect(isBookingCheckoutLiveForKind("SERVICE")).toBe(true)
     expect(isBookingCheckoutLiveForKind("EXPERIENCE")).toBe(true)
+    expect(isBookingCheckoutLiveForKind("RESTAURANT")).toBe(true)
+    expect(isBookingCheckoutLiveForKind("MUSEUM")).toBe(true)
     expect(isBookingCheckoutBlocked("SERVICE")).toBe(false)
-    expect(isBookingCheckoutBlocked("EXPERIENCE")).toBe(false)
+    expect(isBookingCheckoutBlocked("RESTAURANT")).toBe(false)
     expect(isServiceListingKind("SERVICE")).toBe(true)
   })
 

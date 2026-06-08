@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client"
 
+import { bookingVerticalPreset } from "@/lib/booking/vertical-presets"
 import { prisma } from "@/lib/prisma"
 
 type Tx = Prisma.TransactionClient
@@ -17,6 +18,16 @@ export function bookingHoldMinutes(listingKind?: string | null): number {
     const raw = Number(process.env.BOOKING_HOLD_MINUTES_EXPERIENCE)
     if (Number.isFinite(raw) && raw >= 5 && raw <= 120) return Math.round(raw)
     return 12
+  }
+  if (k === "RESTAURANT") {
+    const raw = Number(process.env.BOOKING_HOLD_MINUTES_RESTAURANT)
+    if (Number.isFinite(raw) && raw >= 5 && raw <= 120) return Math.round(raw)
+    return bookingVerticalPreset("RESTAURANT").holdMinutes
+  }
+  if (k === "MUSEUM") {
+    const raw = Number(process.env.BOOKING_HOLD_MINUTES_MUSEUM)
+    if (Number.isFinite(raw) && raw >= 5 && raw <= 120) return Math.round(raw)
+    return bookingVerticalPreset("MUSEUM").holdMinutes
   }
 
   const raw = Number(process.env.BOOKING_HOLD_MINUTES)

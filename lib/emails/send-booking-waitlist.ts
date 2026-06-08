@@ -3,7 +3,11 @@ import { render } from "@react-email/render"
 import { BookingWaitlistEmail } from "@/emails/booking-waitlist"
 import { resolveAppUrl } from "@/lib/emails/send-order-confirmation"
 import { resolveEmailLocale } from "@/lib/emails/resolve-email-locale"
-import { isExperienceListingKind } from "@/lib/booking/types"
+import {
+  isExperienceListingKind,
+  isMuseumListingKind,
+  isRestaurantListingKind,
+} from "@/lib/booking/types"
 import { readResendDeliveryConfig, resolveResendDeliveryRecipient } from "@/lib/emails/resend-delivery"
 
 type WaitlistCopy = {
@@ -16,8 +20,30 @@ type WaitlistCopy = {
 }
 
 function copyFor(locale: "fr" | "en", listingKind: string): WaitlistCopy {
+  const restaurant = isRestaurantListingKind(listingKind)
+  const museum = isMuseumListingKind(listingKind)
   const experience = isExperienceListingKind(listingKind)
   if (locale === "fr") {
+    if (restaurant) {
+      return {
+        preview: "Une table s'est libérée",
+        heading: "Table disponible",
+        intro: "Bonne nouvelle — une table vient de se libérer pour ce service. Réservez vite.",
+        cta: "Réserver maintenant",
+        footer: "Lien personnel — ne partagez pas publiquement.",
+        subject: (n) => `Table libre · ${n}`,
+      }
+    }
+    if (museum) {
+      return {
+        preview: "Des places d'entrée se sont libérées",
+        heading: "Créneau disponible",
+        intro: "Bonne nouvelle — des places viennent de se libérer pour cette visite.",
+        cta: "Réserver maintenant",
+        footer: "Lien personnel — ne partagez pas publiquement.",
+        subject: (n) => `Entrée libre · ${n}`,
+      }
+    }
     return experience
       ? {
           preview: "Des places se sont libérées",
@@ -35,6 +61,26 @@ function copyFor(locale: "fr" | "en", listingKind: string): WaitlistCopy {
           footer: "Lien personnel — ne partagez pas publiquement.",
           subject: (n) => `Créneau libre · ${n}`,
         }
+  }
+  if (restaurant) {
+    return {
+      preview: "A table just opened up",
+      heading: "Table available",
+      intro: "Good news — a table just opened for this service. Book before it's gone.",
+      cta: "Book now",
+      footer: "Personal link — do not share publicly.",
+      subject: (n) => `Table available · ${n}`,
+    }
+  }
+  if (museum) {
+    return {
+      preview: "Entry slots just opened",
+      heading: "Entry available",
+      intro: "Good news — entry slots just opened for this visit. Book before they're gone.",
+      cta: "Book now",
+      footer: "Personal link — do not share publicly.",
+      subject: (n) => `Entry available · ${n}`,
+    }
   }
   return experience
     ? {

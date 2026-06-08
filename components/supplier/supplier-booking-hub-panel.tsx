@@ -1,6 +1,6 @@
 "use client"
 
-import { CalendarClock, MapPin, Sparkles, Timer } from "lucide-react"
+import { CalendarClock, Landmark, MapPin, Sparkles, Timer, UtensilsCrossed } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { SupplierBookingSeatLayoutPanel } from "@/components/supplier/supplier-booking-seat-layout-panel"
@@ -8,7 +8,13 @@ import { SupplierBookingSlotsManager } from "@/components/supplier/supplier-book
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import type { BookingSeatLayoutConfig } from "@/lib/booking/seat-layout"
-import { isExperienceListingKind, isServiceListingKind } from "@/lib/booking/types"
+import {
+  isBookableListingKind,
+  isExperienceListingKind,
+  isMuseumListingKind,
+  isRestaurantListingKind,
+  isServiceListingKind,
+} from "@/lib/booking/types"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -28,6 +34,51 @@ type Props = {
   className?: string
 }
 
+function hubCopyKeys(listingKind: string): {
+  titleKey:
+    | "titleService"
+    | "titleExperience"
+    | "titleRestaurant"
+    | "titleMuseum"
+  descriptionKey:
+    | "descriptionService"
+    | "descriptionExperience"
+    | "descriptionRestaurant"
+    | "descriptionMuseum"
+  venueKey:
+    | "venuePlaceholder"
+    | "venuePlaceholderExperience"
+    | "venuePlaceholderRestaurant"
+    | "venuePlaceholderMuseum"
+} {
+  if (isRestaurantListingKind(listingKind)) {
+    return {
+      titleKey: "titleRestaurant",
+      descriptionKey: "descriptionRestaurant",
+      venueKey: "venuePlaceholderRestaurant",
+    }
+  }
+  if (isMuseumListingKind(listingKind)) {
+    return {
+      titleKey: "titleMuseum",
+      descriptionKey: "descriptionMuseum",
+      venueKey: "venuePlaceholderMuseum",
+    }
+  }
+  if (isExperienceListingKind(listingKind)) {
+    return {
+      titleKey: "titleExperience",
+      descriptionKey: "descriptionExperience",
+      venueKey: "venuePlaceholderExperience",
+    }
+  }
+  return {
+    titleKey: "titleService",
+    descriptionKey: "descriptionService",
+    venueKey: "venuePlaceholder",
+  }
+}
+
 export function SupplierBookingHubPanel({
   productId,
   listingKind,
@@ -45,9 +96,13 @@ export function SupplierBookingHubPanel({
   className,
 }: Props) {
   const t = useTranslations("supplier.booking")
-  const isService = isServiceListingKind(listingKind)
+  if (!isBookableListingKind(listingKind)) return null
+
   const isExperience = isExperienceListingKind(listingKind)
-  if (!isService && !isExperience) return null
+  const isRestaurant = isRestaurantListingKind(listingKind)
+  const isMuseum = isMuseumListingKind(listingKind)
+  const { titleKey, descriptionKey, venueKey } = hubCopyKeys(listingKind)
+  const HubIcon = isRestaurant ? UtensilsCrossed : isMuseum ? Landmark : CalendarClock
 
   return (
     <section
@@ -62,16 +117,12 @@ export function SupplierBookingHubPanel({
       <div className="relative flex flex-wrap items-start justify-between gap-4">
         <div className="flex min-w-0 flex-1 items-start gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/20 backdrop-blur-sm">
-            <CalendarClock className="h-6 w-6 text-cyan-200" aria-hidden />
+            <HubIcon className="h-6 w-6 text-cyan-200" aria-hidden />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-cyan-300">{t("badge")}</p>
-            <h3 className="mt-1 text-lg font-semibold tracking-tight">
-              {isService ? t("titleService") : t("titleExperience")}
-            </h3>
-            <p className="mt-1 text-sm leading-relaxed text-cyan-100/85">
-              {isService ? t("descriptionService") : t("descriptionExperience")}
-            </p>
+            <h3 className="mt-1 text-lg font-semibold tracking-tight">{t(titleKey)}</h3>
+            <p className="mt-1 text-sm leading-relaxed text-cyan-100/85">{t(descriptionKey)}</p>
           </div>
         </div>
         <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-400/40 bg-emerald-400/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-200">
@@ -133,7 +184,7 @@ export function SupplierBookingHubPanel({
             className="mt-2 border-white/15 bg-black/30 text-white"
             value={bookingVenueLabel}
             onChange={(e) => onVenueLabelChange(e.target.value)}
-            placeholder={isService ? t("venuePlaceholder") : t("venuePlaceholderExperience")}
+            placeholder={t(venueKey)}
           />
         </div>
       </div>

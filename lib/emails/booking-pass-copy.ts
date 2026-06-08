@@ -1,4 +1,8 @@
-import { isExperienceListingKind } from "@/lib/booking/types"
+import {
+  isExperienceListingKind,
+  isMuseumListingKind,
+  isRestaurantListingKind,
+} from "@/lib/booking/types"
 import type { AppLocale } from "@/lib/i18n-locale"
 
 export type BookingPassEmailCopy = {
@@ -178,10 +182,74 @@ const EXPERIENCE: Record<AppLocale, BookingPassEmailCopy> = {
   },
 }
 
+const RESTAURANT: Record<AppLocale, BookingPassEmailCopy> = {
+  fr: {
+    preview: "Votre table est réservée",
+    heading: "Réservation confirmée",
+    intro: "Paiement validé — voici votre passe QR. Présentez-le à l'accueil du restaurant.",
+    cta: "Ouvrir mon passe",
+    whenLabel: "Date & heure",
+    venueLabel: "Restaurant",
+    footer: "Besoin d'aide ? Répondez à cet e-mail ou consultez vos commandes sur Affisell.",
+    subject: (n) => `Réservation · ${n}`,
+  },
+  en: {
+    preview: "Your table is reserved",
+    heading: "Reservation confirmed",
+    intro: "Payment received — here is your QR pass. Show it at the restaurant host stand.",
+    cta: "Open my pass",
+    whenLabel: "Date & time",
+    venueLabel: "Restaurant",
+    footer: "Need help? Reply to this email or visit your orders on Affisell.",
+    subject: (n) => `Reservation · ${n}`,
+  },
+  de: EXPERIENCE.de,
+  es: EXPERIENCE.es,
+  it: EXPERIENCE.it,
+  nl: EXPERIENCE.nl,
+  pl: EXPERIENCE.pl,
+  zh: EXPERIENCE.zh,
+}
+
+const MUSEUM: Record<AppLocale, BookingPassEmailCopy> = {
+  fr: {
+    preview: "Votre entrée est confirmée",
+    heading: "Visite confirmée",
+    intro: "Paiement validé — voici votre passe QR. Présentez-le à l'entrée du musée.",
+    cta: "Ouvrir mon passe",
+    whenLabel: "Créneau d'entrée",
+    venueLabel: "Musée",
+    footer: "Besoin d'aide ? Répondez à cet e-mail ou consultez vos commandes sur Affisell.",
+    subject: (n) => `Visite · ${n}`,
+  },
+  en: {
+    preview: "Your entry is confirmed",
+    heading: "Visit confirmed",
+    intro: "Payment received — here is your QR pass. Show it at the museum entrance.",
+    cta: "Open my pass",
+    whenLabel: "Entry slot",
+    venueLabel: "Museum",
+    footer: "Need help? Reply to this email or visit your orders on Affisell.",
+    subject: (n) => `Visit · ${n}`,
+  },
+  de: EXPERIENCE.de,
+  es: EXPERIENCE.es,
+  it: EXPERIENCE.it,
+  nl: EXPERIENCE.nl,
+  pl: EXPERIENCE.pl,
+  zh: EXPERIENCE.zh,
+}
+
 export function copyForBookingPassEmail(
   locale: AppLocale,
   listingKind: string
 ): BookingPassEmailCopy {
-  const pack = isExperienceListingKind(listingKind) ? EXPERIENCE : SERVICE
+  const pack = isRestaurantListingKind(listingKind)
+    ? RESTAURANT
+    : isMuseumListingKind(listingKind)
+      ? MUSEUM
+      : isExperienceListingKind(listingKind)
+        ? EXPERIENCE
+        : SERVICE
   return pack[locale] ?? pack.en
 }

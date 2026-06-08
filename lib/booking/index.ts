@@ -1,14 +1,23 @@
 export {
   BOOKING_EXPERIENCE_CHECKOUT_LIVE,
+  BOOKING_MUSEUM_CHECKOUT_LIVE,
+  BOOKING_RESTAURANT_CHECKOUT_LIVE,
   BOOKING_SERVICE_CHECKOUT_LIVE,
   isBookingCheckoutBlocked,
   isBookingCheckoutLiveForKind,
 } from "@/lib/booking/checkout-live"
 export {
+  bookingVerticalPreset,
+  isMultiCapacityBookingKind,
+  isSingleGuestBookingKind,
+} from "@/lib/booking/vertical-presets"
+export {
   BOOKABLE_LISTING_KINDS,
   bookingListingKindLabel,
   isBookableListingKind,
   isExperienceListingKind,
+  isMuseumListingKind,
+  isRestaurantListingKind,
   isServiceListingKind,
   type BookableListingKind,
   type BookingProductFields,

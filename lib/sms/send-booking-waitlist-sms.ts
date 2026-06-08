@@ -1,4 +1,8 @@
-import { isExperienceListingKind } from "@/lib/booking/types"
+import {
+  isExperienceListingKind,
+  isMuseumListingKind,
+  isRestaurantListingKind,
+} from "@/lib/booking/types"
 import { resolveAppUrl } from "@/lib/emails/send-order-confirmation"
 import { resolveEmailLocale } from "@/lib/emails/resolve-email-locale"
 import type { AppLocale } from "@/lib/i18n-locale"
@@ -15,6 +19,8 @@ export function bookingWaitlistSmsBody(args: {
   listingKind: string
   locale: AppLocale
 }): string {
+  const restaurant = isRestaurantListingKind(args.listingKind)
+  const museum = isMuseumListingKind(args.listingKind)
   const experience = isExperienceListingKind(args.listingKind)
   const d = new Date(args.startsAtIso)
   const timeLabel = Number.isFinite(d.getTime())
@@ -25,11 +31,23 @@ export function bookingWaitlistSmsBody(args: {
     : args.startsAtIso
 
   if (args.locale === "fr") {
+    if (restaurant) {
+      return `Affisell · Table libre pour ${args.productName} (${timeLabel}). Réserver : ${args.bookUrl}`
+    }
+    if (museum) {
+      return `Affisell · Entrée libre pour ${args.productName} (${timeLabel}). Réserver : ${args.bookUrl}`
+    }
     return experience
       ? `Affisell · Places libres pour ${args.productName} (${timeLabel}). Réserver : ${args.bookUrl}`
       : `Affisell · Créneau libre pour ${args.productName} (${timeLabel}). Réserver : ${args.bookUrl}`
   }
 
+  if (restaurant) {
+    return `Affisell · Table open for ${args.productName} (${timeLabel}). Book: ${args.bookUrl}`
+  }
+  if (museum) {
+    return `Affisell · Entry open for ${args.productName} (${timeLabel}). Book: ${args.bookUrl}`
+  }
   return experience
     ? `Affisell · Seats open for ${args.productName} (${timeLabel}). Book: ${args.bookUrl}`
     : `Affisell · Slot open for ${args.productName} (${timeLabel}). Book: ${args.bookUrl}`

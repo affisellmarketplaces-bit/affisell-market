@@ -6,7 +6,12 @@ import { getTranslations } from "next-intl/server"
 import { BookingPassQrImage } from "@/components/booking/booking-pass-qr-image"
 import { buildBookingPassAbsoluteUrl, generateBookingPassQrDataUrl } from "@/lib/booking/pass-qr"
 import { parseBookingSnapshot } from "@/lib/booking/snapshot"
-import { isBookableListingKind, isExperienceListingKind } from "@/lib/booking/types"
+import {
+  isBookableListingKind,
+  isExperienceListingKind,
+  isMuseumListingKind,
+  isRestaurantListingKind,
+} from "@/lib/booking/types"
 import { resolveEmailLocale } from "@/lib/emails/resolve-email-locale"
 import { prisma } from "@/lib/prisma"
 
@@ -41,9 +46,13 @@ export default async function BookingPassPage({ params }: Props) {
 
   const locale = resolveEmailLocale(order.buyerLocale)
   const t = await getTranslations({ locale, namespace: "BookingPass" })
-  const title = isExperienceListingKind(order.listingKindSnapshot)
-    ? t("titleExperience")
-    : t("titleService")
+  const title = isRestaurantListingKind(order.listingKindSnapshot)
+    ? t("titleRestaurant")
+    : isMuseumListingKind(order.listingKindSnapshot)
+      ? t("titleMuseum")
+      : isExperienceListingKind(order.listingKindSnapshot)
+        ? t("titleExperience")
+        : t("titleService")
 
   const cover = order.product.images[0] ?? null
   const startsAt = new Date(snapshot.startsAt)

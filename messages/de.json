@@ -756,7 +756,19 @@
         "legendBlocked": "Blocked",
         "vipSurchargeLabel": "VIP surcharge (€ per seat)",
         "vipSurchargePlaceholder": "E.g. 3.00"
-      }
+      },
+      "titleRestaurant": "Restaurant reservations",
+      "titleMuseum": "Museum timed entry",
+      "descriptionRestaurant": "Add service slots with table covers — buyers pick a time and party size.",
+      "descriptionMuseum": "Add entry slots with capacity — buyers pick a visit window and ticket quantity.",
+      "venuePlaceholderRestaurant": "E.g. Le Comptoir · 8 rue des Fossés, Lyon",
+      "venuePlaceholderMuseum": "E.g. Musée des Confluences · Lyon",
+      "slotsHintRestaurant": "Set covers per service slot. Add at least one future reservation window before publishing.",
+      "slotsHintMuseum": "Set visitor capacity per entry slot. Add at least one future visit window before publishing.",
+      "slotLabelPlaceholderRestaurant": "E.g. Lunch service · Terrace",
+      "slotLabelPlaceholderMuseum": "E.g. Permanent collection · FR guided",
+      "slotCapacityLabelRestaurant": "Covers per slot",
+      "slotCapacityLabelMuseum": "Visitors per slot"
     },
     "quality": {
       "title": "Listing-Qualität",
@@ -1479,7 +1491,11 @@
       "waitlistSlotAvailable": "This slot has spots again — book it directly above.",
       "waitlistPhonePlaceholder": "Mobile (optional, for SMS alert)",
       "waitlistPhoneHint": "Optional — get an SMS in addition to email when a spot opens.",
-      "waitlistPhoneInvalid": "Enter a valid mobile number (e.g. +33 6 12 34 56 78)."
+      "waitlistPhoneInvalid": "Enter a valid mobile number (e.g. +33 6 12 34 56 78).",
+      "pickerTitleRestaurant": "Choose your reservation",
+      "pickerTitleMuseum": "Choose your visit slot",
+      "pickerHintRestaurant": "Pick a service time, then set party size — one QR pass covers your table.",
+      "pickerHintMuseum": "Pick an entry window, then choose ticket quantity — one QR pass covers your visit."
     },
     "view360": "360° Ansicht",
     "premium": "Premium",
@@ -2711,6 +2727,8 @@
     "confirmedAt": "Bestätigt · {date}",
     "myOrders": "Meine Bestellungen",
     "qrAlt": "QR-Code Buchungspass",
-    "addToCalendar": "Add to calendar"
+    "addToCalendar": "Add to calendar",
+    "titleRestaurant": "Reservation confirmed",
+    "titleMuseum": "Visit confirmed"
   }
 }

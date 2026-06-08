@@ -3,7 +3,8 @@ import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { resolveSeatLayoutConfig } from "@/lib/booking/seat-layout"
 import { listPublicBookingSlots } from "@/lib/booking/slot-availability"
-import { isBookableListingKind, isServiceListingKind } from "@/lib/booking/types"
+import { isBookableListingKind } from "@/lib/booking/types"
+import { bookingVerticalPreset, isSingleGuestBookingKind } from "@/lib/booking/vertical-presets"
 import { prisma } from "@/lib/prisma"
 
 async function assertOwnProduct(supplierId: string, productId: string) {
@@ -103,11 +104,12 @@ export async function POST(
   )
   const endsAt = new Date(startsAt.getTime() + durationMinutes * 60 * 1000)
   const capacityRaw = Math.round(Number(body.capacity))
-  const capacity = isServiceListingKind(product.listingKind)
+  const preset = bookingVerticalPreset(product.listingKind)
+  const capacity = isSingleGuestBookingKind(product.listingKind)
     ? 1
     : Number.isFinite(capacityRaw) && capacityRaw >= 1
       ? Math.min(500, capacityRaw)
-      : 30
+      : preset.defaultSlotCapacity
   const label =
     typeof body.label === "string" && body.label.trim().length > 0
       ? body.label.trim().slice(0, 120)

@@ -3,6 +3,7 @@
 import { CalendarClock, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 
+import { isBookableListingKind } from "@/lib/booking/types"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -12,8 +13,7 @@ type Props = {
 
 export function BookingComingSoonRail({ listingKind, className }: Props) {
   const t = useTranslations("Product.booking")
-  const kind = listingKind.trim().toUpperCase()
-  if (kind !== "SERVICE" && kind !== "EXPERIENCE") return null
+  if (!isBookableListingKind(listingKind)) return null
 
   return (
     <div

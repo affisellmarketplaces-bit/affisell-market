@@ -1,11 +1,15 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { CalendarClock, Loader2, Scissors, Ticket } from "lucide-react"
+import { CalendarClock, Landmark, Loader2, Scissors, Ticket, UtensilsCrossed } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { BookingWaitlistPanel } from "@/components/booking/booking-waitlist-panel"
-import { isExperienceListingKind } from "@/lib/booking/types"
+import {
+  isExperienceListingKind,
+  isMuseumListingKind,
+  isRestaurantListingKind,
+} from "@/lib/booking/types"
 import type { PublicBookingSlotRow } from "@/lib/booking/slot-availability"
 import { cn } from "@/lib/utils"
 
@@ -23,6 +27,23 @@ type Props = {
   className?: string
 }
 
+function pickerCopyKeys(listingKind: string): {
+  titleKey: "pickerTitle" | "pickerTitleExperience" | "pickerTitleRestaurant" | "pickerTitleMuseum"
+  hintKey: "pickerHint" | "pickerHintExperience" | "pickerHintRestaurant" | "pickerHintMuseum"
+  Icon: typeof Scissors
+} {
+  if (isRestaurantListingKind(listingKind)) {
+    return { titleKey: "pickerTitleRestaurant", hintKey: "pickerHintRestaurant", Icon: UtensilsCrossed }
+  }
+  if (isMuseumListingKind(listingKind)) {
+    return { titleKey: "pickerTitleMuseum", hintKey: "pickerHintMuseum", Icon: Landmark }
+  }
+  if (isExperienceListingKind(listingKind)) {
+    return { titleKey: "pickerTitleExperience", hintKey: "pickerHintExperience", Icon: Ticket }
+  }
+  return { titleKey: "pickerTitle", hintKey: "pickerHint", Icon: Scissors }
+}
+
 export function BookingSlotPicker({
   productId,
   listingKind,
@@ -32,6 +53,8 @@ export function BookingSlotPicker({
 }: Props) {
   const t = useTranslations("Product.booking")
   const isExperience = isExperienceListingKind(listingKind)
+  const isMultiGuest = isExperience || isRestaurantListingKind(listingKind) || isMuseumListingKind(listingKind)
+  const { titleKey, hintKey, Icon: PickerIcon } = pickerCopyKeys(listingKind)
   const [slots, setSlots] = useState<PublicBookingSlotRow[]>([])
   const [soldOut, setSoldOut] = useState<PublicBookingSlotRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -69,10 +92,6 @@ export function BookingSlotPicker({
     void load()
   }, [load])
 
-  const pickerTitle = isExperience ? t("pickerTitleExperience") : t("pickerTitle")
-  const pickerHint = isExperience ? t("pickerHintExperience") : t("pickerHint")
-  const PickerIcon = isExperience ? Ticket : Scissors
-
   return (
     <section
       className={cn(
@@ -82,9 +101,9 @@ export function BookingSlotPicker({
     >
       <p className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.22em] text-cyan-300">
         <PickerIcon className="h-3.5 w-3.5" aria-hidden />
-        {pickerTitle}
+        {t(titleKey)}
       </p>
-      <p className="mt-2 text-sm leading-relaxed text-cyan-100/90">{pickerHint}</p>
+      <p className="mt-2 text-sm leading-relaxed text-cyan-100/90">{t(hintKey)}</p>
 
       {loading ? (
         <div className="mt-4 flex items-center gap-2 text-sm text-cyan-200/80">
@@ -129,7 +148,7 @@ export function BookingSlotPicker({
                     <span className="block font-medium text-white">{label}</span>
                     <span className="text-xs text-cyan-200/70">
                       {t("seatsLeft", { count: slot.seatsLeft })}
-                      {isExperience && slot.capacity > 1
+                      {isMultiGuest && slot.capacity > 1
                         ? ` · ${t("capacityTotal", { count: slot.capacity })}`
                         : null}
                     </span>

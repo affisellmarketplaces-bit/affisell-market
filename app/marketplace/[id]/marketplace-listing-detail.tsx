@@ -548,6 +548,7 @@ export function MarketplaceListingDetail({
     isBookableListingKind(listingKind) && isBookingCheckoutLiveForKind(listingKind)
   const serviceBookingLive = isServiceListingKind(listingKind) && bookingCheckoutLive
   const experienceBookingLive = isExperienceListingKind(listingKind) && bookingCheckoutLive
+  const multiGuestBookingLive = bookingCheckoutLive && !serviceBookingLive
   const bookingSlotRequired = bookingCheckoutLive && !selectedBookingSlotId
   const bookingSeatsRequired =
     experienceBookingLive && slotUsesNamedSeats && selectedSeatLabels.length === 0
@@ -706,7 +707,7 @@ export function MarketplaceListingDetail({
   }, [availableStock])
 
   const bookingTicketStock =
-    experienceBookingLive && selectedSlotSeatsLeft != null
+    multiGuestBookingLive && selectedSlotSeatsLeft != null
       ? Math.min(availableStock, selectedSlotSeatsLeft)
       : availableStock
 
@@ -730,9 +731,9 @@ export function MarketplaceListingDetail({
   }, [selectedSeatLabels])
 
   useEffect(() => {
-    if (!experienceBookingLive || selectedSlotSeatsLeft == null) return
+    if (!multiGuestBookingLive || selectedSlotSeatsLeft == null) return
     setPurchaseQty((prev) => clampPurchaseQuantity(prev, bookingTicketStock))
-  }, [experienceBookingLive, selectedSlotSeatsLeft, bookingTicketStock])
+  }, [multiGuestBookingLive, selectedSlotSeatsLeft, bookingTicketStock])
 
   const buyNowLineSubtotalCents = activeListingPriceCents * (serviceBookingLive ? 1 : purchaseQty)
   const maxApplicableReward = useMemo(() => {
@@ -1532,7 +1533,7 @@ export function MarketplaceListingDetail({
                 className="mb-1"
                 quantity={purchaseQty}
                 onQuantityChange={setPurchaseQty}
-                availableStock={experienceBookingLive && !slotUsesNamedSeats ? bookingTicketStock : availableStock}
+                availableStock={multiGuestBookingLive && !slotUsesNamedSeats ? bookingTicketStock : availableStock}
                 inStockLabel={productT.inStock}
                 outOfStockLabel={productT.outOfStock}
                 quantityOptionLabel={(count) => t(productT.quantityOption, { count })}

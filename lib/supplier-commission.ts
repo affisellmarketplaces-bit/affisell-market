@@ -1,4 +1,12 @@
-export const LISTING_KINDS = ["PHYSICAL", "SOFTWARE", "SUBSCRIPTION", "SERVICE", "EXPERIENCE"] as const
+export const LISTING_KINDS = [
+  "PHYSICAL",
+  "SOFTWARE",
+  "SUBSCRIPTION",
+  "SERVICE",
+  "EXPERIENCE",
+  "RESTAURANT",
+  "MUSEUM",
+] as const
 
 export type ListingKind = (typeof LISTING_KINDS)[number]
 
@@ -9,7 +17,9 @@ export function parseListingKind(raw: unknown): ListingKind {
     s === "SUBSCRIPTION" ||
     s === "PHYSICAL" ||
     s === "SERVICE" ||
-    s === "EXPERIENCE"
+    s === "EXPERIENCE" ||
+    s === "RESTAURANT" ||
+    s === "MUSEUM"
   ) {
     return s
   }

@@ -61,7 +61,8 @@ import {
   resolveSeatLayoutConfig,
   type BookingSeatLayoutConfig,
 } from "@/lib/booking/seat-layout"
-import { isExperienceListingKind } from "@/lib/booking/types"
+import { isBookableListingKind, isExperienceListingKind } from "@/lib/booking/types"
+import { bookingVerticalPreset } from "@/lib/booking/vertical-presets"
 import {
   pathFromLeafId,
   type CategoryPathSegment,
@@ -181,6 +182,8 @@ const LISTING_LABELS: Record<ListingKind, string> = {
   SUBSCRIPTION: "Subscription / SaaS",
   SERVICE: "Service & appointment",
   EXPERIENCE: "Experience & ticket",
+  RESTAURANT: "Restaurant reservation",
+  MUSEUM: "Museum timed entry",
 }
 
 function formatMoneyDisplay(n: number) {
@@ -3038,7 +3041,15 @@ export function SupplierAddProductForm({
                         id="p-kind"
                         className="mt-1.5 flex h-11 w-full rounded-xl border border-violet-200 bg-white px-3 text-sm dark:border-violet-800 dark:bg-zinc-950"
                         value={listingKind}
-                        onChange={(e) => setListingKind(e.target.value as ListingKind)}
+                        onChange={(e) => {
+                          const next = e.target.value as ListingKind
+                          setListingKind(next)
+                          if (isBookableListingKind(next)) {
+                            const preset = bookingVerticalPreset(next)
+                            setBookingDurationMinutes(String(preset.defaultDurationMinutes))
+                            setBookingCancellationHours(String(preset.defaultCancellationHours))
+                          }
+                        }}
                       >
                         {LISTING_KINDS.map((k) => (
                           <option key={k} value={k}>
