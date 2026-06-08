@@ -1300,6 +1300,10 @@ model Order {
   bookingCancelledAt       DateTime?
   /** Supplier QR / manual check-in at venue (Phase 4). */
   bookingCheckedInAt       DateTime?
+  /** Idempotent J-1 (~24h) booking reminder email. */
+  bookingReminderDaySentAt  DateTime?
+  /** Idempotent H-2 (~2h) booking reminder email. */
+  bookingReminderHourSentAt DateTime?
   bookingSeats             BookingSeat[]
   buyer                    User?               @relation("BuyerMarketplaceOrders", fields: [buyerUserId], references: [id], onDelete: SetNull)
   customerEmail            String

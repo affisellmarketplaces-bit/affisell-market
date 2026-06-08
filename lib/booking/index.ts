@@ -56,6 +56,13 @@ export {
   buildBookingPassAbsoluteUrl,
   generateBookingPassQrDataUrl,
 } from "@/lib/booking/pass-qr"
+export { backfillNamedSeatsForExperienceSlots } from "@/lib/booking/backfill-named-seats"
+export {
+  dayReminderSlotRange,
+  hourReminderSlotRange,
+  isInDayReminderWindow,
+  isInHourReminderWindow,
+} from "@/lib/booking/reminder-windows"
 export {
   parseProductBookingBody,
   validateBookingListingForPublish,

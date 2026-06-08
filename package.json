@@ -28,6 +28,7 @@
     "db:copy": "tsx scripts/copy-to-prod.ts",
     "db:backfill-images": "tsx prisma/backfill-product-images.ts",
     "db:backfill-skus": "tsx scripts/backfill-skus.ts",
+    "db:backfill-booking-seats": "tsx scripts/backfill-booking-seats.ts",
     "reclassify-products": "tsx scripts/reclassify-products.ts",
     "check:categories": "tsx scripts/check-categories.ts",
     "fix:category-suggestions": "tsx scripts/fix-category-suggestions.ts",
