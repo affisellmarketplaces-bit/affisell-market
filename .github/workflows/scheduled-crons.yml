@@ -28,7 +28,8 @@ jobs:
             "/api/cron/enforce-supplier-ship-sla" \
             "/api/cron/sync-supplier-orders" \
             "/api/cron/expire-sponsor-campaigns" \
-            "/api/cron/process-order-payouts"
+            "/api/cron/process-order-payouts" \
+            "/api/cron/release-booking-holds"
           do
             echo "→ GET ${path}"
             curl -fsS -H "$AUTH" "${BASE}${path}" || echo "WARN: ${path} failed"

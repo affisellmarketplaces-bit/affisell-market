@@ -7,6 +7,7 @@ export type PublicBookingSlotRow = {
   label: string | null
   capacity: number
   seatsLeft: number
+  occupiedSeats: number
 }
 
 export type BookingSlotRow = {
@@ -15,16 +16,17 @@ export type BookingSlotRow = {
   endsAt: Date
   capacity: number
   bookedCount: number
+  heldCount: number
   label: string | null
   status: string
 }
 
-function seatsLeft(slot: { capacity: number; bookedCount: number }): number {
-  return Math.max(0, slot.capacity - slot.bookedCount)
+function seatsLeft(slot: { capacity: number; bookedCount: number; heldCount: number }): number {
+  return Math.max(0, slot.capacity - slot.bookedCount - slot.heldCount)
 }
 
 export function isSlotBookable(
-  slot: { status: string; startsAt: Date; capacity: number; bookedCount: number },
+  slot: { status: string; startsAt: Date; capacity: number; bookedCount: number; heldCount: number },
   now = new Date(),
   qty = 1
 ): boolean {
@@ -50,6 +52,7 @@ export async function listPublicBookingSlots(productId: string, limit = 40): Pro
       label: true,
       capacity: true,
       bookedCount: true,
+      heldCount: true,
       status: true,
     },
   })
@@ -63,6 +66,7 @@ export async function listPublicBookingSlots(productId: string, limit = 40): Pro
       label: row.label,
       capacity: row.capacity,
       seatsLeft: seatsLeft(row),
+      occupiedSeats: row.capacity - seatsLeft(row),
     }))
 }
 
@@ -84,6 +88,7 @@ export async function loadBookingSlotForCheckout(args: {
       endsAt: true,
       capacity: true,
       bookedCount: true,
+      heldCount: true,
       label: true,
       status: true,
     },

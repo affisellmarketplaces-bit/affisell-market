@@ -1364,7 +1364,14 @@
       "noSlots": "No slots available right now — check back soon.",
       "seatsLeft": "{count, plural, one {# spot left} other {# spots left}}",
       "capacityTotal": "{count} seats total",
-      "selectSlotRequired": "Please choose an appointment slot first."
+      "selectSlotRequired": "Please choose an appointment slot first.",
+      "seatMapTitle": "Seat map",
+      "seatMapHint": "Green = available · amber = your tickets · grey = taken or held.",
+      "seatMapFree": "Available",
+      "seatMapYours": "Your selection",
+      "seatMapTaken": "Taken / held",
+      "seatMapTruncated": "Showing first {total} seats — quantity stepper sets your tickets.",
+      "seatMapAria": "{free} seats free of {total}"
     },
     "view360": "360° View",
     "premium": "Premium",

@@ -43,6 +43,14 @@ export {
   validateServiceBookingCheckout,
 } from "@/lib/booking/checkout-validation"
 export {
+  bookingHoldMinutes,
+  bookingSeatsLeft,
+  releaseBookingSlotHoldForOrder,
+  reserveBookingSlotHoldInTransaction,
+  resolveBookingSlotStatus,
+} from "@/lib/booking/slot-hold"
+export { cancelBookingOrderForBuyer, type CancelBookingOrderResult } from "@/lib/booking/cancel-order"
+export {
   parseProductBookingBody,
   validateBookingListingForPublish,
   type ParsedProductBookingSettings,

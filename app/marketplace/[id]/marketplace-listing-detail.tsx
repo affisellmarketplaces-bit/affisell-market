@@ -56,6 +56,7 @@ import {
   isServiceListingKind,
 } from "@/lib/booking/types"
 import { BookingSlotPicker } from "@/components/booking/booking-slot-picker"
+import { BookingSeatMapPreview } from "@/components/booking/booking-seat-map-preview"
 import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/marketplace-checkout-discount"
 import {
   clampPurchaseQuantity,
@@ -540,6 +541,10 @@ export function MarketplaceListingDetail({
   const [alertSaved, setAlertSaved] = useState(false)
   const [selectedBookingSlotId, setSelectedBookingSlotId] = useState<string | null>(null)
   const [selectedSlotSeatsLeft, setSelectedSlotSeatsLeft] = useState<number | null>(null)
+  const [selectedSlotMeta, setSelectedSlotMeta] = useState<{
+    capacity: number
+    occupiedSeats: number
+  } | null>(null)
   const bookingCheckoutBlocked = isBookingCheckoutBlocked(listingKind)
   const bookingCheckoutLive =
     isBookableListingKind(listingKind) && isBookingCheckoutLiveForKind(listingKind)
@@ -705,10 +710,21 @@ export function MarketplaceListingDetail({
       ? Math.min(availableStock, selectedSlotSeatsLeft)
       : availableStock
 
-  const handleSelectBookingSlot = useCallback((slotId: string | null, seatsLeft?: number) => {
-    setSelectedBookingSlotId(slotId)
-    setSelectedSlotSeatsLeft(slotId ? (seatsLeft ?? null) : null)
-  }, [])
+  const handleSelectBookingSlot = useCallback(
+    (
+      slotId: string | null,
+      meta?: { seatsLeft: number; capacity: number; occupiedSeats: number }
+    ) => {
+      setSelectedBookingSlotId(slotId)
+      setSelectedSlotSeatsLeft(slotId ? (meta?.seatsLeft ?? null) : null)
+      setSelectedSlotMeta(
+        slotId && meta
+          ? { capacity: meta.capacity, occupiedSeats: meta.occupiedSeats }
+          : null
+      )
+    },
+    []
+  )
 
   useEffect(() => {
     if (!experienceBookingLive || selectedSlotSeatsLeft == null) return
@@ -1132,15 +1148,25 @@ export function MarketplaceListingDetail({
 
             {bookingCheckoutBlocked ? (
               <BookingComingSoonRail listingKind={listingKind} className="max-lg:hidden" />
-            ) : bookingCheckoutLive ? (
-              <BookingSlotPicker
-                productId={productId}
-                listingKind={listingKind}
-                selectedSlotId={selectedBookingSlotId}
-                onSelectSlot={handleSelectBookingSlot}
-                className="max-lg:hidden"
-              />
-            ) : (
+              ) : bookingCheckoutLive ? (
+                <>
+                  <BookingSlotPicker
+                    productId={productId}
+                    listingKind={listingKind}
+                    selectedSlotId={selectedBookingSlotId}
+                    onSelectSlot={handleSelectBookingSlot}
+                    className="max-lg:hidden"
+                  />
+                  {experienceBookingLive && selectedSlotMeta ? (
+                    <BookingSeatMapPreview
+                      className="max-lg:hidden"
+                      capacity={selectedSlotMeta.capacity}
+                      occupiedSeats={selectedSlotMeta.occupiedSeats}
+                      selectedQty={purchaseQty}
+                    />
+                  ) : null}
+                </>
+              ) : (
             <ListingPriceActionCard
               className="max-lg:hidden"
               priceLabel={productT.priceLabel}
@@ -1411,12 +1437,21 @@ export function MarketplaceListingDetail({
               {bookingCheckoutBlocked ? (
                 <BookingComingSoonRail listingKind={listingKind} />
               ) : bookingCheckoutLive ? (
-                <BookingSlotPicker
-                  productId={productId}
-                  listingKind={listingKind}
-                  selectedSlotId={selectedBookingSlotId}
-                  onSelectSlot={handleSelectBookingSlot}
-                />
+                <>
+                  <BookingSlotPicker
+                    productId={productId}
+                    listingKind={listingKind}
+                    selectedSlotId={selectedBookingSlotId}
+                    onSelectSlot={handleSelectBookingSlot}
+                  />
+                  {experienceBookingLive && selectedSlotMeta ? (
+                    <BookingSeatMapPreview
+                      capacity={selectedSlotMeta.capacity}
+                      occupiedSeats={selectedSlotMeta.occupiedSeats}
+                      selectedQty={purchaseQty}
+                    />
+                  ) : null}
+                </>
               ) : (
               <>
               <div className="mb-3 hidden items-start gap-2.5 lg:flex">

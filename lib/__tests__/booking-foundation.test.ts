@@ -95,13 +95,13 @@ describe("booking foundation phase 0", () => {
   it("detects bookable slots including multi-seat cinema", () => {
     const future = new Date(Date.now() + 60 * 60 * 1000)
     expect(
-      isSlotBookable({ status: "OPEN", startsAt: future, capacity: 1, bookedCount: 0 }, new Date(), 1)
+      isSlotBookable({ status: "OPEN", startsAt: future, capacity: 1, bookedCount: 0, heldCount: 0 }, new Date(), 1)
     ).toBe(true)
     expect(
-      isSlotBookable({ status: "OPEN", startsAt: future, capacity: 50, bookedCount: 48 }, new Date(), 2)
+      isSlotBookable({ status: "OPEN", startsAt: future, capacity: 50, bookedCount: 48, heldCount: 0 }, new Date(), 2)
     ).toBe(true)
     expect(
-      isSlotBookable({ status: "SOLD_OUT", startsAt: future, capacity: 1, bookedCount: 1 }, new Date(), 1)
+      isSlotBookable({ status: "SOLD_OUT", startsAt: future, capacity: 1, bookedCount: 1, heldCount: 0 }, new Date(), 1)
     ).toBe(false)
   })
 })

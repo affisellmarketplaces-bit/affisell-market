@@ -1386,7 +1386,14 @@
       "noSlots": "Derzeit keine Slots verfügbar — schauen Sie bald wieder vorbei.",
       "seatsLeft": "{count, plural, one {# Platz frei} other {# Plätze frei}}",
       "capacityTotal": "{count} Plätze gesamt",
-      "selectSlotRequired": "Bitte wählen Sie zuerst einen Termin-Slot."
+      "selectSlotRequired": "Bitte wählen Sie zuerst einen Termin-Slot.",
+      "seatMapTitle": "Saalplan",
+      "seatMapHint": "Grün = frei · amber = Ihre Tickets · grau = belegt oder reserviert.",
+      "seatMapFree": "Frei",
+      "seatMapYours": "Ihre Auswahl",
+      "seatMapTaken": "Belegt / reserviert",
+      "seatMapTruncated": "Erste {total} Plätze — Menge wählt Ihre Tickets.",
+      "seatMapAria": "{free} freie Plätze von {total}"
     },
     "view360": "360° Ansicht",
     "premium": "Premium",

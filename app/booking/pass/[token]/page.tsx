@@ -21,13 +21,14 @@ export default async function BookingPassPage({ params }: Props) {
       id: true,
       bookingSnapshot: true,
       bookingConfirmedAt: true,
+      bookingCancelledAt: true,
       listingKindSnapshot: true,
       quantity: true,
       product: { select: { name: true, images: true } },
     },
   })
 
-  if (!order?.bookingConfirmedAt) notFound()
+  if (!order?.bookingConfirmedAt || order.bookingCancelledAt) notFound()
   if (!isBookableListingKind(order.listingKindSnapshot)) notFound()
 
   const snapshot = parseBookingSnapshot(order.bookingSnapshot)

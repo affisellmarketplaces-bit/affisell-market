@@ -37,6 +37,7 @@ import {
   validateBookableListingCheckout,
   validateBookingCartLine,
 } from "@/lib/booking/checkout-validation"
+import { reserveBookingSlotHoldInTransaction } from "@/lib/booking/slot-hold"
 import { marketplaceCheckoutPaymentSessionOptions } from "@/lib/marketplace-checkout-payment-methods"
 import {
   buildHtLineItem,
@@ -458,38 +459,64 @@ export async function marketplaceCheckoutPOST(request: Request) {
     variants,
   })
 
-  const order = await prisma.order.create({
-    data: {
-      status: "PENDING",
-      currency: "eur",
-      productId: product.id,
-      supplierId: product.supplierId,
-      affiliateId: affiliate.id,
-      affiliateProductId: affiliateProduct.id,
-      quantity: checkoutQty,
-      customerEmail: "",
-      buyerLocale: checkoutLocale,
-      shippingAddress: {},
-      stripeSessionId: `pending_${randomUUID()}`,
-      basePriceCents: supplierPriceCents,
-      sellingPriceCents,
-      commissionCents: 0,
-      marginCents: lineMarginCents,
-      affiliatePayoutCents: 0,
-      variantLabel: oneShotVariantLabel || null,
-      supplierPriceCents: unitSupplierCents * checkoutQty,
-      supplierCommissionRateBps,
-      affiliateMarginCents:
-        affiliateProduct.marginCents > 0
-          ? affiliateProduct.marginCents * checkoutQty
-          : unitMarginCents * checkoutQty,
-      affisellCommissionRateBps,
-      affiliateStripeAccountId: affiliate.stripeAccountId,
-      paymentSettlementStatus: "PENDING",
-      listingKindSnapshot: product.listingKind.trim().toUpperCase(),
-      ...(resolvedBookingSlotId ? { bookingSlotId: resolvedBookingSlotId } : {}),
-    },
+  const order = await prisma.$transaction(async (tx) => {
+    const created = await tx.order.create({
+      data: {
+        status: "PENDING",
+        currency: "eur",
+        productId: product.id,
+        supplierId: product.supplierId,
+        affiliateId: affiliate.id,
+        affiliateProductId: affiliateProduct.id,
+        quantity: checkoutQty,
+        customerEmail: "",
+        buyerLocale: checkoutLocale,
+        shippingAddress: {},
+        stripeSessionId: `pending_${randomUUID()}`,
+        basePriceCents: supplierPriceCents,
+        sellingPriceCents,
+        commissionCents: 0,
+        marginCents: lineMarginCents,
+        affiliatePayoutCents: 0,
+        variantLabel: oneShotVariantLabel || null,
+        supplierPriceCents: unitSupplierCents * checkoutQty,
+        supplierCommissionRateBps,
+        affiliateMarginCents:
+          affiliateProduct.marginCents > 0
+            ? affiliateProduct.marginCents * checkoutQty
+            : unitMarginCents * checkoutQty,
+        affisellCommissionRateBps,
+        affiliateStripeAccountId: affiliate.stripeAccountId,
+        paymentSettlementStatus: "PENDING",
+        listingKindSnapshot: product.listingKind.trim().toUpperCase(),
+        ...(resolvedBookingSlotId ? { bookingSlotId: resolvedBookingSlotId } : {}),
+      },
+    })
+
+    if (resolvedBookingSlotId) {
+      const hold = await reserveBookingSlotHoldInTransaction(tx, {
+        orderId: created.id,
+        productId: product.id,
+        slotId: resolvedBookingSlotId,
+        quantity: checkoutQty,
+      })
+      if (!hold.ok) {
+        throw new Error(hold.error)
+      }
+    }
+
+    return created
+  }).catch((e: unknown) => {
+    const msg = e instanceof Error ? e.message : String(e)
+    if (msg === "booking_slot_unavailable" || msg === "booking_slot_not_found") {
+      return null
+    }
+    throw e
   })
+
+  if (!order) {
+    return NextResponse.json({ error: "booking_slot_unavailable" }, { status: 409 })
+  }
 
   const { baseUrl, cancelPath, successPath } = checkoutBaseUrls(body)
 
@@ -535,6 +562,9 @@ export async function marketplaceCheckoutPOST(request: Request) {
   })
 
   if (!checkoutSession.url) {
+    await import("@/lib/booking/slot-hold").then(({ releaseBookingSlotHoldForOrder }) =>
+      releaseBookingSlotHoldForOrder(order.id)
+    )
     await prisma.order.delete({ where: { id: order.id } }).catch(() => undefined)
     return NextResponse.json({ error: "Stripe URL unavailable" }, { status: 502 })
   }

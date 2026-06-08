@@ -1364,7 +1364,14 @@
       "noSlots": "Aucun créneau disponible pour le moment — revenez bientôt.",
       "seatsLeft": "{count, plural, one {# place restante} other {# places restantes}}",
       "capacityTotal": "{count} places au total",
-      "selectSlotRequired": "Choisissez d'abord un créneau de rendez-vous."
+      "selectSlotRequired": "Choisissez d'abord un créneau de rendez-vous.",
+      "seatMapTitle": "Plan de salle",
+      "seatMapHint": "Vert = disponible · ambre = vos billets · gris = pris ou réservés.",
+      "seatMapFree": "Disponible",
+      "seatMapYours": "Votre sélection",
+      "seatMapTaken": "Pris / hold",
+      "seatMapTruncated": "Aperçu des {total} premières places — la quantité règle vos billets.",
+      "seatMapAria": "{free} places libres sur {total}"
     },
     "view360": "Vue 360°",
     "premium": "Premium",

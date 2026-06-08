@@ -44,6 +44,14 @@ export async function handleStripeCheckoutSessionExpired(
       where: { id: orderId, status: "PENDING" },
       data: { status: "CANCELLED" },
     })
+    const { releaseBookingSlotHoldForOrder } = await import("@/lib/booking/slot-hold")
+    await releaseBookingSlotHoldForOrder(orderId).catch((e: unknown) => {
+      console.error("[booking]", {
+        orderId,
+        result: "hold_release_on_session_expired_failed",
+        error: e instanceof Error ? e.message : String(e),
+      })
+    })
   }
 
   if (!email) {

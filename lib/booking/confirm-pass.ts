@@ -7,6 +7,7 @@ import {
   generateBookingPassToken,
 } from "@/lib/booking/pass-token"
 import { buildBookingSnapshot } from "@/lib/booking/snapshot"
+import { bookingSeatsLeft, resolveBookingSlotStatus } from "@/lib/booking/slot-hold"
 import { isBookableListingKind, type BookingProductFields } from "@/lib/booking/types"
 import { payoutEligibleAfterBuyerConfirm } from "@/lib/order-payout-policy"
 
@@ -18,6 +19,7 @@ type SlotRow = {
   endsAt: Date
   capacity: number
   bookedCount: number
+  heldCount: number
   label: string | null
   status: string
 }
@@ -26,10 +28,7 @@ export type ConfirmBookingPassResult =
   | { confirmed: false; reason: "not_bookable" | "no_slot" | "slot_full" | "already_confirmed" }
   | { confirmed: true; token: string; passPath: string; snapshot: ReturnType<typeof buildBookingSnapshot> }
 
-/**
- * Idempotent booking confirmation inside checkout transaction (Phase 1+).
- * Phase 0 ships the function; checkout wiring arrives with slot picker.
- */
+/** Idempotent booking confirmation: converts checkout hold → booked seats + QR pass. */
 export async function confirmBookingPassInTransaction(
   tx: Tx,
   args: {
@@ -49,15 +48,42 @@ export async function confirmBookingPassInTransaction(
 
   const existing = await tx.order.findUnique({
     where: { id: args.orderId },
-    select: { bookingConfirmedAt: true, bookingToken: true, quantity: true },
+    select: {
+      bookingConfirmedAt: true,
+      bookingToken: true,
+      quantity: true,
+      bookingHoldExpiresAt: true,
+    },
   })
   if (existing?.bookingConfirmedAt) {
     return { confirmed: false, reason: "already_confirmed" }
   }
 
+  const slotFresh = await tx.bookingSlot.findUnique({
+    where: { id: args.slot.id },
+    select: {
+      id: true,
+      capacity: true,
+      bookedCount: true,
+      heldCount: true,
+      status: true,
+    },
+  })
+  if (!slotFresh) {
+    return { confirmed: false, reason: "no_slot" }
+  }
+
   const qty = Math.max(1, args.quantity)
-  const seatsLeft = args.slot.capacity - args.slot.bookedCount
-  if (seatsLeft < qty) {
+  const hadHold = Boolean(existing?.bookingHoldExpiresAt)
+  let nextHeld = slotFresh.heldCount
+  if (hadHold) {
+    nextHeld = Math.max(0, slotFresh.heldCount - qty)
+  } else if (bookingSeatsLeft(slotFresh) < qty) {
+    return { confirmed: false, reason: "slot_full" }
+  }
+
+  const nextBooked = slotFresh.bookedCount + qty
+  if (nextBooked > slotFresh.capacity) {
     return { confirmed: false, reason: "slot_full" }
   }
 
@@ -75,14 +101,18 @@ export async function confirmBookingPassInTransaction(
   })
   const now = new Date()
   const payoutEligibleAt = payoutEligibleAfterBuyerConfirm(now)
-  const newBooked = args.slot.bookedCount + qty
-  const soldOut = newBooked >= args.slot.capacity
 
   await tx.bookingSlot.update({
     where: { id: args.slot.id },
     data: {
-      bookedCount: newBooked,
-      status: soldOut ? "SOLD_OUT" : args.slot.status,
+      bookedCount: nextBooked,
+      heldCount: nextHeld,
+      status: resolveBookingSlotStatus({
+        capacity: slotFresh.capacity,
+        bookedCount: nextBooked,
+        heldCount: nextHeld,
+        previousStatus: slotFresh.status,
+      }),
     },
   })
 
@@ -94,6 +124,7 @@ export async function confirmBookingPassInTransaction(
       bookingSnapshot: snapshot,
       bookingToken: token,
       bookingConfirmedAt: now,
+      bookingHoldExpiresAt: null,
       status: "shipped",
       shippedAt: now,
       deliveredAt: now,

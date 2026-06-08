@@ -8,11 +8,17 @@ import { isExperienceListingKind } from "@/lib/booking/types"
 import type { PublicBookingSlotRow } from "@/lib/booking/slot-availability"
 import { cn } from "@/lib/utils"
 
+type SlotPickMeta = {
+  seatsLeft: number
+  capacity: number
+  occupiedSeats: number
+}
+
 type Props = {
   productId: string
   listingKind: string
   selectedSlotId: string | null
-  onSelectSlot: (slotId: string | null, seatsLeft?: number) => void
+  onSelectSlot: (slotId: string | null, meta?: SlotPickMeta) => void
   className?: string
 }
 
@@ -91,7 +97,18 @@ export function BookingSlotPicker({
               <li key={slot.id}>
                 <button
                   type="button"
-                  onClick={() => onSelectSlot(selected ? null : slot.id, selected ? undefined : slot.seatsLeft)}
+                  onClick={() =>
+                    onSelectSlot(
+                      selected ? null : slot.id,
+                      selected
+                        ? undefined
+                        : {
+                            seatsLeft: slot.seatsLeft,
+                            capacity: slot.capacity,
+                            occupiedSeats: slot.occupiedSeats,
+                          }
+                    )
+                  }
                   className={cn(
                     "flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left text-sm transition",
                     selected

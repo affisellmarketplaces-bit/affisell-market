@@ -58,6 +58,8 @@ type OrderRow = {
   isBooking?: boolean
   bookingConfirmedAt?: string | null
   bookingPassPath?: string | null
+  canCancelBooking?: boolean
+  bookingCancelDeadlineAt?: string | null
 }
 
 function statusLabel(status: string) {
@@ -96,6 +98,7 @@ export function AccountOrdersClient({
   const [orders, setOrders] = useState(initialOrders)
   const [lang, setLang] = useState<"en" | "fr">("fr")
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [bookingCancelBusyId, setBookingCancelBusyId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const reasonOptions = useMemo(
@@ -112,6 +115,25 @@ export function AccountOrdersClient({
     if (!res.ok) return
     const data = (await res.json()) as OrderRow[]
     setOrders(data)
+  }
+
+  async function cancelBooking(orderId: string) {
+    setBookingCancelBusyId(orderId)
+    setError(null)
+    try {
+      const res = await fetch(`/api/account/orders/${orderId}/booking-cancel`, {
+        method: "POST",
+        credentials: "include",
+      })
+      const json = (await res.json()) as { error?: string; ok?: boolean }
+      if (!res.ok) {
+        setError(json.error ?? (lang === "fr" ? "Annulation impossible" : "Could not cancel"))
+        return
+      }
+      await refresh()
+    } finally {
+      setBookingCancelBusyId(null)
+    }
   }
 
   if (orders.length === 0) {
@@ -228,6 +250,32 @@ export function AccountOrdersClient({
                     <Sparkles className="h-4 w-4" aria-hidden />
                     {lang === "fr" ? "Ouvrir mon passe" : "Open my pass"}
                   </Link>
+                  {o.canCancelBooking ? (
+                    <div className="mt-3 space-y-2">
+                      {o.bookingCancelDeadlineAt ? (
+                        <p className="text-[11px] text-cyan-200/70">
+                          {lang === "fr" ? "Annulation gratuite jusqu'au" : "Free cancel until"}{" "}
+                          {new Date(o.bookingCancelDeadlineAt).toLocaleString()}
+                        </p>
+                      ) : null}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={bookingCancelBusyId === o.id}
+                        className="border-amber-400/50 bg-transparent text-amber-100 hover:bg-amber-950/40"
+                        onClick={() => void cancelBooking(o.id)}
+                      >
+                        {bookingCancelBusyId === o.id
+                          ? lang === "fr"
+                            ? "Annulation…"
+                            : "Cancelling…"
+                          : lang === "fr"
+                            ? "Annuler le rendez-vous"
+                            : "Cancel appointment"}
+                      </Button>
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
               {o.status === "preparing" ? (

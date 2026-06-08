@@ -697,6 +697,8 @@ model BookingSlot {
   endsAt             DateTime
   capacity           Int
   bookedCount        Int      @default(0)
+  /** Seats reserved during Stripe checkout (released on pay, expiry, or cancel). */
+  heldCount          Int      @default(0)
   priceCentsOverride Int?
   label              String?
   /** OPEN | SOLD_OUT | CANCELLED */
@@ -1271,6 +1273,9 @@ model Order {
   bookingSnapshot          Json?
   bookingToken             String?             @unique
   bookingConfirmedAt       DateTime?
+  /** PENDING checkout hold expiry — see lib/booking/slot-hold.ts */
+  bookingHoldExpiresAt     DateTime?
+  bookingCancelledAt       DateTime?
   buyer                    User?               @relation("BuyerMarketplaceOrders", fields: [buyerUserId], references: [id], onDelete: SetNull)
   customerEmail            String
   shippingAddress          Json

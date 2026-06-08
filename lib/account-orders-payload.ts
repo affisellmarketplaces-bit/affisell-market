@@ -7,6 +7,8 @@ import {
 import { isTerminalReturnStatus } from "@/lib/order-return-types"
 import { digitalPassPath } from "@/lib/digital-delivery/instant-fulfill"
 import { bookingPassPath } from "@/lib/booking/pass-token"
+import { canBuyerCancelBooking, bookingCancellationDeadlineAt } from "@/lib/booking/cancellation-policy"
+import { parseBookingSnapshot } from "@/lib/booking/snapshot"
 import { isDigitalListingKind } from "@/lib/digital-delivery/types"
 import { isBookableListingKind } from "@/lib/booking/types"
 import {
@@ -56,6 +58,8 @@ export type BuyerOrderRow = {
   isBooking: boolean
   bookingConfirmedAt: string | null
   bookingPassPath: string | null
+  canCancelBooking: boolean
+  bookingCancelDeadlineAt: string | null
 }
 
 function autoBuyBuyerLabels(status: string): { labelFr: string; labelEn: string } {
@@ -202,6 +206,21 @@ export async function buildBuyerOrdersPayloadForEmail(customerEmail: string): Pr
       bookingConfirmedAt: o.bookingConfirmedAt?.toISOString() ?? null,
       bookingPassPath:
         o.bookingToken && o.bookingConfirmedAt ? bookingPassPath(o.bookingToken) : null,
+      canCancelBooking: (() => {
+        if (!isBookableListingKind(o.listingKindSnapshot) || !o.bookingConfirmedAt) return false
+        if (o.status === "refunded" || o.status === "cancelled") return false
+        return canBuyerCancelBooking({
+          bookingSnapshot: o.bookingSnapshot,
+          bookingConfirmedAt: o.bookingConfirmedAt,
+        }).allowed
+      })(),
+      bookingCancelDeadlineAt: (() => {
+        const snap = parseBookingSnapshot(o.bookingSnapshot)
+        if (!snap) return null
+        const startsAt = new Date(snap.startsAt)
+        if (!Number.isFinite(startsAt.getTime())) return null
+        return bookingCancellationDeadlineAt(startsAt, snap.cancellationPolicyHours).toISOString()
+      })(),
     }
   })
 
@@ -254,6 +273,8 @@ export async function buildBuyerOrdersPayloadForEmail(customerEmail: string): Pr
       isBooking: false,
       bookingConfirmedAt: null,
       bookingPassPath: null,
+      canCancelBooking: false,
+      bookingCancelDeadlineAt: null,
     })
   }
 

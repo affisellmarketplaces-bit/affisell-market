@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client"
 
 import { confirmBookingPassInTransaction } from "@/lib/booking/confirm-pass"
-import { isServiceListingKind } from "@/lib/booking/types"
+import { isBookableListingKind } from "@/lib/booking/types"
 import { sendBookingPassEmail } from "@/lib/emails/send-booking-pass"
 import { logStripeWebhookError } from "@/lib/stripe-webhook-observability"
 
@@ -28,7 +28,7 @@ export async function runBookingPassAfterPayment(
     bookingSlotId: string | null
   }
 ): Promise<void> {
-  if (!args.bookingSlotId || !isServiceListingKind(args.product.listingKind)) return
+  if (!args.bookingSlotId || !isBookableListingKind(args.product.listingKind)) return
   if (!args.product.bookingInstantConfirm) return
 
   const slot = await tx.bookingSlot.findFirst({
@@ -39,6 +39,7 @@ export async function runBookingPassAfterPayment(
       endsAt: true,
       capacity: true,
       bookedCount: true,
+      heldCount: true,
       label: true,
       status: true,
     },
