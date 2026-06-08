@@ -642,6 +642,16 @@
       "step3Title": "Logistics & publish",
       "step3Hint": "Shipping, commission"
     },
+    "digitalDelivery": {
+      "badge": "Digital Pass Hub",
+      "title": "Instant course delivery",
+      "description": "Buyers receive a secure access pass right after payment — no warehouse, no waiting.",
+      "instantLabel": "Instant delivery after payment (recommended)",
+      "urlLabel": "Access URL",
+      "urlHint": "Use {{orderId}}, {{token}}, or {{email}} for personalized enrollment links.",
+      "instructionsLabel": "Buyer instructions (optional)",
+      "instructionsPlaceholder": "E.g. Check your inbox for the platform invite, then log in with the same email as checkout."
+    },
     "quality": {
       "title": "Listing quality",
       "checklistTitle": "Title",

@@ -31,6 +31,10 @@ import { merchantVerificationGate } from "@/lib/merchant-legal/require-merchant-
 import { requireMerchantUserId } from "@/lib/merchant-tenant-scope"
 import { onSupplierProductPublishedFromInvite } from "@/lib/supplier-invitation"
 import { parseListingKind } from "@/lib/supplier-commission"
+import {
+  parseProductDigitalDeliveryBody,
+  validateDigitalDeliveryForPublish,
+} from "@/lib/digital-delivery/parse-product-digital"
 import { parseAffisellCommissionOverrideFromBody } from "@/lib/supplier-product-affisell-commission-override"
 import { productCommissionRateForSave } from "@/lib/supplier-product-commission-save"
 import {
@@ -138,6 +142,18 @@ export async function POST(req: Request) {
   let normalizedPriceCents = resolveSupplierCatalogPriceCents(offer.offerMode, cents, saveAsDraft)
 
   const listingKind = parseListingKind((body as Record<string, unknown>).listingKind)
+  const digitalParsed = parseProductDigitalDeliveryBody(body as Record<string, unknown>)
+  if (!digitalParsed.ok) {
+    return Response.json({ error: "invalid_digital_delivery" }, { status: 400 })
+  }
+  const digitalErr = validateDigitalDeliveryForPublish(
+    listingKind,
+    digitalParsed.data,
+    saveAsDraft
+  )
+  if (digitalErr) {
+    return Response.json({ error: digitalErr }, { status: 400 })
+  }
   const commRaw = commission ?? commissionRate
 
   let compareAt: Prisma.Decimal | null = null
@@ -294,6 +310,9 @@ export async function POST(req: Request) {
         compareAt,
         commissionRate: rate,
         listingKind,
+        digitalAccessUrl: digitalParsed.data.digitalAccessUrl,
+        digitalAccessInstructions: digitalParsed.data.digitalAccessInstructions,
+        digitalInstantDelivery: digitalParsed.data.digitalInstantDelivery,
         stock: stockN,
         active: !saveAsDraft,
         isDraft: saveAsDraft,

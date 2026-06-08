@@ -24,6 +24,8 @@ import {
 import { computeOrderEscrowAllocation } from "@/lib/order-escrow-allocation"
 import { triggerAutoFulfillmentForStripeSession } from "@/lib/auto-order/enqueue"
 import { computeShipDeadlineAt } from "@/lib/supplier-ship-sla-shared"
+import { applyInstantDigitalDeliveryInTransaction } from "@/lib/digital-delivery/instant-fulfill"
+import { sendDigitalAccessPassEmail } from "@/lib/emails/send-digital-access-pass"
 import { logStripeWebhookError } from "@/lib/stripe-webhook-observability"
 import {
   resolveOrderConfirmationImageUrl,
@@ -63,6 +65,44 @@ const listingWithProductInclude = {
 type ListingWithProduct = Prisma.AffiliateProductGetPayload<{
   include: typeof listingWithProductInclude
 }>
+
+async function runInstantDigitalDeliveryAfterPayment(
+  tx: Tx,
+  args: {
+    orderId: string
+    customerEmail: string
+    buyerUserId: string | null
+    buyerLocale?: string | null
+    product: ListingWithProduct["product"]
+  }
+): Promise<void> {
+  const digitalResult = await applyInstantDigitalDeliveryInTransaction(tx, {
+    orderId: args.orderId,
+    customerEmail: args.customerEmail,
+    buyerUserId: args.buyerUserId,
+    product: {
+      listingKind: args.product.listingKind,
+      digitalAccessUrl: args.product.digitalAccessUrl,
+      digitalAccessInstructions: args.product.digitalAccessInstructions,
+      digitalInstantDelivery: args.product.digitalInstantDelivery,
+      name: args.product.name,
+    },
+  })
+
+  if (digitalResult.delivered) {
+    void sendDigitalAccessPassEmail({
+      orderId: args.orderId,
+      productName: args.product.name,
+      customerEmail: args.customerEmail,
+      passPath: digitalResult.passPath,
+      accessUrl: digitalResult.accessUrl,
+      instructions: digitalResult.instructions,
+      locale: args.buyerLocale,
+    })
+    const { triggerOrderTransferRelease } = await import("@/lib/trigger-order-transfer-release")
+    triggerOrderTransferRelease(args.orderId)
+  }
+}
 
 function parseLinePaids(raw: string | undefined | null): number[] | null {
   if (!raw?.trim()) return null
@@ -203,6 +243,7 @@ async function createPaidMarketplaceOrder(
       affiliateId: listing.affiliateId,
       buyerUserId: args.buyerUserId,
       buyerLocale: args.buyerLocale?.trim() || null,
+      listingKindSnapshot: listing.product.listingKind.trim().toUpperCase(),
       customerEmail: args.customerEmail,
       quantity: qty,
       shippingAddress: args.shippingAddress,
@@ -298,6 +339,14 @@ async function createPaidMarketplaceOrder(
       error: e instanceof Error ? e.message : String(e),
     })
   }
+
+  await runInstantDigitalDeliveryAfterPayment(tx, {
+    orderId: order.id,
+    customerEmail: args.customerEmail,
+    buyerUserId: args.buyerUserId,
+    buyerLocale: args.buyerLocale,
+    product: listing.product,
+  })
 
   return order.id
 }
@@ -568,6 +617,7 @@ export async function fulfillMarketplaceStripeSession(
         data: {
           buyerUserId: earnUserId || null,
           buyerLocale: buyerLocale || undefined,
+          listingKindSnapshot: listing.product.listingKind.trim().toUpperCase(),
           customerEmail,
           shippingAddress,
           quantity: qty,
@@ -663,6 +713,14 @@ export async function fulfillMarketplaceStripeSession(
           error: e instanceof Error ? e.message : String(e),
         })
       }
+
+      await runInstantDigitalDeliveryAfterPayment(tx, {
+        orderId: dup.id,
+        customerEmail,
+        buyerUserId: earnUserId || null,
+        buyerLocale,
+        product: listing.product,
+      })
 
       if (earnUserId) {
         const earn = buyerEarnCentsForLinePaid(paidLineCents, listing)

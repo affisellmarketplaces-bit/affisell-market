@@ -25,6 +25,7 @@ export async function runEnforceSupplierShipSlaCron(
       autoCancelledAt: null,
       cancelledEmailSentAt: null,
       trackingNumber: null,
+      digitalDeliveredAt: null,
       OR: [
         { shipDeadlineAt: { lte: now } },
         {

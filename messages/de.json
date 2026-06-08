@@ -642,6 +642,16 @@
       "step3Title": "Logistik & Veröffentlichung",
       "step3Hint": "Versand, Provision"
     },
+    "digitalDelivery": {
+      "badge": "Digital Pass Hub",
+      "title": "Sofortiger Kurszugang",
+      "description": "Käufer erhalten direkt nach der Zahlung einen sicheren Zugangspass — ohne Lager, ohne Wartezeit.",
+      "instantLabel": "Sofortlieferung nach Zahlung (empfohlen)",
+      "urlLabel": "Zugangs-URL",
+      "urlHint": "Nutzen Sie {{orderId}}, {{token}} oder {{email}} für personalisierte Anmeldelinks.",
+      "instructionsLabel": "Käuferanweisungen (optional)",
+      "instructionsPlaceholder": "Z. B. Prüfen Sie Ihren Posteingang auf die Plattform-Einladung und melden Sie sich mit derselben E-Mail wie beim Checkout an."
+    },
     "quality": {
       "title": "Listing-Qualität",
       "checklistTitle": "Titel",

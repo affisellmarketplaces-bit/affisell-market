@@ -39,6 +39,7 @@ import { SupplierProductDescriptionField } from "@/components/supplier/supplier-
 import { SupplierTitleOptimizer } from "@/components/supplier/supplier-title-optimizer"
 import { SupplierSimpleColorImageField } from "@/components/supplier/supplier-simple-color-image-field"
 import { SupplierProductImageUpload } from "@/components/supplier/supplier-product-image-upload"
+import { SupplierDigitalDeliveryPanel } from "@/components/supplier/supplier-digital-delivery-panel"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -48,6 +49,10 @@ import {
   LISTING_KINDS,
   maxAffiliateCommissionRatePct,
 } from "@/lib/supplier-commission"
+import {
+  digitalDeliveryPublishErrorMessage,
+  validateDigitalDeliveryForPublish,
+} from "@/lib/digital-delivery/parse-product-digital"
 import {
   pathFromLeafId,
   type CategoryPathSegment,
@@ -371,6 +376,9 @@ export function SupplierAddProductForm({
   const [simpleColorIssues, setSimpleColorIssues] = useState<SimpleColorValidationIssue[]>([])
   const [simpleColorRows, setSimpleColorRows] = useState<SupplierSimpleColorRow[]>([])
   const [listingKind, setListingKind] = useState<ListingKind>("PHYSICAL")
+  const [digitalAccessUrl, setDigitalAccessUrl] = useState("")
+  const [digitalAccessInstructions, setDigitalAccessInstructions] = useState("")
+  const [digitalInstantDelivery, setDigitalInstantDelivery] = useState(true)
   const [commission, setCommission] = useState("15")
 
   useEffect(() => {
@@ -840,6 +848,15 @@ export function SupplierAddProductForm({
       setStock(String(data.stock ?? 0))
       const lk = String(data.listingKind ?? "PHYSICAL").toUpperCase()
       setListingKind(LISTING_KINDS.includes(lk as ListingKind) ? (lk as ListingKind) : "PHYSICAL")
+      setDigitalAccessUrl(typeof data.digitalAccessUrl === "string" ? data.digitalAccessUrl : "")
+      setDigitalAccessInstructions(
+        typeof data.digitalAccessInstructions === "string" ? data.digitalAccessInstructions : ""
+      )
+      setDigitalInstantDelivery(
+        data.digitalInstantDelivery === undefined || data.digitalInstantDelivery === null
+          ? true
+          : Boolean(data.digitalInstantDelivery)
+      )
       setCommission(String(data.commissionRate ?? 15))
       setShippingCountry(String(data.shippingCountry ?? ""))
       const wt = String(data.warehouseType ?? "")
@@ -1178,6 +1195,9 @@ export function SupplierAddProductForm({
           return Number.isFinite(n) ? Math.round(n) : 0
         })(),
         listingKind,
+        digitalAccessUrl: digitalAccessUrl.trim() || null,
+        digitalAccessInstructions: digitalAccessInstructions.trim() || null,
+        digitalInstantDelivery,
         images,
         categoryId: categoryId.trim(),
         affisellCommissionRateOverridePercent:
@@ -1238,6 +1258,9 @@ export function SupplierAddProductForm({
       stock,
       commission,
       listingKind,
+      digitalAccessUrl,
+      digitalAccessInstructions,
+      digitalInstantDelivery,
       images,
       categoryId,
       affisellCommissionOverride,
@@ -1636,6 +1659,25 @@ export function SupplierAddProductForm({
       toast.error(
         `${skuValidationIssues.length} erreur${skuValidationIssues.length > 1 ? "s" : ""} à corriger dans le tableau SKU.`
       )
+      return
+    }
+
+    const digitalErr = validateDigitalDeliveryForPublish(
+      listingKind,
+      {
+        digitalAccessUrl: digitalAccessUrl.trim() || null,
+        digitalInstantDelivery,
+      },
+      false
+    )
+    if (digitalErr) {
+      applyPublishBlockers([
+        {
+          field: "specs",
+          message: digitalDeliveryPublishErrorMessage(digitalErr),
+        },
+      ])
+      toast.error(digitalDeliveryPublishErrorMessage(digitalErr))
       return
     }
 
@@ -2991,6 +3033,18 @@ export function SupplierAddProductForm({
                     </div>
                   </div>
                 </section>
+
+                <SupplierDigitalDeliveryPanel
+                  listingKind={listingKind}
+                  digitalAccessUrl={digitalAccessUrl}
+                  digitalAccessInstructions={digitalAccessInstructions}
+                  digitalInstantDelivery={digitalInstantDelivery}
+                  onAccessUrlChange={setDigitalAccessUrl}
+                  onInstructionsChange={setDigitalAccessInstructions}
+                  onInstantDeliveryChange={setDigitalInstantDelivery}
+                  hasError={publishBlockers.some((b) => b.field === "specs" && b.message.includes("digital"))}
+                  className="scroll-mt-28"
+                />
 
                 <SectionCard
                   icon={Truck}

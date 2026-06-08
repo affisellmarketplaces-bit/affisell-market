@@ -5,6 +5,8 @@ import {
   orderReturnWindowEndsAt,
 } from "@/lib/order-return-policy"
 import { isTerminalReturnStatus } from "@/lib/order-return-types"
+import { digitalPassPath } from "@/lib/digital-delivery/instant-fulfill"
+import { isDigitalListingKind } from "@/lib/digital-delivery/types"
 import {
   AUTO_CONFIRM_DAYS_AFTER_DELIVERY,
   orderPayoutTiming,
@@ -46,6 +48,9 @@ export type BuyerOrderRow = {
     labelEn: string
     aeTracking: string | null
   } | null
+  isDigital: boolean
+  digitalDeliveredAt: string | null
+  digitalPassPath: string | null
 }
 
 function autoBuyBuyerLabels(status: string): { labelFr: string; labelEn: string } {
@@ -182,6 +187,12 @@ export async function buildBuyerOrdersPayloadForEmail(customerEmail: string): Pr
             aeTracking: autoBuyLog.aeTracking,
           }
         : null,
+      isDigital: isDigitalListingKind(o.listingKindSnapshot),
+      digitalDeliveredAt: o.digitalDeliveredAt?.toISOString() ?? null,
+      digitalPassPath:
+        o.digitalAccessToken && o.digitalDeliveredAt
+          ? digitalPassPath(o.digitalAccessToken)
+          : null,
     }
   })
 
@@ -228,6 +239,9 @@ export async function buildBuyerOrdersPayloadForEmail(customerEmail: string): Pr
       },
       activeReturn: null,
       lastReturn: null,
+      isDigital: false,
+      digitalDeliveredAt: null,
+      digitalPassPath: null,
     })
   }
 

@@ -527,6 +527,14 @@ model Product {
    * PHYSICAL: affiliate commission % max 99; SOFTWARE | SUBSCRIPTION allows up to 100.
    */
   listingKind                   String   @default("PHYSICAL")
+  /**
+   * Instant digital delivery (formations, software): HTTPS access URL for buyers.
+   * Supports {{orderId}}, {{token}}, {{email}} placeholders at fulfillment.
+   */
+  digitalAccessUrl              String?
+  digitalAccessInstructions     String?  @db.Text
+  /** When true (default), buyers receive access automatically after payment. */
+  digitalInstantDelivery        Boolean  @default(true)
   stock                         Int      @default(0)
   active                        Boolean  @default(true)
   /**
@@ -1218,6 +1226,13 @@ model Order {
   buyerUserId              String?
   /** Checkout UI locale snapshot for transactional emails (en, fr, de, …). */
   buyerLocale              String?             @db.VarChar(8)
+  /** Snapshot of product.listingKind at checkout (PHYSICAL | SOFTWARE | SUBSCRIPTION). */
+  listingKindSnapshot      String?
+  /** Resolved buyer access URL after instant digital fulfillment. */
+  digitalAccessUrl         String?
+  digitalAccessInstructions String?            @db.Text
+  digitalAccessToken       String?             @unique
+  digitalDeliveredAt       DateTime?
   buyer                    User?               @relation("BuyerMarketplaceOrders", fields: [buyerUserId], references: [id], onDelete: SetNull)
   customerEmail            String
   shippingAddress          Json

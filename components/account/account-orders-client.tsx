@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useMemo, useState } from "react"
-import { Package, Sparkles } from "lucide-react"
+import { Package, Sparkles, Zap } from "lucide-react"
 
 import { AccountOrderFulfillmentPanel } from "@/components/account/account-order-fulfillment-panel"
 import { BentoCard } from "@/components/affisell/bento-ui"
@@ -52,6 +52,9 @@ type OrderRow = {
     labelEn: string
     aeTracking: string | null
   } | null
+  isDigital?: boolean
+  digitalDeliveredAt?: string | null
+  digitalPassPath?: string | null
 }
 
 function statusLabel(status: string) {
@@ -171,6 +174,32 @@ export function AccountOrdersClient({
                 >
                   {lang === "fr" ? "Voir le détail et la facture →" : "View details & invoice →"}
                 </Link>
+              ) : null}
+              {o.isDigital && o.digitalPassPath ? (
+                <div className="mt-4 overflow-hidden rounded-2xl border border-violet-300/50 bg-gradient-to-br from-violet-950 via-indigo-950 to-cyan-950 p-4 text-white shadow-[0_0_60px_-20px_rgba(124,58,237,0.6)]">
+                  <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-violet-300">
+                    <Zap className="h-3.5 w-3.5 text-amber-300" aria-hidden />
+                    {lang === "fr" ? "Accès formation" : "Course access"}
+                  </p>
+                  <p className="mt-2 text-sm leading-relaxed text-violet-100/90">
+                    {lang === "fr"
+                      ? "Votre passe digital est prêt — ouvrez-le pour démarrer immédiatement."
+                      : "Your digital pass is ready — open it to start immediately."}
+                  </p>
+                  {o.digitalDeliveredAt ? (
+                    <p className="mt-1 text-[11px] text-violet-300/70">
+                      {lang === "fr" ? "Débloqué le" : "Unlocked"}{" "}
+                      {new Date(o.digitalDeliveredAt).toLocaleString()}
+                    </p>
+                  ) : null}
+                  <Link
+                    href={o.digitalPassPath}
+                    className="mt-3 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:from-violet-500 hover:to-indigo-500"
+                  >
+                    <Sparkles className="h-4 w-4" aria-hidden />
+                    {lang === "fr" ? "Ouvrir mon accès" : "Open my access"}
+                  </Link>
+                </div>
               ) : null}
               {o.status === "preparing" ? (
                 <div className="mt-4 overflow-hidden rounded-2xl border border-sky-200/80 bg-gradient-to-br from-sky-50/95 via-white to-violet-50 p-4 shadow-[0_18px_50px_-28px_rgba(14,165,233,0.55)] dark:border-sky-900/50 dark:from-sky-950/45 dark:via-zinc-950 dark:to-violet-950/40">

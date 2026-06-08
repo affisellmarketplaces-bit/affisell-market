@@ -22,6 +22,10 @@ import { validateOfferModePublish } from "@/lib/product-offer-mode"
 import { parseSupplierProductShippingBody } from "@/lib/supplier-product-shipping"
 import { parseSupplierProductImages } from "@/lib/supplier-product-images"
 import { parseListingKind } from "@/lib/supplier-commission"
+import {
+  parseProductDigitalDeliveryBody,
+  validateDigitalDeliveryForPublish,
+} from "@/lib/digital-delivery/parse-product-digital"
 import { parseAffisellCommissionOverrideFromBody } from "@/lib/supplier-product-affisell-commission-override"
 import { productCommissionRateForSave } from "@/lib/supplier-product-commission-save"
 import { normalizeLeafCategoryId } from "@/lib/category-leaf-guard"
@@ -151,6 +155,17 @@ export async function PUT(
   }
 
   const listingKind = parseListingKind(body.listingKind ?? existingRow.listingKind)
+  const digitalParsed = parseProductDigitalDeliveryBody(rawBody)
+  if (!digitalParsed.ok) {
+    return Response.json({ error: digitalParsed.error }, { status: 400 })
+  }
+  const isPublishing = publish || (!existingRow.isDraft && !saveAsDraftReq)
+  if (isPublishing) {
+    const digitalErr = validateDigitalDeliveryForPublish(listingKind, digitalParsed.data, false)
+    if (digitalErr) {
+      return Response.json({ error: digitalErr }, { status: 400 })
+    }
+  }
   let priceCents: number
   let compareAt: Prisma.Decimal | null = null
   let rate = existingRow.commissionRate
@@ -373,6 +388,9 @@ export async function PUT(
         compareAt,
         commissionRate: rate,
         listingKind,
+        digitalAccessUrl: digitalParsed.data.digitalAccessUrl,
+        digitalAccessInstructions: digitalParsed.data.digitalAccessInstructions,
+        digitalInstantDelivery: digitalParsed.data.digitalInstantDelivery,
         stock,
         categoryId,
         ...(affisellOverridePatch !== undefined

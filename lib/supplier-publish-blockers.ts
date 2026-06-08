@@ -146,6 +146,9 @@ function blockerFromMessage(message: string): PublishBlocker | null {
   if (m.includes("variant") || m.includes("sku") || m.includes("déclinaison")) {
     return { field: "variants", message }
   }
+  if (m.includes("digital_access") || m.includes("accès digital") || m.includes("digital access")) {
+    return { field: "specs", message }
+  }
   if (m.includes("catégor") || m.includes("category")) return { field: "category", message }
   if (m.includes("image") || m.includes("photo")) return { field: "images", message }
   if (m.includes("titre") || m.includes("name") || m.includes("nom")) return { field: "name", message }
