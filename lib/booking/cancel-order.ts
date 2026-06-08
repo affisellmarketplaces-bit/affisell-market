@@ -74,7 +74,7 @@ export async function cancelBookingOrderForBuyer(args: {
       data: {
         bookingCancelledAt: new Date(),
         status: "cancelled",
-        fulfillmentStatus: "CANCELLED",
+        fulfillmentStatus: "FAILED",
       },
     })
   })
