@@ -36,7 +36,8 @@
       "orders": "Bestellungen",
       "products": "Produkte",
       "inviteAffiliate": "Affiliaten einladen",
-      "inviteAffiliateShort": "Einladen"
+      "inviteAffiliateShort": "Einladen",
+      "bookings": "Reservierungen"
     },
     "accountMenu": {
       "aria": "Kontomenü",
@@ -690,7 +691,52 @@
       "deleteSlot": "Slot löschen",
       "slotDateTimeRequired": "Datum und Uhrzeit wählen",
       "slotInvalidDateTime": "Ungültiges Datum oder Uhrzeit",
-      "slotMeta": "{booked}/{capacity} gebucht · {status}"
+      "slotMeta": "{booked}/{capacity} gebucht · {status}",
+      "roster": {
+        "pageTitle": "Gästeliste & Check-in",
+        "pageDescription": "QR-Pass scannen oder einfügen. Sehen Sie, wer jeden Slot gebucht hat, und markieren Sie Ankünfte.",
+        "backToDashboard": "Zurück zur Übersicht",
+        "awaitingCheckIn": "{count} warten auf Check-in",
+        "checkInTitle": "Check-in-Scanner",
+        "checkInHint": "Scannen Sie den QR-Pass des Käufers oder fügen Sie die URL ein.",
+        "cameraScanCta": "QR scannen",
+        "cameraStopCta": "Kamera stoppen",
+        "cameraScanningHint": "QR-Code des Käuferpasses anvisieren",
+        "orCameraManual": "Oder Pass-URL manuell einfügen",
+        "cameraPermissionDenied": "Kamerazugriff verweigert — in den Browser-Einstellungen erlauben.",
+        "cameraUnavailable": "Kamera auf diesem Gerät nicht verfügbar",
+        "tokenPlaceholder": "Pass-URL oder Token…",
+        "checkInCta": "Eintritt bestätigen",
+        "checkInSuccess": "Gast eingecheckt",
+        "alreadyCheckedIn": "Bereits eingecheckt",
+        "checkInFailed": "Check-in fehlgeschlagen",
+        "invalidToken": "Ungültige Pass-URL oder Token",
+        "loadError": "Liste konnte nicht geladen werden",
+        "empty": "Keine Buchungen in diesem Zeitraum.",
+        "tabPending": "Wartend",
+        "tabCheckedIn": "Eingecheckt",
+        "tabAll": "Alle",
+        "allSlots": "Alle Slots",
+        "slotFilterLabel": "Nach Slot filtern",
+        "checkedInBadge": "Eingecheckt",
+        "checkInRow": "Als anwesend markieren",
+        "statsTotalGuests": "Gäste",
+        "statsCheckedIn": "Eingecheckt",
+        "statsPending": "Wartend",
+        "statsNoShow": "No-show",
+        "statsCheckInRate": "Check-in-Rate",
+        "exportCsv": "CSV exportieren",
+        "exportSuccess": "Liste exportiert",
+        "exportFailed": "Export fehlgeschlagen",
+        "errors": {
+          "invalid_token": "Ungültige Pass-URL oder Token",
+          "not_found": "Pass nicht gefunden",
+          "forbidden": "Dieser Pass gehört einem anderen Händler",
+          "not_confirmed": "Buchung noch nicht bestätigt",
+          "cancelled": "Buchung storniert",
+          "checkInFailed": "Check-in fehlgeschlagen"
+        }
+      }
     },
     "quality": {
       "title": "Listing-Qualität",
@@ -2618,5 +2664,17 @@
       "accepted": "Sie haben die Verlängerung akzeptiert.",
       "rejected": "Sie haben die Verlängerung abgelehnt."
     }
+  },
+  "BookingPass": {
+    "badge": "Affisell Booking Pass",
+    "title": "Reservierung bestätigt",
+    "titleService": "Termin bestätigt",
+    "titleExperience": "Tickets bestätigt",
+    "subtitle": "Zeigen Sie diesen Pass beim Check-in — persönlicher QR, nicht öffentlich teilen.",
+    "orderRef": "Bestellung {id}… · ×{qty}",
+    "seatsLabel": "Plätze",
+    "confirmedAt": "Bestätigt · {date}",
+    "myOrders": "Meine Bestellungen",
+    "qrAlt": "QR-Code Buchungspass"
   }
 }

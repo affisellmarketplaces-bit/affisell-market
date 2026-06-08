@@ -76,6 +76,7 @@ export async function runBookingPassAfterPayment(
       passPath: result.passPath,
       startsAt: result.snapshot.startsAt,
       venueLabel: result.snapshot.venueLabel,
+      listingKind: args.product.listingKind,
       locale: args.buyerLocale,
     })
     const { triggerOrderTransferRelease } = await import("@/lib/trigger-order-transfer-release")
