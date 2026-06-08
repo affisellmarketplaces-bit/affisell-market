@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl"
 import { useCallback, useState } from "react"
 import { toast } from "sonner"
 
+import { SupplierBookingQrScanner } from "@/components/supplier/supplier-booking-qr-scanner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
@@ -29,43 +30,46 @@ export function SupplierBookingCheckInForm({ onCheckedIn, className }: Props) {
   const [busy, setBusy] = useState(false)
   const [lastSuccess, setLastSuccess] = useState<CheckInResult | null>(null)
 
-  const submit = useCallback(async () => {
-    const token = tokenInput.trim()
-    if (token.length < 8) {
-      toast.error(t("invalidToken"))
-      return
-    }
-    setBusy(true)
-    try {
-      const res = await fetch("/api/supplier/booking/check-in", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
-      })
-      const json = (await res.json()) as CheckInResult & { error?: string; ok?: boolean }
-      if (!res.ok) {
-        const key = json.error ?? "checkInFailed"
-        toast.error(t(`errors.${key}` as "errors.not_found"))
+  const checkInWithToken = useCallback(
+    async (raw: string) => {
+      const token = raw.trim()
+      if (token.length < 8) {
+        toast.error(t("invalidToken"))
         return
       }
-      const result: CheckInResult = {
-        orderId: json.orderId,
-        customerEmail: json.customerEmail,
-        productName: json.productName,
-        seatLabels: json.seatLabels ?? [],
-        checkedInAt: json.checkedInAt,
-        alreadyCheckedIn: json.alreadyCheckedIn,
+      setBusy(true)
+      try {
+        const res = await fetch("/api/supplier/booking/check-in", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        })
+        const json = (await res.json()) as CheckInResult & { error?: string }
+        if (!res.ok) {
+          const key = json.error ?? "checkInFailed"
+          toast.error(t(`errors.${key}` as "errors.not_found"))
+          return
+        }
+        const result: CheckInResult = {
+          orderId: json.orderId,
+          customerEmail: json.customerEmail,
+          productName: json.productName,
+          seatLabels: json.seatLabels ?? [],
+          checkedInAt: json.checkedInAt,
+          alreadyCheckedIn: json.alreadyCheckedIn,
+        }
+        setLastSuccess(result)
+        onCheckedIn(result)
+        setTokenInput("")
+        toast.success(json.alreadyCheckedIn ? t("alreadyCheckedIn") : t("checkInSuccess"))
+      } catch {
+        toast.error(t("checkInFailed"))
+      } finally {
+        setBusy(false)
       }
-      setLastSuccess(result)
-      onCheckedIn(result)
-      setTokenInput("")
-      toast.success(json.alreadyCheckedIn ? t("alreadyCheckedIn") : t("checkInSuccess"))
-    } catch {
-      toast.error(t("checkInFailed"))
-    } finally {
-      setBusy(false)
-    }
-  }, [onCheckedIn, t, tokenInput])
+    },
+    [onCheckedIn, t]
+  )
 
   return (
     <div
@@ -84,6 +88,12 @@ export function SupplierBookingCheckInForm({ onCheckedIn, className }: Props) {
         </div>
       </div>
 
+      <SupplierBookingQrScanner
+        className="mt-4"
+        disabled={busy}
+        onScan={(raw) => void checkInWithToken(raw)}
+      />
+
       <div className="mt-4 flex flex-col gap-3 sm:flex-row">
         <Input
           value={tokenInput}
@@ -91,13 +101,13 @@ export function SupplierBookingCheckInForm({ onCheckedIn, className }: Props) {
           placeholder={t("tokenPlaceholder")}
           className="border-white/15 bg-black/30 text-white placeholder:text-zinc-500"
           onKeyDown={(e) => {
-            if (e.key === "Enter") void submit()
+            if (e.key === "Enter") void checkInWithToken(tokenInput)
           }}
           disabled={busy}
         />
         <Button
           type="button"
-          onClick={() => void submit()}
+          onClick={() => void checkInWithToken(tokenInput)}
           disabled={busy || tokenInput.trim().length < 8}
           className="shrink-0 bg-cyan-500 text-slate-950 hover:bg-cyan-400"
         >

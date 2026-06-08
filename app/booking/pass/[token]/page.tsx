@@ -1,7 +1,9 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { CalendarClock, MapPin, QrCode, ShieldCheck } from "lucide-react"
+import { CalendarClock, MapPin, ShieldCheck } from "lucide-react"
 
+import { BookingPassQrImage } from "@/components/booking/booking-pass-qr-image"
+import { buildBookingPassAbsoluteUrl, generateBookingPassQrDataUrl } from "@/lib/booking/pass-qr"
 import { parseBookingSnapshot } from "@/lib/booking/snapshot"
 import { isBookableListingKind } from "@/lib/booking/types"
 import { prisma } from "@/lib/prisma"
@@ -37,6 +39,8 @@ export default async function BookingPassPage({ params }: Props) {
   const cover = order.product.images[0] ?? null
   const startsAt = new Date(snapshot.startsAt)
   const endsAt = new Date(snapshot.endsAt)
+  const passUrl = buildBookingPassAbsoluteUrl(trimmed)
+  const qrDataUrl = await generateBookingPassQrDataUrl(passUrl)
 
   return (
     <main className="relative min-h-dvh overflow-hidden bg-[#050810] text-white">
@@ -87,10 +91,10 @@ export default async function BookingPassPage({ params }: Props) {
             ) : null}
           </div>
 
-          <div className="mt-6 flex flex-col items-center gap-2 rounded-2xl border border-dashed border-cyan-400/30 bg-cyan-950/30 p-5">
-            <QrCode className="h-16 w-16 text-cyan-300/80" aria-hidden />
-            <p className="font-mono text-xs tracking-widest text-cyan-200/90">{trimmed.slice(0, 8).toUpperCase()}…</p>
-          </div>
+          <BookingPassQrImage
+            dataUrl={qrDataUrl}
+            tokenPreview={`${trimmed.slice(0, 8).toUpperCase()}…`}
+          />
 
           <p className="mt-6 flex items-center justify-center gap-2 text-xs text-zinc-500">
             <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" aria-hidden />

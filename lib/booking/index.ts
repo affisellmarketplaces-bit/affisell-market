@@ -53,6 +53,10 @@ export { cancelBookingOrderForBuyer, type CancelBookingOrderResult } from "@/lib
 export { checkInBookingPassForSupplier, type BookingCheckInResult } from "@/lib/booking/check-in"
 export { parseBookingPassTokenInput } from "@/lib/booking/parse-pass-token"
 export {
+  buildBookingPassAbsoluteUrl,
+  generateBookingPassQrDataUrl,
+} from "@/lib/booking/pass-qr"
+export {
   parseProductBookingBody,
   validateBookingListingForPublish,
   type ParsedProductBookingSettings,

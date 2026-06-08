@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 
+import { buildBookingPassAbsoluteUrl } from "@/lib/booking/pass-qr"
 import { parseBookingPassTokenInput } from "@/lib/booking/parse-pass-token"
 
 describe("parseBookingPassTokenInput", () => {
@@ -20,5 +21,15 @@ describe("parseBookingPassTokenInput", () => {
   it("rejects empty or short input", () => {
     expect(parseBookingPassTokenInput("")).toBeNull()
     expect(parseBookingPassTokenInput("abc")).toBeNull()
+  })
+})
+
+describe("buildBookingPassAbsoluteUrl", () => {
+  const token = "a".repeat(48)
+
+  it("builds absolute pass URL with encoded token path", () => {
+    const url = buildBookingPassAbsoluteUrl(token)
+    expect(url).toMatch(/\/booking\/pass\//)
+    expect(url.endsWith(`/booking/pass/${token}`)).toBe(true)
   })
 })
