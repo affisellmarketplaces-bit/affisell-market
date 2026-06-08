@@ -62,7 +62,7 @@ function productPayload(row: Awaited<ReturnType<PrismaClient["product"]["findMan
 }
 
 function orderPayload(row: Awaited<ReturnType<PrismaClient["order"]["findMany"]>>[number]) {
-  const { fulfillmentErrors, ...rest } = row
+  const { fulfillmentErrors, bookingSnapshot, ...rest } = row
   return {
     ...rest,
     shippingAddress: jsonOrNull(row.shippingAddress) as Prisma.InputJsonValue,
@@ -70,6 +70,7 @@ function orderPayload(row: Awaited<ReturnType<PrismaClient["order"]["findMany"]>
       fulfillmentErrors == null
         ? undefined
         : (jsonOrNull(fulfillmentErrors) as Prisma.InputJsonValue),
+    bookingSnapshot: bookingSnapshot == null ? undefined : jsonOrNull(bookingSnapshot),
   } satisfies Prisma.OrderUncheckedCreateInput
 }
 
