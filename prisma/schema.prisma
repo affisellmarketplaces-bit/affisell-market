@@ -727,9 +727,11 @@ model BookingWaitlist {
   email      String
   userId     String?
   user       User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
-  qty        Int         @default(1)
-  notifiedAt DateTime?
-  createdAt  DateTime    @default(now())
+  qty           Int         @default(1)
+  phone         String?
+  notifiedAt    DateTime?
+  smsNotifiedAt DateTime?
+  createdAt     DateTime    @default(now())
 
   @@unique([slotId, email])
   @@index([slotId, notifiedAt, createdAt])

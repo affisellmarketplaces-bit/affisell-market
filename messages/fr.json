@@ -1448,7 +1448,8 @@
     "seatsLabel": "Places",
     "confirmedAt": "Confirmé · {date}",
     "myOrders": "Mes commandes",
-    "qrAlt": "QR code passe réservation"
+    "qrAlt": "QR code passe réservation",
+    "addToCalendar": "Ajouter au calendrier"
   },
   "Product": {
     "booking": {
@@ -1488,7 +1489,10 @@
       "waitlistJoinSuccess": "Vous êtes sur la liste — on vous envoie un email dès qu'une place se libère.",
       "waitlistJoinFailed": "Impossible de rejoindre la liste. Réessayez.",
       "waitlistEmailRequired": "Indiquez votre email pour la liste d'attente.",
-      "waitlistSlotAvailable": "Ce créneau a de nouveau des places — réservez-le ci-dessus."
+      "waitlistSlotAvailable": "Ce créneau a de nouveau des places — réservez-le ci-dessus.",
+      "waitlistPhonePlaceholder": "Mobile (optionnel, alerte SMS)",
+      "waitlistPhoneHint": "Optionnel — recevez un SMS en plus de l'email quand une place se libère.",
+      "waitlistPhoneInvalid": "Numéro mobile invalide (ex. +33 6 12 34 56 78)."
     },
     "view360": "Vue 360°",
     "premium": "Premium",

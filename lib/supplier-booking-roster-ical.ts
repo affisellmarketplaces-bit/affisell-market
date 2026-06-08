@@ -1,20 +1,5 @@
+import { buildIcalCalendar, escapeIcal, formatIcalUtc } from "@/lib/booking/ical-format"
 import type { SupplierBookingRosterRow } from "@/lib/supplier-booking-roster-payload"
-
-function escapeIcal(value: string): string {
-  return value
-    .replace(/\\/g, "\\\\")
-    .replace(/;/g, "\\;")
-    .replace(/,/g, "\\,")
-    .replace(/\r?\n/g, "\\n")
-}
-
-function formatIcalUtc(d: Date): string {
-  const pad = (n: number) => String(n).padStart(2, "0")
-  return (
-    `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}` +
-    `T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`
-  )
-}
 
 export function buildSupplierBookingRosterIcal(
   rows: SupplierBookingRosterRow[],
@@ -54,15 +39,7 @@ export function buildSupplierBookingRosterIcal(
     })
     .filter((block): block is string => block != null)
 
-  return [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//Affisell//Booking Roster//EN",
-    "CALSCALE:GREGORIAN",
-    `X-WR-CALNAME:${escapeIcal(calendarName)}`,
-    ...events,
-    "END:VCALENDAR",
-  ].join("\r\n")
+  return buildIcalCalendar(events, calendarName)
 }
 
 export function rosterIcalFilename(slotId?: string | null): string {

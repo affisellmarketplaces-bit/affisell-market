@@ -19,6 +19,7 @@ type Props = {
 export function BookingWaitlistPanel({ productId, soldOutSlots, className }: Props) {
   const t = useTranslations("Product.booking")
   const [email, setEmail] = useState("")
+  const [phone, setPhone] = useState("")
   const [busySlotId, setBusySlotId] = useState<string | null>(null)
   const [joined, setJoined] = useState<Set<string>>(new Set())
 
@@ -35,12 +36,14 @@ export function BookingWaitlistPanel({ productId, soldOutSlots, className }: Pro
           slotId,
           productId,
           email: email.trim() || undefined,
+          phone: phone.trim() || undefined,
         }),
       })
       const json = (await res.json()) as { error?: string }
       if (!res.ok) {
         if (json.error === "slot_available") toast.error(t("waitlistSlotAvailable"))
         else if (json.error === "email_required") toast.error(t("waitlistEmailRequired"))
+        else if (json.error === "invalid_phone") toast.error(t("waitlistPhoneInvalid"))
         else toast.error(t("waitlistJoinFailed"))
         return
       }
@@ -63,7 +66,7 @@ export function BookingWaitlistPanel({ productId, soldOutSlots, className }: Pro
         {t("waitlistTitle")}
       </p>
       <p className="mt-1 text-xs text-amber-100/80">{t("waitlistHint")}</p>
-      <div className="mt-3">
+      <div className="mt-3 space-y-2">
         <Input
           type="email"
           placeholder={t("waitlistEmailPlaceholder")}
@@ -71,6 +74,14 @@ export function BookingWaitlistPanel({ productId, soldOutSlots, className }: Pro
           onChange={(e) => setEmail(e.target.value)}
           className="border-white/15 bg-black/30 text-white"
         />
+        <Input
+          type="tel"
+          placeholder={t("waitlistPhonePlaceholder")}
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          className="border-white/15 bg-black/30 text-white"
+        />
+        <p className="text-[10px] text-amber-200/60">{t("waitlistPhoneHint")}</p>
       </div>
       <ul className="mt-3 space-y-2">
         {soldOutSlots.map((slot) => {

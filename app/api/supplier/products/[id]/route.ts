@@ -358,6 +358,8 @@ export async function PUT(
     }
   }
 
+  const seatLayoutChanged = "bookingSeatLayout" in rawBody
+
   const updated = await prisma.$transaction(async (tx) => {
     const p = await tx.product.update({
       where: { id },
@@ -502,6 +504,17 @@ export async function PUT(
         images: fresh.images,
       }).catch((e) => console.error("[supplier-invite] publish hook", e))
     }
+  }
+
+  if (seatLayoutChanged && listingKind === "EXPERIENCE") {
+    const { syncProductSeatLayoutForFutureSlots } = await import("@/lib/booking/sync-seat-layout")
+    void syncProductSeatLayoutForFutureSlots(id).catch((e) => {
+      console.error("[booking]", {
+        productId: id,
+        result: "seat_layout_sync_failed",
+        error: e instanceof Error ? e.message : String(e),
+      })
+    })
   }
 
   const isLive = !updated.isDraft && updated.active

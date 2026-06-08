@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { CalendarClock, MapPin, ShieldCheck } from "lucide-react"
+import { CalendarClock, CalendarPlus, MapPin, ShieldCheck } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
 import { BookingPassQrImage } from "@/components/booking/booking-pass-qr-image"
@@ -121,6 +121,14 @@ export default async function BookingPassPage({ params }: Props) {
               date: new Date(order.bookingConfirmedAt).toLocaleString(dateLocale),
             })}
           </p>
+
+          <a
+            href={`/api/booking/pass/${encodeURIComponent(trimmed)}/ical`}
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-2.5 text-sm font-medium text-cyan-100 transition hover:bg-cyan-500/20"
+          >
+            <CalendarPlus className="h-4 w-4" aria-hidden />
+            {t("addToCalendar")}
+          </a>
         </div>
 
         <p className="mt-8 text-center text-xs text-zinc-600">

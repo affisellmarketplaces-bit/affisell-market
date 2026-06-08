@@ -1531,7 +1531,10 @@
       "waitlistJoinSuccess": "You're on the waitlist — we'll email you when a spot opens.",
       "waitlistJoinFailed": "Could not join waitlist. Try again.",
       "waitlistEmailRequired": "Enter your email to join the waitlist.",
-      "waitlistSlotAvailable": "This slot has spots again — book it directly above."
+      "waitlistSlotAvailable": "This slot has spots again — book it directly above.",
+      "waitlistPhonePlaceholder": "Mobile (optional, for SMS alert)",
+      "waitlistPhoneHint": "Optional — get an SMS in addition to email when a spot opens.",
+      "waitlistPhoneInvalid": "Enter a valid mobile number (e.g. +33 6 12 34 56 78)."
     }
   },
   "Filters": {
@@ -2707,6 +2710,7 @@
     "seatsLabel": "座位",
     "confirmedAt": "已确认 · {date}",
     "myOrders": "我的订单",
-    "qrAlt": "预订通行证二维码"
+    "qrAlt": "预订通行证二维码",
+    "addToCalendar": "Add to calendar"
   }
 }

@@ -1426,7 +1426,8 @@
     "seatsLabel": "Seats",
     "confirmedAt": "Confirmed · {date}",
     "myOrders": "My orders",
-    "qrAlt": "Booking pass QR code"
+    "qrAlt": "Booking pass QR code",
+    "addToCalendar": "Add to calendar"
   },
   "Product": {
     "booking": {
@@ -1466,7 +1467,10 @@
       "waitlistJoinSuccess": "You're on the waitlist — we'll email you when a spot opens.",
       "waitlistJoinFailed": "Could not join waitlist. Try again.",
       "waitlistEmailRequired": "Enter your email to join the waitlist.",
-      "waitlistSlotAvailable": "This slot has spots again — book it directly above."
+      "waitlistSlotAvailable": "This slot has spots again — book it directly above.",
+      "waitlistPhonePlaceholder": "Mobile (optional, for SMS alert)",
+      "waitlistPhoneHint": "Optional — get an SMS in addition to email when a spot opens.",
+      "waitlistPhoneInvalid": "Enter a valid mobile number (e.g. +33 6 12 34 56 78)."
     },
     "view360": "360° View",
     "premium": "Premium",

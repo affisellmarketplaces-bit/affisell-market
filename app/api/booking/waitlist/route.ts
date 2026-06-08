@@ -10,6 +10,7 @@ export async function POST(req: Request) {
     slotId?: string
     productId?: string
     email?: string
+    phone?: string
     qty?: number
   }
 
@@ -34,6 +35,7 @@ export async function POST(req: Request) {
     slotId,
     productId,
     email,
+    phone: typeof body.phone === "string" ? body.phone : undefined,
     userId: session?.user?.id ?? null,
     qty: body.qty,
   })
