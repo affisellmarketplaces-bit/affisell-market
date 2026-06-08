@@ -1,5 +1,9 @@
 import { parseBookingSnapshot } from "@/lib/booking/snapshot"
 import { prisma } from "@/lib/prisma"
+import {
+  computeSupplierBookingStats,
+  type SupplierBookingStats,
+} from "@/lib/supplier-booking-stats"
 
 export type SupplierBookingRosterRow = {
   orderId: string
@@ -35,6 +39,7 @@ export type SupplierBookingRosterPayload = {
   rows: SupplierBookingRosterRow[]
   slots: SupplierBookingSlotFilter[]
   pendingCheckInCount: number
+  stats: SupplierBookingStats
 }
 
 type RosterQuery = {
@@ -65,11 +70,6 @@ export async function fetchSupplierBookingRoster(
       bookingConfirmedAt: { not: null },
       bookingCancelledAt: null,
       ...(query.slotId ? { bookingSlotId: query.slotId } : {}),
-      ...(checkedIn === "pending"
-        ? { bookingCheckedInAt: null }
-        : checkedIn === "checked_in"
-          ? { bookingCheckedInAt: { not: null } }
-          : {}),
       bookingSlot: {
         startsAt: { gte: from, lte: to },
       },
@@ -104,7 +104,7 @@ export async function fetchSupplierBookingRoster(
     take: 500,
   })
 
-  const rows: SupplierBookingRosterRow[] = orders.map((order) => {
+  const allRows: SupplierBookingRosterRow[] = orders.map((order) => {
     const snapshot = parseBookingSnapshot(order.bookingSnapshot)
     const seatLabelsFromDb = order.bookingSeats.map((s) => s.label)
     const seatLabels =
@@ -130,6 +130,15 @@ export async function fetchSupplierBookingRoster(
       checkedIn: Boolean(order.bookingCheckedInAt),
     }
   })
+
+  const rows =
+    checkedIn === "pending"
+      ? allRows.filter((row) => !row.checkedIn)
+      : checkedIn === "checked_in"
+        ? allRows.filter((row) => row.checkedIn)
+        : allRows
+
+  const stats = computeSupplierBookingStats(allRows)
 
   const slotRows = await prisma.bookingSlot.findMany({
     where: {
@@ -171,9 +180,15 @@ export async function fetchSupplierBookingRoster(
     pendingCheckInCount: slot.orders.length,
   }))
 
-  const pendingCheckInCount = rows.filter((r) => !r.checkedIn).length
+  const pendingCheckInCount = allRows.filter((r) => !r.checkedIn).length
 
-  return { rows, slots, pendingCheckInCount }
+  console.log("[booking-roster]", {
+    supplierId: query.supplierId,
+    result: "stats",
+    ...stats,
+  })
+
+  return { rows, slots, pendingCheckInCount, stats }
 }
 
 export async function countSupplierPendingBookingCheckIns(supplierId: string): Promise<number> {

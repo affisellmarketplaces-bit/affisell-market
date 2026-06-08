@@ -1,11 +1,15 @@
 "use client"
 
-import { CalendarClock, CheckCircle2, Loader2, MapPin, Users } from "lucide-react"
+import { CalendarClock, CheckCircle2, Download, Loader2, MapPin, Users } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 
 import { SupplierBookingCheckInForm } from "@/components/supplier/supplier-booking-check-in-form"
+import {
+  SupplierBookingStatsBar,
+  type SupplierBookingStatsView,
+} from "@/components/supplier/supplier-booking-stats-bar"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
@@ -60,8 +64,10 @@ export function SupplierBookingRosterPanel({ className }: { className?: string }
   const [rows, setRows] = useState<RosterRow[] | null>(null)
   const [slots, setSlots] = useState<SlotFilter[]>([])
   const [pendingCount, setPendingCount] = useState(0)
+  const [stats, setStats] = useState<SupplierBookingStatsView | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busyOrderId, setBusyOrderId] = useState<string | null>(null)
+  const [exporting, setExporting] = useState(false)
 
   const load = useCallback(async () => {
     setError(null)
@@ -77,11 +83,41 @@ export function SupplierBookingRosterPanel({ className }: { className?: string }
       rows: RosterRow[]
       slots: SlotFilter[]
       pendingCheckInCount: number
+      stats: SupplierBookingStatsView
     }
     setRows(json.rows)
     setSlots(json.slots)
     setPendingCount(json.pendingCheckInCount)
+    setStats(json.stats)
   }, [slotId, t, tab])
+
+  async function exportCsv() {
+    setExporting(true)
+    try {
+      const params = new URLSearchParams()
+      if (slotId) params.set("slotId", slotId)
+      const res = await fetch(`/api/supplier/booking/roster/export?${params.toString()}`)
+      if (!res.ok) {
+        toast.error(t("exportFailed"))
+        return
+      }
+      const blob = await res.blob()
+      const disposition = res.headers.get("Content-Disposition") ?? ""
+      const match = disposition.match(/filename="([^"]+)"/)
+      const filename = match?.[1] ?? "booking-roster.csv"
+      const url = URL.createObjectURL(blob)
+      const anchor = document.createElement("a")
+      anchor.href = url
+      anchor.download = filename
+      anchor.click()
+      URL.revokeObjectURL(url)
+      toast.success(t("exportSuccess"))
+    } catch {
+      toast.error(t("exportFailed"))
+    } finally {
+      setExporting(false)
+    }
+  }
 
   useEffect(() => {
     void load()
@@ -135,6 +171,8 @@ export function SupplierBookingRosterPanel({ className }: { className?: string }
     <div className={cn("space-y-6", className)}>
       <SupplierBookingCheckInForm onCheckedIn={() => void load()} />
 
+      {stats ? <SupplierBookingStatsBar stats={stats} /> : null}
+
       <div className="flex flex-wrap items-center gap-2">
         {tabs.map((item) => (
           <Button
@@ -153,20 +191,36 @@ export function SupplierBookingRosterPanel({ className }: { className?: string }
           </Button>
         ))}
 
-        <select
-          value={slotId}
-          onChange={(e) => setSlotId(e.target.value)}
-          className="ml-auto min-w-[12rem] rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-          aria-label={t("slotFilterLabel")}
-        >
-          <option value="">{t("allSlots")}</option>
-          {slots.map((slot) => (
-            <option key={slot.id} value={slot.id}>
-              {formatSlotTime(slot.startsAt, null)}
-              {slot.label ? ` · ${slot.label}` : ""} ({slot.productName})
-            </option>
-          ))}
-        </select>
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={exporting || rows === null || rows.length === 0}
+            onClick={() => void exportCsv()}
+          >
+            {exporting ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+            ) : (
+              <Download className="h-4 w-4" aria-hidden />
+            )}
+            {t("exportCsv")}
+          </Button>
+          <select
+            value={slotId}
+            onChange={(e) => setSlotId(e.target.value)}
+            className="min-w-[12rem] rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+            aria-label={t("slotFilterLabel")}
+          >
+            <option value="">{t("allSlots")}</option>
+            {slots.map((slot) => (
+              <option key={slot.id} value={slot.id}>
+                {formatSlotTime(slot.startsAt, null)}
+                {slot.label ? ` · ${slot.label}` : ""} ({slot.productName})
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}

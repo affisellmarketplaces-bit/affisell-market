@@ -16,6 +16,8 @@ type Props = {
   className?: string
   /** Prefix with /en or /fr (marketing routes only). */
   localeAware?: boolean
+  /** Optional count badge (e.g. pending booking check-ins). */
+  badgeCount?: number
 }
 
 export function NavPill({
@@ -26,6 +28,7 @@ export function NavPill({
   icon: Icon,
   className,
   localeAware = false,
+  badgeCount = 0,
 }: Props) {
   const classNames = cn(
     "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold transition-all duration-200 lg:px-3.5",
@@ -47,6 +50,11 @@ export function NavPill({
       ) : (
         label
       )}
+      {badgeCount > 0 ? (
+        <span className="ml-0.5 rounded-full bg-cyan-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+          {badgeCount > 99 ? "99+" : badgeCount}
+        </span>
+      ) : null}
     </>
   )
 

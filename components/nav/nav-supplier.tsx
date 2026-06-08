@@ -9,6 +9,7 @@ import { FastLink } from "@/components/navigation/fast-link"
 import { NavPill } from "@/components/navigation/nav-pill"
 import { QuickNav } from "@/components/navigation/quick-nav"
 import { MerchantAccountNavActions } from "@/components/merchant-account-nav-actions"
+import { SupplierBookingNavBadge } from "@/components/supplier/supplier-booking-nav-badge"
 import { SupplierNotificationsMenu } from "@/components/supplier/supplier-notifications-menu"
 import { cn } from "@/lib/utils"
 
@@ -42,7 +43,17 @@ export function NavSupplier() {
       <div className={cn(navScrollClass, "order-4 w-full md:order-none md:min-w-0 md:flex-1")}>
         <NavPill href="/dashboard/supplier" label={t("dashboard")} icon={LayoutDashboard} active={onDashboard} />
         <NavPill href="/dashboard/supplier/orders" label={t("orders")} icon={ShoppingCart} active={onOrders} />
-        <NavPill href="/dashboard/supplier/bookings" label={t("bookings")} icon={CalendarCheck} active={onBookings} />
+        <SupplierBookingNavBadge>
+          {(pendingCount) => (
+            <NavPill
+              href="/dashboard/supplier/bookings"
+              label={t("bookings")}
+              icon={CalendarCheck}
+              active={onBookings}
+              badgeCount={pendingCount}
+            />
+          )}
+        </SupplierBookingNavBadge>
         <NavPill href="/dashboard/supplier/products" label={t("products")} icon={Package} active={onProducts} />
         <NavPill
           href="/dashboard/supplier/promote"
