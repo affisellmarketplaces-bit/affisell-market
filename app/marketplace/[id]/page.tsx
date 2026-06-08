@@ -305,6 +305,7 @@ export default async function MarketplaceListingPage({
           audience="customer"
           listingId={listing.id}
           productId={listing.product.id}
+          listingKind={listing.product.listingKind ?? "PHYSICAL"}
           promotedColor={listing.promotedColor}
           promotedSize={listing.promotedSize}
           name={displayName}

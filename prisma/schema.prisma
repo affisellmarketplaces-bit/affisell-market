@@ -524,7 +524,7 @@ model Product {
    */
   supplierCommissionRateBps     Int?
   /**
-   * PHYSICAL: affiliate commission % max 99; SOFTWARE | SUBSCRIPTION allows up to 100.
+   * PHYSICAL: affiliate commission % max 99; SOFTWARE | SUBSCRIPTION | SERVICE | EXPERIENCE allow up to 100.
    */
   listingKind                   String   @default("PHYSICAL")
   /**
@@ -535,6 +535,15 @@ model Product {
   digitalAccessInstructions     String?  @db.Text
   /** When true (default), buyers receive access automatically after payment. */
   digitalInstantDelivery        Boolean  @default(true)
+  /** Default session length for SERVICE / EXPERIENCE listings (minutes). */
+  bookingDurationMinutes        Int?
+  /** Buyer may cancel free until this many hours before slot start. */
+  bookingCancellationHours      Int      @default(24)
+  /** Venue label shown on booking pass (salon, cinema, museum…). */
+  bookingVenueLabel             String?
+  /** When true, booking is confirmed instantly after payment (Phase 1+). */
+  bookingInstantConfirm         Boolean  @default(true)
+  bookingSlots                  BookingSlot[]
   stock                         Int      @default(0)
   active                        Boolean  @default(true)
   /**
@@ -676,6 +685,28 @@ model Product {
   @@index([isLuxury])
   @@index([offerMode])
   @@index([createdAt])
+  @@index([listingKind])
+}
+
+/** Time-bound inventory for SERVICE / EXPERIENCE listings (cinéma, coiffeur, musée…). */
+model BookingSlot {
+  id                 String   @id @default(cuid())
+  productId          String
+  product            Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  startsAt           DateTime
+  endsAt             DateTime
+  capacity           Int
+  bookedCount        Int      @default(0)
+  priceCentsOverride Int?
+  label              String?
+  /** OPEN | SOLD_OUT | CANCELLED */
+  status             String   @default("OPEN")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  orders             Order[]
+
+  @@index([productId, startsAt])
+  @@index([status, startsAt])
 }
 
 model ProductVariant {
@@ -1226,13 +1257,20 @@ model Order {
   buyerUserId              String?
   /** Checkout UI locale snapshot for transactional emails (en, fr, de, …). */
   buyerLocale              String?             @db.VarChar(8)
-  /** Snapshot of product.listingKind at checkout (PHYSICAL | SOFTWARE | SUBSCRIPTION). */
+  /** Snapshot of product.listingKind at checkout (PHYSICAL | SOFTWARE | SUBSCRIPTION | SERVICE | EXPERIENCE). */
   listingKindSnapshot      String?
   /** Resolved buyer access URL after instant digital fulfillment. */
   digitalAccessUrl         String?
   digitalAccessInstructions String?            @db.Text
   digitalAccessToken       String?             @unique
   digitalDeliveredAt       DateTime?
+  /** Reserved booking slot (Phase 1 checkout). */
+  bookingSlotId            String?
+  bookingSlot              BookingSlot?        @relation(fields: [bookingSlotId], references: [id], onDelete: SetNull)
+  /** Frozen slot + policy at confirmation — see lib/booking/snapshot.ts */
+  bookingSnapshot          Json?
+  bookingToken             String?             @unique
+  bookingConfirmedAt       DateTime?
   buyer                    User?               @relation("BuyerMarketplaceOrders", fields: [buyerUserId], references: [id], onDelete: SetNull)
   customerEmail            String
   shippingAddress          Json

@@ -6,7 +6,9 @@ import {
 } from "@/lib/order-return-policy"
 import { isTerminalReturnStatus } from "@/lib/order-return-types"
 import { digitalPassPath } from "@/lib/digital-delivery/instant-fulfill"
+import { bookingPassPath } from "@/lib/booking/pass-token"
 import { isDigitalListingKind } from "@/lib/digital-delivery/types"
+import { isBookableListingKind } from "@/lib/booking/types"
 import {
   AUTO_CONFIRM_DAYS_AFTER_DELIVERY,
   orderPayoutTiming,
@@ -51,6 +53,9 @@ export type BuyerOrderRow = {
   isDigital: boolean
   digitalDeliveredAt: string | null
   digitalPassPath: string | null
+  isBooking: boolean
+  bookingConfirmedAt: string | null
+  bookingPassPath: string | null
 }
 
 function autoBuyBuyerLabels(status: string): { labelFr: string; labelEn: string } {
@@ -193,6 +198,10 @@ export async function buildBuyerOrdersPayloadForEmail(customerEmail: string): Pr
         o.digitalAccessToken && o.digitalDeliveredAt
           ? digitalPassPath(o.digitalAccessToken)
           : null,
+      isBooking: isBookableListingKind(o.listingKindSnapshot),
+      bookingConfirmedAt: o.bookingConfirmedAt?.toISOString() ?? null,
+      bookingPassPath:
+        o.bookingToken && o.bookingConfirmedAt ? bookingPassPath(o.bookingToken) : null,
     }
   })
 
@@ -242,6 +251,9 @@ export async function buildBuyerOrdersPayloadForEmail(customerEmail: string): Pr
       isDigital: false,
       digitalDeliveredAt: null,
       digitalPassPath: null,
+      isBooking: false,
+      bookingConfirmedAt: null,
+      bookingPassPath: null,
     })
   }
 

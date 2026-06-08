@@ -31,6 +31,8 @@ const LISTING_LABEL: Record<string, string> = {
   PHYSICAL: "Physique",
   SOFTWARE: "Digital",
   SUBSCRIPTION: "Abonnement",
+  SERVICE: "Service",
+  EXPERIENCE: "Expérience",
 }
 
 function statusMeta(p: CatalogProduct) {

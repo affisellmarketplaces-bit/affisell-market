@@ -32,6 +32,7 @@ import {
   parseProductOfferMode,
   resolvePurchaseMinQty,
 } from "@/lib/product-offer-mode"
+import { isBookingCheckoutBlocked } from "@/lib/booking/types"
 import { marketplaceCheckoutPaymentSessionOptions } from "@/lib/marketplace-checkout-payment-methods"
 import {
   buildHtLineItem,
@@ -121,6 +122,9 @@ function validateOfferCheckoutLine(
       { error: "donation_requires_contact" },
       { status: 400 }
     )
+  }
+  if (isBookingCheckoutBlocked(listing.product.listingKind)) {
+    return NextResponse.json({ error: "booking_checkout_coming_soon" }, { status: 409 })
   }
   return null
 }

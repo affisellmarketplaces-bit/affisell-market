@@ -652,6 +652,18 @@
       "instructionsLabel": "Käuferanweisungen (optional)",
       "instructionsPlaceholder": "Z. B. Prüfen Sie Ihren Posteingang auf die Plattform-Einladung und melden Sie sich mit derselben E-Mail wie beim Checkout an."
     },
+    "booking": {
+      "badge": "Booking Hub",
+      "title": "Slots & Reservierungen",
+      "description": "Friseur, Kino, Museum, Restaurant — Käufer wählen eine Zeit und erhalten einen QR-Pass. Checkout in Phase 1.",
+      "comingSoonBadge": "Demnächst",
+      "comingSoonHint": "Grundlage ist live: Listing-Typ, Ort und Stornierungsregel werden gespeichert. Kalender und Checkout folgen in Phase 1.",
+      "instantLabel": "Sofortbestätigung nach Zahlung",
+      "durationLabel": "Standarddauer (Minuten)",
+      "cancellationLabel": "Kostenlose Stornierung bis (Stunden vorher)",
+      "venueLabel": "Veranstaltungsort",
+      "venuePlaceholder": "z. B. Gaumont Lyon · Salon Éclat"
+    },
     "quality": {
       "title": "Listing-Qualität",
       "checklistTitle": "Titel",
@@ -1333,6 +1345,11 @@
     "backMarketplace": "Marktplatz"
   },
   "Product": {
+    "booking": {
+      "comingSoonBadge": "Demnächst",
+      "comingSoonTitle": "Reservierungen starten bald",
+      "comingSoonBody": "Dieser Service oder dieses Erlebnis bietet bald Zeitfenster und einen QR-Pass. Phase 1 aktiviert den Buchungs-Checkout."
+    },
     "view360": "360° Ansicht",
     "premium": "Premium",
     "addToCart": "In den Warenkorb legen",

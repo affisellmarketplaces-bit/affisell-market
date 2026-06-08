@@ -652,6 +652,18 @@
       "instructionsLabel": "Buyer instructions (optional)",
       "instructionsPlaceholder": "E.g. Check your inbox for the platform invite, then log in with the same email as checkout."
     },
+    "booking": {
+      "badge": "Booking Hub",
+      "title": "Slots & reservations",
+      "description": "Coiffeur, cinema, museum, restaurant — buyers pick a time and receive a QR pass. Phase 1 unlocks checkout.",
+      "comingSoonBadge": "Coming soon",
+      "comingSoonHint": "Foundation is live: listing type, venue and cancellation policy are saved. Calendar slots and buyer checkout arrive in Phase 1.",
+      "instantLabel": "Instant confirmation after payment",
+      "durationLabel": "Default duration (minutes)",
+      "cancellationLabel": "Free cancellation until (hours before)",
+      "venueLabel": "Venue name",
+      "venuePlaceholder": "E.g. Gaumont Lyon Part-Dieu · Salon Éclat"
+    },
     "quality": {
       "title": "Listing quality",
       "checklistTitle": "Title",
@@ -1311,6 +1323,11 @@
     "backMarketplace": "Marketplace"
   },
   "Product": {
+    "booking": {
+      "comingSoonBadge": "Coming soon",
+      "comingSoonTitle": "Reservations launching soon",
+      "comingSoonBody": "This service or experience will soon offer time slots and an instant QR pass. Stay tuned — Phase 1 unlocks booking checkout."
+    },
     "view360": "360° View",
     "premium": "Premium",
     "addToCart": "Add to Cart",

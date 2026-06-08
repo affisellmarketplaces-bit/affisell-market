@@ -652,6 +652,18 @@
       "instructionsLabel": "Instructions acheteur (optionnel)",
       "instructionsPlaceholder": "Ex. Vérifiez votre boîte mail pour l'invitation plateforme, puis connectez-vous avec l'email utilisé au checkout."
     },
+    "booking": {
+      "badge": "Booking Hub",
+      "title": "Créneaux & réservations",
+      "description": "Coiffeur, cinéma, musée, restaurant — l'acheteur choisit un horaire et reçoit un passe QR. Le checkout arrive en Phase 1.",
+      "comingSoonBadge": "Bientôt disponible",
+      "comingSoonHint": "Les fondations sont en place : type de fiche, lieu et politique d'annulation sont enregistrés. Calendrier et checkout acheteur arrivent en Phase 1.",
+      "instantLabel": "Confirmation instantanée après paiement",
+      "durationLabel": "Durée par défaut (minutes)",
+      "cancellationLabel": "Annulation gratuite jusqu'à (heures avant)",
+      "venueLabel": "Nom du lieu",
+      "venuePlaceholder": "Ex. Gaumont Lyon Part-Dieu · Salon Éclat"
+    },
     "quality": {
       "title": "Qualité fiche",
       "checklistTitle": "Titre",
@@ -1311,6 +1323,11 @@
     "backMarketplace": "Marketplace"
   },
   "Product": {
+    "booking": {
+      "comingSoonBadge": "Bientôt disponible",
+      "comingSoonTitle": "Réservations bientôt ouvertes",
+      "comingSoonBody": "Ce service ou cette expérience proposera bientôt des créneaux et un passe QR instantané. Phase 1 activera le checkout réservation."
+    },
     "view360": "Vue 360°",
     "premium": "Premium",
     "addToCart": "Ajouter au panier",

@@ -53,6 +53,7 @@ export const listingDetailSelect = {
       compareAt: true,
       basePriceCents: true,
       stock: true,
+      listingKind: true,
       deliveryMin: true,
       deliveryMax: true,
       processingTime: true,

@@ -35,6 +35,7 @@ import {
   parseProductDigitalDeliveryBody,
   validateDigitalDeliveryForPublish,
 } from "@/lib/digital-delivery/parse-product-digital"
+import { parseProductBookingBody } from "@/lib/booking/parse-product-booking"
 import { parseAffisellCommissionOverrideFromBody } from "@/lib/supplier-product-affisell-commission-override"
 import { productCommissionRateForSave } from "@/lib/supplier-product-commission-save"
 import {
@@ -146,6 +147,7 @@ export async function POST(req: Request) {
   if (!digitalParsed.ok) {
     return Response.json({ error: "invalid_digital_delivery" }, { status: 400 })
   }
+  const bookingParsed = parseProductBookingBody(body as Record<string, unknown>)
   const digitalErr = validateDigitalDeliveryForPublish(
     listingKind,
     digitalParsed.data,
@@ -313,6 +315,10 @@ export async function POST(req: Request) {
         digitalAccessUrl: digitalParsed.data.digitalAccessUrl,
         digitalAccessInstructions: digitalParsed.data.digitalAccessInstructions,
         digitalInstantDelivery: digitalParsed.data.digitalInstantDelivery,
+        bookingDurationMinutes: bookingParsed.bookingDurationMinutes,
+        bookingCancellationHours: bookingParsed.bookingCancellationHours,
+        bookingVenueLabel: bookingParsed.bookingVenueLabel,
+        bookingInstantConfirm: bookingParsed.bookingInstantConfirm,
         stock: stockN,
         active: !saveAsDraft,
         isDraft: saveAsDraft,

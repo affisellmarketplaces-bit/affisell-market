@@ -40,6 +40,7 @@ import { SupplierTitleOptimizer } from "@/components/supplier/supplier-title-opt
 import { SupplierSimpleColorImageField } from "@/components/supplier/supplier-simple-color-image-field"
 import { SupplierProductImageUpload } from "@/components/supplier/supplier-product-image-upload"
 import { SupplierDigitalDeliveryPanel } from "@/components/supplier/supplier-digital-delivery-panel"
+import { SupplierBookingHubPanel } from "@/components/supplier/supplier-booking-hub-panel"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -170,6 +171,8 @@ const LISTING_LABELS: Record<ListingKind, string> = {
   PHYSICAL: "Physical goods",
   SOFTWARE: "Software (digital)",
   SUBSCRIPTION: "Subscription / SaaS",
+  SERVICE: "Service & appointment",
+  EXPERIENCE: "Experience & ticket",
 }
 
 function formatMoneyDisplay(n: number) {
@@ -379,6 +382,10 @@ export function SupplierAddProductForm({
   const [digitalAccessUrl, setDigitalAccessUrl] = useState("")
   const [digitalAccessInstructions, setDigitalAccessInstructions] = useState("")
   const [digitalInstantDelivery, setDigitalInstantDelivery] = useState(true)
+  const [bookingDurationMinutes, setBookingDurationMinutes] = useState("60")
+  const [bookingCancellationHours, setBookingCancellationHours] = useState("24")
+  const [bookingVenueLabel, setBookingVenueLabel] = useState("")
+  const [bookingInstantConfirm, setBookingInstantConfirm] = useState(true)
   const [commission, setCommission] = useState("15")
 
   useEffect(() => {
@@ -857,6 +864,20 @@ export function SupplierAddProductForm({
           ? true
           : Boolean(data.digitalInstantDelivery)
       )
+      setBookingDurationMinutes(
+        data.bookingDurationMinutes != null && Number(data.bookingDurationMinutes) > 0
+          ? String(data.bookingDurationMinutes)
+          : "60"
+      )
+      setBookingCancellationHours(
+        data.bookingCancellationHours != null ? String(data.bookingCancellationHours) : "24"
+      )
+      setBookingVenueLabel(typeof data.bookingVenueLabel === "string" ? data.bookingVenueLabel : "")
+      setBookingInstantConfirm(
+        data.bookingInstantConfirm === undefined || data.bookingInstantConfirm === null
+          ? true
+          : Boolean(data.bookingInstantConfirm)
+      )
       setCommission(String(data.commissionRate ?? 15))
       setShippingCountry(String(data.shippingCountry ?? ""))
       const wt = String(data.warehouseType ?? "")
@@ -1198,6 +1219,11 @@ export function SupplierAddProductForm({
         digitalAccessUrl: digitalAccessUrl.trim() || null,
         digitalAccessInstructions: digitalAccessInstructions.trim() || null,
         digitalInstantDelivery,
+        bookingDurationMinutes:
+          bookingDurationMinutes.trim() === "" ? null : Math.round(Number(bookingDurationMinutes)) || null,
+        bookingCancellationHours: Math.round(Number(bookingCancellationHours)) || 24,
+        bookingVenueLabel: bookingVenueLabel.trim() || null,
+        bookingInstantConfirm,
         images,
         categoryId: categoryId.trim(),
         affisellCommissionRateOverridePercent:
@@ -1261,6 +1287,10 @@ export function SupplierAddProductForm({
       digitalAccessUrl,
       digitalAccessInstructions,
       digitalInstantDelivery,
+      bookingDurationMinutes,
+      bookingCancellationHours,
+      bookingVenueLabel,
+      bookingInstantConfirm,
       images,
       categoryId,
       affisellCommissionOverride,
@@ -2997,8 +3027,8 @@ export function SupplierAddProductForm({
                         ))}
                       </select>
                       <p className="mt-1.5 text-xs text-violet-900/75 dark:text-violet-300/85">
-                        Up to {commissionMax}% for this listing type. 100% allowed for software and
-                        subscriptions only.
+                        Up to {commissionMax}% for this listing type. 100% allowed for digital, service and
+                        experience listings.
                       </p>
                     </div>
                     <div>
@@ -3043,6 +3073,19 @@ export function SupplierAddProductForm({
                   onInstructionsChange={setDigitalAccessInstructions}
                   onInstantDeliveryChange={setDigitalInstantDelivery}
                   hasError={publishBlockers.some((b) => b.field === "specs" && b.message.includes("digital"))}
+                  className="scroll-mt-28"
+                />
+
+                <SupplierBookingHubPanel
+                  listingKind={listingKind}
+                  bookingDurationMinutes={bookingDurationMinutes}
+                  bookingCancellationHours={bookingCancellationHours}
+                  bookingVenueLabel={bookingVenueLabel}
+                  bookingInstantConfirm={bookingInstantConfirm}
+                  onDurationChange={setBookingDurationMinutes}
+                  onCancellationHoursChange={setBookingCancellationHours}
+                  onVenueLabelChange={setBookingVenueLabel}
+                  onInstantConfirmChange={setBookingInstantConfirm}
                   className="scroll-mt-28"
                 />
 

@@ -26,6 +26,7 @@ import {
   parseProductDigitalDeliveryBody,
   validateDigitalDeliveryForPublish,
 } from "@/lib/digital-delivery/parse-product-digital"
+import { parseProductBookingBody } from "@/lib/booking/parse-product-booking"
 import { parseAffisellCommissionOverrideFromBody } from "@/lib/supplier-product-affisell-commission-override"
 import { productCommissionRateForSave } from "@/lib/supplier-product-commission-save"
 import { normalizeLeafCategoryId } from "@/lib/category-leaf-guard"
@@ -159,6 +160,7 @@ export async function PUT(
   if (!digitalParsed.ok) {
     return Response.json({ error: digitalParsed.error }, { status: 400 })
   }
+  const bookingParsed = parseProductBookingBody(rawBody)
   const isPublishing = publish || (!existingRow.isDraft && !saveAsDraftReq)
   if (isPublishing) {
     const digitalErr = validateDigitalDeliveryForPublish(listingKind, digitalParsed.data, false)
@@ -391,6 +393,10 @@ export async function PUT(
         digitalAccessUrl: digitalParsed.data.digitalAccessUrl,
         digitalAccessInstructions: digitalParsed.data.digitalAccessInstructions,
         digitalInstantDelivery: digitalParsed.data.digitalInstantDelivery,
+        bookingDurationMinutes: bookingParsed.bookingDurationMinutes,
+        bookingCancellationHours: bookingParsed.bookingCancellationHours,
+        bookingVenueLabel: bookingParsed.bookingVenueLabel,
+        bookingInstantConfirm: bookingParsed.bookingInstantConfirm,
         stock,
         categoryId,
         ...(affisellOverridePatch !== undefined

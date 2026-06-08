@@ -25,6 +25,7 @@ import { useLocale } from "next-intl"
 import { Fragment, Suspense, useEffect, useMemo, useRef, useState, type MouseEvent } from "react"
 
 import { ReviewsEngine } from "@/components/reviews/ReviewsEngine"
+import { BookingComingSoonRail } from "@/components/booking/booking-coming-soon-rail"
 
 import { ListingPriceActionCard } from "@/components/marketplace/listing-price-action-card"
 import { MarketplacePurchaseQuantity } from "@/components/marketplace/marketplace-purchase-quantity"
@@ -45,6 +46,7 @@ import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { addToBuyerCart } from "@/lib/cart-add-client"
 import { buyNowWithoutLogin } from "@/lib/guest-buy-now-client"
+import { isBookingCheckoutBlocked } from "@/lib/booking/types"
 import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/marketplace-checkout-discount"
 import {
   clampPurchaseQuantity,
@@ -134,6 +136,7 @@ type Props = {
   audience?: "customer" | "merchant"
   listingId: string
   productId: string
+  listingKind?: string
   /** Affiliate-chosen default color swatch (must exist in `colorNames`). */
   promotedColor?: string | null
   /** Affiliate-chosen default size (must exist in variant size options). */
@@ -366,6 +369,7 @@ export function MarketplaceListingDetail({
   audience = "customer",
   listingId,
   productId,
+  listingKind = "PHYSICAL",
   promotedColor = null,
   promotedSize = null,
   name,
@@ -680,6 +684,7 @@ export function MarketplaceListingDetail({
   }, [availableStock])
 
   const buyNowLineSubtotalCents = activeListingPriceCents * purchaseQty
+  const bookingCheckoutBlocked = isBookingCheckoutBlocked(listingKind)
   const maxApplicableReward = useMemo(() => {
     if (buyNowLineSubtotalCents <= 0) return 0
     return Math.max(
@@ -740,6 +745,7 @@ export function MarketplaceListingDetail({
   async function addToCart(e?: MouseEvent) {
     e?.preventDefault()
     e?.stopPropagation()
+    if (bookingCheckoutBlocked) return
     setCartBusy(true)
     try {
       const result = await addToBuyerCart({
@@ -765,6 +771,7 @@ export function MarketplaceListingDetail({
   }
 
   async function buyNow() {
+    if (bookingCheckoutBlocked) return
     setBuyBusy(true)
     try {
       const applied = Math.min(Math.max(0, Math.round(useRewardCents)), maxApplicableReward)
@@ -1084,6 +1091,9 @@ export function MarketplaceListingDetail({
               ) : null}
             </div>
 
+            {bookingCheckoutBlocked ? (
+              <BookingComingSoonRail listingKind={listingKind} className="max-lg:hidden" />
+            ) : (
             <ListingPriceActionCard
               className="max-lg:hidden"
               priceLabel={productT.priceLabel}
@@ -1099,6 +1109,7 @@ export function MarketplaceListingDetail({
               buyNowShort={productT.buyNowShort}
               reduceMotion={reduceMotion ?? false}
             />
+            )}
             </div>
 
             <div className="hidden space-y-2 px-4 py-2.5 lg:block lg:space-y-4 lg:px-0 lg:py-0">
@@ -1350,6 +1361,10 @@ export function MarketplaceListingDetail({
               animate={{ y: 0 }}
               transition={reduceMotion ? { duration: 0 } : { duration: 0.45, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
             >
+              {bookingCheckoutBlocked ? (
+                <BookingComingSoonRail listingKind={listingKind} />
+              ) : (
+              <>
               <div className="mb-3 hidden items-start gap-2.5 lg:flex">
                 <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-md shadow-amber-500/25">
                   <Zap className="h-4 w-4" aria-hidden />
@@ -1419,14 +1434,14 @@ export function MarketplaceListingDetail({
                 outOfStockLabel={productT.outOfStock}
                 quantityOptionLabel={(count) => t(productT.quantityOption, { count })}
                 quantityAriaLabel={productT.quantityAria}
-                disabled={cartBusy || buyBusy}
+                  disabled={cartBusy || buyBusy || bookingCheckoutBlocked}
               />
 
               <div className="flex flex-col gap-2.5 lg:gap-3">
                 <div className="flex gap-2 lg:block">
                 <motion.button
                   type="button"
-                  disabled={cartBusy || availableStock <= 0}
+                  disabled={cartBusy || availableStock <= 0 || bookingCheckoutBlocked}
                   whileHover={{ scale: availableStock > 0 && !cartBusy ? 1.01 : 1 }}
                   whileTap={{ scale: availableStock > 0 && !cartBusy ? 0.99 : 1 }}
                   onClick={(e) => void addToCart(e)}
@@ -1446,7 +1461,7 @@ export function MarketplaceListingDetail({
 
                 <motion.button
                   type="button"
-                  disabled={buyBusy || availableStock <= 0}
+                  disabled={buyBusy || availableStock <= 0 || bookingCheckoutBlocked}
                   whileHover={{ scale: availableStock > 0 && !buyBusy ? 1.012 : 1 }}
                   whileTap={{ scale: availableStock > 0 && !buyBusy ? 0.988 : 1 }}
                   onClick={() => void buyNow()}
@@ -1487,6 +1502,8 @@ export function MarketplaceListingDetail({
                   </button>
                 </div>
               </div>
+              </>
+              )}
             </motion.div>
             </div>
 
@@ -1937,7 +1954,10 @@ export function MarketplaceListingDetail({
         }
         transition={{ type: "spring", stiffness: 420, damping: 36 }}
         style={{
-          pointerEvents: availableStock > 0 && showStickyBuy && !showAr && !showStylist ? "auto" : "none",
+          pointerEvents:
+            availableStock > 0 && showStickyBuy && !showAr && !showStylist && !bookingCheckoutBlocked
+              ? "auto"
+              : "none",
         }}
       >
         <div className="mx-auto flex max-w-3xl items-center gap-2 rounded-[1.35rem] border border-violet-200/50 bg-white/92 px-2.5 py-2 shadow-[0_16px_48px_-12px_rgba(91,33,217,0.35)] ring-1 ring-violet-500/10 backdrop-blur-2xl dark:border-violet-900/40 dark:bg-zinc-950/92 dark:ring-violet-400/15 sm:gap-3 sm:rounded-2xl sm:px-3 sm:py-2.5">
@@ -1951,7 +1971,7 @@ export function MarketplaceListingDetail({
           </div>
           <Button
             type="button"
-            disabled={buyBusy || availableStock <= 0}
+            disabled={buyBusy || availableStock <= 0 || bookingCheckoutBlocked}
             onClick={() => void buyNow()}
             className="hidden h-10 shrink-0 rounded-full border border-violet-400/60 bg-white px-3 text-xs font-bold text-violet-800 sm:inline-flex dark:bg-zinc-900 dark:text-violet-200"
           >
@@ -1959,7 +1979,7 @@ export function MarketplaceListingDetail({
           </Button>
           <Button
             type="button"
-            disabled={cartBusy || availableStock <= 0}
+            disabled={cartBusy || availableStock <= 0 || bookingCheckoutBlocked}
             onClick={(e) => void addToCart(e)}
             className="h-10 shrink-0 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 text-xs font-bold text-white shadow-lg shadow-violet-500/25 sm:h-11 sm:px-5 sm:text-sm"
           >

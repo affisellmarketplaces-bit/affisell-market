@@ -1,10 +1,16 @@
-export const LISTING_KINDS = ["PHYSICAL", "SOFTWARE", "SUBSCRIPTION"] as const
+export const LISTING_KINDS = ["PHYSICAL", "SOFTWARE", "SUBSCRIPTION", "SERVICE", "EXPERIENCE"] as const
 
 export type ListingKind = (typeof LISTING_KINDS)[number]
 
 export function parseListingKind(raw: unknown): ListingKind {
   const s = typeof raw === "string" ? raw.trim().toUpperCase() : ""
-  if (s === "SOFTWARE" || s === "SUBSCRIPTION" || s === "PHYSICAL") {
+  if (
+    s === "SOFTWARE" ||
+    s === "SUBSCRIPTION" ||
+    s === "PHYSICAL" ||
+    s === "SERVICE" ||
+    s === "EXPERIENCE"
+  ) {
     return s
   }
   return "PHYSICAL"
@@ -45,7 +51,7 @@ export function normalizeAffiliateCommissionRatePct(
       ok: false,
       error:
         listingKind === "PHYSICAL"
-          ? "Physical goods cannot exceed 99%. Select Software or Subscription to allow 100%."
+          ? "Physical goods cannot exceed 99%. Select Software, Subscription, Service or Experience to allow 100%."
           : "Commission cannot exceed 100%",
     }
   }
