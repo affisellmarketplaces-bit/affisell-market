@@ -3,12 +3,14 @@
 import { CalendarClock, MapPin, Sparkles, Timer } from "lucide-react"
 import { useTranslations } from "next-intl"
 
+import { SupplierBookingSlotsManager } from "@/components/supplier/supplier-booking-slots-manager"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { isBookableListingKind } from "@/lib/booking/types"
+import { isExperienceListingKind, isServiceListingKind } from "@/lib/booking/types"
 import { cn } from "@/lib/utils"
 
 type Props = {
+  productId: string | null
   listingKind: string
   bookingDurationMinutes: string
   bookingCancellationHours: string
@@ -17,11 +19,12 @@ type Props = {
   onDurationChange: (v: string) => void
   onCancellationHoursChange: (v: string) => void
   onVenueLabelChange: (v: string) => void
-  onInstantConfirmChange: (v: boolean) => void
+  onInstantDeliveryChange: (v: boolean) => void
   className?: string
 }
 
 export function SupplierBookingHubPanel({
+  productId,
   listingKind,
   bookingDurationMinutes,
   bookingCancellationHours,
@@ -30,11 +33,13 @@ export function SupplierBookingHubPanel({
   onDurationChange,
   onCancellationHoursChange,
   onVenueLabelChange,
-  onInstantConfirmChange,
+  onInstantDeliveryChange,
   className,
 }: Props) {
   const t = useTranslations("supplier.booking")
-  if (!isBookableListingKind(listingKind)) return null
+  const isService = isServiceListingKind(listingKind)
+  const isExperience = isExperienceListingKind(listingKind)
+  if (!isService && !isExperience) return null
 
   return (
     <section
@@ -53,30 +58,47 @@ export function SupplierBookingHubPanel({
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-cyan-300">{t("badge")}</p>
-            <h3 className="mt-1 text-lg font-semibold tracking-tight">{t("title")}</h3>
-            <p className="mt-1 text-sm leading-relaxed text-cyan-100/85">{t("description")}</p>
+            <h3 className="mt-1 text-lg font-semibold tracking-tight">
+              {isService ? t("titleService") : t("title")}
+            </h3>
+            <p className="mt-1 text-sm leading-relaxed text-cyan-100/85">
+              {isService ? t("descriptionService") : t("description")}
+            </p>
           </div>
         </div>
-        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-amber-200">
-          <Sparkles className="h-3 w-3" aria-hidden />
-          {t("comingSoonBadge")}
-        </span>
+        {isExperience ? (
+          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-amber-200">
+            <Sparkles className="h-3 w-3" aria-hidden />
+            {t("comingSoonBadge")}
+          </span>
+        ) : (
+          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-400/40 bg-emerald-400/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-200">
+            {t("liveBadge")}
+          </span>
+        )}
       </div>
 
-      <div className="relative mt-6 rounded-2xl border border-white/10 bg-black/25 p-4 backdrop-blur-sm">
-        <p className="text-xs leading-relaxed text-cyan-100/80">{t("comingSoonHint")}</p>
-      </div>
+      {isExperience ? (
+        <div className="relative mt-6 rounded-2xl border border-white/10 bg-black/25 p-4 backdrop-blur-sm">
+          <p className="text-xs leading-relaxed text-cyan-100/80">{t("comingSoonHint")}</p>
+        </div>
+      ) : null}
 
-      <div className="relative mt-6 space-y-5 opacity-90">
-        <label className="flex cursor-not-allowed items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+      <div className={cn("relative mt-6 space-y-5", isExperience && "opacity-90")}>
+        <label
+          className={cn(
+            "flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3",
+            isExperience ? "cursor-not-allowed" : "cursor-pointer hover:bg-white/10"
+          )}
+        >
           <input
             type="checkbox"
             checked={bookingInstantConfirm}
-            disabled
-            readOnly
-            className="h-4 w-4 rounded border-cyan-300 text-cyan-600"
+            disabled={isExperience}
+            onChange={(e) => onInstantDeliveryChange(e.target.checked)}
+            className="h-4 w-4 rounded border-cyan-300 text-cyan-600 focus:ring-cyan-400"
           />
-          <span className="flex items-center gap-2 text-sm font-medium text-white/70">{t("instantLabel")}</span>
+          <span className="flex items-center gap-2 text-sm font-medium">{t("instantLabel")}</span>
         </label>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -89,9 +111,9 @@ export function SupplierBookingHubPanel({
               id="booking-duration"
               type="number"
               min={5}
-              max={1440}
-              disabled
-              className="mt-2 border-white/15 bg-black/30 text-white/70"
+              max={480}
+              disabled={isExperience}
+              className="mt-2 border-white/15 bg-black/30 text-white"
               value={bookingDurationMinutes}
               onChange={(e) => onDurationChange(e.target.value)}
             />
@@ -105,8 +127,8 @@ export function SupplierBookingHubPanel({
               type="number"
               min={0}
               max={168}
-              disabled
-              className="mt-2 border-white/15 bg-black/30 text-white/70"
+              disabled={isExperience}
+              className="mt-2 border-white/15 bg-black/30 text-white"
               value={bookingCancellationHours}
               onChange={(e) => onCancellationHoursChange(e.target.value)}
             />
@@ -120,14 +142,19 @@ export function SupplierBookingHubPanel({
           </Label>
           <Input
             id="booking-venue"
-            disabled
-            className="mt-2 border-white/15 bg-black/30 text-white/70"
+            disabled={isExperience}
+            className="mt-2 border-white/15 bg-black/30 text-white"
             value={bookingVenueLabel}
             onChange={(e) => onVenueLabelChange(e.target.value)}
             placeholder={t("venuePlaceholder")}
           />
         </div>
       </div>
+
+      {isService && productId ? <SupplierBookingSlotsManager productId={productId} /> : null}
+      {isService && !productId ? (
+        <p className="relative mt-4 text-xs text-cyan-200/70">{t("saveDraftForSlots")}</p>
+      ) : null}
     </section>
   )
 }

@@ -2,6 +2,7 @@ export type FastCheckoutBody = {
   productId?: string
   affiliateProductId?: string
   qty?: number
+  bookingSlotId?: string
   useRewardCents?: number
   selectedColor?: string | null
   selectedSize?: string | null

@@ -149,6 +149,14 @@ function blockerFromMessage(message: string): PublishBlocker | null {
   if (m.includes("digital_access") || m.includes("accès digital") || m.includes("digital access")) {
     return { field: "specs", message }
   }
+  if (
+    m.includes("booking_slots") ||
+    m.includes("créneau") ||
+    m.includes("creneau") ||
+    m.includes("appointment slot")
+  ) {
+    return { field: "specs", message }
+  }
   if (m.includes("catégor") || m.includes("category")) return { field: "category", message }
   if (m.includes("image") || m.includes("photo")) return { field: "images", message }
   if (m.includes("titre") || m.includes("name") || m.includes("nom")) return { field: "name", message }
@@ -173,7 +181,9 @@ export function mapServerPublishBlockers(json: {
     const normalizedError =
       json.error === "Invalid variants payload"
         ? "Format des variantes incorrect : en mode couleurs, n’utilisez pas la clé SKU ; en mode tableau SKU, vérifiez chaque ligne."
-        : json.error
+        : json.error === "booking_slots_required"
+          ? "Ajoutez au moins un créneau de rendez-vous futur avant de publier (Booking Hub)."
+          : json.error
     const mapped = blockerFromMessage(normalizedError)
     if (mapped) {
       if (!out.some((b) => b.field === mapped.field && b.message === mapped.message)) {

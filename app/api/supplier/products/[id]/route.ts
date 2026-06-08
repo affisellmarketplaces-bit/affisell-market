@@ -27,6 +27,8 @@ import {
   validateDigitalDeliveryForPublish,
 } from "@/lib/digital-delivery/parse-product-digital"
 import { parseProductBookingBody } from "@/lib/booking/parse-product-booking"
+import { countAvailableBookingSlots } from "@/lib/booking/slot-availability"
+import { isServiceListingKind } from "@/lib/booking/types"
 import { parseAffisellCommissionOverrideFromBody } from "@/lib/supplier-product-affisell-commission-override"
 import { productCommissionRateForSave } from "@/lib/supplier-product-commission-save"
 import { normalizeLeafCategoryId } from "@/lib/category-leaf-guard"
@@ -166,6 +168,12 @@ export async function PUT(
     const digitalErr = validateDigitalDeliveryForPublish(listingKind, digitalParsed.data, false)
     if (digitalErr) {
       return Response.json({ error: digitalErr }, { status: 400 })
+    }
+    if (isServiceListingKind(listingKind)) {
+      const openSlots = await countAvailableBookingSlots(id)
+      if (openSlots === 0) {
+        return Response.json({ error: "booking_slots_required" }, { status: 400 })
+      }
     }
   }
   let priceCents: number

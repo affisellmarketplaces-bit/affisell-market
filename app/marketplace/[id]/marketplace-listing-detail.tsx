@@ -46,7 +46,12 @@ import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { addToBuyerCart } from "@/lib/cart-add-client"
 import { buyNowWithoutLogin } from "@/lib/guest-buy-now-client"
-import { isBookingCheckoutBlocked } from "@/lib/booking/types"
+import {
+  isBookingCheckoutBlocked,
+  isBookingCheckoutLiveForKind,
+} from "@/lib/booking/checkout-live"
+import { isServiceListingKind } from "@/lib/booking/types"
+import { BookingSlotPicker } from "@/components/booking/booking-slot-picker"
 import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/marketplace-checkout-discount"
 import {
   clampPurchaseQuantity,
@@ -529,6 +534,10 @@ export function MarketplaceListingDetail({
   const [styleIdeas, setStyleIdeas] = useState<string[]>([])
   const [stylistLoading, setStylistLoading] = useState(false)
   const [alertSaved, setAlertSaved] = useState(false)
+  const [selectedBookingSlotId, setSelectedBookingSlotId] = useState<string | null>(null)
+  const bookingCheckoutBlocked = isBookingCheckoutBlocked(listingKind)
+  const serviceBookingLive = isServiceListingKind(listingKind) && isBookingCheckoutLiveForKind(listingKind)
+  const bookingSlotRequired = serviceBookingLive && !selectedBookingSlotId
   const [bundleChecked, setBundleChecked] = useState<Record<string, boolean>>({})
   const [rewardBalanceCents, setRewardBalanceCents] = useState(0)
   const [useRewardCents, setUseRewardCents] = useState(0)
@@ -683,8 +692,7 @@ export function MarketplaceListingDetail({
     if (availableStock <= 0) setShowStickyBuy(false)
   }, [availableStock])
 
-  const buyNowLineSubtotalCents = activeListingPriceCents * purchaseQty
-  const bookingCheckoutBlocked = isBookingCheckoutBlocked(listingKind)
+  const buyNowLineSubtotalCents = activeListingPriceCents * (serviceBookingLive ? 1 : purchaseQty)
   const maxApplicableReward = useMemo(() => {
     if (buyNowLineSubtotalCents <= 0) return 0
     return Math.max(
@@ -746,6 +754,7 @@ export function MarketplaceListingDetail({
     e?.preventDefault()
     e?.stopPropagation()
     if (bookingCheckoutBlocked) return
+    if (serviceBookingLive) return
     setCartBusy(true)
     try {
       const result = await addToBuyerCart({
@@ -772,13 +781,20 @@ export function MarketplaceListingDetail({
 
   async function buyNow() {
     if (bookingCheckoutBlocked) return
+    if (bookingSlotRequired) {
+      const { toast } = await import("sonner")
+      toast.error(productT.booking.selectSlotRequired)
+      return
+    }
     setBuyBusy(true)
     try {
       const applied = Math.min(Math.max(0, Math.round(useRewardCents)), maxApplicableReward)
+      const checkoutQty = serviceBookingLive ? 1 : purchaseQty
       await buyNowWithoutLogin(
         {
           productId: listingId,
-          qty: purchaseQty,
+          qty: checkoutQty,
+          bookingSlotId: selectedBookingSlotId ?? undefined,
           useRewardCents: applied,
           selectedColor: selectedColor ?? undefined,
           selectedSize: cartSelectedSize ?? undefined,
@@ -1093,6 +1109,13 @@ export function MarketplaceListingDetail({
 
             {bookingCheckoutBlocked ? (
               <BookingComingSoonRail listingKind={listingKind} className="max-lg:hidden" />
+            ) : serviceBookingLive ? (
+              <BookingSlotPicker
+                productId={productId}
+                selectedSlotId={selectedBookingSlotId}
+                onSelectSlot={setSelectedBookingSlotId}
+                className="max-lg:hidden"
+              />
             ) : (
             <ListingPriceActionCard
               className="max-lg:hidden"
@@ -1363,6 +1386,12 @@ export function MarketplaceListingDetail({
             >
               {bookingCheckoutBlocked ? (
                 <BookingComingSoonRail listingKind={listingKind} />
+              ) : serviceBookingLive ? (
+                <BookingSlotPicker
+                  productId={productId}
+                  selectedSlotId={selectedBookingSlotId}
+                  onSelectSlot={setSelectedBookingSlotId}
+                />
               ) : (
               <>
               <div className="mb-3 hidden items-start gap-2.5 lg:flex">
@@ -1434,14 +1463,14 @@ export function MarketplaceListingDetail({
                 outOfStockLabel={productT.outOfStock}
                 quantityOptionLabel={(count) => t(productT.quantityOption, { count })}
                 quantityAriaLabel={productT.quantityAria}
-                  disabled={cartBusy || buyBusy || bookingCheckoutBlocked}
+                  disabled={cartBusy || buyBusy || bookingCheckoutBlocked || bookingSlotRequired || serviceBookingLive}
               />
 
               <div className="flex flex-col gap-2.5 lg:gap-3">
                 <div className="flex gap-2 lg:block">
                 <motion.button
                   type="button"
-                  disabled={cartBusy || availableStock <= 0 || bookingCheckoutBlocked}
+                  disabled={cartBusy || availableStock <= 0 || bookingCheckoutBlocked || serviceBookingLive}
                   whileHover={{ scale: availableStock > 0 && !cartBusy ? 1.01 : 1 }}
                   whileTap={{ scale: availableStock > 0 && !cartBusy ? 0.99 : 1 }}
                   onClick={(e) => void addToCart(e)}
@@ -1461,7 +1490,7 @@ export function MarketplaceListingDetail({
 
                 <motion.button
                   type="button"
-                  disabled={buyBusy || availableStock <= 0 || bookingCheckoutBlocked}
+                  disabled={buyBusy || availableStock <= 0 || bookingCheckoutBlocked || bookingSlotRequired}
                   whileHover={{ scale: availableStock > 0 && !buyBusy ? 1.012 : 1 }}
                   whileTap={{ scale: availableStock > 0 && !buyBusy ? 0.988 : 1 }}
                   onClick={() => void buyNow()}
@@ -1971,7 +2000,7 @@ export function MarketplaceListingDetail({
           </div>
           <Button
             type="button"
-            disabled={buyBusy || availableStock <= 0 || bookingCheckoutBlocked}
+            disabled={buyBusy || availableStock <= 0 || bookingCheckoutBlocked || bookingSlotRequired}
             onClick={() => void buyNow()}
             className="hidden h-10 shrink-0 rounded-full border border-violet-400/60 bg-white px-3 text-xs font-bold text-violet-800 sm:inline-flex dark:bg-zinc-900 dark:text-violet-200"
           >
@@ -1979,7 +2008,7 @@ export function MarketplaceListingDetail({
           </Button>
           <Button
             type="button"
-            disabled={cartBusy || availableStock <= 0 || bookingCheckoutBlocked}
+            disabled={cartBusy || availableStock <= 0 || bookingCheckoutBlocked || serviceBookingLive}
             onClick={(e) => void addToCart(e)}
             className="h-10 shrink-0 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 text-xs font-bold text-white shadow-lg shadow-violet-500/25 sm:h-11 sm:px-5 sm:text-sm"
           >

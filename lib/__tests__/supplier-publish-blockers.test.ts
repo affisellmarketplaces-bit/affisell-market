@@ -34,4 +34,11 @@ describe("supplier-publish-blockers", () => {
     expect(blockers.every((b) => b.field === "specs")).toBe(true)
     expect(blockers).toHaveLength(2)
   })
+
+  it("maps booking_slots_required to specs step", () => {
+    const blockers = mapServerPublishBlockers({ error: "booking_slots_required" })
+    expect(blockers).toHaveLength(1)
+    expect(blockers[0]?.field).toBe("specs")
+    expect(blockers[0]?.message).toContain("créneau")
+  })
 })

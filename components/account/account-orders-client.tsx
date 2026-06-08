@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useMemo, useState } from "react"
-import { Package, Sparkles, Zap } from "lucide-react"
+import { Package, Sparkles, CalendarClock, Zap } from "lucide-react"
 
 import { AccountOrderFulfillmentPanel } from "@/components/account/account-order-fulfillment-panel"
 import { BentoCard } from "@/components/affisell/bento-ui"
@@ -55,6 +55,9 @@ type OrderRow = {
   isDigital?: boolean
   digitalDeliveredAt?: string | null
   digitalPassPath?: string | null
+  isBooking?: boolean
+  bookingConfirmedAt?: string | null
+  bookingPassPath?: string | null
 }
 
 function statusLabel(status: string) {
@@ -198,6 +201,32 @@ export function AccountOrdersClient({
                   >
                     <Sparkles className="h-4 w-4" aria-hidden />
                     {lang === "fr" ? "Ouvrir mon accès" : "Open my access"}
+                  </Link>
+                </div>
+              ) : null}
+              {o.isBooking && o.bookingPassPath ? (
+                <div className="mt-4 overflow-hidden rounded-2xl border border-cyan-300/50 bg-gradient-to-br from-cyan-950 via-slate-950 to-violet-950 p-4 text-white shadow-[0_0_60px_-20px_rgba(6,182,212,0.6)]">
+                  <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">
+                    <CalendarClock className="h-3.5 w-3.5 text-amber-300" aria-hidden />
+                    {lang === "fr" ? "Rendez-vous confirmé" : "Appointment confirmed"}
+                  </p>
+                  <p className="mt-2 text-sm leading-relaxed text-cyan-100/90">
+                    {lang === "fr"
+                      ? "Votre passe est prêt — présentez-le à l'accueil du salon."
+                      : "Your pass is ready — show it at salon check-in."}
+                  </p>
+                  {o.bookingConfirmedAt ? (
+                    <p className="mt-1 text-[11px] text-cyan-300/70">
+                      {lang === "fr" ? "Confirmé le" : "Confirmed"}{" "}
+                      {new Date(o.bookingConfirmedAt).toLocaleString()}
+                    </p>
+                  ) : null}
+                  <Link
+                    href={o.bookingPassPath}
+                    className="mt-3 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:from-cyan-500 hover:to-indigo-500"
+                  >
+                    <Sparkles className="h-4 w-4" aria-hidden />
+                    {lang === "fr" ? "Ouvrir mon passe" : "Open my pass"}
                   </Link>
                 </div>
               ) : null}

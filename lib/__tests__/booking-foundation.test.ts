@@ -4,14 +4,16 @@ import {
   canBuyerCancelBooking,
   bookingCancellationDeadlineAt,
 } from "@/lib/booking/cancellation-policy"
+import {
+  isBookingCheckoutBlocked,
+  isBookingCheckoutLiveForKind,
+  BOOKING_SERVICE_CHECKOUT_LIVE,
+} from "@/lib/booking/checkout-live"
 import { buildBookingSnapshot, parseBookingSnapshot } from "@/lib/booking/snapshot"
 import { bookingPassPath } from "@/lib/booking/pass-token"
-import {
-  BOOKING_CHECKOUT_LIVE,
-  isBookableListingKind,
-  isBookingCheckoutBlocked,
-} from "@/lib/booking/types"
+import { isBookableListingKind, isServiceListingKind } from "@/lib/booking/types"
 import { parseProductBookingBody } from "@/lib/booking/parse-product-booking"
+import { isSlotBookable } from "@/lib/booking/slot-availability"
 import { parseListingKind } from "@/lib/supplier-commission"
 
 describe("booking foundation phase 0", () => {
@@ -22,23 +24,25 @@ describe("booking foundation phase 0", () => {
     expect(isBookableListingKind("PHYSICAL")).toBe(false)
   })
 
-  it("blocks checkout while phase 0 flag is off", () => {
-    expect(BOOKING_CHECKOUT_LIVE).toBe(false)
-    expect(isBookingCheckoutBlocked("SERVICE")).toBe(true)
-    expect(isBookingCheckoutBlocked("PHYSICAL")).toBe(false)
+  it("enables SERVICE checkout in phase 1 coiffeur", () => {
+    expect(BOOKING_SERVICE_CHECKOUT_LIVE).toBe(true)
+    expect(isBookingCheckoutLiveForKind("SERVICE")).toBe(true)
+    expect(isBookingCheckoutBlocked("SERVICE")).toBe(false)
+    expect(isBookingCheckoutBlocked("EXPERIENCE")).toBe(true)
+    expect(isServiceListingKind("SERVICE")).toBe(true)
   })
 
   it("round-trips booking snapshot", () => {
     const snap = buildBookingSnapshot({
       slotId: "slot_1",
       startsAt: new Date("2026-06-15T20:00:00Z"),
-      endsAt: new Date("2026-06-15T22:00:00Z"),
-      label: "Dune 3 — 20h",
-      venueLabel: "Gaumont Lyon",
-      quantity: 2,
+      endsAt: new Date("2026-06-15T21:00:00Z"),
+      label: "Coupe — 20h",
+      venueLabel: "Salon Éclat",
+      quantity: 1,
       cancellationPolicyHours: 24,
-      listingKind: "EXPERIENCE",
-      productName: "Cinéma",
+      listingKind: "SERVICE",
+      productName: "Coupe + brushing",
     })
     expect(parseBookingSnapshot(snap)?.slotId).toBe("slot_1")
   })
@@ -57,24 +61,41 @@ describe("booking foundation phase 0", () => {
       productName: "Coupe",
     })
     const insideWindow = new Date("2026-06-19T10:00:00Z")
-    expect(canBuyerCancelBooking({ bookingSnapshot: snapshot, bookingConfirmedAt: insideWindow, now: insideWindow }).allowed).toBe(true)
+    expect(
+      canBuyerCancelBooking({ bookingSnapshot: snapshot, bookingConfirmedAt: insideWindow, now: insideWindow })
+        .allowed
+    ).toBe(true)
     const tooLate = new Date("2026-06-20T10:00:00Z")
-    expect(canBuyerCancelBooking({ bookingSnapshot: snapshot, bookingConfirmedAt: tooLate, now: tooLate }).allowed).toBe(false)
-    expect(bookingCancellationDeadlineAt(startsAt, 24).getTime()).toBe(startsAt.getTime() - 24 * 3600 * 1000)
+    expect(
+      canBuyerCancelBooking({ bookingSnapshot: snapshot, bookingConfirmedAt: tooLate, now: tooLate }).allowed
+    ).toBe(false)
+    expect(bookingCancellationDeadlineAt(startsAt, 24).getTime()).toBe(
+      startsAt.getTime() - 24 * 3600 * 1000
+    )
   })
 
   it("parses supplier booking settings body", () => {
     const parsed = parseProductBookingBody({
-      bookingDurationMinutes: 90,
+      bookingDurationMinutes: 45,
       bookingCancellationHours: 48,
       bookingVenueLabel: " Salon Test ",
       bookingInstantConfirm: true,
     })
-    expect(parsed.bookingDurationMinutes).toBe(90)
+    expect(parsed.bookingDurationMinutes).toBe(45)
     expect(parsed.bookingVenueLabel).toBe("Salon Test")
   })
 
   it("builds booking pass path", () => {
     expect(bookingPassPath("abc123")).toBe("/booking/pass/abc123")
+  })
+
+  it("detects bookable slots", () => {
+    const future = new Date(Date.now() + 60 * 60 * 1000)
+    expect(
+      isSlotBookable({ status: "OPEN", startsAt: future, capacity: 1, bookedCount: 0 }, new Date(), 1)
+    ).toBe(true)
+    expect(
+      isSlotBookable({ status: "SOLD_OUT", startsAt: future, capacity: 1, bookedCount: 1 }, new Date(), 1)
+    ).toBe(false)
   })
 })

@@ -3077,6 +3077,7 @@ export function SupplierAddProductForm({
                 />
 
                 <SupplierBookingHubPanel
+                  productId={autosaveListingId || null}
                   listingKind={listingKind}
                   bookingDurationMinutes={bookingDurationMinutes}
                   bookingCancellationHours={bookingCancellationHours}
@@ -3085,7 +3086,7 @@ export function SupplierAddProductForm({
                   onDurationChange={setBookingDurationMinutes}
                   onCancellationHoursChange={setBookingCancellationHours}
                   onVenueLabelChange={setBookingVenueLabel}
-                  onInstantConfirmChange={setBookingInstantConfirm}
+                  onInstantDeliveryChange={setBookingInstantConfirm}
                   className="scroll-mt-28"
                 />
 

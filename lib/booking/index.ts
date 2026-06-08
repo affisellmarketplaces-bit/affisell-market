@@ -1,9 +1,13 @@
 export {
-  BOOKING_CHECKOUT_LIVE,
+  BOOKING_EXPERIENCE_CHECKOUT_LIVE,
+  BOOKING_SERVICE_CHECKOUT_LIVE,
+  isBookingCheckoutBlocked,
+  isBookingCheckoutLiveForKind,
+} from "@/lib/booking/checkout-live"
+export {
   BOOKABLE_LISTING_KINDS,
   bookingListingKindLabel,
   isBookableListingKind,
-  isBookingCheckoutBlocked,
   isExperienceListingKind,
   isServiceListingKind,
   type BookableListingKind,
@@ -24,6 +28,14 @@ export {
   generateBookingPassToken,
 } from "@/lib/booking/pass-token"
 export { confirmBookingPassInTransaction, type ConfirmBookingPassResult } from "@/lib/booking/confirm-pass"
+export { runBookingPassAfterPayment } from "@/lib/booking/run-after-payment"
+export {
+  countAvailableBookingSlots,
+  isSlotBookable,
+  listPublicBookingSlots,
+  loadBookingSlotForCheckout,
+  type PublicBookingSlotRow,
+} from "@/lib/booking/slot-availability"
 export {
   parseProductBookingBody,
   validateBookingListingForPublish,

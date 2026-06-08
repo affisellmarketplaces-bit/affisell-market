@@ -26,6 +26,7 @@ import { triggerAutoFulfillmentForStripeSession } from "@/lib/auto-order/enqueue
 import { computeShipDeadlineAt } from "@/lib/supplier-ship-sla-shared"
 import { applyInstantDigitalDeliveryInTransaction } from "@/lib/digital-delivery/instant-fulfill"
 import { sendDigitalAccessPassEmail } from "@/lib/emails/send-digital-access-pass"
+import { runBookingPassAfterPayment } from "@/lib/booking/run-after-payment"
 import { logStripeWebhookError } from "@/lib/stripe-webhook-observability"
 import {
   resolveOrderConfirmationImageUrl,
@@ -102,6 +103,39 @@ async function runInstantDigitalDeliveryAfterPayment(
     const { triggerOrderTransferRelease } = await import("@/lib/trigger-order-transfer-release")
     triggerOrderTransferRelease(args.orderId)
   }
+}
+
+async function runBookingPassAfterPaymentForOrder(
+  tx: Tx,
+  args: {
+    orderId: string
+    quantity: number
+    buyerUserId: string | null
+    buyerLocale?: string | null
+    customerEmail: string
+    product: ListingWithProduct["product"]
+  }
+): Promise<void> {
+  const orderRow = await tx.order.findUnique({
+    where: { id: args.orderId },
+    select: { bookingSlotId: true },
+  })
+  await runBookingPassAfterPayment(tx, {
+    orderId: args.orderId,
+    quantity: args.quantity,
+    buyerUserId: args.buyerUserId,
+    buyerLocale: args.buyerLocale,
+    customerEmail: args.customerEmail,
+    bookingSlotId: orderRow?.bookingSlotId ?? null,
+    product: {
+      id: args.product.id,
+      listingKind: args.product.listingKind,
+      bookingCancellationHours: args.product.bookingCancellationHours,
+      bookingVenueLabel: args.product.bookingVenueLabel,
+      bookingInstantConfirm: args.product.bookingInstantConfirm,
+      name: args.product.name,
+    },
+  })
 }
 
 function parseLinePaids(raw: string | undefined | null): number[] | null {
@@ -345,6 +379,15 @@ async function createPaidMarketplaceOrder(
     customerEmail: args.customerEmail,
     buyerUserId: args.buyerUserId,
     buyerLocale: args.buyerLocale,
+    product: listing.product,
+  })
+
+  await runBookingPassAfterPaymentForOrder(tx, {
+    orderId: order.id,
+    quantity: qty,
+    buyerUserId: args.buyerUserId,
+    buyerLocale: args.buyerLocale,
+    customerEmail: args.customerEmail,
     product: listing.product,
   })
 
@@ -719,6 +762,15 @@ export async function fulfillMarketplaceStripeSession(
         customerEmail,
         buyerUserId: earnUserId || null,
         buyerLocale,
+        product: listing.product,
+      })
+
+      await runBookingPassAfterPaymentForOrder(tx, {
+        orderId: dup.id,
+        quantity: qty,
+        buyerUserId: earnUserId || null,
+        buyerLocale,
+        customerEmail,
         product: listing.product,
       })
 

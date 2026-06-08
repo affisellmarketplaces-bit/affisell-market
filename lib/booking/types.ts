@@ -4,8 +4,13 @@ export const BOOKABLE_LISTING_KINDS = ["SERVICE", "EXPERIENCE"] as const
 
 export type BookableListingKind = (typeof BOOKABLE_LISTING_KINDS)[number]
 
-/** Phase 0: checkout slot picker ships in Phase 1 — keep false until wired. */
-export const BOOKING_CHECKOUT_LIVE = false
+/** Phase 1: coiffeur / rendez-vous SERVICE checkout live. EXPERIENCE stays Phase 2. */
+export {
+  BOOKING_EXPERIENCE_CHECKOUT_LIVE,
+  BOOKING_SERVICE_CHECKOUT_LIVE,
+  isBookingCheckoutBlocked,
+  isBookingCheckoutLiveForKind,
+} from "@/lib/booking/checkout-live"
 
 export type BookingProductFields = {
   listingKind: string
@@ -39,10 +44,6 @@ export function isServiceListingKind(kind: string | ListingKind | null | undefin
 
 export function isExperienceListingKind(kind: string | ListingKind | null | undefined): boolean {
   return typeof kind === "string" && kind.trim().toUpperCase() === "EXPERIENCE"
-}
-
-export function isBookingCheckoutBlocked(kind: string | ListingKind | null | undefined): boolean {
-  return isBookableListingKind(kind) && !BOOKING_CHECKOUT_LIVE
 }
 
 export function bookingListingKindLabel(kind: string, locale: "fr" | "en" = "fr"): string {

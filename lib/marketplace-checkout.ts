@@ -32,7 +32,11 @@ import {
   parseProductOfferMode,
   resolvePurchaseMinQty,
 } from "@/lib/product-offer-mode"
-import { isBookingCheckoutBlocked } from "@/lib/booking/types"
+import { isBookingCheckoutBlocked } from "@/lib/booking/checkout-live"
+import {
+  validateServiceBookingCartLine,
+  validateServiceBookingCheckout,
+} from "@/lib/booking/checkout-validation"
 import { marketplaceCheckoutPaymentSessionOptions } from "@/lib/marketplace-checkout-payment-methods"
 import {
   buildHtLineItem,
@@ -123,6 +127,8 @@ function validateOfferCheckoutLine(
       { status: 400 }
     )
   }
+  const cartBlock = validateServiceBookingCartLine(listing.product)
+  if (cartBlock) return cartBlock
   if (isBookingCheckoutBlocked(listing.product.listingKind)) {
     return NextResponse.json({ error: "booking_checkout_coming_soon" }, { status: 409 })
   }
@@ -349,6 +355,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
     useRewardCents?: number
     selectedColor?: string | null
     selectedSize?: string | null
+    bookingSlotId?: string | null
   }
 
   if (Array.isArray(body.items) && body.items.length > 0) {
@@ -368,6 +375,14 @@ export async function marketplaceCheckoutPOST(request: Request) {
   if (!listing || !listing.product.active || !listing.product.supplierId) {
     return NextResponse.json({ error: "Listing not found or inactive" }, { status: 404 })
   }
+
+  const bookingGate = await validateServiceBookingCheckout({
+    product: listing.product,
+    quantity: qty,
+    bookingSlotId: body.bookingSlotId,
+  })
+  if (bookingGate instanceof NextResponse) return bookingGate
+  const resolvedBookingSlotId = bookingGate?.slotId ?? null
 
   const product = listing.product
   const affiliateProduct = listing
@@ -468,6 +483,8 @@ export async function marketplaceCheckoutPOST(request: Request) {
       affisellCommissionRateBps,
       affiliateStripeAccountId: affiliate.stripeAccountId,
       paymentSettlementStatus: "PENDING",
+      listingKindSnapshot: product.listingKind.trim().toUpperCase(),
+      ...(resolvedBookingSlotId ? { bookingSlotId: resolvedBookingSlotId } : {}),
     },
   })
 
@@ -509,6 +526,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
       checkoutVariantLabel: oneShotVariantLabel || "",
       checkoutVariantSignature: oneShotVariantSignature || "",
       locale: checkoutLocale,
+      ...(resolvedBookingSlotId ? { bookingSlotId: resolvedBookingSlotId } : {}),
       ...(buyerUserId ? { buyerUserId } : {}),
     },
   })
