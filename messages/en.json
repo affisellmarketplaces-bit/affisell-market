@@ -34,6 +34,7 @@
       "badge": "Supplier",
       "dashboard": "Dashboard",
       "orders": "Orders",
+      "bookings": "Bookings",
       "products": "Products",
       "inviteAffiliate": "Invite affiliate",
       "inviteAffiliateShort": "Invite"
@@ -690,7 +691,36 @@
       "deleteSlot": "Delete slot",
       "slotDateTimeRequired": "Pick a date and time",
       "slotInvalidDateTime": "Invalid date or time",
-      "slotMeta": "{booked}/{capacity} booked · {status}"
+      "slotMeta": "{booked}/{capacity} booked · {status}",
+      "roster": {
+        "pageTitle": "Guest roster & check-in",
+        "pageDescription": "Scan or paste a buyer pass to validate entry. See who booked each slot and mark arrivals.",
+        "checkInTitle": "Check-in scanner",
+        "checkInHint": "Paste the pass URL or token from the buyer's QR pass.",
+        "tokenPlaceholder": "Pass URL or token…",
+        "checkInCta": "Validate entry",
+        "checkInSuccess": "Guest checked in",
+        "alreadyCheckedIn": "Already checked in",
+        "checkInFailed": "Check-in failed",
+        "invalidToken": "Invalid pass URL or token",
+        "loadError": "Could not load roster",
+        "empty": "No bookings in this window — confirmed reservations appear here after payment.",
+        "tabPending": "Awaiting check-in",
+        "tabCheckedIn": "Checked in",
+        "tabAll": "All",
+        "allSlots": "All slots",
+        "slotFilterLabel": "Filter by slot",
+        "checkedInBadge": "Checked in",
+        "checkInRow": "Mark present",
+        "errors": {
+          "invalid_token": "Invalid pass URL or token",
+          "not_found": "Pass not found",
+          "forbidden": "This pass belongs to another merchant",
+          "not_confirmed": "Booking not confirmed yet",
+          "cancelled": "Booking was cancelled",
+          "checkInFailed": "Check-in failed"
+        }
+      }
     },
     "quality": {
       "title": "Listing quality",

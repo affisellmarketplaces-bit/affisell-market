@@ -50,6 +50,8 @@ export {
   resolveBookingSlotStatus,
 } from "@/lib/booking/slot-hold"
 export { cancelBookingOrderForBuyer, type CancelBookingOrderResult } from "@/lib/booking/cancel-order"
+export { checkInBookingPassForSupplier, type BookingCheckInResult } from "@/lib/booking/check-in"
+export { parseBookingPassTokenInput } from "@/lib/booking/parse-pass-token"
 export {
   parseProductBookingBody,
   validateBookingListingForPublish,

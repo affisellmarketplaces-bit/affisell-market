@@ -29,6 +29,7 @@ export const SUPPLIER_WARM_ROUTES = [
   "/dashboard/supplier",
   "/dashboard/supplier/products",
   "/dashboard/supplier/orders",
+  "/dashboard/supplier/bookings",
   "/dashboard/supplier/promote",
 ] as const
 

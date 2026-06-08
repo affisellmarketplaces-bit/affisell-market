@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation"
 import { useTranslations } from "next-intl"
-import { Handshake, LayoutDashboard, Package, Rocket, ShoppingCart } from "lucide-react"
+import { CalendarCheck, Handshake, LayoutDashboard, Package, Rocket, ShoppingCart } from "lucide-react"
 
 import { LocaleSwitcher } from "@/components/locale-switcher"
 import { FastLink } from "@/components/navigation/fast-link"
@@ -22,6 +22,7 @@ export function NavSupplier() {
   const onDashboard =
     pathname === "/dashboard/supplier" || pathname.startsWith("/dashboard/supplier?")
   const onOrders = pathname.startsWith("/dashboard/supplier/orders")
+  const onBookings = pathname.startsWith("/dashboard/supplier/bookings")
   const onProducts = pathname.startsWith("/dashboard/supplier/products")
   const onInviteAffiliate = pathname.startsWith("/dashboard/supplier/invite-affiliate")
   const onPromote = pathname.startsWith("/dashboard/supplier/promote")
@@ -41,6 +42,7 @@ export function NavSupplier() {
       <div className={cn(navScrollClass, "order-4 w-full md:order-none md:min-w-0 md:flex-1")}>
         <NavPill href="/dashboard/supplier" label={t("dashboard")} icon={LayoutDashboard} active={onDashboard} />
         <NavPill href="/dashboard/supplier/orders" label={t("orders")} icon={ShoppingCart} active={onOrders} />
+        <NavPill href="/dashboard/supplier/bookings" label={t("bookings")} icon={CalendarCheck} active={onBookings} />
         <NavPill href="/dashboard/supplier/products" label={t("products")} icon={Package} active={onProducts} />
         <NavPill
           href="/dashboard/supplier/promote"
