@@ -695,6 +695,8 @@
       "roster": {
         "pageTitle": "Liste invités & check-in",
         "pageDescription": "Scannez ou collez le passe acheteur pour valider l'entrée. Voyez qui a réservé chaque créneau.",
+        "backToDashboard": "Retour au tableau de bord",
+        "awaitingCheckIn": "{count} en attente de check-in",
         "checkInTitle": "Scanner check-in",
         "checkInHint": "Scannez le QR du passe acheteur avec la caméra, ou collez l'URL ci-dessous.",
         "cameraScanCta": "Scanner QR",
@@ -1385,6 +1387,18 @@
     "title": "Paiement annulé",
     "body": "Aucun débit n'a été effectué. Vous pouvez continuer à parcourir les fiches.",
     "backMarketplace": "Marketplace"
+  },
+  "BookingPass": {
+    "badge": "Passe Affisell Booking",
+    "title": "Réservation confirmée",
+    "titleService": "Rendez-vous confirmé",
+    "titleExperience": "Billets confirmés",
+    "subtitle": "Présentez ce passe à l'accueil — QR personnel, ne pas partager publiquement.",
+    "orderRef": "Commande {id}… · ×{qty}",
+    "seatsLabel": "Places",
+    "confirmedAt": "Confirmé · {date}",
+    "myOrders": "Mes commandes",
+    "qrAlt": "QR code passe réservation"
   },
   "Product": {
     "booking": {

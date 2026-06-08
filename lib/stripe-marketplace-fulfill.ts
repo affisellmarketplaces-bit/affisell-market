@@ -580,7 +580,12 @@ export async function fulfillMarketplaceStripeSession(
       stripeSessionId: sessionId,
     })
 
-    if (dup?.status === "PENDING") {
+    const recoverCancelledBooking =
+      dup?.status === "CANCELLED" &&
+      Boolean(dup.bookingSlotId) &&
+      !dup.bookingConfirmedAt
+
+    if (dup?.status === "PENDING" || recoverCancelledBooking) {
       const basePriceCents =
         marketplaceWholesaleCentsForOption({
           productBasePriceCents: listing.product.basePriceCents,

@@ -64,6 +64,11 @@ export {
   isInHourReminderWindow,
 } from "@/lib/booking/reminder-windows"
 export {
+  bookingHoldConfirmGraceMinutes,
+  bookingHoldStaleBefore,
+  isHoldExpiredBeyondGrace,
+} from "@/lib/booking/hold-grace"
+export {
   parseProductBookingBody,
   validateBookingListingForPublish,
   type ParsedProductBookingSettings,

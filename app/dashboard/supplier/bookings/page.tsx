@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { CalendarCheck } from "lucide-react"
+import { getTranslations } from "next-intl/server"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { SupplierBookingRosterPanel } from "@/components/supplier/supplier-booking-roster-panel"
@@ -12,6 +13,7 @@ export const dynamic = "force-dynamic"
 
 export default async function SupplierBookingsPage() {
   const session = await requireSupplierSession("/dashboard/supplier/bookings")
+  const t = await getTranslations("supplier.booking.roster")
   const pendingCount = await countSupplierPendingBookingCheckIns(session.user.id)
 
   return (
@@ -23,19 +25,19 @@ export default async function SupplierBookingsPage() {
             className={cn(buttonVariants({ variant: "bentoOutline", size: "bento" }), "inline-flex w-full justify-center sm:w-auto")}
           >
             <CalendarCheck className="size-5" aria-hidden />
-            Back to dashboard
+            {t("backToDashboard")}
           </Link>
           {pendingCount > 0 ? (
             <span className="rounded-full bg-cyan-100 px-3 py-1 text-sm font-semibold text-cyan-900 dark:bg-cyan-950/60 dark:text-cyan-200">
-              {pendingCount} awaiting check-in
+              {t("awaitingCheckIn", { count: pendingCount })}
             </span>
           ) : null}
         </BentoCard>
 
         <BentoPageHeading
           eyebrow="Booking"
-          title="Guest roster & check-in"
-          description="Scan or paste a buyer pass to validate entry. See who booked each slot and mark arrivals."
+          title={t("pageTitle")}
+          description={t("pageDescription")}
         />
 
         <SupplierBookingRosterPanel />

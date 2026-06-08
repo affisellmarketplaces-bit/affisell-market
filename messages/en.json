@@ -695,6 +695,8 @@
       "roster": {
         "pageTitle": "Guest roster & check-in",
         "pageDescription": "Scan or paste a buyer pass to validate entry. See who booked each slot and mark arrivals.",
+        "backToDashboard": "Back to dashboard",
+        "awaitingCheckIn": "{count} awaiting check-in",
         "checkInTitle": "Check-in scanner",
         "checkInHint": "Scan the buyer's QR pass with your camera, or paste the URL below.",
         "cameraScanCta": "Scan QR",
@@ -1385,6 +1387,18 @@
     "title": "Checkout cancelled",
     "body": "No charge was made. You can return to browse listings.",
     "backMarketplace": "Marketplace"
+  },
+  "BookingPass": {
+    "badge": "Affisell Booking Pass",
+    "title": "Booking confirmed",
+    "titleService": "Appointment confirmed",
+    "titleExperience": "Tickets confirmed",
+    "subtitle": "Show this pass at check-in — personal QR, do not share publicly.",
+    "orderRef": "Order {id}… · ×{qty}",
+    "seatsLabel": "Seats",
+    "confirmedAt": "Confirmed · {date}",
+    "myOrders": "My orders",
+    "qrAlt": "Booking pass QR code"
   },
   "Product": {
     "booking": {

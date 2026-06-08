@@ -180,9 +180,10 @@ export async function releaseNamedSeatsBookedInTransaction(
 
 /** Expire stale HELD seats (cron safety net for named seats). */
 export async function releaseExpiredNamedSeatHolds(limit = 200): Promise<number> {
-  const now = new Date()
+  const { bookingHoldStaleBefore } = await import("@/lib/booking/hold-grace")
+  const staleBefore = bookingHoldStaleBefore()
   const stale = await prisma.bookingSeat.findMany({
-    where: { status: "HELD", holdExpiresAt: { lt: now } },
+    where: { status: "HELD", holdExpiresAt: { lt: staleBefore } },
     take: limit,
     select: { id: true, orderId: true },
   })

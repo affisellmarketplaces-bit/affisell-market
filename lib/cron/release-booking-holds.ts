@@ -1,3 +1,4 @@
+import { bookingHoldStaleBefore } from "@/lib/booking/hold-grace"
 import { releaseBookingSlotHoldInTransaction } from "@/lib/booking/slot-hold"
 import { prisma } from "@/lib/prisma"
 
@@ -13,11 +14,12 @@ export async function runReleaseBookingHoldsCron(limit = 80): Promise<ReleaseBoo
   await releaseExpiredNamedSeatHolds(limit)
 
   const now = new Date()
+  const staleBefore = bookingHoldStaleBefore(now)
   const stale = await prisma.order.findMany({
     where: {
       status: "PENDING",
       bookingSlotId: { not: null },
-      bookingHoldExpiresAt: { lt: now },
+      bookingHoldExpiresAt: { lt: staleBefore },
       bookingConfirmedAt: null,
     },
     orderBy: { bookingHoldExpiresAt: "asc" },
@@ -33,11 +35,7 @@ export async function runReleaseBookingHoldsCron(limit = 80): Promise<ReleaseBoo
       await prisma.$transaction(async (tx) => {
         const result = await releaseBookingSlotHoldInTransaction(tx, { orderId: row.id })
         if (result.released) released++
-        await tx.order.updateMany({
-          where: { id: row.id, status: "PENDING" },
-          data: { status: "CANCELLED" },
-        })
-        cancelled++
+        // Keep PENDING until checkout.session.expired — paid webhook may still confirm within grace.
       })
     } catch (e) {
       console.error("[booking]", {

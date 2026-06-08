@@ -1,11 +1,13 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { CalendarClock, MapPin, ShieldCheck } from "lucide-react"
+import { getTranslations } from "next-intl/server"
 
 import { BookingPassQrImage } from "@/components/booking/booking-pass-qr-image"
 import { buildBookingPassAbsoluteUrl, generateBookingPassQrDataUrl } from "@/lib/booking/pass-qr"
 import { parseBookingSnapshot } from "@/lib/booking/snapshot"
-import { isBookableListingKind } from "@/lib/booking/types"
+import { isBookableListingKind, isExperienceListingKind } from "@/lib/booking/types"
+import { resolveEmailLocale } from "@/lib/emails/resolve-email-locale"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
@@ -25,6 +27,7 @@ export default async function BookingPassPage({ params }: Props) {
       bookingConfirmedAt: true,
       bookingCancelledAt: true,
       listingKindSnapshot: true,
+      buyerLocale: true,
       quantity: true,
       product: { select: { name: true, images: true } },
     },
@@ -36,11 +39,18 @@ export default async function BookingPassPage({ params }: Props) {
   const snapshot = parseBookingSnapshot(order.bookingSnapshot)
   if (!snapshot) notFound()
 
+  const locale = resolveEmailLocale(order.buyerLocale)
+  const t = await getTranslations({ locale, namespace: "BookingPass" })
+  const title = isExperienceListingKind(order.listingKindSnapshot)
+    ? t("titleExperience")
+    : t("titleService")
+
   const cover = order.product.images[0] ?? null
   const startsAt = new Date(snapshot.startsAt)
   const endsAt = new Date(snapshot.endsAt)
   const passUrl = buildBookingPassAbsoluteUrl(trimmed)
   const qrDataUrl = await generateBookingPassQrDataUrl(passUrl)
+  const dateLocale = locale === "fr" ? "fr-FR" : locale === "de" ? "de-DE" : "en-GB"
 
   return (
     <main className="relative min-h-dvh overflow-hidden bg-[#050810] text-white">
@@ -49,11 +59,11 @@ export default async function BookingPassPage({ params }: Props) {
 
       <div className="relative mx-auto flex max-w-lg flex-col px-4 py-12 sm:py-16">
         <p className="text-center text-[10px] font-bold uppercase tracking-[0.35em] text-cyan-400">
-          Affisell Booking Pass
+          {t("badge")}
         </p>
-        <h1 className="mt-4 text-center text-3xl font-bold tracking-tight sm:text-4xl">Réservation confirmée</h1>
+        <h1 className="mt-4 text-center text-3xl font-bold tracking-tight sm:text-4xl">{title}</h1>
         <p className="mx-auto mt-3 max-w-sm text-center text-sm leading-relaxed text-zinc-400">
-          Présentez ce passe à l&apos;accueil — QR personnel, ne pas partager publiquement.
+          {t("subtitle")}
         </p>
 
         <div className="mt-10 overflow-hidden rounded-3xl border border-cyan-500/30 bg-gradient-to-b from-cyan-950/80 to-zinc-950/90 p-6 shadow-[0_0_100px_-30px_rgba(6,182,212,0.7)] backdrop-blur-xl">
@@ -69,13 +79,19 @@ export default async function BookingPassPage({ params }: Props) {
           {snapshot.label ? (
             <p className="mt-1 text-center text-sm text-zinc-400">{snapshot.label}</p>
           ) : null}
-          <p className="mt-1 text-center text-xs text-zinc-500">Commande {order.id.slice(0, 8)}… · ×{order.quantity}</p>
+          <p className="mt-1 text-center text-xs text-zinc-500">
+            {t("orderRef", { id: order.id.slice(0, 8), qty: order.quantity })}
+          </p>
 
           <div className="mt-6 space-y-3 rounded-2xl border border-white/10 bg-black/40 p-4 text-sm">
             <p className="flex items-center gap-2 text-zinc-200">
               <CalendarClock className="h-4 w-4 text-cyan-400" aria-hidden />
-              {Number.isFinite(startsAt.getTime()) ? startsAt.toLocaleString() : snapshot.startsAt}
-              {Number.isFinite(endsAt.getTime()) ? ` → ${endsAt.toLocaleTimeString()}` : null}
+              {Number.isFinite(startsAt.getTime())
+                ? startsAt.toLocaleString(dateLocale)
+                : snapshot.startsAt}
+              {Number.isFinite(endsAt.getTime())
+                ? ` → ${endsAt.toLocaleTimeString(dateLocale)}`
+                : null}
             </p>
             {snapshot.venueLabel ? (
               <p className="flex items-center gap-2 text-zinc-300">
@@ -85,7 +101,9 @@ export default async function BookingPassPage({ params }: Props) {
             ) : null}
             {snapshot.seatLabels.length > 0 ? (
               <p className="flex items-center gap-2 text-zinc-300">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400">Places</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400">
+                  {t("seatsLabel")}
+                </span>
                 {snapshot.seatLabels.join(" · ")}
               </p>
             ) : null}
@@ -94,17 +112,20 @@ export default async function BookingPassPage({ params }: Props) {
           <BookingPassQrImage
             dataUrl={qrDataUrl}
             tokenPreview={`${trimmed.slice(0, 8).toUpperCase()}…`}
+            qrAlt={t("qrAlt")}
           />
 
           <p className="mt-6 flex items-center justify-center gap-2 text-xs text-zinc-500">
             <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" aria-hidden />
-            Confirmé · {new Date(order.bookingConfirmedAt).toLocaleString()}
+            {t("confirmedAt", {
+              date: new Date(order.bookingConfirmedAt).toLocaleString(dateLocale),
+            })}
           </p>
         </div>
 
         <p className="mt-8 text-center text-xs text-zinc-600">
           <Link href="/marketplace/account/orders" className="text-cyan-400 hover:underline">
-            Mes commandes
+            {t("myOrders")}
           </Link>
         </p>
       </div>

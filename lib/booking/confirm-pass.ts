@@ -53,6 +53,7 @@ export async function confirmBookingPassInTransaction(
       bookingToken: true,
       quantity: true,
       bookingHoldExpiresAt: true,
+      bookingSlotId: true,
     },
   })
   if (existing?.bookingConfirmedAt) {
@@ -74,12 +75,29 @@ export async function confirmBookingPassInTransaction(
   }
 
   const qty = Math.max(1, args.quantity)
-  const hadHold = Boolean(existing?.bookingHoldExpiresAt)
+  const holdStillTracked = existing?.bookingHoldExpiresAt != null
   let nextHeld = slotFresh.heldCount
-  if (hadHold) {
+
+  if (holdStillTracked) {
     nextHeld = Math.max(0, slotFresh.heldCount - qty)
-  } else if (bookingSeatsLeft(slotFresh) < qty) {
-    return { confirmed: false, reason: "slot_full" }
+  } else {
+    const namedSeatsHeld = await tx.bookingSeat.count({
+      where: {
+        orderId: args.orderId,
+        slotId: args.slot.id,
+        status: "HELD",
+      },
+    })
+    if (namedSeatsHeld >= qty) {
+      nextHeld = Math.max(0, slotFresh.heldCount - qty)
+    } else if (bookingSeatsLeft(slotFresh) < qty) {
+      console.log("[booking]", {
+        orderId: args.orderId,
+        result: "pass_confirm_slot_full_after_hold_release",
+        slotId: args.slot.id,
+      })
+      return { confirmed: false, reason: "slot_full" }
+    }
   }
 
   const nextBooked = slotFresh.bookedCount + qty
