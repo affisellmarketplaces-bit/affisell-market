@@ -111,24 +111,35 @@ export async function POST(
       ? body.label.trim().slice(0, 120)
       : null
 
-  const slot = await prisma.bookingSlot.create({
-    data: {
-      productId: id,
-      startsAt,
-      endsAt,
+  const slot = await prisma.$transaction(async (tx) => {
+    const created = await tx.bookingSlot.create({
+      data: {
+        productId: id,
+        startsAt,
+        endsAt,
+        capacity,
+        label,
+        status: "OPEN",
+      },
+      select: {
+        id: true,
+        startsAt: true,
+        endsAt: true,
+        capacity: true,
+        bookedCount: true,
+        label: true,
+        status: true,
+      },
+    })
+
+    const { provisionNamedSeatsForSlot } = await import("@/lib/booking/named-seats")
+    await provisionNamedSeatsForSlot(tx, {
+      slotId: created.id,
       capacity,
-      label,
-      status: "OPEN",
-    },
-    select: {
-      id: true,
-      startsAt: true,
-      endsAt: true,
-      capacity: true,
-      bookedCount: true,
-      label: true,
-      status: true,
-    },
+      listingKind: product.listingKind,
+    })
+
+    return created
   })
 
   console.log("[booking]", { productId: id, result: "slot_created", slotId: slot.id })

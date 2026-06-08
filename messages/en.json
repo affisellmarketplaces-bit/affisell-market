@@ -1371,7 +1371,12 @@
       "seatMapYours": "Your selection",
       "seatMapTaken": "Taken / held",
       "seatMapTruncated": "Showing first {total} seats — quantity stepper sets your tickets.",
-      "seatMapAria": "{free} seats free of {total}"
+      "seatMapAria": "{free} seats free of {total}",
+      "seatMapNamedHint": "Tap seats to select — labels like A12 are on your pass.",
+      "loadingSeatMap": "Loading seat map…",
+      "selectSeatsRequired": "Pick at least one seat on the map.",
+      "selectedSeats": "{count} seat(s): {labels}",
+      "seatLabelAria": "Seat {label} — {status}"
     },
     "view360": "360° View",
     "premium": "Premium",

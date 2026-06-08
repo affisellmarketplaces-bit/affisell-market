@@ -48,6 +48,7 @@ describe("booking foundation phase 0", () => {
       productName: "Coupe + brushing",
     })
     expect(parseBookingSnapshot(snap)?.slotId).toBe("slot_1")
+    expect(parseBookingSnapshot(snap)?.seatLabels).toEqual([])
   })
 
   it("evaluates cancellation window", () => {

@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma"
 
 import {
-  bookingSeatsLeft,
   releaseConfirmedBookingSeatsInTransaction,
 } from "@/lib/booking/slot-hold"
 
@@ -26,6 +25,7 @@ export async function cancelBookingOrderForBuyer(args: {
       quantity: true,
       customerEmail: true,
       buyerUserId: true,
+      buyerLocale: true,
       bookingSlotId: true,
       bookingSnapshot: true,
       bookingConfirmedAt: true,
@@ -33,6 +33,7 @@ export async function cancelBookingOrderForBuyer(args: {
       bookingToken: true,
       listingKindSnapshot: true,
       paymentSettlementStatus: true,
+      product: { select: { name: true } },
     },
   })
 
@@ -94,6 +95,15 @@ export async function cancelBookingOrderForBuyer(args: {
   if (!refund.ok && refund.skipped !== "already_refunded") {
     return { ok: false, error: refund.error ?? "refund_failed", status: 502 }
   }
+
+  const { sendBookingCancellationEmail } = await import("@/lib/emails/send-booking-cancellation")
+  void sendBookingCancellationEmail({
+    orderId: order.id,
+    productName: order.product.name,
+    customerEmail: order.customerEmail,
+    bookingSnapshot: order.bookingSnapshot,
+    buyerLocale: order.buyerLocale,
+  })
 
   return { ok: true, stripeRefundId: refund.stripeRefundId, refundPending: true }
 }

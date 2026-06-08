@@ -79,6 +79,12 @@ export default async function BookingPassPage({ params }: Props) {
                 {snapshot.venueLabel}
               </p>
             ) : null}
+            {snapshot.seatLabels.length > 0 ? (
+              <p className="flex items-center gap-2 text-zinc-300">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400">Places</span>
+                {snapshot.seatLabels.join(" · ")}
+              </p>
+            ) : null}
           </div>
 
           <div className="mt-6 flex flex-col items-center gap-2 rounded-2xl border border-dashed border-cyan-400/30 bg-cyan-950/30 p-5">

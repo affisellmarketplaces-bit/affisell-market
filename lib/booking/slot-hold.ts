@@ -4,8 +4,21 @@ import { prisma } from "@/lib/prisma"
 
 type Tx = Prisma.TransactionClient
 
-/** Default hold while Stripe Checkout is open (minutes). Override via BOOKING_HOLD_MINUTES. */
-export function bookingHoldMinutes(): number {
+/** Hold duration by listing kind (minutes). Env overrides per vertical. */
+export function bookingHoldMinutes(listingKind?: string | null): number {
+  const k = typeof listingKind === "string" ? listingKind.trim().toUpperCase() : ""
+
+  if (k === "SERVICE") {
+    const raw = Number(process.env.BOOKING_HOLD_MINUTES_SERVICE)
+    if (Number.isFinite(raw) && raw >= 5 && raw <= 120) return Math.round(raw)
+    return 45
+  }
+  if (k === "EXPERIENCE") {
+    const raw = Number(process.env.BOOKING_HOLD_MINUTES_EXPERIENCE)
+    if (Number.isFinite(raw) && raw >= 5 && raw <= 120) return Math.round(raw)
+    return 12
+  }
+
   const raw = Number(process.env.BOOKING_HOLD_MINUTES)
   if (Number.isFinite(raw) && raw >= 5 && raw <= 120) return Math.round(raw)
   return 30
@@ -36,10 +49,20 @@ export async function reserveBookingSlotHoldInTransaction(
     productId: string
     slotId: string
     quantity: number
+    listingKind?: string | null
+    seatLabels?: string[]
     holdMinutes?: number
   }
 ): Promise<{ ok: true; expiresAt: Date } | { ok: false; error: string }> {
   const qty = Math.max(1, Math.min(99, Math.round(args.quantity) || 1))
+  const seatLabels = Array.isArray(args.seatLabels)
+    ? [...new Set(args.seatLabels.map((l) => l.trim()).filter(Boolean))]
+    : []
+
+  if (seatLabels.length > 0 && seatLabels.length !== qty) {
+    return { ok: false, error: "booking_seats_qty_mismatch" }
+  }
+
   const slot = await tx.bookingSlot.findFirst({
     where: { id: args.slotId, productId: args.productId },
     select: {
@@ -61,8 +84,21 @@ export async function reserveBookingSlotHoldInTransaction(
     return { ok: false, error: "booking_slot_unavailable" }
   }
 
-  const expiresAt = new Date(Date.now() + (args.holdMinutes ?? bookingHoldMinutes()) * 60 * 1000)
+  const expiresAt = new Date(
+    Date.now() + (args.holdMinutes ?? bookingHoldMinutes(args.listingKind)) * 60 * 1000
+  )
   const nextHeld = slot.heldCount + qty
+
+  if (seatLabels.length > 0) {
+    const { reserveNamedSeatsInTransaction } = await import("@/lib/booking/named-seats")
+    const named = await reserveNamedSeatsInTransaction(tx, {
+      orderId: args.orderId,
+      slotId: slot.id,
+      seatLabels,
+      holdExpiresAt: expiresAt,
+    })
+    if (!named.ok) return named
+  }
 
   await tx.bookingSlot.update({
     where: { id: slot.id },
@@ -128,6 +164,9 @@ export async function releaseBookingSlotHoldInTransaction(
   }
 
   const nextHeld = Math.max(0, slot.heldCount - qty)
+  const { releaseNamedSeatsHoldInTransaction } = await import("@/lib/booking/named-seats")
+  await releaseNamedSeatsHoldInTransaction(tx, { orderId: order.id })
+
   await tx.bookingSlot.update({
     where: { id: slot.id },
     data: {
@@ -168,6 +207,12 @@ export async function releaseConfirmedBookingSeatsInTransaction(
   if (!slot) return
 
   const nextBooked = Math.max(0, slot.bookedCount - qty)
+  const { releaseNamedSeatsBookedInTransaction } = await import("@/lib/booking/named-seats")
+  await releaseNamedSeatsBookedInTransaction(tx, {
+    orderId: args.orderId,
+    slotId: args.slotId,
+  })
+
   await tx.bookingSlot.update({
     where: { id: slot.id },
     data: {

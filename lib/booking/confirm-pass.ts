@@ -88,6 +88,14 @@ export async function confirmBookingPassInTransaction(
   }
 
   const token = existing?.bookingToken ?? generateBookingPassToken()
+
+  const heldSeatRows = await tx.bookingSeat.findMany({
+    where: { orderId: args.orderId, slotId: args.slot.id, status: "HELD" },
+    select: { label: true },
+    orderBy: { label: "asc" },
+  })
+  const seatLabels = heldSeatRows.map((r) => r.label)
+
   const snapshot = buildBookingSnapshot({
     slotId: args.slot.id,
     startsAt: args.slot.startsAt,
@@ -95,6 +103,7 @@ export async function confirmBookingPassInTransaction(
     label: args.slot.label,
     venueLabel: args.product.bookingVenueLabel,
     quantity: qty,
+    seatLabels,
     cancellationPolicyHours: args.product.bookingCancellationHours,
     listingKind: args.product.listingKind,
     productName: args.product.name,
@@ -115,6 +124,9 @@ export async function confirmBookingPassInTransaction(
       }),
     },
   })
+
+  const { confirmNamedSeatsInTransaction } = await import("@/lib/booking/named-seats")
+  await confirmNamedSeatsInTransaction(tx, { orderId: args.orderId, slotId: args.slot.id })
 
   await tx.order.update({
     where: { id: args.orderId },

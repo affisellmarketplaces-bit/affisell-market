@@ -9,6 +9,9 @@ export type ReleaseBookingHoldsCronResult = {
 
 /** Expire stale PENDING checkout holds (Stripe abandoned or timeout). */
 export async function runReleaseBookingHoldsCron(limit = 80): Promise<ReleaseBookingHoldsCronResult> {
+  const { releaseExpiredNamedSeatHolds } = await import("@/lib/booking/named-seats")
+  await releaseExpiredNamedSeatHolds(limit)
+
   const now = new Date()
   const stale = await prisma.order.findMany({
     where: {

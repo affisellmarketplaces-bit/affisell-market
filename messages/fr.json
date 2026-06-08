@@ -1371,7 +1371,12 @@
       "seatMapYours": "Votre sélection",
       "seatMapTaken": "Pris / hold",
       "seatMapTruncated": "Aperçu des {total} premières places — la quantité règle vos billets.",
-      "seatMapAria": "{free} places libres sur {total}"
+      "seatMapAria": "{free} places libres sur {total}",
+      "seatMapNamedHint": "Touchez les sièges — les libellés (A12…) figurent sur votre passe.",
+      "loadingSeatMap": "Chargement du plan…",
+      "selectSeatsRequired": "Choisissez au moins une place sur le plan.",
+      "selectedSeats": "{count} place(s) : {labels}",
+      "seatLabelAria": "Place {label} — {status}"
     },
     "view360": "Vue 360°",
     "premium": "Premium",

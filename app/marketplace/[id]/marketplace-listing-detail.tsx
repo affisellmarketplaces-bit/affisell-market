@@ -56,7 +56,7 @@ import {
   isServiceListingKind,
 } from "@/lib/booking/types"
 import { BookingSlotPicker } from "@/components/booking/booking-slot-picker"
-import { BookingSeatMapPreview } from "@/components/booking/booking-seat-map-preview"
+import { BookingNamedSeatPicker } from "@/components/booking/booking-named-seat-picker"
 import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/marketplace-checkout-discount"
 import {
   clampPurchaseQuantity,
@@ -541,16 +541,16 @@ export function MarketplaceListingDetail({
   const [alertSaved, setAlertSaved] = useState(false)
   const [selectedBookingSlotId, setSelectedBookingSlotId] = useState<string | null>(null)
   const [selectedSlotSeatsLeft, setSelectedSlotSeatsLeft] = useState<number | null>(null)
-  const [selectedSlotMeta, setSelectedSlotMeta] = useState<{
-    capacity: number
-    occupiedSeats: number
-  } | null>(null)
+  const [selectedSeatLabels, setSelectedSeatLabels] = useState<string[]>([])
+  const [slotUsesNamedSeats, setSlotUsesNamedSeats] = useState(false)
   const bookingCheckoutBlocked = isBookingCheckoutBlocked(listingKind)
   const bookingCheckoutLive =
     isBookableListingKind(listingKind) && isBookingCheckoutLiveForKind(listingKind)
   const serviceBookingLive = isServiceListingKind(listingKind) && bookingCheckoutLive
   const experienceBookingLive = isExperienceListingKind(listingKind) && bookingCheckoutLive
   const bookingSlotRequired = bookingCheckoutLive && !selectedBookingSlotId
+  const bookingSeatsRequired =
+    experienceBookingLive && slotUsesNamedSeats && selectedSeatLabels.length === 0
   const [bundleChecked, setBundleChecked] = useState<Record<string, boolean>>({})
   const [rewardBalanceCents, setRewardBalanceCents] = useState(0)
   const [useRewardCents, setUseRewardCents] = useState(0)
@@ -717,14 +717,17 @@ export function MarketplaceListingDetail({
     ) => {
       setSelectedBookingSlotId(slotId)
       setSelectedSlotSeatsLeft(slotId ? (meta?.seatsLeft ?? null) : null)
-      setSelectedSlotMeta(
-        slotId && meta
-          ? { capacity: meta.capacity, occupiedSeats: meta.occupiedSeats }
-          : null
-      )
+      setSelectedSeatLabels([])
+      setSlotUsesNamedSeats(false)
     },
     []
   )
+
+  useEffect(() => {
+    if (selectedSeatLabels.length > 0) {
+      setPurchaseQty(selectedSeatLabels.length)
+    }
+  }, [selectedSeatLabels])
 
   useEffect(() => {
     if (!experienceBookingLive || selectedSlotSeatsLeft == null) return
@@ -820,20 +823,27 @@ export function MarketplaceListingDetail({
 
   async function buyNow() {
     if (bookingCheckoutBlocked) return
-    if (bookingSlotRequired) {
+    if (bookingSlotRequired || bookingSeatsRequired) {
       const { toast } = await import("sonner")
-      toast.error(productT.booking.selectSlotRequired)
+      toast.error(
+        bookingSeatsRequired
+          ? productT.booking.selectSeatsRequired
+          : productT.booking.selectSlotRequired
+      )
       return
     }
     setBuyBusy(true)
     try {
       const applied = Math.min(Math.max(0, Math.round(useRewardCents)), maxApplicableReward)
-      const checkoutQty = serviceBookingLive ? 1 : purchaseQty
+      const checkoutQty =
+        selectedSeatLabels.length > 0 ? selectedSeatLabels.length : serviceBookingLive ? 1 : purchaseQty
       await buyNowWithoutLogin(
         {
           productId: listingId,
           qty: checkoutQty,
           bookingSlotId: selectedBookingSlotId ?? undefined,
+          bookingSeatLabels:
+            selectedSeatLabels.length > 0 ? selectedSeatLabels : undefined,
           useRewardCents: applied,
           selectedColor: selectedColor ?? undefined,
           selectedSize: cartSelectedSize ?? undefined,
@@ -1157,12 +1167,14 @@ export function MarketplaceListingDetail({
                     onSelectSlot={handleSelectBookingSlot}
                     className="max-lg:hidden"
                   />
-                  {experienceBookingLive && selectedSlotMeta ? (
-                    <BookingSeatMapPreview
+                  {experienceBookingLive && selectedBookingSlotId ? (
+                    <BookingNamedSeatPicker
                       className="max-lg:hidden"
-                      capacity={selectedSlotMeta.capacity}
-                      occupiedSeats={selectedSlotMeta.occupiedSeats}
-                      selectedQty={purchaseQty}
+                      productId={productId}
+                      slotId={selectedBookingSlotId}
+                      selectedLabels={selectedSeatLabels}
+                      onChangeLabels={setSelectedSeatLabels}
+                      onMapReady={setSlotUsesNamedSeats}
                     />
                   ) : null}
                 </>
@@ -1444,11 +1456,13 @@ export function MarketplaceListingDetail({
                     selectedSlotId={selectedBookingSlotId}
                     onSelectSlot={handleSelectBookingSlot}
                   />
-                  {experienceBookingLive && selectedSlotMeta ? (
-                    <BookingSeatMapPreview
-                      capacity={selectedSlotMeta.capacity}
-                      occupiedSeats={selectedSlotMeta.occupiedSeats}
-                      selectedQty={purchaseQty}
+                  {experienceBookingLive && selectedBookingSlotId ? (
+                    <BookingNamedSeatPicker
+                      productId={productId}
+                      slotId={selectedBookingSlotId}
+                      selectedLabels={selectedSeatLabels}
+                      onChangeLabels={setSelectedSeatLabels}
+                      onMapReady={setSlotUsesNamedSeats}
                     />
                   ) : null}
                 </>
@@ -1518,12 +1532,12 @@ export function MarketplaceListingDetail({
                 className="mb-1"
                 quantity={purchaseQty}
                 onQuantityChange={setPurchaseQty}
-                availableStock={experienceBookingLive ? bookingTicketStock : availableStock}
+                availableStock={experienceBookingLive && !slotUsesNamedSeats ? bookingTicketStock : availableStock}
                 inStockLabel={productT.inStock}
                 outOfStockLabel={productT.outOfStock}
                 quantityOptionLabel={(count) => t(productT.quantityOption, { count })}
                 quantityAriaLabel={productT.quantityAria}
-                  disabled={cartBusy || buyBusy || bookingCheckoutBlocked || bookingSlotRequired || serviceBookingLive}
+                  disabled={cartBusy || buyBusy || bookingCheckoutBlocked || bookingSlotRequired || bookingSeatsRequired || serviceBookingLive || slotUsesNamedSeats}
               />
 
               <div className="flex flex-col gap-2.5 lg:gap-3">
@@ -1550,7 +1564,7 @@ export function MarketplaceListingDetail({
 
                 <motion.button
                   type="button"
-                  disabled={buyBusy || availableStock <= 0 || bookingCheckoutBlocked || bookingSlotRequired}
+                  disabled={buyBusy || availableStock <= 0 || bookingCheckoutBlocked || bookingSlotRequired || bookingSeatsRequired}
                   whileHover={{ scale: availableStock > 0 && !buyBusy ? 1.012 : 1 }}
                   whileTap={{ scale: availableStock > 0 && !buyBusy ? 0.988 : 1 }}
                   onClick={() => void buyNow()}

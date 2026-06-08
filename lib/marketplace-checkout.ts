@@ -357,6 +357,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
     selectedColor?: string | null
     selectedSize?: string | null
     bookingSlotId?: string | null
+    bookingSeatLabels?: string[]
   }
 
   if (Array.isArray(body.items) && body.items.length > 0) {
@@ -381,10 +382,12 @@ export async function marketplaceCheckoutPOST(request: Request) {
     product: listing.product,
     quantity: qty,
     bookingSlotId: body.bookingSlotId,
+    bookingSeatLabels: body.bookingSeatLabels,
   })
   if (bookingGate instanceof NextResponse) return bookingGate
   const resolvedBookingSlotId = bookingGate?.slotId ?? null
   const checkoutQty = bookingGate?.quantity ?? qty
+  const checkoutSeatLabels = bookingGate?.seatLabels ?? []
 
   const product = listing.product
   const affiliateProduct = listing
@@ -499,6 +502,8 @@ export async function marketplaceCheckoutPOST(request: Request) {
         productId: product.id,
         slotId: resolvedBookingSlotId,
         quantity: checkoutQty,
+        listingKind: product.listingKind,
+        seatLabels: checkoutSeatLabels,
       })
       if (!hold.ok) {
         throw new Error(hold.error)
@@ -508,7 +513,14 @@ export async function marketplaceCheckoutPOST(request: Request) {
     return created
   }).catch((e: unknown) => {
     const msg = e instanceof Error ? e.message : String(e)
-    if (msg === "booking_slot_unavailable" || msg === "booking_slot_not_found") {
+    if (
+      msg === "booking_slot_unavailable" ||
+      msg === "booking_slot_not_found" ||
+      msg === "booking_seat_unavailable" ||
+      msg === "booking_seat_not_found" ||
+      msg === "booking_seats_required" ||
+      msg === "booking_seats_qty_mismatch"
+    ) {
       return null
     }
     throw e

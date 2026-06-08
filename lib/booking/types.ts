@@ -28,6 +28,7 @@ export type BookingSnapshot = {
   label: string | null
   venueLabel: string | null
   quantity: number
+  seatLabels: string[]
   cancellationPolicyHours: number
   listingKind: string
   productName: string

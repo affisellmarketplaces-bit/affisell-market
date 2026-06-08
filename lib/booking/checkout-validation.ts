@@ -3,8 +3,10 @@ import { NextResponse } from "next/server"
 import {
   isBookableListingKind,
   isBookingCheckoutLiveForKind,
+  isExperienceListingKind,
   isServiceListingKind,
 } from "@/lib/booking/types"
+import { slotHasNamedSeats } from "@/lib/booking/named-seats"
 import { loadBookingSlotForCheckout } from "@/lib/booking/slot-availability"
 
 type ListingProduct = {
@@ -12,18 +14,36 @@ type ListingProduct = {
   listingKind: string
 }
 
+export function parseBookingSeatLabels(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return []
+  return [
+    ...new Set(
+      raw
+        .filter((x): x is string => typeof x === "string")
+        .map((x) => x.trim())
+        .filter(Boolean)
+    ),
+  ]
+}
+
 export async function validateBookableListingCheckout(args: {
   product: ListingProduct
   quantity: number
   bookingSlotId: unknown
-}): Promise<NextResponse | { slotId: string; quantity: number } | null> {
+  bookingSeatLabels?: unknown
+}): Promise<
+  NextResponse | { slotId: string; quantity: number; seatLabels: string[] } | null
+> {
   const kind = args.product.listingKind
   if (!isBookableListingKind(kind)) return null
   if (!isBookingCheckoutLiveForKind(kind)) {
     return NextResponse.json({ error: "booking_checkout_coming_soon" }, { status: 409 })
   }
 
-  const qty = Math.max(1, Math.min(99, Math.round(Number(args.quantity)) || 1))
+  const seatLabels = parseBookingSeatLabels(args.bookingSeatLabels)
+  let qty = Math.max(1, Math.min(99, Math.round(Number(args.quantity)) || 1))
+  if (seatLabels.length > 0) qty = seatLabels.length
+
   if (isServiceListingKind(kind) && qty !== 1) {
     return NextResponse.json({ error: "booking_service_qty_one" }, { status: 400 })
   }
@@ -31,6 +51,14 @@ export async function validateBookableListingCheckout(args: {
   const slotId = typeof args.bookingSlotId === "string" ? args.bookingSlotId.trim() : ""
   if (!slotId) {
     return NextResponse.json({ error: "booking_slot_required" }, { status: 400 })
+  }
+
+  const namedMap = await slotHasNamedSeats(slotId)
+  if (namedMap && seatLabels.length === 0) {
+    return NextResponse.json({ error: "booking_seats_required" }, { status: 400 })
+  }
+  if (isExperienceListingKind(kind) && seatLabels.length > 0 && seatLabels.length !== qty) {
+    return NextResponse.json({ error: "booking_seats_qty_mismatch" }, { status: 400 })
   }
 
   const slotCheck = await loadBookingSlotForCheckout({
@@ -41,7 +69,7 @@ export async function validateBookableListingCheckout(args: {
   if (!slotCheck.ok) {
     return NextResponse.json({ error: slotCheck.error }, { status: 409 })
   }
-  return { slotId, quantity: qty }
+  return { slotId, quantity: qty, seatLabels }
 }
 
 /** @deprecated Use validateBookableListingCheckout */

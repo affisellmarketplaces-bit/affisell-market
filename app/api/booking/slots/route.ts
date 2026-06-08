@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
 
 import { listPublicBookingSlots } from "@/lib/booking/slot-availability"
+import { isBookableListingKind } from "@/lib/booking/types"
 import { prisma } from "@/lib/prisma"
-import { isServiceListingKind } from "@/lib/booking/types"
 
 export async function GET(req: Request) {
   const url = new URL(req.url)
@@ -15,7 +15,7 @@ export async function GET(req: Request) {
     where: { id: productId, active: true, isDraft: false },
     select: { id: true, listingKind: true },
   })
-  if (!product || !isServiceListingKind(product.listingKind)) {
+  if (!product || !isBookableListingKind(product.listingKind)) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
 

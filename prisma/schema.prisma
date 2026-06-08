@@ -706,9 +706,31 @@ model BookingSlot {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
   orders             Order[]
+  seats              BookingSeat[]
 
   @@index([productId, startsAt])
   @@index([status, startsAt])
+}
+
+/** Nominative cinema seats (A12, B4…) — EXPERIENCE slots with capacity > 1. */
+model BookingSeat {
+  id            String      @id @default(cuid())
+  slotId        String
+  slot          BookingSlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  label         String
+  rowIndex      Int
+  colIndex      Int
+  /** OPEN | HELD | BOOKED */
+  status        String      @default("OPEN")
+  orderId       String?
+  order         Order?      @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  holdExpiresAt DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([slotId, label])
+  @@index([slotId, status])
+  @@index([orderId])
 }
 
 model ProductVariant {
@@ -1276,6 +1298,7 @@ model Order {
   /** PENDING checkout hold expiry — see lib/booking/slot-hold.ts */
   bookingHoldExpiresAt     DateTime?
   bookingCancelledAt       DateTime?
+  bookingSeats             BookingSeat[]
   buyer                    User?               @relation("BuyerMarketplaceOrders", fields: [buyerUserId], references: [id], onDelete: SetNull)
   customerEmail            String
   shippingAddress          Json

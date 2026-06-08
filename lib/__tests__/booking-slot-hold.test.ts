@@ -7,8 +7,13 @@ import {
 } from "@/lib/booking/slot-hold"
 
 describe("booking slot hold", () => {
-  it("defaults hold to 30 minutes", () => {
+  it("defaults hold to 30 minutes without kind", () => {
     expect(bookingHoldMinutes()).toBe(30)
+  })
+
+  it("uses shorter hold for EXPERIENCE and longer for SERVICE", () => {
+    expect(bookingHoldMinutes("EXPERIENCE")).toBe(12)
+    expect(bookingHoldMinutes("SERVICE")).toBe(45)
   })
 
   it("computes seats left with holds", () => {

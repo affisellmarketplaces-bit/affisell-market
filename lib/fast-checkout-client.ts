@@ -3,6 +3,7 @@ export type FastCheckoutBody = {
   affiliateProductId?: string
   qty?: number
   bookingSlotId?: string
+  bookingSeatLabels?: string[]
   useRewardCents?: number
   selectedColor?: string | null
   selectedSize?: string | null

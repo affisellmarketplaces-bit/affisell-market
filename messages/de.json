@@ -1393,7 +1393,12 @@
       "seatMapYours": "Ihre Auswahl",
       "seatMapTaken": "Belegt / reserviert",
       "seatMapTruncated": "Erste {total} Plätze — Menge wählt Ihre Tickets.",
-      "seatMapAria": "{free} freie Plätze von {total}"
+      "seatMapAria": "{free} freie Plätze von {total}",
+      "seatMapNamedHint": "Plätze antippen — Bezeichnungen (A12…) stehen auf Ihrem Pass.",
+      "loadingSeatMap": "Saalplan wird geladen…",
+      "selectSeatsRequired": "Wählen Sie mindestens einen Platz.",
+      "selectedSeats": "{count} Platz/Plätze: {labels}",
+      "seatLabelAria": "Platz {label} — {status}"
     },
     "view360": "360° Ansicht",
     "premium": "Premium",
