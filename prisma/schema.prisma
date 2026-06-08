@@ -85,6 +85,7 @@ model User {
   searchHistory        SearchHistory[]
   wishlists            Wishlist[]
   auctionBids          AuctionBid[]
+  bookingWaitlist      BookingWaitlist[]
 
   /**
    * Supplier add-product: recent category picks JSON [{ leafId, path:[{id,name}] }] max 5
@@ -546,6 +547,7 @@ model Product {
   /** Cinema seat map preset — see lib/booking/seat-layout.ts (EXPERIENCE only). */
   bookingSeatLayout             Json?
   bookingSlots                  BookingSlot[]
+  bookingWaitlist               BookingWaitlist[]
   stock                         Int      @default(0)
   active                        Boolean  @default(true)
   /**
@@ -709,9 +711,29 @@ model BookingSlot {
   updatedAt          DateTime @updatedAt
   orders             Order[]
   seats              BookingSeat[]
+  waitlist           BookingWaitlist[]
 
   @@index([productId, startsAt])
   @@index([status, startsAt])
+}
+
+/** Buyer waitlist when a slot is full — notified when seats free up. */
+model BookingWaitlist {
+  id         String      @id @default(cuid())
+  slotId     String
+  slot       BookingSlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  email      String
+  userId     String?
+  user       User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  qty        Int         @default(1)
+  notifiedAt DateTime?
+  createdAt  DateTime    @default(now())
+
+  @@unique([slotId, email])
+  @@index([slotId, notifiedAt, createdAt])
+  @@index([productId])
 }
 
 /** Nominative cinema seats (A12, B4…) — EXPERIENCE slots with capacity > 1. */

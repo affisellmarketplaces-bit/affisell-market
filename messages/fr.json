@@ -743,8 +743,11 @@
         "statsNoShow": "Absents",
         "statsCheckInRate": "Taux check-in",
         "exportCsv": "Exporter CSV",
+        "exportIcal": "Exporter iCal",
         "exportSuccess": "Liste exportée",
+        "exportIcalSuccess": "Fichier calendrier téléchargé",
         "exportFailed": "Échec export",
+        "exportIcalFailed": "Échec export iCal",
         "errors": {
           "invalid_token": "URL ou token invalide",
           "not_found": "Passe introuvable",
@@ -873,10 +876,18 @@
       "toastDiscount": "Démo : popup −10 % pour {name}",
       "toastMessage": "Démo : message en file pour {name}",
       "demoVisitors": {
-        "emma": { "action": "panier : Bougie lavande" },
-        "julien": { "action": "panier : Enceinte portable" },
-        "anonymous": { "action": "page d'accueil" },
-        "lina": { "action": "consulte Sac bandoulière cuir" }
+        "emma": {
+          "action": "panier : Bougie lavande"
+        },
+        "julien": {
+          "action": "panier : Enceinte portable"
+        },
+        "anonymous": {
+          "action": "page d'accueil"
+        },
+        "lina": {
+          "action": "consulte Sac bandoulière cuir"
+        }
       }
     },
     "hub": {
@@ -1256,13 +1267,27 @@
         "factoryRest": "Connectez une API REST usine / grossiste (intégrations ou partenaire blind)."
       },
       "channels": {
-        "native": { "name": "Stock Affisell" },
-        "aliexpress": { "name": "AliExpress" },
-        "factory": { "name": "Usine / REST" },
-        "bigbuy": { "name": "BigBuy" },
-        "cj": { "name": "CJ Dropshipping" },
-        "amazon": { "name": "Amazon" },
-        "manual": { "name": "Manuel" }
+        "native": {
+          "name": "Stock Affisell"
+        },
+        "aliexpress": {
+          "name": "AliExpress"
+        },
+        "factory": {
+          "name": "Usine / REST"
+        },
+        "bigbuy": {
+          "name": "BigBuy"
+        },
+        "cj": {
+          "name": "CJ Dropshipping"
+        },
+        "amazon": {
+          "name": "Amazon"
+        },
+        "manual": {
+          "name": "Manuel"
+        }
       }
     }
   },
@@ -1454,7 +1479,16 @@
       "loadingSeatMap": "Chargement du plan…",
       "selectSeatsRequired": "Choisissez au moins une place sur le plan.",
       "selectedSeats": "{count} place(s) : {labels}",
-      "seatLabelAria": "Place {label} — {status}"
+      "seatLabelAria": "Place {label} — {status}",
+      "waitlistTitle": "Liste d'attente — créneaux complets",
+      "waitlistHint": "Recevez un email dès qu'une place se libère. Lien direct pour réserver.",
+      "waitlistEmailPlaceholder": "votre@email.com",
+      "waitlistCta": "M'alerter",
+      "waitlistJoined": "Inscrit",
+      "waitlistJoinSuccess": "Vous êtes sur la liste — on vous envoie un email dès qu'une place se libère.",
+      "waitlistJoinFailed": "Impossible de rejoindre la liste. Réessayez.",
+      "waitlistEmailRequired": "Indiquez votre email pour la liste d'attente.",
+      "waitlistSlotAvailable": "Ce créneau a de nouveau des places — réservez-le ci-dessus."
     },
     "view360": "Vue 360°",
     "premium": "Premium",
@@ -1557,8 +1591,8 @@
     "targetPrice": "Cible {price}",
     "dropBadge": "🔔 -{pct}% {since}",
     "noImage": "Sans image",
-      "guestBanner": "Pas de compte requis — touchez ♥ sur une fiche pour enregistrer vos favoris sur cet appareil.",
-      "guestBannerCta": "Optionnel : compte gratuit pour synchroniser et recevoir les alertes prix",
+    "guestBanner": "Pas de compte requis — touchez ♥ sur une fiche pour enregistrer vos favoris sur cet appareil.",
+    "guestBannerCta": "Optionnel : compte gratuit pour synchroniser et recevoir les alertes prix",
     "heart": {
       "add": "Ajouter aux favoris",
       "remove": "Retirer des favoris",

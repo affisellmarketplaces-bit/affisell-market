@@ -21,7 +21,7 @@ export type BookingSlotRow = {
   status: string
 }
 
-function seatsLeft(slot: { capacity: number; bookedCount: number; heldCount: number }): number {
+export function seatsLeft(slot: { capacity: number; bookedCount: number; heldCount: number }): number {
   return Math.max(0, slot.capacity - slot.bookedCount - slot.heldCount)
 }
 
@@ -33,6 +33,58 @@ export function isSlotBookable(
   if (slot.status !== "OPEN") return false
   if (slot.startsAt.getTime() <= now.getTime()) return false
   return seatsLeft(slot) >= qty
+}
+
+function mapSlotRow(row: {
+  id: string
+  startsAt: Date
+  endsAt: Date
+  label: string | null
+  capacity: number
+  bookedCount: number
+  heldCount: number
+}): PublicBookingSlotRow {
+  const left = seatsLeft(row)
+  return {
+    id: row.id,
+    startsAt: row.startsAt.toISOString(),
+    endsAt: row.endsAt.toISOString(),
+    label: row.label,
+    capacity: row.capacity,
+    seatsLeft: left,
+    occupiedSeats: row.capacity - left,
+  }
+}
+
+export async function listSoldOutBookingSlots(
+  productId: string,
+  limit = 12
+): Promise<PublicBookingSlotRow[]> {
+  const now = new Date()
+  const rows = await prisma.bookingSlot.findMany({
+    where: {
+      productId,
+      status: "OPEN",
+      startsAt: { gt: now },
+    },
+    orderBy: { startsAt: "asc" },
+    take: limit * 3,
+    select: {
+      id: true,
+      startsAt: true,
+      endsAt: true,
+      label: true,
+      capacity: true,
+      bookedCount: true,
+      heldCount: true,
+      status: true,
+    },
+  })
+
+  return rows
+    .filter((row) => row.status === "OPEN" && row.startsAt > now && seatsLeft(row) <= 0)
+    .slice(0, limit)
+    .map(mapSlotRow)
 }
 
 export async function listPublicBookingSlots(productId: string, limit = 40): Promise<PublicBookingSlotRow[]> {
@@ -57,17 +109,7 @@ export async function listPublicBookingSlots(productId: string, limit = 40): Pro
     },
   })
 
-  return rows
-    .filter((row) => isSlotBookable(row, now))
-    .map((row) => ({
-      id: row.id,
-      startsAt: row.startsAt.toISOString(),
-      endsAt: row.endsAt.toISOString(),
-      label: row.label,
-      capacity: row.capacity,
-      seatsLeft: seatsLeft(row),
-      occupiedSeats: row.capacity - seatsLeft(row),
-    }))
+  return rows.filter((row) => isSlotBookable(row, now)).map(mapSlotRow)
 }
 
 export async function countAvailableBookingSlots(productId: string): Promise<number> {

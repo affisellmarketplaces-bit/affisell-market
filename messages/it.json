@@ -799,7 +799,10 @@
           "not_confirmed": "Booking not confirmed yet",
           "cancelled": "Booking was cancelled",
           "checkInFailed": "Check-in failed"
-        }
+        },
+        "exportIcal": "Export iCal",
+        "exportIcalSuccess": "Calendar file downloaded",
+        "exportIcalFailed": "iCal export failed"
       },
       "seatLayout": {
         "title": "Cinema seat map",
@@ -1519,7 +1522,16 @@
       "seatLabelAria": "Seat {label} — {status}",
       "seatMapCinemaHint": "Pick your seats — VIP rows in violet, aisles in the center.",
       "seatMapScreen": "Screen",
-      "seatMapVip": "VIP"
+      "seatMapVip": "VIP",
+      "waitlistTitle": "Waitlist — full slots",
+      "waitlistHint": "Get an email when a spot opens up. We'll send a direct link to book.",
+      "waitlistEmailPlaceholder": "your@email.com",
+      "waitlistCta": "Notify me",
+      "waitlistJoined": "On the list",
+      "waitlistJoinSuccess": "You're on the waitlist — we'll email you when a spot opens.",
+      "waitlistJoinFailed": "Could not join waitlist. Try again.",
+      "waitlistEmailRequired": "Enter your email to join the waitlist.",
+      "waitlistSlotAvailable": "This slot has spots again — book it directly above."
     }
   },
   "Filters": {

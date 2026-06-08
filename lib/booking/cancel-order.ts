@@ -96,6 +96,9 @@ export async function cancelBookingOrderForBuyer(args: {
     return { ok: false, error: refund.error ?? "refund_failed", status: 502 }
   }
 
+  const { processBookingWaitlistNotifications } = await import("@/lib/booking/waitlist")
+  void processBookingWaitlistNotifications(20)
+
   const { sendBookingCancellationEmail } = await import("@/lib/emails/send-booking-cancellation")
   void sendBookingCancellationEmail({
     orderId: order.id,

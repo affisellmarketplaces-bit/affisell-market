@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react"
 import { CalendarClock, Loader2, Scissors, Ticket } from "lucide-react"
 import { useTranslations } from "next-intl"
 
+import { BookingWaitlistPanel } from "@/components/booking/booking-waitlist-panel"
 import { isExperienceListingKind } from "@/lib/booking/types"
 import type { PublicBookingSlotRow } from "@/lib/booking/slot-availability"
 import { cn } from "@/lib/utils"
@@ -32,6 +33,7 @@ export function BookingSlotPicker({
   const t = useTranslations("Product.booking")
   const isExperience = isExperienceListingKind(listingKind)
   const [slots, setSlots] = useState<PublicBookingSlotRow[]>([])
+  const [soldOut, setSoldOut] = useState<PublicBookingSlotRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -45,13 +47,19 @@ export function BookingSlotPicker({
       if (!res.ok) {
         setError("load_failed")
         setSlots([])
+        setSoldOut([])
         return
       }
-      const data = (await res.json()) as { slots?: PublicBookingSlotRow[] }
+      const data = (await res.json()) as {
+        slots?: PublicBookingSlotRow[]
+        soldOut?: PublicBookingSlotRow[]
+      }
       setSlots(Array.isArray(data.slots) ? data.slots : [])
+      setSoldOut(Array.isArray(data.soldOut) ? data.soldOut : [])
     } catch {
       setError("load_failed")
       setSlots([])
+      setSoldOut([])
     } finally {
       setLoading(false)
     }
@@ -132,6 +140,8 @@ export function BookingSlotPicker({
           })}
         </ul>
       )}
+
+      <BookingWaitlistPanel productId={productId} soldOutSlots={soldOut} />
     </section>
   )
 }

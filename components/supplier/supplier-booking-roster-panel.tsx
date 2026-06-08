@@ -1,6 +1,6 @@
 "use client"
 
-import { CalendarClock, CheckCircle2, Download, Loader2, MapPin, Users } from "lucide-react"
+import { CalendarClock, CalendarPlus, CheckCircle2, Download, Loader2, MapPin, Users } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
@@ -68,6 +68,7 @@ export function SupplierBookingRosterPanel({ className }: { className?: string }
   const [error, setError] = useState<string | null>(null)
   const [busyOrderId, setBusyOrderId] = useState<string | null>(null)
   const [exporting, setExporting] = useState(false)
+  const [exportingIcal, setExportingIcal] = useState(false)
 
   const load = useCallback(async () => {
     setError(null)
@@ -90,6 +91,34 @@ export function SupplierBookingRosterPanel({ className }: { className?: string }
     setPendingCount(json.pendingCheckInCount)
     setStats(json.stats)
   }, [slotId, t, tab])
+
+  async function exportIcal() {
+    setExportingIcal(true)
+    try {
+      const params = new URLSearchParams()
+      if (slotId) params.set("slotId", slotId)
+      const res = await fetch(`/api/supplier/booking/roster/ical?${params.toString()}`)
+      if (!res.ok) {
+        toast.error(t("exportIcalFailed"))
+        return
+      }
+      const blob = await res.blob()
+      const disposition = res.headers.get("Content-Disposition") ?? ""
+      const match = disposition.match(/filename="([^"]+)"/)
+      const filename = match?.[1] ?? "booking-roster.ics"
+      const url = URL.createObjectURL(blob)
+      const anchor = document.createElement("a")
+      anchor.href = url
+      anchor.download = filename
+      anchor.click()
+      URL.revokeObjectURL(url)
+      toast.success(t("exportIcalSuccess"))
+    } catch {
+      toast.error(t("exportIcalFailed"))
+    } finally {
+      setExportingIcal(false)
+    }
+  }
 
   async function exportCsv() {
     setExporting(true)
@@ -205,6 +234,20 @@ export function SupplierBookingRosterPanel({ className }: { className?: string }
               <Download className="h-4 w-4" aria-hidden />
             )}
             {t("exportCsv")}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={exportingIcal || rows === null || rows.length === 0}
+            onClick={() => void exportIcal()}
+          >
+            {exportingIcal ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+            ) : (
+              <CalendarPlus className="h-4 w-4" aria-hidden />
+            )}
+            {t("exportIcal")}
           </Button>
           <select
             value={slotId}

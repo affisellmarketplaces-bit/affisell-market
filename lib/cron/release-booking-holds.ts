@@ -47,5 +47,11 @@ export async function runReleaseBookingHoldsCron(limit = 80): Promise<ReleaseBoo
   }
 
   console.log("[booking]", { result: "hold_release_cron", scanned: stale.length, released, cancelled })
+
+  if (released > 0) {
+    const { processBookingWaitlistNotifications } = await import("@/lib/booking/waitlist")
+    void processBookingWaitlistNotifications(30)
+  }
+
   return { scanned: stale.length, released, cancelled }
 }

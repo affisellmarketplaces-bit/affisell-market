@@ -30,7 +30,8 @@ jobs:
             "/api/cron/expire-sponsor-campaigns" \
             "/api/cron/process-order-payouts" \
             "/api/cron/release-booking-holds" \
-            "/api/cron/booking-reminders"
+            "/api/cron/booking-reminders" \
+            "/api/cron/booking-waitlist-notify"
           do
             echo "→ GET ${path}"
             curl -fsS -H "$AUTH" "${BASE}${path}" || echo "WARN: ${path} failed"

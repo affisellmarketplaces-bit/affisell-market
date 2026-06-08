@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 
-import { listPublicBookingSlots } from "@/lib/booking/slot-availability"
+import { listPublicBookingSlots, listSoldOutBookingSlots } from "@/lib/booking/slot-availability"
 import { isBookableListingKind } from "@/lib/booking/types"
 import { prisma } from "@/lib/prisma"
 
@@ -19,6 +19,9 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
 
-  const slots = await listPublicBookingSlots(productId)
-  return NextResponse.json({ slots })
+  const [slots, soldOut] = await Promise.all([
+    listPublicBookingSlots(productId),
+    listSoldOutBookingSlots(productId),
+  ])
+  return NextResponse.json({ slots, soldOut })
 }
