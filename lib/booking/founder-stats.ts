@@ -9,9 +9,41 @@ export type BookingFounderStats = {
   hourEmailReminders7d: number
   hourSmsReminders7d: number
   noShowGuests7d: number
+  waitlistJoins7d: number
+  waitlistNotified7d: number
+  waitlistSms7d: number
+  waitlistConversions7d: number
+  waitlistConversionRate7dPct: number | null
 }
 
 const ACTIVE_BOOKING_STATUSES = ["paid", "shipped", "delivered", "completed", "preparing"]
+
+async function countWaitlistConversions7d(d7: Date): Promise<number> {
+  const entries = await prisma.bookingWaitlist.findMany({
+    where: { notifiedAt: { gte: d7 } },
+    select: { email: true, slotId: true, notifiedAt: true },
+    take: 500,
+    orderBy: { notifiedAt: "desc" },
+  })
+  if (entries.length === 0) return 0
+
+  let conversions = 0
+  for (const entry of entries) {
+    if (!entry.notifiedAt) continue
+    const order = await prisma.order.findFirst({
+      where: {
+        bookingSlotId: entry.slotId,
+        bookingConfirmedAt: { gte: entry.notifiedAt },
+        bookingCancelledAt: null,
+        customerEmail: { equals: entry.email, mode: "insensitive" },
+        status: { in: ACTIVE_BOOKING_STATUSES },
+      },
+      select: { id: true },
+    })
+    if (order) conversions += 1
+  }
+  return conversions
+}
 
 export async function loadBookingFounderStats(now = new Date()): Promise<BookingFounderStats> {
   const d7 = new Date(now.getTime() - 7 * 86_400_000)
@@ -35,6 +67,10 @@ export async function loadBookingFounderStats(now = new Date()): Promise<Booking
     hourEmail7d,
     hourSms7d,
     pastSlotOrders7d,
+    waitlistJoins7d,
+    waitlistNotified7d,
+    waitlistSms7d,
+    waitlistConversions7d,
   ] = await Promise.all([
     prisma.order.count({ where: { ...bookingBase, bookingConfirmedAt: { gte: d7 } } }),
     prisma.order.count({ where: { ...bookingBase, bookingConfirmedAt: { gte: d30 } } }),
@@ -70,6 +106,10 @@ export async function loadBookingFounderStats(now = new Date()): Promise<Booking
       },
       take: 2000,
     }),
+    prisma.bookingWaitlist.count({ where: { createdAt: { gte: d7 } } }),
+    prisma.bookingWaitlist.count({ where: { notifiedAt: { gte: d7 } } }),
+    prisma.bookingWaitlist.count({ where: { smsNotifiedAt: { gte: d7 } } }),
+    countWaitlistConversions7d(d7),
   ])
 
   let pastGuests = 0
@@ -92,6 +132,14 @@ export async function loadBookingFounderStats(now = new Date()): Promise<Booking
     hourEmailReminders7d: hourEmail7d,
     hourSmsReminders7d: hourSms7d,
     noShowGuests7d,
+    waitlistJoins7d,
+    waitlistNotified7d,
+    waitlistConversions7d,
+    waitlistSms7d,
+    waitlistConversionRate7dPct:
+      waitlistNotified7d > 0
+        ? Math.round((waitlistConversions7d / waitlistNotified7d) * 100)
+        : null,
   }
 
   console.log("[booking-founder]", { result: "stats_loaded", ...stats })

@@ -1,6 +1,6 @@
 "use client"
 
-import { CalendarCheck, MessageSquare, Ticket, Users } from "lucide-react"
+import { Bell, CalendarCheck, MessageSquare, Ticket, Users } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import type { BookingFounderStats } from "@/lib/booking/founder-stats"
@@ -43,6 +43,16 @@ export function AdminBookingStatsStrip({ className }: Props) {
       icon: Users,
     },
     {
+      label: "Waitlist 7j",
+      value: String(stats.waitlistJoins7d),
+      hint: `${stats.waitlistNotified7d} alertes · ${
+        stats.waitlistConversionRate7dPct != null
+          ? `${stats.waitlistConversionRate7dPct}% conv.`
+          : "— conv."
+      }`,
+      icon: Bell,
+    },
+    {
       label: "Attente aujourd'hui",
       value: String(stats.pendingCheckInsToday),
       hint: "créneaux du jour",
@@ -51,7 +61,7 @@ export function AdminBookingStatsStrip({ className }: Props) {
     {
       label: "Rappels H-2",
       value: `${stats.hourEmailReminders7d} mail`,
-      hint: `${stats.hourSmsReminders7d} SMS · ${stats.experienceShare30dPct}% cinéma`,
+      hint: `${stats.hourSmsReminders7d} SMS H-2 · ${stats.waitlistSms7d} waitlist · ${stats.experienceShare30dPct}% cinéma`,
       icon: MessageSquare,
     },
   ]
@@ -64,7 +74,7 @@ export function AdminBookingStatsStrip({ className }: Props) {
       )}
     >
       <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-cyan-300">Booking · Founder</p>
-      <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
         {cards.map((card) => (
           <div
             key={card.label}

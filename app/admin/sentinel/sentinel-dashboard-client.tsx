@@ -226,6 +226,21 @@ export function SentinelDashboardClient({ initial }: Props) {
           </section>
         ) : null}
 
+        {data.metabaseBookingEmbedUrl ? (
+          <section className="mt-4 overflow-hidden rounded-2xl border border-cyan-500/20 bg-cyan-950/10">
+            <div className="flex items-center gap-2 border-b border-cyan-500/15 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-cyan-300/80">
+              <BarChart3 className="size-3.5" aria-hidden />
+              Metabase · booking funnel
+            </div>
+            <iframe
+              title="Metabase booking dashboard"
+              src={data.metabaseBookingEmbedUrl}
+              className="h-[420px] w-full border-0 bg-zinc-950"
+              loading="lazy"
+            />
+          </section>
+        ) : null}
+
         <section className="mt-8">
           <div className="mb-3 flex items-center justify-between gap-2">
             <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-zinc-400">

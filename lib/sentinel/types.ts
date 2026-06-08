@@ -56,4 +56,5 @@ export type SentinelDashboard = {
   signals: SentinelSignalRow[]
   trend7d: SentinelTrendPoint[]
   metabaseEmbedUrl: string | null
+  metabaseBookingEmbedUrl: string | null
 }

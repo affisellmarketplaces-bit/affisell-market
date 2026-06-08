@@ -1,5 +1,8 @@
 import { computeSentinelScore } from "@/lib/sentinel/score"
-import { buildMetabaseEmbedUrl } from "@/lib/sentinel/metabase-embed"
+import {
+  buildMetabaseBookingEmbedUrl,
+  buildMetabaseEmbedUrl,
+} from "@/lib/sentinel/metabase-embed"
 import { DOMAINS, SEVERITIES } from "@/lib/sentinel/sentinel-shared"
 import { loadSentinelTrend7d } from "@/lib/sentinel/trend-7d"
 import type {
@@ -73,6 +76,7 @@ export async function loadSentinelDashboard(): Promise<SentinelDashboard> {
     signals,
     trend7d,
     metabaseEmbedUrl: buildMetabaseEmbedUrl(),
+    metabaseBookingEmbedUrl: buildMetabaseBookingEmbedUrl(),
   }
 }
 

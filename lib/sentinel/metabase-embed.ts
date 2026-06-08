@@ -13,16 +13,20 @@ function signHs256Jwt(payload: Record<string, unknown>, secret: string): string 
 }
 
 /** Signed Metabase static embed URL, or null when env is not configured. */
-export function buildMetabaseEmbedUrl(): string | null {
+export function buildMetabaseEmbedUrl(dashboardIdOverride?: string): string | null {
   const siteUrl = process.env.METABASE_SITE_URL?.trim().replace(/\/$/, "")
   const secretKey = process.env.METABASE_SECRET_KEY?.trim()
-  const dashboardId = process.env.METABASE_DASHBOARD_ID?.trim()
+  const dashboardId =
+    dashboardIdOverride?.trim() || process.env.METABASE_DASHBOARD_ID?.trim()
   if (!siteUrl || !secretKey || !dashboardId) return null
+
+  const parsedId = Number.parseInt(dashboardId, 10)
+  if (!Number.isFinite(parsedId) || parsedId <= 0) return null
 
   const exp = Math.floor(Date.now() / 1000) + 60 * 60
   const token = signHs256Jwt(
     {
-      resource: { dashboard: Number.parseInt(dashboardId, 10) },
+      resource: { dashboard: parsedId },
       params: {},
       exp,
     },
@@ -30,4 +34,11 @@ export function buildMetabaseEmbedUrl(): string | null {
   )
 
   return `${siteUrl}/embed/dashboard/${token}#bordered=true&titled=true`
+}
+
+/** Booking-specific Metabase dashboard (optional second embed on Sentinel). */
+export function buildMetabaseBookingEmbedUrl(): string | null {
+  const bookingDashboardId = process.env.METABASE_BOOKING_DASHBOARD_ID?.trim()
+  if (!bookingDashboardId) return null
+  return buildMetabaseEmbedUrl(bookingDashboardId)
 }

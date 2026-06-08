@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useMemo, useState } from "react"
-import { Package, Sparkles, CalendarClock, Zap } from "lucide-react"
+import { CalendarPlus, Package, Sparkles, CalendarClock, Zap } from "lucide-react"
 
 import { AccountOrderFulfillmentPanel } from "@/components/account/account-order-fulfillment-panel"
 import { BentoCard } from "@/components/affisell/bento-ui"
@@ -58,6 +58,7 @@ type OrderRow = {
   isBooking?: boolean
   bookingConfirmedAt?: string | null
   bookingPassPath?: string | null
+  bookingIcalPath?: string | null
   canCancelBooking?: boolean
   bookingCancelDeadlineAt?: string | null
 }
@@ -243,13 +244,24 @@ export function AccountOrdersClient({
                       {new Date(o.bookingConfirmedAt).toLocaleString()}
                     </p>
                   ) : null}
-                  <Link
-                    href={o.bookingPassPath}
-                    className="mt-3 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:from-cyan-500 hover:to-indigo-500"
-                  >
-                    <Sparkles className="h-4 w-4" aria-hidden />
-                    {lang === "fr" ? "Ouvrir mon passe" : "Open my pass"}
-                  </Link>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Link
+                      href={o.bookingPassPath}
+                      className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:from-cyan-500 hover:to-indigo-500"
+                    >
+                      <Sparkles className="h-4 w-4" aria-hidden />
+                      {lang === "fr" ? "Ouvrir mon passe" : "Open my pass"}
+                    </Link>
+                    {o.bookingIcalPath ? (
+                      <a
+                        href={o.bookingIcalPath}
+                        className="inline-flex items-center gap-2 rounded-xl border border-cyan-400/40 bg-cyan-500/10 px-4 py-2.5 text-sm font-medium text-cyan-100 transition hover:bg-cyan-500/20"
+                      >
+                        <CalendarPlus className="h-4 w-4" aria-hidden />
+                        {lang === "fr" ? "Ajouter au calendrier" : "Add to calendar"}
+                      </a>
+                    ) : null}
+                  </div>
                   {o.canCancelBooking ? (
                     <div className="mt-3 space-y-2">
                       {o.bookingCancelDeadlineAt ? (
