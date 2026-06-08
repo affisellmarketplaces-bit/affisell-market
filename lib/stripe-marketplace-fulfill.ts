@@ -134,6 +134,7 @@ async function runBookingPassAfterPaymentForOrder(
       bookingVenueLabel: args.product.bookingVenueLabel,
       bookingInstantConfirm: args.product.bookingInstantConfirm,
       name: args.product.name,
+      supplierId: args.product.supplierId,
     },
   })
 }

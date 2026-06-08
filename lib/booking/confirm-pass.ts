@@ -6,6 +6,7 @@ import {
   bookingPassPath,
   generateBookingPassToken,
 } from "@/lib/booking/pass-token"
+import { formatSupplierBookingConfirmedInbox } from "@/lib/booking/supplier-alert-message"
 import { buildBookingSnapshot } from "@/lib/booking/snapshot"
 import { bookingSeatsLeft, resolveBookingSlotStatus } from "@/lib/booking/slot-hold"
 import { isBookableListingKind, type BookingProductFields } from "@/lib/booking/types"
@@ -54,6 +55,8 @@ export async function confirmBookingPassInTransaction(
       quantity: true,
       bookingHoldExpiresAt: true,
       bookingSlotId: true,
+      supplierId: true,
+      customerEmail: true,
     },
   })
   if (existing?.bookingConfirmedAt) {
@@ -175,6 +178,24 @@ export async function confirmBookingPassInTransaction(
         userId: args.buyerUserId,
         type: "ORDER_SHIPPED",
         message: `Your booking is confirmed · ${args.product.name}. Open your Affisell pass to check in.`,
+        orderId: args.orderId,
+      },
+    })
+  }
+
+  if (existing?.supplierId) {
+    await tx.notification.create({
+      data: {
+        userId: existing.supplierId,
+        type: "NEW_ORDER",
+        message: formatSupplierBookingConfirmedInbox({
+          productName: args.product.name,
+          listingKind: args.product.listingKind,
+          quantity: qty,
+          startsAtIso: snapshot.startsAt,
+          seatLabels,
+          customerEmail: existing.customerEmail,
+        }),
         orderId: args.orderId,
       },
     })

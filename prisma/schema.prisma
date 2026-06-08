@@ -1308,6 +1308,10 @@ model Order {
   bookingReminderHourSentAt DateTime?
   /** Idempotent H-2 (~2h) booking reminder SMS (Twilio). */
   bookingReminderHourSmsSentAt DateTime?
+  /** Idempotent supplier instant alert email on pass confirmation. */
+  bookingSupplierAlertSentAt   DateTime?
+  /** Idempotent supplier J-0 digest email inclusion. */
+  bookingSupplierDigestSentAt  DateTime?
   bookingSeats             BookingSeat[]
   buyer                    User?               @relation("BuyerMarketplaceOrders", fields: [buyerUserId], references: [id], onDelete: SetNull)
   customerEmail            String

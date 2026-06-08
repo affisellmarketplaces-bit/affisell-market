@@ -54,7 +54,8 @@ jobs:
           for path in \
             "/api/cron/review-reminder" \
             "/api/cron/wishlist-price-alerts" \
-            "/api/cron/stripe-health"
+            "/api/cron/stripe-health" \
+            "/api/cron/booking-supplier-digest"
           do
             echo "→ GET ${path}"
             curl -fsS -H "$AUTH" "${BASE}${path}" || echo "WARN: ${path} failed"

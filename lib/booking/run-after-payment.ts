@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client"
 
 import { confirmBookingPassInTransaction } from "@/lib/booking/confirm-pass"
 import { isBookableListingKind } from "@/lib/booking/types"
+import { notifySupplierBookingConfirmed } from "@/lib/emails/send-supplier-booking-alert"
 import { sendBookingPassEmail } from "@/lib/emails/send-booking-pass"
 import { logStripeWebhookError } from "@/lib/stripe-webhook-observability"
 
@@ -14,6 +15,7 @@ type ProductBookingFields = {
   bookingVenueLabel: string | null
   bookingInstantConfirm: boolean
   name: string
+  supplierId: string
 }
 
 export async function runBookingPassAfterPayment(
@@ -77,6 +79,18 @@ export async function runBookingPassAfterPayment(
       startsAt: result.snapshot.startsAt,
       venueLabel: result.snapshot.venueLabel,
       listingKind: args.product.listingKind,
+      locale: args.buyerLocale,
+    })
+    void notifySupplierBookingConfirmed({
+      orderId: args.orderId,
+      supplierId: args.product.supplierId,
+      productName: args.product.name,
+      listingKind: args.product.listingKind,
+      startsAt: result.snapshot.startsAt,
+      venueLabel: result.snapshot.venueLabel,
+      seatLabels: result.snapshot.seatLabels,
+      quantity: result.snapshot.quantity,
+      customerEmail: args.customerEmail,
       locale: args.buyerLocale,
     })
     const { triggerOrderTransferRelease } = await import("@/lib/trigger-order-transfer-release")
