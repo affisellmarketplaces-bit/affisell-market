@@ -7,6 +7,7 @@ import {
 import {
   isBookingCheckoutBlocked,
   isBookingCheckoutLiveForKind,
+  BOOKING_EXPERIENCE_CHECKOUT_LIVE,
   BOOKING_SERVICE_CHECKOUT_LIVE,
 } from "@/lib/booking/checkout-live"
 import { buildBookingSnapshot, parseBookingSnapshot } from "@/lib/booking/snapshot"
@@ -24,11 +25,13 @@ describe("booking foundation phase 0", () => {
     expect(isBookableListingKind("PHYSICAL")).toBe(false)
   })
 
-  it("enables SERVICE checkout in phase 1 coiffeur", () => {
+  it("enables SERVICE and EXPERIENCE checkout in phase 1", () => {
     expect(BOOKING_SERVICE_CHECKOUT_LIVE).toBe(true)
+    expect(BOOKING_EXPERIENCE_CHECKOUT_LIVE).toBe(true)
     expect(isBookingCheckoutLiveForKind("SERVICE")).toBe(true)
+    expect(isBookingCheckoutLiveForKind("EXPERIENCE")).toBe(true)
     expect(isBookingCheckoutBlocked("SERVICE")).toBe(false)
-    expect(isBookingCheckoutBlocked("EXPERIENCE")).toBe(true)
+    expect(isBookingCheckoutBlocked("EXPERIENCE")).toBe(false)
     expect(isServiceListingKind("SERVICE")).toBe(true)
   })
 
@@ -89,10 +92,13 @@ describe("booking foundation phase 0", () => {
     expect(bookingPassPath("abc123")).toBe("/booking/pass/abc123")
   })
 
-  it("detects bookable slots", () => {
+  it("detects bookable slots including multi-seat cinema", () => {
     const future = new Date(Date.now() + 60 * 60 * 1000)
     expect(
       isSlotBookable({ status: "OPEN", startsAt: future, capacity: 1, bookedCount: 0 }, new Date(), 1)
+    ).toBe(true)
+    expect(
+      isSlotBookable({ status: "OPEN", startsAt: future, capacity: 50, bookedCount: 48 }, new Date(), 2)
     ).toBe(true)
     expect(
       isSlotBookable({ status: "SOLD_OUT", startsAt: future, capacity: 1, bookedCount: 1 }, new Date(), 1)

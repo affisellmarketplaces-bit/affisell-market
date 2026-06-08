@@ -37,6 +37,12 @@ export {
   type PublicBookingSlotRow,
 } from "@/lib/booking/slot-availability"
 export {
+  validateBookableListingCheckout,
+  validateBookingCartLine,
+  validateServiceBookingCartLine,
+  validateServiceBookingCheckout,
+} from "@/lib/booking/checkout-validation"
+export {
   parseProductBookingBody,
   validateBookingListingForPublish,
   type ParsedProductBookingSettings,

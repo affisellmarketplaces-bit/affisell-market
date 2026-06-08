@@ -59,42 +59,24 @@ export function SupplierBookingHubPanel({
           <div className="min-w-0 flex-1">
             <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-cyan-300">{t("badge")}</p>
             <h3 className="mt-1 text-lg font-semibold tracking-tight">
-              {isService ? t("titleService") : t("title")}
+              {isService ? t("titleService") : t("titleExperience")}
             </h3>
             <p className="mt-1 text-sm leading-relaxed text-cyan-100/85">
-              {isService ? t("descriptionService") : t("description")}
+              {isService ? t("descriptionService") : t("descriptionExperience")}
             </p>
           </div>
         </div>
-        {isExperience ? (
-          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-amber-200">
-            <Sparkles className="h-3 w-3" aria-hidden />
-            {t("comingSoonBadge")}
-          </span>
-        ) : (
-          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-400/40 bg-emerald-400/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-200">
-            {t("liveBadge")}
-          </span>
-        )}
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-400/40 bg-emerald-400/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-200">
+          {isExperience ? <Sparkles className="h-3 w-3" aria-hidden /> : null}
+          {t("liveBadge")}
+        </span>
       </div>
 
-      {isExperience ? (
-        <div className="relative mt-6 rounded-2xl border border-white/10 bg-black/25 p-4 backdrop-blur-sm">
-          <p className="text-xs leading-relaxed text-cyan-100/80">{t("comingSoonHint")}</p>
-        </div>
-      ) : null}
-
-      <div className={cn("relative mt-6 space-y-5", isExperience && "opacity-90")}>
-        <label
-          className={cn(
-            "flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3",
-            isExperience ? "cursor-not-allowed" : "cursor-pointer hover:bg-white/10"
-          )}
-        >
+      <div className="relative mt-6 space-y-5">
+        <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 hover:bg-white/10">
           <input
             type="checkbox"
             checked={bookingInstantConfirm}
-            disabled={isExperience}
             onChange={(e) => onInstantDeliveryChange(e.target.checked)}
             className="h-4 w-4 rounded border-cyan-300 text-cyan-600 focus:ring-cyan-400"
           />
@@ -112,7 +94,6 @@ export function SupplierBookingHubPanel({
               type="number"
               min={5}
               max={480}
-              disabled={isExperience}
               className="mt-2 border-white/15 bg-black/30 text-white"
               value={bookingDurationMinutes}
               onChange={(e) => onDurationChange(e.target.value)}
@@ -127,7 +108,6 @@ export function SupplierBookingHubPanel({
               type="number"
               min={0}
               max={168}
-              disabled={isExperience}
               className="mt-2 border-white/15 bg-black/30 text-white"
               value={bookingCancellationHours}
               onChange={(e) => onCancellationHoursChange(e.target.value)}
@@ -142,19 +122,19 @@ export function SupplierBookingHubPanel({
           </Label>
           <Input
             id="booking-venue"
-            disabled={isExperience}
             className="mt-2 border-white/15 bg-black/30 text-white"
             value={bookingVenueLabel}
             onChange={(e) => onVenueLabelChange(e.target.value)}
-            placeholder={t("venuePlaceholder")}
+            placeholder={isService ? t("venuePlaceholder") : t("venuePlaceholderExperience")}
           />
         </div>
       </div>
 
-      {isService && productId ? <SupplierBookingSlotsManager productId={productId} /> : null}
-      {isService && !productId ? (
+      {productId ? (
+        <SupplierBookingSlotsManager productId={productId} listingKind={listingKind} />
+      ) : (
         <p className="relative mt-4 text-xs text-cyan-200/70">{t("saveDraftForSlots")}</p>
-      ) : null}
+      )}
     </section>
   )
 }

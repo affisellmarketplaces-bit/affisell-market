@@ -5,8 +5,8 @@ import { isBookableListingKind } from "@/lib/booking/types"
 /** Phase 1: coiffeur / rendez-vous SERVICE checkout live. */
 export const BOOKING_SERVICE_CHECKOUT_LIVE = true
 
-/** Cinema & events — Phase 2. */
-export const BOOKING_EXPERIENCE_CHECKOUT_LIVE = false
+/** Phase 1: cinéma & événements EXPERIENCE checkout live (multi-places). */
+export const BOOKING_EXPERIENCE_CHECKOUT_LIVE = true
 
 export function isBookingCheckoutLiveForKind(kind: string | ListingKind | null | undefined): boolean {
   const k = typeof kind === "string" ? kind.trim().toUpperCase() : ""

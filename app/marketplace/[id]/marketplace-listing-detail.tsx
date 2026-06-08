@@ -22,7 +22,7 @@ import {
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useLocale } from "next-intl"
-import { Fragment, Suspense, useEffect, useMemo, useRef, useState, type MouseEvent } from "react"
+import { Fragment, Suspense, useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react"
 
 import { ReviewsEngine } from "@/components/reviews/ReviewsEngine"
 import { BookingComingSoonRail } from "@/components/booking/booking-coming-soon-rail"
@@ -50,7 +50,11 @@ import {
   isBookingCheckoutBlocked,
   isBookingCheckoutLiveForKind,
 } from "@/lib/booking/checkout-live"
-import { isServiceListingKind } from "@/lib/booking/types"
+import {
+  isBookableListingKind,
+  isExperienceListingKind,
+  isServiceListingKind,
+} from "@/lib/booking/types"
 import { BookingSlotPicker } from "@/components/booking/booking-slot-picker"
 import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/marketplace-checkout-discount"
 import {
@@ -535,9 +539,13 @@ export function MarketplaceListingDetail({
   const [stylistLoading, setStylistLoading] = useState(false)
   const [alertSaved, setAlertSaved] = useState(false)
   const [selectedBookingSlotId, setSelectedBookingSlotId] = useState<string | null>(null)
+  const [selectedSlotSeatsLeft, setSelectedSlotSeatsLeft] = useState<number | null>(null)
   const bookingCheckoutBlocked = isBookingCheckoutBlocked(listingKind)
-  const serviceBookingLive = isServiceListingKind(listingKind) && isBookingCheckoutLiveForKind(listingKind)
-  const bookingSlotRequired = serviceBookingLive && !selectedBookingSlotId
+  const bookingCheckoutLive =
+    isBookableListingKind(listingKind) && isBookingCheckoutLiveForKind(listingKind)
+  const serviceBookingLive = isServiceListingKind(listingKind) && bookingCheckoutLive
+  const experienceBookingLive = isExperienceListingKind(listingKind) && bookingCheckoutLive
+  const bookingSlotRequired = bookingCheckoutLive && !selectedBookingSlotId
   const [bundleChecked, setBundleChecked] = useState<Record<string, boolean>>({})
   const [rewardBalanceCents, setRewardBalanceCents] = useState(0)
   const [useRewardCents, setUseRewardCents] = useState(0)
@@ -692,6 +700,21 @@ export function MarketplaceListingDetail({
     if (availableStock <= 0) setShowStickyBuy(false)
   }, [availableStock])
 
+  const bookingTicketStock =
+    experienceBookingLive && selectedSlotSeatsLeft != null
+      ? Math.min(availableStock, selectedSlotSeatsLeft)
+      : availableStock
+
+  const handleSelectBookingSlot = useCallback((slotId: string | null, seatsLeft?: number) => {
+    setSelectedBookingSlotId(slotId)
+    setSelectedSlotSeatsLeft(slotId ? (seatsLeft ?? null) : null)
+  }, [])
+
+  useEffect(() => {
+    if (!experienceBookingLive || selectedSlotSeatsLeft == null) return
+    setPurchaseQty((prev) => clampPurchaseQuantity(prev, bookingTicketStock))
+  }, [experienceBookingLive, selectedSlotSeatsLeft, bookingTicketStock])
+
   const buyNowLineSubtotalCents = activeListingPriceCents * (serviceBookingLive ? 1 : purchaseQty)
   const maxApplicableReward = useMemo(() => {
     if (buyNowLineSubtotalCents <= 0) return 0
@@ -754,7 +777,7 @@ export function MarketplaceListingDetail({
     e?.preventDefault()
     e?.stopPropagation()
     if (bookingCheckoutBlocked) return
-    if (serviceBookingLive) return
+    if (bookingCheckoutLive) return
     setCartBusy(true)
     try {
       const result = await addToBuyerCart({
@@ -1109,11 +1132,12 @@ export function MarketplaceListingDetail({
 
             {bookingCheckoutBlocked ? (
               <BookingComingSoonRail listingKind={listingKind} className="max-lg:hidden" />
-            ) : serviceBookingLive ? (
+            ) : bookingCheckoutLive ? (
               <BookingSlotPicker
                 productId={productId}
+                listingKind={listingKind}
                 selectedSlotId={selectedBookingSlotId}
-                onSelectSlot={setSelectedBookingSlotId}
+                onSelectSlot={handleSelectBookingSlot}
                 className="max-lg:hidden"
               />
             ) : (
@@ -1386,11 +1410,12 @@ export function MarketplaceListingDetail({
             >
               {bookingCheckoutBlocked ? (
                 <BookingComingSoonRail listingKind={listingKind} />
-              ) : serviceBookingLive ? (
+              ) : bookingCheckoutLive ? (
                 <BookingSlotPicker
                   productId={productId}
+                  listingKind={listingKind}
                   selectedSlotId={selectedBookingSlotId}
-                  onSelectSlot={setSelectedBookingSlotId}
+                  onSelectSlot={handleSelectBookingSlot}
                 />
               ) : (
               <>
@@ -1458,7 +1483,7 @@ export function MarketplaceListingDetail({
                 className="mb-1"
                 quantity={purchaseQty}
                 onQuantityChange={setPurchaseQty}
-                availableStock={availableStock}
+                availableStock={experienceBookingLive ? bookingTicketStock : availableStock}
                 inStockLabel={productT.inStock}
                 outOfStockLabel={productT.outOfStock}
                 quantityOptionLabel={(count) => t(productT.quantityOption, { count })}
@@ -1470,7 +1495,7 @@ export function MarketplaceListingDetail({
                 <div className="flex gap-2 lg:block">
                 <motion.button
                   type="button"
-                  disabled={cartBusy || availableStock <= 0 || bookingCheckoutBlocked || serviceBookingLive}
+                  disabled={cartBusy || availableStock <= 0 || bookingCheckoutBlocked || bookingCheckoutLive}
                   whileHover={{ scale: availableStock > 0 && !cartBusy ? 1.01 : 1 }}
                   whileTap={{ scale: availableStock > 0 && !cartBusy ? 0.99 : 1 }}
                   onClick={(e) => void addToCart(e)}
@@ -2008,7 +2033,7 @@ export function MarketplaceListingDetail({
           </Button>
           <Button
             type="button"
-            disabled={cartBusy || availableStock <= 0 || bookingCheckoutBlocked || serviceBookingLive}
+            disabled={cartBusy || availableStock <= 0 || bookingCheckoutBlocked || bookingCheckoutLive}
             onClick={(e) => void addToCart(e)}
             className="h-10 shrink-0 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 text-xs font-bold text-white shadow-lg shadow-violet-500/25 sm:h-11 sm:px-5 sm:text-sm"
           >

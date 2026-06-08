@@ -4,7 +4,7 @@ export const BOOKABLE_LISTING_KINDS = ["SERVICE", "EXPERIENCE"] as const
 
 export type BookableListingKind = (typeof BOOKABLE_LISTING_KINDS)[number]
 
-/** Phase 1: coiffeur / rendez-vous SERVICE checkout live. EXPERIENCE stays Phase 2. */
+/** Phase 1: SERVICE + EXPERIENCE checkout flags live in checkout-live.ts */
 export {
   BOOKING_EXPERIENCE_CHECKOUT_LIVE,
   BOOKING_SERVICE_CHECKOUT_LIVE,

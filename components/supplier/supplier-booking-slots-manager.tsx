@@ -8,6 +8,7 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { isExperienceListingKind } from "@/lib/booking/types"
 
 type SupplierSlotRow = {
   id: string
@@ -22,16 +23,19 @@ type SupplierSlotRow = {
 
 type Props = {
   productId: string
+  listingKind: string
 }
 
-export function SupplierBookingSlotsManager({ productId }: Props) {
+export function SupplierBookingSlotsManager({ productId, listingKind }: Props) {
   const t = useTranslations("supplier.booking")
+  const isExperience = isExperienceListingKind(listingKind)
   const [slots, setSlots] = useState<SupplierSlotRow[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [date, setDate] = useState("")
   const [time, setTime] = useState("10:00")
   const [label, setLabel] = useState("")
+  const [capacity, setCapacity] = useState("30")
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -67,6 +71,7 @@ export function SupplierBookingSlotsManager({ productId }: Props) {
     }
     setBusy(true)
     try {
+      const capacityN = isExperience ? Math.max(1, Math.min(500, Math.round(Number(capacity)) || 30)) : 1
       const res = await fetch(`/api/supplier/products/${productId}/booking-slots`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -74,7 +79,7 @@ export function SupplierBookingSlotsManager({ productId }: Props) {
         body: JSON.stringify({
           startsAt: startsAt.toISOString(),
           label: label.trim() || undefined,
-          capacity: 1,
+          capacity: capacityN,
         }),
       })
       const json = (await res.json()) as { error?: string }
@@ -112,7 +117,9 @@ export function SupplierBookingSlotsManager({ productId }: Props) {
   return (
     <div className="relative mt-6 space-y-5 rounded-2xl border border-white/10 bg-black/20 p-4">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">{t("slotsTitle")}</p>
-      <p className="text-xs leading-relaxed text-cyan-100/75">{t("slotsHint")}</p>
+      <p className="text-xs leading-relaxed text-cyan-100/75">
+        {isExperience ? t("slotsHintExperience") : t("slotsHint")}
+      </p>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
@@ -149,9 +156,25 @@ export function SupplierBookingSlotsManager({ productId }: Props) {
           className="mt-1.5 border-white/15 bg-black/30 text-white"
           value={label}
           onChange={(e) => setLabel(e.target.value)}
-          placeholder={t("slotLabelPlaceholder")}
+          placeholder={isExperience ? t("slotLabelPlaceholderExperience") : t("slotLabelPlaceholder")}
         />
       </div>
+      {isExperience ? (
+        <div>
+          <Label htmlFor="slot-capacity" className="text-cyan-100">
+            {t("slotCapacityLabel")}
+          </Label>
+          <Input
+            id="slot-capacity"
+            type="number"
+            min={1}
+            max={500}
+            className="mt-1.5 border-white/15 bg-black/30 text-white"
+            value={capacity}
+            onChange={(e) => setCapacity(e.target.value)}
+          />
+        </div>
+      ) : null}
       <Button
         type="button"
         disabled={busy}

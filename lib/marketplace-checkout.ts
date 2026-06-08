@@ -34,8 +34,8 @@ import {
 } from "@/lib/product-offer-mode"
 import { isBookingCheckoutBlocked } from "@/lib/booking/checkout-live"
 import {
-  validateServiceBookingCartLine,
-  validateServiceBookingCheckout,
+  validateBookableListingCheckout,
+  validateBookingCartLine,
 } from "@/lib/booking/checkout-validation"
 import { marketplaceCheckoutPaymentSessionOptions } from "@/lib/marketplace-checkout-payment-methods"
 import {
@@ -127,7 +127,7 @@ function validateOfferCheckoutLine(
       { status: 400 }
     )
   }
-  const cartBlock = validateServiceBookingCartLine(listing.product)
+  const cartBlock = validateBookingCartLine(listing.product)
   if (cartBlock) return cartBlock
   if (isBookingCheckoutBlocked(listing.product.listingKind)) {
     return NextResponse.json({ error: "booking_checkout_coming_soon" }, { status: 409 })
@@ -376,13 +376,14 @@ export async function marketplaceCheckoutPOST(request: Request) {
     return NextResponse.json({ error: "Listing not found or inactive" }, { status: 404 })
   }
 
-  const bookingGate = await validateServiceBookingCheckout({
+  const bookingGate = await validateBookableListingCheckout({
     product: listing.product,
     quantity: qty,
     bookingSlotId: body.bookingSlotId,
   })
   if (bookingGate instanceof NextResponse) return bookingGate
   const resolvedBookingSlotId = bookingGate?.slotId ?? null
+  const checkoutQty = bookingGate?.quantity ?? qty
 
   const product = listing.product
   const affiliateProduct = listing
@@ -404,8 +405,8 @@ export async function marketplaceCheckoutPOST(request: Request) {
     selectedColor: body.selectedColor,
     selectedSize: body.selectedSize,
   })
-  const lineSubtotal = unitSelling * qty
-  const offerGate = validateOfferCheckoutLine(listing, qty, lineSubtotal)
+  const lineSubtotal = unitSelling * checkoutQty
+  const offerGate = validateOfferCheckoutLine(listing, checkoutQty, lineSubtotal)
   if (offerGate) return offerGate
   const requestedReward =
     typeof body.useRewardCents === "number" && Number.isFinite(body.useRewardCents)
@@ -431,7 +432,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
     selectedSize: body.selectedSize,
   })
   const oneShotVariantSignature = normalizeCartVariantSignature(body.selectedColor, body.selectedSize)
-  pushLineItemsForPaidTotal(stripeLineItems, listing, paidLineCents[0]!, qty, oneShotVariantLabel)
+  pushLineItemsForPaidTotal(stripeLineItems, listing, paidLineCents[0]!, checkoutQty, oneShotVariantLabel)
 
   const variants = variantsFromDb(product.variants)
   const optionName = checkoutOptionName({
@@ -443,7 +444,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
     variants,
     optionName,
   })
-  const supplierPriceCents = unitSupplierCents * qty
+  const supplierPriceCents = unitSupplierCents * checkoutQty
   const sellingPriceCents = paidLineCents[0]!
   const unitMarginCents =
     affiliateProduct.marginCents > 0
@@ -465,7 +466,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
       supplierId: product.supplierId,
       affiliateId: affiliate.id,
       affiliateProductId: affiliateProduct.id,
-      quantity: qty,
+      quantity: checkoutQty,
       customerEmail: "",
       buyerLocale: checkoutLocale,
       shippingAddress: {},
@@ -476,10 +477,12 @@ export async function marketplaceCheckoutPOST(request: Request) {
       marginCents: lineMarginCents,
       affiliatePayoutCents: 0,
       variantLabel: oneShotVariantLabel || null,
-      supplierPriceCents: unitSupplierCents * qty,
+      supplierPriceCents: unitSupplierCents * checkoutQty,
       supplierCommissionRateBps,
       affiliateMarginCents:
-        affiliateProduct.marginCents > 0 ? affiliateProduct.marginCents * qty : unitMarginCents * qty,
+        affiliateProduct.marginCents > 0
+          ? affiliateProduct.marginCents * checkoutQty
+          : unitMarginCents * checkoutQty,
       affisellCommissionRateBps,
       affiliateStripeAccountId: affiliate.stripeAccountId,
       paymentSettlementStatus: "PENDING",
@@ -522,7 +525,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
       affiliateId: affiliate.id,
       appliedRewardCents: String(appliedCents),
       linePaids: JSON.stringify(paidLineCents),
-      checkoutQty: String(qty),
+      checkoutQty: String(checkoutQty),
       checkoutVariantLabel: oneShotVariantLabel || "",
       checkoutVariantSignature: oneShotVariantSignature || "",
       locale: checkoutLocale,

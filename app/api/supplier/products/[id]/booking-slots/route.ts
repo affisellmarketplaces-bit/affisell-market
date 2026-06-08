@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { listPublicBookingSlots } from "@/lib/booking/slot-availability"
-import { isBookableListingKind } from "@/lib/booking/types"
+import { isBookableListingKind, isServiceListingKind } from "@/lib/booking/types"
 import { prisma } from "@/lib/prisma"
 
 async function assertOwnProduct(supplierId: string, productId: string) {
@@ -101,8 +101,11 @@ export async function POST(
   )
   const endsAt = new Date(startsAt.getTime() + durationMinutes * 60 * 1000)
   const capacityRaw = Math.round(Number(body.capacity))
-  const capacity =
-    Number.isFinite(capacityRaw) && capacityRaw >= 1 ? Math.min(20, capacityRaw) : 1
+  const capacity = isServiceListingKind(product.listingKind)
+    ? 1
+    : Number.isFinite(capacityRaw) && capacityRaw >= 1
+      ? Math.min(500, capacityRaw)
+      : 30
   const label =
     typeof body.label === "string" && body.label.trim().length > 0
       ? body.label.trim().slice(0, 120)
