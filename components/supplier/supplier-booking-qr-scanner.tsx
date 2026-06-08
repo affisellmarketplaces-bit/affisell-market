@@ -31,7 +31,7 @@ export function SupplierBookingQrScanner({ onScan, disabled = false, className }
     if (!scanner) return
     try {
       if (scanner.isScanning) await scanner.stop()
-      await scanner.clear()
+      scanner.clear()
     } catch {
       // ignore teardown errors
     }
@@ -69,8 +69,12 @@ export function SupplierBookingQrScanner({ onScan, disabled = false, className }
         )
 
         if (cancelled) {
-          await scanner.stop().catch(() => undefined)
-          await scanner.clear().catch(() => undefined)
+          try {
+            if (scanner.isScanning) await scanner.stop()
+            scanner.clear()
+          } catch {
+            // ignore teardown during fast unmount
+          }
           return
         }
 
