@@ -2,6 +2,7 @@ import * as cheerio from "cheerio"
 
 export type ImportPlatform =
   | "aliexpress"
+  | "1688"
   | "amazon"
   | "shopify"
   | "shein"
@@ -18,6 +19,7 @@ const PLACEHOLDER_SCRAPINGBEE_KEYS = new Set([
 export function detectImportPlatform(url: string): ImportPlatform {
   const host = url.toLowerCase()
   if (host.includes("aliexpress.com")) return "aliexpress"
+  if (host.includes("1688.com")) return "1688"
   if (host.includes("amazon.")) return "amazon"
   if (host.includes("/products/") || host.includes("myshopify.com")) return "shopify"
   if (host.includes("shein.com")) return "shein"

@@ -2,13 +2,23 @@ import { describe, expect, it } from "vitest"
 
 import {
   aliExpressCountryCode,
+  detectImportPlatform,
   extractWindowJson,
   getScrapingBeeApiKey,
   normalizeImportUrl,
   parseAliExpressHtml,
 } from "@/lib/import-url-scrape"
+import { extract1688Id } from "@/lib/onebound"
 
 describe("import-url-scrape", () => {
+  it("detects 1688 offer URLs as the 1688 platform", () => {
+    expect(detectImportPlatform("https://detail.1688.com/offer/610947572360.html")).toBe("1688")
+    expect(extract1688Id("https://detail.1688.com/offer/610947572360.html?spm=x")).toBe(
+      "610947572360"
+    )
+    expect(extract1688Id("https://example.com/produit")).toBeNull()
+  })
+
   it("normalizes AliExpress item URLs", () => {
     const url =
       "https://fr.aliexpress.com/item/1005008719608144.html?spm=a2g0o.productlist.main.1"

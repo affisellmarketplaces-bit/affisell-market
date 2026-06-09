@@ -12,11 +12,13 @@ import {
   type AliExpressParseInput,
 } from "@/lib/import-url-scrape"
 import { mirrorImportedVideosToR2 } from "@/lib/import-video-r2"
+import { extract1688Id, get1688 } from "@/lib/onebound"
 import { prisma } from "@/lib/prisma"
 
 type ReviewSentiment = "positive" | "neutral" | "negative"
 type Platform =
   | "aliexpress"
+  | "1688"
   | "amazon"
   | "shopify"
   | "shein"
@@ -298,17 +300,24 @@ export async function scrapeSupplierProductFromUrl(
     let product: ImportedProduct | null = null
     let method = "direct"
 
-    try {
-      product =
-        platform === "shopify"
-          ? await scrapeShopify(url)
-          : await scrapeWithDirectFetch(url, platform)
-    } catch (error) {
-      console.warn("Tier 1 failed:", error)
+    if (platform === "1688") {
+      // 1688 bloque le scraping HTML — API OneBound uniquement
+      product = await import1688Product(url)
+      method = "onebound-api"
+    } else {
+      try {
+        product =
+          platform === "shopify"
+            ? await scrapeShopify(url)
+            : await scrapeWithDirectFetch(url, platform)
+      } catch (error) {
+        console.warn("Tier 1 failed:", error)
+      }
     }
 
     const needsScrapingBee =
-      !product?.title || !product.price || product.images.length === 0
+      platform !== "1688" &&
+      (!product?.title || !product.price || product.images.length === 0)
 
     const scrapingBeeKey = getScrapingBeeApiKey()
     if (needsScrapingBee && scrapingBeeKey) {
@@ -756,6 +765,41 @@ async function scrapeShopify(url: string): Promise<ImportedProduct> {
     })
     .filter(Boolean)
   out.videos = collectVideoUrls(videoUrls)
+  out.tags = generateSEO(out.title, out.category)
+  return out
+}
+
+async function import1688Product(url: string): Promise<ImportedProduct> {
+  const data = await get1688(url)
+  const out = baselineProduct(url, "1688")
+  out.title = data.name
+  out.description = data.description
+  out.price = data.price
+  out.original_price = data.price
+  out.currency = "CNY"
+  out.images = data.images.slice(0, 12)
+  out.variants = data.variants.map((v) => ({
+    name: v.name,
+    type: "Variant",
+    image: "",
+    price: v.price,
+    stock: v.stock,
+    sku: "",
+    attributes: {},
+  }))
+  out.stock =
+    out.variants.reduce((sum, v) => sum + v.stock, 0) || 999
+  out.brand = data.supplier
+  out.sku = `1688-${extract1688Id(url) ?? ""}`
+  out.specs = data.moq > 1 ? { MOQ: String(data.moq) } : {}
+  out.shipping = {
+    from_country: "China",
+    delivery_time: "15-25 days",
+    shipping_cost: 0,
+    carrier: "Standard",
+  }
+  out.category = "1688 Product"
+  out.source_url = data.source
   out.tags = generateSEO(out.title, out.category)
   return out
 }

@@ -130,7 +130,7 @@ export function SupplierUrlImportPanel({ categoryAttrs, commissionPct, onApply }
           </div>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
             Titre, description, images, vidéos, prix, livraison, marque (Generic si inconnue), tailles et couleurs
-            quand disponibles.
+            quand disponibles. Compatible 1688.com (import 1 clic via API OneBound).
           </p>
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
@@ -141,7 +141,7 @@ export function SupplierUrlImportPanel({ categoryAttrs, commissionPct, onApply }
               <Input
                 id="url-import-field"
                 type="url"
-                placeholder="https://www.amazon.fr/dp/… ou boutique Shopify…"
+                placeholder="https://detail.1688.com/offer/… , Amazon, Shopify…"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 disabled={loading}
