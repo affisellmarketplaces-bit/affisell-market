@@ -12,9 +12,12 @@ export const revalidate = 60
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
   const { lite, take, hasFilters } = resolveMarketplaceProductsFetchOptions(searchParams)
+  // `lite` is an API transport flag — it must never reach the product where-builders.
+  const filterParams = new URLSearchParams(searchParams.toString())
+  filterParams.delete("lite")
   try {
     const products = await withPrismaReconnect(() =>
-      fetchMarketplaceListings(searchParams, take, { lite })
+      fetchMarketplaceListings(filterParams, take, { lite })
     )
     return NextResponse.json(
       { products },

@@ -11,6 +11,9 @@ export const MARKETPLACE_QUERY_RESERVED = new Set([
   "freeShipping",
   "price",
   "dept",
+  "offer",
+  // API transport flags — never product attribute filters
+  "lite",
 ])
 
 /** Reserved prefix for product SKU custom column filters (`cc_matiere=…`) */

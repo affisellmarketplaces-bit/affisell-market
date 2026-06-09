@@ -23,4 +23,19 @@ describe("parseMarketplaceAttributeFilters", () => {
     expect(MARKETPLACE_QUERY_RESERVED.has("q")).toBe(true)
     expect(MARKETPLACE_QUERY_RESERVED.has("brand")).toBe(false)
   })
+
+  it("never treats lite/offer transport flags as product attribute filters", () => {
+    // Régression : `lite=1` interprété comme filtre d'attribut → catalogue vide
+    const filters = parseMarketplaceAttributeFilters(
+      new URLSearchParams("category=cat123&lite=1&offer=refurbished&q=stylo&price=10-20")
+    )
+    expect(filters).toEqual({})
+  })
+
+  it("keeps genuine attribute filters alongside transport flags", () => {
+    const filters = parseMarketplaceAttributeFilters(
+      new URLSearchParams("category=cat123&lite=1&couleur=rouge")
+    )
+    expect(filters).toEqual({ couleur: "rouge" })
+  })
 })
