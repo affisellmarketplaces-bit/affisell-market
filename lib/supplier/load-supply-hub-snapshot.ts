@@ -13,8 +13,11 @@ import {
 export async function loadSupplyHubSnapshot(supplierId: string): Promise<SupplyHubSnapshot> {
   const platformAliExpressConfigured = getAliExpressConfigStatus().configured
 
+  const oneboundConfigured = Boolean(process.env.ONEBOUND_KEY?.trim())
+
   const [
     aliexpressSkuCount,
+    alibaba1688SkuCount,
     autoBuyLinkCount,
     nativeSkuCount,
     manualSkuCount,
@@ -28,6 +31,15 @@ export async function loadSupplyHubSnapshot(supplierId: string): Promise<SupplyH
         OR: [
           { importSource: "aliexpress" },
           { aliexpressProductId: { not: null } },
+        ],
+      },
+    }),
+    prisma.product.count({
+      where: {
+        supplierId,
+        OR: [
+          { importSource: "1688" },
+          { sourceUrl: { contains: "1688.com" } },
         ],
       },
     }),
@@ -108,6 +120,15 @@ export async function loadSupplyHubSnapshot(supplierId: string): Promise<SupplyH
         else if (autoBuyLinkCount === 0) hintKey = "aliexpressAutoBuy"
         break
       }
+      case "ALIBABA_1688":
+        uiStatus = oneboundConfigured
+          ? alibaba1688SkuCount > 0
+            ? "connected"
+            : "setup"
+          : "roadmap"
+        stats.linkedSkus = alibaba1688SkuCount
+        hintKey = oneboundConfigured ? "alibaba1688Import" : "alibaba1688Key"
+        break
       case "BLIND_REST":
         uiStatus = resolveBlindRestUiStatus({
           hasRestEndpoint: blindRestEndpoint,

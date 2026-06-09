@@ -12,8 +12,11 @@ export type SupplyCapabilityKey = "catalog" | "orders" | "negotiate" | "packagin
 
 export type SupplyCapabilityState = "live" | "beta" | "soon" | "off"
 
+/** Display-only channels without a Prisma enum value (no DB rows). */
+export type SupplyHubVirtualChannel = "ALIBABA_1688"
+
 export type SupplyHubChannelDef = {
-  channelType: SupplierChannelType
+  channelType: SupplierChannelType | SupplyHubVirtualChannel
   /** i18n key under supplierDashboard.supplyHub.channels.{key} */
   labelKey: string
   phase: 1 | 2 | 3
@@ -46,6 +49,18 @@ export const SUPPLY_HUB_CHANNEL_DEFS: SupplyHubChannelDef[] = [
       packaging: "soon",
     },
     href: "/dashboard/supplier/import",
+  },
+  {
+    channelType: "ALIBABA_1688",
+    labelKey: "alibaba1688",
+    phase: 1,
+    capabilities: {
+      catalog: "live",
+      orders: "off",
+      negotiate: "off",
+      packaging: "off",
+    },
+    href: "/dashboard/supplier/products/new",
   },
   {
     channelType: "BLIND_REST",
@@ -107,7 +122,7 @@ export const SUPPLY_HUB_CHANNEL_DEFS: SupplyHubChannelDef[] = [
 ]
 
 export type SupplyHubConnectorSnapshot = {
-  channelType: SupplierChannelType
+  channelType: SupplierChannelType | SupplyHubVirtualChannel
   labelKey: string
   uiStatus: SupplyConnectorUiStatus
   phase: 1 | 2 | 3

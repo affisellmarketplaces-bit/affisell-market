@@ -1276,7 +1276,9 @@
       "hints": {
         "aliexpressPlatform": "Clés Open Platform à configurer côté plateforme (import API).",
         "aliexpressAutoBuy": "Liez vos fiches et activez l’auto-buy par SKU.",
-        "factoryRest": "Connectez une API REST usine / grossiste (intégrations ou partenaire blind)."
+        "factoryRest": "Connectez une API REST usine / grossiste (intégrations ou partenaire blind).",
+        "alibaba1688Import": "Collez une URL detail.1688.com dans « Nouveau produit → Import depuis URL » — fiche préremplie en 1 clic (API OneBound).",
+        "alibaba1688Key": "Ajoutez ONEBOUND_KEY (env) pour activer l’import 1688 en 1 clic."
       },
       "channels": {
         "native": {
@@ -1284,6 +1286,9 @@
         },
         "aliexpress": {
           "name": "AliExpress"
+        },
+        "alibaba1688": {
+          "name": "1688 (Alibaba)"
         },
         "factory": {
           "name": "Usine / REST"

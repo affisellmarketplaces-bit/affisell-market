@@ -8,6 +8,7 @@ import {
   Package,
   ShoppingCart,
   Sparkles,
+  Warehouse,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
@@ -22,6 +23,7 @@ import { cn } from "@/lib/utils"
 const CHANNEL_ICONS: Record<string, LucideIcon> = {
   native: Package,
   aliexpress: ShoppingCart,
+  alibaba1688: Warehouse,
   factory: Factory,
   bigbuy: Box,
   cj: Layers,

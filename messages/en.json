@@ -1268,11 +1268,14 @@
       "hints": {
         "aliexpressPlatform": "Open Platform keys must be configured on the platform (API import).",
         "aliexpressAutoBuy": "Link listings and enable auto-buy per SKU.",
-        "factoryRest": "Connect a factory / wholesaler REST API (integrations or blind partner)."
+        "factoryRest": "Connect a factory / wholesaler REST API (integrations or blind partner).",
+        "alibaba1688Import": "Paste a detail.1688.com URL in “New product → Import from URL” — 1-click prefilled listing (OneBound API).",
+        "alibaba1688Key": "Add ONEBOUND_KEY (env) to enable 1-click 1688 import."
       },
       "channels": {
         "native": { "name": "Affisell stock" },
         "aliexpress": { "name": "AliExpress" },
+        "alibaba1688": { "name": "1688 (Alibaba)" },
         "factory": { "name": "Factory / REST" },
         "bigbuy": { "name": "BigBuy" },
         "cj": { "name": "CJ Dropshipping" },
