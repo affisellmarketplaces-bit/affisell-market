@@ -60,7 +60,8 @@ export const SUPPLY_HUB_CHANNEL_DEFS: SupplyHubChannelDef[] = [
       negotiate: "off",
       packaging: "off",
     },
-    href: "/dashboard/supplier/products/new",
+    // assist=1 affiche les panneaux d’import (dont « Import depuis URL » / 1688)
+    href: "/dashboard/supplier/products/new?assist=1&compose=1#add-product-shortcuts",
   },
   {
     channelType: "BLIND_REST",
