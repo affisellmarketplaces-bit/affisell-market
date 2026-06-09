@@ -56,7 +56,7 @@ export function AffiliateHero({ stats }: Props) {
           <span aria-hidden className="mx-2 text-zinc-300 dark:text-zinc-600">
             ·
           </span>
-          <span>Livraison 2-7j</span>
+          <span>Livraison rapide</span>
         </p>
       </div>
     </section>
