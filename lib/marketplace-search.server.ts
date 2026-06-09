@@ -3,6 +3,7 @@ import type { Prisma, PrismaClient } from "@prisma/client"
 import { listingDisplayTitle } from "@/lib/affiliate-listing-display"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import {
+  expandMarketplaceSearchTerms,
   rankListingSearchHits,
   type ListingSearchDocument,
   type MarketplaceSearchHit,
@@ -31,6 +32,7 @@ async function findSearchCandidateListingIds(
       INNER JOIN "Product" p ON ap."productId" = p.id
       INNER JOIN "User" u ON ap."affiliateId" = u.id
       LEFT JOIN "Store" s ON s."userId" = u.id
+      LEFT JOIN "Category" c ON p."categoryId" = c.id
       WHERE ap."isListed" = true
         AND u.role = 'AFFILIATE'
         AND s.id IS NOT NULL
@@ -42,6 +44,8 @@ async function findSearchCandidateListingIds(
           OR p.description % ${q}
           OR p.name ILIKE ${`%${q}%`}
           OR COALESCE(ap."customTitle", '') ILIKE ${`%${q}%`}
+          OR COALESCE(c."fullPath", '') ILIKE ${`%${q}%`}
+          OR COALESCE(c.name, '') ILIKE ${`%${q}%`}
         )
       ORDER BY GREATEST(
         similarity(p.name, ${q}),
@@ -53,6 +57,43 @@ async function findSearchCandidateListingIds(
   } catch {
     return null
   }
+}
+
+/** Prisma fallback — synonyms + category path (covers pg_trgm zero-hit cases). */
+async function findSearchCandidateListingIdsPrisma(
+  client: PrismaClient,
+  rawQuery: string
+): Promise<string[]> {
+  const q = rawQuery.trim()
+  if (q.length < 2) return []
+
+  const terms = [...new Set([q, ...expandMarketplaceSearchTerms(q)])]
+  const orClauses: Prisma.AffiliateProductWhereInput[] = []
+
+  for (const term of terms) {
+    if (term.length < 2) continue
+    orClauses.push(
+      { customTitle: { contains: term, mode: "insensitive" } },
+      { product: { name: { contains: term, mode: "insensitive" } } },
+      { product: { description: { contains: term, mode: "insensitive" } } },
+      { product: { category: { fullPath: { contains: term, mode: "insensitive" } } } },
+      { product: { category: { name: { contains: term, mode: "insensitive" } } } }
+    )
+  }
+
+  if (orClauses.length === 0) return []
+
+  const rows = await client.affiliateProduct.findMany({
+    where: { ...listedWithStoreWhere, OR: orClauses },
+    select: { id: true },
+    take: SEARCH_CANDIDATE_TAKE,
+  })
+  return rows.map((r) => r.id)
+}
+
+function mergeCandidateListingIds(pgIds: string[] | null, prismaIds: string[]): string[] {
+  if (pgIds === null) return [...new Set(prismaIds)]
+  return [...new Set([...pgIds, ...prismaIds])]
 }
 
 async function loadListingSearchDocuments(
@@ -109,23 +150,10 @@ export async function searchMarketplaceListingHits(
   const client = options?.client ?? prisma
   if (q.length < 2) return []
 
-  let candidateIds = await findSearchCandidateListingIds(client, q)
-
-  if (candidateIds === null) {
-    const fallback = await client.affiliateProduct.findMany({
-      where: {
-        ...listedWithStoreWhere,
-        OR: [
-          { customTitle: { contains: q, mode: "insensitive" } },
-          { product: { name: { contains: q, mode: "insensitive" } } },
-          { product: { description: { contains: q, mode: "insensitive" } } },
-        ],
-      },
-      select: { id: true },
-      take: SEARCH_CANDIDATE_TAKE,
-    })
-    candidateIds = fallback.map((r) => r.id)
-  }
+  let candidateIds = mergeCandidateListingIds(
+    await findSearchCandidateListingIds(client, q),
+    await findSearchCandidateListingIdsPrisma(client, q)
+  )
 
   if (candidateIds.length === 0) return []
 

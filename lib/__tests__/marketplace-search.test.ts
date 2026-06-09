@@ -54,4 +54,39 @@ describe("marketplace-search", () => {
     )
     expect(score).toBeGreaterThan(15)
   })
+
+  it("scores meuble query on Meubles category path", () => {
+    const score = scoreListingSearchMatch(
+      {
+        listingId: "commode",
+        title: "Commode 3 tiroirs chêne",
+        description: "",
+        categoryPath: "Maison et jardin > Meubles",
+        isFeatured: false,
+        conversions: 0,
+        clicks: 0,
+      },
+      "meuble"
+    )
+    expect(score).toBeGreaterThanOrEqual(6)
+  })
+
+  it("ranks meuble search via category path when title has no keyword", () => {
+    const hits = rankListingSearchHits(
+      [
+        {
+          listingId: "furniture",
+          title: "Commode 3 tiroirs chêne",
+          description: "",
+          categoryPath: "Maison et jardin > Meubles",
+          isFeatured: false,
+          conversions: 0,
+          clicks: 0,
+        },
+      ],
+      "meuble",
+      5
+    )
+    expect(hits[0]?.listingId).toBe("furniture")
+  })
 })
