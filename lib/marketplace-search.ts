@@ -111,14 +111,34 @@ export function scoreListingSearchMatch(doc: ListingSearchDocument, rawQuery: st
 export function rankListingSearchHits(
   docs: ListingSearchDocument[],
   rawQuery: string,
-  limit: number
+  limit: number,
+  extraTerms: string[] = []
 ): MarketplaceSearchHit[] {
   const minScore = 6
   const scored = docs
-    .map((doc) => ({
-      listingId: doc.listingId,
-      score: scoreListingSearchMatch(doc, rawQuery),
-    }))
+    .map((doc) => {
+      let score = scoreListingSearchMatch(doc, rawQuery)
+      // Cross-language rescue: taxonomy bridge terms (e.g. stylo → Pens)
+      // count as matches without diluting the main coverage score.
+      if (score < minScore && extraTerms.length > 0) {
+        const blob = `${doc.title} ${doc.description} ${doc.categoryPath}`
+        let matchedExtra = 0
+        let extraTitleHits = 0
+        for (const term of extraTerms) {
+          if (termInText(term, blob)) matchedExtra += 1
+          if (termInText(term, doc.title)) extraTitleHits += 1
+        }
+        if (matchedExtra > 0) {
+          score =
+            minScore +
+            matchedExtra * 2 +
+            extraTitleHits * 6 +
+            (doc.isFeatured ? 4 : 0) +
+            Math.min(doc.conversions, 200) * 0.1
+        }
+      }
+      return { listingId: doc.listingId, score }
+    })
     .filter((h) => h.score >= minScore)
     .sort((a, b) => b.score - a.score)
 

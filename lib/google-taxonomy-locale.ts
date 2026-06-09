@@ -98,6 +98,11 @@ function loadFullPathMap(locale: AppLocale): Map<number, string> {
   }
 }
 
+/** Read-only leaf-name map (googleId → localized name) for search term bridging. */
+export function googleTaxonomyNameMap(locale: AppLocale): ReadonlyMap<number, string> {
+  return loadNameMap(locale)
+}
+
 /** Static EN taxonomy fallback — match leaf name against Google EN taxonomy. */
 export function localizeEnglishLeafName(englishName: string, locale: AppLocale): string {
   if (locale === "en") return englishName

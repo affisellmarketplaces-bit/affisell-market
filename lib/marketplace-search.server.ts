@@ -8,6 +8,7 @@ import {
   type ListingSearchDocument,
   type MarketplaceSearchHit,
 } from "@/lib/marketplace-search"
+import { taxonomyBridgeTerms } from "@/lib/marketplace-search-taxonomy.server"
 import { prisma, withPrismaReconnect } from "@/lib/prisma"
 
 const listedWithStoreWhere: Prisma.AffiliateProductWhereInput = {
@@ -59,15 +60,16 @@ async function findSearchCandidateListingIds(
   }
 }
 
-/** Prisma fallback — synonyms + category path (covers pg_trgm zero-hit cases). */
+/** Prisma fallback — synonyms + taxonomy bridge + category path (covers pg_trgm zero-hit cases). */
 async function findSearchCandidateListingIdsPrisma(
   client: PrismaClient,
-  rawQuery: string
+  rawQuery: string,
+  bridgeTerms: string[] = []
 ): Promise<string[]> {
   const q = rawQuery.trim()
   if (q.length < 2) return []
 
-  const terms = [...new Set([q, ...expandMarketplaceSearchTerms(q)])]
+  const terms = [...new Set([q, ...expandMarketplaceSearchTerms(q), ...bridgeTerms])]
   const orClauses: Prisma.AffiliateProductWhereInput[] = []
 
   for (const term of terms) {
@@ -150,9 +152,11 @@ export async function searchMarketplaceListingHits(
   const client = options?.client ?? prisma
   if (q.length < 2) return []
 
-  let candidateIds = mergeCandidateListingIds(
+  const bridgeTerms = taxonomyBridgeTerms(q)
+
+  const candidateIds = mergeCandidateListingIds(
     await findSearchCandidateListingIds(client, q),
-    await findSearchCandidateListingIdsPrisma(client, q)
+    await findSearchCandidateListingIdsPrisma(client, q, bridgeTerms)
   )
 
   if (candidateIds.length === 0) return []
@@ -176,11 +180,25 @@ export async function searchMarketplaceListingHits(
     docs = docs.filter((d) => allowedListingIds.has(d.listingId))
   }
 
-  const hits = rankListingSearchHits(docs, q, limit)
+  let hits = rankListingSearchHits(docs, q, limit, bridgeTerms)
+
+  // Last resort: SQL matched candidates but scoring rejected all of them
+  // (loose trigram matches, language mismatch). Showing the closest
+  // candidates beats an empty grid — SQL already ordered them by similarity.
+  if (hits.length === 0 && docs.length > 0 && q.length >= 3) {
+    const docOrder = new Map(candidateIds.map((id, i) => [id, i]))
+    hits = docs
+      .slice()
+      .sort((a, b) => (docOrder.get(a.listingId) ?? 999) - (docOrder.get(b.listingId) ?? 999))
+      .slice(0, Math.min(limit, 12))
+      .map((doc, i) => ({ listingId: doc.listingId, score: 1 - i * 0.01 }))
+  }
+
   console.log("[marketplace-search]", {
     q: q.slice(0, 48),
     candidates: candidateIds.length,
     hits: hits.length,
+    bridgeTerms: bridgeTerms.length,
     scopeCategoryId: scopeId ?? null,
   })
   return hits
