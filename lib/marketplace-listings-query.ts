@@ -15,7 +15,8 @@ import {
 } from "@/lib/product-warranty"
 import { parseDeptFacetValue } from "@/lib/marketplace-discovery-facets-shared"
 import { parsePriceFacet } from "@/lib/marketplace-discovery-facets"
-import { searchMarketplaceListingHits, orderByListingSearchHits } from "@/lib/marketplace-search.server"
+import type { MarketplaceSearchHit } from "@/lib/marketplace-search"
+import { orderByListingSearchHits, searchMarketplaceListingHits } from "@/lib/marketplace-search.server"
 import { prisma } from "@/lib/prisma"
 import { normalizeListingSalesCount } from "@/lib/listing-sales-count"
 import { publicStoreLabelFromAffiliateRow } from "@/lib/public-seller-display"
@@ -155,8 +156,20 @@ export function serializeMarketplaceListing(
   }
 }
 
+function resolveSearchScopeCategoryId(searchParams: URLSearchParams): string | null {
+  const deptRaw = searchParams.get("dept")
+  return (
+    searchParams.get("categoryId") ??
+    searchParams.get("category") ??
+    searchParams.get("subcategoryId") ??
+    searchParams.get("subcategory") ??
+    (deptRaw ? parseDeptFacetValue(deptRaw) : null)
+  )
+}
+
 export async function buildMarketplaceAffiliateWhereFromUrl(
-  searchParams: URLSearchParams
+  searchParams: URLSearchParams,
+  options?: { searchHits?: MarketplaceSearchHit[] }
 ): Promise<Prisma.AffiliateProductWhereInput> {
   const deptRaw = searchParams.get("dept")
   const categoryId =
@@ -192,10 +205,12 @@ export async function buildMarketplaceAffiliateWhereFromUrl(
   ]
 
   if (q.length >= 2) {
-    const hits = await searchMarketplaceListingHits(q, {
-      scopeCategoryId: scopeRootId,
-      limit: 200,
-    })
+    const hits =
+      options?.searchHits ??
+      (await searchMarketplaceListingHits(q, {
+        scopeCategoryId: scopeRootId,
+        limit: 200,
+      }))
     const ids = hits.map((h) => h.listingId)
     if (ids.length > 0) {
       andParts.push({ id: { in: ids } })
@@ -220,25 +235,20 @@ export async function fetchMarketplaceListings(
   take = 120,
   options?: { lite?: boolean }
 ) {
-  const where = await buildMarketplaceAffiliateWhereFromUrl(searchParams)
   const orderMode = await marketplaceListingOrderFromUrl(searchParams)
   const q = (searchParams.get("q") ?? "").trim()
   const lite = options?.lite === true
+  const scopeCategoryId = resolveSearchScopeCategoryId(searchParams)
 
-  let searchHits: Awaited<ReturnType<typeof searchMarketplaceListingHits>> = []
+  let searchHits: MarketplaceSearchHit[] = []
   if (orderMode === "search" && q.length >= 2) {
-    const deptParam = searchParams.get("dept")
-    const categoryId =
-      searchParams.get("categoryId") ??
-      searchParams.get("category") ??
-      searchParams.get("subcategoryId") ??
-      searchParams.get("subcategory") ??
-      (deptParam ? parseDeptFacetValue(deptParam) : null)
     searchHits = await searchMarketplaceListingHits(q, {
-      scopeCategoryId: categoryId,
+      scopeCategoryId,
       limit: Math.max(take, 200),
     })
   }
+
+  const where = await buildMarketplaceAffiliateWhereFromUrl(searchParams, { searchHits })
 
   const defaultOrder: Prisma.AffiliateProductOrderByWithRelationInput[] = [
     { isFeatured: "desc" },

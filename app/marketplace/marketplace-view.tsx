@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo } from "react"
 
 import Link from "next/link"
 import { Search, X } from "lucide-react"
@@ -44,6 +44,21 @@ type CategoryNode = {
 }
 
 const categoryFetcher = (url: string) => fetch(url).then((r) => r.json())
+
+type CatalogApiResponse = {
+  products?: unknown
+  dbUnavailable?: boolean
+  error?: string
+}
+
+async function catalogFetcher(url: string): Promise<CatalogApiResponse> {
+  const response = await fetch(url)
+  const data = (await response.json()) as CatalogApiResponse
+  if (!response.ok && !data.dbUnavailable) {
+    throw new Error(data.error ?? "Could not load listings")
+  }
+  return data
+}
 
 function normalizeProducts(raw: unknown): ProductRow[] {
   const list: unknown = Array.isArray(raw)
@@ -118,11 +133,46 @@ export function MarketplaceView({
   const subcategoryId = searchParams.get("subcategory")
   const searchQuery = searchParams.get("q") ?? ""
 
-  const [products, setProducts] = useState<ProductRow[]>(() =>
-    initialBrowse ? normalizeProducts(initialBrowse.products) : []
+  const productsApiUrl = useMemo(() => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (embedded && isCustomerBrowse) params.set("lite", "1")
+    const qs = params.toString()
+    if (qs) return `/api/marketplace/products?${qs}`
+    if (embedded && isCustomerBrowse) return "/api/marketplace/products?lite=1"
+    return "/api/marketplace/products"
+  }, [searchParams, embedded, isCustomerBrowse])
+
+  const useInitialFallback = Boolean(
+    initialBrowse && embedded && isCustomerBrowse && searchParams.toString() === ""
   )
-  const [loading, setLoading] = useState(() => !initialBrowse)
-  const [dbUnavailable, setDbUnavailable] = useState<string | null>(null)
+
+  const { data: catalogData, error: catalogError, isLoading, isValidating } = useSWR<CatalogApiResponse>(
+    productsApiUrl,
+    catalogFetcher,
+    {
+      keepPreviousData: true,
+      revalidateOnFocus: false,
+      dedupingInterval: 3_000,
+      revalidateOnMount: !useInitialFallback,
+      fallbackData: useInitialFallback ? { products: initialBrowse!.products } : undefined,
+    }
+  )
+
+  const products = useMemo(
+    () => normalizeProducts(catalogData?.products ?? (useInitialFallback ? initialBrowse?.products : [])),
+    [catalogData?.products, useInitialFallback, initialBrowse?.products]
+  )
+
+  const loading = isLoading && products.length === 0
+  const refreshing = isValidating && products.length > 0
+  const dbUnavailable =
+    catalogData?.dbUnavailable && catalogData.error
+      ? catalogData.error
+      : catalogError instanceof Error
+        ? catalogError.message
+        : catalogError
+          ? "Could not load listings"
+          : null
 
   const attributeFilterKeys = useMemo(() => {
     const keys: string[] = []
@@ -131,38 +181,6 @@ export function MarketplaceView({
     }
     return keys
   }, [searchParams])
-
-  useEffect(() => {
-    const qs = searchParams.toString()
-    if (initialBrowse && qs === "") {
-      setProducts(normalizeProducts(initialBrowse.products))
-      setLoading(false)
-      setDbUnavailable(null)
-      return
-    }
-    setLoading(true)
-    setDbUnavailable(null)
-    const url = qs ? `/api/marketplace/products?${qs}` : `/api/marketplace/products`
-
-    const controller = new AbortController()
-    fetch(url, { signal: controller.signal })
-      .then(async (r) => {
-        const data = (await r.json()) as {
-          products?: unknown
-          dbUnavailable?: boolean
-          error?: string
-        }
-        setProducts(normalizeProducts(data))
-        if (data.dbUnavailable && data.error) setDbUnavailable(data.error)
-        else if (!r.ok) setDbUnavailable(data.error ?? "Could not load listings")
-      })
-      .catch(() => {
-        setProducts([])
-        setDbUnavailable("Could not load listings")
-      })
-      .finally(() => setLoading(false))
-    return () => controller.abort()
-  }, [searchParams, initialBrowse])
 
   const handleCategoryClick = (nodeId: string) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -245,8 +263,8 @@ export function MarketplaceView({
     const el = document.getElementById("explorer")
     if (!el) return
     const tId = window.setTimeout(() => {
-      el.scrollIntoView({ behavior: "smooth", block: "start" })
-    }, 80)
+      el.scrollIntoView({ behavior: "auto", block: "start" })
+    }, 0)
     return () => window.clearTimeout(tId)
   }, [embedded, categoryId, subcategoryId, searchQuery])
 
@@ -564,18 +582,30 @@ export function MarketplaceView({
                 )}
               </div>
             ) : (
-              <p className="mb-4 hidden text-sm text-zinc-600 dark:text-zinc-400 md:block">
-                <strong className="font-semibold text-zinc-900 dark:text-zinc-100">
-                  {t("listingCount", { count: products.length })}
-                </strong>
-                {searchQuery.trim() ? t("listingCountForQuery", { query: searchQuery.trim() }) : null}
-                {hasFilters && !searchQuery.trim() ? (
-                  <span className="text-zinc-500 dark:text-zinc-400"> · {activeFilterLabel}</span>
+              <div className="mb-4 hidden items-center gap-3 md:flex">
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  <strong className="font-semibold text-zinc-900 dark:text-zinc-100">
+                    {t("listingCount", { count: products.length })}
+                  </strong>
+                  {searchQuery.trim() ? t("listingCountForQuery", { query: searchQuery.trim() }) : null}
+                  {hasFilters && !searchQuery.trim() ? (
+                    <span className="text-zinc-500 dark:text-zinc-400"> · {activeFilterLabel}</span>
+                  ) : null}
+                </p>
+                {refreshing ? (
+                  <span className="text-xs font-medium text-violet-600 dark:text-violet-300" aria-live="polite">
+                    …
+                  </span>
                 ) : null}
-              </p>
+              </div>
             )}
-            {!loading && products.length > 0 ? (
-              <ul className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
+            {products.length > 0 ? (
+              <ul
+                className={cn(
+                  "grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4",
+                  refreshing && "opacity-75 transition-opacity duration-150"
+                )}
+              >
                 {products.map((product) => (
                   <li key={String(product.listingId ?? product.id)} className="flex h-full">
                     <ProductCard product={product} mode={productCardMode} />

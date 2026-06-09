@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 
 import { fetchMarketplaceListings } from "@/lib/marketplace-listings-query"
+import { resolveMarketplaceProductsFetchOptions } from "@/lib/marketplace-products-request"
 import { dbUnavailablePayload } from "@/lib/prisma-db-error"
 import { withPrismaReconnect } from "@/lib/prisma"
 
@@ -9,16 +10,17 @@ export const runtime = "nodejs"
 export const revalidate = 60
 
 export async function GET(request: NextRequest) {
-  const hasFilters = request.nextUrl.search.length > 0
+  const searchParams = request.nextUrl.searchParams
+  const { lite, take, hasFilters } = resolveMarketplaceProductsFetchOptions(searchParams)
   try {
     const products = await withPrismaReconnect(() =>
-      fetchMarketplaceListings(request.nextUrl.searchParams)
+      fetchMarketplaceListings(searchParams, take, { lite })
     )
     return NextResponse.json(
       { products },
       {
         headers: hasFilters
-          ? { "Cache-Control": "private, no-store" }
+          ? { "Cache-Control": "private, max-age=15, stale-while-revalidate=60" }
           : { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=180" },
       }
     )

@@ -18,9 +18,5 @@ export function navigateBuyerHomeCatalog(
   const href = marketplaceCatalogHref("/", params)
   router.push(href)
   if (options?.scrollToExplorer === false) return
-  window.requestAnimationFrame(() => {
-    window.setTimeout(() => {
-      document.getElementById("explorer")?.scrollIntoView({ behavior: "smooth", block: "start" })
-    }, 100)
-  })
+  document.getElementById("explorer")?.scrollIntoView({ behavior: "auto", block: "start" })
 }
