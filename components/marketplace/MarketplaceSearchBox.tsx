@@ -92,6 +92,13 @@ export function MarketplaceSearchBox({ basePath = "/shops/browse", className }: 
     else params.delete("q")
     setOpen(false)
     router.push(marketplaceCatalogHref(basePath, params))
+    if (basePath === "/") {
+      window.requestAnimationFrame(() => {
+        window.setTimeout(() => {
+          document.getElementById("explorer")?.scrollIntoView({ behavior: "smooth", block: "start" })
+        }, 100)
+      })
+    }
   }
 
   return (

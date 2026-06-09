@@ -5,6 +5,8 @@ import { useTranslations } from "next-intl"
 import { Search } from "lucide-react"
 import { type FormEvent, useState } from "react"
 
+import { navigateBuyerHomeCatalog } from "@/lib/marketplace-catalog-nav.client"
+
 export function BuyerHeroSearch() {
   const t = useTranslations("home.hero")
   const router = useRouter()
@@ -13,10 +15,7 @@ export function BuyerHeroSearch() {
   function onSubmit(e: FormEvent) {
     e.preventDefault()
     const trimmed = q.trim()
-    const base = "/marketplace"
-    router.push(
-      trimmed ? `${base}?q=${encodeURIComponent(trimmed)}` : base
-    )
+    navigateBuyerHomeCatalog(router, trimmed ? { q: trimmed } : undefined)
   }
 
   return (
@@ -27,7 +26,9 @@ export function BuyerHeroSearch() {
       <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-400" aria-hidden />
       <input
         id="buyer-hero-search"
+        name="q"
         type="search"
+        enterKeyHint="search"
         value={q}
         onChange={(e) => setQ(e.target.value)}
         placeholder={t("searchPlaceholder")}

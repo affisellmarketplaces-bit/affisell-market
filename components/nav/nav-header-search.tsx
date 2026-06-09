@@ -5,7 +5,8 @@ import { Search } from "lucide-react"
 import { useTranslations } from "next-intl"
 import type { FormEvent } from "react"
 
-import { AFFILIATE_CATALOG_PATH, PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
+import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
+import { navigateBuyerHomeCatalog } from "@/lib/marketplace-catalog-nav.client"
 
 type Props = {
   id: string
@@ -26,25 +27,6 @@ export function NavHeaderSearch({
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
-  const browseBase =
-    searchTarget === "catalog"
-      ? AFFILIATE_CATALOG_PATH
-      : searchTarget === "shops"
-        ? "/shops"
-        : PUBLIC_MARKETPLACE_BROWSE_PATH
-
-  function pushWithQuery(base: string, q: string, hash?: string) {
-    const params =
-      base === "/" && pathname === "/"
-        ? new URLSearchParams(searchParams.toString())
-        : new URLSearchParams()
-    if (q) params.set("q", q)
-    else params.delete("q")
-    const qs = params.toString()
-    const url = `${base}${qs ? `?${qs}` : ""}${hash ?? ""}`
-    router.push(url)
-  }
-
   function onSubmit(ev: FormEvent<HTMLFormElement>) {
     ev.preventDefault()
     const fd = new FormData(ev.currentTarget)
@@ -54,15 +36,25 @@ export function NavHeaderSearch({
       return
     }
     if (searchTarget === "catalog") {
-      pushWithQuery(AFFILIATE_CATALOG_PATH, q)
+      const params =
+        pathname === AFFILIATE_CATALOG_PATH || pathname.startsWith(`${AFFILIATE_CATALOG_PATH}/`)
+          ? new URLSearchParams(searchParams.toString())
+          : new URLSearchParams()
+      if (q) params.set("q", q)
+      else params.delete("q")
+      const qs = params.toString()
+      router.push(qs ? `${AFFILIATE_CATALOG_PATH}?${qs}` : AFFILIATE_CATALOG_PATH)
       return
     }
-    pushWithQuery(PUBLIC_MARKETPLACE_BROWSE_PATH, q)
+    const params =
+      pathname === "/" ? new URLSearchParams(searchParams.toString()) : new URLSearchParams()
+    if (q) params.set("q", q)
+    else params.delete("q")
+    navigateBuyerHomeCatalog(router, params)
   }
 
   const defaultQ =
-    searchTarget === "marketplace" &&
-      (pathname === "/" || pathname === PUBLIC_MARKETPLACE_BROWSE_PATH)
+    searchTarget === "marketplace" && pathname === "/"
       ? (searchParams.get("q") ?? "")
       : searchTarget === "catalog" &&
           (pathname === AFFILIATE_CATALOG_PATH || pathname.startsWith(`${AFFILIATE_CATALOG_PATH}/`))
@@ -80,7 +72,9 @@ export function NavHeaderSearch({
           id={id}
           name="q"
           type="search"
+          enterKeyHint="search"
           defaultValue={defaultQ}
+          key={defaultQ}
           placeholder={resolvedPlaceholder}
           autoComplete="off"
           className="h-10 w-full min-w-0 rounded-full border-0 bg-transparent py-2 pl-9 pr-2 text-zinc-900 shadow-none outline-none placeholder:text-zinc-400 focus:ring-0 dark:text-zinc-100"

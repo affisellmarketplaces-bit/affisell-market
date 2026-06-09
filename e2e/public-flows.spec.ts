@@ -55,6 +55,23 @@ test.describe("public flows", () => {
     await expect(page.locator("#explorer")).toBeVisible({ timeout: 30_000 })
   })
 
+  test("legacy /marketplace?q= keeps search on guest redirect", async ({ page }) => {
+    await page.goto("/marketplace?q=chaussures")
+    await expect(page).toHaveURL(/\?q=chaussures/)
+    await expect(page).toHaveURL(/#explorer/)
+  })
+
+  test("hero search navigates to home explorer with query", async ({ page }) => {
+    await page.goto("/")
+    const heroSearch = page.locator("#buyer-hero-search")
+    await expect(heroSearch).toBeVisible()
+    await heroSearch.fill("chaussures")
+    await page.locator("form:has(#buyer-hero-search) button[type='submit']").click()
+    await expect(page).toHaveURL(/\?q=chaussures/)
+    await expect(page).toHaveURL(/#explorer/)
+    await expect(page.locator("#explorer")).toBeVisible({ timeout: 30_000 })
+  })
+
   test("GET /home redirects to home", async ({ request }) => {
     const res = await request.get("/home", { maxRedirects: 0 })
     expect([301, 302, 307, 308]).toContain(res.status())

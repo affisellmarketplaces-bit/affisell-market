@@ -5,16 +5,14 @@ import { Search } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { type FormEvent, useState } from "react"
 
-import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
+import { navigateBuyerHomeCatalog } from "@/lib/marketplace-catalog-nav.client"
 import { cn } from "@/lib/utils"
 
 type Props = {
   className?: string
-  /** Defaults to public buyer browse. */
-  catalogPath?: string
 }
 
-export function HeroSearchBar({ className, catalogPath = PUBLIC_MARKETPLACE_BROWSE_PATH }: Props) {
+export function HeroSearchBar({ className }: Props) {
   const t = useTranslations("home.hero")
   const router = useRouter()
   const [q, setQ] = useState("")
@@ -22,12 +20,7 @@ export function HeroSearchBar({ className, catalogPath = PUBLIC_MARKETPLACE_BROW
   function onSubmit(e: FormEvent) {
     e.preventDefault()
     const trimmed = q.trim()
-    const hash = catalogPath === "/" ? "#explorer" : ""
-    router.push(
-      trimmed
-        ? `${catalogPath}?q=${encodeURIComponent(trimmed)}${hash}`
-        : `${catalogPath}${hash}`
-    )
+    navigateBuyerHomeCatalog(router, trimmed ? { q: trimmed } : undefined)
   }
 
   return (
@@ -42,6 +35,8 @@ export function HeroSearchBar({ className, catalogPath = PUBLIC_MARKETPLACE_BROW
       <input
         id="home-hero-search"
         type="search"
+        name="q"
+        enterKeyHint="search"
         value={q}
         onChange={(e) => setQ(e.target.value)}
         placeholder={t("searchPlaceholder")}

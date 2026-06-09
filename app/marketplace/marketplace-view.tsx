@@ -241,14 +241,14 @@ export function MarketplaceView({
 
   useEffect(() => {
     if (!embedded) return
-    if (!categoryId && !subcategoryId) return
+    if (!categoryId && !subcategoryId && !searchQuery.trim()) return
     const el = document.getElementById("explorer")
     if (!el) return
     const tId = window.setTimeout(() => {
       el.scrollIntoView({ behavior: "smooth", block: "start" })
     }, 80)
     return () => window.clearTimeout(tId)
-  }, [embedded, categoryId, subcategoryId])
+  }, [embedded, categoryId, subcategoryId, searchQuery])
 
   const Shell = embedded ? "section" : "main"
 
@@ -310,7 +310,11 @@ export function MarketplaceView({
                 if (localQ) next.set("q", localQ)
                 else next.delete("q")
                 const s = next.toString()
-                router.push(`${basePath}${s ? `?${s}` : ""}`)
+                router.push(
+                  basePath === "/"
+                    ? marketplaceCatalogHref("/", next)
+                    : `${basePath}${s ? `?${s}` : ""}`
+                )
               }}
             >
               <label htmlFor="marketplace-local-search" className="sr-only">
