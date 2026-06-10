@@ -31,7 +31,7 @@ const COPY = {
     submitting: "Envoi…",
     successTitle: "Candidature reçue",
     successBody:
-      "Notre équipe examine votre profil sous 48 h. Vous recevrez un e-mail à l'adresse indiquée.",
+      "Notre équipe examine votre profil sous 48 h. Une fois validé, connectez-vous sur /login/agent (mot de passe via « Mot de passe oublié » la première fois).",
     successDeduped: "Votre candidature est déjà en cours d'examen.",
     errorGeneric: "Impossible d'envoyer — vérifiez les champs et réessayez.",
     errorActive: "Cet e-mail est déjà associé à un agent actif du réseau.",

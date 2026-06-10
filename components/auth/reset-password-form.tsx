@@ -15,13 +15,19 @@ type Props = {
 
 function parsePortal(raw: string | null): LoginPortal | null {
   const v = raw?.trim().toUpperCase()
-  if (v === "AFFILIATE" || v === "SUPPLIER") return v
+  if (v === "AFFILIATE" || v === "SUPPLIER" || v === "AGENT") return v
   return null
 }
 
 function loginHref(portal: LoginPortal | null, resetOk: boolean): string {
   const base =
-    portal === "AFFILIATE" ? "/login/affiliate" : portal === "SUPPLIER" ? "/login/supplier" : "/login"
+    portal === "AFFILIATE"
+      ? "/login/affiliate"
+      : portal === "SUPPLIER"
+        ? "/login/supplier"
+        : portal === "AGENT"
+          ? "/login/agent"
+          : "/login"
   return resetOk ? `${base}?reset=1` : base
 }
 

@@ -456,6 +456,7 @@
         "affiliate_on_supplier_portal": "Connexion refusée : ce compte est ambassadeur. Utilisez la connexion ambassadeur, pas l’espace fournisseur.",
         "non_affiliate_on_affiliate_portal": "Connexion refusée : seuls les comptes ambassadeur sont autorisés pour cette destination.",
         "non_supplier_on_supplier_portal": "Connexion refusée : seuls les comptes fournisseur sont autorisés pour cette destination.",
+        "non_agent_on_agent_portal": "Connexion refusée : seuls les comptes agent Affisell sont autorisés pour cette destination.",
         "email_required_not_id": "Connexion refusée : saisissez votre adresse e-mail (pas un identifiant interne / ID)."
       }
     }

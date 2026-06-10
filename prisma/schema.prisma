@@ -74,6 +74,9 @@ model User {
   sessions              Session[]
   passwordResetTokens   PasswordResetToken[]
 
+  /** Agent Network — lien 1:1 quand candidature validée (role AGENT). */
+  sourcingAgent        SourcingAgent?
+
   products             Product[]          @relation("SupplierProducts")
   affiliateProducts    AffiliateProduct[]
   supplierOrders       Order[]            @relation("SupplierOrders")
@@ -2236,6 +2239,9 @@ model SourcingAgent {
   /** Motivation / expérience (candidature publique). */
   applicationNote String?         @db.Text
   contactPhone  String?
+  /** Compte User (role AGENT) créé à l'activation admin. */
+  userId        String?           @unique
+  user          User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @default(now()) @updatedAt
 

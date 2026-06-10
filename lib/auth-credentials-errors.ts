@@ -25,6 +25,11 @@ export class NonCustomerOnCustomerPortal extends CredentialsSignin {
   code = "non_customer_on_customer_portal"
 }
 
+/** Non-AGENT role on agent-only login target. */
+export class NonAgentOnAgentPortal extends CredentialsSignin {
+  code = "non_agent_on_agent_portal"
+}
+
 export class EmailIdentifierRequired extends CredentialsSignin {
   code = "email_required_not_id"
 }

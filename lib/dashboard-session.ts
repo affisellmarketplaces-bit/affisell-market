@@ -1,7 +1,12 @@
 import { redirect } from "next/navigation"
 
 import { safeAuth } from "@/lib/safe-auth"
-import { loginAffiliatePath, loginSelectorPath, loginSupplierPath } from "@/lib/login-redirect"
+import {
+  loginAffiliatePath,
+  loginAgentPath,
+  loginSelectorPath,
+  loginSupplierPath,
+} from "@/lib/login-redirect"
 
 type AuthSession = NonNullable<Awaited<ReturnType<typeof safeAuth>>>
 
@@ -25,6 +30,17 @@ export async function requireSupplierSession(callbackPath?: string): Promise<Aut
     redirect(loginSupplierPath(callbackPath))
   }
   if (session.user.role !== "SUPPLIER") {
+    redirect("/dashboard")
+  }
+  return session
+}
+
+export async function requireAgentSession(callbackPath?: string): Promise<AuthSession> {
+  const session = await safeAuth()
+  if (!session?.user?.id) {
+    redirect(loginAgentPath(callbackPath))
+  }
+  if (session.user.role !== "AGENT") {
     redirect("/dashboard")
   }
   return session

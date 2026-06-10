@@ -48,10 +48,20 @@ export function AdminAgentApplications({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action }),
       })
-      const json = (await res.json().catch(() => null)) as { error?: string } | null
+      const json = (await res.json().catch(() => null)) as {
+        error?: string
+        provision?: { loginUrl: string; created: boolean } | null
+      } | null
       if (!res.ok) {
         setError(json?.error ?? `Erreur ${res.status}`)
         return
+      }
+      if (action === "activate" && json?.provision) {
+        window.alert(
+          json.provision.created
+            ? "Agent activé — compte créé. L'agent définit son mot de passe via « Mot de passe oublié » sur /login/agent."
+            : "Agent activé — compte lié. Connexion : /login/agent"
+        )
       }
       startTransition(() => router.refresh())
     } catch {

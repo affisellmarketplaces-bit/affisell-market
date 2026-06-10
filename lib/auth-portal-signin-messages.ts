@@ -4,6 +4,7 @@ const AUTH_ERROR_KEYS = [
   "non_affiliate_on_affiliate_portal",
   "non_supplier_on_supplier_portal",
   "non_customer_on_customer_portal",
+  "non_agent_on_agent_portal",
   "email_required_not_id",
   "invalid_password",
   "account_not_found",
@@ -58,6 +59,7 @@ export function credentialsSignInErrorMessage(
     case "affiliate_on_supplier_portal":
     case "non_affiliate_on_affiliate_portal":
     case "non_supplier_on_supplier_portal":
+    case "non_agent_on_agent_portal":
     case "email_required_not_id":
       return translate(`portal.errors.${errKey}`)
     case "invalid_password":

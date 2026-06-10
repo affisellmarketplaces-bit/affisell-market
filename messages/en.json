@@ -456,6 +456,7 @@
         "affiliate_on_supplier_portal": "Sign-in denied: this is an affiliate account. Use the affiliate login, not supplier.",
         "non_affiliate_on_affiliate_portal": "Sign-in denied: only affiliate accounts are allowed here.",
         "non_supplier_on_supplier_portal": "Sign-in denied: only supplier accounts are allowed here.",
+        "non_agent_on_agent_portal": "Sign-in denied: only Affisell agent accounts are allowed here.",
         "email_required_not_id": "Sign-in denied: enter your email address (not an internal ID)."
       }
     }

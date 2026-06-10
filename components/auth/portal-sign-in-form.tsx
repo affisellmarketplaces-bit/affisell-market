@@ -59,6 +59,7 @@ export function PortalSignInForm({
   const signInCallback = useMemo(() => {
     if (portal === "AFFILIATE") return resolvedCallback || "/dashboard/affiliate"
     if (portal === "SUPPLIER") return resolvedCallback || "/dashboard/supplier"
+    if (portal === "AGENT") return resolvedCallback || "/dashboard/agent"
     return resolvedCallback
   }, [portal, resolvedCallback])
 

@@ -23,7 +23,11 @@ export default function AgentApplyPage() {
           <AgentApplyForm locale="fr" />
         </div>
         <p className="mt-6 text-center text-xs text-zinc-500">
-          Déjà agent actif ?{" "}
+          Déjà validé ?{" "}
+          <Link href="/login/agent" className="font-medium text-cyan-700 hover:underline dark:text-cyan-400">
+            Connexion espace agent
+          </Link>
+          {" · "}
           <a href="mailto:agents@affisell.com" className="text-cyan-700 hover:underline dark:text-cyan-400">
             agents@affisell.com
           </a>

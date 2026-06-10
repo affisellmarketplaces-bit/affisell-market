@@ -6,6 +6,19 @@ import { auth } from "@/auth"
 const f = createUploadthing()
 
 export const ourFileRouter = {
+  agentMissionProof: f({
+    image: { maxFileSize: "8MB", maxFileCount: 12 },
+  })
+    .middleware(async () => {
+      const session = await auth()
+      if (!session?.user?.id || session.user.role !== "AGENT") {
+        throw new UploadThingError("Unauthorized")
+      }
+      return { userId: session.user.id }
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      return { uploadedBy: metadata.userId, url: file.url, name: file.name }
+    }),
   reviewMedia: f({
     image: { maxFileSize: "8MB", maxFileCount: 5 },
     video: { maxFileSize: "64MB", maxFileCount: 1 },

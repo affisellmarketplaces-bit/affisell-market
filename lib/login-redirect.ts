@@ -16,6 +16,11 @@ export function loginSelectorPath(callbackUrl?: string | null): string {
 }
 
 /** Buyer login — marketplace account, order tracking, post-checkout. */
+export function loginAgentPath(callbackUrl?: string | null): string {
+  const safe = sanitizeInternalCallbackUrl(callbackUrl)
+  return safe ? `/login/agent?callbackUrl=${encodeURIComponent(safe)}` : "/login/agent"
+}
+
 export function loginCustomerPath(callbackUrl?: string | null): string {
   const safe = sanitizeInternalCallbackUrl(callbackUrl)
   return safe ? `/login/customer?callbackUrl=${encodeURIComponent(safe)}` : "/login/customer"
@@ -51,6 +56,10 @@ export function resolvePostLoginRedirect(
   if (role === "ADMIN") {
     if (safe?.startsWith("/admin")) return safe
     return "/admin/auto-fulfill"
+  }
+  if (role === "AGENT") {
+    if (safe && inferLoginPortal(safe) === "AGENT") return safe
+    return "/dashboard/agent"
   }
   return safe ?? "/"
 }

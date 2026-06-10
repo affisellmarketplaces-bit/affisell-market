@@ -110,8 +110,12 @@ export default async function AdminAgentsPage() {
           <Link href="/agents/apply" className="text-violet-700 underline dark:text-violet-300">
             /agents/apply
           </Link>
-          . Quality Gate : une mission « Échec » coupe l&apos;auto-buy du SKU. Seed partenaires :{" "}
-          <code>npm run agents:seed</code>.
+          . Quality Gate : une mission « Échec » coupe l&apos;auto-buy du SKU. Seed :{" "}
+          <code>npm run agents:seed</code> · comptes : <code>npm run agents:provision-users</code> ·{" "}
+          <Link href="/login/agent" className="text-violet-700 underline dark:text-violet-300">
+            /login/agent
+          </Link>
+          .
         </p>
       </header>
 

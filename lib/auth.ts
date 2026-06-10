@@ -17,6 +17,7 @@ import {
   EmailIdentifierRequired,
   InvalidPassword,
   NonAffiliateOnAffiliatePortal,
+  NonAgentOnAgentPortal,
   NonCustomerOnCustomerPortal,
   NonSupplierOnSupplierPortal,
   PasswordLoginNotAvailable,
@@ -186,6 +187,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           if (userRow.role !== "SUPPLIER") throw new NonSupplierOnSupplierPortal()
         } else if (portal === "CUSTOMER") {
           if (userRow.role !== "CUSTOMER") throw new NonCustomerOnCustomerPortal()
+        } else if (portal === "AGENT") {
+          if (userRow.role !== "AGENT") throw new NonAgentOnAgentPortal()
         }
 
         return {

@@ -10,7 +10,12 @@ import {
 } from "@/lib/affiliate-routes"
 import { LOCALE_COOKIE, localeCookieMaxAgeSec, resolveAppLocale } from "@/lib/i18n-locale"
 import { localeFromPathname, pathnameWithoutLocale } from "@/lib/locale-path"
-import { loginAffiliatePath, loginSupplierPath, resolvePostLoginRedirect } from "@/lib/login-redirect"
+import {
+  loginAffiliatePath,
+  loginAgentPath,
+  loginSupplierPath,
+  resolvePostLoginRedirect,
+} from "@/lib/login-redirect"
 import { tryCustomDomainMiddleware } from "@/lib/middleware-custom-domain"
 import {
   isMerchantTermsExemptPath,
@@ -46,6 +51,12 @@ function loginSupplierUrl(req: NextRequest, pathWithSearch: string) {
 
 function loginAdminUrl(req: NextRequest, pathWithSearch: string) {
   const u = new URL("/login/admin", req.url)
+  u.searchParams.set("callbackUrl", pathWithSearch)
+  return u
+}
+
+function loginAgentUrl(req: NextRequest, pathWithSearch: string) {
+  const u = new URL("/login/agent", req.url)
   u.searchParams.set("callbackUrl", pathWithSearch)
   return u
 }
@@ -310,6 +321,20 @@ export async function proxy(req: NextRequest) {
       }
     }
 
+    const isAgentArea = bare === "/dashboard/agent" || bare.startsWith("/dashboard/agent/")
+    if (isAgentArea) {
+      if (!loggedIn) return NextResponse.redirect(loginAgentUrl(req, path))
+      if (role !== "AGENT") {
+        const u = new URL(req.url)
+        if (role === "SUPPLIER") u.pathname = "/dashboard/supplier"
+        else if (role === "AFFILIATE") u.pathname = AFFILIATE_CATALOG_PATH
+        else if (role === "ADMIN") u.pathname = "/admin/agents"
+        else u.pathname = "/shops"
+        u.search = ""
+        return NextResponse.redirect(u)
+      }
+    }
+
     if (
       loggedIn &&
       (role === "SUPPLIER" || role === "AFFILIATE") &&
@@ -402,6 +427,7 @@ export const config = {
     "/admin/:path*",
     "/dashboard",
     "/dashboard/:path*",
+    "/login/agent",
     "/affiliate/:path*",
     "/agent",
     "/agents",

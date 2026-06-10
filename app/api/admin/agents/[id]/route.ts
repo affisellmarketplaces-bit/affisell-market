@@ -3,6 +3,7 @@ import { z } from "zod"
 
 import { requireAdminSession } from "@/lib/admin/require-admin-session"
 import { resolveAdminAgentAction } from "@/lib/agents/agent-application-shared"
+import { provisionAgentAccount } from "@/lib/agents/provision-agent-account"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -14,10 +15,6 @@ const bodySchema = z.object({
   action: z.enum(["activate", "reject", "pause", "resume"]),
 })
 
-/**
- * Modération candidatures / agents : activer, refuser, mettre en pause, reprendre.
- * Idempotent : même action sur le même statut → 200 no-op.
- */
 export async function PATCH(req: Request, { params }: Params) {
   const auth = await requireAdminSession()
   if (!auth.ok) {
@@ -50,6 +47,17 @@ export async function PATCH(req: Request, { params }: Params) {
     return NextResponse.json({ ok: true, id, status: agent.status, idempotent: true })
   }
 
+  let provision: Awaited<ReturnType<typeof provisionAgentAccount>> | null = null
+  if (action === "activate" && nextStatus === "ACTIVE") {
+    try {
+      provision = await provisionAgentAccount(id)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "provision_failed"
+      console.error("[agent-network]", { agentId: id, result: "provision_failed", error: message })
+      return NextResponse.json({ error: message }, { status: 409 })
+    }
+  }
+
   await prisma.sourcingAgent.update({
     where: { id },
     data: { status: nextStatus },
@@ -61,9 +69,17 @@ export async function PATCH(req: Request, { params }: Params) {
     from: agent.status,
     to: nextStatus,
     action,
+    userId: provision?.userId ?? null,
     actorId: auth.session.user.id,
     result: "moderated",
   })
 
-  return NextResponse.json({ ok: true, id, status: nextStatus })
+  return NextResponse.json({
+    ok: true,
+    id,
+    status: nextStatus,
+    provision: provision
+      ? { userId: provision.userId, created: provision.created, loginUrl: "/login/agent" }
+      : null,
+  })
 }
