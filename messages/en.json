@@ -1306,6 +1306,14 @@
       "deduped": "A mission of this type is already open on this product.",
       "error": "Could not create the mission — please retry."
     },
+    "chinaBuy": {
+      "title": "China routes",
+      "subtitle": "Auto-routed buys to Superbuy, Anovabuy and other agents after customer payment — live tracking.",
+      "statsProducts": "SKUs with agent",
+      "statsRoutes": "Total routes",
+      "statsApiOk": "API confirmed",
+      "empty": "No routes yet — assign a buying agent on a product page or import from 1688 / Taobao."
+    },
     "supplyHub": {
       "eyebrow": "Affisell Supply Bridge",
       "title": "Supply Hub",

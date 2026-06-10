@@ -31,7 +31,8 @@ jobs:
             "/api/cron/process-order-payouts" \
             "/api/cron/release-booking-holds" \
             "/api/cron/booking-reminders" \
-            "/api/cron/booking-waitlist-notify"
+            "/api/cron/booking-waitlist-notify" \
+            "/api/cron/agent-mission-reminders"
           do
             echo "→ GET ${path}"
             curl -fsS -H "$AUTH" "${BASE}${path}" || echo "WARN: ${path} failed"

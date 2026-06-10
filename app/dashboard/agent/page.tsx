@@ -1,6 +1,8 @@
 import Link from "next/link"
 
+import { AgentLedgerPanel } from "@/components/agent/agent-ledger-panel"
 import { AgentMissionWorkspace } from "@/components/agent/agent-mission-workspace"
+import { loadAgentLedger } from "@/lib/agents/load-agent-ledger"
 import { toMissionRow } from "@/lib/agents/load-agent-network"
 import { requireAgentSession } from "@/lib/dashboard-session"
 import { prisma } from "@/lib/prisma"
@@ -33,7 +35,8 @@ export default async function AgentDashboardPage() {
     )
   }
 
-  const missions = await prisma.agentMission.findMany({
+  const [missions, ledgerEntries] = await Promise.all([
+    prisma.agentMission.findMany({
     where: { agentId: profile.id },
     select: {
       id: true,
@@ -52,7 +55,9 @@ export default async function AgentDashboardPage() {
     },
     orderBy: [{ status: "asc" }, { requestedAt: "desc" }],
     take: 60,
-  })
+  }),
+    loadAgentLedger(profile.id, 20),
+  ])
 
   const rows = missions.map((m) => toMissionRow(m as Parameters<typeof toMissionRow>[0]))
 
@@ -84,7 +89,10 @@ export default async function AgentDashboardPage() {
         </p>
       </header>
 
-      <AgentMissionWorkspace missions={rows} agentPaused={profile.status === "PAUSED"} />
+      <div className="space-y-8">
+        <AgentLedgerPanel entries={ledgerEntries} balanceCents={profile.balanceCents} />
+        <AgentMissionWorkspace missions={rows} agentPaused={profile.status === "PAUSED"} />
+      </div>
     </main>
   )
 }

@@ -16,6 +16,8 @@ export type RouteChinaBuyInput = {
   platform?: string | null
   productId?: string | null
   quantity?: number
+  /** Override idempotency key (e.g. `china-buy:order:{orderId}`). */
+  idempotencyKey?: string
 }
 
 export type RouteChinaBuyResult =
@@ -77,11 +79,13 @@ export async function routeChinaBuy(input: RouteChinaBuyInput): Promise<RouteChi
     return { ok: false, error: "unknown_agent" }
   }
 
-  const idempotencyKey = chinaBuyIdempotencyKey({
-    supplierId: input.supplierId,
-    sourceUrl,
-    agentId: input.agentId,
-  })
+  const idempotencyKey =
+    input.idempotencyKey?.trim() ||
+    chinaBuyIdempotencyKey({
+      supplierId: input.supplierId,
+      sourceUrl,
+      agentId: input.agentId,
+    })
 
   const existing = await prisma.chinaBuyRouteLog.findUnique({
     where: { idempotencyKey },

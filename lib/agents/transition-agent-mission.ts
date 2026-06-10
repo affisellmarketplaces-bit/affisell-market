@@ -7,6 +7,7 @@ import {
 import { creditAgentMissionFee } from "@/lib/agents/credit-agent-mission-fee"
 import { dispatchAgentMissionEmails } from "@/lib/agents/send-agent-mission-emails"
 import {
+  adjustAgentLeadTimeHours,
   adjustAgentRatingX10,
   type AgentMissionOutcome,
 } from "@/lib/agents/update-agent-rating"
@@ -40,6 +41,7 @@ export async function transitionAgentMission(
       productId: true,
       supplierId: true,
       agentId: true,
+      assignedAt: true,
       product: { select: { supplierLink: { select: { id: true } } } },
     },
   })
@@ -119,17 +121,19 @@ export async function transitionAgentMission(
   if ((to === "PASSED" || to === "FAILED") && agentIdForStats) {
     const agentRow = await prisma.sourcingAgent.findUnique({
       where: { id: agentIdForStats },
-      select: { ratingX10: true },
+      select: { ratingX10: true, leadTimeHours: true },
     })
     if (agentRow) {
       const nextRating = adjustAgentRatingX10(
         agentRow.ratingX10,
         to as AgentMissionOutcome
       )
+      const assignedAt = mission.assignedAt ?? now
+      const nextLead = adjustAgentLeadTimeHours(agentRow.leadTimeHours, assignedAt, now)
       ops.push(
         prisma.sourcingAgent.update({
           where: { id: agentIdForStats },
-          data: { ratingX10: nextRating },
+          data: { ratingX10: nextRating, leadTimeHours: nextLead },
         })
       )
     }
