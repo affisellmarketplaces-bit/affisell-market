@@ -1236,6 +1236,44 @@
       "integrations": "Intégrations",
       "supply": "Supply"
     },
+    "autoBuyPilot": {
+      "title": "Auto-buy Pilot",
+      "subtitle": "Achats fournisseurs automatiques pilotés par la rentabilité — activez/coupez en 1 clic.",
+      "masterSwitch": "Auto-buy global",
+      "skusOn": "{on}/{total} SKU actifs",
+      "toggleSaved": "Auto-buy mis à jour.",
+      "toggleError": "Impossible de mettre à jour l’auto-buy — réessayez.",
+      "empty": "Aucun SKU lié à une source d’achat automatique. Liez vos fiches (AliExpress / 1688) depuis l’import pour activer l’auto-buy.",
+      "kpi": {
+        "health": "Santé portefeuille",
+        "orders": "Ventes {days} j",
+        "margin": "Marge réalisée {days} j",
+        "atRisk": "SKU à perte"
+      },
+      "bands": {
+        "excellent": "Excellent",
+        "good": "Sain",
+        "warning": "Fragile",
+        "loss": "À perte",
+        "unknown": "Inconnu"
+      },
+      "row": {
+        "price": "Prix",
+        "cogs": "Coût source",
+        "net": "Net/vente",
+        "sold": "{count} vendues",
+        "toggle": "Auto-buy de ce SKU",
+        "suggestion": "Prix conseillé {suggested} (seuil de rentabilité {breakEven}) pour viser 30 % de marge nette."
+      },
+      "radar": {
+        "title": "Radar de demande — {days} derniers jours",
+        "subtitle": "Catégories qui vendent le plus sur Affisell en ce moment : sourcez là où la demande existe déjà.",
+        "orders": "{count} ventes",
+        "avgPrice": "panier {price}",
+        "covered": "Vous y êtes",
+        "opportunity": "Opportunité"
+      }
+    },
     "supplyHub": {
       "eyebrow": "Affisell Supply Bridge",
       "title": "Supply Hub",

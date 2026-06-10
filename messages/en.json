@@ -1228,6 +1228,44 @@
       "integrations": "Integrations",
       "supply": "Supply"
     },
+    "autoBuyPilot": {
+      "title": "Auto-buy Pilot",
+      "subtitle": "Profit-driven automatic supplier purchases — switch on/off in one click.",
+      "masterSwitch": "Global auto-buy",
+      "skusOn": "{on}/{total} SKUs on",
+      "toggleSaved": "Auto-buy updated.",
+      "toggleError": "Could not update auto-buy — try again.",
+      "empty": "No SKU linked to an automatic purchase source yet. Link your listings (AliExpress / 1688) from the import tools to enable auto-buy.",
+      "kpi": {
+        "health": "Portfolio health",
+        "orders": "Sales {days}d",
+        "margin": "Realized margin {days}d",
+        "atRisk": "Loss-making SKUs"
+      },
+      "bands": {
+        "excellent": "Excellent",
+        "good": "Healthy",
+        "warning": "Fragile",
+        "loss": "Losing",
+        "unknown": "Unknown"
+      },
+      "row": {
+        "price": "Price",
+        "cogs": "Source cost",
+        "net": "Net/sale",
+        "sold": "{count} sold",
+        "toggle": "Auto-buy for this SKU",
+        "suggestion": "Suggested price {suggested} (break-even {breakEven}) to target a 30% net margin."
+      },
+      "radar": {
+        "title": "Demand radar — last {days} days",
+        "subtitle": "Top-selling categories on Affisell right now: source where demand already exists.",
+        "orders": "{count} sales",
+        "avgPrice": "avg {price}",
+        "covered": "You're in",
+        "opportunity": "Opportunity"
+      }
+    },
     "supplyHub": {
       "eyebrow": "Affisell Supply Bridge",
       "title": "Supply Hub",

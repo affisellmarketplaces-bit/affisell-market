@@ -1,9 +1,11 @@
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 
+import { AutoBuyPilotPanel } from "@/components/supplier/auto-buy-pilot-panel"
 import { SupplyHubPanel } from "@/components/supplier/supply-hub-panel"
 import { buttonVariants } from "@/components/ui/button"
 import { requireSupplierSession } from "@/lib/dashboard-session"
+import { loadAutoBuyPilotSnapshot } from "@/lib/supplier/load-auto-buy-pilot"
 import { loadSupplyHubSnapshot } from "@/lib/supplier/load-supply-hub-snapshot"
 import { cn } from "@/lib/utils"
 
@@ -13,8 +15,12 @@ export default async function SupplierSupplyHubPage() {
   const session = await requireSupplierSession("/dashboard/supplier/supply")
 
   let snapshot: Awaited<ReturnType<typeof loadSupplyHubSnapshot>>
+  let pilot: Awaited<ReturnType<typeof loadAutoBuyPilotSnapshot>>
   try {
-    snapshot = await loadSupplyHubSnapshot(session.user.id)
+    ;[snapshot, pilot] = await Promise.all([
+      loadSupplyHubSnapshot(session.user.id),
+      loadAutoBuyPilotSnapshot(session.user.id),
+    ])
   } catch (error) {
     console.error("[supply-hub/page] load failed", { supplierId: session.user.id, error })
     return (
@@ -45,7 +51,10 @@ export default async function SupplierSupplyHubPage() {
         <ArrowLeft className="h-4 w-4" aria-hidden />
         Tableau de bord
       </Link>
-      <SupplyHubPanel snapshot={snapshot} />
+      <div className="space-y-8">
+        <AutoBuyPilotPanel snapshot={pilot} />
+        <SupplyHubPanel snapshot={snapshot} />
+      </div>
     </div>
   )
 }
