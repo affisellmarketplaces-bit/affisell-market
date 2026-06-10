@@ -4,6 +4,7 @@ import { useCallback, useState } from "react"
 import { ChevronDown, Link2, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
+import AgentSelector from "@/components/AgentSelector"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -32,6 +33,13 @@ export function SupplierUrlImportPanel({ categoryAttrs, commissionPct, onApply }
   const [markup, setMarkup] = useState("2.5")
   const [lastMeta, setLastMeta] = useState<{ platform: string; method: string } | null>(null)
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [showAgents, setShowAgents] = useState(false)
+  // Agent d'achat Chine choisi (Anovabuy par défaut, source 1688).
+  const [chinaAgent, setChinaAgent] = useState<{ id: string; name: string }>({
+    id: "anovabuy",
+    name: "Anovabuy",
+  })
+  const [chinaPlatform, setChinaPlatform] = useState("1688")
 
   const runImport = useCallback(async () => {
     const u = url.trim()
@@ -48,12 +56,14 @@ export function SupplierUrlImportPanel({ categoryAttrs, commissionPct, onApply }
     try {
       const mkNum = Number(markup.replace(",", "."))
       const mk = Number.isFinite(mkNum) && mkNum > 0 ? mkNum : 2.5
-      const res = await fetch("/api/supplier/import-url", {
+      const res = await fetch("/api/import-china", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
           url: u,
+          agent: chinaAgent.id,
+          platform: chinaPlatform,
           options: {
             aiRewrite,
             markup: mk,
@@ -66,6 +76,7 @@ export function SupplierUrlImportPanel({ categoryAttrs, commissionPct, onApply }
         platform?: string
         method?: string
         warnings?: string[]
+        buyingAgent?: { id: string; name: string; fee: string }
       }
       if (!res.ok) throw new Error(data.error ?? "Import impossible")
 
@@ -110,7 +121,7 @@ export function SupplierUrlImportPanel({ categoryAttrs, commissionPct, onApply }
     } finally {
       setLoading(false)
     }
-  }, [url, aiRewrite, markup, categoryAttrs, commissionPct, onApply])
+  }, [url, aiRewrite, markup, categoryAttrs, commissionPct, onApply, chinaAgent.id, chinaPlatform])
 
   return (
     <Card className="border-zinc-200 bg-zinc-50/90 p-5 dark:border-zinc-700 dark:bg-zinc-900/50">
@@ -130,8 +141,26 @@ export function SupplierUrlImportPanel({ categoryAttrs, commissionPct, onApply }
           </div>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
             Titre, description, images, vidéos, prix, livraison, marque (Generic si inconnue), tailles et couleurs
-            quand disponibles. Compatible 1688.com (import 1 clic via API OneBound).
+            quand disponibles. Compatible 1688, Taobao, Tmall, JD.com, Weidian, Pinduoduo, Xianyu et usines directes.
           </p>
+
+          <button
+            type="button"
+            onClick={() => setShowAgents((v) => !v)}
+            className="flex items-center gap-1 text-xs font-medium text-blue-700 hover:underline dark:text-blue-300"
+          >
+            <ChevronDown className={cn("h-4 w-4 transition", showAgents && "rotate-180")} aria-hidden />
+            Agent d&apos;achat Chine : <strong>{chinaAgent.name}</strong> · {chinaPlatform}
+          </button>
+
+          {showAgents ? (
+            <AgentSelector
+              onSelect={(agent: { id: string; name: string }, platform: string) => {
+                setChinaAgent({ id: agent.id, name: agent.name })
+                setChinaPlatform(platform)
+              }}
+            />
+          ) : null}
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
             <div className="min-w-0 flex-1">
@@ -205,6 +234,9 @@ export function SupplierUrlImportPanel({ categoryAttrs, commissionPct, onApply }
                   Méthode : {lastMeta.method}
                 </span>
               ) : null}
+              <span className="rounded-md bg-white px-2 py-1 dark:bg-zinc-900">
+                Agent : <strong className="text-zinc-900 dark:text-zinc-100">{chinaAgent.name}</strong>
+              </span>
             </div>
           ) : null}
         </div>
