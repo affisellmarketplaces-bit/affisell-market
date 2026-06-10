@@ -2195,8 +2195,10 @@ enum AgentCapability {
 }
 
 enum AgentStatus {
+  PENDING
   ACTIVE
   PAUSED
+  REJECTED
 }
 
 enum AgentMissionType {
@@ -2229,8 +2231,11 @@ model SourcingAgent {
   missionsDone  Int               @default(0)
   /** Avg turnaround from assignment to report. */
   leadTimeHours Int               @default(48)
-  status        AgentStatus       @default(ACTIVE)
+  status        AgentStatus       @default(PENDING)
   contactEmail  String            @unique
+  /** Motivation / expérience (candidature publique). */
+  applicationNote String?         @db.Text
+  contactPhone  String?
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @default(now()) @updatedAt
 

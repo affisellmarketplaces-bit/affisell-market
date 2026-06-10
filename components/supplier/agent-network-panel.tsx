@@ -112,6 +112,12 @@ export function AgentNetworkPanel({ snapshot }: { snapshot: AgentNetworkSnapshot
               </span>
             </div>
             <p className="mt-1 max-w-2xl text-sm text-zinc-300">{t("subtitle")}</p>
+          <p className="mt-2 text-xs text-cyan-200/80">
+            Vous êtes sur place et voulez rejoindre le réseau ?{" "}
+            <a href="/agents/apply" className="font-medium underline hover:text-white">
+              Candidater comme agent
+            </a>
+          </p>
           </div>
           <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-right sm:grid-cols-4">
             <div>

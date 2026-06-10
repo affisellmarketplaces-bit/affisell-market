@@ -134,7 +134,7 @@ async function main() {
     const { contactEmail, ...data } = agent
     await prisma.sourcingAgent.upsert({
       where: { contactEmail },
-      create: { contactEmail, ...data },
+      create: { contactEmail, status: "ACTIVE", ...data },
       update: {
         displayName: data.displayName,
         country: data.country,
@@ -142,6 +142,7 @@ async function main() {
         capabilities: data.capabilities,
         languages: data.languages,
         leadTimeHours: data.leadTimeHours,
+        status: "ACTIVE",
       },
     })
   }

@@ -7,7 +7,7 @@ import type {
 } from "@/lib/agents/agent-network-shared"
 
 export type AgentNetworkAgent = AgentLite & {
-  status: "ACTIVE" | "PAUSED"
+  status: "ACTIVE" | "PAUSED" | "PENDING" | "REJECTED"
   languages: string[]
 }
 
