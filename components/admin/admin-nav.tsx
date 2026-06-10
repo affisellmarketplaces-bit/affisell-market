@@ -16,6 +16,7 @@ const LINKS = [
   { href: "/admin/products/new", label: "Produit AE" },
   { href: "/admin/orders", label: "Commandes" },
   { href: "/admin/providers", label: "Fournisseurs API" },
+  { href: "/admin/supply-lab", label: "Supply Lab" },
   { href: "/admin/stripe-health", label: "Stripe" },
   { href: "/admin/queues", label: "Queues" },
   { href: "/admin/splits", label: "Splits" },

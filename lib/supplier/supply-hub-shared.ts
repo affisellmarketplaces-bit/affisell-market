@@ -148,6 +148,27 @@ export type SupplyHubSnapshot = {
   platformAliExpressConfigured: boolean
 }
 
+/**
+ * Canaux ouverts aux fournisseurs. Les autres restent « soon » (roadmap)
+ * tant qu’ils ne sont pas validés un par un depuis /admin/supply-lab.
+ */
+export const SUPPLY_HUB_UNLOCKED_CHANNELS = new Set<
+  SupplierChannelType | SupplyHubVirtualChannel
+>(["AFFISELL_NATIVE", "MANUAL"])
+
+/** Force « roadmap » (badge SOON, sans CTA ni stats) sur les canaux non débloqués. */
+export function lockSupplyHubConnectors(
+  connectors: SupplyHubConnectorSnapshot[],
+  options?: { unlockAll?: boolean }
+): SupplyHubConnectorSnapshot[] {
+  if (options?.unlockAll) return connectors
+  return connectors.map((c) =>
+    SUPPLY_HUB_UNLOCKED_CHANNELS.has(c.channelType)
+      ? c
+      : { ...c, uiStatus: "roadmap", href: undefined, hintKey: undefined, stats: undefined }
+  )
+}
+
 export function resolveAliExpressUiStatus(args: {
   platformConfigured: boolean
   linkedSkus: number

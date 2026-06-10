@@ -11,7 +11,9 @@ export async function POST(req: NextRequest) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
   }
-  if ((session.user as { role?: string }).role !== "SUPPLIER") {
+  // ADMIN autorisé : testeur Supply Lab (/admin/supply-lab)
+  const role = (session.user as { role?: string }).role
+  if (role !== "SUPPLIER" && role !== "ADMIN") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 

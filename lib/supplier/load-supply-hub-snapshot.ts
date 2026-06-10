@@ -2,6 +2,7 @@ import { getAliExpressConfigStatus } from "@/lib/aliexpress-config"
 import { prisma } from "@/lib/prisma"
 import {
   SUPPLY_HUB_CHANNEL_DEFS,
+  lockSupplyHubConnectors,
   resolveAliExpressUiStatus,
   resolveBlindRestUiStatus,
   type SupplyConnectorUiStatus,
@@ -9,8 +10,15 @@ import {
   type SupplyHubSnapshot,
 } from "@/lib/supplier/supply-hub-shared"
 
-/** Read-only Supply Hub metrics for supplier dashboard (no side effects). */
-export async function loadSupplyHubSnapshot(supplierId: string): Promise<SupplyHubSnapshot> {
+/**
+ * Read-only Supply Hub metrics (no side effects).
+ * Par défaut les canaux non validés sont verrouillés (« soon ») ;
+ * `unlockAll` (admin Supply Lab) montre les statuts réels.
+ */
+export async function loadSupplyHubSnapshot(
+  supplierId: string,
+  options?: { unlockAll?: boolean }
+): Promise<SupplyHubSnapshot> {
   const platformAliExpressConfigured = getAliExpressConfigStatus().configured
 
   const oneboundConfigured = Boolean(process.env.ONEBOUND_KEY?.trim())
@@ -175,7 +183,7 @@ export async function loadSupplyHubSnapshot(supplierId: string): Promise<SupplyH
   })
 
   return {
-    connectors,
+    connectors: lockSupplyHubConnectors(connectors, options),
     totals: {
       catalogSkus,
       autoBuySkus: autoBuyLinkCount,
