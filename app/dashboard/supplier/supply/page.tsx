@@ -1,9 +1,11 @@
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 
+import { AgentNetworkPanel } from "@/components/supplier/agent-network-panel"
 import { AutoBuyPilotPanel } from "@/components/supplier/auto-buy-pilot-panel"
 import { SupplyHubPanel } from "@/components/supplier/supply-hub-panel"
 import { buttonVariants } from "@/components/ui/button"
+import { loadAgentNetworkSnapshot } from "@/lib/agents/load-agent-network"
 import { requireSupplierSession } from "@/lib/dashboard-session"
 import { loadAutoBuyPilotSnapshot } from "@/lib/supplier/load-auto-buy-pilot"
 import { loadSupplyHubSnapshot } from "@/lib/supplier/load-supply-hub-snapshot"
@@ -16,10 +18,12 @@ export default async function SupplierSupplyHubPage() {
 
   let snapshot: Awaited<ReturnType<typeof loadSupplyHubSnapshot>>
   let pilot: Awaited<ReturnType<typeof loadAutoBuyPilotSnapshot>>
+  let agentNetwork: Awaited<ReturnType<typeof loadAgentNetworkSnapshot>>
   try {
-    ;[snapshot, pilot] = await Promise.all([
+    ;[snapshot, pilot, agentNetwork] = await Promise.all([
       loadSupplyHubSnapshot(session.user.id),
       loadAutoBuyPilotSnapshot(session.user.id),
+      loadAgentNetworkSnapshot(session.user.id),
     ])
   } catch (error) {
     console.error("[supply-hub/page] load failed", { supplierId: session.user.id, error })
@@ -53,6 +57,7 @@ export default async function SupplierSupplyHubPage() {
       </Link>
       <div className="space-y-8">
         <AutoBuyPilotPanel snapshot={pilot} />
+        <AgentNetworkPanel snapshot={agentNetwork} />
         <SupplyHubPanel snapshot={snapshot} />
       </div>
     </div>

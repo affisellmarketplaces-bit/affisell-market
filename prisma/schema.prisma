@@ -548,6 +548,7 @@ model Product {
   bookingSeatLayout             Json?
   bookingSlots                  BookingSlot[]
   bookingWaitlist               BookingWaitlist[]
+  agentMissions                 AgentMission[]
   stock                         Int      @default(0)
   active                        Boolean  @default(true)
   /**
@@ -2184,4 +2185,85 @@ model ProcessedWebhook {
   createdAt DateTime @default(now())
 
   @@index([orderId])
+}
+
+enum AgentCapability {
+  QC_INSPECTION
+  COMPLIANCE
+  PHOTO_PROOF
+  REPACK_EXPRESS
+}
+
+enum AgentStatus {
+  ACTIVE
+  PAUSED
+}
+
+enum AgentMissionType {
+  QC_INSPECTION
+  COMPLIANCE_CHECK
+  PHOTO_PROOF
+  REPACK_EXPRESS
+}
+
+enum AgentMissionStatus {
+  REQUESTED
+  ASSIGNED
+  IN_PROGRESS
+  PASSED
+  FAILED
+  CANCELLED
+}
+
+/** Affisell Agent Network — vetted local agents (QC, compliance, photo proof, express relay). */
+model SourcingAgent {
+  id            String            @id @default(cuid())
+  displayName   String
+  /** ISO-3166 alpha-2 (CN, TR, VN, …). */
+  country       String
+  city          String
+  capabilities  AgentCapability[]
+  languages     String[]          @default([])
+  /** Rating ×10 (47 = 4.7★). */
+  ratingX10     Int               @default(45)
+  missionsDone  Int               @default(0)
+  /** Avg turnaround from assignment to report. */
+  leadTimeHours Int               @default(48)
+  status        AgentStatus       @default(ACTIVE)
+  contactEmail  String            @unique
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @default(now()) @updatedAt
+
+  missions AgentMission[]
+
+  @@index([status, country])
+}
+
+/** Inspection / express-relay mission requested by a supplier on one SKU. */
+model AgentMission {
+  id             String             @id @default(cuid())
+  supplierId     String
+  productId      String?
+  product        Product?           @relation(fields: [productId], references: [id], onDelete: SetNull)
+  agentId        String?
+  agent          SourcingAgent?     @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  type           AgentMissionType
+  status         AgentMissionStatus @default(REQUESTED)
+  /** Supplier brief (what to check, lot size, …). */
+  instructions   String?            @db.Text
+  /** Structured findings (checklist, defects, measurements). */
+  report         Json?
+  reportSummary  String?            @db.Text
+  photoUrls      String[]           @default([])
+  feeCents       Int                @default(0)
+  /** Quality Gate: FAILED mission paused this SKU's auto-buy. */
+  autoBuyPaused  Boolean            @default(false)
+  requestedAt    DateTime           @default(now())
+  assignedAt     DateTime?
+  completedAt    DateTime?
+  updatedAt      DateTime           @default(now()) @updatedAt
+
+  @@index([supplierId, status, requestedAt])
+  @@index([agentId, status])
+  @@index([productId])
 }
