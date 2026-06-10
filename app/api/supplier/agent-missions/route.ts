@@ -11,6 +11,7 @@ import {
   type AgentMissionTypeValue,
 } from "@/lib/agents/agent-network-shared"
 import { toMissionRow } from "@/lib/agents/load-agent-network"
+import { dispatchAgentMissionEmails } from "@/lib/agents/send-agent-mission-emails"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -154,6 +155,10 @@ export async function POST(req: Request) {
     matchScore: best?.score ?? null,
     result: "created",
   })
+
+  if (mission.status === "ASSIGNED") {
+    dispatchAgentMissionEmails(mission.id, "assigned")
+  }
 
   return NextResponse.json({
     ok: true,

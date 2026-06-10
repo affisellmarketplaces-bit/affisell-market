@@ -4,6 +4,7 @@ import { z } from "zod"
 import { requireAdminSession } from "@/lib/admin/require-admin-session"
 import { resolveAdminAgentAction } from "@/lib/agents/agent-application-shared"
 import { provisionAgentAccount } from "@/lib/agents/provision-agent-account"
+import { requestPasswordReset } from "@/lib/password-reset.server"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -62,6 +63,12 @@ export async function PATCH(req: Request, { params }: Params) {
     where: { id },
     data: { status: nextStatus },
   })
+
+  if (action === "activate" && nextStatus === "ACTIVE") {
+    void requestPasswordReset(agent.contactEmail).catch((error) => {
+      console.error("[agent-network]", { agentId: id, result: "welcome_email_failed", error })
+    })
+  }
 
   console.log("[agent-network]", {
     agentId: id,

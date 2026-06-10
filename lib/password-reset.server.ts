@@ -51,7 +51,9 @@ export async function requestPasswordReset(emailRaw: string): Promise<void> {
       ? "affiliate"
       : user.role === "SUPPLIER"
         ? "supplier"
-        : null
+        : user.role === "AGENT"
+          ? "agent"
+          : null
   const portalParam = portal ? `&portal=${portal}` : ""
   const resetUrl = `${resolveAppUrl()}/auth/reset-password?token=${encodeURIComponent(token)}${portalParam}`
   const accountEmail = user.email.trim().toLowerCase()

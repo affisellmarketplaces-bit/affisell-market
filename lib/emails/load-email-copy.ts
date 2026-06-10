@@ -303,7 +303,9 @@ export function loadPasswordResetEmailCopy(
       ? t(locale, "emails.passwordReset.portalAffiliate")
       : vars.portal === "supplier"
         ? t(locale, "emails.passwordReset.portalSupplier")
-        : t(locale, "emails.passwordReset.portalDefault")
+        : vars.portal === "agent"
+          ? t(locale, "emails.passwordReset.portalAgent")
+          : t(locale, "emails.passwordReset.portalDefault")
 
   return {
     preview: interpolate(t(locale, "emails.passwordReset.preview"), {

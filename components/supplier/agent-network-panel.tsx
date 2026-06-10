@@ -10,6 +10,7 @@ import {
   AGENT_MISSION_TYPE_DEFS,
   type AgentMissionTypeValue,
 } from "@/lib/agents/agent-network-shared"
+import { AgentMissionReportCard } from "@/components/supplier/agent-mission-report-card"
 import type { AgentNetworkSnapshot } from "@/lib/agents/load-agent-network"
 import { cn } from "@/lib/utils"
 
@@ -259,43 +260,15 @@ export function AgentNetworkPanel({ snapshot }: { snapshot: AgentNetworkSnapshot
             <p className="mt-3 text-sm text-zinc-400">{t("missionsEmpty")}</p>
           ) : (
             <ul className="mt-3 space-y-2.5">
-              {missions.slice(0, 6).map((m) => (
-                <li
+              {missions.slice(0, 8).map((m) => (
+                <AgentMissionReportCard
                   key={m.id}
-                  className="rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5"
-                >
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span
-                      className={cn(
-                        "rounded-full border px-2 py-0.5 text-[11px] font-medium",
-                        STATUS_STYLES[m.status] ?? ""
-                      )}
-                    >
-                      {t(`status_${m.status}`)}
-                    </span>
-                    <span className="text-xs font-medium text-zinc-100">
-                      {t(TYPE_KEYS[m.type])}
-                    </span>
-                    {m.autoBuyPaused ? (
-                      <span className="rounded-full border border-red-400/30 bg-red-500/15 px-2 py-0.5 text-[11px] font-medium text-red-300">
-                        {t("autoBuyPaused")}
-                      </span>
-                    ) : null}
-                  </div>
-                  <p className="mt-1 truncate text-xs text-zinc-400">
-                    {m.productName ?? "—"}
-                    {m.agentName ? (
-                      <>
-                        {" · "}
-                        <span aria-hidden>{flag(m.agentCountry ?? "")}</span> {m.agentName} (
-                        {m.agentCity})
-                      </>
-                    ) : null}
-                  </p>
-                  {m.reportSummary ? (
-                    <p className="mt-1 text-xs italic text-zinc-300">« {m.reportSummary} »</p>
-                  ) : null}
-                </li>
+                  mission={m}
+                  statusLabel={(status) => t(`status_${status}`)}
+                  typeLabel={(type) => t(TYPE_KEYS[type])}
+                  autoBuyPausedLabel={t("autoBuyPaused")}
+                  formatPhotosLabel={(count) => t("photosCount", { count })}
+                />
               ))}
             </ul>
           )}

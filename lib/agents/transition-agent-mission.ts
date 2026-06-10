@@ -4,6 +4,7 @@ import {
   canTransitionMission,
   type AgentMissionStatusValue,
 } from "@/lib/agents/agent-network-shared"
+import { dispatchAgentMissionEmails } from "@/lib/agents/send-agent-mission-emails"
 import { prisma } from "@/lib/prisma"
 
 export type MissionTransitionInput = {
@@ -122,6 +123,13 @@ export async function transitionAgentMission(
     actorId: input.actorId ?? null,
     result: "transitioned",
   })
+
+  if (to === "ASSIGNED" && (input.agentId ?? mission.agentId)) {
+    dispatchAgentMissionEmails(input.missionId, "assigned")
+  }
+  if (to === "PASSED" || to === "FAILED") {
+    dispatchAgentMissionEmails(input.missionId, "completed")
+  }
 
   return { ok: true, status: to, qualityGate: failedWithSku }
 }

@@ -14,7 +14,7 @@ import {
 
 import type { PasswordResetEmailCopy } from "@/lib/emails/load-email-copy"
 
-export type PasswordResetPortal = "affiliate" | "supplier" | null
+export type PasswordResetPortal = "affiliate" | "supplier" | "agent" | null
 
 export type PasswordResetEmailProps = {
   accountEmail: string

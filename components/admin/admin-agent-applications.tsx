@@ -59,8 +59,8 @@ export function AdminAgentApplications({
       if (action === "activate" && json?.provision) {
         window.alert(
           json.provision.created
-            ? "Agent activé — compte créé. L'agent définit son mot de passe via « Mot de passe oublié » sur /login/agent."
-            : "Agent activé — compte lié. Connexion : /login/agent"
+            ? "Agent activé — compte créé. E-mail de bienvenue (lien mot de passe) envoyé automatiquement."
+            : "Agent activé — compte lié. E-mail de connexion renvoyé si Resend est configuré."
         )
       }
       startTransition(() => router.refresh())
