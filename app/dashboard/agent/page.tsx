@@ -21,6 +21,8 @@ export default async function AgentDashboardPage() {
       missionsDone: true,
       ratingX10: true,
       leadTimeHours: true,
+      balanceCents: true,
+      lifetimeEarningsCents: true,
     },
   })
   if (!profile) {
@@ -66,6 +68,10 @@ export default async function AgentDashboardPage() {
         <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
           {profile.city}, {profile.country} · {(profile.ratingX10 / 10).toFixed(1)}★ ·{" "}
           {profile.missionsDone} missions · SLA {profile.leadTimeHours} h
+        </p>
+        <p className="mt-1 text-sm font-medium text-emerald-700 dark:text-emerald-400">
+          Solde {(profile.balanceCents / 100).toFixed(2)} € · Gains totaux{" "}
+          {(profile.lifetimeEarningsCents / 100).toFixed(2)} €
         </p>
         {profile.status === "PAUSED" ? (
           <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">Compte en pause</p>

@@ -13,6 +13,8 @@ import {
   parseDescriptionIllustrationImages,
   parseDescriptionIllustrationVideos,
 } from "@/lib/supplier-product-description-illustrations"
+import { parseChinaImportFields } from "@/lib/china-buying/china-buying-shared"
+import { routeChinaBuy } from "@/lib/china-buying/route-china-buy"
 import { parseProductMarketplaceMeta } from "@/lib/supplier-product-marketplace-meta"
 import {
   parseProductOfferBody,
@@ -260,6 +262,13 @@ export async function PUT(
   const attr = parseProductAttributesBody(body as unknown as Record<string, unknown>)
   const ship = parseSupplierProductShippingBody(body as unknown as Record<string, unknown>)
   const meta = parseProductMarketplaceMeta(body as unknown as Record<string, unknown>)
+  const chinaImport =
+    "sourceUrl" in rawBody ||
+    "chinaBuyingAgentId" in rawBody ||
+    "chinaPlatform" in rawBody ||
+    "importSource" in rawBody
+      ? parseChinaImportFields(rawBody)
+      : null
   let categoryId: string | null = null
   try {
     categoryId = await normalizeLeafCategoryId(body.categoryId)
@@ -450,6 +459,20 @@ export async function PUT(
           : {}),
         ...(existingRow.isDraft && !publish ? { active: false, isDraft: true } : {}),
         ...(existingRow.isDraft && publish ? { active: true, isDraft: false } : {}),
+        ...(chinaImport
+          ? {
+              ...(chinaImport.sourceUrl !== null ? { sourceUrl: chinaImport.sourceUrl } : {}),
+              ...(chinaImport.chinaBuyingAgentId !== null
+                ? { chinaBuyingAgentId: chinaImport.chinaBuyingAgentId }
+                : {}),
+              ...(chinaImport.chinaPlatform !== null
+                ? { chinaPlatform: chinaImport.chinaPlatform }
+                : {}),
+              ...(chinaImport.importSource !== null
+                ? { importSource: chinaImport.importSource }
+                : {}),
+            }
+          : {}),
       },
     })
 
@@ -471,6 +494,19 @@ export async function PUT(
 
     return p
   })
+
+  if (
+    chinaImport?.sourceUrl &&
+    chinaImport.chinaBuyingAgentId
+  ) {
+    void routeChinaBuy({
+      supplierId: session.user.id,
+      sourceUrl: chinaImport.sourceUrl,
+      agentId: chinaImport.chinaBuyingAgentId,
+      platform: chinaImport.chinaPlatform,
+      productId: id,
+    })
+  }
 
   const fresh = await prisma.product.findUnique({
     where: { id },

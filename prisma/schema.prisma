@@ -552,6 +552,7 @@ model Product {
   bookingSlots                  BookingSlot[]
   bookingWaitlist               BookingWaitlist[]
   agentMissions                 AgentMission[]
+  chinaBuyRouteLogs             ChinaBuyRouteLog[]
   stock                         Int      @default(0)
   active                        Boolean  @default(true)
   /**
@@ -638,6 +639,10 @@ model Product {
   sourceProductId        String?
   sourceSkuId            String?
   sourceUrl              String?
+  /** China buying agent (Superbuy, Anovabuy, …) chosen at import. */
+  chinaBuyingAgentId     String?
+  /** Source marketplace (1688, Taobao, …). */
+  chinaPlatform          String?
   /**
    * Manual AE variant picker map for browser auto-buy, e.g. { "Color": "Black", "Size": "M" }.
    */
@@ -2220,6 +2225,18 @@ enum AgentMissionStatus {
   CANCELLED
 }
 
+enum ChinaBuyRouteStatus {
+  STUB
+  ROUTED
+  API_OK
+  API_FAIL
+}
+
+enum AgentLedgerEntryType {
+  CREDIT
+  DEBIT
+}
+
 /** Affisell Agent Network — vetted local agents (QC, compliance, photo proof, express relay). */
 model SourcingAgent {
   id            String            @id @default(cuid())
@@ -2234,6 +2251,9 @@ model SourcingAgent {
   missionsDone  Int               @default(0)
   /** Avg turnaround from assignment to report. */
   leadTimeHours Int               @default(48)
+  /** Available balance (mission fees credited on PASSED). */
+  balanceCents            Int     @default(0)
+  lifetimeEarningsCents   Int     @default(0)
   status        AgentStatus       @default(PENDING)
   contactEmail  String            @unique
   /** Motivation / expérience (candidature publique). */
@@ -2245,7 +2265,8 @@ model SourcingAgent {
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @default(now()) @updatedAt
 
-  missions AgentMission[]
+  missions     AgentMission[]
+  ledgerEntries AgentLedgerEntry[]
 
   @@index([status, country])
 }
@@ -2272,9 +2293,50 @@ model AgentMission {
   requestedAt    DateTime           @default(now())
   assignedAt     DateTime?
   completedAt    DateTime?
+  /** SMS J+1 reminder sent when mission stays ASSIGNED > 24h. */
+  smsReminderAt  DateTime?
   updatedAt      DateTime           @default(now()) @updatedAt
+
+  ledgerEntry AgentLedgerEntry?
 
   @@index([supplierId, status, requestedAt])
   @@index([agentId, status])
   @@index([productId])
+  @@index([status, assignedAt, smsReminderAt])
+}
+
+/** Audit trail for China buying agent routing (Superbuy, Anovabuy, …). */
+model ChinaBuyRouteLog {
+  id              String              @id @default(cuid())
+  supplierId      String
+  productId       String?
+  product         Product?            @relation(fields: [productId], references: [id], onDelete: SetNull)
+  agentId         String
+  platform        String?
+  sourceUrl       String
+  status          ChinaBuyRouteStatus @default(STUB)
+  externalRef     String?
+  errorMessage    String?             @db.Text
+  /** Idempotent replay key: supplier + url + agent. */
+  idempotencyKey  String              @unique
+  createdAt       DateTime            @default(now())
+
+  @@index([supplierId, createdAt])
+  @@index([productId])
+}
+
+/** Agent mission fee credits — one row per mission (idempotent on PASSED). */
+model AgentLedgerEntry {
+  id               String               @id @default(cuid())
+  agentId          String
+  agent            SourcingAgent        @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  missionId        String?              @unique
+  mission          AgentMission?        @relation(fields: [missionId], references: [id], onDelete: SetNull)
+  type             AgentLedgerEntryType
+  amountCents      Int
+  balanceAfterCents Int
+  note             String?              @db.Text
+  createdAt        DateTime             @default(now())
+
+  @@index([agentId, createdAt])
 }

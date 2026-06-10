@@ -4,7 +4,12 @@ import {
   canTransitionMission,
   type AgentMissionStatusValue,
 } from "@/lib/agents/agent-network-shared"
+import { creditAgentMissionFee } from "@/lib/agents/credit-agent-mission-fee"
 import { dispatchAgentMissionEmails } from "@/lib/agents/send-agent-mission-emails"
+import {
+  adjustAgentRatingX10,
+  type AgentMissionOutcome,
+} from "@/lib/agents/update-agent-rating"
 import { prisma } from "@/lib/prisma"
 
 export type MissionTransitionInput = {
@@ -111,7 +116,37 @@ export async function transitionAgentMission(
     )
   }
 
+  if ((to === "PASSED" || to === "FAILED") && agentIdForStats) {
+    const agentRow = await prisma.sourcingAgent.findUnique({
+      where: { id: agentIdForStats },
+      select: { ratingX10: true },
+    })
+    if (agentRow) {
+      const nextRating = adjustAgentRatingX10(
+        agentRow.ratingX10,
+        to as AgentMissionOutcome
+      )
+      ops.push(
+        prisma.sourcingAgent.update({
+          where: { id: agentIdForStats },
+          data: { ratingX10: nextRating },
+        })
+      )
+    }
+  }
+
   await prisma.$transaction(ops)
+
+  if (to === "PASSED") {
+    const credit = await creditAgentMissionFee(input.missionId)
+    if (!credit.ok) {
+      console.log("[agent-payment]", {
+        missionId: input.missionId,
+        result: "credit_skipped",
+        error: credit.error,
+      })
+    }
+  }
 
   console.log("[agent-network]", {
     missionId: input.missionId,

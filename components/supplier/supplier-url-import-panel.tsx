@@ -93,7 +93,12 @@ export function SupplierUrlImportPanel({ categoryAttrs, commissionPct, onApply }
         commissionPct,
       })
 
-      onApply(patch)
+      onApply({
+        ...patch,
+        sourceUrl: u,
+        chinaBuyingAgentId: chinaAgent.id,
+        chinaPlatform,
+      })
 
       setLastMeta({
         platform: String(data.platform ?? "unknown"),

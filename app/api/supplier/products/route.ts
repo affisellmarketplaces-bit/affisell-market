@@ -52,6 +52,8 @@ import {
   parseProductVariantsFromBody,
   syncProductVariants,
 } from "@/lib/product-variant-sku"
+import { parseChinaImportFields } from "@/lib/china-buying/china-buying-shared"
+import { routeChinaBuy } from "@/lib/china-buying/route-china-buy"
 import type { CustomColumn } from "@/types/product"
 
 export const runtime = "nodejs"
@@ -294,6 +296,8 @@ export async function POST(req: Request) {
     return Response.json({ error: commissionResolved.error }, { status: 400 })
   }
 
+  const chinaImport = parseChinaImportFields(body as Record<string, unknown>)
+
   const product = await prisma.$transaction(async (tx) => {
     const created = await tx.product.create({
       data: {
@@ -362,6 +366,12 @@ export async function POST(req: Request) {
           customColumns.length > 0
             ? (customColumns as unknown as Prisma.InputJsonValue)
             : Prisma.DbNull,
+        ...(chinaImport.sourceUrl ? { sourceUrl: chinaImport.sourceUrl } : {}),
+        ...(chinaImport.chinaBuyingAgentId
+          ? { chinaBuyingAgentId: chinaImport.chinaBuyingAgentId }
+          : {}),
+        ...(chinaImport.chinaPlatform ? { chinaPlatform: chinaImport.chinaPlatform } : {}),
+        ...(chinaImport.importSource ? { importSource: chinaImport.importSource } : {}),
       },
     })
 
@@ -385,6 +395,16 @@ export async function POST(req: Request) {
 
     return created
   })
+
+  if (chinaImport.sourceUrl && chinaImport.chinaBuyingAgentId) {
+    void routeChinaBuy({
+      supplierId,
+      sourceUrl: chinaImport.sourceUrl,
+      agentId: chinaImport.chinaBuyingAgentId,
+      platform: chinaImport.chinaPlatform,
+      productId: product.id,
+    })
+  }
 
   if (!saveAsDraft) {
     const supplierStore = await prisma.store.findUnique({

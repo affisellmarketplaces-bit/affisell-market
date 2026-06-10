@@ -437,6 +437,9 @@ export function SupplierAddProductForm({
   const [offerMode, setOfferMode] = useState<ProductOfferMode>(DEFAULT_PRODUCT_OFFER_MODE)
   const [minOrderQuantity, setMinOrderQuantity] = useState(1)
   const [supplierTag, setSupplierTag] = useState("")
+  const [chinaSourceUrl, setChinaSourceUrl] = useState("")
+  const [chinaBuyingAgentId, setChinaBuyingAgentId] = useState("")
+  const [chinaPlatform, setChinaPlatform] = useState("")
   const [categoryAttrs, setCategoryAttrs] = useState<CategoryAttrRow[]>([])
   const [specValues, setSpecValues] = useState<Record<string, string>>({})
   const [specFormErrors, setSpecFormErrors] = useState<string[]>([])
@@ -793,6 +796,9 @@ export function SupplierAddProductForm({
     setShippingCost(patch.shippingCost)
     setSpecValues((prev) => ({ ...prev, ...patch.specValuesPatch }))
     if (patch.categoryId?.trim()) setCategoryId(patch.categoryId.trim())
+    if (patch.sourceUrl?.trim()) setChinaSourceUrl(patch.sourceUrl.trim())
+    if (patch.chinaBuyingAgentId?.trim()) setChinaBuyingAgentId(patch.chinaBuyingAgentId.trim())
+    if (patch.chinaPlatform?.trim()) setChinaPlatform(patch.chinaPlatform.trim())
 
     const { mode, sizes, simpleColors, variantRows } = patch.variants
     setVariantFormMode(mode)
@@ -901,6 +907,11 @@ export function SupplierAddProductForm({
       )
       setCommission(String(data.commissionRate ?? 15))
       setShippingCountry(String(data.shippingCountry ?? ""))
+      setChinaSourceUrl(typeof data.sourceUrl === "string" ? data.sourceUrl : "")
+      setChinaBuyingAgentId(
+        typeof data.chinaBuyingAgentId === "string" ? data.chinaBuyingAgentId : ""
+      )
+      setChinaPlatform(typeof data.chinaPlatform === "string" ? data.chinaPlatform : "")
       const wt = String(data.warehouseType ?? "")
       setWarehouseType(wt === "local" || wt === "regional" || wt === "international" ? wt : "")
       setProcessingTime(String(data.processingTime ?? 1))
@@ -1294,9 +1305,21 @@ export function SupplierAddProductForm({
             }
           : {}),
         colorImages: colorImagesPayload,
+        ...(chinaSourceUrl.trim()
+          ? {
+              sourceUrl: chinaSourceUrl.trim(),
+              ...(chinaBuyingAgentId.trim()
+                ? { chinaBuyingAgentId: chinaBuyingAgentId.trim() }
+                : {}),
+              ...(chinaPlatform.trim() ? { chinaPlatform: chinaPlatform.trim() } : {}),
+            }
+          : {}),
       }
     },
     [
+      chinaSourceUrl,
+      chinaBuyingAgentId,
+      chinaPlatform,
       mergedCategoryAttrs,
       specValues,
       price,

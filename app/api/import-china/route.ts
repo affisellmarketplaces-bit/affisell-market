@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { AGENTS, PLATFORMS } from "@/lib/agents"
+import { routeChinaBuy } from "@/lib/china-buying/route-china-buy"
 import { handleSupplierImportUrl } from "@/lib/supplier-import-url-handler"
 
 export const runtime = "nodejs"
@@ -58,10 +59,24 @@ export async function POST(req: Request) {
   // Renvoie le choix d'agent au client pour affichage (badge récap).
   if (res instanceof NextResponse && res.ok && agent) {
     const payload = (await res.json()) as Record<string, unknown>
+    const routed = await routeChinaBuy({
+      supplierId: session.user.id,
+      sourceUrl: body.url.trim(),
+      agentId: agent.id,
+      platform,
+    })
     return NextResponse.json({
       ...payload,
       buyingAgent: { id: agent.id, name: agent.name, fee: agent.fee },
       chinaPlatform: platform,
+      chinaRoute: routed.ok
+        ? {
+            logId: routed.logId,
+            status: routed.status,
+            externalRef: routed.externalRef ?? null,
+            idempotent: routed.idempotent ?? false,
+          }
+        : { error: routed.error },
     })
   }
   return res

@@ -258,6 +258,10 @@ export type UrlImportFormPatch = {
   /** Optional AI-suggested Affisell category leaf id */
   categoryId?: string
   categoryBreadcrumb?: string
+  /** China import metadata — persisted on product save. */
+  sourceUrl?: string
+  chinaBuyingAgentId?: string
+  chinaPlatform?: string
 }
 
 export function guessIso2Country(label: string): string {
