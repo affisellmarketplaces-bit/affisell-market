@@ -2317,12 +2317,16 @@ model ChinaBuyRouteLog {
   status          ChinaBuyRouteStatus @default(STUB)
   externalRef     String?
   errorMessage    String?             @db.Text
+  orderId         String?
   /** Idempotent replay key: supplier + url + agent. */
   idempotencyKey  String              @unique
   createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
 
   @@index([supplierId, createdAt])
   @@index([productId])
+  @@index([orderId])
+  @@index([agentId, externalRef])
 }
 
 /** Agent mission fee credits — one row per mission (idempotent on PASSED). */
@@ -2336,6 +2340,9 @@ model AgentLedgerEntry {
   amountCents      Int
   balanceAfterCents Int
   note             String?              @db.Text
+  stripeTransferId String?              @unique
+  /** Idempotent withdraw key — `withdraw:{agentId}:{uuid}`. */
+  idempotencyKey   String?              @unique
   createdAt        DateTime             @default(now())
 
   @@index([agentId, createdAt])

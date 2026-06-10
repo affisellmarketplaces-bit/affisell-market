@@ -15,6 +15,7 @@ export type RouteChinaBuyInput = {
   agentId: string
   platform?: string | null
   productId?: string | null
+  orderId?: string | null
   quantity?: number
   /** Override idempotency key (e.g. `china-buy:order:{orderId}`). */
   idempotencyKey?: string
@@ -119,6 +120,7 @@ export async function routeChinaBuy(input: RouteChinaBuyInput): Promise<RouteChi
     data: {
       supplierId: input.supplierId,
       productId: input.productId ?? null,
+      orderId: input.orderId ?? null,
       agentId: input.agentId,
       platform: input.platform?.trim() ?? null,
       sourceUrl,

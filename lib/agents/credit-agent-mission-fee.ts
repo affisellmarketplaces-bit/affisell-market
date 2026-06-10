@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { dispatchAgentMissionCreditedEmail } from "@/lib/agents/send-agent-mission-emails"
 
 export type CreditAgentMissionFeeResult =
   | { ok: true; credited: boolean; amountCents?: number }
@@ -82,5 +83,6 @@ export async function creditAgentMissionFee(
     amountCents: result.amountCents,
     result: "credited",
   })
+  dispatchAgentMissionCreditedEmail(missionId)
   return result
 }

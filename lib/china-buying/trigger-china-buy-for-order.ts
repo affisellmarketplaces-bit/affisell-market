@@ -1,3 +1,4 @@
+import { precheckChinaBuyRoute } from "@/lib/china-buying/china-buy-qc-gate"
 import { isChinaBuyingAgentId } from "@/lib/china-buying/china-buying-shared"
 import { routeChinaBuy } from "@/lib/china-buying/route-china-buy"
 import { prisma } from "@/lib/prisma"
@@ -38,19 +39,48 @@ export async function triggerChinaBuyForPaidOrders(
   let triggered = 0
   let skipped = 0
 
+  const productIds = [...new Set(orders.map((o) => o.product.id))]
+  const passedQcRows =
+    productIds.length > 0
+      ? await prisma.agentMission.findMany({
+          where: {
+            productId: { in: productIds },
+            type: "QC_INSPECTION",
+            status: "PASSED",
+          },
+          select: { productId: true },
+          distinct: ["productId"],
+        })
+      : []
+  const passedQcProductIds = new Set(
+    passedQcRows.map((r) => r.productId).filter((id): id is string => Boolean(id))
+  )
+
   for (const order of orders) {
     const product = order.product
     const agentId = product.chinaBuyingAgentId
     const sourceUrl = product.sourceUrl?.trim()
 
-    if (
-      !product.autoFulfill ||
-      !product.autoBuyEnabled ||
-      !agentId ||
-      !isChinaBuyingAgentId(agentId) ||
-      !sourceUrl ||
-      !/^https?:\/\//i.test(sourceUrl)
-    ) {
+    const precheck = precheckChinaBuyRoute({
+      autoFulfill: product.autoFulfill,
+      autoBuyEnabled: product.autoBuyEnabled,
+      agentId,
+      sourceUrl: sourceUrl ?? null,
+      hasPassedQcInspection: passedQcProductIds.has(product.id),
+    })
+    if (!precheck.ok) {
+      skipped += 1
+      if (precheck.reason === "qc_required") {
+        console.log("[china-buy]", {
+          orderId: order.id,
+          productId: product.id,
+          result: "qc_gate_blocked",
+        })
+      }
+      continue
+    }
+
+    if (!agentId || !isChinaBuyingAgentId(agentId) || !sourceUrl) {
       skipped += 1
       continue
     }
@@ -63,6 +93,7 @@ export async function triggerChinaBuyForPaidOrders(
       platform: product.chinaPlatform,
       productId: product.id,
       quantity: qty,
+      orderId: order.id,
       idempotencyKey: `china-buy:order:${order.id}`,
     })
 

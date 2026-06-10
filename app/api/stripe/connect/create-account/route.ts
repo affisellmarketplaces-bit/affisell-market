@@ -39,7 +39,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
-    if (user.role !== "SUPPLIER" && user.role !== "AFFILIATE") {
+    if (user.role !== "SUPPLIER" && user.role !== "AFFILIATE" && user.role !== "AGENT") {
       await logger.warn("Connect role not eligible", { route: ROUTE, userId: user.id, role: user.role })
       return NextResponse.json({ error: "Role not eligible for Connect" }, { status: 403 })
     }

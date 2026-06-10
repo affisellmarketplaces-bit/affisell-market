@@ -2,6 +2,7 @@ import Link from "next/link"
 
 import { AgentLedgerPanel } from "@/components/agent/agent-ledger-panel"
 import { AgentMissionWorkspace } from "@/components/agent/agent-mission-workspace"
+import { AgentPayoutPanel } from "@/components/agent/agent-payout-panel"
 import { loadAgentLedger } from "@/lib/agents/load-agent-ledger"
 import { toMissionRow } from "@/lib/agents/load-agent-network"
 import { requireAgentSession } from "@/lib/dashboard-session"
@@ -35,7 +36,7 @@ export default async function AgentDashboardPage() {
     )
   }
 
-  const [missions, ledgerEntries] = await Promise.all([
+  const [missions, ledgerEntries, connectUser] = await Promise.all([
     prisma.agentMission.findMany({
     where: { agentId: profile.id },
     select: {
@@ -57,6 +58,10 @@ export default async function AgentDashboardPage() {
     take: 60,
   }),
     loadAgentLedger(profile.id, 20),
+    prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { stripeOnboardedAt: true },
+    }),
   ])
 
   const rows = missions.map((m) => toMissionRow(m as Parameters<typeof toMissionRow>[0]))
@@ -90,6 +95,11 @@ export default async function AgentDashboardPage() {
       </header>
 
       <div className="space-y-8">
+        <AgentPayoutPanel
+          balanceCents={profile.balanceCents}
+          connectOnboarded={Boolean(connectUser?.stripeOnboardedAt)}
+          agentPaused={profile.status === "PAUSED"}
+        />
         <AgentLedgerPanel entries={ledgerEntries} balanceCents={profile.balanceCents} />
         <AgentMissionWorkspace missions={rows} agentPaused={profile.status === "PAUSED"} />
       </div>
