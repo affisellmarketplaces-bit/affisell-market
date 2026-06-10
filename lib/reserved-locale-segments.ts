@@ -7,6 +7,7 @@ import { localeFromPathname, pathnameWithoutLocale, URL_LOCALIZED_PATHS } from "
 export const RESERVED_LOCALE_SEGMENTS = new Set([
   "admin",
   "agent",
+  "agents",
   "auctions",
   "affiliate",
   "about",

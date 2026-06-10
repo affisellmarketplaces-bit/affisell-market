@@ -5,6 +5,7 @@ import { isStaticAppPathname, RESERVED_LOCALE_SEGMENTS, staticAppRewriteTarget }
 describe("isStaticAppPathname", () => {
   it("treats app routes as static, not locales", () => {
     expect(isStaticAppPathname("/agent")).toBe(true)
+    expect(isStaticAppPathname("/agents/apply")).toBe(true)
     expect(isStaticAppPathname("/contact")).toBe(true)
     expect(isStaticAppPathname("/accessibilite")).toBe(true)
     expect(isStaticAppPathname("/conditions-affilie")).toBe(true)

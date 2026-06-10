@@ -404,6 +404,8 @@ export const config = {
     "/dashboard/:path*",
     "/affiliate/:path*",
     "/agent",
+    "/agents",
+    "/agents/:path*",
     "/creators",
     "/partners",
     "/demo",
