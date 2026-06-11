@@ -61,8 +61,8 @@ export default async function SupplierSupplyHubPage() {
       </Link>
       <div className="space-y-8">
         <AutoBuyPilotPanel snapshot={pilot} />
-        <ChinaBuyRoutesPanel snapshot={chinaBuy} />
         <AgentNetworkPanel snapshot={agentNetwork} />
+        <ChinaBuyRoutesPanel snapshot={chinaBuy} />
         <SupplyHubPanel snapshot={snapshot} />
       </div>
     </div>

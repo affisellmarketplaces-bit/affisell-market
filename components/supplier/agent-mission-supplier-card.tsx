@@ -149,8 +149,8 @@ export function AgentMissionSupplierCard({
   return (
     <li
       className={cn(
-        "group relative overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-white/[0.07] to-white/[0.02] px-3.5 py-3 backdrop-blur-sm transition-all hover:border-cyan-400/25",
-        m.urgent && "ring-1 ring-amber-400/30"
+        "group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.02] px-4 py-4 backdrop-blur-md transition-all hover:border-cyan-400/30 hover:shadow-[0_0_28px_rgba(34,211,238,0.08)]",
+        m.urgent && "ring-1 ring-amber-400/40"
       )}
     >
       {m.urgent ? (
