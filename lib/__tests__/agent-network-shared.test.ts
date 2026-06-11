@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  canSupplierCancelMission,
+  canSupplierDeleteMission,
+  canSupplierEditMission,
   canTransitionMission,
   guessSkuOriginCountry,
   isAgentMissionType,
@@ -116,5 +119,23 @@ describe("guessSkuOriginCountry", () => {
 
   it("returns null when unknown", () => {
     expect(guessSkuOriginCountry({ importSource: "manual" })).toBeNull()
+  })
+})
+
+describe("supplier mission permissions", () => {
+  it("allows edit on REQUESTED and ASSIGNED", () => {
+    expect(canSupplierEditMission("REQUESTED")).toBe(true)
+    expect(canSupplierEditMission("ASSIGNED")).toBe(true)
+    expect(canSupplierEditMission("IN_PROGRESS")).toBe(false)
+  })
+
+  it("allows cancel while open", () => {
+    expect(canSupplierCancelMission("ASSIGNED")).toBe(true)
+    expect(canSupplierCancelMission("PASSED")).toBe(false)
+  })
+
+  it("allows delete on terminal only", () => {
+    expect(canSupplierDeleteMission("CANCELLED")).toBe(true)
+    expect(canSupplierDeleteMission("ASSIGNED")).toBe(false)
   })
 })

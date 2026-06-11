@@ -25,6 +25,8 @@ export async function GET() {
       reportSummary: true,
       photoUrls: true,
       feeCents: true,
+      urgent: true,
+      deadlineAt: true,
       autoBuyPaused: true,
       requestedAt: true,
       completedAt: true,

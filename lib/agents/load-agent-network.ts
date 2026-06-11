@@ -25,6 +25,8 @@ export type AgentMissionRow = {
   reportSummary: string | null
   photoUrls: string[]
   feeCents: number
+  urgent: boolean
+  deadlineAt: string | null
   autoBuyPaused: boolean
   requestedAt: string
   completedAt: string | null
@@ -53,6 +55,8 @@ const MISSION_SELECT = {
   reportSummary: true,
   photoUrls: true,
   feeCents: true,
+  urgent: true,
+  deadlineAt: true,
   autoBuyPaused: true,
   requestedAt: true,
   completedAt: true,
@@ -69,6 +73,8 @@ type MissionRecord = {
   reportSummary: string | null
   photoUrls: string[]
   feeCents: number
+  urgent: boolean
+  deadlineAt: Date | null
   autoBuyPaused: boolean
   requestedAt: Date
   completedAt: Date | null
@@ -91,6 +97,8 @@ export function toMissionRow(m: MissionRecord): AgentMissionRow {
     reportSummary: m.reportSummary,
     photoUrls: m.photoUrls,
     feeCents: m.feeCents,
+    urgent: m.urgent,
+    deadlineAt: m.deadlineAt?.toISOString() ?? null,
     autoBuyPaused: m.autoBuyPaused,
     requestedAt: m.requestedAt.toISOString(),
     completedAt: m.completedAt?.toISOString() ?? null,

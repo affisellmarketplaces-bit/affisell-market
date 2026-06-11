@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { BadgeCheck, Globe2, Loader2, ShieldCheck, Sparkles } from "lucide-react"
+import { AlarmClock, BadgeCheck, Globe2, Loader2, ShieldCheck, Sparkles, Zap } from "lucide-react"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
 
@@ -10,7 +10,7 @@ import {
   AGENT_MISSION_TYPE_DEFS,
   type AgentMissionTypeValue,
 } from "@/lib/agents/agent-network-shared"
-import { AgentMissionReportCard } from "@/components/supplier/agent-mission-report-card"
+import { AgentMissionSupplierCard } from "@/components/supplier/agent-mission-supplier-card"
 import type { AgentNetworkSnapshot } from "@/lib/agents/load-agent-network"
 import { cn } from "@/lib/utils"
 
@@ -51,11 +51,22 @@ export function AgentNetworkPanel({ snapshot }: { snapshot: AgentNetworkSnapshot
   const [productId, setProductId] = useState(snapshot.skus[0]?.productId ?? "")
   const [missionType, setMissionType] = useState<AgentMissionTypeValue>("QC_INSPECTION")
   const [instructions, setInstructions] = useState("")
+  const [feeEur, setFeeEur] = useState(() => {
+    const def = AGENT_MISSION_TYPE_DEFS.find((d) => d.type === "QC_INSPECTION")
+    return def ? (def.listPriceCents / 100).toFixed(2) : "0"
+  })
+  const [urgent, setUrgent] = useState(false)
+  const [deadlineLocal, setDeadlineLocal] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [, startTransition] = useTransition()
 
   const { agents, missions, skus, stats } = snapshot
   const selectedDef = AGENT_MISSION_TYPE_DEFS.find((d) => d.type === missionType)
+
+  function syncFeeFromType(type: AgentMissionTypeValue) {
+    const def = AGENT_MISSION_TYPE_DEFS.find((d) => d.type === type)
+    if (def) setFeeEur((def.listPriceCents / 100).toFixed(2))
+  }
 
   async function createMission(e: React.FormEvent) {
     e.preventDefault()
@@ -70,6 +81,11 @@ export function AgentNetworkPanel({ snapshot }: { snapshot: AgentNetworkSnapshot
           type: missionType,
           productId,
           ...(instructions.trim() ? { instructions: instructions.trim() } : {}),
+          feeCents: Math.round(Number(feeEur.replace(",", ".")) * 100) || 0,
+          urgent,
+          ...(deadlineLocal
+            ? { deadlineAt: new Date(deadlineLocal).toISOString() }
+            : {}),
         }),
       })
       const data = (await res.json()) as {
@@ -199,7 +215,10 @@ export function AgentNetworkPanel({ snapshot }: { snapshot: AgentNetworkSnapshot
                     <button
                       key={def.type}
                       type="button"
-                      onClick={() => setMissionType(def.type)}
+                      onClick={() => {
+                        setMissionType(def.type)
+                        syncFeeFromType(def.type)
+                      }}
                       aria-pressed={missionType === def.type}
                       className={cn(
                         "rounded-xl border px-3 py-2 text-left text-xs transition-colors",
@@ -231,6 +250,53 @@ export function AgentNetworkPanel({ snapshot }: { snapshot: AgentNetworkSnapshot
                 />
               </label>
 
+              <div className="grid gap-3 rounded-xl border border-cyan-500/15 bg-cyan-950/20 p-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-cyan-300/90">
+                  {t("missionParams")}
+                </p>
+                <label className="block text-xs font-medium text-zinc-300">
+                  {t("feeInput")}
+                  <input
+                    type="number"
+                    min={0}
+                    max={500}
+                    step={0.01}
+                    value={feeEur}
+                    onChange={(e) => setFeeEur(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-cyan-400 focus:outline-none"
+                  />
+                  <span className="mt-1 block text-[10px] text-zinc-500">{t("feeHint")}</span>
+                </label>
+                <label className="block text-xs font-medium text-zinc-300">
+                  {t("deadlineLabel")}
+                  <div className="relative mt-1">
+                    <AlarmClock
+                      className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cyan-400/70"
+                      aria-hidden
+                    />
+                    <input
+                      type="datetime-local"
+                      value={deadlineLocal}
+                      onChange={(e) => setDeadlineLocal(e.target.value)}
+                      className="w-full rounded-lg border border-white/10 bg-zinc-900 py-2 pl-10 pr-3 text-sm text-white focus:border-cyan-400 focus:outline-none"
+                    />
+                  </div>
+                </label>
+                <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-amber-400/20 bg-amber-500/5 px-3 py-2.5 text-xs text-zinc-200 transition hover:border-amber-400/40">
+                  <input
+                    type="checkbox"
+                    checked={urgent}
+                    onChange={(e) => setUrgent(e.target.checked)}
+                    className="rounded border-white/20 bg-zinc-950 text-amber-400 focus:ring-amber-400"
+                  />
+                  <Zap className="h-4 w-4 shrink-0 text-amber-400" aria-hidden />
+                  <span>
+                    <span className="font-semibold text-amber-200">{t("urgentLabel")}</span>
+                    <span className="mt-0.5 block text-[10px] text-zinc-400">{t("urgentHint")}</span>
+                  </span>
+                </label>
+              </div>
+
               <button
                 type="submit"
                 disabled={submitting || !productId}
@@ -261,7 +327,7 @@ export function AgentNetworkPanel({ snapshot }: { snapshot: AgentNetworkSnapshot
           ) : (
             <ul className="mt-3 space-y-2.5">
               {missions.slice(0, 8).map((m) => (
-                <AgentMissionReportCard
+                <AgentMissionSupplierCard
                   key={m.id}
                   mission={m}
                   statusLabel={(status) => t(`status_${status}`)}

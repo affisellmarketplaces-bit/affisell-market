@@ -2288,6 +2288,10 @@ model AgentMission {
   reportSummary  String?            @db.Text
   photoUrls      String[]           @default([])
   feeCents       Int                @default(0)
+  /** Supplier-flagged priority (display + matching boost later). */
+  urgent         Boolean            @default(false)
+  /** Supplier deadline — SLA target for the agent. */
+  deadlineAt     DateTime?
   /** Quality Gate: FAILED mission paused this SKU's auto-buy. */
   autoBuyPaused  Boolean            @default(false)
   requestedAt    DateTime           @default(now())

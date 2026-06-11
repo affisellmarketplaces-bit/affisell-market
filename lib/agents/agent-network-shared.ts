@@ -84,6 +84,31 @@ export function canTransitionMission(
   return MISSION_STATUS_TRANSITIONS[from]?.includes(to) ?? false
 }
 
+/** Supplier may edit brief / fee / urgency before agent starts work. */
+export const SUPPLIER_EDITABLE_MISSION_STATUSES: readonly AgentMissionStatusValue[] = [
+  "REQUESTED",
+  "ASSIGNED",
+]
+
+export function canSupplierEditMission(status: AgentMissionStatusValue): boolean {
+  return SUPPLIER_EDITABLE_MISSION_STATUSES.includes(status)
+}
+
+export function canSupplierCancelMission(status: AgentMissionStatusValue): boolean {
+  return canTransitionMission(status, "CANCELLED")
+}
+
+/** Terminal missions removable from supplier history. */
+export const SUPPLIER_DELETABLE_MISSION_STATUSES: readonly AgentMissionStatusValue[] = [
+  "CANCELLED",
+  "PASSED",
+  "FAILED",
+]
+
+export function canSupplierDeleteMission(status: AgentMissionStatusValue): boolean {
+  return SUPPLIER_DELETABLE_MISSION_STATUSES.includes(status)
+}
+
 export type MatchContext = {
   missionType: AgentMissionTypeValue
   /** Pays d'origine probable du SKU (ISO-2), ex. "CN" pour un import 1688/AE. */

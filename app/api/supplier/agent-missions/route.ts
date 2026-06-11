@@ -21,6 +21,9 @@ const createSchema = z.object({
   type: z.string().refine(isAgentMissionType, "invalid_mission_type"),
   productId: z.string().min(1),
   instructions: z.string().trim().max(2000).optional(),
+  feeCents: z.number().int().min(0).max(50_000).optional(),
+  urgent: z.boolean().optional(),
+  deadlineAt: z.string().nullable().optional(),
 })
 
 async function requireSupplier() {
@@ -50,6 +53,8 @@ export async function GET() {
       reportSummary: true,
       photoUrls: true,
       feeCents: true,
+      urgent: true,
+      deadlineAt: true,
       autoBuyPaused: true,
       requestedAt: true,
       completedAt: true,
@@ -132,13 +137,21 @@ export async function POST(req: Request) {
   )
   const best = ranked[0] ?? null
 
+  let deadlineAt: Date | null = null
+  if (parsed.data.deadlineAt) {
+    const d = new Date(parsed.data.deadlineAt)
+    if (!Number.isNaN(d.getTime())) deadlineAt = d
+  }
+
   const mission = await prisma.agentMission.create({
     data: {
       supplierId,
       productId: product.id,
       type,
       instructions: parsed.data.instructions || null,
-      feeCents: def.listPriceCents,
+      feeCents: parsed.data.feeCents ?? def.listPriceCents,
+      urgent: parsed.data.urgent ?? false,
+      deadlineAt,
       ...(best
         ? { agentId: best.agent.id, status: "ASSIGNED", assignedAt: new Date() }
         : {}),
