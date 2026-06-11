@@ -40,6 +40,61 @@ export function SupplierUrlImportPanel({ categoryAttrs, commissionPct, onApply }
     name: "Anovabuy",
   })
   const [chinaPlatform, setChinaPlatform] = useState("1688")
+  const [ordering, setOrdering] = useState(false)
+
+  const openAgentCheckout = useCallback(async () => {
+    const u = url.trim()
+    if (!u) {
+      toast.error("Collez l’URL du produit.")
+      return
+    }
+    if (!/^https?:\/\//i.test(u)) {
+      toast.error("L’URL doit commencer par http:// ou https://")
+      return
+    }
+    setOrdering(true)
+    try {
+      const res = await fetch("/api/supplier/china-buy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          sourceUrl: u,
+          agentId: chinaAgent.id,
+          platform: chinaPlatform,
+          quantity: 1,
+        }),
+      })
+      const data = (await res.json()) as {
+        ok?: boolean
+        status?: string
+        redirectUrl?: string | null
+        externalRef?: string | null
+        message?: string | null
+        error?: string
+      }
+      if (!res.ok) throw new Error(data.error ?? "Routage agent impossible")
+
+      if (data.status === "STUB" && data.redirectUrl) {
+        window.open(data.redirectUrl, "_blank", "noopener,noreferrer")
+        toast.success(
+          data.message ?? `Ouvre ${chinaAgent.name} pour finaliser la commande manuellement.`
+        )
+        return
+      }
+      if (data.status === "API_OK") {
+        toast.success(
+          `Commande routée via API — réf. ${data.externalRef ?? "confirmée"}`
+        )
+        return
+      }
+      toast.info("Route enregistrée — suivi dans Supply Hub.")
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Commande agent impossible")
+    } finally {
+      setOrdering(false)
+    }
+  }, [url, chinaAgent.id, chinaAgent.name, chinaPlatform])
 
   const runImport = useCallback(async () => {
     const u = url.trim()
@@ -77,6 +132,12 @@ export function SupplierUrlImportPanel({ categoryAttrs, commissionPct, onApply }
         method?: string
         warnings?: string[]
         buyingAgent?: { id: string; name: string; fee: string }
+        chinaRoute?: {
+          status?: string
+          redirectUrl?: string | null
+          message?: string | null
+          externalRef?: string | null
+        }
       }
       if (!res.ok) throw new Error(data.error ?? "Import impossible")
 
@@ -121,6 +182,18 @@ export function SupplierUrlImportPanel({ categoryAttrs, commissionPct, onApply }
           ? `Fiche préremplie (${bits.join(", ")}) — vérifiez catégorie et prix.`
           : "Fiche préremplie — vérifiez catégorie et prix."
       )
+
+      if (data.chinaRoute?.status === "STUB" && data.chinaRoute.redirectUrl) {
+        toast.message(`Commander via ${chinaAgent.name}`, {
+          description:
+            data.chinaRoute.message ??
+            "Le produit est prêt — ouvrez l’agent pour acheter manuellement.",
+          action: {
+            label: "Ouvrir",
+            onClick: () => window.open(data.chinaRoute!.redirectUrl!, "_blank", "noopener,noreferrer"),
+          },
+        })
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Import impossible")
     } finally {
@@ -190,6 +263,22 @@ export function SupplierUrlImportPanel({ categoryAttrs, commissionPct, onApply }
                 </>
               ) : (
                 "Importer dans la fiche"
+              )}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={loading || ordering || !url.trim()}
+              onClick={() => void openAgentCheckout()}
+              className="shrink-0 border-blue-300 text-blue-800 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-200 dark:hover:bg-blue-950"
+            >
+              {ordering ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                  Ouverture…
+                </>
+              ) : (
+                `Commander via ${chinaAgent.name}`
               )}
             </Button>
           </div>

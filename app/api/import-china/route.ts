@@ -74,6 +74,8 @@ export async function POST(req: Request) {
             logId: routed.logId,
             status: routed.status,
             externalRef: routed.externalRef ?? null,
+            redirectUrl: routed.redirectUrl ?? null,
+            message: routed.message ?? null,
             idempotent: routed.idempotent ?? false,
           }
         : { error: routed.error },

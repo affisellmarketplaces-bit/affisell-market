@@ -3,6 +3,10 @@ import type { ChinaBuyRouteStatus } from "@prisma/client"
 import { routeAnovabuyItem } from "@/lib/china-buying/adapters/anovabuy"
 import { routeSuperbuyItem } from "@/lib/china-buying/adapters/superbuy"
 import {
+  chinaAgentStubMessage,
+  getAgentStubCheckoutUrl,
+} from "@/lib/china-buying/agent-stub-urls"
+import {
   chinaBuyIdempotencyKey,
   isChinaBuyingAgentId,
   type ChinaBuyingAgentId,
@@ -27,9 +31,19 @@ export type RouteChinaBuyResult =
       logId: string
       status: ChinaBuyRouteStatus
       externalRef?: string | null
+      /** Present when status is STUB — open in agent site with product URL prefilled. */
+      redirectUrl?: string | null
+      message?: string | null
       idempotent?: boolean
     }
   | { ok: false; error: string }
+
+function stubExtras(agentId: ChinaBuyingAgentId, sourceUrl: string) {
+  return {
+    redirectUrl: getAgentStubCheckoutUrl(agentId, sourceUrl),
+    message: chinaAgentStubMessage(agentId),
+  }
+}
 
 async function callAgentAdapter(
   agentId: ChinaBuyingAgentId,
@@ -90,9 +104,13 @@ export async function routeChinaBuy(input: RouteChinaBuyInput): Promise<RouteChi
 
   const existing = await prisma.chinaBuyRouteLog.findUnique({
     where: { idempotencyKey },
-    select: { id: true, status: true, externalRef: true },
+    select: { id: true, status: true, externalRef: true, sourceUrl: true, agentId: true },
   })
   if (existing) {
+    const stub =
+      existing.status === "STUB" && isChinaBuyingAgentId(existing.agentId)
+        ? stubExtras(existing.agentId, existing.sourceUrl)
+        : {}
     console.log("[china-buy]", {
       supplierId: input.supplierId,
       productId: input.productId ?? null,
@@ -105,6 +123,7 @@ export async function routeChinaBuy(input: RouteChinaBuyInput): Promise<RouteChi
       logId: existing.id,
       status: existing.status,
       externalRef: existing.externalRef,
+      ...stub,
       idempotent: true,
     }
   }
@@ -142,10 +161,14 @@ export async function routeChinaBuy(input: RouteChinaBuyInput): Promise<RouteChi
     result: "routed",
   })
 
+  const stub =
+    log.status === "STUB" ? stubExtras(input.agentId as ChinaBuyingAgentId, sourceUrl) : {}
+
   return {
     ok: true,
     logId: log.id,
     status: log.status,
     externalRef: log.externalRef,
+    ...stub,
   }
 }
