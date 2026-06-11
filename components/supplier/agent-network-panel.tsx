@@ -238,22 +238,11 @@ export function AgentNetworkPanel({ snapshot }: { snapshot: AgentNetworkSnapshot
                 </div>
               </fieldset>
 
-              <label className="block text-xs font-medium text-zinc-300">
-                {t("instructionsLabel")}
-                <textarea
-                  value={instructions}
-                  onChange={(e) => setInstructions(e.target.value)}
-                  rows={2}
-                  maxLength={2000}
-                  placeholder={t("instructionsPlaceholder")}
-                  className="mt-1 w-full rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus:border-cyan-400 focus:outline-none"
-                />
-              </label>
-
-              <div className="grid gap-3 rounded-xl border border-cyan-500/15 bg-cyan-950/20 p-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-cyan-300/90">
+              <div className="grid gap-3 rounded-xl border-2 border-cyan-400/30 bg-gradient-to-br from-cyan-950/40 to-zinc-950/80 p-4 shadow-[0_0_24px_rgba(34,211,238,0.08)]">
+                <p className="text-xs font-bold uppercase tracking-wider text-cyan-300">
                   {t("missionParams")}
                 </p>
+                <p className="text-[11px] leading-relaxed text-zinc-400">{t("missionParamsHint")}</p>
                 <label className="block text-xs font-medium text-zinc-300">
                   {t("feeInput")}
                   <input
@@ -296,6 +285,18 @@ export function AgentNetworkPanel({ snapshot }: { snapshot: AgentNetworkSnapshot
                   </span>
                 </label>
               </div>
+
+              <label className="block text-xs font-medium text-zinc-300">
+                {t("instructionsLabel")}
+                <textarea
+                  value={instructions}
+                  onChange={(e) => setInstructions(e.target.value)}
+                  rows={2}
+                  maxLength={2000}
+                  placeholder={t("instructionsPlaceholder")}
+                  className="mt-1 w-full rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus:border-cyan-400 focus:outline-none"
+                />
+              </label>
 
               <button
                 type="submit"

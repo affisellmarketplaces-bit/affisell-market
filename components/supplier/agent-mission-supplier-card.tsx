@@ -184,74 +184,6 @@ export function AgentMissionSupplierCard({
           ) : null}
         </div>
 
-        <div className="flex shrink-0 items-center gap-1">
-          {editable ? (
-            <button
-              type="button"
-              title={t("edit")}
-              disabled={busy !== null}
-              onClick={() => setEditOpen((v) => !v)}
-              className="rounded-lg border border-white/10 bg-white/5 p-1.5 text-zinc-300 transition hover:border-cyan-400/40 hover:bg-cyan-500/10 hover:text-cyan-200"
-            >
-              <Pencil className="h-3.5 w-3.5" aria-hidden />
-              <span className="sr-only">{t("edit")}</span>
-            </button>
-          ) : null}
-          {cancellable && m.status !== "IN_PROGRESS" ? (
-            <button
-              type="button"
-              title={t("cancel")}
-              disabled={busy !== null}
-              onClick={() => {
-                if (window.confirm(t("cancelConfirm"))) void runAction("cancel")
-              }}
-              className="rounded-lg border border-white/10 bg-white/5 p-1.5 text-zinc-300 transition hover:border-amber-400/40 hover:bg-amber-500/10 hover:text-amber-200"
-            >
-              {busy === "cancel" ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
-              ) : (
-                <XCircle className="h-3.5 w-3.5" aria-hidden />
-              )}
-              <span className="sr-only">{t("cancel")}</span>
-            </button>
-          ) : null}
-          {canEnd ? (
-            <button
-              type="button"
-              title={t("end")}
-              disabled={busy !== null}
-              onClick={() => {
-                if (window.confirm(t("endConfirm"))) void runAction("end")
-              }}
-              className="rounded-lg border border-white/10 bg-white/5 p-1.5 text-zinc-300 transition hover:border-violet-400/40 hover:bg-violet-500/10 hover:text-violet-200"
-            >
-              {busy === "end" ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
-              ) : (
-                <Square className="h-3.5 w-3.5" aria-hidden />
-              )}
-              <span className="sr-only">{t("end")}</span>
-            </button>
-          ) : null}
-          {deletable ? (
-            <button
-              type="button"
-              title={t("delete")}
-              disabled={busy !== null}
-              onClick={() => {
-                if (window.confirm(t("deleteConfirm"))) void runAction("delete")
-              }}
-              className="rounded-lg border border-white/10 bg-white/5 p-1.5 text-zinc-300 transition hover:border-red-400/40 hover:bg-red-500/10 hover:text-red-300"
-            >
-              {busy === "delete" ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
-              ) : (
-                <Trash2 className="h-3.5 w-3.5" aria-hidden />
-              )}
-              <span className="sr-only">{t("delete")}</span>
-            </button>
-          ) : null}
-        </div>
       </div>
 
       <p className="mt-1.5 truncate text-xs text-zinc-400">
@@ -281,6 +213,78 @@ export function AgentMissionSupplierCard({
           </span>
         ) : null}
       </div>
+
+      {editable || (cancellable && m.status !== "IN_PROGRESS") || canEnd || deletable ? (
+        <div className="mt-3 rounded-xl border border-white/15 bg-black/25 p-2.5">
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+            {t("actionsTitle")}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {editable ? (
+              <button
+                type="button"
+                disabled={busy !== null}
+                onClick={() => setEditOpen((v) => !v)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-400/50 bg-cyan-500/20 px-3 py-1.5 text-xs font-semibold text-cyan-100 transition hover:bg-cyan-500/30"
+              >
+                <Pencil className="h-3.5 w-3.5" aria-hidden />
+                {editOpen ? t("closeEdit") : t("edit")}
+              </button>
+            ) : null}
+            {cancellable && m.status !== "IN_PROGRESS" ? (
+              <button
+                type="button"
+                disabled={busy !== null}
+                onClick={() => {
+                  if (window.confirm(t("cancelConfirm"))) void runAction("cancel")
+                }}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-amber-400/50 bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-100 transition hover:bg-amber-500/25"
+              >
+                {busy === "cancel" ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                ) : (
+                  <XCircle className="h-3.5 w-3.5" aria-hidden />
+                )}
+                {t("cancel")}
+              </button>
+            ) : null}
+            {canEnd ? (
+              <button
+                type="button"
+                disabled={busy !== null}
+                onClick={() => {
+                  if (window.confirm(t("endConfirm"))) void runAction("end")
+                }}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-violet-400/50 bg-violet-500/15 px-3 py-1.5 text-xs font-semibold text-violet-100 transition hover:bg-violet-500/25"
+              >
+                {busy === "end" ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                ) : (
+                  <Square className="h-3.5 w-3.5" aria-hidden />
+                )}
+                {t("end")}
+              </button>
+            ) : null}
+            {deletable ? (
+              <button
+                type="button"
+                disabled={busy !== null}
+                onClick={() => {
+                  if (window.confirm(t("deleteConfirm"))) void runAction("delete")
+                }}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-red-400/50 bg-red-500/15 px-3 py-1.5 text-xs font-semibold text-red-100 transition hover:bg-red-500/25"
+              >
+                {busy === "delete" ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                ) : (
+                  <Trash2 className="h-3.5 w-3.5" aria-hidden />
+                )}
+                {t("delete")}
+              </button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
 
       {editOpen ? (
         <div className="mt-3 space-y-3 rounded-lg border border-cyan-400/20 bg-cyan-950/30 p-3">
