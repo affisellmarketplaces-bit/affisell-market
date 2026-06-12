@@ -15,6 +15,7 @@ import {
 } from "@/lib/supplier-product-description-illustrations"
 import { parseChinaImportFields } from "@/lib/china-buying/china-buying-shared"
 import { routeChinaBuy } from "@/lib/china-buying/route-china-buy"
+import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
 import { parseProductMarketplaceMeta } from "@/lib/supplier-product-marketplace-meta"
 import {
   parseProductOfferBody,
@@ -238,6 +239,11 @@ export async function PUT(
   }
 
   const activatingFromDraft = Boolean(existingRow.isDraft && publish)
+
+  if (publish || activatingFromDraft) {
+    const kycBlocked = await requireMerchantVerifiedForPublish(session.user.id)
+    if (kycBlocked) return kycBlocked
+  }
 
   if (publish || activatingFromDraft) {
     const offerErr = validateOfferModePublish(offer.offerMode, offer.minOrderQuantity)

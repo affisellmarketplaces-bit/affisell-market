@@ -5,6 +5,7 @@ import {
   recordAffiliateSwipe,
   sellingPriceFromMarkup,
 } from "@/lib/affiliate-swipe-feed.server"
+import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -42,6 +43,9 @@ export async function POST(request: Request) {
   if (!product) {
     return NextResponse.json({ error: "Product not found or inactive" }, { status: 404 })
   }
+
+  const kycBlocked = await requireMerchantVerifiedForPublish(session.user.id)
+  if (kycBlocked) return kycBlocked
 
   const sellingPriceCents = sellingPriceFromMarkup(product.basePriceCents, markupRate)
   const marginCents = Math.max(0, sellingPriceCents - product.basePriceCents)

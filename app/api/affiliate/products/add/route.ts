@@ -8,6 +8,7 @@ import { resolveLuxuryListingCreateFields } from "@/lib/luxury-listing-patch"
 import { slugifyListingSlug } from "@/lib/affiliate-listing-display"
 import { parseShowWarrantyFlag, resolveProductWarrantyMonths } from "@/lib/product-warranty"
 import { computeAffiliateListingMarginCents } from "@/lib/affiliate-listing-margin"
+import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -133,6 +134,11 @@ export async function POST(request: Request) {
       : true
 
   const isListed = wantsPublicListing && listToggle
+
+  if (isListed && !saveDraft) {
+    const kycBlocked = await requireMerchantVerifiedForPublish(session.user.id)
+    if (kycBlocked) return kycBlocked
+  }
 
   const isFeatured = typeof body.isFeatured === "boolean" ? body.isFeatured : collections.includes("Featured")
 

@@ -11,6 +11,7 @@ import { slugifyListingSlug } from "@/lib/affiliate-listing-display"
 import { parseShowWarrantyFlag, resolveProductWarrantyMonths } from "@/lib/product-warranty"
 import { removeAffiliateListingsFromStorefront } from "@/lib/affiliate-listing-remove"
 import { computeAffiliateListingMarginCents } from "@/lib/affiliate-listing-margin"
+import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -251,6 +252,18 @@ export async function PATCH(
       }
     }
     data.showWarranty = showWarrantyFlag
+  }
+
+  const nextListed =
+    typeof body.listInStore === "boolean"
+      ? body.listInStore
+      : typeof body.isListed === "boolean"
+        ? body.isListed
+        : listing.isListed
+
+  if (nextListed && !listing.isListed) {
+    const kycBlocked = await requireMerchantVerifiedForPublish(session.user.id)
+    if (kycBlocked) return kycBlocked
   }
 
   try {

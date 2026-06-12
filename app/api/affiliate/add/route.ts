@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
+import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -47,6 +48,9 @@ export async function POST(request: Request) {
       { status: 400 }
     )
   }
+
+  const kycBlocked = await requireMerchantVerifiedForPublish(session.user.id)
+  if (kycBlocked) return kycBlocked
 
   const maxPos = await prisma.affiliateProduct.aggregate({
     where: { affiliateId: session.user.id },

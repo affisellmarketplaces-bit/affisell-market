@@ -21,8 +21,16 @@ export function SupplierProductsNewShell({ ownerUserId }: { ownerUserId: string 
   const draftQs = searchParams.get("draft")?.trim() ?? ""
   const assistQs = searchParams.get("assist") === "1"
   const hubQs = searchParams.get("hub") === "1"
+  const composeQs = searchParams.get("compose") === "1"
   const fromInvite = searchParams.get("fromInvite") === "1"
   const [inviteCommissionHint, setInviteCommissionHint] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (hubQs || editId || composeQs) return
+    const qs = new URLSearchParams(searchParams.toString())
+    qs.set("compose", "1")
+    router.replace(`/dashboard/supplier/products/new?${qs.toString()}`, { scroll: false })
+  }, [composeQs, editId, hubQs, router, searchParams])
 
   useEffect(() => {
     if (!fromInvite) return

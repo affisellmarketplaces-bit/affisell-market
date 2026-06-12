@@ -2,19 +2,21 @@ import { requireSupplierSession } from "@/lib/dashboard-session"
 
 import { AffisellPlatformFeesExplainer } from "@/components/shared/affisell-platform-fees-explainer"
 import { MerchantPulseHub } from "@/components/merchant/merchant-pulse-hub"
+import { MerchantStripeConnectPanel } from "@/components/merchant/merchant-stripe-connect-panel"
 import { prisma } from "@/lib/prisma"
 import {
   emptySupplierEarningsPulse,
   loadSupplierEarningsPulse,
 } from "@/lib/merchant-earnings-pulse"
 import { loadOrFallback } from "@/lib/safe-server-data"
+import { Suspense } from "react"
 
 export const dynamic = "force-dynamic"
 
 export default async function SupplierBalancePage() {
   const session = await requireSupplierSession("/dashboard/supplier/balance")
 
-  const [data, feeUser] = await Promise.all([
+  const [data, merchantUser, kycProfile] = await Promise.all([
     loadOrFallback(
       "supplier/balance",
       () => loadSupplierEarningsPulse(session.user.id),
@@ -26,9 +28,26 @@ export default async function SupplierBalancePage() {
         supplierFeeBps: true,
         supplierFeeBpsCatalog: true,
         supplierFeeBpsAutoBuy: true,
+        stripeAccountId: true,
+        stripeOnboardedAt: true,
       },
     }),
+    prisma.merchantLegalProfile.findUnique({
+      where: { userId: session.user.id },
+      select: { verificationStatus: true },
+    }),
   ])
+
+  const connectSlot = (
+    <Suspense fallback={null}>
+      <MerchantStripeConnectPanel
+        role="SUPPLIER"
+        connectOnboarded={Boolean(merchantUser?.stripeOnboardedAt)}
+        stripeAccountId={merchantUser?.stripeAccountId ?? null}
+        verificationApproved={kycProfile?.verificationStatus === "APPROVED"}
+      />
+    </Suspense>
+  )
 
   return (
     <MerchantPulseHub
@@ -43,7 +62,10 @@ export default async function SupplierBalancePage() {
       recentLedger={data.recentLedger}
       backHref="/dashboard/supplier"
       leadingSlot={
-        <AffisellPlatformFeesExplainer variant="supplier" supplierOverrides={feeUser} />
+        <>
+          {connectSlot}
+          <AffisellPlatformFeesExplainer variant="supplier" supplierOverrides={merchantUser} />
+        </>
       }
     />
   )

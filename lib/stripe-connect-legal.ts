@@ -16,10 +16,10 @@ export function stripeConnectReturnUrls(role: string): { refresh_url: string; re
     process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "")?.trim() || "https://affisell.com"
   const path =
     role === "SUPPLIER"
-      ? "/dashboard/supplier"
+      ? "/dashboard/supplier/balance"
       : role === "AGENT"
         ? "/dashboard/agent"
-        : "/dashboard/affiliate"
+        : "/dashboard/affiliate/earnings"
   return {
     refresh_url: `${base}${path}?stripe=refresh`,
     return_url: `${base}${path}?stripe=return`,

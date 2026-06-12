@@ -183,7 +183,9 @@ export function mapServerPublishBlockers(json: {
         ? "Format des variantes incorrect : en mode couleurs, n’utilisez pas la clé SKU ; en mode tableau SKU, vérifiez chaque ligne."
         : json.error === "booking_slots_required"
           ? "Ajoutez au moins un créneau de rendez-vous futur avant de publier (Booking Hub)."
-          : json.error
+          : json.error === "merchant_verification_pending"
+            ? "Vérification marchand requise — complétez votre dossier KYC sur /dashboard/verification avant de publier."
+            : json.error
     const mapped = blockerFromMessage(normalizedError)
     if (mapped) {
       if (!out.some((b) => b.field === mapped.field && b.message === mapped.message)) {

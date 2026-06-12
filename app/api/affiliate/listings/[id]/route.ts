@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
+import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -40,6 +41,18 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 
   if (nextSelling !== undefined && nextSelling < row.product.basePriceCents) {
     return NextResponse.json({ error: "Selling price cannot be below base price" }, { status: 400 })
+  }
+
+  const nextListed =
+    typeof body.isListed === "boolean"
+      ? body.isListed
+      : typeof body.active === "boolean"
+        ? body.active
+        : row.isListed
+
+  if (nextListed && !row.isListed) {
+    const kycBlocked = await requireMerchantVerifiedForPublish(session.user.id)
+    if (kycBlocked) return kycBlocked
   }
 
   const updated = await prisma.affiliateProduct.update({
