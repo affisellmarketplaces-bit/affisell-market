@@ -13,6 +13,14 @@ export function normalizeColorKey(name: string): string {
     .replace(/\s+/g, " ")
 }
 
+/** Generic import / draft swatches — must not override name-based resolution. */
+export const PLACEHOLDER_COLOR_HEXES = new Set(["#cccccc", "#ccc", "#999999", "#999"])
+
+export function isPlaceholderColorHex(hex: string | null | undefined): boolean {
+  if (!hex?.trim()) return true
+  return PLACEHOLDER_COLOR_HEXES.has(hex.trim().toLowerCase())
+}
+
 const COLOR_HEX_BY_KEY: Record<string, string> = {
   black: "#000000",
   white: "#FFFFFF",
@@ -25,7 +33,12 @@ const COLOR_HEX_BY_KEY: Record<string, string> = {
   vert: "#34C759",
   green: "#34C759",
   rose: "#FF2D92",
+  "rose haricot": "#FF2D92",
+  "rose poudre": "#FFB6C1",
+  "rose pale": "#FFB6C1",
+  "rose palee": "#FFB6C1",
   pink: "#FF2D92",
+  haricot: "#D4A574",
   violet: "#AF52DE",
   purple: "#AF52DE",
   jaune: "#FFCC02",
@@ -127,7 +140,10 @@ export function resolveColorSwatchMeta(
     if (stored === "multicolor" || stored.toLowerCase() === "multicolor") {
       return { hex: "multicolor", multicolor: true }
     }
-    if (/^#[0-9a-f]{3,8}$/i.test(stored) || /^hsl\(/i.test(stored)) {
+    if (
+      !isPlaceholderColorHex(stored) &&
+      (/^#[0-9a-f]{3,8}$/i.test(stored) || /^hsl\(/i.test(stored))
+    ) {
       return { hex: stored }
     }
   }

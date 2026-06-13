@@ -1,5 +1,7 @@
 import * as cheerio from "cheerio"
 
+import { catalogHexForColorName } from "@/lib/color-name-hex"
+
 export type ImportPlatform =
   | "aliexpress"
   | "1688"
@@ -407,7 +409,7 @@ function parseAerData(aerData: Record<string, unknown>, url: string): AliExpress
     variants,
     colors: variants
       .filter((v) => v.type.toLowerCase().includes("color"))
-      .map((v) => ({ name: v.name, image: v.image, hex: "#CCCCCC" })),
+      .map((v) => ({ name: v.name, image: v.image, hex: catalogHexForColorName(v.name) })),
     sizes: variants
       .filter((v) => v.type.toLowerCase().includes("size"))
       .map((v) => ({ name: v.name, value: v.name })),

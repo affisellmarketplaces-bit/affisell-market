@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import * as cheerio from "cheerio"
 import { groqChatText } from "@/lib/ai/groq-client"
+import { catalogHexForColorName } from "@/lib/color-name-hex"
 import {
   detectImportPlatform,
   extractWindowJson,
@@ -584,7 +585,7 @@ function parseAERData(aerData: Record<string, unknown>, url: string): ImportedPr
   out.variants = variants
   out.colors = variants
     .filter((v) => v.type.toLowerCase().includes("color"))
-    .map((v) => ({ name: v.name, image: v.image, hex: "#CCCCCC" }))
+    .map((v) => ({ name: v.name, image: v.image, hex: catalogHexForColorName(v.name) }))
   out.sizes = variants
     .filter((v) => v.type.toLowerCase().includes("size"))
     .map((v) => ({ name: v.name, value: v.name }))

@@ -1,3 +1,5 @@
+import { variantColorsMatch } from "@/lib/fulfillment/variant-color-match"
+import { splitVariantLineName } from "@/lib/supplier-sku-builder"
 import type { ProductVariantsJson } from "@/lib/product-variants"
 
 export const PURCHASE_QTY_MIN = 1
@@ -32,11 +34,27 @@ export function resolveListingAvailableStock(params: {
 
   const color = params.selectedColor?.trim()
   if (color) {
-    const colorOnly = rows.find((r) => r.name.trim().toLowerCase() === color.toLowerCase())
+    const colorOnly = rows.find((r) => {
+      const { color: rowColor } = splitVariantLineName(r.name)
+      const nameLower = r.name.trim().toLowerCase()
+      const want = color.toLowerCase()
+      return (
+        nameLower === want ||
+        rowColor.toLowerCase() === want ||
+        variantColorsMatch(rowColor, color) ||
+        nameLower.endsWith(`: ${want}`)
+      )
+    })
     if (colorOnly) return Math.max(0, Math.round(colorOnly.stock) || 0)
 
     const prefix = `${color.toLowerCase()} /`
-    const matching = rows.filter((r) => r.name.trim().toLowerCase().startsWith(prefix))
+    const matching = rows.filter((r) => {
+      const nameLower = r.name.trim().toLowerCase()
+      return (
+        nameLower.startsWith(prefix) ||
+        nameLower.includes(`: ${color.toLowerCase()} /`)
+      )
+    })
     if (matching.length > 0) {
       return matching.reduce((sum, r) => sum + Math.max(0, Math.round(r.stock) || 0), 0)
     }

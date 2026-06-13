@@ -11,6 +11,7 @@ import {
   isAliExpressImportInput,
   parseAliExpressProductId,
 } from "@/lib/aliexpress-product-id"
+import { catalogHexForColorName, resolveColorSwatchMeta } from "@/lib/color-name-hex"
 
 export type ImportedVariantDraft = {
   name: string
@@ -177,7 +178,7 @@ function normalizeImportPreviewRow(raw: Record<string, unknown>): ImportPreviewR
       .map((c): ImportedColorDraft | null => {
         if (typeof c === "string" && c.trim()) {
           const n = c.trim().slice(0, 120)
-          return { name: n, hex: "#CCCCCC", image: "" }
+          return { name: n, hex: catalogHexForColorName(n), image: "" }
         }
         if (!c || typeof c !== "object" || Array.isArray(c)) return null
         const o = c as Record<string, unknown>
@@ -186,7 +187,9 @@ function normalizeImportPreviewRow(raw: Record<string, unknown>): ImportPreviewR
         return {
           name: n,
           hex:
-            typeof o.hex === "string" ? o.hex.trim().slice(0, 24) : "#CCCCCC",
+            typeof o.hex === "string"
+              ? resolveColorSwatchMeta(n, o.hex.trim()).hex
+              : catalogHexForColorName(n),
           image: typeof o.image === "string" ? o.image.trim().slice(0, 2000) : "",
         }
       })

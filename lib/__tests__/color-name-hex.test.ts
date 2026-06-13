@@ -27,6 +27,11 @@ describe("color-name-hex", () => {
     expect(resolveColorSwatchMeta("Custom", "#112233").hex).toBe("#112233")
   })
 
+  it("ignores placeholder import hex and resolves from name", () => {
+    expect(resolveColorSwatchMeta("Rose haricot", "#CCCCCC").hex).toBe("#FF2D92")
+    expect(resolveColorSwatchMeta("Noir", "#ccc").hex).toBe("#000000")
+  })
+
   it("catalogHexForColorName stays compatible", () => {
     expect(catalogHexForColorName("Noir")).toBe("#000000")
   })
@@ -38,6 +43,14 @@ describe("buildMarketplaceColorMeta", () => {
     expect(rows).toHaveLength(2)
     expect(rows[0]?.meta.hex).toBe("#000000")
     expect(rows[1]?.meta.hex).toBe("#78866B")
+  })
+
+  it("ignores placeholder stored hex from imports", () => {
+    const rows = buildMarketplaceColorMeta(
+      ["Rose haricot"],
+      [{ color: "Rose haricot", hex: "#CCCCCC", image: "" }]
+    )
+    expect(rows[0]?.meta.hex).toBe("#FF2D92")
   })
 })
 

@@ -1,5 +1,5 @@
 import { trimColorSwatchImageForStore } from "@/lib/color-swatch-store"
-import { catalogHexForColorName, resolveColorSwatchMeta } from "@/lib/color-name-hex"
+import { resolveColorSwatchMeta } from "@/lib/color-name-hex"
 import { parseVariantsPayload } from "@/lib/product-variants"
 
 /** Stored on `Product.colorImages` — `hex` resolved from name when absent */
@@ -22,7 +22,7 @@ export function parseProductColorImagesFromDb(raw: unknown): ProductColorImageRo
     if (!color) continue
     rows.push({
       color,
-      hex: hex || catalogHexForColorName(color),
+      hex: resolveColorSwatchMeta(color, hex).hex,
       image,
     })
   }
@@ -44,7 +44,7 @@ export function parseProductColorImagesFromBody(raw: unknown): ProductColorImage
     if (image.startsWith("blob:")) image = ""
     rows.push({
       color,
-      hex: hex || catalogHexForColorName(color),
+      hex: resolveColorSwatchMeta(color, hex).hex,
       image: trimColorSwatchImageForStore(image),
     })
   }
@@ -81,7 +81,7 @@ export function buildColorImagesFromLegacy(
       )
       if (vr?.image?.trim()) image = vr.image.trim()
     }
-    return { color: c, hex: catalogHexForColorName(c), image }
+    return { color: c, hex: resolveColorSwatchMeta(c).hex, image }
   })
 }
 
@@ -125,7 +125,7 @@ export function mergeColorImagesForProduct(
     const image = (rowP?.image?.trim() || rowL?.image?.trim() || "")
     return {
       color,
-      hex: rowP?.hex || rowL?.hex || catalogHexForColorName(color),
+      hex: resolveColorSwatchMeta(color, rowP?.hex || rowL?.hex).hex,
       image,
     }
   })

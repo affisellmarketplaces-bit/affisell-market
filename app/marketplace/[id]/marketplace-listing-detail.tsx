@@ -38,7 +38,7 @@ import type { AppLocale } from "@/lib/i18n-locale"
 import { CLIENT_MESSAGES } from "@/lib/i18n-load-messages"
 import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
 import { isMulticolorSwatch } from "@/lib/product-catalog-constants"
-import { buildMarketplaceColorMeta } from "@/lib/marketplace-color-meta"
+import { buildMarketplaceColorMeta, shouldShowMarketplaceColorSwatches, shopperColorLabelsMatch } from "@/lib/marketplace-color-meta"
 import { shopperCategoryEyebrow, shopperVisibleTags } from "@/lib/product-shopper-tags"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
@@ -442,7 +442,12 @@ export function MarketplaceListingDetail({
 
   const initialColor = useMemo(() => {
     const p = promotedColor?.trim()
-    if (p && colorNames.includes(p)) return p
+    if (p) {
+      const exact = colorNames.find((c) => c === p)
+      if (exact) return exact
+      const fuzzy = colorNames.find((c) => shopperColorLabelsMatch(c, p))
+      if (fuzzy) return fuzzy
+    }
     return colorNames[0] ?? null
   }, [colorNames, promotedColor])
 
@@ -559,7 +564,7 @@ export function MarketplaceListingDetail({
     [colorNames, colorImages]
   )
 
-  const showColorSwatches = colorMeta.length > 0
+  const showColorSwatches = shouldShowMarketplaceColorSwatches(colorMeta)
 
   const shopperSelection: ShopperVariantSelection = useMemo(
     () => ({
@@ -1254,7 +1259,9 @@ export function MarketplaceListingDetail({
                         setSelectedImage(imageIndexForColor(cn, colorNames, colorImages, images))
                       }}
                       className={`h-10 w-10 rounded-full border-2 transition lg:h-9 lg:w-9 ${
-                        selectedColor === cn ? "border-zinc-900 dark:border-white" : "border-zinc-300 dark:border-zinc-600"
+                        shopperColorLabelsMatch(selectedColor, cn)
+                          ? "border-zinc-900 dark:border-white"
+                          : "border-zinc-300 dark:border-zinc-600"
                       }`}
                       style={
                         meta && !isMulticolorSwatch(meta)
@@ -1302,7 +1309,7 @@ export function MarketplaceListingDetail({
                           setSelectedImage(imageIndexForColor(cn, colorNames, colorImages, images))
                         }}
                         className={`rounded-xl border px-3 py-2 text-sm font-medium transition ${
-                          selectedColor === cn
+                          shopperColorLabelsMatch(selectedColor, cn)
                             ? "border-violet-600 bg-violet-600 text-white shadow-sm dark:border-violet-500 dark:bg-violet-600"
                             : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-700 dark:hover:border-zinc-600"
                         } ${out ? "cursor-not-allowed opacity-40" : ""}`}
@@ -1310,7 +1317,9 @@ export function MarketplaceListingDetail({
                         <span className="block leading-tight">{cn}</span>
                         <span
                           className={`mt-0.5 block text-[11px] font-semibold tabular-nums ${
-                            selectedColor === cn ? "text-white/90" : "text-zinc-500 dark:text-zinc-400"
+                            shopperColorLabelsMatch(selectedColor, cn)
+                              ? "text-white/90"
+                              : "text-zinc-500 dark:text-zinc-400"
                           }`}
                         >
                           {formatStoreCurrencyFromCents(optionCents)}

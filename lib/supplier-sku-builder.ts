@@ -597,16 +597,23 @@ export function productVariantLinesToSkuTableRows(
   })
 }
 
+/** Strip AE / supplier prefixes like `Color: Noir` → `Noir`. */
+export function stripVariantOptionTypePrefix(label: string): string {
+  const trimmed = label.trim()
+  const stripped = trimmed.replace(/^(color|couleur|colour|size|taille)\s*:\s*/i, "").trim()
+  return stripped || trimmed
+}
+
 export function splitVariantLineName(name: string): { color: string; size: string | null } {
   const trimmed = name.trim()
   const slash = trimmed.indexOf(" / ")
   if (slash >= 0) {
     return {
-      color: trimmed.slice(0, slash).trim(),
-      size: trimmed.slice(slash + 3).trim() || null,
+      color: stripVariantOptionTypePrefix(trimmed.slice(0, slash).trim()),
+      size: stripVariantOptionTypePrefix(trimmed.slice(slash + 3).trim()) || null,
     }
   }
-  return { color: trimmed, size: null }
+  return { color: stripVariantOptionTypePrefix(trimmed), size: null }
 }
 
 export function apiRowsFromSkuTable(

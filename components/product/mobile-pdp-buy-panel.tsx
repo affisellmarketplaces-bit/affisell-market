@@ -10,6 +10,7 @@ import { ListingPriceActionCard } from "@/components/marketplace/listing-price-a
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { isMulticolorSwatch } from "@/lib/product-catalog-constants"
+import { shopperColorLabelsMatch } from "@/lib/marketplace-color-meta"
 import { cn } from "@/lib/utils"
 
 export type MobilePdpColorMeta = {
@@ -205,7 +206,7 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
                     onClick={() => onSelectColor(colorName)}
                     className={cn(
                       "relative h-11 w-11 shrink-0 rounded-full border-2 transition active:scale-95",
-                      selectedColor === colorName
+                      shopperColorLabelsMatch(selectedColor, colorName)
                         ? "border-violet-600 ring-2 ring-violet-400/35 dark:border-violet-400"
                         : "border-zinc-300 dark:border-zinc-600"
                     )}
@@ -219,7 +220,7 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
                     }
                     title={colorName}
                     aria-label={colorName}
-                    aria-pressed={selectedColor === colorName}
+                    aria-pressed={shopperColorLabelsMatch(selectedColor, colorName)}
                   />
                 ) : (
                   <button
@@ -228,7 +229,7 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
                     onClick={() => onSelectColor(colorName)}
                     className={cn(
                       "shrink-0 rounded-full border px-3.5 py-2 text-xs font-semibold transition active:scale-95",
-                      selectedColor === colorName
+                      shopperColorLabelsMatch(selectedColor, colorName)
                         ? "border-violet-600 bg-violet-600 text-white shadow-md"
                         : "border-zinc-200 bg-white text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
                     )}

@@ -1,4 +1,5 @@
 import type { SupplierSimpleColorRow } from "@/lib/supplier-add-product-draft-cache"
+import { resolveColorSwatchMeta } from "@/lib/color-name-hex"
 import { newVariantRowId, type ProductVariantLine } from "@/lib/product-variants"
 
 /** Marketplace default when the source brand is unknown or untrusted. */
@@ -152,7 +153,7 @@ export function mapImportedVariants(
           return {
             name: txt(r.name),
             image: txt(r.image),
-            hex: txt(r.hex) || "#CCCCCC",
+            hex: resolveColorSwatchMeta(txt(r.name), txt(r.hex)).hex,
           }
         })
         .filter((c) => c.name)

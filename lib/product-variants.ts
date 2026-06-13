@@ -1,3 +1,5 @@
+import { normalizeColorKey } from "@/lib/color-name-hex"
+import { variantColorsMatch } from "@/lib/fulfillment/variant-color-match"
 import { splitVariantLineName } from "@/lib/supplier-sku-builder"
 
 /** Stable id for advanced variant rows (client + server). */
@@ -170,15 +172,44 @@ export function variantsFromDb(raw: unknown): ProductVariantsJson | null {
   return parseVariantsPayload(raw)
 }
 
+function collectVariantPrimaryColors(variants: ProductVariantsJson | null): string[] {
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const row of variants?.variantRows ?? []) {
+    const { color } = splitVariantLineName(row.name)
+    if (!color) continue
+    const key = normalizeColorKey(color)
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push(color)
+  }
+  return out
+}
+
+function mergeUniqueColorOptions(primary: string[], secondary: string[]): string[] {
+  const out = [...primary]
+  for (const candidate of secondary) {
+    const trimmed = candidate.trim()
+    if (!trimmed) continue
+    if (out.some((existing) => variantColorsMatch(existing, trimmed))) continue
+    out.push(trimmed)
+  }
+  return out
+}
+
 /** PDP / cart option labels: `Product.colors` first, else advanced `variantRows[].name`. */
 export function resolveMarketplaceOptionNames(
   productColors: string[],
   variants: ProductVariantsJson | null
 ): string[] {
   const fromColors = productColors.map((c) => c.trim()).filter(Boolean)
-  if (fromColors.length > 0) return fromColors
+  const fromRows = collectVariantPrimaryColors(variants)
+  if (fromColors.length > 0) {
+    return mergeUniqueColorOptions(fromColors, fromRows)
+  }
+  if (fromRows.length > 0) return fromRows
   return (variants?.variantRows ?? [])
-    .map((r) => r.name.trim())
+    .map((r) => splitVariantLineName(r.name).color.trim())
     .filter(Boolean)
 }
 
@@ -198,7 +229,10 @@ export function findVariantRowByOptionName(
     return (
       nameLower === want ||
       color.trim().toLowerCase() === want ||
-      nameLower.startsWith(`${want} /`)
+      variantColorsMatch(color, want) ||
+      nameLower.startsWith(`${want} /`) ||
+      nameLower.endsWith(`: ${want}`) ||
+      nameLower.includes(`: ${want} /`)
     )
   })
 

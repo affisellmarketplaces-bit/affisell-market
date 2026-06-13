@@ -7,7 +7,16 @@ import {
 } from "@/lib/marketplace-variant-dimensions"
 import type { CustomColumn } from "@/types/product"
 
+import { splitVariantLineName } from "@/lib/supplier-sku-builder"
+
 describe("marketplace-variant-dimensions", () => {
+  it("strips Color: prefix from variant row names", () => {
+    expect(splitVariantLineName("Color: Rose haricot")).toEqual({
+      color: "Rose haricot",
+      size: null,
+    })
+  })
+
   const storageColumn: CustomColumn = {
     key: "storage_capacity",
     label: "Capacité stockage",
@@ -110,5 +119,36 @@ describe("marketplace-variant-dimensions", () => {
     })
     expect(row?.priceCents).toBe(29886)
     expect(row?.stock).toBe(1)
+  })
+
+  it("matches AE-style Color: labels against shopper selection", () => {
+    const row = findVariantRowForShopperSelection({
+      customColumns: [],
+      variants: {
+        variantRows: [
+          {
+            id: "1",
+            name: "Color: Rose haricot",
+            sku: "",
+            priceCents: 1485,
+            stock: 12,
+            commission: 15,
+            sales: 0,
+          },
+          {
+            id: "2",
+            name: "Color: Noir",
+            sku: "",
+            priceCents: 1485,
+            stock: 8,
+            commission: 15,
+            sales: 0,
+          },
+        ],
+      },
+      selection: { selectedPrimary: "Rose haricot", selectedStorage: null, selectedSize: null },
+    })
+    expect(row?.name).toBe("Color: Rose haricot")
+    expect(row?.stock).toBe(12)
   })
 })

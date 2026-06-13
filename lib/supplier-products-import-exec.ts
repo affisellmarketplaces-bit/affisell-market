@@ -2,10 +2,8 @@ import { Prisma } from "@prisma/client"
 
 import { createNewDropCommunityPost } from "@/lib/community-new-drop"
 import { scheduleProductAutoCategorization } from "@/lib/product-auto-categorize"
-import {
-  catalogHexForColorName,
-  type ProductColorImageRow,
-} from "@/lib/product-color-images"
+import { catalogHexForColorName } from "@/lib/color-name-hex"
+import type { ProductColorImageRow } from "@/lib/product-color-images"
 import { type ProductVariantLine, newVariantRowId } from "@/lib/product-variants"
 import { prisma } from "@/lib/prisma"
 import { parseProductAttributesBody } from "@/lib/supplier-product-attributes"

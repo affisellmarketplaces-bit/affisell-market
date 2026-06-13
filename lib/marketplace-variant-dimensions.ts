@@ -1,4 +1,6 @@
 import { normalizeVariantCustomData, parseCustomColumnsFromDb } from "@/lib/product-custom-columns"
+import { normalizeColorKey } from "@/lib/color-name-hex"
+import { variantColorsMatch } from "@/lib/fulfillment/variant-color-match"
 import { buildVariantOptionLabel } from "@/lib/marketplace-purchase-quantity"
 import type { CustomColumn } from "@/types/product"
 import {
@@ -142,7 +144,10 @@ export function findVariantRowForShopperSelection(args: {
       !primary ||
       nameLower === primaryLower ||
       color.toLowerCase() === primaryLower ||
-      nameLower.startsWith(`${primaryLower} /`)
+      variantColorsMatch(color, primary) ||
+      nameLower.startsWith(`${primaryLower} /`) ||
+      nameLower.endsWith(`: ${primaryLower}`) ||
+      nameLower.includes(`: ${primaryLower} /`)
 
     const sizeMatch = !wantSize || size === wantSize
 
