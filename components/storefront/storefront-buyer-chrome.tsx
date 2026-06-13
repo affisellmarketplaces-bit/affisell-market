@@ -2,7 +2,7 @@
 
 import { X } from "lucide-react"
 import { useTranslations } from "next-intl"
-import { Suspense, useCallback, useEffect, useState } from "react"
+import { Suspense, useCallback, useEffect, useRef, useState } from "react"
 
 import { StorefrontBuyerHeader } from "@/components/storefront/storefront-buyer-header"
 import { StorefrontCategoryDrawerNav } from "@/components/storefront/storefront-category-drawer-nav"
@@ -26,6 +26,8 @@ type Props = {
   shopHomePath?: string
 }
 
+const EMPTY_CATEGORIES: StorefrontCategoryGroup[] = []
+
 export function StorefrontBuyerChrome({
   storeName,
   logoUrl,
@@ -33,27 +35,40 @@ export function StorefrontBuyerChrome({
   primary = "#18181b",
   nameBadge = "parallelogram",
   headerBrandAlign = "left",
-  categories = [],
+  categories,
   categoriesSlug,
   totalProducts = 0,
   shopHomePath = "/",
 }: Props) {
+  const serverCategories = categories ?? EMPTY_CATEGORIES
   const t = useTranslations("storefront.buyerChrome")
   const cartCount = useBuyerCartCount()
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [drawerCategories, setDrawerCategories] = useState(categories)
-  const [drawerTotalProducts, setDrawerTotalProducts] = useState(totalProducts)
+  const [lazyCategories, setLazyCategories] = useState<StorefrontCategoryGroup[] | null>(null)
+  const [lazyTotalProducts, setLazyTotalProducts] = useState(0)
   const [categoriesLoading, setCategoriesLoading] = useState(false)
+  const categoriesFetchedRef = useRef(false)
+
+  const drawerCategories =
+    serverCategories.length > 0 ? serverCategories : (lazyCategories ?? EMPTY_CATEGORIES)
+  const drawerTotalProducts =
+    serverCategories.length > 0 ? totalProducts : lazyTotalProducts
 
   const closeDrawer = useCallback(() => setDrawerOpen(false), [])
 
   useEffect(() => {
-    setDrawerCategories(categories)
-    setDrawerTotalProducts(totalProducts)
-  }, [categories, totalProducts])
+    categoriesFetchedRef.current = false
+    setLazyCategories(null)
+    setLazyTotalProducts(0)
+  }, [categoriesSlug])
 
   useEffect(() => {
-    if (!drawerOpen || categories.length > 0 || !categoriesSlug || drawerCategories.length > 0) {
+    if (
+      !drawerOpen ||
+      serverCategories.length > 0 ||
+      !categoriesSlug ||
+      categoriesFetchedRef.current
+    ) {
       return
     }
     const ac = new AbortController()
@@ -70,8 +85,9 @@ export function StorefrontBuyerChrome({
           totalProducts?: number
         }
         if (Array.isArray(data.groups) && data.groups.length > 0) {
-          setDrawerCategories(data.groups)
-          setDrawerTotalProducts(Math.max(0, Math.round(Number(data.totalProducts) || 0)))
+          categoriesFetchedRef.current = true
+          setLazyCategories(data.groups)
+          setLazyTotalProducts(Math.max(0, Math.round(Number(data.totalProducts) || 0)))
         }
       } catch {
         /* abort / offline */
@@ -80,7 +96,7 @@ export function StorefrontBuyerChrome({
       }
     })()
     return () => ac.abort()
-  }, [categories.length, categoriesSlug, drawerCategories.length, drawerOpen])
+  }, [categoriesSlug, drawerOpen, serverCategories.length])
 
   useEffect(() => {
     if (!drawerOpen) return
