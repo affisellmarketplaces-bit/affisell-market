@@ -1,7 +1,11 @@
+import { cache } from "react"
+
 import { prisma } from "@/lib/prisma"
 import type { StorefrontTrustSnapshot } from "@/lib/storefront-trust-shared"
 
-export async function loadAffiliateStorefrontTrust(slug: string): Promise<StorefrontTrustSnapshot | null> {
+export const loadAffiliateStorefrontTrust = cache(async function loadAffiliateStorefrontTrust(
+  slug: string
+): Promise<StorefrontTrustSnapshot | null> {
   const store = await prisma.store.findUnique({
     where: { slug },
     select: {
@@ -40,4 +44,4 @@ export async function loadAffiliateStorefrontTrust(slug: string): Promise<Storef
     verifiedAt:
       merchantVerified && profile?.reviewedAt ? profile.reviewedAt.toISOString() : null,
   }
-}
+})

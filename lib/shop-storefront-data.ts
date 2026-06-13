@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client"
+import { cache } from "react"
 
 import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
 import { listingWarrantyBadgeLabel, resolveProductWarrantyMonths } from "@/lib/product-warranty"
@@ -27,7 +28,9 @@ import {
 } from "@/lib/shop-storefront-categories"
 import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
 
-export async function loadAffiliateShopStore(slug: string): Promise<ShopStoreSummary | null> {
+export const loadAffiliateShopStore = cache(async function loadAffiliateShopStore(
+  slug: string
+): Promise<ShopStoreSummary | null> {
   const store = await prisma.store.findUnique({
     where: { slug },
     select: {
@@ -55,7 +58,18 @@ export async function loadAffiliateShopStore(slug: string): Promise<ShopStoreSum
     nicheLabel: inferNicheLabel(store.description, store.name),
     theme: parseStorefrontTheme(store.storefrontTheme),
   }
-}
+})
+
+/** Listed categories for dedicated chrome — dedupes store lookup via React cache. */
+export const loadAffiliateShopCategoryGroupsForSlug = cache(
+  async function loadAffiliateShopCategoryGroupsForSlug(
+    slug: string
+  ): Promise<StorefrontCategoryGroup[]> {
+    const store = await loadAffiliateShopStore(slug)
+    if (!store) return []
+    return loadAffiliateShopCategoryGroups(store.userId)
+  }
+)
 
 export async function loadAffiliateShopProducts(
   affiliateUserId: string,
@@ -232,7 +246,7 @@ export async function loadPublicAffiliateShops(limit = 500): Promise<PublicShopD
 }
 
 /** All listed categories for an affiliate storefront (every listed SKU, not the product grid limit). */
-export async function loadAffiliateShopCategoryGroups(
+export const loadAffiliateShopCategoryGroups = cache(async function loadAffiliateShopCategoryGroups(
   affiliateUserId: string
 ): Promise<StorefrontCategoryGroup[]> {
   const listings = await prisma.affiliateProduct.findMany({
@@ -264,7 +278,7 @@ export async function loadAffiliateShopCategoryGroups(
           : null,
       }))
   )
-}
+})
 
 /** Slugs only — sitemap-friendly. */
 export async function loadPublicAffiliateShopSlugs(limit = 2000): Promise<string[]> {

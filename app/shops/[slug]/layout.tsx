@@ -11,7 +11,7 @@ import { StorefrontTrustFooter } from "@/components/storefront/storefront-trust-
 import { StorefrontTrustStrip } from "@/components/storefront/storefront-trust-strip"
 import { auth } from "@/auth"
 import { loadAffiliateStorefrontTrust } from "@/lib/load-affiliate-storefront-trust"
-import { loadAffiliateShopStore, loadAffiliateShopCategoryGroups } from "@/lib/shop-storefront-data"
+import { loadAffiliateShopCategoryGroupsForSlug, loadAffiliateShopStore } from "@/lib/shop-storefront-data"
 import { totalProductsInCategoryGroups } from "@/lib/shop-storefront-categories"
 import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
 import { storefrontSurfaceClass } from "@/lib/storefront-theme-shared"
@@ -29,19 +29,17 @@ export default async function ShopPublicLayout({
   const { slug } = await params
   const hdrs = await headers()
   const isCustomDomain = isCustomDomainHeaders(hdrs)
-  const [store, trust, session] = await Promise.all([
+  const [store, trust, session, dedicatedCategories] = await Promise.all([
     loadAffiliateShopStore(slug),
     loadAffiliateStorefrontTrust(slug),
     auth(),
+    isCustomDomain ? loadAffiliateShopCategoryGroupsForSlug(slug) : Promise.resolve([]),
   ])
+  const dedicatedProductCount = totalProductsInCategoryGroups(dedicatedCategories)
   const isOwner =
     Boolean(session?.user?.id && store?.userId) &&
     session?.user?.role === "AFFILIATE" &&
     store?.userId === session.user.id
-
-  const dedicatedCategories =
-    isCustomDomain && store ? await loadAffiliateShopCategoryGroups(store.userId) : []
-  const dedicatedProductCount = totalProductsInCategoryGroups(dedicatedCategories)
 
   const surfaceClass = storefrontSurfaceClass(store?.theme.surface)
 

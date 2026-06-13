@@ -22,7 +22,7 @@ test.describe("dedicated affiliate storefront", () => {
 
     const drawer = page.locator("#storefront-category-drawer")
     await expect(drawer).toHaveAttribute("aria-hidden", "false")
-    await expect(drawer.getByRole("button", { name: /All products|Tous les produits/i })).toBeVisible()
+    await expect(drawer.getByRole("link", { name: /All products|Tous les produits/i })).toBeVisible()
     await expect(drawer.locator("nav ul li").nth(1).locator("svg")).toBeVisible()
   })
 
@@ -33,7 +33,7 @@ test.describe("dedicated affiliate storefront", () => {
 
     await page.getByRole("button", { name: /Browse categories|Parcourir les catégories/i }).click()
     const drawer = page.locator("#storefront-category-drawer")
-    const categoryButtons = drawer.locator("nav ul li button").filter({ hasNotText: /All products|Tous les produits/i })
+    const categoryButtons = drawer.locator("nav ul li a").filter({ hasNotText: /All products|Tous les produits/i })
     const count = await categoryButtons.count()
     test.skip(count === 0, "No categories in demo store")
 
@@ -59,7 +59,7 @@ test.describe("dedicated affiliate storefront", () => {
 
     await page.getByRole("button", { name: /Browse categories|Parcourir les catégories/i }).click()
     const drawer = page.locator("#storefront-category-drawer")
-    const categoryButtons = drawer.locator("nav ul li button").filter({ hasNotText: /All products|Tous les produits/i })
+    const categoryButtons = drawer.locator("nav ul li a").filter({ hasNotText: /All products|Tous les produits/i })
     test.skip((await categoryButtons.count()) === 0, "No categories in demo store")
 
     await categoryButtons.first().click()

@@ -56,7 +56,7 @@ function ChromeIconButton({
 
   if (href) {
     return (
-      <Link href={href} className={shellClass} style={style} aria-label={label}>
+      <Link href={href} prefetch className={shellClass} style={style} aria-label={label}>
         {children}
       </Link>
     )

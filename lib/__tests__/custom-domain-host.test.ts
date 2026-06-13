@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest"
 
 import { isPlatformHost, normalizeRequestHost } from "@/lib/custom-domain-host"
-import { mapCustomDomainPath, storePublicPrefix } from "@/lib/custom-domain-path"
+import {
+  isMerchantPublicPlatformPath,
+  mapCustomDomainPath,
+  storePublicPrefix,
+} from "@/lib/custom-domain-path"
 
 describe("normalizeRequestHost", () => {
   it("strips port and normalizes", () => {
@@ -36,6 +40,18 @@ describe("mapCustomDomainPath", () => {
 
   it("keeps cart on affiliate custom domain", () => {
     expect(mapCustomDomainPath("/cart", "my-shop", "AFFILIATE")).toBe("/cart")
+  })
+
+  it("keeps legal pages on affiliate custom domain", () => {
+    expect(mapCustomDomainPath("/legal/legal-notice", "my-shop", "AFFILIATE")).toBe(
+      "/legal/legal-notice"
+    )
+    expect(mapCustomDomainPath("/support", "my-shop", "AFFILIATE")).toBe("/support")
+  })
+
+  it("detects merchant public platform paths", () => {
+    expect(isMerchantPublicPlatformPath("/legal/returns")).toBe(true)
+    expect(isMerchantPublicPlatformPath("/dashboard")).toBe(false)
   })
 
   it("maps supplier product paths", () => {

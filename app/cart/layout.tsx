@@ -2,7 +2,10 @@ import { headers } from "next/headers"
 
 import { StorefrontBuyerChromeBar } from "@/components/storefront/storefront-buyer-chrome-bar"
 import { totalProductsInCategoryGroups } from "@/lib/shop-storefront-categories"
-import { loadAffiliateShopCategoryGroups, loadAffiliateShopStore } from "@/lib/shop-storefront-data"
+import {
+  loadAffiliateShopCategoryGroupsForSlug,
+  loadAffiliateShopStore,
+} from "@/lib/shop-storefront-data"
 import {
   isCustomDomainHeaders,
   storeSlugFromHeaders,
@@ -21,10 +24,11 @@ export default async function CartLayout({ children }: { children: React.ReactNo
     return children
   }
 
-  const store = await loadAffiliateShopStore(slug)
+  const [store, categories] = await Promise.all([
+    loadAffiliateShopStore(slug),
+    loadAffiliateShopCategoryGroupsForSlug(slug),
+  ])
   if (!store) return children
-
-  const categories = await loadAffiliateShopCategoryGroups(store.userId)
 
   return (
     <>

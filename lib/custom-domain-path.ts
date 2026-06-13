@@ -23,6 +23,27 @@ export function isBlockedOnCustomDomain(barePath: string): boolean {
   return BLOCKED_PREFIXES.some((p) => bare === p || bare.startsWith(`${p}/`))
 }
 
+/** Buyer-safe platform pages served on merchant hosts (legal, support). */
+const MERCHANT_PUBLIC_PLATFORM_PREFIXES = [
+  "/legal",
+  "/support",
+  "/cookies",
+  "/privacy",
+  "/cgu",
+  "/returns",
+  "/mentions-legales",
+  "/accessibilite",
+  "/contact",
+  "/faq",
+] as const
+
+export function isMerchantPublicPlatformPath(barePath: string): boolean {
+  const bare = barePath || "/"
+  return MERCHANT_PUBLIC_PLATFORM_PREFIXES.some(
+    (prefix) => bare === prefix || bare.startsWith(`${prefix}/`)
+  )
+}
+
 /**
  * Returns internal pathname for Next.js rewrite, or null if the path should not be rewritten.
  */
@@ -33,6 +54,8 @@ export function mapCustomDomainPath(
 ): string | null {
   const bare = barePath || "/"
   if (isBlockedOnCustomDomain(bare)) return null
+
+  if (isMerchantPublicPlatformPath(bare)) return bare
 
   const prefix = storePublicPrefix(slug, role)
   if (bare === prefix || bare.startsWith(`${prefix}/`)) return bare

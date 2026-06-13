@@ -251,6 +251,7 @@ export function StorefrontTrustFooter({ trust, isCustomDomain = false, theme }: 
                 <li key={link.href}>
                   <Link
                     href={link.href}
+                    prefetch
                     className={cn(
                       "affisell-trust-legal-chip group flex items-center gap-2.5 rounded-xl px-3.5 py-3 text-sm font-medium text-zinc-200"
                     )}

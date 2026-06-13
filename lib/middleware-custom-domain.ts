@@ -8,18 +8,21 @@ import {
 } from "@/lib/custom-domain-path"
 import { isPlatformHost, requestHost } from "@/lib/custom-domain-host"
 import {
+  rememberStoreResolve,
+  resolveStoreHostForMiddleware,
+  storeResolveCookieValue,
+  STORE_RESOLVE_COOKIE_MAX_AGE_SEC,
+  STORE_RESOLVE_COOKIE_NAME,
+  type MiddlewareStoreResolve,
+} from "@/lib/middleware-store-resolve"
+import {
   CUSTOM_DOMAIN_HEADER,
   STORE_ROLE_HEADER,
   STORE_SLUG_HEADER,
 } from "@/lib/storefront-request-headers"
 import { localeFromPathname, pathnameWithoutLocale } from "@/lib/locale-path"
 
-type ResolvePayload = {
-  found: boolean
-  slug?: string
-  role?: StorefrontRole
-  storePrefix?: string
-}
+type ResolvePayload = MiddlewareStoreResolve
 
 function platformOriginForResolve(req: NextRequest): string {
   const fromEnv =
@@ -37,16 +40,31 @@ function platformOriginForResolve(req: NextRequest): string {
   return req.nextUrl.origin
 }
 
-async function fetchStoreResolve(host: string, origin: string): Promise<ResolvePayload | null> {
+async function fetchStoreResolveRemote(
+  host: string,
+  origin: string
+): Promise<ResolvePayload | null> {
   try {
     const u = new URL("/api/store/resolve-host", origin)
     u.searchParams.set("host", host)
     const res = await fetch(u.toString(), {
       headers: { accept: "application/json" },
-      signal: AbortSignal.timeout(4000),
+      signal: AbortSignal.timeout(2500),
     })
     if (!res.ok) return null
-    return (await res.json()) as ResolvePayload
+    const data = (await res.json()) as {
+      found?: boolean
+      slug?: string
+      role?: StorefrontRole
+      storePrefix?: string
+    }
+    if (!data.found || !data.slug || !data.role || !data.storePrefix) return null
+    return {
+      found: true,
+      slug: data.slug,
+      role: data.role,
+      storePrefix: data.storePrefix,
+    }
   } catch {
     return null
   }
@@ -60,6 +78,28 @@ function redirectToPlatformApp(req: NextRequest, barePath: string): NextResponse
   return NextResponse.redirect(target, 307)
 }
 
+function attachCustomDomainHeaders(
+  requestHeaders: Headers,
+  resolved: ResolvePayload,
+  pathname: string
+) {
+  requestHeaders.set(CUSTOM_DOMAIN_HEADER, "1")
+  requestHeaders.set(STORE_SLUG_HEADER, resolved.slug)
+  requestHeaders.set(STORE_ROLE_HEADER, resolved.role)
+  requestHeaders.set("x-affisell-pathname", pathname)
+}
+
+function withStoreResolveCookie(res: NextResponse, host: string, resolved: ResolvePayload): NextResponse {
+  rememberStoreResolve(host, resolved)
+  res.cookies.set(STORE_RESOLVE_COOKIE_NAME, storeResolveCookieValue(host, resolved), {
+    path: "/",
+    maxAge: STORE_RESOLVE_COOKIE_MAX_AGE_SEC,
+    httpOnly: true,
+    sameSite: "lax",
+  })
+  return res
+}
+
 export async function tryCustomDomainMiddleware(
   req: NextRequest
 ): Promise<NextResponse | null> {
@@ -69,10 +109,10 @@ export async function tryCustomDomainMiddleware(
   const bare = pathnameWithoutLocale(req.nextUrl.pathname)
   if (bare.startsWith("/api/")) return null
 
-  const resolved = await fetchStoreResolve(host, platformOriginForResolve(req))
-  if (!resolved?.found || !resolved.slug || !resolved.role || !resolved.storePrefix) {
-    return null
-  }
+  const resolved = await resolveStoreHostForMiddleware(req, host, () =>
+    fetchStoreResolveRemote(host, platformOriginForResolve(req))
+  )
+  if (!resolved) return null
 
   if (isBlockedOnCustomDomain(bare)) {
     return redirectToPlatformApp(req, bare)
@@ -88,17 +128,19 @@ export async function tryCustomDomainMiddleware(
     const locale = localeFromPathname(req.nextUrl.pathname)
     url.pathname = locale ? `/${locale}${mapped}` : mapped
     const requestHeaders = new Headers(req.headers)
-    requestHeaders.set(CUSTOM_DOMAIN_HEADER, "1")
-    requestHeaders.set(STORE_SLUG_HEADER, resolved.slug)
-    requestHeaders.set(STORE_ROLE_HEADER, resolved.role)
-    requestHeaders.set("x-affisell-pathname", url.pathname)
-    return NextResponse.rewrite(url, { request: { headers: requestHeaders } })
+    attachCustomDomainHeaders(requestHeaders, resolved, url.pathname)
+    return withStoreResolveCookie(
+      NextResponse.rewrite(url, { request: { headers: requestHeaders } }),
+      host,
+      resolved
+    )
   }
 
   const requestHeaders = new Headers(req.headers)
-  requestHeaders.set(CUSTOM_DOMAIN_HEADER, "1")
-  requestHeaders.set(STORE_SLUG_HEADER, resolved.slug)
-  requestHeaders.set(STORE_ROLE_HEADER, resolved.role)
-  requestHeaders.set("x-affisell-pathname", req.nextUrl.pathname)
-  return NextResponse.next({ request: { headers: requestHeaders } })
+  attachCustomDomainHeaders(requestHeaders, resolved, req.nextUrl.pathname)
+  return withStoreResolveCookie(
+    NextResponse.next({ request: { headers: requestHeaders } }),
+    host,
+    resolved
+  )
 }
