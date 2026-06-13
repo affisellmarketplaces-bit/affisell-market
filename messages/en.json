@@ -1541,7 +1541,43 @@
     "allStores": "All stores",
     "allStoresShort": "Stores",
     "navAria": "Affisell marketplace navigation",
-    "noProducts": "No products available yet."
+    "noProducts": "No products available yet.",
+    "trust": {
+      "poweredBy": "Powered by Affisell",
+      "verifiedBy": "Verified by Affisell",
+      "platformSecured": "Affisell secure checkout",
+      "partnerRef": "Ref. {code}",
+      "officialStorefront": "Official branded storefront",
+      "footerTitle": "Trust & legal compliance",
+      "footerBody": "This store runs on Affisell infrastructure: identity checks, secure payments, and buyer protection policies apply.",
+      "verificationPending": "Merchant verification in progress",
+      "legalNavAria": "Legal information",
+      "legalLinksTitle": "Legal documents",
+      "legalLinks": {
+        "termsOfSale": "Terms of sale",
+        "privacy": "Privacy policy",
+        "legalNotice": "Legal notice",
+        "returns": "Returns & refunds",
+        "support": "Customer support"
+      },
+      "merchantIdentity": "Merchant",
+      "legalName": "Legal name: {name}",
+      "partnerListing": "Partner listing ID",
+      "partnerListingHint": "Traceability reference for orders and support.",
+      "platformOperator": "Marketplace operator",
+      "platformOperatorHint": "Hosting, payments, and compliance layer.",
+      "verifiedOn": "Affisell verification: {date}",
+      "customDomainDisclaimer": "Custom domain storefront — transactions processed via Affisell secure checkout.",
+      "platformDisclaimer": "Affisell affiliate storefront — curated listings from this creator.",
+      "legalStatus": {
+        "PARTICULIER": "Individual seller",
+        "AUTO_ENTREPRENEUR": "Sole trader (micro-entrepreneur)",
+        "EI_PROFESSIONAL": "Registered sole proprietorship",
+        "COMPANY": "Registered company",
+        "ASSOCIATION": "Non-profit association",
+        "FOREIGN": "Foreign registered merchant"
+      }
+    }
   },
   "success": {
     "title": "Thank you!",

@@ -4,7 +4,10 @@ import { AffiliateStorePreviewBanner } from "@/components/shop/AffiliateStorePre
 import { ShopStoreHeader } from "@/components/shop/ShopStoreHeader"
 import { StorefrontHostChromeSync } from "@/components/storefront/storefront-host-chrome-sync"
 import { StorefrontThemeStyles } from "@/components/storefront/storefront-theme-styles"
+import { StorefrontTrustFooter } from "@/components/storefront/storefront-trust-footer"
+import { StorefrontTrustStrip } from "@/components/storefront/storefront-trust-strip"
 import { auth } from "@/auth"
+import { loadAffiliateStorefrontTrust } from "@/lib/load-affiliate-storefront-trust"
 import { loadAffiliateShopStore } from "@/lib/shop-storefront-data"
 import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
 
@@ -20,7 +23,11 @@ export default async function ShopPublicLayout({
   const { slug } = await params
   const hdrs = await headers()
   const isCustomDomain = isCustomDomainHeaders(hdrs)
-  const [store, session] = await Promise.all([loadAffiliateShopStore(slug), auth()])
+  const [store, trust, session] = await Promise.all([
+    loadAffiliateShopStore(slug),
+    loadAffiliateStorefrontTrust(slug),
+    auth(),
+  ])
   const isOwner =
     Boolean(session?.user?.id && store?.userId) &&
     session?.user?.role === "AFFILIATE" &&
@@ -41,7 +48,13 @@ export default async function ShopPublicLayout({
           isCustomDomain={isCustomDomain}
         />
       ) : null}
+      {trust ? (
+        <StorefrontTrustStrip trust={trust} isCustomDomain={isCustomDomain} theme={store?.theme} />
+      ) : null}
       <main className="min-w-0 overflow-x-clip">{children}</main>
+      {trust ? (
+        <StorefrontTrustFooter trust={trust} isCustomDomain={isCustomDomain} theme={store?.theme} />
+      ) : null}
     </div>
   )
 }

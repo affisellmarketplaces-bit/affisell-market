@@ -1565,7 +1565,43 @@
     "allStores": "Toutes les boutiques",
     "allStoresShort": "Boutiques",
     "navAria": "Navigation marketplace Affisell",
-    "noProducts": "Aucun produit disponible pour le moment."
+    "noProducts": "Aucun produit disponible pour le moment.",
+    "trust": {
+      "poweredBy": "Propulsé par Affisell",
+      "verifiedBy": "Vérifié par Affisell",
+      "platformSecured": "Paiement sécurisé Affisell",
+      "partnerRef": "Réf. {code}",
+      "officialStorefront": "Boutique officielle brandée",
+      "footerTitle": "Confiance & conformité légale",
+      "footerBody": "Cette boutique s'appuie sur l'infrastructure Affisell : vérification d'identité, paiements sécurisés et politiques de protection acheteur.",
+      "verificationPending": "Vérification marchand en cours",
+      "legalNavAria": "Informations légales",
+      "legalLinksTitle": "Documents légaux",
+      "legalLinks": {
+        "termsOfSale": "Conditions de vente",
+        "privacy": "Politique de confidentialité",
+        "legalNotice": "Mentions légales",
+        "returns": "Retours & remboursements",
+        "support": "Support client"
+      },
+      "merchantIdentity": "Marchand",
+      "legalName": "Raison sociale : {name}",
+      "partnerListing": "ID listing partenaire",
+      "partnerListingHint": "Référence de traçabilité pour commandes et support.",
+      "platformOperator": "Opérateur marketplace",
+      "platformOperatorHint": "Hébergement, paiements et couche conformité.",
+      "verifiedOn": "Vérification Affisell : {date}",
+      "customDomainDisclaimer": "Boutique sur domaine dédié — transactions via le checkout sécurisé Affisell.",
+      "platformDisclaimer": "Boutique affilié Affisell — fiches sélectionnées par ce créateur.",
+      "legalStatus": {
+        "PARTICULIER": "Vendeur particulier",
+        "AUTO_ENTREPRENEUR": "Auto-entrepreneur",
+        "EI_PROFESSIONAL": "Entreprise individuelle",
+        "COMPANY": "Société immatriculée",
+        "ASSOCIATION": "Association",
+        "FOREIGN": "Marchand étranger enregistré"
+      }
+    }
   },
   "success": {
     "title": "Merci !",
