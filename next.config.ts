@@ -7,6 +7,8 @@ import { buildSecurityHeaders } from "@/lib/security-headers"
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts")
 
 const nextConfig: NextConfig = {
+  /** Dev HMR + hydration on merchant subdomains (e.g. slug.shops.localhost:3001). */
+  allowedDevOrigins: ["*.shops.localhost"],
   async headers() {
     return [
       {
