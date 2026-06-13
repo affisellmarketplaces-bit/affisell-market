@@ -21,6 +21,8 @@ export function shopListingPath(storeSlug: string, listingId: string): string {
   return `${shopStorefrontPath(storeSlug)}/product/${encodeURIComponent(listingId)}`
 }
 
+export { isAffiliateShopStorefrontPath } from "@/lib/mobile-chrome"
+
 /** Legacy `/marketplace` index — role-based redirect target. */
 export function resolveLegacyMarketplaceIndexPath(role: string | undefined): string {
   if (role === "AFFILIATE") return AFFILIATE_CATALOG_PATH

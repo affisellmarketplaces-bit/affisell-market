@@ -9,10 +9,18 @@ describe("shouldHideMobileDock", () => {
     expect(shouldHideMobileDock("/shops/acme/product/widget")).toBe(true)
   })
 
+  it("hides on affiliate shop storefronts", () => {
+    expect(shouldHideMobileDock("/shops/acme")).toBe(true)
+    expect(shouldHideMobileDock("/shops/acme/login")).toBe(true)
+    expect(shouldHideMobileDock("/fr/shops/acme")).toBe(true)
+  })
+
   it("shows on browse surfaces", () => {
     expect(shouldHideMobileDock("/")).toBe(false)
     expect(shouldHideMobileDock("/marketplace")).toBe(false)
     expect(shouldHideMobileDock("/cart")).toBe(false)
+    expect(shouldHideMobileDock("/shops")).toBe(false)
+    expect(shouldHideMobileDock("/shops/browse")).toBe(false)
   })
 
   it("hides on auth flows", () => {

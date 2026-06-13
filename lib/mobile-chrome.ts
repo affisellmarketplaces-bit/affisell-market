@@ -24,6 +24,15 @@ export function isImmersiveBuyerRoute(pathname: string): boolean {
   return false
 }
 
+/** Individual affiliate storefront (`/shops/:slug`), not directory or cross-store browse. */
+export function isAffiliateShopStorefrontPath(pathname: string | null | undefined): boolean {
+  if (!pathname) return false
+  const bare = barePathname(pathname.split("?")[0] ?? "")
+  if (!bare.startsWith("/shops/")) return false
+  if (bare === "/shops/browse" || bare.startsWith("/shops/browse/")) return false
+  return true
+}
+
 export function shouldHideMobileDock(pathname: string): boolean {
   if (!pathname) return false
   const bare = barePathname(pathname)
@@ -36,6 +45,7 @@ export function shouldHideMobileDock(pathname: string): boolean {
   }
   if (bare.startsWith("/dashboard")) return true
   if (bare.startsWith("/demo")) return true
+  if (isAffiliateShopStorefrontPath(pathname)) return true
   if (isImmersiveBuyerRoute(pathname)) return true
   return false
 }
