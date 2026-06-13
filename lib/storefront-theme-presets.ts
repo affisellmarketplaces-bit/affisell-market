@@ -69,6 +69,7 @@ export const STOREFRONT_THEME_PRESETS: StorefrontThemePreset[] = [
       heroStyle: "none",
       gridDensity: "spacious",
       surface: "light",
+      headerBrandAlign: "center",
     },
   },
   {

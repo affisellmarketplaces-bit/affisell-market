@@ -20,6 +20,9 @@ export type StorefrontGridDensity = (typeof STOREFRONT_GRID_DENSITIES)[number]
 export const STOREFRONT_SURFACES = ["light", "dark", "glass"] as const
 export type StorefrontSurface = (typeof STOREFRONT_SURFACES)[number]
 
+export const STOREFRONT_HEADER_BRAND_ALIGNS = ["left", "center", "right"] as const
+export type StorefrontHeaderBrandAlign = (typeof STOREFRONT_HEADER_BRAND_ALIGNS)[number]
+
 export type StorefrontTheme = {
   primary?: string
   accent?: string
@@ -28,6 +31,7 @@ export type StorefrontTheme = {
   heroStyle?: StorefrontHeroStyle
   gridDensity?: StorefrontGridDensity
   surface?: StorefrontSurface
+  headerBrandAlign?: StorefrontHeaderBrandAlign
   /** Optional preset id for Brand Studio UI only. */
   presetId?: string
 }
@@ -41,6 +45,7 @@ export const DEFAULT_STOREFRONT_THEME: StorefrontTheme = {
   heroStyle: "banner",
   gridDensity: "cozy",
   surface: "light",
+  headerBrandAlign: "left",
 }
 
 function parseEnum<T extends string>(raw: unknown, allowed: readonly T[], fallback: T): T {
@@ -78,6 +83,11 @@ export function parseStorefrontTheme(raw: unknown): StorefrontTheme {
       DEFAULT_STOREFRONT_THEME.gridDensity!
     ),
     surface: parseEnum(o.surface, STOREFRONT_SURFACES, DEFAULT_STOREFRONT_THEME.surface!),
+    headerBrandAlign: parseEnum(
+      o.headerBrandAlign,
+      STOREFRONT_HEADER_BRAND_ALIGNS,
+      DEFAULT_STOREFRONT_THEME.headerBrandAlign!
+    ),
     presetId: typeof o.presetId === "string" ? o.presetId.slice(0, 40) : undefined,
   }
 }
@@ -120,6 +130,7 @@ export type BrandStudioThemeInput = {
   heroStyle?: unknown
   gridDensity?: unknown
   surface?: unknown
+  headerBrandAlign?: unknown
   presetId?: unknown
 }
 
@@ -156,6 +167,14 @@ export function themeFromBrandStudioFields(
       input.surface !== undefined && input.surface !== null
         ? parseEnum(input.surface, STOREFRONT_SURFACES, existing.surface ?? "light")
         : existing.surface,
+    headerBrandAlign:
+      input.headerBrandAlign !== undefined && input.headerBrandAlign !== null
+        ? parseEnum(
+            input.headerBrandAlign,
+            STOREFRONT_HEADER_BRAND_ALIGNS,
+            existing.headerBrandAlign ?? "left"
+          )
+        : existing.headerBrandAlign,
     presetId:
       input.presetId !== undefined && input.presetId !== null
         ? typeof input.presetId === "string"

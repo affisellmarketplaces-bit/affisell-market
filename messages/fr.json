@@ -1523,6 +1523,13 @@
       },
       "layoutControls": {
         "title": "Structure & ambiance",
+        "headerBrand": "Nom dans l'entête",
+        "headerBrandHint": "Barre boutique dédiée — menu à gauche, panier à droite.",
+        "headerBrandOptions": {
+          "left": "Gauche",
+          "center": "Centre",
+          "right": "Droite"
+        },
         "layout": "Layout",
         "layoutOptions": {
           "classic": "Classique",

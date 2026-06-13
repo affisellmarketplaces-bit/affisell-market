@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl"
 import { useState } from "react"
 
 import { ShopStoreHeader } from "@/components/shop/ShopStoreHeader"
+import { StorefrontBuyerHeader } from "@/components/storefront/storefront-buyer-header"
 import { StorefrontThemeStyles } from "@/components/storefront/storefront-theme-styles"
 import { StoreNameBadge } from "@/components/storefront/store-name-badge"
 import type { StoreNameBadgeStyle } from "@/lib/store-name-badge-styles"
@@ -12,6 +13,7 @@ import {
   storefrontGridClass,
   storefrontSurfaceClass,
   type StorefrontGridDensity,
+  type StorefrontHeaderBrandAlign,
   type StorefrontHeroStyle,
   type StorefrontLayoutMode,
   type StorefrontSurface,
@@ -31,6 +33,7 @@ export type StorefrontDraft = {
   heroStyle: StorefrontHeroStyle
   gridDensity: StorefrontGridDensity
   surface: StorefrontSurface
+  headerBrandAlign: StorefrontHeaderBrandAlign
 }
 
 type Props = {
@@ -47,6 +50,7 @@ const MOCK_TILES = [
 
 export function StorefrontLivePreview({ draft, className }: Props) {
   const t = useTranslations("storefront.brandStudio.preview")
+  const tChrome = useTranslations("storefront.buyerChrome")
   const [viewport, setViewport] = useState<"mobile" | "desktop">("mobile")
 
   const theme: StorefrontTheme = {
@@ -106,6 +110,17 @@ export function StorefrontLivePreview({ draft, className }: Props) {
       >
         <div className={cn("relative min-h-[420px]", storefrontSurfaceClass(draft.surface))}>
           <StorefrontThemeStyles theme={theme} />
+          <StorefrontBuyerHeader
+            storeName={draft.name.trim() || t("sampleName")}
+            logoUrl={draft.logoUrl}
+            accent={draft.accent}
+            primary={draft.primary}
+            nameBadge={draft.nameBadge}
+            headerBrandAlign={draft.headerBrandAlign}
+            menuLabel={tChrome("openCategories")}
+            cartLabel={tChrome("cart")}
+            compact
+          />
           {draft.layout === "minimal" ? (
             <div className="border-b border-zinc-200/80 px-4 py-4 dark:border-zinc-800">
               <StoreNameBadge

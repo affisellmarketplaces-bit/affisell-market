@@ -24,6 +24,7 @@ import {
   DEFAULT_STOREFRONT_THEME,
   parseStorefrontTheme,
   type StorefrontGridDensity,
+  type StorefrontHeaderBrandAlign,
   type StorefrontHeroStyle,
   type StorefrontLayoutMode,
   type StorefrontSurface,
@@ -78,6 +79,9 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
     DEFAULT_STOREFRONT_THEME.gridDensity!
   )
   const [surface, setSurface] = useState<StorefrontSurface>(DEFAULT_STOREFRONT_THEME.surface!)
+  const [headerBrandAlign, setHeaderBrandAlign] = useState<StorefrontHeaderBrandAlign>(
+    DEFAULT_STOREFRONT_THEME.headerBrandAlign!
+  )
   const [presetId, setPresetId] = useState<string | null>(null)
 
   const hydrate = useCallback(async () => {
@@ -117,6 +121,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
         setHeroStyle(theme.heroStyle ?? DEFAULT_STOREFRONT_THEME.heroStyle!)
         setGridDensity(theme.gridDensity ?? DEFAULT_STOREFRONT_THEME.gridDensity!)
         setSurface(theme.surface ?? DEFAULT_STOREFRONT_THEME.surface!)
+        setHeaderBrandAlign(theme.headerBrandAlign ?? DEFAULT_STOREFRONT_THEME.headerBrandAlign!)
         setPresetId(theme.presetId ?? null)
       }
     } catch (e) {
@@ -139,6 +144,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
     setHeroStyle(theme.heroStyle ?? DEFAULT_STOREFRONT_THEME.heroStyle!)
     setGridDensity(theme.gridDensity ?? DEFAULT_STOREFRONT_THEME.gridDensity!)
     setSurface(theme.surface ?? DEFAULT_STOREFRONT_THEME.surface!)
+    setHeaderBrandAlign(theme.headerBrandAlign ?? DEFAULT_STOREFRONT_THEME.headerBrandAlign!)
   }
 
   const previewDraft = useMemo(
@@ -154,6 +160,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
       heroStyle,
       gridDensity,
       surface,
+      headerBrandAlign,
     }),
     [
       name,
@@ -169,6 +176,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
       heroStyle,
       gridDensity,
       surface,
+      headerBrandAlign,
     ]
   )
 
@@ -189,6 +197,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
       fd.set("themeHeroStyle", heroStyle)
       fd.set("themeGridDensity", gridDensity)
       fd.set("themeSurface", surface)
+      fd.set("themeHeaderBrandAlign", headerBrandAlign)
       if (presetId) fd.set("themePresetId", presetId)
       if (logoFile) {
         fd.set("logo", logoFile)
@@ -359,10 +368,12 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
                 heroStyle={heroStyle}
                 gridDensity={gridDensity}
                 surface={surface}
+                headerBrandAlign={headerBrandAlign}
                 onLayout={setLayout}
                 onHeroStyle={setHeroStyle}
                 onGridDensity={setGridDensity}
                 onSurface={setSurface}
+                onHeaderBrandAlign={setHeaderBrandAlign}
               />
 
               <StoreNameBadgePicker

@@ -83,6 +83,7 @@ export async function POST(req: Request) {
   const themeHeroStyle = fd.get("themeHeroStyle")
   const themeGridDensity = fd.get("themeGridDensity")
   const themeSurface = fd.get("themeSurface")
+  const themeHeaderBrandAlign = fd.get("themeHeaderBrandAlign")
   const themePresetId = fd.get("themePresetId")
   const hasThemeFields =
     themePrimary !== null ||
@@ -92,6 +93,7 @@ export async function POST(req: Request) {
     themeHeroStyle !== null ||
     themeGridDensity !== null ||
     themeSurface !== null ||
+    themeHeaderBrandAlign !== null ||
     themePresetId !== null
   const existingTheme = parseStorefrontTheme(store.storefrontTheme)
   const storefrontTheme = hasThemeFields
@@ -103,6 +105,7 @@ export async function POST(req: Request) {
         heroStyle: themeHeroStyle,
         gridDensity: themeGridDensity,
         surface: themeSurface,
+        headerBrandAlign: themeHeaderBrandAlign,
         presetId: themePresetId,
       })
     : undefined

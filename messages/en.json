@@ -1499,6 +1499,13 @@
       },
       "layoutControls": {
         "title": "Structure & mood",
+        "headerBrand": "Store name in header",
+        "headerBrandHint": "Dedicated storefront bar — menu stays left, cart stays right.",
+        "headerBrandOptions": {
+          "left": "Left",
+          "center": "Center",
+          "right": "Right"
+        },
         "layout": "Layout",
         "layoutOptions": {
           "classic": "Classic",

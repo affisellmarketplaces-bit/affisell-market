@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl"
 
 import type {
   StorefrontGridDensity,
+  StorefrontHeaderBrandAlign,
   StorefrontHeroStyle,
   StorefrontLayoutMode,
   StorefrontSurface,
@@ -15,10 +16,12 @@ type Props = {
   heroStyle: StorefrontHeroStyle
   gridDensity: StorefrontGridDensity
   surface: StorefrontSurface
+  headerBrandAlign: StorefrontHeaderBrandAlign
   onLayout: (v: StorefrontLayoutMode) => void
   onHeroStyle: (v: StorefrontHeroStyle) => void
   onGridDensity: (v: StorefrontGridDensity) => void
   onSurface: (v: StorefrontSurface) => void
+  onHeaderBrandAlign: (v: StorefrontHeaderBrandAlign) => void
 }
 
 function OptionChip<T extends string>({
@@ -51,16 +54,33 @@ export function StorefrontLayoutControls({
   heroStyle,
   gridDensity,
   surface,
+  headerBrandAlign,
   onLayout,
   onHeroStyle,
   onGridDensity,
   onSurface,
+  onHeaderBrandAlign,
 }: Props) {
   const t = useTranslations("storefront.brandStudio.layoutControls")
 
   return (
     <div className="space-y-5 rounded-2xl border border-gray-200/80 bg-gray-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-900/40">
       <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">{t("title")}</p>
+
+      <div className="space-y-2">
+        <p className="text-[11px] font-medium text-gray-600 dark:text-zinc-400">{t("headerBrand")}</p>
+        <p className="text-[11px] text-gray-500 dark:text-zinc-500">{t("headerBrandHint")}</p>
+        <div className="flex flex-wrap gap-2">
+          {(["left", "center", "right"] as const).map((id) => (
+            <OptionChip
+              key={id}
+              label={t(`headerBrandOptions.${id}`)}
+              selected={headerBrandAlign === id}
+              onClick={() => onHeaderBrandAlign(id)}
+            />
+          ))}
+        </div>
+      </div>
 
       <div className="space-y-2">
         <p className="text-[11px] font-medium text-gray-600 dark:text-zinc-400">{t("layout")}</p>

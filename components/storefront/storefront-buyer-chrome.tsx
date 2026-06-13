@@ -1,21 +1,25 @@
 "use client"
 
-import { Menu, ShoppingBag, X } from "lucide-react"
-import Link from "next/link"
+import { X } from "lucide-react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useTranslations } from "next-intl"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
-import { CartCountBadge } from "@/components/cart/cart-count-badge"
+import { StorefrontBuyerHeader } from "@/components/storefront/storefront-buyer-header"
 import { useBuyerCartCount } from "@/hooks/use-buyer-cart-count"
+import type { StoreNameBadgeStyle } from "@/lib/store-name-badge-styles"
 import type { StorefrontCategoryGroup } from "@/lib/shop-storefront-categories"
 import { STOREFRONT_OTHER_CATEGORY_ID } from "@/lib/shop-storefront-categories"
+import type { StorefrontHeaderBrandAlign } from "@/lib/storefront-theme-shared"
 import { cn } from "@/lib/utils"
 
 type Props = {
   storeName: string
   logoUrl: string | null
   accent?: string
+  primary?: string
+  nameBadge?: StoreNameBadgeStyle
+  headerBrandAlign?: StorefrontHeaderBrandAlign
   categories: StorefrontCategoryGroup[]
   totalProducts: number
 }
@@ -24,6 +28,9 @@ export function StorefrontBuyerChrome({
   storeName,
   logoUrl,
   accent = "#7c3aed",
+  primary = "#18181b",
+  nameBadge = "parallelogram",
+  headerBrandAlign = "left",
   categories,
   totalProducts,
 }: Props) {
@@ -71,48 +78,20 @@ export function StorefrontBuyerChrome({
 
   return (
     <>
-      <div
-        className="sticky top-0 z-[120] border-b border-zinc-200/80 bg-white/85 backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-950/90"
-        style={{ borderBottomColor: `color-mix(in srgb, ${accent} 18%, transparent)` }}
-      >
-        <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4 sm:h-16 sm:px-6">
-          <button
-            type="button"
-            onClick={() => setDrawerOpen(true)}
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-zinc-200/90 bg-zinc-50 text-zinc-800 shadow-sm transition hover:border-violet-300 hover:bg-violet-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-violet-600"
-            aria-expanded={drawerOpen}
-            aria-controls="storefront-category-drawer"
-            aria-label={t("openCategories")}
-          >
-            <Menu className="size-5" aria-hidden />
-          </button>
-
-          <Link href="/" className="flex min-w-0 flex-1 items-center gap-2.5">
-            {logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={logoUrl} alt="" className="h-9 w-9 shrink-0 rounded-xl object-cover" />
-            ) : (
-              <span
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-bold text-white"
-                style={{ backgroundColor: accent }}
-              >
-                {storeName.slice(0, 1).toUpperCase()}
-              </span>
-            )}
-            <span className="truncate text-sm font-bold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-base">
-              {storeName}
-            </span>
-          </Link>
-
-          <Link
-            href="/cart"
-            className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-zinc-200/90 bg-zinc-50 text-zinc-800 transition hover:border-violet-300 hover:bg-violet-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
-            aria-label={t("cart")}
-          >
-            <ShoppingBag className="size-5" aria-hidden />
-            <CartCountBadge count={cartCount} size="sm" />
-          </Link>
-        </div>
+      <div className="sticky top-0 z-[120]">
+        <StorefrontBuyerHeader
+          storeName={storeName}
+          logoUrl={logoUrl}
+          accent={accent}
+          primary={primary}
+          nameBadge={nameBadge}
+          headerBrandAlign={headerBrandAlign}
+          cartCount={cartCount}
+          menuLabel={t("openCategories")}
+          cartLabel={t("cart")}
+          onOpenMenu={() => setDrawerOpen(true)}
+          menuExpanded={drawerOpen}
+        />
       </div>
 
       {drawerOpen ? (

@@ -32,12 +32,14 @@ describe("parseStorefrontTheme", () => {
       heroStyle: "gradient",
       gridDensity: "compact",
       surface: "glass",
+      headerBrandAlign: "center",
       presetId: "violet-pulse",
     })
     expect(t.layout).toBe("immersive")
     expect(t.heroStyle).toBe("gradient")
     expect(t.gridDensity).toBe("compact")
     expect(t.surface).toBe("glass")
+    expect(t.headerBrandAlign).toBe("center")
     expect(t.presetId).toBe("violet-pulse")
   })
 })
