@@ -5,7 +5,7 @@ import { useEffect } from "react"
 const BODY_DEDICATED_CLASS = "affisell-dedicated-storefront"
 const BODY_DOCK_OFF_CLASS = "affisell-mobile-dock-off"
 
-/** Hide global Affisell header/footer on merchant hosts (custom domain + auto subdomain). */
+/** Sync dedicated storefront body classes (hide platform header + buyer dock). */
 export function StorefrontHostChromeSync({ active }: { active: boolean }) {
   useEffect(() => {
     document.body.classList.toggle(BODY_DEDICATED_CLASS, active)

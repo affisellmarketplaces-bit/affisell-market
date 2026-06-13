@@ -7,7 +7,6 @@ import { StorefrontDedicatedHero } from "@/components/storefront/storefront-dedi
 import { StorefrontHostChromeSync } from "@/components/storefront/storefront-host-chrome-sync"
 import { StoreNameBadge } from "@/components/storefront/store-name-badge"
 import { StorefrontThemeStyles } from "@/components/storefront/storefront-theme-styles"
-import { StorefrontTrustFooter } from "@/components/storefront/storefront-trust-footer"
 import { StorefrontTrustStrip } from "@/components/storefront/storefront-trust-strip"
 import { auth } from "@/auth"
 import { loadAffiliateStorefrontTrust } from "@/lib/load-affiliate-storefront-trust"
@@ -41,7 +40,7 @@ export default async function ShopPublicLayout({
   const surfaceClass = storefrontSurfaceClass(store?.theme.surface)
 
   return (
-    <div className={cn("min-h-screen", surfaceClass)}>
+    <div className={cn("flex min-h-0 flex-1 flex-col", surfaceClass)}>
       <StorefrontHostChromeSync active={isCustomDomain} />
       {store ? <StorefrontThemeStyles theme={store.theme} /> : null}
       {isCustomDomain && store ? (
@@ -104,14 +103,6 @@ export default async function ShopPublicLayout({
         <StorefrontTrustStrip trust={trust} isCustomDomain={isCustomDomain} theme={store?.theme} />
       ) : null}
       <main className="min-w-0 overflow-x-clip">{children}</main>
-      {trust ? (
-        <StorefrontTrustFooter
-          trust={trust}
-          isCustomDomain={isCustomDomain}
-          theme={store?.theme}
-          shopHomePath={isCustomDomain ? "/" : `/shops/${slug}`}
-        />
-      ) : null}
     </div>
   )
 }

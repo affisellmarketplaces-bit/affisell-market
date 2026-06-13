@@ -12,6 +12,10 @@ test.describe("dedicated affiliate storefront", () => {
     await expect(page.locator("body")).toHaveClass(/affisell-dedicated-storefront/)
     await expect(page.locator(".affisell-global-site-header")).toBeHidden()
     await expect(page.locator(".affisell-mobile-buyer-dock")).toBeHidden()
+    const footer = page.locator("footer[role='contentinfo'].affisell-site-footer")
+    await expect(footer).toHaveCount(1)
+    await footer.scrollIntoViewIfNeeded()
+    await expect(footer).toBeVisible()
 
     const menu = page.getByRole("button", { name: /Browse categories|Parcourir les catégories/i })
     await expect(menu).toBeVisible()

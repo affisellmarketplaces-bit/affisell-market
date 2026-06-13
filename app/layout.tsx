@@ -6,7 +6,6 @@ import { RootSessionShell } from "@/app/root-intl-session"
 import { AuthSessionProvider } from "@/components/providers/auth-session-provider"
 import { IntlAppProvider } from "@/components/providers/intl-app-provider"
 import { getCachedSession } from "@/lib/get-cached-session"
-import { isAffiliateShopStorefrontPath } from "@/lib/mobile-chrome"
 import { bootstrapRootShell } from "@/lib/safe-root-bootstrap"
 import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
 import { cn } from "@/lib/utils"
@@ -27,17 +26,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   ])
   const hdrs = await headers()
   const isDedicatedStorefront = isCustomDomainHeaders(hdrs)
-  const pathname = hdrs.get("x-affisell-pathname") ?? ""
-  const isShopStorefront = isAffiliateShopStorefrontPath(pathname)
-  const hidePlatformFooter = isDedicatedStorefront || isShopStorefront
 
   return (
     <html lang={locale} suppressHydrationWarning>
       <body
         className={cn(
           "affisell-mobile-shell affisell-epoxy-atmosphere flex min-h-dvh flex-col text-gray-900 [font-family:Inter,system-ui] dark:text-zinc-50",
-          isDedicatedStorefront && "affisell-dedicated-storefront",
-          (isDedicatedStorefront || isShopStorefront) && "affisell-mobile-dock-off"
+          isDedicatedStorefront && "affisell-dedicated-storefront affisell-mobile-dock-off"
         )}
       >
         <CookieConsentHeadScripts />
@@ -55,7 +50,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </header>
               ) : null}
               <div className="affisell-page-shell">{children}</div>
-              {!hidePlatformFooter ? <Footer /> : null}
+              <Footer />
             </RootSessionShell>
             <CookieBanner />
           </IntlAppProvider>

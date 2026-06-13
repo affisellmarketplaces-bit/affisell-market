@@ -72,9 +72,8 @@
   }
 }
 
-/* Dedicated affiliate storefront — hide platform chrome on all viewports */
+/* Dedicated affiliate storefront — platform header + buyer dock hidden; Affisell footer stays visible. */
 body.affisell-dedicated-storefront .affisell-global-site-header,
-body.affisell-dedicated-storefront .affisell-site-footer,
 body.affisell-dedicated-storefront .affisell-mobile-buyer-dock {
   display: none !important;
 }

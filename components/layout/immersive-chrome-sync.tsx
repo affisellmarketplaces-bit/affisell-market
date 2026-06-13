@@ -18,14 +18,12 @@ export function ImmersiveChromeSync() {
     const dockOff = immersive || shouldHideMobileDock(pathname) || dedicated
     if (immersive) {
       document.body.classList.add(BODY_IMMERSIVE_CLASS)
-    } else if (!dedicated) {
+    } else {
       document.body.classList.remove(BODY_IMMERSIVE_CLASS)
     }
     document.body.classList.toggle(BODY_DOCK_OFF_CLASS, dockOff)
     return () => {
-      if (!dedicated) {
-        document.body.classList.remove(BODY_IMMERSIVE_CLASS)
-      }
+      document.body.classList.remove(BODY_IMMERSIVE_CLASS)
     }
   }, [pathname])
 
