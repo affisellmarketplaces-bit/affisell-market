@@ -1,5 +1,5 @@
 import { normalizeRequestHost } from "@/lib/custom-domain-host"
-import { resolveStoreByCustomDomain } from "@/lib/store-custom-domain"
+import { resolveStoreByHost } from "@/lib/store-custom-domain"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -11,7 +11,7 @@ export async function GET(req: Request) {
     return Response.json({ error: "host required" }, { status: 400 })
   }
 
-  const resolved = await resolveStoreByCustomDomain(host)
+  const resolved = await resolveStoreByHost(host)
   if (!resolved) {
     return Response.json({ found: false }, {
       status: 404,
@@ -25,6 +25,7 @@ export async function GET(req: Request) {
       slug: resolved.slug,
       role: resolved.role,
       storePrefix: resolved.storePrefix,
+      hostKind: resolved.hostKind,
     },
     {
       headers: { "Cache-Control": "public, s-maxage=120, stale-while-revalidate=600" },

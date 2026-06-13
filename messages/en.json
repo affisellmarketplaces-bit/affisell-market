@@ -1465,6 +1465,14 @@
       "supplierDescription": "How buyers see your supplier shop: banner, brand colors, and custom domain.",
       "liveUrl": "Live URL",
       "previewAffisell": "Preview on Affisell",
+      "liveStore": {
+        "title": "Your store is live",
+        "subtitle": "Share {suffix} for Google Ads — same catalog as your Affisell listings, zero competitor traffic.",
+        "subdomainLabel": "Auto URL (Shopify-style)",
+        "customDomainLabel": "Custom domain",
+        "platformLabel": "Affisell path (backup)",
+        "openPrimary": "Open storefront"
+      },
       "storeName": "Store name",
       "heroBanner": "Hero banner (HTTPS URL)",
       "tagline": "Tagline / description",

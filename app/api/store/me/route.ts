@@ -1,7 +1,7 @@
 import { auth } from "@/auth"
 import { ensureMerchantStore } from "@/lib/ensure-store"
 import { prisma } from "@/lib/prisma"
-import { storePublicUrl } from "@/lib/store-public-url"
+import { storePublicUrl, resolveStorePublicUrls, storeHostSuffixForUi } from "@/lib/store-public-url"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -30,12 +30,20 @@ export async function GET() {
       : "cname.affisell.com"
 
   const merchantRole = role === "SUPPLIER" ? "SUPPLIER" : "AFFILIATE"
-  const publicStoreUrl = storePublicUrl({
+  const urlInput = {
     slug: store.slug,
     customDomain: store.customDomain,
     domainVerified: store.domainVerified,
-    role: merchantRole,
-  })
+    role: merchantRole as "SUPPLIER" | "AFFILIATE",
+  }
+  const urls = resolveStorePublicUrls(urlInput)
+  const publicStoreUrl = storePublicUrl(urlInput)
 
-  return Response.json({ store, dnsTarget, publicStoreUrl })
+  return Response.json({
+    store,
+    dnsTarget,
+    publicStoreUrl,
+    storeUrls: urls,
+    storeHostSuffix: storeHostSuffixForUi(),
+  })
 }

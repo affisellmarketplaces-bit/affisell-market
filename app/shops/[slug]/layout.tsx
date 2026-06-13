@@ -2,6 +2,7 @@ import { headers } from "next/headers"
 
 import { AffiliateStorePreviewBanner } from "@/components/shop/AffiliateStorePreviewBanner"
 import { ShopStoreHeader } from "@/components/shop/ShopStoreHeader"
+import { StorefrontHostChromeSync } from "@/components/storefront/storefront-host-chrome-sync"
 import { StorefrontThemeStyles } from "@/components/storefront/storefront-theme-styles"
 import { auth } from "@/auth"
 import { loadAffiliateShopStore } from "@/lib/shop-storefront-data"
@@ -27,6 +28,7 @@ export default async function ShopPublicLayout({
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+      <StorefrontHostChromeSync active={isCustomDomain} />
       {store ? <StorefrontThemeStyles theme={store.theme} /> : null}
       <AffiliateStorePreviewBanner storeSlug={slug} isOwner={isOwner} />
       {store ? (

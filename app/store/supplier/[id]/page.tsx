@@ -19,6 +19,7 @@ import {
   SupplierStorefrontBrowse,
   type SupplierStorefrontListingSerializable,
 } from "@/components/supplier/supplier-storefront-browse"
+import { StorefrontHostChromeSync } from "@/components/storefront/storefront-host-chrome-sync"
 import { StorefrontThemeStyles } from "@/components/storefront/storefront-theme-styles"
 import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
 import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
@@ -211,6 +212,7 @@ export default async function SupplierStorePreviewPage({ params }: { params: Pro
       ) : null}
 
       <StorefrontThemeStyles theme={theme} />
+      <StorefrontHostChromeSync active={isCustomDomain} />
       <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
         <header className="relative overflow-hidden border-b border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-950">
           {store.bannerUrl ? (

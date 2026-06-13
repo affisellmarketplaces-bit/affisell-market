@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState } from "react"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { StoreCustomDomainCard } from "@/components/storefront/store-custom-domain-card"
+import { StoreLiveUrlCard } from "@/components/storefront/store-live-url-card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
@@ -46,6 +47,13 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [publicStoreUrl, setPublicStoreUrl] = useState<string | null>(null)
+  const [storeUrls, setStoreUrls] = useState<{
+    primaryUrl: string
+    subdomainUrl: string
+    platformPathUrl: string
+    customDomainUrl: string | null
+  } | null>(null)
+  const [storeHostSuffix, setStoreHostSuffix] = useState<string | null>(null)
   const [name, setName] = useState("")
   const [bannerUrl, setBannerUrl] = useState("")
   const [description, setDescription] = useState("")
@@ -61,10 +69,19 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
       const json = (await res.json()) as {
         store?: StoreRow
         publicStoreUrl?: string
+        storeUrls?: {
+          primaryUrl: string
+          subdomainUrl: string
+          platformPathUrl: string
+          customDomainUrl: string | null
+        }
+        storeHostSuffix?: string | null
         error?: string
       }
       if (!res.ok) throw new Error(json.error ?? t("loadFailed"))
       if (json.publicStoreUrl) setPublicStoreUrl(json.publicStoreUrl)
+      if (json.storeUrls) setStoreUrls(json.storeUrls)
+      setStoreHostSuffix(json.storeHostSuffix ?? null)
       const st = json.store
       if (st) {
         setName(st.name)
@@ -265,6 +282,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
           </BentoCard>
 
           <div className="space-y-4">
+            <StoreLiveUrlCard urls={storeUrls} storeHostSuffix={storeHostSuffix} loading={loading} />
             <StoreCustomDomainCard variant="studio" />
             <BentoCard className="text-sm text-gray-600 dark:text-zinc-400">
               <p className="flex items-center gap-2 font-medium text-gray-900 dark:text-zinc-100">

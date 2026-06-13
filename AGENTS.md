@@ -6,6 +6,7 @@
 ## Merchant custom domains & storefront theme
 
 - **DNS**: merchants set `CNAME` → `STORE_CNAME_TARGET` (default `cname.affisell.com`), then **Verify** in Store profile (`/dashboard/*/settings/store`).
+- **Auto subdomain**: on signup, `{slug}.{AFFISELL_STORE_HOST_SUFFIX}` (default `shops.affisell.com`) — same catalog as `/shops/{slug}`; wildcard DNS on Vercel required in prod.
 - **Routing**: `middleware` calls `/api/store/resolve-host` and rewrites verified hosts to `/shops/:slug` (affiliate) or `/store/supplier/:slug` (supplier). Dashboard/checkout paths redirect to the platform origin.
 - **Vercel**: each verified hostname must be added under Project → Domains (or automated later) for TLS.
 - **Theme**: `Store.storefrontTheme` JSON (`primary`, `accent` hex) — **Brand Studio** (`/dashboard/affiliate/brand-studio`, `/dashboard/supplier/storefront`); applied via `StorefrontThemeStyles` on public shops.

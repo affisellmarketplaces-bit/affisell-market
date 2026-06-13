@@ -1489,6 +1489,14 @@
       "supplierDescription": "Ce que voient les acheteurs sur votre boutique fournisseur : bannière, couleurs de marque et domaine personnalisé.",
       "liveUrl": "URL publique",
       "previewAffisell": "Aperçu sur Affisell",
+      "liveStore": {
+        "title": "Votre boutique est en ligne",
+        "subtitle": "Partagez {suffix} pour Google Ads — le même catalogue que vos fiches Affisell, sans trafic concurrent.",
+        "subdomainLabel": "URL auto (style Shopify)",
+        "customDomainLabel": "Domaine personnalisé",
+        "platformLabel": "Chemin Affisell (secours)",
+        "openPrimary": "Ouvrir la boutique"
+      },
       "storeName": "Nom de la boutique",
       "heroBanner": "Bannière hero (URL HTTPS)",
       "tagline": "Accroche / description",
