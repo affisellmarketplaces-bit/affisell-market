@@ -2,14 +2,17 @@
 
 import { useEffect } from "react"
 
-const BODY_STOREFRONT_CLASS = "affisell-immersive-buyer"
+const BODY_DEDICATED_CLASS = "affisell-dedicated-storefront"
+const BODY_DOCK_OFF_CLASS = "affisell-mobile-dock-off"
 
 /** Hide global Affisell header/footer on merchant hosts (custom domain + auto subdomain). */
 export function StorefrontHostChromeSync({ active }: { active: boolean }) {
   useEffect(() => {
-    document.body.classList.toggle(BODY_STOREFRONT_CLASS, active)
+    document.body.classList.toggle(BODY_DEDICATED_CLASS, active)
+    document.body.classList.toggle(BODY_DOCK_OFF_CLASS, active)
     return () => {
-      document.body.classList.remove(BODY_STOREFRONT_CLASS)
+      document.body.classList.remove(BODY_DEDICATED_CLASS)
+      document.body.classList.remove(BODY_DOCK_OFF_CLASS)
     }
   }, [active])
 

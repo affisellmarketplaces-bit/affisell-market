@@ -1,11 +1,17 @@
 import type { Metadata } from "next"
+import { headers } from "next/headers"
 import { notFound } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 
 import { ProductGrid } from "@/components/shop/ProductGrid"
 import type { ProductCardDisplayMode } from "@/components/product/ProductCard"
 import { auth } from "@/auth"
+import {
+  filterShopProductsByCategory,
+  groupShopProductsByCategory,
+} from "@/lib/shop-storefront-categories"
 import { loadAffiliateShopProducts, loadAffiliateShopStore } from "@/lib/shop-storefront-data"
+import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
@@ -34,11 +40,13 @@ export default async function ShopSlugPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>
-  searchParams: Promise<{ preview?: string }>
+  searchParams: Promise<{ preview?: string; cat?: string }>
 }) {
   const { slug } = await params
-  const { preview } = await searchParams
+  const { preview, cat } = await searchParams
   const session = await auth()
+  const hdrs = await headers()
+  const isDedicatedHost = isCustomDomainHeaders(hdrs)
 
   const [storeMeta, storeFront] = await Promise.all([
     prisma.store.findUnique({
@@ -58,13 +66,22 @@ export default async function ShopSlugPage({
     includeBusinessFields: affiliatePreview,
   })
 
+  const categories = groupShopProductsByCategory(products)
+  const activeCategory =
+    typeof cat === "string" && cat.length > 0
+      ? categories.find((c) => c.slug === cat) ?? null
+      : null
+  const visibleProducts = filterShopProductsByCategory(products, activeCategory?.id ?? null)
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
       <ProductGrid
         storeSlug={slug}
-        products={products}
+        products={visibleProducts}
         mode={cardMode}
         gridDensity={storeFront?.theme.gridDensity}
+        dedicatedHost={isDedicatedHost}
+        activeCategoryLabel={activeCategory?.name ?? null}
       />
     </div>
   )

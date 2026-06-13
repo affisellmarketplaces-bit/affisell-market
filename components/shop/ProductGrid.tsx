@@ -15,10 +15,20 @@ type Props = {
   /** Set by the server — never derive business fields on the client for buyer pages. */
   mode: ProductCardDisplayMode
   gridDensity?: StorefrontGridDensity
+  dedicatedHost?: boolean
+  activeCategoryLabel?: string | null
 }
 
-export function ProductGrid({ storeSlug, products, mode, gridDensity }: Props) {
+export function ProductGrid({
+  storeSlug,
+  products,
+  mode,
+  gridDensity,
+  dedicatedHost = false,
+  activeCategoryLabel,
+}: Props) {
   const t = useTranslations("boutique")
+  const tChrome = useTranslations("storefront.buyerChrome")
 
   if (products.length === 0) {
     return (
@@ -29,12 +39,22 @@ export function ProductGrid({ storeSlug, products, mode, gridDensity }: Props) {
   }
 
   return (
-    <ul className={storefrontGridClass(gridDensity)}>
-      {products.map((item) => (
-        <li key={item.listingId}>
-          <ProductCard product={shopProductToCardProps(item, storeSlug)} mode={mode} />
-        </li>
-      ))}
-    </ul>
+    <>
+      {dedicatedHost && activeCategoryLabel ? (
+        <p className="mb-4 text-sm font-medium text-zinc-600 dark:text-zinc-400">
+          {tChrome("showingCategory", { category: activeCategoryLabel, count: products.length })}
+        </p>
+      ) : null}
+      <ul className={storefrontGridClass(gridDensity)}>
+        {products.map((item) => (
+          <li key={item.listingId}>
+            <ProductCard
+              product={shopProductToCardProps(item, storeSlug, { dedicatedHost })}
+              mode={mode}
+            />
+          </li>
+        ))}
+      </ul>
+    </>
   )
 }

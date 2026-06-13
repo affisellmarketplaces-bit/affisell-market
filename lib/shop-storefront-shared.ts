@@ -15,6 +15,13 @@ export type ShopStoreSummary = {
   theme: StorefrontTheme
 }
 
+export type ShopProductCategory = {
+  id: string
+  slug: string
+  name: string
+  icon: string
+}
+
 export type ShopProductCard = {
   listingId: string
   productId: string
@@ -26,6 +33,7 @@ export type ShopProductCard = {
   stock: number
   averageRating: number
   reviewCount: number
+  category?: ShopProductCategory | null
   warrantyLabel?: string | null
   marginCents?: number
   commissionPct?: number
@@ -55,7 +63,16 @@ export function inferNicheLabel(description: string | null, storeName: string): 
   return "lifestyle"
 }
 
-export function shopProductToCardProps(item: ShopProductCard, storeSlug: string) {
+export function shopProductToCardProps(
+  item: ShopProductCard,
+  storeSlug: string,
+  options?: { dedicatedHost?: boolean }
+) {
+  const href =
+    options?.dedicatedHost === true
+      ? `/product/${item.listingId}`
+      : `/shops/${storeSlug}/product/${item.listingId}`
+
   return {
     listingId: item.listingId,
     productId: item.productId,
@@ -72,6 +89,6 @@ export function shopProductToCardProps(item: ShopProductCard, storeSlug: string)
     ...(item.marginCents != null ? { marginCents: item.marginCents } : {}),
     ...(item.commissionPct != null ? { commissionPct: item.commissionPct } : {}),
     ...(item.soldCount != null ? { soldCount: item.soldCount } : {}),
-    href: `/shops/${storeSlug}/product/${item.listingId}`,
+    href,
   }
 }

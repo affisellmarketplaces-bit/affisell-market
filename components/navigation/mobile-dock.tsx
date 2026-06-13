@@ -64,7 +64,7 @@ export function MobileDock() {
   return (
     <nav
       aria-label={t("aria")}
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-[90] w-full max-w-[100vw] overflow-x-clip px-3 pb-[max(0.4rem,env(safe-area-inset-bottom))] md:hidden"
+      className="affisell-mobile-buyer-dock pointer-events-none fixed inset-x-0 bottom-0 z-[90] w-full max-w-[100vw] overflow-x-clip px-3 pb-[max(0.4rem,env(safe-area-inset-bottom))] md:hidden"
     >
       <ul
         className={cn(

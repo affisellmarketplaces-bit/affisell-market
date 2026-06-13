@@ -84,6 +84,9 @@ export async function loadAffiliateShopProducts(
           reviewCount: true,
           variants: true,
           hasVariants: true,
+          category: {
+            select: { id: true, name: true, slug: true, icon: true },
+          },
           ...(includeBusiness
             ? { basePriceCents: true, commissionRate: true }
             : {}),
@@ -135,6 +138,14 @@ export async function loadAffiliateShopProducts(
         stock: p.stock,
         averageRating: p.averageRating,
         reviewCount: p.reviewCount,
+        category: p.category
+          ? {
+              id: p.category.id,
+              slug: p.category.slug,
+              name: p.category.name,
+              icon: p.category.icon || "📦",
+            }
+          : null,
         warrantyLabel: listingWarrantyBadgeLabel(l.showWarranty, warrantyMonths),
         soldCount: l.conversions,
         ...(includeBusiness

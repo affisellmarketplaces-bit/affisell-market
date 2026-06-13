@@ -72,6 +72,13 @@
   }
 }
 
+/* Dedicated affiliate storefront — hide platform chrome on all viewports */
+body.affisell-dedicated-storefront .affisell-global-site-header,
+body.affisell-dedicated-storefront .affisell-site-footer,
+body.affisell-dedicated-storefront .affisell-mobile-buyer-dock {
+  display: none !important;
+}
+
 /* Demo Lab — focus parcours, footer plateforme masqué */
 body.affisell-demo-lab .affisell-site-footer {
   display: none;

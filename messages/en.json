@@ -1554,6 +1554,16 @@
         "classicDesc": "Plain text, no band."
       }
     },
+    "buyerChrome": {
+      "openCategories": "Browse categories",
+      "closeCategories": "Close menu",
+      "categoriesAria": "Store categories",
+      "drawerEyebrow": "Catalog",
+      "allProducts": "All products",
+      "otherCategory": "Other",
+      "cart": "Cart",
+      "showingCategory": "{category} · {count, plural, one {# product} other {# products}}"
+    },
     "domain": {
       "title": "Your own domain",
       "description": "Use your own domain (e.g. {example}). Visitors see your branded storefront; Affisell handles routing and HTTPS once DNS is verified.",

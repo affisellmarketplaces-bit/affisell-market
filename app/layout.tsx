@@ -7,6 +7,9 @@ import { AuthSessionProvider } from "@/components/providers/auth-session-provide
 import { IntlAppProvider } from "@/components/providers/intl-app-provider"
 import { getCachedSession } from "@/lib/get-cached-session"
 import { bootstrapRootShell } from "@/lib/safe-root-bootstrap"
+import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
+import { cn } from "@/lib/utils"
+import { headers } from "next/headers"
 
 import "./globals.css"
 
@@ -21,10 +24,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     bootstrapRootShell(),
     getCachedSession(),
   ])
+  const hdrs = await headers()
+  const isDedicatedStorefront = isCustomDomainHeaders(hdrs)
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body className="affisell-mobile-shell affisell-epoxy-atmosphere flex min-h-dvh flex-col text-gray-900 [font-family:Inter,system-ui] dark:text-zinc-50">
+      <body
+        className={cn(
+          "affisell-mobile-shell affisell-epoxy-atmosphere flex min-h-dvh flex-col text-gray-900 [font-family:Inter,system-ui] dark:text-zinc-50",
+          isDedicatedStorefront && "affisell-dedicated-storefront affisell-mobile-dock-off"
+        )}
+      >
         <CookieConsentHeadScripts />
         <AuthSessionProvider session={session}>
           <IntlAppProvider locale={locale} messages={messages} now={now}>

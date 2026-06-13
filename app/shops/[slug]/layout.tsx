@@ -2,6 +2,7 @@ import { headers } from "next/headers"
 
 import { AffiliateStorePreviewBanner } from "@/components/shop/AffiliateStorePreviewBanner"
 import { ShopStoreHeader } from "@/components/shop/ShopStoreHeader"
+import { StorefrontBuyerChromeBar } from "@/components/storefront/storefront-buyer-chrome-bar"
 import { StorefrontHostChromeSync } from "@/components/storefront/storefront-host-chrome-sync"
 import { StoreNameBadge } from "@/components/storefront/store-name-badge"
 import { StorefrontThemeStyles } from "@/components/storefront/storefront-theme-styles"
@@ -9,7 +10,8 @@ import { StorefrontTrustFooter } from "@/components/storefront/storefront-trust-
 import { StorefrontTrustStrip } from "@/components/storefront/storefront-trust-strip"
 import { auth } from "@/auth"
 import { loadAffiliateStorefrontTrust } from "@/lib/load-affiliate-storefront-trust"
-import { loadAffiliateShopStore } from "@/lib/shop-storefront-data"
+import { loadAffiliateShopProducts, loadAffiliateShopStore } from "@/lib/shop-storefront-data"
+import { groupShopProductsByCategory } from "@/lib/shop-storefront-categories"
 import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
 import { storefrontSurfaceClass } from "@/lib/storefront-theme-shared"
 import { cn } from "@/lib/utils"
@@ -36,12 +38,25 @@ export default async function ShopPublicLayout({
     session?.user?.role === "AFFILIATE" &&
     store?.userId === session.user.id
 
+  const dedicatedProducts =
+    isCustomDomain && store ? await loadAffiliateShopProducts(store.userId) : []
+  const dedicatedCategories = groupShopProductsByCategory(dedicatedProducts)
+
   const surfaceClass = storefrontSurfaceClass(store?.theme.surface)
 
   return (
     <div className={cn("min-h-screen", surfaceClass)}>
       <StorefrontHostChromeSync active={isCustomDomain} />
       {store ? <StorefrontThemeStyles theme={store.theme} /> : null}
+      {isCustomDomain && store ? (
+        <StorefrontBuyerChromeBar
+          storeName={store.name}
+          logoUrl={store.logoUrl ?? store.aiAvatarUrl}
+          accent={store.theme.accent}
+          categories={dedicatedCategories}
+          totalProducts={dedicatedProducts.length}
+        />
+      ) : null}
       <AffiliateStorePreviewBanner storeSlug={slug} isOwner={isOwner} />
       {store ? (
         store.theme.layout === "minimal" ? (

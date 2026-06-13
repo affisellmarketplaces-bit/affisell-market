@@ -14,12 +14,18 @@ export function ImmersiveChromeSync() {
 
   useEffect(() => {
     const immersive = isImmersiveBuyerRoute(pathname)
-    const dockOff = immersive || shouldHideMobileDock(pathname)
-    document.body.classList.toggle(BODY_IMMERSIVE_CLASS, immersive)
+    const dedicated = document.body.classList.contains("affisell-dedicated-storefront")
+    const dockOff = immersive || shouldHideMobileDock(pathname) || dedicated
+    if (immersive) {
+      document.body.classList.add(BODY_IMMERSIVE_CLASS)
+    } else if (!dedicated) {
+      document.body.classList.remove(BODY_IMMERSIVE_CLASS)
+    }
     document.body.classList.toggle(BODY_DOCK_OFF_CLASS, dockOff)
     return () => {
-      document.body.classList.remove(BODY_IMMERSIVE_CLASS)
-      document.body.classList.remove(BODY_DOCK_OFF_CLASS)
+      if (!dedicated) {
+        document.body.classList.remove(BODY_IMMERSIVE_CLASS)
+      }
     }
   }, [pathname])
 

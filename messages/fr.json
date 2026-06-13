@@ -1578,6 +1578,16 @@
         "classicDesc": "Texte simple sans bande."
       }
     },
+    "buyerChrome": {
+      "openCategories": "Parcourir les catégories",
+      "closeCategories": "Fermer le menu",
+      "categoriesAria": "Catégories de la boutique",
+      "drawerEyebrow": "Catalogue",
+      "allProducts": "Tous les produits",
+      "otherCategory": "Autres",
+      "cart": "Panier",
+      "showingCategory": "{category} · {count, plural, one {# produit} other {# produits}}"
+    },
     "domain": {
       "title": "Votre nom de domaine",
       "description": "Associez votre domaine (ex. {example}). Vos visiteurs accèdent à votre vitrine brandée ; Affisell assure le routage et le HTTPS après vérification DNS.",
