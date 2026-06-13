@@ -1,5 +1,4 @@
-import { loadAffiliateShopCategoryGroupsForSlug } from "@/lib/shop-storefront-data"
-import { totalProductsInCategoryGroups } from "@/lib/shop-storefront-categories"
+import { loadShopCategoriesResponse } from "@/lib/shop-categories-response-cache"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -10,9 +9,9 @@ export async function GET(
   ctx: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await ctx.params
-  const groups = await loadAffiliateShopCategoryGroupsForSlug(slug)
+  const { groups, totalProducts } = await loadShopCategoriesResponse(slug)
   return Response.json({
     groups,
-    totalProducts: totalProductsInCategoryGroups(groups),
+    totalProducts,
   })
 }

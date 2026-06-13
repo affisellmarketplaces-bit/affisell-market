@@ -72,6 +72,19 @@ async function runQueryOnFreshClient({
   return op.call(delegate, args)
 }
 
+function retryDelayMs(error: unknown, attempt: number): number {
+  const code = prismaErrorCode(error)
+  if (code === "P2024") return 150 * (attempt + 1) ** 2
+  return 50 * (attempt + 1) ** 2
+}
+
+/** P2024 = pool starved — disconnecting the engine makes contention worse. */
+function shouldResetPrismaEngine(error: unknown): boolean {
+  const code = prismaErrorCode(error)
+  if (code === "P2024") return false
+  return isRetryablePrismaConnectionError(error)
+}
+
 async function executeWithReconnect({
   model,
   operation,
@@ -92,11 +105,13 @@ async function executeWithReconnect({
       if (!isRetryablePrismaConnectionError(error) || attempt >= maxRetries) {
         throw error
       }
-      const delayMs = 50 * (attempt + 1) ** 2
+      const delayMs = retryDelayMs(error, attempt)
       console.warn(
-        `[prisma] ${prismaErrorCode(error) || "connection"} — reset & retry ${attempt + 1}/${maxRetries} in ${delayMs}ms`
+        `[prisma] ${prismaErrorCode(error) || "connection"} — ${shouldResetPrismaEngine(error) ? "reset & " : ""}retry ${attempt + 1}/${maxRetries} in ${delayMs}ms`
       )
-      await resetPrismaClient()
+      if (shouldResetPrismaEngine(error)) {
+        await resetPrismaClient()
+      }
       await sleep(delayMs)
       try {
         await getPrismaSingleton().$connect()
@@ -234,11 +249,13 @@ export async function withPrismaReconnect<T>(
       if (!isRetryablePrismaConnectionError(error) || attempt >= maxRetries) {
         throw error
       }
-      const delayMs = 50 * (attempt + 1) ** 2
+      const delayMs = retryDelayMs(error, attempt)
       console.warn(
-        `[prisma] ${prismaErrorCode(error) || "connection"} — retry ${attempt + 1}/${maxRetries} in ${delayMs}ms`
+        `[prisma] ${prismaErrorCode(error) || "connection"} — ${shouldResetPrismaEngine(error) ? "reset & " : ""}retry ${attempt + 1}/${maxRetries} in ${delayMs}ms`
       )
-      await resetPrismaClient()
+      if (shouldResetPrismaEngine(error)) {
+        await resetPrismaClient()
+      }
       await sleep(delayMs)
       try {
         await getPrismaSingleton().$connect()

@@ -17,13 +17,30 @@ function defaultPoolParams(): PrismaPoolParams {
   return {
     pgbouncer: "true",
     // Dev: parallel RSC/API routes; 5 connections is too low (P2024).
-    connection_limit: process.env.PRISMA_CONNECTION_LIMIT?.trim() || (isProd ? "10" : "15"),
-    pool_timeout: process.env.PRISMA_POOL_TIMEOUT?.trim() || "30",
+    connection_limit: process.env.PRISMA_CONNECTION_LIMIT?.trim() || (isProd ? "10" : "20"),
+    pool_timeout: process.env.PRISMA_POOL_TIMEOUT?.trim() || (isProd ? "30" : "60"),
     connect_timeout: process.env.PRISMA_CONNECT_TIMEOUT?.trim() || "15",
   }
 }
 
-/** Apply pool params when using Neon pooler (or explicit pgbouncer=true). */
+const DEV_MIN_CONNECTION_LIMIT = 15
+
+function mergePoolParam(url: URL, key: keyof PrismaPoolParams, value: string | undefined) {
+  if (!value) return
+  const existing = url.searchParams.get(key)
+  if (!existing) {
+    url.searchParams.set(key, value)
+    return
+  }
+  if (process.env.NODE_ENV === "development" && key === "connection_limit") {
+    const n = Number(existing)
+    if (Number.isFinite(n) && n < DEV_MIN_CONNECTION_LIMIT) {
+      url.searchParams.set(key, value)
+    }
+  }
+}
+
+/** Apply pool params when using Neon pooler (or explicit pgbouncer=true). Dev: tune all Postgres URLs. */
 export function augmentPrismaDatasourceUrl(rawUrl: string): string {
   const trimmed = rawUrl.trim()
   if (!trimmed) return trimmed
@@ -35,15 +52,14 @@ export function augmentPrismaDatasourceUrl(rawUrl: string): string {
     return trimmed
   }
 
+  const isDev = process.env.NODE_ENV === "development"
   const usePooler =
     url.searchParams.get("pgbouncer") === "true" || POOLER_HOST_RE.test(url.hostname)
-  if (!usePooler) return trimmed
+  if (!usePooler && !isDev) return trimmed
 
   const defaults = defaultPoolParams()
   for (const [key, value] of Object.entries(defaults)) {
-    if (value && !url.searchParams.has(key)) {
-      url.searchParams.set(key, value)
-    }
+    mergePoolParam(url, key as keyof PrismaPoolParams, value)
   }
   return url.toString()
 }
