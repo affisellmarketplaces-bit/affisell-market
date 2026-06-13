@@ -18,8 +18,7 @@ export function StorefrontDedicatedHero({ description, bannerUrl, theme }: Props
   const immersive = layout === "immersive"
 
   const showImageBanner = heroStyle === "banner" && Boolean(bannerUrl)
-  const showGradientHero =
-    heroStyle === "gradient" || (heroStyle === "banner" && !bannerUrl)
+  const showGradientHero = heroStyle === "gradient"
   const showHero = heroStyle !== "none" && (showImageBanner || showGradientHero)
 
   if (!showHero && !description?.trim()) return null
@@ -44,19 +43,31 @@ export function StorefrontDedicatedHero({ description, bannerUrl, theme }: Props
         <div
           className={cn(
             "relative w-full overflow-hidden",
-            immersive ? "h-24 sm:h-28" : "h-16 sm:h-20"
+            description?.trim()
+              ? immersive
+                ? "h-24 sm:h-28"
+                : "h-20 sm:h-24"
+              : immersive
+                ? "h-10 sm:h-12"
+                : "h-8 sm:h-10"
           )}
           style={{
             background: `linear-gradient(135deg, ${primary} 0%, ${accent} 62%, color-mix(in srgb, ${accent} 35%, #000) 100%)`,
           }}
-          aria-hidden
         >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(255,255,255,0.16),transparent_52%)]" />
           <div className="absolute inset-x-0 bottom-0 h-px bg-white/15" />
+          {description?.trim() ? (
+            <div className="relative flex h-full items-end px-4 pb-3 sm:px-6 sm:pb-4">
+              <p className="max-w-2xl text-sm font-medium leading-relaxed text-white/90 drop-shadow-sm">
+                {description}
+              </p>
+            </div>
+          ) : null}
         </div>
       ) : null}
 
-      {description?.trim() ? (
+      {description?.trim() && !showGradientHero ? (
         <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6 sm:py-4">
           <p className="max-w-2xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{description}</p>
         </div>

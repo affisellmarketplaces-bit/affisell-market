@@ -90,7 +90,8 @@ export function ShopStoreHeader({
   const nameBadge = theme?.nameBadge ?? "parallelogram"
 
   const showImageBanner = heroStyle === "banner" && Boolean(bannerUrl)
-  const showGradientHero = heroStyle === "gradient" || (heroStyle === "banner" && !bannerUrl)
+  /** Banner mode without image → no empty placeholder strip (upload in Brand Studio). */
+  const showGradientHero = heroStyle === "gradient"
   const hasHeroVisual = showImageBanner || showGradientHero
   const immersive = layout === "immersive"
 
@@ -123,15 +124,27 @@ export function ShopStoreHeader({
       ) : showGradientHero ? (
         <div
           className={cn(
-            "relative w-full overflow-hidden",
-            immersive ? "h-32 sm:h-40" : "h-24 sm:h-28"
+            "relative flex w-full items-end overflow-hidden",
+            description?.trim()
+              ? immersive
+                ? "h-28 sm:h-32"
+                : "h-24 sm:h-28"
+              : immersive
+                ? "h-12 sm:h-14"
+                : "h-10 sm:h-12"
           )}
           style={{
             background: `linear-gradient(135deg, ${primary} 0%, ${accent} 55%, color-mix(in srgb, ${accent} 40%, #000) 100%)`,
           }}
-          aria-hidden
         >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.15),transparent_55%)]" />
+          {description?.trim() ? (
+            <div className="relative mx-auto w-full max-w-6xl px-4 pb-3 sm:px-6 sm:pb-4">
+              <p className="max-w-2xl text-sm font-medium leading-relaxed text-white/90 drop-shadow-sm">
+                {description}
+              </p>
+            </div>
+          ) : null}
         </div>
       ) : null}
 
@@ -179,7 +192,7 @@ export function ShopStoreHeader({
                   className="max-w-full"
                 />
               </div>
-              {description ? (
+              {description && !showGradientHero ? (
                 <p className="mt-1 line-clamp-2 text-sm text-zinc-600 dark:text-zinc-400">{description}</p>
               ) : null}
             </div>

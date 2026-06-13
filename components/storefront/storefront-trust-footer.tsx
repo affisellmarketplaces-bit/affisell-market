@@ -128,17 +128,19 @@ export function StorefrontTrustFooter({ trust, isCustomDomain = false, theme }: 
       <div className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-14">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-2xl space-y-5">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">
-              <span
-                className="inline-flex h-1.5 w-1.5 rounded-full"
-                style={{
-                  background: accent,
-                  boxShadow: `0 0 10px color-mix(in srgb, ${accent} 80%, transparent)`,
-                }}
-                aria-hidden
-              />
-              {isCustomDomain ? t("officialStorefront") : t("poweredBy")}
-            </div>
+            {!isCustomDomain ? (
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">
+                <span
+                  className="inline-flex h-1.5 w-1.5 rounded-full"
+                  style={{
+                    background: accent,
+                    boxShadow: `0 0 10px color-mix(in srgb, ${accent} 80%, transparent)`,
+                  }}
+                  aria-hidden
+                />
+                {t("poweredBy")}
+              </div>
+            ) : null}
 
             <p
               id="storefront-trust-footer-title"
