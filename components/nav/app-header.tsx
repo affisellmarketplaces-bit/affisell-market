@@ -2,7 +2,7 @@
 
 import { SiteNav } from "@/components/site-nav"
 
-/** Client session via `useSession` inside SiteNav — avoids server `auth()` on every RSC request. */
+/** Session hydrated from root layout — SiteNav reads it via `useSession` without a client bootstrap fetch. */
 export function AppHeader() {
   return <SiteNav />
 }
