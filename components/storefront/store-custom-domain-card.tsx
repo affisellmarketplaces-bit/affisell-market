@@ -162,11 +162,7 @@ export function StoreCustomDomainCard({ className, variant = "default" }: Props)
         <div className="min-w-0 flex-1">
           <h3 className="text-base font-semibold text-gray-900 dark:text-zinc-50">{t("title")}</h3>
           <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">
-            {t.rich("description", {
-              example: () => (
-                <strong className="font-semibold text-gray-800 dark:text-zinc-200">{exampleHost}</strong>
-              ),
-            })}
+            {t("description", { example: exampleHost })}
           </p>
         </div>
       </div>

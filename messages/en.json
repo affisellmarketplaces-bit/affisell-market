@@ -1484,7 +1484,7 @@
       "loadFailed": "Failed to load store",
       "saveFailed": "Could not save",
       "logoLogisticsTitle": "Logo & logistics",
-      "logoLogisticsBody": "Upload logo, AI avatar, ship-from address, and slug in {profileLink}.",
+      "logoLogisticsBody": "Upload logo, AI avatar, ship-from address, and slug in <profileLink>Store profile</profileLink>.",
       "nameBadges": {
         "sectionTitle": "Store name display",
         "sectionHint": "Futuristic band on your public storefront (parallelogram, neon, holographic, and more).",

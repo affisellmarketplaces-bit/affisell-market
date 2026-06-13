@@ -1508,7 +1508,7 @@
       "loadFailed": "Impossible de charger la boutique",
       "saveFailed": "Enregistrement impossible",
       "logoLogisticsTitle": "Logo & logistique",
-      "logoLogisticsBody": "Logo, avatar IA, adresse d'expédition et slug dans {profileLink}.",
+      "logoLogisticsBody": "Logo, avatar IA, adresse d'expédition et slug dans <profileLink>Profil boutique</profileLink>.",
       "nameBadges": {
         "sectionTitle": "Style du nom de boutique",
         "sectionHint": "Bande futuriste affichée sur votre vitrine publique (ex. parallélogramme, néon, hologramme).",
