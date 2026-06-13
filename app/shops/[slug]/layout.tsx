@@ -109,7 +109,12 @@ export default async function ShopPublicLayout({
       ) : null}
       <main className="min-w-0 overflow-x-clip">{children}</main>
       {trust ? (
-        <StorefrontTrustFooter trust={trust} isCustomDomain={isCustomDomain} theme={store?.theme} />
+        <StorefrontTrustFooter
+          trust={trust}
+          isCustomDomain={isCustomDomain}
+          theme={store?.theme}
+          shopHomePath={isCustomDomain ? "/" : `/shops/${slug}`}
+        />
       ) : null}
     </div>
   )

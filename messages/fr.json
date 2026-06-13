@@ -1639,6 +1639,8 @@
       "platformSecured": "Paiement sécurisé Affisell",
       "partnerRef": "Réf. {code}",
       "officialStorefront": "Boutique officielle",
+      "shopHomeCta": "Boutique",
+      "cartCta": "Panier",
       "footerTitle": "Confiance & conformité légale",
       "footerBody": "Cette boutique s'appuie sur l'infrastructure Affisell : vérification d'identité, paiements sécurisés et politiques de protection acheteur.",
       "verificationPending": "Vérification marchand en cours",

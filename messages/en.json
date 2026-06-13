@@ -1615,6 +1615,8 @@
       "platformSecured": "Affisell secure checkout",
       "partnerRef": "Ref. {code}",
       "officialStorefront": "Official branded store",
+      "shopHomeCta": "Shop",
+      "cartCta": "Cart",
       "footerTitle": "Trust & legal compliance",
       "footerBody": "This store runs on Affisell infrastructure: identity checks, secure payments, and buyer protection policies apply.",
       "verificationPending": "Merchant verification in progress",
