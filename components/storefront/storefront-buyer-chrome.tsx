@@ -91,6 +91,7 @@ export function StorefrontBuyerChrome({
           cartLabel={t("cart")}
           onOpenMenu={() => setDrawerOpen(true)}
           menuExpanded={drawerOpen}
+          menuControlsId="storefront-category-drawer"
         />
       </div>
 
@@ -107,7 +108,7 @@ export function StorefrontBuyerChrome({
         id="storefront-category-drawer"
         className={cn(
           "fixed inset-y-0 left-0 z-[140] flex w-[min(100vw-3rem,22rem)] flex-col border-r border-zinc-200/80 bg-gradient-to-b from-white via-violet-50/30 to-zinc-50 shadow-2xl transition-transform duration-300 dark:border-zinc-800 dark:from-zinc-950 dark:via-violet-950/20 dark:to-zinc-950",
-          drawerOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"
+          drawerOpen ? "translate-x-0 pointer-events-auto" : "-translate-x-full pointer-events-none"
         )}
         aria-hidden={!drawerOpen}
       >

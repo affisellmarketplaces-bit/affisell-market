@@ -22,6 +22,7 @@ type Props = {
   cartLabel: string
   onOpenMenu?: () => void
   menuExpanded?: boolean
+  menuControlsId?: string
   compact?: boolean
 }
 
@@ -32,6 +33,8 @@ function ChromeIconButton({
   href,
   accent,
   expanded,
+  controls,
+  className,
 }: {
   children: ReactNode
   label: string
@@ -39,10 +42,13 @@ function ChromeIconButton({
   href?: string
   accent: string
   expanded?: boolean
+  controls?: string
+  className?: string
 }) {
-  const className = cn(
+  const shellClass = cn(
     "relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-zinc-200/80 bg-white/90 text-zinc-800 shadow-sm backdrop-blur-md transition",
-    "hover:border-violet-300 hover:bg-violet-50/80 dark:border-zinc-700/80 dark:bg-zinc-900/90 dark:text-zinc-100"
+    "hover:border-violet-300 hover:bg-violet-50/80 dark:border-zinc-700/80 dark:bg-zinc-900/90 dark:text-zinc-100",
+    className
   )
   const style = {
     boxShadow: `0 1px 2px color-mix(in srgb, ${accent} 8%, transparent), 0 8px 20px -12px color-mix(in srgb, ${accent} 35%, transparent)`,
@@ -50,7 +56,7 @@ function ChromeIconButton({
 
   if (href) {
     return (
-      <Link href={href} className={className} style={style} aria-label={label}>
+      <Link href={href} className={shellClass} style={style} aria-label={label}>
         {children}
       </Link>
     )
@@ -59,26 +65,23 @@ function ChromeIconButton({
   return (
     <button
       type="button"
-      onClick={onClick}
-      className={className}
+      onClick={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        onClick?.()
+      }}
+      className={shellClass}
       style={style}
       aria-label={label}
       aria-expanded={expanded}
+      aria-controls={controls}
     >
       {children}
     </button>
   )
 }
 
-function StoreLogoMark({
-  logoUrl,
-  accent,
-  compact,
-}: {
-  logoUrl: string
-  accent: string
-  compact: boolean
-}) {
+function StoreLogoMark({ logoUrl, accent, compact }: { logoUrl: string; accent: string; compact: boolean }) {
   return (
     <span
       className={cn(
@@ -90,12 +93,7 @@ function StoreLogoMark({
       }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={logoUrl}
-        alt=""
-        className="max-h-full max-w-full object-contain"
-        loading="eager"
-      />
+      <img src={logoUrl} alt="" className="max-h-full max-w-full object-contain" loading="eager" />
     </span>
   )
 }
@@ -112,6 +110,7 @@ export function StorefrontBuyerHeader({
   cartLabel,
   onOpenMenu,
   menuExpanded = false,
+  menuControlsId = "storefront-category-drawer",
   compact = false,
 }: Props) {
   const displayName = storeName.trim() || "Store"
@@ -120,11 +119,7 @@ export function StorefrontBuyerHeader({
   const brand = (
     <Link
       href="/"
-      className={cn(
-        "group flex min-w-0 items-center gap-2.5 transition",
-        headerBrandAlign === "center" ? "max-w-[min(100%,14rem)] justify-center" : "max-w-[min(100%,15rem)]",
-        headerBrandAlign === "right" && "justify-end"
-      )}
+      className="group flex min-w-0 max-w-[min(100%,14rem)] items-center gap-2.5 transition"
     >
       {hasLogo && logoUrl ? (
         <StoreLogoMark logoUrl={logoUrl} accent={accent} compact={compact} />
@@ -146,7 +141,7 @@ export function StorefrontBuyerHeader({
           {displayName}
         </span>
       ) : (
-        <span className="min-w-0 overflow-hidden">
+        <span className="min-w-0 max-w-[11rem] overflow-hidden">
           <StoreNameBadge
             name={displayName}
             style={nameBadge}
@@ -177,28 +172,41 @@ export function StorefrontBuyerHeader({
 
       <div
         className={cn(
-          "relative mx-auto grid max-w-6xl grid-cols-[auto_1fr_auto] items-center gap-2 px-4 sm:gap-3 sm:px-6",
+          "relative mx-auto flex max-w-6xl items-center gap-2 px-4 sm:gap-3 sm:px-6",
           compact ? "h-12" : "h-14 sm:h-16"
         )}
       >
-        <ChromeIconButton label={menuLabel} onClick={onOpenMenu} accent={accent} expanded={menuExpanded}>
+        <ChromeIconButton
+          label={menuLabel}
+          onClick={onOpenMenu}
+          accent={accent}
+          expanded={menuExpanded}
+          controls={menuControlsId}
+          className="relative z-30"
+        >
           <Menu className="size-5" aria-hidden />
         </ChromeIconButton>
 
-        <div
-          className={cn(
-            "flex min-w-0 justify-self-center px-1",
-            headerBrandAlign === "left" && "justify-self-start",
-            headerBrandAlign === "right" && "justify-self-end"
-          )}
-        >
-          {brand}
-        </div>
+        {headerBrandAlign === "left" ? (
+          <div className="relative z-10 min-w-0 max-w-[min(55vw,14rem)]">{brand}</div>
+        ) : null}
 
-        <ChromeIconButton label={cartLabel} href="/cart" accent={accent}>
+        <div className="min-w-0 flex-1" aria-hidden />
+
+        {headerBrandAlign === "right" ? (
+          <div className="relative z-10 min-w-0 max-w-[min(55vw,14rem)]">{brand}</div>
+        ) : null}
+
+        <ChromeIconButton label={cartLabel} href="/cart" accent={accent} className="relative z-30">
           <ShoppingBag className="size-5" aria-hidden />
           <CartCountBadge count={cartCount} size="sm" />
         </ChromeIconButton>
+
+        {headerBrandAlign === "center" ? (
+          <div className="pointer-events-none absolute inset-y-0 left-14 right-14 z-20 flex items-center justify-center sm:left-16 sm:right-16">
+            <div className="pointer-events-auto min-w-0 max-w-[min(70%,14rem)]">{brand}</div>
+          </div>
+        ) : null}
       </div>
     </div>
   )

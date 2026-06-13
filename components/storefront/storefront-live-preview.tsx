@@ -4,6 +4,7 @@ import { Monitor, Smartphone } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useState } from "react"
 
+import { StorefrontBuyerChromeBar } from "@/components/storefront/storefront-buyer-chrome-bar"
 import { StorefrontBuyerHeader } from "@/components/storefront/storefront-buyer-header"
 import { StorefrontDedicatedHero } from "@/components/storefront/storefront-dedicated-hero"
 import { StorefrontThemeStyles } from "@/components/storefront/storefront-theme-styles"
@@ -47,9 +48,13 @@ const MOCK_TILES = [
   { id: "4", tone: "from-amber-500/15 to-orange-500/10" },
 ]
 
+const PREVIEW_CATEGORIES = [
+  { id: "c1", slug: "beauty", name: "Beauty", icon: "💄", count: 2 },
+  { id: "c2", slug: "tech", name: "Tech", icon: "⚡", count: 1 },
+]
+
 export function StorefrontLivePreview({ draft, className }: Props) {
   const t = useTranslations("storefront.brandStudio.preview")
-  const tChrome = useTranslations("storefront.buyerChrome")
   const [viewport, setViewport] = useState<"mobile" | "desktop">("mobile")
 
   const theme: StorefrontTheme = {
@@ -110,16 +115,15 @@ export function StorefrontLivePreview({ draft, className }: Props) {
       >
         <div className={cn("relative min-h-[420px]", storefrontSurfaceClass(draft.surface))}>
           <StorefrontThemeStyles theme={theme} />
-          <StorefrontBuyerHeader
+          <StorefrontBuyerChromeBar
             storeName={draft.name.trim() || t("sampleName")}
             logoUrl={draft.logoUrl}
             accent={draft.accent}
             primary={draft.primary}
             nameBadge={draft.nameBadge}
             headerBrandAlign={draft.headerBrandAlign}
-            menuLabel={tChrome("openCategories")}
-            cartLabel={tChrome("cart")}
-            compact
+            categories={PREVIEW_CATEGORIES}
+            totalProducts={4}
           />
           {draft.layout === "minimal" ? (
             draft.description.trim() ? (
