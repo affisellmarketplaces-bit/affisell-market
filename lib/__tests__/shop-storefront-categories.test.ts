@@ -4,6 +4,7 @@ import {
   filterShopProductsByCategory,
   groupShopProductsByCategory,
   STOREFRONT_OTHER_CATEGORY_ID,
+  totalProductsInCategoryGroups,
 } from "@/lib/shop-storefront-categories"
 import type { ShopProductCard } from "@/lib/shop-storefront-shared"
 
@@ -43,5 +44,16 @@ describe("filterShopProductsByCategory", () => {
     expect(filterShopProductsByCategory(products, "c1")).toHaveLength(1)
     expect(filterShopProductsByCategory(products, STOREFRONT_OTHER_CATEGORY_ID)).toHaveLength(1)
     expect(filterShopProductsByCategory(products, null)).toHaveLength(2)
+  })
+})
+
+describe("totalProductsInCategoryGroups", () => {
+  it("sums category counts", () => {
+    const groups = groupShopProductsByCategory([
+      sample("1", { id: "c1", slug: "a", name: "A", icon: "📦" }),
+      sample("2", { id: "c1", slug: "a", name: "A", icon: "📦" }),
+      sample("3"),
+    ])
+    expect(totalProductsInCategoryGroups(groups)).toBe(3)
   })
 })

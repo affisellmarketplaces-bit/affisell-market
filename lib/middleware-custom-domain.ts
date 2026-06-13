@@ -27,6 +27,13 @@ function platformOriginForResolve(req: NextRequest): string {
     process.env.NEXT_PUBLIC_APP_URL?.trim() ||
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL.replace(/\/$/, "")}` : "")
   if (fromEnv) return fromEnv.replace(/\/$/, "")
+
+  const host = requestHost(req)
+  if (!isPlatformHost(host)) {
+    const port = req.nextUrl.port || process.env.PORT?.trim() || "3001"
+    return `http://127.0.0.1:${port}`
+  }
+
   return req.nextUrl.origin
 }
 

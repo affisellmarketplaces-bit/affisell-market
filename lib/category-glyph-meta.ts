@@ -282,15 +282,15 @@ const ROOT_BY_NAME: Record<string, CategoryGlyphMeta> = {
 }
 
 const KEYWORD_RULES: { pattern: RegExp; meta: CategoryGlyphMeta }[] = [
-  { pattern: /electron|électron|phone|computer|tech|smart/i, meta: ROOT_BY_NAME.Electronics! },
-  { pattern: /office|bureau|stationery/i, meta: ROOT_BY_NAME["Office Supplies"]! },
+  { pattern: /electron|électron|phone|computer|tech|smart|portable|wifi|wi-fi|routeur|bluetooth/i, meta: ROOT_BY_NAME.Electronics! },
+  { pattern: /office|bureau|stationery|écriture|stylo|pen|crayon/i, meta: ROOT_BY_NAME["Office Supplies"]! },
   { pattern: /business|industrial|entreprise|industrie|factory/i, meta: ROOT_BY_NAME["Business & Industrial"]! },
-  { pattern: /camera|optic|photo|caméra/i, meta: ROOT_BY_NAME["Cameras & Optics"]! },
-  { pattern: /apparel|cloth|vêtement|fashion|shoe|jewel/i, meta: ROOT_BY_NAME["Apparel & Accessories"]! },
-  { pattern: /furniture|meuble|sofa|bed/i, meta: ROOT_BY_NAME.Furniture! },
-  { pattern: /health|beauty|santé|beauté|cosmetic|skin/i, meta: ROOT_BY_NAME["Health & Beauty"]! },
-  { pattern: /vehicle|véhicule|automotive|car|auto/i, meta: ROOT_BY_NAME["Vehicles & Parts"]! },
-  { pattern: /sport|fitness|gym|outdoor/i, meta: ROOT_BY_NAME["Sporting Goods"]! },
+  { pattern: /camera|optic|photo|caméra|recul|stabilisateur|optique/i, meta: ROOT_BY_NAME["Cameras & Optics"]! },
+  { pattern: /apparel|cloth|vêtement|fashion|shoe|jewel|collant|cyclisme|textile/i, meta: ROOT_BY_NAME["Apparel & Accessories"]! },
+  { pattern: /furniture|meuble|sofa|bed|commode|armoire|étagère/i, meta: ROOT_BY_NAME.Furniture! },
+  { pattern: /health|beauty|santé|beauté|cosmetic|skin|cheveux|bonnet|vapeur|soin/i, meta: ROOT_BY_NAME["Health & Beauty"]! },
+  { pattern: /vehicle|véhicule|automotive|car|auto|trottinette|scooter|mobilité/i, meta: ROOT_BY_NAME["Vehicles & Parts"]! },
+  { pattern: /sport|fitness|gym|outdoor|vélo|bike/i, meta: ROOT_BY_NAME["Sporting Goods"]! },
   { pattern: /pet|animal|dog|cat|bird/i, meta: ROOT_BY_NAME["Animals & Pet Supplies"]! },
   { pattern: /art|entertain|music|film|media|média/i, meta: ROOT_BY_NAME["Arts & Entertainment"]! },
   { pattern: /food|beverage|grocery|aliment|boisson|wine|coffee/i, meta: ROOT_BY_NAME["Food, Beverages & Tobacco"]! },

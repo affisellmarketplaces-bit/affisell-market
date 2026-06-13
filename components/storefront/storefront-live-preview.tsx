@@ -49,8 +49,8 @@ const MOCK_TILES = [
 ]
 
 const PREVIEW_CATEGORIES = [
-  { id: "c1", slug: "beauty", name: "Beauty", icon: "💄", count: 2 },
-  { id: "c2", slug: "tech", name: "Tech", icon: "⚡", count: 1 },
+  { id: "c1", slug: "beauty", name: "Health & Beauty", icon: "💄", count: 2 },
+  { id: "c2", slug: "tech", name: "Electronics", icon: "⚡", count: 1 },
 ]
 
 export function StorefrontLivePreview({ draft, className }: Props) {
@@ -124,6 +124,7 @@ export function StorefrontLivePreview({ draft, className }: Props) {
             headerBrandAlign={draft.headerBrandAlign}
             categories={PREVIEW_CATEGORIES}
             totalProducts={4}
+            shopHomePath="/"
           />
           {draft.layout === "minimal" ? (
             draft.description.trim() ? (

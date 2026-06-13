@@ -13,10 +13,17 @@ const UNCategorized: ShopProductCategory = {
   icon: "✨",
 }
 
+type CategoryCarrier = { category?: ShopProductCategory | null }
+
 export function groupShopProductsByCategory(products: ShopProductCard[]): StorefrontCategoryGroup[] {
+  return groupProductCategories(products)
+}
+
+/** Group any rows carrying a product category (full cards or lightweight listing rows). */
+export function groupProductCategories(items: CategoryCarrier[]): StorefrontCategoryGroup[] {
   const map = new Map<string, StorefrontCategoryGroup>()
 
-  for (const product of products) {
+  for (const product of items) {
     const cat = product.category ?? UNCategorized
     const existing = map.get(cat.id)
     if (existing) {
@@ -31,6 +38,10 @@ export function groupShopProductsByCategory(products: ShopProductCard[]): Storef
     if (b.id === UNCategorized.id) return -1
     return a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
   })
+}
+
+export function totalProductsInCategoryGroups(groups: StorefrontCategoryGroup[]): number {
+  return groups.reduce((sum, group) => sum + group.count, 0)
 }
 
 export function filterShopProductsByCategory(

@@ -28,4 +28,12 @@ describe("resolveCategoryGlyphMeta", () => {
       "amber"
     )
   })
+
+  it("maps French affiliate storefront category labels", () => {
+    expect(resolveCategoryGlyphMeta({ name: "Commodes", slug: "commodes-4195" }).gradient).toContain("amber")
+    expect(resolveCategoryGlyphMeta({ name: "Trottinettes", slug: "trottinettes" }).gradient).toContain("zinc")
+    expect(resolveCategoryGlyphMeta({ name: "Caméras de recul", slug: "cameras-recul" }).gradient).toContain(
+      "indigo"
+    )
+  })
 })

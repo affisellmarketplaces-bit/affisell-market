@@ -21,6 +21,10 @@ export { inferNicheLabel, shopProductToCardProps } from "@/lib/shop-storefront-s
 import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
+import {
+  groupProductCategories,
+  type StorefrontCategoryGroup,
+} from "@/lib/shop-storefront-categories"
 import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
 
 export async function loadAffiliateShopStore(slug: string): Promise<ShopStoreSummary | null> {
@@ -224,7 +228,42 @@ export async function loadPublicAffiliateShops(limit = 500): Promise<PublicShopD
       themeAccent: theme.accent,
       themePrimary: theme.primary,
     }
+    })
+}
+
+/** All listed categories for an affiliate storefront (every listed SKU, not the product grid limit). */
+export async function loadAffiliateShopCategoryGroups(
+  affiliateUserId: string
+): Promise<StorefrontCategoryGroup[]> {
+  const listings = await prisma.affiliateProduct.findMany({
+    where: {
+      affiliateId: affiliateUserId,
+      isListed: true,
+      product: buyerMarketplaceProductWhere,
+    },
+    select: {
+      product: {
+        select: {
+          category: { select: { id: true, name: true, slug: true, icon: true } },
+        },
+      },
+    },
   })
+
+  return groupProductCategories(
+    listings
+      .filter((row) => row.product)
+      .map((row) => ({
+        category: row.product!.category
+          ? {
+              id: row.product!.category!.id,
+              slug: row.product!.category!.slug,
+              name: row.product!.category!.name,
+              icon: row.product!.category!.icon || "📦",
+            }
+          : null,
+      }))
+  )
 }
 
 /** Slugs only — sitemap-friendly. */

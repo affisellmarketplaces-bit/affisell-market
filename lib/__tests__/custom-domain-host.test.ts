@@ -34,6 +34,10 @@ describe("mapCustomDomainPath", () => {
     )
   })
 
+  it("keeps cart on affiliate custom domain", () => {
+    expect(mapCustomDomainPath("/cart", "my-shop", "AFFILIATE")).toBe("/cart")
+  })
+
   it("maps supplier product paths", () => {
     const slug = "acme"
     expect(mapCustomDomainPath("/product/p1", slug, "SUPPLIER")).toBe(

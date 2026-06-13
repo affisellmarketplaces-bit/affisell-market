@@ -11,8 +11,8 @@ import { StorefrontTrustFooter } from "@/components/storefront/storefront-trust-
 import { StorefrontTrustStrip } from "@/components/storefront/storefront-trust-strip"
 import { auth } from "@/auth"
 import { loadAffiliateStorefrontTrust } from "@/lib/load-affiliate-storefront-trust"
-import { loadAffiliateShopProducts, loadAffiliateShopStore } from "@/lib/shop-storefront-data"
-import { groupShopProductsByCategory } from "@/lib/shop-storefront-categories"
+import { loadAffiliateShopStore, loadAffiliateShopCategoryGroups } from "@/lib/shop-storefront-data"
+import { totalProductsInCategoryGroups } from "@/lib/shop-storefront-categories"
 import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
 import { storefrontSurfaceClass } from "@/lib/storefront-theme-shared"
 import { cn } from "@/lib/utils"
@@ -39,9 +39,9 @@ export default async function ShopPublicLayout({
     session?.user?.role === "AFFILIATE" &&
     store?.userId === session.user.id
 
-  const dedicatedProducts =
-    isCustomDomain && store ? await loadAffiliateShopProducts(store.userId) : []
-  const dedicatedCategories = groupShopProductsByCategory(dedicatedProducts)
+  const dedicatedCategories =
+    isCustomDomain && store ? await loadAffiliateShopCategoryGroups(store.userId) : []
+  const dedicatedProductCount = totalProductsInCategoryGroups(dedicatedCategories)
 
   const surfaceClass = storefrontSurfaceClass(store?.theme.surface)
 
@@ -58,7 +58,8 @@ export default async function ShopPublicLayout({
           nameBadge={store.theme.nameBadge}
           headerBrandAlign={store.theme.headerBrandAlign}
           categories={dedicatedCategories}
-          totalProducts={dedicatedProducts.length}
+          totalProducts={dedicatedProductCount}
+          shopHomePath="/"
         />
       ) : null}
       <AffiliateStorePreviewBanner storeSlug={slug} isOwner={isOwner} />

@@ -21,6 +21,7 @@ type Props = {
   headerBrandAlign?: StorefrontHeaderBrandAlign
   categories: StorefrontCategoryGroup[]
   totalProducts: number
+  shopHomePath?: string
 }
 
 export function StorefrontBuyerChrome({
@@ -32,6 +33,7 @@ export function StorefrontBuyerChrome({
   headerBrandAlign = "left",
   categories,
   totalProducts,
+  shopHomePath = "/",
 }: Props) {
   const t = useTranslations("storefront.buyerChrome")
   const cartCount = useBuyerCartCount()
@@ -118,6 +120,7 @@ export function StorefrontBuyerChrome({
           <StorefrontCategoryDrawerNav
             categories={categories}
             totalProducts={totalProducts}
+            shopHomePath={shopHomePath}
             onPickCategory={closeDrawer}
           />
         </Suspense>

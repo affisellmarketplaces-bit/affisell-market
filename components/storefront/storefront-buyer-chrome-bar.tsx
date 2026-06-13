@@ -14,6 +14,7 @@ type Props = {
   headerBrandAlign?: StorefrontHeaderBrandAlign
   categories: StorefrontCategoryGroup[]
   totalProducts: number
+  shopHomePath?: string
 }
 
 export function StorefrontBuyerChromeBar(props: Props) {

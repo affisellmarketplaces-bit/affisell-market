@@ -23,6 +23,7 @@ test.describe("dedicated affiliate storefront", () => {
     const drawer = page.locator("#storefront-category-drawer")
     await expect(drawer).toHaveAttribute("aria-hidden", "false")
     await expect(drawer.getByRole("button", { name: /All products|Tous les produits/i })).toBeVisible()
+    await expect(drawer.locator("nav ul li").nth(1).locator("svg")).toBeVisible()
   })
 
   test("category filter updates URL", async ({ page }) => {
@@ -40,5 +41,28 @@ test.describe("dedicated affiliate storefront", () => {
     await first.click()
     await expect(page).toHaveURL(/\?cat=/)
     await expect(drawer).toHaveAttribute("aria-hidden", "true")
+  })
+
+  test("cart loads without redirect loop", async ({ page }) => {
+    const res = await page.goto(`http://${DEDICATED_HOST}:${devPort}/cart`, {
+      waitUntil: "domcontentloaded",
+    })
+    expect(res?.status()).toBeLessThan(400)
+    await expect(page).toHaveURL(new RegExp(`^http://${DEDICATED_HOST}:${devPort}/cart`))
+    await expect(page.getByRole("button", { name: /Browse categories|Parcourir les catégories/i })).toBeVisible()
+  })
+
+  test("cart category link opens shop catalog filter", async ({ page }) => {
+    await page.goto(`http://${DEDICATED_HOST}:${devPort}/cart`, {
+      waitUntil: "networkidle",
+    })
+
+    await page.getByRole("button", { name: /Browse categories|Parcourir les catégories/i }).click()
+    const drawer = page.locator("#storefront-category-drawer")
+    const categoryButtons = drawer.locator("nav ul li button").filter({ hasNotText: /All products|Tous les produits/i })
+    test.skip((await categoryButtons.count()) === 0, "No categories in demo store")
+
+    await categoryButtons.first().click()
+    await expect(page).toHaveURL(new RegExp(`^http://${DEDICATED_HOST}:${devPort}/\\?cat=`))
   })
 })

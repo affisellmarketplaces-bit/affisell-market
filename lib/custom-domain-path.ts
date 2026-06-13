@@ -15,7 +15,6 @@ const BLOCKED_PREFIXES = [
   "/api",
   "/auth",
   "/checkout",
-  "/cart",
   "/marketplace",
 ] as const
 
@@ -41,6 +40,9 @@ export function mapCustomDomainPath(
   if (bare === "/" || bare === "") return prefix
 
   if (role === "AFFILIATE") {
+    if (bare === "/cart" || bare.startsWith("/cart/")) {
+      return bare
+    }
     if (
       bare.startsWith("/product/") ||
       bare === "/account" ||
