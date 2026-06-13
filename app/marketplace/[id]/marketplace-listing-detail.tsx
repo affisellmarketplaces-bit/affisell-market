@@ -37,10 +37,8 @@ import { ProductVideoWishlistOverlay } from "@/components/product/product-video-
 import type { AppLocale } from "@/lib/i18n-locale"
 import { CLIENT_MESSAGES } from "@/lib/i18n-load-messages"
 import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
-import {
-  COLORS,
-  isMulticolorSwatch,
-} from "@/lib/product-catalog-constants"
+import { isMulticolorSwatch } from "@/lib/product-catalog-constants"
+import { buildMarketplaceColorMeta } from "@/lib/marketplace-color-meta"
 import { shopperCategoryEyebrow, shopperVisibleTags } from "@/lib/product-shopper-tags"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
@@ -556,25 +554,12 @@ export function MarketplaceListingDetail({
   const [rewardBalanceCents, setRewardBalanceCents] = useState(0)
   const [useRewardCents, setUseRewardCents] = useState(0)
 
-  const colorMeta = useMemo(() => {
-    const map = new Map(COLORS.map((c) => [c.name, c]))
-    return colorNames.map((n) => ({ name: n, meta: map.get(n) }))
-  }, [colorNames])
-
-  const showColorSwatches = useMemo(
-    () => colorMeta.some(({ meta }) => Boolean(meta)),
-    [colorMeta]
+  const colorMeta = useMemo(
+    () => buildMarketplaceColorMeta(colorNames, colorImages),
+    [colorNames, colorImages]
   )
 
-  const variantRowByName = useMemo(() => {
-    const m = new Map<string, { stock: number; image?: string }>()
-    for (const r of variants?.variantRows ?? []) {
-      const name = r.name.trim()
-      if (!name) continue
-      m.set(name, { stock: r.stock, image: r.image?.trim() || undefined })
-    }
-    return m
-  }, [variants?.variantRows])
+  const showColorSwatches = colorMeta.length > 0
 
   const shopperSelection: ShopperVariantSelection = useMemo(
     () => ({
@@ -1282,23 +1267,17 @@ export function MarketplaceListingDetail({
                 </div>
                 ) : (
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {colorMeta.map(({ name: cn }) => {
-                    const matchedRow =
-                      storageOptions.length > 0
-                        ? findVariantRowForShopperSelection({
-                            variants,
-                            customColumns,
-                            selection: {
-                              selectedPrimary: cn,
-                              selectedStorage,
-                              selectedSize,
-                            },
-                          })
-                        : undefined
-                    const legacyRow = variantRowByName.get(cn)
-                    const out =
-                      (matchedRow != null && matchedRow.stock <= 0) ||
-                      (legacyRow != null && legacyRow.stock <= 0)
+                  {colorMeta.map(({ name: cn, meta }) => {
+                    const matchedRow = findVariantRowForShopperSelection({
+                      variants,
+                      customColumns,
+                      selection: {
+                        selectedPrimary: cn,
+                        selectedStorage,
+                        selectedSize: sizeOptions.length > 0 ? selectedSize : null,
+                      },
+                    })
+                    const out = matchedRow != null && matchedRow.stock <= 0
                     const optionCents =
                       matchedRow && matchedRow.priceCents > 0
                         ? Math.max(

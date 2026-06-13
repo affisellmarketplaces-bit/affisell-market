@@ -1,19 +1,12 @@
 import { trimColorSwatchImageForStore } from "@/lib/color-swatch-store"
-import { COLORS } from "@/lib/product-catalog-constants"
+import { catalogHexForColorName, resolveColorSwatchMeta } from "@/lib/color-name-hex"
 import { parseVariantsPayload } from "@/lib/product-variants"
 
-/** Stored on `Product.colorImages` — English UI; `hex` matches catalog when possible */
+/** Stored on `Product.colorImages` — `hex` resolved from name when absent */
 export type ProductColorImageRow = {
   color: string
   hex: string
   image: string
-}
-
-export function catalogHexForColorName(name: string): string {
-  const c = COLORS.find((x) => x.name === name)
-  if (!c) return "#94a3b8"
-  if (c.hex === "multicolor" || c.multicolor) return "multicolor"
-  return c.hex
 }
 
 export function parseProductColorImagesFromDb(raw: unknown): ProductColorImageRow[] | null {

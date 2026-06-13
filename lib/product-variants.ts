@@ -1,3 +1,5 @@
+import { splitVariantLineName } from "@/lib/supplier-sku-builder"
+
 /** Stable id for advanced variant rows (client + server). */
 export function newVariantRowId(): string {
   const fn = globalThis.crypto?.randomUUID
@@ -186,7 +188,26 @@ export function findVariantRowByOptionName(
 ): ProductVariantLine | undefined {
   const want = optionName?.trim().toLowerCase()
   if (!want || !variants?.variantRows?.length) return undefined
-  return variants.variantRows.find((r) => r.name.trim().toLowerCase() === want)
+
+  const exact = variants.variantRows.find((r) => r.name.trim().toLowerCase() === want)
+  if (exact) return exact
+
+  const prefixMatches = variants.variantRows.filter((row) => {
+    const nameLower = row.name.trim().toLowerCase()
+    const { color } = splitVariantLineName(row.name)
+    return (
+      nameLower === want ||
+      color.trim().toLowerCase() === want ||
+      nameLower.startsWith(`${want} /`)
+    )
+  })
+
+  if (prefixMatches.length === 1) return prefixMatches[0]
+  if (prefixMatches.length > 1) {
+    return prefixMatches.find((r) => r.stock > 0) ?? prefixMatches[0]
+  }
+
+  return undefined
 }
 
 /**
