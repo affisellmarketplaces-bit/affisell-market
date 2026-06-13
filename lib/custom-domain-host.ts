@@ -1,5 +1,7 @@
 /** Custom domain host helpers — safe for Edge middleware (no Prisma). */
 
+import { isAffisellStoreSubdomainHost } from "@/lib/store-host-suffix"
+
 export function normalizeRequestHost(raw: string | null | undefined): string | null {
   if (!raw || typeof raw !== "string") return null
   const first = raw.split(",")[0]?.trim().toLowerCase()
@@ -58,6 +60,8 @@ function platformHostSet(): Set<string> {
 export function isPlatformHost(hostRaw: string | null | undefined): boolean {
   const host = normalizeRequestHost(hostRaw)
   if (!host) return true
+  /** `{slug}.shops.localhost` ends with `.localhost` but is a merchant storefront host. */
+  if (isAffisellStoreSubdomainHost(host)) return false
   if (STATIC_PLATFORM_EXACT.has(host)) return true
   for (const suffix of STATIC_PLATFORM_SUFFIXES) {
     if (host === suffix.slice(1) || host.endsWith(suffix)) return true

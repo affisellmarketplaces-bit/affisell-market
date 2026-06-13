@@ -32,7 +32,7 @@ describe("storePublicUrl", () => {
     expect(urls.platformPathUrl).toContain("/shops/my-shop")
   })
 
-  it("falls back to platform path in dev for clickable links", () => {
+  it("uses dev subdomain URL with app port for clickable links", () => {
     vi.stubEnv("NODE_ENV", "development")
     vi.stubEnv("NEXT_PUBLIC_APP_URL", "http://localhost:3001")
 
@@ -42,7 +42,8 @@ describe("storePublicUrl", () => {
       domainVerified: false,
       role: "AFFILIATE",
     })
-    expect(urls.primaryUrl).toContain("/shops/my-shop")
-    expect(urls.subdomainUrl).toContain("my-shop.shops.localhost")
+    expect(urls.subdomainUrl).toBe("http://my-shop.shops.localhost:3001")
+    expect(urls.primaryUrl).toBe(urls.subdomainUrl)
+    expect(urls.platformPathUrl).toContain("/shops/my-shop")
   })
 })

@@ -26,19 +26,17 @@ export function storePathOnPlatform(input: StorePublicUrlInput): string {
   return input.role === "SUPPLIER" ? `/store/supplier/${enc}` : `/shops/${enc}`
 }
 
-function protocolFromAppBase(): "http" | "https" {
-  return appBaseUrl().startsWith("https") ? "https" : "http"
-}
-
 export function storeSubdomainPublicUrl(slug: string): string {
-  return `${protocolFromAppBase()}://${storeSubdomainHost(slug)}`
+  const base = new URL(appBaseUrl())
+  base.hostname = storeSubdomainHost(slug)
+  base.pathname = ""
+  base.search = ""
+  base.hash = ""
+  return base.origin
 }
 
 function useSubdomainAsPrimaryClickable(): boolean {
   if (!isStoreSubdomainEnabled()) return false
-  if (process.env.NODE_ENV === "development") {
-    return process.env.AFFISELL_STORE_USE_SUBDOMAIN_IN_DEV === "1"
-  }
   return true
 }
 

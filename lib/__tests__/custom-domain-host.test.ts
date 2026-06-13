@@ -18,6 +18,11 @@ describe("isPlatformHost", () => {
   it("treats merchant domains as non-platform", () => {
     expect(isPlatformHost("boutique-createur.fr")).toBe(false)
   })
+
+  it("treats auto store subdomains as non-platform even on .localhost", () => {
+    expect(isPlatformHost("ecom-store.shops.localhost")).toBe(false)
+    expect(isPlatformHost("marie-store.shops.affisell.com")).toBe(false)
+  })
 })
 
 describe("mapCustomDomainPath", () => {
