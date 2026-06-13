@@ -19,8 +19,10 @@ type Props = {
   primary?: string
   nameBadge?: StoreNameBadgeStyle
   headerBrandAlign?: StorefrontHeaderBrandAlign
-  categories: StorefrontCategoryGroup[]
-  totalProducts: number
+  categories?: StorefrontCategoryGroup[]
+  /** Fetch drawer categories on first open when `categories` is empty. */
+  categoriesSlug?: string
+  totalProducts?: number
   shopHomePath?: string
 }
 
@@ -31,15 +33,54 @@ export function StorefrontBuyerChrome({
   primary = "#18181b",
   nameBadge = "parallelogram",
   headerBrandAlign = "left",
-  categories,
-  totalProducts,
+  categories = [],
+  categoriesSlug,
+  totalProducts = 0,
   shopHomePath = "/",
 }: Props) {
   const t = useTranslations("storefront.buyerChrome")
   const cartCount = useBuyerCartCount()
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [drawerCategories, setDrawerCategories] = useState(categories)
+  const [drawerTotalProducts, setDrawerTotalProducts] = useState(totalProducts)
+  const [categoriesLoading, setCategoriesLoading] = useState(false)
 
   const closeDrawer = useCallback(() => setDrawerOpen(false), [])
+
+  useEffect(() => {
+    setDrawerCategories(categories)
+    setDrawerTotalProducts(totalProducts)
+  }, [categories, totalProducts])
+
+  useEffect(() => {
+    if (!drawerOpen || categories.length > 0 || !categoriesSlug || drawerCategories.length > 0) {
+      return
+    }
+    const ac = new AbortController()
+    setCategoriesLoading(true)
+    void (async () => {
+      try {
+        const res = await fetch(`/api/shops/${encodeURIComponent(categoriesSlug)}/categories`, {
+          signal: ac.signal,
+          cache: "force-cache",
+        })
+        if (!res.ok) return
+        const data = (await res.json()) as {
+          groups?: StorefrontCategoryGroup[]
+          totalProducts?: number
+        }
+        if (Array.isArray(data.groups) && data.groups.length > 0) {
+          setDrawerCategories(data.groups)
+          setDrawerTotalProducts(Math.max(0, Math.round(Number(data.totalProducts) || 0)))
+        }
+      } catch {
+        /* abort / offline */
+      } finally {
+        if (!ac.signal.aborted) setCategoriesLoading(false)
+      }
+    })()
+    return () => ac.abort()
+  }, [categories.length, categoriesSlug, drawerCategories.length, drawerOpen])
 
   useEffect(() => {
     if (!drawerOpen) return
@@ -117,12 +158,20 @@ export function StorefrontBuyerChrome({
             </div>
           }
         >
-          <StorefrontCategoryDrawerNav
-            categories={categories}
-            totalProducts={totalProducts}
-            shopHomePath={shopHomePath}
-            onPickCategory={closeDrawer}
-          />
+          {categoriesLoading && drawerCategories.length === 0 ? (
+            <div className="flex-1 animate-pulse p-3" aria-busy="true">
+              <div className="mb-2 h-10 rounded-xl bg-zinc-200/80 dark:bg-zinc-800" />
+              <div className="mb-2 h-10 rounded-xl bg-zinc-200/60 dark:bg-zinc-800/80" />
+              <div className="h-10 rounded-xl bg-zinc-200/40 dark:bg-zinc-800/60" />
+            </div>
+          ) : (
+            <StorefrontCategoryDrawerNav
+              categories={drawerCategories}
+              totalProducts={drawerTotalProducts}
+              shopHomePath={shopHomePath}
+              onPickCategory={closeDrawer}
+            />
+          )}
         </Suspense>
       </aside>
     </>

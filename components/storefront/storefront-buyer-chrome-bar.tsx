@@ -12,8 +12,9 @@ type Props = {
   primary?: string
   nameBadge?: StoreNameBadgeStyle
   headerBrandAlign?: StorefrontHeaderBrandAlign
-  categories: StorefrontCategoryGroup[]
-  totalProducts: number
+  categories?: StorefrontCategoryGroup[]
+  categoriesSlug?: string
+  totalProducts?: number
   shopHomePath?: string
 }
 

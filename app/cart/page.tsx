@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { ExternalLink, Palette, Ruler, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 import type { CSSProperties } from "react"
@@ -53,9 +54,27 @@ function normalizeCartRow(raw: CartLine): CartLine {
 }
 
 async function fetchCart(signal?: AbortSignal): Promise<CartLine[]> {
-  const res = await fetch("/api/cart", { credentials: "include", cache: "no-store", signal })
+  const res = await fetch("/api/cart", {
+    credentials: "include",
+    cache: "no-store",
+    signal,
+  })
+  if (!res.ok) return []
   const data = (await res.json()) as CartLine[]
   return Array.isArray(data) ? data.map(normalizeCartRow) : []
+}
+
+async function fetchWithTimeout<T>(
+  run: (signal: AbortSignal) => Promise<T>,
+  ms = 4500
+): Promise<T> {
+  const ctrl = new AbortController()
+  const timer = window.setTimeout(() => ctrl.abort(), ms)
+  try {
+    return await run(ctrl.signal)
+  } finally {
+    window.clearTimeout(timer)
+  }
 }
 
 function guestToLine(item: GuestCartItem): CartLine {
@@ -122,6 +141,7 @@ async function fetchSession(signal?: AbortSignal): Promise<AuthSession> {
 
 export default function CartPage() {
   const t = useTranslations("cart")
+  const router = useRouter()
   const [lines, setLines] = useState<CartLine[]>([])
   const [isAuthed, setIsAuthed] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -136,22 +156,40 @@ export default function CartPage() {
   )
 
   useEffect(() => {
+    if (typeof window === "undefined") return
+    const url = new URL(window.location.href)
+    if (!url.searchParams.has("cat")) return
+    url.searchParams.delete("cat")
+    const next = `${url.pathname}${url.search}${url.hash}`
+    router.replace(next)
+  }, [router])
+
+  useEffect(() => {
+    const guestLines = readGuestCart().map(guestToLine)
+    if (guestLines.length > 0) {
+      setLines(guestLines)
+      setLoading(false)
+    }
+
     const ac = new AbortController()
-    ;(async () => {
+    void (async () => {
       try {
-        const [session, serverLines] = await Promise.all([
-          fetchSession(ac.signal),
-          fetchCart(ac.signal),
-        ])
+        const [session, serverLines] = await fetchWithTimeout((signal) =>
+          Promise.all([fetchSession(signal), fetchCart(signal)])
+        )
         if (ac.signal.aborted) return
         const authed = Boolean(session?.user?.id)
         setIsAuthed(authed)
         if (authed && session?.user?.id) {
-          const br = await fetch("/api/account/buyer-reward-balance", {
-            credentials: "include",
-            cache: "no-store",
-            signal: ac.signal,
-          })
+          const br = await fetchWithTimeout(
+            (signal) =>
+              fetch("/api/account/buyer-reward-balance", {
+                credentials: "include",
+                cache: "no-store",
+                signal,
+              }),
+            3500
+          )
           if (br.ok) {
             const j = (await br.json()) as { balanceCents?: number }
             const bal = Math.max(0, Math.round(Number(j.balanceCents) || 0))
@@ -162,8 +200,8 @@ export default function CartPage() {
           setRewardBalanceCents(0)
           setUseRewardCents(0)
         }
-        const guestLines = readGuestCart().map(guestToLine)
-        setLines(authed ? [...serverLines, ...guestLines] : guestLines)
+        const mergedGuest = readGuestCart().map(guestToLine)
+        setLines(authed ? [...serverLines, ...mergedGuest] : mergedGuest)
       } catch {
         if (!ac.signal.aborted) setLines(readGuestCart().map(guestToLine))
       } finally {
@@ -353,7 +391,11 @@ export default function CartPage() {
     return (
       <div className="affisell-cart-page min-h-screen bg-gradient-to-b from-zinc-50 to-violet-50/40 py-8 pb-[var(--affisell-mobile-dock-offset)] dark:from-zinc-950 dark:to-violet-950/20 md:pb-8">
         <div className="mx-auto max-w-3xl px-4">
-          <p className="text-sm text-zinc-500">{t("loading")}</p>
+          <div className="animate-pulse space-y-4" aria-busy="true" aria-label={t("loading")}>
+            <div className="h-8 w-40 rounded-lg bg-zinc-200/90 dark:bg-zinc-800" />
+            <div className="h-28 rounded-2xl bg-zinc-200/70 dark:bg-zinc-800/80" />
+            <div className="h-28 rounded-2xl bg-zinc-200/50 dark:bg-zinc-800/60" />
+          </div>
         </div>
       </div>
     )
