@@ -1550,6 +1550,7 @@
     "fulfilledSingle": "Your order is registered. A confirmation email is on its way.",
     "fulfilledMulti": "{count} orders registered. Confirmation emails are on their way.",
     "pendingFulfillment": "Payment confirmed. Your order will appear in your account within moments.",
+    "instantConfirmBody": "Payment secured. Your order is being registered — confirmation email follows automatically.",
     "viewOrders": "View my orders",
     "signIn": "Sign in",
     "errorTitle": "Payment received",

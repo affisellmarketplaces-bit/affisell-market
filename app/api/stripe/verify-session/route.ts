@@ -24,13 +24,21 @@ export async function GET(req: NextRequest) {
 
   try {
     const stripe = getStripeClient()
-    const session = await stripe.checkout.sessions.retrieve(sessionId)
+    const [session, initialOrderIds] = await Promise.all([
+      stripe.checkout.sessions.retrieve(sessionId),
+      findOrderIdsForCheckoutSession(sessionId),
+    ])
 
-    if (session.mode === "payment" && session.payment_status === "paid") {
+    let orderIds = initialOrderIds
+
+    if (
+      session.mode === "payment" &&
+      session.payment_status === "paid" &&
+      orderIds.length === 0
+    ) {
       await ensureMarketplaceCheckoutFulfilled(session)
+      orderIds = await findOrderIdsForCheckoutSession(sessionId)
     }
-
-    const orderIds = await findOrderIdsForCheckoutSession(sessionId)
 
     return NextResponse.json({
       paid: session.payment_status === "paid",

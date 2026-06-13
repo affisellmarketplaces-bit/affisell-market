@@ -1574,6 +1574,7 @@
     "fulfilledSingle": "Votre commande est enregistrée. Un e-mail de confirmation vous a été envoyé.",
     "fulfilledMulti": "{count} commandes enregistrées. Des e-mails de confirmation vous ont été envoyés.",
     "pendingFulfillment": "Paiement confirmé. La commande apparaîtra dans votre compte dans quelques instants.",
+    "instantConfirmBody": "Paiement sécurisé. Enregistrement de la commande en cours — l'e-mail de confirmation suit automatiquement.",
     "viewOrders": "Voir mes commandes",
     "signIn": "Se connecter",
     "errorTitle": "Paiement reçu",

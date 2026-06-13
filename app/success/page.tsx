@@ -1,45 +1,90 @@
 "use client"
 
-import { Suspense, useEffect, useRef, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 
 import {
-  PaymentSuccessLoading,
   PaymentSuccessScreen,
   type PaymentSuccessPayload,
 } from "@/components/checkout/payment-success-screen"
 
+const VERIFY_POLL_MS = 1200
+const VERIFY_MAX_ATTEMPTS = 10
+
+function optimisticPayload(): PaymentSuccessPayload {
+  return { paid: true, fulfilled: false, verifying: true }
+}
+
 function SuccessContent() {
   const searchParams = useSearchParams()
-  const handled = useRef(false)
-  const [payload, setPayload] = useState<PaymentSuccessPayload | null>(null)
+  const sessionId = searchParams.get("session_id")?.trim() ?? ""
+  const [payload, setPayload] = useState<PaymentSuccessPayload | null>(() =>
+    sessionId ? optimisticPayload() : { error: "missing_session" }
+  )
 
   useEffect(() => {
-    if (handled.current) return
-    handled.current = true
+    if (!sessionId) return
 
-    const sessionId = searchParams.get("session_id")
-    if (!sessionId) {
-      setPayload({ error: "missing_session" })
-      return
+    let cancelled = false
+    let attempts = 0
+
+    async function runVerify() {
+      try {
+        const res = await fetch(
+          `/api/stripe/verify-session?session_id=${encodeURIComponent(sessionId)}`,
+          { credentials: "include", cache: "no-store" }
+        )
+        const data = (await res.json()) as PaymentSuccessPayload
+        if (cancelled) return
+
+        if (!res.ok) {
+          setPayload((prev) => ({
+            paid: prev?.paid ?? true,
+            fulfilled: false,
+            verifying: attempts < VERIFY_MAX_ATTEMPTS,
+          }))
+          if (attempts < VERIFY_MAX_ATTEMPTS) {
+            attempts += 1
+            window.setTimeout(() => {
+              if (!cancelled) void runVerify()
+            }, VERIFY_POLL_MS)
+          }
+          return
+        }
+
+        setPayload({ ...data, verifying: false })
+
+        if (data.paid && !data.fulfilled && attempts < VERIFY_MAX_ATTEMPTS) {
+          attempts += 1
+          window.setTimeout(() => {
+            if (!cancelled) void runVerify()
+          }, VERIFY_POLL_MS)
+        }
+      } catch {
+        if (cancelled) return
+        setPayload((prev) => ({
+          paid: prev?.paid ?? true,
+          fulfilled: false,
+          verifying: false,
+        }))
+      }
     }
 
-    fetch(`/api/stripe/verify-session?session_id=${encodeURIComponent(sessionId)}`)
-      .then((res) => res.json())
-      .then((data: PaymentSuccessPayload) => setPayload(data))
-      .catch(() => setPayload({ error: "verify_failed" }))
-  }, [searchParams])
+    void runVerify()
 
-  if (!payload) {
-    return <PaymentSuccessLoading />
-  }
+    return () => {
+      cancelled = true
+    }
+  }, [sessionId])
+
+  if (!payload) return null
 
   return <PaymentSuccessScreen payload={payload} />
 }
 
 export default function SuccessPage() {
   return (
-    <Suspense fallback={<PaymentSuccessLoading />}>
+    <Suspense fallback={<PaymentSuccessScreen payload={optimisticPayload()} />}>
       <SuccessContent />
     </Suspense>
   )

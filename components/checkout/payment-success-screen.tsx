@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils"
 export type PaymentSuccessPayload = {
   paid?: boolean
   fulfilled?: boolean
+  verifying?: boolean
   orderId?: string | null
   orderIds?: string[]
   amountTotal?: number | null
@@ -123,7 +124,7 @@ export function PaymentSuccessScreen({ payload }: Props) {
   const reducedMotion = useReducedMotion()
   const confettiFired = useRef(false)
 
-  const isError = Boolean(payload.error)
+  const isError = payload.error === "missing_session"
   const orderCount = payload.orderIds?.length ?? (payload.orderId ? 1 : 0)
   const primaryOrderId = payload.orderIds?.[0] ?? payload.orderId ?? null
 
@@ -144,7 +145,9 @@ export function PaymentSuccessScreen({ payload }: Props) {
       ? orderCount > 1
         ? t("fulfilledMulti", { count: orderCount })
         : t("fulfilledSingle")
-      : t("pendingFulfillment")
+      : payload.verifying
+        ? t("instantConfirmBody")
+        : t("pendingFulfillment")
 
   return (
     <div className="relative min-h-[calc(100dvh-12rem)] overflow-hidden px-4 py-10 sm:py-14 md:py-16">
