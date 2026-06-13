@@ -37,6 +37,8 @@ export async function GET(req: NextRequest) {
       orderId: orderIds[0] ?? session.metadata?.orderId ?? null,
       orderIds,
       fulfilled: orderIds.length > 0,
+      amountTotal: session.amount_total ?? null,
+      currency: session.currency ?? "eur",
     })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "verify_failed"
