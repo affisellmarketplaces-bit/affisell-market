@@ -3,6 +3,7 @@ import { headers } from "next/headers"
 import { AffiliateStorePreviewBanner } from "@/components/shop/AffiliateStorePreviewBanner"
 import { ShopStoreHeader } from "@/components/shop/ShopStoreHeader"
 import { StorefrontBuyerChromeBar } from "@/components/storefront/storefront-buyer-chrome-bar"
+import { StorefrontDedicatedHero } from "@/components/storefront/storefront-dedicated-hero"
 import { StorefrontHostChromeSync } from "@/components/storefront/storefront-host-chrome-sync"
 import { StoreNameBadge } from "@/components/storefront/store-name-badge"
 import { StorefrontThemeStyles } from "@/components/storefront/storefront-theme-styles"
@@ -62,7 +63,21 @@ export default async function ShopPublicLayout({
       ) : null}
       <AffiliateStorePreviewBanner storeSlug={slug} isOwner={isOwner} />
       {store ? (
-        store.theme.layout === "minimal" ? (
+        isCustomDomain ? (
+          <>
+            {store.theme.layout === "minimal" && store.description ? (
+              <div className="border-b border-zinc-200/80 px-4 py-3 dark:border-zinc-800 sm:px-6">
+                <p className="mx-auto max-w-6xl text-sm text-zinc-600 dark:text-zinc-400">{store.description}</p>
+              </div>
+            ) : (
+              <StorefrontDedicatedHero
+                description={store.description}
+                bannerUrl={store.bannerUrl}
+                theme={store.theme}
+              />
+            )}
+          </>
+        ) : store.theme.layout === "minimal" ? (
           <div className="border-b border-zinc-200/90 px-4 py-5 dark:border-zinc-800 sm:px-6">
             <div className="mx-auto max-w-6xl">
               <StoreNameBadge
@@ -84,7 +99,7 @@ export default async function ShopPublicLayout({
             description={store.description}
             bannerUrl={store.bannerUrl}
             theme={store.theme}
-            isCustomDomain={isCustomDomain}
+            isCustomDomain={false}
             heroStyle={store.theme.heroStyle}
             layout={store.theme.layout}
           />

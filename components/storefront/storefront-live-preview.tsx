@@ -4,10 +4,9 @@ import { Monitor, Smartphone } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useState } from "react"
 
-import { ShopStoreHeader } from "@/components/shop/ShopStoreHeader"
 import { StorefrontBuyerHeader } from "@/components/storefront/storefront-buyer-header"
+import { StorefrontDedicatedHero } from "@/components/storefront/storefront-dedicated-hero"
 import { StorefrontThemeStyles } from "@/components/storefront/storefront-theme-styles"
-import { StoreNameBadge } from "@/components/storefront/store-name-badge"
 import type { StoreNameBadgeStyle } from "@/lib/store-name-badge-styles"
 import {
   storefrontGridClass,
@@ -61,9 +60,10 @@ export function StorefrontLivePreview({ draft, className }: Props) {
     heroStyle: draft.heroStyle,
     gridDensity: draft.gridDensity,
     surface: draft.surface,
+    headerBrandAlign: draft.headerBrandAlign,
   }
 
-  const showBanner =
+  const bannerForHero =
     draft.heroStyle === "banner" && draft.bannerUrl.trim().length > 0
       ? draft.bannerUrl.trim()
       : null
@@ -122,31 +122,18 @@ export function StorefrontLivePreview({ draft, className }: Props) {
             compact
           />
           {draft.layout === "minimal" ? (
-            <div className="border-b border-zinc-200/80 px-4 py-4 dark:border-zinc-800">
-              <StoreNameBadge
-                name={draft.name.trim() || t("sampleName")}
-                style={draft.nameBadge}
-                accent={draft.accent}
-                primary={draft.primary}
-                size="store"
-              />
-            </div>
+            draft.description.trim() ? (
+              <div className="border-b border-zinc-200/80 px-4 py-3 dark:border-zinc-800">
+                <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                  {draft.description.trim() || t("sampleTagline")}
+                </p>
+              </div>
+            ) : null
           ) : (
-            <ShopStoreHeader
-              storeName={draft.name.trim() || t("sampleName")}
-              logoUrl={draft.logoUrl}
+            <StorefrontDedicatedHero
               description={draft.description.trim() || t("sampleTagline")}
-              bannerUrl={
-                draft.heroStyle === "none"
-                  ? null
-                  : draft.heroStyle === "gradient"
-                    ? null
-                    : showBanner
-              }
+              bannerUrl={bannerForHero}
               theme={theme}
-              isCustomDomain
-              heroStyle={draft.heroStyle}
-              layout={draft.layout}
             />
           )}
 
