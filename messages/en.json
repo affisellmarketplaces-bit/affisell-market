@@ -1467,8 +1467,8 @@
       "previewAffisell": "Preview on Affisell",
       "liveStore": {
         "title": "Your store is live",
-        "subtitle": "Share {suffix} for Google Ads — same catalog as your Affisell listings, zero competitor traffic.",
-        "subdomainLabel": "Auto URL (Shopify-style)",
+        "subtitle": "Your branded address on {suffix} — same catalog as your listings, Ads-ready and Affisell-verified.",
+        "subdomainLabel": "Dedicated storefront URL",
         "customDomainLabel": "Custom domain",
         "platformLabel": "Affisell path (backup)",
         "openPrimary": "Open storefront"

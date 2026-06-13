@@ -1491,8 +1491,8 @@
       "previewAffisell": "Aperçu sur Affisell",
       "liveStore": {
         "title": "Votre boutique est en ligne",
-        "subtitle": "Partagez {suffix} pour Google Ads — le même catalogue que vos fiches Affisell, sans trafic concurrent.",
-        "subdomainLabel": "URL auto (style Shopify)",
+        "subtitle": "Votre adresse brandée sur {suffix} — même catalogue que vos fiches, prête pour Google Ads et vérifiée Affisell.",
+        "subdomainLabel": "URL boutique dédiée",
         "customDomainLabel": "Domaine personnalisé",
         "platformLabel": "Chemin Affisell (secours)",
         "openPrimary": "Ouvrir la boutique"
