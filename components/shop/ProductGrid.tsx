@@ -4,15 +4,20 @@ import { useTranslations } from "next-intl"
 
 import { ProductCard, type ProductCardDisplayMode } from "@/components/product/ProductCard"
 import { shopProductToCardProps, type ShopProductCard } from "@/lib/shop-storefront-shared"
+import {
+  storefrontGridClass,
+  type StorefrontGridDensity,
+} from "@/lib/storefront-theme-shared"
 
 type Props = {
   storeSlug: string
   products: ShopProductCard[]
   /** Set by the server — never derive business fields on the client for buyer pages. */
   mode: ProductCardDisplayMode
+  gridDensity?: StorefrontGridDensity
 }
 
-export function ProductGrid({ storeSlug, products, mode }: Props) {
+export function ProductGrid({ storeSlug, products, mode, gridDensity }: Props) {
   const t = useTranslations("boutique")
 
   if (products.length === 0) {
@@ -24,7 +29,7 @@ export function ProductGrid({ storeSlug, products, mode }: Props) {
   }
 
   return (
-    <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+    <ul className={storefrontGridClass(gridDensity)}>
       {products.map((item) => (
         <li key={item.listingId}>
           <ProductCard product={shopProductToCardProps(item, storeSlug)} mode={mode} />

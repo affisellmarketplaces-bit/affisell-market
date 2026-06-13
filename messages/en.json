@@ -1461,7 +1461,7 @@
       "supplierEyebrow": "Supplier brand",
       "affiliateTitle": "Brand Studio",
       "supplierTitle": "Storefront studio",
-      "affiliateDescription": "Your public shop on Affisell and on your own domain — banner, colors, and copy in one place.",
+      "affiliateDescription": "Design your storefront in real time — futuristic presets, layout, colors, logo, and dedicated URL in one place.",
       "supplierDescription": "How buyers see your supplier shop: banner, brand colors, and custom domain.",
       "liveUrl": "Live URL",
       "previewAffisell": "Preview on Affisell",
@@ -1484,7 +1484,57 @@
       "loadFailed": "Failed to load store",
       "saveFailed": "Could not save",
       "logoLogisticsTitle": "Logo & logistics",
-      "logoLogisticsBody": "Upload logo, AI avatar, ship-from address, and slug in <profileLink>Store profile</profileLink>.",
+      "logoLogisticsBody": "AI avatar, ship-from address, and slug in <profileLink>Store profile</profileLink>.",
+      "presets": {
+        "title": "Futuristic presets",
+        "hint": "One click to apply palette, layout, and mood — then fine-tune.",
+        "items": {
+          "violet-pulse": { "name": "Violet Pulse", "desc": "Dark immersive, neon violet gradient." },
+          "emerald-luxe": { "name": "Emerald Luxe", "desc": "Premium glass, airy grid, emerald accent." },
+          "midnight-orbit": { "name": "Midnight Orbit", "desc": "Cyber cyan on midnight, compact grid." },
+          "rose-editorial": { "name": "Rose Editorial", "desc": "Warm editorial, classic banner hero." },
+          "clean-minimal": { "name": "Clean Minimal", "desc": "Minimal, no hero, product-first." },
+          "quantum-glow": { "name": "Quantum Glow", "desc": "Quantum glass violet, luminous gradient." }
+        }
+      },
+      "layoutControls": {
+        "title": "Structure & mood",
+        "layout": "Layout",
+        "layoutOptions": {
+          "classic": "Classic",
+          "immersive": "Immersive",
+          "minimal": "Minimal"
+        },
+        "hero": "Hero",
+        "heroOptions": {
+          "banner": "Banner",
+          "gradient": "Gradient",
+          "none": "None"
+        },
+        "grid": "Product grid",
+        "gridOptions": {
+          "cozy": "Cozy",
+          "compact": "Compact",
+          "spacious": "Spacious"
+        },
+        "surface": "Surface",
+        "surfaceOptions": {
+          "light": "Light",
+          "dark": "Dark",
+          "glass": "Glass"
+        }
+      },
+      "logo": {
+        "title": "Store logo",
+        "upload": "Upload image",
+        "hint": "PNG or JPEG — 512×512 recommended. Shown on your public storefront."
+      },
+      "preview": {
+        "title": "Live preview",
+        "hint": "Updates instantly — save to publish on your live URL.",
+        "sampleName": "My Store",
+        "sampleTagline": "Premium picks from your favorite creator."
+      },
       "nameBadges": {
         "sectionTitle": "Store name display",
         "sectionHint": "Futuristic band on your public storefront (parallelogram, neon, holographic, and more).",

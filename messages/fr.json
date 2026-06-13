@@ -1485,7 +1485,7 @@
       "supplierEyebrow": "Marque fournisseur",
       "affiliateTitle": "Brand Studio",
       "supplierTitle": "Studio vitrine",
-      "affiliateDescription": "Votre boutique publique sur Affisell et sur votre domaine — bannière, couleurs et texte au même endroit.",
+      "affiliateDescription": "Designez votre boutique en temps réel — presets futuristes, layout, couleurs, logo et domaine dédié au même endroit.",
       "supplierDescription": "Ce que voient les acheteurs sur votre boutique fournisseur : bannière, couleurs de marque et domaine personnalisé.",
       "liveUrl": "URL publique",
       "previewAffisell": "Aperçu sur Affisell",
@@ -1508,7 +1508,57 @@
       "loadFailed": "Impossible de charger la boutique",
       "saveFailed": "Enregistrement impossible",
       "logoLogisticsTitle": "Logo & logistique",
-      "logoLogisticsBody": "Logo, avatar IA, adresse d'expédition et slug dans <profileLink>Profil boutique</profileLink>.",
+      "logoLogisticsBody": "Avatar IA, adresse d'expédition et slug dans <profileLink>Profil boutique</profileLink>.",
+      "presets": {
+        "title": "Presets futuristes",
+        "hint": "Un clic pour appliquer palette, layout et ambiance — personnalisez ensuite.",
+        "items": {
+          "violet-pulse": { "name": "Violet Pulse", "desc": "Immersif sombre, dégradé néon violet." },
+          "emerald-luxe": { "name": "Emerald Luxe", "desc": "Verre premium, grille aérée, vert émeraude." },
+          "midnight-orbit": { "name": "Midnight Orbit", "desc": "Cyber cyan sur fond minuit, grille compacte." },
+          "rose-editorial": { "name": "Rose Editorial", "desc": "Éditorial chaleureux, bannière classique." },
+          "clean-minimal": { "name": "Clean Minimal", "desc": "Minimaliste, sans hero, focus produits." },
+          "quantum-glow": { "name": "Quantum Glow", "desc": "Verre violet quantique, dégradé lumineux." }
+        }
+      },
+      "layoutControls": {
+        "title": "Structure & ambiance",
+        "layout": "Layout",
+        "layoutOptions": {
+          "classic": "Classique",
+          "immersive": "Immersif",
+          "minimal": "Minimal"
+        },
+        "hero": "Hero",
+        "heroOptions": {
+          "banner": "Bannière",
+          "gradient": "Dégradé",
+          "none": "Aucun"
+        },
+        "grid": "Grille produits",
+        "gridOptions": {
+          "cozy": "Confort",
+          "compact": "Compact",
+          "spacious": "Aéré"
+        },
+        "surface": "Fond",
+        "surfaceOptions": {
+          "light": "Clair",
+          "dark": "Sombre",
+          "glass": "Verre"
+        }
+      },
+      "logo": {
+        "title": "Logo boutique",
+        "upload": "Importer une image",
+        "hint": "PNG ou JPEG — 512×512 recommandé. Affiché sur votre vitrine publique."
+      },
+      "preview": {
+        "title": "Aperçu live",
+        "hint": "Mise à jour instantanée — enregistrez pour publier sur votre URL.",
+        "sampleName": "Ma Boutique",
+        "sampleTagline": "Sélection premium par votre créateur préféré."
+      },
       "nameBadges": {
         "sectionTitle": "Style du nom de boutique",
         "sectionHint": "Bande futuriste affichée sur votre vitrine publique (ex. parallélogramme, néon, hologramme).",

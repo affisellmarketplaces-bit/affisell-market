@@ -6,7 +6,11 @@ import { LayoutGrid, Store } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { StoreNameBadge } from "@/components/storefront/store-name-badge"
-import type { StorefrontTheme } from "@/lib/storefront-theme-shared"
+import type {
+  StorefrontHeroStyle,
+  StorefrontLayoutMode,
+  StorefrontTheme,
+} from "@/lib/storefront-theme-shared"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -17,6 +21,8 @@ type Props = {
   theme?: StorefrontTheme
   /** When true, hide Affisell marketplace navigation (custom domain). */
   isCustomDomain?: boolean
+  heroStyle?: StorefrontHeroStyle
+  layout?: StorefrontLayoutMode
 }
 
 function StoreHeaderNavChip({
@@ -74,6 +80,8 @@ export function ShopStoreHeader({
   bannerUrl,
   theme,
   isCustomDomain = false,
+  heroStyle = "banner",
+  layout = "classic",
 }: Props) {
   const t = useTranslations("boutique")
   const tNav = useTranslations("PublicNav")
@@ -81,10 +89,25 @@ export function ShopStoreHeader({
   const primary = theme?.primary ?? "#18181b"
   const nameBadge = theme?.nameBadge ?? "parallelogram"
 
+  const showImageBanner = heroStyle === "banner" && Boolean(bannerUrl)
+  const showGradientHero = heroStyle === "gradient" || (heroStyle === "banner" && !bannerUrl)
+  const hasHeroVisual = showImageBanner || showGradientHero
+  const immersive = layout === "immersive"
+
   return (
-    <header className="border-b border-zinc-200/90 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-      {bannerUrl ? (
-        <div className="relative h-36 w-full overflow-hidden sm:h-44 md:h-52">
+    <header
+      className={cn(
+        "border-b border-zinc-200/90 bg-white dark:border-zinc-800 dark:bg-zinc-950",
+        immersive && "border-violet-200/40 dark:border-violet-900/40"
+      )}
+    >
+      {showImageBanner && bannerUrl ? (
+        <div
+          className={cn(
+            "relative w-full overflow-hidden",
+            immersive ? "h-44 sm:h-56 md:h-64" : "h-36 sm:h-44 md:h-52"
+          )}
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={bannerUrl}
@@ -97,17 +120,22 @@ export function ShopStoreHeader({
             aria-hidden
           />
         </div>
-      ) : (
+      ) : showGradientHero ? (
         <div
-          className="h-2 w-full"
+          className={cn(
+            "relative w-full overflow-hidden",
+            immersive ? "h-32 sm:h-40" : "h-24 sm:h-28"
+          )}
           style={{
-            background: `linear-gradient(90deg, var(--store-primary, #18181b) 0%, ${accent} 100%)`,
+            background: `linear-gradient(135deg, ${primary} 0%, ${accent} 55%, color-mix(in srgb, ${accent} 40%, #000) 100%)`,
           }}
           aria-hidden
-        />
-      )}
+        >
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.15),transparent_55%)]" />
+        </div>
+      ) : null}
 
-      <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6">
+      <div className={cn("mx-auto max-w-6xl px-4 py-4 sm:px-6", immersive && "py-5 sm:py-6")}>
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
           <div className="flex min-w-0 items-start gap-3 sm:gap-4">
             {logoUrl ? (
@@ -119,7 +147,7 @@ export function ShopStoreHeader({
                 height={48}
                 className={cn(
                   "h-14 w-14 shrink-0 rounded-2xl object-cover shadow-md sm:h-16 sm:w-16",
-                  bannerUrl
+                  hasHeroVisual
                     ? "-mt-10 border-2 border-white dark:border-zinc-800 sm:-mt-12"
                     : "border border-zinc-200 dark:border-zinc-700"
                 )}
@@ -129,7 +157,7 @@ export function ShopStoreHeader({
               <span
                 className={cn(
                   "flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-lg font-bold text-white shadow-md sm:h-16 sm:w-16",
-                  bannerUrl ? "-mt-10 border-2 border-white sm:-mt-12" : ""
+                  hasHeroVisual ? "-mt-10 border-2 border-white sm:-mt-12" : ""
                 )}
                 style={{ backgroundColor: accent }}
               >

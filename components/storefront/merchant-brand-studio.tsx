@@ -4,15 +4,18 @@ import Link from "next/link"
 import { ExternalLink, Palette, Save, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 import type { FormEvent } from "react"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { StoreCustomDomainCard } from "@/components/storefront/store-custom-domain-card"
+import { StorefrontLayoutControls } from "@/components/storefront/storefront-layout-controls"
+import { StorefrontLivePreview } from "@/components/storefront/storefront-live-preview"
+import { StorefrontLogoField } from "@/components/storefront/storefront-logo-field"
+import { StorefrontThemePresetPicker } from "@/components/storefront/storefront-theme-preset-picker"
 import { StoreLiveUrlCard } from "@/components/storefront/store-live-url-card"
+import { StoreNameBadgePicker } from "@/components/storefront/store-name-badge-picker"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { cn } from "@/lib/utils"
-import { StoreNameBadgePicker } from "@/components/storefront/store-name-badge-picker"
 import {
   DEFAULT_STORE_NAME_BADGE,
   type StoreNameBadgeStyle,
@@ -20,7 +23,13 @@ import {
 import {
   DEFAULT_STOREFRONT_THEME,
   parseStorefrontTheme,
+  type StorefrontGridDensity,
+  type StorefrontHeroStyle,
+  type StorefrontLayoutMode,
+  type StorefrontSurface,
+  type StorefrontTheme,
 } from "@/lib/storefront-theme-shared"
+import { cn } from "@/lib/utils"
 
 type MerchantRole = "AFFILIATE" | "SUPPLIER"
 
@@ -57,9 +66,19 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
   const [name, setName] = useState("")
   const [bannerUrl, setBannerUrl] = useState("")
   const [description, setDescription] = useState("")
+  const [logoUrl, setLogoUrl] = useState("")
+  const [logoPreview, setLogoPreview] = useState<string | null>(null)
+  const [logoFile, setLogoFile] = useState<File | null>(null)
   const [accent, setAccent] = useState(DEFAULT_STOREFRONT_THEME.accent!)
   const [primaryHex, setPrimaryHex] = useState(DEFAULT_STOREFRONT_THEME.primary!)
   const [nameBadge, setNameBadge] = useState<StoreNameBadgeStyle>(DEFAULT_STORE_NAME_BADGE)
+  const [layout, setLayout] = useState<StorefrontLayoutMode>(DEFAULT_STOREFRONT_THEME.layout!)
+  const [heroStyle, setHeroStyle] = useState<StorefrontHeroStyle>(DEFAULT_STOREFRONT_THEME.heroStyle!)
+  const [gridDensity, setGridDensity] = useState<StorefrontGridDensity>(
+    DEFAULT_STOREFRONT_THEME.gridDensity!
+  )
+  const [surface, setSurface] = useState<StorefrontSurface>(DEFAULT_STOREFRONT_THEME.surface!)
+  const [presetId, setPresetId] = useState<string | null>(null)
 
   const hydrate = useCallback(async () => {
     setLoading(true)
@@ -87,10 +106,18 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
         setName(st.name)
         setBannerUrl(st.bannerUrl ?? "")
         setDescription(st.description ?? "")
+        setLogoUrl(st.logoUrl ?? "")
+        setLogoPreview(st.logoUrl)
+        setLogoFile(null)
         const theme = parseStorefrontTheme(st.storefrontTheme)
         setAccent(theme.accent ?? DEFAULT_STOREFRONT_THEME.accent!)
         setPrimaryHex(theme.primary ?? DEFAULT_STOREFRONT_THEME.primary!)
         setNameBadge(theme.nameBadge ?? DEFAULT_STORE_NAME_BADGE)
+        setLayout(theme.layout ?? DEFAULT_STOREFRONT_THEME.layout!)
+        setHeroStyle(theme.heroStyle ?? DEFAULT_STOREFRONT_THEME.heroStyle!)
+        setGridDensity(theme.gridDensity ?? DEFAULT_STOREFRONT_THEME.gridDensity!)
+        setSurface(theme.surface ?? DEFAULT_STOREFRONT_THEME.surface!)
+        setPresetId(theme.presetId ?? null)
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : t("loadFailed"))
@@ -102,6 +129,48 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
   useEffect(() => {
     void hydrate()
   }, [hydrate])
+
+  function applyPreset(theme: StorefrontTheme, id: string) {
+    setPresetId(id)
+    setPrimaryHex(theme.primary ?? DEFAULT_STOREFRONT_THEME.primary!)
+    setAccent(theme.accent ?? DEFAULT_STOREFRONT_THEME.accent!)
+    setNameBadge(theme.nameBadge ?? DEFAULT_STORE_NAME_BADGE)
+    setLayout(theme.layout ?? DEFAULT_STOREFRONT_THEME.layout!)
+    setHeroStyle(theme.heroStyle ?? DEFAULT_STOREFRONT_THEME.heroStyle!)
+    setGridDensity(theme.gridDensity ?? DEFAULT_STOREFRONT_THEME.gridDensity!)
+    setSurface(theme.surface ?? DEFAULT_STOREFRONT_THEME.surface!)
+  }
+
+  const previewDraft = useMemo(
+    () => ({
+      name,
+      description,
+      bannerUrl,
+      logoUrl: logoFile ? logoPreview : logoUrl.trim() || logoPreview,
+      primary: primaryHex,
+      accent,
+      nameBadge,
+      layout,
+      heroStyle,
+      gridDensity,
+      surface,
+    }),
+    [
+      name,
+      description,
+      bannerUrl,
+      logoUrl,
+      logoPreview,
+      logoFile,
+      primaryHex,
+      accent,
+      nameBadge,
+      layout,
+      heroStyle,
+      gridDensity,
+      surface,
+    ]
+  )
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -116,6 +185,16 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
       fd.set("themePrimary", primaryHex)
       fd.set("themeAccent", accent)
       fd.set("themeNameBadge", nameBadge)
+      fd.set("themeLayout", layout)
+      fd.set("themeHeroStyle", heroStyle)
+      fd.set("themeGridDensity", gridDensity)
+      fd.set("themeSurface", surface)
+      if (presetId) fd.set("themePresetId", presetId)
+      if (logoFile) {
+        fd.set("logo", logoFile)
+      } else {
+        fd.set("logoUrl", logoUrl.trim())
+      }
 
       const res = await fetch("/api/store/update", {
         method: "POST",
@@ -140,7 +219,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
   if (loading && !name) {
     return (
       <BentoShell>
-        <BentoContainer maxWidth="5xl">
+        <BentoContainer maxWidth="6xl">
           <BentoCard className="py-16 text-center text-sm text-gray-600 dark:text-zinc-400">{t("loading")}</BentoCard>
         </BentoContainer>
       </BentoShell>
@@ -149,7 +228,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
 
   return (
     <BentoShell>
-      <BentoContainer maxWidth="5xl" className="space-y-8 pb-16">
+      <BentoContainer maxWidth="6xl" className="space-y-8 pb-16">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <BentoPageHeading
             eyebrow={eyebrow}
@@ -194,15 +273,24 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
           </BentoCard>
         ) : null}
 
-        <div className="grid gap-8 lg:grid-cols-[1fr_minmax(0,22rem)]">
+        <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(280px,22rem)]">
           <BentoCard>
             <form onSubmit={onSubmit} className="space-y-8">
+              <StorefrontThemePresetPicker value={presetId} onApply={applyPreset} />
+
               <div className="space-y-2">
                 <label htmlFor="bs-name" className="text-xs font-semibold uppercase tracking-wider text-gray-500">
                   {t("storeName")}
                 </label>
                 <Input id="bs-name" bento value={name} onChange={(e) => setName(e.target.value)} required />
               </div>
+
+              <StorefrontLogoField
+                logoUrl={logoUrl}
+                logoPreview={logoPreview}
+                onLogoUrlChange={setLogoUrl}
+                onLogoFile={setLogoFile}
+              />
 
               <div className="space-y-2">
                 <label htmlFor="bs-banner" className="text-xs font-semibold uppercase tracking-wider text-gray-500">
@@ -266,6 +354,17 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
                 aria-hidden
               />
 
+              <StorefrontLayoutControls
+                layout={layout}
+                heroStyle={heroStyle}
+                gridDensity={gridDensity}
+                surface={surface}
+                onLayout={setLayout}
+                onHeroStyle={setHeroStyle}
+                onGridDensity={setGridDensity}
+                onSurface={setSurface}
+              />
+
               <StoreNameBadgePicker
                 value={nameBadge}
                 onChange={setNameBadge}
@@ -282,6 +381,11 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
           </BentoCard>
 
           <div className="space-y-4">
+            <div className="xl:sticky xl:top-4">
+              <BentoCard className="overflow-hidden bg-gradient-to-b from-violet-50/80 to-white dark:from-violet-950/20 dark:to-zinc-950">
+                <StorefrontLivePreview draft={previewDraft} />
+              </BentoCard>
+            </div>
             <StoreLiveUrlCard urls={storeUrls} storeHostSuffix={storeHostSuffix} loading={loading} />
             <StoreCustomDomainCard variant="studio" />
             <BentoCard className="text-sm text-gray-600 dark:text-zinc-400">

@@ -40,24 +40,32 @@ export default async function ShopSlugPage({
   const { preview } = await searchParams
   const session = await auth()
 
-  const store = await prisma.store.findUnique({
-    where: { slug },
-    select: { userId: true, user: { select: { role: true } } },
-  })
-  if (!store || store.user.role !== "AFFILIATE") notFound()
+  const [storeMeta, storeFront] = await Promise.all([
+    prisma.store.findUnique({
+      where: { slug },
+      select: { userId: true, user: { select: { role: true } } },
+    }),
+    loadAffiliateShopStore(slug),
+  ])
+  if (!storeMeta || storeMeta.user.role !== "AFFILIATE") notFound()
 
   const affiliatePreview =
     preview === "affiliate" && session?.user?.role === "AFFILIATE"
 
   const cardMode: ProductCardDisplayMode = affiliatePreview ? "affiliate" : "customer"
 
-  const products = await loadAffiliateShopProducts(store.userId, {
+  const products = await loadAffiliateShopProducts(storeMeta.userId, {
     includeBusinessFields: affiliatePreview,
   })
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-      <ProductGrid storeSlug={slug} products={products} mode={cardMode} />
+      <ProductGrid
+        storeSlug={slug}
+        products={products}
+        mode={cardMode}
+        gridDensity={storeFront?.theme.gridDensity}
+      />
     </div>
   )
 }

@@ -5,7 +5,7 @@ import { mkdir, writeFile } from "fs/promises"
 import { auth } from "@/auth"
 import { allocateUniqueSlug, ensureMerchantStore } from "@/lib/ensure-store"
 import { prisma } from "@/lib/prisma"
-import { parseStorefrontTheme, themeFromFormFields } from "@/lib/storefront-theme-shared"
+import { parseStorefrontTheme, themeFromBrandStudioFields } from "@/lib/storefront-theme-shared"
 import { normalizeCustomDomain } from "@/lib/verify-store-domain"
 
 export const runtime = "nodejs"
@@ -79,15 +79,32 @@ export async function POST(req: Request) {
   const themePrimary = fd.get("themePrimary")
   const themeAccent = fd.get("themeAccent")
   const themeNameBadge = fd.get("themeNameBadge")
+  const themeLayout = fd.get("themeLayout")
+  const themeHeroStyle = fd.get("themeHeroStyle")
+  const themeGridDensity = fd.get("themeGridDensity")
+  const themeSurface = fd.get("themeSurface")
+  const themePresetId = fd.get("themePresetId")
   const hasThemeFields =
-    themePrimary !== null || themeAccent !== null || themeNameBadge !== null
+    themePrimary !== null ||
+    themeAccent !== null ||
+    themeNameBadge !== null ||
+    themeLayout !== null ||
+    themeHeroStyle !== null ||
+    themeGridDensity !== null ||
+    themeSurface !== null ||
+    themePresetId !== null
   const existingTheme = parseStorefrontTheme(store.storefrontTheme)
   const storefrontTheme = hasThemeFields
-    ? themeFromFormFields(
-        themePrimary !== null ? themePrimary : existingTheme.primary,
-        themeAccent !== null ? themeAccent : existingTheme.accent,
-        themeNameBadge !== null ? themeNameBadge : existingTheme.nameBadge
-      )
+    ? themeFromBrandStudioFields(existingTheme, {
+        primary: themePrimary,
+        accent: themeAccent,
+        nameBadge: themeNameBadge,
+        layout: themeLayout,
+        heroStyle: themeHeroStyle,
+        gridDensity: themeGridDensity,
+        surface: themeSurface,
+        presetId: themePresetId,
+      })
     : undefined
 
   const logoFile = fd.get("logo")
