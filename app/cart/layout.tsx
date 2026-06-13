@@ -1,11 +1,7 @@
 import { headers } from "next/headers"
 
 import { StorefrontBuyerChromeBar } from "@/components/storefront/storefront-buyer-chrome-bar"
-import { totalProductsInCategoryGroups } from "@/lib/shop-storefront-categories"
-import {
-  loadAffiliateShopCategoryGroupsForSlug,
-  loadAffiliateShopStore,
-} from "@/lib/shop-storefront-data"
+import { loadAffiliateShopStore } from "@/lib/shop-storefront-data"
 import {
   isCustomDomainHeaders,
   storeSlugFromHeaders,
@@ -24,10 +20,7 @@ export default async function CartLayout({ children }: { children: React.ReactNo
     return children
   }
 
-  const [store, categories] = await Promise.all([
-    loadAffiliateShopStore(slug),
-    loadAffiliateShopCategoryGroupsForSlug(slug),
-  ])
+  const store = await loadAffiliateShopStore(slug)
   if (!store) return children
 
   return (
@@ -39,8 +32,7 @@ export default async function CartLayout({ children }: { children: React.ReactNo
         primary={store.theme.primary}
         nameBadge={store.theme.nameBadge}
         headerBrandAlign={store.theme.headerBrandAlign}
-        categories={categories}
-        totalProducts={totalProductsInCategoryGroups(categories)}
+        categoriesSlug={slug}
         shopHomePath="/"
       />
       {children}

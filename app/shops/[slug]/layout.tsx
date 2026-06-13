@@ -11,8 +11,7 @@ import { StorefrontTrustFooter } from "@/components/storefront/storefront-trust-
 import { StorefrontTrustStrip } from "@/components/storefront/storefront-trust-strip"
 import { auth } from "@/auth"
 import { loadAffiliateStorefrontTrust } from "@/lib/load-affiliate-storefront-trust"
-import { loadAffiliateShopCategoryGroupsForSlug, loadAffiliateShopStore } from "@/lib/shop-storefront-data"
-import { totalProductsInCategoryGroups } from "@/lib/shop-storefront-categories"
+import { loadAffiliateShopStore } from "@/lib/shop-storefront-data"
 import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
 import { storefrontSurfaceClass } from "@/lib/storefront-theme-shared"
 import { cn } from "@/lib/utils"
@@ -29,13 +28,11 @@ export default async function ShopPublicLayout({
   const { slug } = await params
   const hdrs = await headers()
   const isCustomDomain = isCustomDomainHeaders(hdrs)
-  const [store, trust, session, dedicatedCategories] = await Promise.all([
+  const [store, trust, session] = await Promise.all([
     loadAffiliateShopStore(slug),
     loadAffiliateStorefrontTrust(slug),
     auth(),
-    isCustomDomain ? loadAffiliateShopCategoryGroupsForSlug(slug) : Promise.resolve([]),
   ])
-  const dedicatedProductCount = totalProductsInCategoryGroups(dedicatedCategories)
   const isOwner =
     Boolean(session?.user?.id && store?.userId) &&
     session?.user?.role === "AFFILIATE" &&
@@ -55,8 +52,7 @@ export default async function ShopPublicLayout({
           primary={store.theme.primary}
           nameBadge={store.theme.nameBadge}
           headerBrandAlign={store.theme.headerBrandAlign}
-          categories={dedicatedCategories}
-          totalProducts={dedicatedProductCount}
+          categoriesSlug={slug}
           shopHomePath="/"
         />
       ) : null}

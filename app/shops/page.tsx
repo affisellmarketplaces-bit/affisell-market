@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+lesimport type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 
 import { AllStoresTriangleBadge } from "@/components/storefront/all-stores-triangle-badge"
