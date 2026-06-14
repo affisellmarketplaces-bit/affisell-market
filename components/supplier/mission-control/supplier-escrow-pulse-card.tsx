@@ -2,6 +2,15 @@
 
 import { Lock, Sparkles, Unlock, Wallet } from "lucide-react"
 
+import {
+  missionControlAffisellCard,
+  missionControlAffisellEyebrow,
+  missionControlAffisellOverlayIndigo,
+  missionControlAffisellOverlayViolet,
+  missionControlAffisellScanline,
+  missionControlAffisellSubtext,
+  missionControlHeading,
+} from "@/components/supplier/mission-control/mission-control-affisell-shell"
 import type { SupplierEscrowSummary } from "@/lib/supplier-escrow-shared"
 import { formatEscrowMetric } from "@/lib/supplier-escrow-shared"
 import { cn } from "@/lib/utils"
@@ -24,9 +33,12 @@ function MetricTile({
   accent: "brand" | "supplier" | "success"
 }) {
   const accents = {
-    brand: "border-violet-400/20 bg-violet-500/10 text-violet-100",
-    supplier: "border-indigo-400/20 bg-indigo-500/10 text-indigo-100",
-    success: "border-emerald-400/20 bg-emerald-500/8 text-emerald-100",
+    brand:
+      "border-violet-200/80 bg-violet-50/85 text-violet-900 dark:border-violet-400/20 dark:bg-violet-500/10 dark:text-violet-100",
+    supplier:
+      "border-indigo-200/80 bg-indigo-50/85 text-indigo-900 dark:border-indigo-400/20 dark:bg-indigo-500/10 dark:text-indigo-100",
+    success:
+      "border-emerald-200/80 bg-emerald-50/85 text-emerald-900 dark:border-emerald-400/20 dark:bg-emerald-500/8 dark:text-emerald-100",
   }
   return (
     <div
@@ -39,7 +51,7 @@ function MetricTile({
         <Icon className="size-3 shrink-0" aria-hidden />
         {label}
       </div>
-      <p className="text-lg font-bold tabular-nums tracking-tight text-white">{value}</p>
+      <p className="text-lg font-bold tabular-nums tracking-tight">{value}</p>
     </div>
   )
 }
@@ -73,46 +85,31 @@ export function SupplierEscrowPulseCard({ summary, locale = "fr", className }: P
         }
 
   return (
-    <section
-      className={cn(
-        "relative overflow-hidden rounded-3xl border border-white/5 bg-zinc-950/95 p-5 text-white shadow-sm ring-1 ring-black/[0.03] backdrop-blur-sm",
-        className
-      )}
-      aria-labelledby="supplier-escrow-title"
-    >
+    <section className={cn(missionControlAffisellCard, "p-5", className)} aria-labelledby="supplier-escrow-title">
+      <div className={missionControlAffisellOverlayViolet} aria-hidden />
+      <div className={missionControlAffisellOverlayIndigo} aria-hidden />
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_100%_80%_at_0%_0%,rgba(109,40,217,0.12),transparent_55%)]"
+        className="pointer-events-none absolute inset-0 opacity-[0.025] [background-image:linear-gradient(rgba(139,92,246,0.35)_1px,transparent_1px),linear-gradient(90deg,rgba(139,92,246,0.35)_1px,transparent_1px)] [background-size:20px_20px] dark:opacity-[0.03]"
         aria-hidden
       />
-      <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_100%_100%,rgba(79,70,229,0.08),transparent_50%)]"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.03] [background-image:linear-gradient(rgba(167,139,250,0.35)_1px,transparent_1px),linear-gradient(90deg,rgba(167,139,250,0.35)_1px,transparent_1px)] [background-size:20px_20px]"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-300/20 to-transparent"
-        aria-hidden
-      />
+      <div className={missionControlAffisellScanline} aria-hidden />
 
       <div className="relative flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-violet-300/90">
+          <p className={cn(missionControlAffisellEyebrow, "inline-flex items-center gap-1.5")}>
             <Sparkles className="size-3" aria-hidden />
             {copy.eyebrow}
           </p>
-          <h2 id="supplier-escrow-title" className="mt-1 text-base font-semibold tracking-tight sm:text-lg">
+          <h2 id="supplier-escrow-title" className={cn("mt-1 text-base tracking-tight sm:text-lg", missionControlHeading)}>
             {copy.title}
           </h2>
-          <p className="mt-1 max-w-md text-sm text-zinc-300">{copy.hint}</p>
+          <p className={cn("mt-1 max-w-md", missionControlAffisellSubtext)}>{copy.hint}</p>
         </div>
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-violet-400/15 bg-violet-500/10 px-2.5 py-1 text-[10px] font-semibold text-violet-100">
+        <div className="inline-flex items-center gap-1.5 rounded-full border border-violet-200/80 bg-violet-50/90 px-2.5 py-1 text-[10px] font-semibold text-violet-800 dark:border-violet-400/15 dark:bg-violet-500/10 dark:text-violet-100">
           {summary.marginHeldCents + summary.upstreamReservedCents > 0 ? (
-            <Lock className="size-3 text-violet-200" aria-hidden />
+            <Lock className="size-3 text-violet-600 dark:text-violet-200" aria-hidden />
           ) : (
-            <Unlock className="size-3 text-emerald-300" aria-hidden />
+            <Unlock className="size-3 text-emerald-600 dark:text-emerald-300" aria-hidden />
           )}
           {copy.orders}
         </div>

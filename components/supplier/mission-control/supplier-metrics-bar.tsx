@@ -5,6 +5,13 @@ import { BarChart3, CircleHelp } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
 import { SupplierWeeklyGoalCard } from "@/components/supplier/mission-control/supplier-weekly-goal-card"
+import {
+  missionControlAffisellMuted,
+  missionControlAffisellSubtext,
+  missionControlDivider,
+  missionControlHeading,
+  missionControlPanel,
+} from "@/components/supplier/mission-control/mission-control-affisell-shell"
 import type { SupplierMetrics7d } from "@/lib/supplier-mission-control"
 import type { SupplierWeeklyGoalSnapshot } from "@/lib/supplier-weekly-goal-shared"
 import type { AppLocale } from "@/lib/i18n-locale"
@@ -30,8 +37,8 @@ export async function SupplierMetricsBar({ metrics, weeklyGoal, locale }: Props)
   return (
     <section aria-labelledby="metrics-heading" className="space-y-4">
       <div className="flex items-center gap-2">
-        <BarChart3 className="h-4 w-4 text-zinc-400" aria-hidden />
-        <h2 id="metrics-heading" className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
+        <BarChart3 className="h-4 w-4 text-violet-400" aria-hidden />
+        <h2 id="metrics-heading" className={cn("text-xs font-semibold uppercase tracking-[0.14em]", missionControlAffisellMuted)}>
           {t("title")}
         </h2>
       </div>
@@ -39,12 +46,12 @@ export async function SupplierMetricsBar({ metrics, weeklyGoal, locale }: Props)
       {showWeeklyEmpty ? (
         <SupplierWeeklyGoalCard goal={weeklyGoal} locale={locale} />
       ) : !metrics.hasPriorPeriodData ? (
-        <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50/80 px-5 py-8 text-center dark:border-zinc-800 dark:bg-zinc-900/40">
-          <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{t("notEnoughHistory")}</p>
-          <p className="mt-1 text-xs text-zinc-500">{t("trendsAfterWeek")}</p>
+        <div className={cn("rounded-2xl border border-dashed px-5 py-8 text-center", missionControlDivider, missionControlPanel)}>
+          <p className={cn("text-sm font-medium", missionControlAffisellSubtext)}>{t("notEnoughHistory")}</p>
+          <p className={cn("mt-1 text-xs", missionControlAffisellMuted)}>{t("trendsAfterWeek")}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-zinc-200/90 bg-zinc-200/90 dark:border-zinc-800 dark:bg-zinc-800">
+        <div className={cn("grid grid-cols-2 gap-px overflow-hidden rounded-2xl border", missionControlDivider, "bg-violet-200/40 dark:bg-violet-500/10")}>
           <MetricCell label={t("gmv")}>
             <MetricTrend
               delta={metrics.gmvCents}
@@ -67,7 +74,7 @@ export async function SupplierMetricsBar({ metrics, weeklyGoal, locale }: Props)
             label={t("netMargin")}
             hint={
               <span
-                className="inline-flex text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+                className="inline-flex text-violet-500 hover:text-violet-700 dark:text-violet-300 dark:hover:text-violet-100"
                 title={t("netMarginTooltip")}
                 aria-label={t("netMarginTooltip")}
               >
@@ -98,24 +105,29 @@ export async function SupplierMetricsBar({ metrics, weeklyGoal, locale }: Props)
       {metrics.topSku ? (
         <Link
           href={`/dashboard/supplier/products/${metrics.topSku.productId}`}
-          className="flex items-center gap-3 rounded-xl border border-zinc-200/90 bg-zinc-50/80 px-4 py-3 transition-colors hover:border-violet-200 hover:bg-violet-50/50 dark:border-zinc-800 dark:bg-zinc-900/50 dark:hover:border-violet-900/50 dark:hover:bg-violet-950/20"
+          className={cn(
+            "flex items-center gap-3 rounded-xl border px-4 py-3 transition-colors",
+            missionControlDivider,
+            "bg-violet-50/60 hover:border-violet-300/70 hover:bg-violet-100/50",
+            "dark:bg-violet-950/30 dark:hover:border-violet-400/25 dark:hover:bg-violet-900/35"
+          )}
         >
-          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{t("topSku")}</p>
+          <p className={cn("text-xs font-semibold uppercase tracking-wide", missionControlAffisellMuted)}>{t("topSku")}</p>
           {metrics.topSku.imageUrl ? (
-            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-white ring-1 ring-zinc-200 dark:bg-zinc-950 dark:ring-zinc-700">
+            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-violet-100 ring-1 ring-violet-200/70 dark:bg-violet-950/50 dark:ring-violet-500/20">
               <Image src={metrics.topSku.imageUrl} alt="" fill className="object-cover" sizes="40px" />
             </div>
           ) : null}
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">{metrics.topSku.name}</p>
+              <p className={cn("truncate text-sm font-medium", missionControlHeading)}>{metrics.topSku.name}</p>
               {metrics.topSku.stockUrgent ? (
                 <span className="shrink-0 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-800 dark:bg-red-950/60 dark:text-red-200">
                   {t("stockoutIn3d")}
                 </span>
               ) : null}
             </div>
-            <p className="text-xs text-zinc-500">
+            <p className={cn("text-xs", missionControlAffisellMuted)}>
               {metrics.topSku.units === 1
                 ? t("unitsSoldOne", { count: metrics.topSku.units })
                 : t("unitsSoldMany", { count: metrics.topSku.units })}
@@ -143,8 +155,8 @@ function MetricCell({
   children: ReactNode
 }) {
   return (
-    <div className={cn("space-y-2 bg-white px-4 py-4 dark:bg-zinc-950 sm:px-5 sm:py-5")}>
-      <p className="flex items-center gap-1.5 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+    <div className={cn("space-y-2 bg-violet-50/70 px-4 py-4 dark:bg-violet-950/35 sm:px-5 sm:py-5")}>
+      <p className={cn("flex items-center gap-1.5 text-xs font-medium", missionControlAffisellMuted)}>
         {label}
         {hint}
       </p>

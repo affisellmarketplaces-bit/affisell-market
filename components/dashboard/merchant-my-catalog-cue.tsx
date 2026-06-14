@@ -58,8 +58,8 @@ export function MerchantMyCatalogCue({
         "px-2.5 backdrop-blur-xl transition duration-200 active:scale-[0.98] sm:gap-2.5 sm:px-3",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400/70",
         isLight
-          ? "border bg-white/90 text-zinc-900 shadow-sm shadow-zinc-900/[0.04] hover:bg-white"
-          : "border border-white/10 bg-zinc-950/85 text-zinc-100 shadow-[0_1px_0_0_rgba(255,255,255,0.05)] hover:bg-zinc-950/95",
+          ? "border bg-violet-50/85 text-violet-950 shadow-sm shadow-violet-900/[0.04] hover:bg-violet-100/75"
+          : "border border-violet-500/15 bg-violet-950/85 text-violet-100 shadow-[0_1px_0_0_rgba(139,92,246,0.08)] hover:bg-violet-950/95",
         accentBorder,
         className
       )}
@@ -79,7 +79,7 @@ export function MerchantMyCatalogCue({
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-300/25 to-transparent"
         aria-hidden
       />
 
@@ -87,12 +87,12 @@ export function MerchantMyCatalogCue({
         className={cn(
           "relative flex size-6 shrink-0 items-center justify-center rounded-full border transition duration-200",
           isLight
-            ? "border-zinc-200/80 bg-zinc-50 group-hover:border-violet-200 group-hover:bg-violet-50/80"
-            : "border-white/10 bg-white/[0.04] group-hover:border-white/15 group-hover:bg-white/[0.07]"
+            ? "border-violet-200/70 bg-violet-100/60 group-hover:border-violet-300 group-hover:bg-violet-100/80"
+            : "border-violet-400/15 bg-violet-500/[0.08] group-hover:border-violet-400/25 group-hover:bg-violet-500/[0.12]"
         )}
       >
         <Package
-          className={cn("size-3", isLight ? "text-violet-600" : "text-zinc-300")}
+          className={cn("size-3", isLight ? "text-violet-600" : "text-violet-300")}
           aria-hidden
         />
       </span>
@@ -101,7 +101,7 @@ export function MerchantMyCatalogCue({
         <span
           className={cn(
             "whitespace-nowrap text-[10px] font-semibold uppercase tracking-[0.18em]",
-            isLight ? "text-zinc-800" : "text-zinc-100"
+            isLight ? "text-violet-900" : "text-violet-100"
           )}
         >
           {label}
@@ -109,7 +109,7 @@ export function MerchantMyCatalogCue({
         {detail ? (
           <>
             <span
-              className={cn("hidden shrink-0 sm:inline", isLight ? "text-zinc-300" : "text-zinc-600")}
+              className={cn("hidden shrink-0 sm:inline", isLight ? "text-violet-300" : "text-violet-600")}
               aria-hidden
             >
               ·
@@ -117,7 +117,7 @@ export function MerchantMyCatalogCue({
             <span
               className={cn(
                 "hidden max-w-[14rem] truncate text-[10px] font-medium normal-case tracking-normal sm:inline",
-                isLight ? "text-zinc-600" : "text-zinc-500"
+                isLight ? "text-violet-800/70" : "text-violet-300/70"
               )}
             >
               {detail}
@@ -130,7 +130,7 @@ export function MerchantMyCatalogCue({
         className={cn(
           "relative hidden shrink-0 items-center gap-0.5 pl-0.5 sm:inline-flex",
           "text-[10px] font-semibold uppercase tracking-[0.14em] transition duration-200",
-          isLight ? "text-zinc-400 group-hover:text-violet-700" : "text-zinc-500 group-hover:text-zinc-300"
+          isLight ? "text-violet-600/70 group-hover:text-violet-800" : "text-violet-400/70 group-hover:text-violet-200"
         )}
       >
         {actionLabel}
@@ -143,7 +143,7 @@ export function MerchantMyCatalogCue({
       <ChevronRight
         className={cn(
           "relative size-3 shrink-0 transition duration-200 group-hover:translate-x-0.5 sm:hidden",
-          isLight ? "text-zinc-400 group-hover:text-violet-700" : "text-zinc-500 group-hover:text-zinc-300"
+          isLight ? "text-violet-600/70 group-hover:text-violet-800" : "text-violet-400/70 group-hover:text-violet-200"
         )}
         aria-hidden
       />

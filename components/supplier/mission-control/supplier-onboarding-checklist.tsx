@@ -2,6 +2,12 @@ import Link from "next/link"
 import { CheckCircle2, Circle, Package, Share2, Store } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
+import {
+  missionControlAffisellMuted,
+  missionControlAffisellSubtext,
+  missionControlHeading,
+  missionControlPanel,
+} from "@/components/supplier/mission-control/mission-control-affisell-shell"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -23,14 +29,11 @@ export async function SupplierOnboardingChecklist({ storeSlug }: Props) {
   ]
 
   return (
-    <section
-      aria-labelledby="onboarding-heading"
-      className="rounded-2xl border border-violet-200/80 bg-gradient-to-br from-violet-50/80 via-white to-white p-6 shadow-sm dark:border-violet-900/50 dark:from-violet-950/30 dark:via-zinc-950 dark:to-zinc-950"
-    >
-      <h2 id="onboarding-heading" className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+    <section aria-labelledby="onboarding-heading" className={cn(missionControlPanel, "p-6")}>
+      <h2 id="onboarding-heading" className={cn("text-lg", missionControlHeading)}>
         {t("title")}
       </h2>
-      <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{t("subtitle")}</p>
+      <p className={cn("mt-1 text-sm", missionControlAffisellSubtext)}>{t("subtitle")}</p>
       <p className="mt-3 rounded-lg border border-amber-200/80 bg-amber-50/90 px-3 py-2 text-xs leading-relaxed text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100">
         {t("vatNotice")}
       </p>
@@ -45,11 +48,11 @@ export async function SupplierOnboardingChecklist({ storeSlug }: Props) {
               {done ? (
                 <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" aria-hidden />
               ) : (
-                <Circle className="mt-0.5 h-5 w-5 shrink-0 text-zinc-300 dark:text-zinc-600" aria-hidden />
+                <Circle className="mt-0.5 h-5 w-5 shrink-0 text-violet-300 dark:text-violet-600" aria-hidden />
               )}
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
-                  <span className="text-zinc-400">{index + 1}. </span>
+                <p className={cn("text-sm font-medium", missionControlAffisellSubtext)}>
+                  <span className={missionControlAffisellMuted}>{index + 1}. </span>
                   {t(labelKey)}
                 </p>
                 <Link

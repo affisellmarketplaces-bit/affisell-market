@@ -3,6 +3,7 @@ import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react"
 import type { MetricDelta } from "@/lib/supplier-mission-control"
 import { bcp47ForAppLocale, formatMoneyFromCents } from "@/lib/app-locale-format"
 import type { AppLocale } from "@/lib/i18n-locale"
+import { missionControlAffisellMuted, missionControlHeading } from "@/components/supplier/mission-control/mission-control-affisell-shell"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -42,13 +43,13 @@ export function MetricTrend({
 
   return (
     <div className={cn("space-y-1", className)}>
-      <p className="text-2xl font-semibold tabular-nums tracking-tight text-zinc-900 dark:text-zinc-50">
+      <p className={cn("text-2xl font-semibold tabular-nums tracking-tight", missionControlHeading)}>
         {formatValue(delta.value, format, locale)}
       </p>
       {showComparison ? (
         <div className="flex flex-wrap items-center gap-1.5 text-xs">
           {flat ? (
-            <span className="inline-flex items-center gap-0.5 font-medium text-zinc-500 dark:text-zinc-400">
+            <span className={cn("inline-flex items-center gap-0.5 font-medium", missionControlAffisellMuted)}>
               <Minus className="h-3 w-3" aria-hidden />
               {pct === 0 ? stableLabel : naVsPriorLabel}
             </span>
@@ -68,7 +69,7 @@ export function MetricTrend({
               {Math.abs(pct!).toLocaleString(bcp47, { maximumFractionDigits: 1 })}%
             </span>
           )}
-          <span className="text-zinc-400 dark:text-zinc-500">{vsPriorLabel}</span>
+          <span className={missionControlAffisellMuted}>{vsPriorLabel}</span>
         </div>
       ) : null}
     </div>

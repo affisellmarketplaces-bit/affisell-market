@@ -3,6 +3,7 @@ import { CheckCircle2, Plus } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
 import { SupplierUrgentCarousel } from "@/components/supplier/mission-control/supplier-urgent-carousel"
+import { missionControlAffisellMuted } from "@/components/supplier/mission-control/mission-control-affisell-shell"
 import type { SupplierUrgentSnapshot } from "@/lib/supplier-urgent-snapshot"
 import { formatSlaCountdown } from "@/lib/supplier-ship-sla-shared"
 import { buttonVariants } from "@/components/ui/button"
@@ -30,7 +31,7 @@ const toneRing: Record<SlotProps["tone"], string> = {
   amber: "border-amber-200/80 bg-amber-50/50 dark:border-amber-900/50 dark:bg-amber-950/20",
   red: "border-red-200/80 bg-red-50/40 dark:border-red-900/50 dark:bg-red-950/20",
   violet: "border-violet-200/80 bg-violet-50/40 dark:border-violet-900/50 dark:bg-violet-950/20",
-  zinc: "border-zinc-200/80 bg-zinc-50/40 dark:border-zinc-800 dark:bg-zinc-900/30",
+  zinc: "border-violet-200/60 bg-violet-50/35 dark:border-violet-500/15 dark:bg-violet-950/25",
 }
 
 function UrgentSlot({
@@ -55,7 +56,7 @@ function UrgentSlot({
         <h3
           className={cn(
             "text-sm font-semibold leading-snug",
-            active ? "text-zinc-900 dark:text-zinc-50" : "text-zinc-400 dark:text-zinc-500"
+            active ? "text-violet-950 dark:text-violet-50" : "text-violet-400/60 dark:text-violet-500/70"
           )}
         >
           {title}
@@ -78,8 +79,8 @@ function UrgentSlot({
             active && tone === "red"
               ? "font-bold text-red-700 dark:text-red-300"
               : active
-                ? "text-zinc-600 dark:text-zinc-300"
-                : "text-zinc-400 dark:text-zinc-600"
+                ? "text-violet-900/70 dark:text-violet-200/75"
+                : "text-violet-400/60 dark:text-violet-500/70"
           )}
         >
           {metric}
@@ -87,7 +88,7 @@ function UrgentSlot({
         <p
           className={cn(
             "text-xs",
-            active ? "text-zinc-500 dark:text-zinc-400" : "text-zinc-400/80 dark:text-zinc-600"
+            active ? "text-violet-800/55 dark:text-violet-300/65" : "text-violet-400/50 dark:text-violet-500/60"
           )}
         >
           {consequence}
@@ -107,13 +108,13 @@ function UrgentSlot({
             ctaVariant === "default" &&
               tone === "violet" &&
               "w-fit bg-violet-600 text-white hover:bg-violet-700 dark:bg-violet-600",
-            ctaVariant === "outline" && "w-fit border-zinc-300/80 bg-white/80 dark:bg-zinc-950/80"
+            ctaVariant === "outline" && "w-fit border-violet-300/70 bg-violet-50/80 dark:border-violet-500/25 dark:bg-violet-950/45"
           )}
         >
           {cta}
         </Link>
       ) : (
-        <span className="text-xs text-zinc-400 dark:text-zinc-600">—</span>
+        <span className={missionControlAffisellMuted}>—</span>
       )}
     </article>
   )

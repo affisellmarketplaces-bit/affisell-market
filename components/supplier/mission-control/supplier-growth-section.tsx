@@ -4,6 +4,13 @@ import { Archive, Lightbulb, Rocket, TrendingUp } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
 import { SupplierOpportunityBoostButton } from "@/components/supplier/mission-control/supplier-opportunity-boost-button"
+import {
+  missionControlAffisellMuted,
+  missionControlAffisellSubtext,
+  missionControlDivider,
+  missionControlHeading,
+  missionControlPanel,
+} from "@/components/supplier/mission-control/mission-control-affisell-shell"
 import type { SupplierGrowthSnapshot } from "@/lib/supplier-mission-control"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -18,21 +25,21 @@ export async function SupplierGrowthSection({ growth }: Props) {
 
   return (
     <section aria-labelledby="growth-heading" className="grid gap-6 lg:grid-cols-2">
-      <div className="space-y-4 rounded-2xl border border-violet-200/80 bg-gradient-to-br from-violet-50/70 via-white to-white p-5 shadow-sm dark:border-violet-900/50 dark:from-violet-950/35 dark:via-zinc-950 dark:to-zinc-950">
+      <div className={cn(missionControlPanel, "space-y-4 p-5")}>
         <div className="flex items-center gap-2">
           <span className="text-base" aria-hidden>
             💡
           </span>
-          <h2 id="growth-heading" className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+          <h2 id="growth-heading" className={cn("text-sm", missionControlHeading)}>
             {t("opportunities")}
           </h2>
         </div>
 
         {!opp ? (
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">{t("noOpportunity")}</p>
+          <p className={missionControlAffisellSubtext}>{t("noOpportunity")}</p>
         ) : (
           <div className="space-y-4">
-            <p className="text-sm leading-relaxed text-zinc-800 dark:text-zinc-200">
+            <p className={cn("text-sm leading-relaxed", missionControlAffisellSubtext)}>
               <span className="font-semibold text-violet-900 dark:text-violet-100">
                 {opp.affiliateViewerCount === 1
                   ? t("affiliateInterestOne", { count: opp.affiliateViewerCount })
@@ -40,7 +47,7 @@ export async function SupplierGrowthSection({ growth }: Props) {
               </span>{" "}
               <span className="font-medium">« {opp.productName} »</span>
             </p>
-            <p className="flex items-start gap-2 rounded-xl border border-violet-100 bg-white/80 px-3 py-2.5 text-sm text-violet-950 dark:border-violet-900/50 dark:bg-zinc-900/50 dark:text-violet-100">
+            <p className="flex items-start gap-2 rounded-xl border border-violet-200/60 bg-violet-50/70 px-3 py-2.5 text-sm text-violet-950 dark:border-violet-500/20 dark:bg-violet-950/35 dark:text-violet-100">
               <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" aria-hidden />
               <span>
                 {opp.estimatedExtraSales7d === 1
@@ -66,40 +73,42 @@ export async function SupplierGrowthSection({ growth }: Props) {
         )}
       </div>
 
-      <div className="space-y-4 rounded-2xl border border-zinc-200/90 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+      <div className={cn(missionControlPanel, "space-y-4 p-5")}>
         <div className="flex items-center gap-2">
           <TrendingUp className="h-4 w-4 text-emerald-600" aria-hidden />
-          <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">{t("catalogPerformance")}</h2>
+          <h2 className={cn("text-sm", missionControlHeading)}>{t("catalogPerformance")}</h2>
         </div>
         <div className="flex items-baseline gap-2">
-          <p className="text-3xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">
+          <p className={cn("text-3xl font-semibold tabular-nums", missionControlHeading)}>
             {growth.adoptionRatePct}%
           </p>
-          <p className="text-sm text-zinc-500">{t("adoptionRate")}</p>
+          <p className={missionControlAffisellMuted}>{t("adoptionRate")}</p>
         </div>
-        <p className="text-xs text-zinc-500">
+        <p className={cn("text-xs", missionControlAffisellMuted)}>
           {t("skuBreakdown", { withSales: growth.skusWithSales, total: growth.totalSkus })}
         </p>
 
-        <div className="border-t border-zinc-100 pt-4 dark:border-zinc-800">
-          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{t("dormantTitle")}</p>
+        <div className={cn("border-t pt-4", missionControlDivider)}>
+          <p className={cn("text-xs font-semibold uppercase tracking-wide", missionControlAffisellMuted)}>
+            {t("dormantTitle")}
+          </p>
           {growth.dormantSkus.length === 0 ? (
-            <p className="mt-2 text-sm text-zinc-500">{t("dormantNone")}</p>
+            <p className={cn("mt-2 text-sm", missionControlAffisellMuted)}>{t("dormantNone")}</p>
           ) : (
             <ul className="mt-3 space-y-2">
               {growth.dormantSkus.map((sku) => (
                 <li
                   key={sku.id}
-                  className="flex items-center gap-3 rounded-xl border border-zinc-100 px-2 py-2 dark:border-zinc-800"
+                  className="flex items-center gap-3 rounded-xl border border-violet-200/50 px-2 py-2 dark:border-violet-500/15"
                 >
                   {sku.imageUrl ? (
-                    <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-md bg-zinc-100 dark:bg-zinc-900">
+                    <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-md bg-violet-100 dark:bg-violet-950/50">
                       <Image src={sku.imageUrl} alt="" fill className="object-cover" sizes="36px" />
                     </div>
                   ) : (
-                    <div className="h-9 w-9 shrink-0 rounded-md bg-zinc-100 dark:bg-zinc-900" />
+                    <div className="h-9 w-9 shrink-0 rounded-md bg-violet-100 dark:bg-violet-950/50" />
                   )}
-                  <p className="min-w-0 flex-1 truncate text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                  <p className={cn("min-w-0 flex-1 truncate text-sm font-medium", missionControlAffisellSubtext)}>
                     {sku.name}
                   </p>
                   <div className="flex shrink-0 gap-1">

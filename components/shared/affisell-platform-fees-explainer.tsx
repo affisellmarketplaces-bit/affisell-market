@@ -5,6 +5,7 @@ import type { ReactNode } from "react"
 import type { LucideIcon } from "lucide-react"
 import { Bot, ChevronRight, Package, Sparkles, Users } from "lucide-react"
 
+import { missionControlSurface } from "@/components/supplier/mission-control/mission-control-affisell-shell"
 import { affisellBrand } from "@/lib/affisell-brand"
 import {
   DEFAULT_AFFILIATE_PLATFORM_FEE_BPS,
@@ -269,15 +270,16 @@ export function AffisellPlatformFeesExplainer({
     return (
       <div
         className={cn(
-          "flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-zinc-200/80 bg-white/75 px-4 py-2.5 shadow-sm backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/60",
+          "flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2.5",
+          missionControlSurface,
           className
         )}
       >
-        <span className="flex items-center gap-1.5 text-xs font-semibold text-zinc-800 dark:text-zinc-100">
+        <span className="flex items-center gap-1.5 text-xs font-semibold text-violet-900 dark:text-violet-100">
           <Sparkles className="h-3.5 w-3.5 text-brand" aria-hidden />
           Grille wholesale
         </span>
-        <span className="hidden h-4 w-px bg-zinc-300 dark:bg-zinc-600 sm:block" aria-hidden />
+        <span className="hidden h-4 w-px bg-violet-300/60 dark:bg-violet-500/25 sm:block" aria-hidden />
         <div className="flex flex-wrap items-center gap-2 text-xs tabular-nums">
           <span className="rounded-full bg-supplier-muted/90 px-2 py-0.5 font-semibold text-supplier dark:text-supplier-light">
             {rates.catalogPercent} catalogue

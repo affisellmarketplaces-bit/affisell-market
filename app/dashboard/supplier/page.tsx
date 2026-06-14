@@ -3,6 +3,7 @@ import { requireSupplierSession } from "@/lib/dashboard-session"
 import { getLocale } from "next-intl/server"
 
 import { BentoContainer } from "@/components/affisell/bento-ui"
+import { missionControlCanvas } from "@/components/supplier/mission-control/mission-control-affisell-shell"
 import { AffisellPlatformFeesExplainer } from "@/components/shared/affisell-platform-fees-explainer"
 import { SupplierEscrowPulseCard } from "@/components/supplier/mission-control/supplier-escrow-pulse-card"
 import { SupplierGrowthSection } from "@/components/supplier/mission-control/supplier-growth-section"
@@ -65,7 +66,7 @@ export default async function DashboardSupplierPage() {
   const displayTier = trustTier !== "NONE" ? trustTier : trustSnapshot.tier
 
   return (
-    <main className="min-h-[calc(100dvh-3.75rem)] bg-zinc-50/50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50">
+    <main className={missionControlCanvas}>
       <BentoContainer maxWidth="6xl" className="space-y-6 py-8 sm:py-10">
         <SupplierMissionControlLive>
           <div className="space-y-3">

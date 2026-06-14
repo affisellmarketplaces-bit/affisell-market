@@ -3,6 +3,11 @@ import { Plus } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
 import { MerchantMyCatalogCue } from "@/components/dashboard/merchant-my-catalog-cue"
+import {
+  missionControlAffisellMuted,
+  missionControlHeading,
+  missionControlSurface,
+} from "@/components/supplier/mission-control/mission-control-affisell-shell"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -39,20 +44,15 @@ export async function SupplierMissionControlHeader({
   const catalogMetrics = buildCatalogMetrics(t, publishedSkuCount, draftCount, lowStockCount)
 
   return (
-    <header
-      className={cn(
-        "rounded-2xl border border-zinc-200/80 bg-white/75 p-4 shadow-sm backdrop-blur-sm",
-        "dark:border-zinc-800 dark:bg-zinc-950/60"
-      )}
-    >
+    <header className={cn(missionControlSurface, "p-4")}>
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">
+            <p className={cn("text-[11px] font-semibold uppercase tracking-[0.14em]", missionControlAffisellMuted)}>
               {t("eyebrow")}
             </p>
-            <h1 className="mt-1.5 text-base font-semibold leading-snug text-zinc-900 dark:text-zinc-50 sm:text-lg">
-              <span className="font-normal text-zinc-500 dark:text-zinc-400">{t("greetingHello")}</span>{" "}
+            <h1 className={cn("mt-1.5 text-base leading-snug sm:text-lg", missionControlHeading)}>
+              <span className={cn("font-normal", missionControlAffisellMuted)}>{t("greetingHello")}</span>{" "}
               {storeName}
             </h1>
           </div>
@@ -60,8 +60,10 @@ export async function SupplierMissionControlHeader({
             href="/dashboard/supplier/products/new"
             className={cn(
               buttonVariants({ variant: "outline", size: "default" }),
-              "inline-flex w-full shrink-0 items-center justify-center gap-2 border-violet-200 bg-white text-violet-700",
-              "hover:border-violet-300 hover:bg-violet-50 dark:border-violet-800 dark:bg-zinc-950 dark:text-violet-200 dark:hover:bg-violet-950/40 sm:w-auto"
+              "inline-flex w-full shrink-0 items-center justify-center gap-2 sm:w-auto",
+              "border-violet-300/70 bg-violet-50/80 text-violet-800",
+              "hover:border-violet-400/80 hover:bg-violet-100/70 hover:text-violet-950",
+              "dark:border-violet-500/30 dark:bg-violet-950/50 dark:text-violet-200 dark:hover:bg-violet-900/45"
             )}
           >
             <Plus className="h-4 w-4" aria-hidden />
