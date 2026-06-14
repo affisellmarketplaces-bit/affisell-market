@@ -62,6 +62,7 @@ export type SupplierMissionControlData = {
   storeName: string
   storeSlug: string | null
   productCount: number
+  draftCount: number
   urgent: SupplierUrgentSnapshot
   metrics7d: SupplierMetrics7d
   growth: SupplierGrowthSnapshot
@@ -259,6 +260,7 @@ export async function loadSupplierMissionControl(
   const [
     store,
     productCount,
+    draftCount,
     urgent,
     currentOrders,
     previousOrders,
@@ -272,6 +274,9 @@ export async function loadSupplierMissionControl(
     storePromise,
     prisma.product.count({
       where: { supplierId: supplierUserId, active: true, isDraft: false },
+    }),
+    prisma.product.count({
+      where: { supplierId: supplierUserId, active: true, isDraft: true },
     }),
     loadSupplierUrgentSnapshot(supplierUserId),
     fetchMarketplaceOrders(supplierUserId, currentFrom, currentTo),
@@ -307,6 +312,7 @@ export async function loadSupplierMissionControl(
     storeName: store?.name?.trim() || "votre boutique",
     storeSlug: store?.slug ?? null,
     productCount,
+    draftCount,
     urgent,
     metrics7d: {
       hasPriorPeriodData: hasPriorPeriodSalesBaseline(previous),

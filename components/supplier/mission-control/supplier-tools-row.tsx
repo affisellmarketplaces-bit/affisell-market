@@ -1,11 +1,10 @@
 import Link from "next/link"
-import { Landmark, Layers, Package, Plug, Puzzle, Upload } from "lucide-react"
+import { Landmark, Layers, Plug, Puzzle, Upload } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
 import { cn } from "@/lib/utils"
 
 const toolKeys = [
-  { key: "catalog" as const, href: "/dashboard/supplier/products", Icon: Package },
   { key: "import" as const, href: "/dashboard/supplier/import", Icon: Upload },
   { key: "extension" as const, href: "/dashboard/supplier/extension", Icon: Puzzle },
   { key: "finances" as const, href: "/dashboard/supplier/balance", Icon: Landmark },

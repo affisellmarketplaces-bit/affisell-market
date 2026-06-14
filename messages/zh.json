@@ -908,6 +908,8 @@
       "greetingHello": "你好",
       "myCatalog": "我的商品目录",
       "myCatalogHint": "利润率、发现动态与您的上架",
+      "myCatalogListingCount": "{count, plural, one {# 个上架} other {# 个上架}}",
+      "myCatalogLiveCount": "{count, plural, one {# 个在线} other {# 个在线展示}}",
       "myCatalogOpen": "打开",
       "storefrontSubtitle": "从这里发现可售产品、设置价格和利润率以及管理在您的公共商店中显示的内容。",
       "inviteSupplier": "邀请供应商",
@@ -1141,6 +1143,9 @@
       "greetingHello": "你好",
       "myCatalog": "我的商品目录",
       "myCatalogHint": "SKU、库存与合作伙伴上架",
+      "myCatalogSkuCount": "{count, plural, one {# 个 SKU} other {# 个 SKU}}",
+      "myCatalogDraftCount": "{count, plural, one {# 个草稿} other {# 个草稿}}",
+      "myCatalogLowStock": "{count, plural, one {# 个低库存} other {# 个低库存}}",
       "myCatalogOpen": "打开",
       "newProduct": "新产品"
     },

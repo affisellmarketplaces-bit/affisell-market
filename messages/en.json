@@ -901,6 +901,8 @@
       "greetingHello": "Hello",
       "myCatalog": "My catalog",
       "myCatalogHint": "Margins, discover feed & your listings",
+      "myCatalogListingCount": "{count, plural, one {# listing} other {# listings}}",
+      "myCatalogLiveCount": "{count, plural, one {# live} other {# live on storefront}}",
       "myCatalogOpen": "Open",
       "storefrontSubtitle": "Discover products to sell, set your prices and margins, and manage what shoppers see in your public store—all from here.",
       "inviteSupplier": "Invite supplier",
@@ -1134,6 +1136,9 @@
       "greetingHello": "Hello",
       "myCatalog": "My catalog",
       "myCatalogHint": "SKUs, stock & partner listings",
+      "myCatalogSkuCount": "{count, plural, one {# SKU} other {# SKUs}}",
+      "myCatalogDraftCount": "{count, plural, one {# draft} other {# drafts}}",
+      "myCatalogLowStock": "{count, plural, one {# low stock} other {# low stock}}",
       "myCatalogOpen": "Open",
       "newProduct": "New product"
     },

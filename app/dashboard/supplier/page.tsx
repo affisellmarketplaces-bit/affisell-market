@@ -66,13 +66,21 @@ export default async function DashboardSupplierPage() {
 
   return (
     <main className="min-h-[calc(100dvh-3.75rem)] bg-zinc-50/50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50">
-      <BentoContainer maxWidth="6xl" className="space-y-8 py-8 sm:py-10">
+      <BentoContainer maxWidth="6xl" className="space-y-6 py-8 sm:py-10">
         <SupplierMissionControlLive>
-          <SupplierMissionControlHeader storeName={data.storeName} />
-          <SupplierInviteContextBanner />
+          <div className="space-y-3">
+            <SupplierMissionControlHeader
+              storeName={data.storeName}
+              publishedSkuCount={data.productCount}
+              draftCount={data.draftCount}
+              lowStockCount={data.urgent.lowStockCount}
+            />
+            <SupplierInviteContextBanner />
 
-          <AffisellPlatformFeesExplainer variant="compact" supplierOverrides={feeUser} />
+            <AffisellPlatformFeesExplainer variant="compact" supplierOverrides={feeUser} />
+          </div>
 
+          <div className="space-y-6">
           <SupplierTrustLadderCard
             tier={displayTier}
             metrics={trustSnapshot.metrics}
@@ -99,6 +107,7 @@ export default async function DashboardSupplierPage() {
           )}
 
           <SupplierToolsRow />
+          </div>
         </SupplierMissionControlLive>
       </BentoContainer>
     </main>

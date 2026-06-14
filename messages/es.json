@@ -908,6 +908,8 @@
       "greetingHello": "Hola",
       "myCatalog": "Mi catálogo",
       "myCatalogHint": "Márgenes, feed de descubrimiento y tus fichas",
+      "myCatalogListingCount": "{count, plural, one {# ficha} other {# fichas}}",
+      "myCatalogLiveCount": "{count, plural, one {# en vivo} other {# en vivo en la tienda}}",
       "myCatalogOpen": "Abrir",
       "storefrontSubtitle": "Descubre productos para vender, establece tus precios y márgenes y gestiona lo que los compradores ven en tu tienda pública—todo desde aquí.",
       "inviteSupplier": "Invitar proveedor",
@@ -1141,6 +1143,9 @@
       "greetingHello": "Hola",
       "myCatalog": "Mi catálogo",
       "myCatalogHint": "SKUs, stock y fichas de socios",
+      "myCatalogSkuCount": "{count, plural, one {# SKU} other {# SKUs}}",
+      "myCatalogDraftCount": "{count, plural, one {# borrador} other {# borradores}}",
+      "myCatalogLowStock": "{count, plural, one {# stock bajo} other {# stocks bajos}}",
       "myCatalogOpen": "Abrir",
       "newProduct": "Nuevo producto"
     },

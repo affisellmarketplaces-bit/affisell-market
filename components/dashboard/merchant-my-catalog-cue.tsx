@@ -7,8 +7,10 @@ type Props = {
   href: string
   label: string
   hint?: string
+  metrics?: string
   actionLabel?: string
   variant?: "supplier" | "affiliate"
+  surface?: "light" | "dark"
   className?: string
 }
 
@@ -16,14 +18,23 @@ export function MerchantMyCatalogCue({
   href,
   label,
   hint,
+  metrics,
   actionLabel = "Open",
   variant = "supplier",
+  surface = "light",
   className,
 }: Props) {
+  const isLight = surface === "light"
+  const detail = metrics ?? hint
+
   const accentBorder =
     variant === "affiliate"
-      ? "border-emerald-500/15 hover:border-emerald-400/30"
-      : "border-violet-500/15 hover:border-violet-400/30"
+      ? isLight
+        ? "border-emerald-200/80 hover:border-emerald-300/90"
+        : "border-emerald-500/15 hover:border-emerald-400/30"
+      : isLight
+        ? "border-violet-200/80 hover:border-violet-300/90"
+        : "border-violet-500/15 hover:border-violet-400/30"
 
   const accentBar =
     variant === "affiliate"
@@ -32,17 +43,23 @@ export function MerchantMyCatalogCue({
 
   const accentGlow =
     variant === "affiliate"
-      ? "from-emerald-500/8 via-transparent to-transparent group-hover:from-emerald-500/12"
-      : "from-violet-500/8 via-transparent to-transparent group-hover:from-violet-500/12"
+      ? isLight
+        ? "from-emerald-500/6 via-transparent to-transparent group-hover:from-emerald-500/10"
+        : "from-emerald-500/8 via-transparent to-transparent group-hover:from-emerald-500/12"
+      : isLight
+        ? "from-violet-500/6 via-transparent to-transparent group-hover:from-violet-500/10"
+        : "from-violet-500/8 via-transparent to-transparent group-hover:from-violet-500/12"
 
   return (
     <Link
       href={href}
       className={cn(
-        "group relative mt-3 flex h-10 w-full items-center gap-2.5 overflow-hidden rounded-lg",
-        "border border-white/10 bg-zinc-950/85 px-2.5 backdrop-blur-xl sm:px-3",
-        "shadow-[0_1px_0_0_rgba(255,255,255,0.05)]",
-        "transition duration-200 hover:bg-zinc-950/95 active:scale-[0.998]",
+        "group relative inline-flex h-9 w-max max-w-full items-center gap-2 overflow-hidden rounded-full",
+        "px-2.5 backdrop-blur-xl transition duration-200 active:scale-[0.98] sm:gap-2.5 sm:px-3",
+        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400/70",
+        isLight
+          ? "border bg-white/90 text-zinc-900 shadow-sm shadow-zinc-900/[0.04] hover:bg-white"
+          : "border border-white/10 bg-zinc-950/85 text-zinc-100 shadow-[0_1px_0_0_rgba(255,255,255,0.05)] hover:bg-zinc-950/95",
         accentBorder,
         className
       )}
@@ -68,25 +85,42 @@ export function MerchantMyCatalogCue({
 
       <span
         className={cn(
-          "relative flex size-7 shrink-0 items-center justify-center rounded-md",
-          "border border-white/10 bg-white/[0.04] transition duration-200",
-          "group-hover:border-white/15 group-hover:bg-white/[0.07]"
+          "relative flex size-6 shrink-0 items-center justify-center rounded-full border transition duration-200",
+          isLight
+            ? "border-zinc-200/80 bg-zinc-50 group-hover:border-violet-200 group-hover:bg-violet-50/80"
+            : "border-white/10 bg-white/[0.04] group-hover:border-white/15 group-hover:bg-white/[0.07]"
         )}
       >
-        <Package className="size-3.5 text-zinc-300" aria-hidden />
+        <Package
+          className={cn("size-3", isLight ? "text-violet-600" : "text-zinc-300")}
+          aria-hidden
+        />
       </span>
 
-      <span className="relative flex min-w-0 flex-1 items-center gap-1.5 sm:gap-2">
-        <span className="truncate text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-100">
+      <span className="relative flex min-w-0 items-center gap-1.5 sm:gap-2">
+        <span
+          className={cn(
+            "whitespace-nowrap text-[10px] font-semibold uppercase tracking-[0.18em]",
+            isLight ? "text-zinc-800" : "text-zinc-100"
+          )}
+        >
           {label}
         </span>
-        {hint ? (
+        {detail ? (
           <>
-            <span className="hidden shrink-0 text-zinc-600 sm:inline" aria-hidden>
+            <span
+              className={cn("hidden shrink-0 sm:inline", isLight ? "text-zinc-300" : "text-zinc-600")}
+              aria-hidden
+            >
               ·
             </span>
-            <span className="hidden min-w-0 truncate text-[10px] font-medium text-zinc-500 sm:inline">
-              {hint}
+            <span
+              className={cn(
+                "hidden max-w-[14rem] truncate text-[10px] font-medium normal-case tracking-normal sm:inline",
+                isLight ? "text-zinc-500" : "text-zinc-500"
+              )}
+            >
+              {detail}
             </span>
           </>
         ) : null}
@@ -94,20 +128,23 @@ export function MerchantMyCatalogCue({
 
       <span
         className={cn(
-          "relative ml-auto hidden shrink-0 items-center gap-0.5",
-          "text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-500",
-          "transition duration-200 group-hover:text-zinc-300 sm:inline-flex"
+          "relative hidden shrink-0 items-center gap-0.5 pl-0.5 sm:inline-flex",
+          "text-[10px] font-semibold uppercase tracking-[0.14em] transition duration-200",
+          isLight ? "text-zinc-400 group-hover:text-violet-700" : "text-zinc-500 group-hover:text-zinc-300"
         )}
       >
         {actionLabel}
         <ChevronRight
-          className="size-3.5 transition duration-200 group-hover:translate-x-0.5"
+          className="size-3 transition duration-200 group-hover:translate-x-0.5"
           aria-hidden
         />
       </span>
 
       <ChevronRight
-        className="relative ml-auto size-3.5 shrink-0 text-zinc-500 transition duration-200 group-hover:translate-x-0.5 group-hover:text-zinc-300 sm:hidden"
+        className={cn(
+          "relative size-3 shrink-0 transition duration-200 group-hover:translate-x-0.5 sm:hidden",
+          isLight ? "text-zinc-400 group-hover:text-violet-700" : "text-zinc-500 group-hover:text-zinc-300"
+        )}
         aria-hidden
       />
     </Link>

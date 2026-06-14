@@ -643,6 +643,17 @@ export function AffiliateDashboard({ storeId }: Props) {
                       tHub("storefrontTitle")
                     )}
                   </h1>
+                  <MerchantMyCatalogCue
+                    href={AFFILIATE_CATALOG_PATH}
+                    label={tHub("myCatalog")}
+                    metrics={[
+                      tHub("myCatalogListingCount", { count: listingsWithProduct.length }),
+                      tHub("myCatalogLiveCount", { count: listedLiveCount }),
+                    ].join(" · ")}
+                    actionLabel={tHub("myCatalogOpen")}
+                    variant="affiliate"
+                    surface="light"
+                  />
                   <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-300 sm:text-[15px]">
                     {tHub("storefrontSubtitle")}
                   </p>
@@ -720,15 +731,6 @@ export function AffiliateDashboard({ storeId }: Props) {
                 </div>
               </div>
             </div>
-
-            <MerchantMyCatalogCue
-              href={AFFILIATE_CATALOG_PATH}
-              label={tHub("myCatalog")}
-              hint={tHub("myCatalogHint")}
-              actionLabel={tHub("myCatalogOpen")}
-              variant="affiliate"
-              className="mt-4"
-            />
 
             <div className="mt-8 grid gap-6 border-t border-gray-100/90 pt-8 dark:border-zinc-800 sm:grid-cols-3">
               <BentoStat

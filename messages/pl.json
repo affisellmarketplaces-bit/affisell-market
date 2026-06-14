@@ -908,6 +908,8 @@
       "greetingHello": "Cześć",
       "myCatalog": "Mój katalog",
       "myCatalogHint": "Marże, feed odkrywania i Twoje oferty",
+      "myCatalogListingCount": "{count, plural, one {# oferta} other {# ofert}}",
+      "myCatalogLiveCount": "{count, plural, one {# live} other {# live w sklepie}}",
       "myCatalogOpen": "Otwórz",
       "storefrontSubtitle": "Odkryj produkty do sprzedaży, ustal ceny i marże, oraz zarządzaj tym, co widzą klienci w Twoim publicznym sklepie – wszystko z tego miejsca.",
       "inviteSupplier": "Zaproś dostawcę",
@@ -1141,6 +1143,9 @@
       "greetingHello": "Cześć",
       "myCatalog": "Mój katalog",
       "myCatalogHint": "SKU, stany magazynowe i oferty partnerów",
+      "myCatalogSkuCount": "{count, plural, one {# SKU} other {# SKU}}",
+      "myCatalogDraftCount": "{count, plural, one {# szkic} other {# szkice}}",
+      "myCatalogLowStock": "{count, plural, one {# niski stan} other {# niskie stany}}",
       "myCatalogOpen": "Otwórz",
       "newProduct": "Nowy produkt"
     },

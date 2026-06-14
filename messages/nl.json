@@ -908,6 +908,8 @@
       "greetingHello": "Hallo",
       "myCatalog": "Mijn catalogus",
       "myCatalogHint": "Marges, discover-feed & uw listings",
+      "myCatalogListingCount": "{count, plural, one {# listing} other {# listings}}",
+      "myCatalogLiveCount": "{count, plural, one {# live} other {# live in storefront}}",
       "myCatalogOpen": "Openen",
       "storefrontSubtitle": "Ontdek producten om te verkopen, stel je prijzen en marges in en beheer wat kopers in je openbare winkel zien—all hier vanuit.",
       "inviteSupplier": "Investeringspartner uitnodigen",
@@ -1141,6 +1143,9 @@
       "greetingHello": "Hallo",
       "myCatalog": "Mijn catalogus",
       "myCatalogHint": "SKU's, voorraad & partnerlistings",
+      "myCatalogSkuCount": "{count, plural, one {# SKU} other {# SKU's}}",
+      "myCatalogDraftCount": "{count, plural, one {# concept} other {# concepten}}",
+      "myCatalogLowStock": "{count, plural, one {# lage voorraad} other {# lage voorraad}}",
       "myCatalogOpen": "Openen",
       "newProduct": "Nieuw product"
     },
