@@ -129,6 +129,9 @@ export function OfferModeQuickRail({ basePath, className }: Props) {
                 <span className="mt-0.5 line-clamp-2 block text-[10px] leading-snug text-zinc-600 sm:line-clamp-none sm:text-[11px] dark:text-violet-100/80">
                   {badge.label}
                 </span>
+                <span className="mt-1 block text-[9px] font-semibold uppercase tracking-[0.14em] text-brand/70 dark:text-brand-light/80">
+                  {t("cardSupplierNote")}
+                </span>
               </span>
             </button>
           )

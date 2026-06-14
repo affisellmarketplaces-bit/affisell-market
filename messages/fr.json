@@ -630,7 +630,9 @@
       "sectionClassifyTitle": "Catégorie & specs",
       "sectionClassifyDescription": "Choisissez la catégorie feuille via les suggestions, la recherche ou l'arbre catalogue Affisell.",
       "categoryLabel": "Catégorie",
-      "categorySuggestedBadge": "Suggéré"
+      "categorySuggestedBadge": "Suggéré",
+      "offerModeTitle": "État du produit",
+      "offerModeDescription": "Obligatoire à la publication — badge visible sur la fiche marketplace et les filtres acheteurs."
     },
     "wizard": {
       "backToMethods": "← Autres méthodes de création",
@@ -1013,9 +1015,10 @@
         "under7": "≤ 7 jours"
       },
       "offerRail": {
-        "eyebrow": "Économie circulaire",
-        "hint": "Reconditionné, seconde main, gros et don — un clic pour filtrer.",
-        "tapHint": "Choisir un mode",
+        "eyebrow": "État du produit",
+        "hint": "Déclaré par chaque fournisseur à la publication — filtrez par type d'offre.",
+        "tapHint": "Filtrer par état",
+        "cardSupplierNote": "Déclaré par le fournisseur",
         "clear": "Tout afficher"
       },
       "browseDepartmentsRail": {

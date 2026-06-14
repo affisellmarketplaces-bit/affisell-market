@@ -15,6 +15,7 @@ export type PublishFieldKey =
   | "compareAt"
   | "commission"
   | "variants"
+  | "offerMode"
 
 export type PublishBlocker = {
   field: PublishFieldKey
@@ -30,6 +31,7 @@ export const PUBLISH_FIELD_SCROLL_ID: Record<PublishFieldKey, string> = {
   compareAt: "p-compare",
   commission: "add-product-commission",
   variants: "add-product-variants",
+  offerMode: "add-product-offer-mode",
 }
 
 export function publishBlockerStep(field: PublishFieldKey): 1 | 2 | 3 {
@@ -60,6 +62,7 @@ export type CollectPublishContext = {
   variantRows: ProductVariantLine[]
   advancedSkuRows?: SupplierSkuTableRow[]
   simpleColorRows: { name: string }[]
+  offerModeAcknowledged?: boolean
 }
 
 export function collectClientPublishBlockers(ctx: CollectPublishContext): PublishBlocker[] {
@@ -85,6 +88,13 @@ export function collectClientPublishBlockers(ctx: CollectPublishContext): Publis
   }
   if (ctx.commissionError) {
     out.push({ field: "commission", message: ctx.commissionError })
+  }
+  if (ctx.offerModeAcknowledged === false) {
+    out.push({
+      field: "offerMode",
+      message:
+        "Indiquez l'état du produit (neuf, reconditionné, seconde main, gros ou don) — champ obligatoire.",
+    })
   }
   if (ctx.variantFormMode === "advanced") {
     const skuRows = ctx.advancedSkuRows ?? []
@@ -143,6 +153,9 @@ function blockerFromMessage(message: string): PublishBlocker | null {
     return { field: "price", message }
   }
   if (m.includes("commission")) return { field: "commission", message }
+  if (m.includes("wholesale_moq") || m.includes("offer_mode") || m.includes("état du produit")) {
+    return { field: "offerMode", message }
+  }
   if (m.includes("variant") || m.includes("sku") || m.includes("déclinaison")) {
     return { field: "variants", message }
   }

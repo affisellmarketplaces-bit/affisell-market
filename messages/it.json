@@ -1002,9 +1002,10 @@
       "euShipsLabel": "Unione Europea (27 paesi)",
       "freeShippingFacet": "Spedizione gratuita",
       "offerRail": {
-        "eyebrow": "Economia circolare",
-        "hint": "Ricondizionato, usato, ingrosso e donazione — un tap per filtrare.",
-        "tapHint": "Scegli una modalità",
+        "eyebrow": "Condizione prodotto",
+        "hint": "Dichiarata da ogni fornitore in pubblicazione — filtra per tipo di offerta.",
+        "tapHint": "Filtra per condizione",
+        "cardSupplierNote": "Dichiarato dal fornitore",
         "clear": "Mostra tutti"
       },
       "browseDepartmentsRail": {

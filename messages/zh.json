@@ -1002,9 +1002,10 @@
       "euShipsLabel": "欧洲联盟（27个国家）",
       "freeShippingFacet": "免运费",
       "offerRail": {
-        "eyebrow": "循环经济",
-        "hint": "翻新、二手、批发与捐赠 — 一键筛选。",
-        "tapHint": "选择模式",
+        "eyebrow": "商品状态",
+        "hint": "每位供应商发布时声明 — 按供应类型筛选。",
+        "tapHint": "按状态筛选",
+        "cardSupplierNote": "供应商声明",
         "clear": "显示全部"
       },
       "browseDepartmentsRail": {

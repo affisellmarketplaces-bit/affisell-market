@@ -1002,9 +1002,10 @@
       "euShipsLabel": "Europäische Union (27 Länder)",
       "freeShippingFacet": "Kostenloser Versand",
       "offerRail": {
-        "eyebrow": "Kreislaufwirtschaft",
-        "hint": "Generalüberholt, gebraucht, Großhandel & Spende — ein Tipp zum Filtern.",
-        "tapHint": "Modus wählen",
+        "eyebrow": "Produktzustand",
+        "hint": "Vom Anbieter bei der Veröffentlichung angegeben — nach Angebotsart filtern.",
+        "tapHint": "Nach Zustand filtern",
+        "cardSupplierNote": "Vom Anbieter angegeben",
         "clear": "Alle anzeigen"
       },
       "browseDepartmentsRail": {

@@ -19,6 +19,7 @@ describe("supplier-publish-blockers", () => {
       variantFormMode: "none",
       variantRows: [],
       simpleColorRows: [],
+      offerModeAcknowledged: true,
     })
     expect(blockers.map((b) => b.field)).toEqual(
       expect.arrayContaining(["name", "images", "category", "specs"])
@@ -40,5 +41,23 @@ describe("supplier-publish-blockers", () => {
     expect(blockers).toHaveLength(1)
     expect(blockers[0]?.field).toBe("specs")
     expect(blockers[0]?.message).toContain("créneau")
+  })
+
+  it("blocks publish when offer mode was not acknowledged", () => {
+    const blockers = collectClientPublishBlockers({
+      name: "Test",
+      imagesCount: 1,
+      categoryId: "cat-1",
+      missingSpecs: [],
+      priceError: null,
+      compareError: null,
+      commissionError: null,
+      variantFormMode: "none",
+      variantRows: [],
+      simpleColorRows: [],
+      offerModeAcknowledged: false,
+    })
+    expect(blockers.some((b) => b.field === "offerMode")).toBe(true)
+    expect(publishBlockerStep("offerMode")).toBe(3)
   })
 })

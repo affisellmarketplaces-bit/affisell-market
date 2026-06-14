@@ -1002,9 +1002,10 @@
       "euShipsLabel": "Europese Unie (27 landen)",
       "freeShippingFacet": "Gratis verzending",
       "offerRail": {
-        "eyebrow": "Cirkel economie",
-        "hint": "Gereviseerd, tweedehands, bulk & donatie — één tik om te filteren.",
-        "tapHint": "Kies een modus",
+        "eyebrow": "Productconditie",
+        "hint": "Door elke leverancier bij publicatie aangegeven — filter op aanbodtype.",
+        "tapHint": "Filter op conditie",
+        "cardSupplierNote": "Door leverancier aangegeven",
         "clear": "Alles tonen"
       },
       "browseDepartmentsRail": {

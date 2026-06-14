@@ -435,6 +435,7 @@ export function SupplierAddProductForm({
   const [freeShipping, setFreeShipping] = useState(false)
   const [isLuxury, setIsLuxury] = useState(false)
   const [offerMode, setOfferMode] = useState<ProductOfferMode>(DEFAULT_PRODUCT_OFFER_MODE)
+  const [offerModeAcknowledged, setOfferModeAcknowledged] = useState(false)
   const [minOrderQuantity, setMinOrderQuantity] = useState(1)
   const [supplierTag, setSupplierTag] = useState("")
   const [chinaSourceUrl, setChinaSourceUrl] = useState("")
@@ -936,6 +937,7 @@ export function SupplierAddProductForm({
           data.minOrderQuantity
         )
       )
+      setOfferModeAcknowledged(true)
       setSupplierTag(typeof data.supplierTag === "string" ? data.supplierTag : "")
       const colorsRaw = data.colors
       const colorList = Array.isArray(colorsRaw)
@@ -1401,6 +1403,7 @@ export function SupplierAddProductForm({
     if (c.offerMode) {
       const mode = parseProductOfferMode(c.offerMode)
       setOfferMode(mode)
+      setOfferModeAcknowledged(true)
       if (c.minOrderQuantity != null) {
         setMinOrderQuantity(normalizeMinOrderQuantity(mode, c.minOrderQuantity))
       }
@@ -2114,6 +2117,7 @@ export function SupplierAddProductForm({
     variantRows,
     advancedSkuRows,
     simpleColorRows,
+    offerModeAcknowledged,
   }
 
   const jumpBtnClass =
@@ -2939,14 +2943,17 @@ export function SupplierAddProductForm({
               <>
                 <div className="space-y-8">
                 <SectionCard
+                  id="add-product-offer-mode"
                   icon={Recycle}
-                  title="Type d'offre"
-                  description="Reconditionné, seconde main, gros ou don — badge visible sur le marketplace."
+                  title={tForm("offerModeTitle")}
+                  description={tForm("offerModeDescription")}
+                  hasError={publishErrorFields.includes("offerMode")}
                 >
                   <SupplierOfferModePicker
                     value={offerMode}
                     minOrderQuantity={minOrderQuantity}
                     onChange={(mode) => {
+                      setOfferModeAcknowledged(true)
                       setOfferMode(mode)
                       setMinOrderQuantity(normalizeMinOrderQuantity(mode, minOrderQuantity))
                     }}

@@ -630,7 +630,9 @@
       "sectionClassifyTitle": "Category & specs",
       "sectionClassifyDescription": "Pick the leaf category via suggestions, search, or the Affisell catalog tree.",
       "categoryLabel": "Category",
-      "categorySuggestedBadge": "Suggested"
+      "categorySuggestedBadge": "Suggested",
+      "offerModeTitle": "Product condition",
+      "offerModeDescription": "Required when publishing — shown on the marketplace listing and buyer filters."
     },
     "wizard": {
       "backToMethods": "← Other creation methods",
@@ -1005,9 +1007,10 @@
         "under7": "≤ 7 days"
       },
       "offerRail": {
-        "eyebrow": "Circular economy",
-        "hint": "Refurbished, pre-owned, bulk & donation — one tap to filter.",
-        "tapHint": "Tap a mode",
+        "eyebrow": "Product condition",
+        "hint": "Declared by each supplier when listing — filter by offer type.",
+        "tapHint": "Filter by condition",
+        "cardSupplierNote": "Supplier declared",
         "clear": "Show all"
       },
       "browseDepartmentsRail": {
