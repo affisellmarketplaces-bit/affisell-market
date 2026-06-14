@@ -17,7 +17,7 @@ type Props = {
 }
 
 function TrustSeparator() {
-  return <span className="mx-1 hidden h-3 w-px shrink-0 bg-white/15 sm:inline" aria-hidden />
+  return <span className="mx-2 hidden h-3 w-px shrink-0 bg-white/10 sm:inline" aria-hidden />
 }
 
 function TrustChip({
@@ -35,7 +35,7 @@ function TrustChip({
     return (
       <span
         className={cn(
-          "inline-flex shrink-0 items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-300",
+          "inline-flex shrink-0 items-center gap-1.5 text-xs uppercase tracking-widest text-zinc-500",
           className
         )}
       >
@@ -82,7 +82,7 @@ export function StorefrontHeaderTrustRail({
       className={cn(
         "affisell-storefront-trust-rail relative overflow-hidden",
         futuristic
-          ? "border-t border-white/10 bg-black/45 backdrop-blur-md"
+          ? "h-7 border-b border-white/5 bg-black/40 backdrop-blur-md"
           : integrated
             ? "border-t border-zinc-200/60 bg-gradient-to-r from-zinc-50/95 via-white/90 to-violet-50/50 dark:border-zinc-800/70 dark:from-zinc-950/95 dark:via-zinc-950/90 dark:to-violet-950/25"
             : "border-b border-zinc-200/80 bg-gradient-to-r from-violet-50/90 via-white to-emerald-50/70 dark:border-zinc-800 dark:from-violet-950/30 dark:via-zinc-950 dark:to-emerald-950/20",
@@ -111,10 +111,8 @@ export function StorefrontHeaderTrustRail({
 
       <div
         className={cn(
-          "relative mx-auto flex max-w-6xl items-center overflow-x-auto overscroll-x-contain",
-          futuristic
-            ? "gap-0 px-4 py-2 sm:px-6 sm:py-2.5"
-            : "gap-1.5 px-4 py-1.5 sm:gap-2 sm:px-6 sm:py-2",
+          "relative mx-auto flex h-7 max-w-6xl items-center overflow-x-auto overscroll-x-contain",
+          futuristic ? "gap-0 px-4 sm:px-6" : "gap-1.5 px-4 py-1.5 sm:gap-2 sm:px-6 sm:py-2",
           "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         )}
         role="region"
@@ -123,7 +121,7 @@ export function StorefrontHeaderTrustRail({
         <TrustChip tone={integrated && isCustomDomain ? "neutral" : "accent"} futuristic={futuristic}>
           {futuristic ? (
             <>
-              <Sparkles className="size-3 shrink-0 text-zinc-400" aria-hidden />
+              <Sparkles className="size-3 shrink-0 text-zinc-500" aria-hidden />
               <span className={cn(isCustomDomain && "hidden min-[380px]:inline")}>{t("poweredBy")}</span>
               <span className={cn(!isCustomDomain ? "hidden" : "min-[380px]:hidden")}>Affisell</span>
             </>
@@ -148,13 +146,13 @@ export function StorefrontHeaderTrustRail({
 
         {trust.merchantVerified ? (
           <TrustChip tone="verified" futuristic={futuristic}>
-            <BadgeCheck className={cn("size-3 shrink-0", futuristic ? "text-zinc-400" : "")} aria-hidden />
+            <BadgeCheck className={cn("size-3 shrink-0", futuristic ? "text-zinc-500" : "")} aria-hidden />
             <span className="hidden sm:inline">{t("verifiedBy")}</span>
             <span className="sm:hidden">{t("verifiedShort")}</span>
           </TrustChip>
         ) : (
           <TrustChip tone="secure" futuristic={futuristic}>
-            <ShieldCheck className={cn("size-3 shrink-0", futuristic ? "text-zinc-400" : "")} aria-hidden />
+            <ShieldCheck className={cn("size-3 shrink-0", futuristic ? "text-zinc-500" : "")} aria-hidden />
             <span className="hidden sm:inline">{t("platformSecured")}</span>
             <span className="sm:hidden">{t("securedShort")}</span>
           </TrustChip>
@@ -167,11 +165,11 @@ export function StorefrontHeaderTrustRail({
           futuristic={futuristic}
           className={cn(!futuristic && "font-mono tabular-nums tracking-normal normal-case")}
         >
-          <Lock className={cn("size-3 shrink-0", futuristic ? "text-zinc-400" : "opacity-70")} aria-hidden />
+          <Lock className={cn("size-3 shrink-0", futuristic ? "text-zinc-500" : "opacity-70")} aria-hidden />
           {t("partnerRef", { code: trust.partnerListingCode })}
         </TrustChip>
 
-        {isCustomDomain ? (
+        {!futuristic && isCustomDomain ? (
           <span
             className={cn(
               "ml-auto hidden shrink-0 uppercase tracking-[0.18em] text-zinc-500",
