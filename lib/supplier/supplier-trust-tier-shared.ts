@@ -87,9 +87,9 @@ export const SUPPLIER_TRUST_TIER_META: Record<
     shortFr: "Orbital",
     shortEn: "Orbital",
     tooltipFr:
-      "Niveau III · 1 M+ commandes traitées avec succès, excellence avis & logistique — badge Orbital certifié.",
+      "Niveau III · 1 M+ commandes traitées avec succès, excellence avis & logistique — badge bleu certifié.",
     tooltipEn:
-      "Tier III · 1M+ successful orders, review & logistics excellence — certified Orbital badge.",
+      "Tier III · 1M+ successful orders, review & logistics excellence — certified blue badge.",
     order: 3,
   },
 }

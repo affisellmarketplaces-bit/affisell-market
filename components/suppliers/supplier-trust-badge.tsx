@@ -29,17 +29,17 @@ export function OrbitalTrustIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden>
       <defs>
-        <linearGradient id="orbitalAffisell" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#a78bfa" />
-          <stop offset="45%" stopColor="#6d28d9" />
-          <stop offset="100%" stopColor="#4f46e5" />
+        <linearGradient id="orbitalBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#38bdf8" />
+          <stop offset="45%" stopColor="#2563eb" />
+          <stop offset="100%" stopColor="#1d4ed8" />
         </linearGradient>
       </defs>
       <path
-        fill="url(#orbitalAffisell)"
+        fill="url(#orbitalBlue)"
         d="M12 1.8l1.45 2.98 3.28.48-2.37 2.31.56 3.27L12 9.77 8.08 11.84l.56-3.27L6.27 5.26l3.28-.48L12 1.8zm8.2 3.4l-.85 1.75 1.92.28-1.39 1.35.33 1.92-1.71-.9-1.71.9.33-1.92-1.39-1.35 1.92-.28-.85-1.75zm2.3 7.1l-1.4 1.02.53 3.08-2.77-1.46-2.77 1.46.53-3.08-1.4-1.02 2.77-.4 1.24-2.51 1.24 2.51 2.77.4zM12 22.2l-1.45-2.98-3.28-.48 2.37-2.31-.56-3.27L12 14.23l3.92 2.07-.56 3.27 2.37 2.31-3.28.48L12 22.2zM3.8 5.2l.85 1.75-1.92.28 1.39 1.35-.33 1.92 1.71-.9 1.71.9-.33-1.92 1.39-1.35-1.92-.28.85-1.75zm-2.3 7.1l1.4 1.02-.53 3.08 2.77-1.46 2.77 1.46-.53-3.08 1.4-1.02-2.77-.4-1.24-2.51-1.24 2.51-2.77.4z"
       />
-      <circle cx="12" cy="12" r="6.2" fill="url(#orbitalAffisell)" />
+      <circle cx="12" cy="12" r="6.2" fill="url(#orbitalBlue)" />
       <path
         fill="none"
         stroke="#fff"
@@ -101,7 +101,7 @@ function TrustIcon({ tier, className }: { tier: SupplierTrustTier; className?: s
 
 function shellClass(tier: SupplierTrustTier): string {
   if (tier === "ORBITAL") {
-    return "border-indigo-400/50 bg-gradient-to-r from-violet-500/10 via-indigo-500/10 to-indigo-600/10 text-indigo-100 shadow-sm shadow-indigo-500/20 dark:border-indigo-500/40"
+    return "border-sky-400/50 bg-gradient-to-r from-sky-500/10 via-blue-500/10 to-indigo-500/10 text-sky-900 shadow-sm shadow-sky-500/20 dark:border-sky-500/40 dark:text-sky-100"
   }
   if (tier === "FORGE") {
     return "border-violet-300/60 bg-gradient-to-r from-violet-500/10 to-indigo-500/10 text-violet-900 dark:border-violet-600/50 dark:text-violet-100"
@@ -164,7 +164,7 @@ export function SupplierTrustBadgeHero({
       className={cn(
         "relative overflow-hidden rounded-3xl border p-5",
         tier === "ORBITAL"
-          ? "border-indigo-400/40 bg-gradient-to-br from-violet-500/15 via-indigo-600/10 to-indigo-700/15"
+          ? "border-sky-400/40 bg-gradient-to-br from-sky-500/15 via-blue-600/10 to-indigo-700/15"
           : tier === "FORGE"
             ? "border-violet-400/40 bg-gradient-to-br from-violet-500/10 to-indigo-600/10"
             : "border-amber-400/40 bg-gradient-to-br from-amber-400/15 to-orange-500/10",
