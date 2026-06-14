@@ -43,6 +43,93 @@ type StoreRow = {
   storefrontTheme?: unknown
 }
 
+type BrandStudioSnapshot = {
+  name: string
+  description: string
+  bannerUrl: string
+  logoUrl: string
+  primaryHex: string
+  accent: string
+  nameBadge: StoreNameBadgeStyle
+  layout: StorefrontLayoutMode
+  heroStyle: StorefrontHeroStyle
+  gridDensity: StorefrontGridDensity
+  surface: StorefrontSurface
+  headerBrandAlign: StorefrontHeaderBrandAlign
+  presetId: string | null
+}
+
+const BRAND_STUDIO_FORM_ID = "brand-studio-form"
+
+function snapshotFromStore(st: StoreRow): BrandStudioSnapshot {
+  const theme = parseStorefrontTheme(st.storefrontTheme)
+  return {
+    name: st.name,
+    description: st.description ?? "",
+    bannerUrl: st.bannerUrl ?? "",
+    logoUrl: st.logoUrl ?? "",
+    primaryHex: theme.primary ?? DEFAULT_STOREFRONT_THEME.primary!,
+    accent: theme.accent ?? DEFAULT_STOREFRONT_THEME.accent!,
+    nameBadge: theme.nameBadge ?? DEFAULT_STORE_NAME_BADGE,
+    layout: theme.layout ?? DEFAULT_STOREFRONT_THEME.layout!,
+    heroStyle: theme.heroStyle ?? DEFAULT_STOREFRONT_THEME.heroStyle!,
+    gridDensity: theme.gridDensity ?? DEFAULT_STOREFRONT_THEME.gridDensity!,
+    surface: theme.surface ?? DEFAULT_STOREFRONT_THEME.surface!,
+    headerBrandAlign: theme.headerBrandAlign ?? DEFAULT_STOREFRONT_THEME.headerBrandAlign!,
+    presetId: theme.presetId ?? null,
+  }
+}
+
+function snapshotFromDraft(input: {
+  name: string
+  description: string
+  bannerUrl: string
+  logoUrl: string
+  primaryHex: string
+  accent: string
+  nameBadge: StoreNameBadgeStyle
+  layout: StorefrontLayoutMode
+  heroStyle: StorefrontHeroStyle
+  gridDensity: StorefrontGridDensity
+  surface: StorefrontSurface
+  headerBrandAlign: StorefrontHeaderBrandAlign
+  presetId: string | null
+}): BrandStudioSnapshot {
+  return {
+    name: input.name.trim().slice(0, 40),
+    description: input.description.trim(),
+    bannerUrl: input.bannerUrl.trim(),
+    logoUrl: input.logoUrl.trim(),
+    primaryHex: input.primaryHex,
+    accent: input.accent,
+    nameBadge: input.nameBadge,
+    layout: input.layout,
+    heroStyle: input.heroStyle,
+    gridDensity: input.gridDensity,
+    surface: input.surface,
+    headerBrandAlign: input.headerBrandAlign,
+    presetId: input.presetId,
+  }
+}
+
+function snapshotsEqual(a: BrandStudioSnapshot, b: BrandStudioSnapshot): boolean {
+  return (
+    a.name === b.name &&
+    a.description === b.description &&
+    a.bannerUrl === b.bannerUrl &&
+    a.logoUrl === b.logoUrl &&
+    a.primaryHex === b.primaryHex &&
+    a.accent === b.accent &&
+    a.nameBadge === b.nameBadge &&
+    a.layout === b.layout &&
+    a.heroStyle === b.heroStyle &&
+    a.gridDensity === b.gridDensity &&
+    a.surface === b.surface &&
+    a.headerBrandAlign === b.headerBrandAlign &&
+    a.presetId === b.presetId
+  )
+}
+
 type Props = {
   role: MerchantRole
   previewHref: string
@@ -83,6 +170,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
     DEFAULT_STOREFRONT_THEME.headerBrandAlign!
   )
   const [presetId, setPresetId] = useState<string | null>(null)
+  const [savedSnapshot, setSavedSnapshot] = useState<BrandStudioSnapshot | null>(null)
 
   const hydrate = useCallback(async () => {
     setLoading(true)
@@ -107,22 +195,23 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
       setStoreHostSuffix(json.storeHostSuffix ?? null)
       const st = json.store
       if (st) {
-        setName(st.name)
-        setBannerUrl(st.bannerUrl ?? "")
-        setDescription(st.description ?? "")
-        setLogoUrl(st.logoUrl ?? "")
+        const snap = snapshotFromStore(st)
+        setName(snap.name)
+        setBannerUrl(snap.bannerUrl)
+        setDescription(snap.description)
+        setLogoUrl(snap.logoUrl)
         setLogoPreview(st.logoUrl)
         setLogoFile(null)
-        const theme = parseStorefrontTheme(st.storefrontTheme)
-        setAccent(theme.accent ?? DEFAULT_STOREFRONT_THEME.accent!)
-        setPrimaryHex(theme.primary ?? DEFAULT_STOREFRONT_THEME.primary!)
-        setNameBadge(theme.nameBadge ?? DEFAULT_STORE_NAME_BADGE)
-        setLayout(theme.layout ?? DEFAULT_STOREFRONT_THEME.layout!)
-        setHeroStyle(theme.heroStyle ?? DEFAULT_STOREFRONT_THEME.heroStyle!)
-        setGridDensity(theme.gridDensity ?? DEFAULT_STOREFRONT_THEME.gridDensity!)
-        setSurface(theme.surface ?? DEFAULT_STOREFRONT_THEME.surface!)
-        setHeaderBrandAlign(theme.headerBrandAlign ?? DEFAULT_STOREFRONT_THEME.headerBrandAlign!)
-        setPresetId(theme.presetId ?? null)
+        setAccent(snap.accent)
+        setPrimaryHex(snap.primaryHex)
+        setNameBadge(snap.nameBadge)
+        setLayout(snap.layout)
+        setHeroStyle(snap.heroStyle)
+        setGridDensity(snap.gridDensity)
+        setSurface(snap.surface)
+        setHeaderBrandAlign(snap.headerBrandAlign)
+        setPresetId(snap.presetId)
+        setSavedSnapshot(snap)
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : t("loadFailed"))
@@ -180,6 +269,42 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
     ]
   )
 
+  const currentSnapshot = useMemo(
+    () =>
+      snapshotFromDraft({
+        name,
+        description,
+        bannerUrl,
+        logoUrl,
+        primaryHex,
+        accent,
+        nameBadge,
+        layout,
+        heroStyle,
+        gridDensity,
+        surface,
+        headerBrandAlign,
+        presetId,
+      }),
+    [
+      name,
+      description,
+      bannerUrl,
+      logoUrl,
+      primaryHex,
+      accent,
+      nameBadge,
+      layout,
+      heroStyle,
+      gridDensity,
+      surface,
+      headerBrandAlign,
+      presetId,
+    ]
+  )
+
+  const isDirty = Boolean(logoFile) || (savedSnapshot ? !snapshotsEqual(currentSnapshot, savedSnapshot) : false)
+
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setSaving(true)
@@ -213,6 +338,8 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
       const json = (await res.json()) as { error?: string }
       if (!res.ok) throw new Error(json.error ?? t("saveFailed"))
       setMessage(t("saved"))
+      setSavedSnapshot(currentSnapshot)
+      setLogoFile(null)
       await hydrate()
     } catch (err) {
       setError(err instanceof Error ? err.message : t("saveFailed"))
@@ -224,6 +351,20 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
   const eyebrow = role === "AFFILIATE" ? t("affiliateEyebrow") : t("supplierEyebrow")
   const title = role === "AFFILIATE" ? t("affiliateTitle") : t("supplierTitle")
   const desc = role === "AFFILIATE" ? t("affiliateDescription") : t("supplierDescription")
+
+  const saveButton = (
+    <Button
+      type="submit"
+      form={BRAND_STUDIO_FORM_ID}
+      variant="bentoSolid"
+      size="bento"
+      disabled={saving || !isDirty}
+      className="min-w-[9.5rem] shrink-0"
+    >
+      <Save className="size-5" aria-hidden />
+      {saving ? t("saving") : t("saveBrand")}
+    </Button>
+  )
 
   if (loading && !name) {
     return (
@@ -245,7 +386,8 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
             description={desc}
             className="max-w-2xl"
           />
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {saveButton}
             {publicStoreUrl ? (
               <a
                 href={publicStoreUrl}
@@ -271,6 +413,18 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
           </div>
         </div>
 
+        {isDirty ? (
+          <BentoCard className="border-amber-200/80 bg-amber-50/70 py-3 text-sm text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/25 dark:text-amber-100">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p>
+                <span className="font-semibold">{t("unsavedChanges")}</span>
+                <span className="mt-0.5 block text-amber-900/80 dark:text-amber-100/80">{t("saveHint")}</span>
+              </p>
+              {saveButton}
+            </div>
+          </BentoCard>
+        ) : null}
+
         {error ? (
           <BentoCard className="border-rose-200 bg-rose-50/80 text-sm text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200">
             {error}
@@ -284,7 +438,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
 
         <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(280px,22rem)]">
           <BentoCard>
-            <form onSubmit={onSubmit} className="space-y-8">
+            <form id={BRAND_STUDIO_FORM_ID} onSubmit={onSubmit} className="space-y-8">
               <StorefrontThemePresetPicker value={presetId} onApply={applyPreset} />
 
               <div className="space-y-2">
@@ -384,10 +538,9 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
                 primary={primaryHex}
               />
 
-              <Button type="submit" variant="bentoSolid" size="bento" disabled={saving}>
-                <Save className="size-5" aria-hidden />
-                {saving ? t("saving") : t("saveBrand")}
-              </Button>
+              <div className="sticky bottom-0 z-10 -mx-2 border-t border-gray-200/80 bg-white/90 px-2 py-4 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/90 sm:-mx-4 sm:px-4">
+                {saveButton}
+              </div>
             </form>
           </BentoCard>
 
@@ -420,6 +573,18 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
           </div>
         </div>
       </BentoContainer>
+
+      {isDirty ? (
+        <div
+          className="fixed inset-x-0 bottom-0 z-[120] border-t border-violet-500/25 bg-zinc-950/95 px-4 py-3 backdrop-blur-xl supports-[backdrop-filter]:bg-zinc-950/85 lg:hidden"
+          style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+        >
+          <div className="mx-auto flex max-w-6xl items-center gap-3">
+            <p className="min-w-0 flex-1 text-xs font-medium text-violet-100/90">{t("unsavedChanges")}</p>
+            {saveButton}
+          </div>
+        </div>
+      ) : null}
     </BentoShell>
   )
 }

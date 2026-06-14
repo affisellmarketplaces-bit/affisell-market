@@ -1,6 +1,7 @@
 import path from "node:path"
 
 import { mkdir, writeFile } from "fs/promises"
+import { revalidatePath } from "next/cache"
 
 import { auth } from "@/auth"
 import { allocateUniqueSlug, ensureMerchantStore } from "@/lib/ensure-store"
@@ -173,6 +174,22 @@ export async function POST(req: Request) {
         domainVerified,
         ...(storefrontTheme !== undefined ? { storefrontTheme } : {}),
       },
+    })
+
+    revalidatePath(`/shops/${store.slug}`)
+    revalidatePath(`/shops/${store.slug}`, "layout")
+    if (slug !== store.slug) {
+      revalidatePath(`/shops/${slug}`)
+      revalidatePath(`/shops/${slug}`, "layout")
+    }
+    revalidatePath("/dashboard/affiliate/brand-studio")
+    revalidatePath("/dashboard/supplier/storefront")
+
+    console.log("[store/update]", {
+      userId,
+      storeId: updated.id,
+      slug: updated.slug,
+      themeSaved: storefrontTheme !== undefined,
     })
 
     return Response.json({ ok: true, store: updated })
