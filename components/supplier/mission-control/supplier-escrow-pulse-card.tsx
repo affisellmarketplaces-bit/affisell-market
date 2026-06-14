@@ -34,9 +34,9 @@ function MetricTile({
 }) {
   const accents = {
     brand:
-      "border-violet-200/80 bg-violet-50/85 text-violet-900 dark:border-violet-400/20 dark:bg-violet-500/10 dark:text-violet-100",
+      "border-brand/20 bg-brand-muted/50 text-brand dark:border-brand-light/15 dark:bg-brand-muted/30 dark:text-brand-light",
     supplier:
-      "border-indigo-200/80 bg-indigo-50/85 text-indigo-900 dark:border-indigo-400/20 dark:bg-indigo-500/10 dark:text-indigo-100",
+      "border-supplier/20 bg-supplier-muted/50 text-supplier dark:border-supplier-light/15 dark:bg-supplier-muted/30 dark:text-supplier-light",
     success:
       "border-emerald-200/80 bg-emerald-50/85 text-emerald-900 dark:border-emerald-400/20 dark:bg-emerald-500/8 dark:text-emerald-100",
   }
@@ -94,7 +94,7 @@ export function SupplierEscrowPulseCard({ summary, locale = "fr", className }: P
       />
       <div className={missionControlAffisellScanline} aria-hidden />
 
-      <div className="relative flex flex-wrap items-start justify-between gap-3">
+      <div className="relative z-[1] flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className={cn(missionControlAffisellEyebrow, "inline-flex items-center gap-1.5")}>
             <Sparkles className="size-3" aria-hidden />
@@ -105,16 +105,16 @@ export function SupplierEscrowPulseCard({ summary, locale = "fr", className }: P
           </h2>
           <p className={cn("mt-1 max-w-md", missionControlAffisellSubtext)}>{copy.hint}</p>
         </div>
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-violet-200/80 bg-violet-50/90 px-2.5 py-1 text-[10px] font-semibold text-violet-800 dark:border-violet-400/15 dark:bg-violet-500/10 dark:text-violet-100">
+        <div className="inline-flex items-center gap-1.5 rounded-full border border-brand/20 bg-brand-muted/45 px-2.5 py-1 text-[10px] font-semibold text-brand dark:border-brand-light/15 dark:bg-brand-muted/30 dark:text-brand-light">
           {summary.marginHeldCents + summary.upstreamReservedCents > 0 ? (
-            <Lock className="size-3 text-violet-600 dark:text-violet-200" aria-hidden />
+            <Lock className="size-3 text-brand dark:text-brand-light" aria-hidden />
           ) : (
             <Unlock className="size-3 text-emerald-600 dark:text-emerald-300" aria-hidden />
           )}
           {copy.orders}
         </div>
       </div>
-      <div className="relative mt-4 flex flex-wrap gap-2">
+      <div className="relative z-[1] mt-4 flex flex-wrap gap-2">
         <MetricTile
           label={copy.upstream}
           value={formatEscrowMetric(summary.upstreamReservedCents)}

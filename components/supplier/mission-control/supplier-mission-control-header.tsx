@@ -61,9 +61,9 @@ export async function SupplierMissionControlHeader({
             className={cn(
               buttonVariants({ variant: "outline", size: "default" }),
               "inline-flex w-full shrink-0 items-center justify-center gap-2 sm:w-auto",
-              "border-violet-300/70 bg-violet-50/80 text-violet-800",
-              "hover:border-violet-400/80 hover:bg-violet-100/70 hover:text-violet-950",
-              "dark:border-violet-500/30 dark:bg-violet-950/50 dark:text-violet-200 dark:hover:bg-violet-900/45"
+              "border-brand/25 bg-brand-muted/50 text-brand",
+              "hover:border-brand/35 hover:bg-brand-muted/70 hover:text-brand-hover",
+              "dark:border-brand-light/25 dark:bg-brand-muted/30 dark:text-brand-light dark:hover:bg-brand-muted/45"
             )}
           >
             <Plus className="h-4 w-4" aria-hidden />

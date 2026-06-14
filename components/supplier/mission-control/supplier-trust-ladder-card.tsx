@@ -142,7 +142,7 @@ export function SupplierTrustLadderCard({ tier, metrics, locale = "fr", classNam
       <div className={missionControlAffisellOverlayIndigo} aria-hidden />
       <div className={missionControlAffisellScanline} aria-hidden />
 
-      <div className="relative">
+      <div className="relative z-[1]">
         <button
           type="button"
           className="flex w-full items-start justify-between gap-4 text-left transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400/70"
@@ -172,12 +172,12 @@ export function SupplierTrustLadderCard({ tier, metrics, locale = "fr", classNam
                 missionControlAffisellToggle,
                 "transition duration-300",
                 open &&
-                  "border-violet-300/80 bg-violet-100/90 shadow-[0_0_12px_rgba(139,92,246,0.15)] dark:border-violet-400/30 dark:bg-violet-500/10 dark:shadow-[0_0_12px_rgba(139,92,246,0.18)]"
+                  "border-brand/30 bg-brand-muted/50 shadow-[0_0_12px_rgb(109_40_217/0.12)] dark:border-brand-light/25 dark:bg-brand-muted/35 dark:shadow-[0_0_12px_rgb(109_40_217/0.15)]"
               )}
             >
               <ChevronDown
                 className={cn(
-                  "size-4 text-violet-600 dark:text-violet-200",
+                  "size-4 text-brand dark:text-brand-light",
                   !reduceMotion && "transition-transform duration-300 ease-out",
                   open && "rotate-180"
                 )}

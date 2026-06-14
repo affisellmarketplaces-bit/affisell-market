@@ -51,7 +51,7 @@ export async function SupplierMetricsBar({ metrics, weeklyGoal, locale }: Props)
           <p className={cn("mt-1 text-xs", missionControlAffisellMuted)}>{t("trendsAfterWeek")}</p>
         </div>
       ) : (
-        <div className={cn("grid grid-cols-2 gap-px overflow-hidden rounded-2xl border", missionControlDivider, "bg-violet-200/40 dark:bg-violet-500/10")}>
+        <div className={cn("grid grid-cols-2 gap-px overflow-hidden rounded-2xl border", missionControlDivider, "bg-border/40")}>
           <MetricCell label={t("gmv")}>
             <MetricTrend
               delta={metrics.gmvCents}
@@ -155,7 +155,7 @@ function MetricCell({
   children: ReactNode
 }) {
   return (
-    <div className={cn("space-y-2 bg-violet-50/70 px-4 py-4 dark:bg-violet-950/35 sm:px-5 sm:py-5")}>
+    <div className={cn("space-y-2 bg-brand-muted/25 px-4 py-4 dark:bg-brand-muted/15 sm:px-5 sm:py-5")}>
       <p className={cn("flex items-center gap-1.5 text-xs font-medium", missionControlAffisellMuted)}>
         {label}
         {hint}

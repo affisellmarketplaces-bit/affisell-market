@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { ChevronRight, Package } from "lucide-react"
 
+import { affisellBrand } from "@/lib/affisell-brand"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -58,8 +59,8 @@ export function MerchantMyCatalogCue({
         "px-2.5 backdrop-blur-xl transition duration-200 active:scale-[0.98] sm:gap-2.5 sm:px-3",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400/70",
         isLight
-          ? "border bg-violet-50/85 text-violet-950 shadow-sm shadow-violet-900/[0.04] hover:bg-violet-100/75"
-          : "border border-violet-500/15 bg-violet-950/85 text-violet-100 shadow-[0_1px_0_0_rgba(139,92,246,0.08)] hover:bg-violet-950/95",
+          ? cn(affisellBrand.epoxyChip, "border text-foreground shadow-sm hover:border-brand/25")
+          : cn(affisellBrand.epoxyChip, "border border-brand-light/15 text-foreground hover:border-brand-light/25"),
         accentBorder,
         className
       )}
@@ -87,12 +88,12 @@ export function MerchantMyCatalogCue({
         className={cn(
           "relative flex size-6 shrink-0 items-center justify-center rounded-full border transition duration-200",
           isLight
-            ? "border-violet-200/70 bg-violet-100/60 group-hover:border-violet-300 group-hover:bg-violet-100/80"
-            : "border-violet-400/15 bg-violet-500/[0.08] group-hover:border-violet-400/25 group-hover:bg-violet-500/[0.12]"
+            ? "border-border/70 bg-brand-muted/40 group-hover:border-brand/25 group-hover:bg-brand-muted/55"
+            : "border-brand-light/15 bg-brand-muted/20 group-hover:border-brand-light/25 group-hover:bg-brand-muted/30"
         )}
       >
         <Package
-          className={cn("size-3", isLight ? "text-violet-600" : "text-violet-300")}
+          className={cn("size-3", isLight ? "text-brand" : "text-brand-light")}
           aria-hidden
         />
       </span>
@@ -101,7 +102,7 @@ export function MerchantMyCatalogCue({
         <span
           className={cn(
             "whitespace-nowrap text-[10px] font-semibold uppercase tracking-[0.18em]",
-            isLight ? "text-violet-900" : "text-violet-100"
+            isLight ? "text-foreground" : "text-foreground"
           )}
         >
           {label}
@@ -109,15 +110,14 @@ export function MerchantMyCatalogCue({
         {detail ? (
           <>
             <span
-              className={cn("hidden shrink-0 sm:inline", isLight ? "text-violet-300" : "text-violet-600")}
+              className={cn("hidden shrink-0 sm:inline text-muted-foreground/50", isLight ? "" : "")}
               aria-hidden
             >
               ·
             </span>
             <span
               className={cn(
-                "hidden max-w-[14rem] truncate text-[10px] font-medium normal-case tracking-normal sm:inline",
-                isLight ? "text-violet-800/70" : "text-violet-300/70"
+                "hidden max-w-[14rem] truncate text-[10px] font-medium normal-case tracking-normal text-muted-foreground sm:inline"
               )}
             >
               {detail}
@@ -129,8 +129,7 @@ export function MerchantMyCatalogCue({
       <span
         className={cn(
           "relative hidden shrink-0 items-center gap-0.5 pl-0.5 sm:inline-flex",
-          "text-[10px] font-semibold uppercase tracking-[0.14em] transition duration-200",
-          isLight ? "text-violet-600/70 group-hover:text-violet-800" : "text-violet-400/70 group-hover:text-violet-200"
+          "text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground transition duration-200 group-hover:text-brand dark:group-hover:text-brand-light"
         )}
       >
         {actionLabel}
@@ -143,7 +142,7 @@ export function MerchantMyCatalogCue({
       <ChevronRight
         className={cn(
           "relative size-3 shrink-0 transition duration-200 group-hover:translate-x-0.5 sm:hidden",
-          isLight ? "text-violet-600/70 group-hover:text-violet-800" : "text-violet-400/70 group-hover:text-violet-200"
+          "text-muted-foreground transition duration-200 group-hover:text-brand dark:group-hover:text-brand-light"
         )}
         aria-hidden
       />

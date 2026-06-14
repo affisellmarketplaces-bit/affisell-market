@@ -28,7 +28,7 @@ export async function SupplierToolsRow() {
       <div className="flex flex-wrap gap-2">
         {toolKeys.map(({ key, href, Icon }) => (
           <Link key={key} href={href} className={cn("inline-flex items-center gap-2", missionControlChip)}>
-            <Icon className="h-4 w-4 shrink-0 text-violet-500 dark:text-violet-300" aria-hidden />
+            <Icon className="h-4 w-4 shrink-0 text-supplier dark:text-supplier-light" aria-hidden />
             {t(key)}
           </Link>
         ))}
