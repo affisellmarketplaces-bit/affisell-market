@@ -21,12 +21,12 @@ function MetricTile({
   label: string
   value: string
   icon: typeof Wallet
-  accent: "cyan" | "violet" | "emerald"
+  accent: "brand" | "supplier" | "success"
 }) {
   const accents = {
-    cyan: "border-cyan-400/25 bg-cyan-500/10 text-cyan-100",
-    violet: "border-violet-400/25 bg-violet-500/10 text-violet-100",
-    emerald: "border-emerald-400/25 bg-emerald-500/10 text-emerald-100",
+    brand: "border-violet-400/20 bg-violet-500/10 text-violet-100",
+    supplier: "border-indigo-400/20 bg-indigo-500/10 text-indigo-100",
+    success: "border-emerald-400/20 bg-emerald-500/8 text-emerald-100",
   }
   return (
     <div
@@ -75,33 +75,42 @@ export function SupplierEscrowPulseCard({ summary, locale = "fr", className }: P
   return (
     <section
       className={cn(
-        "relative overflow-hidden rounded-3xl border border-cyan-500/20 bg-gradient-to-br from-[#050816] via-[#0f172a] to-[#1e1b4b] p-5 text-white shadow-xl shadow-cyan-950/30",
+        "relative overflow-hidden rounded-3xl border border-white/5 bg-zinc-950/95 p-5 text-white shadow-sm ring-1 ring-black/[0.03] backdrop-blur-sm",
         className
       )}
       aria-labelledby="supplier-escrow-title"
     >
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_100%_80%_at_0%_0%,rgba(34,211,238,0.12),transparent_55%)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_100%_80%_at_0%_0%,rgba(109,40,217,0.12),transparent_55%)]"
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.04] [background-image:linear-gradient(rgba(255,255,255,0.6)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.6)_1px,transparent_1px)] [background-size:20px_20px]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_100%_100%,rgba(79,70,229,0.08),transparent_50%)]"
         aria-hidden
       />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.03] [background-image:linear-gradient(rgba(167,139,250,0.35)_1px,transparent_1px),linear-gradient(90deg,rgba(167,139,250,0.35)_1px,transparent_1px)] [background-size:20px_20px]"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-300/20 to-transparent"
+        aria-hidden
+      />
+
       <div className="relative flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-cyan-300/90">
+          <p className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-violet-300/90">
             <Sparkles className="size-3" aria-hidden />
             {copy.eyebrow}
           </p>
-          <h2 id="supplier-escrow-title" className="mt-1 text-xl font-bold tracking-tight">
+          <h2 id="supplier-escrow-title" className="mt-1 text-base font-semibold tracking-tight sm:text-lg">
             {copy.title}
           </h2>
-          <p className="mt-1 max-w-md text-sm text-slate-300/90">{copy.hint}</p>
+          <p className="mt-1 max-w-md text-sm text-zinc-300">{copy.hint}</p>
         </div>
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-semibold text-slate-200">
+        <div className="inline-flex items-center gap-1.5 rounded-full border border-violet-400/15 bg-violet-500/10 px-2.5 py-1 text-[10px] font-semibold text-violet-100">
           {summary.marginHeldCents + summary.upstreamReservedCents > 0 ? (
-            <Lock className="size-3 text-amber-300" aria-hidden />
+            <Lock className="size-3 text-violet-200" aria-hidden />
           ) : (
             <Unlock className="size-3 text-emerald-300" aria-hidden />
           )}
@@ -113,19 +122,19 @@ export function SupplierEscrowPulseCard({ summary, locale = "fr", className }: P
           label={copy.upstream}
           value={formatEscrowMetric(summary.upstreamReservedCents)}
           icon={Wallet}
-          accent="cyan"
+          accent="brand"
         />
         <MetricTile
           label={copy.held}
           value={formatEscrowMetric(summary.marginHeldCents)}
           icon={Lock}
-          accent="violet"
+          accent="supplier"
         />
         <MetricTile
           label={copy.released}
           value={formatEscrowMetric(summary.marginReleasedCents)}
           icon={Unlock}
-          accent="emerald"
+          accent="success"
         />
       </div>
     </section>

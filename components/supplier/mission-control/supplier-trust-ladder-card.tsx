@@ -106,12 +106,26 @@ export function SupplierTrustLadderCard({ tier, metrics, locale = "fr", classNam
   return (
     <section
       className={cn(
-        "overflow-hidden rounded-3xl border border-violet-200/60 bg-gradient-to-br from-zinc-950 via-indigo-950 to-violet-950 text-white shadow-xl shadow-violet-900/20",
+        "relative overflow-hidden rounded-3xl border border-white/5 bg-zinc-950/95 text-white shadow-sm ring-1 ring-black/[0.03] backdrop-blur-sm",
         open ? "p-6" : "p-4 sm:p-5",
         className
       )}
       aria-labelledby="supplier-trust-ladder-title"
     >
+      <div
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_70%_at_100%_0%,rgba(139,92,246,0.12),transparent_55%)]"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute inset-0 bg-gradient-to-br from-violet-500/[0.06] via-transparent to-indigo-500/[0.04]"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"
+        aria-hidden
+      />
+
+      <div className="relative">
       <button
         type="button"
         className="flex w-full items-start justify-between gap-4 text-left transition-colors hover:text-white/95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400/70"
@@ -128,9 +142,9 @@ export function SupplierTrustLadderCard({ tier, metrics, locale = "fr", classNam
             {title}
           </h2>
           {open ? (
-            <p className="mt-1 max-w-lg text-sm text-violet-100/80">{subtitle}</p>
+            <p className="mt-1 max-w-lg text-sm text-zinc-300">{subtitle}</p>
           ) : (
-            <p className="mt-1.5 truncate text-xs font-medium text-violet-200/80">{collapsedSummary}</p>
+            <p className="mt-1.5 truncate text-xs font-medium text-zinc-400">{collapsedSummary}</p>
           )}
         </div>
 
@@ -143,7 +157,7 @@ export function SupplierTrustLadderCard({ tier, metrics, locale = "fr", classNam
               "relative flex size-9 items-center justify-center rounded-full",
               "border border-white/10 bg-white/5 backdrop-blur-md",
               "shadow-[0_0_0_1px_rgba(255,255,255,0.04)] transition duration-300",
-              open && "border-violet-300/25 bg-violet-500/10 shadow-[0_0_16px_rgba(139,92,246,0.22)]"
+              open && "border-violet-400/30 bg-violet-500/10 shadow-[0_0_12px_rgba(139,92,246,0.18)]"
             )}
           >
             <ChevronDown
@@ -200,7 +214,7 @@ export function SupplierTrustLadderCard({ tier, metrics, locale = "fr", classNam
                     )}
                     <div>
                       <p className="text-xs font-bold">{locale === "fr" ? meta.labelFr : meta.labelEn}</p>
-                      <p className="text-[10px] text-violet-200/70">
+                      <p className="text-[10px] text-zinc-400">
                         {formatTrustOrderCount(threshold.minOrders, locale)}+ · ★{threshold.minRating}
                       </p>
                     </div>
@@ -218,7 +232,7 @@ export function SupplierTrustLadderCard({ tier, metrics, locale = "fr", classNam
               </p>
               <div className="mt-3 space-y-3">
                 <div>
-                  <div className="mb-1 flex justify-between text-xs text-violet-100/80">
+                  <div className="mb-1 flex justify-between text-xs text-zinc-300">
                     <span>{locale === "fr" ? "Commandes réussies" : "Successful orders"}</span>
                     <span>
                       {formatTrustOrderCount(progress.ordersProgress, locale)} /{" "}
@@ -233,7 +247,7 @@ export function SupplierTrustLadderCard({ tier, metrics, locale = "fr", classNam
                   </div>
                 </div>
                 <div>
-                  <div className="mb-1 flex justify-between text-xs text-violet-100/80">
+                  <div className="mb-1 flex justify-between text-xs text-zinc-300">
                     <span>{locale === "fr" ? "Note moyenne (90 j)" : "Avg. rating (90d)"}</span>
                     <span>
                       {progress.ratingProgress.toFixed(2)} / {progress.ratingTarget.toFixed(1)}
@@ -256,6 +270,7 @@ export function SupplierTrustLadderCard({ tier, metrics, locale = "fr", classNam
             </p>
           ) : null}
         </div>
+      </div>
       </div>
     </section>
   )

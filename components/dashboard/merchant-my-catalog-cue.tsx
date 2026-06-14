@@ -117,7 +117,7 @@ export function MerchantMyCatalogCue({
             <span
               className={cn(
                 "hidden max-w-[14rem] truncate text-[10px] font-medium normal-case tracking-normal sm:inline",
-                isLight ? "text-zinc-500" : "text-zinc-500"
+                isLight ? "text-zinc-600" : "text-zinc-500"
               )}
             >
               {detail}

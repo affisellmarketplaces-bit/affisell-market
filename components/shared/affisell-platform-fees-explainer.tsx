@@ -269,8 +269,7 @@ export function AffisellPlatformFeesExplainer({
     return (
       <div
         className={cn(
-          affisellBrand.epoxyChip,
-          "flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl px-4 py-2.5",
+          "flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-zinc-200/80 bg-white/75 px-4 py-2.5 shadow-sm backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/60",
           className
         )}
       >
