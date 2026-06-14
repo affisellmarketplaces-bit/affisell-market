@@ -981,6 +981,15 @@
       "stripeTax": "VAT",
       "footnote": "Koszty wysyłki zależą od strefy dostawcy. Filtruj « Unia Europejska » w panelu bocznym."
     },
+    "checkoutRegion": {
+      "aria": "Checkout availability in your region",
+      "badge": "Coming soon",
+      "title": "Affisell is coming to {country}",
+      "body": "Browse the catalog today — checkout to {country} opens soon. Create a free account to get notified at launch.",
+      "browseHint": "Browse freely · Save favorites · Launch alerts",
+      "cta": "Notify me",
+      "footnote": "Live checkout in {currentCount} countries today — we’re expanding step by step."
+    },
     "browse": {
       "ariaEmbedded": "Eksploruj i kupuj",
       "eyebrowBuyer": "Odkryj · Kupuj",

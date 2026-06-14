@@ -15,7 +15,7 @@ import { usePreviewAsCustomer } from "@/hooks/usePreviewAsCustomer"
 import { useUserRole } from "@/hooks/useUserRole"
 import { canShowBusinessProductData } from "@/lib/user-role"
 import { MarketplaceFilters } from "@/components/marketplace/filters"
-import { EuCoverageBanner } from "@/components/marketplace/eu-coverage-banner"
+import { BuyerRegionBanner } from "@/components/marketplace/buyer-region-banner"
 import { OfferModeQuickRail } from "@/components/marketplace/offer-mode-quick-rail"
 import { MarketplaceBrowseDepartmentsRail } from "@/components/marketplace/marketplace-browse-departments-rail"
 import { MarketplaceAffisellPulse } from "@/components/marketplace/MarketplaceAffisellPulse"
@@ -411,7 +411,7 @@ export function MarketplaceView({
           <div>
             {isCustomerBrowse ? (
               <>
-                <EuCoverageBanner className="mb-4" />
+                <BuyerRegionBanner className="mb-4" />
                 <OfferModeQuickRail basePath={basePath} className="mb-4" />
               </>
             ) : null}
@@ -460,7 +460,7 @@ export function MarketplaceView({
           <div className="min-w-0 flex-1">
             {embedded && isCustomerBrowse ? (
               <>
-                <EuCoverageBanner className="mb-3 sm:mb-4" variant="compact" />
+                <BuyerRegionBanner className="mb-3 sm:mb-4" variant="compact" />
                 <OfferModeQuickRail basePath={basePath} className="mb-3 sm:mb-4" />
               </>
             ) : null}

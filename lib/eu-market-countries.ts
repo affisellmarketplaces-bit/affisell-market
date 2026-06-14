@@ -63,6 +63,17 @@ export function stripeCheckoutAllowedCountries(): EuCheckoutIso2[] | ("US" | "CA
   return [...new Set(merged)].sort() as EuCheckoutIso2[]
 }
 
+const CHECKOUT_ALLOWED_COUNTRY_SET = new Set<string>(
+  stripeCheckoutAllowedCountries().map((c) => c.toUpperCase())
+)
+
+/** Whether Stripe Checkout accepts shipping to this ISO-2 country in the current market region. */
+export function isStripeCheckoutCountry(code: string | null | undefined): boolean {
+  const normalized = typeof code === "string" ? code.trim().toUpperCase().slice(0, 2) : ""
+  if (normalized.length !== 2) return false
+  return CHECKOUT_ALLOWED_COUNTRY_SET.has(normalized)
+}
+
 /** Product filter: ships from EU (member warehouse, regional hub, or explicit EU label). */
 export function prismaProductShipsFromEuWhere(): Prisma.ProductWhereInput {
   return {

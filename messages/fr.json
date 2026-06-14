@@ -984,6 +984,15 @@
       "stripeTax": "TVA",
       "footnote": "Livraison selon la zone du fournisseur. Filtre « Union européenne » dans la colonne filtres."
     },
+    "checkoutRegion": {
+      "aria": "Disponibilité du checkout dans votre région",
+      "badge": "Bientôt disponible",
+      "title": "Affisell arrive bientôt en {country}",
+      "body": "Explorez le catalogue dès aujourd’hui — le checkout vers {country} s’ouvre prochainement. Créez un compte gratuit pour être prévenu au lancement.",
+      "browseHint": "Parcourez librement · Favoris · Alertes au lancement",
+      "cta": "Me prévenir",
+      "footnote": "Checkout actif dans {currentCount} pays aujourd’hui — extension progressive."
+    },
     "browse": {
       "ariaEmbedded": "Explorer et acheter",
       "eyebrowBuyer": "Découvrir · Acheter",

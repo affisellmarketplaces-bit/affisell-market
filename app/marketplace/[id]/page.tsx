@@ -1,8 +1,10 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { getLocale } from "next-intl/server"
+import { headers } from "next/headers"
 
 import { auth } from "@/auth"
+import { CheckoutRegionComingSoonBanner } from "@/components/marketplace/checkout-region-coming-soon-banner"
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
 import { filterListingForPromotedVariants } from "@/lib/affiliate-storefront-variants"
 import {
@@ -34,6 +36,8 @@ import {
 import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import type { AppLocale } from "@/lib/i18n-locale"
 import { offerModeBadge, parseProductOfferMode } from "@/lib/product-offer-mode"
+import { isStripeCheckoutCountry } from "@/lib/eu-market-countries"
+import { resolveVisitorCountryIso2 } from "@/lib/visitor-country"
 import { prisma } from "@/lib/prisma"
 
 import { MarketplaceListingDetail } from "./marketplace-listing-detail"
@@ -104,12 +108,15 @@ export default async function MarketplaceListingPage({
   /** When set (shop PDP), listing must belong to this store — single DB round-trip. */
   storeSlug?: string
 }) {
-  const [{ id }, sp, session, locale] = await Promise.all([
+  const [{ id }, sp, session, locale, requestHeaders] = await Promise.all([
     params,
     searchParams,
     auth(),
     getLocale(),
+    headers(),
   ])
+  const visitorCountry = resolveVisitorCountryIso2(requestHeaders)
+  const checkoutAvailable = visitorCountry ? isStripeCheckoutCountry(visitorCountry) : true
 
   const loaded = await loadMarketplaceListingPageData({
     listingId: id,
@@ -311,6 +318,14 @@ export default async function MarketplaceListingPage({
         aria-hidden
       />
       <div className="relative mx-auto min-w-0 max-w-6xl px-4 py-6 pb-[calc(5.75rem+env(safe-area-inset-bottom))] md:px-8 md:py-10 md:pb-12 lg:py-12">
+        {!checkoutAvailable && visitorCountry ? (
+          <CheckoutRegionComingSoonBanner
+            className="mb-4"
+            variant="compact"
+            visitorCountry={visitorCountry}
+            checkoutAvailable={false}
+          />
+        ) : null}
         <MarketplaceListingDetail
           audience="customer"
           listingId={listing.id}
