@@ -905,6 +905,7 @@
     "hub": {
       "storefrontTitle": "Il tuo negozio personalizzato",
       "greeting": "Ciao {storeName}",
+      "greetingHello": "Ciao",
       "myCatalog": "Il mio catalogo",
       "myCatalogHint": "Margini, feed discover e le tue schede",
       "myCatalogOpen": "Apri",
@@ -1137,6 +1138,7 @@
     "header": {
       "eyebrow": "Centro di controllo",
       "greeting": "Ciao {storeName}",
+      "greetingHello": "Ciao",
       "myCatalog": "Il mio catalogo",
       "myCatalogHint": "SKU, stock e schede partner",
       "myCatalogOpen": "Apri",

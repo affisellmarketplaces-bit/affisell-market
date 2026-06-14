@@ -898,6 +898,7 @@
     "hub": {
       "storefrontTitle": "Your branded storefront",
       "greeting": "Hello {storeName}",
+      "greetingHello": "Hello",
       "myCatalog": "My catalog",
       "myCatalogHint": "Margins, discover feed & your listings",
       "myCatalogOpen": "Open",
@@ -1130,6 +1131,7 @@
     "header": {
       "eyebrow": "Mission Control",
       "greeting": "Hello {storeName}",
+      "greetingHello": "Hello",
       "myCatalog": "My catalog",
       "myCatalogHint": "SKUs, stock & partner listings",
       "myCatalogOpen": "Open",

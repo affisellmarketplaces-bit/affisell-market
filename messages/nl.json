@@ -905,6 +905,7 @@
     "hub": {
       "storefrontTitle": "Je eigen merkstore",
       "greeting": "Hallo {storeName}",
+      "greetingHello": "Hallo",
       "myCatalog": "Mijn catalogus",
       "myCatalogHint": "Marges, discover-feed & uw listings",
       "myCatalogOpen": "Openen",
@@ -1137,6 +1138,7 @@
     "header": {
       "eyebrow": "Mishon Controle",
       "greeting": "Hallo {storeName}",
+      "greetingHello": "Hallo",
       "myCatalog": "Mijn catalogus",
       "myCatalogHint": "SKU's, voorraad & partnerlistings",
       "myCatalogOpen": "Openen",

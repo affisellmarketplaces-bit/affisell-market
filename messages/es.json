@@ -905,6 +905,7 @@
     "hub": {
       "storefrontTitle": "Tu tienda de marca",
       "greeting": "Hola {storeName}",
+      "greetingHello": "Hola",
       "myCatalog": "Mi catálogo",
       "myCatalogHint": "Márgenes, feed de descubrimiento y tus fichas",
       "myCatalogOpen": "Abrir",
@@ -1137,6 +1138,7 @@
     "header": {
       "eyebrow": "Centro de control",
       "greeting": "Hola {storeName}",
+      "greetingHello": "Hola",
       "myCatalog": "Mi catálogo",
       "myCatalogHint": "SKUs, stock y fichas de socios",
       "myCatalogOpen": "Abrir",

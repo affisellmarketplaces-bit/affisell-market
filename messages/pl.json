@@ -905,6 +905,7 @@
     "hub": {
       "storefrontTitle": "Twoja własna strona sklepowe",
       "greeting": "Cześć {storeName}",
+      "greetingHello": "Cześć",
       "myCatalog": "Mój katalog",
       "myCatalogHint": "Marże, feed odkrywania i Twoje oferty",
       "myCatalogOpen": "Otwórz",
@@ -1137,6 +1138,7 @@
     "header": {
       "eyebrow": "Centrum Misji",
       "greeting": "Cześć {storeName}",
+      "greetingHello": "Cześć",
       "myCatalog": "Mój katalog",
       "myCatalogHint": "SKU, stany magazynowe i oferty partnerów",
       "myCatalogOpen": "Otwórz",

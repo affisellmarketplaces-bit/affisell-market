@@ -905,6 +905,7 @@
     "hub": {
       "storefrontTitle": "Ihr eigenes Marken-Storefront",
       "greeting": "Hallo {storeName}",
+      "greetingHello": "Hallo",
       "myCatalog": "Mein Katalog",
       "myCatalogHint": "Margen, Discover-Feed & Ihre Listings",
       "myCatalogOpen": "Öffnen",
@@ -1137,6 +1138,7 @@
     "header": {
       "eyebrow": "Kontrollzentrale",
       "greeting": "Hallo {storeName}",
+      "greetingHello": "Hallo",
       "myCatalog": "Mein Katalog",
       "myCatalogHint": "SKUs, Lager & Partner-Listings",
       "myCatalogOpen": "Öffnen",

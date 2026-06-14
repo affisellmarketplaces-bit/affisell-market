@@ -17,9 +17,12 @@ export async function SupplierMissionControlHeader({ storeName }: Props) {
     <header className="flex flex-col gap-4 border-b border-zinc-200/80 pb-6 dark:border-zinc-800">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{t("eyebrow")}</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-3xl">
-            {t("greeting", { storeName })}
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">
+            {t("eyebrow")}
+          </p>
+          <h1 className="mt-1.5 text-base font-semibold leading-snug text-zinc-900 dark:text-zinc-50 sm:text-lg">
+            <span className="font-normal text-zinc-500 dark:text-zinc-400">{t("greetingHello")}</span>{" "}
+            {storeName}
           </h1>
         </div>
         <Link
