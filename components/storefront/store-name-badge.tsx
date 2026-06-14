@@ -37,7 +37,7 @@ export function StoreNameBadge({
   const bandBase = cn(
     "affisell-store-name-badge relative inline-block max-w-full",
     `affisell-store-name-badge--${style}`,
-    size === "preview" && "scale-90 origin-left"
+    size === "preview" && "scale-95"
   )
 
   return (

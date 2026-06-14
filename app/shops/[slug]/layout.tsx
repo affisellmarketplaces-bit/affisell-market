@@ -1,13 +1,11 @@
 import { headers } from "next/headers"
 
 import { AffiliateStorePreviewBanner } from "@/components/shop/AffiliateStorePreviewBanner"
-import { ShopStoreHeader } from "@/components/shop/ShopStoreHeader"
 import { StorefrontBuyerChromeBar } from "@/components/storefront/storefront-buyer-chrome-bar"
 import { StorefrontDedicatedHero } from "@/components/storefront/storefront-dedicated-hero"
 import { StorefrontHostChromeSync } from "@/components/storefront/storefront-host-chrome-sync"
-import { StoreNameBadge } from "@/components/storefront/store-name-badge"
+import { StorefrontTaglineBand } from "@/components/storefront/storefront-tagline-band"
 import { StorefrontThemeStyles } from "@/components/storefront/storefront-theme-styles"
-import { StorefrontTrustStrip } from "@/components/storefront/storefront-trust-strip"
 import { auth } from "@/auth"
 import { loadAffiliateStorefrontTrust } from "@/lib/load-affiliate-storefront-trust"
 import { loadAffiliateShopStore } from "@/lib/shop-storefront-data"
@@ -27,6 +25,7 @@ export default async function ShopPublicLayout({
   const { slug } = await params
   const hdrs = await headers()
   const isCustomDomain = isCustomDomainHeaders(hdrs)
+  const shopHomePath = isCustomDomain ? "/" : `/shops/${slug}`
   const [store, trust, session] = await Promise.all([
     loadAffiliateShopStore(slug),
     loadAffiliateStorefrontTrust(slug),
@@ -43,7 +42,7 @@ export default async function ShopPublicLayout({
     <div className={cn("flex min-h-0 flex-1 flex-col", surfaceClass)}>
       <StorefrontHostChromeSync active={isCustomDomain} />
       {store ? <StorefrontThemeStyles theme={store.theme} /> : null}
-      {isCustomDomain && store ? (
+      {store ? (
         <StorefrontBuyerChromeBar
           storeName={store.name}
           logoUrl={store.logoUrl ?? store.aiAvatarUrl}
@@ -52,57 +51,29 @@ export default async function ShopPublicLayout({
           nameBadge={store.theme.nameBadge}
           headerBrandAlign={store.theme.headerBrandAlign}
           categoriesSlug={slug}
-          shopHomePath="/"
+          shopHomePath={shopHomePath}
           trust={trust}
-          isCustomDomain
+          isCustomDomain={isCustomDomain}
         />
       ) : null}
       <AffiliateStorePreviewBanner storeSlug={slug} isOwner={isOwner} />
       {store ? (
-        isCustomDomain ? (
-          <>
-            {store.theme.layout === "minimal" && store.description ? (
-              <div className="border-b border-zinc-200/80 px-4 py-3 dark:border-zinc-800 sm:px-6">
-                <p className="mx-auto max-w-6xl text-sm text-zinc-600 dark:text-zinc-400">{store.description}</p>
-              </div>
-            ) : (
-              <StorefrontDedicatedHero
-                description={store.description}
-                bannerUrl={store.bannerUrl}
-                theme={store.theme}
-              />
-            )}
-          </>
-        ) : store.theme.layout === "minimal" ? (
-          <div className="border-b border-zinc-200/90 px-4 py-5 dark:border-zinc-800 sm:px-6">
-            <div className="mx-auto max-w-6xl">
-              <StoreNameBadge
-                name={store.name}
-                style={store.theme.nameBadge}
-                accent={store.theme.accent}
-                primary={store.theme.primary}
-                size="store"
-              />
-              {store.description ? (
-                <p className="mt-2 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">{store.description}</p>
-              ) : null}
-            </div>
-          </div>
+        store.theme.layout === "minimal" ? (
+          store.description ? (
+            <StorefrontTaglineBand
+              description={store.description}
+              accent={store.theme.accent}
+              align={store.theme.headerBrandAlign}
+            />
+          ) : null
         ) : (
-          <ShopStoreHeader
-            storeName={store.name}
-            logoUrl={store.logoUrl ?? store.aiAvatarUrl}
+          <StorefrontDedicatedHero
             description={store.description}
             bannerUrl={store.bannerUrl}
             theme={store.theme}
-            isCustomDomain={false}
-            heroStyle={store.theme.heroStyle}
-            layout={store.theme.layout}
+            brandAlign={store.theme.headerBrandAlign}
           />
         )
-      ) : null}
-      {trust && !isCustomDomain ? (
-        <StorefrontTrustStrip trust={trust} isCustomDomain={isCustomDomain} theme={store?.theme} />
       ) : null}
       <main className="min-w-0 overflow-x-clip">{children}</main>
     </div>

@@ -1,20 +1,28 @@
 "use client"
 
-import type { StorefrontHeroStyle, StorefrontLayoutMode, StorefrontTheme } from "@/lib/storefront-theme-shared"
+import { StorefrontTaglineBand } from "@/components/storefront/storefront-tagline-band"
+import type {
+  StorefrontHeaderBrandAlign,
+  StorefrontHeroStyle,
+  StorefrontLayoutMode,
+  StorefrontTheme,
+} from "@/lib/storefront-theme-shared"
 import { cn } from "@/lib/utils"
 
 type Props = {
   description?: string | null
   bannerUrl?: string | null
   theme?: StorefrontTheme
+  brandAlign?: StorefrontHeaderBrandAlign
 }
 
 /** Hero strip for dedicated storefront hosts — no duplicate logo/name (buyer chrome handles that). */
-export function StorefrontDedicatedHero({ description, bannerUrl, theme }: Props) {
+export function StorefrontDedicatedHero({ description, bannerUrl, theme, brandAlign }: Props) {
   const accent = theme?.accent ?? "#7c3aed"
   const primary = theme?.primary ?? "#18181b"
   const heroStyle = theme?.heroStyle ?? "banner"
   const layout = theme?.layout ?? "classic"
+  const headerAlign = brandAlign ?? theme?.headerBrandAlign ?? "center"
   const immersive = layout === "immersive"
 
   const showImageBanner = heroStyle === "banner" && Boolean(bannerUrl)
@@ -68,9 +76,12 @@ export function StorefrontDedicatedHero({ description, bannerUrl, theme }: Props
       ) : null}
 
       {description?.trim() && !showGradientHero ? (
-        <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6 sm:py-4">
-          <p className="max-w-2xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{description}</p>
-        </div>
+        <StorefrontTaglineBand
+          description={description}
+          accent={accent}
+          align={headerAlign}
+          className="border-t-0 bg-transparent py-3 sm:py-4"
+        />
       ) : null}
     </section>
   )

@@ -4,8 +4,6 @@ import { notFound } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 
 import { ProductGrid } from "@/components/shop/ProductGrid"
-import type { ProductCardDisplayMode } from "@/components/product/ProductCard"
-import { auth } from "@/auth"
 import {
   filterShopProductsByCategory,
   groupShopProductsByCategory,
@@ -40,11 +38,10 @@ export default async function ShopSlugPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>
-  searchParams: Promise<{ preview?: string; cat?: string }>
+  searchParams: Promise<{ cat?: string }>
 }) {
   const { slug } = await params
-  const { preview, cat } = await searchParams
-  const session = await auth()
+  const { cat } = await searchParams
   const hdrs = await headers()
   const isDedicatedHost = isCustomDomainHeaders(hdrs)
 
@@ -57,14 +54,7 @@ export default async function ShopSlugPage({
   ])
   if (!storeMeta || storeMeta.user.role !== "AFFILIATE") notFound()
 
-  const affiliatePreview =
-    preview === "affiliate" && session?.user?.role === "AFFILIATE"
-
-  const cardMode: ProductCardDisplayMode = affiliatePreview ? "affiliate" : "customer"
-
-  const products = await loadAffiliateShopProducts(storeMeta.userId, {
-    includeBusinessFields: affiliatePreview,
-  })
+  const products = await loadAffiliateShopProducts(storeMeta.userId)
 
   const categories = groupShopProductsByCategory(products)
   const activeCategory =
@@ -78,7 +68,7 @@ export default async function ShopSlugPage({
       <ProductGrid
         storeSlug={slug}
         products={visibleProducts}
-        mode={cardMode}
+        mode="customer"
         gridDensity={storeFront?.theme.gridDensity}
         dedicatedHost={isDedicatedHost}
         activeCategoryLabel={activeCategory?.name ?? null}

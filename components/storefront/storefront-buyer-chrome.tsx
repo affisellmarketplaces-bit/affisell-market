@@ -134,6 +134,7 @@ export function StorefrontBuyerChrome({
           menuControlsId="storefront-category-drawer"
           trust={trust}
           isCustomDomain={isCustomDomain}
+          shopHomePath={shopHomePath}
         />
       </div>
 

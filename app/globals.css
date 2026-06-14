@@ -1167,10 +1167,13 @@ body.affisell-demo-lab .affisell-header-shell {
     );
     transform: skewX(-12deg);
     box-shadow: 4px 6px 0 color-mix(in srgb, var(--badge-accent, #7c3aed) 45%, transparent);
+    display: inline-block;
   }
 
   .affisell-store-name-badge--parallelogram {
     transform: skewX(12deg);
+    display: inline-block;
+    padding: 0.15rem 0.35rem 0.35rem;
   }
 
   .affisell-store-name-badge--neon-slab .affisell-store-name-badge__label {

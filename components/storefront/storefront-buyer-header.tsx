@@ -5,13 +5,13 @@ import Link from "next/link"
 import type { CSSProperties, ReactNode } from "react"
 
 import { CartCountBadge } from "@/components/cart/cart-count-badge"
-import { StoreNameBadge } from "@/components/storefront/store-name-badge"
 import { StorefrontHeaderTrustRail } from "@/components/storefront/storefront-header-trust-rail"
 import type { StoreNameBadgeStyle } from "@/lib/store-name-badge-styles"
 import type { StorefrontTrustSnapshot } from "@/lib/storefront-trust-shared"
 import type { StorefrontHeaderBrandAlign } from "@/lib/storefront-theme-shared"
 import { cn } from "@/lib/utils"
 
+// LOGIC PRESERVED — public props contract
 type Props = {
   storeName: string
   logoUrl: string | null
@@ -28,8 +28,10 @@ type Props = {
   compact?: boolean
   trust?: StorefrontTrustSnapshot | null
   isCustomDomain?: boolean
+  shopHomePath?: string
 }
 
+// LOGIC PRESERVED — menu / cart control wiring (href, onClick, a11y)
 function ChromeIconButton({
   children,
   label,
@@ -50,12 +52,14 @@ function ChromeIconButton({
   className?: string
 }) {
   const shellClass = cn(
-    "relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-zinc-200/80 bg-white/90 text-zinc-800 shadow-sm backdrop-blur-md transition",
-    "hover:border-violet-300 hover:bg-violet-50/80 dark:border-zinc-700/80 dark:bg-zinc-900/90 dark:text-zinc-100",
+    "relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
+    "border border-white/10 bg-white/5 text-zinc-100 shadow-lg backdrop-blur-md",
+    "transition duration-200 hover:scale-105 hover:border-white/20 hover:bg-white/10 active:scale-95",
+    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400/80",
     className
   )
   const style = {
-    boxShadow: `0 1px 2px color-mix(in srgb, ${accent} 8%, transparent), 0 8px 20px -12px color-mix(in srgb, ${accent} 35%, transparent)`,
+    boxShadow: `0 0 0 1px color-mix(in srgb, ${accent} 12%, transparent), 0 8px 24px -12px color-mix(in srgb, ${accent} 40%, transparent)`,
   } as CSSProperties
 
   if (href) {
@@ -85,19 +89,37 @@ function ChromeIconButton({
   )
 }
 
-function StoreLogoMark({ logoUrl, accent, compact }: { logoUrl: string; accent: string; compact: boolean }) {
+function StoreLogoMark({ logoUrl, compact }: { logoUrl: string; compact: boolean }) {
   return (
     <span
       className={cn(
-        "flex shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-zinc-200/90 bg-white p-1 shadow-sm dark:border-zinc-700 dark:bg-zinc-900",
-        compact ? "h-9 w-9" : "h-10 w-10 sm:h-11 sm:w-11"
+        "relative flex shrink-0 items-center justify-center rounded-full p-[2px]",
+        compact ? "size-9 sm:size-10" : "size-10 sm:size-11"
       )}
-      style={{
-        boxShadow: `0 0 0 1px color-mix(in srgb, ${accent} 10%, transparent)`,
-      }}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={logoUrl} alt="" className="max-h-full max-w-full object-contain" loading="eager" />
+      <span
+        className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-br from-[#7C3AED]/50 to-[#3B82F6]/45 opacity-70 blur-[3px] motion-safe:animate-pulse"
+        aria-hidden
+      />
+      <span className="relative flex size-full items-center justify-center overflow-hidden rounded-full border border-white/20 bg-zinc-950/80 p-0.5 shadow-[0_0_18px_rgba(124,58,237,0.28)]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={logoUrl} alt="" className="size-full rounded-full object-cover" loading="eager" />
+      </span>
+    </span>
+  )
+}
+
+function StoreBrandPill({ name, compact }: { name: string; compact: boolean }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex max-w-full items-center truncate rounded-full border border-white/15",
+        "bg-gradient-to-r from-[#7C3AED] to-[#3B82F6] font-bold uppercase tracking-[0.12em] text-white",
+        "shadow-[0_0_22px_rgba(124,58,237,0.35)] motion-safe:animate-[pulse_3.5s_ease-in-out_infinite]",
+        compact ? "px-2.5 py-1 text-[10px]" : "px-3 py-1.5 text-[11px] sm:text-xs"
+      )}
+    >
+      {name}
     </span>
   )
 }
@@ -118,22 +140,29 @@ export function StorefrontBuyerHeader({
   compact = false,
   trust = null,
   isCustomDomain = false,
+  shopHomePath = "/",
 }: Props) {
+  // LOGIC PRESERVED — brand derivation + alignment flags
   const displayName = storeName.trim() || "Store"
   const hasLogo = Boolean(logoUrl?.trim())
+  const useBadgeStyle = nameBadge !== "classic"
 
   const brand = (
     <Link
-      href="/"
-      className="group flex min-w-0 max-w-[min(100%,14rem)] items-center gap-2.5 transition"
+      href={shopHomePath}
+      className={cn(
+        "group flex min-w-0 max-w-full items-center gap-2.5 transition duration-200",
+        headerBrandAlign === "center" && "justify-center",
+        headerBrandAlign === "right" && "justify-end"
+      )}
     >
       {hasLogo && logoUrl ? (
-        <StoreLogoMark logoUrl={logoUrl} accent={accent} compact={compact} />
-      ) : (
+        <StoreLogoMark logoUrl={logoUrl} compact={compact} />
+      ) : !useBadgeStyle ? (
         <span
           className={cn(
-            "flex shrink-0 items-center justify-center rounded-2xl text-sm font-bold text-white shadow-sm",
-            compact ? "h-9 w-9" : "h-10 w-10 sm:h-11 sm:w-11"
+            "relative flex shrink-0 items-center justify-center rounded-full border border-white/20 text-sm font-bold text-white shadow-[0_0_18px_rgba(124,58,237,0.35)]",
+            compact ? "size-9" : "size-10 sm:size-11"
           )}
           style={{
             background: `linear-gradient(135deg, ${accent}, color-mix(in srgb, ${primary} 35%, ${accent}))`,
@@ -141,21 +170,12 @@ export function StorefrontBuyerHeader({
         >
           {displayName.slice(0, 1).toUpperCase()}
         </span>
-      )}
-      {hasLogo ? (
-        <span className="min-w-0 truncate text-sm font-bold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-[15px]">
-          {displayName}
-        </span>
+      ) : null}
+      {useBadgeStyle ? (
+        <StoreBrandPill name={displayName} compact={compact} />
       ) : (
-        <span className="min-w-0 max-w-[11rem] overflow-hidden">
-          <StoreNameBadge
-            name={displayName}
-            style={nameBadge}
-            accent={accent}
-            primary={primary}
-            size="preview"
-            className="max-w-full origin-left transition group-hover:brightness-105"
-          />
+        <span className="min-w-0 truncate text-sm font-semibold tracking-tight text-zinc-100 sm:text-[15px]">
+          {displayName}
         </span>
       )}
     </Link>
@@ -164,24 +184,21 @@ export function StorefrontBuyerHeader({
   return (
     <header
       className={cn(
-        "affisell-storefront-chrome relative isolate border-b border-zinc-200/70 bg-white/90 backdrop-blur-xl dark:border-zinc-800/80 dark:bg-zinc-950/90",
-        compact
-          ? "shadow-sm"
-          : "shadow-[0_10px_30px_-22px_color-mix(in_srgb,var(--store-accent,#7c3aed)_50%,transparent)]"
+        "affisell-storefront-chrome relative isolate overflow-hidden",
+        "border-b border-white/10 bg-black/60 text-zinc-100 shadow-lg backdrop-blur-xl",
+        compact ? "shadow-md" : "shadow-[0_12px_40px_-20px_rgba(124,58,237,0.55)]"
       )}
     >
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-40%,color-mix(in_srgb,var(--store-accent,#7c3aed)_12%,transparent),transparent_55%)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_70%_at_50%_-30%,rgba(124,58,237,0.22),transparent_58%)]"
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-px"
-        style={{
-          background: `linear-gradient(90deg, transparent, color-mix(in srgb, ${accent} 55%, transparent), transparent)`,
-        }}
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent"
         aria-hidden
       />
 
+      {/* LOGIC PRESERVED — nav row layout + brand align slots */}
       <div
         className={cn(
           "relative mx-auto flex max-w-6xl items-center gap-2 px-4 sm:gap-3 sm:px-6",
@@ -200,13 +217,13 @@ export function StorefrontBuyerHeader({
         </ChromeIconButton>
 
         {headerBrandAlign === "left" ? (
-          <div className="relative z-10 min-w-0 max-w-[min(55vw,14rem)]">{brand}</div>
+          <div className="relative z-10 min-w-0 max-w-[min(55vw,16rem)]">{brand}</div>
         ) : null}
 
         <div className="min-w-0 flex-1" aria-hidden />
 
         {headerBrandAlign === "right" ? (
-          <div className="relative z-10 min-w-0 max-w-[min(55vw,14rem)]">{brand}</div>
+          <div className="relative z-10 flex min-w-0 max-w-[min(55vw,16rem)] justify-end">{brand}</div>
         ) : null}
 
         <ChromeIconButton label={cartLabel} href="/cart" accent={accent} className="relative z-30">
@@ -215,18 +232,22 @@ export function StorefrontBuyerHeader({
         </ChromeIconButton>
 
         {headerBrandAlign === "center" ? (
-          <div className="pointer-events-none absolute inset-y-0 left-14 right-14 z-20 flex items-center justify-center sm:left-16 sm:right-16">
-            <div className="pointer-events-auto min-w-0 max-w-[min(70%,14rem)]">{brand}</div>
+          <div className="pointer-events-none absolute inset-y-0 left-12 right-12 z-20 flex items-center justify-center sm:left-14 sm:right-14">
+            <div className="pointer-events-auto flex min-w-0 max-w-[min(78vw,18rem)] justify-center sm:max-w-[20rem]">
+              {brand}
+            </div>
           </div>
         ) : null}
       </div>
 
+      {/* LOGIC PRESERVED — trust sub-bar render gate + props */}
       {trust ? (
         <StorefrontHeaderTrustRail
           trust={trust}
           accent={accent}
           isCustomDomain={isCustomDomain}
           variant="integrated"
+          visual="futuristic"
         />
       ) : null}
     </header>

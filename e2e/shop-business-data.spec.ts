@@ -34,13 +34,17 @@ test.describe("customer vs affiliate product surfaces", () => {
     await expect(page.getByText(/\bMarge\b/i).first()).toBeVisible({ timeout: 45_000 })
   })
 
-  test("affiliate ?preview=affiliate on boutique: sees Marge", async ({ page }) => {
+  test("affiliate storefront preview: buyer cards only, no Marge", async ({ page }) => {
     test.skip(!process.env.PLAYWRIGHT_AFFILIATE_E2E, "Set PLAYWRIGHT_AFFILIATE_E2E=1 and seed session.")
 
     const slug = process.env.PLAYWRIGHT_PUBLIC_SHOP_SLUG?.trim()
     test.skip(!slug, "Set PLAYWRIGHT_PUBLIC_SHOP_SLUG for your affiliate storefront slug.")
 
     await page.goto(`/shops/${slug}?preview=affiliate`)
-    await expect(page.getByText(/Marge/i).first()).toBeVisible({ timeout: 45_000 })
+    await expect(page.locator('[data-product-card-mode="customer"]').first()).toBeVisible({
+      timeout: 45_000,
+    })
+    await expect(page.getByText(/\bMarge\b/i)).toHaveCount(0)
+    await expect(page.getByText(/\bCommission\b/i)).toHaveCount(0)
   })
 })

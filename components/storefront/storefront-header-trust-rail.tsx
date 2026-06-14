@@ -12,18 +12,38 @@ type Props = {
   accent?: string
   isCustomDomain?: boolean
   variant?: "integrated" | "standalone"
+  visual?: "default" | "futuristic"
   className?: string
+}
+
+function TrustSeparator() {
+  return <span className="mx-1 hidden h-3 w-px shrink-0 bg-white/15 sm:inline" aria-hidden />
 }
 
 function TrustChip({
   children,
   tone = "neutral",
+  futuristic = false,
   className,
 }: {
   children: ReactNode
   tone?: "neutral" | "accent" | "verified" | "secure"
+  futuristic?: boolean
   className?: string
 }) {
+  if (futuristic) {
+    return (
+      <span
+        className={cn(
+          "inline-flex shrink-0 items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-300",
+          className
+        )}
+      >
+        {children}
+      </span>
+    )
+  }
+
   return (
     <span
       className={cn(
@@ -49,79 +69,114 @@ export function StorefrontHeaderTrustRail({
   accent = "#7c3aed",
   isCustomDomain = false,
   variant = "integrated",
+  visual = "default",
   className,
 }: Props) {
   const t = useTranslations("boutique.trust")
 
   const integrated = variant === "integrated"
+  const futuristic = visual === "futuristic" && integrated
 
   return (
     <div
       className={cn(
         "affisell-storefront-trust-rail relative overflow-hidden",
-        integrated
-          ? "border-t border-zinc-200/60 bg-gradient-to-r from-zinc-50/95 via-white/90 to-violet-50/50 dark:border-zinc-800/70 dark:from-zinc-950/95 dark:via-zinc-950/90 dark:to-violet-950/25"
-          : "border-b border-zinc-200/80 bg-gradient-to-r from-violet-50/90 via-white to-emerald-50/70 dark:border-zinc-800 dark:from-violet-950/30 dark:via-zinc-950 dark:to-emerald-950/20",
+        futuristic
+          ? "border-t border-white/10 bg-black/45 backdrop-blur-md"
+          : integrated
+            ? "border-t border-zinc-200/60 bg-gradient-to-r from-zinc-50/95 via-white/90 to-violet-50/50 dark:border-zinc-800/70 dark:from-zinc-950/95 dark:via-zinc-950/90 dark:to-violet-950/25"
+            : "border-b border-zinc-200/80 bg-gradient-to-r from-violet-50/90 via-white to-emerald-50/70 dark:border-zinc-800 dark:from-violet-950/30 dark:via-zinc-950 dark:to-emerald-950/20",
         className
       )}
       style={
-        integrated
+        integrated && !futuristic
           ? ({ "--store-trust-accent": accent } as CSSProperties)
           : undefined
       }
     >
-      <div
-        className="pointer-events-none absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,color-mix(in_srgb,var(--store-trust-accent,#7c3aed)_6%,transparent)_50%,transparent_60%)] opacity-80"
-        aria-hidden
-      />
-      <div className="affisell-storefront-trust-rail__scan pointer-events-none absolute inset-x-0 top-0 h-px" aria-hidden />
+      {!futuristic ? (
+        <>
+          <div
+            className="pointer-events-none absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,color-mix(in_srgb,var(--store-trust-accent,#7c3aed)_6%,transparent)_50%,transparent_60%)] opacity-80"
+            aria-hidden
+          />
+          <div className="affisell-storefront-trust-rail__scan pointer-events-none absolute inset-x-0 top-0 h-px" aria-hidden />
+        </>
+      ) : (
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"
+          aria-hidden
+        />
+      )}
 
       <div
         className={cn(
-          "relative mx-auto flex max-w-6xl items-center gap-1.5 overflow-x-auto overscroll-x-contain px-4 py-1.5 sm:gap-2 sm:px-6 sm:py-2",
+          "relative mx-auto flex max-w-6xl items-center overflow-x-auto overscroll-x-contain",
+          futuristic
+            ? "gap-0 px-4 py-2 sm:px-6 sm:py-2.5"
+            : "gap-1.5 px-4 py-1.5 sm:gap-2 sm:px-6 sm:py-2",
           "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         )}
         role="region"
         aria-label={t("headerTrustAria")}
       >
-        <TrustChip tone={integrated && isCustomDomain ? "neutral" : "accent"}>
-          <span className="relative flex size-1.5 shrink-0" aria-hidden>
-            <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400/70 opacity-60" />
-            <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
-          </span>
-          <Sparkles className="size-3 shrink-0 opacity-80" aria-hidden />
-          <span className={cn(integrated && isCustomDomain && "hidden min-[380px]:inline")}>
-            {t("poweredBy")}
-          </span>
-          <span className={cn(!integrated || !isCustomDomain ? "hidden" : "min-[380px]:hidden")}>
-            Affisell
-          </span>
+        <TrustChip tone={integrated && isCustomDomain ? "neutral" : "accent"} futuristic={futuristic}>
+          {futuristic ? (
+            <>
+              <Sparkles className="size-3 shrink-0 text-zinc-400" aria-hidden />
+              <span className={cn(isCustomDomain && "hidden min-[380px]:inline")}>{t("poweredBy")}</span>
+              <span className={cn(!isCustomDomain ? "hidden" : "min-[380px]:hidden")}>Affisell</span>
+            </>
+          ) : (
+            <>
+              <span className="relative flex size-1.5 shrink-0" aria-hidden>
+                <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400/70 opacity-60" />
+                <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
+              </span>
+              <Sparkles className="size-3 shrink-0 opacity-80" aria-hidden />
+              <span className={cn(integrated && isCustomDomain && "hidden min-[380px]:inline")}>
+                {t("poweredBy")}
+              </span>
+              <span className={cn(!integrated || !isCustomDomain ? "hidden" : "min-[380px]:hidden")}>
+                Affisell
+              </span>
+            </>
+          )}
         </TrustChip>
 
+        {futuristic ? <TrustSeparator /> : null}
+
         {trust.merchantVerified ? (
-          <TrustChip tone="verified">
-            <BadgeCheck className="size-3 shrink-0" aria-hidden />
+          <TrustChip tone="verified" futuristic={futuristic}>
+            <BadgeCheck className={cn("size-3 shrink-0", futuristic ? "text-zinc-400" : "")} aria-hidden />
             <span className="hidden sm:inline">{t("verifiedBy")}</span>
             <span className="sm:hidden">{t("verifiedShort")}</span>
           </TrustChip>
         ) : (
-          <TrustChip tone="secure">
-            <ShieldCheck className="size-3 shrink-0" aria-hidden />
+          <TrustChip tone="secure" futuristic={futuristic}>
+            <ShieldCheck className={cn("size-3 shrink-0", futuristic ? "text-zinc-400" : "")} aria-hidden />
             <span className="hidden sm:inline">{t("platformSecured")}</span>
             <span className="sm:hidden">{t("securedShort")}</span>
           </TrustChip>
         )}
 
-        <TrustChip tone="neutral" className="font-mono tabular-nums tracking-normal normal-case">
-          <Lock className="size-2.5 shrink-0 opacity-70" aria-hidden />
+        {futuristic ? <TrustSeparator /> : null}
+
+        <TrustChip
+          tone="neutral"
+          futuristic={futuristic}
+          className={cn(!futuristic && "font-mono tabular-nums tracking-normal normal-case")}
+        >
+          <Lock className={cn("size-3 shrink-0", futuristic ? "text-zinc-400" : "opacity-70")} aria-hidden />
           {t("partnerRef", { code: trust.partnerListingCode })}
         </TrustChip>
 
         {isCustomDomain ? (
           <span
             className={cn(
-              "ml-auto hidden shrink-0 text-[9px] font-medium uppercase tracking-[0.16em] text-zinc-400 dark:text-zinc-500",
-              integrated ? "md:inline" : "sm:inline"
+              "ml-auto hidden shrink-0 uppercase tracking-[0.18em] text-zinc-500",
+              futuristic ? "text-[10px] font-semibold md:inline" : "text-[9px] font-medium text-zinc-400 dark:text-zinc-500",
+              integrated && !futuristic ? "md:inline" : !futuristic ? "sm:inline" : ""
             )}
           >
             {t("officialStorefront")}
