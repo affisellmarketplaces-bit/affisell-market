@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
+import { getLocale } from "next-intl/server"
 
 import { auth } from "@/auth"
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
@@ -31,6 +32,8 @@ import {
   buildProductOfferJsonLd,
 } from "@/lib/product-listing-seo"
 import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
+import type { AppLocale } from "@/lib/i18n-locale"
+import { offerModeBadge, parseProductOfferMode } from "@/lib/product-offer-mode"
 import { prisma } from "@/lib/prisma"
 
 import { MarketplaceListingDetail } from "./marketplace-listing-detail"
@@ -101,7 +104,12 @@ export default async function MarketplaceListingPage({
   /** When set (shop PDP), listing must belong to this store — single DB round-trip. */
   storeSlug?: string
 }) {
-  const [{ id }, sp, session] = await Promise.all([params, searchParams, auth()])
+  const [{ id }, sp, session, locale] = await Promise.all([
+    params,
+    searchParams,
+    auth(),
+    getLocale(),
+  ])
 
   const loaded = await loadMarketplaceListingPageData({
     listingId: id,
@@ -177,6 +185,8 @@ export default async function MarketplaceListingPage({
   )
 
   const p = listing.product
+  const offerMode = parseProductOfferMode(p.offerMode)
+  const offerBadge = offerModeBadge(offerMode, locale as AppLocale)
   const sellingEur = listing.sellingPriceCents / 100
   const compareAtEur = p.compareAt != null ? Number(p.compareAt) : null
   const retailPriceEur =
@@ -345,6 +355,7 @@ export default async function MarketplaceListingPage({
             ugcCount: listing.product.ugcCount,
           }}
           buyerRewardBadge={buyerRewardBadge}
+          offerBadge={offerBadge}
           writeReviewOrderId={writeReviewOrderId}
           openWriteReview={sp.writeReview === "true" && Boolean(writeReviewOrderId)}
           viewsLast24h={viewsLast24h}

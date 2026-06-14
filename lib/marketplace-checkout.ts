@@ -307,6 +307,7 @@ async function checkoutFromItems(
 
   const { baseUrl, cancelPath, successPath } = checkoutBaseUrls(opts)
 
+  const allowedCountries = stripeCheckoutAllowedCountries()
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "payment",
     ...marketplaceCheckoutPaymentSessionOptions(),
@@ -317,7 +318,7 @@ async function checkoutFromItems(
     customer_creation: "always",
     billing_address_collection: "required",
     shipping_address_collection: {
-      allowed_countries: stripeCheckoutAllowedCountries(),
+      allowed_countries: allowedCountries,
     },
     phone_number_collection: { enabled: true },
     payment_intent_data: {
@@ -335,6 +336,14 @@ async function checkoutFromItems(
       ...(primarySupplierId ? { sellerId: primarySupplierId } : {}),
       ...(buyerUserId ? { buyerUserId } : {}),
     },
+  })
+
+  console.log("[checkout]", {
+    flow: "cart",
+    sessionId: checkoutSession.id,
+    lineCount: loaded.length,
+    allowedCountries: allowedCountries.length,
+    appliedRewardCents: appliedCents,
   })
 
   if (!checkoutSession.url) {
@@ -549,6 +558,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
 
   const { baseUrl, cancelPath, successPath } = checkoutBaseUrls(body)
 
+  const allowedCountries = stripeCheckoutAllowedCountries()
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "payment",
     ...marketplaceCheckoutPaymentSessionOptions(),
@@ -559,7 +569,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
     customer_creation: "always",
     billing_address_collection: "required",
     shipping_address_collection: {
-      allowed_countries: stripeCheckoutAllowedCountries(),
+      allowed_countries: allowedCountries,
     },
     phone_number_collection: { enabled: true },
     payment_intent_data: {
@@ -588,6 +598,15 @@ export async function marketplaceCheckoutPOST(request: Request) {
       ...(resolvedBookingSlotId ? { bookingSlotId: resolvedBookingSlotId } : {}),
       ...(buyerUserId ? { buyerUserId } : {}),
     },
+  })
+
+  console.log("[checkout]", {
+    flow: "single",
+    sessionId: checkoutSession.id,
+    orderId: order.id,
+    affiliateProductId: affiliateProduct.id,
+    allowedCountries: allowedCountries.length,
+    qty: checkoutQty,
   })
 
   if (!checkoutSession.url) {

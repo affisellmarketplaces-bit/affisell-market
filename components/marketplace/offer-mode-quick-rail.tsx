@@ -49,14 +49,25 @@ export function OfferModeQuickRail({ basePath, className }: Props) {
 
   const toggle = (slug: string) => {
     const next = new URLSearchParams(searchParams.toString())
-    if (activeOffer === slug) next.delete(MARKETPLACE_OFFER_FACET_KEY)
+    const deselect = activeOffer === slug
+    if (deselect) next.delete(MARKETPLACE_OFFER_FACET_KEY)
     else next.set(MARKETPLACE_OFFER_FACET_KEY, slug)
+    console.log("[offer-rail]", {
+      action: deselect ? "deselect" : "select",
+      offer: slug,
+      path: targetPath,
+    })
     pushParams(next)
   }
 
   const clear = () => {
     const next = new URLSearchParams(searchParams.toString())
     next.delete(MARKETPLACE_OFFER_FACET_KEY)
+    console.log("[offer-rail]", {
+      action: "clear",
+      previousOffer: activeOffer,
+      path: targetPath,
+    })
     pushParams(next)
   }
 

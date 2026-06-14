@@ -62,6 +62,8 @@ export const listingDetailSelect = {
       shippingCountry: true,
       freeShippingThreshold: true,
       videoAdUrl: true,
+      offerMode: true,
+      minOrderQuantity: true,
       averageRating: true,
       reviewCount: true,
       reviewSentiment: true,

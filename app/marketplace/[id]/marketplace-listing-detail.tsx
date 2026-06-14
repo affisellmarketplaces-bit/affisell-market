@@ -33,6 +33,8 @@ import { SupplierTrustBadge } from "@/components/suppliers/supplier-trust-badge"
 import { Button } from "@/components/ui/button"
 import { MobilePdpBuyPanel } from "@/components/product/mobile-pdp-buy-panel"
 import { ProductMediaGallery } from "@/components/product/product-media-gallery"
+import { ProductOfferBadge } from "@/components/product/product-offer-badge"
+import type { OfferModeBadge } from "@/lib/product-offer-mode"
 import { ProductVideoWishlistOverlay } from "@/components/product/product-video-wishlist-overlay"
 import type { AppLocale } from "@/lib/i18n-locale"
 import { CLIENT_MESSAGES } from "@/lib/i18n-load-messages"
@@ -186,6 +188,8 @@ type Props = {
   openWriteReview?: boolean
   /** Shown near price when the affiliate listing offers buyer cashback / bonus */
   buyerRewardBadge?: string | null
+  /** Supplier-declared product condition (refurbished, second-hand, etc.) */
+  offerBadge?: OfferModeBadge | null
   /** Loaded client-side via ReviewsEngine → /api/reviews/product/[id] */
   ratingBreakdown?: Record<number, number>
   /** PDP views in the last 24h (analytics) — powers a “trending” signal when high enough. */
@@ -409,6 +413,7 @@ export function MarketplaceListingDetail({
   alsoViewed = [],
   reviewSummary,
   buyerRewardBadge = null,
+  offerBadge = null,
   ratingBreakdown,
   writeReviewOrderId = null,
   openWriteReview = false,
@@ -419,6 +424,7 @@ export function MarketplaceListingDetail({
   const locale = useLocale() as AppLocale
   const messages = CLIENT_MESSAGES[locale] as typeof import("@/messages/en.json")
   const productT = messages.Product
+  const browseT = messages.marketplace.browse
   const breadcrumbT = messages.Breadcrumb
   const router = useRouter()
   const reduceMotion = useReducedMotion()
@@ -953,11 +959,18 @@ export function MarketplaceListingDetail({
                 productId={productId}
                 alt={name}
                 overlay={
-                  has3D ? (
-                    <span className="pointer-events-none absolute left-4 top-4 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-3 py-1 text-xs font-semibold text-white shadow-md">
-                      {productT.view360}
-                    </span>
-                  ) : null
+                  <>
+                    {offerBadge ? <ProductOfferBadge badge={offerBadge} /> : null}
+                    {has3D ? (
+                      <span
+                        className={`pointer-events-none absolute left-4 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-3 py-1 text-xs font-semibold text-white shadow-md ${
+                          offerBadge ? "top-10" : "top-4"
+                        }`}
+                      >
+                        {productT.view360}
+                      </span>
+                    ) : null}
+                  </>
                 }
               />
               <div className="absolute right-2 top-2 z-10 lg:hidden">
@@ -1067,6 +1080,14 @@ export function MarketplaceListingDetail({
                     className="mb-2"
                     size="md"
                   />
+                  {offerBadge ? (
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                      <ProductOfferBadge badge={offerBadge} variant="inline" />
+                      <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400">
+                        {browseT.offerRail.cardSupplierNote}
+                      </span>
+                    </div>
+                  ) : null}
                 </div>
                 <h1 className="text-balance pl-0 lg:pl-2">
                   <span className="block text-[1.35rem] font-bold leading-[1.15] tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-[1.65rem]">
