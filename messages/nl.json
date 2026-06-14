@@ -906,6 +906,8 @@
       "storefrontTitle": "Je eigen merkstore",
       "greeting": "Hallo {storeName}",
       "myCatalog": "Mijn catalogus",
+      "myCatalogHint": "Marges, discover-feed & uw listings",
+      "myCatalogOpen": "Openen",
       "storefrontSubtitle": "Ontdek producten om te verkopen, stel je prijzen en marges in en beheer wat kopers in je openbare winkel zien—all hier vanuit.",
       "inviteSupplier": "Investeringspartner uitnodigen",
       "browseMarketplace": "Marktplaats verkennen",
@@ -1136,6 +1138,8 @@
       "eyebrow": "Mishon Controle",
       "greeting": "Hallo {storeName}",
       "myCatalog": "Mijn catalogus",
+      "myCatalogHint": "SKU's, voorraad & partnerlistings",
+      "myCatalogOpen": "Openen",
       "newProduct": "Nieuw product"
     },
     "urgent": {

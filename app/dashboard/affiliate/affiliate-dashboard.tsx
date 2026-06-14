@@ -634,11 +634,6 @@ export function AffiliateDashboard({ storeId }: Props) {
                   <h1 className="text-balance text-3xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
                     {storeName ? tHub("greeting", { storeName }) : tHub("storefrontTitle")}
                   </h1>
-                  <MerchantMyCatalogCue
-                    href={AFFILIATE_CATALOG_PATH}
-                    label={tHub("myCatalog")}
-                    variant="affiliate"
-                  />
                   <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-300 sm:text-[15px]">
                     {tHub("storefrontSubtitle")}
                   </p>
@@ -716,6 +711,15 @@ export function AffiliateDashboard({ storeId }: Props) {
                 </div>
               </div>
             </div>
+
+            <MerchantMyCatalogCue
+              href={AFFILIATE_CATALOG_PATH}
+              label={tHub("myCatalog")}
+              hint={tHub("myCatalogHint")}
+              actionLabel={tHub("myCatalogOpen")}
+              variant="affiliate"
+              className="mt-4"
+            />
 
             <div className="mt-8 grid gap-6 border-t border-gray-100/90 pt-8 dark:border-zinc-800 sm:grid-cols-3">
               <BentoStat

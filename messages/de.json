@@ -906,6 +906,8 @@
       "storefrontTitle": "Ihr eigenes Marken-Storefront",
       "greeting": "Hallo {storeName}",
       "myCatalog": "Mein Katalog",
+      "myCatalogHint": "Margen, Discover-Feed & Ihre Listings",
+      "myCatalogOpen": "Öffnen",
       "storefrontSubtitle": "Entdecken Sie Produkte zum Verkaufen, setzen Sie Ihre Preise und Margen fest und verwalten Sie, was Kunden in Ihrem öffentlichen Store sehen – alles von hier aus.",
       "inviteSupplier": "Lieferanten einladen",
       "browseMarketplace": "Marktplatz durchsuchen",
@@ -1136,6 +1138,8 @@
       "eyebrow": "Kontrollzentrale",
       "greeting": "Hallo {storeName}",
       "myCatalog": "Mein Katalog",
+      "myCatalogHint": "SKUs, Lager & Partner-Listings",
+      "myCatalogOpen": "Öffnen",
       "newProduct": "Neues Produkt"
     },
     "urgent": {

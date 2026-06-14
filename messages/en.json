@@ -899,6 +899,8 @@
       "storefrontTitle": "Your branded storefront",
       "greeting": "Hello {storeName}",
       "myCatalog": "My catalog",
+      "myCatalogHint": "Margins, discover feed & your listings",
+      "myCatalogOpen": "Open",
       "storefrontSubtitle": "Discover products to sell, set your prices and margins, and manage what shoppers see in your public store—all from here.",
       "inviteSupplier": "Invite supplier",
       "browseMarketplace": "Browse marketplace",
@@ -1129,6 +1131,8 @@
       "eyebrow": "Mission Control",
       "greeting": "Hello {storeName}",
       "myCatalog": "My catalog",
+      "myCatalogHint": "SKUs, stock & partner listings",
+      "myCatalogOpen": "Open",
       "newProduct": "New product"
     },
     "urgent": {

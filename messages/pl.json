@@ -906,6 +906,8 @@
       "storefrontTitle": "Twoja własna strona sklepowe",
       "greeting": "Cześć {storeName}",
       "myCatalog": "Mój katalog",
+      "myCatalogHint": "Marże, feed odkrywania i Twoje oferty",
+      "myCatalogOpen": "Otwórz",
       "storefrontSubtitle": "Odkryj produkty do sprzedaży, ustal ceny i marże, oraz zarządzaj tym, co widzą klienci w Twoim publicznym sklepie – wszystko z tego miejsca.",
       "inviteSupplier": "Zaproś dostawcę",
       "browseMarketplace": "Przeglądaj rynki",
@@ -1136,6 +1138,8 @@
       "eyebrow": "Centrum Misji",
       "greeting": "Cześć {storeName}",
       "myCatalog": "Mój katalog",
+      "myCatalogHint": "SKU, stany magazynowe i oferty partnerów",
+      "myCatalogOpen": "Otwórz",
       "newProduct": "Nowy produkt"
     },
     "urgent": {

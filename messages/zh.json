@@ -906,6 +906,8 @@
       "storefrontTitle": "您的品牌商店",
       "greeting": "你好 {storeName}",
       "myCatalog": "我的商品目录",
+      "myCatalogHint": "利润率、发现动态与您的上架",
+      "myCatalogOpen": "打开",
       "storefrontSubtitle": "从这里发现可售产品、设置价格和利润率以及管理在您的公共商店中显示的内容。",
       "inviteSupplier": "邀请供应商",
       "browseMarketplace": "浏览市场",
@@ -1136,6 +1138,8 @@
       "eyebrow": "任务控制台",
       "greeting": "你好 {storeName}",
       "myCatalog": "我的商品目录",
+      "myCatalogHint": "SKU、库存与合作伙伴上架",
+      "myCatalogOpen": "打开",
       "newProduct": "新产品"
     },
     "urgent": {

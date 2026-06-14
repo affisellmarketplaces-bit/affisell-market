@@ -906,6 +906,8 @@
       "storefrontTitle": "Il tuo negozio personalizzato",
       "greeting": "Ciao {storeName}",
       "myCatalog": "Il mio catalogo",
+      "myCatalogHint": "Margini, feed discover e le tue schede",
+      "myCatalogOpen": "Apri",
       "storefrontSubtitle": "Scopri i prodotti da vendere, stabilisci i prezzi e le margine, e gestisci cosa gli acquirenti vedono nel tuo negozio pubblico — tutto da qui.",
       "inviteSupplier": "Invita fornitore",
       "browseMarketplace": "Esplora mercato",
@@ -1136,6 +1138,8 @@
       "eyebrow": "Centro di controllo",
       "greeting": "Ciao {storeName}",
       "myCatalog": "Il mio catalogo",
+      "myCatalogHint": "SKU, stock e schede partner",
+      "myCatalogOpen": "Apri",
       "newProduct": "Nuovo prodotto"
     },
     "urgent": {
