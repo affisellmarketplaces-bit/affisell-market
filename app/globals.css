@@ -1447,6 +1447,38 @@ body.affisell-demo-lab .affisell-header-shell {
   }
 }
 
+/* —— Storefront integrated trust rail (header) —— */
+.affisell-storefront-trust-rail__scan {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--store-trust-accent, #7c3aed) 45%, transparent),
+    transparent
+  );
+  opacity: 0.55;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .affisell-storefront-trust-rail__scan {
+    animation: affisell-trust-rail-scan 5.5s ease-in-out infinite;
+  }
+}
+
+@keyframes affisell-trust-rail-scan {
+  0%,
+  100% {
+    transform: translateX(-120%);
+    opacity: 0;
+  }
+  45% {
+    opacity: 0.65;
+  }
+  50% {
+    transform: translateX(120%);
+    opacity: 0.45;
+  }
+}
+
 /* —— Dedicated storefront trust footer (futuristic glass) —— */
 .affisell-storefront-trust-footer {
   --trust-accent: #7c3aed;

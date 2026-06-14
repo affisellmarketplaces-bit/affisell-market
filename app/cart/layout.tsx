@@ -1,6 +1,7 @@
 import { headers } from "next/headers"
 
 import { StorefrontBuyerChromeBar } from "@/components/storefront/storefront-buyer-chrome-bar"
+import { loadAffiliateStorefrontTrust } from "@/lib/load-affiliate-storefront-trust"
 import { loadAffiliateShopStore } from "@/lib/shop-storefront-data"
 import {
   isCustomDomainHeaders,
@@ -20,7 +21,10 @@ export default async function CartLayout({ children }: { children: React.ReactNo
     return children
   }
 
-  const store = await loadAffiliateShopStore(slug)
+  const [store, trust] = await Promise.all([
+    loadAffiliateShopStore(slug),
+    loadAffiliateStorefrontTrust(slug),
+  ])
   if (!store) return children
 
   return (
@@ -34,6 +38,8 @@ export default async function CartLayout({ children }: { children: React.ReactNo
         headerBrandAlign={store.theme.headerBrandAlign}
         categoriesSlug={slug}
         shopHomePath="/"
+        trust={trust}
+        isCustomDomain
       />
       {children}
     </>

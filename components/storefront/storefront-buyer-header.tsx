@@ -6,7 +6,9 @@ import type { CSSProperties, ReactNode } from "react"
 
 import { CartCountBadge } from "@/components/cart/cart-count-badge"
 import { StoreNameBadge } from "@/components/storefront/store-name-badge"
+import { StorefrontHeaderTrustRail } from "@/components/storefront/storefront-header-trust-rail"
 import type { StoreNameBadgeStyle } from "@/lib/store-name-badge-styles"
+import type { StorefrontTrustSnapshot } from "@/lib/storefront-trust-shared"
 import type { StorefrontHeaderBrandAlign } from "@/lib/storefront-theme-shared"
 import { cn } from "@/lib/utils"
 
@@ -24,6 +26,8 @@ type Props = {
   menuExpanded?: boolean
   menuControlsId?: string
   compact?: boolean
+  trust?: StorefrontTrustSnapshot | null
+  isCustomDomain?: boolean
 }
 
 function ChromeIconButton({
@@ -112,6 +116,8 @@ export function StorefrontBuyerHeader({
   menuExpanded = false,
   menuControlsId = "storefront-category-drawer",
   compact = false,
+  trust = null,
+  isCustomDomain = false,
 }: Props) {
   const displayName = storeName.trim() || "Store"
   const hasLogo = Boolean(logoUrl?.trim())
@@ -156,12 +162,18 @@ export function StorefrontBuyerHeader({
   )
 
   return (
-    <div
+    <header
       className={cn(
-        "relative isolate border-b border-zinc-200/70 bg-white/90 backdrop-blur-xl dark:border-zinc-800/80 dark:bg-zinc-950/90",
-        compact ? "shadow-sm" : "shadow-[0_10px_30px_-22px_color-mix(in_srgb,var(--store-accent,#7c3aed)_50%,transparent)]"
+        "affisell-storefront-chrome relative isolate border-b border-zinc-200/70 bg-white/90 backdrop-blur-xl dark:border-zinc-800/80 dark:bg-zinc-950/90",
+        compact
+          ? "shadow-sm"
+          : "shadow-[0_10px_30px_-22px_color-mix(in_srgb,var(--store-accent,#7c3aed)_50%,transparent)]"
       )}
     >
+      <div
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-40%,color-mix(in_srgb,var(--store-accent,#7c3aed)_12%,transparent),transparent_55%)]"
+        aria-hidden
+      />
       <div
         className="pointer-events-none absolute inset-x-0 top-0 h-px"
         style={{
@@ -208,6 +220,15 @@ export function StorefrontBuyerHeader({
           </div>
         ) : null}
       </div>
-    </div>
+
+      {trust ? (
+        <StorefrontHeaderTrustRail
+          trust={trust}
+          accent={accent}
+          isCustomDomain={isCustomDomain}
+          variant="integrated"
+        />
+      ) : null}
+    </header>
   )
 }

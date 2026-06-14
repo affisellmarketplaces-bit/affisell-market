@@ -9,6 +9,7 @@ import { StorefrontCategoryDrawerNav } from "@/components/storefront/storefront-
 import { useBuyerCartCount } from "@/hooks/use-buyer-cart-count"
 import type { StoreNameBadgeStyle } from "@/lib/store-name-badge-styles"
 import type { StorefrontCategoryGroup } from "@/lib/shop-storefront-categories"
+import type { StorefrontTrustSnapshot } from "@/lib/storefront-trust-shared"
 import type { StorefrontHeaderBrandAlign } from "@/lib/storefront-theme-shared"
 import { cn } from "@/lib/utils"
 
@@ -24,6 +25,8 @@ type Props = {
   categoriesSlug?: string
   totalProducts?: number
   shopHomePath?: string
+  trust?: StorefrontTrustSnapshot | null
+  isCustomDomain?: boolean
 }
 
 const EMPTY_CATEGORIES: StorefrontCategoryGroup[] = []
@@ -39,6 +42,8 @@ export function StorefrontBuyerChrome({
   categoriesSlug,
   totalProducts = 0,
   shopHomePath = "/",
+  trust = null,
+  isCustomDomain = false,
 }: Props) {
   const serverCategories = categories ?? EMPTY_CATEGORIES
   const t = useTranslations("storefront.buyerChrome")
@@ -127,6 +132,8 @@ export function StorefrontBuyerChrome({
           onOpenMenu={() => setDrawerOpen(true)}
           menuExpanded={drawerOpen}
           menuControlsId="storefront-category-drawer"
+          trust={trust}
+          isCustomDomain={isCustomDomain}
         />
       </div>
 

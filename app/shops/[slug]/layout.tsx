@@ -53,6 +53,8 @@ export default async function ShopPublicLayout({
           headerBrandAlign={store.theme.headerBrandAlign}
           categoriesSlug={slug}
           shopHomePath="/"
+          trust={trust}
+          isCustomDomain
         />
       ) : null}
       <AffiliateStorePreviewBanner storeSlug={slug} isOwner={isOwner} />
@@ -99,7 +101,7 @@ export default async function ShopPublicLayout({
           />
         )
       ) : null}
-      {trust ? (
+      {trust && !isCustomDomain ? (
         <StorefrontTrustStrip trust={trust} isCustomDomain={isCustomDomain} theme={store?.theme} />
       ) : null}
       <main className="min-w-0 overflow-x-clip">{children}</main>

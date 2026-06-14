@@ -111,6 +111,8 @@ export function SponsorBoostStudio({ role, items }: Props) {
       return
     }
     const controller = new AbortController()
+    let cancelled = false
+
     const run = async () => {
       setLoadingQuote(true)
       try {
@@ -129,14 +131,23 @@ export function SponsorBoostStudio({ role, items }: Props) {
           body: JSON.stringify(body),
           signal: controller.signal,
         })
+        if (cancelled) return
         const data = await res.json()
         if (res.ok && data.quote) setQuote(data.quote as Quote)
+      } catch (error) {
+        if (controller.signal.aborted || (error instanceof Error && error.name === "AbortError")) {
+          return
+        }
+        console.warn("[sponsor-boost-studio]", { error: error instanceof Error ? error.message : error })
       } finally {
-        setLoadingQuote(false)
+        if (!cancelled) setLoadingQuote(false)
       }
     }
     void run()
-    return () => controller.abort()
+    return () => {
+      cancelled = true
+      controller.abort()
+    }
   }, [selected, rateBps, durationDays, placement])
 
   async function launchBoost() {

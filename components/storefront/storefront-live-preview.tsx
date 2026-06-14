@@ -125,6 +125,16 @@ export function StorefrontLivePreview({ draft, className }: Props) {
             categories={PREVIEW_CATEGORIES}
             totalProducts={4}
             shopHomePath="/"
+            isCustomDomain
+            trust={{
+              storeName: draft.name.trim() || t("sampleName"),
+              partnerListingCode: "AFS-PREVIEW",
+              merchantVerified: true,
+              legalDisplayName: null,
+              legalStatus: null,
+              countryCode: null,
+              verifiedAt: null,
+            }}
           />
           {draft.layout === "minimal" ? (
             draft.description.trim() ? (

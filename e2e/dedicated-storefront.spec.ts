@@ -16,6 +16,7 @@ test.describe("dedicated affiliate storefront", () => {
     await expect(footer).toHaveCount(1)
     await footer.scrollIntoViewIfNeeded()
     await expect(footer).toBeVisible()
+    await expect(page.locator(".affisell-storefront-trust-rail")).toHaveCount(1)
 
     const menu = page.getByRole("button", { name: /Browse categories|Parcourir les catégories/i })
     await expect(menu).toBeVisible()
