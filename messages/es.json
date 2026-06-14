@@ -904,6 +904,8 @@
     },
     "hub": {
       "storefrontTitle": "Tu tienda de marca",
+      "greeting": "Hola {storeName}",
+      "myCatalog": "Mi catálogo",
       "storefrontSubtitle": "Descubre productos para vender, establece tus precios y márgenes y gestiona lo que los compradores ven en tu tienda pública—todo desde aquí.",
       "inviteSupplier": "Invitar proveedor",
       "browseMarketplace": "Explorar mercado",
@@ -1133,6 +1135,7 @@
     "header": {
       "eyebrow": "Centro de control",
       "greeting": "Hola {storeName}",
+      "myCatalog": "Mi catálogo",
       "newProduct": "Nuevo producto"
     },
     "urgent": {

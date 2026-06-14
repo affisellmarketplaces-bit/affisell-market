@@ -905,6 +905,8 @@
     },
     "hub": {
       "storefrontTitle": "Votre vitrine de marque",
+      "greeting": "Bonjour {storeName}",
+      "myCatalog": "Mon catalogue",
       "storefrontSubtitle": "Découvrez des produits à vendre, fixez vos prix et marges, et gérez ce que les acheteurs voient sur votre boutique publique.",
       "inviteSupplier": "Inviter un fournisseur",
       "browseMarketplace": "Parcourir le marketplace",
@@ -1134,6 +1136,7 @@
     "header": {
       "eyebrow": "Centre de pilotage",
       "greeting": "Bonjour {storeName}",
+      "myCatalog": "Mon catalogue",
       "newProduct": "Nouveau produit"
     },
     "urgent": {

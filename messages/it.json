@@ -904,6 +904,8 @@
     },
     "hub": {
       "storefrontTitle": "Il tuo negozio personalizzato",
+      "greeting": "Ciao {storeName}",
+      "myCatalog": "Il mio catalogo",
       "storefrontSubtitle": "Scopri i prodotti da vendere, stabilisci i prezzi e le margine, e gestisci cosa gli acquirenti vedono nel tuo negozio pubblico — tutto da qui.",
       "inviteSupplier": "Invita fornitore",
       "browseMarketplace": "Esplora mercato",
@@ -1133,6 +1135,7 @@
     "header": {
       "eyebrow": "Centro di controllo",
       "greeting": "Ciao {storeName}",
+      "myCatalog": "Il mio catalogo",
       "newProduct": "Nuovo prodotto"
     },
     "urgent": {

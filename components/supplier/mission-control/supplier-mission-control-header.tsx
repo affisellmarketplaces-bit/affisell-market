@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Plus } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
+import { MerchantMyCatalogCue } from "@/components/dashboard/merchant-my-catalog-cue"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -19,6 +20,11 @@ export async function SupplierMissionControlHeader({ storeName }: Props) {
         <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-3xl">
           {t("greeting", { storeName })}
         </h1>
+        <MerchantMyCatalogCue
+          href="/dashboard/supplier/products"
+          label={t("myCatalog")}
+          variant="supplier"
+        />
       </div>
       <Link
         href="/dashboard/supplier/products/new"

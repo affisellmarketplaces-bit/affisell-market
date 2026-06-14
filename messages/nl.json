@@ -904,6 +904,8 @@
     },
     "hub": {
       "storefrontTitle": "Je eigen merkstore",
+      "greeting": "Hallo {storeName}",
+      "myCatalog": "Mijn catalogus",
       "storefrontSubtitle": "Ontdek producten om te verkopen, stel je prijzen en marges in en beheer wat kopers in je openbare winkel zien—all hier vanuit.",
       "inviteSupplier": "Investeringspartner uitnodigen",
       "browseMarketplace": "Marktplaats verkennen",
@@ -1133,6 +1135,7 @@
     "header": {
       "eyebrow": "Mishon Controle",
       "greeting": "Hallo {storeName}",
+      "myCatalog": "Mijn catalogus",
       "newProduct": "Nieuw product"
     },
     "urgent": {

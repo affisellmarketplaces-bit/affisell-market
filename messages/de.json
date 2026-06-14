@@ -904,6 +904,8 @@
     },
     "hub": {
       "storefrontTitle": "Ihr eigenes Marken-Storefront",
+      "greeting": "Hallo {storeName}",
+      "myCatalog": "Mein Katalog",
       "storefrontSubtitle": "Entdecken Sie Produkte zum Verkaufen, setzen Sie Ihre Preise und Margen fest und verwalten Sie, was Kunden in Ihrem öffentlichen Store sehen – alles von hier aus.",
       "inviteSupplier": "Lieferanten einladen",
       "browseMarketplace": "Marktplatz durchsuchen",
@@ -1133,6 +1135,7 @@
     "header": {
       "eyebrow": "Kontrollzentrale",
       "greeting": "Hallo {storeName}",
+      "myCatalog": "Mein Katalog",
       "newProduct": "Neues Produkt"
     },
     "urgent": {

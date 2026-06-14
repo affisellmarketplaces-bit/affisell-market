@@ -904,6 +904,8 @@
     },
     "hub": {
       "storefrontTitle": "Twoja własna strona sklepowe",
+      "greeting": "Cześć {storeName}",
+      "myCatalog": "Mój katalog",
       "storefrontSubtitle": "Odkryj produkty do sprzedaży, ustal ceny i marże, oraz zarządzaj tym, co widzą klienci w Twoim publicznym sklepie – wszystko z tego miejsca.",
       "inviteSupplier": "Zaproś dostawcę",
       "browseMarketplace": "Przeglądaj rynki",
@@ -1133,6 +1135,7 @@
     "header": {
       "eyebrow": "Centrum Misji",
       "greeting": "Cześć {storeName}",
+      "myCatalog": "Mój katalog",
       "newProduct": "Nowy produkt"
     },
     "urgent": {

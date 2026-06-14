@@ -22,12 +22,13 @@ export async function GET() {
       loadAffiliateDashboardListings(session.user.id),
       prisma.store.findUnique({
         where: { userId: session.user.id },
-        select: { slug: true },
+        select: { slug: true, name: true },
       }),
     ])
     return NextResponse.json({
       listings,
       storeSlug: store?.slug ?? null,
+      storeName: store?.name?.trim() || null,
     })
   } catch (e) {
     console.error("[affiliate/bootstrap]", e)
@@ -35,6 +36,7 @@ export async function GET() {
       {
         listings: [],
         storeSlug: null,
+        storeName: null,
         ...dbUnavailablePayload(e),
       },
       { status: 503 }

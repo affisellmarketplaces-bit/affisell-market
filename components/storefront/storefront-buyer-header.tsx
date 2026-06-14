@@ -53,7 +53,7 @@ function ChromeIconButton({
 }) {
   const shellClass = cn(
     "relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full",
-    "border border-white/10 bg-white/5 text-zinc-100 shadow-lg backdrop-blur-md",
+    "bg-white/5 text-zinc-100 shadow-lg backdrop-blur-md",
     "transition duration-200 hover:scale-105 hover:bg-white/10 active:scale-95",
     "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400/80",
     className
@@ -153,8 +153,7 @@ export function StorefrontBuyerHeader({
     <header
       className={cn(
         "affisell-storefront-chrome relative isolate overflow-hidden",
-        "sticky top-0 z-50 border-b border-white/5 bg-zinc-950/60 text-zinc-100 shadow-lg backdrop-blur-2xl",
-        compact ? "shadow-md" : "shadow-[0_12px_40px_-20px_rgba(124,58,237,0.35)]"
+        "sticky top-0 z-50 border-b border-white/10 bg-zinc-950/90 text-zinc-100 backdrop-blur-xl shadow-[0_1px_0_0_rgba(255,255,255,0.05)]"
       )}
     >
       <div

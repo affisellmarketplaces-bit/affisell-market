@@ -43,6 +43,7 @@ import { useTranslations } from "next-intl"
 import AffiliateLiveStore from "@/components/affiliate/affiliate-live-store"
 import { DiscoverListingActions } from "@/components/affiliate/discover-listing-actions"
 import { BentoStat } from "@/components/affisell/bento-ui"
+import { MerchantMyCatalogCue } from "@/components/dashboard/merchant-my-catalog-cue"
 import {
   ListingBuilderModal,
   type SerializedListing,
@@ -224,6 +225,7 @@ export function AffiliateDashboard({ storeId }: Props) {
   const searchParams = useSearchParams()
   const productDeepLinkConsumed = useRef(false)
   const [storeSlug, setStoreSlug] = useState<string | null>(null)
+  const [storeName, setStoreName] = useState<string | null>(null)
   const [bootstrapLoading, setBootstrapLoading] = useState(true)
   const [bootstrapError, setBootstrapError] = useState<string | null>(null)
   const [catalog, setCatalog] = useState<CatalogProduct[]>([])
@@ -246,6 +248,7 @@ export function AffiliateDashboard({ storeId }: Props) {
         const data = (await r.json()) as {
           listings?: Listing[]
           storeSlug?: string | null
+          storeName?: string | null
           error?: string
         }
         if (!cancelled) {
@@ -253,6 +256,7 @@ export function AffiliateDashboard({ storeId }: Props) {
             setListings([...data.listings].sort(sortAffiliateListingByPosition))
           }
           setStoreSlug(data.storeSlug ?? null)
+          setStoreName(data.storeName?.trim() || null)
           if (!r.ok) setBootstrapError(data.error ?? "Could not load your storefront data")
         }
       })
@@ -302,6 +306,7 @@ export function AffiliateDashboard({ storeId }: Props) {
       const boot = (await bootRes.json()) as {
         listings?: Listing[]
         storeSlug?: string | null
+        storeName?: string | null
         error?: string
       }
       const cat = (await catRes.json()) as { products?: CatalogProduct[]; error?: string }
@@ -309,6 +314,7 @@ export function AffiliateDashboard({ storeId }: Props) {
         setListings([...boot.listings].sort(sortAffiliateListingByPosition))
       }
       setStoreSlug(boot.storeSlug ?? null)
+      setStoreName(boot.storeName?.trim() || null)
       setBootstrapError(bootRes.ok ? null : (boot.error ?? "Could not load your storefront data"))
       if (catRes.ok && Array.isArray(cat.products)) {
         setCatalog(cat.products)
@@ -626,8 +632,13 @@ export function AffiliateDashboard({ storeId }: Props) {
                 </div>
                 <div>
                   <h1 className="text-balance text-3xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
-                    {tHub("storefrontTitle")}
+                    {storeName ? tHub("greeting", { storeName }) : tHub("storefrontTitle")}
                   </h1>
+                  <MerchantMyCatalogCue
+                    href={AFFILIATE_CATALOG_PATH}
+                    label={tHub("myCatalog")}
+                    variant="affiliate"
+                  />
                   <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-300 sm:text-[15px]">
                     {tHub("storefrontSubtitle")}
                   </p>
