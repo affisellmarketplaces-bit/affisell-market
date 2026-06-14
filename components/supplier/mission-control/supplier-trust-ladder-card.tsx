@@ -26,6 +26,22 @@ type Props = {
 
 const LADDER: Exclude<SupplierTrustTier, "NONE">[] = ["SPARK", "FORGE", "ORBITAL"]
 
+function ladderStepClass(step: (typeof LADDER)[number], active: boolean, unlocked: boolean): string {
+  if (active) {
+    if (step === "SPARK") {
+      return "border-amber-400/50 bg-amber-500/10 ring-1 ring-amber-400/35"
+    }
+    if (step === "FORGE") {
+      return "border-violet-400/50 bg-violet-500/10 ring-1 ring-violet-400/35"
+    }
+    return "border-indigo-400/50 bg-indigo-500/10 ring-1 ring-indigo-400/35"
+  }
+  if (unlocked) {
+    return "border-emerald-500/30 bg-emerald-500/5"
+  }
+  return "border-white/10 bg-white/5 opacity-80"
+}
+
 function pct(current: number, target: number): number {
   if (target <= 0) return 0
   return Math.min(100, Math.round((current / target) * 100))
@@ -93,8 +109,8 @@ export function SupplierTrustLadderCard({ tier, metrics, locale = "fr", classNam
   const title = locale === "fr" ? "Badges fournisseur" : "Supplier badges"
   const subtitle =
     locale === "fr"
-      ? "Trois niveaux de confiance — Spark, Forge, puis le badge bleu Orbital à 1 M+ commandes réussies."
-      : "Three trust levels — Spark, Forge, then the blue Orbital badge at 1M+ successful orders."
+      ? "Trois niveaux de confiance — Spark, Forge, puis le badge Orbital à 1 M+ commandes réussies."
+      : "Three trust levels — Spark, Forge, then the Orbital badge at 1M+ successful orders."
   const toggleLabel = open
     ? locale === "fr"
       ? "Replier les badges fournisseur"
@@ -199,11 +215,7 @@ export function SupplierTrustLadderCard({ tier, metrics, locale = "fr", classNam
                   key={step}
                   className={cn(
                     "rounded-2xl border p-4 transition",
-                    active
-                      ? "border-sky-400/60 bg-sky-500/10 ring-1 ring-sky-400/40"
-                      : unlocked
-                        ? "border-emerald-500/30 bg-emerald-500/5"
-                        : "border-white/10 bg-white/5 opacity-80"
+                    ladderStepClass(step, active, unlocked)
                   )}
                 >
                   <div className="flex items-center gap-2">
@@ -241,7 +253,7 @@ export function SupplierTrustLadderCard({ tier, metrics, locale = "fr", classNam
                   </div>
                   <div className="h-2 overflow-hidden rounded-full bg-white/10">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-violet-400 to-sky-400"
+                      className="h-full rounded-full bg-gradient-to-r from-violet-400 to-indigo-400"
                       style={{ width: `${pct(progress.ordersProgress, progress.ordersTarget)}%` }}
                     />
                   </div>
@@ -263,10 +275,10 @@ export function SupplierTrustLadderCard({ tier, metrics, locale = "fr", classNam
               </div>
             </div>
           ) : tier === "ORBITAL" ? (
-            <p className="mt-6 text-sm font-medium text-sky-200">
+            <p className="mt-6 text-sm font-medium text-violet-200">
               {locale === "fr"
-                ? "Badge Orbital bleu débloqué — vous êtes au sommet de la Trust Ladder Affisell."
-                : "Orbital blue badge unlocked — top of the Affisell Trust Ladder."}
+                ? "Badge Orbital débloqué — vous êtes au sommet de la Trust Ladder Affisell."
+                : "Orbital badge unlocked — top of the Affisell Trust Ladder."}
             </p>
           ) : null}
         </div>
