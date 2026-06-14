@@ -635,7 +635,9 @@ export default function CartPage() {
               {t("emailOrPhoneBeforePayment")}
             </p>
           ) : null}
-          <FlexiblePaymentBadge amountCents={subtotalCents} className="mb-4" />
+          <div className="mb-4 flex justify-center sm:justify-start">
+            <FlexiblePaymentBadge amountCents={subtotalCents} />
+          </div>
           <button
             type="button"
             disabled={checkoutBusy}

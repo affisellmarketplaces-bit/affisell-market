@@ -1003,6 +1003,8 @@
       "freeShippingFacet": "Envío gratis",
       "offerRail": {
         "eyebrow": "Economía circular",
+        "hint": "Reacondicionado, segunda mano, mayorista y donación — un toque para filtrar.",
+        "tapHint": "Elegir un modo",
         "clear": "Mostrar todo"
       },
       "browseDepartmentsRail": {

@@ -1006,6 +1006,8 @@
       },
       "offerRail": {
         "eyebrow": "Circular economy",
+        "hint": "Refurbished, pre-owned, bulk & donation — one tap to filter.",
+        "tapHint": "Tap a mode",
         "clear": "Show all"
       },
       "browseDepartmentsRail": {
@@ -1270,13 +1272,30 @@
         "net": "Net/sale",
         "sold": "{count} sold",
         "toggle": "Auto-buy for this SKU",
-        "suggestion": "Suggested price {suggested} (break-even {breakEven}) to target a 30% net margin."
+        "suggestion": "Suggested catalog price {suggested} (break-even {breakEven}) — margin floor when no peer data.",
+        "suggestionPeers": "Suggested catalog price {suggested} (Affisell median {median} · {count} peer suppliers · break-even {breakEven})."
       },
       "radar": {
         "title": "Demand radar — last {days} days",
-        "subtitle": "Top-selling categories on Affisell right now: source where demand already exists.",
+        "subtitle": "Live category momentum on Affisell. Pulse index and network share — no affiliate storefront pricing exposed.",
+        "liveFeed": "Live feed",
         "orders": "{count} sales",
-        "avgPrice": "avg {price}",
+        "networkShare": "{pct}% network flow",
+        "pulseIndex": "Pulse index",
+        "basketSignal": "Band",
+        "sourceHint": "Source here",
+        "tier": {
+          "scan": "Scan",
+          "warm": "Warm",
+          "hot": "Hot",
+          "surge": "Surge"
+        },
+        "basketBand": {
+          "entry": "Entry band signal",
+          "core": "Core market signal",
+          "premium": "Premium band signal",
+          "luxury": "Luxury band signal"
+        },
         "covered": "You're in",
         "opportunity": "Opportunity"
       }

@@ -10,6 +10,11 @@
  */
 
 import {
+  resolveCatalogPriceSuggestion,
+  type CatalogPeerBenchmark,
+  type CatalogPriceSuggestionSource,
+} from "@/lib/supplier/catalog-peer-pricing"
+import {
   DEFAULT_SUPPLIER_FEE_BPS_AUTO_BUY,
 } from "@/lib/marketplace-phase1-fees"
 
@@ -27,12 +32,14 @@ export type SkuEconomicsInput = {
   affiliateCommissionBps: number
   /** Fee Affisell auto-buy en bps (défaut plateforme : 1700). */
   supplierFeeBps?: number
-  /** Ventes réalisées (fenêtre 30 j) pour pondérer le score. */
+  /** Ventes réalisées (fenêtre 30 j) — revenue = somme basePriceCents catalogue, pas revente affilié. */
   realized?: {
     orders: number
     revenueCents: number
     marginCents: number
   } | null
+  /** Médiane HT des autres fournisseurs Affisell (même catégorie). */
+  catalogPeerBenchmark?: CatalogPeerBenchmark | null
 }
 
 export type SkuEconomics = {
@@ -40,11 +47,15 @@ export type SkuEconomics = {
   grossMarginPct: number | null
   netMarginCents: number | null
   netMarginPct: number | null
-  /** Prix plancher où la marge nette = 0. */
+  /** Prix plancher où la marge nette = 0 (COGS + fees). */
   breakEvenPriceCents: number | null
-  /** Prix conseillé pour atteindre PROFIT_TARGET_MARGIN_BPS de marge nette. */
+  /** Cible marge 30 % — plancher interne si pas assez de pairs catalogue. */
+  marginTargetPriceCents: number | null
+  /** Prix catalogue conseillé (pairs Affisell prioritaire). */
   suggestedPriceCents: number | null
-  /** 0–100 (null si COGS inconnu). */
+  suggestedPriceSource: CatalogPriceSuggestionSource | null
+  catalogPeerMedianCents: number | null
+  catalogPeerCount: number
   healthScore: number | null
   healthBand: SkuHealthBand
   realizedNetMarginPct: number | null
@@ -66,10 +77,12 @@ function scoreFromNetPct(netPct: number): number {
   return clamp(Math.round(netPct * 4), 0, 100)
 }
 
+
 export function computeSkuEconomics(input: SkuEconomicsInput): SkuEconomics {
   const selling = Math.max(0, Math.round(input.sellingPriceCents))
   const feeBps = Math.max(0, Math.round(input.supplierFeeBps ?? DEFAULT_SUPPLIER_FEE_BPS_AUTO_BUY))
   const commissionBps = clamp(Math.round(input.affiliateCommissionBps), 0, 9_500)
+  const peer = input.catalogPeerBenchmark ?? null
 
   const realized = input.realized ?? null
   const realizedNetMarginPct =
@@ -78,13 +91,22 @@ export function computeSkuEconomics(input: SkuEconomicsInput): SkuEconomics {
       : null
 
   if (input.cogsCents == null || input.cogsCents <= 0 || selling <= 0) {
+    const resolved = resolveCatalogPriceSuggestion({
+      breakEvenPriceCents: null,
+      marginTargetPriceCents: null,
+      peer,
+    })
     return {
       grossMarginCents: null,
       grossMarginPct: null,
       netMarginCents: null,
       netMarginPct: null,
       breakEvenPriceCents: null,
-      suggestedPriceCents: null,
+      marginTargetPriceCents: null,
+      suggestedPriceCents: resolved.suggestedPriceCents,
+      suggestedPriceSource: resolved.suggestedPriceSource,
+      catalogPeerMedianCents: resolved.catalogPeerMedianCents,
+      catalogPeerCount: resolved.catalogPeerCount,
       healthScore: realizedNetMarginPct != null ? scoreFromNetPct(realizedNetMarginPct) : null,
       healthBand: realizedNetMarginPct != null ? bandFromNetPct(realizedNetMarginPct) : "unknown",
       realizedNetMarginPct,
@@ -109,7 +131,12 @@ export function computeSkuEconomics(input: SkuEconomicsInput): SkuEconomics {
   // selling × (1 − commission − cible) = cogs + fee
   const targetFrac = PROFIT_TARGET_MARGIN_BPS / 10_000
   const denom = 1 - commissionFrac - targetFrac
-  const suggestedPriceCents = denom > 0 ? Math.ceil(fixedCosts / denom) : null
+  const marginTargetPriceCents = denom > 0 ? Math.ceil(fixedCosts / denom) : null
+  const resolved = resolveCatalogPriceSuggestion({
+    breakEvenPriceCents,
+    marginTargetPriceCents,
+    peer,
+  })
 
   const theoreticalScore = scoreFromNetPct(netMarginPct)
   // ≥3 ventes réelles : 50/50 théorie / réalité (drift de rentabilité visible)
@@ -124,7 +151,11 @@ export function computeSkuEconomics(input: SkuEconomicsInput): SkuEconomics {
     netMarginCents,
     netMarginPct,
     breakEvenPriceCents,
-    suggestedPriceCents,
+    marginTargetPriceCents,
+    suggestedPriceCents: resolved.suggestedPriceCents,
+    suggestedPriceSource: resolved.suggestedPriceSource,
+    catalogPeerMedianCents: resolved.catalogPeerMedianCents,
+    catalogPeerCount: resolved.catalogPeerCount,
     healthScore,
     healthBand: bandFromNetPct(netMarginPct),
     realizedNetMarginPct,

@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { Bot, Loader2, Radar, TrendingUp } from "lucide-react"
+import { Bot, Loader2, TrendingUp } from "lucide-react"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
 
@@ -11,6 +11,7 @@ import type {
   AutoBuyPilotSnapshot,
   AutoBuyPilotSku,
 } from "@/lib/supplier/load-auto-buy-pilot"
+import { DemandRadarGrid } from "@/components/supplier/demand-radar-grid"
 import { cn } from "@/lib/utils"
 
 const BAND_STYLES: Record<string, { badge: string; bar: string }> = {
@@ -212,39 +213,7 @@ export function AutoBuyPilotPanel({ snapshot }: { snapshot: AutoBuyPilotSnapshot
         )}
       </div>
 
-      {radar.length > 0 ? (
-        <div className="border-t border-white/10 p-5 sm:p-6">
-          <div className="flex items-center gap-2">
-            <Radar className="h-4 w-4 text-violet-300" aria-hidden />
-            <h4 className="text-sm font-semibold">{t("radar.title", { days: windowDays })}</h4>
-          </div>
-          <p className="mt-1 text-xs text-zinc-400">{t("radar.subtitle")}</p>
-          <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            {radar.map((cat) => (
-              <li
-                key={cat.categoryId}
-                className="rounded-xl border border-white/10 bg-white/5 p-3"
-              >
-                <p className="truncate text-sm font-semibold">{cat.name}</p>
-                <p className="mt-0.5 text-xs tabular-nums text-zinc-400">
-                  {t("radar.orders", { count: cat.orders30d })} ·{" "}
-                  {t("radar.avgPrice", { price: eur(cat.avgSellingCents) })}
-                </p>
-                <span
-                  className={cn(
-                    "mt-2 inline-flex rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
-                    cat.supplierHasListing
-                      ? "border-emerald-400/30 bg-emerald-500/15 text-emerald-300"
-                      : "border-violet-400/40 bg-violet-500/20 text-violet-200"
-                  )}
-                >
-                  {cat.supplierHasListing ? t("radar.covered") : t("radar.opportunity")}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
+      <DemandRadarGrid categories={radar} windowDays={windowDays} />
     </section>
   )
 }
@@ -314,12 +283,19 @@ function PilotSkuRow({
         />
       </div>
 
-      {underpriced ? (
+      {underpriced && eco.suggestedPriceCents != null ? (
         <p className="mt-2 text-xs text-amber-300">
-          {t("row.suggestion", {
-            suggested: eur(eco.suggestedPriceCents),
-            breakEven: eur(eco.breakEvenPriceCents),
-          })}
+          {eco.suggestedPriceSource === "catalog_peers"
+            ? t("row.suggestionPeers", {
+                suggested: eur(eco.suggestedPriceCents),
+                median: eur(eco.catalogPeerMedianCents),
+                count: eco.catalogPeerCount,
+                breakEven: eur(eco.breakEvenPriceCents),
+              })
+            : t("row.suggestion", {
+                suggested: eur(eco.suggestedPriceCents),
+                breakEven: eur(eco.breakEvenPriceCents),
+              })}
         </p>
       ) : null}
     </li>

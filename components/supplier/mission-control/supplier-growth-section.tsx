@@ -40,15 +40,15 @@ export async function SupplierGrowthSection({ growth }: Props) {
         ) : (
           <div className="space-y-4">
             <p className={cn("text-sm leading-relaxed", missionControlAffisellSubtext)}>
-              <span className="font-semibold text-violet-900 dark:text-violet-100">
+              <span className="font-semibold text-foreground">
                 {opp.affiliateViewerCount === 1
                   ? t("affiliateInterestOne", { count: opp.affiliateViewerCount })
                   : t("affiliateInterestMany", { count: opp.affiliateViewerCount })}
               </span>{" "}
               <span className="font-medium">« {opp.productName} »</span>
             </p>
-            <p className="flex items-start gap-2 rounded-xl border border-violet-200/60 bg-violet-50/70 px-3 py-2.5 text-sm text-violet-950 dark:border-violet-500/20 dark:bg-violet-950/35 dark:text-violet-100">
-              <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" aria-hidden />
+            <p className="flex items-start gap-2 rounded-xl border border-border/70 bg-muted/15 px-3 py-2.5 text-sm text-muted-foreground">
+              <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-500/80" aria-hidden />
               <span>
                 {opp.estimatedExtraSales7d === 1
                   ? t("estimateSalesOne", { count: opp.estimatedExtraSales7d })
@@ -75,7 +75,7 @@ export async function SupplierGrowthSection({ growth }: Props) {
 
       <div className={cn(missionControlPanel, "space-y-4 p-5")}>
         <div className="flex items-center gap-2">
-          <TrendingUp className="h-4 w-4 text-emerald-600" aria-hidden />
+          <TrendingUp className="h-4 w-4 text-emerald-600/75" aria-hidden />
           <h2 className={cn("text-sm", missionControlHeading)}>{t("catalogPerformance")}</h2>
         </div>
         <div className="flex items-baseline gap-2">
@@ -99,14 +99,14 @@ export async function SupplierGrowthSection({ growth }: Props) {
               {growth.dormantSkus.map((sku) => (
                 <li
                   key={sku.id}
-                  className="flex items-center gap-3 rounded-xl border border-violet-200/50 px-2 py-2 dark:border-violet-500/15"
+                  className="flex items-center gap-3 rounded-xl border border-border/60 px-2 py-2"
                 >
                   {sku.imageUrl ? (
-                    <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-md bg-violet-100 dark:bg-violet-950/50">
+                    <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-md bg-muted/30">
                       <Image src={sku.imageUrl} alt="" fill className="object-cover" sizes="36px" />
                     </div>
                   ) : (
-                    <div className="h-9 w-9 shrink-0 rounded-md bg-violet-100 dark:bg-violet-950/50" />
+                    <div className="h-9 w-9 shrink-0 rounded-md bg-muted/30" />
                   )}
                   <p className={cn("min-w-0 flex-1 truncate text-sm font-medium", missionControlAffisellSubtext)}>
                     {sku.name}

@@ -4,9 +4,13 @@ import { getTranslations } from "next-intl/server"
 
 import { MerchantMyCatalogCue } from "@/components/dashboard/merchant-my-catalog-cue"
 import {
+  missionControlAccentFocusSupplier,
   missionControlAffisellMuted,
+  missionControlHeaderEyebrow,
+  missionControlHeaderRail,
+  missionControlHeaderSurface,
   missionControlHeading,
-  missionControlSurface,
+  missionControlPrimaryCta,
 } from "@/components/supplier/mission-control/mission-control-affisell-shell"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -44,16 +48,17 @@ export async function SupplierMissionControlHeader({
   const catalogMetrics = buildCatalogMetrics(t, publishedSkuCount, draftCount, lowStockCount)
 
   return (
-    <header className={cn(missionControlSurface, "p-4")}>
-      <div className="flex flex-col gap-3">
+    <header className={cn(missionControlHeaderSurface, "p-4 pl-5")}>
+      <div className={missionControlHeaderRail} aria-hidden />
+      <div className="relative z-[1] flex flex-col gap-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
-            <p className={cn("text-[11px] font-semibold uppercase tracking-[0.14em]", missionControlAffisellMuted)}>
+            <p className={missionControlHeaderEyebrow}>
               {t("eyebrow")}
             </p>
             <h1 className={cn("mt-1.5 text-base leading-snug sm:text-lg", missionControlHeading)}>
               <span className={cn("font-normal", missionControlAffisellMuted)}>{t("greetingHello")}</span>{" "}
-              {storeName}
+              <span className={missionControlAccentFocusSupplier}>{storeName}</span>
             </h1>
           </div>
           <Link
@@ -61,9 +66,7 @@ export async function SupplierMissionControlHeader({
             className={cn(
               buttonVariants({ variant: "outline", size: "default" }),
               "inline-flex w-full shrink-0 items-center justify-center gap-2 sm:w-auto",
-              "border-brand/25 bg-brand-muted/50 text-brand",
-              "hover:border-brand/35 hover:bg-brand-muted/70 hover:text-brand-hover",
-              "dark:border-brand-light/25 dark:bg-brand-muted/30 dark:text-brand-light dark:hover:bg-brand-muted/45"
+              missionControlPrimaryCta
             )}
           >
             <Plus className="h-4 w-4" aria-hidden />

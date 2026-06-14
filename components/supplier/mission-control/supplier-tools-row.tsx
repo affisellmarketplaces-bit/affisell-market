@@ -6,6 +6,7 @@ import {
   missionControlAffisellMuted,
   missionControlChip,
   missionControlDivider,
+  missionControlIconMuted,
 } from "@/components/supplier/mission-control/mission-control-affisell-shell"
 import { cn } from "@/lib/utils"
 
@@ -27,8 +28,8 @@ export async function SupplierToolsRow() {
       </h2>
       <div className="flex flex-wrap gap-2">
         {toolKeys.map(({ key, href, Icon }) => (
-          <Link key={key} href={href} className={cn("inline-flex items-center gap-2", missionControlChip)}>
-            <Icon className="h-4 w-4 shrink-0 text-supplier dark:text-supplier-light" aria-hidden />
+          <Link key={key} href={href} className={cn("group inline-flex items-center gap-2", missionControlChip)}>
+            <Icon className={cn("h-4 w-4 shrink-0", missionControlIconMuted)} aria-hidden />
             {t(key)}
           </Link>
         ))}

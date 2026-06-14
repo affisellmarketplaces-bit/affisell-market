@@ -1014,6 +1014,8 @@
       },
       "offerRail": {
         "eyebrow": "Économie circulaire",
+        "hint": "Reconditionné, seconde main, gros et don — un clic pour filtrer.",
+        "tapHint": "Choisir un mode",
         "clear": "Tout afficher"
       },
       "browseDepartmentsRail": {
@@ -1278,13 +1280,30 @@
         "net": "Net/vente",
         "sold": "{count} vendues",
         "toggle": "Auto-buy de ce SKU",
-        "suggestion": "Prix conseillé {suggested} (seuil de rentabilité {breakEven}) pour viser 30 % de marge nette."
+        "suggestion": "Prix catalogue conseillé {suggested} (seuil rentabilité {breakEven}) — plancher marge si pas de pairs.",
+        "suggestionPeers": "Prix catalogue conseillé {suggested} (médiane Affisell {median} · {count} fournisseurs comparables · seuil {breakEven})."
       },
       "radar": {
         "title": "Radar de demande — {days} derniers jours",
-        "subtitle": "Catégories qui vendent le plus sur Affisell en ce moment : sourcez là où la demande existe déjà.",
+        "subtitle": "Momentum catégories en direct sur Affisell. Indice Pulse et part du flux réseau — sans exposer les prix vitrine affiliés.",
+        "liveFeed": "Flux live",
         "orders": "{count} ventes",
-        "avgPrice": "panier {price}",
+        "networkShare": "{pct} % du flux",
+        "pulseIndex": "Indice Pulse",
+        "basketSignal": "Bande",
+        "sourceHint": "Sourcez ici",
+        "tier": {
+          "scan": "Scan",
+          "warm": "Chaud",
+          "hot": "Hot",
+          "surge": "Surge"
+        },
+        "basketBand": {
+          "entry": "Signal entrée de gamme",
+          "core": "Signal cœur de marché",
+          "premium": "Signal premium",
+          "luxury": "Signal luxe"
+        },
         "covered": "Vous y êtes",
         "opportunity": "Opportunité"
       }

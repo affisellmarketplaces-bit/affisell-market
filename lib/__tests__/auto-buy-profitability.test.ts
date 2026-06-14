@@ -4,25 +4,38 @@ import {
   computeSkuEconomics,
   summarizePilotPortfolio,
 } from "@/lib/supplier/auto-buy-profitability"
+import { buildCatalogPeerBenchmark } from "@/lib/supplier/catalog-peer-pricing"
 
 describe("auto-buy profitability study", () => {
-  it("computes net margin, break-even and suggested price", () => {
-    // Prix 30 €, COGS AE 10 €, commission affilié 20 %, fee auto-buy 17 % du COGS
+  it("computes net margin, break-even and margin-floor target", () => {
     const eco = computeSkuEconomics({
       sellingPriceCents: 3000,
       cogsCents: 1000,
       affiliateCommissionBps: 2000,
     })
-    // fee = 170, commission = 600 → net = 3000 − 1000 − 170 − 600 = 1230 (41 %)
     expect(eco.grossMarginCents).toBe(2000)
     expect(eco.netMarginCents).toBe(1230)
     expect(eco.netMarginPct).toBeCloseTo(41, 0)
     expect(eco.healthBand).toBe("excellent")
     expect(eco.healthScore).toBe(100)
-    // break-even : (1000+170)/(1−0.2) = 1463
     expect(eco.breakEvenPriceCents).toBe(1463)
-    // prix conseillé (30 % net) : (1000+170)/(1−0.2−0.3) = 2340
+    expect(eco.marginTargetPriceCents).toBe(2340)
+    expect(eco.suggestedPriceSource).toBe("margin_floor")
     expect(eco.suggestedPriceCents).toBe(2340)
+  })
+
+  it("uses Affisell peer catalog median when enough peers", () => {
+    const peer = buildCatalogPeerBenchmark([2_800, 3_000, 3_200])
+    const eco = computeSkuEconomics({
+      sellingPriceCents: 2500,
+      cogsCents: 1000,
+      affiliateCommissionBps: 2000,
+      catalogPeerBenchmark: peer,
+    })
+    expect(eco.suggestedPriceSource).toBe("catalog_peers")
+    expect(eco.suggestedPriceCents).toBe(3_000)
+    expect(eco.catalogPeerMedianCents).toBe(3_000)
+    expect(eco.catalogPeerCount).toBe(3)
   })
 
   it("flags loss-making SKUs", () => {
@@ -58,7 +71,7 @@ describe("auto-buy profitability study", () => {
       sellingPriceCents: 3000,
       cogsCents: 1000,
       affiliateCommissionBps: 2000,
-      realized: { orders: 5, revenueCents: 15_000, marginCents: 300 }, // 2 % réel
+      realized: { orders: 5, revenueCents: 15_000, marginCents: 300 },
     })
     expect(theoretical.healthScore).toBe(100)
     expect(blended.healthScore).toBeLessThan(100)

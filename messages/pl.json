@@ -1003,6 +1003,8 @@
       "freeShippingFacet": "Dostawa bezpłatna",
       "offerRail": {
         "eyebrow": "Gospodarka obiegu zamkniętego",
+        "hint": "Odnowione, używane, hurt i darowizna — jedno kliknięcie, by filtrować.",
+        "tapHint": "Wybierz tryb",
         "clear": "Pokaż wszystko"
       },
       "browseDepartmentsRail": {

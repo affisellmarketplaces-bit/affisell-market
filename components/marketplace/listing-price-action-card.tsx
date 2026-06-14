@@ -72,7 +72,7 @@ export function ListingPriceActionCard({
               </span>
             </p>
           ) : null}
-          <FlexiblePaymentBadge amountCents={buyNowLineSubtotalCents} className="mt-3 w-full" />
+          <FlexiblePaymentBadge amountCents={buyNowLineSubtotalCents} className="mt-2.5" />
         </div>
 
         <div className="flex min-w-0 flex-col justify-center gap-2.5 border-t border-zinc-200/70 pt-4 lg:w-[10.25rem] lg:shrink-0 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0 dark:border-zinc-700/80">

@@ -37,7 +37,7 @@ export async function SupplierMetricsBar({ metrics, weeklyGoal, locale }: Props)
   return (
     <section aria-labelledby="metrics-heading" className="space-y-4">
       <div className="flex items-center gap-2">
-        <BarChart3 className="h-4 w-4 text-violet-400" aria-hidden />
+        <BarChart3 className="h-4 w-4 text-muted-foreground/60" aria-hidden />
         <h2 id="metrics-heading" className={cn("text-xs font-semibold uppercase tracking-[0.14em]", missionControlAffisellMuted)}>
           {t("title")}
         </h2>
@@ -74,7 +74,7 @@ export async function SupplierMetricsBar({ metrics, weeklyGoal, locale }: Props)
             label={t("netMargin")}
             hint={
               <span
-                className="inline-flex text-violet-500 hover:text-violet-700 dark:text-violet-300 dark:hover:text-violet-100"
+                className="inline-flex text-muted-foreground/60 hover:text-foreground"
                 title={t("netMarginTooltip")}
                 aria-label={t("netMarginTooltip")}
               >
@@ -108,13 +108,13 @@ export async function SupplierMetricsBar({ metrics, weeklyGoal, locale }: Props)
           className={cn(
             "flex items-center gap-3 rounded-xl border px-4 py-3 transition-colors",
             missionControlDivider,
-            "bg-violet-50/60 hover:border-violet-300/70 hover:bg-violet-100/50",
-            "dark:bg-violet-950/30 dark:hover:border-violet-400/25 dark:hover:bg-violet-900/35"
+            "bg-muted/15 hover:border-border hover:bg-muted/25",
+            "dark:bg-muted/10 dark:hover:border-border dark:hover:bg-muted/15"
           )}
         >
           <p className={cn("text-xs font-semibold uppercase tracking-wide", missionControlAffisellMuted)}>{t("topSku")}</p>
           {metrics.topSku.imageUrl ? (
-            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-violet-100 ring-1 ring-violet-200/70 dark:bg-violet-950/50 dark:ring-violet-500/20">
+            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-muted/30 ring-1 ring-border/70">
               <Image src={metrics.topSku.imageUrl} alt="" fill className="object-cover" sizes="40px" />
             </div>
           ) : null}
@@ -155,7 +155,7 @@ function MetricCell({
   children: ReactNode
 }) {
   return (
-    <div className={cn("space-y-2 bg-brand-muted/25 px-4 py-4 dark:bg-brand-muted/15 sm:px-5 sm:py-5")}>
+    <div className={cn("space-y-2 bg-muted/10 px-4 py-4 dark:bg-muted/5 sm:px-5 sm:py-5")}>
       <p className={cn("flex items-center gap-1.5 text-xs font-medium", missionControlAffisellMuted)}>
         {label}
         {hint}

@@ -12,6 +12,13 @@ export {
   type ProductCommissionOpportunity,
 } from "@/lib/supplier-product-opportunity-shared"
 
+import {
+  computeDemandPulseScore,
+  computeNetworkMomentumPct,
+  computeShowcaseGapPct,
+  demandPulseTier,
+} from "@/lib/supplier-opportunity-pulse-shared"
+import { primaryProductImage } from "@/lib/product-images"
 import { prisma } from "@/lib/prisma"
 
 const OPPORTUNITY_LOOKBACK_MS = 7 * 24 * 60 * 60 * 1000
@@ -22,7 +29,7 @@ export async function loadTopProductCommissionOpportunity(
   const since = new Date(Date.now() - OPPORTUNITY_LOOKBACK_MS)
   const products = await prisma.product.findMany({
     where: { supplierId, active: true, isDraft: false },
-    select: { id: true, name: true, commissionRate: true, listingKind: true },
+    select: { id: true, name: true, commissionRate: true, listingKind: true, images: true },
   })
   if (products.length === 0) return null
 
@@ -89,10 +96,12 @@ export async function loadTopProductCommissionOpportunity(
   if (boostPp <= 0) return null
 
   const affiliateViewerCount = best.affiliates.size
+  const demandPulseScore = computeDemandPulseScore(affiliateViewerCount, best.views)
 
   return {
     productId: best.productId,
     productName: meta.name,
+    productImageUrl: primaryProductImage(meta.images as string[] | null) || null,
     affiliateViewerCount,
     totalViews: best.views,
     currentCommissionPct,
@@ -100,5 +109,9 @@ export async function loadTopProductCommissionOpportunity(
     commissionBoostPct: boostPp,
     estimatedExtraSales7d: estimateExtraSalesFromOpportunity(affiliateViewerCount),
     listingKind: meta.listingKind,
+    demandPulseScore,
+    demandPulseTier: demandPulseTier(demandPulseScore),
+    networkMomentumPct: computeNetworkMomentumPct(affiliateViewerCount, best.views),
+    showcaseGapPct: computeShowcaseGapPct(affiliateViewerCount),
   }
 }

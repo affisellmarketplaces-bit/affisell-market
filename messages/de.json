@@ -1003,6 +1003,8 @@
       "freeShippingFacet": "Kostenloser Versand",
       "offerRail": {
         "eyebrow": "Kreislaufwirtschaft",
+        "hint": "Generalüberholt, gebraucht, Großhandel & Spende — ein Tipp zum Filtern.",
+        "tapHint": "Modus wählen",
         "clear": "Alle anzeigen"
       },
       "browseDepartmentsRail": {

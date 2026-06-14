@@ -1003,6 +1003,8 @@
       "freeShippingFacet": "Gratis verzending",
       "offerRail": {
         "eyebrow": "Cirkel economie",
+        "hint": "Gereviseerd, tweedehands, bulk & donatie — één tik om te filteren.",
+        "tapHint": "Kies een modus",
         "clear": "Alles tonen"
       },
       "browseDepartmentsRail": {

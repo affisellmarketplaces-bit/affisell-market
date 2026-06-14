@@ -4,7 +4,7 @@ import { ChevronDown } from "lucide-react"
 import { useEffect, useId, useState } from "react"
 
 import {
-  missionControlAffisellCard,
+  missionControlHeroCard,
   missionControlAffisellEyebrow,
   missionControlAffisellInnerPanel,
   missionControlAffisellMuted,
@@ -13,8 +13,12 @@ import {
   missionControlAffisellScanline,
   missionControlAffisellSubtext,
   missionControlAffisellToggle,
+  missionControlAffisellToggleOpen,
   missionControlHeading,
+  missionControlProgressFillOrders,
+  missionControlProgressFillRating,
   missionControlProgressTrack,
+  missionControlSemanticOrbital,
   missionControlStepLocked,
 } from "@/components/supplier/mission-control/mission-control-affisell-shell"
 import { OrbitalTrustIcon, SupplierTrustBadge } from "@/components/suppliers/supplier-trust-badge"
@@ -43,15 +47,15 @@ const LADDER: Exclude<SupplierTrustTier, "NONE">[] = ["SPARK", "FORGE", "ORBITAL
 function ladderStepClass(step: (typeof LADDER)[number], active: boolean, unlocked: boolean): string {
   if (active) {
     if (step === "SPARK") {
-      return "border-amber-300/70 bg-amber-50/90 ring-1 ring-amber-300/40 dark:border-amber-400/50 dark:bg-amber-500/10 dark:ring-amber-400/35"
+      return "border-amber-400/35 bg-muted/20 ring-1 ring-amber-400/20 dark:border-amber-400/30 dark:bg-muted/15 dark:ring-amber-400/15"
     }
     if (step === "FORGE") {
-      return "border-violet-300/70 bg-violet-50/90 ring-1 ring-violet-300/40 dark:border-violet-400/50 dark:bg-violet-500/10 dark:ring-violet-400/35"
+      return "border-brand/30 bg-muted/20 ring-1 ring-brand/15 dark:border-brand-light/25 dark:bg-muted/15 dark:ring-brand/10"
     }
-    return "border-sky-300/70 bg-sky-50/90 ring-1 ring-sky-300/40 dark:border-sky-400/50 dark:bg-sky-500/10 dark:ring-sky-400/35"
+    return "border-sky-400/35 bg-muted/20 ring-1 ring-sky-400/20 dark:border-sky-400/30 dark:bg-muted/15 dark:ring-sky-400/15"
   }
   if (unlocked) {
-    return "border-emerald-200/70 bg-emerald-50/50 dark:border-emerald-500/30 dark:bg-emerald-500/5"
+    return "border-emerald-500/20 bg-muted/15 dark:border-emerald-500/15 dark:bg-muted/10"
   }
   return missionControlStepLocked
 }
@@ -135,17 +139,17 @@ export function SupplierTrustLadderCard({ tier, metrics, locale = "fr", classNam
 
   return (
     <section
-      className={cn(missionControlAffisellCard, open ? "p-6" : "p-4 sm:p-5", className)}
+      className={cn(missionControlHeroCard, open ? "p-6" : "p-4 sm:p-5", className)}
       aria-labelledby="supplier-trust-ladder-title"
     >
       <div className={missionControlAffisellOverlayViolet} aria-hidden />
       <div className={missionControlAffisellOverlayIndigo} aria-hidden />
       <div className={missionControlAffisellScanline} aria-hidden />
 
-      <div className="relative z-[1]">
+      <div className="relative z-[3]">
         <button
           type="button"
-          className="flex w-full items-start justify-between gap-4 text-left transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400/70"
+          className="flex w-full items-start justify-between gap-4 text-left transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring/50"
           onClick={() => setOpen((value) => !value)}
           aria-expanded={open}
           aria-controls={panelId}
@@ -171,13 +175,12 @@ export function SupplierTrustLadderCard({ tier, metrics, locale = "fr", classNam
               className={cn(
                 missionControlAffisellToggle,
                 "transition duration-300",
-                open &&
-                  "border-brand/30 bg-brand-muted/50 shadow-[0_0_12px_rgb(109_40_217/0.12)] dark:border-brand-light/25 dark:bg-brand-muted/35 dark:shadow-[0_0_12px_rgb(109_40_217/0.15)]"
+                open && missionControlAffisellToggleOpen
               )}
             >
               <ChevronDown
                 className={cn(
-                  "size-4 text-brand dark:text-brand-light",
+                  "size-4 text-muted-foreground",
                   !reduceMotion && "transition-transform duration-300 ease-out",
                   open && "rotate-180"
                 )}
@@ -249,7 +252,7 @@ export function SupplierTrustLadderCard({ tier, metrics, locale = "fr", classNam
                     </div>
                     <div className={cn("h-2 overflow-hidden rounded-full", missionControlProgressTrack)}>
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-violet-500 to-sky-400"
+                        className={cn("h-full rounded-full", missionControlProgressFillOrders)}
                         style={{ width: `${pct(progress.ordersProgress, progress.ordersTarget)}%` }}
                       />
                     </div>
@@ -263,7 +266,7 @@ export function SupplierTrustLadderCard({ tier, metrics, locale = "fr", classNam
                     </div>
                     <div className={cn("h-2 overflow-hidden rounded-full", missionControlProgressTrack)}>
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-400"
+                        className={cn("h-full rounded-full", missionControlProgressFillRating)}
                         style={{ width: `${pct(progress.ratingProgress, progress.ratingTarget)}%` }}
                       />
                     </div>
@@ -271,7 +274,7 @@ export function SupplierTrustLadderCard({ tier, metrics, locale = "fr", classNam
                 </div>
               </div>
             ) : tier === "ORBITAL" ? (
-              <p className="mt-6 text-sm font-medium text-sky-700 dark:text-sky-200">
+              <p className={cn("mt-6 text-sm font-medium", missionControlSemanticOrbital)}>
                 {locale === "fr"
                   ? "Badge Orbital bleu débloqué — vous êtes au sommet de la Trust Ladder Affisell."
                   : "Blue Orbital badge unlocked — top of the Affisell Trust Ladder."}

@@ -1,3 +1,8 @@
+import {
+  buildDemandRadarPulse,
+  type DemandRadarPulse,
+} from "@/lib/supplier/demand-radar-shared"
+import { loadCatalogPeerBenchmarksByCategory } from "@/lib/supplier/load-catalog-peer-benchmarks"
 import { prisma } from "@/lib/prisma"
 import {
   computeSkuEconomics,
@@ -24,8 +29,8 @@ export type DemandRadarCategory = {
   categoryId: string
   name: string
   orders30d: number
-  avgSellingCents: number
   supplierHasListing: boolean
+  pulse: DemandRadarPulse
 }
 
 export type AutoBuyPilotSnapshot = {
@@ -52,6 +57,7 @@ export async function loadAutoBuyPilotSnapshot(
         images: true,
         active: true,
         basePriceCents: true,
+        categoryId: true,
         commissionRate: true,
         supplierCommissionRateBps: true,
         supplierLink: {
@@ -83,7 +89,7 @@ export async function loadAutoBuyPilotSnapshot(
           where: { productId: { in: productIds }, paidAt: { gte: since } },
           _count: { _all: true },
           _sum: {
-            sellingPriceCents: true,
+            basePriceCents: true,
             supplierMarginCents: true,
             marginCents: true,
           },
@@ -93,7 +99,7 @@ export async function loadAutoBuyPilotSnapshot(
       by: ["productId"],
       where: { paidAt: { gte: since } },
       _count: { _all: true },
-      _avg: { sellingPriceCents: true },
+      _avg: { basePriceCents: true },
       orderBy: { _count: { productId: "desc" } },
       take: 120,
     }),
@@ -104,11 +110,16 @@ export async function loadAutoBuyPilotSnapshot(
       row.productId,
       {
         orders: row._count._all,
-        revenueCents: row._sum.sellingPriceCents ?? 0,
+        revenueCents: row._sum.basePriceCents ?? 0,
         marginCents: row._sum.supplierMarginCents ?? row._sum.marginCents ?? 0,
       },
     ])
   )
+
+  const categoryIds = [
+    ...new Set(products.map((p) => p.categoryId).filter((id): id is string => Boolean(id))),
+  ]
+  const peerByCategory = await loadCatalogPeerBenchmarksByCategory(prisma, categoryIds, supplierId)
 
   const skus: AutoBuyPilotSku[] = products.map((p) => {
     const link = p.supplierLink
@@ -118,6 +129,7 @@ export async function loadAutoBuyPilotSnapshot(
         : null
     const commissionBps = p.supplierCommissionRateBps ?? p.commissionRate * 100
     const realized = realizedByProduct.get(p.id) ?? null
+    const peerBenchmark = p.categoryId ? peerByCategory.get(p.categoryId) ?? null : null
     return {
       productId: p.id,
       name: p.name,
@@ -134,6 +146,7 @@ export async function loadAutoBuyPilotSnapshot(
         cogsCents,
         affiliateCommissionBps: commissionBps,
         realized,
+        catalogPeerBenchmark: peerBenchmark,
       }),
     }
   })
@@ -163,7 +176,7 @@ async function buildDemandRadar(
   demandRows: ReadonlyArray<{
     productId: string
     _count: { _all: number }
-    _avg: { sellingPriceCents: number | null }
+    _avg: { basePriceCents: number | null }
   }>,
   supplierCategoryIds: ReadonlySet<string>
 ): Promise<DemandRadarCategory[]> {
@@ -187,7 +200,7 @@ async function buildDemandRadar(
     if (!cat?.id || !cat.name) continue
     const entry = byCategory.get(cat.id) ?? { name: cat.name, orders: 0, revenueWeighted: 0 }
     entry.orders += row._count._all
-    entry.revenueWeighted += (row._avg.sellingPriceCents ?? 0) * row._count._all
+    entry.revenueWeighted += (row._avg.basePriceCents ?? 0) * row._count._all
     byCategory.set(cat.id, entry)
   }
 
@@ -196,9 +209,24 @@ async function buildDemandRadar(
       categoryId,
       name: v.name,
       orders30d: v.orders,
-      avgSellingCents: v.orders > 0 ? Math.round(v.revenueWeighted / v.orders) : 0,
+      avgCatalogCentsInternal: v.orders > 0 ? Math.round(v.revenueWeighted / v.orders) : 0,
       supplierHasListing: supplierCategoryIds.has(categoryId),
     }))
     .sort((a, b) => b.orders30d - a.orders30d)
     .slice(0, 8)
+    .map((row, index, rows) => {
+      const maxOrders = rows[0]?.orders30d ?? 0
+      const totalOrders = rows.reduce((sum, r) => sum + r.orders30d, 0)
+      const { avgCatalogCentsInternal: _hidden, ...safe } = row
+      return {
+        ...safe,
+        pulse: buildDemandRadarPulse({
+          orders30d: row.orders30d,
+          maxOrdersInSet: maxOrders,
+          totalOrdersInSet: totalOrders,
+          avgSellingCents: row.avgCatalogCentsInternal,
+          rank: index + 1,
+        }),
+      }
+    })
 }

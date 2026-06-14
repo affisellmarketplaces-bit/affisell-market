@@ -30,8 +30,8 @@ type SlotProps = {
 const toneRing: Record<SlotProps["tone"], string> = {
   amber: "border-amber-200/80 bg-amber-50/50 dark:border-amber-900/50 dark:bg-amber-950/20",
   red: "border-red-200/80 bg-red-50/40 dark:border-red-900/50 dark:bg-red-950/20",
-  violet: "border-violet-200/80 bg-violet-50/40 dark:border-violet-900/50 dark:bg-violet-950/20",
-  zinc: "border-violet-200/60 bg-violet-50/35 dark:border-violet-500/15 dark:bg-violet-950/25",
+  violet: "border-brand/15 bg-muted/15 dark:border-brand-light/10 dark:bg-muted/10",
+  zinc: "border-border/70 bg-muted/15 dark:border-border/50 dark:bg-muted/10",
 }
 
 function UrgentSlot({
@@ -56,7 +56,7 @@ function UrgentSlot({
         <h3
           className={cn(
             "text-sm font-semibold leading-snug",
-            active ? "text-violet-950 dark:text-violet-50" : "text-violet-400/60 dark:text-violet-500/70"
+            active ? "text-foreground" : "text-muted-foreground/50"
           )}
         >
           {title}
@@ -79,8 +79,8 @@ function UrgentSlot({
             active && tone === "red"
               ? "font-bold text-red-700 dark:text-red-300"
               : active
-                ? "text-violet-900/70 dark:text-violet-200/75"
-                : "text-violet-400/60 dark:text-violet-500/70"
+                ? "text-muted-foreground"
+                : "text-muted-foreground/45"
           )}
         >
           {metric}
@@ -88,7 +88,7 @@ function UrgentSlot({
         <p
           className={cn(
             "text-xs",
-            active ? "text-violet-800/55 dark:text-violet-300/65" : "text-violet-400/50 dark:text-violet-500/60"
+            active ? "text-muted-foreground/80" : "text-muted-foreground/45"
           )}
         >
           {consequence}
@@ -108,7 +108,7 @@ function UrgentSlot({
             ctaVariant === "default" &&
               tone === "violet" &&
               "w-fit bg-violet-600 text-white hover:bg-violet-700 dark:bg-violet-600",
-            ctaVariant === "outline" && "w-fit border-violet-300/70 bg-violet-50/80 dark:border-violet-500/25 dark:bg-violet-950/45"
+            ctaVariant === "outline" && "w-fit border-border/80 bg-muted/15 dark:bg-muted/10"
           )}
         >
           {cta}

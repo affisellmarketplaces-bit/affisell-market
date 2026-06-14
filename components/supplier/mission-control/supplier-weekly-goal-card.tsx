@@ -10,6 +10,8 @@ import {
   missionControlAffisellMuted,
   missionControlAffisellSubtext,
   missionControlHeading,
+  missionControlKpiBar,
+  missionControlKpiHighlight,
   missionControlPanel,
 } from "@/components/supplier/mission-control/mission-control-affisell-shell"
 import { cn } from "@/lib/utils"
@@ -39,18 +41,18 @@ export async function SupplierWeeklyGoalCard({ goal, locale }: Props) {
               {t("revenueLabel")}
             </span>
           </p>
-          <p className="mt-2 text-sm font-medium text-violet-900 dark:text-violet-200">
+          <p className="mt-2 text-sm font-medium text-muted-foreground">
             {t("newStore")} <span aria-hidden>🎉</span>
             <span className={missionControlAffisellMuted}> · {t("weekTarget")} </span>
             <span className={missionControlAffisellSubtext}>{targetLabel}</span>
           </p>
         </div>
-        <p className="shrink-0 text-2xl font-bold tabular-nums text-violet-700 dark:text-violet-300">{pctLabel}</p>
+        <p className={cn("shrink-0 text-2xl", missionControlKpiHighlight)}>{pctLabel}</p>
       </div>
 
       <div className="mt-4 flex items-center gap-3">
         <div
-          className="flex flex-1 gap-0.5 font-mono text-sm leading-none tracking-tighter text-violet-600 dark:text-violet-400"
+          className={cn("flex flex-1 gap-0.5 font-mono text-sm leading-none tracking-tighter", missionControlKpiBar)}
           role="progressbar"
           aria-valuenow={goal.progressPct}
           aria-valuemin={0}

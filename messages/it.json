@@ -1003,6 +1003,8 @@
       "freeShippingFacet": "Spedizione gratuita",
       "offerRail": {
         "eyebrow": "Economia circolare",
+        "hint": "Ricondizionato, usato, ingrosso e donazione — un tap per filtrare.",
+        "tapHint": "Scegli una modalità",
         "clear": "Mostra tutti"
       },
       "browseDepartmentsRail": {

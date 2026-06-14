@@ -1003,6 +1003,8 @@
       "freeShippingFacet": "免运费",
       "offerRail": {
         "eyebrow": "循环经济",
+        "hint": "翻新、二手、批发与捐赠 — 一键筛选。",
+        "tapHint": "选择模式",
         "clear": "显示全部"
       },
       "browseDepartmentsRail": {
