@@ -25,6 +25,7 @@ export type ExpansionCountryRow = {
   firstOrderAt: string | null
   firstOrderId: string | null
   graduatedAt: string | null
+  graduationEmailSentAt: string | null
   funnel: ExpansionCountryFunnel
 }
 
@@ -89,6 +90,7 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
         firstOrderAt: rollout?.firstOrderAt?.toISOString() ?? null,
         firstOrderId: rollout?.firstOrderId ?? null,
         graduatedAt: rollout?.graduatedAt?.toISOString() ?? null,
+        graduationEmailSentAt: rollout?.graduationEmailSentAt?.toISOString() ?? null,
       }
     })
     .sort((a, b) => b.waitlistCount - a.waitlistCount)

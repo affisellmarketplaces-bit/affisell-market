@@ -81,3 +81,9 @@ const button = {
 const footer = { fontSize: "12px", color: "#71717a", margin: "24px 0 0" }
 
 export default CheckoutCountryGraduatedEmail
+
+CheckoutCountryGraduatedEmail.PreviewProps = {
+  countryName: "Japan",
+  shopUrl: "https://affisell.com/marketplace?shipsTo=jp",
+  locale: "fr",
+} satisfies CheckoutCountryGraduatedEmailProps

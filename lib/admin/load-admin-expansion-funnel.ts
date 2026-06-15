@@ -10,6 +10,8 @@ export type ExpansionFunnelSummary = {
   followUpTotal: number
   rolloutsEnabled: number
   rolloutsWithFirstOrder: number
+  graduationsWithBuyerEmail: number
+  graduationEmailsPending: number
   notifyRatePct: number
   firstOrderRatePct: number
 }
@@ -54,12 +56,14 @@ export async function loadExpansionFunnelSummary(): Promise<ExpansionFunnelSumma
     }),
     prisma.checkoutCountryRollout.findMany({
       where: { marketRegion, enabled: true },
-      select: { firstOrderAt: true },
+      select: { firstOrderAt: true, graduatedAt: true, graduationEmailSentAt: true },
     }),
   ])
 
   const rolloutsEnabled = rollouts.length
   const rolloutsWithFirstOrder = rollouts.filter((row) => row.firstOrderAt).length
+  const graduationsWithBuyerEmail = rollouts.filter((row) => row.graduationEmailSentAt).length
+  const graduationEmailsPending = rollouts.filter((row) => row.graduatedAt && !row.graduationEmailSentAt).length
   const notifyRatePct =
     waitlistTotal > 0 ? Math.round((notifiedTotal / waitlistTotal) * 1000) / 10 : 0
   const firstOrderRatePct =
@@ -73,6 +77,8 @@ export async function loadExpansionFunnelSummary(): Promise<ExpansionFunnelSumma
     followUpTotal,
     rolloutsEnabled,
     rolloutsWithFirstOrder,
+    graduationsWithBuyerEmail,
+    graduationEmailsPending,
     notifyRatePct,
     firstOrderRatePct,
   }

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { BarChart3, Bell, Globe2, GraduationCap, Rocket, Zap } from "lucide-react"
+import { BarChart3, Bell, Globe2, GraduationCap, Mail, Rocket, Zap } from "lucide-react"
 import { toast } from "sonner"
 
 import type { AdminExpansionOverview } from "@/lib/admin/load-admin-expansion-overview"
@@ -72,6 +72,29 @@ export function AdminExpansionConsole({ initial, metabaseExpansionEmbedUrl }: Pr
       return
     }
     toast.success(data.alreadyGraduated ? `${countryIso2} already graduated` : `${countryIso2} graduated to permanent checkout`)
+    refresh()
+  }
+
+  async function graduateNotifyCountry(countryIso2: string) {
+    const res = await fetch("/api/admin/expansion/graduate-notify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ countryIso2 }),
+    })
+    const data = (await res.json()) as {
+      ok?: boolean
+      sent?: number
+      failed?: number
+      recipientCount?: number
+      error?: string
+    }
+    if (!res.ok || !data.ok) {
+      toast.error(data.error ?? "Graduation emails failed")
+      return
+    }
+    toast.success(
+      `Graduation emails · ${data.sent ?? 0} sent${data.failed ? ` · ${data.failed} failed` : ""} · ${data.recipientCount ?? 0} recipients`
+    )
     refresh()
   }
 
@@ -148,7 +171,15 @@ export function AdminExpansionConsole({ initial, metabaseExpansionEmbedUrl }: Pr
           value={funnel.rolloutsWithFirstOrder}
           hint={`${funnel.firstOrderRatePct}% of enabled`}
         />
-        <FunnelCard label="Awaiting 1st order" value={funnel.rolloutsEnabled - funnel.rolloutsWithFirstOrder} hint="Enabled pilots" />
+        <FunnelCard
+          label="Graduation emails"
+          value={funnel.graduationsWithBuyerEmail}
+          hint={
+            funnel.graduationEmailsPending > 0
+              ? `${funnel.graduationEmailsPending} pending send`
+              : "Buyer re-engagement sent"
+          }
+        />
       </div>
 
       {metabaseExpansionEmbedUrl ? (
@@ -204,6 +235,11 @@ export function AdminExpansionConsole({ initial, metabaseExpansionEmbedUrl }: Pr
                         ? " · no order yet"
                         : ""}
                     {row.graduatedAt ? ` · graduated ${new Date(row.graduatedAt).toLocaleDateString()}` : ""}
+                    {row.graduationEmailSentAt
+                      ? ` · graduation emails ${new Date(row.graduationEmailSentAt).toLocaleDateString()}`
+                      : row.graduatedAt
+                        ? " · graduation emails pending"
+                        : ""}
                   </p>
                   <p className="mt-1 text-[11px] text-violet-600/90 dark:text-violet-400/90">
                     Funnel · notified {row.funnel.notifiedCount} ({row.funnel.notifyRatePct}%) · follow-up{" "}
@@ -227,6 +263,17 @@ export function AdminExpansionConsole({ initial, metabaseExpansionEmbedUrl }: Pr
                     >
                       <GraduationCap className="mr-1.5 size-3.5" aria-hidden />
                       Graduate
+                    </Button>
+                  ) : null}
+                  {row.graduatedAt && !row.graduationEmailSentAt ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => void graduateNotifyCountry(row.countryIso2)}
+                    >
+                      <Mail className="mr-1.5 size-3.5" aria-hidden />
+                      Send graduation emails
                     </Button>
                   ) : null}
                   {row.enabled && row.pendingNotifyCount > 0 ? (
