@@ -3,6 +3,7 @@ import { parseCartVariantSignature } from "@/lib/cart-variant"
 import {
   comparableImageUrl,
   findColorImageRowForName,
+  imageIndexForColor,
   mergeColorImagesForProduct,
   parseProductColorImagesFromDb,
 } from "@/lib/product-color-images"
@@ -82,21 +83,20 @@ export function resolveCartLineImageUrl(args: ResolveArgs): string {
       ? mergeColorImagesForProduct(colorNames, args.colorImagesJson, args.variantsJson)
       : (parseProductColorImagesFromDb(args.colorImagesJson) ?? [])
 
+  const normalized = normalizeColorQueryForLookup(raw)
+  const lookupColor = normalized !== raw ? normalized : raw
+  const galleryIdx = imageIndexForColor(lookupColor, colorNames, merged, slotGallery)
+  if (galleryIdx >= 0 && galleryIdx < slotGallery.length) {
+    return slotGallery[galleryIdx]!.trim()
+  }
+
   const row = findColorImageRowForName(merged, raw)
   if (row?.image?.trim()) return row.image.trim()
 
-  const normalized = normalizeColorQueryForLookup(raw)
   if (normalized !== raw) {
     const row2 = findColorImageRowForName(merged, normalized)
     if (row2?.image?.trim()) return row2.image.trim()
   }
-
-  const rl = raw.toLowerCase()
-  const idx = colorNames.findIndex((name) => name.trim().toLowerCase() === rl)
-  if (idx >= 0 && idx < slotGallery.length) return slotGallery[idx]!.trim()
-  const rln = normalized.toLowerCase()
-  const idx2 = colorNames.findIndex((name) => name.trim().toLowerCase() === rln)
-  if (idx2 >= 0 && idx2 < slotGallery.length) return slotGallery[idx2]!.trim()
 
   return fallback
 }

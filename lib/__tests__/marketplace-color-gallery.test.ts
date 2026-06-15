@@ -33,6 +33,25 @@ describe("imageIndexForColor", () => {
   it("matches French color labels to English gallery rows", () => {
     expect(imageIndexForColor("Vert", colorNames, colorImages, gallery)).toBe(2)
   })
+
+  it("prefers positional index when colorImages URL is mapped to another color", () => {
+    const misMapped: ProductColorImageRow[] = colorImages.map((row) =>
+      row.color === "Orange"
+        ? { ...row, image: "https://cdn.example/green.jpg" }
+        : row
+    )
+    expect(imageIndexForColor("Orange", colorNames, misMapped, gallery)).toBe(3)
+    expect(imageIndexForColor("Green", colorNames, misMapped, gallery)).toBe(2)
+  })
+
+  it("skips a leading lifestyle image when gallery is longer than color list", () => {
+    const lifestyleGallery = [
+      "https://cdn.example/lifestyle.jpg",
+      ...gallery,
+    ]
+    expect(imageIndexForColor("Green", colorNames, colorImages, lifestyleGallery)).toBe(3)
+    expect(imageIndexForColor("Orange", colorNames, colorImages, lifestyleGallery)).toBe(4)
+  })
 })
 
 describe("colorForImageIndex", () => {

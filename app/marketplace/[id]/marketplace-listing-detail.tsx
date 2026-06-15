@@ -77,7 +77,6 @@ import {
 } from "@/lib/product-description-video-embed"
 import {
   colorForImageIndex,
-  findColorImageRowForName,
   imageIndexForColor,
   type ProductColorImageRow,
 } from "@/lib/product-color-images"
@@ -597,21 +596,23 @@ export function MarketplaceListingDetail({
 
   const safeImageIndex = Math.min(Math.max(0, selectedImage), Math.max(0, images.length - 1))
 
-  const colorRow = useMemo(
-    () => (selectedColor ? findColorImageRowForName(colorImages, selectedColor) : undefined),
-    [colorImages, selectedColor]
+  const colorVariantIndex = useMemo(
+    () => imageIndexForColor(selectedColor, colorNames, colorImages, images),
+    [selectedColor, colorNames, colorImages, images]
   )
-  const colorDirectUrl = colorRow?.image?.trim() ?? ""
 
   const hero = useMemo(() => {
-    if (!galleryHeroLock && colorDirectUrl) return colorDirectUrl
+    if (!galleryHeroLock) {
+      const fromColor = images[colorVariantIndex]?.trim()
+      if (fromColor) return fromColor
+    }
     return images[safeImageIndex]?.trim() || "/placeholder.png"
-  }, [galleryHeroLock, colorDirectUrl, images, safeImageIndex])
+  }, [galleryHeroLock, colorVariantIndex, images, safeImageIndex])
 
   const activeThumbIndex = useMemo(() => {
     if (galleryHeroLock) return safeImageIndex
-    return imageIndexForColor(selectedColor, colorNames, colorImages, images)
-  }, [galleryHeroLock, safeImageIndex, selectedColor, colorNames, colorImages, images])
+    return colorVariantIndex
+  }, [galleryHeroLock, safeImageIndex, colorVariantIndex])
   const activeListingPriceCents = useMemo(() => {
     if (activeVariantRow && activeVariantRow.priceCents > 0) {
       const sell = Math.max(0, Math.round(listingPriceCents))

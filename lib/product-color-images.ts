@@ -113,7 +113,65 @@ export function findColorImageRowForName(
   return rows.find((r) => variantColorsMatch(r.color, want))
 }
 
-/** Pick gallery index for a color (match per-color image URL to gallery, then fall back to color order). */
+function colorNameIndex(colorNames: string[], color: string): number {
+  const want = color.trim().toLowerCase()
+  if (!want) return -1
+  const exact = colorNames.findIndex((c) => c.trim().toLowerCase() === want)
+  if (exact >= 0) return exact
+  return colorNames.findIndex((c) => variantColorsMatch(c, color))
+}
+
+function urlIndexInGallery(url: string, images: string[]): number {
+  const key = comparableImageUrl(url)
+  if (!key) return -1
+  return images.findIndex((u) => comparableImageUrl(u) === key)
+}
+
+/** Which color name owns this image URL in `colorImages` (first match). */
+function colorIndexForGalleryUrl(
+  url: string,
+  colorNames: string[],
+  colorImages: ProductColorImageRow[]
+): number {
+  const key = comparableImageUrl(url)
+  if (!key) return -1
+  for (let i = 0; i < colorNames.length; i++) {
+    const row = findColorImageRowForName(colorImages, colorNames[i]!)
+    const direct = row?.image?.trim()
+    if (direct && comparableImageUrl(direct) === key) return i
+  }
+  return -1
+}
+
+/**
+ * Gallery index from color order (handles one leading lifestyle image when gallery is longer).
+ */
+function positionalGalleryIndexForColor(
+  colorIdx: number,
+  color: string,
+  colorNames: string[],
+  colorImages: ProductColorImageRow[],
+  images: string[]
+): number | null {
+  if (colorIdx < 0) return null
+  const row = findColorImageRowForName(colorImages, color)
+  const direct = row?.image?.trim()
+  const urlIdx = direct ? urlIndexInGallery(direct, images) : -1
+
+  const offsets = images.length > colorNames.length ? [0, 1] : [0]
+  let fallback: number | null = null
+
+  for (const offset of offsets) {
+    const posIdx = colorIdx + offset
+    if (posIdx < 0 || posIdx >= images.length) continue
+    if (fallback == null) fallback = posIdx
+    if (urlIdx >= 0 && urlIdx === posIdx) return posIdx
+  }
+
+  return fallback
+}
+
+/** Pick gallery index for a color (positional order first; distrust stale per-color URLs). */
 export function imageIndexForColor(
   color: string | null,
   colorNames: string[],
@@ -122,14 +180,31 @@ export function imageIndexForColor(
 ): number {
   if (!images.length) return 0
   if (!color) return 0
+
+  const colorIdx = colorNameIndex(colorNames, color)
+  const posIdx = positionalGalleryIndexForColor(colorIdx, color, colorNames, colorImages, images)
   const row = findColorImageRowForName(colorImages, color)
   const direct = row?.image?.trim()
+
   if (direct) {
-    const hit = images.findIndex((u) => comparableImageUrl(u) === comparableImageUrl(direct))
-    if (hit >= 0) return hit
+    const urlIdx = urlIndexInGallery(direct, images)
+    if (urlIdx >= 0) {
+      if (posIdx != null && urlIdx === posIdx) return urlIdx
+
+      if (posIdx != null && urlIdx !== posIdx) {
+        const urlOwnerIdx = colorIndexForGalleryUrl(direct, colorNames, colorImages)
+        if (urlOwnerIdx >= 0 && urlOwnerIdx !== colorIdx) {
+          return posIdx
+        }
+        if (urlOwnerIdx === colorIdx) return urlIdx
+        return posIdx
+      }
+
+      return urlIdx
+    }
   }
-  const idx = colorNames.findIndex((c) => variantColorsMatch(c, color))
-  if (idx >= 0 && idx < images.length) return idx
+
+  if (posIdx != null) return posIdx
   return 0
 }
 
