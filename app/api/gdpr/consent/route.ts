@@ -37,18 +37,31 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const body = (await req.json()) as Partial<CookieConsentPrefs>
+  const raw = (await req.json().catch(() => null)) as Partial<CookieConsentPrefs> | null
+  if (!raw || typeof raw !== "object") {
+    return NextResponse.json({ error: "Invalid body" }, { status: 400 })
+  }
+
   const prefs: CookieConsentPrefs = {
     essential: true,
-    analytics: Boolean(body.analytics),
-    marketing: Boolean(body.marketing),
+    analytics: Boolean(raw.analytics),
+    marketing: Boolean(raw.marketing),
     updatedAt: new Date().toISOString(),
   }
 
-  await prisma.user.update({
-    where: { id: session.user.id },
-    data: { cookieConsent: prefs },
-  })
+  try {
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { cookieConsent: prefs },
+    })
+  } catch (e) {
+    console.log("[cookie-consent]", {
+      result: "db_update_failed",
+      userId: session.user.id,
+      error: e instanceof Error ? e.message : String(e),
+    })
+    return NextResponse.json({ error: "Update failed" }, { status: 500 })
+  }
 
   return NextResponse.json({ ok: true, cookieConsent: prefs })
 }

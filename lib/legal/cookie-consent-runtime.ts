@@ -96,13 +96,23 @@ export function removeNonEssentialCookies(): void {
 
 export async function syncConsentToAccount(prefs: CookieConsentPrefs): Promise<void> {
   try {
-    await fetch("/api/gdpr/consent", {
+    const res = await fetch("/api/gdpr/consent", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
       body: JSON.stringify(prefs),
     })
+    if (res.status === 401) {
+      console.log("[cookie-consent]", { result: "sync_skipped_unauthenticated" })
+      return
+    }
+    if (!res.ok) {
+      console.log("[cookie-consent]", { result: "sync_failed", status: res.status })
+      return
+    }
+    console.log("[cookie-consent]", { result: "synced_to_account" })
   } catch (e) {
-    console.error("[cookie-consent]", {
+    console.log("[cookie-consent]", {
       result: "sync_failed",
       error: e instanceof Error ? e.message : String(e),
     })
