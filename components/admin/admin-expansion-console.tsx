@@ -8,7 +8,10 @@ import type { AdminExpansionOverview } from "@/lib/admin/admin-expansion-types"
 import type { ExpansionEmailExportKind } from "@/lib/admin/expansion-email-export-kinds"
 import { expansionEmailExportsBundlePath } from "@/lib/admin/expansion-email-export-kinds"
 import {
+  buildExpansionAdminKindQuickExportLinks,
   buildExpansionAdminQuickExportLinks,
+  emailKindStatHasQuickExport,
+  EXPANSION_ADMIN_QUICK_EXPORT_KINDS,
   shouldShowExpansionAdminQuickExports,
 } from "@/lib/expansion/expansion-digest-quick-exports"
 import { EXPANSION_BOUNCE_RATE_ALERT_THRESHOLD_PCT } from "@/lib/expansion/compute-country-bounce-rate"
@@ -360,6 +363,12 @@ export function AdminExpansionConsole({
 
   const { nextPilot, funnel } = overview
   const quickExportLinks = buildExpansionAdminQuickExportLinks()
+  const kindQuickExportGroups = EXPANSION_ADMIN_QUICK_EXPORT_KINDS.flatMap(({ emailKind, label }) => {
+    const stat = overview.emailKindStats.find((row) => row.emailKind === emailKind)
+    if (!stat || !emailKindStatHasQuickExport(stat)) return []
+    return [{ label, links: buildExpansionAdminKindQuickExportLinks(emailKind, label) }]
+  })
+  const quickExportCount = quickExportLinks.length + kindQuickExportGroups.reduce((sum, group) => sum + group.links.length, 0)
   const showQuickExports = shouldShowExpansionAdminQuickExports({
     deliveredThisMonth: overview.emailEventCounts.deliveredThisMonth,
     bouncesThisMonth: overview.emailEventCounts.bouncesThisMonth,
@@ -369,19 +378,36 @@ export function AdminExpansionConsole({
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
       {showQuickExports ? (
-        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-900/50">
-          <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-            Quick exports ({quickExportLinks.length})
-          </span>
-          {quickExportLinks.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              className="inline-flex items-center gap-1 rounded-md border border-zinc-200 bg-white px-2 py-1 text-[11px] font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-900"
-            >
-              <Download className="size-3" aria-hidden />
-              {link.label}
-            </a>
+        <div className="mb-4 flex flex-col gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-900/50">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              Quick exports ({quickExportCount})
+            </span>
+            {quickExportLinks.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                className="inline-flex items-center gap-1 rounded-md border border-zinc-200 bg-white px-2 py-1 text-[11px] font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-900"
+              >
+                <Download className="size-3" aria-hidden />
+                {link.label}
+              </a>
+            ))}
+          </div>
+          {kindQuickExportGroups.map((group) => (
+            <div key={group.label} className="flex flex-wrap items-center gap-2 border-t border-zinc-200 pt-2 dark:border-zinc-800">
+              <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">{group.label}</span>
+              {group.links.map((link) => (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  className="inline-flex items-center gap-1 rounded-md border border-zinc-200 bg-white px-2 py-1 text-[11px] font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                >
+                  <Download className="size-3" aria-hidden />
+                  {link.label}
+                </a>
+              ))}
+            </div>
           ))}
         </div>
       ) : null}

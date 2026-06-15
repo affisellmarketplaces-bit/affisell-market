@@ -93,12 +93,41 @@ export type ExpansionAdminQuickExportLink = {
   href: string
 }
 
+export const EXPANSION_ADMIN_QUICK_EXPORT_KINDS = [
+  { emailKind: "checkout-launch", label: "Launch" },
+  { emailKind: "checkout-launch-followup", label: "J+2" },
+  { emailKind: "checkout-graduated", label: "Graduation" },
+] as const satisfies ReadonlyArray<{
+  emailKind: ExpansionEmailExportKind
+  label: string
+}>
+
+export function emailKindStatHasQuickExport(stat: {
+  deliveredThisMonth: number
+  bouncesThisMonth: number
+  complaintsThisMonth: number
+}): boolean {
+  return stat.deliveredThisMonth > 0 || stat.bouncesThisMonth > 0 || stat.complaintsThisMonth > 0
+}
+
 export function buildExpansionAdminQuickExportLinks(): ExpansionAdminQuickExportLink[] {
   return [
     { label: "Bundle", href: expansionEmailExportsBundlePath() },
     { label: "Bounces", href: expansionBouncesExportPath() },
     { label: "Complaints", href: expansionComplaintsExportPath() },
     { label: "Delivered", href: expansionDeliveredExportPath() },
+  ]
+}
+
+export function buildExpansionAdminKindQuickExportLinks(
+  emailKind: ExpansionEmailExportKind,
+  kindLabel: string
+): ExpansionAdminQuickExportLink[] {
+  return [
+    { label: `${kindLabel} bundle`, href: expansionEmailExportsBundlePath(undefined, emailKind) },
+    { label: `${kindLabel} bounces`, href: expansionBouncesExportPath(undefined, emailKind) },
+    { label: `${kindLabel} complaints`, href: expansionComplaintsExportPath(undefined, emailKind) },
+    { label: `${kindLabel} delivered`, href: expansionDeliveredExportPath(undefined, emailKind) },
   ]
 }
 
