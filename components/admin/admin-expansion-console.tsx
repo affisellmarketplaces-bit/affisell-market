@@ -924,6 +924,14 @@ export function AdminExpansionConsole({
                     </Button>
                   ) : null}
                   {row.launchBounceSuppressed > 0 ? (
+                    <Button type="button" size="sm" variant="outline" asChild>
+                      <a href={buildSuppressedExportUrl(row.countryIso2)}>
+                        <Download className="mr-1.5 size-3.5" aria-hidden />
+                        Export suppressed
+                      </a>
+                    </Button>
+                  ) : null}
+                  {row.launchBounceSuppressed > 0 ? (
                     <Button
                       type="button"
                       size="sm"

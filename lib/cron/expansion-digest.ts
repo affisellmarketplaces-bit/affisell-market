@@ -4,7 +4,11 @@ import { Resend } from "resend"
 import { ExpansionDigestEmail } from "@/emails/expansion-digest"
 import { expansionCountryLabel, loadAdminExpansionOverview } from "@/lib/admin/load-admin-expansion-overview"
 import { resolveExpansionAdminEmail } from "@/lib/admin/resolve-expansion-admin-email"
-import { expansionEmailExportsBundlePath } from "@/lib/admin/expansion-email-export-kinds"
+import { expansionBouncesExportPath, expansionEmailExportsBundlePath } from "@/lib/admin/expansion-email-export-kinds"
+import {
+  graduationBounceDigestBadge,
+  shouldShowGraduationHighBounceDigestRow,
+} from "@/lib/expansion/expansion-digest-graduation-bounce-badge"
 import { buildGraduatedThisMonthDigestLines } from "@/lib/expansion/expansion-digest-graduated-month"
 import {
   graduationDeliveryDigestBadge,
@@ -157,6 +161,27 @@ function buildDigestBody(
           .map(
             (row) =>
               `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchGraduatedDeliveryRatePct}% (${row.launchGraduatedDeliveredThisMonth} graduation delivered)${graduationDeliveryDigestBadge(row.launchGraduatedDeliveryRatePct)}`
+          )
+      : ["• none"]),
+    "",
+    "High graduation email bounce rate (>5%):",
+    ...(overview.countries.filter((row) =>
+      shouldShowGraduationHighBounceDigestRow({
+        launchGraduatedSentThisMonth: row.launchGraduatedSentThisMonth,
+        launchGraduatedBouncesThisMonth: row.launchGraduatedBouncesThisMonth,
+      })
+    ).length > 0
+      ? overview.countries
+          .filter((row) =>
+            shouldShowGraduationHighBounceDigestRow({
+              launchGraduatedSentThisMonth: row.launchGraduatedSentThisMonth,
+              launchGraduatedBouncesThisMonth: row.launchGraduatedBouncesThisMonth,
+            })
+          )
+          .slice(0, 5)
+          .map(
+            (row) =>
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchGraduatedBounceRatePct}% (${row.launchGraduatedBouncesThisMonth} bounce(s) / ${row.launchGraduatedSentThisMonth} sent)${graduationBounceDigestBadge(row.launchGraduatedBounceRatePct)} — ${adminUrl}${expansionBouncesExportPath(row.countryIso2, "checkout-graduated")}`
           )
       : ["• none"]),
     "",

@@ -22,3 +22,16 @@ export function expansionEmailExportsBundlePath(countryIso2?: string): string {
     ? `/api/admin/expansion/email-exports-bundle?${query}`
     : "/api/admin/expansion/email-exports-bundle"
 }
+
+export function expansionBouncesExportPath(
+  countryIso2?: string,
+  emailKind?: ExpansionEmailExportKind
+): string {
+  const params = new URLSearchParams()
+  if (countryIso2) params.set("countryIso2", countryIso2.toLowerCase())
+  if (emailKind) params.set("emailKind", emailKind)
+  const query = params.toString()
+  return query
+    ? `/api/admin/expansion/bounces-export?${query}`
+    : "/api/admin/expansion/bounces-export"
+}
