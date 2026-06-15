@@ -43,7 +43,9 @@ export function buildMetabaseBookingEmbedUrl(): string | null {
   return buildMetabaseEmbedUrl(bookingDashboardId)
 }
 
-/** Expansion ROW funnel — waitlist → notify → first order (`[expansion-rollout]` logs). */
+/** Expansion ROW funnel — waitlist → notify → first order → graduation (`[expansion-rollout]` logs).
+ *  Metabase filters: result `graduated`, `graduation_emails_sent`, `founder_graduation_alert_sent` (+ `graduationEmailSentAt` field).
+ */
 export function buildMetabaseExpansionEmbedUrl(): string | null {
   const expansionDashboardId = process.env.METABASE_EXPANSION_DASHBOARD_ID?.trim()
   if (!expansionDashboardId) return null

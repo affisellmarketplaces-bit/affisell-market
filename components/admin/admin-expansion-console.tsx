@@ -138,6 +138,9 @@ export function AdminExpansionConsole({ initial, metabaseExpansionEmbedUrl }: Pr
             {overview.graduatedCount > 0
               ? ` ${overview.graduatedCount} in permanent Stripe base.`
               : null}
+            {overview.funnel.graduationsWithBuyerEmail > 0
+              ? ` ${overview.funnel.graduationsWithBuyerEmail} graduation email batch(es) sent (Metabase: graduationEmailSentAt).`
+              : null}
             {overview.rolloutHealth.stalledCount > 0
               ? ` ${overview.rolloutHealth.stalledCount} rollout(s) stalled 7d+ without order.`
               : null}

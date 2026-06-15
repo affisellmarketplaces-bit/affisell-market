@@ -19,11 +19,12 @@ export function MarketplaceShipsToChip({ className, basePath = "/marketplace" }:
   const t = useTranslations("marketplace.browse")
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { country, checkoutAvailable, loading } = useVisitorCheckoutRegion()
+  const { country, checkoutAvailable, graduatedCheckout, loading } = useVisitorCheckoutRegion()
 
   if (loading || !country || !checkoutAvailable) return null
 
-  const active = searchParams.get("shipsTo")?.toUpperCase() === country
+  const shipsToParam = searchParams.get("shipsTo")?.toUpperCase() ?? null
+  const active = shipsToParam === country || (graduatedCheckout && !shipsToParam)
   const countryName = visitorCountryDisplayName(country, locale)
 
   function toggle() {

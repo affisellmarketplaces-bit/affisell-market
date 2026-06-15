@@ -80,9 +80,10 @@ export async function notifyCheckoutCountryGraduatedBuyers(
   const countryNameFr = expansionCountryLabel(countryIso2, "fr")
 
   if (recipients.length === 0) {
+    const graduationEmailSentAt = new Date()
     await prisma.checkoutCountryRollout.update({
       where: { id: rollout.id },
-      data: { graduationEmailSentAt: new Date() },
+      data: { graduationEmailSentAt },
     })
     logBusiness("expansion-rollout", {
       country: countryIso2,
@@ -91,6 +92,7 @@ export async function notifyCheckoutCountryGraduatedBuyers(
       sent: 0,
       failed: 0,
       recipientCount: 0,
+      graduationEmailSentAt: graduationEmailSentAt.toISOString(),
     })
     return { sent: 0, failed: 0, skipped: false, recipientCount: 0 }
   }
@@ -122,20 +124,30 @@ export async function notifyCheckoutCountryGraduatedBuyers(
   }
 
   if (failed === 0) {
+    const graduationEmailSentAt = new Date()
     await prisma.checkoutCountryRollout.update({
       where: { id: rollout.id },
-      data: { graduationEmailSentAt: new Date() },
+      data: { graduationEmailSentAt },
+    })
+    logBusiness("expansion-rollout", {
+      country: countryIso2,
+      marketRegion: MARKET_REGION,
+      result: "graduation_emails_sent",
+      sent,
+      failed,
+      recipientCount: recipients.length,
+      graduationEmailSentAt: graduationEmailSentAt.toISOString(),
+    })
+  } else {
+    logBusiness("expansion-rollout", {
+      country: countryIso2,
+      marketRegion: MARKET_REGION,
+      result: "graduation_emails_partial",
+      sent,
+      failed,
+      recipientCount: recipients.length,
     })
   }
-
-  logBusiness("expansion-rollout", {
-    country: countryIso2,
-    marketRegion: MARKET_REGION,
-    result: failed === 0 ? "graduation_emails_sent" : "graduation_emails_partial",
-    sent,
-    failed,
-    recipientCount: recipients.length,
-  })
 
   return { sent, failed, skipped: false, recipientCount: recipients.length }
 }

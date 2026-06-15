@@ -3,6 +3,7 @@ import { Resend } from "resend"
 
 import { ExpansionDigestEmail } from "@/emails/expansion-digest"
 import { expansionCountryLabel, loadAdminExpansionOverview } from "@/lib/admin/load-admin-expansion-overview"
+import { resolveExpansionAdminEmail } from "@/lib/admin/resolve-expansion-admin-email"
 import { findGraduationEmailStalls } from "@/lib/expansion/graduation-email-stall"
 import { logBusiness } from "@/lib/business-log"
 import {
@@ -27,14 +28,7 @@ function digestWeekKey(now: Date): string {
 }
 
 async function resolveDigestRecipient(): Promise<string | null> {
-  const fromEnv = process.env.ADMIN_EXPANSION_DIGEST_EMAIL?.trim()
-  if (fromEnv) return fromEnv
-  const admin = await prisma.user.findFirst({
-    where: { role: "ADMIN" },
-    orderBy: { createdAt: "asc" },
-    select: { email: true },
-  })
-  return admin?.email ?? null
+  return resolveExpansionAdminEmail()
 }
 
 function buildDigestBody(
