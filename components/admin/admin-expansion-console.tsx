@@ -231,6 +231,18 @@ export function AdminExpansionConsole({
             Refresh
           </Button>
           {overview.emailBounces.complaintsThisMonth > 0 ||
+          overview.emailKindStats.some((row) => row.complaintsThisMonth > 0) ||
+          overview.emailBounces.bouncesThisMonth > 0 ||
+          overview.emailKindStats.some((row) => row.bouncesThisMonth > 0) ||
+          overview.countries.some((row) => row.launchEmailsDeliveredThisMonth > 0) ? (
+            <Button type="button" variant="outline" size="sm" asChild>
+              <a href="/api/admin/expansion/email-events-export">
+                <Download className="mr-1.5 size-3.5" aria-hidden />
+                Export all email events
+              </a>
+            </Button>
+          ) : null}
+          {overview.emailBounces.complaintsThisMonth > 0 ||
           overview.emailKindStats.some((row) => row.complaintsThisMonth > 0) ? (
             <Button type="button" variant="outline" size="sm" asChild>
               <a href="/api/admin/expansion/complaints-export">
@@ -449,6 +461,11 @@ export function AdminExpansionConsole({
                         Bounced ({row.launchBounceSuppressed})
                       </Badge>
                     ) : null}
+                    {row.launchComplaintsThisMonth > 0 ? (
+                      <Badge variant="destructive" className="border-red-700 bg-red-700 hover:bg-red-700">
+                        {row.launchComplaintsThisMonth} complaint{row.launchComplaintsThisMonth === 1 ? "" : "s"}
+                      </Badge>
+                    ) : null}
                     {row.launchBounceRatePct > EXPANSION_BOUNCE_RATE_ALERT_THRESHOLD_PCT ? (
                       <Badge variant="outline" className="border-orange-500 text-orange-700 dark:text-orange-400">
                         {row.launchBounceRatePct}% bounce
@@ -496,6 +513,7 @@ export function AdminExpansionConsole({
                     {row.funnel.followUpCount} · orders {row.funnel.paidOrdersSinceOpen} (
                     {row.funnel.orderRatePct}% of notified)
                     {row.launchBounceRatePct > 0 ? ` · bounce ${row.launchBounceRatePct}%` : ""}
+                    {row.launchComplaintsThisMonth > 0 ? ` · ${row.launchComplaintsThisMonth} complaint(s)` : ""}
                     {row.launchEmailsDeliveredThisMonth > 0
                       ? ` · delivered ${row.launchEmailsDeliveredThisMonth} (${row.launchDeliveryRatePct}%)`
                       : ""}
