@@ -4,7 +4,7 @@ import { Resend } from "resend"
 import { ExpansionDigestEmail } from "@/emails/expansion-digest"
 import { expansionCountryLabel, loadAdminExpansionOverview } from "@/lib/admin/load-admin-expansion-overview"
 import { resolveExpansionAdminEmail } from "@/lib/admin/resolve-expansion-admin-email"
-import { expansionBouncesExportPath, expansionComplaintsExportPath, expansionEmailExportsBundlePath } from "@/lib/admin/expansion-email-export-kinds"
+import { expansionBouncesExportPath, expansionComplaintsExportPath, expansionDeliveredExportPath, expansionEmailExportsBundlePath } from "@/lib/admin/expansion-email-export-kinds"
 import {
   graduationBounceDigestBadge,
   shouldShowGraduationHighBounceDigestRow,
@@ -18,9 +18,17 @@ import {
   shouldShowFollowupLowDeliveryDigestRow,
 } from "@/lib/expansion/expansion-digest-followup-delivery-badge"
 import {
+  launchBounceDigestBadge,
+  shouldShowLaunchHighBounceDigestRow,
+} from "@/lib/expansion/expansion-digest-launch-bounce-badge"
+import {
   launchDeliveryDigestBadge,
   shouldShowLaunchLowDeliveryDigestRow,
 } from "@/lib/expansion/expansion-digest-launch-delivery-badge"
+import {
+  graduationComplaintDigestBadge,
+  shouldShowGraduationComplaintDigestRow,
+} from "@/lib/expansion/expansion-digest-graduation-complaint-badge"
 import { buildGraduatedThisMonthDigestLines } from "@/lib/expansion/expansion-digest-graduated-month"
 import {
   graduationDeliveryDigestBadge,
@@ -74,6 +82,12 @@ function buildDigestBody(
       row.launchGraduatedComplaintsThisMonth > 0 ||
       row.launchFollowupComplaintsThisMonth > 0
   )
+  const deliveredExportCountries = overview.countries.filter(
+    (row) =>
+      row.launchEmailsDeliveredThisMonth > 0 ||
+      row.launchGraduatedDeliveredThisMonth > 0 ||
+      row.launchFollowupDeliveredThisMonth > 0
+  )
   const lines = [
     `Region: ${MARKET_REGION.toUpperCase()}`,
     `Live checkout countries: ${overview.liveCheckoutCount}`,
@@ -116,6 +130,21 @@ function buildDigestBody(
           }),
         ]
       : []),
+    `Metabase delivered export (all kinds): ${adminUrl}${expansionDeliveredExportPath()}`,
+    ...(deliveredExportCountries.length > 0
+      ? [
+          "Metabase delivered export by country:",
+          ...deliveredExportCountries.slice(0, 5).map((row) => {
+            const emailKind =
+              row.launchGraduatedDeliveredThisMonth > 0
+                ? "checkout-graduated"
+                : row.launchFollowupDeliveredThisMonth > 0
+                  ? "checkout-launch-followup"
+                  : "checkout-launch"
+            return `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${adminUrl}${expansionDeliveredExportPath(row.countryIso2, emailKind)}`
+          }),
+        ]
+      : []),
     `Launch emails pending retry: ${overview.emailBounces.launchRetriesPending}`,
     `Launch emails suppressed (2nd bounce): ${overview.emailBounces.launchSuppressedTotal}`,
     `Suppressed waitlist pending 90d purge: ${overview.emailBounces.suppressedStalePendingPurge}`,
@@ -151,17 +180,26 @@ function buildDigestBody(
       : ["• none"]),
     "",
     "Graduation complaint alert by country (month, min 10 sent):",
-    ...(overview.countries.filter(
-      (row) => row.launchGraduatedSentThisMonth >= 10 && row.launchGraduatedComplaintsThisMonth > 0
+    ...(overview.countries.filter((row) =>
+      shouldShowGraduationComplaintDigestRow({
+        launchGraduatedSentThisMonth: row.launchGraduatedSentThisMonth,
+        launchGraduatedComplaintsThisMonth: row.launchGraduatedComplaintsThisMonth,
+      })
     ).length > 0
       ? overview.countries
-          .filter(
-            (row) => row.launchGraduatedSentThisMonth >= 10 && row.launchGraduatedComplaintsThisMonth > 0
+          .filter((row) =>
+            shouldShowGraduationComplaintDigestRow({
+              launchGraduatedSentThisMonth: row.launchGraduatedSentThisMonth,
+              launchGraduatedComplaintsThisMonth: row.launchGraduatedComplaintsThisMonth,
+            })
           )
           .slice(0, 8)
           .map(
             (row) =>
-              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchGraduatedComplaintsThisMonth} graduation complaint(s) (${row.launchGraduatedComplaintRatePct}% of sent)${row.graduationEmailPaused ? " · AUTO-PAUSED" : ""} — ${adminUrl}${expansionComplaintsExportPath(row.countryIso2, "checkout-graduated")}`
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchGraduatedComplaintsThisMonth} graduation complaint(s) (${row.launchGraduatedComplaintRatePct}% of sent)${graduationComplaintDigestBadge({
+                launchGraduatedComplaintRatePct: row.launchGraduatedComplaintRatePct,
+                graduationEmailPaused: row.graduationEmailPaused,
+              })} — ${adminUrl}${expansionComplaintsExportPath(row.countryIso2, "checkout-graduated")}`
           )
       : ["• none"]),
     "",
@@ -271,14 +309,26 @@ function buildDigestBody(
           )
       : ["• none"]),
     "",
-    "High bounce rate (>5%):",
-    ...(overview.countries.filter((row) => row.launchBounceRatePct > 5).length > 0
+    "High launch notify bounce rate (>5%):",
+    ...(overview.countries.filter((row) =>
+      shouldShowLaunchHighBounceDigestRow({
+        notifiedCount: row.funnel.notifiedCount,
+        retriesPending: row.launchBounceRetriesPending,
+        suppressed: row.launchBounceSuppressed,
+      })
+    ).length > 0
       ? overview.countries
-          .filter((row) => row.launchBounceRatePct > 5)
+          .filter((row) =>
+            shouldShowLaunchHighBounceDigestRow({
+              notifiedCount: row.funnel.notifiedCount,
+              retriesPending: row.launchBounceRetriesPending,
+              suppressed: row.launchBounceSuppressed,
+            })
+          )
           .slice(0, 5)
           .map(
             (row) =>
-              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchBounceRatePct}% bounce`
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchBounceRatePct}% bounce (${row.launchBounceRetriesPending + row.launchBounceSuppressed} affected / ${row.funnel.notifiedCount + row.launchBounceRetriesPending} notified)${launchBounceDigestBadge(row.launchBounceRatePct)} — ${adminUrl}${expansionBouncesExportPath(row.countryIso2, "checkout-launch")}`
           )
       : ["• none"]),
     "",
