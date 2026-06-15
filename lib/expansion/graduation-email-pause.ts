@@ -52,16 +52,26 @@ export async function resumeGraduationEmailCountry(countryIso2: string): Promise
 }
 
 export async function loadPausedGraduationEmailCountries(): Promise<Set<string>> {
+  const details = await loadPausedGraduationEmailDetails()
+  return new Set(details.keys())
+}
+
+export async function loadPausedGraduationEmailDetails(): Promise<
+  Map<string, { reason: string | null }>
+> {
   const prefix = `expansion:graduation-email-paused:${MARKET_REGION}:`
   const rows = await prisma.processedWebhook.findMany({
     where: { id: { startsWith: prefix } },
-    select: { id: true },
+    select: { id: true, error: true },
   })
 
-  const set = new Set<string>()
+  const map = new Map<string, { reason: string | null }>()
+
   for (const row of rows) {
     const countryIso2 = row.id.slice(prefix.length).toLowerCase()
-    if (countryIso2.length === 2) set.add(countryIso2)
+    if (countryIso2.length !== 2) continue
+    map.set(countryIso2, { reason: row.error ?? null })
   }
-  return set
+
+  return map
 }

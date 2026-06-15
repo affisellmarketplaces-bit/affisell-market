@@ -20,6 +20,10 @@ export function isFollowupDeliveryPauseReason(reason: string | null | undefined)
   return typeof reason === "string" && reason.startsWith("followup_delivery_rate_")
 }
 
+export function isGraduatedComplaintPauseReason(reason: string | null | undefined): boolean {
+  return typeof reason === "string" && reason.startsWith("graduated_complaint_")
+}
+
 export function shouldAutoResumeLaunchNotifyAfterComplaintClear(args: {
   complaintsSinceCutoff: number
   pausedReason: string | null | undefined
@@ -34,4 +38,12 @@ export function shouldAutoResumeLaunchFollowupAfterComplaintClear(args: {
 }): boolean {
   if (!isFollowupComplaintPauseReason(args.pausedReason)) return false
   return args.followupComplaintsSinceCutoff === 0
+}
+
+export function shouldAutoResumeGraduationAfterComplaintClear(args: {
+  graduatedComplaintsSinceCutoff: number
+  pausedReason: string | null | undefined
+}): boolean {
+  if (!isGraduatedComplaintPauseReason(args.pausedReason)) return false
+  return args.graduatedComplaintsSinceCutoff === 0
 }

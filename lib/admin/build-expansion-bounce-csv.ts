@@ -2,6 +2,13 @@ import type { ExpansionBounceRow } from "@/lib/admin/load-expansion-bounce-rows"
 
 export const EXPANSION_BOUNCE_CSV_FILENAME = "affisell-expansion-bounces-this-month.csv"
 
+export function expansionBounceCsvFilename(countryIso2?: string, emailKind?: string): string {
+  const countryPart = countryIso2 ? `-${countryIso2.toLowerCase()}` : ""
+  const kindPart = emailKind ? `-${emailKind}` : ""
+  if (!countryPart && !kindPart) return EXPANSION_BOUNCE_CSV_FILENAME
+  return `affisell-expansion-bounces${countryPart}${kindPart}-this-month.csv`
+}
+
 const CSV_COLUMNS = ["countryIso2", "emailKind", "buyerEmailHash", "bouncedAt"] as const
 
 function escapeCsvCell(value: string): string {

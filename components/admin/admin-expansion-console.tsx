@@ -45,6 +45,14 @@ export function AdminExpansionConsole({
     return query ? `/api/admin/expansion/email-events-export?${query}` : "/api/admin/expansion/email-events-export"
   }
 
+  function buildBouncesExportUrl(countryIso2?: string) {
+    const params = new URLSearchParams()
+    if (countryIso2) params.set("countryIso2", countryIso2)
+    if (exportEmailKind !== "all") params.set("emailKind", exportEmailKind)
+    const query = params.toString()
+    return query ? `/api/admin/expansion/bounces-export?${query}` : "/api/admin/expansion/bounces-export"
+  }
+
   function buildGraduationPreviewUrl(
     countryIso2: string,
     firstOrderId: string | null,
@@ -375,7 +383,7 @@ export function AdminExpansionConsole({
           {overview.emailBounces.bouncesThisMonth > 0 ||
           overview.emailKindStats.some((row) => row.bouncesThisMonth > 0) ? (
             <Button type="button" variant="outline" size="sm" asChild>
-              <a href="/api/admin/expansion/bounces-export">
+              <a href={buildBouncesExportUrl()}>
                 <Download className="mr-1.5 size-3.5" aria-hidden />
                 Export bounces CSV
               </a>

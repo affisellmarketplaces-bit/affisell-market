@@ -108,7 +108,7 @@ function buildDigestBody(
           .slice(0, 8)
           .map(
             (row) =>
-              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchGraduatedComplaintsThisMonth} graduation complaint(s)`
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchGraduatedComplaintsThisMonth} graduation complaint(s) (auto-resume after 30d clear)`
           )
       : ["• none"]),
     "",

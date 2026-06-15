@@ -17,6 +17,7 @@ function monthStartUtc(now = new Date()): Date {
 
 export async function loadExpansionBounceRows(
   countryIso2?: string,
+  emailKind?: string,
   now = new Date()
 ): Promise<ExpansionBounceRow[]> {
   const rows = await prisma.processedWebhook.findMany({
@@ -30,7 +31,7 @@ export async function loadExpansionBounceRows(
     take: 5000,
   })
 
-  return rows
+  const mapped = rows
     .map((row) => {
       const meta = parseExpansionEmailEventMeta(row.error)
       if (!meta.countryIso2) return null
@@ -42,4 +43,6 @@ export async function loadExpansionBounceRows(
       }
     })
     .filter((row): row is ExpansionBounceRow => row !== null)
+
+  return emailKind ? mapped.filter((row) => row.emailKind === emailKind) : mapped
 }

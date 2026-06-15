@@ -25,3 +25,24 @@ export function shouldAlertCountryBounceRate(args: {
   if (notifiedBase < minNotified) return false
   return computeCountryBounceRatePct(args) > thresholdPct
 }
+
+export function computeGraduatedBounceRatePct(args: {
+  bouncesThisMonth: number
+  sentCount: number
+}): number {
+  if (args.bouncesThisMonth === 0 || args.sentCount === 0) return 0
+  return Math.min(100, Math.round((args.bouncesThisMonth / args.sentCount) * 1000) / 10)
+}
+
+export function shouldAlertGraduatedBounceRate(args: {
+  bouncesThisMonth: number
+  sentCount: number
+  thresholdPct?: number
+  minSent?: number
+}): boolean {
+  const thresholdPct = args.thresholdPct ?? EXPANSION_BOUNCE_RATE_ALERT_THRESHOLD_PCT
+  const minSent = args.minSent ?? EXPANSION_BOUNCE_RATE_MIN_NOTIFIED
+  if (args.sentCount < minSent) return false
+  if (args.bouncesThisMonth === 0) return false
+  return computeGraduatedBounceRatePct(args) > thresholdPct
+}
