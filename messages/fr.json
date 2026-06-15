@@ -1008,6 +1008,12 @@
       "stripeTax": "Taxes",
       "footnote": "Livraison selon la zone du fournisseur. Filtre « États-Unis & Canada » dans la colonne filtres."
     },
+    "rolloutShipping": {
+      "aria": "Livraison vers votre pays",
+      "title": "Livraison vers {country} confirmée",
+      "body": "Le checkout vers {country} est ouvert — payez avec Stripe et livrez à votre adresse locale.",
+      "cartNote": "Checkout vers {country} ouvert — votre commande est livrée à votre adresse locale."
+    },
     "checkoutRegion": {
       "aria": "Disponibilité du checkout dans votre région",
       "badge": "Bientôt disponible",

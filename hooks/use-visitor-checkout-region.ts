@@ -5,6 +5,7 @@ import useSWR from "swr"
 type VisitorRegionResponse = {
   country: string | null
   checkoutAvailable: boolean
+  rolloutOnly?: boolean
 }
 
 const fetcher = (url: string) =>
@@ -19,6 +20,7 @@ export function useVisitorCheckoutRegion() {
   return {
     country: data?.country ?? null,
     checkoutAvailable: data?.checkoutAvailable ?? true,
+    rolloutOnly: data?.rolloutOnly ?? false,
     loading: isLoading && !data,
   }
 }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 
 import { rateLimitClientKey, rateLimitResponse } from "@/lib/api-rate-limit"
+import { isStripeCheckoutCountryResolved } from "@/lib/checkout-country-rollout"
 import { joinLaunchWaitlistPayload, validateJoinLaunchWaitlist } from "@/lib/checkout-launch-waitlist"
 import { logBusiness } from "@/lib/business-log"
 import { MARKET_REGION } from "@/lib/market-config"
@@ -47,6 +48,15 @@ export async function POST(req: Request) {
   const countryIso2 = country?.trim() || resolveVisitorCountryIso2(req.headers)
   if (!countryIso2) {
     return NextResponse.json({ ok: false, error: "country_required" }, { status: 400 })
+  }
+
+  if (await isStripeCheckoutCountryResolved(countryIso2)) {
+    logBusiness("launch-waitlist", {
+      country: countryIso2,
+      marketRegion: MARKET_REGION,
+      result: "already_available",
+    })
+    return NextResponse.json({ ok: false, error: "already_available" }, { status: 400 })
   }
 
   const validation = validateJoinLaunchWaitlist({

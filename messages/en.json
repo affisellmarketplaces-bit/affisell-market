@@ -1000,6 +1000,12 @@
       "stripeTax": "Tax",
       "footnote": "Shipping depends on supplier zone. Filter « US & Canada » in the sidebar."
     },
+    "rolloutShipping": {
+      "aria": "Shipping to your country",
+      "title": "Shipping to {country} confirmed",
+      "body": "Checkout to {country} is live — pay with Stripe and ship to your local address.",
+      "cartNote": "Checkout to {country} is open — your order ships to your local address."
+    },
     "checkoutRegion": {
       "aria": "Checkout availability in your region",
       "badge": "Coming soon",

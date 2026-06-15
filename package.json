@@ -51,6 +51,7 @@
     "test:veo": "tsx test-veo.ts",
     "test:veo:pipeline": "tsx scripts/test-veo-pipeline.ts",
     "demo:ensure": "tsx scripts/ensure-demo-lab-users.ts",
+    "expansion:pilot": "tsx scripts/expansion-pilot.ts",
     "agents:seed": "tsx scripts/seed-agent-network.ts",
     "agents:provision-users": "tsx scripts/provision-agent-users.ts",
     "test:vat": "tsx scripts/test-vat-flow.ts",

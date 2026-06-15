@@ -26,7 +26,7 @@ import {
   variantsFromDb,
 } from "@/lib/product-variants"
 import { stripeProductImages } from "@/lib/product-images"
-import { stripeCheckoutAllowedCountries } from "@/lib/eu-market-countries"
+import { resolveStripeCheckoutAllowedCountries } from "@/lib/checkout-country-rollout"
 import {
   isDonationListing,
   parseProductOfferMode,
@@ -307,7 +307,7 @@ async function checkoutFromItems(
 
   const { baseUrl, cancelPath, successPath } = checkoutBaseUrls(opts)
 
-  const allowedCountries = stripeCheckoutAllowedCountries()
+  const allowedCountries = await resolveStripeCheckoutAllowedCountries()
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "payment",
     ...marketplaceCheckoutPaymentSessionOptions(),
@@ -558,7 +558,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
 
   const { baseUrl, cancelPath, successPath } = checkoutBaseUrls(body)
 
-  const allowedCountries = stripeCheckoutAllowedCountries()
+  const allowedCountries = await resolveStripeCheckoutAllowedCountries()
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "payment",
     ...marketplaceCheckoutPaymentSessionOptions(),

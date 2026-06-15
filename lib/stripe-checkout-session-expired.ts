@@ -1,6 +1,7 @@
 import type Stripe from "stripe"
 
 import { AbandonedCheckoutEmail } from "@/emails/abandoned-checkout"
+import { isRolloutOnlyCheckoutCountryResolved } from "@/lib/checkout-country-rollout"
 import { logBusiness } from "@/lib/business-log"
 import {
   abandonedCheckoutEmailSubject,
@@ -12,6 +13,7 @@ import { resolveEmailLocale } from "@/lib/emails/resolve-email-locale"
 import { resolveAppUrl, resolveOrderConfirmationImageUrl } from "@/lib/emails/send-order-confirmation"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { prisma } from "@/lib/prisma"
+import { visitorCountryDisplayName } from "@/lib/visitor-country"
 
 function resolveCustomerName(email: string, session: Stripe.Checkout.Session, locale: string): string {
   const fromDetails = session.customer_details?.name?.trim()
@@ -94,6 +96,15 @@ export async function handleStripeCheckoutSessionExpired(
     customerName,
     productName: listing.product.name,
   })
+
+  const shippingCountry = session.customer_details?.address?.country?.trim()
+  if (shippingCountry && (await isRolloutOnlyCheckoutCountryResolved(shippingCountry))) {
+    const countryName = visitorCountryDisplayName(shippingCountry, locale)
+    copy.rolloutNote =
+      locale === "en"
+        ? `Shipping to ${countryName} is confirmed — complete checkout with your local address.`
+        : `Livraison vers ${countryName} confirmée — finalisez avec votre adresse locale.`
+  }
 
   const sent = await sendResendReactEmail({
     context: "abandoned-checkout",

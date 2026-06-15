@@ -42,6 +42,7 @@ export const AbandonedCheckoutEmail = ({
           <Heading style={h1}>{copy.heading}</Heading>
           <Text style={text}>{copy.greeting}</Text>
           <Text style={text}>{copy.body}</Text>
+          {copy.rolloutNote ? <Text style={rolloutNote}>{copy.rolloutNote}</Text> : null}
 
           <Section style={card}>
             {productImageUrl ? (
@@ -94,6 +95,15 @@ const main = { backgroundColor: "#0a0a0a", fontFamily: "system-ui, sans-serif" }
 const container = { margin: "0 auto", padding: "32px 16px", maxWidth: "520px" }
 const h1 = { color: "#fafafa", fontSize: "22px", fontWeight: "700", margin: "0 0 16px" }
 const text = { color: "#d4d4d8", fontSize: "15px", lineHeight: "24px", margin: "0 0 12px" }
+const rolloutNote = {
+  color: "#a7f3d0",
+  fontSize: "14px",
+  lineHeight: "22px",
+  margin: "0 0 16px",
+  padding: "10px 12px",
+  backgroundColor: "#052e16",
+  borderRadius: "8px",
+}
 const card = {
   backgroundColor: "#18181b",
   borderRadius: "12px",

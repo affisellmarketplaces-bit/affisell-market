@@ -134,7 +134,7 @@ export async function loadAdminTerminalOverview(): Promise<AdminTerminalOverview
       id: "row-expansion",
       label: "Expansion ROW",
       count: launchWaitlist.total,
-      href: "/admin/terminal",
+      href: "/admin/expansion",
       tone: launchWaitlist.total > 0 ? "sky" : "emerald",
       hint:
         launchWaitlist.topCountry && launchWaitlist.topCountryCount > 0

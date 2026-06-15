@@ -5,6 +5,7 @@ import { headers } from "next/headers"
 
 import { auth } from "@/auth"
 import { CheckoutRegionComingSoonBanner } from "@/components/marketplace/checkout-region-coming-soon-banner"
+import { RolloutShippingConfirmedBanner } from "@/components/marketplace/rollout-shipping-confirmed-banner"
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
 import { filterListingForPromotedVariants } from "@/lib/affiliate-storefront-variants"
 import {
@@ -36,7 +37,10 @@ import {
 import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import type { AppLocale } from "@/lib/i18n-locale"
 import { offerModeBadge, parseProductOfferMode } from "@/lib/product-offer-mode"
-import { isStripeCheckoutCountry } from "@/lib/eu-market-countries"
+import {
+  isRolloutOnlyCheckoutCountryResolved,
+  isStripeCheckoutCountryResolved,
+} from "@/lib/checkout-country-rollout"
 import { resolveVisitorCountryIso2 } from "@/lib/visitor-country"
 import { prisma } from "@/lib/prisma"
 
@@ -116,7 +120,11 @@ export default async function MarketplaceListingPage({
     headers(),
   ])
   const visitorCountry = resolveVisitorCountryIso2(requestHeaders)
-  const checkoutAvailable = visitorCountry ? isStripeCheckoutCountry(visitorCountry) : true
+  const checkoutAvailable = visitorCountry ? await isStripeCheckoutCountryResolved(visitorCountry) : true
+  const rolloutOnly =
+    visitorCountry && checkoutAvailable
+      ? await isRolloutOnlyCheckoutCountryResolved(visitorCountry)
+      : false
 
   const loaded = await loadMarketplaceListingPageData({
     listingId: id,
@@ -327,6 +335,14 @@ export default async function MarketplaceListingPage({
             variant="compact"
             visitorCountry={visitorCountry}
             checkoutAvailable={false}
+          />
+        ) : rolloutOnly && visitorCountry ? (
+          <RolloutShippingConfirmedBanner
+            className="mb-4"
+            variant="compact"
+            visitorCountry={visitorCountry}
+            checkoutAvailable
+            rolloutOnly
           />
         ) : null}
         <MarketplaceListingDetail

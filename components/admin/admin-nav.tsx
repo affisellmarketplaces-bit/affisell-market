@@ -7,6 +7,7 @@ import { AdminAuthActions } from "@/components/admin/admin-auth-actions"
 import { cn } from "@/lib/utils"
 
 const LINKS = [
+  { href: "/admin/expansion", label: "Expansion" },
   { href: "/admin/terminal", label: "Terminal" },
   { href: "/admin/sentinel", label: "Sentinel" },
   { href: "/admin/kyc", label: "KYC" },
@@ -47,6 +48,7 @@ export function AdminNav() {
                 link.href !== "/admin/support" &&
                 link.href !== "/admin/returns" &&
                 pathname.startsWith(`${link.href}/`)) ||
+              (link.href === "/admin/expansion" && pathname.startsWith("/admin/expansion")) ||
               (link.href === "/admin/terminal" && pathname.startsWith("/admin/terminal")) ||
               (link.href === "/admin/sentinel" && pathname.startsWith("/admin/sentinel")) ||
               (link.href === "/admin/kyc" && pathname.startsWith("/admin/kyc")) ||

@@ -11,6 +11,7 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import { FlexiblePaymentBadge } from "@/components/checkout/flexible-payment-badge"
 import { CartCheckoutShippingNote } from "@/components/cart/cart-checkout-shipping-note"
 import { CheckoutRegionComingSoonBanner } from "@/components/marketplace/checkout-region-coming-soon-banner"
+import { CartRolloutCheckoutNote } from "@/components/marketplace/cart-rollout-checkout-note"
 import { useVisitorCheckoutRegion } from "@/hooks/use-visitor-checkout-region"
 import { CartCheckoutAutoOpen } from "@/components/cart/cart-checkout-auto-open"
 import { COLORS, isMulticolorSwatch } from "@/lib/product-catalog-constants"
@@ -445,7 +446,9 @@ export default function CartPage() {
             visitorCountry={visitorCountry}
             checkoutAvailable={false}
           />
-        ) : null}
+        ) : (
+          <CartRolloutCheckoutNote />
+        )}
         <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">{t("title")}</h1>

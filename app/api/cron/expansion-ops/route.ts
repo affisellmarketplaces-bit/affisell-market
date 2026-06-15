@@ -1,0 +1,34 @@
+import { type NextRequest, NextResponse } from "next/server"
+
+import { authorizeCronRequest } from "@/lib/cron/authorize-cron-request"
+import { runCheckoutLaunchFollowupCron } from "@/lib/cron/checkout-launch-followup"
+import { runCheckoutLaunchNotifyCron } from "@/lib/cron/checkout-launch-notify"
+import { runExpansionDigestCron } from "@/lib/cron/expansion-digest"
+import { runExpansionRolloutMetricsCron } from "@/lib/cron/expansion-rollout-metrics"
+
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+/**
+ * Vercel Cron: expansion ops — notify batches, J+2 follow-up, first-order metrics, weekly digest.
+ * `Authorization: Bearer ${CRON_SECRET}`
+ */
+export async function GET(req: NextRequest) {
+  const denied = authorizeCronRequest(req)
+  if (denied) return denied
+
+  const digestOnly = req.nextUrl.searchParams.get("digest") === "1"
+
+  if (digestOnly) {
+    const digest = await runExpansionDigestCron()
+    return NextResponse.json({ ok: true, digest })
+  }
+
+  const [notify, followup, metrics] = await Promise.all([
+    runCheckoutLaunchNotifyCron(),
+    runCheckoutLaunchFollowupCron(),
+    runExpansionRolloutMetricsCron(),
+  ])
+
+  return NextResponse.json({ ok: true, notify, followup, metrics })
+}

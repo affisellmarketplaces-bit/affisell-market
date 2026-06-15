@@ -8,7 +8,7 @@ import { HomeBuyerSmartStrip } from "@/components/home/HomeBuyerSmartStrip"
 import { HeroGradientBg } from "@/components/marketing/hero-gradient-bg"
 import { Link } from "@/i18n/navigation"
 import { loadFeaturedShopsCached } from "@/lib/public-home-cache"
-import { isStripeCheckoutCountry } from "@/lib/eu-market-countries"
+import { isStripeCheckoutCountryResolved } from "@/lib/checkout-country-rollout"
 import { resolveVisitorCountryIso2 } from "@/lib/visitor-country"
 
 export async function BuyerHeroBlock() {
@@ -18,7 +18,7 @@ export async function BuyerHeroBlock() {
     headers(),
   ])
   const visitorCountry = resolveVisitorCountryIso2(requestHeaders)
-  const checkoutAvailable = visitorCountry ? isStripeCheckoutCountry(visitorCountry) : true
+  const checkoutAvailable = visitorCountry ? await isStripeCheckoutCountryResolved(visitorCountry) : true
 
   return (
     <section className="relative w-full min-w-0 max-w-full overflow-hidden rounded-2xl border border-violet-500/20 bg-gradient-to-br from-violet-700 via-indigo-800 to-sky-900 px-3 py-5 text-white shadow-xl sm:rounded-3xl sm:px-6 sm:py-7 md:px-10 md:py-16">

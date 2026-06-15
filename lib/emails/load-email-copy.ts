@@ -103,6 +103,7 @@ export type AbandonedCheckoutEmailCopy = {
   heading: string
   greeting: string
   body: string
+  rolloutNote?: string
   cta: string
   footer: string
 }

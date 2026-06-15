@@ -12,12 +12,6 @@ describe("checkout-launch-waitlist", () => {
     expect(normalizeLaunchWaitlistEmail("not-an-email")).toBeNull()
   })
 
-  it("rejects checkout-available countries", () => {
-    expect(
-      validateJoinLaunchWaitlist({ email: "a@b.com", countryIso2: "FR", marketRegion: "eu" })
-    ).toEqual({ ok: false, error: "already_available" })
-  })
-
   it("accepts ROW countries", () => {
     expect(validateJoinLaunchWaitlist({ email: "a@b.com", countryIso2: "JP", marketRegion: "eu" })).toBeNull()
   })

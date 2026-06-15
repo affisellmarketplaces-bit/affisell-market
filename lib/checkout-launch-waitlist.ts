@@ -1,5 +1,5 @@
-import { isStripeCheckoutCountry } from "@/lib/eu-market-countries"
-import { MARKET_REGION, type MarketRegion } from "@/lib/market-config"
+import type { MarketRegion } from "@/lib/market-config"
+import { MARKET_REGION } from "@/lib/market-config"
 import { normalizeVisitorCountryIso2 } from "@/lib/visitor-country"
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -24,11 +24,9 @@ export type JoinLaunchWaitlistResult =
 export function validateJoinLaunchWaitlist(input: JoinLaunchWaitlistInput): JoinLaunchWaitlistResult | null {
   const email = normalizeLaunchWaitlistEmail(input.email)
   const country = normalizeVisitorCountryIso2(input.countryIso2)
-  const marketRegion = input.marketRegion ?? MARKET_REGION
 
   if (!email) return { ok: false, error: "invalid_email" }
   if (!country) return { ok: false, error: "invalid_country" }
-  if (isStripeCheckoutCountry(country)) return { ok: false, error: "already_available" }
 
   return null
 }
