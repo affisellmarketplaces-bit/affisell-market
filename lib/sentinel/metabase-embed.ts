@@ -51,3 +51,10 @@ export function buildMetabaseExpansionEmbedUrl(): string | null {
   if (!expansionDashboardId) return null
   return buildMetabaseEmbedUrl(expansionDashboardId)
 }
+
+/** Expansion email bounces — filter logs: `resend_bounce`, `launch_email_bounce_suppressed`, ProcessedWebhook status expansion_bounce. */
+export function buildMetabaseExpansionBounceEmbedUrl(): string | null {
+  const bounceDashboardId = process.env.METABASE_EXPANSION_BOUNCE_DASHBOARD_ID?.trim()
+  if (!bounceDashboardId) return null
+  return buildMetabaseEmbedUrl(bounceDashboardId)
+}

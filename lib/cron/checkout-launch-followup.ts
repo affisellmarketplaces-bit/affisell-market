@@ -26,6 +26,7 @@ export async function runCheckoutLaunchFollowupCron(
       marketRegion: MARKET_REGION,
       launchNotifiedAt: { lte: cutoff },
       launchFollowUpSentAt: null,
+      launchEmailSuppressedAt: null,
     },
     orderBy: { launchNotifiedAt: "asc" },
     take: BATCH_LIMIT,

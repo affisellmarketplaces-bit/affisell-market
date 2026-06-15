@@ -45,6 +45,7 @@ export type ProcessExpansionResendDeliveryResult = {
   handled: boolean
   alerted: boolean
   retryQueued: number
+  suppressed: number
   webhookStatus: "expansion_bounce" | "expansion_complaint" | null
 }
 
@@ -54,11 +55,11 @@ export async function processExpansionResendDeliveryEvent(
   webhookId: string
 ): Promise<ProcessExpansionResendDeliveryResult> {
   if (event.type !== "email.bounced" && event.type !== "email.complained") {
-    return { handled: false, alerted: false, retryQueued: 0, webhookStatus: null }
+    return { handled: false, alerted: false, retryQueued: 0, suppressed: 0, webhookStatus: null }
   }
 
   if (!isExpansionBuyerResendEmail(event.data)) {
-    return { handled: false, alerted: false, retryQueued: 0, webhookStatus: null }
+    return { handled: false, alerted: false, retryQueued: 0, suppressed: 0, webhookStatus: null }
   }
 
   const recipient = event.data.to?.[0] ?? "unknown"
@@ -68,14 +69,22 @@ export async function processExpansionResendDeliveryEvent(
   const emailKind = resolveExpansionEmailKind(event.data)
 
   let retryQueued = 0
+  let suppressed = 0
   if (event.type === "email.bounced" && emailKind === "checkout-launch" && recipient !== "unknown") {
-    retryQueued = await reenqueueLaunchWaitlistOnHardBounce(recipient)
+    const bounceResult = await reenqueueLaunchWaitlistOnHardBounce(recipient)
+    retryQueued = bounceResult.requeued
+    suppressed = bounceResult.suppressed
   }
 
-  const retryBit = retryQueued > 0 ? ` · ${retryQueued} waitlist row(s) re-queued` : ""
+  const actionBit =
+    retryQueued > 0
+      ? ` · ${retryQueued} waitlist row(s) re-queued`
+      : suppressed > 0
+        ? ` · ${suppressed} waitlist row(s) suppressed`
+        : ""
   const text = `⚠️ Expansion email ${kind}: \`${recipient}\` — ${subject}${
     bounceMessage ? ` — ${bounceMessage.slice(0, 200)}` : ""
-  }${retryBit}`
+  }${actionBit}`
 
   const { slack, discord } = await opsWebhookAlert(text)
   const alerted = slack || discord
@@ -88,6 +97,7 @@ export async function processExpansionResendDeliveryEvent(
     subject,
     emailKind,
     retryQueued,
+    suppressed,
     alerted,
   })
 
@@ -95,6 +105,7 @@ export async function processExpansionResendDeliveryEvent(
     handled: true,
     alerted,
     retryQueued,
+    suppressed,
     webhookStatus: event.type === "email.bounced" ? "expansion_bounce" : "expansion_complaint",
   }
 }

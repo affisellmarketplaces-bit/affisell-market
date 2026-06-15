@@ -5,6 +5,7 @@ export type ExpansionEmailBounceStats = {
   bouncesThisMonth: number
   complaintsThisMonth: number
   launchRetriesPending: number
+  launchSuppressedTotal: number
 }
 
 function monthStartUtc(now = new Date()): Date {
@@ -17,7 +18,8 @@ function monthStartUtc(now = new Date()): Date {
 export async function loadExpansionEmailBounceStats(now = new Date()): Promise<ExpansionEmailBounceStats> {
   const monthStart = monthStartUtc(now)
 
-  const [bouncesThisMonth, complaintsThisMonth, launchRetriesPending] = await Promise.all([
+  const [bouncesThisMonth, complaintsThisMonth, launchRetriesPending, launchSuppressedTotal] =
+    await Promise.all([
     prisma.processedWebhook.count({
       where: { status: "expansion_bounce", createdAt: { gte: monthStart } },
     }),
@@ -29,9 +31,16 @@ export async function loadExpansionEmailBounceStats(now = new Date()): Promise<E
         marketRegion: MARKET_REGION,
         launchEmailBouncedAt: { not: null },
         launchNotifiedAt: null,
+        launchEmailSuppressedAt: null,
+      },
+    }),
+    prisma.checkoutLaunchWaitlist.count({
+      where: {
+        marketRegion: MARKET_REGION,
+        launchEmailSuppressedAt: { not: null },
       },
     }),
   ])
 
-  return { bouncesThisMonth, complaintsThisMonth, launchRetriesPending }
+  return { bouncesThisMonth, complaintsThisMonth, launchRetriesPending, launchSuppressedTotal }
 }

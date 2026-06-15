@@ -2,7 +2,7 @@ import { redirect } from "next/navigation"
 
 import { AdminExpansionConsole } from "@/components/admin/admin-expansion-console"
 import { loadAdminExpansionOverview } from "@/lib/admin/load-admin-expansion-overview"
-import { buildMetabaseExpansionEmbedUrl } from "@/lib/sentinel/metabase-embed"
+import { buildMetabaseExpansionBounceEmbedUrl, buildMetabaseExpansionEmbedUrl } from "@/lib/sentinel/metabase-embed"
 import { auth } from "@/auth"
 
 export const dynamic = "force-dynamic"
@@ -14,11 +14,13 @@ export default async function AdminExpansionPage() {
 
   const initial = await loadAdminExpansionOverview()
   const metabaseExpansionEmbedUrl = buildMetabaseExpansionEmbedUrl()
+  const metabaseExpansionBounceEmbedUrl = buildMetabaseExpansionBounceEmbedUrl()
 
   return (
     <AdminExpansionConsole
       initial={initial}
       metabaseExpansionEmbedUrl={metabaseExpansionEmbedUrl}
+      metabaseExpansionBounceEmbedUrl={metabaseExpansionBounceEmbedUrl}
     />
   )
 }

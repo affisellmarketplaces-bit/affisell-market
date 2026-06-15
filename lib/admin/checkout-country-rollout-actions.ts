@@ -85,6 +85,7 @@ export async function notifyCheckoutCountryWaitlist(
       countryIso2,
       marketRegion: MARKET_REGION,
       launchNotifiedAt: null,
+      launchEmailSuppressedAt: null,
     },
     orderBy: { createdAt: "asc" },
     take: NOTIFY_BATCH_SIZE,

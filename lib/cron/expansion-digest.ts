@@ -55,6 +55,7 @@ function buildDigestBody(
     `Graduation emails pending: ${overview.funnel.graduationEmailsPending}`,
     `Expansion email bounces (month): ${overview.emailBounces.bouncesThisMonth}`,
     `Launch emails pending retry: ${overview.emailBounces.launchRetriesPending}`,
+    `Launch emails suppressed (2nd bounce): ${overview.emailBounces.launchSuppressedTotal}`,
     `Total waitlist signups: ${overview.totalWaitlist}`,
     "",
     "Top demand:",

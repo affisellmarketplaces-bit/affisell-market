@@ -12,9 +12,14 @@ import { Button } from "@/components/ui/button"
 type Props = {
   initial: AdminExpansionOverview
   metabaseExpansionEmbedUrl: string | null
+  metabaseExpansionBounceEmbedUrl: string | null
 }
 
-export function AdminExpansionConsole({ initial, metabaseExpansionEmbedUrl }: Props) {
+export function AdminExpansionConsole({
+  initial,
+  metabaseExpansionEmbedUrl,
+  metabaseExpansionBounceEmbedUrl,
+}: Props) {
   const [overview, setOverview] = useState(initial)
   const [pending, startTransition] = useTransition()
 
@@ -153,6 +158,9 @@ export function AdminExpansionConsole({ initial, metabaseExpansionEmbedUrl }: Pr
             {overview.emailBounces.launchRetriesPending > 0
               ? ` ${overview.emailBounces.launchRetriesPending} launch email(s) queued for auto-retry.`
               : null}
+            {overview.emailBounces.launchSuppressedTotal > 0
+              ? ` ${overview.emailBounces.launchSuppressedTotal} launch email(s) permanently suppressed after 2nd bounce.`
+              : null}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -193,9 +201,11 @@ export function AdminExpansionConsole({ initial, metabaseExpansionEmbedUrl }: Pr
           hint={
             overview.emailBounces.launchRetriesPending > 0
               ? `${overview.emailBounces.launchRetriesPending} retry queued`
-              : overview.emailBounces.complaintsThisMonth > 0
-                ? `${overview.emailBounces.complaintsThisMonth} complaint(s)`
-                : undefined
+              : overview.emailBounces.launchSuppressedTotal > 0
+                ? `${overview.emailBounces.launchSuppressedTotal} suppressed`
+                : overview.emailBounces.complaintsThisMonth > 0
+                  ? `${overview.emailBounces.complaintsThisMonth} complaint(s)`
+                  : undefined
           }
         />
         <MetricCard label="Waitlist signups" value={overview.totalWaitlist} />
@@ -235,6 +245,21 @@ export function AdminExpansionConsole({ initial, metabaseExpansionEmbedUrl }: Pr
         </section>
       ) : null}
 
+      {metabaseExpansionBounceEmbedUrl ? (
+        <section className="mb-8 overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="flex items-center gap-2 border-b border-zinc-200 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:border-zinc-800">
+            <BarChart3 className="size-3.5 text-orange-600" aria-hidden />
+            Metabase · expansion email bounces
+          </div>
+          <iframe
+            title="Metabase expansion bounce dashboard"
+            src={metabaseExpansionBounceEmbedUrl}
+            className="h-[320px] w-full border-0 bg-zinc-50 dark:bg-zinc-950"
+            loading="lazy"
+          />
+        </section>
+      ) : null}
+
       <section className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
         <div className="border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
@@ -262,10 +287,26 @@ export function AdminExpansionConsole({ initial, metabaseExpansionEmbedUrl }: Pr
                     ) : (
                       <Badge variant="outline">Waiting</Badge>
                     )}
+                    {row.launchBounceRetriesPending > 0 ? (
+                      <Badge className="bg-orange-600 hover:bg-orange-600">
+                        Bounce retry ({row.launchBounceRetriesPending})
+                      </Badge>
+                    ) : null}
+                    {row.launchBounceSuppressed > 0 ? (
+                      <Badge variant="destructive">
+                        Bounced ({row.launchBounceSuppressed})
+                      </Badge>
+                    ) : null}
                   </div>
                   <p className="mt-1 text-xs text-zinc-500">
                     {row.waitlistCount} signup{row.waitlistCount === 1 ? "" : "s"}
                     {row.pendingNotifyCount > 0 ? ` · ${row.pendingNotifyCount} pending email` : ""}
+                    {row.launchBounceRetriesPending > 0
+                      ? ` · ${row.launchBounceRetriesPending} bounce retry`
+                      : ""}
+                    {row.launchBounceSuppressed > 0
+                      ? ` · ${row.launchBounceSuppressed} suppressed`
+                      : ""}
                     {row.launchEmailSentAt ? ` · last notify ${new Date(row.launchEmailSentAt).toLocaleDateString()}` : ""}
                     {row.firstOrderAt
                       ? ` · first order ${new Date(row.firstOrderAt).toLocaleDateString()}`

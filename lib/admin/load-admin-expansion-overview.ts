@@ -12,6 +12,7 @@ import { MARKET_REGION } from "@/lib/market-config"
 import { stripeCheckoutAllowedCountriesForRegion } from "@/lib/eu-market-countries"
 import { loadGraduatedCheckoutCountryIso2 } from "@/lib/checkout-country-rollout"
 import { findNextPilotCountry } from "@/lib/expansion/find-next-pilot-country"
+import { loadExpansionCountryBounceStats } from "@/lib/expansion/load-expansion-country-bounce-stats"
 import { loadExpansionEmailBounceStats } from "@/lib/expansion/load-expansion-email-bounce-stats"
 import { prisma } from "@/lib/prisma"
 import { visitorCountryDisplayName } from "@/lib/visitor-country"
@@ -27,6 +28,8 @@ export type ExpansionCountryRow = {
   firstOrderId: string | null
   graduatedAt: string | null
   graduationEmailSentAt: string | null
+  launchBounceRetriesPending: number
+  launchBounceSuppressed: number
   funnel: ExpansionCountryFunnel
 }
 
@@ -45,6 +48,7 @@ export type ExpansionEmailBounceOverview = {
   bouncesThisMonth: number
   complaintsThisMonth: number
   launchRetriesPending: number
+  launchSuppressedTotal: number
 }
 
 export type AdminExpansionOverview = {
@@ -66,7 +70,7 @@ export type AdminExpansionOverview = {
 export async function loadAdminExpansionOverview(): Promise<AdminExpansionOverview> {
   const marketRegion = MARKET_REGION
 
-  const [waitlistGroups, rollouts, totalWaitlist, liveCheckoutCountries, funnel, rolloutHealth, emailBounces] =
+  const [waitlistGroups, rollouts, totalWaitlist, liveCheckoutCountries, funnel, rolloutHealth, emailBounces, countryBounceStats] =
     await Promise.all([
     prisma.checkoutLaunchWaitlist.groupBy({
       by: ["countryIso2"],
@@ -82,11 +86,12 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
     loadExpansionFunnelSummary(),
     loadExpansionRolloutHealthStats(),
     loadExpansionEmailBounceStats(),
+    loadExpansionCountryBounceStats(),
   ])
 
   const pendingByCountry = await prisma.checkoutLaunchWaitlist.groupBy({
     by: ["countryIso2"],
-    where: { marketRegion, launchNotifiedAt: null },
+    where: { marketRegion, launchNotifiedAt: null, launchEmailSuppressedAt: null },
     _count: { _all: true },
   })
 
@@ -96,6 +101,7 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
   const countriesBase: Omit<ExpansionCountryRow, "funnel">[] = waitlistGroups
     .map((group) => {
       const rollout = rolloutByCountry.get(group.countryIso2)
+      const bounceStats = countryBounceStats.get(group.countryIso2)
       return {
         countryIso2: group.countryIso2,
         waitlistCount: group._count._all,
@@ -107,6 +113,8 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
         firstOrderId: rollout?.firstOrderId ?? null,
         graduatedAt: rollout?.graduatedAt?.toISOString() ?? null,
         graduationEmailSentAt: rollout?.graduationEmailSentAt?.toISOString() ?? null,
+        launchBounceRetriesPending: bounceStats?.retriesPending ?? 0,
+        launchBounceSuppressed: bounceStats?.suppressed ?? 0,
       }
     })
     .sort((a, b) => b.waitlistCount - a.waitlistCount)

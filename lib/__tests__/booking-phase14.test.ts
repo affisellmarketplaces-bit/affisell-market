@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   buildMetabaseBookingEmbedUrl,
   buildMetabaseEmbedUrl,
+  buildMetabaseExpansionBounceEmbedUrl,
   buildMetabaseExpansionEmbedUrl,
 } from "@/lib/sentinel/metabase-embed"
 
@@ -44,5 +45,18 @@ describe("booking phase 14", () => {
     delete process.env.METABASE_SITE_URL
     delete process.env.METABASE_SECRET_KEY
     delete process.env.METABASE_EXPANSION_DASHBOARD_ID
+  })
+
+  it("builds expansion bounce metabase embed when METABASE_EXPANSION_BOUNCE_DASHBOARD_ID is set", () => {
+    process.env.METABASE_SITE_URL = "https://metabase.example.com"
+    process.env.METABASE_SECRET_KEY = "test-secret-key"
+    process.env.METABASE_EXPANSION_BOUNCE_DASHBOARD_ID = "43"
+
+    const url = buildMetabaseExpansionBounceEmbedUrl()
+    expect(url).toMatch(/^https:\/\/metabase\.example\.com\/embed\/dashboard\/.+#bordered=true&titled=true$/)
+
+    delete process.env.METABASE_SITE_URL
+    delete process.env.METABASE_SECRET_KEY
+    delete process.env.METABASE_EXPANSION_BOUNCE_DASHBOARD_ID
   })
 })

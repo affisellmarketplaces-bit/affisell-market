@@ -28,6 +28,7 @@ export async function runCheckoutLaunchNotifyCron(): Promise<RunCheckoutLaunchNo
         countryIso2: rollout.countryIso2,
         marketRegion: MARKET_REGION,
         launchNotifiedAt: null,
+        launchEmailSuppressedAt: null,
       },
     })
     if (pending === 0) continue

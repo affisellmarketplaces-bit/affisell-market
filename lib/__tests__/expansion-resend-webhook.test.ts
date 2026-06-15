@@ -41,6 +41,6 @@ describe("processExpansionResendDeliveryEvent", () => {
       },
       "msg_test"
     )
-    expect(result).toEqual({ handled: false, alerted: false, retryQueued: 0, webhookStatus: null })
+    expect(result).toEqual({ handled: false, alerted: false, retryQueued: 0, suppressed: 0, webhookStatus: null })
   })
 })
