@@ -4,15 +4,24 @@ import { Resend } from "resend"
 import { ExpansionDigestEmail } from "@/emails/expansion-digest"
 import { expansionCountryLabel, loadAdminExpansionOverview } from "@/lib/admin/load-admin-expansion-overview"
 import { resolveExpansionAdminEmail } from "@/lib/admin/resolve-expansion-admin-email"
-import { expansionBouncesExportPath, expansionComplaintsExportPath, expansionDeliveredExportPath, expansionEmailExportsBundlePath } from "@/lib/admin/expansion-email-export-kinds"
+import { expansionBouncesExportPath, expansionComplaintsExportPath, expansionDeliveredExportPath } from "@/lib/admin/expansion-email-export-kinds"
 import {
   graduationBounceDigestBadge,
   shouldShowGraduationHighBounceDigestRow,
 } from "@/lib/expansion/expansion-digest-graduation-bounce-badge"
 import {
+  followupComplaintDigestBadge,
+  shouldShowFollowupDeliveredDigestRow,
+} from "@/lib/expansion/expansion-digest-followup-complaint-badge"
+import {
   followupBounceDigestBadge,
   shouldShowFollowupHighBounceDigestRow,
 } from "@/lib/expansion/expansion-digest-followup-bounce-badge"
+import {
+  buildExpansionDigestCountryQuickExportLine,
+  buildExpansionDigestGlobalQuickExportLines,
+  hasExpansionQuickExportActivity,
+} from "@/lib/expansion/expansion-digest-quick-exports"
 import {
   followupDeliveryDigestBadge,
   shouldShowFollowupLowDeliveryDigestRow,
@@ -73,32 +82,7 @@ function buildDigestBody(
 ): string {
   const adminUrl = resolveAppUrl()
   const topDemand = overview.countries.slice(0, 5)
-  const emailExportCountries = overview.countries.filter(
-    (row) =>
-      row.launchEmailsDeliveredThisMonth > 0 ||
-      row.launchGraduatedDeliveredThisMonth > 0 ||
-      row.launchComplaintsThisMonth > 0 ||
-      row.launchGraduatedComplaintsThisMonth > 0
-  )
-  const complaintExportCountries = overview.countries.filter(
-    (row) =>
-      row.launchComplaintsThisMonth > 0 ||
-      row.launchGraduatedComplaintsThisMonth > 0 ||
-      row.launchFollowupComplaintsThisMonth > 0
-  )
-  const deliveredExportCountries = overview.countries.filter(
-    (row) =>
-      row.launchEmailsDeliveredThisMonth > 0 ||
-      row.launchGraduatedDeliveredThisMonth > 0 ||
-      row.launchFollowupDeliveredThisMonth > 0
-  )
-  const bounceExportCountries = overview.countries.filter(
-    (row) =>
-      row.launchBounceRetriesPending > 0 ||
-      row.launchBounceSuppressed > 0 ||
-      row.launchGraduatedBouncesThisMonth > 0 ||
-      row.launchFollowupBouncesThisMonth > 0
-  )
+  const quickExportCountries = overview.countries.filter(hasExpansionQuickExportActivity).slice(0, 5)
   const lines = [
     `Region: ${MARKET_REGION.toUpperCase()}`,
     `Live checkout countries: ${overview.liveCheckoutCount}`,
@@ -116,59 +100,17 @@ function buildDigestBody(
     `Expansion email bounces (month): ${overview.emailBounces.bouncesThisMonth}`,
     `Expansion email complaints (month): ${overview.emailBounces.complaintsThisMonth}`,
     `Email events (month): ${overview.emailEventCounts.deliveredThisMonth} delivered · ${overview.emailEventCounts.bouncesThisMonth} bounce(s) · ${overview.emailEventCounts.complaintsThisMonth} complaint(s)`,
-    `Metabase email exports bundle (all kinds): ${adminUrl}${expansionEmailExportsBundlePath()}`,
-    ...(emailExportCountries.length > 0
+    ...buildExpansionDigestGlobalQuickExportLines(adminUrl),
+    ...(quickExportCountries.length > 0
       ? [
-          "Metabase email exports bundle by country:",
-          ...emailExportCountries.slice(0, 5).map(
-            (row) =>
-              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${adminUrl}${expansionEmailExportsBundlePath(row.countryIso2)}`
+          "Metabase quick exports by country:",
+          ...quickExportCountries.map((row) =>
+            buildExpansionDigestCountryQuickExportLine(
+              adminUrl,
+              expansionCountryLabel(row.countryIso2, "en"),
+              row
+            )
           ),
-        ]
-      : []),
-    `Metabase complaints export (all kinds): ${adminUrl}${expansionComplaintsExportPath()}`,
-    ...(complaintExportCountries.length > 0
-      ? [
-          "Metabase complaints export by country:",
-          ...complaintExportCountries.slice(0, 5).map((row) => {
-            const emailKind =
-              row.launchGraduatedComplaintsThisMonth > 0
-                ? "checkout-graduated"
-                : row.launchFollowupComplaintsThisMonth > 0
-                  ? "checkout-launch-followup"
-                  : "checkout-launch"
-            return `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${adminUrl}${expansionComplaintsExportPath(row.countryIso2, emailKind)}`
-          }),
-        ]
-      : []),
-    `Metabase delivered export (all kinds): ${adminUrl}${expansionDeliveredExportPath()}`,
-    ...(deliveredExportCountries.length > 0
-      ? [
-          "Metabase delivered export by country:",
-          ...deliveredExportCountries.slice(0, 5).map((row) => {
-            const emailKind =
-              row.launchGraduatedDeliveredThisMonth > 0
-                ? "checkout-graduated"
-                : row.launchFollowupDeliveredThisMonth > 0
-                  ? "checkout-launch-followup"
-                  : "checkout-launch"
-            return `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${adminUrl}${expansionDeliveredExportPath(row.countryIso2, emailKind)}`
-          }),
-        ]
-      : []),
-    `Metabase bounces export (all kinds): ${adminUrl}${expansionBouncesExportPath()}`,
-    ...(bounceExportCountries.length > 0
-      ? [
-          "Metabase bounces export by country:",
-          ...bounceExportCountries.slice(0, 5).map((row) => {
-            const emailKind =
-              row.launchGraduatedBouncesThisMonth > 0
-                ? "checkout-graduated"
-                : row.launchFollowupBouncesThisMonth > 0
-                  ? "checkout-launch-followup"
-                  : "checkout-launch"
-            return `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${adminUrl}${expansionBouncesExportPath(row.countryIso2, emailKind)}`
-          }),
         ]
       : []),
     `Launch emails pending retry: ${overview.emailBounces.launchRetriesPending}`,
@@ -312,7 +254,31 @@ function buildDigestBody(
           .slice(0, 8)
           .map(
             (row) =>
-              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchFollowupComplaintsThisMonth} follow-up complaint(s) · ${row.launchFollowupDeliveryRatePct}% J+2 delivered (auto-resume after 30d clear or ≥80%)${row.launchFollowupComplaintsThisMonth > 0 ? ` — ${adminUrl}${expansionComplaintsExportPath(row.countryIso2, "checkout-launch-followup")}` : ""}`
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchFollowupComplaintsThisMonth} follow-up complaint(s) · ${row.launchFollowupDeliveryRatePct}% J+2 delivered (auto-resume after 30d clear or ≥80%)${followupComplaintDigestBadge({
+                launchFollowupComplaintsThisMonth: row.launchFollowupComplaintsThisMonth,
+                launchFollowupPaused: row.launchFollowupPaused,
+              })}${row.launchFollowupComplaintsThisMonth > 0 ? ` — ${adminUrl}${expansionComplaintsExportPath(row.countryIso2, "checkout-launch-followup")}` : ""}`
+          )
+      : ["• none"]),
+    "",
+    "J+2 follow-up email delivery by country (month, min 10 sent):",
+    ...(overview.countries.filter((row) =>
+      shouldShowFollowupDeliveredDigestRow({
+        followUpCount: row.funnel.followUpCount,
+        launchFollowupDeliveredThisMonth: row.launchFollowupDeliveredThisMonth,
+      })
+    ).length > 0
+      ? overview.countries
+          .filter((row) =>
+            shouldShowFollowupDeliveredDigestRow({
+              followUpCount: row.funnel.followUpCount,
+              launchFollowupDeliveredThisMonth: row.launchFollowupDeliveredThisMonth,
+            })
+          )
+          .slice(0, 5)
+          .map(
+            (row) =>
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchFollowupDeliveryRatePct}% (${row.launchFollowupDeliveredThisMonth} J+2 delivered)${followupDeliveryDigestBadge(row.launchFollowupDeliveryRatePct)} — ${adminUrl}${expansionDeliveredExportPath(row.countryIso2, "checkout-launch-followup")}`
           )
       : ["• none"]),
     "",
@@ -333,7 +299,7 @@ function buildDigestBody(
           .slice(0, 5)
           .map(
             (row) =>
-              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchFollowupDeliveryRatePct}% (${row.launchFollowupDeliveredThisMonth} J+2 delivered)${followupDeliveryDigestBadge(row.launchFollowupDeliveryRatePct)}`
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchFollowupDeliveryRatePct}% (${row.launchFollowupDeliveredThisMonth} J+2 delivered)${followupDeliveryDigestBadge(row.launchFollowupDeliveryRatePct)} — ${adminUrl}${expansionDeliveredExportPath(row.countryIso2, "checkout-launch-followup")}`
           )
       : ["• none"]),
     "",
