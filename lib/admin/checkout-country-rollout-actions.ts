@@ -5,6 +5,7 @@ import {
 } from "@/lib/checkout-country-rollout"
 import { stripeCheckoutAllowedCountriesForRegion } from "@/lib/eu-market-countries"
 import { logBusiness } from "@/lib/business-log"
+import { isLaunchNotifyPaused } from "@/lib/expansion/launch-notify-pause"
 import { sendCheckoutCountryLaunchEmail } from "@/lib/emails/send-checkout-country-launch"
 import { MARKET_REGION } from "@/lib/market-config"
 import { prisma } from "@/lib/prisma"
@@ -78,6 +79,10 @@ export async function notifyCheckoutCountryWaitlist(
   })
   if (!rollout?.enabled) {
     return { ok: false, error: "country_not_enabled" }
+  }
+
+  if (await isLaunchNotifyPaused(countryIso2)) {
+    return { ok: false, error: "launch_notify_paused" }
   }
 
   const waiters = await prisma.checkoutLaunchWaitlist.findMany({

@@ -58,6 +58,25 @@ function buildDigestBody(
     `Launch emails suppressed (2nd bounce): ${overview.emailBounces.launchSuppressedTotal}`,
     `Suppressed waitlist pending 90d purge: ${overview.emailBounces.suppressedStalePendingPurge}`,
     "",
+    "Launch notify auto-paused (delivery <50%):",
+    ...(overview.countries.filter((row) => row.launchNotifyPaused).length > 0
+      ? overview.countries
+          .filter((row) => row.launchNotifyPaused)
+          .slice(0, 8)
+          .map(
+            (row) =>
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchDeliveryRatePct}% delivered`
+          )
+      : ["• none"]),
+    "",
+    "Email delivery by kind (month):",
+    ...(overview.emailKindStats.length > 0
+      ? overview.emailKindStats.map(
+          (row) =>
+            `• ${row.emailKind} — ${row.deliveredThisMonth} delivered · ${row.bouncesThisMonth} bounce(s)`
+        )
+      : ["• none"]),
+    "",
     "High bounce rate (>5%):",
     ...(overview.countries.filter((row) => row.launchBounceRatePct > 5).length > 0
       ? overview.countries

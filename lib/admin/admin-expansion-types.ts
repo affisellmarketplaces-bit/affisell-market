@@ -2,6 +2,12 @@ import type { ExpansionCountryFunnel, ExpansionFunnelSummary } from "@/lib/admin
 import type { ExpansionRolloutHealthStats } from "@/lib/admin/load-expansion-rollout-health"
 import type { MarketRegion } from "@/lib/market-config"
 
+export type ExpansionEmailKindStat = {
+  emailKind: string
+  deliveredThisMonth: number
+  bouncesThisMonth: number
+}
+
 export type ExpansionCountryRow = {
   countryIso2: string
   waitlistCount: number
@@ -18,6 +24,7 @@ export type ExpansionCountryRow = {
   launchBounceRatePct: number
   launchEmailsDeliveredThisMonth: number
   launchDeliveryRatePct: number
+  launchNotifyPaused: boolean
   funnel: ExpansionCountryFunnel
 }
 
@@ -48,6 +55,7 @@ export type AdminExpansionOverview = {
   graduatedThisMonth: number
   graduatedThisMonthCountries: GraduatedThisMonthCountry[]
   emailBounces: ExpansionEmailBounceOverview
+  emailKindStats: ExpansionEmailKindStat[]
   totalWaitlist: number
   funnel: ExpansionFunnelSummary
   nextPilot: ExpansionNextPilot | null

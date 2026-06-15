@@ -15,13 +15,15 @@ import { computeLaunchDeliveryRatePct } from "@/lib/expansion/compute-country-de
 import { expansionCountryLabel } from "@/lib/expansion/expansion-country-label"
 import { loadExpansionCountryBounceStats } from "@/lib/expansion/load-expansion-country-bounce-stats"
 import { loadExpansionCountryDeliveryStats } from "@/lib/resend-webhook/expansion-email-delivered"
-import { loadExpansionEmailBounceStats } from "@/lib/expansion/load-expansion-email-bounce-stats"
+import { loadExpansionEmailKindStats } from "@/lib/expansion/load-expansion-email-kind-stats"
+import { loadPausedLaunchNotifyCountries } from "@/lib/expansion/launch-notify-pause"
 import { prisma } from "@/lib/prisma"
 
 export type {
   AdminExpansionOverview,
   ExpansionCountryRow,
   ExpansionEmailBounceOverview,
+  ExpansionEmailKindStat,
   ExpansionNextPilot,
   GraduatedThisMonthCountry,
 } from "@/lib/admin/admin-expansion-types"
@@ -30,7 +32,7 @@ export { expansionCountryLabel }
 export async function loadAdminExpansionOverview(): Promise<AdminExpansionOverview> {
   const marketRegion = MARKET_REGION
 
-  const [waitlistGroups, rollouts, totalWaitlist, liveCheckoutCountries, funnel, rolloutHealth, emailBounces, countryBounceStats, countryDeliveryStats] =
+  const [waitlistGroups, rollouts, totalWaitlist, liveCheckoutCountries, funnel, rolloutHealth, emailBounces, countryBounceStats, countryDeliveryStats, emailKindStats, pausedNotifyCountries] =
     await Promise.all([
     prisma.checkoutLaunchWaitlist.groupBy({
       by: ["countryIso2"],
@@ -48,6 +50,8 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
     loadExpansionEmailBounceStats(),
     loadExpansionCountryBounceStats(),
     loadExpansionCountryDeliveryStats(),
+    loadExpansionEmailKindStats(),
+    loadPausedLaunchNotifyCountries(),
   ])
 
   const pendingByCountry = await prisma.checkoutLaunchWaitlist.groupBy({
@@ -81,6 +85,7 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
         launchBounceRatePct: 0,
         launchEmailsDeliveredThisMonth: 0,
         launchDeliveryRatePct: 0,
+        launchNotifyPaused: pausedNotifyCountries.has(group.countryIso2.toLowerCase()),
       }
     })
     .sort((a, b) => b.waitlistCount - a.waitlistCount)
@@ -167,6 +172,7 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
     graduatedThisMonth,
     graduatedThisMonthCountries,
     emailBounces,
+    emailKindStats,
     totalWaitlist,
     funnel,
     nextPilot,

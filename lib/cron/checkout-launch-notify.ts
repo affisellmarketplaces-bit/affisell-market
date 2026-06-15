@@ -1,4 +1,5 @@
 import { notifyCheckoutCountryWaitlist } from "@/lib/admin/checkout-country-rollout-actions"
+import { isLaunchNotifyPaused } from "@/lib/expansion/launch-notify-pause"
 import { logBusiness } from "@/lib/business-log"
 import { MARKET_REGION } from "@/lib/market-config"
 import { prisma } from "@/lib/prisma"
@@ -23,6 +24,15 @@ export async function runCheckoutLaunchNotifyCron(): Promise<RunCheckoutLaunchNo
   const errors: string[] = []
 
   for (const rollout of rollouts) {
+    if (await isLaunchNotifyPaused(rollout.countryIso2)) {
+      logBusiness("expansion-rollout", {
+        country: rollout.countryIso2,
+        marketRegion: MARKET_REGION,
+        result: "notify_cron_skipped_paused",
+      })
+      continue
+    }
+
     const pending = await prisma.checkoutLaunchWaitlist.count({
       where: {
         countryIso2: rollout.countryIso2,

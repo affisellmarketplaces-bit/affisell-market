@@ -1,11 +1,12 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { BarChart3, Bell, Download, Eye, Globe2, GraduationCap, Mail, RefreshCw, Rocket, Zap } from "lucide-react"
+import { BarChart3, Bell, Download, Eye, Globe2, GraduationCap, Mail, PauseCircle, RefreshCw, Rocket, Zap } from "lucide-react"
 import { toast } from "sonner"
 
 import type { AdminExpansionOverview } from "@/lib/admin/admin-expansion-types"
 import { EXPANSION_BOUNCE_RATE_ALERT_THRESHOLD_PCT } from "@/lib/expansion/compute-country-bounce-rate"
+import { EXPANSION_AUTO_PAUSE_DELIVERY_THRESHOLD_PCT } from "@/lib/expansion/expansion-auto-pause-notify"
 import { EXPANSION_LOW_DELIVERY_RATE_THRESHOLD_PCT } from "@/lib/expansion/compute-country-delivery-rate"
 import { expansionCountryLabel } from "@/lib/expansion/expansion-country-label"
 import { Badge } from "@/components/ui/badge"
@@ -23,6 +24,7 @@ export function AdminExpansionConsole({
   metabaseExpansionBounceEmbedUrl,
 }: Props) {
   const [overview, setOverview] = useState(initial)
+  const [previewLocale, setPreviewLocale] = useState<"en" | "fr">("en")
   const [pending, startTransition] = useTransition()
 
   function refresh() {
@@ -60,7 +62,11 @@ export function AdminExpansionConsole({
     })
     const data = (await res.json()) as { ok?: boolean; sent?: number; failed?: number; error?: string }
     if (!res.ok || !data.ok) {
-      toast.error(data.error ?? "Notify failed")
+      toast.error(
+        data.error === "launch_notify_paused"
+          ? "Launch notify paused — resume before sending"
+          : (data.error ?? "Notify failed")
+      )
       return
     }
     toast.success(`Sent ${data.sent ?? 0} launch email(s)${data.failed ? ` · ${data.failed} failed` : ""}`)
@@ -117,6 +123,21 @@ export function AdminExpansionConsole({
       return
     }
     toast.success(`Re-queued ${data.unsuppressed ?? 0} suppressed email(s) for ${countryIso2}`)
+    refresh()
+  }
+
+  async function resumeNotifyCountry(countryIso2: string) {
+    const res = await fetch("/api/admin/expansion/resume-notify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ countryIso2 }),
+    })
+    const data = (await res.json()) as { ok?: boolean; error?: string }
+    if (!res.ok || !data.ok) {
+      toast.error(data.error ?? "Resume notify failed")
+      return
+    }
+    toast.success(`Launch notify resumed for ${countryIso2}`)
     refresh()
   }
 
@@ -184,6 +205,26 @@ export function AdminExpansionConsole({
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <div className="flex items-center rounded-lg border border-zinc-200 p-0.5 dark:border-zinc-700">
+            <Button
+              type="button"
+              size="sm"
+              variant={previewLocale === "en" ? "default" : "ghost"}
+              className="h-7 px-2.5 text-xs"
+              onClick={() => setPreviewLocale("en")}
+            >
+              Preview EN
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={previewLocale === "fr" ? "default" : "ghost"}
+              className="h-7 px-2.5 text-xs"
+              onClick={() => setPreviewLocale("fr")}
+            >
+              Preview FR
+            </Button>
+          </div>
           <Button type="button" variant="outline" size="sm" disabled={pending} onClick={refresh}>
             Refresh
           </Button>
@@ -266,6 +307,37 @@ export function AdminExpansionConsole({
         />
       </div>
 
+      {overview.emailKindStats.length > 0 ? (
+        <section className="mb-8 overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+              <Mail className="size-4 text-violet-600" aria-hidden />
+              Email delivery by kind (this month)
+            </h2>
+          </div>
+          <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+            {overview.emailKindStats.map((row) => {
+              const total = row.deliveredThisMonth + row.bouncesThisMonth
+              const deliveryPct =
+                total > 0 ? Math.round((row.deliveredThisMonth / total) * 1000) / 10 : 0
+              return (
+                <li
+                  key={row.emailKind}
+                  className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 text-sm"
+                >
+                  <span className="font-medium text-zinc-900 dark:text-zinc-100">{row.emailKind}</span>
+                  <span className="text-xs text-zinc-500">
+                    {row.deliveredThisMonth} delivered · {row.bouncesThisMonth} bounce
+                    {row.bouncesThisMonth === 1 ? "" : "s"}
+                    {total > 0 ? ` · ${deliveryPct}% delivery` : ""}
+                  </span>
+                </li>
+              )
+            })}
+          </ul>
+        </section>
+      ) : null}
+
       {metabaseExpansionEmbedUrl ? (
         <section className="mb-8 overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
           <div className="flex items-center gap-2 border-b border-zinc-200 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:border-zinc-800">
@@ -323,6 +395,12 @@ export function AdminExpansionConsole({
                     ) : (
                       <Badge variant="outline">Waiting</Badge>
                     )}
+                    {row.launchNotifyPaused ? (
+                      <Badge variant="destructive" className="gap-1">
+                        <PauseCircle className="size-3" aria-hidden />
+                        Notify paused
+                      </Badge>
+                    ) : null}
                     {row.launchBounceRetriesPending > 0 ? (
                       <Badge className="bg-orange-600 hover:bg-orange-600">
                         Bounce retry ({row.launchBounceRetriesPending})
@@ -336,6 +414,13 @@ export function AdminExpansionConsole({
                     {row.launchBounceRatePct > EXPANSION_BOUNCE_RATE_ALERT_THRESHOLD_PCT ? (
                       <Badge variant="outline" className="border-orange-500 text-orange-700 dark:text-orange-400">
                         {row.launchBounceRatePct}% bounce
+                      </Badge>
+                    ) : null}
+                    {row.launchNotifyPaused &&
+                    row.funnel.notifiedCount >= 10 &&
+                    row.launchDeliveryRatePct < EXPANSION_AUTO_PAUSE_DELIVERY_THRESHOLD_PCT ? (
+                      <Badge variant="outline" className="border-red-500 text-red-700 dark:text-red-400">
+                        auto-paused · {row.launchDeliveryRatePct}% delivered
                       </Badge>
                     ) : null}
                     {row.funnel.notifiedCount >= 10 &&
@@ -383,7 +468,7 @@ export function AdminExpansionConsole({
                     <>
                       <Button type="button" size="sm" variant="outline" asChild>
                         <a
-                          href={`/api/admin/expansion/launch-email-preview?countryIso2=${encodeURIComponent(row.countryIso2)}&kind=launch&locale=en`}
+                          href={`/api/admin/expansion/launch-email-preview?countryIso2=${encodeURIComponent(row.countryIso2)}&kind=launch&locale=${previewLocale}`}
                           target="_blank"
                           rel="noreferrer"
                         >
@@ -393,7 +478,7 @@ export function AdminExpansionConsole({
                       </Button>
                       <Button type="button" size="sm" variant="outline" asChild>
                         <a
-                          href={`/api/admin/expansion/launch-email-preview?countryIso2=${encodeURIComponent(row.countryIso2)}&kind=followup&locale=en`}
+                          href={`/api/admin/expansion/launch-email-preview?countryIso2=${encodeURIComponent(row.countryIso2)}&kind=followup&locale=${previewLocale}`}
                           target="_blank"
                           rel="noreferrer"
                         >
@@ -402,7 +487,7 @@ export function AdminExpansionConsole({
                       </Button>
                       <Button type="button" size="sm" variant="outline" asChild>
                         <a
-                          href={`/api/admin/expansion/launch-email-preview?countryIso2=${encodeURIComponent(row.countryIso2)}&kind=graduated&locale=en`}
+                          href={`/api/admin/expansion/launch-email-preview?countryIso2=${encodeURIComponent(row.countryIso2)}&kind=graduated&locale=${previewLocale}`}
                           target="_blank"
                           rel="noreferrer"
                         >
@@ -450,7 +535,18 @@ export function AdminExpansionConsole({
                       Force retry
                     </Button>
                   ) : null}
-                  {row.enabled && row.pendingNotifyCount > 0 ? (
+                  {row.launchNotifyPaused ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => void resumeNotifyCountry(row.countryIso2)}
+                    >
+                      <RefreshCw className="mr-1.5 size-3.5" aria-hidden />
+                      Resume notify
+                    </Button>
+                  ) : null}
+                  {row.enabled && row.pendingNotifyCount > 0 && !row.launchNotifyPaused ? (
                     <Button
                       type="button"
                       size="sm"

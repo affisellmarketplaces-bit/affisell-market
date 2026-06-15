@@ -4,6 +4,7 @@ import { Webhook } from "svix"
 import { processExpansionResendDeliveredEvent } from "@/lib/resend-webhook/expansion-email-delivered"
 import { processExpansionResendDeliveryEvent } from "@/lib/resend-webhook/expansion-email-delivery"
 import type { ResendWebhookEmailData } from "@/lib/resend-webhook/expansion-email-delivery"
+import { recordExpansionBounceEvent } from "@/lib/resend-webhook/record-expansion-bounce-event"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -64,6 +65,8 @@ export async function POST(req: NextRequest) {
       emailId
     ),
   ])
+
+  await recordExpansionBounceEvent(event.type, emailData, emailId)
 
   await prisma.processedWebhook.create({
     data: {
