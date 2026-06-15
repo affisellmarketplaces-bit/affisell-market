@@ -9,7 +9,10 @@ import {
   graduationBounceDigestBadge,
   shouldShowGraduationHighBounceDigestRow,
 } from "@/lib/expansion/expansion-digest-graduation-bounce-badge"
-import { shouldShowFollowupDeliveredDigestRow } from "@/lib/expansion/expansion-digest-followup-complaint-badge"
+import {
+  followupComplaintDigestBadge,
+  shouldShowFollowupComplaintAlertDigestRow,
+} from "@/lib/expansion/expansion-digest-followup-complaint-badge"
 import {
   followupPausedDigestBadge,
   followupPausedDigestExportSuffix,
@@ -205,6 +208,30 @@ function buildDigestBody(
                 launchComplaintRatePct: row.launchComplaintRatePct,
                 launchNotifyPaused: row.launchNotifyPaused,
               })} — ${adminUrl}${expansionComplaintsExportPath(row.countryIso2, "checkout-launch")}`
+          )
+      : ["• none"]),
+    "",
+    "J+2 follow-up complaint alert by country (month, min 10 sent):",
+    ...(overview.countries.filter((row) =>
+      shouldShowFollowupComplaintAlertDigestRow({
+        launchFollowupSentThisMonth: row.launchFollowupSentThisMonth,
+        launchFollowupComplaintsThisMonth: row.launchFollowupComplaintsThisMonth,
+      })
+    ).length > 0
+      ? overview.countries
+          .filter((row) =>
+            shouldShowFollowupComplaintAlertDigestRow({
+              launchFollowupSentThisMonth: row.launchFollowupSentThisMonth,
+              launchFollowupComplaintsThisMonth: row.launchFollowupComplaintsThisMonth,
+            })
+          )
+          .slice(0, 5)
+          .map(
+            (row) =>
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchFollowupComplaintsThisMonth} follow-up complaint(s) (${row.launchFollowupComplaintRatePct}% of sent)${followupComplaintDigestBadge({
+                launchFollowupComplaintsThisMonth: row.launchFollowupComplaintsThisMonth,
+                launchFollowupPaused: row.launchFollowupPaused,
+              })} — ${adminUrl}${expansionComplaintsExportPath(row.countryIso2, "checkout-launch-followup")}`
           )
       : ["• none"]),
     "",

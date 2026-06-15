@@ -122,6 +122,7 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
         launchGraduatedComplaintsThisMonth: 0,
         launchGraduatedComplaintRatePct: 0,
         launchFollowupComplaintsThisMonth: 0,
+        launchFollowupComplaintRatePct: 0,
         launchFollowupDeliveredThisMonth: 0,
         launchFollowupDeliveryRatePct: 0,
         launchFollowupBouncesThisMonth: 0,
@@ -189,6 +190,11 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
       }),
       launchFollowupComplaintsThisMonth:
         followupComplaintStats.get(row.countryIso2.toLowerCase()) ?? 0,
+      launchFollowupComplaintRatePct: computeCountryComplaintRatePct({
+        complaintsThisMonth:
+          followupComplaintStats.get(row.countryIso2.toLowerCase()) ?? 0,
+        notifiedCount: followupEmailStats.get(row.countryIso2.toLowerCase())?.sentCount ?? 0,
+      }),
       launchFollowupDeliveredThisMonth:
         followupDeliveryStats.get(row.countryIso2)?.followupDeliveredThisMonth ?? 0,
       launchFollowupDeliveryRatePct: computeLaunchDeliveryRatePct({

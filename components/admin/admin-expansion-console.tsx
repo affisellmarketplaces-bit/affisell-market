@@ -13,6 +13,7 @@ import {
   buildExpansionAdminQuickExportLinks,
   emailKindStatHasQuickExport,
   EXPANSION_ADMIN_QUICK_EXPORT_KINDS,
+  formatExpansionQuickExportCountryLabel,
   pickTopExpansionQuickExportCountries,
   shouldShowExpansionAdminQuickExports,
 } from "@/lib/expansion/expansion-digest-quick-exports"
@@ -371,7 +372,7 @@ export function AdminExpansionConsole({
     return [{ label, links: buildExpansionAdminKindQuickExportLinks(emailKind, label) }]
   })
   const countryQuickExportGroups = pickTopExpansionQuickExportCountries(overview.countries).map((row) => ({
-    label: row.countryIso2.toUpperCase(),
+    label: formatExpansionQuickExportCountryLabel(row),
     links: buildExpansionAdminCountryQuickExportLinks(row),
   }))
   const quickExportCount =

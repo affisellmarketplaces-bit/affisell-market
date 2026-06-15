@@ -17,6 +17,13 @@ export function shouldShowFollowupComplaintDigestRow(args: {
   return args.launchFollowupComplaintsThisMonth > 0
 }
 
+export function shouldShowFollowupComplaintAlertDigestRow(args: {
+  launchFollowupSentThisMonth: number
+  launchFollowupComplaintsThisMonth: number
+}): boolean {
+  return args.launchFollowupSentThisMonth >= 10 && args.launchFollowupComplaintsThisMonth > 0
+}
+
 export function shouldShowFollowupDeliveredDigestRow(args: {
   followUpCount: number
   launchFollowupDeliveredThisMonth: number

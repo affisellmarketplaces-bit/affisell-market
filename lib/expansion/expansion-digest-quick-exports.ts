@@ -74,6 +74,11 @@ export function scoreExpansionQuickExportActivity(row: ExpansionDigestQuickExpor
   )
 }
 
+export function formatExpansionQuickExportCountryLabel(row: ExpansionDigestQuickExportCountry): string {
+  const score = scoreExpansionQuickExportActivity(row)
+  return `${row.countryIso2.toUpperCase()} · ${score} activity`
+}
+
 export function buildExpansionDigestGlobalQuickExportLines(adminUrl: string): string[] {
   return [
     "Metabase quick exports (all kinds):",

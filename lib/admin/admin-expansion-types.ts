@@ -37,6 +37,7 @@ export type ExpansionCountryRow = {
   launchGraduatedComplaintsThisMonth: number
   launchGraduatedComplaintRatePct: number
   launchFollowupComplaintsThisMonth: number
+  launchFollowupComplaintRatePct: number
   launchFollowupDeliveredThisMonth: number
   launchFollowupDeliveryRatePct: number
   launchFollowupBouncesThisMonth: number
