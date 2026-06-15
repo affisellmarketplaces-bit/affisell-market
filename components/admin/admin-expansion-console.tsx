@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { Bell, Globe2, Rocket, Zap } from "lucide-react"
+import { BarChart3, Bell, Globe2, Rocket, Zap } from "lucide-react"
 import { toast } from "sonner"
 
 import type { AdminExpansionOverview } from "@/lib/admin/load-admin-expansion-overview"
@@ -11,9 +11,10 @@ import { Button } from "@/components/ui/button"
 
 type Props = {
   initial: AdminExpansionOverview
+  metabaseExpansionEmbedUrl: string | null
 }
 
-export function AdminExpansionConsole({ initial }: Props) {
+export function AdminExpansionConsole({ initial, metabaseExpansionEmbedUrl }: Props) {
   const [overview, setOverview] = useState(initial)
   const [pending, startTransition] = useTransition()
 
@@ -59,8 +60,12 @@ export function AdminExpansionConsole({ initial }: Props) {
     refresh()
   }
 
-  async function runPilot() {
-    const res = await fetch("/api/admin/expansion/pilot", { method: "POST" })
+  async function runPilot(rank?: number) {
+    const res = await fetch("/api/admin/expansion/pilot", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(rank ? { rank } : {}),
+    })
     const data = (await res.json()) as {
       ok?: boolean
       countryIso2?: string
@@ -78,7 +83,7 @@ export function AdminExpansionConsole({ initial }: Props) {
     refresh()
   }
 
-  const topCountry = overview.countries[0]
+  const { nextPilot, funnel } = overview
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
@@ -89,27 +94,54 @@ export function AdminExpansionConsole({ initial }: Props) {
             Country-by-country checkout
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
-            Enable one country at a time from waitlist demand, then notify buyers who asked for launch alerts.
+            Funnel waitlist → notify → first order. Pilot the next country from demand, then track conversion here
+            or in Metabase (`[expansion-rollout]`, `[launch-waitlist]`).
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="outline" size="sm" disabled={pending} onClick={refresh}>
             Refresh
           </Button>
-          {topCountry && !topCountry.enabled ? (
-            <Button type="button" size="sm" disabled={pending} onClick={() => void runPilot()}>
+          {nextPilot ? (
+            <Button type="button" size="sm" disabled={pending} onClick={() => void runPilot(nextPilot.rank)}>
               <Zap className="mr-1.5 size-3.5" aria-hidden />
-              Pilot top country ({topCountry.countryIso2})
+              Pilot {nextPilot.countryIso2} ({nextPilot.waitlistCount})
             </Button>
           ) : null}
         </div>
       </div>
 
-      <div className="mb-8 grid gap-4 sm:grid-cols-3">
+      <div className="mb-4 grid gap-4 sm:grid-cols-3">
         <MetricCard label="Live checkout countries" value={overview.liveCheckoutCount} />
         <MetricCard label="ROW rollouts enabled" value={overview.rolloutCount} />
         <MetricCard label="Waitlist signups" value={overview.totalWaitlist} />
       </div>
+
+      <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <FunnelCard label="Notified" value={funnel.notifiedTotal} hint={`${funnel.notifyRatePct}% of waitlist`} />
+        <FunnelCard label="J+2 follow-up" value={funnel.followUpTotal} hint="Re-engagement sent" />
+        <FunnelCard
+          label="Rollouts w/ order"
+          value={funnel.rolloutsWithFirstOrder}
+          hint={`${funnel.firstOrderRatePct}% of enabled`}
+        />
+        <FunnelCard label="Awaiting 1st order" value={funnel.rolloutsEnabled - funnel.rolloutsWithFirstOrder} hint="Enabled pilots" />
+      </div>
+
+      {metabaseExpansionEmbedUrl ? (
+        <section className="mb-8 overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="flex items-center gap-2 border-b border-zinc-200 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:border-zinc-800">
+            <BarChart3 className="size-3.5 text-violet-600" aria-hidden />
+            Metabase · expansion funnel
+          </div>
+          <iframe
+            title="Metabase expansion dashboard"
+            src={metabaseExpansionEmbedUrl}
+            className="h-[420px] w-full border-0 bg-zinc-50 dark:bg-zinc-950"
+            loading="lazy"
+          />
+        </section>
+      ) : null}
 
       <section className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
         <div className="border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
@@ -145,6 +177,11 @@ export function AdminExpansionConsole({ initial }: Props) {
                         ? " · no order yet"
                         : ""}
                   </p>
+                  <p className="mt-1 text-[11px] text-violet-600/90 dark:text-violet-400/90">
+                    Funnel · notified {row.funnel.notifiedCount} ({row.funnel.notifyRatePct}%) · follow-up{" "}
+                    {row.funnel.followUpCount} · orders {row.funnel.paidOrdersSinceOpen} (
+                    {row.funnel.orderRatePct}% of notified)
+                  </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {!row.enabled ? (
@@ -179,6 +216,18 @@ function MetricCard({ label, value }: { label: string; value: number }) {
     <div className="rounded-2xl border border-zinc-200 bg-zinc-50/80 px-4 py-4 dark:border-zinc-800 dark:bg-zinc-900/50">
       <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">{label}</p>
       <p className="mt-1 text-2xl font-bold tabular-nums text-zinc-900 dark:text-zinc-50">{value}</p>
+    </div>
+  )
+}
+
+function FunnelCard({ label, value, hint }: { label: string; value: number; hint: string }) {
+  return (
+    <div className="rounded-2xl border border-violet-200/60 bg-violet-50/50 px-4 py-3 dark:border-violet-900/40 dark:bg-violet-950/20">
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-violet-700/80 dark:text-violet-300/80">
+        {label}
+      </p>
+      <p className="mt-0.5 text-xl font-bold tabular-nums text-zinc-900 dark:text-zinc-50">{value}</p>
+      <p className="text-[11px] text-zinc-500">{hint}</p>
     </div>
   )
 }

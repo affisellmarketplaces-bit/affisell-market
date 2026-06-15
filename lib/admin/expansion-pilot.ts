@@ -5,6 +5,7 @@ import {
 import { expansionCountryLabel } from "@/lib/admin/load-admin-expansion-overview"
 import { logBusiness } from "@/lib/business-log"
 import { stripeCheckoutAllowedCountriesForRegion } from "@/lib/eu-market-countries"
+import { findNextPilotCountry } from "@/lib/expansion/find-next-pilot-country"
 import { MARKET_REGION } from "@/lib/market-config"
 import { prisma } from "@/lib/prisma"
 
@@ -22,8 +23,10 @@ export type RunExpansionPilotResult =
 export type RunExpansionPilotOptions = {
   /** Send launch emails immediately after enable (default true). */
   notify?: boolean
-  /** Override country — otherwise top waitlist demand not yet enabled. */
+  /** Override country — otherwise next waitlist rank not yet enabled. */
   countryIso2?: string
+  /** Waitlist rank when country not set (1 = top, 2 = second). */
+  rank?: number
 }
 
 /** Enable the top ROW waitlist country and optionally notify buyers (founder one-click pilot). */
@@ -41,25 +44,27 @@ export async function runExpansionPilot(
       where: { marketRegion: MARKET_REGION },
       _count: { _all: true },
     })
-    top.sort((a, b) => b._count._all - a._count._all)
 
     const rollouts = await prisma.checkoutCountryRollout.findMany({
       where: { marketRegion: MARKET_REGION, enabled: true },
       select: { countryIso2: true },
     })
-    const enabledSet = new Set(rollouts.map((row) => row.countryIso2))
+    const enabledSet = new Set(rollouts.map((row) => row.countryIso2.toUpperCase()))
     const baseSet = new Set(
       stripeCheckoutAllowedCountriesForRegion(MARKET_REGION).map((code) => code.toUpperCase())
     )
 
-    const candidate = top.find(
-      (row) => !enabledSet.has(row.countryIso2) && !baseSet.has(row.countryIso2)
-    )
+    const waitlistDemand = top.map((row) => ({
+      countryIso2: row.countryIso2,
+      waitlistCount: row._count._all,
+    }))
+    const rank = options.rank ?? 1
+    const candidate = findNextPilotCountry(waitlistDemand, enabledSet, baseSet, rank)
     if (!candidate) {
       return { ok: false, error: "no_waitlist_demand" }
     }
     countryIso2 = candidate.countryIso2
-    waitlistCount = candidate._count._all
+    waitlistCount = candidate.waitlistCount
   } else {
     waitlistCount = await prisma.checkoutLaunchWaitlist.count({
       where: { marketRegion: MARKET_REGION, countryIso2 },
