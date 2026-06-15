@@ -25,6 +25,7 @@ describe("product-offer-mode", () => {
   })
 
   it("parses URL offer facets", () => {
+    expect(parseOfferFacetValue("new")).toBe("STANDARD")
     expect(parseOfferFacetValue("second_hand")).toBe("SECOND_HAND")
     expect(parseOfferFacetValue("gros")).toBe("WHOLESALE_ONLY")
     expect(parseOfferFacetValue("unknown")).toBeNull()

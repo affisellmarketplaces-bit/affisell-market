@@ -11,7 +11,7 @@ import {
 } from "@/lib/affiliate-routes"
 import { DISCOVERY_FACET_KEYS, MARKETPLACE_OFFER_FACET_KEY } from "@/lib/marketplace-discovery-facets-shared"
 import { GraduatedCountriesFilterSection } from "@/components/marketplace/graduated-countries-filter-section"
-import { offerModeBadge, parseOfferFacetValue } from "@/lib/product-offer-mode"
+import { offerModeFilterLabel, parseOfferFacetValue } from "@/lib/product-offer-mode"
 import type { AppLocale } from "@/lib/i18n-locale"
 import type { MarketplaceFacet } from "@/lib/marketplace-facet-types"
 import { cn } from "@/lib/utils"
@@ -133,7 +133,7 @@ export function MarketplaceFilters({
     if (facetKey === "freeShipping" && value === "1") return t("freeShippingFacet")
     if (facetKey === MARKETPLACE_OFFER_FACET_KEY) {
       const mode = parseOfferFacetValue(value)
-      if (mode) return offerModeBadge(mode, locale as AppLocale)?.shortLabel ?? value
+      if (mode) return offerModeFilterLabel(mode, locale as AppLocale)?.shortLabel ?? value
     }
     return value
   }

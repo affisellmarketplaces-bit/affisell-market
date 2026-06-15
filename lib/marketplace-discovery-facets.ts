@@ -11,7 +11,7 @@ import {
   MARKETPLACE_SHIPS_FACET_KEY,
   parseDeptFacetValue,
 } from "@/lib/marketplace-discovery-facets-shared"
-import { offerFacetSlug, offerModeBadge } from "@/lib/product-offer-mode"
+import { offerFacetSlug, offerModeFilterLabel } from "@/lib/product-offer-mode"
 import type { ProductOfferMode } from "@/lib/product-offer-mode"
 import { loadMarketplaceCategoryTreeCached } from "@/lib/marketplace-category-tree"
 import type { MarketplaceFacet } from "@/lib/marketplace-facet-types"
@@ -33,6 +33,7 @@ const DEPT_FACET_KEY = MARKETPLACE_DEPT_FACET_KEY
 const OFFER_FACET_KEY = MARKETPLACE_OFFER_FACET_KEY
 
 const OFFER_FACET_MODES: ProductOfferMode[] = [
+  "STANDARD",
   "REFURBISHED",
   "SECOND_HAND",
   "WHOLESALE_ONLY",
@@ -244,7 +245,7 @@ export async function loadGlobalMarketplaceDiscoveryFacets(
   const offerValues = offerCounts
     .map(({ mode, count }) => {
       const slug = offerFacetSlug(mode)
-      const badge = offerModeBadge(mode, isEn ? "en" : "fr")
+      const badge = offerModeFilterLabel(mode, isEn ? "en" : "fr")
       if (!slug || !badge || count <= 0) return null
       return { value: slug, count, label: badge.shortLabel }
     })

@@ -6,11 +6,12 @@ import { Gift, Package, Recycle, RefreshCw, Sparkles, X } from "lucide-react"
 
 import { MARKETPLACE_OFFER_FACET_KEY } from "@/lib/marketplace-discovery-facets-shared"
 import { BUYER_TILE_ACCENTS } from "@/lib/home-buyer-accent-palette"
-import { offerFacetSlug, offerModeBadge, type ProductOfferMode } from "@/lib/product-offer-mode"
+import { offerFacetSlug, offerModeFilterLabel, type ProductOfferMode } from "@/lib/product-offer-mode"
 import type { AppLocale } from "@/lib/i18n-locale"
 import { cn } from "@/lib/utils"
 
 const RAIL_MODES: ProductOfferMode[] = [
+  "STANDARD",
   "REFURBISHED",
   "SECOND_HAND",
   "WHOLESALE_ONLY",
@@ -18,6 +19,7 @@ const RAIL_MODES: ProductOfferMode[] = [
 ]
 
 const RAIL_ICONS = {
+  STANDARD: Sparkles,
   REFURBISHED: Recycle,
   SECOND_HAND: RefreshCw,
   WHOLESALE_ONLY: Package,
@@ -26,7 +28,7 @@ const RAIL_ICONS = {
 
 const ICON_ACCENT = BUYER_TILE_ACCENTS.catalog.icon
 
-type OfferModeSlug = "refurbished" | "second_hand" | "wholesale" | "donation"
+type OfferModeSlug = "new" | "refurbished" | "second_hand" | "wholesale" | "donation"
 
 type Props = {
   basePath?: string
@@ -100,10 +102,10 @@ export function OfferModeQuickRail({ basePath, className }: Props) {
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5 sm:gap-3">
         {RAIL_MODES.map((mode) => {
           const slug = offerFacetSlug(mode)
-          const badge = offerModeBadge(mode, locale as AppLocale)
+          const badge = offerModeFilterLabel(mode, locale as AppLocale)
           if (!slug || !badge) return null
           const Icon = RAIL_ICONS[mode as keyof typeof RAIL_ICONS]
           const active = activeOffer === slug

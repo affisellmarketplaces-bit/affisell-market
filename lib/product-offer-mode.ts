@@ -29,6 +29,9 @@ export function parseProductOfferMode(raw: unknown, fallback: ProductOfferMode =
 /** URL facet slug → DB enum. */
 export function parseOfferFacetValue(raw: string): ProductOfferMode | null {
   const map: Record<string, ProductOfferMode> = {
+    new: "STANDARD",
+    neuf: "STANDARD",
+    standard: "STANDARD",
     refurbished: "REFURBISHED",
     second_hand: "SECOND_HAND",
     seconde_main: "SECOND_HAND",
@@ -43,7 +46,7 @@ export function parseOfferFacetValue(raw: string): ProductOfferMode | null {
 
 export function offerFacetSlug(mode: ProductOfferMode): string | null {
   const map: Record<ProductOfferMode, string | null> = {
-    STANDARD: null,
+    STANDARD: "new",
     REFURBISHED: "refurbished",
     SECOND_HAND: "second_hand",
     WHOLESALE_ONLY: "wholesale",
@@ -154,6 +157,26 @@ export function offerModeBadge(mode: ProductOfferMode, locale: AppLocale = "fr")
     },
   }
   return (locale === "fr" ? fr : en)[mode]
+}
+
+/** Buyer filter rail + facet chips — includes Neuf/New (STANDARD). */
+export function offerModeFilterLabel(mode: ProductOfferMode, locale: AppLocale = "fr"): OfferModeBadge | null {
+  if (mode === "STANDARD") {
+    return locale === "en"
+      ? {
+          label: "Brand new",
+          shortLabel: "New",
+          tone: "border-violet-500/40 bg-violet-500/15 text-violet-100",
+          icon: "✨",
+        }
+      : {
+          label: "Neuf — produit d'origine",
+          shortLabel: "Neuf",
+          tone: "border-violet-500/40 bg-violet-500/15 text-violet-100",
+          icon: "✨",
+        }
+  }
+  return offerModeBadge(mode, locale)
 }
 
 export function isDonationListing(offerMode: ProductOfferMode, priceCents: number): boolean {
