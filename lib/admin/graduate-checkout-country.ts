@@ -1,4 +1,5 @@
 import { invalidateCheckoutRolloutCache } from "@/lib/checkout-country-rollout"
+import { notifyCheckoutCountryGraduatedBuyers } from "@/lib/admin/notify-checkout-country-graduated-buyers"
 import { logBusiness } from "@/lib/business-log"
 import { MARKET_REGION } from "@/lib/market-config"
 import { prisma } from "@/lib/prisma"
@@ -46,6 +47,14 @@ export async function graduateCheckoutCountryRollout(
     result: "graduated",
     checkoutBase: "permanent",
     firstOrderId: rollout.firstOrderId,
+  })
+
+  void notifyCheckoutCountryGraduatedBuyers(countryIso2).catch((error: unknown) => {
+    console.error("[expansion-rollout]", {
+      country: countryIso2,
+      result: "graduation_notify_failed",
+      error: error instanceof Error ? error.message : String(error),
+    })
   })
 
   return { ok: true, countryIso2, alreadyGraduated: false }

@@ -8,15 +8,21 @@ import { HomeBuyerSmartStrip } from "@/components/home/HomeBuyerSmartStrip"
 import { HeroGradientBg } from "@/components/marketing/hero-gradient-bg"
 import { Link } from "@/i18n/navigation"
 import { loadFeaturedShopsCached } from "@/lib/public-home-cache"
-import { isStripeCheckoutCountryResolved } from "@/lib/checkout-country-rollout"
+import {
+  isStripeCheckoutCountryResolved,
+  resolveLiveCheckoutCountryCount,
+} from "@/lib/checkout-country-rollout"
+import { isUsMarket } from "@/lib/market-config"
 import { resolveVisitorCountryIso2 } from "@/lib/visitor-country"
 
 export async function BuyerHeroBlock() {
-  const [t, featuredShops, requestHeaders] = await Promise.all([
+  const [t, featuredShops, requestHeaders, checkoutCountryCount] = await Promise.all([
     getTranslations("home.hero"),
     loadFeaturedShopsCached(6),
     headers(),
+    resolveLiveCheckoutCountryCount(),
   ])
+  const usMarket = isUsMarket()
   const visitorCountry = resolveVisitorCountryIso2(requestHeaders)
   const checkoutAvailable = visitorCountry ? await isStripeCheckoutCountryResolved(visitorCountry) : true
 
@@ -30,7 +36,9 @@ export async function BuyerHeroBlock() {
             {t("titleHighlight")}
           </span>
         </h1>
-        <p className="mx-auto mt-2 max-w-2xl text-pretty text-xs leading-relaxed text-violet-100/95 sm:mt-4 sm:text-base">{t("sub")}</p>
+        <p className="mx-auto mt-2 max-w-2xl text-pretty text-xs leading-relaxed text-violet-100/95 sm:mt-4 sm:text-base">
+          {usMarket ? t("subUs", { count: checkoutCountryCount }) : t("sub", { count: checkoutCountryCount })}
+        </p>
         {!checkoutAvailable && visitorCountry ? (
           <CheckoutRegionComingSoonBanner
             className="mx-auto mt-4 max-w-2xl text-left sm:mt-5"

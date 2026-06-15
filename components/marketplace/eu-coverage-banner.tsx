@@ -4,8 +4,9 @@ import { useId } from "react"
 import { DollarSign, Euro, Globe2, Info, ShieldCheck } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 
-import { EU_CHECKOUT_COUNTRY_COUNT, EU_MEMBER_COUNT } from "@/lib/eu-market-countries"
+import { EU_MEMBER_COUNT } from "@/lib/eu-market-countries"
 import { isUsMarket, STOREFRONT_CURRENCY } from "@/lib/market-config"
+import { useLiveCheckoutStats } from "@/hooks/use-live-checkout-stats"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -72,6 +73,7 @@ export function EuCoverageBanner({ className, variant = "buyer" }: Props) {
   const locale = useLocale()
   const usMarket = isUsMarket()
   const t = useTranslations(usMarket ? "marketplace.usCoverage" : "marketplace.euCoverage")
+  const { checkoutCountryCount } = useLiveCheckoutStats()
   const compact = variant === "compact"
   const footnoteId = useId()
   const CurrencyIcon = STOREFRONT_CURRENCY === "USD" ? DollarSign : Euro
@@ -164,13 +166,13 @@ export function EuCoverageBanner({ className, variant = "buyer" }: Props) {
         <div className="flex shrink-0 items-center gap-1.5 overflow-x-auto pb-0.5 sm:gap-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {usMarket ? (
             <>
-              <MetricTile value={EU_CHECKOUT_COUNTRY_COUNT} label={t("metricCountries")} compact={compact} />
+              <MetricTile value={checkoutCountryCount} label={t("metricCountries")} compact={compact} />
               <MetricTile value={50} label={t("metricStates")} compact={compact} />
             </>
           ) : (
             <>
               <MetricTile value={EU_MEMBER_COUNT} label={t("metricEu")} compact={compact} />
-              <MetricTile value={EU_CHECKOUT_COUNTRY_COUNT} label={t("metricCountries")} compact={compact} />
+              <MetricTile value={checkoutCountryCount} label={t("metricCountries")} compact={compact} />
             </>
           )}
           <TrustChip icon={CurrencyIcon} label={STOREFRONT_CURRENCY} compact={compact} />

@@ -116,6 +116,12 @@ export async function resolveStripeCheckoutAllowedCountries(
   return mergeCheckoutAllowedCountries(base, pilot)
 }
 
+export async function resolveLiveCheckoutCountryCount(
+  region: MarketRegion = MARKET_REGION
+): Promise<number> {
+  return (await resolveStripeCheckoutAllowedCountries(region)).length
+}
+
 export async function isStripeCheckoutCountryResolved(
   code: string | null | undefined,
   region: MarketRegion = MARKET_REGION

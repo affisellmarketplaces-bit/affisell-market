@@ -68,7 +68,8 @@
     "hero": {
       "title": "Stores curated by your favorite",
       "titleHighlight": "creators",
-      "sub": "Pan-EU checkout · 32 countries · EUR · Secure payment · 14-day returns",
+      "sub": "Pan-EU checkout · {count} countries · EUR · Secure payment · 14-day returns",
+      "subUs": "US & Canada checkout · {count} countries · USD · Secure payment · 14-day returns",
       "searchPlaceholder": "Search products, brands, niches…",
       "searchLabel": "Search products",
       "searchSubmit": "Search",

@@ -68,7 +68,8 @@
     "hero": {
       "title": "Les boutiques de vos",
       "titleHighlight": "créateurs préférés",
-      "sub": "Checkout Pan-UE · 32 pays · EUR · Paiement sécurisé · Retours 14j",
+      "sub": "Checkout Pan-UE · {count} pays · EUR · Paiement sécurisé · Retours 14j",
+      "subUs": "Checkout US & Canada · {count} pays · USD · Paiement sécurisé · Retours 14j",
       "searchPlaceholder": "Produit, marque, niche…",
       "searchLabel": "Rechercher un produit",
       "searchSubmit": "Rechercher",

@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from "next-intl"
 import useSWR from "swr"
 
 import { CheckoutLaunchWaitlistForm } from "@/components/marketplace/checkout-launch-waitlist-form"
-import { EU_CHECKOUT_COUNTRY_COUNT } from "@/lib/eu-market-countries"
+import { useLiveCheckoutStats } from "@/hooks/use-live-checkout-stats"
 import { visitorCountryDisplayName } from "@/lib/visitor-country"
 import { cn } from "@/lib/utils"
 
@@ -34,6 +34,7 @@ export function CheckoutRegionComingSoonBanner({
 }: Props) {
   const locale = useLocale()
   const t = useTranslations("marketplace.checkoutRegion")
+  const { checkoutCountryCount } = useLiveCheckoutStats()
   const compact = variant === "compact"
   const shouldFetch = ssrCountry === undefined && ssrCheckoutAvailable === undefined
 
@@ -105,7 +106,7 @@ export function CheckoutRegionComingSoonBanner({
         <div className="flex w-full shrink-0 flex-col gap-2 sm:max-w-[16rem] sm:items-stretch">
           <CheckoutLaunchWaitlistForm country={country} compact={compact} />
           <p className="text-right text-[10px] leading-snug text-violet-200/60 sm:text-right">
-            {t("footnote", { currentCount: EU_CHECKOUT_COUNTRY_COUNT })}
+            {t("footnote", { currentCount: checkoutCountryCount })}
           </p>
         </div>
       </div>

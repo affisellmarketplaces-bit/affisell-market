@@ -2,11 +2,11 @@ import Link from "next/link"
 import { ArrowRight, Briefcase, Check, DollarSign, Globe, Package, Shield, ShieldCheck, Store } from "lucide-react"
 
 import { isUsMarket, STOREFRONT_CURRENCY } from "@/lib/market-config"
-import { stripeCheckoutAllowedCountries } from "@/lib/eu-market-countries"
+import { resolveLiveCheckoutCountryCount } from "@/lib/checkout-country-rollout"
 
-export default function SignupChooser() {
+export default async function SignupChooser() {
   const usMarket = isUsMarket()
-  const checkoutCount = stripeCheckoutAllowedCountries().length
+  const checkoutCount = await resolveLiveCheckoutCountryCount()
   const currencyLabel = STOREFRONT_CURRENCY === "USD" ? "USD · Tax" : "EUR · VAT"
   const taxHint = usMarket ? "Stripe Tax at checkout" : "Stripe Tax at checkout"
 
@@ -33,7 +33,7 @@ export default function SignupChooser() {
           <p className="mx-auto mt-4 max-w-2xl text-base text-zinc-600 sm:text-lg">
             {usMarket
               ? `The creator-first marketplace — checkout in the US & Canada, prices in ${STOREFRONT_CURRENCY}, sales tax calculated at payment via Stripe.`
-              : "The creator-first marketplace — one checkout in 32 countries, prices in EUR, VAT calculated at payment via Stripe."}
+              : `The creator-first marketplace — one checkout in ${checkoutCount} countries, prices in EUR, VAT calculated at payment via Stripe.`}
           </p>
           <p className="mt-3 text-sm font-medium text-zinc-500">
             {usMarket
@@ -93,7 +93,7 @@ export default function SignupChooser() {
                 <ArrowRight className="h-4 w-4" />
               </span>
               <p className="mt-2 text-xs text-zinc-500">
-                {usMarket ? "Checkout in the US & Canada" : "Checkout in 32 European countries"}
+                {usMarket ? "Checkout in the US & Canada" : `Checkout in ${checkoutCount} European countries`}
               </p>
             </article>
           </Link>
@@ -123,7 +123,7 @@ export default function SignupChooser() {
                 <ArrowRight className="h-4 w-4" />
               </span>
               <p className="mt-2 text-xs text-zinc-500">
-                {usMarket ? "Checkout in the US & Canada" : "Checkout in 32 European countries"}
+                {usMarket ? "Checkout in the US & Canada" : `Checkout in ${checkoutCount} European countries`}
               </p>
             </article>
           </Link>

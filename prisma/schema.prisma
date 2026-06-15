@@ -2169,6 +2169,7 @@ model CheckoutCountryRollout {
   firstOrderAt      DateTime?
   firstOrderId      String?
   graduatedAt       DateTime?
+  graduationEmailSentAt DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
