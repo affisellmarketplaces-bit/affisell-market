@@ -1,13 +1,18 @@
 "use client"
 
-import Link from "next/link"
-import { useRouter } from "next/navigation"
+import NextLink from "next/link"
 import { useCallback, type ComponentProps } from "react"
 
+import { Link as LocaleLink, useRouter as useLocaleRouter } from "@/i18n/navigation"
 import { cn } from "@/lib/utils"
 
-type Props = ComponentProps<typeof Link> & {
+type NextLinkProps = ComponentProps<typeof NextLink>
+type LocaleLinkProps = ComponentProps<typeof LocaleLink>
+
+type Props = (NextLinkProps | LocaleLinkProps) & {
   prefetchOnHover?: boolean
+  /** Use next-intl Link (e.g. `/creators` → `/fr/creators`). */
+  localeAware?: boolean
 }
 
 function hrefString(href: Props["href"]): string {
@@ -19,30 +24,48 @@ function hrefString(href: Props["href"]): string {
 }
 
 /** Link with hover/touch prefetch + instant press feedback. */
-export function FastLink({ href, prefetchOnHover = true, className, children, prefetch, ...rest }: Props) {
-  const router = useRouter()
+export function FastLink({
+  href,
+  prefetchOnHover = true,
+  localeAware = false,
+  className,
+  children,
+  prefetch,
+  ...rest
+}: Props) {
+  const localeRouter = useLocaleRouter()
   const target = hrefString(href)
 
   const warm = useCallback(() => {
-    if (!prefetchOnHover) return
+    if (!prefetchOnHover || target.startsWith("/#")) return
     try {
-      router.prefetch(target)
+      if (localeAware) localeRouter.prefetch(href as LocaleLinkProps["href"])
+      else localeRouter.prefetch(target)
     } catch {
       /* ignore */
     }
-  }, [router, target, prefetchOnHover])
+  }, [localeAware, localeRouter, href, target, prefetchOnHover])
+
+  const shared = {
+    prefetch: prefetch ?? true,
+    onMouseEnter: warm,
+    onFocus: warm,
+    onTouchStart: warm,
+    className: cn("affisell-fast-link", className),
+    ...rest,
+  }
+
+  if (localeAware) {
+    return (
+      <LocaleLink href={href as LocaleLinkProps["href"]} {...shared}>
+        {children}
+      </LocaleLink>
+    )
+  }
 
   return (
-    <Link
-      href={href}
-      prefetch={prefetch ?? true}
-      onMouseEnter={warm}
-      onFocus={warm}
-      onTouchStart={warm}
-      className={cn("affisell-fast-link", className)}
-      {...rest}
-    >
+    <NextLink href={href as NextLinkProps["href"]} {...shared}>
       {children}
-    </Link>
+    </NextLink>
   )
 }

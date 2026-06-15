@@ -1253,13 +1253,13 @@ body.affisell-demo-lab .affisell-header-shell {
 @supports (view-transition-name: none) {
   ::view-transition-old(root),
   ::view-transition-new(root) {
-    animation-duration: 0.18s;
+    animation-duration: 0.12s;
     animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
   }
 }
 
 .affisell-page-shell {
-  animation: affisell-page-in 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: affisell-page-in 0.14s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes shimmer {

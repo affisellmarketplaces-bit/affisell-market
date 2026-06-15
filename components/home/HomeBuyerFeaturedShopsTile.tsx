@@ -1,4 +1,4 @@
-import Link from "next/link"
+import { FastLink } from "@/components/navigation/fast-link"
 import { ArrowUpRight } from "lucide-react"
 
 import {
@@ -23,7 +23,7 @@ export function HomeBuyerFeaturedShopsTile({ shops: _shops, label, hint, badgeLa
 
   return (
     <li className={buyerServiceTileItemClass}>
-      <Link href={PUBLIC_SHOPS_PATH} className={buyerServiceTileClass}>
+      <FastLink href={PUBLIC_SHOPS_PATH} className={buyerServiceTileClass}>
         <span
           className={cn(
             "pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full bg-gradient-to-br opacity-40 blur-2xl transition group-hover:opacity-60",
@@ -54,7 +54,7 @@ export function HomeBuyerFeaturedShopsTile({ shops: _shops, label, hint, badgeLa
             {hint}
           </span>
         </span>
-      </Link>
+      </FastLink>
     </li>
   )
 }

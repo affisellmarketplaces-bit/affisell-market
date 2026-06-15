@@ -8,7 +8,7 @@ import { RolloutShippingConfirmedBanner } from "@/components/marketplace/rollout
 import { GlowCtaLink } from "@/components/GlowCtaLink"
 import { HomeBuyerSmartStrip } from "@/components/home/HomeBuyerSmartStrip"
 import { HeroGradientBg } from "@/components/marketing/hero-gradient-bg"
-import { Link } from "@/i18n/navigation"
+import { FastLink } from "@/components/navigation/fast-link"
 import { loadFeaturedShopsCached } from "@/lib/public-home-cache"
 import {
   isGraduatedCheckoutCountryResolved,
@@ -86,12 +86,13 @@ export async function BuyerHeroBlock() {
         </div>
         <div className="mt-4 flex flex-col items-center gap-2.5 sm:mt-8 sm:gap-4">
           <GlowCtaLink href={explorerHref}>{t("ctaPrimary")}</GlowCtaLink>
-          <Link
+          <FastLink
             href="/creators"
+            localeAware
             className="text-sm font-medium text-violet-100/90 underline-offset-4 transition hover:text-white hover:underline"
           >
             {t("creatorLink")}
-          </Link>
+          </FastLink>
         </div>
         <HomeBuyerSmartStrip featuredShops={featuredShops} />
       </div>

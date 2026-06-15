@@ -10,12 +10,19 @@ export const BUYER_WARM_ROUTES = [
   "/",
   PUBLIC_SHOPS_PATH,
   PUBLIC_MARKETPLACE_BROWSE_PATH,
+  "/agent",
+  "/discover",
+  "/creators",
+  "/returns",
   "/login",
   "/cart",
   "/wishlist",
   "/auctions",
   "/luxe",
 ] as const
+
+/** Hero + tuiles buyer sur `/` — prefetch immédiat au mount. */
+export const HOME_WARM_ROUTES = BUYER_WARM_ROUTES
 
 export const AFFILIATE_WARM_ROUTES = [
   "/dashboard/affiliate",

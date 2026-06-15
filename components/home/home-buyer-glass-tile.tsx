@@ -1,7 +1,7 @@
-import Link from "next/link"
 import type { LucideIcon } from "lucide-react"
 import { ArrowUpRight } from "lucide-react"
 
+import { FastLink } from "@/components/navigation/fast-link"
 import { cn } from "@/lib/utils"
 
 export const buyerServiceTileClass =
@@ -31,7 +31,7 @@ export function BuyerGlassTile({
 }: BuyerGlassTileProps) {
   return (
     <li className={buyerServiceTileItemClass}>
-      <Link href={href} className={buyerServiceTileClass}>
+      <FastLink href={href} className={buyerServiceTileClass}>
         <span
           className={cn(
             "pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full bg-gradient-to-br opacity-40 blur-2xl transition group-hover:opacity-60",
@@ -66,7 +66,7 @@ export function BuyerGlassTile({
             {hint}
           </span>
         </span>
-      </Link>
+      </FastLink>
     </li>
   )
 }

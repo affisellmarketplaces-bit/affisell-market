@@ -3,6 +3,8 @@
 import Link from "next/link"
 import { Heart, Sparkles } from "lucide-react"
 
+import { FastLink } from "@/components/navigation/fast-link"
+
 import { ProductDiscountTag } from "@/components/product-discount-tag"
 import { ProductOfferBadge } from "@/components/product/product-offer-badge"
 import { ProductPriceOffer } from "@/components/product/product-price-offer"
@@ -255,11 +257,12 @@ export function ProductCard({ product, mode = "customer", href: hrefProp }: Prod
 
   const showBusiness = mode === "affiliate" || mode === "supplier"
   const showMargin = mode === "affiliate"
+  const LinkComp = mode === "customer" ? FastLink : Link
 
   return (
-    <Link
+    <LinkComp
       href={href}
-      prefetch={mode === "customer"}
+      prefetch={mode === "customer" ? undefined : false}
       className={cn(
         "group flex h-full w-full flex-col rounded-3xl border border-gray-100/90 bg-white/85 p-2 shadow-sm outline-none ring-offset-2 backdrop-blur-sm transition-shadow dark:border-zinc-800 dark:bg-zinc-950/60",
         "hover:border-violet-200/80 hover:shadow-lg hover:shadow-violet-500/5 focus-visible:ring-2 focus-visible:ring-violet-500 dark:hover:border-violet-800/60"
@@ -342,6 +345,6 @@ export function ProductCard({ product, mode = "customer", href: hrefProp }: Prod
           <CustomerConversionBadges freeShipping={p.freeShipping} warrantyLabel={p.warrantyLabel} />
         )}
       </div>
-    </Link>
+    </LinkComp>
   )
 }
