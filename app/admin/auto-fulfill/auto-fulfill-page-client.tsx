@@ -418,7 +418,7 @@ export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boo
                 </div>
                 <div>
                   <h1 className="text-2xl font-black tracking-tight text-zinc-900 dark:text-white md:text-3xl">
-                    Auto-Fulfill AliExpress
+                    Auto-Fulfill
                   </h1>
                   <p className="text-sm text-zinc-600 dark:text-zinc-400">
                     Worker · carte Issuing · mapping SKU · settlement Phase 1
