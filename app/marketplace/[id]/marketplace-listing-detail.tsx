@@ -76,8 +76,9 @@ import {
   youtubeEmbedSrc,
 } from "@/lib/product-description-video-embed"
 import {
-  comparableImageUrl,
+  colorForImageIndex,
   findColorImageRowForName,
+  imageIndexForColor,
   type ProductColorImageRow,
 } from "@/lib/product-color-images"
 import {
@@ -223,26 +224,6 @@ function listingAtAGlance(description: string, name: string, tags: string[]): st
   const visibleTags = shopperVisibleTags(tags)
   if (visibleTags.length > 0) return visibleTags.slice(0, 5).join(" · ")
   return null
-}
-
-/** Pick gallery index for a color (match per-color image URL to gallery, then fall back to color order). */
-function imageIndexForColor(
-  color: string | null,
-  colorNames: string[],
-  colorImages: ProductColorImageRow[],
-  images: string[]
-): number {
-  if (!images.length) return 0
-  if (!color) return 0
-  const row = findColorImageRowForName(colorImages, color)
-  const direct = row?.image?.trim()
-  if (direct) {
-    const hit = images.findIndex((u) => comparableImageUrl(u) === comparableImageUrl(direct))
-    if (hit >= 0) return hit
-  }
-  const idx = colorNames.findIndex((c) => c.trim().toLowerCase() === color.trim().toLowerCase())
-  if (idx >= 0 && idx < images.length) return idx
-  return 0
 }
 
 /** Split long marketplace titles into a scannable headline + supporting line. */
@@ -535,6 +516,30 @@ export function MarketplaceListingDetail({
   }, [listingId, initialColor])
   /* eslint-enable react-hooks/exhaustive-deps */
 
+  const selectColor = useCallback(
+    (colorName: string) => {
+      setGalleryHeroLock(false)
+      setSelectedColor(colorName)
+      setSelectedImage(imageIndexForColor(colorName, colorNames, colorImages, images))
+    },
+    [colorNames, colorImages, images]
+  )
+
+  const selectGalleryImage = useCallback(
+    (index: number) => {
+      const mappedColor = colorForImageIndex(index, colorNames, colorImages, images)
+      if (mappedColor) {
+        setGalleryHeroLock(false)
+        setSelectedColor(mappedColor)
+        setSelectedImage(index)
+        return
+      }
+      setGalleryHeroLock(true)
+      setSelectedImage(index)
+    },
+    [colorNames, colorImages, images]
+  )
+
   const [cartBusy, setCartBusy] = useState(false)
   const [buyBusy, setBuyBusy] = useState(false)
   const [purchaseQty, setPurchaseQty] = useState(1)
@@ -605,21 +610,8 @@ export function MarketplaceListingDetail({
 
   const activeThumbIndex = useMemo(() => {
     if (galleryHeroLock) return safeImageIndex
-    if (colorDirectUrl) {
-      const hit = images.findIndex((u) => comparableImageUrl(u) === comparableImageUrl(colorDirectUrl))
-      if (hit >= 0) return hit
-      return -1
-    }
     return imageIndexForColor(selectedColor, colorNames, colorImages, images)
-  }, [
-    galleryHeroLock,
-    safeImageIndex,
-    colorDirectUrl,
-    images,
-    selectedColor,
-    colorNames,
-    colorImages,
-  ])
+  }, [galleryHeroLock, safeImageIndex, selectedColor, colorNames, colorImages, images])
   const activeListingPriceCents = useMemo(() => {
     if (activeVariantRow && activeVariantRow.priceCents > 0) {
       const sell = Math.max(0, Math.round(listingPriceCents))
@@ -947,10 +939,7 @@ export function MarketplaceListingDetail({
                 images={images}
                 heroSrc={hero}
                 activeThumbIndex={activeThumbIndex}
-                onSelectImage={(i) => {
-                  setGalleryHeroLock(true)
-                  setSelectedImage(i)
-                }}
+                onSelectImage={selectGalleryImage}
                 videoUrl={galleryListingVideoUrl}
                 productId={productId}
                 alt={name}
@@ -1002,11 +991,7 @@ export function MarketplaceListingDetail({
               colorMeta={colorMeta}
               showColorSwatches={showColorSwatches}
               selectedColor={selectedColor}
-              onSelectColor={(cn) => {
-                setGalleryHeroLock(false)
-                setSelectedColor(cn)
-                setSelectedImage(imageIndexForColor(cn, colorNames, colorImages, images))
-              }}
+              onSelectColor={selectColor}
               storageOptions={storageOptions}
               selectedStorage={selectedStorage}
               onSelectStorage={setSelectedStorage}
@@ -1262,11 +1247,7 @@ export function MarketplaceListingDetail({
                     <button
                       key={cn}
                       type="button"
-                      onClick={() => {
-                        setGalleryHeroLock(false)
-                        setSelectedColor(cn)
-                        setSelectedImage(imageIndexForColor(cn, colorNames, colorImages, images))
-                      }}
+                      onClick={() => selectColor(cn)}
                       className={`h-10 w-10 rounded-full border-2 transition lg:h-9 lg:w-9 ${
                         shopperColorLabelsMatch(selectedColor, cn)
                           ? "border-zinc-900 dark:border-white"
@@ -1312,11 +1293,7 @@ export function MarketplaceListingDetail({
                         key={cn}
                         type="button"
                         disabled={out}
-                        onClick={() => {
-                          setGalleryHeroLock(false)
-                          setSelectedColor(cn)
-                          setSelectedImage(imageIndexForColor(cn, colorNames, colorImages, images))
-                        }}
+                        onClick={() => selectColor(cn)}
                         className={`rounded-xl border px-3 py-2 text-sm font-medium transition ${
                           shopperColorLabelsMatch(selectedColor, cn)
                             ? "border-violet-600 bg-violet-600 text-white shadow-sm dark:border-violet-500 dark:bg-violet-600"

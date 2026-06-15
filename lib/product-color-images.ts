@@ -1,5 +1,6 @@
 import { trimColorSwatchImageForStore } from "@/lib/color-swatch-store"
 import { resolveColorSwatchMeta } from "@/lib/color-name-hex"
+import { variantColorsMatch } from "@/lib/fulfillment/variant-color-match"
 import { parseVariantsPayload } from "@/lib/product-variants"
 
 /** Stored on `Product.colorImages` — `hex` resolved from name when absent */
@@ -107,7 +108,54 @@ export function findColorImageRowForName(
   const exact = rows.find((r) => r.color === want)
   if (exact) return exact
   const wl = want.toLowerCase()
-  return rows.find((r) => r.color.trim().toLowerCase() === wl)
+  const caseInsensitive = rows.find((r) => r.color.trim().toLowerCase() === wl)
+  if (caseInsensitive) return caseInsensitive
+  return rows.find((r) => variantColorsMatch(r.color, want))
+}
+
+/** Pick gallery index for a color (match per-color image URL to gallery, then fall back to color order). */
+export function imageIndexForColor(
+  color: string | null,
+  colorNames: string[],
+  colorImages: ProductColorImageRow[],
+  images: string[]
+): number {
+  if (!images.length) return 0
+  if (!color) return 0
+  const row = findColorImageRowForName(colorImages, color)
+  const direct = row?.image?.trim()
+  if (direct) {
+    const hit = images.findIndex((u) => comparableImageUrl(u) === comparableImageUrl(direct))
+    if (hit >= 0) return hit
+  }
+  const idx = colorNames.findIndex((c) => variantColorsMatch(c, color))
+  if (idx >= 0 && idx < images.length) return idx
+  return 0
+}
+
+/** Reverse lookup: gallery index → supplier color name when the image maps to a variant. */
+export function colorForImageIndex(
+  index: number,
+  colorNames: string[],
+  colorImages: ProductColorImageRow[],
+  images: string[]
+): string | null {
+  if (index < 0 || index >= images.length || colorNames.length === 0) return null
+  const urlKey = comparableImageUrl(images[index]!)
+
+  for (const colorName of colorNames) {
+    const row = findColorImageRowForName(colorImages, colorName)
+    const direct = row?.image?.trim()
+    if (direct && comparableImageUrl(direct) === urlKey) return colorName
+  }
+
+  for (const colorName of colorNames) {
+    if (imageIndexForColor(colorName, colorNames, colorImages, images) === index) {
+      return colorName
+    }
+  }
+
+  return null
 }
 
 /** One row per supplier color: prefer `colorImages` JSON, then legacy `variants.imageByColor`. */
