@@ -4,7 +4,12 @@ import { Resend } from "resend"
 import { ExpansionDigestEmail } from "@/emails/expansion-digest"
 import { expansionCountryLabel, loadAdminExpansionOverview } from "@/lib/admin/load-admin-expansion-overview"
 import { resolveExpansionAdminEmail } from "@/lib/admin/resolve-expansion-admin-email"
+import { expansionEmailExportsBundlePath } from "@/lib/admin/expansion-email-export-kinds"
 import { buildGraduatedThisMonthDigestLines } from "@/lib/expansion/expansion-digest-graduated-month"
+import {
+  graduationDeliveryDigestBadge,
+  shouldShowGraduationLowDeliveryDigestRow,
+} from "@/lib/expansion/expansion-digest-graduation-delivery-badge"
 import { resolveGraduatedBuyerShopUrl } from "@/lib/expansion/graduated-buyer-shop-url"
 import { findGraduationEmailStalls } from "@/lib/expansion/graduation-email-stall"
 import { logBusiness } from "@/lib/business-log"
@@ -38,7 +43,15 @@ function buildDigestBody(
   enabledWithoutOrder: Array<{ countryIso2: string; openedAt: Date; launchEmailSentAt: Date | null }>,
   graduationEmailStalls: Array<{ countryIso2: string; graduatedAt: Date }>
 ): string {
+  const adminUrl = resolveAppUrl()
   const topDemand = overview.countries.slice(0, 5)
+  const emailExportCountries = overview.countries.filter(
+    (row) =>
+      row.launchEmailsDeliveredThisMonth > 0 ||
+      row.launchGraduatedDeliveredThisMonth > 0 ||
+      row.launchComplaintsThisMonth > 0 ||
+      row.launchGraduatedComplaintsThisMonth > 0
+  )
   const lines = [
     `Region: ${MARKET_REGION.toUpperCase()}`,
     `Live checkout countries: ${overview.liveCheckoutCount}`,
@@ -56,6 +69,16 @@ function buildDigestBody(
     `Expansion email bounces (month): ${overview.emailBounces.bouncesThisMonth}`,
     `Expansion email complaints (month): ${overview.emailBounces.complaintsThisMonth}`,
     `Email events (month): ${overview.emailEventCounts.deliveredThisMonth} delivered · ${overview.emailEventCounts.bouncesThisMonth} bounce(s) · ${overview.emailEventCounts.complaintsThisMonth} complaint(s)`,
+    `Metabase email exports bundle (all kinds): ${adminUrl}${expansionEmailExportsBundlePath()}`,
+    ...(emailExportCountries.length > 0
+      ? [
+          "Metabase email exports bundle by country:",
+          ...emailExportCountries.slice(0, 5).map(
+            (row) =>
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${adminUrl}${expansionEmailExportsBundlePath(row.countryIso2)}`
+          ),
+        ]
+      : []),
     `Launch emails pending retry: ${overview.emailBounces.launchRetriesPending}`,
     `Launch emails suppressed (2nd bounce): ${overview.emailBounces.launchSuppressedTotal}`,
     `Suppressed waitlist pending 90d purge: ${overview.emailBounces.suppressedStalePendingPurge}`,
@@ -117,17 +140,23 @@ function buildDigestBody(
       : ["• none"]),
     "",
     "Low graduation email delivery rate (<80%):",
-    ...(overview.countries.filter(
-      (row) => row.launchGraduatedSentThisMonth >= 10 && row.launchGraduatedDeliveryRatePct < 80
+    ...(overview.countries.filter((row) =>
+      shouldShowGraduationLowDeliveryDigestRow({
+        launchGraduatedSentThisMonth: row.launchGraduatedSentThisMonth,
+        launchGraduatedDeliveryRatePct: row.launchGraduatedDeliveryRatePct,
+      })
     ).length > 0
       ? overview.countries
-          .filter(
-            (row) => row.launchGraduatedSentThisMonth >= 10 && row.launchGraduatedDeliveryRatePct < 80
+          .filter((row) =>
+            shouldShowGraduationLowDeliveryDigestRow({
+              launchGraduatedSentThisMonth: row.launchGraduatedSentThisMonth,
+              launchGraduatedDeliveryRatePct: row.launchGraduatedDeliveryRatePct,
+            })
           )
           .slice(0, 5)
           .map(
             (row) =>
-              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchGraduatedDeliveryRatePct}% (${row.launchGraduatedDeliveredThisMonth} graduation delivered)`
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchGraduatedDeliveryRatePct}% (${row.launchGraduatedDeliveredThisMonth} graduation delivered)${graduationDeliveryDigestBadge(row.launchGraduatedDeliveryRatePct)}`
           )
       : ["• none"]),
     "",
@@ -206,7 +235,7 @@ function buildDigestBody(
         )
       : ["• none"]),
     "",
-    `Console: ${resolveAppUrl()}/admin/expansion`,
+    `Console: ${adminUrl}/admin/expansion`,
   ]
   return lines.join("\n")
 }

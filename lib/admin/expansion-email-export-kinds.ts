@@ -13,3 +13,12 @@ export function expansionEmailExportsBundleFilename(countryIso2?: string): strin
   if (!countryIso2) return EXPANSION_EMAIL_EXPORTS_BUNDLE_FILENAME
   return `affisell-expansion-email-exports-${countryIso2.toLowerCase()}-this-month.zip`
 }
+
+export function expansionEmailExportsBundlePath(countryIso2?: string): string {
+  const params = new URLSearchParams()
+  if (countryIso2) params.set("countryIso2", countryIso2.toLowerCase())
+  const query = params.toString()
+  return query
+    ? `/api/admin/expansion/email-exports-bundle?${query}`
+    : "/api/admin/expansion/email-exports-bundle"
+}

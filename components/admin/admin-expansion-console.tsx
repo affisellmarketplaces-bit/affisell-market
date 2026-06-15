@@ -5,6 +5,7 @@ import { BarChart3, Bell, Download, Eye, Globe2, GraduationCap, Mail, PauseCircl
 import { toast } from "sonner"
 
 import type { AdminExpansionOverview } from "@/lib/admin/admin-expansion-types"
+import { expansionEmailExportsBundlePath } from "@/lib/admin/expansion-email-export-kinds"
 import { EXPANSION_BOUNCE_RATE_ALERT_THRESHOLD_PCT } from "@/lib/expansion/compute-country-bounce-rate"
 import { EXPANSION_AUTO_PAUSE_DELIVERY_THRESHOLD_PCT } from "@/lib/expansion/expansion-auto-pause-notify"
 import { EXPANSION_LOW_DELIVERY_RATE_THRESHOLD_PCT } from "@/lib/expansion/compute-country-delivery-rate"
@@ -75,6 +76,21 @@ export function AdminExpansionConsole({
     if (exportEmailKind !== "all") params.set("emailKind", exportEmailKind)
     const query = params.toString()
     return query ? `/api/admin/expansion/suppressed-export?${query}` : "/api/admin/expansion/suppressed-export"
+  }
+
+  function buildEmailExportsBundleUrl(countryIso2?: string) {
+    return expansionEmailExportsBundlePath(countryIso2)
+  }
+
+  function countryHasEmailExportActivity(row: AdminExpansionOverview["countries"][number]): boolean {
+    return (
+      row.launchEmailsDeliveredThisMonth > 0 ||
+      row.launchGraduatedDeliveredThisMonth > 0 ||
+      row.launchComplaintsThisMonth > 0 ||
+      row.launchGraduatedComplaintsThisMonth > 0 ||
+      row.launchBounceRetriesPending > 0 ||
+      row.launchBounceSuppressed > 0
+    )
   }
 
   function buildGraduationPreviewUrl(
@@ -433,7 +449,7 @@ export function AdminExpansionConsole({
           overview.emailEventCounts.bouncesThisMonth > 0 ||
           overview.emailEventCounts.complaintsThisMonth > 0 ? (
             <Button type="button" variant="outline" size="sm" asChild>
-              <a href="/api/admin/expansion/email-exports-bundle">
+              <a href={buildEmailExportsBundleUrl()}>
                 <Download className="mr-1.5 size-3.5" aria-hidden />
                 Export all kinds ZIP
               </a>
@@ -896,6 +912,14 @@ export function AdminExpansionConsole({
                       >
                         <Download className="mr-1.5 size-3.5" aria-hidden />
                         Export events
+                      </a>
+                    </Button>
+                  ) : null}
+                  {countryHasEmailExportActivity(row) ? (
+                    <Button type="button" size="sm" variant="outline" asChild>
+                      <a href={buildEmailExportsBundleUrl(row.countryIso2)}>
+                        <Download className="mr-1.5 size-3.5" aria-hidden />
+                        Export ZIP
                       </a>
                     </Button>
                   ) : null}
