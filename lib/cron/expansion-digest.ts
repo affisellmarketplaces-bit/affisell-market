@@ -44,6 +44,11 @@ import {
   graduationComplaintDigestBadge,
   shouldShowGraduationComplaintDigestRow,
 } from "@/lib/expansion/expansion-digest-graduation-complaint-badge"
+import {
+  graduationPausedDigestBadge,
+  graduationPausedDigestExportSuffix,
+  shouldShowGraduationPausedDigestRow,
+} from "@/lib/expansion/expansion-digest-graduation-pause-badge"
 import { buildGraduatedThisMonthDigestLines } from "@/lib/expansion/expansion-digest-graduated-month"
 import {
   graduationDeliveryDigestBadge,
@@ -207,13 +212,25 @@ function buildDigestBody(
       : ["• none"]),
     "",
     "Graduation emails auto-paused (complaint or delivery <50%):",
-    ...(overview.countries.filter((row) => row.graduationEmailPaused).length > 0
+    ...(overview.countries.filter((row) =>
+      shouldShowGraduationPausedDigestRow({ graduationEmailPaused: row.graduationEmailPaused })
+    ).length > 0
       ? overview.countries
-          .filter((row) => row.graduationEmailPaused)
+          .filter((row) =>
+            shouldShowGraduationPausedDigestRow({ graduationEmailPaused: row.graduationEmailPaused })
+          )
           .slice(0, 8)
           .map(
             (row) =>
-              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchGraduatedComplaintsThisMonth} graduation complaint(s) · ${row.launchGraduatedDeliveryRatePct}% delivered (auto-resume: 30d clear if complaint pause · ≥80% if delivery pause)`
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchGraduatedComplaintsThisMonth} graduation complaint(s) · ${row.launchGraduatedDeliveryRatePct}% delivered (auto-resume: 30d clear if complaint pause · ≥80% if delivery pause)${graduationPausedDigestBadge({
+                launchGraduatedComplaintsThisMonth: row.launchGraduatedComplaintsThisMonth,
+                launchGraduatedDeliveryRatePct: row.launchGraduatedDeliveryRatePct,
+              })}${graduationPausedDigestExportSuffix({
+                adminUrl,
+                countryIso2: row.countryIso2,
+                launchGraduatedComplaintsThisMonth: row.launchGraduatedComplaintsThisMonth,
+                launchGraduatedDeliveryRatePct: row.launchGraduatedDeliveryRatePct,
+              })}`
           )
       : ["• none"]),
     "",

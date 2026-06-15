@@ -1,4 +1,5 @@
 import { expansionCountryLabel } from "@/lib/admin/load-admin-expansion-overview"
+import { expansionComplaintsExportPath } from "@/lib/admin/expansion-email-export-kinds"
 import {
   computeCountryComplaintRatePct,
   shouldAlertCountryComplaint,
@@ -59,7 +60,8 @@ export async function runExpansionComplaintAlert(
 
     const ratePct = computeCountryComplaintRatePct(input)
     const countryName = expansionCountryLabel(row.countryIso2, "en")
-    const text = `🚫 *${countryName} (${row.countryIso2})* expansion email complaint — *${complaintsThisMonth}* this month (${ratePct}% of notified). <${adminUrl}|Open expansion console>`
+    const complaintsExportUrl = `${resolveAppUrl()}${expansionComplaintsExportPath(row.countryIso2, "checkout-launch")}`
+    const text = `🚫 *${countryName} (${row.countryIso2})* launch email complaint — *${complaintsThisMonth}* this month (${ratePct}% of notified). <${complaintsExportUrl}|Export launch complaints CSV> · <${adminUrl}|Expansion console>`
 
     const { slack, discord } = await opsWebhookAlert(text)
     if (!slack && !discord) continue
@@ -75,6 +77,7 @@ export async function runExpansionComplaintAlert(
       complaintsThisMonth,
       ratePct,
       notifiedCount: row._count._all,
+      emailKind: "checkout-launch",
       slack,
       discord,
     })

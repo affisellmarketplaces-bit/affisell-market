@@ -87,3 +87,27 @@ export function buildExpansionDigestCountryQuickExportLine(
     `delivered ${adminUrl}${expansionDeliveredExportPath(countryIso2, deliveredKind)}`
   )
 }
+
+export type ExpansionAdminQuickExportLink = {
+  label: string
+  href: string
+}
+
+export function buildExpansionAdminQuickExportLinks(): ExpansionAdminQuickExportLink[] {
+  return [
+    { label: "Bundle", href: expansionEmailExportsBundlePath() },
+    { label: "Bounces", href: expansionBouncesExportPath() },
+    { label: "Complaints", href: expansionComplaintsExportPath() },
+    { label: "Delivered", href: expansionDeliveredExportPath() },
+  ]
+}
+
+export function shouldShowExpansionAdminQuickExports(args: {
+  deliveredThisMonth: number
+  bouncesThisMonth: number
+  complaintsThisMonth: number
+}): boolean {
+  return (
+    args.deliveredThisMonth > 0 || args.bouncesThisMonth > 0 || args.complaintsThisMonth > 0
+  )
+}
