@@ -14,3 +14,21 @@ export function shouldAutoResumeLaunchNotify(args: {
   if (args.deliveredThisMonth === 0) return false
   return computeLaunchDeliveryRatePct(args) >= thresholdPct
 }
+
+export function shouldAutoResumeLaunchFollowupOnDelivery(args: {
+  followupDeliveredThisMonth: number
+  followupSentCount: number
+  thresholdPct?: number
+  minSent?: number
+}): boolean {
+  const thresholdPct = args.thresholdPct ?? EXPANSION_AUTO_RESUME_DELIVERY_THRESHOLD_PCT
+  const minSent = args.minSent ?? 10
+  if (args.followupSentCount < minSent) return false
+  if (args.followupDeliveredThisMonth === 0) return false
+  return (
+    computeLaunchDeliveryRatePct({
+      deliveredThisMonth: args.followupDeliveredThisMonth,
+      notifiedCount: args.followupSentCount,
+    }) >= thresholdPct
+  )
+}

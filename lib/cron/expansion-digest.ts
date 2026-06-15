@@ -55,6 +55,7 @@ function buildDigestBody(
     `Graduation emails pending: ${overview.funnel.graduationEmailsPending}`,
     `Expansion email bounces (month): ${overview.emailBounces.bouncesThisMonth}`,
     `Expansion email complaints (month): ${overview.emailBounces.complaintsThisMonth}`,
+    `Email events (month): ${overview.emailEventCounts.deliveredThisMonth} delivered · ${overview.emailEventCounts.bouncesThisMonth} bounce(s) · ${overview.emailEventCounts.complaintsThisMonth} complaint(s)`,
     `Launch emails pending retry: ${overview.emailBounces.launchRetriesPending}`,
     `Launch emails suppressed (2nd bounce): ${overview.emailBounces.launchSuppressedTotal}`,
     `Suppressed waitlist pending 90d purge: ${overview.emailBounces.suppressedStalePendingPurge}`,

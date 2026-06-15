@@ -9,6 +9,12 @@ export type ExpansionEmailKindStat = {
   complaintsThisMonth: number
 }
 
+export type ExpansionEmailEventCounts = {
+  deliveredThisMonth: number
+  bouncesThisMonth: number
+  complaintsThisMonth: number
+}
+
 export type ExpansionCountryRow = {
   countryIso2: string
   waitlistCount: number
@@ -18,6 +24,7 @@ export type ExpansionCountryRow = {
   launchEmailSentAt: string | null
   firstOrderAt: string | null
   firstOrderId: string | null
+  graduationLastOrderId: string | null
   graduatedAt: string | null
   graduationEmailSentAt: string | null
   launchBounceRetriesPending: number
@@ -62,6 +69,7 @@ export type AdminExpansionOverview = {
   graduatedThisMonthCountries: GraduatedThisMonthCountry[]
   emailBounces: ExpansionEmailBounceOverview
   emailKindStats: ExpansionEmailKindStat[]
+  emailEventCounts: ExpansionEmailEventCounts
   totalWaitlist: number
   funnel: ExpansionFunnelSummary
   nextPilot: ExpansionNextPilot | null

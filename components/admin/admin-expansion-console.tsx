@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, type ReactNode } from "react"
 import { BarChart3, Bell, Download, Eye, Globe2, GraduationCap, Mail, PauseCircle, RefreshCw, Rocket, Zap } from "lucide-react"
 import { toast } from "sonner"
 
@@ -45,7 +45,11 @@ export function AdminExpansionConsole({
     return query ? `/api/admin/expansion/email-events-export?${query}` : "/api/admin/expansion/email-events-export"
   }
 
-  function buildGraduationPreviewUrl(countryIso2: string, firstOrderId: string | null) {
+  function buildGraduationPreviewUrl(
+    countryIso2: string,
+    firstOrderId: string | null,
+    graduationLastOrderId: string | null
+  ) {
     const params = new URLSearchParams({
       countryIso2,
       kind: "graduated",
@@ -56,7 +60,19 @@ export function AdminExpansionConsole({
       params.set("orderId", customOrderId)
     } else if (firstOrderId) {
       params.set("orderId", firstOrderId)
+    } else if (graduationLastOrderId) {
+      params.set("orderId", graduationLastOrderId)
     }
+    return `/api/admin/expansion/launch-email-preview?${params.toString()}`
+  }
+
+  function buildGraduationLastOrderPreviewUrl(countryIso2: string) {
+    const params = new URLSearchParams({
+      countryIso2,
+      kind: "graduated",
+      locale: previewLocale,
+      useLastOrder: "1",
+    })
     return `/api/admin/expansion/launch-email-preview?${params.toString()}`
   }
 
@@ -318,7 +334,9 @@ export function AdminExpansionConsole({
           <Button type="button" variant="outline" size="sm" disabled={pending} onClick={refresh}>
             Refresh
           </Button>
-          {overview.emailBounces.complaintsThisMonth > 0 ||
+          {overview.emailEventCounts.deliveredThisMonth > 0 ||
+          overview.emailEventCounts.bouncesThisMonth > 0 ||
+          overview.emailEventCounts.complaintsThisMonth > 0 ||
           overview.emailKindStats.some((row) => row.complaintsThisMonth > 0) ||
           overview.emailBounces.bouncesThisMonth > 0 ||
           overview.emailKindStats.some((row) => row.bouncesThisMonth > 0) ||
@@ -371,6 +389,51 @@ export function AdminExpansionConsole({
             </Button>
           ) : null}
         </div>
+      </div>
+
+      <div className="mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <MetricCard
+          label="Delivered events (month)"
+          value={overview.emailEventCounts.deliveredThisMonth}
+          hint={
+            overview.emailEventCounts.deliveredThisMonth > 0 ? (
+              <a
+                href="/api/admin/expansion/email-events-export?eventType=delivered"
+                className="underline underline-offset-2"
+              >
+                Export delivered CSV
+              </a>
+            ) : undefined
+          }
+        />
+        <MetricCard
+          label="Bounce events (month)"
+          value={overview.emailEventCounts.bouncesThisMonth}
+          hint={
+            overview.emailEventCounts.bouncesThisMonth > 0 ? (
+              <a
+                href="/api/admin/expansion/email-events-export?eventType=bounce"
+                className="underline underline-offset-2"
+              >
+                Export bounces CSV
+              </a>
+            ) : undefined
+          }
+        />
+        <MetricCard
+          label="Complaint events (month)"
+          value={overview.emailEventCounts.complaintsThisMonth}
+          hint={
+            overview.emailEventCounts.complaintsThisMonth > 0 ? (
+              <a
+                href="/api/admin/expansion/email-events-export?eventType=complaint"
+                className="underline underline-offset-2"
+              >
+                Export complaints CSV
+              </a>
+            ) : undefined
+          }
+        />
       </div>
 
       <div className="mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
@@ -643,19 +706,39 @@ export function AdminExpansionConsole({
                       </Button>
                       <Button type="button" size="sm" variant="outline" asChild>
                         <a
-                          href={buildGraduationPreviewUrl(row.countryIso2, row.firstOrderId)}
+                          href={buildGraduationPreviewUrl(
+                            row.countryIso2,
+                            row.firstOrderId,
+                            row.graduationLastOrderId
+                          )}
                           target="_blank"
                           rel="noreferrer"
                         >
                           Graduate
                         </a>
                       </Button>
-                      {row.firstOrderId ? (
+                      {row.graduatedAt && !row.firstOrderId && row.graduationLastOrderId ? (
+                        <Button type="button" size="sm" variant="outline" asChild>
+                          <a
+                            href={buildGraduationLastOrderPreviewUrl(row.countryIso2)}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Last order
+                          </a>
+                        </Button>
+                      ) : null}
+                      {row.firstOrderId || row.graduationLastOrderId ? (
                         <label className="flex min-w-[140px] flex-col gap-0.5 text-[10px] text-zinc-500">
                           Order ID preview
                           <input
                             type="text"
-                            value={graduationPreviewOrderIds[row.countryIso2] ?? row.firstOrderId}
+                            value={
+                              graduationPreviewOrderIds[row.countryIso2] ??
+                              row.firstOrderId ??
+                              row.graduationLastOrderId ??
+                              ""
+                            }
                             onChange={(event) =>
                               setGraduationPreviewOrderIds((current) => ({
                                 ...current,
@@ -663,7 +746,7 @@ export function AdminExpansionConsole({
                               }))
                             }
                             className="h-8 rounded-md border border-zinc-200 bg-white px-2 text-xs text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                            placeholder={row.firstOrderId}
+                            placeholder={row.firstOrderId ?? row.graduationLastOrderId ?? ""}
                           />
                         </label>
                       ) : null}
@@ -764,7 +847,7 @@ export function AdminExpansionConsole({
   )
 }
 
-function MetricCard({ label, value, hint }: { label: string; value: number; hint?: string }) {
+function MetricCard({ label, value, hint }: { label: string; value: number; hint?: ReactNode }) {
   return (
     <div className="rounded-2xl border border-zinc-200 bg-zinc-50/80 px-4 py-4 dark:border-zinc-800 dark:bg-zinc-900/50">
       <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">{label}</p>

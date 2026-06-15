@@ -33,12 +33,15 @@ export async function GET(req: NextRequest) {
   const orderId = req.nextUrl.searchParams.get("orderId")?.trim() || undefined
   const sampleOrder = req.nextUrl.searchParams.get("sampleOrder") === "1"
 
+  const useLastOrder = req.nextUrl.searchParams.get("useLastOrder") === "1"
+
   const previewOrderContext =
     kind === "graduated"
       ? await loadExpansionGraduationPreviewOrder({
           countryIso2,
           orderId,
           useSampleOrder: sampleOrder && !orderId,
+          useLastOrder: useLastOrder && !orderId,
         })
       : null
 

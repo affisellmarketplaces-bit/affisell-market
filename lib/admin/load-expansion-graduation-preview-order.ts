@@ -1,3 +1,4 @@
+import { loadLastExpansionOrderIdForCountry } from "@/lib/admin/load-last-expansion-order-by-country"
 import { extractOrderShippingCountryIso2 } from "@/lib/checkout-country-rollout"
 import { MARKET_REGION } from "@/lib/market-config"
 import { prisma } from "@/lib/prisma"
@@ -14,6 +15,7 @@ export async function loadExpansionGraduationPreviewOrder(args: {
   countryIso2: string
   orderId?: string
   useSampleOrder?: boolean
+  useLastOrder?: boolean
 }): Promise<ExpansionGraduationPreviewOrderContext | null> {
   let orderId = args.orderId?.trim()
 
@@ -28,6 +30,10 @@ export async function loadExpansionGraduationPreviewOrder(args: {
       select: { firstOrderId: true },
     })
     orderId = rollout?.firstOrderId ?? undefined
+  }
+
+  if (!orderId && args.useLastOrder) {
+    orderId = (await loadLastExpansionOrderIdForCountry(args.countryIso2)) ?? undefined
   }
 
   if (!orderId) return null
