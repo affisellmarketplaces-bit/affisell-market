@@ -18,6 +18,10 @@ import {
   shouldShowFollowupLowDeliveryDigestRow,
 } from "@/lib/expansion/expansion-digest-followup-delivery-badge"
 import {
+  launchComplaintDigestBadge,
+  shouldShowLaunchComplaintDigestRow,
+} from "@/lib/expansion/expansion-digest-launch-complaint-badge"
+import {
   launchBounceDigestBadge,
   shouldShowLaunchHighBounceDigestRow,
 } from "@/lib/expansion/expansion-digest-launch-bounce-badge"
@@ -88,6 +92,13 @@ function buildDigestBody(
       row.launchGraduatedDeliveredThisMonth > 0 ||
       row.launchFollowupDeliveredThisMonth > 0
   )
+  const bounceExportCountries = overview.countries.filter(
+    (row) =>
+      row.launchBounceRetriesPending > 0 ||
+      row.launchBounceSuppressed > 0 ||
+      row.launchGraduatedBouncesThisMonth > 0 ||
+      row.launchFollowupBouncesThisMonth > 0
+  )
   const lines = [
     `Region: ${MARKET_REGION.toUpperCase()}`,
     `Live checkout countries: ${overview.liveCheckoutCount}`,
@@ -145,6 +156,21 @@ function buildDigestBody(
           }),
         ]
       : []),
+    `Metabase bounces export (all kinds): ${adminUrl}${expansionBouncesExportPath()}`,
+    ...(bounceExportCountries.length > 0
+      ? [
+          "Metabase bounces export by country:",
+          ...bounceExportCountries.slice(0, 5).map((row) => {
+            const emailKind =
+              row.launchGraduatedBouncesThisMonth > 0
+                ? "checkout-graduated"
+                : row.launchFollowupBouncesThisMonth > 0
+                  ? "checkout-launch-followup"
+                  : "checkout-launch"
+            return `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${adminUrl}${expansionBouncesExportPath(row.countryIso2, emailKind)}`
+          }),
+        ]
+      : []),
     `Launch emails pending retry: ${overview.emailBounces.launchRetriesPending}`,
     `Launch emails suppressed (2nd bounce): ${overview.emailBounces.launchSuppressedTotal}`,
     `Suppressed waitlist pending 90d purge: ${overview.emailBounces.suppressedStalePendingPurge}`,
@@ -169,13 +195,21 @@ function buildDigestBody(
       : ["• none"]),
     "",
     "Countries with email complaints (month):",
-    ...(overview.countries.filter((row) => row.launchComplaintsThisMonth > 0).length > 0
+    ...(overview.countries.filter((row) =>
+      shouldShowLaunchComplaintDigestRow({
+        launchComplaintsThisMonth: row.launchComplaintsThisMonth,
+      })
+    ).length > 0
       ? overview.countries
-          .filter((row) => row.launchComplaintsThisMonth > 0)
+          .filter((row) =>
+            shouldShowLaunchComplaintDigestRow({
+              launchComplaintsThisMonth: row.launchComplaintsThisMonth,
+            })
+          )
           .slice(0, 5)
           .map(
             (row) =>
-              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchComplaintsThisMonth} complaint(s) (${row.launchComplaintRatePct}% of notified) — ${adminUrl}${expansionComplaintsExportPath(row.countryIso2, "checkout-launch")}`
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchComplaintsThisMonth} complaint(s) (${row.launchComplaintRatePct}% of notified)${launchComplaintDigestBadge(row.launchComplaintRatePct)} — ${adminUrl}${expansionComplaintsExportPath(row.countryIso2, "checkout-launch")}`
           )
       : ["• none"]),
     "",
@@ -214,6 +248,21 @@ function buildDigestBody(
           )
       : ["• none"]),
     "",
+    "Graduation email delivery by country (month, min 10 sent):",
+    ...(overview.countries.filter(
+      (row) => row.launchGraduatedSentThisMonth >= 10 && row.launchGraduatedDeliveredThisMonth > 0
+    ).length > 0
+      ? overview.countries
+          .filter(
+            (row) => row.launchGraduatedSentThisMonth >= 10 && row.launchGraduatedDeliveredThisMonth > 0
+          )
+          .slice(0, 5)
+          .map(
+            (row) =>
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchGraduatedDeliveryRatePct}% (${row.launchGraduatedDeliveredThisMonth} graduation delivered)${graduationDeliveryDigestBadge(row.launchGraduatedDeliveryRatePct)} — ${adminUrl}${expansionDeliveredExportPath(row.countryIso2, "checkout-graduated")}`
+          )
+      : ["• none"]),
+    "",
     "Low graduation email delivery rate (<80%):",
     ...(overview.countries.filter((row) =>
       shouldShowGraduationLowDeliveryDigestRow({
@@ -231,7 +280,7 @@ function buildDigestBody(
           .slice(0, 5)
           .map(
             (row) =>
-              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchGraduatedDeliveryRatePct}% (${row.launchGraduatedDeliveredThisMonth} graduation delivered)${graduationDeliveryDigestBadge(row.launchGraduatedDeliveryRatePct)}`
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchGraduatedDeliveryRatePct}% (${row.launchGraduatedDeliveredThisMonth} graduation delivered)${graduationDeliveryDigestBadge(row.launchGraduatedDeliveryRatePct)} — ${adminUrl}${expansionDeliveredExportPath(row.countryIso2, "checkout-graduated")}`
           )
       : ["• none"]),
     "",
