@@ -1,4 +1,6 @@
 import { readExpansionCountryFromResendTags } from "@/lib/expansion/expansion-email-tags"
+import { formatExpansionEmailEventError } from "@/lib/expansion/expansion-email-event-meta"
+import { hashExpansionBuyerEmail } from "@/lib/expansion/hash-expansion-buyer-email"
 import { resolveExpansionEmailKind } from "@/lib/expansion/resolve-expansion-email-kind"
 import { MARKET_REGION } from "@/lib/market-config"
 import { prisma } from "@/lib/prisma"
@@ -18,12 +20,17 @@ export async function recordExpansionComplaintEvent(
 
   const countryIso2 = readExpansionCountryFromResendTags(data.tags)
   const emailKind = resolveExpansionEmailKind(data) ?? "unknown"
+  const buyerEmailHash = hashExpansionBuyerEmail(data.to?.[0] ?? "")
 
   await prisma.processedWebhook.create({
     data: {
       id,
       status: "expansion_complaint_kind",
-      error: countryIso2 ? `${countryIso2}:${emailKind}` : emailKind,
+      error: formatExpansionEmailEventError({
+        countryIso2,
+        emailKind,
+        buyerEmailHash: buyerEmailHash || null,
+      }),
     },
   })
 

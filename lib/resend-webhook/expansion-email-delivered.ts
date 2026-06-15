@@ -1,5 +1,7 @@
 import type { ResendWebhookEmailData } from "@/lib/resend-webhook/expansion-email-delivery"
 import { readExpansionCountryFromResendTags } from "@/lib/expansion/expansion-email-tags"
+import { formatExpansionEmailEventError } from "@/lib/expansion/expansion-email-event-meta"
+import { hashExpansionBuyerEmail } from "@/lib/expansion/hash-expansion-buyer-email"
 import { resolveExpansionEmailKind } from "@/lib/expansion/resolve-expansion-email-kind"
 import { isExpansionBuyerResendEmail } from "@/lib/resend-webhook/expansion-email-delivery"
 import { MARKET_REGION } from "@/lib/market-config"
@@ -66,6 +68,7 @@ export async function processExpansionResendDeliveredEvent(
 
   const countryIso2 = readExpansionCountryFromResendTags(event.data.tags)
   const emailKind = resolveExpansionEmailKind(event.data) ?? "unknown"
+  const buyerEmailHash = hashExpansionBuyerEmail(event.data.to?.[0] ?? "")
   const deliveryId = `expansion:delivered:${emailId}`
   const existing = await prisma.processedWebhook.findUnique({ where: { id: deliveryId } })
   if (existing) {
@@ -76,7 +79,11 @@ export async function processExpansionResendDeliveredEvent(
     data: {
       id: deliveryId,
       status: "expansion_delivered",
-      error: countryIso2 ? `${countryIso2}:${emailKind}` : emailKind,
+      error: formatExpansionEmailEventError({
+        countryIso2,
+        emailKind,
+        buyerEmailHash: buyerEmailHash || null,
+      }),
     },
   })
 

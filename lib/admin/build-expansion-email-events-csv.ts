@@ -14,7 +14,7 @@ export function expansionEmailEventsCsvFilename(
   return `affisell-expansion-email-events${countryPart}${kindPart}${eventPart}-this-month.csv`
 }
 
-const CSV_COLUMNS = ["eventType", "countryIso2", "emailKind", "occurredAt"] as const
+const CSV_COLUMNS = ["eventType", "countryIso2", "emailKind", "buyerEmailHash", "occurredAt"] as const
 
 function escapeCsvCell(value: string): string {
   if (/[",;\n\r]/.test(value)) {
@@ -28,7 +28,7 @@ export function buildExpansionEmailEventsCsv(rows: ExpansionEmailEventRow[]): st
   const header = CSV_COLUMNS.join(";")
   const body = rows
     .map((row) =>
-      [row.eventType, row.countryIso2, row.emailKind, row.occurredAt.toISOString()]
+      [row.eventType, row.countryIso2, row.emailKind, row.buyerEmailHash ?? "", row.occurredAt.toISOString()]
         .map((cell) => escapeCsvCell(cell))
         .join(";")
     )

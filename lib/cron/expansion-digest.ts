@@ -102,14 +102,27 @@ function buildDigestBody(
       : ["• none"]),
     "",
     "",
-    "J+2 follow-up auto-paused (follow-up complaint):",
+    "J+2 follow-up auto-paused (complaint or delivery <50%):",
     ...(overview.countries.filter((row) => row.launchFollowupPaused).length > 0
       ? overview.countries
           .filter((row) => row.launchFollowupPaused)
           .slice(0, 8)
           .map(
             (row) =>
-              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchFollowupComplaintsThisMonth} follow-up complaint(s) (auto-resume after 30d clear)`
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchFollowupComplaintsThisMonth} follow-up complaint(s) · ${row.launchFollowupDeliveryRatePct}% J+2 delivered (auto-resume after 30d clear or ≥80%)`
+          )
+      : ["• none"]),
+    "",
+    "Low J+2 follow-up delivery rate (<80%):",
+    ...(overview.countries.filter(
+      (row) => row.funnel.followUpCount >= 10 && row.launchFollowupDeliveryRatePct < 80
+    ).length > 0
+      ? overview.countries
+          .filter((row) => row.funnel.followUpCount >= 10 && row.launchFollowupDeliveryRatePct < 80)
+          .slice(0, 5)
+          .map(
+            (row) =>
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchFollowupDeliveryRatePct}% (${row.launchFollowupDeliveredThisMonth} J+2 delivered)`
           )
       : ["• none"]),
     "",

@@ -12,6 +12,10 @@ export function isFollowupComplaintPauseReason(reason: string | null | undefined
   return typeof reason === "string" && reason.startsWith("followup_complaint_")
 }
 
+export function isFollowupDeliveryPauseReason(reason: string | null | undefined): boolean {
+  return typeof reason === "string" && reason.startsWith("followup_delivery_rate_")
+}
+
 export function shouldAutoResumeLaunchNotifyAfterComplaintClear(args: {
   complaintsSinceCutoff: number
   pausedReason: string | null | undefined

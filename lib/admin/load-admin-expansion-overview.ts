@@ -23,6 +23,7 @@ import { loadExpansionEmailEventCounts } from "@/lib/expansion/load-expansion-em
 import { loadLastExpansionOrderIdsByCountry } from "@/lib/admin/load-last-expansion-order-by-country"
 import { loadPausedLaunchFollowupCountries } from "@/lib/expansion/launch-followup-pause"
 import { loadExpansionFollowupComplaintsByCountry } from "@/lib/expansion/load-expansion-followup-complaint-stats"
+import { loadExpansionFollowupDeliveryStatsByCountry } from "@/lib/expansion/load-expansion-followup-delivery-stats"
 import { loadPausedLaunchNotifyCountries } from "@/lib/expansion/launch-notify-pause"
 import { prisma } from "@/lib/prisma"
 
@@ -40,7 +41,7 @@ export { expansionCountryLabel }
 export async function loadAdminExpansionOverview(): Promise<AdminExpansionOverview> {
   const marketRegion = MARKET_REGION
 
-  const [waitlistGroups, rollouts, totalWaitlist, liveCheckoutCountries, funnel, rolloutHealth, emailBounces, countryBounceStats, countryDeliveryStats, countryComplaintStats, graduatedComplaintStats, followupComplaintStats, emailKindStats, emailEventCounts, pausedNotifyCountries, pausedFollowupCountries] =
+  const [waitlistGroups, rollouts, totalWaitlist, liveCheckoutCountries, funnel, rolloutHealth, emailBounces, countryBounceStats, countryDeliveryStats, countryComplaintStats, graduatedComplaintStats, followupComplaintStats, followupDeliveryStats, emailKindStats, emailEventCounts, pausedNotifyCountries, pausedFollowupCountries] =
     await Promise.all([
     prisma.checkoutLaunchWaitlist.groupBy({
       by: ["countryIso2"],
@@ -61,6 +62,7 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
     loadExpansionCountryComplaintStats(),
     loadExpansionGraduatedComplaintsByCountry(),
     loadExpansionFollowupComplaintsByCountry(),
+    loadExpansionFollowupDeliveryStatsByCountry(),
     loadExpansionEmailKindStats(),
     loadExpansionEmailEventCounts(),
     loadPausedLaunchNotifyCountries(),
@@ -110,6 +112,8 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
         launchComplaintRatePct: 0,
         launchGraduatedComplaintsThisMonth: 0,
         launchFollowupComplaintsThisMonth: 0,
+        launchFollowupDeliveredThisMonth: 0,
+        launchFollowupDeliveryRatePct: 0,
         launchNotifyPaused: pausedNotifyCountries.has(group.countryIso2.toLowerCase()),
         launchFollowupPaused: pausedFollowupCountries.has(group.countryIso2.toLowerCase()),
       }
@@ -161,6 +165,13 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
         graduatedComplaintStats.get(row.countryIso2.toLowerCase()) ?? 0,
       launchFollowupComplaintsThisMonth:
         followupComplaintStats.get(row.countryIso2.toLowerCase()) ?? 0,
+      launchFollowupDeliveredThisMonth:
+        followupDeliveryStats.get(row.countryIso2)?.followupDeliveredThisMonth ?? 0,
+      launchFollowupDeliveryRatePct: computeLaunchDeliveryRatePct({
+        deliveredThisMonth:
+          followupDeliveryStats.get(row.countryIso2)?.followupDeliveredThisMonth ?? 0,
+        notifiedCount: funnel.followUpCount,
+      }),
     }
   })
 

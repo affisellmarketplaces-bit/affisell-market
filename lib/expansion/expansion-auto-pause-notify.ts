@@ -1,3 +1,5 @@
+import { computeLaunchDeliveryRatePct } from "@/lib/expansion/compute-country-delivery-rate"
+
 export const EXPANSION_AUTO_PAUSE_DELIVERY_THRESHOLD_PCT = 50
 
 export function shouldAutoPauseLaunchNotify(args: {
@@ -10,10 +12,23 @@ export function shouldAutoPauseLaunchNotify(args: {
   const minNotified = args.minNotified ?? 10
   if (args.notifiedCount < minNotified) return false
   if (args.deliveredThisMonth === 0) return true
+  return computeLaunchDeliveryRatePct(args) < thresholdPct
+}
+
+export function shouldAutoPauseLaunchFollowupOnDelivery(args: {
+  followupDeliveredThisMonth: number
+  followupSentCount: number
+  thresholdPct?: number
+  minSent?: number
+}): boolean {
+  const thresholdPct = args.thresholdPct ?? EXPANSION_AUTO_PAUSE_DELIVERY_THRESHOLD_PCT
+  const minSent = args.minSent ?? 10
+  if (args.followupSentCount < minSent) return false
+  if (args.followupDeliveredThisMonth === 0) return true
   return (
-    Math.min(
-      100,
-      Math.round((args.deliveredThisMonth / args.notifiedCount) * 1000) / 10
-    ) < thresholdPct
+    computeLaunchDeliveryRatePct({
+      deliveredThisMonth: args.followupDeliveredThisMonth,
+      notifiedCount: args.followupSentCount,
+    }) < thresholdPct
   )
 }

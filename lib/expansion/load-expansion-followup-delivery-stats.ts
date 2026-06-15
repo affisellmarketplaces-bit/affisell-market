@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { parseExpansionEmailEventMeta } from "@/lib/expansion/expansion-email-event-meta"
 
 export type ExpansionCountryFollowupDeliveryStats = {
   followupDeliveredThisMonth: number
@@ -20,13 +21,8 @@ function parseCountryAndKind(error: string | null | undefined): {
   countryIso2: string | null
   emailKind: string | null
 } {
-  if (!error) return { countryIso2: null, emailKind: null }
-  const [countryRaw, kindRaw] = error.split(":")
-  const countryIso2 = countryRaw?.trim().toLowerCase()
-  return {
-    countryIso2: countryIso2 && countryIso2.length === 2 ? countryIso2 : null,
-    emailKind: kindRaw?.trim() || null,
-  }
+  const meta = parseExpansionEmailEventMeta(error)
+  return { countryIso2: meta.countryIso2, emailKind: meta.emailKind }
 }
 
 export async function loadExpansionFollowupDeliveryStatsByCountry(

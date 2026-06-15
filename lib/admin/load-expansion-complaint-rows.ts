@@ -1,22 +1,11 @@
 import { prisma } from "@/lib/prisma"
+import { parseExpansionEmailEventMeta } from "@/lib/expansion/expansion-email-event-meta"
 
 export type ExpansionComplaintRow = {
   countryIso2: string
   emailKind: string
+  buyerEmailHash: string | null
   complainedAt: Date
-}
-
-function parseComplaintMeta(error: string | null | undefined): {
-  countryIso2: string | null
-  emailKind: string
-} {
-  if (!error) return { countryIso2: null, emailKind: "unknown" }
-  const [countryRaw, kindRaw] = error.split(":")
-  const countryIso2 = countryRaw?.trim().toLowerCase()
-  return {
-    countryIso2: countryIso2 && countryIso2.length === 2 ? countryIso2 : null,
-    emailKind: kindRaw?.trim() || "unknown",
-  }
 }
 
 function monthStartUtc(now = new Date()): Date {
@@ -43,11 +32,12 @@ export async function loadExpansionComplaintRows(
 
   return rows
     .map((row) => {
-      const meta = parseComplaintMeta(row.error)
+      const meta = parseExpansionEmailEventMeta(row.error)
       if (!meta.countryIso2) return null
       return {
         countryIso2: meta.countryIso2,
         emailKind: meta.emailKind,
+        buyerEmailHash: meta.buyerEmailHash,
         complainedAt: row.createdAt,
       }
     })

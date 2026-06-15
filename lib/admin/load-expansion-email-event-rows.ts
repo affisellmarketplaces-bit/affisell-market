@@ -8,6 +8,7 @@ export type ExpansionEmailEventRow = {
   eventType: "delivered" | "bounce" | "complaint"
   countryIso2: string
   emailKind: string
+  buyerEmailHash: string | null
   occurredAt: Date
 }
 
@@ -28,18 +29,21 @@ export async function loadExpansionEmailEventRows(
       eventType: "delivered" as const,
       countryIso2: row.countryIso2,
       emailKind: row.emailKind,
+      buyerEmailHash: row.buyerEmailHash,
       occurredAt: row.deliveredAt,
     })),
     ...bounces.map((row: ExpansionBounceRow) => ({
       eventType: "bounce" as const,
       countryIso2: row.countryIso2,
       emailKind: row.emailKind,
+      buyerEmailHash: row.buyerEmailHash,
       occurredAt: row.bouncedAt,
     })),
     ...complaints.map((row: ExpansionComplaintRow) => ({
       eventType: "complaint" as const,
       countryIso2: row.countryIso2,
       emailKind: row.emailKind,
+      buyerEmailHash: row.buyerEmailHash,
       occurredAt: row.complainedAt,
     })),
   ]

@@ -641,6 +641,20 @@ export function AdminExpansionConsole({
                         auto-paused · {row.launchDeliveryRatePct}% delivered
                       </Badge>
                     ) : null}
+                    {row.launchFollowupPaused &&
+                    row.funnel.followUpCount >= 10 &&
+                    row.launchFollowupDeliveryRatePct < EXPANSION_AUTO_PAUSE_DELIVERY_THRESHOLD_PCT ? (
+                      <Badge variant="outline" className="border-red-500 text-red-700 dark:text-red-400">
+                        J+2 auto-paused · {row.launchFollowupDeliveryRatePct}% delivered
+                      </Badge>
+                    ) : null}
+                    {row.funnel.followUpCount >= 10 &&
+                    row.launchFollowupDeliveryRatePct > 0 &&
+                    row.launchFollowupDeliveryRatePct < EXPANSION_LOW_DELIVERY_RATE_THRESHOLD_PCT ? (
+                      <Badge variant="outline" className="border-amber-500 text-amber-800 dark:text-amber-300">
+                        J+2 {row.launchFollowupDeliveryRatePct}% delivered
+                      </Badge>
+                    ) : null}
                     {row.funnel.notifiedCount >= 10 &&
                     row.launchDeliveryRatePct > 0 &&
                     row.launchDeliveryRatePct < EXPANSION_LOW_DELIVERY_RATE_THRESHOLD_PCT ? (
@@ -679,6 +693,9 @@ export function AdminExpansionConsole({
                     {row.launchComplaintsThisMonth > 0 ? ` · ${row.launchComplaintsThisMonth} complaint(s)` : ""}
                     {row.launchEmailsDeliveredThisMonth > 0
                       ? ` · delivered ${row.launchEmailsDeliveredThisMonth} (${row.launchDeliveryRatePct}%)`
+                      : ""}
+                    {row.launchFollowupDeliveredThisMonth > 0
+                      ? ` · J+2 delivered ${row.launchFollowupDeliveredThisMonth} (${row.launchFollowupDeliveryRatePct}%)`
                       : ""}
                   </p>
                 </div>
