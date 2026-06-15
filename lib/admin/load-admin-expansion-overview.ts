@@ -35,12 +35,18 @@ export type ExpansionNextPilot = {
   waitlistCount: number
 }
 
+export type GraduatedThisMonthCountry = {
+  countryIso2: string
+  graduatedAt: string
+}
+
 export type AdminExpansionOverview = {
   marketRegion: MarketRegion
   liveCheckoutCount: number
   rolloutCount: number
   graduatedCount: number
   graduatedThisMonth: number
+  graduatedThisMonthCountries: GraduatedThisMonthCountry[]
   totalWaitlist: number
   funnel: ExpansionFunnelSummary
   nextPilot: ExpansionNextPilot | null
@@ -145,6 +151,13 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
   const graduatedThisMonth = rollouts.filter(
     (row) => row.graduatedAt && row.graduatedAt >= monthStart
   ).length
+  const graduatedThisMonthCountries: GraduatedThisMonthCountry[] = rollouts
+    .filter((row) => row.graduatedAt && row.graduatedAt >= monthStart)
+    .map((row) => ({
+      countryIso2: row.countryIso2,
+      graduatedAt: row.graduatedAt!.toISOString(),
+    }))
+    .sort((a, b) => b.graduatedAt.localeCompare(a.graduatedAt))
 
   return {
     marketRegion,
@@ -152,6 +165,7 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
     rolloutCount: rollouts.filter((row) => row.enabled).length,
     graduatedCount: rollouts.filter((row) => row.enabled && row.graduatedAt).length,
     graduatedThisMonth,
+    graduatedThisMonthCountries,
     totalWaitlist,
     funnel,
     nextPilot,

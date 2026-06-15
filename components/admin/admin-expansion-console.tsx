@@ -170,7 +170,17 @@ export function AdminExpansionConsole({ initial, metabaseExpansionEmbedUrl }: Pr
           value={overview.graduatedCount}
           hint={overview.graduatedThisMonth > 0 ? `+${overview.graduatedThisMonth} this month` : undefined}
         />
-        <MetricCard label="Graduated this month" value={overview.graduatedThisMonth} />
+        <MetricCard
+          label="Graduated this month"
+          value={overview.graduatedThisMonth}
+          hint={
+            overview.graduatedThisMonthCountries.length > 0
+              ? overview.graduatedThisMonthCountries
+                  .map((row) => row.countryIso2.toUpperCase())
+                  .join(", ")
+              : undefined
+          }
+        />
         <MetricCard label="Waitlist signups" value={overview.totalWaitlist} />
       </div>
 

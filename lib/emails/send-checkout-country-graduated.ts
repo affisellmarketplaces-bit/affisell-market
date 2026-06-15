@@ -2,6 +2,7 @@ import { render } from "@react-email/render"
 import { Resend } from "resend"
 
 import { CheckoutCountryGraduatedEmail } from "@/emails/checkout-country-graduated"
+import { EXPANSION_CHECKOUT_GRADUATED_TAG } from "@/lib/expansion/expansion-email-tags"
 import { resolveGraduatedBuyerShopUrl } from "@/lib/expansion/graduated-buyer-shop-url"
 import {
   readResendDeliveryConfig,
@@ -42,6 +43,7 @@ export async function sendCheckoutCountryGraduatedEmail(args: {
     to,
     subject,
     html,
+    tags: [EXPANSION_CHECKOUT_GRADUATED_TAG],
   })
 
   if (error) {

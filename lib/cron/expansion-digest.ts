@@ -4,6 +4,7 @@ import { Resend } from "resend"
 import { ExpansionDigestEmail } from "@/emails/expansion-digest"
 import { expansionCountryLabel, loadAdminExpansionOverview } from "@/lib/admin/load-admin-expansion-overview"
 import { resolveExpansionAdminEmail } from "@/lib/admin/resolve-expansion-admin-email"
+import { buildGraduatedThisMonthDigestLines } from "@/lib/expansion/expansion-digest-graduated-month"
 import { findGraduationEmailStalls } from "@/lib/expansion/graduation-email-stall"
 import { logBusiness } from "@/lib/business-log"
 import {
@@ -42,6 +43,12 @@ function buildDigestBody(
     `Live checkout countries: ${overview.liveCheckoutCount}`,
     `ROW rollouts enabled: ${overview.rolloutCount}`,
     `Graduated (permanent): ${overview.graduatedCount}`,
+    ...buildGraduatedThisMonthDigestLines(
+      overview.graduatedThisMonth,
+      overview.graduatedThisMonthCountries,
+      (iso2) => expansionCountryLabel(iso2, "en")
+    ),
+    "",
     `Graduation emails sent: ${overview.funnel.graduationsWithBuyerEmail}`,
     `Graduation emails pending: ${overview.funnel.graduationEmailsPending}`,
     `Total waitlist signups: ${overview.totalWaitlist}`,

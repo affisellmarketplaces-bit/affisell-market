@@ -2,11 +2,12 @@ import { render } from "@react-email/render"
 import { Resend } from "resend"
 
 import { CheckoutCountryLaunchEmail } from "@/emails/checkout-country-launch"
+import { EXPANSION_CHECKOUT_LAUNCH_TAG } from "@/lib/expansion/expansion-email-tags"
+import { resolveGraduatedBuyerShopUrl } from "@/lib/expansion/graduated-buyer-shop-url"
 import {
   readResendDeliveryConfig,
   resolveResendDeliveryRecipient,
 } from "@/lib/emails/resend-delivery"
-import { resolveAppUrl } from "@/lib/emails/send-order-confirmation"
 
 export async function sendCheckoutCountryLaunchEmail(args: {
   email: string
@@ -22,7 +23,7 @@ export async function sendCheckoutCountryLaunchEmail(args: {
   const locale = args.locale === "en" ? "en" : "fr"
   const resend = new Resend(config.apiKey)
   const { to } = resolveResendDeliveryRecipient("checkout-country-launch", args.email, config)
-  const shopUrl = `${resolveAppUrl()}/marketplace`
+  const shopUrl = resolveGraduatedBuyerShopUrl(args.countryIso2)
 
   const html = await render(
     CheckoutCountryLaunchEmail({
@@ -42,6 +43,7 @@ export async function sendCheckoutCountryLaunchEmail(args: {
     to,
     subject,
     html,
+    tags: [EXPANSION_CHECKOUT_LAUNCH_TAG],
   })
 
   if (error) {
