@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
       ? await loadExpansionGraduationPreviewOrder({
           countryIso2,
           orderId,
-          useSampleOrder: sampleOrder,
+          useSampleOrder: sampleOrder && !orderId,
         })
       : null
 

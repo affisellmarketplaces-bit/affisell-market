@@ -30,14 +30,34 @@ export function AdminExpansionConsole({
   const [exportEmailKind, setExportEmailKind] = useState<
     "all" | "checkout-launch" | "checkout-launch-followup" | "checkout-graduated"
   >("all")
+  const [exportEventType, setExportEventType] = useState<"all" | "delivered" | "bounce" | "complaint">(
+    "all"
+  )
+  const [graduationPreviewOrderIds, setGraduationPreviewOrderIds] = useState<Record<string, string>>({})
   const [pending, startTransition] = useTransition()
 
   function buildEmailEventsExportUrl(countryIso2?: string) {
     const params = new URLSearchParams()
     if (countryIso2) params.set("countryIso2", countryIso2)
     if (exportEmailKind !== "all") params.set("emailKind", exportEmailKind)
+    if (exportEventType !== "all") params.set("eventType", exportEventType)
     const query = params.toString()
     return query ? `/api/admin/expansion/email-events-export?${query}` : "/api/admin/expansion/email-events-export"
+  }
+
+  function buildGraduationPreviewUrl(countryIso2: string, firstOrderId: string | null) {
+    const params = new URLSearchParams({
+      countryIso2,
+      kind: "graduated",
+      locale: previewLocale,
+    })
+    const customOrderId = graduationPreviewOrderIds[countryIso2]?.trim()
+    if (customOrderId) {
+      params.set("orderId", customOrderId)
+    } else if (firstOrderId) {
+      params.set("orderId", firstOrderId)
+    }
+    return `/api/admin/expansion/launch-email-preview?${params.toString()}`
   }
 
   function refresh() {
@@ -269,6 +289,27 @@ export function AdminExpansionConsole({
                 variant={exportEmailKind === value ? "default" : "ghost"}
                 className="h-7 px-2 text-[11px]"
                 onClick={() => setExportEmailKind(value)}
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
+          <div className="flex items-center rounded-lg border border-zinc-200 p-0.5 dark:border-zinc-700">
+            {(
+              [
+                ["all", "All events"],
+                ["delivered", "Delivered"],
+                ["bounce", "Bounces"],
+                ["complaint", "Complaints"],
+              ] as const
+            ).map(([value, label]) => (
+              <Button
+                key={value}
+                type="button"
+                size="sm"
+                variant={exportEventType === value ? "default" : "ghost"}
+                className="h-7 px-2 text-[11px]"
+                onClick={() => setExportEventType(value)}
               >
                 {label}
               </Button>
@@ -602,13 +643,30 @@ export function AdminExpansionConsole({
                       </Button>
                       <Button type="button" size="sm" variant="outline" asChild>
                         <a
-                          href={`/api/admin/expansion/launch-email-preview?countryIso2=${encodeURIComponent(row.countryIso2)}&kind=graduated&locale=${previewLocale}${row.firstOrderId ? "&sampleOrder=1" : ""}`}
+                          href={buildGraduationPreviewUrl(row.countryIso2, row.firstOrderId)}
                           target="_blank"
                           rel="noreferrer"
                         >
                           Graduate
                         </a>
                       </Button>
+                      {row.firstOrderId ? (
+                        <label className="flex min-w-[140px] flex-col gap-0.5 text-[10px] text-zinc-500">
+                          Order ID preview
+                          <input
+                            type="text"
+                            value={graduationPreviewOrderIds[row.countryIso2] ?? row.firstOrderId}
+                            onChange={(event) =>
+                              setGraduationPreviewOrderIds((current) => ({
+                                ...current,
+                                [row.countryIso2]: event.target.value,
+                              }))
+                            }
+                            className="h-8 rounded-md border border-zinc-200 bg-white px-2 text-xs text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                            placeholder={row.firstOrderId}
+                          />
+                        </label>
+                      ) : null}
                     </>
                   ) : null}
                   {!row.enabled ? (

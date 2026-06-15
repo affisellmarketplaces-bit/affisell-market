@@ -77,3 +77,26 @@ export async function loadExpansionComplaintsByCountryAndKind(
 
   return map
 }
+
+export async function loadExpansionFollowupComplaintsSince(
+  since: Date
+): Promise<ExpansionCountryComplaintsSinceMap> {
+  const rows = await prisma.processedWebhook.findMany({
+    where: {
+      id: { startsWith: "expansion:complaint:" },
+      createdAt: { gte: since },
+    },
+    select: { error: true },
+  })
+
+  const map: ExpansionCountryComplaintsSinceMap = new Map()
+
+  for (const row of rows) {
+    if (parseKindFromMeta(row.error) !== "checkout-launch-followup") continue
+    const countryIso2 = parseCountryFromMeta(row.error)
+    if (!countryIso2) continue
+    map.set(countryIso2, (map.get(countryIso2) ?? 0) + 1)
+  }
+
+  return map
+}

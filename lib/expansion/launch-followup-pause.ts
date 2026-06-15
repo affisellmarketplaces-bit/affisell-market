@@ -52,14 +52,26 @@ export async function resumeLaunchFollowupCountry(countryIso2: string): Promise<
 }
 
 export async function loadPausedLaunchFollowupCountries(): Promise<Set<string>> {
+  const details = await loadPausedLaunchFollowupDetails()
+  return new Set(details.keys())
+}
+
+export async function loadPausedLaunchFollowupDetails(): Promise<
+  Map<string, { reason: string | null }>
+> {
   const prefix = `expansion:launch-followup-paused:${MARKET_REGION}:`
   const rows = await prisma.processedWebhook.findMany({
     where: { id: { startsWith: prefix } },
-    select: { id: true },
+    select: { id: true, error: true },
   })
-  return new Set(
-    rows
-      .map((row) => row.id.slice(prefix.length).toLowerCase())
-      .filter((code) => code.length === 2)
-  )
+
+  const map = new Map<string, { reason: string | null }>()
+
+  for (const row of rows) {
+    const countryIso2 = row.id.slice(prefix.length).toLowerCase()
+    if (countryIso2.length !== 2) continue
+    map.set(countryIso2, { reason: row.error ?? null })
+  }
+
+  return map
 }

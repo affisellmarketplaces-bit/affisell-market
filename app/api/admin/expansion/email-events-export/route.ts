@@ -5,6 +5,7 @@ import {
   expansionEmailEventsCsvFilename,
 } from "@/lib/admin/build-expansion-email-events-csv"
 import { loadExpansionEmailEventRows } from "@/lib/admin/load-expansion-email-event-rows"
+import { normalizeExpansionEmailEventTypeFilter } from "@/lib/expansion/normalize-expansion-email-event-type-filter"
 import { normalizeExpansionEmailKindFilter } from "@/lib/expansion/normalize-expansion-email-kind-filter"
 import { requireAdminSession } from "@/lib/admin/require-admin-session"
 import { normalizeVisitorCountryIso2 } from "@/lib/visitor-country"
@@ -25,15 +26,17 @@ export async function GET(req: NextRequest) {
   }
 
   const emailKind = normalizeExpansionEmailKindFilter(req.nextUrl.searchParams.get("emailKind"))
+  const eventType = normalizeExpansionEmailEventTypeFilter(req.nextUrl.searchParams.get("eventType"))
 
-  const rows = await loadExpansionEmailEventRows(countryIso2, emailKind)
+  const rows = await loadExpansionEmailEventRows(countryIso2, emailKind, eventType)
   const csv = buildExpansionEmailEventsCsv(rows)
-  const filename = expansionEmailEventsCsvFilename(countryIso2, emailKind)
+  const filename = expansionEmailEventsCsvFilename(countryIso2, emailKind, eventType)
 
   console.log("[expansion-rollout]", {
     userId: gate.session.user.id,
     countryIso2: countryIso2 ?? null,
     emailKind: emailKind ?? null,
+    eventType: eventType ?? null,
     rows: rows.length,
     result: "email_events_export",
   })

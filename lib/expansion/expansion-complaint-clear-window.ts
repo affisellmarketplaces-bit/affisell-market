@@ -8,10 +8,22 @@ export function isComplaintPauseReason(reason: string | null | undefined): boole
   return typeof reason === "string" && reason.startsWith("complaint_")
 }
 
+export function isFollowupComplaintPauseReason(reason: string | null | undefined): boolean {
+  return typeof reason === "string" && reason.startsWith("followup_complaint_")
+}
+
 export function shouldAutoResumeLaunchNotifyAfterComplaintClear(args: {
   complaintsSinceCutoff: number
   pausedReason: string | null | undefined
 }): boolean {
   if (!isComplaintPauseReason(args.pausedReason)) return false
   return args.complaintsSinceCutoff === 0
+}
+
+export function shouldAutoResumeLaunchFollowupAfterComplaintClear(args: {
+  followupComplaintsSinceCutoff: number
+  pausedReason: string | null | undefined
+}): boolean {
+  if (!isFollowupComplaintPauseReason(args.pausedReason)) return false
+  return args.followupComplaintsSinceCutoff === 0
 }
