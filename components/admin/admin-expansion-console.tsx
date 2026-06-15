@@ -5,6 +5,7 @@ import { BarChart3, Bell, Download, Eye, Globe2, GraduationCap, Mail, PauseCircl
 import { toast } from "sonner"
 
 import type { AdminExpansionOverview } from "@/lib/admin/admin-expansion-types"
+import type { ExpansionEmailExportKind } from "@/lib/admin/expansion-email-export-kinds"
 import { expansionEmailExportsBundlePath } from "@/lib/admin/expansion-email-export-kinds"
 import { EXPANSION_BOUNCE_RATE_ALERT_THRESHOLD_PCT } from "@/lib/expansion/compute-country-bounce-rate"
 import { EXPANSION_AUTO_PAUSE_DELIVERY_THRESHOLD_PCT } from "@/lib/expansion/expansion-auto-pause-notify"
@@ -81,6 +82,42 @@ export function AdminExpansionConsole({
   function buildEmailExportsBundleUrl(countryIso2?: string) {
     const kind = exportEmailKind !== "all" ? exportEmailKind : undefined
     return expansionEmailExportsBundlePath(countryIso2, kind)
+  }
+
+  function buildKindEmailExportsBundleUrl(emailKind: ExpansionEmailExportKind, countryIso2?: string) {
+    return expansionEmailExportsBundlePath(countryIso2, emailKind)
+  }
+
+  function emailKindHasBundleExport(emailKind: ExpansionEmailExportKind): boolean {
+    const stat = overview.emailKindStats.find((row) => row.emailKind === emailKind)
+    if (!stat) return false
+    return stat.deliveredThisMonth > 0 || stat.bouncesThisMonth > 0 || stat.complaintsThisMonth > 0
+  }
+
+  function countryHasLaunchKindExport(row: AdminExpansionOverview["countries"][number]): boolean {
+    return (
+      row.launchEmailsDeliveredThisMonth > 0 ||
+      row.launchComplaintsThisMonth > 0 ||
+      row.launchBounceRetriesPending > 0 ||
+      row.launchBounceSuppressed > 0
+    )
+  }
+
+  function countryHasFollowupKindExport(row: AdminExpansionOverview["countries"][number]): boolean {
+    return (
+      row.launchFollowupDeliveredThisMonth > 0 ||
+      row.launchFollowupBouncesThisMonth > 0 ||
+      row.launchFollowupComplaintsThisMonth > 0
+    )
+  }
+
+  function countryHasGraduatedKindExport(row: AdminExpansionOverview["countries"][number]): boolean {
+    return (
+      row.launchGraduatedDeliveredThisMonth > 0 ||
+      row.launchGraduatedBouncesThisMonth > 0 ||
+      row.launchGraduatedComplaintsThisMonth > 0 ||
+      row.launchGraduatedSentThisMonth > 0
+    )
   }
 
   function countryHasDeliveredExportActivity(row: AdminExpansionOverview["countries"][number]): boolean {
@@ -478,6 +515,30 @@ export function AdminExpansionConsole({
               <a href={buildEmailExportsBundleUrl()}>
                 <Download className="mr-1.5 size-3.5" aria-hidden />
                 Export all kinds ZIP
+              </a>
+            </Button>
+          ) : null}
+          {emailKindHasBundleExport("checkout-launch") ? (
+            <Button type="button" variant="outline" size="sm" asChild>
+              <a href={buildKindEmailExportsBundleUrl("checkout-launch")}>
+                <Download className="mr-1.5 size-3.5" aria-hidden />
+                Launch ZIP
+              </a>
+            </Button>
+          ) : null}
+          {emailKindHasBundleExport("checkout-launch-followup") ? (
+            <Button type="button" variant="outline" size="sm" asChild>
+              <a href={buildKindEmailExportsBundleUrl("checkout-launch-followup")}>
+                <Download className="mr-1.5 size-3.5" aria-hidden />
+                J+2 ZIP
+              </a>
+            </Button>
+          ) : null}
+          {emailKindHasBundleExport("checkout-graduated") ? (
+            <Button type="button" variant="outline" size="sm" asChild>
+              <a href={buildKindEmailExportsBundleUrl("checkout-graduated")}>
+                <Download className="mr-1.5 size-3.5" aria-hidden />
+                Graduation ZIP
               </a>
             </Button>
           ) : null}
@@ -979,6 +1040,30 @@ export function AdminExpansionConsole({
                       <a href={buildEmailExportsBundleUrl(row.countryIso2)}>
                         <Download className="mr-1.5 size-3.5" aria-hidden />
                         Export ZIP
+                      </a>
+                    </Button>
+                  ) : null}
+                  {countryHasLaunchKindExport(row) ? (
+                    <Button type="button" size="sm" variant="outline" asChild>
+                      <a href={buildKindEmailExportsBundleUrl("checkout-launch", row.countryIso2)}>
+                        <Download className="mr-1.5 size-3.5" aria-hidden />
+                        Launch ZIP
+                      </a>
+                    </Button>
+                  ) : null}
+                  {countryHasFollowupKindExport(row) ? (
+                    <Button type="button" size="sm" variant="outline" asChild>
+                      <a href={buildKindEmailExportsBundleUrl("checkout-launch-followup", row.countryIso2)}>
+                        <Download className="mr-1.5 size-3.5" aria-hidden />
+                        J+2 ZIP
+                      </a>
+                    </Button>
+                  ) : null}
+                  {countryHasGraduatedKindExport(row) ? (
+                    <Button type="button" size="sm" variant="outline" asChild>
+                      <a href={buildKindEmailExportsBundleUrl("checkout-graduated", row.countryIso2)}>
+                        <Download className="mr-1.5 size-3.5" aria-hidden />
+                        Grad ZIP
                       </a>
                     </Button>
                   ) : null}

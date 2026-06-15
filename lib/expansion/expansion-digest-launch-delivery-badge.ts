@@ -21,3 +21,16 @@ export function shouldShowLaunchLowDeliveryDigestRow(args: {
     args.launchDeliveryRatePct < EXPANSION_LOW_DELIVERY_RATE_THRESHOLD_PCT
   )
 }
+
+export function shouldShowLaunchDeliveredDigestRow(args: {
+  notifiedCount: number
+  launchEmailsDeliveredThisMonth: number
+}): boolean {
+  return args.notifiedCount >= 10 && args.launchEmailsDeliveredThisMonth > 0
+}
+
+export function shouldShowLaunchNotifyPausedDigestRow(args: {
+  launchNotifyPaused: boolean
+}): boolean {
+  return args.launchNotifyPaused
+}

@@ -36,7 +36,9 @@ import {
 } from "@/lib/expansion/expansion-digest-launch-bounce-badge"
 import {
   launchDeliveryDigestBadge,
+  shouldShowLaunchDeliveredDigestRow,
   shouldShowLaunchLowDeliveryDigestRow,
+  shouldShowLaunchNotifyPausedDigestRow,
 } from "@/lib/expansion/expansion-digest-launch-delivery-badge"
 import {
   graduationComplaintDigestBadge,
@@ -118,13 +120,38 @@ function buildDigestBody(
     `Suppressed waitlist pending 90d purge: ${overview.emailBounces.suppressedStalePendingPurge}`,
     "",
     "Launch notify auto-paused (delivery <50%, auto-resume at 80%):",
-    ...(overview.countries.filter((row) => row.launchNotifyPaused).length > 0
+    ...(overview.countries.filter((row) =>
+      shouldShowLaunchNotifyPausedDigestRow({ launchNotifyPaused: row.launchNotifyPaused })
+    ).length > 0
       ? overview.countries
-          .filter((row) => row.launchNotifyPaused)
+          .filter((row) =>
+            shouldShowLaunchNotifyPausedDigestRow({ launchNotifyPaused: row.launchNotifyPaused })
+          )
           .slice(0, 8)
           .map(
             (row) =>
-              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchDeliveryRatePct}% delivered`
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchDeliveryRatePct}% delivered${launchDeliveryDigestBadge(row.launchDeliveryRatePct)} — ${adminUrl}${expansionDeliveredExportPath(row.countryIso2, "checkout-launch")}`
+          )
+      : ["• none"]),
+    "",
+    "Launch notify email delivery by country (month, min 10 notified):",
+    ...(overview.countries.filter((row) =>
+      shouldShowLaunchDeliveredDigestRow({
+        notifiedCount: row.funnel.notifiedCount,
+        launchEmailsDeliveredThisMonth: row.launchEmailsDeliveredThisMonth,
+      })
+    ).length > 0
+      ? overview.countries
+          .filter((row) =>
+            shouldShowLaunchDeliveredDigestRow({
+              notifiedCount: row.funnel.notifiedCount,
+              launchEmailsDeliveredThisMonth: row.launchEmailsDeliveredThisMonth,
+            })
+          )
+          .slice(0, 5)
+          .map(
+            (row) =>
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchDeliveryRatePct}% (${row.launchEmailsDeliveredThisMonth} delivered)${launchDeliveryDigestBadge(row.launchDeliveryRatePct)} — ${adminUrl}${expansionDeliveredExportPath(row.countryIso2, "checkout-launch")}`
           )
       : ["• none"]),
     "",
@@ -364,7 +391,7 @@ function buildDigestBody(
           .slice(0, 5)
           .map(
             (row) =>
-              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchDeliveryRatePct}% (${row.launchEmailsDeliveredThisMonth} delivered)${launchDeliveryDigestBadge(row.launchDeliveryRatePct)}`
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchDeliveryRatePct}% (${row.launchEmailsDeliveredThisMonth} delivered)${launchDeliveryDigestBadge(row.launchDeliveryRatePct)} — ${adminUrl}${expansionDeliveredExportPath(row.countryIso2, "checkout-launch")}`
           )
       : ["• none"]),
     "",
