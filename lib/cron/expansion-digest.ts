@@ -72,6 +72,7 @@ import {
   shouldShowGraduationPausedDigestRow,
 } from "@/lib/expansion/expansion-digest-graduation-pause-badge"
 import { buildGraduatedThisMonthDigestLines } from "@/lib/expansion/expansion-digest-graduated-month"
+import { buildExpansionDigestMultiAlertRecapLines } from "@/lib/expansion/expansion-digest-country-alert-signals"
 import {
   graduationDeliveryAlertDigestBadge,
   graduationDeliveryDigestBadge,
@@ -147,6 +148,9 @@ function buildDigestBody(
           ),
         ]
       : []),
+    ...buildExpansionDigestMultiAlertRecapLines(adminUrl, overview.countries, (iso2) =>
+      expansionCountryLabel(iso2, "en")
+    ),
     `Launch emails pending retry: ${overview.emailBounces.launchRetriesPending}`,
     `Launch emails suppressed (2nd bounce): ${overview.emailBounces.launchSuppressedTotal}`,
     `Suppressed waitlist pending 90d purge: ${overview.emailBounces.suppressedStalePendingPurge}`,

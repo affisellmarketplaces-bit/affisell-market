@@ -22,6 +22,10 @@ import { EXPANSION_BOUNCE_RATE_ALERT_THRESHOLD_PCT } from "@/lib/expansion/compu
 import { EXPANSION_AUTO_PAUSE_DELIVERY_THRESHOLD_PCT } from "@/lib/expansion/expansion-auto-pause-notify"
 import { EXPANSION_LOW_DELIVERY_RATE_THRESHOLD_PCT } from "@/lib/expansion/compute-country-delivery-rate"
 import { expansionCountryLabel } from "@/lib/expansion/expansion-country-label"
+import {
+  countExpansionCountryEmailAlertSignals,
+  formatExpansionAdminMultiAlertBadgeLabel,
+} from "@/lib/expansion/expansion-digest-country-alert-signals"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
@@ -934,6 +938,11 @@ export function AdminExpansionConsole({
                     row.launchDeliveryRatePct < EXPANSION_LOW_DELIVERY_RATE_THRESHOLD_PCT ? (
                       <Badge variant="outline" className="border-amber-500 text-amber-800 dark:text-amber-300">
                         {row.launchDeliveryRatePct}% delivered
+                      </Badge>
+                    ) : null}
+                    {countExpansionCountryEmailAlertSignals(row) >= 2 ? (
+                      <Badge className="gap-1 bg-rose-700 hover:bg-rose-700">
+                        {formatExpansionAdminMultiAlertBadgeLabel(countExpansionCountryEmailAlertSignals(row))}
                       </Badge>
                     ) : null}
                   </div>
