@@ -101,6 +101,17 @@ function buildDigestBody(
           )
       : ["• none"]),
     "",
+    "Graduation emails auto-paused (complaint):",
+    ...(overview.countries.filter((row) => row.graduationEmailPaused).length > 0
+      ? overview.countries
+          .filter((row) => row.graduationEmailPaused)
+          .slice(0, 8)
+          .map(
+            (row) =>
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchGraduatedComplaintsThisMonth} graduation complaint(s)`
+          )
+      : ["• none"]),
+    "",
     "",
     "J+2 follow-up auto-paused (complaint or delivery <50%):",
     ...(overview.countries.filter((row) => row.launchFollowupPaused).length > 0

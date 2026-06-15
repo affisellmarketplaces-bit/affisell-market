@@ -1,5 +1,6 @@
 import { expansionCountryLabel } from "@/lib/admin/load-admin-expansion-overview"
 import { extractOrderShippingCountryIso2 } from "@/lib/checkout-country-rollout"
+import { isGraduationEmailPaused } from "@/lib/expansion/graduation-email-pause"
 import { logBusiness } from "@/lib/business-log"
 import { sendCheckoutCountryGraduatedEmail } from "@/lib/emails/send-checkout-country-graduated"
 import { MARKET_REGION } from "@/lib/market-config"
@@ -55,6 +56,15 @@ export async function notifyCheckoutCountryGraduatedBuyers(
   })
 
   if (!rollout?.graduatedAt || rollout.graduationEmailSentAt) {
+    return { sent: 0, failed: 0, skipped: true, recipientCount: 0 }
+  }
+
+  if (await isGraduationEmailPaused(countryIso2)) {
+    logBusiness("expansion-rollout", {
+      country: countryIso2,
+      marketRegion: MARKET_REGION,
+      result: "graduation_emails_skipped_paused",
+    })
     return { sent: 0, failed: 0, skipped: true, recipientCount: 0 }
   }
 

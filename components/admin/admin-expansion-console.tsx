@@ -205,6 +205,21 @@ export function AdminExpansionConsole({
     refresh()
   }
 
+  async function resumeGraduationCountry(countryIso2: string) {
+    const res = await fetch("/api/admin/expansion/resume-graduation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ countryIso2 }),
+    })
+    const data = (await res.json()) as { ok?: boolean; error?: string }
+    if (!res.ok || !data.ok) {
+      toast.error(data.error ?? "Resume graduation emails failed")
+      return
+    }
+    toast.success(`Graduation emails resumed for ${countryIso2}`)
+    refresh()
+  }
+
   async function runPilot(rank?: number) {
     const res = await fetch("/api/admin/expansion/pilot", {
       method: "POST",
@@ -608,6 +623,12 @@ export function AdminExpansionConsole({
                         Follow-up paused
                       </Badge>
                     ) : null}
+                    {row.graduationEmailPaused ? (
+                      <Badge variant="destructive" className="gap-1">
+                        <PauseCircle className="size-3" aria-hidden />
+                        Graduation paused
+                      </Badge>
+                    ) : null}
                     {row.launchBounceRetriesPending > 0 ? (
                       <Badge className="bg-orange-600 hover:bg-orange-600">
                         Bounce retry ({row.launchBounceRetriesPending})
@@ -696,6 +717,9 @@ export function AdminExpansionConsole({
                       : ""}
                     {row.launchFollowupDeliveredThisMonth > 0
                       ? ` · J+2 delivered ${row.launchFollowupDeliveredThisMonth} (${row.launchFollowupDeliveryRatePct}%)`
+                      : ""}
+                    {row.launchGraduatedDeliveredThisMonth > 0
+                      ? ` · grad. delivered ${row.launchGraduatedDeliveredThisMonth} (${row.launchGraduatedDeliveryRatePct}%)`
                       : ""}
                   </p>
                 </div>
@@ -786,7 +810,7 @@ export function AdminExpansionConsole({
                       Graduate
                     </Button>
                   ) : null}
-                  {row.graduatedAt && !row.graduationEmailSentAt ? (
+                  {row.graduatedAt && !row.graduationEmailSentAt && !row.graduationEmailPaused ? (
                     <Button
                       type="button"
                       size="sm"
@@ -841,6 +865,17 @@ export function AdminExpansionConsole({
                     >
                       <RefreshCw className="mr-1.5 size-3.5" aria-hidden />
                       Resume notify
+                    </Button>
+                  ) : null}
+                  {row.graduationEmailPaused ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => void resumeGraduationCountry(row.countryIso2)}
+                    >
+                      <RefreshCw className="mr-1.5 size-3.5" aria-hidden />
+                      Resume graduation
                     </Button>
                   ) : null}
                   {row.enabled && row.pendingNotifyCount > 0 && !row.launchNotifyPaused ? (

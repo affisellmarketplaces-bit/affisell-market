@@ -10,6 +10,8 @@ import { runExpansionAutoResumeNotifyCron } from "@/lib/cron/expansion-auto-resu
 import { runExpansionDeliveryRateAlert } from "@/lib/cron/expansion-delivery-rate-alert"
 import { runExpansionFollowupDeliveryRateAlert } from "@/lib/cron/expansion-followup-delivery-rate-alert"
 import { runExpansionGraduatedComplaintAlert } from "@/lib/cron/expansion-graduated-complaint-alert"
+import { runExpansionAutoPauseGraduationCron } from "@/lib/cron/expansion-auto-pause-graduation"
+import { runExpansionGraduatedDeliveryRateAlert } from "@/lib/cron/expansion-graduated-delivery-rate-alert"
 import { runExpansionComplaintAlert } from "@/lib/cron/expansion-complaint-alert"
 import { runExpansionBounceRateAlert } from "@/lib/cron/expansion-bounce-rate-alert"
 import { runSuppressedWaitlistPurgeCron } from "@/lib/cron/expansion-suppressed-waitlist-purge"
@@ -49,6 +51,8 @@ export async function GET(req: NextRequest) {
   const followupDeliveryRateAlert = await runExpansionFollowupDeliveryRateAlert()
   const complaintAlert = await runExpansionComplaintAlert()
   const graduatedComplaintAlert = await runExpansionGraduatedComplaintAlert()
+  const graduatedDeliveryRateAlert = await runExpansionGraduatedDeliveryRateAlert()
+  const autoPauseGraduation = await runExpansionAutoPauseGraduationCron()
   const autoPauseNotify = await runExpansionAutoPauseNotifyCron()
   const autoPauseFollowup = await runExpansionAutoPauseFollowupCron()
   const autoResumeNotify = await runExpansionAutoResumeNotifyCron()
@@ -68,6 +72,8 @@ export async function GET(req: NextRequest) {
     followupDeliveryRateAlert,
     complaintAlert,
     graduatedComplaintAlert,
+    graduatedDeliveryRateAlert,
+    autoPauseGraduation,
     autoPauseNotify,
     autoPauseFollowup,
     autoResumeNotify,
