@@ -14,7 +14,7 @@ import {
 } from "@/lib/affiliate-listing-display"
 import { normalizeListingSalesCount } from "@/lib/listing-sales-count"
 import { loadMarketplaceListingPageData } from "@/lib/marketplace-listing-page-loader"
-import { shippingCountryLabel } from "@/lib/product-shipping-display"
+import { buildListingLogisticsInput } from "@/lib/listing-logistics-display"
 import { mergeColorImagesForProduct, parseProductColorImagesFromDb } from "@/lib/product-color-images"
 import { publicPartnerSellerLabel } from "@/lib/public-seller-display"
 import {
@@ -205,12 +205,15 @@ export default async function MarketplaceListingPage({
       : null
 
   const shipping = {
-    deliveryMin: p.deliveryMin ?? 2,
-    deliveryMax: p.deliveryMax ?? 5,
+    ...buildListingLogisticsInput({
+      shippingCountry: p.shippingCountry,
+      warehouseType: p.warehouseType,
+      warehouseCity: p.warehouseCity,
+      shipsFrom: p.shipsFrom,
+      deliveryMin: p.deliveryMin,
+      deliveryMax: p.deliveryMax,
+    }),
     processingTime: p.processingTime ?? 1,
-    warehouseType: p.warehouseType ?? null,
-    warehouseCity: p.warehouseCity ?? null,
-    shippingCountryLabel: shippingCountryLabel(p.shippingCountry),
     freeShippingThresholdEUR: freeThresh,
   }
 

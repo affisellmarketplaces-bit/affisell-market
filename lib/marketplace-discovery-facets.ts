@@ -15,7 +15,7 @@ import { offerFacetSlug, offerModeBadge } from "@/lib/product-offer-mode"
 import type { ProductOfferMode } from "@/lib/product-offer-mode"
 import { loadMarketplaceCategoryTreeCached } from "@/lib/marketplace-category-tree"
 import type { MarketplaceFacet } from "@/lib/marketplace-facet-types"
-import { EU_MEMBER_COUNT, prismaProductShipsFromEuWhere } from "@/lib/eu-market-countries"
+import { EU_MEMBER_COUNT, prismaProductShipsFromEuWhere, prismaProductShipsWorldwideWhere } from "@/lib/eu-market-countries"
 import { prisma, withPrismaReconnect } from "@/lib/prisma"
 
 export { DISCOVERY_FACET_KEYS, parseDeptFacetValue } from "@/lib/marketplace-discovery-facets-shared"
@@ -103,13 +103,14 @@ export async function loadGlobalMarketplaceDiscoveryFacets(
     )
   )
 
-  const [under25, mid, over100, frShip, euShip, under3, under7, freeShip, offerCounts] =
+  const [under25, mid, over100, frShip, euShip, worldwideShip, under3, under7, freeShip, offerCounts] =
     await Promise.all([
     listingCount({ sellingPriceCents: { lte: 2500 } }),
     listingCount({ sellingPriceCents: { gt: 2500, lte: 10000 } }),
     listingCount({ sellingPriceCents: { gt: 10000 } }),
     countListingsForProductWhere({ shippingCountry: "FR" }),
     countListingsForProductWhere(prismaProductShipsFromEuWhere()),
+    countListingsForProductWhere(prismaProductShipsWorldwideWhere()),
     countListingsForProductWhere({ deliveryMax: { lte: 3 } }),
     countListingsForProductWhere({ deliveryMax: { lte: 7 } }),
     countListingsForProductWhere({
@@ -151,6 +152,11 @@ export async function loadGlobalMarketplaceDiscoveryFacets(
       label: isEn
         ? `European Union (${EU_MEMBER_COUNT} countries)`
         : `Union européenne (${EU_MEMBER_COUNT} pays)`,
+    },
+    {
+      value: "worldwide",
+      count: worldwideShip,
+      label: isEn ? "Worldwide" : "International",
     },
   ].filter((v) => v.count > 0)
 

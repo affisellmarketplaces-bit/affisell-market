@@ -34,6 +34,8 @@ import { Button } from "@/components/ui/button"
 import { MobilePdpBuyPanel } from "@/components/product/mobile-pdp-buy-panel"
 import { ProductMediaGallery } from "@/components/product/product-media-gallery"
 import { ProductOfferBadge } from "@/components/product/product-offer-badge"
+import { ListingLogisticsStrip } from "@/components/product/listing-logistics-strip"
+import type { ListingLogisticsInput } from "@/lib/listing-logistics-display"
 import type { OfferModeBadge } from "@/lib/product-offer-mode"
 import { ProductVideoWishlistOverlay } from "@/components/product/product-video-wishlist-overlay"
 import type { AppLocale } from "@/lib/i18n-locale"
@@ -99,13 +101,8 @@ type StorefrontInfo = {
   showTrustedSoldBy: boolean
 }
 
-export type ListingShippingBlock = {
-  deliveryMin: number
-  deliveryMax: number
+export type ListingShippingBlock = ListingLogisticsInput & {
   processingTime: number
-  warehouseType: string | null
-  warehouseCity: string | null
-  shippingCountryLabel: string
   freeShippingThresholdEUR: number | null
 }
 
@@ -1056,6 +1053,9 @@ export function MarketplaceListingDetail({
                 reviews: (count) => t(productT.reviews, { count }),
               }}
             />
+            <div className="px-4 pb-3 lg:hidden">
+              <ListingLogisticsStrip logistics={shipping} compact />
+            </div>
           </section>
           </motion.div>
 
@@ -1216,24 +1216,16 @@ export function MarketplaceListingDetail({
               </p>
             ) : null}
 
-            <div className="grid grid-cols-3 gap-1.5 rounded-xl border border-zinc-200/80 bg-zinc-50/80 p-2.5 text-center dark:border-zinc-800 dark:bg-zinc-900/40 lg:gap-2 lg:rounded-2xl lg:p-3">
+            <ListingLogisticsStrip logistics={shipping} className="lg:rounded-2xl" />
+            <div className="grid grid-cols-2 gap-2 rounded-xl border border-zinc-200/80 bg-zinc-50/80 p-2.5 text-center dark:border-zinc-800 dark:bg-zinc-900/40 lg:rounded-2xl lg:p-3">
               <div className="flex flex-col items-center gap-1 px-1">
-                <Truck className="h-4 w-4 text-violet-600 dark:text-violet-400" aria-hidden />
-                <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                  Ships
-                </span>
-                <span className="text-xs font-medium text-zinc-900 dark:text-zinc-100">
-                  {shipping.deliveryMin}–{shipping.deliveryMax} days
-                </span>
-              </div>
-              <div className="flex flex-col items-center gap-1 border-x border-zinc-200/80 px-1 dark:border-zinc-700">
                 <RotateCcw className="h-4 w-4 text-violet-600 dark:text-violet-400" aria-hidden />
                 <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                   Returns
                 </span>
                 <span className="text-xs font-medium text-zinc-900 dark:text-zinc-100">{productT.return30d}</span>
               </div>
-              <div className="flex flex-col items-center gap-1 px-1">
+              <div className="flex flex-col items-center gap-1 border-l border-zinc-200/80 px-1 dark:border-zinc-700">
                 <ShieldCheck className="h-4 w-4 text-violet-600 dark:text-violet-400" aria-hidden />
                 <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                   Checkout

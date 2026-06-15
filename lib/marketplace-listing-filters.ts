@@ -1,7 +1,10 @@
 import type { Prisma } from "@prisma/client"
 
 import { AFFISELL_CATEGORIES } from "@/lib/affisell-categories"
-import { prismaProductShipsFromEuWhere } from "@/lib/eu-market-countries"
+import {
+  prismaProductShipsFromEuWhere,
+  prismaProductShipsWorldwideWhere,
+} from "@/lib/eu-market-countries"
 import { parseOfferFacetValue } from "@/lib/product-offer-mode"
 
 const AFFISELL_CATEGORY_SET = new Set<string>(AFFISELL_CATEGORIES as readonly string[])
@@ -31,7 +34,7 @@ export function marketplaceProductFilterFromSearchParams(
   } else if (shipsFrom === "eu") {
     parts.push(prismaProductShipsFromEuWhere())
   } else if (shipsFrom === "worldwide") {
-    parts.push({ warehouseType: "international" })
+    parts.push(prismaProductShipsWorldwideWhere())
   }
 
   if (delivery === "under3") {

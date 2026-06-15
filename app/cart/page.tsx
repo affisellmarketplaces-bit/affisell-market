@@ -9,6 +9,7 @@ import type { CSSProperties } from "react"
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { FlexiblePaymentBadge } from "@/components/checkout/flexible-payment-badge"
+import { CartCheckoutShippingNote } from "@/components/cart/cart-checkout-shipping-note"
 import { CartCheckoutAutoOpen } from "@/components/cart/cart-checkout-auto-open"
 import { COLORS, isMulticolorSwatch } from "@/lib/product-catalog-constants"
 import { normalizeCartVariantSignature, parseCartVariantSignature } from "@/lib/cart-variant"
@@ -630,6 +631,7 @@ export default function CartPage() {
               </div>
             </div>
           ) : null}
+          <CartCheckoutShippingNote />
           {!isAuthed ? (
             <p className="mb-3 text-center text-xs text-zinc-500 dark:text-zinc-400">
               {t("emailOrPhoneBeforePayment")}

@@ -496,6 +496,10 @@
     "emailOrPhoneBeforePayment": "E-mail ou mobile demandé avant le paiement · compte client et cashback automatiques",
     "redirecting": "Redirection…",
     "validatePurchase": "Valider mon achat",
+    "checkoutShippingNote": {
+      "title": "Livraison dans {count} pays UE",
+      "body": "Chaque article part de l'entrepôt déclaré par le fournisseur. Délais et frais affichés au paiement."
+    },
     "continueShopping": "Continuer mes achats",
     "identity": {
       "beforePay": "Avant le paiement",
@@ -1020,6 +1024,7 @@
       "euShipsLabel": "Union européenne (27 pays)",
       "freeShippingFacet": "Livraison offerte",
       "facetShipsFromFrance": "France",
+      "facetShipsWorldwide": "International",
       "facetPrice": {
         "under25": "Moins de 25 €",
         "25-100": "25 – 100 €",
@@ -1048,6 +1053,7 @@
       "resultsFor": "Résultats pour",
       "dbUnavailableTitle": "Marketplace temporairement indisponible",
       "emptyListingTitle": "Aucune annonce",
+      "emptyFilteredTitle": "Aucun résultat pour ces filtres",
       "emptyFilteredBody": "Essayez une autre recherche ou un autre rayon, ou réinitialisez les filtres.",
       "emptyDefaultBody": "Les créateurs publient leurs fiches progressivement — revenez bientôt.",
       "emptyCatalogTitle": "Catalogue vide pour le moment",
@@ -1062,6 +1068,7 @@
       "activeFilterCategory": "Rayon · {name}",
       "activeFilterSubcategory": "{sub} · {parent}",
       "showAll": "Tout afficher",
+      "tryEuShipping": "Voir expédition UE",
       "viewStores": "Voir les boutiques",
       "listingCount": "{count, plural, one {# annonce} other {# annonces}}",
       "listingCountForQuery": " pour « {query} »",
@@ -1875,6 +1882,18 @@
     "return30d": "Retours 30 jours",
     "securePayment": "Paiement sécurisé",
     "deliveryTo": "Livraison à {city} : {date}",
+    "logistics": {
+      "shipsFrom": "Expédie depuis",
+      "zoneLabel": "Zone",
+      "delivery": "Délai",
+      "supplierNote": "Déclaré par le fournisseur — délais indicatifs.",
+      "zone": {
+        "local": "Local",
+        "regional": "Régional · UE",
+        "international": "International",
+        "unknown": "Voir la fiche produit"
+      }
+    },
     "aiSummary": "Résumé IA",
     "reviews": "{count} avis",
     "byStore": "par {store}",

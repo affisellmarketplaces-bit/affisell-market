@@ -496,6 +496,10 @@
     "emailOrPhoneBeforePayment": "Email or mobile required before payment · customer account and cashback are automatic",
     "redirecting": "Redirecting…",
     "validatePurchase": "Complete purchase",
+    "checkoutShippingNote": {
+      "title": "Shipping to {count} EU countries",
+      "body": "Each item ships from its supplier's warehouse zone. Delivery times and fees are shown at checkout."
+    },
     "continueShopping": "Continue shopping",
     "identity": {
       "beforePay": "Before payment",
@@ -1012,6 +1016,7 @@
       "euShipsLabel": "European Union (27 countries)",
       "freeShippingFacet": "Free shipping",
       "facetShipsFromFrance": "France",
+      "facetShipsWorldwide": "Worldwide",
       "facetPrice": {
         "under25": "Under €25",
         "25-100": "€25 – €100",
@@ -1040,6 +1045,7 @@
       "resultsFor": "Results for",
       "dbUnavailableTitle": "Marketplace temporarily unavailable",
       "emptyListingTitle": "No listings yet",
+      "emptyFilteredTitle": "No matches for these filters",
       "emptyFilteredBody": "Try another search or department, or reset your filters.",
       "emptyDefaultBody": "Creators publish listings over time — check back soon.",
       "emptyCatalogTitle": "Catalog is empty for now",
@@ -1054,6 +1060,7 @@
       "activeFilterCategory": "Department · {name}",
       "activeFilterSubcategory": "{sub} · {parent}",
       "showAll": "Show all",
+      "tryEuShipping": "Show EU shipping",
       "viewStores": "Browse stores",
       "listingCount": "{count, plural, one {# listing} other {# listings}}",
       "listingCountForQuery": " for « {query} »",
@@ -1851,6 +1858,18 @@
     "return30d": "30-day returns",
     "securePayment": "Secure payment",
     "deliveryTo": "Delivery to {city}: {date}",
+    "logistics": {
+      "shipsFrom": "Ships from",
+      "zoneLabel": "Zone",
+      "delivery": "Delivery",
+      "supplierNote": "Declared by supplier — times are estimates.",
+      "zone": {
+        "local": "Local",
+        "regional": "Regional · EU",
+        "international": "International",
+        "unknown": "See product page"
+      }
+    },
     "aiSummary": "AI Summary",
     "reviews": "{count} reviews",
     "byStore": "by {store}",

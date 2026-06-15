@@ -28,9 +28,15 @@ type Props = {
 const PRICE_KEYS = ["under25", "25-100", "over100"] as const
 const DELIVERY_KEYS = ["under3", "under7"] as const
 
-function shipsFromLabel(value: string, euShipsLabel: string, shipsFranceLabel: string): string {
+function shipsFromLabel(
+  value: string,
+  euShipsLabel: string,
+  shipsFranceLabel: string,
+  worldwideLabel: string
+): string {
   if (value === "eu") return euShipsLabel
   if (value === "fr") return shipsFranceLabel
+  if (value === "worldwide") return worldwideLabel
   return value
 }
 
@@ -106,7 +112,7 @@ export function MarketplaceFilters({
       return t(`facetPrice.${value}` as "facetPrice.under25")
     }
     if (facetKey === "shipsFrom") {
-      return shipsFromLabel(value, t("euShipsLabel"), t("facetShipsFromFrance"))
+      return shipsFromLabel(value, t("euShipsLabel"), t("facetShipsFromFrance"), t("facetShipsWorldwide"))
     }
     if (facetKey === "delivery" && (DELIVERY_KEYS as readonly string[]).includes(value)) {
       return t(`facetDelivery.${value}` as "facetDelivery.under3")

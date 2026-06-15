@@ -60,6 +60,7 @@ export const listingDetailSelect = {
       warehouseType: true,
       warehouseCity: true,
       shippingCountry: true,
+      shipsFrom: true,
       freeShippingThreshold: true,
       videoAdUrl: true,
       offerMode: true,

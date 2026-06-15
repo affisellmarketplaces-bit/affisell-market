@@ -257,6 +257,16 @@ export function MarketplaceView({
     router.push(href)
   }
 
+  function filterEuShipping() {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("shipsFrom", "eu")
+    const s = params.toString()
+    const path = `${basePath}${s ? `?${s}` : ""}`
+    router.push(basePath === "/" ? `${path}#explorer` : path)
+  }
+
+  const shipsFromFilter = searchParams.get("shipsFrom")
+
   useEffect(() => {
     if (!embedded) return
     if (!categoryId && !subcategoryId && !searchQuery.trim()) return
@@ -568,6 +578,23 @@ export function MarketplaceView({
                     <Button type="button" className="mt-6 bg-violet-600 hover:bg-violet-700" onClick={clearFilters}>
                       {t("showAll")}
                     </Button>
+                  </>
+                ) : hasFilters && attributeFilterKeys.length > 0 ? (
+                  <>
+                    <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{t("emptyFilteredTitle")}</p>
+                    <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
+                      {t("emptyFilteredBody")}
+                    </p>
+                    <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+                      <Button type="button" className="bg-violet-600 hover:bg-violet-700" onClick={clearFilters}>
+                        {t("showAll")}
+                      </Button>
+                      {shipsFromFilter && shipsFromFilter !== "eu" ? (
+                        <Button type="button" variant="outline" onClick={filterEuShipping}>
+                          {t("tryEuShipping")}
+                        </Button>
+                      ) : null}
+                    </div>
                   </>
                 ) : (
                   <>

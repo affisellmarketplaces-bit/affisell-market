@@ -85,6 +85,17 @@ export function prismaProductShipsFromEuWhere(): Prisma.ProductWhereInput {
   }
 }
 
+/** Product filter: international warehouse or explicit global/worldwide label. */
+export function prismaProductShipsWorldwideWhere(): Prisma.ProductWhereInput {
+  return {
+    OR: [
+      { warehouseType: "international" },
+      { shipsFrom: { equals: "Global", mode: "insensitive" } },
+      { shipsFrom: { contains: "world", mode: "insensitive" } },
+    ],
+  }
+}
+
 export const EU_MEMBER_COUNT = EU_MEMBER_ISO2.length
 
 export const EU_CHECKOUT_COUNTRY_COUNT = stripeCheckoutAllowedCountries().length
