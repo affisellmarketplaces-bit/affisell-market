@@ -1,7 +1,9 @@
 import Link from "next/link"
-import { getTranslations } from "next-intl/server"
+import { getLocale, getTranslations } from "next-intl/server"
 
 import { SmartFilters } from "@/components/marketplace/SmartFilters"
+import { expansionCountryLabel } from "@/lib/admin/load-admin-expansion-overview"
+import { loadGraduatedCheckoutCountryIso2 } from "@/lib/checkout-country-rollout"
 import { AFFISELL_CATEGORIES } from "@/lib/affisell-categories"
 
 export type MarketplaceFilterParams = {
@@ -43,6 +45,9 @@ function chipClass(active: boolean) {
 export async function MarketplaceFilterSidebar({ current }: { current: MarketplaceFilterParams }) {
   const c = current
   const t = await getTranslations("Filters")
+  const tBrowse = await getTranslations("marketplace.browse")
+  const locale = (await getLocale()) === "fr" ? "fr" : "en"
+  const graduatedCountries = await loadGraduatedCheckoutCountryIso2()
 
   return (
     <aside className="w-full shrink-0 space-y-6 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900 lg:w-56">
@@ -154,6 +159,31 @@ export async function MarketplaceFilterSidebar({ current }: { current: Marketpla
           </Link>
         </div>
       </div>
+
+      {graduatedCountries.length > 0 ? (
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+            {tBrowse("graduatedCountriesTitle")}
+          </p>
+          <p className="mt-0.5 text-[11px] text-zinc-500">{tBrowse("graduatedCountriesHint")}</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {graduatedCountries.map((countryIso2) => {
+              const shipsToValue = countryIso2.toLowerCase()
+              const active = c.shipsTo?.toUpperCase() === countryIso2
+              const label = expansionCountryLabel(countryIso2, locale)
+              return (
+                <Link
+                  key={countryIso2}
+                  href={href({ ...c, shipsTo: active ? undefined : shipsToValue })}
+                  className={`${chipClass(active)} focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95`}
+                >
+                  {tBrowse("graduatedCountryShipsTo", { country: label })}
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+      ) : null}
 
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{t("deliveryTitle")}</p>

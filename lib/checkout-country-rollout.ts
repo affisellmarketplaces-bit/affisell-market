@@ -8,10 +8,12 @@ const CACHE_MS = 60_000
 
 let rolloutCache: { at: number; countries: string[]; region: MarketRegion } | null = null
 let pilotRolloutCache: { at: number; countries: string[]; region: MarketRegion } | null = null
+let graduatedCache: { at: number; countries: string[]; region: MarketRegion } | null = null
 
 export function invalidateCheckoutRolloutCache(): void {
   rolloutCache = null
   pilotRolloutCache = null
+  graduatedCache = null
 }
 
 export function extractOrderShippingCountryIso2(shippingAddress: unknown): string | null {
@@ -35,6 +37,40 @@ export function mergeCheckoutAllowedCountries(
   rollout: readonly string[]
 ): string[] {
   return [...new Set([...base, ...rollout].map((c) => c.toUpperCase()))].sort()
+}
+
+/** Static region list + graduated ROW countries (permanent checkout base). */
+export function mergeEffectiveCheckoutBase(
+  staticBase: readonly string[],
+  graduated: readonly string[]
+): string[] {
+  return mergeCheckoutAllowedCountries(staticBase, graduated)
+}
+
+export async function loadGraduatedCheckoutCountryIso2(
+  region: MarketRegion = MARKET_REGION
+): Promise<string[]> {
+  const now = Date.now()
+  if (graduatedCache && graduatedCache.region === region && now - graduatedCache.at < CACHE_MS) {
+    return graduatedCache.countries
+  }
+
+  const rows = await prisma.checkoutCountryRollout.findMany({
+    where: { marketRegion: region, graduatedAt: { not: null } },
+    select: { countryIso2: true },
+    orderBy: { graduatedAt: "asc" },
+  })
+  const countries = rows.map((row) => row.countryIso2.toUpperCase())
+  graduatedCache = { at: now, countries, region }
+  return countries
+}
+
+export async function resolveEffectiveCheckoutBaseCountries(
+  region: MarketRegion = MARKET_REGION
+): Promise<string[]> {
+  const staticBase = stripeCheckoutAllowedCountriesForRegion(region)
+  const graduated = await loadGraduatedCheckoutCountryIso2(region)
+  return mergeEffectiveCheckoutBase(staticBase, graduated)
 }
 
 export async function loadRolloutCheckoutCountryIso2(
@@ -75,9 +111,9 @@ export async function loadPilotRolloutCheckoutCountryIso2(
 export async function resolveStripeCheckoutAllowedCountries(
   region: MarketRegion = MARKET_REGION
 ): Promise<string[]> {
-  const base = stripeCheckoutAllowedCountriesForRegion(region)
-  const rollout = await loadRolloutCheckoutCountryIso2(region)
-  return mergeCheckoutAllowedCountries(base, rollout)
+  const base = await resolveEffectiveCheckoutBaseCountries(region)
+  const pilot = await loadPilotRolloutCheckoutCountryIso2(region)
+  return mergeCheckoutAllowedCountries(base, pilot)
 }
 
 export async function isStripeCheckoutCountryResolved(
@@ -96,7 +132,7 @@ export async function isRolloutOnlyCheckoutCountryResolved(
 ): Promise<boolean> {
   const normalized = normalizeVisitorCountryIso2(code ?? "")
   if (!normalized) return false
-  const base = stripeCheckoutAllowedCountriesForRegion(region)
+  const base = await resolveEffectiveCheckoutBaseCountries(region)
   const rollout = await loadPilotRolloutCheckoutCountryIso2(region)
   return isRolloutOnlyCheckoutCountry(normalized, rollout, base)
 }

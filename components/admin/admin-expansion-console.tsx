@@ -112,6 +112,9 @@ export function AdminExpansionConsole({ initial, metabaseExpansionEmbedUrl }: Pr
             Funnel waitlist → notify → first order. Pilot the next country from demand, then track conversion here
             or in Metabase (`[expansion-rollout]`, `[launch-waitlist]`).
             {overview.autoPilotEnabled ? " Auto-pilot ON — next country opens after first order." : null}
+            {overview.graduatedCount > 0
+              ? ` ${overview.graduatedCount} in permanent Stripe base.`
+              : null}
             {overview.rolloutHealth.stalledCount > 0
               ? ` ${overview.rolloutHealth.stalledCount} rollout(s) stalled 7d+ without order.`
               : null}

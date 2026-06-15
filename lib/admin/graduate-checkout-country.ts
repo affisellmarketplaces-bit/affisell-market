@@ -44,6 +44,7 @@ export async function graduateCheckoutCountryRollout(
     country: countryIso2,
     marketRegion: MARKET_REGION,
     result: "graduated",
+    checkoutBase: "permanent",
     firstOrderId: rollout.firstOrderId,
   })
 

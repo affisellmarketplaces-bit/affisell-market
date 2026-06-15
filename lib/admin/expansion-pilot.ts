@@ -5,6 +5,7 @@ import {
 import { expansionCountryLabel } from "@/lib/admin/load-admin-expansion-overview"
 import { logBusiness } from "@/lib/business-log"
 import { stripeCheckoutAllowedCountriesForRegion } from "@/lib/eu-market-countries"
+import { loadGraduatedCheckoutCountryIso2 } from "@/lib/checkout-country-rollout"
 import { findNextPilotCountry } from "@/lib/expansion/find-next-pilot-country"
 import { MARKET_REGION } from "@/lib/market-config"
 import { prisma } from "@/lib/prisma"
@@ -49,10 +50,12 @@ export async function runExpansionPilot(
       where: { marketRegion: MARKET_REGION, enabled: true },
       select: { countryIso2: true },
     })
+    const graduated = await loadGraduatedCheckoutCountryIso2(MARKET_REGION)
     const enabledSet = new Set(rollouts.map((row) => row.countryIso2.toUpperCase()))
-    const baseSet = new Set(
-      stripeCheckoutAllowedCountriesForRegion(MARKET_REGION).map((code) => code.toUpperCase())
-    )
+    const baseSet = new Set([
+      ...stripeCheckoutAllowedCountriesForRegion(MARKET_REGION).map((code) => code.toUpperCase()),
+      ...graduated,
+    ])
 
     const waitlistDemand = top.map((row) => ({
       countryIso2: row.countryIso2,

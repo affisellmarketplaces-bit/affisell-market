@@ -10,6 +10,7 @@ import { isExpansionAutoPilotEnabled } from "@/lib/cron/expansion-auto-pilot"
 import type { MarketRegion } from "@/lib/market-config"
 import { MARKET_REGION } from "@/lib/market-config"
 import { stripeCheckoutAllowedCountriesForRegion } from "@/lib/eu-market-countries"
+import { loadGraduatedCheckoutCountryIso2 } from "@/lib/checkout-country-rollout"
 import { findNextPilotCountry } from "@/lib/expansion/find-next-pilot-country"
 import { prisma } from "@/lib/prisma"
 import { visitorCountryDisplayName } from "@/lib/visitor-country"
@@ -115,9 +116,11 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
   const enabledSet = new Set(
     rollouts.filter((row) => row.enabled).map((row) => row.countryIso2.toUpperCase())
   )
-  const baseSet = new Set(
-    stripeCheckoutAllowedCountriesForRegion(marketRegion).map((code) => code.toUpperCase())
-  )
+  const graduated = await loadGraduatedCheckoutCountryIso2(marketRegion)
+  const baseSet = new Set([
+    ...stripeCheckoutAllowedCountriesForRegion(marketRegion).map((code) => code.toUpperCase()),
+    ...graduated,
+  ])
   const waitlistDemand = waitlistGroups.map((group) => ({
     countryIso2: group.countryIso2,
     waitlistCount: group._count._all,

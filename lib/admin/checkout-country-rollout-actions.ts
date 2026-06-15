@@ -1,6 +1,7 @@
 import { expansionCountryLabel } from "@/lib/admin/load-admin-expansion-overview"
 import {
   invalidateCheckoutRolloutCache,
+  loadGraduatedCheckoutCountryIso2,
 } from "@/lib/checkout-country-rollout"
 import { stripeCheckoutAllowedCountriesForRegion } from "@/lib/eu-market-countries"
 import { logBusiness } from "@/lib/business-log"
@@ -22,7 +23,10 @@ export async function enableCheckoutCountryRollout(
   if (!countryIso2) return { ok: false, error: "invalid_country" }
 
   const baseCountries = new Set(
-    stripeCheckoutAllowedCountriesForRegion(MARKET_REGION).map((code) => code.toUpperCase())
+    [
+      ...stripeCheckoutAllowedCountriesForRegion(MARKET_REGION).map((code) => code.toUpperCase()),
+      ...(await loadGraduatedCheckoutCountryIso2(MARKET_REGION)),
+    ]
   )
   const existing = await prisma.checkoutCountryRollout.findUnique({
     where: {

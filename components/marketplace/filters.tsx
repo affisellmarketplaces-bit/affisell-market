@@ -10,6 +10,7 @@ import {
   PUBLIC_MARKETPLACE_BROWSE_PATH,
 } from "@/lib/affiliate-routes"
 import { DISCOVERY_FACET_KEYS, MARKETPLACE_OFFER_FACET_KEY } from "@/lib/marketplace-discovery-facets-shared"
+import { GraduatedCountriesFilterSection } from "@/components/marketplace/graduated-countries-filter-section"
 import { offerModeBadge, parseOfferFacetValue } from "@/lib/product-offer-mode"
 import type { AppLocale } from "@/lib/i18n-locale"
 import type { MarketplaceFacet } from "@/lib/marketplace-facet-types"
@@ -217,6 +218,11 @@ export function MarketplaceFilters({
           </div>
         ))
       )}
+
+      <GraduatedCountriesFilterSection
+        inSheet={inSheet}
+        onToggleShipsTo={(value) => toggleValue("shipsTo", value)}
+      />
     </aside>
   )
 }
