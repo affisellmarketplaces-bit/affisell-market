@@ -1,4 +1,5 @@
 import { computeLaunchDeliveryRatePct } from "@/lib/expansion/compute-country-delivery-rate"
+import { isDeliveryPauseReason } from "@/lib/expansion/expansion-complaint-clear-window"
 
 export const EXPANSION_AUTO_RESUME_DELIVERY_THRESHOLD_PCT = 80
 
@@ -31,4 +32,21 @@ export function shouldAutoResumeLaunchFollowupOnDelivery(args: {
       notifiedCount: args.followupSentCount,
     }) >= thresholdPct
   )
+}
+
+/** Cross-signal: resume launch notify paused on delivery when J+2 follow-up delivery recovers ≥80%. */
+export function shouldAutoResumeLaunchNotifyOnFollowupDelivery(args: {
+  followupDeliveredThisMonth: number
+  followupSentCount: number
+  pausedReason: string | null | undefined
+  thresholdPct?: number
+  minSent?: number
+}): boolean {
+  if (!isDeliveryPauseReason(args.pausedReason)) return false
+  return shouldAutoResumeLaunchFollowupOnDelivery({
+    followupDeliveredThisMonth: args.followupDeliveredThisMonth,
+    followupSentCount: args.followupSentCount,
+    thresholdPct: args.thresholdPct,
+    minSent: args.minSent,
+  })
 }

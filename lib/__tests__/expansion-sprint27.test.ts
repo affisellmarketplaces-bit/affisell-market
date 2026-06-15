@@ -9,10 +9,11 @@ describe("buildExpansionComplaintCsv", () => {
       {
         countryIso2: "jp",
         emailKind: "checkout-launch-followup",
+        buyerEmailHash: null,
         complainedAt: new Date("2026-06-10T12:00:00.000Z"),
       },
     ])
-    expect(csv.startsWith("\uFEFFcountryIso2;emailKind")).toBe(true)
+    expect(csv.startsWith("\uFEFFcountryIso2;emailKind;buyerEmailHash")).toBe(true)
     expect(csv).toContain("jp;checkout-launch-followup")
   })
 })

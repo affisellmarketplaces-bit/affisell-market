@@ -8,6 +8,10 @@ export function isComplaintPauseReason(reason: string | null | undefined): boole
   return typeof reason === "string" && reason.startsWith("complaint_")
 }
 
+export function isDeliveryPauseReason(reason: string | null | undefined): boolean {
+  return typeof reason === "string" && reason.startsWith("delivery_rate_")
+}
+
 export function isFollowupComplaintPauseReason(reason: string | null | undefined): boolean {
   return typeof reason === "string" && reason.startsWith("followup_complaint_")
 }

@@ -8,6 +8,7 @@ import { runExpansionAutoPauseNotifyCron } from "@/lib/cron/expansion-auto-pause
 import { runExpansionAutoResumeFollowupCron } from "@/lib/cron/expansion-auto-resume-followup"
 import { runExpansionAutoResumeNotifyCron } from "@/lib/cron/expansion-auto-resume-notify"
 import { runExpansionDeliveryRateAlert } from "@/lib/cron/expansion-delivery-rate-alert"
+import { runExpansionFollowupDeliveryRateAlert } from "@/lib/cron/expansion-followup-delivery-rate-alert"
 import { runExpansionGraduatedComplaintAlert } from "@/lib/cron/expansion-graduated-complaint-alert"
 import { runExpansionComplaintAlert } from "@/lib/cron/expansion-complaint-alert"
 import { runExpansionBounceRateAlert } from "@/lib/cron/expansion-bounce-rate-alert"
@@ -45,6 +46,7 @@ export async function GET(req: NextRequest) {
   const autoPilot = await runExpansionAutoPilotAfterFirstOrders(metrics.newFirstOrderCountries)
   const bounceRateAlert = await runExpansionBounceRateAlert()
   const deliveryRateAlert = await runExpansionDeliveryRateAlert()
+  const followupDeliveryRateAlert = await runExpansionFollowupDeliveryRateAlert()
   const complaintAlert = await runExpansionComplaintAlert()
   const graduatedComplaintAlert = await runExpansionGraduatedComplaintAlert()
   const autoPauseNotify = await runExpansionAutoPauseNotifyCron()
@@ -63,6 +65,7 @@ export async function GET(req: NextRequest) {
     autoPilot,
     bounceRateAlert,
     deliveryRateAlert,
+    followupDeliveryRateAlert,
     complaintAlert,
     graduatedComplaintAlert,
     autoPauseNotify,
