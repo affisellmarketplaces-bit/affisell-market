@@ -44,3 +44,29 @@ export function expansionBouncesExportPath(
     ? `/api/admin/expansion/bounces-export?${query}`
     : "/api/admin/expansion/bounces-export"
 }
+
+export function expansionComplaintsExportPath(
+  countryIso2?: string,
+  emailKind?: ExpansionEmailExportKind
+): string {
+  const params = new URLSearchParams()
+  if (countryIso2) params.set("countryIso2", countryIso2.toLowerCase())
+  if (emailKind) params.set("emailKind", emailKind)
+  const query = params.toString()
+  return query
+    ? `/api/admin/expansion/complaints-export?${query}`
+    : "/api/admin/expansion/complaints-export"
+}
+
+export function expansionDeliveredExportPath(
+  countryIso2?: string,
+  emailKind?: ExpansionEmailExportKind
+): string {
+  const params = new URLSearchParams()
+  if (countryIso2) params.set("countryIso2", countryIso2.toLowerCase())
+  if (emailKind) params.set("emailKind", emailKind)
+  const query = params.toString()
+  return query
+    ? `/api/admin/expansion/delivered-export?${query}`
+    : "/api/admin/expansion/delivered-export"
+}

@@ -4,7 +4,7 @@ import { Resend } from "resend"
 import { ExpansionDigestEmail } from "@/emails/expansion-digest"
 import { expansionCountryLabel, loadAdminExpansionOverview } from "@/lib/admin/load-admin-expansion-overview"
 import { resolveExpansionAdminEmail } from "@/lib/admin/resolve-expansion-admin-email"
-import { expansionBouncesExportPath, expansionEmailExportsBundlePath } from "@/lib/admin/expansion-email-export-kinds"
+import { expansionBouncesExportPath, expansionComplaintsExportPath, expansionEmailExportsBundlePath } from "@/lib/admin/expansion-email-export-kinds"
 import {
   graduationBounceDigestBadge,
   shouldShowGraduationHighBounceDigestRow,
@@ -17,6 +17,10 @@ import {
   followupDeliveryDigestBadge,
   shouldShowFollowupLowDeliveryDigestRow,
 } from "@/lib/expansion/expansion-digest-followup-delivery-badge"
+import {
+  launchDeliveryDigestBadge,
+  shouldShowLaunchLowDeliveryDigestRow,
+} from "@/lib/expansion/expansion-digest-launch-delivery-badge"
 import { buildGraduatedThisMonthDigestLines } from "@/lib/expansion/expansion-digest-graduated-month"
 import {
   graduationDeliveryDigestBadge,
@@ -64,6 +68,12 @@ function buildDigestBody(
       row.launchComplaintsThisMonth > 0 ||
       row.launchGraduatedComplaintsThisMonth > 0
   )
+  const complaintExportCountries = overview.countries.filter(
+    (row) =>
+      row.launchComplaintsThisMonth > 0 ||
+      row.launchGraduatedComplaintsThisMonth > 0 ||
+      row.launchFollowupComplaintsThisMonth > 0
+  )
   const lines = [
     `Region: ${MARKET_REGION.toUpperCase()}`,
     `Live checkout countries: ${overview.liveCheckoutCount}`,
@@ -89,6 +99,21 @@ function buildDigestBody(
             (row) =>
               `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${adminUrl}${expansionEmailExportsBundlePath(row.countryIso2)}`
           ),
+        ]
+      : []),
+    `Metabase complaints export (all kinds): ${adminUrl}${expansionComplaintsExportPath()}`,
+    ...(complaintExportCountries.length > 0
+      ? [
+          "Metabase complaints export by country:",
+          ...complaintExportCountries.slice(0, 5).map((row) => {
+            const emailKind =
+              row.launchGraduatedComplaintsThisMonth > 0
+                ? "checkout-graduated"
+                : row.launchFollowupComplaintsThisMonth > 0
+                  ? "checkout-launch-followup"
+                  : "checkout-launch"
+            return `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${adminUrl}${expansionComplaintsExportPath(row.countryIso2, emailKind)}`
+          }),
         ]
       : []),
     `Launch emails pending retry: ${overview.emailBounces.launchRetriesPending}`,
@@ -121,7 +146,7 @@ function buildDigestBody(
           .slice(0, 5)
           .map(
             (row) =>
-              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchComplaintsThisMonth} complaint(s) (${row.launchComplaintRatePct}% of notified)`
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchComplaintsThisMonth} complaint(s) (${row.launchComplaintRatePct}% of notified) — ${adminUrl}${expansionComplaintsExportPath(row.countryIso2, "checkout-launch")}`
           )
       : ["• none"]),
     "",
@@ -136,7 +161,7 @@ function buildDigestBody(
           .slice(0, 8)
           .map(
             (row) =>
-              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchGraduatedComplaintsThisMonth} graduation complaint(s) (${row.launchGraduatedComplaintRatePct}% of sent)${row.graduationEmailPaused ? " · AUTO-PAUSED" : ""}`
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchGraduatedComplaintsThisMonth} graduation complaint(s) (${row.launchGraduatedComplaintRatePct}% of sent)${row.graduationEmailPaused ? " · AUTO-PAUSED" : ""} — ${adminUrl}${expansionComplaintsExportPath(row.countryIso2, "checkout-graduated")}`
           )
       : ["• none"]),
     "",
@@ -200,7 +225,7 @@ function buildDigestBody(
           .slice(0, 8)
           .map(
             (row) =>
-              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchFollowupComplaintsThisMonth} follow-up complaint(s) · ${row.launchFollowupDeliveryRatePct}% J+2 delivered (auto-resume after 30d clear or ≥80%)`
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchFollowupComplaintsThisMonth} follow-up complaint(s) · ${row.launchFollowupDeliveryRatePct}% J+2 delivered (auto-resume after 30d clear or ≥80%)${row.launchFollowupComplaintsThisMonth > 0 ? ` — ${adminUrl}${expansionComplaintsExportPath(row.countryIso2, "checkout-launch-followup")}` : ""}`
           )
       : ["• none"]),
     "",
@@ -258,15 +283,23 @@ function buildDigestBody(
       : ["• none"]),
     "",
     "Low delivery rate (<80%):",
-    ...(overview.countries.filter(
-      (row) => row.funnel.notifiedCount >= 10 && row.launchDeliveryRatePct < 80
+    ...(overview.countries.filter((row) =>
+      shouldShowLaunchLowDeliveryDigestRow({
+        notifiedCount: row.funnel.notifiedCount,
+        launchDeliveryRatePct: row.launchDeliveryRatePct,
+      })
     ).length > 0
       ? overview.countries
-          .filter((row) => row.funnel.notifiedCount >= 10 && row.launchDeliveryRatePct < 80)
+          .filter((row) =>
+            shouldShowLaunchLowDeliveryDigestRow({
+              notifiedCount: row.funnel.notifiedCount,
+              launchDeliveryRatePct: row.launchDeliveryRatePct,
+            })
+          )
           .slice(0, 5)
           .map(
             (row) =>
-              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchDeliveryRatePct}% (${row.launchEmailsDeliveredThisMonth} delivered)`
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchDeliveryRatePct}% (${row.launchEmailsDeliveredThisMonth} delivered)${launchDeliveryDigestBadge(row.launchDeliveryRatePct)}`
           )
       : ["• none"]),
     "",

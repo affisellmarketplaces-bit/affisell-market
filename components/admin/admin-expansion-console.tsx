@@ -83,6 +83,14 @@ export function AdminExpansionConsole({
     return expansionEmailExportsBundlePath(countryIso2, kind)
   }
 
+  function countryHasDeliveredExportActivity(row: AdminExpansionOverview["countries"][number]): boolean {
+    return (
+      row.launchEmailsDeliveredThisMonth > 0 ||
+      row.launchGraduatedDeliveredThisMonth > 0 ||
+      row.launchFollowupDeliveredThisMonth > 0
+    )
+  }
+
   function countryHasComplaintExportActivity(row: AdminExpansionOverview["countries"][number]): boolean {
     return (
       row.launchComplaintsThisMonth > 0 ||
@@ -955,6 +963,14 @@ export function AdminExpansionConsole({
                       <a href={buildComplaintsExportUrl(row.countryIso2)}>
                         <Download className="mr-1.5 size-3.5" aria-hidden />
                         Export complaints
+                      </a>
+                    </Button>
+                  ) : null}
+                  {countryHasDeliveredExportActivity(row) ? (
+                    <Button type="button" size="sm" variant="outline" asChild>
+                      <a href={buildDeliveredExportUrl(row.countryIso2)}>
+                        <Download className="mr-1.5 size-3.5" aria-hidden />
+                        Export delivered
                       </a>
                     </Button>
                   ) : null}
