@@ -79,7 +79,17 @@ export function AdminExpansionConsole({
   }
 
   function buildEmailExportsBundleUrl(countryIso2?: string) {
-    return expansionEmailExportsBundlePath(countryIso2)
+    const kind = exportEmailKind !== "all" ? exportEmailKind : undefined
+    return expansionEmailExportsBundlePath(countryIso2, kind)
+  }
+
+  function countryHasBounceExportActivity(row: AdminExpansionOverview["countries"][number]): boolean {
+    return (
+      row.launchBounceRetriesPending > 0 ||
+      row.launchBounceSuppressed > 0 ||
+      row.launchGraduatedBouncesThisMonth > 0 ||
+      row.launchFollowupBouncesThisMonth > 0
+    )
   }
 
   function countryHasEmailExportActivity(row: AdminExpansionOverview["countries"][number]): boolean {
@@ -719,6 +729,12 @@ export function AdminExpansionConsole({
                         grad. {row.launchGraduatedBounceRatePct}% bounce
                       </Badge>
                     ) : null}
+                    {row.launchFollowupSentThisMonth >= 10 &&
+                    row.launchFollowupBounceRatePct > EXPANSION_BOUNCE_RATE_ALERT_THRESHOLD_PCT ? (
+                      <Badge variant="outline" className="border-sky-500 text-sky-700 dark:text-sky-400">
+                        J+2 {row.launchFollowupBounceRatePct}% bounce
+                      </Badge>
+                    ) : null}
                     {row.launchGraduatedSentThisMonth >= 10 &&
                     row.launchGraduatedDeliveryRatePct > 0 &&
                     row.launchGraduatedDeliveryRatePct < EXPANSION_LOW_DELIVERY_RATE_THRESHOLD_PCT ? (
@@ -801,6 +817,9 @@ export function AdminExpansionConsole({
                       : ""}
                     {row.launchGraduatedBouncesThisMonth > 0
                       ? ` · grad. bounce ${row.launchGraduatedBounceRatePct}%`
+                      : ""}
+                    {row.launchFollowupBouncesThisMonth > 0
+                      ? ` · J+2 bounce ${row.launchFollowupBounceRatePct}%`
                       : ""}
                   </p>
                 </div>
@@ -912,6 +931,14 @@ export function AdminExpansionConsole({
                       >
                         <Download className="mr-1.5 size-3.5" aria-hidden />
                         Export events
+                      </a>
+                    </Button>
+                  ) : null}
+                  {countryHasBounceExportActivity(row) ? (
+                    <Button type="button" size="sm" variant="outline" asChild>
+                      <a href={buildBouncesExportUrl(row.countryIso2)}>
+                        <Download className="mr-1.5 size-3.5" aria-hidden />
+                        Export bounces
                       </a>
                     </Button>
                   ) : null}

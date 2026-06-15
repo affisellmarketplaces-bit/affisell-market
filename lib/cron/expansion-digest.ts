@@ -9,6 +9,10 @@ import {
   graduationBounceDigestBadge,
   shouldShowGraduationHighBounceDigestRow,
 } from "@/lib/expansion/expansion-digest-graduation-bounce-badge"
+import {
+  followupBounceDigestBadge,
+  shouldShowFollowupHighBounceDigestRow,
+} from "@/lib/expansion/expansion-digest-followup-bounce-badge"
 import { buildGraduatedThisMonthDigestLines } from "@/lib/expansion/expansion-digest-graduated-month"
 import {
   graduationDeliveryDigestBadge,
@@ -206,6 +210,27 @@ function buildDigestBody(
           .map(
             (row) =>
               `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchFollowupDeliveryRatePct}% (${row.launchFollowupDeliveredThisMonth} J+2 delivered)`
+          )
+      : ["• none"]),
+    "",
+    "High J+2 follow-up email bounce rate (>5%):",
+    ...(overview.countries.filter((row) =>
+      shouldShowFollowupHighBounceDigestRow({
+        launchFollowupSentThisMonth: row.launchFollowupSentThisMonth,
+        launchFollowupBouncesThisMonth: row.launchFollowupBouncesThisMonth,
+      })
+    ).length > 0
+      ? overview.countries
+          .filter((row) =>
+            shouldShowFollowupHighBounceDigestRow({
+              launchFollowupSentThisMonth: row.launchFollowupSentThisMonth,
+              launchFollowupBouncesThisMonth: row.launchFollowupBouncesThisMonth,
+            })
+          )
+          .slice(0, 5)
+          .map(
+            (row) =>
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchFollowupBounceRatePct}% (${row.launchFollowupBouncesThisMonth} bounce(s) / ${row.launchFollowupSentThisMonth} sent)${followupBounceDigestBadge(row.launchFollowupBounceRatePct)} — ${adminUrl}${expansionBouncesExportPath(row.countryIso2, "checkout-launch-followup")}`
           )
       : ["• none"]),
     "",

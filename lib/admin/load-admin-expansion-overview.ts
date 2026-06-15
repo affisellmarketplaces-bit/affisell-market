@@ -27,6 +27,7 @@ import { loadLastExpansionOrderIdsByCountry } from "@/lib/admin/load-last-expans
 import { loadPausedGraduationEmailCountries } from "@/lib/expansion/graduation-email-pause"
 import { loadExpansionGraduatedEmailStatsByCountry } from "@/lib/expansion/load-expansion-graduated-email-stats-by-country"
 import { loadExpansionFollowupComplaintsByCountry } from "@/lib/expansion/load-expansion-followup-complaint-stats"
+import { loadExpansionFollowupEmailStatsByCountry } from "@/lib/expansion/load-expansion-followup-email-stats-by-country"
 import { loadExpansionFollowupDeliveryStatsByCountry } from "@/lib/expansion/load-expansion-followup-delivery-stats"
 import { loadPausedLaunchFollowupCountries } from "@/lib/expansion/launch-followup-pause"
 import { loadPausedLaunchNotifyCountries } from "@/lib/expansion/launch-notify-pause"
@@ -46,7 +47,7 @@ export { expansionCountryLabel }
 export async function loadAdminExpansionOverview(): Promise<AdminExpansionOverview> {
   const marketRegion = MARKET_REGION
 
-  const [waitlistGroups, rollouts, totalWaitlist, liveCheckoutCountries, funnel, rolloutHealth, emailBounces, countryBounceStats, countryDeliveryStats, countryComplaintStats, graduatedComplaintStats, followupComplaintStats, followupDeliveryStats, graduatedEmailStats, emailKindStats, emailEventCounts, pausedNotifyCountries, pausedFollowupCountries, pausedGraduationCountries] =
+  const [waitlistGroups, rollouts, totalWaitlist, liveCheckoutCountries, funnel, rolloutHealth, emailBounces, countryBounceStats, countryDeliveryStats, countryComplaintStats, graduatedComplaintStats, followupComplaintStats, followupDeliveryStats, followupEmailStats, graduatedEmailStats, emailKindStats, emailEventCounts, pausedNotifyCountries, pausedFollowupCountries, pausedGraduationCountries] =
     await Promise.all([
     prisma.checkoutLaunchWaitlist.groupBy({
       by: ["countryIso2"],
@@ -68,6 +69,7 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
     loadExpansionGraduatedComplaintsByCountry(),
     loadExpansionFollowupComplaintsByCountry(),
     loadExpansionFollowupDeliveryStatsByCountry(),
+    loadExpansionFollowupEmailStatsByCountry(),
     loadExpansionGraduatedEmailStatsByCountry(),
     loadExpansionEmailKindStats(),
     loadExpansionEmailEventCounts(),
@@ -122,6 +124,9 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
         launchFollowupComplaintsThisMonth: 0,
         launchFollowupDeliveredThisMonth: 0,
         launchFollowupDeliveryRatePct: 0,
+        launchFollowupBouncesThisMonth: 0,
+        launchFollowupBounceRatePct: 0,
+        launchFollowupSentThisMonth: 0,
         launchGraduatedDeliveredThisMonth: 0,
         launchGraduatedDeliveryRatePct: 0,
         launchGraduatedBouncesThisMonth: 0,
@@ -190,6 +195,15 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
         deliveredThisMonth:
           followupDeliveryStats.get(row.countryIso2)?.followupDeliveredThisMonth ?? 0,
         notifiedCount: funnel.followUpCount,
+      }),
+      launchFollowupBouncesThisMonth:
+        followupEmailStats.get(row.countryIso2.toLowerCase())?.bouncesThisMonth ?? 0,
+      launchFollowupSentThisMonth:
+        followupEmailStats.get(row.countryIso2.toLowerCase())?.sentCount ?? 0,
+      launchFollowupBounceRatePct: computeGraduatedBounceRatePct({
+        bouncesThisMonth:
+          followupEmailStats.get(row.countryIso2.toLowerCase())?.bouncesThisMonth ?? 0,
+        sentCount: followupEmailStats.get(row.countryIso2.toLowerCase())?.sentCount ?? 0,
       }),
       launchGraduatedDeliveredThisMonth:
         graduatedEmailStats.get(row.countryIso2.toLowerCase())?.deliveredThisMonth ?? 0,
