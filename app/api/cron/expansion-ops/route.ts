@@ -4,6 +4,7 @@ import { authorizeCronRequest } from "@/lib/cron/authorize-cron-request"
 import { runCheckoutLaunchFollowupCron } from "@/lib/cron/checkout-launch-followup"
 import { runCheckoutLaunchNotifyCron } from "@/lib/cron/checkout-launch-notify"
 import { runExpansionBounceRateAlert } from "@/lib/cron/expansion-bounce-rate-alert"
+import { runSuppressedWaitlistPurgeCron } from "@/lib/cron/expansion-suppressed-waitlist-purge"
 import { runExpansionAutoPilotAfterFirstOrders } from "@/lib/cron/expansion-auto-pilot"
 import { runExpansionDigestCron } from "@/lib/cron/expansion-digest"
 import { runGraduationEmailRetryCron } from "@/lib/cron/expansion-graduation-email-retry"
@@ -36,6 +37,7 @@ export async function GET(req: NextRequest) {
 
   const autoPilot = await runExpansionAutoPilotAfterFirstOrders(metrics.newFirstOrderCountries)
   const bounceRateAlert = await runExpansionBounceRateAlert()
+  const suppressedPurge = await runSuppressedWaitlistPurgeCron()
   const graduationEmailStall = await runGraduationEmailStallAlert()
   const graduationEmailRetry = await runGraduationEmailRetryCron()
 
@@ -46,6 +48,7 @@ export async function GET(req: NextRequest) {
     metrics,
     autoPilot,
     bounceRateAlert,
+    suppressedPurge,
     graduationEmailStall,
     graduationEmailRetry,
   })

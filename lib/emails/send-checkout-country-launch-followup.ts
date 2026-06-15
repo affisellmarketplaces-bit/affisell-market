@@ -2,7 +2,7 @@ import { render } from "@react-email/render"
 import { Resend } from "resend"
 
 import { CheckoutCountryLaunchFollowupEmail } from "@/emails/checkout-country-launch-followup"
-import { EXPANSION_CHECKOUT_LAUNCH_FOLLOWUP_TAG } from "@/lib/expansion/expansion-email-tags"
+import { expansionLaunchFollowupResendTags } from "@/lib/expansion/expansion-email-tags"
 import { resolveGraduatedBuyerShopUrl } from "@/lib/expansion/graduated-buyer-shop-url"
 import {
   readResendDeliveryConfig,
@@ -43,7 +43,7 @@ export async function sendCheckoutCountryLaunchFollowupEmail(args: {
     to,
     subject,
     html,
-    tags: [EXPANSION_CHECKOUT_LAUNCH_FOLLOWUP_TAG],
+    tags: expansionLaunchFollowupResendTags(args.countryIso2),
   })
 
   if (error) {

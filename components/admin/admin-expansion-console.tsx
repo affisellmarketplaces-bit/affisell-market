@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { BarChart3, Bell, Download, Globe2, GraduationCap, Mail, RefreshCw, Rocket, Zap } from "lucide-react"
+import { BarChart3, Bell, Download, Eye, Globe2, GraduationCap, Mail, RefreshCw, Rocket, Zap } from "lucide-react"
 import { toast } from "sonner"
 
 import type { AdminExpansionOverview } from "@/lib/admin/admin-expansion-types"
@@ -176,6 +176,9 @@ export function AdminExpansionConsole({
               : null}
             {overview.emailBounces.launchSuppressedTotal > 0
               ? ` ${overview.emailBounces.launchSuppressedTotal} launch email(s) permanently suppressed after 2nd bounce.`
+              : null}
+            {overview.emailBounces.suppressedStalePendingPurge > 0
+              ? ` ${overview.emailBounces.suppressedStalePendingPurge} suppressed row(s) eligible for 90d auto-purge.`
               : null}
           </p>
         </div>
@@ -354,9 +357,24 @@ export function AdminExpansionConsole({
                     {row.funnel.followUpCount} · orders {row.funnel.paidOrdersSinceOpen} (
                     {row.funnel.orderRatePct}% of notified)
                     {row.launchBounceRatePct > 0 ? ` · bounce ${row.launchBounceRatePct}%` : ""}
+                    {row.launchEmailsDeliveredThisMonth > 0
+                      ? ` · delivered ${row.launchEmailsDeliveredThisMonth} (${row.launchDeliveryRatePct}%)`
+                      : ""}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
+                  {row.enabled ? (
+                    <Button type="button" size="sm" variant="outline" asChild>
+                      <a
+                        href={`/api/admin/expansion/launch-email-preview?countryIso2=${encodeURIComponent(row.countryIso2)}&locale=en`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <Eye className="mr-1.5 size-3.5" aria-hidden />
+                        Preview launch email
+                      </a>
+                    </Button>
+                  ) : null}
                   {!row.enabled ? (
                     <Button type="button" size="sm" onClick={() => void enableCountry(row.countryIso2)}>
                       <Rocket className="mr-1.5 size-3.5" aria-hidden />

@@ -1,13 +1,11 @@
-import { render } from "@react-email/render"
 import { Resend } from "resend"
 
-import { CheckoutCountryLaunchEmail } from "@/emails/checkout-country-launch"
-import { EXPANSION_CHECKOUT_LAUNCH_TAG } from "@/lib/expansion/expansion-email-tags"
-import { resolveGraduatedBuyerShopUrl } from "@/lib/expansion/graduated-buyer-shop-url"
 import {
   readResendDeliveryConfig,
   resolveResendDeliveryRecipient,
 } from "@/lib/emails/resend-delivery"
+import { renderCheckoutCountryLaunchEmailHtml } from "@/lib/emails/render-checkout-country-launch-email"
+import { expansionLaunchResendTags } from "@/lib/expansion/expansion-email-tags"
 
 export async function sendCheckoutCountryLaunchEmail(args: {
   email: string
@@ -23,15 +21,10 @@ export async function sendCheckoutCountryLaunchEmail(args: {
   const locale = args.locale === "en" ? "en" : "fr"
   const resend = new Resend(config.apiKey)
   const { to } = resolveResendDeliveryRecipient("checkout-country-launch", args.email, config)
-  const shopUrl = resolveGraduatedBuyerShopUrl(args.countryIso2)
-
-  const html = await render(
-    CheckoutCountryLaunchEmail({
-      countryName: args.countryName,
-      shopUrl,
-      locale,
-    })
-  )
+  const html = await renderCheckoutCountryLaunchEmailHtml({
+    countryIso2: args.countryIso2,
+    locale,
+  })
 
   const subject =
     locale === "en"
@@ -43,7 +36,7 @@ export async function sendCheckoutCountryLaunchEmail(args: {
     to,
     subject,
     html,
-    tags: [EXPANSION_CHECKOUT_LAUNCH_TAG],
+    tags: expansionLaunchResendTags(args.countryIso2),
   })
 
   if (error) {

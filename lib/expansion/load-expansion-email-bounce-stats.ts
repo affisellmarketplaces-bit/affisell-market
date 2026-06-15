@@ -1,4 +1,5 @@
 import { MARKET_REGION } from "@/lib/market-config"
+import { suppressedWaitlistPurgeCutoff } from "@/lib/expansion/suppressed-waitlist-purge"
 import { prisma } from "@/lib/prisma"
 
 export type ExpansionEmailBounceStats = {
@@ -6,6 +7,7 @@ export type ExpansionEmailBounceStats = {
   complaintsThisMonth: number
   launchRetriesPending: number
   launchSuppressedTotal: number
+  suppressedStalePendingPurge: number
 }
 
 function monthStartUtc(now = new Date()): Date {
@@ -18,7 +20,7 @@ function monthStartUtc(now = new Date()): Date {
 export async function loadExpansionEmailBounceStats(now = new Date()): Promise<ExpansionEmailBounceStats> {
   const monthStart = monthStartUtc(now)
 
-  const [bouncesThisMonth, complaintsThisMonth, launchRetriesPending, launchSuppressedTotal] =
+  const [bouncesThisMonth, complaintsThisMonth, launchRetriesPending, launchSuppressedTotal, suppressedStalePendingPurge] =
     await Promise.all([
     prisma.processedWebhook.count({
       where: { status: "expansion_bounce", createdAt: { gte: monthStart } },
@@ -40,7 +42,19 @@ export async function loadExpansionEmailBounceStats(now = new Date()): Promise<E
         launchEmailSuppressedAt: { not: null },
       },
     }),
+    prisma.checkoutLaunchWaitlist.count({
+      where: {
+        marketRegion: MARKET_REGION,
+        launchEmailSuppressedAt: { lt: suppressedWaitlistPurgeCutoff(now) },
+      },
+    }),
   ])
 
-  return { bouncesThisMonth, complaintsThisMonth, launchRetriesPending, launchSuppressedTotal }
+  return {
+    bouncesThisMonth,
+    complaintsThisMonth,
+    launchRetriesPending,
+    launchSuppressedTotal,
+    suppressedStalePendingPurge,
+  }
 }

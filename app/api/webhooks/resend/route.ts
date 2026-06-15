@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { Webhook } from "svix"
 
+import { processExpansionResendDeliveredEvent } from "@/lib/resend-webhook/expansion-email-delivered"
 import { processExpansionResendDeliveryEvent } from "@/lib/resend-webhook/expansion-email-delivery"
+import type { ResendWebhookEmailData } from "@/lib/resend-webhook/expansion-email-delivery"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -42,20 +44,39 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ received: true, duplicate: true })
   }
 
-  const expansionResult = await processExpansionResendDeliveryEvent(
-    {
-      type: event.type,
-      created_at: event.created_at,
-      data: event.data as Parameters<typeof processExpansionResendDeliveryEvent>[0]["data"],
-    },
-    svixId
-  )
+  const emailData = event.data as ResendWebhookEmailData
+  const emailId = typeof event.data.email_id === "string" ? event.data.email_id : svixId
+
+  const [expansionResult, deliveredResult] = await Promise.all([
+    processExpansionResendDeliveryEvent(
+      {
+        type: event.type,
+        created_at: event.created_at,
+        data: emailData,
+      },
+      svixId
+    ),
+    processExpansionResendDeliveredEvent(
+      {
+        type: event.type,
+        data: emailData,
+      },
+      emailId
+    ),
+  ])
 
   await prisma.processedWebhook.create({
     data: {
       id,
-      status: expansionResult.webhookStatus ?? "success",
-      error: expansionResult.handled ? (event.data as { to?: string[] }).to?.[0] ?? null : null,
+      status:
+        expansionResult.webhookStatus ??
+        deliveredResult.webhookStatus ??
+        "success",
+      error: expansionResult.handled
+        ? emailData.to?.[0] ?? null
+        : deliveredResult.countryIso2
+          ? `${deliveredResult.countryIso2}:delivered`
+          : null,
     },
   })
 
@@ -63,5 +84,6 @@ export async function POST(req: NextRequest) {
     received: true,
     type: event.type,
     expansion: expansionResult,
+    delivered: deliveredResult,
   })
 }

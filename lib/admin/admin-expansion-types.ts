@@ -16,6 +16,8 @@ export type ExpansionCountryRow = {
   launchBounceRetriesPending: number
   launchBounceSuppressed: number
   launchBounceRatePct: number
+  launchEmailsDeliveredThisMonth: number
+  launchDeliveryRatePct: number
   funnel: ExpansionCountryFunnel
 }
 
@@ -35,6 +37,7 @@ export type ExpansionEmailBounceOverview = {
   complaintsThisMonth: number
   launchRetriesPending: number
   launchSuppressedTotal: number
+  suppressedStalePendingPurge: number
 }
 
 export type AdminExpansionOverview = {
