@@ -19,7 +19,9 @@ import { SupplierTrustLadderCard } from "@/components/supplier/mission-control/s
 import { SupplierUrgentActions } from "@/components/supplier/mission-control/supplier-urgent-actions"
 import { loadSupplierTrustSnapshot } from "@/lib/supplier/compute-supplier-trust-tier"
 import { coerceSupplierTrustTier } from "@/lib/supplier/supplier-trust-tier-shared"
-import { loadSupplierMissionControl } from "@/lib/supplier-mission-control"
+import { loadSupplierPublishReadiness } from "@/lib/supplier-publish-readiness"
+import { SupplierKycPublishBanner } from "@/components/supplier/supplier-kyc-publish-banner"
+import { SupplierPublishReadinessCard } from "@/components/supplier/mission-control/supplier-publish-readiness-card"
 import { resolveAppLocale } from "@/lib/i18n-locale"
 import { resolveBinaryCopyLocale } from "@/lib/i18n-ui-locale"
 
@@ -49,7 +51,7 @@ export default async function DashboardSupplierPage() {
   const locale = resolveAppLocale(await getLocale())
   const copyLocale = resolveBinaryCopyLocale(locale)
 
-  const [feeUser, trustSnapshot] = await Promise.all([
+  const [feeUser, trustSnapshot, publishReadiness] = await Promise.all([
     prisma.user.findUnique({
       where: { id: session.user.id },
       select: {
@@ -60,6 +62,7 @@ export default async function DashboardSupplierPage() {
       },
     }),
     loadSupplierTrustSnapshot(session.user.id),
+    loadSupplierPublishReadiness(session.user.id),
   ])
 
   const trustTier = coerceSupplierTrustTier(feeUser?.supplierTrustTier, false)
@@ -78,10 +81,21 @@ export default async function DashboardSupplierPage() {
             />
             <SupplierInviteContextBanner />
 
+            {!publishReadiness.verification.allowed ? (
+              <SupplierKycPublishBanner
+                allowed={publishReadiness.verification.allowed}
+                reason={publishReadiness.verification.reason}
+                status={publishReadiness.verification.status}
+                draftCount={publishReadiness.draftCount}
+              />
+            ) : null}
+
             <AffisellPlatformFeesExplainer variant="compact" supplierOverrides={feeUser} />
           </div>
 
           <div className="space-y-6">
+          <SupplierPublishReadinessCard readiness={publishReadiness} />
+
           <SupplierTrustLadderCard
             tier={displayTier}
             metrics={trustSnapshot.metrics}

@@ -195,6 +195,8 @@ model MerchantLegalProfile {
   submittedAt        DateTime @default(now())
   reviewedAt         DateTime?
   rejectionReason    String?
+  /** Idempotent merchant KYC publish reminder (cron). */
+  kycPublishReminderSentAt DateTime?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 

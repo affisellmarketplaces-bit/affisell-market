@@ -632,7 +632,13 @@
       "categoryLabel": "Catégorie",
       "categorySuggestedBadge": "Suggéré",
       "offerModeTitle": "État du produit",
-      "offerModeDescription": "Obligatoire à la publication — badge visible sur la fiche marketplace et les filtres acheteurs."
+      "offerModeDescription": "Obligatoire à la publication — badge visible sur la fiche marketplace et les filtres acheteurs.",
+      "warehouseZoneTitle": "Zone logistique",
+      "warehouseZoneDescription": "Obligatoire à la publication — alimente les filtres UE / international.",
+      "warehouseZonePlaceholder": "Choisir une zone",
+      "warehouseZoneLocal": "Local (entrepôt même pays)",
+      "warehouseZoneRegional": "Régional (UE / proche)",
+      "warehouseZoneInternational": "International (expédition monde)"
     },
     "wizard": {
       "backToMethods": "← Autres méthodes de création",
@@ -1163,6 +1169,34 @@
       "myCatalogLowStock": "{count, plural, one {# stock bas} other {# stocks bas}}",
       "myCatalogOpen": "Ouvrir",
       "newProduct": "Nouveau produit"
+    },
+    "kycPublish": {
+      "badge": "Publication bloquée",
+      "title": "Vérification marchand requise",
+      "body": {
+        "noProfile": "Complétez votre dossier KYC avant de mettre vos fiches en ligne sur Affisell.",
+        "pending": "Votre dossier est en cours de revue — vous pouvez préparer des brouillons en attendant.",
+        "rejected": "Votre dossier a été refusé — mettez à jour vos documents pour publier.",
+        "needsInfo": "Documents complémentaires demandés — finalisez votre dossier pour publier."
+      },
+      "draftWaiting": "{count, plural, one {# brouillon en attente de validation} other {# brouillons en attente de validation}}",
+      "cta": "Compléter la vérification"
+    },
+    "publishReadiness": {
+      "eyebrow": "Pipeline publication",
+      "title": "Prêt à publier ?",
+      "subtitle": "KYC approuvé + zone logistique = fiches live sur la marketplace.",
+      "metricLive": "Live",
+      "metricDrafts": "Brouillons",
+      "metricKyc": "KYC",
+      "stateKycBlocked": "{count, plural, one {# brouillon bloqué tant que le KYC n'est pas approuvé.} other {# brouillons bloqués tant que le KYC n'est pas approuvé.}}",
+      "stateReady": "{count, plural, one {# brouillon prêt — finalisez la logistique et publiez.} other {# brouillons prêts — finalisez la logistique et publiez.}}",
+      "stateApprovedNoDraft": "KYC validé — ajoutez un produit pour commencer à vendre.",
+      "stateVerifyFirst": "Complétez la vérification pour débloquer la publication.",
+      "ctaVerify": "Ouvrir le dossier KYC",
+      "ctaPublishDrafts": "Voir les brouillons",
+      "ctaNewProduct": "Nouveau produit",
+      "footnote": "Les reversements Stripe Connect exigent un profil marchand approuvé."
     },
     "urgent": {
       "title": "Actions urgentes",

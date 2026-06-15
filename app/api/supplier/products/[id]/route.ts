@@ -22,7 +22,7 @@ import {
   resolveSupplierCatalogPriceCents,
 } from "@/lib/supplier-product-offer-mode"
 import { validateOfferModePublish } from "@/lib/product-offer-mode"
-import { parseSupplierProductShippingBody } from "@/lib/supplier-product-shipping"
+import { parseSupplierProductShippingBody, validateWarehouseTypePublish } from "@/lib/supplier-product-shipping"
 import { parseSupplierProductImages } from "@/lib/supplier-product-images"
 import { parseListingKind } from "@/lib/supplier-commission"
 import {
@@ -267,6 +267,12 @@ export async function PUT(
       : undefined
   const attr = parseProductAttributesBody(body as unknown as Record<string, unknown>)
   const ship = parseSupplierProductShippingBody(body as unknown as Record<string, unknown>)
+  if (publish || activatingFromDraft) {
+    const warehouseErr = validateWarehouseTypePublish(ship.warehouseType)
+    if (warehouseErr) {
+      return Response.json({ error: warehouseErr }, { status: 400 })
+    }
+  }
   const meta = parseProductMarketplaceMeta(body as unknown as Record<string, unknown>)
   const chinaImport =
     "sourceUrl" in rawBody ||

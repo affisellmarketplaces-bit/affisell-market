@@ -16,6 +16,7 @@ export type PublishFieldKey =
   | "commission"
   | "variants"
   | "offerMode"
+  | "warehouseType"
 
 export type PublishBlocker = {
   field: PublishFieldKey
@@ -32,6 +33,7 @@ export const PUBLISH_FIELD_SCROLL_ID: Record<PublishFieldKey, string> = {
   commission: "add-product-commission",
   variants: "add-product-variants",
   offerMode: "add-product-offer-mode",
+  warehouseType: "add-product-shipping-zone",
 }
 
 export function publishBlockerStep(field: PublishFieldKey): 1 | 2 | 3 {
@@ -63,6 +65,7 @@ export type CollectPublishContext = {
   advancedSkuRows?: SupplierSkuTableRow[]
   simpleColorRows: { name: string }[]
   offerModeAcknowledged?: boolean
+  warehouseType?: "" | "local" | "regional" | "international"
 }
 
 export function collectClientPublishBlockers(ctx: CollectPublishContext): PublishBlocker[] {
@@ -94,6 +97,14 @@ export function collectClientPublishBlockers(ctx: CollectPublishContext): Publis
       field: "offerMode",
       message:
         "Indiquez l'état du produit (neuf, reconditionné, seconde main, gros ou don) — champ obligatoire.",
+    })
+  }
+  const wt = ctx.warehouseType
+  if (!wt || (wt !== "local" && wt !== "regional" && wt !== "international")) {
+    out.push({
+      field: "warehouseType",
+      message:
+        "Indiquez la zone logistique (local, régional ou international) — obligatoire pour la publication.",
     })
   }
   if (ctx.variantFormMode === "advanced") {
@@ -156,6 +167,9 @@ function blockerFromMessage(message: string): PublishBlocker | null {
   if (m.includes("wholesale_moq") || m.includes("offer_mode") || m.includes("état du produit")) {
     return { field: "offerMode", message }
   }
+  if (m.includes("warehouse_type") || m.includes("zone logistique")) {
+    return { field: "warehouseType", message }
+  }
   if (m.includes("variant") || m.includes("sku") || m.includes("déclinaison")) {
     return { field: "variants", message }
   }
@@ -198,7 +212,9 @@ export function mapServerPublishBlockers(json: {
           ? "Ajoutez au moins un créneau de rendez-vous futur avant de publier (Booking Hub)."
           : json.error === "merchant_verification_pending"
             ? "Vérification marchand requise — complétez votre dossier KYC sur /dashboard/verification avant de publier."
-            : json.error
+            : json.error === "warehouse_type_required"
+              ? "Indiquez la zone logistique (local, régional ou international) — obligatoire pour la publication."
+              : json.error
     const mapped = blockerFromMessage(normalizedError)
     if (mapped) {
       if (!out.some((b) => b.field === mapped.field && b.message === mapped.message)) {

@@ -1,4 +1,5 @@
 import { loadAdminKycStats } from "@/lib/admin/merchant-kyc/load-kyc-queue"
+import { loadMerchantPublishPipelineStats } from "@/lib/supplier-publish-readiness"
 import { computeSentinelScore } from "@/lib/sentinel/score"
 import type { SentinelSeverity } from "@/lib/sentinel/types"
 import { prisma } from "@/lib/prisma"
@@ -32,6 +33,7 @@ export type AdminTerminalOverview = {
 export async function loadAdminTerminalOverview(): Promise<AdminTerminalOverview> {
   const [
     kyc,
+    publishPipeline,
     openSignals,
     signalCounts,
     lastScan,
@@ -46,6 +48,7 @@ export async function loadAdminTerminalOverview(): Promise<AdminTerminalOverview
     recentReviews,
   ] = await Promise.all([
     loadAdminKycStats(),
+    loadMerchantPublishPipelineStats(),
     prisma.opsSignal.count({ where: { resolvedAt: null } }),
     prisma.opsSignal.groupBy({
       by: ["severity"],
@@ -115,6 +118,14 @@ export async function loadAdminTerminalOverview(): Promise<AdminTerminalOverview
       href: "/admin/kyc",
       tone: kyc.pending > 0 ? "amber" : "emerald",
       hint: `${kyc.pending} en attente`,
+    },
+    {
+      id: "publish-pipeline",
+      label: "Publication",
+      count: publishPipeline.kycPendingWithDrafts,
+      href: "/admin/kyc",
+      tone: publishPipeline.kycPendingWithDrafts > 0 ? "amber" : "emerald",
+      hint: `${publishPipeline.readyToPublish} prêts · ${publishPipeline.kycPendingWithDrafts} KYC+ brouillon`,
     },
     {
       id: "support",

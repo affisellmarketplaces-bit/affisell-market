@@ -12,7 +12,7 @@ import {
   resolveSupplierCatalogPriceCents,
 } from "@/lib/supplier-product-offer-mode"
 import { validateOfferModePublish } from "@/lib/product-offer-mode"
-import { parseSupplierProductShippingBody } from "@/lib/supplier-product-shipping"
+import { parseSupplierProductShippingBody, validateWarehouseTypePublish } from "@/lib/supplier-product-shipping"
 import { parseSupplierProductImages } from "@/lib/supplier-product-images"
 import { parseCompareAtDraftLax, parseCompareAtStrict } from "@/lib/supplier-product-compare-at"
 import { parseDescriptionBullets } from "@/lib/supplier-product-description-bullets"
@@ -277,6 +277,10 @@ export async function POST(req: Request) {
     const offerErr = validateOfferModePublish(offer.offerMode, offer.minOrderQuantity)
     if (offerErr) {
       return Response.json({ error: offerErr }, { status: 400 })
+    }
+    const warehouseErr = validateWarehouseTypePublish(ship.warehouseType)
+    if (warehouseErr) {
+      return Response.json({ error: warehouseErr }, { status: 400 })
     }
   }
 

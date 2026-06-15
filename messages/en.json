@@ -632,7 +632,13 @@
       "categoryLabel": "Category",
       "categorySuggestedBadge": "Suggested",
       "offerModeTitle": "Product condition",
-      "offerModeDescription": "Required when publishing — shown on the marketplace listing and buyer filters."
+      "offerModeDescription": "Required when publishing — shown on the marketplace listing and buyer filters.",
+      "warehouseZoneTitle": "Logistics zone",
+      "warehouseZoneDescription": "Required when publishing — powers EU / international marketplace filters.",
+      "warehouseZonePlaceholder": "Choose a zone",
+      "warehouseZoneLocal": "Local (same country warehouse)",
+      "warehouseZoneRegional": "Regional (EU / nearby)",
+      "warehouseZoneInternational": "International (worldwide shipping)"
     },
     "wizard": {
       "backToMethods": "← Other creation methods",
@@ -1155,6 +1161,34 @@
       "myCatalogLowStock": "{count, plural, one {# low stock} other {# low stock}}",
       "myCatalogOpen": "Open",
       "newProduct": "New product"
+    },
+    "kycPublish": {
+      "badge": "Publish blocked",
+      "title": "Merchant verification required",
+      "body": {
+        "noProfile": "Complete your KYC dossier before your listings can go live on Affisell.",
+        "pending": "Your dossier is under review — you can prepare drafts meanwhile.",
+        "rejected": "Your dossier was rejected — update your documents to publish.",
+        "needsInfo": "We need additional documents — complete your dossier to publish."
+      },
+      "draftWaiting": "{count, plural, one {# draft waiting for approval} other {# drafts waiting for approval}}",
+      "cta": "Complete verification"
+    },
+    "publishReadiness": {
+      "eyebrow": "Publish pipeline",
+      "title": "Ready to go live?",
+      "subtitle": "KYC approval + logistics zone unlock marketplace publication.",
+      "metricLive": "Live",
+      "metricDrafts": "Drafts",
+      "metricKyc": "KYC",
+      "stateKycBlocked": "{count, plural, one {# draft blocked until KYC is approved.} other {# drafts blocked until KYC is approved.}}",
+      "stateReady": "{count, plural, one {# draft ready — finish logistics & publish.} other {# drafts ready — finish logistics & publish.}}",
+      "stateApprovedNoDraft": "KYC approved — add a product to start selling.",
+      "stateVerifyFirst": "Complete verification to unlock publication.",
+      "ctaVerify": "Open KYC dossier",
+      "ctaPublishDrafts": "Review drafts",
+      "ctaNewProduct": "New product",
+      "footnote": "Stripe Connect payouts require an approved merchant profile."
     },
     "urgent": {
       "title": "Urgent actions",

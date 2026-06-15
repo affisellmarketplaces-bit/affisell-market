@@ -80,4 +80,10 @@ export function parseSupplierProductShippingBody(body: Record<string, unknown>):
   }
 }
 
+/** Publish gate — warehouse zone required on live listings. */
+export function validateWarehouseTypePublish(warehouseType: string | null): "warehouse_type_required" | null {
+  if (!warehouseType || !WAREHOUSE_TYPES.has(warehouseType)) return "warehouse_type_required"
+  return null
+}
+
 export { EU_COUNTRIES }

@@ -84,6 +84,7 @@ import {
 } from "@/components/supplier/supplier-category-picker"
 import { SupplierDeleteDraftButton } from "@/components/supplier/supplier-delete-draft-button"
 import { SupplierOfferModePicker } from "@/components/supplier/supplier-offer-mode-picker"
+import { SupplierKycPublishBanner } from "@/components/supplier/supplier-kyc-publish-banner"
 import {
   SupplierVariantTable,
   type EditableVariantRow,
@@ -445,10 +446,32 @@ export function SupplierAddProductForm({
   const [specValues, setSpecValues] = useState<Record<string, string>>({})
   const [specFormErrors, setSpecFormErrors] = useState<string[]>([])
   const [publishBlockers, setPublishBlockers] = useState<PublishBlocker[]>([])
+  const [merchantGate, setMerchantGate] = useState<{
+    allowed: boolean
+    reason?: string | null
+    status?: string | null
+    draftCount?: number
+  } | null>(null)
   const [attrsLoading, setAttrsLoading] = useState(false)
   const mergedCategoryAttrs = useMemo(() => mergeCoreCategoryAttrs(categoryAttrs), [categoryAttrs])
 
   const commissionMax = affiliateCommissionMaxPct(listingKind)
+
+  useEffect(() => {
+    void fetch("/api/merchant/verification-gate", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { allowed?: boolean; reason?: string; status?: string; draftCount?: number } | null) => {
+        if (data && typeof data.allowed === "boolean") {
+          setMerchantGate({
+            allowed: data.allowed,
+            reason: data.reason ?? null,
+            status: data.status ?? null,
+            draftCount: data.draftCount ?? 0,
+          })
+        }
+      })
+      .catch(() => undefined)
+  }, [])
 
   useEffect(() => {
     if (variantFormMode !== "simple") return
@@ -2118,6 +2141,7 @@ export function SupplierAddProductForm({
     advancedSkuRows,
     simpleColorRows,
     offerModeAcknowledged,
+    warehouseType,
   }
 
   const jumpBtnClass =
@@ -2194,6 +2218,16 @@ export function SupplierAddProductForm({
                 </div>
               </div>
             ) : null}
+
+            {merchantGate && !merchantGate.allowed ? (
+              <SupplierKycPublishBanner
+                allowed={merchantGate.allowed}
+                reason={merchantGate.reason}
+                status={merchantGate.status}
+                draftCount={merchantGate.draftCount}
+              />
+            ) : null}
+
             {step === 1 ? (
               <>
                 <div className="flex flex-col gap-3 rounded-3xl border border-gray-100 bg-white/75 px-4 py-3.5 shadow-sm ring-1 ring-black/[0.02] backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/60 dark:ring-white/[0.04] sm:flex-row sm:items-center sm:justify-between sm:gap-4">
@@ -2959,6 +2993,37 @@ export function SupplierAddProductForm({
                     }}
                     onMoqChange={setMinOrderQuantity}
                   />
+                </SectionCard>
+
+                <SectionCard
+                  id="add-product-shipping-zone"
+                  icon={Truck}
+                  title={tForm("warehouseZoneTitle")}
+                  description={tForm("warehouseZoneDescription")}
+                  hasError={publishErrorFields.includes("warehouseType")}
+                >
+                  <select
+                    id="warehouse-zone"
+                    aria-label={tForm("warehouseZoneTitle")}
+                    className={cn(
+                      "mt-1.5 flex h-11 w-full rounded-md border border-zinc-200 bg-transparent px-3 text-sm dark:border-zinc-700",
+                      hasPublishFieldError("warehouseType") && PUBLISH_INPUT_ERROR_CLASS
+                    )}
+                    value={warehouseType}
+                    onChange={(e) =>
+                      setWarehouseType(e.target.value as typeof warehouseType)
+                    }
+                  >
+                    <option value="">{tForm("warehouseZonePlaceholder")}</option>
+                    <option value="local">{tForm("warehouseZoneLocal")}</option>
+                    <option value="regional">{tForm("warehouseZoneRegional")}</option>
+                    <option value="international">{tForm("warehouseZoneInternational")}</option>
+                  </select>
+                  {publishBlockers.find((b) => b.field === "warehouseType")?.message ? (
+                    <p className="mt-2 text-xs font-medium text-red-600 dark:text-red-400">
+                      {publishBlockers.find((b) => b.field === "warehouseType")?.message}
+                    </p>
+                  ) : null}
                 </SectionCard>
 
                 <SectionCard

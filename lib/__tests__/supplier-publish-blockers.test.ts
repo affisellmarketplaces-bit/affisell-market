@@ -60,4 +60,23 @@ describe("supplier-publish-blockers", () => {
     expect(blockers.some((b) => b.field === "offerMode")).toBe(true)
     expect(publishBlockerStep("offerMode")).toBe(3)
   })
+
+  it("blocks publish when warehouse zone is missing", () => {
+    const blockers = collectClientPublishBlockers({
+      name: "Test",
+      imagesCount: 1,
+      categoryId: "cat-1",
+      missingSpecs: [],
+      priceError: null,
+      compareError: null,
+      commissionError: null,
+      variantFormMode: "none",
+      variantRows: [],
+      simpleColorRows: [],
+      offerModeAcknowledged: true,
+      warehouseType: "",
+    })
+    expect(blockers.some((b) => b.field === "warehouseType")).toBe(true)
+    expect(publishBlockerStep("warehouseType")).toBe(3)
+  })
 })
