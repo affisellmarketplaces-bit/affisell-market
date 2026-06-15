@@ -16,12 +16,14 @@ type Props = {
   initial: AdminExpansionOverview
   metabaseExpansionEmbedUrl: string | null
   metabaseExpansionBounceEmbedUrl: string | null
+  metabaseExpansionEmailKindEmbedUrl: string | null
 }
 
 export function AdminExpansionConsole({
   initial,
   metabaseExpansionEmbedUrl,
   metabaseExpansionBounceEmbedUrl,
+  metabaseExpansionEmailKindEmbedUrl,
 }: Props) {
   const [overview, setOverview] = useState(initial)
   const [previewLocale, setPreviewLocale] = useState<"en" | "fr">("en")
@@ -228,6 +230,15 @@ export function AdminExpansionConsole({
           <Button type="button" variant="outline" size="sm" disabled={pending} onClick={refresh}>
             Refresh
           </Button>
+          {overview.emailBounces.complaintsThisMonth > 0 ||
+          overview.emailKindStats.some((row) => row.complaintsThisMonth > 0) ? (
+            <Button type="button" variant="outline" size="sm" asChild>
+              <a href="/api/admin/expansion/complaints-export">
+                <Download className="mr-1.5 size-3.5" aria-hidden />
+                Export complaints CSV
+              </a>
+            </Button>
+          ) : null}
           {overview.emailBounces.bouncesThisMonth > 0 ||
           overview.emailKindStats.some((row) => row.bouncesThisMonth > 0) ? (
             <Button type="button" variant="outline" size="sm" asChild>
@@ -360,6 +371,21 @@ export function AdminExpansionConsole({
             title="Metabase expansion dashboard"
             src={metabaseExpansionEmbedUrl}
             className="h-[420px] w-full border-0 bg-zinc-50 dark:bg-zinc-950"
+            loading="lazy"
+          />
+        </section>
+      ) : null}
+
+      {metabaseExpansionEmailKindEmbedUrl ? (
+        <section className="mb-8 overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="flex items-center gap-2 border-b border-zinc-200 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:border-zinc-800">
+            <BarChart3 className="size-3.5 text-sky-600" aria-hidden />
+            Metabase · expansion email delivery by kind
+          </div>
+          <iframe
+            title="Metabase expansion email kind dashboard"
+            src={metabaseExpansionEmailKindEmbedUrl}
+            className="h-[320px] w-full border-0 bg-zinc-50 dark:bg-zinc-950"
             loading="lazy"
           />
         </section>

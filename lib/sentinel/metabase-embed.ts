@@ -52,6 +52,13 @@ export function buildMetabaseExpansionEmbedUrl(): string | null {
   return buildMetabaseEmbedUrl(expansionDashboardId)
 }
 
+/** Expansion email delivery by kind — delivered/bounce/complaint per checkout-launch|followup|graduated. */
+export function buildMetabaseExpansionEmailKindEmbedUrl(): string | null {
+  const emailKindDashboardId = process.env.METABASE_EXPANSION_EMAIL_KIND_DASHBOARD_ID?.trim()
+  if (!emailKindDashboardId) return null
+  return buildMetabaseEmbedUrl(emailKindDashboardId)
+}
+
 /** Expansion email bounces — filter logs: `resend_bounce`, `launch_email_bounce_suppressed`, ProcessedWebhook status expansion_bounce. */
 export function buildMetabaseExpansionBounceEmbedUrl(): string | null {
   const bounceDashboardId = process.env.METABASE_EXPANSION_BOUNCE_DASHBOARD_ID?.trim()

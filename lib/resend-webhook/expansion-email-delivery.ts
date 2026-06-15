@@ -2,6 +2,7 @@ import { logBusiness } from "@/lib/business-log"
 import { resolveExpansionEmailKind } from "@/lib/expansion/resolve-expansion-email-kind"
 import { opsWebhookAlert } from "@/lib/ops-webhook"
 import { reenqueueLaunchWaitlistOnHardBounce } from "@/lib/resend-webhook/reenqueue-launch-waitlist-on-bounce"
+import { suppressLaunchWaitlistOnComplaint } from "@/lib/resend-webhook/suppress-launch-waitlist-on-complaint"
 
 export type ResendWebhookEmailData = {
   email_id?: string
@@ -46,6 +47,7 @@ export type ProcessExpansionResendDeliveryResult = {
   alerted: boolean
   retryQueued: number
   suppressed: number
+  complaintSuppressed: number
   webhookStatus: "expansion_bounce" | "expansion_complaint" | null
 }
 
@@ -55,11 +57,11 @@ export async function processExpansionResendDeliveryEvent(
   webhookId: string
 ): Promise<ProcessExpansionResendDeliveryResult> {
   if (event.type !== "email.bounced" && event.type !== "email.complained") {
-    return { handled: false, alerted: false, retryQueued: 0, suppressed: 0, webhookStatus: null }
+    return { handled: false, alerted: false, retryQueued: 0, suppressed: 0, complaintSuppressed: 0, webhookStatus: null }
   }
 
   if (!isExpansionBuyerResendEmail(event.data)) {
-    return { handled: false, alerted: false, retryQueued: 0, suppressed: 0, webhookStatus: null }
+    return { handled: false, alerted: false, retryQueued: 0, suppressed: 0, complaintSuppressed: 0, webhookStatus: null }
   }
 
   const recipient = event.data.to?.[0] ?? "unknown"
@@ -70,18 +72,25 @@ export async function processExpansionResendDeliveryEvent(
 
   let retryQueued = 0
   let suppressed = 0
+  let complaintSuppressed = 0
   if (event.type === "email.bounced" && emailKind === "checkout-launch" && recipient !== "unknown") {
     const bounceResult = await reenqueueLaunchWaitlistOnHardBounce(recipient)
     retryQueued = bounceResult.requeued
     suppressed = bounceResult.suppressed
+  }
+  if (event.type === "email.complained" && recipient !== "unknown") {
+    const complaintResult = await suppressLaunchWaitlistOnComplaint(recipient)
+    complaintSuppressed = complaintResult.suppressed
   }
 
   const actionBit =
     retryQueued > 0
       ? ` · ${retryQueued} waitlist row(s) re-queued`
       : suppressed > 0
-        ? ` · ${suppressed} waitlist row(s) suppressed`
-        : ""
+        ? ` · ${suppressed} waitlist row(s) suppressed (bounce)`
+        : complaintSuppressed > 0
+          ? ` · ${complaintSuppressed} waitlist row(s) suppressed (complaint)`
+          : ""
   const text = `⚠️ Expansion email ${kind}: \`${recipient}\` — ${subject}${
     bounceMessage ? ` — ${bounceMessage.slice(0, 200)}` : ""
   }${actionBit}`
@@ -98,6 +107,7 @@ export async function processExpansionResendDeliveryEvent(
     emailKind,
     retryQueued,
     suppressed,
+    complaintSuppressed,
     alerted,
   })
 
@@ -106,6 +116,7 @@ export async function processExpansionResendDeliveryEvent(
     alerted,
     retryQueued,
     suppressed,
+    complaintSuppressed,
     webhookStatus: event.type === "email.bounced" ? "expansion_bounce" : "expansion_complaint",
   }
 }
