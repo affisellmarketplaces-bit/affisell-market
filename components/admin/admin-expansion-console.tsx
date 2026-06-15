@@ -61,6 +61,14 @@ export function AdminExpansionConsole({
     return query ? `/api/admin/expansion/delivered-export?${query}` : "/api/admin/expansion/delivered-export"
   }
 
+  function buildComplaintsExportUrl(countryIso2?: string) {
+    const params = new URLSearchParams()
+    if (countryIso2) params.set("countryIso2", countryIso2)
+    if (exportEmailKind !== "all") params.set("emailKind", exportEmailKind)
+    const query = params.toString()
+    return query ? `/api/admin/expansion/complaints-export?${query}` : "/api/admin/expansion/complaints-export"
+  }
+
   function buildGraduationPreviewUrl(
     countryIso2: string,
     firstOrderId: string | null,
@@ -382,7 +390,7 @@ export function AdminExpansionConsole({
           {overview.emailBounces.complaintsThisMonth > 0 ||
           overview.emailKindStats.some((row) => row.complaintsThisMonth > 0) ? (
             <Button type="button" variant="outline" size="sm" asChild>
-              <a href="/api/admin/expansion/complaints-export">
+              <a href={buildComplaintsExportUrl()}>
                 <Download className="mr-1.5 size-3.5" aria-hidden />
                 Export complaints CSV
               </a>
@@ -675,6 +683,13 @@ export function AdminExpansionConsole({
                     row.launchGraduatedBounceRatePct > EXPANSION_BOUNCE_RATE_ALERT_THRESHOLD_PCT ? (
                       <Badge variant="outline" className="border-violet-500 text-violet-700 dark:text-violet-400">
                         grad. {row.launchGraduatedBounceRatePct}% bounce
+                      </Badge>
+                    ) : null}
+                    {row.graduationEmailPaused &&
+                    row.launchGraduatedSentThisMonth >= 10 &&
+                    row.launchGraduatedDeliveryRatePct < EXPANSION_AUTO_PAUSE_DELIVERY_THRESHOLD_PCT ? (
+                      <Badge variant="outline" className="border-red-500 text-red-700 dark:text-red-400">
+                        grad. auto-paused · {row.launchGraduatedDeliveryRatePct}% delivered
                       </Badge>
                     ) : null}
                     {row.launchNotifyPaused &&

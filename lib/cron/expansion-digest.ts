@@ -90,25 +90,29 @@ function buildDigestBody(
           )
       : ["• none"]),
     "",
-    "Countries with graduation email complaints (month):",
-    ...(overview.countries.filter((row) => row.launchGraduatedComplaintsThisMonth > 0).length > 0
+    "Graduation complaint alert by country (month, min 10 sent):",
+    ...(overview.countries.filter(
+      (row) => row.launchGraduatedSentThisMonth >= 10 && row.launchGraduatedComplaintsThisMonth > 0
+    ).length > 0
       ? overview.countries
-          .filter((row) => row.launchGraduatedComplaintsThisMonth > 0)
-          .slice(0, 5)
+          .filter(
+            (row) => row.launchGraduatedSentThisMonth >= 10 && row.launchGraduatedComplaintsThisMonth > 0
+          )
+          .slice(0, 8)
           .map(
             (row) =>
-              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchGraduatedComplaintsThisMonth} graduation complaint(s)`
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchGraduatedComplaintsThisMonth} graduation complaint(s) (${row.launchGraduatedComplaintRatePct}% of sent)${row.graduationEmailPaused ? " · AUTO-PAUSED" : ""}`
           )
       : ["• none"]),
     "",
-    "Graduation emails auto-paused (complaint):",
+    "Graduation emails auto-paused (complaint or delivery <50%):",
     ...(overview.countries.filter((row) => row.graduationEmailPaused).length > 0
       ? overview.countries
           .filter((row) => row.graduationEmailPaused)
           .slice(0, 8)
           .map(
             (row) =>
-              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchGraduatedComplaintsThisMonth} graduation complaint(s) (auto-resume after 30d clear or ≥80% delivery)`
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchGraduatedComplaintsThisMonth} graduation complaint(s) · ${row.launchGraduatedDeliveryRatePct}% delivered (auto-resume after 30d clear or ≥80%)`
           )
       : ["• none"]),
     "",

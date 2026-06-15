@@ -24,6 +24,10 @@ export function isGraduatedComplaintPauseReason(reason: string | null | undefine
   return typeof reason === "string" && reason.startsWith("graduated_complaint_")
 }
 
+export function isGraduatedDeliveryPauseReason(reason: string | null | undefined): boolean {
+  return typeof reason === "string" && reason.startsWith("graduated_delivery_rate_")
+}
+
 export function shouldAutoResumeLaunchNotifyAfterComplaintClear(args: {
   complaintsSinceCutoff: number
   pausedReason: string | null | undefined

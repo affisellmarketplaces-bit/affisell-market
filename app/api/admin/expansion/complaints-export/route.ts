@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from "next/server"
 
 import {
   buildExpansionComplaintCsv,
-  EXPANSION_COMPLAINT_CSV_FILENAME,
+  expansionComplaintCsvFilename,
 } from "@/lib/admin/build-expansion-complaint-csv"
 import { loadExpansionComplaintRows } from "@/lib/admin/load-expansion-complaint-rows"
+import { normalizeExpansionEmailKindFilter } from "@/lib/expansion/normalize-expansion-email-kind-filter"
 import { requireAdminSession } from "@/lib/admin/require-admin-session"
 import { normalizeVisitorCountryIso2 } from "@/lib/visitor-country"
 
@@ -23,12 +24,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "invalid_country" }, { status: 400 })
   }
 
-  const rows = await loadExpansionComplaintRows(countryIso2)
+  const emailKind = normalizeExpansionEmailKindFilter(req.nextUrl.searchParams.get("emailKind"))
+
+  const rows = await loadExpansionComplaintRows(countryIso2, emailKind)
   const csv = buildExpansionComplaintCsv(rows)
+  const filename = expansionComplaintCsvFilename(countryIso2, emailKind)
 
   console.log("[expansion-rollout]", {
     userId: gate.session.user.id,
     countryIso2: countryIso2 ?? null,
+    emailKind: emailKind ?? null,
     rows: rows.length,
     result: "complaints_export",
   })
@@ -37,7 +42,7 @@ export async function GET(req: NextRequest) {
     status: 200,
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="${EXPANSION_COMPLAINT_CSV_FILENAME}"`,
+      "Content-Disposition": `attachment; filename="${filename}"`,
       "Cache-Control": "no-store",
     },
   })

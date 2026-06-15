@@ -1,5 +1,7 @@
 import { expansionCountryLabel } from "@/lib/admin/load-admin-expansion-overview"
+import { computeLaunchDeliveryRatePct } from "@/lib/expansion/compute-country-delivery-rate"
 import { shouldAutoPauseLaunchNotifyOnComplaint } from "@/lib/expansion/compute-country-complaint-rate"
+import { shouldAutoPauseGraduationOnDelivery } from "@/lib/expansion/expansion-auto-pause-notify"
 import { loadExpansionGraduatedEmailStatsByCountry } from "@/lib/expansion/load-expansion-graduated-email-stats-by-country"
 import {
   loadPausedGraduationEmailCountries,
@@ -17,7 +19,7 @@ export type RunExpansionAutoPauseGraduationResult = {
   countries: string[]
 }
 
-/** Auto-pause graduation buyer emails when a graduation complaint is recorded (min 10 sent). */
+/** Auto-pause graduation buyer emails on complaint or delivery rate <50% (min 10 sent). */
 export async function runExpansionAutoPauseGraduationCron(
   now = new Date()
 ): Promise<RunExpansionAutoPauseGraduationResult> {
@@ -43,31 +45,47 @@ export async function runExpansionAutoPauseGraduationCron(
 
     const stats = graduatedStats.get(countryKey)
     const complaintsThisMonth = stats?.complaintsThisMonth ?? 0
+    const deliveredThisMonth = stats?.deliveredThisMonth ?? 0
     const sentCount = stats?.sentCount ?? 0
 
-    if (
-      !shouldAutoPauseLaunchNotifyOnComplaint({
-        complaintsThisMonth,
-        notifiedCount: sentCount,
-      })
-    ) {
-      continue
-    }
+    const pauseOnComplaint = shouldAutoPauseLaunchNotifyOnComplaint({
+      complaintsThisMonth,
+      notifiedCount: sentCount,
+    })
+    const pauseOnDelivery = shouldAutoPauseGraduationOnDelivery({
+      graduatedDeliveredThisMonth: deliveredThisMonth,
+      graduatedSentCount: sentCount,
+    })
 
-    const reason = `graduated_complaint_${complaintsThisMonth}`
+    if (!pauseOnComplaint && !pauseOnDelivery) continue
+
+    const deliveryRatePct = computeLaunchDeliveryRatePct({
+      deliveredThisMonth,
+      notifiedCount: sentCount,
+    })
+    const reason = pauseOnComplaint
+      ? `graduated_complaint_${complaintsThisMonth}`
+      : `graduated_delivery_rate_${deliveryRatePct}pct`
+
     const didPause = await pauseGraduationEmailCountry(row.countryIso2, reason)
     if (!didPause) continue
 
     const countryName = expansionCountryLabel(row.countryIso2, "en")
-    const text = `⏸️ *${countryName} (${row.countryIso2})* graduation emails auto-paused — *${complaintsThisMonth} graduation complaint(s)*. <${adminUrl}|Resume in expansion console>`
+    const text = pauseOnComplaint
+      ? `⏸️ *${countryName} (${row.countryIso2})* graduation emails auto-paused — *${complaintsThisMonth} graduation complaint(s)*. <${adminUrl}|Resume in expansion console>`
+      : `⏸️ *${countryName} (${row.countryIso2})* graduation emails auto-paused — delivery rate *${deliveryRatePct}%*. <${adminUrl}|Resume in expansion console>`
 
     const { slack, discord } = await opsWebhookAlert(text)
 
     logBusiness("expansion-rollout", {
       country: row.countryIso2,
       marketRegion: MARKET_REGION,
-      result: "graduation_email_auto_paused_complaint",
+      result: pauseOnComplaint
+        ? "graduation_email_auto_paused_complaint"
+        : "graduation_email_auto_paused_delivery",
       complaintsThisMonth,
+      deliveryRatePct,
+      deliveredThisMonth,
       sentCount,
       slack,
       discord,

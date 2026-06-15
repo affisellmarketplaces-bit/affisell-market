@@ -32,3 +32,21 @@ export function shouldAutoPauseLaunchFollowupOnDelivery(args: {
     }) < thresholdPct
   )
 }
+
+export function shouldAutoPauseGraduationOnDelivery(args: {
+  graduatedDeliveredThisMonth: number
+  graduatedSentCount: number
+  thresholdPct?: number
+  minSent?: number
+}): boolean {
+  const thresholdPct = args.thresholdPct ?? EXPANSION_AUTO_PAUSE_DELIVERY_THRESHOLD_PCT
+  const minSent = args.minSent ?? 10
+  if (args.graduatedSentCount < minSent) return false
+  if (args.graduatedDeliveredThisMonth === 0) return true
+  return (
+    computeLaunchDeliveryRatePct({
+      deliveredThisMonth: args.graduatedDeliveredThisMonth,
+      notifiedCount: args.graduatedSentCount,
+    }) < thresholdPct
+  )
+}
