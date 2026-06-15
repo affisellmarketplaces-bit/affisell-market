@@ -6,6 +6,7 @@ import { AFFISELL_CATEGORIES } from "@/lib/affisell-categories"
 
 export type MarketplaceFilterParams = {
   shipsFrom?: string
+  shipsTo?: string
   delivery?: string
   freeShipping?: string
   category?: string
@@ -23,6 +24,7 @@ function FilterGroup({ title, children }: { title: string; children: React.React
 function href(next: MarketplaceFilterParams): string {
   const sp = new URLSearchParams()
   if (next.shipsFrom) sp.set("shipsFrom", next.shipsFrom)
+  if (next.shipsTo) sp.set("shipsTo", next.shipsTo)
   if (next.delivery) sp.set("delivery", next.delivery)
   if (next.freeShipping) sp.set("freeShipping", next.freeShipping)
   if (next.category && next.category !== "All Departments") sp.set("category", next.category)
@@ -185,7 +187,7 @@ export async function MarketplaceFilterSidebar({ current }: { current: Marketpla
         </Link>
       </div>
 
-      {(c.shipsFrom || c.delivery || c.freeShipping || c.category) && (
+      {(c.shipsFrom || c.shipsTo || c.delivery || c.freeShipping || c.category) && (
         <Link
           href="/shops/browse"
           className="block text-center text-xs font-medium text-zinc-500 underline hover:text-zinc-800 dark:hover:text-zinc-200"

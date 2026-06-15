@@ -2168,12 +2168,14 @@ model CheckoutCountryRollout {
   launchEmailSentAt DateTime?
   firstOrderAt      DateTime?
   firstOrderId      String?
+  graduatedAt       DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
   @@unique([countryIso2, marketRegion])
   @@index([marketRegion, enabled])
   @@index([marketRegion, firstOrderAt])
+  @@index([marketRegion, graduatedAt])
 }
 
 /** Short-lived buffer: bookmarklet POST → admin poll (serverless-safe). */

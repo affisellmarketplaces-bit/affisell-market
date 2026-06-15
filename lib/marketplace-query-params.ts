@@ -7,6 +7,7 @@ export const MARKETPLACE_QUERY_RESERVED = new Set([
   "subcategory",
   "q",
   "shipsFrom",
+  "shipsTo",
   "delivery",
   "freeShipping",
   "price",

@@ -1,4 +1,5 @@
 import { expansionCountryLabel } from "@/lib/admin/load-admin-expansion-overview"
+import { graduateCheckoutCountryRollout } from "@/lib/admin/graduate-checkout-country"
 import { extractOrderShippingCountryIso2 } from "@/lib/checkout-country-rollout"
 import { logBusiness } from "@/lib/business-log"
 import { MARKET_REGION } from "@/lib/market-config"
@@ -49,6 +50,13 @@ export async function runExpansionRolloutMetricsCron(): Promise<RunExpansionRoll
 
     firstOrdersRecorded += 1
     newFirstOrderCountries.push(rollout.countryIso2)
+    await graduateCheckoutCountryRollout(rollout.countryIso2, match.createdAt).catch((error: unknown) => {
+      console.error("[expansion-rollout]", {
+        country: rollout.countryIso2,
+        result: "graduate_failed",
+        error: error instanceof Error ? error.message : String(error),
+      })
+    })
     logBusiness("expansion-rollout", {
       country: rollout.countryIso2,
       marketRegion: MARKET_REGION,

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { BarChart3, Bell, Globe2, Rocket, Zap } from "lucide-react"
+import { BarChart3, Bell, Globe2, GraduationCap, Rocket, Zap } from "lucide-react"
 import { toast } from "sonner"
 
 import type { AdminExpansionOverview } from "@/lib/admin/load-admin-expansion-overview"
@@ -60,6 +60,21 @@ export function AdminExpansionConsole({ initial, metabaseExpansionEmbedUrl }: Pr
     refresh()
   }
 
+  async function graduateCountry(countryIso2: string) {
+    const res = await fetch("/api/admin/expansion/graduate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ countryIso2 }),
+    })
+    const data = (await res.json()) as { ok?: boolean; error?: string; alreadyGraduated?: boolean }
+    if (!res.ok || !data.ok) {
+      toast.error(data.error ?? "Graduate failed")
+      return
+    }
+    toast.success(data.alreadyGraduated ? `${countryIso2} already graduated` : `${countryIso2} graduated to permanent checkout`)
+    refresh()
+  }
+
   async function runPilot(rank?: number) {
     const res = await fetch("/api/admin/expansion/pilot", {
       method: "POST",
@@ -115,9 +130,10 @@ export function AdminExpansionConsole({ initial, metabaseExpansionEmbedUrl }: Pr
         </div>
       </div>
 
-      <div className="mb-4 grid gap-4 sm:grid-cols-3">
+      <div className="mb-4 grid gap-4 sm:grid-cols-4">
         <MetricCard label="Live checkout countries" value={overview.liveCheckoutCount} />
         <MetricCard label="ROW rollouts enabled" value={overview.rolloutCount} />
+        <MetricCard label="Graduated (permanent)" value={overview.graduatedCount} />
         <MetricCard label="Waitlist signups" value={overview.totalWaitlist} />
       </div>
 
@@ -166,7 +182,11 @@ export function AdminExpansionConsole({ initial, metabaseExpansionEmbedUrl }: Pr
                       {expansionCountryLabel(row.countryIso2, "en")} ({row.countryIso2})
                     </span>
                     {row.enabled ? (
-                      <Badge className="bg-emerald-600 hover:bg-emerald-600">Checkout on</Badge>
+                      row.graduatedAt ? (
+                        <Badge className="bg-violet-600 hover:bg-violet-600">Graduated</Badge>
+                      ) : (
+                        <Badge className="bg-emerald-600 hover:bg-emerald-600">Checkout on</Badge>
+                      )
                     ) : (
                       <Badge variant="outline">Waiting</Badge>
                     )}
@@ -180,6 +200,7 @@ export function AdminExpansionConsole({ initial, metabaseExpansionEmbedUrl }: Pr
                       : row.enabled
                         ? " · no order yet"
                         : ""}
+                    {row.graduatedAt ? ` · graduated ${new Date(row.graduatedAt).toLocaleDateString()}` : ""}
                   </p>
                   <p className="mt-1 text-[11px] text-violet-600/90 dark:text-violet-400/90">
                     Funnel · notified {row.funnel.notifiedCount} ({row.funnel.notifyRatePct}%) · follow-up{" "}
@@ -192,6 +213,17 @@ export function AdminExpansionConsole({ initial, metabaseExpansionEmbedUrl }: Pr
                     <Button type="button" size="sm" onClick={() => void enableCountry(row.countryIso2)}>
                       <Rocket className="mr-1.5 size-3.5" aria-hidden />
                       Enable checkout
+                    </Button>
+                  ) : null}
+                  {row.enabled && row.firstOrderAt && !row.graduatedAt ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => void graduateCountry(row.countryIso2)}
+                    >
+                      <GraduationCap className="mr-1.5 size-3.5" aria-hidden />
+                      Graduate
                     </Button>
                   ) : null}
                   {row.enabled && row.pendingNotifyCount > 0 ? (

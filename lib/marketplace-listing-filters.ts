@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client"
 
 import { AFFISELL_CATEGORIES } from "@/lib/affisell-categories"
 import { marketplaceShipsFromFilterWhere } from "@/lib/market-region-shipping"
+import { marketplaceShipsToFilterWhere } from "@/lib/marketplace-ships-to"
 import { parseOfferFacetValue } from "@/lib/product-offer-mode"
 
 const AFFISELL_CATEGORY_SET = new Set<string>(AFFISELL_CATEGORIES as readonly string[])
@@ -11,6 +12,7 @@ export function marketplaceProductFilterFromSearchParams(
   sp: Record<string, string | string[] | undefined>
 ): Prisma.ProductWhereInput | null {
   const shipsFrom = typeof sp.shipsFrom === "string" ? sp.shipsFrom : ""
+  const shipsTo = typeof sp.shipsTo === "string" ? sp.shipsTo : ""
   const delivery = typeof sp.delivery === "string" ? sp.delivery : ""
   const freeOnly = sp.freeShipping === "1" || sp.freeShipping === "true"
   const categoryRaw = typeof sp.category === "string" ? sp.category.trim() : ""
@@ -29,6 +31,11 @@ export function marketplaceProductFilterFromSearchParams(
   if (shipsFrom) {
     const shipsWhere = marketplaceShipsFromFilterWhere(shipsFrom)
     if (shipsWhere) parts.push(shipsWhere)
+  }
+
+  if (shipsTo) {
+    const shipsToWhere = marketplaceShipsToFilterWhere(shipsTo)
+    if (shipsToWhere) parts.push(shipsToWhere)
   }
 
   if (delivery === "under3") {

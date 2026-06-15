@@ -7,9 +7,11 @@ import { normalizeVisitorCountryIso2 } from "@/lib/visitor-country"
 const CACHE_MS = 60_000
 
 let rolloutCache: { at: number; countries: string[]; region: MarketRegion } | null = null
+let pilotRolloutCache: { at: number; countries: string[]; region: MarketRegion } | null = null
 
 export function invalidateCheckoutRolloutCache(): void {
   rolloutCache = null
+  pilotRolloutCache = null
 }
 
 export function extractOrderShippingCountryIso2(shippingAddress: unknown): string | null {
@@ -52,6 +54,24 @@ export async function loadRolloutCheckoutCountryIso2(
   return countries
 }
 
+/** Enabled rollouts still in pilot phase (not yet graduated to permanent checkout). */
+export async function loadPilotRolloutCheckoutCountryIso2(
+  region: MarketRegion = MARKET_REGION
+): Promise<string[]> {
+  const now = Date.now()
+  if (pilotRolloutCache && pilotRolloutCache.region === region && now - pilotRolloutCache.at < CACHE_MS) {
+    return pilotRolloutCache.countries
+  }
+
+  const rows = await prisma.checkoutCountryRollout.findMany({
+    where: { marketRegion: region, enabled: true, graduatedAt: null },
+    select: { countryIso2: true },
+  })
+  const countries = rows.map((row) => row.countryIso2.toUpperCase())
+  pilotRolloutCache = { at: now, countries, region }
+  return countries
+}
+
 export async function resolveStripeCheckoutAllowedCountries(
   region: MarketRegion = MARKET_REGION
 ): Promise<string[]> {
@@ -77,6 +97,6 @@ export async function isRolloutOnlyCheckoutCountryResolved(
   const normalized = normalizeVisitorCountryIso2(code ?? "")
   if (!normalized) return false
   const base = stripeCheckoutAllowedCountriesForRegion(region)
-  const rollout = await loadRolloutCheckoutCountryIso2(region)
+  const rollout = await loadPilotRolloutCheckoutCountryIso2(region)
   return isRolloutOnlyCheckoutCountry(normalized, rollout, base)
 }

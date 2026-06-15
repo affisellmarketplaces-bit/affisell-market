@@ -23,6 +23,7 @@ export type ExpansionCountryRow = {
   launchEmailSentAt: string | null
   firstOrderAt: string | null
   firstOrderId: string | null
+  graduatedAt: string | null
   funnel: ExpansionCountryFunnel
 }
 
@@ -36,6 +37,7 @@ export type AdminExpansionOverview = {
   marketRegion: MarketRegion
   liveCheckoutCount: number
   rolloutCount: number
+  graduatedCount: number
   totalWaitlist: number
   funnel: ExpansionFunnelSummary
   nextPilot: ExpansionNextPilot | null
@@ -85,6 +87,7 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
         launchEmailSentAt: rollout?.launchEmailSentAt?.toISOString() ?? null,
         firstOrderAt: rollout?.firstOrderAt?.toISOString() ?? null,
         firstOrderId: rollout?.firstOrderId ?? null,
+        graduatedAt: rollout?.graduatedAt?.toISOString() ?? null,
       }
     })
     .sort((a, b) => b.waitlistCount - a.waitlistCount)
@@ -134,6 +137,7 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
     marketRegion,
     liveCheckoutCount: liveCheckoutCountries.length,
     rolloutCount: rollouts.filter((row) => row.enabled).length,
+    graduatedCount: rollouts.filter((row) => row.enabled && row.graduatedAt).length,
     totalWaitlist,
     funnel,
     nextPilot,

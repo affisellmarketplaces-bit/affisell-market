@@ -16,6 +16,7 @@ import { useUserRole } from "@/hooks/useUserRole"
 import { canShowBusinessProductData } from "@/lib/user-role"
 import { MarketplaceFilters } from "@/components/marketplace/filters"
 import { BuyerRegionBanner } from "@/components/marketplace/buyer-region-banner"
+import { MarketplaceShipsToChip } from "@/components/marketplace/marketplace-ships-to-chip"
 import { isUsMarket } from "@/lib/market-config"
 import { primaryRegionalShipsFromFacet } from "@/lib/market-region-shipping"
 import { OfferModeQuickRail } from "@/components/marketplace/offer-mode-quick-rail"
@@ -201,7 +202,14 @@ export function MarketplaceView({
   }
 
   const hasFilters = Boolean(
-    categoryId || subcategoryId || searchQuery.trim() || attributeFilterKeys.length > 0
+    categoryId ||
+      subcategoryId ||
+      searchQuery.trim() ||
+      attributeFilterKeys.length > 0 ||
+      searchParams.get("shipsFrom") ||
+      searchParams.get("shipsTo") ||
+      searchParams.get("delivery") ||
+      searchParams.get("freeShipping")
   )
 
   const scopeNodeId = subcategoryId ?? categoryId
@@ -268,6 +276,7 @@ export function MarketplaceView({
   }
 
   const shipsFromFilter = searchParams.get("shipsFrom")
+  const shipsToFilter = searchParams.get("shipsTo")
   const regionalShipsFacet = primaryRegionalShipsFromFacet()
 
   useEffect(() => {
@@ -425,6 +434,9 @@ export function MarketplaceView({
             {isCustomerBrowse ? (
               <>
                 <BuyerRegionBanner className="mb-4" />
+                <div className="mb-4">
+                  <MarketplaceShipsToChip basePath={basePath} />
+                </div>
                 <OfferModeQuickRail basePath={basePath} className="mb-4" />
               </>
             ) : null}
@@ -474,6 +486,9 @@ export function MarketplaceView({
             {embedded && isCustomerBrowse ? (
               <>
                 <BuyerRegionBanner className="mb-3 sm:mb-4" variant="compact" />
+                <div className="mb-3 sm:mb-4">
+                  <MarketplaceShipsToChip basePath={basePath} />
+                </div>
                 <OfferModeQuickRail basePath={basePath} className="mb-3 sm:mb-4" />
               </>
             ) : null}
@@ -582,7 +597,12 @@ export function MarketplaceView({
                       {t("showAll")}
                     </Button>
                   </>
-                ) : hasFilters && attributeFilterKeys.length > 0 ? (
+                ) : hasFilters &&
+                  (attributeFilterKeys.length > 0 ||
+                    shipsToFilter ||
+                    shipsFromFilter ||
+                    searchParams.get("delivery") ||
+                    searchParams.get("freeShipping")) ? (
                   <>
                     <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{t("emptyFilteredTitle")}</p>
                     <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
@@ -595,6 +615,11 @@ export function MarketplaceView({
                       {shipsFromFilter && shipsFromFilter !== regionalShipsFacet ? (
                         <Button type="button" variant="outline" onClick={filterRegionalShipping}>
                           {isUsMarket() ? t("tryRegionalShippingUs") : t("tryRegionalShipping")}
+                        </Button>
+                      ) : null}
+                      {shipsToFilter ? (
+                        <Button type="button" variant="outline" onClick={clearFilters}>
+                          {t("clearShipsToFilter")}
                         </Button>
                       ) : null}
                     </div>
