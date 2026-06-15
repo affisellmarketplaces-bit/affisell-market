@@ -92,10 +92,4 @@ export async function processExpansionResendDeliveredEvent(
   return { handled: true, webhookStatus: "expansion_delivered", countryIso2 }
 }
 
-export function computeLaunchDeliveryRatePct(args: {
-  deliveredThisMonth: number
-  notifiedCount: number
-}): number {
-  if (args.deliveredThisMonth === 0 || args.notifiedCount === 0) return 0
-  return Math.min(100, Math.round((args.deliveredThisMonth / args.notifiedCount) * 1000) / 10)
-}
+export { computeLaunchDeliveryRatePct } from "@/lib/expansion/compute-country-delivery-rate"

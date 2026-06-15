@@ -11,9 +11,10 @@ import { stripeCheckoutAllowedCountriesForRegion } from "@/lib/eu-market-countri
 import { loadGraduatedCheckoutCountryIso2 } from "@/lib/checkout-country-rollout"
 import { findNextPilotCountry } from "@/lib/expansion/find-next-pilot-country"
 import { computeCountryBounceRatePct } from "@/lib/expansion/compute-country-bounce-rate"
+import { computeLaunchDeliveryRatePct } from "@/lib/expansion/compute-country-delivery-rate"
 import { expansionCountryLabel } from "@/lib/expansion/expansion-country-label"
 import { loadExpansionCountryBounceStats } from "@/lib/expansion/load-expansion-country-bounce-stats"
-import { computeLaunchDeliveryRatePct, loadExpansionCountryDeliveryStats } from "@/lib/resend-webhook/expansion-email-delivered"
+import { loadExpansionCountryDeliveryStats } from "@/lib/resend-webhook/expansion-email-delivered"
 import { loadExpansionEmailBounceStats } from "@/lib/expansion/load-expansion-email-bounce-stats"
 import { prisma } from "@/lib/prisma"
 

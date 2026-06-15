@@ -6,6 +6,7 @@ import { toast } from "sonner"
 
 import type { AdminExpansionOverview } from "@/lib/admin/admin-expansion-types"
 import { EXPANSION_BOUNCE_RATE_ALERT_THRESHOLD_PCT } from "@/lib/expansion/compute-country-bounce-rate"
+import { EXPANSION_LOW_DELIVERY_RATE_THRESHOLD_PCT } from "@/lib/expansion/compute-country-delivery-rate"
 import { expansionCountryLabel } from "@/lib/expansion/expansion-country-label"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -186,6 +187,14 @@ export function AdminExpansionConsole({
           <Button type="button" variant="outline" size="sm" disabled={pending} onClick={refresh}>
             Refresh
           </Button>
+          {overview.countries.some((row) => row.launchEmailsDeliveredThisMonth > 0) ? (
+            <Button type="button" variant="outline" size="sm" asChild>
+              <a href="/api/admin/expansion/delivered-export">
+                <Download className="mr-1.5 size-3.5" aria-hidden />
+                Export delivered CSV
+              </a>
+            </Button>
+          ) : null}
           {overview.emailBounces.launchSuppressedTotal > 0 ? (
             <Button type="button" variant="outline" size="sm" asChild>
               <a href="/api/admin/expansion/suppressed-export">
@@ -329,6 +338,13 @@ export function AdminExpansionConsole({
                         {row.launchBounceRatePct}% bounce
                       </Badge>
                     ) : null}
+                    {row.funnel.notifiedCount >= 10 &&
+                    row.launchDeliveryRatePct > 0 &&
+                    row.launchDeliveryRatePct < EXPANSION_LOW_DELIVERY_RATE_THRESHOLD_PCT ? (
+                      <Badge variant="outline" className="border-amber-500 text-amber-800 dark:text-amber-300">
+                        {row.launchDeliveryRatePct}% delivered
+                      </Badge>
+                    ) : null}
                   </div>
                   <p className="mt-1 text-xs text-zinc-500">
                     {row.waitlistCount} signup{row.waitlistCount === 1 ? "" : "s"}
@@ -364,16 +380,36 @@ export function AdminExpansionConsole({
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {row.enabled ? (
-                    <Button type="button" size="sm" variant="outline" asChild>
-                      <a
-                        href={`/api/admin/expansion/launch-email-preview?countryIso2=${encodeURIComponent(row.countryIso2)}&locale=en`}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <Eye className="mr-1.5 size-3.5" aria-hidden />
-                        Preview launch email
-                      </a>
-                    </Button>
+                    <>
+                      <Button type="button" size="sm" variant="outline" asChild>
+                        <a
+                          href={`/api/admin/expansion/launch-email-preview?countryIso2=${encodeURIComponent(row.countryIso2)}&kind=launch&locale=en`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <Eye className="mr-1.5 size-3.5" aria-hidden />
+                          Launch
+                        </a>
+                      </Button>
+                      <Button type="button" size="sm" variant="outline" asChild>
+                        <a
+                          href={`/api/admin/expansion/launch-email-preview?countryIso2=${encodeURIComponent(row.countryIso2)}&kind=followup&locale=en`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          J+2
+                        </a>
+                      </Button>
+                      <Button type="button" size="sm" variant="outline" asChild>
+                        <a
+                          href={`/api/admin/expansion/launch-email-preview?countryIso2=${encodeURIComponent(row.countryIso2)}&kind=graduated&locale=en`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Graduate
+                        </a>
+                      </Button>
+                    </>
                   ) : null}
                   {!row.enabled ? (
                     <Button type="button" size="sm" onClick={() => void enableCountry(row.countryIso2)}>

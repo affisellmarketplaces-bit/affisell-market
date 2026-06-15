@@ -65,7 +65,20 @@ function buildDigestBody(
           .slice(0, 5)
           .map(
             (row) =>
-              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchBounceRatePct}%`
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchBounceRatePct}% bounce`
+          )
+      : ["• none"]),
+    "",
+    "Low delivery rate (<80%):",
+    ...(overview.countries.filter(
+      (row) => row.funnel.notifiedCount >= 10 && row.launchDeliveryRatePct < 80
+    ).length > 0
+      ? overview.countries
+          .filter((row) => row.funnel.notifiedCount >= 10 && row.launchDeliveryRatePct < 80)
+          .slice(0, 5)
+          .map(
+            (row) =>
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchDeliveryRatePct}% (${row.launchEmailsDeliveredThisMonth} delivered)`
           )
       : ["• none"]),
     "",

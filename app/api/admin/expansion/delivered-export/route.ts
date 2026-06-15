@@ -1,19 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import {
-  renderExpansionBuyerEmailHtml,
-  type ExpansionBuyerEmailKind,
-} from "@/lib/emails/render-expansion-buyer-email"
+  buildExpansionDeliveredCsv,
+  EXPANSION_DELIVERED_CSV_FILENAME,
+} from "@/lib/admin/build-expansion-delivered-csv"
+import { loadExpansionDeliveredRows } from "@/lib/admin/load-expansion-delivered-rows"
 import { requireAdminSession } from "@/lib/admin/require-admin-session"
 import { normalizeVisitorCountryIso2 } from "@/lib/visitor-country"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
-
-function parseEmailKind(raw: string | null): ExpansionBuyerEmailKind {
-  if (raw === "followup" || raw === "graduated") return raw
-  return "launch"
-}
 
 export async function GET(req: NextRequest) {
   const gate = await requireAdminSession()
@@ -22,27 +18,26 @@ export async function GET(req: NextRequest) {
   }
 
   const countryRaw = req.nextUrl.searchParams.get("countryIso2")?.trim()
-  const countryIso2 = countryRaw ? normalizeVisitorCountryIso2(countryRaw) : null
-  if (!countryIso2) {
+  const countryIso2 = countryRaw ? normalizeVisitorCountryIso2(countryRaw) : undefined
+  if (countryRaw && !countryIso2) {
     return NextResponse.json({ error: "invalid_country" }, { status: 400 })
   }
 
-  const locale = req.nextUrl.searchParams.get("locale") === "en" ? "en" : "fr"
-  const kind = parseEmailKind(req.nextUrl.searchParams.get("kind"))
-  const html = await renderExpansionBuyerEmailHtml({ kind, countryIso2, locale })
+  const rows = await loadExpansionDeliveredRows(countryIso2)
+  const csv = buildExpansionDeliveredCsv(rows)
 
   console.log("[expansion-rollout]", {
     userId: gate.session.user.id,
-    countryIso2,
-    locale,
-    kind,
-    result: "expansion_email_preview",
+    countryIso2: countryIso2 ?? null,
+    rows: rows.length,
+    result: "delivered_export",
   })
 
-  return new NextResponse(html, {
+  return new NextResponse(csv, {
     status: 200,
     headers: {
-      "Content-Type": "text/html; charset=utf-8",
+      "Content-Type": "text/csv; charset=utf-8",
+      "Content-Disposition": `attachment; filename="${EXPANSION_DELIVERED_CSV_FILENAME}"`,
       "Cache-Control": "no-store",
     },
   })
