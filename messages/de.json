@@ -981,6 +981,12 @@
       "stripeTax": "MwSt.",
       "footnote": "Versand hängt von der Lieferzone ab. Filtern Sie « Europäische Union » in der Seitenleiste."
     },
+    "rolloutShipping": {
+      "aria": "Versand in Ihr Land",
+      "title": "Versand nach {country} bestätigt",
+      "body": "Checkout nach {country} ist live — zahlen Sie mit Stripe und liefern Sie an Ihre lokale Adresse.",
+      "cartNote": "Checkout nach {country} ist offen — Ihre Bestellung wird an Ihre lokale Adresse geliefert."
+    },
     "checkoutRegion": {
       "aria": "Checkout availability in your region",
       "badge": "Coming soon",

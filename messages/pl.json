@@ -981,6 +981,12 @@
       "stripeTax": "VAT",
       "footnote": "Koszty wysyłki zależą od strefy dostawcy. Filtruj « Unia Europejska » w panelu bocznym."
     },
+    "rolloutShipping": {
+      "aria": "Wysyłka do Twojego kraju",
+      "title": "Wysyłka do {country} potwierdzona",
+      "body": "Checkout do {country} jest aktywny — zapłać przez Stripe i dostarcz na lokalny adres.",
+      "cartNote": "Checkout do {country} otwarty — zamówienie trafi na Twój lokalny adres."
+    },
     "checkoutRegion": {
       "aria": "Checkout availability in your region",
       "badge": "Coming soon",

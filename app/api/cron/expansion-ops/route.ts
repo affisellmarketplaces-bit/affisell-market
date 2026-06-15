@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { authorizeCronRequest } from "@/lib/cron/authorize-cron-request"
 import { runCheckoutLaunchFollowupCron } from "@/lib/cron/checkout-launch-followup"
 import { runCheckoutLaunchNotifyCron } from "@/lib/cron/checkout-launch-notify"
+import { runExpansionAutoPilotAfterFirstOrders } from "@/lib/cron/expansion-auto-pilot"
 import { runExpansionDigestCron } from "@/lib/cron/expansion-digest"
 import { runExpansionRolloutMetricsCron } from "@/lib/cron/expansion-rollout-metrics"
 
@@ -30,5 +31,7 @@ export async function GET(req: NextRequest) {
     runExpansionRolloutMetricsCron(),
   ])
 
-  return NextResponse.json({ ok: true, notify, followup, metrics })
+  const autoPilot = await runExpansionAutoPilotAfterFirstOrders(metrics.newFirstOrderCountries)
+
+  return NextResponse.json({ ok: true, notify, followup, metrics, autoPilot })
 }

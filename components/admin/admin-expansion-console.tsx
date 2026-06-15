@@ -96,6 +96,10 @@ export function AdminExpansionConsole({ initial, metabaseExpansionEmbedUrl }: Pr
           <p className="mt-2 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
             Funnel waitlist → notify → first order. Pilot the next country from demand, then track conversion here
             or in Metabase (`[expansion-rollout]`, `[launch-waitlist]`).
+            {overview.autoPilotEnabled ? " Auto-pilot ON — next country opens after first order." : null}
+            {overview.rolloutHealth.stalledCount > 0
+              ? ` ${overview.rolloutHealth.stalledCount} rollout(s) stalled 7d+ without order.`
+              : null}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

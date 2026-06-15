@@ -4,6 +4,9 @@ import {
   loadExpansionCountryFunnels,
   loadExpansionFunnelSummary,
 } from "@/lib/admin/load-admin-expansion-funnel"
+import type { ExpansionRolloutHealthStats } from "@/lib/admin/load-expansion-rollout-health"
+import { loadExpansionRolloutHealthStats } from "@/lib/admin/load-expansion-rollout-health"
+import { isExpansionAutoPilotEnabled } from "@/lib/cron/expansion-auto-pilot"
 import type { MarketRegion } from "@/lib/market-config"
 import { MARKET_REGION } from "@/lib/market-config"
 import { stripeCheckoutAllowedCountriesForRegion } from "@/lib/eu-market-countries"
@@ -36,13 +39,16 @@ export type AdminExpansionOverview = {
   totalWaitlist: number
   funnel: ExpansionFunnelSummary
   nextPilot: ExpansionNextPilot | null
+  rolloutHealth: ExpansionRolloutHealthStats
+  autoPilotEnabled: boolean
   countries: ExpansionCountryRow[]
 }
 
 export async function loadAdminExpansionOverview(): Promise<AdminExpansionOverview> {
   const marketRegion = MARKET_REGION
 
-  const [waitlistGroups, rollouts, totalWaitlist, liveCheckoutCountries, funnel] = await Promise.all([
+  const [waitlistGroups, rollouts, totalWaitlist, liveCheckoutCountries, funnel, rolloutHealth] =
+    await Promise.all([
     prisma.checkoutLaunchWaitlist.groupBy({
       by: ["countryIso2"],
       where: { marketRegion },
@@ -55,6 +61,7 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
     prisma.checkoutLaunchWaitlist.count({ where: { marketRegion } }),
     resolveStripeCheckoutAllowedCountries(marketRegion),
     loadExpansionFunnelSummary(),
+    loadExpansionRolloutHealthStats(),
   ])
 
   const pendingByCountry = await prisma.checkoutLaunchWaitlist.groupBy({
@@ -130,6 +137,8 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
     totalWaitlist,
     funnel,
     nextPilot,
+    rolloutHealth,
+    autoPilotEnabled: isExpansionAutoPilotEnabled(),
     countries,
   }
 }

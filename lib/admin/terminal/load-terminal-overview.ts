@@ -1,4 +1,5 @@
 import { loadCheckoutLaunchWaitlistStats } from "@/lib/admin/load-checkout-launch-waitlist-stats"
+import { loadExpansionRolloutHealthStats } from "@/lib/admin/load-expansion-rollout-health"
 import { loadAdminKycStats } from "@/lib/admin/merchant-kyc/load-kyc-queue"
 import { loadMerchantPublishPipelineStats } from "@/lib/supplier-publish-readiness"
 import { computeSentinelScore } from "@/lib/sentinel/score"
@@ -36,6 +37,7 @@ export async function loadAdminTerminalOverview(): Promise<AdminTerminalOverview
     kyc,
     publishPipeline,
     launchWaitlist,
+    expansionHealth,
     openSignals,
     signalCounts,
     lastScan,
@@ -52,6 +54,7 @@ export async function loadAdminTerminalOverview(): Promise<AdminTerminalOverview
     loadAdminKycStats(),
     loadMerchantPublishPipelineStats(),
     loadCheckoutLaunchWaitlistStats(),
+    loadExpansionRolloutHealthStats(),
     prisma.opsSignal.count({ where: { resolvedAt: null } }),
     prisma.opsSignal.groupBy({
       by: ["severity"],
@@ -135,11 +138,15 @@ export async function loadAdminTerminalOverview(): Promise<AdminTerminalOverview
       label: "Expansion ROW",
       count: launchWaitlist.total,
       href: "/admin/expansion",
-      tone: launchWaitlist.total > 0 ? "sky" : "emerald",
+      tone: expansionHealth.stalledCount > 0 ? "amber" : launchWaitlist.total > 0 ? "sky" : "emerald",
       hint:
-        launchWaitlist.topCountry && launchWaitlist.topCountryCount > 0
-          ? `${launchWaitlist.topCountry} · ${launchWaitlist.topCountryCount} alertes`
-          : "Alertes lancement pays",
+        expansionHealth.stalledCount > 0
+          ? `${expansionHealth.stalledCount} rollout(s) stalled · ${expansionHealth.stalledCountries.join(", ")}`
+          : launchWaitlist.topCountry && launchWaitlist.topCountryCount > 0
+            ? `${launchWaitlist.topCountry} · ${launchWaitlist.topCountryCount} alertes`
+            : expansionHealth.enabledCount > 0
+              ? `${expansionHealth.enabledCount} live · ${expansionHealth.awaitingFirstOrder} awaiting 1st order`
+              : "Alertes lancement pays",
     },
     {
       id: "support",

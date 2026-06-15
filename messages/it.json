@@ -981,6 +981,12 @@
       "stripeTax": "IVA",
       "footnote": "La spedizione dipende dalla zona del fornitore. Filtra « Unione europea » nella barra laterale."
     },
+    "rolloutShipping": {
+      "aria": "Spedizione nel tuo paese",
+      "title": "Spedizione verso {country} confermata",
+      "body": "Il checkout verso {country} è attivo — paga con Stripe e spedisci al tuo indirizzo locale.",
+      "cartNote": "Checkout verso {country} aperto — il tuo ordine viene spedito al tuo indirizzo locale."
+    },
     "checkoutRegion": {
       "aria": "Checkout availability in your region",
       "badge": "Coming soon",

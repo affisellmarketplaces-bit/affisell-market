@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma"
 export type RunExpansionRolloutMetricsResult = {
   checked: number
   firstOrdersRecorded: number
+  newFirstOrderCountries: string[]
 }
 
 const PAID_STATUSES = ["paid", "shipped", "delivered", "completed", "preparing"] as const
@@ -23,6 +24,7 @@ export async function runExpansionRolloutMetricsCron(): Promise<RunExpansionRoll
   })
 
   let firstOrdersRecorded = 0
+  const newFirstOrderCountries: string[] = []
 
   for (const rollout of rollouts) {
     const orders = await prisma.order.findMany({
@@ -46,6 +48,7 @@ export async function runExpansionRolloutMetricsCron(): Promise<RunExpansionRoll
     })
 
     firstOrdersRecorded += 1
+    newFirstOrderCountries.push(rollout.countryIso2)
     logBusiness("expansion-rollout", {
       country: rollout.countryIso2,
       marketRegion: MARKET_REGION,
@@ -55,5 +58,5 @@ export async function runExpansionRolloutMetricsCron(): Promise<RunExpansionRoll
     })
   }
 
-  return { checked: rollouts.length, firstOrdersRecorded }
+  return { checked: rollouts.length, firstOrdersRecorded, newFirstOrderCountries }
 }

@@ -32,7 +32,8 @@ jobs:
             "/api/cron/release-booking-holds" \
             "/api/cron/booking-reminders" \
             "/api/cron/booking-waitlist-notify" \
-            "/api/cron/agent-mission-reminders"
+            "/api/cron/agent-mission-reminders" \
+            "/api/cron/expansion-ops"
           do
             echo "→ GET ${path}"
             curl -fsS -H "$AUTH" "${BASE}${path}" || echo "WARN: ${path} failed"
@@ -57,7 +58,8 @@ jobs:
             "/api/cron/review-reminder" \
             "/api/cron/wishlist-price-alerts" \
             "/api/cron/stripe-health" \
-            "/api/cron/booking-supplier-digest"
+            "/api/cron/booking-supplier-digest" \
+            "/api/cron/expansion-digest"
           do
             echo "→ GET ${path}"
             curl -fsS -H "$AUTH" "${BASE}${path}" || echo "WARN: ${path} failed"

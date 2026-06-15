@@ -981,6 +981,12 @@
       "stripeTax": "VAT",
       "footnote": "Shipping depends on supplier zone. Filter « European Union » in the sidebar."
     },
+    "rolloutShipping": {
+      "aria": "配送到您所在国家",
+      "title": "已确认配送到 {country}",
+      "body": "{country} 结账已开放 — 使用 Stripe 支付并配送到您的本地地址。",
+      "cartNote": "{country} 结账已开放 — 订单将配送到您的本地地址。"
+    },
     "checkoutRegion": {
       "aria": "Checkout availability in your region",
       "badge": "Coming soon",

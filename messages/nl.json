@@ -981,6 +981,12 @@
       "stripeTax": "BTW",
       "footnote": "Verzending hangt af van de leverancierszone. Filter « Europese Unie » in de zijbalk."
     },
+    "rolloutShipping": {
+      "aria": "Verzending naar uw land",
+      "title": "Verzending naar {country} bevestigd",
+      "body": "Checkout naar {country} is live — betaal met Stripe en lever op uw lokale adres.",
+      "cartNote": "Checkout naar {country} open — uw bestelling wordt naar uw lokale adres verzonden."
+    },
     "checkoutRegion": {
       "aria": "Checkout availability in your region",
       "badge": "Coming soon",
