@@ -6,6 +6,7 @@ import { Clock, MousePointerClick, Sparkles } from "lucide-react"
 import { FlexiblePaymentBadge } from "@/components/checkout/flexible-payment-badge"
 import { ProductPriceOffer } from "@/components/product/product-price-offer"
 import { cn } from "@/lib/utils"
+import { storefrontPdpBrandClasses } from "@/lib/storefront-pdp-brand"
 
 type Props = {
   priceLabel: string
@@ -21,6 +22,7 @@ type Props = {
   buyNowShort: string
   reduceMotion?: boolean
   className?: string
+  brandedStorefront?: boolean
 }
 
 export function ListingPriceActionCard({
@@ -37,24 +39,18 @@ export function ListingPriceActionCard({
   buyNowShort,
   reduceMotion = false,
   className,
+  brandedStorefront = false,
 }: Props) {
+  const brand = storefrontPdpBrandClasses(brandedStorefront)
   return (
     <div
-      className={cn(
-        "listing-price-card-sheen relative max-w-full overflow-hidden rounded-2xl border border-zinc-200/80",
-        "bg-gradient-to-br from-white via-violet-50/30 to-white p-4 shadow-sm",
-        "dark:border-zinc-700/80 dark:from-zinc-900 dark:via-violet-950/20 dark:to-zinc-950 sm:p-5",
-        className
-      )}
+      className={cn(brand.priceCard, className)}
     >
-      <div
-        className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-violet-400/15 blur-2xl dark:bg-violet-500/10"
-        aria-hidden
-      />
+      <div className={brand.priceCardOrb} aria-hidden />
 
       <div className="relative flex flex-col gap-4 lg:flex-row lg:items-stretch lg:justify-between lg:gap-5">
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-semibold tracking-[0.08em] text-violet-700/90 dark:text-violet-300/90">
+          <p className={brand.priceCardLabel}>
             {priceLabel}
           </p>
           <div className="mt-1">
@@ -82,7 +78,7 @@ export function ListingPriceActionCard({
             whileHover={{ scale: availableStock > 0 && !buyBusy ? 1.02 : 1 }}
             whileTap={{ scale: availableStock > 0 && !buyBusy ? 0.98 : 1 }}
             onClick={() => onBuyNow()}
-            className="relative flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-sm font-semibold text-white shadow-md shadow-violet-500/25 ring-1 ring-white/15 transition hover:shadow-lg hover:shadow-violet-500/30 disabled:cursor-not-allowed disabled:opacity-50 dark:ring-white/10"
+            className={cn("relative flex h-12 w-full", brand.ctaPrimary)}
           >
             <span
               className="pointer-events-none absolute inset-0 bg-[linear-gradient(110deg,transparent_30%,rgba(255,255,255,0.22)_50%,transparent_70%)] opacity-0 transition-opacity duration-500 hover:opacity-100"

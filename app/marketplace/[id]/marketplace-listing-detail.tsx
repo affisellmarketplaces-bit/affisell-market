@@ -90,6 +90,8 @@ import {
   marketplaceSellingPriceCentsForOption,
   type ProductVariantsJson,
 } from "@/lib/product-variants"
+import { storefrontPdpBrandClasses } from "@/lib/storefront-pdp-brand"
+import { cn } from "@/lib/utils"
 
 const EMPTY_SIZE_OPTIONS: string[] = []
 
@@ -195,6 +197,8 @@ type Props = {
   salesCount?: number
   /** Supplier listing clip shown under the photo gallery (9:16). */
   galleryListingVideoUrl?: string | null
+  /** Affiliate shop PDP (`/shops/:slug`) — use Brand Studio colors instead of Affisell violet. */
+  brandedStorefront?: boolean
 }
 
 function fmtMoney(value: number) {
@@ -397,8 +401,10 @@ export function MarketplaceListingDetail({
   viewsLast24h = 0,
   salesCount = 0,
   galleryListingVideoUrl = null,
+  brandedStorefront = false,
 }: Props) {
   const locale = useLocale() as AppLocale
+  const brand = storefrontPdpBrandClasses(brandedStorefront)
   const messages = CLIENT_MESSAGES[locale] as typeof import("@/messages/en.json")
   const productT = messages.Product
   const breadcrumbT = messages.Breadcrumb
@@ -886,11 +892,11 @@ export function MarketplaceListingDetail({
     <>
       <div className="relative mb-10 max-w-full max-lg:overflow-x-clip lg:mb-14 lg:overflow-visible">
         <motion.div
-          className="pointer-events-none absolute -left-1/4 top-[-4.5rem] hidden h-[26rem] w-[26rem] rounded-full bg-violet-500/[0.2] blur-3xl dark:bg-violet-600/[0.14] sm:left-[-8%] sm:top-[-5rem] lg:block"
+          className={brand.cardGlowOrb}
           aria-hidden
         />
         <motion.div
-          className="pointer-events-none absolute right-[-12%] top-[18%] hidden h-[20rem] w-[20rem] rounded-full bg-teal-400/16 blur-3xl dark:bg-teal-500/10 sm:right-[-6%] lg:block"
+          className={brand.cardGlowOrbTeal}
           aria-hidden
         />
         <motion.div
@@ -991,6 +997,7 @@ export function MarketplaceListingDetail({
               reviewCount={reviewSummary.count}
               colorMeta={colorMeta}
               showColorSwatches={showColorSwatches}
+              brandedStorefront={brandedStorefront}
               selectedColor={selectedColor}
               onSelectColor={selectColor}
               storageOptions={storageOptions}
@@ -1055,7 +1062,7 @@ export function MarketplaceListingDetail({
                 transition={reduceMotion ? { duration: 0 } : { duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
               >
                 <div
-                  className="pointer-events-none absolute -left-3 top-0 hidden h-full w-0.5 rounded-full bg-gradient-to-b from-violet-500 via-fuchsia-500 to-transparent opacity-80 lg:block"
+                  className={brand.titleAccentBar}
                   aria-hidden
                 />
                 <div className="pl-0 lg:pl-2">
@@ -1103,7 +1110,7 @@ export function MarketplaceListingDetail({
                 transition={reduceMotion ? { duration: 0 } : { duration: 0.35, delay: 0.06, ease: [0.22, 1, 0.36, 1] }}
               >
                 {categoryEyebrow ? (
-                  <span className="rounded-full bg-violet-600/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-violet-800 dark:bg-violet-500/15 dark:text-violet-200">
+                  <span className={brand.categoryBadge}>
                     {categoryEyebrow}
                   </span>
                 ) : null}
@@ -1134,7 +1141,7 @@ export function MarketplaceListingDetail({
               <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                 {reviewSummary.average.toFixed(1)}
               </span>
-              <a href="#listing-reviews" className="text-sm font-medium text-violet-700 hover:underline dark:text-violet-400">
+              <a href="#listing-reviews" className={cn("text-sm", brand.accentText)}>
                 {t(productT.reviews, { count: formatStoreCount(reviewSummary.count) })}
               </a>
               {viewsLast24h >= 12 ? (
@@ -1175,6 +1182,7 @@ export function MarketplaceListingDetail({
               ) : (
             <ListingPriceActionCard
               className="max-lg:hidden"
+              brandedStorefront={brandedStorefront}
               priceLabel={productT.priceLabel}
               listingPriceEur={listingPriceEur}
               activeRetailPriceEur={hasRetailCompare ? activeRetailPriceEur : null}
@@ -1225,7 +1233,7 @@ export function MarketplaceListingDetail({
 
             <div className="hidden space-y-3 px-4 py-3 lg:block lg:space-y-4 lg:px-0 lg:py-0">
             {partnerHighlightLabel ? (
-              <p className="rounded-lg border border-violet-200/70 bg-violet-50/70 px-3 py-2 text-[11px] leading-relaxed text-violet-950 dark:border-violet-900/40 dark:bg-violet-950/30 dark:text-violet-100 lg:rounded-xl lg:text-xs">
+              <p className={brand.partnerHighlight}>
                 <span className="font-semibold">Partner highlight:</span> {partnerHighlightLabel}
               </p>
             ) : null}
@@ -1297,7 +1305,7 @@ export function MarketplaceListingDetail({
                         onClick={() => selectColor(cn)}
                         className={`rounded-xl border px-3 py-2 text-sm font-medium transition ${
                           shopperColorLabelsMatch(selectedColor, cn)
-                            ? "border-violet-600 bg-violet-600 text-white shadow-sm dark:border-violet-500 dark:bg-violet-600"
+                            ? brand.chipSelected
                             : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-700 dark:hover:border-zinc-600"
                         } ${out ? "cursor-not-allowed opacity-40" : ""}`}
                       >
@@ -1358,7 +1366,7 @@ export function MarketplaceListingDetail({
                         onClick={() => setSelectedStorage(cap)}
                         className={`rounded-xl border px-3 py-2 text-sm font-medium transition ${
                           selectedStorage === cap
-                            ? "border-violet-600 bg-violet-600 text-white shadow-sm dark:border-violet-500 dark:bg-violet-600"
+                            ? brand.chipSelected
                             : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-700 dark:hover:border-zinc-600"
                         } ${out ? "cursor-not-allowed opacity-40" : ""}`}
                       >
@@ -1397,7 +1405,7 @@ export function MarketplaceListingDetail({
                       onClick={() => setSelectedSize(s)}
                       className={`rounded-xl border px-2 py-2.5 text-sm font-medium transition ${
                         selectedSize === s
-                          ? "border-violet-600 bg-violet-600 text-white shadow-sm dark:border-violet-500 dark:bg-violet-600"
+                          ? brand.chipSelected
                           : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-700 dark:hover:border-zinc-600"
                       }`}
                     >
@@ -1524,7 +1532,7 @@ export function MarketplaceListingDetail({
                   whileHover={{ scale: availableStock > 0 && !cartBusy ? 1.01 : 1 }}
                   whileTap={{ scale: availableStock > 0 && !cartBusy ? 0.99 : 1 }}
                   onClick={(e) => void addToCart(e)}
-                  className="group relative flex h-12 min-w-0 flex-1 items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-violet-600 via-violet-600 to-fuchsia-600 text-[15px] font-semibold text-white shadow-md shadow-violet-500/25 transition hover:shadow-lg hover:shadow-violet-500/30 disabled:cursor-not-allowed disabled:opacity-50 lg:h-14 lg:w-full lg:rounded-full lg:text-base lg:shadow-lg dark:shadow-violet-900/40"
+                  className={cn("group flex h-12 min-w-0 flex-1 lg:w-full", brand.ctaPrimary)}
                 >
                   <span className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 transition group-hover:opacity-100" aria-hidden />
                   <ShoppingBag className="relative h-5 w-5 shrink-0" aria-hidden />
@@ -1544,11 +1552,11 @@ export function MarketplaceListingDetail({
                   whileHover={{ scale: availableStock > 0 && !buyBusy ? 1.012 : 1 }}
                   whileTap={{ scale: availableStock > 0 && !buyBusy ? 0.988 : 1 }}
                   onClick={() => void buyNow()}
-                  className="group relative flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-xl border border-violet-300/60 bg-white text-[15px] font-semibold text-zinc-900 shadow-sm transition hover:bg-violet-50/50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-violet-500/40 dark:bg-zinc-900 dark:text-zinc-50 dark:hover:bg-violet-950/40 lg:h-14 lg:rounded-full lg:border-violet-300/45 lg:px-4 lg:text-left lg:shadow-[0_0_0_1px_rgba(139,92,246,0.07),0_10px_36px_-14px_rgba(124,58,237,0.42)] lg:ring-1 lg:ring-white/70 lg:backdrop-blur-md"
+                  className={cn("group flex h-12 w-full", brand.ctaSecondary)}
                 >
-                  <MousePointerClick className="h-4 w-4 shrink-0 text-violet-600 lg:hidden dark:text-violet-400" aria-hidden />
+                  <MousePointerClick className={cn("h-4 w-4 shrink-0 lg:hidden", brand.accentIcon)} aria-hidden />
                   <span className="relative">{buyBusy ? "Redirecting…" : productT.buyNowShort}</span>
-                  <ArrowRight className="hidden h-5 w-5 shrink-0 text-violet-600 lg:block dark:text-violet-400" aria-hidden />
+                  <ArrowRight className={cn("hidden h-5 w-5 shrink-0 lg:block", brand.accentIcon)} aria-hidden />
                 </motion.button>
 
                 <div className="grid grid-cols-2 gap-2 pt-0.5 lg:gap-2.5 lg:pt-1">
@@ -2039,12 +2047,12 @@ export function MarketplaceListingDetail({
               : "none",
         }}
       >
-        <div className="mx-auto flex max-w-3xl items-center gap-2 rounded-[1.35rem] border border-violet-200/50 bg-white/92 px-2.5 py-2 shadow-[0_16px_48px_-12px_rgba(91,33,217,0.35)] ring-1 ring-violet-500/10 backdrop-blur-2xl dark:border-violet-900/40 dark:bg-zinc-950/92 dark:ring-violet-400/15 sm:gap-3 sm:rounded-2xl sm:px-3 sm:py-2.5">
+        <div className={brand.stickyBar}>
           <div className="min-w-0 flex-1">
             <p className="truncate text-[11px] font-semibold leading-tight text-zinc-900 dark:text-zinc-50">
               {titleHeadline}
             </p>
-            <p className="text-sm font-bold tabular-nums text-violet-700 dark:text-violet-400 sm:text-base">
+            <p className={brand.stickyPrice}>
               {priceDisplay}
             </p>
           </div>
@@ -2052,7 +2060,7 @@ export function MarketplaceListingDetail({
             type="button"
             disabled={buyBusy || availableStock <= 0 || bookingCheckoutBlocked || bookingSlotRequired}
             onClick={() => void buyNow()}
-            className="hidden h-10 shrink-0 rounded-full border border-violet-400/60 bg-white px-3 text-xs font-bold text-violet-800 sm:inline-flex dark:bg-zinc-900 dark:text-violet-200"
+            className={brand.stickySecondaryBtn}
           >
             {productT.buyNowShort}
           </Button>
@@ -2060,7 +2068,7 @@ export function MarketplaceListingDetail({
             type="button"
             disabled={cartBusy || availableStock <= 0 || bookingCheckoutBlocked || bookingCheckoutLive}
             onClick={(e) => void addToCart(e)}
-            className="h-10 shrink-0 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 text-xs font-bold text-white shadow-lg shadow-violet-500/25 sm:h-11 sm:px-5 sm:text-sm"
+            className={brand.ctaPrimarySticky}
           >
             {cartBusy ? "…" : productT.addToCart}
           </Button>

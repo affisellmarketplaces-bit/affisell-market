@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import type { ReactNode } from "react"
 import { notFound } from "next/navigation"
 import { getLocale } from "next-intl/server"
 import { headers } from "next/headers"
@@ -38,6 +39,8 @@ import {
 import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import type { AppLocale } from "@/lib/i18n-locale"
 import { offerModeBadge, parseProductOfferMode } from "@/lib/product-offer-mode"
+import { storefrontPdpBrandClasses } from "@/lib/storefront-pdp-brand"
+import { cn } from "@/lib/utils"
 import {
   isGraduatedCheckoutCountryResolved,
   isRolloutOnlyCheckoutCountryResolved,
@@ -325,41 +328,16 @@ export default async function MarketplaceListingPage({
   }
 
   return (
-    <main className="affisell-pdp-viewport relative min-h-screen w-full max-w-[100vw] overflow-x-clip bg-gradient-to-b from-zinc-100/95 via-white to-violet-100/45 dark:from-zinc-950 dark:via-zinc-950 dark:to-violet-950/30">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
-      />
-      <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_115%_70%_at_50%_-12%,rgba(139,92,246,0.14),transparent_52%)] dark:bg-[radial-gradient(ellipse_115%_70%_at_50%_-12%,rgba(139,92,246,0.22),transparent_55%)]"
-        aria-hidden
-      />
-      <div className="relative mx-auto min-w-0 max-w-6xl px-4 py-6 pb-[calc(5.75rem+env(safe-area-inset-bottom))] md:px-8 md:py-10 md:pb-12 lg:py-12">
-        {!checkoutAvailable && visitorCountry ? (
-          <CheckoutRegionComingSoonBanner
-            className="mb-4"
-            variant="compact"
-            visitorCountry={visitorCountry}
-            checkoutAvailable={false}
-          />
-        ) : graduatedCheckout && visitorCountry ? (
-          <GraduatedCheckoutPermanentBanner
-            className="mb-4"
-            variant="compact"
-            visitorCountry={visitorCountry}
-            checkoutAvailable
-            graduatedCheckout
-          />
-        ) : rolloutOnly && visitorCountry ? (
-          <RolloutShippingConfirmedBanner
-            className="mb-4"
-            variant="compact"
-            visitorCountry={visitorCountry}
-            checkoutAvailable
-            rolloutOnly
-          />
-        ) : null}
-        <MarketplaceListingDetail
+    <MarketplaceListingPageShell
+      storeSlug={storeSlug}
+      checkoutAvailable={checkoutAvailable}
+      visitorCountry={visitorCountry}
+      graduatedCheckout={graduatedCheckout}
+      rolloutOnly={rolloutOnly}
+      productJsonLd={productJsonLd}
+    >
+      <MarketplaceListingDetail
+        brandedStorefront={Boolean(storeSlug)}
           audience="customer"
           listingId={listing.id}
           productId={listing.product.id}
@@ -412,6 +390,66 @@ export default async function MarketplaceListingPage({
             typeof p.videoAdUrl === "string" && p.videoAdUrl.trim() ? p.videoAdUrl.trim() : null
           }
         />
+    </MarketplaceListingPageShell>
+  )
+}
+
+function MarketplaceListingPageShell({
+  storeSlug,
+  checkoutAvailable,
+  visitorCountry,
+  graduatedCheckout,
+  rolloutOnly,
+  productJsonLd,
+  children,
+}: {
+  storeSlug?: string
+  checkoutAvailable: boolean
+  visitorCountry: string | null
+  graduatedCheckout: boolean
+  rolloutOnly: boolean
+  productJsonLd: unknown
+  children: ReactNode
+}) {
+  const brand = storefrontPdpBrandClasses(Boolean(storeSlug))
+  return (
+    <main
+      className={cn(
+        "affisell-pdp-viewport relative min-h-screen w-full max-w-[100vw] overflow-x-clip",
+        brand.pageShell
+      )}
+    >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
+      <div className={cn("pointer-events-none absolute inset-0", brand.pageGlow)} aria-hidden />
+      <div className="relative mx-auto min-w-0 max-w-6xl px-4 py-6 pb-[calc(5.75rem+env(safe-area-inset-bottom))] md:px-8 md:py-10 md:pb-12 lg:py-12">
+        {!checkoutAvailable && visitorCountry ? (
+          <CheckoutRegionComingSoonBanner
+            className="mb-4"
+            variant="compact"
+            visitorCountry={visitorCountry}
+            checkoutAvailable={false}
+          />
+        ) : graduatedCheckout && visitorCountry ? (
+          <GraduatedCheckoutPermanentBanner
+            className="mb-4"
+            variant="compact"
+            visitorCountry={visitorCountry}
+            checkoutAvailable
+            graduatedCheckout
+          />
+        ) : rolloutOnly && visitorCountry ? (
+          <RolloutShippingConfirmedBanner
+            className="mb-4"
+            variant="compact"
+            visitorCountry={visitorCountry}
+            checkoutAvailable
+            rolloutOnly
+          />
+        ) : null}
+        {children}
       </div>
     </main>
   )

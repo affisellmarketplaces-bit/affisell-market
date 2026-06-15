@@ -11,6 +11,7 @@ import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { isMulticolorSwatch } from "@/lib/product-catalog-constants"
 import { shopperColorLabelsMatch } from "@/lib/marketplace-color-meta"
+import { storefrontPdpBrandClasses } from "@/lib/storefront-pdp-brand"
 import { cn } from "@/lib/utils"
 
 export type MobilePdpColorMeta = {
@@ -67,6 +68,7 @@ export type MobilePdpBuyPanelProps = {
   }
   formatReviewCount: (n: number) => string
   className?: string
+  brandedStorefront?: boolean
 }
 
 export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>(
@@ -108,22 +110,21 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
       labels,
       formatReviewCount,
       className,
+      brandedStorefront = false,
     },
     ref
   ) {
+    const brand = storefrontPdpBrandClasses(brandedStorefront)
     return (
       <section
         ref={ref}
         id="mobile-pdp-buy-panel"
-        className={cn(
-          "scroll-mt-20 space-y-3.5 rounded-2xl border border-violet-200/40 bg-gradient-to-b from-white via-violet-50/25 to-white p-3.5 shadow-[0_20px_50px_-28px_rgba(91,33,217,0.28)] ring-1 ring-violet-500/10 dark:border-violet-900/35 dark:from-zinc-950 dark:via-violet-950/15 dark:to-zinc-950 dark:ring-violet-400/10",
-          className
-        )}
+        className={cn(brand.mobilePanel, className)}
         aria-label={labels.addToCart}
       >
         <header className="space-y-1.5">
           {categoryEyebrow ? (
-            <span className="inline-block rounded-full bg-violet-600/12 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.16em] text-violet-800 dark:bg-violet-500/15 dark:text-violet-200">
+            <span className={brand.mobileCategoryBadge}>
               {categoryEyebrow}
             </span>
           ) : null}
@@ -160,7 +161,7 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
               </span>
               <Link
                 href={reviewsHref}
-                className="font-medium text-violet-700 dark:text-violet-400"
+                className={cn("font-medium", brand.accentText)}
               >
                 {labels.reviews(formatReviewCount(reviewCount))}
               </Link>
@@ -185,6 +186,7 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
           priceFluidityNote={priceFluidityNote}
           buyNowShort={labels.buyNowShort}
           reduceMotion={reduceMotion}
+          brandedStorefront={brandedStorefront}
         />
 
         {colorMeta.length > 0 ? (
@@ -207,7 +209,7 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
                     className={cn(
                       "relative h-11 w-11 shrink-0 rounded-full border-2 transition active:scale-95",
                       shopperColorLabelsMatch(selectedColor, colorName)
-                        ? "border-violet-600 ring-2 ring-violet-400/35 dark:border-violet-400"
+                        ? brand.chipSelectedRing
                         : "border-zinc-300 dark:border-zinc-600"
                     )}
                     style={
@@ -230,7 +232,7 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
                     className={cn(
                       "shrink-0 rounded-full border px-3.5 py-2 text-xs font-semibold transition active:scale-95",
                       shopperColorLabelsMatch(selectedColor, colorName)
-                        ? "border-violet-600 bg-violet-600 text-white shadow-md"
+                        ? brand.chipSelected
                         : "border-zinc-200 bg-white text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
                     )}
                   >
@@ -259,7 +261,7 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
                     className={cn(
                       "shrink-0 rounded-full border px-3.5 py-2 text-xs font-semibold transition active:scale-95",
                       selectedStorage === cap
-                        ? "border-violet-600 bg-violet-600 text-white"
+                        ? brand.chipSelected
                         : "border-zinc-200 bg-zinc-50 text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100",
                       disabled && "cursor-not-allowed opacity-40"
                     )}
@@ -286,7 +288,7 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
                   className={cn(
                     "min-w-[2.75rem] rounded-full border px-3 py-2 text-xs font-semibold transition active:scale-95",
                     selectedSize === s
-                      ? "border-violet-600 bg-violet-600 text-white"
+                      ? brand.chipSelected
                       : "border-zinc-200 bg-zinc-50 text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
                   )}
                 >
@@ -314,7 +316,7 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
             disabled={cartBusy || availableStock <= 0}
             whileTap={{ scale: availableStock > 0 && !cartBusy ? 0.98 : 1 }}
             onClick={onAddToCart}
-            className="flex h-11 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-sm font-bold text-white shadow-lg shadow-violet-600/30 disabled:opacity-50"
+            className={cn("flex h-11 items-center justify-center gap-2 rounded-full", brand.ctaPrimary)}
           >
             <ShoppingBag className="size-4 shrink-0" aria-hidden />
             {cartBusy ? "…" : labels.addToCart}

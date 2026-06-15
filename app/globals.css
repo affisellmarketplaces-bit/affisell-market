@@ -1021,6 +1021,230 @@ body.affisell-demo-lab .affisell-header-shell {
   }
 }
 
+/* —— Affiliate storefront PDP (Brand Studio `--store-accent` / `--store-primary`) —— */
+.affisell-storefront-pdp-shell {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--store-accent, #7c3aed) 3%, rgb(250 250 250)),
+    white 42%,
+    color-mix(in srgb, var(--store-accent, #7c3aed) 7%, rgb(250 250 250))
+  );
+}
+
+.dark .affisell-storefront-pdp-shell {
+  background: linear-gradient(
+    to bottom,
+    rgb(9 9 11),
+    rgb(9 9 11) 42%,
+    color-mix(in srgb, var(--store-accent, #7c3aed) 10%, rgb(9 9 11))
+  );
+}
+
+.affisell-storefront-pdp-page-glow {
+  background: radial-gradient(
+    ellipse 115% 70% at 50% -12%,
+    color-mix(in srgb, var(--store-accent, #7c3aed) 14%, transparent),
+    transparent 52%
+  );
+}
+
+.dark .affisell-storefront-pdp-page-glow {
+  background: radial-gradient(
+    ellipse 115% 70% at 50% -12%,
+    color-mix(in srgb, var(--store-accent, #7c3aed) 22%, transparent),
+    transparent 55%
+  );
+}
+
+.affisell-storefront-pdp-orb {
+  pointer-events: none;
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(64px);
+}
+
+.affisell-storefront-pdp-orb--left {
+  left: -25%;
+  top: -4.5rem;
+  display: none;
+  height: 26rem;
+  width: 26rem;
+  background: color-mix(in srgb, var(--store-accent, #7c3aed) 20%, transparent);
+}
+
+@media (min-width: 1024px) {
+  .affisell-storefront-pdp-orb--left {
+    display: block;
+    left: -8%;
+    top: -5rem;
+  }
+}
+
+.affisell-storefront-pdp-orb--right {
+  right: -12%;
+  top: 18%;
+  display: none;
+  height: 20rem;
+  width: 20rem;
+  background: color-mix(in srgb, var(--store-accent, #7c3aed) 12%, rgb(45 212 191 / 0.16));
+}
+
+@media (min-width: 1024px) {
+  .affisell-storefront-pdp-orb--right {
+    display: block;
+    right: -6%;
+  }
+}
+
+.affisell-storefront-pdp-title-bar {
+  background: linear-gradient(
+    to bottom,
+    var(--store-accent, #7c3aed),
+    color-mix(in srgb, var(--store-accent, #7c3aed) 55%, #d946ef),
+    transparent
+  );
+}
+
+.affisell-storefront-pdp-price-orb {
+  background: color-mix(in srgb, var(--store-accent, #7c3aed) 15%, transparent);
+}
+
+.store-pdp-cta-primary {
+  color: white;
+  background: linear-gradient(
+    to right,
+    var(--store-accent, #7c3aed),
+    color-mix(in srgb, var(--store-accent, #7c3aed) 68%, #d946ef)
+  );
+  box-shadow: 0 8px 28px -10px color-mix(in srgb, var(--store-accent, #7c3aed) 50%, transparent);
+  transition: box-shadow 0.2s ease;
+}
+
+.store-pdp-cta-primary:hover:not(:disabled) {
+  box-shadow: 0 12px 32px -8px color-mix(in srgb, var(--store-accent, #7c3aed) 55%, transparent);
+}
+
+.store-pdp-cta-secondary {
+  color: rgb(24 24 27);
+  border: 1px solid color-mix(in srgb, var(--store-accent, #7c3aed) 35%, #e4e4e7);
+  background: white;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+}
+
+.dark .store-pdp-cta-secondary {
+  color: rgb(250 250 250);
+  border-color: color-mix(in srgb, var(--store-accent, #7c3aed) 40%, #3f3f46);
+  background: rgb(24 24 27);
+}
+
+.store-pdp-cta-secondary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--store-accent, #7c3aed) 6%, white);
+}
+
+.dark .store-pdp-cta-secondary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--store-accent, #7c3aed) 12%, rgb(24 24 27));
+}
+
+.store-pdp-chip-selected {
+  border-color: var(--store-accent, #7c3aed) !important;
+  background-color: var(--store-accent, #7c3aed) !important;
+}
+
+.store-pdp-category-badge {
+  background: color-mix(in srgb, var(--store-accent, #7c3aed) 12%, transparent);
+  color: color-mix(in srgb, var(--store-accent, #7c3aed) 72%, #09090b);
+}
+
+.dark .store-pdp-category-badge {
+  color: color-mix(in srgb, var(--store-accent, #7c3aed) 58%, white);
+}
+
+.store-pdp-accent-text {
+  color: var(--store-accent, #7c3aed);
+}
+
+.store-pdp-accent-icon {
+  color: var(--store-accent, #7c3aed);
+}
+
+.store-pdp-partner-highlight {
+  border: 1px solid color-mix(in srgb, var(--store-accent, #7c3aed) 28%, #e4e4e7);
+  background: color-mix(in srgb, var(--store-accent, #7c3aed) 8%, white);
+  color: color-mix(in srgb, var(--store-primary, #18181b) 88%, var(--store-accent, #7c3aed));
+}
+
+.dark .store-pdp-partner-highlight {
+  border-color: color-mix(in srgb, var(--store-accent, #7c3aed) 35%, #27272a);
+  background: color-mix(in srgb, var(--store-accent, #7c3aed) 14%, rgb(9 9 11));
+  color: color-mix(in srgb, var(--store-accent, #7c3aed) 45%, white);
+}
+
+.store-pdp-price-card {
+  background: linear-gradient(
+    to bottom right,
+    white,
+    color-mix(in srgb, var(--store-accent, #7c3aed) 7%, white),
+    white
+  );
+}
+
+.dark .store-pdp-price-card {
+  background: linear-gradient(
+    to bottom right,
+    rgb(24 24 27),
+    color-mix(in srgb, var(--store-accent, #7c3aed) 12%, rgb(24 24 27)),
+    rgb(9 9 11)
+  );
+}
+
+.store-pdp-price-card-label {
+  color: color-mix(in srgb, var(--store-accent, #7c3aed) 82%, #09090b);
+}
+
+.dark .store-pdp-price-card-label {
+  color: color-mix(in srgb, var(--store-accent, #7c3aed) 65%, white);
+}
+
+.store-pdp-mobile-panel {
+  border-color: color-mix(in srgb, var(--store-accent, #7c3aed) 22%, #e4e4e7);
+  background: linear-gradient(
+    to bottom,
+    white,
+    color-mix(in srgb, var(--store-accent, #7c3aed) 5%, white),
+    white
+  );
+  box-shadow: 0 20px 50px -28px color-mix(in srgb, var(--store-accent, #7c3aed) 30%, transparent);
+}
+
+.dark .store-pdp-mobile-panel {
+  border-color: color-mix(in srgb, var(--store-accent, #7c3aed) 28%, #27272a);
+  background: linear-gradient(
+    to bottom,
+    rgb(9 9 11),
+    color-mix(in srgb, var(--store-accent, #7c3aed) 10%, rgb(9 9 11)),
+    rgb(9 9 11)
+  );
+}
+
+.store-pdp-sticky-bar {
+  border-color: color-mix(in srgb, var(--store-accent, #7c3aed) 28%, #e4e4e7);
+  box-shadow: 0 16px 48px -12px color-mix(in srgb, var(--store-accent, #7c3aed) 35%, transparent);
+}
+
+.dark .store-pdp-sticky-bar {
+  border-color: color-mix(in srgb, var(--store-accent, #7c3aed) 32%, #27272a);
+  background: rgb(9 9 11 / 0.92);
+}
+
+.store-pdp-sticky-secondary {
+  border-color: color-mix(in srgb, var(--store-accent, #7c3aed) 45%, #e4e4e7);
+  color: color-mix(in srgb, var(--store-accent, #7c3aed) 78%, #09090b);
+}
+
+.dark .store-pdp-sticky-secondary {
+  color: color-mix(in srgb, var(--store-accent, #7c3aed) 62%, white);
+}
+
 /* —— Navigation rapide (prefetch + transitions) —— */
 .affisell-fast-link {
   touch-action: manipulation;
