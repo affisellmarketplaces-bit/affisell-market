@@ -5,6 +5,7 @@ import { ExpansionDigestEmail } from "@/emails/expansion-digest"
 import { expansionCountryLabel, loadAdminExpansionOverview } from "@/lib/admin/load-admin-expansion-overview"
 import { resolveExpansionAdminEmail } from "@/lib/admin/resolve-expansion-admin-email"
 import { buildGraduatedThisMonthDigestLines } from "@/lib/expansion/expansion-digest-graduated-month"
+import { resolveGraduatedBuyerShopUrl } from "@/lib/expansion/graduated-buyer-shop-url"
 import { findGraduationEmailStalls } from "@/lib/expansion/graduation-email-stall"
 import { logBusiness } from "@/lib/business-log"
 import {
@@ -46,11 +47,14 @@ function buildDigestBody(
     ...buildGraduatedThisMonthDigestLines(
       overview.graduatedThisMonth,
       overview.graduatedThisMonthCountries,
-      (iso2) => expansionCountryLabel(iso2, "en")
+      (iso2) => expansionCountryLabel(iso2, "en"),
+      (iso2) => resolveGraduatedBuyerShopUrl(iso2)
     ),
     "",
     `Graduation emails sent: ${overview.funnel.graduationsWithBuyerEmail}`,
     `Graduation emails pending: ${overview.funnel.graduationEmailsPending}`,
+    `Expansion email bounces (month): ${overview.emailBounces.bouncesThisMonth}`,
+    `Launch emails pending retry: ${overview.emailBounces.launchRetriesPending}`,
     `Total waitlist signups: ${overview.totalWaitlist}`,
     "",
     "Top demand:",
@@ -130,6 +134,10 @@ export async function runExpansionDigestCron(now = new Date()): Promise<RunExpan
 
   const bodyText = buildDigestBody(overview, enabledWithoutOrder, graduationEmailStalls)
   const adminConsoleUrl = `${resolveAppUrl()}/admin/expansion`
+  const graduatedBrowseLinks = overview.graduatedThisMonthCountries.slice(0, 3).map((row) => ({
+    label: expansionCountryLabel(row.countryIso2, "en"),
+    url: resolveGraduatedBuyerShopUrl(row.countryIso2),
+  }))
   const resend = new Resend(config.apiKey)
   const { to } = resolveResendDeliveryRecipient("expansion-digest", recipient, config)
   const html = await render(
@@ -137,6 +145,7 @@ export async function runExpansionDigestCron(now = new Date()): Promise<RunExpan
       bodyText,
       adminConsoleUrl,
       graduationPendingCount: overview.funnel.graduationEmailsPending,
+      graduatedBrowseLinks,
     })
   )
 

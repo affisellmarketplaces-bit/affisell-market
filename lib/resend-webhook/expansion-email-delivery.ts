@@ -1,5 +1,7 @@
 import { logBusiness } from "@/lib/business-log"
+import { resolveExpansionEmailKind } from "@/lib/expansion/resolve-expansion-email-kind"
 import { opsWebhookAlert } from "@/lib/ops-webhook"
+import { reenqueueLaunchWaitlistOnHardBounce } from "@/lib/resend-webhook/reenqueue-launch-waitlist-on-bounce"
 
 export type ResendWebhookEmailData = {
   email_id?: string
@@ -42,28 +44,38 @@ export function isExpansionBuyerResendEmail(data: ResendWebhookEmailData): boole
 export type ProcessExpansionResendDeliveryResult = {
   handled: boolean
   alerted: boolean
+  retryQueued: number
+  webhookStatus: "expansion_bounce" | "expansion_complaint" | null
 }
 
-/** Ops alert on hard bounce / spam complaint for expansion buyer emails (idempotent via webhook id). */
+/** Ops alert on hard bounce / spam complaint for expansion buyer emails; re-queue launch waitlist once. */
 export async function processExpansionResendDeliveryEvent(
   event: ResendWebhookEvent,
   webhookId: string
 ): Promise<ProcessExpansionResendDeliveryResult> {
   if (event.type !== "email.bounced" && event.type !== "email.complained") {
-    return { handled: false, alerted: false }
+    return { handled: false, alerted: false, retryQueued: 0, webhookStatus: null }
   }
 
   if (!isExpansionBuyerResendEmail(event.data)) {
-    return { handled: false, alerted: false }
+    return { handled: false, alerted: false, retryQueued: 0, webhookStatus: null }
   }
 
   const recipient = event.data.to?.[0] ?? "unknown"
   const subject = event.data.subject ?? "(no subject)"
   const bounceMessage = event.data.bounce?.message
   const kind = event.type === "email.bounced" ? "bounce" : "complaint"
+  const emailKind = resolveExpansionEmailKind(event.data)
+
+  let retryQueued = 0
+  if (event.type === "email.bounced" && emailKind === "checkout-launch" && recipient !== "unknown") {
+    retryQueued = await reenqueueLaunchWaitlistOnHardBounce(recipient)
+  }
+
+  const retryBit = retryQueued > 0 ? ` · ${retryQueued} waitlist row(s) re-queued` : ""
   const text = `⚠️ Expansion email ${kind}: \`${recipient}\` — ${subject}${
     bounceMessage ? ` — ${bounceMessage.slice(0, 200)}` : ""
-  }`
+  }${retryBit}`
 
   const { slack, discord } = await opsWebhookAlert(text)
   const alerted = slack || discord
@@ -74,8 +86,15 @@ export async function processExpansionResendDeliveryEvent(
     emailId: event.data.email_id ?? null,
     recipient,
     subject,
+    emailKind,
+    retryQueued,
     alerted,
   })
 
-  return { handled: true, alerted }
+  return {
+    handled: true,
+    alerted,
+    retryQueued,
+    webhookStatus: event.type === "email.bounced" ? "expansion_bounce" : "expansion_complaint",
+  }
 }

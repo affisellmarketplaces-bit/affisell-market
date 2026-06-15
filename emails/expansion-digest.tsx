@@ -14,14 +14,17 @@ export type ExpansionDigestEmailProps = {
   bodyText: string
   adminConsoleUrl: string
   graduationPendingCount?: number
+  graduatedBrowseLinks?: Array<{ label: string; url: string }>
 }
 
 export function ExpansionDigestEmail({
   bodyText,
   adminConsoleUrl,
   graduationPendingCount = 0,
+  graduatedBrowseLinks = [],
 }: ExpansionDigestEmailProps) {
   const showGraduationCta = graduationPendingCount > 0
+  const showBrowseLinks = graduatedBrowseLinks.length > 0
 
   return (
     <Html>
@@ -36,6 +39,18 @@ export function ExpansionDigestEmail({
               Open expansion console
             </Button>
           </Section>
+          {showBrowseLinks ? (
+            <Section style={browseBox}>
+              <Text style={browseTitle}>Graduated this month — browse catalog</Text>
+              {graduatedBrowseLinks.map((link) => (
+                <Section key={link.url} style={{ textAlign: "center", margin: "12px 0" }}>
+                  <Button href={link.url} style={buttonBrowse}>
+                    Shop {link.label}
+                  </Button>
+                </Section>
+              ))}
+            </Section>
+          ) : null}
           {showGraduationCta ? (
             <Section style={graduationBox}>
               <Text style={graduationTitle}>
@@ -78,6 +93,28 @@ const buttonPrimary = {
   fontWeight: 600,
   textDecoration: "none",
 }
+const browseBox = {
+  margin: "0 0 16px",
+  padding: "16px",
+  borderRadius: "12px",
+  backgroundColor: "#f5f3ff",
+  border: "1px solid #ddd6fe",
+}
+const browseTitle = {
+  fontSize: "14px",
+  fontWeight: 700,
+  color: "#5b21b6",
+  margin: "0 0 8px",
+  textAlign: "center" as const,
+}
+const buttonBrowse = {
+  backgroundColor: "#6d28d9",
+  color: "#ffffff",
+  padding: "10px 18px",
+  borderRadius: "999px",
+  fontWeight: 600,
+  textDecoration: "none",
+}
 const graduationBox = {
   margin: "0 0 16px",
   padding: "16px",
@@ -113,4 +150,7 @@ ExpansionDigestEmail.PreviewProps = {
   bodyText: "Region: EU\nGraduation emails pending: 2",
   adminConsoleUrl: "https://affisell.com/admin/expansion",
   graduationPendingCount: 2,
+  graduatedBrowseLinks: [
+    { label: "Japan", url: "https://affisell.com/shops/browse?shipsTo=jp" },
+  ],
 } satisfies ExpansionDigestEmailProps

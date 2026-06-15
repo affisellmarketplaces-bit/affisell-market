@@ -2149,6 +2149,7 @@ model CheckoutLaunchWaitlist {
   locale            String?
   launchNotifiedAt  DateTime?
   launchFollowUpSentAt DateTime?
+  launchEmailBouncedAt DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -2156,6 +2157,7 @@ model CheckoutLaunchWaitlist {
   @@index([countryIso2, marketRegion])
   @@index([marketRegion, createdAt])
   @@index([countryIso2, marketRegion, launchNotifiedAt])
+  @@index([marketRegion, launchEmailBouncedAt])
 }
 
 /** Founder-enabled checkout countries beyond the static EU/US base list. */

@@ -147,6 +147,12 @@ export function AdminExpansionConsole({ initial, metabaseExpansionEmbedUrl }: Pr
             {overview.rolloutHealth.graduationEmailStallCount > 0
               ? ` ${overview.rolloutHealth.graduationEmailStallCount} graduation email(s) stalled 48h+ (${overview.rolloutHealth.graduationEmailStallCountries.join(", ")}).`
               : null}
+            {overview.emailBounces.bouncesThisMonth > 0
+              ? ` ${overview.emailBounces.bouncesThisMonth} expansion email bounce(s) this month.`
+              : null}
+            {overview.emailBounces.launchRetriesPending > 0
+              ? ` ${overview.emailBounces.launchRetriesPending} launch email(s) queued for auto-retry.`
+              : null}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -162,7 +168,7 @@ export function AdminExpansionConsole({ initial, metabaseExpansionEmbedUrl }: Pr
         </div>
       </div>
 
-      <div className="mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <MetricCard label="Live checkout countries" value={overview.liveCheckoutCount} />
         <MetricCard label="ROW rollouts enabled" value={overview.rolloutCount} />
         <MetricCard
@@ -179,6 +185,17 @@ export function AdminExpansionConsole({ initial, metabaseExpansionEmbedUrl }: Pr
                   .map((row) => row.countryIso2.toUpperCase())
                   .join(", ")
               : undefined
+          }
+        />
+        <MetricCard
+          label="Email bounces (month)"
+          value={overview.emailBounces.bouncesThisMonth}
+          hint={
+            overview.emailBounces.launchRetriesPending > 0
+              ? `${overview.emailBounces.launchRetriesPending} retry queued`
+              : overview.emailBounces.complaintsThisMonth > 0
+                ? `${overview.emailBounces.complaintsThisMonth} complaint(s)`
+                : undefined
           }
         />
         <MetricCard label="Waitlist signups" value={overview.totalWaitlist} />

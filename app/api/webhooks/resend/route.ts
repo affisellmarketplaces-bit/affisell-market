@@ -52,7 +52,11 @@ export async function POST(req: NextRequest) {
   )
 
   await prisma.processedWebhook.create({
-    data: { id, status: "success" },
+    data: {
+      id,
+      status: expansionResult.webhookStatus ?? "success",
+      error: expansionResult.handled ? (event.data as { to?: string[] }).to?.[0] ?? null : null,
+    },
   })
 
   return NextResponse.json({

@@ -12,6 +12,7 @@ import { MARKET_REGION } from "@/lib/market-config"
 import { stripeCheckoutAllowedCountriesForRegion } from "@/lib/eu-market-countries"
 import { loadGraduatedCheckoutCountryIso2 } from "@/lib/checkout-country-rollout"
 import { findNextPilotCountry } from "@/lib/expansion/find-next-pilot-country"
+import { loadExpansionEmailBounceStats } from "@/lib/expansion/load-expansion-email-bounce-stats"
 import { prisma } from "@/lib/prisma"
 import { visitorCountryDisplayName } from "@/lib/visitor-country"
 
@@ -40,6 +41,12 @@ export type GraduatedThisMonthCountry = {
   graduatedAt: string
 }
 
+export type ExpansionEmailBounceOverview = {
+  bouncesThisMonth: number
+  complaintsThisMonth: number
+  launchRetriesPending: number
+}
+
 export type AdminExpansionOverview = {
   marketRegion: MarketRegion
   liveCheckoutCount: number
@@ -47,6 +54,7 @@ export type AdminExpansionOverview = {
   graduatedCount: number
   graduatedThisMonth: number
   graduatedThisMonthCountries: GraduatedThisMonthCountry[]
+  emailBounces: ExpansionEmailBounceOverview
   totalWaitlist: number
   funnel: ExpansionFunnelSummary
   nextPilot: ExpansionNextPilot | null
@@ -58,7 +66,7 @@ export type AdminExpansionOverview = {
 export async function loadAdminExpansionOverview(): Promise<AdminExpansionOverview> {
   const marketRegion = MARKET_REGION
 
-  const [waitlistGroups, rollouts, totalWaitlist, liveCheckoutCountries, funnel, rolloutHealth] =
+  const [waitlistGroups, rollouts, totalWaitlist, liveCheckoutCountries, funnel, rolloutHealth, emailBounces] =
     await Promise.all([
     prisma.checkoutLaunchWaitlist.groupBy({
       by: ["countryIso2"],
@@ -73,6 +81,7 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
     resolveStripeCheckoutAllowedCountries(marketRegion),
     loadExpansionFunnelSummary(),
     loadExpansionRolloutHealthStats(),
+    loadExpansionEmailBounceStats(),
   ])
 
   const pendingByCountry = await prisma.checkoutLaunchWaitlist.groupBy({
@@ -166,6 +175,7 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
     graduatedCount: rollouts.filter((row) => row.enabled && row.graduatedAt).length,
     graduatedThisMonth,
     graduatedThisMonthCountries,
+    emailBounces,
     totalWaitlist,
     funnel,
     nextPilot,
