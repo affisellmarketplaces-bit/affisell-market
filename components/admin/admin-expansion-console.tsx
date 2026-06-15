@@ -8,10 +8,12 @@ import type { AdminExpansionOverview } from "@/lib/admin/admin-expansion-types"
 import type { ExpansionEmailExportKind } from "@/lib/admin/expansion-email-export-kinds"
 import { expansionEmailExportsBundlePath } from "@/lib/admin/expansion-email-export-kinds"
 import {
+  buildExpansionAdminCountryQuickExportLinks,
   buildExpansionAdminKindQuickExportLinks,
   buildExpansionAdminQuickExportLinks,
   emailKindStatHasQuickExport,
   EXPANSION_ADMIN_QUICK_EXPORT_KINDS,
+  pickTopExpansionQuickExportCountries,
   shouldShowExpansionAdminQuickExports,
 } from "@/lib/expansion/expansion-digest-quick-exports"
 import { EXPANSION_BOUNCE_RATE_ALERT_THRESHOLD_PCT } from "@/lib/expansion/compute-country-bounce-rate"
@@ -368,7 +370,14 @@ export function AdminExpansionConsole({
     if (!stat || !emailKindStatHasQuickExport(stat)) return []
     return [{ label, links: buildExpansionAdminKindQuickExportLinks(emailKind, label) }]
   })
-  const quickExportCount = quickExportLinks.length + kindQuickExportGroups.reduce((sum, group) => sum + group.links.length, 0)
+  const countryQuickExportGroups = pickTopExpansionQuickExportCountries(overview.countries).map((row) => ({
+    label: row.countryIso2.toUpperCase(),
+    links: buildExpansionAdminCountryQuickExportLinks(row),
+  }))
+  const quickExportCount =
+    quickExportLinks.length +
+    kindQuickExportGroups.reduce((sum, group) => sum + group.links.length, 0) +
+    countryQuickExportGroups.reduce((sum, group) => sum + group.links.length, 0)
   const showQuickExports = shouldShowExpansionAdminQuickExports({
     deliveredThisMonth: overview.emailEventCounts.deliveredThisMonth,
     bouncesThisMonth: overview.emailEventCounts.bouncesThisMonth,
@@ -395,6 +404,21 @@ export function AdminExpansionConsole({
             ))}
           </div>
           {kindQuickExportGroups.map((group) => (
+            <div key={group.label} className="flex flex-wrap items-center gap-2 border-t border-zinc-200 pt-2 dark:border-zinc-800">
+              <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">{group.label}</span>
+              {group.links.map((link) => (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  className="inline-flex items-center gap-1 rounded-md border border-zinc-200 bg-white px-2 py-1 text-[11px] font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                >
+                  <Download className="size-3" aria-hidden />
+                  {link.label}
+                </a>
+              ))}
+            </div>
+          ))}
+          {countryQuickExportGroups.map((group) => (
             <div key={group.label} className="flex flex-wrap items-center gap-2 border-t border-zinc-200 pt-2 dark:border-zinc-800">
               <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">{group.label}</span>
               {group.links.map((link) => (

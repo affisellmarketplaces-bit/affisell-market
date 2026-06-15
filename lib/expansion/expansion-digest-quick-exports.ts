@@ -131,6 +131,30 @@ export function buildExpansionAdminKindQuickExportLinks(
   ]
 }
 
+export function buildExpansionAdminCountryQuickExportLinks(
+  row: ExpansionDigestQuickExportCountry
+): ExpansionAdminQuickExportLink[] {
+  const countryIso2 = row.countryIso2
+  const countryCode = countryIso2.toUpperCase()
+  const bounceKind = pickExpansionBounceExportKind(row)
+  const complaintKind = pickExpansionComplaintExportKind(row)
+  const deliveredKind = pickExpansionDeliveredExportKind(row)
+
+  return [
+    { label: `${countryCode} bundle`, href: expansionEmailExportsBundlePath(countryIso2) },
+    { label: `${countryCode} bounces`, href: expansionBouncesExportPath(countryIso2, bounceKind) },
+    { label: `${countryCode} complaints`, href: expansionComplaintsExportPath(countryIso2, complaintKind) },
+    { label: `${countryCode} delivered`, href: expansionDeliveredExportPath(countryIso2, deliveredKind) },
+  ]
+}
+
+export function pickTopExpansionQuickExportCountries(
+  countries: ExpansionDigestQuickExportCountry[],
+  limit = 5
+): ExpansionDigestQuickExportCountry[] {
+  return countries.filter(hasExpansionQuickExportActivity).slice(0, limit)
+}
+
 export function shouldShowExpansionAdminQuickExports(args: {
   deliveredThisMonth: number
   bouncesThisMonth: number

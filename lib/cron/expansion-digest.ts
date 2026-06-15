@@ -43,6 +43,10 @@ import {
   shouldShowLaunchNotifyPausedDigestRow,
 } from "@/lib/expansion/expansion-digest-launch-delivery-badge"
 import {
+  launchNotifyPausedDigestBadge,
+  launchNotifyPausedDigestExportSuffix,
+} from "@/lib/expansion/expansion-digest-launch-notify-pause-badge"
+import {
   graduationComplaintDigestBadge,
   shouldShowGraduationComplaintDigestRow,
 } from "@/lib/expansion/expansion-digest-graduation-complaint-badge"
@@ -137,7 +141,15 @@ function buildDigestBody(
           .slice(0, 8)
           .map(
             (row) =>
-              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchDeliveryRatePct}% delivered${launchDeliveryDigestBadge(row.launchDeliveryRatePct)} — ${adminUrl}${expansionDeliveredExportPath(row.countryIso2, "checkout-launch")}`
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchDeliveryRatePct}% delivered${launchNotifyPausedDigestBadge({
+                launchComplaintsThisMonth: row.launchComplaintsThisMonth,
+                launchDeliveryRatePct: row.launchDeliveryRatePct,
+              })}${launchNotifyPausedDigestExportSuffix({
+                adminUrl,
+                countryIso2: row.countryIso2,
+                launchComplaintsThisMonth: row.launchComplaintsThisMonth,
+                launchDeliveryRatePct: row.launchDeliveryRatePct,
+              })}`
           )
       : ["• none"]),
     "",
