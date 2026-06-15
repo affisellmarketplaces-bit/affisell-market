@@ -4,6 +4,7 @@ import {
   renderExpansionBuyerEmailHtml,
   type ExpansionBuyerEmailKind,
 } from "@/lib/emails/render-expansion-buyer-email"
+import { loadExpansionGraduationPreviewOrder } from "@/lib/admin/load-expansion-graduation-preview-order"
 import { requireAdminSession } from "@/lib/admin/require-admin-session"
 import { normalizeVisitorCountryIso2 } from "@/lib/visitor-country"
 
@@ -29,13 +30,31 @@ export async function GET(req: NextRequest) {
 
   const locale = req.nextUrl.searchParams.get("locale") === "en" ? "en" : "fr"
   const kind = parseEmailKind(req.nextUrl.searchParams.get("kind"))
-  const html = await renderExpansionBuyerEmailHtml({ kind, countryIso2, locale })
+  const orderId = req.nextUrl.searchParams.get("orderId")?.trim() || undefined
+  const sampleOrder = req.nextUrl.searchParams.get("sampleOrder") === "1"
+
+  const previewOrderContext =
+    kind === "graduated"
+      ? await loadExpansionGraduationPreviewOrder({
+          countryIso2,
+          orderId,
+          useSampleOrder: sampleOrder,
+        })
+      : null
+
+  const html = await renderExpansionBuyerEmailHtml({
+    kind,
+    countryIso2,
+    locale,
+    previewOrderContext,
+  })
 
   console.log("[expansion-rollout]", {
     userId: gate.session.user.id,
     countryIso2,
     locale,
     kind,
+    orderId: previewOrderContext?.orderId ?? null,
     result: "expansion_email_preview",
   })
 

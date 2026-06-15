@@ -100,6 +100,18 @@ function buildDigestBody(
           )
       : ["• none"]),
     "",
+    "",
+    "J+2 follow-up auto-paused (follow-up complaint):",
+    ...(overview.countries.filter((row) => row.launchFollowupPaused).length > 0
+      ? overview.countries
+          .filter((row) => row.launchFollowupPaused)
+          .slice(0, 8)
+          .map(
+            (row) =>
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchFollowupComplaintsThisMonth} follow-up complaint(s)`
+          )
+      : ["• none"]),
+    "",
     "High bounce rate (>5%):",
     ...(overview.countries.filter((row) => row.launchBounceRatePct > 5).length > 0
       ? overview.countries

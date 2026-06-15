@@ -41,6 +41,14 @@ export async function loadExpansionGraduatedComplaintsByCountry(
   now = new Date(),
   monthStart?: Date
 ): Promise<Map<string, number>> {
+  return loadExpansionComplaintsByCountryAndKind("checkout-graduated", now, monthStart)
+}
+
+export async function loadExpansionComplaintsByCountryAndKind(
+  emailKind: string,
+  now = new Date(),
+  monthStart?: Date
+): Promise<Map<string, number>> {
   const start =
     monthStart ??
     (() => {
@@ -61,7 +69,7 @@ export async function loadExpansionGraduatedComplaintsByCountry(
   const map = new Map<string, number>()
 
   for (const row of rows) {
-    if (parseKindFromMeta(row.error) !== "checkout-graduated") continue
+    if (parseKindFromMeta(row.error) !== emailKind) continue
     const countryIso2 = parseCountryFromMeta(row.error)
     if (!countryIso2) continue
     map.set(countryIso2, (map.get(countryIso2) ?? 0) + 1)

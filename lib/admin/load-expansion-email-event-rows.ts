@@ -13,6 +13,7 @@ export type ExpansionEmailEventRow = {
 
 export async function loadExpansionEmailEventRows(
   countryIso2?: string,
+  emailKind?: string,
   now = new Date()
 ): Promise<ExpansionEmailEventRow[]> {
   const [delivered, bounces, complaints] = await Promise.all([
@@ -42,5 +43,7 @@ export async function loadExpansionEmailEventRows(
     })),
   ]
 
-  return rows.sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime())
+  const filtered = emailKind ? rows.filter((row) => row.emailKind === emailKind) : rows
+
+  return filtered.sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime())
 }

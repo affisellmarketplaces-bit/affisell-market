@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { authorizeCronRequest } from "@/lib/cron/authorize-cron-request"
 import { runCheckoutLaunchFollowupCron } from "@/lib/cron/checkout-launch-followup"
 import { runCheckoutLaunchNotifyCron } from "@/lib/cron/checkout-launch-notify"
+import { runExpansionAutoPauseFollowupCron } from "@/lib/cron/expansion-auto-pause-followup"
 import { runExpansionAutoPauseNotifyCron } from "@/lib/cron/expansion-auto-pause-notify"
 import { runExpansionAutoResumeNotifyCron } from "@/lib/cron/expansion-auto-resume-notify"
 import { runExpansionDeliveryRateAlert } from "@/lib/cron/expansion-delivery-rate-alert"
@@ -46,6 +47,7 @@ export async function GET(req: NextRequest) {
   const complaintAlert = await runExpansionComplaintAlert()
   const graduatedComplaintAlert = await runExpansionGraduatedComplaintAlert()
   const autoPauseNotify = await runExpansionAutoPauseNotifyCron()
+  const autoPauseFollowup = await runExpansionAutoPauseFollowupCron()
   const autoResumeNotify = await runExpansionAutoResumeNotifyCron()
   const suppressedPurge = await runSuppressedWaitlistPurgeCron()
   const graduationEmailStall = await runGraduationEmailStallAlert()
@@ -62,6 +64,7 @@ export async function GET(req: NextRequest) {
     complaintAlert,
     graduatedComplaintAlert,
     autoPauseNotify,
+    autoPauseFollowup,
     autoResumeNotify,
     suppressedPurge,
     graduationEmailStall,

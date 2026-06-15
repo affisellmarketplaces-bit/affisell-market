@@ -27,7 +27,18 @@ export function AdminExpansionConsole({
 }: Props) {
   const [overview, setOverview] = useState(initial)
   const [previewLocale, setPreviewLocale] = useState<"en" | "fr">("en")
+  const [exportEmailKind, setExportEmailKind] = useState<
+    "all" | "checkout-launch" | "checkout-launch-followup" | "checkout-graduated"
+  >("all")
   const [pending, startTransition] = useTransition()
+
+  function buildEmailEventsExportUrl(countryIso2?: string) {
+    const params = new URLSearchParams()
+    if (countryIso2) params.set("countryIso2", countryIso2)
+    if (exportEmailKind !== "all") params.set("emailKind", exportEmailKind)
+    const query = params.toString()
+    return query ? `/api/admin/expansion/email-events-export?${query}` : "/api/admin/expansion/email-events-export"
+  }
 
   function refresh() {
     startTransition(async () => {
@@ -143,6 +154,21 @@ export function AdminExpansionConsole({
     refresh()
   }
 
+  async function resumeFollowupCountry(countryIso2: string) {
+    const res = await fetch("/api/admin/expansion/resume-followup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ countryIso2 }),
+    })
+    const data = (await res.json()) as { ok?: boolean; error?: string }
+    if (!res.ok || !data.ok) {
+      toast.error(data.error ?? "Resume follow-up failed")
+      return
+    }
+    toast.success(`J+2 follow-up resumed for ${countryIso2}`)
+    refresh()
+  }
+
   async function runPilot(rank?: number) {
     const res = await fetch("/api/admin/expansion/pilot", {
       method: "POST",
@@ -227,6 +253,27 @@ export function AdminExpansionConsole({
               Preview FR
             </Button>
           </div>
+          <div className="flex items-center rounded-lg border border-zinc-200 p-0.5 dark:border-zinc-700">
+            {(
+              [
+                ["all", "All kinds"],
+                ["checkout-launch", "Launch"],
+                ["checkout-launch-followup", "Follow-up"],
+                ["checkout-graduated", "Graduated"],
+              ] as const
+            ).map(([value, label]) => (
+              <Button
+                key={value}
+                type="button"
+                size="sm"
+                variant={exportEmailKind === value ? "default" : "ghost"}
+                className="h-7 px-2 text-[11px]"
+                onClick={() => setExportEmailKind(value)}
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
           <Button type="button" variant="outline" size="sm" disabled={pending} onClick={refresh}>
             Refresh
           </Button>
@@ -236,7 +283,7 @@ export function AdminExpansionConsole({
           overview.emailKindStats.some((row) => row.bouncesThisMonth > 0) ||
           overview.countries.some((row) => row.launchEmailsDeliveredThisMonth > 0) ? (
             <Button type="button" variant="outline" size="sm" asChild>
-              <a href="/api/admin/expansion/email-events-export">
+              <a href={buildEmailEventsExportUrl()}>
                 <Download className="mr-1.5 size-3.5" aria-hidden />
                 Export all email events
               </a>
@@ -451,6 +498,12 @@ export function AdminExpansionConsole({
                         Notify paused
                       </Badge>
                     ) : null}
+                    {row.launchFollowupPaused ? (
+                      <Badge variant="destructive" className="gap-1">
+                        <PauseCircle className="size-3" aria-hidden />
+                        Follow-up paused
+                      </Badge>
+                    ) : null}
                     {row.launchBounceRetriesPending > 0 ? (
                       <Badge className="bg-orange-600 hover:bg-orange-600">
                         Bounce retry ({row.launchBounceRetriesPending})
@@ -549,7 +602,7 @@ export function AdminExpansionConsole({
                       </Button>
                       <Button type="button" size="sm" variant="outline" asChild>
                         <a
-                          href={`/api/admin/expansion/launch-email-preview?countryIso2=${encodeURIComponent(row.countryIso2)}&kind=graduated&locale=${previewLocale}`}
+                          href={`/api/admin/expansion/launch-email-preview?countryIso2=${encodeURIComponent(row.countryIso2)}&kind=graduated&locale=${previewLocale}${row.firstOrderId ? "&sampleOrder=1" : ""}`}
                           target="_blank"
                           rel="noreferrer"
                         >
@@ -592,7 +645,7 @@ export function AdminExpansionConsole({
                   row.launchBounceSuppressed > 0 ? (
                     <Button type="button" size="sm" variant="outline" asChild>
                       <a
-                        href={`/api/admin/expansion/email-events-export?countryIso2=${encodeURIComponent(row.countryIso2)}`}
+                        href={buildEmailEventsExportUrl(row.countryIso2)}
                       >
                         <Download className="mr-1.5 size-3.5" aria-hidden />
                         Export events
@@ -608,6 +661,17 @@ export function AdminExpansionConsole({
                     >
                       <RefreshCw className="mr-1.5 size-3.5" aria-hidden />
                       Force retry
+                    </Button>
+                  ) : null}
+                  {row.launchFollowupPaused ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => void resumeFollowupCountry(row.countryIso2)}
+                    >
+                      <RefreshCw className="mr-1.5 size-3.5" aria-hidden />
+                      Resume follow-up
                     </Button>
                   ) : null}
                   {row.launchNotifyPaused ? (

@@ -1,5 +1,6 @@
 import { expansionCountryLabel } from "@/lib/admin/load-admin-expansion-overview"
 import { extractOrderShippingCountryIso2 } from "@/lib/checkout-country-rollout"
+import { isLaunchFollowupPaused } from "@/lib/expansion/launch-followup-pause"
 import { logBusiness } from "@/lib/business-log"
 import { sendCheckoutCountryLaunchFollowupEmail } from "@/lib/emails/send-checkout-country-launch-followup"
 import { MARKET_REGION } from "@/lib/market-config"
@@ -44,6 +45,17 @@ export async function runCheckoutLaunchFollowupCron(
   let failed = 0
 
   for (const waiter of waiters) {
+    if (await isLaunchFollowupPaused(waiter.countryIso2)) {
+      logBusiness("launch-waitlist", {
+        country: waiter.countryIso2,
+        marketRegion: MARKET_REGION,
+        result: "followup_cron_skipped_paused",
+        email: waiter.email,
+      })
+      skipped += 1
+      continue
+    }
+
     const recentOrders = await prisma.order.findMany({
       where: {
         customerEmail: waiter.email,

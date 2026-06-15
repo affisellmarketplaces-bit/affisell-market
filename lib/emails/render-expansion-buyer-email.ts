@@ -1,5 +1,6 @@
 import { render } from "@react-email/render"
 
+import type { ExpansionGraduationPreviewOrderContext } from "@/lib/admin/load-expansion-graduation-preview-order"
 import { CheckoutCountryGraduatedEmail } from "@/emails/checkout-country-graduated"
 import { CheckoutCountryLaunchFollowupEmail } from "@/emails/checkout-country-launch-followup"
 import { CheckoutCountryLaunchEmail } from "@/emails/checkout-country-launch"
@@ -13,6 +14,7 @@ export async function renderExpansionBuyerEmailHtml(args: {
   kind: ExpansionBuyerEmailKind
   countryIso2: string
   locale?: "en" | "fr"
+  previewOrderContext?: ExpansionGraduationPreviewOrderContext | null
 }): Promise<string> {
   if (args.kind === "launch") {
     return renderCheckoutCountryLaunchEmailHtml({
@@ -40,6 +42,7 @@ export async function renderExpansionBuyerEmailHtml(args: {
       countryName,
       shopUrl,
       locale,
+      previewOrderContext: args.previewOrderContext ?? undefined,
     })
   )
 }

@@ -5,6 +5,7 @@ import {
   expansionEmailEventsCsvFilename,
 } from "@/lib/admin/build-expansion-email-events-csv"
 import { loadExpansionEmailEventRows } from "@/lib/admin/load-expansion-email-event-rows"
+import { normalizeExpansionEmailKindFilter } from "@/lib/expansion/normalize-expansion-email-kind-filter"
 import { requireAdminSession } from "@/lib/admin/require-admin-session"
 import { normalizeVisitorCountryIso2 } from "@/lib/visitor-country"
 
@@ -23,13 +24,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "invalid_country" }, { status: 400 })
   }
 
-  const rows = await loadExpansionEmailEventRows(countryIso2)
+  const emailKind = normalizeExpansionEmailKindFilter(req.nextUrl.searchParams.get("emailKind"))
+
+  const rows = await loadExpansionEmailEventRows(countryIso2, emailKind)
   const csv = buildExpansionEmailEventsCsv(rows)
-  const filename = expansionEmailEventsCsvFilename(countryIso2)
+  const filename = expansionEmailEventsCsvFilename(countryIso2, emailKind)
 
   console.log("[expansion-rollout]", {
     userId: gate.session.user.id,
     countryIso2: countryIso2 ?? null,
+    emailKind: emailKind ?? null,
     rows: rows.length,
     result: "email_events_export",
   })
