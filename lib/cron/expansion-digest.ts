@@ -22,15 +22,16 @@ import {
 import {
   buildExpansionDigestCountryQuickExportLine,
   buildExpansionDigestGlobalQuickExportLines,
-  hasExpansionQuickExportActivity,
+  buildExpansionDigestKindComplaintExportLines,
+  pickTopExpansionQuickExportCountries,
 } from "@/lib/expansion/expansion-digest-quick-exports"
 import {
   followupDeliveryDigestBadge,
   shouldShowFollowupLowDeliveryDigestRow,
 } from "@/lib/expansion/expansion-digest-followup-delivery-badge"
 import {
-  launchComplaintDigestBadge,
-  shouldShowLaunchComplaintDigestRow,
+  launchComplaintAlertDigestBadge,
+  shouldShowLaunchComplaintAlertDigestRow,
 } from "@/lib/expansion/expansion-digest-launch-complaint-badge"
 import {
   launchBounceDigestBadge,
@@ -95,7 +96,7 @@ function buildDigestBody(
 ): string {
   const adminUrl = resolveAppUrl()
   const topDemand = overview.countries.slice(0, 5)
-  const quickExportCountries = overview.countries.filter(hasExpansionQuickExportActivity).slice(0, 5)
+  const quickExportCountries = pickTopExpansionQuickExportCountries(overview.countries)
   const lines = [
     `Region: ${MARKET_REGION.toUpperCase()}`,
     `Live checkout countries: ${overview.liveCheckoutCount}`,
@@ -114,6 +115,7 @@ function buildDigestBody(
     `Expansion email complaints (month): ${overview.emailBounces.complaintsThisMonth}`,
     `Email events (month): ${overview.emailEventCounts.deliveredThisMonth} delivered · ${overview.emailEventCounts.bouncesThisMonth} bounce(s) · ${overview.emailEventCounts.complaintsThisMonth} complaint(s)`,
     ...buildExpansionDigestGlobalQuickExportLines(adminUrl),
+    ...buildExpansionDigestKindComplaintExportLines(adminUrl),
     ...(quickExportCountries.length > 0
       ? [
           "Metabase quick exports by country:",
@@ -182,22 +184,27 @@ function buildDigestBody(
         )
       : ["• none"]),
     "",
-    "Countries with email complaints (month):",
+    "Launch notify complaint alert by country (month, min 10 notified):",
     ...(overview.countries.filter((row) =>
-      shouldShowLaunchComplaintDigestRow({
+      shouldShowLaunchComplaintAlertDigestRow({
+        notifiedCount: row.funnel.notifiedCount,
         launchComplaintsThisMonth: row.launchComplaintsThisMonth,
       })
     ).length > 0
       ? overview.countries
           .filter((row) =>
-            shouldShowLaunchComplaintDigestRow({
+            shouldShowLaunchComplaintAlertDigestRow({
+              notifiedCount: row.funnel.notifiedCount,
               launchComplaintsThisMonth: row.launchComplaintsThisMonth,
             })
           )
           .slice(0, 5)
           .map(
             (row) =>
-              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchComplaintsThisMonth} complaint(s) (${row.launchComplaintRatePct}% of notified)${launchComplaintDigestBadge(row.launchComplaintRatePct)} — ${adminUrl}${expansionComplaintsExportPath(row.countryIso2, "checkout-launch")}`
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchComplaintsThisMonth} complaint(s) (${row.launchComplaintRatePct}% of notified)${launchComplaintAlertDigestBadge({
+                launchComplaintRatePct: row.launchComplaintRatePct,
+                launchNotifyPaused: row.launchNotifyPaused,
+              })} — ${adminUrl}${expansionComplaintsExportPath(row.countryIso2, "checkout-launch")}`
           )
       : ["• none"]),
     "",

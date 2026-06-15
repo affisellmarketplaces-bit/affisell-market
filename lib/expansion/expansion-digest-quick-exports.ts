@@ -59,6 +59,21 @@ export function pickExpansionDeliveredExportKind(
   return "checkout-launch"
 }
 
+export function scoreExpansionQuickExportActivity(row: ExpansionDigestQuickExportCountry): number {
+  return (
+    row.launchEmailsDeliveredThisMonth +
+    row.launchGraduatedDeliveredThisMonth +
+    row.launchFollowupDeliveredThisMonth +
+    row.launchComplaintsThisMonth * 2 +
+    row.launchGraduatedComplaintsThisMonth * 2 +
+    row.launchFollowupComplaintsThisMonth * 2 +
+    row.launchBounceRetriesPending +
+    row.launchBounceSuppressed +
+    row.launchGraduatedBouncesThisMonth +
+    row.launchFollowupBouncesThisMonth
+  )
+}
+
 export function buildExpansionDigestGlobalQuickExportLines(adminUrl: string): string[] {
   return [
     "Metabase quick exports (all kinds):",
@@ -66,6 +81,15 @@ export function buildExpansionDigestGlobalQuickExportLines(adminUrl: string): st
     `• Bounces CSV — ${adminUrl}${expansionBouncesExportPath()}`,
     `• Complaints CSV — ${adminUrl}${expansionComplaintsExportPath()}`,
     `• Delivered CSV — ${adminUrl}${expansionDeliveredExportPath()}`,
+  ]
+}
+
+export function buildExpansionDigestKindComplaintExportLines(adminUrl: string): string[] {
+  return [
+    "Metabase complaints export by kind:",
+    `• Launch — ${adminUrl}${expansionComplaintsExportPath(undefined, "checkout-launch")}`,
+    `• J+2 follow-up — ${adminUrl}${expansionComplaintsExportPath(undefined, "checkout-launch-followup")}`,
+    `• Graduation — ${adminUrl}${expansionComplaintsExportPath(undefined, "checkout-graduated")}`,
   ]
 }
 
@@ -152,7 +176,10 @@ export function pickTopExpansionQuickExportCountries(
   countries: ExpansionDigestQuickExportCountry[],
   limit = 5
 ): ExpansionDigestQuickExportCountry[] {
-  return countries.filter(hasExpansionQuickExportActivity).slice(0, limit)
+  return countries
+    .filter(hasExpansionQuickExportActivity)
+    .sort((a, b) => scoreExpansionQuickExportActivity(b) - scoreExpansionQuickExportActivity(a))
+    .slice(0, limit)
 }
 
 export function shouldShowExpansionAdminQuickExports(args: {
