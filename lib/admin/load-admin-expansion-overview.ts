@@ -1,71 +1,29 @@
 import { resolveStripeCheckoutAllowedCountries } from "@/lib/checkout-country-rollout"
-import type { ExpansionCountryFunnel, ExpansionFunnelSummary } from "@/lib/admin/load-admin-expansion-funnel"
+import type { AdminExpansionOverview, ExpansionCountryRow } from "@/lib/admin/admin-expansion-types"
 import {
   loadExpansionCountryFunnels,
   loadExpansionFunnelSummary,
 } from "@/lib/admin/load-admin-expansion-funnel"
-import type { ExpansionRolloutHealthStats } from "@/lib/admin/load-expansion-rollout-health"
 import { loadExpansionRolloutHealthStats } from "@/lib/admin/load-expansion-rollout-health"
 import { isExpansionAutoPilotEnabled } from "@/lib/cron/expansion-auto-pilot"
-import type { MarketRegion } from "@/lib/market-config"
 import { MARKET_REGION } from "@/lib/market-config"
 import { stripeCheckoutAllowedCountriesForRegion } from "@/lib/eu-market-countries"
 import { loadGraduatedCheckoutCountryIso2 } from "@/lib/checkout-country-rollout"
 import { findNextPilotCountry } from "@/lib/expansion/find-next-pilot-country"
+import { computeCountryBounceRatePct } from "@/lib/expansion/compute-country-bounce-rate"
+import { expansionCountryLabel } from "@/lib/expansion/expansion-country-label"
 import { loadExpansionCountryBounceStats } from "@/lib/expansion/load-expansion-country-bounce-stats"
 import { loadExpansionEmailBounceStats } from "@/lib/expansion/load-expansion-email-bounce-stats"
 import { prisma } from "@/lib/prisma"
-import { visitorCountryDisplayName } from "@/lib/visitor-country"
 
-export type ExpansionCountryRow = {
-  countryIso2: string
-  waitlistCount: number
-  pendingNotifyCount: number
-  enabled: boolean
-  openedAt: string | null
-  launchEmailSentAt: string | null
-  firstOrderAt: string | null
-  firstOrderId: string | null
-  graduatedAt: string | null
-  graduationEmailSentAt: string | null
-  launchBounceRetriesPending: number
-  launchBounceSuppressed: number
-  funnel: ExpansionCountryFunnel
-}
-
-export type ExpansionNextPilot = {
-  rank: number
-  countryIso2: string
-  waitlistCount: number
-}
-
-export type GraduatedThisMonthCountry = {
-  countryIso2: string
-  graduatedAt: string
-}
-
-export type ExpansionEmailBounceOverview = {
-  bouncesThisMonth: number
-  complaintsThisMonth: number
-  launchRetriesPending: number
-  launchSuppressedTotal: number
-}
-
-export type AdminExpansionOverview = {
-  marketRegion: MarketRegion
-  liveCheckoutCount: number
-  rolloutCount: number
-  graduatedCount: number
-  graduatedThisMonth: number
-  graduatedThisMonthCountries: GraduatedThisMonthCountry[]
-  emailBounces: ExpansionEmailBounceOverview
-  totalWaitlist: number
-  funnel: ExpansionFunnelSummary
-  nextPilot: ExpansionNextPilot | null
-  rolloutHealth: ExpansionRolloutHealthStats
-  autoPilotEnabled: boolean
-  countries: ExpansionCountryRow[]
-}
+export type {
+  AdminExpansionOverview,
+  ExpansionCountryRow,
+  ExpansionEmailBounceOverview,
+  ExpansionNextPilot,
+  GraduatedThisMonthCountry,
+} from "@/lib/admin/admin-expansion-types"
+export { expansionCountryLabel }
 
 export async function loadAdminExpansionOverview(): Promise<AdminExpansionOverview> {
   const marketRegion = MARKET_REGION
@@ -102,6 +60,8 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
     .map((group) => {
       const rollout = rolloutByCountry.get(group.countryIso2)
       const bounceStats = countryBounceStats.get(group.countryIso2)
+      const retriesPending = bounceStats?.retriesPending ?? 0
+      const suppressed = bounceStats?.suppressed ?? 0
       return {
         countryIso2: group.countryIso2,
         waitlistCount: group._count._all,
@@ -113,8 +73,9 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
         firstOrderId: rollout?.firstOrderId ?? null,
         graduatedAt: rollout?.graduatedAt?.toISOString() ?? null,
         graduationEmailSentAt: rollout?.graduationEmailSentAt?.toISOString() ?? null,
-        launchBounceRetriesPending: bounceStats?.retriesPending ?? 0,
-        launchBounceSuppressed: bounceStats?.suppressed ?? 0,
+        launchBounceRetriesPending: retriesPending,
+        launchBounceSuppressed: suppressed,
+        launchBounceRatePct: 0,
       }
     })
     .sort((a, b) => b.waitlistCount - a.waitlistCount)
@@ -127,17 +88,27 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
     }))
   )
 
-  const countries: ExpansionCountryRow[] = countriesBase.map((row) => ({
-    ...row,
-    funnel: funnelByCountry.get(row.countryIso2) ?? {
-      countryIso2: row.countryIso2,
-      notifiedCount: 0,
-      followUpCount: 0,
-      paidOrdersSinceOpen: 0,
-      notifyRatePct: 0,
-      orderRatePct: 0,
-    },
-  }))
+  const countries: ExpansionCountryRow[] = countriesBase.map((row) => {
+    const funnel =
+      funnelByCountry.get(row.countryIso2) ?? {
+        countryIso2: row.countryIso2,
+        notifiedCount: 0,
+        followUpCount: 0,
+        paidOrdersSinceOpen: 0,
+        notifyRatePct: 0,
+        orderRatePct: 0,
+      }
+
+    return {
+      ...row,
+      funnel,
+      launchBounceRatePct: computeCountryBounceRatePct({
+        notifiedCount: funnel.notifiedCount,
+        retriesPending: row.launchBounceRetriesPending,
+        suppressed: row.launchBounceSuppressed,
+      }),
+    }
+  })
 
   const enabledSet = new Set(
     rollouts.filter((row) => row.enabled).map((row) => row.countryIso2.toUpperCase())
@@ -191,8 +162,4 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
     autoPilotEnabled: isExpansionAutoPilotEnabled(),
     countries,
   }
-}
-
-export function expansionCountryLabel(countryIso2: string, locale: "en" | "fr" = "en"): string {
-  return visitorCountryDisplayName(countryIso2, locale)
 }

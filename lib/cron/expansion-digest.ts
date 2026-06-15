@@ -56,6 +56,18 @@ function buildDigestBody(
     `Expansion email bounces (month): ${overview.emailBounces.bouncesThisMonth}`,
     `Launch emails pending retry: ${overview.emailBounces.launchRetriesPending}`,
     `Launch emails suppressed (2nd bounce): ${overview.emailBounces.launchSuppressedTotal}`,
+    "",
+    "High bounce rate (>5%):",
+    ...(overview.countries.filter((row) => row.launchBounceRatePct > 5).length > 0
+      ? overview.countries
+          .filter((row) => row.launchBounceRatePct > 5)
+          .slice(0, 5)
+          .map(
+            (row) =>
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchBounceRatePct}%`
+          )
+      : ["• none"]),
+    "",
     `Total waitlist signups: ${overview.totalWaitlist}`,
     "",
     "Top demand:",

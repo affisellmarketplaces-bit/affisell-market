@@ -1,11 +1,12 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { BarChart3, Bell, Globe2, GraduationCap, Mail, Rocket, Zap } from "lucide-react"
+import { BarChart3, Bell, Download, Globe2, GraduationCap, Mail, RefreshCw, Rocket, Zap } from "lucide-react"
 import { toast } from "sonner"
 
-import type { AdminExpansionOverview } from "@/lib/admin/load-admin-expansion-overview"
-import { expansionCountryLabel } from "@/lib/admin/load-admin-expansion-overview"
+import type { AdminExpansionOverview } from "@/lib/admin/admin-expansion-types"
+import { EXPANSION_BOUNCE_RATE_ALERT_THRESHOLD_PCT } from "@/lib/expansion/compute-country-bounce-rate"
+import { expansionCountryLabel } from "@/lib/expansion/expansion-country-label"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
@@ -103,6 +104,21 @@ export function AdminExpansionConsole({
     refresh()
   }
 
+  async function unsuppressCountry(countryIso2: string) {
+    const res = await fetch("/api/admin/expansion/unsuppress", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ countryIso2 }),
+    })
+    const data = (await res.json()) as { ok?: boolean; unsuppressed?: number; error?: string }
+    if (!res.ok || !data.ok) {
+      toast.error(data.error ?? "Force retry failed")
+      return
+    }
+    toast.success(`Re-queued ${data.unsuppressed ?? 0} suppressed email(s) for ${countryIso2}`)
+    refresh()
+  }
+
   async function runPilot(rank?: number) {
     const res = await fetch("/api/admin/expansion/pilot", {
       method: "POST",
@@ -167,6 +183,14 @@ export function AdminExpansionConsole({
           <Button type="button" variant="outline" size="sm" disabled={pending} onClick={refresh}>
             Refresh
           </Button>
+          {overview.emailBounces.launchSuppressedTotal > 0 ? (
+            <Button type="button" variant="outline" size="sm" asChild>
+              <a href="/api/admin/expansion/suppressed-export">
+                <Download className="mr-1.5 size-3.5" aria-hidden />
+                Export suppressed CSV
+              </a>
+            </Button>
+          ) : null}
           {nextPilot ? (
             <Button type="button" size="sm" disabled={pending} onClick={() => void runPilot(nextPilot.rank)}>
               <Zap className="mr-1.5 size-3.5" aria-hidden />
@@ -297,6 +321,11 @@ export function AdminExpansionConsole({
                         Bounced ({row.launchBounceSuppressed})
                       </Badge>
                     ) : null}
+                    {row.launchBounceRatePct > EXPANSION_BOUNCE_RATE_ALERT_THRESHOLD_PCT ? (
+                      <Badge variant="outline" className="border-orange-500 text-orange-700 dark:text-orange-400">
+                        {row.launchBounceRatePct}% bounce
+                      </Badge>
+                    ) : null}
                   </div>
                   <p className="mt-1 text-xs text-zinc-500">
                     {row.waitlistCount} signup{row.waitlistCount === 1 ? "" : "s"}
@@ -324,6 +353,7 @@ export function AdminExpansionConsole({
                     Funnel · notified {row.funnel.notifiedCount} ({row.funnel.notifyRatePct}%) · follow-up{" "}
                     {row.funnel.followUpCount} · orders {row.funnel.paidOrdersSinceOpen} (
                     {row.funnel.orderRatePct}% of notified)
+                    {row.launchBounceRatePct > 0 ? ` · bounce ${row.launchBounceRatePct}%` : ""}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -353,6 +383,17 @@ export function AdminExpansionConsole({
                     >
                       <Mail className="mr-1.5 size-3.5" aria-hidden />
                       Send graduation emails
+                    </Button>
+                  ) : null}
+                  {row.launchBounceSuppressed > 0 ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => void unsuppressCountry(row.countryIso2)}
+                    >
+                      <RefreshCw className="mr-1.5 size-3.5" aria-hidden />
+                      Force retry
                     </Button>
                   ) : null}
                   {row.enabled && row.pendingNotifyCount > 0 ? (
