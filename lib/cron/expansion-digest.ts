@@ -89,6 +89,17 @@ function buildDigestBody(
           )
       : ["• none"]),
     "",
+    "Countries with graduation email complaints (month):",
+    ...(overview.countries.filter((row) => row.launchGraduatedComplaintsThisMonth > 0).length > 0
+      ? overview.countries
+          .filter((row) => row.launchGraduatedComplaintsThisMonth > 0)
+          .slice(0, 5)
+          .map(
+            (row) =>
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchGraduatedComplaintsThisMonth} graduation complaint(s)`
+          )
+      : ["• none"]),
+    "",
     "High bounce rate (>5%):",
     ...(overview.countries.filter((row) => row.launchBounceRatePct > 5).length > 0
       ? overview.countries

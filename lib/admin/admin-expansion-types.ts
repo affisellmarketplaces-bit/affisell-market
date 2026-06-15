@@ -27,6 +27,7 @@ export type ExpansionCountryRow = {
   launchDeliveryRatePct: number
   launchComplaintsThisMonth: number
   launchComplaintRatePct: number
+  launchGraduatedComplaintsThisMonth: number
   launchNotifyPaused: boolean
   funnel: ExpansionCountryFunnel
 }

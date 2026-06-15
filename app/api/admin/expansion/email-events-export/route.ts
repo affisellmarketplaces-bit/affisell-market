@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import {
   buildExpansionEmailEventsCsv,
-  EXPANSION_EMAIL_EVENTS_CSV_FILENAME,
+  expansionEmailEventsCsvFilename,
 } from "@/lib/admin/build-expansion-email-events-csv"
 import { loadExpansionEmailEventRows } from "@/lib/admin/load-expansion-email-event-rows"
 import { requireAdminSession } from "@/lib/admin/require-admin-session"
@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
 
   const rows = await loadExpansionEmailEventRows(countryIso2)
   const csv = buildExpansionEmailEventsCsv(rows)
+  const filename = expansionEmailEventsCsvFilename(countryIso2)
 
   console.log("[expansion-rollout]", {
     userId: gate.session.user.id,
@@ -37,7 +38,7 @@ export async function GET(req: NextRequest) {
     status: 200,
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="${EXPANSION_EMAIL_EVENTS_CSV_FILENAME}"`,
+      "Content-Disposition": `attachment; filename="${filename}"`,
       "Cache-Control": "no-store",
     },
   })

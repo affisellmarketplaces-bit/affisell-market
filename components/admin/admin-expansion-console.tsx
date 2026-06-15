@@ -466,6 +466,12 @@ export function AdminExpansionConsole({
                         {row.launchComplaintsThisMonth} complaint{row.launchComplaintsThisMonth === 1 ? "" : "s"}
                       </Badge>
                     ) : null}
+                    {row.launchGraduatedComplaintsThisMonth > 0 ? (
+                      <Badge variant="outline" className="border-violet-500 text-violet-800 dark:text-violet-300">
+                        {row.launchGraduatedComplaintsThisMonth} grad. complaint
+                        {row.launchGraduatedComplaintsThisMonth === 1 ? "" : "s"}
+                      </Badge>
+                    ) : null}
                     {row.launchBounceRatePct > EXPANSION_BOUNCE_RATE_ALERT_THRESHOLD_PCT ? (
                       <Badge variant="outline" className="border-orange-500 text-orange-700 dark:text-orange-400">
                         {row.launchBounceRatePct}% bounce
@@ -578,6 +584,19 @@ export function AdminExpansionConsole({
                     >
                       <Mail className="mr-1.5 size-3.5" aria-hidden />
                       Send graduation emails
+                    </Button>
+                  ) : null}
+                  {row.launchEmailsDeliveredThisMonth > 0 ||
+                  row.launchComplaintsThisMonth > 0 ||
+                  row.launchBounceRetriesPending > 0 ||
+                  row.launchBounceSuppressed > 0 ? (
+                    <Button type="button" size="sm" variant="outline" asChild>
+                      <a
+                        href={`/api/admin/expansion/email-events-export?countryIso2=${encodeURIComponent(row.countryIso2)}`}
+                      >
+                        <Download className="mr-1.5 size-3.5" aria-hidden />
+                        Export events
+                      </a>
                     </Button>
                   ) : null}
                   {row.launchBounceSuppressed > 0 ? (

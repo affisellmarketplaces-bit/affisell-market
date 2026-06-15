@@ -6,6 +6,7 @@ import { runCheckoutLaunchNotifyCron } from "@/lib/cron/checkout-launch-notify"
 import { runExpansionAutoPauseNotifyCron } from "@/lib/cron/expansion-auto-pause-notify"
 import { runExpansionAutoResumeNotifyCron } from "@/lib/cron/expansion-auto-resume-notify"
 import { runExpansionDeliveryRateAlert } from "@/lib/cron/expansion-delivery-rate-alert"
+import { runExpansionGraduatedComplaintAlert } from "@/lib/cron/expansion-graduated-complaint-alert"
 import { runExpansionComplaintAlert } from "@/lib/cron/expansion-complaint-alert"
 import { runExpansionBounceRateAlert } from "@/lib/cron/expansion-bounce-rate-alert"
 import { runSuppressedWaitlistPurgeCron } from "@/lib/cron/expansion-suppressed-waitlist-purge"
@@ -43,6 +44,7 @@ export async function GET(req: NextRequest) {
   const bounceRateAlert = await runExpansionBounceRateAlert()
   const deliveryRateAlert = await runExpansionDeliveryRateAlert()
   const complaintAlert = await runExpansionComplaintAlert()
+  const graduatedComplaintAlert = await runExpansionGraduatedComplaintAlert()
   const autoPauseNotify = await runExpansionAutoPauseNotifyCron()
   const autoResumeNotify = await runExpansionAutoResumeNotifyCron()
   const suppressedPurge = await runSuppressedWaitlistPurgeCron()
@@ -58,6 +60,7 @@ export async function GET(req: NextRequest) {
     bounceRateAlert,
     deliveryRateAlert,
     complaintAlert,
+    graduatedComplaintAlert,
     autoPauseNotify,
     autoResumeNotify,
     suppressedPurge,
