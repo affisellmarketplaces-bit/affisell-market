@@ -1,3 +1,4 @@
+import { findGraduationEmailStalls } from "@/lib/expansion/graduation-email-stall"
 import { MARKET_REGION } from "@/lib/market-config"
 import { prisma } from "@/lib/prisma"
 
@@ -8,6 +9,8 @@ export type ExpansionRolloutHealthStats = {
   awaitingFirstOrder: number
   stalledCount: number
   stalledCountries: string[]
+  graduationEmailStallCount: number
+  graduationEmailStallCountries: string[]
 }
 
 export async function loadExpansionRolloutHealthStats(): Promise<ExpansionRolloutHealthStats> {
@@ -22,10 +25,27 @@ export async function loadExpansionRolloutHealthStats(): Promise<ExpansionRollou
   const awaiting = rollouts.filter((row) => !row.firstOrderAt)
   const stalled = awaiting.filter((row) => row.openedAt <= stallBefore)
 
+  const graduationPending = await prisma.checkoutCountryRollout.findMany({
+    where: {
+      marketRegion,
+      graduatedAt: { not: null },
+      graduationEmailSentAt: null,
+    },
+    select: { countryIso2: true, graduatedAt: true },
+  })
+  const graduationStalls = findGraduationEmailStalls(
+    graduationPending.map((row) => ({
+      countryIso2: row.countryIso2,
+      graduatedAt: row.graduatedAt!,
+    }))
+  )
+
   return {
     enabledCount: rollouts.length,
     awaitingFirstOrder: awaiting.length,
     stalledCount: stalled.length,
     stalledCountries: stalled.map((row) => row.countryIso2),
+    graduationEmailStallCount: graduationStalls.length,
+    graduationEmailStallCountries: graduationStalls.map((row) => row.countryIso2),
   }
 }

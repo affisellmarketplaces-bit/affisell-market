@@ -3,6 +3,7 @@ import { Resend } from "resend"
 
 import { ExpansionDigestEmail } from "@/emails/expansion-digest"
 import { expansionCountryLabel, loadAdminExpansionOverview } from "@/lib/admin/load-admin-expansion-overview"
+import { findGraduationEmailStalls } from "@/lib/expansion/graduation-email-stall"
 import { logBusiness } from "@/lib/business-log"
 import {
   readResendDeliveryConfig,
@@ -38,20 +39,25 @@ async function resolveDigestRecipient(): Promise<string | null> {
 
 function buildDigestBody(
   overview: Awaited<ReturnType<typeof loadAdminExpansionOverview>>,
-  enabledWithoutOrder: Array<{ countryIso2: string; openedAt: Date; launchEmailSentAt: Date | null }>
+  enabledWithoutOrder: Array<{ countryIso2: string; openedAt: Date; launchEmailSentAt: Date | null }>,
+  graduationEmailStalls: Array<{ countryIso2: string; graduatedAt: Date }>
 ): string {
   const topDemand = overview.countries.slice(0, 5)
   const lines = [
     `Region: ${MARKET_REGION.toUpperCase()}`,
     `Live checkout countries: ${overview.liveCheckoutCount}`,
     `ROW rollouts enabled: ${overview.rolloutCount}`,
+    `Graduated (permanent): ${overview.graduatedCount}`,
+    `Graduation emails sent: ${overview.funnel.graduationsWithBuyerEmail}`,
+    `Graduation emails pending: ${overview.funnel.graduationEmailsPending}`,
     `Total waitlist signups: ${overview.totalWaitlist}`,
     "",
     "Top demand:",
     ...topDemand.map(
       (row) =>
         `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.waitlistCount} signups` +
-        (row.enabled ? " · checkout ON" : "")
+        (row.enabled ? " · checkout ON" : "") +
+        (row.graduationEmailSentAt ? " · graduation emails sent" : row.graduatedAt ? " · graduation emails pending" : "")
     ),
     "",
     "Enabled without first order:",
@@ -60,6 +66,14 @@ function buildDigestBody(
           (row) =>
             `• ${row.countryIso2} — opened ${row.openedAt.toISOString().slice(0, 10)}` +
             (row.launchEmailSentAt ? ` · notified ${row.launchEmailSentAt.toISOString().slice(0, 10)}` : "")
+        )
+      : ["• none"]),
+    "",
+    "Graduation emails stalled 48h+:",
+    ...(graduationEmailStalls.length > 0
+      ? graduationEmailStalls.map(
+          (row) =>
+            `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — graduated ${row.graduatedAt.toISOString().slice(0, 10)}`
         )
       : ["• none"]),
     "",
@@ -98,7 +112,22 @@ export async function runExpansionDigestCron(now = new Date()): Promise<RunExpan
     take: 8,
   })
 
-  const bodyText = buildDigestBody(overview, enabledWithoutOrder)
+  const graduationPending = await prisma.checkoutCountryRollout.findMany({
+    where: {
+      marketRegion: MARKET_REGION,
+      graduatedAt: { not: null },
+      graduationEmailSentAt: null,
+    },
+    select: { countryIso2: true, graduatedAt: true },
+  })
+  const graduationEmailStalls = findGraduationEmailStalls(
+    graduationPending.map((row) => ({
+      countryIso2: row.countryIso2,
+      graduatedAt: row.graduatedAt!,
+    }))
+  )
+
+  const bodyText = buildDigestBody(overview, enabledWithoutOrder, graduationEmailStalls)
   const resend = new Resend(config.apiKey)
   const { to } = resolveResendDeliveryRecipient("expansion-digest", recipient, config)
   const html = await render(ExpansionDigestEmail({ bodyText }))

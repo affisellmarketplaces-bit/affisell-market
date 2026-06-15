@@ -141,6 +141,9 @@ export function AdminExpansionConsole({ initial, metabaseExpansionEmbedUrl }: Pr
             {overview.rolloutHealth.stalledCount > 0
               ? ` ${overview.rolloutHealth.stalledCount} rollout(s) stalled 7d+ without order.`
               : null}
+            {overview.rolloutHealth.graduationEmailStallCount > 0
+              ? ` ${overview.rolloutHealth.graduationEmailStallCount} graduation email(s) stalled 48h+ (${overview.rolloutHealth.graduationEmailStallCountries.join(", ")}).`
+              : null}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

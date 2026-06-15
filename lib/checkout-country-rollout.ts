@@ -142,3 +142,13 @@ export async function isRolloutOnlyCheckoutCountryResolved(
   const rollout = await loadPilotRolloutCheckoutCountryIso2(region)
   return isRolloutOnlyCheckoutCountry(normalized, rollout, base)
 }
+
+export async function isGraduatedCheckoutCountryResolved(
+  code: string | null | undefined,
+  region: MarketRegion = MARKET_REGION
+): Promise<boolean> {
+  const normalized = normalizeVisitorCountryIso2(code ?? "")
+  if (!normalized) return false
+  const graduated = await loadGraduatedCheckoutCountryIso2(region)
+  return graduated.includes(normalized)
+}

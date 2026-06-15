@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 
 import { MARKET_REGION } from "@/lib/market-config"
 import {
+  isGraduatedCheckoutCountryResolved,
   isRolloutOnlyCheckoutCountryResolved,
   isStripeCheckoutCountryResolved,
   resolveStripeCheckoutAllowedCountries,
@@ -16,6 +17,8 @@ export async function GET(request: Request) {
   const checkoutAvailable = country ? await isStripeCheckoutCountryResolved(country) : true
   const rolloutOnly =
     country && checkoutAvailable ? await isRolloutOnlyCheckoutCountryResolved(country) : false
+  const graduatedCheckout =
+    country && checkoutAvailable ? await isGraduatedCheckoutCountryResolved(country) : false
   const allowedCountries = (await resolveStripeCheckoutAllowedCountries()).length
 
   console.log("[visitor-region]", {
@@ -23,11 +26,12 @@ export async function GET(request: Request) {
     country,
     checkoutAvailable,
     rolloutOnly,
+    graduatedCheckout,
     allowedCountries,
   })
 
   return NextResponse.json(
-    { country, checkoutAvailable, rolloutOnly },
+    { country, checkoutAvailable, rolloutOnly, graduatedCheckout },
     {
       headers: {
         "Cache-Control": "private, max-age=300",

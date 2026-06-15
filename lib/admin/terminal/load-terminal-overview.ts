@@ -138,10 +138,17 @@ export async function loadAdminTerminalOverview(): Promise<AdminTerminalOverview
       label: "Expansion ROW",
       count: launchWaitlist.total,
       href: "/admin/expansion",
-      tone: expansionHealth.stalledCount > 0 ? "amber" : launchWaitlist.total > 0 ? "sky" : "emerald",
+      tone:
+        expansionHealth.graduationEmailStallCount > 0 || expansionHealth.stalledCount > 0
+          ? "amber"
+          : launchWaitlist.total > 0
+            ? "sky"
+            : "emerald",
       hint:
-        expansionHealth.stalledCount > 0
-          ? `${expansionHealth.stalledCount} rollout(s) stalled · ${expansionHealth.stalledCountries.join(", ")}`
+        expansionHealth.graduationEmailStallCount > 0
+          ? `${expansionHealth.graduationEmailStallCount} graduation email(s) stalled 48h+ · ${expansionHealth.graduationEmailStallCountries.join(", ")}`
+          : expansionHealth.stalledCount > 0
+            ? `${expansionHealth.stalledCount} rollout(s) stalled · ${expansionHealth.stalledCountries.join(", ")}`
           : launchWaitlist.topCountry && launchWaitlist.topCountryCount > 0
             ? `${launchWaitlist.topCountry} · ${launchWaitlist.topCountryCount} alertes`
             : expansionHealth.enabledCount > 0

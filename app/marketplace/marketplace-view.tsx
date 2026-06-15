@@ -16,6 +16,7 @@ import { useUserRole } from "@/hooks/useUserRole"
 import { canShowBusinessProductData } from "@/lib/user-role"
 import { MarketplaceFilters } from "@/components/marketplace/filters"
 import { BuyerRegionBanner } from "@/components/marketplace/buyer-region-banner"
+import { MarketplaceGraduatedShipsToBootstrap, skipGraduatedShipsToAutoFilter } from "@/components/marketplace/marketplace-graduated-ships-to-bootstrap"
 import { MarketplaceShipsToChip } from "@/components/marketplace/marketplace-ships-to-chip"
 import { isUsMarket } from "@/lib/market-config"
 import { primaryRegionalShipsFromFacet } from "@/lib/market-region-shipping"
@@ -263,6 +264,7 @@ export function MarketplaceView({
   }, [activeScope, t])
 
   function clearFilters() {
+    skipGraduatedShipsToAutoFilter()
     const href = basePath === "/" ? "/#explorer" : basePath
     router.push(href)
   }
@@ -301,6 +303,10 @@ export function MarketplaceView({
         embedded ? "scroll-mt-20 sm:scroll-mt-24" : "min-h-[calc(100dvh-3.75rem)]"
       )}
     >
+      <MarketplaceGraduatedShipsToBootstrap
+        basePath={basePath}
+        enabled={audience === "customer"}
+      />
       <div className={cn("mx-auto max-w-7xl", embedded ? "py-2" : "px-4 py-8 md:px-8 md:py-10")}>
         {!embedded ? (
         <header className={affisellBrand.headerShell}>

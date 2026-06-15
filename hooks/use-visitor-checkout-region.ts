@@ -6,6 +6,7 @@ type VisitorRegionResponse = {
   country: string | null
   checkoutAvailable: boolean
   rolloutOnly?: boolean
+  graduatedCheckout?: boolean
 }
 
 const fetcher = (url: string) =>
@@ -21,6 +22,7 @@ export function useVisitorCheckoutRegion() {
     country: data?.country ?? null,
     checkoutAvailable: data?.checkoutAvailable ?? true,
     rolloutOnly: data?.rolloutOnly ?? false,
+    graduatedCheckout: data?.graduatedCheckout ?? false,
     loading: isLoading && !data,
   }
 }
