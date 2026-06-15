@@ -162,10 +162,15 @@ export function AdminExpansionConsole({ initial, metabaseExpansionEmbedUrl }: Pr
         </div>
       </div>
 
-      <div className="mb-4 grid gap-4 sm:grid-cols-4">
+      <div className="mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <MetricCard label="Live checkout countries" value={overview.liveCheckoutCount} />
         <MetricCard label="ROW rollouts enabled" value={overview.rolloutCount} />
-        <MetricCard label="Graduated (permanent)" value={overview.graduatedCount} />
+        <MetricCard
+          label="Graduated (permanent)"
+          value={overview.graduatedCount}
+          hint={overview.graduatedThisMonth > 0 ? `+${overview.graduatedThisMonth} this month` : undefined}
+        />
+        <MetricCard label="Graduated this month" value={overview.graduatedThisMonth} />
         <MetricCard label="Waitlist signups" value={overview.totalWaitlist} />
       </div>
 
@@ -303,11 +308,12 @@ export function AdminExpansionConsole({ initial, metabaseExpansionEmbedUrl }: Pr
   )
 }
 
-function MetricCard({ label, value }: { label: string; value: number }) {
+function MetricCard({ label, value, hint }: { label: string; value: number; hint?: string }) {
   return (
     <div className="rounded-2xl border border-zinc-200 bg-zinc-50/80 px-4 py-4 dark:border-zinc-800 dark:bg-zinc-900/50">
       <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">{label}</p>
       <p className="mt-1 text-2xl font-bold tabular-nums text-zinc-900 dark:text-zinc-50">{value}</p>
+      {hint ? <p className="mt-0.5 text-[11px] text-violet-600 dark:text-violet-400">{hint}</p> : null}
     </div>
   )
 }

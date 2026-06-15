@@ -40,6 +40,7 @@ export type AdminExpansionOverview = {
   liveCheckoutCount: number
   rolloutCount: number
   graduatedCount: number
+  graduatedThisMonth: number
   totalWaitlist: number
   funnel: ExpansionFunnelSummary
   nextPilot: ExpansionNextPilot | null
@@ -138,11 +139,19 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
     }
   }
 
+  const monthStart = new Date()
+  monthStart.setUTCDate(1)
+  monthStart.setUTCHours(0, 0, 0, 0)
+  const graduatedThisMonth = rollouts.filter(
+    (row) => row.graduatedAt && row.graduatedAt >= monthStart
+  ).length
+
   return {
     marketRegion,
     liveCheckoutCount: liveCheckoutCountries.length,
     rolloutCount: rollouts.filter((row) => row.enabled).length,
     graduatedCount: rollouts.filter((row) => row.enabled && row.graduatedAt).length,
+    graduatedThisMonth,
     totalWaitlist,
     funnel,
     nextPilot,

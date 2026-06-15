@@ -1,5 +1,6 @@
 import { invalidateCheckoutRolloutCache } from "@/lib/checkout-country-rollout"
 import { notifyCheckoutCountryGraduatedBuyers } from "@/lib/admin/notify-checkout-country-graduated-buyers"
+import { notifyExpansionGraduationOpsWebhook } from "@/lib/admin/notify-expansion-graduation-ops-webhook"
 import { notifyFounderCheckoutCountryGraduated } from "@/lib/emails/send-expansion-graduation-founder-alert"
 import { logBusiness } from "@/lib/business-log"
 import { MARKET_REGION } from "@/lib/market-config"
@@ -55,6 +56,14 @@ export async function graduateCheckoutCountryRollout(
     console.error("[expansion-rollout]", {
       country: countryIso2,
       result: "founder_graduation_alert_failed",
+      error: error instanceof Error ? error.message : String(error),
+    })
+  })
+
+  void notifyExpansionGraduationOpsWebhook(countryIso2, rollout.firstOrderId).catch((error: unknown) => {
+    console.error("[expansion-rollout]", {
+      country: countryIso2,
+      result: "graduation_ops_webhook_failed",
       error: error instanceof Error ? error.message : String(error),
     })
   })

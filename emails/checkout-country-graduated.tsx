@@ -84,6 +84,6 @@ export default CheckoutCountryGraduatedEmail
 
 CheckoutCountryGraduatedEmail.PreviewProps = {
   countryName: "Japan",
-  shopUrl: "https://affisell.com/marketplace?shipsTo=jp",
+  shopUrl: "https://affisell.com/shops/browse?shipsTo=jp",
   locale: "fr",
 } satisfies CheckoutCountryGraduatedEmailProps
