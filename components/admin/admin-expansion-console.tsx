@@ -429,6 +429,16 @@ export function AdminExpansionConsole({
               </a>
             </Button>
           ) : null}
+          {overview.emailEventCounts.deliveredThisMonth > 0 ||
+          overview.emailEventCounts.bouncesThisMonth > 0 ||
+          overview.emailEventCounts.complaintsThisMonth > 0 ? (
+            <Button type="button" variant="outline" size="sm" asChild>
+              <a href="/api/admin/expansion/email-exports-bundle">
+                <Download className="mr-1.5 size-3.5" aria-hidden />
+                Export all kinds ZIP
+              </a>
+            </Button>
+          ) : null}
           {nextPilot ? (
             <Button type="button" size="sm" disabled={pending} onClick={() => void runPilot(nextPilot.rank)}>
               <Zap className="mr-1.5 size-3.5" aria-hidden />
@@ -691,6 +701,13 @@ export function AdminExpansionConsole({
                     row.launchGraduatedBounceRatePct > EXPANSION_BOUNCE_RATE_ALERT_THRESHOLD_PCT ? (
                       <Badge variant="outline" className="border-violet-500 text-violet-700 dark:text-violet-400">
                         grad. {row.launchGraduatedBounceRatePct}% bounce
+                      </Badge>
+                    ) : null}
+                    {row.launchGraduatedSentThisMonth >= 10 &&
+                    row.launchGraduatedDeliveryRatePct > 0 &&
+                    row.launchGraduatedDeliveryRatePct < EXPANSION_LOW_DELIVERY_RATE_THRESHOLD_PCT ? (
+                      <Badge variant="outline" className="border-amber-500 text-amber-800 dark:text-amber-300">
+                        grad. {row.launchGraduatedDeliveryRatePct}% delivered
                       </Badge>
                     ) : null}
                     {row.graduationEmailPaused &&

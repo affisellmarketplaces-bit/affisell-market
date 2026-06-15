@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import { buildSuppressedWaitlistCsv } from "@/lib/admin/build-suppressed-waitlist-csv"
+import { hashExpansionBuyerEmail } from "@/lib/expansion/hash-expansion-buyer-email"
 import {
   computeCountryBounceRatePct,
   shouldAlertCountryBounceRate,
@@ -57,9 +58,11 @@ describe("buildSuppressedWaitlistCsv", () => {
         launchNotifiedAt: new Date("2026-06-01T12:00:00.000Z"),
       },
     ])
-    expect(csv.startsWith("\uFEFFemailKind;email;countryIso2")).toBe(true)
+    const hash = hashExpansionBuyerEmail("buyer@example.com")
+    expect(csv.startsWith("\uFEFFemailKind;buyerEmailHash;countryIso2")).toBe(true)
     expect(csv).toContain("checkout-launch")
-    expect(csv).toContain("buyer@example.com")
+    expect(csv).toContain(hash)
+    expect(csv).not.toContain("buyer@example.com")
     expect(csv).toContain("jp")
   })
 })

@@ -1,5 +1,6 @@
 import type { SuppressedWaitlistRow } from "@/lib/admin/load-suppressed-waitlist-rows"
 import { SUPPRESSED_WAITLIST_EMAIL_KIND } from "@/lib/admin/load-suppressed-waitlist-rows"
+import { hashExpansionBuyerEmail } from "@/lib/expansion/hash-expansion-buyer-email"
 
 export { SUPPRESSED_WAITLIST_EMAIL_KIND } from "@/lib/admin/load-suppressed-waitlist-rows"
 
@@ -14,7 +15,7 @@ export function suppressedWaitlistCsvFilename(countryIso2?: string, emailKind?: 
 
 const CSV_COLUMNS = [
   "emailKind",
-  "email",
+  "buyerEmailHash",
   "countryIso2",
   "locale",
   "createdAt",
@@ -41,7 +42,7 @@ export function buildSuppressedWaitlistCsv(rows: SuppressedWaitlistRow[]): strin
     .map((row) =>
       [
         SUPPRESSED_WAITLIST_EMAIL_KIND,
-        row.email,
+        hashExpansionBuyerEmail(row.email),
         row.countryIso2,
         row.locale ?? "",
         formatDate(row.createdAt),
