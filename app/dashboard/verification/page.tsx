@@ -5,6 +5,7 @@ import { Clock, ShieldCheck } from "lucide-react"
 
 import { auth } from "@/auth"
 import { BentoCard, BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
+import { MerchantLegalProfileSubmitForm } from "@/components/merchant/merchant-legal-profile-submit-form"
 import { prisma } from "@/lib/prisma"
 import { cn } from "@/lib/utils"
 
@@ -27,7 +28,31 @@ export default async function MerchantVerificationPage() {
   })
 
   if (!profile) {
-    redirect(role === "SUPPLIER" ? "/onboarding/supplier" : "/onboarding/affiliate")
+    const dashHref = role === "SUPPLIER" ? "/dashboard/supplier" : "/dashboard/affiliate"
+    return (
+      <BentoShell>
+        <BentoContainer maxWidth="4xl" className="py-12">
+          <div className="text-center">
+            <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400">
+              <ShieldCheck className="size-4" aria-hidden />
+              {t("eyebrow")}
+            </p>
+            <h1 className="mt-3 text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
+              {t("setupTitle")}
+            </h1>
+            <p className="mx-auto mt-2 max-w-lg text-sm text-zinc-600 dark:text-zinc-400">{t("setupSubtitle")}</p>
+          </div>
+          <div className="mt-8">
+            <MerchantLegalProfileSubmitForm role={role} />
+          </div>
+          <p className="mt-6 text-center text-sm text-zinc-500">
+            <Link href={dashHref} className="font-medium text-violet-700 hover:underline dark:text-violet-300">
+              {t("dashboardLink")}
+            </Link>
+          </p>
+        </BentoContainer>
+      </BentoShell>
+    )
   }
 
   if (profile.verificationStatus === "APPROVED") {

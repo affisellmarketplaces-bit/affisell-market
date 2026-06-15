@@ -28,12 +28,24 @@ export default async function SupplierOnboardingPage() {
     select: { status: true },
   })
 
+  const profile = await prisma.merchantLegalProfile.findUnique({
+    where: { userId: session.user.id },
+    select: { id: true },
+  })
+
   const nextAfterTerms =
     invite && invite.status !== "CATALOG_LIVE"
       ? "/dashboard/supplier/products/new?fromInvite=1&compose=1"
       : "/dashboard/verification"
 
   if (hasRoleTermsAccepted(user?.termsAcceptedVersion, "SUPPLIER")) {
+    if (!profile) {
+      redirect(
+        invite && invite.status !== "CATALOG_LIVE"
+          ? "/dashboard/supplier/products/new?fromInvite=1&compose=1"
+          : "/dashboard/supplier"
+      )
+    }
     redirect(nextAfterTerms)
   }
 

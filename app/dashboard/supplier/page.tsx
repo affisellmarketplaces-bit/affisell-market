@@ -20,6 +20,7 @@ import { SupplierUrgentActions } from "@/components/supplier/mission-control/sup
 import { loadSupplierTrustSnapshot } from "@/lib/supplier/compute-supplier-trust-tier"
 import { coerceSupplierTrustTier } from "@/lib/supplier/supplier-trust-tier-shared"
 import { loadSupplierPublishReadiness } from "@/lib/supplier-publish-readiness"
+import { loadSupplierMissionControl } from "@/lib/supplier-mission-control"
 import { SupplierKycPublishBanner } from "@/components/supplier/supplier-kyc-publish-banner"
 import { SupplierPublishReadinessCard } from "@/components/supplier/mission-control/supplier-publish-readiness-card"
 import { resolveAppLocale } from "@/lib/i18n-locale"

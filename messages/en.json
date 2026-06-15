@@ -427,10 +427,13 @@
       "errUpload": "Upload failed — try again.",
       "errFileSize": "File too large (8 MB max).",
       "errFileType": "Unsupported format (PDF, JPG, PNG, WebP).",
+      "errProfileExists": "A profile already exists — check your dashboard.",
       "verification": {
         "eyebrow": "Application in review",
         "title": "Account verification",
         "subtitle": "We are reviewing your documents. You will be notified by email once approved.",
+        "setupTitle": "Complete your KYC application",
+        "setupSubtitle": "Legal status + supporting documents — approval within 24–48h to publish on Affisell.",
         "legalStatus": "Declared status",
         "body": "You can browse your dashboard in read-only mode. Catalog publishing unlocks after approval.",
         "dashboardLink": "Open dashboard",

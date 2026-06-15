@@ -427,10 +427,13 @@
       "errUpload": "Échec de l'envoi — réessayez.",
       "errFileSize": "Fichier trop volumineux (max 8 Mo).",
       "errFileType": "Format non accepté (PDF, JPG, PNG, WebP).",
+      "errProfileExists": "Un dossier existe déjà — consultez votre tableau de bord.",
       "verification": {
         "eyebrow": "Dossier en cours",
         "title": "Vérification de votre compte",
         "subtitle": "Nos systèmes analysent vos documents. Vous serez notifié par e-mail dès validation.",
+        "setupTitle": "Complétez votre dossier KYC",
+        "setupSubtitle": "Statut juridique + pièces justificatives — validation sous 24–48 h pour publier sur Affisell.",
         "legalStatus": "Statut déclaré",
         "body": "Vous pouvez consulter votre tableau de bord en lecture seule. La publication catalogue s'ouvrira après approbation.",
         "dashboardLink": "Ouvrir le tableau de bord",
