@@ -6,7 +6,9 @@ import { expansionCountryLabel, loadAdminExpansionOverview } from "@/lib/admin/l
 import { resolveExpansionAdminEmail } from "@/lib/admin/resolve-expansion-admin-email"
 import { expansionBouncesExportPath, expansionComplaintsExportPath, expansionDeliveredExportPath } from "@/lib/admin/expansion-email-export-kinds"
 import {
+  graduationBounceAlertDigestBadge,
   graduationBounceDigestBadge,
+  shouldShowGraduationBounceAlertDigestRow,
   shouldShowGraduationHighBounceDigestRow,
 } from "@/lib/expansion/expansion-digest-graduation-bounce-badge"
 import {
@@ -30,7 +32,7 @@ import {
   buildExpansionDigestKindBounceExportLines,
   buildExpansionDigestKindComplaintExportLines,
   buildExpansionDigestKindDeliveredExportLines,
-  pickTopExpansionQuickExportCountries,
+  sortExpansionAdminQuickExportCountries,
 } from "@/lib/expansion/expansion-digest-quick-exports"
 import {
   followupDeliveryDigestBadge,
@@ -105,7 +107,7 @@ function buildDigestBody(
 ): string {
   const adminUrl = resolveAppUrl()
   const topDemand = overview.countries.slice(0, 5)
-  const quickExportCountries = pickTopExpansionQuickExportCountries(overview.countries)
+  const quickExportCountries = sortExpansionAdminQuickExportCountries(overview.countries)
   const lines = [
     `Region: ${MARKET_REGION.toUpperCase()}`,
     `Live checkout countries: ${overview.liveCheckoutCount}`,
@@ -314,6 +316,30 @@ function buildDigestBody(
                 launchGraduatedComplaintRatePct: row.launchGraduatedComplaintRatePct,
                 graduationEmailPaused: row.graduationEmailPaused,
               })} — ${adminUrl}${expansionComplaintsExportPath(row.countryIso2, "checkout-graduated")}`
+          )
+      : ["• none"]),
+    "",
+    "Graduation bounce alert by country (month, min 10 sent):",
+    ...(overview.countries.filter((row) =>
+      shouldShowGraduationBounceAlertDigestRow({
+        launchGraduatedSentThisMonth: row.launchGraduatedSentThisMonth,
+        launchGraduatedBouncesThisMonth: row.launchGraduatedBouncesThisMonth,
+      })
+    ).length > 0
+      ? overview.countries
+          .filter((row) =>
+            shouldShowGraduationBounceAlertDigestRow({
+              launchGraduatedSentThisMonth: row.launchGraduatedSentThisMonth,
+              launchGraduatedBouncesThisMonth: row.launchGraduatedBouncesThisMonth,
+            })
+          )
+          .slice(0, 8)
+          .map(
+            (row) =>
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchGraduatedBounceRatePct}% bounce (${row.launchGraduatedBouncesThisMonth} bounce(s) / ${row.launchGraduatedSentThisMonth} sent)${graduationBounceAlertDigestBadge({
+                launchGraduatedBounceRatePct: row.launchGraduatedBounceRatePct,
+                graduationEmailPaused: row.graduationEmailPaused,
+              })} — ${adminUrl}${expansionBouncesExportPath(row.countryIso2, "checkout-graduated")}`
           )
       : ["• none"]),
     "",

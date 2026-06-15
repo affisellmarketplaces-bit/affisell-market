@@ -19,3 +19,24 @@ export function shouldShowGraduationHighBounceDigestRow(args: {
     sentCount: args.launchGraduatedSentThisMonth,
   })
 }
+
+export function graduationBounceAlertDigestBadge(args: {
+  launchGraduatedBounceRatePct: number
+  graduationEmailPaused: boolean
+}): string {
+  if (args.graduationEmailPaused && args.launchGraduatedBounceRatePct > 0) {
+    return " · 🔴 auto-paused"
+  }
+  if (args.launchGraduatedBounceRatePct > 0) {
+    return " · 📉 bounce alert"
+  }
+  return ""
+}
+
+/** Dedicated alert row — min 10 sent with any graduation bounce activity (mirrors J+2 bounce alert). */
+export function shouldShowGraduationBounceAlertDigestRow(args: {
+  launchGraduatedSentThisMonth: number
+  launchGraduatedBouncesThisMonth: number
+}): boolean {
+  return args.launchGraduatedSentThisMonth >= 10 && args.launchGraduatedBouncesThisMonth > 0
+}
