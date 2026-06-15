@@ -24,7 +24,9 @@ import { EXPANSION_LOW_DELIVERY_RATE_THRESHOLD_PCT } from "@/lib/expansion/compu
 import { expansionCountryLabel } from "@/lib/expansion/expansion-country-label"
 import {
   countExpansionCountryEmailAlertSignals,
+  filterExpansionAdminMultiAlertCountries,
   formatExpansionAdminMultiAlertBadgeLabel,
+  sortExpansionAdminCountriesByAlertSignals,
 } from "@/lib/expansion/expansion-digest-country-alert-signals"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -51,6 +53,7 @@ export function AdminExpansionConsole({
     "all"
   )
   const [graduationPreviewOrderIds, setGraduationPreviewOrderIds] = useState<Record<string, string>>({})
+  const [multiAlertOnlyFilter, setMultiAlertOnlyFilter] = useState(false)
   const [pending, startTransition] = useTransition()
 
   function buildEmailEventsExportUrl(countryIso2?: string) {
@@ -392,6 +395,11 @@ export function AdminExpansionConsole({
     bouncesThisMonth: overview.emailEventCounts.bouncesThisMonth,
     complaintsThisMonth: overview.emailEventCounts.complaintsThisMonth,
   })
+  const countriesByAlertSignals = sortExpansionAdminCountriesByAlertSignals(overview.countries)
+  const multiAlertCountryCount = filterExpansionAdminMultiAlertCountries(overview.countries).length
+  const displayCountries = multiAlertOnlyFilter
+    ? filterExpansionAdminMultiAlertCountries(countriesByAlertSignals)
+    : countriesByAlertSignals
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
@@ -816,17 +824,34 @@ export function AdminExpansionConsole({
       ) : null}
 
       <section className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-        <div className="border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
+        <div className="flex flex-col gap-3 border-b border-zinc-200 px-5 py-4 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
             <Globe2 className="size-4 text-violet-600" aria-hidden />
             Demand by country
           </h2>
+          {overview.countries.length > 0 ? (
+            <Button
+              type="button"
+              size="sm"
+              variant={multiAlertOnlyFilter ? "default" : "outline"}
+              className={multiAlertOnlyFilter ? "bg-rose-700 hover:bg-rose-700" : undefined}
+              onClick={() => setMultiAlertOnlyFilter((value) => !value)}
+            >
+              Multi-alert only ({multiAlertCountryCount})
+            </Button>
+          ) : null}
         </div>
         {overview.countries.length === 0 ? (
           <p className="px-5 py-10 text-center text-sm text-zinc-500">No ROW waitlist signups yet.</p>
+        ) : displayCountries.length === 0 ? (
+          <p className="px-5 py-10 text-center text-sm text-zinc-500">
+            No countries with ≥2 email alert signals this month.
+          </p>
         ) : (
           <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
-            {overview.countries.map((row) => (
+            {displayCountries.map((row) => {
+              const emailAlertSignalCount = countExpansionCountryEmailAlertSignals(row)
+              return (
               <li key={row.countryIso2} className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
@@ -940,9 +965,9 @@ export function AdminExpansionConsole({
                         {row.launchDeliveryRatePct}% delivered
                       </Badge>
                     ) : null}
-                    {countExpansionCountryEmailAlertSignals(row) >= 2 ? (
+                    {emailAlertSignalCount >= 2 ? (
                       <Badge className="gap-1 bg-rose-700 hover:bg-rose-700">
-                        {formatExpansionAdminMultiAlertBadgeLabel(countExpansionCountryEmailAlertSignals(row))}
+                        {formatExpansionAdminMultiAlertBadgeLabel(emailAlertSignalCount)}
                       </Badge>
                     ) : null}
                   </div>
@@ -1223,7 +1248,7 @@ export function AdminExpansionConsole({
                   ) : null}
                 </div>
               </li>
-            ))}
+            )})}
           </ul>
         )}
       </section>

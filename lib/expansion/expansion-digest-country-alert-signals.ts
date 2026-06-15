@@ -126,6 +126,23 @@ export function formatExpansionAdminMultiAlertBadgeLabel(signalCount: number): s
   return `${signalCount} email alerts`
 }
 
+export function sortExpansionAdminCountriesByAlertSignals<T extends ExpansionCountryEmailAlertInput>(
+  countries: readonly T[]
+): T[] {
+  return [...countries].sort((a, b) => {
+    const signalDiff =
+      countExpansionCountryEmailAlertSignals(b) - countExpansionCountryEmailAlertSignals(a)
+    if (signalDiff !== 0) return signalDiff
+    return a.countryIso2.localeCompare(b.countryIso2)
+  })
+}
+
+export function filterExpansionAdminMultiAlertCountries<T extends ExpansionCountryEmailAlertInput>(
+  countries: readonly T[]
+): T[] {
+  return countries.filter((row) => shouldShowExpansionCountryMultiAlertDigestRow(row))
+}
+
 export function buildExpansionDigestMultiAlertRecapLines(
   adminUrl: string,
   countries: ExpansionCountryEmailAlertInput[],
