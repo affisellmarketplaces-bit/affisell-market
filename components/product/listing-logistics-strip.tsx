@@ -65,7 +65,6 @@ export function ListingLogisticsStrip({ logistics, className, compact = false }:
           <span className="text-xs font-medium leading-snug text-zinc-900 dark:text-zinc-100">{delivery}</span>
         </div>
       </div>
-      <p className="mt-2 text-[10px] leading-snug text-zinc-500 dark:text-zinc-400">{t("supplierNote")}</p>
     </div>
   )
 }

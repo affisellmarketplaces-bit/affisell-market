@@ -421,7 +421,6 @@ export function MarketplaceListingDetail({
   const locale = useLocale() as AppLocale
   const messages = CLIENT_MESSAGES[locale] as typeof import("@/messages/en.json")
   const productT = messages.Product
-  const browseT = messages.marketplace.browse
   const breadcrumbT = messages.Breadcrumb
   const router = useRouter()
   const reduceMotion = useReducedMotion()
@@ -1083,9 +1082,6 @@ export function MarketplaceListingDetail({
                   {offerBadge ? (
                     <div className="mb-2 flex flex-wrap items-center gap-2">
                       <ProductOfferBadge badge={offerBadge} variant="inline" />
-                      <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400">
-                        {browseT.offerRail.cardSupplierNote}
-                      </span>
                     </div>
                   ) : null}
                 </div>
