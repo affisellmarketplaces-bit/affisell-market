@@ -17,6 +17,11 @@ const RELATED_SELECT = {
       images: true,
     },
   },
+  affiliate: {
+    select: {
+      store: { select: { slug: true } },
+    },
+  },
 } as const
 
 /** PDP select — omits `supplierTrustTier` so DBs without migration still load. */
@@ -194,15 +199,31 @@ export async function loadMarketplaceListingPageData(args: {
 }) {
   const listingId = args.listingId.trim()
 
-  const listing = await findListingDetailRow({
+  const baseAffiliateWhere = { role: "AFFILIATE" as const }
+
+  let listing = await findListingDetailRow({
     id: listingId,
     isListed: true,
     product: buyerMarketplaceProductWhere,
     affiliate: {
-      role: "AFFILIATE",
+      ...baseAffiliateWhere,
       ...(args.storeSlug ? { store: { slug: args.storeSlug } } : {}),
     },
   })
+
+  let canonicalRedirect: string | null = null
+  if (!listing && args.storeSlug) {
+    listing = await findListingDetailRow({
+      id: listingId,
+      isListed: true,
+      product: buyerMarketplaceProductWhere,
+      affiliate: baseAffiliateWhere,
+    })
+    const canonicalSlug = listing?.affiliate.store?.slug?.trim()
+    if (canonicalSlug && canonicalSlug !== args.storeSlug) {
+      canonicalRedirect = canonicalSlug
+    }
+  }
 
   if (!listing?.product) return null
 
@@ -256,6 +277,7 @@ export async function loadMarketplaceListingPageData(args: {
 
   return {
     listing,
+    canonicalRedirect,
     oftenRaw,
     fallbackRaw,
     viewsLast24h,

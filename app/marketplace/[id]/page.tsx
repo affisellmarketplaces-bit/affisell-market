@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import type { ReactNode } from "react"
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import { getLocale } from "next-intl/server"
 import { headers } from "next/headers"
 
@@ -16,6 +16,7 @@ import {
   listingGalleryUrls,
 } from "@/lib/affiliate-listing-display"
 import { normalizeListingSalesCount } from "@/lib/listing-sales-count"
+import { shopListingPath } from "@/lib/affiliate-routes"
 import { loadMarketplaceListingPageData } from "@/lib/marketplace-listing-page-loader"
 import { buildListingLogisticsInput } from "@/lib/listing-logistics-display"
 import { mergeColorImagesForProduct, parseProductColorImagesFromDb } from "@/lib/product-color-images"
@@ -82,18 +83,44 @@ export async function buildListingMetadataForId(
       },
     },
   })
-  if (!listing?.product) return { title: "Produit" }
-  const name = listingDisplayTitle(listing.customTitle, listing.product.name)
+  const resolved =
+    listing ??
+    (storeSlug
+      ? await prisma.affiliateProduct.findFirst({
+          where: {
+            id: listingId,
+            isListed: true,
+            product: buyerMarketplaceProductWhere,
+            affiliate: { role: "AFFILIATE" },
+          },
+          select: {
+            sellingPriceCents: true,
+            customTitle: true,
+            customImages: true,
+            customDescription: true,
+            product: {
+              select: {
+                name: true,
+                description: true,
+                images: true,
+                stock: true,
+              },
+            },
+          },
+        })
+      : null)
+  if (!resolved?.product) return { title: "Produit" }
+  const name = listingDisplayTitle(resolved.customTitle, resolved.product.name)
   const imageUrl =
-    primaryProductImage(listing.customImages) ||
-    primaryProductImage(listing.product.images) ||
+    primaryProductImage(resolved.customImages) ||
+    primaryProductImage(resolved.product.images) ||
     null
   return buildProductListingMetadata({
     name,
-    description: listingDisplayDescription(listing.customDescription, listing.product.description),
+    description: listingDisplayDescription(resolved.customDescription, resolved.product.description),
     imageUrl,
-    priceCents: listing.sellingPriceCents,
-    inStock: listing.product.stock > 0,
+    priceCents: resolved.sellingPriceCents,
+    inStock: resolved.product.stock > 0,
     customerFacing: true,
   })
 }
@@ -142,6 +169,9 @@ export default async function MarketplaceListingPage({
     orderId: sp.orderId ?? null,
   })
   if (!loaded) notFound()
+  if (storeSlug && loaded.canonicalRedirect) {
+    redirect(shopListingPath(loaded.canonicalRedirect, id))
+  }
 
   const { listing, oftenRaw, fallbackRaw, viewsLast24h, writeReviewOrderId } = loaded
 
@@ -242,18 +272,25 @@ export default async function MarketplaceListingPage({
       customTitle: string | null
       customImages: string[]
       product: { name: string; images: string[] }
+      affiliate?: { store: { slug: string } | null } | null
     }>
   ) =>
-    rows.map((r) => ({
-      id: r.id,
-      href: storeSlug
-        ? `/shops/${encodeURIComponent(storeSlug)}/product/${r.id}`
-        : `/marketplace/${r.id}`,
-      title: listingDisplayTitle(r.customTitle, r.product.name),
-      image: listingGalleryUrls(r.customImages, r.product.images ?? [])[0] ?? "/placeholder.png",
-      priceEur: r.sellingPriceCents / 100,
-      soldCount: normalizeListingSalesCount(r.conversions),
-    }))
+    rows.map((r) => {
+      const rowStoreSlug = r.affiliate?.store?.slug?.trim()
+      const href = rowStoreSlug
+        ? shopListingPath(rowStoreSlug, r.id)
+        : storeSlug
+          ? shopListingPath(storeSlug, r.id)
+          : `/marketplace/${r.id}`
+      return {
+        id: r.id,
+        href,
+        title: listingDisplayTitle(r.customTitle, r.product.name),
+        image: listingGalleryUrls(r.customImages, r.product.images ?? [])[0] ?? "/placeholder.png",
+        priceEur: r.sellingPriceCents / 100,
+        soldCount: normalizeListingSalesCount(r.conversions),
+      }
+    })
 
   const oftenBoughtTogether = mapRelated(oftenRaw).slice(0, 3)
   const alsoViewed = mapRelated([...fallbackRaw, ...oftenRaw]).slice(0, 3)
