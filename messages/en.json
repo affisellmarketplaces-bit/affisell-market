@@ -1010,6 +1010,11 @@
       "body": "Checkout to {country} is live — pay with Stripe and ship to your local address.",
       "cartNote": "Checkout to {country} is open — your order ships to your local address."
     },
+    "graduatedPermanent": {
+      "aria": "Permanent checkout in your country",
+      "title": "{country} — permanent checkout country",
+      "body": "Affisell now ships permanently to {country}. The catalog below is filtered to products that deliver to you."
+    },
     "checkoutRegion": {
       "aria": "Checkout availability in your region",
       "badge": "Coming soon",

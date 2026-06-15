@@ -5,6 +5,7 @@ import { runCheckoutLaunchFollowupCron } from "@/lib/cron/checkout-launch-follow
 import { runCheckoutLaunchNotifyCron } from "@/lib/cron/checkout-launch-notify"
 import { runExpansionAutoPilotAfterFirstOrders } from "@/lib/cron/expansion-auto-pilot"
 import { runExpansionDigestCron } from "@/lib/cron/expansion-digest"
+import { runGraduationEmailRetryCron } from "@/lib/cron/expansion-graduation-email-retry"
 import { runGraduationEmailStallAlert } from "@/lib/cron/expansion-graduation-email-stall"
 import { runExpansionRolloutMetricsCron } from "@/lib/cron/expansion-rollout-metrics"
 
@@ -34,6 +35,15 @@ export async function GET(req: NextRequest) {
 
   const autoPilot = await runExpansionAutoPilotAfterFirstOrders(metrics.newFirstOrderCountries)
   const graduationEmailStall = await runGraduationEmailStallAlert()
+  const graduationEmailRetry = await runGraduationEmailRetryCron()
 
-  return NextResponse.json({ ok: true, notify, followup, metrics, autoPilot, graduationEmailStall })
+  return NextResponse.json({
+    ok: true,
+    notify,
+    followup,
+    metrics,
+    autoPilot,
+    graduationEmailStall,
+    graduationEmailRetry,
+  })
 }

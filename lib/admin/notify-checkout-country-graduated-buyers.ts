@@ -79,6 +79,22 @@ export async function notifyCheckoutCountryGraduatedBuyers(
   const countryNameEn = expansionCountryLabel(countryIso2, "en")
   const countryNameFr = expansionCountryLabel(countryIso2, "fr")
 
+  if (recipients.length === 0) {
+    await prisma.checkoutCountryRollout.update({
+      where: { id: rollout.id },
+      data: { graduationEmailSentAt: new Date() },
+    })
+    logBusiness("expansion-rollout", {
+      country: countryIso2,
+      marketRegion: MARKET_REGION,
+      result: "graduation_emails_sent",
+      sent: 0,
+      failed: 0,
+      recipientCount: 0,
+    })
+    return { sent: 0, failed: 0, skipped: false, recipientCount: 0 }
+  }
+
   let sent = 0
   let failed = 0
 
@@ -105,15 +121,17 @@ export async function notifyCheckoutCountryGraduatedBuyers(
     }
   }
 
-  await prisma.checkoutCountryRollout.update({
-    where: { id: rollout.id },
-    data: { graduationEmailSentAt: new Date() },
-  })
+  if (failed === 0) {
+    await prisma.checkoutCountryRollout.update({
+      where: { id: rollout.id },
+      data: { graduationEmailSentAt: new Date() },
+    })
+  }
 
   logBusiness("expansion-rollout", {
     country: countryIso2,
     marketRegion: MARKET_REGION,
-    result: "graduation_emails_sent",
+    result: failed === 0 ? "graduation_emails_sent" : "graduation_emails_partial",
     sent,
     failed,
     recipientCount: recipients.length,

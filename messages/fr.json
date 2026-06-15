@@ -1018,6 +1018,11 @@
       "body": "Le checkout vers {country} est ouvert — payez avec Stripe et livrez à votre adresse locale.",
       "cartNote": "Checkout vers {country} ouvert — votre commande est livrée à votre adresse locale."
     },
+    "graduatedPermanent": {
+      "aria": "Checkout permanent dans votre pays",
+      "title": "{country} — pays checkout permanent",
+      "body": "Affisell livre désormais en permanence vers {country}. Le catalogue ci-dessous est filtré sur les produits livrables chez vous."
+    },
     "checkoutRegion": {
       "aria": "Disponibilité du checkout dans votre région",
       "badge": "Bientôt disponible",
