@@ -228,6 +228,15 @@ export function AdminExpansionConsole({
           <Button type="button" variant="outline" size="sm" disabled={pending} onClick={refresh}>
             Refresh
           </Button>
+          {overview.emailBounces.bouncesThisMonth > 0 ||
+          overview.emailKindStats.some((row) => row.bouncesThisMonth > 0) ? (
+            <Button type="button" variant="outline" size="sm" asChild>
+              <a href="/api/admin/expansion/bounces-export">
+                <Download className="mr-1.5 size-3.5" aria-hidden />
+                Export bounces CSV
+              </a>
+            </Button>
+          ) : null}
           {overview.countries.some((row) => row.launchEmailsDeliveredThisMonth > 0) ? (
             <Button type="button" variant="outline" size="sm" asChild>
               <a href="/api/admin/expansion/delivered-export">
@@ -329,6 +338,9 @@ export function AdminExpansionConsole({
                   <span className="text-xs text-zinc-500">
                     {row.deliveredThisMonth} delivered · {row.bouncesThisMonth} bounce
                     {row.bouncesThisMonth === 1 ? "" : "s"}
+                    {row.complaintsThisMonth > 0
+                      ? ` · ${row.complaintsThisMonth} complaint${row.complaintsThisMonth === 1 ? "" : "s"}`
+                      : ""}
                     {total > 0 ? ` · ${deliveryPct}% delivery` : ""}
                   </span>
                 </li>

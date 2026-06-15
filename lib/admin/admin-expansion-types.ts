@@ -6,6 +6,7 @@ export type ExpansionEmailKindStat = {
   emailKind: string
   deliveredThisMonth: number
   bouncesThisMonth: number
+  complaintsThisMonth: number
 }
 
 export type ExpansionCountryRow = {

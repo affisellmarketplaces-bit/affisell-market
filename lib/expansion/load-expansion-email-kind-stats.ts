@@ -4,6 +4,7 @@ export type ExpansionEmailKindStat = {
   emailKind: string
   deliveredThisMonth: number
   bouncesThisMonth: number
+  complaintsThisMonth: number
 }
 
 function monthStartUtc(now = new Date()): Date {
@@ -22,7 +23,7 @@ function parseKindMeta(error: string | null | undefined): string | null {
 
 export async function loadExpansionEmailKindStats(now = new Date()): Promise<ExpansionEmailKindStat[]> {
   const monthStart = monthStartUtc(now)
-  const [deliveredRows, bounceRows] = await Promise.all([
+  const [deliveredRows, bounceRows, complaintRows] = await Promise.all([
     prisma.processedWebhook.findMany({
       where: { status: "expansion_delivered", createdAt: { gte: monthStart } },
       select: { error: true },
@@ -34,20 +35,33 @@ export async function loadExpansionEmailKindStats(now = new Date()): Promise<Exp
       },
       select: { error: true },
     }),
+    prisma.processedWebhook.findMany({
+      where: {
+        id: { startsWith: "expansion:complaint:" },
+        createdAt: { gte: monthStart },
+      },
+      select: { error: true },
+    }),
   ])
 
-  const byKind = new Map<string, { delivered: number; bounces: number }>()
+  const byKind = new Map<string, { delivered: number; bounces: number; complaints: number }>()
 
   for (const row of deliveredRows) {
     const kind = parseKindMeta(row.error) ?? "unknown"
-    const existing = byKind.get(kind) ?? { delivered: 0, bounces: 0 }
+    const existing = byKind.get(kind) ?? { delivered: 0, bounces: 0, complaints: 0 }
     byKind.set(kind, { ...existing, delivered: existing.delivered + 1 })
   }
 
   for (const row of bounceRows) {
     const kind = parseKindMeta(row.error) ?? "unknown"
-    const existing = byKind.get(kind) ?? { delivered: 0, bounces: 0 }
+    const existing = byKind.get(kind) ?? { delivered: 0, bounces: 0, complaints: 0 }
     byKind.set(kind, { ...existing, bounces: existing.bounces + 1 })
+  }
+
+  for (const row of complaintRows) {
+    const kind = parseKindMeta(row.error) ?? "unknown"
+    const existing = byKind.get(kind) ?? { delivered: 0, bounces: 0, complaints: 0 }
+    byKind.set(kind, { ...existing, complaints: existing.complaints + 1 })
   }
 
   return [...byKind.entries()]
@@ -55,6 +69,7 @@ export async function loadExpansionEmailKindStats(now = new Date()): Promise<Exp
       emailKind,
       deliveredThisMonth: counts.delivered,
       bouncesThisMonth: counts.bounces,
+      complaintsThisMonth: counts.complaints,
     }))
     .sort((a, b) => b.deliveredThisMonth - a.deliveredThisMonth)
 }

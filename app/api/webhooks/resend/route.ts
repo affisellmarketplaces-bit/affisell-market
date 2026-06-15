@@ -5,6 +5,7 @@ import { processExpansionResendDeliveredEvent } from "@/lib/resend-webhook/expan
 import { processExpansionResendDeliveryEvent } from "@/lib/resend-webhook/expansion-email-delivery"
 import type { ResendWebhookEmailData } from "@/lib/resend-webhook/expansion-email-delivery"
 import { recordExpansionBounceEvent } from "@/lib/resend-webhook/record-expansion-bounce-event"
+import { recordExpansionComplaintEvent } from "@/lib/resend-webhook/record-expansion-complaint-event"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -67,6 +68,7 @@ export async function POST(req: NextRequest) {
   ])
 
   await recordExpansionBounceEvent(event.type, emailData, emailId)
+  await recordExpansionComplaintEvent(event.type, emailData, emailId)
 
   await prisma.processedWebhook.create({
     data: {

@@ -7,6 +7,7 @@ import { logBusiness } from "@/lib/business-log"
 import { stripeCheckoutAllowedCountriesForRegion } from "@/lib/eu-market-countries"
 import { loadGraduatedCheckoutCountryIso2 } from "@/lib/checkout-country-rollout"
 import { findNextPilotCountry } from "@/lib/expansion/find-next-pilot-country"
+import { loadPausedLaunchNotifyCountries } from "@/lib/expansion/launch-notify-pause"
 import { MARKET_REGION } from "@/lib/market-config"
 import { prisma } from "@/lib/prisma"
 
@@ -61,8 +62,10 @@ export async function runExpansionPilot(
       countryIso2: row.countryIso2,
       waitlistCount: row._count._all,
     }))
+    const pausedNotify = await loadPausedLaunchNotifyCountries()
+    const pausedUpper = new Set([...pausedNotify].map((code) => code.toUpperCase()))
     const rank = options.rank ?? 1
-    const candidate = findNextPilotCountry(waitlistDemand, enabledSet, baseSet, rank)
+    const candidate = findNextPilotCountry(waitlistDemand, enabledSet, baseSet, rank, pausedUpper)
     if (!candidate) {
       return { ok: false, error: "no_waitlist_demand" }
     }
