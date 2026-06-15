@@ -35,6 +35,8 @@ export function SupplierInviteContextBanner({
         if (!res.ok) return
         const j = (await res.json()) as { invitation: InviteContext | null }
         if (!cancelled && j.invitation) setCtx(j.invitation)
+      } catch {
+        // offline / HMR — hide banner silently
       } finally {
         if (!cancelled) setLoading(false)
       }

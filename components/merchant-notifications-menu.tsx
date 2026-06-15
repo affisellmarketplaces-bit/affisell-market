@@ -111,11 +111,15 @@ export function MerchantNotificationsMenu({
   const [dropdownCoords, setDropdownCoords] = useState<{ top: number; right: number } | null>(null)
 
   const load = useCallback(async () => {
-    const res = await fetch(cfg.apiPath, { cache: "no-store" })
-    if (!res.ok) return
-    const j = (await res.json()) as { unreadCount: number; notifications: NotificationRow[] }
-    setUnreadCount(j.unreadCount)
-    setRows(j.notifications)
+    try {
+      const res = await fetch(cfg.apiPath, { cache: "no-store" })
+      if (!res.ok) return
+      const j = (await res.json()) as { unreadCount: number; notifications: NotificationRow[] }
+      setUnreadCount(j.unreadCount)
+      setRows(j.notifications)
+    } catch {
+      // Dev HMR / offline — keep last badge state, avoid Next.js error overlay
+    }
   }, [cfg.apiPath])
 
   useEffect(() => {
@@ -163,13 +167,17 @@ export function MerchantNotificationsMenu({
   }, [open])
 
   async function markAllRead() {
-    await fetch(cfg.apiPath, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ markAllRead: true }),
-    })
-    await load()
-    window.dispatchEvent(new CustomEvent(cfg.eventName))
+    try {
+      await fetch(cfg.apiPath, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ markAllRead: true }),
+      })
+      await load()
+      window.dispatchEvent(new CustomEvent(cfg.eventName))
+    } catch {
+      // ignore transient network errors
+    }
   }
 
   const dropdownPanel =

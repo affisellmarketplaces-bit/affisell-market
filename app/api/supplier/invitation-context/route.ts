@@ -14,33 +14,41 @@ export async function GET() {
     return Response.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  const invitation = await prisma.affiliateSupplierInvitation.findUnique({
-    where: { supplierId: session.user.id },
-    include: {
-      affiliate: {
-        select: {
-          name: true,
-          store: { select: { name: true, slug: true, logoUrl: true } },
+  try {
+    const invitation = await prisma.affiliateSupplierInvitation.findUnique({
+      where: { supplierId: session.user.id },
+      include: {
+        affiliate: {
+          select: {
+            name: true,
+            store: { select: { name: true, slug: true, logoUrl: true } },
+          },
         },
       },
-    },
-  })
+    })
 
-  if (!invitation) {
-    return Response.json({ invitation: null })
+    if (!invitation) {
+      return Response.json({ invitation: null })
+    }
+
+    const store = invitation.affiliate.store
+    return Response.json({
+      invitation: {
+        status: invitation.status,
+        offeredCommissionPct: invitation.offeredCommissionPct,
+        categoryHint: invitation.categoryHint,
+        affiliateName:
+          store?.name?.trim() || invitation.affiliate.name?.trim() || "Créateur Affisell",
+        affiliateSlug: store?.slug ?? null,
+        affiliateLogoUrl: store?.logoUrl ?? null,
+        catalogLive: invitation.status === "CATALOG_LIVE",
+      },
+    })
+  } catch (error) {
+    console.error("[supplier-invitation-context]", {
+      userId: session.user.id,
+      error: error instanceof Error ? error.message : String(error),
+    })
+    return Response.json({ invitation: null }, { status: 200 })
   }
-
-  const store = invitation.affiliate.store
-  return Response.json({
-    invitation: {
-      status: invitation.status,
-      offeredCommissionPct: invitation.offeredCommissionPct,
-      categoryHint: invitation.categoryHint,
-      affiliateName:
-        store?.name?.trim() || invitation.affiliate.name?.trim() || "Créateur Affisell",
-      affiliateSlug: store?.slug ?? null,
-      affiliateLogoUrl: store?.logoUrl ?? null,
-      catalogLive: invitation.status === "CATALOG_LIVE",
-    },
-  })
 }

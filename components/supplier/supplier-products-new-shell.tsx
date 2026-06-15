@@ -33,7 +33,6 @@ export function SupplierProductsNewShell({ ownerUserId }: { ownerUserId: string 
   }, [composeQs, editId, hubQs, router, searchParams])
 
   useEffect(() => {
-    if (!fromInvite) return
     void fetch("/api/supplier/invitation-context", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
       .then((j: { invitation?: { offeredCommissionPct?: number | null } | null } | null) => {
@@ -41,7 +40,7 @@ export function SupplierProductsNewShell({ ownerUserId }: { ownerUserId: string 
         if (typeof pct === "number" && Number.isFinite(pct)) setInviteCommissionHint(pct)
       })
       .catch(() => {})
-  }, [fromInvite])
+  }, [])
 
   function goHub() {
     router.replace("/dashboard/supplier/products/new?hub=1", { scroll: false })
@@ -64,11 +63,9 @@ export function SupplierProductsNewShell({ ownerUserId }: { ownerUserId: string 
 
   return (
     <>
-      {fromInvite ? (
-        <BentoContainer maxWidth="6xl" className="pb-0 pt-6">
-          <SupplierInviteContextBanner fromInviteQuery />
-        </BentoContainer>
-      ) : null}
+      <BentoContainer maxWidth="6xl" className="pb-0 pt-6">
+        <SupplierInviteContextBanner fromInviteQuery={fromInvite} />
+      </BentoContainer>
       <Suspense
         fallback={
           <div className="mx-auto max-w-7xl px-4 py-12 text-center text-sm text-zinc-500">
