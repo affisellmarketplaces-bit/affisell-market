@@ -102,7 +102,7 @@ export function OfferModeQuickRail({ basePath, className }: Props) {
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5 sm:gap-3">
+      <div className="flex flex-nowrap gap-2 overflow-x-auto overscroll-x-contain pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-2.5 sm:overflow-visible [&::-webkit-scrollbar]:hidden">
         {RAIL_MODES.map((mode) => {
           const slug = offerFacetSlug(mode)
           const badge = offerModeFilterLabel(mode, locale as AppLocale)
@@ -117,7 +117,7 @@ export function OfferModeQuickRail({ basePath, className }: Props) {
               data-active={active ? "true" : "false"}
               aria-pressed={active}
               onClick={() => toggle(slug)}
-              className="affisell-offer-mode-card group relative flex min-h-[4.25rem] items-center gap-2.5 overflow-hidden rounded-2xl p-3 text-left transition duration-300 hover:-translate-y-0.5 active:scale-[0.99] sm:min-h-[5rem] sm:flex-col sm:items-start sm:justify-between sm:p-4"
+              className="affisell-offer-mode-card group relative flex min-h-[3.25rem] min-w-[6.75rem] flex-1 shrink-0 items-center gap-2 overflow-hidden rounded-2xl px-2.5 py-2 text-left transition duration-300 hover:-translate-y-0.5 active:scale-[0.99] sm:min-h-[3.5rem] sm:min-w-0 sm:px-3"
             >
               <span
                 className={cn(
@@ -128,17 +128,17 @@ export function OfferModeQuickRail({ basePath, className }: Props) {
               />
               <span
                 className={cn(
-                  "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br shadow-inner sm:h-9 sm:w-9",
+                  "relative flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br shadow-inner sm:h-8 sm:w-8 sm:rounded-xl",
                   ICON_ACCENT
                 )}
               >
-                <Icon className="size-3.5 text-white sm:size-4" aria-hidden />
+                <Icon className="size-3.5 text-white" aria-hidden />
               </span>
-              <span className="relative min-w-0 flex-1 sm:mt-2 sm:w-full sm:flex-none">
-                <span className="block truncate text-xs font-bold leading-snug text-zinc-900 sm:text-sm dark:text-white">
+              <span className="relative min-w-0 flex-1">
+                <span className="block truncate text-[11px] font-bold leading-snug text-zinc-900 sm:text-xs dark:text-white">
                   {badge.shortLabel}
                 </span>
-                <span className="mt-0.5 line-clamp-2 block text-[10px] leading-snug text-zinc-600 sm:line-clamp-none sm:text-[11px] dark:text-violet-100/80">
+                <span className="mt-0.5 hidden truncate text-[10px] leading-snug text-zinc-600 lg:block dark:text-violet-100/80">
                   {badge.label}
                 </span>
               </span>
