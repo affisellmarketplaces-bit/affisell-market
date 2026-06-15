@@ -124,6 +124,36 @@ export function scoreExpansionEmailKindStat(stat: {
   return stat.deliveredThisMonth + stat.bouncesThisMonth + stat.complaintsThisMonth
 }
 
+export function scoreExpansionCountryEmailVolume(row: ExpansionDigestQuickExportCountry): number {
+  return (
+    row.launchEmailsDeliveredThisMonth +
+    row.launchGraduatedDeliveredThisMonth +
+    row.launchFollowupDeliveredThisMonth +
+    row.launchComplaintsThisMonth +
+    row.launchGraduatedComplaintsThisMonth +
+    row.launchFollowupComplaintsThisMonth +
+    row.launchBounceRetriesPending +
+    row.launchBounceSuppressed +
+    row.launchGraduatedBouncesThisMonth +
+    row.launchFollowupBouncesThisMonth
+  )
+}
+
+export function formatExpansionAdminQuickExportCountryLabel(row: ExpansionDigestQuickExportCountry): string {
+  const volume = scoreExpansionCountryEmailVolume(row)
+  return `${row.countryIso2.toUpperCase()} · ${volume} emails`
+}
+
+export function sortExpansionAdminQuickExportCountries(
+  countries: ExpansionDigestQuickExportCountry[],
+  limit = 5
+): ExpansionDigestQuickExportCountry[] {
+  return countries
+    .filter(hasExpansionQuickExportActivity)
+    .sort((a, b) => scoreExpansionCountryEmailVolume(b) - scoreExpansionCountryEmailVolume(a))
+    .slice(0, limit)
+}
+
 export function sortExpansionAdminQuickExportKinds<T extends { emailKind: ExpansionEmailExportKind }>(
   kinds: readonly T[],
   emailKindStats: ReadonlyArray<{

@@ -19,7 +19,9 @@ import {
   shouldShowFollowupPausedDigestRow,
 } from "@/lib/expansion/expansion-digest-followup-pause-badge"
 import {
+  followupBounceAlertDigestBadge,
   followupBounceDigestBadge,
+  shouldShowFollowupBounceAlertDigestRow,
   shouldShowFollowupHighBounceDigestRow,
 } from "@/lib/expansion/expansion-digest-followup-bounce-badge"
 import {
@@ -264,6 +266,30 @@ function buildDigestBody(
                 launchFollowupComplaintsThisMonth: row.launchFollowupComplaintsThisMonth,
                 launchFollowupPaused: row.launchFollowupPaused,
               })} — ${adminUrl}${expansionComplaintsExportPath(row.countryIso2, "checkout-launch-followup")}`
+          )
+      : ["• none"]),
+    "",
+    "J+2 follow-up bounce alert by country (month, min 10 sent):",
+    ...(overview.countries.filter((row) =>
+      shouldShowFollowupBounceAlertDigestRow({
+        launchFollowupSentThisMonth: row.launchFollowupSentThisMonth,
+        launchFollowupBouncesThisMonth: row.launchFollowupBouncesThisMonth,
+      })
+    ).length > 0
+      ? overview.countries
+          .filter((row) =>
+            shouldShowFollowupBounceAlertDigestRow({
+              launchFollowupSentThisMonth: row.launchFollowupSentThisMonth,
+              launchFollowupBouncesThisMonth: row.launchFollowupBouncesThisMonth,
+            })
+          )
+          .slice(0, 5)
+          .map(
+            (row) =>
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchFollowupBounceRatePct}% bounce (${row.launchFollowupBouncesThisMonth} bounce(s) / ${row.launchFollowupSentThisMonth} sent)${followupBounceAlertDigestBadge({
+                launchFollowupBounceRatePct: row.launchFollowupBounceRatePct,
+                launchFollowupPaused: row.launchFollowupPaused,
+              })} — ${adminUrl}${expansionBouncesExportPath(row.countryIso2, "checkout-launch-followup")}`
           )
       : ["• none"]),
     "",

@@ -19,3 +19,24 @@ export function shouldShowFollowupHighBounceDigestRow(args: {
     sentCount: args.launchFollowupSentThisMonth,
   })
 }
+
+export function followupBounceAlertDigestBadge(args: {
+  launchFollowupBounceRatePct: number
+  launchFollowupPaused: boolean
+}): string {
+  if (args.launchFollowupPaused && args.launchFollowupBounceRatePct > 0) {
+    return " · 🔴 auto-paused"
+  }
+  if (args.launchFollowupBounceRatePct > 0) {
+    return " · 📉 bounce alert"
+  }
+  return ""
+}
+
+/** Dedicated alert row — min 10 sent with any J+2 bounce activity (mirrors launch bounce alert). */
+export function shouldShowFollowupBounceAlertDigestRow(args: {
+  launchFollowupSentThisMonth: number
+  launchFollowupBouncesThisMonth: number
+}): boolean {
+  return args.launchFollowupSentThisMonth >= 10 && args.launchFollowupBouncesThisMonth > 0
+}
