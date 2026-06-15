@@ -1112,6 +1112,8 @@
       "graduatedCountriesTitle": "New checkout countries",
       "graduatedCountriesHint": "Validated markets — filter listings that ship to your country.",
       "graduatedCountryShipsTo": "Ships to {country}",
+      "graduatedShipsToToast": "Catalog filtered for {country}",
+      "graduatedShipsToToastBody": "Showing products that ship to you — change anytime in filters.",
       "viewStores": "Browse stores",
       "listingCount": "{count, plural, one {# listing} other {# listings}}",
       "listingCountForQuery": " for « {query} »",

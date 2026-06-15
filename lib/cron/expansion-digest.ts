@@ -128,9 +128,16 @@ export async function runExpansionDigestCron(now = new Date()): Promise<RunExpan
   )
 
   const bodyText = buildDigestBody(overview, enabledWithoutOrder, graduationEmailStalls)
+  const adminConsoleUrl = `${resolveAppUrl()}/admin/expansion`
   const resend = new Resend(config.apiKey)
   const { to } = resolveResendDeliveryRecipient("expansion-digest", recipient, config)
-  const html = await render(ExpansionDigestEmail({ bodyText }))
+  const html = await render(
+    ExpansionDigestEmail({
+      bodyText,
+      adminConsoleUrl,
+      graduationPendingCount: overview.funnel.graduationEmailsPending,
+    })
+  )
 
   const { error } = await resend.emails.send({
     from: config.from,

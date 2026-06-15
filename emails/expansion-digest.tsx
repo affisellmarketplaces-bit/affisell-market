@@ -1,5 +1,6 @@
 import {
   Body,
+  Button,
   Container,
   Head,
   Heading,
@@ -11,9 +12,17 @@ import {
 
 export type ExpansionDigestEmailProps = {
   bodyText: string
+  adminConsoleUrl: string
+  graduationPendingCount?: number
 }
 
-export function ExpansionDigestEmail({ bodyText }: ExpansionDigestEmailProps) {
+export function ExpansionDigestEmail({
+  bodyText,
+  adminConsoleUrl,
+  graduationPendingCount = 0,
+}: ExpansionDigestEmailProps) {
+  const showGraduationCta = graduationPendingCount > 0
+
   return (
     <Html>
       <Head />
@@ -22,6 +31,26 @@ export function ExpansionDigestEmail({ bodyText }: ExpansionDigestEmailProps) {
         <Container style={container}>
           <Heading style={h1}>Expansion ROW digest</Heading>
           <Text style={text}>{bodyText}</Text>
+          <Section style={{ textAlign: "center", margin: "24px 0" }}>
+            <Button href={adminConsoleUrl} style={buttonPrimary}>
+              Open expansion console
+            </Button>
+          </Section>
+          {showGraduationCta ? (
+            <Section style={graduationBox}>
+              <Text style={graduationTitle}>
+                {graduationPendingCount} graduation email batch
+                {graduationPendingCount === 1 ? "" : "es"} pending
+              </Text>
+              <Text style={graduationBody}>
+                Send buyer re-engagement from the admin console or wait for the daily expansion-ops
+                retry cron.
+              </Text>
+              <Button href={adminConsoleUrl} style={buttonSecondary}>
+                Send graduation emails
+              </Button>
+            </Section>
+          ) : null}
           <Section>
             <Text style={footer}>Automated weekly summary — Affisell Admin</Text>
           </Section>
@@ -41,6 +70,47 @@ const container = {
 }
 const h1 = { fontSize: "20px", fontWeight: 700, color: "#18181b", margin: "0 0 16px" }
 const text = { fontSize: "14px", lineHeight: "22px", color: "#3f3f46", whiteSpace: "pre-wrap" as const }
+const buttonPrimary = {
+  backgroundColor: "#7c3aed",
+  color: "#ffffff",
+  padding: "12px 20px",
+  borderRadius: "999px",
+  fontWeight: 600,
+  textDecoration: "none",
+}
+const graduationBox = {
+  margin: "0 0 16px",
+  padding: "16px",
+  borderRadius: "12px",
+  backgroundColor: "#fff7ed",
+  border: "1px solid #fed7aa",
+}
+const graduationTitle = {
+  fontSize: "14px",
+  fontWeight: 700,
+  color: "#9a3412",
+  margin: "0 0 8px",
+}
+const graduationBody = {
+  fontSize: "13px",
+  lineHeight: "20px",
+  color: "#7c2d12",
+  margin: "0 0 12px",
+}
+const buttonSecondary = {
+  backgroundColor: "#ea580c",
+  color: "#ffffff",
+  padding: "10px 18px",
+  borderRadius: "999px",
+  fontWeight: 600,
+  textDecoration: "none",
+}
 const footer = { fontSize: "12px", color: "#71717a", margin: "24px 0 0" }
 
 export default ExpansionDigestEmail
+
+ExpansionDigestEmail.PreviewProps = {
+  bodyText: "Region: EU\nGraduation emails pending: 2",
+  adminConsoleUrl: "https://affisell.com/admin/expansion",
+  graduationPendingCount: 2,
+} satisfies ExpansionDigestEmailProps

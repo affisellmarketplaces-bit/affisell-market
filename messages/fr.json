@@ -1120,6 +1120,8 @@
       "graduatedCountriesTitle": "Nouveaux pays checkout",
       "graduatedCountriesHint": "Marchés validés — filtrez les produits livrables chez vous.",
       "graduatedCountryShipsTo": "Livrable {country}",
+      "graduatedShipsToToast": "Catalogue filtré pour {country}",
+      "graduatedShipsToToastBody": "Produits livrables vers votre pays — modifiable via les filtres.",
       "viewStores": "Voir les boutiques",
       "listingCount": "{count, plural, one {# annonce} other {# annonces}}",
       "listingCountForQuery": " pour « {query} »",

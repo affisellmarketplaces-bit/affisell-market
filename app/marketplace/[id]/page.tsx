@@ -5,6 +5,7 @@ import { headers } from "next/headers"
 
 import { auth } from "@/auth"
 import { CheckoutRegionComingSoonBanner } from "@/components/marketplace/checkout-region-coming-soon-banner"
+import { GraduatedCheckoutPermanentBanner } from "@/components/marketplace/graduated-checkout-permanent-banner"
 import { RolloutShippingConfirmedBanner } from "@/components/marketplace/rollout-shipping-confirmed-banner"
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
 import { filterListingForPromotedVariants } from "@/lib/affiliate-storefront-variants"
@@ -38,6 +39,7 @@ import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-fi
 import type { AppLocale } from "@/lib/i18n-locale"
 import { offerModeBadge, parseProductOfferMode } from "@/lib/product-offer-mode"
 import {
+  isGraduatedCheckoutCountryResolved,
   isRolloutOnlyCheckoutCountryResolved,
   isStripeCheckoutCountryResolved,
 } from "@/lib/checkout-country-rollout"
@@ -121,8 +123,12 @@ export default async function MarketplaceListingPage({
   ])
   const visitorCountry = resolveVisitorCountryIso2(requestHeaders)
   const checkoutAvailable = visitorCountry ? await isStripeCheckoutCountryResolved(visitorCountry) : true
-  const rolloutOnly =
+  const graduatedCheckout =
     visitorCountry && checkoutAvailable
+      ? await isGraduatedCheckoutCountryResolved(visitorCountry)
+      : false
+  const rolloutOnly =
+    visitorCountry && checkoutAvailable && !graduatedCheckout
       ? await isRolloutOnlyCheckoutCountryResolved(visitorCountry)
       : false
 
@@ -335,6 +341,14 @@ export default async function MarketplaceListingPage({
             variant="compact"
             visitorCountry={visitorCountry}
             checkoutAvailable={false}
+          />
+        ) : graduatedCheckout && visitorCountry ? (
+          <GraduatedCheckoutPermanentBanner
+            className="mb-4"
+            variant="compact"
+            visitorCountry={visitorCountry}
+            checkoutAvailable
+            graduatedCheckout
           />
         ) : rolloutOnly && visitorCountry ? (
           <RolloutShippingConfirmedBanner
