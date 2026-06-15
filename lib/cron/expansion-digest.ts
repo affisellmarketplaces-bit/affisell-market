@@ -35,7 +35,9 @@ import {
   sortExpansionAdminQuickExportCountries,
 } from "@/lib/expansion/expansion-digest-quick-exports"
 import {
+  followupDeliveryAlertDigestBadge,
   followupDeliveryDigestBadge,
+  shouldShowFollowupDeliveryAlertDigestRow,
   shouldShowFollowupLowDeliveryDigestRow,
 } from "@/lib/expansion/expansion-digest-followup-delivery-badge"
 import {
@@ -49,8 +51,10 @@ import {
   shouldShowLaunchHighBounceDigestRow,
 } from "@/lib/expansion/expansion-digest-launch-bounce-badge"
 import {
+  launchDeliveryAlertDigestBadge,
   launchDeliveryDigestBadge,
   shouldShowLaunchDeliveredDigestRow,
+  shouldShowLaunchDeliveryAlertDigestRow,
   shouldShowLaunchLowDeliveryDigestRow,
   shouldShowLaunchNotifyPausedDigestRow,
 } from "@/lib/expansion/expansion-digest-launch-delivery-badge"
@@ -69,7 +73,9 @@ import {
 } from "@/lib/expansion/expansion-digest-graduation-pause-badge"
 import { buildGraduatedThisMonthDigestLines } from "@/lib/expansion/expansion-digest-graduated-month"
 import {
+  graduationDeliveryAlertDigestBadge,
   graduationDeliveryDigestBadge,
+  shouldShowGraduationDeliveryAlertDigestRow,
   shouldShowGraduationLowDeliveryDigestRow,
 } from "@/lib/expansion/expansion-digest-graduation-delivery-badge"
 import { resolveGraduatedBuyerShopUrl } from "@/lib/expansion/graduated-buyer-shop-url"
@@ -247,6 +253,30 @@ function buildDigestBody(
           )
       : ["• none"]),
     "",
+    "Launch notify delivery alert by country (month, min 10 notified, <80%):",
+    ...(overview.countries.filter((row) =>
+      shouldShowLaunchDeliveryAlertDigestRow({
+        notifiedCount: row.funnel.notifiedCount,
+        launchDeliveryRatePct: row.launchDeliveryRatePct,
+      })
+    ).length > 0
+      ? overview.countries
+          .filter((row) =>
+            shouldShowLaunchDeliveryAlertDigestRow({
+              notifiedCount: row.funnel.notifiedCount,
+              launchDeliveryRatePct: row.launchDeliveryRatePct,
+            })
+          )
+          .slice(0, 5)
+          .map(
+            (row) =>
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchDeliveryRatePct}% (${row.launchEmailsDeliveredThisMonth} delivered / ${row.funnel.notifiedCount} notified)${launchDeliveryAlertDigestBadge({
+                launchDeliveryRatePct: row.launchDeliveryRatePct,
+                launchNotifyPaused: row.launchNotifyPaused,
+              })} — ${adminUrl}${expansionDeliveredExportPath(row.countryIso2, "checkout-launch")}`
+          )
+      : ["• none"]),
+    "",
     "J+2 follow-up complaint alert by country (month, min 10 sent):",
     ...(overview.countries.filter((row) =>
       shouldShowFollowupComplaintAlertDigestRow({
@@ -295,6 +325,30 @@ function buildDigestBody(
           )
       : ["• none"]),
     "",
+    "J+2 follow-up delivery alert by country (month, min 10 sent, <80%):",
+    ...(overview.countries.filter((row) =>
+      shouldShowFollowupDeliveryAlertDigestRow({
+        launchFollowupSentThisMonth: row.launchFollowupSentThisMonth,
+        launchFollowupDeliveryRatePct: row.launchFollowupDeliveryRatePct,
+      })
+    ).length > 0
+      ? overview.countries
+          .filter((row) =>
+            shouldShowFollowupDeliveryAlertDigestRow({
+              launchFollowupSentThisMonth: row.launchFollowupSentThisMonth,
+              launchFollowupDeliveryRatePct: row.launchFollowupDeliveryRatePct,
+            })
+          )
+          .slice(0, 5)
+          .map(
+            (row) =>
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchFollowupDeliveryRatePct}% (${row.launchFollowupDeliveredThisMonth} J+2 delivered / ${row.launchFollowupSentThisMonth} sent)${followupDeliveryAlertDigestBadge({
+                launchFollowupDeliveryRatePct: row.launchFollowupDeliveryRatePct,
+                launchFollowupPaused: row.launchFollowupPaused,
+              })} — ${adminUrl}${expansionDeliveredExportPath(row.countryIso2, "checkout-launch-followup")}`
+          )
+      : ["• none"]),
+    "",
     "Graduation complaint alert by country (month, min 10 sent):",
     ...(overview.countries.filter((row) =>
       shouldShowGraduationComplaintDigestRow({
@@ -340,6 +394,30 @@ function buildDigestBody(
                 launchGraduatedBounceRatePct: row.launchGraduatedBounceRatePct,
                 graduationEmailPaused: row.graduationEmailPaused,
               })} — ${adminUrl}${expansionBouncesExportPath(row.countryIso2, "checkout-graduated")}`
+          )
+      : ["• none"]),
+    "",
+    "Graduation delivery alert by country (month, min 10 sent, <80%):",
+    ...(overview.countries.filter((row) =>
+      shouldShowGraduationDeliveryAlertDigestRow({
+        launchGraduatedSentThisMonth: row.launchGraduatedSentThisMonth,
+        launchGraduatedDeliveryRatePct: row.launchGraduatedDeliveryRatePct,
+      })
+    ).length > 0
+      ? overview.countries
+          .filter((row) =>
+            shouldShowGraduationDeliveryAlertDigestRow({
+              launchGraduatedSentThisMonth: row.launchGraduatedSentThisMonth,
+              launchGraduatedDeliveryRatePct: row.launchGraduatedDeliveryRatePct,
+            })
+          )
+          .slice(0, 8)
+          .map(
+            (row) =>
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchGraduatedDeliveryRatePct}% (${row.launchGraduatedDeliveredThisMonth} graduation delivered / ${row.launchGraduatedSentThisMonth} sent)${graduationDeliveryAlertDigestBadge({
+                launchGraduatedDeliveryRatePct: row.launchGraduatedDeliveryRatePct,
+                graduationEmailPaused: row.graduationEmailPaused,
+              })} — ${adminUrl}${expansionDeliveredExportPath(row.countryIso2, "checkout-graduated")}`
           )
       : ["• none"]),
     "",

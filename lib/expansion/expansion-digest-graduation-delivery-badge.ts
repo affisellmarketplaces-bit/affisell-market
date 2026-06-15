@@ -21,3 +21,35 @@ export function shouldShowGraduationLowDeliveryDigestRow(args: {
     args.launchGraduatedDeliveryRatePct < EXPANSION_LOW_DELIVERY_RATE_THRESHOLD_PCT
   )
 }
+
+export function graduationDeliveryAlertDigestBadge(args: {
+  launchGraduatedDeliveryRatePct: number
+  graduationEmailPaused: boolean
+}): string {
+  if (
+    args.graduationEmailPaused &&
+    args.launchGraduatedDeliveryRatePct > 0 &&
+    args.launchGraduatedDeliveryRatePct < EXPANSION_LOW_DELIVERY_RATE_THRESHOLD_PCT
+  ) {
+    return " · 🔴 auto-paused"
+  }
+  if (
+    args.launchGraduatedDeliveryRatePct > 0 &&
+    args.launchGraduatedDeliveryRatePct < EXPANSION_LOW_DELIVERY_RATE_THRESHOLD_PCT
+  ) {
+    return " · ⚠ delivery alert"
+  }
+  return ""
+}
+
+/** Dedicated alert row — min 10 sent with graduation delivery below 80% (mirrors bounce alert). */
+export function shouldShowGraduationDeliveryAlertDigestRow(args: {
+  launchGraduatedSentThisMonth: number
+  launchGraduatedDeliveryRatePct: number
+}): boolean {
+  return (
+    args.launchGraduatedSentThisMonth >= 10 &&
+    args.launchGraduatedDeliveryRatePct > 0 &&
+    args.launchGraduatedDeliveryRatePct < EXPANSION_LOW_DELIVERY_RATE_THRESHOLD_PCT
+  )
+}

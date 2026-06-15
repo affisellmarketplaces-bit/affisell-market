@@ -177,12 +177,13 @@ export function buildExpansionDigestCountryQuickExportLine(
   row: ExpansionDigestQuickExportCountry
 ): string {
   const countryIso2 = row.countryIso2
+  const volume = scoreExpansionCountryEmailVolume(row)
   const bounceKind = pickExpansionBounceExportKind(row)
   const complaintKind = pickExpansionComplaintExportKind(row)
   const deliveredKind = pickExpansionDeliveredExportKind(row)
 
   return (
-    `• ${countryLabel} (${countryIso2}) — ` +
+    `• ${countryLabel} (${countryIso2}) · ${volume} emails — ` +
     `bundle ${adminUrl}${expansionEmailExportsBundlePath(countryIso2)} · ` +
     `bounces ${adminUrl}${expansionBouncesExportPath(countryIso2, bounceKind)} · ` +
     `complaints ${adminUrl}${expansionComplaintsExportPath(countryIso2, complaintKind)} · ` +
