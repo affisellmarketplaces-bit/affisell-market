@@ -50,3 +50,21 @@ export function shouldAutoResumeLaunchNotifyOnFollowupDelivery(args: {
     minSent: args.minSent,
   })
 }
+
+export function shouldAutoResumeGraduationOnDelivery(args: {
+  graduatedDeliveredThisMonth: number
+  graduatedSentCount: number
+  thresholdPct?: number
+  minSent?: number
+}): boolean {
+  const thresholdPct = args.thresholdPct ?? EXPANSION_AUTO_RESUME_DELIVERY_THRESHOLD_PCT
+  const minSent = args.minSent ?? 10
+  if (args.graduatedSentCount < minSent) return false
+  if (args.graduatedDeliveredThisMonth === 0) return false
+  return (
+    computeLaunchDeliveryRatePct({
+      deliveredThisMonth: args.graduatedDeliveredThisMonth,
+      notifiedCount: args.graduatedSentCount,
+    }) >= thresholdPct
+  )
+}

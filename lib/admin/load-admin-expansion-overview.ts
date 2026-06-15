@@ -10,7 +10,10 @@ import { MARKET_REGION } from "@/lib/market-config"
 import { stripeCheckoutAllowedCountriesForRegion } from "@/lib/eu-market-countries"
 import { loadGraduatedCheckoutCountryIso2 } from "@/lib/checkout-country-rollout"
 import { findNextPilotCountry } from "@/lib/expansion/find-next-pilot-country"
-import { computeCountryBounceRatePct } from "@/lib/expansion/compute-country-bounce-rate"
+import {
+  computeCountryBounceRatePct,
+  computeGraduatedBounceRatePct,
+} from "@/lib/expansion/compute-country-bounce-rate"
 import { computeLaunchDeliveryRatePct } from "@/lib/expansion/compute-country-delivery-rate"
 import { expansionCountryLabel } from "@/lib/expansion/expansion-country-label"
 import { computeCountryComplaintRatePct } from "@/lib/expansion/compute-country-complaint-rate"
@@ -120,6 +123,9 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
         launchFollowupDeliveryRatePct: 0,
         launchGraduatedDeliveredThisMonth: 0,
         launchGraduatedDeliveryRatePct: 0,
+        launchGraduatedBouncesThisMonth: 0,
+        launchGraduatedBounceRatePct: 0,
+        launchGraduatedSentThisMonth: 0,
         graduationEmailPaused: pausedGraduationCountries.has(group.countryIso2.toLowerCase()),
         launchNotifyPaused: pausedNotifyCountries.has(group.countryIso2.toLowerCase()),
         launchFollowupPaused: pausedFollowupCountries.has(group.countryIso2.toLowerCase()),
@@ -185,6 +191,15 @@ export async function loadAdminExpansionOverview(): Promise<AdminExpansionOvervi
         deliveredThisMonth:
           graduatedEmailStats.get(row.countryIso2.toLowerCase())?.deliveredThisMonth ?? 0,
         notifiedCount: graduatedEmailStats.get(row.countryIso2.toLowerCase())?.sentCount ?? 0,
+      }),
+      launchGraduatedBouncesThisMonth:
+        graduatedEmailStats.get(row.countryIso2.toLowerCase())?.bouncesThisMonth ?? 0,
+      launchGraduatedSentThisMonth:
+        graduatedEmailStats.get(row.countryIso2.toLowerCase())?.sentCount ?? 0,
+      launchGraduatedBounceRatePct: computeGraduatedBounceRatePct({
+        bouncesThisMonth:
+          graduatedEmailStats.get(row.countryIso2.toLowerCase())?.bouncesThisMonth ?? 0,
+        sentCount: graduatedEmailStats.get(row.countryIso2.toLowerCase())?.sentCount ?? 0,
       }),
     }
   })

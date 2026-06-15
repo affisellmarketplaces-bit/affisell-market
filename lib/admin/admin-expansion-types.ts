@@ -40,6 +40,9 @@ export type ExpansionCountryRow = {
   launchFollowupDeliveryRatePct: number
   launchGraduatedDeliveredThisMonth: number
   launchGraduatedDeliveryRatePct: number
+  launchGraduatedBouncesThisMonth: number
+  launchGraduatedBounceRatePct: number
+  launchGraduatedSentThisMonth: number
   graduationEmailPaused: boolean
   launchNotifyPaused: boolean
   launchFollowupPaused: boolean

@@ -53,6 +53,14 @@ export function AdminExpansionConsole({
     return query ? `/api/admin/expansion/bounces-export?${query}` : "/api/admin/expansion/bounces-export"
   }
 
+  function buildDeliveredExportUrl(countryIso2?: string) {
+    const params = new URLSearchParams()
+    if (countryIso2) params.set("countryIso2", countryIso2)
+    if (exportEmailKind !== "all") params.set("emailKind", exportEmailKind)
+    const query = params.toString()
+    return query ? `/api/admin/expansion/delivered-export?${query}` : "/api/admin/expansion/delivered-export"
+  }
+
   function buildGraduationPreviewUrl(
     countryIso2: string,
     firstOrderId: string | null,
@@ -391,7 +399,7 @@ export function AdminExpansionConsole({
           ) : null}
           {overview.countries.some((row) => row.launchEmailsDeliveredThisMonth > 0) ? (
             <Button type="button" variant="outline" size="sm" asChild>
-              <a href="/api/admin/expansion/delivered-export">
+              <a href={buildDeliveredExportUrl()}>
                 <Download className="mr-1.5 size-3.5" aria-hidden />
                 Export delivered CSV
               </a>
@@ -663,6 +671,12 @@ export function AdminExpansionConsole({
                         {row.launchBounceRatePct}% bounce
                       </Badge>
                     ) : null}
+                    {row.launchGraduatedSentThisMonth >= 10 &&
+                    row.launchGraduatedBounceRatePct > EXPANSION_BOUNCE_RATE_ALERT_THRESHOLD_PCT ? (
+                      <Badge variant="outline" className="border-violet-500 text-violet-700 dark:text-violet-400">
+                        grad. {row.launchGraduatedBounceRatePct}% bounce
+                      </Badge>
+                    ) : null}
                     {row.launchNotifyPaused &&
                     row.funnel.notifiedCount >= 10 &&
                     row.launchDeliveryRatePct < EXPANSION_AUTO_PAUSE_DELIVERY_THRESHOLD_PCT ? (
@@ -728,6 +742,9 @@ export function AdminExpansionConsole({
                       : ""}
                     {row.launchGraduatedDeliveredThisMonth > 0
                       ? ` · grad. delivered ${row.launchGraduatedDeliveredThisMonth} (${row.launchGraduatedDeliveryRatePct}%)`
+                      : ""}
+                    {row.launchGraduatedBouncesThisMonth > 0
+                      ? ` · grad. bounce ${row.launchGraduatedBounceRatePct}%`
                       : ""}
                   </p>
                 </div>
