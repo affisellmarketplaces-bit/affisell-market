@@ -16,6 +16,7 @@ import {
   formatExpansionQuickExportCountryLabel,
   pickTopExpansionQuickExportCountries,
   shouldShowExpansionAdminQuickExports,
+  sortExpansionAdminQuickExportKinds,
 } from "@/lib/expansion/expansion-digest-quick-exports"
 import { EXPANSION_BOUNCE_RATE_ALERT_THRESHOLD_PCT } from "@/lib/expansion/compute-country-bounce-rate"
 import { EXPANSION_AUTO_PAUSE_DELIVERY_THRESHOLD_PCT } from "@/lib/expansion/expansion-auto-pause-notify"
@@ -366,7 +367,10 @@ export function AdminExpansionConsole({
 
   const { nextPilot, funnel } = overview
   const quickExportLinks = buildExpansionAdminQuickExportLinks()
-  const kindQuickExportGroups = EXPANSION_ADMIN_QUICK_EXPORT_KINDS.flatMap(({ emailKind, label }) => {
+  const kindQuickExportGroups = sortExpansionAdminQuickExportKinds(
+    EXPANSION_ADMIN_QUICK_EXPORT_KINDS,
+    overview.emailKindStats
+  ).flatMap(({ emailKind, label }) => {
     const stat = overview.emailKindStats.find((row) => row.emailKind === emailKind)
     if (!stat || !emailKindStatHasQuickExport(stat)) return []
     return [{ label, links: buildExpansionAdminKindQuickExportLinks(emailKind, label) }]

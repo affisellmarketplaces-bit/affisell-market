@@ -17,3 +17,25 @@ export function shouldShowLaunchHighBounceDigestRow(args: {
 }): boolean {
   return shouldAlertCountryBounceRate(args)
 }
+
+export function launchBounceAlertDigestBadge(args: {
+  launchBounceRatePct: number
+  launchNotifyPaused: boolean
+}): string {
+  if (args.launchNotifyPaused && args.launchBounceRatePct > 0) {
+    return " · 🔴 auto-paused"
+  }
+  if (args.launchBounceRatePct > 0) {
+    return " · 📉 bounce alert"
+  }
+  return ""
+}
+
+/** Dedicated alert row — min 10 notified with any launch bounce activity (mirrors complaint alert). */
+export function shouldShowLaunchBounceAlertDigestRow(args: {
+  notifiedCount: number
+  retriesPending: number
+  suppressed: number
+}): boolean {
+  return args.notifiedCount >= 10 && args.retriesPending + args.suppressed > 0
+}

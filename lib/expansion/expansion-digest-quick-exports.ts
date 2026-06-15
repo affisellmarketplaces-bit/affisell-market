@@ -98,6 +98,49 @@ export function buildExpansionDigestKindComplaintExportLines(adminUrl: string): 
   ]
 }
 
+export function buildExpansionDigestKindBounceExportLines(adminUrl: string): string[] {
+  return [
+    "Metabase bounces export by kind:",
+    `• Launch — ${adminUrl}${expansionBouncesExportPath(undefined, "checkout-launch")}`,
+    `• J+2 follow-up — ${adminUrl}${expansionBouncesExportPath(undefined, "checkout-launch-followup")}`,
+    `• Graduation — ${adminUrl}${expansionBouncesExportPath(undefined, "checkout-graduated")}`,
+  ]
+}
+
+export function buildExpansionDigestKindDeliveredExportLines(adminUrl: string): string[] {
+  return [
+    "Metabase delivered export by kind:",
+    `• Launch — ${adminUrl}${expansionDeliveredExportPath(undefined, "checkout-launch")}`,
+    `• J+2 follow-up — ${adminUrl}${expansionDeliveredExportPath(undefined, "checkout-launch-followup")}`,
+    `• Graduation — ${adminUrl}${expansionDeliveredExportPath(undefined, "checkout-graduated")}`,
+  ]
+}
+
+export function scoreExpansionEmailKindStat(stat: {
+  deliveredThisMonth: number
+  bouncesThisMonth: number
+  complaintsThisMonth: number
+}): number {
+  return stat.deliveredThisMonth + stat.bouncesThisMonth + stat.complaintsThisMonth
+}
+
+export function sortExpansionAdminQuickExportKinds<T extends { emailKind: ExpansionEmailExportKind }>(
+  kinds: readonly T[],
+  emailKindStats: ReadonlyArray<{
+    emailKind: string
+    deliveredThisMonth: number
+    bouncesThisMonth: number
+    complaintsThisMonth: number
+  }>
+): T[] {
+  const scoreByKind = new Map(
+    emailKindStats.map((row) => [row.emailKind, scoreExpansionEmailKindStat(row)])
+  )
+  return [...kinds].sort(
+    (a, b) => (scoreByKind.get(b.emailKind) ?? 0) - (scoreByKind.get(a.emailKind) ?? 0)
+  )
+}
+
 export function buildExpansionDigestCountryQuickExportLine(
   adminUrl: string,
   countryLabel: string,

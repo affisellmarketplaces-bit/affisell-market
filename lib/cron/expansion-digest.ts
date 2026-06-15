@@ -25,7 +25,9 @@ import {
 import {
   buildExpansionDigestCountryQuickExportLine,
   buildExpansionDigestGlobalQuickExportLines,
+  buildExpansionDigestKindBounceExportLines,
   buildExpansionDigestKindComplaintExportLines,
+  buildExpansionDigestKindDeliveredExportLines,
   pickTopExpansionQuickExportCountries,
 } from "@/lib/expansion/expansion-digest-quick-exports"
 import {
@@ -37,7 +39,9 @@ import {
   shouldShowLaunchComplaintAlertDigestRow,
 } from "@/lib/expansion/expansion-digest-launch-complaint-badge"
 import {
+  launchBounceAlertDigestBadge,
   launchBounceDigestBadge,
+  shouldShowLaunchBounceAlertDigestRow,
   shouldShowLaunchHighBounceDigestRow,
 } from "@/lib/expansion/expansion-digest-launch-bounce-badge"
 import {
@@ -119,6 +123,8 @@ function buildDigestBody(
     `Email events (month): ${overview.emailEventCounts.deliveredThisMonth} delivered · ${overview.emailEventCounts.bouncesThisMonth} bounce(s) · ${overview.emailEventCounts.complaintsThisMonth} complaint(s)`,
     ...buildExpansionDigestGlobalQuickExportLines(adminUrl),
     ...buildExpansionDigestKindComplaintExportLines(adminUrl),
+    ...buildExpansionDigestKindBounceExportLines(adminUrl),
+    ...buildExpansionDigestKindDeliveredExportLines(adminUrl),
     ...(quickExportCountries.length > 0
       ? [
           "Metabase quick exports by country:",
@@ -208,6 +214,32 @@ function buildDigestBody(
                 launchComplaintRatePct: row.launchComplaintRatePct,
                 launchNotifyPaused: row.launchNotifyPaused,
               })} — ${adminUrl}${expansionComplaintsExportPath(row.countryIso2, "checkout-launch")}`
+          )
+      : ["• none"]),
+    "",
+    "Launch notify bounce alert by country (month, min 10 notified):",
+    ...(overview.countries.filter((row) =>
+      shouldShowLaunchBounceAlertDigestRow({
+        notifiedCount: row.funnel.notifiedCount,
+        retriesPending: row.launchBounceRetriesPending,
+        suppressed: row.launchBounceSuppressed,
+      })
+    ).length > 0
+      ? overview.countries
+          .filter((row) =>
+            shouldShowLaunchBounceAlertDigestRow({
+              notifiedCount: row.funnel.notifiedCount,
+              retriesPending: row.launchBounceRetriesPending,
+              suppressed: row.launchBounceSuppressed,
+            })
+          )
+          .slice(0, 5)
+          .map(
+            (row) =>
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchBounceRatePct}% bounce (${row.launchBounceRetriesPending + row.launchBounceSuppressed} affected / ${row.funnel.notifiedCount + row.launchBounceRetriesPending} notified)${launchBounceAlertDigestBadge({
+                launchBounceRatePct: row.launchBounceRatePct,
+                launchNotifyPaused: row.launchNotifyPaused,
+              })} — ${adminUrl}${expansionBouncesExportPath(row.countryIso2, "checkout-launch")}`
           )
       : ["• none"]),
     "",
