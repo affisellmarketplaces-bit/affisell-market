@@ -9,6 +9,7 @@ import { runExpansionAutoResumeFollowupCron } from "@/lib/cron/expansion-auto-re
 import { runExpansionAutoResumeNotifyCron } from "@/lib/cron/expansion-auto-resume-notify"
 import { runExpansionDeliveryRateAlert } from "@/lib/cron/expansion-delivery-rate-alert"
 import { runExpansionFollowupDeliveryRateAlert } from "@/lib/cron/expansion-followup-delivery-rate-alert"
+import { runExpansionFollowupBounceRateAlert } from "@/lib/cron/expansion-followup-bounce-rate-alert"
 import { runExpansionGraduatedComplaintAlert } from "@/lib/cron/expansion-graduated-complaint-alert"
 import { runExpansionAutoPauseGraduationCron } from "@/lib/cron/expansion-auto-pause-graduation"
 import { runExpansionAutoResumeGraduationCron } from "@/lib/cron/expansion-auto-resume-graduation"
@@ -51,6 +52,7 @@ export async function GET(req: NextRequest) {
   const bounceRateAlert = await runExpansionBounceRateAlert()
   const deliveryRateAlert = await runExpansionDeliveryRateAlert()
   const followupDeliveryRateAlert = await runExpansionFollowupDeliveryRateAlert()
+  const followupBounceRateAlert = await runExpansionFollowupBounceRateAlert()
   const complaintAlert = await runExpansionComplaintAlert()
   const graduatedComplaintAlert = await runExpansionGraduatedComplaintAlert()
   const graduatedDeliveryRateAlert = await runExpansionGraduatedDeliveryRateAlert()
@@ -74,6 +76,7 @@ export async function GET(req: NextRequest) {
     bounceRateAlert,
     deliveryRateAlert,
     followupDeliveryRateAlert,
+    followupBounceRateAlert,
     complaintAlert,
     graduatedComplaintAlert,
     graduatedDeliveryRateAlert,

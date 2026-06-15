@@ -13,6 +13,10 @@ import {
   followupBounceDigestBadge,
   shouldShowFollowupHighBounceDigestRow,
 } from "@/lib/expansion/expansion-digest-followup-bounce-badge"
+import {
+  followupDeliveryDigestBadge,
+  shouldShowFollowupLowDeliveryDigestRow,
+} from "@/lib/expansion/expansion-digest-followup-delivery-badge"
 import { buildGraduatedThisMonthDigestLines } from "@/lib/expansion/expansion-digest-graduated-month"
 import {
   graduationDeliveryDigestBadge,
@@ -201,15 +205,23 @@ function buildDigestBody(
       : ["• none"]),
     "",
     "Low J+2 follow-up delivery rate (<80%):",
-    ...(overview.countries.filter(
-      (row) => row.funnel.followUpCount >= 10 && row.launchFollowupDeliveryRatePct < 80
+    ...(overview.countries.filter((row) =>
+      shouldShowFollowupLowDeliveryDigestRow({
+        followUpCount: row.funnel.followUpCount,
+        launchFollowupDeliveryRatePct: row.launchFollowupDeliveryRatePct,
+      })
     ).length > 0
       ? overview.countries
-          .filter((row) => row.funnel.followUpCount >= 10 && row.launchFollowupDeliveryRatePct < 80)
+          .filter((row) =>
+            shouldShowFollowupLowDeliveryDigestRow({
+              followUpCount: row.funnel.followUpCount,
+              launchFollowupDeliveryRatePct: row.launchFollowupDeliveryRatePct,
+            })
+          )
           .slice(0, 5)
           .map(
             (row) =>
-              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchFollowupDeliveryRatePct}% (${row.launchFollowupDeliveredThisMonth} J+2 delivered)`
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchFollowupDeliveryRatePct}% (${row.launchFollowupDeliveredThisMonth} J+2 delivered)${followupDeliveryDigestBadge(row.launchFollowupDeliveryRatePct)}`
           )
       : ["• none"]),
     "",
