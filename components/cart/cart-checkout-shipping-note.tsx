@@ -3,6 +3,7 @@
 import { Truck } from "lucide-react"
 import { useTranslations } from "next-intl"
 
+import { isUsMarket } from "@/lib/market-config"
 import { EU_CHECKOUT_COUNTRY_COUNT } from "@/lib/eu-market-countries"
 import { cn } from "@/lib/utils"
 
@@ -12,7 +13,7 @@ type Props = {
 
 /** Reminds buyers that checkout ships to EU countries; each line follows its supplier zone. */
 export function CartCheckoutShippingNote({ className }: Props) {
-  const t = useTranslations("cart.checkoutShippingNote")
+  const t = useTranslations(isUsMarket() ? "cart.checkoutShippingNoteUs" : "cart.checkoutShippingNote")
 
   return (
     <div

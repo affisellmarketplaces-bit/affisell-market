@@ -15,7 +15,12 @@ import { offerFacetSlug, offerModeBadge } from "@/lib/product-offer-mode"
 import type { ProductOfferMode } from "@/lib/product-offer-mode"
 import { loadMarketplaceCategoryTreeCached } from "@/lib/marketplace-category-tree"
 import type { MarketplaceFacet } from "@/lib/marketplace-facet-types"
+import { MARKET_REGION } from "@/lib/market-config"
 import { EU_MEMBER_COUNT, prismaProductShipsFromEuWhere, prismaProductShipsWorldwideWhere } from "@/lib/eu-market-countries"
+import {
+  prismaProductShipsFromNorthAmericaWhere,
+  prismaProductShipsFromUsWhere,
+} from "@/lib/market-region-shipping"
 import { prisma, withPrismaReconnect } from "@/lib/prisma"
 
 export { DISCOVERY_FACET_KEYS, parseDeptFacetValue } from "@/lib/marketplace-discovery-facets-shared"
@@ -103,14 +108,25 @@ export async function loadGlobalMarketplaceDiscoveryFacets(
     )
   )
 
-  const [under25, mid, over100, frShip, euShip, worldwideShip, under3, under7, freeShip, offerCounts] =
+  const isUsMarket = MARKET_REGION === "us"
+  const currencySym = isUsMarket ? "$" : "€"
+
+  const [under25, mid, over100, shipFacetCounts, under3, under7, freeShip, offerCounts] =
     await Promise.all([
     listingCount({ sellingPriceCents: { lte: 2500 } }),
     listingCount({ sellingPriceCents: { gt: 2500, lte: 10000 } }),
     listingCount({ sellingPriceCents: { gt: 10000 } }),
-    countListingsForProductWhere({ shippingCountry: "FR" }),
-    countListingsForProductWhere(prismaProductShipsFromEuWhere()),
-    countListingsForProductWhere(prismaProductShipsWorldwideWhere()),
+    isUsMarket
+      ? Promise.all([
+          countListingsForProductWhere(prismaProductShipsFromUsWhere()),
+          countListingsForProductWhere(prismaProductShipsFromNorthAmericaWhere()),
+          countListingsForProductWhere(prismaProductShipsWorldwideWhere()),
+        ])
+      : Promise.all([
+          countListingsForProductWhere({ shippingCountry: "FR" }),
+          countListingsForProductWhere(prismaProductShipsFromEuWhere()),
+          countListingsForProductWhere(prismaProductShipsWorldwideWhere()),
+        ]),
     countListingsForProductWhere({ deliveryMax: { lte: 3 } }),
     countListingsForProductWhere({ deliveryMax: { lte: 7 } }),
     countListingsForProductWhere({
@@ -131,9 +147,25 @@ export async function loadGlobalMarketplaceDiscoveryFacets(
   }
 
   const priceValues = [
-    { value: "under25", count: under25, label: isEn ? "Under €25" : "Moins de 25 €" },
-    { value: "25-100", count: mid, label: isEn ? "€25 – €100" : "25 – 100 €" },
-    { value: "over100", count: over100, label: isEn ? "Over €100" : "Plus de 100 €" },
+    {
+      value: "under25",
+      count: under25,
+      label: isEn ? `Under ${currencySym}25` : isUsMarket ? `Moins de ${currencySym}25` : "Moins de 25 €",
+    },
+    {
+      value: "25-100",
+      count: mid,
+      label: isEn
+        ? `${currencySym}25 – ${currencySym}100`
+        : isUsMarket
+          ? `${currencySym}25 – ${currencySym}100`
+          : "25 – 100 €",
+    },
+    {
+      value: "over100",
+      count: over100,
+      label: isEn ? `Over ${currencySym}100` : isUsMarket ? `Plus de ${currencySym}100` : "Plus de 100 €",
+    },
   ].filter((v) => v.count > 0)
 
   if (priceValues.length > 0) {
@@ -144,21 +176,41 @@ export async function loadGlobalMarketplaceDiscoveryFacets(
     })
   }
 
-  const shipValues = [
-    { value: "fr", count: frShip, label: isEn ? "France" : "France" },
-    {
-      value: "eu",
-      count: euShip,
-      label: isEn
-        ? `European Union (${EU_MEMBER_COUNT} countries)`
-        : `Union européenne (${EU_MEMBER_COUNT} pays)`,
-    },
-    {
-      value: "worldwide",
-      count: worldwideShip,
-      label: isEn ? "Worldwide" : "International",
-    },
-  ].filter((v) => v.count > 0)
+  const [frOrUsShip, euOrNaShip, worldwideShip] = shipFacetCounts
+
+  const shipValues = isUsMarket
+    ? [
+        {
+          value: "us",
+          count: frOrUsShip,
+          label: isEn ? "United States" : "États-Unis",
+        },
+        {
+          value: "na",
+          count: euOrNaShip,
+          label: isEn ? "US & Canada" : "États-Unis & Canada",
+        },
+        {
+          value: "worldwide",
+          count: worldwideShip,
+          label: isEn ? "Worldwide" : "International",
+        },
+      ].filter((v) => v.count > 0)
+    : [
+        { value: "fr", count: frOrUsShip, label: isEn ? "France" : "France" },
+        {
+          value: "eu",
+          count: euOrNaShip,
+          label: isEn
+            ? `European Union (${EU_MEMBER_COUNT} countries)`
+            : `Union européenne (${EU_MEMBER_COUNT} pays)`,
+        },
+        {
+          value: "worldwide",
+          count: worldwideShip,
+          label: isEn ? "Worldwide" : "International",
+        },
+      ].filter((v) => v.count > 0)
 
   if (shipValues.length > 0) {
     facets.push({

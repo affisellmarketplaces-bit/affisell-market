@@ -10,6 +10,8 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "rea
 
 import { FlexiblePaymentBadge } from "@/components/checkout/flexible-payment-badge"
 import { CartCheckoutShippingNote } from "@/components/cart/cart-checkout-shipping-note"
+import { CheckoutRegionComingSoonBanner } from "@/components/marketplace/checkout-region-coming-soon-banner"
+import { useVisitorCheckoutRegion } from "@/hooks/use-visitor-checkout-region"
 import { CartCheckoutAutoOpen } from "@/components/cart/cart-checkout-auto-open"
 import { COLORS, isMulticolorSwatch } from "@/lib/product-catalog-constants"
 import { normalizeCartVariantSignature, parseCartVariantSignature } from "@/lib/cart-variant"
@@ -143,6 +145,9 @@ async function fetchSession(signal?: AbortSignal): Promise<AuthSession> {
 export default function CartPage() {
   const t = useTranslations("cart")
   const router = useRouter()
+  const { country: visitorCountry, checkoutAvailable, loading: visitorRegionLoading } =
+    useVisitorCheckoutRegion()
+  const checkoutBlocked = Boolean(visitorCountry && !checkoutAvailable)
   const [lines, setLines] = useState<CartLine[]>([])
   const [isAuthed, setIsAuthed] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -373,7 +378,7 @@ export default function CartPage() {
   }
 
   async function checkout() {
-    if (lines.length === 0) return
+    if (lines.length === 0 || checkoutBlocked) return
     if (!isAuthed) {
       setIdentityOpen(true)
       return
@@ -432,6 +437,14 @@ export default function CartPage() {
           <p className="mb-6 rounded-2xl border border-violet-200/80 bg-violet-50/80 px-4 py-3 text-sm text-violet-900 dark:border-violet-800/50 dark:bg-violet-950/30 dark:text-violet-100">
             {t("guestCheckoutHint")}
           </p>
+        ) : null}
+        {!visitorRegionLoading && checkoutBlocked && visitorCountry ? (
+          <CheckoutRegionComingSoonBanner
+            className="mb-6"
+            variant="compact"
+            visitorCountry={visitorCountry}
+            checkoutAvailable={false}
+          />
         ) : null}
         <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -642,11 +655,11 @@ export default function CartPage() {
           </div>
           <button
             type="button"
-            disabled={checkoutBusy}
+            disabled={checkoutBusy || checkoutBlocked}
             onClick={() => void checkout()}
             className="mb-3 w-full rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 py-3.5 text-sm font-semibold text-white shadow-md transition hover:opacity-95 disabled:opacity-60"
           >
-            {checkoutBusy ? t("redirecting") : t("validatePurchase")}
+            {checkoutBusy ? t("redirecting") : checkoutBlocked ? t("checkoutRegionBlocked") : t("validatePurchase")}
           </button>
           <Link
             href="/#explorer"

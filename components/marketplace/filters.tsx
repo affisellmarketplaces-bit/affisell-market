@@ -30,13 +30,19 @@ const DELIVERY_KEYS = ["under3", "under7"] as const
 
 function shipsFromLabel(
   value: string,
-  euShipsLabel: string,
-  shipsFranceLabel: string,
-  worldwideLabel: string
+  labels: {
+    eu: string
+    fr: string
+    worldwide: string
+    us: string
+    na: string
+  }
 ): string {
-  if (value === "eu") return euShipsLabel
-  if (value === "fr") return shipsFranceLabel
-  if (value === "worldwide") return worldwideLabel
+  if (value === "eu") return labels.eu
+  if (value === "fr") return labels.fr
+  if (value === "worldwide") return labels.worldwide
+  if (value === "us") return labels.us
+  if (value === "na") return labels.na
   return value
 }
 
@@ -112,7 +118,13 @@ export function MarketplaceFilters({
       return t(`facetPrice.${value}` as "facetPrice.under25")
     }
     if (facetKey === "shipsFrom") {
-      return shipsFromLabel(value, t("euShipsLabel"), t("facetShipsFromFrance"), t("facetShipsWorldwide"))
+      return shipsFromLabel(value, {
+        eu: t("euShipsLabel"),
+        fr: t("facetShipsFromFrance"),
+        worldwide: t("facetShipsWorldwide"),
+        us: t("facetShipsFromUs"),
+        na: t("facetShipsNorthAmerica"),
+      })
     }
     if (facetKey === "delivery" && (DELIVERY_KEYS as readonly string[]).includes(value)) {
       return t(`facetDelivery.${value}` as "facetDelivery.under3")

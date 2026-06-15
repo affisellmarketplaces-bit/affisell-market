@@ -21,7 +21,7 @@ type Props = {
 const regionFetcher = (url: string) =>
   fetch(url).then((r) => r.json()) as Promise<VisitorRegionResponse>
 
-/** Pan-EU trust strip or coming-soon reassurance based on visitor geo. */
+/** Market coverage trust strip or coming-soon reassurance based on visitor geo. */
 export function BuyerRegionBanner({
   className,
   variant = "buyer",

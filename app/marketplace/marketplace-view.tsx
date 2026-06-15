@@ -16,6 +16,8 @@ import { useUserRole } from "@/hooks/useUserRole"
 import { canShowBusinessProductData } from "@/lib/user-role"
 import { MarketplaceFilters } from "@/components/marketplace/filters"
 import { BuyerRegionBanner } from "@/components/marketplace/buyer-region-banner"
+import { isUsMarket } from "@/lib/market-config"
+import { primaryRegionalShipsFromFacet } from "@/lib/market-region-shipping"
 import { OfferModeQuickRail } from "@/components/marketplace/offer-mode-quick-rail"
 import { MarketplaceBrowseDepartmentsRail } from "@/components/marketplace/marketplace-browse-departments-rail"
 import { MarketplaceAffisellPulse } from "@/components/marketplace/MarketplaceAffisellPulse"
@@ -257,15 +259,16 @@ export function MarketplaceView({
     router.push(href)
   }
 
-  function filterEuShipping() {
+  function filterRegionalShipping() {
     const params = new URLSearchParams(searchParams.toString())
-    params.set("shipsFrom", "eu")
+    params.set("shipsFrom", primaryRegionalShipsFromFacet())
     const s = params.toString()
     const path = `${basePath}${s ? `?${s}` : ""}`
     router.push(basePath === "/" ? `${path}#explorer` : path)
   }
 
   const shipsFromFilter = searchParams.get("shipsFrom")
+  const regionalShipsFacet = primaryRegionalShipsFromFacet()
 
   useEffect(() => {
     if (!embedded) return
@@ -589,9 +592,9 @@ export function MarketplaceView({
                       <Button type="button" className="bg-violet-600 hover:bg-violet-700" onClick={clearFilters}>
                         {t("showAll")}
                       </Button>
-                      {shipsFromFilter && shipsFromFilter !== "eu" ? (
-                        <Button type="button" variant="outline" onClick={filterEuShipping}>
-                          {t("tryEuShipping")}
+                      {shipsFromFilter && shipsFromFilter !== regionalShipsFacet ? (
+                        <Button type="button" variant="outline" onClick={filterRegionalShipping}>
+                          {isUsMarket() ? t("tryRegionalShippingUs") : t("tryRegionalShipping")}
                         </Button>
                       ) : null}
                     </div>

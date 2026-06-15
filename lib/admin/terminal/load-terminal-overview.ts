@@ -1,3 +1,4 @@
+import { loadCheckoutLaunchWaitlistStats } from "@/lib/admin/load-checkout-launch-waitlist-stats"
 import { loadAdminKycStats } from "@/lib/admin/merchant-kyc/load-kyc-queue"
 import { loadMerchantPublishPipelineStats } from "@/lib/supplier-publish-readiness"
 import { computeSentinelScore } from "@/lib/sentinel/score"
@@ -34,6 +35,7 @@ export async function loadAdminTerminalOverview(): Promise<AdminTerminalOverview
   const [
     kyc,
     publishPipeline,
+    launchWaitlist,
     openSignals,
     signalCounts,
     lastScan,
@@ -49,6 +51,7 @@ export async function loadAdminTerminalOverview(): Promise<AdminTerminalOverview
   ] = await Promise.all([
     loadAdminKycStats(),
     loadMerchantPublishPipelineStats(),
+    loadCheckoutLaunchWaitlistStats(),
     prisma.opsSignal.count({ where: { resolvedAt: null } }),
     prisma.opsSignal.groupBy({
       by: ["severity"],
@@ -126,6 +129,17 @@ export async function loadAdminTerminalOverview(): Promise<AdminTerminalOverview
       href: "/admin/kyc",
       tone: publishPipeline.kycPendingWithDrafts > 0 ? "amber" : "emerald",
       hint: `${publishPipeline.readyToPublish} prêts · ${publishPipeline.kycPendingWithDrafts} KYC+ brouillon`,
+    },
+    {
+      id: "row-expansion",
+      label: "Expansion ROW",
+      count: launchWaitlist.total,
+      href: "/admin/terminal",
+      tone: launchWaitlist.total > 0 ? "sky" : "emerald",
+      hint:
+        launchWaitlist.topCountry && launchWaitlist.topCountryCount > 0
+          ? `${launchWaitlist.topCountry} · ${launchWaitlist.topCountryCount} alertes`
+          : "Alertes lancement pays",
     },
     {
       id: "support",

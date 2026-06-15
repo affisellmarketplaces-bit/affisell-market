@@ -15,6 +15,14 @@ function readMarketRegion(): MarketRegion {
 
 export const MARKET_REGION: MarketRegion = readMarketRegion()
 
+export function isUsMarket(): boolean {
+  return MARKET_REGION === "us"
+}
+
+export function isEuMarket(): boolean {
+  return MARKET_REGION === "eu"
+}
+
 function defaultLocaleForRegion(): string {
   return MARKET_REGION === "us" ? "en-US" : "en-IE"
 }

@@ -496,8 +496,13 @@
     "emailOrPhoneBeforePayment": "Email or mobile required before payment · customer account and cashback are automatic",
     "redirecting": "Redirecting…",
     "validatePurchase": "Complete purchase",
+    "checkoutRegionBlocked": "Checkout not available in your country yet",
     "checkoutShippingNote": {
       "title": "Shipping to {count} EU countries",
+      "body": "Each item ships from its supplier's warehouse zone. Delivery times and fees are shown at checkout."
+    },
+    "checkoutShippingNoteUs": {
+      "title": "Shipping to the US & Canada",
       "body": "Each item ships from its supplier's warehouse zone. Delivery times and fees are shown at checkout."
     },
     "continueShopping": "Continue shopping",
@@ -986,6 +991,15 @@
       "stripeTax": "VAT",
       "footnote": "Shipping depends on supplier zone. Filter « European Union » in the sidebar."
     },
+    "usCoverage": {
+      "aria": "North American marketplace",
+      "badge": "US",
+      "title": "North America · one checkout",
+      "metricCountries": "countries",
+      "metricStates": "states",
+      "stripeTax": "Tax",
+      "footnote": "Shipping depends on supplier zone. Filter « US & Canada » in the sidebar."
+    },
     "checkoutRegion": {
       "aria": "Checkout availability in your region",
       "badge": "Coming soon",
@@ -993,7 +1007,20 @@
       "body": "Browse the catalog today — checkout to {country} opens soon. Create a free account to get notified at launch.",
       "browseHint": "Browse freely · Save favorites · Launch alerts",
       "cta": "Notify me",
-      "footnote": "Live checkout in {currentCount} countries today — we’re expanding step by step."
+      "footnote": "Live checkout in {currentCount} countries today — we’re expanding step by step.",
+      "waitlist": {
+        "emailLabel": "Email for launch alert",
+        "emailPlaceholder": "you@example.com",
+        "submit": "Notify me at launch",
+        "submitting": "Saving…",
+        "success": "You're on the list — we'll email you when checkout opens.",
+        "error": {
+          "invalid_email": "Enter a valid email address.",
+          "invalid_country": "Country not recognized.",
+          "already_available": "Checkout is already available in your country.",
+          "generic": "Could not save. Try again."
+        }
+      }
     },
     "browse": {
       "ariaEmbedded": "Explore and shop",
@@ -1017,6 +1044,8 @@
       "freeShippingFacet": "Free shipping",
       "facetShipsFromFrance": "France",
       "facetShipsWorldwide": "Worldwide",
+      "facetShipsFromUs": "United States",
+      "facetShipsNorthAmerica": "US & Canada",
       "facetPrice": {
         "under25": "Under €25",
         "25-100": "€25 – €100",
@@ -1060,7 +1089,8 @@
       "activeFilterCategory": "Department · {name}",
       "activeFilterSubcategory": "{sub} · {parent}",
       "showAll": "Show all",
-      "tryEuShipping": "Show EU shipping",
+      "tryRegionalShipping": "Show EU shipping",
+      "tryRegionalShippingUs": "Show US & Canada shipping",
       "viewStores": "Browse stores",
       "listingCount": "{count, plural, one {# listing} other {# listings}}",
       "listingCountForQuery": " for « {query} »",
@@ -1866,6 +1896,7 @@
       "zone": {
         "local": "Local",
         "regional": "Regional · EU",
+        "regionalUs": "Regional · US & CA",
         "international": "International",
         "unknown": "See product page"
       }

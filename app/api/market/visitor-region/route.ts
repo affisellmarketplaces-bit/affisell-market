@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 
+import { MARKET_REGION } from "@/lib/market-config"
 import { isStripeCheckoutCountry, stripeCheckoutAllowedCountries } from "@/lib/eu-market-countries"
 import { resolveVisitorCountryIso2 } from "@/lib/visitor-country"
 
@@ -11,6 +12,7 @@ export async function GET(request: Request) {
   const checkoutAvailable = country ? isStripeCheckoutCountry(country) : true
 
   console.log("[visitor-region]", {
+    marketRegion: MARKET_REGION,
     country,
     checkoutAvailable,
     allowedCountries: stripeCheckoutAllowedCountries().length,

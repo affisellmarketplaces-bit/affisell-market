@@ -1,10 +1,11 @@
 "use client"
 
 import { useId } from "react"
-import { Euro, Globe2, Info, ShieldCheck } from "lucide-react"
+import { DollarSign, Euro, Globe2, Info, ShieldCheck } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 
 import { EU_CHECKOUT_COUNTRY_COUNT, EU_MEMBER_COUNT } from "@/lib/eu-market-countries"
+import { isUsMarket, STOREFRONT_CURRENCY } from "@/lib/market-config"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -66,12 +67,14 @@ function TrustChip({
   )
 }
 
-/** Pan-EU trust strip — visual metrics, minimal copy. */
+/** Market coverage trust strip — EU or US based on `NEXT_PUBLIC_MARKET_REGION`. */
 export function EuCoverageBanner({ className, variant = "buyer" }: Props) {
   const locale = useLocale()
-  const t = useTranslations("marketplace.euCoverage")
+  const usMarket = isUsMarket()
+  const t = useTranslations(usMarket ? "marketplace.usCoverage" : "marketplace.euCoverage")
   const compact = variant === "compact"
   const footnoteId = useId()
+  const CurrencyIcon = STOREFRONT_CURRENCY === "USD" ? DollarSign : Euro
 
   return (
     <section
@@ -159,9 +162,18 @@ export function EuCoverageBanner({ className, variant = "buyer" }: Props) {
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5 overflow-x-auto pb-0.5 sm:gap-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <MetricTile value={EU_MEMBER_COUNT} label={t("metricEu")} compact={compact} />
-          <MetricTile value={EU_CHECKOUT_COUNTRY_COUNT} label={t("metricCountries")} compact={compact} />
-          <TrustChip icon={Euro} label="EUR" compact={compact} />
+          {usMarket ? (
+            <>
+              <MetricTile value={EU_CHECKOUT_COUNTRY_COUNT} label={t("metricCountries")} compact={compact} />
+              <MetricTile value={50} label={t("metricStates")} compact={compact} />
+            </>
+          ) : (
+            <>
+              <MetricTile value={EU_MEMBER_COUNT} label={t("metricEu")} compact={compact} />
+              <MetricTile value={EU_CHECKOUT_COUNTRY_COUNT} label={t("metricCountries")} compact={compact} />
+            </>
+          )}
+          <TrustChip icon={CurrencyIcon} label={STOREFRONT_CURRENCY} compact={compact} />
           <TrustChip icon={ShieldCheck} label={t("stripeTax")} compact={compact} />
           <span
             className="hidden sm:inline-flex"

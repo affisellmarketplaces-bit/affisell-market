@@ -1,10 +1,10 @@
 "use client"
 
-import Link from "next/link"
-import { Bell, Globe2, Sparkles } from "lucide-react"
+import { Globe2, Sparkles } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import useSWR from "swr"
 
+import { CheckoutLaunchWaitlistForm } from "@/components/marketplace/checkout-launch-waitlist-form"
 import { EU_CHECKOUT_COUNTRY_COUNT } from "@/lib/eu-market-countries"
 import { visitorCountryDisplayName } from "@/lib/visitor-country"
 import { cn } from "@/lib/utils"
@@ -102,15 +102,9 @@ export function CheckoutRegionComingSoonBanner({
           </div>
         </div>
 
-        <div className="flex shrink-0 flex-col gap-2 sm:items-end">
-          <Link
-            href="/signup"
-            className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-amber-300/30 bg-amber-500/20 px-3 py-2 text-xs font-semibold text-amber-50 transition hover:border-amber-200/50 hover:bg-amber-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40"
-          >
-            <Bell className="size-3.5 shrink-0" aria-hidden />
-            {t("cta")}
-          </Link>
-          <p className="max-w-[14rem] text-right text-[10px] leading-snug text-violet-200/60">
+        <div className="flex w-full shrink-0 flex-col gap-2 sm:max-w-[16rem] sm:items-stretch">
+          <CheckoutLaunchWaitlistForm country={country} compact={compact} />
+          <p className="text-right text-[10px] leading-snug text-violet-200/60 sm:text-right">
             {t("footnote", { currentCount: EU_CHECKOUT_COUNTRY_COUNT })}
           </p>
         </div>

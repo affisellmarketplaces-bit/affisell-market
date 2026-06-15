@@ -1,10 +1,7 @@
 import type { Prisma } from "@prisma/client"
 
 import { AFFISELL_CATEGORIES } from "@/lib/affisell-categories"
-import {
-  prismaProductShipsFromEuWhere,
-  prismaProductShipsWorldwideWhere,
-} from "@/lib/eu-market-countries"
+import { marketplaceShipsFromFilterWhere } from "@/lib/market-region-shipping"
 import { parseOfferFacetValue } from "@/lib/product-offer-mode"
 
 const AFFISELL_CATEGORY_SET = new Set<string>(AFFISELL_CATEGORIES as readonly string[])
@@ -29,12 +26,9 @@ export function marketplaceProductFilterFromSearchParams(
     parts.push({ categories: { has: categoryRaw } })
   }
 
-  if (shipsFrom === "fr") {
-    parts.push({ shippingCountry: "FR" })
-  } else if (shipsFrom === "eu") {
-    parts.push(prismaProductShipsFromEuWhere())
-  } else if (shipsFrom === "worldwide") {
-    parts.push(prismaProductShipsWorldwideWhere())
+  if (shipsFrom) {
+    const shipsWhere = marketplaceShipsFromFilterWhere(shipsFrom)
+    if (shipsWhere) parts.push(shipsWhere)
   }
 
   if (delivery === "under3") {

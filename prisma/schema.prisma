@@ -2140,6 +2140,21 @@ model DemoFeedback {
   @@index([persona, createdAt])
 }
 
+/** ROW buyer interest — notify when checkout opens in their country (idempotent per email+country+region). */
+model CheckoutLaunchWaitlist {
+  id           String   @id @default(cuid())
+  email        String
+  countryIso2  String
+  marketRegion String
+  locale       String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([email, countryIso2, marketRegion])
+  @@index([countryIso2, marketRegion])
+  @@index([marketRegion, createdAt])
+}
+
 /** Short-lived buffer: bookmarklet POST → admin poll (serverless-safe). */
 model AdminAeCaptureSession {
   id        String   @id @default(cuid())

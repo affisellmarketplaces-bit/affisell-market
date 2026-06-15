@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client"
 
+import type { MarketRegion } from "@/lib/market-config"
 import { MARKET_REGION } from "@/lib/market-config"
 
 /** EU member states (ISO 3166-1 alpha-2) — 27 countries. */
@@ -55,12 +56,19 @@ export function isEuMemberCountry(code: string | null | undefined): boolean {
 }
 
 /** Sorted ISO2 list for Stripe `shipping_address_collection.allowed_countries`. */
-export function stripeCheckoutAllowedCountries(): EuCheckoutIso2[] | ("US" | "CA")[] {
-  if (MARKET_REGION === "us") {
+export function stripeCheckoutAllowedCountriesForRegion(
+  region: MarketRegion
+): EuCheckoutIso2[] | ("US" | "CA")[] {
+  if (region === "us") {
     return ["US", "CA"]
   }
   const merged = [...EU_MEMBER_ISO2, ...EU_CHECKOUT_EXTRA_ISO2]
   return [...new Set(merged)].sort() as EuCheckoutIso2[]
+}
+
+/** Sorted ISO2 list for Stripe `shipping_address_collection.allowed_countries`. */
+export function stripeCheckoutAllowedCountries(): EuCheckoutIso2[] | ("US" | "CA")[] {
+  return stripeCheckoutAllowedCountriesForRegion(MARKET_REGION)
 }
 
 const CHECKOUT_ALLOWED_COUNTRY_SET = new Set<string>(
