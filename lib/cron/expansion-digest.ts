@@ -112,10 +112,24 @@ function buildDigestBody(
           .slice(0, 8)
           .map(
             (row) =>
-              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchGraduatedComplaintsThisMonth} graduation complaint(s) · ${row.launchGraduatedDeliveryRatePct}% delivered (auto-resume after 30d clear or ≥80%)`
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchGraduatedComplaintsThisMonth} graduation complaint(s) · ${row.launchGraduatedDeliveryRatePct}% delivered (auto-resume: 30d clear if complaint pause · ≥80% if delivery pause)`
           )
       : ["• none"]),
     "",
+    "Low graduation email delivery rate (<80%):",
+    ...(overview.countries.filter(
+      (row) => row.launchGraduatedSentThisMonth >= 10 && row.launchGraduatedDeliveryRatePct < 80
+    ).length > 0
+      ? overview.countries
+          .filter(
+            (row) => row.launchGraduatedSentThisMonth >= 10 && row.launchGraduatedDeliveryRatePct < 80
+          )
+          .slice(0, 5)
+          .map(
+            (row) =>
+              `• ${expansionCountryLabel(row.countryIso2, "en")} (${row.countryIso2}) — ${row.launchGraduatedDeliveryRatePct}% (${row.launchGraduatedDeliveredThisMonth} graduation delivered)`
+          )
+      : ["• none"]),
     "",
     "J+2 follow-up auto-paused (complaint or delivery <50%):",
     ...(overview.countries.filter((row) => row.launchFollowupPaused).length > 0

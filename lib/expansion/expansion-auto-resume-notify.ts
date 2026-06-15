@@ -1,5 +1,8 @@
 import { computeLaunchDeliveryRatePct } from "@/lib/expansion/compute-country-delivery-rate"
-import { isDeliveryPauseReason } from "@/lib/expansion/expansion-complaint-clear-window"
+import {
+  isDeliveryPauseReason,
+  isGraduatedDeliveryPauseReason,
+} from "@/lib/expansion/expansion-complaint-clear-window"
 
 export const EXPANSION_AUTO_RESUME_DELIVERY_THRESHOLD_PCT = 80
 
@@ -67,4 +70,21 @@ export function shouldAutoResumeGraduationOnDelivery(args: {
       notifiedCount: args.graduatedSentCount,
     }) >= thresholdPct
   )
+}
+
+/** Resume graduation emails paused on delivery when delivery recovers ≥80%. */
+export function shouldAutoResumeGraduationOnDeliveryWhenPausedForDelivery(args: {
+  graduatedDeliveredThisMonth: number
+  graduatedSentCount: number
+  pausedReason: string | null | undefined
+  thresholdPct?: number
+  minSent?: number
+}): boolean {
+  if (!isGraduatedDeliveryPauseReason(args.pausedReason)) return false
+  return shouldAutoResumeGraduationOnDelivery({
+    graduatedDeliveredThisMonth: args.graduatedDeliveredThisMonth,
+    graduatedSentCount: args.graduatedSentCount,
+    thresholdPct: args.thresholdPct,
+    minSent: args.minSent,
+  })
 }

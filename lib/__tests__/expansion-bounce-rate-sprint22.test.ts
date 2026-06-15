@@ -57,7 +57,8 @@ describe("buildSuppressedWaitlistCsv", () => {
         launchNotifiedAt: new Date("2026-06-01T12:00:00.000Z"),
       },
     ])
-    expect(csv.startsWith("\uFEFFemail;countryIso2")).toBe(true)
+    expect(csv.startsWith("\uFEFFemailKind;email;countryIso2")).toBe(true)
+    expect(csv).toContain("checkout-launch")
     expect(csv).toContain("buyer@example.com")
     expect(csv).toContain("jp")
   })

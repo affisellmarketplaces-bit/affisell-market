@@ -69,6 +69,14 @@ export function AdminExpansionConsole({
     return query ? `/api/admin/expansion/complaints-export?${query}` : "/api/admin/expansion/complaints-export"
   }
 
+  function buildSuppressedExportUrl(countryIso2?: string) {
+    const params = new URLSearchParams()
+    if (countryIso2) params.set("countryIso2", countryIso2)
+    if (exportEmailKind !== "all") params.set("emailKind", exportEmailKind)
+    const query = params.toString()
+    return query ? `/api/admin/expansion/suppressed-export?${query}` : "/api/admin/expansion/suppressed-export"
+  }
+
   function buildGraduationPreviewUrl(
     countryIso2: string,
     firstOrderId: string | null,
@@ -415,7 +423,7 @@ export function AdminExpansionConsole({
           ) : null}
           {overview.emailBounces.launchSuppressedTotal > 0 ? (
             <Button type="button" variant="outline" size="sm" asChild>
-              <a href="/api/admin/expansion/suppressed-export">
+              <a href={buildSuppressedExportUrl()}>
                 <Download className="mr-1.5 size-3.5" aria-hidden />
                 Export suppressed CSV
               </a>

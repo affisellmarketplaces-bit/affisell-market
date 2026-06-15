@@ -4,7 +4,7 @@ import {
   expansionComplaintClearCutoff,
   shouldAutoResumeGraduationAfterComplaintClear,
 } from "@/lib/expansion/expansion-complaint-clear-window"
-import { shouldAutoResumeGraduationOnDelivery } from "@/lib/expansion/expansion-auto-resume-notify"
+import { shouldAutoResumeGraduationOnDeliveryWhenPausedForDelivery } from "@/lib/expansion/expansion-auto-resume-notify"
 import {
   loadPausedGraduationEmailDetails,
   resumeGraduationEmailCountry,
@@ -23,7 +23,7 @@ export type RunExpansionAutoResumeGraduationResult = {
   countries: string[]
 }
 
-/** Auto-resume graduation emails when complaint window clear (30d) or delivery rate ≥80%. */
+/** Auto-resume graduation emails when complaint window clear (30d) or delivery ≥80% (delivery pause only). */
 export async function runExpansionAutoResumeGraduationCron(
   now = new Date()
 ): Promise<RunExpansionAutoResumeGraduationResult> {
@@ -65,9 +65,10 @@ export async function runExpansionAutoResumeGraduationCron(
       graduatedComplaintsSinceCutoff: graduatedComplaintsSinceCutoffCount,
       pausedReason,
     })
-    const resumeOnDelivery = shouldAutoResumeGraduationOnDelivery({
+    const resumeOnDelivery = shouldAutoResumeGraduationOnDeliveryWhenPausedForDelivery({
       graduatedDeliveredThisMonth,
       graduatedSentCount,
+      pausedReason,
     })
 
     if (!resumeOnComplaintClear && !resumeOnDelivery) continue

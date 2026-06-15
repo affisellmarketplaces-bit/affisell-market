@@ -1,6 +1,8 @@
 import { MARKET_REGION } from "@/lib/market-config"
 import { prisma } from "@/lib/prisma"
 
+export const SUPPRESSED_WAITLIST_EMAIL_KIND = "checkout-launch" as const
+
 export type SuppressedWaitlistRow = {
   email: string
   countryIso2: string
@@ -12,8 +14,13 @@ export type SuppressedWaitlistRow = {
 }
 
 export async function loadSuppressedWaitlistRows(
-  countryIso2?: string
+  countryIso2?: string,
+  emailKind?: string
 ): Promise<SuppressedWaitlistRow[]> {
+  if (emailKind && emailKind !== SUPPRESSED_WAITLIST_EMAIL_KIND) {
+    return []
+  }
+
   return prisma.checkoutLaunchWaitlist.findMany({
     where: {
       marketRegion: MARKET_REGION,
