@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest"
 
 import { expansionEmailExportsBundlePath } from "@/lib/admin/expansion-email-export-kinds"
-import { buildExpansionAdminMultiAlertConsoleUrl } from "@/lib/expansion/expansion-admin-multi-alert-filter"
 import {
   buildExpansionCountryMultiAlertDigestLine,
   buildExpansionDigestMultiAlertRecapLines,
+  buildExpansionDigestMultiAlertZipExportLines,
 } from "@/lib/expansion/expansion-digest-country-alert-signals"
 
 const baseRow = {
@@ -24,19 +24,34 @@ const baseRow = {
   launchGraduatedDeliveryRatePct: 90,
 }
 
-describe("buildExpansionAdminMultiAlertConsoleUrl", () => {
-  it("builds bookmarkable filtered admin console URL", () => {
-    expect(buildExpansionAdminMultiAlertConsoleUrl("https://app.test")).toBe(
-      "https://app.test/admin/expansion?multiAlert=1"
+describe("buildExpansionDigestMultiAlertZipExportLines", () => {
+  it("lists top multi-alert ZIP export links", () => {
+    const lines = buildExpansionDigestMultiAlertZipExportLines("https://app.test", [
+      {
+        ...baseRow,
+        launchComplaintsThisMonth: 1,
+        launchDeliveryRatePct: 55,
+      },
+      {
+        ...baseRow,
+        countryIso2: "kr",
+        launchComplaintsThisMonth: 1,
+        launchBounceRetriesPending: 1,
+        launchDeliveryRatePct: 55,
+      },
+    ])
+    expect(lines).toHaveLength(2)
+    expect(lines[0]).toBe(
+      `• KR ZIP — https://app.test${expansionEmailExportsBundlePath("kr")}`
     )
-    expect(buildExpansionAdminMultiAlertConsoleUrl("https://app.test/")).toBe(
-      "https://app.test/admin/expansion?multiAlert=1"
+    expect(lines[1]).toBe(
+      `• JP ZIP — https://app.test${expansionEmailExportsBundlePath("jp")}`
     )
   })
 })
 
 describe("buildExpansionCountryMultiAlertDigestLine", () => {
-  it("includes bundle export and filtered console links", () => {
+  it("uses labeled ZIP links in recap country rows", () => {
     const line = buildExpansionCountryMultiAlertDigestLine(
       "https://app.test",
       {
@@ -49,12 +64,11 @@ describe("buildExpansionCountryMultiAlertDigestLine", () => {
     expect(line).toContain(
       `JP ZIP https://app.test${expansionEmailExportsBundlePath("jp")}`
     )
-    expect(line).toContain("console https://app.test/admin/expansion?multiAlert=1")
   })
 })
 
 describe("buildExpansionDigestMultiAlertRecapLines", () => {
-  it("adds filtered console shortcut before country rows", () => {
+  it("inserts per-country ZIP links before detailed recap rows", () => {
     const lines = buildExpansionDigestMultiAlertRecapLines(
       "https://app.test",
       [
@@ -66,10 +80,9 @@ describe("buildExpansionDigestMultiAlertRecapLines", () => {
       ],
       (iso2) => iso2.toUpperCase()
     )
-    expect(lines[2]).toBe("• Filtered console — https://app.test/admin/expansion?multiAlert=1")
     expect(lines[3]).toBe(
       `• JP ZIP — https://app.test${expansionEmailExportsBundlePath("jp")}`
     )
-    expect(lines[4]).toContain("console https://app.test/admin/expansion?multiAlert=1")
+    expect(lines[4]).toContain("JP ZIP https://app.test")
   })
 })

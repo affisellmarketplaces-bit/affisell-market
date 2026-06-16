@@ -149,11 +149,12 @@ export function buildExpansionCountryMultiAlertDigestLine(
 ): string {
   const signalLabels = listExpansionCountryEmailAlertSignalLabels(row)
   const signalCount = signalLabels.length
+  const bundleHref = buildExpansionDigestMultiAlertCountryBundleUrl(adminUrl, row.countryIso2)
   return (
     `• ${countryLabel} (${row.countryIso2}) — ${signalCount} signal(s): ` +
     `${formatExpansionCountryEmailAlertSignalSummary(signalLabels)}` +
     `${expansionCountryMultiAlertDigestBadge(signalCount)} — ` +
-    `bundle ${adminUrl}${expansionEmailExportsBundlePath(row.countryIso2)} · ` +
+    `${formatExpansionDigestMultiAlertCountryBundleLinkLabel(row.countryIso2)} ${bundleHref} · ` +
     `console ${buildExpansionAdminMultiAlertConsoleUrl(adminUrl)}`
   )
 }
@@ -227,10 +228,13 @@ export function buildExpansionDigestMultiAlertRecapLines(
     return ["", "Multi-signal email alerts by country (month, ≥2 signals):", "• none"]
   }
 
+  const zipExportLines = buildExpansionDigestMultiAlertZipExportLines(adminUrl, countries, 3)
+
   return [
     "",
     "Multi-signal email alerts by country (month, ≥2 signals):",
     `• Filtered console — ${buildExpansionAdminMultiAlertConsoleUrl(adminUrl)}`,
+    ...zipExportLines,
     ...rows.map(({ row }) =>
       buildExpansionCountryMultiAlertDigestLine(adminUrl, row, countryLabel(row.countryIso2))
     ),
@@ -324,4 +328,19 @@ export function formatExpansionDigestMultiAlertCountryLine(
   row: ExpansionDigestMultiAlertCountrySummary
 ): string {
   return `${row.countryIso2.toUpperCase()} · ${row.signalCount} signals: ${row.signalSummary}`
+}
+
+export function buildExpansionDigestMultiAlertZipExportLines(
+  adminUrl: string,
+  countries: readonly ExpansionCountryEmailAlertInput[],
+  limit = 3
+): string[] {
+  const summaries = buildExpansionDigestTopMultiAlertCountrySummaries(adminUrl, countries, limit)
+  if (summaries.length === 0) {
+    return []
+  }
+  return summaries.map(
+    (row) =>
+      `• ${formatExpansionDigestMultiAlertCountryBundleLinkLabel(row.countryIso2)} — ${row.bundleHref}`
+  )
 }

@@ -99,8 +99,11 @@ describe("buildExpansionDigestMultiAlertRecapLines", () => {
     )
     expect(lines[1]).toBe("Multi-signal email alerts by country (month, ≥2 signals):")
     expect(lines[2]).toBe("• Filtered console — https://app.test/admin/expansion?multiAlert=1")
-    expect(lines[3]).toContain("launch complaint, launch delivery")
-    expect(lines[3]).toContain(`https://app.test${expansionEmailExportsBundlePath("jp")}`)
+    expect(lines[3]).toBe(
+      `• JP ZIP — https://app.test${expansionEmailExportsBundlePath("jp")}`
+    )
+    expect(lines[4]).toContain("launch complaint, launch delivery")
+    expect(lines[4]).toContain(`JP ZIP https://app.test${expansionEmailExportsBundlePath("jp")}`)
   })
 
   it("returns none when no multi-signal countries", () => {
