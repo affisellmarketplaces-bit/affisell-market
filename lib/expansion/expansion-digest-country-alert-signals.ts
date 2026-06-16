@@ -1,4 +1,5 @@
 import { expansionEmailExportsBundlePath } from "@/lib/admin/expansion-email-export-kinds"
+import { buildExpansionAdminMultiAlertConsoleUrl } from "@/lib/expansion/expansion-admin-multi-alert-filter"
 import { shouldShowFollowupBounceAlertDigestRow } from "@/lib/expansion/expansion-digest-followup-bounce-badge"
 import { shouldShowFollowupComplaintAlertDigestRow } from "@/lib/expansion/expansion-digest-followup-complaint-badge"
 import { shouldShowFollowupDeliveryAlertDigestRow } from "@/lib/expansion/expansion-digest-followup-delivery-badge"
@@ -149,7 +150,8 @@ export function buildExpansionCountryMultiAlertDigestLine(
     `• ${countryLabel} (${row.countryIso2}) — ${signalCount} signal(s): ` +
     `${formatExpansionCountryEmailAlertSignalSummary(signalLabels)}` +
     `${expansionCountryMultiAlertDigestBadge(signalCount)} — ` +
-    `${adminUrl}${expansionEmailExportsBundlePath(row.countryIso2)}`
+    `bundle ${adminUrl}${expansionEmailExportsBundlePath(row.countryIso2)} · ` +
+    `console ${buildExpansionAdminMultiAlertConsoleUrl(adminUrl)}`
   )
 }
 
@@ -225,6 +227,7 @@ export function buildExpansionDigestMultiAlertRecapLines(
   return [
     "",
     "Multi-signal email alerts by country (month, ≥2 signals):",
+    `• Filtered console — ${buildExpansionAdminMultiAlertConsoleUrl(adminUrl)}`,
     ...rows.map(({ row }) =>
       buildExpansionCountryMultiAlertDigestLine(adminUrl, row, countryLabel(row.countryIso2))
     ),

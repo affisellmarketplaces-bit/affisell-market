@@ -1,4 +1,5 @@
 export const EXPANSION_ADMIN_MULTI_ALERT_QUERY_KEY = "multiAlert"
+export const EXPANSION_ADMIN_EXPANSION_CONSOLE_PATH = "/admin/expansion"
 
 export function parseExpansionAdminMultiAlertFilter(
   value: string | null | undefined
@@ -32,4 +33,14 @@ export function buildExpansionAdminPathWithMultiAlertFilter(
   const next = writeExpansionAdminMultiAlertFilterToSearchParams(searchParams, enabled)
   const qs = next.toString()
   return qs ? `${pathname}?${qs}` : pathname
+}
+
+export function buildExpansionAdminMultiAlertConsoleUrl(adminUrl: string): string {
+  const origin = adminUrl.replace(/\/$/, "")
+  const path = buildExpansionAdminPathWithMultiAlertFilter(
+    EXPANSION_ADMIN_EXPANSION_CONSOLE_PATH,
+    new URLSearchParams(),
+    true
+  )
+  return `${origin}${path}`
 }
