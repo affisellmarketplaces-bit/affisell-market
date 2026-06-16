@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { redirect } from "next/navigation"
 
 import { AdminExpansionConsole } from "@/components/admin/admin-expansion-console"
@@ -18,11 +19,19 @@ export default async function AdminExpansionPage() {
   const metabaseExpansionEmailKindEmbedUrl = buildMetabaseExpansionEmailKindEmbedUrl()
 
   return (
-    <AdminExpansionConsole
-      initial={initial}
-      metabaseExpansionEmbedUrl={metabaseExpansionEmbedUrl}
-      metabaseExpansionBounceEmbedUrl={metabaseExpansionBounceEmbedUrl}
-      metabaseExpansionEmailKindEmbedUrl={metabaseExpansionEmailKindEmbedUrl}
-    />
+    <Suspense
+      fallback={
+        <main className="mx-auto max-w-5xl px-6 py-10">
+          <div className="h-96 animate-pulse rounded-2xl bg-zinc-100 dark:bg-zinc-900" />
+        </main>
+      }
+    >
+      <AdminExpansionConsole
+        initial={initial}
+        metabaseExpansionEmbedUrl={metabaseExpansionEmbedUrl}
+        metabaseExpansionBounceEmbedUrl={metabaseExpansionBounceEmbedUrl}
+        metabaseExpansionEmailKindEmbedUrl={metabaseExpansionEmailKindEmbedUrl}
+      />
+    </Suspense>
   )
 }

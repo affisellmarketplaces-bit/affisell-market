@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition, type ReactNode } from "react"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { BarChart3, Bell, Download, Eye, Globe2, GraduationCap, Mail, PauseCircle, RefreshCw, Rocket, Zap } from "lucide-react"
 import { toast } from "sonner"
 
@@ -33,6 +34,10 @@ import {
   listExpansionCountryEmailAlertSignalLabels,
   sortExpansionAdminCountriesByAlertSignals,
 } from "@/lib/expansion/expansion-digest-country-alert-signals"
+import {
+  buildExpansionAdminPathWithMultiAlertFilter,
+  readExpansionAdminMultiAlertFilterFromSearchParams,
+} from "@/lib/expansion/expansion-admin-multi-alert-filter"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
@@ -49,6 +54,9 @@ export function AdminExpansionConsole({
   metabaseExpansionBounceEmbedUrl,
   metabaseExpansionEmailKindEmbedUrl,
 }: Props) {
+  const router = useRouter()
+  const pathname = usePathname() ?? "/admin/expansion"
+  const searchParams = useSearchParams()
   const [overview, setOverview] = useState(initial)
   const [previewLocale, setPreviewLocale] = useState<"en" | "fr">("en")
   const [exportEmailKind, setExportEmailKind] = useState<
@@ -58,8 +66,17 @@ export function AdminExpansionConsole({
     "all"
   )
   const [graduationPreviewOrderIds, setGraduationPreviewOrderIds] = useState<Record<string, string>>({})
-  const [multiAlertOnlyFilter, setMultiAlertOnlyFilter] = useState(false)
   const [pending, startTransition] = useTransition()
+  const multiAlertOnlyFilter = readExpansionAdminMultiAlertFilterFromSearchParams(searchParams)
+
+  function toggleMultiAlertOnlyFilter() {
+    const nextPath = buildExpansionAdminPathWithMultiAlertFilter(
+      pathname,
+      new URLSearchParams(searchParams.toString()),
+      !multiAlertOnlyFilter
+    )
+    router.replace(nextPath, { scroll: false })
+  }
 
   function buildEmailEventsExportUrl(countryIso2?: string) {
     const params = new URLSearchParams()
@@ -857,7 +874,7 @@ export function AdminExpansionConsole({
                 size="sm"
                 variant={multiAlertOnlyFilter ? "default" : "outline"}
                 className={multiAlertOnlyFilter ? "bg-rose-700 hover:bg-rose-700" : undefined}
-                onClick={() => setMultiAlertOnlyFilter((value) => !value)}
+                onClick={toggleMultiAlertOnlyFilter}
               >
                 Multi-alert only ({multiAlertCountryCount})
               </Button>
