@@ -357,6 +357,21 @@ export function shouldShowExpansionDigestMultiAlertZipFooterMoreLink(
   return countExpansionDigestMultiAlertZipFooterHiddenCountries(multiAlertCountryCount, limit) > 0
 }
 
+export function buildExpansionDigestMultiAlertZipRecapMoreLine(
+  adminUrl: string,
+  multiAlertCountryCount: number,
+  limit = EXPANSION_DIGEST_MULTI_ALERT_ZIP_FOOTER_LIMIT
+): string | null {
+  const hiddenCount = countExpansionDigestMultiAlertZipFooterHiddenCountries(
+    multiAlertCountryCount,
+    limit
+  )
+  if (hiddenCount <= 0) {
+    return null
+  }
+  return `• +${hiddenCount} more — ${buildExpansionAdminMultiAlertConsoleUrl(adminUrl)}`
+}
+
 export function buildExpansionDigestMultiAlertZipFooterLine(
   adminUrl: string,
   countries: readonly ExpansionCountryEmailAlertInput[],
@@ -456,14 +471,23 @@ export function formatExpansionDigestMultiAlertCountryLine(
 export function buildExpansionDigestMultiAlertZipExportLines(
   adminUrl: string,
   countries: readonly ExpansionCountryEmailAlertInput[],
-  limit = 3
+  limit = EXPANSION_DIGEST_MULTI_ALERT_ZIP_FOOTER_LIMIT
 ): string[] {
   const summaries = buildExpansionDigestTopMultiAlertCountrySummaries(adminUrl, countries, limit)
   if (summaries.length === 0) {
     return []
   }
-  return summaries.map(
+  const lines = summaries.map(
     (row) =>
       `• ${formatExpansionDigestMultiAlertCountryBundleLinkLabel(row.countryIso2)} — ${row.bundleHref}`
   )
+  const moreLine = buildExpansionDigestMultiAlertZipRecapMoreLine(
+    adminUrl,
+    countExpansionDigestMultiAlertCountries(countries),
+    limit
+  )
+  if (moreLine) {
+    lines.push(moreLine)
+  }
+  return lines
 }
