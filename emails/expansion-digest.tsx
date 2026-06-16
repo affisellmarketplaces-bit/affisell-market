@@ -10,10 +10,13 @@ import {
   Text,
 } from "@react-email/components"
 
+import { formatExpansionDigestMultiAlertEmailBadgeLabel } from "@/lib/expansion/expansion-digest-country-alert-signals"
+
 export type ExpansionDigestEmailProps = {
   bodyText: string
   adminConsoleUrl: string
   filteredConsoleUrl?: string | null
+  multiAlertCountryCount?: number
   graduationPendingCount?: number
   graduatedBrowseLinks?: Array<{ label: string; url: string }>
 }
@@ -22,12 +25,13 @@ export function ExpansionDigestEmail({
   bodyText,
   adminConsoleUrl,
   filteredConsoleUrl = null,
+  multiAlertCountryCount = 0,
   graduationPendingCount = 0,
   graduatedBrowseLinks = [],
 }: ExpansionDigestEmailProps) {
   const showGraduationCta = graduationPendingCount > 0
   const showBrowseLinks = graduatedBrowseLinks.length > 0
-  const showFilteredConsoleCta = Boolean(filteredConsoleUrl)
+  const showFilteredConsoleCta = Boolean(filteredConsoleUrl) && multiAlertCountryCount > 0
 
   return (
     <Html>
@@ -39,8 +43,12 @@ export function ExpansionDigestEmail({
           <Text style={text}>{bodyText}</Text>
           {showFilteredConsoleCta ? (
             <Section style={multiAlertBox}>
-              <Text style={multiAlertBadge}>Multi-alert</Text>
-              <Text style={multiAlertTitle}>Countries with ≥2 email alert signals this month</Text>
+              <Text style={multiAlertBadge}>
+                {formatExpansionDigestMultiAlertEmailBadgeLabel(multiAlertCountryCount)}
+              </Text>
+              <Text style={multiAlertTitle}>
+                {`${multiAlertCountryCount} ${multiAlertCountryCount === 1 ? "country" : "countries"} with ≥2 email alert signals this month`}
+              </Text>
               <Text style={multiAlertBody}>
                 Open the pre-filtered admin console to review ZIP exports and signal details.
               </Text>
@@ -206,6 +214,7 @@ ExpansionDigestEmail.PreviewProps = {
   bodyText: "Region: EU\nGraduation emails pending: 2",
   adminConsoleUrl: "https://affisell.com/admin/expansion",
   filteredConsoleUrl: "https://affisell.com/admin/expansion?multiAlert=1",
+  multiAlertCountryCount: 3,
   graduationPendingCount: 2,
   graduatedBrowseLinks: [
     { label: "Japan", url: "https://affisell.com/shops/browse?shipsTo=jp" },

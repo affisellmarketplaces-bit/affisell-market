@@ -72,7 +72,7 @@ import {
   shouldShowGraduationPausedDigestRow,
 } from "@/lib/expansion/expansion-digest-graduation-pause-badge"
 import { buildGraduatedThisMonthDigestLines } from "@/lib/expansion/expansion-digest-graduated-month"
-import { buildExpansionDigestMultiAlertRecapLines, buildExpansionDigestConsoleFooterLine, buildExpansionDigestConsoleUrl, resolveExpansionDigestMultiAlertConsoleUrl } from "@/lib/expansion/expansion-digest-country-alert-signals"
+import { buildExpansionDigestMultiAlertRecapLines, buildExpansionDigestConsoleFooterLine, buildExpansionDigestConsoleUrl, countExpansionDigestMultiAlertCountries, resolveExpansionDigestMultiAlertConsoleUrl } from "@/lib/expansion/expansion-digest-country-alert-signals"
 import {
   graduationDeliveryAlertDigestBadge,
   graduationDeliveryDigestBadge,
@@ -718,6 +718,7 @@ export async function runExpansionDigestCron(now = new Date()): Promise<RunExpan
     resolveAppUrl(),
     overview.countries
   )
+  const multiAlertCountryCount = countExpansionDigestMultiAlertCountries(overview.countries)
   const graduatedBrowseLinks = overview.graduatedThisMonthCountries.slice(0, 3).map((row) => ({
     label: expansionCountryLabel(row.countryIso2, "en"),
     url: resolveGraduatedBuyerShopUrl(row.countryIso2),
@@ -729,6 +730,7 @@ export async function runExpansionDigestCron(now = new Date()): Promise<RunExpan
       bodyText,
       adminConsoleUrl,
       filteredConsoleUrl,
+      multiAlertCountryCount,
       graduationPendingCount: overview.funnel.graduationEmailsPending,
       graduatedBrowseLinks,
     })

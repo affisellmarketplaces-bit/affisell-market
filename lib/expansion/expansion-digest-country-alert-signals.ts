@@ -268,3 +268,13 @@ export function resolveExpansionDigestMultiAlertConsoleUrl(
   }
   return buildExpansionAdminMultiAlertConsoleUrl(adminUrl)
 }
+
+export function countExpansionDigestMultiAlertCountries(
+  countries: readonly ExpansionCountryEmailAlertInput[]
+): number {
+  return filterExpansionAdminMultiAlertCountries(countries).length
+}
+
+export function formatExpansionDigestMultiAlertEmailBadgeLabel(countryCount: number): string {
+  return `Multi-alert · ${countryCount} ${countryCount === 1 ? "country" : "countries"}`
+}

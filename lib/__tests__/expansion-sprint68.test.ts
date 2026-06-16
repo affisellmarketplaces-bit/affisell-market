@@ -46,11 +46,12 @@ describe("ExpansionDigestEmail filtered console CTA", () => {
         bodyText: "Region: EU",
         adminConsoleUrl: "https://app.test/admin/expansion?multiAlert=1",
         filteredConsoleUrl: "https://app.test/admin/expansion?multiAlert=1",
+        multiAlertCountryCount: 2,
       })
     )
     expect(html).toContain("Open filtered console")
     expect(html).toContain("https://app.test/admin/expansion?multiAlert=1")
-    expect(html).toContain("Multi-alert")
+    expect(html).toContain("Multi-alert · 2 countries")
   })
 
   it("omits filtered console CTA when filteredConsoleUrl is null", async () => {
