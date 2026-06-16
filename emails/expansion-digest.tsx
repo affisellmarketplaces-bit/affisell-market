@@ -112,6 +112,19 @@ export function ExpansionDigestEmail({
             </Section>
           ) : null}
           <Section>
+            {multiAlertCountryCount > 0 && topMultiAlertCountries.length > 0 ? (
+              <Text style={footerZip}>
+                Multi-alert ZIPs:{" "}
+                {topMultiAlertCountries.map((row, index) => (
+                  <span key={row.countryIso2}>
+                    {index > 0 ? " · " : ""}
+                    <Link href={row.bundleHref} style={footerZipLink}>
+                      {formatExpansionDigestMultiAlertCountryBundleLinkLabel(row.countryIso2)}
+                    </Link>
+                  </span>
+                ))}
+              </Text>
+            ) : null}
             <Text style={footer}>Automated weekly summary — Affisell Admin</Text>
           </Section>
         </Container>
@@ -239,6 +252,17 @@ const buttonMultiAlert = {
   textDecoration: "none",
 }
 const footer = { fontSize: "12px", color: "#71717a", margin: "24px 0 0" }
+const footerZip = {
+  fontSize: "12px",
+  lineHeight: "18px",
+  color: "#9f1239",
+  margin: "16px 0 0",
+}
+const footerZipLink = {
+  color: "#be123c",
+  fontWeight: 600,
+  textDecoration: "underline",
+}
 
 export default ExpansionDigestEmail
 
