@@ -355,6 +355,20 @@ export function formatExpansionDigestMultiAlertZipFooterMoreSuffix(
   return ` · +${hiddenCount} more`
 }
 
+export function formatExpansionDigestMultiAlertRoseMoreLinkLabel(
+  multiAlertCountryCount: number,
+  limit = EXPANSION_DIGEST_MULTI_ALERT_ZIP_FOOTER_LIMIT
+): string | null {
+  const hiddenCount = countExpansionDigestMultiAlertZipFooterHiddenCountries(
+    multiAlertCountryCount,
+    limit
+  )
+  if (hiddenCount <= 0) {
+    return null
+  }
+  return `+${hiddenCount} more`
+}
+
 export function shouldShowExpansionDigestMultiAlertZipFooterMoreLink(
   multiAlertCountryCount: number,
   limit = EXPANSION_DIGEST_MULTI_ALERT_ZIP_FOOTER_LIMIT

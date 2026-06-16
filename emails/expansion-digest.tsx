@@ -17,6 +17,7 @@ import {
   formatExpansionDigestMultiAlertCountryBundleLinkLabel,
   formatExpansionDigestMultiAlertCountryLine,
   formatExpansionDigestMultiAlertEmailBadgeLabel,
+  formatExpansionDigestMultiAlertRoseMoreLinkLabel,
   shouldShowExpansionDigestMultiAlertZipFooterMoreLink,
   type ExpansionDigestMultiAlertCountrySummary,
 } from "@/lib/expansion/expansion-digest-country-alert-signals"
@@ -51,6 +52,7 @@ export function ExpansionDigestEmail({
   const showZipFooterMoreLink = shouldShowExpansionDigestMultiAlertZipFooterMoreLink(
     multiAlertCountryCount
   )
+  const roseMoreLinkLabel = formatExpansionDigestMultiAlertRoseMoreLinkLabel(multiAlertCountryCount)
 
   return (
     <Html>
@@ -81,6 +83,13 @@ export function ExpansionDigestEmail({
                       </Link>
                     </Text>
                   ))}
+                  {roseMoreLinkLabel ? (
+                    <Text style={multiAlertMoreLine}>
+                      <Link href={filteredConsoleUrl!} style={multiAlertBundleLink}>
+                        {roseMoreLinkLabel}
+                      </Link>
+                    </Text>
+                  ) : null}
                 </Section>
               ) : null}
               <Section style={{ textAlign: "center", margin: "16px 0 0" }}>
@@ -261,6 +270,13 @@ const multiAlertCountryLine = {
   lineHeight: "18px",
   color: "#9f1239",
   margin: "0 0 6px",
+  fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+}
+const multiAlertMoreLine = {
+  fontSize: "12px",
+  lineHeight: "18px",
+  color: "#9f1239",
+  margin: "4px 0 0",
   fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
 }
 const multiAlertBundleLink = {
