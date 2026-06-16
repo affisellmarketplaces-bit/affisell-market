@@ -26,6 +26,7 @@ import {
   countExpansionCountryEmailAlertSignals,
   filterExpansionAdminMultiAlertCountries,
   formatExpansionAdminMultiAlertBadgeLabel,
+  listExpansionCountryEmailAlertSignalLabels,
   sortExpansionAdminCountriesByAlertSignals,
 } from "@/lib/expansion/expansion-digest-country-alert-signals"
 import { Badge } from "@/components/ui/badge"
@@ -851,6 +852,8 @@ export function AdminExpansionConsole({
           <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
             {displayCountries.map((row) => {
               const emailAlertSignalCount = countExpansionCountryEmailAlertSignals(row)
+              const emailAlertSignalLabels =
+                emailAlertSignalCount >= 2 ? listExpansionCountryEmailAlertSignalLabels(row) : []
               return (
               <li key={row.countryIso2} className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
@@ -966,7 +969,11 @@ export function AdminExpansionConsole({
                       </Badge>
                     ) : null}
                     {emailAlertSignalCount >= 2 ? (
-                      <Badge className="gap-1 bg-rose-700 hover:bg-rose-700">
+                      <Badge
+                        className="gap-1 bg-rose-700 hover:bg-rose-700"
+                        title={emailAlertSignalLabels.join(", ")}
+                        aria-label={`Multi-alert signals: ${emailAlertSignalLabels.join(", ")}`}
+                      >
                         {formatExpansionAdminMultiAlertBadgeLabel(emailAlertSignalCount)}
                       </Badge>
                     ) : null}
