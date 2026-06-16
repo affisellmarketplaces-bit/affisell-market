@@ -399,9 +399,11 @@ export function AdminExpansionConsole({
     complaintsThisMonth: overview.emailEventCounts.complaintsThisMonth,
   })
   const countriesByAlertSignals = sortExpansionAdminCountriesByAlertSignals(overview.countries)
-  const multiAlertCountryCount = filterExpansionAdminMultiAlertCountries(overview.countries).length
+  const multiAlertCountries = filterExpansionAdminMultiAlertCountries(countriesByAlertSignals)
+  const multiAlertCountryCount = multiAlertCountries.length
+  const topMultiAlertCountry = multiAlertCountries[0]
   const displayCountries = multiAlertOnlyFilter
-    ? filterExpansionAdminMultiAlertCountries(countriesByAlertSignals)
+    ? multiAlertCountries
     : countriesByAlertSignals
 
   return (
@@ -833,15 +835,25 @@ export function AdminExpansionConsole({
             Demand by country
           </h2>
           {overview.countries.length > 0 ? (
-            <Button
-              type="button"
-              size="sm"
-              variant={multiAlertOnlyFilter ? "default" : "outline"}
-              className={multiAlertOnlyFilter ? "bg-rose-700 hover:bg-rose-700" : undefined}
-              onClick={() => setMultiAlertOnlyFilter((value) => !value)}
-            >
-              Multi-alert only ({multiAlertCountryCount})
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              {topMultiAlertCountry ? (
+                <Button type="button" size="sm" variant="outline" asChild>
+                  <a href={buildEmailExportsBundleUrl(topMultiAlertCountry.countryIso2)}>
+                    <Download className="mr-1.5 size-3.5" aria-hidden />
+                    Top multi-alert ZIP
+                  </a>
+                </Button>
+              ) : null}
+              <Button
+                type="button"
+                size="sm"
+                variant={multiAlertOnlyFilter ? "default" : "outline"}
+                className={multiAlertOnlyFilter ? "bg-rose-700 hover:bg-rose-700" : undefined}
+                onClick={() => setMultiAlertOnlyFilter((value) => !value)}
+              >
+                Multi-alert only ({multiAlertCountryCount})
+              </Button>
+            </div>
           ) : null}
         </div>
         {overview.countries.length === 0 ? (
@@ -1258,6 +1270,14 @@ export function AdminExpansionConsole({
                     >
                       <Bell className="mr-1.5 size-3.5" aria-hidden />
                       Send launch emails
+                    </Button>
+                  ) : null}
+                  {emailAlertSignalCount >= 2 ? (
+                    <Button type="button" size="sm" className="bg-rose-700 hover:bg-rose-700" asChild>
+                      <a href={buildEmailExportsBundleUrl(row.countryIso2)}>
+                        <Download className="mr-1.5 size-3.5" aria-hidden />
+                        Multi-alert ZIP
+                      </a>
                     </Button>
                   ) : null}
                 </div>
