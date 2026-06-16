@@ -263,6 +263,37 @@ export function buildExpansionDigestConsoleFooterLine(
   return `Console: ${consoleUrl}`
 }
 
+export function formatExpansionDigestMultiAlertZipFooterSegment(
+  row: ExpansionDigestMultiAlertCountrySummary
+): string {
+  return `${formatExpansionDigestMultiAlertCountryBundleLinkLabel(row.countryIso2)} ${row.bundleHref}`
+}
+
+export function buildExpansionDigestMultiAlertZipFooterLine(
+  adminUrl: string,
+  countries: readonly ExpansionCountryEmailAlertInput[],
+  limit = 3
+): string | null {
+  const summaries = buildExpansionDigestTopMultiAlertCountrySummaries(adminUrl, countries, limit)
+  if (summaries.length === 0) {
+    return null
+  }
+  const parts = summaries.map(formatExpansionDigestMultiAlertZipFooterSegment)
+  return `Multi-alert ZIPs: ${parts.join(" · ")}`
+}
+
+export function buildExpansionDigestConsoleFooterLines(
+  adminUrl: string,
+  countries: readonly ExpansionCountryEmailAlertInput[]
+): string[] {
+  const lines = [buildExpansionDigestConsoleFooterLine(adminUrl, countries)]
+  const zipFooterLine = buildExpansionDigestMultiAlertZipFooterLine(adminUrl, countries)
+  if (zipFooterLine) {
+    lines.push(zipFooterLine)
+  }
+  return lines
+}
+
 export function resolveExpansionDigestMultiAlertConsoleUrl(
   adminUrl: string,
   countries: readonly ExpansionCountryEmailAlertInput[]

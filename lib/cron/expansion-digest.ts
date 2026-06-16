@@ -72,7 +72,7 @@ import {
   shouldShowGraduationPausedDigestRow,
 } from "@/lib/expansion/expansion-digest-graduation-pause-badge"
 import { buildGraduatedThisMonthDigestLines } from "@/lib/expansion/expansion-digest-graduated-month"
-import { buildExpansionDigestMultiAlertRecapLines, buildExpansionDigestConsoleFooterLine, buildExpansionDigestConsoleUrl, buildExpansionDigestTopMultiAlertCountrySummaries, countExpansionDigestMultiAlertCountries, resolveExpansionDigestMultiAlertConsoleUrl } from "@/lib/expansion/expansion-digest-country-alert-signals"
+import { buildExpansionDigestMultiAlertRecapLines, buildExpansionDigestConsoleFooterLines, buildExpansionDigestConsoleUrl, buildExpansionDigestTopMultiAlertCountrySummaries, countExpansionDigestMultiAlertCountries, resolveExpansionDigestMultiAlertConsoleUrl } from "@/lib/expansion/expansion-digest-country-alert-signals"
 import {
   graduationDeliveryAlertDigestBadge,
   graduationDeliveryDigestBadge,
@@ -662,7 +662,7 @@ function buildDigestBody(
         )
       : ["• none"]),
     "",
-    buildExpansionDigestConsoleFooterLine(adminUrl, overview.countries),
+    ...buildExpansionDigestConsoleFooterLines(adminUrl, overview.countries),
   ]
   return lines.join("\n")
 }
