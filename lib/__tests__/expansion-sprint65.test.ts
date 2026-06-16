@@ -26,7 +26,7 @@ describe("writeExpansionAdminMultiAlertFilterToSearchParams", () => {
     expect(enabled.get(EXPANSION_ADMIN_MULTI_ALERT_QUERY_KEY)).toBe("1")
 
     const disabled = writeExpansionAdminMultiAlertFilterToSearchParams(enabled, false)
-    expect(disabled.has(EXPANSION_ADMIN_MULTI_ALERT_QUERY_KEY)).toBe(false)
+    expect(disabled.get(EXPANSION_ADMIN_MULTI_ALERT_QUERY_KEY)).toBe("0")
   })
 
   it("preserves unrelated query params", () => {
@@ -53,7 +53,7 @@ describe("buildExpansionAdminPathWithMultiAlertFilter", () => {
         new URLSearchParams("multiAlert=1"),
         false
       )
-    ).toBe("/admin/expansion")
+    ).toBe("/admin/expansion?multiAlert=0")
   })
 })
 

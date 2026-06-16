@@ -1,5 +1,6 @@
 import { expansionEmailExportsBundlePath } from "@/lib/admin/expansion-email-export-kinds"
 import {
+  buildExpansionAdminClearMultiAlertFilterUrl,
   buildExpansionAdminMultiAlertConsoleUrl,
   EXPANSION_ADMIN_EXPANSION_CONSOLE_PATH,
 } from "@/lib/expansion/expansion-admin-multi-alert-filter"
@@ -417,7 +418,27 @@ export function buildExpansionDigestConsoleFooterLines(
   if (zipFooterLine) {
     lines.push(zipFooterLine)
   }
+  const clearFilterFooterLine = buildExpansionDigestClearFilterFooterLine(adminUrl, countries)
+  if (clearFilterFooterLine) {
+    lines.push(clearFilterFooterLine)
+  }
   return lines
+}
+
+export function buildExpansionDigestClearFilterFooterLine(
+  adminUrl: string,
+  countries: readonly ExpansionCountryEmailAlertInput[]
+): string | null {
+  if (filterExpansionAdminMultiAlertCountries(countries).length === 0) {
+    return null
+  }
+  return `Clear filter: ${buildExpansionAdminClearMultiAlertFilterUrl(adminUrl)}`
+}
+
+export function shouldShowExpansionDigestClearFilterFooterLink(
+  multiAlertCountryCount: number
+): boolean {
+  return multiAlertCountryCount > 0
 }
 
 export function resolveExpansionDigestMultiAlertConsoleUrl(

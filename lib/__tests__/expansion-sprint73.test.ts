@@ -72,10 +72,11 @@ describe("buildExpansionDigestConsoleFooterLines", () => {
         launchDeliveryRatePct: 55,
       },
     ])
-    expect(lines).toHaveLength(2)
+    expect(lines).toHaveLength(3)
     expect(lines[0]).toBe("Console (multi-alert filter): https://app.test/admin/expansion?multiAlert=1")
     expect(lines[1]).toContain("Multi-alert ZIPs:")
     expect(lines[1]).toContain(`JP ZIP https://app.test${expansionEmailExportsBundlePath("jp")}`)
+    expect(lines[2]).toBe("Clear filter: https://app.test/admin/expansion?multiAlert=0")
   })
 
   it("returns only console line when no multi-alert countries", () => {

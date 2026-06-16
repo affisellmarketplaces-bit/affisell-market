@@ -12,12 +12,16 @@ import {
 } from "@react-email/components"
 
 import {
+  buildExpansionAdminClearMultiAlertFilterUrl,
+} from "@/lib/expansion/expansion-admin-multi-alert-filter"
+import {
   countExpansionDigestMultiAlertZipFooterHiddenCountries,
   formatExpansionDigestConsoleFooterLabel,
   formatExpansionDigestMultiAlertCountryBundleLinkLabel,
   formatExpansionDigestMultiAlertCountryLine,
   formatExpansionDigestMultiAlertEmailBadgeLabel,
   formatExpansionDigestMultiAlertRoseMoreLinkLabel,
+  shouldShowExpansionDigestClearFilterFooterLink,
   shouldShowExpansionDigestMultiAlertZipFooterMoreLink,
   type ExpansionDigestMultiAlertCountrySummary,
 } from "@/lib/expansion/expansion-digest-country-alert-signals"
@@ -53,6 +57,7 @@ export function ExpansionDigestEmail({
     multiAlertCountryCount
   )
   const roseMoreLinkLabel = formatExpansionDigestMultiAlertRoseMoreLinkLabel(multiAlertCountryCount)
+  const clearFilterUrl = buildExpansionAdminClearMultiAlertFilterUrl(new URL(adminConsoleUrl).origin)
 
   return (
     <Html>
@@ -157,6 +162,14 @@ export function ExpansionDigestEmail({
                     </Link>
                   </>
                 ) : null}
+              </Text>
+            ) : null}
+            {shouldShowExpansionDigestClearFilterFooterLink(multiAlertCountryCount) ? (
+              <Text style={footerClearFilter}>
+                Clear filter:{" "}
+                <Link href={clearFilterUrl} style={footerClearFilterLink}>
+                  {clearFilterUrl}
+                </Link>
               </Text>
             ) : null}
             <Text style={footer}>Automated weekly summary — Affisell Admin</Text>
@@ -315,6 +328,18 @@ const footerZipLink = {
   color: "#be123c",
   fontWeight: 600,
   textDecoration: "underline",
+}
+const footerClearFilter = {
+  fontSize: "12px",
+  lineHeight: "18px",
+  color: "#52525b",
+  margin: "12px 0 0",
+}
+const footerClearFilterLink = {
+  color: "#7c3aed",
+  fontWeight: 600,
+  textDecoration: "underline",
+  wordBreak: "break-all" as const,
 }
 
 export default ExpansionDigestEmail

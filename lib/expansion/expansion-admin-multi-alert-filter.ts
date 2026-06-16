@@ -1,4 +1,6 @@
 export const EXPANSION_ADMIN_MULTI_ALERT_QUERY_KEY = "multiAlert"
+export const EXPANSION_ADMIN_MULTI_ALERT_FILTER_ON_VALUE = "1"
+export const EXPANSION_ADMIN_MULTI_ALERT_FILTER_OFF_VALUE = "0"
 export const EXPANSION_ADMIN_EXPANSION_CONSOLE_PATH = "/admin/expansion"
 
 export function parseExpansionAdminMultiAlertFilter(
@@ -20,8 +22,12 @@ export function writeExpansionAdminMultiAlertFilterToSearchParams(
   enabled: boolean
 ): URLSearchParams {
   const next = new URLSearchParams(searchParams.toString())
-  if (enabled) next.set(EXPANSION_ADMIN_MULTI_ALERT_QUERY_KEY, "1")
-  else next.delete(EXPANSION_ADMIN_MULTI_ALERT_QUERY_KEY)
+  next.set(
+    EXPANSION_ADMIN_MULTI_ALERT_QUERY_KEY,
+    enabled
+      ? EXPANSION_ADMIN_MULTI_ALERT_FILTER_ON_VALUE
+      : EXPANSION_ADMIN_MULTI_ALERT_FILTER_OFF_VALUE
+  )
   return next
 }
 
@@ -43,4 +49,9 @@ export function buildExpansionAdminMultiAlertConsoleUrl(adminUrl: string): strin
     true
   )
   return `${origin}${path}`
+}
+
+export function buildExpansionAdminClearMultiAlertFilterUrl(adminUrl: string): string {
+  const origin = adminUrl.replace(/\/$/, "")
+  return `${origin}${EXPANSION_ADMIN_EXPANSION_CONSOLE_PATH}?${EXPANSION_ADMIN_MULTI_ALERT_QUERY_KEY}=${EXPANSION_ADMIN_MULTI_ALERT_FILTER_OFF_VALUE}`
 }

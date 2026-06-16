@@ -22,6 +22,7 @@ describe("buildExpansionDigestEmailPreviewProps", () => {
     const props = buildExpansionDigestEmailPreviewProps("https://app.test")
     expect(props.bodyText).toContain("Console (multi-alert filter): https://app.test/admin/expansion?multiAlert=1")
     expect(props.bodyText).toContain("Multi-alert ZIPs:")
+    expect(props.bodyText).toContain("Clear filter: https://app.test/admin/expansion?multiAlert=0")
     expect(props.bodyText).toContain(`JP ZIP https://app.test${expansionEmailExportsBundlePath("jp")}`)
   })
 })
