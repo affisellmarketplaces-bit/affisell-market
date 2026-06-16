@@ -218,6 +218,23 @@ export function formatExpansionAdminMultiAlertZipBarLabel(options: {
   return `Multi-alert ZIPs (top ${options.visibleCount})`
 }
 
+export const EXPANSION_ADMIN_MULTI_ALERT_ZIP_PREVIEW_BADGE_LABEL = "Preview"
+
+export function shouldShowExpansionAdminMultiAlertZipPreviewBadge(filtered: boolean): boolean {
+  return !filtered
+}
+
+export function formatExpansionAdminMultiAlertZipBarAccessibleLabel(options: {
+  filtered: boolean
+  visibleCount: number
+}): string {
+  const barLabel = formatExpansionAdminMultiAlertZipBarLabel(options)
+  if (options.filtered) {
+    return barLabel
+  }
+  return `${barLabel} — ${EXPANSION_ADMIN_MULTI_ALERT_ZIP_PREVIEW_BADGE_LABEL}`
+}
+
 export function shouldShowExpansionAdminMultiAlertZipViewAllLink(options: {
   filtered: boolean
   totalCount: number

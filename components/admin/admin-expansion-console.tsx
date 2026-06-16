@@ -31,9 +31,12 @@ import {
   formatExpansionAdminMultiAlertAccessibleLabel,
   formatExpansionAdminMultiAlertBadgeLabel,
   formatExpansionAdminMultiAlertZipBarLabel,
+  EXPANSION_ADMIN_MULTI_ALERT_ZIP_PREVIEW_BADGE_LABEL,
+  formatExpansionAdminMultiAlertZipBarAccessibleLabel,
   formatExpansionAdminTopMultiAlertBundleLabel,
   formatExpansionCountryEmailAlertSignalSummary,
   listExpansionCountryEmailAlertSignalLabels,
+  shouldShowExpansionAdminMultiAlertZipPreviewBadge,
   shouldShowExpansionAdminMultiAlertZipViewAllLink,
   sortExpansionAdminCountriesByAlertSignals,
 } from "@/lib/expansion/expansion-digest-country-alert-signals"
@@ -895,6 +898,10 @@ export function AdminExpansionConsole({
         </div>
         {visibleMultiAlertBundleLinks.length > 0 ? (
           <div
+            aria-label={formatExpansionAdminMultiAlertZipBarAccessibleLabel({
+              filtered: multiAlertOnlyFilter,
+              visibleCount: visibleMultiAlertBundleLinks.length,
+            })}
             className={`flex flex-wrap items-center gap-2 border-b border-zinc-200 px-5 py-3 dark:border-zinc-800 ${
               multiAlertOnlyFilter
                 ? ""
@@ -907,6 +914,11 @@ export function AdminExpansionConsole({
                 visibleCount: visibleMultiAlertBundleLinks.length,
               })}
             </span>
+            {shouldShowExpansionAdminMultiAlertZipPreviewBadge(multiAlertOnlyFilter) ? (
+              <Badge className="border-rose-300 bg-white px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wide text-rose-700 hover:bg-white dark:border-rose-800 dark:bg-rose-950/60 dark:text-rose-200 dark:hover:bg-rose-950/60">
+                {EXPANSION_ADMIN_MULTI_ALERT_ZIP_PREVIEW_BADGE_LABEL}
+              </Badge>
+            ) : null}
             {visibleMultiAlertBundleLinks.map((link) => (
               <a
                 key={link.countryIso2}
