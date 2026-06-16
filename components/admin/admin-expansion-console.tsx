@@ -23,10 +23,12 @@ import { EXPANSION_AUTO_PAUSE_DELIVERY_THRESHOLD_PCT } from "@/lib/expansion/exp
 import { EXPANSION_LOW_DELIVERY_RATE_THRESHOLD_PCT } from "@/lib/expansion/compute-country-delivery-rate"
 import { expansionCountryLabel } from "@/lib/expansion/expansion-country-label"
 import {
+  buildExpansionAdminMultiAlertBundleLinks,
   countExpansionCountryEmailAlertSignals,
   filterExpansionAdminMultiAlertCountries,
   formatExpansionAdminMultiAlertAccessibleLabel,
   formatExpansionAdminMultiAlertBadgeLabel,
+  formatExpansionAdminTopMultiAlertBundleLabel,
   formatExpansionCountryEmailAlertSignalSummary,
   listExpansionCountryEmailAlertSignalLabels,
   sortExpansionAdminCountriesByAlertSignals,
@@ -402,6 +404,7 @@ export function AdminExpansionConsole({
   const multiAlertCountries = filterExpansionAdminMultiAlertCountries(countriesByAlertSignals)
   const multiAlertCountryCount = multiAlertCountries.length
   const topMultiAlertCountry = multiAlertCountries[0]
+  const multiAlertBundleLinks = buildExpansionAdminMultiAlertBundleLinks(overview.countries)
   const displayCountries = multiAlertOnlyFilter
     ? multiAlertCountries
     : countriesByAlertSignals
@@ -838,9 +841,14 @@ export function AdminExpansionConsole({
             <div className="flex flex-wrap items-center gap-2">
               {topMultiAlertCountry ? (
                 <Button type="button" size="sm" variant="outline" asChild>
-                  <a href={buildEmailExportsBundleUrl(topMultiAlertCountry.countryIso2)}>
+                  <a
+                    href={buildEmailExportsBundleUrl(topMultiAlertCountry.countryIso2)}
+                    title={formatExpansionCountryEmailAlertSignalSummary(
+                      listExpansionCountryEmailAlertSignalLabels(topMultiAlertCountry)
+                    )}
+                  >
                     <Download className="mr-1.5 size-3.5" aria-hidden />
-                    Top multi-alert ZIP
+                    {formatExpansionAdminTopMultiAlertBundleLabel(topMultiAlertCountry)}
                   </a>
                 </Button>
               ) : null}
@@ -856,6 +864,24 @@ export function AdminExpansionConsole({
             </div>
           ) : null}
         </div>
+        {multiAlertOnlyFilter && multiAlertBundleLinks.length > 0 ? (
+          <div className="flex flex-wrap items-center gap-2 border-b border-zinc-200 px-5 py-3 dark:border-zinc-800">
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-rose-700 dark:text-rose-300">
+              Multi-alert ZIPs
+            </span>
+            {multiAlertBundleLinks.map((link) => (
+              <a
+                key={link.countryIso2}
+                href={link.href}
+                title={link.signalSummary}
+                className="inline-flex items-center gap-1 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-[11px] font-medium text-rose-800 hover:bg-rose-100 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-200 dark:hover:bg-rose-950/70"
+              >
+                <Download className="size-3" aria-hidden />
+                {link.label}
+              </a>
+            ))}
+          </div>
+        ) : null}
         {overview.countries.length === 0 ? (
           <p className="px-5 py-10 text-center text-sm text-zinc-500">No ROW waitlist signups yet.</p>
         ) : displayCountries.length === 0 ? (

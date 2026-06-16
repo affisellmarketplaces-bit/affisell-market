@@ -153,6 +153,39 @@ export function buildExpansionCountryMultiAlertDigestLine(
   )
 }
 
+export type ExpansionAdminMultiAlertBundleLink = {
+  countryIso2: string
+  label: string
+  href: string
+  signalCount: number
+  signalSummary: string
+}
+
+export function formatExpansionAdminTopMultiAlertBundleLabel(
+  row: ExpansionCountryEmailAlertInput
+): string {
+  const signalCount = countExpansionCountryEmailAlertSignals(row)
+  return `${row.countryIso2.toUpperCase()} · ${signalCount} signals ZIP`
+}
+
+export function buildExpansionAdminMultiAlertBundleLinks(
+  countries: readonly ExpansionCountryEmailAlertInput[]
+): ExpansionAdminMultiAlertBundleLink[] {
+  return filterExpansionAdminMultiAlertCountries(
+    sortExpansionAdminCountriesByAlertSignals(countries)
+  ).map((row) => {
+    const signalLabels = listExpansionCountryEmailAlertSignalLabels(row)
+    const signalCount = signalLabels.length
+    return {
+      countryIso2: row.countryIso2,
+      label: `${row.countryIso2.toUpperCase()} · ${signalCount}`,
+      href: expansionEmailExportsBundlePath(row.countryIso2),
+      signalCount,
+      signalSummary: formatExpansionCountryEmailAlertSignalSummary(signalLabels),
+    }
+  })
+}
+
 export function sortExpansionAdminCountriesByAlertSignals<T extends ExpansionCountryEmailAlertInput>(
   countries: readonly T[]
 ): T[] {
