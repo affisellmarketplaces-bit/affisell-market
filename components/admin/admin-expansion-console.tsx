@@ -25,13 +25,16 @@ import { EXPANSION_LOW_DELIVERY_RATE_THRESHOLD_PCT } from "@/lib/expansion/compu
 import { expansionCountryLabel } from "@/lib/expansion/expansion-country-label"
 import {
   buildExpansionAdminMultiAlertBundleLinks,
+  buildExpansionAdminTopMultiAlertBundleLinks,
   countExpansionCountryEmailAlertSignals,
   filterExpansionAdminMultiAlertCountries,
   formatExpansionAdminMultiAlertAccessibleLabel,
   formatExpansionAdminMultiAlertBadgeLabel,
+  formatExpansionAdminMultiAlertZipBarLabel,
   formatExpansionAdminTopMultiAlertBundleLabel,
   formatExpansionCountryEmailAlertSignalSummary,
   listExpansionCountryEmailAlertSignalLabels,
+  shouldShowExpansionAdminMultiAlertZipViewAllLink,
   sortExpansionAdminCountriesByAlertSignals,
 } from "@/lib/expansion/expansion-digest-country-alert-signals"
 import {
@@ -422,6 +425,15 @@ export function AdminExpansionConsole({
   const multiAlertCountryCount = multiAlertCountries.length
   const topMultiAlertCountry = multiAlertCountries[0]
   const multiAlertBundleLinks = buildExpansionAdminMultiAlertBundleLinks(overview.countries)
+  const multiAlertBundlePreviewLinks = buildExpansionAdminTopMultiAlertBundleLinks(overview.countries)
+  const visibleMultiAlertBundleLinks = multiAlertOnlyFilter
+    ? multiAlertBundleLinks
+    : multiAlertBundlePreviewLinks
+  const showMultiAlertZipViewAllLink = shouldShowExpansionAdminMultiAlertZipViewAllLink({
+    filtered: multiAlertOnlyFilter,
+    totalCount: multiAlertCountryCount,
+    visibleCount: visibleMultiAlertBundleLinks.length,
+  })
   const displayCountries = multiAlertOnlyFilter
     ? multiAlertCountries
     : countriesByAlertSignals
@@ -881,12 +893,21 @@ export function AdminExpansionConsole({
             </div>
           ) : null}
         </div>
-        {multiAlertOnlyFilter && multiAlertBundleLinks.length > 0 ? (
-          <div className="flex flex-wrap items-center gap-2 border-b border-zinc-200 px-5 py-3 dark:border-zinc-800">
+        {visibleMultiAlertBundleLinks.length > 0 ? (
+          <div
+            className={`flex flex-wrap items-center gap-2 border-b border-zinc-200 px-5 py-3 dark:border-zinc-800 ${
+              multiAlertOnlyFilter
+                ? ""
+                : "bg-rose-50/40 dark:bg-rose-950/20"
+            }`}
+          >
             <span className="text-[11px] font-semibold uppercase tracking-wide text-rose-700 dark:text-rose-300">
-              Multi-alert ZIPs
+              {formatExpansionAdminMultiAlertZipBarLabel({
+                filtered: multiAlertOnlyFilter,
+                visibleCount: visibleMultiAlertBundleLinks.length,
+              })}
             </span>
-            {multiAlertBundleLinks.map((link) => (
+            {visibleMultiAlertBundleLinks.map((link) => (
               <a
                 key={link.countryIso2}
                 href={link.href}
@@ -898,6 +919,17 @@ export function AdminExpansionConsole({
                 <span className="truncate">{link.label}</span>
               </a>
             ))}
+            {showMultiAlertZipViewAllLink ? (
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="h-7 px-2 text-[11px] text-rose-800 hover:bg-rose-100 hover:text-rose-900 dark:text-rose-200 dark:hover:bg-rose-950/70"
+                onClick={toggleMultiAlertOnlyFilter}
+              >
+                View all ({multiAlertCountryCount})
+              </Button>
+            ) : null}
           </div>
         ) : null}
         {overview.countries.length === 0 ? (

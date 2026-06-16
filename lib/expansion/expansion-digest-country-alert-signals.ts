@@ -167,6 +167,8 @@ export type ExpansionAdminMultiAlertBundleLink = {
   signalSummary: string
 }
 
+export const EXPANSION_ADMIN_MULTI_ALERT_BUNDLE_PREVIEW_LIMIT = 3
+
 export function formatExpansionAdminMultiAlertBundleLinkLabel(
   countryIso2: string,
   signalLabels: readonly string[]
@@ -197,6 +199,31 @@ export function buildExpansionAdminMultiAlertBundleLinks(
       signalSummary: formatExpansionCountryEmailAlertSignalSummary(signalLabels),
     }
   })
+}
+
+export function buildExpansionAdminTopMultiAlertBundleLinks(
+  countries: readonly ExpansionCountryEmailAlertInput[],
+  limit = EXPANSION_ADMIN_MULTI_ALERT_BUNDLE_PREVIEW_LIMIT
+): ExpansionAdminMultiAlertBundleLink[] {
+  return buildExpansionAdminMultiAlertBundleLinks(countries).slice(0, limit)
+}
+
+export function formatExpansionAdminMultiAlertZipBarLabel(options: {
+  filtered: boolean
+  visibleCount: number
+}): string {
+  if (options.filtered) {
+    return "Multi-alert ZIPs"
+  }
+  return `Multi-alert ZIPs (top ${options.visibleCount})`
+}
+
+export function shouldShowExpansionAdminMultiAlertZipViewAllLink(options: {
+  filtered: boolean
+  totalCount: number
+  visibleCount: number
+}): boolean {
+  return !options.filtered && options.totalCount > options.visibleCount
 }
 
 export function sortExpansionAdminCountriesByAlertSignals<T extends ExpansionCountryEmailAlertInput>(
