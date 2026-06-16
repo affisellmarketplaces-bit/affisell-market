@@ -220,12 +220,17 @@ export function formatExpansionAdminMultiAlertZipBarLabel(options: {
 
 export const EXPANSION_ADMIN_MULTI_ALERT_ZIP_PREVIEW_BADGE_LABEL = "Preview"
 export const EXPANSION_ADMIN_MULTI_ALERT_ZIP_FILTERED_BADGE_LABEL = "Filtered"
+export const EXPANSION_ADMIN_MULTI_ALERT_ZIP_CLEAR_FILTER_LABEL = "Clear filter"
 
 export function shouldShowExpansionAdminMultiAlertZipPreviewBadge(filtered: boolean): boolean {
   return !filtered
 }
 
 export function shouldShowExpansionAdminMultiAlertZipFilteredBadge(filtered: boolean): boolean {
+  return filtered
+}
+
+export function shouldShowExpansionAdminMultiAlertZipClearFilterLink(filtered: boolean): boolean {
   return filtered
 }
 
