@@ -12,6 +12,7 @@ import {
 } from "@react-email/components"
 
 import {
+  formatExpansionDigestConsoleFooterLabel,
   formatExpansionDigestMultiAlertCountryBundleLinkLabel,
   formatExpansionDigestMultiAlertCountryLine,
   formatExpansionDigestMultiAlertEmailBadgeLabel,
@@ -40,6 +41,7 @@ export function ExpansionDigestEmail({
   const showGraduationCta = graduationPendingCount > 0
   const showBrowseLinks = graduatedBrowseLinks.length > 0
   const showFilteredConsoleCta = Boolean(filteredConsoleUrl) && multiAlertCountryCount > 0
+  const consoleFooterLabel = formatExpansionDigestConsoleFooterLabel(multiAlertCountryCount > 0)
 
   return (
     <Html>
@@ -112,6 +114,12 @@ export function ExpansionDigestEmail({
             </Section>
           ) : null}
           <Section>
+            <Text style={footerConsole}>
+              {consoleFooterLabel}:{" "}
+              <Link href={adminConsoleUrl} style={footerConsoleLink}>
+                {adminConsoleUrl}
+              </Link>
+            </Text>
             {multiAlertCountryCount > 0 && topMultiAlertCountries.length > 0 ? (
               <Text style={footerZip}>
                 Multi-alert ZIPs:{" "}
@@ -252,6 +260,18 @@ const buttonMultiAlert = {
   textDecoration: "none",
 }
 const footer = { fontSize: "12px", color: "#71717a", margin: "24px 0 0" }
+const footerConsole = {
+  fontSize: "12px",
+  lineHeight: "18px",
+  color: "#52525b",
+  margin: "16px 0 0",
+}
+const footerConsoleLink = {
+  color: "#7c3aed",
+  fontWeight: 600,
+  textDecoration: "underline",
+  wordBreak: "break-all" as const,
+}
 const footerZip = {
   fontSize: "12px",
   lineHeight: "18px",

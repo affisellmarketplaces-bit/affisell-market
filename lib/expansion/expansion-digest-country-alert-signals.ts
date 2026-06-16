@@ -259,15 +259,17 @@ export function buildExpansionDigestConsoleUrl(
   return `${origin}${EXPANSION_ADMIN_EXPANSION_CONSOLE_PATH}`
 }
 
+export function formatExpansionDigestConsoleFooterLabel(hasMultiAlertCountries: boolean): string {
+  return hasMultiAlertCountries ? "Console (multi-alert filter)" : "Console"
+}
+
 export function buildExpansionDigestConsoleFooterLine(
   adminUrl: string,
   countries: readonly ExpansionCountryEmailAlertInput[]
 ): string {
   const consoleUrl = buildExpansionDigestConsoleUrl(adminUrl, countries)
-  if (filterExpansionAdminMultiAlertCountries(countries).length > 0) {
-    return `Console (multi-alert filter): ${consoleUrl}`
-  }
-  return `Console: ${consoleUrl}`
+  const hasMultiAlertCountries = filterExpansionAdminMultiAlertCountries(countries).length > 0
+  return `${formatExpansionDigestConsoleFooterLabel(hasMultiAlertCountries)}: ${consoleUrl}`
 }
 
 export function formatExpansionDigestMultiAlertZipFooterSegment(
