@@ -18,6 +18,7 @@ import {
   formatExpansionDigestMultiAlertEmailBadgeLabel,
   type ExpansionDigestMultiAlertCountrySummary,
 } from "@/lib/expansion/expansion-digest-country-alert-signals"
+import { buildExpansionDigestEmailPreviewProps } from "@/lib/expansion/expansion-digest-email-preview"
 
 export type ExpansionDigestEmailProps = {
   bodyText: string
@@ -286,27 +287,4 @@ const footerZipLink = {
 
 export default ExpansionDigestEmail
 
-ExpansionDigestEmail.PreviewProps = {
-  bodyText: "Region: EU\nGraduation emails pending: 2",
-  adminConsoleUrl: "https://affisell.com/admin/expansion",
-  filteredConsoleUrl: "https://affisell.com/admin/expansion?multiAlert=1",
-  multiAlertCountryCount: 3,
-  topMultiAlertCountries: [
-    {
-      countryIso2: "jp",
-      signalCount: 3,
-      signalSummary: "launch complaint, launch bounce, J+2 delivery",
-      bundleHref: "https://affisell.com/api/admin/expansion/email-exports-bundle?countryIso2=jp",
-    },
-    {
-      countryIso2: "kr",
-      signalCount: 2,
-      signalSummary: "launch delivery, graduation bounce",
-      bundleHref: "https://affisell.com/api/admin/expansion/email-exports-bundle?countryIso2=kr",
-    },
-  ],
-  graduationPendingCount: 2,
-  graduatedBrowseLinks: [
-    { label: "Japan", url: "https://affisell.com/shops/browse?shipsTo=jp" },
-  ],
-} satisfies ExpansionDigestEmailProps
+ExpansionDigestEmail.PreviewProps = buildExpansionDigestEmailPreviewProps()
