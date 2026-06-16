@@ -891,10 +891,11 @@ export function AdminExpansionConsole({
                 key={link.countryIso2}
                 href={link.href}
                 title={link.signalSummary}
-                className="inline-flex items-center gap-1 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-[11px] font-medium text-rose-800 hover:bg-rose-100 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-200 dark:hover:bg-rose-950/70"
+                aria-label={`${link.label} ZIP export`}
+                className="inline-flex max-w-full items-center gap-1 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-[11px] font-medium text-rose-800 hover:bg-rose-100 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-200 dark:hover:bg-rose-950/70"
               >
-                <Download className="size-3" aria-hidden />
-                {link.label}
+                <Download className="size-3 shrink-0" aria-hidden />
+                <span className="truncate">{link.label}</span>
               </a>
             ))}
           </div>

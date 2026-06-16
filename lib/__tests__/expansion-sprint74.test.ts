@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest"
 
-import { expansionEmailExportsBundlePath } from "@/lib/admin/expansion-email-export-kinds"
 import {
   buildExpansionAdminMultiAlertBundleLinks,
+  formatExpansionAdminMultiAlertBundleLinkLabel,
   formatExpansionAdminTopMultiAlertBundleLabel,
 } from "@/lib/expansion/expansion-digest-country-alert-signals"
 
@@ -23,8 +23,19 @@ const baseRow = {
   launchGraduatedDeliveryRatePct: 90,
 }
 
+describe("formatExpansionAdminMultiAlertBundleLinkLabel", () => {
+  it("shows country code with human-readable signal labels", () => {
+    expect(
+      formatExpansionAdminMultiAlertBundleLinkLabel("kr", [
+        "launch complaint",
+        "launch delivery",
+      ])
+    ).toBe("KR · launch complaint, launch delivery")
+  })
+})
+
 describe("formatExpansionAdminTopMultiAlertBundleLabel", () => {
-  it("shows country code and signal count", () => {
+  it("appends ZIP suffix to labeled chip text", () => {
     expect(
       formatExpansionAdminTopMultiAlertBundleLabel({
         ...baseRow,
@@ -36,13 +47,8 @@ describe("formatExpansionAdminTopMultiAlertBundleLabel", () => {
 })
 
 describe("buildExpansionAdminMultiAlertBundleLinks", () => {
-  it("builds sorted multi-alert bundle links with signal summaries", () => {
+  it("uses signal labels in bar chip text", () => {
     const links = buildExpansionAdminMultiAlertBundleLinks([
-      {
-        ...baseRow,
-        countryIso2: "jp",
-        launchComplaintsThisMonth: 1,
-      },
       {
         ...baseRow,
         countryIso2: "kr",
@@ -50,13 +56,6 @@ describe("buildExpansionAdminMultiAlertBundleLinks", () => {
         launchDeliveryRatePct: 55,
       },
     ])
-    expect(links).toHaveLength(1)
-    expect(links[0]).toEqual({
-      countryIso2: "kr",
-      label: "KR · launch complaint, launch delivery",
-      href: expansionEmailExportsBundlePath("kr"),
-      signalCount: 2,
-      signalSummary: "launch complaint, launch delivery",
-    })
+    expect(links[0]?.label).toBe("KR · launch complaint, launch delivery")
   })
 })

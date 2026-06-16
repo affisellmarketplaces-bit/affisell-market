@@ -167,11 +167,18 @@ export type ExpansionAdminMultiAlertBundleLink = {
   signalSummary: string
 }
 
+export function formatExpansionAdminMultiAlertBundleLinkLabel(
+  countryIso2: string,
+  signalLabels: readonly string[]
+): string {
+  return `${countryIso2.toUpperCase()} · ${formatExpansionCountryEmailAlertSignalSummary(signalLabels)}`
+}
+
 export function formatExpansionAdminTopMultiAlertBundleLabel(
   row: ExpansionCountryEmailAlertInput
 ): string {
-  const signalCount = countExpansionCountryEmailAlertSignals(row)
-  return `${row.countryIso2.toUpperCase()} · ${signalCount} signals ZIP`
+  const signalLabels = listExpansionCountryEmailAlertSignalLabels(row)
+  return `${formatExpansionAdminMultiAlertBundleLinkLabel(row.countryIso2, signalLabels)} ZIP`
 }
 
 export function buildExpansionAdminMultiAlertBundleLinks(
@@ -184,7 +191,7 @@ export function buildExpansionAdminMultiAlertBundleLinks(
     const signalCount = signalLabels.length
     return {
       countryIso2: row.countryIso2,
-      label: `${row.countryIso2.toUpperCase()} · ${signalCount}`,
+      label: formatExpansionAdminMultiAlertBundleLinkLabel(row.countryIso2, signalLabels),
       href: expansionEmailExportsBundlePath(row.countryIso2),
       signalCount,
       signalSummary: formatExpansionCountryEmailAlertSignalSummary(signalLabels),
