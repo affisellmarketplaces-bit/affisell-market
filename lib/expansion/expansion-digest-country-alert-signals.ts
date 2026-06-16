@@ -322,17 +322,51 @@ export function formatExpansionDigestMultiAlertZipFooterSegment(
   return `${formatExpansionDigestMultiAlertCountryBundleLinkLabel(row.countryIso2)} ${row.bundleHref}`
 }
 
+export const EXPANSION_DIGEST_MULTI_ALERT_ZIP_FOOTER_LIMIT = 3
+
+export function countExpansionDigestMultiAlertZipFooterHiddenCountries(
+  multiAlertCountryCount: number,
+  limit = EXPANSION_DIGEST_MULTI_ALERT_ZIP_FOOTER_LIMIT
+): number {
+  return Math.max(0, multiAlertCountryCount - limit)
+}
+
+export function formatExpansionDigestMultiAlertZipFooterMoreSuffix(
+  multiAlertCountryCount: number,
+  limit = EXPANSION_DIGEST_MULTI_ALERT_ZIP_FOOTER_LIMIT
+): string | null {
+  const hiddenCount = countExpansionDigestMultiAlertZipFooterHiddenCountries(
+    multiAlertCountryCount,
+    limit
+  )
+  if (hiddenCount <= 0) {
+    return null
+  }
+  return ` · +${hiddenCount} more`
+}
+
+export function shouldShowExpansionDigestMultiAlertZipFooterMoreLink(
+  multiAlertCountryCount: number,
+  limit = EXPANSION_DIGEST_MULTI_ALERT_ZIP_FOOTER_LIMIT
+): boolean {
+  return countExpansionDigestMultiAlertZipFooterHiddenCountries(multiAlertCountryCount, limit) > 0
+}
+
 export function buildExpansionDigestMultiAlertZipFooterLine(
   adminUrl: string,
   countries: readonly ExpansionCountryEmailAlertInput[],
-  limit = 3
+  limit = EXPANSION_DIGEST_MULTI_ALERT_ZIP_FOOTER_LIMIT
 ): string | null {
   const summaries = buildExpansionDigestTopMultiAlertCountrySummaries(adminUrl, countries, limit)
   if (summaries.length === 0) {
     return null
   }
   const parts = summaries.map(formatExpansionDigestMultiAlertZipFooterSegment)
-  return `Multi-alert ZIPs: ${parts.join(" · ")}`
+  const moreSuffix = formatExpansionDigestMultiAlertZipFooterMoreSuffix(
+    countExpansionDigestMultiAlertCountries(countries),
+    limit
+  )
+  return `Multi-alert ZIPs: ${parts.join(" · ")}${moreSuffix ?? ""}`
 }
 
 export function buildExpansionDigestConsoleFooterLines(

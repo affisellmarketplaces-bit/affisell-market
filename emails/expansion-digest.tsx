@@ -12,10 +12,12 @@ import {
 } from "@react-email/components"
 
 import {
+  countExpansionDigestMultiAlertZipFooterHiddenCountries,
   formatExpansionDigestConsoleFooterLabel,
   formatExpansionDigestMultiAlertCountryBundleLinkLabel,
   formatExpansionDigestMultiAlertCountryLine,
   formatExpansionDigestMultiAlertEmailBadgeLabel,
+  shouldShowExpansionDigestMultiAlertZipFooterMoreLink,
   type ExpansionDigestMultiAlertCountrySummary,
 } from "@/lib/expansion/expansion-digest-country-alert-signals"
 import { buildExpansionDigestEmailPreviewProps } from "@/lib/expansion/expansion-digest-email-preview"
@@ -43,6 +45,12 @@ export function ExpansionDigestEmail({
   const showBrowseLinks = graduatedBrowseLinks.length > 0
   const showFilteredConsoleCta = Boolean(filteredConsoleUrl) && multiAlertCountryCount > 0
   const consoleFooterLabel = formatExpansionDigestConsoleFooterLabel(multiAlertCountryCount > 0)
+  const hiddenZipFooterCount = countExpansionDigestMultiAlertZipFooterHiddenCountries(
+    multiAlertCountryCount
+  )
+  const showZipFooterMoreLink = shouldShowExpansionDigestMultiAlertZipFooterMoreLink(
+    multiAlertCountryCount
+  )
 
   return (
     <Html>
@@ -132,6 +140,14 @@ export function ExpansionDigestEmail({
                     </Link>
                   </span>
                 ))}
+                {showZipFooterMoreLink ? (
+                  <>
+                    {" · "}
+                    <Link href={filteredConsoleUrl ?? adminConsoleUrl} style={footerZipLink}>
+                      +{hiddenZipFooterCount} more
+                    </Link>
+                  </>
+                ) : null}
               </Text>
             ) : null}
             <Text style={footer}>Automated weekly summary — Affisell Admin</Text>

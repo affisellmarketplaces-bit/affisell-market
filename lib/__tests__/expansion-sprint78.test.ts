@@ -13,8 +13,9 @@ describe("buildExpansionDigestEmailPreviewProps", () => {
     const props = buildExpansionDigestEmailPreviewProps("https://app.test")
     expect(props.filteredConsoleUrl).toBe("https://app.test/admin/expansion?multiAlert=1")
     expect(props.adminConsoleUrl).toBe(props.filteredConsoleUrl)
-    expect(props.multiAlertCountryCount).toBe(3)
+    expect(props.multiAlertCountryCount).toBe(5)
     expect(props.topMultiAlertCountries).toHaveLength(3)
+    expect(props.bodyText).toContain(" · +2 more")
   })
 
   it("includes text footer console and ZIP lines in bodyText", () => {
@@ -33,10 +34,11 @@ describe("ExpansionDigestEmail preview props", () => {
     expect(normalizedHtml).toContain("Console (multi-alert filter):")
     expect(normalizedHtml).toContain("https://affisell.com/admin/expansion?multiAlert=1")
     expect(normalizedHtml).toContain("Multi-alert ZIPs:")
+    expect(normalizedHtml).toContain("+2 more")
     expect(normalizedHtml).toContain("Open filtered console")
     expect(normalizedHtml).toContain("JP ZIP")
-    expect(normalizedHtml).toContain("KR ZIP")
     expect(normalizedHtml).toContain("SG ZIP")
+    expect(normalizedHtml).toContain("ID ZIP")
   })
 
   it("uses shared preview props on the email component", () => {
