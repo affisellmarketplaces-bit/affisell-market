@@ -25,7 +25,9 @@ import { expansionCountryLabel } from "@/lib/expansion/expansion-country-label"
 import {
   countExpansionCountryEmailAlertSignals,
   filterExpansionAdminMultiAlertCountries,
+  formatExpansionAdminMultiAlertAccessibleLabel,
   formatExpansionAdminMultiAlertBadgeLabel,
+  formatExpansionCountryEmailAlertSignalSummary,
   listExpansionCountryEmailAlertSignalLabels,
   sortExpansionAdminCountriesByAlertSignals,
 } from "@/lib/expansion/expansion-digest-country-alert-signals"
@@ -971,13 +973,18 @@ export function AdminExpansionConsole({
                     {emailAlertSignalCount >= 2 ? (
                       <Badge
                         className="gap-1 bg-rose-700 hover:bg-rose-700"
-                        title={emailAlertSignalLabels.join(", ")}
-                        aria-label={`Multi-alert signals: ${emailAlertSignalLabels.join(", ")}`}
+                        title={formatExpansionCountryEmailAlertSignalSummary(emailAlertSignalLabels)}
+                        aria-label={formatExpansionAdminMultiAlertAccessibleLabel(emailAlertSignalLabels)}
                       >
                         {formatExpansionAdminMultiAlertBadgeLabel(emailAlertSignalCount)}
                       </Badge>
                     ) : null}
                   </div>
+                  {emailAlertSignalLabels.length >= 2 ? (
+                    <p className="mt-1 text-[11px] font-medium text-rose-700 dark:text-rose-300">
+                      Signals: {formatExpansionCountryEmailAlertSignalSummary(emailAlertSignalLabels)}
+                    </p>
+                  ) : null}
                   <p className="mt-1 text-xs text-zinc-500">
                     {row.waitlistCount} signup{row.waitlistCount === 1 ? "" : "s"}
                     {row.pendingNotifyCount > 0 ? ` · ${row.pendingNotifyCount} pending email` : ""}

@@ -126,6 +126,33 @@ export function formatExpansionAdminMultiAlertBadgeLabel(signalCount: number): s
   return `${signalCount} email alerts`
 }
 
+export function formatExpansionCountryEmailAlertSignalSummary(
+  signalLabels: readonly string[]
+): string {
+  return signalLabels.join(", ")
+}
+
+export function formatExpansionAdminMultiAlertAccessibleLabel(
+  signalLabels: readonly string[]
+): string {
+  return `Multi-alert signals: ${formatExpansionCountryEmailAlertSignalSummary(signalLabels)}`
+}
+
+export function buildExpansionCountryMultiAlertDigestLine(
+  adminUrl: string,
+  row: ExpansionCountryEmailAlertInput,
+  countryLabel: string
+): string {
+  const signalLabels = listExpansionCountryEmailAlertSignalLabels(row)
+  const signalCount = signalLabels.length
+  return (
+    `• ${countryLabel} (${row.countryIso2}) — ${signalCount} signal(s): ` +
+    `${formatExpansionCountryEmailAlertSignalSummary(signalLabels)}` +
+    `${expansionCountryMultiAlertDigestBadge(signalCount)} — ` +
+    `${adminUrl}${expansionEmailExportsBundlePath(row.countryIso2)}`
+  )
+}
+
 export function sortExpansionAdminCountriesByAlertSignals<T extends ExpansionCountryEmailAlertInput>(
   countries: readonly T[]
 ): T[] {
@@ -165,9 +192,8 @@ export function buildExpansionDigestMultiAlertRecapLines(
   return [
     "",
     "Multi-signal email alerts by country (month, ≥2 signals):",
-    ...rows.map(
-      ({ row, signalCount, signalLabels }) =>
-        `• ${countryLabel(row.countryIso2)} (${row.countryIso2}) — ${signalCount} signal(s): ${signalLabels.join(", ")}${expansionCountryMultiAlertDigestBadge(signalCount)} — ${adminUrl}${expansionEmailExportsBundlePath(row.countryIso2)}`
+    ...rows.map(({ row }) =>
+      buildExpansionCountryMultiAlertDigestLine(adminUrl, row, countryLabel(row.countryIso2))
     ),
   ]
 }
