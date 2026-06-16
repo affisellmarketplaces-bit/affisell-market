@@ -29,12 +29,12 @@ describe("formatExpansionAdminMultiAlertZipBarAccessibleLabel", () => {
     ).toBe("Multi-alert ZIPs (top 3) — Preview")
   })
 
-  it("uses plain bar label when filter is active", () => {
+  it("uses filtered context for screen readers", () => {
     expect(
       formatExpansionAdminMultiAlertZipBarAccessibleLabel({
         filtered: true,
         visibleCount: 5,
       })
-    ).toBe("Multi-alert ZIPs")
+    ).toBe("Multi-alert ZIPs — Filtered")
   })
 })

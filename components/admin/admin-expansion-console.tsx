@@ -31,11 +31,13 @@ import {
   formatExpansionAdminMultiAlertAccessibleLabel,
   formatExpansionAdminMultiAlertBadgeLabel,
   formatExpansionAdminMultiAlertZipBarLabel,
+  EXPANSION_ADMIN_MULTI_ALERT_ZIP_FILTERED_BADGE_LABEL,
   EXPANSION_ADMIN_MULTI_ALERT_ZIP_PREVIEW_BADGE_LABEL,
   formatExpansionAdminMultiAlertZipBarAccessibleLabel,
   formatExpansionAdminTopMultiAlertBundleLabel,
   formatExpansionCountryEmailAlertSignalSummary,
   listExpansionCountryEmailAlertSignalLabels,
+  shouldShowExpansionAdminMultiAlertZipFilteredBadge,
   shouldShowExpansionAdminMultiAlertZipPreviewBadge,
   shouldShowExpansionAdminMultiAlertZipViewAllLink,
   sortExpansionAdminCountriesByAlertSignals,
@@ -917,6 +919,11 @@ export function AdminExpansionConsole({
             {shouldShowExpansionAdminMultiAlertZipPreviewBadge(multiAlertOnlyFilter) ? (
               <Badge className="border-rose-300 bg-white px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wide text-rose-700 hover:bg-white dark:border-rose-800 dark:bg-rose-950/60 dark:text-rose-200 dark:hover:bg-rose-950/60">
                 {EXPANSION_ADMIN_MULTI_ALERT_ZIP_PREVIEW_BADGE_LABEL}
+              </Badge>
+            ) : null}
+            {shouldShowExpansionAdminMultiAlertZipFilteredBadge(multiAlertOnlyFilter) ? (
+              <Badge className="bg-rose-700 px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wide text-white hover:bg-rose-700 dark:bg-rose-700 dark:text-white">
+                {EXPANSION_ADMIN_MULTI_ALERT_ZIP_FILTERED_BADGE_LABEL}
               </Badge>
             ) : null}
             {visibleMultiAlertBundleLinks.map((link) => (

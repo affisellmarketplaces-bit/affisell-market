@@ -219,9 +219,14 @@ export function formatExpansionAdminMultiAlertZipBarLabel(options: {
 }
 
 export const EXPANSION_ADMIN_MULTI_ALERT_ZIP_PREVIEW_BADGE_LABEL = "Preview"
+export const EXPANSION_ADMIN_MULTI_ALERT_ZIP_FILTERED_BADGE_LABEL = "Filtered"
 
 export function shouldShowExpansionAdminMultiAlertZipPreviewBadge(filtered: boolean): boolean {
   return !filtered
+}
+
+export function shouldShowExpansionAdminMultiAlertZipFilteredBadge(filtered: boolean): boolean {
+  return filtered
 }
 
 export function formatExpansionAdminMultiAlertZipBarAccessibleLabel(options: {
@@ -230,7 +235,7 @@ export function formatExpansionAdminMultiAlertZipBarAccessibleLabel(options: {
 }): string {
   const barLabel = formatExpansionAdminMultiAlertZipBarLabel(options)
   if (options.filtered) {
-    return barLabel
+    return `${barLabel} — ${EXPANSION_ADMIN_MULTI_ALERT_ZIP_FILTERED_BADGE_LABEL}`
   }
   return `${barLabel} — ${EXPANSION_ADMIN_MULTI_ALERT_ZIP_PREVIEW_BADGE_LABEL}`
 }
