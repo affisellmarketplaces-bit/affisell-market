@@ -13,6 +13,7 @@ import {
 export type ExpansionDigestEmailProps = {
   bodyText: string
   adminConsoleUrl: string
+  filteredConsoleUrl?: string | null
   graduationPendingCount?: number
   graduatedBrowseLinks?: Array<{ label: string; url: string }>
 }
@@ -20,11 +21,13 @@ export type ExpansionDigestEmailProps = {
 export function ExpansionDigestEmail({
   bodyText,
   adminConsoleUrl,
+  filteredConsoleUrl = null,
   graduationPendingCount = 0,
   graduatedBrowseLinks = [],
 }: ExpansionDigestEmailProps) {
   const showGraduationCta = graduationPendingCount > 0
   const showBrowseLinks = graduatedBrowseLinks.length > 0
+  const showFilteredConsoleCta = Boolean(filteredConsoleUrl)
 
   return (
     <Html>
@@ -34,6 +37,20 @@ export function ExpansionDigestEmail({
         <Container style={container}>
           <Heading style={h1}>Expansion ROW digest</Heading>
           <Text style={text}>{bodyText}</Text>
+          {showFilteredConsoleCta ? (
+            <Section style={multiAlertBox}>
+              <Text style={multiAlertBadge}>Multi-alert</Text>
+              <Text style={multiAlertTitle}>Countries with ≥2 email alert signals this month</Text>
+              <Text style={multiAlertBody}>
+                Open the pre-filtered admin console to review ZIP exports and signal details.
+              </Text>
+              <Section style={{ textAlign: "center", margin: "16px 0 0" }}>
+                <Button href={filteredConsoleUrl!} style={buttonMultiAlert}>
+                  Open filtered console
+                </Button>
+              </Section>
+            </Section>
+          ) : null}
           <Section style={{ textAlign: "center", margin: "24px 0" }}>
             <Button href={adminConsoleUrl} style={buttonPrimary}>
               Open expansion console
@@ -142,6 +159,45 @@ const buttonSecondary = {
   fontWeight: 600,
   textDecoration: "none",
 }
+const multiAlertBox = {
+  margin: "0 0 16px",
+  padding: "16px",
+  borderRadius: "12px",
+  backgroundColor: "#fff1f2",
+  border: "1px solid #fecdd3",
+}
+const multiAlertBadge = {
+  display: "inline-block",
+  margin: "0 0 8px",
+  padding: "4px 10px",
+  borderRadius: "999px",
+  backgroundColor: "#be123c",
+  color: "#ffffff",
+  fontSize: "11px",
+  fontWeight: 700,
+  letterSpacing: "0.04em",
+  textTransform: "uppercase" as const,
+}
+const multiAlertTitle = {
+  fontSize: "14px",
+  fontWeight: 700,
+  color: "#9f1239",
+  margin: "0 0 8px",
+}
+const multiAlertBody = {
+  fontSize: "13px",
+  lineHeight: "20px",
+  color: "#881337",
+  margin: "0",
+}
+const buttonMultiAlert = {
+  backgroundColor: "#be123c",
+  color: "#ffffff",
+  padding: "10px 18px",
+  borderRadius: "999px",
+  fontWeight: 600,
+  textDecoration: "none",
+}
 const footer = { fontSize: "12px", color: "#71717a", margin: "24px 0 0" }
 
 export default ExpansionDigestEmail
@@ -149,6 +205,7 @@ export default ExpansionDigestEmail
 ExpansionDigestEmail.PreviewProps = {
   bodyText: "Region: EU\nGraduation emails pending: 2",
   adminConsoleUrl: "https://affisell.com/admin/expansion",
+  filteredConsoleUrl: "https://affisell.com/admin/expansion?multiAlert=1",
   graduationPendingCount: 2,
   graduatedBrowseLinks: [
     { label: "Japan", url: "https://affisell.com/shops/browse?shipsTo=jp" },

@@ -72,7 +72,7 @@ import {
   shouldShowGraduationPausedDigestRow,
 } from "@/lib/expansion/expansion-digest-graduation-pause-badge"
 import { buildGraduatedThisMonthDigestLines } from "@/lib/expansion/expansion-digest-graduated-month"
-import { buildExpansionDigestMultiAlertRecapLines, buildExpansionDigestConsoleFooterLine, buildExpansionDigestConsoleUrl } from "@/lib/expansion/expansion-digest-country-alert-signals"
+import { buildExpansionDigestMultiAlertRecapLines, buildExpansionDigestConsoleFooterLine, buildExpansionDigestConsoleUrl, resolveExpansionDigestMultiAlertConsoleUrl } from "@/lib/expansion/expansion-digest-country-alert-signals"
 import {
   graduationDeliveryAlertDigestBadge,
   graduationDeliveryDigestBadge,
@@ -714,6 +714,10 @@ export async function runExpansionDigestCron(now = new Date()): Promise<RunExpan
 
   const bodyText = buildDigestBody(overview, enabledWithoutOrder, graduationEmailStalls)
   const adminConsoleUrl = buildExpansionDigestConsoleUrl(resolveAppUrl(), overview.countries)
+  const filteredConsoleUrl = resolveExpansionDigestMultiAlertConsoleUrl(
+    resolveAppUrl(),
+    overview.countries
+  )
   const graduatedBrowseLinks = overview.graduatedThisMonthCountries.slice(0, 3).map((row) => ({
     label: expansionCountryLabel(row.countryIso2, "en"),
     url: resolveGraduatedBuyerShopUrl(row.countryIso2),
@@ -724,6 +728,7 @@ export async function runExpansionDigestCron(now = new Date()): Promise<RunExpan
     ExpansionDigestEmail({
       bodyText,
       adminConsoleUrl,
+      filteredConsoleUrl,
       graduationPendingCount: overview.funnel.graduationEmailsPending,
       graduatedBrowseLinks,
     })

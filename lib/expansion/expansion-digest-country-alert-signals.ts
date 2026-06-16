@@ -258,3 +258,13 @@ export function buildExpansionDigestConsoleFooterLine(
   }
   return `Console: ${consoleUrl}`
 }
+
+export function resolveExpansionDigestMultiAlertConsoleUrl(
+  adminUrl: string,
+  countries: readonly ExpansionCountryEmailAlertInput[]
+): string | null {
+  if (filterExpansionAdminMultiAlertCountries(countries).length === 0) {
+    return null
+  }
+  return buildExpansionAdminMultiAlertConsoleUrl(adminUrl)
+}
