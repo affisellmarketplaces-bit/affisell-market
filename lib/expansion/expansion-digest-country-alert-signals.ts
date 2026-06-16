@@ -283,9 +283,25 @@ export type ExpansionDigestMultiAlertCountrySummary = {
   countryIso2: string
   signalCount: number
   signalSummary: string
+  bundleHref: string
+}
+
+export function buildExpansionDigestMultiAlertCountryBundleUrl(
+  adminUrl: string,
+  countryIso2: string
+): string {
+  const origin = adminUrl.replace(/\/$/, "")
+  return `${origin}${expansionEmailExportsBundlePath(countryIso2)}`
+}
+
+export function formatExpansionDigestMultiAlertCountryBundleLinkLabel(
+  countryIso2: string
+): string {
+  return `${countryIso2.toUpperCase()} ZIP`
 }
 
 export function buildExpansionDigestTopMultiAlertCountrySummaries(
+  adminUrl: string,
   countries: readonly ExpansionCountryEmailAlertInput[],
   limit = 3
 ): ExpansionDigestMultiAlertCountrySummary[] {
@@ -299,6 +315,7 @@ export function buildExpansionDigestTopMultiAlertCountrySummaries(
         countryIso2: row.countryIso2,
         signalCount: signalLabels.length,
         signalSummary: formatExpansionCountryEmailAlertSignalSummary(signalLabels),
+        bundleHref: buildExpansionDigestMultiAlertCountryBundleUrl(adminUrl, row.countryIso2),
       }
     })
 }

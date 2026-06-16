@@ -2,6 +2,7 @@ import { render } from "@react-email/render"
 import { describe, expect, it } from "vitest"
 
 import { ExpansionDigestEmail } from "@/emails/expansion-digest"
+import { expansionEmailExportsBundlePath } from "@/lib/admin/expansion-email-export-kinds"
 import {
   buildExpansionDigestTopMultiAlertCountrySummaries,
   formatExpansionDigestMultiAlertCountryLine,
@@ -27,6 +28,7 @@ const baseRow = {
 describe("buildExpansionDigestTopMultiAlertCountrySummaries", () => {
   it("returns top countries sorted by signal count", () => {
     const rows = buildExpansionDigestTopMultiAlertCountrySummaries(
+      "https://app.test",
       [
         {
           ...baseRow,
@@ -56,6 +58,7 @@ describe("buildExpansionDigestTopMultiAlertCountrySummaries", () => {
 
   it("limits to top 3 multi-alert countries", () => {
     const rows = buildExpansionDigestTopMultiAlertCountrySummaries(
+      "https://app.test",
       [
         {
           ...baseRow,
@@ -97,6 +100,7 @@ describe("formatExpansionDigestMultiAlertCountryLine", () => {
         countryIso2: "jp",
         signalCount: 2,
         signalSummary: "launch complaint, launch delivery",
+        bundleHref: `https://app.test${expansionEmailExportsBundlePath("jp")}`,
       })
     ).toBe("JP · 2 signals: launch complaint, launch delivery")
   })
@@ -115,11 +119,13 @@ describe("ExpansionDigestEmail top multi-alert countries", () => {
             countryIso2: "kr",
             signalCount: 2,
             signalSummary: "launch complaint, launch delivery",
+            bundleHref: "https://app.test/api/admin/expansion/email-exports-bundle?countryIso2=kr",
           },
           {
             countryIso2: "jp",
             signalCount: 2,
             signalSummary: "J+2 bounce, graduation complaint",
+            bundleHref: "https://app.test/api/admin/expansion/email-exports-bundle?countryIso2=jp",
           },
         ],
       })

@@ -712,14 +712,16 @@ export async function runExpansionDigestCron(now = new Date()): Promise<RunExpan
     }))
   )
 
+  const appUrl = resolveAppUrl()
   const bodyText = buildDigestBody(overview, enabledWithoutOrder, graduationEmailStalls)
-  const adminConsoleUrl = buildExpansionDigestConsoleUrl(resolveAppUrl(), overview.countries)
+  const adminConsoleUrl = buildExpansionDigestConsoleUrl(appUrl, overview.countries)
   const filteredConsoleUrl = resolveExpansionDigestMultiAlertConsoleUrl(
-    resolveAppUrl(),
+    appUrl,
     overview.countries
   )
   const multiAlertCountryCount = countExpansionDigestMultiAlertCountries(overview.countries)
   const topMultiAlertCountries = buildExpansionDigestTopMultiAlertCountrySummaries(
+    appUrl,
     overview.countries
   )
   const graduatedBrowseLinks = overview.graduatedThisMonthCountries.slice(0, 3).map((row) => ({

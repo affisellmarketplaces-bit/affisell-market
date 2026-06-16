@@ -5,12 +5,14 @@ import {
   Head,
   Heading,
   Html,
+  Link,
   Preview,
   Section,
   Text,
 } from "@react-email/components"
 
 import {
+  formatExpansionDigestMultiAlertCountryBundleLinkLabel,
   formatExpansionDigestMultiAlertCountryLine,
   formatExpansionDigestMultiAlertEmailBadgeLabel,
   type ExpansionDigestMultiAlertCountrySummary,
@@ -62,7 +64,10 @@ export function ExpansionDigestEmail({
                 <Section style={{ margin: "12px 0 0" }}>
                   {topMultiAlertCountries.map((row) => (
                     <Text key={row.countryIso2} style={multiAlertCountryLine}>
-                      {formatExpansionDigestMultiAlertCountryLine(row)}
+                      {formatExpansionDigestMultiAlertCountryLine(row)}{" "}
+                      <Link href={row.bundleHref} style={multiAlertBundleLink}>
+                        {formatExpansionDigestMultiAlertCountryBundleLinkLabel(row.countryIso2)}
+                      </Link>
                     </Text>
                   ))}
                 </Section>
@@ -220,6 +225,11 @@ const multiAlertCountryLine = {
   margin: "0 0 6px",
   fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
 }
+const multiAlertBundleLink = {
+  color: "#be123c",
+  fontWeight: 700,
+  textDecoration: "underline",
+}
 const buttonMultiAlert = {
   backgroundColor: "#be123c",
   color: "#ffffff",
@@ -242,11 +252,13 @@ ExpansionDigestEmail.PreviewProps = {
       countryIso2: "jp",
       signalCount: 3,
       signalSummary: "launch complaint, launch bounce, J+2 delivery",
+      bundleHref: "https://affisell.com/api/admin/expansion/email-exports-bundle?countryIso2=jp",
     },
     {
       countryIso2: "kr",
       signalCount: 2,
       signalSummary: "launch delivery, graduation bounce",
+      bundleHref: "https://affisell.com/api/admin/expansion/email-exports-bundle?countryIso2=kr",
     },
   ],
   graduationPendingCount: 2,
