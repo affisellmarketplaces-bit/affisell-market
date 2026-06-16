@@ -1,5 +1,8 @@
 import { expansionEmailExportsBundlePath } from "@/lib/admin/expansion-email-export-kinds"
-import { buildExpansionAdminMultiAlertConsoleUrl } from "@/lib/expansion/expansion-admin-multi-alert-filter"
+import {
+  buildExpansionAdminMultiAlertConsoleUrl,
+  EXPANSION_ADMIN_EXPANSION_CONSOLE_PATH,
+} from "@/lib/expansion/expansion-admin-multi-alert-filter"
 import { shouldShowFollowupBounceAlertDigestRow } from "@/lib/expansion/expansion-digest-followup-bounce-badge"
 import { shouldShowFollowupComplaintAlertDigestRow } from "@/lib/expansion/expansion-digest-followup-complaint-badge"
 import { shouldShowFollowupDeliveryAlertDigestRow } from "@/lib/expansion/expansion-digest-followup-delivery-badge"
@@ -232,4 +235,26 @@ export function buildExpansionDigestMultiAlertRecapLines(
       buildExpansionCountryMultiAlertDigestLine(adminUrl, row, countryLabel(row.countryIso2))
     ),
   ]
+}
+
+export function buildExpansionDigestConsoleUrl(
+  adminUrl: string,
+  countries: readonly ExpansionCountryEmailAlertInput[]
+): string {
+  const origin = adminUrl.replace(/\/$/, "")
+  if (filterExpansionAdminMultiAlertCountries(countries).length > 0) {
+    return buildExpansionAdminMultiAlertConsoleUrl(adminUrl)
+  }
+  return `${origin}${EXPANSION_ADMIN_EXPANSION_CONSOLE_PATH}`
+}
+
+export function buildExpansionDigestConsoleFooterLine(
+  adminUrl: string,
+  countries: readonly ExpansionCountryEmailAlertInput[]
+): string {
+  const consoleUrl = buildExpansionDigestConsoleUrl(adminUrl, countries)
+  if (filterExpansionAdminMultiAlertCountries(countries).length > 0) {
+    return `Console (multi-alert filter): ${consoleUrl}`
+  }
+  return `Console: ${consoleUrl}`
 }

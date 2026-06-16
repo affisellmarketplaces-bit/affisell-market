@@ -72,7 +72,7 @@ import {
   shouldShowGraduationPausedDigestRow,
 } from "@/lib/expansion/expansion-digest-graduation-pause-badge"
 import { buildGraduatedThisMonthDigestLines } from "@/lib/expansion/expansion-digest-graduated-month"
-import { buildExpansionDigestMultiAlertRecapLines } from "@/lib/expansion/expansion-digest-country-alert-signals"
+import { buildExpansionDigestMultiAlertRecapLines, buildExpansionDigestConsoleFooterLine, buildExpansionDigestConsoleUrl } from "@/lib/expansion/expansion-digest-country-alert-signals"
 import {
   graduationDeliveryAlertDigestBadge,
   graduationDeliveryDigestBadge,
@@ -662,7 +662,7 @@ function buildDigestBody(
         )
       : ["• none"]),
     "",
-    `Console: ${adminUrl}/admin/expansion`,
+    buildExpansionDigestConsoleFooterLine(adminUrl, overview.countries),
   ]
   return lines.join("\n")
 }
@@ -713,7 +713,7 @@ export async function runExpansionDigestCron(now = new Date()): Promise<RunExpan
   )
 
   const bodyText = buildDigestBody(overview, enabledWithoutOrder, graduationEmailStalls)
-  const adminConsoleUrl = `${resolveAppUrl()}/admin/expansion`
+  const adminConsoleUrl = buildExpansionDigestConsoleUrl(resolveAppUrl(), overview.countries)
   const graduatedBrowseLinks = overview.graduatedThisMonthCountries.slice(0, 3).map((row) => ({
     label: expansionCountryLabel(row.countryIso2, "en"),
     url: resolveGraduatedBuyerShopUrl(row.countryIso2),
