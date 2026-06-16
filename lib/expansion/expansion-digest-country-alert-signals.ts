@@ -278,3 +278,33 @@ export function countExpansionDigestMultiAlertCountries(
 export function formatExpansionDigestMultiAlertEmailBadgeLabel(countryCount: number): string {
   return `Multi-alert · ${countryCount} ${countryCount === 1 ? "country" : "countries"}`
 }
+
+export type ExpansionDigestMultiAlertCountrySummary = {
+  countryIso2: string
+  signalCount: number
+  signalSummary: string
+}
+
+export function buildExpansionDigestTopMultiAlertCountrySummaries(
+  countries: readonly ExpansionCountryEmailAlertInput[],
+  limit = 3
+): ExpansionDigestMultiAlertCountrySummary[] {
+  return filterExpansionAdminMultiAlertCountries(
+    sortExpansionAdminCountriesByAlertSignals(countries)
+  )
+    .slice(0, limit)
+    .map((row) => {
+      const signalLabels = listExpansionCountryEmailAlertSignalLabels(row)
+      return {
+        countryIso2: row.countryIso2,
+        signalCount: signalLabels.length,
+        signalSummary: formatExpansionCountryEmailAlertSignalSummary(signalLabels),
+      }
+    })
+}
+
+export function formatExpansionDigestMultiAlertCountryLine(
+  row: ExpansionDigestMultiAlertCountrySummary
+): string {
+  return `${row.countryIso2.toUpperCase()} · ${row.signalCount} signals: ${row.signalSummary}`
+}

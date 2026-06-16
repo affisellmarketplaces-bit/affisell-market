@@ -10,13 +10,18 @@ import {
   Text,
 } from "@react-email/components"
 
-import { formatExpansionDigestMultiAlertEmailBadgeLabel } from "@/lib/expansion/expansion-digest-country-alert-signals"
+import {
+  formatExpansionDigestMultiAlertCountryLine,
+  formatExpansionDigestMultiAlertEmailBadgeLabel,
+  type ExpansionDigestMultiAlertCountrySummary,
+} from "@/lib/expansion/expansion-digest-country-alert-signals"
 
 export type ExpansionDigestEmailProps = {
   bodyText: string
   adminConsoleUrl: string
   filteredConsoleUrl?: string | null
   multiAlertCountryCount?: number
+  topMultiAlertCountries?: ExpansionDigestMultiAlertCountrySummary[]
   graduationPendingCount?: number
   graduatedBrowseLinks?: Array<{ label: string; url: string }>
 }
@@ -26,6 +31,7 @@ export function ExpansionDigestEmail({
   adminConsoleUrl,
   filteredConsoleUrl = null,
   multiAlertCountryCount = 0,
+  topMultiAlertCountries = [],
   graduationPendingCount = 0,
   graduatedBrowseLinks = [],
 }: ExpansionDigestEmailProps) {
@@ -52,6 +58,15 @@ export function ExpansionDigestEmail({
               <Text style={multiAlertBody}>
                 Open the pre-filtered admin console to review ZIP exports and signal details.
               </Text>
+              {topMultiAlertCountries.length > 0 ? (
+                <Section style={{ margin: "12px 0 0" }}>
+                  {topMultiAlertCountries.map((row) => (
+                    <Text key={row.countryIso2} style={multiAlertCountryLine}>
+                      {formatExpansionDigestMultiAlertCountryLine(row)}
+                    </Text>
+                  ))}
+                </Section>
+              ) : null}
               <Section style={{ textAlign: "center", margin: "16px 0 0" }}>
                 <Button href={filteredConsoleUrl!} style={buttonMultiAlert}>
                   Open filtered console
@@ -198,6 +213,13 @@ const multiAlertBody = {
   color: "#881337",
   margin: "0",
 }
+const multiAlertCountryLine = {
+  fontSize: "12px",
+  lineHeight: "18px",
+  color: "#9f1239",
+  margin: "0 0 6px",
+  fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+}
 const buttonMultiAlert = {
   backgroundColor: "#be123c",
   color: "#ffffff",
@@ -215,6 +237,18 @@ ExpansionDigestEmail.PreviewProps = {
   adminConsoleUrl: "https://affisell.com/admin/expansion",
   filteredConsoleUrl: "https://affisell.com/admin/expansion?multiAlert=1",
   multiAlertCountryCount: 3,
+  topMultiAlertCountries: [
+    {
+      countryIso2: "jp",
+      signalCount: 3,
+      signalSummary: "launch complaint, launch bounce, J+2 delivery",
+    },
+    {
+      countryIso2: "kr",
+      signalCount: 2,
+      signalSummary: "launch delivery, graduation bounce",
+    },
+  ],
   graduationPendingCount: 2,
   graduatedBrowseLinks: [
     { label: "Japan", url: "https://affisell.com/shops/browse?shipsTo=jp" },
