@@ -254,6 +254,27 @@ export function shouldShowExpansionAdminMultiAlertZipViewAllLink(options: {
   return !options.filtered && options.totalCount > options.visibleCount
 }
 
+export function countExpansionAdminMultiAlertZipHiddenCountries(
+  totalCount: number,
+  visibleCount: number
+): number {
+  return Math.max(0, totalCount - visibleCount)
+}
+
+export function formatExpansionAdminMultiAlertZipViewAllLabel(options: {
+  totalCount: number
+  visibleCount: number
+}): string {
+  const hiddenCount = countExpansionAdminMultiAlertZipHiddenCountries(
+    options.totalCount,
+    options.visibleCount
+  )
+  if (hiddenCount <= 0) {
+    return `View all (${options.totalCount})`
+  }
+  return `View all (+${hiddenCount} hidden)`
+}
+
 export function sortExpansionAdminCountriesByAlertSignals<T extends ExpansionCountryEmailAlertInput>(
   countries: readonly T[]
 ): T[] {

@@ -35,6 +35,7 @@ import {
   EXPANSION_ADMIN_MULTI_ALERT_ZIP_FILTERED_BADGE_LABEL,
   EXPANSION_ADMIN_MULTI_ALERT_ZIP_PREVIEW_BADGE_LABEL,
   formatExpansionAdminMultiAlertZipBarAccessibleLabel,
+  formatExpansionAdminMultiAlertZipViewAllLabel,
   formatExpansionAdminTopMultiAlertBundleLabel,
   formatExpansionCountryEmailAlertSignalSummary,
   listExpansionCountryEmailAlertSignalLabels,
@@ -948,7 +949,10 @@ export function AdminExpansionConsole({
                 className="h-7 px-2 text-[11px] text-rose-800 hover:bg-rose-100 hover:text-rose-900 dark:text-rose-200 dark:hover:bg-rose-950/70"
                 onClick={toggleMultiAlertOnlyFilter}
               >
-                View all ({multiAlertCountryCount})
+                {formatExpansionAdminMultiAlertZipViewAllLabel({
+                  totalCount: multiAlertCountryCount,
+                  visibleCount: visibleMultiAlertBundleLinks.length,
+                })}
               </Button>
             ) : null}
             {shouldShowExpansionAdminMultiAlertZipClearFilterLink(multiAlertOnlyFilter) ? (
