@@ -1582,6 +1582,33 @@
     "loadError": "Could not load orders",
     "trackingRequired": "Enter a tracking number before marking as shipped.",
     "updateFailed": "Update failed",
+    "page": {
+      "eyebrow": "Fulfillment",
+      "title": "Orders to ship",
+      "description": "Paid orders queue here — confirm prep, then add tracking when the parcel leaves.",
+      "back": "Back to dashboard",
+      "awaitingShipment": "{count} awaiting shipment"
+    },
+    "status": {
+      "paid": "Awaiting packing",
+      "preparing": "Preparing",
+      "shipped": "Shipped"
+    },
+    "actions": {
+      "markPreparing": "Mark preparing",
+      "markShipped": "Mark shipped",
+      "shipTo": "Ship to",
+      "carrier": "Carrier",
+      "trackingNumber": "Tracking number *",
+      "splitDetail": "View payout split →"
+    },
+    "fulfillmentRail": {
+      "ariaLabel": "Fulfillment progress",
+      "paid": "Paid",
+      "preparing": "Prep",
+      "shipped": "Shipped",
+      "preparingConfirmed": "Preparing confirmed {date}"
+    },
     "payout": {
       "yourPayout": "Your payout",
       "netWholesaleHint": "Catalog wholesale (partner commission already deducted)",

@@ -24,7 +24,7 @@ const phaseStyles: Record<ShipPulsePhase, string> = {
   critical:
     "border-red-400/90 bg-gradient-to-r from-red-50 via-rose-50/90 to-orange-50 text-red-950 shadow-md shadow-red-300/30 animate-pulse dark:border-red-800 dark:from-red-950/60 dark:text-red-100",
   breached:
-    "border-red-600 bg-red-600 text-white shadow-lg shadow-red-500/40 ring-2 ring-red-400/50 animate-pulse dark:border-red-500 dark:bg-red-700 dark:shadow-red-950/50",
+    "border-red-600 bg-red-600 text-white shadow-md shadow-red-500/30 dark:border-red-500 dark:bg-red-700 dark:shadow-red-950/50",
 }
 
 export function ShipPulseBadge({

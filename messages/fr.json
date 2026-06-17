@@ -1606,6 +1606,33 @@
     "loadError": "Impossible de charger les commandes",
     "trackingRequired": "Saisissez un numéro de suivi avant de marquer comme expédiée.",
     "updateFailed": "Mise à jour impossible",
+    "page": {
+      "eyebrow": "Expédition",
+      "title": "Commandes à expédier",
+      "description": "Les commandes payées s'affichent ici — confirmez la préparation, puis ajoutez le suivi dès l'envoi du colis.",
+      "back": "Retour au tableau de bord",
+      "awaitingShipment": "{count} en attente d'expédition"
+    },
+    "status": {
+      "paid": "À préparer",
+      "preparing": "En préparation",
+      "shipped": "Expédiée"
+    },
+    "actions": {
+      "markPreparing": "Marquer en préparation",
+      "markShipped": "Marquer expédiée",
+      "shipTo": "Expédier à",
+      "carrier": "Transporteur",
+      "trackingNumber": "N° de suivi *",
+      "splitDetail": "Voir le détail du split →"
+    },
+    "fulfillmentRail": {
+      "ariaLabel": "Progression expédition",
+      "paid": "Payée",
+      "preparing": "Prép.",
+      "shipped": "Expédiée",
+      "preparingConfirmed": "Préparation confirmée le {date}"
+    },
     "payout": {
       "yourPayout": "Votre versement",
       "netWholesaleHint": "Prix catalogue HT, commission partenaire déjà déduite",

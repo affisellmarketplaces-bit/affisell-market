@@ -90,10 +90,11 @@ function FulfillmentRail({
   status: OrderRow["status"]
   supplierPreparingAt: string | null
 }) {
+  const t = useTranslations("supplierOrders.fulfillmentRail")
   const steps = [
-    { key: "paid" as const, label: "Paid", Icon: Package },
-    { key: "preparing" as const, label: "Prep", Icon: ClipboardCheck },
-    { key: "shipped" as const, label: "Shipped", Icon: Truck },
+    { key: "paid" as const, label: t("paid"), Icon: Package },
+    { key: "preparing" as const, label: t("preparing"), Icon: ClipboardCheck },
+    { key: "shipped" as const, label: t("shipped"), Icon: Truck },
   ]
 
   const activeRank = status === "shipped" ? 2 : status === "preparing" ? 1 : 0
@@ -102,7 +103,7 @@ function FulfillmentRail({
     <div
       className="mt-4 flex items-center gap-1 rounded-xl border border-zinc-200/80 bg-zinc-50/80 px-3 py-2.5 dark:border-zinc-800 dark:bg-zinc-900/40"
       role="region"
-      aria-label="Fulfillment progress"
+      aria-label={t("ariaLabel")}
     >
       {steps.map(({ key, label, Icon }, index) => {
         const complete = index < activeRank || (status === "shipped" && index <= 2)
@@ -154,7 +155,11 @@ function FulfillmentRail({
         )
       })}
       {supplierPreparingAt ? (
-        <span className="sr-only">Preparing confirmed {new Date(supplierPreparingAt).toLocaleString()}</span>
+        <span className="sr-only">
+          {t("preparingConfirmed", {
+            date: new Date(supplierPreparingAt).toLocaleString(),
+          })}
+        </span>
       ) : null}
     </div>
   )
@@ -307,17 +312,18 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
     }))
   }
 
-  function statusBadgeClass(status: OrderRow["status"], shipPulse: OrderRow["shipPulse"]) {
-    if (isShipDeadlineBreached(shipPulse)) {
-      return "bg-red-600 text-white shadow-sm dark:bg-red-700"
-    }
-    if (status === "shipped")
+  function orderStatusLabel(status: OrderRow["status"]) {
+    if (status === "shipped") return msg("status.shipped")
+    if (status === "preparing") return msg("status.preparing")
+    return msg("status.paid")
+  }
+
+  function statusBadgeClass(status: OrderRow["status"]) {
+    if (status === "shipped") {
       return "bg-emerald-100 text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-200"
+    }
     if (status === "preparing") {
       return "bg-sky-100 text-sky-900 dark:bg-sky-950/50 dark:text-sky-200"
-    }
-    if (isShipDeadlineCritical(shipPulse)) {
-      return "bg-red-100 text-red-900 dark:bg-red-950/60 dark:text-red-200"
     }
     return "bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-200"
   }
@@ -390,11 +396,11 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
             <Card
               key={o.id}
               className={cn(
-                "overflow-hidden shadow-sm",
+                "overflow-hidden border bg-white shadow-sm dark:bg-zinc-950",
                 shipLate
-                  ? "border-2 border-red-500 bg-red-50/70 ring-2 ring-red-500/25 dark:border-red-600 dark:bg-red-950/35 dark:ring-red-500/20"
+                  ? "border-zinc-200 border-l-4 border-l-red-600 dark:border-zinc-700 dark:border-l-red-500"
                   : shipCritical
-                    ? "border border-red-300 bg-red-50/40 dark:border-red-800/80 dark:bg-red-950/25"
+                    ? "border-zinc-200 border-l-4 border-l-amber-500 dark:border-zinc-700 dark:border-l-amber-500"
                     : "border-zinc-200/90 dark:border-zinc-700"
               )}
             >
@@ -411,7 +417,10 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-start justify-between gap-2">
-                        <h2 className="line-clamp-2 text-sm font-semibold leading-snug text-zinc-900 dark:text-zinc-50 sm:text-[15px]">
+                        <h2
+                          className="line-clamp-2 text-sm font-semibold leading-snug text-zinc-900 dark:text-zinc-50 sm:text-[15px]"
+                          title={o.product.name}
+                        >
                           {o.product.name}
                         </h2>
                         <div className="flex shrink-0 flex-wrap items-center gap-1">
@@ -423,10 +432,10 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
                           <span
                             className={cn(
                               "rounded-full px-2 py-0.5 text-[11px] font-semibold",
-                              statusBadgeClass(o.status, o.shipPulse)
+                              statusBadgeClass(o.status)
                             )}
                           >
-                            {o.displayStatus}
+                            {orderStatusLabel(o.status)}
                           </span>
                         </div>
                       </div>
@@ -440,15 +449,7 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
                           />
                         </div>
                       ) : null}
-                      {o.fulfillmentSource === "marketplace" &&
-                      (o.status === "paid" || o.status === "preparing") ? (
-                        <SupplierOrderFulfillmentPanel
-                          orderId={o.id}
-                          className="mt-3"
-                          onUpdated={() => void load()}
-                        />
-                      ) : null}
-                      <p className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-zinc-500">
+                      <p className="mt-2 flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-zinc-500">
                         <span className="font-medium tabular-nums text-zinc-700 dark:text-zinc-300">×{o.quantity}</span>
                         <span aria-hidden>·</span>
                         <span>{formatOrderWhen(o.createdAt)}</span>
@@ -468,12 +469,26 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
 
                       <PayoutStrip o={o} />
                       <OrderMetaChips o={o} />
+
+                      {o.fulfillmentSource === "marketplace" ? (
+                        <FulfillmentRail status={o.status} supplierPreparingAt={o.supplierPreparingAt} />
+                      ) : null}
+
+                      {o.fulfillmentSource === "marketplace" &&
+                      (o.status === "paid" || o.status === "preparing") ? (
+                        <SupplierOrderFulfillmentPanel
+                          orderId={o.id}
+                          className="mt-3"
+                          onUpdated={() => void load()}
+                        />
+                      ) : null}
+
                       {o.fulfillmentSource === "marketplace" ? (
                         <Link
                           href={`/dashboard/orders/${o.id}`}
                           className="mt-3 inline-block text-xs font-medium text-violet-700 underline-offset-4 hover:underline dark:text-violet-300"
                         >
-                          Voir le détail du split →
+                          {msg("actions.splitDetail")}
                         </Link>
                       ) : null}
 
@@ -484,10 +499,6 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
                             Inbox
                           </Link>
                         </p>
-                      ) : null}
-
-                      {o.fulfillmentSource === "marketplace" ? (
-                        <FulfillmentRail status={o.status} supplierPreparingAt={o.supplierPreparingAt} />
                       ) : null}
 
                       {o.status === "shipped" && o.trackingNumber ? (
@@ -505,7 +516,7 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
                 <div className="flex flex-col bg-zinc-50/70 p-4 dark:bg-zinc-900/30 sm:p-5">
                   <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
                     <MapPin className="size-3.5 text-violet-600 dark:text-violet-400" aria-hidden />
-                    Ship to
+                    {msg("actions.shipTo")}
                   </div>
                   <p className="mt-2 text-sm font-semibold text-zinc-900 dark:text-zinc-50">{shipTo.name}</p>
                   {shipTo.rest ? (
@@ -526,7 +537,7 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
                       ) : (
                         <ClipboardCheck className="size-4" aria-hidden />
                       )}
-                      Mark preparing
+                      {msg("actions.markPreparing")}
                     </Button>
                   ) : null}
 
@@ -535,16 +546,16 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
                       <input
                         id={`carrier-${o.id}`}
                         className="h-9 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm outline-none focus:border-violet-400 dark:border-zinc-600 dark:bg-zinc-950"
-                        placeholder="Carrier"
-                        aria-label="Carrier"
+                        placeholder={msg("actions.carrier")}
+                        aria-label={msg("actions.carrier")}
                         value={trackingByOrder[o.id]?.carrier ?? ""}
                         onChange={(e) => setTracking(o.id, "carrier", e.target.value)}
                       />
                       <input
                         id={`tracking-${o.id}`}
                         className="h-9 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm outline-none focus:border-violet-400 dark:border-zinc-600 dark:bg-zinc-950"
-                        placeholder="Tracking number *"
-                        aria-label="Tracking number"
+                        placeholder={msg("actions.trackingNumber")}
+                        aria-label={msg("actions.trackingNumber")}
                         value={trackingByOrder[o.id]?.number ?? ""}
                         onChange={(e) => setTracking(o.id, "number", e.target.value)}
                       />
@@ -560,7 +571,7 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
                         ) : (
                           <Truck className="size-4" aria-hidden />
                         )}
-                        Mark shipped
+                        {msg("actions.markShipped")}
                       </Button>
                     </div>
                   ) : null}

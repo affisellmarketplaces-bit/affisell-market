@@ -1,6 +1,6 @@
+import { getTranslations } from "next-intl/server"
 import Link from "next/link"
 import { requireSupplierSession } from "@/lib/dashboard-session"
-import { redirect } from "next/navigation"
 import { Package } from "lucide-react"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic"
 
 export default async function SupplierOrdersPage() {
   const session = await requireSupplierSession("/dashboard/supplier/orders")
-
+  const t = await getTranslations("supplierOrders.page")
 
   const toShipCount = await countSupplierOrdersToShip(session.user.id)
 
@@ -27,19 +27,19 @@ export default async function SupplierOrdersPage() {
             className={cn(buttonVariants({ variant: "bentoOutline", size: "bento" }), "inline-flex w-full justify-center sm:w-auto")}
           >
             <Package className="size-5" aria-hidden />
-            Back to dashboard
+            {t("back")}
           </Link>
           {toShipCount > 0 ? (
             <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-900 dark:bg-amber-950/60 dark:text-amber-200">
-              {toShipCount} awaiting shipment
+              {t("awaitingShipment", { count: toShipCount })}
             </span>
           ) : null}
         </BentoCard>
 
         <BentoPageHeading
-          eyebrow="Fulfillment"
-          title="Orders to ship"
-          description="Paid orders queue here — confirm prep, then add tracking when the parcel leaves."
+          eyebrow={t("eyebrow")}
+          title={t("title")}
+          description={t("description")}
         />
 
         <ShipPulsePolicyBanner />
