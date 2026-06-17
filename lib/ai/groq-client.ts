@@ -1,6 +1,12 @@
 import Groq from "groq-sdk"
 
 import {
+  byteplusChatText,
+  BYTEPLUS_LLM_MODEL,
+  hasBytePlusChat,
+  BytePlusChatError,
+} from "@/lib/ai/byteplus-client"
+import {
   capVisionImagesInMessages,
   GROQ_VISION_MAX_IMAGES,
   isGroqRateLimitError,
@@ -85,6 +91,31 @@ async function tryOpenAiFallback(
 }
 
 export async function groqChatText(options: GroqChatOptions): Promise<string | null> {
+  const useVision = Boolean(options.vision || options.model === GROQ_VISION_MODEL)
+
+  if (!useVision && hasBytePlusChat()) {
+    try {
+      const byteplus = await byteplusChatText({
+        messages: options.messages,
+        temperature: options.temperature,
+        max_tokens: options.max_tokens,
+        response_format: options.response_format,
+      })
+      if (byteplus) {
+        console.log("[groq-client]", { event: "BytePlus Dola", model: BYTEPLUS_LLM_MODEL })
+        return byteplus
+      }
+    } catch (err: unknown) {
+      const status = err instanceof BytePlusChatError ? err.status : 0
+      const message = err instanceof Error ? err.message : String(err)
+      console.log("[groq-client]", {
+        event: "byteplus_fallback_groq",
+        status,
+        message: message.slice(0, 200),
+      })
+    }
+  }
+
   const groq = createGroqClient()
 
   if (groq) {
