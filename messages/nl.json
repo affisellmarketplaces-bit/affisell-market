@@ -1020,7 +1020,9 @@
         "hint": "Door elke leverancier bij publicatie aangegeven — filter op aanbodtype.",
         "tapHint": "Filter op conditie",
         "cardSupplierNote": "Door leverancier aangegeven",
-        "clear": "Alles tonen"
+        "clear": "Alles tonen",
+        "noListingsForMode": "Nog geen aanbiedingen",
+        "listingCount": "{count, plural, one {# aanbieding} other {# aanbiedingen}}"
       },
       "browseDepartmentsRail": {
         "ariaLabel": "Door afdelingen browsen",
@@ -1054,6 +1056,9 @@
       "dbEmptyTitle": "Database tijdelijk niet beschikbaar",
       "dbDevHint": "Locaal dev: run npm run db:local:setup en zet DATABASE_URL in .env.local op postgresql://affisell:affisell@localhost:5433/affisell",
       "facetShipsFromFrance": "Frankrijk",
+      "facetShipsWorldwide": "Wereldwijd",
+      "facetShipsFromUs": "Verenigde Staten",
+      "facetShipsNorthAmerica": "VS & Canada",
       "facetPrice": {
         "under25": "Onder €25",
         "25-100": "€25 – €100",

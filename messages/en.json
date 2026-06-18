@@ -1084,7 +1084,9 @@
         "hint": "Declared by each supplier when listing — filter by offer type.",
         "tapHint": "Filter by condition",
         "cardSupplierNote": "Supplier declared",
-        "clear": "Show all"
+        "clear": "Show all",
+        "noListingsForMode": "No listings yet",
+        "listingCount": "{count, plural, one {# listing} other {# listings}}"
       },
       "browseDepartmentsRail": {
         "ariaLabel": "Browse by department",

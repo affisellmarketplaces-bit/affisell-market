@@ -1020,7 +1020,9 @@
         "hint": "Deklarowany przez dostawcę przy publikacji — filtruj według typu oferty.",
         "tapHint": "Filtruj według stanu",
         "cardSupplierNote": "Deklaracja dostawcy",
-        "clear": "Pokaż wszystko"
+        "clear": "Pokaż wszystko",
+        "noListingsForMode": "Brak ogłoszeń",
+        "listingCount": "{count, plural, one {# ogłoszenie} few {# ogłoszenia} many {# ogłoszeń} other {# ogłoszenia}}"
       },
       "browseDepartmentsRail": {
         "ariaLabel": "Przeglądaj według kategorii",
@@ -1054,6 +1056,9 @@
       "dbEmptyTitle": "Baza danych tymczasowo niedostępna",
       "dbDevHint": "Local dev: uruchom npm run db:local:setup i ustaw DATABASE_URL w .env.local na postgresql://affisell:affisell@localhost:5433/affisell",
       "facetShipsFromFrance": "Francja",
+      "facetShipsWorldwide": "Międzynarodowy",
+      "facetShipsFromUs": "Stany Zjednoczone",
+      "facetShipsNorthAmerica": "USA i Kanada",
       "facetPrice": {
         "under25": "Poniżej 25€",
         "25-100": "25€ – 100€",

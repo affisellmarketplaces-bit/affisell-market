@@ -1,7 +1,8 @@
 import type { Prisma } from "@prisma/client"
 
 import type { AppLocale } from "@/lib/i18n-locale"
-import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
+import { buyerListedAffiliateProductWhere, buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
+import { buildMarketplaceScopedProductWhere } from "@/lib/marketplace-attribute-filters.server"
 import {
   MARKETPLACE_DELIVERY_FACET_KEY,
   MARKETPLACE_DEPT_FACET_KEY,
@@ -73,10 +74,33 @@ async function countListingsForProductWhere(
       where: {
         ...buyerListedAffiliateProductWhere,
         affiliate: { store: { isNot: null } },
-        product: productExtra,
+        product: { ...buyerMarketplaceProductWhere, ...productExtra },
       },
     })
   )
+}
+
+/** Live listing counts per offer-mode slug — scoped to category when provided. */
+export async function loadOfferModeRailCounts(
+  scopeRootId?: string | null
+): Promise<Record<string, number>> {
+  const scoped =
+    scopeRootId?.trim() ?
+      await buildMarketplaceScopedProductWhere(scopeRootId.trim(), {})
+    : buyerMarketplaceProductWhere
+
+  const pairs = await Promise.all(
+    OFFER_FACET_MODES.map(async (mode) => {
+      const slug = offerFacetSlug(mode)
+      if (!slug) return null
+      const count = await countListingsForProductWhere({
+        AND: [scoped, { offerMode: mode }],
+      })
+      return [slug, count] as const
+    })
+  )
+
+  return Object.fromEntries(pairs.filter((p): p is readonly [string, number] => p != null))
 }
 
 /** Global discovery facets (no category scope) — Amazon-style left rail. */

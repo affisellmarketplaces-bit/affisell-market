@@ -1092,7 +1092,9 @@
         "hint": "Déclaré par chaque fournisseur à la publication — filtrez par type d'offre.",
         "tapHint": "Filtrer par état",
         "cardSupplierNote": "Déclaré par le fournisseur",
-        "clear": "Tout afficher"
+        "clear": "Tout afficher",
+        "noListingsForMode": "Aucune annonce",
+        "listingCount": "{count, plural, one {# annonce} other {# annonces}}"
       },
       "browseDepartmentsRail": {
         "ariaLabel": "Explorer par univers",

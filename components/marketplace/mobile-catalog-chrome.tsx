@@ -71,16 +71,22 @@ export function MobileCatalogChrome({
   const [categoriesOpen, setCategoriesOpen] = useState(false)
   const [filtersOpen, setFiltersOpen] = useState(false)
 
+  const handleClearFilters = () => {
+    setCategoriesOpen(false)
+    setFiltersOpen(false)
+    onClearFilters()
+  }
+
   return (
     <>
-      <div className="sticky top-[3.25rem] z-30 -mx-4 mb-4 border-b border-white/10 bg-zinc-950/85 px-4 py-2.5 backdrop-blur-xl md:hidden dark:bg-zinc-950/90">
+      <div className="sticky top-[calc(3.25rem+env(safe-area-inset-top,0px))] z-30 -mx-4 mb-4 border-b border-white/10 bg-zinc-950/85 px-4 py-2.5 backdrop-blur-xl supports-[backdrop-filter]:bg-zinc-950/75 md:hidden dark:bg-zinc-950/90">
         <div className="flex items-center gap-2">
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={openMobileBuyerHub}
-            className="h-9 shrink-0 gap-1.5 border-white/15 bg-white/5 px-2.5 text-xs text-zinc-100"
+            className="h-11 min-h-11 shrink-0 gap-1.5 border-white/15 bg-white/5 px-2.5 text-xs text-zinc-100"
           >
             <Menu className="size-3.5" aria-hidden />
             {t("menu")}
@@ -90,7 +96,7 @@ export function MobileCatalogChrome({
             variant="outline"
             size="sm"
             onClick={() => setCategoriesOpen(true)}
-            className="h-9 flex-1 gap-1.5 border-violet-500/30 bg-violet-500/10 text-xs text-violet-100"
+            className="h-11 min-h-11 flex-1 gap-1.5 border-violet-500/30 bg-violet-500/10 text-xs text-violet-100"
           >
             <LayoutGrid className="size-3.5 shrink-0" aria-hidden />
             {t("categories")}
@@ -100,7 +106,7 @@ export function MobileCatalogChrome({
             variant="outline"
             size="sm"
             onClick={() => setFiltersOpen(true)}
-            className="h-9 flex-1 gap-1.5 border-white/15 bg-white/5 text-xs text-zinc-100"
+            className="h-11 min-h-11 flex-1 gap-1.5 border-white/15 bg-white/5 text-xs text-zinc-100"
           >
             <Filter className="size-3.5 shrink-0" aria-hidden />
             {t("filters")}
@@ -117,9 +123,9 @@ export function MobileCatalogChrome({
           {hasFilters ? (
             <button
               type="button"
-              onClick={onClearFilters}
+              onClick={handleClearFilters}
               className={cn(
-                "inline-flex max-w-full items-center gap-1 truncate rounded-full border border-violet-500/30 bg-violet-500/10 px-2 py-0.5 text-[10px] font-semibold text-violet-100"
+                "inline-flex max-w-full min-h-9 items-center gap-1 truncate rounded-full border border-violet-500/30 bg-violet-500/10 px-2.5 py-1 text-[10px] font-semibold text-violet-100"
               )}
             >
               {activeFilterLabel}
@@ -134,7 +140,7 @@ export function MobileCatalogChrome({
       </MobileSheet>
 
       <MobileSheet open={filtersOpen} onOpenChange={setFiltersOpen} title={t("filtersTitle")}>
-        {filtersPanel}
+        <div className="pb-[max(0.75rem,env(safe-area-inset-bottom,0px))]">{filtersPanel}</div>
       </MobileSheet>
     </>
   )

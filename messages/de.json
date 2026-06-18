@@ -1020,7 +1020,9 @@
         "hint": "Vom Anbieter bei der Veröffentlichung angegeben — nach Angebotsart filtern.",
         "tapHint": "Nach Zustand filtern",
         "cardSupplierNote": "Vom Anbieter angegeben",
-        "clear": "Alle anzeigen"
+        "clear": "Alle anzeigen",
+        "noListingsForMode": "Noch keine Anzeigen",
+        "listingCount": "{count, plural, one {# Anzeige} other {# Anzeigen}}"
       },
       "browseDepartmentsRail": {
         "ariaLabel": "Durch Abteilung browsen",
@@ -1054,6 +1056,9 @@
       "dbEmptyTitle": "Datenbank vorübergehend nicht verfügbar",
       "dbDevHint": "Lokale Entwicklung: Führen Sie npm run db:local:setup aus und setzen Sie DATABASE_URL in .env.local auf postgresql://affisell:affisell@localhost:5433/affisell",
       "facetShipsFromFrance": "Frankreich",
+      "facetShipsWorldwide": "Weltweit",
+      "facetShipsFromUs": "Vereinigte Staaten",
+      "facetShipsNorthAmerica": "USA & Kanada",
       "facetPrice": {
         "under25": "Unter 25€",
         "25-100": "25€ – 100€",

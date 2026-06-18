@@ -2,12 +2,14 @@ import { unstable_cache } from "next/cache"
 
 import type { AppLocale } from "@/lib/i18n-locale"
 import { loadMarketplaceCategoryTreeCached } from "@/lib/marketplace-category-tree"
+import { loadOfferModeRailCounts } from "@/lib/marketplace-discovery-facets"
 import { fetchMarketplaceListingsForHome } from "@/lib/marketplace-listings-query"
 
 export type HomeMarketplaceShell = {
   categories: Awaited<ReturnType<typeof loadMarketplaceCategoryTreeCached>>["categories"]
   catalogTotal: number
   products: Awaited<ReturnType<typeof fetchMarketplaceListingsForHome>>
+  offerRailCounts: Record<string, number>
 }
 
 const HOME_SHELL_REVALIDATE_SEC = 60
@@ -16,17 +18,20 @@ const EMPTY_HOME_SHELL: HomeMarketplaceShell = {
   categories: [],
   catalogTotal: 0,
   products: [],
+  offerRailCounts: {},
 }
 
 async function loadHomeMarketplaceShellUncached(locale: AppLocale): Promise<HomeMarketplaceShell> {
-  const [tree, products] = await Promise.all([
+  const [tree, products, offerRailCounts] = await Promise.all([
     loadMarketplaceCategoryTreeCached(locale),
     fetchMarketplaceListingsForHome(new URLSearchParams()),
+    loadOfferModeRailCounts(),
   ])
   return {
     categories: tree.categories,
     catalogTotal: tree.catalogTotal,
     products,
+    offerRailCounts,
   }
 }
 

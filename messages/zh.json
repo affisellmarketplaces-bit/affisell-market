@@ -1020,7 +1020,9 @@
         "hint": "每位供应商发布时声明 — 按供应类型筛选。",
         "tapHint": "按状态筛选",
         "cardSupplierNote": "供应商声明",
-        "clear": "显示全部"
+        "clear": "显示全部",
+        "noListingsForMode": "暂无商品",
+        "listingCount": "{count, plural, other {# 个商品}}"
       },
       "browseDepartmentsRail": {
         "ariaLabel": "按部门浏览",
@@ -1054,6 +1056,9 @@
       "dbEmptyTitle": "数据库暂时不可用",
       "dbDevHint": "本地开发: 运行 npm run db:local:setup 并在 .env.local 中设置 DATABASE_URL 为 postgresql://affisell:affisell@localhost:5433/affisell",
       "facetShipsFromFrance": "法国",
+      "facetShipsWorldwide": "全球",
+      "facetShipsFromUs": "美国",
+      "facetShipsNorthAmerica": "美国与加拿大",
       "facetPrice": {
         "under25": "低于 €25",
         "25-100": "€25 – €100",

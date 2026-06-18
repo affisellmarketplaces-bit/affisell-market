@@ -1786,6 +1786,43 @@ body.affisell-demo-lab .affisell-header-shell {
   /* layout wrapper only */
 }
 
+.affisell-offer-mode-rail-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  touch-action: pan-x;
+}
+
+.affisell-offer-mode-rail-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+@media (max-width: 639px) {
+  .affisell-offer-mode-rail-scroll {
+    scroll-padding-inline: 0.75rem;
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 0.75rem,
+      #000 calc(100% - 0.75rem),
+      transparent
+    );
+  }
+
+  .affisell-offer-mode-card {
+    backdrop-filter: blur(8px) saturate(125%);
+    -webkit-backdrop-filter: blur(8px) saturate(125%);
+    box-shadow:
+      inset 1px 1px 0 rgb(255 255 255 / 0.88),
+      0 6px 18px color-mix(in srgb, var(--brand) 9%, transparent);
+  }
+
+  .affisell-offer-mode-card[data-active="true"]::after {
+    animation: none;
+  }
+}
+
 .affisell-offer-mode-card {
   isolation: isolate;
   border: 1px solid color-mix(in srgb, var(--brand-light) 38%, white 62%);

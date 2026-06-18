@@ -5,7 +5,7 @@ import { useEffect, useMemo } from "react"
 import Link from "next/link"
 import { Search, X } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import useSWR from "swr"
 
 import { ProductCard, type ProductCardDisplayMode } from "@/components/ProductCard"
@@ -28,6 +28,9 @@ import { MarketplaceDepartmentRail } from "@/components/marketplace/MarketplaceD
 import { CategoryTreeExplorer } from "@/components/marketplace/CategoryTreeExplorer"
 import { MarketplaceSearchBox } from "@/components/marketplace/MarketplaceSearchBox"
 import { MARKETPLACE_QUERY_RESERVED } from "@/lib/marketplace-query-params"
+import { MARKETPLACE_OFFER_FACET_KEY } from "@/lib/marketplace-discovery-facets-shared"
+import { offerModeFilterLabel, parseOfferFacetValue } from "@/lib/product-offer-mode"
+import type { AppLocale } from "@/lib/i18n-locale"
 import { marketplaceCatalogHref } from "@/lib/marketplace-catalog-url"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { affisellBrand } from "@/lib/affisell-brand"
@@ -102,6 +105,7 @@ export function MarketplaceView({
   initialBrowse,
 }: MarketplaceViewProps = {}) {
   const t = useTranslations("marketplace.browse")
+  const locale = useLocale()
   const router = useRouter()
   const searchParams = useSearchParams()
   const categoryFallback = initialBrowse
@@ -202,6 +206,9 @@ export function MarketplaceView({
     router.push(basePath === "/" ? `${path}#explorer` : path)
   }
 
+  const offerFilter = searchParams.get(MARKETPLACE_OFFER_FACET_KEY)
+  const priceFilter = searchParams.get("price")
+
   const hasFilters = Boolean(
     categoryId ||
       subcategoryId ||
@@ -210,7 +217,9 @@ export function MarketplaceView({
       searchParams.get("shipsFrom") ||
       searchParams.get("shipsTo") ||
       searchParams.get("delivery") ||
-      searchParams.get("freeShipping")
+      searchParams.get("freeShipping") ||
+      offerFilter ||
+      priceFilter
   )
 
   const scopeNodeId = subcategoryId ?? categoryId
@@ -244,6 +253,11 @@ export function MarketplaceView({
   }, [categoriesPayload?.categories, categoryId, subcategoryId, scopeNodeId, breadcrumbData?.path])
 
   const activeFilterLabel = useMemo(() => {
+    if (offerFilter) {
+      const mode = parseOfferFacetValue(offerFilter)
+      const badge = mode ? offerModeFilterLabel(mode, locale as AppLocale) : null
+      if (badge) return badge.shortLabel
+    }
     if (activeScope.kind === "path") {
       const leaf = activeScope.path[activeScope.path.length - 1]
       return leaf?.fullPath ?? leaf?.name ?? t("activeFilterCatalog")
@@ -261,7 +275,7 @@ export function MarketplaceView({
       return t("activeFilterCategory", { name: activeScope.nodeId })
     }
     return t("activeFilterCatalog")
-  }, [activeScope, t])
+  }, [activeScope, offerFilter, locale, t])
 
   function clearFilters() {
     skipGraduatedShipsToAutoFilter()
@@ -443,7 +457,11 @@ export function MarketplaceView({
                 <div className="mb-4">
                   <MarketplaceShipsToChip basePath={basePath} />
                 </div>
-                <OfferModeQuickRail basePath={basePath} className="mb-4" />
+                <OfferModeQuickRail
+                  basePath={basePath}
+                  className="mb-4"
+                  initialCounts={initialBrowse?.offerRailCounts}
+                />
               </>
             ) : null}
             <MarketplaceAffisellPulse audience={isCustomerBrowse ? "buyer" : "default"} />
@@ -495,7 +513,11 @@ export function MarketplaceView({
                 <div className="mb-3 sm:mb-4">
                   <MarketplaceShipsToChip basePath={basePath} />
                 </div>
-                <OfferModeQuickRail basePath={basePath} className="mb-3 sm:mb-4" />
+                <OfferModeQuickRail
+                  basePath={basePath}
+                  className="mb-3 sm:mb-4"
+                  initialCounts={initialBrowse?.offerRailCounts}
+                />
               </>
             ) : null}
             {mobileCatalogShell ? (
@@ -551,7 +573,7 @@ export function MarketplaceView({
               </div>
             ) : null}
             {loading ? (
-              <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+              <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <li key={i} className="animate-pulse">
                     <div className="aspect-square rounded-3xl border border-zinc-100 bg-zinc-100/80 dark:border-zinc-800 dark:bg-zinc-800/50" />
@@ -605,6 +627,8 @@ export function MarketplaceView({
                   </>
                 ) : hasFilters &&
                   (attributeFilterKeys.length > 0 ||
+                    offerFilter ||
+                    priceFilter ||
                     shipsToFilter ||
                     shipsFromFilter ||
                     searchParams.get("delivery") ||
@@ -663,7 +687,7 @@ export function MarketplaceView({
             {products.length > 0 ? (
               <ul
                 className={cn(
-                  "grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4",
+                  "grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 md:gap-5 lg:grid-cols-4",
                   refreshing && "opacity-75 transition-opacity duration-150"
                 )}
               >
