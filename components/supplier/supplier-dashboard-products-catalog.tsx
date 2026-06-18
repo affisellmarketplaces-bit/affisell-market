@@ -22,6 +22,10 @@ import { buttonVariants } from "@/components/ui/button"
 import { affisellBrand } from "@/lib/affisell-brand"
 import { formatStoreCurrency, formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { primaryProductImage } from "@/lib/product-images"
+import {
+  resolveSupplierListingCompareAtEur,
+  supplierListingDiscountPct,
+} from "@/lib/supplier-catalog-price"
 import { cn } from "@/lib/utils"
 import type { SupplierDashboardCatalogProduct } from "@/lib/supplier-product-is-draft-fallback"
 
@@ -202,11 +206,14 @@ export function SupplierDashboardProductsCatalog({
           {products.map((p) => {
             const partnersListed = partnerListingCountByProductId[p.id] ?? 0
             const img = primaryProductImage(p.images) || "/placeholder-product.jpg"
-            const compareNum = p.compareAt != null ? Number(p.compareAt) : null
+            const compareNum = resolveSupplierListingCompareAtEur({
+              basePriceCents: p.basePriceCents,
+              compareAt: p.compareAt,
+              variants: p.variants,
+            })
             const baseNum = p.basePriceCents / 100
-            const hasDeal = compareNum != null && Number.isFinite(compareNum) && compareNum > baseNum
-            const discountPct =
-              hasDeal && compareNum !== null ? Math.round(((compareNum - baseNum) / compareNum) * 100) : 0
+            const hasDeal = compareNum != null && compareNum > baseNum
+            const discountPct = supplierListingDiscountPct(p.basePriceCents, compareNum)
             const kindKey = String(p.listingKind ?? "").toUpperCase()
             const kindShort = LISTING_LABEL[kindKey] ?? kindKey.replace(/_/g, " ").toLowerCase()
             const status = statusMeta(p)

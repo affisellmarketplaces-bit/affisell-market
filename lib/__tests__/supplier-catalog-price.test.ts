@@ -3,6 +3,9 @@ import { describe, expect, it } from "vitest"
 import {
   effectiveSupplierCatalogPriceEur,
   minSupplierPriceEurFromSkuRows,
+  resolveSupplierListingCompareAtEur,
+  resolveSupplierProductCompareAtEur,
+  supplierListingDiscountPct,
   usesVariantSkuPricing,
 } from "@/lib/supplier-catalog-price"
 import type { SupplierSkuTableRow } from "@/lib/supplier-sku-builder"
@@ -46,5 +49,43 @@ describe("supplier-catalog-price", () => {
         skuRows: rows,
       })
     ).toBe(10.99)
+  })
+
+  it("resolves compare-at from SKU variant mirror when product field is empty", () => {
+    const compare = resolveSupplierListingCompareAtEur({
+      basePriceCents: 19780,
+      compareAt: null,
+      variants: {
+        variantRows: [
+          {
+            id: "v1",
+            name: "Noir",
+            sku: "SKU-1",
+            priceCents: 19780,
+            stock: 10,
+            commission: 20,
+            sales: 0,
+            compareAtCents: 29990,
+          },
+        ],
+      },
+    })
+    expect(compare).toBe(299.9)
+    expect(supplierListingDiscountPct(19780, compare)).toBe(34)
+  })
+
+  it("syncs product compare-at from filled SKU rows on save", () => {
+    const rows = [
+      row({ color: "M365", supplierPrice: 197.8, compareAtEur: 299.9 }),
+      row({ id: "r2", color: "ES80", supplierPrice: 273.71, compareAtEur: 349.9 }),
+    ]
+    expect(
+      resolveSupplierProductCompareAtEur({
+        variantFormMode: "advanced",
+        priceFieldCompareAt: "",
+        skuRows: rows,
+        basePriceCents: 19780,
+      })
+    ).toBe(299.9)
   })
 })

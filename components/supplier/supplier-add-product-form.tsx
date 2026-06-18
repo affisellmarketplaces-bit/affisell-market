@@ -134,6 +134,7 @@ import { newVariantRowId, parseVariantsPayload, type ProductVariantLine } from "
 import {
   effectiveSupplierCatalogPriceEur,
   minSupplierPriceEurFromSkuRows,
+  resolveSupplierProductCompareAtEur,
   usesVariantSkuPricing,
 } from "@/lib/supplier-catalog-price"
 import { registerMerchantDraftFlush } from "@/lib/merchant-draft-flush"
@@ -1276,11 +1277,19 @@ export function SupplierAddProductForm({
         stockOut = sumSkuTableStock(advancedSkuRows.filter((r) => r.color.trim()))
       }
 
+      const basePriceCentsForCompare = Math.max(100, Math.round(priceN * 100))
+      const compareAtResolved = resolveSupplierProductCompareAtEur({
+        variantFormMode,
+        priceFieldCompareAt: compareAt,
+        skuRows: advancedSkuRows,
+        basePriceCents: basePriceCentsForCompare,
+      })
+
       return {
         name: name.trim(),
         description: description.trim(),
         price: priceN,
-        compareAt: compareAt.trim() ? Number(compareAt) : null,
+        compareAt: compareAtResolved,
         stock: stockOut,
         commission: (() => {
           if (variantFormMode === "advanced") {
