@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   }
 
   const countryRaw = req.nextUrl.searchParams.get("countryIso2")?.trim()
-  const countryIso2 = countryRaw ? normalizeVisitorCountryIso2(countryRaw) : undefined
+  const countryIso2 = countryRaw ? normalizeVisitorCountryIso2(countryRaw) ?? undefined : undefined
   if (countryRaw && !countryIso2) {
     return NextResponse.json({ error: "invalid_country" }, { status: 400 })
   }

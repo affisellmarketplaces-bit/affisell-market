@@ -46,7 +46,7 @@ export async function loadExpansionGraduationPreviewOrder(args: {
       status: true,
       createdAt: true,
       shippingAddress: true,
-      product: { select: { title: true } },
+      product: { select: { name: true } },
     },
   })
 
@@ -58,7 +58,7 @@ export async function loadExpansionGraduationPreviewOrder(args: {
   return {
     orderId: order.id,
     buyerEmail: order.customerEmail,
-    productTitle: order.product?.title ?? null,
+    productTitle: order.product?.name ?? null,
     orderStatus: order.status,
     orderedAt: order.createdAt.toISOString(),
   }

@@ -28,7 +28,7 @@ export async function runReleaseBookingHoldsCron(limit = 80): Promise<ReleaseBoo
   })
 
   let released = 0
-  let cancelled = 0
+  const cancelled = 0
 
   for (const row of stale) {
     try {

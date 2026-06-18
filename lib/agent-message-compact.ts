@@ -33,6 +33,6 @@ export function compactAgentMessagesForModel(messages: UIMessage[]): UIMessage[]
       return part
     })
 
-    return { ...m, parts }
+    return { ...m, parts } as UIMessage
   })
 }

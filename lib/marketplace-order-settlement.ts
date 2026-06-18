@@ -99,7 +99,7 @@ export function computeMarketplaceOrderSettlement(
 
   const marginCents = Math.max(0, sellingPriceCents - supplierPriceCents)
 
-  let affiliateMarginRetainedCents =
+  const affiliateMarginRetainedCents =
     input.affiliateMarginCents != null
       ? Math.max(0, Math.round(input.affiliateMarginCents))
       : Math.max(

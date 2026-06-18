@@ -169,9 +169,9 @@ export async function suggestListingCategories(
   const catalogLeaves = leafPathsForAiCatalog(leafPaths, ctx)
   const aiBreadcrumbs = catalogLeaves.map((lp) => lp.breadcrumb)
 
-  let aiPicks: LeafPath[] = []
-  let aiConfidences = new Map<string, number>()
-  let aiReasons = new Map<string, string>()
+  const aiPicks: LeafPath[] = []
+  const aiConfidences = new Map<string, number>()
+  const aiReasons = new Map<string, string>()
   let suggestedProductName: string | null = null
 
   if (process.env.GROQ_API_KEY?.trim()) {

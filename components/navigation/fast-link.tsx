@@ -9,13 +9,18 @@ import { cn } from "@/lib/utils"
 type NextLinkProps = ComponentProps<typeof NextLink>
 type LocaleLinkProps = ComponentProps<typeof LocaleLink>
 
-type Props = (NextLinkProps | LocaleLinkProps) & {
+type SharedProps = {
   prefetchOnHover?: boolean
-  /** Use next-intl Link (e.g. `/creators` → `/fr/creators`). */
-  localeAware?: boolean
+  className?: string
+  children?: React.ReactNode
+  prefetch?: boolean
 }
 
-function hrefString(href: Props["href"]): string {
+type Props =
+  | (SharedProps & NextLinkProps & { localeAware?: false })
+  | (SharedProps & LocaleLinkProps & { localeAware: true })
+
+function hrefString(href: string | LocaleLinkProps["href"] | NextLinkProps["href"]): string {
   if (typeof href === "string") return href
   if (href && typeof href === "object" && "pathname" in href && href.pathname) {
     return href.pathname
@@ -24,27 +29,27 @@ function hrefString(href: Props["href"]): string {
 }
 
 /** Link with hover/touch prefetch + instant press feedback. */
-export function FastLink({
-  href,
-  prefetchOnHover = true,
-  localeAware = false,
-  className,
-  children,
-  prefetch,
-  ...rest
-}: Props) {
+export function FastLink(props: Props) {
+  const {
+    prefetchOnHover = true,
+    className,
+    children,
+    prefetch,
+    href,
+    ...rest
+  } = props
+  const localeAware = props.localeAware === true
   const localeRouter = useLocaleRouter()
   const target = hrefString(href)
 
   const warm = useCallback(() => {
     if (!prefetchOnHover || target.startsWith("/#")) return
     try {
-      if (localeAware) localeRouter.prefetch(href as LocaleLinkProps["href"])
-      else localeRouter.prefetch(target)
+      localeRouter.prefetch(target)
     } catch {
       /* ignore */
     }
-  }, [localeAware, localeRouter, href, target, prefetchOnHover])
+  }, [localeRouter, target, prefetchOnHover])
 
   const shared = {
     prefetch: prefetch ?? true,
@@ -52,19 +57,20 @@ export function FastLink({
     onFocus: warm,
     onTouchStart: warm,
     className: cn("affisell-fast-link", className),
-    ...rest,
   }
 
   if (localeAware) {
+    const localeRest = rest as Omit<LocaleLinkProps, "href" | "children">
     return (
-      <LocaleLink href={href as LocaleLinkProps["href"]} {...shared}>
+      <LocaleLink href={href} {...shared} {...localeRest}>
         {children}
       </LocaleLink>
     )
   }
 
+  const nextRest = rest as Omit<NextLinkProps, "href" | "children">
   return (
-    <NextLink href={href as NextLinkProps["href"]} {...shared}>
+    <NextLink href={href} {...shared} {...nextRest}>
       {children}
     </NextLink>
   )

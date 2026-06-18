@@ -77,7 +77,6 @@ export async function notifyCheckoutCountryGraduatedBuyers(
     prisma.order.findMany({
       where: {
         status: { in: [...PAID_STATUSES] },
-        customerEmail: { not: null },
       },
       orderBy: { createdAt: "desc" },
       take: 800,

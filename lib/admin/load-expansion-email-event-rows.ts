@@ -19,9 +19,9 @@ export async function loadExpansionEmailEventRows(
   now = new Date()
 ): Promise<ExpansionEmailEventRow[]> {
   const [delivered, bounces, complaints] = await Promise.all([
-    loadExpansionDeliveredRows(countryIso2, now),
-    loadExpansionBounceRows(countryIso2, now),
-    loadExpansionComplaintRows(countryIso2, now),
+    loadExpansionDeliveredRows(countryIso2, undefined, now),
+    loadExpansionBounceRows(countryIso2, undefined, now),
+    loadExpansionComplaintRows(countryIso2, undefined, now),
   ])
 
   const rows: ExpansionEmailEventRow[] = [

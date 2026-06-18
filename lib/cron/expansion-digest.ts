@@ -14,6 +14,7 @@ import {
 import {
   followupComplaintDigestBadge,
   shouldShowFollowupComplaintAlertDigestRow,
+  shouldShowFollowupDeliveredDigestRow,
 } from "@/lib/expansion/expansion-digest-followup-complaint-badge"
 import {
   followupPausedDigestBadge,

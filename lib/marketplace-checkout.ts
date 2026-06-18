@@ -49,6 +49,13 @@ import {
 import { resolveRequestLocale } from "@/lib/resolve-request-locale"
 import { resolveAppLocale } from "@/lib/i18n-locale"
 import { getStripeClient } from "@/lib/stripe"
+import type Stripe from "stripe"
+
+type StripeCheckoutAllowedCountries = NonNullable<
+  NonNullable<
+    Parameters<InstanceType<typeof Stripe>["checkout"]["sessions"]["create"]>[0]
+  >["shipping_address_collection"]
+>["allowed_countries"]
 
 function checkoutBaseUrls(body: { cancelPath?: string; successPath?: string }) {
   const baseUrl = (
@@ -318,7 +325,7 @@ async function checkoutFromItems(
     customer_creation: "always",
     billing_address_collection: "required",
     shipping_address_collection: {
-      allowed_countries: allowedCountries,
+      allowed_countries: allowedCountries as StripeCheckoutAllowedCountries,
     },
     phone_number_collection: { enabled: true },
     payment_intent_data: {
@@ -569,7 +576,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
     customer_creation: "always",
     billing_address_collection: "required",
     shipping_address_collection: {
-      allowed_countries: allowedCountries,
+      allowed_countries: allowedCountries as StripeCheckoutAllowedCountries,
     },
     phone_number_collection: { enabled: true },
     payment_intent_data: {

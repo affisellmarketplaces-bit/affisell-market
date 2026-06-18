@@ -15,6 +15,8 @@ const badgeVariants = cva(
         live: "border-transparent bg-[#10B981]/15 text-emerald-900 dark:bg-emerald-500/20 dark:text-emerald-100",
         /** Primary brand chip. */
         accent: "border-transparent bg-[#7C3AED]/12 text-[#5b21b6] dark:bg-[#7C3AED]/25 dark:text-violet-100",
+        destructive:
+          "border-transparent bg-destructive/15 text-destructive dark:bg-destructive/25 dark:text-red-200",
       },
     },
     defaultVariants: {

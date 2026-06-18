@@ -35,7 +35,7 @@ export function storeSubdomainPublicUrl(slug: string): string {
   return base.origin
 }
 
-function useSubdomainAsPrimaryClickable(): boolean {
+function shouldUseSubdomainAsPrimaryClickable(): boolean {
   if (!isStoreSubdomainEnabled()) return false
   return true
 }
@@ -50,7 +50,7 @@ export function resolveStorePublicUrls(input: StorePublicUrlInput): StorePublicU
 
   const primaryUrl =
     customDomainUrl ??
-    (useSubdomainAsPrimaryClickable() ? subdomainUrl : platformPathUrl)
+    (shouldUseSubdomainAsPrimaryClickable() ? subdomainUrl : platformPathUrl)
 
   return {
     primaryUrl,

@@ -4,6 +4,7 @@ import { Globe2, MapPin, Truck } from "lucide-react"
 import { isUsMarket } from "@/lib/market-config"
 import { useLocale, useTranslations } from "next-intl"
 
+import type { AppLocale } from "@/lib/i18n-locale"
 import type { ListingLogisticsInput } from "@/lib/listing-logistics-display"
 import {
   deliveryRangeLabel,
@@ -23,7 +24,11 @@ export function ListingLogisticsStrip({ logistics, className, compact = false }:
   const t = useTranslations("Product.logistics")
   const shipsFrom = listingShipsFromLabel(logistics)
   const zone = warehouseZoneKey(logistics.warehouseType)
-  const delivery = deliveryRangeLabel(logistics.deliveryMin, logistics.deliveryMax, locale)
+  const delivery = deliveryRangeLabel(
+    logistics.deliveryMin,
+    logistics.deliveryMax,
+    locale as AppLocale
+  )
 
   const zoneLabel = zone
     ? t(zone === "regional" && isUsMarket() ? "zone.regionalUs" : `zone.${zone}`)

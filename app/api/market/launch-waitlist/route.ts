@@ -65,7 +65,7 @@ export async function POST(req: Request) {
     marketRegion: MARKET_REGION,
     locale,
   })
-  if (validation) {
+  if (validation && validation.ok === false) {
     logBusiness("launch-waitlist", {
       country: countryIso2,
       marketRegion: MARKET_REGION,

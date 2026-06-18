@@ -8,7 +8,7 @@ export type WishlistCardStatus = {
 
 type Listener = (status: WishlistCardStatus) => void
 
-let pendingIds = new Set<string>()
+const pendingIds = new Set<string>()
 const listeners = new Map<string, Set<Listener>>()
 let inflight: Promise<void> | null = null
 

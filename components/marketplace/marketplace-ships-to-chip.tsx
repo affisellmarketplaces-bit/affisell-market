@@ -32,7 +32,7 @@ export function MarketplaceShipsToChip({ className, basePath = "/marketplace" }:
     const next = new URLSearchParams(searchParams.toString())
     if (active) {
       next.delete("shipsTo")
-    } else {
+    } else if (country) {
       next.set("shipsTo", country.toLowerCase())
     }
     navigateMarketplaceCatalog(router, catalogFilterHrefFromParams(basePath, next))
