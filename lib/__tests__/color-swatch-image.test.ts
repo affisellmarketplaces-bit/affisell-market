@@ -8,8 +8,13 @@ describe("trimColorSwatchImageForStore", () => {
     expect(trimColorSwatchImageForStore(data)).toBe(data)
   })
 
-  it("caps https URLs at 2000", () => {
-    const url = `https://cdn.example/${"x".repeat(3000)}.jpg`
-    expect(trimColorSwatchImageForStore(url).length).toBe(2000)
+  it("caps https URLs at 8192", () => {
+    const url = `https://cdn.example/${"x".repeat(9000)}.jpg`
+    expect(trimColorSwatchImageForStore(url).length).toBe(8192)
+  })
+
+  it("does not cap https URLs under 8192 chars", () => {
+    const url = `https://cdn.example/${"x".repeat(2500)}.jpg`
+    expect(trimColorSwatchImageForStore(url)).toBe(url)
   })
 })

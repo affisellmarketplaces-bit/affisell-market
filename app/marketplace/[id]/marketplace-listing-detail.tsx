@@ -77,6 +77,7 @@ import {
   vimeoEmbedSrc,
   youtubeEmbedSrc,
 } from "@/lib/product-description-video-embed"
+import { resolveUsableProductImageUrl } from "@/lib/product-image-url"
 import {
   colorForImageIndex,
   galleryIndexForImageUrl,
@@ -624,10 +625,9 @@ export function MarketplaceListingDetail({
 
   const hero = useMemo(() => {
     if (galleryHeroLock) {
-      return images[safeImageIndex]?.trim() || "/placeholder.png"
+      return resolveUsableProductImageUrl(images[safeImageIndex], images)
     }
-    if (colorHeroUrl.trim()) return colorHeroUrl
-    return images[safeImageIndex]?.trim() || "/placeholder.png"
+    return colorHeroUrl
   }, [galleryHeroLock, colorHeroUrl, images, safeImageIndex])
 
   const activeThumbIndex = useMemo(() => {

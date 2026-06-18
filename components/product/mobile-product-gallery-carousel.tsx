@@ -6,14 +6,23 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { useTranslations } from "next-intl"
 
 import { ProductVideoWishlistOverlay } from "@/components/product/product-video-wishlist-overlay"
+import { isUsableProductImageUrl } from "@/lib/product-image-url"
 import { cn } from "@/lib/utils"
 
 const PLACEHOLDER = "/placeholder-product.jpg"
+
+function comparableSlideUrl(url: string): string {
+  const t = url.trim()
+  if (t.startsWith("data:")) return t.toLowerCase()
+  return t.split("?")[0]?.toLowerCase() ?? ""
+}
 
 export type MobileProductGalleryCarouselProps = {
   images: string[]
   activeIndex: number
   onSelectIndex: (index: number) => void
+  /** When set, overrides the active slide image (e.g. per-color hero not at gallery index). */
+  heroSrc?: string
   videoUrl?: string | null
   productId?: string
   alt: string
@@ -32,6 +41,7 @@ export function MobileProductGalleryCarousel({
   images,
   activeIndex,
   onSelectIndex,
+  heroSrc,
   videoUrl,
   productId,
   alt,
@@ -171,7 +181,14 @@ export function MobileProductGalleryCarousel({
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={slide.url}
+                    src={
+                      i === scrollIndex &&
+                      heroSrc?.trim() &&
+                      isUsableProductImageUrl(heroSrc) &&
+                      comparableSlideUrl(heroSrc) !== comparableSlideUrl(slide.url)
+                        ? heroSrc
+                        : slide.url
+                    }
                     alt={alt}
                     className="h-full w-full touch-pan-y object-contain p-2"
                     loading={i === 0 ? "eager" : "lazy"}

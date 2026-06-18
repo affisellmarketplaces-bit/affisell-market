@@ -206,6 +206,7 @@ export function ProductMediaGallery({
           <div className="lg:hidden">
             <MobileProductGalleryCarousel
               images={safeImages}
+              heroSrc={heroSrc}
               activeIndex={mediaMode === "video" ? -1 : activeThumbIndex}
               onSelectIndex={selectImage}
               videoUrl={hasVideo ? videoUrl : null}

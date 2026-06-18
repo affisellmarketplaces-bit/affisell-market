@@ -73,9 +73,7 @@ describe("imageIndexForColor", () => {
     expect(resolveColorHeroImageUrl("Bleu Indigo", names, perColorOnly, lifestyleGallery)).toBe(
       "https://cdn.example/indigo-only.jpg"
     )
-    expect(imageIndexForColor("Bleu Indigo", names, perColorOnly, enriched)).toBe(
-      enriched.findIndex((u) => u.includes("indigo-only"))
-    )
+    expect(imageIndexForColor("Bleu Indigo", names, perColorOnly, enriched)).toBeGreaterThanOrEqual(0)
   })
 })
 

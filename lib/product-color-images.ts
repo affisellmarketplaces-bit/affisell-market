@@ -1,4 +1,5 @@
 import { trimColorSwatchImageForStore } from "@/lib/color-swatch-store"
+import { isUsableProductImageUrl, resolveUsableProductImageUrl } from "@/lib/product-image-url"
 import { resolveColorSwatchMeta } from "@/lib/color-name-hex"
 import { variantColorsMatch } from "@/lib/fulfillment/variant-color-match"
 import { parseVariantsPayload } from "@/lib/product-variants"
@@ -176,6 +177,11 @@ function positionalGalleryIndexForColor(
   return fallback
 }
 
+function usableColorImage(url: string | undefined): string {
+  const t = url?.trim() ?? ""
+  return t && isUsableProductImageUrl(t) ? t : ""
+}
+
 /** Pick gallery index for a color — prefers the supplier's per-color image URL when set. */
 export function imageIndexForColor(
   color: string | null,
@@ -187,7 +193,7 @@ export function imageIndexForColor(
   if (!color) return 0
 
   const row = findColorImageRowForName(colorImages, color)
-  const direct = row?.image?.trim()
+  const direct = usableColorImage(row?.image)
 
   if (direct) {
     const urlIdx = urlIndexInGallery(direct, images)
@@ -205,7 +211,6 @@ export function imageIndexForColor(
 
       return urlIdx
     }
-    return 0
   }
 
   const colorIdx = colorNameIndex(colorNames, color)
@@ -221,12 +226,19 @@ export function resolveColorHeroImageUrl(
   colorImages: ProductColorImageRow[],
   images: string[]
 ): string {
-  if (!color) return images[0]?.trim() ?? ""
+  if (!color) {
+    return resolveUsableProductImageUrl(images[0], images)
+  }
+
   const row = findColorImageRowForName(colorImages, color)
-  const direct = row?.image?.trim()
-  if (direct) return direct
+  const direct = row?.image?.trim() ?? ""
   const idx = imageIndexForColor(color, colorNames, colorImages, images)
-  return images[idx]?.trim() ?? images[0]?.trim() ?? ""
+
+  return resolveUsableProductImageUrl(direct, [
+    images[idx],
+    ...colorNames.map((name) => findColorImageRowForName(colorImages, name)?.image),
+    ...images,
+  ])
 }
 
 /** Append variant color hero URLs missing from the main gallery (PDP sync on swatch click). */
@@ -240,7 +252,7 @@ export function enrichGalleryWithColorHeroImages(
   const seen = new Set(out.map(comparableImageUrl))
   for (const colorName of colorNames) {
     const row = findColorImageRowForName(colorImages, colorName)
-    const img = row?.image?.trim()
+    const img = usableColorImage(row?.image)
     if (!img) continue
     const key = comparableImageUrl(img)
     if (!key || seen.has(key)) continue
@@ -287,7 +299,7 @@ export function mergeColorImagesForProduct(
   return colors.map((color) => {
     const rowP = parsed ? findColorImageRowForName(parsed, color) : undefined
     const rowL = legacy.find((r) => r.color === color)
-    const image = (rowP?.image?.trim() || rowL?.image?.trim() || "")
+    const image = usableColorImage(rowP?.image?.trim() || rowL?.image?.trim() || "")
     return {
       color,
       hex: resolveColorSwatchMeta(color, rowP?.hex || rowL?.hex).hex,
