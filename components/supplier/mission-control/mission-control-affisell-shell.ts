@@ -132,6 +132,22 @@ export const missionControlPrimaryCta = cn(
   "dark:hover:border-supplier-light/25 dark:hover:bg-supplier-muted/25 dark:hover:text-supplier-light"
 )
 
+/** Bande / pill « Nouveau produit » — gradient violet Affisell */
+export const missionControlVioletCta = cn(
+  "inline-flex items-center justify-center gap-2 font-semibold text-white",
+  "bg-gradient-to-r from-violet-600 via-indigo-600 to-violet-700",
+  "shadow-lg shadow-violet-600/25 transition",
+  "hover:from-violet-500 hover:via-indigo-500 hover:to-violet-600",
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2"
+)
+
+export const missionControlVioletBandCta = cn(
+  missionControlVioletCta,
+  "w-full rounded-2xl px-4 py-3 text-sm sm:w-auto sm:rounded-full sm:px-5 sm:py-2.5"
+)
+
+export const missionControlVioletCtaSm = cn(missionControlVioletCta, "rounded-full px-4 py-2 text-sm")
+
 /** Tier 3 : accent sémantique Orbital */
 export const missionControlSemanticOrbital = "text-sky-700/90 dark:text-sky-300/90"
 

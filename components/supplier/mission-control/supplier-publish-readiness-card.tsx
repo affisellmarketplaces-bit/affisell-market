@@ -7,6 +7,7 @@ import {
   missionControlAffisellSubtext,
   missionControlHeading,
   missionControlPanel,
+  missionControlVioletCtaSm,
 } from "@/components/supplier/mission-control/mission-control-affisell-shell"
 import { buttonVariants } from "@/components/ui/button"
 import type { SupplierPublishReadiness } from "@/lib/supplier-publish-readiness"
@@ -91,7 +92,7 @@ export async function SupplierPublishReadinessCard({ readiness }: Props) {
             {t("ctaPublishDrafts")}
           </Link>
         ) : (
-          <Link href="/dashboard/supplier/products/new" className={cn(buttonVariants({ size: "sm", variant: "outline" }))}>
+          <Link href="/dashboard/supplier/products/new" className={missionControlVioletCtaSm}>
             {t("ctaNewProduct")}
           </Link>
         )}

@@ -10,9 +10,8 @@ import {
   missionControlHeaderRail,
   missionControlHeaderSurface,
   missionControlHeading,
-  missionControlPrimaryCta,
+  missionControlVioletBandCta,
 } from "@/components/supplier/mission-control/mission-control-affisell-shell"
-import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -51,27 +50,12 @@ export async function SupplierMissionControlHeader({
     <header className={cn(missionControlHeaderSurface, "p-4 pl-5")}>
       <div className={missionControlHeaderRail} aria-hidden />
       <div className="relative z-[1] flex flex-col gap-3">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0">
-            <p className={missionControlHeaderEyebrow}>
-              {t("eyebrow")}
-            </p>
-            <h1 className={cn("mt-1.5 text-base leading-snug sm:text-lg", missionControlHeading)}>
-              <span className={cn("font-normal", missionControlAffisellMuted)}>{t("greetingHello")}</span>{" "}
-              <span className={missionControlAccentFocusSupplier}>{storeName}</span>
-            </h1>
-          </div>
-          <Link
-            href="/dashboard/supplier/products/new"
-            className={cn(
-              buttonVariants({ variant: "outline", size: "default" }),
-              "inline-flex w-full shrink-0 items-center justify-center gap-2 sm:w-auto",
-              missionControlPrimaryCta
-            )}
-          >
-            <Plus className="h-4 w-4" aria-hidden />
-            {t("newProduct")}
-          </Link>
+        <div className="min-w-0">
+          <p className={missionControlHeaderEyebrow}>{t("eyebrow")}</p>
+          <h1 className={cn("mt-1.5 text-base leading-snug sm:text-lg", missionControlHeading)}>
+            <span className={cn("font-normal", missionControlAffisellMuted)}>{t("greetingHello")}</span>{" "}
+            <span className={missionControlAccentFocusSupplier}>{storeName}</span>
+          </h1>
         </div>
         <MerchantMyCatalogCue
           href="/dashboard/supplier/products"
@@ -81,6 +65,10 @@ export async function SupplierMissionControlHeader({
           variant="supplier"
           surface="light"
         />
+        <Link href="/dashboard/supplier/products/new" className={missionControlVioletBandCta}>
+          <Plus className="h-4 w-4" aria-hidden />
+          {t("newProduct")}
+        </Link>
       </div>
     </header>
   )
