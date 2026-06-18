@@ -388,6 +388,7 @@ export function SupplierAddProductForm({
   const [skuCustomColumns, setSkuCustomColumns] = useState<SkuCustomColumnDef[]>([])
   const [skuHiddenColumns, setSkuHiddenColumns] = useState<SkuOptionalColumnKey[]>([])
   const [skuValidationIssues, setSkuValidationIssues] = useState<VariantRowValidationIssue[]>([])
+  const [simpleColorIssues, setSimpleColorIssues] = useState<SimpleColorValidationIssue[]>([])
   const [simpleVariantsOptimizing, setSimpleVariantsOptimizing] = useState(false)
   const [simpleColorRows, setSimpleColorRows] = useState<SupplierSimpleColorRow[]>([])
   const [listingKind, setListingKind] = useState<ListingKind>("PHYSICAL")
