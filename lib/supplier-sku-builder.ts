@@ -392,6 +392,58 @@ export function variantColorSizeKey(color: string, size: string | null | undefin
   return `${color.trim().toLowerCase()}\0${(size ?? "").trim().toLowerCase()}`
 }
 
+export type ListingMirrorIndexes = {
+  byId: Map<string, ProductVariantLine>
+  byColorSize: Map<string, ProductVariantLine>
+}
+
+export function buildListingMirrorIndexes(
+  lines: ProductVariantLine[] | undefined
+): ListingMirrorIndexes {
+  const byId = new Map<string, ProductVariantLine>()
+  const byColorSize = new Map<string, ProductVariantLine>()
+  for (const line of lines ?? []) {
+    byId.set(line.id, line)
+    const { color, size } = splitVariantLineName(line.name)
+    if (color.trim()) {
+      byColorSize.set(variantColorSizeKey(color, size), line)
+    }
+  }
+  return { byId, byColorSize }
+}
+
+export function resolveListingMirrorForSkuRow(
+  row: Pick<SupplierSkuTableRow, "id" | "color" | "size">,
+  indexes: ListingMirrorIndexes
+): ProductVariantLine | undefined {
+  return (
+    indexes.byId.get(row.id) ??
+    indexes.byColorSize.get(variantColorSizeKey(row.color, row.size))
+  )
+}
+
+/** Rehydrate SKU UI rows from `listingVariants.variantRows` (compare-at, image, commission, …). */
+export function mergeSkuTableRowFromListingMirror(
+  row: SupplierSkuTableRow,
+  mirror: ProductVariantLine | undefined
+): SupplierSkuTableRow {
+  if (!mirror) return row
+  const compareAtEur =
+    mirror.compareAtCents != null && mirror.compareAtCents > 0
+      ? mirror.compareAtCents / 100
+      : row.compareAtEur
+  return {
+    ...row,
+    commissionRate:
+      Number(mirror.commission) > 0 ? Math.round(mirror.commission) : row.commissionRate,
+    compareAtEur,
+    colorImage: mirror.image?.trim() || row.colorImage,
+    supplierPrice: mirror.priceCents > 0 ? mirror.priceCents / 100 : row.supplierPrice,
+    stock: mirror.stock >= 0 ? mirror.stock : row.stock,
+    sku: mirror.sku?.trim() || row.sku,
+  }
+}
+
 export function validateSupplierSkuTableRows(
   rows: SupplierSkuTableRow[],
   customColumns: SkuCustomColumnDef[] = []

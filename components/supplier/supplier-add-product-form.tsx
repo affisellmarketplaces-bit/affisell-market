@@ -156,9 +156,12 @@ import {
 } from "@/lib/supplier-variant-row-sync"
 import {
   apiRowsFromSkuTable,
+  buildListingMirrorIndexes,
   colorImageByName,
   generateSkuTableRows,
+  mergeSkuTableRowFromListingMirror,
   productVariantLinesToSkuTableRows,
+  resolveListingMirrorForSkuRow,
   skuTableRowFromApiVariant,
   skuTableRowsToProductVariantLines,
   sumSkuTableStock,
@@ -1023,17 +1026,12 @@ export function SupplierAddProductForm({
           parsedListingVariants?.skuCustomColumns
         )
         setVariantFormMode("advanced")
-        const mirrorById = new Map(
-          (parsedListingVariants?.variantRows ?? []).map((line) => [line.id, line])
-        )
+        const mirrorIndexes = buildListingMirrorIndexes(parsedListingVariants?.variantRows)
         setAdvancedSkuRows(
           apiRows.map((row) => {
             const sku = skuTableRowFromApiVariant(row)
-            const mirror = mirrorById.get(row.id)
-            if (mirror && Number(mirror.commission) > 0) {
-              return { ...sku, commissionRate: Math.round(mirror.commission) }
-            }
-            return sku
+            const mirror = resolveListingMirrorForSkuRow(sku, mirrorIndexes)
+            return mergeSkuTableRowFromListingMirror(sku, mirror)
           })
         )
         setSkuCustomColumns(
@@ -1697,6 +1695,18 @@ export function SupplierAddProductForm({
     })
   }, [hasUnsavedChanges, draftSync, draftSyncAt, tWizard])
 
+  const variantLiveSyncLabels = useMemo(
+    () => ({
+      live: tWizard("variantLiveSyncLive"),
+      saving: tWizard("variantLiveSyncSaving"),
+      saved: tWizard("variantLiveSyncSaved"),
+      error: tWizard("variantLiveSyncError"),
+      dirty: tWizard("variantLiveSyncDirty"),
+      flush: tWizard("variantLiveSyncFlush"),
+    }),
+    [tWizard]
+  )
+
   const handleSaveChangesClick = useCallback(() => {
     void syncDraftToServer({ force: true, stepOverride: step })
   }, [syncDraftToServer, step])
@@ -1713,7 +1723,7 @@ export function SupplierAddProductForm({
     return () => window.removeEventListener("keydown", onKeyDown)
   }, [hasUnsavedChanges, listingAutosaveEnabled, step, syncDraftToServer])
 
-  const autosaveDebounceMs = step >= 2 ? 900 : 2200
+  const autosaveDebounceMs = step === 2 ? 500 : step >= 2 ? 900 : 2200
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -3163,6 +3173,14 @@ export function SupplierAddProductForm({
                       disabled={saving}
                       hideHeaderStats
                       optimizeContext={variantOptimizeContext}
+                      liveSync={{
+                        enabled: listingAutosaveEnabled,
+                        status: draftSync,
+                        dirty: hasUnsavedChanges,
+                        savedAt: draftSyncAt,
+                        onFlush: handleSaveChangesClick,
+                        labels: variantLiveSyncLabels,
+                      }}
                     />
                   ) : (
                     <p className="text-xs text-zinc-500 dark:text-zinc-400">

@@ -35,7 +35,8 @@ import {
 } from "@/lib/supplier-sku-builder"
 import type { CustomColumn, VariantCustomData } from "@/types/product"
 import { isSkuColumnVisible, type SkuOptionalColumnKey } from "@/lib/supplier-sku-columns"
-import { cn } from "@/lib/utils"
+import { SupplierVariantLiveSyncBar, type VariantLiveSyncStatus } from "@/components/supplier/supplier-variant-live-sync-bar"
+import { parseSupplierDecimalInput } from "@/lib/supplier-decimal-input"
 import { readJsonResponse } from "@/lib/read-json-response"
 import {
   applyOptimizedSkuRows,
@@ -85,6 +86,27 @@ function newRow(defaults: {
   }
 }
 
+function formatSkuDecimalDisplay(value: number | null | undefined): string {
+  if (value == null || !Number.isFinite(value) || value <= 0) return ""
+  return String(value).replace(".", ",")
+}
+
+type VariantLiveSyncProps = {
+  enabled: boolean
+  status: VariantLiveSyncStatus
+  dirty: boolean
+  savedAt: number | null
+  onFlush: () => void
+  labels: {
+    live: string
+    saving: string
+    saved: string
+    error: string
+    dirty: string
+    flush: string
+  }
+}
+
 type Props = {
   rows: EditableVariantRow[]
   onChange: (rows: EditableVariantRow[]) => void
@@ -105,6 +127,7 @@ type Props = {
   /** Hide stock total + inline error count in header (wizard shows alert below). */
   hideHeaderStats?: boolean
   optimizeContext?: VariantOptimizeContext
+  liveSync?: VariantLiveSyncProps
 }
 
 export function SupplierVariantTable({
@@ -126,6 +149,7 @@ export function SupplierVariantTable({
   tableId = "supplier-sku-table",
   hideHeaderStats = false,
   optimizeContext,
+  liveSync,
 }: Props) {
   const [mode, setMode] = useState<"fast" | "table">(rows.length === 0 ? "fast" : "table")
   const [customColumnModalOpen, setCustomColumnModalOpen] = useState(false)
@@ -437,6 +461,10 @@ export function SupplierVariantTable({
       ? "border-red-500 ring-2 ring-red-500/25 focus-visible:ring-red-500/30"
       : ""
 
+  const flushLiveSync = useCallback(() => {
+    if (liveSync?.enabled && liveSync.dirty) liveSync.onFlush()
+  }, [liveSync])
+
   const colSpan =
     2 +
     (showPhotoCol ? 1 : 0) +
@@ -458,6 +486,16 @@ export function SupplierVariantTable({
 
   return (
     <div className={cn("space-y-4", className)}>
+      {liveSync ? (
+        <SupplierVariantLiveSyncBar
+          enabled={liveSync.enabled}
+          status={liveSync.status}
+          dirty={liveSync.dirty}
+          savedAt={liveSync.savedAt}
+          onFlush={liveSync.onFlush}
+          labels={liveSync.labels}
+        />
+      ) : null}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">SKU Builder</p>
@@ -794,44 +832,42 @@ export function SupplierVariantTable({
                         {showSupplierPriceCol ? (
                           <td className="px-2 py-1.5">
                             <Input
-                              type="number"
-                              min={0.01}
-                              step={0.01}
-                              className={cn("h-9 w-24", rowErrorClass(index, "supplierPrice"))}
-                              value={row.supplierPrice > 0 ? row.supplierPrice : ""}
+                              type="text"
+                              inputMode="decimal"
+                              className={cn("h-9 w-24 tabular-nums", rowErrorClass(index, "supplierPrice"))}
+                              value={formatSkuDecimalDisplay(row.supplierPrice)}
                               disabled={disabled}
-                              onChange={(e) =>
+                              onChange={(e) => {
+                                const parsed = parseSupplierDecimalInput(e.target.value)
                                 updateRow(index, {
-                                  supplierPrice: Number(e.target.value) || 0,
+                                  supplierPrice: parsed != null && parsed > 0 ? parsed : 0,
                                 })
-                              }
+                              }}
+                              onBlur={flushLiveSync}
                             />
                           </td>
                         ) : null}
                         {showCompareAtCol ? (
                           <td className="px-2 py-1.5">
                             <Input
-                              type="number"
-                              min={0.01}
-                              step={0.01}
+                              type="text"
                               inputMode="decimal"
                               aria-label={`Prix barré EUR, variante ${row.color || index + 1}`}
                               className={cn(
                                 "h-9 w-24 bg-background tabular-nums",
                                 rowErrorClass(index, "compareAtEur")
                               )}
-                              value={
-                                row.compareAtEur != null && row.compareAtEur > 0 ? row.compareAtEur : ""
-                              }
+                              value={formatSkuDecimalDisplay(row.compareAtEur)}
                               disabled={disabled}
-                              placeholder="19.90"
-                              title="Prix avant réduction (optionnel), par variante"
+                              placeholder="299,90"
+                              title="Prix avant réduction (optionnel), par variante — virgule ou point"
                               onChange={(e) => {
-                                const raw = e.target.value
+                                const parsed = parseSupplierDecimalInput(e.target.value)
                                 updateRow(index, {
-                                  compareAtEur: raw.trim() === "" ? null : Number(raw) || null,
+                                  compareAtEur: parsed,
                                 })
                               }}
+                              onBlur={flushLiveSync}
                             />
                           </td>
                         ) : null}
