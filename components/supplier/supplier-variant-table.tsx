@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
-import { Copy, Plus, Sparkles, Trash2, X } from "lucide-react"
+import { Copy, Loader2, Plus, Sparkles, Trash2, X } from "lucide-react"
 import { toast } from "sonner"
 
 import {
@@ -36,6 +36,17 @@ import {
 import type { CustomColumn, VariantCustomData } from "@/types/product"
 import { isSkuColumnVisible, type SkuOptionalColumnKey } from "@/lib/supplier-sku-columns"
 import { cn } from "@/lib/utils"
+import {
+  applyOptimizedSkuRows,
+  type OptimizeVariantsResult,
+} from "@/lib/supplier-optimize-variants"
+
+export type VariantOptimizeContext = {
+  title: string
+  description: string
+  categoryPath: string
+  bullets: string[]
+}
 
 export type EditableVariantRow = SupplierSkuTableRow
 
@@ -92,6 +103,7 @@ type Props = {
   tableId?: string
   /** Hide stock total + inline error count in header (wizard shows alert below). */
   hideHeaderStats?: boolean
+  optimizeContext?: VariantOptimizeContext
 }
 
 export function SupplierVariantTable({
@@ -112,9 +124,11 @@ export function SupplierVariantTable({
   className,
   tableId = "supplier-sku-table",
   hideHeaderStats = false,
+  optimizeContext,
 }: Props) {
   const [mode, setMode] = useState<"fast" | "table">(rows.length === 0 ? "fast" : "table")
   const [customColumnModalOpen, setCustomColumnModalOpen] = useState(false)
+  const [optimizing, setOptimizing] = useState(false)
   const costTipId = useId()
   const MAX_CUSTOM_COLUMNS = 10
 
@@ -365,6 +379,50 @@ export function SupplierVariantTable({
     )
   }, [rowsWithFields, onChange, skuPrefix])
 
+  const handleOptimizeVariants = useCallback(async () => {
+    if (!optimizeContext) {
+      toast.error("Ajoutez un titre produit d'abord.")
+      return
+    }
+    if (rowsWithFields.length === 0) {
+      toast.error("Ajoutez au moins une ligne variante.")
+      return
+    }
+
+    setOptimizing(true)
+    try {
+      const res = await fetch("/api/supplier/optimize-variants", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          mode: "advanced",
+          title: optimizeContext.title,
+          description: optimizeContext.description,
+          categoryPath: optimizeContext.categoryPath,
+          bullets: optimizeContext.bullets,
+          skuPrefix,
+          rows: rowsWithFields.map((row, index) => ({
+            index,
+            color: row.color,
+            size: row.size,
+            sku: row.sku,
+          })),
+        }),
+      })
+      const data = (await res.json()) as OptimizeVariantsResult & { error?: string }
+      if (!res.ok) throw new Error(data.error ?? "Optimisation impossible")
+      if (!data.rows?.length) throw new Error("Réponse vide")
+
+      onChange(applyOptimizedSkuRows(rowsWithFields, data.rows, skuPrefix))
+      toast.success("Variantes optimisées")
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Service indisponible")
+    } finally {
+      setOptimizing(false)
+    }
+  }, [onChange, optimizeContext, rowsWithFields, skuPrefix])
+
   const firstErrorRef = useRef<HTMLTableRowElement | null>(null)
 
   useEffect(() => {
@@ -531,6 +589,23 @@ export function SupplierVariantTable({
               Prix vide = {formatStoreCurrency(baseSupplier)} (catalogue affiliés)
             </p>
             <div className="flex flex-wrap gap-2">
+              {optimizeContext ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={disabled || optimizing || rowsWithFields.length === 0}
+                  className="gap-1.5 border-violet-200 text-violet-800 hover:bg-violet-50 dark:border-violet-800 dark:text-violet-200 dark:hover:bg-violet-950/40"
+                  onClick={() => void handleOptimizeVariants()}
+                >
+                  {optimizing ? (
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  ) : (
+                    <Sparkles className="h-4 w-4" aria-hidden />
+                  )}
+                  {optimizing ? "Optimisation…" : "Optimise"}
+                </Button>
+              ) : null}
               {showSkuCol ? (
                 <Button
                   type="button"

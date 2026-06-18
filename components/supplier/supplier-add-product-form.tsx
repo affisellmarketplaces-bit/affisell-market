@@ -74,7 +74,10 @@ import {
   parseProductOfferMode,
   type ProductOfferMode,
 } from "@/lib/product-offer-mode"
-import { suggestFromTitle, titleSuggestionAttributes } from "@/lib/title-parser"
+import {
+  applyOptimizedSimpleColorNames,
+  type OptimizeVariantsResult,
+} from "@/lib/supplier-optimize-variants"
 import type { ListingCategorySuggestion } from "@/lib/supplier-suggest-listing"
 import {
   SupplierCategoryPicker,
@@ -385,7 +388,7 @@ export function SupplierAddProductForm({
   const [skuCustomColumns, setSkuCustomColumns] = useState<SkuCustomColumnDef[]>([])
   const [skuHiddenColumns, setSkuHiddenColumns] = useState<SkuOptionalColumnKey[]>([])
   const [skuValidationIssues, setSkuValidationIssues] = useState<VariantRowValidationIssue[]>([])
-  const [simpleColorIssues, setSimpleColorIssues] = useState<SimpleColorValidationIssue[]>([])
+  const [simpleVariantsOptimizing, setSimpleVariantsOptimizing] = useState(false)
   const [simpleColorRows, setSimpleColorRows] = useState<SupplierSimpleColorRow[]>([])
   const [listingKind, setListingKind] = useState<ListingKind>("PHYSICAL")
   const [digitalAccessUrl, setDigitalAccessUrl] = useState("")
@@ -773,6 +776,16 @@ export function SupplierAddProductForm({
         }))
         .filter((row) => row.value.length > 0),
     [mergedCategoryAttrs, specValues]
+  )
+
+  const variantOptimizeContext = useMemo(
+    () => ({
+      title: name,
+      description,
+      categoryPath: categoryPathLabel,
+      bullets: categoryMatchBullets,
+    }),
+    [categoryMatchBullets, categoryPathLabel, description, name]
   )
 
   const handleAiGenerated = useCallback((result: AiPublishResult) => {
@@ -1883,6 +1896,56 @@ export function SupplierAddProductForm({
     setPublishBlockers((prev) => prev.filter((b) => b.field !== field))
   }, [])
 
+  const handleOptimizeSimpleVariants = useCallback(async () => {
+    if (simpleColorRows.every((row) => !row.name.trim())) {
+      toast.error("Ajoutez au moins une couleur à optimiser.")
+      return
+    }
+    setSimpleVariantsOptimizing(true)
+    try {
+      const res = await fetch("/api/supplier/optimize-variants", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          mode: "simple",
+          title: variantOptimizeContext.title,
+          description: variantOptimizeContext.description,
+          categoryPath: variantOptimizeContext.categoryPath,
+          bullets: variantOptimizeContext.bullets,
+          sizesText: variantSizesText,
+          simpleColors: simpleColorRows.map((row, index) => ({
+            index,
+            name: row.name,
+          })),
+        }),
+      })
+      const data = (await res.json()) as OptimizeVariantsResult & { error?: string }
+      if (!res.ok) throw new Error(data.error ?? "Optimisation impossible")
+      if (!data.simpleColors?.length && !data.sizesText?.trim()) {
+        throw new Error("Réponse vide")
+      }
+
+      if (data.simpleColors?.length) {
+        setSimpleColorRows((prev) => applyOptimizedSimpleColorNames(prev, data.simpleColors!))
+      }
+      if (data.sizesText?.trim()) {
+        setVariantSizesText(data.sizesText.trim())
+      }
+      clearPublishFieldError("variants")
+      toast.success("Variantes optimisées")
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Service indisponible")
+    } finally {
+      setSimpleVariantsOptimizing(false)
+    }
+  }, [
+    clearPublishFieldError,
+    simpleColorRows,
+    variantOptimizeContext,
+    variantSizesText,
+  ])
+
   useEffect(() => {
     if (categoryManualLock || !browse || categorySuggestionsLoading) return
 
@@ -2804,21 +2867,38 @@ export function SupplierAddProductForm({
                               </p>
                             ) : null}
                           </div>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="gap-1 shrink-0"
-                            onClick={() =>
-                              setSimpleColorRows((prev) => [
-                                ...prev,
-                                { id: newVariantRowId(), name: "", image: "" },
-                              ])
-                            }
-                          >
-                            <Plus className="h-4 w-4" aria-hidden />
-                            Ajouter une couleur
-                          </Button>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              disabled={saving || simpleVariantsOptimizing}
+                              className="gap-1.5 border-violet-200 text-violet-800 hover:bg-violet-50 dark:border-violet-800 dark:text-violet-200 dark:hover:bg-violet-950/40"
+                              onClick={() => void handleOptimizeSimpleVariants()}
+                            >
+                              {simpleVariantsOptimizing ? (
+                                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                              ) : (
+                                <Sparkles className="h-4 w-4" aria-hidden />
+                              )}
+                              {simpleVariantsOptimizing ? "Optimisation…" : "Optimise"}
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="gap-1 shrink-0"
+                              onClick={() =>
+                                setSimpleColorRows((prev) => [
+                                  ...prev,
+                                  { id: newVariantRowId(), name: "", image: "" },
+                                ])
+                              }
+                            >
+                              <Plus className="h-4 w-4" aria-hidden />
+                              Ajouter une couleur
+                            </Button>
+                          </div>
                         </div>
                         <div className="mt-3 space-y-3">
                           {simpleColorRows.map((row, i) => {
@@ -2910,6 +2990,7 @@ export function SupplierAddProductForm({
                       }
                       disabled={saving}
                       hideHeaderStats
+                      optimizeContext={variantOptimizeContext}
                     />
                   ) : (
                     <p className="text-xs text-zinc-500 dark:text-zinc-400">
