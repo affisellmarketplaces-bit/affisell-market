@@ -505,7 +505,11 @@ export function AffiliateDashboard({ storeId }: Props) {
       router.push("/dashboard/affiliate/settings/store")
       return
     }
-    window.open(`/shops/${encodeURIComponent(storeSlug)}`, "_blank", "noopener,noreferrer")
+    window.open(
+      `/shops/${encodeURIComponent(storeSlug)}?preview=affiliate`,
+      "_blank",
+      "noopener,noreferrer"
+    )
   }
 
   useEffect(() => {

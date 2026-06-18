@@ -5,13 +5,10 @@ import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
 
 type Props = {
   storeSlug: string
-  isOwner: boolean
 }
 
-/** Shown when the affiliate views their public storefront — clarifies buyer vs business views. */
-export function AffiliateStorePreviewBanner({ storeSlug, isOwner }: Props) {
-  if (!isOwner) return null
-
+/** Shown when the affiliate previews their public storefront (?preview=affiliate). */
+export function AffiliateStorePreviewBanner({ storeSlug }: Props) {
   return (
     <div
       role="status"

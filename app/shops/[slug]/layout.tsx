@@ -1,12 +1,13 @@
 import { headers } from "next/headers"
 
-import { AffiliateStorePreviewBanner } from "@/components/shop/AffiliateStorePreviewBanner"
+import { AffiliateStorePreviewBannerGate } from "@/components/shop/AffiliateStorePreviewBannerGate"
 import { StorefrontBuyerChromeBar } from "@/components/storefront/storefront-buyer-chrome-bar"
 import { StorefrontDedicatedHero } from "@/components/storefront/storefront-dedicated-hero"
 import { StorefrontHostChromeSync } from "@/components/storefront/storefront-host-chrome-sync"
 import { StorefrontTaglineBand } from "@/components/storefront/storefront-tagline-band"
 import { StorefrontThemeStyles } from "@/components/storefront/storefront-theme-styles"
 import { auth } from "@/auth"
+import { isAffiliateStoreOwner } from "@/lib/affiliate-store-preview-access"
 import { loadAffiliateStorefrontTrust } from "@/lib/load-affiliate-storefront-trust"
 import { loadAffiliateShopStore } from "@/lib/shop-storefront-data"
 import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
@@ -31,10 +32,7 @@ export default async function ShopPublicLayout({
     loadAffiliateStorefrontTrust(slug),
     auth(),
   ])
-  const isOwner =
-    Boolean(session?.user?.id && store?.userId) &&
-    session?.user?.role === "AFFILIATE" &&
-    store?.userId === session.user.id
+  const isStoreOwner = isAffiliateStoreOwner(session?.user?.id, store?.userId)
 
   const surfaceClass = storefrontSurfaceClass(store?.theme.surface)
 
@@ -56,7 +54,7 @@ export default async function ShopPublicLayout({
           isCustomDomain={isCustomDomain}
         />
       ) : null}
-      <AffiliateStorePreviewBanner storeSlug={slug} isOwner={isOwner} />
+      <AffiliateStorePreviewBannerGate storeSlug={slug} isStoreOwner={isStoreOwner} />
       {store ? (
         store.theme.layout === "minimal" ? (
           store.description ? (
