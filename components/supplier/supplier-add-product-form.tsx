@@ -93,6 +93,7 @@ import {
   type EditableVariantRow,
 } from "@/components/supplier/supplier-variant-table"
 import { ProductWizard } from "@/components/supplier/ProductWizard"
+import { SupplierWizardSaveFooter } from "@/components/supplier/supplier-wizard-save-footer"
 import { SupplierSimulationCard } from "@/components/supplier/supplier-simulation-card"
 import { SupplierSkuErrorsAlert } from "@/components/supplier/supplier-sku-errors-alert"
 import {
@@ -346,6 +347,7 @@ export function SupplierAddProductForm({
   const cacheMode: SupplierAddProductCacheMode = assistShortcuts ? "assist" : composeQs ? "compose" : "plain"
   const tForm = useTranslations("supplier.form")
   const tQuality = useTranslations("supplier.quality")
+  const tWizard = useTranslations("supplier.wizard")
 
   /** Server draft ids that 404 (deleted or never synced) — never retry PUT on these. */
   const [deadServerDraftIds, setDeadServerDraftIds] = useState<readonly string[]>([])
@@ -362,6 +364,8 @@ export function SupplierAddProductForm({
   const [saving, setSaving] = useState(false)
   const [draftSync, setDraftSync] = useState<"idle" | "saving" | "saved" | "error">("idle")
   const [draftSyncAt, setDraftSyncAt] = useState<number | null>(null)
+  const [savedListingFingerprint, setSavedListingFingerprint] = useState<string | null>(null)
+  const pendingListingBaselineRef = useRef(false)
   const [pendingDraftListingId, setPendingDraftListingId] = useState("")
   const [productIsDraft, setProductIsDraft] = useState(false)
   const autosaveListingId = editId || draftIdFromUrlUsable || pendingDraftListingId
@@ -1153,6 +1157,7 @@ export function SupplierAddProductForm({
         qs.delete("edit")
       })
     } finally {
+      pendingListingBaselineRef.current = true
       setLoadingProduct(false)
     }
   }, [composeQs, deadServerDraftIds, markServerDraftDead, ownerUserId, replaceProductQuery])
@@ -1531,8 +1536,16 @@ export function SupplierAddProductForm({
         )
       )
     }
+    pendingListingBaselineRef.current = true
     toast("Restored your last on-device draft for this workflow.", { duration: 4500 })
   }, [urlListingId, pendingDraftListingId, loadingBrowse, cacheMode, ownerUserId])
+
+  useEffect(() => {
+    if (loadingProduct || loadingBrowse) return
+    if (urlListingId || pendingDraftListingId) return
+    if (pendingListingBaselineRef.current) return
+    pendingListingBaselineRef.current = true
+  }, [loadingProduct, loadingBrowse, urlListingId, pendingDraftListingId])
 
   const canSaveDraft = !editId || productIsDraft
 
@@ -1615,6 +1628,7 @@ export function SupplierAddProductForm({
         }
 
         lastAutosaveJson.current = fp
+        setSavedListingFingerprint(fp)
         setDraftSync("saved")
         setDraftSyncAt(Date.now())
         console.log("[supplier-product-autosave]", {
@@ -1655,6 +1669,49 @@ export function SupplierAddProductForm({
     () => JSON.stringify(buildDraftSyncBody(step)) + String(step),
     [buildDraftSyncBody, step]
   )
+
+  useEffect(() => {
+    if (!pendingListingBaselineRef.current || loadingProduct) return
+    pendingListingBaselineRef.current = false
+    const fp = autosaveFingerprint
+    lastAutosaveJson.current = fp
+    setSavedListingFingerprint(fp)
+    setDraftSync("saved")
+  }, [autosaveFingerprint, loadingProduct])
+
+  const hasUnsavedChanges = useMemo(() => {
+    if (!listingAutosaveEnabled || loadingProduct) return false
+    if (savedListingFingerprint === null) return false
+    return autosaveFingerprint !== savedListingFingerprint
+  }, [listingAutosaveEnabled, loadingProduct, savedListingFingerprint, autosaveFingerprint])
+
+  const savingChanges = draftSync === "saving" || saving
+
+  const savedChangesHint = useMemo(() => {
+    if (hasUnsavedChanges || draftSync !== "saved" || !draftSyncAt) return null
+    return tWizard("savedAtHint", {
+      time: new Date(draftSyncAt).toLocaleTimeString(undefined, {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    })
+  }, [hasUnsavedChanges, draftSync, draftSyncAt, tWizard])
+
+  const handleSaveChangesClick = useCallback(() => {
+    void syncDraftToServer({ force: true, stepOverride: step })
+  }, [syncDraftToServer, step])
+
+  useEffect(() => {
+    if (!listingAutosaveEnabled || !hasUnsavedChanges) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+        e.preventDefault()
+        void syncDraftToServer({ force: true, stepOverride: step })
+      }
+    }
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [hasUnsavedChanges, listingAutosaveEnabled, step, syncDraftToServer])
 
   const autosaveDebounceMs = step >= 2 ? 900 : 2200
 
@@ -1807,6 +1864,7 @@ export function SupplierAddProductForm({
   useEffect(() => {
     if (typeof window === "undefined") return
     const dirty =
+      hasUnsavedChanges ||
       productIsDraft ||
       (!editId &&
         Boolean(
@@ -1825,7 +1883,18 @@ export function SupplierAddProductForm({
     }
     window.addEventListener("beforeunload", handler)
     return () => window.removeEventListener("beforeunload", handler)
-  }, [autosaveListingId, categoryId, description, descriptionIllustrationImages.length, descriptionIllustrationVideos.length, editId, images.length, name, productIsDraft])
+  }, [
+    autosaveListingId,
+    categoryId,
+    description,
+    descriptionIllustrationImages.length,
+    descriptionIllustrationVideos.length,
+    editId,
+    hasUnsavedChanges,
+    images.length,
+    name,
+    productIsDraft,
+  ])
 
   async function handleSubmit() {
     if (variantFormMode === "simple" && simpleColorIssues.length > 0) {
@@ -1976,9 +2045,7 @@ export function SupplierAddProductForm({
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" })
   }, [])
 
-  const handleSaveDraftClick = useCallback(() => {
-    void syncDraftToServer({ force: true, stepOverride: step })
-  }, [syncDraftToServer, step])
+  const handleSaveDraftClick = handleSaveChangesClick
 
   const publishErrorFields = useMemo(() => uniqueBlockerFields(publishBlockers), [publishBlockers])
 
@@ -2692,30 +2759,40 @@ export function SupplierAddProductForm({
                   ) : null}
                 </div>
 
-                <div className="flex flex-col gap-3 border-t border-zinc-200 pt-6 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-end">
-                  <Button
-                    type="button"
-                    size="lg"
-                    className="w-full shrink-0 bg-violet-600 hover:bg-violet-700 dark:bg-violet-600 sm:w-auto"
-                    onClick={() => {
-                      const step1Blockers = collectClientPublishBlockers({
-                        ...publishValidationContext,
-                        priceError: null,
-                        compareError: null,
-                        commissionError: null,
-                      })
-                      if (step1Blockers.length > 0) {
-                        applyPublishBlockers(step1Blockers)
-                        return
-                      }
-                      setPublishBlockers([])
-                      setSpecFormErrors([])
-                      nextWizardStep()
-                    }}
-                  >
-                    Continuer — variantes & prix
-                  </Button>
-                </div>
+                <SupplierWizardSaveFooter
+                  onSaveChanges={handleSaveChangesClick}
+                  hasUnsavedChanges={hasUnsavedChanges}
+                  savingChanges={savingChanges}
+                  saveEnabled={listingAutosaveEnabled}
+                  saveLabel={tWizard("saveChanges")}
+                  saveSavingLabel={tWizard("saveChangesSaving")}
+                  unsavedHint={tWizard("unsavedChangesHint")}
+                  savedHint={savedChangesHint}
+                  continueButton={
+                    <Button
+                      type="button"
+                      size="lg"
+                      className="w-full shrink-0 bg-violet-600 hover:bg-violet-700 dark:bg-violet-600 sm:w-auto"
+                      onClick={() => {
+                        const step1Blockers = collectClientPublishBlockers({
+                          ...publishValidationContext,
+                          priceError: null,
+                          compareError: null,
+                          commissionError: null,
+                        })
+                        if (step1Blockers.length > 0) {
+                          applyPublishBlockers(step1Blockers)
+                          return
+                        }
+                        setPublishBlockers([])
+                        setSpecFormErrors([])
+                        nextWizardStep()
+                      }}
+                    >
+                      Continuer — variantes & prix
+                    </Button>
+                  }
+                />
               </>
             ) : step === 2 ? (
               <>
@@ -2834,25 +2911,6 @@ export function SupplierAddProductForm({
                   {hasPublishFieldError("variants") ? (
                     <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-800 dark:border-red-800 dark:bg-red-950/50 dark:text-red-200">
                       {publishBlockers.find((b) => b.field === "variants")?.message}
-                    </p>
-                  ) : null}
-                  {listingAutosaveEnabled ? (
-                    <p
-                      className={cn(
-                        "text-xs",
-                        draftSync === "error"
-                          ? "font-medium text-red-600 dark:text-red-400"
-                          : "text-zinc-500 dark:text-zinc-400"
-                      )}
-                      aria-live="polite"
-                    >
-                      {draftSync === "saving"
-                        ? "Enregistrement automatique…"
-                        : draftSync === "saved" && draftSyncAt
-                          ? `Enregistré à ${new Date(draftSyncAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}`
-                          : draftSync === "error"
-                            ? "Échec de l’enregistrement — réessayez ou cliquez Enregistrer"
-                            : "Les modifications sont enregistrées automatiquement"}
                     </p>
                   ) : null}
                   <div className="flex flex-wrap gap-2">
@@ -3118,37 +3176,49 @@ export function SupplierAddProductForm({
                   <div className="hidden lg:block">{simulationCard}</div>
                 </div>
 
-                <div className="flex flex-col gap-3 border-t border-zinc-200 pt-6 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-between">
-                  <Button type="button" variant="outline" size="lg" onClick={prevWizardStep}>
-                    Retour à la fiche
-                  </Button>
-                  <Button
-                    type="button"
-                    size="lg"
-                    className="bg-violet-600 hover:bg-violet-700 dark:bg-violet-600"
-                    disabled={
-                      skuErrors.length > 0 ||
-                      (variantFormMode === "simple" && simpleColorIssues.length > 0) ||
-                      !step2Complete
-                    }
-                    onClick={() => {
-                      const blockers = collectClientPublishBlockers(publishValidationContext)
-                      const step2Only = blockers.filter((b) =>
-                        ["price", "compareAt", "variants"].includes(b.field)
-                      )
-                      if (step2Only.length > 0) {
-                        applyPublishBlockers(step2Only)
-                        return
+                <SupplierWizardSaveFooter
+                  back={
+                    <Button type="button" variant="outline" size="lg" onClick={prevWizardStep}>
+                      Retour à la fiche
+                    </Button>
+                  }
+                  onSaveChanges={handleSaveChangesClick}
+                  hasUnsavedChanges={hasUnsavedChanges}
+                  savingChanges={savingChanges}
+                  saveEnabled={listingAutosaveEnabled}
+                  saveLabel={tWizard("saveChanges")}
+                  saveSavingLabel={tWizard("saveChangesSaving")}
+                  unsavedHint={tWizard("unsavedChangesHint")}
+                  savedHint={savedChangesHint}
+                  continueButton={
+                    <Button
+                      type="button"
+                      size="lg"
+                      className="w-full bg-violet-600 hover:bg-violet-700 dark:bg-violet-600 sm:w-auto"
+                      disabled={
+                        skuErrors.length > 0 ||
+                        (variantFormMode === "simple" && simpleColorIssues.length > 0) ||
+                        !step2Complete
                       }
-                      setPublishBlockers((prev) =>
-                        prev.filter((b) => !["price", "compareAt", "variants"].includes(b.field))
-                      )
-                      nextWizardStep()
-                    }}
-                  >
-                    Continuer — logistique
-                  </Button>
-                </div>
+                      onClick={() => {
+                        const blockers = collectClientPublishBlockers(publishValidationContext)
+                        const step2Only = blockers.filter((b) =>
+                          ["price", "compareAt", "variants"].includes(b.field)
+                        )
+                        if (step2Only.length > 0) {
+                          applyPublishBlockers(step2Only)
+                          return
+                        }
+                        setPublishBlockers((prev) =>
+                          prev.filter((b) => !["price", "compareAt", "variants"].includes(b.field))
+                        )
+                        nextWizardStep()
+                      }}
+                    >
+                      Continuer — logistique
+                    </Button>
+                  }
+                />
               </>
             ) : (
               <>
@@ -3484,11 +3554,21 @@ export function SupplierAddProductForm({
                 </SectionCard>
                 </div>
 
-                <div className="flex flex-col gap-3 border-t border-zinc-200 pt-6 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-between">
-                  <Button type="button" variant="outline" size="lg" onClick={prevWizardStep}>
-                    Retour — variantes & prix
-                  </Button>
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <SupplierWizardSaveFooter
+                  back={
+                    <Button type="button" variant="outline" size="lg" onClick={prevWizardStep}>
+                      Retour — variantes & prix
+                    </Button>
+                  }
+                  onSaveChanges={handleSaveChangesClick}
+                  hasUnsavedChanges={hasUnsavedChanges}
+                  savingChanges={savingChanges}
+                  saveEnabled={listingAutosaveEnabled}
+                  saveLabel={tWizard("saveChanges")}
+                  saveSavingLabel={tWizard("saveChangesSaving")}
+                  unsavedHint={tWizard("unsavedChangesHint")}
+                  savedHint={savedChangesHint}
+                  continueButton={
                     <Button
                       type="button"
                       size="lg"
@@ -3497,17 +3577,17 @@ export function SupplierAddProductForm({
                         (variantFormMode === "simple" && simpleColorIssues.length > 0) ||
                         (variantFormMode === "advanced" && skuValidationIssues.length > 0)
                       }
-                      className="bg-violet-600 hover:bg-violet-700 dark:bg-violet-600"
+                      className="w-full bg-violet-600 hover:bg-violet-700 dark:bg-violet-600 sm:w-auto"
                       onClick={() => void handleSubmit()}
                     >
                       {saving
                         ? "Enregistrement…"
                         : editId && !productIsDraft
-                          ? "Enregistrer"
+                          ? "Enregistrer et fermer"
                           : "Publier le produit"}
                     </Button>
-                  </div>
-                </div>
+                  }
+                />
               </>
             )}
           </div>

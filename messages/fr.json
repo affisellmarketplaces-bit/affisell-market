@@ -656,6 +656,10 @@
     "wizard": {
       "backToMethods": "← Autres méthodes de création",
       "save": "Enregistrer",
+      "saveChanges": "Enregistrer les modifications",
+      "saveChangesSaving": "Enregistrement…",
+      "unsavedChangesHint": "Modifications non enregistrées",
+      "savedAtHint": "Enregistré à {time}",
       "breadcrumbAria": "Fil d'Ariane",
       "stepsAria": "Étapes",
       "step1Title": "Fiche produit",

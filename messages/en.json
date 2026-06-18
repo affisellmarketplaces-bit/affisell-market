@@ -656,6 +656,10 @@
     "wizard": {
       "backToMethods": "← Other creation methods",
       "save": "Save",
+      "saveChanges": "Save changes",
+      "saveChangesSaving": "Saving…",
+      "unsavedChangesHint": "Unsaved changes",
+      "savedAtHint": "Saved at {time}",
       "breadcrumbAria": "Breadcrumb",
       "stepsAria": "Steps",
       "step1Title": "Product sheet",
