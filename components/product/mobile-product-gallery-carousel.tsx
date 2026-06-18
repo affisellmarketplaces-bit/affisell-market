@@ -56,6 +56,7 @@ export function MobileProductGalleryCarousel({
   const slideRefs = useRef<(HTMLElement | null)[]>([])
   const [scrollIndex, setScrollIndex] = useState(0)
   const syncingFromParent = useRef(false)
+  const lastSyncedActiveRef = useRef(activeIndex)
 
   const safeImages = images.length > 0 ? images : [PLACEHOLDER]
   const hasVideo = Boolean(videoUrl?.trim())
@@ -85,15 +86,16 @@ export function MobileProductGalleryCarousel({
   }, [])
 
   useEffect(() => {
+    if (lastSyncedActiveRef.current === activeIndex) return
+    lastSyncedActiveRef.current = activeIndex
+
     if (activeIndex < 0) {
       if (hasVideo) scrollToSlide(safeImages.length, "auto")
       return
     }
     const target = Math.min(activeIndex, safeImages.length - 1)
-    if (target !== scrollIndex || isVideoSlide) {
-      scrollToSlide(target, "auto")
-    }
-  }, [activeIndex, hasVideo, isVideoSlide, safeImages.length, scrollIndex, scrollToSlide])
+    scrollToSlide(target, "auto")
+  }, [activeIndex, hasVideo, safeImages.length, scrollToSlide])
 
   useEffect(() => {
     const root = scrollRef.current
@@ -143,7 +145,7 @@ export function MobileProductGalleryCarousel({
     <div className={cn("relative min-w-0", className)}>
       <div
         ref={scrollRef}
-        className="affisell-mobile-gallery-track flex w-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="affisell-mobile-gallery-track flex w-full touch-pan-x snap-x snap-mandatory overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         role="region"
         aria-roledescription="carousel"
         aria-label={t("thumbRail")}
@@ -190,7 +192,7 @@ export function MobileProductGalleryCarousel({
                         : slide.url
                     }
                     alt={alt}
-                    className="h-full w-full touch-pan-y object-contain p-2"
+                    className="pointer-events-none h-full w-full select-none object-contain p-2"
                     loading={i === 0 ? "eager" : "lazy"}
                     draggable={false}
                     onError={(e) => {

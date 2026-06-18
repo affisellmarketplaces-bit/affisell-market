@@ -762,6 +762,8 @@ body.affisell-demo-lab .affisell-header-shell {
   .affisell-lightbox-track {
     scroll-snap-type: x mandatory;
     scroll-padding-inline: 0;
+    touch-action: pan-x;
+    -webkit-overflow-scrolling: touch;
   }
 
   .affisell-touch-target {
