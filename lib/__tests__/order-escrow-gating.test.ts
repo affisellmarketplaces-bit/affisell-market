@@ -89,10 +89,14 @@ describe("order-transfer-gating", () => {
   })
 
   it("blocks affiliate until delivery confirm window", () => {
-    const r = evaluateAffiliateTransferRelease({
-      ...baseShipped,
-      deliveredAt: new Date("2026-06-03"),
-    })
+    const deliveredAt = new Date("2026-06-03")
+    const r = evaluateAffiliateTransferRelease(
+      {
+        ...baseShipped,
+        deliveredAt,
+      },
+      new Date("2026-06-05")
+    )
     expect(r.eligible).toBe(false)
     expect(r.phase).toBe("awaiting_delivery_confirm")
   })

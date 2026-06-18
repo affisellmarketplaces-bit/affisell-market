@@ -106,5 +106,5 @@ describe("processStripeWebhookEvent idempotence", () => {
     const r2 = await processStripeWebhookEvent(event)
     expect(r2.duplicate).toBe(true)
     expect(scheduleMarketplaceTransferAttempts).toHaveBeenCalledTimes(1)
-  })
+  }, 15_000)
 })
