@@ -38,6 +38,7 @@ import { isSkuColumnVisible, type SkuOptionalColumnKey } from "@/lib/supplier-sk
 import { SupplierVariantLiveSyncBar, type VariantLiveSyncStatus } from "@/components/supplier/supplier-variant-live-sync-bar"
 import { parseSupplierDecimalInput } from "@/lib/supplier-decimal-input"
 import { readJsonResponse } from "@/lib/read-json-response"
+import { cn } from "@/lib/utils"
 import {
   applyOptimizedSkuRows,
   type OptimizeVariantsResult,
