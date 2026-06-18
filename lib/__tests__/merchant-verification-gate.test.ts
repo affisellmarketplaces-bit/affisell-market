@@ -5,6 +5,9 @@ vi.mock("@/lib/prisma", () => ({
     merchantLegalProfile: {
       findUnique: vi.fn(),
     },
+    user: {
+      findUnique: vi.fn(),
+    },
   },
 }))
 
@@ -17,11 +20,18 @@ import {
 describe("requireMerchantVerifiedForPublish", () => {
   beforeEach(() => {
     vi.mocked(prisma.merchantLegalProfile.findUnique).mockReset()
+    vi.mocked(prisma.user.findUnique).mockReset()
+    vi.stubEnv("MERCHANT_KYC_MANDATORY_FROM", "2026-06-19T00:00:00.000Z")
+    vi.stubEnv("MERCHANT_KYC_TRUST_EXISTING", "1")
   })
 
   it("returns null when KYC is APPROVED", async () => {
     vi.mocked(prisma.merchantLegalProfile.findUnique).mockResolvedValue({
       verificationStatus: "APPROVED",
+    } as never)
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      role: "SUPPLIER",
+      createdAt: new Date("2026-06-20T00:00:00.000Z"),
     } as never)
 
     const gate = await merchantVerificationGate("user-1")
@@ -31,9 +41,27 @@ describe("requireMerchantVerifiedForPublish", () => {
     expect(blocked).toBeNull()
   })
 
-  it("returns 403 when KYC is pending", async () => {
+  it("returns null for legacy registered supplier without KYC profile", async () => {
+    vi.mocked(prisma.merchantLegalProfile.findUnique).mockResolvedValue(null)
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      role: "SUPPLIER",
+      createdAt: new Date("2026-06-18T00:00:00.000Z"),
+    } as never)
+
+    const gate = await merchantVerificationGate("legacy-supplier")
+    expect(gate.allowed).toBe(true)
+
+    const blocked = await requireMerchantVerifiedForPublish("legacy-supplier")
+    expect(blocked).toBeNull()
+  })
+
+  it("returns 403 when KYC is pending for new accounts", async () => {
     vi.mocked(prisma.merchantLegalProfile.findUnique).mockResolvedValue({
       verificationStatus: "PENDING_REVIEW",
+    } as never)
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      role: "SUPPLIER",
+      createdAt: new Date("2026-06-20T00:00:00.000Z"),
     } as never)
 
     const blocked = await requireMerchantVerifiedForPublish("user-2")

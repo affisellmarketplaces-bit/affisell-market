@@ -1,3 +1,4 @@
+import { isLegacyRegisteredMerchantForKyc } from "@/lib/merchant-legal/legacy-kyc-trust"
 import { prisma } from "@/lib/prisma"
 
 export type MerchantVerificationGate = {
@@ -8,10 +9,37 @@ export type MerchantVerificationGate = {
 
 /** Suppliers / affiliates need APPROVED KYC before publishing catalog. */
 export async function merchantVerificationGate(userId: string): Promise<MerchantVerificationGate> {
-  const profile = await prisma.merchantLegalProfile.findUnique({
-    where: { userId },
-    select: { verificationStatus: true },
-  })
+  const [profile, user] = await Promise.all([
+    prisma.merchantLegalProfile.findUnique({
+      where: { userId },
+      select: { verificationStatus: true },
+    }),
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: { createdAt: true, role: true },
+    }),
+  ])
+
+  if (
+    user &&
+    isLegacyRegisteredMerchantForKyc({
+      role: user.role,
+      createdAt: user.createdAt,
+      verificationStatus: profile?.verificationStatus ?? null,
+    })
+  ) {
+    console.log("[merchant-kyc-gate]", {
+      userId,
+      allowed: true,
+      legacyTrust: true,
+      verificationStatus: profile?.verificationStatus ?? null,
+    })
+    return {
+      allowed: true,
+      status: profile?.verificationStatus ?? "APPROVED",
+    }
+  }
+
   if (!profile) {
     return { allowed: false, status: null, reason: "no_profile" }
   }
