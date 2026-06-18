@@ -4,6 +4,7 @@
  */
 
 const POOLER_HOST_RE = /-pooler\./i
+const NEON_HOST_RE = /\.aws\.neon\.tech$/i
 
 export type PrismaPoolParams = {
   pgbouncer?: string
@@ -19,7 +20,7 @@ function defaultPoolParams(): PrismaPoolParams {
     // Dev: parallel RSC/API routes; 5 connections is too low (P2024).
     connection_limit: process.env.PRISMA_CONNECTION_LIMIT?.trim() || (isProd ? "10" : "20"),
     pool_timeout: process.env.PRISMA_POOL_TIMEOUT?.trim() || (isProd ? "30" : "60"),
-    connect_timeout: process.env.PRISMA_CONNECT_TIMEOUT?.trim() || "15",
+    connect_timeout: process.env.PRISMA_CONNECT_TIMEOUT?.trim() || (isProd ? "15" : "30"),
   }
 }
 
@@ -40,7 +41,19 @@ function mergePoolParam(url: URL, key: keyof PrismaPoolParams, value: string | u
   }
 }
 
-/** Apply pool params when using Neon pooler (or explicit pgbouncer=true). Dev: tune all Postgres URLs. */
+/** ep-xxx.region.neon.tech → ep-xxx-pooler.region.neon.tech (Neon pooled endpoint). */
+export function neonDirectHostToPooler(hostname: string): string | null {
+  if (POOLER_HOST_RE.test(hostname) || !NEON_HOST_RE.test(hostname)) return null
+  const match = hostname.match(/^(ep-[^.]+)(\..+)$/i)
+  if (!match?.[1] || !match[2]) return null
+  return `${match[1]}-pooler${match[2]}`
+}
+
+function isNeonPoolerUrl(url: URL): boolean {
+  return url.searchParams.get("pgbouncer") === "true" || POOLER_HOST_RE.test(url.hostname)
+}
+
+/** Apply pool params when using Neon pooler (or explicit pgbouncer=true). Dev: tune Postgres URLs. */
 export function augmentPrismaDatasourceUrl(rawUrl: string): string {
   const trimmed = rawUrl.trim()
   if (!trimmed) return trimmed
@@ -53,13 +66,47 @@ export function augmentPrismaDatasourceUrl(rawUrl: string): string {
   }
 
   const isDev = process.env.NODE_ENV === "development"
-  const usePooler =
-    url.searchParams.get("pgbouncer") === "true" || POOLER_HOST_RE.test(url.hostname)
+  const usePooler = isNeonPoolerUrl(url)
   if (!usePooler && !isDev) return trimmed
 
   const defaults = defaultPoolParams()
-  for (const [key, value] of Object.entries(defaults)) {
-    mergePoolParam(url, key as keyof PrismaPoolParams, value)
+
+  if (usePooler) {
+    for (const [key, value] of Object.entries(defaults)) {
+      mergePoolParam(url, key as keyof PrismaPoolParams, value)
+    }
+    return url.toString()
+  }
+
+  // Direct Neon / local Postgres in dev — never force pgbouncer=true on a direct host.
+  mergePoolParam(url, "connection_limit", defaults.connection_limit)
+  mergePoolParam(url, "pool_timeout", defaults.pool_timeout)
+  mergePoolParam(url, "connect_timeout", defaults.connect_timeout)
+  return url.toString()
+}
+
+/** Prefer Neon pooler in dev unless PRISMA_USE_DIRECT_DEV=1. */
+export function normalizePrismaRawUrl(rawUrl: string): string {
+  const trimmed = rawUrl.trim()
+  if (!trimmed) return trimmed
+
+  let url: URL
+  try {
+    url = new URL(trimmed)
+  } catch {
+    return trimmed
+  }
+
+  const isDev = process.env.NODE_ENV === "development"
+  const useDirectInDev = isDev && process.env.PRISMA_USE_DIRECT_DEV === "1"
+  if (useDirectInDev || isNeonPoolerUrl(url)) return trimmed
+
+  const poolerHost = neonDirectHostToPooler(url.hostname)
+  if (!poolerHost) return trimmed
+
+  url.hostname = poolerHost
+  if (url.searchParams.get("pgbouncer") !== "true") {
+    url.searchParams.set("pgbouncer", "true")
   }
   return url.toString()
 }
@@ -72,5 +119,5 @@ export function getPrismaDatasourceUrl(): string {
   if (!raw) {
     throw new Error("DATABASE_URL is not set")
   }
-  return augmentPrismaDatasourceUrl(raw)
+  return augmentPrismaDatasourceUrl(normalizePrismaRawUrl(raw))
 }

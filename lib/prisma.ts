@@ -8,6 +8,11 @@ import {
   isRetryablePrismaConnectionError,
   prismaErrorCode,
 } from "@/lib/prisma-connection-error"
+import {
+  clearPrismaCircuit,
+  isPrismaCircuitOpen,
+  notePrismaUnreachable,
+} from "@/lib/prisma-circuit-breaker"
 import { getPrismaDatasourceUrl } from "@/lib/prisma-datasource-url"
 
 type PrismaGlobal = typeof globalThis & {
@@ -91,18 +96,27 @@ async function executeWithReconnect({
   args,
   query,
 }: QueryExtensionArgs): Promise<unknown> {
+  if (isPrismaCircuitOpen()) {
+    throw new Error("Database temporarily unreachable — retry in a few seconds.")
+  }
+
   const maxRetries = 2
   let lastError: unknown
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       if (attempt === 0) {
-        return await query(args)
+        const result = await query(args)
+        clearPrismaCircuit()
+        return result
       }
-      return await runQueryOnFreshClient({ model, operation, args })
+      const result = await runQueryOnFreshClient({ model, operation, args })
+      clearPrismaCircuit()
+      return result
     } catch (error) {
       lastError = error
-      if (!isRetryablePrismaConnectionError(error) || attempt >= maxRetries) {
+      notePrismaUnreachable(error)
+      if (!isRetryablePrismaConnectionError(error) || attempt >= maxRetries || isPrismaCircuitOpen()) {
         throw error
       }
       const delayMs = retryDelayMs(error, attempt)
@@ -169,15 +183,23 @@ function assertPrismaServerOnly(): void {
 }
 
 /** Drop cached engine after pooler/admin disconnect (E57P01 / P1017). */
+let resetInFlight: Promise<void> | null = null
+
 export async function resetPrismaClient(): Promise<void> {
-  const cached = globalForPrisma.__affisellPrisma
-  globalForPrisma.__affisellPrisma = undefined
-  if (!cached) return
-  try {
-    await cached.$disconnect()
-  } catch {
-    /* stale socket */
-  }
+  if (resetInFlight) return resetInFlight
+  resetInFlight = (async () => {
+    const cached = globalForPrisma.__affisellPrisma
+    globalForPrisma.__affisellPrisma = undefined
+    if (!cached) return
+    try {
+      await cached.$disconnect()
+    } catch {
+      /* stale socket */
+    }
+  })().finally(() => {
+    resetInFlight = null
+  })
+  return resetInFlight
 }
 
 /** Singleton — one engine per Node process (dev HMR + prod server). */
@@ -238,15 +260,22 @@ export async function withPrismaReconnect<T>(
   fn: () => Promise<T>,
   options?: { retries?: number }
 ): Promise<T> {
+  if (isPrismaCircuitOpen()) {
+    throw new Error("Database temporarily unreachable — retry in a few seconds.")
+  }
+
   const maxRetries = options?.retries ?? 2
   let lastError: unknown
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      return await fn()
+      const result = await fn()
+      clearPrismaCircuit()
+      return result
     } catch (error) {
       lastError = error
-      if (!isRetryablePrismaConnectionError(error) || attempt >= maxRetries) {
+      notePrismaUnreachable(error)
+      if (!isRetryablePrismaConnectionError(error) || attempt >= maxRetries || isPrismaCircuitOpen()) {
         throw error
       }
       const delayMs = retryDelayMs(error, attempt)
