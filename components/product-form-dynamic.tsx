@@ -38,13 +38,26 @@ type Props = {
   onChange: (next: Record<string, string>) => void
   className?: string
   errors?: string[]
+  optimizeContext?: {
+    title: string
+    description: string
+    categoryPath: string
+    bullets: string[]
+  }
 }
 
 /**
  * Amazon-style specs block: fields load from taxonomy when `categoryId` changes.
  * Persist values via parent state; on submit map to `productAttributes` [{ key, label, value }].
  */
-export function DynamicAttributes({ categoryId, values, onChange, className, errors }: Props) {
+export function DynamicAttributes({
+  categoryId,
+  values,
+  onChange,
+  className,
+  errors,
+  optimizeContext,
+}: Props) {
   const [attrs, setAttrs] = useState<CategoryAttrRow[]>([])
   const [loading, setLoading] = useState(false)
 
@@ -104,6 +117,7 @@ export function DynamicAttributes({ categoryId, values, onChange, className, err
         values={values}
         onChange={handleChange}
         errors={errors}
+        optimizeContext={optimizeContext}
       />
     </div>
   )

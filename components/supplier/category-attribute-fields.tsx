@@ -1,5 +1,10 @@
 "use client"
 
+import { useCallback, useState } from "react"
+import { Loader2, Sparkles } from "lucide-react"
+import { toast } from "sonner"
+
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -37,6 +42,13 @@ export type CategoryAttrRow = {
   helpText?: string | null
 }
 
+type SpecOptimizeContext = {
+  title: string
+  description: string
+  categoryPath: string
+  bullets: string[]
+}
+
 type Props = {
   attributes: CategoryAttrRow[]
   loading?: boolean
@@ -44,6 +56,8 @@ type Props = {
   onChange: (next: Record<string, string>) => void
   /** Server or client validation messages, e.g. `Marque est requis`. */
   errors?: string[]
+  /** Product context for per-field AI optimisation (recommended textareas). */
+  optimizeContext?: SpecOptimizeContext
 }
 
 function errorsForAttribute(attr: CategoryAttrRow, errors?: string[]): string[] {
@@ -74,10 +88,55 @@ function toggleMultiOption(current: string, opt: string): string {
   return joinMulti([...set].sort())
 }
 
-export function CategoryAttributeFields({ attributes, loading, values, onChange, errors }: Props) {
+export function CategoryAttributeFields({
+  attributes,
+  loading,
+  values,
+  onChange,
+  errors,
+  optimizeContext,
+}: Props) {
+  const [optimizingKey, setOptimizingKey] = useState<string | null>(null)
+
   const setKey = (key: string, v: string) => {
     onChange({ ...values, [key]: v })
   }
+
+  const handleOptimize = useCallback(
+    async (attr: CategoryAttrRow) => {
+      if (!optimizeContext) {
+        toast.error("Ajoutez un titre ou une description produit d'abord.")
+        return
+      }
+      setOptimizingKey(attr.key)
+      try {
+        const res = await fetch("/api/supplier/optimize-spec-field", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            fieldKey: attr.key,
+            fieldLabel: attr.label,
+            currentValue: values[attr.key] ?? "",
+            title: optimizeContext.title,
+            description: optimizeContext.description,
+            categoryPath: optimizeContext.categoryPath,
+            bullets: optimizeContext.bullets,
+          }),
+        })
+        const data = (await res.json()) as { text?: string; error?: string }
+        if (!res.ok) throw new Error(data.error ?? "Optimisation impossible")
+        if (!data.text?.trim()) throw new Error("Réponse vide")
+        onChange({ ...values, [attr.key]: data.text.trim() })
+        toast.success(`${attr.label} optimisé`)
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Service indisponible")
+      } finally {
+        setOptimizingKey(null)
+      }
+    },
+    [optimizeContext, values, onChange]
+  )
 
   const sorted = [...attributes].sort((a, b) => a.order - b.order || a.label.localeCompare(b.label))
 
@@ -117,18 +176,40 @@ export function CategoryAttributeFields({ attributes, loading, values, onChange,
             ? "border-red-500 focus:border-red-500 focus:ring-red-500/25"
             : "border-zinc-200 dark:border-zinc-700"
 
+          const isOptimizable = Boolean(attr.recommended && isTextarea && optimizeContext)
+          const isOptimizing = optimizingKey === attr.key
+
           return (
             <div key={attr.id} className={cn("min-w-0", isTextarea && "sm:col-span-2 lg:col-span-3")}>
-              <Label className="flex flex-wrap items-baseline gap-x-1.5 text-sm font-medium text-zinc-800 dark:text-zinc-200">
-                {attr.required ? <span className="text-red-600">*</span> : null}
-                <span>
-                  {attr.label}
-                  {labelSuffix}
-                </span>
-                {!attr.required ? (
-                  <span className="text-[11px] font-normal text-zinc-400 dark:text-zinc-500">(optional)</span>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <Label className="flex flex-wrap items-baseline gap-x-1.5 text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                  {attr.required ? <span className="text-red-600">*</span> : null}
+                  <span>
+                    {attr.label}
+                    {labelSuffix}
+                  </span>
+                  {!attr.required ? (
+                    <span className="text-[11px] font-normal text-zinc-400 dark:text-zinc-500">(optional)</span>
+                  ) : null}
+                </Label>
+                {isOptimizable ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={loading || isOptimizing || Boolean(optimizingKey)}
+                    className="h-8 shrink-0 gap-1.5 border-violet-200 text-violet-800 hover:bg-violet-50 dark:border-violet-800 dark:text-violet-200 dark:hover:bg-violet-950/40"
+                    onClick={() => void handleOptimize(attr)}
+                  >
+                    {isOptimizing ? (
+                      <Loader2 className="size-3.5 animate-spin" aria-hidden />
+                    ) : (
+                      <Sparkles className="size-3.5" aria-hidden />
+                    )}
+                    {isOptimizing ? "Optimisation…" : "Optimise"}
+                  </Button>
                 ) : null}
-              </Label>
+              </div>
               {attr.recommended && !attr.required ? (
                 <p className="mt-0.5 text-[11px] font-medium text-sky-700 dark:text-sky-300">
                   Recommandé — améliore la visibilité sur la marketplace

@@ -2523,6 +2523,12 @@ export function SupplierAddProductForm({
                           categoryId={categoryId}
                           values={specValues}
                           errors={specFormErrors}
+                          optimizeContext={{
+                            title: name,
+                            description,
+                            categoryPath: categoryPathLabel,
+                            bullets: categoryMatchBullets,
+                          }}
                           onChange={(next) => {
                             setSpecValues(next)
                             if (specFormErrors.length > 0) setSpecFormErrors([])
