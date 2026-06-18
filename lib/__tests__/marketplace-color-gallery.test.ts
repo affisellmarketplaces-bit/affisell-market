@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest"
 
 import {
   colorForImageIndex,
+  enrichGalleryWithColorHeroImages,
   findColorImageRowForName,
   imageIndexForColor,
+  resolveColorHeroImageUrl,
   type ProductColorImageRow,
 } from "@/lib/product-color-images"
 
@@ -51,6 +53,29 @@ describe("imageIndexForColor", () => {
     ]
     expect(imageIndexForColor("Green", colorNames, colorImages, lifestyleGallery)).toBe(3)
     expect(imageIndexForColor("Orange", colorNames, colorImages, lifestyleGallery)).toBe(4)
+  })
+
+  it("uses per-color URL when it is not in the main gallery", () => {
+    const perColorOnly: ProductColorImageRow[] = [
+      { color: "Blanc", hex: "#FFFFFF", image: "https://cdn.example/white-only.jpg" },
+      { color: "Bleu Indigo", hex: "#4F46E5", image: "https://cdn.example/indigo-only.jpg" },
+    ]
+    const names = ["Blanc", "Bleu Indigo", "Noir transparent"]
+    const lifestyleGallery = [
+      "https://cdn.example/lifestyle.jpg",
+      "https://cdn.example/spec-chip.jpg",
+      "https://cdn.example/battery.jpg",
+    ]
+    const enriched = enrichGalleryWithColorHeroImages(lifestyleGallery, names, [
+      ...perColorOnly,
+      { color: "Noir transparent", hex: "#1C1C1E", image: "https://cdn.example/black-only.jpg" },
+    ])
+    expect(resolveColorHeroImageUrl("Bleu Indigo", names, perColorOnly, lifestyleGallery)).toBe(
+      "https://cdn.example/indigo-only.jpg"
+    )
+    expect(imageIndexForColor("Bleu Indigo", names, perColorOnly, enriched)).toBe(
+      enriched.findIndex((u) => u.includes("indigo-only"))
+    )
   })
 })
 

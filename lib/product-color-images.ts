@@ -90,12 +90,17 @@ export function buildColorImagesFromLegacy(
 export function comparableImageUrl(url: string): string {
   const t = url.trim()
   if (!t) return ""
+  if (t.startsWith("data:")) return t.toLowerCase()
   try {
     const u = new URL(t, "https://placeholder.local")
     return `${u.pathname}${u.hash}`.toLowerCase()
   } catch {
     return t.split("?")[0]!.toLowerCase()
   }
+}
+
+export function galleryIndexForImageUrl(url: string, images: string[]): number {
+  return urlIndexInGallery(url, images)
 }
 
 /** Match supplier color name to a row (exact, then case-insensitive trim). */
@@ -171,7 +176,7 @@ function positionalGalleryIndexForColor(
   return fallback
 }
 
-/** Pick gallery index for a color (positional order first; distrust stale per-color URLs). */
+/** Pick gallery index for a color — prefers the supplier's per-color image URL when set. */
 export function imageIndexForColor(
   color: string | null,
   colorNames: string[],
@@ -181,31 +186,68 @@ export function imageIndexForColor(
   if (!images.length) return 0
   if (!color) return 0
 
-  const colorIdx = colorNameIndex(colorNames, color)
-  const posIdx = positionalGalleryIndexForColor(colorIdx, color, colorNames, colorImages, images)
   const row = findColorImageRowForName(colorImages, color)
   const direct = row?.image?.trim()
 
   if (direct) {
     const urlIdx = urlIndexInGallery(direct, images)
     if (urlIdx >= 0) {
+      const colorIdx = colorNameIndex(colorNames, color)
+      const posIdx = positionalGalleryIndexForColor(colorIdx, color, colorNames, colorImages, images)
       if (posIdx != null && urlIdx === posIdx) return urlIdx
 
       if (posIdx != null && urlIdx !== posIdx) {
         const urlOwnerIdx = colorIndexForGalleryUrl(direct, colorNames, colorImages)
-        if (urlOwnerIdx >= 0 && urlOwnerIdx !== colorIdx) {
-          return posIdx
-        }
+        if (urlOwnerIdx >= 0 && urlOwnerIdx !== colorIdx) return posIdx
         if (urlOwnerIdx === colorIdx) return urlIdx
         return posIdx
       }
 
       return urlIdx
     }
+    return 0
   }
 
+  const colorIdx = colorNameIndex(colorNames, color)
+  const posIdx = positionalGalleryIndexForColor(colorIdx, color, colorNames, colorImages, images)
   if (posIdx != null) return posIdx
   return 0
+}
+
+/** Hero image for a selected color — uses supplier `colorImages` URL first. */
+export function resolveColorHeroImageUrl(
+  color: string | null,
+  colorNames: string[],
+  colorImages: ProductColorImageRow[],
+  images: string[]
+): string {
+  if (!color) return images[0]?.trim() ?? ""
+  const row = findColorImageRowForName(colorImages, color)
+  const direct = row?.image?.trim()
+  if (direct) return direct
+  const idx = imageIndexForColor(color, colorNames, colorImages, images)
+  return images[idx]?.trim() ?? images[0]?.trim() ?? ""
+}
+
+/** Append variant color hero URLs missing from the main gallery (PDP sync on swatch click). */
+export function enrichGalleryWithColorHeroImages(
+  gallery: string[],
+  colorNames: string[],
+  colorImages: ProductColorImageRow[]
+): string[] {
+  if (colorNames.length === 0 || colorImages.length === 0) return gallery
+  const out = [...gallery]
+  const seen = new Set(out.map(comparableImageUrl))
+  for (const colorName of colorNames) {
+    const row = findColorImageRowForName(colorImages, colorName)
+    const img = row?.image?.trim()
+    if (!img) continue
+    const key = comparableImageUrl(img)
+    if (!key || seen.has(key)) continue
+    out.push(img)
+    seen.add(key)
+  }
+  return out
 }
 
 /** Reverse lookup: gallery index → supplier color name when the image maps to a variant. */

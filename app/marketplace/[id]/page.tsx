@@ -19,7 +19,7 @@ import { normalizeListingSalesCount } from "@/lib/listing-sales-count"
 import { shopListingPath } from "@/lib/affiliate-routes"
 import { loadMarketplaceListingPageData } from "@/lib/marketplace-listing-page-loader"
 import { buildListingLogisticsInput } from "@/lib/listing-logistics-display"
-import { mergeColorImagesForProduct, parseProductColorImagesFromDb } from "@/lib/product-color-images"
+import { mergeColorImagesForProduct, parseProductColorImagesFromDb, enrichGalleryWithColorHeroImages } from "@/lib/product-color-images"
 import { publicPartnerSellerLabel } from "@/lib/public-seller-display"
 import {
   buildCustomColumnProductSpecs,
@@ -233,7 +233,7 @@ export default async function MarketplaceListingPage({
       ? mergeColorImagesForProduct(colorNames, listing.product.colorImages, listing.product.variants)
       : (parseProductColorImagesFromDb(listing.product.colorImages) ?? [])
 
-  const buyerRewardBadge = buyerRewardBadgeText(
+  const galleryForPdp = enrichGalleryWithColorHeroImages(gallery, colorNames, colorImages)
     normalizeBuyerRewardKind(listing.buyerRewardKind),
     listing.buyerRewardPercent ?? 0
   )
@@ -394,7 +394,7 @@ export default async function MarketplaceListingPage({
           isVerifiedSupplier={listing.product.supplier.isVerifiedSupplier}
           supplierTrustTier={listing.product.supplier.supplierTrustTier}
           storefront={storefront}
-          gallery={gallery}
+          gallery={galleryForPdp}
           categories={categories}
           colorNames={colorNames}
           storageOptions={storageOptions}
