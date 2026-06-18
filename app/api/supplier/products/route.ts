@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client"
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { SUPPLIER_PRODUCT_WRITE_TX } from "@/lib/prisma-transaction-options"
 import { findSupplierProductsForOwnerApi } from "@/lib/supplier-product-is-draft-fallback"
 import { decimalToNumber } from "@/lib/serialize-for-client"
 import { createNewDropCommunityPost } from "@/lib/community-new-drop"
@@ -398,7 +399,7 @@ export async function POST(req: Request) {
     }
 
     return created
-  })
+  }, SUPPLIER_PRODUCT_WRITE_TX)
 
   if (chinaImport.sourceUrl && chinaImport.chinaBuyingAgentId) {
     void routeChinaBuy({

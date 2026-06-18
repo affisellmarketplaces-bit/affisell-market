@@ -136,6 +136,7 @@ import {
   usesVariantSkuPricing,
 } from "@/lib/supplier-catalog-price"
 import { registerMerchantDraftFlush } from "@/lib/merchant-draft-flush"
+import { readJsonResponse } from "@/lib/read-json-response"
 import {
   collectClientPublishBlockers,
   mapServerPublishBlockers,
@@ -872,7 +873,7 @@ export function SupplierAddProductForm({
     setLoadingProduct(true)
     try {
       const res = await fetch(`/api/supplier/products/${id}`, { credentials: "include" })
-      const data = (await res.json()) as Record<string, unknown>
+      const data = await readJsonResponse<Record<string, unknown>>(res)
       if (res.status === 404) {
         markServerDraftDead(id)
         setPendingDraftListingId("")
@@ -1523,7 +1524,7 @@ export function SupplierAddProductForm({
             credentials: "include",
             body: JSON.stringify({ ...body, saveAsDraft: true }),
           })
-          const json = (await res.json()) as { id?: string; error?: string }
+          const json = await readJsonResponse<{ id?: string; error?: string }>(res)
           if (!res.ok) {
             throw new Error(typeof json.error === "string" ? json.error : "Échec de l'enregistrement")
           }
@@ -1544,7 +1545,7 @@ export function SupplierAddProductForm({
             credentials: "include",
             body: JSON.stringify(body),
           })
-          const json = (await res.json().catch(() => ({}))) as { error?: string }
+          const json = await readJsonResponse<{ error?: string }>(res)
           if (res.status === 404) {
             markServerDraftDead(autosaveListingId)
             setPendingDraftListingId("")
@@ -1816,7 +1817,7 @@ export function SupplierAddProductForm({
           body: JSON.stringify(payload),
         })
       }
-      const json = (await res.json()) as { error?: string; id?: string; errors?: string[] }
+      const json = await readJsonResponse<{ error?: string; id?: string; errors?: string[] }>(res)
       if (!res.ok) {
         const serverBlockers = mapServerPublishBlockers(
           json as { error?: string; errors?: string[]; issues?: unknown }
@@ -1922,7 +1923,7 @@ export function SupplierAddProductForm({
           })),
         }),
       })
-      const data = (await res.json()) as OptimizeVariantsResult & { error?: string }
+      const data = await readJsonResponse<OptimizeVariantsResult & { error?: string }>(res)
       if (!res.ok) throw new Error(data.error ?? "Optimisation impossible")
       if (!data.simpleColors?.length && !data.sizesText?.trim()) {
         throw new Error("Réponse vide")

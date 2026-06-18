@@ -30,6 +30,7 @@ import {
   sanitizeDraftNotesForGeneration,
 } from "@/lib/supplier-generate-description"
 import { cn } from "@/lib/utils"
+import { readJsonResponse } from "@/lib/read-json-response"
 
 const MAX_GALLERY_FOR_AI = 2
 const MAX_ILLUSTRATIONS_FOR_AI = 3
@@ -366,14 +367,14 @@ export function SupplierProductDescriptionField({
         }),
       })
 
-      const data = (await res.json()) as {
+      const data = await readJsonResponse<{
         error?: string
         description?: string
         bulletPoints?: string[]
         illustrationImages?: string[]
         illustrationSource?: string
         imagePlacements?: DescriptionImagePlacement[]
-      }
+      }>(res)
 
       if (!res.ok) {
         throw new Error(parseGenerateDescriptionError(data.error ?? "Génération impossible"))
@@ -452,7 +453,7 @@ export function SupplierProductDescriptionField({
           bullets: descriptionBullets.map((s) => s.trim()).filter(Boolean),
         }),
       })
-      const data = (await res.json()) as { text?: string; error?: string }
+      const data = await readJsonResponse<{ text?: string; error?: string }>(res)
       if (!res.ok) throw new Error(data.error ?? "Optimisation impossible")
       if (!data.text?.trim()) throw new Error("Réponse vide")
       onDescriptionChange(data.text.trim())

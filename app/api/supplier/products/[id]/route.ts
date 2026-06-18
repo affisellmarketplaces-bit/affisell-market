@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client"
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { SUPPLIER_PRODUCT_WRITE_TX } from "@/lib/prisma-transaction-options"
 import { findSupplierProductGuardForPut } from "@/lib/supplier-product-is-draft-fallback"
 import { onSupplierProductPublishedFromInvite } from "@/lib/supplier-invitation"
 import { createNewDropCommunityPost } from "@/lib/community-new-drop"
@@ -381,7 +382,9 @@ export async function PUT(
 
   const seatLayoutChanged = "bookingSeatLayout" in rawBody
 
-  const updated = await prisma.$transaction(async (tx) => {
+  let updated
+  try {
+    updated = await prisma.$transaction(async (tx) => {
     const p = await tx.product.update({
       where: { id },
       data: {
@@ -505,7 +508,15 @@ export async function PUT(
     }
 
     return p
-  })
+  }, SUPPLIER_PRODUCT_WRITE_TX)
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "product_update_failed"
+    console.error("[supplier-products-put]", { id, message })
+    return Response.json(
+      { error: "Enregistrement impossible (délai dépassé ou données trop lourdes). Réessayez." },
+      { status: 500 }
+    )
+  }
 
   if (
     chinaImport?.sourceUrl &&
@@ -701,7 +712,7 @@ export async function PATCH(
       await tx.product.update({ where: { id }, data })
     }
     await syncProductVariants(tx, id, variantPatch.hasVariants, variantPatch.variants)
-  })
+  }, SUPPLIER_PRODUCT_WRITE_TX)
 
   const fresh = await prisma.product.findFirst({
     where: { id, supplierId: session.user.id },

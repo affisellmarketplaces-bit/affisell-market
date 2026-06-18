@@ -12,6 +12,7 @@ import {
   mergeCoreCategoryAttrs,
 } from "@/lib/category-attribute-core"
 import type { CategoryAttributeValidationRule } from "@/lib/category-attribute-rules"
+import { readJsonResponse } from "@/lib/read-json-response"
 import {
   buildCategorySelectSuggestions,
   categorySelectAllowsFreeText,
@@ -124,7 +125,7 @@ export function CategoryAttributeFields({
             bullets: optimizeContext.bullets,
           }),
         })
-        const data = (await res.json()) as { text?: string; error?: string }
+        const data = await readJsonResponse<{ text?: string; error?: string }>(res)
         if (!res.ok) throw new Error(data.error ?? "Optimisation impossible")
         if (!data.text?.trim()) throw new Error("Réponse vide")
         onChange({ ...values, [attr.key]: data.text.trim() })

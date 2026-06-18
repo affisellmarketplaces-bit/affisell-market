@@ -36,6 +36,7 @@ import {
 import type { CustomColumn, VariantCustomData } from "@/types/product"
 import { isSkuColumnVisible, type SkuOptionalColumnKey } from "@/lib/supplier-sku-columns"
 import { cn } from "@/lib/utils"
+import { readJsonResponse } from "@/lib/read-json-response"
 import {
   applyOptimizedSkuRows,
   type OptimizeVariantsResult,
@@ -410,7 +411,7 @@ export function SupplierVariantTable({
           })),
         }),
       })
-      const data = (await res.json()) as OptimizeVariantsResult & { error?: string }
+      const data = await readJsonResponse<OptimizeVariantsResult & { error?: string }>(res)
       if (!res.ok) throw new Error(data.error ?? "Optimisation impossible")
       if (!data.rows?.length) throw new Error("Réponse vide")
 
