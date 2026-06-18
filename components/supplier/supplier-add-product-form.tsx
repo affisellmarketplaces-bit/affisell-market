@@ -136,6 +136,7 @@ import {
   minSupplierPriceEurFromSkuRows,
   usesVariantSkuPricing,
 } from "@/lib/supplier-catalog-price"
+import { registerMerchantDraftFlush } from "@/lib/merchant-draft-flush"
 import { parseSupplierDecimalInput } from "@/lib/supplier-decimal-input"
 import { readJsonResponse } from "@/lib/read-json-response"
 import {

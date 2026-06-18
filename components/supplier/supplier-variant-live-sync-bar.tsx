@@ -36,7 +36,7 @@ export function SupplierVariantLiveSyncBar({
   const savedLabel =
     savedAt != null
       ? labels.saved.replace(
-          "{time}",
+          "__TIME__",
           new Date(savedAt).toLocaleTimeString(undefined, {
             hour: "2-digit",
             minute: "2-digit",

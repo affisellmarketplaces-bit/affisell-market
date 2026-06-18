@@ -662,7 +662,7 @@
       "savedAtHint": "Enregistré à {time}",
       "variantLiveSyncLive": "Cloud sync — vos cellules se sauvegardent en arrière-plan",
       "variantLiveSyncSaving": "Synchronisation cloud…",
-      "variantLiveSyncSaved": "Aligné sur le cloud à {time}",
+      "variantLiveSyncSaved": "Aligné sur le cloud à __TIME__",
       "variantLiveSyncError": "Sync interrompue — touchez Synchroniser",
       "variantLiveSyncDirty": "Modifications en cours de synchronisation",
       "variantLiveSyncFlush": "Synchroniser maintenant",

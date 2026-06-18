@@ -662,7 +662,7 @@
       "savedAtHint": "Saved at {time}",
       "variantLiveSyncLive": "Cloud sync — cells save automatically in the background",
       "variantLiveSyncSaving": "Syncing to cloud…",
-      "variantLiveSyncSaved": "Synced to cloud at {time}",
+      "variantLiveSyncSaved": "Synced to cloud at __TIME__",
       "variantLiveSyncError": "Sync interrupted — tap Sync now",
       "variantLiveSyncDirty": "Changes syncing to cloud",
       "variantLiveSyncFlush": "Sync now",
