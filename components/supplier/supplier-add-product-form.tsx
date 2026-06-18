@@ -239,6 +239,23 @@ function omitVariantSnapshotForDraftStep1(
   return rest
 }
 
+function hasVariantDraftSnapshot(
+  variantFormMode: SupplierVariantFormMode,
+  advancedSkuRows: EditableVariantRow[],
+  simpleColorRows: SupplierSimpleColorRow[],
+  variantSizesText: string
+): boolean {
+  if (variantFormMode === "advanced") {
+    return advancedSkuRows.some((r) => r.color.trim().length > 0)
+  }
+  if (variantFormMode === "simple") {
+    return (
+      simpleColorRows.some((r) => r.name.trim().length > 0) || variantSizesText.trim().length > 0
+    )
+  }
+  return false
+}
+
 function SectionCard({
   icon: Icon,
   title,
@@ -1021,7 +1038,7 @@ export function SupplierAddProductForm({
             id: newVariantRowId(),
           }))
         )
-        setSkuHiddenColumns([])
+        setSkuHiddenColumns(parseSkuHiddenColumns(parsedListingVariants?.skuHiddenColumns))
         setVariantRows([])
         setVariantSizesText("")
         setVariantColorsText("")
@@ -1386,6 +1403,7 @@ export function SupplierAddProductForm({
       variantRows,
       advancedSkuRows,
       skuCustomColumns,
+      skuHiddenColumns,
     ]
   )
 
@@ -1475,6 +1493,33 @@ export function SupplierAddProductForm({
         }))
       )
     }
+    if (Array.isArray(c.advancedSkuRows) && c.advancedSkuRows.length > 0) {
+      const ok = c.advancedSkuRows.filter(
+        (r): r is EditableVariantRow =>
+          r != null &&
+          typeof r === "object" &&
+          typeof (r as EditableVariantRow).id === "string" &&
+          typeof (r as EditableVariantRow).color === "string"
+      )
+      if (ok.length > 0) {
+        setAdvancedSkuRows(ok)
+        setVariantFormMode("advanced")
+      }
+    }
+    if (Array.isArray(c.skuCustomColumns) && c.skuCustomColumns.length > 0) {
+      setSkuCustomColumns(
+        c.skuCustomColumns.filter(
+          (col): col is SkuCustomColumnDef =>
+            col != null &&
+            typeof col === "object" &&
+            typeof (col as SkuCustomColumnDef).id === "string" &&
+            typeof (col as SkuCustomColumnDef).key === "string"
+        )
+      )
+    }
+    if (Array.isArray(c.skuHiddenColumns) && c.skuHiddenColumns.length > 0) {
+      setSkuHiddenColumns(parseSkuHiddenColumns(c.skuHiddenColumns))
+    }
     if (Array.isArray(c.variantRows) && c.variantRows.length > 0) {
       setVariantRows(
         c.variantRows.filter(
@@ -1491,21 +1536,28 @@ export function SupplierAddProductForm({
 
   const canSaveDraft = !editId || productIsDraft
 
-  /** Compose / draft flows autosave without required fields (empty → "Untitled draft"). */
-  const draftAutosaveEnabled =
-    canSaveDraft && (composeQs || productIsDraft || Boolean(autosaveListingId) || assistShortcuts)
+  /** Autosave when editing an existing listing or composing a new draft. */
+  const listingAutosaveEnabled =
+    Boolean(autosaveListingId) ||
+    (canSaveDraft && (composeQs || productIsDraft || assistShortcuts))
 
   const buildDraftSyncBody = useCallback(
     (forStep: WizardStep) => {
       const full = assembleListingPayload(true) as Record<string, unknown>
-      return forStep === 1 ? omitVariantSnapshotForDraftStep1(full, 1) : full
+      if (
+        forStep === 1 &&
+        !hasVariantDraftSnapshot(variantFormMode, advancedSkuRows, simpleColorRows, variantSizesText)
+      ) {
+        return omitVariantSnapshotForDraftStep1(full, 1)
+      }
+      return full
     },
-    [assembleListingPayload]
+    [assembleListingPayload, variantFormMode, advancedSkuRows, simpleColorRows, variantSizesText]
   )
 
   const syncDraftToServer = useCallback(
     async (opts?: { silent?: boolean; force?: boolean; stepOverride?: WizardStep }) => {
-      if (!canSaveDraft || loadingProduct || saving) return false
+      if (!listingAutosaveEnabled || loadingProduct || saving) return false
 
       const syncStep = opts?.stepOverride ?? step
       const body = buildDraftSyncBody(syncStep)
@@ -1565,8 +1617,13 @@ export function SupplierAddProductForm({
         lastAutosaveJson.current = fp
         setDraftSync("saved")
         setDraftSyncAt(Date.now())
-        if (!productIsDraft) setProductIsDraft(true)
-        if (!opts?.silent) toast.success("Brouillon sauvegardé")
+        console.log("[supplier-product-autosave]", {
+          productId: autosaveListingId ?? "new",
+          step: syncStep,
+          result: "ok",
+        })
+        if (!productIsDraft && !editId) setProductIsDraft(true)
+        if (!opts?.silent) toast.success(editId && !productIsDraft ? "Modifications enregistrées" : "Brouillon sauvegardé")
         return true
       } catch (e) {
         setDraftSync("error")
@@ -1580,6 +1637,8 @@ export function SupplierAddProductForm({
       autosaveListingId,
       buildDraftSyncBody,
       canSaveDraft,
+      editId,
+      listingAutosaveEnabled,
       loadingProduct,
       markServerDraftDead,
       pathname,
@@ -1597,9 +1656,11 @@ export function SupplierAddProductForm({
     [buildDraftSyncBody, step]
   )
 
+  const autosaveDebounceMs = step >= 2 ? 900 : 2200
+
   useEffect(() => {
     if (typeof window === "undefined") return
-    if (loadingProduct || saving || !draftAutosaveEnabled) return
+    if (loadingProduct || saving || !listingAutosaveEnabled) return
 
     let cancelled = false
     const timer = window.setTimeout(() => {
@@ -1607,21 +1668,30 @@ export function SupplierAddProductForm({
         if (cancelled) return
         await syncDraftToServer({ silent: true })
       })()
-    }, 2200)
+    }, autosaveDebounceMs)
     return () => {
       cancelled = true
       window.clearTimeout(timer)
     }
   }, [
     autosaveFingerprint,
-    draftAutosaveEnabled,
+    autosaveDebounceMs,
+    listingAutosaveEnabled,
     loadingProduct,
     saving,
     syncDraftToServer,
   ])
 
+  const prevWizardStepRef = useRef(step)
   useEffect(() => {
-    if (!draftAutosaveEnabled) return
+    const prev = prevWizardStepRef.current
+    prevWizardStepRef.current = step
+    if (prev === step || !listingAutosaveEnabled) return
+    void syncDraftToServer({ silent: true, force: true, stepOverride: step })
+  }, [step, listingAutosaveEnabled, syncDraftToServer])
+
+  useEffect(() => {
+    if (!listingAutosaveEnabled) return
     const unregister = registerMerchantDraftFlush("supplier-add-product", () => {
       void syncDraftToServer({ silent: true, force: true })
     })
@@ -1629,12 +1699,28 @@ export function SupplierAddProductForm({
       void syncDraftToServer({ silent: true, force: true })
       unregister()
     }
-  }, [draftAutosaveEnabled, syncDraftToServer])
+  }, [listingAutosaveEnabled, syncDraftToServer])
 
   useEffect(() => {
     if (typeof window === "undefined") return
     if (editId && !productIsDraft) return
-    if (!(name.trim() || description.trim() || categoryId.trim() || images.length > 0 || descriptionIllustrationImages.length > 0 || descriptionIllustrationVideos.length > 0)) return
+    const hasVariantData =
+      advancedSkuRows.some((r) => r.color.trim()) ||
+      simpleColorRows.some((r) => r.name.trim()) ||
+      variantSizesText.trim().length > 0
+    if (
+      !(
+        name.trim() ||
+        description.trim() ||
+        categoryId.trim() ||
+        images.length > 0 ||
+        descriptionIllustrationImages.length > 0 ||
+        descriptionIllustrationVideos.length > 0 ||
+        hasVariantData
+      )
+    ) {
+      return
+    }
     const t = window.setTimeout(() => {
       writeSupplierAddProductDraftCache(ownerUserId, {
         mode: cacheMode,
@@ -1670,6 +1756,9 @@ export function SupplierAddProductForm({
         variantColorsText,
         simpleColorRows,
         variantRows,
+        advancedSkuRows,
+        skuCustomColumns,
+        skuHiddenColumns,
       })
     }, 720)
     return () => window.clearTimeout(t)
@@ -1710,6 +1799,9 @@ export function SupplierAddProductForm({
     variantColorsText,
     simpleColorRows,
     variantRows,
+    advancedSkuRows,
+    skuCustomColumns,
+    skuHiddenColumns,
   ])
 
   useEffect(() => {
@@ -2241,7 +2333,7 @@ export function SupplierAddProductForm({
                 : tForm("breadcrumbNew"),
             },
           ]}
-          onSaveDraft={canSaveDraft ? () => void handleSaveDraftClick() : undefined}
+          onSaveDraft={listingAutosaveEnabled ? () => void handleSaveDraftClick() : undefined}
           savingDraft={draftSync === "saving" || saving}
           onBack={onBackToMethods}
           qualityPanel={<SupplierWizardQualityPanel items={wizardQualityItems} />}
@@ -2742,6 +2834,25 @@ export function SupplierAddProductForm({
                   {hasPublishFieldError("variants") ? (
                     <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-800 dark:border-red-800 dark:bg-red-950/50 dark:text-red-200">
                       {publishBlockers.find((b) => b.field === "variants")?.message}
+                    </p>
+                  ) : null}
+                  {listingAutosaveEnabled ? (
+                    <p
+                      className={cn(
+                        "text-xs",
+                        draftSync === "error"
+                          ? "font-medium text-red-600 dark:text-red-400"
+                          : "text-zinc-500 dark:text-zinc-400"
+                      )}
+                      aria-live="polite"
+                    >
+                      {draftSync === "saving"
+                        ? "Enregistrement automatique…"
+                        : draftSync === "saved" && draftSyncAt
+                          ? `Enregistré à ${new Date(draftSyncAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}`
+                          : draftSync === "error"
+                            ? "Échec de l’enregistrement — réessayez ou cliquez Enregistrer"
+                            : "Les modifications sont enregistrées automatiquement"}
                     </p>
                   ) : null}
                   <div className="flex flex-wrap gap-2">

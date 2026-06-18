@@ -1,4 +1,6 @@
 import type { ProductVariantLine } from "@/lib/product-variants"
+import type { SkuCustomColumnDef, SupplierSkuTableRow } from "@/lib/supplier-sku-builder"
+import type { SkuOptionalColumnKey } from "@/lib/supplier-sku-columns"
 
 const SUPPLIER_ADD_PRODUCT_CACHE_KEY_PREFIX = "affisell:supplier-add-product-draft:v2"
 
@@ -62,6 +64,10 @@ export type SupplierAddProductCachePayload = {
   variantRows?: ProductVariantLine[]
   variantColorImageRows?: SupplierColorImageFormRow[]
   simpleColorRows?: SupplierSimpleColorRow[]
+  /** Advanced SKU matrix (step 2). */
+  advancedSkuRows?: SupplierSkuTableRow[]
+  skuCustomColumns?: SkuCustomColumnDef[]
+  skuHiddenColumns?: SkuOptionalColumnKey[]
 }
 
 export function readSupplierAddProductDraftCache(
