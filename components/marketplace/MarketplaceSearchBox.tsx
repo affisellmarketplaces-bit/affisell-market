@@ -6,7 +6,7 @@ import { Loader2, Search } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useTranslations } from "next-intl"
 
-import { marketplaceCatalogHref } from "@/lib/marketplace-catalog-url"
+import { catalogFilterHrefFromParams, navigateMarketplaceCatalog } from "@/lib/marketplace-catalog-nav.client"
 import { cn } from "@/lib/utils"
 
 type SuggestionProduct = {
@@ -91,10 +91,7 @@ export function MarketplaceSearchBox({ basePath = "/shops/browse", className }: 
     if (trimmed) params.set("q", trimmed)
     else params.delete("q")
     setOpen(false)
-    router.push(marketplaceCatalogHref(basePath, params))
-    if (basePath === "/") {
-      document.getElementById("explorer")?.scrollIntoView({ behavior: "auto", block: "start" })
-    }
+    navigateMarketplaceCatalog(router, catalogFilterHrefFromParams(basePath, params))
   }
 
   return (
@@ -164,7 +161,7 @@ export function MarketplaceSearchBox({ basePath = "/shops/browse", className }: 
                         params.set("category", c.id)
                         params.delete("q")
                         setOpen(false)
-                        router.push(marketplaceCatalogHref(basePath, params))
+                        navigateMarketplaceCatalog(router, catalogFilterHrefFromParams(basePath, params))
                       }}
                     >
                       <span className="line-clamp-2 text-xs leading-snug">{c.breadcrumb}</span>

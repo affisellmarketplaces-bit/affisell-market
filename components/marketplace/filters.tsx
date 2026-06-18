@@ -10,6 +10,7 @@ import {
   PUBLIC_MARKETPLACE_BROWSE_PATH,
 } from "@/lib/affiliate-routes"
 import { DISCOVERY_FACET_KEYS, MARKETPLACE_OFFER_FACET_KEY } from "@/lib/marketplace-discovery-facets-shared"
+import { catalogFilterHrefFromParams, navigateMarketplaceCatalog } from "@/lib/marketplace-catalog-nav.client"
 import { GraduatedCountriesFilterSection } from "@/components/marketplace/graduated-countries-filter-section"
 import { offerModeFilterLabel, parseOfferFacetValue } from "@/lib/product-offer-mode"
 import type { AppLocale } from "@/lib/i18n-locale"
@@ -32,6 +33,8 @@ type Props = {
   departmentNames?: Record<string, string>
   className?: string
   inSheet?: boolean
+  /** Same base as MarketplaceView (e.g. `/` on home embed, `/shops/browse` on browse page). */
+  catalogBasePath?: string
 }
 
 const PRICE_KEYS = ["under25", "25-100", "over100"] as const
@@ -62,9 +65,13 @@ function facetParams(categoryId: string | null, subcategoryId: string | null | u
   return sp
 }
 
-function catalogBaseFromPath(pathname: string): string {
+function catalogBaseFromPath(pathname: string, override?: string): string {
+  if (override) return override
   if (pathname === AFFILIATE_CATALOG_PATH || pathname.startsWith(`${AFFILIATE_CATALOG_PATH}/`)) {
     return AFFILIATE_CATALOG_PATH
+  }
+  if (pathname === "/" || pathname.startsWith("/#")) {
+    return "/"
   }
   return PUBLIC_MARKETPLACE_BROWSE_PATH
 }
@@ -75,13 +82,14 @@ export function MarketplaceFilters({
   departmentNames,
   className,
   inSheet = false,
+  catalogBasePath,
 }: Props) {
   const t = useTranslations("marketplace.browse")
   const tAuth = useTranslations("auth")
   const locale = useLocale()
   const router = useRouter()
   const pathname = usePathname() ?? ""
-  const catalogBase = catalogBaseFromPath(pathname)
+  const catalogBase = catalogBaseFromPath(pathname, catalogBasePath)
   const searchParams = useSearchParams()
   const deptParam = searchParams.get("dept")
   const scopeId = subcategoryId ?? categoryId ?? deptParam
@@ -117,8 +125,7 @@ export function MarketplaceFilters({
         next.delete("subcategoryId")
       }
     }
-    const s = next.toString()
-    router.push(`${catalogBase}${s ? `?${s}` : ""}`)
+    navigateMarketplaceCatalog(router, catalogFilterHrefFromParams(catalogBase, next))
   }
 
   function facetValueLabel(facetKey: string, value: string): string {

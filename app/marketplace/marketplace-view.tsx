@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo } from "react"
+import { useMemo } from "react"
 
 import Link from "next/link"
 import { Search, X } from "lucide-react"
@@ -31,7 +31,11 @@ import { MARKETPLACE_QUERY_RESERVED } from "@/lib/marketplace-query-params"
 import { MARKETPLACE_OFFER_FACET_KEY } from "@/lib/marketplace-discovery-facets-shared"
 import { offerModeFilterLabel, parseOfferFacetValue } from "@/lib/product-offer-mode"
 import type { AppLocale } from "@/lib/i18n-locale"
-import { marketplaceCatalogHref } from "@/lib/marketplace-catalog-url"
+import {
+  catalogFilterHref,
+  catalogFilterHrefFromParams,
+  navigateMarketplaceCatalog,
+} from "@/lib/marketplace-catalog-nav.client"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { affisellBrand } from "@/lib/affisell-brand"
 import type { HomeMarketplaceShell } from "@/lib/home-marketplace-shell"
@@ -201,9 +205,7 @@ export function MarketplaceView({
     params.delete("subcategoryId")
     params.delete("dept")
     params.set("category", nodeId)
-    const s = params.toString()
-    const path = `${basePath}${s ? `?${s}` : ""}`
-    router.push(basePath === "/" ? `${path}#explorer` : path)
+    navigateMarketplaceCatalog(router, catalogFilterHrefFromParams(basePath, params))
   }
 
   const offerFilter = searchParams.get(MARKETPLACE_OFFER_FACET_KEY)
@@ -279,32 +281,18 @@ export function MarketplaceView({
 
   function clearFilters() {
     skipGraduatedShipsToAutoFilter()
-    const href = basePath === "/" ? "/#explorer" : basePath
-    router.push(href)
+    navigateMarketplaceCatalog(router, catalogFilterHref(basePath))
   }
 
   function filterRegionalShipping() {
     const params = new URLSearchParams(searchParams.toString())
     params.set("shipsFrom", primaryRegionalShipsFromFacet())
-    const s = params.toString()
-    const path = `${basePath}${s ? `?${s}` : ""}`
-    router.push(basePath === "/" ? `${path}#explorer` : path)
+    navigateMarketplaceCatalog(router, catalogFilterHrefFromParams(basePath, params))
   }
 
   const shipsFromFilter = searchParams.get("shipsFrom")
   const shipsToFilter = searchParams.get("shipsTo")
   const regionalShipsFacet = primaryRegionalShipsFromFacet()
-
-  useEffect(() => {
-    if (!embedded) return
-    if (!categoryId && !subcategoryId && !searchQuery.trim()) return
-    const el = document.getElementById("explorer")
-    if (!el) return
-    const tId = window.setTimeout(() => {
-      el.scrollIntoView({ behavior: "auto", block: "start" })
-    }, 0)
-    return () => window.clearTimeout(tId)
-  }, [embedded, categoryId, subcategoryId, searchQuery])
 
   const Shell = embedded ? "section" : "main"
 
@@ -369,12 +357,7 @@ export function MarketplaceView({
                 const localQ = String(fd.get("localQ") ?? "").trim()
                 if (localQ) next.set("q", localQ)
                 else next.delete("q")
-                const s = next.toString()
-                router.push(
-                  basePath === "/"
-                    ? marketplaceCatalogHref("/", next)
-                    : `${basePath}${s ? `?${s}` : ""}`
-                )
+                navigateMarketplaceCatalog(router, catalogFilterHrefFromParams(basePath, next))
               }}
             >
               <label htmlFor="marketplace-local-search" className="sr-only">
@@ -498,6 +481,7 @@ export function MarketplaceView({
             <MarketplaceFilters
               categoryId={categoryId}
               subcategoryId={subcategoryId}
+              catalogBasePath={basePath}
               departmentNames={
                 categoriesPayload?.categories
                   ? Object.fromEntries(categoriesPayload.categories.map((c) => [c.id, c.name]))
@@ -547,6 +531,7 @@ export function MarketplaceView({
                   <MarketplaceFilters
                     categoryId={categoryId}
                     subcategoryId={subcategoryId}
+                    catalogBasePath={basePath}
                     departmentNames={
                       categoriesPayload?.categories
                         ? Object.fromEntries(categoriesPayload.categories.map((c) => [c.id, c.name]))

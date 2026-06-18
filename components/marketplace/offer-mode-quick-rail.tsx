@@ -7,6 +7,7 @@ import { Gift, Package, Recycle, RefreshCw, Sparkles, X } from "lucide-react"
 import useSWR from "swr"
 
 import { MARKETPLACE_OFFER_FACET_KEY } from "@/lib/marketplace-discovery-facets-shared"
+import { catalogFilterHrefFromParams, navigateMarketplaceCatalog } from "@/lib/marketplace-catalog-nav.client"
 import { BUYER_TILE_ACCENTS } from "@/lib/home-buyer-accent-palette"
 import { offerFacetSlug, offerModeFilterLabel, type ProductOfferMode } from "@/lib/product-offer-mode"
 import type { AppLocale } from "@/lib/i18n-locale"
@@ -73,8 +74,7 @@ export function OfferModeQuickRail({ basePath, className, initialCounts }: Props
   const countsReady = countsHydrated && (countsData !== undefined || initialCounts !== undefined)
 
   const pushParams = (next: URLSearchParams) => {
-    const qs = next.toString()
-    router.push(`${targetPath}${qs ? `?${qs}` : ""}`)
+    navigateMarketplaceCatalog(router, catalogFilterHrefFromParams(targetPath, next))
   }
 
   const toggle = (slug: string, count: number | null) => {

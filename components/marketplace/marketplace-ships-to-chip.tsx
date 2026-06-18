@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl"
 import { useRouter, useSearchParams } from "next/navigation"
 
 import { useVisitorCheckoutRegion } from "@/hooks/use-visitor-checkout-region"
+import { catalogFilterHrefFromParams, navigateMarketplaceCatalog } from "@/lib/marketplace-catalog-nav.client"
 import { visitorCountryDisplayName } from "@/lib/visitor-country"
 import { cn } from "@/lib/utils"
 
@@ -28,14 +29,13 @@ export function MarketplaceShipsToChip({ className, basePath = "/marketplace" }:
   const countryName = visitorCountryDisplayName(country, locale)
 
   function toggle() {
-    const params = new URLSearchParams(searchParams.toString())
+    const next = new URLSearchParams(searchParams.toString())
     if (active) {
-      params.delete("shipsTo")
+      next.delete("shipsTo")
     } else {
-      params.set("shipsTo", country.toLowerCase())
+      next.set("shipsTo", country.toLowerCase())
     }
-    const qs = params.toString()
-    router.push(qs ? `${basePath}?${qs}` : basePath)
+    navigateMarketplaceCatalog(router, catalogFilterHrefFromParams(basePath, next))
   }
 
   return (
