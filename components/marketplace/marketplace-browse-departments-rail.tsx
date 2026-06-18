@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation"
 import { useLocale, useTranslations } from "next-intl"
 import useSWR from "swr"
 
-import { marketplaceCatalogHref } from "@/lib/marketplace-catalog-url"
+import { catalogFilterHref, catalogFilterHrefFromParams } from "@/lib/marketplace-catalog-nav.client"
 import type { ResolvedBrowseDepartment } from "@/lib/taxonomy/browse-departments-shared"
 import { cn } from "@/lib/utils"
 
@@ -57,8 +57,15 @@ export function MarketplaceBrowseDepartmentsRail({
       <div className="relative flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {departments.map((dept) => {
           const href = dept.categoryId
-            ? marketplaceCatalogHref(basePath, { category: dept.categoryId })
-            : marketplaceCatalogHref(basePath, { q: dept.searchQuery ?? undefined })
+            ? catalogFilterHrefFromParams(
+                basePath,
+                new URLSearchParams({ category: dept.categoryId })
+              )
+            : (() => {
+                const sp = new URLSearchParams()
+                if (dept.searchQuery) sp.set("q", dept.searchQuery)
+                return catalogFilterHrefFromParams(basePath, sp)
+              })()
           const active = dept.categoryId
             ? activeCategoryId === dept.categoryId
             : Boolean(dept.searchQuery && activeSearch === dept.searchQuery)
@@ -66,6 +73,7 @@ export function MarketplaceBrowseDepartmentsRail({
             <Link
               key={dept.id}
               href={href}
+              scroll={false}
               className={cn(
                 "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition",
                 active

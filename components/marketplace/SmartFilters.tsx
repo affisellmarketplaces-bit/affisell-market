@@ -19,6 +19,7 @@ export function SmartFilters({ items }: { items: SmartFilterItem[] }) {
         <Link
           key={item.id}
           href={item.href}
+          scroll={false}
           className={cn(
             "flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium transition-all focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95",
             item.active

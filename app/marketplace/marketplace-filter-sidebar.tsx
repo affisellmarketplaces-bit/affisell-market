@@ -93,7 +93,7 @@ export async function MarketplaceFilterSidebar({ current }: { current: Marketpla
             const isAll = cat === "All Departments"
             const active = isAll ? !c.category : c.category === cat
             return (
-              <Link
+              <Link scroll={false}
                 key={cat}
                 href={
                   isAll
@@ -139,19 +139,19 @@ export async function MarketplaceFilterSidebar({ current }: { current: Marketpla
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{t("shipsFromTitle")}</p>
         <div className="mt-2 flex flex-wrap gap-2">
-          <Link
+          <Link scroll={false}
             href={href({ ...c, shipsFrom: c.shipsFrom === "fr" ? undefined : "fr" })}
             className={`${chipClass(c.shipsFrom === "fr")} focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95`}
           >
             {t("shipsFrance")}
           </Link>
-          <Link
+          <Link scroll={false}
             href={href({ ...c, shipsFrom: c.shipsFrom === "eu" ? undefined : "eu" })}
             className={`${chipClass(c.shipsFrom === "eu")} focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95`}
           >
             {t("shipsEu")}
           </Link>
-          <Link
+          <Link scroll={false}
             href={href({ ...c, shipsFrom: c.shipsFrom === "worldwide" ? undefined : "worldwide" })}
             className={`${chipClass(c.shipsFrom === "worldwide")} focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95`}
           >
@@ -172,7 +172,7 @@ export async function MarketplaceFilterSidebar({ current }: { current: Marketpla
               const active = c.shipsTo?.toUpperCase() === countryIso2
               const label = expansionCountryLabel(countryIso2, locale)
               return (
-                <Link
+                <Link scroll={false}
                   key={countryIso2}
                   href={href({ ...c, shipsTo: active ? undefined : shipsToValue })}
                   className={`${chipClass(active)} focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95`}
@@ -188,13 +188,13 @@ export async function MarketplaceFilterSidebar({ current }: { current: Marketpla
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{t("deliveryTitle")}</p>
         <div className="mt-2 flex flex-wrap gap-2">
-          <Link
+          <Link scroll={false}
             href={href({ ...c, delivery: c.delivery === "under3" ? undefined : "under3" })}
             className={`${chipClass(c.delivery === "under3")} focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95`}
           >
             {t("deliveryUnder3")}
           </Link>
-          <Link
+          <Link scroll={false}
             href={href({ ...c, delivery: c.delivery === "under7" ? undefined : "under7" })}
             className={`${chipClass(c.delivery === "under7")} focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95`}
           >
@@ -205,7 +205,7 @@ export async function MarketplaceFilterSidebar({ current }: { current: Marketpla
 
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{t("offersTitle")}</p>
-        <Link
+        <Link scroll={false}
           href={href({ ...c, freeShipping: c.freeShipping === "1" ? undefined : "1" })}
           className={`mt-2 flex w-full items-center justify-center rounded-xl px-3 py-2 text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 active:scale-95 ${
             c.freeShipping === "1"
@@ -218,7 +218,7 @@ export async function MarketplaceFilterSidebar({ current }: { current: Marketpla
       </div>
 
       {(c.shipsFrom || c.shipsTo || c.delivery || c.freeShipping || c.category) && (
-        <Link
+        <Link scroll={false}
           href="/shops/browse"
           className="block text-center text-xs font-medium text-zinc-500 underline hover:text-zinc-800 dark:hover:text-zinc-200"
         >
