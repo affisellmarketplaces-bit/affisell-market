@@ -474,7 +474,13 @@ export async function fulfillMarketplaceStripeSession(
           include: listingWithProductInclude,
         })
 
-        if (!listing?.product || !listing.isListed || !listing.product.active) {
+        if (!listing?.product || !listing.product.active) {
+          console.log("[marketplace-fulfill]", {
+            sessionId,
+            line: i,
+            affiliateProductId: line.affiliateProductId,
+            result: "skipped_inactive_listing",
+          })
           continue
         }
 
@@ -537,23 +543,40 @@ export async function fulfillMarketplaceStripeSession(
     return
   }
 
-  const existing = await prisma.order.findUnique({ where: { stripeSessionId: sessionId } })
+  const metaOrderId = meta.orderId?.trim() || ""
+  let existing = await prisma.order.findUnique({ where: { stripeSessionId: sessionId } })
+  if (!existing && metaOrderId) {
+    existing = await prisma.order.findUnique({ where: { id: metaOrderId } })
+  }
   if (existing?.status === "paid") return
 
-  const affiliateProductId = meta.affiliateProductId?.trim()
-  if (!affiliateProductId) return
+  const affiliateProductId =
+    meta.affiliateProductId?.trim() || existing?.affiliateProductId?.trim() || ""
+  if (!affiliateProductId) {
+    console.log("[marketplace-fulfill]", { sessionId, result: "skipped_no_listing_id" })
+    return
+  }
 
   const listing = await prisma.affiliateProduct.findUnique({
     where: { id: affiliateProductId },
     include: listingWithProductInclude,
   })
 
-  if (!listing?.product || !listing.isListed || !listing.product.active) {
+  if (!listing?.product || !listing.product.active) {
+    console.log("[marketplace-fulfill]", {
+      sessionId,
+      affiliateProductId,
+      result: "skipped_inactive_listing",
+    })
     return
   }
 
-  const qty = Math.max(1, Math.round(parseInt(meta.checkoutQty ?? "1", 10) || 1))
-  const checkoutVariantLabel = meta.checkoutVariantLabel?.trim() || ""
+  const qty = Math.max(
+    1,
+    Math.round(parseInt(meta.checkoutQty ?? String(existing?.quantity ?? 1), 10) || 1)
+  )
+  const checkoutVariantLabel =
+    meta.checkoutVariantLabel?.trim() || existing?.variantLabel?.trim() || ""
   const checkoutVariantSignature = meta.checkoutVariantSignature?.trim() || ""
   const variants = variantsFromDb(listing.product.variants)
   const checkoutParsed = parseCartVariantSignature(checkoutVariantSignature)
@@ -570,7 +593,16 @@ export async function fulfillMarketplaceStripeSession(
     paids && paids.length >= 1 ? Math.min(listLineCents, Math.max(0, paids[0]!)) : listLineCents
 
   await prisma.$transaction(async (tx) => {
-    const dup = await tx.order.findUnique({ where: { stripeSessionId: sessionId } })
+    let dup = await tx.order.findUnique({ where: { stripeSessionId: sessionId } })
+    if (!dup && metaOrderId) {
+      dup = await tx.order.findUnique({ where: { id: metaOrderId } })
+    }
+    if (dup && dup.stripeSessionId !== sessionId) {
+      dup = await tx.order.update({
+        where: { id: dup.id },
+        data: { stripeSessionId: sessionId },
+      })
+    }
     if (dup?.status === "paid") return
 
     const earnUserId = await resolveBuyerUserIdForEarn(tx, buyerUserId, customerEmail)

@@ -1,9 +1,14 @@
 import { type NextRequest, NextResponse } from "next/server"
 
 import { rateLimitClientKey, rateLimitResponse } from "@/lib/api-rate-limit"
-import { ensureMarketplaceCheckoutFulfilled } from "@/lib/marketplace-checkout-fulfill"
+import {
+  ensureMarketplaceCheckoutFulfilled,
+  isMarketplaceCheckoutFulfilled,
+  marketplaceCheckoutNeedsFulfillment,
+} from "@/lib/marketplace-checkout-fulfill"
 import { findOrderIdsForCheckoutSession } from "@/lib/stripe-marketplace-commission-split"
 import { getStripeClient } from "@/lib/stripe"
+import { scheduleMarketplaceTransferAttempts } from "@/lib/transfers/schedule-from-checkout"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -31,20 +36,26 @@ export async function GET(req: NextRequest) {
 
     let orderIds = initialOrderIds
 
-    if (
-      session.mode === "payment" &&
-      session.payment_status === "paid" &&
-      orderIds.length === 0
-    ) {
+    const paid = session.payment_status === "paid"
+    const needsFulfillment =
+      session.mode === "payment" && paid && (await marketplaceCheckoutNeedsFulfillment(sessionId))
+
+    if (needsFulfillment) {
       await ensureMarketplaceCheckoutFulfilled(session)
       orderIds = await findOrderIdsForCheckoutSession(sessionId)
+
+      for (const orderId of orderIds) {
+        await scheduleMarketplaceTransferAttempts(session, orderId)
+      }
     }
 
+    const fulfilled = paid && (await isMarketplaceCheckoutFulfilled(sessionId))
+
     return NextResponse.json({
-      paid: session.payment_status === "paid",
+      paid,
       orderId: orderIds[0] ?? session.metadata?.orderId ?? null,
       orderIds,
-      fulfilled: orderIds.length > 0,
+      fulfilled,
       amountTotal: session.amount_total ?? null,
       currency: session.currency ?? "eur",
     })
