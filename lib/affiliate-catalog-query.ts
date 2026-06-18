@@ -12,6 +12,7 @@ import {
 import { buildCategoryScopeProductFilter } from "@/lib/marketplace-category-product-filter"
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
+import { mergeColorImagesForProduct } from "@/lib/product-color-images"
 import { publicPartnerSellerLabel } from "@/lib/public-seller-display"
 
 export {
@@ -35,12 +36,14 @@ function normalizeCatalogRow(row: DiscoverRow): AffiliateCatalogProduct {
     email: string
     store: { name: string; slug: string } | null
   }
+  const colors = row.colors ?? []
   return {
     id: row.id,
     name: row.name,
     images: row.images ?? [],
     categories: row.categories ?? [],
-    colors: row.colors ?? [],
+    colors,
+    colorImages: mergeColorImagesForProduct(colors, row.colorImages, row.variants),
     tags: row.tags ?? [],
     basePriceCents: row.basePriceCents,
     commissionRate: affiliateCommissionDisplayPct({

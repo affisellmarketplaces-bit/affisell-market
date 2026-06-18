@@ -49,14 +49,15 @@ import {
   type SerializedListing,
 } from "@/components/affiliate/listing-builder-modal"
 import { resolveCatalogListingState } from "@/lib/affiliate-catalog-listing-state"
+import { ProductColorSwatchDots } from "@/components/product/product-color-swatch-dots"
 import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
-import { COLORS, isMulticolorSwatch } from "@/lib/product-catalog-constants"
 import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
 import { affisellBrand } from "@/lib/affisell-brand"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { cn } from "@/lib/utils"
 import { primaryProductImage } from "@/lib/product-images"
+import type { ProductColorImageRow } from "@/lib/product-color-images"
 
 type CatalogProduct = {
   id: string
@@ -65,6 +66,7 @@ type CatalogProduct = {
   images: string[]
   categories?: string[]
   colors?: string[]
+  colorImages?: ProductColorImageRow[]
   tags?: string[]
   variants?: unknown
   basePriceCents: number
@@ -986,27 +988,10 @@ export function AffiliateDashboard({ storeId }: Props) {
                     </p>
                   ) : null}
                   {(p.colors?.length ?? 0) > 0 ? (
-                    <div className="flex flex-wrap gap-1">
-                      {(p.colors ?? []).slice(0, 8).map((cn) => {
-                        const meta = COLORS.find((c) => c.name === cn)
-                        const mc = meta ? isMulticolorSwatch(meta) : false
-                        return (
-                          <span
-                            key={cn}
-                            title={cn}
-                            className="inline-flex h-5 w-5 rounded-full shadow ring-1 ring-black/15"
-                            style={
-                              mc
-                                ? {
-                                    background:
-                                      "conic-gradient(at 50%_50%,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)",
-                                  }
-                                : { backgroundColor: meta?.hex || "#cbd5e1" }
-                            }
-                          />
-                        )
-                      })}
-                    </div>
+                    <ProductColorSwatchDots
+                      colors={p.colors ?? []}
+                      colorImages={p.colorImages}
+                    />
                   ) : null}
                   <div className="mt-auto grid grid-cols-2 gap-3 border-t border-zinc-100 pt-3 dark:border-zinc-800">
                     <div>
