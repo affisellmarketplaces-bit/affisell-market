@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  affiliateListingPreviewHref,
   isAffiliateOwnerPreviewUrl,
   isAffiliateStoreOwner,
   shouldShowAffiliateStorePreviewBanner,
@@ -22,5 +23,15 @@ describe("affiliate-store-preview-access", () => {
     expect(shouldShowAffiliateStorePreviewBanner(true, true)).toBe(true)
     expect(shouldShowAffiliateStorePreviewBanner(false, true)).toBe(false)
     expect(shouldShowAffiliateStorePreviewBanner(true, false)).toBe(false)
+  })
+
+  it("builds shop PDP preview href for hidden listings", () => {
+    expect(
+      affiliateListingPreviewHref({
+        storeSlug: "ecom-store",
+        listingId: "listing_1",
+        productId: "product_1",
+      })
+    ).toBe("/shops/ecom-store/product/listing_1?preview=affiliate")
   })
 })

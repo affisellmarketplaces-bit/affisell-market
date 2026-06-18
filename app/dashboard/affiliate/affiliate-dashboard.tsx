@@ -49,6 +49,7 @@ import {
   type SerializedListing,
 } from "@/components/affiliate/listing-builder-modal"
 import { resolveCatalogListingState } from "@/lib/affiliate-catalog-listing-state"
+import { affiliateListingPreviewHref } from "@/lib/affiliate-store-preview-access"
 import { ProductColorSwatchDots } from "@/components/product/product-color-swatch-dots"
 import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
@@ -918,7 +919,11 @@ export function AffiliateDashboard({ storeId }: Props) {
             const supplierHref = p.supplier.store?.slug?.trim()
               ? `/store/supplier/${encodeURIComponent(p.supplier.store.slug)}`
               : null
-            const canonicalListingHref = `/product/${p.id}`
+            const canonicalListingHref = affiliateListingPreviewHref({
+              storeSlug,
+              listingId: listingState.kind !== "none" ? listingState.listingId : null,
+              productId: p.id,
+            })
             return (
               <article
                 id={`catalog-product-${p.id}`}

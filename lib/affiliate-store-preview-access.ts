@@ -20,3 +20,20 @@ export function shouldShowAffiliateStorePreviewBanner(
 ): boolean {
   return isStoreOwner && isOwnerPreviewUrl
 }
+
+/** Buyer PDP preview for an affiliate listing (listed or hidden draft on storefront). */
+export function affiliateListingPreviewHref(args: {
+  storeSlug: string | null | undefined
+  listingId: string | null | undefined
+  productId: string
+}): string {
+  const listingId = args.listingId?.trim()
+  const storeSlug = args.storeSlug?.trim()
+  if (listingId && storeSlug) {
+    return `/shops/${encodeURIComponent(storeSlug)}/product/${encodeURIComponent(listingId)}?preview=affiliate`
+  }
+  if (listingId) {
+    return `/marketplace/${encodeURIComponent(listingId)}?preview=affiliate`
+  }
+  return `/product/${encodeURIComponent(args.productId)}`
+}

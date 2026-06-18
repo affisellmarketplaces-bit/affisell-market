@@ -17,6 +17,7 @@ import {
 } from "@/lib/affiliate-listing-display"
 import { normalizeListingSalesCount } from "@/lib/listing-sales-count"
 import { shopListingPath } from "@/lib/affiliate-routes"
+import { isAffiliateOwnerPreviewUrl } from "@/lib/affiliate-store-preview-access"
 import { loadMarketplaceListingPageData } from "@/lib/marketplace-listing-page-loader"
 import { buildListingLogisticsInput } from "@/lib/listing-logistics-display"
 import { mergeColorImagesForProduct, parseProductColorImagesFromDb, enrichGalleryWithColorHeroImages } from "@/lib/product-color-images"
@@ -140,7 +141,7 @@ export default async function MarketplaceListingPage({
   storeSlug,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ writeReview?: string; orderId?: string }>
+  searchParams: Promise<{ writeReview?: string; orderId?: string; preview?: string }>
   /** When set (shop PDP), listing must belong to this store — single DB round-trip. */
   storeSlug?: string
 }) {
@@ -162,15 +163,29 @@ export default async function MarketplaceListingPage({
       ? await isRolloutOnlyCheckoutCountryResolved(visitorCountry)
       : false
 
+  const isAffiliateSession = String(session?.user?.role ?? "").toUpperCase() === "AFFILIATE"
+  const ownerPreviewByQuery = isAffiliateOwnerPreviewUrl({
+    get: (key) => (key === "preview" ? sp.preview ?? null : null),
+  })
   const loaded = await loadMarketplaceListingPageData({
     listingId: id,
     storeSlug,
     buyerUserId: session?.user?.id ?? null,
     orderId: sp.orderId ?? null,
+    allowOwnerPreview: isAffiliateSession && (ownerPreviewByQuery || Boolean(storeSlug)),
+    ownerAffiliateUserId: session?.user?.id ?? null,
   })
   if (!loaded) notFound()
   if (storeSlug && loaded.canonicalRedirect) {
     redirect(shopListingPath(loaded.canonicalRedirect, id))
+  }
+  if (loaded.listingIdRedirect) {
+    const canonicalId = loaded.listingIdRedirect
+    const previewQs = sp.preview === "affiliate" ? "?preview=affiliate" : ""
+    if (storeSlug) {
+      redirect(`${shopListingPath(storeSlug, canonicalId)}${previewQs}`)
+    }
+    redirect(`/marketplace/${canonicalId}${previewQs}`)
   }
 
   const { listing, oftenRaw, fallbackRaw, viewsLast24h, writeReviewOrderId } = loaded

@@ -114,11 +114,13 @@ export const listingDetailSelect = {
 } as const
 
 type ListingWhere = {
-  id: string
-  isListed: boolean
+  id?: string
+  productId?: string
+  isListed?: boolean
   product: typeof buyerMarketplaceProductWhere
   affiliate: {
     role: string
+    id?: string
     store?: { slug: string }
   }
 }
@@ -156,7 +158,13 @@ async function loadSupplierTrustTier(supplierId: string): Promise<string> {
 
 async function findListingDetailRow(where: ListingWhere): Promise<ListingDetailRow | null> {
   const row = await prisma.affiliateProduct.findFirst({
-    where,
+    where: {
+      ...(where.id ? { id: where.id } : {}),
+      ...(where.productId ? { productId: where.productId } : {}),
+      ...(where.isListed !== undefined ? { isListed: where.isListed } : {}),
+      product: where.product,
+      affiliate: where.affiliate,
+    },
     select: listingDetailSelect,
   })
   if (!row?.product) return null
@@ -196,20 +204,65 @@ export async function loadMarketplaceListingPageData(args: {
   storeSlug?: string
   buyerUserId?: string | null
   orderId?: string | null
+  /** Signed-in affiliate owner previewing their own hidden listing (`?preview=affiliate`). */
+  allowOwnerPreview?: boolean
+  ownerAffiliateUserId?: string | null
 }) {
   const listingId = args.listingId.trim()
 
   const baseAffiliateWhere = { role: "AFFILIATE" as const }
+  const scopedAffiliateWhere = {
+    ...baseAffiliateWhere,
+    ...(args.storeSlug ? { store: { slug: args.storeSlug } } : {}),
+  }
 
   let listing = await findListingDetailRow({
     id: listingId,
     isListed: true,
     product: buyerMarketplaceProductWhere,
-    affiliate: {
-      ...baseAffiliateWhere,
-      ...(args.storeSlug ? { store: { slug: args.storeSlug } } : {}),
-    },
+    affiliate: scopedAffiliateWhere,
   })
+
+  let listingIdRedirect: string | null = null
+  if (!listing) {
+    listing = await findListingDetailRow({
+      productId: listingId,
+      isListed: true,
+      product: buyerMarketplaceProductWhere,
+      affiliate: scopedAffiliateWhere,
+    })
+    if (listing && listing.id !== listingId) {
+      listingIdRedirect = listing.id
+    }
+  }
+
+  let ownerPreviewUnlisted = false
+  if (!listing && args.allowOwnerPreview && args.ownerAffiliateUserId) {
+    const ownerAffiliateWhere = {
+      ...baseAffiliateWhere,
+      id: args.ownerAffiliateUserId,
+      ...(args.storeSlug ? { store: { slug: args.storeSlug } } : {}),
+    }
+    listing =
+      (await findListingDetailRow({
+        id: listingId,
+        isListed: false,
+        product: buyerMarketplaceProductWhere,
+        affiliate: ownerAffiliateWhere,
+      })) ??
+      (await findListingDetailRow({
+        productId: listingId,
+        isListed: false,
+        product: buyerMarketplaceProductWhere,
+        affiliate: ownerAffiliateWhere,
+      }))
+    if (listing) {
+      ownerPreviewUnlisted = true
+      if (listing.id !== listingId) {
+        listingIdRedirect = listing.id
+      }
+    }
+  }
 
   let canonicalRedirect: string | null = null
   if (!listing && args.storeSlug) {
@@ -219,6 +272,17 @@ export async function loadMarketplaceListingPageData(args: {
       product: buyerMarketplaceProductWhere,
       affiliate: baseAffiliateWhere,
     })
+    if (!listing) {
+      listing = await findListingDetailRow({
+        productId: listingId,
+        isListed: true,
+        product: buyerMarketplaceProductWhere,
+        affiliate: baseAffiliateWhere,
+      })
+      if (listing && listing.id !== listingId) {
+        listingIdRedirect = listing.id
+      }
+    }
     const canonicalSlug = listing?.affiliate.store?.slug?.trim()
     if (canonicalSlug && canonicalSlug !== args.storeSlug) {
       canonicalRedirect = canonicalSlug
@@ -278,6 +342,8 @@ export async function loadMarketplaceListingPageData(args: {
   return {
     listing,
     canonicalRedirect,
+    listingIdRedirect,
+    ownerPreviewUnlisted,
     oftenRaw,
     fallbackRaw,
     viewsLast24h,
