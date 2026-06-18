@@ -184,6 +184,7 @@ import {
 } from "@/lib/supplier-simple-color-validation"
 import { parseProductColorImagesFromDb } from "@/lib/product-color-images"
 import { trimColorSwatchImageForStore } from "@/lib/color-swatch-image"
+import { resolveColorSwatchMeta } from "@/lib/color-name-hex"
 import { formatStoreCurrency } from "@/lib/market-config"
 import { cn } from "@/lib/utils"
 
@@ -1222,6 +1223,7 @@ export function SupplierAddProductForm({
           colorsPayload.length > 0
             ? colorsPayload.map((c) => ({
                 color: c.slice(0, 48),
+                hex: resolveColorSwatchMeta(c).hex,
                 image: trimColorSwatchImageForStore(imgBy.get(c) ?? ""),
               }))
             : undefined
@@ -1267,6 +1269,7 @@ export function SupplierAddProductForm({
           colorsPayload.length > 0
             ? colorsPayload.map((color) => ({
                 color: color.slice(0, 48),
+                hex: resolveColorSwatchMeta(color).hex,
                 image: trimColorSwatchImageForStore(imgByColor.get(color.toLowerCase()) ?? ""),
               }))
             : undefined

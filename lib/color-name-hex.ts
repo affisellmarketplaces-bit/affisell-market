@@ -85,6 +85,11 @@ const COLOR_HEX_BY_KEY: Record<string, string> = {
   prune: "#6B2D5C",
   "z gris": "#71717A",
   "z-gris": "#71717A",
+  indigo: "#4F46E5",
+  "bleu indigo": "#4F46E5",
+  "blue indigo": "#4F46E5",
+  "noir transparent": "#1C1C1E",
+  transparent: "#E8E8ED",
   multicolor: "multicolor",
   multicolore: "multicolor",
   multicolour: "multicolor",
@@ -115,16 +120,17 @@ function lookupAlias(key: string): ResolvedColorSwatch | null {
     return { hex: catalog.hex }
   }
 
-  const tokens = key.split(/[\s/]+/).filter(Boolean)
-  for (const token of tokens) {
-    const hit = COLOR_HEX_BY_KEY[token]
-    if (hit) return toSwatch(hit)
-  }
-
+  // Compound names first (e.g. "bleu indigo" before token "bleu").
   const aliasKeys = Object.keys(COLOR_HEX_BY_KEY).sort((a, b) => b.length - a.length)
   for (const alias of aliasKeys) {
     if (alias.length < 3) continue
     if (key.includes(alias)) return toSwatch(COLOR_HEX_BY_KEY[alias]!)
+  }
+
+  const tokens = key.split(/[\s/]+/).filter(Boolean).sort((a, b) => b.length - a.length)
+  for (const token of tokens) {
+    const hit = COLOR_HEX_BY_KEY[token]
+    if (hit) return toSwatch(hit)
   }
 
   return null

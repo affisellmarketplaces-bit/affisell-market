@@ -16,6 +16,7 @@ export const COLORS: CatalogColorSwatch[] = [
   { name: "Silver", hex: "#C0C0C0" },
   { name: "Gold", hex: "#FFD700" },
   { name: "Blue", hex: "#007AFF" },
+  { name: "Indigo", hex: "#4F46E5" },
   { name: "Midnight", hex: "#1D1D3A" },
   { name: "Red", hex: "#FF3B30" },
   { name: "Green", hex: "#34C759" },

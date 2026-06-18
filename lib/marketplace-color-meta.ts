@@ -12,7 +12,7 @@ const NON_COLOR_OPTION_RE =
   /^(no |with |sans |avec |kit|pack|bundle|option|type|model|style|version|hw\b|standard\b)/
 
 const COLORISH_WORD_RE =
-  /\b(rose|rouge|noir|blanc|bleu|vert|gris|or|argent|beige|kaki|corail|marron|violet|jaune|orange|pink|red|black|white|blue|green|gray|grey|gold|silver|brown|purple|yellow|turquoise|multicolor|multicolore|haricot|navy|bordeaux|camel|ecru|minuit|midnight|titanium|titane)\b/
+  /\b(rose|rouge|noir|blanc|bleu|vert|gris|or|argent|beige|kaki|corail|marron|violet|jaune|orange|pink|red|black|white|blue|green|gray|grey|gold|silver|brown|purple|yellow|turquoise|multicolor|multicolore|haricot|navy|bordeaux|camel|ecru|minuit|midnight|titanium|titane|indigo|transparent)\b/
 
 /** True when a shopper-facing label is a color (not a bundle / kit option). */
 export function isLikelyColorName(name: string): boolean {

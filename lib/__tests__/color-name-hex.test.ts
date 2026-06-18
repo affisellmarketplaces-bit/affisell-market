@@ -23,6 +23,12 @@ describe("color-name-hex", () => {
     expect(resolveColorSwatchMeta("Z-gris").hex).toBe("#71717A")
   })
 
+  it("resolves compound French color names before generic tokens", () => {
+    expect(resolveColorSwatchMeta("Bleu Indigo").hex).toBe("#4F46E5")
+    expect(resolveColorSwatchMeta("Noir transparent").hex).toBe("#1C1C1E")
+    expect(resolveColorSwatchMeta("Rose haricot", "#CCCCCC").hex).toBe("#FF2D92")
+  })
+
   it("prefers stored hex when valid", () => {
     expect(resolveColorSwatchMeta("Custom", "#112233").hex).toBe("#112233")
   })
