@@ -76,9 +76,9 @@ export default async function SupplierProductVideoPage({
 
         {images.length > 0 ? (
           <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {images.map((src) => (
+            {images.map((src, imageIndex) => (
               <div
-                key={src}
+                key={`product-image-${imageIndex}`}
                 className="relative aspect-square overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900"
               >
                 <Image

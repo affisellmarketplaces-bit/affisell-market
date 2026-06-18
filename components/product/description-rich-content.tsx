@@ -51,9 +51,9 @@ export function DescriptionRichContent({ description, images, className, textCla
       )}
       {hasMarkers && trailingImages.length > 0 ? (
         <ul className="grid gap-3 sm:grid-cols-2">
-          {trailingImages.map((src) => (
+          {trailingImages.map((src, imageIndex) => (
             <li
-              key={src}
+              key={`trailing-${imageIndex}`}
               className="overflow-hidden rounded-xl border border-zinc-100 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}

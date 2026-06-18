@@ -294,9 +294,9 @@ function DescriptionIllustrativeMedia({
       </p>
       {images.length > 0 ? (
         <ul className="grid gap-3 sm:grid-cols-2">
-          {images.map((src) => (
+          {images.map((src, imageIndex) => (
             <li
-              key={src}
+              key={`illustration-img-${imageIndex}`}
               className="overflow-hidden rounded-xl border border-zinc-100 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50"
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- remote supplier / CDN URLs */}
@@ -307,12 +307,12 @@ function DescriptionIllustrativeMedia({
       ) : null}
       {videos.length > 0 ? (
         <ul className="space-y-4">
-          {videos.map((url) => {
+          {videos.map((url, videoIndex) => {
             const yt = youtubeEmbedSrc(url)
             const vm = !yt ? vimeoEmbedSrc(url) : null
             const mp4 = !yt && !vm && isDirectMp4Url(url)
             return (
-              <li key={url}>
+              <li key={`illustration-video-${videoIndex}`}>
                 <ProductVideoWishlistOverlay
                   productId={productId}
                   className="rounded-xl border border-zinc-200 bg-black/5 dark:border-zinc-700"
