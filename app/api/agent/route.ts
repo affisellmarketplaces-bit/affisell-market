@@ -10,12 +10,18 @@ import {
 import { z } from "zod"
 
 import { auth } from "@/auth"
+import { searchCatalogForAgent } from "@/lib/agent-catalog-search"
+import {
+  buildAgentSearchToolLines,
+  directSearchUIMessageStreamResponse,
+  isGroqQuotaOrRateLimitError,
+  shouldUseDirectCatalogSearch,
+} from "@/lib/agent-direct-search"
+import { getAgentHistoryForTools, recordAgentSearch, type AgentHistoryContext } from "@/lib/agent-history"
+import { compactAgentMessagesForModel } from "@/lib/agent-message-compact"
 import { validateAgentMessages } from "@/lib/agent-message-bounds"
 import { rateLimitClientKey, rateLimitResponse } from "@/lib/api-rate-limit"
 import { createCheckoutSession } from "@/lib/agent-checkout"
-import { searchCatalogForAgent } from "@/lib/agent-catalog-search"
-import { getAgentHistoryForTools, recordAgentSearch, type AgentHistoryContext } from "@/lib/agent-history"
-import type { AgentProductCard } from "@/lib/agent-product-card-types"
 import { formatStoreCurrency } from "@/lib/market-config"
 import { prisma } from "@/lib/prisma"
 
@@ -26,19 +32,6 @@ export const runtime = "nodejs"
 export const maxDuration = 60
 export const dynamic = "force-dynamic"
 export const revalidate = 0
-
-/** Encode one catalog row as JSON string (Groq tool output = string[] only). */
-function encodeRow(p: AgentProductCard, group: 0 | 1): string {
-  return JSON.stringify({
-    g: group,
-    id: p.id,
-    name: p.name,
-    price: p.price,
-    imageUrl: p.imageUrl,
-    brand: p.brand,
-    description: p.description,
-  })
-}
 
 const SYSTEM_PROMPT = `You are Affisell's Personal Shopping Agent.
 
@@ -68,7 +61,8 @@ function extractFirstProductIdFromMessages(messages: UIMessage[]): string | null
       for (const line of output) {
         if (typeof line !== "string") continue
         try {
-          const row = JSON.parse(line) as { id?: unknown; g?: unknown; t?: unknown }
+          const row = JSON.parse(line) as { id?: unknown; g?: unknown; t?: unknown; compact?: unknown }
+          if (row.compact) continue
           if (row.t === "cat") continue
           if (typeof row.id === "string" && row.id.trim()) return row.id.trim()
         } catch {
@@ -78,6 +72,18 @@ function extractFirstProductIdFromMessages(messages: UIMessage[]): string | null
     }
   }
   return null
+}
+
+async function respondWithDirectCatalogSearch(
+  messages: UIMessage[],
+  query: string,
+  historyCtx: AgentHistoryContext
+): Promise<Response> {
+  const result = await searchCatalogForAgent(db, query)
+  await recordAgentSearch(db, historyCtx, query, result.products[0]?.id ?? null)
+  const lines = buildAgentSearchToolLines(result)
+  console.log("[agent]", { query, direct: true, hits: result.products.length })
+  return directSearchUIMessageStreamResponse(messages, query, lines)
 }
 
 export async function POST(req: Request) {
@@ -153,7 +159,14 @@ export async function POST(req: Request) {
     })
   }
 
+  if (lastUserText.trim() && shouldUseDirectCatalogSearch(lastUserText)) {
+    return respondWithDirectCatalogSearch(messages, lastUserText.trim(), historyCtx)
+  }
+
   if (!process.env.GROQ_API_KEY?.trim()) {
+    if (lastUserText.trim()) {
+      return respondWithDirectCatalogSearch(messages, lastUserText.trim(), historyCtx)
+    }
     return Response.json(
       {
         error:
@@ -163,9 +176,10 @@ export async function POST(req: Request) {
     )
   }
 
+  const compacted = compactAgentMessagesForModel(messages)
   let modelMessages: Awaited<ReturnType<typeof convertToModelMessages>>
   try {
-    modelMessages = await convertToModelMessages(messages)
+    modelMessages = await convertToModelMessages(compacted)
   } catch (e) {
     const message = e instanceof Error ? e.message : "Invalid messages payload"
     return Response.json({ error: message }, { status: 400 })
@@ -180,20 +194,7 @@ export async function POST(req: Request) {
       const q = query.trim()
       const result = await searchCatalogForAgent(db, q)
       await recordAgentSearch(db, historyCtx, q, result.products[0]?.id ?? null)
-
-      const lines: string[] = []
-      for (const p of result.products) {
-        lines.push(encodeRow(p, 0))
-      }
-      for (const p of result.similarProducts) {
-        lines.push(encodeRow(p, 1))
-      }
-      if (lines.length === 0 && result.suggestedCategories.length > 0) {
-        for (const c of result.suggestedCategories) {
-          lines.push(JSON.stringify({ t: "cat", c }))
-        }
-      }
-      return lines
+      return buildAgentSearchToolLines(result)
     },
   })
 
@@ -214,7 +215,7 @@ export async function POST(req: Request) {
       system: SYSTEM_PROMPT,
       messages: modelMessages,
       tools: { searchProducts, getUserHistory },
-      stopWhen: stepCountIs(16),
+      stopWhen: stepCountIs(8),
       onError: ({ error }) => {
         console.error("[agent]", error)
       },
@@ -223,6 +224,9 @@ export async function POST(req: Request) {
     return result.toUIMessageStreamResponse()
   } catch (e) {
     console.error("[agent] streamText", e)
+    if (lastUserText.trim() && isGroqQuotaOrRateLimitError(e)) {
+      return respondWithDirectCatalogSearch(messages, lastUserText.trim(), historyCtx)
+    }
     const message = e instanceof Error ? e.message : "Agent failed"
     return Response.json({ error: message }, { status: 500 })
   }

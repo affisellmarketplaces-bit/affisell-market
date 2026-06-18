@@ -5,8 +5,22 @@ import {
   buyerListedAffiliateProductWhere,
   buyerMarketplaceProductWhere,
 } from "@/lib/marketplace-buyer-product-filter"
+import { expandMarketplaceSearchTerms } from "@/lib/marketplace-search"
 import { primaryProductImage } from "@/lib/product-images"
 import { publicPartnerSellerLabel } from "@/lib/public-seller-display"
+
+function buildProductFieldOr(terms: string[]): Prisma.ProductWhereInput["OR"] {
+  const or: Prisma.ProductWhereInput["OR"] = []
+  const seen = new Set<string>()
+  for (const term of terms) {
+    const t = term.trim()
+    if (t.length < 2 || seen.has(t)) continue
+    seen.add(t)
+    or.push({ name: { contains: t, mode: "insensitive" } })
+    or.push({ description: { contains: t, mode: "insensitive" } })
+  }
+  return or
+}
 
 function trimDescription(s: string, max = 400): string {
   return s.length > max ? `${s.slice(0, max - 1)}…` : s
@@ -110,10 +124,22 @@ export async function searchCatalogForAgent(
     return { products: [], similarProducts: [], suggestedCategories: [] }
   }
 
-  const nameOrDescriptionMatch: Prisma.ProductWhereInput["OR"] = [
-    { name: { contains: q, mode: "insensitive" } },
-    { description: { contains: q, mode: "insensitive" } },
-  ]
+  const searchTerms = expandMarketplaceSearchTerms(q)
+  const nameOrDescriptionMatch = buildProductFieldOr(searchTerms.length > 0 ? searchTerms : [q])
+
+  const affiliateTextOr: Prisma.AffiliateProductWhereInput["OR"] = searchTerms.flatMap((term) => {
+    if (term.length < 2) return []
+    return [
+      { customTitle: { contains: term, mode: "insensitive" } },
+      { customDescription: { contains: term, mode: "insensitive" } },
+    ]
+  })
+  if (affiliateTextOr.length === 0) {
+    affiliateTextOr.push(
+      { customTitle: { contains: q, mode: "insensitive" } },
+      { customDescription: { contains: q, mode: "insensitive" } }
+    )
+  }
 
   const listingWhere: Prisma.AffiliateProductWhereInput = {
     ...buyerListedAffiliateProductWhere,
@@ -126,10 +152,7 @@ export async function searchCatalogForAgent(
   const listingWhereAffiliateText: Prisma.AffiliateProductWhereInput = {
     ...buyerListedAffiliateProductWhere,
     product: buyerMarketplaceProductWhere,
-    OR: [
-      { customTitle: { contains: q, mode: "insensitive" } },
-      { customDescription: { contains: q, mode: "insensitive" } },
-    ],
+    OR: affiliateTextOr,
   }
 
   const [fromListingsProduct, fromListingsAffiliateText] = await Promise.all([

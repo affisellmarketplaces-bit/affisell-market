@@ -18,6 +18,7 @@ const SEARCH_SYNONYM_GROUPS: string[][] = [
   ["commode", "meuble", "rangement", "buffet"],
   ["ventilateur", "fan", "brumisateur", "climatisation"],
   ["casque", "ecouteurs", "earbuds", "airpods", "headphones"],
+  ["tele", "television", "televisions", "televiseur", "televiseurs", "tv", "ecran", "moniteur"],
   ["ordinateur", "laptop", "macbook", "pc", "portable"],
 ]
 
@@ -47,9 +48,18 @@ export function expandMarketplaceSearchTerms(rawQuery: string): string[] {
   for (const token of [...out]) {
     for (const group of SEARCH_SYNONYM_GROUPS) {
       const normalizedGroup = group.map(normalizeSearchToken)
-      if (normalizedGroup.some((g) => g === token || (g.length >= 4 && token.startsWith(g.slice(0, 4))))) {
+      if (
+        normalizedGroup.some((g) => {
+          if (g === token) return true
+          if (token.length >= 4 && g.length >= 4) {
+            const prefix = g.slice(0, 4)
+            return token.startsWith(prefix) && token.length > prefix.length
+          }
+          return false
+        })
+      ) {
         for (const g of normalizedGroup) {
-          if (g.length >= 3) out.add(g)
+          if (g.length >= 2) out.add(g)
         }
       }
     }

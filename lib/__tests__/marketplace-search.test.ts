@@ -13,6 +13,13 @@ describe("marketplace-search", () => {
     expect(terms).toContain("mobiles")
   })
 
+  it("expands tv synonyms from télé", () => {
+    const terms = expandMarketplaceSearchTerms("télé")
+    expect(terms).toContain("tele")
+    expect(terms).toContain("television")
+    expect(terms).toContain("tv")
+  })
+
   it("ranks trottinette listing above unrelated paths", () => {
     const docs = [
       {
