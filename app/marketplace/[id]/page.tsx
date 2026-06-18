@@ -234,6 +234,8 @@ export default async function MarketplaceListingPage({
       : (parseProductColorImagesFromDb(listing.product.colorImages) ?? [])
 
   const galleryForPdp = enrichGalleryWithColorHeroImages(gallery, colorNames, colorImages)
+
+  const buyerRewardBadge = buyerRewardBadgeText(
     normalizeBuyerRewardKind(listing.buyerRewardKind),
     listing.buyerRewardPercent ?? 0
   )
