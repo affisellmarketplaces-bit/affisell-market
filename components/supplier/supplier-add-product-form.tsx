@@ -74,6 +74,7 @@ import {
   parseProductOfferMode,
   type ProductOfferMode,
 } from "@/lib/product-offer-mode"
+import { suggestFromTitle, titleSuggestionAttributes } from "@/lib/title-parser"
 import {
   applyOptimizedSimpleColorNames,
   type OptimizeVariantsResult,
