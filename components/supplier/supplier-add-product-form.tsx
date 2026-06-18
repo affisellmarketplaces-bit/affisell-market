@@ -136,7 +136,7 @@ import {
   minSupplierPriceEurFromSkuRows,
   usesVariantSkuPricing,
 } from "@/lib/supplier-catalog-price"
-import { registerMerchantDraftFlush } from "@/lib/merchant-draft-flush"
+import { parseSupplierDecimalInput } from "@/lib/supplier-decimal-input"
 import { readJsonResponse } from "@/lib/read-json-response"
 import {
   collectClientPublishBlockers,
@@ -3155,9 +3155,7 @@ export function SupplierAddProductForm({
                       onChange={setAdvancedSkuRows}
                       onValidationChange={setSkuValidationIssues}
                       basePriceEur={catalogPriceEur ?? (Number(price) || 10)}
-                      catalogCompareAtEur={
-                        compareAt.trim() ? Number(compareAt) : null
-                      }
+                      catalogCompareAtEur={parseSupplierDecimalInput(compareAt)}
                       defaultCommission={Math.round(Number(commission) || 15)}
                       customColumns={skuCustomColumns}
                       onCustomColumnsChange={setSkuCustomColumns}
@@ -3203,7 +3201,7 @@ export function SupplierAddProductForm({
                   onSaveChanges={handleSaveChangesClick}
                   hasUnsavedChanges={hasUnsavedChanges}
                   savingChanges={savingChanges}
-                  saveEnabled={listingAutosaveEnabled}
+                  saveEnabled={false}
                   saveLabel={tWizard("saveChanges")}
                   saveSavingLabel={tWizard("saveChangesSaving")}
                   unsavedHint={tWizard("unsavedChangesHint")}
