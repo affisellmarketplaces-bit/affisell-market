@@ -12,7 +12,6 @@ import {
 import { buildCategoryScopeProductFilter } from "@/lib/marketplace-category-product-filter"
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
-import { mergeColorImagesForProduct } from "@/lib/product-color-images"
 import { publicPartnerSellerLabel } from "@/lib/public-seller-display"
 
 export {
@@ -43,7 +42,6 @@ function normalizeCatalogRow(row: DiscoverRow): AffiliateCatalogProduct {
     images: row.images ?? [],
     categories: row.categories ?? [],
     colors,
-    colorImages: mergeColorImagesForProduct(colors, row.colorImages, row.variants),
     tags: row.tags ?? [],
     basePriceCents: row.basePriceCents,
     commissionRate: affiliateCommissionDisplayPct({

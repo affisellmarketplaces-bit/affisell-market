@@ -16,7 +16,15 @@ import type { AppLocale } from "@/lib/i18n-locale"
 import type { MarketplaceFacet } from "@/lib/marketplace-facet-types"
 import { cn } from "@/lib/utils"
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json())
+const fetcher = async (url: string) => {
+  try {
+    const r = await fetch(url)
+    if (!r.ok) return []
+    return (await r.json()) as MarketplaceFacet[] | { facets?: MarketplaceFacet[] }
+  } catch {
+    return []
+  }
+}
 
 type Props = {
   categoryId: string | null

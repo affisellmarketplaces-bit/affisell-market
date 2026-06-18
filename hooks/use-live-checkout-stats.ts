@@ -9,8 +9,17 @@ type CheckoutStatsResponse = {
   graduatedCount: number
 }
 
-const fetcher = (url: string) =>
-  fetch(url).then((r) => r.json()) as Promise<CheckoutStatsResponse>
+const fetcher = async (url: string): Promise<CheckoutStatsResponse> => {
+  try {
+    const r = await fetch(url)
+    if (!r.ok) {
+      return { checkoutCountryCount: EU_CHECKOUT_COUNTRY_COUNT, graduatedCount: 0 }
+    }
+    return (await r.json()) as CheckoutStatsResponse
+  } catch {
+    return { checkoutCountryCount: EU_CHECKOUT_COUNTRY_COUNT, graduatedCount: 0 }
+  }
+}
 
 /** Client hook — live checkout country count including ROW rollouts. */
 export function useLiveCheckoutStats() {

@@ -34,7 +34,9 @@ export async function GET(
     return NextResponse.json({
       product: {
         ...product,
-        colorImages: mergeColorImagesForProduct(colors, product.colorImages, product.variants),
+        colorImages: mergeColorImagesForProduct(colors, product.colorImages, product.variants).map(
+          ({ color, hex }) => ({ color, hex, image: "" })
+        ),
       },
     })
   } catch (e) {

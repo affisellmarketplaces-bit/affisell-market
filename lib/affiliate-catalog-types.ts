@@ -11,19 +11,12 @@ export const AFFILIATE_CATALOG_NICHES = {
 
 export type AffiliateCatalogNiche = keyof typeof AFFILIATE_CATALOG_NICHES
 
-export type AffiliateCatalogColorImage = {
-  color: string
-  hex: string
-  image: string
-}
-
 export type AffiliateCatalogProduct = {
   id: string
   name: string
   images: string[]
   categories: string[]
   colors: string[]
-  colorImages: AffiliateCatalogColorImage[]
   tags: string[]
   basePriceCents: number
   commissionRate: number

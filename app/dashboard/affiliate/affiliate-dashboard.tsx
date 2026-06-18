@@ -57,7 +57,6 @@ import { affisellBrand } from "@/lib/affisell-brand"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { cn } from "@/lib/utils"
 import { primaryProductImage } from "@/lib/product-images"
-import type { ProductColorImageRow } from "@/lib/product-color-images"
 
 type CatalogProduct = {
   id: string
@@ -66,7 +65,6 @@ type CatalogProduct = {
   images: string[]
   categories?: string[]
   colors?: string[]
-  colorImages?: ProductColorImageRow[]
   tags?: string[]
   variants?: unknown
   basePriceCents: number
@@ -245,55 +243,51 @@ export function AffiliateDashboard({ storeId }: Props) {
     let cancelled = false
     setBootstrapLoading(true)
     setBootstrapError(null)
-    void fetch("/api/affiliate/bootstrap", { credentials: "include" })
-      .then(async (r) => {
-        const data = (await r.json()) as {
+    setCatalogLoading(true)
+    setCatalogError(null)
+
+    void (async () => {
+      try {
+        const bootRes = await fetch("/api/affiliate/bootstrap", { credentials: "include" })
+        const boot = (await bootRes.json()) as {
           listings?: Listing[]
           storeSlug?: string | null
           storeName?: string | null
           error?: string
         }
-        if (!cancelled) {
-          if (Array.isArray(data.listings)) {
-            setListings([...data.listings].sort(sortAffiliateListingByPosition))
-          }
-          setStoreSlug(data.storeSlug ?? null)
-          setStoreName(data.storeName?.trim() || null)
-          if (!r.ok) setBootstrapError(data.error ?? "Could not load your storefront data")
+        if (cancelled) return
+        if (Array.isArray(boot.listings)) {
+          setListings([...boot.listings].sort(sortAffiliateListingByPosition))
         }
-      })
-      .catch((e: unknown) => {
-        if (!cancelled) {
-          setBootstrapError(e instanceof Error ? e.message : "Could not load your storefront data")
+        setStoreSlug(boot.storeSlug ?? null)
+        setStoreName(boot.storeName?.trim() || null)
+        if (!bootRes.ok) {
+          setBootstrapError(boot.error ?? "Could not load your storefront data")
         }
-      })
-      .finally(() => {
-        if (!cancelled) setBootstrapLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [])
 
-  useEffect(() => {
-    let cancelled = false
-    setCatalogLoading(true)
-    setCatalogError(null)
-    void fetch("/api/affiliate/discover-catalog", { credentials: "include" })
-      .then(async (r) => {
-        const data = (await r.json()) as { products?: CatalogProduct[]; error?: string }
-        if (!r.ok) throw new Error(data.error ?? "Could not load catalog")
-        if (!cancelled) setCatalog(Array.isArray(data.products) ? data.products : [])
-      })
-      .catch((e: unknown) => {
-        if (!cancelled) {
+        const catRes = await fetch("/api/affiliate/discover-catalog", { credentials: "include" })
+        const cat = (await catRes.json()) as { products?: CatalogProduct[]; error?: string }
+        if (cancelled) return
+        if (!catRes.ok) {
           setCatalog([])
-          setCatalogError(e instanceof Error ? e.message : "Could not load catalog")
+          setCatalogError(cat.error ?? "Could not load catalog")
+          return
         }
-      })
-      .finally(() => {
-        if (!cancelled) setCatalogLoading(false)
-      })
+        setCatalog(Array.isArray(cat.products) ? cat.products : [])
+      } catch (e: unknown) {
+        if (cancelled) return
+        const message = e instanceof Error ? e.message : "Could not load dashboard data"
+        setBootstrapError(message)
+        setCatalog([])
+        setCatalogError(message)
+      } finally {
+        if (!cancelled) {
+          setBootstrapLoading(false)
+          setCatalogLoading(false)
+        }
+      }
+    })()
+
     return () => {
       cancelled = true
     }
@@ -301,16 +295,14 @@ export function AffiliateDashboard({ storeId }: Props) {
 
   const refreshDashboardData = useCallback(async () => {
     try {
-      const [bootRes, catRes] = await Promise.all([
-        fetch("/api/affiliate/bootstrap", { credentials: "include" }),
-        fetch("/api/affiliate/discover-catalog", { credentials: "include" }),
-      ])
+      const bootRes = await fetch("/api/affiliate/bootstrap", { credentials: "include" })
       const boot = (await bootRes.json()) as {
         listings?: Listing[]
         storeSlug?: string | null
         storeName?: string | null
         error?: string
       }
+      const catRes = await fetch("/api/affiliate/discover-catalog", { credentials: "include" })
       const cat = (await catRes.json()) as { products?: CatalogProduct[]; error?: string }
       if (Array.isArray(boot.listings)) {
         setListings([...boot.listings].sort(sortAffiliateListingByPosition))
@@ -988,10 +980,7 @@ export function AffiliateDashboard({ storeId }: Props) {
                     </p>
                   ) : null}
                   {(p.colors?.length ?? 0) > 0 ? (
-                    <ProductColorSwatchDots
-                      colors={p.colors ?? []}
-                      colorImages={p.colorImages}
-                    />
+                    <ProductColorSwatchDots colors={p.colors ?? []} />
                   ) : null}
                   <div className="mt-auto grid grid-cols-2 gap-3 border-t border-zinc-100 pt-3 dark:border-zinc-800">
                     <div>
