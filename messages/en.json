@@ -285,15 +285,14 @@
       "back": "Back"
     },
     "loginSelector": {
-      "title": "Sign in to Affisell",
-      "subtitle": "Choose your professional space. Buyers sign in from their creator's store.",
+      "title": "Affisell professional sign-in",
+      "subtitle": "Creators and suppliers: access your dashboard.",
       "creatorTitle": "I'm a Creator",
       "creatorHint": "Affiliate catalog & storefront",
       "supplierTitle": "I'm a Supplier",
       "supplierHint": "Products & B2B orders",
-      "buyerNote": "Did you shop on Affisell?",
-      "buyerHint": "Customer account: orders, tracking, and returns.",
-      "buyerButton": "Customer sign in",
+      "buyerPrompt": "Shopped on Affisell?",
+      "trackOrderLink": "Track my order →",
       "noAccount": "No creator account yet?",
       "createSpace": "Create my space"
     },

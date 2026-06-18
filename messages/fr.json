@@ -285,15 +285,14 @@
       "back": "Retour"
     },
     "loginSelector": {
-      "title": "Connexion Affisell",
-      "subtitle": "Choisissez votre espace professionnel. Les acheteurs se connectent depuis la boutique de leur créateur.",
+      "title": "Espace professionnel Affisell",
+      "subtitle": "Créateurs et fournisseurs : accédez à votre tableau de bord.",
       "creatorTitle": "Je suis Créateur",
       "creatorHint": "Catalogue ambassadeur & boutique",
       "supplierTitle": "Je suis Fournisseur",
       "supplierHint": "Produits & commandes B2B",
-      "buyerNote": "Vous avez commandé sur Affisell ?",
-      "buyerHint": "Compte client : commandes, suivi colis et retours.",
-      "buyerButton": "Connexion compte client",
+      "buyerPrompt": "Vous avez commandé ?",
+      "trackOrderLink": "Suivre ma commande →",
       "noAccount": "Pas encore de compte créateur ?",
       "createSpace": "Créer mon espace"
     },

@@ -284,15 +284,14 @@
       "back": "Indietro"
     },
     "loginSelector": {
-      "title": "Accedi a Affisell",
-      "subtitle": "Scegli il tuo spazio professionale. I compratori accedono alla loro area del negozio del creatore.",
+      "title": "Accesso professionale Affisell",
+      "subtitle": "Creatori e fornitori: accedi alla tua dashboard.",
       "creatorTitle": "Sono un Creatore",
       "creatorHint": "Catalogo e negozio dell'Affiliato",
       "supplierTitle": "Sono un Fornitore",
       "supplierHint": "Prodotti e ordini B2B",
-      "buyerNote": "Hai acquistato su Affisell?",
-      "buyerHint": "Account del cliente: ordini, tracciamento e resi.",
-      "buyerButton": "Accedi come cliente",
+      "buyerPrompt": "Hai acquistato su Affisell?",
+      "trackOrderLink": "Traccia il mio ordine →",
       "noAccount": "Non hai ancora un account del creatore?",
       "createSpace": "Crea il mio spazio"
     },

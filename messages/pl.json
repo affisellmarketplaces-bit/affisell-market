@@ -284,15 +284,14 @@
       "back": "Powrót"
     },
     "loginSelector": {
-      "title": "Zaloguj się do Affisell",
-      "subtitle": "Wybierz swoje profesjonalne miejsce. Kupujący logują się z konta twórcy.",
+      "title": "Profesjonalne logowanie Affisell",
+      "subtitle": "Twórcy i dostawcy: dostęp do panelu.",
       "creatorTitle": "Jestem Twórcą",
       "creatorHint": "Katalog partnerów & sklep",
       "supplierTitle": "Jestem dostawcą",
       "supplierHint": "Produkty & zamówienia B2B",
-      "buyerNote": "Czy kiedyś kupowałeś na Affisell?",
-      "buyerHint": "Konto klienta: zamówienia, śledzenie, zwroty.",
-      "buyerButton": "Zaloguj się jako klient",
+      "buyerPrompt": "Kupowałeś na Affisell?",
+      "trackOrderLink": "Śledź moje zamówienie →",
       "noAccount": "Nie masz jeszcze konta twórcy?",
       "createSpace": "Utwórz moje miejsce"
     },

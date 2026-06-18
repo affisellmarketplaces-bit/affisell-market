@@ -284,15 +284,14 @@
       "back": "返回"
     },
     "loginSelector": {
-      "title": "登录 Affisell",
-      "subtitle": "选择您的专业空间。买家从他们的创作者商店登录。",
+      "title": "Affisell 专业登录",
+      "subtitle": "创作者和供应商：访问您的仪表板。",
       "creatorTitle": "我是创作者",
       "creatorHint": "Affisell Affiliate catalog & storefront",
       "supplierTitle": "我是供应商",
       "supplierHint": "产品 & B2B 订单",
-      "buyerNote": "您曾在 Affisell 购物吗?",
-      "buyerHint": "客户账户: 订单、跟踪和退货。",
-      "buyerButton": "客户登录",
+      "buyerPrompt": "曾在 Affisell 购物？",
+      "trackOrderLink": "跟踪我的订单 →",
       "noAccount": "您还没有创建者账户?",
       "createSpace": "创建我的空间"
     },

@@ -284,15 +284,14 @@
       "back": "Terug"
     },
     "loginSelector": {
-      "title": "Inloggen bij Affisell",
-      "subtitle": "Kies uw professionele ruimte. Kopers inloggen vanuit hun creatorswinkel.",
+      "title": "Affisell professioneel inloggen",
+      "subtitle": "Creators en leveranciers: toegang tot uw dashboard.",
       "creatorTitle": "Ik ben een Creator",
       "creatorHint": "Affiliatecatalogus & winkel",
       "supplierTitle": "Ik ben een Leverancier",
       "supplierHint": "Producten & B2B-orders",
-      "buyerNote": "Heeft u op Affisell gekocht?",
-      "buyerHint": "Klantaccount: orders, tracking en retourneren.",
-      "buyerButton": "Klant inloggen",
+      "buyerPrompt": "Op Affisell besteld?",
+      "trackOrderLink": "Mijn bestelling volgen →",
       "noAccount": "Geen creatorsaccount nog?",
       "createSpace": "Mijn ruimte aanmaken"
     },

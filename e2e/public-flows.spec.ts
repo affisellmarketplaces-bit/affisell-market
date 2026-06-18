@@ -34,8 +34,19 @@ test.describe("public flows", () => {
 
   test("login selector page renders", async ({ page }) => {
     await page.goto("/login")
-    await expect(page.getByRole("heading", { name: /Sign in to Affisell|Connexion Affisell/i })).toBeVisible()
+    await expect(
+      page.getByRole("heading", {
+        name: /Affisell professional sign-in|Espace professionnel Affisell|Connexion Affisell/i,
+      })
+    ).toBeVisible()
     await expect(page.getByRole("link", { name: /I'm a Creator|Je suis Créateur/i })).toBeVisible()
+    await expect(page.getByRole("link", { name: /I'm a Supplier|Je suis Fournisseur/i })).toBeVisible()
+    await expect(
+      page.getByRole("link", { name: /Track my order|Suivre ma commande/i })
+    ).toHaveAttribute("href", "/track-order")
+    await expect(
+      page.getByRole("link", { name: /Customer sign in|Connexion compte client/i })
+    ).toHaveCount(0)
   })
 
   test("legacy /auth/signin redirects to /login", async ({ page }) => {

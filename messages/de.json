@@ -284,15 +284,14 @@
       "back": "Zurück"
     },
     "loginSelector": {
-      "title": "Anmelden bei Affisell",
-      "subtitle": "Wählen Sie Ihren professionellen Bereich. Käufer melden sich über den Store des Creators an.",
+      "title": "Affisell Profi-Anmeldung",
+      "subtitle": "Creator und Lieferanten: Zugang zu Ihrem Dashboard.",
       "creatorTitle": "Ich bin ein Creator",
       "creatorHint": "Affiliate-Katalog & Storefront",
       "supplierTitle": "Ich bin ein Lieferant",
       "supplierHint": "Produkte & B2B-Bestellungen",
-      "buyerNote": "Haben Sie auf Affisell eingekauft?",
-      "buyerHint": "Kundenkonto: Bestellungen, Tracking und Retouren.",
-      "buyerButton": "Kundenanmeldung",
+      "buyerPrompt": "Auf Affisell bestellt?",
+      "trackOrderLink": "Bestellung verfolgen →",
       "noAccount": "Noch kein Creator-Konto?",
       "createSpace": "Meinen Bereich erstellen"
     },
