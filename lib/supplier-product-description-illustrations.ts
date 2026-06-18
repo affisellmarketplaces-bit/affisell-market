@@ -1,4 +1,9 @@
-/** Parse up to 4 illustration image URLs (same hygiene as main gallery: drop blob:). */
+import {
+  DESCRIPTION_ILLUSTRATION_SERVER_MAX,
+  DESCRIPTION_VIDEO_SERVER_MAX,
+} from "@/lib/description-illustration-image"
+
+/** Parse illustration image URLs (same hygiene as main gallery: drop blob:). */
 export function parseDescriptionIllustrationImages(body: Record<string, unknown>): string[] {
   const raw = body.descriptionIllustrationImages
   if (!Array.isArray(raw)) return []
@@ -7,7 +12,7 @@ export function parseDescriptionIllustrationImages(body: Record<string, unknown>
     .map((s) => s.trim())
     .filter(Boolean)
     .filter((s) => !s.startsWith("blob:"))
-    .slice(0, 4)
+    .slice(0, DESCRIPTION_ILLUSTRATION_SERVER_MAX)
 }
 
 function isAllowedVideoUrl(s: string): boolean {
@@ -27,7 +32,7 @@ function isAllowedVideoUrl(s: string): boolean {
   }
 }
 
-/** Parse up to 2 video / embed URLs (YouTube, Vimeo, or direct MP4). */
+/** Parse video / embed URLs (YouTube, Vimeo, or direct MP4). */
 export function parseDescriptionIllustrationVideos(body: Record<string, unknown>): string[] {
   const raw = body.descriptionIllustrationVideos
   if (!Array.isArray(raw)) return []
@@ -36,5 +41,5 @@ export function parseDescriptionIllustrationVideos(body: Record<string, unknown>
     .map((s) => s.trim())
     .filter(Boolean)
     .filter(isAllowedVideoUrl)
-    .slice(0, 2)
+    .slice(0, DESCRIPTION_VIDEO_SERVER_MAX)
 }

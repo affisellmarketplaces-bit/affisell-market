@@ -23,6 +23,9 @@ function buildPrompt(input: OptimizeSpecFieldInput): { system: string; user: str
   } else if (key === "whats_in_box" || label.toLowerCase().includes("what's in the box")) {
     fieldInstruction =
       "Liste précisément le contenu de la boîte / ce qui est inclus (une ligne par élément). Quantités si pertinent."
+  } else if (key === "description" || label.toLowerCase() === "description") {
+    fieldInstruction =
+      "Optimise la description longue produit pour la marketplace : clarté, bénéfices client, ton vendeur mais factuel. Garde la structure SEO (ACCROCHE, POUR QUI ?, POINTS FORTS, etc.) si elle existe. Conserve les marqueurs [[img:N]] à leur place. N'invente pas de specs."
   }
 
   const context = [
@@ -42,13 +45,22 @@ function buildPrompt(input: OptimizeSpecFieldInput): { system: string; user: str
   }
 }
 
+export function optimizeSpecFieldMaxTokens(fieldKey: string): number {
+  return fieldKey.toLowerCase() === "description" ? 2200 : 400
+}
+
+export function optimizeSpecFieldMaxChars(fieldKey: string): number {
+  return fieldKey.toLowerCase() === "description" ? 12000 : 2000
+}
+
 export async function optimizeSupplierSpecField(input: OptimizeSpecFieldInput): Promise<string> {
   const { system, user } = buildPrompt(input)
+  const fieldKey = input.fieldKey.toLowerCase()
 
   const raw = await groqChatText({
     vision: false,
     temperature: 0.35,
-    max_tokens: 400,
+    max_tokens: optimizeSpecFieldMaxTokens(fieldKey),
     messages: [
       { role: "system", content: system },
       { role: "user", content: user },
@@ -65,5 +77,5 @@ export async function optimizeSupplierSpecField(input: OptimizeSpecFieldInput): 
     resultLength: text.length,
   })
 
-  return text.slice(0, 2000)
+  return text.slice(0, optimizeSpecFieldMaxChars(fieldKey))
 }

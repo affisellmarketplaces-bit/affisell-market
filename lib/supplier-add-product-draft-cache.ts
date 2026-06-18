@@ -52,7 +52,7 @@ export type SupplierAddProductCachePayload = {
   specValues: Record<string, string>
   /** “About this item” lines (same order as PDP bullets). */
   descriptionBullets: string[]
-  /** Optional images under long description (max 4). */
+  /** Optional images under long description. */
   descriptionIllustrationImages?: string[]
   /** Optional video URLs (max 2). */
   descriptionIllustrationVideos?: string[]
@@ -84,10 +84,10 @@ export function readSupplierAddProductDraftCache(
       ? (parsed.descriptionBullets.filter((x): x is string => typeof x === "string"))
       : []
     const descriptionIllustrationImages = Array.isArray(parsed.descriptionIllustrationImages)
-      ? parsed.descriptionIllustrationImages.filter((x): x is string => typeof x === "string").slice(0, 4)
+      ? parsed.descriptionIllustrationImages.filter((x): x is string => typeof x === "string")
       : []
     const descriptionIllustrationVideos = Array.isArray(parsed.descriptionIllustrationVideos)
-      ? parsed.descriptionIllustrationVideos.filter((x): x is string => typeof x === "string").slice(0, 2)
+      ? parsed.descriptionIllustrationVideos.filter((x): x is string => typeof x === "string")
       : []
     return { ...parsed, descriptionBullets, descriptionIllustrationImages, descriptionIllustrationVideos }
   } catch {

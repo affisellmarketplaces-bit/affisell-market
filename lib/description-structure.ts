@@ -86,7 +86,6 @@ export function normalizeImagePlacements(raw: unknown): DescriptionImagePlacemen
         ? role
         : "detail"
     out.push({ section, role: safeRole, caption, imageIndex })
-    if (out.length >= 4) break
   }
   return out
 }

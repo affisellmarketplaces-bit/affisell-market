@@ -38,6 +38,8 @@ import { ListingLogisticsStrip } from "@/components/product/listing-logistics-st
 import type { ListingLogisticsInput } from "@/lib/listing-logistics-display"
 import type { OfferModeBadge } from "@/lib/product-offer-mode"
 import { ProductVideoWishlistOverlay } from "@/components/product/product-video-wishlist-overlay"
+import { DescriptionRichContent } from "@/components/product/description-rich-content"
+import { descriptionHasImageMarkers } from "@/lib/description-rich-content"
 import type { AppLocale } from "@/lib/i18n-locale"
 import { CLIENT_MESSAGES } from "@/lib/i18n-load-messages"
 import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
@@ -466,6 +468,12 @@ export function MarketplaceListingDetail({
   const descriptionIsLong = useMemo(
     () => description.replace(/\s+/g, " ").trim().length > 960,
     [description]
+  )
+
+  const descriptionGalleryImages = useMemo(
+    () =>
+      descriptionHasImageMarkers(description) ? [] : descriptionIllustrationImages,
+    [description, descriptionIllustrationImages]
   )
 
   useEffect(() => {
@@ -1866,14 +1874,13 @@ export function MarketplaceListingDetail({
               ) : null}
               <div className={descriptionBullets.length > 0 ? "mt-8 border-t border-zinc-100 pt-6 dark:border-zinc-800" : "mt-5"}>
                 <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400">Full detail</p>
-                <div className="relative mt-3">
-                  <p
-                    className={`whitespace-pre-wrap break-words text-sm leading-relaxed text-zinc-700 dark:text-zinc-300 ${
-                      !descExpanded && descriptionIsLong ? "line-clamp-[10]" : ""
-                    }`}
-                  >
-                    {description}
-                  </p>
+                <div
+                  className={cn(
+                    "relative mt-3",
+                    !descExpanded && descriptionIsLong && "max-h-[min(420px,55vh)] overflow-hidden"
+                  )}
+                >
+                  <DescriptionRichContent description={description} images={descriptionIllustrationImages} />
                   {!descExpanded && descriptionIsLong ? (
                     <div
                       className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-white via-white/90 to-transparent dark:from-zinc-900 dark:via-zinc-900/90"
@@ -1896,7 +1903,7 @@ export function MarketplaceListingDetail({
                 ) : null}
                 <DescriptionIllustrativeMedia
                   productId={productId}
-                  images={descriptionIllustrationImages}
+                  images={descriptionGalleryImages}
                   videos={descriptionIllustrationVideos}
                 />
               </div>

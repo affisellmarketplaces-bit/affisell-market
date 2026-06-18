@@ -1,6 +1,11 @@
 import { measureImageFile } from "@/lib/product-image-upload"
 
-export const DESCRIPTION_ILLUSTRATION_MAX = 4
+/** Server-side cap (abuse guard) — no practical UI limit for suppliers. */
+export const DESCRIPTION_ILLUSTRATION_SERVER_MAX = 50
+/** @deprecated use DESCRIPTION_ILLUSTRATION_SERVER_MAX */
+export const DESCRIPTION_ILLUSTRATION_MAX = DESCRIPTION_ILLUSTRATION_SERVER_MAX
+
+export const DESCRIPTION_VIDEO_SERVER_MAX = 10
 export const DESCRIPTION_ILLUSTRATION_MIN_W = 400
 export const DESCRIPTION_ILLUSTRATION_MIN_H = 400
 

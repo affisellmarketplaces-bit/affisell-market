@@ -8,7 +8,9 @@ export { isAffisellHostedVideoUrl } from "@/lib/attach-generated-product-video-t
 
 import { prisma } from "@/lib/prisma"
 
-const MAX_DESCRIPTION_VIDEOS = 2
+import { DESCRIPTION_VIDEO_SERVER_MAX } from "@/lib/description-illustration-image"
+
+const MAX_DESCRIPTION_VIDEOS = DESCRIPTION_VIDEO_SERVER_MAX
 
 function mergeDescriptionVideos(existing: string[], videoUrl: string): string[] {
   const without = existing.filter((u) => u !== videoUrl)

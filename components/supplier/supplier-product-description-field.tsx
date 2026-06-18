@@ -9,13 +9,17 @@ import { SupplierDescriptionIllustrationFields } from "@/components/supplier/sup
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import {
-  DESCRIPTION_ILLUSTRATION_MAX,
   DESCRIPTION_ILLUSTRATION_MIN_H,
   DESCRIPTION_ILLUSTRATION_MIN_W,
+  DESCRIPTION_ILLUSTRATION_SERVER_MAX,
   DescriptionIllustrationSizeError,
   imageFilesFromDataTransfer,
   processDescriptionIllustrationFile,
 } from "@/lib/description-illustration-image"
+import {
+  insertImageMarkerAt,
+  reindexDescriptionAfterImageRemoval,
+} from "@/lib/description-rich-content"
 import {
   type DescriptionImagePlacement,
   IMAGE_ROLE_LABELS,
@@ -172,21 +176,44 @@ export function SupplierProductDescriptionField({
   disabled = false,
 }: Props) {
   const [aiLoading, setAiLoading] = useState(false)
+  const [optimizeLoading, setOptimizeLoading] = useState(false)
   const [imageBusy, setImageBusy] = useState(false)
   const [dragOver, setDragOver] = useState(false)
   const [imagePlacements, setImagePlacements] = useState<DescriptionImagePlacement[]>([])
   const composerRef = useRef<HTMLDivElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const fileInputId = useId()
+
+  const insertImagesIntoDescription = useCallback(
+    (startIndex: number, count: number) => {
+      const ta = textareaRef.current
+      const cursor = ta?.selectionStart ?? description.length
+      let next = description
+      let cursorAfter = cursor
+      for (let i = 0; i < count; i++) {
+        next = insertImageMarkerAt(next, startIndex + i, cursorAfter)
+        cursorAfter += `[[img:${startIndex + i}]]\n`.length
+      }
+      onDescriptionChange(next)
+      requestAnimationFrame(() => {
+        if (!ta) return
+        ta.focus()
+        ta.selectionStart = cursorAfter
+        ta.selectionEnd = cursorAfter
+      })
+    },
+    [description, onDescriptionChange]
+  )
 
   const ingestImageFiles = useCallback(
     async (files: File[]) => {
       if (files.length === 0) return
-      if (disabled || aiLoading || imageBusy) return
+      if (disabled || aiLoading || optimizeLoading || imageBusy) return
 
-      const remaining = DESCRIPTION_ILLUSTRATION_MAX - illustrationImages.length
+      const remaining = DESCRIPTION_ILLUSTRATION_SERVER_MAX - illustrationImages.length
       if (remaining <= 0) {
-        toast.error(`Maximum ${DESCRIPTION_ILLUSTRATION_MAX} images dans la description.`)
+        toast.error(`Maximum ${DESCRIPTION_ILLUSTRATION_SERVER_MAX} images dans la description.`)
         return
       }
 
@@ -207,7 +234,10 @@ export function SupplierProductDescriptionField({
           }
         }
         if (added.length > 0) {
-          onIllustrationImagesChange([...illustrationImages, ...added].slice(0, DESCRIPTION_ILLUSTRATION_MAX))
+          const startIndex = illustrationImages.length
+          const nextImages = [...illustrationImages, ...added]
+          onIllustrationImagesChange(nextImages)
+          insertImagesIntoDescription(startIndex, added.length)
           toast.success(
             added.length === 1 ? "Image ajoutée à la description" : `${added.length} images ajoutées`
           )
@@ -216,7 +246,15 @@ export function SupplierProductDescriptionField({
         setImageBusy(false)
       }
     },
-    [aiLoading, disabled, illustrationImages, imageBusy, onIllustrationImagesChange]
+    [
+      aiLoading,
+      disabled,
+      illustrationImages,
+      imageBusy,
+      insertImagesIntoDescription,
+      onIllustrationImagesChange,
+      optimizeLoading,
+    ]
   )
 
   const handlePaste = useCallback(
@@ -261,9 +299,16 @@ export function SupplierProductDescriptionField({
   const removeIllustrationAt = useCallback(
     (index: number) => {
       onIllustrationImagesChange(illustrationImages.filter((_, i) => i !== index))
-      setImagePlacements((prev) => prev.filter((p) => p.imageIndex !== index))
+      onDescriptionChange(reindexDescriptionAfterImageRemoval(description, index))
+      setImagePlacements((prev) =>
+        prev
+          .filter((p) => p.imageIndex !== index)
+          .map((p) =>
+            p.imageIndex > index ? { ...p, imageIndex: p.imageIndex - 1 } : p
+          )
+      )
     },
-    [illustrationImages, onIllustrationImagesChange]
+    [description, illustrationImages, onDescriptionChange, onIllustrationImagesChange]
   )
 
   const handleGenerateDescription = useCallback(async () => {
@@ -343,7 +388,7 @@ export function SupplierProductDescriptionField({
       }
 
       if (Array.isArray(data.illustrationImages) && data.illustrationImages.length > 0) {
-        onIllustrationImagesChange(data.illustrationImages.slice(0, DESCRIPTION_ILLUSTRATION_MAX))
+        onIllustrationImagesChange(data.illustrationImages.slice(0, DESCRIPTION_ILLUSTRATION_SERVER_MAX))
       }
 
       if (Array.isArray(data.imagePlacements) && data.imagePlacements.length > 0) {
@@ -383,7 +428,49 @@ export function SupplierProductDescriptionField({
     productTitle,
   ])
 
-  const composerDisabled = disabled || aiLoading || imageBusy
+  const handleOptimizeDescription = useCallback(async () => {
+    const title = productTitle.trim()
+    const current = description.trim()
+    if (current.length < 8 && title.length < 2 && descriptionBullets.length === 0) {
+      toast.error("Ajoutez du texte ou un titre pour guider l'optimisation.")
+      return
+    }
+
+    setOptimizeLoading(true)
+    try {
+      const res = await fetch("/api/supplier/optimize-spec-field", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          fieldKey: "description",
+          fieldLabel: "Description",
+          currentValue: description,
+          title,
+          description,
+          categoryPath: categoryPathLabel,
+          bullets: descriptionBullets.map((s) => s.trim()).filter(Boolean),
+        }),
+      })
+      const data = (await res.json()) as { text?: string; error?: string }
+      if (!res.ok) throw new Error(data.error ?? "Optimisation impossible")
+      if (!data.text?.trim()) throw new Error("Réponse vide")
+      onDescriptionChange(data.text.trim())
+      toast.success("Description optimisée")
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Service indisponible")
+    } finally {
+      setOptimizeLoading(false)
+    }
+  }, [
+    categoryPathLabel,
+    description,
+    descriptionBullets,
+    onDescriptionChange,
+    productTitle,
+  ])
+
+  const composerDisabled = disabled || aiLoading || optimizeLoading || imageBusy
 
   const openFilePicker = useCallback(() => {
     if (composerDisabled) return
@@ -397,6 +484,22 @@ export function SupplierProductDescriptionField({
           <Label htmlFor="p-desc" className="mb-0 text-zinc-800 dark:text-zinc-100">
             Description
           </Label>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={composerDisabled}
+            onClick={() => void handleOptimizeDescription()}
+            className="gap-1.5 border-violet-200 text-violet-800 hover:bg-violet-50 dark:border-violet-800 dark:text-violet-200 dark:hover:bg-violet-950/40"
+          >
+            {optimizeLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+            ) : (
+              <Sparkles className="h-4 w-4" aria-hidden />
+            )}
+            {optimizeLoading ? "Optimisation…" : "Optimise"}
+          </Button>
           <Button
             type="button"
             size="sm"
@@ -412,9 +515,10 @@ export function SupplierProductDescriptionField({
             {aiLoading ? "Génération…" : "Générer la description"}
           </Button>
         </div>
+        </div>
         <p className="mt-1 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-          Studio copy : titre + specs + visuels → fiche SEO structurée (ACCROCHE, POINTS FORTS…). Les listes
-          brutes du titre ne sont pas recopiées ; la catégorie ne modifie pas le contenu.
+          Texte + photos illimités (style AliExpress / Amazon) : rédigez, collez ou glissez des images entre les
+          paragraphes. Studio copy pour générer une fiche SEO structurée.
         </p>
 
         <div
@@ -478,6 +582,7 @@ export function SupplierProductDescriptionField({
             )}
 
             <textarea
+              ref={textareaRef}
               id="p-desc"
               className={cn(
                 "min-h-[180px] w-full resize-y bg-transparent px-3 py-3 font-mono text-[13px] leading-relaxed outline-none",
@@ -488,7 +593,7 @@ export function SupplierProductDescriptionField({
               onPaste={handlePaste}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
-              placeholder={`ACCROCHE\n…\n\nPOUR QUI ?\n…\n\nPOINTS FORTS\n…\n\n(Ctrl+V ou glissez une image)`}
+              placeholder={`ACCROCHE\n…\n\n[[img:0]]\n\nPOINTS FORTS\n…\n\n(Ctrl+V ou glissez une image — insérée à la position du curseur)`}
               disabled={composerDisabled}
             />
 
@@ -506,7 +611,7 @@ export function SupplierProductDescriptionField({
             <p className="flex flex-wrap items-center gap-1.5 border-t border-zinc-200/60 px-3 py-2 text-[11px] text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
               <button
                 type="button"
-                disabled={composerDisabled || illustrationImages.length >= DESCRIPTION_ILLUSTRATION_MAX}
+                disabled={composerDisabled || illustrationImages.length >= DESCRIPTION_ILLUSTRATION_SERVER_MAX}
                 onClick={openFilePicker}
                 className="inline-flex items-center gap-1 rounded-md font-medium text-violet-600 hover:bg-violet-50 dark:text-violet-400 dark:hover:bg-violet-950/50"
               >
@@ -514,8 +619,7 @@ export function SupplierProductDescriptionField({
                 Parcourir
               </button>
               <span>
-                · Ctrl+V · max. {DESCRIPTION_ILLUSTRATION_MAX} · min. {DESCRIPTION_ILLUSTRATION_MIN_W}×
-                {DESCRIPTION_ILLUSTRATION_MIN_H} px
+                · Ctrl+V · min. {DESCRIPTION_ILLUSTRATION_MIN_W}×{DESCRIPTION_ILLUSTRATION_MIN_H} px · photos illimitées
               </span>
             </p>
           </div>

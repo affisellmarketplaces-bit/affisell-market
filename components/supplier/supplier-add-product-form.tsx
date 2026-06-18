@@ -1093,7 +1093,6 @@ export function SupplierAddProductForm({
             .filter((x): x is string => typeof x === "string")
             .map((s) => s.trim())
             .filter(Boolean)
-            .slice(0, 4)
         )
       } else {
         setDescriptionIllustrationImages([])
@@ -1105,7 +1104,6 @@ export function SupplierAddProductForm({
             .filter((x): x is string => typeof x === "string")
             .map((s) => s.trim())
             .filter(Boolean)
-            .slice(0, 2)
         )
       } else {
         setDescriptionIllustrationVideos([])
@@ -1436,12 +1434,12 @@ export function SupplierAddProductForm({
     setDescriptionBullets(c.descriptionBullets?.length ? c.descriptionBullets : [""])
     setDescriptionIllustrationImages(
       Array.isArray(c.descriptionIllustrationImages)
-        ? c.descriptionIllustrationImages.filter((x): x is string => typeof x === "string").slice(0, 4)
+        ? c.descriptionIllustrationImages.filter((x): x is string => typeof x === "string")
         : []
     )
     setDescriptionIllustrationVideos(
       Array.isArray(c.descriptionIllustrationVideos)
-        ? c.descriptionIllustrationVideos.filter((x): x is string => typeof x === "string").slice(0, 2)
+        ? c.descriptionIllustrationVideos.filter((x): x is string => typeof x === "string")
         : []
     )
     if (c.variantFormMode === "none" || c.variantFormMode === "simple" || c.variantFormMode === "advanced") {

@@ -1,8 +1,8 @@
 "use client"
 
-import { Loader2, Trash2, Upload, Video } from "lucide-react"
+import { Loader2, Plus, Trash2, Upload, Video } from "lucide-react"
 import type { ChangeEvent } from "react"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { toast } from "sonner"
 
 import { resolveImageLinkUrl } from "@/components/supplier/supplier-product-image-upload"
@@ -11,18 +11,17 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-  DESCRIPTION_ILLUSTRATION_MAX,
   DESCRIPTION_ILLUSTRATION_MIN_H,
   DESCRIPTION_ILLUSTRATION_MIN_W,
+  DESCRIPTION_ILLUSTRATION_SERVER_MAX,
+  DESCRIPTION_VIDEO_SERVER_MAX,
   DescriptionIllustrationSizeError,
   processDescriptionIllustrationFile,
 } from "@/lib/description-illustration-image"
 import { cn } from "@/lib/utils"
 
-const IMAGE_SLOTS = DESCRIPTION_ILLUSTRATION_MAX
 const MIN_W = DESCRIPTION_ILLUSTRATION_MIN_W
 const MIN_H = DESCRIPTION_ILLUSTRATION_MIN_H
-const MAX_VIDEOS = 2
 
 type Props = {
   images: string[]
@@ -33,17 +32,6 @@ type Props = {
   hideImageGrid?: boolean
 }
 
-function slotsFrom(urls: string[]): (string | null)[] {
-  return Array.from({ length: IMAGE_SLOTS }, (_, i) => urls[i] ?? null)
-}
-
-function orderedFromSlots(slots: (string | null)[]): string[] {
-  return slots.reduce<string[]>((acc, u) => {
-    if (u) acc.push(u)
-    return acc
-  }, [])
-}
-
 export function SupplierDescriptionIllustrationFields({
   images,
   onImagesChange,
@@ -51,78 +39,69 @@ export function SupplierDescriptionIllustrationFields({
   onVideosChange,
   hideImageGrid = false,
 }: Props) {
-  const [slots, setSlots] = useState<(string | null)[]>(() => slotsFrom(images))
-  const [busy, setBusy] = useState<number | null>(null)
+  const [busy, setBusy] = useState(false)
   const [pasteUrl, setPasteUrl] = useState("")
 
-  useEffect(() => {
-    const trimmed = images.slice(0, IMAGE_SLOTS)
-    setSlots(slotsFrom(trimmed))
-    if (trimmed.length !== images.length) {
-      onImagesChange(trimmed)
-    }
-  }, [images, onImagesChange])
-
-  const syncSlots = (next: (string | null)[]) => {
-    setSlots(next)
-    onImagesChange(orderedFromSlots(next).slice(0, IMAGE_SLOTS))
-  }
-
-  const onFile = async (slot: number, e: ChangeEvent<HTMLInputElement>) => {
+  const onFile = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     e.target.value = ""
     if (!file) return
-    setBusy(slot)
+    if (images.length >= DESCRIPTION_ILLUSTRATION_SERVER_MAX) {
+      toast.error(`Maximum ${DESCRIPTION_ILLUSTRATION_SERVER_MAX} images.`)
+      return
+    }
+    setBusy(true)
     try {
       const dataUrl = await processDescriptionIllustrationFile(file)
-      const next = [...slots]
-      next[slot] = dataUrl
-      syncSlots(next)
+      onImagesChange([...images, dataUrl])
       toast.success("Image ajoutée")
-    } catch (e) {
-      if (e instanceof DescriptionIllustrationSizeError) {
-        toast.error(`${e.fileName} : min. ${e.minW}×${e.minH} px.`)
+    } catch (err) {
+      if (err instanceof DescriptionIllustrationSizeError) {
+        toast.error(`${err.fileName} : min. ${err.minW}×${err.minH} px.`)
       } else {
         toast.error("Impossible de traiter cette image.")
       }
     } finally {
-      setBusy(null)
+      setBusy(false)
     }
   }
 
   const applyPaste = () => {
     const resolved = resolveImageLinkUrl(pasteUrl)
     if (!resolved) {
-      toast.error("Paste a valid http(s) image URL.")
+      toast.error("Collez une URL image valide (https://…).")
       return
     }
-    const empty = slots.findIndex((s) => !s)
-    if (empty < 0) {
-      toast.error("All illustration slots are full.")
+    if (images.length >= DESCRIPTION_ILLUSTRATION_SERVER_MAX) {
+      toast.error(`Maximum ${DESCRIPTION_ILLUSTRATION_SERVER_MAX} images.`)
       return
     }
-    const next = [...slots]
-    next[empty] = resolved
-    syncSlots(next)
+    onImagesChange([...images, resolved])
     setPasteUrl("")
-    toast.success("Image link added")
+    toast.success("Image ajoutée")
   }
 
-  const clearSlot = (slot: number) => {
-    const next = [...slots]
-    next[slot] = null
-    syncSlots(next)
+  const removeImageAt = (index: number) => {
+    onImagesChange(images.filter((_, i) => i !== index))
   }
 
   const setVideoAt = (index: number, value: string) => {
-    const next0 = index === 0 ? value : (videos[0] ?? "")
-    const next1 = index === 1 ? value : (videos[1] ?? "")
-    const out = [next0, next1].map((s) => s.trim()).filter(Boolean)
-    onVideosChange(out.slice(0, MAX_VIDEOS))
+    const next = [...videos]
+    if (value.trim()) {
+      next[index] = value.trim()
+    } else {
+      next.splice(index, 1)
+    }
+    onVideosChange(next.filter(Boolean).slice(0, DESCRIPTION_VIDEO_SERVER_MAX))
   }
 
-  const v0 = videos[0] ?? ""
-  const v1 = videos[1] ?? ""
+  const addVideoSlot = () => {
+    if (videos.length >= DESCRIPTION_VIDEO_SERVER_MAX) {
+      toast.error(`Maximum ${DESCRIPTION_VIDEO_SERVER_MAX} vidéos.`)
+      return
+    }
+    onVideosChange([...videos, ""])
+  }
 
   return (
     <div
@@ -132,96 +111,90 @@ export function SupplierDescriptionIllustrationFields({
       )}
     >
       {!hideImageGrid && (
-      <div>
-        <Label className="text-zinc-800 dark:text-zinc-100">Illustration photos (description)</Label>
-        <p className="mt-0.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-          Optional lifestyle or detail shots shown under the long text on the product page (not the main gallery).
-          Up to {IMAGE_SLOTS} images, min. {MIN_W}×{MIN_H}px.
-        </p>
-        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {slots.map((url, slot) => (
-            <div
-              key={slot}
-              className={cn(
-                "relative aspect-square overflow-hidden rounded-xl border border-dashed border-zinc-200 bg-zinc-50/80 dark:border-zinc-700 dark:bg-zinc-900/40",
-                url && "border-solid"
-              )}
-            >
-              {url ? (
-                <>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={url} alt="" className="h-full w-full object-contain p-1" />
-                  <button
-                    type="button"
-                    onClick={() => clearSlot(slot)}
-                    className="absolute right-1 top-1 flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-white shadow hover:bg-red-600"
-                    aria-label="Remove illustration"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </>
-              ) : (
-                <label className="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-1.5 p-2 text-center">
-                  {busy === slot ? (
-                    <Loader2 className="h-6 w-6 animate-spin text-violet-600" aria-hidden />
-                  ) : (
-                    <>
-                      <Upload className="h-6 w-6 text-zinc-400" aria-hidden />
-                      <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400">Add photo</span>
-                    </>
-                  )}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="sr-only"
-                    disabled={busy !== null}
-                    onChange={(e) => void onFile(slot, e)}
-                  />
-                </label>
-              )}
-            </div>
-          ))}
-        </div>
-        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-end">
-          <div className="min-w-0 flex-1">
-            <Input
-              value={pasteUrl}
-              onChange={(e) => setPasteUrl(e.target.value)}
-              placeholder="Or paste an image URL (https://…)"
-              className="h-10"
-            />
+        <div>
+          <Label className="text-zinc-800 dark:text-zinc-100">Photos illustratives (description)</Label>
+          <p className="mt-0.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+            Visuels détail / lifestyle affichés dans la fiche produit. Ajoutez autant que nécessaire (min.{" "}
+            {MIN_W}×{MIN_H} px).
+          </p>
+          <div className="mt-3 flex flex-wrap gap-3">
+            {images.map((url, index) => (
+              <div
+                key={`${index}-${url.slice(0, 24)}`}
+                className="relative aspect-square h-24 w-24 overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50/80 dark:border-zinc-700 dark:bg-zinc-900/40"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={url} alt="" className="h-full w-full object-contain p-1" />
+                <button
+                  type="button"
+                  onClick={() => removeImageAt(index)}
+                  className="absolute right-1 top-1 flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-white shadow hover:bg-red-600"
+                  aria-label="Retirer"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+            {images.length < DESCRIPTION_ILLUSTRATION_SERVER_MAX ? (
+              <label className="flex aspect-square h-24 w-24 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-zinc-200 bg-zinc-50/80 p-2 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
+                {busy ? (
+                  <Loader2 className="h-6 w-6 animate-spin text-violet-600" aria-hidden />
+                ) : (
+                  <>
+                    <Upload className="h-6 w-6 text-zinc-400" aria-hidden />
+                    <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400">Ajouter</span>
+                  </>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  disabled={busy}
+                  onChange={(e) => void onFile(e)}
+                />
+              </label>
+            ) : null}
           </div>
-          <Button type="button" variant="secondary" size="sm" className="shrink-0" onClick={applyPaste}>
-            Add from link
-          </Button>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-end">
+            <div className="min-w-0 flex-1">
+              <Input
+                value={pasteUrl}
+                onChange={(e) => setPasteUrl(e.target.value)}
+                placeholder="Ou collez une URL image (https://…)"
+                className="h-10"
+              />
+            </div>
+            <Button type="button" variant="secondary" size="sm" className="shrink-0" onClick={applyPaste}>
+              Ajouter le lien
+            </Button>
+          </div>
         </div>
-      </div>
       )}
 
       <div>
         <Label className="inline-flex items-center gap-2 text-zinc-800 dark:text-zinc-100">
           <Video className="h-4 w-4 text-zinc-500" aria-hidden />
-          {hideImageGrid ? "Vidéos illustratives" : "Illustrative videos"}
+          {hideImageGrid ? "Vidéos illustratives" : "Vidéos illustratives"}
         </Label>
         <p className="mt-0.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
           YouTube, Vimeo, lien <code className="rounded bg-zinc-100 px-1 dark:bg-zinc-800">.mp4</code> ou import
-          fichier (MP4, WebM, MOV — max 48 Mo) — {MAX_VIDEOS} vidéos max.
+          fichier (MP4, WebM, MOV — max 48 Mo).
         </p>
         <div className="mt-2 space-y-3">
-          <div>
-            <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-zinc-500">Vidéo 1</p>
-            <SupplierVariantVideoField
-              value={v0 || null}
-              onChange={(url) => setVideoAt(0, url ?? "")}
-            />
-          </div>
-          <div>
-            <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-zinc-500">Vidéo 2</p>
-            <SupplierVariantVideoField
-              value={v1 || null}
-              onChange={(url) => setVideoAt(1, url ?? "")}
-            />
-          </div>
+          {(videos.length > 0 ? videos : [""]).map((url, index) => (
+            <div key={index}>
+              <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-zinc-500">
+                Vidéo {index + 1}
+              </p>
+              <SupplierVariantVideoField value={url || null} onChange={(v) => setVideoAt(index, v ?? "")} />
+            </div>
+          ))}
+          {videos.length < DESCRIPTION_VIDEO_SERVER_MAX ? (
+            <Button type="button" variant="outline" size="sm" className="gap-1.5" onClick={addVideoSlot}>
+              <Plus className="h-3.5 w-3.5" aria-hidden />
+              Ajouter une vidéo
+            </Button>
+          ) : null}
         </div>
       </div>
     </div>
