@@ -1,8 +1,8 @@
 /** PDP swatch / listing color names (mode « Couleurs & tailles ») — plus permissif que les SKU. */
 export const SIMPLE_COLOR_NAME_MAX = 48
 
-/** Letters, numbers, spaces, hyphen, slash, ampersand, apostrophe (incl. accents). */
-export const SIMPLE_COLOR_NAME_REGEX = /^[\p{L}\p{N}\s\-/&'+]+$/u
+/** Letters, numbers, spaces, hyphen, slash, ampersand, apostrophe, parens, dot (incl. accents). */
+export const SIMPLE_COLOR_NAME_REGEX = /^[\p{L}\p{N}\s\-/&'()+.]+$/u
 
 export const SIMPLE_COLOR_COMMA_ERROR =
   "Pas de virgule dans un nom de couleur — une ligne = une couleur."
@@ -11,7 +11,7 @@ export const SIMPLE_COLOR_PLUS_ERROR =
   "Pas de « + » dans le nom — indiquez une seule couleur par ligne, ou passez au tableau SKU."
 
 export const SIMPLE_COLOR_CHARS_ERROR =
-  "Caractères autorisés : lettres, chiffres, espaces, - / & ' (ex. Noir/Rouge)."
+  "Caractères autorisés : lettres, chiffres, espaces, - / & ' ( ) . (ex. Noir/Rouge, X1(7.8Ah 25KM))."
 
 export type SimpleColorValidationIssue = {
   index: number

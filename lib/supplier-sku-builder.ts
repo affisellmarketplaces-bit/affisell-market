@@ -4,10 +4,10 @@ import { isCustomValueEmpty, labelToCustomColumnKey } from "@/lib/product-custom
 import type { ProductVariantInput } from "@/lib/product-variant-sku"
 import type { CustomColumnUi, VariantCustomData } from "@/types/product"
 
-/** SKU matrix color (DB) — lettres accentuées, chiffres, espaces, - / & ' */
-export const VARIANT_COLOR_REGEX = /^[\p{L}\p{N}\s\-/&'.]+$/u
+/** SKU matrix color (DB) — lettres accentuées, chiffres, espaces, - / & ' ( ) . */
+export const VARIANT_COLOR_REGEX = /^[\p{L}\p{N}\s\-/&'().]+$/u
 export const VARIANT_COLOR_ERROR =
-  "Caractères autorisés : lettres, chiffres, espaces, - / & ' (pas de virgule ni +)"
+  "Caractères autorisés : lettres, chiffres, espaces, - / & ' ( ) . (pas de virgule ni +)"
 
 export function parseCommaList(text: string, max = 40): string[] {
   const seen = new Set<string>()

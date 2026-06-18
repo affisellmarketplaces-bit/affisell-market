@@ -12,6 +12,11 @@ describe("supplier-simple-color-validation", () => {
     expect(validateSimpleColorName("Noir/Rose")).toBeNull()
   })
 
+  it("allows parens and dot for variant specs like X1(7.8Ah 25KM)", () => {
+    expect(validateSimpleColorName("X1(7.8Ah 25KM)")).toBeNull()
+    expect(validateSimpleColorName("ES80")).toBeNull()
+  })
+
   it("rejects comma and plus", () => {
     expect(validateSimpleColorName("Noir,Rouge")).toMatch(/virgule/)
     expect(validateSimpleColorName("Noir+Rouge")).toMatch(/\+/)
