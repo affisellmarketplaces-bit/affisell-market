@@ -1,17 +1,12 @@
 import Groq from "groq-sdk"
 
 import {
-  byteplusChatText,
-  BYTEPLUS_LLM_MODEL,
-  hasBytePlusChat,
-  BytePlusChatError,
-} from "@/lib/ai/byteplus-client"
-import {
   capVisionImagesInMessages,
   GROQ_VISION_MAX_IMAGES,
   isGroqRateLimitError,
   normalizeGroqClientError,
 } from "@/lib/ai/groq-vision"
+import { routeLlmText } from "@/lib/ai/llm-router"
 import { hasOpenAiFallback, openaiChatText } from "@/lib/ai/openai-chat-fallback"
 
 export const GROQ_TEXT_MODEL = "llama-3.1-8b-instant"
@@ -93,48 +88,37 @@ async function tryOpenAiFallback(
 export async function groqChatText(options: GroqChatOptions): Promise<string | null> {
   const useVision = Boolean(options.vision || options.model === GROQ_VISION_MODEL)
 
-  if (!useVision && hasBytePlusChat()) {
-    try {
-      const byteplus = await byteplusChatText({
-        messages: options.messages,
-        temperature: options.temperature,
-        max_tokens: options.max_tokens,
-        response_format: options.response_format,
-      })
-      if (byteplus) {
-        console.log("[groq-client]", { event: "BytePlus Dola", model: BYTEPLUS_LLM_MODEL })
-        return byteplus
+  const runGroq = async (): Promise<string | null> => {
+    const groq = createGroqClient()
+
+    if (groq) {
+      try {
+        return await groqChatTextDirect(groq, options)
+      } catch (err: unknown) {
+        if (shouldFallbackToOpenAi(err)) {
+          const fallback = await tryOpenAiFallback(
+            options,
+            isGroqRateLimitError(err) ? "groq_rate_limit" : "groq_unavailable"
+          )
+          if (fallback) return fallback
+        }
+        throw normalizeGroqClientError(err)
       }
-    } catch (err: unknown) {
-      const status = err instanceof BytePlusChatError ? err.status : 0
-      const message = err instanceof Error ? err.message : String(err)
-      console.log("[groq-client]", {
-        event: "byteplus_fallback_groq",
-        status,
-        message: message.slice(0, 200),
-      })
     }
+
+    const openaiOnly = await tryOpenAiFallback(options, "no_groq_key")
+    if (openaiOnly) return openaiOnly
+
+    return null
   }
 
-  const groq = createGroqClient()
-
-  if (groq) {
-    try {
-      return await groqChatTextDirect(groq, options)
-    } catch (err: unknown) {
-      if (shouldFallbackToOpenAi(err)) {
-        const fallback = await tryOpenAiFallback(
-          options,
-          isGroqRateLimitError(err) ? "groq_rate_limit" : "groq_unavailable"
-        )
-        if (fallback) return fallback
-      }
-      throw normalizeGroqClientError(err)
-    }
+  if (!useVision) {
+    const result = await routeLlmText({
+      messages: options.messages,
+      runGroq,
+    })
+    return result.text
   }
 
-  const openaiOnly = await tryOpenAiFallback(options, "no_groq_key")
-  if (openaiOnly) return openaiOnly
-
-  return null
+  return runGroq()
 }
