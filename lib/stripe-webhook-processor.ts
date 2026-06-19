@@ -320,7 +320,6 @@ async function fulfillMarketplaceCheckoutFromPaymentIntent(
   paymentIntent: Stripe.PaymentIntent
 ): Promise<void> {
   if (paymentIntent.metadata?.flow !== "marketplace") return
-  if (paymentIntent.metadata?.flow === "blind_dropship") return
 
   const stripe = getStripeClient()
   const sessions = await stripe.checkout.sessions.list({

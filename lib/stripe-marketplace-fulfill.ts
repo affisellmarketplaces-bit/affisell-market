@@ -606,7 +606,9 @@ export async function fulfillMarketplaceStripeSession(
   const paidLineCents =
     paids && paids.length >= 1 ? Math.min(listLineCents, Math.max(0, paids[0]!)) : listLineCents
 
-  let deferredOrderConfirmation: OrderConfirmationEmailPayload | null = null
+  const deferred = {
+    confirmation: null as OrderConfirmationEmailPayload | null,
+  }
 
   await prisma.$transaction(async (tx) => {
     let dup = await tx.order.findUnique({ where: { stripeSessionId: sessionId } })
@@ -635,6 +637,7 @@ export async function fulfillMarketplaceStripeSession(
       !dup.bookingConfirmedAt
 
     if (dup && (dup.status === "PENDING" || recoverCancelledBooking)) {
+      const pendingOrder = dup
       const basePriceCents =
         marketplaceWholesaleCentsForOption({
           productBasePriceCents: listing.product.basePriceCents,
@@ -710,7 +713,7 @@ export async function fulfillMarketplaceStripeSession(
         null
 
       await tx.order.update({
-        where: { id: dup.id },
+        where: { id: pendingOrder.id },
         data: {
           buyerUserId: earnUserId || null,
           buyerLocale: buyerLocale || undefined,
@@ -760,7 +763,7 @@ export async function fulfillMarketplaceStripeSession(
 
       const variantBit = checkoutVariantLabel ? ` · ${checkoutVariantLabel}` : ""
       await createMarketplaceOrderNotifications(tx, {
-        orderId: dup.id,
+        orderId: pendingOrder.id,
         supplierId: listing.product.supplierId,
         affiliateId: listing.affiliateId,
         productName: listing.product.name,
@@ -792,8 +795,8 @@ export async function fulfillMarketplaceStripeSession(
           ? ((shippingAddress as Record<string, unknown>).name as string).trim()
           : undefined
 
-      deferredOrderConfirmation = {
-        orderId: dup.id,
+      deferred.confirmation = {
+        orderId: pendingOrder.id,
         productName: listing.product.name,
         productImageUrl,
         quantity: qty,
@@ -805,7 +808,7 @@ export async function fulfillMarketplaceStripeSession(
       }
 
       await runInstantDigitalDeliveryAfterPayment(tx, {
-        orderId: dup.id,
+        orderId: pendingOrder.id,
         customerEmail,
         buyerUserId: earnUserId || null,
         buyerLocale,
@@ -813,7 +816,7 @@ export async function fulfillMarketplaceStripeSession(
       })
 
       await runBookingPassAfterPaymentForOrder(tx, {
-        orderId: dup.id,
+        orderId: pendingOrder.id,
         quantity: qty,
         buyerUserId: earnUserId || null,
         buyerLocale,
@@ -828,7 +831,7 @@ export async function fulfillMarketplaceStripeSession(
           amountCents: earn,
           stripeSessionId: sessionId,
           affiliateProductId: listing.id,
-          orderId: dup.id,
+          orderId: pendingOrder.id,
         })
       }
       return
@@ -864,13 +867,14 @@ export async function fulfillMarketplaceStripeSession(
     }
   }, MARKETPLACE_FULFILL_TX_OPTIONS)
 
-  if (deferredOrderConfirmation) {
+  if (deferred.confirmation) {
+    const confirmationPayload = deferred.confirmation
     try {
-      await sendOrderConfirmationEmail(deferredOrderConfirmation)
+      await sendOrderConfirmationEmail(confirmationPayload)
     } catch (e) {
       logStripeWebhookError({
         metric: "order_confirmation_email_failed",
-        orderId: deferredOrderConfirmation.orderId,
+        orderId: confirmationPayload.orderId,
         error: e instanceof Error ? e.message : String(e),
       })
     }
