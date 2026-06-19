@@ -7,9 +7,39 @@
 import { spawn } from "node:child_process"
 import { createRequire } from "node:module"
 import { createServer } from "node:net"
+import { existsSync, readFileSync, unlinkSync } from "node:fs"
+import { join } from "node:path"
 
 const require = createRequire(import.meta.url)
 const nextBin = require.resolve("next/dist/bin/next")
+
+/** Remove dead Next dev lock left after crash / force-quit (avoids "Another next dev server is already running"). */
+function clearStaleDevLock() {
+  const lockPath = join(process.cwd(), ".next/dev/lock")
+  if (!existsSync(lockPath)) return
+  try {
+    const lock = JSON.parse(readFileSync(lockPath, "utf8")) as { pid?: number }
+    if (typeof lock.pid === "number") {
+      try {
+        process.kill(lock.pid, 0)
+        return
+      } catch {
+        /* stale pid */
+      }
+    }
+    unlinkSync(lockPath)
+    console.warn("[affisell dev] Removed stale .next/dev/lock\n")
+  } catch {
+    try {
+      unlinkSync(lockPath)
+      console.warn("[affisell dev] Removed unreadable .next/dev/lock\n")
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
+clearStaleDevLock()
 
 const preferred = Math.max(1024, Math.min(65535, Number(process.env.PORT) || 3001))
 const scanPorts = process.env.PLAYWRIGHT_WEB_SERVER !== "1"

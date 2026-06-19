@@ -452,10 +452,14 @@ export async function fulfillMarketplaceStripeSession(
     if (!Array.isArray(lines) || lines.length === 0) return
 
     const stripeIds = lines.map((_, i) => `${sessionId}:line:${i}`)
-    const already = await prisma.order.findMany({
+    const existingRows = await prisma.order.findMany({
       where: { stripeSessionId: { in: stripeIds } },
+      select: { stripeSessionId: true, status: true },
     })
-    if (already.length >= lines.length) return
+    const allPaid = stripeIds.every((id) =>
+      existingRows.some((row) => row.stripeSessionId === id && row.status === "paid")
+    )
+    if (allPaid) return
 
     await prisma.$transaction(async (tx) => {
       const earnUserId = await resolveBuyerUserIdForEarn(tx, buyerUserId, customerEmail)
@@ -470,7 +474,7 @@ export async function fulfillMarketplaceStripeSession(
         const line = lines[i]!
         const stripeSessionId = `${sessionId}:line:${i}`
         const dup = await tx.order.findUnique({ where: { stripeSessionId } })
-        if (dup) continue
+        if (dup?.status === "paid") continue
 
         const qty = Math.max(1, Math.round(Number(line.qty)) || 1)
         const listing = await tx.affiliateProduct.findUnique({
@@ -478,7 +482,17 @@ export async function fulfillMarketplaceStripeSession(
           include: listingWithProductInclude,
         })
 
-        if (!listing?.product || !listing.product.active) {
+        const fulfillingPreCreated = dup?.status === "PENDING"
+        if (!listing?.product) {
+          console.log("[marketplace-fulfill]", {
+            sessionId,
+            line: i,
+            affiliateProductId: line.affiliateProductId,
+            result: "skipped_no_listing",
+          })
+          continue
+        }
+        if (!fulfillingPreCreated && !listing.product.active) {
           console.log("[marketplace-fulfill]", {
             sessionId,
             line: i,
