@@ -29,6 +29,7 @@ export function IntlAppProvider({ locale, messages, now, children }: Props) {
       messages={messages}
       timeZone={APP_TIME_ZONE}
       now={now}
+      getMessageFallback={({ namespace, key }) => (namespace ? `${namespace}.${key}` : key)}
     >
       {children}
     </NextIntlClientProvider>

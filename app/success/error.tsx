@@ -25,7 +25,6 @@ export default function SuccessError({
         paid: true,
         fulfilled: false,
         verifying: false,
-        error: "missing_session",
       }}
     />
   )

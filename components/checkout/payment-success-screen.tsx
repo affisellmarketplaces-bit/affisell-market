@@ -126,7 +126,13 @@ export function PaymentSuccessScreen({ payload }: Props) {
 
   const isError = payload.error === "missing_session"
   const orderCount = payload.orderIds?.length ?? (payload.orderId ? 1 : 0)
-  const primaryOrderId = payload.orderIds?.[0] ?? payload.orderId ?? null
+  const primaryOrderIdRaw = payload.orderIds?.[0] ?? payload.orderId ?? null
+  const primaryOrderRef =
+    typeof primaryOrderIdRaw === "string" && primaryOrderIdRaw.trim()
+      ? primaryOrderIdRaw.trim().slice(0, 8).toUpperCase()
+      : primaryOrderIdRaw != null && String(primaryOrderIdRaw).trim()
+        ? String(primaryOrderIdRaw).trim().slice(0, 8).toUpperCase()
+        : null
 
   useEffect(() => {
     if (isError || confettiFired.current) return
@@ -222,14 +228,14 @@ export function PaymentSuccessScreen({ payload }: Props) {
               </motion.p>
             ) : null}
 
-            {primaryOrderId && !isError ? (
+            {primaryOrderRef && !isError ? (
               <motion.p
                 className="mt-3 font-mono text-xs text-zinc-500 dark:text-zinc-400"
                 initial={reducedMotion ? false : { opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.46 }}
               >
-                {t("orderRef", { id: primaryOrderId.slice(0, 8).toUpperCase() })}
+                {t("orderRef", { id: primaryOrderRef })}
               </motion.p>
             ) : null}
           </div>

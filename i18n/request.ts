@@ -15,5 +15,8 @@ export default getRequestConfig(async ({ requestLocale }) => {
     timeZone: APP_TIME_ZONE,
     now: new Date(),
     messages: loadAppMessages(locale),
+    getMessageFallback({ namespace, key }) {
+      return namespace ? `${namespace}.${key}` : key
+    },
   }
 })
