@@ -1791,8 +1791,10 @@
     "trust": {
       "poweredBy": "Powered by Affisell",
       "verifiedBy": "Verified by Affisell",
+      "merchantVerified": "Verified merchant",
       "verifiedShort": "Verified",
       "platformSecured": "Affisell secure checkout",
+      "secureCheckout": "Secure checkout",
       "securedShort": "Secure",
       "headerTrustAria": "Store trust signals",
       "partnerRef": "Ref. {code}",

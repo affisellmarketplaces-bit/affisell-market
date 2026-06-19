@@ -14,7 +14,6 @@ import {
   RotateCcw,
   ShieldCheck,
   ShoppingBag,
-  Sparkles,
   Star,
   TrendingUp,
   Truck,
@@ -561,9 +560,6 @@ export function MarketplaceListingDetail({
   const [purchaseQty, setPurchaseQty] = useState(1)
   const [showAr, setShowAr] = useState(false)
   const [sizeTip, setSizeTip] = useState<string | null>(null)
-  const [showStylist, setShowStylist] = useState(false)
-  const [styleIdeas, setStyleIdeas] = useState<string[]>([])
-  const [stylistLoading, setStylistLoading] = useState(false)
   const [alertSaved, setAlertSaved] = useState(false)
   const [selectedBookingSlotId, setSelectedBookingSlotId] = useState<string | null>(null)
   const [selectedSlotSeatsLeft, setSelectedSlotSeatsLeft] = useState<number | null>(null)
@@ -578,7 +574,6 @@ export function MarketplaceListingDetail({
   const bookingSlotRequired = bookingCheckoutLive && !selectedBookingSlotId
   const bookingSeatsRequired =
     experienceBookingLive && slotUsesNamedSeats && selectedSeatLabels.length === 0
-  const [bundleChecked, setBundleChecked] = useState<Record<string, boolean>>({})
   const [rewardBalanceCents, setRewardBalanceCents] = useState(0)
   const [useRewardCents, setUseRewardCents] = useState(0)
 
@@ -684,17 +679,6 @@ export function MarketplaceListingDetail({
     const cut = slice.lastIndexOf(" ")
     return `${(cut > 200 ? slice.slice(0, cut) : slice).trimEnd()}…`
   }, [description])
-
-  const bundleCandidates = oftenBoughtTogether.slice(0, 2)
-  const bundleSelected = bundleCandidates.filter((p) => bundleChecked[p.id])
-  const bundleAddonSum = bundleSelected.reduce((sum, p) => sum + p.priceEur, 0)
-  const bundleCrossSubtotal = listingPriceEur + bundleAddonSum
-  const BUNDLE_SAVE_PCT = 0.15
-  const bundlePayToday =
-    bundleAddonSum > 0
-      ? Math.round(bundleCrossSubtotal * (1 - BUNDLE_SAVE_PCT) * 100) / 100
-      : listingPriceEur
-  const bundleSaved = bundleAddonSum > 0 ? Math.round((bundleCrossSubtotal - bundlePayToday) * 100) / 100 : 0
 
   const availableStock = useMemo(() => {
     if (activeVariantRow) return Math.max(0, Math.round(activeVariantRow.stock) || 0)
@@ -870,27 +854,6 @@ export function MarketplaceListingDetail({
       )
     } finally {
       setBuyBusy(false)
-    }
-  }
-
-  async function openStylist() {
-    setShowStylist(true)
-    setStylistLoading(true)
-    try {
-      const res = await fetch("/api/ai/style-advice", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          productId,
-          productName: name,
-          selectedColor,
-          selectedSize,
-        }),
-      })
-      const data = (await res.json()) as { ideas?: string[] }
-      setStyleIdeas(Array.isArray(data.ideas) ? data.ideas.slice(0, 3) : [])
-    } finally {
-      setStylistLoading(false)
     }
   }
 
@@ -1576,107 +1539,24 @@ export function MarketplaceListingDetail({
                   <ArrowRight className={cn("hidden h-5 w-5 shrink-0 lg:block", brand.accentIcon)} aria-hidden />
                 </motion.button>
 
-                <div className="grid grid-cols-2 gap-2 pt-0.5 lg:gap-2.5 lg:pt-1">
-                  <button
-                    type="button"
-                    disabled={stylistLoading}
-                    onClick={() => void openStylist()}
-                    className="flex flex-col items-start gap-0.5 rounded-xl border border-zinc-200/90 bg-zinc-100/80 px-3 py-2.5 text-left text-xs font-semibold text-zinc-900 transition hover:border-violet-300/80 hover:bg-violet-50/60 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-800/60 dark:text-zinc-100 dark:hover:border-violet-600/50 dark:hover:bg-violet-950/30 lg:rounded-2xl lg:px-3.5 lg:py-3 lg:text-sm"
-                  >
-                    <span className="flex items-center gap-1.5">
-                      <Sparkles className="h-4 w-4 text-violet-600 dark:text-violet-400" aria-hidden />
-                      {productT.howToWear}
-                    </span>
-                    <span className="text-[10px] font-normal leading-tight text-zinc-500 dark:text-zinc-400">
-                      {productT.howToStyleSub}
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void savePriceAlert()}
-                    className="flex flex-col items-start gap-0.5 rounded-xl border border-zinc-200/90 bg-zinc-100/80 px-3 py-2.5 text-left text-xs font-semibold text-zinc-900 transition hover:border-amber-300/80 hover:bg-amber-50/50 dark:border-zinc-700 dark:bg-zinc-800/60 dark:text-zinc-100 dark:hover:border-amber-700/50 dark:hover:bg-amber-950/25 lg:rounded-2xl lg:px-3.5 lg:py-3 lg:text-sm"
-                  >
-                    <span className="flex items-center gap-1.5">
-                      <Bell className="h-4 w-4 text-amber-600 dark:text-amber-400" aria-hidden />
-                      {alertSaved ? "Saved" : productT.alertPriceDrop}
-                    </span>
-                    <span className="text-[10px] font-normal leading-tight text-zinc-500 dark:text-zinc-400">
-                      {alertSaved ? productT.priceAlertSavedSub : productT.priceAlertSub}
-                    </span>
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => void savePriceAlert()}
+                  className="flex w-full flex-col items-start gap-0.5 rounded-xl border border-zinc-200/90 bg-zinc-100/80 px-3 py-2.5 text-left text-xs font-semibold text-zinc-900 transition hover:border-amber-300/80 hover:bg-amber-50/50 dark:border-zinc-700 dark:bg-zinc-800/60 dark:text-zinc-100 dark:hover:border-amber-700/50 dark:hover:bg-amber-950/25 lg:rounded-2xl lg:px-3.5 lg:py-3 lg:text-sm"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <Bell className="h-4 w-4 text-amber-600 dark:text-amber-400" aria-hidden />
+                    {alertSaved ? "Saved" : productT.alertPriceDrop}
+                  </span>
+                  <span className="text-[10px] font-normal leading-tight text-zinc-500 dark:text-zinc-400">
+                    {alertSaved ? productT.priceAlertSavedSub : productT.priceAlertSub}
+                  </span>
+                </button>
               </div>
               </>
               )}
             </motion.div>
             </div>
-
-            {bundleCandidates.length > 0 ? (
-              <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950/40">
-                <p className="text-sm font-bold text-zinc-900 dark:text-zinc-50">Complete the basket</p>
-                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                  Add items below — 15% off the combined total (this SKU + selections).
-                </p>
-                <div className="mt-3 space-y-2">
-                  <div className="flex items-center justify-between rounded-xl border border-zinc-100 bg-zinc-50/80 px-3 py-2 text-sm dark:border-zinc-800 dark:bg-zinc-900/60">
-                    <span className="font-medium text-zinc-900 dark:text-zinc-100">{name}</span>
-                    <span className="tabular-nums text-zinc-600 dark:text-zinc-400">{priceDisplay}</span>
-                  </div>
-                  {bundleCandidates.map((row) => (
-                    <label
-                      key={row.id}
-                      className="flex cursor-pointer items-center gap-3 rounded-xl border border-zinc-100 px-3 py-2 transition hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900/50"
-                    >
-                      <input
-                        type="checkbox"
-                        className="h-4 w-4 accent-violet-600"
-                        checked={Boolean(bundleChecked[row.id])}
-                        onChange={(e) =>
-                          setBundleChecked((prev) => ({ ...prev, [row.id]: e.target.checked }))
-                        }
-                      />
-                      <span className="line-clamp-1 flex-1 text-sm text-zinc-800 dark:text-zinc-200">
-                        {row.title}
-                      </span>
-                      {row.soldCount ? (
-                        <ProductSalesBadge count={row.soldCount} variant="inline" className="shrink-0 scale-90" />
-                      ) : null}
-                      <span className="shrink-0 text-xs tabular-nums font-medium text-zinc-600 dark:text-zinc-400">
-                        +{fmtMoney(row.priceEur)}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-                <motion.div
-                  key={`${bundlePayToday}-${bundleAddonSum}`}
-                  initial={{ opacity: 0.6, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="mt-4 border-t border-zinc-100 pt-3 text-sm dark:border-zinc-800"
-                >
-                  <div className="flex justify-between font-medium text-zinc-700 dark:text-zinc-300">
-                    <span>Subtotal ({bundleSelected.length ? "items + SKU" : "this SKU"})</span>
-                    <span className="tabular-nums">{fmtMoney(bundleAddonSum > 0 ? bundleCrossSubtotal : listingPriceEur)}</span>
-                  </div>
-                  {bundleAddonSum > 0 ? (
-                    <>
-                      <div className="mt-1 flex justify-between text-xs font-semibold text-emerald-700 dark:text-emerald-400">
-                        <span>Bundle discount (15%)</span>
-                        <span className="tabular-nums">−{fmtMoney(bundleSaved)}</span>
-                      </div>
-                      <div className="mt-2 flex justify-between text-base font-bold text-zinc-900 dark:text-white">
-                        <span>You pay</span>
-                        <span className="tabular-nums">{fmtMoney(bundlePayToday)}</span>
-                      </div>
-                    </>
-                  ) : (
-                    <p className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-400">
-                      Tick add-ons to see bundle pricing. Checkout adds one line at a time today.
-                    </p>
-                  )}
-                </motion.div>
-              </div>
-            ) : null}
 
             <motion.div
               initial={reduceMotion ? false : { y: 6 }}
@@ -1967,6 +1847,7 @@ export function MarketplaceListingDetail({
         </Suspense>
       </section>
 
+      {oftenBoughtTogether.length > 0 ? (
       <section className="mt-10">
         <h2 className="text-xl font-bold">Frequently bought together</h2>
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -1975,7 +1856,9 @@ export function MarketplaceListingDetail({
           ))}
         </div>
       </section>
+      ) : null}
 
+      {alsoViewed.length > 0 ? (
       <section className="mt-10">
         <h2 className="text-xl font-bold">Customers also viewed</h2>
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -1984,6 +1867,7 @@ export function MarketplaceListingDetail({
           ))}
         </div>
       </section>
+      ) : null}
 
       {showAr ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
@@ -2014,51 +1898,25 @@ export function MarketplaceListingDetail({
           </div>
         </div>
       ) : null}
-      {showStylist ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-xl rounded-xl bg-white p-4 dark:bg-zinc-900">
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-lg font-semibold">AI Stylist</h3>
-              <button type="button" onClick={() => setShowStylist(false)} className="rounded px-2 py-1 hover:bg-zinc-100 dark:hover:bg-zinc-800">
-                Close
-              </button>
-            </div>
-            {stylistLoading ? (
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">Generating outfit ideas...</p>
-            ) : (
-              <ul className="space-y-2 text-sm">
-                <li className="rounded-lg border border-purple-200 bg-purple-50 p-2 text-xs text-purple-700 dark:border-purple-800 dark:bg-purple-950/40 dark:text-purple-200">
-                  Personalized for {selectedColor ?? "your selected color"} / size {selectedSize ?? "your selected size"}
-                </li>
-                {styleIdeas.map((idea, idx) => (
-                  <li key={`${idx}-${idea}`} className="rounded-lg bg-zinc-50 p-2 dark:bg-zinc-800">
-                    {idea}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
-      ) : null}
 
       <motion.div
         role="region"
         aria-label={t(productT.stickyBuyHint)}
-        aria-hidden={!(availableStock > 0 && showStickyBuy && !showAr && !showStylist)}
+        aria-hidden={!(availableStock > 0 && showStickyBuy && !showAr)}
         className="fixed inset-x-0 bottom-0 z-[85] max-w-[100vw] px-3 pb-[max(0.85rem,env(safe-area-inset-bottom))] pt-2 sm:px-6 lg:z-40"
         initial={false}
         animate={
           reduceMotion
-            ? { opacity: availableStock > 0 && showStickyBuy && !showAr && !showStylist ? 1 : 0 }
+            ? { opacity: availableStock > 0 && showStickyBuy && !showAr ? 1 : 0 }
             : {
-                y: availableStock > 0 && showStickyBuy && !showAr && !showStylist ? 0 : 120,
-                opacity: availableStock > 0 && showStickyBuy && !showAr && !showStylist ? 1 : 0,
+                y: availableStock > 0 && showStickyBuy && !showAr ? 0 : 120,
+                opacity: availableStock > 0 && showStickyBuy && !showAr ? 1 : 0,
               }
         }
         transition={{ type: "spring", stiffness: 420, damping: 36 }}
         style={{
           pointerEvents:
-            availableStock > 0 && showStickyBuy && !showAr && !showStylist && !bookingCheckoutBlocked
+            availableStock > 0 && showStickyBuy && !showAr && !bookingCheckoutBlocked
               ? "auto"
               : "none",
         }}

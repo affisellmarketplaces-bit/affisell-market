@@ -1,6 +1,6 @@
 "use client"
 
-import { BadgeCheck, Lock, ShieldCheck, Sparkles } from "lucide-react"
+import { BadgeCheck, ShieldCheck, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 import type { CSSProperties, ReactNode } from "react"
 
@@ -118,56 +118,47 @@ export function StorefrontHeaderTrustRail({
         role="region"
         aria-label={t("headerTrustAria")}
       >
-        <TrustChip tone={integrated && isCustomDomain ? "neutral" : "accent"} futuristic={futuristic}>
-          {futuristic ? (
-            <>
-              <Sparkles className="size-3 shrink-0 text-zinc-500" aria-hidden />
-              <span className={cn(isCustomDomain && "hidden min-[380px]:inline")}>{t("poweredBy")}</span>
-              <span className={cn(!isCustomDomain ? "hidden" : "min-[380px]:hidden")}>Affisell</span>
-            </>
-          ) : (
-            <>
-              <span className="relative flex size-1.5 shrink-0" aria-hidden>
-                <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400/70 opacity-60" />
-                <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
-              </span>
-              <Sparkles className="size-3 shrink-0 opacity-80" aria-hidden />
-              <span className={cn(integrated && isCustomDomain && "hidden min-[380px]:inline")}>
-                {t("poweredBy")}
-              </span>
-              <span className={cn(!integrated || !isCustomDomain ? "hidden" : "min-[380px]:hidden")}>
-                Affisell
-              </span>
-            </>
-          )}
-        </TrustChip>
+        {!isCustomDomain ? (
+          <TrustChip tone="accent" futuristic={futuristic}>
+            {futuristic ? (
+              <>
+                <Sparkles className="size-3 shrink-0 text-zinc-500" aria-hidden />
+                <span>{t("poweredBy")}</span>
+              </>
+            ) : (
+              <>
+                <span className="relative flex size-1.5 shrink-0" aria-hidden>
+                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400/70 opacity-60" />
+                  <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
+                </span>
+                <Sparkles className="size-3 shrink-0 opacity-80" aria-hidden />
+                <span>{t("poweredBy")}</span>
+              </>
+            )}
+          </TrustChip>
+        ) : null}
 
-        {futuristic ? <TrustSeparator /> : null}
+        {futuristic && !isCustomDomain ? <TrustSeparator /> : null}
 
         {trust.merchantVerified ? (
           <TrustChip tone="verified" futuristic={futuristic}>
             <BadgeCheck className={cn("size-3 shrink-0", futuristic ? "text-zinc-500" : "")} aria-hidden />
-            <span className="hidden sm:inline">{t("verifiedBy")}</span>
+            <span className="hidden sm:inline">
+              {isCustomDomain ? t("merchantVerified") : t("verifiedBy")}
+            </span>
             <span className="sm:hidden">{t("verifiedShort")}</span>
           </TrustChip>
         ) : (
           <TrustChip tone="secure" futuristic={futuristic}>
             <ShieldCheck className={cn("size-3 shrink-0", futuristic ? "text-zinc-500" : "")} aria-hidden />
-            <span className="hidden sm:inline">{t("platformSecured")}</span>
+            <span className="hidden sm:inline">
+              {isCustomDomain ? t("secureCheckout") : t("platformSecured")}
+            </span>
             <span className="sm:hidden">{t("securedShort")}</span>
           </TrustChip>
         )}
 
         {futuristic ? <TrustSeparator /> : null}
-
-        <TrustChip
-          tone="neutral"
-          futuristic={futuristic}
-          className={cn(!futuristic && "font-mono tabular-nums tracking-normal normal-case")}
-        >
-          <Lock className={cn("size-3 shrink-0", futuristic ? "text-zinc-500" : "opacity-70")} aria-hidden />
-          {t("partnerRef", { code: trust.partnerListingCode })}
-        </TrustChip>
 
         {!futuristic && isCustomDomain ? (
           <span

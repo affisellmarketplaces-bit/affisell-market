@@ -295,6 +295,9 @@ export async function loadMarketplaceListingPageData(args: {
     ? listing.product.categories.filter((c): c is string => typeof c === "string" && Boolean(c.trim()))
     : []
 
+  const storeSlugForRelated = args.storeSlug?.trim() || listing.affiliate.store?.slug?.trim() || null
+  const shouldLoadRelated = Boolean(storeSlugForRelated) || categories.length > 0
+
   const orderPromise =
     args.buyerUserId && args.orderId?.trim()
       ? prisma.order.findFirst({
@@ -310,29 +313,37 @@ export async function loadMarketplaceListingPageData(args: {
       : Promise.resolve(null)
 
   const [oftenRaw, viewsLast24h, orderRow] = await Promise.all([
-    prisma.affiliateProduct.findMany({
-      where: {
-        ...buyerListedAffiliateProductWhere,
-        id: { not: listing.id },
-        product: {
-          ...buyerMarketplaceProductWhere,
-          ...(categories.length > 0 ? { categories: { hasSome: categories.slice(0, 3) } } : {}),
-        },
-      },
-      select: RELATED_SELECT,
-      take: 3,
-    }),
+    shouldLoadRelated
+      ? prisma.affiliateProduct.findMany({
+          where: {
+            ...buyerListedAffiliateProductWhere,
+            id: { not: listing.id },
+            ...(storeSlugForRelated
+              ? { affiliate: { store: { slug: storeSlugForRelated } } }
+              : {}),
+            product: {
+              ...buyerMarketplaceProductWhere,
+              ...(categories.length > 0 ? { categories: { hasSome: categories.slice(0, 3) } } : {}),
+            },
+          },
+          select: RELATED_SELECT,
+          take: 3,
+        })
+      : Promise.resolve([]),
     countViewsLast24h(listing.product.id),
     orderPromise,
   ])
 
   const fallbackRaw =
-    oftenRaw.length >= 3
+    !shouldLoadRelated || oftenRaw.length >= 3
       ? []
       : await prisma.affiliateProduct.findMany({
           where: {
             ...buyerListedAffiliateProductWhere,
             id: { notIn: [listing.id, ...oftenRaw.map((r) => r.id)] },
+            ...(storeSlugForRelated
+              ? { affiliate: { store: { slug: storeSlugForRelated } } }
+              : {}),
           },
           orderBy: { createdAt: "desc" },
           select: RELATED_SELECT,

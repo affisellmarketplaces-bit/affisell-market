@@ -284,10 +284,6 @@ function StorefrontFooterDesktop({
                   {trust.countryCode ? ` · ${trust.countryCode}` : ""}
                 </p>
               ) : null}
-              <p className="pt-2 font-mono text-sm font-bold tabular-nums text-emerald-300">
-                {trust.partnerListingCode}
-              </p>
-              <p className="text-xs text-violet-100/65">{tTrust("partnerListingHint")}</p>
             </NavColumn>
 
             <NavColumn title={tTrust("platformOperator")} accent="from-fuchsia-400/90 to-violet-500/90">
@@ -333,7 +329,11 @@ function StorefrontFooterDesktop({
         <StorefrontFooterLegalBar
           legalLinks={legalLinks}
           disclaimer={tTrust("footerBody")}
-          copyrightLine={`© ${year} ${trust.storeName} · ${tTrust("poweredBy")}`}
+          copyrightLine={
+            isCustomDomain
+              ? `© ${year} ${trust.storeName}`
+              : `© ${year} ${trust.storeName} · ${tTrust("poweredBy")}`
+          }
           className="mt-10"
         />
       </div>
@@ -428,8 +428,6 @@ function StorefrontFooterMobile({
             panelId="storefront-footer-merchant"
           >
             <p className="text-sm font-semibold text-white">{trust.storeName}</p>
-            <p className="mt-2 font-mono text-sm text-emerald-300">{trust.partnerListingCode}</p>
-            <p className="mt-1 text-xs text-violet-100/70">{tTrust("partnerListingHint")}</p>
           </MobileAccordion>
         </div>
 
@@ -446,7 +444,11 @@ function StorefrontFooterMobile({
           disclaimer={
             isCustomDomain ? tTrust("customDomainDisclaimer") : tTrust("platformDisclaimer")
           }
-          copyrightLine={`© ${year} ${trust.storeName} · ${tTrust("poweredBy")}`}
+          copyrightLine={
+            isCustomDomain
+              ? `© ${year} ${trust.storeName}`
+              : `© ${year} ${trust.storeName} · ${tTrust("poweredBy")}`
+          }
           className="affisell-site-footer__pad mt-5 pb-0"
         />
       </div>

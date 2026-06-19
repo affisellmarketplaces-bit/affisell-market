@@ -1815,8 +1815,10 @@
     "trust": {
       "poweredBy": "Propulsé par Affisell",
       "verifiedBy": "Vérifié par Affisell",
+      "merchantVerified": "Marchand vérifié",
       "verifiedShort": "Vérifié",
       "platformSecured": "Paiement sécurisé Affisell",
+      "secureCheckout": "Paiement sécurisé",
       "securedShort": "Sécurisé",
       "headerTrustAria": "Signaux de confiance boutique",
       "partnerRef": "Réf. {code}",
