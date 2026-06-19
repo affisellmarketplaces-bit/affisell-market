@@ -1,6 +1,8 @@
+import { after } from "next/server"
 import { z } from "zod"
 
 import { auth } from "@/auth"
+import { reconcilePartnerPendingCheckoutOrders } from "@/lib/cron/reconcile-partner-pending-checkouts"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -14,6 +16,8 @@ export async function GET() {
   if ((session.user as { role?: string }).role !== "AFFILIATE") {
     return Response.json({ error: "Forbidden" }, { status: 403 })
   }
+
+  after(() => reconcilePartnerPendingCheckoutOrders({ affiliateId: session.user.id }))
 
   const [rows, unreadCount] = await Promise.all([
     prisma.notification.findMany({

@@ -4,8 +4,8 @@ import { getStripeClient } from "@/lib/stripe"
 import { findOrderIdsForCheckoutSession } from "@/lib/stripe-marketplace-commission-split"
 import { scheduleMarketplaceTransferAttempts } from "@/lib/transfers/schedule-from-checkout"
 
-const GRACE_MS = 2 * 60_000
-const BATCH_SIZE = 25
+const GRACE_MS = 45_000
+const BATCH_SIZE = 50
 
 export type ReconcilePendingCheckoutResult = {
   ok: boolean

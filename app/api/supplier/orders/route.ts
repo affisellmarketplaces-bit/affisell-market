@@ -1,6 +1,8 @@
+import { after } from "next/server"
 import { z } from "zod"
 
 import { auth } from "@/auth"
+import { reconcilePartnerPendingCheckoutOrders } from "@/lib/cron/reconcile-partner-pending-checkouts"
 import { fetchSupplierOrders } from "@/lib/supplier-orders-payload"
 import { toSupplierFulfillmentOrdersPublic } from "@/lib/supplier-orders-public-api"
 
@@ -23,6 +25,8 @@ export async function GET(req: Request) {
   const url = new URL(req.url)
   const parsed = querySchema.safeParse({ tab: url.searchParams.get("tab") ?? undefined })
   const tab = parsed.success && parsed.data.tab ? parsed.data.tab : "to_ship"
+
+  after(() => reconcilePartnerPendingCheckoutOrders({ supplierId: session.user.id }))
 
   const orders = await fetchSupplierOrders(session.user.id, tab)
   return Response.json({ orders: toSupplierFulfillmentOrdersPublic(orders), tab })

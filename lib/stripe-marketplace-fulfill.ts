@@ -42,6 +42,10 @@ import {
 
 type Tx = Prisma.TransactionClient
 
+const MARKETPLACE_FULFILL_TX_OPTIONS = { timeout: 60_000, maxWait: 15_000 } as const
+
+type OrderConfirmationEmailPayload = Parameters<typeof sendOrderConfirmationEmail>[0]
+
 const listingWithProductInclude = {
   product: {
     include: {
@@ -533,7 +537,7 @@ export async function fulfillMarketplaceStripeSession(
           })
         }
       }
-    })
+    }, MARKETPLACE_FULFILL_TX_OPTIONS)
 
     try {
       await triggerAutoFulfillmentForStripeSession(sessionId)
@@ -562,7 +566,17 @@ export async function fulfillMarketplaceStripeSession(
     include: listingWithProductInclude,
   })
 
-  if (!listing?.product || !listing.product.active) {
+  if (!listing?.product) {
+    console.log("[marketplace-fulfill]", {
+      sessionId,
+      affiliateProductId,
+      result: "skipped_no_listing",
+    })
+    return
+  }
+
+  const fulfillingPreCreated = existing?.status === "PENDING"
+  if (!fulfillingPreCreated && !listing.product.active) {
     console.log("[marketplace-fulfill]", {
       sessionId,
       affiliateProductId,
@@ -591,6 +605,8 @@ export async function fulfillMarketplaceStripeSession(
   const paids = linePaids
   const paidLineCents =
     paids && paids.length >= 1 ? Math.min(listLineCents, Math.max(0, paids[0]!)) : listLineCents
+
+  let deferredOrderConfirmation: OrderConfirmationEmailPayload | null = null
 
   await prisma.$transaction(async (tx) => {
     let dup = await tx.order.findUnique({ where: { stripeSessionId: sessionId } })
@@ -776,24 +792,16 @@ export async function fulfillMarketplaceStripeSession(
           ? ((shippingAddress as Record<string, unknown>).name as string).trim()
           : undefined
 
-      try {
-        await sendOrderConfirmationEmail({
-          orderId: dup.id,
-          productName: listing.product.name,
-          productImageUrl,
-          quantity: qty,
-          total: (paidLineCents / 100).toFixed(2),
-          currency: checkoutCurrency,
-          customerEmail,
-          customerName: shippingName,
-          locale: buyerLocale,
-        })
-      } catch (e) {
-        logStripeWebhookError({
-          metric: "order_confirmation_email_failed",
-          orderId: dup.id,
-          error: e instanceof Error ? e.message : String(e),
-        })
+      deferredOrderConfirmation = {
+        orderId: dup.id,
+        productName: listing.product.name,
+        productImageUrl,
+        quantity: qty,
+        total: (paidLineCents / 100).toFixed(2),
+        currency: checkoutCurrency,
+        customerEmail,
+        customerName: shippingName,
+        locale: buyerLocale,
       }
 
       await runInstantDigitalDeliveryAfterPayment(tx, {
@@ -854,7 +862,19 @@ export async function fulfillMarketplaceStripeSession(
         orderId,
       })
     }
-  })
+  }, MARKETPLACE_FULFILL_TX_OPTIONS)
+
+  if (deferredOrderConfirmation) {
+    try {
+      await sendOrderConfirmationEmail(deferredOrderConfirmation)
+    } catch (e) {
+      logStripeWebhookError({
+        metric: "order_confirmation_email_failed",
+        orderId: deferredOrderConfirmation.orderId,
+        error: e instanceof Error ? e.message : String(e),
+      })
+    }
+  }
 
   try {
     await triggerAutoFulfillmentForStripeSession(sessionId)

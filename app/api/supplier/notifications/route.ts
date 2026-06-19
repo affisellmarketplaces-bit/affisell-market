@@ -1,6 +1,8 @@
+import { after } from "next/server"
 import { z } from "zod"
 
 import { auth } from "@/auth"
+import { reconcilePartnerPendingCheckoutOrders } from "@/lib/cron/reconcile-partner-pending-checkouts"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -16,6 +18,8 @@ export async function GET() {
   }
 
   try {
+    after(() => reconcilePartnerPendingCheckoutOrders({ supplierId: session.user.id }))
+
     const [rows, unreadCount] = await Promise.all([
       prisma.notification.findMany({
         where: { userId: session.user.id },
