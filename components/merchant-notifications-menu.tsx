@@ -129,7 +129,7 @@ export function MerchantNotificationsMenu({
     const unsub = subscribeMerchantNotifications(cfg.eventName, () => void load())
 
     function pollIntervalMs() {
-      return document.visibilityState === "visible" ? 5_000 : 60_000
+      return document.visibilityState === "visible" ? 3_000 : 60_000
     }
 
     let intervalId = window.setInterval(() => void load(), pollIntervalMs())

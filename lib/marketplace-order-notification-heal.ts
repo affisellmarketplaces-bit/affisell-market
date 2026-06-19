@@ -5,7 +5,11 @@ import { affiliateSaleNotificationSettlement } from "@/lib/marketplace-order-set
 import { prisma } from "@/lib/prisma"
 
 const PARTNER_LOOKBACK_MS = 7 * 24 * 60 * 60 * 1000
-const HEAL_BATCH_SIZE = 15
+const HEAL_BATCH_SIZE = 30
+const HEAL_MAX_PASSES = 3
+
+/** Orders that should have a marketplace inbox alert once checkout is paid. */
+const HEALABLE_ORDER_STATUSES = ["paid", "preparing", "shipped"] as const
 
 const orderForHealSelect = {
   id: true,
@@ -102,23 +106,31 @@ export async function healMarketplaceOrderNotifications(
     select: orderForHealSelect,
   })
 
-  if (!order || order.status !== "paid") {
+  if (!order || !HEALABLE_ORDER_STATUSES.includes(order.status as (typeof HEALABLE_ORDER_STATUSES)[number])) {
     return { supplierInboxCreated: false, affiliateInboxCreated: false }
   }
 
-  const result = await prisma.$transaction((tx) =>
-    createMarketplaceOrderNotifications(tx, buildHealArgs(order))
-  )
+  try {
+    const result = await prisma.$transaction((tx) =>
+      createMarketplaceOrderNotifications(tx, buildHealArgs(order))
+    )
 
-  if (result.supplierInboxCreated || result.affiliateInboxCreated) {
-    console.log("[marketplace-order-notification-heal]", {
+    if (result.supplierInboxCreated || result.affiliateInboxCreated) {
+      console.log("[marketplace-order-notification-heal]", {
+        orderId,
+        supplierInboxCreated: result.supplierInboxCreated,
+        affiliateInboxCreated: result.affiliateInboxCreated,
+      })
+    }
+
+    return result
+  } catch (error) {
+    console.error("[marketplace-order-notification-heal]", {
       orderId,
-      supplierInboxCreated: result.supplierInboxCreated,
-      affiliateInboxCreated: result.affiliateInboxCreated,
+      error: error instanceof Error ? error.message : String(error),
     })
+    return { supplierInboxCreated: false, affiliateInboxCreated: false }
   }
-
-  return result
 }
 
 export type HealPartnerNotificationsResult = {
@@ -129,42 +141,47 @@ export type HealPartnerNotificationsResult = {
 type PartnerScope = { supplierId: string } | { affiliateId: string }
 
 /** Heal recent paid orders missing inbox alerts for one supplier or affiliate dashboard. */
-export async function healRecentPartnerMarketplaceNotifications(
+async function healRecentPartnerMarketplaceNotificationsPass(
   scope: PartnerScope
 ): Promise<HealPartnerNotificationsResult> {
   const partnerWhere =
     "supplierId" in scope ? { supplierId: scope.supplierId } : { affiliateId: scope.affiliateId }
   const inboxType = "supplierId" in scope ? ("NEW_ORDER" as const) : ("NEW_SALE" as const)
   const userId = "supplierId" in scope ? scope.supplierId : scope.affiliateId
-
-  const recentPaid = await prisma.order.findMany({
-    where: {
-      ...partnerWhere,
-      status: "paid",
-      paidAt: { gte: new Date(Date.now() - PARTNER_LOOKBACK_MS) },
-    },
-    select: { id: true },
-    orderBy: { paidAt: "desc" },
-    take: HEAL_BATCH_SIZE,
-  })
-
-  if (recentPaid.length === 0) {
-    return { scanned: 0, healed: 0 }
-  }
+  const lookback = new Date(Date.now() - PARTNER_LOOKBACK_MS)
 
   const existing = await prisma.notification.findMany({
     where: {
       userId,
       type: inboxType,
-      orderId: { in: recentPaid.map((row) => row.id) },
+      orderId: { not: null },
+      createdAt: { gte: lookback },
     },
     select: { orderId: true },
+    take: 500,
   })
-  const covered = new Set(existing.map((row) => row.orderId).filter(Boolean))
+  const covered = new Set(
+    existing.map((row) => row.orderId).filter((id): id is string => Boolean(id))
+  )
+
+  const missingAlertOrders = await prisma.order.findMany({
+    where: {
+      ...partnerWhere,
+      status: { in: [...HEALABLE_ORDER_STATUSES] },
+      createdAt: { gte: lookback },
+      ...(covered.size > 0 ? { id: { notIn: [...covered] } } : {}),
+    },
+    select: { id: true },
+    orderBy: { createdAt: "desc" },
+    take: HEAL_BATCH_SIZE,
+  })
+
+  if (missingAlertOrders.length === 0) {
+    return { scanned: 0, healed: 0 }
+  }
 
   let healed = 0
-  for (const row of recentPaid) {
-    if (covered.has(row.id)) continue
+  for (const row of missingAlertOrders) {
     const result = await healMarketplaceOrderNotifications(row.id)
     if (
       ("supplierId" in scope && result.supplierInboxCreated) ||
@@ -174,5 +191,21 @@ export async function healRecentPartnerMarketplaceNotifications(
     }
   }
 
-  return { scanned: recentPaid.length, healed }
+  return { scanned: missingAlertOrders.length, healed }
+}
+
+export async function healRecentPartnerMarketplaceNotifications(
+  scope: PartnerScope
+): Promise<HealPartnerNotificationsResult> {
+  let scanned = 0
+  let healed = 0
+
+  for (let pass = 0; pass < HEAL_MAX_PASSES; pass++) {
+    const batch = await healRecentPartnerMarketplaceNotificationsPass(scope)
+    scanned += batch.scanned
+    healed += batch.healed
+    if (batch.scanned === 0 || batch.healed === 0) break
+  }
+
+  return { scanned, healed }
 }

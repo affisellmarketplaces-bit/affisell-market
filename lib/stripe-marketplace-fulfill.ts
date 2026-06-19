@@ -464,12 +464,15 @@ export async function fulfillMarketplaceStripeSession(
     const stripeIds = lines.map((_, i) => `${sessionId}:line:${i}`)
     const existingRows = await prisma.order.findMany({
       where: { stripeSessionId: { in: stripeIds } },
-      select: { stripeSessionId: true, status: true },
+      select: { id: true, stripeSessionId: true, status: true },
     })
     const allPaid = stripeIds.every((id) =>
       existingRows.some((row) => row.stripeSessionId === id && row.status === "paid")
     )
-    if (allPaid) return
+    if (allPaid) {
+      scheduleMerchantOrderAlerts(existingRows.map((row) => row.id))
+      return
+    }
 
     const fulfilledOrderIds: string[] = []
 
@@ -486,7 +489,10 @@ export async function fulfillMarketplaceStripeSession(
         const line = lines[i]!
         const stripeSessionId = `${sessionId}:line:${i}`
         const dup = await tx.order.findUnique({ where: { stripeSessionId } })
-        if (dup?.status === "paid") continue
+        if (dup?.status === "paid") {
+          fulfilledOrderIds.push(dup.id)
+          continue
+        }
 
         const qty = Math.max(1, Math.round(Number(line.qty)) || 1)
         const listing = await tx.affiliateProduct.findUnique({
@@ -582,7 +588,10 @@ export async function fulfillMarketplaceStripeSession(
   if (!existing && metaOrderId) {
     existing = await prisma.order.findUnique({ where: { id: metaOrderId } })
   }
-  if (existing?.status === "paid") return
+  if (existing?.status === "paid") {
+    scheduleMerchantOrderAlerts([existing.id])
+    return
+  }
 
   const affiliateProductId =
     meta.affiliateProductId?.trim() || existing?.affiliateProductId?.trim() || ""
@@ -652,7 +661,10 @@ export async function fulfillMarketplaceStripeSession(
         data: { stripeSessionId: sessionId },
       })
     }
-    if (dup?.status === "paid") return
+    if (dup?.status === "paid") {
+      fulfilledOrderIds.push(dup.id)
+      return
+    }
 
     const earnUserId = await resolveBuyerUserIdForEarn(tx, buyerUserId, customerEmail)
 
