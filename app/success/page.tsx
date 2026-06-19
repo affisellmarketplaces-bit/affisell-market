@@ -4,6 +4,8 @@ import { fulfillPaidCheckoutSession } from "@/lib/marketplace-checkout-success.s
 
 import { optimisticPayload, SuccessClient } from "./success-client"
 
+export const dynamic = "force-dynamic"
+
 type PageProps = {
   searchParams: Promise<{ session_id?: string }>
 }

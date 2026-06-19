@@ -1,6 +1,7 @@
 import type { AbstractIntlMessages } from "next-intl"
 
 import type { AppLocale } from "@/lib/i18n-locale"
+import { deepMergeMessages } from "@/lib/i18n-merge-messages"
 import en from "@/messages/en.json"
 import fr from "@/messages/fr.json"
 import de from "@/messages/de.json"
@@ -21,9 +22,25 @@ const FULL_BUNDLES: Record<AppLocale, AbstractIntlMessages> = {
   zh: zh as AbstractIntlMessages,
 }
 
-/** Server + client message bundles — one full JSON per locale. */
-export function loadAppMessages(locale: AppLocale): AbstractIntlMessages {
-  return FULL_BUNDLES[locale] ?? FULL_BUNDLES.en
+function buildLocaleMessages(locale: AppLocale): AbstractIntlMessages {
+  if (locale === "en") return FULL_BUNDLES.en
+  const override = FULL_BUNDLES[locale]
+  if (!override) return FULL_BUNDLES.en
+  return deepMergeMessages(FULL_BUNDLES.en, override)
 }
 
-export const CLIENT_MESSAGES: Record<AppLocale, AbstractIntlMessages> = FULL_BUNDLES
+/** Server + client message bundles — EN base with locale overrides (missing keys fall back to EN). */
+export function loadAppMessages(locale: AppLocale): AbstractIntlMessages {
+  return buildLocaleMessages(locale)
+}
+
+export const CLIENT_MESSAGES: Record<AppLocale, AbstractIntlMessages> = {
+  en: buildLocaleMessages("en"),
+  fr: buildLocaleMessages("fr"),
+  de: buildLocaleMessages("de"),
+  es: buildLocaleMessages("es"),
+  it: buildLocaleMessages("it"),
+  nl: buildLocaleMessages("nl"),
+  pl: buildLocaleMessages("pl"),
+  zh: buildLocaleMessages("zh"),
+}
