@@ -618,7 +618,7 @@ export async function fulfillMarketplaceStripeSession(
       Boolean(dup.bookingSlotId) &&
       !dup.bookingConfirmedAt
 
-    if (dup?.status === "PENDING" || recoverCancelledBooking) {
+    if (dup && (dup.status === "PENDING" || recoverCancelledBooking)) {
       const basePriceCents =
         marketplaceWholesaleCentsForOption({
           productBasePriceCents: listing.product.basePriceCents,
