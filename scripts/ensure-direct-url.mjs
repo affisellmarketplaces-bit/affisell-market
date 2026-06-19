@@ -1,22 +1,16 @@
 #!/usr/bin/env node
 /**
  * Neon: runtime may use pooled DATABASE_URL; migrations need a direct connection.
- * If DIRECT_URL is unset, derive it from DATABASE_URL (strip -pooler host + pgbouncer params).
+ * Sets DATABASE_URL_UNPOOLED (Prisma directUrl) and legacy DIRECT_URL alias.
+ * Always strips `-pooler` + pgbouncer params even when env vars are copy-pasted wrong.
  */
-export function ensureDirectUrl() {
-  if (process.env.DIRECT_URL?.trim()) {
-    return process.env.DIRECT_URL.trim()
-  }
+function normalizeDirectUrl(rawUrl) {
+  if (!rawUrl?.trim()) return undefined
 
-  const databaseUrl = process.env.DATABASE_URL?.trim()
-  if (!databaseUrl) {
-    return undefined
-  }
-
-  let direct = databaseUrl
+  let direct = rawUrl.trim()
 
   try {
-    const parsed = new URL(databaseUrl)
+    const parsed = new URL(direct)
     if (parsed.hostname.includes("-pooler")) {
       parsed.hostname = parsed.hostname.replace(/-pooler/g, "")
     }
@@ -32,17 +26,36 @@ export function ensureDirectUrl() {
     parsed.search = query ? `?${query}` : ""
     direct = parsed.toString()
   } catch {
-    direct = databaseUrl
+    direct = direct
       .replace(/-pooler/g, "")
       .replace(/([?&])pgbouncer=true&?/gi, "$1")
       .replace(/[?&]$/, "")
   }
 
+  return direct
+}
+
+export function ensureDirectUrl() {
+  const preset =
+    process.env.DATABASE_URL_UNPOOLED?.trim() || process.env.DIRECT_URL?.trim()
+  const databaseUrl = process.env.DATABASE_URL?.trim()
+
+  const source = preset || databaseUrl
+  if (!source) return undefined
+
+  const direct = normalizeDirectUrl(source)
+  if (!direct) return undefined
+
+  process.env.DATABASE_URL_UNPOOLED = direct
   process.env.DIRECT_URL = direct
 
-  if (direct !== databaseUrl) {
+  if (direct !== source) {
     console.log(
-      "[ensure-direct-url] DIRECT_URL derived from DATABASE_URL (pooler → direct for migrate)"
+      "[ensure-direct-url] DATABASE_URL_UNPOOLED normalized (pooler → direct for migrate)"
+    )
+  } else if (!preset && databaseUrl) {
+    console.log(
+      "[ensure-direct-url] DATABASE_URL_UNPOOLED derived from DATABASE_URL (pooler → direct for migrate)"
     )
   }
 

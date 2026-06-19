@@ -56,6 +56,7 @@ jobs:
           BASE="${VERCEL_APP_URL%/}"
           AUTH="Authorization: Bearer ${CRON_SECRET}"
           for path in \
+            "/api/cron/migrate" \
             "/api/cron/review-reminder" \
             "/api/cron/wishlist-price-alerts" \
             "/api/cron/stripe-health" \

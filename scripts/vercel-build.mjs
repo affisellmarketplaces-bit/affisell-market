@@ -185,7 +185,7 @@ async function runMigrations() {
           [
             "Neon P1001 checklist:",
             "  1. Wake project in Neon console (compute may be suspended)",
-            "  2. Vercel env: DATABASE_URL (pooler OK) + DIRECT_URL (direct host, no -pooler)",
+            "  2. Vercel env: DATABASE_URL (pooler) + DATABASE_URL_UNPOOLED (direct host, no -pooler)",
             "  3. sslmode=require on both URLs",
             "  4. Retry deploy — build retries transient errors up to ~60s",
           ].join("\n")
@@ -223,7 +223,10 @@ async function main() {
 
   ensureDirectUrl()
   console.log("[vercel-build] DATABASE_URL host:", maskUrl(process.env.DATABASE_URL))
-  console.log("[vercel-build] DIRECT_URL host:", maskUrl(process.env.DIRECT_URL))
+  console.log(
+    "[vercel-build] DATABASE_URL_UNPOOLED host:",
+    maskUrl(process.env.DATABASE_URL_UNPOOLED ?? process.env.DIRECT_URL)
+  )
 
   console.log("BUILD_START")
   run("npx prisma generate")

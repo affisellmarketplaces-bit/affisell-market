@@ -1,4 +1,10 @@
 {
   "installCommand": "npm ci",
-  "buildCommand": "node scripts/vercel-build.mjs"
+  "buildCommand": "prisma generate && next build",
+  "crons": [
+    {
+      "path": "/api/cron/migrate",
+      "schedule": "0 4 * * *"
+    }
+  ]
 }

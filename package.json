@@ -12,6 +12,8 @@
     "db:local:down": "docker compose down",
     "db:local:setup": "docker compose up -d && sleep 3 && DATABASE_URL=postgresql://affisell:affisell@localhost:5433/affisell npm run db:push && DATABASE_URL=postgresql://affisell:affisell@localhost:5433/affisell npx prisma db seed",
     "db:migrate": "prisma migrate deploy",
+    "migrate:deploy": "node scripts/prisma-with-env.mjs migrate deploy",
+    "db:unlock": "tsx scripts/unlock-migrations.ts",
     "db:migrate:status": "node scripts/prisma-with-env.mjs migrate status",
     "db:migrate:dev": "node scripts/prisma-with-env.mjs migrate dev",
     "db:env:merge": "node scripts/merge-env-from-backup.mjs",

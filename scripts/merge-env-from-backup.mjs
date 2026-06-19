@@ -26,7 +26,7 @@ if (!existsSync(backupPath)) {
 }
 
 const backup = readFileSync(backupPath, "utf8")
-const lines = backup.split("\n").filter((l) => /^(DATABASE_URL|DIRECT_URL)\s*=/.test(l))
+const lines = backup.split("\n").filter((l) => /^(DATABASE_URL|DATABASE_URL_UNPOOLED|DIRECT_URL)\s*=/.test(l))
 if (lines.length === 0) {
   console.error("No DATABASE_URL in backup file.")
   process.exit(1)
