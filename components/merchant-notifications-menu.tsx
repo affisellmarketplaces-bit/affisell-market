@@ -106,6 +106,8 @@ export function MerchantNotificationsMenu({
   const cfg = config[role]
   const [open, setOpen] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
+  const [ordersToShipCount, setOrdersToShipCount] = useState(0)
+  const [badgeCount, setBadgeCount] = useState(0)
   const [rows, setRows] = useState<NotificationRow[]>([])
   const buttonRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -115,9 +117,21 @@ export function MerchantNotificationsMenu({
     try {
       const res = await fetch(cfg.apiPath, { cache: "no-store" })
       if (!res.ok) return
-      const j = (await res.json()) as { unreadCount: number; notifications: NotificationRow[] }
+      const j = (await res.json()) as {
+        unreadCount: number
+        ordersToShipCount?: number
+        badgeCount?: number
+        notifications: NotificationRow[]
+      }
       const deduped = dedupeMerchantNotifications(j.notifications)
       setUnreadCount(j.unreadCount)
+      const shipCount = j.ordersToShipCount ?? 0
+      setOrdersToShipCount(shipCount)
+      setBadgeCount(
+        role === "SUPPLIER"
+          ? (j.badgeCount ?? Math.max(j.unreadCount, shipCount))
+          : j.unreadCount
+      )
       setRows(deduped)
     } catch {
       // Dev HMR / offline — keep last badge state, avoid Next.js error overlay
@@ -227,7 +241,11 @@ export function MerchantNotificationsMenu({
               <p className="text-sm font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
                 Notifications
               </p>
-              {unreadCount > 0 ? (
+              {role === "SUPPLIER" && ordersToShipCount > 0 ? (
+                <p className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
+                  {ordersToShipCount} order{ordersToShipCount === 1 ? "" : "s"} to ship
+                </p>
+              ) : unreadCount > 0 ? (
                 <p className="text-[11px] font-medium text-violet-700 dark:text-violet-400">
                   {unreadCount} unread
                 </p>
@@ -279,7 +297,11 @@ export function MerchantNotificationsMenu({
         ref={buttonRef}
         type="button"
         aria-expanded={open}
-        aria-label={unreadCount > 0 ? `${unreadCount} unread notifications` : "Notifications"}
+        aria-label={
+          badgeCount > 0
+            ? `${badgeCount} ${role === "SUPPLIER" ? "orders to ship" : "unread notifications"}`
+            : "Notifications"
+        }
         onClick={() => setOpen((v) => !v)}
         className={cn(
           buttonVariants({ variant: "outline", size: "sm" }),
@@ -289,9 +311,9 @@ export function MerchantNotificationsMenu({
       >
         <Bell className="size-4 shrink-0" aria-hidden />
         <span className="hidden sm:inline">Alerts</span>
-        {unreadCount > 0 ? (
+        {badgeCount > 0 ? (
           <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-emerald-500 px-1 text-[10px] font-bold text-white shadow-md">
-            {unreadCount > 9 ? "9+" : unreadCount}
+            {badgeCount > 9 ? "9+" : badgeCount}
           </span>
         ) : null}
       </button>

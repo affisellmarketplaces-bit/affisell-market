@@ -1,10 +1,10 @@
-import { after } from "next/server"
 import { z } from "zod"
 
 import { auth } from "@/auth"
 import { syncPartnerMarketplaceAlertsBeforeInbox } from "@/lib/marketplace-order-notification-sync"
 import { dedupeMerchantNotifications } from "@/lib/merchant-notifications-dedupe"
 import { prisma } from "@/lib/prisma"
+import { countSupplierOrdersToShip } from "@/lib/supplier-orders-payload"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -47,9 +47,21 @@ export async function GET() {
 
     const deduped = dedupeMerchantNotifications(rows)
     const unreadFromDeduped = deduped.filter((n) => !n.read).length
+    const ordersToShipCount = await countSupplierOrdersToShip(session.user.id)
+    const badgeCount = Math.max(unreadFromDeduped, ordersToShipCount)
+
+    console.log("[supplier-notifications]", {
+      userId: session.user.id,
+      unreadCount: unreadFromDeduped,
+      ordersToShipCount,
+      badgeCount,
+      notificationRows: deduped.length,
+    })
 
     return Response.json({
       unreadCount: unreadFromDeduped,
+      ordersToShipCount,
+      badgeCount,
       notifications: deduped.map((n) => ({
         id: n.id,
         type: n.type,
@@ -66,7 +78,7 @@ export async function GET() {
       stage: "get",
       error: error instanceof Error ? error.message : String(error),
     })
-    return Response.json({ unreadCount: 0, notifications: [] }, { status: 200 })
+    return Response.json({ unreadCount: 0, ordersToShipCount: 0, badgeCount: 0, notifications: [] }, { status: 200 })
   }
 }
 
