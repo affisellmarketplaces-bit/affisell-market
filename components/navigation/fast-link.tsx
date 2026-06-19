@@ -36,9 +36,10 @@ export function FastLink(props: Props) {
     children,
     prefetch,
     href,
+    localeAware: localeAwareProp,
     ...rest
   } = props
-  const localeAware = props.localeAware === true
+  const localeAware = localeAwareProp === true
   const localeRouter = useLocaleRouter()
   const target = hrefString(href)
 

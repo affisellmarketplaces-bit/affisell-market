@@ -18,7 +18,7 @@ function clearStaleDevLock() {
   const lockPath = join(process.cwd(), ".next/dev/lock")
   if (!existsSync(lockPath)) return
   try {
-    const lock = JSON.parse(readFileSync(lockPath, "utf8")) as { pid?: number }
+    const lock = JSON.parse(readFileSync(lockPath, "utf8"))
     if (typeof lock.pid === "number") {
       try {
         process.kill(lock.pid, 0)
