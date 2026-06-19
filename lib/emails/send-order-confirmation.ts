@@ -12,9 +12,10 @@ import {
   readResendDeliveryConfig,
   resolveResendDeliveryRecipient,
 } from "@/lib/emails/resend-delivery"
+import { resolveOrderConfirmationImageUrl } from "@/lib/emails/resolve-order-confirmation-image"
 import { appBaseUrl } from "@/lib/app-base-url"
 
-const PLACEHOLDER_PRODUCT_IMAGE = "https://via.placeholder.com/64"
+export { resolveOrderConfirmationImageUrl } from "@/lib/emails/resolve-order-confirmation-image"
 
 export function resolveAppUrl(): string {
   const raw =
@@ -31,17 +32,6 @@ function resolveCustomerName(
   if (customerName?.trim()) return customerName.trim()
   const local = customerEmail.split("@")[0]?.trim()
   return local || "Client"
-}
-
-/** Maps marketplace line data (Prisma: images string[], variantImageUrl) to email props. */
-export function resolveOrderConfirmationImageUrl(args: {
-  productImages?: string[] | null
-  variantImageUrl?: string | null
-}): string {
-  const variant = args.variantImageUrl?.trim()
-  if (variant) return variant
-  const first = args.productImages?.find((u) => typeof u === "string" && u.trim())?.trim()
-  return first || PLACEHOLDER_PRODUCT_IMAGE
 }
 
 export async function sendOrderConfirmationEmail({
@@ -85,11 +75,15 @@ export async function sendOrderConfirmationEmail({
     currency: currency.toUpperCase(),
   })
 
+  const resolvedImageUrl = resolveOrderConfirmationImageUrl({
+    variantImageUrl: productImageUrl,
+  })
+
   const html = await render(
     OrderConfirmationEmail({
       orderId,
       productName,
-      productImageUrl: productImageUrl?.trim() || PLACEHOLDER_PRODUCT_IMAGE,
+      productImageUrl: resolvedImageUrl,
       quantity,
       total,
       currency: currency.toUpperCase(),

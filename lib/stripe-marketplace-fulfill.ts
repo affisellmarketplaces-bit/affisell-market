@@ -349,6 +349,7 @@ async function createPaidMarketplaceOrder(
 
   const productImageUrl = resolveOrderConfirmationImageUrl({
     productImages: listing.product.images,
+    customImages: listing.customImages,
     variantImageUrl,
   })
 
@@ -813,6 +814,7 @@ export async function fulfillMarketplaceStripeSession(
 
       const productImageUrl = resolveOrderConfirmationImageUrl({
         productImages: listing.product.images,
+        customImages: listing.customImages,
         variantImageUrl,
       })
       const shippingName =
