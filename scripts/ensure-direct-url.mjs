@@ -2,7 +2,7 @@
 /**
  * Neon: runtime may use pooled DATABASE_URL; migrations need a direct connection.
  * Sets DATABASE_URL_UNPOOLED (Prisma directUrl) and legacy DIRECT_URL alias.
- * Always strips `-pooler` + pgbouncer params even when env vars are copy-pasted wrong.
+ * Logic mirrored in lib/ensure-database-url-unpooled.ts (app routes import that file).
  */
 function normalizeDirectUrl(rawUrl) {
   if (!rawUrl?.trim()) return undefined
