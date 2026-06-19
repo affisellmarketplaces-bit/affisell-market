@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
- * Vercel production build: Prisma generate → heal Neon (P3009) → migrate deploy → next build.
- * Retries P1001/P1002 (Neon cold start / transient) before failing the deploy.
+ * Vercel build helper (optional — vercel.json default is `prisma generate && next build`).
+ * Migrations run post-deploy via GET /api/cron/migrate (Bearer CRON_SECRET), not at build time.
+ * Opt-in legacy: BUILD_RUN_MIGRATIONS=1 runs heal + migrate deploy (with P1001/P1002 retries).
  */
 import { execSync } from "node:child_process"
 import { existsSync } from "node:fs"
@@ -157,10 +158,15 @@ async function healMigrationHistory() {
 }
 
 async function runMigrations() {
-  if (process.env.BUILD_SKIP_MIGRATIONS === "1") {
-    console.log("\n⚠ BUILD_SKIP_MIGRATIONS=1 — skipping migrate deploy (Next build only)")
+  if (process.env.BUILD_RUN_MIGRATIONS !== "1") {
+    console.log(
+      "\n[vercel-build] Skipping migrate deploy at build (post-deploy: GET /api/cron/migrate)"
+    )
     return
   }
+
+  console.log("\n[vercel-build] BUILD_RUN_MIGRATIONS=1 — running migrate deploy")
+  run("npm run db:unlock")
 
   await healMigrationHistory()
 
@@ -211,26 +217,22 @@ async function runMigrations() {
 }
 
 async function main() {
-  if (!process.env.DATABASE_URL?.trim()) {
-    console.error(
-      [
-        "ERROR: DATABASE_URL is not set for the Vercel build.",
-        "Vercel → Settings → Environment Variables → Production (+ Preview)",
-      ].join("\n")
-    )
-    process.exit(1)
-  }
-
   ensureDirectUrl()
-  console.log("[vercel-build] DATABASE_URL host:", maskUrl(process.env.DATABASE_URL))
-  console.log(
-    "[vercel-build] DATABASE_URL_UNPOOLED host:",
-    maskUrl(process.env.DATABASE_URL_UNPOOLED ?? process.env.DIRECT_URL)
-  )
+  if (process.env.DATABASE_URL?.trim()) {
+    console.log("[vercel-build] DATABASE_URL host:", maskUrl(process.env.DATABASE_URL))
+    console.log(
+      "[vercel-build] DATABASE_URL_UNPOOLED host:",
+      maskUrl(process.env.DATABASE_URL_UNPOOLED ?? process.env.DIRECT_URL)
+    )
+  }
 
   console.log("BUILD_START")
   run("npx prisma generate")
-  await runMigrations()
+  if (process.env.DATABASE_URL?.trim()) {
+    await runMigrations()
+  } else {
+    console.log("[vercel-build] DATABASE_URL unset — skip migrate (generate + next build only)")
+  }
   run("npm run check:client-prisma")
   run("npm run build")
   console.log("\nNext.js build completed")
