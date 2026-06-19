@@ -39,6 +39,7 @@ import {
   buildProductOfferJsonLd,
 } from "@/lib/product-listing-seo"
 import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
+import { resolveGalleryListingVideoUrl } from "@/lib/product-playable-video"
 import type { AppLocale } from "@/lib/i18n-locale"
 import { offerModeBadge, parseProductOfferMode } from "@/lib/product-offer-mode"
 import { storefrontPdpBrandClasses } from "@/lib/storefront-pdp-brand"
@@ -440,9 +441,11 @@ export default async function MarketplaceListingPage({
           openWriteReview={sp.writeReview === "true" && Boolean(writeReviewOrderId)}
           viewsLast24h={viewsLast24h}
           salesCount={listing.conversions}
-          galleryListingVideoUrl={
-            typeof p.videoAdUrl === "string" && p.videoAdUrl.trim() ? p.videoAdUrl.trim() : null
-          }
+          galleryListingVideoUrl={resolveGalleryListingVideoUrl({
+            videoAdUrl: p.videoAdUrl,
+            productVideoUrl: p.videos?.[0]?.videoUrl ?? null,
+            descriptionIllustrationVideos,
+          })}
         />
     </MarketplaceListingPageShell>
   )

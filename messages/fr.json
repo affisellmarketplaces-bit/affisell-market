@@ -2995,12 +2995,11 @@
     "carrierDefault": "Transporteur",
     "blindBadge": "Blind",
     "confirmDelivery": {
-      "body": "Reçu et satisfait ? Confirmez la livraison — les paiements vendeur partent après {confirmDays} jours. Sans confirmation, ils peuvent quand même être débloqués {autoDays} jours après l'expédition. Votre droit de rétractation reste ouvert pendant le délai de retour.",
+      "body": "Reçu et satisfait ? Confirmez la livraison pour clôturer votre commande. Votre droit de rétractation reste ouvert pendant le délai de retour.",
       "cta": "Confirmer réception et satisfaction",
       "error": "Confirmation impossible"
     },
     "deliveryConfirmed": "Livraison confirmée · {date}",
-    "payoutFrom": " · paiements marchands à partir du {date}",
     "return": {
       "label": "Retour : ",
       "status": {

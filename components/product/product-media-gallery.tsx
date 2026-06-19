@@ -5,10 +5,11 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import { useTranslations } from "next-intl"
 
 import { MobileProductGalleryCarousel } from "@/components/product/mobile-product-gallery-carousel"
+import { ProductVideoPlayer } from "@/components/product/product-video-player"
 import { ProductVideoWishlistOverlay } from "@/components/product/product-video-wishlist-overlay"
 import { ProductGalleryLightbox } from "@/components/product/product-gallery-lightbox"
 import { ProductImageHoverZoom } from "@/components/product-image-hover-zoom"
-import { isDirectMp4Url } from "@/lib/product-description-video-embed"
+import { isGalleryPlayableVideoUrl } from "@/lib/product-playable-video"
 import { cn } from "@/lib/utils"
 
 const MAX_DESKTOP_THUMBS = 5
@@ -52,7 +53,7 @@ export function ProductMediaGallery({
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(0)
 
-  const hasVideo = Boolean(videoUrl?.trim() && isDirectMp4Url(videoUrl))
+  const hasVideo = Boolean(videoUrl?.trim() && isGalleryPlayableVideoUrl(videoUrl))
   const safeImages = images.length > 0 ? images : [PLACEHOLDER]
 
   const desktopThumbs = useMemo((): ThumbItem[] => {
@@ -226,15 +227,9 @@ export function ProductMediaGallery({
                 productId={productId ?? ""}
                 className="aspect-[4/3] w-full rounded-[1.35rem] bg-zinc-950"
               >
-                <video
-                  src={videoUrl!}
+                <ProductVideoPlayer
+                  url={videoUrl!}
                   className="h-full w-full object-contain"
-                  controls
-                  playsInline
-                  autoPlay
-                  preload="metadata"
-                  controlsList="nodownload"
-                  onContextMenu={(e) => e.preventDefault()}
                 />
                 <div className="pointer-events-none absolute inset-x-0 top-0 z-[1] bg-gradient-to-b from-black/50 to-transparent px-3 py-2 pr-16">
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/90">

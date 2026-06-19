@@ -36,6 +36,7 @@ import { ProductOfferBadge } from "@/components/product/product-offer-badge"
 import { ListingLogisticsStrip } from "@/components/product/listing-logistics-strip"
 import type { ListingLogisticsInput } from "@/lib/listing-logistics-display"
 import type { OfferModeBadge } from "@/lib/product-offer-mode"
+import { ProductVideoPlayer } from "@/components/product/product-video-player"
 import { ProductVideoWishlistOverlay } from "@/components/product/product-video-wishlist-overlay"
 import { DescriptionRichContent } from "@/components/product/description-rich-content"
 import { descriptionHasImageMarkers } from "@/lib/description-rich-content"
@@ -71,11 +72,6 @@ import {
   formatStoreCurrencyFromCents,
   formatStoreDate,
 } from "@/lib/market-config"
-import {
-  isDirectMp4Url,
-  vimeoEmbedSrc,
-  youtubeEmbedSrc,
-} from "@/lib/product-description-video-embed"
 import { resolveUsableProductImageUrl } from "@/lib/product-image-url"
 import {
   colorForImageIndex,
@@ -309,53 +305,16 @@ function DescriptionIllustrativeMedia({
       ) : null}
       {videos.length > 0 ? (
         <ul className="space-y-4">
-          {videos.map((url, videoIndex) => {
-            const yt = youtubeEmbedSrc(url)
-            const vm = !yt ? vimeoEmbedSrc(url) : null
-            const mp4 = !yt && !vm && isDirectMp4Url(url)
-            return (
-              <li key={`illustration-video-${videoIndex}`}>
-                <ProductVideoWishlistOverlay
-                  productId={productId}
-                  className="rounded-xl border border-zinc-200 bg-black/5 dark:border-zinc-700"
-                >
-                  {yt ? (
-                    <iframe
-                      title="Product video"
-                      src={yt}
-                      className="aspect-video w-full"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      allowFullScreen
-                      loading="lazy"
-                    />
-                  ) : vm ? (
-                    <iframe
-                      title="Product video"
-                      src={vm}
-                      className="aspect-video w-full"
-                      allow="autoplay; fullscreen; picture-in-picture"
-                      allowFullScreen
-                      loading="lazy"
-                    />
-                  ) : mp4 ? (
-                    <video
-                      src={url}
-                      className="aspect-video w-full bg-black"
-                      controls
-                      playsInline
-                      preload="metadata"
-                      controlsList="nodownload"
-                      onContextMenu={(e) => e.preventDefault()}
-                    />
-                  ) : (
-                    <p className="p-3 text-xs text-zinc-500">
-                      Unsupported video link — use YouTube, Vimeo, or a direct .mp4 URL.
-                    </p>
-                  )}
-                </ProductVideoWishlistOverlay>
-              </li>
-            )
-          })}
+          {videos.map((url, videoIndex) => (
+            <li key={`illustration-video-${videoIndex}`}>
+              <ProductVideoWishlistOverlay
+                productId={productId}
+                className="overflow-hidden rounded-xl border border-zinc-200 bg-black/5 dark:border-zinc-700"
+              >
+                <ProductVideoPlayer url={url} />
+              </ProductVideoWishlistOverlay>
+            </li>
+          ))}
         </ul>
       ) : null}
     </div>

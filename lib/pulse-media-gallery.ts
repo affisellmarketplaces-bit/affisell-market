@@ -1,21 +1,8 @@
 import type { PulseFeedItem, PulseMediaSlide } from "@/lib/pulse-feed-types"
-import { isDirectMp4Url } from "@/lib/product-description-video-embed"
-
-export const PULSE_VIDEO_URL_RE = /\.(mp4|webm|mov|m4v)(\?.*)?$/i
+import { isPlayableDirectVideoUrl } from "@/lib/product-playable-video"
 
 export function isPulseVideoUrl(url: string): boolean {
-  const trimmed = url.trim()
-  if (!trimmed) return false
-  if (PULSE_VIDEO_URL_RE.test(trimmed)) return true
-  if (isDirectMp4Url(trimmed)) return true
-  try {
-    const u = new URL(trimmed)
-    const path = `${u.pathname}${u.search}`.toLowerCase()
-    if (path.includes("/video/") || path.includes("video_upload")) return true
-  } catch {
-    return false
-  }
-  return false
+  return isPlayableDirectVideoUrl(url)
 }
 
 /** Deduped gallery slides preserving first-seen order. */

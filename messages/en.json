@@ -2971,12 +2971,11 @@
     "carrierDefault": "Carrier",
     "blindBadge": "Blind",
     "confirmDelivery": {
-      "body": "Received and satisfied? Confirm delivery — seller payouts run after {confirmDays} days. Without confirmation, payouts may still release after {autoDays} days from shipment. Your statutory withdrawal right remains during the return window.",
+      "body": "Received and satisfied? Confirm delivery to close your order. Your statutory withdrawal right remains during the return window.",
       "cta": "Confirm receipt & satisfaction",
       "error": "Could not confirm"
     },
     "deliveryConfirmed": "Delivery confirmed · {date}",
-    "payoutFrom": " · merchant payouts from {date}",
     "return": {
       "label": "Return: ",
       "status": {
