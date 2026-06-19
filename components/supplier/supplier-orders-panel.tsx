@@ -257,6 +257,7 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
     }
     const j = (await res.json()) as { orders: OrderRow[] }
     setRows(j.orders)
+    window.dispatchEvent(new CustomEvent("affisell:supplier-notifications-changed"))
   }, [tab, msg])
 
   useEffect(() => {

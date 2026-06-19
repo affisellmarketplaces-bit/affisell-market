@@ -1,8 +1,7 @@
-import { after } from "next/server"
 import { z } from "zod"
 
 import { auth } from "@/auth"
-import { reconcilePartnerPendingCheckoutOrders } from "@/lib/cron/reconcile-partner-pending-checkouts"
+import { syncPartnerMarketplaceAlertsBeforeInbox } from "@/lib/marketplace-order-notification-sync"
 import { fetchSupplierOrders } from "@/lib/supplier-orders-payload"
 import { toSupplierFulfillmentOrdersPublic } from "@/lib/supplier-orders-public-api"
 
@@ -26,7 +25,15 @@ export async function GET(req: Request) {
   const parsed = querySchema.safeParse({ tab: url.searchParams.get("tab") ?? undefined })
   const tab = parsed.success && parsed.data.tab ? parsed.data.tab : "to_ship"
 
-  after(() => reconcilePartnerPendingCheckoutOrders({ supplierId: session.user.id }))
+  try {
+    await syncPartnerMarketplaceAlertsBeforeInbox({ supplierId: session.user.id })
+  } catch (error) {
+    console.error("[supplier-orders]", {
+      userId: session.user.id,
+      stage: "sync",
+      error: error instanceof Error ? error.message : String(error),
+    })
+  }
 
   const orders = await fetchSupplierOrders(session.user.id, tab)
   return Response.json({ orders: toSupplierFulfillmentOrdersPublic(orders), tab })

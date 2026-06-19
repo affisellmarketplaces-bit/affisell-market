@@ -31,6 +31,7 @@ const orderForHealSelect = {
   usesAffisellAutoBuy: true,
   paidAt: true,
   product: { select: { name: true } },
+  affiliate: { select: { store: { select: { partnerListingCode: true } } } },
   affiliateProduct: {
     select: {
       affiliate: { select: { store: { select: { partnerListingCode: true } } } },
@@ -75,8 +76,7 @@ function buildHealArgs(order: OrderForHeal) {
     variantBit,
     qty: Math.max(1, order.quantity),
     customerEmail: order.customerEmail,
-    partnerListingCode:
-      order.affiliateProduct.affiliate.store?.partnerListingCode?.trim() || null,
+    partnerListingCode: resolvePartnerListingCodeForHeal(order),
     settlement,
     supplierNetCents: order.supplierPayoutCents,
     supplierPlatformFeeCents: order.supplierFeeCents,
@@ -85,6 +85,12 @@ function buildHealArgs(order: OrderForHeal) {
     totalCents: order.totalCents,
     imageUrl: order.variantImageUrl,
   }
+}
+
+function resolvePartnerListingCodeForHeal(order: OrderForHeal): string | null {
+  const fromListing = order.affiliateProduct?.affiliate?.store?.partnerListingCode?.trim()
+  if (fromListing) return fromListing
+  return order.affiliate?.store?.partnerListingCode?.trim() || null
 }
 
 /** Idempotent heal for one paid marketplace order (fixes missing supplier/affiliate inbox rows). */

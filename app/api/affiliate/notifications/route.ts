@@ -1,9 +1,7 @@
-import { after } from "next/server"
 import { z } from "zod"
 
 import { auth } from "@/auth"
-import { reconcilePartnerPendingCheckoutOrders } from "@/lib/cron/reconcile-partner-pending-checkouts"
-import { healRecentPartnerMarketplaceNotifications } from "@/lib/marketplace-order-notification-heal"
+import { syncPartnerMarketplaceAlertsBeforeInbox } from "@/lib/marketplace-order-notification-sync"
 import { dedupeMerchantNotifications } from "@/lib/merchant-notifications-dedupe"
 import { prisma } from "@/lib/prisma"
 
@@ -19,9 +17,15 @@ export async function GET() {
     return Response.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  after(() => reconcilePartnerPendingCheckoutOrders({ affiliateId: session.user.id }))
-
-  await healRecentPartnerMarketplaceNotifications({ affiliateId: session.user.id })
+  try {
+    await syncPartnerMarketplaceAlertsBeforeInbox({ affiliateId: session.user.id })
+  } catch (error) {
+    console.error("[affiliate-notifications]", {
+      userId: session.user.id,
+      stage: "sync",
+      error: error instanceof Error ? error.message : String(error),
+    })
+  }
 
   const rows = await prisma.notification.findMany({
     where: { userId: session.user.id },
