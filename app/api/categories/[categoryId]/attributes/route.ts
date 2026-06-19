@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 
-import { categoryAttributesToDto } from "@/lib/category-attribute-api"
-import { resolveCategoryAttributesForForm } from "@/lib/category-attribute-resolution"
+import { resolveCategoryAttributesForFormV2 } from "@/lib/category-attribute-catalog"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -12,9 +11,8 @@ export async function GET(
 ) {
   const { categoryId } = await params
   try {
-    const rows = await resolveCategoryAttributesForForm(categoryId)
-    const attributes = categoryAttributesToDto(rows)
-    return NextResponse.json({ attributes })
+    const attributes = await resolveCategoryAttributesForFormV2(categoryId)
+    return NextResponse.json({ attributes, schemaVersion: 2 })
   } catch {
     return NextResponse.json({ attributes: [] })
   }

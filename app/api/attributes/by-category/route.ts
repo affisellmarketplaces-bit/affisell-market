@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server"
 
 import { categoryAttributesToDto } from "@/lib/category-attribute-api"
-import {
-  genericFallbackRows,
-  resolveCategoryAttributesForForm,
-} from "@/lib/category-attribute-resolution"
+import { resolveCategoryAttributesForFormV2 } from "@/lib/category-attribute-catalog"
+import { genericFallbackRows } from "@/lib/category-attribute-resolution"
 import { mergeMarketplaceStyleSupplements } from "@/lib/marketplace-style-spec-supplements"
 
 export const dynamic = "force-dynamic"
@@ -26,14 +24,16 @@ export async function GET(req: Request) {
     return NextResponse.json({
       attributes: categoryAttributesToDto(rows),
       mode: "unclassified" as const,
+      schemaVersion: 2 as const,
     })
   }
 
   try {
-    const rows = await resolveCategoryAttributesForForm(categoryId)
+    const attributes = await resolveCategoryAttributesForFormV2(categoryId)
     return NextResponse.json({
-      attributes: categoryAttributesToDto(rows),
+      attributes,
       mode: "taxonomy" as const,
+      schemaVersion: 2 as const,
     })
   } catch (e) {
     console.error("[api/attributes/by-category]", e)
@@ -41,6 +41,7 @@ export async function GET(req: Request) {
     return NextResponse.json({
       attributes: categoryAttributesToDto(fallback),
       warning: "taxonomy_db_error",
+      schemaVersion: 2 as const,
     })
   }
 }

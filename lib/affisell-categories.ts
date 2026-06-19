@@ -1,5 +1,6 @@
-/** Affisell marketplace taxonomy — English labels (no third-party trademarks). */
-
+/** Affisell marketplace taxonomy — English labels (no third-party trademarks).
+ * @deprecated Use DB `Category` tree (`/api/categories`) — kept for legacy import allowlist until backfill completes.
+ */
 export const AFFISELL_CATEGORIES = [
   "All Departments",
   "Voice Skills",

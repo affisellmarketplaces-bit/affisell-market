@@ -3,6 +3,14 @@ import type { CategoryAttribute } from "@prisma/client"
 import type { CategoryAttributeValidationRule } from "@/lib/category-attribute-rules"
 import { parseValidationRule } from "@/lib/category-attribute-rules"
 
+export type CategoryAttributeOptionDto = {
+  id: string
+  value: string
+  slug: string
+  hexColor: string | null
+  sortOrder: number
+}
+
 /** Client-facing row (Amazon-style dynamic form). */
 export type CategoryAttributeDto = {
   id: string
@@ -21,6 +29,13 @@ export type CategoryAttributeDto = {
   dependsOnKey: string | null
   dependsOnValue: string | null
   helpText: string | null
+  /** Global catalog link (v2). */
+  attributeId?: string | null
+  attributeSlug?: string
+  isVariant?: boolean
+  isFilterable?: boolean
+  appliesToDescendants?: boolean
+  optionDetails?: CategoryAttributeOptionDto[]
 }
 
 export function categoryAttributeToDto(row: CategoryAttribute): CategoryAttributeDto {
@@ -40,6 +55,10 @@ export function categoryAttributeToDto(row: CategoryAttribute): CategoryAttribut
     dependsOnKey: row.dependsOnKey,
     dependsOnValue: row.dependsOnValue,
     helpText: row.helpText,
+    attributeId: row.attributeId,
+    isVariant: row.isVariant,
+    isFilterable: row.isFilterable ?? row.showInFilter,
+    appliesToDescendants: row.appliesToDescendants,
   }
 }
 

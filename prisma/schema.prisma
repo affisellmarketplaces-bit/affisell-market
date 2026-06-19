@@ -387,6 +387,21 @@ model Store {
   followerRelations Follow[]        @relation("StoreFollowers")
 }
 
+enum AttributeValueType {
+  TEXT
+  NUMBER
+  BOOLEAN
+  SELECT_SINGLE
+  SELECT_MULTI
+  UNIT_VALUE
+  TEXTAREA
+}
+
+enum CategoryTemplateType {
+  TITLE
+  DESC
+}
+
 model Category {
   id    String @id @default(cuid())
   /**
@@ -416,7 +431,17 @@ model Category {
   isLeaf   Boolean @default(false)
 
   /**
+   * Materialized ancestor id path for fast descendant queries (e.g. `cuid1.cuid2.cuid3`).
+   */
+  pathIds String?
+
+  /** SEO — optional browse meta. */
+  metaTitle String?
+  metaDesc  String? @db.Text
+
+  /**
    * Grand comptoir: noms de specs côté catégorie feuille (ex. Marque, Taille).
+   * @deprecated Prefer `CategoryAttribute` + global `Attribute` catalog.
    */
   specs String[] @default([])
 
@@ -435,14 +460,50 @@ model Category {
   products Product[]
 
   attributes CategoryAttribute[]
+  templates  CategoryTemplate[]
 
   /**
    * Legacy per-department table (CSV/import); distinct from nested `children` above.
    */
   tabularSubcategories Subcategory[] @relation("CategoryTabularSubcategory")
 
-  @@index([parentId])
+  @@index([parentId, order])
   @@index([level])
+  @@index([pathIds])
+}
+
+/** Global reusable attribute definition (Couleur, Stockage, RAM…). */
+model Attribute {
+  id             String             @id @default(cuid())
+  name           String
+  slug           String             @unique
+  type           AttributeValueType
+  unit           String?
+  validationJson Json?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  options            AttributeOption[]
+  categoryAttributes CategoryAttribute[]
+  variantValues      VariantAttributeValue[]
+
+  @@index([type])
+}
+
+/** Select / multi-select option rows for a global `Attribute`. */
+model AttributeOption {
+  id          String    @id @default(cuid())
+  attributeId String
+  attribute   Attribute @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+  value       String
+  slug        String
+  hexColor    String?
+  sortOrder   Int       @default(0)
+
+  variantValues VariantAttributeValue[]
+
+  @@unique([attributeId, slug])
+  @@index([attributeId, sortOrder])
 }
 
 model CategoryAttribute {
@@ -450,15 +511,28 @@ model CategoryAttribute {
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
+  /**
+   * When set, definition (type, unit, options) is resolved from global `Attribute`.
+   * Legacy rows keep inline key/label/type until backfilled by migration script.
+   */
+  attributeId String?
+  attribute   Attribute? @relation(fields: [attributeId], references: [id], onDelete: SetNull)
+
   key          String
   label        String
   type         String
   unit         String?
+  /** @deprecated Prefer `AttributeOption` when `attributeId` is set. Kept for legacy rows. */
   options      String[] @default([])
   required     Boolean  @default(false)
   order        Int      @default(0)
   aiSuggest    Boolean  @default(true)
   showInFilter Boolean  @default(true)
+  /** Drives SKU / variant matrix dimensions (Amazon-style). */
+  isVariant             Boolean @default(false)
+  /** null = inherit from `showInFilter`. */
+  isFilterable          Boolean?
+  appliesToDescendants  Boolean @default(false)
   /**
    * Optional constraints, e.g. `{"min": 64, "max": 1024}` or `{"pattern": "^[0-9]{13}$"}`.
    */
@@ -472,7 +546,20 @@ model CategoryAttribute {
 
   @@unique([categoryId, key])
   @@index([categoryId])
+  @@index([attributeId])
   @@index([dependsOnKey])
+}
+
+/** Title / description templates per category (Amazon-style prefill). */
+model CategoryTemplate {
+  id             String               @id @default(cuid())
+  categoryId     String
+  category       Category             @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  templateType   CategoryTemplateType
+  templateString String               @db.Text
+
+  @@unique([categoryId, templateType])
+  @@index([categoryId])
 }
 
 model Subcategory {
@@ -509,9 +596,16 @@ model Product {
   updatedAt                     DateTime @default(now()) @updatedAt
   images                        String[] @default([])
   colorImages                   Json?
+  /**
+   * @deprecated Legacy department labels — use `categoryId` + `category.fullPath`.
+   */
   categories                    String[] @default([])
   colors                        String[] @default([])
   variants                      Json?
+  /**
+   * Amazon-style parent listing: sellable SKUs live in `ProductVariant` children.
+   */
+  isVariantParent               Boolean  @default(false)
   /**
    * When true, SKU lines live in `ProductVariant` (supplier/public price per row).
    */
@@ -802,9 +896,28 @@ model ProductVariant {
   updatedAt     DateTime @updatedAt
 
   supplierLinkVariants SupplierLinkVariant[]
+  attributeValues      VariantAttributeValue[]
 
   @@unique([productId, color, size, sku])
   @@index([productId])
+}
+
+/** Typed EAV values per sellable variant (colour, storage, RAM…). */
+model VariantAttributeValue {
+  id          String           @id @default(cuid())
+  variantId   String
+  variant     ProductVariant   @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  attributeId String
+  attribute   Attribute        @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+  valueText     String?
+  valueNumber   Decimal?         @db.Decimal(18, 4)
+  valueBoolean  Boolean?
+  optionId      String?
+  option        AttributeOption? @relation(fields: [optionId], references: [id], onDelete: SetNull)
+
+  @@unique([variantId, attributeId])
+  @@index([attributeId])
+  @@index([optionId])
 }
 
 model ProductVideo {

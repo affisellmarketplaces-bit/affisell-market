@@ -36,6 +36,7 @@
     "reclassify-orphans": "tsx scripts/reclassify-orphan-products.ts",
     "reclassify-active-catalog": "tsx scripts/reclassify-active-catalog.ts",
     "sync:category-labels": "tsx scripts/sync-product-category-labels.ts",
+    "migrate:category-attributes": "tsx scripts/migrate-category-attributes.ts",
     "index:marketplace-search": "tsx scripts/fix-category-suggestions.ts",
     "check:discovery": "tsx scripts/check-discovery-health.ts",
     "discovery:bootstrap": "tsx scripts/discovery-bootstrap.ts",
