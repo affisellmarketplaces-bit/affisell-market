@@ -98,6 +98,13 @@ function mergeAttributeRows(
   return [...byKey.values()].sort((a, b) => a.order - b.order || a.label.localeCompare(b.label))
 }
 
+function withCatalogShape(rows: CategoryAttribute[]): CategoryAttributeWithCatalog[] {
+  return rows.map((row) => ({
+    ...row,
+    attribute: null,
+  }))
+}
+
 const categoryAttributeInclude = {
   attribute: {
     include: {
@@ -133,9 +140,9 @@ export async function resolveCategoryAttributesForFormV2(
       appliesToDescendants: false,
       attribute: null,
     }))
-    return mergeMarketplaceStyleSupplements(categoryId, [], fallback).map(
-      categoryAttributeWithCatalogToDto
-    )
+    return withCatalogShape(
+      mergeMarketplaceStyleSupplements(categoryId, [], fallback)
+    ).map(categoryAttributeWithCatalogToDto)
   }
 
   const all = await prisma.categoryAttribute.findMany({
@@ -166,11 +173,13 @@ export async function resolveCategoryAttributesForFormV2(
           attribute: null,
         }))
 
-  merged = mergeMarketplaceStyleSupplements(
-    categoryId,
-    chainSlugs,
-    merged as CategoryAttribute[]
-  ) as CategoryAttributeWithCatalog[]
+  merged = withCatalogShape(
+    mergeMarketplaceStyleSupplements(
+      categoryId,
+      chainSlugs,
+      merged as CategoryAttribute[]
+    )
+  )
 
   return merged.map(categoryAttributeWithCatalogToDto)
 }

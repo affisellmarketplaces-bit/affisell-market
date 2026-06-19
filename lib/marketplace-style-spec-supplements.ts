@@ -16,6 +16,7 @@ function toRow(leafCategoryId: string, def: SpecDef): CategoryAttribute {
   return {
     id,
     categoryId: leafCategoryId,
+    attributeId: null,
     key: def.key,
     label: def.label,
     type: def.type,
@@ -25,6 +26,9 @@ function toRow(leafCategoryId: string, def: SpecDef): CategoryAttribute {
     order: def.order,
     aiSuggest: true,
     showInFilter: true,
+    isVariant: false,
+    isFilterable: null,
+    appliesToDescendants: false,
     validationRule: null,
     dependsOnKey: null,
     dependsOnValue: null,

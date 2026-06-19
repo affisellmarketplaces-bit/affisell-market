@@ -1,24 +1,13 @@
 import { spawnSync } from "node:child_process"
-import { existsSync } from "node:fs"
-import { resolve } from "node:path"
-
-import { config as loadEnv } from "dotenv"
 
 import { authorizeCronRequest } from "@/lib/cron/authorize-cron-request"
+import { ensureDatabaseUrlUnpooled } from "@/lib/ensure-database-url-unpooled"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 /** Neon migrate deploy can exceed default 10s on large migration queues. */
 export const maxDuration = 300
-
-function loadLocalEnv() {
-  const root = process.cwd()
-  for (const name of [".env.pre-local-merge.bak", ".env", ".env.local"]) {
-    const path = resolve(root, name)
-    if (existsSync(path)) loadEnv({ path, override: true })
-  }
-}
 
 async function unlockAdvisoryLocks(): Promise<{ before: number; after: number }> {
   const holders = await prisma.$queryRaw<{ pid: number }[]>`
@@ -58,10 +47,7 @@ async function unlockAdvisoryLocks(): Promise<{ before: number; after: number }>
 }
 
 function runMigrateDeploy(): { ok: boolean; output: string; code: number | null } {
-  loadLocalEnv()
-  // Side-effect: sets DATABASE_URL_UNPOOLED from pooler URL when missing.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  require("../../../scripts/ensure-direct-url.mjs")
+  ensureDatabaseUrlUnpooled()
 
   const result = spawnSync("npx", ["prisma", "migrate", "deploy"], {
     cwd: process.cwd(),
@@ -77,8 +63,6 @@ function runMigrateDeploy(): { ok: boolean; output: string; code: number | null 
 /**
  * Apply pending Prisma migrations once (post-deploy).
  * `Authorization: Bearer ${CRON_SECRET}`
- *
- * Vercel build must NOT run migrate deploy — call this route after deploy instead.
  */
 export async function GET(req: Request) {
   const denied = authorizeCronRequest(req)
