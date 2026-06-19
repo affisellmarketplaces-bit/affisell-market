@@ -77,11 +77,8 @@ export async function dispatchMerchantOrderAlerts(orderId: string): Promise<void
   const quantity = Math.max(1, order.quantity)
   const buyerMasked = maskEmailForLog(order.customerEmail)
   const partnerListingCode = order.affiliate.store?.partnerListingCode?.trim() || null
-  const payoutLabel = formatMerchantAlertMoney(order.supplierPayoutCents, order.currency)
-  const earningsLabel = formatMerchantAlertMoney(
-    affiliateNetEarningsCents(order),
-    order.currency
-  )
+  const payoutLabel = formatMerchantAlertMoney(order.supplierPayoutCents)
+  const earningsLabel = formatMerchantAlertMoney(affiliateNetEarningsCents(order))
 
   const emailLocale = resolveEmailLocale(order.buyerLocale)
 

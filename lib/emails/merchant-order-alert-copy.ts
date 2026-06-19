@@ -93,8 +93,8 @@ export function copyForAffiliateNewSaleAlert(locale: AppLocale): AffiliateNewSal
   return locale === "fr" ? affiliateFr : affiliateEn
 }
 
-export function formatMerchantAlertMoney(cents: number, currency = "EUR"): string {
-  return formatStoreCurrencyFromCents(Math.max(0, Math.round(cents)), currency)
+export function formatMerchantAlertMoney(cents: number): string {
+  return formatStoreCurrencyFromCents(Math.max(0, Math.round(cents)))
 }
 
 export function shortMerchantOrderRef(orderId: string): string {
