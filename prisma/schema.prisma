@@ -1460,6 +1460,14 @@ model Order {
   bookingSupplierAlertSentAt   DateTime?
   /** Idempotent supplier J-0 digest email inclusion. */
   bookingSupplierDigestSentAt  DateTime?
+  /** Idempotent supplier in-app alert on marketplace checkout paid. */
+  merchantSupplierInboxNotifiedAt  DateTime?
+  /** Idempotent affiliate in-app alert on marketplace checkout paid. */
+  merchantAffiliateInboxNotifiedAt DateTime?
+  /** Idempotent supplier email alert on marketplace checkout paid. */
+  merchantSupplierEmailSentAt      DateTime?
+  /** Idempotent affiliate email alert on marketplace checkout paid. */
+  merchantAffiliateEmailSentAt     DateTime?
   bookingSeats             BookingSeat[]
   buyer                    User?               @relation("BuyerMarketplaceOrders", fields: [buyerUserId], references: [id], onDelete: SetNull)
   customerEmail            String

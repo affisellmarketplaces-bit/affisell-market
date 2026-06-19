@@ -8,6 +8,11 @@ import {
 
 type Tx = Prisma.TransactionClient
 
+export type MarketplaceOrderNotificationResult = {
+  supplierInboxCreated: boolean
+  affiliateInboxCreated: boolean
+}
+
 export async function createMarketplaceOrderNotifications(
   tx: Tx,
   args: {
@@ -27,43 +32,74 @@ export async function createMarketplaceOrderNotifications(
     totalCents?: number | null
     imageUrl?: string | null
   }
-): Promise<void> {
+): Promise<MarketplaceOrderNotificationResult> {
   const imageUrl = args.imageUrl?.trim() || null
-  await tx.notification.create({
-    data: {
-      userId: args.supplierId,
-      type: "NEW_ORDER",
-      imageUrl,
-      message: formatSupplierNewOrderNotification({
-        productName: args.productName,
-        variantBit: args.variantBit,
-        qty: args.qty,
-        customerEmail: args.customerEmail,
-        partnerListingCode: args.partnerListingCode,
-        supplierNetCents: args.supplierNetCents,
-        supplierGrossCents: args.settlement.basePriceCents,
-        affiliateCommissionCents: args.settlement.affiliateCommissionCents,
-        supplierPlatformFeeCents: args.supplierPlatformFeeCents,
-        usesAffisellAutoBuy: args.usesAffisellAutoBuy,
-      }),
-      orderId: args.orderId,
-    },
+  const result: MarketplaceOrderNotificationResult = {
+    supplierInboxCreated: false,
+    affiliateInboxCreated: false,
+  }
+
+  const supplierClaim = await tx.order.updateMany({
+    where: { id: args.orderId, merchantSupplierInboxNotifiedAt: null },
+    data: { merchantSupplierInboxNotifiedAt: new Date() },
   })
 
-  await tx.notification.create({
-    data: {
-      userId: args.affiliateId,
-      type: "NEW_SALE",
-      imageUrl,
-      message: formatAffiliateNewSaleNotification({
-        productName: args.productName,
-        variantBit: args.variantBit,
-        qty: args.qty,
-        settlement: args.settlement,
-        taxCents: args.taxCents,
-        totalCents: args.totalCents,
-      }),
-      orderId: args.orderId,
-    },
+  if (supplierClaim.count > 0) {
+    await tx.notification.create({
+      data: {
+        userId: args.supplierId,
+        type: "NEW_ORDER",
+        imageUrl,
+        message: formatSupplierNewOrderNotification({
+          productName: args.productName,
+          variantBit: args.variantBit,
+          qty: args.qty,
+          customerEmail: args.customerEmail,
+          partnerListingCode: args.partnerListingCode,
+          supplierNetCents: args.supplierNetCents,
+          supplierGrossCents: args.settlement.basePriceCents,
+          affiliateCommissionCents: args.settlement.affiliateCommissionCents,
+          supplierPlatformFeeCents: args.supplierPlatformFeeCents,
+          usesAffisellAutoBuy: args.usesAffisellAutoBuy,
+        }),
+        orderId: args.orderId,
+      },
+    })
+    result.supplierInboxCreated = true
+  }
+
+  const affiliateClaim = await tx.order.updateMany({
+    where: { id: args.orderId, merchantAffiliateInboxNotifiedAt: null },
+    data: { merchantAffiliateInboxNotifiedAt: new Date() },
   })
+
+  if (affiliateClaim.count > 0) {
+    await tx.notification.create({
+      data: {
+        userId: args.affiliateId,
+        type: "NEW_SALE",
+        imageUrl,
+        message: formatAffiliateNewSaleNotification({
+          productName: args.productName,
+          variantBit: args.variantBit,
+          qty: args.qty,
+          settlement: args.settlement,
+          taxCents: args.taxCents,
+          totalCents: args.totalCents,
+        }),
+        orderId: args.orderId,
+      },
+    })
+    result.affiliateInboxCreated = true
+  }
+
+  if (result.supplierInboxCreated || result.affiliateInboxCreated) {
+    console.log("[marketplace-order-notifications]", {
+      orderId: args.orderId,
+      supplierInboxCreated: result.supplierInboxCreated,
+      affiliateInboxCreated: result.affiliateInboxCreated,
+    })
+  }
+
+  return result
 }

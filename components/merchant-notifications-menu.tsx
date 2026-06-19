@@ -8,6 +8,7 @@ import { createPortal } from "react-dom"
 import { MerchantNotificationItem } from "@/components/merchant/merchant-notification-item"
 import { buttonVariants } from "@/components/ui/button"
 import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
+import { dedupeMerchantNotifications } from "@/lib/merchant-notifications-dedupe"
 import { SUPPLIER_INVITE_NOTIF } from "@/lib/supplier-invite-notif-constants"
 import { SUPPLIER_AFFILIATE_INVITE_NOTIF } from "@/lib/supplier-affiliate-invite-notif-constants"
 import { cn } from "@/lib/utils"
@@ -115,8 +116,9 @@ export function MerchantNotificationsMenu({
       const res = await fetch(cfg.apiPath, { cache: "no-store" })
       if (!res.ok) return
       const j = (await res.json()) as { unreadCount: number; notifications: NotificationRow[] }
+      const deduped = dedupeMerchantNotifications(j.notifications)
       setUnreadCount(j.unreadCount)
-      setRows(j.notifications)
+      setRows(deduped)
     } catch {
       // Dev HMR / offline — keep last badge state, avoid Next.js error overlay
     }
@@ -125,12 +127,37 @@ export function MerchantNotificationsMenu({
   useEffect(() => {
     void load()
     const unsub = subscribeMerchantNotifications(cfg.eventName, () => void load())
-    const interval = window.setInterval(() => void load(), 60_000)
+
+    function pollIntervalMs() {
+      return document.visibilityState === "visible" ? 15_000 : 60_000
+    }
+
+    let intervalId = window.setInterval(() => void load(), pollIntervalMs())
+
+    function onVisibilityChange() {
+      window.clearInterval(intervalId)
+      if (document.visibilityState === "visible") void load()
+      intervalId = window.setInterval(() => void load(), pollIntervalMs())
+    }
+
+    function onFocus() {
+      void load()
+    }
+
+    document.addEventListener("visibilitychange", onVisibilityChange)
+    window.addEventListener("focus", onFocus)
+
     return () => {
       unsub()
-      window.clearInterval(interval)
+      window.clearInterval(intervalId)
+      document.removeEventListener("visibilitychange", onVisibilityChange)
+      window.removeEventListener("focus", onFocus)
     }
   }, [load, cfg.eventName])
+
+  useEffect(() => {
+    if (open) void load()
+  }, [open, load])
 
   useLayoutEffect(() => {
     if (!open) {

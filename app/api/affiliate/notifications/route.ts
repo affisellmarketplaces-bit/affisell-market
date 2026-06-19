@@ -3,6 +3,7 @@ import { z } from "zod"
 
 import { auth } from "@/auth"
 import { reconcilePartnerPendingCheckoutOrders } from "@/lib/cron/reconcile-partner-pending-checkouts"
+import { dedupeMerchantNotifications } from "@/lib/merchant-notifications-dedupe"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -19,16 +20,11 @@ export async function GET() {
 
   after(() => reconcilePartnerPendingCheckoutOrders({ affiliateId: session.user.id }))
 
-  const [rows, unreadCount] = await Promise.all([
-    prisma.notification.findMany({
-      where: { userId: session.user.id },
-      orderBy: { createdAt: "desc" },
-      take: 50,
-    }),
-    prisma.notification.count({
-      where: { userId: session.user.id, read: false },
-    }),
-  ])
+  const rows = await prisma.notification.findMany({
+    where: { userId: session.user.id },
+    orderBy: { createdAt: "desc" },
+    take: 50,
+  })
 
   const orderIds = rows.map((n) => n.orderId).filter((id): id is string => Boolean(id))
   const orderImages =
@@ -40,16 +36,19 @@ export async function GET() {
       : []
   const imageByOrderId = new Map(orderImages.map((o) => [o.id, o.variantImageUrl]))
 
+  const deduped = dedupeMerchantNotifications(rows)
+  const unreadFromDeduped = deduped.filter((n) => !n.read).length
+
   return Response.json({
-    unreadCount,
-    notifications: rows.map((n) => ({
+    unreadCount: unreadFromDeduped,
+    notifications: deduped.map((n) => ({
       id: n.id,
       type: n.type,
       message: n.message,
       imageUrl: n.imageUrl?.trim() || imageByOrderId.get(n.orderId ?? "")?.trim() || null,
       orderId: n.orderId,
       read: n.read,
-      createdAt: n.createdAt.toISOString(),
+      createdAt: n.createdAt instanceof Date ? n.createdAt.toISOString() : n.createdAt,
     })),
   })
 }

@@ -33,6 +33,7 @@ import {
   sendOrderConfirmationEmail,
 } from "@/lib/emails/send-order-confirmation"
 import { createMarketplaceOrderNotifications } from "@/lib/marketplace-order-notifications"
+import { dispatchMerchantOrderAlerts } from "@/lib/emails/dispatch-merchant-order-alerts"
 import { prisma } from "@/lib/prisma"
 import {
   marketplaceSellingPriceCentsForOption,
@@ -399,6 +400,12 @@ async function createPaidMarketplaceOrder(
   return order.id
 }
 
+function scheduleMerchantOrderAlerts(orderIds: string[]): void {
+  for (const orderId of new Set(orderIds)) {
+    void dispatchMerchantOrderAlerts(orderId)
+  }
+}
+
 async function redeemBuyerRewardOrSkip(
   tx: Tx,
   args: { userId: string; amountCents: number; stripeSessionId: string }
@@ -460,6 +467,8 @@ export async function fulfillMarketplaceStripeSession(
       existingRows.some((row) => row.stripeSessionId === id && row.status === "paid")
     )
     if (allPaid) return
+
+    const fulfilledOrderIds: string[] = []
 
     await prisma.$transaction(async (tx) => {
       const earnUserId = await resolveBuyerUserIdForEarn(tx, buyerUserId, customerEmail)
@@ -550,8 +559,12 @@ export async function fulfillMarketplaceStripeSession(
             orderId,
           })
         }
+
+        if (orderId) fulfilledOrderIds.push(orderId)
       }
     }, MARKETPLACE_FULFILL_TX_OPTIONS)
+
+    scheduleMerchantOrderAlerts(fulfilledOrderIds)
 
     try {
       await triggerAutoFulfillmentForStripeSession(sessionId)
@@ -623,6 +636,7 @@ export async function fulfillMarketplaceStripeSession(
   const deferred = {
     confirmation: null as OrderConfirmationEmailPayload | null,
   }
+  const fulfilledOrderIds: string[] = []
 
   await prisma.$transaction(async (tx) => {
     let dup = await tx.order.findUnique({ where: { stripeSessionId: sessionId } })
@@ -848,6 +862,8 @@ export async function fulfillMarketplaceStripeSession(
           orderId: pendingOrder.id,
         })
       }
+
+      fulfilledOrderIds.push(pendingOrder.id)
       return
     }
 
@@ -879,7 +895,11 @@ export async function fulfillMarketplaceStripeSession(
         orderId,
       })
     }
+
+    if (orderId) fulfilledOrderIds.push(orderId)
   }, MARKETPLACE_FULFILL_TX_OPTIONS)
+
+  scheduleMerchantOrderAlerts(fulfilledOrderIds)
 
   if (deferred.confirmation) {
     const confirmationPayload = deferred.confirmation
