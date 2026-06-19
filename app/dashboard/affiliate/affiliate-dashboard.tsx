@@ -107,8 +107,9 @@ function SortableStoreCard(props: {
   selected: boolean
   onSelect: () => void
   onToggleList: () => void
+  onToggleAuction: () => void
 }) {
-  const { listing, selected, onSelect, onToggleList } = props
+  const { listing, selected, onSelect, onToggleList, onToggleAuction } = props
   const p = listing.product
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -152,6 +153,11 @@ function SortableStoreCard(props: {
         {listing.isFeatured ? (
           <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-900 dark:bg-amber-950/70 dark:text-amber-200">
             Featured
+          </span>
+        ) : null}
+        {listing.auctionEligible ? (
+          <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-900 dark:bg-violet-950/70 dark:text-violet-200">
+            Auction Arena
           </span>
         ) : null}
       </div>
@@ -201,6 +207,16 @@ function SortableStoreCard(props: {
         <label className="mt-2 flex items-center gap-2 text-xs text-gray-600 dark:text-zinc-300">
           <input type="checkbox" checked={listing.isListed} onChange={() => void onToggleList()} className="accent-emerald-600 dark:accent-emerald-400" />
           Listed
+        </label>
+        <label className="flex items-center gap-2 text-xs text-gray-600 dark:text-zinc-300">
+          <input
+            type="checkbox"
+            checked={Boolean(listing.auctionEligible)}
+            disabled={!listing.isListed}
+            onChange={() => void onToggleAuction()}
+            className="accent-violet-600 dark:accent-violet-400 disabled:opacity-40"
+          />
+          Auction Arena
         </label>
         <div className="mt-3 flex flex-col gap-2">
           <Link
@@ -364,11 +380,27 @@ export function AffiliateDashboard({ storeId }: Props) {
       body: JSON.stringify({ isListed: !cur }),
     })
     setListings((prev) =>
-      prev.map((l) => (l.id === listingId ? { ...l, isListed: !cur } : l)).sort(sortAffiliateListingByPosition)
+      prev
+        .map((l) =>
+          l.id === listingId ? { ...l, isListed: !cur, auctionEligible: !cur ? false : l.auctionEligible } : l
+        )
+        .sort(sortAffiliateListingByPosition)
     )
   }
 
-  async function bulkPatch(opts: { isFeatured?: boolean; isListed?: boolean }) {
+  async function toggleAuction(listingId: string, cur: boolean) {
+    await fetch(`/api/affiliate/listings/${listingId}`, {
+      method: "PATCH",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ auctionEligible: !cur }),
+    })
+    setListings((prev) =>
+      prev.map((l) => (l.id === listingId ? { ...l, auctionEligible: !cur } : l)).sort(sortAffiliateListingByPosition)
+    )
+  }
+
+  async function bulkPatch(opts: { isFeatured?: boolean; isListed?: boolean; auctionEligible?: boolean }) {
     const idsSel = [...selected]
     if (!idsSel.length) return
     const body: Record<string, unknown> = { ids: idsSel, ...opts }
@@ -380,6 +412,7 @@ export function AffiliateDashboard({ storeId }: Props) {
     })
     setSelected(new Set())
     if (opts.isListed === false) setToast("Hidden from storefront (still in your account)")
+    else if (opts.auctionEligible === true) setToast("Added to Auction Arena")
     else if (opts.isFeatured === true) setToast("Featured selections")
     else setToast("Updated selections")
     void refreshDashboardData()
@@ -488,6 +521,7 @@ export function AffiliateDashboard({ storeId }: Props) {
       luxuryCollectionId: listing.luxuryCollectionId ?? null,
       isListed: listing.isListed,
       isFeatured: listing.isFeatured,
+      auctionEligible: listing.auctionEligible,
       promotedColor: listing.promotedColor ?? null,
       promotedSize: listing.promotedSize ?? null,
       promotedVariantKeys: listing.promotedVariantKeys ?? [],
@@ -1082,6 +1116,14 @@ export function AffiliateDashboard({ storeId }: Props) {
             >
               Feature selected
             </button>
+            <button
+              type="button"
+              disabled={selected.size === 0}
+              onClick={() => void bulkPatch({ auctionEligible: true })}
+              className="dash-btn-secondary"
+            >
+              Add to Auction Arena
+            </button>
           </div>
 
           {!storefrontListings.length ? (
@@ -1106,6 +1148,7 @@ export function AffiliateDashboard({ storeId }: Props) {
                           })
                         }
                         onToggleList={() => void toggleList(l.id, l.isListed)}
+                        onToggleAuction={() => void toggleAuction(l.id, Boolean(l.auctionEligible))}
                       />
                     ))}
                 </div>

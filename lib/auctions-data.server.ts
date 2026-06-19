@@ -3,6 +3,7 @@ import "server-only"
 import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
 import type { AuctionArenaPayload, AuctionBidPublic, AuctionLotPublic, AuctionLotStatus } from "@/lib/auction-types"
 import { anonymizeBidder, auctionHeatScore, minNextBidCents } from "@/lib/auction-math"
+import { retireIneligibleAuctionLots } from "@/lib/auction-listing-lifecycle"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { primaryProductImage } from "@/lib/product-images"
@@ -63,6 +64,7 @@ async function ensureLiveAuctions(now: Date): Promise<void> {
   const listings = await prisma.affiliateProduct.findMany({
     where: {
       ...buyerListedAffiliateProductWhere,
+      auctionEligible: true,
       product: buyerMarketplaceProductWhere,
       ...(exclude.size > 0 ? { productId: { notIn: [...exclude] } } : {}),
     },
@@ -169,6 +171,7 @@ function serializeLot(
 export async function loadAuctionArena(): Promise<AuctionArenaPayload> {
   const now = new Date()
   await closeExpiredAuctions(now)
+  await retireIneligibleAuctionLots(now)
   await ensureLiveAuctions(now)
 
   const rows = await prisma.auction.findMany({

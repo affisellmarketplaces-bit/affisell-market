@@ -74,6 +74,7 @@ const affiliateListingRowSelect = {
   luxuryCollectionId: true,
   isListed: true,
   isFeatured: true,
+  auctionEligible: true,
   clicks: true,
   conversions: true,
   position: true,

@@ -65,6 +65,7 @@ export type SerializedListing = {
   luxuryCollectionId?: string | null
   isListed: boolean
   isFeatured?: boolean
+  auctionEligible?: boolean
   clicks?: number
   conversions?: number
   position?: number

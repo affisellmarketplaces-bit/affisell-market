@@ -1228,6 +1228,8 @@ model AffiliateProduct {
 
   isListed   Boolean @default(true)
   isFeatured Boolean @default(false)
+  /** Affiliate opt-in — only eligible listings are seeded into `/auctions`. */
+  auctionEligible Boolean @default(false)
   position   Int     @default(0)
 
   clicks      Int @default(0)

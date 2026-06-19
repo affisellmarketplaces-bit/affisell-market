@@ -1,4 +1,5 @@
 import { affiliateListingsWhere, requireMerchantUserId } from "@/lib/merchant-tenant-scope"
+import { cancelAuctionsForListings } from "@/lib/auction-listing-lifecycle"
 import { prisma } from "@/lib/prisma"
 
 export type RemoveAffiliateListingsResult = {
@@ -40,15 +41,17 @@ export async function removeAffiliateListingsFromStorefront(
   const hiddenOnly = ownedIds.filter((id) => withOrders.has(id))
 
   if (deletable.length > 0) {
+    await cancelAuctionsForListings(deletable)
     await prisma.affiliateProduct.deleteMany({
       where: { id: { in: deletable }, ...affiliateListingsWhere(tenantId) },
     })
   }
 
   if (hiddenOnly.length > 0) {
+    await cancelAuctionsForListings(hiddenOnly)
     await prisma.affiliateProduct.updateMany({
       where: { id: { in: hiddenOnly }, ...affiliateListingsWhere(tenantId) },
-      data: { isListed: false, isFeatured: false },
+      data: { isListed: false, isFeatured: false, auctionEligible: false },
     })
   }
 

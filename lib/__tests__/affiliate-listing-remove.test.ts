@@ -1,10 +1,15 @@
 import { describe, expect, it, vi, beforeEach } from "vitest"
 
-const { deleteMany, updateMany, findMany, groupBy } = vi.hoisted(() => ({
+const { deleteMany, updateMany, findMany, groupBy, cancelAuctionsForListings } = vi.hoisted(() => ({
   deleteMany: vi.fn(),
   updateMany: vi.fn(),
   findMany: vi.fn(),
   groupBy: vi.fn(),
+  cancelAuctionsForListings: vi.fn(),
+}))
+
+vi.mock("@/lib/auction-listing-lifecycle", () => ({
+  cancelAuctionsForListings,
 }))
 
 vi.mock("@/lib/prisma", () => ({
@@ -43,7 +48,8 @@ describe("removeAffiliateListingsFromStorefront", () => {
     expect(result).toEqual({ deletedIds: [], hiddenIds: ["sold"] })
     expect(updateMany).toHaveBeenCalledWith({
       where: { id: { in: ["sold"] }, affiliateId: "aff-1" },
-      data: { isListed: false, isFeatured: false },
+      data: { isListed: false, isFeatured: false, auctionEligible: false },
     })
+    expect(cancelAuctionsForListings).toHaveBeenCalledWith(["sold"])
   })
 })

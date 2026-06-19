@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { removeAffiliateListingsFromStorefront } from "@/lib/affiliate-listing-remove"
+import { cancelAuctionsForListings } from "@/lib/auction-listing-lifecycle"
 import { affiliateListingsWhere } from "@/lib/merchant-tenant-scope"
 import { prisma } from "@/lib/prisma"
 
@@ -21,6 +22,7 @@ export async function PATCH(request: Request) {
     ids?: unknown
     isFeatured?: boolean
     isListed?: boolean
+    auctionEligible?: boolean
   }
 
   const ids = Array.isArray(body.ids)
@@ -31,8 +33,15 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "ids required" }, { status: 400 })
   }
 
-  if (typeof body.isFeatured !== "boolean" && typeof body.isListed !== "boolean") {
-    return NextResponse.json({ error: "isFeatured or isListed required" }, { status: 400 })
+  if (
+    typeof body.isFeatured !== "boolean" &&
+    typeof body.isListed !== "boolean" &&
+    typeof body.auctionEligible !== "boolean"
+  ) {
+    return NextResponse.json(
+      { error: "isFeatured, isListed, or auctionEligible required" },
+      { status: 400 }
+    )
   }
 
   const where = { id: { in: ids }, ...affiliateListingsWhere(session.user.id) }
@@ -49,6 +58,28 @@ export async function PATCH(request: Request) {
       where,
       data: { isListed: body.isListed },
     })
+    if (!body.isListed) {
+      await cancelAuctionsForListings(ids)
+      await prisma.affiliateProduct.updateMany({
+        where,
+        data: { auctionEligible: false },
+      })
+    }
+  }
+
+  if (typeof body.auctionEligible === "boolean") {
+    if (body.auctionEligible) {
+      await prisma.affiliateProduct.updateMany({
+        where: { ...where, isListed: true },
+        data: { auctionEligible: true },
+      })
+    } else {
+      await prisma.affiliateProduct.updateMany({
+        where,
+        data: { auctionEligible: false },
+      })
+      await cancelAuctionsForListings(ids)
+    }
   }
 
   return NextResponse.json({ ok: true })

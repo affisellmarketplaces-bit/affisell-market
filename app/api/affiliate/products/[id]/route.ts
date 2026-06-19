@@ -7,6 +7,7 @@ import { parsePromotedVariantPatch } from "@/lib/affiliate-promoted-variant"
 import { parsePromotedVariantKeysBody } from "@/lib/affiliate-storefront-variants"
 import { resolveBuyerRewardForListing } from "@/lib/affiliate-buyer-reward-request"
 import { buildLuxuryListingPatch } from "@/lib/luxury-listing-patch"
+import { cancelAuctionsForListings } from "@/lib/auction-listing-lifecycle"
 import { slugifyListingSlug } from "@/lib/affiliate-listing-display"
 import { parseShowWarrantyFlag, resolveProductWarrantyMonths } from "@/lib/product-warranty"
 import { removeAffiliateListingsFromStorefront } from "@/lib/affiliate-listing-remove"
@@ -183,6 +184,7 @@ export async function PATCH(
   if (typeof body.listInStore === "boolean") data.isListed = body.listInStore
   if (typeof body.isListed === "boolean") data.isListed = body.isListed
   if (typeof body.isFeatured === "boolean") data.isFeatured = body.isFeatured
+  if (typeof body.auctionEligible === "boolean") data.auctionEligible = body.auctionEligible
 
   let nextSellingCents = listing.sellingPriceCents
   if (typeof data.sellingPriceCents === "number") {
@@ -261,6 +263,16 @@ export async function PATCH(
         ? body.isListed
         : listing.isListed
 
+  const nextAuctionEligible =
+    typeof body.auctionEligible === "boolean" ? body.auctionEligible : listing.auctionEligible
+
+  if (nextAuctionEligible && !nextListed) {
+    return NextResponse.json(
+      { error: "List this product on your storefront before adding it to Auction Arena." },
+      { status: 400 }
+    )
+  }
+
   if (nextListed && !listing.isListed) {
     const kycBlocked = await requireMerchantVerifiedForPublish(session.user.id)
     if (kycBlocked) return kycBlocked
@@ -271,6 +283,9 @@ export async function PATCH(
       where: { id },
       data,
     })
+    if (!nextListed || !nextAuctionEligible) {
+      await cancelAuctionsForListings([id])
+    }
     return NextResponse.json(updated)
   } catch (e: unknown) {
     const code = typeof e === "object" && e && "code" in e ? (e as { code: string }).code : ""
