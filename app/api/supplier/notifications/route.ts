@@ -3,6 +3,7 @@ import { z } from "zod"
 
 import { auth } from "@/auth"
 import { reconcilePartnerPendingCheckoutOrders } from "@/lib/cron/reconcile-partner-pending-checkouts"
+import { healRecentPartnerMarketplaceNotifications } from "@/lib/marketplace-order-notification-heal"
 import { dedupeMerchantNotifications } from "@/lib/merchant-notifications-dedupe"
 import { prisma } from "@/lib/prisma"
 
@@ -19,6 +20,7 @@ export async function GET() {
   }
 
   try {
+    await healRecentPartnerMarketplaceNotifications({ supplierId: session.user.id })
     after(() => reconcilePartnerPendingCheckoutOrders({ supplierId: session.user.id }))
 
     const rows = await prisma.notification.findMany({

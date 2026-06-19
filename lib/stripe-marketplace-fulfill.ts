@@ -34,6 +34,7 @@ import {
 } from "@/lib/emails/send-order-confirmation"
 import { createMarketplaceOrderNotifications } from "@/lib/marketplace-order-notifications"
 import { dispatchMerchantOrderAlerts } from "@/lib/emails/dispatch-merchant-order-alerts"
+import { healMarketplaceOrderNotifications } from "@/lib/marketplace-order-notification-heal"
 import { prisma } from "@/lib/prisma"
 import {
   marketplaceSellingPriceCentsForOption,
@@ -404,6 +405,7 @@ async function createPaidMarketplaceOrder(
 function scheduleMerchantOrderAlerts(orderIds: string[]): void {
   for (const orderId of new Set(orderIds)) {
     void dispatchMerchantOrderAlerts(orderId)
+    void healMarketplaceOrderNotifications(orderId)
   }
 }
 

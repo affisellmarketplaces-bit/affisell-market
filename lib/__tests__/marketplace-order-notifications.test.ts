@@ -14,20 +14,22 @@ describe("createMarketplaceOrderNotifications", () => {
       supplierCommissionRateBps: 1_250,
     })
     const notificationRows: Array<{ userId: string; type: string; orderId: string }> = []
+    const existingKeys = new Set<string>()
 
     const tx = {
-      order: {
-        updateMany: vi
-          .fn()
-          .mockResolvedValueOnce({ count: 1 })
-          .mockResolvedValueOnce({ count: 1 })
-          .mockResolvedValueOnce({ count: 0 })
-          .mockResolvedValueOnce({ count: 0 }),
-      },
       notification: {
+        findFirst: vi.fn(async ({ where }: { where: { userId: string; orderId: string; type: string } }) => {
+          const key = `${where.userId}:${where.orderId}:${where.type}`
+          return existingKeys.has(key) ? { id: "existing" } : null
+        }),
         create: vi.fn(async ({ data }: { data: { userId: string; type: string; orderId: string } }) => {
           notificationRows.push(data)
+          existingKeys.add(`${data.userId}:${data.orderId}:${data.type}`)
         }),
+      },
+      order: {
+        updateMany: vi.fn(async () => ({ count: 1 })),
+        update: vi.fn(async () => ({})),
       },
     }
 
@@ -59,5 +61,46 @@ describe("createMarketplaceOrderNotifications", () => {
     expect(second).toEqual({ supplierInboxCreated: false, affiliateInboxCreated: false })
     expect(notificationRows).toHaveLength(2)
     expect(tx.notification.create).toHaveBeenCalledTimes(2)
+  })
+
+  it("creates supplier inbox when flag was set but notification row is missing", async () => {
+    const settlement = computeMarketplaceOrderSettlement({
+      sellingPriceCents: 5_000,
+      supplierPriceCents: 3_000,
+      supplierCommissionRateBps: 1_000,
+    })
+
+    const tx = {
+      notification: {
+        findFirst: vi.fn(async ({ where }: { where: { type: string } }) =>
+          where.type === "NEW_SALE" ? { id: "aff_existing" } : null
+        ),
+        create: vi.fn(async () => undefined),
+      },
+      order: {
+        updateMany: vi.fn(async () => ({ count: 0 })),
+        update: vi.fn(async () => ({})),
+      },
+    }
+
+    const result = await createMarketplaceOrderNotifications(tx as never, {
+      orderId: "ord_heal",
+      supplierId: "sup_1",
+      affiliateId: "aff_1",
+      productName: "Commode 6 tiroirs",
+      variantBit: "",
+      qty: 1,
+      customerEmail: "buyer@example.com",
+      settlement: affiliateSaleNotificationSettlement(settlement, {
+        affiliateMarginRetainedCents: 500,
+        affiliatePlatformFeeCents: 50,
+      }),
+      supplierNetCents: 2_700,
+      supplierPlatformFeeCents: 300,
+      usesAffisellAutoBuy: false,
+    })
+
+    expect(result).toEqual({ supplierInboxCreated: true, affiliateInboxCreated: false })
+    expect(tx.notification.create).toHaveBeenCalledOnce()
   })
 })

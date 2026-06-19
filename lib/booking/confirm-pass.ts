@@ -184,21 +184,37 @@ export async function confirmBookingPassInTransaction(
   }
 
   if (existing?.supplierId) {
-    await tx.notification.create({
-      data: {
-        userId: existing.supplierId,
-        type: "NEW_ORDER",
-        message: formatSupplierBookingConfirmedInbox({
-          productName: args.product.name,
-          listingKind: args.product.listingKind,
-          quantity: qty,
-          startsAtIso: snapshot.startsAt,
-          seatLabels,
-          customerEmail: existing.customerEmail,
-        }),
-        orderId: args.orderId,
-      },
+    const bookingMessage = formatSupplierBookingConfirmedInbox({
+      productName: args.product.name,
+      listingKind: args.product.listingKind,
+      quantity: qty,
+      startsAtIso: snapshot.startsAt,
+      seatLabels,
+      customerEmail: existing.customerEmail,
     })
+    const existingInbox = await tx.notification.findFirst({
+      where: {
+        userId: existing.supplierId,
+        orderId: args.orderId,
+        type: "NEW_ORDER",
+      },
+      select: { id: true },
+    })
+    if (existingInbox) {
+      await tx.notification.update({
+        where: { id: existingInbox.id },
+        data: { message: bookingMessage },
+      })
+    } else {
+      await tx.notification.create({
+        data: {
+          userId: existing.supplierId,
+          type: "NEW_ORDER",
+          message: bookingMessage,
+          orderId: args.orderId,
+        },
+      })
+    }
   }
 
   console.log("[booking]", {
