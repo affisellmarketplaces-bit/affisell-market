@@ -4,6 +4,18 @@ import { CommissionExplainer } from "@/components/legal/commission-explainer"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import type { OrderAccessRole } from "@/lib/order-access"
 
+function buyerOrderStatusLabel(status: string): string {
+  const map: Record<string, string> = {
+    paid: "Confirmée",
+    preparing: "Préparation en cours",
+    shipped: "Expédiée",
+    refunded: "Remboursée",
+    cancelled: "Annulée",
+    CANCELLED: "Annulée",
+  }
+  return map[status] ?? status
+}
+
 type OrderDetail = {
   id: string
   status: string
@@ -49,7 +61,8 @@ export function OrderDetailPanel({
         </p>
         <h1 className="mt-1 text-2xl font-bold text-zinc-900 dark:text-white">{order.product.name}</h1>
         <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-          Statut : {order.status} · {new Date(order.createdAt).toLocaleString("fr-FR")}
+          Statut : {role === "CUSTOMER" ? buyerOrderStatusLabel(order.status) : order.status} ·{" "}
+          {new Date(order.createdAt).toLocaleString("fr-FR")}
         </p>
       </header>
 

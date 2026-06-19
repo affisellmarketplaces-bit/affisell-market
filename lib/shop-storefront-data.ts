@@ -19,6 +19,7 @@ export type {
 } from "@/lib/shop-storefront-shared"
 export { inferNicheLabel, shopProductToCardProps } from "@/lib/shop-storefront-shared"
 
+import { DEMO_LAB_EMAIL_BY_PERSONA } from "@/lib/demo/demo-accounts-shared"
 import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
@@ -201,7 +202,12 @@ async function loadAffiliateListedRatingAverages(userIds: string[]): Promise<Map
 /** Public directory — no wholesale / margin fields. */
 export async function loadPublicAffiliateShops(limit = 500): Promise<PublicShopDirectoryEntry[]> {
   const stores = await prisma.store.findMany({
-    where: { user: { role: "AFFILIATE" } },
+    where: {
+      user: {
+        role: "AFFILIATE",
+        email: { notIn: Object.values(DEMO_LAB_EMAIL_BY_PERSONA) },
+      },
+    },
     select: {
       slug: true,
       name: true,

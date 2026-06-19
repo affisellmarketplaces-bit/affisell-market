@@ -26,6 +26,7 @@ import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
 import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
 import { primaryProductImage } from "@/lib/product-images"
 import { formatVariantCommissionRange, variantSkuPricingSummary, variantsFromDb } from "@/lib/product-variants"
+import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
@@ -119,7 +120,7 @@ export default async function SupplierStorePreviewPage({ params }: { params: Pro
   const base = appBaseUrl()
 
   const products = await prisma.product.findMany({
-    where: { supplierId, active: true, isDraft: false },
+    where: { supplierId, ...buyerMarketplaceProductWhere },
     orderBy: { createdAt: "desc" },
     select: {
       id: true,

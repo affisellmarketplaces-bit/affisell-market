@@ -4,6 +4,7 @@ import { BentoContainer } from "@/components/affisell/bento-ui"
 import { OrderDetailPanel } from "@/components/legal/order-detail-panel"
 import { auth } from "@/auth"
 import { orderDetailBackHref, resolveOrderAccessRole } from "@/lib/order-access"
+import { isBuyerVisibleOrder } from "@/lib/buyer-order-visibility"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
@@ -20,7 +21,7 @@ export default async function MarketplaceBuyerOrderDetailPage({ params }: Props)
   const order = await prisma.order.findUnique({
     where: { id },
     include: {
-      product: { select: { name: true } },
+      product: { select: { id: true, name: true } },
       supplier: { select: { store: { select: { showRevenueToAffiliate: true } } } },
     },
   })
@@ -28,6 +29,15 @@ export default async function MarketplaceBuyerOrderDetailPage({ params }: Props)
 
   const role = resolveOrderAccessRole(order, session.user)
   if (role !== "CUSTOMER") notFound()
+  if (
+    !isBuyerVisibleOrder({
+      status: order.status,
+      productId: order.product.id,
+      productName: order.product.name,
+    })
+  ) {
+    notFound()
+  }
 
   return (
     <BentoContainer maxWidth="4xl">

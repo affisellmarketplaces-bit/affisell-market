@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { buyerVisibleMarketplaceOrderWhere } from "@/lib/buyer-order-visibility"
 import {
   getActiveReturn,
   hasBlockingReturnHistory,
@@ -109,7 +110,10 @@ export async function buildBuyerOrdersPayloadForEmail(customerEmail: string): Pr
 
   const [marketplaceOrders, blindOrders] = await Promise.all([
     prisma.order.findMany({
-      where: { customerEmail: { equals: normalized, mode: "insensitive" } },
+      where: {
+        customerEmail: { equals: normalized, mode: "insensitive" },
+        ...buyerVisibleMarketplaceOrderWhere,
+      },
       orderBy: { createdAt: "desc" },
       take: 100,
       include: {

@@ -71,6 +71,7 @@ function filterRowsForRole(
           row.label === "Markup affilié" ||
           row.label === "Net fournisseur" ||
           row.label === "Gain affilié net" ||
+          row.label === "Frais plateforme Affisell (fournisseur)" ||
           row.label === "Frais plateforme Affisell (affilié)" ||
           row.label === "Frais plateforme Affisell (total commande)"
         ) {
@@ -93,6 +94,11 @@ export function CommissionExplainer({ role, order, showRevenueToAffiliate = fals
         ? `Vos gains : ${formatBreakdownAmount(breakdown.affiliateTotalCents)}`
         : `Total payé : ${formatBreakdownAmount(breakdown.clientTtcCents)}`
 
+  const footnote =
+    role === "CUSTOMER"
+      ? "Montants HT sauf mention TTC."
+      : "Montants HT sauf mention TTC · fee affilié = % de vos gains (commission + markup)"
+
   return (
     <section
       className={cn(
@@ -103,7 +109,7 @@ export function CommissionExplainer({ role, order, showRevenueToAffiliate = fals
     >
       <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">{headline}</h3>
       <p className="mt-1 text-xs text-zinc-500">
-        Montants HT sauf mention TTC · fee affilié = % de vos gains (commission + markup)
+        {footnote}
       </p>
       <table className="mt-4 w-full text-sm">
         <tbody>

@@ -1,3 +1,4 @@
+import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { decimalToNumber } from "@/lib/serialize-for-client"
 import { prisma } from "@/lib/prisma"
 
@@ -48,7 +49,7 @@ export async function loadSupplierStorefrontCatalogProduct(params: {
     where: {
       id: productId,
       supplierId: store.userId,
-      ...(params.allowUnpublished ? {} : { active: true, isDraft: false }),
+      ...(params.allowUnpublished ? {} : buyerMarketplaceProductWhere),
     },
     select: supplierAffiliatePreviewProductSelect,
   })

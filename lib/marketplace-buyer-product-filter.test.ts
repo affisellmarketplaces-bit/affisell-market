@@ -17,7 +17,13 @@ describe("marketplace-buyer-product-filter", () => {
 
   it("recognizes pinned internal test ids", () => {
     expect(isInternalTestProductId("test_product_3way")).toBe(true)
+    expect(isInternalTestProductId("test_listing_foo")).toBe(true)
     expect(isInternalTestProductId("cmpiddd890003thlps6tp")).toBe(true)
     expect(isInternalTestProductId("other")).toBe(false)
+  })
+
+  it("recognizes broader internal test name patterns", () => {
+    expect(isInternalTestProductName("Test Something")).toBe(true)
+    expect(isInternalTestProductName("Produit test TVA demo")).toBe(true)
   })
 })

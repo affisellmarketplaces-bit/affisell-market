@@ -113,7 +113,7 @@ export async function confirmBlindDropshipDeliveryByBuyer(
     ok: true as const,
     payoutEligibleAt: payoutEligibleAt.toISOString(),
     message:
-      "Thank you — seller payouts are scheduled 7 days after this confirmation. You may still exercise your right of withdrawal within the return window if applicable.",
+      "Thank you — your delivery is confirmed. You may still exercise your right of withdrawal within the return window if applicable.",
   }
 }
 

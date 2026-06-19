@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button"
 import { buyerBookingOrderCardCopy } from "@/lib/booking/vertical-copy"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import {
-  getAutoBuyStatusLabel,
   getReturnReasonLabel,
   RETURN_REASON_CODES,
 } from "@/lib/order-return-types"
@@ -187,11 +186,6 @@ export function AccountOrdersClient({
             <div className="min-w-0 flex-1">
               <p className="text-base font-semibold text-gray-900 dark:text-white">
                 {o.product.name}
-                {o.fulfillmentSource === "blind_dropship" ? (
-                  <span className="ml-2 rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-violet-800 dark:bg-violet-950/60 dark:text-violet-200">
-                    Blind
-                  </span>
-                ) : null}
               </p>
               <p className="mt-1 text-xs uppercase tracking-wider text-gray-500 dark:text-zinc-400">
                 {new Date(o.createdAt).toLocaleDateString()} · ×{o.quantity} · {formatStoreCurrencyFromCents(o.sellingPriceCents)}
@@ -316,19 +310,10 @@ export function AccountOrdersClient({
                   </div>
                 </div>
               ) : null}
-              {o.autoBuy ? (
-                <p className="mt-2 text-xs font-medium text-violet-800 dark:text-violet-200">
-                  {getAutoBuyStatusLabel(o.autoBuy.status, lang as AppLocale)}
-                  {o.autoBuy.aeTracking
-                    ? ` · ${tMessage(lang as AppLocale, "orderReturns.trackingLabel", "Tracking")}: ${o.autoBuy.aeTracking}`
-                    : o.trackingNumber
-                      ? ` · ${o.trackingCarrier ?? "AliExpress"} ${o.trackingNumber}`
-                      : null}
-                </p>
-              ) : null}
-              {o.trackingNumber && !o.autoBuy?.aeTracking ? (
+              {o.trackingNumber ? (
                 <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
-                  Tracking: {o.trackingCarrier ?? "Carrier"} {o.trackingNumber}
+                  {lang === "fr" ? "Suivi" : "Tracking"}: {o.trackingCarrier ?? (lang === "fr" ? "Transporteur" : "Carrier")}{" "}
+                  {o.trackingNumber}
                 </p>
               ) : null}
               {o.fulfillmentSource !== "blind_dropship" &&
@@ -338,9 +323,9 @@ export function AccountOrdersClient({
               {o.canConfirmDelivery ? (
                 <div className="mt-3 rounded-lg border border-violet-200 bg-violet-50/80 p-3 dark:border-violet-900/50 dark:bg-violet-950/30">
                   <p className="text-sm text-violet-950 dark:text-violet-100">
-                    Received and satisfied? Confirm delivery — seller payouts run after {o.payoutPolicy.daysAfterConfirm}{" "}
-                    days. Without confirmation, payouts may still release after {o.payoutPolicy.autoConfirmDays} days from
-                    shipment. Your statutory withdrawal right remains during the return window.
+                    {lang === "fr"
+                      ? "Reçu et satisfait ? Confirmez la livraison pour clôturer votre commande. Votre droit de rétractation reste ouvert pendant le délai de retour."
+                      : "Received and satisfied? Confirm delivery to close your order. Your statutory withdrawal right remains during the return window."}
                   </p>
                   <Button
                     type="button"
@@ -370,10 +355,8 @@ export function AccountOrdersClient({
                 </div>
               ) : o.deliveryConfirmedAt ? (
                 <p className="mt-2 text-xs text-emerald-800 dark:text-emerald-200">
-                  Delivery confirmed · {new Date(o.deliveryConfirmedAt).toLocaleDateString()}
-                  {o.payoutEligibleAt
-                    ? ` · merchant payouts from ${new Date(o.payoutEligibleAt).toLocaleDateString()}`
-                    : null}
+                  {lang === "fr" ? "Livraison confirmée · " : "Delivery confirmed · "}
+                  {new Date(o.deliveryConfirmedAt).toLocaleDateString()}
                 </p>
               ) : null}
               {o.activeReturn ? (
