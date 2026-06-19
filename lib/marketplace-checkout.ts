@@ -26,6 +26,7 @@ import {
   variantsFromDb,
 } from "@/lib/product-variants"
 import { stripeProductImages } from "@/lib/product-images"
+import { resolveCheckoutBaseUrl } from "@/lib/checkout-base-url"
 import { resolveStripeCheckoutAllowedCountries } from "@/lib/checkout-country-rollout"
 import {
   isDonationListing,
@@ -57,13 +58,11 @@ type StripeCheckoutAllowedCountries = NonNullable<
   >["shipping_address_collection"]
 >["allowed_countries"]
 
-function checkoutBaseUrls(body: { cancelPath?: string; successPath?: string }) {
-  const baseUrl = (
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    process.env.NEXT_PUBLIC_BASE_URL ??
-    process.env.AUTH_URL ??
-    "http://localhost:3000"
-  ).replace(/\/$/, "")
+function checkoutBaseUrls(
+  body: { cancelPath?: string; successPath?: string },
+  request?: Request
+) {
+  const baseUrl = resolveCheckoutBaseUrl(request)
 
   const cancelPath =
     typeof body.cancelPath === "string" && body.cancelPath.startsWith("/") ? body.cancelPath : "/"
@@ -208,7 +207,8 @@ function computePaidLinesWithReward(args: {
 async function checkoutFromItems(
   lines: CartLineInput[],
   opts: { cancelPath?: string; successPath?: string; useRewardCents?: number },
-  checkoutLocale: string
+  checkoutLocale: string,
+  request: Request
 ) {
   const stripe = getStripeClient()
   const session = await auth()
@@ -312,7 +312,7 @@ async function checkoutFromItems(
   const supplierIds = [...new Set(loaded.map((l) => l.listing.product.supplierId))]
   const primarySupplierId = supplierIds.length === 1 ? supplierIds[0]! : null
 
-  const { baseUrl, cancelPath, successPath } = checkoutBaseUrls(opts)
+  const { baseUrl, cancelPath, successPath } = checkoutBaseUrls(opts, request)
 
   const allowedCountries = await resolveStripeCheckoutAllowedCountries()
   const checkoutSession = await stripe.checkout.sessions.create({
@@ -349,6 +349,7 @@ async function checkoutFromItems(
     flow: "cart",
     sessionId: checkoutSession.id,
     lineCount: loaded.length,
+    baseUrl,
     allowedCountries: allowedCountries.length,
     appliedRewardCents: appliedCents,
   })
@@ -379,7 +380,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
   }
 
   if (Array.isArray(body.items) && body.items.length > 0) {
-    return checkoutFromItems(body.items, body, checkoutLocale)
+    return checkoutFromItems(body.items, body, checkoutLocale, request)
   }
 
   const affiliateProductId =
@@ -563,7 +564,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
     return NextResponse.json({ error: "booking_slot_unavailable" }, { status: 409 })
   }
 
-  const { baseUrl, cancelPath, successPath } = checkoutBaseUrls(body)
+  const { baseUrl, cancelPath, successPath } = checkoutBaseUrls(body, request)
 
   const allowedCountries = await resolveStripeCheckoutAllowedCountries()
   const checkoutSession = await stripe.checkout.sessions.create({
@@ -612,6 +613,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
     sessionId: checkoutSession.id,
     orderId: order.id,
     affiliateProductId: affiliateProduct.id,
+    baseUrl,
     allowedCountries: allowedCountries.length,
     qty: checkoutQty,
   })

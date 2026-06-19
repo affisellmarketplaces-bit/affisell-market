@@ -1,91 +1,34 @@
-"use client"
+import { Suspense } from "react"
 
-import { Suspense, useEffect, useState } from "react"
-import { useSearchParams } from "next/navigation"
+import { fulfillPaidCheckoutSession } from "@/lib/marketplace-checkout-success.server"
 
-import {
-  PaymentSuccessScreen,
-  type PaymentSuccessPayload,
-} from "@/components/checkout/payment-success-screen"
+import { optimisticPayload, SuccessClient } from "./success-client"
 
-const VERIFY_POLL_MS = 1200
-const VERIFY_MAX_ATTEMPTS = 10
-
-function optimisticPayload(): PaymentSuccessPayload {
-  return { paid: true, fulfilled: false, verifying: true }
+type PageProps = {
+  searchParams: Promise<{ session_id?: string }>
 }
 
-function SuccessContent() {
-  const searchParams = useSearchParams()
-  const sessionId = searchParams.get("session_id")?.trim() ?? ""
-  const [payload, setPayload] = useState<PaymentSuccessPayload | null>(() =>
-    sessionId ? optimisticPayload() : { error: "missing_session" }
-  )
+export default async function SuccessPage({ searchParams }: PageProps) {
+  const params = await searchParams
+  const sessionId = params.session_id?.trim() ?? ""
 
-  useEffect(() => {
-    if (!sessionId) return
-
-    let cancelled = false
-    let attempts = 0
-
-    async function runVerify() {
-      try {
-        const res = await fetch(
-          `/api/stripe/verify-session?session_id=${encodeURIComponent(sessionId)}`,
-          { credentials: "include", cache: "no-store" }
-        )
-        const data = (await res.json()) as PaymentSuccessPayload
-        if (cancelled) return
-
-        if (!res.ok) {
-          setPayload((prev) => ({
-            paid: prev?.paid ?? true,
-            fulfilled: false,
-            verifying: attempts < VERIFY_MAX_ATTEMPTS,
-          }))
-          if (attempts < VERIFY_MAX_ATTEMPTS) {
-            attempts += 1
-            window.setTimeout(() => {
-              if (!cancelled) void runVerify()
-            }, VERIFY_POLL_MS)
-          }
-          return
-        }
-
-        setPayload({ ...data, verifying: false })
-
-        if (data.paid && !data.fulfilled && attempts < VERIFY_MAX_ATTEMPTS) {
-          attempts += 1
-          window.setTimeout(() => {
-            if (!cancelled) void runVerify()
-          }, VERIFY_POLL_MS)
-        }
-      } catch {
-        if (cancelled) return
-        setPayload((prev) => ({
-          paid: prev?.paid ?? true,
-          fulfilled: false,
-          verifying: false,
-        }))
-      }
+  let initialPayload = null
+  if (sessionId) {
+    try {
+      const result = await fulfillPaidCheckoutSession(sessionId)
+      initialPayload = { ...result, verifying: false }
+    } catch (error) {
+      console.error("[checkout-success]", {
+        sessionId,
+        result: "server_fulfill_failed",
+        error: error instanceof Error ? error.message : String(error),
+      })
     }
+  }
 
-    void runVerify()
-
-    return () => {
-      cancelled = true
-    }
-  }, [sessionId])
-
-  if (!payload) return null
-
-  return <PaymentSuccessScreen payload={payload} />
-}
-
-export default function SuccessPage() {
   return (
-    <Suspense fallback={<PaymentSuccessScreen payload={optimisticPayload()} />}>
-      <SuccessContent />
+    <Suspense fallback={<SuccessClient sessionId={sessionId} initialPayload={optimisticPayload()} />}>
+      <SuccessClient sessionId={sessionId} initialPayload={initialPayload} />
     </Suspense>
   )
 }

@@ -1,14 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 
 import { rateLimitClientKey, rateLimitResponse } from "@/lib/api-rate-limit"
-import {
-  ensureMarketplaceCheckoutFulfilled,
-  isMarketplaceCheckoutFulfilled,
-  marketplaceCheckoutNeedsFulfillment,
-} from "@/lib/marketplace-checkout-fulfill"
-import { findOrderIdsForCheckoutSession } from "@/lib/stripe-marketplace-commission-split"
-import { getStripeClient } from "@/lib/stripe"
-import { scheduleMarketplaceTransferAttempts } from "@/lib/transfers/schedule-from-checkout"
+import { fulfillPaidCheckoutSession } from "@/lib/marketplace-checkout-success.server"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -28,37 +21,8 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const stripe = getStripeClient()
-    const [session, initialOrderIds] = await Promise.all([
-      stripe.checkout.sessions.retrieve(sessionId),
-      findOrderIdsForCheckoutSession(sessionId),
-    ])
-
-    let orderIds = initialOrderIds
-
-    const paid = session.payment_status === "paid"
-    const needsFulfillment =
-      session.mode === "payment" && paid && (await marketplaceCheckoutNeedsFulfillment(sessionId))
-
-    if (needsFulfillment) {
-      await ensureMarketplaceCheckoutFulfilled(session)
-      orderIds = await findOrderIdsForCheckoutSession(sessionId)
-
-      for (const orderId of orderIds) {
-        await scheduleMarketplaceTransferAttempts(session, orderId)
-      }
-    }
-
-    const fulfilled = paid && (await isMarketplaceCheckoutFulfilled(sessionId))
-
-    return NextResponse.json({
-      paid,
-      orderId: orderIds[0] ?? session.metadata?.orderId ?? null,
-      orderIds,
-      fulfilled,
-      amountTotal: session.amount_total ?? null,
-      currency: session.currency ?? "eur",
-    })
+    const result = await fulfillPaidCheckoutSession(sessionId)
+    return NextResponse.json(result)
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "verify_failed"
     return NextResponse.json({ error: message }, { status: 500 })
