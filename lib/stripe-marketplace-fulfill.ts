@@ -23,6 +23,7 @@ import {
 } from "@/lib/marketplace-order-settlement"
 import { computeOrderEscrowAllocation } from "@/lib/order-escrow-allocation"
 import { triggerAutoFulfillmentForStripeSession } from "@/lib/auto-order/enqueue"
+import { triggerAutoDsForStripeSession } from "@/lib/autods/submit-paid-order"
 import { computeShipDeadlineAt } from "@/lib/supplier-ship-sla-shared"
 import { applyInstantDigitalDeliveryInTransaction } from "@/lib/digital-delivery/instant-fulfill"
 import { sendDigitalAccessPassEmail } from "@/lib/emails/send-digital-access-pass"
@@ -580,6 +581,11 @@ export async function fulfillMarketplaceStripeSession(
     } catch (e) {
       console.error("[auto-order] trigger after cart fulfill failed", e)
     }
+    try {
+      await triggerAutoDsForStripeSession(sessionId)
+    } catch (e) {
+      console.error("[autods] trigger after cart fulfill failed", e)
+    }
     return
   }
 
@@ -590,6 +596,11 @@ export async function fulfillMarketplaceStripeSession(
   }
   if (existing?.status === "paid") {
     scheduleMerchantOrderAlerts([existing.id])
+    try {
+      await triggerAutoDsForStripeSession(sessionId)
+    } catch (e) {
+      console.error("[autods] trigger after existing paid order failed", e)
+    }
     return
   }
 
@@ -934,5 +945,10 @@ export async function fulfillMarketplaceStripeSession(
     await triggerAutoFulfillmentForStripeSession(sessionId)
   } catch (e) {
     console.error("[auto-order] trigger after fulfill failed", e)
+  }
+  try {
+    await triggerAutoDsForStripeSession(sessionId)
+  } catch (e) {
+    console.error("[autods] trigger after fulfill failed", e)
   }
 }

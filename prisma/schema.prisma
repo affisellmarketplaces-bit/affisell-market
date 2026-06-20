@@ -1607,6 +1607,11 @@ model Order {
   fulfillmentMessages    OrderFulfillmentMessage[]
   shipExtensions         OrderShipExtension[]
   fulfilledAt            DateTime?
+  /** AutoDS dropship — external order id (idempotent create via API). */
+  autodsOrderId            String?             @unique
+  /** PENDING | PROCESSING | SHIPPED | DELIVERED | FAILED */
+  autodsStatus             String?
+  autodsTracking           String?
   autoFulfillmentBatchId String?
   autoFulfillmentBatch   AutoFulfillmentBatch? @relation(fields: [autoFulfillmentBatchId], references: [id], onDelete: SetNull)
 
