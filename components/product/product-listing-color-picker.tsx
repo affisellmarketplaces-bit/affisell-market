@@ -1,7 +1,7 @@
 "use client"
 
 import type { MobilePdpColorMeta } from "@/components/product/mobile-pdp-buy-panel"
-import { ProductColorSwatchButton } from "@/components/product/product-color-swatch-button"
+import { ProductColorSwatchButton, resolveCatalogColorSwatch } from "@/components/product/product-color-swatch-button"
 import { shopperColorLabelsMatch } from "@/lib/marketplace-color-meta"
 import {
   findVariantRowForShopperSelection,
@@ -75,7 +75,7 @@ export function ProductListingColorPicker({
             <ProductColorSwatchButton
               key={colorName}
               name={colorName}
-              meta={meta ?? { name: colorName, hex: "#8E8E93" }}
+              meta={resolveCatalogColorSwatch(colorName, meta)}
               imageUrl={imageUrl}
               selected={shopperColorLabelsMatch(selectedColor, colorName)}
               selectedClassName={brand.swatchSelectedRing}

@@ -3,6 +3,17 @@
 import { isMulticolorSwatch, type CatalogColorSwatch } from "@/lib/product-catalog-constants"
 import { cn } from "@/lib/utils"
 
+export function resolveCatalogColorSwatch(
+  colorName: string,
+  meta?: Pick<CatalogColorSwatch, "hex" | "multicolor"> | null
+): CatalogColorSwatch {
+  return {
+    name: colorName,
+    hex: meta?.hex ?? "#8E8E93",
+    ...(meta?.multicolor ? { multicolor: true } : {}),
+  }
+}
+
 type Props = {
   name: string
   meta: CatalogColorSwatch

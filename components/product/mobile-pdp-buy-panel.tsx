@@ -7,7 +7,7 @@ import { forwardRef, type MouseEvent } from "react"
 
 import { MarketplacePurchaseQuantity } from "@/components/marketplace/marketplace-purchase-quantity"
 import { ListingPriceActionCard } from "@/components/marketplace/listing-price-action-card"
-import { ProductColorSwatchButton } from "@/components/product/product-color-swatch-button"
+import { ProductColorSwatchButton, resolveCatalogColorSwatch } from "@/components/product/product-color-swatch-button"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { shopperColorLabelsMatch } from "@/lib/marketplace-color-meta"
@@ -209,7 +209,7 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
                   <ProductColorSwatchButton
                     key={colorName}
                     name={colorName}
-                    meta={meta ?? { name: colorName, hex: "#8E8E93" }}
+                    meta={resolveCatalogColorSwatch(colorName, meta)}
                     imageUrl={imageUrl}
                     selected={shopperColorLabelsMatch(selectedColor, colorName)}
                     selectedClassName={brand.swatchSelectedRing}
