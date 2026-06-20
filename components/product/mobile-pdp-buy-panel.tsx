@@ -69,6 +69,8 @@ export type MobilePdpBuyPanelProps = {
   formatReviewCount: (n: number) => string
   className?: string
   brandedStorefront?: boolean
+  /** Color swatches render next to gallery on PDP — hide duplicate here. */
+  hideColorPicker?: boolean
 }
 
 export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>(
@@ -111,6 +113,7 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
       formatReviewCount,
       className,
       brandedStorefront = false,
+      hideColorPicker = false,
     },
     ref
   ) {
@@ -189,7 +192,7 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
           brandedStorefront={brandedStorefront}
         />
 
-        {colorMeta.length > 0 ? (
+        {colorMeta.length > 0 && !hideColorPicker ? (
           <div>
             <div className="mb-2 flex items-baseline justify-between gap-2">
               <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">

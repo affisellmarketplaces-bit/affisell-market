@@ -2013,6 +2013,7 @@
       "zoomHint": "Double-tap ou pincez pour zoomer",
       "resetZoom": "Réinitialiser le zoom",
       "desktopHint": "Choisissez une vignette · survolez l’image pour zoomer",
+      "colorPreviewHint": "Choisissez une couleur pour mettre à jour l’aperçu ci-dessus",
       "hoverZoomHint": "Survolez l’image pour zoomer",
       "zoomDetailLevel": "{level} % · vue détaillée",
       "lightbox": "Galerie plein écran",

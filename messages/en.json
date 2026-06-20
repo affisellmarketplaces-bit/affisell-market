@@ -1989,6 +1989,7 @@
       "zoomHint": "Double-tap or pinch to zoom",
       "resetZoom": "Reset zoom",
       "desktopHint": "Select a thumbnail · hover main image to zoom",
+      "colorPreviewHint": "Tap a color to update the preview above",
       "hoverZoomHint": "Hover the image to zoom",
       "zoomDetailLevel": "{level}% · detail view",
       "lightbox": "Full screen gallery",

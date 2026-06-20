@@ -31,6 +31,7 @@ import { MarketplacePurchaseQuantity } from "@/components/marketplace/marketplac
 import { SupplierTrustBadge } from "@/components/suppliers/supplier-trust-badge"
 import { Button } from "@/components/ui/button"
 import { MobilePdpBuyPanel } from "@/components/product/mobile-pdp-buy-panel"
+import { ProductListingColorPicker } from "@/components/product/product-listing-color-picker"
 import { ProductMediaGallery } from "@/components/product/product-media-gallery"
 import { ProductOfferBadge } from "@/components/product/product-offer-badge"
 import { ListingLogisticsStrip } from "@/components/product/listing-logistics-strip"
@@ -43,7 +44,6 @@ import { descriptionHasImageMarkers } from "@/lib/description-rich-content"
 import type { AppLocale } from "@/lib/i18n-locale"
 import { CLIENT_MESSAGES } from "@/lib/i18n-load-messages"
 import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
-import { isMulticolorSwatch } from "@/lib/product-catalog-constants"
 import { buildMarketplaceColorMeta, shouldShowMarketplaceColorSwatches, shopperColorLabelsMatch } from "@/lib/marketplace-color-meta"
 import { shopperCategoryEyebrow, shopperVisibleTags } from "@/lib/product-shopper-tags"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
@@ -880,6 +880,7 @@ export function MarketplaceListingDetail({
             transition={reduceMotion ? { duration: 0 } : { duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           >
           <section className="min-w-0 space-y-2 lg:space-y-4 lg:overflow-visible">
+            <div className="max-lg:sticky max-lg:top-[calc(var(--site-header-offset,3.75rem)+0.35rem)] max-lg:z-20 max-lg:space-y-2 max-lg:bg-gradient-to-b max-lg:from-white max-lg:via-white/98 max-lg:to-white/90 max-lg:pb-2 max-lg:backdrop-blur-md dark:max-lg:from-zinc-950 dark:max-lg:via-zinc-950/98 dark:max-lg:to-zinc-950/90 sm:max-lg:space-y-3">
             <div className="relative max-lg:overflow-hidden max-lg:rounded-xl lg:overflow-visible">
               <ProductMediaGallery
                 images={images}
@@ -911,6 +912,30 @@ export function MarketplaceListingDetail({
               </div>
             </div>
 
+            {colorMeta.length > 0 ? (
+              <ProductListingColorPicker
+                colorMeta={colorMeta}
+                showColorSwatches={showColorSwatches}
+                selectedColor={selectedColor}
+                onSelectColor={selectColor}
+                colorLabel={productT.colorLabel}
+                variants={variants}
+                customColumns={customColumns}
+                selection={shopperSelection}
+                listingPriceCents={listingPriceCents}
+                basePriceCents={basePriceCents}
+                sizeOptions={sizeOptions}
+                brandedStorefront={brandedStorefront}
+                className="mx-1 sm:mx-0"
+              />
+            ) : null}
+            {colorMeta.length > 0 ? (
+              <p className="mx-1 text-center text-[11px] leading-snug text-zinc-500 sm:mx-0 lg:text-left dark:text-zinc-400">
+                {productT.gallery.colorPreviewHint}
+              </p>
+            ) : null}
+            </div>
+
             {arModel ? (
               <Button
                 size="lg"
@@ -937,6 +962,7 @@ export function MarketplaceListingDetail({
               colorMeta={colorMeta}
               showColorSwatches={showColorSwatches}
               brandedStorefront={brandedStorefront}
+              hideColorPicker
               selectedColor={selectedColor}
               onSelectColor={selectColor}
               storageOptions={storageOptions}
@@ -1175,95 +1201,6 @@ export function MarketplaceListingDetail({
               <p className={brand.partnerHighlight}>
                 <span className="font-semibold">Partner highlight:</span> {partnerHighlightLabel}
               </p>
-            ) : null}
-
-            {colorMeta.length > 0 ? (
-              <div>
-                <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 lg:text-sm lg:normal-case lg:tracking-normal lg:text-zinc-900 dark:lg:text-zinc-100">
-                    {showColorSwatches ? productT.colorLabel : "Option"}
-                  </p>
-                  {selectedColor ? (
-                    <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300 lg:text-sm">
-                      {selectedColor}
-                    </p>
-                  ) : null}
-                </div>
-                {showColorSwatches ? (
-                <div className="mt-2 flex flex-wrap gap-2.5">
-                  {colorMeta.map(({ name: cn, meta }) => (
-                    <button
-                      key={cn}
-                      type="button"
-                      onClick={() => selectColor(cn)}
-                      className={`h-10 w-10 rounded-full border-2 transition lg:h-9 lg:w-9 ${
-                        shopperColorLabelsMatch(selectedColor, cn)
-                          ? "border-zinc-900 dark:border-white"
-                          : "border-zinc-300 dark:border-zinc-600"
-                      }`}
-                      style={
-                        meta && !isMulticolorSwatch(meta)
-                          ? { backgroundColor: meta.hex }
-                          : { background: "conic-gradient(red, yellow, lime, cyan, blue, magenta, red)" }
-                      }
-                      title={cn}
-                    />
-                  ))}
-                </div>
-                ) : (
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {colorMeta.map(({ name: cn, meta }) => {
-                    const matchedRow = findVariantRowForShopperSelection({
-                      variants,
-                      customColumns,
-                      selection: {
-                        selectedPrimary: cn,
-                        selectedStorage,
-                        selectedSize: sizeOptions.length > 0 ? selectedSize : null,
-                      },
-                    })
-                    const out = matchedRow != null && matchedRow.stock <= 0
-                    const optionCents =
-                      matchedRow && matchedRow.priceCents > 0
-                        ? Math.max(
-                            0,
-                            listingPriceCents +
-                              (matchedRow.priceCents - Math.max(0, basePriceCents))
-                          )
-                        : marketplaceSellingPriceCentsForOption({
-                            listingSellingPriceCents: listingPriceCents,
-                            productBasePriceCents: basePriceCents,
-                            variants,
-                            optionName: cn,
-                          })
-                    return (
-                      <button
-                        key={cn}
-                        type="button"
-                        disabled={out}
-                        onClick={() => selectColor(cn)}
-                        className={`rounded-xl border px-3 py-2 text-sm font-medium transition ${
-                          shopperColorLabelsMatch(selectedColor, cn)
-                            ? brand.chipSelected
-                            : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-700 dark:hover:border-zinc-600"
-                        } ${out ? "cursor-not-allowed opacity-40" : ""}`}
-                      >
-                        <span className="block leading-tight">{cn}</span>
-                        <span
-                          className={`mt-0.5 block text-[11px] font-semibold tabular-nums ${
-                            shopperColorLabelsMatch(selectedColor, cn)
-                              ? "text-white/90"
-                              : "text-zinc-500 dark:text-zinc-400"
-                          }`}
-                        >
-                          {formatStoreCurrencyFromCents(optionCents)}
-                        </span>
-                      </button>
-                    )
-                  })}
-                </div>
-                )}
-              </div>
             ) : null}
 
             {storageOptions.length > 0 ? (
