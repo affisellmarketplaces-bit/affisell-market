@@ -47,6 +47,10 @@ export function SuccessClient({ sessionId, initialPayload }: Props) {
             paid: prev?.paid ?? true,
             fulfilled: false,
             verifying: attempts < VERIFY_MAX_ATTEMPTS,
+            amountTotal: prev?.amountTotal,
+            currency: prev?.currency,
+            productName: prev?.productName,
+            productImageUrl: prev?.productImageUrl,
           }))
           if (attempts < VERIFY_MAX_ATTEMPTS) {
             attempts += 1
@@ -57,7 +61,14 @@ export function SuccessClient({ sessionId, initialPayload }: Props) {
           return
         }
 
-        setPayload({ ...data, verifying: false })
+        setPayload((prev) => ({
+          ...data,
+          verifying: false,
+          amountTotal: data.amountTotal ?? prev?.amountTotal,
+          currency: data.currency ?? prev?.currency,
+          productName: data.productName ?? prev?.productName,
+          productImageUrl: data.productImageUrl ?? prev?.productImageUrl,
+        }))
 
         if (data.paid && !data.fulfilled && attempts < VERIFY_MAX_ATTEMPTS) {
           attempts += 1

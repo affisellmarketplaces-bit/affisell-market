@@ -1878,6 +1878,8 @@
     "errorBadge": "Confirmation en cours",
     "errorBody": "Nous n'avons pas pu afficher le détail tout de suite. Consultez l'e-mail de confirmation ou connectez-vous pour voir vos commandes.",
     "orderRef": "Commande #{id}",
+    "amountPaid": "Montant payé",
+    "itemsPaid": "{count} articles achetés",
     "timelineLabel": "Progression de la commande",
     "stepPayment": "Paiement sécurisé",
     "stepOrder": "Commande enregistrée",

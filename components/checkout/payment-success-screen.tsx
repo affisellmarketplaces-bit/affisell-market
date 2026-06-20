@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { motion, useReducedMotion } from "framer-motion"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { useEffect, useRef } from "react"
 import {
   ArrowRight,
@@ -17,6 +17,20 @@ import { buttonVariants } from "@/components/ui/button"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { cn } from "@/lib/utils"
 
+function formatPaidAmount(cents: number, currency: string | null | undefined, locale: string): string {
+  const code = currency?.trim().toUpperCase() || "EUR"
+  try {
+    return (cents / 100).toLocaleString(locale, {
+      style: "currency",
+      currency: code,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+  } catch {
+    return formatStoreCurrencyFromCents(cents)
+  }
+}
+
 export type PaymentSuccessPayload = {
   paid?: boolean
   fulfilled?: boolean
@@ -25,6 +39,8 @@ export type PaymentSuccessPayload = {
   orderIds?: string[]
   amountTotal?: number | null
   currency?: string | null
+  productName?: string | null
+  productImageUrl?: string | null
   error?: string
 }
 
@@ -121,6 +137,7 @@ function TimelineStep({
 
 export function PaymentSuccessScreen({ payload }: Props) {
   const t = useTranslations("success")
+  const locale = useLocale()
   const reducedMotion = useReducedMotion()
   const confettiFired = useRef(false)
 
@@ -142,8 +159,12 @@ export function PaymentSuccessScreen({ payload }: Props) {
 
   const amountLabel =
     typeof payload.amountTotal === "number" && payload.amountTotal > 0
-      ? formatStoreCurrencyFromCents(payload.amountTotal)
+      ? formatPaidAmount(payload.amountTotal, payload.currency, locale)
       : null
+
+  const productTitle =
+    payload.productName?.trim() ||
+    (orderCount > 1 ? t("itemsPaid", { count: orderCount }) : null)
 
   const bodyCopy = isError
     ? t("errorBody")
@@ -218,14 +239,38 @@ export function PaymentSuccessScreen({ payload }: Props) {
             </motion.p>
 
             {amountLabel && !isError ? (
-              <motion.p
-                className="mt-4 text-lg font-bold tabular-nums text-emerald-700 dark:text-emerald-400"
+              <motion.div
+                className="mx-auto mt-5 max-w-sm rounded-2xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50/90 via-white to-white px-4 py-4 text-left shadow-sm dark:border-emerald-900/40 dark:from-emerald-950/30 dark:via-zinc-950 dark:to-zinc-950"
                 initial={reducedMotion ? false : { opacity: 0, scale: 0.96 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.42 }}
               >
-                {amountLabel}
-              </motion.p>
+                <div className="flex items-center gap-3">
+                  {payload.productImageUrl ? (
+                    <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-emerald-200/70 bg-white dark:border-emerald-900/50 dark:bg-zinc-900">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={payload.productImageUrl}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  ) : null}
+                  <div className="min-w-0 flex-1">
+                    {productTitle ? (
+                      <p className="line-clamp-2 text-sm font-semibold leading-snug text-zinc-900 dark:text-zinc-50">
+                        {productTitle}
+                      </p>
+                    ) : null}
+                    <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-emerald-800/80 dark:text-emerald-300/80">
+                      {t("amountPaid")}
+                    </p>
+                    <p className="text-2xl font-black tabular-nums tracking-tight text-emerald-700 dark:text-emerald-400">
+                      {amountLabel}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
             ) : null}
 
             {primaryOrderRef && !isError ? (

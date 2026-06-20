@@ -1854,6 +1854,8 @@
     "errorBadge": "Confirmation pending",
     "errorBody": "We couldn't load the details right now. Check your confirmation email or sign in to view your orders.",
     "orderRef": "Order #{id}",
+    "amountPaid": "Amount paid",
+    "itemsPaid": "{count} items purchased",
     "timelineLabel": "Order progress",
     "stepPayment": "Payment secured",
     "stepOrder": "Order registered",

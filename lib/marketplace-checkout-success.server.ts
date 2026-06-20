@@ -1,8 +1,11 @@
+import { listingDisplayTitle } from "@/lib/affiliate-listing-display"
 import {
   ensureMarketplaceCheckoutFulfilled,
   isMarketplaceCheckoutFulfilled,
   marketplaceCheckoutNeedsFulfillment,
 } from "@/lib/marketplace-checkout-fulfill"
+import { resolveCheckoutSuccessDisplay } from "@/lib/marketplace-checkout-success-display"
+import { prisma } from "@/lib/prisma"
 import { findOrderIdsForCheckoutSession } from "@/lib/stripe-marketplace-commission-split"
 import { getStripeClient } from "@/lib/stripe"
 import { logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
@@ -15,6 +18,8 @@ export type PaidCheckoutSessionResult = {
   orderIds: string[]
   amountTotal: number | null
   currency: string
+  productName: string | null
+  productImageUrl: string | null
 }
 
 /** Idempotent: mark orders paid + partner notifications after Stripe Checkout. */
@@ -22,7 +27,9 @@ export async function fulfillPaidCheckoutSession(
   sessionId: string
 ): Promise<PaidCheckoutSessionResult> {
   const stripe = getStripeClient()
-  const session = await stripe.checkout.sessions.retrieve(sessionId)
+  const session = await stripe.checkout.sessions.retrieve(sessionId, {
+    expand: ["line_items"],
+  })
 
   let orderIds = await findOrderIdsForCheckoutSession(sessionId)
   const paid = session.payment_status === "paid"
@@ -53,12 +60,49 @@ export async function fulfillPaidCheckoutSession(
 
   const fulfilled = paid && (await isMarketplaceCheckoutFulfilled(sessionId))
 
+  const orderRows =
+    orderIds.length > 0
+      ? await prisma.order.findMany({
+          where: { id: { in: orderIds } },
+          select: {
+            totalCents: true,
+            sellingPriceCents: true,
+            quantity: true,
+            variantLabel: true,
+            variantImageUrl: true,
+            currency: true,
+            affiliateProduct: { select: { customTitle: true } },
+            product: { select: { name: true } },
+          },
+          orderBy: { createdAt: "asc" },
+        })
+      : []
+
+  const stripeLineDescription = session.line_items?.data?.[0]?.description?.trim() || null
+
+  const display = resolveCheckoutSuccessDisplay({
+    sessionAmountTotal: session.amount_total,
+    sessionCurrency: session.currency,
+    stripeLineDescription,
+    orders: orderRows.map((order) => ({
+      totalCents: order.totalCents,
+      sellingPriceCents: order.sellingPriceCents,
+      quantity: order.quantity,
+      variantLabel: order.variantLabel,
+      variantImageUrl: order.variantImageUrl,
+      currency: order.currency,
+      productName: listingDisplayTitle(order.affiliateProduct.customTitle, order.product.name),
+    })),
+  })
+
   return {
     paid,
     fulfilled,
     orderId: orderIds[0] ?? session.metadata?.orderId ?? null,
     orderIds,
-    amountTotal: session.amount_total ?? null,
-    currency: session.currency ?? "eur",
+    amountTotal: display.amountTotal,
+    currency: display.currency,
+    productName: display.productName,
+    productImageUrl: display.productImageUrl,
   }
 }
