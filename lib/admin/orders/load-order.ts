@@ -74,6 +74,11 @@ export async function loadAdminOrderDetail(orderId: string): Promise<AdminOrderD
     affiliateName: order.affiliate.name,
     stripeSessionId: order.stripeSessionId,
     batchId: order.autoFulfillmentBatchId,
+    autodsOrderId: order.autodsOrderId,
+    autodsStatus: order.autodsStatus,
+    autodsTracking: order.autodsTracking,
+    autodsTrackingUrl: order.autodsTrackingUrl,
+    autodsCarrier: order.autodsCarrier,
     supplierFulfillmentOrders: [...byJob.values()],
   }
 }

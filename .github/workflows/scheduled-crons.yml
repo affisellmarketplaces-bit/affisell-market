@@ -34,7 +34,8 @@ jobs:
             "/api/cron/booking-waitlist-notify" \
             "/api/cron/agent-mission-reminders" \
             "/api/cron/expansion-ops" \
-            "/api/cron/reconcile-checkout-orders"
+            "/api/cron/reconcile-checkout-orders" \
+            "/api/cron/sync-autods"
           do
             echo "→ GET ${path}"
             curl -fsS -H "$AUTH" "${BASE}${path}" || echo "WARN: ${path} failed"

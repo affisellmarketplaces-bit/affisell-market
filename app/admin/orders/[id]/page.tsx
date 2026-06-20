@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
 
+import { AutodsFulfillmentPanel } from "@/components/admin/autods-fulfillment-panel"
 import { CancelOrderDialog } from "@/components/admin/cancel-order-dialog"
 import { OrderHeader } from "@/components/admin/order-header"
 import { SupplierTimeline } from "@/components/admin/supplier-timeline"
@@ -42,6 +43,7 @@ export default async function AdminOrderPage({ params }: Props) {
             </>
           }
         />
+        <AutodsFulfillmentPanel order={order} />
         <SupplierTimeline orderId={order.id} supplierOrders={order.supplierFulfillmentOrders} />
       </div>
     </main>

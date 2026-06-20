@@ -32,5 +32,10 @@ export type AdminOrderDetail = {
   affiliateName: string | null
   stripeSessionId: string
   batchId: string | null
+  autodsOrderId: string | null
+  autodsStatus: string | null
+  autodsTracking: string | null
+  autodsTrackingUrl: string | null
+  autodsCarrier: string | null
   supplierFulfillmentOrders: AdminSupplierFulfillmentView[]
 }

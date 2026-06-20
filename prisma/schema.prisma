@@ -1612,6 +1612,11 @@ model Order {
   /** PENDING | PROCESSING | SHIPPED | DELIVERED | FAILED */
   autodsStatus             String?
   autodsTracking           String?
+  autodsTrackingUrl        String?
+  autodsCarrier            String?
+  /** Idempotent buyer shipped email after AutoDS webhook/cron. */
+  autodsShippedEmailSentAt DateTime?
+  autodsFulfillmentLogs    AutodsFulfillmentLog[]
   autoFulfillmentBatchId String?
   autoFulfillmentBatch   AutoFulfillmentBatch? @relation(fields: [autoFulfillmentBatchId], references: [id], onDelete: SetNull)
 
@@ -1623,6 +1628,7 @@ model Order {
   @@index([affiliateId])
   @@index([splitStatus])
   @@index([supplierId, status, shipDeadlineAt])
+  @@index([autodsStatus, createdAt])
 }
 
 model TransferAttempt {
@@ -2219,6 +2225,19 @@ model SupplierLinkVariant {
   @@unique([supplierLinkId, productVariantId])
   @@index([supplierLinkId])
   @@index([supplierLinkId, matchColor])
+}
+
+/** AutoDS webhook/cron audit trail (provider events). */
+model AutodsFulfillmentLog {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  provider  String   @default("autods")
+  event     String
+  response  Json?
+  createdAt DateTime @default(now())
+
+  @@index([orderId, createdAt])
 }
 
 /** Per marketplace order — AliExpress auto-buy lifecycle (distinct from Order.fulfillmentStatus). */
