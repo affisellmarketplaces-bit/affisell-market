@@ -2240,23 +2240,6 @@ model AutodsFulfillmentLog {
   @@index([orderId, createdAt])
 }
 
-/** WooCommerce REST keys issued to third-party apps (e.g. AutoDS onboarding). */
-model WooCommerceApiCredential {
-  id              String    @id @default(cuid())
-  appName         String
-  externalUserId  String
-  consumerKey     String    @unique
-  consumerSecret  String
-  scope           String
-  keyPermissions  String?
-  grantedByUserId String?
-  createdAt       DateTime  @default(now())
-  revokedAt       DateTime?
-
-  @@index([externalUserId, appName])
-  @@index([revokedAt])
-}
-
 /** Per marketplace order — AliExpress auto-buy lifecycle (distinct from Order.fulfillmentStatus). */
 model FulfillmentLog {
   id            String        @id @default(cuid())
