@@ -7,16 +7,17 @@ import { forwardRef, type MouseEvent } from "react"
 
 import { MarketplacePurchaseQuantity } from "@/components/marketplace/marketplace-purchase-quantity"
 import { ListingPriceActionCard } from "@/components/marketplace/listing-price-action-card"
+import { ProductColorSwatchButton } from "@/components/product/product-color-swatch-button"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
-import { isMulticolorSwatch } from "@/lib/product-catalog-constants"
 import { shopperColorLabelsMatch } from "@/lib/marketplace-color-meta"
 import { storefrontPdpBrandClasses } from "@/lib/storefront-pdp-brand"
 import { cn } from "@/lib/utils"
 
 export type MobilePdpColorMeta = {
   name: string
-  meta?: { hex: string } | undefined
+  meta?: { hex: string; multicolor?: boolean }
+  imageUrl?: string | null
 }
 
 export type MobilePdpBuyPanelProps = {
@@ -203,29 +204,17 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
               ) : null}
             </div>
             <div className="flex gap-2.5 overflow-x-auto overscroll-x-contain pb-0.5 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {colorMeta.map(({ name: colorName, meta }) =>
+              {colorMeta.map(({ name: colorName, meta, imageUrl }) =>
                 showColorSwatches ? (
-                  <button
+                  <ProductColorSwatchButton
                     key={colorName}
-                    type="button"
+                    name={colorName}
+                    meta={meta ?? { name: colorName, hex: "#8E8E93" }}
+                    imageUrl={imageUrl}
+                    selected={shopperColorLabelsMatch(selectedColor, colorName)}
+                    selectedClassName={brand.swatchSelectedRing}
+                    unselectedClassName="border-zinc-300 dark:border-zinc-600"
                     onClick={() => onSelectColor(colorName)}
-                    className={cn(
-                      "relative h-11 w-11 shrink-0 rounded-full border-2 transition active:scale-95",
-                      shopperColorLabelsMatch(selectedColor, colorName)
-                        ? brand.chipSelectedRing
-                        : "border-zinc-300 dark:border-zinc-600"
-                    )}
-                    style={
-                      meta && !isMulticolorSwatch(meta)
-                        ? { backgroundColor: meta.hex }
-                        : {
-                            background:
-                              "conic-gradient(red, yellow, lime, cyan, blue, magenta, red)",
-                          }
-                    }
-                    title={colorName}
-                    aria-label={colorName}
-                    aria-pressed={shopperColorLabelsMatch(selectedColor, colorName)}
                   />
                 ) : (
                   <button

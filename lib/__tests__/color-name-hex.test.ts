@@ -48,7 +48,29 @@ describe("buildMarketplaceColorMeta", () => {
     const rows = buildMarketplaceColorMeta(["Noir", "Kaki"], [])
     expect(rows).toHaveLength(2)
     expect(rows[0]?.meta.hex).toBe("#000000")
+    expect(rows[0]?.imageUrl).toBeNull()
     expect(rows[1]?.meta.hex).toBe("#78866B")
+  })
+
+  it("uses supplier color image in swatch row", () => {
+    const rows = buildMarketplaceColorMeta(
+      ["Gris Foncé"],
+      [{ color: "Gris Foncé", hex: "#374151", image: "https://cdn.example/legging-grey.jpg" }]
+    )
+    expect(rows[0]?.imageUrl).toBe("https://cdn.example/legging-grey.jpg")
+    expect(rows[0]?.meta.hex).toBe("#374151")
+  })
+
+  it("re-resolves duplicate import hex per color name", () => {
+    const rows = buildMarketplaceColorMeta(
+      ["Noir", "Gris Foncé"],
+      [
+        { color: "Noir", hex: "#8E8E93", image: "" },
+        { color: "Gris Foncé", hex: "#8E8E93", image: "" },
+      ]
+    )
+    expect(rows[0]?.meta.hex).toBe("#000000")
+    expect(rows[1]?.meta.hex).toBe("#374151")
   })
 
   it("ignores placeholder stored hex from imports", () => {

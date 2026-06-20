@@ -9,6 +9,8 @@ export type StorefrontPdpBrandClasses = {
   ctaSecondary: string
   chipSelected: string
   chipSelectedRing: string
+  /** Color dots — ring only; never theme background fill. */
+  swatchSelectedRing: string
   accentText: string
   accentIcon: string
   partnerHighlight: string
@@ -41,6 +43,8 @@ const AFFISELL_PDP_BRAND: StorefrontPdpBrandClasses = {
   chipSelected:
     "border-violet-600 bg-violet-600 text-white shadow-sm dark:border-violet-500 dark:bg-violet-600",
   chipSelectedRing: "border-violet-600 ring-2 ring-violet-400/35 dark:border-violet-400",
+  swatchSelectedRing:
+    "scale-105 border-zinc-900 shadow-md ring-2 ring-violet-500/40 ring-offset-2 ring-offset-white dark:border-white dark:ring-violet-400/50 dark:ring-offset-zinc-950",
   accentText: "font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-400",
   accentIcon: "text-violet-600 dark:text-violet-400",
   partnerHighlight:
@@ -78,6 +82,8 @@ const STOREFRONT_PDP_BRAND: StorefrontPdpBrandClasses = {
     "store-pdp-cta-secondary relative flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-xl text-[15px] font-semibold disabled:cursor-not-allowed disabled:opacity-50 lg:h-14 lg:rounded-full lg:px-4 lg:text-left",
   chipSelected: "store-pdp-chip-selected border-2 text-white shadow-sm",
   chipSelectedRing: "store-pdp-chip-selected ring-2 ring-[color-mix(in_srgb,var(--store-accent,#7c3aed)_35%,transparent)]",
+  swatchSelectedRing:
+    "scale-105 border-[var(--store-accent,#7c3aed)] shadow-md ring-2 ring-[color-mix(in_srgb,var(--store-accent,#7c3aed)_35%,transparent)] ring-offset-2 ring-offset-white dark:ring-offset-zinc-950",
   accentText: "store-pdp-accent-text font-medium underline-offset-2 hover:underline",
   accentIcon: "store-pdp-accent-icon",
   partnerHighlight: "store-pdp-partner-highlight rounded-lg px-3 py-2 text-[11px] leading-relaxed lg:rounded-xl lg:text-xs",

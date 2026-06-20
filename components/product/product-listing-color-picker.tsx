@@ -1,7 +1,7 @@
 "use client"
 
 import type { MobilePdpColorMeta } from "@/components/product/mobile-pdp-buy-panel"
-import { isMulticolorSwatch } from "@/lib/product-catalog-constants"
+import { ProductColorSwatchButton } from "@/components/product/product-color-swatch-button"
 import { shopperColorLabelsMatch } from "@/lib/marketplace-color-meta"
 import {
   findVariantRowForShopperSelection,
@@ -71,28 +71,16 @@ export function ProductListingColorPicker({
 
       {showColorSwatches ? (
         <div className="mt-2 flex gap-2.5 overflow-x-auto overscroll-x-contain pb-0.5 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] lg:flex-wrap lg:overflow-visible lg:pb-0 [&::-webkit-scrollbar]:hidden">
-          {colorMeta.map(({ name: colorName, meta }) => (
-            <button
+          {colorMeta.map(({ name: colorName, meta, imageUrl }) => (
+            <ProductColorSwatchButton
               key={colorName}
-              type="button"
+              name={colorName}
+              meta={meta ?? { name: colorName, hex: "#8E8E93" }}
+              imageUrl={imageUrl}
+              selected={shopperColorLabelsMatch(selectedColor, colorName)}
+              selectedClassName={brand.swatchSelectedRing}
+              unselectedClassName="border-zinc-300 hover:scale-105 hover:border-zinc-500 dark:border-zinc-600 dark:hover:border-zinc-400"
               onClick={() => onSelectColor(colorName)}
-              className={cn(
-                "relative h-11 w-11 shrink-0 rounded-full border-2 transition active:scale-95 lg:h-10 lg:w-10",
-                shopperColorLabelsMatch(selectedColor, colorName)
-                  ? cn(brand.chipSelectedRing, "scale-105 shadow-md ring-2 ring-offset-2 ring-offset-white dark:ring-offset-zinc-950")
-                  : "border-zinc-300 hover:scale-105 hover:border-zinc-500 dark:border-zinc-600 dark:hover:border-zinc-400"
-              )}
-              style={
-                meta && !isMulticolorSwatch(meta)
-                  ? { backgroundColor: meta.hex }
-                  : {
-                      background:
-                        "conic-gradient(red, yellow, lime, cyan, blue, magenta, red)",
-                    }
-              }
-              title={colorName}
-              aria-label={colorName}
-              aria-pressed={shopperColorLabelsMatch(selectedColor, colorName)}
             />
           ))}
         </div>
