@@ -4,6 +4,11 @@ import { auth } from "@/auth"
 import { syncPartnerMarketplaceAlertsBeforeInbox } from "@/lib/marketplace-order-notification-sync"
 import { dedupeMerchantNotifications } from "@/lib/merchant-notifications-dedupe"
 import { prisma } from "@/lib/prisma"
+import {
+  enrichSupplierNotificationRows,
+  loadSupplierToShipOrderIds,
+  reopenLegacySupplierToShipAlerts,
+} from "@/lib/supplier-order-alert-inbox"
 import { countSupplierOrdersToShip } from "@/lib/supplier-orders-payload"
 
 export const runtime = "nodejs"
@@ -20,6 +25,7 @@ export async function GET() {
 
   try {
     await syncPartnerMarketplaceAlertsBeforeInbox({ supplierId: session.user.id })
+    await reopenLegacySupplierToShipAlerts(session.user.id)
   } catch (error) {
     console.error("[supplier-notifications]", {
       userId: session.user.id,
@@ -46,29 +52,35 @@ export async function GET() {
     const imageByOrderId = new Map(orderImages.map((o) => [o.id, o.variantImageUrl]))
 
     const deduped = dedupeMerchantNotifications(rows)
-    const unreadFromDeduped = deduped.filter((n) => !n.read).length
+    const toShipOrderIds = await loadSupplierToShipOrderIds(session.user.id)
+    const enriched = enrichSupplierNotificationRows(deduped, toShipOrderIds)
+    const unreadFromDeduped = enriched.filter((n) => !n.read).length
+    const actionRequiredCount = enriched.filter((n) => n.actionRequired && !n.read).length
     const ordersToShipCount = await countSupplierOrdersToShip(session.user.id)
     const badgeCount = Math.max(unreadFromDeduped, ordersToShipCount)
 
     console.log("[supplier-notifications]", {
       userId: session.user.id,
       unreadCount: unreadFromDeduped,
+      actionRequiredCount,
       ordersToShipCount,
       badgeCount,
-      notificationRows: deduped.length,
+      notificationRows: enriched.length,
     })
 
     return Response.json({
       unreadCount: unreadFromDeduped,
+      actionRequiredCount,
       ordersToShipCount,
       badgeCount,
-      notifications: deduped.map((n) => ({
+      notifications: enriched.map((n) => ({
         id: n.id,
         type: n.type,
         message: n.message,
         imageUrl: n.imageUrl?.trim() || imageByOrderId.get(n.orderId ?? "")?.trim() || null,
         orderId: n.orderId,
         read: n.read,
+        actionRequired: n.actionRequired,
         createdAt: n.createdAt instanceof Date ? n.createdAt.toISOString() : n.createdAt,
       })),
     })

@@ -20,6 +20,7 @@ type NotificationRow = {
   imageUrl: string | null
   orderId: string | null
   read: boolean
+  actionRequired?: boolean
   createdAt: string
 }
 
@@ -106,6 +107,7 @@ export function MerchantNotificationsMenu({
   const cfg = config[role]
   const [open, setOpen] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
+  const [actionRequiredCount, setActionRequiredCount] = useState(0)
   const [ordersToShipCount, setOrdersToShipCount] = useState(0)
   const [badgeCount, setBadgeCount] = useState(0)
   const [rows, setRows] = useState<NotificationRow[]>([])
@@ -119,12 +121,14 @@ export function MerchantNotificationsMenu({
       if (!res.ok) return
       const j = (await res.json()) as {
         unreadCount: number
+        actionRequiredCount?: number
         ordersToShipCount?: number
         badgeCount?: number
         notifications: NotificationRow[]
       }
       const deduped = dedupeMerchantNotifications(j.notifications)
       setUnreadCount(j.unreadCount)
+      setActionRequiredCount(j.actionRequiredCount ?? 0)
       const shipCount = j.ordersToShipCount ?? 0
       setOrdersToShipCount(shipCount)
       setBadgeCount(
@@ -136,7 +140,7 @@ export function MerchantNotificationsMenu({
     } catch {
       // Dev HMR / offline — keep last badge state, avoid Next.js error overlay
     }
-  }, [cfg.apiPath])
+  }, [cfg.apiPath, role])
 
   useEffect(() => {
     void load()
@@ -207,6 +211,20 @@ export function MerchantNotificationsMenu({
     return () => document.removeEventListener("mousedown", onDocClick)
   }, [open])
 
+  async function markOneRead(id: string) {
+    try {
+      await fetch(cfg.apiPath, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: [id] }),
+      })
+      await load()
+      window.dispatchEvent(new CustomEvent(cfg.eventName))
+    } catch {
+      // ignore transient network errors
+    }
+  }
+
   async function markAllRead() {
     try {
       await fetch(cfg.apiPath, {
@@ -253,7 +271,7 @@ export function MerchantNotificationsMenu({
                 <p className="text-[11px] text-zinc-500">All caught up</p>
               )}
             </div>
-            {unreadCount > 0 ? (
+            {(unreadCount > 0 || (role === "SUPPLIER" && actionRequiredCount > 0)) ? (
               <button
                 type="button"
                 className="rounded-lg border border-violet-200/80 bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-violet-700 transition hover:bg-violet-50 dark:border-violet-800/60 dark:bg-violet-950/40 dark:text-violet-300 dark:hover:bg-violet-950/70"
@@ -275,6 +293,9 @@ export function MerchantNotificationsMenu({
                 role={role}
                 link={resolveNotificationLink(role, n, cfg)}
                 onNavigate={() => setOpen(false)}
+                onMarkRead={
+                  !n.read ? () => void markOneRead(n.id) : undefined
+                }
               />
             ))
           )}

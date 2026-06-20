@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowUpRight, Mail, Package, Sparkles, Tag } from "lucide-react"
+import { ArrowUpRight, Check, Mail, Package, Sparkles, Tag } from "lucide-react"
 import { useLocale } from "next-intl"
 
 import {
@@ -17,6 +17,7 @@ type NotificationRow = {
   imageUrl: string | null
   orderId: string | null
   read: boolean
+  actionRequired?: boolean
   createdAt: string
 }
 
@@ -25,9 +26,10 @@ type Props = {
   role: "SUPPLIER" | "AFFILIATE"
   link?: { href: string; label: string } | null
   onNavigate: () => void
+  onMarkRead?: () => void
 }
 
-export function MerchantNotificationItem({ row, role, link, onNavigate }: Props) {
+export function MerchantNotificationItem({ row, role, link, onNavigate, onMarkRead }: Props) {
   const locale = useLocale()
   const parsed = parseMerchantNotificationMessage(row.message)
   const isOrder = parsed.kind === "supplier_order"
@@ -109,6 +111,21 @@ export function MerchantNotificationItem({ row, role, link, onNavigate }: Props)
             <span className="ml-auto text-[10px] font-medium text-zinc-500 dark:text-zinc-400">
               {relative}
             </span>
+            {onMarkRead ? (
+              <button
+                type="button"
+                aria-label="Mark as read"
+                title="Mark as read"
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  onMarkRead()
+                }}
+                className="ml-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-violet-200/80 bg-white/90 text-violet-700 opacity-100 transition hover:bg-violet-50 dark:border-violet-800/60 dark:bg-violet-950/40 dark:text-violet-300 dark:hover:bg-violet-950/70"
+              >
+                <Check className="size-3.5" aria-hidden />
+              </button>
+            ) : null}
           </div>
 
           {parsed.productName ? (
