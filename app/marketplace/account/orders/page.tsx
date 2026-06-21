@@ -17,7 +17,15 @@ export default async function MarketplaceBuyerOrdersPage() {
     redirect("/login/customer?callbackUrl=/marketplace/account/orders")
   }
 
-  const payload = await buildBuyerOrdersPayloadForEmail(session.user.email)
+  let payload: Awaited<ReturnType<typeof buildBuyerOrdersPayloadForEmail>> = []
+  try {
+    payload = await buildBuyerOrdersPayloadForEmail(session.user.email)
+  } catch (error) {
+    console.error("[marketplace-account-orders]", {
+      email: session.user.email,
+      error: error instanceof Error ? error.message : String(error),
+    })
+  }
 
   return (
     <BentoContainer maxWidth="4xl" className="space-y-8">

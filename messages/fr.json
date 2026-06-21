@@ -310,7 +310,10 @@
       "signUpLink": "Créer un compte client",
       "alreadyClient": "Déjà client ?",
       "signupFail": "Inscription impossible",
-      "backTrackOrder": "← Suivre ma commande"
+      "backTrackOrder": "← Suivre ma commande",
+      "wrongPortalTitle": "Vous êtes connecté avec un compte marchand",
+      "wrongPortalBody": "Votre session actuelle est un compte {role}. Déconnectez-vous pour accéder à votre espace client avec l'e-mail utilisé lors de l'achat.",
+      "wrongPortalSignOut": "Se déconnecter et se connecter en tant qu'acheteur"
     },
     "customerSignup": {
       "heroTitle": "Achetez et récupérez jusqu'à 20 %",

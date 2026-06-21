@@ -1,5 +1,4 @@
 import { render } from "@react-email/render"
-import { Resend } from "resend"
 
 import { OrderConfirmationEmail } from "@/emails/order-confirmation"
 import {
@@ -10,7 +9,7 @@ import { resolveEmailLocale } from "@/lib/emails/resolve-email-locale"
 import type { AppLocale } from "@/lib/i18n-locale"
 import {
   readResendDeliveryConfig,
-  resolveResendDeliveryRecipient,
+  sendResendEmail,
 } from "@/lib/emails/resend-delivery"
 import { resolveOrderConfirmationImageUrl } from "@/lib/emails/resolve-order-confirmation-image"
 import { appBaseUrl } from "@/lib/app-base-url"
@@ -65,9 +64,8 @@ export async function sendOrderConfirmationEmail({
     console.error("[Resend] Order confirmation skipped: missing RESEND_API_KEY")
     return
   }
-  const resend = new Resend(config.apiKey)
-  const { to } = resolveResendDeliveryRecipient("order-confirmation", customerEmail, config)
-  const resolvedOrderUrl = orderUrl ?? `${resolveAppUrl()}/orders/${orderId}`
+  const resolvedOrderUrl =
+    orderUrl ?? `${resolveAppUrl()}/marketplace/account/orders`
   const emailCopy = loadOrderConfirmationEmailCopy(resolvedLocale, {
     orderId,
     quantity,
@@ -94,16 +92,17 @@ export async function sendOrderConfirmationEmail({
     })
   )
 
-  const { data, error } = await resend.emails.send({
-    from: config.from,
-    to,
+  const sendResult = await sendResendEmail({
+    context: "order-confirmation",
+    config,
+    intendedTo: customerEmail,
     subject: orderConfirmationEmailSubject(resolvedLocale, orderId),
     html,
   })
 
-  if (error) {
-    console.error("[Resend] Order confirmation error:", error)
+  if (!sendResult.ok) {
+    console.error("[Resend] Order confirmation error:", sendResult.error)
     return
   }
-  console.log("[Resend] Order confirmation sent:", data?.id)
+  console.log("[Resend] Order confirmation sent:", { orderId, resendId: sendResult.resendId, to })
 }

@@ -46,6 +46,7 @@ export type PaymentSuccessPayload = {
 
 type Props = {
   payload: PaymentSuccessPayload
+  signedInAsBuyer?: boolean
 }
 
 function fireSuccessConfetti() {
@@ -135,7 +136,7 @@ function TimelineStep({
   )
 }
 
-export function PaymentSuccessScreen({ payload }: Props) {
+export function PaymentSuccessScreen({ payload, signedInAsBuyer = false }: Props) {
   const t = useTranslations("success")
   const locale = useLocale()
   const reducedMotion = useReducedMotion()
@@ -335,12 +336,14 @@ export function PaymentSuccessScreen({ payload }: Props) {
                 <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
             ) : null}
-            <Link
-              href="/login/customer?callbackUrl=/marketplace/account/orders"
-              className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
-            >
-              {t("signIn")}
-            </Link>
+            {!signedInAsBuyer ? (
+              <Link
+                href="/login/customer?callbackUrl=/marketplace/account/orders"
+                className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
+              >
+                {t("signIn")}
+              </Link>
+            ) : null}
             <Link
               href={isError ? "/" : "/shops/browse"}
               className={cn(buttonVariants({ variant: "ghost", size: "lg" }))}

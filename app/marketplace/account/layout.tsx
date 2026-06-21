@@ -18,7 +18,13 @@ export default async function MarketplaceBuyerAccountLayout({
 
   const overview =
     userId && email
-      ? await loadBuyerAccountOverview(userId, email)
+      ? await loadBuyerAccountOverview(userId, email).catch((error) => {
+          console.error("[buyer-account-layout]", {
+            userId,
+            error: error instanceof Error ? error.message : String(error),
+          })
+          return { orderCount: 0, walletCents: 0, cartItemCount: 0 }
+        })
       : { orderCount: 0, walletCents: 0, cartItemCount: 0 }
 
   return (
