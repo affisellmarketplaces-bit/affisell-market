@@ -465,6 +465,7 @@
     }
   },
   "checkout": {
+    "checkoutError": "Erreur paiement",
     "flexiblePayment": {
       "aria": "Paiement en {count} fois sans frais de {amount} — Klarna ou carte",
       "zeroApr": "0 %",
