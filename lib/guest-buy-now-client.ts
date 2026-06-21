@@ -7,18 +7,21 @@ import {
   type FastCheckoutBody,
 } from "@/lib/fast-checkout-client"
 
-type ProductMeta = Pick<
+export type BuyNowWithoutLoginMeta = Pick<
   AddToBuyerCartInput,
   "title" | "price" | "imageUrl" | "sellerName" | "selectedColor" | "selectedSize"
->
+> & { productId: string }
+
+export type BuyNowOutcome = "stripe" | "cart" | "error"
 
 /**
- * Stripe checkout without prior login. On failure, adds to guest cart and opens checkout identity on `/cart`.
+ * Stripe checkout once the buyer is identified (CUSTOMER session).
+ * Guests: use `useBuyNowWithIdentity` to collect email/phone + cashback account first.
  */
 export async function buyNowWithoutLogin(
   body: FastCheckoutBody,
-  productMeta: ProductMeta & { productId: string }
-): Promise<"stripe" | "cart" | "error"> {
+  productMeta: BuyNowWithoutLoginMeta
+): Promise<BuyNowOutcome> {
   const listingId = body.productId?.trim() || body.affiliateProductId?.trim() || productMeta.productId
 
   async function fallbackToCart(): Promise<"cart" | "error"> {

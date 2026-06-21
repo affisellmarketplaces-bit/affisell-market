@@ -5,7 +5,7 @@ import Link from "next/link"
 
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { addToBuyerCart } from "@/lib/cart-add-client"
-import { buyNowWithoutLogin } from "@/lib/guest-buy-now-client"
+import { useBuyNowWithIdentity } from "@/hooks/use-buy-now-with-identity"
 
 type Props = {
   detailHref: string
@@ -42,6 +42,7 @@ export function MarketplaceListingCard({
   buyerRewardBadge,
   soldCount = 0,
 }: Props) {
+  const { buyNow: buyNowWithIdentity, identitySheet } = useBuyNowWithIdentity()
   const listing = {
     id: product.id,
     image: imageUrl || "/placeholder.png",
@@ -64,7 +65,7 @@ export function MarketplaceListingCard({
   }
 
   async function buyNow(listingId: string) {
-    await buyNowWithoutLogin(
+    await buyNowWithIdentity(
       { productId: listingId, qty: 1, cancelPath: `/marketplace/${listingId}` },
       {
         productId: listingId,
@@ -156,6 +157,7 @@ export function MarketplaceListingCard({
           </button>
         </div>
       </div>
+      {identitySheet}
     </div>
   )
 }

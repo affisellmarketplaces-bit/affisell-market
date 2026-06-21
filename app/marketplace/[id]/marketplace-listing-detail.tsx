@@ -49,7 +49,7 @@ import { shopperCategoryEyebrow, shopperVisibleTags } from "@/lib/product-shoppe
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { addToBuyerCart } from "@/lib/cart-add-client"
-import { buyNowWithoutLogin } from "@/lib/guest-buy-now-client"
+import { useBuyNowWithIdentity } from "@/hooks/use-buy-now-with-identity"
 import {
   isBookingCheckoutBlocked,
   isBookingCheckoutLiveForKind,
@@ -372,6 +372,7 @@ export function MarketplaceListingDetail({
   const productT = messages.Product
   const breadcrumbT = messages.Breadcrumb
   const router = useRouter()
+  const { buyNow: buyNowWithIdentity, identitySheet } = useBuyNowWithIdentity()
   const reduceMotion = useReducedMotion()
   const purchaseDockRef = useRef<HTMLDivElement>(null)
   const mobilePurchaseRef = useRef<HTMLElement>(null)
@@ -799,7 +800,7 @@ export function MarketplaceListingDetail({
       const cancelPath = storefront?.slug
         ? shopListingPath(storefront.slug, listingId)
         : `/marketplace/${listingId}`
-      const outcome = await buyNowWithoutLogin(
+      const outcome = await buyNowWithIdentity(
         {
           productId: listingId,
           qty: checkoutQty,
@@ -1863,6 +1864,7 @@ export function MarketplaceListingDetail({
           </Button>
         </div>
       </motion.div>
+      {identitySheet}
     </>
   )
 }

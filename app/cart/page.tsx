@@ -151,6 +151,7 @@ export default function CartPage() {
   const checkoutBlocked = Boolean(visitorCountry && !checkoutAvailable)
   const [lines, setLines] = useState<CartLine[]>([])
   const [isAuthed, setIsAuthed] = useState(false)
+  const [isCustomerBuyer, setIsCustomerBuyer] = useState(false)
   const [loading, setLoading] = useState(true)
   const [checkoutBusy, setCheckoutBusy] = useState(false)
   const [identityOpen, setIdentityOpen] = useState(false)
@@ -186,8 +187,10 @@ export default function CartPage() {
         )
         if (ac.signal.aborted) return
         const authed = Boolean(session?.user?.id)
+        const customerBuyer = authed && session?.user?.role === "CUSTOMER"
         setIsAuthed(authed)
-        if (authed && session?.user?.id) {
+        setIsCustomerBuyer(customerBuyer)
+        if (customerBuyer && session?.user?.id) {
           const br = await fetchWithTimeout(
             (signal) =>
               fetch("/api/account/buyer-reward-balance", {
@@ -222,8 +225,10 @@ export default function CartPage() {
     try {
       const [session, serverLines] = await Promise.all([fetchSession(), fetchCart()])
       const authed = Boolean(session?.user?.id)
+      const customerBuyer = authed && session?.user?.role === "CUSTOMER"
       setIsAuthed(authed)
-      if (authed && session?.user?.id) {
+      setIsCustomerBuyer(customerBuyer)
+      if (customerBuyer && session?.user?.id) {
         const br = await fetch("/api/account/buyer-reward-balance", { credentials: "include", cache: "no-store" })
         if (br.ok) {
           const j = (await br.json()) as { balanceCents?: number }
@@ -249,9 +254,9 @@ export default function CartPage() {
   const MIN_CARD_EUR = 0.5
   const minCardCents = Math.round(MIN_CARD_EUR * 100)
   const maxApplicableReward = useMemo(() => {
-    if (!isAuthed || rewardBalanceCents <= 0 || subtotalCents <= 0) return 0
+    if (!isCustomerBuyer || rewardBalanceCents <= 0 || subtotalCents <= 0) return 0
     return Math.max(0, Math.min(rewardBalanceCents, subtotalCents - minCardCents))
-  }, [isAuthed, rewardBalanceCents, minCardCents, subtotalCents])
+  }, [isCustomerBuyer, rewardBalanceCents, minCardCents, subtotalCents])
 
   const itemCount = useMemo(() => lines.reduce((n, row) => n + row.qty, 0), [lines])
 
@@ -380,7 +385,7 @@ export default function CartPage() {
 
   async function checkout() {
     if (lines.length === 0 || checkoutBlocked) return
-    if (!isAuthed) {
+    if (!isCustomerBuyer) {
       setIdentityOpen(true)
       return
     }
@@ -429,12 +434,12 @@ export default function CartPage() {
     <div className="affisell-cart-page min-h-screen bg-gradient-to-b from-zinc-50 via-white to-violet-50/30 py-8 pb-[var(--affisell-mobile-dock-offset)] dark:from-zinc-950 dark:via-zinc-950 dark:to-violet-950/15 md:pb-8">
       <Suspense fallback={null}>
         <CartCheckoutAutoOpen
-          enabled={!loading && !isAuthed && lines.length > 0}
+          enabled={!loading && !isCustomerBuyer && lines.length > 0}
           onOpen={() => setIdentityOpen(true)}
         />
       </Suspense>
       <div className="mx-auto max-w-3xl px-4">
-        {!isAuthed ? (
+        {!isCustomerBuyer ? (
           <p className="mb-6 rounded-2xl border border-violet-200/80 bg-violet-50/80 px-4 py-3 text-sm text-violet-900 dark:border-violet-800/50 dark:bg-violet-950/30 dark:text-violet-100">
             {t("guestCheckoutHint")}
           </p>
@@ -603,7 +608,7 @@ export default function CartPage() {
             </span>
             <span className="tabular-nums">{formatStoreCurrency(subtotal)}</span>
           </div>
-          {isAuthed && rewardBalanceCents > 0 ? (
+          {isCustomerBuyer && rewardBalanceCents > 0 ? (
             <div className="mb-4 rounded-xl border border-teal-100 bg-teal-50/60 p-4 dark:border-teal-900/50 dark:bg-teal-950/30">
               <p className="text-sm font-semibold text-teal-900 dark:text-teal-100">{t("cashbackAvailable")}</p>
               <p className="mt-1 text-xs text-teal-800 dark:text-teal-200/90">
@@ -648,7 +653,7 @@ export default function CartPage() {
             </div>
           ) : null}
           <CartCheckoutShippingNote />
-          {!isAuthed ? (
+          {!isCustomerBuyer ? (
             <p className="mb-3 text-center text-xs text-zinc-500 dark:text-zinc-400">
               {t("emailOrPhoneBeforePayment")}
             </p>

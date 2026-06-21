@@ -26,7 +26,7 @@ import { PulseLayoutModeLink } from "@/components/pulse/pulse-layout-mode-link"
 import { ProductPriceOffer } from "@/components/product/product-price-offer"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { addToBuyerCart } from "@/lib/cart-add-client"
-import { buyNowWithoutLogin } from "@/lib/guest-buy-now-client"
+import { useBuyNowWithIdentity } from "@/hooks/use-buy-now-with-identity"
 import { toggleProductWishlist } from "@/lib/wishlist-toggle-client"
 import { affisellBrand } from "@/lib/affisell-brand"
 import { discoverSwipeHref } from "@/lib/discover-swipe-url"
@@ -75,6 +75,7 @@ export function BuyerSwipeCommerce({
   const t = useTranslations("pulse.commerce")
   const tPulse = useTranslations("pulse")
   const router = useRouter()
+  const { buyNow: buyNowWithIdentity, identitySheet } = useBuyNowWithIdentity()
 
   const [deck, setDeck] = useState<PulseFeedItem[]>(() =>
     initialItems.filter((i) => i.mediaUrl && i.listingId)
@@ -248,7 +249,7 @@ export function BuyerSwipeCommerce({
   const buyNow = useCallback(
     async (item: PulseFeedItem) => {
       if (!item.listingId) return
-      await buyNowWithoutLogin(
+      await buyNowWithIdentity(
         {
           productId: item.listingId,
           qty: 1,
@@ -263,7 +264,7 @@ export function BuyerSwipeCommerce({
         }
       )
     },
-    [categoryId, subcategoryId]
+    [categoryId, subcategoryId, buyNowWithIdentity]
   )
 
   const advanceDeck = useCallback((productId: string) => {
@@ -628,6 +629,7 @@ export function BuyerSwipeCommerce({
           </motion.p>
         ) : null}
       </AnimatePresence>
+      {identitySheet}
     </div>
   )
 }

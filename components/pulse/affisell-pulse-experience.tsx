@@ -26,7 +26,7 @@ import { PulseLayoutModeLink } from "@/components/pulse/pulse-layout-mode-link"
 import { PulseProductMediaStage } from "@/components/pulse/pulse-product-media-stage"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { addToBuyerCart } from "@/lib/cart-add-client"
-import { buyNowWithoutLogin } from "@/lib/guest-buy-now-client"
+import { useBuyNowWithIdentity } from "@/hooks/use-buy-now-with-identity"
 import { formatStoreCount, formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { affisellBrand } from "@/lib/affisell-brand"
 import { discoverSwipeHref } from "@/lib/discover-swipe-url"
@@ -127,6 +127,7 @@ function PulseCard({
 }) {
   const t = useTranslations("pulse")
   const router = useRouter()
+  const { buyNow: buyNowWithIdentity, identitySheet } = useBuyNowWithIdentity()
   const [likes, setLikes] = useState(item.likes)
   const [likeBurst, setLikeBurst] = useState(false)
   const [cartBusy, setCartBusy] = useState(false)
@@ -228,7 +229,7 @@ function PulseCard({
     if (!item.listingId) return
     setCheckoutBusy(true)
     try {
-      await buyNowWithoutLogin(
+      await buyNowWithIdentity(
         {
           productId: item.listingId,
           qty: 1,
@@ -251,6 +252,7 @@ function PulseCard({
   const priceEur = item.priceCents / 100
 
   return (
+    <>
     <article
       className="relative h-full w-full snap-start snap-always overflow-hidden bg-black"
       onClick={onDoubleTap}
@@ -414,6 +416,8 @@ function PulseCard({
         </div>
       </div>
     </article>
+    {identitySheet}
+    </>
   )
 }
 

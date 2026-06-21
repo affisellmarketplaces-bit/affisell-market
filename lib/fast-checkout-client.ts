@@ -31,8 +31,7 @@ export function fastCheckoutNeedsLogin(result: FastCheckoutResult): boolean {
 }
 
 /**
- * One-tap buy → Stripe Checkout. No login required beforehand;
- * Stripe collects email/phone; buyer account is created after payment if needed.
+ * One-tap buy → Stripe Checkout after buyer identity (email/phone) for cashback tracking.
  */
 export async function startFastCheckout(
   body: FastCheckoutBody,

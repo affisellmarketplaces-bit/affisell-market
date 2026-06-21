@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 
 import { addToBuyerCart } from "@/lib/cart-add-client"
-import { buyNowWithoutLogin } from "@/lib/guest-buy-now-client"
+import { useBuyNowWithIdentity } from "@/hooks/use-buy-now-with-identity"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { WishlistHeart } from "@/components/wishlist-heart"
 
@@ -21,6 +21,7 @@ export type DiscoverItem = {
 
 function DiscoverCard({ item }: { item: DiscoverItem }) {
   const router = useRouter()
+  const { buyNow: buyNowWithIdentity, identitySheet } = useBuyNowWithIdentity()
   const videoRef = useRef<HTMLVideoElement>(null)
   const [cartBusy, setCartBusy] = useState(false)
   const [checkoutBusy, setCheckoutBusy] = useState(false)
@@ -62,7 +63,7 @@ function DiscoverCard({ item }: { item: DiscoverItem }) {
     if (!item.listingId) return
     setCheckoutBusy(true)
     try {
-      await buyNowWithoutLogin(
+      await buyNowWithIdentity(
         {
           productId: item.listingId,
           qty: 1,
@@ -82,6 +83,7 @@ function DiscoverCard({ item }: { item: DiscoverItem }) {
   }
 
   return (
+    <>
     <motion.article
       className="relative min-h-[100dvh] snap-start overflow-hidden bg-black text-white"
       initial={{ opacity: 0.85, y: 12 }}
@@ -142,6 +144,8 @@ function DiscoverCard({ item }: { item: DiscoverItem }) {
         </div>
       </div>
     </motion.article>
+    {identitySheet}
+    </>
   )
 }
 
