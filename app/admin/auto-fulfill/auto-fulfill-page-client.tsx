@@ -432,6 +432,16 @@ export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boo
             </div>
             <div className="flex flex-wrap gap-2 lg:max-w-xs lg:flex-col">
               <Link
+                href="/admin/integrations/autods"
+                className={cn(
+                  affisellBrand.epoxyChip,
+                  "inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-semibold text-brand hover:text-brand-hover dark:text-brand-light"
+                )}
+              >
+                <ShoppingCart className="h-4 w-4" aria-hidden />
+                Connecter AutoDS
+              </Link>
+              <Link
                 href="/admin/queues"
                 className={cn(
                   affisellBrand.epoxyChip,
