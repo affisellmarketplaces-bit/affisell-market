@@ -104,5 +104,9 @@ export async function sendOrderConfirmationEmail({
     console.error("[Resend] Order confirmation error:", sendResult.error)
     return
   }
-  console.log("[Resend] Order confirmation sent:", { orderId, resendId: sendResult.resendId, to })
+  console.log("[Resend] Order confirmation sent:", {
+    orderId,
+    resendId: sendResult.resendId,
+    customerEmail: customerEmail.trim().toLowerCase(),
+  })
 }
