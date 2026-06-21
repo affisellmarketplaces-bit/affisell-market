@@ -40,8 +40,8 @@ export function useBuyNowWithIdentity() {
     setIdentityOpen(false)
     const pending = pendingRef.current
     pendingRef.current = null
-    if (!pending) return null
-    return runBuyNow(pending.body, pending.meta)
+    if (!pending) return
+    await runBuyNow(pending.body, pending.meta)
   }, [runBuyNow])
 
   const closeIdentity = useCallback(() => {
