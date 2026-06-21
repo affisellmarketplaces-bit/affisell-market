@@ -31,9 +31,6 @@ export function fastCheckoutNeedsLogin(result: FastCheckoutResult): boolean {
 }
 
 /**
- * One-tap buy: redirect as soon as Stripe URL is returned (`location.assign` + keepalive).
- */
-/**
  * One-tap buy → Stripe Checkout. No login required beforehand;
  * Stripe collects email/phone; buyer account is created after payment if needed.
  */
@@ -41,23 +38,38 @@ export async function startFastCheckout(
   body: FastCheckoutBody,
   _options?: { loginCallbackUrl?: string }
 ): Promise<FastCheckoutResult> {
-  const res = await fetch("/api/checkout", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify(body),
-    credentials: "include",
-    keepalive: true,
-  })
+  try {
+    const res = await fetch("/api/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(body),
+      credentials: "include",
+      keepalive: true,
+    })
 
-  const data = (await res.json()) as { url?: string; error?: string }
-  if (data.url) {
-    window.location.assign(data.url)
-    return { ok: true, status: "redirected" }
+    let data: { url?: string; error?: string } = {}
+    try {
+      data = (await res.json()) as { url?: string; error?: string }
+    } catch {
+      console.error("[fast-checkout]", { status: res.status, result: "invalid_json" })
+      return { ok: false, status: "error", message: "checkout_unavailable" }
+    }
+
+    if (data.url) {
+      window.location.assign(data.url)
+      return { ok: true, status: "redirected" }
+    }
+
+    if (res.status === 401) {
+      return { ok: false, status: "auth", message: data.error }
+    }
+
+    return { ok: false, status: "error", message: data.error ?? "checkout_failed" }
+  } catch (error) {
+    console.error("[fast-checkout]", {
+      result: "network_error",
+      error: error instanceof Error ? error.message : String(error),
+    })
+    return { ok: false, status: "error", message: "network_error" }
   }
-
-  if (res.status === 401) {
-    return { ok: false, status: "auth", message: data.error }
-  }
-
-  return { ok: false, status: "error", message: data.error }
 }

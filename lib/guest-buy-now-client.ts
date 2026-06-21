@@ -19,18 +19,31 @@ export async function buyNowWithoutLogin(
   body: FastCheckoutBody,
   productMeta: ProductMeta & { productId: string }
 ): Promise<"stripe" | "cart" | "error"> {
+  const listingId = body.productId?.trim() || body.affiliateProductId?.trim() || productMeta.productId
+
+  async function fallbackToCart(): Promise<"cart" | "error"> {
+    const add = await addToBuyerCart({
+      ...productMeta,
+      productId: listingId,
+      qty: body.qty ?? 1,
+    })
+    if (add.ok) {
+      window.location.assign("/cart?checkout=1")
+      return "cart"
+    }
+    return "error"
+  }
+
   const result = await startFastCheckout(body)
   if (fastCheckoutRedirected(result)) return "stripe"
 
-  const listingId = body.productId?.trim() || body.affiliateProductId?.trim() || productMeta.productId
-  const add = await addToBuyerCart({
-    ...productMeta,
-    productId: listingId,
-    qty: body.qty ?? 1,
+  const cart = await fallbackToCart()
+  if (cart === "cart") return "cart"
+
+  console.error("[guest-buy-now]", {
+    listingId,
+    result: "failed",
+    checkoutError: result.ok ? null : result.message,
   })
-  if (add.ok) {
-    window.location.assign("/cart?checkout=1")
-    return "cart"
-  }
   return "error"
 }

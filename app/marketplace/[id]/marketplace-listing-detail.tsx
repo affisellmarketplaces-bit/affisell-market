@@ -43,7 +43,7 @@ import { DescriptionRichContent } from "@/components/product/description-rich-co
 import { descriptionHasImageMarkers } from "@/lib/description-rich-content"
 import type { AppLocale } from "@/lib/i18n-locale"
 import { CLIENT_MESSAGES } from "@/lib/i18n-load-messages"
-import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
+import { PUBLIC_MARKETPLACE_BROWSE_PATH, shopListingPath } from "@/lib/affiliate-routes"
 import { buildMarketplaceColorMeta, shouldShowMarketplaceColorSwatches, shopperColorLabelsMatch } from "@/lib/marketplace-color-meta"
 import { shopperCategoryEyebrow, shopperVisibleTags } from "@/lib/product-shopper-tags"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
@@ -784,12 +784,22 @@ export function MarketplaceListingDetail({
       )
       return
     }
+    if (sizeOptions.length > 0 && !selectedSize) {
+      const { toast } = await import("sonner")
+      toast.error(productT.sizeLabel, {
+        description: locale === "fr" ? "Choisissez une taille pour continuer." : "Select a size to continue.",
+      })
+      return
+    }
     setBuyBusy(true)
     try {
       const applied = Math.min(Math.max(0, Math.round(useRewardCents)), maxApplicableReward)
       const checkoutQty =
         selectedSeatLabels.length > 0 ? selectedSeatLabels.length : serviceBookingLive ? 1 : purchaseQty
-      await buyNowWithoutLogin(
+      const cancelPath = storefront?.slug
+        ? shopListingPath(storefront.slug, listingId)
+        : `/marketplace/${listingId}`
+      const outcome = await buyNowWithoutLogin(
         {
           productId: listingId,
           qty: checkoutQty,
@@ -799,7 +809,7 @@ export function MarketplaceListingDetail({
           useRewardCents: applied,
           selectedColor: selectedColor ?? undefined,
           selectedSize: cartSelectedSize ?? undefined,
-          cancelPath: `/marketplace/${listingId}`,
+          cancelPath,
         },
         {
           productId: listingId,
@@ -811,6 +821,15 @@ export function MarketplaceListingDetail({
           selectedSize: cartSelectedSize ?? undefined,
         }
       )
+      if (outcome === "error") {
+        const { toast } = await import("sonner")
+        toast.error(messages.checkout.checkoutError, {
+          description:
+            locale === "fr"
+              ? "Réessayez ou ajoutez au panier."
+              : "Try again or add to cart.",
+        })
+      }
     } finally {
       setBuyBusy(false)
     }
@@ -880,7 +899,7 @@ export function MarketplaceListingDetail({
             transition={reduceMotion ? { duration: 0 } : { duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           >
           <section className="min-w-0 space-y-2 lg:space-y-4 lg:overflow-visible">
-            <div className="max-lg:sticky max-lg:top-[calc(var(--site-header-offset,3.75rem)+0.35rem)] max-lg:z-20 max-lg:space-y-2 max-lg:bg-gradient-to-b max-lg:from-white max-lg:via-white/98 max-lg:to-white/90 max-lg:pb-2 max-lg:backdrop-blur-md dark:max-lg:from-zinc-950 dark:max-lg:via-zinc-950/98 dark:max-lg:to-zinc-950/90 sm:max-lg:space-y-3">
+            <div className="max-lg:sticky max-lg:top-[calc(var(--site-header-offset,3.75rem)+0.35rem)] max-lg:z-20 max-lg:bg-gradient-to-b max-lg:from-white max-lg:via-white/98 max-lg:to-white/90 max-lg:pb-2 max-lg:backdrop-blur-md dark:max-lg:from-zinc-950 dark:max-lg:via-zinc-950/98 dark:max-lg:to-zinc-950/90">
             <div className="relative max-lg:overflow-hidden max-lg:rounded-xl lg:overflow-visible">
               <ProductMediaGallery
                 images={images}
@@ -911,6 +930,7 @@ export function MarketplaceListingDetail({
                 </div>
               </div>
             </div>
+            </div>
 
             {colorMeta.length > 0 ? (
               <ProductListingColorPicker
@@ -934,7 +954,6 @@ export function MarketplaceListingDetail({
                 {productT.gallery.colorPreviewHint}
               </p>
             ) : null}
-            </div>
 
             {arModel ? (
               <Button
@@ -949,7 +968,7 @@ export function MarketplaceListingDetail({
 
             <MobilePdpBuyPanel
               ref={mobilePurchaseRef}
-              className="lg:hidden"
+              className="relative z-30 lg:hidden"
               titleHeadline={titleHeadline}
               titleSubline={titleSubline}
               categoryEyebrow={categoryEyebrow}
