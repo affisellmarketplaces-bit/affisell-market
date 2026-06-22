@@ -1,119 +1,183 @@
 import * as Sentry from "@sentry/nextjs"
 import { NextResponse } from "next/server"
 
-import { auth } from "@/auth"
-import { resolveTryOnFeatureEnabled } from "@/lib/flags/try-on"
 import {
-  ensureTryOnAnonId,
-  readTryOnAnonId,
-  tryOnAnonSetCookieHeader,
-} from "@/lib/try-on/anon-cookie.server"
-import { enforceTryOnRateLimit } from "@/lib/try-on/rate-limit"
-import { tryOnCreateBodySchema, tryOnStatusQuerySchema } from "@/lib/try-on/schemas"
-import { createTryOnJob, getTryOnJobStatus } from "@/lib/try-on/try-on-service.server"
+  enforceTryOnIpRateLimit,
+  findProductForGarmentUrl,
+  isTryOnFeatureEnabledStrict,
+  mapReplicateError,
+  presignedSelfieUrlForReplicate,
+  startCloth2BodyPrediction,
+  uploadPrivateSelfie,
+  validateSelfieHasFace,
+} from "@/lib/try-on/cloth2body-api.server"
+import { hashClientIp } from "@/lib/try-on/result-hash"
+import { getTryOnJobStatus } from "@/lib/try-on/try-on-service.server"
+import { clientIpFromRequest } from "@/lib/logger"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 export const maxDuration = 10
 
-function featureDisabled() {
-  return NextResponse.json({ error: "Try-on feature is disabled" }, { status: 404 })
+const MAX_SELFIE_BYTES = 8 * 1024 * 1024
+
+function disabledResponse() {
+  return NextResponse.json({ error: "Feature disabled" }, { status: 503 })
 }
 
+/** Poll async job by Replicate prediction id or internal job id. */
 export async function GET(req: Request) {
   return Sentry.withScope(async (scope) => {
     scope.setTag("feature", "tryon")
-    scope.setTag("model", "idm-vton")
+    scope.setTag("model", "cloth2body")
+
+    if (!isTryOnFeatureEnabledStrict()) {
+      return disabledResponse()
+    }
 
     const url = new URL(req.url)
-    if (!resolveTryOnFeatureEnabled(url.searchParams)) {
-      return featureDisabled()
+    const jobId = url.searchParams.get("jobId")?.trim()
+    const predictionId = url.searchParams.get("prediction_id")?.trim()
+
+    if (!jobId && !predictionId) {
+      return NextResponse.json({ error: "jobId or prediction_id required" }, { status: 400 })
     }
 
-    const parsed = tryOnStatusQuerySchema.safeParse({
-      jobId: url.searchParams.get("jobId"),
+    if (jobId) {
+      const status = await getTryOnJobStatus(jobId)
+      if (!status) {
+        return NextResponse.json({ error: "Job not found" }, { status: 404 })
+      }
+      return NextResponse.json(status)
+    }
+
+    const { prisma } = await import("@/lib/prisma")
+    const job = await prisma.tryOnJob.findUnique({
+      where: { replicatePredictionId: predictionId },
+      include: { tryOn: true },
     })
-    if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid jobId" }, { status: 400 })
-    }
-
-    const status = await getTryOnJobStatus(parsed.data.jobId)
-    if (!status) {
+    if (!job) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 })
     }
 
-    return NextResponse.json(status)
+    const status = await getTryOnJobStatus(job.id)
+    return NextResponse.json(
+      status ?? {
+        prediction_id: predictionId,
+        jobId: job.id,
+        status: job.status === "DONE" ? "done" : job.status === "FAILED" ? "failed" : "processing",
+        outputUrl: job.outputUrl ?? undefined,
+      }
+    )
   })
 }
 
+/**
+ * POST multipart/form-data
+ * - selfie: File (shopper photo)
+ * - garment_url: string (transparent PNG flat-lay URL)
+ */
 export async function POST(req: Request) {
   return Sentry.withScope(async (scope) => {
     scope.setTag("feature", "tryon")
-    scope.setTag("model", "idm-vton")
+    scope.setTag("model", "cloth2body")
 
-    const url = new URL(req.url)
-    if (!resolveTryOnFeatureEnabled(url.searchParams)) {
-      return featureDisabled()
+    if (!isTryOnFeatureEnabledStrict()) {
+      return disabledResponse()
     }
 
-    let body: unknown
-    try {
-      body = await req.json()
-    } catch {
-      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
-    }
-
-    const parsed = tryOnCreateBodySchema.safeParse(body)
-    if (!parsed.success) {
+    const limited = await enforceTryOnIpRateLimit(req)
+    if (!limited.ok) {
       return NextResponse.json(
-        { error: "Validation failed", details: parsed.error.flatten() },
+        { error: "Rate limit exceeded" },
+        {
+          status: 429,
+          headers: { "Retry-After": String(limited.retryAfterSec) },
+        }
+      )
+    }
+
+    let form: FormData
+    try {
+      form = await req.formData()
+    } catch {
+      return NextResponse.json({ error: "Expected multipart form data" }, { status: 400 })
+    }
+
+    const selfie = form.get("selfie")
+    const garmentUrl = String(form.get("garment_url") ?? "").trim()
+
+    if (!(selfie instanceof File) || selfie.size === 0) {
+      return NextResponse.json({ error: "selfie file is required" }, { status: 400 })
+    }
+    if (!garmentUrl || !garmentUrl.startsWith("http")) {
+      return NextResponse.json({ error: "garment_url must be a valid HTTPS URL" }, { status: 400 })
+    }
+    if (!selfie.type.startsWith("image/")) {
+      return NextResponse.json({ error: "selfie must be an image" }, { status: 400 })
+    }
+    if (selfie.size > MAX_SELFIE_BYTES) {
+      return NextResponse.json({ error: "selfie must be under 8 MB" }, { status: 400 })
+    }
+
+    const product = await findProductForGarmentUrl(garmentUrl)
+    if (!product) {
+      return NextResponse.json(
+        { error: "No active try-on listing matches this garment_url" },
         { status: 400 }
       )
     }
 
-    const session = await auth()
-    const user = session?.user?.id
-      ? {
-          id: session.user.id,
-          role: (session.user as { role?: string }).role,
-          isPro: (session.user as { isPro?: boolean }).isPro,
-          stripeSubscriptionId: (session.user as { stripeSubscriptionId?: string | null })
-            .stripeSubscriptionId,
-        }
-      : null
-
-    const cookieAnon = readTryOnAnonId(req.headers.get("cookie"))
-    const anonId = user ? null : ensureTryOnAnonId(cookieAnon)
-
-    const limited = await enforceTryOnRateLimit({ req, user, anonId })
-    if (!limited.ok) {
-      return NextResponse.json(
-        { error: limited.message },
-        {
-          status: limited.status,
-          headers: limited.retryAfterSec
-            ? { "Retry-After": String(limited.retryAfterSec) }
-            : undefined,
-        }
-      )
+    const bytes = Buffer.from(await selfie.arrayBuffer())
+    const faceCheck = await validateSelfieHasFace(bytes)
+    if (!faceCheck.ok) {
+      return NextResponse.json({ error: faceCheck.message }, { status: 400 })
     }
 
-    const result = await createTryOnJob({
-      req,
-      body: parsed.data,
-      userId: user?.id ?? null,
-      anonId,
-    })
-
-    if (!result.ok) {
-      return NextResponse.json({ error: result.error }, { status: result.status })
+    let selfieBlob: Awaited<ReturnType<typeof uploadPrivateSelfie>>
+    try {
+      selfieBlob = await uploadPrivateSelfie(bytes, selfie.type)
+    } catch (err) {
+      console.error("[try-on]", {
+        result: "selfie_upload_failed",
+        message: err instanceof Error ? err.message : String(err),
+      })
+      return NextResponse.json({ error: "Failed to store selfie" }, { status: 500 })
     }
 
-    const headers: Record<string, string> = {}
-    if (!user && anonId && anonId !== cookieAnon) {
-      headers["Set-Cookie"] = tryOnAnonSetCookieHeader(anonId)
+    let humanImgForReplicate: string
+    try {
+      humanImgForReplicate = await presignedSelfieUrlForReplicate(selfieBlob.url)
+    } catch {
+      humanImgForReplicate = selfieBlob.downloadUrl
     }
 
-    return NextResponse.json(result, { headers })
+    const ipHash = hashClientIp(clientIpFromRequest(req))
+
+    try {
+      const { predictionId, jobId } = await startCloth2BodyPrediction({
+        req,
+        humanImgUrl: humanImgForReplicate,
+        garmentUrl,
+        selfieBlobUrl: selfieBlob.url,
+        garmentUrlStored: garmentUrl,
+        productId: product.id,
+        ipHash,
+      })
+
+      return NextResponse.json({
+        prediction_id: predictionId,
+        jobId,
+        status: "processing" as const,
+      })
+    } catch (err) {
+      const mapped = mapReplicateError(err)
+      console.error("[try-on]", {
+        result: "cloth2body_start_failed",
+        status: mapped.status,
+        message: mapped.message,
+      })
+      return NextResponse.json({ error: mapped.message }, { status: mapped.status })
+    }
   })
 }

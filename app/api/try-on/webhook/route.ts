@@ -1,6 +1,10 @@
 import * as Sentry from "@sentry/nextjs"
 import { NextResponse } from "next/server"
 
+import {
+  deleteSelfieBlob,
+  extractOutputUrl,
+} from "@/lib/try-on/cloth2body-api.server"
 import { finalizeTryOnJobWithOutput } from "@/lib/try-on/try-on-service.server"
 import { prisma } from "@/lib/prisma"
 
@@ -14,24 +18,17 @@ type ReplicateWebhookBody = {
   error?: string | null
 }
 
-function extractOutputUrl(output: unknown): string | null {
-  if (typeof output === "string" && output.startsWith("http")) return output
-  if (Array.isArray(output)) {
-    for (const item of output) {
-      if (typeof item === "string" && item.startsWith("http")) return item
-    }
-  }
-  return null
-}
-
 export async function POST(req: Request) {
   return Sentry.withScope(async (scope) => {
     scope.setTag("feature", "tryon")
-    scope.setTag("model", "idm-vton")
+    scope.setTag("model", "cloth2body")
 
     const secret = process.env.REPLICATE_WEBHOOK_SECRET?.trim()
     if (secret) {
-      const provided = req.headers.get("webhook-id") ?? req.headers.get("x-replicate-signature")
+      const provided =
+        req.headers.get("webhook-id") ??
+        req.headers.get("x-replicate-signature") ??
+        req.headers.get("authorization")
       if (!provided) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
       }
@@ -58,8 +55,12 @@ export async function POST(req: Request) {
     }
 
     if (job.status === "DONE" || job.status === "FAILED") {
+      await deleteSelfieBlob(job.inputUrl).catch(() => undefined)
       return NextResponse.json({ ok: true, idempotent: true })
     }
+
+    const latencyMs =
+      job.createdAt != null ? Date.now() - job.createdAt.getTime() : null
 
     if (body.status === "succeeded") {
       const outputUrl = extractOutputUrl(body.output)
@@ -67,32 +68,37 @@ export async function POST(req: Request) {
         await finalizeTryOnJobWithOutput({
           jobId: job.id,
           outputUrl: "",
-          latencyMs: null,
+          latencyMs,
           failed: true,
           errorMessage: "Webhook succeeded without output URL",
         })
-        return NextResponse.json({ ok: true })
+      } else {
+        await finalizeTryOnJobWithOutput({
+          jobId: job.id,
+          outputUrl,
+          latencyMs,
+        })
       }
 
-      const latencyMs =
-        job.createdAt != null ? Date.now() - job.createdAt.getTime() : null
-
-      await finalizeTryOnJobWithOutput({
-        jobId: job.id,
-        outputUrl,
-        latencyMs,
-      })
+      await deleteSelfieBlob(job.inputUrl)
+      console.log("[try-on]", { result: "webhook_done", jobId: job.id, predictionId, latencyMs })
       return NextResponse.json({ ok: true })
     }
 
     if (body.status === "failed" || body.status === "canceled") {
+      const errMsg =
+        typeof body.error === "string" ? body.error : "Replicate prediction failed"
+
       await finalizeTryOnJobWithOutput({
         jobId: job.id,
         outputUrl: "",
-        latencyMs: null,
+        latencyMs,
         failed: true,
-        errorMessage: typeof body.error === "string" ? body.error : "Replicate prediction failed",
+        errorMessage: errMsg,
       })
+
+      await deleteSelfieBlob(job.inputUrl)
+      console.log("[try-on]", { result: "webhook_failed", jobId: job.id, predictionId, errMsg })
       return NextResponse.json({ ok: true })
     }
 

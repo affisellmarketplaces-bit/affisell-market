@@ -1,59 +1,60 @@
 import type { TryOnJobResponse } from "@/lib/try-on/try-on-shared"
-import { TRYON_CONSENT_VERSION } from "@/lib/try-on/try-on-shared"
-
-function tryOnQuerySuffix(): string {
-  if (typeof window === "undefined") return ""
-  const params = new URLSearchParams(window.location.search)
-  const v = params.get("tryon")
-  return v === "true" || v === "1" ? "?tryon=true" : ""
-}
 
 export async function uploadTryOnPhoto(file: Blob): Promise<{ inputUrl: string }> {
   const form = new FormData()
-  form.append("file", file, "tryon.jpg")
-  const res = await fetch(`/api/try-on/upload${tryOnQuerySuffix()}`, {
-    method: "POST",
-    body: form,
-  })
-  const data = (await res.json()) as { inputUrl?: string; error?: string }
-  if (!res.ok) {
-    throw new Error(data.error ?? "Upload failed")
-  }
-  if (!data.inputUrl) {
-    throw new Error("Upload did not return a URL")
-  }
-  return { inputUrl: data.inputUrl }
+  form.append("selfie", file, "selfie.jpg")
+  return { inputUrl: "multipart-direct" }
 }
 
 export async function startTryOnJob(input: {
   productId: string
   affiliateProductId?: string
   inputUrl: string
-}): Promise<TryOnJobResponse> {
-  const res = await fetch(`/api/try-on${tryOnQuerySuffix()}`, {
+  selfieFile?: Blob | File | null
+  garmentUrl?: string | null
+}): Promise<TryOnJobResponse & { prediction_id?: string }> {
+  const form = new FormData()
+
+  if (input.selfieFile) {
+    form.append("selfie", input.selfieFile, "selfie.jpg")
+  } else if (input.inputUrl && input.inputUrl !== "multipart-direct") {
+    const res = await fetch(input.inputUrl)
+    const blob = await res.blob()
+    form.append("selfie", blob, "selfie.jpg")
+  } else {
+    throw new Error("selfie file is required")
+  }
+
+  if (!input.garmentUrl?.trim()) {
+    throw new Error("garmentUrl is required")
+  }
+  form.append("garment_url", input.garmentUrl.trim())
+
+  const res = await fetch("/api/try-on", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     credentials: "include",
-    body: JSON.stringify({
-      productId: input.productId,
-      affiliateProductId: input.affiliateProductId,
-      inputUrl: input.inputUrl,
-      angle: "front",
-      gdprConsent: true,
-      consentVersion: TRYON_CONSENT_VERSION,
-    }),
+    body: form,
   })
-  const data = (await res.json()) as TryOnJobResponse & { error?: string }
+
+  const data = (await res.json()) as TryOnJobResponse & {
+    prediction_id?: string
+    error?: string
+  }
   if (!res.ok) {
     throw new Error(data.error ?? "Try-on failed")
   }
-  return data
+
+  return {
+    jobId: data.jobId ?? "",
+    status: (data.status as TryOnJobResponse["status"]) ?? "processing",
+    prediction_id: data.prediction_id,
+  }
 }
 
 export async function pollTryOnJob(jobId: string): Promise<TryOnJobResponse> {
-  const flag = tryOnQuerySuffix()
-  const qs = flag ? `${flag}&jobId=${encodeURIComponent(jobId)}` : `?jobId=${encodeURIComponent(jobId)}`
-  const res = await fetch(`/api/try-on${qs}`, { credentials: "include" })
+  const res = await fetch(`/api/try-on?jobId=${encodeURIComponent(jobId)}`, {
+    credentials: "include",
+  })
   const data = (await res.json()) as TryOnJobResponse & { error?: string }
   if (!res.ok) {
     throw new Error(data.error ?? "Status check failed")

@@ -49,6 +49,7 @@ export function TryOnEntry({
         productId={productId}
         affiliateProductId={affiliateProductId}
         productName={productName}
+        garmentUrl={tryOnGarmentUrl.trim()}
       />
     </>
   )

@@ -1,11 +1,8 @@
 import "server-only"
 
-/** Global kill switch — default OFF in production. */
+/** Global kill switch — requires TRY_ON_ENABLED=1 in production. */
 export function isTryOnGloballyEnabled(): boolean {
-  const env = process.env.TRY_ON_ENABLED?.trim()
-  if (env === "1" || env === "true") return true
-  if (env === "0" || env === "false") return false
-  return process.env.NODE_ENV !== "production"
+  return process.env.TRY_ON_ENABLED === "1"
 }
 
 /** Query param override for preview / QA. */

@@ -10,7 +10,6 @@ import { checkPoseFromImageFile } from "@/lib/try-on/client/pose-check"
 import { smartCropUserPhoto } from "@/lib/try-on/client/smart-crop"
 import {
   startTryOnJob,
-  uploadTryOnPhoto,
   waitForTryOnResult,
 } from "@/lib/try-on/try-on-client"
 import { TRYON_CONSENT_VERSION } from "@/lib/try-on/try-on-shared"
@@ -22,6 +21,7 @@ type Props = {
   productId: string
   affiliateProductId: string
   productName: string
+  garmentUrl: string
 }
 
 type Phase = "idle" | "uploading" | "processing" | "done" | "error"
@@ -36,7 +36,14 @@ function TryOnModalSkeleton() {
   )
 }
 
-function TryOnModalInner({ open, onClose, productId, affiliateProductId, productName }: Props) {
+function TryOnModalInner({
+  open,
+  onClose,
+  productId,
+  affiliateProductId,
+  productName,
+  garmentUrl,
+}: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [phase, setPhase] = useState<Phase>("idle")
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -67,25 +74,28 @@ function TryOnModalInner({ open, onClose, productId, affiliateProductId, product
       setError(null)
       setPhase("uploading")
 
-      const pose = await checkPoseFromImageFile(file)
-      if (!pose.ok) {
-        setPoseWarning(pose.message)
-      } else {
-        setPoseWarning(null)
-      }
-
-      const cropped = await smartCropUserPhoto(file)
-      const uploadBlob = cropped.blob
-
       try {
-        const { inputUrl } = await uploadTryOnPhoto(uploadBlob)
+        const pose = await checkPoseFromImageFile(file)
+        if (!pose.ok) {
+          setPoseWarning(pose.message)
+        } else {
+          setPoseWarning(null)
+        }
+
+        const cropped = await smartCropUserPhoto(file)
+        const uploadFile =
+          cropped.blob instanceof File
+            ? cropped.blob
+            : new File([cropped.blob], "selfie.jpg", { type: cropped.blob.type || "image/jpeg" })
+
         setPhase("processing")
 
-      try {
         const started = await startTryOnJob({
           productId,
           affiliateProductId,
-          inputUrl,
+          inputUrl: "",
+          selfieFile: uploadFile,
+          garmentUrl,
         })
 
         if (started.status === "done" && started.outputUrl) {
@@ -107,9 +117,6 @@ function TryOnModalInner({ open, onClose, productId, affiliateProductId, product
         } else {
           throw new Error(final.error ?? "Try-on did not complete in time")
         }
-      } catch (innerErr) {
-        throw innerErr
-      }
       } catch (err) {
         console.error("[try-on]", {
           result: "client_run_failed",
@@ -119,7 +126,7 @@ function TryOnModalInner({ open, onClose, productId, affiliateProductId, product
         setPhase("error")
       }
     },
-    [affiliateProductId, productId, setOptimisticOutput]
+    [affiliateProductId, garmentUrl, productId, setOptimisticOutput]
   )
 
   const onFileChange = useCallback(

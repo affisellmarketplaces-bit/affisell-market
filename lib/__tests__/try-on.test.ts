@@ -6,13 +6,11 @@ import { buildTryOnResultHash } from "@/lib/try-on/result-hash"
 import { tryOnCreateBodySchema } from "@/lib/try-on/schemas"
 
 describe("try-on flags", () => {
-  it("is off in production by default unless query override", () => {
-    vi.stubEnv("NODE_ENV", "production")
-    vi.stubEnv("TRY_ON_ENABLED", "")
+  it("requires TRY_ON_ENABLED=1", () => {
+    vi.stubEnv("TRY_ON_ENABLED", "1")
+    expect(isTryOnGloballyEnabled()).toBe(true)
+    vi.stubEnv("TRY_ON_ENABLED", "0")
     expect(isTryOnGloballyEnabled()).toBe(false)
-    expect(
-      resolveTryOnFeatureEnabled(new URLSearchParams("tryon=true"))
-    ).toBe(true)
     vi.unstubAllEnvs()
   })
 })
