@@ -81,6 +81,28 @@ npm run push:safe
 
 Virtual try-on for **apparel** listings (Replicate IDM-VTON). Feature flag **OFF** in production by default (`TRY_ON_ENABLED=0`). QA: append `?tryon=true` on the PDP.
 
+### Production go-live checklist
+
+1. **Redeploy** Vercel (code on `main` includes `/api/try-on/*`).
+2. **Env Vercel** (Production + Preview):
+   - `REPLICATE_API_TOKEN`
+   - `BLOB_READ_WRITE_TOKEN`
+   - `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`
+   - `TRY_ON_ENABLED=1` when ready (else QA with `?tryon=true`)
+   - Optional: `AZURE_CONTENT_SAFETY_*`, `REPLICATE_WEBHOOK_SECRET`
+3. **Migration** (already on Neon if you ran `npm run migrate:deploy`): `20260618200000_try_on_ai`.
+4. **Cron** — `vercel.json` runs `/api/cron/try-on-retention` daily (GDPR blob cleanup).
+5. **Pilot product**:
+   ```bash
+   TRYON_PILOT_GARMENT_URL="https://…/cutout.png" npm run tryon:pilot
+   ```
+   Or supplier dashboard → product → **AI Try-On** → upload PNG → Save.
+6. **Smoke test**:
+   ```bash
+   curl -s "https://affisell.com/api/try-on?jobId=test&tryon=true"
+   # → {"error":"Job not found"} (route live, not HTML 404)
+   ```
+
 ### Supplier setup
 
 1. Product must be in an apparel category.

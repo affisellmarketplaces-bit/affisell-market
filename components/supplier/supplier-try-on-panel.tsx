@@ -1,7 +1,7 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
-import { ImagePlus, Loader2 } from "lucide-react"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { ImagePlus, Loader2, Upload } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -12,8 +12,10 @@ type Props = {
 }
 
 export function SupplierTryOnPanel({ productId }: Props) {
+  const fileRef = useRef<HTMLInputElement>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [enabled, setEnabled] = useState(false)
   const [garmentUrl, setGarmentUrl] = useState("")
   const [apparelEligible, setApparelEligible] = useState(false)
@@ -44,6 +46,31 @@ export function SupplierTryOnPanel({ productId }: Props) {
   useEffect(() => {
     void load()
   }, [load])
+
+  const uploadGarment = useCallback(
+    async (file: File) => {
+      setUploading(true)
+      try {
+        const form = new FormData()
+        form.append("file", file)
+        const res = await fetch(`/api/supplier/products/${productId}/try-on/garment`, {
+          method: "POST",
+          credentials: "include",
+          body: form,
+        })
+        const data = (await res.json()) as { tryOnGarmentUrl?: string; error?: string }
+        if (!res.ok) throw new Error(data.error ?? "Upload failed")
+        if (!data.tryOnGarmentUrl) throw new Error("No URL returned")
+        setGarmentUrl(data.tryOnGarmentUrl)
+        toast.success("Garment PNG uploaded")
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Upload error")
+      } finally {
+        setUploading(false)
+      }
+    },
+    [productId]
+  )
 
   const save = useCallback(async () => {
     setSaving(true)
@@ -101,6 +128,40 @@ export function SupplierTryOnPanel({ productId }: Props) {
       </label>
       <div className="space-y-2">
         <Label htmlFor="tryon-garment-url">Transparent PNG flat-lay (required)</Label>
+        {garmentUrl ? (
+          <div className="overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 p-2 dark:border-zinc-700 dark:bg-zinc-900/50">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={garmentUrl} alt="Try-on garment preview" className="mx-auto max-h-40 object-contain" />
+          </div>
+        ) : null}
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={uploading}
+            className="gap-2"
+            onClick={() => fileRef.current?.click()}
+          >
+            {uploading ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+            ) : (
+              <Upload className="h-4 w-4" aria-hidden />
+            )}
+            Upload PNG
+          </Button>
+        </div>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/png"
+          className="sr-only"
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) void uploadGarment(file)
+            e.target.value = ""
+          }}
+        />
         <input
           id="tryon-garment-url"
           type="url"
@@ -110,10 +171,10 @@ export function SupplierTryOnPanel({ productId }: Props) {
           className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-900"
         />
         <p className="text-xs text-zinc-500">
-          Upload a cut-out garment image (not the hero gallery). Used by IDM-VTON for virtual fitting.
+          Cut-out garment only — never the hero gallery. PNG with transparent background works best.
         </p>
       </div>
-      <Button type="button" disabled={saving} onClick={() => void save()}>
+      <Button type="button" disabled={saving || uploading} onClick={() => void save()}>
         {saving ? "Saving…" : "Save try-on"}
       </Button>
     </div>
