@@ -1,6 +1,7 @@
 "use client"
 
-import { Suspense, useCallback, useOptimistic, useRef, useState } from "react"
+import { Suspense, useCallback, useEffect, useOptimistic, useRef, useState } from "react"
+import { createPortal } from "react-dom"
 import { AnimatePresence, motion } from "framer-motion"
 import { Camera, Loader2, Sparkles, Upload, X } from "lucide-react"
 
@@ -37,13 +38,12 @@ function TryOnModalSkeleton() {
 }
 
 function TryOnModalInner({
-  open,
   onClose,
   productId,
   affiliateProductId,
   productName,
   garmentUrl,
-}: Props) {
+}: Omit<Props, "open">) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [phase, setPhase] = useState<Phase>("idle")
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -140,12 +140,13 @@ function TryOnModalInner({
     [consent, previewUrl, runTryOn]
   )
 
-  if (!open) return null
-
   return (
-    <div
-      className="fixed inset-0 z-[80] flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4"
+    <motion.div
+      className="fixed inset-0 z-[200] flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4"
       role="presentation"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       onClick={handleClose}
     >
       <motion.div
@@ -279,12 +280,29 @@ function TryOnModalInner({
           ) : null}
         </div>
       </motion.div>
-    </div>
+    </motion.div>
   )
 }
 
 export function TryOnModal(props: Props) {
-  return (
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!props.open) return
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.body.style.overflow = prevOverflow
+    }
+  }, [props.open])
+
+  if (!mounted) return null
+
+  return createPortal(
     <TryOnErrorBoundary>
       <AnimatePresence>
         {props.open ? (
@@ -293,6 +311,7 @@ export function TryOnModal(props: Props) {
           </Suspense>
         ) : null}
       </AnimatePresence>
-    </TryOnErrorBoundary>
+    </TryOnErrorBoundary>,
+    document.body
   )
 }
