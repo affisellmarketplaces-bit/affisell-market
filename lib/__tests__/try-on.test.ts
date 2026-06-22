@@ -33,6 +33,16 @@ describe("isApparelProduct", () => {
       })
     ).toBe(false)
   })
+
+  it("matches French vêtements and collants", () => {
+    expect(
+      isApparelProduct({
+        categoryFullPath:
+          "Vêtements et accessoires > Vêtements > Vêtements fitness et sports > Tenues de cyclisme > Collants de cyclisme",
+        legacyCategories: ["Collants de cyclisme", "Vêtements"],
+      })
+    ).toBe(true)
+  })
 })
 
 describe("buildTryOnResultHash", () => {
