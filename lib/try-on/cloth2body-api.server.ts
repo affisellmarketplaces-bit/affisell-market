@@ -175,27 +175,26 @@ export async function startCloth2BodyPrediction(input: {
 
   let prediction: { id?: string | null }
   try {
-    if (CLOTH2BODY_VERSION) {
-      prediction = await replicate.predictions.create({
-        version: CLOTH2BODY_VERSION,
-        input: {
-          human_img: input.humanImgUrl,
-          garment_img: input.garmentUrl,
-        },
-        webhook: webhookUrl,
-        webhook_events_filter: ["completed"],
-      })
-    } else {
-      prediction = await replicate.predictions.create({
-        model: CLOTH2BODY_MODEL,
-        input: {
-          human_img: input.humanImgUrl,
-          garment_img: input.garmentUrl,
-        },
-        webhook: webhookUrl,
-        webhook_events_filter: ["completed"],
-      })
-    }
+    const { humanImgUrl, garmentUrl } = input
+    prediction = CLOTH2BODY_VERSION
+      ? await replicate.predictions.create({
+          version: CLOTH2BODY_VERSION,
+          input: {
+            human_img: humanImgUrl,
+            garment_img: garmentUrl,
+          },
+          webhook: webhookUrl,
+          webhook_events_filter: ["completed"],
+        })
+      : await replicate.predictions.create({
+          model: "idanloo/cloth2body" as const,
+          input: {
+            human_img: humanImgUrl,
+            garment_img: garmentUrl,
+          },
+          webhook: webhookUrl,
+          webhook_events_filter: ["completed"],
+        })
   } catch (err) {
     await prisma.tryOnJob.update({
       where: { id: job.id },
