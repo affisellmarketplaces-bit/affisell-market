@@ -38,6 +38,7 @@ import {
   buildProductListingMetadata,
   buildProductOfferJsonLd,
 } from "@/lib/product-listing-seo"
+import { resolveTryOnFeatureEnabled } from "@/lib/flags/try-on"
 import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { resolveGalleryListingVideoUrl } from "@/lib/product-playable-video"
 import type { AppLocale } from "@/lib/i18n-locale"
@@ -354,6 +355,13 @@ export default async function MarketplaceListingPage({
     primaryProductImage(listing.customImages) ||
     primaryProductImage(listing.product.images) ||
     null
+  const tryOnFeatureEnabled = resolveTryOnFeatureEnabled(
+    new URLSearchParams(
+      Object.entries(sp)
+        .filter(([, v]) => v != null)
+        .map(([k, v]) => [k, String(v)])
+    )
+  )
   const productJsonLd = buildProductOfferJsonLd({
     name: displayName,
     imageUrl: seoImage,
@@ -446,6 +454,9 @@ export default async function MarketplaceListingPage({
             productVideoUrl: p.videos?.[0]?.videoUrl ?? null,
             descriptionIllustrationVideos,
           })}
+          tryOnEnabled={Boolean(p.tryOnEnabled)}
+          tryOnGarmentUrl={p.tryOnGarmentUrl ?? null}
+          tryOnFeatureEnabled={tryOnFeatureEnabled}
         />
     </MarketplaceListingPageShell>
   )

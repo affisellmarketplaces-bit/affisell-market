@@ -75,6 +75,8 @@ export const listingDetailSelect = {
       reviewCount: true,
       reviewSentiment: true,
       ugcCount: true,
+      tryOnEnabled: true,
+      tryOnGarmentUrl: true,
       attributes: {
         orderBy: { label: "asc" as const },
         select: { label: true, key: true, value: true },

@@ -76,3 +76,48 @@ Never edit applied migrations. Change `schema.prisma` then `npx prisma migrate d
 ```bash
 npm run push:safe
 ```
+
+## Try-On AI
+
+Virtual try-on for **apparel** listings (Replicate IDM-VTON). Feature flag **OFF** in production by default (`TRY_ON_ENABLED=0`). QA: append `?tryon=true` on the PDP.
+
+### Supplier setup
+
+1. Product must be in an apparel category.
+2. Dashboard → product → **AI Try-On**: enable + paste transparent PNG flat-lay URL (`Product.tryOnGarmentUrl`).
+3. PDP shows **Try on** only when `tryOnEnabled` + garment URL are set.
+
+### API
+
+- OpenAPI: `app/api/try-on/openapi.json`
+- `POST /api/try-on/upload` — shopper photo → Vercel Blob (WebP ≤1024px)
+- `POST /api/try-on` — start async job (returns `jobId`)
+- `GET /api/try-on?jobId=` — poll status
+- `POST /api/try-on/webhook` — Replicate completion
+
+### Quotas
+
+| Visitor | Limit |
+|---------|--------|
+| Anonymous | 1 lifetime try (`tryon_anon_id` cookie + IP hash) |
+| Logged-in | 5/min, 10/day (Upstash) |
+| Affisell+ (`User.isPro`) | Unlimited |
+
+### GDPR retention
+
+Cron `GET /api/cron/try-on-retention` (`Bearer CRON_SECRET`): delete input blobs after **24h**, output records after **30 days**.
+
+### Cost / latency (typical)
+
+- Replicate IDM-VTON: ~$0.02–0.06 / generation
+- End-to-end perceived: **2–8s** (async webhook; client polls)
+- Smart crop + pose hints run client-side (MediaPipe) before upload
+
+### Monitoring
+
+Sentry spans tagged `feature: tryon`, `model: idm-vton`. Business logs: `[try-on] { jobId, productId, latencyMs }`. Analytics table: `TryOn` + `TryOnJob`.
+
+### Env
+
+See `.env.example` — `REPLICATE_API_TOKEN`, `BLOB_READ_WRITE_TOKEN`, `UPSTASH_REDIS_REST_*`, optional Azure Content Safety.
+

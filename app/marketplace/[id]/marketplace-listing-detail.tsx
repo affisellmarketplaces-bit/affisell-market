@@ -50,6 +50,7 @@ import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { addToBuyerCart } from "@/lib/cart-add-client"
 import { useBuyNowWithIdentity } from "@/hooks/use-buy-now-with-identity"
+import { TryOnEntry } from "@/components/try-on/TryOnEntry"
 import {
   isBookingCheckoutBlocked,
   isBookingCheckoutLiveForKind,
@@ -199,6 +200,9 @@ type Props = {
   galleryListingVideoUrl?: string | null
   /** Affiliate shop PDP (`/shops/:slug`) — use Brand Studio colors instead of Affisell violet. */
   brandedStorefront?: boolean
+  tryOnEnabled?: boolean
+  tryOnGarmentUrl?: string | null
+  tryOnFeatureEnabled?: boolean
 }
 
 function fmtMoney(value: number) {
@@ -365,6 +369,9 @@ export function MarketplaceListingDetail({
   salesCount = 0,
   galleryListingVideoUrl = null,
   brandedStorefront = false,
+  tryOnEnabled = false,
+  tryOnGarmentUrl = null,
+  tryOnFeatureEnabled = false,
 }: Props) {
   const locale = useLocale() as AppLocale
   const brand = storefrontPdpBrandClasses(brandedStorefront)
@@ -1031,6 +1038,15 @@ export function MarketplaceListingDetail({
               }}
             />
             <div className="px-4 pb-3 lg:hidden">
+              <TryOnEntry
+                className="mb-3 w-full"
+                productId={productId}
+                affiliateProductId={listingId}
+                productName={name}
+                tryOnEnabled={tryOnEnabled}
+                tryOnGarmentUrl={tryOnGarmentUrl}
+                featureEnabled={tryOnFeatureEnabled}
+              />
               <ListingLogisticsStrip logistics={shipping} compact />
             </div>
           </section>
@@ -1165,6 +1181,7 @@ export function MarketplaceListingDetail({
                   ) : null}
                 </>
               ) : (
+            <>
             <ListingPriceActionCard
               className="max-lg:hidden"
               brandedStorefront={brandedStorefront}
@@ -1181,6 +1198,16 @@ export function MarketplaceListingDetail({
               buyNowShort={productT.buyNowShort}
               reduceMotion={reduceMotion ?? false}
             />
+            <TryOnEntry
+              className="max-lg:hidden w-full"
+              productId={productId}
+              affiliateProductId={listingId}
+              productName={name}
+              tryOnEnabled={tryOnEnabled}
+              tryOnGarmentUrl={tryOnGarmentUrl}
+              featureEnabled={tryOnFeatureEnabled}
+            />
+            </>
             )}
             </div>
 

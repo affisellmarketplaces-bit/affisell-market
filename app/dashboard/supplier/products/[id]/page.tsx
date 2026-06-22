@@ -5,6 +5,7 @@ import { notFound, redirect } from "next/navigation"
 
 import { GenerateVideoButton } from "@/components/GenerateVideoButton"
 import { SupplierProductPricingPanel } from "@/components/supplier/supplier-product-pricing-panel"
+import { SupplierTryOnPanel } from "@/components/supplier/supplier-try-on-panel"
 import { UpgradeToast } from "@/components/upgrade-toast"
 import { FREE_VIDEO_LIMIT } from "@/lib/video-quota-constants"
 import { fetchUserVideoQuota } from "@/lib/video-quota"
@@ -123,6 +124,9 @@ export default async function SupplierProductVideoPage({
         ) : null}
 
         <SupplierProductPricingPanel productId={product.id} />
+        <div className="mt-8">
+          <SupplierTryOnPanel productId={product.id} />
+        </div>
       </div>
     </div>
   )

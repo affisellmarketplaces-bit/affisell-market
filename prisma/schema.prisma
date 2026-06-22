@@ -128,6 +128,9 @@ model User {
   reviewVotes       ReviewVote[]
   reviewReplies     ReviewReply[] @relation("CreatorReviewReplies")
 
+  tryOns    TryOn[]
+  tryOnJobs TryOnJob[]
+
   /** Invitations sent to onboard suppliers (affiliate → supplier collaboration). */
   affiliateSupplierInvitations AffiliateSupplierInvitation[] @relation("AffiliateSupplierInvites")
   /** Set when this supplier registered via an affiliate invite link. */
@@ -765,7 +768,13 @@ model Product {
   /** Published buyer UGC rows with at least one image or video in `media`. */
   ugcCount               Int     @default(0)
 
+  /** AI virtual try-on (apparel): supplier enables + uploads transparent PNG flat-lay. */
+  tryOnEnabled    Boolean @default(false)
+  tryOnGarmentUrl String?
+
   supplier                User                     @relation("SupplierProducts", fields: [supplierId], references: [id])
+  tryOns                  TryOn[]
+  tryOnJobs               TryOnJob[]
   affiliateProducts       AffiliateProduct[]
   affiliateSwipes         AffiliateSwipe[]
   sponsorCampaigns      SponsorCampaign[]
@@ -2559,4 +2568,68 @@ model AgentLedgerEntry {
   createdAt        DateTime             @default(now())
 
   @@index([agentId, createdAt])
+}
+
+enum TryOnJobStatus {
+  PENDING
+  PROCESSING
+  DONE
+  FAILED
+}
+
+/** Async Replicate prediction lifecycle (Vercel 10s timeout → webhook completion). */
+model TryOnJob {
+  id                    String         @id @default(cuid())
+  status                TryOnJobStatus @default(PENDING)
+  replicatePredictionId String?        @unique
+  productId             String
+  product               Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  affiliateProductId    String?
+  inputUrl              String
+  garmentUrl            String
+  outputUrl             String?
+  errorMessage          String?        @db.Text
+  userId                String?
+  user                  User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  anonId                String?
+  ipHash                String?
+  modelVersion          String         @default("idm-vton")
+  latencyMs             Int?
+  gdprConsentAt         DateTime
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  completedAt           DateTime?
+  tryOn                 TryOn?
+
+  @@index([status, createdAt])
+  @@index([userId])
+  @@index([anonId])
+  @@index([ipHash])
+}
+
+/** Cached try-on result for analytics + 24h dedupe by resultHash. */
+model TryOn {
+  id                 String   @id @default(cuid())
+  jobId              String   @unique
+  job                TryOnJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  userId             String?
+  user               User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  anonId             String?
+  productId          String
+  product            Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  affiliateProductId String?
+  inputUrl           String
+  outputUrl          String
+  modelVersion       String
+  latencyMs          Int?
+  angle              String   @default("front")
+  resultHash         String   @unique
+  inputDeletedAt     DateTime?
+  outputExpiresAt    DateTime
+  createdAt          DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([productId])
+  @@index([resultHash])
+  @@index([outputExpiresAt])
 }

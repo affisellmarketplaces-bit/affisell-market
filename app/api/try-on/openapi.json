@@ -1,0 +1,135 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Affisell Try-On API",
+    "version": "1.0.0",
+    "description": "Virtual try-on for apparel listings (Replicate IDM-VTON)."
+  },
+  "paths": {
+    "/api/try-on/upload": {
+      "post": {
+        "summary": "Upload shopper photo (WebP, max 1024px)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Uploaded input URL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "inputUrl": { "type": "string", "format": "uri" },
+                    "width": { "type": "integer" },
+                    "height": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/try-on": {
+      "post": {
+        "summary": "Start try-on job",
+        "parameters": [
+          {
+            "name": "tryon",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["true", "1"] },
+            "description": "Feature flag override when TRY_ON_ENABLED is off"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["productId", "inputUrl", "gdprConsent", "consentVersion"],
+                "properties": {
+                  "productId": { "type": "string" },
+                  "affiliateProductId": { "type": "string" },
+                  "inputUrl": { "type": "string", "format": "uri" },
+                  "angle": { "type": "string", "enum": ["front"] },
+                  "gdprConsent": { "type": "boolean", "enum": [true] },
+                  "consentVersion": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Job created or cache hit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jobId": { "type": "string" },
+                    "status": { "type": "string", "enum": ["pending", "processing", "done"] },
+                    "outputUrl": { "type": "string", "format": "uri" },
+                    "cached": { "type": "boolean" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Poll try-on job status",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jobId": { "type": "string" },
+                    "status": {
+                      "type": "string",
+                      "enum": ["pending", "processing", "done", "failed"]
+                    },
+                    "outputUrl": { "type": "string", "format": "uri" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/try-on/webhook": {
+      "post": {
+        "summary": "Replicate async completion webhook",
+        "responses": {
+          "200": { "description": "Acknowledged" }
+        }
+      }
+    }
+  }
+}
