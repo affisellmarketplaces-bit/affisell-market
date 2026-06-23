@@ -39,7 +39,7 @@ export async function processTryOnUserImage(bytes: Buffer, mimeType: string): Pr
 export async function uploadTryOnBlob(params: {
   bytes: Buffer
   contentType: string
-  folder: "inputs" | "outputs"
+  folder: "inputs" | "outputs" | "garments"
   keySuffix: string
 }): Promise<string> {
   const token = process.env.BLOB_READ_WRITE_TOKEN?.trim()
@@ -63,4 +63,29 @@ export async function fetchImageBytes(url: string): Promise<Buffer> {
   }
   const arr = await res.arrayBuffer()
   return Buffer.from(arr)
+}
+
+/** Replicate must fetch garment/human URLs — mirror hotlink-protected sources to Blob. */
+export async function mirrorExternalImageToTryOnBlob(params: {
+  sourceUrl: string
+  folder: "garments" | "inputs"
+  keySuffix: string
+}): Promise<string> {
+  const trimmed = params.sourceUrl.trim()
+  if (trimmed.includes(".blob.vercel-storage.com")) {
+    return trimmed
+  }
+
+  const bytes = await fetchImageBytes(trimmed)
+  const processed = await sharp(bytes, { failOn: "error" })
+    .rotate()
+    .webp({ quality: 90 })
+    .toBuffer()
+
+  return uploadTryOnBlob({
+    bytes: processed,
+    contentType: "image/webp",
+    folder: params.folder,
+    keySuffix: params.keySuffix,
+  })
 }

@@ -6,7 +6,10 @@ import { Redis } from "@upstash/redis"
 import sharp from "sharp"
 
 import { clientIpFromRequest } from "@/lib/logger"
-import { processTryOnUserImage } from "@/lib/try-on/image-processing.server"
+import {
+  mirrorExternalImageToTryOnBlob,
+  processTryOnUserImage,
+} from "@/lib/try-on/image-processing.server"
 import { inferIdmVtonCategory, type IdmVtonCategory } from "@/lib/try-on/infer-idm-vton-category"
 import { getTryOnProvider } from "@/lib/try-on/provider-types"
 import { prisma } from "@/lib/prisma"
@@ -17,13 +20,13 @@ export function isTryOnFeatureEnabledStrict(): boolean {
 
 let ipLimiter: Ratelimit | null = null
 
-function getIpLimiter(): Ratelimit {
+function getIpLimiter(): Ratelimit | null {
+  const url = process.env.UPSTASH_REDIS_REST_URL?.trim()
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN?.trim()
+  if (!url || !token) {
+    return null
+  }
   if (!ipLimiter) {
-    const url = process.env.UPSTASH_REDIS_REST_URL?.trim()
-    const token = process.env.UPSTASH_REDIS_REST_TOKEN?.trim()
-    if (!url || !token) {
-      throw new Error("UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are required")
-    }
     ipLimiter = new Ratelimit({
       redis: new Redis({ url, token }),
       limiter: Ratelimit.slidingWindow(5, "1 m"),
@@ -38,8 +41,13 @@ export async function enforceTryOnIpRateLimit(req: Request): Promise<
   | { ok: true }
   | { ok: false; status: 429; retryAfterSec: number }
 > {
+  const limiter = getIpLimiter()
+  if (!limiter) {
+    console.warn("[try-on]", { result: "rate_limit_skipped", reason: "upstash_not_configured" })
+    return { ok: true }
+  }
   const ip = clientIpFromRequest(req)
-  const result = await getIpLimiter().limit(`ip:${ip}`)
+  const result = await limiter.limit(`ip:${ip}`)
   if (result.success) return { ok: true }
   return {
     ok: false,
@@ -212,11 +220,60 @@ export function mapReplicateError(err: unknown): { status: number; message: stri
     return { status: 502, message: "Try-on model unavailable — contact support." }
   }
 
-  if (msg.includes("replicate_api_token") || msg.includes("not configured")) {
-    return { status: 503, message: "Try-on AI is not configured" }
+  if (
+    msg.includes("replicate_api_token") ||
+    msg.includes("not configured") ||
+    msg.includes("unauthorized") ||
+    msg.includes("unauthenticated") ||
+    msg.includes(" 401 ")
+  ) {
+    return { status: 503, message: "Try-on AI is not configured (check REPLICATE_API_TOKEN on Vercel)." }
+  }
+
+  if (msg.includes("abort") || msg.includes("timeout") || msg.includes("timed out")) {
+    return { status: 504, message: "Try-on provider timed out — please retry." }
+  }
+
+  if (msg.includes("failed to fetch image") || msg.includes("failed to fetch")) {
+    return { status: 400, message: "Could not load garment image — upload a PNG flat-lay in supplier dashboard." }
+  }
+
+  const isPreview =
+    process.env.VERCEL_ENV === "preview" || process.env.NODE_ENV === "development"
+  if (isPreview && msg.length > 0) {
+    const snippet = msg.replace(/\s+/g, " ").slice(0, 140)
+    return { status: 502, message: `Try-on provider error (${snippet})` }
   }
 
   return { status: 502, message: "Try-on provider error" }
+}
+
+export async function resolveGarmentUrlForReplicate(
+  garmentUrl: string,
+  productId: string
+): Promise<string> {
+  try {
+    const mirrored = await mirrorExternalImageToTryOnBlob({
+      sourceUrl: garmentUrl,
+      folder: "garments",
+      keySuffix: `garment-${productId}`,
+    })
+    console.log("[try-on]", {
+      result: "garment_mirrored",
+      productId,
+      sourceHost: new URL(garmentUrl).hostname,
+    })
+    return mirrored
+  } catch (err) {
+    console.error("[try-on]", {
+      result: "garment_mirror_failed",
+      productId,
+      message: err instanceof Error ? err.message : String(err),
+    })
+    throw new Error(
+      `Failed to fetch garment image (${err instanceof Error ? err.message : "unknown error"})`
+    )
+  }
 }
 
 export function appOrigin(req: Request): string {

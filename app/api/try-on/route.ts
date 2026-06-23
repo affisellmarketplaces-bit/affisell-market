@@ -7,6 +7,7 @@ import {
   isTryOnFeatureEnabledStrict,
   mapReplicateError,
   presignedSelfieUrlForReplicate,
+  resolveGarmentUrlForReplicate,
   startCloth2BodyPrediction,
   uploadPrivateSelfie,
   validateSelfieHasFace,
@@ -159,11 +160,23 @@ export async function POST(req: Request) {
 
     const ipHash = hashClientIp(clientIpFromRequest(req))
 
+    let garmentForReplicate: string
+    try {
+      garmentForReplicate = await resolveGarmentUrlForReplicate(garmentUrl, product.id)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      console.error("[try-on]", { result: "garment_resolve_failed", message })
+      return NextResponse.json(
+        { error: mapReplicateError(err).message },
+        { status: mapReplicateError(err).status }
+      )
+    }
+
     try {
       const { predictionId, jobId } = await startCloth2BodyPrediction({
         req,
         humanImgUrl: humanImgForReplicate,
-        garmentUrl,
+        garmentUrl: garmentForReplicate,
         selfieBlobUrl: selfieBlob.url,
         garmentUrlStored: garmentUrl,
         productId: product.id,
