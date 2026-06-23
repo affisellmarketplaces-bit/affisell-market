@@ -195,23 +195,23 @@ function CustomerConversionBadges({
   const hasAny = freeShipping || warrantyLabel
   if (!hasAny) return null
   return (
-    <ul className="mt-2 flex flex-wrap gap-1.5">
+    <ul className="mt-1.5 flex flex-wrap gap-1 sm:mt-2 sm:gap-1.5">
       {freeShipping ? (
         <li>
-          <span className="inline-flex rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold text-sky-900 dark:bg-sky-950/60 dark:text-sky-200">
+          <span className="inline-flex rounded-full bg-sky-100 px-1.5 py-px text-[9px] font-semibold text-sky-900 sm:px-2 sm:py-0.5 sm:text-[10px] dark:bg-sky-950/60 dark:text-sky-200">
             Livraison offerte
           </span>
         </li>
       ) : null}
       {warrantyLabel ? (
         <li>
-          <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-200">
+          <span className="inline-flex rounded-full bg-emerald-100 px-1.5 py-px text-[9px] font-semibold text-emerald-900 sm:px-2 sm:py-0.5 sm:text-[10px] dark:bg-emerald-950/60 dark:text-emerald-200">
             {warrantyLabel}
           </span>
         </li>
       ) : null}
-      <li>
-        <span className="inline-flex rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-900 dark:bg-violet-950/60 dark:text-violet-200">
+      <li className="max-sm:hidden">
+        <span className="inline-flex rounded-full bg-violet-100 px-1.5 py-px text-[9px] font-semibold text-violet-900 sm:px-2 sm:py-0.5 sm:text-[10px] dark:bg-violet-950/60 dark:text-violet-200">
           Paiement 3x
         </span>
       </li>
@@ -264,13 +264,13 @@ export function ProductCard({ product, mode = "customer", href: hrefProp }: Prod
       href={href}
       prefetch={mode === "customer" ? undefined : false}
       className={cn(
-        "group flex h-full w-full flex-col rounded-3xl border border-gray-100/90 bg-white/85 p-2 shadow-sm outline-none ring-offset-2 backdrop-blur-sm transition-shadow dark:border-zinc-800 dark:bg-zinc-950/60",
+        "group flex h-full w-full touch-manipulation flex-col rounded-2xl border border-gray-100/90 bg-white/85 p-1.5 shadow-sm outline-none ring-offset-2 backdrop-blur-sm transition-[transform,box-shadow,border-color] active:scale-[0.985] sm:rounded-3xl sm:p-2 dark:border-zinc-800 dark:bg-zinc-950/60",
         "hover:border-violet-200/80 hover:shadow-lg hover:shadow-violet-500/5 focus-visible:ring-2 focus-visible:ring-violet-500 dark:hover:border-violet-800/60"
       )}
       data-product-card-mode={mode}
       data-show-business-data={showBusiness ? "true" : "false"}
     >
-      <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-white/50 bg-gradient-to-br from-violet-50/40 to-teal-50/25 dark:border-zinc-800/80 dark:from-violet-950/25 dark:to-teal-950/15">
+      <div className="relative aspect-square w-full overflow-hidden rounded-xl border border-white/50 bg-gradient-to-br from-violet-50/40 to-teal-50/25 sm:rounded-2xl dark:border-zinc-800/80 dark:from-violet-950/25 dark:to-teal-950/15">
         {p.offerBadge ? <ProductOfferBadge badge={p.offerBadge} /> : null}
         {hasDiscount ? <ProductDiscountTag percent={discountOffer.percent} /> : null}
         {!showBusiness && p.soldCount != null ? (
@@ -297,7 +297,7 @@ export function ProductCard({ product, mode = "customer", href: hrefProp }: Prod
         <img
           src={src}
           alt={p.title}
-          className="absolute inset-0 h-full w-full object-contain p-4 transition-transform duration-300 group-hover:scale-105"
+          className="absolute inset-0 h-full w-full object-contain p-2 transition-transform duration-300 group-hover:scale-105 sm:p-4"
           loading="lazy"
           onError={(e) => {
             e.currentTarget.src = "/placeholder-product.jpg"
@@ -305,8 +305,10 @@ export function ProductCard({ product, mode = "customer", href: hrefProp }: Prod
         />
       </div>
 
-      <div className="mt-3 px-1 pb-1">
-        <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-semibold text-gray-900 dark:text-zinc-100">{p.title}</h3>
+      <div className="mt-2 px-0.5 pb-0.5 sm:mt-3 sm:px-1 sm:pb-1">
+        <h3 className="line-clamp-2 min-h-[2.25rem] text-[13px] font-semibold leading-snug text-gray-900 sm:min-h-[2.5rem] sm:text-sm dark:text-zinc-100">
+          {p.title}
+        </h3>
         {reward ? (
           <p className="mt-1.5">
             <span className="inline-flex rounded-full bg-teal-100 px-2 py-0.5 text-[10px] font-semibold text-teal-900">

@@ -39,7 +39,7 @@ export function BuyerHeroSearch() {
       </kbd>
       <button
         type="submit"
-        className="absolute right-1.5 top-1/2 flex h-9 min-w-9 -translate-y-1/2 items-center justify-center rounded-xl bg-[#6366F1] px-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-[#5558E3] sm:right-2 sm:h-10 sm:min-w-0 sm:px-5"
+        className="absolute right-1.5 top-1/2 flex h-11 min-w-11 -translate-y-1/2 items-center justify-center rounded-xl bg-[#6366F1] px-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-[#5558E3] active:scale-95 sm:right-2 sm:h-10 sm:min-w-0 sm:px-5"
         aria-label={t("searchSubmit")}
       >
         <Search className="h-4 w-4 sm:hidden" aria-hidden />

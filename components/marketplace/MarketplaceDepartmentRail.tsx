@@ -37,7 +37,7 @@ function DepartmentRailItems({
           href={catalogFilterHref(catalogBasePath)}
           scroll={false}
           className={cn(
-            "rounded-full border px-3.5 py-1.5 text-xs font-semibold transition",
+            "inline-flex min-h-11 items-center rounded-full border px-3.5 py-2 text-xs font-semibold transition",
             !activeCategoryId && !activeSubcategoryId
               ? "border-violet-500 bg-violet-600 text-white shadow-md shadow-violet-500/25"
               : "border-zinc-200/80 bg-white/90 text-zinc-700 hover:border-violet-300 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-200"
@@ -53,7 +53,7 @@ function DepartmentRailItems({
           title={t("swipeAll")}
           className={cn(
             affisellBrand.epoxyCta,
-            "flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-fuchsia-600 to-violet-600 text-white transition hover:scale-105"
+            "flex size-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-fuchsia-600 to-violet-600 text-white transition hover:scale-105 active:scale-95"
           )}
           aria-label={t("swipeAll")}
         >
@@ -72,7 +72,7 @@ function DepartmentRailItems({
               scroll={false}
               className={cn(
                 affisellBrand.quickLink,
-                "affisell-quick-link--buyer shrink-0 !rounded-full !py-1.5 text-xs",
+                "affisell-quick-link--buyer inline-flex min-h-11 shrink-0 items-center !rounded-full !py-2 text-xs",
                 on ? "ring-2 ring-violet-400 ring-offset-1 ring-offset-violet-50 dark:ring-offset-zinc-950" : ""
               )}
             >
@@ -87,7 +87,7 @@ function DepartmentRailItems({
               title={t("swipeCategory", { name: c.name })}
               className={cn(
                 affisellBrand.epoxyCta,
-                "flex size-8 shrink-0 items-center justify-center rounded-full bg-violet-600/95 text-white transition hover:scale-105"
+                "flex size-11 shrink-0 items-center justify-center rounded-full bg-violet-600/95 text-white transition hover:scale-105 active:scale-95"
               )}
               aria-label={t("swipeCategory", { name: c.name })}
             >

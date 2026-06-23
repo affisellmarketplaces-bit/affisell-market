@@ -302,14 +302,16 @@ export function MarketplaceView({
       aria-label={embedded ? t("ariaEmbedded") : undefined}
       className={cn(
         "text-zinc-900 dark:text-zinc-50",
-        embedded ? "scroll-mt-20 sm:scroll-mt-24" : "min-h-[calc(100dvh-3.75rem)]"
+        embedded
+          ? "scroll-mt-[calc(4.25rem+env(safe-area-inset-top,0px))] sm:scroll-mt-24"
+          : "min-h-[calc(100dvh-3.75rem)]"
       )}
     >
       <MarketplaceGraduatedShipsToBootstrap
         basePath={basePath}
         enabled={audience === "customer"}
       />
-      <div className={cn("mx-auto max-w-7xl", embedded ? "py-2" : "px-4 py-8 md:px-8 md:py-10")}>
+      <div className={cn("mx-auto max-w-7xl", embedded ? "py-2 md:py-3" : "px-4 py-8 md:px-8 md:py-10")}>
         {!embedded ? (
         <header className={affisellBrand.headerShell}>
           <div className={affisellBrand.headerMesh} aria-hidden />
@@ -384,12 +386,12 @@ export function MarketplaceView({
           </div>
         </header>
         ) : mobileCatalogShell ? (
-          <div className="mb-3 flex items-center justify-between gap-2 md:hidden">
+          <div className="mb-2 flex items-center justify-between gap-2 md:hidden">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-violet-600 dark:text-violet-300">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-violet-600 dark:text-violet-300">
                 {t("embeddedEyebrow")}
               </p>
-              <h2 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-white">
+              <h2 className="text-base font-bold tracking-tight text-zinc-900 dark:text-white sm:text-lg">
                 {t("embeddedTitleMobile")}
               </h2>
             </div>
@@ -413,11 +415,11 @@ export function MarketplaceView({
           <div className="mt-4 max-w-3xl">
             <MarketplaceSearchBox basePath={basePath} />
           </div>
-        ) : (
-          <div className={cn("mb-3 max-w-3xl md:hidden")}>
+        ) : searchQuery.trim() || hasFilters ? (
+          <div className="mb-3 max-w-3xl md:hidden">
             <MarketplaceSearchBox basePath={basePath} />
           </div>
-        )}
+        ) : null}
 
         <MarketplaceDepartmentRail
           activeCategoryId={categoryId}
@@ -429,7 +431,7 @@ export function MarketplaceView({
           <MarketplaceBrowseDepartmentsRail
             activeCategoryId={categoryId}
             catalogBasePath={basePath}
-            className={embedded ? "mt-3" : "mt-3 sm:mt-4"}
+            className={embedded ? "mt-3 hidden md:block" : "mt-3 sm:mt-4"}
           />
         ) : null}
         {!embedded ? (
@@ -558,7 +560,7 @@ export function MarketplaceView({
               </div>
             ) : null}
             {loading ? (
-              <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
+              <ul className="grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <li key={i} className="animate-pulse">
                     <div className="aspect-square rounded-3xl border border-zinc-100 bg-zinc-100/80 dark:border-zinc-800 dark:bg-zinc-800/50" />
@@ -672,7 +674,7 @@ export function MarketplaceView({
             {products.length > 0 ? (
               <ul
                 className={cn(
-                  "grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 md:gap-5 lg:grid-cols-4",
+                  "affisell-product-grid grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4",
                   refreshing && "opacity-75 transition-opacity duration-150"
                 )}
               >

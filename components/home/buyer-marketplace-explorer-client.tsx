@@ -11,7 +11,9 @@ type Props = {
 export function BuyerMarketplaceExplorerClient({ shell }: Props) {
   return (
     <HomeCatalogErrorBoundary>
-      <MarketplaceViewSuspense shell={shell} />
+      <div className="affisell-home-explorer min-w-0">
+        <MarketplaceViewSuspense shell={shell} />
+      </div>
     </HomeCatalogErrorBoundary>
   )
 }

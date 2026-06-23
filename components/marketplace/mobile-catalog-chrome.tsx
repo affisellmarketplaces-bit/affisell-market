@@ -43,7 +43,7 @@ function MobileSheet({
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="rounded-full p-2 text-zinc-400 hover:bg-white/5 hover:text-white"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-full p-2 text-zinc-400 hover:bg-white/5 hover:text-white"
             aria-label={t("close")}
           >
             <X className="size-4" aria-hidden />
@@ -79,7 +79,7 @@ export function MobileCatalogChrome({
 
   return (
     <>
-      <div className="sticky top-[calc(3.25rem+env(safe-area-inset-top,0px))] z-30 -mx-4 mb-4 border-b border-white/10 bg-zinc-950/85 px-4 py-2.5 backdrop-blur-xl supports-[backdrop-filter]:bg-zinc-950/75 md:hidden dark:bg-zinc-950/90">
+      <div className="sticky top-[calc(3.25rem+env(safe-area-inset-top,0px))] z-30 -mx-3 mb-3 border-b border-white/10 bg-zinc-950/85 px-3 py-2 backdrop-blur-xl supports-[backdrop-filter]:bg-zinc-950/75 md:hidden dark:bg-zinc-950/90">
         <div className="flex items-center gap-2">
           <Button
             type="button"

@@ -3,16 +3,15 @@ import { getTranslations } from "next-intl/server"
 
 import { BuyerHeroBlock } from "@/components/BuyerHeroBlock"
 import { BuyerMarketplaceExplorer } from "@/components/home/BuyerMarketplaceExplorer"
+import { HomeCatalogSkeleton } from "@/components/home/home-catalog-skeleton"
 import { HomePageWarmup } from "@/components/home/home-page-warmup"
-import { ShimmerSkeleton } from "@/components/marketing/shimmer-skeleton"
 
 async function CatalogFallback() {
   const t = await getTranslations("home")
   return (
-    <div className="space-y-3 rounded-3xl border border-dashed border-gray-100 p-6 dark:border-gray-800">
-      <ShimmerSkeleton className="h-8 w-48" />
-      <ShimmerSkeleton className="h-32 w-full" />
-      <p className="text-center text-sm text-zinc-500">{t("loadingCatalog")}</p>
+    <div className="space-y-2">
+      <HomeCatalogSkeleton count={6} />
+      <p className="text-center text-xs text-zinc-500 sm:text-sm">{t("loadingCatalog")}</p>
     </div>
   )
 }

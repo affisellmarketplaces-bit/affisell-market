@@ -54,7 +54,7 @@ export function MarketplaceBrowseDepartmentsRail({
         </p>
         <p className="hidden text-[11px] text-sky-900/70 sm:inline dark:text-sky-200/70">{t("hint")}</p>
       </div>
-      <div className="relative flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="relative flex gap-2 overflow-x-auto overscroll-x-contain pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {departments.map((dept) => {
           const href = dept.categoryId
             ? catalogFilterHrefFromParams(
@@ -75,7 +75,7 @@ export function MarketplaceBrowseDepartmentsRail({
               href={href}
               scroll={false}
               className={cn(
-                "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition",
+                "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-semibold transition",
                 active
                   ? "border-sky-500 bg-sky-600 text-white shadow-md shadow-sky-500/25"
                   : "border-white/80 bg-white/70 text-zinc-700 hover:border-sky-300 hover:bg-white dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-200 dark:hover:border-sky-700"

@@ -44,8 +44,8 @@ export async function HomeBuyerSmartStrip({ featuredShops }: Props) {
         {t("sectionBuyer")}
       </p>
 
-      {/* Mobile — rail horizontal 7 tuiles, snap + fade */}
-      <div className="home-buyer-tiles-scroll relative lg:hidden">
+      {/* Mobile — rail horizontal, snap + fade */}
+      <div className="home-buyer-tiles-scroll relative md:hidden">
         <ul className="home-buyer-tiles-rail flex snap-x snap-mandatory gap-2.5 overflow-x-auto overscroll-x-contain px-0.5 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {agentTile ? <BuyerGlassTile {...agentTile} /> : null}
           {pulseTile ? (
@@ -68,8 +68,8 @@ export async function HomeBuyerSmartStrip({ featuredShops }: Props) {
         </ul>
       </div>
 
-      {/* Desktop — 2 grilles 4 colonnes */}
-      <ul className="hidden min-w-0 grid-cols-2 gap-2 sm:gap-3 lg:grid lg:grid-cols-4">
+      {/* Tablet + desktop — grille compacte */}
+      <ul className="hidden min-w-0 grid-cols-2 gap-2 sm:gap-3 md:grid lg:grid-cols-4">
         {agentTile ? <BuyerGlassTile {...agentTile} /> : null}
         {pulseTile ? (
           <BuyerGlassTile
@@ -86,7 +86,7 @@ export async function HomeBuyerSmartStrip({ featuredShops }: Props) {
         />
         {catalogueTile ? <BuyerGlassTile {...catalogueTile} /> : null}
       </ul>
-      <HomeBuyerPremiumRow className="hidden lg:grid" />
+      <HomeBuyerPremiumRow className="hidden md:grid" />
     </div>
   )
 }
