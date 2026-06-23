@@ -139,6 +139,46 @@ Cron `GET /api/cron/try-on-retention` (`Bearer CRON_SECRET`): delete input blobs
 
 Sentry spans tagged `feature: tryon`, `model: idm-vton`. Business logs: `[try-on] { jobId, productId, latencyMs }`. Analytics table: `TryOn` + `TryOnJob`.
 
+## Medusa Try-On Extension
+
+Native Virtual Try-On on **Medusa v2** (`medusa-backend/`) — linked Product module, admin widget, store API whitelist. Existing Affisell `/api/try-on` is **unchanged**.
+
+```
+┌─────────────┐     GET /store/products?handle=x      ┌──────────────────┐
+│ Next.js     │ ───────────────────────────────────►│ Medusa Store API │
+│ /produits/* │     try_on_enabled, tryon_garment_url │ + try-on module  │
+└──────┬──────┘                                       └────────┬─────────┘
+       │ POST /api/try-on (selfie + garment_url)               │
+       └──────────────────────────────────────────────────────►│ Replicate IDM-VTON
+```
+
+### Env (Next.js + Vercel)
+
+```bash
+MEDUSA_BACKEND_URL="https://medusa.example.com"
+NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY="pk_…"
+NEXT_PUBLIC_MEDUSA_BACKEND_URL="https://medusa.example.com"  # optional client
+TRY_ON_ENABLED=1
+```
+
+### Store curl
+
+```bash
+curl -s "$MEDUSA_BACKEND_URL/store/products?handle=leggings-demo&fields=try_on_enabled,tryon_garment_url" \
+  -H "x-publishable-api-key: $NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY"
+```
+
+### Admin curl
+
+```bash
+curl -X POST "$MEDUSA_BACKEND_URL/admin/products/$ID/try-on" \
+  -H "Authorization: Bearer $MEDUSA_ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"try_on_enabled":true,"tryon_garment_url":"https://….blob.vercel-storage.com/flat.png"}'
+```
+
+Front route: `/produits/[handle]` · Medusa docs: `medusa-backend/README.md` · E2E: `MEDUSA_E2E_ENABLED=1 npm run test:e2e -- e2e/medusa-try-on.spec.ts`
+
 ### Env
 
 See `.env.example` — `REPLICATE_API_TOKEN`, `BLOB_READ_WRITE_TOKEN`, `UPSTASH_REDIS_REST_*`, optional Azure Content Safety.

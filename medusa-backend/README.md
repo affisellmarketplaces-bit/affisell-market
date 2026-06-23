@@ -1,0 +1,92 @@
+# Affisell Medusa Backend
+
+Medusa v2 commerce backend with native **Virtual Try-On** extension (linked Product module).
+
+## Quick start
+
+```bash
+cd medusa-backend
+cp .env.template .env
+npm install
+npx medusa db:migrate
+npm run dev
+```
+
+Admin: `http://localhost:9000/app` · Store API: `http://localhost:9000/store`
+
+## Try-On data model
+
+Medusa v2 extends Product via a **linked custom module** (not core Product edits):
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `try_on_enabled` | `boolean` default `false` | Index `IDX_product_try_on_enabled` |
+| `tryon_garment_url` | `text` nullable | HTTPS Vercel Blob or Cloudinary only |
+
+Module: `src/modules/product-try-on/`  
+Link: `src/links/product-try-on.ts`
+
+### Migrations
+
+```bash
+npx medusa db:generate productTryOnModule
+npx medusa db:migrate
+```
+
+Pre-built migration: `src/modules/product-try-on/migrations/Migration20260623190000ProductAddTryon.ts`
+
+## Admin widget
+
+`src/admin/widgets/product-tryon-widget.tsx` — zone `product.details.side.after`
+
+- Switch **Activer Virtual Try-On**
+- Garment URL input + preview
+- Saves via `POST /admin/products/:id/try-on`
+- Rate limit: **10 req/min** per admin user
+
+## Store API
+
+GET `/store/products?handle=…&fields=try_on_enabled,tryon_garment_url`
+
+Middleware (`src/api/store/products/middlewares.ts`) flattens linked fields:
+
+```json
+{
+  "products": [{
+    "id": "prod_…",
+    "handle": "leggings-demo",
+    "try_on_enabled": true,
+    "tryon_garment_url": "https://….blob.vercel-storage.com/flatlay.png"
+  }]
+}
+```
+
+Cache: `Cache-Control: s-maxage=60` (+ Redis cache module when `REDIS_URL` set).
+
+## curl examples
+
+```bash
+# Store — fetch try-on fields
+curl -s "http://localhost:9000/store/products?handle=leggings-demo&fields=try_on_enabled,tryon_garment_url" \
+  -H "x-publishable-api-key: $NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY"
+
+# Admin — enable try-on
+curl -X POST "http://localhost:9000/admin/products/$PRODUCT_ID/try-on" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"try_on_enabled":true,"tryon_garment_url":"https://….blob.vercel-storage.com/garment.png"}'
+```
+
+## Env
+
+| Variable | Purpose |
+|----------|---------|
+| `DATABASE_URL` | Postgres (Medusa) |
+| `REDIS_URL` | Optional — 60s cache + events |
+| `STORE_CORS` | Next.js storefront origins |
+| `JWT_SECRET` / `COOKIE_SECRET` | Admin auth |
+
+## Affisell front
+
+Next.js route: `/produits/[handle]` → `lib/medusa/fetch-product.ts`  
+Existing `/api/try-on` unchanged — garment URL must match an Affisell Prisma product for job execution.
