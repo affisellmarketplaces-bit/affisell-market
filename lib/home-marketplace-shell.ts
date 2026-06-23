@@ -21,11 +21,25 @@ const EMPTY_HOME_SHELL: HomeMarketplaceShell = {
   offerRailCounts: {},
 }
 
-async function loadHomeMarketplaceShellUncached(locale: AppLocale): Promise<HomeMarketplaceShell> {
+/** Small facet counts — safe under Next.js 2MB `unstable_cache` limit. */
+function loadOfferModeRailCountsCached() {
+  return unstable_cache(
+    () => loadOfferModeRailCounts(),
+    ["home-offer-rail-counts"],
+    { revalidate: HOME_SHELL_REVALIDATE_SEC, tags: ["home-marketplace"] }
+  )()
+}
+
+/**
+ * Home `#explorer` SSR payload.
+ * Do not wrap the full shell in `unstable_cache` — lite listings + category tree exceed 2MB.
+ * Categories and offer counts are cached separately; page `revalidate = 60` covers the rest.
+ */
+export async function loadHomeMarketplaceShell(locale: AppLocale): Promise<HomeMarketplaceShell> {
   const [tree, products, offerRailCounts] = await Promise.all([
     loadMarketplaceCategoryTreeCached(locale),
     fetchMarketplaceListingsForHome(new URLSearchParams()),
-    loadOfferModeRailCounts(),
+    loadOfferModeRailCountsCached(),
   ])
   return {
     categories: tree.categories,
@@ -33,15 +47,6 @@ async function loadHomeMarketplaceShellUncached(locale: AppLocale): Promise<Home
     products,
     offerRailCounts,
   }
-}
-
-/** Default buyer catalog payload for the home `#explorer` block (SSR + short CDN cache). */
-export function loadHomeMarketplaceShell(locale: AppLocale) {
-  return unstable_cache(
-    () => loadHomeMarketplaceShellUncached(locale),
-    ["home-marketplace-shell-v2", locale],
-    { revalidate: HOME_SHELL_REVALIDATE_SEC, tags: ["home-marketplace"] }
-  )()
 }
 
 /** Never crash the home page when DB/cache fails (common on mobile preview). */
