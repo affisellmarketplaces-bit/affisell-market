@@ -1,10 +1,13 @@
 import "server-only"
 
+import type { IdmVtonCategory } from "@/lib/try-on/infer-idm-vton-category"
+
 export type TryOnProviderInput = {
   humanImageUrl: string
   garmentImageUrl: string
   garmentDescription: string
   angle: "front"
+  category?: IdmVtonCategory
 }
 
 export type TryOnProviderStartResult = {

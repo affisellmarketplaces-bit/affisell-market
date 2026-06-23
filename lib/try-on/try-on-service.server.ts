@@ -4,6 +4,7 @@ import * as Sentry from "@sentry/nextjs"
 import { del } from "@vercel/blob"
 
 import { prisma } from "@/lib/prisma"
+import { inferIdmVtonCategory } from "@/lib/try-on/infer-idm-vton-category"
 import { isApparelProduct } from "@/lib/try-on/is-apparel-product"
 import { moderateTryOnUserImage } from "@/lib/try-on/moderation.server"
 import { getTryOnProvider } from "@/lib/try-on/provider-types"
@@ -152,6 +153,11 @@ export async function createTryOnJob(input: {
             garmentImageUrl: product.tryOnGarmentUrl!.trim(),
             garmentDescription: `front of ${product.name}`,
             angle: input.body.angle,
+            category: inferIdmVtonCategory({
+              productName: product.name,
+              legacyCategories: product.categories,
+              categoryFullPath: product.category?.fullPath,
+            }),
           },
           webhookUrl
         )

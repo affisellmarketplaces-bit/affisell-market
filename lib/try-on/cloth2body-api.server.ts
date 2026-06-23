@@ -3,16 +3,13 @@ import "server-only"
 import { del, head, put } from "@vercel/blob"
 import { Ratelimit } from "@upstash/ratelimit"
 import { Redis } from "@upstash/redis"
-import Replicate from "replicate"
 import sharp from "sharp"
 
 import { clientIpFromRequest } from "@/lib/logger"
 import { processTryOnUserImage } from "@/lib/try-on/image-processing.server"
+import { inferIdmVtonCategory, type IdmVtonCategory } from "@/lib/try-on/infer-idm-vton-category"
+import { getTryOnProvider } from "@/lib/try-on/provider-types"
 import { prisma } from "@/lib/prisma"
-
-const CLOTH2BODY_MODEL =
-  process.env.REPLICATE_CLOTH2BODY_MODEL?.trim() || "idanloo/cloth2body"
-const CLOTH2BODY_VERSION = process.env.REPLICATE_CLOTH2BODY_VERSION?.trim()
 
 export function isTryOnFeatureEnabledStrict(): boolean {
   return process.env.TRY_ON_ENABLED === "1"
@@ -143,23 +140,58 @@ export async function presignedSelfieUrlForReplicate(blobUrl: string): Promise<s
   return meta.downloadUrl
 }
 
+function replicateErrorText(err: unknown): string {
+  const parts: string[] = []
+  if (err instanceof Error) {
+    parts.push(err.message)
+    const extra = err as Error & {
+      response?: { status?: number; data?: unknown }
+      status?: number
+    }
+    if (extra.status) parts.push(String(extra.status))
+    if (extra.response?.status) parts.push(String(extra.response.status))
+    if (extra.response?.data != null) {
+      try {
+        parts.push(JSON.stringify(extra.response.data))
+      } catch {
+        /* ignore */
+      }
+    }
+  } else {
+    parts.push(String(err))
+  }
+  return parts.join(" ").toLowerCase()
+}
+
 export function mapReplicateError(err: unknown): { status: number; message: string } {
-  const raw =
-    err instanceof Error
-      ? err.message
-      : typeof err === "object" && err !== null && "message" in err
-        ? String((err as { message: unknown }).message)
-        : String(err)
-  const msg = raw.toLowerCase()
+  const msg = replicateErrorText(err)
 
   if (
     msg.includes("insufficient credit") ||
     msg.includes("payment required") ||
+    msg.includes("payment method") ||
     msg.includes("billing") ||
     msg.includes("out of credits") ||
     msg.includes("402")
   ) {
-    return { status: 402, message: "Replicate credits exhausted. Please top up your account." }
+    return {
+      status: 402,
+      message:
+        "Replicate billing required — add credits or a payment method at replicate.com/account/billing.",
+    }
+  }
+
+  if (
+    msg.includes("rate limit") ||
+    msg.includes("throttled") ||
+    msg.includes("too many requests") ||
+    msg.includes('"status":429') ||
+    msg.includes(" 429 ")
+  ) {
+    return {
+      status: 429,
+      message: "Try-on is busy — wait a few seconds and try again.",
+    }
   }
 
   if (
@@ -169,6 +201,19 @@ export function mapReplicateError(err: unknown): { status: number; message: stri
     (msg.includes("human") && msg.includes("detect"))
   ) {
     return { status: 400, message: "No face or body detected — face the camera with arms visible." }
+  }
+
+  if (
+    msg.includes("invalid version") ||
+    msg.includes("not permitted") ||
+    msg.includes("does not exist") ||
+    msg.includes("unprocessable entity")
+  ) {
+    return { status: 502, message: "Try-on model unavailable — contact support." }
+  }
+
+  if (msg.includes("replicate_api_token") || msg.includes("not configured")) {
+    return { status: 503, message: "Try-on AI is not configured" }
   }
 
   return { status: 502, message: "Try-on provider error" }
@@ -188,51 +233,52 @@ export async function startCloth2BodyPrediction(input: {
   garmentUrl: string
   selfieBlobUrl: string
   garmentUrlStored: string
-  productId: string | null
+  productId: string
+  productName: string
+  garmentCategory: IdmVtonCategory
   ipHash: string
 }): Promise<{ predictionId: string; jobId: string }> {
-  const token = process.env.REPLICATE_API_TOKEN?.trim()
-  if (!token) {
-    throw new Error("REPLICATE_API_TOKEN is not configured")
-  }
-
-  const replicate = new Replicate({ auth: token })
+  const provider = await getTryOnProvider()
   const webhookUrl = `${appOrigin(input.req)}/api/try-on/webhook`
 
   const job = await prisma.tryOnJob.create({
     data: {
       status: "PROCESSING",
-      productId: input.productId ?? (await resolveFallbackProductId()),
+      productId: input.productId,
       inputUrl: input.selfieBlobUrl,
       garmentUrl: input.garmentUrlStored,
       ipHash: input.ipHash,
-      modelVersion: CLOTH2BODY_MODEL,
+      modelVersion: provider.modelVersion,
       gdprConsentAt: new Date(),
     },
   })
 
-  let prediction: { id?: string | null }
   try {
-    const { humanImgUrl, garmentUrl } = input
-    prediction = CLOTH2BODY_VERSION
-      ? await replicate.predictions.create({
-          version: CLOTH2BODY_VERSION,
-          input: {
-            human_img: humanImgUrl,
-            garment_img: garmentUrl,
-          },
-          webhook: webhookUrl,
-          webhook_events_filter: ["completed"],
-        })
-      : await replicate.predictions.create({
-          model: "idanloo/cloth2body" as const,
-          input: {
-            human_img: humanImgUrl,
-            garment_img: garmentUrl,
-          },
-          webhook: webhookUrl,
-          webhook_events_filter: ["completed"],
-        })
+    const started = await provider.startPrediction(
+      {
+        humanImageUrl: input.humanImgUrl,
+        garmentImageUrl: input.garmentUrl,
+        garmentDescription: `front of ${input.productName}`,
+        angle: "front",
+        category: input.garmentCategory,
+      },
+      webhookUrl
+    )
+
+    await prisma.tryOnJob.update({
+      where: { id: job.id },
+      data: { replicatePredictionId: started.externalJobId },
+    })
+
+    console.log("[try-on]", {
+      result: "idm_vton_started",
+      jobId: job.id,
+      predictionId: started.externalJobId,
+      model: started.modelVersion,
+      category: input.garmentCategory,
+    })
+
+    return { predictionId: started.externalJobId, jobId: job.id }
   } catch (err) {
     await prisma.tryOnJob.update({
       where: { id: job.id },
@@ -245,42 +291,6 @@ export async function startCloth2BodyPrediction(input: {
     await deleteSelfieBlob(input.selfieBlobUrl).catch(() => undefined)
     throw err
   }
-
-  const predictionId = prediction.id?.trim()
-  if (!predictionId) {
-    await prisma.tryOnJob.update({
-      where: { id: job.id },
-      data: { status: "FAILED", errorMessage: "Missing prediction id", completedAt: new Date() },
-    })
-    await deleteSelfieBlob(input.selfieBlobUrl).catch(() => undefined)
-    throw new Error("Replicate did not return a prediction id")
-  }
-
-  await prisma.tryOnJob.update({
-    where: { id: job.id },
-    data: { replicatePredictionId: predictionId },
-  })
-
-  console.log("[try-on]", {
-    result: "cloth2body_started",
-    jobId: job.id,
-    predictionId,
-    model: CLOTH2BODY_MODEL,
-  })
-
-  return { predictionId, jobId: job.id }
-}
-
-async function resolveFallbackProductId(): Promise<string> {
-  const row = await prisma.product.findFirst({
-    where: { tryOnEnabled: true, active: true, isDraft: false },
-    select: { id: true },
-    orderBy: { updatedAt: "desc" },
-  })
-  if (!row) {
-    throw new Error("No try-on enabled product found for job persistence")
-  }
-  return row.id
 }
 
 export async function deleteSelfieBlob(url: string): Promise<void> {
@@ -298,7 +308,13 @@ export async function findProductForGarmentUrl(garmentUrl: string) {
       active: true,
       isDraft: false,
     },
-    select: { id: true, tryOnGarmentUrl: true },
+    select: {
+      id: true,
+      name: true,
+      tryOnGarmentUrl: true,
+      categories: true,
+      category: { select: { fullPath: true } },
+    },
   })
 }
 

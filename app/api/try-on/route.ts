@@ -11,6 +11,7 @@ import {
   uploadPrivateSelfie,
   validateSelfieHasFace,
 } from "@/lib/try-on/cloth2body-api.server"
+import { inferIdmVtonCategory } from "@/lib/try-on/infer-idm-vton-category"
 import { hashClientIp } from "@/lib/try-on/result-hash"
 import { getTryOnJobStatus } from "@/lib/try-on/try-on-service.server"
 import { clientIpFromRequest } from "@/lib/logger"
@@ -29,7 +30,7 @@ function disabledResponse() {
 export async function GET(req: Request) {
   return Sentry.withScope(async (scope) => {
     scope.setTag("feature", "tryon")
-    scope.setTag("model", "cloth2body")
+    scope.setTag("model", "idm-vton")
 
     if (!isTryOnFeatureEnabledStrict()) {
       return disabledResponse()
@@ -80,7 +81,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   return Sentry.withScope(async (scope) => {
     scope.setTag("feature", "tryon")
-    scope.setTag("model", "cloth2body")
+    scope.setTag("model", "idm-vton")
 
     if (!isTryOnFeatureEnabledStrict()) {
       return disabledResponse()
@@ -166,6 +167,12 @@ export async function POST(req: Request) {
         selfieBlobUrl: selfieBlob.url,
         garmentUrlStored: garmentUrl,
         productId: product.id,
+        productName: product.name,
+        garmentCategory: inferIdmVtonCategory({
+          productName: product.name,
+          legacyCategories: product.categories,
+          categoryFullPath: product.category?.fullPath,
+        }),
         ipHash,
       })
 
@@ -175,11 +182,13 @@ export async function POST(req: Request) {
         status: "processing" as const,
       })
     } catch (err) {
+      const rawMessage = err instanceof Error ? err.message : String(err)
       const mapped = mapReplicateError(err)
       console.error("[try-on]", {
-        result: "cloth2body_start_failed",
+        result: "idm_vton_start_failed",
         status: mapped.status,
         message: mapped.message,
+        rawMessage,
       })
       return NextResponse.json({ error: mapped.message }, { status: mapped.status })
     }

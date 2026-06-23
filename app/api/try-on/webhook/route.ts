@@ -21,7 +21,7 @@ type ReplicateWebhookBody = {
 export async function POST(req: Request) {
   return Sentry.withScope(async (scope) => {
     scope.setTag("feature", "tryon")
-    scope.setTag("model", "cloth2body")
+    scope.setTag("model", "idm-vton")
 
     const secret = process.env.REPLICATE_WEBHOOK_SECRET?.trim()
     if (secret) {

@@ -2,6 +2,7 @@ import "server-only"
 
 import Replicate from "replicate"
 
+import type { IdmVtonCategory } from "@/lib/try-on/infer-idm-vton-category"
 import type {
   TryOnProvider,
   TryOnProviderInput,
@@ -9,11 +10,12 @@ import type {
   TryOnProviderStartResult,
 } from "@/lib/try-on/provider-types"
 
-const MODEL_OWNER = "yisol"
+const MODEL_OWNER = "cuuupid"
 const MODEL_NAME = "idm-vton"
+/** cuuupid/idm-vton latest — do not use deprecated yisol fork hash. */
 const DEFAULT_VERSION =
   process.env.REPLICATE_IDM_VTON_VERSION?.trim() ||
-  "05196281db426529e2c1fb0684570fc728bd5a3639aa482d0aee669aeffa1485"
+  "0513734a452173b8173e907e3a59d19a36266e55b48528559432bd21c7d7e985"
 
 function getReplicateClient(): Replicate {
   const token = process.env.REPLICATE_API_TOKEN?.trim()
@@ -50,18 +52,16 @@ async function withRetry<T>(fn: () => Promise<T>, attempts = 3): Promise<T> {
 }
 
 export const replicateIdmVtonProvider: TryOnProvider = {
-  modelVersion: "idm-vton",
+  modelVersion: `${MODEL_OWNER}/${MODEL_NAME}`,
 
   async startPrediction(input: TryOnProviderInput, webhookUrl: string): Promise<TryOnProviderStartResult> {
     const replicate = getReplicateClient()
-    const garmentDes =
-      input.angle === "front"
-        ? input.garmentDescription || "front of garment"
-        : input.garmentDescription
+    const garmentDes = input.garmentDescription.trim() || "garment"
+    const category: IdmVtonCategory = input.category ?? "upper_body"
 
     const prediction = await withRetry(async () => {
       const controller = new AbortController()
-      const timer = setTimeout(() => controller.abort(), 15_000)
+      const timer = setTimeout(() => controller.abort(), 20_000)
       try {
         return await replicate.predictions.create({
           version: DEFAULT_VERSION,
@@ -69,9 +69,10 @@ export const replicateIdmVtonProvider: TryOnProvider = {
             garm_img: input.garmentImageUrl,
             human_img: input.humanImageUrl,
             garment_des: garmentDes,
-            is_checked: true,
-            is_checked_crop: false,
-            denoise_steps: 30,
+            category,
+            crop: true,
+            steps: 30,
+            seed: 42,
           },
           webhook: webhookUrl,
           webhook_events_filter: ["completed"],
@@ -89,6 +90,7 @@ export const replicateIdmVtonProvider: TryOnProvider = {
       result: "replicate_started",
       predictionId: prediction.id,
       model: MODEL_NAME,
+      category,
     })
 
     return {
