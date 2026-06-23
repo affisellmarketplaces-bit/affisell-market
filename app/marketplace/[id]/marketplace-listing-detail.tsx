@@ -50,7 +50,8 @@ import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { addToBuyerCart } from "@/lib/cart-add-client"
 import { useBuyNowWithIdentity } from "@/hooks/use-buy-now-with-identity"
-import { TryOnEntry } from "@/components/try-on/TryOnEntry"
+import { TryOnModal } from "@/components/try-on/TryOnModal"
+import { TryOnTrigger } from "@/components/try-on/TryOnEntry"
 import {
   isBookingCheckoutBlocked,
   isBookingCheckoutLiveForKind,
@@ -381,9 +382,12 @@ export function MarketplaceListingDetail({
   const router = useRouter()
   const { buyNow: buyNowWithIdentity, identitySheet } = useBuyNowWithIdentity()
   const reduceMotion = useReducedMotion()
+  const tryOnReady =
+    tryOnFeatureEnabled && tryOnEnabled && Boolean(tryOnGarmentUrl?.trim())
   const purchaseDockRef = useRef<HTMLDivElement>(null)
   const mobilePurchaseRef = useRef<HTMLElement>(null)
   const [showStickyBuy, setShowStickyBuy] = useState(false)
+  const [tryOnOpen, setTryOnOpen] = useState(false)
   const [titleExpanded, setTitleExpanded] = useState(false)
   const { headline: titleHeadline, subline: titleSubline } = useMemo(() => splitListingTitle(name), [name])
   const titleSublineLong = Boolean(titleSubline && titleSubline.length > 110)
@@ -1038,15 +1042,9 @@ export function MarketplaceListingDetail({
               }}
             />
             <div className="px-4 pb-3 lg:hidden">
-              <TryOnEntry
-                className="mb-3 w-full"
-                productId={productId}
-                affiliateProductId={listingId}
-                productName={name}
-                tryOnEnabled={tryOnEnabled}
-                tryOnGarmentUrl={tryOnGarmentUrl}
-                featureEnabled={tryOnFeatureEnabled}
-              />
+              {tryOnReady ? (
+                <TryOnTrigger className="mb-3 w-full" onOpen={() => setTryOnOpen(true)} />
+              ) : null}
               <ListingLogisticsStrip logistics={shipping} compact />
             </div>
           </section>
@@ -1198,15 +1196,9 @@ export function MarketplaceListingDetail({
               buyNowShort={productT.buyNowShort}
               reduceMotion={reduceMotion ?? false}
             />
-            <TryOnEntry
-              className="max-lg:hidden w-full"
-              productId={productId}
-              affiliateProductId={listingId}
-              productName={name}
-              tryOnEnabled={tryOnEnabled}
-              tryOnGarmentUrl={tryOnGarmentUrl}
-              featureEnabled={tryOnFeatureEnabled}
-            />
+            {tryOnReady ? (
+              <TryOnTrigger className="max-lg:hidden w-full" onOpen={() => setTryOnOpen(true)} />
+            ) : null}
             </>
             )}
             </div>
@@ -1892,6 +1884,16 @@ export function MarketplaceListingDetail({
         </div>
       </motion.div>
       {identitySheet}
+      {tryOnReady ? (
+        <TryOnModal
+          open={tryOnOpen}
+          onClose={() => setTryOnOpen(false)}
+          productId={productId}
+          affiliateProductId={listingId}
+          productName={name}
+          garmentUrl={tryOnGarmentUrl!.trim()}
+        />
+      ) : null}
     </>
   )
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useCallback, useEffect, useOptimistic, useRef, useState } from "react"
+import { useCallback, useEffect, useOptimistic, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { AnimatePresence, motion } from "framer-motion"
 import { Camera, Loader2, Sparkles, Upload, X } from "lucide-react"
@@ -27,15 +27,7 @@ type Props = {
 
 type Phase = "idle" | "uploading" | "processing" | "done" | "error"
 
-function TryOnModalSkeleton() {
-  return (
-    <div className="animate-pulse space-y-4 p-6" aria-hidden>
-      <div className="h-6 w-40 rounded bg-zinc-200 dark:bg-zinc-800" />
-      <div className="aspect-[3/4] rounded-xl bg-zinc-200 dark:bg-zinc-800" />
-      <div className="h-10 rounded-lg bg-zinc-200 dark:bg-zinc-800" />
-    </div>
-  )
-}
+const TRY_ON_BODY_CLASS = "affisell-try-on-open"
 
 function TryOnModalInner({
   onClose,
@@ -44,6 +36,7 @@ function TryOnModalInner({
   productName,
   garmentUrl,
 }: Omit<Props, "open">) {
+  const backdropRef = useRef<HTMLButtonElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const [phase, setPhase] = useState<Phase>("idle")
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -68,6 +61,14 @@ function TryOnModalInner({
     setConsent(false)
     onClose()
   }, [onClose, resetPreview])
+
+  useEffect(() => {
+    function onKeyDown(ev: KeyboardEvent) {
+      if (ev.key === "Escape") handleClose()
+    }
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [handleClose])
 
   const runTryOn = useCallback(
     async (file: File) => {
@@ -142,144 +143,164 @@ function TryOnModalInner({
 
   return (
     <motion.div
-      className="fixed inset-0 z-[200] flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4"
-      role="presentation"
+      className="fixed inset-0 z-[300] isolate flex flex-col"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      onClick={handleClose}
+      aria-hidden={false}
     >
-      <motion.div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="tryon-title"
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 16 }}
-        className="relative max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-white shadow-2xl dark:bg-zinc-950 sm:rounded-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-violet-600" aria-hidden />
-            <h2 id="tryon-title" className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
-              Try before you buy
-            </h2>
+      <motion.button
+        ref={backdropRef}
+        type="button"
+        aria-label="Close try-on"
+        className="absolute inset-0 bg-zinc-950/85 backdrop-blur-sm"
+        initial={false}
+        onClick={handleClose}
+      />
+
+      <div className="relative z-10 flex min-h-0 flex-1 items-end justify-center p-0 sm:items-center sm:p-4">
+        <motion.div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="tryon-title"
+          initial={{ opacity: 0, y: 28 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          transition={{ type: "spring", stiffness: 420, damping: 34 }}
+          className="flex max-h-[min(92dvh,820px)] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border border-zinc-200/80 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 sm:rounded-2xl"
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
+            <div className="flex items-center gap-2">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-sm">
+                <Sparkles className="h-4 w-4" aria-hidden />
+              </span>
+              <div>
+                <h2 id="tryon-title" className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
+                  Try before you buy
+                </h2>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">AI virtual preview</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleClose}
+              className="rounded-lg p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+              aria-label="Close try-on"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={handleClose}
-            className="rounded-lg p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900"
-            aria-label="Close try-on"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
 
-        <div className="space-y-4 p-4">
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            See how <span className="font-medium text-zinc-900 dark:text-zinc-100">{productName}</span>{" "}
-            looks on you — AI preview in seconds.
-          </p>
-
-          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-zinc-200 p-3 text-sm dark:border-zinc-800">
-            <input
-              type="checkbox"
-              checked={consent}
-              onChange={(e) => setConsent(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-zinc-300"
-            />
-            <span className="text-zinc-700 dark:text-zinc-300">
-              I consent to processing my photo for this virtual try-on. My upload is deleted within 24h.
-              Results are stored up to 30 days.{" "}
-              <span className="text-xs text-zinc-500">({TRYON_CONSENT_VERSION})</span>
-            </span>
-          </label>
-
-          {poseWarning ? (
-            <p role="status" className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:bg-amber-950/50 dark:text-amber-100">
-              {poseWarning}
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              See how{" "}
+              <span className="font-medium text-zinc-900 dark:text-zinc-100">{productName}</span> looks on
+              you — preview in seconds.
             </p>
-          ) : null}
 
-          <div
-            className={cn(
-              "relative aspect-[3/4] overflow-hidden rounded-xl border border-dashed border-zinc-300 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900/50",
-              !consent && "opacity-60"
-            )}
-          >
-            {optimisticOutput || previewUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={optimisticOutput ?? previewUrl ?? ""}
-                alt="Try-on preview"
-                className="h-full w-full object-contain"
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-zinc-200 p-3 text-sm dark:border-zinc-800">
+              <input
+                type="checkbox"
+                checked={consent}
+                onChange={(e) => setConsent(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-zinc-300"
               />
-            ) : (
-              <div className="flex h-full flex-col items-center justify-center gap-2 px-4 text-center text-sm text-zinc-500">
-                <Camera className="h-8 w-8 opacity-60" aria-hidden />
-                Upload or take a photo (upper body or full length)
-              </div>
-            )}
+              <span className="text-zinc-700 dark:text-zinc-300">
+                I consent to processing my photo for this virtual try-on. My upload is deleted within 24h.
+                Results are stored up to 30 days.{" "}
+                <span className="text-xs text-zinc-500">({TRYON_CONSENT_VERSION})</span>
+              </span>
+            </label>
 
-            {(phase === "uploading" || phase === "processing") && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/80 dark:bg-zinc-950/80">
-                <Loader2 className="h-8 w-8 animate-spin text-violet-600" aria-hidden />
-                <p className="text-sm font-medium text-zinc-800 dark:text-zinc-100">
-                  {phase === "uploading" ? "Preparing photo…" : "Generating try-on…"}
-                </p>
-              </div>
-            )}
+            {poseWarning ? (
+              <p
+                role="status"
+                className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:bg-amber-950/50 dark:text-amber-100"
+              >
+                {poseWarning}
+              </p>
+            ) : null}
+
+            <div
+              className={cn(
+                "relative aspect-[3/4] overflow-hidden rounded-xl border border-dashed border-zinc-300 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900/50",
+                !consent && "opacity-60"
+              )}
+            >
+              {optimisticOutput || previewUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={optimisticOutput ?? previewUrl ?? ""}
+                  alt="Try-on preview"
+                  className="h-full w-full object-contain"
+                />
+              ) : (
+                <div className="flex h-full flex-col items-center justify-center gap-2 px-4 text-center text-sm text-zinc-500">
+                  <Camera className="h-8 w-8 opacity-60" aria-hidden />
+                  Upload or take a photo (upper body or full length)
+                </div>
+              )}
+
+              {(phase === "uploading" || phase === "processing") && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/85 dark:bg-zinc-950/85">
+                  <Loader2 className="h-8 w-8 animate-spin text-violet-600" aria-hidden />
+                  <p className="text-sm font-medium text-zinc-800 dark:text-zinc-100">
+                    {phase === "uploading" ? "Preparing photo…" : "Generating try-on…"}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {error ? (
+              <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+                {error}
+              </p>
+            ) : null}
+
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={!consent || phase === "uploading" || phase === "processing"}
+                onClick={() => inputRef.current?.click()}
+                className="gap-2"
+              >
+                <Upload className="h-4 w-4" aria-hidden />
+                Upload
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                disabled
+                title="Back view coming in V2"
+                className="gap-2 opacity-50"
+              >
+                See back view
+              </Button>
+            </div>
+
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/*"
+              capture="user"
+              className="sr-only"
+              onChange={(e) => void onFileChange(e.target.files?.[0] ?? null)}
+            />
+
+            {phase === "done" && outputUrl ? (
+              <motion.p
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center text-xs text-zinc-500"
+              >
+                Preview ready — lighting and fit may vary from the real garment.
+              </motion.p>
+            ) : null}
           </div>
-
-          {error ? (
-            <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-              {error}
-            </p>
-          ) : null}
-
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={!consent || phase === "uploading" || phase === "processing"}
-              onClick={() => inputRef.current?.click()}
-              className="gap-2"
-            >
-              <Upload className="h-4 w-4" aria-hidden />
-              Upload
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              disabled
-              title="Back view coming in V2"
-              className="gap-2 opacity-50"
-            >
-              See back view
-            </Button>
-          </div>
-
-          <input
-            ref={inputRef}
-            type="file"
-            accept="image/*"
-            capture="user"
-            className="sr-only"
-            onChange={(e) => void onFileChange(e.target.files?.[0] ?? null)}
-          />
-
-          {phase === "done" && outputUrl ? (
-            <motion.p
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center text-xs text-zinc-500"
-            >
-              Preview ready — lighting and fit may vary from the real garment.
-            </motion.p>
-          ) : null}
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </motion.div>
   )
 }
@@ -294,8 +315,10 @@ export function TryOnModal(props: Props) {
   useEffect(() => {
     if (!props.open) return
     const prevOverflow = document.body.style.overflow
+    document.body.classList.add(TRY_ON_BODY_CLASS)
     document.body.style.overflow = "hidden"
     return () => {
+      document.body.classList.remove(TRY_ON_BODY_CLASS)
       document.body.style.overflow = prevOverflow
     }
   }, [props.open])
@@ -304,13 +327,7 @@ export function TryOnModal(props: Props) {
 
   return createPortal(
     <TryOnErrorBoundary>
-      <AnimatePresence>
-        {props.open ? (
-          <Suspense fallback={<TryOnModalSkeleton />}>
-            <TryOnModalInner {...props} />
-          </Suspense>
-        ) : null}
-      </AnimatePresence>
+      <AnimatePresence mode="wait">{props.open ? <TryOnModalInner {...props} /> : null}</AnimatePresence>
     </TryOnErrorBoundary>,
     document.body
   )
