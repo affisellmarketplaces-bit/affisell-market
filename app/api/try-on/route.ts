@@ -138,10 +138,14 @@ export async function POST(req: Request) {
     try {
       selfieBlob = await uploadPrivateSelfie(bytes, selfie.type)
     } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
       console.error("[try-on]", {
         result: "selfie_upload_failed",
-        message: err instanceof Error ? err.message : String(err),
+        message,
       })
+      if (message.includes("BLOB_READ_WRITE_TOKEN")) {
+        return NextResponse.json({ error: "Try-on storage is not configured" }, { status: 503 })
+      }
       return NextResponse.json({ error: "Failed to store selfie" }, { status: 500 })
     }
 

@@ -7,6 +7,7 @@ import Replicate from "replicate"
 import sharp from "sharp"
 
 import { clientIpFromRequest } from "@/lib/logger"
+import { processTryOnUserImage } from "@/lib/try-on/image-processing.server"
 import { prisma } from "@/lib/prisma"
 
 const CLOTH2BODY_MODEL =
@@ -81,22 +82,59 @@ export async function uploadPrivateSelfie(bytes: Buffer, contentType: string): P
     throw new Error("BLOB_READ_WRITE_TOKEN is not configured")
   }
 
-  const blob = await put(`try-on/selfies/selfie.jpg`, bytes, {
-    access: "private",
-    addRandomSuffix: true,
-    contentType: contentType || "image/jpeg",
-    token,
-  })
+  const processed = await processTryOnUserImage(bytes, contentType)
+  const date = new Date().toISOString().slice(0, 10)
+  const key = `try-on/selfies/${date}/${Date.now()}.webp`
 
-  const meta = await head(blob.url, { token })
+  const putOpts = {
+    addRandomSuffix: true,
+    contentType: processed.contentType,
+    token,
+  } as const
+
+  // Most Affisell Blob stores are public-only; private requires a dedicated private store.
+  const preferPrivate = process.env.BLOB_TRYON_PRIVATE === "1"
+  let blob: Awaited<ReturnType<typeof put>>
+
+  try {
+    blob = await put(key, processed.bytes, {
+      ...putOpts,
+      access: preferPrivate ? "private" : "public",
+    })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    const privateRejected =
+      preferPrivate ||
+      /private/i.test(message) ||
+      /access/i.test(message) ||
+      /store/i.test(message)
+
+    if (!privateRejected) {
+      throw err
+    }
+
+    console.log("[try-on]", {
+      result: "selfie_upload_public_fallback",
+      message,
+    })
+    blob = await put(key, processed.bytes, {
+      ...putOpts,
+      access: "public",
+    })
+  }
+
   return {
     url: blob.url,
     pathname: blob.pathname,
-    downloadUrl: meta.downloadUrl,
+    downloadUrl: blob.downloadUrl ?? blob.url,
   }
 }
 
 export async function presignedSelfieUrlForReplicate(blobUrl: string): Promise<string> {
+  if (blobUrl.includes(".public.blob.vercel-storage.com")) {
+    return blobUrl
+  }
+
   const token = process.env.BLOB_READ_WRITE_TOKEN?.trim()
   if (!token) {
     throw new Error("BLOB_READ_WRITE_TOKEN is not configured")

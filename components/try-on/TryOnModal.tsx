@@ -233,7 +233,7 @@ function TryOnModalInner({
                 <img
                   src={optimisticOutput ?? previewUrl ?? ""}
                   alt="Try-on preview"
-                  className="h-full w-full object-contain"
+                  className="h-full w-full object-cover"
                 />
               ) : (
                 <div className="flex h-full flex-col items-center justify-center gap-2 px-4 text-center text-sm text-zinc-500">
