@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "node scripts/with-env.mjs develop",
+    "dev": "node scripts/ensure-port-free.mjs 9000 && node scripts/with-env.mjs develop",
     "build": "node scripts/with-env.mjs build",
     "start": "medusa start",
     "postinstall": "prisma generate --schema ../prisma/schema.prisma",

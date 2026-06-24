@@ -47,13 +47,11 @@ export function CheckoutButton({
 
       const redirect =
         returnUrl ??
-        (typeof window !== "undefined"
-          ? `${window.location.origin}/checkout/success?cart_id=${encodeURIComponent(cartId)}`
-          : undefined)
+        `${window.location.origin}/checkout/success?cart_id=${encodeURIComponent(cartId)}`
 
       const { error: confirmError } = await stripe.confirmPayment({
         clientSecret: data.client_secret,
-        confirmParams: redirect ? { return_url: redirect } : {},
+        confirmParams: { return_url: redirect },
       })
 
       if (confirmError) throw new Error(confirmError.message)
