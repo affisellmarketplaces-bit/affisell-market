@@ -5,11 +5,18 @@
   "scripts": {
     "dev": "node scripts/with-env.mjs develop",
     "build": "node scripts/with-env.mjs build",
-    "start": "node scripts/with-env.mjs start",
+    "start": "medusa start",
+    "postinstall": "prisma generate --schema ../prisma/schema.prisma",
+    "railway:build": "npm run build && prisma generate --schema ../prisma/schema.prisma",
     "db:generate": "node scripts/with-env.mjs db:generate",
     "db:migrate": "node scripts/with-env.mjs db:migrate",
     "user:create": "node scripts/with-env.mjs user -e admin@affisell.com -p Affisell2026!",
+    "setup:auto": "node scripts/setup-auto.mjs",
+    "deploy:railway": "node scripts/deploy-railway.mjs",
     "seed": "medusa exec ./src/scripts/seed.ts"
+  },
+  "prisma": {
+    "schema": "../prisma/schema.prisma"
   },
   "dependencies": {
     "@medusajs/admin-sdk": "2.16.0",
@@ -20,6 +27,7 @@
     "@medusajs/medusa": "2.16.0",
     "@medusajs/ui": "4.0.27",
     "@medusajs/workflow-engine-redis": "2.16.0",
+    "@prisma/client": "^6.19.3",
     "awilix": "^12.0.5",
     "dotenv": "^16.6.1",
     "ioredis": "^5.6.1",
@@ -29,6 +37,7 @@
     "@medusajs/types": "2.16.0",
     "@swc/core": "^1.15.43",
     "@types/node": "^22.15.21",
+    "prisma": "^6.19.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   },

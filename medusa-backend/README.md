@@ -90,3 +90,36 @@ curl -X POST "http://localhost:9000/admin/products/$PRODUCT_ID/try-on" \
 
 Next.js route: `/produits/[handle]` → `lib/medusa/fetch-product.ts`  
 Existing `/api/try-on` unchanged — garment URL must match an Affisell Prisma product for job execution.
+
+## Prisma sync (Medusa Admin → `/api/try-on`)
+
+Workflow `src/workflows/try-on/sync-to-prisma.ts` mirrors try-on flags into Affisell `Product`:
+
+| Medusa | Prisma |
+|--------|--------|
+| `try_on_enabled` | `tryOnEnabled` |
+| `tryon_garment_url` | `tryOnGarmentUrl` |
+| `handle` | `medusaHandle` (unique) |
+
+**Env:** `DATABASE_URL_PRISMA` — same Neon URL as affisell-market (optional; skip + warn if absent).
+
+Hooks: product create/update (`additional_data`) + `POST /admin/products/:id/try-on` widget.
+
+```bash
+# Link test product (once)
+# UPDATE "Product" SET "medusaHandle" = 'leggings-demo' WHERE …;
+
+# Toggle in Admin → verify
+# SELECT "tryOnEnabled" FROM "Product" WHERE "medusaHandle" = 'leggings-demo';
+```
+
+## Railway deploy
+
+```bash
+cd medusa-backend
+npm run setup:auto          # local publishable key
+npm run deploy:railway      # needs RAILWAY_TOKEN, else prints manual steps
+./scripts/vercel-env.sh     # wire Vercel production env
+```
+
+Config: `railway.json` · env template: `.env.railway`

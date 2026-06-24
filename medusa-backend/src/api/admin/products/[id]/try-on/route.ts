@@ -74,12 +74,18 @@ export async function POST(req: MedusaRequest, res: MedusaResponse): Promise<voi
 
   const { data: products } = await query.graph({
     entity: "product",
-    fields: ["id", "product_try_on.id", "product_try_on.try_on_enabled", "product_try_on.tryon_garment_url"],
+    fields: [
+      "id",
+      "handle",
+      "product_try_on.id",
+      "product_try_on.try_on_enabled",
+      "product_try_on.tryon_garment_url",
+    ],
     filters: { id: productId },
   })
 
   const product = products?.[0] as
-    | { id: string; product_try_on?: TryOnRecord | null }
+    | { id: string; handle?: string | null; product_try_on?: TryOnRecord | null }
     | undefined
 
   if (!product) {
@@ -108,6 +114,29 @@ export async function POST(req: MedusaRequest, res: MedusaResponse): Promise<voi
   }
 
   console.log("[medusa-try-on]", { productId, try_on_enabled: record.try_on_enabled, result: "saved" })
+
+  const handle = product.handle?.trim()
+  if (handle) {
+    try {
+      const { syncTryOnToPrismaDirectWorkflow } = await import(
+        "../../../../../workflows/try-on/sync-to-prisma"
+      )
+      await syncTryOnToPrismaDirectWorkflow(req.scope).run({
+        input: {
+          handle,
+          try_on_enabled: record.try_on_enabled,
+          tryon_garment_url: record.tryon_garment_url,
+        },
+      })
+    } catch (err) {
+      console.warn("[medusa-try-on]", {
+        productId,
+        handle,
+        result: "prisma_sync_failed",
+        error: err instanceof Error ? err.message : String(err),
+      })
+    }
+  }
 
   res.json({
     product_try_on: record,

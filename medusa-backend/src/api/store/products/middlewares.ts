@@ -25,6 +25,25 @@ function flattenTryOnFields(product: ProductWithTryOn): ProductWithTryOn {
   }
 }
 
+async function enrichProductWithTryOn(
+  scope: MedusaRequest["scope"],
+  product: ProductWithTryOn
+): Promise<ProductWithTryOn> {
+  const flattened = flattenTryOnFields(product)
+  if (flattened.try_on_enabled !== undefined) return flattened
+  const productId = typeof product.id === "string" ? product.id : null
+  if (!productId) return flattened
+  const linked = await queryProductTryOnByProductId(scope, productId)
+  if (!linked) {
+    return { ...flattened, try_on_enabled: false, tryon_garment_url: null }
+  }
+  return {
+    ...flattened,
+    try_on_enabled: linked.try_on_enabled ?? false,
+    tryon_garment_url: linked.tryon_garment_url ?? null,
+  }
+}
+
 /** Whitelist try-on fields on store product responses (GET /store/products*). */
 export async function enrichStoreProductsWithTryOn(
   req: MedusaRequest,
@@ -33,18 +52,26 @@ export async function enrichStoreProductsWithTryOn(
 ): Promise<void> {
   const originalJson = res.json.bind(res)
   res.json = ((body: unknown) => {
-    if (body && typeof body === "object") {
-      const payload = body as Record<string, unknown>
+    void (async () => {
+      if (!body || typeof body !== "object") {
+        originalJson(body)
+        return
+      }
+      const payload = { ...(body as Record<string, unknown>) }
       if (Array.isArray(payload.products)) {
-        payload.products = payload.products.map((p) =>
-          flattenTryOnFields(p as ProductWithTryOn)
+        payload.products = await Promise.all(
+          payload.products.map((p) => enrichProductWithTryOn(req.scope, p as ProductWithTryOn))
         )
       }
       if (payload.product) {
-        payload.product = flattenTryOnFields(payload.product as ProductWithTryOn)
+        payload.product = await enrichProductWithTryOn(
+          req.scope,
+          payload.product as ProductWithTryOn
+        )
       }
-    }
-    return originalJson(body)
+      originalJson(payload)
+    })().catch(() => originalJson(body))
+    return res
   }) as typeof res.json
 
   next()
@@ -58,9 +85,8 @@ export async function ensureTryOnFieldsQuery(
 ): Promise<void> {
   const fields = req.query.fields
   const fieldsStr = typeof fields === "string" ? fields : ""
-  if (!fieldsStr.includes("try_on_enabled") && !fieldsStr.includes("tryon_garment_url")) {
-    const suffix = fieldsStr ? `${fieldsStr},+product_try_on.*` : "+product_try_on.*"
-    req.query.fields = suffix
+  if (!fieldsStr.includes("product_try_on")) {
+    req.query.fields = fieldsStr ? `${fieldsStr},+product_try_on.*` : "+product_try_on.*"
   }
   next()
 }

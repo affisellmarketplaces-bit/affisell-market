@@ -771,6 +771,8 @@ model Product {
   /** AI virtual try-on (apparel): supplier enables + uploads transparent PNG flat-lay. */
   tryOnEnabled    Boolean @default(false)
   tryOnGarmentUrl String?
+  /** Medusa v2 product handle — sync target for admin try-on toggles. */
+  medusaHandle    String? @unique
 
   supplier                User                     @relation("SupplierProducts", fields: [supplierId], references: [id])
   tryOns                  TryOn[]
