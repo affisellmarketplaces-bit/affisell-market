@@ -5,6 +5,7 @@ import { z } from "@medusajs/framework/zod"
 import { AdminPostProductsProductTryOnSchema } from "../../validators"
 import { checkAdminTryOnRateLimit } from "../../../../../lib/rate-limit"
 import { validateTryOnGarmentUrl } from "../../../../../lib/try-on-url-validator"
+import { syncPrismaProductTryOn } from "../../../../../lib/prisma-client"
 import { PRODUCT_TRY_ON_MODULE } from "../../../../../modules/product-try-on"
 import type ProductTryOnModuleService from "../../../../../modules/product-try-on/service"
 
@@ -118,16 +119,17 @@ export async function POST(req: MedusaRequest, res: MedusaResponse): Promise<voi
   const handle = product.handle?.trim()
   if (handle) {
     try {
-      const { syncTryOnToPrismaDirectWorkflow } = await import(
-        "../../../../../workflows/try-on/sync-to-prisma"
-      )
-      await syncTryOnToPrismaDirectWorkflow(req.scope).run({
-        input: {
-          medusaProductId: productId,
-          handle,
-          try_on_enabled: record.try_on_enabled,
-          tryon_garment_url: record.tryon_garment_url,
-        },
+      const syncResult = await syncPrismaProductTryOn({
+        handle,
+        medusaProductId: productId,
+        try_on_enabled: record.try_on_enabled,
+        tryon_garment_url: record.tryon_garment_url,
+      })
+      console.log("[medusa-try-on]", {
+        productId,
+        handle,
+        result: syncResult.synced ? "prisma_synced" : "prisma_skipped",
+        prismaProductId: syncResult.prismaProductId,
       })
     } catch (err) {
       console.warn("[medusa-try-on]", {

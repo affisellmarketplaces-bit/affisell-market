@@ -1,5 +1,5 @@
 import { createWorkflow, transform, WorkflowResponse } from "@medusajs/framework/workflows-sdk"
-import type { ProductDTO } from "@medusajs/framework/types"
+import type { ProductDTO, MedusaContainer } from "@medusajs/framework/types"
 
 import {
   upsertPrismaProductStep,
@@ -107,7 +107,7 @@ export function hasTryOnAdditionalData(
 }
 
 export async function resolveProductPriceFromContainer(
-  container: { resolve: (key: string) => unknown },
+  container: MedusaContainer,
   productId: string
 ): Promise<{ amount: number; currency_code: string } | null> {
   const { ContainerRegistrationKeys } = await import("@medusajs/framework/utils")

@@ -1,4 +1,5 @@
 import { createProductsWorkflow, updateProductsWorkflow } from "@medusajs/medusa/core-flows"
+import type { MedusaContainer } from "@medusajs/framework/types"
 
 import {
   syncTryOnFromProductWorkflow,
@@ -11,7 +12,7 @@ import {
   syncTryOnToPrismaWorkflow,
 } from "../try-on/sync-to-prisma"
 
-type HookContainer = { resolve: (key: string) => unknown }
+type HookContainer = MedusaContainer
 
 async function runTryOnMedusaSyncs(
   container: HookContainer,
