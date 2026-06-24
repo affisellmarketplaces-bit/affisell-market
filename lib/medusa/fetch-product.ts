@@ -23,6 +23,7 @@ type MedusaProductRow = {
   thumbnail?: string | null
   try_on_enabled?: boolean
   tryon_garment_url?: string | null
+  variants?: Array<{ id?: string }>
   product_try_on?: {
     try_on_enabled?: boolean
     tryon_garment_url?: string | null
@@ -59,7 +60,7 @@ export async function fetchMedusaProductByHandle(handle: string): Promise<Resolv
   try {
     const res = await fetch(`${base}/store/products?${params.toString()}`, {
       headers,
-      next: { revalidate: 60, tags: [`medusa-product-${handle}`] },
+      cache: "no-store",
     })
     if (!res.ok) {
       console.error("[medusa-fetch]", { handle, status: res.status, result: "http_error" })
@@ -71,6 +72,37 @@ export async function fetchMedusaProductByHandle(handle: string): Promise<Resolv
     return normalizeMedusaProduct(row, handle)
   } catch (error) {
     console.error("[medusa-fetch]", { handle, error, result: "fetch_failed" })
+    return null
+  }
+}
+
+/** First variant id for Medusa order sync (Affisell 1 product = 1 variant). */
+export async function fetchMedusaFirstVariantIdByHandle(handle: string): Promise<string | null> {
+  const base = medusaBackendUrl()
+  const key = publishableKey()
+  const params = new URLSearchParams({
+    handle,
+    fields: "id,variants.id",
+    limit: "1",
+  })
+
+  const headers: Record<string, string> = { Accept: "application/json" }
+  if (key) headers["x-publishable-api-key"] = key
+
+  try {
+    const res = await fetch(`${base}/store/products?${params.toString()}`, {
+      headers,
+      cache: "no-store",
+    })
+    if (!res.ok) {
+      console.error("[medusa-variant]", { handle, status: res.status, result: "http_error" })
+      return null
+    }
+    const data = (await res.json()) as { products?: MedusaProductRow[] }
+    const variantId = data.products?.[0]?.variants?.[0]?.id
+    return variantId ?? null
+  } catch (error) {
+    console.error("[medusa-variant]", { handle, error, result: "fetch_failed" })
     return null
   }
 }

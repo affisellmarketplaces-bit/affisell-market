@@ -36,6 +36,7 @@ import {
 import { createMarketplaceOrderNotifications } from "@/lib/marketplace-order-notifications"
 import { dispatchMerchantOrderAlerts } from "@/lib/emails/dispatch-merchant-order-alerts"
 import { healMarketplaceOrderNotifications } from "@/lib/marketplace-order-notification-heal"
+import { syncMarketplaceOrderToMedusa, syncMarketplaceOrderToMedusaIfNeeded } from "@/lib/medusa/sync-marketplace-order"
 import { prisma } from "@/lib/prisma"
 import {
   marketplaceSellingPriceCentsForOption,
@@ -322,6 +323,20 @@ async function createPaidMarketplaceOrder(
     },
   })
 
+  await syncMarketplaceOrderToMedusa(tx, {
+    orderId: order.id,
+    medusaOrderId: order.medusaOrderId,
+    productId: listing.productId,
+    productName: listing.product.name,
+    quantity: qty,
+    linePriceCents: clientLineHtCents,
+    customerEmail: args.customerEmail,
+    shippingAddress: args.shippingAddress as Prisma.JsonValue,
+    stripeSessionId: args.stripeSessionId,
+    currency: args.checkoutCurrency,
+    buyerUserId: args.buyerUserId,
+  })
+
   await tx.affiliateProduct.update({
     where: { id: listing.id },
     data: { conversions: { increment: qty } },
@@ -471,6 +486,9 @@ export async function fulfillMarketplaceStripeSession(
       existingRows.some((row) => row.stripeSessionId === id && row.status === "paid")
     )
     if (allPaid) {
+      for (const row of existingRows) {
+        await syncMarketplaceOrderToMedusaIfNeeded(row.id)
+      }
       scheduleMerchantOrderAlerts(existingRows.map((row) => row.id))
       return
     }
@@ -595,6 +613,7 @@ export async function fulfillMarketplaceStripeSession(
     existing = await prisma.order.findUnique({ where: { id: metaOrderId } })
   }
   if (existing?.status === "paid") {
+    await syncMarketplaceOrderToMedusaIfNeeded(existing.id)
     scheduleMerchantOrderAlerts([existing.id])
     try {
       await triggerAutoDsForStripeSession(sessionId)
@@ -877,6 +896,20 @@ export async function fulfillMarketplaceStripeSession(
         buyerLocale,
         customerEmail,
         product: listing.product,
+      })
+
+      await syncMarketplaceOrderToMedusa(tx, {
+        orderId: pendingOrder.id,
+        medusaOrderId: pendingOrder.medusaOrderId,
+        productId: listing.productId,
+        productName: listing.product.name,
+        quantity: qty,
+        linePriceCents: clientLineHtCents,
+        customerEmail,
+        shippingAddress: shippingAddress as Prisma.JsonValue,
+        stripeSessionId: sessionId,
+        currency: checkoutCurrency,
+        buyerUserId: earnUserId || null,
       })
 
       if (earnUserId) {

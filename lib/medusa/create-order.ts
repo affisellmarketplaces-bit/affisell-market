@@ -67,7 +67,9 @@ export async function createMedusaOrder(
 
   const regionId = process.env.MEDUSA_REGION_ID?.trim()
   if (!regionId) {
-    console.warn("[medusa] MEDUSA_REGION_ID missing, skip order sync")
+    console.warn(
+      "[medusa] MEDUSA_REGION_ID missing. Create region in Admin first (cd medusa-backend && npm run seed:region)."
+    )
     return null
   }
 
