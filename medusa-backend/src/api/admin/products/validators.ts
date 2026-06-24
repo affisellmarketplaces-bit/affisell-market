@@ -1,6 +1,6 @@
 import { z } from "@medusajs/framework/zod"
 
-import { isAllowedTryOnGarmentUrl, isTryOnImageExtension } from "../../lib/try-on-url-validator"
+import { isAllowedTryOnGarmentUrl, isTryOnImageExtension } from "../../../lib/try-on-url-validator"
 
 const garmentUrlSchema = z
   .string()

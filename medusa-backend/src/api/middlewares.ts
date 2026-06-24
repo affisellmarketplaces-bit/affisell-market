@@ -11,7 +11,8 @@ async function adminTryOnRateLimitMiddleware(
   next: MedusaNextFunction
 ): Promise<void> {
   const productId = req.params.id ?? "create"
-  const actor = req.auth_context?.actor_id ?? req.ip ?? "anonymous"
+  const authed = req as MedusaRequest & { auth_context?: { actor_id?: string } }
+  const actor = authed.auth_context?.actor_id ?? req.ip ?? "anonymous"
   const key = `admin-tryon:${actor}:${productId}`
   const limited = checkAdminTryOnRateLimit(key, 10)
   if (!limited.ok) {

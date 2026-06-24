@@ -2,11 +2,11 @@ import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 import { z } from "@medusajs/framework/zod"
 
-import { checkAdminTryOnRateLimit } from "../../../lib/rate-limit"
-import { validateTryOnGarmentUrl } from "../../../lib/try-on-url-validator"
-import { PRODUCT_TRY_ON_MODULE } from "../../../modules/product-try-on"
-import type ProductTryOnModuleService from "../../../modules/product-try-on/service"
-import { tryOnAdditionalDataValidator } from "../../validators"
+import { AdminPostProductsProductTryOnSchema } from "../../validators"
+import { checkAdminTryOnRateLimit } from "../../../../../lib/rate-limit"
+import { validateTryOnGarmentUrl } from "../../../../../lib/try-on-url-validator"
+import { PRODUCT_TRY_ON_MODULE } from "../../../../../modules/product-try-on"
+import type ProductTryOnModuleService from "../../../../../modules/product-try-on/service"
 
 const patchBodySchema = z.object({
   try_on_enabled: z.boolean(),
@@ -19,6 +19,10 @@ type TryOnRecord = {
   tryon_garment_url: string | null
 }
 
+type AuthedMedusaRequest = MedusaRequest & {
+  auth_context?: { actor_id?: string }
+}
+
 export async function POST(req: MedusaRequest, res: MedusaResponse): Promise<void> {
   const productId = req.params.id
   if (!productId) {
@@ -26,7 +30,8 @@ export async function POST(req: MedusaRequest, res: MedusaResponse): Promise<voi
     return
   }
 
-  const actor = req.auth_context?.actor_id ?? req.ip ?? "anonymous"
+  const authed = req as AuthedMedusaRequest
+  const actor = authed.auth_context?.actor_id ?? req.ip ?? "anonymous"
   const limited = checkAdminTryOnRateLimit(`admin-tryon:${actor}:${productId}`, 10)
   if (!limited.ok) {
     res.status(429).json({ message: "Rate limit exceeded", retry_after: limited.retryAfterSec })
@@ -39,9 +44,9 @@ export async function POST(req: MedusaRequest, res: MedusaResponse): Promise<voi
     return
   }
 
-  const adParsed = tryOnAdditionalDataValidator.safeParse(parsed.data)
+  const adParsed = AdminPostProductsProductTryOnSchema.safeParse(parsed.data)
   if (!adParsed.success) {
-    res.status(400).json({ message: adParsed.error.errors[0]?.message ?? "Validation failed" })
+    res.status(400).json({ message: adParsed.error.issues[0]?.message ?? "Validation failed" })
     return
   }
 
