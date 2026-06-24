@@ -8,8 +8,14 @@ import {
 } from "./steps/upsert-prisma-product"
 import type { TryOnAdditionalData } from "./sync-try-on-from-product"
 
+/** Fields read by Prisma sync — narrower than full ProductDTO for backfill scripts. */
+export type PrismaSyncProductRef = Pick<
+  ProductDTO,
+  "id" | "handle" | "title" | "description" | "thumbnail"
+>
+
 export type SyncProductToPrismaInput = {
-  product: ProductDTO
+  product: PrismaSyncProductRef
   additional_data?: TryOnAdditionalData
   event: PrismaSyncEvent
   price_amount?: number
@@ -57,7 +63,7 @@ export const syncProductToPrismaWorkflow = createWorkflow(
 /** Legacy try-on-only sync (additional_data on create/update). */
 export const syncTryOnToPrismaWorkflow = createWorkflow(
   "sync-try-on-to-prisma",
-  (input: { product: ProductDTO; additional_data?: TryOnAdditionalData }) => {
+  (input: { product: PrismaSyncProductRef; additional_data?: TryOnAdditionalData }) => {
     const payload = transform({ input }, ({ input: i }) => {
       const ad = i.additional_data
       if (!ad) return null
