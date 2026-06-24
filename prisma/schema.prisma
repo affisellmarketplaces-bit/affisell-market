@@ -1553,6 +1553,8 @@ model Order {
   supplierPayoutAt         DateTime?
   affiliatePayoutAt        DateTime?
   stripeSessionId          String              @unique
+  /** Medusa v2 order id (admin sync from Affisell Stripe checkout). */
+  medusaOrderId            String?             @unique
   stripePaymentIntentId    String?             @unique
   stripeInvoiceId          String?             @unique
   stripeChargeId           String?             @unique
