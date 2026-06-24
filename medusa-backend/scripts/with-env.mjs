@@ -18,6 +18,15 @@ if (!existsSync(envPath)) {
 
 loadEnv({ path: envPath, override: true })
 
+const parentLocal = resolve(root, "..", ".env.local")
+if (existsSync(parentLocal)) {
+  loadEnv({ path: parentLocal, override: false })
+}
+const envGenerated = resolve(root, ".env.generated")
+if (existsSync(envGenerated)) {
+  loadEnv({ path: envGenerated, override: false })
+}
+
 const required = ["DATABASE_URL", "JWT_SECRET", "COOKIE_SECRET", "STORE_CORS", "ADMIN_CORS"]
 const missing = required.filter((k) => !process.env[k]?.trim())
 if (missing.length) {

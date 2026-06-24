@@ -15,6 +15,7 @@
     "seed:region": "node scripts/with-env.mjs exec ./src/scripts/seed-region.ts",
     "seed:stripe": "node scripts/with-env.mjs exec ./src/scripts/seed-stripe.ts",
     "backfill:prisma": "node scripts/with-env.mjs exec ./src/scripts/backfill-prisma-products.ts",
+    "backfill:variants": "node scripts/with-env.mjs exec ./src/scripts/backfill-prisma-variants.ts",
     "deploy:railway": "node scripts/deploy-railway.mjs",
     "push:safe": "cd .. && npm run push:safe",
     "push": "cd .. && git push origin main",

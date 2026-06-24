@@ -773,6 +773,8 @@ model Product {
   tryOnGarmentUrl String?
   /** Medusa v2 product handle — sync target for admin try-on toggles. */
   medusaHandle    String? @unique
+  /** Medusa v2 variant id — cached for order sync (backfill:variants). */
+  medusaVariantId String?
 
   supplier                User                     @relation("SupplierProducts", fields: [supplierId], references: [id])
   tryOns                  TryOn[]

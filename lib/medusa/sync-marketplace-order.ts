@@ -83,17 +83,21 @@ export async function syncMarketplaceOrderToMedusa(
 
   const product = await tx.product.findUnique({
     where: { id: input.productId },
-    select: { medusaHandle: true },
+    select: { medusaHandle: true, medusaVariantId: true },
   })
 
-  if (!product?.medusaHandle) {
+  if (!product?.medusaHandle && !product?.medusaVariantId) {
     console.warn(`[medusa] Product ${input.productId} missing medusaHandle, skipping`, {
       orderId: input.orderId,
     })
     return
   }
 
-  const variantId = await fetchMedusaFirstVariantIdByHandle(product.medusaHandle)
+  const variantId =
+    product.medusaVariantId ??
+    (product.medusaHandle
+      ? await fetchMedusaFirstVariantIdByHandle(product.medusaHandle)
+      : null)
   if (!variantId) {
     console.warn(`[medusa] No Medusa variant for handle ${product.medusaHandle}`, {
       orderId: input.orderId,
