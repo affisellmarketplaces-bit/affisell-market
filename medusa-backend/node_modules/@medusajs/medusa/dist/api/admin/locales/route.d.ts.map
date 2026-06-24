@@ -1,0 +1,1 @@
+{"version":3,"file":"route.d.ts","sourceRoot":"","sources":["../../../../src/api/admin/locales/route.ts"],"names":[],"mappings":"AAKA,OAAO,EAAE,aAAa,EAAE,cAAc,EAAE,MAAM,0BAA0B,CAAA;AACxE,OAAO,EAAE,SAAS,EAAE,MAAM,2BAA2B,CAAA;AAGrD;;;GAGG;AACH,eAAO,MAAM,GAAG,GACd,KAAK,aAAa,CAAC,SAAS,CAAC,qBAAqB,CAAC,EACnD,KAAK,cAAc,CAAC,SAAS,CAAC,uBAAuB,CAAC,kBAsBvD,CAAA"}

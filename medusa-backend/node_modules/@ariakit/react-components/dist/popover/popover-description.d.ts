@@ -1,0 +1,2 @@
+import { i as usePopoverDescription, n as PopoverDescriptionOptions, r as PopoverDescriptionProps, t as PopoverDescription } from "../popover-description-DbW4mVBb.js";
+export { PopoverDescription, PopoverDescriptionOptions, PopoverDescriptionProps, usePopoverDescription };

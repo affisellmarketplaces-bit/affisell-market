@@ -1,0 +1,2 @@
+import { i as useGroupLabel, n as GroupLabelOptions, r as GroupLabelProps, t as GroupLabel } from "../group-label-BKYqD4Sj.js";
+export { GroupLabel, GroupLabelOptions, GroupLabelProps, useGroupLabel };

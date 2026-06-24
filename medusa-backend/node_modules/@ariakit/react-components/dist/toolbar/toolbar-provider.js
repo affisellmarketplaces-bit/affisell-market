@@ -1,0 +1,30 @@
+"use client";
+import { ToolbarContextProvider } from "./toolbar-context.js";
+import { useToolbarStore } from "./toolbar-store.js";
+import { jsx } from "react/jsx-runtime";
+//#region src/toolbar/toolbar-provider.tsx
+/**
+* Provides a toolbar store to [Toolbar](https://ariakit.com/components/toolbar)
+* components.
+* @see https://ariakit.com/components/toolbar
+* @example
+* ```jsx
+* <ToolbarProvider>
+*   <Toolbar>
+*     <ToolbarItem />
+*     <ToolbarItem />
+*     <ToolbarItem />
+*   </Toolbar>
+* </ToolbarProvider>
+* ```
+*/
+function ToolbarProvider(props = {}) {
+	return /* @__PURE__ */ jsx(ToolbarContextProvider, {
+		value: useToolbarStore(props),
+		children: props.children
+	});
+}
+//#endregion
+export { ToolbarProvider };
+
+//# sourceMappingURL=toolbar-provider.js.map

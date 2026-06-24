@@ -1,0 +1,1 @@
+{"version":3,"file":"translation.js","sourceRoot":"","sources":["../../src/feature-flags/translation.ts"],"names":[],"mappings":";;AAEA,MAAM,sBAAsB,GAAiB;IAC3C,GAAG,EAAE,aAAa;IAClB,WAAW,EAAE,KAAK;IAClB,OAAO,EAAE,uBAAuB;IAChC,WAAW,EAAE,uDAAuD;CACrE,CAAA;AAED,kBAAe,sBAAsB,CAAA"}

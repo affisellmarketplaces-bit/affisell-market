@@ -1,0 +1,1 @@
+{"version":3,"file":"generate-plugin-augmentations.d.ts","sourceRoot":"","sources":["../../src/modules-sdk/generate-plugin-augmentations.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,aAAa,EAAE,MAAM,iBAAiB,CAAA;AAmD/C;;;;GAIG;AACH,wBAAsB,2BAA2B,CAAC,EAChD,SAAS,EACT,OAAO,GACR,EAAE;IACD,SAAS,EAAE,MAAM,CAAA;IACjB,OAAO,EAAE,aAAa,EAAE,CAAA;CACzB,GAAG,OAAO,CAAC,IAAI,CAAC,CAiChB"}

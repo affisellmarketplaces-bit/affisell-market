@@ -1,0 +1,1 @@
+{"version":3,"file":"to-snake-case.js","sourceRoot":"","sources":["../../src/common/to-snake-case.ts"],"names":[],"mappings":";;AAGA,kCAMC;AATD;;GAEG;AACH,SAAgB,WAAW,CAAC,GAAW;IACrC,OAAO,GAAG;SACP,OAAO,CAAC,iBAAiB,EAAE,OAAO,CAAC;SACnC,OAAO,CAAC,gBAAgB,EAAE,GAAG,CAAC;SAC9B,OAAO,CAAC,UAAU,EAAE,EAAE,CAAC;SACvB,WAAW,EAAE,CAAA;AAClB,CAAC"}

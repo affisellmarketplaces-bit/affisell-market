@@ -1,0 +1,1 @@
+{"version":3,"file":"policy-loader.js","sourceRoot":"","sources":["../../src/policies/policy-loader.ts"],"names":[],"mappings":";;AAOA,wCAQC;AAfD,2CAAyD;AACzD,+BAAgC;AAEhC;;;GAGG;AACI,KAAK,UAAU,cAAc,CAAC,UAAmB;IACtD,IAAI,CAAC,UAAU,EAAE,CAAC;QAChB,OAAM;IACR,CAAC;IAED,MAAM,SAAS,GAAG,IAAA,gBAAS,EAAC,UAAU,CAAC,CAAA;IAEvC,MAAM,IAAA,+BAAuB,EAAC,SAAS,CAAC,CAAA;AAC1C,CAAC"}

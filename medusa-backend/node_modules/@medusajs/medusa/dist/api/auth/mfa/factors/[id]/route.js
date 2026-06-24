@@ -1,0 +1,30 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.DELETE = void 0;
+const utils_1 = require("@medusajs/framework/utils");
+const DELETE = async (req, res) => {
+    const { id } = req.params;
+    const authService = req.scope.resolve(utils_1.Modules.AUTH);
+    const factor = await authService.retrieveAuthMfa({
+        id,
+        auth_identity_id: req.auth_context.auth_identity_id,
+    });
+    const disabledFactor = await authService.disableAuthMfa({
+        id,
+        method: req.validatedBody.method,
+        code: req.validatedBody.code,
+    });
+    if (factor.status !== "disabled" && disabledFactor.status === "disabled") {
+        await req.scope.resolve(utils_1.Modules.EVENT_BUS).emit({
+            name: utils_1.AuthEvents.MFA_DISABLED,
+            data: {
+                auth_identity_id: disabledFactor.auth_identity_id,
+                mfa_id: disabledFactor.id,
+                provider: disabledFactor.provider,
+            },
+        });
+    }
+    return res.status(200).json({ mfa_factor: disabledFactor });
+};
+exports.DELETE = DELETE;
+//# sourceMappingURL=route.js.map

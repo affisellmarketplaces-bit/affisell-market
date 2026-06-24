@@ -1,0 +1,1 @@
+{"version":3,"file":"middlewares.js","sourceRoot":"","sources":["../../../../src/api/store/locales/middlewares.ts"],"names":[],"mappings":";;;AAEa,QAAA,6BAA6B,GAAsB;IAC9D;QACE,MAAM,EAAE,CAAC,KAAK,CAAC;QACf,OAAO,EAAE,gBAAgB;QACzB,WAAW,EAAE,EAAE;KAChB;CACF,CAAA"}

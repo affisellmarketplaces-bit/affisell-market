@@ -1,0 +1,41 @@
+{
+  "name": "connect-dynamodb",
+  "description": "DynamoDB session store for Connect",
+  "version": "3.0.5",
+  "author": "Mike Carson <ca98am79@gmail.com> (http://ca98am79.com)",
+  "contributors": [
+    {
+      "name": "Lance Gliser",
+      "email": "lance@fragmentedthought.com"
+    }
+  ],
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "scripts": {
+    "test": "mocha --timeout 5000",
+    "debugtest": "mocha --inspect-brk",
+    "test:types": "tsd"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/express": "^4.17.17",
+    "@types/express-session": "^1.17.7",
+    "express-session": "*",
+    "mocha": "*",
+    "prettier": "^2.8.0",
+    "should": "*",
+    "sinon": "*",
+    "tsd": "^0.28.1"
+  },
+  "engines": {
+    "node": "*"
+  },
+  "optionalDependencies": {
+    "@aws-sdk/client-dynamodb": "^3.218.0"
+  },
+  "homepage": "https://github.com/ca98am79/connect-dynamodb",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/ca98am79/connect-dynamodb.git"
+  }
+}

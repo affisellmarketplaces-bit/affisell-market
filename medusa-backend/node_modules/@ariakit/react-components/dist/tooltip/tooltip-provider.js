@@ -1,0 +1,27 @@
+"use client";
+import { TooltipContextProvider } from "./tooltip-context.js";
+import { useTooltipStore } from "./tooltip-store.js";
+import { jsx } from "react/jsx-runtime";
+//#region src/tooltip/tooltip-provider.tsx
+/**
+* Provides a tooltip store to [Tooltip](https://ariakit.com/components/tooltip)
+* components.
+* @see https://ariakit.com/components/tooltip
+* @example
+* ```jsx
+* <TooltipProvider timeout={250}>
+*   <TooltipAnchor />
+*   <Tooltip />
+* </TooltipProvider>
+* ```
+*/
+function TooltipProvider(props = {}) {
+	return /* @__PURE__ */ jsx(TooltipContextProvider, {
+		value: useTooltipStore(props),
+		children: props.children
+	});
+}
+//#endregion
+export { TooltipProvider };
+
+//# sourceMappingURL=tooltip-provider.js.map

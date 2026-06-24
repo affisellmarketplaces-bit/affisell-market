@@ -1,0 +1,2 @@
+import { i as useDialogHeading, n as DialogHeadingOptions, r as DialogHeadingProps, t as DialogHeading } from "../dialog-heading-DGA5d8VH.js";
+export { DialogHeading, DialogHeadingOptions, DialogHeadingProps, useDialogHeading };

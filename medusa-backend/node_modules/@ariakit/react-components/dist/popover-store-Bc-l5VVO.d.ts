@@ -1,0 +1,29 @@
+import { t as DisclosureStore } from "./disclosure-store-BsaBaRKv.js";
+import { a as DialogStoreState, n as DialogStoreFunctions, r as DialogStoreOptions } from "./dialog-store-Cjt12T_Y.js";
+import { Store } from "@ariakit/react-store";
+import * as Core from "@ariakit/components/popover/popover-store";
+
+//#region src/popover/popover-store.d.ts
+declare function usePopoverStoreProps<T extends Core.PopoverStore>(store: T, update: () => void, props: PopoverStoreProps): T & {
+  disclosure: DisclosureStore | null | undefined;
+};
+/**
+ * Creates a popover store to control the state of
+ * [Popover](https://ariakit.com/components/popover) components.
+ * @see https://ariakit.com/components/popover
+ * @example
+ * ```jsx
+ * const popover = usePopoverStore();
+ * <PopoverDisclosure store={popover}>Disclosure</PopoverDisclosure>
+ * <Popover store={popover}>Popover</Popover>
+ * ```
+ */
+declare function usePopoverStore(props?: PopoverStoreProps): PopoverStore;
+interface PopoverStoreState extends Core.PopoverStoreState, DialogStoreState {}
+interface PopoverStoreFunctions extends Omit<Core.PopoverStoreFunctions, "disclosure">, DialogStoreFunctions {}
+interface PopoverStoreOptions extends Omit<Core.PopoverStoreOptions, "disclosure">, DialogStoreOptions {}
+interface PopoverStoreProps extends PopoverStoreOptions, Omit<Core.PopoverStoreProps, "disclosure"> {}
+interface PopoverStore extends PopoverStoreFunctions, Omit<Store<Core.PopoverStore>, "disclosure"> {}
+//#endregion
+export { PopoverStoreState as a, PopoverStoreProps as i, PopoverStoreFunctions as n, usePopoverStore as o, PopoverStoreOptions as r, usePopoverStoreProps as s, PopoverStore as t };
+//# sourceMappingURL=popover-store-Bc-l5VVO.d.ts.map

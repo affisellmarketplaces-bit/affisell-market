@@ -1,0 +1,1 @@
+{"version":3,"file":"resource-registry.d.ts","sourceRoot":"","sources":["../../../../src/commands/utils/dev-server/resource-registry.ts"],"names":[],"mappings":"AAAA,OAAO,EAGL,WAAW,EACX,YAAY,EACb,MAAM,2BAA2B,CAAA;AAElC,qBAAa,gBAAgB;IAC3B;;OAEG;IACH,YAAY,CAAC,QAAQ,EAAE,MAAM,GAAG,WAAW,GAAG,SAAS;IAIvD;;OAEG;IACH,sBAAsB,CAAC,MAAM,EAAE,MAAM,GAAG,YAAY,EAAE,GAAG,SAAS;CAGnE"}

@@ -1,0 +1,27 @@
+"use client";
+import { HovercardContextProvider } from "./hovercard-context.js";
+import { useHovercardStore } from "./hovercard-store.js";
+import { jsx } from "react/jsx-runtime";
+//#region src/hovercard/hovercard-provider.tsx
+/**
+* Provides a hovercard store to
+* [Hovercard](https://ariakit.com/components/hovercard) components.
+* @see https://ariakit.com/components/hovercard
+* @example
+* ```jsx
+* <HovercardProvider timeout={250}>
+*   <HovercardAnchor />
+*   <Hovercard />
+* </HovercardProvider>
+* ```
+*/
+function HovercardProvider(props = {}) {
+	return /* @__PURE__ */ jsx(HovercardContextProvider, {
+		value: useHovercardStore(props),
+		children: props.children
+	});
+}
+//#endregion
+export { HovercardProvider };
+
+//# sourceMappingURL=hovercard-provider.js.map

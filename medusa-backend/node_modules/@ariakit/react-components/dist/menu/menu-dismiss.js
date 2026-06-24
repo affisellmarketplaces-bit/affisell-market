@@ -1,0 +1,47 @@
+"use client";
+import { useHovercardDismiss } from "../hovercard/hovercard-dismiss.js";
+import { useMenuScopedContext } from "./menu-context.js";
+import { createElement, createHook, forwardRef } from "@ariakit/react-utils";
+//#region src/menu/menu-dismiss.tsx
+const TagName = "button";
+/**
+* Returns props to create a `MenuDismiss` component.
+* @see https://ariakit.com/components/menu
+* @example
+* ```jsx
+* const store = useMenuStore();
+* const props = useMenuDismiss({ store });
+* <Menu store={store}>
+*   <Role {...props} />
+* </Menu>
+* ```
+*/
+const useMenuDismiss = createHook(function useMenuDismiss({ store, ...props }) {
+	const context = useMenuScopedContext();
+	store = store || context;
+	props = useHovercardDismiss({
+		store,
+		...props
+	});
+	return props;
+});
+/**
+* Renders a button that hides a [`Menu`](https://ariakit.com/reference/menu)
+* when clicked.
+* @see https://ariakit.com/components/menu
+* @example
+* ```jsx {3}
+* <MenuProvider>
+*   <Menu>
+*     <MenuDismiss />
+*   </Menu>
+* </MenuProvider>
+* ```
+*/
+const MenuDismiss = forwardRef(function MenuDismiss(props) {
+	return createElement(TagName, useMenuDismiss(props));
+});
+//#endregion
+export { MenuDismiss, useMenuDismiss };
+
+//# sourceMappingURL=menu-dismiss.js.map

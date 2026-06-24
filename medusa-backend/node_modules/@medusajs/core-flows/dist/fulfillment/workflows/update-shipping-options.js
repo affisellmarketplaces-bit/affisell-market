@@ -1,0 +1,86 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.updateShippingOptionsWorkflow = exports.updateShippingOptionsWorkflowId = void 0;
+const workflows_sdk_1 = require("@medusajs/framework/workflows-sdk");
+const steps_1 = require("../steps");
+const validate_fulfillment_providers_1 = require("../steps/validate-fulfillment-providers");
+const validate_shipping_option_prices_1 = require("../steps/validate-shipping-option-prices");
+const utils_1 = require("@medusajs/framework/utils");
+const common_1 = require("../../common");
+exports.updateShippingOptionsWorkflowId = "update-shipping-options-workflow";
+/**
+ * This workflow updates one or more shipping options. It's used by the
+ * [Update Shipping Options Admin API Route](https://docs.medusajs.com/api/admin#shipping-options_postshippingoptionsid).
+ *
+ * You can use this workflow within your own customizations or custom workflows, allowing you to
+ * update shipping options within your custom flows.
+ *
+ * :::note
+ *
+ * Learn more about adding rules to the shipping option's prices in the Pricing Module's
+ * [Price Rules](https://docs.medusajs.com/resources/commerce-modules/pricing/price-rules) documentation.
+ *
+ * :::
+ *
+ * @example
+ * const { result } = await updateShippingOptionsWorkflow(container)
+ * .run({
+ *   input: [
+ *     {
+ *       id: "so_123",
+ *       name: "Standard Shipping",
+ *     }
+ *   ]
+ * })
+ *
+ * @summary
+ *
+ * Update one or more shipping options.
+ */
+exports.updateShippingOptionsWorkflow = (0, workflows_sdk_1.createWorkflow)(exports.updateShippingOptionsWorkflowId, (input) => {
+    (0, workflows_sdk_1.parallelize)((0, validate_fulfillment_providers_1.validateFulfillmentProvidersStep)(input), (0, validate_shipping_option_prices_1.validateShippingOptionPricesStep)(input));
+    const data = (0, workflows_sdk_1.transform)(input, (data) => {
+        const shippingOptionsIndexToPrices = data.map((option, index) => {
+            const prices = option.prices;
+            delete option
+                .prices;
+            /**
+             * When we are updating an option to be calculated, remove the prices.
+             */
+            const isCalculatedOption = option.price_type === utils_1.ShippingOptionPriceType.CALCULATED;
+            return {
+                shipping_option_index: index,
+                prices: isCalculatedOption ? [] : prices,
+            };
+        });
+        return {
+            shippingOptions: data,
+            shippingOptionsIndexToPrices,
+        };
+    });
+    const updatedShippingOptions = (0, steps_1.upsertShippingOptionsStep)(data.shippingOptions);
+    const eventData = (0, workflows_sdk_1.transform)(updatedShippingOptions, (data) => {
+        return data.map((option) => option.id);
+    });
+    const normalizedShippingOptionsPrices = (0, workflows_sdk_1.transform)({
+        shippingOptions: updatedShippingOptions,
+        shippingOptionsIndexToPrices: data.shippingOptionsIndexToPrices,
+    }, (data) => {
+        const shippingOptionsPrices = data.shippingOptionsIndexToPrices.map(({ shipping_option_index, prices }) => {
+            const option = data.shippingOptions[shipping_option_index];
+            return {
+                id: option.id,
+                prices,
+            };
+        });
+        return {
+            shippingOptionsPrices,
+        };
+    });
+    (0, workflows_sdk_1.parallelize)((0, steps_1.setShippingOptionsPricesStep)(normalizedShippingOptionsPrices.shippingOptionsPrices), (0, common_1.emitEventStep)({
+        eventName: utils_1.ShippingOptionWorkflowEvents.UPDATED,
+        data: eventData,
+    }));
+    return new workflows_sdk_1.WorkflowResponse(updatedShippingOptions);
+});
+//# sourceMappingURL=update-shipping-options.js.map

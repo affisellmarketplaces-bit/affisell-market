@@ -1,0 +1,1 @@
+{"version":3,"file":"route.d.ts","sourceRoot":"","sources":["../../../../../../src/api/admin/draft-orders/[id]/edit/route.ts"],"names":[],"mappings":"AAIA,OAAO,EAAE,0BAA0B,EAAE,cAAc,EAAE,MAAM,qBAAqB,CAAA;AAGhF,eAAO,MAAM,IAAI,GACf,KAAK,0BAA0B,EAC/B,KAAK,cAAc,kBAapB,CAAA;AAED,eAAO,MAAM,MAAM,GACjB,KAAK,0BAA0B,EAC/B,KAAK,cAAc,kBAepB,CAAA"}

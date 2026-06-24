@@ -1,0 +1,2 @@
+import{createHmac as o,randomBytes as s,timingSafeEqual as y}from"crypto";import{stringToBytes as i,validateByteLengthEqual as m}from"@otplib/core";var e=class{name="node";hmac(r,a,n){let t=o(r,a);return t.update(n),new Uint8Array(t.digest())}randomBytes(r){return new Uint8Array(s(r))}constantTimeEqual(r,a){let n=i(r),t=i(a);return m(n,t)?y(n,t):!1}},p=Object.freeze(new e),f=e;export{e as NodeCryptoPlugin,p as crypto,f as default};
+//# sourceMappingURL=index.js.map

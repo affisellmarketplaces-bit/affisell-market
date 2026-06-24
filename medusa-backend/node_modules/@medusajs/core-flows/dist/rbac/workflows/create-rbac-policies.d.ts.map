@@ -1,0 +1,1 @@
+{"version":3,"file":"create-rbac-policies.d.ts","sourceRoot":"","sources":["../../../src/rbac/workflows/create-rbac-policies.ts"],"names":[],"mappings":"AAOA;;;GAGG;AACH,MAAM,MAAM,+BAA+B,GAAG;IAC5C,QAAQ,EAAE,GAAG,EAAE,CAAA;CAChB,CAAA;AAED;;;GAGG;AACH,eAAO,MAAM,4BAA4B,yBAAyB,CAAA;AAElE;;;GAGG;AACH,eAAO,MAAM,0BAA0B,4IAKtC,CAAA"}

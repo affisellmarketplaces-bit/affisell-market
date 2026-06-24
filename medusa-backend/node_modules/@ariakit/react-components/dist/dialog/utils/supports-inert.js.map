@@ -1,0 +1,1 @@
+{"version":3,"file":"supports-inert.js","names":[],"sources":["../../../src/dialog/utils/supports-inert.ts"],"sourcesContent":["export function supportsInert() {\n  // Debug\n  // return false;\n  return \"inert\" in HTMLElement.prototype;\n}\n"],"mappings":";;SAGS,gBAAW;CACpB,OAAA,WAAA,YAAA"}

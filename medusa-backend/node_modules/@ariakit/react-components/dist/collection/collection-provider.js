@@ -1,0 +1,15 @@
+"use client";
+import { CollectionContextProvider } from "./collection-context.js";
+import { useCollectionStore } from "./collection-store.js";
+import { jsx } from "react/jsx-runtime";
+//#region src/collection/collection-provider.tsx
+function CollectionProvider(props = {}) {
+	return /* @__PURE__ */ jsx(CollectionContextProvider, {
+		value: useCollectionStore(props),
+		children: props.children
+	});
+}
+//#endregion
+export { CollectionProvider };
+
+//# sourceMappingURL=collection-provider.js.map

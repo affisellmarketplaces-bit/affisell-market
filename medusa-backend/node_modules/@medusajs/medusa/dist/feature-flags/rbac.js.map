@@ -1,0 +1,1 @@
+{"version":3,"file":"rbac.js","sourceRoot":"","sources":["../../src/feature-flags/rbac.ts"],"names":[],"mappings":";;AAEA,MAAM,eAAe,GAAiB;IACpC,GAAG,EAAE,MAAM;IACX,WAAW,EAAE,KAAK;IAClB,OAAO,EAAE,gBAAgB;IACzB,WAAW,EAAE,kCAAkC;CAChD,CAAA;AAED,kBAAe,eAAe,CAAA"}

@@ -1,0 +1,61 @@
+import { MenubarOptions } from "../menubar/menubar.js";
+import { Props } from "@ariakit/react-utils";
+import { ElementType } from "react";
+
+//#region src/menu/menu-bar.d.ts
+declare const TagName = "div";
+type TagName = typeof TagName;
+/**
+ * Returns props to create a `MenuBar` component.
+ * @deprecated Use `useMenubar` instead.
+ * @example
+ * ```jsx
+ * const store = useMenuBarStore();
+ * const menuBarProps = useMenuBar({ store });
+ * const fileProps = useMenuItem({ store });
+ * const fileMenu = useMenuStore();
+ * <Role {...menuBarProps}>
+ *   <MenuButton {...fileProps} store={fileMenu}>
+ *     File
+ *   </MenuButton>
+ *   <Menu store={fileMenu}>
+ *     <MenuItem>New File</MenuItem>
+ *     <MenuItem>New Window</MenuItem>
+ *   </Menu>
+ * </Role>
+ * ```
+ */
+declare const useMenuBar: import("@ariakit/react-utils").Hook<"div", MenuBarOptions<"div">>;
+/**
+ * Renders a menu bar that may contain a group of menu items that control other
+ * submenus.
+ * @deprecated
+ * Use [`Menubar`](https://ariakit.com/reference/menubar) instead.
+ * @example
+ * ```jsx
+ * <MenuBarProvider>
+ *   <MenuBar>
+ *     <MenuProvider>
+ *       <MenuItem render={<MenuButton />}>File</MenuItem>
+ *       <Menu>
+ *         <MenuItem>New File</MenuItem>
+ *         <MenuItem>New Window</MenuItem>
+ *       </Menu>
+ *     </MenuProvider>
+ *     <MenuProvider>
+ *       <MenuItem render={<MenuButton />}>Edit</MenuItem>
+ *       <Menu>
+ *         <MenuItem>Undo</MenuItem>
+ *         <MenuItem>Redo</MenuItem>
+ *       </Menu>
+ *     </MenuProvider>
+ *   </MenuBar>
+ * </MenuBarProvider>
+ * ```
+ */
+declare const MenuBar: (props: MenuBarProps) => import("react").ReactElement<unknown, string | import("react").JSXElementConstructor<any>>;
+interface MenuBarOptions<T extends ElementType = TagName> extends MenubarOptions<T> {}
+type MenuBarProps<T extends ElementType = TagName> = Props<T, MenuBarOptions<T>>;
+//#endregion
+export { MenuBar, MenuBarOptions, MenuBarProps, useMenuBar };
+//# sourceMappingURL=menu-bar.d.ts.map

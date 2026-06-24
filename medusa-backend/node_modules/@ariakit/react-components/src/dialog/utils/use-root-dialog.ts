@@ -1,0 +1,53 @@
+import { useForceUpdate, useSafeLayoutEffect } from "@ariakit/react-utils";
+import { getDocument } from "@ariakit/utils";
+import { useCallback } from "react";
+import { flushSync } from "react-dom";
+
+interface Props {
+  attribute: string;
+  contentId?: string;
+  contentElement?: HTMLElement | null;
+  enabled?: boolean;
+}
+
+export function useRootDialog({
+  attribute,
+  contentId,
+  contentElement,
+  enabled,
+}: Props) {
+  const [updated, retry] = useForceUpdate();
+
+  const isRootDialog = useCallback(() => {
+    if (!enabled) return false;
+    if (!contentElement) return false;
+    const { body } = getDocument(contentElement);
+    const id = body.getAttribute(attribute);
+    return !id || id === contentId;
+    // oxlint-disable-next-line exhaustive-deps
+  }, [updated, enabled, contentElement, attribute, contentId]);
+
+  // Run in the layout phase so consumers that also moved to the layout phase
+  // (such as usePreventBodyScroll, registered after this hook) see the root
+  // attribute in the same order they did when everything ran in the passive
+  // phase.
+  useSafeLayoutEffect(() => {
+    if (!enabled) return;
+    if (!contentId) return;
+    if (!contentElement) return;
+    const { body } = getDocument(contentElement);
+    if (isRootDialog()) {
+      body.setAttribute(attribute, contentId);
+      return () => body.removeAttribute(attribute);
+    }
+    // If the dialog is not the root, there may be another dialog that will be
+    // closed soon, which will remove the root attribute from the body. We
+    // observe this change and retry to see if this dialog is now the root.
+    const observer = new MutationObserver(() => flushSync(retry));
+    observer.observe(body, { attributeFilter: [attribute] });
+    return () => observer.disconnect();
+    // oxlint-disable-next-line exhaustive-deps
+  }, [updated, enabled, contentId, contentElement, isRootDialog, attribute]);
+
+  return isRootDialog;
+}

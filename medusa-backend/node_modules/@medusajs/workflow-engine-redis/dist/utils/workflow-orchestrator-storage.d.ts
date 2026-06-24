@@ -1,0 +1,72 @@
+import { DistributedTransactionType, IDistributedSchedulerStorage, IDistributedTransactionStorage, SchedulerOptions, TransactionCheckpoint, TransactionOptions, TransactionStep } from "@medusajs/framework/orchestration";
+import { Logger, ModulesSdkTypes } from "@medusajs/framework/types";
+import { QueueOptions, WorkerOptions } from "bullmq";
+import Redis from "ioredis";
+export declare class RedisDistributedTransactionStorage implements IDistributedTransactionStorage, IDistributedSchedulerStorage {
+    #private;
+    private workflowExecutionService_;
+    private logger_;
+    private workflowOrchestratorService_;
+    private redisClient;
+    private redisWorkerConnection;
+    private queueName;
+    private jobQueueName;
+    private queue;
+    private jobQueue?;
+    private worker;
+    private jobWorker?;
+    private cleanerQueueName;
+    private cleanerWorker_;
+    private cleanerQueue_?;
+    private mainQueueOptions_;
+    private mainWorkerOptions_;
+    private jobQueueOptions_;
+    private jobWorkerOptions_;
+    private cleanerQueueOptions_;
+    private cleanerWorkerOptions_;
+    constructor({ workflowExecutionService, redisConnection, redisWorkerConnection, redisQueueName, redisJobQueueName, redisMainQueueOptions, redisMainWorkerOptions, redisJobQueueOptions, redisJobWorkerOptions, redisCleanerQueueOptions, redisCleanerWorkerOptions, logger, isWorkerMode, }: {
+        workflowExecutionService: ModulesSdkTypes.IMedusaInternalService<any>;
+        redisConnection: Redis;
+        redisWorkerConnection: Redis;
+        redisQueueName: string;
+        redisJobQueueName: string;
+        redisMainQueueOptions: Omit<QueueOptions, "connection">;
+        redisMainWorkerOptions: Omit<WorkerOptions, "connection">;
+        redisJobQueueOptions: Omit<QueueOptions, "connection">;
+        redisJobWorkerOptions: Omit<WorkerOptions, "connection">;
+        redisCleanerQueueOptions: Omit<QueueOptions, "connection">;
+        redisCleanerWorkerOptions: Omit<WorkerOptions, "connection">;
+        logger: Logger;
+        isWorkerMode: boolean;
+    });
+    onApplicationPrepareShutdown(): Promise<void>;
+    onApplicationShutdown(): Promise<void>;
+    onApplicationStart(): Promise<void>;
+    setWorkflowOrchestratorService(workflowOrchestratorService: any): void;
+    private ensureRedisConnection;
+    private saveToDb;
+    private deleteFromDb;
+    private executeTransaction;
+    private executeScheduledJob;
+    get(key: string, options?: TransactionOptions & {
+        isCancelling?: boolean;
+        _cachedRawData?: string | null;
+    }): Promise<TransactionCheckpoint | undefined>;
+    save(key: string, data: TransactionCheckpoint, ttl?: number, options?: TransactionOptions): Promise<TransactionCheckpoint>;
+    scheduleRetry(transaction: DistributedTransactionType, step: TransactionStep, timestamp: number, interval: number): Promise<void>;
+    clearRetry(transaction: DistributedTransactionType, step: TransactionStep): Promise<void>;
+    scheduleTransactionTimeout(transaction: DistributedTransactionType, _: number, interval: number): Promise<void>;
+    clearTransactionTimeout(transaction: DistributedTransactionType): Promise<void>;
+    scheduleStepTimeout(transaction: DistributedTransactionType, step: TransactionStep, timestamp: number, interval: number): Promise<void>;
+    clearStepTimeout(transaction: DistributedTransactionType, step: TransactionStep): Promise<void>;
+    private getJobId;
+    private removeJob;
+    schedule(jobDefinition: string | {
+        jobId: string;
+    }, schedulerOptions: SchedulerOptions): Promise<void>;
+    remove(jobId: string): Promise<void>;
+    removeAll(): Promise<void>;
+    private removeAllRepeatableJobs;
+    clearExpiredExecutions(): Promise<void>;
+}
+//# sourceMappingURL=workflow-orchestrator-storage.d.ts.map

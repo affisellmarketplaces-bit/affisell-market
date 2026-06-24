@@ -1,0 +1,6 @@
+import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http";
+import { HttpTypes } from "@medusajs/framework/types";
+export declare const GET: (req: MedusaRequest<HttpTypes.AdminGetInventoryItemParams>, res: MedusaResponse<HttpTypes.AdminInventoryItemResponse>) => Promise<void>;
+export declare const POST: (req: MedusaRequest<HttpTypes.AdminUpdateInventoryItem, HttpTypes.AdminGetInventoryItemParams>, res: MedusaResponse<HttpTypes.AdminInventoryItemResponse>) => Promise<void>;
+export declare const DELETE: (req: MedusaRequest, res: MedusaResponse<HttpTypes.AdminInventoryItemDeleteResponse>) => Promise<void>;
+//# sourceMappingURL=route.d.ts.map
