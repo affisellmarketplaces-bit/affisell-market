@@ -12,6 +12,7 @@
     "db:migrate": "node scripts/with-env.mjs db:migrate",
     "user:create": "node scripts/with-env.mjs user -e admin@affisell.com -p Affisell2026!",
     "setup:auto": "node scripts/setup-auto.mjs",
+    "seed:region": "node scripts/with-env.mjs exec ./src/scripts/seed-region.ts",
     "seed:stripe": "node scripts/with-env.mjs exec ./src/scripts/seed-stripe.ts",
     "backfill:prisma": "node scripts/with-env.mjs exec ./src/scripts/backfill-prisma-products.ts",
     "deploy:railway": "node scripts/deploy-railway.mjs",

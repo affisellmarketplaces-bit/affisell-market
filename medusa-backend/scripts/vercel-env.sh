@@ -30,4 +30,14 @@ printf '%s' "$MEDUSA_URL" | vercel env add NEXT_PUBLIC_MEDUSA_BACKEND_URL produc
 echo "→ vercel env add NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY production"
 printf '%s' "$PUBLISHABLE_KEY" | vercel env add NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY production
 
+if [[ -n "${MEDUSA_ADMIN_TOKEN:-}" ]]; then
+  echo "→ vercel env add MEDUSA_ADMIN_TOKEN production"
+  printf '%s' "$MEDUSA_ADMIN_TOKEN" | vercel env add MEDUSA_ADMIN_TOKEN production
+fi
+
+if [[ -n "${MEDUSA_REGION_ID:-}" ]]; then
+  echo "→ vercel env add MEDUSA_REGION_ID production"
+  printf '%s' "$MEDUSA_REGION_ID" | vercel env add MEDUSA_REGION_ID production
+fi
+
 echo "✅ Vercel production env updated — redeploy affisell-market on Vercel"
