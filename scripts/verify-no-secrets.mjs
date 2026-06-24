@@ -3,7 +3,7 @@
  * Blocks commits/pushes that contain likely API keys in tracked files.
  * Run: npm run verify:no-secrets
  */
-import { execSync } from "node:child_process"
+import { execSync, spawnSync } from "node:child_process"
 import { readFileSync } from "node:fs"
 
 const PATTERNS = [
@@ -13,9 +13,34 @@ const PATTERNS = [
   { name: "AWS access key", re: /\bAKIA[0-9A-Z]{16}\b/ },
 ]
 
+const MAX_BUFFER = 128 * 1024 * 1024
+
 function trackedFiles() {
-  const out = execSync("git ls-files -z", { encoding: "utf8" })
-  return out.split("\0").filter(Boolean)
+  try {
+    const upstream = execSync("git rev-parse --abbrev-ref @{upstream}", {
+      encoding: "utf8",
+      maxBuffer: MAX_BUFFER,
+    }).trim()
+    if (upstream) {
+      const out = execSync(`git diff --name-only -z ${upstream}..HEAD`, {
+        encoding: "utf8",
+        maxBuffer: MAX_BUFFER,
+      })
+      const changed = out.split("\0").filter(Boolean)
+      if (changed.length > 0) return changed
+    }
+  } catch {
+    // no upstream or diff failed — fall back to full scan
+  }
+
+  const r = spawnSync("git", ["ls-files", "-z"], {
+    encoding: "utf8",
+    maxBuffer: MAX_BUFFER,
+  })
+  if (r.status !== 0) {
+    throw new Error(r.stderr || "git ls-files failed")
+  }
+  return r.stdout.split("\0").filter(Boolean)
 }
 
 function scanFile(path) {
