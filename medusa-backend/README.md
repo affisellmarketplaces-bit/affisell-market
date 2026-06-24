@@ -118,8 +118,25 @@ Hooks: product create/update (`additional_data`) + `POST /admin/products/:id/try
 ```bash
 cd medusa-backend
 npm run setup:auto          # local publishable key
+npm run seed:stripe           # EU region + pp_stripe_stripe
 npm run deploy:railway      # needs RAILWAY_TOKEN, else prints manual steps
 ./scripts/vercel-env.sh     # wire Vercel production env
 ```
 
 Config: `railway.json` · env template: `.env.railway`
+
+## Stripe checkout
+
+1. Set `STRIPE_API_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PUBLISHABLE_KEY` in `.env`
+2. `npm run seed:stripe` — links `pp_stripe_stripe` to EU region
+3. Webhook URL: `https://<medusa-host>/hooks/payment/stripe`
+4. Next.js: `POST /api/checkout` with `{ "cart_id": "cart_…", "medusa": true }` → `client_secret`
+5. `<CheckoutButton cartId="cart_…" />` uses `@stripe/stripe-js` + `confirmPayment`
+
+## Prisma auto-create
+
+On Medusa Admin product create, workflow `sync-product-to-prisma` creates Affisell `Product` when:
+- `DATABASE_URL_PRISMA` is set
+- `MEDUSA_PRISMA_SYNC_SUPPLIER_ID` points to a valid supplier `User.id`
+
+Backfill: `npm run backfill:prisma`

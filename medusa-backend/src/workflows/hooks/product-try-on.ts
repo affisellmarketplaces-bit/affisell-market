@@ -6,11 +6,15 @@ import {
 } from "../try-on/sync-try-on-from-product"
 import {
   hasTryOnAdditionalData,
+  resolveProductPriceFromContainer,
+  syncProductToPrismaWorkflow,
   syncTryOnToPrismaWorkflow,
 } from "../try-on/sync-to-prisma"
 
-async function runTryOnSyncs(
-  container: { resolve: (key: string) => unknown },
+type HookContainer = { resolve: (key: string) => unknown }
+
+async function runTryOnMedusaSyncs(
+  container: HookContainer,
   product: SyncTryOnFromProductInput["product"],
   additional_data?: SyncTryOnFromProductInput["additional_data"]
 ): Promise<void> {
@@ -25,10 +29,45 @@ async function runTryOnSyncs(
   })
 }
 
+async function runPrismaProductCreateSync(
+  container: HookContainer,
+  product: SyncTryOnFromProductInput["product"],
+  additional_data?: SyncTryOnFromProductInput["additional_data"]
+): Promise<void> {
+  const price = await resolveProductPriceFromContainer(container, product.id)
+  await syncProductToPrismaWorkflow(container).run({
+    input: {
+      product,
+      additional_data,
+      event: "product.created",
+      price_amount: price?.amount,
+      currency_code: price?.currency_code,
+    },
+  })
+}
+
+async function runPrismaProductUpdateSync(
+  container: HookContainer,
+  product: SyncTryOnFromProductInput["product"],
+  additional_data?: SyncTryOnFromProductInput["additional_data"]
+): Promise<void> {
+  const price = await resolveProductPriceFromContainer(container, product.id)
+  await syncProductToPrismaWorkflow(container).run({
+    input: {
+      product,
+      additional_data,
+      event: "product.updated",
+      price_amount: price?.amount,
+      currency_code: price?.currency_code,
+    },
+  })
+}
+
 createProductsWorkflow.hooks.productsCreated(
   async ({ products, additional_data }, { container }) => {
     for (const product of products) {
-      await runTryOnSyncs(container, product, additional_data)
+      await runTryOnMedusaSyncs(container, product, additional_data)
+      await runPrismaProductCreateSync(container, product, additional_data)
     }
   }
 )
@@ -36,7 +75,8 @@ createProductsWorkflow.hooks.productsCreated(
 updateProductsWorkflow.hooks.productsUpdated(
   async ({ products, additional_data }, { container }) => {
     for (const product of products) {
-      await runTryOnSyncs(container, product, additional_data)
+      await runTryOnMedusaSyncs(container, product, additional_data)
+      await runPrismaProductUpdateSync(container, product, additional_data)
     }
   }
 )

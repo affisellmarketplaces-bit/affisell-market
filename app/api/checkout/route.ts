@@ -1,5 +1,6 @@
 import { isBlindDropshipCheckoutPayload, blindDropshipCheckoutPOST } from "@/lib/blind-dropship-checkout"
 import { marketplaceCheckoutPOST } from "@/lib/marketplace-checkout"
+import { isMedusaCheckoutBody, medusaCheckoutPOST } from "@/lib/medusa/checkout-api"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -12,6 +13,9 @@ export async function POST(request: Request) {
       parsed = raw ? JSON.parse(raw) : null
     } catch {
       return Response.json({ error: "Invalid JSON" }, { status: 400 })
+    }
+    if (isMedusaCheckoutBody(parsed)) {
+      return medusaCheckoutPOST(parsed)
     }
     if (isBlindDropshipCheckoutPayload(parsed)) {
       return blindDropshipCheckoutPOST(parsed)

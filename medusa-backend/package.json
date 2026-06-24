@@ -12,6 +12,8 @@
     "db:migrate": "node scripts/with-env.mjs db:migrate",
     "user:create": "node scripts/with-env.mjs user -e admin@affisell.com -p Affisell2026!",
     "setup:auto": "node scripts/setup-auto.mjs",
+    "seed:stripe": "node scripts/with-env.mjs exec ./src/scripts/seed-stripe.ts",
+    "backfill:prisma": "node scripts/with-env.mjs exec ./src/scripts/backfill-prisma-products.ts",
     "deploy:railway": "node scripts/deploy-railway.mjs",
     "seed": "medusa exec ./src/scripts/seed.ts"
   },
@@ -25,6 +27,7 @@
     "@medusajs/event-bus-redis": "2.16.0",
     "@medusajs/framework": "2.16.0",
     "@medusajs/medusa": "2.16.0",
+    "@medusajs/payment-stripe": "^2.16.0",
     "@medusajs/ui": "4.0.27",
     "@medusajs/workflow-engine-redis": "2.16.0",
     "@prisma/client": "^6.19.3",

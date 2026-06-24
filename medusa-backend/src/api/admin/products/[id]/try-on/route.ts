@@ -123,6 +123,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse): Promise<voi
       )
       await syncTryOnToPrismaDirectWorkflow(req.scope).run({
         input: {
+          medusaProductId: productId,
           handle,
           try_on_enabled: record.try_on_enabled,
           tryon_garment_url: record.tryon_garment_url,
