@@ -62,3 +62,4 @@ gcp-service-account.json
 affisell-*.json
 category-report.json
 discovery-health.json
+medusa-backend/.medusa-dev.lock
