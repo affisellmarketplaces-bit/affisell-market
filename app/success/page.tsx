@@ -2,7 +2,9 @@ import { Suspense } from "react"
 
 import { fulfillPaidCheckoutSession } from "@/lib/marketplace-checkout-success.server"
 
-import { optimisticPayload, SuccessClient } from "./success-client"
+import { SuccessClient } from "./success-client"
+
+const OPTIMISTIC_FALLBACK = { paid: true, fulfilled: false, verifying: true } as const
 
 export const dynamic = "force-dynamic"
 
@@ -29,7 +31,7 @@ export default async function SuccessPage({ searchParams }: PageProps) {
   }
 
   return (
-    <Suspense fallback={<SuccessClient sessionId={sessionId} initialPayload={optimisticPayload()} />}>
+    <Suspense fallback={<SuccessClient sessionId={sessionId} initialPayload={OPTIMISTIC_FALLBACK} />}>
       <SuccessClient sessionId={sessionId} initialPayload={initialPayload} />
     </Suspense>
   )
