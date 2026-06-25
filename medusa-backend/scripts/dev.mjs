@@ -2,7 +2,7 @@
 /**
  * Single-instance Medusa develop — kills stale watchers + frees port 9000 before start.
  */
-import { spawn } from "node:child_process"
+import { spawn, execSync } from "node:child_process"
 import { existsSync, readFileSync, writeFileSync, unlinkSync } from "node:fs"
 import { resolve, dirname } from "node:path"
 import { fileURLToPath } from "node:url"
@@ -41,10 +41,31 @@ function readLock() {
   }
 }
 
+function isPortListening(port) {
+  try {
+    const out = execSync(`lsof -i :${port} -sTCP:LISTEN -t`, { encoding: "utf8" }).trim()
+    return Boolean(out)
+  } catch {
+    return false
+  }
+}
+
 function assertSingleton() {
   const lock = readLock()
   if (!lock?.pid) return
   if (isAlive(lock.pid)) {
+    if (!isPortListening(PORT)) {
+      console.warn(
+        `[medusa-dev] Lock PID ${lock.pid} sans serveur sur :${PORT} — nettoyage du lock fantôme`,
+      )
+      try {
+        process.kill(lock.pid, "SIGTERM")
+      } catch {
+        /* ignore */
+      }
+      clearLock()
+      return
+    }
     console.error(
       `[medusa-dev] Déjà en cours (PID ${lock.pid}). Ctrl+C dans l'autre terminal ou: npm run dev:stop`,
     )
