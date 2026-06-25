@@ -7,14 +7,13 @@ import { StorefrontThemeStyles } from "@/components/storefront/storefront-theme-
 import {
   loadAffiliateShopStoreCached,
   loadAffiliateStorefrontTrustCached,
-  SHOP_REVALIDATE_SEC,
 } from "@/lib/shop-storefront-cache"
 import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
 import { storefrontSurfaceClass } from "@/lib/storefront-theme-shared"
 import { cn } from "@/lib/utils"
 
-/** Affiliate shop shell — ISR + cross-request cache (owner preview is client-only). */
-export const revalidate = SHOP_REVALIDATE_SEC
+/** Affiliate shop shell — ISR 60s + cross-request cache (owner preview is client-only). */
+export const revalidate = 60
 
 export default async function ShopPublicLayout({
   children,

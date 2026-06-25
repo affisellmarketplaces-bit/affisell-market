@@ -12,11 +12,10 @@ import {
   loadAffiliateShopProductsCached,
   loadAffiliateShopStoreCached,
   loadAffiliateStorefrontTrustCached,
-  SHOP_REVALIDATE_SEC,
 } from "@/lib/shop-storefront-cache"
 import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
 
-export const revalidate = SHOP_REVALIDATE_SEC
+export const revalidate = 60
 
 export async function generateMetadata({
   params,
