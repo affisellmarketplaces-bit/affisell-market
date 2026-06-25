@@ -25,6 +25,9 @@ Si la commande B time out : indiquer quand même le hash du commit A et écrire 
 
 **Git** — Commit `abc1234` — *message* — push OK (`main`)
 
+`npm run push:safe` termine par `npm run git:sync` : preuve `✓ working tree clean`.
+La liste **« N Files »** dans l’Agent Cursor = historique de session, pas Git → **nouvelle conversation** avant la prochaine tâche.
+
 ou
 
 **Git** — Commit `abc1234` — *message* — push non terminé (relancer `npm run push:safe`)

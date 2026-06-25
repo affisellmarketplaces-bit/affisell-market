@@ -52,6 +52,7 @@
     "i18n:parity": "node scripts/i18n-parity-check.mjs",
     "i18n:translate": "node scripts/i18n-translate-locale.mjs",
     "push:safe": "node scripts/git-push-safe.mjs",
+    "git:sync": "node scripts/git-sync-status.mjs",
     "extension:build": "npm run build --prefix apps/affisell-supplier-extension",
     "extension:dev": "npm run dev --prefix apps/affisell-supplier-extension",
     "test:veo": "tsx test-veo.ts",

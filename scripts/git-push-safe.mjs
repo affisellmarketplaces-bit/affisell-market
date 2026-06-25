@@ -103,3 +103,10 @@ if (push.status !== 0) {
 
 process.stdout.write(push.stdout || "")
 console.log(`[git-push-safe] Pushed to ${REMOTE}/${BRANCH}`)
+
+const sync = run("node", ["scripts/git-sync-status.mjs"], { timeoutMs: 10_000, label: "git-sync-status" })
+process.stdout.write(sync.stdout || "")
+if (sync.stderr) process.stderr.write(sync.stderr)
+if (sync.status !== 0) {
+  process.exit(sync.status || 1)
+}

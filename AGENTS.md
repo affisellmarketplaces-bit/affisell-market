@@ -45,6 +45,12 @@ Ce n’est pas un échec du commit : c’est souvent **`git pull --rebase` qui a
 
 Puis une ligne : **Git** — Commit `abc1234` — *message* — push OK (`main`). Détail : `.cursor/rules/git-commit-after-fix.mdc`.
 
+### Cursor Agent — liste « N Files »
+
+Ce compteur **n’est pas Git** : il cumule les fichiers touchés **dans la conversation Agent en cours** (souvent 50+ sur une longue session).
+Pour vérifier l’état réel : `npm run git:sync` (ou `git status`).
+Pour **réinitialiser la liste** : démarre une **nouvelle conversation** Agent avant chaque nouveau lot de travail.
+
 <!-- BEGIN:nextjs-agent-rules -->
 # This is NOT the Next.js you know
 
