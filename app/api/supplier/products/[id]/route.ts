@@ -24,7 +24,7 @@ import {
 } from "@/lib/supplier-product-offer-mode"
 import { validateOfferModePublish } from "@/lib/product-offer-mode"
 import { parseSupplierProductShippingBody, validateWarehouseTypePublish } from "@/lib/supplier-product-shipping"
-import { parseSupplierProductImages } from "@/lib/supplier-product-images"
+import { resolveSupplierProductImagesForSave } from "@/lib/supplier-product-images"
 import { parseListingKind } from "@/lib/supplier-commission"
 import {
   parseProductDigitalDeliveryBody,
@@ -143,7 +143,7 @@ export async function PUT(
 
   const existingOfferRow = await prisma.product.findUnique({
     where: { id },
-    select: { offerMode: true, isRefurbished: true, minOrderQuantity: true },
+    select: { offerMode: true, isRefurbished: true, minOrderQuantity: true, images: true },
   })
 
   if (!existingRow.isDraft && saveAsDraftReq) {
@@ -257,7 +257,10 @@ export async function PUT(
     "descriptionBullets" in rawBody
       ? parseDescriptionBullets((rawBody as Record<string, unknown>).descriptionBullets)
       : undefined
-  const images = parseSupplierProductImages(body as unknown as Record<string, unknown>)
+  const images = resolveSupplierProductImagesForSave(
+    body as unknown as Record<string, unknown>,
+    existingOfferRow?.images
+  )
   const descriptionIllustrationImagesPatch =
     "descriptionIllustrationImages" in rawBody
       ? parseDescriptionIllustrationImages(rawBody)

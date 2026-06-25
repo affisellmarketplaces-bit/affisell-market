@@ -185,6 +185,7 @@ import {
 import { parseProductColorImagesFromDb } from "@/lib/product-color-images"
 import { trimColorSwatchImageForStore } from "@/lib/color-swatch-image"
 import { resolveColorSwatchMeta } from "@/lib/color-name-hex"
+import { durableSupplierProductImageUrls } from "@/lib/supplier-product-images"
 import { formatStoreCurrency } from "@/lib/market-config"
 import { cn } from "@/lib/utils"
 
@@ -406,6 +407,7 @@ export function SupplierAddProductForm({
   const [categoryId, setCategoryId] = useState("")
   const [categoryPath, setCategoryPath] = useState<CategoryPathSegment[]>([])
   const [images, setImages] = useState<string[]>([])
+  const [galleryBusy, setGalleryBusy] = useState(false)
   const [price, setPrice] = useState("")
   const [compareAt, setCompareAt] = useState("")
   const [stock, setStock] = useState("0")
@@ -1318,7 +1320,7 @@ export function SupplierAddProductForm({
         bookingVenueLabel: bookingVenueLabel.trim() || null,
         bookingInstantConfirm,
         bookingSeatLayout: isExperienceListingKind(listingKind) ? bookingSeatLayout : null,
-        images,
+        images: durableSupplierProductImageUrls(images),
         categoryId: categoryId.trim(),
         shippingCountry: shippingCountry.trim().toUpperCase().slice(0, 2) || undefined,
         warehouseType: warehouseType || undefined,
@@ -1581,7 +1583,7 @@ export function SupplierAddProductForm({
 
   const syncDraftToServer = useCallback(
     async (opts?: { silent?: boolean; force?: boolean; stepOverride?: WizardStep }) => {
-      if (!listingAutosaveEnabled || loadingProduct || saving) return false
+      if (!listingAutosaveEnabled || loadingProduct || saving || galleryBusy) return false
 
       const syncStep = opts?.stepOverride ?? step
       const body = buildDraftSyncBody(syncStep)
@@ -1664,6 +1666,7 @@ export function SupplierAddProductForm({
       canSaveDraft,
       editId,
       listingAutosaveEnabled,
+      galleryBusy,
       loadingProduct,
       markServerDraftDead,
       pathname,
@@ -1740,7 +1743,7 @@ export function SupplierAddProductForm({
 
   useEffect(() => {
     if (typeof window === "undefined") return
-    if (loadingProduct || saving || !listingAutosaveEnabled) return
+    if (loadingProduct || saving || !listingAutosaveEnabled || galleryBusy) return
 
     let cancelled = false
     const timer = window.setTimeout(() => {
@@ -1756,6 +1759,7 @@ export function SupplierAddProductForm({
   }, [
     autosaveFingerprint,
     autosaveDebounceMs,
+    galleryBusy,
     listingAutosaveEnabled,
     loadingProduct,
     saving,
@@ -1808,7 +1812,7 @@ export function SupplierAddProductForm({
         name,
         description,
         categoryId,
-        images,
+        images: durableSupplierProductImageUrls(images),
         price,
         compareAt,
         stock,
@@ -2574,6 +2578,7 @@ export function SupplierAddProductForm({
                         <div className="mt-3">
                           <SupplierProductImageUpload
                             initialUrls={images}
+                            onBusyChange={setGalleryBusy}
                             onImagesChange={(urls) => {
                               setImages(urls)
                               if (urls.length > 0) clearPublishFieldError("images")

@@ -18,6 +18,8 @@ const SLOT_COUNT = 9 /** cover + 8 thumbnails */
 type Props = {
   onImagesChange: (urls: string[]) => void
   initialUrls?: string[]
+  /** True while files are processing or uploading to CDN. */
+  onBusyChange?: (busy: boolean) => void
 }
 
 function slotsToOrderedUrls(slots: (string | null)[]): string[] {
@@ -148,7 +150,7 @@ function RemoveImageButton({
   )
 }
 
-export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Props) {
+export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusyChange }: Props) {
   const t = useTranslations("supplier.images")
   const inputId = useId()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -168,13 +170,20 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
   )
 
   useEffect(() => {
-    const seed = initialUrls?.filter(Boolean) ?? []
-    if (seed.length === 0) return
     const next = Array.from({ length: SLOT_COUNT }, (_, i) => initialUrls?.[i] ?? null)
-    setSlots(next)
-    emit(next)
+    setSlots((prev) => {
+      const prevKey = slotsToOrderedUrls(prev).join("\0")
+      const nextKey = slotsToOrderedUrls(next).join("\0")
+      return prevKey === nextKey ? prev : next
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialUrls?.join("|")])
+  }, [initialUrls?.join("\0")])
+
+  const busy = isBatchUploading || processingSlots.size > 0
+
+  useEffect(() => {
+    onBusyChange?.(busy)
+  }, [busy, onBusyChange])
 
   const emptySlotIndices = useCallback(
     () =>
@@ -214,7 +223,6 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
           revokeIfBlob(next[idx])
           next[idx] = URL.createObjectURL(file)
         }
-        emit(next)
         return next
       })
 
@@ -348,7 +356,6 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
     if (files?.length) void ingestFiles(files)
   }
 
-  const busy = isBatchUploading || processingSlots.size > 0
   const remaining = emptySlotIndices().length
 
   const cellVars: CSSProperties = {
@@ -420,7 +427,12 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
             {slots[0] ? (
               <div className="relative h-full w-full overflow-hidden rounded-xl border border-zinc-200/90 bg-[#f4f4f5] shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={slots[0]} alt="" className="h-full w-full object-contain p-2" />
+                <img
+                  src={slots[0]}
+                  alt=""
+                  className="h-full w-full object-contain p-2"
+                  referrerPolicy="no-referrer"
+                />
                 {processingSlots.has(0) ? (
                   <div className="absolute inset-0 flex items-center justify-center bg-white/60 dark:bg-zinc-950/50">
                     <Loader2 className="h-8 w-8 animate-spin text-violet-600" aria-hidden />
@@ -471,7 +483,12 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
                   {url ? (
                     <div className="relative h-full w-full overflow-hidden rounded-lg border border-zinc-200/80 bg-zinc-100 shadow-sm dark:border-zinc-700/80 dark:bg-zinc-800">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={url} alt="" className="h-full w-full object-contain p-1" />
+                      <img
+                        src={url}
+                        alt=""
+                        className="h-full w-full object-contain p-1"
+                        referrerPolicy="no-referrer"
+                      />
                       {processing ? (
                         <div className="absolute inset-0 flex items-center justify-center bg-white/55 dark:bg-zinc-950/45">
                           <Loader2 className="h-5 w-5 animate-spin text-violet-600" aria-hidden />
