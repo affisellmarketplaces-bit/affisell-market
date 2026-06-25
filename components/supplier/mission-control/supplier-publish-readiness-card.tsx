@@ -42,10 +42,22 @@ export async function SupplierPublishReadinessCard({ readiness }: Props) {
           <p className="text-lg font-bold tabular-nums text-zinc-900 dark:text-zinc-50">{publishedCount}</p>
           <p className="text-[9px] font-semibold uppercase tracking-wide text-zinc-500">{t("metricLive")}</p>
         </div>
-        <div className="rounded-xl border border-zinc-200/80 bg-white/70 px-3 py-2.5 text-center dark:border-zinc-800 dark:bg-zinc-950/50">
-          <p className="text-lg font-bold tabular-nums text-zinc-900 dark:text-zinc-50">{draftCount}</p>
-          <p className="text-[9px] font-semibold uppercase tracking-wide text-zinc-500">{t("metricDrafts")}</p>
-        </div>
+        {draftCount > 0 ? (
+          <Link
+            href="/dashboard/supplier/products?drafts=1"
+            className="rounded-xl border border-violet-200/90 bg-violet-50/80 px-3 py-2.5 text-center transition hover:border-violet-300 hover:bg-violet-100/80 dark:border-violet-900/60 dark:bg-violet-950/40 dark:hover:border-violet-800 dark:hover:bg-violet-950/60"
+          >
+            <p className="text-lg font-bold tabular-nums text-violet-800 dark:text-violet-200">{draftCount}</p>
+            <p className="text-[9px] font-semibold uppercase tracking-wide text-violet-600 dark:text-violet-400">
+              {t("metricDrafts")}
+            </p>
+          </Link>
+        ) : (
+          <div className="rounded-xl border border-zinc-200/80 bg-white/70 px-3 py-2.5 text-center dark:border-zinc-800 dark:bg-zinc-950/50">
+            <p className="text-lg font-bold tabular-nums text-zinc-900 dark:text-zinc-50">{draftCount}</p>
+            <p className="text-[9px] font-semibold uppercase tracking-wide text-zinc-500">{t("metricDrafts")}</p>
+          </div>
+        )}
         <div
           className={cn(
             "rounded-xl border px-3 py-2.5 text-center",
@@ -86,7 +98,7 @@ export async function SupplierPublishReadinessCard({ readiness }: Props) {
         ) : null}
         {readyToPublish ? (
           <Link
-            href="/dashboard/supplier/products?filter=draft"
+            href="/dashboard/supplier/products?drafts=1"
             className={cn(buttonVariants({ size: "sm", variant: "outline" }))}
           >
             {t("ctaPublishDrafts")}

@@ -15,7 +15,7 @@ export async function runMerchantKycReminderCron(
   const rows = await prisma.user.findMany({
     where: {
       role: "SUPPLIER",
-      products: { some: { isDraft: true, active: true } },
+      products: { some: { isDraft: true } },
       merchantLegalProfile: {
         verificationStatus: { not: "APPROVED" },
         kycPublishReminderSentAt: null,
@@ -27,7 +27,7 @@ export async function runMerchantKycReminderCron(
       email: true,
       name: true,
       merchantLegalProfile: { select: { id: true } },
-      _count: { select: { products: { where: { isDraft: true, active: true } } } },
+      _count: { select: { products: { where: { isDraft: true } } } },
     },
   })
 

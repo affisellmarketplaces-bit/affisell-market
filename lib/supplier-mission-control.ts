@@ -14,6 +14,10 @@ import type { SupplierEscrowSummary } from "@/lib/supplier-escrow-shared"
 export type { SupplierUrgentSnapshot } from "@/lib/supplier-urgent-snapshot"
 export type { ProductCommissionOpportunity } from "@/lib/supplier-product-opportunity"
 import { resolveSupplierPayoutCentsFromOrder } from "@/lib/marketplace-order-settlement"
+import {
+  supplierDraftProductsWhere,
+  supplierPublishedProductsWhere,
+} from "@/lib/merchant-tenant-scope"
 import { prisma } from "@/lib/prisma"
 
 const MARKETPLACE_COUNTABLE = ["paid", "preparing", "shipped", "refunded"] as const
@@ -273,10 +277,10 @@ export async function loadSupplierMissionControl(
   ] = await Promise.all([
     storePromise,
     prisma.product.count({
-      where: { supplierId: supplierUserId, active: true, isDraft: false },
+      where: supplierPublishedProductsWhere(supplierUserId),
     }),
     prisma.product.count({
-      where: { supplierId: supplierUserId, active: true, isDraft: true },
+      where: supplierDraftProductsWhere(supplierUserId),
     }),
     loadSupplierUrgentSnapshot(supplierUserId),
     fetchMarketplaceOrders(supplierUserId, currentFrom, currentTo),

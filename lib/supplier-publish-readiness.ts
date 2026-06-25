@@ -1,4 +1,8 @@
 import { merchantVerificationGate, type MerchantVerificationGate } from "@/lib/merchant-legal/require-merchant-verified"
+import {
+  supplierDraftProductsWhere,
+  supplierPublishedProductsWhere,
+} from "@/lib/merchant-tenant-scope"
 import { prisma } from "@/lib/prisma"
 
 export type SupplierPublishReadiness = {
@@ -15,10 +19,10 @@ export async function loadSupplierPublishReadiness(supplierId: string): Promise<
   const [gate, draftCount, publishedCount] = await Promise.all([
     merchantVerificationGate(supplierId),
     prisma.product.count({
-      where: { supplierId, isDraft: true, active: true },
+      where: supplierDraftProductsWhere(supplierId),
     }),
     prisma.product.count({
-      where: { supplierId, isDraft: false, active: true },
+      where: supplierPublishedProductsWhere(supplierId),
     }),
   ])
 
@@ -46,7 +50,7 @@ export async function loadMerchantPublishPipelineStats(): Promise<MerchantPublis
     prisma.user.count({
       where: {
         role: "SUPPLIER",
-        products: { some: { isDraft: true, active: true } },
+        products: { some: { isDraft: true } },
         OR: [
           { merchantLegalProfile: { is: null } },
           { merchantLegalProfile: { verificationStatus: { not: "APPROVED" } } },
@@ -57,7 +61,7 @@ export async function loadMerchantPublishPipelineStats(): Promise<MerchantPublis
       where: {
         role: "SUPPLIER",
         merchantLegalProfile: { verificationStatus: "APPROVED" },
-        products: { some: { isDraft: true, active: true } },
+        products: { some: { isDraft: true } },
       },
     }),
     prisma.merchantLegalProfile.count({ where: { verificationStatus: "APPROVED" } }),

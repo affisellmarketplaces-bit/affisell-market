@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { merchantVerificationGate } from "@/lib/merchant-legal/require-merchant-verified"
+import { supplierDraftProductsWhere } from "@/lib/merchant-tenant-scope"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
@@ -17,11 +18,7 @@ export async function GET() {
   const [gate, draftCount] = await Promise.all([
     merchantVerificationGate(userId),
     prisma.product.count({
-      where: {
-        supplierId: userId,
-        isDraft: true,
-        active: true,
-      },
+      where: supplierDraftProductsWhere(userId),
     }),
   ])
 
