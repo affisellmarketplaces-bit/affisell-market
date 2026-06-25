@@ -1,6 +1,10 @@
 import { z } from "zod"
 
-import { medusaBackendUrl } from "@/lib/medusa/backend-url"
+import {
+  convertMedusaDraftOrderToOrder,
+  createMedusaDraftOrder,
+  hasMedusaAdminToken,
+} from "@/lib/medusa-admin.impl"
 
 const MedusaOrderSchema = z.object({
   id: z.string(),
@@ -31,26 +35,6 @@ export type CreateMedusaOrderInput = {
   stripeSessionId: string
 }
 
-function medusaAdminHeaders(): Record<string, string> | null {
-  const token = process.env.MEDUSA_ADMIN_TOKEN?.trim()
-  if (!token) return null
-  return {
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
-  }
-}
-
-async function medusaAdminFetch(path: string, init: RequestInit): Promise<Response> {
-  const headers = medusaAdminHeaders()
-  if (!headers) {
-    throw new Error("MEDUSA_ADMIN_TOKEN missing")
-  }
-  return fetch(`${medusaBackendUrl()}${path}`, {
-    ...init,
-    headers: { ...headers, ...(init.headers as Record<string, string> | undefined) },
-  })
-}
-
 /**
  * Create a Medusa order from an Affisell-paid Stripe session.
  * Medusa v2 has no POST /admin/orders — uses draft-orders + convert-to-order.
@@ -58,7 +42,7 @@ async function medusaAdminFetch(path: string, init: RequestInit): Promise<Respon
 export async function createMedusaOrder(
   data: CreateMedusaOrderInput
 ): Promise<MedusaOrderRef | null> {
-  if (!process.env.MEDUSA_ADMIN_TOKEN?.trim()) {
+  if (!hasMedusaAdminToken()) {
     console.warn("[medusa] MEDUSA_ADMIN_TOKEN missing, skip order sync")
     return null
   }
@@ -92,59 +76,37 @@ export async function createMedusaOrder(
     no_notification_order: true,
   }
 
-  const draftRes = await medusaAdminFetch("/admin/draft-orders", {
-    method: "POST",
-    body: JSON.stringify(draftBody),
-  })
+  try {
+    const draftJson = await createMedusaDraftOrder(draftBody)
+    const draftId = draftJson.draft_order?.id
+    if (!draftId) {
+      console.error("[medusa] draft order create missing id", { stripeSessionId: data.stripeSessionId })
+      return null
+    }
 
-  if (!draftRes.ok) {
-    const err = await draftRes.text()
-    console.error("[medusa] draft order create failed", {
+    const orderJson = await convertMedusaDraftOrderToOrder(draftId)
+    const parsed = MedusaOrderSchema.safeParse(orderJson.order)
+    if (!parsed.success) {
+      console.error("[medusa] order response invalid", {
+        stripeSessionId: data.stripeSessionId,
+        draftId,
+        issues: parsed.error.issues,
+      })
+      return null
+    }
+
+    console.log("[medusa] order synced", {
       stripeSessionId: data.stripeSessionId,
-      status: draftRes.status,
-      err,
+      medusaOrderId: parsed.data.id,
+      displayId: parsed.data.display_id,
+    })
+
+    return parsed.data
+  } catch (err) {
+    console.error("[medusa] create order failed", {
+      stripeSessionId: data.stripeSessionId,
+      error: err instanceof Error ? err.message : String(err),
     })
     return null
   }
-
-  const draftJson = (await draftRes.json()) as { draft_order?: { id?: string } }
-  const draftId = draftJson.draft_order?.id
-  if (!draftId) {
-    console.error("[medusa] draft order create missing id", { stripeSessionId: data.stripeSessionId })
-    return null
-  }
-
-  const convertRes = await medusaAdminFetch(`/admin/draft-orders/${draftId}/convert-to-order`, {
-    method: "POST",
-  })
-
-  if (!convertRes.ok) {
-    const err = await convertRes.text()
-    console.error("[medusa] convert draft order failed", {
-      stripeSessionId: data.stripeSessionId,
-      draftId,
-      status: convertRes.status,
-      err,
-    })
-    return null
-  }
-
-  const orderJson = (await convertRes.json()) as { order?: unknown }
-  const parsed = MedusaOrderSchema.safeParse(orderJson.order)
-  if (!parsed.success) {
-    console.error("[medusa] order response invalid", {
-      stripeSessionId: data.stripeSessionId,
-      draftId,
-      issues: parsed.error.issues,
-    })
-    return null
-  }
-
-  console.log("[medusa] order synced", {
-    stripeSessionId: data.stripeSessionId,
-    medusaOrderId: parsed.data.id,
-    displayId: parsed.data.display_id,
-  })
-
-  return parsed.data
 }
