@@ -171,8 +171,30 @@ function replicateErrorText(err: unknown): string {
   return parts.join(" ").toLowerCase()
 }
 
-export function mapReplicateError(err: unknown): { status: number; message: string } {
+export function mapReplicateError(err: unknown): {
+  status: number
+  message: string
+  retryAfterSec?: number
+} {
   const msg = replicateErrorText(err)
+
+  // Throttle / 429 first — Replicate upsell text mentions "payment method" in 429 bodies.
+  if (
+    msg.includes("throttled") ||
+    msg.includes("rate limit") ||
+    msg.includes("too many requests") ||
+    msg.includes('"status":429') ||
+    msg.includes(" 429 ") ||
+    msg.includes("429 too many requests")
+  ) {
+    const retryMatch = msg.match(/retry_after["']?\s*[:=]\s*(\d+)/)
+    const retryAfterSec = retryMatch ? Math.max(1, parseInt(retryMatch[1]!, 10)) : 8
+    return {
+      status: 429,
+      message: `Try-on is busy — wait ${retryAfterSec} seconds and try again.`,
+      retryAfterSec,
+    }
+  }
 
   if (
     msg.includes("insufficient credit") ||
@@ -189,21 +211,7 @@ export function mapReplicateError(err: unknown): { status: number; message: stri
     }
   }
 
-  if (
-    msg.includes("rate limit") ||
-    msg.includes("throttled") ||
-    msg.includes("too many requests") ||
-    msg.includes('"status":429') ||
-    msg.includes(" 429 ")
-  ) {
-    return {
-      status: 429,
-      message: "Try-on is busy — wait a few seconds and try again.",
-    }
-  }
-
-  if (
-    msg.includes("face") ||
+  if (msg.includes("face") ||
     msg.includes("no person") ||
     msg.includes("landmark") ||
     (msg.includes("human") && msg.includes("detect"))

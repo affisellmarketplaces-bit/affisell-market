@@ -94,6 +94,19 @@ describe("mapReplicateError", () => {
     expect(mapped.status).toBe(402)
     expect(mapped.message).toMatch(/credit/i)
   })
+
+  it("maps throttled 429 even when message mentions payment method", async () => {
+    const { mapReplicateError } = await import("@/lib/try-on/cloth2body-api.server")
+    const mapped = mapReplicateError(
+      new Error(
+        'Request to https://api.replicate.com/v1/predictions failed with status 429 Too Many Requests: {"detail":"Request was throttled. Your rate limit is reduced until you add a payment method.","status":429,"retry_after":8}'
+      )
+    )
+    expect(mapped.status).toBe(429)
+    expect(mapped.retryAfterSec).toBe(8)
+    expect(mapped.message).toMatch(/wait 8 seconds/i)
+    expect(mapped.message).not.toMatch(/billing required/i)
+  })
 })
 
 describe("tryOnCreateBodySchema", () => {

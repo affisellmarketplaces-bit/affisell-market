@@ -1,5 +1,9 @@
 import type { TryOnJobResponse } from "@/lib/try-on/try-on-shared"
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
 export async function uploadTryOnPhoto(file: Blob): Promise<{ inputUrl: string }> {
   const form = new FormData()
   form.append("selfie", file, "selfie.jpg")
@@ -30,24 +34,40 @@ export async function startTryOnJob(input: {
   }
   form.append("garment_url", input.garmentUrl.trim())
 
-  const res = await fetch("/api/try-on", {
-    method: "POST",
-    credentials: "include",
-    body: form,
-  })
+  const max429Retries = 2
+  let attempt = 0
 
-  const data = (await res.json()) as TryOnJobResponse & {
-    prediction_id?: string
-    error?: string
-  }
-  if (!res.ok) {
-    throw new Error(data.error ?? "Try-on failed")
-  }
+  while (true) {
+    const res = await fetch("/api/try-on", {
+      method: "POST",
+      credentials: "include",
+      body: form,
+    })
 
-  return {
-    jobId: data.jobId ?? "",
-    status: (data.status as TryOnJobResponse["status"]) ?? "processing",
-    prediction_id: data.prediction_id,
+    const data = (await res.json()) as TryOnJobResponse & {
+      prediction_id?: string
+      error?: string
+    }
+
+    if (res.status === 429 && attempt < max429Retries) {
+      const retryAfterSec = Math.max(
+        1,
+        parseInt(res.headers.get("Retry-After") ?? "8", 10) || 8
+      )
+      attempt += 1
+      await sleep(retryAfterSec * 1000)
+      continue
+    }
+
+    if (!res.ok) {
+      throw new Error(data.error ?? "Try-on failed")
+    }
+
+    return {
+      jobId: data.jobId ?? "",
+      status: (data.status as TryOnJobResponse["status"]) ?? "processing",
+      prediction_id: data.prediction_id,
+    }
   }
 }
 

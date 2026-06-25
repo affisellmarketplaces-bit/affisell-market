@@ -119,11 +119,12 @@ function TryOnModalInner({
           throw new Error(final.error ?? "Try-on did not complete in time")
         }
       } catch (err) {
-        console.error("[try-on]", {
+        const message = err instanceof Error ? err.message : "Try-on failed"
+        console.log("[try-on]", {
           result: "client_run_failed",
-          message: err instanceof Error ? err.message : String(err),
+          message,
         })
-        setError(err instanceof Error ? err.message : "Try-on failed")
+        setError(message)
         setPhase("error")
       }
     },

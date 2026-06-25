@@ -203,7 +203,15 @@ export async function POST(req: Request) {
         message: mapped.message,
         rawMessage,
       })
-      return NextResponse.json({ error: mapped.message }, { status: mapped.status })
+      return NextResponse.json(
+        { error: mapped.message },
+        {
+          status: mapped.status,
+          ...(mapped.retryAfterSec
+            ? { headers: { "Retry-After": String(mapped.retryAfterSec) } }
+            : {}),
+        }
+      )
     }
   })
 }
