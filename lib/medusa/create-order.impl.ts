@@ -1,6 +1,8 @@
 import { z } from "zod"
 
 import {
+  affisellCentsToMedusaMajorUnits,
+  captureMedusaOrderExternalPayment,
   convertMedusaDraftOrderToOrder,
   createMedusaDraftOrder,
   hasMedusaAdminToken,
@@ -9,6 +11,11 @@ import {
 const MedusaOrderSchema = z.object({
   id: z.string(),
   display_id: z.number(),
+  summary: z
+    .object({
+      accounting_total: z.number().optional(),
+    })
+    .optional(),
 })
 
 export type MedusaOrderRef = z.infer<typeof MedusaOrderSchema>
@@ -62,7 +69,7 @@ export async function createMedusaOrder(
     items: data.items.map((item) => ({
       variant_id: item.variant_id,
       quantity: item.quantity,
-      unit_price: item.unit_price,
+      unit_price: affisellCentsToMedusaMajorUnits(item.unit_price),
       ...(item.title ? { title: item.title } : {}),
     })),
     shipping_address: data.shipping_address,
@@ -93,6 +100,19 @@ export async function createMedusaOrder(
         issues: parsed.error.issues,
       })
       return null
+    }
+
+    try {
+      await captureMedusaOrderExternalPayment(
+        parsed.data.id,
+        parsed.data.summary?.accounting_total ?? 0
+      )
+    } catch (captureErr) {
+      console.error("[medusa] payment capture failed", {
+        stripeSessionId: data.stripeSessionId,
+        medusaOrderId: parsed.data.id,
+        error: captureErr instanceof Error ? captureErr.message : String(captureErr),
+      })
     }
 
     console.log("[medusa] order synced", {

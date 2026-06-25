@@ -24,6 +24,15 @@ describe("resolveMedusaAdminToken", () => {
   })
 })
 
+describe("affisellCentsToMedusaMajorUnits", () => {
+  it("converts Affisell cents to Medusa major currency units", async () => {
+    const { affisellCentsToMedusaMajorUnits } = await import("@/lib/medusa-admin.impl")
+    expect(affisellCentsToMedusaMajorUnits(5)).toBe(0.05)
+    expect(affisellCentsToMedusaMajorUnits(50)).toBe(0.5)
+    expect(affisellCentsToMedusaMajorUnits(139_500)).toBe(1395)
+  })
+})
+
 describe("medusaAdminFetch", () => {
   afterEach(() => {
     vi.unstubAllEnvs()

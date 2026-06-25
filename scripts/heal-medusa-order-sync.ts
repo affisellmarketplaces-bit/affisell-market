@@ -88,6 +88,40 @@ async function main() {
   }
 
   console.log("[heal-medusa] Done", { synced, total: orderIds.length })
+
+  const { captureMedusaOrderExternalPayment } = await import("../lib/medusa-admin.impl")
+  const linked = await prisma.order.findMany({
+    where: {
+      status: "paid",
+      medusaOrderId: { not: null },
+      product: {
+        OR: [{ medusaHandle: { not: null } }, { medusaVariantId: { not: null } }],
+      },
+      ...(orderIdArg ? { id: orderIdArg } : {}),
+    },
+    select: { id: true, medusaOrderId: true },
+    orderBy: { createdAt: "desc" },
+    take: orderIdArg ? 1 : 50,
+  })
+
+  let captured = 0
+  for (const row of linked) {
+    const medusaOrderId = row.medusaOrderId?.trim()
+    if (!medusaOrderId) continue
+    try {
+      await captureMedusaOrderExternalPayment(medusaOrderId, 0)
+      captured += 1
+      console.log("[heal-medusa] Payment captured", { orderId: row.id, medusaOrderId })
+    } catch (err) {
+      console.warn("[heal-medusa] Payment capture failed", {
+        orderId: row.id,
+        medusaOrderId,
+        error: err instanceof Error ? err.message : String(err),
+      })
+    }
+  }
+
+  console.log("[heal-medusa] Payments", { captured, linked: linked.length })
   await prisma.$disconnect()
 }
 
