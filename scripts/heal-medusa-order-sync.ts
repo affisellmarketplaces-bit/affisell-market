@@ -61,33 +61,34 @@ async function main() {
       ).map((o) => o.id)
 
   if (orderIds.length === 0) {
-    console.log("[heal-medusa] No paid orders to sync (product needs medusaHandle or medusaVariantId)")
-    await prisma.$disconnect()
-    return
-  }
+    console.log("[heal-medusa] No new orders to sync (all mapped products already linked)")
+  } else {
+    console.log("[heal-medusa] Syncing", { count: orderIds.length })
 
-  console.log("[heal-medusa] Syncing", { count: orderIds.length })
-
-  let synced = 0
-  for (const orderId of orderIds) {
-    const before = await prisma.order.findUnique({
-      where: { id: orderId },
-      select: { medusaOrderId: true },
-    })
-    await syncMarketplaceOrderToMedusaIfNeeded(orderId)
-    const after = await prisma.order.findUnique({
-      where: { id: orderId },
-      select: { medusaOrderId: true },
-    })
-    if (after?.medusaOrderId && after.medusaOrderId !== before?.medusaOrderId) {
-      synced += 1
-      console.log("[heal-medusa] Linked", { orderId, medusaOrderId: after.medusaOrderId })
-    } else {
-      console.warn("[heal-medusa] Skipped or failed", { orderId, medusaOrderId: after?.medusaOrderId })
+    let synced = 0
+    for (const orderId of orderIds) {
+      const before = await prisma.order.findUnique({
+        where: { id: orderId },
+        select: { medusaOrderId: true },
+      })
+      await syncMarketplaceOrderToMedusaIfNeeded(orderId)
+      const after = await prisma.order.findUnique({
+        where: { id: orderId },
+        select: { medusaOrderId: true },
+      })
+      if (after?.medusaOrderId && after.medusaOrderId !== before?.medusaOrderId) {
+        synced += 1
+        console.log("[heal-medusa] Linked", { orderId, medusaOrderId: after.medusaOrderId })
+      } else {
+        console.warn("[heal-medusa] Skipped or failed", {
+          orderId,
+          medusaOrderId: after?.medusaOrderId,
+        })
+      }
     }
-  }
 
-  console.log("[heal-medusa] Done", { synced, total: orderIds.length })
+    console.log("[heal-medusa] Done", { synced, total: orderIds.length })
+  }
 
   const { captureMedusaOrderExternalPayment } = await import("../lib/medusa-admin.impl")
   const linked = await prisma.order.findMany({
