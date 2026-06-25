@@ -169,6 +169,8 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
     [onImagesChange]
   )
 
+  const busy = isBatchUploading || processingSlots.size > 0
+
   useEffect(() => {
     if (busy) return
     const next = Array.from({ length: SLOT_COUNT }, (_, i) => initialUrls?.[i] ?? null)
@@ -179,8 +181,6 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialUrls?.join("\0"), busy])
-
-  const busy = isBatchUploading || processingSlots.size > 0
 
   useEffect(() => {
     onBusyChange?.(busy)
