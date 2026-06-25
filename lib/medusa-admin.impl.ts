@@ -19,6 +19,11 @@ export function hasMedusaAdminToken(): boolean {
   return Boolean(process.env.MEDUSA_ADMIN_TOKEN?.trim())
 }
 
+/** Medusa v2 Secret API Keys use Basic auth (not Bearer). */
+export function medusaAdminAuthorizationHeader(secretKey: string): string {
+  return `Basic ${secretKey}`
+}
+
 export async function medusaAdminFetch<T = unknown>(
   path: string,
   init: RequestInit = {}
@@ -31,7 +36,7 @@ export async function medusaAdminFetch<T = unknown>(
   const res = await fetch(url, {
     ...init,
     headers: {
-      Authorization: `Bearer ${token}`,
+      Authorization: medusaAdminAuthorizationHeader(token),
       "Content-Type": "application/json",
       Accept: "application/json",
       ...(init.headers as Record<string, string> | undefined),

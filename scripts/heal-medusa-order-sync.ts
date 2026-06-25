@@ -26,7 +26,9 @@ async function main() {
     "../lib/medusa/sync-marketplace-order.impl"
   )
 
-  const orderIdArg = process.argv[2]?.trim()
+  const rawArg = process.argv[2]?.trim()
+  const orderIdArg =
+    rawArg && !rawArg.startsWith("#") && /^c[a-z0-9]{20,}$/i.test(rawArg) ? rawArg : null
   const token = process.env.MEDUSA_ADMIN_TOKEN?.trim()
   const regionId = process.env.MEDUSA_REGION_ID?.trim()
 

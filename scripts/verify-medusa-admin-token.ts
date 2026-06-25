@@ -30,7 +30,7 @@ async function main() {
       error: msg,
       hint:
         msg.includes("401")
-          ? "Use Secret API Key (sk_…) from Medusa Admin → Settings → Secret API Keys"
+          ? "Use Secret API Key (sk_…) from Medusa Admin → Settings → Secret API Keys (Basic auth, not Bearer)"
           : undefined,
     })
     process.exit(1)

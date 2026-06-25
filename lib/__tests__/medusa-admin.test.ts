@@ -30,7 +30,7 @@ describe("medusaAdminFetch", () => {
     vi.restoreAllMocks()
   })
 
-  it("sends Authorization Bearer header", async () => {
+  it("sends Authorization Basic header (Medusa v2 secret API key)", async () => {
     vi.stubEnv("MEDUSA_ADMIN_TOKEN", "sk_test_header")
     vi.stubEnv("MEDUSA_BACKEND_URL", "http://localhost:9000")
 
@@ -47,7 +47,7 @@ describe("medusaAdminFetch", () => {
     expect(fetchMock).toHaveBeenCalledOnce()
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit]
     const headers = init.headers as Record<string, string>
-    expect(headers.Authorization).toBe("Bearer sk_test_header")
+    expect(headers.Authorization).toBe("Basic sk_test_header")
     expect(headers["Content-Type"]).toBe("application/json")
   })
 })

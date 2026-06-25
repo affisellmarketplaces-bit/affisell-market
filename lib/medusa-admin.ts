@@ -4,6 +4,7 @@ export {
   convertMedusaDraftOrderToOrder,
   createMedusaDraftOrder,
   hasMedusaAdminToken,
+  medusaAdminAuthorizationHeader,
   medusaAdminFetch,
   resolveMedusaAdminToken,
   type CreateMedusaDraftOrderPayload,
