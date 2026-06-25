@@ -33,8 +33,12 @@ const nextConfig: NextConfig = {
     ]
   },
   output: "standalone" as const,
-  /** Client bundles emit source maps for Sentry (Turbopack + runAfterProductionCompile upload). */
-  productionBrowserSourceMaps: true,
+  /** Source maps only when Sentry upload is configured — smaller client payloads otherwise. */
+  productionBrowserSourceMaps: Boolean(
+    process.env.SENTRY_AUTH_TOKEN?.trim() &&
+      process.env.SENTRY_ORG?.trim() &&
+      process.env.SENTRY_PROJECT?.trim()
+  ),
   /** Keep WASM/ONNX browser stacks out of serverless traces (photo-studio is client-only). */
   outputFileTracingExcludes: {
     "*": [
@@ -47,6 +51,18 @@ const nextConfig: NextConfig = {
     "/legal/[slug]": ["./legal/**/*.md"],
   },
   serverExternalPackages: ["@imgly/background-removal", "onnxruntime-web"],
+  experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "framer-motion",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-dropdown-menu",
+      "@radix-ui/react-popover",
+      "@radix-ui/react-select",
+      "@radix-ui/react-tabs",
+      "@radix-ui/react-tooltip",
+    ],
+  },
   webpack: (config, { isServer }) => {
     if (isServer) {
       if (Array.isArray(config.externals)) {
@@ -56,6 +72,8 @@ const nextConfig: NextConfig = {
     return config
   },
   images: {
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 3600,
     remotePatterns: [
       { protocol: "https", hostname: "m.media-amazon.com", pathname: "/**" },
       { protocol: "https", hostname: "images-na.ssl-images-amazon.com", pathname: "/**" },

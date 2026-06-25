@@ -1,21 +1,14 @@
 import { cache } from "react"
 
+import { loadAffiliateShopStore } from "@/lib/shop-storefront-data"
 import { prisma } from "@/lib/prisma"
 import type { StorefrontTrustSnapshot } from "@/lib/storefront-trust-shared"
 
 export const loadAffiliateStorefrontTrust = cache(async function loadAffiliateStorefrontTrust(
   slug: string
 ): Promise<StorefrontTrustSnapshot | null> {
-  const store = await prisma.store.findUnique({
-    where: { slug },
-    select: {
-      name: true,
-      partnerListingCode: true,
-      userId: true,
-      user: { select: { role: true } },
-    },
-  })
-  if (!store || store.user.role !== "AFFILIATE") return null
+  const store = await loadAffiliateShopStore(slug)
+  if (!store) return null
 
   const profile = await prisma.merchantLegalProfile.findUnique({
     where: { userId: store.userId },

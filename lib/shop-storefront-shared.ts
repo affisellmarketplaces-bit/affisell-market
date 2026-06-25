@@ -13,6 +13,7 @@ export type ShopStoreSummary = {
   bannerUrl: string | null
   nicheLabel: NicheKey
   theme: StorefrontTheme
+  partnerListingCode: string
 }
 
 export type ShopProductCategory = {

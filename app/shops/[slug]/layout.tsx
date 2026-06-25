@@ -4,15 +4,17 @@ import { AffiliateStorePreviewBannerGate } from "@/components/shop/AffiliateStor
 import { StorefrontBuyerChromeBar } from "@/components/storefront/storefront-buyer-chrome-bar"
 import { StorefrontHostChromeSync } from "@/components/storefront/storefront-host-chrome-sync"
 import { StorefrontThemeStyles } from "@/components/storefront/storefront-theme-styles"
-import { auth } from "@/auth"
-import { isAffiliateStoreOwner } from "@/lib/affiliate-store-preview-access"
-import { loadAffiliateStorefrontTrust } from "@/lib/load-affiliate-storefront-trust"
-import { loadAffiliateShopStore } from "@/lib/shop-storefront-data"
+import {
+  loadAffiliateShopStoreCached,
+  loadAffiliateStorefrontTrustCached,
+  SHOP_REVALIDATE_SEC,
+} from "@/lib/shop-storefront-cache"
 import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
 import { storefrontSurfaceClass } from "@/lib/storefront-theme-shared"
 import { cn } from "@/lib/utils"
 
-export const dynamic = "force-dynamic"
+/** Affiliate shop shell — ISR + cross-request cache (owner preview is client-only). */
+export const revalidate = SHOP_REVALIDATE_SEC
 
 export default async function ShopPublicLayout({
   children,
@@ -25,12 +27,10 @@ export default async function ShopPublicLayout({
   const hdrs = await headers()
   const isCustomDomain = isCustomDomainHeaders(hdrs)
   const shopHomePath = isCustomDomain ? "/" : `/shops/${slug}`
-  const [store, trust, session] = await Promise.all([
-    loadAffiliateShopStore(slug),
-    loadAffiliateStorefrontTrust(slug),
-    auth(),
+  const [store, trust] = await Promise.all([
+    loadAffiliateShopStoreCached(slug),
+    loadAffiliateStorefrontTrustCached(slug),
   ])
-  const isStoreOwner = isAffiliateStoreOwner(session?.user?.id, store?.userId)
 
   const surfaceClass = storefrontSurfaceClass(store?.theme.surface)
 
@@ -52,7 +52,7 @@ export default async function ShopPublicLayout({
           isCustomDomain={isCustomDomain}
         />
       ) : null}
-      <AffiliateStorePreviewBannerGate storeSlug={slug} isStoreOwner={isStoreOwner} />
+      <AffiliateStorePreviewBannerGate storeSlug={slug} storeUserId={store?.userId ?? ""} />
       <main className="min-w-0 overflow-x-clip">{children}</main>
     </div>
   )

@@ -2,20 +2,24 @@
 
 import { Suspense } from "react"
 import { useSearchParams } from "next/navigation"
+import { useSession } from "next-auth/react"
 
 import { AffiliateStorePreviewBanner } from "@/components/shop/AffiliateStorePreviewBanner"
 import {
   isAffiliateOwnerPreviewUrl,
+  isAffiliateStoreOwner,
   shouldShowAffiliateStorePreviewBanner,
 } from "@/lib/affiliate-store-preview-access"
 
 type Props = {
   storeSlug: string
-  isStoreOwner: boolean
+  storeUserId: string
 }
 
-function AffiliateStorePreviewBannerGateInner({ storeSlug, isStoreOwner }: Props) {
+function AffiliateStorePreviewBannerGateInner({ storeSlug, storeUserId }: Props) {
+  const { data: session } = useSession()
   const searchParams = useSearchParams()
+  const isStoreOwner = isAffiliateStoreOwner(session?.user?.id, storeUserId)
   if (
     !shouldShowAffiliateStorePreviewBanner(
       isStoreOwner,

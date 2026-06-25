@@ -24,7 +24,7 @@ import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-fi
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
 import {
-  groupProductCategories,
+  STOREFRONT_OTHER_CATEGORY_ID,
   type StorefrontCategoryGroup,
 } from "@/lib/shop-storefront-categories"
 import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
@@ -42,6 +42,7 @@ export const loadAffiliateShopStore = cache(async function loadAffiliateShopStor
       logoUrl: true,
       aiAvatarUrl: true,
       bannerUrl: true,
+      partnerListingCode: true,
       storefrontTheme: true,
       user: { select: { role: true } },
     },
@@ -58,6 +59,7 @@ export const loadAffiliateShopStore = cache(async function loadAffiliateShopStor
     bannerUrl: store.bannerUrl,
     nicheLabel: inferNicheLabel(store.description, store.name),
     theme: parseStorefrontTheme(store.storefrontTheme),
+    partnerListingCode: store.partnerListingCode,
   }
 })
 
@@ -251,39 +253,41 @@ export async function loadPublicAffiliateShops(limit = 500): Promise<PublicShopD
     })
 }
 
-/** All listed categories for an affiliate storefront (every listed SKU, not the product grid limit). */
+/** All listed categories for an affiliate storefront (aggregated — not O(n) listing scan). */
 export const loadAffiliateShopCategoryGroups = cache(async function loadAffiliateShopCategoryGroups(
   affiliateUserId: string
 ): Promise<StorefrontCategoryGroup[]> {
-  const listings = await prisma.affiliateProduct.findMany({
-    where: {
-      affiliateId: affiliateUserId,
-      isListed: true,
-      product: buyerMarketplaceProductWhere,
-    },
-    select: {
-      product: {
-        select: {
-          category: { select: { id: true, name: true, slug: true, icon: true } },
-        },
-      },
-    },
-  })
+  const rows = await prisma.$queryRaw<
+    Array<{ id: string; slug: string; name: string; icon: string; count: bigint }>
+  >`
+    SELECT
+      COALESCE(c.id, ${STOREFRONT_OTHER_CATEGORY_ID}) AS id,
+      COALESCE(c.slug, 'other') AS slug,
+      COALESCE(c.name, 'Other') AS name,
+      COALESCE(c.icon, '✨') AS icon,
+      COUNT(*)::bigint AS count
+    FROM "AffiliateProduct" ap
+    INNER JOIN "Product" p ON p.id = ap."productId"
+    LEFT JOIN "Category" c ON c.id = p."categoryId"
+    WHERE ap."affiliateId" = ${affiliateUserId}
+      AND ap."isListed" = true
+      AND p.active = true
+      AND p."isDraft" = false
+      AND p.id NOT IN ('test_product_3way', 'cmpiddd890003thlps6tp')
+      AND p.id NOT LIKE 'test_%'
+      AND p.name NOT ILIKE 'Test %'
+      AND p.name NOT ILIKE '%test tva%'
+    GROUP BY c.id, c.slug, c.name, c.icon
+    ORDER BY COALESCE(c.name, 'Other') ASC
+  `
 
-  return groupProductCategories(
-    listings
-      .filter((row) => row.product)
-      .map((row) => ({
-        category: row.product!.category
-          ? {
-              id: row.product!.category!.id,
-              slug: row.product!.category!.slug,
-              name: row.product!.category!.name,
-              icon: row.product!.category!.icon || "📦",
-            }
-          : null,
-      }))
-  )
+  return rows.map((row) => ({
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    icon: row.icon || "📦",
+    count: Number(row.count),
+  }))
 })
 
 /** Slugs only — sitemap-friendly. */

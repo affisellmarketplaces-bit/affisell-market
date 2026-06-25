@@ -1,11 +1,12 @@
 import path from "node:path"
 
 import { mkdir, writeFile } from "fs/promises"
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag } from "next/cache"
 
 import { auth } from "@/auth"
 import { allocateUniqueSlug, ensureMerchantStore } from "@/lib/ensure-store"
 import { prisma } from "@/lib/prisma"
+import { shopTag } from "@/lib/shop-storefront-cache"
 import { parseStorefrontTheme, themeFromBrandStudioFields } from "@/lib/storefront-theme-shared"
 import { normalizeCustomDomain } from "@/lib/verify-store-domain"
 
@@ -189,9 +190,11 @@ export async function POST(req: Request) {
 
     revalidatePath(`/shops/${store.slug}`)
     revalidatePath(`/shops/${store.slug}`, "layout")
+    revalidateTag(shopTag(store.slug), "max")
     if (slug !== store.slug) {
       revalidatePath(`/shops/${slug}`)
       revalidatePath(`/shops/${slug}`, "layout")
+      revalidateTag(shopTag(slug), "max")
     }
     revalidatePath("/dashboard/affiliate/brand-studio")
     revalidatePath("/dashboard/supplier/storefront")

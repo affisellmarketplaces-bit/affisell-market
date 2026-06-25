@@ -8,12 +8,15 @@ import {
   filterShopProductsByCategory,
   groupShopProductsByCategory,
 } from "@/lib/shop-storefront-categories"
-import { loadAffiliateStorefrontTrust } from "@/lib/load-affiliate-storefront-trust"
-import { loadAffiliateShopProducts, loadAffiliateShopStore } from "@/lib/shop-storefront-data"
+import {
+  loadAffiliateShopProductsCached,
+  loadAffiliateShopStoreCached,
+  loadAffiliateStorefrontTrustCached,
+  SHOP_REVALIDATE_SEC,
+} from "@/lib/shop-storefront-cache"
 import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
-import { prisma } from "@/lib/prisma"
 
-export const dynamic = "force-dynamic"
+export const revalidate = SHOP_REVALIDATE_SEC
 
 export async function generateMetadata({
   params,
@@ -21,7 +24,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
   const { slug } = await params
-  const store = await loadAffiliateShopStore(slug)
+  const store = await loadAffiliateShopStoreCached(slug)
   const t = await getTranslations("shops")
   const tDiscovery = await getTranslations("discovery")
   if (!store) return { title: t("title") }
@@ -46,17 +49,12 @@ export default async function ShopSlugPage({
   const hdrs = await headers()
   const isDedicatedHost = isCustomDomainHeaders(hdrs)
 
-  const [storeMeta, storeFront, trust] = await Promise.all([
-    prisma.store.findUnique({
-      where: { slug },
-      select: { userId: true, user: { select: { role: true } } },
-    }),
-    loadAffiliateShopStore(slug),
-    loadAffiliateStorefrontTrust(slug),
+  const [storeFront, trust, products] = await Promise.all([
+    loadAffiliateShopStoreCached(slug),
+    loadAffiliateStorefrontTrustCached(slug),
+    loadAffiliateShopProductsCached(slug),
   ])
-  if (!storeMeta || storeMeta.user.role !== "AFFILIATE" || !storeFront) notFound()
-
-  const products = await loadAffiliateShopProducts(storeMeta.userId)
+  if (!storeFront) notFound()
 
   const categories = groupShopProductsByCategory(products)
   const activeCategory =
