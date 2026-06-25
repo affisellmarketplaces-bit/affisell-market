@@ -48,6 +48,19 @@ type Tx = Prisma.TransactionClient
 
 const MARKETPLACE_FULFILL_TX_OPTIONS = { timeout: 60_000, maxWait: 15_000 } as const
 
+const CHECKOUT_FULFILL_LOCK_PREFIX = "affisell:checkout:"
+
+function isPrismaUniqueOnField(err: unknown, field: string): boolean {
+  if (typeof err !== "object" || err === null || !("code" in err)) return false
+  if ((err as { code: string }).code !== "P2002") return false
+  const target = (err as { meta?: { target?: string[] } }).meta?.target
+  return Array.isArray(target) && target.includes(field)
+}
+
+async function acquireCheckoutFulfillLock(tx: Tx, sessionId: string): Promise<void> {
+  await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`${CHECKOUT_FULFILL_LOCK_PREFIX}${sessionId}`}))`
+}
+
 type OrderConfirmationEmailPayload = Parameters<typeof sendOrderConfirmationEmail>[0]
 
 const listingWithProductInclude = {
@@ -277,51 +290,70 @@ async function createPaidMarketplaceOrder(
       ? listing.marginCents
       : Math.max(0, unitSupplierCents > 0 ? Math.round(affiliateMarginRetainedCents / qty) : 0)
 
-  const order = await tx.order.create({
-    data: {
-      stripeSessionId: args.stripeSessionId,
-      productId: listing.productId,
-      affiliateProductId: listing.id,
-      supplierId: listing.product.supplierId,
-      affiliateId: listing.affiliateId,
-      buyerUserId: args.buyerUserId,
-      buyerLocale: args.buyerLocale?.trim() || null,
-      listingKindSnapshot: listing.product.listingKind.trim().toUpperCase(),
-      customerEmail: args.customerEmail,
-      quantity: qty,
-      shippingAddress: args.shippingAddress,
-      variantLabel: args.variantLabel || null,
-      variantImageUrl,
-      basePriceCents,
-      sellingPriceCents: settlement.sellingPriceCents,
-      marginCents: settlement.marginCents,
-      commissionCents: settlement.affiliateCommissionCents,
-      affiliatePayoutCents: settlement.affiliateCommissionCents,
-      affisellFeeCents: phase1Fees.affisellFeeTotalCents,
-      supplierFeeCents: phase1Fees.supplierFeeCents,
-      affiliateFeeCents: phase1Fees.affiliateFeeCents,
-      aeWholesaleCents,
-      upstreamCogsCents: escrowAllocation.upstreamCogsCents,
-      supplierMarginCents: escrowAllocation.supplierMarginCents,
-      usesAffisellAutoBuy,
-      affiliateMarginRetainedCents,
-      supplierPriceCents: unitSupplierCents * qty,
-      supplierCommissionRateBps,
-      supplierPayoutCents: supplierNetPayoutCents,
-      affiliateMarginCents: affiliateMarginCents * qty,
-      affisellCommissionRateBps,
-      status: "paid",
-      paidAt: new Date(),
-      shipDeadlineAt: computeShipDeadlineAt(new Date()),
-      fulfillmentStatus: "PENDING",
-      subtotalCents: settlement.affisellFeeBaseCents,
-      taxCents: lineTaxCents,
-      totalCents: lineTotalCents,
-      paymentSettlementStatus: "PENDING",
-      affiliateStripeAccountId: listing.affiliate.stripeAccountId?.trim() || null,
-      currency: args.checkoutCurrency.toUpperCase(),
-    },
-  })
+  let order
+  try {
+    order = await tx.order.create({
+      data: {
+        stripeSessionId: args.stripeSessionId,
+        productId: listing.productId,
+        affiliateProductId: listing.id,
+        supplierId: listing.product.supplierId,
+        affiliateId: listing.affiliateId,
+        buyerUserId: args.buyerUserId,
+        buyerLocale: args.buyerLocale?.trim() || null,
+        listingKindSnapshot: listing.product.listingKind.trim().toUpperCase(),
+        customerEmail: args.customerEmail,
+        quantity: qty,
+        shippingAddress: args.shippingAddress,
+        variantLabel: args.variantLabel || null,
+        variantImageUrl,
+        basePriceCents,
+        sellingPriceCents: settlement.sellingPriceCents,
+        marginCents: settlement.marginCents,
+        commissionCents: settlement.affiliateCommissionCents,
+        affiliatePayoutCents: settlement.affiliateCommissionCents,
+        affisellFeeCents: phase1Fees.affisellFeeTotalCents,
+        supplierFeeCents: phase1Fees.supplierFeeCents,
+        affiliateFeeCents: phase1Fees.affiliateFeeCents,
+        aeWholesaleCents,
+        upstreamCogsCents: escrowAllocation.upstreamCogsCents,
+        supplierMarginCents: escrowAllocation.supplierMarginCents,
+        usesAffisellAutoBuy,
+        affiliateMarginRetainedCents,
+        supplierPriceCents: unitSupplierCents * qty,
+        supplierCommissionRateBps,
+        supplierPayoutCents: supplierNetPayoutCents,
+        affiliateMarginCents: affiliateMarginCents * qty,
+        affisellCommissionRateBps,
+        status: "paid",
+        paidAt: new Date(),
+        shipDeadlineAt: computeShipDeadlineAt(new Date()),
+        fulfillmentStatus: "PENDING",
+        subtotalCents: settlement.affisellFeeBaseCents,
+        taxCents: lineTaxCents,
+        totalCents: lineTotalCents,
+        paymentSettlementStatus: "PENDING",
+        affiliateStripeAccountId: listing.affiliate.stripeAccountId?.trim() || null,
+        currency: args.checkoutCurrency.toUpperCase(),
+      },
+    })
+  } catch (err) {
+    if (isPrismaUniqueOnField(err, "stripeSessionId")) {
+      const existing = await tx.order.findUnique({
+        where: { stripeSessionId: args.stripeSessionId },
+        select: { id: true, status: true },
+      })
+      if (existing?.status === "paid") {
+        console.log("[marketplace-fulfill]", {
+          stripeSessionId: args.stripeSessionId,
+          orderId: existing.id,
+          result: "idempotent_duplicate_stripe_session",
+        })
+        return existing.id
+      }
+    }
+    throw err
+  }
 
   await syncMarketplaceOrderToMedusa(tx, {
     orderId: order.id,
@@ -494,8 +526,24 @@ export async function fulfillMarketplaceStripeSession(
     }
 
     const fulfilledOrderIds: string[] = []
+    let alreadyFulfilled = false
 
     await prisma.$transaction(async (tx) => {
+      await acquireCheckoutFulfillLock(tx, sessionId)
+
+      const lockedRows = await tx.order.findMany({
+        where: { stripeSessionId: { in: stripeIds } },
+        select: { id: true, stripeSessionId: true, status: true },
+      })
+      const allPaidLocked = stripeIds.every((id) =>
+        lockedRows.some((row) => row.stripeSessionId === id && row.status === "paid")
+      )
+      if (allPaidLocked) {
+        alreadyFulfilled = true
+        fulfilledOrderIds.push(...lockedRows.filter((row) => row.status === "paid").map((row) => row.id))
+        return
+      }
+
       const earnUserId = await resolveBuyerUserIdForEarn(tx, buyerUserId, customerEmail)
 
       await redeemBuyerRewardOrSkip(tx, {
@@ -592,6 +640,14 @@ export async function fulfillMarketplaceStripeSession(
       }
     }, MARKETPLACE_FULFILL_TX_OPTIONS)
 
+    if (alreadyFulfilled) {
+      for (const orderId of fulfilledOrderIds) {
+        await syncMarketplaceOrderToMedusaIfNeeded(orderId)
+      }
+      scheduleMerchantOrderAlerts(fulfilledOrderIds)
+      return
+    }
+
     scheduleMerchantOrderAlerts(fulfilledOrderIds)
 
     try {
@@ -681,6 +737,8 @@ export async function fulfillMarketplaceStripeSession(
   const fulfilledOrderIds: string[] = []
 
   await prisma.$transaction(async (tx) => {
+    await acquireCheckoutFulfillLock(tx, sessionId)
+
     let dup = await tx.order.findUnique({ where: { stripeSessionId: sessionId } })
     if (!dup && metaOrderId) {
       dup = await tx.order.findUnique({ where: { id: metaOrderId } })

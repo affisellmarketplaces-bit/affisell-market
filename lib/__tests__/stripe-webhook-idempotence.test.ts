@@ -107,4 +107,22 @@ describe("processStripeWebhookEvent idempotence", () => {
     expect(r2.duplicate).toBe(true)
     expect(scheduleMarketplaceTransferAttempts).toHaveBeenCalledTimes(1)
   }, 15_000)
+
+  it("does not create orders on payment_intent.succeeded (checkout.session.completed owns fulfill)", async () => {
+    const { processStripeWebhookEvent } = await import("@/lib/stripe-webhook-processor")
+
+    const event = {
+      id: "evt_pi_no_fulfill",
+      type: "payment_intent.succeeded",
+      data: {
+        object: {
+          id: "pi_test_no_fulfill",
+          metadata: { flow: "marketplace" },
+        },
+      },
+    } as unknown as Stripe.Event
+
+    await processStripeWebhookEvent(event)
+    expect(ensureMarketplaceCheckoutFulfilled).not.toHaveBeenCalled()
+  }, 15_000)
 })

@@ -316,45 +316,11 @@ async function dispatchStripeEvent(
   }
 }
 
-async function fulfillMarketplaceCheckoutFromPaymentIntent(
-  paymentIntent: Stripe.PaymentIntent
-): Promise<void> {
-  if (paymentIntent.metadata?.flow !== "marketplace") return
-
-  const stripe = getStripeClient()
-  const sessions = await stripe.checkout.sessions.list({
-    payment_intent: paymentIntent.id,
-    limit: 1,
-  })
-  const session = sessions.data[0]
-  if (!session || session.mode !== "payment" || session.payment_status !== "paid") {
-    return
-  }
-
-  await ensureMarketplaceCheckoutFulfilled(session)
-}
-
 export async function processStripeWebhookEvent(event: Stripe.Event): Promise<WebhookProcessResult> {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session
     if (session.mode === "payment" && session.payment_status === "paid") {
       await ensureMarketplaceCheckoutFulfilled(session)
-    }
-  }
-
-  if (event.type === "payment_intent.succeeded") {
-    try {
-      await fulfillMarketplaceCheckoutFromPaymentIntent(
-        event.data.object as Stripe.PaymentIntent
-      )
-    } catch (error) {
-      logStripeWebhookError({
-        metric: "marketplace_pi_fulfill_failed",
-        paymentIntentId: (event.data.object as Stripe.PaymentIntent).id,
-      })
-      captureStripeWebhookException(error, {
-        paymentIntentId: (event.data.object as Stripe.PaymentIntent).id,
-      })
     }
   }
 
