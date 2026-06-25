@@ -1,5 +1,26 @@
+import { NextResponse } from "next/server"
+
 /** Minimum card charge for Stripe Checkout (EUR cents) — keeps a small card payment when using store credit. */
 export const STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS = 50
+
+export function sumPaidLinesCents(paidLineCents: number[]): number {
+  return paidLineCents.reduce((sum, cents) => sum + Math.max(0, Math.round(cents)), 0)
+}
+
+export function isStripeCheckoutPaidTotalValid(paidTotalCents: number): boolean {
+  return paidTotalCents >= STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS
+}
+
+/** Block checkout before Stripe when total due is below platform minimum (avoids 500 + Sentry). */
+export function stripeCheckoutMinimumNotMetResponse(): NextResponse {
+  return NextResponse.json(
+    {
+      error: "checkout_minimum_not_met",
+      minAmountCents: STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS,
+    },
+    { status: 400 }
+  )
+}
 
 /**
  * Split `targetPaidTotal` across lines proportionally (integer cents), never paying more than original `subs` per line.

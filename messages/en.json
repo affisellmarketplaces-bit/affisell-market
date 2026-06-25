@@ -504,6 +504,8 @@
     "redirecting": "Redirecting…",
     "validatePurchase": "Complete purchase",
     "checkoutRegionBlocked": "Checkout not available in your country yet",
+    "checkoutMinimumNotMet": "Minimum card payment is €{min} (Stripe). Add items or increase quantity.",
+    "checkoutFailed": "Could not start checkout. Please try again.",
     "checkoutShippingNote": {
       "title": "Shipping to {count} EU countries",
       "body": "Each item ships from its supplier's warehouse zone. Delivery times and fees are shown at checkout."

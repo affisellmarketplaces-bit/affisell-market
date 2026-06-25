@@ -504,6 +504,8 @@
     "redirecting": "Redirection…",
     "validatePurchase": "Valider mon achat",
     "checkoutRegionBlocked": "Checkout pas encore disponible dans votre pays",
+    "checkoutMinimumNotMet": "Paiement carte minimum : {min} € (Stripe). Ajoutez des articles ou augmentez la quantité.",
+    "checkoutFailed": "Impossible de lancer le paiement. Réessayez.",
     "checkoutShippingNote": {
       "title": "Livraison dans {count} pays UE",
       "body": "Chaque article part de l'entrepôt déclaré par le fournisseur. Délais et frais affichés au paiement."

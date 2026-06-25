@@ -28,6 +28,7 @@ import { CartCheckoutIdentitySheet } from "@/components/cart/cart-checkout-ident
 import { dispatchCartUpdated } from "@/lib/buyer-cart-count-client"
 import { mergeGuestBuyerSessionToServer } from "@/lib/merge-guest-cart-client"
 import { formatStoreCurrency } from "@/lib/market-config"
+import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/marketplace-checkout-discount"
 
 type CartLine = {
   id: string
@@ -154,6 +155,7 @@ export default function CartPage() {
   const [isCustomerBuyer, setIsCustomerBuyer] = useState(false)
   const [loading, setLoading] = useState(true)
   const [checkoutBusy, setCheckoutBusy] = useState(false)
+  const [checkoutError, setCheckoutError] = useState<string | null>(null)
   const [identityOpen, setIdentityOpen] = useState(false)
   const [rewardBalanceCents, setRewardBalanceCents] = useState(0)
   const [useRewardCents, setUseRewardCents] = useState(0)
@@ -251,12 +253,18 @@ export default function CartPage() {
   )
 
   const subtotalCents = Math.round(subtotal * 100)
-  const MIN_CARD_EUR = 0.5
-  const minCardCents = Math.round(MIN_CARD_EUR * 100)
+  const minCardCents = STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS
+  const MIN_CARD_EUR = minCardCents / 100
   const maxApplicableReward = useMemo(() => {
     if (!isCustomerBuyer || rewardBalanceCents <= 0 || subtotalCents <= 0) return 0
     return Math.max(0, Math.min(rewardBalanceCents, subtotalCents - minCardCents))
   }, [isCustomerBuyer, rewardBalanceCents, minCardCents, subtotalCents])
+
+  const cardChargeCents = Math.max(
+    0,
+    subtotalCents - Math.min(Math.max(0, Math.round(useRewardCents)), maxApplicableReward)
+  )
+  const checkoutBelowMinimum = subtotalCents > 0 && cardChargeCents < minCardCents
 
   const itemCount = useMemo(() => lines.reduce((n, row) => n + row.qty, 0), [lines])
 
@@ -358,6 +366,7 @@ export default function CartPage() {
 
   async function proceedToStripe() {
     setCheckoutBusy(true)
+    setCheckoutError(null)
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
@@ -377,14 +386,22 @@ export default function CartPage() {
         }),
       })
       const data = (await res.json()) as { url?: string; error?: string }
-      if (data.url) window.location.href = data.url
+      if (data.url) {
+        window.location.href = data.url
+        return
+      }
+      if (data.error === "checkout_minimum_not_met") {
+        setCheckoutError(t("checkoutMinimumNotMet", { min: MIN_CARD_EUR.toFixed(2) }))
+        return
+      }
+      setCheckoutError(t("checkoutFailed"))
     } finally {
       setCheckoutBusy(false)
     }
   }
 
   async function checkout() {
-    if (lines.length === 0 || checkoutBlocked) return
+    if (lines.length === 0 || checkoutBlocked || checkoutBelowMinimum) return
     if (!isCustomerBuyer) {
       setIdentityOpen(true)
       return
@@ -653,6 +670,16 @@ export default function CartPage() {
             </div>
           ) : null}
           <CartCheckoutShippingNote />
+          {checkoutBelowMinimum ? (
+            <p className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-100">
+              {t("checkoutMinimumNotMet", { min: MIN_CARD_EUR.toFixed(2) })}
+            </p>
+          ) : null}
+          {checkoutError ? (
+            <p className="mb-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-100">
+              {checkoutError}
+            </p>
+          ) : null}
           {!isCustomerBuyer ? (
             <p className="mb-3 text-center text-xs text-zinc-500 dark:text-zinc-400">
               {t("emailOrPhoneBeforePayment")}
@@ -663,7 +690,7 @@ export default function CartPage() {
           </div>
           <button
             type="button"
-            disabled={checkoutBusy || checkoutBlocked}
+            disabled={checkoutBusy || checkoutBlocked || checkoutBelowMinimum}
             onClick={() => void checkout()}
             className="mb-3 w-full rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 py-3.5 text-sm font-semibold text-white shadow-md transition hover:opacity-95 disabled:opacity-60"
           >

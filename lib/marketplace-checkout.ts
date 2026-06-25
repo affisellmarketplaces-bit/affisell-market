@@ -16,8 +16,11 @@ import { resolveSupplierCommissionRateBpsForProductId } from "@/lib/supplier-com
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import {
   fixZeroPaidLinesCents,
+  isStripeCheckoutPaidTotalValid,
   proportionalLinePaidsCents,
   STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS,
+  stripeCheckoutMinimumNotMetResponse,
+  sumPaidLinesCents,
 } from "@/lib/marketplace-checkout-discount"
 import { prisma } from "@/lib/prisma"
 import {
@@ -303,6 +306,17 @@ async function checkoutFromItems(
     }
   }
 
+  const paidTotalCents = sumPaidLinesCents(paidLineCents)
+  if (!isStripeCheckoutPaidTotalValid(paidTotalCents)) {
+    console.log("[checkout]", {
+      flow: "cart",
+      result: "checkout_minimum_not_met",
+      paidTotalCents,
+      minAmountCents: STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS,
+    })
+    return stripeCheckoutMinimumNotMetResponse()
+  }
+
   const stripeLineItems: MarketplaceStripeLineItem[] = []
   for (let i = 0; i < loaded.length; i++) {
     const row = loaded[i]!
@@ -462,6 +476,18 @@ export async function marketplaceCheckoutPOST(request: Request) {
       { error: "Unable to apply this much store credit for this item." },
       { status: 400 }
     )
+  }
+
+  const paidTotalCents = sumPaidLinesCents(paidLineCents)
+  if (!isStripeCheckoutPaidTotalValid(paidTotalCents)) {
+    console.log("[checkout]", {
+      flow: "single",
+      result: "checkout_minimum_not_met",
+      paidTotalCents,
+      minAmountCents: STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS,
+      affiliateProductId,
+    })
+    return stripeCheckoutMinimumNotMetResponse()
   }
 
   const stripeLineItems: MarketplaceStripeLineItem[] = []

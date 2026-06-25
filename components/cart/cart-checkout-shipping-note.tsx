@@ -25,7 +25,9 @@ export function CartCheckoutShippingNote({ className }: Props) {
     >
       <Truck className="mt-0.5 size-4 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
       <div className="min-w-0">
-        <p className="text-sm font-semibold text-violet-950 dark:text-violet-100">{t("title")}</p>
+        <p className="text-sm font-semibold text-violet-950 dark:text-violet-100">
+          {t("title", { count: checkoutCountryCount })}
+        </p>
         <p className="mt-1 text-xs leading-relaxed text-violet-900/90 dark:text-violet-200/90">
           {t("body", { count: checkoutCountryCount })}
         </p>
