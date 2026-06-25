@@ -26,10 +26,21 @@ async function main() {
     process.exit(0)
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
+    const cause =
+      err instanceof Error && err.cause instanceof Error
+        ? err.cause.message
+        : undefined
+    const connectionRefused =
+      msg === "fetch failed" ||
+      cause?.includes("ECONNREFUSED") ||
+      cause?.includes("Connection refused")
     console.error("[medusa-verify] FAILED", {
       error: msg,
-      hint:
-        msg.includes("401")
+      cause,
+      backend: process.env.MEDUSA_BACKEND_URL ?? "http://localhost:9000",
+      hint: connectionRefused
+        ? "Medusa is not reachable — run: cd medusa-backend && npm run dev"
+        : msg.includes("401")
           ? "Use Secret API Key (sk_…) from Medusa Admin → Settings → Secret API Keys (Basic auth, not Bearer)"
           : undefined,
     })
