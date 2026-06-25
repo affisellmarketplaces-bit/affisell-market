@@ -275,11 +275,9 @@ export function MerchantLegalProfileSubmitForm({ role }: Props) {
             </div>
             {uploadError ? <p className="text-sm text-rose-600 dark:text-rose-400">{uploadError}</p> : null}
             {error ? <p className="text-sm text-rose-600 dark:text-rose-400">{error}</p> : null}
-            {role === "SUPPLIER" ? (
-              <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
-                {role === "AFFILIATE" ? tLegal("vatNoticeAffiliate") : tLegal("vatNotice")}
-              </p>
-            ) : null}
+            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
+              {role === "AFFILIATE" ? tLegal("vatNoticeAffiliate") : tLegal("vatNotice")}
+            </p>
             <div className="flex gap-2">
               <button
                 type="button"

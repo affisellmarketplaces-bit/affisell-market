@@ -407,11 +407,9 @@ export function MerchantLegalSignupWizard({
                   onRoleTermsChange={setRoleTermsChecked}
                   onPrivacyChange={setPrivacyChecked}
                 />
-                {role === "SUPPLIER" ? (
-                  <p className="rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
-                    {role === "AFFILIATE" ? tLegal("vatNoticeAffiliate") : tLegal("vatNotice")}
-                  </p>
-                ) : null}
+                <p className="rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
+                  {role === "AFFILIATE" ? tLegal("vatNoticeAffiliate") : tLegal("vatNotice")}
+                </p>
                 <button
                   type="submit"
                   disabled={loading || !cguChecked || !roleTermsChecked || !privacyChecked}
