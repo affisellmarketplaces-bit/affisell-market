@@ -266,11 +266,9 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
     if (list?.length) void ingestFiles(list)
   }
 
-  const handleFileForSlot = (slotIndex: number, e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    e.target.value = ""
-    if (!file) return
-    void ingestFiles([file])
+  const openFilePicker = () => {
+    if (busy || remaining === 0) return
+    fileInputRef.current?.click()
   }
 
   const removeAt = (slotIndex: number) => {
@@ -417,7 +415,12 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
                 />
               </div>
             ) : (
-              <label className="absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-zinc-300/90 bg-zinc-50/90 transition hover:border-violet-400 hover:bg-violet-50/50 dark:border-zinc-600 dark:bg-zinc-900/50 dark:hover:border-violet-500">
+              <button
+                type="button"
+                disabled={busy || remaining === 0}
+                onClick={openFilePicker}
+                className="absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-zinc-300/90 bg-zinc-50/90 transition hover:border-violet-400 hover:bg-violet-50/50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-600 dark:bg-zinc-900/50 dark:hover:border-violet-500"
+              >
                 {processingSlots.has(0) ? (
                   <Loader2 className="h-8 w-8 animate-spin text-violet-600" aria-hidden />
                 ) : (
@@ -428,14 +431,7 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
                     </span>
                   </>
                 )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="sr-only"
-                  disabled={busy}
-                  onChange={(e) => void handleFileForSlot(0, e)}
-                />
-              </label>
+              </button>
             )}
           </div>
 
@@ -470,21 +466,19 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
                       />
                     </div>
                   ) : (
-                    <label className="absolute inset-0 flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-transparent bg-zinc-100/90 transition hover:border-zinc-300 hover:bg-zinc-200/80 dark:bg-zinc-800/90 dark:hover:border-zinc-600 dark:hover:bg-zinc-700/80">
+                    <button
+                      type="button"
+                      disabled={busy || remaining === 0}
+                      onClick={openFilePicker}
+                      className="absolute inset-0 flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-transparent bg-zinc-100/90 transition hover:border-zinc-300 hover:bg-zinc-200/80 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-800/90 dark:hover:border-zinc-600 dark:hover:bg-zinc-700/80"
+                    >
                       {processing ? (
                         <Loader2 className="h-5 w-5 animate-spin text-violet-600" aria-hidden />
                       ) : (
                         <BoxPlaceholder variant={idx} />
                       )}
-                      <span className="sr-only">Add image</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="sr-only"
-                        disabled={busy}
-                        onChange={(e) => void handleFileForSlot(slotIndex, e)}
-                      />
-                    </label>
+                      <span className="sr-only">{t("addPhotos")}</span>
+                    </button>
                   )}
                 </div>
               )
