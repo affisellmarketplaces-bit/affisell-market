@@ -18,7 +18,21 @@ describe("storePublicUrl", () => {
     ).toBe("https://boutique.fr")
   })
 
-  it("uses auto subdomain as primary in production", () => {
+  it("uses platform path on Vercel preview deployments", () => {
+    vi.stubEnv("NODE_ENV", "production")
+    vi.stubEnv("AFFISELL_STORE_HOST_SUFFIX", "shops.affisell.com")
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://affisell-market.vercel.app")
+
+    const urls = resolveStorePublicUrls({
+      slug: "ecom-store",
+      role: "AFFILIATE",
+    })
+    expect(urls.platformPathUrl).toBe("https://affisell-market.vercel.app/shops/ecom-store")
+    expect(urls.primaryUrl).toBe(urls.platformPathUrl)
+    expect(urls.subdomainUrl).toBe("https://ecom-store.shops.affisell.com")
+  })
+
+  it("uses auto subdomain as primary on production app domain", () => {
     vi.stubEnv("NODE_ENV", "production")
     vi.stubEnv("AFFISELL_STORE_HOST_SUFFIX", "shops.affisell.com")
     vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://affisell.com")
@@ -32,7 +46,7 @@ describe("storePublicUrl", () => {
     expect(urls.platformPathUrl).toContain("/shops/my-shop")
   })
 
-  it("uses dev subdomain URL with app port for clickable links", () => {
+  it("uses platform path in local dev for clickable links", () => {
     vi.stubEnv("NODE_ENV", "development")
     vi.stubEnv("NEXT_PUBLIC_APP_URL", "http://localhost:3001")
 
@@ -43,7 +57,7 @@ describe("storePublicUrl", () => {
       role: "AFFILIATE",
     })
     expect(urls.subdomainUrl).toBe("http://my-shop.shops.localhost:3001")
-    expect(urls.primaryUrl).toBe(urls.subdomainUrl)
+    expect(urls.primaryUrl).toBe(urls.platformPathUrl)
     expect(urls.platformPathUrl).toContain("/shops/my-shop")
   })
 })

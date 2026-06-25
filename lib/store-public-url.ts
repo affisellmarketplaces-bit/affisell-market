@@ -35,9 +35,26 @@ export function storeSubdomainPublicUrl(slug: string): string {
   return base.origin
 }
 
+function appOriginHost(): string {
+  try {
+    return new URL(appBaseUrl()).hostname.toLowerCase()
+  } catch {
+    return ""
+  }
+}
+
 function shouldUseSubdomainAsPrimaryClickable(): boolean {
   if (!isStoreSubdomainEnabled()) return false
-  return true
+  if (process.env.AFFISELL_STORE_SUBDOMAIN_PRIMARY === "0") return false
+  if (process.env.AFFISELL_STORE_SUBDOMAIN_PRIMARY === "1") return true
+
+  const host = appOriginHost()
+  // Vercel preview URLs — wildcard *.shops.affisell.com is not attached to this deployment.
+  if (host.endsWith(".vercel.app")) return false
+  // Local dev — prefer /shops/{slug} on the Next origin (shops.localhost often unroutable).
+  if (host === "localhost" || host.endsWith(".localhost")) return false
+
+  return process.env.NODE_ENV === "production"
 }
 
 export function resolveStorePublicUrls(input: StorePublicUrlInput): StorePublicUrls {
