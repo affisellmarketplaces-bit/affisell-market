@@ -396,7 +396,8 @@
       "fieldSocial": "TikTok / Instagram handle",
       "fieldPassword": "Password",
       "vatNotice": "Suppliers remain liable for VAT on sales. Affisell fees apply to net amounts excl. VAT.",
-      "vatNoticeAffiliate": "Declare your partner earnings (commission + net markup) under your country of tax residence. Buyer VAT is collected at checkout (Stripe Tax) by the selling supplier.",
+      "vatNoticeAffiliate": "You are a curator partner, not the seller: declare your remuneration under your country of residence rules. VAT on buyer purchases is collected at checkout based on delivery country and is the selling supplier's obligation.",
+      "affiliateStatusCardSub": "Curator partner — identity only; tax filings under your country of residence",
       "hasAccountSupplier": "Already a partner?",
       "hasAccountAffiliate": "Already a creator?",
       "signIn": "Sign in",
@@ -908,11 +909,13 @@
     },
     "earnings": {
       "taxCompliance": {
-        "title": "Partner tax compliance",
-        "body": "You receive partner remuneration (supplier commission + net markup). Declare this income under your country of tax residence.",
-        "buyerVat": "VAT on customer purchases is calculated at checkout based on the buyer's country (Stripe Tax) and is the selling supplier's obligation — not your curator storefront.",
-        "records": "Affisell and Stripe Connect statements are your accounting baseline. Keep them for filings.",
-        "dac7": "Affisell may report your platform earnings to authorities (DAC7 / equivalent) where required by law."
+        "title": "Curator partner tax framework",
+        "body": "You are not the product seller. You receive partner remuneration (supplier commission + net markup) for curation and promotion — declare it under the tax and social rules of your country of residence.",
+        "nonSeller": "Professional seller obligations (retail VAT, legal warranties, withdrawal rights against the seller) rest with the supplier, not your curator storefront.",
+        "buyerVat": "VAT on customer purchases is calculated at checkout based on the buyer's delivery or consumption country and is exclusively the selling supplier's obligation.",
+        "records": "Keep your Affisell statements and payment notifications as an accounting baseline for your filings.",
+        "dac7": "Affisell may report your platform earnings to competent authorities (DAC7 / digital platform reporting) as required by law.",
+        "advice": "Affisell does not provide tax advice. Consult an accountant or tax adviser in your country if needed."
       }
     },
     "liveStore": {
@@ -3036,8 +3039,8 @@
     },
     "viewDetails": "View details & invoice →",
     "preparing": {
-      "title": "Your seller is preparing shipment",
-      "body": "They've confirmed your order is being packed. Tracking appears the moment the carrier scans the parcel.",
+      "title": "Your supplier is preparing shipment",
+      "body": "The selling supplier is packing your order. Tracking appears once the carrier scans the parcel.",
       "since": "Since"
     },
     "trackingLine": "Tracking: {carrier} {number}",
@@ -3052,7 +3055,7 @@
     "return": {
       "label": "Return: ",
       "status": {
-        "REQUESTED": "Awaiting seller",
+        "REQUESTED": "Awaiting supplier",
         "AWAITING_SHIPMENT": "Ship item back",
         "IN_TRANSIT": "Return in transit",
         "RECEIVED": "Received — refund pending",
@@ -3081,13 +3084,13 @@
     "fulfillmentPanel": {
       "loading": "Loading…",
       "title": "Shipping update",
-      "seller": "Seller",
+      "seller": "Supplier",
       "buyer": "You",
-      "extensionAsk": "The seller requests {days} extra days to ship:",
+      "extensionAsk": "The supplier requests {days} extra days to ship:",
       "accept": "Accept extra time",
       "reject": "Refuse (order may be cancelled)",
-      "notePlaceholder": "Optional note to the seller",
-      "reply": "Reply to seller",
+      "notePlaceholder": "Optional note to the supplier",
+      "reply": "Reply to supplier",
       "send": "Send",
       "messagePlaceholder": "Your message…",
       "accepted": "You accepted the extension.",

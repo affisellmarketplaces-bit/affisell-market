@@ -11,8 +11,8 @@ export function roleTermsHrefForRole(role: MerchantRole): string {
 }
 
 export function roleTermsLabelForRole(role: MerchantRole): string {
-  if (role === "SUPPLIER") return "CGA"
-  if (role === "AFFILIATE") return "CGS"
+  if (role === "SUPPLIER") return "CGS"
+  if (role === "AFFILIATE") return "CGA"
   return "CGU"
 }
 

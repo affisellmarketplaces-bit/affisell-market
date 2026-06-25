@@ -252,7 +252,9 @@ export function MerchantLegalSignupWizard({
                           </span>
                           <span className="text-sm font-bold text-white">{tLegal(item.titleKey)}</span>
                           <span className="text-[11px] leading-snug text-violet-100/75">
-                            {tLegal(item.subtitleKey)}
+                            {tLegal(
+                              role === "AFFILIATE" ? "affiliateStatusCardSub" : item.subtitleKey
+                            )}
                           </span>
                         </button>
                       </li>

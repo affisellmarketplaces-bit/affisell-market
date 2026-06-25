@@ -22,7 +22,7 @@ Les présentes Conditions générales d'utilisation (« **CGU** ») régissent l
 ## Article 2 — Définitions
 
 - **Acheteur** : personne physique ou morale passant commande via la Plateforme.
-- **Affilié** : partenaire commercialisant les produits d'un Fournisseur via un listing Affisell.
+- **Affilié** : partenaire curateur commercialisant les produits d'un Fournisseur via un listing Affisell ; **il n'est pas le vendeur** des marchandises.
 - **Fournisseur** : professionnel proposant des produits sur la Plateforme.
 - **Listing** : fiche produit personnalisée par un Affilié (prix, médias, description).
 - **Commande** : contrat de vente conclu entre l'Acheteur et le Fournisseur, facilité par Affisell.
@@ -37,7 +37,7 @@ Les présentes Conditions générales d'utilisation (« **CGU** ») régissent l
 
 ## Article 4 — Rôle d'Affisell et relation tripartite
 
-4.1. Le contrat de vente du produit est conclu **directement entre l'Acheteur et le Fournisseur**. L'Affilié agit en qualité de **partenaire curateur** (vitrine, sélection, markup) et **n'est pas le vendeur** des marchandises. Il perçoit une rémunération (commission et/ou marge) selon les paramètres du listing et du catalogue.
+4.1. Le contrat de vente du produit est conclu **directement entre l'Acheteur et le Fournisseur**. L'Affilié agit en qualité de **partenaire curateur** (vitrine, sélection, markup) et **n'est pas le vendeur** des marchandises. Il perçoit une **rémunération partenaire** (commission et/ou marge) à déclarer selon les règles de son pays de résidence ; les obligations de vendeur (dont TVA sur la vente du produit au consommateur) incombent au Fournisseur.
 
 4.2. Affisell perçoit une **commission de plateforme** calculée sur le **montant HT** de la ligne commande (hors TVA), selon le barème en vigueur (taux par défaut **10 %**, variable par catégorie ou produit).
 
@@ -45,9 +45,9 @@ Les présentes Conditions générales d'utilisation (« **CGU** ») régissent l
 
 ## Article 5 — Prix, TVA et facturation
 
-5.1. Les prix affichés à l'Acheteur peuvent être indiqués TTC lorsque la TVA est collectée via Stripe Tax ou mécanisme équivalent.
+5.1. Les prix affichés à l'Acheteur peuvent être indiqués TTC lorsque la TVA est collectée via Stripe Tax ou mécanisme équivalent, selon le **pays de livraison ou de consommation de l'Acheteur**.
 
-5.2. Le Fournisseur demeure responsable de ses obligations fiscales (TVA, facturation). Affisell fournit des données de transaction pour faciliter la comptabilité.
+5.2. Le Fournisseur demeure responsable de ses obligations fiscales sur la vente du produit (TVA, facturation au consommateur). L'Affilié déclare sa rémunération partenaire selon son pays de résidence. Affisell fournit des données de transaction pour faciliter la comptabilité.
 
 ## Article 6 — Paiements et reversements (payouts)
 

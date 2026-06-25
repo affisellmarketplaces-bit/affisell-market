@@ -51,7 +51,7 @@ export default async function AffiliateEarningsPage() {
       role="AFFILIATE"
       eyebrow="Partner commerce"
       title="Earnings cockpit"
-      description="Commission from your storefront rate plus markup on every sale, minus Affisell platform fee on your earnings. Only you and Affisell ops see markup — suppliers never see it."
+      description="Partner remuneration from supplier commission and your net markup on each sale, minus Affisell platform fee. You are a curator partner, not the product seller — declare earnings under your country of residence."
       paidOutLabel="Paid out via ledger"
       paidOutCents={data.paidOutCents}
       bands={data.bands}

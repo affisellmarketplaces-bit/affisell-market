@@ -22,7 +22,7 @@ These General Terms of Use ("**GTU**") govern access to and use of the **Affisel
 ## Article 2 — Definitions
 
 - **Buyer**: natural or legal person placing an order via the Platform.
-- **Affiliate**: partner marketing a Supplier's products via an Affisell listing.
+- **Affiliate**: curator partner marketing a Supplier's products via an Affisell listing; **they are not the seller** of the goods.
 - **Supplier**: professional offering products on the Platform.
 - **Listing**: product page customized by an Affiliate (price, media, description).
 - **Order**: sales contract concluded between the Buyer and the Supplier, facilitated by Affisell.
@@ -37,7 +37,7 @@ These General Terms of Use ("**GTU**") govern access to and use of the **Affisel
 
 ## Article 4 — Affisell's role and tripartite relationship
 
-4.1. The product sales contract is concluded **directly between the Buyer and the Supplier**. The Affiliate acts as a **curator partner** (storefront, selection, markup) and **is not the seller** of the goods. They receive remuneration (commission and/or margin) according to listing and catalogue parameters.
+4.1. The product sales contract is concluded **directly between the Buyer and the Supplier**. The Affiliate acts as a **curator partner** (storefront, selection, markup) and **is not the seller** of the goods. They receive **partner remuneration** (commission and/or margin) to be declared under their country of residence rules; seller obligations (including VAT on the product sale to the consumer) rest with the Supplier.
 
 4.2. Affisell receives a **platform commission** calculated on the **net amount excluding VAT** of the order line (excluding VAT), according to the applicable scale (default rate **10%**, variable by category or product).
 
@@ -45,9 +45,9 @@ These General Terms of Use ("**GTU**") govern access to and use of the **Affisel
 
 ## Article 5 — Prices, VAT and invoicing
 
-5.1. Prices displayed to the Buyer may be shown inclusive of tax when VAT is collected via Stripe Tax or an equivalent mechanism.
+5.1. Prices displayed to the Buyer may be shown inclusive of tax when VAT is collected via Stripe Tax or an equivalent mechanism, based on the **Buyer's delivery or consumption country**.
 
-5.2. The Supplier remains responsible for their tax obligations (VAT, invoicing). Affisell provides transaction data to facilitate accounting.
+5.2. The Supplier remains responsible for tax obligations on the product sale (VAT, consumer invoicing). The Affiliate declares partner remuneration under their country of residence. Affisell provides transaction data to facilitate accounting.
 
 ## Article 6 — Payments and payouts
 

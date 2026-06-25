@@ -9,21 +9,27 @@ order: 3
 
 **Letzte Aktualisierung: {{LAST_UPDATED}}**
 
-Diese Allgemeinen Partnerbedingungen („**APB**“) ergänzen die [ANB](/legal/terms-of-service) und regeln das Verhältnis zwischen **Affisell SAS** und jedem als **Partner (Affiliate)** registrierten Partner (Creator, Influencer, Wiederverkäufer).
+Diese Allgemeinen Partnerbedingungen („**APB**“) ergänzen die [ANB](/legal/terms-of-service) und regeln das Verhältnis zwischen **Affisell SAS** und jedem als **Partner (Affiliate)** registrierten Partner (Creator, Influencer, Kurator).
 
-## Artikel 1 — Status
+## Artikel 1 — Status als Kurator-Partner (kein Verkäufer)
 
-1.1. Der Partner handelt als **Unternehmer oder Nicht-Unternehmer** gemäß seiner Angabe. Er ist allein verantwortlich für seine steuerlichen und sozialen Pflichten (URSSAF, MwSt., Einkommensteuererklärung).
+1.1. Der Partner ist ein **unabhängiger Handelspartner**, der Produkte von Lieferanten über eine Affisell-Vitrine auswählt, präsentiert und bewirbt. **Er ist nicht Verkäufer** der Waren: Der Kaufvertrag kommt zwischen dem Käufer und dem **Lieferanten** zustande.
 
-### Artikel 1.2 — Begriff „Ambassador“
+1.2. Der Partner versendet keine Produkte, hält keinen Lagerbestand und trägt nicht die Verkäuferpflichten (Konformität, Lieferung, gesetzliche Gewährleistung) — vorbehaltlich seiner Pflichten zu ehrlicher Kommunikation.
 
-Der zu Marketingzwecken verwendete Begriff „Ambassador“ bezeichnet ausschließlich einen unabhängigen Affisell-Partner im Sinne von Artikel 1.1.
+1.3. **Verkäufernormen im Land des Käufers** gelten nicht für den Partner als Kurator, sondern für den **verkaufenden Lieferanten**.
+
+1.4. Der Partner erklärt seine **Partnervergütung** nach den Steuer- und Sozialregeln seines **Wohnsitzlandes**.
+
+1.5. **MwSt. auf Produktverkäufe an Käufer** wird nach dem **Liefer- oder Verbrauchsland des Käufers** beim Checkout erhoben und ist Pflicht des **verkaufenden Lieferanten**, nicht des Partners.
+
+### Artikel 1.6 — Begriff „Ambassador“
+
+Der zu Marketingzwecken verwendete Begriff „Ambassador“ bezeichnet ausschließlich einen unabhängigen Affisell-Partner im Sinne von Artikel 1.
 
 Die Verwendung dieses Begriffs begründet kein Weisungs-, Vertretungs- oder Arbeitsverhältnis zwischen dem Ambassador und Affisell oder dessen Lieferanten.
 
-Der Ambassador handelt auf eigene Rechnung und in eigenem Namen und bleibt allein verantwortlich für seine steuerlichen, sozialen und rechtlichen Pflichten.
-
-1.3. Affisell ist nicht Arbeitgeber des Partners.
+1.7. Affisell ist nicht Arbeitgeber des Partners und kann Einkünfte an Behörden melden (DAC7 o. Ä.).
 
 ## Artikel 2 — Listings und Aufschlag (Markup)
 

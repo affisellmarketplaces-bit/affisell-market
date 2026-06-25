@@ -22,9 +22,11 @@ export async function PartnerTaxCompliancePanel() {
           </h2>
           <p className="text-sm leading-relaxed text-violet-100/85">{t("body")}</p>
           <ul className="list-disc space-y-1.5 pl-4 text-xs leading-relaxed text-violet-100/75">
+            <li>{t("nonSeller")}</li>
             <li>{t("buyerVat")}</li>
             <li>{t("records")}</li>
             <li>{t("dac7")}</li>
+            <li>{t("advice")}</li>
           </ul>
         </div>
       </div>

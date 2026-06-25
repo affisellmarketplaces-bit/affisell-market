@@ -9,21 +9,27 @@ order: 3
 
 **Última actualización: {{LAST_UPDATED}}**
 
-Las presentes Condiciones Generales del Afiliado («**CGA**») complementan las [CGU](/legal/terms-of-service) y rigen la relación entre **Affisell SAS** y todo socio registrado como **Afiliado** (creador, influencer, revendedor).
+Las presentes Condiciones Generales del Afiliado («**CGA**») complementan las [CGU](/legal/terms-of-service) y rigen la relación entre **Affisell SAS** y todo socio registrado como **Afiliado** (creador, influencer, curador de vitrina).
 
-## Artículo 1 — Estatuto
+## Artículo 1 — Estatuto de socio curador (no vendedor)
 
-1.1. El Afiliado actúa como **profesional o no profesional** según su declaración. Es el único responsable de sus obligaciones fiscales y sociales (URSSAF, IVA, declaración de la renta).
+1.1. El Afiliado es un **socio comercial independiente** que selecciona, presenta y promociona productos de Proveedores mediante una vitrina Affisell. **No es el vendedor** de las mercancías: el contrato de venta se celebra entre el Comprador y el **Proveedor**.
 
-### Artículo 1.2 — Terminología «Embajador»
+1.2. El Afiliado no envía productos, no tiene stock y no asume las obligaciones del vendedor (conformidad, entrega, garantías legales), salvo sus deberes de comunicación leal.
 
-El término «Embajador», utilizado con fines de marketing, designa exclusivamente a un Afiliado independiente de Affisell tal como se define en el artículo 1.1.
+1.3. Las **normas del vendedor profesional en el país del Comprador** no se aplican al Afiliado como curador, sino al **Proveedor vendedor**.
+
+1.4. El Afiliado declara su **remuneración de socio** según las normas fiscales y sociales de su **país de residencia**.
+
+1.5. El **IVA sobre ventas a Compradores** se calcula según el **país de entrega o consumo del Comprador** en el checkout y es obligación del **Proveedor vendedor**, no del Afiliado.
+
+### Artículo 1.6 — Terminología «Embajador»
+
+El término «Embajador», utilizado con fines de marketing, designa exclusivamente a un Afiliado independiente de Affisell tal como se define en el artículo 1.
 
 El uso de este término no crea ninguna relación de subordinación, mandato de representación ni contrato de trabajo entre el Embajador y Affisell o sus Proveedores.
 
-El Embajador actúa en su propio nombre, por cuenta propia, y sigue siendo el único responsable de sus obligaciones fiscales, sociales y legales.
-
-1.3. Affisell no es el empleador del Afiliado.
+1.7. Affisell no es el empleador del Afiliado y puede informar ingresos a las autoridades (DAC7 o equivalente).
 
 ## Artículo 2 — Listados y margen comercial
 
